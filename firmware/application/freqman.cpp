@@ -47,44 +47,46 @@ options_t freqman_entry_bandwidths[ 4 ] = {
     },
     { //WFM
         { "200k" , 0 },
+        { "180k" , 1 },
+        { " 40k" , 2 },
     }
 };
 
 options_t freqman_entry_steps = {
-    { "0.1KHz      " , 100 },
-    { "1KHz        " , 1000 },
-    { "5KHz (SA AM)" , 5000 },
-    { "6.25KHz(NFM)" , 6250 },
-    { "8.33KHz(AIR)" , 8330 },
-    { "9KHz (EU AM)" , 9000 },
-    { "10KHz(US AM)" , 10000 },
-    { "12.5KHz(NFM)" , 12500 },
-    { "15KHz  (HFM)" , 15000 },
-    { "25KHz   (N1)" , 25000 },
-    { "30KHz (OIRT)" , 30000 },
-    { "50KHz  (FM1)" , 50000 },
-    { "100KHz (FM2)" , 100000 },
-    { "250KHz  (N2)" , 250000 },
-    { "500KHz (WFM)" , 500000 },
+    { "0.1kHz      " , 100 },
+    { "1kHz        " , 1000 },
+    { "5kHz (SA AM)" , 5000 },
+    { "6.25kHz(NFM)" , 6250 },
+    { "8.33kHz(AIR)" , 8330 },
+    { "9kHz (EU AM)" , 9000 },
+    { "10kHz(US AM)" , 10000 },
+    { "12.5kHz(NFM)" , 12500 },
+    { "15kHz  (HFM)" , 15000 },
+    { "25kHz   (N1)" , 25000 },
+    { "30kHz (OIRT)" , 30000 },
+    { "50kHz  (FM1)" , 50000 },
+    { "100kHz (FM2)" , 100000 },
+    { "250kHz  (N2)" , 250000 },
+    { "500kHz (WFM)" , 500000 },
     { "1MHz        " , 1000000 }
 };
 
 options_t freqman_entry_steps_short = {
-    { "0.1KHz"  , 100 },
-    { "1KHz"    , 1000 },
-    { "5KHz"    , 5000 },
-    { "6.25KHz" , 6250 },
-    { "8.33KHz" , 8330 },
-    { "9KHz"    , 9000 },
-    { "10KHz"   , 10000 },
-    { "12.5KHz" , 12500 },
-    { "15KHz"   , 15000 },
-    { "25KHz"   , 25000 },
-    { "30KHz"   , 30000 },
-    { "50KHz"   , 50000 },
-    { "100KHz"  , 100000 },
-    { "250KHz"  , 250000 },
-    { "500KHz"  , 500000 },
+    { "0.1kHz"  , 100 },
+    { "1kHz"    , 1000 },
+    { "5kHz"    , 5000 },
+    { "6.25kHz" , 6250 },
+    { "8.33kHz" , 8330 },
+    { "9kHz"    , 9000 },
+    { "10kHz"   , 10000 },
+    { "12.5kHz" , 12500 },
+    { "15kHz"   , 15000 },
+    { "25kHz"   , 25000 },
+    { "30kHz"   , 30000 },
+    { "50kHz"   , 50000 },
+    { "100kHz"  , 100000 },
+    { "250kHz"  , 250000 },
+    { "500kHz"  , 500000 },
     { "1MHz"    , 1000000 }
 };
 
@@ -144,17 +146,15 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
         // Reset line_start to beginning of buffer
         line_start = file_data;
 
-        if (!strstr(file_data, "f=") && !strstr(file_data, "a=") && !strstr(file_data, "r=") )
-            break;
-
         // Look for complete lines in buffer
         while ((line_end = strstr(line_start, "\x0A"))) {
 
+            *line_end = 0;      // Stop strstr() searches below at EOL
             modulation = -1 ;
             bandwidth = -1 ;
             step = -1 ;
             tone = -1 ;
-            type=SINGLE ;
+            type = ERROR_TYPE;
 
             frequency_a = frequency_b = 0;
             // Read frequency
@@ -162,6 +162,7 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
             if(pos) {
                 pos += 2;
                 frequency_a = strtoll(pos, nullptr, 10);
+                type = SINGLE;
             } else {
                 // ...or range
                 pos = strstr(line_start, "a=");

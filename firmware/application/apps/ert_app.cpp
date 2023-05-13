@@ -132,7 +132,7 @@ ERTAppView::ERTAppView(NavigationView&) {
 
 	logger = std::make_unique<ERTLogger>();
 	if( logger ) {
-		logger->append(u"ert.txt");
+		logger->append( LOG_ROOT_DIR "/ERT.TXT" );
 	}
 }
 

@@ -59,6 +59,8 @@ std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision);
 double get_decimals(double num, int16_t mult,  bool round = false); //euquiq added
 
+std::string trim(const std::string& str); // Remove whitespace at ends.
 std::string trimr(std::string str); // Remove trailing spaces
+std::string truncate(const std::string& str, size_t length);
 
 #endif/*__STRING_FORMAT_H__*/

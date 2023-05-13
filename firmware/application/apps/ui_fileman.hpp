@@ -36,6 +36,18 @@ struct fileman_entry {
 	bool is_directory { };
 };
 
+enum class EmptyReason : uint8_t {
+	NotEmpty,
+	NoFiles,
+	NoSDC
+};
+
+enum class ClipboardMode : uint8_t {
+	None,
+	Cut,
+	Copy
+};
+
 class FileManBaseView : public View {
 public:
 	FileManBaseView(
@@ -43,12 +55,15 @@ public:
 		std::string filter
 	);
 
+	virtual ~FileManBaseView() { }
+
 	void focus() override;	
 	std::string title() const override { return "Fileman"; };
 	void push_dir(const std::filesystem::path& path);
 
 protected:
-	static constexpr size_t max_filename_length = 50;
+	static constexpr size_t max_filename_length = 64;
+	static constexpr size_t max_items_shown = 100;
 
 	struct file_assoc_t {
 		std::filesystem::path extension;
@@ -66,7 +81,6 @@ protected:
 		{ u"", &bitmap_icon_file, ui::Color::light_grey() } // NB: Must be last.
 	};
 
-
 	std::filesystem::path get_selected_full_path() const;
 	const fileman_entry& get_selected_entry() const;
 
@@ -78,7 +92,7 @@ protected:
 
 	NavigationView& nav_;
 
-	bool empty_root { false };
+	EmptyReason empty_ { EmptyReason::NotEmpty };
 	std::function<void(KeyEvent)> on_select_entry { nullptr };
 	std::function<void(bool)> on_refresh_widgets { nullptr };
 
@@ -102,59 +116,106 @@ protected:
 		{ 0, 2 * 8, 240, 26 * 8 },
 		true
 	};
+
+	// HACK: for item count limit.
+	Text text_info {
+		{ 1 * 8, 35 * 8, 15 * 8, 16 },
+		""
+	};
 	
 	Button button_exit {
-		{ 16 * 8, 34 * 8, 14 * 8, 32 },
+		{ 21 * 8, 34 * 8, 9 * 8, 32 },
 		"Exit"
 	};
 };
-
-/*class FileSaveView : public FileManBaseView {
-public:
-	FileSaveView(NavigationView& nav);
-	~FileSaveView();
-
-private:
-	std::string name_buffer { };
-	
-	void on_save_name();
-	
-	Text text_save {
-		{ 4 * 8, 15 * 8, 8 * 8, 16 },
-		"Save as:",
-	};
-	Button button_save_name {
-		{ 4 * 8, 18 * 8, 12 * 8, 32 },
-		"Name (set)"
-	};
-	LiveDateTime live_timestamp {
-		{ 17 * 8, 24 * 8, 11 * 8, 16 }
-	};
-};*/
 
 class FileLoadView : public FileManBaseView {
 public:
 	std::function<void(std::filesystem::path)> on_changed { };
 	
 	FileLoadView(NavigationView& nav, std::string filter);
+	virtual ~FileLoadView() { }
 
 private:
 	void refresh_widgets(const bool v);
 };
 
+/*
+// It would be nice to be able to launch FileLoadView
+// but it will OOM if launched from within FileManager.
+class FileSaveView : public View {
+public:
+	FileSaveView(
+		NavigationView& nav,
+		const std::filesystem::path& path,
+		const std::filesystem::path& file);
+
+	std::function<void(std::filesystem::path)> on_save { };
+
+private:
+	static constexpr size_t max_filename_length = 64;
+
+	void refresh_widgets();
+
+	NavigationView& nav_;
+	std::filesystem::path path_;
+	std::filesystem::path file_;
+	std::string buffer_ { };
+
+	Labels labels {
+		{ { 0 * 8, 1 * 16 }, "Path:", Color::light_grey() },
+		{ { 0 * 8, 6 * 16 }, "Filename:", Color::light_grey() },
+	};
+
+	Text text_path {
+		{ 0 * 8, 2 * 16, 30 * 8, 16 },
+		"",
+	};
+
+	Button button_edit_path {
+		{ 18 * 8, 3 * 16, 11 * 8, 32 },
+		"Edit Path"
+	};
+
+	Text text_name {
+		{ 0 * 8, 7 * 16, 30 * 8, 16 },
+		"",
+	};
+
+	Button button_edit_name {
+		{ 18 * 8, 8 * 16, 11 * 8, 32 },
+		"Edit Name"
+	};
+
+	Button button_save {
+		{ 10 * 8, 16 * 16, 9 * 8, 32 },
+		"Save"
+	};
+
+	Button button_cancel {
+		{ 20 * 8, 16 * 16, 9 * 8, 32 },
+		"Cancel"
+	};
+};
+*/
+
 class FileManagerView : public FileManBaseView {
 public:
 	FileManagerView(NavigationView& nav);
-	~FileManagerView();
+	virtual ~FileManagerView() { }
 
 private:
 	// Passed by ref to other views needing lifetime extension.
 	std::string name_buffer { };
+	std::filesystem::path clipboard_path { };
+	ClipboardMode clipboard_mode { ClipboardMode::None }; 
 	
 	void refresh_widgets(const bool v);
 	void on_rename();
 	void on_delete();
+	void on_paste();
 	void on_new_dir();
+	void on_new_file();
 
 	// True if the selected entry is a real file item.
 	bool selected_is_valid() const;
@@ -168,19 +229,53 @@ private:
 		""
 	};
 
-	Button button_rename {
-		{ 0 * 8, 29 * 8, 14 * 8, 32 },
-		"Rename"
+	NewButton button_rename {
+		{ 0 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_rename,
+		Color::dark_blue()
 	};
 
-	Button button_delete {
-		{ 16 * 8, 29 * 8, 14 * 8, 32 },
-		"Delete"
+	NewButton button_delete {
+		{ 4 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_trash,
+		Color::red()
 	};
 
-	Button button_new_dir {
-		{ 0 * 8, 34 * 8, 14 * 8, 32 },
-		"New Dir"
+	NewButton button_cut {
+		{ 9 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_cut,
+		Color::dark_grey()
+	};
+
+	NewButton button_copy {
+		{ 13 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_copy,
+		Color::dark_grey()
+	};
+
+	NewButton button_paste {
+		{ 17 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_paste,
+		Color::dark_grey()
+	};
+
+	NewButton button_new_dir {
+		{ 22 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_new_dir,
+		Color::green()
+	};
+
+	NewButton button_new_file {
+		{ 26 * 8, 29 * 8, 4 * 8, 32 },
+		{ },
+		&bitmap_icon_new_file,
+		Color::green()
 	};
 };
 

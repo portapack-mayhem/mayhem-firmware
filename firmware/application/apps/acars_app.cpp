@@ -100,7 +100,7 @@ ACARSAppView::ACARSAppView(NavigationView& nav) {
 	
 	logger = std::make_unique<ACARSLogger>();
 	if (logger)
-		logger->append("acars.txt");
+		logger->append(LOG_ROOT_DIR "/ACARS.TXT");
 }
 
 ACARSAppView::~ACARSAppView() {

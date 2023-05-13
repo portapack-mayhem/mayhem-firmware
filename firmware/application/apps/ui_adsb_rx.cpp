@@ -351,7 +351,7 @@ void ADSBRxView::sort_entries_by_state()
 }
 
 void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
-	logger = std::make_unique<ADSBLogger>();
+   	logger = std::make_unique<ADSBLogger>();
 	rtc::RTC datetime;
 	std::string callsign;
 	std::string str_info;
@@ -422,6 +422,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 			} else if(msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC){
 				entry.set_frame_velo(frame);
 				if (logger) {
+					logger->append( LOG_ROOT_DIR "/ADSB.TXT" );
 					logentry += "Type:" + to_string_dec_uint(msg_sub) +
 								" Hdg:" + to_string_dec_uint(entry.velo.heading) +
 								" Spd: "+ to_string_dec_int(entry.velo.speed);
@@ -432,7 +433,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage * message) {
 		} // frame.get_DF() == DF_ADSB
 
         if (logger) {
-                logger->append(u"adsb.txt");
+                logger->append( LOG_ROOT_DIR "/ADSB.TXT" );
                 // will log each frame in format:
                 // 20171103100227 8DADBEEFDEADBEEFDEADBEEFDEADBEEF ICAO:nnnnnn callsign Alt:nnnnnn Latnnn.nn Lonnnn.nn
 				logger->log_str(logentry);

@@ -135,10 +135,9 @@ SondeView::SondeView(NavigationView& nav) {
 
 	logger = std::make_unique<SondeLogger>();
 	if (logger)
-		logger->append(u"sonde.txt");
+		logger->append( LOG_ROOT_DIR "/SONDE.TXT" );
 
 	// initialize audio:
-	
 	field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 	
 	field_volume.on_change = [this](int32_t v) {

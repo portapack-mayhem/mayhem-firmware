@@ -131,7 +131,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 
 	logger = std::make_unique<POCSAGLogger>();
 	if (logger)
-		logger->append("pocsag.txt");
+		logger->append(LOG_ROOT_DIR "/POCSAG.TXT");
 
 	audio::output::start();
 	audio::output::unmute();

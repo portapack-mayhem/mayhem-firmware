@@ -54,12 +54,7 @@ private:
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
 		5,
-		{
-			{ "DSB 9k ", 0 },
-			{ "DSB 6k ", 0 },
-			{ "USB+3k ", 0 },
-			{ "LSB-3k ", 0 },
-			{ "CW     ", 0 },
+		{		// using  common messages from freqman.cpp
 		}
 	};
 };
@@ -76,10 +71,7 @@ private:
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
 		4,
-		{
-			{ " 8k5", 0 },
-			{ "11k ", 0 },
-			{ "16k ", 0 },
+		{		// using  common messages from freqman.cpp
 		}
 	};
 	
@@ -93,6 +85,24 @@ private:
 		{ 0, 99 },
 		1,
 		' ',
+	};
+};
+
+
+class WFMOptionsView : public View {
+public:
+	WFMOptionsView(const Rect parent_rect, const Style* const style);
+
+private:
+	Text label_config {
+		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
+		"BW",
+	};
+	OptionsField options_config {
+		{ 3 * 8, 0 * 16 },
+		3,
+		{		// using  common messages from freqman.cpp
+		}
 	};
 };
 
@@ -222,7 +232,7 @@ private:
 
 	RecordView record_view {
 		{ 0 * 8, 2 * 16, 30 * 8, 1 * 16 },
-		u"AUD",
+		u"AUD", u"AUDIO",
 		RecordView::FileType::WAV, 
 		4096, 
 		4

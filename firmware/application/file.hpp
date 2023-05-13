@@ -59,6 +59,10 @@ struct filesystem_error {
 	
 	std::string what() const;
 
+	bool ok() const {
+		return err == FR_OK;
+	}
+
 private:
 	uint32_t err { FR_OK };
 };
@@ -252,16 +256,23 @@ struct FATTimestamp {
 	uint16_t FAT_time;
 };
 
-uint32_t delete_file(const std::filesystem::path& file_path);
-uint32_t rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
+std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path);
+std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
+std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
-uint32_t make_new_directory(const std::filesystem::path& dir_path);
+std::filesystem::filesystem_error make_new_file(const std::filesystem::path& file_path);
+std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
+std::filesystem::filesystem_error ensure_directory(const std::filesystem::path& dir_path);
 
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
 std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);
 
-/* Gets an auto incrementing filename. */
-std::filesystem::path next_filename_stem_matching_pattern(std::filesystem::path filename_stem_pattern);
+/* Gets an auto incrementing filename stem.
+ * Pattern should be like "FOO_???.txt" where ??? will be replaced by digits.
+ * Pattern may also contain a folder path like "LOGS/FOO_???.txt".
+ * Pattern '?' must be contiguous (bad: "FOO?_??")
+ * Returns empty path if a filename could not be created. */
+std::filesystem::path next_filename_matching_pattern(const std::filesystem::path& pattern);
 
 /* Values added to FatFs FRESULT enum, values outside the FRESULT data type */
 static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");

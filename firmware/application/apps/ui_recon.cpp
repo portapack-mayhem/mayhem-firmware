@@ -91,10 +91,10 @@ namespace ui {
 		return _recon;
 	}
 
-	void ReconThread::set_freq_lock(const uint32_t v) {
+	void ReconThread::set_freq_lock(const int32_t v) {
 		_freq_lock = v;
 	}
-	uint32_t ReconThread::is_freq_lock() {
+	int32_t ReconThread::is_freq_lock() {
 		return _freq_lock;
 	}
 	int64_t ReconThread::get_current_freq() {
@@ -103,7 +103,6 @@ namespace ui {
 
 	void ReconThread::change_recon_direction() {
 		_fwd = !_fwd;
-		//chThdSleepMilliseconds(300);	//Give some pause after reversing recon direction
 	}
 
 	bool ReconThread::get_recon_direction() {
@@ -204,6 +203,7 @@ namespace ui {
 
 			while( !chThdShouldTerminate() && frequency_list_.size() > 0 ) 
 			{
+				uint32_t remaining_sleep = _lock_duration ;
 				if( !_freq_delete )
 				{
 					has_looped = false ;
@@ -408,7 +408,6 @@ namespace ui {
 										default:
 											break;
 									}
-									restart_recon = true ;
 								} 
 								// send a pause message with the right freq
 								if( has_looped && !_continuous )
@@ -429,9 +428,24 @@ namespace ui {
 								restart_recon = false ;
 							}
 						} // if( _freq_lock == 0 || _stepper != 0 || _index_stepper != 0 ) 
+
+                        // this while loop is needed to stabilize consecutive match without skipping
+                        // the little the rest, the more reactive and more CPU hog
+                        // the bigger the rest, less CPU and more delay when switching. I choose 5 msecs.
+                        while( _freq_lock != -1 && _freq_lock < (int32_t)_lock_nb_match && !chThdShouldTerminate() )
+                        {
+                            chThdSleepMilliseconds( 5 );
+                            if( remaining_sleep >= 5 )
+                                remaining_sleep -= 5 ;
+                            else
+                                remaining_sleep = 0 ; // leave some process time
+                        }
+                        if( _freq_lock == -1 )
+                            _freq_lock = 0 ;
 					} // if( _recon || _stepper != 0 || _index_stepper != 0 )
 				} // if( !freq_delete )
-				chThdSleepMilliseconds( _lock_duration );	//Needed to (eventually) stabilize the receiver into new freq
+				if( remaining_sleep )
+					chThdSleepMilliseconds( remaining_sleep );	//Needed to (eventually) stabilize the receiver into new freq
 			} //while( !chThdShouldTerminate() && frequency_list_.size() > 0 )
 		}//if (frequency_list_.size() > 0 )		
 	} //ReconThread::run
@@ -631,7 +645,7 @@ namespace ui {
 
 	ReconView::~ReconView() {
 
-		ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+		ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , lock_wait , field_volume.value() );
 
 		// save app settings
 		settings.save("recon", &app_settings);
@@ -648,6 +662,8 @@ namespace ui {
 		if( recon_thread )
 		{
 			int32_t nb_match = recon_thread->is_freq_lock();
+ 			if( nb_match == -1 )
+ 			nb_match = 0 ;
 			if( last_db != db )
 			{
 				last_db = db ;
@@ -719,9 +735,15 @@ namespace ui {
 		//HELPER: Pre-setting a manual range, based on stored frequency
 		rf::Frequency stored_freq = persistent_memory::tuned_frequency();
 		receiver_model.set_tuning_frequency( stored_freq );
-		frequency_range.min = stored_freq - 1000000;
+		if( stored_freq - OneMHz > 0 )
+			frequency_range.min = stored_freq - OneMHz ;
+		else
+			frequency_range.min = 0 ;
 		button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-		frequency_range.max = stored_freq + 1000000;
+		if( stored_freq + OneMHz < MAX_UFREQ )
+			frequency_range.max = stored_freq + OneMHz ;
+		else
+			frequency_range.max = MAX_UFREQ ;
 		button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 		// Loading settings
 		autostart = persistent_memory::recon_autostart_recon();
@@ -736,8 +758,6 @@ namespace ui {
 		field_volume.set_value( volume );
 		if( sd_card_mounted )
 		{
-			//Loading input and output file from settings
-			ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , volume );
 			// load auto common app settings
 			auto rc = settings.load("recon", &app_settings);
 			if(rc == SETTINGS_OK) {
@@ -769,11 +789,11 @@ namespace ui {
 			{
 				auto new_view = nav_.push<FrequencyKeypadView>(current_index);
 				new_view->on_changed = [this, &button](rf::Frequency f) {
-					f = f / 1000000 ;
+					f = f / OneMHz ;
 					if( f >= 1 && f <= frequency_list.size() )
 					{
 						recon_thread-> set_index_stepper( f - 1 - current_index );
-						recon_thread->set_freq_lock( 0 );
+						recon_thread->set_freq_lock( -1 );
 					}
 				};
 			}
@@ -781,9 +801,9 @@ namespace ui {
 
 		button_manual_start.on_change = [this]() {
 			frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * freqman_entry_get_step_value( def_step );
-			if( frequency_range.min < 1 )
+			if( frequency_range.min < 0 )
 			{
-				frequency_range.min = 1 ;
+				frequency_range.min = 0 ;
 			}
 			if( frequency_range.min > ( MAX_UFREQ - freqman_entry_get_step_value( def_step ) ) )
 			{
@@ -836,7 +856,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "FW>" );
 					recon_thread-> set_index_stepper( 1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 				else if( text_cycle.get_encoder_delta() < 0 )
 				{
@@ -844,7 +864,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "<RW" );
 					recon_thread-> set_index_stepper( -1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 			}
 			text_cycle.set_encoder_delta( 0 );
@@ -907,7 +927,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "FW>" );
 					recon_thread-> set_stepper( 1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 				else if( button_pause.get_encoder_delta() < 0 )
 				{
@@ -915,7 +935,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "<RW" );
 					recon_thread-> set_stepper( -1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 			}
 			button_pause.set_encoder_delta( 0 );
@@ -1117,7 +1137,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "FW>" );
 					recon_thread-> set_stepper( 1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 				else if( button_remove.get_encoder_delta() < 0 )
 				{
@@ -1125,7 +1145,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "<RW" );
 					recon_thread-> set_stepper( -1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 			}
 			button_remove.set_encoder_delta( 0 );
@@ -1317,7 +1337,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "FW>" );
 					recon_thread-> set_stepper( 1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 				else if( button_add.get_encoder_delta() < 0 )
 				{
@@ -1325,7 +1345,7 @@ namespace ui {
 					recon_thread -> set_recon_direction( fwd );
 					button_dir.set_text( "<RW" );
 					recon_thread-> set_stepper( -1 );
-					recon_thread->set_freq_lock( 0 );
+					recon_thread->set_freq_lock( -1 );
 				}
 			}
 			button_add.set_encoder_delta( 0 );
@@ -1366,10 +1386,9 @@ namespace ui {
 
 		button_recon_setup.on_select = [this,&nav](Button&) {
 
-			ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
-
-			if( frequency_list.size() != 0 )
-				user_pause();
+			audio::output::stop();
+			recon_thread->stop();	//STOP SCANNER THREAD
+			frequency_list.clear();
 
 			auto open_view = nav.push<ReconSetupView>(input_file,output_file,recon_lock_duration,recon_lock_nb_match,recon_match_mode);
 			open_view -> on_changed = [this](std::vector<std::string> result) {
@@ -1379,7 +1398,7 @@ namespace ui {
 				recon_lock_nb_match = strtol( result[3].c_str() , nullptr , 10 );
 				recon_match_mode	= strtol( result[4].c_str() , nullptr , 10 );
 
-				ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , recon_lock_duration , field_volume.value() );
+				ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , lock_wait , field_volume.value() );
 
 				autosave = persistent_memory::recon_autosave_freqs();
 				autostart = persistent_memory::recon_autostart_recon();
@@ -1390,61 +1409,56 @@ namespace ui {
 				load_hamradios = persistent_memory::recon_load_hamradios();
 
 				update_ranges = persistent_memory::recon_update_ranges_when_recon();
-
-				frequency_file_load( true );
+				frequency_file_load( false );
 				if( recon_thread )
 				{
 					recon_thread->set_lock_duration( recon_lock_duration );
 					recon_thread->set_lock_nb_match( recon_lock_nb_match );
 					recon_thread->set_continuous( continuous );
 					recon_thread->set_recon_direction( fwd );
+					if( autostart )
+					{
+						user_resume();
+					}
+					else
+					{
+						user_pause();
+					}
+					if( update_ranges && frequency_list.size() != 0 )
+					{
+						current_index = 0 ;
+						button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+						frequency_range.min = frequency_list[ current_index ] . frequency_a ;
+						if( frequency_list[ current_index ] . frequency_b != 0 )
+						{
+							button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
+							frequency_range.max = frequency_list[ current_index ] . frequency_b ;
+						}
+						else
+						{
+							button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+							frequency_range.max = frequency_list[ current_index ] . frequency_a ;
+						}
+					}
 				}
-				if( autostart )
+				field_lock_wait.set_value( lock_wait );
+				show_max();
+				if( userpause != true )
 				{
+					timer = 0 ;
 					user_resume();
 				}
 				else
 				{
-					user_pause();
+ 					if( recon_thread && frequency_list.size() != 0 )
+ 					{
+ 						RetuneMessage message { };
+ 						message.freq = recon_thread->get_current_freq();
+ 						message.range = current_index ;
+ 						EventDispatcher::send_message(message);
+ 					}
 				}
-
-				if( update_ranges )
-				{
-					button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-					frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-					if( frequency_list[ current_index ] . frequency_b != 0 )
-					{
-						button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-						frequency_range.max = frequency_list[ current_index ] . frequency_b ;
-					}
-					else
-					{
-						button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-						frequency_range.max = frequency_list[ current_index ] . frequency_a ;
-					}
-				}
-
-				lock_wait = ( 4 * ( recon_lock_duration * recon_lock_nb_match ) ) / 100 ;
-				lock_wait = lock_wait * 100 ; // poor man's rounding
-				if( lock_wait < 400 )
-					lock_wait = 400 ;
-				field_lock_wait.set_value( lock_wait );
-				show_max();
-				return ;
 			};
-
-			if( userpause != true )
-			{
-				timer = 0 ;
-				user_resume();
-			}
-			else
-			{
-				RetuneMessage message { };
-				message.freq = recon_thread->get_current_freq();
-				message.range = current_index ;
-				EventDispatcher::send_message(message);
-			}
 		};
 
 		field_wait.on_change = [this](int32_t v)
@@ -1507,13 +1521,12 @@ namespace ui {
 		button_scanner_mode.set_style( &style_blue );
 		button_scanner_mode.set_text( "RECON" );
 		file_name.set( "=>" );
-		field_squelch.set_value( squelch );
 
+		//Loading input and output file from settings
+		ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , lock_wait , volume );
+
+		field_squelch.set_value( squelch );
 		field_wait.set_value(wait);
-		lock_wait = ( 4 * ( recon_lock_duration * recon_lock_nb_match ) );
-		lock_wait = lock_wait / 100 ; lock_wait = lock_wait * 100 ; // poor man's rounding
-		if( lock_wait < 400 )
-			lock_wait = 400 ;
 		field_lock_wait.set_value(lock_wait);
 		field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
@@ -1668,7 +1681,7 @@ namespace ui {
 					status = 0 ;
 					update_stats = true ;
 					continuous_lock = false ;
-					recon_thread->set_freq_lock( 0 ); //in lock period, still analyzing the signal
+					recon_thread->set_freq_lock( -1 ); //in lock period, still analyzing the signal
 					recon_resume();  // RESUME!
 					big_display.set_style(&style_white);
 				}
@@ -1703,7 +1716,7 @@ namespace ui {
 					}
 				}
 			}
-			else // freq_lock < max_lock , LOCKING
+			else if( freq_lock >= 0 ) // freq_lock < max_lock , LOCKING
 			{
 				if( actual_db > squelch ) //MATCHING LEVEL
 				{
@@ -1734,6 +1747,7 @@ namespace ui {
 					{
 						timer = 0 ;
 						update_stats = true ;
+						recon_thread->set_freq_lock( -1 );
 					}
 				}
 			}
@@ -1795,17 +1809,17 @@ namespace ui {
 	}
 
 	void ReconView::user_pause() {
-		timer = 0 ; 	 				// Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-										//button_pause.set_text("<RESUME>");	//PAUSED, show resume
+		timer = 0 ; 	 				    // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
+		button_pause.set_text("<RESUME>");	//PAUSED, show resume
 		userpause=true;
 		continuous_lock=false;
 		recon_pause();
 	}
 
 	void ReconView::user_resume() {
-		timer = 0 ; 	 				// Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
-										//button_pause.set_text("<PAUSE>");		//Show button for pause
-		userpause=false;				// Resume recon
+		timer = 0 ;                       // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
+		button_pause.set_text("<PAUSE>"); //Show button for pause
+		userpause=false;                  // Resume recon
 		continuous_lock=false;
 		recon_resume();
 	}

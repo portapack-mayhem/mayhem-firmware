@@ -27,11 +27,18 @@
 #include "file.hpp"
 
 #include "lpc43xx_cpp.hpp"
+
 using namespace lpc43xx;
+
+#define LOG_ROOT_DIR "LOGS"
 
 class LogFile {
 public:
 	Optional<File::Error> append(const std::filesystem::path& filename) {
+		auto result = ensure_directory(filename.parent_path());
+		if (result.code())
+			return { result };
+		
 		return file.append(filename);
 	}
 

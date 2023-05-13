@@ -9,7 +9,6 @@ f=91300000,m=WFM,bw=200k,d=RMF Łobez
 f=91500000,m=WFM,bw=200k,d=RMF Ostroleka
 f=91700000,m=WFM,bw=200k,d=RMF Wagrowiec
 f=91900000,m=WFM,bw=200k,d=RMF Siedlce
-f=92500000,m=WFM,bw=200k,d=NRK Oslo
 f=92600000,m=WFM,bw=200k,d=RMF Elbląg
 f=92900000,m=WFM,bw=200k,d=RMF Wroclaw
 f=93000000,m=WFM,bw=200k,d=RMF Katowice
@@ -19,7 +18,6 @@ f=93600000,m=WFM,bw=200k,d=RMF Ryki
 f=93800000,m=WFM,bw=200k,d=RMF Luban
 f=94300000,m=WFM,bw=200k,d=RMF Płock
 f=94600000,m=WFM,bw=200k,d=RMF Poznan
-f=94800000,m=WFM,bw=200k,d=NRK Bergen
 f=94800000,m=WFM,bw=200k,d=RMF Zagan
 f=95100000,m=WFM,bw=200k,d=RMF Suwałki
 f=95300000,m=WFM,bw=200k,d=RMF Olsztyn
@@ -30,10 +28,8 @@ f=96100000,m=WFM,bw=200k,d=RMF Gorzow Wielkopolski
 f=96400000,m=WFM,bw=200k,d=RMF Bialogard
 f=96600000,m=WFM,bw=200k,d=RMF Walcz
 f=97100000,m=WFM,bw=200k,d=RMF Włoszczowa
-f=97200000,m=WFM,bw=200k,d=NRK Melhus
 f=98000000,m=WFM,bw=200k,d=RMF Kalisz
 f=98400000,m=WFM,bw=200k,d=RMF Gdansk
-f=98600000,m=WFM,bw=200k,d=NRK Arendal
 f=98900000,m=WFM,bw=200k,d=RMF Konin
 f=99300000,m=WFM,bw=200k,d=RMF Opole
 f=99500000,m=WFM,bw=200k,d=RMF Kluczbork

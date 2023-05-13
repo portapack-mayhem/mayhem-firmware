@@ -36,6 +36,8 @@ using namespace tonekey;
 
 #include "string_format.hpp"
 
+#include "freqman.hpp"
+
 namespace ui {
 
 /* AMOptionsView *********************************************************/
@@ -51,6 +53,7 @@ AMOptionsView::AMOptionsView(
 		&options_config,
 	});
 
+	freqman_set_bandwidth_option( AM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.am_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_am_configuration(n);
@@ -72,6 +75,7 @@ NBFMOptionsView::NBFMOptionsView(
 		&field_squelch
 	});
 
+	freqman_set_bandwidth_option( NFM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.nbfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_nbfm_configuration(n);
@@ -82,6 +86,27 @@ NBFMOptionsView::NBFMOptionsView(
 		receiver_model.set_squelch_level(v);
 	};
 }
+
+/* WFMOptionsView *******************************************************/
+
+WFMOptionsView::WFMOptionsView(
+	const Rect parent_rect, const Style* const style
+) : View { parent_rect }
+{
+	set_style(style);
+
+	add_children({
+		&label_config,
+		&options_config,
+	});
+
+	freqman_set_bandwidth_option( WFM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
+	options_config.set_selected_index(receiver_model.wfm_configuration());
+	options_config.on_change = [this](size_t n, OptionsField::value_t) {
+		receiver_model.set_wfm_configuration(n);
+	};
+}
+
 
 /* SPECOptionsView *******************************************************/
 
@@ -346,6 +371,7 @@ void AnalogAudioView::on_show_options_modulation() {
 		break;
 	
 	case ReceiverModel::Mode::WidebandFMAudio:
+		widget = std::make_unique<WFMOptionsView>(options_view_rect, &style_options_group);
 		waterfall.show_audio_spectrum_view(true);
 		text_ctcss.hidden(true);
 		break;

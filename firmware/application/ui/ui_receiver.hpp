@@ -63,6 +63,7 @@ private:
 	const range_t range;
 	rf::Frequency value_ { 0 };
 	rf::Frequency step { 25000 };
+	uint64_t last_ms_ { 0 };
 
 	rf::Frequency clamp_value(rf::Frequency value);
 };
@@ -247,6 +248,7 @@ public:
 			parent_pos,
 			5,
 			{
+				{ " Auto",        0 },  /* Faster == larger step. */
 				{ "   10",       10 },  /* Fine tuning SSB voice pitch,in HF and QO-100 sat #669 */
 				{ "   50",       50 },	/* added 50Hz/10Hz,but we do not increase GUI digit decimal */
 				{ "  100",      100 },

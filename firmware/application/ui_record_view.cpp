@@ -55,16 +55,19 @@ namespace ui {
 
 RecordView::RecordView(
 	const Rect parent_rect,
-	std::filesystem::path filename_stem_pattern,
+	const std::filesystem::path& filename_stem_pattern,
+	const std::filesystem::path& folder,
 	const FileType file_type,
 	const size_t write_size,
 	const size_t buffer_count
 ) : View { parent_rect },
 	filename_stem_pattern { filename_stem_pattern },
+	folder { folder },
 	file_type { file_type },
 	write_size { write_size },
 	buffer_count { buffer_count }
 {
+	ensure_directory(folder);
 	add_children({
 		&rect_background,
 		//&button_pitch_rssi,
@@ -154,7 +157,6 @@ void RecordView::start() {
 		return;
 	}
 
-	 
     std::filesystem::path base_path;
 	if(filename_date_frequency) {
      	rtcGetTime(&RTCD1, &datetime);
@@ -167,9 +169,11 @@ void RecordView::start() {
 								to_string_dec_uint(datetime.minute())        +
 								to_string_dec_uint(datetime.second());
 
-		base_path = filename_stem_pattern.string() + "_" + date_time + "_" + to_string_freq(receiver_model.tuning_frequency()) + "Hz";
+		base_path = filename_stem_pattern.string() + "_" + date_time + "_" +
+			trim(to_string_freq(receiver_model.tuning_frequency())) + "Hz";
+		base_path = folder / base_path;
 	} else {
-		base_path = next_filename_stem_matching_pattern(filename_stem_pattern);
+		base_path = next_filename_matching_pattern(folder / filename_stem_pattern);
 	}
 
 	if( base_path.empty() ) {
@@ -217,7 +221,7 @@ void RecordView::start() {
 	};
 
 	if( writer ) {
-		text_record_filename.set(base_path.replace_extension().string());
+		text_record_filename.set(truncate(base_path.filename().string(), 8));
 		button_record.set_bitmap(&bitmap_stop);
 		capture_thread = std::make_unique<CaptureThread>(
 			std::move(writer),
@@ -275,7 +279,7 @@ void RecordView::on_tick_second() {
 void RecordView::update_status_display() {
 	if( is_active() ) {
 		const auto dropped_percent = std::min(99U, capture_thread->state().dropped_percent());
-		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "\%";
+		const auto s = to_string_dec_uint(dropped_percent, 2, ' ') + "%";
 		text_record_dropped.set(s);
 	}
 	
