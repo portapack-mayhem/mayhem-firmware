@@ -990,9 +990,22 @@ namespace ui {
             }
         };
 
-        field_lock_wait.on_change = [this](int32_t v)
+        field_lock_wait.on_change = [this](uint32_t v)
         {
             recon_lock_duration = v ;
+
+            if( (v / 50) > recon_lock_nb_match )
+            {
+                field_lock_wait.set_style( &style_white );
+            }
+            else if( (v / 50) == recon_lock_nb_match )
+            {
+                field_lock_wait.set_style( &style_yellow);
+            }
+            else
+            {
+                field_lock_wait.set_style(&style_red);
+            }
         };
 
         field_squelch.on_change = [this](int32_t v) {
