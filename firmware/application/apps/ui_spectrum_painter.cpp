@@ -44,15 +44,13 @@ SpectrumPainterView::SpectrumPainterView(
 		&progressbar,
 		&field_frequency,
 		&field_rfgain, 
-		&field_rfamp,       // let's not use common rf_amp
+		&field_rfamp,
 		&check_loop,
 		&button_play,
 		&option_bandwidth,
 		&field_duration,
 		&field_pause,
 	});
-
-	//tx_view.hidden(true);
 
 	Rect view_rect = { 0, 3 * 8, 240, 80 };
 	input_image.set_parent_rect(view_rect);
@@ -96,7 +94,7 @@ SpectrumPainterView::SpectrumPainterView(
 				
 			radio::enable({
 				portapack::receiver_model.tuning_frequency(),
-				3072000U, // TODO: add edit
+				3072000U, // TODO: use bw edit
 				1750000, // TODO: also edit or auto?
 				rf::Direction::Transmit,
 				rf_amp,         //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps  
@@ -115,6 +113,7 @@ SpectrumPainterView::SpectrumPainterView(
 			uint16_t width = input_image.get_width();
 
 			tx_current_max_lines = height;
+			tx_current_width = width;
 			progressbar.set_max(tx_current_max_lines);
 			progressbar.set_value(0);
 
@@ -132,6 +131,7 @@ SpectrumPainterView::SpectrumPainterView(
 void SpectrumPainterView::start_tx() {
 	tx_current_line = 0;
 	tx_active = true;
+	tx_timestamp_start = chTimeNow();
 }
 
 void SpectrumPainterView::stop_tx() {
@@ -144,29 +144,37 @@ void SpectrumPainterView::stop_tx() {
 void SpectrumPainterView::frame_sync() {
 	if (tx_active) {
 		if (fifo->is_empty()) {
-			progressbar.set_value(tx_current_line);
 			if (tx_current_line >= tx_current_max_lines) {
-
 				if (check_loop.value()) {
 					tx_current_line = 0;
 				}
 				else {
 					stop_tx();
+					return;
 				}
-
-				return;
 			}
 
-			std::vector<uint8_t> line = input_image.get_line(tx_current_line++);
-			fifo->in(line);
+			int32_t sequence_duration = (field_duration.value() + ( check_loop.value() ? field_pause.value() : 0)) * 1000;
+			int32_t sequence_time = tx_time_elapsed() % sequence_duration;
+			bool is_pausing = sequence_time > field_duration.value() * 1000;
+
+			if (is_pausing) {
+				fifo->in(std::vector<uint8_t>(tx_current_width));
+			} else {
+				auto current_time_line = sequence_time * tx_current_max_lines / (field_duration.value() * 1000);
+				
+				progressbar.set_value(current_time_line);
+				std::vector<uint8_t> line = input_image.get_line(current_time_line);
+				fifo->in(line);
+			}
 		}
 	}
 }
 
 SpectrumPainterView::~SpectrumPainterView() {
 	portapack::transmitter_model.disable();
-	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
-	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
+	hackrf::cpld::load_sram_no_verify();
+	baseband::shutdown();
 }
 
 void SpectrumPainterView::focus() {
@@ -178,7 +186,7 @@ void SpectrumPainterView::on_target_frequency_changed(rf::Frequency f) {
 }
 
 void SpectrumPainterView::set_target_frequency(const rf::Frequency new_value) {
-	portapack::persistent_memory::set_tuned_frequency(new_value);;
+	portapack::persistent_memory::set_tuned_frequency(new_value);
 }
 
 rf::Frequency SpectrumPainterView::target_frequency() const {
@@ -189,7 +197,7 @@ void SpectrumPainterView::paint(Painter& painter) {
 	View::paint(painter);
 
 	size_t c;
-	Point pos = { 0, screen_pos().y() + 8 + 15 * 16 };
+	Point pos = { 0, screen_pos().y() + 8 + footer_location };
 	
 	for (c = 0; c < 20; c++) {
 		painter.draw_bitmap(
@@ -201,7 +209,7 @@ void SpectrumPainterView::paint(Painter& painter) {
 		if (c != 9)
 			pos += { 24, 0 };
 		else
-			pos = { 0, screen_pos().y() + 8 + 15 * 16 + 32 + 8 };
+			pos = { 0, screen_pos().y() + 8 + footer_location + 32 + 8 };
 	}
 }
 

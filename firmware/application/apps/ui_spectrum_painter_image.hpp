@@ -58,7 +58,7 @@ private:
 	uint32_t data_start {0};
 	
 	Button button_load_image {
-		{ 0 * 8, 17 * 8, 18 * 8, 28 },
+		{ 0 * 8, 11 * 16 - 4, 30 * 8, 28 },
 		"Load Image ..."
 	};
 };

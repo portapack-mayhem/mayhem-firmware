@@ -48,4 +48,11 @@ void SpectrumInputTextView::focus() {
     button_start.focus();
 }
 
+void SpectrumInputTextView::paint(Painter& painter) {
+	painter.fill_rectangle(
+		{{0, 40}, {240, 204}},
+		style().background
+	);
+}
+
 }

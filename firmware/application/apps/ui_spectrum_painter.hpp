@@ -37,7 +37,6 @@
 
 namespace ui {
 
-
 class SpectrumPainterView : public View {
 public:
 	SpectrumPainterView(NavigationView& nav);
@@ -54,7 +53,6 @@ public:
 	std::string title() const override { return "Spec.Painter"; };
 
 private:
-
 	void on_target_frequency_changed(rf::Frequency f);
 	void set_target_frequency(const rf::Frequency new_value);
 	rf::Frequency target_frequency() const;
@@ -63,6 +61,13 @@ private:
 	bool tx_active { false };
 	uint16_t tx_current_line { 0 };
 	uint16_t tx_current_max_lines { 0 };
+	uint16_t tx_current_width { 0 };
+	systime_t tx_timestamp_start { 0 };
+
+	inline uint32_t tx_time_elapsed() {
+		auto now = chTimeNow();
+		return now - tx_timestamp_start;
+	}
 
 	int32_t tx_gain { 47 };
 	bool rf_amp { false };
@@ -77,22 +82,22 @@ private:
 		{ "Text", Color::white(), input_views[1] }
 	};
 
+	static constexpr int32_t footer_location = 15 * 16 + 8;
 	ProgressBar progressbar {
-		{ 16, 25 * 8, 208, 16 }
+		{ 4, footer_location - 16, 240-8, 16 }
 	};
 
 	Labels labels {
-		{ { 10 * 8, 16 * 16 }, "GAIN   A:", Color::light_grey() },
-		{ { 1 * 8, 17 * 16 }, "BW:      Du:    P:", Color::light_grey() },
+		{ { 10 * 8, footer_location + 1 * 16 }, "GAIN   A:", Color::light_grey() },
+		{ { 1 * 8, footer_location + 2 * 16 }, "BW:      Du:    P:", Color::light_grey() },
 	};
 
-
 	FrequencyField field_frequency {
-		{ 0 * 8, 16 * 16 },
+		{ 0 * 8, footer_location + 1 * 16 },
 	};
 	
 	NumberField field_rfgain {
-		{ 14 * 8, 16 * 16 },
+		{ 14 * 8, footer_location + 1 * 16 },
 		2,
 		{ 0, 47 },
 		1,
@@ -100,7 +105,7 @@ private:
 	};
 
 	NumberField field_rfamp {     // previously  I was using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
-		{ 19 * 8, 16 * 16 },
+		{ 19 * 8, footer_location + 1 * 16 },
 		2,
 		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic App
 		14,
@@ -108,14 +113,14 @@ private:
 	};
 
 	Checkbox check_loop {
-		{ 21 * 8, 16 * 16 },
+		{ 21 * 8, footer_location + 1 * 16 },
 		4,
 		"Loop",
 		true
 	};
 
 	ImageButton button_play {
-		{ 28 * 8, 16 * 16, 2 * 8, 1 * 16 },
+		{ 28 * 8, footer_location + 1 * 16, 2 * 8, 1 * 16 },
 		&bitmap_play,
 		Color::green(),
 		Color::black()
@@ -123,7 +128,7 @@ private:
 
 	// add control for Bandwidth
 	OptionsField option_bandwidth {
-		{ 4 * 8, 17 * 16 },
+		{ 4 * 8, footer_location + 2 * 16 },
 		5,
 		{
 			{ "  8k5", 8500 },
@@ -144,18 +149,16 @@ private:
 		}
 	};
 	
-	// add control for speed
 	NumberField field_duration {
-		{ 13 * 8, 17 * 16 },
+		{ 13 * 8, footer_location + 2 * 16 },
 		3,
 		{ 0, 999 },
 		1,
 		' '	
 	};
 
-	// add control for pause when loop
 	NumberField field_pause {
-		{ 19 * 8, 17 * 16 },
+		{ 19 * 8, footer_location + 2 * 16 },
 		2,
 		{ 0, 99 },
 		1,

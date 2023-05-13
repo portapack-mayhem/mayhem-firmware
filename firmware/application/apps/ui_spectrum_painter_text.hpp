@@ -40,6 +40,7 @@ public:
 	~SpectrumInputTextView();
 
 	void focus() override;
+	void paint(Painter&) override;
 	
 private:
 	Button button_start {
