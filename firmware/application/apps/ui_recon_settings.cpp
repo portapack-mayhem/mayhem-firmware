@@ -91,7 +91,7 @@ namespace ui {
 			/* bad number of params, signal defaults */
 			input_file  = "RECON" ;
 			output_file = "RECON_RESULTS" ;
-			recon_lock_duration = 50 ;
+			recon_lock_duration = 100 ;
 			recon_lock_nb_match = 3 ;
 			recon_squelch_level = -14 ;
 			recon_match_mode = 0 ;
@@ -114,7 +114,7 @@ namespace ui {
 		if( it > 2 )
 			recon_lock_duration = strtoll( params[ 2 ].c_str() , nullptr , 10 );
 		else
-			recon_lock_duration = 50 ;
+			recon_lock_duration = 100 ;
 
 		if( it > 3 )
 			recon_lock_nb_match = strtoll( params[ 3 ].c_str() , nullptr , 10 );

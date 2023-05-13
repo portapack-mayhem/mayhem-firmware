@@ -35,219 +35,197 @@ namespace ui {
         return (sd_card::status() == sd_card::Status::Mounted) ? true : false;
     }
 
-    void ReconView::handle_retune() {
+    void ReconView::recon_redraw() {
 
         static int32_t last_db = 999999 ;
-        static int32_t last_nb_match = 999999 ;
-        static int32_t last_timer = -1 ;
-        static int32_t last_index = -1 ;
-        static int64_t last_freq = 0 ;
+        static uint32_t last_nb_match = 999999 ;
+        static uint32_t last_freq_lock = 999999 ;
+        static size_t last_list_size = 0 ;
+        static int8_t last_rssi_min = -127 ;
+        static int8_t last_rssi_med = -127 ;
+        static int8_t last_rssi_max = -127 ;
 
-        bool refresh_display = false ;
-
-        if( last_db != db )
+        if( last_rssi_min != rssi.get_min() || last_rssi_med != rssi.get_avg() || last_rssi_max != rssi.get_max() ) 
         {
-            last_db = db ;
-            refresh_display = true ;
-        }
-        if( last_nb_match != (int32_t)freq_lock )
-        {
-            last_nb_match = freq_lock ;
-            refresh_display = true ;
-        }
-        if( last_timer != timer )
-        {
-            last_timer = timer ;
-            refresh_display = true ;
-        }
-        if( refresh_display )
-        {
-            text_max.set( "/" + to_string_dec_uint( frequency_list.size() ) + " " + to_string_dec_int( db ) + " db " + to_string_dec_uint( freq_lock ) + "/" + to_string_dec_uint( recon_lock_nb_match ) );
+            last_rssi_min = rssi.get_min();
+            last_rssi_med = rssi.get_avg();
+            last_rssi_max = rssi.get_max();
             freq_stats.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
-            text_timer.set( "TIMER: " + to_string_dec_int( timer ) );
         }
 
-        if( last_entry . frequency_a != freq || entry_has_changed )
+        if( last_entry . frequency_a != freq )
         {
             last_entry . frequency_a = freq ;
-            receiver_model.set_tuning_frequency( freq );	// Retune
             big_display.set( "FREQ: "+to_string_short_freq( freq )+" MHz" );
         }
-        // Set modulation if any
-        if( last_entry . modulation != frequency_list[ current_index ] . modulation && frequency_list[ current_index ] . modulation >= 0 )
-        {
-            last_entry . modulation = frequency_list[ current_index ]. modulation;
-            receiver_model.disable();
-            baseband::shutdown();
-            change_mode( frequency_list[ current_index ]. modulation );
-            if( recon ) // for some motive, audio output gets stopped.
-                audio::output::start();      // so if recon was stopped we resume audio
-            receiver_model.enable();
-            field_mode.set_selected_index( frequency_list[ current_index ]. modulation );
 
-        }
-        // Set bandwidth if any
-        if( last_entry . bandwidth != frequency_list[ current_index ] . bandwidth && frequency_list[ current_index ] . bandwidth >= 0 )
+        if( last_db != db  || last_list_size != frequency_list.size() || last_freq_lock != freq_lock || last_nb_match != recon_lock_nb_match ) 
         {
-            last_entry . bandwidth = frequency_list[ current_index ]. bandwidth;
-            switch( frequency_list[ current_index ].modulation )
-            {
-                case AM_MODULATION:
-                    receiver_model.set_am_configuration( freq );
-                    break ;
-                case NFM_MODULATION:
-                    receiver_model.set_nbfm_configuration( freq );
-                    break ;
-                case WFM_MODULATION:
-                    receiver_model.set_wfm_configuration( freq );
-                default:
-                    break ;
+            last_freq_lock = freq ;
+            last_list_size = frequency_list.size();
+            last_db = db ;
+            last_nb_match = recon_lock_nb_match ;
+            text_max.set( "/" + to_string_dec_uint( frequency_list.size() ) + " " + to_string_dec_int( db ) + " db " + to_string_dec_uint( freq_lock ) + "/" + to_string_dec_uint( recon_lock_nb_match ) );
+            if( freq_lock == 0 ) {
+                //NO FREQ LOCK, ONGOING STANDARD SCANNING
+                big_display.set_style(&style_white);
+                if( !userpause )
+                    button_pause.set_text("<PAUSE>");	
+                else
+                    button_pause.set_text("<RESUME>");	
             }
-            field_bw.set_selected_index( freq );
-        }
-        if( last_entry . step != frequency_list[ current_index ] . step && frequency_list[ current_index ] . step >= 0 )
-        {
-            last_entry . step = frequency_list[ current_index ]. step ;
-            step = freqman_entry_get_step_value( last_entry . step );
-            step_mode.set_selected_index( step );
-        }
-
-        if( last_index != current_index )
-        {
-            last_index = current_index ;
-            if(  (int32_t)frequency_list.size() && current_index <  (int32_t)frequency_list.size() && frequency_list[ current_index ] . type == RANGE )
+            else if( freq_lock == 1 && recon_lock_nb_match != 1 )
             {
-                if( update_ranges )
-                {
-                    button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                    frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-                    if( frequency_list[ current_index ] . frequency_b != 0 )
-                    {
-                        button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-                        frequency_range.max = frequency_list[ current_index ] . frequency_b ;
-                    }
-                    else
-                    {
-                        button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                        frequency_range.max = frequency_list[ current_index ] . frequency_a ;
-                    }
-                }
+                //STARTING LOCK FREQ
+                big_display.set_style(&style_yellow);
+                button_pause.set_text("<SKPLCK>");	
             }
-            text_cycle.set_text( to_string_dec_uint( current_index + 1 , 3 ) );
-            if(frequency_list[current_index].description.size() > 0) 
+            else if( freq_lock >= recon_lock_nb_match )
             {
-                switch( frequency_list[current_index].type )
-                {
-                    case RANGE:
-                        desc_cycle.set( "R: " + frequency_list[current_index].description ); //Show new description
-                        break ;
-                    case HAMRADIO:
-                        desc_cycle.set( "H: " + frequency_list[current_index].description ); //Show new description
-                        break ;
-                    default:
-                    case SINGLE:
-                        desc_cycle.set( "S: " + frequency_list[current_index].description ); //Show new description
-                        break ;
-                }
-            }
-            else
-            {
-                desc_cycle.set( "...no description..." ); //Show new description
-            }
-        }
+                big_display.set_style( &style_green);
+                button_pause.set_text("<UNLOCK>");	
 
-        if( freq_lock == 0 ) {
-            //NO FREQ LOCK, ONGOING STANDARD SCANNING
-            big_display.set_style(&style_white);
-            if( !userpause )
-                button_pause.set_text("<PAUSE>");	
-            else
-                button_pause.set_text("<RESUME>");	
-        }
-        else if( freq_lock == 1 && recon_lock_nb_match != 1 )
-        {
-            //STARTING LOCK FREQ
-            big_display.set_style(&style_yellow);
-            button_pause.set_text("<SKPLCK>");	
-        }
-        else if( freq_lock >= recon_lock_nb_match )
-        {
-            big_display.set_style( &style_green);
-            button_pause.set_text("<UNLOCK>");	
+                //FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
+                if( (!scanner_mode) && autosave && frequency_list.size() > 0 ) {
+                    File recon_file;
+                    std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
+                    std::string frequency_to_add ;
 
-            //FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
-            if( (!scanner_mode) && autosave && last_freq != freq ) {
-                File recon_file;
-                std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
-                std::string frequency_to_add ;
+                    freqman_entry entry = frequency_list[ current_index ] ;
+                    entry . frequency_a =  freq ;
+                    entry . frequency_b =  0 ;
+                    entry . modulation =  last_entry.modulation ;
+                    entry . bandwidth =  last_entry.bandwidth ;
+                    entry . type = SINGLE ;
 
-                freqman_entry entry = frequency_list[ current_index ] ;
-                entry . frequency_a =  freq ;
-                entry . frequency_b =  0 ;
-                entry . modulation =  last_entry.modulation ;
-                entry . bandwidth =  last_entry.bandwidth ;
-                entry . type = SINGLE ;
+                    get_freq_string( entry , frequency_to_add );
 
-                get_freq_string( entry , frequency_to_add );
-
-                auto result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
-                if (!result.is_valid()) {
-                    char one_char[1];		//Read it char by char
-                    std::string line;		//and put read line in here
-                    bool found=false;
-                    for (size_t pointer=0; pointer < recon_file.size();pointer++) {
-                        recon_file.seek(pointer);
-                        recon_file.read(one_char, 1);
-                        if ((int)one_char[0] > 31) {			//ascii space upwards
-                            line += one_char[0];				//Add it to the textline
-                        }
-                        else if (one_char[0] == '\n') {			//New Line
-                            if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-                                found=true;
-                                break;
+                    auto result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
+                    if (!result.is_valid()) {
+                        char one_char[1];		//Read it char by char
+                        std::string line;		//and put read line in here
+                        bool found=false;
+                        for (size_t pointer=0; pointer < recon_file.size();pointer++) {
+                            recon_file.seek(pointer);
+                            recon_file.read(one_char, 1);
+                            if ((int)one_char[0] > 31) {			//ascii space upwards
+                                line += one_char[0];				//Add it to the textline
                             }
-                            line.clear();						//Ready for next textline
+                            else if (one_char[0] == '\n') {			//New Line
+                                if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+                                    found=true;
+                                    break;
+                                }
+                                line.clear();						//Ready for next textline
+                            }
+                        }
+                        if( !found) {
+                            result = recon_file.append(freq_file_path); //Second: append if it is not there
+                            if( !result.is_valid() )
+                            {
+                                recon_file.write_line( frequency_to_add );
+                            }
                         }
                     }
-                    if( !found) {
-                        result = recon_file.append(freq_file_path); //Second: append if it is not there
+                    else {
+                        result = recon_file.create( freq_file_path );	//First freq if no output file
                         if( !result.is_valid() )
                         {
                             recon_file.write_line( frequency_to_add );
                         }
                     }
                 }
-                else {
-                    result = recon_file.create( freq_file_path );	//First freq if no output file
-                    if( !result.is_valid() )
+            }
+        }
+    }
+
+    void ReconView::handle_retune() {
+        static int32_t last_index = -1 ;
+        static int64_t last_freq = 0 ;
+        if( last_freq != freq )
+        {
+            last_freq = freq ;
+            receiver_model.set_tuning_frequency( freq ); // Retune
+        }
+        if( frequency_list.size() > 0 )
+        {
+            if( last_entry . modulation != frequency_list[ current_index ] . modulation && frequency_list[ current_index ] . modulation >= 0 )
+            {
+                last_entry . modulation = frequency_list[ current_index ]. modulation;
+                receiver_model.disable();
+                baseband::shutdown();
+                change_mode( frequency_list[ current_index ]. modulation );
+                receiver_model.enable();
+                field_mode.set_selected_index( frequency_list[ current_index ]. modulation );
+            }
+            // Set bandwidth if any
+            if( last_entry . bandwidth != frequency_list[ current_index ] . bandwidth && frequency_list[ current_index ] . bandwidth >= 0 )
+            {
+                last_entry . bandwidth = frequency_list[ current_index ]. bandwidth;
+                switch( frequency_list[ current_index ].modulation )
+                {
+                    case AM_MODULATION:
+                        receiver_model.set_am_configuration( freq );
+                        break ;
+                    case NFM_MODULATION:
+                        receiver_model.set_nbfm_configuration( freq );
+                        break ;
+                    case WFM_MODULATION:
+                        receiver_model.set_wfm_configuration( freq );
+                    default:
+                        break ;
+                }
+                field_bw.set_selected_index( freq );
+            }
+            if( last_entry . step != frequency_list[ current_index ] . step && frequency_list[ current_index ] . step >= 0 )
+            {
+                last_entry . step = frequency_list[ current_index ]. step ;
+                step = freqman_entry_get_step_value( last_entry . step );
+                step_mode.set_selected_index( step );
+            }
+            if( last_index != current_index )
+            {
+                last_index = current_index ;
+                if(  (int32_t)frequency_list.size() && current_index <  (int32_t)frequency_list.size() && frequency_list[ current_index ] . type == RANGE )
+                {
+                    if( update_ranges )
                     {
-                        recon_file.write_line( frequency_to_add );
+                        button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+                        frequency_range.min = frequency_list[ current_index ] . frequency_a ;
+                        if( frequency_list[ current_index ] . frequency_b != 0 )
+                        {
+                            button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
+                            frequency_range.max = frequency_list[ current_index ] . frequency_b ;
+                        }
+                        else
+                        {
+                            button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+                            frequency_range.max = frequency_list[ current_index ] . frequency_a ;
+                        }
                     }
                 }
+                text_cycle.set_text( to_string_dec_uint( current_index + 1 , 3 ) );
+                if(frequency_list[current_index].description.size() > 0) 
+                {
+                    switch( frequency_list[current_index].type )
+                    {
+                        case RANGE:
+                            desc_cycle.set( "R: " + frequency_list[current_index].description ); //Show new description
+                            break ;
+                        case HAMRADIO:
+                            desc_cycle.set( "H: " + frequency_list[current_index].description ); //Show new description
+                            break ;
+                        default:
+                        case SINGLE:
+                            desc_cycle.set( "S: " + frequency_list[current_index].description ); //Show new description
+                            break ;
+                    }
+                }
+                else
+                {
+                    desc_cycle.set( "...no description..." ); //Show new description
+                }
             }
-            last_freq = freq ;
-        }
-
-        if( last_db != db )
-        {
-            last_db = db ;
-            refresh_display = true ;
-        }
-        if( last_nb_match != (int32_t)freq_lock )
-        {
-            last_nb_match = freq_lock ;
-            refresh_display = true ;
-        }
-        if( last_timer != timer )
-        {
-            last_timer = timer ;
-            refresh_display = true ;
-        }
-        if( refresh_display )
-        {
-            text_max.set( "/" + to_string_dec_uint( frequency_list.size() ) + " " + to_string_dec_int( db ) + " db " + to_string_dec_uint( freq_lock ) + "/" + to_string_dec_uint( recon_lock_nb_match ) );
-            freq_stats.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
-            text_timer.set( "TIMER: " + to_string_dec_int( timer ) );
         }
     }
 
@@ -429,68 +407,34 @@ namespace ui {
         };
 
         text_cycle.on_change = [this]() {
-            if( frequency_list.size() > 0 )
-            {
-                if( text_cycle.get_encoder_delta() > 0 )
-                {
-                    fwd = true ;
-                    button_dir.set_text( "FW>" );
-                    index_stepper = 1 ;
-                    freq_lock = 0 ;
-                }
-                else if( text_cycle.get_encoder_delta() < 0 )
-                {
-                    fwd = false ;
-                    button_dir.set_text( "<RW" );
-                    index_stepper = -1 ;
-                    freq_lock = 0 ;
-                }
-            }
+            on_index_delta( text_cycle.get_encoder_delta() );
             text_cycle.set_encoder_delta( 0 );
         };
 
         button_pause.on_select = [this](ButtonWithEncoder&) {
             if( frequency_list.size() > 0 )
             {
-                if( continuous_lock )
+                if( userpause )
                 {
-                    if( fwd )
-                    {
-                        stepper = 1 ;
-                    }
-                    else
-                    {
-                        stepper = -1 ;
-                    }
-                    timer = 0 ;
                     recon_resume();
-                    button_pause.set_text("<PAUSE>");		//Show button for non continuous stop
-                    continuous_lock = false ;
                 }
                 else
                 {
-                    if( userpause )
-                    {
-                        recon_resume();
-                    }
-                    else
-                    {
-                        recon_pause();
+                    recon_pause();
 
-                        if( update_ranges )
+                    if( update_ranges )
+                    {
+                        button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+                        frequency_range.min = frequency_list[ current_index ] . frequency_a ;
+                        if( frequency_list[ current_index ] . frequency_b != 0 )
                         {
-                            button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                            frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-                            if( frequency_list[ current_index ] . frequency_b != 0 )
-                            {
-                                button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-                                frequency_range.max = frequency_list[ current_index ] . frequency_b ;
-                            }
-                            else
-                            {
-                                button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                                frequency_range.max = frequency_list[ current_index ] . frequency_a ;
-                            }
+                            button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
+                            frequency_range.max = frequency_list[ current_index ] . frequency_b ;
+                        }
+                        else
+                        {
+                            button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+                            frequency_range.max = frequency_list[ current_index ] . frequency_a ;
                         }
                     }
                 }
@@ -498,23 +442,7 @@ namespace ui {
         };
 
         button_pause.on_change = [this]() {
-            if( frequency_list.size() > 0 )
-            {
-                if( button_pause.get_encoder_delta() > 0 )
-                {
-                    fwd = true ;
-                    button_dir.set_text( "FW>" );
-                    stepper = 1 ;
-                    freq_lock = 0 ;
-                }
-                else if( button_pause.get_encoder_delta() < 0 )
-                {
-                    fwd = false ;
-                    button_dir.set_text( "<RW" );
-                    stepper = -1 ;
-                    freq_lock = 0 ;
-                }
-            }
+            on_stepper_delta( button_pause.get_encoder_delta() );
             button_pause.set_encoder_delta( 0 );
         };
 
@@ -542,9 +470,9 @@ namespace ui {
         };
 
         button_remove.on_select = [this](ButtonWithEncoder&) {
-            if( scanner_mode )
+            if(frequency_list.size() > 0 )
             {
-                if(frequency_list.size() > 0 )
+                if( scanner_mode )
                 {
                     if( current_index >= (int32_t)frequency_list.size() )
                     {
@@ -597,61 +525,62 @@ namespace ui {
                         }
                     }
                 }
-            }
-            else // RECON MODE / MANUAL, only remove matching from output
-            {
-                File recon_file;
-                File tmp_recon_file;
-                std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
-                std::string tmp_freq_file_path = "/FREQMAN/"+output_file+"TMP.TXT" ;
-                std::string frequency_to_add ;
+                else // RECON MODE / MANUAL, only remove matching from output
+                {
+                    File recon_file;
+                    File tmp_recon_file;
+                    std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
+                    std::string tmp_freq_file_path = "/FREQMAN/"+output_file+"TMP.TXT" ;
+                    std::string frequency_to_add ;
 
-                freqman_entry entry = frequency_list[ current_index ] ;
-                entry . frequency_a =  freq ;
-                entry . frequency_b =  0 ;
-                entry . modulation =  last_entry.modulation ;
-                entry . bandwidth =  last_entry.bandwidth ;
-                entry . type = SINGLE ;
+                    freqman_entry entry = frequency_list[ current_index ] ;
+                    entry . frequency_a =  freq ;
+                    entry . frequency_b =  0 ;
+                    entry . modulation =  last_entry.modulation ;
+                    entry . bandwidth =  last_entry.bandwidth ;
+                    entry . type = SINGLE ;
 
-                get_freq_string( entry , frequency_to_add );
+                    get_freq_string( entry , frequency_to_add );
 
-                delete_file( tmp_freq_file_path );
-                auto result = tmp_recon_file.create(tmp_freq_file_path);	//First recon if freq is already in txt
-                                                                            //
-                if (!result.is_valid()) {
-                    bool found=false;
-                    result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
+                    delete_file( tmp_freq_file_path );
+                    auto result = tmp_recon_file.create(tmp_freq_file_path);	//First recon if freq is already in txt
+                                                                                //
                     if (!result.is_valid()) {
-                        char one_char[1];		//Read it char by char
-                        std::string line;		//and put read line in here
-                        for (size_t pointer=0; pointer < recon_file.size();pointer++) {
-                            recon_file.seek(pointer);
-                            recon_file.read(one_char, 1);
-                            if ((int)one_char[0] > 31) {			//ascii space upwards
-                                line += one_char[0];				//Add it to the textline
-                            }
-                            else if (one_char[0] == '\n') {			//New Line
-                                if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-                                    found=true;
+                        bool found=false;
+                        result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
+                        if (!result.is_valid()) {
+                            char one_char[1];		//Read it char by char
+                            std::string line;		//and put read line in here
+                            for (size_t pointer=0; pointer < recon_file.size();pointer++) {
+                                recon_file.seek(pointer);
+                                recon_file.read(one_char, 1);
+                                if ((int)one_char[0] > 31) {			//ascii space upwards
+                                    line += one_char[0];				//Add it to the textline
                                 }
-                                else
-                                {
-                                    tmp_recon_file.write_line( frequency_to_add );
+                                else if (one_char[0] == '\n') {			//New Line
+                                    if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+                                        found=true;
+                                    }
+                                    else
+                                    {
+                                        tmp_recon_file.write_line( frequency_to_add );
+                                    }
+                                    line.clear();						//Ready for next textline
                                 }
-                                line.clear();						//Ready for next textline
                             }
-                        }
-                        if( found)
-                        {
-                            delete_file( freq_file_path );
-                            rename_file( tmp_freq_file_path , freq_file_path );
-                        }
-                        else
-                        {
-                            delete_file( tmp_freq_file_path );
+                            if( found)
+                            {
+                                delete_file( freq_file_path );
+                                rename_file( tmp_freq_file_path , freq_file_path );
+                            }
+                            else
+                            {
+                                delete_file( tmp_freq_file_path );
+                            }
                         }
                     }
                 }
+                receiver_model.set_tuning_frequency( frequency_list[ current_index ] . frequency_a );	// Retune
             }
             if( frequency_list.size() == 0 )
             {
@@ -660,34 +589,17 @@ namespace ui {
                 delete_file( "FREQMAN/"+output_file+".TXT" );
             }
             timer = 0 ;
-            receiver_model.set_tuning_frequency( frequency_list[ current_index ] . frequency_a );	// Retune
         };
 
         button_remove.on_change = [this]() {
-            if( frequency_list.size() > 0 )
-            {
-                timer = 0 ;
-                if( button_remove.get_encoder_delta() > 0 )
-                {
-                    fwd = true ;
-                    button_dir.set_text( "FW>" );
-                    stepper = 1 ;
-                    freq_lock = 0 ;
-                }
-                else if( button_remove.get_encoder_delta() < 0 )
-                {
-                    fwd = false ;
-                    button_dir.set_text( "<RW" );
-                    stepper = -1 ;
-                    freq_lock = 0 ;
-                }
-            }
+            on_stepper_delta( button_remove.get_encoder_delta() );
             button_remove.set_encoder_delta( 0 );
         };
 
         button_manual_recon.on_select = [this](Button&) {
             scanner_mode = false ;
             manual_mode = true ;
+            current_index = 0 ;
             if (!frequency_range.min || !frequency_range.max) {
                 nav_.display_modal("Error", "Both START and END freqs\nneed a value");
             } else if (frequency_range.min > frequency_range.max) {
@@ -772,7 +684,6 @@ namespace ui {
                 {
                     button_dir.set_text( "<RW" );
                 }
-                timer = 0 ; 	 		//Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
                 recon_resume();
             }
             if( scanner_mode )
@@ -850,27 +761,9 @@ namespace ui {
         };
 
         button_add.on_change = [this]() {
-            if( frequency_list.size() > 0 )
-            {
-                timer = 0 ;
-                if( button_add.get_encoder_delta() > 0 )
-                {
-                    fwd = true ;
-                    button_dir.set_text( "FW>" );
-                    stepper = 1 ;
-                    freq_lock = 0 ;
-                }
-                else if( button_add.get_encoder_delta() < 0 )
-                {
-                    fwd = false ;
-                    button_dir.set_text( "<RW" );
-                    stepper = -1 ;
-                    freq_lock = 0 ;
-                }
-            }
+            on_stepper_delta( button_add.get_encoder_delta() );
             button_add.set_encoder_delta( 0 );
         };
-
 
         button_scanner_mode.on_select = [this,&nav](Button&) {
             manual_mode = false ;
@@ -921,6 +814,9 @@ namespace ui {
                 load_hamradios = persistent_memory::recon_load_hamradios();
 
                 update_ranges = persistent_memory::recon_update_ranges_when_recon();
+
+                field_lock_wait.set_value(recon_lock_duration);
+
                 frequency_file_load( false );
                 if( autostart )
                 {
@@ -930,26 +826,8 @@ namespace ui {
                 {
                     recon_pause();
                 }
-                if( update_ranges && frequency_list.size() != 0 )
-                {
-                    current_index = 0 ;
-                    button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                    frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-                    if( frequency_list[ current_index ] . frequency_b != 0 )
-                    {
-                        button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-                        frequency_range.max = frequency_list[ current_index ] . frequency_b ;
-                    }
-                    else
-                    {
-                        button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                        frequency_range.max = frequency_list[ current_index ] . frequency_a ;
-                    }
-                }
-                field_lock_wait.set_value( recon_lock_duration );
                 if( userpause != true )
                 {
-                    timer = 0 ;
                     recon_resume();
                 }
             };
@@ -980,17 +858,13 @@ namespace ui {
         {
             recon_lock_duration = v ;
 
-            if( (v / 50) > recon_lock_nb_match )
+            if( (v / 100 ) > recon_lock_nb_match )
             {
                 field_lock_wait.set_style( &style_white );
             }
-            else if( (v / 50) == recon_lock_nb_match )
+            else if( (v / 100 ) == recon_lock_nb_match )
             {
-                field_lock_wait.set_style( &style_yellow);
-            }
-            else
-            {
-                field_lock_wait.set_style(&style_red);
+                field_lock_wait.set_style(&style_yellow);
             }
         };
 
@@ -1029,30 +903,16 @@ namespace ui {
         }
 
         frequency_file_load( false ); /* do not stop all at start */
-        if( update_ranges && frequency_list.size() > 0 )
-        {
-            button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-            frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-            if( frequency_list[ current_index ] . frequency_b != 0 )
-            {
-                button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-                frequency_range.max = frequency_list[ current_index ] . frequency_b ;
-            }
-            else
-            {
-                button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                frequency_range.max = frequency_list[ current_index ] . frequency_a ;
-            }
-        }
         if( autostart )
         {
-            timer = 0 ; 	 		//Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
             recon_resume();
         }
         else
         {
             recon_pause();
         }
+
+        recon_redraw();
     }
 
     void ReconView::frequency_file_load( bool stop_all_before) {
@@ -1174,33 +1034,60 @@ namespace ui {
             text_cycle.set_text( " " );
         }
         desc_cycle.set( description );
-        chThdSleepMilliseconds( 50 ); // give time for first tuning
+        current_index = 0 ;
+        handle_retune();
     }
 
     void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
-
-        int32_t actual_db = statistics.max_db ;
-
         // 0 recon , 1 locking , 2 locked
         static int32_t status = -1 ;
+        static int32_t last_timer = -1 ;
+
+        db = statistics.max_db ;
 
         if( !userpause )
         {
             if( !timer )
             {
-                if( status != 0 )
+                status = 0 ;
+                continuous_lock = false ;
+                freq_lock = 0 ; 
+                timer = recon_lock_duration ; 
+                big_display.set_style(&style_white);
+            }
+            if( freq_lock < recon_lock_nb_match ) // LOCKING
+            {
+                if( status != 1 )
                 {
-                    status = 0 ;
-                    continuous_lock = false ;
-                    freq_lock = 0 ; //in lock period, still analyzing the signal
-                    recon_resume();  // RESUME!
-                    big_display.set_style(&style_white);
+                    status = 1 ;
+                    if( wait != 0 )
+                    {
+                        audio::output::stop();
+                    }
+                }
+                if( db > squelch ) //MATCHING LEVEL
+                {
+                    continuous_lock = true ;
+                    freq_lock ++ ;
+                }
+                else
+                {
+                    // continuous, direct cut it if not consecutive match after 1 first match
+                    if( recon_match_mode == 0 )
+                    {
+                        if( freq_lock > 0 )
+                        {
+                            timer = 0 ;
+                            continuous_lock = false ;
+                        }
+                    }
                 }
             }
             if( freq_lock >= recon_lock_nb_match ) // LOCKED
             {
                 if( status != 2 )
                 {
+                    continuous_lock = false ;
                     status = 2 ;
                     if( wait != 0 )
                     {
@@ -1214,141 +1101,78 @@ namespace ui {
                 }
                 if( wait < 0 )
                 {
-                    if( actual_db > squelch ) //MATCHING LEVEL IN STAY X AFTER LAST ACTIVITY
+                    if( db > squelch ) //MATCHING LEVEL IN STAY X AFTER LAST ACTIVITY
                     {
                         timer = abs( wait );
                     }
                 }
             }
-            else // freq_lock < recon_lock_nb_match , LOCKING
+        }
+        if( last_timer != timer )
+        {
+            last_timer = timer ;
+            text_timer.set( "TIMER: " + to_string_dec_int( timer ) );
+        }
+        if( timer )
+        {
+            if( !continuous_lock )
+                timer -= 100 ;
+            if( timer < 0 )
             {
-                if( actual_db > squelch ) //MATCHING LEVEL
+                timer = 0 ;
+            }
+        }
+        if( recon || stepper != 0 || index_stepper != 0 ) 
+        {
+            if( !timer || stepper != 0 || index_stepper != 0 ) 
+            {
+                //IF THERE IS A FREQUENCY LIST ...
+                if (frequency_list.size() > 0 )
                 {
-                    if( status != 1 )
+                    has_looped = false ;
+                    entry_has_changed = false ;
+
+                    if( recon || stepper != 0 || index_stepper != 0 )
                     {
-                        status = 1 ;
-                        continuous_lock = true ;
-                        if( wait != 0 )
+                        if( index_stepper == 0 )
                         {
-                            audio::output::stop();
-                        }
-                        timer = recon_lock_duration ;
-                    }
-                    freq_lock ++ ;
-                }
-                else
-                {
-                    // continuous, direct cut it if not consecutive match
-                    if( recon_match_mode == 0 )
-                    {
-                        timer = 0 ;
-                        freq_lock = 0 ;
-                    }
-                }
-            }
-        }
-        else
-        {
-            if( actual_db > squelch )
-            {
-                if( status != 2 ) //MATCHING LEVEL
-                {
-                    status = 2 ;
-                    big_display.set_style(&style_yellow);
-                }
-            }
-            else
-            {
-                if( status != 0 )
-                {
-                    status = 0 ;
-                    big_display.set_style(&style_white);
-                }
-            }
-        }
-
-        timer -= 50 ;
-        if( timer <= 0 || stepper != 0 || index_stepper != 0 )
-        {
-            timer = 0 ;
-
-            //IF THERE IS A FREQUENCY LIST ...
-            if (frequency_list.size() > 0 )
-            {
-                has_looped = false ;
-                entry_has_changed = false ;
-
-                if( recon || stepper != 0 || index_stepper != 0 )
-                {
-                    if( index_stepper == 0 )
-                    {
-                        /* we are doing a range */
-                        if( frequency_list[ current_index ] . type == RANGE ) {
-                            if ( ( fwd && stepper == 0 ) || stepper > 0 ) {
-                                //forward
-                                freq += step ;
-                                // if bigger than range max
-                                if (freq > maxfreq ) {
-                                    // when going forward we already know that we can skip a whole range => two values in the list
-                                    current_index ++ ;
-                                    entry_has_changed = true ;
-                                    // looping
-                                    if( (uint32_t)current_index >= frequency_list.size() )
-                                    {
-                                        has_looped = true ;
-                                        current_index = 0  ;
+                            /* we are doing a range */
+                            if( frequency_list[ current_index ] . type == RANGE ) {
+                                if ( ( fwd && stepper == 0 ) || stepper > 0 ) {
+                                    //forward
+                                    freq += step ;
+                                    // if bigger than range max
+                                    if (freq > maxfreq ) {
+                                        // when going forward we already know that we can skip a whole range => two values in the list
+                                        current_index ++ ;
+                                        entry_has_changed = true ;
+                                        // looping
+                                        if( (uint32_t)current_index >= frequency_list.size() )
+                                        {
+                                            has_looped = true ;
+                                            current_index = 0  ;
+                                        }
+                                    }
+                                }
+                                else  if( (!fwd && stepper == 0 ) || stepper < 0 ) {
+                                    //reverse
+                                    freq -= step ;
+                                    // if lower than range min
+                                    if (freq < minfreq ) {
+                                        // when back we have to check one step at a time
+                                        current_index -- ;
+                                        entry_has_changed = true ;
+                                        // looping
+                                        if( current_index < 0 )
+                                        {
+                                            has_looped = true ;
+                                            current_index = frequency_list.size() - 1 ;
+                                        }
                                     }
                                 }
                             }
-                            else  if( (!fwd && stepper == 0 ) || stepper < 0 ) {
-                                //reverse
-                                freq -= step ;
-                                // if lower than range min
-                                if (freq < minfreq ) {
-                                    // when back we have to check one step at a time
-                                    current_index -- ;
-                                    entry_has_changed = true ;
-                                    // looping
-                                    if( current_index < 0 )
-                                    {
-                                        has_looped = true ;
-                                        current_index = frequency_list.size() - 1 ;
-                                    }
-                                }
-                            }
-                        }
-                        else if( frequency_list[ current_index ] . type == SINGLE ) {
-                            if ( (fwd && stepper == 0 ) || stepper > 0 ) {					//forward
-                                current_index++;
-                                entry_has_changed = true ;
-                                // looping
-                                if( (uint32_t)current_index >= frequency_list.size() )
-                                {
-                                    has_looped = true ;
-                                    current_index = 0 ;
-                                }
-                            }
-                            else if( (!fwd && stepper == 0 ) || stepper < 0 ) {
-                                //reverse
-                                current_index--;
-                                entry_has_changed = true ;
-                                // if previous if under the list => go back from end
-                                if( current_index < 0 )
-                                {
-                                    has_looped = true ;
-                                    current_index =  frequency_list.size() - 1 ;
-                                }
-                            }
-                        }
-                        else if( frequency_list[ current_index ] . type == HAMRADIO )
-                        {
-                            if ( (fwd && stepper == 0 ) || stepper > 0 ) {					//forward
-                                if( ( minfreq != maxfreq ) && freq == minfreq )
-                                {
-                                    freq = maxfreq ;
-                                }
-                                else
-                                {
+                            else if( frequency_list[ current_index ] . type == SINGLE ) {
+                                if ( (fwd && stepper == 0 ) || stepper > 0 ) {					//forward
                                     current_index++;
                                     entry_has_changed = true ;
                                     // looping
@@ -1358,15 +1182,8 @@ namespace ui {
                                         current_index = 0 ;
                                     }
                                 }
-                            }
-                            else if( (!fwd  && stepper == 0 ) || stepper < 0 ) {
-                                //reverse
-                                if( ( minfreq != maxfreq ) && freq == maxfreq )
-                                {
-                                    freq = minfreq ;
-                                }
-                                else
-                                {
+                                else if( (!fwd && stepper == 0 ) || stepper < 0 ) {
+                                    //reverse
                                     current_index--;
                                     entry_has_changed = true ;
                                     // if previous if under the list => go back from end
@@ -1377,81 +1194,121 @@ namespace ui {
                                     }
                                 }
                             }
+                            else if( frequency_list[ current_index ] . type == HAMRADIO )
+                            {
+                                if ( (fwd && stepper == 0 ) || stepper > 0 ) {					//forward
+                                    if( ( minfreq != maxfreq ) && freq == minfreq )
+                                    {
+                                        freq = maxfreq ;
+                                    }
+                                    else
+                                    {
+                                        current_index++;
+                                        entry_has_changed = true ;
+                                        // looping
+                                        if( (uint32_t)current_index >= frequency_list.size() )
+                                        {
+                                            has_looped = true ;
+                                            current_index = 0 ;
+                                        }
+                                    }
+                                }
+                                else if( (!fwd  && stepper == 0 ) || stepper < 0 ) {
+                                    //reverse
+                                    if( ( minfreq != maxfreq ) && freq == maxfreq )
+                                    {
+                                        freq = minfreq ;
+                                    }
+                                    else
+                                    {
+                                        current_index--;
+                                        entry_has_changed = true ;
+                                        // if previous if under the list => go back from end
+                                        if( current_index < 0 )
+                                        {
+                                            has_looped = true ;
+                                            current_index =  frequency_list.size() - 1 ;
+                                        }
+                                    }
+                                }
+                            }
+                            // set index to boundary if !continuous
+                            if( has_looped && !continuous )
+                            {
+                                entry_has_changed = true ;
+                                /* prepare values for the next run, when user will resume */
+                                if( ( fwd && stepper == 0 ) || stepper > 0 )
+                                {
+                                    current_index = 0 ;
+                                }
+                                else if( ( !fwd && stepper == 0 ) || stepper < 0 )
+                                {
+                                    current_index = frequency_list.size() - 1 ;
+                                }
+                            }
                         }
-                        // set index to boundary if !continuous
+                        else
+                        {
+                            if( index_stepper > 0 )
+                                current_index ++ ;
+                            if( index_stepper < 0 )
+                                current_index -- ;
+                            if( current_index < 0 )
+                                current_index = frequency_list.size() - 1 ;
+                            if( (unsigned)current_index >= frequency_list.size() )
+                                current_index = 0 ;
+                            entry_has_changed = true ;
+                        }
+                        // reload entry if changed
+                        if( entry_has_changed ){
+                            timer = 0 ;
+                            switch( frequency_list[ current_index ] . type ){
+                                case SINGLE:
+                                    freq = frequency_list[ current_index ] . frequency_a ;
+                                    break;
+                                case RANGE:
+                                    minfreq = frequency_list[ current_index ] . frequency_a ;
+                                    maxfreq = frequency_list[ current_index ] . frequency_b ;
+                                    if( ( fwd && stepper == 0 ) || stepper > 0 || index_stepper > 0 )
+                                    {
+                                        freq = minfreq ;
+                                    }
+                                    else if( ( !fwd && stepper == 0 ) || stepper < 0 || index_stepper < 0 )
+                                    {
+                                        freq = maxfreq ;
+                                    }
+                                    break;
+                                case HAMRADIO:
+                                    minfreq = frequency_list[ current_index ] . frequency_a ;
+                                    maxfreq = frequency_list[ current_index ] . frequency_b ;
+                                    if(  ( fwd && stepper == 0 ) || stepper > 0 || index_stepper > 0 )
+                                    {
+                                        freq = minfreq ;
+                                    }
+                                    else if( ( !fwd && stepper == 0 ) || stepper < 0 || index_stepper < 0 )
+                                    {
+                                        freq = maxfreq ;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                            }
+                            handle_retune();
+                        } 
+                        // send a pause message with the right freq
                         if( has_looped && !continuous )
                         {
-                            entry_has_changed = true ;
-                            /* prepare values for the next run, when user will resume */
-                            if( ( fwd && stepper == 0 ) || stepper > 0 )
-                            {
-                                current_index = 0 ;
-                            }
-                            else if( ( !fwd && stepper == 0 ) || stepper < 0 )
-                            {
-                                current_index = frequency_list.size() - 1 ;
-                            }
+                            recon_pause();
                         }
-                    }
-                    else
-                    {
-                        if( index_stepper > 0 )
-                            current_index ++ ;
-                        if( index_stepper < 0 )
-                            current_index -- ;
-                        if( current_index < 0 )
-                            current_index = frequency_list.size() - 1 ;
-                        if( (unsigned)current_index >= frequency_list.size() )
-                            current_index = 0 ;
-                        entry_has_changed = true ;
-                    }
-                    // reload entry if changed
-                    if( entry_has_changed ){
-                        switch( frequency_list[ current_index ] . type ){
-                            case SINGLE:
-                                freq = frequency_list[ current_index ] . frequency_a ;
-                                break;
-                            case RANGE:
-                                minfreq = frequency_list[ current_index ] . frequency_a ;
-                                maxfreq = frequency_list[ current_index ] . frequency_b ;
-                                if( ( fwd && stepper == 0 ) || stepper > 0 || index_stepper > 0 )
-                                {
-                                    freq = minfreq ;
-                                }
-                                else if( ( !fwd && stepper == 0 ) || stepper < 0 || index_stepper < 0 )
-                                {
-                                    freq = maxfreq ;
-                                }
-                                break;
-                            case HAMRADIO:
-                                minfreq = frequency_list[ current_index ] . frequency_a ;
-                                maxfreq = frequency_list[ current_index ] . frequency_b ;
-                                if(  ( fwd && stepper == 0 ) || stepper > 0 || index_stepper > 0 )
-                                {
-                                    freq = minfreq ;
-                                }
-                                else if( ( !fwd && stepper == 0 ) || stepper < 0 || index_stepper < 0 )
-                                {
-                                    freq = maxfreq ;
-                                }
-                                break;
-                            default:
-                                break;
-                        }
-                    } 
-                    // send a pause message with the right freq
-                    if( has_looped && !continuous )
-                    {
-                        recon_pause();
-                    }
-                    if( stepper < 0 ) stepper ++ ;
-                    if( stepper > 0 ) stepper -- ;
-                    if( index_stepper < 0 ) index_stepper ++ ;
-                    if( index_stepper > 0 ) index_stepper -- ;
-                } // if( recon || stepper != 0 || index_stepper != 0 )
-            }//if (frequency_list.size() > 0 )		
-        } /* on_statistic_updates */
-        handle_retune();
+                        if( stepper < 0 ) stepper ++ ;
+                        if( stepper > 0 ) stepper -- ;
+                        if( index_stepper < 0 ) index_stepper ++ ;
+                        if( index_stepper > 0 ) index_stepper -- ;
+                    } // if( recon || stepper != 0 || index_stepper != 0 )
+                }//if (frequency_list.size() > 0 )		
+            } /* on_statistic_updates */
+        }
+        recon_redraw();
     }
 
     void ReconView::recon_pause() {
@@ -1480,6 +1337,43 @@ namespace ui {
         big_display.set_style(&style_white); 
         button_pause.set_text("<PAUSE>"); 
     }
+
+    void ReconView::on_index_delta(int32_t v)
+    {
+        if( v > 0 )
+        {
+            fwd = true ;
+            button_dir.set_text( "FW>" );
+        }
+        else
+        {
+
+            fwd = false ;
+            button_dir.set_text( "<RW" );
+        }
+        if( frequency_list.size() > 0 )
+            index_stepper = v ;
+        timer = 0 ;
+    }
+
+    void ReconView::on_stepper_delta(int32_t v)
+    {
+        if( v > 0 )
+        {
+            fwd = true ;
+            button_dir.set_text( "FW>" );
+        }
+        else
+        {
+
+            fwd = false ;
+            button_dir.set_text( "<RW" );
+        }
+        if( frequency_list.size() > 0 )
+            stepper = v ;
+        timer = 0 ;
+    }
+
 
     void ReconView::on_headphone_volume_changed(int32_t v) {
         const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;

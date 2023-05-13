@@ -107,6 +107,9 @@ namespace ui {
 			void frequency_file_load( bool stop_all_before = false);
 			void on_statistics_update(const ChannelStatistics& statistics);
 			void on_headphone_volume_changed(int32_t v);
+			void on_index_delta(int32_t v);
+			void on_stepper_delta(int32_t v);
+			void recon_redraw();
 			void handle_retune();
 			bool check_sd_card();
 			void handle_coded_squelch(const uint32_t value);
@@ -133,7 +136,7 @@ namespace ui {
 			bool fwd = { true };
             bool recon = true ;
 			uint32_t recon_lock_nb_match = { 3 };
-			uint32_t recon_lock_duration = { 50 };
+			uint32_t recon_lock_duration = { 100 };
 			uint32_t recon_match_mode = { 0 };
 			bool scanner_mode { false };
 			bool manual_mode { false };
@@ -208,8 +211,8 @@ namespace ui {
 			NumberField field_lock_wait {
 				{ 26 * 8, 1 * 16 },
 					4,
-					{ 50 , 9950 },
-					50,
+					{ 100 , 9900 },
+					100,
 					' ',
 			};
 

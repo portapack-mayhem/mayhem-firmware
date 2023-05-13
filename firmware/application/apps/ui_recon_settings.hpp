@@ -94,7 +94,7 @@ namespace ui {
 
 		private:
 
-			const uint32_t _recon_lock_duration = 50 ;
+			const uint32_t _recon_lock_duration = 100 ;
 			const uint32_t _recon_lock_nb_match = 10 ;
 			const uint32_t _recon_match_mode = 0 ;
 
@@ -128,8 +128,8 @@ namespace ui {
 			NumberField field_recon_lock_duration {
 				{ 1 * 8, 132 },             // position X , Y
 					4,                      // number of displayed digits (even empty)
-					{ 50 , 9950 },           // range of number
-					50,                     // rotary encoder increment
+					{ 100 , 9900 },           // range of number
+					100,                     // rotary encoder increment
 					' ',                    // filling character 
 					false                   // can loop
 			};
@@ -172,7 +172,7 @@ namespace ui {
 
 			std::string input_file  = { "RECON" };
 			std::string output_file = { "RECON_RESULTS" };
-			uint32_t recon_lock_duration = 50 ;
+			uint32_t recon_lock_duration = 100 ;
 			uint32_t recon_lock_nb_match = 10 ;
 			uint32_t recon_match_mode = 0 ;
 
