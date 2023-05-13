@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -19,22 +19,37 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "log_file.hpp"
-#include "string_format.hpp"
+ #include "ui_text_editor.hpp"
 
-Optional<File::Error> LogFile::write_entry(const std::string& entry) {
-	return write_entry(rtc_time::now(), entry);
+ using namespace portapack;
+namespace fs = std::filesystem;
+
+ namespace {
+ui::FileInfo get_file_info() {
+    return { };
+}
+ } // namespace
+
+ namespace ui {
+
+TextEditorView::TextEditorView(NavigationView& nav)
+    : nav_{ nav }
+{
+    add_children({
+        &text_position
+});
+
+    // TODO: need a temp backing file.
+
+    log_.append("TEXTEDITOR.TXT");
+
+    log_.write_entry("Opening file");
+    file_.open("PGCSAG.TXT");
+
+    get_file_info();
+    text_position.set("test test");
+
+    set_dirty();
 }
 
-Optional<File::Error> LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
-    std::string timestamp = to_string_timestamp(datetime);
-    return write_line(timestamp + " " + entry);
-}
-
-Optional<File::Error> LogFile::write_line(const std::string& message) {
-    auto error = file.write_line(message);
-    if (!error.is_valid()) {
-        file.sync();
-    }
-    return error;
-}
+ } // namespace ui
