@@ -195,8 +195,8 @@ namespace ui {
 			NumberField field_wait {
 				{ 20 * 8, 1 * 16 },
 					5,
-					{ -(10000-RECON_DEF_WAIT_DURATION) , (10000-RECON_DEF_WAIT_DURATION) },
-					RECON_DEF_WAIT_DURATION,
+					{ -(10000-STATS_UPDATE_INTERVAL) , (10000-STATS_UPDATE_INTERVAL) },
+					STATS_UPDATE_INTERVAL,
 					' ',
 			};
 
