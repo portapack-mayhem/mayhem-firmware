@@ -53,7 +53,7 @@
 
 // screen size helper
 #define SCREEN_W 240
-#define SCREEN_H 320
+//#define SCREEN_H 320
 
 namespace ui {
 
