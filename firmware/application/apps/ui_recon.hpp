@@ -92,6 +92,8 @@ namespace ui {
 		private:
 			NavigationView& nav_;
 
+            void audio_output_start();
+			bool check_sd_card();
 			size_t change_mode( freqman_index_t mod_type);
 			void show_max( bool refresh_display = false );
 			void recon_pause();
@@ -103,7 +105,6 @@ namespace ui {
 			void on_stepper_delta(int32_t v);
 			void recon_redraw();
 			void handle_retune();
-			bool check_sd_card();
 			void handle_coded_squelch(const uint32_t value);
 
 			jammer::jammer_range_t frequency_range { false, 0, MAX_UFREQ };  //perfect for manual recon task too...

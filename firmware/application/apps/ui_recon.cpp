@@ -29,6 +29,12 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+    void ReconView::audio_output_start()
+    {  
+        audio::output::start();
+        this->on_headphone_volume_changed( (receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99 );
+    }
+
     bool ReconView::check_sd_card()
     {
         return (sd_card::status() == sd_card::Status::Mounted) ? true : false;
@@ -151,11 +157,7 @@ namespace ui {
             if( last_entry . modulation != frequency_list[ current_index ] . modulation && frequency_list[ current_index ] . modulation >= 0 )
             {
                 last_entry . modulation = frequency_list[ current_index ]. modulation;
-                receiver_model.disable();
-                baseband::shutdown();
-                change_mode( frequency_list[ current_index ]. modulation );
-                receiver_model.enable();
-                field_mode.set_selected_index( frequency_list[ current_index ]. modulation );
+                change_mode( frequency_list[ current_index ] . modulation );
             }
             // Set bandwidth if any
             if( last_entry . bandwidth != frequency_list[ current_index ] . bandwidth && frequency_list[ current_index ] . bandwidth >= 0 )
@@ -650,12 +652,7 @@ namespace ui {
         field_mode.on_change = [this](size_t, OptionsField::value_t v) {
             if( v != -1 )
             {
-                receiver_model.disable();
-                baseband::shutdown();
                 change_mode(v);
-                if( recon  ) 						//for some motive, audio output gets stopped.
-                    audio::output::start();								//So if recon was stopped we resume audio
-                receiver_model.enable();
             }
         };
 
@@ -797,6 +794,7 @@ namespace ui {
         button_recon_setup.on_select = [this,&nav](Button&) {
 
             audio::output::stop();
+
             frequency_list.clear();
 
             auto open_view = nav.push<ReconSetupView>(input_file,output_file,recon_lock_duration,recon_lock_nb_match,recon_match_mode);
@@ -887,8 +885,7 @@ namespace ui {
         };
 
         //PRE-CONFIGURATION:
-        change_mode(AM_MODULATION);	//Start on AM
-        field_mode.set_by_value(AM_MODULATION);	//Reflect the mode into the manual selector
+
         button_scanner_mode.set_style( &style_blue );
         button_scanner_mode.set_text( "RECON" );
         file_name.set( "=>" );
@@ -904,6 +901,8 @@ namespace ui {
         //FILL STEP OPTIONS
         freqman_set_modulation_option( field_mode );
         freqman_set_step_option( step_mode );
+
+        change_mode(AM_MODULATION);	//Start on AM, sets callback field_mode.on_change
 
         receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	// Retune
 
@@ -1101,8 +1100,7 @@ namespace ui {
                     status = 2 ;
                     if( wait != 0 )
                     {
-                        audio::output::start();
-                        this->on_headphone_volume_changed( (receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99 );
+                        audio_output_start();
                     }
                     if( wait >= 0 )
                     {
@@ -1259,15 +1257,16 @@ namespace ui {
                         }
                         else
                         {
-                            if( index_stepper > 0 )
-                                current_index ++ ;
-                            if( index_stepper < 0 )
-                                current_index -- ;
+                            current_index += index_stepper ;
                             if( current_index < 0 )
-                                current_index = frequency_list.size() - 1 ;
+                                current_index += frequency_list.size();
                             if( (unsigned)current_index >= frequency_list.size() )
-                                current_index = 0 ;
+                                current_index -= frequency_list.size() ;
+
                             entry_has_changed = true ;
+
+                            if( !recon ) // for some motive, audio output gets stopped.
+                                audio_output_start();
                         }
                         // reload entry if changed
                         if( entry_has_changed ){
@@ -1279,11 +1278,11 @@ namespace ui {
                                 case RANGE:
                                     minfreq = frequency_list[ current_index ] . frequency_a ;
                                     maxfreq = frequency_list[ current_index ] . frequency_b ;
-                                    if( ( fwd && stepper == 0 ) || stepper > 0 || index_stepper > 0 )
+                                    if( ( fwd && !stepper && !index_stepper ) || stepper > 0 || index_stepper > 0 )
                                     {
                                         freq = minfreq ;
                                     }
-                                    else if( ( !fwd && stepper == 0 ) || stepper < 0 || index_stepper < 0 )
+                                    else if( ( !fwd && !stepper && !index_stepper ) || stepper < 0 || index_stepper < 0 )
                                     {
                                         freq = maxfreq ;
                                     }
@@ -1291,11 +1290,11 @@ namespace ui {
                                 case HAMRADIO:
                                     minfreq = frequency_list[ current_index ] . frequency_a ;
                                     maxfreq = frequency_list[ current_index ] . frequency_b ;
-                                    if(  ( fwd && stepper == 0 ) || stepper > 0 || index_stepper > 0 )
+                                    if( ( fwd && !stepper && !index_stepper ) || stepper > 0 || index_stepper > 0 )
                                     {
                                         freq = minfreq ;
                                     }
-                                    else if( ( !fwd && stepper == 0 ) || stepper < 0 || index_stepper < 0 )
+                                    else if( ( !fwd && !stepper && !index_stepper ) || stepper < 0 || index_stepper < 0 )
                                     {
                                         freq = maxfreq ;
                                     }
@@ -1310,10 +1309,9 @@ namespace ui {
                         {
                             recon_pause();
                         }
+                        index_stepper =  0 ;
                         if( stepper < 0 ) stepper ++ ;
                         if( stepper > 0 ) stepper -- ;
-                        if( index_stepper < 0 ) index_stepper ++ ;
-                        if( index_stepper > 0 ) index_stepper -- ;
                     } // if( recon || stepper != 0 || index_stepper != 0 )
                 }//if (frequency_list.size() > 0 )		
             } /* on_statistic_updates */
@@ -1328,8 +1326,7 @@ namespace ui {
         continuous_lock=false;
         recon = false ; 
 
-        audio::output::start();
-        this->on_headphone_volume_changed( (receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99 );
+        audio_output_start();
 
         big_display.set_style(&style_white); 
         button_pause.set_text("<RESUME>");	//PAUSED, show resume
@@ -1363,7 +1360,6 @@ namespace ui {
         }
         if( frequency_list.size() > 0 )
             index_stepper = v ;
-        timer = 0 ;
     }
 
     void ReconView::on_stepper_delta(int32_t v)
@@ -1381,9 +1377,7 @@ namespace ui {
         }
         if( frequency_list.size() > 0 )
             stepper = v ;
-        timer = 0 ;
     }
-
 
     void ReconView::on_headphone_volume_changed(int32_t v) {
         const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
@@ -1393,6 +1387,19 @@ namespace ui {
     size_t ReconView::change_mode( freqman_index_t new_mod ) { 
 
         field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
+
+        // dirty ui hack so we can use change_mode into field_mode itself
+        field_mode.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
+        field_mode.set_selected_index( new_mod );
+        field_mode.on_change = [this](size_t, OptionsField::value_t v) {
+            if( v != -1 )
+            {
+                change_mode(v);
+            }
+        };
+
+        receiver_model.disable();
+        baseband::shutdown();
 
         switch( new_mod ) {
             case AM_MODULATION:
@@ -1418,7 +1425,7 @@ namespace ui {
                 break;
             case WFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
-                //bw 200k (0) only/default
+                //bw 200k (0) default
                 field_bw.set_selected_index(0);
                 baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
@@ -1430,6 +1437,12 @@ namespace ui {
             default:
                 break;
         }
+
+        if( !recon ) // for some motive, audio output gets stopped.
+            audio_output_start();
+
+        receiver_model.enable();
+
         return freqman_entry_get_step_value( def_step );
     }
 
