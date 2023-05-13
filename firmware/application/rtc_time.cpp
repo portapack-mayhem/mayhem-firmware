@@ -29,4 +29,15 @@ void on_tick_second() {
 	signal_tick_second.emit();
 }
 
+rtc::RTC now() {
+	rtc::RTC datetime;
+	rtcGetTime(&RTCD1, &datetime);
+	return datetime;
+}
+
+rtc::RTC now(rtc::RTC& out_datetime) {
+	rtcGetTime(&RTCD1, &out_datetime);
+	return out_datetime;
+}
+
 } /* namespace rtc_time */

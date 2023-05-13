@@ -31,10 +31,7 @@
 using namespace portapack;
 
 void APRSLogger::log_raw_data(const std::string& data) {
-	rtc::RTC datetime;
-	rtcGetTime(&RTCD1, &datetime);
-	
-	log_file.write_entry(datetime, data);
+	log_file.write_entry(data);
 }
 
 namespace ui {
