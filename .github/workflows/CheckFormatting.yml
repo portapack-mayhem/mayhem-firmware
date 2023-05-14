@@ -19,6 +19,6 @@ jobs:
 #         # A regex to exclude files or directories that should not be checked. Default is empty.
 #         exclude-regex: # optional, default is 
 #         # The fallback style for clang-format if no .clang-format file exists in your repository.
-#         fallback-style: # optional, default is llvm
+        fallback-style: Google # optional, default is llvm
 #         # A regex to override the C/C++/Protobuf/CUDA filetype regex. that should be checked. Default results in the regex defined in `check.sh`.
 #         include-regex: # optional, default is 
