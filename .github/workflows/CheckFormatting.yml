@@ -20,7 +20,7 @@ jobs:
   #         # The major version of clang-format that you want to use.
   #         clang-format-version: # optional, default is 13
   #         # The path to the directory you want to check for correct C/C++/Protobuf formatting. Default is the full repository.
-          check-path: "firmware" # optional, default is .
+          check-path: "firmware/common" # optional, default is .
   #         # A regex to exclude files or directories that should not be checked. Default is empty.
   #         exclude-regex: # optional, default is 
   #         # The fallback style for clang-format if no .clang-format file exists in your repository.
