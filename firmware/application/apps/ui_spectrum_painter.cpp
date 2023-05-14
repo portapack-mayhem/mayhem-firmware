@@ -82,16 +82,20 @@ SpectrumPainterView::SpectrumPainterView(
 		portapack::transmitter_model.set_rf_amp(rf_amp);
 	};
 
-	button_play.hidden(true);
 	input_image.on_input_avaliable = [this]() {
-		button_play.hidden(false);
+		image_input_avaliable = true;
 	};
 
 	button_play.on_select = [this](ImageButton&) {
 		if (tx_active == false) {
+			tx_mode = tab_view.selected();
+			
+			if (tx_mode == 0 && image_input_avaliable == false)
+				return;
+
 			//Enable Bias Tee if selected
 			radio::set_antenna_bias(portapack::get_antenna_bias());
-				
+
 			radio::enable({
 				portapack::receiver_model.tuning_frequency(),
 				3072000U, // TODO: use bw edit
@@ -101,7 +105,7 @@ SpectrumPainterView::SpectrumPainterView(
 				static_cast<int8_t>(portapack::receiver_model.lna()),
 				static_cast<int8_t>(portapack::receiver_model.vga())
 			});  
-			
+
 			if (portapack::persistent_memory::stealth_mode()){
 				DisplaySleepMessage message;
 				EventDispatcher::send_message(message);
@@ -109,15 +113,21 @@ SpectrumPainterView::SpectrumPainterView(
 
 			button_play.set_bitmap(&bitmap_stop);
 
-			uint16_t height = input_image.get_height();
-			uint16_t width = input_image.get_width();
 
-			tx_current_max_lines = height;
-			tx_current_width = width;
+			if (tx_mode == 0) {
+				tx_current_max_lines = input_image.get_height();
+				tx_current_width = input_image.get_width();
+			}
+			else {
+				//TODO: implement for text
+				tx_current_max_lines = input_text.get_height();
+				tx_current_width = input_text.get_width();
+			}
+
 			progressbar.set_max(tx_current_max_lines);
 			progressbar.set_value(0);
 
-			baseband::set_spectrum_painter_config(width, height, false, option_bandwidth.selected_index_value());
+			baseband::set_spectrum_painter_config(tx_current_width, tx_current_max_lines, false, option_bandwidth.selected_index_value());
 		}
 		else {
 			stop_tx();
@@ -168,10 +178,16 @@ void SpectrumPainterView::frame_sync() {
 				}
 
 				tx_current_line = current_time_line;
-
 				progressbar.set_value(current_time_line);
-				std::vector<uint8_t> line = input_image.get_line(current_time_line);
-				fifo->in(line);
+
+				if (tx_mode == 0) {
+					std::vector<uint8_t> line = input_image.get_line(current_time_line);
+					fifo->in(line);
+				}
+				else {
+					std::vector<uint8_t> line = input_text.get_line(current_time_line);
+					fifo->in(line);
+				}
 			}
 		}
 	}

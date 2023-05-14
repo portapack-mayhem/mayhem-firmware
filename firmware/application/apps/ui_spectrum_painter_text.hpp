@@ -42,14 +42,23 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 	
+	uint16_t get_width();
+	uint16_t get_height();
+	std::vector<uint8_t> get_line(uint16_t);
+
 private:
-	// Button button_start {
-	// 	{ 0 * 8, 11 * 8, 11 * 8, 28 },
-	// 	"s2"
-	// };
-	Labels labels {
-		{ { 10 * 8, 80 + 1 * 16 }, "Text input is not", Color::light_grey() },
-		{ { 1 * 8, 80 + 2 * 16 }, "yet implemented", Color::light_grey() },
+	std::string buffer { "PORTAPACK" };
+	std::string message { };
+	void on_set_text(NavigationView& nav);
+
+	Text text_message {
+		{ 1 * 8, 15 * 8, 28 * 8, 16 },
+		""
+	};
+	
+	Button button_message {
+		{ 1 * 8, 17 * 8, 12 * 8, 28 },
+		"Set message"
 	};
 
 };

@@ -41,8 +41,13 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
 	button_load_image.on_select = [this, &nav](Button&) {
 		auto open_view = nav.push<FileLoadView>(".bmp");
 
-		if (std::filesystem::is_directory(u"/SPECTRUM"))
-			open_view->push_dir(u"SPECTRUM");
+		constexpr auto data_directory = u"SPECTRUM";
+		if (std::filesystem::is_directory(data_directory) == false) {
+			if (make_new_directory(data_directory).ok())
+				open_view->push_dir(data_directory);
+		}
+		else
+			open_view->push_dir(data_directory);
 
 		open_view->on_changed = [this](std::filesystem::path new_file_path) {
 			this->file = new_file_path.string();
@@ -55,7 +60,6 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
 }
 
 SpectrumInputImageView::~SpectrumInputImageView() {
-
 }
 
 void SpectrumInputImageView::focus() {
@@ -149,6 +153,7 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 						pointer += 3;
 						file_pos += 3;
 						break;
+						
 					case 2: // 32
 						if ((((1 << zoom_factor) - 1) & px) == 0x00)
 							line_buffer[px >> zoom_factor] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
@@ -156,11 +161,13 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 						file_pos += 4;
 						break;
 				}
+
 				px++;
 				if(px >= width) {
 					break;
 				}
 			}
+
 			if(read_size.value() != 256)
 				break;
 		}

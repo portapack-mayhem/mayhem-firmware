@@ -87,7 +87,6 @@ void SpectrumPainterProcessor::run() {
 					auto image_index = fft_index-qu;
 
 					auto bin_power = data[image_index]; // 0 to 255
-
 					auto bin_phase = genrand_int31(); // 0 to 255
 
 					// rotate by random angle

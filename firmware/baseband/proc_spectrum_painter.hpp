@@ -28,15 +28,12 @@
 class SpectrumPainterProcessor : public BasebandProcessor {
 public:
 	void execute(const buffer_c8_t& buffer) override;
-	
 	void on_message(const Message* const p) override;
-
 	void run();
 
 private:
 	bool configured { false };
 	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-
 	Thread* thread {nullptr};
 
 protected:
@@ -46,5 +43,4 @@ protected:
 
 		return 0;
 	}
-
 };

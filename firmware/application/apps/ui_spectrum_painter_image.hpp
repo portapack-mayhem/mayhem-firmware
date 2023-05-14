@@ -42,7 +42,6 @@ public:
 	void focus() override;
 	void paint(Painter&) override;
 
-	bool drawBMP_scaled(const ui::Rect r, const std::string file);
 	uint16_t get_width();
 	uint16_t get_height();
 	std::vector<uint8_t> get_line(uint16_t);
@@ -61,6 +60,8 @@ private:
 		{ 0 * 8, 11 * 16 - 4, 30 * 8, 28 },
 		"Load Image ..."
 	};
+	
+	bool drawBMP_scaled(const ui::Rect r, const std::string file);
 };
 
 }

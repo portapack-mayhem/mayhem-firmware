@@ -26,7 +26,8 @@
 
 #include "ui_navigation.hpp"
 #include "ui_tabview.hpp"
-#include "ui_transmitter.hpp"
+// #include "ui_transmitter.hpp"
+#include "capture_app.hpp"
 #include "baseband_api.hpp"
 
 #include "portapack.hpp"
@@ -58,7 +59,9 @@ private:
 	rf::Frequency target_frequency() const;
 
 	NavigationView& nav_;
+	bool image_input_avaliable { false };
 	bool tx_active { false };
+	uint32_t tx_mode { 0 };
 	uint16_t tx_current_line { 0 };
 	uint16_t tx_current_max_lines { 0 };
 	uint16_t tx_current_width { 0 };
@@ -126,26 +129,11 @@ private:
 		Color::black()
 	};
 
-	// add control for Bandwidth
 	OptionsField option_bandwidth {
 		{ 4 * 8, footer_location + 2 * 16 },
 		5,
 		{
-			{ "  8k5", 8500 },
-			{ " 11k ", 11000 },
-			{ " 16k ", 16000 },
-			{ " 25k ", 25000 },
-			{ " 50k ", 50000 },
-			{ "100k ", 100000 },
-			{ "250k ", 250000 },
-			{ "500k ", 500000 },   // Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.
-			{ "600k ", 600000 },   // That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec)  
- 			{ "750k ", 750000 },   // From that BW onwards, the LCD is ok, but the recorded file is auto decimated,(not real file size) 
-			{ "1100k", 1100000 },
-	       	{ "1750k", 1750000 },
-			{ "2000k", 2000000 },
-			{ "2500k", 2500000 },
-			{ "2750k", 2750000 }    // That is our max Capture option , to keep using later / 8 decimation (22Mhz sampling  ADC)
+			BW_OPTIONS
 		}
 	};
 	
