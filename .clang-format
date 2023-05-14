@@ -1,0 +1,7 @@
+---
+BasedOnStyle: Chromium
+IndentWidth: '4'
+TabWidth: '1'
+UseTab: Always
+
+...
