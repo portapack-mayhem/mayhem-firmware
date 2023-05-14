@@ -82,29 +82,28 @@ void SpectrumInputTextView::paint(Painter& painter) {
 
 constexpr uint32_t pixel_repeat = 32;
 uint16_t SpectrumInputTextView::get_width(){
-	return 16 * pixel_repeat; // default font height
+	return 16 * pixel_repeat;
 }
 
 uint16_t SpectrumInputTextView::get_height(){
-	return this->message.length() * 8; // default font width
+	return this->message.length() * 8;
 }
 
 std::vector<uint8_t> SpectrumInputTextView::get_line(uint16_t y) {
 	auto character_position = y / 8;
 	auto character = this->message[character_position];
-	auto glyph_data = ui::font::fixed_8x16.glyph(character).pixels(); // top to down, 1 byte per line
+	auto glyph_data = ui::font::fixed_8x16.glyph(character).pixels();
 	
 	auto line_in_character = y % 8;
 	std::vector<uint8_t> data(16 * pixel_repeat);
 
 	for (uint32_t index = 0; index < 16; index++) {
-		//auto glyph_index = index * 8 + line_in_character;
-		auto glyph_byte = index; //glyph_index / 8;
-		auto glyph_bit = line_in_character; //glyph_index % 8;
+		auto glyph_byte = index;
+		auto glyph_bit = line_in_character;
 		uint8_t glyph_pixel = (glyph_data[glyph_byte] & (1 << glyph_bit)) >> glyph_bit;
 
 		for (uint32_t j = 0; j < pixel_repeat; j++)
-			data[index*pixel_repeat + j] = glyph_pixel * 255; // 16 bytes
+			data[index*pixel_repeat + j] = glyph_pixel * 255;
 	}
 
 	return data;

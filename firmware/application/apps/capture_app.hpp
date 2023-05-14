@@ -41,7 +41,7 @@
 			{ "600k ", 600000 },   /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec)  */  \
  			{ "750k ", 750000 },   /* From that BW onwards, the LCD is ok, but the recorded file is auto decimated,(not real file size) */  \
 			{ "1100k", 1100000 }, \
-	       	{ "1750k", 1750000 }, \
+			{ "1750k", 1750000 }, \
 			{ "2000k", 2000000 }, \
 			{ "2500k", 2500000 }, \
 			{ "2750k", 2750000 }    // That is our max Capture option , to keep using later / 8 decimation (22Mhz sampling  ADC)

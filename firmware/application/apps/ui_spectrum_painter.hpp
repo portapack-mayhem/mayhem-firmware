@@ -26,7 +26,6 @@
 
 #include "ui_navigation.hpp"
 #include "ui_tabview.hpp"
-// #include "ui_transmitter.hpp"
 #include "capture_app.hpp"
 #include "baseband_api.hpp"
 
@@ -104,13 +103,13 @@ private:
 		2,
 		{ 0, 47 },
 		1,
-		' '	
+		' '
 	};
 
-	NumberField field_rfamp {     // previously  I was using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
+	NumberField field_rfamp {
 		{ 19 * 8, footer_location + 1 * 16 },
 		2,
-		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic App
+		{ 0, 14 },
 		14,
 		' '
 	};
@@ -142,7 +141,7 @@ private:
 		3,
 		{ 1, 999 },
 		1,
-		' '	
+		' '
 	};
 
 	NumberField field_pause {
@@ -150,7 +149,7 @@ private:
 		2,
 		{ 0, 99 },
 		1,
-		' '	
+		' '
 	};
 
 	SpectrumPainterFIFO* fifo { nullptr };

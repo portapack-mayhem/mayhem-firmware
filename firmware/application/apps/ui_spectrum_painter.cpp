@@ -36,7 +36,7 @@ SpectrumPainterView::SpectrumPainterView(
 ) : nav_ (nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_spectrum_painter);
 
-    add_children({
+	add_children({
 		&labels,
 		&tab_view,
 		&input_image,
@@ -74,7 +74,7 @@ SpectrumPainterView::SpectrumPainterView(
     field_rfgain.on_change = [this](int32_t v) { // allow initial value change just after opened file.
 		tx_gain = v;
 		portapack::transmitter_model.set_tx_gain(tx_gain);
-	};  
+	};
 
 	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
 	field_rfamp.on_change = [this](int32_t v) {	// allow initial value change just after opened file.	
@@ -112,7 +112,6 @@ SpectrumPainterView::SpectrumPainterView(
 			}
 
 			button_play.set_bitmap(&bitmap_stop);
-
 
 			if (tx_mode == 0) {
 				tx_current_max_lines = input_image.get_height();
@@ -196,7 +195,7 @@ SpectrumPainterView::~SpectrumPainterView() {
 }
 
 void SpectrumPainterView::focus() {
-    tab_view.focus();
+	tab_view.focus();
 }
 
 void SpectrumPainterView::on_target_frequency_changed(rf::Frequency f) {
