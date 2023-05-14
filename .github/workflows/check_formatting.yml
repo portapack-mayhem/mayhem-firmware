@@ -1,0 +1,18 @@
+name: Check formatting
+
+on: #[push, pull_request] To be enabled once formatting is fixed in repo
+  workflow_dispatch:
+
+jobs:  
+  check_date:
+    runs-on: ubuntu-latest
+    name: Check formatting
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+      - name: clang-format Check
+        uses: jidicula/clang-format-action@v4.11.0
+        with:
+          check-path: "firmware"
+          fallback-style: Chromium
