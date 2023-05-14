@@ -1,1 +1,1 @@
-a=87500000,b=108000000,m=WFM,bw=16k,s=50kHz,d=WFM Standard
+a=87500000,b=108000000,m=WFM,bw=40k,s=50kHz,d=WFM Standard
