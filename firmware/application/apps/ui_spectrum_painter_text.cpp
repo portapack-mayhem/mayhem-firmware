@@ -36,7 +36,16 @@ SpectrumInputTextView::SpectrumInputTextView(NavigationView& nav) {
 	hidden(true);
 
 	add_children({
-		&text_message,
+		&text_message_0,
+		&text_message_1,
+		&text_message_2,
+		&text_message_3,
+		&text_message_4,
+		&text_message_5,
+		&text_message_6,
+		&text_message_7,
+		&text_message_8,
+		&text_message_9,
 		&button_message
 	 });
 
@@ -49,7 +58,7 @@ SpectrumInputTextView::~SpectrumInputTextView() {
 }
 
 void SpectrumInputTextView::on_set_text(NavigationView& nav) {
-	text_prompt(nav, buffer, 28);
+	text_prompt(nav, buffer, 300);
 }
 
 void SpectrumInputTextView::focus() {
@@ -58,7 +67,12 @@ void SpectrumInputTextView::focus() {
 
 void SpectrumInputTextView::paint(Painter& painter) {
 	message = buffer;
-	text_message.set(message);
+	for (uint32_t i = 0 ; i < text_message.size(); i++) {
+		if (message.length() > i * 30)
+			text_message[i]->set(message.substr(i * 30, 30));
+		else
+			text_message[i]->set("");
+	}
 
 	painter.fill_rectangle(
 		{{0, 40}, {240, 204}},

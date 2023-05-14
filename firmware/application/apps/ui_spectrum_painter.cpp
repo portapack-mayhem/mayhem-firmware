@@ -89,7 +89,7 @@ SpectrumPainterView::SpectrumPainterView(
 	button_play.on_select = [this](ImageButton&) {
 		if (tx_active == false) {
 			tx_mode = tab_view.selected();
-			
+
 			if (tx_mode == 0 && image_input_avaliable == false)
 				return;
 
@@ -98,10 +98,10 @@ SpectrumPainterView::SpectrumPainterView(
 
 			radio::enable({
 				portapack::receiver_model.tuning_frequency(),
-				3072000U, // TODO: use bw edit
-				1750000, // TODO: also edit or auto?
+				3072000U,
+				1750000,
 				rf::Direction::Transmit,
-				rf_amp,         //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps  
+				rf_amp,
 				static_cast<int8_t>(portapack::receiver_model.lna()),
 				static_cast<int8_t>(portapack::receiver_model.vga())
 			});  
@@ -119,7 +119,6 @@ SpectrumPainterView::SpectrumPainterView(
 				tx_current_width = input_image.get_width();
 			}
 			else {
-				//TODO: implement for text
 				tx_current_max_lines = input_text.get_height();
 				tx_current_width = input_text.get_width();
 			}
@@ -134,12 +133,9 @@ SpectrumPainterView::SpectrumPainterView(
 		}
 	};
 
-	option_bandwidth.on_change = [this](size_t index, ui::OptionsField::value_t value) {
-		//portapack::transmitter_model.set_channel_bandwidth(value);
+	option_bandwidth.on_change = [this](size_t, ui::OptionsField::value_t value) {
 		baseband::set_spectrum_painter_config(tx_current_width, tx_current_max_lines, true, value);
 	};
-	// 
-
 
 	field_duration.set_value(10);
 	field_pause.set_value(5);
