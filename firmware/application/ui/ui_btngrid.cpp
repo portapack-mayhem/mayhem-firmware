@@ -136,14 +136,22 @@ void BtnGridView::update_items() {
 		more = false;
 
 	for (NewButton* item : menu_item_views) {
-		if (i >= menu_items.size()) break;
-
-		// Assign item data to NewButtons according to offset
-		item->set_text(menu_items[i + offset].text);
-		item->set_bitmap(menu_items[i + offset].bitmap);
-		item->set_color(menu_items[i + offset].color);
-		item->on_select = menu_items[i + offset].on_select;
-		item->set_dirty();
+		if ((i + offset) >= menu_items.size()) {
+			item->hidden(true);
+			item->set_text(" ");
+			item->set_bitmap(nullptr);
+			item->on_select = [](){};
+			item->set_dirty();
+		}
+		else {
+			// Assign item data to NewButtons according to offset
+			item->hidden(false);
+			item->set_text(menu_items[i + offset].text);
+			item->set_bitmap(menu_items[i + offset].bitmap);
+			item->set_color(menu_items[i + offset].color);
+			item->on_select = menu_items[i + offset].on_select;
+			item->set_dirty();
+		}
 
 		i++;
 	}
@@ -167,17 +175,20 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
 		highlighted_item = new_value;
 		offset = new_value - displayed_max + rows_;
 		update_items();
+		set_dirty();
 	} else if ((uint32_t)new_value < offset) {
 		// Shift BtnGridView down
 		highlighted_item = new_value;
 		offset = (new_value / rows_) * rows_;
 		update_items();
+		set_dirty();
 	} else {
 		// Just update highlight
 		highlighted_item = new_value;
-		if (visible())
-		  item_view(highlighted_item - offset)->focus();
 	}
+
+	if (visible())
+		item_view(highlighted_item - offset)->focus();
 
 	return true;
 }
