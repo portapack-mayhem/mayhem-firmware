@@ -104,6 +104,7 @@ constexpr image_tag_t image_tag_rds					{ 'P', 'R', 'D', 'S' };
 constexpr image_tag_t image_tag_replay				{ 'P', 'R', 'E', 'P' };
 constexpr image_tag_t image_tag_gps					{ 'P', 'G', 'P', 'S' };
 constexpr image_tag_t image_tag_siggen				{ 'P', 'S', 'I', 'G' };
+constexpr image_tag_t image_tag_spectrum_painter	{ 'P', 'S', 'P', 'T' };
 constexpr image_tag_t image_tag_sstv_tx				{ 'P', 'S', 'T', 'X' };
 constexpr image_tag_t image_tag_tones				{ 'P', 'T', 'O', 'N' };
 constexpr image_tag_t image_tag_flash_utility		{ 'P', 'F', 'U', 'T' };

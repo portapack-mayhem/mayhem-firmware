@@ -489,8 +489,8 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
 				if(pointer + 4 > 256)
 					break;
 				switch(type) {
-					case 0:
-					case 3:
+					case 0: // R5G6B5
+					case 3: // A1R5G5B5
 						if(!type)
 							line_buffer[px] = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
 						else
@@ -498,13 +498,13 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
 						pointer += 2;
 						file_pos += 2;
 						break;
-					case 1:
+					case 1: // 24
 					default:
 						line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
 						pointer += 3;
 						file_pos += 3;
 						break;
-					case 2:
+					case 2: // 32
 						line_buffer[px] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
 						pointer += 4;
 						file_pos += 4;
