@@ -44,8 +44,8 @@ namespace ui {
 		char file_data[257];
 
 		uint32_t it = 0 ;
-		uint32_t nb_params = 9 ;
-		std::string params[ 9 ];
+		uint32_t nb_params = RECON_SETTINGS_NB_PARAMS ;
+		std::string params[ RECON_SETTINGS_NB_PARAMS ];
 
 		bool check_sd_card = (sd_card::status() == sd_card::Status::Mounted) ? true : false ;
 

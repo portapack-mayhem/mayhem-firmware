@@ -55,6 +55,9 @@
 #define SCREEN_W 240
 //#define SCREEN_H 320
 
+// recon settings nb params
+#define RECON_SETTINGS_NB_PARAMS 8
+
 namespace ui {
 
 	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume );
