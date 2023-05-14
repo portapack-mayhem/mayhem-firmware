@@ -31,10 +31,11 @@ using namespace acars;
 #include "string_format.hpp"
 #include "utility.hpp"
 
-void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequency) {
+void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequency) 
+{
 	(void)frequency;
 	std::string entry { };	//= "Raw: F:" + to_string_dec_uint(frequency) + "Hz ";
-	entry.reserve(256);
+	entry.reserve(   256);
 	
 	// Raw hex dump of all the bytes
 	//for (size_t c = 0; c < packet.length(); c += 32)
