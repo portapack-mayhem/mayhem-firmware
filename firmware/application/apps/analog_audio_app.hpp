@@ -100,7 +100,7 @@ private:
 	};
 	OptionsField options_config {
 		{ 3 * 8, 0 * 16 },
-		3,
+		4,
 		{		// using  common messages from freqman.cpp
 		}
 	};
