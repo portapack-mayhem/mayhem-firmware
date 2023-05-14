@@ -422,22 +422,6 @@ namespace ui {
                 else
                 {
                     recon_pause();
-
-                    if( update_ranges )
-                    {
-                        button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                        frequency_range.min = frequency_list[ current_index ] . frequency_a ;
-                        if( frequency_list[ current_index ] . frequency_b != 0 )
-                        {
-                            button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
-                            frequency_range.max = frequency_list[ current_index ] . frequency_b ;
-                        }
-                        else
-                        {
-                            button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
-                            frequency_range.max = frequency_list[ current_index ] . frequency_a ;
-                        }
-                    }
                 }
             }
         };
@@ -1020,9 +1004,9 @@ namespace ui {
         receiver_model.enable();
         receiver_model.set_squelch_level(0);
         std::string description = "...no description..." ;
+        current_index = 0 ;
         if( frequency_list.size() != 0 )
         {
-            current_index = 0 ;
             switch( frequency_list[current_index].type )
             {
                 case RANGE:
@@ -1037,13 +1021,27 @@ namespace ui {
                     break ;
             }
             text_cycle.set_text( to_string_dec_uint( current_index + 1 , 3 ) );
+            if( update_ranges )
+            {
+                button_manual_start.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+                frequency_range.min = frequency_list[ current_index ] . frequency_a ;
+                if( frequency_list[ current_index ] . frequency_b != 0 )
+                {
+                    button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_b ) );
+                    frequency_range.max = frequency_list[ current_index ] . frequency_b ;
+                }
+                else
+                {
+                    button_manual_end.set_text( to_string_short_freq( frequency_list[ current_index ] . frequency_a ) );
+                    frequency_range.max = frequency_list[ current_index ] . frequency_a ;
+                }
+            }
         }
         else
         {
             text_cycle.set_text( " " );
         }
         desc_cycle.set( description );
-        current_index = 0 ;
         handle_retune();
     }
 
