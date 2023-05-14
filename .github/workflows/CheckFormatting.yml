@@ -13,17 +13,7 @@ jobs:
       - name: print latest_commit
         run: echo ${{ github.sha }}
       - name: clang-format Check
-        # You may pin to the exact commit or the version.
-        # uses: jidicula/clang-format-action@f62da5e3d3a2d88ff364771d9d938773a618ab5e
         uses: jidicula/clang-format-action@v4.11.0
         with:
-  #         # The major version of clang-format that you want to use.
-  #         clang-format-version: # optional, default is 13
-  #         # The path to the directory you want to check for correct C/C++/Protobuf formatting. Default is the full repository.
-          check-path: "firmware/common" # optional, default is .
-  #         # A regex to exclude files or directories that should not be checked. Default is empty.
-  #         exclude-regex: # optional, default is 
-  #         # The fallback style for clang-format if no .clang-format file exists in your repository.
-          fallback-style: Chromium # optional, default is llvm
-  #         # A regex to override the C/C++/Protobuf/CUDA filetype regex. that should be checked. Default results in the regex defined in `check.sh`.
-  #         include-regex: # optional, default is 
+          check-path: "firmware"
+          fallback-style: Chromium
