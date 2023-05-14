@@ -29,6 +29,133 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+    bool ReconView::ReconSetupLoadStrings( const std::string &source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume )
+    {
+        File settings_file;
+        size_t length, file_position = 0;
+        char * pos;
+        char * line_start;
+        char * line_end;
+        char file_data[257];
+
+        uint32_t it = 0 ;
+        uint32_t nb_params = RECON_SETTINGS_NB_PARAMS ;
+        std::string params[ RECON_SETTINGS_NB_PARAMS ];
+
+        bool check_sd_card = (sd_card::status() == sd_card::Status::Mounted) ? true : false ;
+
+        if( check_sd_card )
+        {
+            auto result = settings_file.open( source );
+            if( !result.is_valid() )
+            {
+                while( it < nb_params )
+                {
+                    // Read a 256 bytes block from file
+                    settings_file.seek(file_position);
+                    memset(file_data, 0, 257);
+                    auto read_size = settings_file.read(file_data, 256);
+                    if (read_size.is_error())
+                        break ;
+                    file_position += 256;
+                    // Reset line_start to beginning of buffer
+                    line_start = file_data;
+                    pos=line_start;
+                    while ((line_end = strstr(line_start, "\x0A"))) {
+                        length = line_end - line_start - 1 ;
+                        params[ it ]  = string( pos , length );
+                        it ++ ;
+                        line_start = line_end + 1;
+                        pos=line_start ;
+                        if (line_start - file_data >= 256) 
+                            break;
+                        if( it >= nb_params )
+                            break ;
+                    }
+                    if (read_size.value() != 256)
+                        break; // End of file
+
+                    // Restart at beginning of last incomplete line
+                    file_position -= (file_data + 256 - line_start);
+                }
+            }
+        }
+
+        if( it < nb_params )
+        {
+            /* bad number of params, signal defaults */
+            input_file  = "RECON" ;
+            output_file = "RECON_RESULTS" ;
+            recon_lock_duration = RECON_MIN_LOCK_DURATION ;
+            recon_lock_nb_match = RECON_DEF_NB_MATCH ;
+            recon_squelch_level = -14 ;
+            recon_match_mode = RECON_MATCH_CONTINUOUS ;
+            wait = RECON_DEF_WAIT_DURATION ;
+            volume = 40 ;
+            return false ;
+        }
+
+        if( it > 0 )
+            input_file = params[ 0 ];
+        else
+            input_file  = "RECON" ;
+
+        if( it > 1 )
+            output_file= params[ 1 ];
+        else
+            output_file = "RECON_RESULTS" ;
+
+        if( it > 2 )
+            recon_lock_duration = strtoll( params[ 2 ].c_str() , nullptr , 10 );
+        else
+            recon_lock_duration = RECON_MIN_LOCK_DURATION ;
+
+        if( it > 3 )
+            recon_lock_nb_match = strtoll( params[ 3 ].c_str() , nullptr , 10 );
+        else
+            recon_lock_nb_match = RECON_DEF_NB_MATCH ;
+
+        if( it > 4 )
+            recon_squelch_level = strtoll( params[ 4 ].c_str() , nullptr , 10 );
+        else
+            recon_squelch_level = -14 ;
+
+        if( it > 5 )
+            recon_match_mode    = strtoll( params[ 5 ].c_str() , nullptr , 10 );
+        else
+            recon_match_mode = RECON_MATCH_CONTINUOUS ;
+
+        if( it > 6 )
+            wait = strtoll( params[ 6 ].c_str() , nullptr , 10 );
+        else
+            wait = RECON_DEF_WAIT_DURATION ;
+
+        if( it > 7 )
+            volume = strtoll( params[ 7 ].c_str() , nullptr , 10 );
+        else
+            volume = 40 ;
+
+        return true ;
+    }
+
+    bool ReconView::ReconSetupSaveStrings( const std::string &dest, const std::string &input_file , const std::string &output_file , uint32_t recon_lock_duration , uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume )
+    {
+        File settings_file;
+
+        auto result = settings_file.create( dest );
+        if( result.is_valid() )
+            return false ;
+        settings_file.write_line( input_file );
+        settings_file.write_line( output_file );
+        settings_file.write_line( to_string_dec_uint( recon_lock_duration ) );
+        settings_file.write_line( to_string_dec_uint( recon_lock_nb_match ) );
+        settings_file.write_line( to_string_dec_int( recon_squelch_level ) );
+        settings_file.write_line( to_string_dec_uint( recon_match_mode ) );
+        settings_file.write_line( to_string_dec_int( wait ) );
+        settings_file.write_line( to_string_dec_int( volume ) );
+        return true ;
+    }
+
     void ReconView::audio_output_start()
     {  
         audio::output::start();
@@ -41,15 +168,6 @@ namespace ui {
     }
 
     void ReconView::recon_redraw() {
-
-        static int32_t last_db = 999999 ;
-        static uint32_t last_nb_match = 999999 ;
-        static uint32_t last_freq_lock = 999999 ;
-        static size_t last_list_size = 0 ;
-        static int8_t last_rssi_min = -127 ;
-        static int8_t last_rssi_med = -127 ;
-        static int8_t last_rssi_max = -127 ;
-
         if( last_rssi_min != rssi.get_min() || last_rssi_med != rssi.get_avg() || last_rssi_max != rssi.get_max() ) 
         {
             last_rssi_min = rssi.get_min();
@@ -57,13 +175,11 @@ namespace ui {
             last_rssi_max = rssi.get_max();
             freq_stats.set( "RSSI: "+to_string_dec_int( rssi.get_min() )+"/"+to_string_dec_int( rssi.get_avg() )+"/"+to_string_dec_int( rssi.get_max() )+" db" );
         }
-
         if( last_entry . frequency_a != freq )
         {
             last_entry . frequency_a = freq ;
             big_display.set( "FREQ: "+to_string_short_freq( freq )+" MHz" );
         }
-
         if( last_db != db  || last_list_size != frequency_list.size() || last_freq_lock != freq_lock || last_nb_match != recon_lock_nb_match ) 
         {
             last_freq_lock = freq ;
@@ -75,20 +191,20 @@ namespace ui {
                 //NO FREQ LOCK, ONGOING STANDARD SCANNING
                 big_display.set_style(&style_white);
                 if( !userpause )
-                    button_pause.set_text("<PAUSE>");	
+                    button_pause.set_text("<PAUSE>");
                 else
-                    button_pause.set_text("<RESUME>");	
+                    button_pause.set_text("<RESUME>");
             }
             else if( freq_lock == 1 && recon_lock_nb_match != 1 )
             {
                 //STARTING LOCK FREQ
                 big_display.set_style(&style_yellow);
-                button_pause.set_text("<SKPLCK>");	
+                button_pause.set_text("<SKPLCK>");
             }
             else if( freq_lock >= recon_lock_nb_match )
             {
                 big_display.set_style( &style_green);
-                button_pause.set_text("<UNLOCK>");	
+                button_pause.set_text("<UNLOCK>");
 
                 //FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
                 if( (!scanner_mode) && autosave && frequency_list.size() > 0 ) {
@@ -105,23 +221,23 @@ namespace ui {
 
                     get_freq_string( entry , frequency_to_add );
 
-                    auto result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
+                    auto result = recon_file.open(freq_file_path); //First recon if freq is already in txt
                     if (!result.is_valid()) {
-                        char one_char[1];		//Read it char by char
-                        std::string line;		//and put read line in here
+                        char one_char[1]; //Read it char by char
+                        std::string line; //and put read line in here
                         bool found=false;
                         for (size_t pointer=0; pointer < recon_file.size();pointer++) {
                             recon_file.seek(pointer);
                             recon_file.read(one_char, 1);
-                            if ((int)one_char[0] > 31) {			//ascii space upwards
-                                line += one_char[0];				//Add it to the textline
+                            if ((int)one_char[0] > 31) { //ascii space upwards
+                                line += one_char[0];     //add it to the textline
                             }
-                            else if (one_char[0] == '\n') {			//New Line
+                            else if (one_char[0] == '\n') { //New Line
                                 if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
                                     found=true;
                                     break;
                                 }
-                                line.clear();						//Ready for next textline
+                                line.clear(); //Ready for next textline
                             }
                         }
                         if( !found) {
@@ -133,7 +249,7 @@ namespace ui {
                         }
                     }
                     else {
-                        result = recon_file.create( freq_file_path );	//First freq if no output file
+                        result = recon_file.create( freq_file_path ); //First freq if no output file
                         if( !result.is_valid() )
                         {
                             recon_file.write_line( frequency_to_add );
@@ -145,8 +261,6 @@ namespace ui {
     }
 
     void ReconView::handle_retune() {
-        static int32_t last_index = -1 ;
-        static int64_t last_freq = 0 ;
         if( last_freq != freq )
         {
             last_freq = freq ;
@@ -287,7 +401,7 @@ namespace ui {
         } );
 
         // Recon directory
-        if( check_sd_card() ) {					 // Check to see if SD Card is mounted
+        if( check_sd_card() ) { // Check to see if SD Card is mounted
             make_new_directory( u"/RECON" );
             sd_card_mounted = true ;
         }
@@ -425,7 +539,7 @@ namespace ui {
                     {
                         on_stepper_delta( -1 );
                     }
-                    button_pause.set_text("<PAUSE>");		//Show button for non continuous stop
+                    button_pause.set_text("<PAUSE>"); //Show button for non continuous stop
                 }
                 else
                 {
@@ -530,7 +644,7 @@ namespace ui {
                     File recon_file;
                     File tmp_recon_file;
                     std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
-                    std::string tmp_freq_file_path = "/FREQMAN/"+output_file+"TMP.TXT" ;
+                    std::string tmp_freq_file_path = freq_file_path+".TMP" ;
                     std::string frequency_to_add ;
 
                     freqman_entry entry = frequency_list[ current_index ] ;
@@ -543,21 +657,20 @@ namespace ui {
                     get_freq_string( entry , frequency_to_add );
 
                     delete_file( tmp_freq_file_path );
-                    auto result = tmp_recon_file.create(tmp_freq_file_path);	//First recon if freq is already in txt
-                                                                                //
+                    auto result = tmp_recon_file.create(tmp_freq_file_path); //First recon if freq is already in txt
                     if (!result.is_valid()) {
                         bool found=false;
-                        result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
+                        result = recon_file.open(freq_file_path); //First recon if freq is already in txt
                         if (!result.is_valid()) {
-                            char one_char[1];		//Read it char by char
-                            std::string line;		//and put read line in here
+                            char one_char[1]; //Read it char by char
+                            std::string line; //and put read line in here
                             for (size_t pointer=0; pointer < recon_file.size();pointer++) {
                                 recon_file.seek(pointer);
                                 recon_file.read(one_char, 1);
-                                if ((int)one_char[0] > 31) {			//ascii space upwards
-                                    line += one_char[0];				//Add it to the textline
+                                if ((int)one_char[0] > 31) { //ascii space upwards
+                                    line += one_char[0];     //add it to the textline
                                 }
-                                else if (one_char[0] == '\n') {			//New Line
+                                else if (one_char[0] == '\n') { //new Line
                                     if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
                                         found=true;
                                     }
@@ -565,7 +678,7 @@ namespace ui {
                                     {
                                         tmp_recon_file.write_line( frequency_to_add );
                                     }
-                                    line.clear();						//Ready for next textline
+                                    line.clear(); // ready for next textline
                                 }
                             }
                             if( found)
@@ -580,7 +693,7 @@ namespace ui {
                         }
                     }
                 }
-                receiver_model.set_tuning_frequency( frequency_list[ current_index ] . frequency_a );	// Retune
+                receiver_model.set_tuning_frequency( frequency_list[ current_index ] . frequency_a ); // retune
             }
             if( frequency_list.size() == 0 )
             {
@@ -589,6 +702,7 @@ namespace ui {
                 delete_file( "FREQMAN/"+output_file+".TXT" );
             }
             timer = 0 ;
+            freq_lock = 0 ;
         };
 
         button_remove.on_change = [this]() {
@@ -616,7 +730,7 @@ namespace ui {
                 manual_freq_entry . type = RANGE ;
                 manual_freq_entry . description =
                     "R " + to_string_short_freq(frequency_range.min) + ">"
-                    + to_string_short_freq(frequency_range.max) + " S" 	// current Manual range
+                    + to_string_short_freq(frequency_range.max) + " S" // current Manual range
                     + to_string_short_freq(freqman_entry_get_step_value(def_step)).erase(0,1) ; //euquiq: lame kludge to reduce spacing in step freq
                 manual_freq_entry . frequency_a = frequency_range.min ; // min range val
                 manual_freq_entry . frequency_b = frequency_range.max ; // max range val
@@ -660,14 +774,14 @@ namespace ui {
                 button_dir.set_text( "FW>" );
             }
             timer = 0 ;
-            if ( userpause )				//If user-paused, resume
+            if ( userpause )
                 recon_resume();
         };
 
         button_restart.on_select = [this](Button&) {
             if( frequency_list.size() > 0 )
             {
-                def_step = step_mode.selected_index();	 //Use def_step from manual selector
+                def_step = step_mode.selected_index(); //Use def_step from manual selector
                 frequency_file_load( true );
                 if( fwd )
                 {
@@ -712,22 +826,22 @@ namespace ui {
 
                     get_freq_string( entry , frequency_to_add );
 
-                    auto result = recon_file.open(freq_file_path);	//First recon if freq is already in txt
+                    auto result = recon_file.open(freq_file_path); //First recon if freq is already in txt
                     if (!result.is_valid()) {
-                        char one_char[1];		//Read it char by char
-                        std::string line;		//and put read line in here
+                        char one_char[1]; //Read it char by char
+                        std::string line; //and put read line in here
                         for (size_t pointer=0; pointer < recon_file.size();pointer++) {
                             recon_file.seek(pointer);
                             recon_file.read(one_char, 1);
-                            if ((int)one_char[0] > 31) {			//ascii space upwards
-                                line += one_char[0];				//Add it to the textline
+                            if ((int)one_char[0] > 31) { //ascii space upwards
+                                line += one_char[0]; //Add it to the textline
                             }
-                            else if (one_char[0] == '\n') {			//New Line
+                            else if (one_char[0] == '\n') { //New Line
                                 if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
                                     found=true;
                                     break;
                                 }
-                                line.clear();						//Ready for next textline
+                                line.clear(); // ready for next textline
                             }
                         }
                         if( !found) {
@@ -795,7 +909,7 @@ namespace ui {
                 output_file = result[1];
                 recon_lock_duration = strtol( result[2].c_str() , nullptr , 10 );
                 recon_lock_nb_match = strtol( result[3].c_str() , nullptr , 10 );
-                recon_match_mode	= strtol( result[4].c_str() , nullptr , 10 );
+                recon_match_mode = strtol( result[4].c_str() , nullptr , 10 );
 
                 ReconSetupSaveStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , field_volume.value() );
 
@@ -873,7 +987,7 @@ namespace ui {
         };
 
         field_volume.on_change = [this](int32_t v) { 
-            this->on_headphone_volume_changed(v);	
+            this->on_headphone_volume_changed(v);
         };
 
         //PRE-CONFIGURATION:
@@ -896,7 +1010,7 @@ namespace ui {
         // set radio
         change_mode(AM_MODULATION); // start on AM.
         field_mode.set_by_value(AM_MODULATION); // reflect the mode into the manual selector
-        receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	// first tune
+        receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() ); // first tune
 
         if( filedelete )
         {
@@ -921,9 +1035,9 @@ namespace ui {
         (void)(stop_all_before);
         audio::output::stop();
 
-        def_step = step_mode.selected_index();		// use def_step from manual selector
-        frequency_list.clear();					 // clear the existing frequency list (expected behavior)
-        std::string file_input = input_file ;	   // default recon mode
+        def_step = step_mode.selected_index(); // use def_step from manual selector
+        frequency_list.clear();                // clear the existing frequency list (expected behavior)
+        std::string file_input = input_file ;  // default recon mode
         if( scanner_mode )
         {
             file_input = output_file ;
@@ -940,7 +1054,7 @@ namespace ui {
         file_name.set_style( &style_white );
         desc_cycle.set_style( &style_white );
         if( !load_freqman_file_ex( file_input , frequency_list, load_freqs, load_ranges, load_hamradios ) )
-        {	
+        {
             file_name.set_style( &style_red );
             desc_cycle.set_style( &style_red );
             desc_cycle.set(" NO " + file_input + ".TXT FILE ..." );
@@ -1054,12 +1168,7 @@ namespace ui {
     }
 
     void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
-        // 0 recon , 1 locking , 2 locked
-        static int32_t status = -1 ;
-        static int32_t last_timer = -1 ;
-
         db = statistics.max_db ;
-
         if( !userpause )
         {
             if( !timer )
@@ -1186,7 +1295,7 @@ namespace ui {
                                 }
                             }
                             else if( frequency_list[ current_index ] . type == SINGLE ) {
-                                if ( (fwd && stepper == 0 ) || stepper > 0 ) {					//forward
+                                if ( (fwd && stepper == 0 ) || stepper > 0 ) { //forward
                                     current_index++;
                                     entry_has_changed = true ;
                                     // looping
@@ -1210,7 +1319,7 @@ namespace ui {
                             }
                             else if( frequency_list[ current_index ] . type == HAMRADIO )
                             {
-                                if ( (fwd && stepper == 0 ) || stepper > 0 ) {					//forward
+                                if ( (fwd && stepper == 0 ) || stepper > 0 ) { //forward
                                     if( ( minfreq != maxfreq ) && freq == minfreq )
                                     {
                                         freq = maxfreq ;
@@ -1318,7 +1427,7 @@ namespace ui {
                         if( stepper < 0 ) stepper ++ ;
                         if( stepper > 0 ) stepper -- ;
                     } // if( recon || stepper != 0 || index_stepper != 0 )
-                }//if (frequency_list.size() > 0 )		
+                }//if (frequency_list.size() > 0 )
             } /* on_statistic_updates */
         }
         handle_retune();
@@ -1326,7 +1435,7 @@ namespace ui {
     }
 
     void ReconView::recon_pause() {
-        timer = 0 ; 	 				    // Will trigger a recon_resume() on_statistics_update, also advancing to next freq.
+        timer = 0 ; 
         freq_lock = 0 ;
         userpause = true;
         continuous_lock=false;
@@ -1335,7 +1444,7 @@ namespace ui {
         audio_output_start();
 
         big_display.set_style(&style_white); 
-        button_pause.set_text("<RESUME>");	//PAUSED, show resume
+        button_pause.set_text("<RESUME>"); //PAUSED, show resume
     }
 
     void ReconView::recon_resume() {
@@ -1343,7 +1452,7 @@ namespace ui {
         freq_lock = 0 ;
         userpause = false;                 
         continuous_lock = false ;
-        recon = true ;	   
+        recon = true ;   
 
         audio::output::stop();
 
@@ -1398,8 +1507,8 @@ namespace ui {
 
     size_t ReconView::change_mode( freqman_index_t new_mod ) { 
 
-        field_mode.on_change = [this](size_t , OptionsField::value_t v) { (void)v; };
-        field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
+        field_mode.on_change = [this](size_t , OptionsField::value_t) { };
+        field_bw.on_change = [this](size_t , OptionsField::value_t) { };
 
         receiver_model.disable();
         baseband::shutdown();
@@ -1412,8 +1521,8 @@ namespace ui {
                 baseband::run_image(portapack::spi_flash::image_tag_am_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
                 receiver_model.set_am_configuration(field_bw.selected_index());
-                field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n);	};
-                receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
+                field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n); };
+                receiver_model.set_sampling_rate(3072000);receiver_model.set_baseband_bandwidth(1750000);
                 text_ctcss.set("             ");
                 break;
             case NFM_MODULATION:
@@ -1423,8 +1532,8 @@ namespace ui {
                 baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
                 receiver_model.set_nbfm_configuration(field_bw.selected_index());
-                field_bw.on_change = [this](size_t n, OptionsField::value_t) { 	receiver_model.set_nbfm_configuration(n); };
-                receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
+                field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_nbfm_configuration(n); };
+                receiver_model.set_sampling_rate(3072000);receiver_model.set_baseband_bandwidth(1750000);
                 break;
             case WFM_MODULATION:
                 freqman_set_bandwidth_option( new_mod , field_bw );
@@ -1433,8 +1542,8 @@ namespace ui {
                 baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
                 receiver_model.set_wfm_configuration(field_bw.selected_index());
-                field_bw.on_change = [this](size_t n, OptionsField::value_t) {	receiver_model.set_wfm_configuration(n); };
-                receiver_model.set_sampling_rate(3072000);	receiver_model.set_baseband_bandwidth(1750000);
+                field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_wfm_configuration(n); };
+                receiver_model.set_sampling_rate(3072000);receiver_model.set_baseband_bandwidth(1750000);
                 text_ctcss.set("             ");
                 break;
             default:
@@ -1448,16 +1557,14 @@ namespace ui {
             }
         };
 
-        if ( !recon ) 						//for some motive, audio output gets stopped.
-            audio::output::start();								//So if recon was stopped we resume audio
+        if ( !recon ) //for some motive, audio output gets stopped.
+            audio::output::start(); //so if recon was stopped we resume audio
         receiver_model.enable();
 
         return freqman_entry_get_step_value( def_step );
     }
 
     void ReconView::handle_coded_squelch(const uint32_t value) {
-        static int32_t last_idx = -1 ;
-
         float diff, min_diff = value;
         size_t min_idx { 0 };
         size_t c;
@@ -1478,9 +1585,9 @@ namespace ui {
         }
 
         // Arbitrary confidence threshold
-        if( last_idx < 0 || (unsigned)last_idx != min_idx )
+        if( last_squelch_index < 0 || (unsigned)last_squelch_index != min_idx )
         {
-            last_idx = min_idx ;
+            last_squelch_index = min_idx ;
             if (min_diff < 40)
                 text_ctcss.set("T: "+tone_keys[min_idx].first);
             else
