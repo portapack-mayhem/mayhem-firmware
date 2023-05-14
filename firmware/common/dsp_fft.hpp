@@ -33,6 +33,7 @@
 #include "complex.hpp"
 #include "hal.h"
 #include "utility.hpp"
+#include "sine_table_int8.hpp"
 
 namespace std {
 	/* https://github.com/AE9RB/fftbench/blob/master/cxlr.hpp
@@ -133,6 +134,47 @@ void fft_c_preswapped(std::array<T, N>& data, const size_t from, const size_t to
 			w += w * wp;
 		}
 	}
+}
+
+/* 
+   ifft(v,N):
+   [0] If N==1 then return.
+   [1] For k = 0 to N/2-1, let ve[k] = v[2*k]
+   [2] Compute ifft(ve, N/2);
+   [3] For k = 0 to N/2-1, let vo[k] = v[2*k+1]
+   [4] Compute ifft(vo, N/2);
+   [5] For m = 0 to N/2-1, do [6] through [9]
+   [6]   Let w.real() = cos(2*PI*m/N)
+   [7]   Let w.imag() = sin(2*PI*m/N)
+   [8]   Let v[m] = ve[m] + w*vo[m]
+   [9]   Let v[m+N/2] = ve[m] - w*vo[m]
+ */
+template<typename T>
+void ifft( T *v, int n, T *tmp )
+{
+    if(n>1) {
+        int k,m;
+		T z, w, *vo, *ve;
+        ve = tmp; vo = tmp+n/2;
+        for(k=0; k<n/2; k++) {
+            ve[k] = v[2*k];
+            vo[k] = v[2*k+1];
+        }
+        ifft( ve, n/2, v );		/* FFT on even-indexed elements of v[] */
+        ifft( vo, n/2, v );		/* FFT on odd-indexed elements of v[] */
+        for(m=0; m<n/2; m++) {
+            w.real(sine_table_i8[((int)(m/(double)n * 0x100 + 0x40)) & 0xFF]);
+            w.imag(sine_table_i8[((int)(m/(double)n * 0x100)) & 0xFF]);
+
+            z.real((w.real()*vo[m].real() - w.imag()*vo[m].imag())/127);	/* Re(w*vo[m]) */
+            z.imag((w.real()*vo[m].imag() + w.imag()*vo[m].real())/127);	/* Im(w*vo[m]) */
+            v[  m  ].real(ve[m].real() + z.real());
+            v[  m  ].imag(ve[m].imag() + z.imag());
+            v[m+n/2].real(ve[m].real() - z.real());
+            v[m+n/2].imag(ve[m].imag() - z.imag());
+        }
+    }
+    return;
 }
 
 #endif/*__DSP_FFT_H__*/

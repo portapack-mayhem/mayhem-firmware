@@ -140,6 +140,7 @@ set(CPPSRC
 	debug.cpp
 	${COMMON}/gcc.cpp
 	${COMMON}/performance_counter.cpp
+	${COMMON}/random.cpp
 	tone_gen.cpp
 )
 
@@ -462,6 +463,13 @@ set(MODE_CPPSRC
 	proc_siggen.cpp
 )
 DeclareTargets(PSIG siggen)
+
+### Spectrum painter
+
+set(MODE_CPPSRC
+	proc_spectrum_painter.cpp
+)
+DeclareTargets(PSPT spectrum_painter)
 
 ### SSTV TX
 
