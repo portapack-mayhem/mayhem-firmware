@@ -854,7 +854,7 @@ namespace ui {
                     field_lock_wait.set_style(&style_yellow);
                 }
             }
-            else
+            else // RECON_MATCH_SPARSE
             {
                 field_lock_wait.set_style( &style_white );
             }

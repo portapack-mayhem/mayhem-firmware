@@ -124,7 +124,7 @@ namespace ui {
 
 			const uint32_t _recon_lock_duration = STATS_UPDATE_INTERVAL ;
 			const uint32_t _recon_lock_nb_match = RECON_DEF_NB_MATCH ;
-			const uint32_t _recon_match_mode = 0 ;
+			const uint32_t _recon_match_mode = RECON_MATCH_CONTINUOUS ;
 
 			Checkbox checkbox_load_freqs {
 				{ 1 * 8, 12 },
