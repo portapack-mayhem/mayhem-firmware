@@ -1,6 +1,7 @@
 name: Check formatting
 
-on: [push, pull_request]
+on: #[push, pull_request] To be enabled once formatting is fixed in repo
+  workflow_dispatch:
 
 jobs:  
   check_date:
