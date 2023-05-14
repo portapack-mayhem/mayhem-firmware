@@ -1,1 +1,1 @@
-a=76000000,b=90000000,m=WFM,bw=16k,s=50KHz,d=WFM Japan
+a=76000000,b=90000000,m=WFM,bw=200k,s=50kHz,d=WFM Japan
