@@ -3,6 +3,15 @@ name: Check formatting
 on: [push, pull_request]
 
 jobs:  
+  check_date:
+    runs-on: ubuntu-latest
+    name: Check latest commit
+    outputs:
+      should_run: ${{ steps.should_run.outputs.should_run }}
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
   test:
     runs-on: ubuntu-latest
 
