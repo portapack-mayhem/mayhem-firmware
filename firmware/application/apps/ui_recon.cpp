@@ -415,13 +415,28 @@ namespace ui {
         button_pause.on_select = [this](ButtonWithEncoder&) {
             if( frequency_list.size() > 0 )
             {
-                if( userpause )
+                if( freq_lock > 0 )
                 {
-                    recon_resume();
+                    if( fwd )
+                    {
+                        on_stepper_delta( 1 );
+                    }
+                    else
+                    {
+                        on_stepper_delta( -1 );
+                    }
+                    button_pause.set_text("<PAUSE>");		//Show button for non continuous stop
                 }
                 else
                 {
-                    recon_pause();
+                    if( userpause )
+                    {
+                        recon_resume();
+                    }
+                    else
+                    {
+                        recon_pause();
+                    }
                 }
             }
         };
@@ -1351,6 +1366,9 @@ namespace ui {
         }
         if( frequency_list.size() > 0 )
             index_stepper = v ;
+
+        freq_lock = 0 ;
+        timer = 0 ;
     }
 
     void ReconView::on_stepper_delta(int32_t v)
@@ -1368,6 +1386,9 @@ namespace ui {
         }
         if( frequency_list.size() > 0 )
             stepper = v ;
+
+        freq_lock = 0 ;
+        timer = 0 ;
     }
 
     void ReconView::on_headphone_volume_changed(int32_t v) {
