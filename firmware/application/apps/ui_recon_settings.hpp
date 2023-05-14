@@ -20,6 +20,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef _UI_RECON_SETTINGS
+#define _UI_RECON_SETTINGS
+
 #include "serializer.hpp"
 #include "ui.hpp"
 #include "ui_widget.hpp"
@@ -27,10 +30,38 @@
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
 
+// maximum usable freq
+#define MAX_UFREQ 7200000000
+
+// 1Mhz helper
+#ifdef OneMHz
+    #undef OneMHz
+#endif
+#define OneMHz 1000000
+
+// modes
+#define RECON_MATCH_CONTINUOUS 0
+#define RECON_MATCH_SPARSE 1
+
+// statistics update interval (change here if it's evolving) in ms
+#define STATS_UPDATE_INTERVAL 100
+
+// default number of match to have a lock
+#define RECON_DEF_NB_MATCH 3
+#define RECON_DEF_LOCK_DURATION 100  // have to be >= and a multiple of STATS_UPDATE_INTERVAL
+#define RECON_DEF_WAIT_DURATION 1000 // will be incremented/decremented by STATS_UPDATE_INTERVAL steps
+
+// screen size helper
+#define SCREEN_W 240
+//#define SCREEN_H 320
+
+// recon settings nb params
+#define RECON_SETTINGS_NB_PARAMS 8
+
 namespace ui {
 
-	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , uint32_t &lock_wait , int32_t &volume );
-	bool ReconSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file , const uint32_t recon_lock_duration , const uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , uint32_t lock_wait , int32_t volume );
+	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume );
+	bool ReconSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file , const uint32_t recon_lock_duration , const uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume );
 
 	class ReconSetupViewMain : public View {
 		public:
@@ -94,9 +125,9 @@ namespace ui {
 
 		private:
 
-			const uint32_t _recon_lock_duration = 50 ;
-			const uint32_t _recon_lock_nb_match = 10 ;
-			const uint32_t _recon_match_mode = 0 ;
+			const uint32_t _recon_lock_duration = STATS_UPDATE_INTERVAL ;
+			const uint32_t _recon_lock_nb_match = RECON_DEF_NB_MATCH ;
+			const uint32_t _recon_match_mode = RECON_MATCH_CONTINUOUS ;
 
 			Checkbox checkbox_load_freqs {
 				{ 1 * 8, 12 },
@@ -128,8 +159,8 @@ namespace ui {
 			NumberField field_recon_lock_duration {
 				{ 1 * 8, 132 },             // position X , Y
 					4,                      // number of displayed digits (even empty)
-					{ 50 , 990 },           // range of number
-					10,                     // rotary encoder increment
+					{ STATS_UPDATE_INTERVAL , 10000-STATS_UPDATE_INTERVAL },           // range of number
+					STATS_UPDATE_INTERVAL,                     // rotary encoder increment
 					' ',                    // filling character 
 					false                   // can loop
 			};
@@ -172,11 +203,11 @@ namespace ui {
 
 			std::string input_file  = { "RECON" };
 			std::string output_file = { "RECON_RESULTS" };
-			uint32_t recon_lock_duration = 50 ;
-			uint32_t recon_lock_nb_match = 10 ;
-			uint32_t recon_match_mode = 0 ;
+			uint32_t recon_lock_duration = STATS_UPDATE_INTERVAL ;
+			uint32_t recon_lock_nb_match = RECON_DEF_NB_MATCH ;
+			uint32_t recon_match_mode = RECON_MATCH_CONTINUOUS ;
 
-			Rect view_rect = { 0, 3 * 8, 240, 230 };
+			Rect view_rect = { 0, 3 * 8, SCREEN_W, 230 };
 
 			ReconSetupViewMain viewMain{ nav_ , view_rect , input_file , output_file };
 			ReconSetupViewMore viewMore{ nav_ , view_rect , recon_lock_duration , recon_lock_nb_match , recon_match_mode };
@@ -192,3 +223,5 @@ namespace ui {
 	};
 
 } /* namespace ui */
+
+#endif

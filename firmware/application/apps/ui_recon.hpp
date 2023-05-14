@@ -38,86 +38,9 @@
 #include "string_format.hpp"
 #include "file.hpp"
 #include "app_settings.hpp"
-
-// maximum usable freq
-#define MAX_UFREQ 7200000000
-
-// 1Mhz helper
-#ifdef OneMHz
-    #undef OneMHz
-#endif
-#define OneMHz 1000000
+#include "ui_recon_settings.hpp"
 
 namespace ui {
-
-	class ReconThread {
-		public:
-			ReconThread(freqman_db *database );
-			~ReconThread();
-
-			void set_recon(const bool v);
-			void set_freq_delete(const bool v);
-			bool is_recon();
-
-			void set_lock_duration( const uint32_t v );
-			uint32_t get_lock_duration();
-			void set_lock_nb_match( const uint32_t v );
-			void set_match_mode( const uint32_t v );
-			uint32_t get_lock_nb_match();
-
-			void set_freq_lock(const int32_t v);
-			int32_t is_freq_lock();
-			int64_t get_current_freq();
-
-			void set_stepper(const int64_t v);
-			void set_index_stepper(const int64_t v);
-
-			void change_recon_direction();
-			bool get_recon_direction();
-			void set_recon_direction( const bool v);
-
-			void set_continuous(const bool v);
-
-			void set_default_modulation( freqman_index_t index );
-			freqman_index_t get_current_modulation();
-			void set_default_bandwidth( freqman_index_t index );
-			freqman_index_t get_current_bandwidth();
-			void set_default_step( freqman_index_t index );
-			void set_freq_index( int16_t index );
-			int16_t get_freq_index();
-
-			void run();
-			void stop();
-
-			ReconThread(const ReconThread&) = delete;
-			ReconThread(ReconThread&&) = delete;
-			ReconThread& operator=(const ReconThread&) = delete;
-			ReconThread& operator=(ReconThread&&) = delete;
-
-		private:
-			freqman_db &frequency_list_ ;
-			Thread* thread { nullptr };
-			int64_t freq = 0 ;
-			uint32_t step = 0 ;
-			freqman_index_t def_modulation  = 0 ;
-			freqman_index_t def_bandwidth = 0 ;
-			freqman_index_t def_step = 0 ;
-			tone_index tone = 0 ;
-			freqman_entry last_entry = { } ;
-			int16_t frequency_index = 0 ;
-
-			bool _recon { true };
-			bool _freq_delete { false };
-			bool _fwd { true };
-			bool _continuous { true };
-			bool entry_has_changed = false ;
-			int64_t _stepper { 0 };
-			int64_t _index_stepper { 0 };
-			int32_t _freq_lock { 0 };
-			uint32_t _lock_duration { 50 };
-			uint32_t _lock_nb_match { 10 };
-			static msg_t static_fn(void* arg);
-	};
 
 	class ReconView : public View {
 		public:
@@ -169,30 +92,28 @@ namespace ui {
 		private:
 			NavigationView& nav_;
 
-			void start_recon_thread();
+            void audio_output_start();
+			bool check_sd_card();
 			size_t change_mode( freqman_index_t mod_type);
 			void show_max( bool refresh_display = false );
 			void recon_pause();
 			void recon_resume();
-			void user_pause();
-			void user_resume();
 			void frequency_file_load( bool stop_all_before = false);
 			void on_statistics_update(const ChannelStatistics& statistics);
 			void on_headphone_volume_changed(int32_t v);
-			void set_display_freq( int64_t freq );
-			void handle_retune( int64_t freq , uint32_t index );
-			bool check_sd_card();
+			void on_index_delta(int32_t v);
+			void on_stepper_delta(int32_t v);
+			void recon_redraw();
+			void handle_retune();
 			void handle_coded_squelch(const uint32_t value);
 
 			jammer::jammer_range_t frequency_range { false, 0, MAX_UFREQ };  //perfect for manual recon task too...
 			int32_t squelch { 0 };
 			int32_t db { 0 };
 			int32_t timer { 0 };
-			int32_t wait { 1000 };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
-			uint32_t lock_wait { 1000 }; // in msec. Represent the maximum amount of time we will wait for a lock to complete before switching to next
-			int32_t def_step { 0 };
+			int32_t wait { RECON_DEF_WAIT_DURATION };   // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
 			freqman_db frequency_list  = { };
-			uint32_t current_index { 0 };
+			int32_t current_index { 0 };
 			bool userpause { false };
 			bool continuous_lock { false };
 			std::string input_file = { "RECON" };
@@ -206,13 +127,28 @@ namespace ui {
 			bool load_hamradios = { true };
 			bool update_ranges = { true };
 			bool fwd = { true };
+            bool recon = true ;
 			uint32_t recon_lock_nb_match = { 3 };
-			uint32_t recon_lock_duration = { 50 };
-			uint32_t recon_match_mode = { 0 };
+			uint32_t recon_lock_duration = { RECON_DEF_LOCK_DURATION };
+			uint32_t recon_match_mode = { RECON_MATCH_CONTINUOUS };
 			bool scanner_mode { false };
 			bool manual_mode { false };
 			bool sd_card_mounted = false ;
 			int32_t volume = 40 ;
+            int32_t stepper = 0 ;
+            int32_t index_stepper = 0 ;
+			int64_t freq = 0 ;
+			uint32_t step = 0 ;
+			freqman_index_t def_modulation  = 0 ;
+			freqman_index_t def_bandwidth = 0 ;
+			freqman_index_t def_step = 0 ;
+			tone_index tone = 0 ;
+			freqman_entry last_entry = { } ;
+			bool entry_has_changed = false ;
+			uint32_t freq_lock { 0 };
+            int64_t minfreq = 0 ;
+			int64_t maxfreq = 0 ;
+			bool has_looped = false ;
 
 			Labels labels 
 			{ 
@@ -260,21 +196,21 @@ namespace ui {
 			NumberField field_wait {
 				{ 20 * 8, 1 * 16 },
 					5,
-					{ -9000, 9000 },
-					100,
+					{ -(10000-STATS_UPDATE_INTERVAL) , (10000-STATS_UPDATE_INTERVAL) },
+					STATS_UPDATE_INTERVAL,
 					' ',
 			};
 
 			NumberField field_lock_wait {
 				{ 26 * 8, 1 * 16 },
 					4,
-					{ 100 , 9000 },
-					100,
+					{ RECON_DEF_LOCK_DURATION , (10000-RECON_DEF_LOCK_DURATION) },
+					RECON_DEF_LOCK_DURATION,
 					' ',
 			};
 
 			RSSI rssi {
-				{ 0 * 16, 2 * 16, 240 - 8 * 8 + 4 , 16 },
+				{ 0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4 , 16 },
 			}; 
 
 			ButtonWithEncoder text_cycle {
@@ -283,11 +219,11 @@ namespace ui {
 			};
 
 			Text text_max {
-				{ 4 * 8, 3 * 16, 240 - 7 * 8 - 4 * 8 , 16 },  
+				{ 4 * 8, 3 * 16, SCREEN_W - 7 * 8 - 4 * 8 , 16 },  
 			};
 
 			Text desc_cycle {
-				{0, 4 * 16, 240 , 16 },	   
+				{0, 4 * 16, SCREEN_W , 16 },	   
 			};
 
 			/* BigFrequency big_display {		//Show frequency in glamour
@@ -315,23 +251,23 @@ namespace ui {
 			};
 
 			Button button_recon_setup {
-				{ 240 - 7 * 8 , 2 * 16 , 7 * 8, 28 },
+				{ SCREEN_W - 7 * 8 , 2 * 16 , 7 * 8, 28 },
 					"CONFIG"
 			};
 
 			Button button_looking_glass {
-				{ 240 - 7 * 8 , 5 * 16 , 7 * 8, 28 },
+				{ SCREEN_W - 7 * 8 , 5 * 16 , 7 * 8, 28 },
 					"GLASS"
 			};
 
 			// Button can be RECON or SCANNER
 			Button button_scanner_mode {
-				{ 240 - 7 * 8 , 8 * 16 , 7 * 8, 28 },
+				{ SCREEN_W - 7 * 8 , 8 * 16 , 7 * 8, 28 },
 					"RECON"
 			};
 
 			Text file_name {		//Show file used
-				{ 0 , 8 * 16 + 6 , 240 - 7 * 8, 16 },
+				{ 0 , 8 * 16 + 6 , SCREEN_W - 7 * 8, 16 },
 			};
 
 			ButtonWithEncoder button_manual_start {
@@ -400,21 +336,11 @@ namespace ui {
 					"<REMOVE>"
 			};
 
-			std::unique_ptr<ReconThread> recon_thread { };
-
 			MessageHandlerRegistration message_handler_coded_squelch {
 				Message::ID::CodedSquelch,
 					[this](const Message* const p) {
 						const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
 						this->handle_coded_squelch(message.value);
-					}
-			};
-
-			MessageHandlerRegistration message_handler_retune {
-				Message::ID::Retune,
-					[this](const Message* const p) {
-						const auto message = *reinterpret_cast<const RetuneMessage*>(p);
-						this->handle_retune(message.freq,message.range);
 					}
 			};
 
