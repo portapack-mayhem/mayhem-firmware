@@ -1,6 +1,6 @@
 ---
 BasedOnStyle: Chromium
-IndentWidth: '4'
+IndentWidth: '2'
 TabWidth: '1'
 UseTab: Always
 
