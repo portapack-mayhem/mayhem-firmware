@@ -157,7 +157,7 @@ namespace ui {
             if( last_entry . modulation != frequency_list[ current_index ] . modulation && frequency_list[ current_index ] . modulation >= 0 )
             {
                 last_entry . modulation = frequency_list[ current_index ]. modulation;
-                change_mode( frequency_list[ current_index ] . modulation );
+                field_mode.set_selected_index( frequency_list[ current_index ]. modulation );
             }
             // Set bandwidth if any
             if( last_entry . bandwidth != frequency_list[ current_index ] . bandwidth && frequency_list[ current_index ] . bandwidth >= 0 )
@@ -633,13 +633,6 @@ namespace ui {
             }
         };
 
-        field_mode.on_change = [this](size_t, OptionsField::value_t v) {
-            if( v != -1 )
-            {
-                change_mode(v);
-            }
-        };
-
         button_dir.on_select = [this](Button&) {
             if( fwd )
             {
@@ -869,7 +862,6 @@ namespace ui {
         };
 
         //PRE-CONFIGURATION:
-
         button_scanner_mode.set_style( &style_blue );
         button_scanner_mode.set_text( "RECON" );
         file_name.set( "=>" );
@@ -882,13 +874,14 @@ namespace ui {
         field_lock_wait.set_value(recon_lock_duration);
         field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
-        //FILL STEP OPTIONS
+        // fill modulation and step options
         freqman_set_modulation_option( field_mode );
         freqman_set_step_option( step_mode );
 
-        change_mode(AM_MODULATION);	//Start on AM, sets callback field_mode.on_change
-
-        receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	// Retune
+        // set radio
+        change_mode(AM_MODULATION); // start on AM.
+        field_mode.set_by_value(AM_MODULATION); // reflect the mode into the manual selector
+        receiver_model.set_tuning_frequency( portapack::persistent_memory::tuned_frequency() );	// first tune
 
         if( filedelete )
         {
@@ -1300,7 +1293,6 @@ namespace ui {
                                 default:
                                     break;
                             }
-                            handle_retune();
                         } 
                         // send a pause message with the right freq
                         if( has_looped && !continuous )
@@ -1314,6 +1306,7 @@ namespace ui {
                 }//if (frequency_list.size() > 0 )		
             } /* on_statistic_updates */
         }
+        handle_retune();
         recon_redraw();
     }
 
@@ -1384,17 +1377,8 @@ namespace ui {
 
     size_t ReconView::change_mode( freqman_index_t new_mod ) { 
 
+        field_mode.on_change = [this](size_t , OptionsField::value_t v) { (void)v; };
         field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
-
-        // dirty ui hack so we can use change_mode into field_mode itself
-        field_mode.on_change = [this](size_t n, OptionsField::value_t) { (void)n;	};
-        field_mode.set_selected_index( new_mod );
-        field_mode.on_change = [this](size_t, OptionsField::value_t v) {
-            if( v != -1 )
-            {
-                change_mode(v);
-            }
-        };
 
         receiver_model.disable();
         baseband::shutdown();
@@ -1435,10 +1419,16 @@ namespace ui {
             default:
                 break;
         }
+        field_mode.set_selected_index( new_mod ); 
+        field_mode.on_change = [this](size_t, OptionsField::value_t v) {
+            if( v != -1 )
+            {
+                change_mode(v);
+            }
+        };
 
-        if( !recon ) // for some motive, audio output gets stopped.
-            audio_output_start();
-
+        if ( !recon ) 						//for some motive, audio output gets stopped.
+            audio::output::start();								//So if recon was stopped we resume audio
         receiver_model.enable();
 
         return freqman_entry_get_step_value( def_step );
