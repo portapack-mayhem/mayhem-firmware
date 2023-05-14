@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Bernd Herzog
  *
  * This file is part of PortaPack.
  *
@@ -19,5 +19,28 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "dsp_fft.hpp"
-#include "complex.hpp"
+#pragma once
+
+#include "portapack_shared_memory.hpp"
+#include "baseband_processor.hpp"
+#include "baseband_thread.hpp"
+
+class SpectrumPainterProcessor : public BasebandProcessor {
+public:
+	void execute(const buffer_c8_t& buffer) override;
+	void on_message(const Message* const p) override;
+	void run();
+
+private:
+	bool configured { false };
+	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+	Thread* thread {nullptr};
+
+protected:
+	static msg_t fn(void* arg) {
+		auto obj = static_cast<SpectrumPainterProcessor*>(arg);
+		obj->run();
+
+		return 0;
+	}
+};
