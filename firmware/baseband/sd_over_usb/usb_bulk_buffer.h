@@ -30,9 +30,9 @@
 #define USB_BULK_BUFFER_SIZE 0x8000
 #define USB_BULK_BUFFER_MASK 0x7FFF
 
-/* Address of usb_bulk_buffer is set in ldscripts. If you change the name of this
- * variable, it won't be where it needs to be in the processor's address space,
- * unless you also adjust the ldscripts.
+/* Address of usb_bulk_buffer is set in ldscripts. If you change the name of
+ * this variable, it won't be where it needs to be in the processor's address
+ * space, unless you also adjust the ldscripts.
  */
 extern uint8_t usb_bulk_buffer[USB_BULK_BUFFER_SIZE];
 

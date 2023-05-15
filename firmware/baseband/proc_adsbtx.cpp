@@ -21,21 +21,22 @@
  */
 
 #include "proc_adsbtx.hpp"
+#include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
-#include "event_m4.hpp"
 
 #include <cstdint>
 
 void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
-	
 	// This is called at 4M/2048 = 1953Hz
 	// One pulse = 500ns = 2 samples
 	// One bit = 2 pulses = 1us = 4 samples
 	// Test this with ./dump1090 --freq 434000000 --gain 20
-	// Or ./dump1090 --freq 434000000 --gain 20 --interactive --net --net-http-port 8080 --net-beast
-	
-	if (!configured) return;
+	// Or ./dump1090 --freq 434000000 --gain 20 --interactive --net
+	// --net-http-port 8080 --net-beast
+
+	if (!configured)
+		return;
 
 	for (size_t i = 0; i < buffer.count; i++) {
 		if (bit_pos >= (240 << 1)) {
@@ -45,20 +46,20 @@ void ADSBTXProcessor::execute(const buffer_c8_t& buffer) {
 			cur_bit = shared_memory.bb_data.data[bit_pos >> 1];
 			bit_pos++;
 		}
-		
+
 		if (cur_bit) {
 			// Crude AM
 			buffer.p[i] = am_lut[phase & 3];
 			phase++;
 		} else {
-			buffer.p[i] = { 0, 0 };
+			buffer.p[i] = {0, 0};
 		}
 	}
 }
 
 void ADSBTXProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const ADSBConfigureMessage*>(p);
-	
+
 	if (message.id == Message::ID::ADSBConfigure) {
 		bit_pos = 0;
 		phase = 0;
@@ -67,7 +68,7 @@ void ADSBTXProcessor::on_message(const Message* const p) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<ADSBTXProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<ADSBTXProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

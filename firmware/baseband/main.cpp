@@ -23,8 +23,8 @@
 
 #include "lpc43xx_cpp.hpp"
 
-#include "portapack_shared_memory.hpp"
 #include "portapack_dma.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include "gpdma.hpp"
 
@@ -32,9 +32,9 @@
 
 #include "touch_dma.hpp"
 
+#include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
-#include "baseband_processor.hpp"
 
 #include "message_queue.hpp"
 
@@ -46,9 +46,9 @@
 
 #include "gcc.hpp"
 
-#include <cstdint>
-#include <cstddef>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 
 extern "C" {
 
@@ -68,7 +68,6 @@ void __late_init(void) {
 	 */
 	chSysInit();
 }
-
 }
 
 static void init() {
@@ -87,16 +86,16 @@ static void init() {
 
 static void halt() {
 	port_disable();
-	while(true) {
+	while (true) {
 		port_wait_for_interrupt();
 	}
 }
 
 static void shutdown() {
 	// TODO: Is this complete?
-	
+
 	nvicDisableVector(DMA_IRQn);
-	
+
 	chSysDisable();
 
 	systick_stop();

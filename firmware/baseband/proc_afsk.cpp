@@ -21,24 +21,23 @@
  */
 
 #include "proc_afsk.hpp"
+#include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
-#include "event_m4.hpp"
 
 #include <cstdint>
 
 void AFSKProcessor::execute(const buffer_c8_t& buffer) {
-	
 	// This is called at 2.28M/2048 = 1113Hz
-	
-	if (!configured) return;
-	
-	for (size_t i = 0; i<buffer.count; i++) {
 
+	if (!configured)
+		return;
+
+	for (size_t i = 0; i < buffer.count; i++) {
 		if (sample_count >= afsk_samples_per_bit) {
 			if (configured) {
 				cur_word = *word_ptr;
-				
+
 				if (!cur_word) {
 					// End of data
 					if (repeat_counter < afsk_repeat) {
@@ -59,7 +58,7 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 					}
 				}
 			}
-			
+
 			cur_bit = (cur_word >> (symbol_count - bit_pos)) & 1;
 
 			if (bit_pos >= symbol_count) {
@@ -68,12 +67,12 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 			} else {
 				bit_pos++;
 			}
-			
+
 			sample_count = 0;
 		} else {
 			sample_count++;
 		}
-		
+
 		if (cur_bit)
 			tone_phase += afsk_phase_inc_mark;
 		else
@@ -82,20 +81,20 @@ void AFSKProcessor::execute(const buffer_c8_t& buffer) {
 		tone_sample = sine_table_i8[(tone_phase & 0xFF000000U) >> 24];
 
 		delta = tone_sample * fm_delta;
-		
+
 		phase += delta;
 		sphase = phase + (64 << 24);
 
 		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
 		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
-			
+
 		buffer.p[i] = {re, im};
 	}
 }
 
 void AFSKProcessor::on_message(const Message* const msg) {
 	const auto message = *reinterpret_cast<const AFSKTxConfigureMessage*>(msg);
-	
+
 	if (message.id == Message::ID::AFSKTxConfigure) {
 		if (message.samples_per_bit) {
 			afsk_samples_per_bit = message.samples_per_bit;
@@ -113,12 +112,12 @@ void AFSKProcessor::on_message(const Message* const msg) {
 			cur_bit = 0;
 			configured = true;
 		} else
-			configured = false;		// Kill
+			configured = false;	 // Kill
 	}
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<AFSKProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<AFSKProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

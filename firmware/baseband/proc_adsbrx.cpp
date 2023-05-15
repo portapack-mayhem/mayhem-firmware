@@ -21,117 +21,106 @@
  */
 
 #include "proc_adsbrx.hpp"
+#include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
-#include "event_m4.hpp"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 using namespace adsb;
-	
+
 void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 	int8_t re, im;
 	uint32_t mag;
 	uint32_t c;
 	uint8_t bit, byte{};
-	
+
 	// This is called at 2M/2048 = 977Hz
 	// One pulse = 500ns = 2 samples
 	// One bit = 2 pulses = 1us = 4 samples
 
-	if (!configured) return;
-	
+	if (!configured)
+		return;
+
 	for (size_t i = 0; i < buffer.count; i++) {
-		
 		// Compute sample's magnitude
 		re = (int32_t)buffer.p[i].real();
 		im = (int32_t)buffer.p[i].imag();
-		mag = ((uint32_t)(re*re) + (uint32_t)(im*im));
+		mag = ((uint32_t)(re * re) + (uint32_t)(im * im));
 
 		if (decoding) {
 			// Decode
-			
+
 			// 1 bit lasts 2 samples
 			if (sample_count & 1) {
-				if (bit_count >= msgLen)
-				{
+				if (bit_count >= msgLen) {
 					const ADSBFrameMessage message(frame, amp);
 					shared_memory.application_queue.push(message);
 					decoding = false;
 					bit = (prev_mag > mag) ? 1 : 0;
-				}
-				else 
-				{
+				} else {
 					bit = (prev_mag > mag) ? 1 : 0;
 				}
-				
+
 				byte = bit | (byte << 1);
 				bit_count++;
 
 				// Perform checks at the end of the first byte
 				if (!(bit_count & 7)) {
-
 					// Store the byte
 					frame.push_byte(byte);
 
 					// Check at the end of the first byte of the message
 					uint8_t df = (byte >> 3);
-					if ( (bit_count == 8) && !(df & 0x10) ) {
-						msgLen = 56; // DFs 16 or greater are long 112. DFs 15 or less are short 56.
+					if ((bit_count == 8) && !(df & 0x10)) {
+						msgLen = 56;	// DFs 16 or greater are long 112. DFs 15 or less are
+													// short 56.
 					}
 
 					// Abondon all frames that arent DF17 or DF18 extended squitters
-					if ( (bit_count == 8) && !((df == 17)||(df == 18)) ) {
+					if ((bit_count == 8) && !((df == 17) || (df == 18))) {
 						decoding = false;
 						bit = (prev_mag > mag) ? 1 : 0;
 						frame.clear();
 					}
-				} // last bit of a byte
-			} // Second sample of each bit
+				}	 // last bit of a byte
+			}		 // Second sample of each bit
 			sample_count++;
 		}
 
 		// Continue looking for preamble even if in a packet
 		// switch if new preamble is higher magnitude
-			
+
 		// Shift the preamble
-		for (c = 0; c < (ADSB_PREAMBLE_LENGTH ); c++) { shifter[c] = shifter[c + 1]; }
+		for (c = 0; c < (ADSB_PREAMBLE_LENGTH); c++) {
+			shifter[c] = shifter[c + 1];
+		}
 		shifter[ADSB_PREAMBLE_LENGTH] = mag;
-			
+
 		// First check of relations between the first 10 samples
 		// representing a valid preamble. We don't even investigate further
 		// if this simple test is not passed
-		if (shifter[0] < shifter[1] && 
-			shifter[1] > shifter[2] &&
-			shifter[2] < shifter[3] &&
-			shifter[3] > shifter[4] &&
-			shifter[4] < shifter[1] &&
-			shifter[5] < shifter[1] &&
-			shifter[6] < shifter[1] &&
-			shifter[7] < shifter[1] &&
-			shifter[8] > shifter[9] &&
-			shifter[9] < shifter[10] &&
-			shifter[10]> shifter[11] )
-		{
+		if (shifter[0] < shifter[1] && shifter[1] > shifter[2] &&
+				shifter[2] < shifter[3] && shifter[3] > shifter[4] &&
+				shifter[4] < shifter[1] && shifter[5] < shifter[1] &&
+				shifter[6] < shifter[1] && shifter[7] < shifter[1] &&
+				shifter[8] > shifter[9] && shifter[9] < shifter[10] &&
+				shifter[10] > shifter[11]) {
 			// The samples between the two spikes must be < than the average
 			// of the high spikes level. We don't test bits too near to
 			// the high levels as signals can be out of phase so part of the
 			// energy can be in the near samples
 			int32_t thisAmp = (shifter[1] + shifter[3] + shifter[8] + shifter[10]);
 			uint32_t high = thisAmp / 9;
-			if (
-				shifter[5] < high &&
-				shifter[6] < high &&
-				// Similarly samples in the range 11-13 must be low, as it is the
-				// space between the preamble and real data. Again we don't test
-				// bits too near to high levels, see above
-				shifter[12] < high &&
-				shifter[13] < high &&
-				shifter[14] < high )
-			{
-				if ((decoding == false) ||					   // New preamble
-					((decoding == true) && (thisAmp > amp)))   // Higher power than existing packet
+			if (shifter[5] < high && shifter[6] < high &&
+					// Similarly samples in the range 11-13 must be low, as it is the
+					// space between the preamble and real data. Again we don't test
+					// bits too near to high levels, see above
+					shifter[12] < high && shifter[13] < high && shifter[14] < high) {
+				if ((decoding == false) ||	// New preamble
+						((decoding == true) &&
+						 (thisAmp > amp)))	// Higher power than existing packet
 				{
 					decoding = true;
 					msgLen = 112;
@@ -140,8 +129,8 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 					bit_count = 0;
 					frame.clear();
 				}
-			} // 4 & 5 low and 11-14 low
-		} // Check for preamble pattern
+			}	 // 4 & 5 low and 11-14 low
+		}		 // Check for preamble pattern
 
 		// Store mag for next time
 		prev_mag = mag;
@@ -159,7 +148,7 @@ void ADSBRXProcessor::on_message(const Message* const message) {
 
 #ifndef _WIN32
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<ADSBRXProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<ADSBRXProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }
