@@ -115,10 +115,10 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
 							current_bit = false;
 						byte |= current_bit << (7 - c);
 					}
-					uint8_t byte_temp = (uint8_t)(
-							((byte * 0x0802LU & 0x22110LU) | (byte * 0x8020LU & 0x88440LU)) *
-									0x10101LU >>
-							16);
+					uint8_t byte_temp = (uint8_t)(((byte * 0x0802LU & 0x22110LU) |
+																				 (byte * 0x8020LU & 0x88440LU)) *
+																						0x10101LU >>
+																				16);
 					packet_addr_l |= ((uint64_t)byte_temp) << (8 * i);
 				}
 
