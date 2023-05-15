@@ -1,12 +1,17 @@
 name: Check formatting
 
-on: #[push, pull_request] To be enabled once formatting is fixed in repo
-  workflow_dispatch:
+on: [push, pull_request]
 
 jobs:  
   check_date:
     runs-on: ubuntu-latest
     name: Check formatting
+    strategy:
+      matrix:
+        path:
+          - 'firmware/baseband'
+          - 'firmware/common'
+          - 'firmware/application'
     steps:
       - uses: actions/checkout@v2
       - name: print latest_commit
@@ -14,5 +19,5 @@ jobs:
       - name: clang-format Check
         uses: jidicula/clang-format-action@v4.11.0
         with:
-          check-path: "firmware"
+          check-path: ${{ matrix.path }}
           fallback-style: Chromium
