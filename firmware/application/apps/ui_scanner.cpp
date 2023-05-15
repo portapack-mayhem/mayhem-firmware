@@ -56,6 +56,7 @@ void ScannerThread::stop() {
 	}
 }
 
+//Set by "userpause"
 void ScannerThread::set_scanning(const bool v) {
 	_scanning = v;
 }
@@ -73,7 +74,7 @@ uint32_t ScannerThread::is_freq_lock() {
 }
 
 //Delete an entry from frequency list
-//CAUTION: Should pause scan_thread AND can't delete a second one until this field is cleared
+//Caller must pause scan_thread AND can't delete a second one until this field is cleared
 void ScannerThread::set_freq_del(const rf::Frequency v) {
 	_freq_del = v;
 }
@@ -179,9 +180,6 @@ void ScannerView::bigdisplay_update(int32_t v) {
 		if (v!=-1)
 			bigdisplay_current_color = v;				// -1 means refresh display but keep current color
 
-////		bigdisplay_current_frequency = current_frequency;
-////		big_display.set(bigdisplay_current_frequency);
-
 		switch (bigdisplay_current_color) {
 			case BDC_GREY:	big_display.set_style(&style_grey);   break;
 			case BDC_YELLOW:big_display.set_style(&style_yellow); break;
@@ -202,14 +200,6 @@ void ScannerView::bigdisplay_update(int32_t v) {
 		}
 	}
 }
-
-
-
-
-
-// FUNCTION BELOW is likely the one messing up displayed frequency value when signal is iffy vs squelch
-
-
 
 void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
 	current_index = freq_idx;	//since it is an ongoing scan, this is a new index
@@ -351,8 +341,7 @@ ScannerView::ScannerView(
 			desc_current_index.set(desc_freq_list_scan);
 			scan_thread->set_freq_lock(0); 			//Reset the scanner lock
 
-// Should we switch to manual search mode automatically after clear?  But what if search frequencies are messed up?
-
+			//FUTURE: Consider switching to manual search mode automatically after clear (but would need to validate freq range)
 		}
 	};
 
