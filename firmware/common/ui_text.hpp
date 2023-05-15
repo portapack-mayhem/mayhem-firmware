@@ -31,66 +31,48 @@
 namespace ui {
 
 class Glyph {
-public:
-	constexpr Glyph(
-		Dim w,
-		Dim h,
-		const uint8_t* const pixels
-	) : w_ { static_cast<uint8_t>(w) },
-		h_ { static_cast<uint8_t>(h) },
-		pixels_ { pixels }
-	{
-	}
+ public:
+	constexpr Glyph(Dim w, Dim h, const uint8_t* const pixels)
+			: w_{static_cast<uint8_t>(w)},
+				h_{static_cast<uint8_t>(h)},
+				pixels_{pixels} {}
 
-	int w() const {
-		return w_;
-	}
+	int w() const { return w_; }
 
-	int h() const {
-		return h_;
-	}
+	int h() const { return h_; }
 
-	Size size() const {
-		return { w_, h_ };
-	}
+	Size size() const { return {w_, h_}; }
 
-	Point advance() const {
-		return { w_, 0 };
-	}
+	Point advance() const { return {w_, 0}; }
 
-	const uint8_t* pixels() const {
-		return pixels_;
-	}
+	const uint8_t* pixels() const { return pixels_; }
 
-private:
+ private:
 	const uint8_t w_;
 	const uint8_t h_;
 	const uint8_t* const pixels_;
 };
 
 class Font {
-public:
-	constexpr Font(
-		Dim w,
-		Dim h,
-		const uint8_t* data,
-		char c_start,
-		size_t c_count
-	) : w { w },
-		h { h },
-		data { data },
-		c_start { c_start },
-		c_count { c_count },
-		data_stride { (w * h + 7U) >> 3 }
-	{
-	}
+ public:
+	constexpr Font(Dim w,
+								 Dim h,
+								 const uint8_t* data,
+								 char c_start,
+								 size_t c_count)
+			: w{w},
+				h{h},
+				data{data},
+				c_start{c_start},
+				c_count{c_count},
+				data_stride{(w * h + 7U) >> 3} {}
 
 	Glyph glyph(const char c) const;
 
 	Dim line_height() const;
 	Size size_of(const std::string s) const;
 
-private:
+ private:
 	const Dim w;
 	const Dim h;
 	const uint8_t* const data;
@@ -101,4 +83,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_TEXT_H__*/
+#endif /*__UI_TEXT_H__*/

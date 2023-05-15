@@ -41,12 +41,13 @@
 // TEST: Imperial in whipcalc
 
 // BUG: Console lock-up if first string to be printed starts with escape
-// character ? BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp
-// lines 214+ to disable CPLD overlay BUG: SCANNER Lock on frequency, if
-// frequency jump, still locked on first one BUG: SCANNER Multiple slices GLITCH:
-// The about view scroller sometimes misses lines because of a race condition
-// between the display scrolling and drawing the line GLITCH: Start of tx using
-// ReplayThread plays a small bit of previous transmission (content of 1 buffer
+// character ? BUG: (Workaround ok) CPLD-related rx ok, tx bad, see
+// portapack.cpp lines 214+ to disable CPLD overlay BUG: SCANNER Lock on
+// frequency, if frequency jump, still locked on first one BUG: SCANNER Multiple
+// slices GLITCH: The about view scroller sometimes misses lines because of a
+// race condition between the display scrolling and drawing the line GLITCH:
+// Start of tx using ReplayThread plays a small bit of previous transmission
+// (content of 1 buffer
 // ?) 	See fifo.reset_in() ?
 
 // FIXED: Update button in signal gen doesn't work for shape change
@@ -113,8 +114,8 @@ Continuous (Fox-oring)
 // BUG (fixed ?): No audio in about when shown second time
 // TODO: Show MD5 mismatches for modules not found, etc...
 // TODO: Module name/filename in modules.hpp to indicate requirement in case
-// it's not found ui_loadmodule BUG: Description doesn't show up first time going
-// to system>module info (UI drawn on top)
+// it's not found ui_loadmodule BUG: Description doesn't show up first time
+// going to system>module info (UI drawn on top)
 // TODO: Two players tic-tac-toe
 // TODO: Analog TV pong game
 

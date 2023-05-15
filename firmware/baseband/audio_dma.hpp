@@ -54,4 +54,4 @@ audio::buffer_t rx_empty_buffer();
 } /* namespace dma */
 } /* namespace audio */
 
-#endif/*__AUDIO_DMA_H__*/
+#endif /*__AUDIO_DMA_H__*/

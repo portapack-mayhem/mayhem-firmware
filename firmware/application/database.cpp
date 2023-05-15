@@ -74,10 +74,10 @@ int database::retrieve_record(std::string file_path,
 				(db_file.size() /
 				 (index_item_length + record_length));	// determine number of records
 																								// in file binary search tree
-		int first = 0,										 // First search element
-				last = number_of_records - 1,	 // Last search element
-				middle,												 // Mid point of search
-				position = -1;								 // Position of search value
+		int first = 0,															// First search element
+				last = number_of_records - 1,						// Last search element
+				middle,																	// Mid point of search
+				position = -1;													// Position of search value
 
 		while (!found && first <= last) {
 			middle = (first + last) / 2;	// Calculate mid point

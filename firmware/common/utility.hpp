@@ -39,32 +39,33 @@ inline uint32_t fb_to_uint32(const std::string& fb) {
 	return (fb[3] << 24) + (fb[2] << 16) + (fb[1] << 8) + fb[0];
 }
 
-constexpr size_t operator "" _KiB(unsigned long long v) {
+constexpr size_t operator"" _KiB(unsigned long long v) {
 	return v * 1024;
 }
 
-constexpr size_t operator "" _MiB(unsigned long long v) {
+constexpr size_t operator"" _MiB(unsigned long long v) {
 	return v * 1024 * 1024;
 }
 
-template<typename E>
-constexpr typename std::underlying_type<E>::type toUType(E enumerator) noexcept {
+template <typename E>
+constexpr typename std::underlying_type<E>::type toUType(
+		E enumerator) noexcept {
 	/* Thanks, Scott Meyers! */
 	return static_cast<typename std::underlying_type<E>::type>(enumerator);
 }
 
 inline uint32_t flp2(uint32_t v) {
-	v |= v >>  1;
-	v |= v >>  2;
-	v |= v >>  4;
-	v |= v >>  8;
+	v |= v >> 1;
+	v |= v >> 2;
+	v |= v >> 4;
+	v |= v >> 8;
 	v |= v >> 16;
 	return v - (v >> 1);
 }
 
 uint32_t gcd(const uint32_t u, const uint32_t v);
 
-template<class T>
+template <class T>
 inline constexpr T pow(const T base, unsigned const exponent) {
 	return (exponent == 0) ? 1 : (base * pow(base, exponent - 1));
 }
@@ -94,7 +95,7 @@ int fast_int_magnitude(int y, int x);
 int int_atan2(int y, int x);
 int32_t int16_sin_s4(int32_t x);
 
-template<class T>
+template <class T>
 struct range_t {
 	const T minimum;
 	const T maximum;
@@ -104,15 +105,12 @@ struct range_t {
 	}
 
 	constexpr void reset_if_outside(T& value, const T& reset_value) const {
-		if( (value < minimum ) ||
-			(value > maximum ) ) {
+		if ((value < minimum) || (value > maximum)) {
 			value = reset_value;
 		}
 	}
 
-	constexpr bool below_range(const T& value) const {
-		return value < minimum;
-	}
+	constexpr bool below_range(const T& value) const { return value < minimum; }
 
 	constexpr bool contains(const T& value) const {
 		// TODO: Subtle gotcha here! Range test doesn't include maximum!
@@ -120,9 +118,10 @@ struct range_t {
 	}
 
 	constexpr bool out_of_range(const T& value) const {
-		// TODO: Subtle gotcha here! Range test in contains() doesn't include maximum!
+		// TODO: Subtle gotcha here! Range test in contains() doesn't include
+		// maximum!
 		return !contains(value);
 	}
 };
 
-#endif/*__UTILITY_H__*/
+#endif /*__UTILITY_H__*/

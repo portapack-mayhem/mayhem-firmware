@@ -92,8 +92,8 @@ constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {
 		{"SC2-180", sstv_parity(55), true, SSTV_COLOR_RGB, 320, 256,
 		 SSTV_MS2S(0.7344), false, 0, false, SSTV_MS2S(5.5225), SSTV_MS2S(0.5)},
 		//{ "PASOKON 3",	sstv_parity(113),	true, SSTV_COLOR_RGB, 640, 496,
-		//SSTV_MS2S(0.2083), 	{ 1500, 2300 } }, { "PASOKON 7",	sstv_parity(115),
-		//true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.4167), 	{ 1500, 2300 } }
+		// SSTV_MS2S(0.2083), 	{ 1500, 2300 } }, { "PASOKON 7",	sstv_parity(115),
+		// true, SSTV_COLOR_RGB, 640, 496, SSTV_MS2S(0.4167), 	{ 1500, 2300 } }
 };
 
 } /* namespace sstv */

@@ -20,8 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-
-
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -35,7 +33,7 @@
 namespace ui {
 
 class PlaylistView : public View {
-public:
+ public:
 	PlaylistView(NavigationView& nav);
 	~PlaylistView();
 
@@ -44,14 +42,14 @@ public:
 	void focus() override;
 
 	std::string title() const override { return "Playlist"; };
-	
-private:
+
+ private:
 	NavigationView& nav_;
-	
+
 	static constexpr ui::Dim header_height = 3 * 16;
-	
+
 	struct playlist_entry {
-		rf::Frequency replay_frequency { 0 };
+		rf::Frequency replay_frequency{0};
 		std::string replay_file{};
 		uint32_t sample_rate{};
 		uint32_t next_delay{};
@@ -59,17 +57,20 @@ private:
 	std::deque<playlist_entry> playlist_db{};
 	std::deque<playlist_entry> playlist_masterdb{};
 	uint32_t sample_rate = 0;
-	int32_t tx_gain { 47 };
-	bool rf_amp { true }; // aux private var to store temporal, Replay App rf_amp user selection.
+	int32_t tx_gain{47};
+	bool rf_amp{true};	// aux private var to store temporal, Replay App rf_amp
+											// user selection.
 	static constexpr uint32_t baseband_bandwidth = 2500000;
-	const size_t read_size { 16384 };
-	const size_t buffer_count { 3 };
+	const size_t read_size{16384};
+	const size_t buffer_count{3};
 	void load_file(std::filesystem::path playlist_path);
-	void txtline_process(std::string &);
-	void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate);
+	void txtline_process(std::string&);
+	void on_file_changed(std::filesystem::path new_file_path,
+											 rf::Frequency replay_frequency,
+											 uint32_t replay_sample_rate);
 	void on_target_frequency_changed(rf::Frequency f);
 	void on_tx_progress(const uint32_t progress);
-	
+
 	void set_target_frequency(const rf::Frequency new_value);
 	rf::Frequency target_frequency() const;
 
@@ -82,95 +83,61 @@ private:
 	void handle_replay_thread_done(const uint32_t return_code);
 	void file_error();
 
-	std::filesystem::path file_path { };
-	std::unique_ptr<ReplayThread> replay_thread { };
-	bool ready_signal { false };
+	std::filesystem::path file_path{};
+	std::unique_ptr<ReplayThread> replay_thread{};
+	bool ready_signal{false};
 
-	Labels labels {
-		{ { 10 * 8, 2 * 16 }, "GAIN   A:", Color::light_grey() }
-	};
-	
-	Button button_open {
-		{ 0 * 8, 0 * 16, 10 * 8, 2 * 16 },
-		"Open file"
-	};
+	Labels labels{{{10 * 8, 2 * 16}, "GAIN   A:", Color::light_grey()}};
 
-	
-	Text text_filename {
-		{ 11 * 8, 0 * 16, 12 * 8, 16 },
-		"-"
-	};
-	Text text_sample_rate {
-		{ 24 * 8, 0 * 16, 6 * 8, 16 },
-		"-"
-	};
-	
-	Text text_duration {
-		{ 11 * 8, 1 * 16, 6 * 8, 16 },
-		"-"
-	};
-	ProgressBar progressbar {
-		{ 18 * 8, 1 * 16, 12 * 8, 16 }
-	};
-	
-	FrequencyField field_frequency {
-		{ 0 * 8, 2 * 16 },
-	};
-	
-	NumberField field_rfgain {
-		{ 14 * 8, 2 * 16 },
-		2,
-		{ 0, 47 },
-		1,
-		' '	
-	};
-	NumberField field_rfamp {     // previously  I was using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
-		{ 19 * 8, 2 * 16 },
-		2,
-		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic App
-		14,
-		' '
-	};
-	Checkbox check_loop {
-		{ 21 * 8, 2 * 16 },
-		4,
-		"Loop",
-		true
-	};
-	ImageButton button_play {
-		{ 28 * 8, 2 * 16, 2 * 8, 1 * 16 },
-		&bitmap_play,
-		Color::green(),
-		Color::black()
+	Button button_open{{0 * 8, 0 * 16, 10 * 8, 2 * 16}, "Open file"};
+
+	Text text_filename{{11 * 8, 0 * 16, 12 * 8, 16}, "-"};
+	Text text_sample_rate{{24 * 8, 0 * 16, 6 * 8, 16}, "-"};
+
+	Text text_duration{{11 * 8, 1 * 16, 6 * 8, 16}, "-"};
+	ProgressBar progressbar{{18 * 8, 1 * 16, 12 * 8, 16}};
+
+	FrequencyField field_frequency{
+			{0 * 8, 2 * 16},
 	};
 
-	spectrum::WaterfallWidget waterfall { };
+	NumberField field_rfgain{{14 * 8, 2 * 16}, 2, {0, 47}, 1, ' '};
+	NumberField field_rfamp{
+			// previously  I was using "RFAmpField field_rf_amp" but that is general
+			// Receiver amp setting.
+			{19 * 8, 2 * 16},
+			2,
+			{0, 14},	// this time we will display GUI , 0 or 14 dBs same as Mic App
+			14,
+			' '};
+	Checkbox check_loop{{21 * 8, 2 * 16}, 4, "Loop", true};
+	ImageButton button_play{{28 * 8, 2 * 16, 2 * 8, 1 * 16},
+													&bitmap_play,
+													Color::green(),
+													Color::black()};
 
-	MessageHandlerRegistration message_handler_replay_thread_error {
-		Message::ID::ReplayThreadDone,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-			this->handle_replay_thread_done(message.return_code);
-		}
-	};
-	
-	MessageHandlerRegistration message_handler_fifo_signal {
-		Message::ID::RequestSignal,
-		[this](const Message* const p) {
-			const auto message = static_cast<const RequestSignalMessage*>(p);
-			if (message->signal == RequestSignalMessage::Signal::FillRequest) {
-				this->set_ready();
-			}
-		}
-	};
-	
-	MessageHandlerRegistration message_handler_tx_progress {
-		Message::ID::TXProgress,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-			this->on_tx_progress(message.progress);
-		}
-	};
+	spectrum::WaterfallWidget waterfall{};
+
+	MessageHandlerRegistration message_handler_replay_thread_error{
+			Message::ID::ReplayThreadDone, [this](const Message* const p) {
+				const auto message =
+						*reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+				this->handle_replay_thread_done(message.return_code);
+			}};
+
+	MessageHandlerRegistration message_handler_fifo_signal{
+			Message::ID::RequestSignal, [this](const Message* const p) {
+				const auto message = static_cast<const RequestSignalMessage*>(p);
+				if (message->signal == RequestSignalMessage::Signal::FillRequest) {
+					this->set_ready();
+				}
+			}};
+
+	MessageHandlerRegistration message_handler_tx_progress{
+			Message::ID::TXProgress, [this](const Message* const p) {
+				const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+				this->on_tx_progress(message.progress);
+			}};
 };
 
 } /* namespace ui */

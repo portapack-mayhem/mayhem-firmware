@@ -385,9 +385,7 @@ MicTXView::MicTXView(NavigationView& nav) {
 			10);	// pre-default first time, TX  deviation FM for NFM / FM
 
 	tx_gain = transmitter_model.tx_gain();
-	field_rfgain.on_change = [this](int32_t v) {
-		tx_gain = v;
-	};
+	field_rfgain.on_change = [this](int32_t v) { tx_gain = v; };
 	field_rfgain.set_value(tx_gain);
 
 	rf_amp = transmitter_model.rf_amp();

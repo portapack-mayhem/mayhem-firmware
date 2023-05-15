@@ -156,7 +156,8 @@ void APRSRxView::on_packet(const APRSPacketMessage* message) {
 
 	// if(reset_console){ //having more than one console causes issues when
 	// switching tabs where one is disabled, and the other enabled breaking the
-	// scoll setup. 	console.on_hide(); 	console.on_show(); 	reset_console = false;
+	// scoll setup. 	console.on_hide(); 	console.on_show(); 	reset_console =
+	// false;
 	//}
 
 	console.writeln(str_console);

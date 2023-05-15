@@ -32,4 +32,4 @@ void on_tick_second();
 
 } /* namespace rtc_time */
 
-#endif/*__RTC_TIME_H__*/
+#endif /*__RTC_TIME_H__*/

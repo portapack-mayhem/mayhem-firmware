@@ -38,20 +38,17 @@
 
 #include <cstdint>
 
-constexpr auto EVT_MASK_RTC_TICK        = EVENT_MASK(0);
-constexpr auto EVT_MASK_LCD_FRAME_SYNC  = EVENT_MASK(1);
-constexpr auto EVT_MASK_SWITCHES		= EVENT_MASK(3);
-constexpr auto EVT_MASK_ENCODER			= EVENT_MASK(4);
-constexpr auto EVT_MASK_TOUCH			= EVENT_MASK(5);
-constexpr auto EVT_MASK_APPLICATION     = EVENT_MASK(6);
-constexpr auto EVT_MASK_LOCAL           = EVENT_MASK(7);
+constexpr auto EVT_MASK_RTC_TICK = EVENT_MASK(0);
+constexpr auto EVT_MASK_LCD_FRAME_SYNC = EVENT_MASK(1);
+constexpr auto EVT_MASK_SWITCHES = EVENT_MASK(3);
+constexpr auto EVT_MASK_ENCODER = EVENT_MASK(4);
+constexpr auto EVT_MASK_TOUCH = EVENT_MASK(5);
+constexpr auto EVT_MASK_APPLICATION = EVENT_MASK(6);
+constexpr auto EVT_MASK_LOCAL = EVENT_MASK(7);
 
 class EventDispatcher {
-public:
-	EventDispatcher(
-		ui::Widget* const top_widget,
-		ui::Context& context
-	);
+ public:
+	EventDispatcher(ui::Widget* const top_widget, ui::Context& context);
 
 	EventDispatcher(const EventDispatcher&) = delete;
 	EventDispatcher(EventDispatcher&&) = delete;
@@ -64,33 +61,33 @@ public:
 	static void set_display_sleep(const bool sleep);
 
 	static inline void check_fifo_isr() {
-		if( !shared_memory.application_queue.is_empty() ) {
+		if (!shared_memory.application_queue.is_empty()) {
 			events_flag_isr(EVT_MASK_APPLICATION);
 		}
 	}
 
 	static inline void events_flag(const eventmask_t events) {
-		if( thread_event_loop ) {
+		if (thread_event_loop) {
 			chEvtSignal(thread_event_loop, events);
 		}
 	}
 
 	static inline void events_flag_isr(const eventmask_t events) {
-		if( thread_event_loop ) {
+		if (thread_event_loop) {
 			chEvtSignalI(thread_event_loop, events);
 		}
 	}
 
-	template<typename T>
+	template <typename T>
 	static void send_message(T& message) {
 		shared_memory.app_local_queue.push(message);
 		events_flag(EVT_MASK_LOCAL);
 	}
 
-private:
+ private:
 	static Thread* thread_event_loop;
 
-	touch::Manager touch_manager { };
+	touch::Manager touch_manager{};
 	ui::Widget* const top_widget;
 	ui::Painter painter;
 	ui::Context& context;
@@ -109,11 +106,11 @@ private:
 
 	static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event);
 
-	ui::Widget* captured_widget { nullptr };
+	ui::Widget* captured_widget{nullptr};
 
 	void on_touch_event(ui::TouchEvent event);
 
-	//void blink_timer();
+	// void blink_timer();
 	void handle_lcd_frame_sync();
 	void handle_switches();
 	void handle_encoder();
@@ -126,16 +123,14 @@ private:
 };
 
 class MessageHandlerRegistration {
-public:
-	MessageHandlerRegistration(
-		const Message::ID message_id,
-		std::function<void(Message* const p)>&& callback
-	);
+ public:
+	MessageHandlerRegistration(const Message::ID message_id,
+														 std::function<void(Message* const p)>&& callback);
 
 	~MessageHandlerRegistration();
-	
-private:
+
+ private:
 	const Message::ID message_id;
 };
 
-#endif/*__EVENT_M0_H__*/
+#endif /*__EVENT_M0_H__*/

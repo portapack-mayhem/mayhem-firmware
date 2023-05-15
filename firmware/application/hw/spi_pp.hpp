@@ -28,18 +28,12 @@
 #include "hal.h"
 
 class SPI {
-public:
-	constexpr SPI(SPIDriver* const driver) :
-		_driver(driver) {
-	}
+ public:
+	constexpr SPI(SPIDriver* const driver) : _driver(driver) {}
 
-	void start(const SPIConfig& config) {
-		spiStart(_driver, &config);
-	}
+	void start(const SPIConfig& config) { spiStart(_driver, &config); }
 
-	void stop() {
-		spiStop(_driver);
-	}
+	void stop() { spiStop(_driver); }
 
 	void transfer(void* const data, const size_t count) {
 		spiAcquireBus(_driver);
@@ -49,8 +43,8 @@ public:
 		spiReleaseBus(_driver);
 	}
 
-private:
+ private:
 	SPIDriver* const _driver;
 };
 
-#endif/*__SPI_PP_H__*/
+#endif /*__SPI_PP_H__*/

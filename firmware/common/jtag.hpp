@@ -32,16 +32,12 @@
 namespace jtag {
 
 class JTAG {
-public:
-	constexpr JTAG(
-		Target& target
-	) : target(target)
-	{
-	}
+ public:
+	constexpr JTAG(Target& target) : target(target) {}
 
 	void reset() {
 		/* ??? -> Test-Logic-Reset */
-		for(size_t i=0; i<8; i++) {
+		for (size_t i = 0; i < 8; i++) {
 			target.clock(1, 0);
 		}
 	}
@@ -51,9 +47,7 @@ public:
 		target.clock(0, 0);
 	}
 
-	void runtest_tck(const size_t count) {
-		target.delay(count);
-	}
+	void runtest_tck(const size_t count) { target.delay(count); }
 
 	uint32_t shift_ir(const size_t count, const uint32_t value) {
 		/* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
@@ -90,7 +84,7 @@ public:
 		return result;
 	}
 
-private:
+ private:
 	Target& target;
 
 	uint32_t shift(const size_t count, uint32_t value);
@@ -98,4 +92,4 @@ private:
 
 } /* namespace jtag */
 
-#endif/*__JTAG_H__*/
+#endif /*__JTAG_H__*/

@@ -29,16 +29,16 @@
 #include <cstdint>
 
 class RSSIThread : public ThreadBase {
-public:
+ public:
 	RSSIThread(const tprio_t priority);
 	~RSSIThread();
 
-private:
+ private:
 	void run() override;
 
 	static Thread* thread;
 
-	const uint32_t sampling_rate { 400000 };
+	const uint32_t sampling_rate{400000};
 };
 
-#endif/*__RSSI_THREAD_H__*/
+#endif /*__RSSI_THREAD_H__*/

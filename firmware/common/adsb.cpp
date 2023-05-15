@@ -173,11 +173,11 @@ void encode_frame_squawk(ADSBFrame& frame, const uint16_t squawk) {
 	// Additional , expanded  notes -------------------------------
 	// Identity squawk code ABCD = code (octal, 0000~7777) , input concatenated
 	// squawk : 4 octal digits ,A4 A2 A1-B4 B2 B1-C4 C2 C1-D4 D2 D1. 17	18	19	20
-	// 21	22	23	24	25	26	 27	28	29	30	31	32	 	bit position of the frame msg,
-	// (Squawk id is bit 20-32, from C1..D4). UM4	UM2	UM1	C1	A1	C2	A2	C4
-	// A4 	X    B1	D1	B2	D2	B4	D4      3 lower bit UM4,UM2,UM1 of the UM (6bits),
-	// and we should re-order the 13 bits ABCD changing 12 bit poistion based on
-	// std. 15	14	13	12	11	10	9	8	7	6	 5	4	3	2	1	0       Two bytes , bit
+	// 21	22	23	24	25	26	 27	28	29	30	31	32	 	bit position of the frame
+	// msg, (Squawk id is bit 20-32, from C1..D4). UM4	UM2	UM1	C1	A1	C2	A2	C4
+	// A4 	X    B1	D1	B2	D2	B4	D4      3 lower bit UM4,UM2,UM1 of the UM
+	// (6bits), and we should re-order the 13 bits ABCD changing 12 bit poistion
+	// based on std. 15	14	13	12	11	10	9	8	7	6	 5	4	3	2	1	0 Two bytes , bit
 	// position  to be send.
 
 	squawk_coded =
@@ -200,8 +200,8 @@ void encode_frame_squawk(ADSBFrame& frame, const uint16_t squawk) {
 	frame.push_byte(squawk_coded >>
 									8);	 // UM4	UM2	 UM1 C1	A1	C2	A2	C4  that is the correct
 											 // order, confirmed with dump1090
-	frame.push_byte(squawk_coded);	// A4   X(1) B1	 D1	B2	D2	B4	D4  that is the
-																	// correct order, confirmed with dupm1090
+	frame.push_byte(squawk_coded);	// A4   X(1) B1	 D1	B2	D2	B4	D4  that is
+																	// the correct order, confirmed with dupm1090
 
 	// DF 21 messages , has  56 bits more after 13 bits of squawk, we should add
 	// MB (56 bits) In this example, we are adding fixed MB = Track and turn

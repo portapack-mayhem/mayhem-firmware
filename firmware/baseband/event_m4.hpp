@@ -35,7 +35,7 @@ constexpr auto EVT_MASK_BASEBAND = EVENT_MASK(0);
 constexpr auto EVT_MASK_SPECTRUM = EVENT_MASK(1);
 
 class EventDispatcher {
-public:
+ public:
 	EventDispatcher(std::unique_ptr<BasebandProcessor> baseband_processor);
 
 	void run();
@@ -49,7 +49,7 @@ public:
 		chEvtSignalI(thread_event_loop, events);
 	}
 
-private:
+ private:
 	static Thread* thread_event_loop;
 
 	std::unique_ptr<BasebandProcessor> baseband_processor;
@@ -69,4 +69,4 @@ private:
 	void handle_spectrum();
 };
 
-#endif/*__EVENT_M4_H__*/
+#endif /*__EVENT_M4_H__*/

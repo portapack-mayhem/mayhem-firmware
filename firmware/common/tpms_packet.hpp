@@ -28,8 +28,8 @@
 #include "optional.hpp"
 
 #include "units.hpp"
-using units::Temperature;
 using units::Pressure;
+using units::Temperature;
 
 #include "baseband_packet.hpp"
 #include "manchester.hpp"
@@ -46,28 +46,19 @@ enum SignalType {
 };
 
 class TransponderID {
-public:
-	constexpr TransponderID(
-	) : id_ { 0 }
-	{
-	}
+ public:
+	constexpr TransponderID() : id_{0} {}
 
-	constexpr TransponderID(
-		const uint32_t id
-	) : id_ { id }
-	{
-	}
+	constexpr TransponderID(const uint32_t id) : id_{id} {}
 
-	constexpr uint32_t value() const {
-		return id_;
-	}
+	constexpr uint32_t value() const { return id_; }
 
-private:
+ private:
 	uint32_t id_;
 };
 
 class Reading {
-public:
+ public:
 	enum Type {
 		None = 0,
 		FLM_64 = 1,
@@ -77,72 +68,46 @@ public:
 		GMC_96 = 5,
 	};
 
-	constexpr Reading(
-	) : type_ { Type::None }
-	{
-	}
-	
-	constexpr Reading(
-		Type type,
-		TransponderID id
-	) : type_ { type },
-		id_ { id }
-	{
-	}
-	
-	constexpr Reading(
-		Type type,
-		TransponderID id,
-		Optional<Pressure> pressure = { },
-		Optional<Temperature> temperature = { },
-		Optional<Flags> flags = { }
-	) : type_ { type },
-		id_ { id },
-		pressure_ { pressure },
-		temperature_ { temperature },
-		flags_ { flags }
-	{
-	}
+	constexpr Reading() : type_{Type::None} {}
 
-	Type type() const {
-		return type_;
-	}
+	constexpr Reading(Type type, TransponderID id) : type_{type}, id_{id} {}
 
-	TransponderID id() const {
-		return id_;
-	}
+	constexpr Reading(Type type,
+										TransponderID id,
+										Optional<Pressure> pressure = {},
+										Optional<Temperature> temperature = {},
+										Optional<Flags> flags = {})
+			: type_{type},
+				id_{id},
+				pressure_{pressure},
+				temperature_{temperature},
+				flags_{flags} {}
 
-	Optional<Pressure> pressure() const {
-		return pressure_;
-	}
+	Type type() const { return type_; }
 
-	Optional<Temperature> temperature() const {
-		return temperature_;
-	}
+	TransponderID id() const { return id_; }
 
-	Optional<Flags> flags() const {
-		return flags_;
-	}
+	Optional<Pressure> pressure() const { return pressure_; }
 
-private:
-	Type type_ { Type::None };
-	TransponderID id_ { 0 };
-	Optional<Pressure> pressure_ { };
-	Optional<Temperature> temperature_ { };
-	Optional<Flags> flags_ { };
+	Optional<Temperature> temperature() const { return temperature_; }
+
+	Optional<Flags> flags() const { return flags_; }
+
+ private:
+	Type type_{Type::None};
+	TransponderID id_{0};
+	Optional<Pressure> pressure_{};
+	Optional<Temperature> temperature_{};
+	Optional<Flags> flags_{};
 };
 
 class Packet {
-public:
-	constexpr Packet(
-		const baseband::Packet& packet,
-		const SignalType signal_type
-	) : packet_ { packet },
-		signal_type_ { signal_type },
-		decoder_ { packet_, 0 },
-		reader_ { decoder_ }
-	{
-	}
+ public:
+	constexpr Packet(const baseband::Packet& packet, const SignalType signal_type)
+			: packet_{packet},
+				signal_type_{signal_type},
+				decoder_{packet_, 0},
+				reader_{decoder_} {}
 
 	SignalType signal_type() const { return signal_type_; }
 	Timestamp received_at() const;
@@ -151,7 +116,7 @@ public:
 
 	Optional<Reading> reading() const;
 
-private:
+ private:
 	using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
 	const baseband::Packet packet_;
@@ -169,4 +134,4 @@ private:
 
 } /* namespace tpms */
 
-#endif/*__TPMS_PACKET_H__*/
+#endif /*__TPMS_PACKET_H__*/

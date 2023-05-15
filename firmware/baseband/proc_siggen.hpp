@@ -51,8 +51,8 @@ class SigGenProcessor : public BasebandProcessor {
 	uint16_t lfsr_16{},
 			bit_16{};	 // bit must be 16-bit to allow bit<<15 later in the code */
 	uint8_t counter{0};
-	// uint8_t seed_value = {0x56}; 					// Finally not used lfsr of 8 bits , seed
-	// 8blfsr : any nonzero start state will work. uint8_t lfsr { }, bit { };
+	// uint8_t seed_value = {0x56}; 					// Finally not used lfsr of 8 bits ,
+	// seed 8blfsr : any nonzero start state will work. uint8_t lfsr { }, bit { };
 	// // Finally not used lfsr of 8 bits , bit must be 8-bit to allow bit<<7
 	// later in the code */
 

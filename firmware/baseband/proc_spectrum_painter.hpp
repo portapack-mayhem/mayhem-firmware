@@ -26,17 +26,18 @@
 #include "baseband_thread.hpp"
 
 class SpectrumPainterProcessor : public BasebandProcessor {
-public:
+ public:
 	void execute(const buffer_c8_t& buffer) override;
 	void on_message(const Message* const p) override;
 	void run();
 
-private:
-	bool configured { false };
-	BasebandThread baseband_thread { 3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	Thread* thread {nullptr};
+ private:
+	bool configured{false};
+	BasebandThread baseband_thread{3072000, this, NORMALPRIO + 20,
+																 baseband::Direction::Transmit};
+	Thread* thread{nullptr};
 
-protected:
+ protected:
 	static msg_t fn(void* arg) {
 		auto obj = static_cast<SpectrumPainterProcessor*>(arg);
 		obj->run();

@@ -26,4 +26,4 @@
 
 int16_t fxpt_atan2(const int16_t y, const int16_t x);
 
-#endif/*__FXPT_ATAN2_H__*/
+#endif /*__FXPT_ATAN2_H__*/

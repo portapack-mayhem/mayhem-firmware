@@ -31,7 +31,7 @@
 namespace jtag {
 
 class GPIOTarget : public Target {
-public:
+ public:
 	// Tightly control how this object can be constructor or copied, since
 	// it initializes GPIOs in the constructor. I don't want it re-
 	// initializing a bunch as the object gets passed around. So don't let
@@ -43,16 +43,11 @@ public:
 	GPIOTarget& operator=(const GPIOTarget&) = delete;
 	GPIOTarget& operator=(GPIOTarget&&) = delete;
 	*/
-	GPIOTarget(
-		GPIO gpio_tck,
-		GPIO gpio_tms,
-		GPIO gpio_tdi,
-		GPIO gpio_tdo
-	) : gpio_tck { gpio_tck },
-		gpio_tms { gpio_tms },
-		gpio_tdi { gpio_tdi },
-		gpio_tdo { gpio_tdo }
-	{
+	GPIOTarget(GPIO gpio_tck, GPIO gpio_tms, GPIO gpio_tdi, GPIO gpio_tdo)
+			: gpio_tck{gpio_tck},
+				gpio_tms{gpio_tms},
+				gpio_tdi{gpio_tdi},
+				gpio_tdo{gpio_tdo} {
 		gpio_tdi.write(1);
 		gpio_tdi.output();
 		gpio_tdi.configure();
@@ -79,13 +74,11 @@ public:
 		/* TODO: Use more precise timing mechanism, using the frequency
 		 * specified by SVF file.
 		 */
-        halPolledDelay(clocks * systicks_per_tck);
+		halPolledDelay(clocks * systicks_per_tck);
 	}
 
-	Target::bit_t clock(
-		const Target::bit_t tms_value,
-		const Target::bit_t tdi_value
-	) override {
+	Target::bit_t clock(const Target::bit_t tms_value,
+											const Target::bit_t tdi_value) override {
 		/* TODO: Use more precise timing mechanism, using the frequency
 		 * specified by SVF file.
 		 */
@@ -109,7 +102,7 @@ public:
 		return result;
 	}
 
-private:
+ private:
 	/* At 200MHz, one 18MHz cycle is 11 systicks. */
 	static constexpr size_t systicks_per_tck = 11;
 
@@ -118,23 +111,15 @@ private:
 	GPIO gpio_tdi;
 	GPIO gpio_tdo;
 
-	void tck(const Target::bit_t value) {
-		gpio_tck.write(value);
-	}
+	void tck(const Target::bit_t value) { gpio_tck.write(value); }
 
-	void tdi(const Target::bit_t value) {
-		gpio_tdi.write(value);
-	}
+	void tdi(const Target::bit_t value) { gpio_tdi.write(value); }
 
-	void tms(const bit_t value) {
-		gpio_tms.write(value);
-	}
+	void tms(const bit_t value) { gpio_tms.write(value); }
 
-	Target::bit_t tdo() {
-		return gpio_tdo.read();
-	}
+	Target::bit_t tdo() { return gpio_tdo.read(); }
 };
 
 } /* namespace jtag */
 
-#endif/*__JTAG_TARGET_GPIO_H__*/
+#endif /*__JTAG_TARGET_GPIO_H__*/

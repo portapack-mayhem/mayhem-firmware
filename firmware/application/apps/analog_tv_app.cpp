@@ -222,7 +222,7 @@ void AnalogTvView::on_reference_ppm_correction_changed(int32_t v) {
 
 void AnalogTvView::on_headphone_volume_changed(int32_t v) {
 	(void)v;	// avoid warning
-	// tv::TVView::set_headphone_volume(this,v);
+						// tv::TVView::set_headphone_volume(this,v);
 }
 
 void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {

@@ -30,8 +30,10 @@
 
 namespace lcr {
 
-std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
+std::string generate_message(std::string rgsb,
+														 std::vector<std::string> litterals,
+														 size_t option_ec);
 
 } /* namespace lcr */
 
-#endif/*__LCR_H__*/
+#endif /*__LCR_H__*/

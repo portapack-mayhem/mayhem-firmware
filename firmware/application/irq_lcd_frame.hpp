@@ -24,4 +24,4 @@
 
 void lcd_frame_sync_configure();
 
-#endif/*__IRQ_LCD_FRAME_H__*/
+#endif /*__IRQ_LCD_FRAME_H__*/

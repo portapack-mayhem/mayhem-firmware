@@ -35,7 +35,7 @@
 namespace ui {
 
 class SpectrumInputImageView : public View {
-public:
+ public:
 	SpectrumInputImageView(NavigationView& nav);
 	~SpectrumInputImageView();
 
@@ -46,22 +46,19 @@ public:
 	uint16_t get_height();
 	std::vector<uint8_t> get_line(uint16_t);
 
-	std::function<void()> on_input_avaliable { };
+	std::function<void()> on_input_avaliable{};
 
-private:
-	bool painted {false};
-	std::string file {""};
-	uint16_t width {0};
-	uint16_t height {0};
-	uint8_t type {0};
-	uint32_t data_start {0};
-	
-	Button button_load_image {
-		{ 0 * 8, 11 * 16 - 4, 30 * 8, 28 },
-		"Load Image ..."
-	};
-	
+ private:
+	bool painted{false};
+	std::string file{""};
+	uint16_t width{0};
+	uint16_t height{0};
+	uint8_t type{0};
+	uint32_t data_start{0};
+
+	Button button_load_image{{0 * 8, 11 * 16 - 4, 30 * 8, 28}, "Load Image ..."};
+
 	bool drawBMP_scaled(const ui::Rect r, const std::string file);
 };
 
-}
+}	 // namespace ui

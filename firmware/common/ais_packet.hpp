@@ -40,52 +40,37 @@ struct DateTime {
 	uint8_t second;
 };
 
-template<size_t FieldSize, int32_t DegMax, uint32_t NAValue>
+template <size_t FieldSize, int32_t DegMax, uint32_t NAValue>
 struct LatLonBase {
-	
-	constexpr LatLonBase(
-	) : LatLonBase { raw_not_available }
-	{
-	}
-	
-	constexpr LatLonBase(
-		const int32_t raw
-	) : raw_ { raw }
-	{
-	}
+	constexpr LatLonBase() : LatLonBase{raw_not_available} {}
 
-	constexpr LatLonBase(
-		const LatLonBase& other
-	) : raw_ { other.raw_ }
-	{
-	}
-	
-	LatLonBase& operator=( const LatLonBase &)=default;
+	constexpr LatLonBase(const int32_t raw) : raw_{raw} {}
+
+	constexpr LatLonBase(const LatLonBase& other) : raw_{other.raw_} {}
+
+	LatLonBase& operator=(const LatLonBase&) = default;
 
 	int32_t normalized() const {
-		return static_cast<int32_t>(raw() << sign_extend_shift) / (1 << sign_extend_shift);
+		return static_cast<int32_t>(raw() << sign_extend_shift) /
+					 (1 << sign_extend_shift);
 	}
 
-	int32_t raw() const {
-		return raw_;
-	}
+	int32_t raw() const { return raw_; }
 
-	bool is_not_available() const {
-		return raw() == raw_not_available;
-	}
+	bool is_not_available() const { return raw() == raw_not_available; }
 
 	bool is_valid() const {
 		return (normalized() >= raw_valid_min) && (normalized() <= raw_valid_max);
 	}
 
-private:
+ private:
 	int32_t raw_;
 
 	static constexpr size_t sign_extend_shift = 32 - FieldSize;
 
 	static constexpr int32_t raw_not_available = NAValue;
 	static constexpr int32_t raw_valid_min = -DegMax * 60 * 10000;
-	static constexpr int32_t raw_valid_max =  DegMax * 60 * 10000;
+	static constexpr int32_t raw_valid_max = DegMax * 60 * 10000;
 };
 
 using Latitude = LatLonBase<27, 90, 0x3412140>;
@@ -99,16 +84,12 @@ using TrueHeading = uint16_t;
 using MMSI = uint32_t;
 
 class Packet {
-public:
-	constexpr Packet(
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		field_ { packet_ }
-	{
-	}
+ public:
+	constexpr Packet(const baseband::Packet& packet)
+			: packet_{packet}, field_{packet_} {}
 
 	size_t length() const;
-	
+
 	bool is_valid() const;
 
 	Timestamp received_at() const;
@@ -128,10 +109,10 @@ public:
 
 	bool crc_ok() const;
 
-private:
+ private:
 	using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
 	using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
-	
+
 	const baseband::Packet packet_;
 	const Reader field_;
 
@@ -145,4 +126,4 @@ private:
 
 } /* namespace ais */
 
-#endif/*__AIS_PACKET_H__*/
+#endif /*__AIS_PACKET_H__*/

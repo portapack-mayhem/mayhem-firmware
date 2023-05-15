@@ -25,17 +25,15 @@
 #include <cstdint>
 
 class volume_t {
-public:
-	constexpr volume_t operator-() const {
-		return { -cb };
-	}
+ public:
+	constexpr volume_t operator-() const { return {-cb}; }
 
 	constexpr volume_t operator+(const volume_t& other) const {
-		return { cb + other.cb };
+		return {cb + other.cb};
 	}
 
 	constexpr volume_t operator-(const volume_t& other) const {
-		return { cb - other.cb };
+		return {cb - other.cb};
 	}
 
 	volume_t& operator+=(const volume_t& other) {
@@ -51,30 +49,18 @@ public:
 		return cb > other.cb;
 	}
 
-	static constexpr volume_t centibel(const int cb) {
-		return { cb };
-	}
+	static constexpr volume_t centibel(const int cb) { return {cb}; }
 
-	static constexpr volume_t decibel(const int db) {
-		return { db * 10 };
-	}
+	static constexpr volume_t decibel(const int db) { return {db * 10}; }
 
-	int32_t centibel() const {
-		return cb;
-	}
+	int32_t centibel() const { return cb; }
 
-	int32_t decibel() const {
-		return cb / 10;
-	}
+	int32_t decibel() const { return cb / 10; }
 
-private:
+ private:
 	int32_t cb;
 
-	constexpr volume_t(
-		const int cb
-	) : cb(cb)
-	{
-	}
+	constexpr volume_t(const int cb) : cb(cb) {}
 };
 
 constexpr volume_t operator"" _cB(long double v) {
@@ -90,10 +76,10 @@ struct volume_range_t {
 	volume_t max;
 
 	volume_t limit(const volume_t value) const {
-		if( value < min ) {
+		if (value < min) {
 			return min;
 		}
-		if( value > max ) {
+		if (value > max) {
 			return max;
 		}
 		return value;
@@ -105,4 +91,4 @@ struct volume_range_t {
 	}
 };
 
-#endif/*__VOLUME_H__*/
+#endif /*__VOLUME_H__*/

@@ -36,38 +36,57 @@ namespace ui {
 class NavigationView;
 
 class DfuMenu : public View {
-public:
+ public:
 	DfuMenu(NavigationView& nav);
 	~DfuMenu() = default;
 
 	void paint(Painter& painter) override;
 
-private:
+ private:
 	NavigationView& nav_;
-	
-	Text text_head {{ 6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 11 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, "Performance"};
 
-	Labels labels {
-		{ { 6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT }, "M0 heap:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT }, "M0 stack:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT }, "M0 cpu %:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT }, "M4 heap:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT }, "M4 stack:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH,10 * LINE_HEIGHT }, "M4 cpu %:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH,11 * LINE_HEIGHT }, "M4 miss:", Color::dark_cyan() },
-		{ { 6 * CHARACTER_WIDTH,12 * LINE_HEIGHT }, "uptime:", Color::dark_cyan() }
-	};
+	Text text_head{{6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 11 * CHARACTER_WIDTH,
+									1 * LINE_HEIGHT},
+								 "Performance"};
 
-	Text text_info_line_1 {{ 15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_2 {{ 15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_3 {{ 15 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_4 {{ 15 * CHARACTER_WIDTH, 8 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_5 {{ 15 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_6 {{ 15 * CHARACTER_WIDTH,10 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_7 {{ 15 * CHARACTER_WIDTH,11 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
-	Text text_info_line_8 {{ 15 * CHARACTER_WIDTH,12 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT }, ""};
+	Labels labels{
+			{{6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT}, "M0 heap:", Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT}, "M0 stack:", Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT}, "M0 cpu %:", Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT}, "M4 heap:", Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "M4 stack:", Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 10 * LINE_HEIGHT},
+			 "M4 cpu %:",
+			 Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "M4 miss:", Color::dark_cyan()},
+			{{6 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "uptime:", Color::dark_cyan()}};
+
+	Text text_info_line_1{{15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_2{{15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_3{{15 * CHARACTER_WIDTH, 7 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_4{{15 * CHARACTER_WIDTH, 8 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_5{{15 * CHARACTER_WIDTH, 9 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_6{{15 * CHARACTER_WIDTH, 10 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_7{{15 * CHARACTER_WIDTH, 11 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
+	Text text_info_line_8{{15 * CHARACTER_WIDTH, 12 * LINE_HEIGHT,
+												 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT},
+												""};
 };
 
 } /* namespace ui */
 
-#endif/*__UI_DFU_MENU_H__*/
+#endif /*__UI_DFU_MENU_H__*/

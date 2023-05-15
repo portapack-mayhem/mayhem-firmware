@@ -186,8 +186,8 @@ class SondeProcessor : public BasebandProcessor {
 								// format) (these bits are not passed at the beginning of
 								// packet)
 					//{
-					//0b0000100001101101010100111000100001000100011010010100100000011111,
-					//64, 1 }, //euquiq whole header detection would be 8 bytes.
+					// 0b0000100001101101010100111000100001000100011010010100100000011111,
+					// 64, 1 }, //euquiq whole header detection would be 8 bytes.
 					{},
 					{320 * 8},
 					[this](const baseband::Packet& packet) {

@@ -560,8 +560,9 @@ void ScannerView::on_statistics_update(const ChannelStatistics& statistics) {
 			timer = 0;
 			scan_resume();
 		} else if (!timer) {
-			if (statistics.max_db > squelch) {	// There is something on the
-																					// air...(statistics.max_db > -squelch)
+			if (statistics.max_db >
+					squelch) {	// There is something on the
+											// air...(statistics.max_db > -squelch)
 				if (scan_thread->is_freq_lock() >=
 						MAX_FREQ_LOCK) {	// checking time reached
 					scan_pause();

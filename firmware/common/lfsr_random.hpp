@@ -31,4 +31,4 @@ lfsr_word_t lfsr_iterate(lfsr_word_t v);
 void lfsr_fill(lfsr_word_t& v, lfsr_word_t* buffer, size_t word_count);
 bool lfsr_compare(lfsr_word_t& v, const lfsr_word_t* buffer, size_t word_count);
 
-#endif/*__LFSR_RANDOM_HPP__*/
+#endif /*__LFSR_RANDOM_HPP__*/

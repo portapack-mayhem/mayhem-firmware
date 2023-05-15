@@ -153,7 +153,7 @@ void PlaylistView::start() {
 	//	for (playlist_entry item : playlist_db) {
 	//	file_path = item.replay_file;
 	//	rf::Frequency replay_frequency =
-	//strtoll(item.replay_frequency.c_str(),nullptr,10);
+	// strtoll(item.replay_frequency.c_str(),nullptr,10);
 	on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate);
 	on_target_frequency_changed(item.replay_frequency);
 
