@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,15 +44,13 @@
 #ifndef _STM32_H_
 #define _STM32_H_
 
-#if defined(STM32F030)         || defined(STM32F0XX_LD)    ||               \
-    defined(STM32F0XX_MD)
+#if defined(STM32F030) || defined(STM32F0XX_LD) || defined(STM32F0XX_MD)
 #include "stm32f0xx.h"
 
-#elif defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) ||               \
-      defined(STM32F10X_HD_VL) || defined(STM32F10X_LD)    ||               \
-      defined(STM32F10X_MD)    || defined(STM32F10X_HD)    ||               \
-      defined(STM32F10X_XL)    || defined(STM32F10X_CL)    ||               \
-      defined(__DOXYGEN__)
+#elif defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) ||                  \
+		defined(STM32F10X_HD_VL) || defined(STM32F10X_LD) ||                       \
+		defined(STM32F10X_MD) || defined(STM32F10X_HD) || defined(STM32F10X_XL) || \
+		defined(STM32F10X_CL) || defined(__DOXYGEN__)
 #include "stm32f10x.h"
 
 #elif defined(STM32F2XX)
@@ -64,12 +62,11 @@
 #elif defined(STM32F37X)
 #include "stm32f37x.h"
 
-#elif defined(STM32F401xx)     || defined(STM32F40_41xxx)  ||               \
-      defined(STM32F427_437xx) || defined(STM32F429_439xx)
+#elif defined(STM32F401xx) || defined(STM32F40_41xxx) || \
+		defined(STM32F427_437xx) || defined(STM32F429_439xx)
 #include "stm32f4xx.h"
 
-#elif defined(STM32L1XX_MD)    || defined(STM32L1XX_MDP)   ||               \
-      defined(STM32L1XX_HD)
+#elif defined(STM32L1XX_MD) || defined(STM32L1XX_MDP) || defined(STM32L1XX_HD)
 #include "stm32l1xx.h"
 
 #else

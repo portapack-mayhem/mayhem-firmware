@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,25 +44,25 @@
  * @brief   Simple MSP430 I/O port.
  */
 struct msp430_port_simple_t {
-  volatile uint8_t              in;
-  volatile uint8_t              out;
-  volatile uint8_t              dir;
-  volatile uint8_t              sel;
+	volatile uint8_t in;
+	volatile uint8_t out;
+	volatile uint8_t dir;
+	volatile uint8_t sel;
 };
 
 /**
  * @brief   Full MSP430 I/O port.
  */
 struct msp430_port_full_t {
-  volatile uint8_t              in;
-  volatile uint8_t              out;
-  volatile uint8_t              dir;
-  volatile uint8_t              ifg;
-  volatile uint8_t              ies;
-  volatile uint8_t              ie;
-  volatile uint8_t              sel;
+	volatile uint8_t in;
+	volatile uint8_t out;
+	volatile uint8_t dir;
+	volatile uint8_t ifg;
+	volatile uint8_t ies;
+	volatile uint8_t ie;
+	volatile uint8_t sel;
 #if defined(__MSP430_HAS_PORT1_R__) || defined(__MSP430_HAS_PORT2_R__)
-  volatile uint8_t             ren;
+	volatile uint8_t ren;
 #endif
 };
 
@@ -72,26 +72,26 @@ struct msp430_port_full_t {
  *          ports.
  */
 struct msp430_port_common {
-  volatile uint8_t              in;
-  volatile uint8_t              out;
-  volatile uint8_t              dir;
+	volatile uint8_t in;
+	volatile uint8_t out;
+	volatile uint8_t dir;
 };
 
 /**
  * @brief   Generic MSP430 I/O port.
  */
 typedef union {
-  struct msp430_port_common     iop_common;
-  struct msp430_port_simple_t   iop_simple;
-  struct msp430_port_full_t     iop_full;
+	struct msp430_port_common iop_common;
+	struct msp430_port_simple_t iop_simple;
+	struct msp430_port_full_t iop_full;
 } msp430_ioport_t;
 
 /**
  * @brief   Setup registers common to all the MSP430 ports.
  */
-typedef struct  {
-  volatile uint8_t              out;
-  volatile uint8_t              dir;
+typedef struct {
+	volatile uint8_t out;
+	volatile uint8_t dir;
 } msp430_dio_setup_t;
 
 /**
@@ -102,41 +102,35 @@ typedef struct  {
  *          or whole ports can be reprogrammed at later time.
  */
 typedef struct {
-#if defined(__MSP430_HAS_PORT1__) ||                                    \
-    defined(__MSP430_HAS_PORT1_R__) ||                                  \
-    defined(__DOXYGEN__)
-  /** @brief Port 1 setup data.*/
-  msp430_dio_setup_t    P1Data;
+#if defined(__MSP430_HAS_PORT1__) || defined(__MSP430_HAS_PORT1_R__) || \
+		defined(__DOXYGEN__)
+	/** @brief Port 1 setup data.*/
+	msp430_dio_setup_t P1Data;
 #endif
-#if defined(__MSP430_HAS_PORT2__) ||                                    \
-    defined(__MSP430_HAS_PORT2_R__) ||                                  \
-    defined(__DOXYGEN__)
-  /** @brief Port 2 setup data.*/
-  msp430_dio_setup_t    P2Data;
+#if defined(__MSP430_HAS_PORT2__) || defined(__MSP430_HAS_PORT2_R__) || \
+		defined(__DOXYGEN__)
+	/** @brief Port 2 setup data.*/
+	msp430_dio_setup_t P2Data;
 #endif
-#if defined(__MSP430_HAS_PORT3__) ||                                    \
-    defined(__MSP430_HAS_PORT3_R__) ||                                  \
-    defined(__DOXYGEN__)
-  /** @brief Port 3 setup data.*/
-  msp430_dio_setup_t    P3Data;
+#if defined(__MSP430_HAS_PORT3__) || defined(__MSP430_HAS_PORT3_R__) || \
+		defined(__DOXYGEN__)
+	/** @brief Port 3 setup data.*/
+	msp430_dio_setup_t P3Data;
 #endif
-#if defined(__MSP430_HAS_PORT4__) ||                                    \
-    defined(__MSP430_HAS_PORT4_R__) ||                                  \
-    defined(__DOXYGEN__)
-  /** @brief Port 4 setup data.*/
-  msp430_dio_setup_t    P4Data;
+#if defined(__MSP430_HAS_PORT4__) || defined(__MSP430_HAS_PORT4_R__) || \
+		defined(__DOXYGEN__)
+	/** @brief Port 4 setup data.*/
+	msp430_dio_setup_t P4Data;
 #endif
-#if defined(__MSP430_HAS_PORT5__) ||                                    \
-    defined(__MSP430_HAS_PORT5_R__) ||                                  \
-    defined(__DOXYGEN__)
-  /** @brief Port 5 setup data.*/
-  msp430_dio_setup_t    P5Data;
+#if defined(__MSP430_HAS_PORT5__) || defined(__MSP430_HAS_PORT5_R__) || \
+		defined(__DOXYGEN__)
+	/** @brief Port 5 setup data.*/
+	msp430_dio_setup_t P5Data;
 #endif
-#if defined(__MSP430_HAS_PORT6__) ||                                    \
-    defined(__MSP430_HAS_PORT6_R__) ||                                  \
-    defined(__DOXYGEN__)
-  /** @brief Port 6 setup data.*/
-  msp430_dio_setup_t    P6Data;
+#if defined(__MSP430_HAS_PORT6__) || defined(__MSP430_HAS_PORT6_R__) || \
+		defined(__DOXYGEN__)
+	/** @brief Port 6 setup data.*/
+	msp430_dio_setup_t P6Data;
 #endif
 } PALConfig;
 
@@ -167,7 +161,7 @@ typedef uint16_t iomode_t;
  *          any assumption about it, use the provided macros when populating
  *          variables of this type.
  */
-typedef msp430_ioport_t *ioportid_t;
+typedef msp430_ioport_t* ioportid_t;
 
 /*===========================================================================*/
 /* I/O Ports Identifiers.                                                    */
@@ -177,60 +171,54 @@ typedef msp430_ioport_t *ioportid_t;
  * @brief   I/O port A identifier.
  * @details This port identifier is mapped on the MSP430 port 1 (P1).
  */
-#if defined(__MSP430_HAS_PORT1__) ||                                    \
-    defined(__MSP430_HAS_PORT1_R__) ||                                  \
-    defined(__DOXYGEN__)
-#define IOPORT1         ((ioportid_t)P1IN_)
+#if defined(__MSP430_HAS_PORT1__) || defined(__MSP430_HAS_PORT1_R__) || \
+		defined(__DOXYGEN__)
+#define IOPORT1 ((ioportid_t)P1IN_)
 #endif
 
 /**
  * @brief   I/O port B identifier.
  * @details This port identifier is mapped on the MSP430 port 2 (P2).
  */
-#if defined(__MSP430_HAS_PORT2__) ||                                    \
-    defined(__MSP430_HAS_PORT2_R__) ||                                  \
-    defined(__DOXYGEN__)
-#define IOPORT2         ((ioportid_t)P2IN_)
+#if defined(__MSP430_HAS_PORT2__) || defined(__MSP430_HAS_PORT2_R__) || \
+		defined(__DOXYGEN__)
+#define IOPORT2 ((ioportid_t)P2IN_)
 #endif
 
 /**
  * @brief   I/O port C identifier.
  * @details This port identifier is mapped on the MSP430 port 3 (P3).
  */
-#if defined(__MSP430_HAS_PORT3__) ||                                    \
-    defined(__MSP430_HAS_PORT3_R__) ||                                  \
-    defined(__DOXYGEN__)
-#define IOPORT3         ((ioportid_t)P3IN_)
+#if defined(__MSP430_HAS_PORT3__) || defined(__MSP430_HAS_PORT3_R__) || \
+		defined(__DOXYGEN__)
+#define IOPORT3 ((ioportid_t)P3IN_)
 #endif
 
 /**
  * @brief   I/O port D identifier.
  * @details This port identifier is mapped on the MSP430 port 4 (P4).
  */
-#if defined(__MSP430_HAS_PORT4__) ||                                    \
-    defined(__MSP430_HAS_PORT4_R__) ||                                  \
-    defined(__DOXYGEN__)
-#define IOPORT4         ((ioportid_t)P4IN_)
+#if defined(__MSP430_HAS_PORT4__) || defined(__MSP430_HAS_PORT4_R__) || \
+		defined(__DOXYGEN__)
+#define IOPORT4 ((ioportid_t)P4IN_)
 #endif
 
 /**
  * @brief   I/O port E identifier.
  * @details This port identifier is mapped on the MSP430 port 5 (P5).
  */
-#if defined(__MSP430_HAS_PORT5__) ||                                    \
-    defined(__MSP430_HAS_PORT5_R__) ||                                  \
-    defined(__DOXYGEN__)
-#define IOPORT5         ((ioportid_t)P5IN_)
+#if defined(__MSP430_HAS_PORT5__) || defined(__MSP430_HAS_PORT5_R__) || \
+		defined(__DOXYGEN__)
+#define IOPORT5 ((ioportid_t)P5IN_)
 #endif
 
 /**
  * @brief   I/O port F identifier.
  * @details This port identifier is mapped on the MSP430 port 6 (P6).
  */
-#if defined(__MSP430_HAS_PORT6__) ||                                    \
-    defined(__MSP430_HAS_PORT6_R__) ||                                  \
-    defined(__DOXYGEN__)
-#define IOPORT6         ((ioportid_t)P6IN_)
+#if defined(__MSP430_HAS_PORT6__) || defined(__MSP430_HAS_PORT6_R__) || \
+		defined(__DOXYGEN__)
+#define IOPORT6 ((ioportid_t)P6IN_)
 #endif
 
 /*===========================================================================*/
@@ -300,18 +288,16 @@ typedef msp430_ioport_t *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 extern const PALConfig pal_default_config;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

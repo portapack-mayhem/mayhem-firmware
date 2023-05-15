@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -45,7 +45,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_SERIAL_USE_USART1) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USE_USART1             FALSE
+#define STM32_SERIAL_USE_USART1 FALSE
 #endif
 
 /**
@@ -54,7 +54,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_SERIAL_USE_USART2) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USE_USART2             FALSE
+#define STM32_SERIAL_USE_USART2 FALSE
 #endif
 
 /**
@@ -63,7 +63,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_SERIAL_USE_USART3) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USE_USART3             FALSE
+#define STM32_SERIAL_USE_USART3 FALSE
 #endif
 
 /**
@@ -72,7 +72,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_SERIAL_USE_UART4) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USE_UART4              FALSE
+#define STM32_SERIAL_USE_UART4 FALSE
 #endif
 
 /**
@@ -81,7 +81,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_SERIAL_USE_UART5) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USE_UART5              FALSE
+#define STM32_SERIAL_USE_UART5 FALSE
 #endif
 
 /**
@@ -90,49 +90,49 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_SERIAL_USE_USART6) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USE_USART6             FALSE
+#define STM32_SERIAL_USE_USART6 FALSE
 #endif
 
 /**
  * @brief   USART1 interrupt priority level setting.
  */
 #if !defined(STM32_SERIAL_USART1_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USART1_PRIORITY        12
+#define STM32_SERIAL_USART1_PRIORITY 12
 #endif
 
 /**
  * @brief   USART2 interrupt priority level setting.
  */
 #if !defined(STM32_SERIAL_USART2_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USART2_PRIORITY        12
+#define STM32_SERIAL_USART2_PRIORITY 12
 #endif
 
 /**
  * @brief   USART3 interrupt priority level setting.
  */
 #if !defined(STM32_SERIAL_USART3_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USART3_PRIORITY        12
+#define STM32_SERIAL_USART3_PRIORITY 12
 #endif
 
 /**
  * @brief   UART4 interrupt priority level setting.
  */
 #if !defined(STM32_SERIAL_UART4_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_SERIAL_UART4_PRIORITY         12
+#define STM32_SERIAL_UART4_PRIORITY 12
 #endif
 
 /**
  * @brief   UART5 interrupt priority level setting.
  */
 #if !defined(STM32_SERIAL_UART5_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_SERIAL_UART5_PRIORITY         12
+#define STM32_SERIAL_UART5_PRIORITY 12
 #endif
 
 /**
  * @brief   USART6 interrupt priority level setting.
  */
 #if !defined(STM32_SERIAL_USART6_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_SERIAL_USART6_PRIORITY        12
+#define STM32_SERIAL_USART6_PRIORITY 12
 #endif
 /** @} */
 
@@ -164,39 +164,39 @@
 #error "USART6 not present in the selected device"
 #endif
 
-#if !STM32_SERIAL_USE_USART1 && !STM32_SERIAL_USE_USART2 &&                 \
-    !STM32_SERIAL_USE_USART3 && !STM32_SERIAL_USE_UART4  &&                 \
-    !STM32_SERIAL_USE_UART5  && !STM32_SERIAL_USE_USART6
+#if !STM32_SERIAL_USE_USART1 && !STM32_SERIAL_USE_USART2 && \
+		!STM32_SERIAL_USE_USART3 && !STM32_SERIAL_USE_UART4 &&  \
+		!STM32_SERIAL_USE_UART5 && !STM32_SERIAL_USE_USART6
 #error "SERIAL driver activated but no USART/UART peripheral assigned"
 #endif
 
-#if STM32_SERIAL_USE_USART1 &&                                              \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART1_PRIORITY)
+#if STM32_SERIAL_USE_USART1 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART1_PRIORITY)
 #error "Invalid IRQ priority assigned to USART1"
 #endif
 
-#if STM32_SERIAL_USE_USART2 &&                                              \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART2_PRIORITY)
+#if STM32_SERIAL_USE_USART2 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART2_PRIORITY)
 #error "Invalid IRQ priority assigned to USART2"
 #endif
 
-#if STM32_SERIAL_USE_USART3 &&                                              \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART3_PRIORITY)
+#if STM32_SERIAL_USE_USART3 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART3_PRIORITY)
 #error "Invalid IRQ priority assigned to USART3"
 #endif
 
-#if STM32_SERIAL_USE_UART4 &&                                               \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_UART4_PRIORITY)
+#if STM32_SERIAL_USE_UART4 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_UART4_PRIORITY)
 #error "Invalid IRQ priority assigned to UART4"
 #endif
 
-#if STM32_SERIAL_USE_UART5 &&                                               \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_UART5_PRIORITY)
+#if STM32_SERIAL_USE_UART5 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_UART5_PRIORITY)
 #error "Invalid IRQ priority assigned to UART5"
 #endif
 
-#if STM32_SERIAL_USE_USART6 &&                                              \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART6_PRIORITY)
+#if STM32_SERIAL_USE_USART6 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_SERIAL_USART6_PRIORITY)
 #error "Invalid IRQ priority assigned to USART6"
 #endif
 
@@ -213,45 +213,44 @@
  *          initializers.
  */
 typedef struct {
-  /**
-   * @brief Bit rate.
-   */
-  uint32_t                  speed;
-  /* End of the mandatory fields.*/
-  /**
-   * @brief Initialization value for the CR1 register.
-   */
-  uint32_t                  cr1;
-  /**
-   * @brief Initialization value for the CR2 register.
-   */
-  uint32_t                  cr2;
-  /**
-   * @brief Initialization value for the CR3 register.
-   */
-  uint32_t                  cr3;
+	/**
+	 * @brief Bit rate.
+	 */
+	uint32_t speed;
+	/* End of the mandatory fields.*/
+	/**
+	 * @brief Initialization value for the CR1 register.
+	 */
+	uint32_t cr1;
+	/**
+	 * @brief Initialization value for the CR2 register.
+	 */
+	uint32_t cr2;
+	/**
+	 * @brief Initialization value for the CR3 register.
+	 */
+	uint32_t cr3;
 } SerialConfig;
 
 /**
  * @brief   @p SerialDriver specific data.
  */
-#define _serial_driver_data                                                 \
-  _base_asynchronous_channel_data                                           \
-  /* Driver state.*/                                                        \
-  sdstate_t                 state;                                          \
-  /* Input queue.*/                                                         \
-  InputQueue                iqueue;                                         \
-  /* Output queue.*/                                                        \
-  OutputQueue               oqueue;                                         \
-  /* Input circular buffer.*/                                               \
-  uint8_t                   ib[SERIAL_BUFFERS_SIZE];                        \
-  /* Output circular buffer.*/                                              \
-  uint8_t                   ob[SERIAL_BUFFERS_SIZE];                        \
-  /* End of the mandatory fields.*/                                         \
-  /* Pointer to the USART registers block.*/                                \
-  USART_TypeDef             *usart;                                         \
-  /* Clock frequency for the associated USART/UART.*/                       \
-  uint32_t                  clock;
+#define _serial_driver_data                           \
+	_base_asynchronous_channel_data /* Driver state.*/  \
+			sdstate_t state;                                \
+	/* Input queue.*/                                   \
+	InputQueue iqueue;                                  \
+	/* Output queue.*/                                  \
+	OutputQueue oqueue;                                 \
+	/* Input circular buffer.*/                         \
+	uint8_t ib[SERIAL_BUFFERS_SIZE];                    \
+	/* Output circular buffer.*/                        \
+	uint8_t ob[SERIAL_BUFFERS_SIZE];                    \
+	/* End of the mandatory fields.*/                   \
+	/* Pointer to the USART registers block.*/          \
+	USART_TypeDef* usart;                               \
+	/* Clock frequency for the associated USART/UART.*/ \
+	uint32_t clock;
 
 /*===========================================================================*/
 /* Driver macros.                                                            */
@@ -260,10 +259,10 @@ typedef struct {
 /*
  * Extra USARTs definitions here (missing from the ST header file).
  */
-#define USART_CR2_STOP1_BITS    (0 << 12)   /**< @brief CR2 1 stop bit value.*/
-#define USART_CR2_STOP0P5_BITS  (1 << 12)   /**< @brief CR2 0.5 stop bit value.*/
-#define USART_CR2_STOP2_BITS    (2 << 12)   /**< @brief CR2 2 stop bit value.*/
-#define USART_CR2_STOP1P5_BITS  (3 << 12)   /**< @brief CR2 1.5 stop bit value.*/
+#define USART_CR2_STOP1_BITS (0 << 12)	 /**< @brief CR2 1 stop bit value.*/
+#define USART_CR2_STOP0P5_BITS (1 << 12) /**< @brief CR2 0.5 stop bit value.*/
+#define USART_CR2_STOP2_BITS (2 << 12)	 /**< @brief CR2 2 stop bit value.*/
+#define USART_CR2_STOP1P5_BITS (3 << 12) /**< @brief CR2 1.5 stop bit value.*/
 
 /*===========================================================================*/
 /* External declarations.                                                    */
@@ -291,9 +290,9 @@ extern SerialDriver SD6;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void sd_lld_init(void);
-  void sd_lld_start(SerialDriver *sdp, const SerialConfig *config);
-  void sd_lld_stop(SerialDriver *sdp);
+void sd_lld_init(void);
+void sd_lld_start(SerialDriver* sdp, const SerialConfig* config);
+void sd_lld_stop(SerialDriver* sdp);
 #ifdef __cplusplus
 }
 #endif

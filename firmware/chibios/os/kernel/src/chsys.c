@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -58,14 +58,13 @@ WORKING_AREA(_idle_thread_wa, PORT_IDLE_THREAD_STACK_SIZE);
  *
  * @param[in] p the thread parameter, unused in this scenario
  */
-void _idle_thread(void *p) {
-
-  (void)p;
-  chRegSetThreadName("idle");
-  while (TRUE) {
-    port_wait_for_interrupt();
-    IDLE_LOOP_HOOK();
-  }
+void _idle_thread(void* p) {
+	(void)p;
+	chRegSetThreadName("idle");
+	while (TRUE) {
+		port_wait_for_interrupt();
+		IDLE_LOOP_HOOK();
+	}
 }
 #endif /* CH_NO_IDLE_THREAD */
 
@@ -82,44 +81,44 @@ void _idle_thread(void *p) {
  * @special
  */
 void chSysInit(void) {
-  static Thread mainthread;
+	static Thread mainthread;
 #if CH_DBG_ENABLE_STACK_CHECK
-  extern stkalign_t __main_thread_stack_base__;
+	extern stkalign_t __main_thread_stack_base__;
 #endif
 
-  port_init();
-  _scheduler_init();
-  _vt_init();
+	port_init();
+	_scheduler_init();
+	_vt_init();
 #if CH_USE_MEMCORE
-  _core_init();
+	_core_init();
 #endif
 #if CH_USE_HEAP
-  _heap_init();
+	_heap_init();
 #endif
 #if CH_DBG_ENABLE_TRACE
-  _trace_init();
+	_trace_init();
 #endif
 
-  /* Now this instructions flow becomes the main thread.*/
-  setcurrp(_thread_init(&mainthread, NORMALPRIO));
-  currp->p_state = THD_STATE_CURRENT;
+	/* Now this instructions flow becomes the main thread.*/
+	setcurrp(_thread_init(&mainthread, NORMALPRIO));
+	currp->p_state = THD_STATE_CURRENT;
 #if CH_DBG_ENABLE_STACK_CHECK
-  /* This is a special case because the main thread Thread structure is not
-     adjacent to its stack area.*/
-  currp->p_stklimit = &__main_thread_stack_base__;
+	/* This is a special case because the main thread Thread structure is not
+		 adjacent to its stack area.*/
+	currp->p_stklimit = &__main_thread_stack_base__;
 #endif
-  chSysEnable();
+	chSysEnable();
 
-  /* Note, &ch_debug points to the string "main" if the registry is
-     active, else the parameter is ignored.*/
-  chRegSetThreadName((const char *)&ch_debug);
+	/* Note, &ch_debug points to the string "main" if the registry is
+		 active, else the parameter is ignored.*/
+	chRegSetThreadName((const char*)&ch_debug);
 
 #if !CH_NO_IDLE_THREAD
-  /* This thread has the lowest priority in the system, its role is just to
-     serve interrupts in its context while keeping the lowest energy saving
-     mode compatible with the system status.*/
-  chThdCreateStatic(_idle_thread_wa, sizeof(_idle_thread_wa), IDLEPRIO,
-                    (void *)_idle_thread, NULL);
+	/* This thread has the lowest priority in the system, its role is just to
+		 serve interrupts in its context while keeping the lowest energy saving
+		 mode compatible with the system status.*/
+	chThdCreateStatic(_idle_thread_wa, sizeof(_idle_thread_wa), IDLEPRIO,
+										(void*)_idle_thread, NULL);
 #endif
 }
 
@@ -135,21 +134,20 @@ void chSysInit(void) {
  * @iclass
  */
 void chSysTimerHandlerI(void) {
-
-  chDbgCheckClassI();
+	chDbgCheckClassI();
 
 #if CH_TIME_QUANTUM > 0
-  /* Running thread has not used up quantum yet? */
-  if (currp->p_preempt > 0)
-    /* Decrement remaining quantum.*/
-    currp->p_preempt--;
+	/* Running thread has not used up quantum yet? */
+	if (currp->p_preempt > 0)
+		/* Decrement remaining quantum.*/
+		currp->p_preempt--;
 #endif
 #if CH_DBG_THREADS_PROFILING
-  currp->p_time++;
+	currp->p_time++;
 #endif
-  chVTDoTickI();
+	chVTDoTickI();
 #if defined(SYSTEM_TICK_EVENT_HOOK)
-  SYSTEM_TICK_EVENT_HOOK();
+	SYSTEM_TICK_EVENT_HOOK();
 #endif
 }
 

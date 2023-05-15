@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -64,10 +64,9 @@ GPTDriver GPTD1;
  * @notapi
  */
 void gpt_lld_init(void) {
-
 #if PLATFORM2_GPT_USE_TIM1
-  /* Driver initialization.*/
-  gptObjectInit(&GPTD1);
+	/* Driver initialization.*/
+	gptObjectInit(&GPTD1);
 #endif
 }
 
@@ -78,18 +77,15 @@ void gpt_lld_init(void) {
  *
  * @notapi
  */
-void gpt_lld_start(GPTDriver *gptp) {
-
-  if (gptp->state == GPT_STOP) {
-    /* Enables the peripheral.*/
+void gpt_lld_start(GPTDriver* gptp) {
+	if (gptp->state == GPT_STOP) {
+		/* Enables the peripheral.*/
 #if PLATFORM_GPT_USE_GPT1
-    if (&GPTD1 == gptp) {
-
-    }
+		if (&GPTD1 == gptp) {
+		}
 #endif /* PLATFORM_GPT_USE_GPT1 */
-  }
-  /* Configures the peripheral.*/
-
+	}
+	/* Configures the peripheral.*/
 }
 
 /**
@@ -99,18 +95,16 @@ void gpt_lld_start(GPTDriver *gptp) {
  *
  * @notapi
  */
-void gpt_lld_stop(GPTDriver *gptp) {
+void gpt_lld_stop(GPTDriver* gptp) {
+	if (gptp->state == GPT_READY) {
+		/* Resets the peripheral.*/
 
-  if (gptp->state == GPT_READY) {
-    /* Resets the peripheral.*/
-
-    /* Disables the peripheral.*/
+		/* Disables the peripheral.*/
 #if PLATFORM_GPT_USE_GPT1
-    if (&GPTD1 == gptp) {
-
-    }
+		if (&GPTD1 == gptp) {
+		}
 #endif /* PLATFORM_GPT_USE_GPT1 */
-  }
+	}
 }
 
 /**
@@ -121,11 +115,9 @@ void gpt_lld_stop(GPTDriver *gptp) {
  *
  * @notapi
  */
-void gpt_lld_start_timer(GPTDriver *gptp, gptcnt_t interval) {
-
-  (void)gptp;
-  (void)interval;
-
+void gpt_lld_start_timer(GPTDriver* gptp, gptcnt_t interval) {
+	(void)gptp;
+	(void)interval;
 }
 
 /**
@@ -135,10 +127,8 @@ void gpt_lld_start_timer(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @notapi
  */
-void gpt_lld_stop_timer(GPTDriver *gptp) {
-
-  (void)gptp;
-
+void gpt_lld_stop_timer(GPTDriver* gptp) {
+	(void)gptp;
 }
 
 /**
@@ -152,11 +142,9 @@ void gpt_lld_stop_timer(GPTDriver *gptp) {
  *
  * @notapi
  */
-void gpt_lld_polled_delay(GPTDriver *gptp, gptcnt_t interval) {
-
-  (void)gptp;
-  (void)interval;
-
+void gpt_lld_polled_delay(GPTDriver* gptp, gptcnt_t interval) {
+	(void)gptp;
+	(void)interval;
 }
 
 #endif /* HAL_USE_GPT */

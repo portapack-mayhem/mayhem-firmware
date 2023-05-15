@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 #include "ch.h"
@@ -57,61 +57,54 @@ static MEMORYPOOL_DECL(mp1, THD_WA_SIZE(THREADS_STACK_SIZE), NULL);
  * operation.
  */
 
-static void *null_provider(size_t size) {
-
-  (void)size;
-  return NULL;
+static void* null_provider(size_t size) {
+	(void)size;
+	return NULL;
 }
 
 static void pools1_setup(void) {
-
-  chPoolInit(&mp1, THD_WA_SIZE(THREADS_STACK_SIZE), NULL);
+	chPoolInit(&mp1, THD_WA_SIZE(THREADS_STACK_SIZE), NULL);
 }
 
 static void pools1_execute(void) {
-  int i;
+	int i;
 
-  /* Adding the WAs to the pool.*/
-  chPoolLoadArray(&mp1, wa[0], MAX_THREADS);
+	/* Adding the WAs to the pool.*/
+	chPoolLoadArray(&mp1, wa[0], MAX_THREADS);
 
-  /* Emptying the pool.*/
-  for (i = 0; i < MAX_THREADS; i++)
-    test_assert(1, chPoolAlloc(&mp1) != NULL, "list empty");
+	/* Emptying the pool.*/
+	for (i = 0; i < MAX_THREADS; i++)
+		test_assert(1, chPoolAlloc(&mp1) != NULL, "list empty");
 
-  /* Now must be empty.*/
-  test_assert(2, chPoolAlloc(&mp1) == NULL, "list not empty");
+	/* Now must be empty.*/
+	test_assert(2, chPoolAlloc(&mp1) == NULL, "list not empty");
 
-  /* Adding the WAs to the pool, one by one this time.*/
-  for (i = 0; i < MAX_THREADS; i++)
-    chPoolFree(&mp1, wa[i]);
+	/* Adding the WAs to the pool, one by one this time.*/
+	for (i = 0; i < MAX_THREADS; i++)
+		chPoolFree(&mp1, wa[i]);
 
-  /* Emptying the pool again.*/
-  for (i = 0; i < MAX_THREADS; i++)
-    test_assert(3, chPoolAlloc(&mp1) != NULL, "list empty");
+	/* Emptying the pool again.*/
+	for (i = 0; i < MAX_THREADS; i++)
+		test_assert(3, chPoolAlloc(&mp1) != NULL, "list empty");
 
-  /* Now must be empty again.*/
-  test_assert(4, chPoolAlloc(&mp1) == NULL, "list not empty");
+	/* Now must be empty again.*/
+	test_assert(4, chPoolAlloc(&mp1) == NULL, "list not empty");
 
-  /* Covering the case where a provider is unable to return more memory.*/
-  chPoolInit(&mp1, 16, null_provider);
-  test_assert(5, chPoolAlloc(&mp1) == NULL, "provider returned memory");
+	/* Covering the case where a provider is unable to return more memory.*/
+	chPoolInit(&mp1, 16, null_provider);
+	test_assert(5, chPoolAlloc(&mp1) == NULL, "provider returned memory");
 }
 
-ROMCONST struct testcase testpools1 = {
-  "Memory Pools, queue/dequeue",
-  pools1_setup,
-  NULL,
-  pools1_execute
-};
+ROMCONST struct testcase testpools1 = {"Memory Pools, queue/dequeue",
+																			 pools1_setup, NULL, pools1_execute};
 
 #endif /* CH_USE_MEMPOOLS */
 
 /*
  * @brief   Test sequence for pools.
  */
-ROMCONST struct testcase * ROMCONST patternpools[] = {
+ROMCONST struct testcase* ROMCONST patternpools[] = {
 #if CH_USE_MEMPOOLS || defined(__DOXYGEN__)
-  &testpools1,
+		&testpools1,
 #endif
-  NULL
-};
+		NULL};

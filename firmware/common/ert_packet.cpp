@@ -42,41 +42,41 @@ Packet::Type Packet::type() const {
 }
 
 ID Packet::id() const {
-	if( type() == Type::SCM ) {
+	if (type() == Type::SCM) {
 		const auto msb = reader_.read(0, 2);
 		const auto lsb = reader_.read(35, 24);
 		return (msb << 24) | lsb;
 	}
-	if( type() == Type::SCMPLUS ) {
+	if (type() == Type::SCMPLUS) {
 		return reader_.read(2 * 8, 32);
 	}
-	if( type() == Type::IDM ) {
+	if (type() == Type::IDM) {
 		return reader_.read(5 * 8, 32);
 	}
 	return invalid_id;
 }
 
 Consumption Packet::consumption() const {
-	if( type() == Type::SCM ) {
+	if (type() == Type::SCM) {
 		return reader_.read(11, 24);
 	}
-	if( type() == Type::SCMPLUS ) {
+	if (type() == Type::SCMPLUS) {
 		return reader_.read(6 * 8, 32);
-	}	
-	if( type() == Type::IDM ) {
+	}
+	if (type() == Type::IDM) {
 		return reader_.read(25 * 8, 32);
 	}
 	return invalid_consumption;
 }
 
 CommodityType Packet::commodity_type() const {
-	if( type() == Type::SCM ) {
+	if (type() == Type::SCM) {
 		return reader_.read(5, 4);
 	}
-	if( type() == Type::SCMPLUS ) {
+	if (type() == Type::SCMPLUS) {
 		return reader_.read(1 * 8 + 4, 4);
-	}	
-	if( type() == Type::IDM ) {
+	}
+	if (type() == Type::IDM) {
 		return reader_.read(4 * 8 + 4, 4);
 	}
 	return invalid_commodity_type;
@@ -87,27 +87,30 @@ FormattedSymbols Packet::symbols_formatted() const {
 }
 
 bool Packet::crc_ok() const {
-	switch(type()) {
-	case Type::SCM:	return crc_ok_scm();
-	case Type::SCMPLUS:
-	case Type::IDM:	return crc_ok_ccitt();
-	default:		return false;
+	switch (type()) {
+		case Type::SCM:
+			return crc_ok_scm();
+		case Type::SCMPLUS:
+		case Type::IDM:
+			return crc_ok_ccitt();
+		default:
+			return false;
 	}
 }
 
 bool Packet::crc_ok_scm() const {
-	CRC<16> ert_bch { 0x6f63 };
+	CRC<16> ert_bch{0x6f63};
 	size_t start_bit = 5;
 	ert_bch.process_byte(reader_.read(0, start_bit));
-	for(size_t i=start_bit; i<length(); i+=8) {
+	for (size_t i = start_bit; i < length(); i += 8) {
 		ert_bch.process_byte(reader_.read(i, 8));
 	}
 	return ert_bch.checksum() == 0x0000;
 }
 
 bool Packet::crc_ok_ccitt() const {
-	CRC<16> ert_crc_ccitt { 0x1021, 0xffff, 0x1d0f };
-	for(size_t i=0; i<length(); i+=8) {
+	CRC<16> ert_crc_ccitt{0x1021, 0xffff, 0x1d0f};
+	for (size_t i = 0; i < length(); i += 8) {
 		ert_crc_ccitt.process_byte(reader_.read(i, 8));
 	}
 	return ert_crc_ccitt.checksum() == 0x0000;

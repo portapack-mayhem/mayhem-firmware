@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -64,9 +64,8 @@ I2CDriver I2CD1;
  * @notapi
  */
 void i2c_lld_init(void) {
-
 #if PLATFORM_I2C_USE_I2C1
-  i2cObjectInit(&I2CD1);
+	i2cObjectInit(&I2CD1);
 #endif /* PLATFORM_I2C_USE_I2C1 */
 }
 
@@ -77,18 +76,15 @@ void i2c_lld_init(void) {
  *
  * @notapi
  */
-void i2c_lld_start(I2CDriver *i2cp) {
-
-  if (i2cp->state == I2C_STOP) {
-    /* Enables the peripheral.*/
+void i2c_lld_start(I2CDriver* i2cp) {
+	if (i2cp->state == I2C_STOP) {
+		/* Enables the peripheral.*/
 #if PLATFORM_I2C_USE_I2C1
-    if (&I2CD1 == i2cp) {
-
-    }
+		if (&I2CD1 == i2cp) {
+		}
 #endif /* PLATFORM_I2C_USE_I2C1 */
-  }
-  /* Configures the peripheral.*/
-
+	}
+	/* Configures the peripheral.*/
 }
 
 /**
@@ -98,18 +94,16 @@ void i2c_lld_start(I2CDriver *i2cp) {
  *
  * @notapi
  */
-void i2c_lld_stop(I2CDriver *i2cp) {
+void i2c_lld_stop(I2CDriver* i2cp) {
+	if (i2cp->state != I2C_STOP) {
+		/* Resets the peripheral.*/
 
-  if (i2cp->state != I2C_STOP) {
-    /* Resets the peripheral.*/
-
-    /* Disables the peripheral.*/
+		/* Disables the peripheral.*/
 #if PLATFORM_I2C_USE_I2C1
-    if (&I2CD1 == i2cp) {
-
-    }
+		if (&I2CD1 == i2cp) {
+		}
 #endif /* PLATFORM_I2C_USE_I2C1 */
-  }
+	}
 }
 
 /**
@@ -135,17 +129,18 @@ void i2c_lld_stop(I2CDriver *i2cp) {
  *
  * @notapi
  */
-msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
-                                     uint8_t *rxbuf, size_t rxbytes,
-                                     systime_t timeout) {
+msg_t i2c_lld_master_receive_timeout(I2CDriver* i2cp,
+																		 i2caddr_t addr,
+																		 uint8_t* rxbuf,
+																		 size_t rxbytes,
+																		 systime_t timeout) {
+	(void)i2cp;
+	(void)addr;
+	(void)rxbuf;
+	(void)rxbytes;
+	(void)timeout;
 
-  (void)i2cp;
-  (void)addr;
-  (void)rxbuf;
-  (void)rxbytes;
-  (void)timeout;
-
-  return RDY_OK;
+	return RDY_OK;
 }
 
 /**
@@ -173,20 +168,22 @@ msg_t i2c_lld_master_receive_timeout(I2CDriver *i2cp, i2caddr_t addr,
  *
  * @notapi
  */
-msg_t i2c_lld_master_transmit_timeout(I2CDriver *i2cp, i2caddr_t addr,
-                                      const uint8_t *txbuf, size_t txbytes,
-                                      uint8_t *rxbuf, size_t rxbytes,
-                                      systime_t timeout) {
+msg_t i2c_lld_master_transmit_timeout(I2CDriver* i2cp,
+																			i2caddr_t addr,
+																			const uint8_t* txbuf,
+																			size_t txbytes,
+																			uint8_t* rxbuf,
+																			size_t rxbytes,
+																			systime_t timeout) {
+	(void)i2cp;
+	(void)addr;
+	(void)txbuf;
+	(void)txbytes;
+	(void)rxbuf;
+	(void)rxbytes;
+	(void)timeout;
 
-  (void)i2cp;
-  (void)addr;
-  (void)txbuf;
-  (void)txbytes;
-  (void)rxbuf;
-  (void)rxbytes;
-  (void)timeout;
-
-  return RDY_OK;
+	return RDY_OK;
 }
 
 #endif /* HAL_USE_I2C */

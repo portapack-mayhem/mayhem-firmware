@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -64,10 +64,9 @@ UARTDriver UARTD1;
  * @notapi
  */
 void uart_lld_init(void) {
-
 #if PLATFORM_UART_USE_UART1
-  /* Driver initialization.*/
-  uartObjectInit(&UARTD1);
+	/* Driver initialization.*/
+	uartObjectInit(&UARTD1);
 #endif /* PLATFORM_UART_USE_UART1 */
 }
 
@@ -78,18 +77,15 @@ void uart_lld_init(void) {
  *
  * @notapi
  */
-void uart_lld_start(UARTDriver *uartp) {
-
-  if (uartp->state == UART_STOP) {
-    /* Enables the peripheral.*/
+void uart_lld_start(UARTDriver* uartp) {
+	if (uartp->state == UART_STOP) {
+		/* Enables the peripheral.*/
 #if PLATFORM_UART_USE_UART1
-    if (&UARTD1 == uartp) {
-
-    }
+		if (&UARTD1 == uartp) {
+		}
 #endif /* PLATFORM_UART_USE_UART1 */
-  }
-  /* Configures the peripheral.*/
-
+	}
+	/* Configures the peripheral.*/
 }
 
 /**
@@ -99,18 +95,16 @@ void uart_lld_start(UARTDriver *uartp) {
  *
  * @notapi
  */
-void uart_lld_stop(UARTDriver *uartp) {
+void uart_lld_stop(UARTDriver* uartp) {
+	if (uartp->state == UART_READY) {
+		/* Resets the peripheral.*/
 
-  if (uartp->state == UART_READY) {
-    /* Resets the peripheral.*/
-
-    /* Disables the peripheral.*/
+		/* Disables the peripheral.*/
 #if PLATFORM_UART_USE_UART1
-    if (&UARTD1 == uartp) {
-
-    }
+		if (&UARTD1 == uartp) {
+		}
 #endif /* PLATFORM_UART_USE_UART1 */
-  }
+	}
 }
 
 /**
@@ -124,12 +118,10 @@ void uart_lld_stop(UARTDriver *uartp) {
  *
  * @notapi
  */
-void uart_lld_start_send(UARTDriver *uartp, size_t n, const void *txbuf) {
-
-  (void)uartp;
-  (void)n;
-  (void)txbuf;
-
+void uart_lld_start_send(UARTDriver* uartp, size_t n, const void* txbuf) {
+	(void)uartp;
+	(void)n;
+	(void)txbuf;
 }
 
 /**
@@ -143,11 +135,10 @@ void uart_lld_start_send(UARTDriver *uartp, size_t n, const void *txbuf) {
  *
  * @notapi
  */
-size_t uart_lld_stop_send(UARTDriver *uartp) {
+size_t uart_lld_stop_send(UARTDriver* uartp) {
+	(void)uartp;
 
-  (void)uartp;
-
-  return 0;
+	return 0;
 }
 
 /**
@@ -161,12 +152,10 @@ size_t uart_lld_stop_send(UARTDriver *uartp) {
  *
  * @notapi
  */
-void uart_lld_start_receive(UARTDriver *uartp, size_t n, void *rxbuf) {
-
-  (void)uartp;
-  (void)n;
-  (void)rxbuf;
-
+void uart_lld_start_receive(UARTDriver* uartp, size_t n, void* rxbuf) {
+	(void)uartp;
+	(void)n;
+	(void)rxbuf;
 }
 
 /**
@@ -180,11 +169,10 @@ void uart_lld_start_receive(UARTDriver *uartp, size_t n, void *rxbuf) {
  *
  * @notapi
  */
-size_t uart_lld_stop_receive(UARTDriver *uartp) {
+size_t uart_lld_stop_receive(UARTDriver* uartp) {
+	(void)uartp;
 
-  (void)uartp;
-
-  return 0;
+	return 0;
 }
 
 #endif /* HAL_USE_UART */

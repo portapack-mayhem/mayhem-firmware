@@ -21,16 +21,16 @@
 
 #include "max5864.hpp"
 
-#include <cstdint>
 #include <array>
+#include <cstdint>
 
 #include "utility.hpp"
 
 namespace max5864 {
 
 void MAX5864::set_mode(const Mode mode) {
-	std::array<uint8_t, 1> command { toUType(mode) };
+	std::array<uint8_t, 1> command{toUType(mode)};
 	_target.transfer(command.data(), command.size());
 }
 
-}
+}	 // namespace max5864

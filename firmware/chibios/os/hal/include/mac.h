@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -53,14 +53,14 @@
  * @brief   Enables an event sources for incoming packets.
  */
 #if !defined(MAC_USE_ZERO_COPY) || defined(__DOXYGEN__)
-#define MAC_USE_ZERO_COPY           FALSE
+#define MAC_USE_ZERO_COPY FALSE
 #endif
 
 /**
  * @brief   Enables an event sources for incoming packets.
  */
 #if !defined(MAC_USE_EVENTS) || defined(__DOXYGEN__)
-#define MAC_USE_EVENTS              TRUE
+#define MAC_USE_EVENTS TRUE
 #endif
 /** @} */
 
@@ -84,9 +84,9 @@
  * @brief   Driver state machine possible states.
  */
 typedef enum {
-  MAC_UNINIT = 0,                   /**< Not initialized.                   */
-  MAC_STOP = 1,                     /**< Stopped.                           */
-  MAC_ACTIVE = 2                    /**< Active.                            */
+	MAC_UNINIT = 0, /**< Not initialized.                   */
+	MAC_STOP = 1,		/**< Stopped.                           */
+	MAC_ACTIVE = 2	/**< Active.                            */
 } macstate_t;
 
 /**
@@ -113,7 +113,7 @@ typedef struct MACDriver MACDriver;
  * @api
  */
 #if MAC_USE_EVENTS || defined(__DOXYGEN__)
-#define macGetReceiveEventSource(macp)  (&(macp)->rdevent)
+#define macGetReceiveEventSource(macp) (&(macp)->rdevent)
 #endif
 
 /**
@@ -129,8 +129,8 @@ typedef struct MACDriver MACDriver;
  *
  * @api
  */
-#define macWriteTransmitDescriptor(tdp, buf, size)                          \
-    mac_lld_write_transmit_descriptor(tdp, buf, size)
+#define macWriteTransmitDescriptor(tdp, buf, size) \
+	mac_lld_write_transmit_descriptor(tdp, buf, size)
 
 /**
  * @brief   Reads from a receive descriptor's stream.
@@ -144,8 +144,8 @@ typedef struct MACDriver MACDriver;
  *
  * @api
  */
-#define macReadReceiveDescriptor(rdp, buf, size)                            \
-    mac_lld_read_receive_descriptor(rdp, buf, size)
+#define macReadReceiveDescriptor(rdp, buf, size) \
+	mac_lld_read_receive_descriptor(rdp, buf, size)
 
 #if MAC_USE_ZERO_COPY || defined(__DOXYGEN__)
 /**
@@ -167,8 +167,8 @@ typedef struct MACDriver MACDriver;
  *
  * @api
  */
-#define macGetNextTransmitBuffer(tdp, size, sizep)                          \
-  mac_lld_get_next_transmit_buffer(tdp, size, sizep)
+#define macGetNextTransmitBuffer(tdp, size, sizep) \
+	mac_lld_get_next_transmit_buffer(tdp, size, sizep)
 
 /**
  * @brief   Returns a pointer to the next receive buffer in the descriptor
@@ -184,8 +184,8 @@ typedef struct MACDriver MACDriver;
  *
  * @api
  */
-#define macGetNextReceiveBuffer(rdp, sizep)                                 \
-  mac_lld_get_next_receive_buffer(rdp, sizep)
+#define macGetNextReceiveBuffer(rdp, sizep) \
+	mac_lld_get_next_receive_buffer(rdp, sizep)
 #endif /* MAC_USE_ZERO_COPY */
 /** @} */
 
@@ -196,20 +196,20 @@ typedef struct MACDriver MACDriver;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void macInit(void);
-  void macObjectInit(MACDriver *macp);
-  void macStart(MACDriver *macp, const MACConfig *config);
-  void macStop(MACDriver *macp);
-  void macSetAddress(MACDriver *macp, const uint8_t *p);
-  msg_t macWaitTransmitDescriptor(MACDriver *macp,
-                                  MACTransmitDescriptor *tdp,
-                                  systime_t time);
-  void macReleaseTransmitDescriptor(MACTransmitDescriptor *tdp);
-  msg_t macWaitReceiveDescriptor(MACDriver *macp,
-                                 MACReceiveDescriptor *rdp,
-                                 systime_t time);
-  void macReleaseReceiveDescriptor(MACReceiveDescriptor *rdp);
-  bool_t macPollLinkStatus(MACDriver *macp);
+void macInit(void);
+void macObjectInit(MACDriver* macp);
+void macStart(MACDriver* macp, const MACConfig* config);
+void macStop(MACDriver* macp);
+void macSetAddress(MACDriver* macp, const uint8_t* p);
+msg_t macWaitTransmitDescriptor(MACDriver* macp,
+																MACTransmitDescriptor* tdp,
+																systime_t time);
+void macReleaseTransmitDescriptor(MACTransmitDescriptor* tdp);
+msg_t macWaitReceiveDescriptor(MACDriver* macp,
+															 MACReceiveDescriptor* rdp,
+															 systime_t time);
+void macReleaseReceiveDescriptor(MACReceiveDescriptor* rdp);
+bool_t macPollLinkStatus(MACDriver* macp);
 #ifdef __cplusplus
 }
 #endif

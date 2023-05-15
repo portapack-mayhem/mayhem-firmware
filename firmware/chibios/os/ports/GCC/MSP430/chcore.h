@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -47,7 +47,7 @@
  * @brief   Enables the use of a wait state in the idle thread loop.
  */
 #ifndef ENABLE_WFI_IDLE
-#define ENABLE_WFI_IDLE                 0
+#define ENABLE_WFI_IDLE 0
 #endif
 
 /**
@@ -58,22 +58,22 @@
 /**
  * @brief   Name of the implemented architecture.
  */
-#define CH_ARCHITECTURE_NAME            "MSP430"
+#define CH_ARCHITECTURE_NAME "MSP430"
 
 /**
  * @brief   Name of the architecture variant (optional).
  */
-#define CH_CORE_VARIANT_NAME            "MSP430"
+#define CH_CORE_VARIANT_NAME "MSP430"
 
 /**
  * @brief   Name of the compiler supported by this port.
  */
-#define CH_COMPILER_NAME                "GCC " __VERSION__
+#define CH_COMPILER_NAME "GCC " __VERSION__
 
 /**
  * @brief   Port-specific information string.
  */
-#define CH_PORT_INFO                    "None"
+#define CH_PORT_INFO "None"
 
 /**
  * @brief   16 bits stack and memory alignment enforcement.
@@ -83,7 +83,7 @@ typedef uint16_t stkalign_t;
 /**
  * @brief   Generic MSP430 register.
  */
-typedef void *regmsp_t;
+typedef void* regmsp_t;
 
 /**
  * @brief   Interrupt saved context.
@@ -91,12 +91,12 @@ typedef void *regmsp_t;
  *          preemption-capable interrupt handler.
  */
 struct extctx {
-  regmsp_t      r12;
-  regmsp_t      r13;
-  regmsp_t      r14;
-  regmsp_t      r15;
-  regmsp_t      sr;
-  regmsp_t      pc;
+	regmsp_t r12;
+	regmsp_t r13;
+	regmsp_t r14;
+	regmsp_t r15;
+	regmsp_t sr;
+	regmsp_t pc;
 };
 
 /**
@@ -105,15 +105,15 @@ struct extctx {
  *          switching.
  */
 struct intctx {
-  regmsp_t      r4;
-  regmsp_t      r5;
-  regmsp_t      r6;
-  regmsp_t      r7;
-  regmsp_t      r8;
-  regmsp_t      r9;
-  regmsp_t      r10;
-  regmsp_t      r11;
-  regmsp_t      pc;
+	regmsp_t r4;
+	regmsp_t r5;
+	regmsp_t r6;
+	regmsp_t r7;
+	regmsp_t r8;
+	regmsp_t r9;
+	regmsp_t r10;
+	regmsp_t r11;
+	regmsp_t pc;
 };
 
 /**
@@ -122,7 +122,7 @@ struct intctx {
  *          defined as a pointer to a @p intctx structure.
  */
 struct context {
-  struct intctx *sp;
+	struct intctx* sp;
 };
 
 /**
@@ -130,14 +130,14 @@ struct context {
  * @details This code usually setup the context switching frame represented
  *          by an @p intctx structure.
  */
-#define SETUP_CONTEXT(workspace, wsize, pf, arg) {                          \
-  tp->p_ctx.sp = (struct intctx *)((uint8_t *)workspace +                   \
-                                   wsize -                                  \
-                                   sizeof(struct intctx));                  \
-  tp->p_ctx.sp->r10 = pf;                                                   \
-  tp->p_ctx.sp->r11 = arg;                                                  \
-  tp->p_ctx.sp->pc = _port_thread_start;                                    \
-}
+#define SETUP_CONTEXT(workspace, wsize, pf, arg)                               \
+	{                                                                            \
+		tp->p_ctx.sp =                                                             \
+				(struct intctx*)((uint8_t*)workspace + wsize - sizeof(struct intctx)); \
+		tp->p_ctx.sp->r10 = pf;                                                    \
+		tp->p_ctx.sp->r11 = arg;                                                   \
+		tp->p_ctx.sp->pc = _port_thread_start;                                     \
+	}
 
 /**
  * @brief   Stack size for the system idle thread.
@@ -146,7 +146,7 @@ struct context {
  *          by @p PORT_INT_REQUIRED_STACK.
  */
 #ifndef PORT_IDLE_THREAD_STACK_SIZE
-#define PORT_IDLE_THREAD_STACK_SIZE     0
+#define PORT_IDLE_THREAD_STACK_SIZE 0
 #endif
 
 /**
@@ -159,21 +159,20 @@ struct context {
  * @note    In this port the default is 32 bytes per thread.
  */
 #ifndef PORT_INT_REQUIRED_STACK
-#define PORT_INT_REQUIRED_STACK         32
+#define PORT_INT_REQUIRED_STACK 32
 #endif
 
 /**
  * @brief   Enforces a correct alignment for a stack area size value.
  */
-#define STACK_ALIGN(n) ((((n) - 1) | (sizeof(stkalign_t) - 1)) + 1)
+#define STACK_ALIGN(n) ((((n)-1) | (sizeof(stkalign_t) - 1)) + 1)
 
 /**
  * @brief   Computes the thread working area global size.
  */
-#define THD_WA_SIZE(n) STACK_ALIGN(sizeof(Thread) +                         \
-                                   sizeof(struct intctx) +                  \
-                                   sizeof(struct extctx) +                  \
-                                   (n) + (PORT_INT_REQUIRED_STACK))
+#define THD_WA_SIZE(n)                                                         \
+	STACK_ALIGN(sizeof(Thread) + sizeof(struct intctx) + sizeof(struct extctx) + \
+							(n) + (PORT_INT_REQUIRED_STACK))
 
 /**
  * @brief   Static working area allocation.
@@ -194,12 +193,13 @@ struct context {
  * @details This macro must be inserted at the end of all IRQ handlers
  *          enabled to invoke system APIs.
  */
-#define PORT_IRQ_EPILOGUE() {                                               \
-  dbg_check_lock();                                                         \
-  if (chSchIsPreemptionRequired())                                          \
-    chSchDoReschedule();                                                    \
-  dbg_check_unlock();                                                       \
-}
+#define PORT_IRQ_EPILOGUE()          \
+	{                                  \
+		dbg_check_lock();                \
+		if (chSchIsPreemptionRequired()) \
+			chSchDoReschedule();           \
+		dbg_check_unlock();              \
+	}
 
 #define ISRNAME(pre, id) pre##id
 
@@ -222,7 +222,7 @@ struct context {
  *          actions.
  * @note    Implemented as global interrupt disable.
  */
-#define port_lock() asm volatile ("dint" : : : "memory")
+#define port_lock() asm volatile("dint" : : : "memory")
 
 /**
  * @brief   Kernel-unlock action.
@@ -230,14 +230,15 @@ struct context {
  *          actions.
  * @note    Implemented as global interrupt enable.
  */
-#define port_unlock() asm volatile ("eint" : : : "memory")
+#define port_unlock() asm volatile("eint" : : : "memory")
 
 /**
  * @brief   Kernel-lock action from an interrupt handler.
  * @details This function is invoked before invoking I-class APIs from
- *          interrupt handlers. The implementation is architecture dependen#define PORT_IRQ_EPILOGUE() {                                           \
-  if (chSchIsPreemptionRequired())                                      \
-    chSchDoReschedule();                                                \
+ *          interrupt handlers. The implementation is architecture
+dependen#define PORT_IRQ_EPILOGUE() { \
+	if (chSchIsPreemptionRequired())                                      \
+		chSchDoReschedule();                                                \
 }
  *          t,
  *          in its simplest form it is void.
@@ -259,7 +260,7 @@ struct context {
  * @note    Of course non-maskable interrupt sources are not included.
  * @note    Implemented as global interrupt disable.
  */
-#define port_disable() asm volatile ("dint" : : : "memory")
+#define port_disable() asm volatile("dint" : : : "memory")
 
 /**
  * @brief   Disables the interrupt sources below kernel-level priority.
@@ -267,13 +268,13 @@ struct context {
  * @note    Same as @p port_disable() in this port, there is no difference
  *          between the two states.
  */
-#define port_suspend() asm volatile ("dint" : : : "memory")
+#define port_suspend() asm volatile("dint" : : : "memory")
 
 /**
  * @brief   Enables all the interrupt sources.
  * @note    Implemented as global interrupt enable.
  */
-#define port_enable() asm volatile ("eint" : : : "memory")
+#define port_enable() asm volatile("eint" : : : "memory")
 
 /**
  * @brief   Enters an architecture-dependent IRQ-waiting mode.
@@ -289,9 +290,8 @@ struct context {
  */
 #if ENABLE_WFI_IDLE != 0
 #ifndef port_wait_for_interrupt
-#define port_wait_for_interrupt() {                                         \
-  asm volatile ("nop" : : : "memory");                                      \
-}
+#define port_wait_for_interrupt() \
+	{ asm volatile("nop" : : : "memory"); }
 #endif
 #else
 #define port_wait_for_interrupt()
@@ -310,9 +310,9 @@ struct context {
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _port_switch(Thread *ntp, Thread *otp);
-  void _port_halt(void);
-  void _port_thread_start(void);
+void _port_switch(Thread* ntp, Thread* otp);
+void _port_halt(void);
+void _port_thread_start(void);
 #ifdef __cplusplus
 }
 #endif

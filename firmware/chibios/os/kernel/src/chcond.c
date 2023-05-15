@@ -1,31 +1,31 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 /*
-   Concepts and parts of this file have been contributed by Leon Woestenberg.
+	 Concepts and parts of this file have been contributed by Leon Woestenberg.
  */
 
 /**
@@ -56,11 +56,10 @@
  *
  * @init
  */
-void chCondInit(CondVar *cp) {
+void chCondInit(CondVar* cp) {
+	chDbgCheck(cp != NULL, "chCondInit");
 
-  chDbgCheck(cp != NULL, "chCondInit");
-
-  queue_init(&cp->c_queue);
+	queue_init(&cp->c_queue);
 }
 
 /**
@@ -70,14 +69,13 @@ void chCondInit(CondVar *cp) {
  *
  * @api
  */
-void chCondSignal(CondVar *cp) {
+void chCondSignal(CondVar* cp) {
+	chDbgCheck(cp != NULL, "chCondSignal");
 
-  chDbgCheck(cp != NULL, "chCondSignal");
-
-  chSysLock();
-  if (notempty(&cp->c_queue))
-    chSchWakeupS(fifo_remove(&cp->c_queue), RDY_OK);
-  chSysUnlock();
+	chSysLock();
+	if (notempty(&cp->c_queue))
+		chSchWakeupS(fifo_remove(&cp->c_queue), RDY_OK);
+	chSysUnlock();
 }
 
 /**
@@ -91,13 +89,12 @@ void chCondSignal(CondVar *cp) {
  *
  * @iclass
  */
-void chCondSignalI(CondVar *cp) {
+void chCondSignalI(CondVar* cp) {
+	chDbgCheckClassI();
+	chDbgCheck(cp != NULL, "chCondSignalI");
 
-  chDbgCheckClassI();
-  chDbgCheck(cp != NULL, "chCondSignalI");
-
-  if (notempty(&cp->c_queue))
-    chSchReadyI(fifo_remove(&cp->c_queue))->p_u.rdymsg = RDY_OK;
+	if (notempty(&cp->c_queue))
+		chSchReadyI(fifo_remove(&cp->c_queue))->p_u.rdymsg = RDY_OK;
 }
 
 /**
@@ -107,12 +104,11 @@ void chCondSignalI(CondVar *cp) {
  *
  * @api
  */
-void chCondBroadcast(CondVar *cp) {
-
-  chSysLock();
-  chCondBroadcastI(cp);
-  chSchRescheduleS();
-  chSysUnlock();
+void chCondBroadcast(CondVar* cp) {
+	chSysLock();
+	chCondBroadcastI(cp);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -126,16 +122,15 @@ void chCondBroadcast(CondVar *cp) {
  *
  * @iclass
  */
-void chCondBroadcastI(CondVar *cp) {
+void chCondBroadcastI(CondVar* cp) {
+	chDbgCheckClassI();
+	chDbgCheck(cp != NULL, "chCondBroadcastI");
 
-  chDbgCheckClassI();
-  chDbgCheck(cp != NULL, "chCondBroadcastI");
-
-  /* Empties the condition variable queue and inserts all the Threads into the
-     ready list in FIFO order. The wakeup message is set to @p RDY_RESET in
-     order to make a chCondBroadcast() detectable from a chCondSignal().*/
-  while (cp->c_queue.p_next != (void *)&cp->c_queue)
-    chSchReadyI(fifo_remove(&cp->c_queue))->p_u.rdymsg = RDY_RESET;
+	/* Empties the condition variable queue and inserts all the Threads into the
+		 ready list in FIFO order. The wakeup message is set to @p RDY_RESET in
+		 order to make a chCondBroadcast() detectable from a chCondSignal().*/
+	while (cp->c_queue.p_next != (void*)&cp->c_queue)
+		chSchReadyI(fifo_remove(&cp->c_queue))->p_u.rdymsg = RDY_RESET;
 }
 
 /**
@@ -155,13 +150,13 @@ void chCondBroadcastI(CondVar *cp) {
  *
  * @api
  */
-msg_t chCondWait(CondVar *cp) {
-  msg_t msg;
+msg_t chCondWait(CondVar* cp) {
+	msg_t msg;
 
-  chSysLock();
-  msg = chCondWaitS(cp);
-  chSysUnlock();
-  return msg;
+	chSysLock();
+	msg = chCondWaitS(cp);
+	chSysUnlock();
+	return msg;
 }
 
 /**
@@ -181,24 +176,23 @@ msg_t chCondWait(CondVar *cp) {
  *
  * @sclass
  */
-msg_t chCondWaitS(CondVar *cp) {
-  Thread *ctp = currp;
-  Mutex *mp;
-  msg_t msg;
+msg_t chCondWaitS(CondVar* cp) {
+	Thread* ctp = currp;
+	Mutex* mp;
+	msg_t msg;
 
-  chDbgCheckClassS();
-  chDbgCheck(cp != NULL, "chCondWaitS");
-  chDbgAssert(ctp->p_mtxlist != NULL,
-              "chCondWaitS(), #1",
-              "not owning a mutex");
+	chDbgCheckClassS();
+	chDbgCheck(cp != NULL, "chCondWaitS");
+	chDbgAssert(ctp->p_mtxlist != NULL, "chCondWaitS(), #1",
+							"not owning a mutex");
 
-  mp = chMtxUnlockS();
-  ctp->p_u.wtobjp = cp;
-  prio_insert(ctp, &cp->c_queue);
-  chSchGoSleepS(THD_STATE_WTCOND);
-  msg = ctp->p_u.rdymsg;
-  chMtxLockS(mp);
-  return msg;
+	mp = chMtxUnlockS();
+	ctp->p_u.wtobjp = cp;
+	prio_insert(ctp, &cp->c_queue);
+	chSchGoSleepS(THD_STATE_WTCOND);
+	msg = ctp->p_u.rdymsg;
+	chMtxLockS(mp);
+	return msg;
 }
 
 #if CH_USE_CONDVARS_TIMEOUT || defined(__DOXYGEN__)
@@ -230,13 +224,13 @@ msg_t chCondWaitS(CondVar *cp) {
  *
  * @api
  */
-msg_t chCondWaitTimeout(CondVar *cp, systime_t time) {
-  msg_t msg;
+msg_t chCondWaitTimeout(CondVar* cp, systime_t time) {
+	msg_t msg;
 
-  chSysLock();
-  msg = chCondWaitTimeoutS(cp, time);
-  chSysUnlock();
-  return msg;
+	chSysLock();
+	msg = chCondWaitTimeoutS(cp, time);
+	chSysUnlock();
+	return msg;
 }
 
 /**
@@ -267,23 +261,22 @@ msg_t chCondWaitTimeout(CondVar *cp, systime_t time) {
  *
  * @sclass
  */
-msg_t chCondWaitTimeoutS(CondVar *cp, systime_t time) {
-  Mutex *mp;
-  msg_t msg;
+msg_t chCondWaitTimeoutS(CondVar* cp, systime_t time) {
+	Mutex* mp;
+	msg_t msg;
 
-  chDbgCheckClassS();
-  chDbgCheck((cp != NULL) && (time != TIME_IMMEDIATE), "chCondWaitTimeoutS");
-  chDbgAssert(currp->p_mtxlist != NULL,
-              "chCondWaitTimeoutS(), #1",
-              "not owning a mutex");
+	chDbgCheckClassS();
+	chDbgCheck((cp != NULL) && (time != TIME_IMMEDIATE), "chCondWaitTimeoutS");
+	chDbgAssert(currp->p_mtxlist != NULL, "chCondWaitTimeoutS(), #1",
+							"not owning a mutex");
 
-  mp = chMtxUnlockS();
-  currp->p_u.wtobjp = cp;
-  prio_insert(currp, &cp->c_queue);
-  msg = chSchGoSleepTimeoutS(THD_STATE_WTCOND, time);
-  if (msg != RDY_TIMEOUT)
-    chMtxLockS(mp);
-  return msg;
+	mp = chMtxUnlockS();
+	currp->p_u.wtobjp = cp;
+	prio_insert(currp, &cp->c_queue);
+	msg = chSchGoSleepTimeoutS(THD_STATE_WTCOND, time);
+	if (msg != RDY_TIMEOUT)
+		chMtxLockS(mp);
+	return msg;
 }
 #endif /* CH_USE_CONDVARS_TIMEOUT */
 

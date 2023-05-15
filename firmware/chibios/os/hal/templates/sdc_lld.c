@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -64,8 +64,7 @@ SDCDriver SDCD1;
  * @notapi
  */
 void sdc_lld_init(void) {
-
-  sdcObjectInit(&SDCD1);
+	sdcObjectInit(&SDCD1);
 }
 
 /**
@@ -75,11 +74,9 @@ void sdc_lld_init(void) {
  *
  * @notapi
  */
-void sdc_lld_start(SDCDriver *sdcp) {
-
-  if (sdcp->state == BLK_STOP) {
-
-  }
+void sdc_lld_start(SDCDriver* sdcp) {
+	if (sdcp->state == BLK_STOP) {
+	}
 }
 
 /**
@@ -89,11 +86,9 @@ void sdc_lld_start(SDCDriver *sdcp) {
  *
  * @notapi
  */
-void sdc_lld_stop(SDCDriver *sdcp) {
-
-  if (sdcp->state != BLK_STOP) {
-
-  }
+void sdc_lld_stop(SDCDriver* sdcp) {
+	if (sdcp->state != BLK_STOP) {
+	}
 }
 
 /**
@@ -103,9 +98,8 @@ void sdc_lld_stop(SDCDriver *sdcp) {
  *
  * @notapi
  */
-void sdc_lld_start_clk(SDCDriver *sdcp) {
-
-  (void)sdcp;
+void sdc_lld_start_clk(SDCDriver* sdcp) {
+	(void)sdcp;
 }
 
 /**
@@ -115,9 +109,8 @@ void sdc_lld_start_clk(SDCDriver *sdcp) {
  *
  * @notapi
  */
-void sdc_lld_set_data_clk(SDCDriver *sdcp) {
-
-  (void)sdcp;
+void sdc_lld_set_data_clk(SDCDriver* sdcp) {
+	(void)sdcp;
 }
 
 /**
@@ -127,9 +120,8 @@ void sdc_lld_set_data_clk(SDCDriver *sdcp) {
  *
  * @notapi
  */
-void sdc_lld_stop_clk(SDCDriver *sdcp) {
-
-  (void)sdcp;
+void sdc_lld_stop_clk(SDCDriver* sdcp) {
+	(void)sdcp;
 }
 
 /**
@@ -140,21 +132,20 @@ void sdc_lld_stop_clk(SDCDriver *sdcp) {
  *
  * @notapi
  */
-void sdc_lld_set_bus_mode(SDCDriver *sdcp, sdcbusmode_t mode) {
+void sdc_lld_set_bus_mode(SDCDriver* sdcp, sdcbusmode_t mode) {
+	(void)sdcp;
 
-  (void)sdcp;
+	switch (mode) {
+		case SDC_MODE_1BIT:
 
-  switch (mode) {
-  case SDC_MODE_1BIT:
+			break;
+		case SDC_MODE_4BIT:
 
-    break;
-  case SDC_MODE_4BIT:
- 
-    break;
-  case SDC_MODE_8BIT:
+			break;
+		case SDC_MODE_8BIT:
 
-    break;
-  }
+			break;
+	}
 }
 
 /**
@@ -166,11 +157,10 @@ void sdc_lld_set_bus_mode(SDCDriver *sdcp, sdcbusmode_t mode) {
  *
  * @notapi
  */
-void sdc_lld_send_cmd_none(SDCDriver *sdcp, uint8_t cmd, uint32_t arg) {
-
-  (void)sdcp;
-  (void)cmd;
-  (void)arg;
+void sdc_lld_send_cmd_none(SDCDriver* sdcp, uint8_t cmd, uint32_t arg) {
+	(void)sdcp;
+	(void)cmd;
+	(void)arg;
 }
 
 /**
@@ -188,15 +178,16 @@ void sdc_lld_send_cmd_none(SDCDriver *sdcp, uint8_t cmd, uint32_t arg) {
  *
  * @notapi
  */
-bool_t sdc_lld_send_cmd_short(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
-                              uint32_t *resp) {
+bool_t sdc_lld_send_cmd_short(SDCDriver* sdcp,
+															uint8_t cmd,
+															uint32_t arg,
+															uint32_t* resp) {
+	(void)sdcp;
+	(void)cmd;
+	(void)arg;
+	(void)resp;
 
-  (void)sdcp;
-  (void)cmd;
-  (void)arg;
-  (void)resp;
-
-  return CH_SUCCESS;
+	return CH_SUCCESS;
 }
 
 /**
@@ -213,15 +204,16 @@ bool_t sdc_lld_send_cmd_short(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
  *
  * @notapi
  */
-bool_t sdc_lld_send_cmd_short_crc(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
-                                  uint32_t *resp) {
+bool_t sdc_lld_send_cmd_short_crc(SDCDriver* sdcp,
+																	uint8_t cmd,
+																	uint32_t arg,
+																	uint32_t* resp) {
+	(void)sdcp;
+	(void)cmd;
+	(void)arg;
+	(void)resp;
 
-  (void)sdcp;
-  (void)cmd;
-  (void)arg;
-  (void)resp;
-
-  return CH_SUCCESS;
+	return CH_SUCCESS;
 }
 
 /**
@@ -238,15 +230,16 @@ bool_t sdc_lld_send_cmd_short_crc(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
  *
  * @notapi
  */
-bool_t sdc_lld_send_cmd_long_crc(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
-                                 uint32_t *resp) {
+bool_t sdc_lld_send_cmd_long_crc(SDCDriver* sdcp,
+																 uint8_t cmd,
+																 uint32_t arg,
+																 uint32_t* resp) {
+	(void)sdcp;
+	(void)cmd;
+	(void)arg;
+	(void)resp;
 
-  (void)sdcp;
-  (void)cmd;
-  (void)arg;
-  (void)resp;
-
-  return CH_SUCCESS;
+	return CH_SUCCESS;
 }
 
 /**
@@ -263,15 +256,16 @@ bool_t sdc_lld_send_cmd_long_crc(SDCDriver *sdcp, uint8_t cmd, uint32_t arg,
  *
  * @notapi
  */
-bool_t sdc_lld_read(SDCDriver *sdcp, uint32_t startblk,
-                    uint8_t *buf, uint32_t n) {
+bool_t sdc_lld_read(SDCDriver* sdcp,
+										uint32_t startblk,
+										uint8_t* buf,
+										uint32_t n) {
+	(void)sdcp;
+	(void)startblk;
+	(void)buf;
+	(void)n;
 
-  (void)sdcp;
-  (void)startblk;
-  (void)buf;
-  (void)n;
-
-  return CH_SUCCESS;
+	return CH_SUCCESS;
 }
 
 /**
@@ -288,15 +282,16 @@ bool_t sdc_lld_read(SDCDriver *sdcp, uint32_t startblk,
  *
  * @notapi
  */
-bool_t sdc_lld_write(SDCDriver *sdcp, uint32_t startblk,
-                     const uint8_t *buf, uint32_t n) {
+bool_t sdc_lld_write(SDCDriver* sdcp,
+										 uint32_t startblk,
+										 const uint8_t* buf,
+										 uint32_t n) {
+	(void)sdcp;
+	(void)startblk;
+	(void)buf;
+	(void)n;
 
-  (void)sdcp;
-  (void)startblk;
-  (void)buf;
-  (void)n;
-
-  return CH_SUCCESS;
+	return CH_SUCCESS;
 }
 
 /**
@@ -310,11 +305,10 @@ bool_t sdc_lld_write(SDCDriver *sdcp, uint32_t startblk,
  *
  * @api
  */
-bool_t sdc_lld_sync(SDCDriver *sdcp) {
+bool_t sdc_lld_sync(SDCDriver* sdcp) {
+	(void)sdcp;
 
-  (void)sdcp;
- 
-  return CH_SUCCESS;
+	return CH_SUCCESS;
 }
 
 #endif /* HAL_USE_SDC */

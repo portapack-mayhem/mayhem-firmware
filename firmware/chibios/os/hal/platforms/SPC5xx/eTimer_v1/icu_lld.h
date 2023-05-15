@@ -1,17 +1,17 @@
 /*
-    SPC5 HAL - Copyright (C) 2013 STMicroelectronics
+		SPC5 HAL - Copyright (C) 2013 STMicroelectronics
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,48 +44,48 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(ICU_JUMP_FIRST_CAPTURE) || defined(__DOXYGEN__)
-#define ICU_SKIP_FIRST_CAPTURE                      FALSE
+#define ICU_SKIP_FIRST_CAPTURE FALSE
 #endif
 
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_1        0x18
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_2        0x19
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_4        0x1A
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_8        0x1B
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_16       0x1C
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_32       0x1D
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_64       0x1E
-#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_128      0x1F
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_1 0x18
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_2 0x19
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_4 0x1A
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_8 0x1B
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_16 0x1C
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_32 0x1D
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_64 0x1E
+#define SPC5_ETIMER_IP_BUS_CLOCK_DIVIDE_BY_128 0x1F
 
-#define SPC5_ETIMER_COUNTER_0_INPUT_PIN             0U
-#define SPC5_ETIMER_COUNTER_1_INPUT_PIN             1U
-#define SPC5_ETIMER_COUNTER_2_INPUT_PIN             2U
-#define SPC5_ETIMER_COUNTER_3_INPUT_PIN             3U
-#define SPC5_ETIMER_COUNTER_4_INPUT_PIN             4U
-#define SPC5_ETIMER_COUNTER_5_INPUT_PIN             5U
+#define SPC5_ETIMER_COUNTER_0_INPUT_PIN 0U
+#define SPC5_ETIMER_COUNTER_1_INPUT_PIN 1U
+#define SPC5_ETIMER_COUNTER_2_INPUT_PIN 2U
+#define SPC5_ETIMER_COUNTER_3_INPUT_PIN 3U
+#define SPC5_ETIMER_COUNTER_4_INPUT_PIN 4U
+#define SPC5_ETIMER_COUNTER_5_INPUT_PIN 5U
 
-#define SPC5_ETIMER_CNTMODE_NO_OPERATION            0U
-#define SPC5_ETIMER_CNTMODE_RE                      1U
-#define SPC5_ETIMER_CNTMODE_RFE                     2U
-#define SPC5_ETIMER_CNTMODE_RFE_SIHA                3U
-#define SPC5_ETIMER_CNTMODE_QUADRATURE              4U
-#define SPC5_ETIMER_CNTMODE_RE_SSSD                 5U
-#define SPC5_ETIMER_CNTMODE_ESS_TRIGGER             6U
-#define SPC5_ETIMER_CNTMODE_CASCADE                 7U
+#define SPC5_ETIMER_CNTMODE_NO_OPERATION 0U
+#define SPC5_ETIMER_CNTMODE_RE 1U
+#define SPC5_ETIMER_CNTMODE_RFE 2U
+#define SPC5_ETIMER_CNTMODE_RFE_SIHA 3U
+#define SPC5_ETIMER_CNTMODE_QUADRATURE 4U
+#define SPC5_ETIMER_CNTMODE_RE_SSSD 5U
+#define SPC5_ETIMER_CNTMODE_ESS_TRIGGER 6U
+#define SPC5_ETIMER_CNTMODE_CASCADE 7U
 
-#define SPC5_ETIMER_CPT1MODE_DISABLED               0U
-#define SPC5_ETIMER_CPT1MODE_FALLING_EDGE           1U
-#define SPC5_ETIMER_CPT1MODE_RISING_EDGE            2U
-#define SPC5_ETIMER_CPT1MODE_ANY_EDGE               3U
+#define SPC5_ETIMER_CPT1MODE_DISABLED 0U
+#define SPC5_ETIMER_CPT1MODE_FALLING_EDGE 1U
+#define SPC5_ETIMER_CPT1MODE_RISING_EDGE 2U
+#define SPC5_ETIMER_CPT1MODE_ANY_EDGE 3U
 
-#define SPC5_ETIMER_CPT2MODE_DISABLED               0U
-#define SPC5_ETIMER_CPT2MODE_FALLING_EDGE           1U
-#define SPC5_ETIMER_CPT2MODE_RISING_EDGE            2U
-#define SPC5_ETIMER_CPT2MODE_ANY_EDGE               3U
+#define SPC5_ETIMER_CPT2MODE_DISABLED 0U
+#define SPC5_ETIMER_CPT2MODE_FALLING_EDGE 1U
+#define SPC5_ETIMER_CPT2MODE_RISING_EDGE 2U
+#define SPC5_ETIMER_CPT2MODE_ANY_EDGE 3U
 
-#define SPC5_ETIMER_ROC_DO_NOT_RELOAD               0U
-#define SPC5_ETIMER_ROC_REL_ON_CAP1                 1U
-#define SPC5_ETIMER_ROC_REL_ON_CAP2                 2U
-#define SPC5_ETIMER_ROC_REL_ON_CAP1_CAP2            3U
+#define SPC5_ETIMER_ROC_DO_NOT_RELOAD 0U
+#define SPC5_ETIMER_ROC_REL_ON_CAP1 1U
+#define SPC5_ETIMER_ROC_REL_ON_CAP2 2U
+#define SPC5_ETIMER_ROC_REL_ON_CAP1_CAP2 3U
 /** @} */
 
 /*===========================================================================*/
@@ -102,7 +102,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD0) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD0                  FALSE
+#define SPC5_ICU_USE_SMOD0 FALSE
 #endif
 
 /**
@@ -111,7 +111,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD1) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD1                  FALSE
+#define SPC5_ICU_USE_SMOD1 FALSE
 #endif
 
 /**
@@ -120,7 +120,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD2) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD2                  FALSE
+#define SPC5_ICU_USE_SMOD2 FALSE
 #endif
 
 /**
@@ -129,7 +129,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD3) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD3                  FALSE
+#define SPC5_ICU_USE_SMOD3 FALSE
 #endif
 
 /**
@@ -138,7 +138,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD4) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD4                  FALSE
+#define SPC5_ICU_USE_SMOD4 FALSE
 #endif
 
 /**
@@ -147,14 +147,14 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD5) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD5                  FALSE
+#define SPC5_ICU_USE_SMOD5 FALSE
 #endif
 
 /**
  * @brief   eTimer0 interrupt priority level setting.
  */
 #if !defined(SPC5_ICU_ETIMER0_PRIORITY) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER0_PRIORITY           7
+#define SPC5_ICU_ETIMER0_PRIORITY 7
 #endif
 
 /**
@@ -164,8 +164,7 @@
  *          are defined in @p hal_lld.h.
  */
 #if !defined(SPC5_ICU_ETIMER0_START_PCTL) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER0_START_PCTL         (SPC5_ME_PCTL_RUN(1) |          \
-                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_ICU_ETIMER0_START_PCTL (SPC5_ME_PCTL_RUN(1) | SPC5_ME_PCTL_LP(2))
 #endif
 
 /**
@@ -175,8 +174,7 @@
  *          are defined in @p hal_lld.h.
  */
 #if !defined(SPC5_ICU_ETIMER0_STOP_PCTL) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER0_STOP_PCTL          (SPC5_ME_PCTL_RUN(0) |          \
-                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_ICU_ETIMER0_STOP_PCTL (SPC5_ME_PCTL_RUN(0) | SPC5_ME_PCTL_LP(0))
 #endif
 
 /**
@@ -185,7 +183,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD6) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD6                  FALSE
+#define SPC5_ICU_USE_SMOD6 FALSE
 #endif
 
 /**
@@ -194,7 +192,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD7) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD7                  FALSE
+#define SPC5_ICU_USE_SMOD7 FALSE
 #endif
 
 /**
@@ -203,7 +201,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD8) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD8                  FALSE
+#define SPC5_ICU_USE_SMOD8 FALSE
 #endif
 
 /**
@@ -212,7 +210,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD9) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD9                  FALSE
+#define SPC5_ICU_USE_SMOD9 FALSE
 #endif
 
 /**
@@ -221,7 +219,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD10) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD10                 FALSE
+#define SPC5_ICU_USE_SMOD10 FALSE
 #endif
 
 /**
@@ -230,14 +228,14 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD11) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD11                 FALSE
+#define SPC5_ICU_USE_SMOD11 FALSE
 #endif
 
 /**
  * @brief   eTimer1 interrupt priority level setting.
  */
 #if !defined(SPC5_ICU_ETIMER1_PRIORITY) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER1_PRIORITY           7
+#define SPC5_ICU_ETIMER1_PRIORITY 7
 #endif
 
 /**
@@ -247,8 +245,7 @@
  *          are defined in @p hal_lld.h.
  */
 #if !defined(SPC5_ICU_ETIMER1_START_PCTL) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER1_START_PCTL         (SPC5_ME_PCTL_RUN(1) |          \
-                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_ICU_ETIMER1_START_PCTL (SPC5_ME_PCTL_RUN(1) | SPC5_ME_PCTL_LP(2))
 #endif
 
 /**
@@ -258,8 +255,7 @@
  *          are defined in @p hal_lld.h.
  */
 #if !defined(SPC5_ICU_ETIMER1_STOP_PCTL) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER1_STOP_PCTL          (SPC5_ME_PCTL_RUN(0) |          \
-                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_ICU_ETIMER1_STOP_PCTL (SPC5_ME_PCTL_RUN(0) | SPC5_ME_PCTL_LP(0))
 #endif
 
 /**
@@ -268,7 +264,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD12) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD12                 FALSE
+#define SPC5_ICU_USE_SMOD12 FALSE
 #endif
 
 /**
@@ -277,7 +273,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD13) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD13                 FALSE
+#define SPC5_ICU_USE_SMOD13 FALSE
 #endif
 
 /**
@@ -286,7 +282,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD14) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD14                 FALSE
+#define SPC5_ICU_USE_SMOD14 FALSE
 #endif
 
 /**
@@ -295,7 +291,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD15) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD15                 FALSE
+#define SPC5_ICU_USE_SMOD15 FALSE
 #endif
 
 /**
@@ -304,7 +300,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD16) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD16                 FALSE
+#define SPC5_ICU_USE_SMOD16 FALSE
 #endif
 
 /**
@@ -313,14 +309,14 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(SPC5_ICU_USE_SMOD17) || defined(__DOXYGEN__)
-#define SPC5_ICU_USE_SMOD17                 FALSE
+#define SPC5_ICU_USE_SMOD17 FALSE
 #endif
 
 /**
  * @brief   eTimer2 interrupt priority level setting.
  */
 #if !defined(SPC5_ICU_ETIMER2_PRIORITY) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER2_PRIORITY           7
+#define SPC5_ICU_ETIMER2_PRIORITY 7
 #endif
 
 /**
@@ -330,8 +326,7 @@
  *          are defined in @p hal_lld.h.
  */
 #if !defined(SPC5_ICU_ETIMER2_START_PCTL) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER2_START_PCTL         (SPC5_ME_PCTL_RUN(1) |          \
-                                             SPC5_ME_PCTL_LP(2))
+#define SPC5_ICU_ETIMER2_START_PCTL (SPC5_ME_PCTL_RUN(1) | SPC5_ME_PCTL_LP(2))
 #endif
 
 /**
@@ -341,8 +336,7 @@
  *          are defined in @p hal_lld.h.
  */
 #if !defined(SPC5_ICU_ETIMER2_STOP_PCTL) || defined(__DOXYGEN__)
-#define SPC5_ICU_ETIMER2_STOP_PCTL          (SPC5_ME_PCTL_RUN(0) |          \
-                                             SPC5_ME_PCTL_LP(0))
+#define SPC5_ICU_ETIMER2_STOP_PCTL (SPC5_ME_PCTL_RUN(0) | SPC5_ME_PCTL_LP(0))
 #endif
 /** @} */
 
@@ -350,26 +344,17 @@
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#define SPC5_ICU_USE_ETIMER0                (SPC5_ICU_USE_SMOD0 ||          \
-                                             SPC5_ICU_USE_SMOD1 ||          \
-                                             SPC5_ICU_USE_SMOD2 ||          \
-                                             SPC5_ICU_USE_SMOD3 ||          \
-                                             SPC5_ICU_USE_SMOD4 ||          \
-                                             SPC5_ICU_USE_SMOD5)
+#define SPC5_ICU_USE_ETIMER0                                         \
+	(SPC5_ICU_USE_SMOD0 || SPC5_ICU_USE_SMOD1 || SPC5_ICU_USE_SMOD2 || \
+	 SPC5_ICU_USE_SMOD3 || SPC5_ICU_USE_SMOD4 || SPC5_ICU_USE_SMOD5)
 
-#define SPC5_ICU_USE_ETIMER1                (SPC5_ICU_USE_SMOD6 ||          \
-                                             SPC5_ICU_USE_SMOD7 ||          \
-                                             SPC5_ICU_USE_SMOD8 ||          \
-                                             SPC5_ICU_USE_SMOD9 ||          \
-                                             SPC5_ICU_USE_SMOD10 ||         \
-                                             SPC5_ICU_USE_SMOD11)
+#define SPC5_ICU_USE_ETIMER1                                         \
+	(SPC5_ICU_USE_SMOD6 || SPC5_ICU_USE_SMOD7 || SPC5_ICU_USE_SMOD8 || \
+	 SPC5_ICU_USE_SMOD9 || SPC5_ICU_USE_SMOD10 || SPC5_ICU_USE_SMOD11)
 
-#define SPC5_ICU_USE_ETIMER2                (SPC5_ICU_USE_SMOD12 ||         \
-                                             SPC5_ICU_USE_SMOD13 ||         \
-                                             SPC5_ICU_USE_SMOD14 ||         \
-                                             SPC5_ICU_USE_SMOD15 ||         \
-                                             SPC5_ICU_USE_SMOD16 ||         \
-                                             SPC5_ICU_USE_SMOD17)
+#define SPC5_ICU_USE_ETIMER2                                            \
+	(SPC5_ICU_USE_SMOD12 || SPC5_ICU_USE_SMOD13 || SPC5_ICU_USE_SMOD14 || \
+	 SPC5_ICU_USE_SMOD15 || SPC5_ICU_USE_SMOD16 || SPC5_ICU_USE_SMOD17)
 
 #if !SPC5_HAS_ETIMER0 && SPC5_ICU_USE_ETIMER0
 #error "ETIMER0 not present in the selected device"
@@ -395,8 +380,8 @@
  * @brief ICU driver mode.
  */
 typedef enum {
-  ICU_INPUT_ACTIVE_HIGH = 0, /**< Trigger on rising edge.            */
-  ICU_INPUT_ACTIVE_LOW = 1,  /**< Trigger on falling edge.           */
+	ICU_INPUT_ACTIVE_HIGH = 0, /**< Trigger on rising edge.            */
+	ICU_INPUT_ACTIVE_LOW = 1,	 /**< Trigger on falling edge.           */
 } icumode_t;
 
 /**
@@ -408,12 +393,12 @@ typedef uint32_t icufreq_t;
  * @brief   ICU channel.
  */
 typedef enum {
-  ICU_CHANNEL_1 = 0, /**< Use SMODxCH1.      */
-  ICU_CHANNEL_2 = 1, /**< Use SMODxCH2.      */
-  ICU_CHANNEL_3 = 2, /**< Use SMODxCH3.      */
-  ICU_CHANNEL_4 = 3, /**< Use SMODxCH4.      */
-  ICU_CHANNEL_5 = 4, /**< Use SMODxCH5.      */
-  ICU_CHANNEL_6 = 5, /**< Use SMODxCH6.      */
+	ICU_CHANNEL_1 = 0, /**< Use SMODxCH1.      */
+	ICU_CHANNEL_2 = 1, /**< Use SMODxCH2.      */
+	ICU_CHANNEL_3 = 2, /**< Use SMODxCH3.      */
+	ICU_CHANNEL_4 = 3, /**< Use SMODxCH4.      */
+	ICU_CHANNEL_5 = 4, /**< Use SMODxCH5.      */
+	ICU_CHANNEL_6 = 5, /**< Use SMODxCH6.      */
 } icuchannel_t;
 
 /**
@@ -426,67 +411,67 @@ typedef uint16_t icucnt_t;
  * @note    It could be empty on some architectures.
  */
 typedef struct {
-  /**
-   * @brief   Driver mode.
-   */
-  icumode_t mode;
-  /**
-   * @brief   Timer clock in Hz.
-   * @note    The low level can use assertions in order to catch invalid
-   *          frequency specifications.
-   */
-  icufreq_t frequency;
-  /**
-   * @brief   Callback for pulse width measurement.
-   */
-  icucallback_t width_cb;
-  /**
-   * @brief   Callback for cycle period measurement.
-   */
-  icucallback_t period_cb;
-  /**
-   * @brief   Callback for timer overflow.
-   */
-  icucallback_t overflow_cb;
-  /* End of the mandatory fields.*/
+	/**
+	 * @brief   Driver mode.
+	 */
+	icumode_t mode;
+	/**
+	 * @brief   Timer clock in Hz.
+	 * @note    The low level can use assertions in order to catch invalid
+	 *          frequency specifications.
+	 */
+	icufreq_t frequency;
+	/**
+	 * @brief   Callback for pulse width measurement.
+	 */
+	icucallback_t width_cb;
+	/**
+	 * @brief   Callback for cycle period measurement.
+	 */
+	icucallback_t period_cb;
+	/**
+	 * @brief   Callback for timer overflow.
+	 */
+	icucallback_t overflow_cb;
+	/* End of the mandatory fields.*/
 } ICUConfig;
 
 /**
  * @brief   Structure representing an ICU driver.
  */
 struct ICUDriver {
-  /**
-   * @brief Driver state.
-   */
-  icustate_t                state;
-  /**
-   * @brief Current configuration data.
-   */
-  const ICUConfig           *config;
+	/**
+	 * @brief Driver state.
+	 */
+	icustate_t state;
+	/**
+	 * @brief Current configuration data.
+	 */
+	const ICUConfig* config;
 #if defined(ICU_DRIVER_EXT_FIELDS)
-  ICU_DRIVER_EXT_FIELDS
+	ICU_DRIVER_EXT_FIELDS
 #endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief Clock value for this unit.
-   */
-  uint32_t                  clock;
-  /**
-   * @brief eTimer submodule number.
-   */
-  uint32_t                  smod_number;
-  /**
-   * @brief Pointer to the eTimerx registers block.
-   */
-  volatile struct spc5_etimer *etimerp;
-  /**
-   * @brief CCR register used for width capture.
-   */
-  volatile vuint16_t        *wccrp;
-  /**
-   * @brief CCR register used for period capture.
-   */
-  volatile vuint16_t        *pccrp;
+	/* End of the mandatory fields.*/
+	/**
+	 * @brief Clock value for this unit.
+	 */
+	uint32_t clock;
+	/**
+	 * @brief eTimer submodule number.
+	 */
+	uint32_t smod_number;
+	/**
+	 * @brief Pointer to the eTimerx registers block.
+	 */
+	volatile struct spc5_etimer* etimerp;
+	/**
+	 * @brief CCR register used for width capture.
+	 */
+	volatile vuint16_t* wccrp;
+	/**
+	 * @brief CCR register used for period capture.
+	 */
+	volatile vuint16_t* pccrp;
 };
 
 /*===========================================================================*/
@@ -596,11 +581,11 @@ extern ICUDriver ICUD18;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void icu_lld_init(void);
-  void icu_lld_start(ICUDriver *icup);
-  void icu_lld_stop(ICUDriver *icup);
-  void icu_lld_enable(ICUDriver *icup);
-  void icu_lld_disable(ICUDriver *icup);
+void icu_lld_init(void);
+void icu_lld_start(ICUDriver* icup);
+void icu_lld_stop(ICUDriver* icup);
+void icu_lld_enable(ICUDriver* icup);
+void icu_lld_disable(ICUDriver* icup);
 #ifdef __cplusplus
 }
 #endif

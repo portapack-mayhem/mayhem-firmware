@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -40,29 +40,29 @@
 /**
  * @brief   Type of an IRQ vector.
  */
-typedef void  (*irq_vector_t)(void);
+typedef void (*irq_vector_t)(void);
 
 /**
  * @brief   Type of a structure representing the whole vectors table.
  */
 typedef struct {
-  uint32_t      *init_stack;
-  irq_vector_t  reset_vector;
-  irq_vector_t  nmi_vector;
-  irq_vector_t  hardfault_vector;
-  irq_vector_t  memmanage_vector;
-  irq_vector_t  busfault_vector;
-  irq_vector_t  usagefault_vector;
-  irq_vector_t  vector1c;
-  irq_vector_t  vector20;
-  irq_vector_t  vector24;
-  irq_vector_t  vector28;
-  irq_vector_t  svcall_vector;
-  irq_vector_t  debugmonitor_vector;
-  irq_vector_t  vector34;
-  irq_vector_t  pendsv_vector;
-  irq_vector_t  systick_vector;
-  irq_vector_t  vectors[80];
+	uint32_t* init_stack;
+	irq_vector_t reset_vector;
+	irq_vector_t nmi_vector;
+	irq_vector_t hardfault_vector;
+	irq_vector_t memmanage_vector;
+	irq_vector_t busfault_vector;
+	irq_vector_t usagefault_vector;
+	irq_vector_t vector1c;
+	irq_vector_t vector20;
+	irq_vector_t vector24;
+	irq_vector_t vector28;
+	irq_vector_t svcall_vector;
+	irq_vector_t debugmonitor_vector;
+	irq_vector_t vector34;
+	irq_vector_t pendsv_vector;
+	irq_vector_t systick_vector;
+	irq_vector_t vectors[80];
 } vectors_t;
 
 #if !defined(__DOXYGEN__)
@@ -168,36 +168,45 @@ extern void LCDCA_Handler(void);
  * @brief   STM32 vectors table.
  */
 #if !defined(__DOXYGEN__)
-__attribute__ ((section("vectors")))
+__attribute__((section("vectors")))
 #endif
 vectors_t _vectors = {
-  &__main_stack_end__,ResetHandler,       NMIVector,          HardFaultVector,
-  MemManageVector,    BusFaultVector,     UsageFaultVector,   Vector1C,
-  Vector20,           Vector24,           Vector28,           SVCallVector,
-  DebugMonitorVector, Vector34,           PendSVVector,       SysTickVector,
-  {
-    HFLASHC_Handler,    PDCA_0_Handler,     PDCA_1_Handler,     PDCA_2_Handler,
-    PDCA_3_Handler,	    PDCA_4_Handler,     PDCA_5_Handler,     PDCA_6_Handler,
-    PDCA_7_Handler,     PDCA_8_Handler,     PDCA_9_Handler,     PDCA_10_Handler,
-    PDCA_11_Handler,    PDCA_12_Handler,    PDCA_13_Handler,    PDCA_14_Handler,
-    PDCA_15_Handler,    CRCCU_Handler,      USBC_Handler,       PEVC_TR_Handler,
-    PEVC_OV_Handler,    AESA_Handler,       PM_Handler,         SCIF_Handler,
-    FREQM_Handler,      GPIO_0_Handler,     GPIO_1_Handler,     GPIO_2_Handler,
-    GPIO_3_Handler,     GPIO_4_Handler,     GPIO_5_Handler,     GPIO_6_Handler,
-    GPIO_7_Handler,     GPIO_8_Handler,     GPIO_9_Handler,     GPIO_10_Handler,
-    GPIO_11_Handler,    BPM_Handler,        BSCIF_Handler,      AST_ALARM_Handler,
-    AST_PER_Handler,    AST_OVF_Handler,    AST_READY_Handler,  AST_CLKREADY_Handler,
-    WDT_Handler,        EIC_1_Handler,      EIC_2_Handler,      EIC_3_Handler,
-    EIC_4_Handler,      EIC_5_Handler,      EIC_6_Handler,      EIC_7_Handler,
-    EIC_8_Handler,      IISC_Handler,       SPI_Handler,        TC00_Handler,
-    TC01_Handler,       TC02_Handler,       TC010_Handler,      TC011_Handler,
-    TC012_Handler,      TWIM0_Handler,      TWIS0_Handler,      TWIM1_Handler,
-    TWIS1_Handler,      USART0_Handler,     USART1_Handler,     USART2_Handler,
-    USART3_Handler,     ADCIFE_Handler,     DACC_Handler,       ACIFC_Handler,
-    ABDACB_Handler,     TRNG_Handler,       PARC_Handler,       CATB_Handler,
-    Dummy_Handler,      TWIM2_Handler,      TWIM3_Handler,      LCDCA_Handler
-  }
-};
+		&__main_stack_end__,
+		ResetHandler,
+		NMIVector,
+		HardFaultVector,
+		MemManageVector,
+		BusFaultVector,
+		UsageFaultVector,
+		Vector1C,
+		Vector20,
+		Vector24,
+		Vector28,
+		SVCallVector,
+		DebugMonitorVector,
+		Vector34,
+		PendSVVector,
+		SysTickVector,
+		{HFLASHC_Handler, PDCA_0_Handler,	 PDCA_1_Handler,		PDCA_2_Handler,
+		 PDCA_3_Handler,	PDCA_4_Handler,	 PDCA_5_Handler,		PDCA_6_Handler,
+		 PDCA_7_Handler,	PDCA_8_Handler,	 PDCA_9_Handler,		PDCA_10_Handler,
+		 PDCA_11_Handler, PDCA_12_Handler, PDCA_13_Handler,		PDCA_14_Handler,
+		 PDCA_15_Handler, CRCCU_Handler,	 USBC_Handler,			PEVC_TR_Handler,
+		 PEVC_OV_Handler, AESA_Handler,		 PM_Handler,				SCIF_Handler,
+		 FREQM_Handler,		GPIO_0_Handler,	 GPIO_1_Handler,		GPIO_2_Handler,
+		 GPIO_3_Handler,	GPIO_4_Handler,	 GPIO_5_Handler,		GPIO_6_Handler,
+		 GPIO_7_Handler,	GPIO_8_Handler,	 GPIO_9_Handler,		GPIO_10_Handler,
+		 GPIO_11_Handler, BPM_Handler,		 BSCIF_Handler,			AST_ALARM_Handler,
+		 AST_PER_Handler, AST_OVF_Handler, AST_READY_Handler, AST_CLKREADY_Handler,
+		 WDT_Handler,			EIC_1_Handler,	 EIC_2_Handler,			EIC_3_Handler,
+		 EIC_4_Handler,		EIC_5_Handler,	 EIC_6_Handler,			EIC_7_Handler,
+		 EIC_8_Handler,		IISC_Handler,		 SPI_Handler,				TC00_Handler,
+		 TC01_Handler,		TC02_Handler,		 TC010_Handler,			TC011_Handler,
+		 TC012_Handler,		TWIM0_Handler,	 TWIS0_Handler,			TWIM1_Handler,
+		 TWIS1_Handler,		USART0_Handler,	 USART1_Handler,		USART2_Handler,
+		 USART3_Handler,	ADCIFE_Handler,	 DACC_Handler,			ACIFC_Handler,
+		 ABDACB_Handler,	TRNG_Handler,		 PARC_Handler,			CATB_Handler,
+		 Dummy_Handler,		TWIM2_Handler,	 TWIM3_Handler,			LCDCA_Handler}};
 
 /**
  * @brief   Unhandled exceptions handler.
@@ -211,21 +220,23 @@ __attribute__ ((naked))
 #endif
 void _unhandled_exception(void) {
 
-  while (TRUE)
-    ;
+	while (TRUE)
+		;
 }
 
 void NMIVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void HardFaultVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void MemManageVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void BusFaultVector(void) __attribute__((weak, alias("_unhandled_exception")));
-void UsageFaultVector(void) __attribute__((weak, alias("_unhandled_exception")));
+void UsageFaultVector(void)
+		__attribute__((weak, alias("_unhandled_exception")));
 void Vector1C(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector20(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector24(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector28(void) __attribute__((weak, alias("_unhandled_exception")));
 void SVCallVector(void) __attribute__((weak, alias("_unhandled_exception")));
-void DebugMonitorVector(void) __attribute__((weak, alias("_unhandled_exception")));
+void DebugMonitorVector(void)
+		__attribute__((weak, alias("_unhandled_exception")));
 void Vector34(void) __attribute__((weak, alias("_unhandled_exception")));
 void PendSVVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void SysTickVector(void) __attribute__((weak, alias("_unhandled_exception")));
@@ -268,11 +279,14 @@ void GPIO_10_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
 void GPIO_11_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
 void BPM_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
 void BSCIF_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
-void AST_ALARM_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
+void AST_ALARM_Handler(void)
+		__attribute__((weak, alias("_unhandled_exception")));
 void AST_PER_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
 void AST_OVF_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
-void AST_READY_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
-void AST_CLKREADY_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
+void AST_READY_Handler(void)
+		__attribute__((weak, alias("_unhandled_exception")));
+void AST_CLKREADY_Handler(void)
+		__attribute__((weak, alias("_unhandled_exception")));
 void WDT_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
 void EIC_1_Handler(void) __attribute__((weak, alias("_unhandled_exception")));
 void EIC_2_Handler(void) __attribute__((weak, alias("_unhandled_exception")));

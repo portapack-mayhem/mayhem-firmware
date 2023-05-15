@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -74,8 +74,7 @@
  * @init
  */
 void macInit(void) {
-
-  mac_lld_init();
+	mac_lld_init();
 }
 
 /**
@@ -85,14 +84,13 @@ void macInit(void) {
  *
  * @init
  */
-void macObjectInit(MACDriver *macp) {
-
-  macp->state  = MAC_STOP;
-  macp->config = NULL;
-  chSemInit(&macp->tdsem, 0);
-  chSemInit(&macp->rdsem, 0);
+void macObjectInit(MACDriver* macp) {
+	macp->state = MAC_STOP;
+	macp->config = NULL;
+	chSemInit(&macp->tdsem, 0);
+	chSemInit(&macp->rdsem, 0);
 #if MAC_USE_EVENTS
-  chEvtInit(&macp->rdevent);
+	chEvtInit(&macp->rdevent);
 #endif
 }
 
@@ -104,17 +102,15 @@ void macObjectInit(MACDriver *macp) {
  *
  * @api
  */
-void macStart(MACDriver *macp, const MACConfig *config) {
+void macStart(MACDriver* macp, const MACConfig* config) {
+	chDbgCheck((macp != NULL) && (config != NULL), "macStart");
 
-  chDbgCheck((macp != NULL) && (config != NULL), "macStart");
-
-  chSysLock();
-  chDbgAssert(macp->state == MAC_STOP,
-              "macStart(), #1", "invalid state");
-  macp->config = config;
-  mac_lld_start(macp);
-  macp->state = MAC_ACTIVE;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert(macp->state == MAC_STOP, "macStart(), #1", "invalid state");
+	macp->config = config;
+	mac_lld_start(macp);
+	macp->state = MAC_ACTIVE;
+	chSysUnlock();
 }
 
 /**
@@ -124,16 +120,15 @@ void macStart(MACDriver *macp, const MACConfig *config) {
  *
  * @api
  */
-void macStop(MACDriver *macp) {
+void macStop(MACDriver* macp) {
+	chDbgCheck(macp != NULL, "macStop");
 
-  chDbgCheck(macp != NULL, "macStop");
-
-  chSysLock();
-  chDbgAssert((macp->state == MAC_STOP) || (macp->state == MAC_ACTIVE),
-              "macStop(), #1", "invalid state");
-  mac_lld_stop(macp);
-  macp->state = MAC_STOP;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((macp->state == MAC_STOP) || (macp->state == MAC_ACTIVE),
+							"macStop(), #1", "invalid state");
+	mac_lld_stop(macp);
+	macp->state = MAC_STOP;
+	chSysUnlock();
 }
 
 /**
@@ -155,29 +150,29 @@ void macStop(MACDriver *macp) {
  *
  * @api
  */
-msg_t macWaitTransmitDescriptor(MACDriver *macp,
-                                MACTransmitDescriptor *tdp,
-                                systime_t time) {
-  msg_t msg;
-  systime_t now;
+msg_t macWaitTransmitDescriptor(MACDriver* macp,
+																MACTransmitDescriptor* tdp,
+																systime_t time) {
+	msg_t msg;
+	systime_t now;
 
-  chDbgCheck((macp != NULL) && (tdp != NULL), "macWaitTransmitDescriptor");
-  chDbgAssert(macp->state == MAC_ACTIVE, "macWaitTransmitDescriptor(), #1",
-              "not active");
+	chDbgCheck((macp != NULL) && (tdp != NULL), "macWaitTransmitDescriptor");
+	chDbgAssert(macp->state == MAC_ACTIVE, "macWaitTransmitDescriptor(), #1",
+							"not active");
 
-  while (((msg = mac_lld_get_transmit_descriptor(macp, tdp)) != RDY_OK) &&
-         (time > 0)) {
-    chSysLock();
-    now = chTimeNow();
-    if ((msg = chSemWaitTimeoutS(&macp->tdsem, time)) == RDY_TIMEOUT) {
-      chSysUnlock();
-      break;
-    }
-    if (time != TIME_INFINITE)
-      time -= (chTimeNow() - now);
-    chSysUnlock();
-  }
-  return msg;
+	while (((msg = mac_lld_get_transmit_descriptor(macp, tdp)) != RDY_OK) &&
+				 (time > 0)) {
+		chSysLock();
+		now = chTimeNow();
+		if ((msg = chSemWaitTimeoutS(&macp->tdsem, time)) == RDY_TIMEOUT) {
+			chSysUnlock();
+			break;
+		}
+		if (time != TIME_INFINITE)
+			time -= (chTimeNow() - now);
+		chSysUnlock();
+	}
+	return msg;
 }
 
 /**
@@ -188,11 +183,10 @@ msg_t macWaitTransmitDescriptor(MACDriver *macp,
  *
  * @api
  */
-void macReleaseTransmitDescriptor(MACTransmitDescriptor *tdp) {
+void macReleaseTransmitDescriptor(MACTransmitDescriptor* tdp) {
+	chDbgCheck((tdp != NULL), "macReleaseTransmitDescriptor");
 
-  chDbgCheck((tdp != NULL), "macReleaseTransmitDescriptor");
-
-  mac_lld_release_transmit_descriptor(tdp);
+	mac_lld_release_transmit_descriptor(tdp);
 }
 
 /**
@@ -214,29 +208,29 @@ void macReleaseTransmitDescriptor(MACTransmitDescriptor *tdp) {
  *
  * @api
  */
-msg_t macWaitReceiveDescriptor(MACDriver *macp,
-                               MACReceiveDescriptor *rdp,
-                               systime_t time) {
-  msg_t msg;
-  systime_t now;
+msg_t macWaitReceiveDescriptor(MACDriver* macp,
+															 MACReceiveDescriptor* rdp,
+															 systime_t time) {
+	msg_t msg;
+	systime_t now;
 
-  chDbgCheck((macp != NULL) && (rdp != NULL), "macWaitReceiveDescriptor");
-  chDbgAssert(macp->state == MAC_ACTIVE, "macWaitReceiveDescriptor(), #1",
-              "not active");
+	chDbgCheck((macp != NULL) && (rdp != NULL), "macWaitReceiveDescriptor");
+	chDbgAssert(macp->state == MAC_ACTIVE, "macWaitReceiveDescriptor(), #1",
+							"not active");
 
-  while (((msg = mac_lld_get_receive_descriptor(macp, rdp)) != RDY_OK) &&
-         (time > 0)) {
-    chSysLock();
-    now = chTimeNow();
-    if ((msg = chSemWaitTimeoutS(&macp->rdsem, time)) == RDY_TIMEOUT) {
-      chSysUnlock();
-      break;
-    }
-    if (time != TIME_INFINITE)
-      time -= (chTimeNow() - now);
-    chSysUnlock();
-  }
-  return msg;
+	while (((msg = mac_lld_get_receive_descriptor(macp, rdp)) != RDY_OK) &&
+				 (time > 0)) {
+		chSysLock();
+		now = chTimeNow();
+		if ((msg = chSemWaitTimeoutS(&macp->rdsem, time)) == RDY_TIMEOUT) {
+			chSysUnlock();
+			break;
+		}
+		if (time != TIME_INFINITE)
+			time -= (chTimeNow() - now);
+		chSysUnlock();
+	}
+	return msg;
 }
 
 /**
@@ -248,11 +242,10 @@ msg_t macWaitReceiveDescriptor(MACDriver *macp,
  *
  * @api
  */
-void macReleaseReceiveDescriptor(MACReceiveDescriptor *rdp) {
+void macReleaseReceiveDescriptor(MACReceiveDescriptor* rdp) {
+	chDbgCheck((rdp != NULL), "macReleaseReceiveDescriptor");
 
-  chDbgCheck((rdp != NULL), "macReleaseReceiveDescriptor");
-
-  mac_lld_release_receive_descriptor(rdp);
+	mac_lld_release_receive_descriptor(rdp);
 }
 
 /**
@@ -265,13 +258,12 @@ void macReleaseReceiveDescriptor(MACReceiveDescriptor *rdp) {
  *
  * @api
  */
-bool_t macPollLinkStatus(MACDriver *macp) {
+bool_t macPollLinkStatus(MACDriver* macp) {
+	chDbgCheck((macp != NULL), "macPollLinkStatus");
+	chDbgAssert(macp->state == MAC_ACTIVE, "macPollLinkStatus(), #1",
+							"not active");
 
-  chDbgCheck((macp != NULL), "macPollLinkStatus");
-  chDbgAssert(macp->state == MAC_ACTIVE, "macPollLinkStatus(), #1",
-              "not active");
-
-  return mac_lld_poll_link_status(macp);
+	return mac_lld_poll_link_status(macp);
 }
 
 #endif /* HAL_USE_MAC */

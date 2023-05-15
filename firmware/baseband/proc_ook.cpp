@@ -21,17 +21,19 @@
  */
 
 #include "proc_ook.hpp"
+#include "event_m4.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
-#include "event_m4.hpp"
 
 #include <cstdint>
 
-inline void OOKProcessor::write_sample(const buffer_c8_t& buffer, uint8_t bit_value, size_t i) {
+inline void OOKProcessor::write_sample(const buffer_c8_t& buffer,
+																			 uint8_t bit_value,
+																			 size_t i) {
 	int8_t re, im;
 
 	if (bit_value) {
-		phase = (phase + 200);			// What ?
+		phase = (phase + 200);	// What ?
 		sphase = phase + (64 << 18);
 
 		re = (sine_table_i8[(sphase & 0x03FC0000) >> 18]);
@@ -54,7 +56,7 @@ bool OOKProcessor::scan_init(unsigned int order) {
 	k = 0;
 	idx = 1;
 
-	duval_symbols = 2; // 2 for binary, 3 for ternary encoders
+	duval_symbols = 2;	// 2 for binary, 3 for ternary encoders
 	duval_length = 0;
 	duval_bit = 0;
 	duval_sample_bit = 0;
@@ -67,10 +69,11 @@ bool OOKProcessor::scan_init(unsigned int order) {
 bool OOKProcessor::scan_encode(const buffer_c8_t& buffer, size_t& buf_ptr) {
 	// encode data: 0 = 1000, 1 = 1110
 	// @TODO: make this user-configurable
-	const uint8_t sym[] = { 0b0001, 0b0111 };
+	const uint8_t sym[] = {0b0001, 0b0111};
 	constexpr auto symbol_length = 4;
 
-	// iterate over every symbol in the sequence and convert it to bits with required bitrate
+	// iterate over every symbol in the sequence and convert it to bits with
+	// required bitrate
 	for (; duval_bit < duval_length; duval_bit++) {
 		auto val = v_tmp[duval_bit];
 		for (; duval_symbol < symbol_length; duval_symbol++) {
@@ -108,7 +111,8 @@ inline size_t OOKProcessor::duval_algo_step() {
 		for (unsigned int j = 0; j < w - idx; j++)
 			v[idx + j] = v[j];
 
-		for (idx = w; (idx > 0) && (v[idx - 1] >= duval_symbols - 1); idx--) ;
+		for (idx = w; (idx > 0) && (v[idx - 1] >= duval_symbols - 1); idx--)
+			;
 
 		if (idx)
 			v[idx - 1]++;
@@ -143,7 +147,7 @@ void OOKProcessor::scan_process(const buffer_c8_t& buffer) {
 
 			// clear the remaining buffer in case we have any bytes left
 			for (size_t i = buf_ptr; i < buffer.count; i++)
-				buffer.p[i] = { 0, 0 };
+				buffer.p[i] = {0, 0};
 
 			break;
 		}
@@ -161,7 +165,8 @@ void OOKProcessor::scan_process(const buffer_c8_t& buffer) {
 void OOKProcessor::execute(const buffer_c8_t& buffer) {
 	// This is called at 2.28M/2048 = 1113Hz
 
-	if (!configured) return;
+	if (!configured)
+		return;
 
 	if (de_bruijn_length) {
 		scan_process(buffer);
@@ -169,7 +174,6 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 	}
 
 	for (size_t i = 0; i < buffer.count; i++) {
-
 		// Synthesis at 2.28M/10 = 228kHz
 		if (!s) {
 			s = 10 - 1;
@@ -201,7 +205,9 @@ void OOKProcessor::execute(const buffer_c8_t& buffer) {
 							pause_counter--;
 						}
 					} else {
-						cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+						cur_bit =
+								(shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) &
+								0x80;
 						bit_pos++;
 					}
 				}
@@ -255,7 +261,7 @@ void OOKProcessor::on_message(const Message* const p) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<OOKProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<OOKProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

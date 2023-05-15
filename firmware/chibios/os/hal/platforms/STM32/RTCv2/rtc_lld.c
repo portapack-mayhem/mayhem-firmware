@@ -1,21 +1,21 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 /*
-   Concepts and parts of this file have been contributed by Uladzimir Pylinsky
-   aka barthess.
+	 Concepts and parts of this file have been contributed by Uladzimir Pylinsky
+	 aka barthess.
  */
 
 /**
@@ -58,25 +58,31 @@ RTCDriver RTCD1;
  *
  * @notapi
  */
-#define rtc_lld_apb1_sync() {while ((RTCD1.id_rtc->ISR & RTC_ISR_RSF) == 0);}
+#define rtc_lld_apb1_sync()                        \
+	{                                                \
+		while ((RTCD1.id_rtc->ISR & RTC_ISR_RSF) == 0) \
+			;                                            \
+	}
 
 /**
  * @brief   Beginning of configuration procedure.
  *
  * @notapi
  */
-#define rtc_lld_enter_init() {                                              \
-  RTCD1.id_rtc->ISR |= RTC_ISR_INIT;                                        \
-  while ((RTCD1.id_rtc->ISR & RTC_ISR_INITF) == 0)                          \
-    ;                                                                       \
-}
+#define rtc_lld_enter_init()                         \
+	{                                                  \
+		RTCD1.id_rtc->ISR |= RTC_ISR_INIT;               \
+		while ((RTCD1.id_rtc->ISR & RTC_ISR_INITF) == 0) \
+			;                                              \
+	}
 
 /**
  * @brief   Finalizing of configuration procedure.
  *
  * @notapi
  */
-#define rtc_lld_exit_init() {RTCD1.id_rtc->ISR &= ~RTC_ISR_INIT;}
+#define rtc_lld_exit_init() \
+	{ RTCD1.id_rtc->ISR &= ~RTC_ISR_INIT; }
 
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
@@ -91,27 +97,27 @@ RTCDriver RTCD1;
  *
  * @api
  */
-void rtc_lld_init(void){
-  RTCD1.id_rtc = RTC;
+void rtc_lld_init(void) {
+	RTCD1.id_rtc = RTC;
 
-  /* Asynchronous part of preloader. Set it to maximum value. */
-  uint32_t prediv_a = 0x7F;
+	/* Asynchronous part of preloader. Set it to maximum value. */
+	uint32_t prediv_a = 0x7F;
 
-  /* Disable write protection. */
-  RTCD1.id_rtc->WPR = 0xCA;
-  RTCD1.id_rtc->WPR = 0x53;
+	/* Disable write protection. */
+	RTCD1.id_rtc->WPR = 0xCA;
+	RTCD1.id_rtc->WPR = 0x53;
 
-  /* If calendar not init yet. */
-  if (!(RTC->ISR & RTC_ISR_INITS)){
-    rtc_lld_enter_init();
+	/* If calendar not init yet. */
+	if (!(RTC->ISR & RTC_ISR_INITS)) {
+		rtc_lld_enter_init();
 
-    /* Prescaler register must be written in two SEPARATE writes. */
-    prediv_a = (prediv_a << 16) |
-                (((STM32_RTCCLK / (prediv_a + 1)) - 1) & 0x7FFF);
-    RTCD1.id_rtc->PRER = prediv_a;
-    RTCD1.id_rtc->PRER = prediv_a;
-    rtc_lld_exit_init();
-  }
+		/* Prescaler register must be written in two SEPARATE writes. */
+		prediv_a =
+				(prediv_a << 16) | (((STM32_RTCCLK / (prediv_a + 1)) - 1) & 0x7FFF);
+		RTCD1.id_rtc->PRER = prediv_a;
+		RTCD1.id_rtc->PRER = prediv_a;
+		rtc_lld_exit_init();
+	}
 }
 
 /**
@@ -124,17 +130,17 @@ void rtc_lld_init(void){
  *
  * @api
  */
-void rtc_lld_set_time(RTCDriver *rtcp, const RTCTime *timespec) {
-  (void)rtcp;
+void rtc_lld_set_time(RTCDriver* rtcp, const RTCTime* timespec) {
+	(void)rtcp;
 
-  rtc_lld_enter_init();
-  if (timespec->h12)
-    RTCD1.id_rtc->CR |= RTC_CR_FMT;
-  else
-    RTCD1.id_rtc->CR &= ~RTC_CR_FMT;
-  RTCD1.id_rtc->TR = timespec->tv_time;
-  RTCD1.id_rtc->DR = timespec->tv_date;
-  rtc_lld_exit_init();
+	rtc_lld_enter_init();
+	if (timespec->h12)
+		RTCD1.id_rtc->CR |= RTC_CR_FMT;
+	else
+		RTCD1.id_rtc->CR &= ~RTC_CR_FMT;
+	RTCD1.id_rtc->TR = timespec->tv_time;
+	RTCD1.id_rtc->DR = timespec->tv_date;
+	rtc_lld_exit_init();
 }
 
 /**
@@ -145,20 +151,20 @@ void rtc_lld_set_time(RTCDriver *rtcp, const RTCTime *timespec) {
  *
  * @api
  */
-void rtc_lld_get_time(RTCDriver *rtcp, RTCTime *timespec) {
-  (void)rtcp;
+void rtc_lld_get_time(RTCDriver* rtcp, RTCTime* timespec) {
+	(void)rtcp;
 
-  rtc_lld_apb1_sync();
+	rtc_lld_apb1_sync();
 
 #if STM32_RTC_HAS_SUBSECONDS
-  {
-    uint32_t prer = RTCD1.id_rtc->PRER & 0x7FFF;
-    uint32_t ssr  = RTCD1.id_rtc->SSR;
-    timespec->tv_msec = (1000 * (prer - ssr)) / (prer + 1);
-  }
+	{
+		uint32_t prer = RTCD1.id_rtc->PRER & 0x7FFF;
+		uint32_t ssr = RTCD1.id_rtc->SSR;
+		timespec->tv_msec = (1000 * (prer - ssr)) / (prer + 1);
+	}
 #endif /* STM32_RTC_HAS_SUBSECONDS */
-  timespec->tv_time = RTCD1.id_rtc->TR;
-  timespec->tv_date = RTCD1.id_rtc->DR;
+	timespec->tv_time = RTCD1.id_rtc->TR;
+	timespec->tv_date = RTCD1.id_rtc->DR;
 }
 
 /**
@@ -173,39 +179,36 @@ void rtc_lld_get_time(RTCDriver *rtcp, RTCTime *timespec) {
  *
  * @api
  */
-void rtc_lld_set_alarm(RTCDriver *rtcp,
-                       rtcalarm_t alarm,
-                       const RTCAlarm *alarmspec) {
-
-  if (alarm == 0) {
-    if (alarmspec != NULL){
-      rtcp->id_rtc->CR &= ~RTC_CR_ALRAE;
-      while(!(rtcp->id_rtc->ISR & RTC_ISR_ALRAWF))
-        ;
-      rtcp->id_rtc->ALRMAR = alarmspec->tv_datetime;
-      rtcp->id_rtc->CR |= RTC_CR_ALRAE;
-      rtcp->id_rtc->CR |= RTC_CR_ALRAIE;
-    }
-    else {
-      rtcp->id_rtc->CR &= ~RTC_CR_ALRAIE;
-      rtcp->id_rtc->CR &= ~RTC_CR_ALRAE;
-    }
-  }
+void rtc_lld_set_alarm(RTCDriver* rtcp,
+											 rtcalarm_t alarm,
+											 const RTCAlarm* alarmspec) {
+	if (alarm == 0) {
+		if (alarmspec != NULL) {
+			rtcp->id_rtc->CR &= ~RTC_CR_ALRAE;
+			while (!(rtcp->id_rtc->ISR & RTC_ISR_ALRAWF))
+				;
+			rtcp->id_rtc->ALRMAR = alarmspec->tv_datetime;
+			rtcp->id_rtc->CR |= RTC_CR_ALRAE;
+			rtcp->id_rtc->CR |= RTC_CR_ALRAIE;
+		} else {
+			rtcp->id_rtc->CR &= ~RTC_CR_ALRAIE;
+			rtcp->id_rtc->CR &= ~RTC_CR_ALRAE;
+		}
+	}
 #if RTC_ALARMS == 2
-  else{
-    if (alarmspec != NULL){
-      rtcp->id_rtc->CR &= ~RTC_CR_ALRBE;
-      while(!(rtcp->id_rtc->ISR & RTC_ISR_ALRBWF))
-        ;
-      rtcp->id_rtc->ALRMBR = alarmspec->tv_datetime;
-      rtcp->id_rtc->CR |= RTC_CR_ALRBE;
-      rtcp->id_rtc->CR |= RTC_CR_ALRBIE;
-    }
-    else {
-      rtcp->id_rtc->CR &= ~RTC_CR_ALRBIE;
-      rtcp->id_rtc->CR &= ~RTC_CR_ALRBE;
-    }
-  }
+	else {
+		if (alarmspec != NULL) {
+			rtcp->id_rtc->CR &= ~RTC_CR_ALRBE;
+			while (!(rtcp->id_rtc->ISR & RTC_ISR_ALRBWF))
+				;
+			rtcp->id_rtc->ALRMBR = alarmspec->tv_datetime;
+			rtcp->id_rtc->CR |= RTC_CR_ALRBE;
+			rtcp->id_rtc->CR |= RTC_CR_ALRBIE;
+		} else {
+			rtcp->id_rtc->CR &= ~RTC_CR_ALRBIE;
+			rtcp->id_rtc->CR &= ~RTC_CR_ALRBE;
+		}
+	}
 #endif /* RTC_ALARMS == 2 */
 }
 
@@ -218,15 +221,12 @@ void rtc_lld_set_alarm(RTCDriver *rtcp,
  *
  * @api
  */
-void rtc_lld_get_alarm(RTCDriver *rtcp,
-                       rtcalarm_t alarm,
-                       RTCAlarm *alarmspec) {
-
-  if (alarm == 0)
-    alarmspec->tv_datetime = rtcp->id_rtc->ALRMAR;
+void rtc_lld_get_alarm(RTCDriver* rtcp, rtcalarm_t alarm, RTCAlarm* alarmspec) {
+	if (alarm == 0)
+		alarmspec->tv_datetime = rtcp->id_rtc->ALRMAR;
 #if RTC_ALARMS == 2
-  else
-    alarmspec->tv_datetime = rtcp->id_rtc->ALRMBR;
+	else
+		alarmspec->tv_datetime = rtcp->id_rtc->ALRMBR;
 #endif
 }
 
@@ -241,24 +241,22 @@ void rtc_lld_get_alarm(RTCDriver *rtcp,
  * @api
  */
 #if RTC_HAS_PERIODIC_WAKEUPS
-void rtcSetPeriodicWakeup_v2(RTCDriver *rtcp, const RTCWakeup *wakeupspec) {
+void rtcSetPeriodicWakeup_v2(RTCDriver* rtcp, const RTCWakeup* wakeupspec) {
+	if (wakeupspec != NULL) {
+		chDbgCheck((wakeupspec->wakeup != 0x30000),
+							 "rtc_lld_set_periodic_wakeup, forbidden combination");
 
-  if (wakeupspec != NULL){
-    chDbgCheck((wakeupspec->wakeup != 0x30000),
-               "rtc_lld_set_periodic_wakeup, forbidden combination");
-
-    rtcp->id_rtc->CR &= ~RTC_CR_WUTE;
-    while(!(rtcp->id_rtc->ISR & RTC_ISR_WUTWF))
-      ;
-    rtcp->id_rtc->WUTR = wakeupspec->wakeup & 0xFFFF;
-    rtcp->id_rtc->CR   = (wakeupspec->wakeup >> 16) & 0x7;
-    rtcp->id_rtc->CR |= RTC_CR_WUTIE;
-    rtcp->id_rtc->CR |= RTC_CR_WUTE;
-  }
-  else {
-    rtcp->id_rtc->CR &= ~RTC_CR_WUTIE;
-    rtcp->id_rtc->CR &= ~RTC_CR_WUTE;
-  }
+		rtcp->id_rtc->CR &= ~RTC_CR_WUTE;
+		while (!(rtcp->id_rtc->ISR & RTC_ISR_WUTWF))
+			;
+		rtcp->id_rtc->WUTR = wakeupspec->wakeup & 0xFFFF;
+		rtcp->id_rtc->CR = (wakeupspec->wakeup >> 16) & 0x7;
+		rtcp->id_rtc->CR |= RTC_CR_WUTIE;
+		rtcp->id_rtc->CR |= RTC_CR_WUTE;
+	} else {
+		rtcp->id_rtc->CR &= ~RTC_CR_WUTIE;
+		rtcp->id_rtc->CR &= ~RTC_CR_WUTE;
+	}
 }
 #endif /* RTC_HAS_PERIODIC_WAKEUPS */
 
@@ -273,11 +271,10 @@ void rtcSetPeriodicWakeup_v2(RTCDriver *rtcp, const RTCWakeup *wakeupspec) {
  * @api
  */
 #if RTC_HAS_PERIODIC_WAKEUPS
-void rtcGetPeriodicWakeup_v2(RTCDriver *rtcp, RTCWakeup *wakeupspec) {
-
-  wakeupspec->wakeup  = 0;
-  wakeupspec->wakeup |= rtcp->id_rtc->WUTR;
-  wakeupspec->wakeup |= (((uint32_t)rtcp->id_rtc->CR) & 0x7) << 16;
+void rtcGetPeriodicWakeup_v2(RTCDriver* rtcp, RTCWakeup* wakeupspec) {
+	wakeupspec->wakeup = 0;
+	wakeupspec->wakeup |= rtcp->id_rtc->WUTR;
+	wakeupspec->wakeup |= (((uint32_t)rtcp->id_rtc->CR) & 0x7) << 16;
 }
 #endif /* RTC_HAS_PERIODIC_WAKEUPS */
 
@@ -289,47 +286,47 @@ void rtcGetPeriodicWakeup_v2(RTCDriver *rtcp, RTCWakeup *wakeupspec) {
  *
  * @api
  */
-uint32_t rtc_lld_get_time_fat(RTCDriver *rtcp) {
-  uint32_t fattime;
-  RTCTime timespec;
-  uint32_t tv_time;
-  uint32_t tv_date;
-  uint32_t v;
+uint32_t rtc_lld_get_time_fat(RTCDriver* rtcp) {
+	uint32_t fattime;
+	RTCTime timespec;
+	uint32_t tv_time;
+	uint32_t tv_date;
+	uint32_t v;
 
-  chSysLock();
-  rtcGetTimeI(rtcp, &timespec);
-  chSysUnlock();
+	chSysLock();
+	rtcGetTimeI(rtcp, &timespec);
+	chSysUnlock();
 
-  tv_time = timespec.tv_time;
-  tv_date = timespec.tv_date;
+	tv_time = timespec.tv_time;
+	tv_date = timespec.tv_date;
 
-  v =  (tv_time & RTC_TR_SU) >> RTC_TR_SU_OFFSET;
-  v += ((tv_time & RTC_TR_ST) >> RTC_TR_ST_OFFSET) * 10;
-  fattime  = v >> 1;
+	v = (tv_time & RTC_TR_SU) >> RTC_TR_SU_OFFSET;
+	v += ((tv_time & RTC_TR_ST) >> RTC_TR_ST_OFFSET) * 10;
+	fattime = v >> 1;
 
-  v =  (tv_time & RTC_TR_MNU) >> RTC_TR_MNU_OFFSET;
-  v += ((tv_time & RTC_TR_MNT) >> RTC_TR_MNT_OFFSET) * 10;
-  fattime |= v << 5;
+	v = (tv_time & RTC_TR_MNU) >> RTC_TR_MNU_OFFSET;
+	v += ((tv_time & RTC_TR_MNT) >> RTC_TR_MNT_OFFSET) * 10;
+	fattime |= v << 5;
 
-  v =  (tv_time & RTC_TR_HU) >> RTC_TR_HU_OFFSET;
-  v += ((tv_time & RTC_TR_HT) >> RTC_TR_HT_OFFSET) * 10;
-  v += 12 * ((tv_time & RTC_TR_PM) >> RTC_TR_PM_OFFSET);
-  fattime |= v << 11;
+	v = (tv_time & RTC_TR_HU) >> RTC_TR_HU_OFFSET;
+	v += ((tv_time & RTC_TR_HT) >> RTC_TR_HT_OFFSET) * 10;
+	v += 12 * ((tv_time & RTC_TR_PM) >> RTC_TR_PM_OFFSET);
+	fattime |= v << 11;
 
-  v =  (tv_date & RTC_DR_DU) >> RTC_DR_DU_OFFSET;
-  v += ((tv_date & RTC_DR_DT) >> RTC_DR_DT_OFFSET) * 10;
-  fattime |= v << 16;
+	v = (tv_date & RTC_DR_DU) >> RTC_DR_DU_OFFSET;
+	v += ((tv_date & RTC_DR_DT) >> RTC_DR_DT_OFFSET) * 10;
+	fattime |= v << 16;
 
-  v =  (tv_date & RTC_DR_MU) >> RTC_DR_MU_OFFSET;
-  v += ((tv_date & RTC_DR_MT) >> RTC_DR_MT_OFFSET) * 10;
-  fattime |= v << 21;
+	v = (tv_date & RTC_DR_MU) >> RTC_DR_MU_OFFSET;
+	v += ((tv_date & RTC_DR_MT) >> RTC_DR_MT_OFFSET) * 10;
+	fattime |= v << 21;
 
-  v =  (tv_date & RTC_DR_YU) >> RTC_DR_YU_OFFSET;
-  v += ((tv_date & RTC_DR_YT) >> RTC_DR_YT_OFFSET) * 10;
-  v += 2000 - 1900 - 80;
-  fattime |= v << 25;
+	v = (tv_date & RTC_DR_YU) >> RTC_DR_YU_OFFSET;
+	v += ((tv_date & RTC_DR_YT) >> RTC_DR_YT_OFFSET) * 10;
+	v += 2000 - 1900 - 80;
+	fattime |= v << 25;
 
-  return fattime;
+	return fattime;
 }
 
 #endif /* HAL_USE_RTC */

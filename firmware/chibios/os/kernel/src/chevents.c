@@ -1,31 +1,31 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 /*
-   Concepts and parts of this file have been contributed by Scott (skute).
+	 Concepts and parts of this file have been contributed by Scott (skute).
  */
 
 /**
@@ -82,17 +82,16 @@
  *
  * @api
  */
-void chEvtRegisterMask(EventSource *esp, EventListener *elp, eventmask_t mask) {
+void chEvtRegisterMask(EventSource* esp, EventListener* elp, eventmask_t mask) {
+	chDbgCheck((esp != NULL) && (elp != NULL), "chEvtRegisterMask");
 
-  chDbgCheck((esp != NULL) && (elp != NULL), "chEvtRegisterMask");
-
-  chSysLock();
-  elp->el_next     = esp->es_next;
-  esp->es_next     = elp;
-  elp->el_listener = currp;
-  elp->el_mask     = mask;
-  elp->el_flags    = 0;
-  chSysUnlock();
+	chSysLock();
+	elp->el_next = esp->es_next;
+	esp->es_next = elp;
+	elp->el_listener = currp;
+	elp->el_mask = mask;
+	elp->el_flags = 0;
+	chSysUnlock();
 }
 
 /**
@@ -108,21 +107,21 @@ void chEvtRegisterMask(EventSource *esp, EventListener *elp, eventmask_t mask) {
  *
  * @api
  */
-void chEvtUnregister(EventSource *esp, EventListener *elp) {
-  EventListener *p;
+void chEvtUnregister(EventSource* esp, EventListener* elp) {
+	EventListener* p;
 
-  chDbgCheck((esp != NULL) && (elp != NULL), "chEvtUnregister");
+	chDbgCheck((esp != NULL) && (elp != NULL), "chEvtUnregister");
 
-  p = (EventListener *)esp;
-  chSysLock();
-  while (p->el_next != (EventListener *)esp) {
-    if (p->el_next == elp) {
-      p->el_next = elp->el_next;
-      break;
-    }
-    p = p->el_next;
-  }
-  chSysUnlock();
+	p = (EventListener*)esp;
+	chSysLock();
+	while (p->el_next != (EventListener*)esp) {
+		if (p->el_next == elp) {
+			p->el_next = elp->el_next;
+			break;
+		}
+		p = p->el_next;
+	}
+	chSysUnlock();
 }
 
 /**
@@ -134,15 +133,15 @@ void chEvtUnregister(EventSource *esp, EventListener *elp) {
  * @api
  */
 eventmask_t chEvtGetAndClearEvents(eventmask_t mask) {
-  eventmask_t m;
+	eventmask_t m;
 
-  chSysLock();
+	chSysLock();
 
-  m = currp->p_epending & mask;
-  currp->p_epending &= ~mask;
+	m = currp->p_epending & mask;
+	currp->p_epending &= ~mask;
 
-  chSysUnlock();
-  return m;
+	chSysUnlock();
+	return m;
 }
 
 /**
@@ -155,13 +154,12 @@ eventmask_t chEvtGetAndClearEvents(eventmask_t mask) {
  * @api
  */
 eventmask_t chEvtAddEvents(eventmask_t mask) {
+	chSysLock();
 
-  chSysLock();
+	mask = (currp->p_epending |= mask);
 
-  mask = (currp->p_epending |= mask);
-
-  chSysUnlock();
-  return mask;
+	chSysUnlock();
+	return mask;
 }
 
 /**
@@ -181,18 +179,18 @@ eventmask_t chEvtAddEvents(eventmask_t mask) {
  *
  * @iclass
  */
-void chEvtBroadcastFlagsI(EventSource *esp, flagsmask_t flags) {
-  EventListener *elp;
+void chEvtBroadcastFlagsI(EventSource* esp, flagsmask_t flags) {
+	EventListener* elp;
 
-  chDbgCheckClassI();
-  chDbgCheck(esp != NULL, "chEvtBroadcastMaskI");
+	chDbgCheckClassI();
+	chDbgCheck(esp != NULL, "chEvtBroadcastMaskI");
 
-  elp = esp->es_next;
-  while (elp != (EventListener *)esp) {
-    elp->el_flags |= flags;
-    chEvtSignalI(elp->el_listener, elp->el_mask);
-    elp = elp->el_next;
-  }
+	elp = esp->es_next;
+	while (elp != (EventListener*)esp) {
+		elp->el_flags |= flags;
+		chEvtSignalI(elp->el_listener, elp->el_mask);
+		elp = elp->el_next;
+	}
 }
 
 /**
@@ -206,16 +204,16 @@ void chEvtBroadcastFlagsI(EventSource *esp, flagsmask_t flags) {
  *
  * @api
  */
-flagsmask_t chEvtGetAndClearFlags(EventListener *elp) {
-  flagsmask_t flags;
+flagsmask_t chEvtGetAndClearFlags(EventListener* elp) {
+	flagsmask_t flags;
 
-  chSysLock();
+	chSysLock();
 
-  flags = elp->el_flags;
-  elp->el_flags = 0;
+	flags = elp->el_flags;
+	elp->el_flags = 0;
 
-  chSysUnlock();
-  return flags;
+	chSysUnlock();
+	return flags;
 }
 
 /**
@@ -226,14 +224,13 @@ flagsmask_t chEvtGetAndClearFlags(EventListener *elp) {
  *
  * @api
  */
-void chEvtSignal(Thread *tp, eventmask_t mask) {
+void chEvtSignal(Thread* tp, eventmask_t mask) {
+	chDbgCheck(tp != NULL, "chEvtSignal");
 
-  chDbgCheck(tp != NULL, "chEvtSignal");
-
-  chSysLock();
-  chEvtSignalI(tp, mask);
-  chSchRescheduleS();
-  chSysUnlock();
+	chSysLock();
+	chEvtSignalI(tp, mask);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -248,18 +245,17 @@ void chEvtSignal(Thread *tp, eventmask_t mask) {
  *
  * @iclass
  */
-void chEvtSignalI(Thread *tp, eventmask_t mask) {
+void chEvtSignalI(Thread* tp, eventmask_t mask) {
+	chDbgCheckClassI();
+	chDbgCheck(tp != NULL, "chEvtSignalI");
 
-  chDbgCheckClassI();
-  chDbgCheck(tp != NULL, "chEvtSignalI");
-
-  tp->p_epending |= mask;
-  /* Test on the AND/OR conditions wait states.*/
-  if (((tp->p_state == THD_STATE_WTOREVT) &&
-       ((tp->p_epending & tp->p_u.ewmask) != 0)) ||
-      ((tp->p_state == THD_STATE_WTANDEVT) &&
-       ((tp->p_epending & tp->p_u.ewmask) == tp->p_u.ewmask)))
-    chSchReadyI(tp)->p_u.rdymsg = RDY_OK;
+	tp->p_epending |= mask;
+	/* Test on the AND/OR conditions wait states.*/
+	if (((tp->p_state == THD_STATE_WTOREVT) &&
+			 ((tp->p_epending & tp->p_u.ewmask) != 0)) ||
+			((tp->p_state == THD_STATE_WTANDEVT) &&
+			 ((tp->p_epending & tp->p_u.ewmask) == tp->p_u.ewmask)))
+		chSchReadyI(tp)->p_u.rdymsg = RDY_OK;
 }
 
 /**
@@ -275,12 +271,11 @@ void chEvtSignalI(Thread *tp, eventmask_t mask) {
  *
  * @api
  */
-void chEvtBroadcastFlags(EventSource *esp, flagsmask_t flags) {
-
-  chSysLock();
-  chEvtBroadcastFlagsI(esp, flags);
-  chSchRescheduleS();
-  chSysUnlock();
+void chEvtBroadcastFlags(EventSource* esp, flagsmask_t flags) {
+	chSysLock();
+	chEvtBroadcastFlagsI(esp, flags);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -294,13 +289,13 @@ void chEvtBroadcastFlags(EventSource *esp, flagsmask_t flags) {
  *
  * @iclass
  */
-flagsmask_t chEvtGetAndClearFlagsI(EventListener *elp) {
-  flagsmask_t flags;
+flagsmask_t chEvtGetAndClearFlagsI(EventListener* elp) {
+	flagsmask_t flags;
 
-  flags = elp->el_flags;
-  elp->el_flags = 0;
+	flags = elp->el_flags;
+	elp->el_flags = 0;
 
-  return flags;
+	return flags;
 }
 
 /**
@@ -312,22 +307,20 @@ flagsmask_t chEvtGetAndClearFlagsI(EventListener *elp) {
  *
  * @api
  */
-void chEvtDispatch(const evhandler_t *handlers, eventmask_t mask) {
-  eventid_t eid;
+void chEvtDispatch(const evhandler_t* handlers, eventmask_t mask) {
+	eventid_t eid;
 
-  chDbgCheck(handlers != NULL, "chEvtDispatch");
+	chDbgCheck(handlers != NULL, "chEvtDispatch");
 
-  eid = 0;
-  while (mask) {
-    if (mask & EVENT_MASK(eid)) {
-      chDbgAssert(handlers[eid] != NULL,
-                  "chEvtDispatch(), #1",
-                  "null handler");
-      mask &= ~EVENT_MASK(eid);
-      handlers[eid](eid);
-    }
-    eid++;
-  }
+	eid = 0;
+	while (mask) {
+		if (mask & EVENT_MASK(eid)) {
+			chDbgAssert(handlers[eid] != NULL, "chEvtDispatch(), #1", "null handler");
+			mask &= ~EVENT_MASK(eid);
+			handlers[eid](eid);
+		}
+		eid++;
+	}
 }
 
 #if CH_OPTIMIZE_SPEED || !CH_USE_EVENTS_TIMEOUT || defined(__DOXYGEN__)
@@ -348,21 +341,21 @@ void chEvtDispatch(const evhandler_t *handlers, eventmask_t mask) {
  * @api
  */
 eventmask_t chEvtWaitOne(eventmask_t mask) {
-  Thread *ctp = currp;
-  eventmask_t m;
+	Thread* ctp = currp;
+	eventmask_t m;
 
-  chSysLock();
+	chSysLock();
 
-  if ((m = (ctp->p_epending & mask)) == 0) {
-    ctp->p_u.ewmask = mask;
-    chSchGoSleepS(THD_STATE_WTOREVT);
-    m = ctp->p_epending & mask;
-  }
-  m ^= m & (m - 1);
-  ctp->p_epending &= ~m;
+	if ((m = (ctp->p_epending & mask)) == 0) {
+		ctp->p_u.ewmask = mask;
+		chSchGoSleepS(THD_STATE_WTOREVT);
+		m = ctp->p_epending & mask;
+	}
+	m ^= m & (m - 1);
+	ctp->p_epending &= ~m;
 
-  chSysUnlock();
-  return m;
+	chSysUnlock();
+	return m;
 }
 
 /**
@@ -377,20 +370,20 @@ eventmask_t chEvtWaitOne(eventmask_t mask) {
  * @api
  */
 eventmask_t chEvtWaitAny(eventmask_t mask) {
-  Thread *ctp = currp;
-  eventmask_t m;
+	Thread* ctp = currp;
+	eventmask_t m;
 
-  chSysLock();
+	chSysLock();
 
-  if ((m = (ctp->p_epending & mask)) == 0) {
-    ctp->p_u.ewmask = mask;
-    chSchGoSleepS(THD_STATE_WTOREVT);
-    m = ctp->p_epending & mask;
-  }
-  ctp->p_epending &= ~m;
+	if ((m = (ctp->p_epending & mask)) == 0) {
+		ctp->p_u.ewmask = mask;
+		chSchGoSleepS(THD_STATE_WTOREVT);
+		m = ctp->p_epending & mask;
+	}
+	ctp->p_epending &= ~m;
 
-  chSysUnlock();
-  return m;
+	chSysUnlock();
+	return m;
 }
 
 /**
@@ -405,18 +398,18 @@ eventmask_t chEvtWaitAny(eventmask_t mask) {
  * @api
  */
 eventmask_t chEvtWaitAll(eventmask_t mask) {
-  Thread *ctp = currp;
+	Thread* ctp = currp;
 
-  chSysLock();
+	chSysLock();
 
-  if ((ctp->p_epending & mask) != mask) {
-    ctp->p_u.ewmask = mask;
-    chSchGoSleepS(THD_STATE_WTANDEVT);
-  }
-  ctp->p_epending &= ~mask;
+	if ((ctp->p_epending & mask) != mask) {
+		ctp->p_u.ewmask = mask;
+		chSchGoSleepS(THD_STATE_WTANDEVT);
+	}
+	ctp->p_epending &= ~mask;
 
-  chSysUnlock();
-  return mask;
+	chSysUnlock();
+	return mask;
 }
 #endif /* CH_OPTIMIZE_SPEED || !CH_USE_EVENTS_TIMEOUT */
 
@@ -444,28 +437,28 @@ eventmask_t chEvtWaitAll(eventmask_t mask) {
  * @api
  */
 eventmask_t chEvtWaitOneTimeout(eventmask_t mask, systime_t time) {
-  Thread *ctp = currp;
-  eventmask_t m;
+	Thread* ctp = currp;
+	eventmask_t m;
 
-  chSysLock();
+	chSysLock();
 
-  if ((m = (ctp->p_epending & mask)) == 0) {
-    if (TIME_IMMEDIATE == time) {
-      chSysUnlock();
-      return (eventmask_t)0;
-    }
-    ctp->p_u.ewmask = mask;
-    if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, time) < RDY_OK) {
-      chSysUnlock();
-      return (eventmask_t)0;
-    }
-    m = ctp->p_epending & mask;
-  }
-  m ^= m & (m - 1);
-  ctp->p_epending &= ~m;
+	if ((m = (ctp->p_epending & mask)) == 0) {
+		if (TIME_IMMEDIATE == time) {
+			chSysUnlock();
+			return (eventmask_t)0;
+		}
+		ctp->p_u.ewmask = mask;
+		if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, time) < RDY_OK) {
+			chSysUnlock();
+			return (eventmask_t)0;
+		}
+		m = ctp->p_epending & mask;
+	}
+	m ^= m & (m - 1);
+	ctp->p_epending &= ~m;
 
-  chSysUnlock();
-  return m;
+	chSysUnlock();
+	return m;
 }
 
 /**
@@ -487,27 +480,27 @@ eventmask_t chEvtWaitOneTimeout(eventmask_t mask, systime_t time) {
  * @api
  */
 eventmask_t chEvtWaitAnyTimeout(eventmask_t mask, systime_t time) {
-  Thread *ctp = currp;
-  eventmask_t m;
+	Thread* ctp = currp;
+	eventmask_t m;
 
-  chSysLock();
+	chSysLock();
 
-  if ((m = (ctp->p_epending & mask)) == 0) {
-    if (TIME_IMMEDIATE == time) {
-      chSysUnlock();
-      return (eventmask_t)0;
-    }
-    ctp->p_u.ewmask = mask;
-    if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, time) < RDY_OK) {
-      chSysUnlock();
-      return (eventmask_t)0;
-    }
-    m = ctp->p_epending & mask;
-  }
-  ctp->p_epending &= ~m;
+	if ((m = (ctp->p_epending & mask)) == 0) {
+		if (TIME_IMMEDIATE == time) {
+			chSysUnlock();
+			return (eventmask_t)0;
+		}
+		ctp->p_u.ewmask = mask;
+		if (chSchGoSleepTimeoutS(THD_STATE_WTOREVT, time) < RDY_OK) {
+			chSysUnlock();
+			return (eventmask_t)0;
+		}
+		m = ctp->p_epending & mask;
+	}
+	ctp->p_epending &= ~m;
 
-  chSysUnlock();
-  return m;
+	chSysUnlock();
+	return m;
 }
 
 /**
@@ -528,25 +521,25 @@ eventmask_t chEvtWaitAnyTimeout(eventmask_t mask, systime_t time) {
  * @api
  */
 eventmask_t chEvtWaitAllTimeout(eventmask_t mask, systime_t time) {
-  Thread *ctp = currp;
+	Thread* ctp = currp;
 
-  chSysLock();
+	chSysLock();
 
-  if ((ctp->p_epending & mask) != mask) {
-    if (TIME_IMMEDIATE == time) {
-      chSysUnlock();
-      return (eventmask_t)0;
-    }
-    ctp->p_u.ewmask = mask;
-    if (chSchGoSleepTimeoutS(THD_STATE_WTANDEVT, time) < RDY_OK) {
-      chSysUnlock();
-      return (eventmask_t)0;
-    }
-  }
-  ctp->p_epending &= ~mask;
+	if ((ctp->p_epending & mask) != mask) {
+		if (TIME_IMMEDIATE == time) {
+			chSysUnlock();
+			return (eventmask_t)0;
+		}
+		ctp->p_u.ewmask = mask;
+		if (chSchGoSleepTimeoutS(THD_STATE_WTANDEVT, time) < RDY_OK) {
+			chSysUnlock();
+			return (eventmask_t)0;
+		}
+	}
+	ctp->p_epending &= ~mask;
 
-  chSysUnlock();
-  return mask;
+	chSysUnlock();
+	return mask;
 }
 #endif /* CH_USE_EVENTS_TIMEOUT */
 

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -73,44 +73,43 @@
  *
  * @notapi
  */
-Thread *_thread_init(Thread *tp, tprio_t prio) {
-
-  tp->p_prio = prio;
-  tp->p_state = THD_STATE_SUSPENDED;
-  tp->p_flags = THD_MEM_MODE_STATIC;
+Thread* _thread_init(Thread* tp, tprio_t prio) {
+	tp->p_prio = prio;
+	tp->p_state = THD_STATE_SUSPENDED;
+	tp->p_flags = THD_MEM_MODE_STATIC;
 #if CH_TIME_QUANTUM > 0
-  tp->p_preempt = CH_TIME_QUANTUM;
+	tp->p_preempt = CH_TIME_QUANTUM;
 #endif
 #if CH_USE_MUTEXES
-  tp->p_realprio = prio;
-  tp->p_mtxlist = NULL;
+	tp->p_realprio = prio;
+	tp->p_mtxlist = NULL;
 #endif
 #if CH_USE_EVENTS
-  tp->p_epending = 0;
+	tp->p_epending = 0;
 #endif
 #if CH_DBG_THREADS_PROFILING
-  tp->p_time = 0;
+	tp->p_time = 0;
 #endif
 #if CH_USE_DYNAMIC
-  tp->p_refs = 1;
+	tp->p_refs = 1;
 #endif
 #if CH_USE_REGISTRY
-  tp->p_name = NULL;
-  REG_INSERT(tp);
+	tp->p_name = NULL;
+	REG_INSERT(tp);
 #endif
 #if CH_USE_WAITEXIT
-  list_init(&tp->p_waiting);
+	list_init(&tp->p_waiting);
 #endif
 #if CH_USE_MESSAGES
-  queue_init(&tp->p_msgqueue);
+	queue_init(&tp->p_msgqueue);
 #endif
 #if CH_DBG_ENABLE_STACK_CHECK
-  tp->p_stklimit = (stkalign_t *)(tp + 1);
+	tp->p_stklimit = (stkalign_t*)(tp + 1);
 #endif
 #if defined(THREAD_EXT_INIT_HOOK)
-  THREAD_EXT_INIT_HOOK(tp);
+	THREAD_EXT_INIT_HOOK(tp);
 #endif
-  return tp;
+	return tp;
 }
 
 #if CH_DBG_FILL_THREADS || defined(__DOXYGEN__)
@@ -123,10 +122,9 @@ Thread *_thread_init(Thread *tp, tprio_t prio) {
  *
  * @notapi
  */
-void _thread_memfill(uint8_t *startp, uint8_t *endp, uint8_t v) {
-
-  while (startp < endp)
-    *startp++ = v;
+void _thread_memfill(uint8_t* startp, uint8_t* endp, uint8_t v) {
+	while (startp < endp)
+		*startp++ = v;
 }
 #endif /* CH_DBG_FILL_THREADS */
 
@@ -154,18 +152,21 @@ void _thread_memfill(uint8_t *startp, uint8_t *endp, uint8_t v) {
  *
  * @iclass
  */
-Thread *chThdCreateI(void *wsp, size_t size,
-                     tprio_t prio, tfunc_t pf, void *arg) {
-  /* Thread structure is laid out in the lower part of the thread workspace.*/
-  Thread *tp = wsp;
+Thread* chThdCreateI(void* wsp,
+										 size_t size,
+										 tprio_t prio,
+										 tfunc_t pf,
+										 void* arg) {
+	/* Thread structure is laid out in the lower part of the thread workspace.*/
+	Thread* tp = wsp;
 
-  chDbgCheckClassI();
+	chDbgCheckClassI();
 
-  chDbgCheck((wsp != NULL) && (size >= THD_WA_SIZE(0)) &&
-             (prio <= HIGHPRIO) && (pf != NULL),
-             "chThdCreateI");
-  SETUP_CONTEXT(wsp, size, pf, arg);
-  return _thread_init(tp, prio);
+	chDbgCheck((wsp != NULL) && (size >= THD_WA_SIZE(0)) && (prio <= HIGHPRIO) &&
+								 (pf != NULL),
+						 "chThdCreateI");
+	SETUP_CONTEXT(wsp, size, pf, arg);
+	return _thread_init(tp, prio);
 }
 
 /**
@@ -184,22 +185,23 @@ Thread *chThdCreateI(void *wsp, size_t size,
  *
  * @api
  */
-Thread *chThdCreateStatic(void *wsp, size_t size,
-                          tprio_t prio, tfunc_t pf, void *arg) {
-  Thread *tp;
-  
+Thread* chThdCreateStatic(void* wsp,
+													size_t size,
+													tprio_t prio,
+													tfunc_t pf,
+													void* arg) {
+	Thread* tp;
+
 #if CH_DBG_FILL_THREADS
-  _thread_memfill((uint8_t *)wsp,
-                  (uint8_t *)wsp + sizeof(Thread),
-                  CH_THREAD_FILL_VALUE);
-  _thread_memfill((uint8_t *)wsp + sizeof(Thread),
-                  (uint8_t *)wsp + size,
-                  CH_STACK_FILL_VALUE);
+	_thread_memfill((uint8_t*)wsp, (uint8_t*)wsp + sizeof(Thread),
+									CH_THREAD_FILL_VALUE);
+	_thread_memfill((uint8_t*)wsp + sizeof(Thread), (uint8_t*)wsp + size,
+									CH_STACK_FILL_VALUE);
 #endif
-  chSysLock();
-  chSchWakeupS(tp = chThdCreateI(wsp, size, prio, pf, arg), RDY_OK);
-  chSysUnlock();
-  return tp;
+	chSysLock();
+	chSchWakeupS(tp = chThdCreateI(wsp, size, prio, pf, arg), RDY_OK);
+	chSysUnlock();
+	return tp;
 }
 
 /**
@@ -215,23 +217,23 @@ Thread *chThdCreateStatic(void *wsp, size_t size,
  * @api
  */
 tprio_t chThdSetPriority(tprio_t newprio) {
-  tprio_t oldprio;
+	tprio_t oldprio;
 
-  chDbgCheck(newprio <= HIGHPRIO, "chThdSetPriority");
+	chDbgCheck(newprio <= HIGHPRIO, "chThdSetPriority");
 
-  chSysLock();
+	chSysLock();
 #if CH_USE_MUTEXES
-  oldprio = currp->p_realprio;
-  if ((currp->p_prio == currp->p_realprio) || (newprio > currp->p_prio))
-    currp->p_prio = newprio;
-  currp->p_realprio = newprio;
+	oldprio = currp->p_realprio;
+	if ((currp->p_prio == currp->p_realprio) || (newprio > currp->p_prio))
+		currp->p_prio = newprio;
+	currp->p_realprio = newprio;
 #else
-  oldprio = currp->p_prio;
-  currp->p_prio = newprio;
+	oldprio = currp->p_prio;
+	currp->p_prio = newprio;
 #endif
-  chSchRescheduleS();
-  chSysUnlock();
-  return oldprio;
+	chSchRescheduleS();
+	chSysUnlock();
+	return oldprio;
 }
 
 /**
@@ -247,15 +249,13 @@ tprio_t chThdSetPriority(tprio_t newprio) {
  *
  * @api
  */
-Thread *chThdResume(Thread *tp) {
-
-  chSysLock();
-  chDbgAssert(tp->p_state == THD_STATE_SUSPENDED,
-              "chThdResume(), #1",
-              "thread not in THD_STATE_SUSPENDED state");
-  chSchWakeupS(tp, RDY_OK);
-  chSysUnlock();
-  return tp;
+Thread* chThdResume(Thread* tp) {
+	chSysLock();
+	chDbgAssert(tp->p_state == THD_STATE_SUSPENDED, "chThdResume(), #1",
+							"thread not in THD_STATE_SUSPENDED state");
+	chSchWakeupS(tp, RDY_OK);
+	chSysUnlock();
+	return tp;
 }
 
 /**
@@ -270,11 +270,10 @@ Thread *chThdResume(Thread *tp) {
  *
  * @api
  */
-void chThdTerminate(Thread *tp) {
-
-  chSysLock();
-  tp->p_flags |= THD_TERMINATE;
-  chSysUnlock();
+void chThdTerminate(Thread* tp) {
+	chSysLock();
+	tp->p_flags |= THD_TERMINATE;
+	chSysUnlock();
 }
 
 /**
@@ -290,12 +289,11 @@ void chThdTerminate(Thread *tp) {
  * @api
  */
 void chThdSleep(systime_t time) {
+	chDbgCheck(time != TIME_IMMEDIATE, "chThdSleep");
 
-  chDbgCheck(time != TIME_IMMEDIATE, "chThdSleep");
-
-  chSysLock();
-  chThdSleepS(time);
-  chSysUnlock();
+	chSysLock();
+	chThdSleepS(time);
+	chSysUnlock();
 }
 
 /**
@@ -307,11 +305,10 @@ void chThdSleep(systime_t time) {
  * @api
  */
 void chThdSleepUntil(systime_t time) {
-
-  chSysLock();
-  if ((time -= chTimeNow()) > 0)
-    chThdSleepS(time);
-  chSysUnlock();
+	chSysLock();
+	if ((time -= chTimeNow()) > 0)
+		chThdSleepS(time);
+	chSysUnlock();
 }
 
 /**
@@ -322,10 +319,9 @@ void chThdSleepUntil(systime_t time) {
  * @api
  */
 void chThdYield(void) {
-
-  chSysLock();
-  chSchDoYieldS();
-  chSysUnlock();
+	chSysLock();
+	chSchDoYieldS();
+	chSysUnlock();
 }
 
 /**
@@ -343,10 +339,9 @@ void chThdYield(void) {
  * @api
  */
 void chThdExit(msg_t msg) {
-
-  chSysLock();
-  chThdExitS(msg);
-  /* The thread never returns here.*/
+	chSysLock();
+	chThdExitS(msg);
+	/* The thread never returns here.*/
 }
 
 /**
@@ -364,25 +359,25 @@ void chThdExit(msg_t msg) {
  * @sclass
  */
 void chThdExitS(msg_t msg) {
-  Thread *tp = currp;
+	Thread* tp = currp;
 
-  tp->p_u.exitcode = msg;
+	tp->p_u.exitcode = msg;
 #if defined(THREAD_EXT_EXIT_HOOK)
-  THREAD_EXT_EXIT_HOOK(tp);
+	THREAD_EXT_EXIT_HOOK(tp);
 #endif
 #if CH_USE_WAITEXIT
-  while (notempty(&tp->p_waiting))
-    chSchReadyI(list_remove(&tp->p_waiting));
+	while (notempty(&tp->p_waiting))
+		chSchReadyI(list_remove(&tp->p_waiting));
 #endif
 #if CH_USE_REGISTRY
-  /* Static threads are immediately removed from the registry because
-     there is no memory to recover.*/
-  if ((tp->p_flags & THD_MEM_MODE_MASK) == THD_MEM_MODE_STATIC)
-    REG_REMOVE(tp);
+	/* Static threads are immediately removed from the registry because
+		 there is no memory to recover.*/
+	if ((tp->p_flags & THD_MEM_MODE_MASK) == THD_MEM_MODE_STATIC)
+		REG_REMOVE(tp);
 #endif
-  chSchGoSleepS(THD_STATE_FINAL);
-  /* The thread never returns here.*/
-  chDbgAssert(FALSE, "chThdExitS(), #1", "zombies apocalypse");
+	chSchGoSleepS(THD_STATE_FINAL);
+	/* The thread never returns here.*/
+	chDbgAssert(FALSE, "chThdExitS(), #1", "zombies apocalypse");
 }
 
 #if CH_USE_WAITEXIT || defined(__DOXYGEN__)
@@ -417,26 +412,26 @@ void chThdExitS(msg_t msg) {
  *
  * @api
  */
-msg_t chThdWait(Thread *tp) {
-  msg_t msg;
+msg_t chThdWait(Thread* tp) {
+	msg_t msg;
 
-  chDbgCheck(tp != NULL, "chThdWait");
+	chDbgCheck(tp != NULL, "chThdWait");
 
-  chSysLock();
-  chDbgAssert(tp != currp, "chThdWait(), #1", "waiting self");
+	chSysLock();
+	chDbgAssert(tp != currp, "chThdWait(), #1", "waiting self");
 #if CH_USE_DYNAMIC
-  chDbgAssert(tp->p_refs > 0, "chThdWait(), #2", "not referenced");
+	chDbgAssert(tp->p_refs > 0, "chThdWait(), #2", "not referenced");
 #endif
-  if (tp->p_state != THD_STATE_FINAL) {
-    list_insert(currp, &tp->p_waiting);
-    chSchGoSleepS(THD_STATE_WTEXIT);
-  }
-  msg = tp->p_u.exitcode;
-  chSysUnlock();
+	if (tp->p_state != THD_STATE_FINAL) {
+		list_insert(currp, &tp->p_waiting);
+		chSchGoSleepS(THD_STATE_WTEXIT);
+	}
+	msg = tp->p_u.exitcode;
+	chSysUnlock();
 #if CH_USE_DYNAMIC
-  chThdRelease(tp);
+	chThdRelease(tp);
 #endif
-  return msg;
+	return msg;
 }
 #endif /* CH_USE_WAITEXIT */
 

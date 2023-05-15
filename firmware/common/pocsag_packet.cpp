@@ -22,6 +22,4 @@
 
 #include "pocsag_packet.hpp"
 
-namespace pocsag {
-
-} /* namespace pocsag */
+namespace pocsag {} /* namespace pocsag */

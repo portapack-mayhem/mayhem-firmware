@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -55,23 +55,23 @@
  * @name    Internal clock sources
  * @{
  */
-#define STM32_HSICLK            8000000     /**< High speed internal clock. */
-#define STM32_LSICLK            40000       /**< Low speed internal clock.  */
+#define STM32_HSICLK 8000000 /**< High speed internal clock. */
+#define STM32_LSICLK 40000	 /**< Low speed internal clock.  */
 /** @} */
 
 /**
  * @name    PWR_CR register bits definitions
  * @{
  */
-#define STM32_PLS_MASK          (7 << 5)    /**< PLS bits mask.             */
-#define STM32_PLS_LEV0          (0 << 5)    /**< PVD level 0.               */
-#define STM32_PLS_LEV1          (1 << 5)    /**< PVD level 1.               */
-#define STM32_PLS_LEV2          (2 << 5)    /**< PVD level 2.               */
-#define STM32_PLS_LEV3          (3 << 5)    /**< PVD level 3.               */
-#define STM32_PLS_LEV4          (4 << 5)    /**< PVD level 4.               */
-#define STM32_PLS_LEV5          (5 << 5)    /**< PVD level 5.               */
-#define STM32_PLS_LEV6          (6 << 5)    /**< PVD level 6.               */
-#define STM32_PLS_LEV7          (7 << 5)    /**< PVD level 7.               */
+#define STM32_PLS_MASK (7 << 5) /**< PLS bits mask.             */
+#define STM32_PLS_LEV0 (0 << 5) /**< PVD level 0.               */
+#define STM32_PLS_LEV1 (1 << 5) /**< PVD level 1.               */
+#define STM32_PLS_LEV2 (2 << 5) /**< PVD level 2.               */
+#define STM32_PLS_LEV3 (3 << 5) /**< PVD level 3.               */
+#define STM32_PLS_LEV4 (4 << 5) /**< PVD level 4.               */
+#define STM32_PLS_LEV5 (5 << 5) /**< PVD level 5.               */
+#define STM32_PLS_LEV6 (6 << 5) /**< PVD level 6.               */
+#define STM32_PLS_LEV7 (7 << 5) /**< PVD level 7.               */
 /** @} */
 
 /*===========================================================================*/
@@ -83,9 +83,9 @@
  * @{
  */
 /* RTC attributes.*/
-#define STM32_HAS_RTC           TRUE
+#define STM32_HAS_RTC TRUE
 #define STM32_RTC_HAS_SUBSECONDS TRUE
-#define STM32_RTC_IS_CALENDAR   FALSE
+#define STM32_RTC_IS_CALENDAR FALSE
 /** @} */
 
 /*===========================================================================*/
@@ -100,49 +100,49 @@
  * @brief   Disables the PWR/RCC initialization in the HAL.
  */
 #if !defined(STM32_NO_INIT) || defined(__DOXYGEN__)
-#define STM32_NO_INIT               FALSE
+#define STM32_NO_INIT FALSE
 #endif
 
 /**
  * @brief   Enables or disables the programmable voltage detector.
  */
 #if !defined(STM32_PVD_ENABLE) || defined(__DOXYGEN__)
-#define STM32_PVD_ENABLE            FALSE
+#define STM32_PVD_ENABLE FALSE
 #endif
 
 /**
  * @brief   Sets voltage level for programmable voltage detector.
  */
 #if !defined(STM32_PLS) || defined(__DOXYGEN__)
-#define STM32_PLS                   STM32_PLS_LEV0
+#define STM32_PLS STM32_PLS_LEV0
 #endif
 
 /**
  * @brief   Enables or disables the HSI clock source.
  */
 #if !defined(STM32_HSI_ENABLED) || defined(__DOXYGEN__)
-#define STM32_HSI_ENABLED           TRUE
+#define STM32_HSI_ENABLED TRUE
 #endif
 
 /**
  * @brief   Enables or disables the LSI clock source.
  */
 #if !defined(STM32_LSI_ENABLED) || defined(__DOXYGEN__)
-#define STM32_LSI_ENABLED           FALSE
+#define STM32_LSI_ENABLED FALSE
 #endif
 
 /**
  * @brief   Enables or disables the HSE clock source.
  */
 #if !defined(STM32_HSE_ENABLED) || defined(__DOXYGEN__)
-#define STM32_HSE_ENABLED           TRUE
+#define STM32_HSE_ENABLED TRUE
 #endif
 
 /**
  * @brief   Enables or disables the LSE clock source.
  */
 #if !defined(STM32_LSE_ENABLED) || defined(__DOXYGEN__)
-#define STM32_LSE_ENABLED           FALSE
+#define STM32_LSE_ENABLED FALSE
 #endif
 /** @} */
 
@@ -155,16 +155,15 @@
  * @name    Platform identification
  * @{
  */
-#define PLATFORM_NAME           "STM32"
+#define PLATFORM_NAME "STM32"
 /** @} */
 
-#elif defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) ||               \
-      defined(STM32F10X_HD_VL) || defined(__DOXYGEN__)
+#elif defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
+		defined(STM32F10X_HD_VL) || defined(__DOXYGEN__)
 #include "hal_lld_f100.h"
 
-#elif defined(STM32F10X_LD) || defined(STM32F10X_MD) ||                     \
-      defined(STM32F10X_HD) || defined(STM32F10X_XL) ||                     \
-      defined(__DOXYGEN__)
+#elif defined(STM32F10X_LD) || defined(STM32F10X_MD) || \
+		defined(STM32F10X_HD) || defined(STM32F10X_XL) || defined(__DOXYGEN__)
 #include "hal_lld_f103.h"
 
 #elif defined(STM32F10X_CL) || defined(__DOXYGEN__)
@@ -175,20 +174,20 @@
 #endif
 
 /* There are differences in vector names in the various sub-families,
-   normalizing.*/
+	 normalizing.*/
 #if defined(STM32F10X_XL)
-#define TIM1_BRK_IRQn       TIM1_BRK_TIM9_IRQn
-#define TIM1_UP_IRQn        TIM1_UP_TIM10_IRQn
-#define TIM1_TRG_COM_IRQn   TIM1_TRG_COM_TIM11_IRQn
-#define TIM8_BRK_IRQn       TIM8_BRK_TIM12_IRQn
-#define TIM8_UP_IRQn        TIM8_UP_TIM13_IRQn
-#define TIM8_TRG_COM_IRQn   TIM8_TRG_COM_TIM14_IRQn
+#define TIM1_BRK_IRQn TIM1_BRK_TIM9_IRQn
+#define TIM1_UP_IRQn TIM1_UP_TIM10_IRQn
+#define TIM1_TRG_COM_IRQn TIM1_TRG_COM_TIM11_IRQn
+#define TIM8_BRK_IRQn TIM8_BRK_TIM12_IRQn
+#define TIM8_UP_IRQn TIM8_UP_TIM13_IRQn
+#define TIM8_TRG_COM_IRQn TIM8_TRG_COM_TIM14_IRQn
 
-#elif defined(STM32F10X_LD_VL)|| defined(STM32F10X_MD_VL) ||                \
-      defined(STM32F10X_HD_VL)
-#define TIM1_BRK_IRQn       TIM1_BRK_TIM15_IRQn
-#define TIM1_UP_IRQn        TIM1_UP_TIM16_IRQn
-#define TIM1_TRG_COM_IRQn   TIM1_TRG_COM_TIM17_IRQn
+#elif defined(STM32F10X_LD_VL) || defined(STM32F10X_MD_VL) || \
+		defined(STM32F10X_HD_VL)
+#define TIM1_BRK_IRQn TIM1_BRK_TIM15_IRQn
+#define TIM1_UP_IRQn TIM1_UP_TIM16_IRQn
+#define TIM1_TRG_COM_IRQn TIM1_TRG_COM_TIM17_IRQn
 #endif
 
 /*===========================================================================*/
@@ -219,7 +218,7 @@ typedef uint32_t halrtcnt_t;
  *
  * @notapi
  */
-#define hal_lld_get_counter_value()         DWT_CYCCNT
+#define hal_lld_get_counter_value() DWT_CYCCNT
 
 /**
  * @brief   Realtime counter frequency.
@@ -230,22 +229,22 @@ typedef uint32_t halrtcnt_t;
  *
  * @notapi
  */
-#define hal_lld_get_counter_frequency()     STM32_HCLK
+#define hal_lld_get_counter_frequency() STM32_HCLK
 
 /*===========================================================================*/
 /* External declarations.                                                    */
 /*===========================================================================*/
 
 /* STM32 ISR, DMA and RCC helpers.*/
-#include "stm32_isr.h"
 #include "stm32_dma.h"
+#include "stm32_isr.h"
 #include "stm32_rcc.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void hal_lld_init(void);
-  void stm32_clock_init(void);
+void hal_lld_init(void);
+void stm32_clock_init(void);
 #ifdef __cplusplus
 }
 #endif

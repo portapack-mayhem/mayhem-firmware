@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -34,12 +34,12 @@
 /**
  * @brief   Available number of EXT channels.
  */
-#define EXT_MAX_CHANNELS    8
+#define EXT_MAX_CHANNELS 8
 
 /**
  * @brief   Mask of the available channels.
  */
-#define EXT_CHANNELS_MASK   ((1 << EXT_MAX_CHANNELS) - 1)
+#define EXT_CHANNELS_MASK ((1 << EXT_MAX_CHANNELS) - 1)
 
 /** @} */
 
@@ -72,26 +72,26 @@ typedef uint32_t expreason_t;
  * @param[in] extp      pointer to the @p EXPDriver object triggering the
  *                      callback
  */
-typedef void (*extcallback_t)(EXTDriver *extp,
-                              expchannel_t channel,
-                              expreason_t reason);
+typedef void (*extcallback_t)(EXTDriver* extp,
+															expchannel_t channel,
+															expreason_t reason);
 
 /**
  * @brief   Channel configuration structure.
  */
 typedef struct {
-  /**
-   * @brief Channel mode.
-   */
-  uint8_t              mode;
-  /**
-   * @brief IO Pin.
-   */
-  uint8_t              iopin;
-  /**
-   * @brief Channel callback.
-   */
-  extcallback_t         cb;
+	/**
+	 * @brief Channel mode.
+	 */
+	uint8_t mode;
+	/**
+	 * @brief IO Pin.
+	 */
+	uint8_t iopin;
+	/**
+	 * @brief Channel callback.
+	 */
+	extcallback_t cb;
 } EXTChannelConfig;
 
 /**
@@ -99,26 +99,26 @@ typedef struct {
  * @note    It could be empty on some architectures.
  */
 typedef struct {
-  /**
-   * @brief Channel configurations.
-   */
-  EXTChannelConfig      channels[EXT_MAX_CHANNELS];
-  /* End of the mandatory fields.*/
+	/**
+	 * @brief Channel configurations.
+	 */
+	EXTChannelConfig channels[EXT_MAX_CHANNELS];
+	/* End of the mandatory fields.*/
 } EXTConfig;
 
 /**
  * @brief   Structure representing an EXT driver.
  */
 struct EXTDriver {
-  /**
-   * @brief Driver state.
-   */
-  extstate_t                state;
-  /**
-   * @brief Current configuration data.
-   */
-  const EXTConfig           *config;
-  /* End of the mandatory fields.*/
+	/**
+	 * @brief Driver state.
+	 */
+	extstate_t state;
+	/**
+	 * @brief Current configuration data.
+	 */
+	const EXTConfig* config;
+	/* End of the mandatory fields.*/
 };
 
 /*===========================================================================*/
@@ -136,11 +136,11 @@ extern EXTDriver EXTD1;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ext_lld_init(void);
-  void ext_lld_start(EXTDriver *extp);
-  void ext_lld_stop(EXTDriver *extp);
-  void ext_lld_channel_enable(EXTDriver *extp, expchannel_t channel);
-  void ext_lld_channel_disable(EXTDriver *extp, expchannel_t channel);
+void ext_lld_init(void);
+void ext_lld_start(EXTDriver* extp);
+void ext_lld_stop(EXTDriver* extp);
+void ext_lld_channel_enable(EXTDriver* extp, expchannel_t channel);
+void ext_lld_channel_disable(EXTDriver* extp, expchannel_t channel);
 #ifdef __cplusplus
 }
 #endif

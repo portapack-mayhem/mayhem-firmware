@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,22 +44,22 @@
  * @brief   VIO port structure.
  */
 typedef struct {
-  /**
-   * @brief   VIO_LATCH register.
-   * @details This register represents the output latch of the VIO port.
-   */
-  uint32_t          latch;
-  /**
-   * @brief   VIO_PIN register.
-   * @details This register represents the logical level at the VIO port
-   *          pin level.
-   */
-  uint32_t          pin;
-  /**
-   * @brief   VIO_DIR register.
-   * @details Direction of the VIO port bits, 0=input, 1=output.
-   */
-  uint32_t          dir;
+	/**
+	 * @brief   VIO_LATCH register.
+	 * @details This register represents the output latch of the VIO port.
+	 */
+	uint32_t latch;
+	/**
+	 * @brief   VIO_PIN register.
+	 * @details This register represents the logical level at the VIO port
+	 *          pin level.
+	 */
+	uint32_t pin;
+	/**
+	 * @brief   VIO_DIR register.
+	 * @details Direction of the VIO port bits, 0=input, 1=output.
+	 */
+	uint32_t dir;
 } sim_vio_port_t;
 
 /**
@@ -70,14 +70,14 @@ typedef struct {
  *          or whole ports can be reprogrammed at later time.
  */
 typedef struct {
-  /**
-   * @brief Virtual port 1 setup data.
-   */
-  sim_vio_port_t    VP1Data;
-  /**
-   * @brief Virtual port 2 setup data.
-   */
-  sim_vio_port_t    VP2Data;
+	/**
+	 * @brief Virtual port 1 setup data.
+	 */
+	sim_vio_port_t VP1Data;
+	/**
+	 * @brief Virtual port 2 setup data.
+	 */
+	sim_vio_port_t VP2Data;
 } PALConfig;
 
 /**
@@ -104,7 +104,7 @@ typedef uint32_t iomode_t;
 /**
  * @brief   Port Identifier.
  */
-typedef sim_vio_port_t *ioportid_t;
+typedef sim_vio_port_t* ioportid_t;
 
 /*===========================================================================*/
 /* I/O Ports Identifiers.                                                    */
@@ -113,12 +113,12 @@ typedef sim_vio_port_t *ioportid_t;
 /**
  * @brief   VIO port 1 identifier.
  */
-#define IOPORT1         (&vio_port_1)
+#define IOPORT1 (&vio_port_1)
 
 /**
  * @brief   VIO port 2 identifier.
  */
-#define IOPORT2         (&vio_port_2)
+#define IOPORT2 (&vio_port_2)
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
@@ -132,9 +132,8 @@ typedef sim_vio_port_t *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_init(config)                                                \
-  (vio_port_1 = (config)->VP1Data,                                          \
-   vio_port_2 = (config)->VP2Data)
+#define pal_lld_init(config) \
+	(vio_port_1 = (config)->VP1Data, vio_port_2 = (config)->VP2Data)
 
 /**
  * @brief   Reads the physical I/O port states.
@@ -180,8 +179,8 @@ typedef sim_vio_port_t *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 #if !defined(__DOXYGEN__)
 extern sim_vio_port_t vio_port_1;
@@ -192,9 +191,7 @@ extern const PALConfig pal_default_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

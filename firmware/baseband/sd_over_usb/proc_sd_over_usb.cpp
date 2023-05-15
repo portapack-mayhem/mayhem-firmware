@@ -35,7 +35,8 @@ CH_IRQ_HANDLER(Vector60) {
 
 int main() {
 	sdcStart(&SDCD1, nullptr);
-	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
+	if (sdcConnect(&SDCD1) == CH_FAILED)
+		chDbgPanic("no sd card #1");
 
 	start_usb();
 

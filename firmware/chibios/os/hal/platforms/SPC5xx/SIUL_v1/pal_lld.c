@@ -1,17 +1,17 @@
 /*
-    SPC5 HAL - Copyright (C) 2013 STMicroelectronics
+		SPC5 HAL - Copyright (C) 2013 STMicroelectronics
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -62,44 +62,43 @@ static const unsigned system_pins[] = {SPC5_SIUL_SYSTEM_PINS};
  *
  * @notapi
  */
-void _pal_lld_init(const PALConfig *config) {
-  unsigned i;
+void _pal_lld_init(const PALConfig* config) {
+	unsigned i;
 
 #if defined(SPC5_SIUL_PCTL)
-  /* SIUL clock gating if present.*/
-  halSPCSetPeripheralClockMode(SPC5_SIUL_PCTL,
-                               SPC5_ME_PCTL_RUN(2) | SPC5_ME_PCTL_LP(2));
+	/* SIUL clock gating if present.*/
+	halSPCSetPeripheralClockMode(SPC5_SIUL_PCTL,
+															 SPC5_ME_PCTL_RUN(2) | SPC5_ME_PCTL_LP(2));
 #endif
 
-  /* Initialize PCR registers for undefined pads.*/
-  for (i = 0; i < SPC5_SIUL_NUM_PCRS; i++) {
+	/* Initialize PCR registers for undefined pads.*/
+	for (i = 0; i < SPC5_SIUL_NUM_PCRS; i++) {
 #if defined(SPC5_SIUL_SYSTEM_PINS)
-    /* Handling the case where some SIU pins are not meant to be reprogrammed,
-       for example JTAG pins.*/
-    unsigned j;
-    for (j = 0; j < sizeof system_pins; j++) {
-      if (i == system_pins[j])
-        goto skip;
-    }
-    SIU.PCR[i].R = config->default_mode;
-skip:
-    ;
+		/* Handling the case where some SIU pins are not meant to be reprogrammed,
+			 for example JTAG pins.*/
+		unsigned j;
+		for (j = 0; j < sizeof system_pins; j++) {
+			if (i == system_pins[j])
+				goto skip;
+		}
+		SIU.PCR[i].R = config->default_mode;
+	skip:;
 #else
-    SIU.PCR[i].R = config->default_mode;
+		SIU.PCR[i].R = config->default_mode;
 #endif
-  }
+	}
 
-  /* Initialize PADSEL registers.*/
-  for (i = 0; i < SPC5_SIUL_NUM_PADSELS; i++)
-    SIU.PSMI[i].R = config->padsels[i];
+	/* Initialize PADSEL registers.*/
+	for (i = 0; i < SPC5_SIUL_NUM_PADSELS; i++)
+		SIU.PSMI[i].R = config->padsels[i];
 
-  /* Initialize PCR registers for defined pads.*/
-  i = 0;
-  while (config->inits[i].pcr_value != 0) {
-    SIU.GPDO[config->inits[i].pcr_index].R = config->inits[i].gpdo_value;
-    SIU.PCR[config->inits[i].pcr_index].R  = config->inits[i].pcr_value;
-    i++;
-  }
+	/* Initialize PCR registers for defined pads.*/
+	i = 0;
+	while (config->inits[i].pcr_value != 0) {
+		SIU.GPDO[config->inits[i].pcr_index].R = config->inits[i].gpdo_value;
+		SIU.PCR[config->inits[i].pcr_index].R = config->inits[i].pcr_value;
+		i++;
+	}
 }
 
 /**
@@ -113,13 +112,12 @@ skip:
  * @notapi
  */
 ioportmask_t _pal_lld_readgroup(ioportid_t port,
-                                ioportmask_t mask,
-                                uint_fast8_t offset) {
-
-  (void)port;
-  (void)mask;
-  (void)offset;
-  return 0;
+																ioportmask_t mask,
+																uint_fast8_t offset) {
+	(void)port;
+	(void)mask;
+	(void)offset;
+	return 0;
 }
 
 /**
@@ -134,14 +132,13 @@ ioportmask_t _pal_lld_readgroup(ioportid_t port,
  * @notapi
  */
 void _pal_lld_writegroup(ioportid_t port,
-                         ioportmask_t mask,
-                         uint_fast8_t offset,
-                         ioportmask_t bits) {
-
-  (void)port;
-  (void)mask;
-  (void)offset;
-  (void)bits;
+												 ioportmask_t mask,
+												 uint_fast8_t offset,
+												 ioportmask_t bits) {
+	(void)port;
+	(void)mask;
+	(void)offset;
+	(void)bits;
 }
 
 /**
@@ -155,17 +152,15 @@ void _pal_lld_writegroup(ioportid_t port,
  *
  * @notapi
  */
-void _pal_lld_setgroupmode(ioportid_t port,
-                           ioportmask_t mask,
-                           iomode_t mode) {
-  unsigned pcr_index = (unsigned)(port * PAL_IOPORTS_WIDTH);
-  ioportmask_t m1 = 0x8000;
-  while (m1) {
-    if (mask & m1)
-      SIU.PCR[pcr_index].R = mode;
-    m1 >>= 1;
-    ++pcr_index;
-  }
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode) {
+	unsigned pcr_index = (unsigned)(port * PAL_IOPORTS_WIDTH);
+	ioportmask_t m1 = 0x8000;
+	while (m1) {
+		if (mask & m1)
+			SIU.PCR[pcr_index].R = mode;
+		m1 >>= 1;
+		++pcr_index;
+	}
 }
 
 #endif /* HAL_USE_PAL */

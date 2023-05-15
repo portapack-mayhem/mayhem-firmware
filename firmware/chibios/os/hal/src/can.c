@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -66,8 +66,7 @@
  * @init
  */
 void canInit(void) {
-
-  can_lld_init();
+	can_lld_init();
 }
 
 /**
@@ -77,18 +76,17 @@ void canInit(void) {
  *
  * @init
  */
-void canObjectInit(CANDriver *canp) {
-
-  canp->state    = CAN_STOP;
-  canp->config   = NULL;
-  chSemInit(&canp->txsem, 0);
-  chSemInit(&canp->rxsem, 0);
-  chEvtInit(&canp->rxfull_event);
-  chEvtInit(&canp->txempty_event);
-  chEvtInit(&canp->error_event);
+void canObjectInit(CANDriver* canp) {
+	canp->state = CAN_STOP;
+	canp->config = NULL;
+	chSemInit(&canp->txsem, 0);
+	chSemInit(&canp->rxsem, 0);
+	chEvtInit(&canp->rxfull_event);
+	chEvtInit(&canp->txempty_event);
+	chEvtInit(&canp->error_event);
 #if CAN_USE_SLEEP_MODE
-  chEvtInit(&canp->sleep_event);
-  chEvtInit(&canp->wakeup_event);
+	chEvtInit(&canp->sleep_event);
+	chEvtInit(&canp->wakeup_event);
 #endif /* CAN_USE_SLEEP_MODE */
 }
 
@@ -104,23 +102,21 @@ void canObjectInit(CANDriver *canp) {
  *
  * @api
  */
-void canStart(CANDriver *canp, const CANConfig *config) {
+void canStart(CANDriver* canp, const CANConfig* config) {
+	chDbgCheck(canp != NULL, "canStart");
 
-  chDbgCheck(canp != NULL, "canStart");
-
-  chSysLock();
-  chDbgAssert((canp->state == CAN_STOP) ||
-              (canp->state == CAN_STARTING) ||
-              (canp->state == CAN_READY),
-              "canStart(), #1", "invalid state");
-  while (canp->state == CAN_STARTING)
-    chThdSleepS(1);
-  if (canp->state == CAN_STOP) {
-    canp->config = config;
-    can_lld_start(canp);
-    canp->state = CAN_READY;
-  }
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((canp->state == CAN_STOP) || (canp->state == CAN_STARTING) ||
+									(canp->state == CAN_READY),
+							"canStart(), #1", "invalid state");
+	while (canp->state == CAN_STARTING)
+		chThdSleepS(1);
+	if (canp->state == CAN_STOP) {
+		canp->config = config;
+		can_lld_start(canp);
+		canp->state = CAN_READY;
+	}
+	chSysUnlock();
 }
 
 /**
@@ -130,19 +126,18 @@ void canStart(CANDriver *canp, const CANConfig *config) {
  *
  * @api
  */
-void canStop(CANDriver *canp) {
+void canStop(CANDriver* canp) {
+	chDbgCheck(canp != NULL, "canStop");
 
-  chDbgCheck(canp != NULL, "canStop");
-
-  chSysLock();
-  chDbgAssert((canp->state == CAN_STOP) || (canp->state == CAN_READY),
-              "canStop(), #1", "invalid state");
-  can_lld_stop(canp);
-  canp->state  = CAN_STOP;
-  chSemResetI(&canp->rxsem, 0);
-  chSemResetI(&canp->txsem, 0);
-  chSchRescheduleS();
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((canp->state == CAN_STOP) || (canp->state == CAN_READY),
+							"canStop(), #1", "invalid state");
+	can_lld_stop(canp);
+	canp->state = CAN_STOP;
+	chSemResetI(&canp->rxsem, 0);
+	chSemResetI(&canp->txsem, 0);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -166,27 +161,26 @@ void canStop(CANDriver *canp) {
  *
  * @api
  */
-msg_t canTransmit(CANDriver *canp,
-                  canmbx_t mailbox,
-                  const CANTxFrame *ctfp,
-                  systime_t timeout) {
+msg_t canTransmit(CANDriver* canp,
+									canmbx_t mailbox,
+									const CANTxFrame* ctfp,
+									systime_t timeout) {
+	chDbgCheck((canp != NULL) && (ctfp != NULL) && (mailbox <= CAN_TX_MAILBOXES),
+						 "canTransmit");
 
-  chDbgCheck((canp != NULL) && (ctfp != NULL) && (mailbox <= CAN_TX_MAILBOXES),
-             "canTransmit");
-
-  chSysLock();
-  chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
-              "canTransmit(), #1", "invalid state");
-  while ((canp->state == CAN_SLEEP) || !can_lld_is_tx_empty(canp, mailbox)) {
-    msg_t msg = chSemWaitTimeoutS(&canp->txsem, timeout);
-    if (msg != RDY_OK) {
-      chSysUnlock();
-      return msg;
-    }
-  }
-  can_lld_transmit(canp, mailbox, ctfp);
-  chSysUnlock();
-  return RDY_OK;
+	chSysLock();
+	chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
+							"canTransmit(), #1", "invalid state");
+	while ((canp->state == CAN_SLEEP) || !can_lld_is_tx_empty(canp, mailbox)) {
+		msg_t msg = chSemWaitTimeoutS(&canp->txsem, timeout);
+		if (msg != RDY_OK) {
+			chSysUnlock();
+			return msg;
+		}
+	}
+	can_lld_transmit(canp, mailbox, ctfp);
+	chSysUnlock();
+	return RDY_OK;
 }
 
 /**
@@ -211,27 +205,26 @@ msg_t canTransmit(CANDriver *canp,
  *
  * @api
  */
-msg_t canReceive(CANDriver *canp,
-                 canmbx_t mailbox,
-                 CANRxFrame *crfp,
-                 systime_t timeout) {
+msg_t canReceive(CANDriver* canp,
+								 canmbx_t mailbox,
+								 CANRxFrame* crfp,
+								 systime_t timeout) {
+	chDbgCheck((canp != NULL) && (crfp != NULL) && (mailbox < CAN_RX_MAILBOXES),
+						 "canReceive");
 
-  chDbgCheck((canp != NULL) && (crfp != NULL) && (mailbox < CAN_RX_MAILBOXES),
-             "canReceive");
-
-  chSysLock();
-  chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
-              "canReceive(), #1", "invalid state");
-  while ((canp->state == CAN_SLEEP) || !can_lld_is_rx_nonempty(canp, mailbox)) {
-    msg_t msg = chSemWaitTimeoutS(&canp->rxsem, timeout);
-    if (msg != RDY_OK) {
-      chSysUnlock();
-      return msg;
-    }
-  }
-  can_lld_receive(canp, mailbox, crfp);
-  chSysUnlock();
-  return RDY_OK;
+	chSysLock();
+	chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
+							"canReceive(), #1", "invalid state");
+	while ((canp->state == CAN_SLEEP) || !can_lld_is_rx_nonempty(canp, mailbox)) {
+		msg_t msg = chSemWaitTimeoutS(&canp->rxsem, timeout);
+		if (msg != RDY_OK) {
+			chSysUnlock();
+			return msg;
+		}
+	}
+	can_lld_receive(canp, mailbox, crfp);
+	chSysUnlock();
+	return RDY_OK;
 }
 
 #if CAN_USE_SLEEP_MODE || defined(__DOXYGEN__)
@@ -247,20 +240,19 @@ msg_t canReceive(CANDriver *canp,
  *
  * @api
  */
-void canSleep(CANDriver *canp) {
+void canSleep(CANDriver* canp) {
+	chDbgCheck(canp != NULL, "canSleep");
 
-  chDbgCheck(canp != NULL, "canSleep");
-
-  chSysLock();
-  chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
-              "canSleep(), #1", "invalid state");
-  if (canp->state == CAN_READY) {
-    can_lld_sleep(canp);
-    canp->state = CAN_SLEEP;
-    chEvtBroadcastI(&canp->sleep_event);
-    chSchRescheduleS();
-  }
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
+							"canSleep(), #1", "invalid state");
+	if (canp->state == CAN_READY) {
+		can_lld_sleep(canp);
+		canp->state = CAN_SLEEP;
+		chEvtBroadcastI(&canp->sleep_event);
+		chSchRescheduleS();
+	}
+	chSysUnlock();
 }
 
 /**
@@ -270,20 +262,19 @@ void canSleep(CANDriver *canp) {
  *
  * @param[in] canp      pointer to the @p CANDriver object
  */
-void canWakeup(CANDriver *canp) {
+void canWakeup(CANDriver* canp) {
+	chDbgCheck(canp != NULL, "canWakeup");
 
-  chDbgCheck(canp != NULL, "canWakeup");
-
-  chSysLock();
-  chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
-              "canWakeup(), #1", "invalid state");
-  if (canp->state == CAN_SLEEP) {
-    can_lld_wakeup(canp);
-    canp->state = CAN_READY;
-    chEvtBroadcastI(&canp->wakeup_event);
-    chSchRescheduleS();
-  }
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((canp->state == CAN_READY) || (canp->state == CAN_SLEEP),
+							"canWakeup(), #1", "invalid state");
+	if (canp->state == CAN_SLEEP) {
+		can_lld_wakeup(canp);
+		canp->state = CAN_READY;
+		chEvtBroadcastI(&canp->wakeup_event);
+		chSchRescheduleS();
+	}
+	chSysUnlock();
 }
 #endif /* CAN_USE_SLEEP_MODE */
 

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -41,8 +41,8 @@
 /*===========================================================================*/
 
 /* Core variants identifiers.*/
-#define ARM_CORE_ARM7TDMI           7   /**< ARM77TDMI core identifier.     */
-#define ARM_CORE_ARM9               9   /**< ARM9 core identifier.          */
+#define ARM_CORE_ARM7TDMI 7 /**< ARM77TDMI core identifier.     */
+#define ARM_CORE_ARM9 9			/**< ARM9 core identifier.          */
 
 /* Inclusion of the ARM implementation specific parameters.*/
 #include "armparams.h"
@@ -69,7 +69,7 @@
  * @brief   If enabled allows the idle thread to enter a low power mode.
  */
 #ifndef ARM_ENABLE_WFI_IDLE
-#define ARM_ENABLE_WFI_IDLE             FALSE
+#define ARM_ENABLE_WFI_IDLE FALSE
 #endif
 
 /*===========================================================================*/
@@ -100,7 +100,7 @@
  *          - "ARM9".
  *          .
  */
-#define CH_ARCHITECTURE_NAME            "ARMx"
+#define CH_ARCHITECTURE_NAME "ARMx"
 
 /**
  * @brief   Name of the architecture variant (optional).
@@ -110,7 +110,7 @@
  *          - "ARM9"
  *          .
  */
-#define CH_CORE_VARIANT_NAME            "ARMxy"
+#define CH_CORE_VARIANT_NAME "ARMxy"
 
 /**
  * @brief   Port-specific information string.
@@ -121,33 +121,33 @@
  *          - "Interworking"
  *          .
  */
-#define CH_PORT_INFO                    "ARM|THUMB|Interworking"
+#define CH_PORT_INFO "ARM|THUMB|Interworking"
 
 #elif ARM_CORE == ARM_CORE_ARM7TDMI
 #define CH_ARCHITECTURE_ARM7TDMI
-#define CH_ARCHITECTURE_NAME            "ARM7"
-#define CH_CORE_VARIANT_NAME            "ARM7TDMI"
+#define CH_ARCHITECTURE_NAME "ARM7"
+#define CH_CORE_VARIANT_NAME "ARM7TDMI"
 
 #elif ARM_MODEL == ARM_VARIANT_ARM9
 #define CH_ARCHITECTURE_ARM9
-#define CH_ARCHITECTURE_NAME            "ARM9"
-#define CH_CORE_VARIANT_NAME            "ARM9"
+#define CH_ARCHITECTURE_NAME "ARM9"
+#define CH_CORE_VARIANT_NAME "ARM9"
 #endif
 
 #if THUMB_PRESENT
 #if THUMB_NO_INTERWORKING
-#define CH_PORT_INFO                    "Pure THUMB mode"
+#define CH_PORT_INFO "Pure THUMB mode"
 #else /* !THUMB_NO_INTERWORKING */
-#define CH_PORT_INFO                    "Interworking mode"
+#define CH_PORT_INFO "Interworking mode"
 #endif /* !THUMB_NO_INTERWORKING */
-#else /* !THUMB_PRESENT */
-#define CH_PORT_INFO                    "Pure ARM mode"
+#else	 /* !THUMB_PRESENT */
+#define CH_PORT_INFO "Pure ARM mode"
 #endif /* !THUMB_PRESENT */
 
 /**
  * @brief   Name of the compiler supported by this port.
  */
-#define CH_COMPILER_NAME                "GCC " __VERSION__
+#define CH_COMPILER_NAME "GCC " __VERSION__
 
 /*===========================================================================*/
 /* Port implementation part (common).                                        */
@@ -161,7 +161,7 @@ typedef uint32_t stkalign_t;
 /**
  * @brief   Generic ARM register.
  */
-typedef void *regarm_t;
+typedef void* regarm_t;
 
 /**
  * @brief   Interrupt saved context.
@@ -169,14 +169,14 @@ typedef void *regarm_t;
  *          preemption-capable interrupt handler.
  */
 struct extctx {
-  regarm_t      spsr_irq;
-  regarm_t      lr_irq;
-  regarm_t      r0;
-  regarm_t      r1;
-  regarm_t      r2;
-  regarm_t      r3;
-  regarm_t      r12;
-  regarm_t      lr_usr;
+	regarm_t spsr_irq;
+	regarm_t lr_irq;
+	regarm_t r0;
+	regarm_t r1;
+	regarm_t r2;
+	regarm_t r3;
+	regarm_t r12;
+	regarm_t lr_usr;
 };
 
 /**
@@ -185,15 +185,15 @@ struct extctx {
  *          switching.
  */
 struct intctx {
-  regarm_t      r4;
-  regarm_t      r5;
-  regarm_t      r6;
-  regarm_t      r7;
-  regarm_t      r8;
-  regarm_t      r9;
-  regarm_t      r10;
-  regarm_t      r11;
-  regarm_t      lr;
+	regarm_t r4;
+	regarm_t r5;
+	regarm_t r6;
+	regarm_t r7;
+	regarm_t r8;
+	regarm_t r9;
+	regarm_t r10;
+	regarm_t r11;
+	regarm_t lr;
 };
 
 /**
@@ -202,7 +202,7 @@ struct intctx {
  *          structure representing the stack pointer at context switch time.
  */
 struct context {
-  struct intctx *r13;
+	struct intctx* r13;
 };
 
 /**
@@ -210,14 +210,14 @@ struct context {
  * @details This code usually setup the context switching frame represented
  *          by an @p intctx structure.
  */
-#define SETUP_CONTEXT(workspace, wsize, pf, arg) {                          \
-  tp->p_ctx.r13 = (struct intctx *)((uint8_t *)workspace +                  \
-                                     wsize -                                \
-                                     sizeof(struct intctx));                \
-  tp->p_ctx.r13->r4 = pf;                                                   \
-  tp->p_ctx.r13->r5 = arg;                                                  \
-  tp->p_ctx.r13->lr = _port_thread_start;                                   \
-}
+#define SETUP_CONTEXT(workspace, wsize, pf, arg)                               \
+	{                                                                            \
+		tp->p_ctx.r13 =                                                            \
+				(struct intctx*)((uint8_t*)workspace + wsize - sizeof(struct intctx)); \
+		tp->p_ctx.r13->r4 = pf;                                                    \
+		tp->p_ctx.r13->r5 = arg;                                                   \
+		tp->p_ctx.r13->lr = _port_thread_start;                                    \
+	}
 
 /**
  * @brief   Stack size for the system idle thread.
@@ -228,7 +228,7 @@ struct context {
  *          a stack frame when compiling without optimizations.
  */
 #ifndef PORT_IDLE_THREAD_STACK_SIZE
-#define PORT_IDLE_THREAD_STACK_SIZE     4
+#define PORT_IDLE_THREAD_STACK_SIZE 4
 #endif
 
 /**
@@ -242,21 +242,20 @@ struct context {
  *          analysis of the generated code.
  */
 #ifndef PORT_INT_REQUIRED_STACK
-#define PORT_INT_REQUIRED_STACK         0x10
+#define PORT_INT_REQUIRED_STACK 0x10
 #endif
 
 /**
  * @brief   Enforces a correct alignment for a stack area size value.
  */
-#define STACK_ALIGN(n) ((((n) - 1) | (sizeof(stkalign_t) - 1)) + 1)
+#define STACK_ALIGN(n) ((((n)-1) | (sizeof(stkalign_t) - 1)) + 1)
 
 /**
  * @brief   Computes the thread working area global size.
  */
-#define THD_WA_SIZE(n) STACK_ALIGN(sizeof(Thread) +                         \
-                                   sizeof(struct intctx) +                  \
-                                   sizeof(struct extctx) +                  \
-                                   (n) + (PORT_INT_REQUIRED_STACK))
+#define THD_WA_SIZE(n)                                                         \
+	STACK_ALIGN(sizeof(Thread) + sizeof(struct intctx) + sizeof(struct extctx) + \
+							(n) + (PORT_INT_REQUIRED_STACK))
 
 /**
  * @brief   Static working area allocation.
@@ -278,17 +277,21 @@ struct context {
  */
 #if !defined(PORT_IRQ_PROLOGUE)
 #ifdef THUMB
-#define PORT_IRQ_PROLOGUE() {                                               \
-  asm volatile (".code 32                               \n\t"               \
-                "stmfd   sp!, {r0-r3, r12, lr}          \n\t"               \
-                "add     r0, pc, #1                     \n\t"               \
-                "bx      r0                             \n\t"               \
-                ".code 16" : : : "memory");                                 \
-}
+#define PORT_IRQ_PROLOGUE()                           \
+	{                                                   \
+		asm volatile(                                     \
+				".code 32                               \n\t" \
+				"stmfd   sp!, {r0-r3, r12, lr}          \n\t" \
+				"add     r0, pc, #1                     \n\t" \
+				"bx      r0                             \n\t" \
+				".code 16"                                    \
+				:                                             \
+				:                                             \
+				: "memory");                                  \
+	}
 #else /* !THUMB */
-#define PORT_IRQ_PROLOGUE() {                                               \
-  asm volatile ("stmfd    sp!, {r0-r3, r12, lr}" : : : "memory");           \
-}
+#define PORT_IRQ_PROLOGUE() \
+	{ asm volatile("stmfd    sp!, {r0-r3, r12, lr}" : : : "memory"); }
 #endif /* !THUMB */
 #endif /* !defined(PORT_IRQ_PROLOGUE) */
 
@@ -301,14 +304,18 @@ struct context {
  */
 #if !defined(PORT_IRQ_EPILOGUE)
 #ifdef THUMB
-#define PORT_IRQ_EPILOGUE() {                                               \
-  asm volatile ("ldr     r0, =_port_irq_common          \n\t"               \
-                "bx      r0" : : : "memory");                               \
-}
+#define PORT_IRQ_EPILOGUE()                           \
+	{                                                   \
+		asm volatile(                                     \
+				"ldr     r0, =_port_irq_common          \n\t" \
+				"bx      r0"                                  \
+				:                                             \
+				:                                             \
+				: "memory");                                  \
+	}
 #else /* !THUMB */
-#define PORT_IRQ_EPILOGUE() {                                               \
-  asm volatile ("b       _port_irq_common" : : : "memory");                 \
-}
+#define PORT_IRQ_EPILOGUE() \
+	{ asm volatile("b       _port_irq_common" : : : "memory"); }
 #endif /* !THUMB */
 #endif /* !defined(PORT_IRQ_EPILOGUE) */
 
@@ -327,8 +334,8 @@ struct context {
  *          port implementation.
  */
 #if !defined(PORT_FAST_IRQ_HANDLER)
-#define PORT_FAST_IRQ_HANDLER(id)                                           \
-  __attribute__((interrupt("FIQ"))) void id(void)
+#define PORT_FAST_IRQ_HANDLER(id) \
+	__attribute__((interrupt("FIQ"))) void id(void)
 #endif /* !defined(PORT_FAST_IRQ_HANDLER) */
 
 /**
@@ -345,11 +352,10 @@ struct context {
  *          enabled.
  */
 #ifdef THUMB
-#define port_lock() {                                                       \
-  asm volatile ("bl     _port_lock_thumb" : : : "r3", "lr", "memory");      \
-}
+#define port_lock() \
+	{ asm volatile("bl     _port_lock_thumb" : : : "r3", "lr", "memory"); }
 #else /* !THUMB */
-#define port_lock() asm volatile ("msr     CPSR_c, #0x9F" : : : "memory")
+#define port_lock() asm volatile("msr     CPSR_c, #0x9F" : : : "memory")
 #endif /* !THUMB */
 
 /**
@@ -359,11 +365,10 @@ struct context {
  * @note    In this port it enables both the IRQ and FIQ sources.
  */
 #ifdef THUMB
-#define port_unlock() {                                                     \
-  asm volatile ("bl     _port_unlock_thumb" : : : "r3", "lr", "memory");    \
-}
+#define port_unlock() \
+	{ asm volatile("bl     _port_unlock_thumb" : : : "r3", "lr", "memory"); }
 #else /* !THUMB */
-#define port_unlock() asm volatile ("msr     CPSR_c, #0x1F" : : : "memory")
+#define port_unlock() asm volatile("msr     CPSR_c, #0x1F" : : : "memory")
 #endif /* !THUMB */
 
 /**
@@ -392,17 +397,21 @@ struct context {
  *          LPC214x datasheet.
  */
 #ifdef THUMB
-#define port_disable() {                                                    \
-  asm volatile ("bl     _port_disable_thumb" : : : "r3", "lr", "memory");   \
-}
+#define port_disable() \
+	{ asm volatile("bl     _port_disable_thumb" : : : "r3", "lr", "memory"); }
 #else /* !THUMB */
-#define port_disable() {                                                    \
-  asm volatile ("mrs     r3, CPSR                       \n\t"               \
-                "orr     r3, #0x80                      \n\t"               \
-                "msr     CPSR_c, r3                     \n\t"               \
-                "orr     r3, #0x40                      \n\t"               \
-                "msr     CPSR_c, r3" : : : "r3", "memory");                 \
-}
+#define port_disable()                                \
+	{                                                   \
+		asm volatile(                                     \
+				"mrs     r3, CPSR                       \n\t" \
+				"orr     r3, #0x80                      \n\t" \
+				"msr     CPSR_c, r3                     \n\t" \
+				"orr     r3, #0x40                      \n\t" \
+				"msr     CPSR_c, r3"                          \
+				:                                             \
+				:                                             \
+				: "r3", "memory");                            \
+	}
 #endif /* !THUMB */
 
 /**
@@ -412,11 +421,10 @@ struct context {
  *          FIQ sources.
  */
 #ifdef THUMB
-#define port_suspend() {                                                    \
-  asm volatile ("bl     _port_suspend_thumb" : : : "r3", "lr", "memory");   \
-}
+#define port_suspend() \
+	{ asm volatile("bl     _port_suspend_thumb" : : : "r3", "lr", "memory"); }
 #else /* !THUMB */
-#define port_suspend() asm volatile ("msr     CPSR_c, #0x9F" : : : "memory")
+#define port_suspend() asm volatile("msr     CPSR_c, #0x9F" : : : "memory")
 #endif /* !THUMB */
 
 /**
@@ -424,11 +432,10 @@ struct context {
  * @note    In this port it enables both the IRQ and FIQ sources.
  */
 #ifdef THUMB
-#define port_enable() {                                                     \
-  asm volatile ("bl     _port_enable_thumb" : : : "r3", "lr", "memory");    \
-}
+#define port_enable() \
+	{ asm volatile("bl     _port_enable_thumb" : : : "r3", "lr", "memory"); }
 #else /* !THUMB */
-#define port_enable() asm volatile ("msr     CPSR_c, #0x1F" : : : "memory")
+#define port_enable() asm volatile("msr     CPSR_c, #0x1F" : : : "memory")
 #endif /* !THUMB */
 
 /**
@@ -444,23 +451,25 @@ struct context {
  */
 #ifdef THUMB
 #if CH_DBG_ENABLE_STACK_CHECK
-#define port_switch(ntp, otp) {                                             \
-  register struct intctx *r13 asm ("r13");                                  \
-  if ((stkalign_t *)(r13 - 1) < otp->p_stklimit)                            \
-    chDbgPanic("stack overflow");                                           \
-  _port_switch_thumb(ntp, otp);                                             \
-}
+#define port_switch(ntp, otp)                     \
+	{                                               \
+		register struct intctx* r13 asm("r13");       \
+		if ((stkalign_t*)(r13 - 1) < otp->p_stklimit) \
+			chDbgPanic("stack overflow");               \
+		_port_switch_thumb(ntp, otp);                 \
+	}
 #else /* !CH_DBG_ENABLE_STACK_CHECK */
 #define port_switch(ntp, otp) _port_switch_thumb(ntp, otp)
 #endif /* !CH_DBG_ENABLE_STACK_CHECK */
-#else /* !THUMB */
+#else	 /* !THUMB */
 #if CH_DBG_ENABLE_STACK_CHECK
-#define port_switch(ntp, otp) {                                             \
-  register struct intctx *r13 asm ("r13");                                  \
-  if ((stkalign_t *)(r13 - 1) < otp->p_stklimit)                            \
-    chDbgPanic("stack overflow");                                           \
-  _port_switch_arm(ntp, otp);                                               \
-}
+#define port_switch(ntp, otp)                     \
+	{                                               \
+		register struct intctx* r13 asm("r13");       \
+		if ((stkalign_t*)(r13 - 1) < otp->p_stklimit) \
+			chDbgPanic("stack overflow");               \
+		_port_switch_arm(ntp, otp);                   \
+	}
 #else /* !CH_DBG_ENABLE_STACK_CHECK */
 #define port_switch(ntp, otp) _port_switch_arm(ntp, otp)
 #endif /* !CH_DBG_ENABLE_STACK_CHECK */
@@ -469,13 +478,13 @@ struct context {
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void port_halt(void);
+void port_halt(void);
 #ifdef THUMB
-  void _port_switch_thumb(Thread *ntp, Thread *otp);
-#else /* !THUMB */
-  void _port_switch_arm(Thread *ntp, Thread *otp);
+void _port_switch_thumb(Thread* ntp, Thread* otp);
+#else	 /* !THUMB */
+void _port_switch_arm(Thread* ntp, Thread* otp);
 #endif /* !THUMB */
-  void _port_thread_start(void);
+void _port_thread_start(void);
 #ifdef __cplusplus
 }
 #endif

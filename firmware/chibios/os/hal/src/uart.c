@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -66,8 +66,7 @@
  * @init
  */
 void uartInit(void) {
-
-  uart_lld_init();
+	uart_lld_init();
 }
 
 /**
@@ -77,15 +76,14 @@ void uartInit(void) {
  *
  * @init
  */
-void uartObjectInit(UARTDriver *uartp) {
-
-  uartp->state   = UART_STOP;
-  uartp->txstate = UART_TX_IDLE;
-  uartp->rxstate = UART_RX_IDLE;
-  uartp->config  = NULL;
-  /* Optional, user-defined initializer.*/
+void uartObjectInit(UARTDriver* uartp) {
+	uartp->state = UART_STOP;
+	uartp->txstate = UART_TX_IDLE;
+	uartp->rxstate = UART_RX_IDLE;
+	uartp->config = NULL;
+	/* Optional, user-defined initializer.*/
 #if defined(UART_DRIVER_EXT_INIT_HOOK)
-  UART_DRIVER_EXT_INIT_HOOK(uartp);
+	UART_DRIVER_EXT_INIT_HOOK(uartp);
 #endif
 }
 
@@ -97,18 +95,17 @@ void uartObjectInit(UARTDriver *uartp) {
  *
  * @api
  */
-void uartStart(UARTDriver *uartp, const UARTConfig *config) {
+void uartStart(UARTDriver* uartp, const UARTConfig* config) {
+	chDbgCheck((uartp != NULL) && (config != NULL), "uartStart");
 
-  chDbgCheck((uartp != NULL) && (config != NULL), "uartStart");
+	chSysLock();
+	chDbgAssert((uartp->state == UART_STOP) || (uartp->state == UART_READY),
+							"uartStart(), #1", "invalid state");
 
-  chSysLock();
-  chDbgAssert((uartp->state == UART_STOP) || (uartp->state == UART_READY),
-              "uartStart(), #1", "invalid state");
-
-  uartp->config = config;
-  uart_lld_start(uartp);
-  uartp->state = UART_READY;
-  chSysUnlock();
+	uartp->config = config;
+	uart_lld_start(uartp);
+	uartp->state = UART_READY;
+	chSysUnlock();
 }
 
 /**
@@ -118,19 +115,18 @@ void uartStart(UARTDriver *uartp, const UARTConfig *config) {
  *
  * @api
  */
-void uartStop(UARTDriver *uartp) {
+void uartStop(UARTDriver* uartp) {
+	chDbgCheck(uartp != NULL, "uartStop");
 
-  chDbgCheck(uartp != NULL, "uartStop");
+	chSysLock();
+	chDbgAssert((uartp->state == UART_STOP) || (uartp->state == UART_READY),
+							"uartStop(), #1", "invalid state");
 
-  chSysLock();
-  chDbgAssert((uartp->state == UART_STOP) || (uartp->state == UART_READY),
-              "uartStop(), #1", "invalid state");
-
-  uart_lld_stop(uartp);
-  uartp->state = UART_STOP;
-  uartp->txstate = UART_TX_IDLE;
-  uartp->rxstate = UART_RX_IDLE;
-  chSysUnlock();
+	uart_lld_stop(uartp);
+	uartp->state = UART_STOP;
+	uartp->txstate = UART_TX_IDLE;
+	uartp->rxstate = UART_RX_IDLE;
+	chSysUnlock();
 }
 
 /**
@@ -144,20 +140,17 @@ void uartStop(UARTDriver *uartp) {
  *
  * @api
  */
-void uartStartSend(UARTDriver *uartp, size_t n, const void *txbuf) {
+void uartStartSend(UARTDriver* uartp, size_t n, const void* txbuf) {
+	chDbgCheck((uartp != NULL) && (n > 0) && (txbuf != NULL), "uartStartSend");
 
-  chDbgCheck((uartp != NULL) && (n > 0) && (txbuf != NULL),
-             "uartStartSend");
-             
-  chSysLock();
-  chDbgAssert(uartp->state == UART_READY,
-              "uartStartSend(), #1", "is active");
-  chDbgAssert(uartp->txstate != UART_TX_ACTIVE,
-              "uartStartSend(), #2", "tx active");
+	chSysLock();
+	chDbgAssert(uartp->state == UART_READY, "uartStartSend(), #1", "is active");
+	chDbgAssert(uartp->txstate != UART_TX_ACTIVE, "uartStartSend(), #2",
+							"tx active");
 
-  uart_lld_start_send(uartp, n, txbuf);
-  uartp->txstate = UART_TX_ACTIVE;
-  chSysUnlock();
+	uart_lld_start_send(uartp, n, txbuf);
+	uartp->txstate = UART_TX_ACTIVE;
+	chSysUnlock();
 }
 
 /**
@@ -172,18 +165,15 @@ void uartStartSend(UARTDriver *uartp, size_t n, const void *txbuf) {
  *
  * @iclass
  */
-void uartStartSendI(UARTDriver *uartp, size_t n, const void *txbuf) {
+void uartStartSendI(UARTDriver* uartp, size_t n, const void* txbuf) {
+	chDbgCheckClassI();
+	chDbgCheck((uartp != NULL) && (n > 0) && (txbuf != NULL), "uartStartSendI");
+	chDbgAssert(uartp->state == UART_READY, "uartStartSendI(), #1", "is active");
+	chDbgAssert(uartp->txstate != UART_TX_ACTIVE, "uartStartSendI(), #2",
+							"tx active");
 
-  chDbgCheckClassI();
-  chDbgCheck((uartp != NULL) && (n > 0) && (txbuf != NULL),
-             "uartStartSendI");
-  chDbgAssert(uartp->state == UART_READY,
-              "uartStartSendI(), #1", "is active");
-  chDbgAssert(uartp->txstate != UART_TX_ACTIVE,
-              "uartStartSendI(), #2", "tx active");
-
-  uart_lld_start_send(uartp, n, txbuf);
-  uartp->txstate = UART_TX_ACTIVE;
+	uart_lld_start_send(uartp, n, txbuf);
+	uartp->txstate = UART_TX_ACTIVE;
 }
 
 /**
@@ -198,22 +188,21 @@ void uartStartSendI(UARTDriver *uartp, size_t n, const void *txbuf) {
  *
  * @api
  */
-size_t uartStopSend(UARTDriver *uartp) {
-  size_t n;
+size_t uartStopSend(UARTDriver* uartp) {
+	size_t n;
 
-  chDbgCheck(uartp != NULL, "uartStopSend");
+	chDbgCheck(uartp != NULL, "uartStopSend");
 
-  chSysLock();
-  chDbgAssert(uartp->state == UART_READY, "uartStopSend(), #1", "not active");
+	chSysLock();
+	chDbgAssert(uartp->state == UART_READY, "uartStopSend(), #1", "not active");
 
-  if (uartp->txstate == UART_TX_ACTIVE) {
-    n = uart_lld_stop_send(uartp);
-    uartp->txstate = UART_TX_IDLE;
-  }
-  else
-    n = 0;
-  chSysUnlock();
-  return n;
+	if (uartp->txstate == UART_TX_ACTIVE) {
+		n = uart_lld_stop_send(uartp);
+		uartp->txstate = UART_TX_IDLE;
+	} else
+		n = 0;
+	chSysUnlock();
+	return n;
 }
 
 /**
@@ -229,18 +218,17 @@ size_t uartStopSend(UARTDriver *uartp) {
  *
  * @iclass
  */
-size_t uartStopSendI(UARTDriver *uartp) {
+size_t uartStopSendI(UARTDriver* uartp) {
+	chDbgCheckClassI();
+	chDbgCheck(uartp != NULL, "uartStopSendI");
+	chDbgAssert(uartp->state == UART_READY, "uartStopSendI(), #1", "not active");
 
-  chDbgCheckClassI();
-  chDbgCheck(uartp != NULL, "uartStopSendI");
-  chDbgAssert(uartp->state == UART_READY, "uartStopSendI(), #1", "not active");
-
-  if (uartp->txstate == UART_TX_ACTIVE) {
-    size_t n = uart_lld_stop_send(uartp);
-    uartp->txstate = UART_TX_IDLE;
-    return n;
-  }
-  return 0;
+	if (uartp->txstate == UART_TX_ACTIVE) {
+		size_t n = uart_lld_stop_send(uartp);
+		uartp->txstate = UART_TX_IDLE;
+		return n;
+	}
+	return 0;
 }
 
 /**
@@ -254,20 +242,18 @@ size_t uartStopSendI(UARTDriver *uartp) {
  *
  * @api
  */
-void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf) {
+void uartStartReceive(UARTDriver* uartp, size_t n, void* rxbuf) {
+	chDbgCheck((uartp != NULL) && (n > 0) && (rxbuf != NULL), "uartStartReceive");
 
-  chDbgCheck((uartp != NULL) && (n > 0) && (rxbuf != NULL),
-             "uartStartReceive");
+	chSysLock();
+	chDbgAssert(uartp->state == UART_READY, "uartStartReceive(), #1",
+							"is active");
+	chDbgAssert(uartp->rxstate != UART_RX_ACTIVE, "uartStartReceive(), #2",
+							"rx active");
 
-  chSysLock();
-  chDbgAssert(uartp->state == UART_READY,
-              "uartStartReceive(), #1", "is active");
-  chDbgAssert(uartp->rxstate != UART_RX_ACTIVE,
-              "uartStartReceive(), #2", "rx active");
-
-  uart_lld_start_receive(uartp, n, rxbuf);
-  uartp->rxstate = UART_RX_ACTIVE;
-  chSysUnlock();
+	uart_lld_start_receive(uartp, n, rxbuf);
+	uartp->rxstate = UART_RX_ACTIVE;
+	chSysUnlock();
 }
 
 /**
@@ -282,18 +268,17 @@ void uartStartReceive(UARTDriver *uartp, size_t n, void *rxbuf) {
  *
  * @iclass
  */
-void uartStartReceiveI(UARTDriver *uartp, size_t n, void *rxbuf) {
+void uartStartReceiveI(UARTDriver* uartp, size_t n, void* rxbuf) {
+	chDbgCheckClassI();
+	chDbgCheck((uartp != NULL) && (n > 0) && (rxbuf != NULL),
+						 "uartStartReceiveI");
+	chDbgAssert(uartp->state == UART_READY, "uartStartReceiveI(), #1",
+							"is active");
+	chDbgAssert(uartp->rxstate != UART_RX_ACTIVE, "uartStartReceiveI(), #2",
+							"rx active");
 
-  chDbgCheckClassI();
-  chDbgCheck((uartp != NULL) && (n > 0) && (rxbuf != NULL),
-             "uartStartReceiveI");
-  chDbgAssert(uartp->state == UART_READY,
-              "uartStartReceiveI(), #1", "is active");
-  chDbgAssert(uartp->rxstate != UART_RX_ACTIVE,
-              "uartStartReceiveI(), #2", "rx active");
-
-  uart_lld_start_receive(uartp, n, rxbuf);
-  uartp->rxstate = UART_RX_ACTIVE;
+	uart_lld_start_receive(uartp, n, rxbuf);
+	uartp->rxstate = UART_RX_ACTIVE;
 }
 
 /**
@@ -308,23 +293,22 @@ void uartStartReceiveI(UARTDriver *uartp, size_t n, void *rxbuf) {
  *
  * @api
  */
-size_t uartStopReceive(UARTDriver *uartp) {
-  size_t n;
+size_t uartStopReceive(UARTDriver* uartp) {
+	size_t n;
 
-  chDbgCheck(uartp != NULL, "uartStopReceive");
+	chDbgCheck(uartp != NULL, "uartStopReceive");
 
-  chSysLock();
-  chDbgAssert(uartp->state == UART_READY,
-              "uartStopReceive(), #1", "not active");
+	chSysLock();
+	chDbgAssert(uartp->state == UART_READY, "uartStopReceive(), #1",
+							"not active");
 
-  if (uartp->rxstate == UART_RX_ACTIVE) {
-    n = uart_lld_stop_receive(uartp);
-    uartp->rxstate = UART_RX_IDLE;
-  }
-  else
-    n = 0;
-  chSysUnlock();
-  return n;
+	if (uartp->rxstate == UART_RX_ACTIVE) {
+		n = uart_lld_stop_receive(uartp);
+		uartp->rxstate = UART_RX_IDLE;
+	} else
+		n = 0;
+	chSysUnlock();
+	return n;
 }
 
 /**
@@ -340,19 +324,18 @@ size_t uartStopReceive(UARTDriver *uartp) {
  *
  * @iclass
  */
-size_t uartStopReceiveI(UARTDriver *uartp) {
+size_t uartStopReceiveI(UARTDriver* uartp) {
+	chDbgCheckClassI();
+	chDbgCheck(uartp != NULL, "uartStopReceiveI");
+	chDbgAssert(uartp->state == UART_READY, "uartStopReceiveI(), #1",
+							"not active");
 
-  chDbgCheckClassI();
-  chDbgCheck(uartp != NULL, "uartStopReceiveI");
-  chDbgAssert(uartp->state == UART_READY,
-              "uartStopReceiveI(), #1", "not active");
-
-  if (uartp->rxstate == UART_RX_ACTIVE) {
-    size_t n = uart_lld_stop_receive(uartp);
-    uartp->rxstate = UART_RX_IDLE;
-    return n;
-  }
-  return 0;
+	if (uartp->rxstate == UART_RX_ACTIVE) {
+		size_t n = uart_lld_stop_receive(uartp);
+		uartp->rxstate = UART_RX_IDLE;
+		return n;
+	}
+	return 0;
 }
 
 #endif /* HAL_USE_UART */

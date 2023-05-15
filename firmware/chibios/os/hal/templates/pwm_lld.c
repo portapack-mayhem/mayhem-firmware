@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -64,10 +64,9 @@ PWMDriver PWMD1;
  * @notapi
  */
 void pwm_lld_init(void) {
-
 #if PLATFORM_PWM_USE_PWM1
-  /* Driver initialization.*/
-  pwmObjectInit(&PWMD1);
+	/* Driver initialization.*/
+	pwmObjectInit(&PWMD1);
 #endif /* PLATFORM_PWM_USE_PWM1 */
 }
 
@@ -78,18 +77,15 @@ void pwm_lld_init(void) {
  *
  * @notapi
  */
-void pwm_lld_start(PWMDriver *pwmp) {
-
-  if (pwmp->state == PWM_STOP) {
-    /* Enables the peripheral.*/
+void pwm_lld_start(PWMDriver* pwmp) {
+	if (pwmp->state == PWM_STOP) {
+		/* Enables the peripheral.*/
 #if PLATFORM_PWM_USE_PWM1
-    if (&PWMD1 == pwmp) {
-
-    }
+		if (&PWMD1 == pwmp) {
+		}
 #endif /* PLATFORM_PWM_USE_PWM1 */
-  }
-  /* Configures the peripheral.*/
-
+	}
+	/* Configures the peripheral.*/
 }
 
 /**
@@ -99,18 +95,16 @@ void pwm_lld_start(PWMDriver *pwmp) {
  *
  * @notapi
  */
-void pwm_lld_stop(PWMDriver *pwmp) {
+void pwm_lld_stop(PWMDriver* pwmp) {
+	if (pwmp->state == PWM_READY) {
+		/* Resets the peripheral.*/
 
-  if (pwmp->state == PWM_READY) {
-    /* Resets the peripheral.*/
-
-    /* Disables the peripheral.*/
+		/* Disables the peripheral.*/
 #if PLATFORM_PWM_USE_PWM1
-    if (&PWMD1 == pwmp) {
-
-    }
+		if (&PWMD1 == pwmp) {
+		}
 #endif /* PLATFORM_PWM_USE_PWM1 */
-  }
+	}
 }
 
 /**
@@ -129,11 +123,9 @@ void pwm_lld_stop(PWMDriver *pwmp) {
  *
  * @notapi
  */
-void pwm_lld_change_period(PWMDriver *pwmp, pwmcnt_t period) {
-
-  (void)pwmp;
-  (void)period;
-
+void pwm_lld_change_period(PWMDriver* pwmp, pwmcnt_t period) {
+	(void)pwmp;
+	(void)period;
 }
 
 /**
@@ -150,14 +142,12 @@ void pwm_lld_change_period(PWMDriver *pwmp, pwmcnt_t period) {
  *
  * @notapi
  */
-void pwm_lld_enable_channel(PWMDriver *pwmp,
-                            pwmchannel_t channel,
-                            pwmcnt_t width) {
-
-  (void)pwmp;
-  (void)channel;
-  (void)width;
-
+void pwm_lld_enable_channel(PWMDriver* pwmp,
+														pwmchannel_t channel,
+														pwmcnt_t width) {
+	(void)pwmp;
+	(void)channel;
+	(void)width;
 }
 
 /**
@@ -174,11 +164,9 @@ void pwm_lld_enable_channel(PWMDriver *pwmp,
  *
  * @notapi
  */
-void pwm_lld_disable_channel(PWMDriver *pwmp, pwmchannel_t channel) {
-
-  (void)pwmp;
-  (void)channel;
-
+void pwm_lld_disable_channel(PWMDriver* pwmp, pwmchannel_t channel) {
+	(void)pwmp;
+	(void)channel;
 }
 
 #endif /* HAL_USE_PWM */

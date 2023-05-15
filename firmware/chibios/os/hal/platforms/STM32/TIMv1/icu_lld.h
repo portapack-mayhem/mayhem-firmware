@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -47,7 +47,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM1) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM1                  FALSE
+#define STM32_ICU_USE_TIM1 FALSE
 #endif
 
 /**
@@ -56,7 +56,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM2) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM2                  FALSE
+#define STM32_ICU_USE_TIM2 FALSE
 #endif
 
 /**
@@ -65,7 +65,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM3) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM3                  FALSE
+#define STM32_ICU_USE_TIM3 FALSE
 #endif
 
 /**
@@ -74,7 +74,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM4) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM4                  FALSE
+#define STM32_ICU_USE_TIM4 FALSE
 #endif
 
 /**
@@ -83,7 +83,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM5) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM5                  FALSE
+#define STM32_ICU_USE_TIM5 FALSE
 #endif
 
 /**
@@ -92,7 +92,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM8) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM8                  FALSE
+#define STM32_ICU_USE_TIM8 FALSE
 #endif
 
 /**
@@ -101,56 +101,56 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(STM32_ICU_USE_TIM9) || defined(__DOXYGEN__)
-#define STM32_ICU_USE_TIM9                  FALSE
+#define STM32_ICU_USE_TIM9 FALSE
 #endif
 
 /**
  * @brief   ICUD1 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM1_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM1_IRQ_PRIORITY         7
+#define STM32_ICU_TIM1_IRQ_PRIORITY 7
 #endif
 
 /**
  * @brief   ICUD2 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM2_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM2_IRQ_PRIORITY         7
+#define STM32_ICU_TIM2_IRQ_PRIORITY 7
 #endif
 
 /**
  * @brief   ICUD3 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM3_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM3_IRQ_PRIORITY         7
+#define STM32_ICU_TIM3_IRQ_PRIORITY 7
 #endif
 
 /**
  * @brief   ICUD4 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM4_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM4_IRQ_PRIORITY         7
+#define STM32_ICU_TIM4_IRQ_PRIORITY 7
 #endif
 
 /**
  * @brief   ICUD5 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM5_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM5_IRQ_PRIORITY         7
+#define STM32_ICU_TIM5_IRQ_PRIORITY 7
 #endif
 
 /**
  * @brief   ICUD8 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM8_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM8_IRQ_PRIORITY         7
+#define STM32_ICU_TIM8_IRQ_PRIORITY 7
 #endif
 
 /**
  * @brief   ICUD9 interrupt priority level setting.
  */
 #if !defined(STM32_ICU_TIM9_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_ICU_TIM9_IRQ_PRIORITY         7
+#define STM32_ICU_TIM9_IRQ_PRIORITY 7
 #endif
 /** @} */
 
@@ -186,45 +186,44 @@
 #error "TIM9 not present in the selected device"
 #endif
 
-#if !STM32_ICU_USE_TIM1 && !STM32_ICU_USE_TIM2 &&                           \
-    !STM32_ICU_USE_TIM3 && !STM32_ICU_USE_TIM4 &&                           \
-    !STM32_ICU_USE_TIM5 && !STM32_ICU_USE_TIM8 &&                           \
-    !STM32_ICU_USE_TIM9
+#if !STM32_ICU_USE_TIM1 && !STM32_ICU_USE_TIM2 && !STM32_ICU_USE_TIM3 && \
+		!STM32_ICU_USE_TIM4 && !STM32_ICU_USE_TIM5 && !STM32_ICU_USE_TIM8 && \
+		!STM32_ICU_USE_TIM9
 #error "ICU driver activated but no TIM peripheral assigned"
 #endif
 
-#if STM32_ICU_USE_TIM1 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM1_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM1 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM1_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM1"
 #endif
 
-#if STM32_ICU_USE_TIM2 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM2_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM2 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM2_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM2"
 #endif
 
-#if STM32_ICU_USE_TIM3 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM3_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM3 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM3_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM3"
 #endif
 
-#if STM32_ICU_USE_TIM4 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM4_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM4 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM4_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM4"
 #endif
 
-#if STM32_ICU_USE_TIM5 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM5_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM5 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM5_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM5"
 #endif
 
-#if STM32_ICU_USE_TIM8 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM8_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM8 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM8_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM8"
 #endif
 
-#if STM32_ICU_USE_TIM9 &&                                                   \
-    !CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM9_IRQ_PRIORITY)
+#if STM32_ICU_USE_TIM9 && \
+		!CORTEX_IS_VALID_KERNEL_PRIORITY(STM32_ICU_TIM9_IRQ_PRIORITY)
 #error "Invalid IRQ priority assigned to TIM9"
 #endif
 
@@ -236,8 +235,8 @@
  * @brief   ICU driver mode.
  */
 typedef enum {
-  ICU_INPUT_ACTIVE_HIGH = 0,        /**< Trigger on rising edge.            */
-  ICU_INPUT_ACTIVE_LOW = 1,         /**< Trigger on falling edge.           */
+	ICU_INPUT_ACTIVE_HIGH = 0, /**< Trigger on rising edge.            */
+	ICU_INPUT_ACTIVE_LOW = 1,	 /**< Trigger on falling edge.           */
 } icumode_t;
 
 /**
@@ -249,8 +248,8 @@ typedef uint32_t icufreq_t;
  * @brief   ICU channel type.
  */
 typedef enum {
-  ICU_CHANNEL_1 = 0,              /**< Use TIMxCH1.      */
-  ICU_CHANNEL_2 = 1,              /**< Use TIMxCH2.      */
+	ICU_CHANNEL_1 = 0, /**< Use TIMxCH1.      */
+	ICU_CHANNEL_2 = 1, /**< Use TIMxCH2.      */
 } icuchannel_t;
 
 /**
@@ -263,74 +262,74 @@ typedef uint16_t icucnt_t;
  * @note    It could be empty on some architectures.
  */
 typedef struct {
-  /**
-   * @brief   Driver mode.
-   */
-  icumode_t                 mode;
-  /**
-   * @brief   Timer clock in Hz.
-   * @note    The low level can use assertions in order to catch invalid
-   *          frequency specifications.
-   */
-  icufreq_t                 frequency;
-  /**
-   * @brief   Callback for pulse width measurement.
-   */
-  icucallback_t             width_cb;
-  /**
-   * @brief   Callback for cycle period measurement.
-   */
-  icucallback_t             period_cb;
-  /**
-   * @brief   Callback for timer overflow.
-   */
-  icucallback_t             overflow_cb;
-  /* End of the mandatory fields.*/
-  /**
-   * @brief   Timer input channel to be used.
-   * @note    Only inputs TIMx 1 and 2 are supported.
-   */
-  icuchannel_t              channel;
-  /**
-   * @brief TIM DIER register initialization data.
-   * @note  The value of this field should normally be equal to zero.
-   * @note  Only the DMA-related bits can be specified in this field.
-   */
-  uint32_t                  dier;
+	/**
+	 * @brief   Driver mode.
+	 */
+	icumode_t mode;
+	/**
+	 * @brief   Timer clock in Hz.
+	 * @note    The low level can use assertions in order to catch invalid
+	 *          frequency specifications.
+	 */
+	icufreq_t frequency;
+	/**
+	 * @brief   Callback for pulse width measurement.
+	 */
+	icucallback_t width_cb;
+	/**
+	 * @brief   Callback for cycle period measurement.
+	 */
+	icucallback_t period_cb;
+	/**
+	 * @brief   Callback for timer overflow.
+	 */
+	icucallback_t overflow_cb;
+	/* End of the mandatory fields.*/
+	/**
+	 * @brief   Timer input channel to be used.
+	 * @note    Only inputs TIMx 1 and 2 are supported.
+	 */
+	icuchannel_t channel;
+	/**
+	 * @brief TIM DIER register initialization data.
+	 * @note  The value of this field should normally be equal to zero.
+	 * @note  Only the DMA-related bits can be specified in this field.
+	 */
+	uint32_t dier;
 } ICUConfig;
 
 /**
  * @brief   Structure representing an ICU driver.
  */
 struct ICUDriver {
-  /**
-   * @brief Driver state.
-   */
-  icustate_t                state;
-  /**
-   * @brief Current configuration data.
-   */
-  const ICUConfig           *config;
+	/**
+	 * @brief Driver state.
+	 */
+	icustate_t state;
+	/**
+	 * @brief Current configuration data.
+	 */
+	const ICUConfig* config;
 #if defined(ICU_DRIVER_EXT_FIELDS)
-  ICU_DRIVER_EXT_FIELDS
+	ICU_DRIVER_EXT_FIELDS
 #endif
-  /* End of the mandatory fields.*/
-  /**
-   * @brief Timer base clock.
-   */
-  uint32_t                  clock;
-  /**
-   * @brief Pointer to the TIMx registers block.
-   */
-  stm32_tim_t               *tim;
-  /**
-   * @brief CCR register used for width capture.
-   */
-  volatile uint32_t         *wccrp;
-  /**
-   * @brief CCR register used for period capture.
-   */
-  volatile uint32_t         *pccrp;
+	/* End of the mandatory fields.*/
+	/**
+	 * @brief Timer base clock.
+	 */
+	uint32_t clock;
+	/**
+	 * @brief Pointer to the TIMx registers block.
+	 */
+	stm32_tim_t* tim;
+	/**
+	 * @brief CCR register used for width capture.
+	 */
+	volatile uint32_t* wccrp;
+	/**
+	 * @brief CCR register used for period capture.
+	 */
+	volatile uint32_t* pccrp;
 };
 
 /*===========================================================================*/
@@ -396,11 +395,11 @@ extern ICUDriver ICUD9;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void icu_lld_init(void);
-  void icu_lld_start(ICUDriver *icup);
-  void icu_lld_stop(ICUDriver *icup);
-  void icu_lld_enable(ICUDriver *icup);
-  void icu_lld_disable(ICUDriver *icup);
+void icu_lld_init(void);
+void icu_lld_start(ICUDriver* icup);
+void icu_lld_stop(ICUDriver* icup);
+void icu_lld_enable(ICUDriver* icup);
+void icu_lld_disable(ICUDriver* icup);
 #ifdef __cplusplus
 }
 #endif

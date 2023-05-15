@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -41,7 +41,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(LPC8xx_GPT_USE_MRT0) || defined(__DOXYGEN__)
-#define LPC8xx_GPT_USE_MRT0              TRUE
+#define LPC8xx_GPT_USE_MRT0 TRUE
 #endif
 
 /**
@@ -50,7 +50,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(LPC8xx_GPT_USE_MRT1) || defined(__DOXYGEN__)
-#define LPC8xx_GPT_USE_MRT1              FALSE
+#define LPC8xx_GPT_USE_MRT1 FALSE
 #endif
 
 /**
@@ -59,7 +59,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(LPC8xx_GPT_USE_MRT2) || defined(__DOXYGEN__)
-#define LPC8xx_GPT_USE_MRT2              FALSE
+#define LPC8xx_GPT_USE_MRT2 FALSE
 #endif
 
 /**
@@ -68,23 +68,22 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(LPC8xx_GPT_USE_MRT3) || defined(__DOXYGEN__)
-#define LPC8xx_GPT_USE_MRT3              FALSE
+#define LPC8xx_GPT_USE_MRT3 FALSE
 #endif
 
 /**
  * @brief   GPT interrupt priority level setting.
  */
 #if !defined(LPC8xx_GPT_MRT_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define LPC8xx_GPT_MRT_IRQ_PRIORITY     2
+#define LPC8xx_GPT_MRT_IRQ_PRIORITY 2
 #endif
-
 
 /*===========================================================================*/
 /* Derived constants and error checks.                                       */
 /*===========================================================================*/
 
-#if !LPC8xx_GPT_USE_MRT0 && !LPC8xx_GPT_USE_MRT1 &&                   \
-    !LPC8xx_GPT_USE_MRT2 && !LPC8xx_GPT_USE_MRT3
+#if !LPC8xx_GPT_USE_MRT0 && !LPC8xx_GPT_USE_MRT1 && !LPC8xx_GPT_USE_MRT2 && \
+		!LPC8xx_GPT_USE_MRT3
 #error "GPT driver activated but no CT peripheral assigned"
 #endif
 
@@ -107,45 +106,45 @@ typedef uint32_t gptcnt_t;
  * @note    It could be empty on some architectures.
  */
 typedef struct {
-  /**
-   * @brief   Timer clock in Hz.
-   * @note    The low level can use assertions in order to catch invalid
-   *          frequency specifications.
-   */
-  gptfreq_t                 frequency;
-  /**
-   * @brief   Timer callback pointer.
-   * @note    This callback is invoked on GPT counter events.
-   */
-  gptcallback_t             callback;
-  /* End of the mandatory fields.*/
+	/**
+	 * @brief   Timer clock in Hz.
+	 * @note    The low level can use assertions in order to catch invalid
+	 *          frequency specifications.
+	 */
+	gptfreq_t frequency;
+	/**
+	 * @brief   Timer callback pointer.
+	 * @note    This callback is invoked on GPT counter events.
+	 */
+	gptcallback_t callback;
+	/* End of the mandatory fields.*/
 } GPTConfig;
 
 /**
  * @brief   Structure representing a GPT driver.
  */
 struct GPTDriver {
-  /**
-   * @brief Driver state.
-   */
-  gptstate_t                state;
-  /**
-   * @brief Current configuration data.
-   */
-  const GPTConfig           *config;
-  /* End of the mandatory fields.*/
-  /**
-   * @brief Pointer to the MRT Channelx registers block.
-   */
-  MRT_Channel_cfg_Type           *tmr;
-  /**
-   * @brief Prescaler.
-   */
-  uint32_t                  pr;
-  /**
-   * @brief channel bitmask.
-   */
-  uint32_t                  mask;
+	/**
+	 * @brief Driver state.
+	 */
+	gptstate_t state;
+	/**
+	 * @brief Current configuration data.
+	 */
+	const GPTConfig* config;
+	/* End of the mandatory fields.*/
+	/**
+	 * @brief Pointer to the MRT Channelx registers block.
+	 */
+	MRT_Channel_cfg_Type* tmr;
+	/**
+	 * @brief Prescaler.
+	 */
+	uint32_t pr;
+	/**
+	 * @brief channel bitmask.
+	 */
+	uint32_t mask;
 };
 
 /*===========================================================================*/
@@ -165,8 +164,8 @@ struct GPTDriver {
  * @param[in] interval  new cycle time in timer ticks
  * @notapi
  */
-#define gpt_lld_change_interval(gptp, interval)                               \
-  ((gptp)->tmr->INTVAL = ((interval*(gptp)->pr) - 1))
+#define gpt_lld_change_interval(gptp, interval) \
+	((gptp)->tmr->INTVAL = ((interval * (gptp)->pr) - 1))
 
 /*===========================================================================*/
 /* External declarations.                                                    */
@@ -191,12 +190,12 @@ extern GPTDriver GPTD4;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void gpt_lld_init(void);
-  void gpt_lld_start(GPTDriver *gptp);
-  void gpt_lld_stop(GPTDriver *gptp);
-  void gpt_lld_start_timer(GPTDriver *gptp, gptcnt_t period);
-  void gpt_lld_stop_timer(GPTDriver *gptp);
-  void gpt_lld_polled_delay(GPTDriver *gptp, gptcnt_t interval);
+void gpt_lld_init(void);
+void gpt_lld_start(GPTDriver* gptp);
+void gpt_lld_stop(GPTDriver* gptp);
+void gpt_lld_start_timer(GPTDriver* gptp, gptcnt_t period);
+void gpt_lld_stop_timer(GPTDriver* gptp);
+void gpt_lld_polled_delay(GPTDriver* gptp, gptcnt_t interval);
 #ifdef __cplusplus
 }
 #endif

@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 #ifndef _BOARD_H_
@@ -60,30 +60,30 @@
  */
 #define VAL_PINSEL0 0x00055555
 #define VAL_PINSEL1 0x100840A8
-#define VAL_PINSEL2 0x00000004  /* Do not modify */
+#define VAL_PINSEL2 0x00000004 /* Do not modify */
 #define VAL_FIO0DIR 0xB0703C00
 #define VAL_FIO1DIR 0x01FF0000
 #define VAL_FIO0PIN 0xFFFFFFFF
 #define VAL_FIO1PIN 0xFFFFFFFF
 
-#define PA_LED1         10
-#define PA_LED2         11
-#define PA_BUZZ1        12
-#define PA_BUZZ2        13
-#define PA_BSL          14
-#define PA_BUTTON1      15
-#define PA_BUTTON2      16
-#define PA_SSEL1        20
-#define PA_LEDUSB       31
+#define PA_LED1 10
+#define PA_LED2 11
+#define PA_BUZZ1 12
+#define PA_BUZZ2 13
+#define PA_BSL 14
+#define PA_BUTTON1 15
+#define PA_BUTTON2 16
+#define PA_SSEL1 20
+#define PA_LEDUSB 31
 
-#define PB_WP1          24
-#define PB_CP1          25
+#define PB_WP1 24
+#define PB_CP1 25
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void boardInit(void);
+void boardInit(void);
 #ifdef __cplusplus
 }
 #endif

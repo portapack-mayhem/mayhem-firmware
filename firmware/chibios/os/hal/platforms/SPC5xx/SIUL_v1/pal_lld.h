@@ -1,17 +1,17 @@
 /*
-    SPC5 HAL - Copyright (C) 2013 STMicroelectronics
+		SPC5 HAL - Copyright (C) 2013 STMicroelectronics
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,16 +44,16 @@
  * @name    SIUL-specific PAL modes
  * @{
  */
-#define PAL_SPC5_SMC                (1U << 14)
-#define PAL_SPC5_APC                (1U << 13)
-#define PAL_SPC5_PA_MASK            (3U << 10)
-#define PAL_SPC5_PA(n)              ((n) << 10)
-#define PAL_SPC5_OBE                (1U << 9)
-#define PAL_SPC5_IBE                (1U << 8)
-#define PAL_SPC5_ODE                (1U << 5)
-#define PAL_SPC5_SRC                (1U << 2)
-#define PAL_SPC5_WPE                (1U << 1)
-#define PAL_SPC5_WPS                (1U << 0)
+#define PAL_SPC5_SMC (1U << 14)
+#define PAL_SPC5_APC (1U << 13)
+#define PAL_SPC5_PA_MASK (3U << 10)
+#define PAL_SPC5_PA(n) ((n) << 10)
+#define PAL_SPC5_OBE (1U << 9)
+#define PAL_SPC5_IBE (1U << 8)
+#define PAL_SPC5_ODE (1U << 5)
+#define PAL_SPC5_SRC (1U << 2)
+#define PAL_SPC5_WPE (1U << 1)
+#define PAL_SPC5_WPS (1U << 0)
 /** @} */
 
 /**
@@ -63,49 +63,47 @@
 /**
  * @brief   After reset state.
  */
-#define PAL_MODE_RESET                  0
+#define PAL_MODE_RESET 0
 
 /**
  * @brief   Safe state for <b>unconnected</b> pads.
  */
-#define PAL_MODE_UNCONNECTED            (PAL_SPC5_WPE | PAL_SPC5_WPS)
+#define PAL_MODE_UNCONNECTED (PAL_SPC5_WPE | PAL_SPC5_WPS)
 
 /**
  * @brief   Regular input high-Z pad.
  */
-#define PAL_MODE_INPUT                  (PAL_SPC5_IBE)
+#define PAL_MODE_INPUT (PAL_SPC5_IBE)
 
 /**
  * @brief   Input pad with weak pull up resistor.
  */
-#define PAL_MODE_INPUT_PULLUP           (PAL_SPC5_IBE |PAL_SPC5_WPE |       \
-                                         PAL_SPC5_WPS)
+#define PAL_MODE_INPUT_PULLUP (PAL_SPC5_IBE | PAL_SPC5_WPE | PAL_SPC5_WPS)
 
 /**
  * @brief   Input pad with weak pull down resistor.
  */
-#define PAL_MODE_INPUT_PULLDOWN         (PAL_SPC5_IBE |PAL_SPC5_WPE)
+#define PAL_MODE_INPUT_PULLDOWN (PAL_SPC5_IBE | PAL_SPC5_WPE)
 
 /**
  * @brief   Analog input mode.
  */
-#define PAL_MODE_INPUT_ANALOG           PAL_SPC5_APC
+#define PAL_MODE_INPUT_ANALOG PAL_SPC5_APC
 
 /**
  * @brief   Push-pull output pad.
  */
-#define PAL_MODE_OUTPUT_PUSHPULL        (PAL_SPC5_IBE | PAL_SPC5_OBE)
+#define PAL_MODE_OUTPUT_PUSHPULL (PAL_SPC5_IBE | PAL_SPC5_OBE)
 
 /**
  * @brief   Open-drain output pad.
  */
-#define PAL_MODE_OUTPUT_OPENDRAIN       (PAL_SPC5_IBE | PAL_SPC5_OBE |      \
-                                         PAL_SPC5_ODE)
+#define PAL_MODE_OUTPUT_OPENDRAIN (PAL_SPC5_IBE | PAL_SPC5_OBE | PAL_SPC5_ODE)
 
 /**
  * @brief   Alternate "n" output pad.
  */
-#define PAL_MODE_OUTPUT_ALTERNATE(n)    (PAL_SPC5_IBE | PAL_SPC5_PA(n))
+#define PAL_MODE_OUTPUT_ALTERNATE(n) (PAL_SPC5_IBE | PAL_SPC5_PA(n))
 /** @} */
 
 /*===========================================================================*/
@@ -145,9 +143,9 @@ typedef uint32_t ioportid_t;
  * @brief   SIUL register initializer type.
  */
 typedef struct {
-  uint8_t                   pcr_index;
-  uint8_t                   gpdo_value;
-  iomode_t                  pcr_value;
+	uint8_t pcr_index;
+	uint8_t gpdo_value;
+	iomode_t pcr_value;
 } spc_siu_init_t;
 
 /**
@@ -160,9 +158,9 @@ typedef struct {
  *          architecture dependent, fields.
  */
 typedef struct {
-  iomode_t                  default_mode;
-  const spc_siu_init_t      *inits;
-  const uint8_t             *padsels;
+	iomode_t default_mode;
+	const spc_siu_init_t* inits;
+	const uint8_t* padsels;
 } PALConfig;
 
 /*===========================================================================*/
@@ -172,42 +170,42 @@ typedef struct {
 /**
  * @brief   I/O port A identifier.
  */
-#define PORT_A          0
+#define PORT_A 0
 
 /**
  * @brief   I/O port B identifier.
  */
-#define PORT_B          1
+#define PORT_B 1
 
 /**
  * @brief   I/O port C identifier.
  */
-#define PORT_C          2
+#define PORT_C 2
 
 /**
  * @brief   I/O port D identifier.
  */
-#define PORT_D          3
+#define PORT_D 3
 
 /**
  * @brief   I/O port E identifier.
  */
-#define PORT_E          4
+#define PORT_E 4
 
 /**
  * @brief   I/O port F identifier.
  */
-#define PORT_F          5
+#define PORT_F 5
 
 /**
  * @brief   I/O port G identifier.
  */
-#define PORT_G          6
+#define PORT_G 6
 
 /**
  * @brief   I/O port H identifier.
  */
-#define PORT_H          7
+#define PORT_H 7
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
@@ -241,7 +239,7 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_readport(port) (((volatile uint16_t *)SIU.PGPDI)[port])
+#define pal_lld_readport(port) (((volatile uint16_t*)SIU.PGPDI)[port])
 
 /**
  * @brief   Reads the output latch.
@@ -253,7 +251,7 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_readlatch(port) (((volatile uint16_t *)SIU.PGPDO)[port])
+#define pal_lld_readlatch(port) (((volatile uint16_t*)SIU.PGPDO)[port])
 
 /**
  * @brief   Writes a bits mask on a I/O port.
@@ -263,8 +261,8 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_writeport(port, bits)                                       \
-    (((volatile uint16_t *)SIU.PGPDO)[port] = (bits))
+#define pal_lld_writeport(port, bits) \
+	(((volatile uint16_t*)SIU.PGPDO)[port] = (bits))
 
 /**
  * @brief   Reads a group of bits.
@@ -276,8 +274,8 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_readgroup(port, mask, offset)                               \
-  _pal_lld_readgroup(port, mask, offset)
+#define pal_lld_readgroup(port, mask, offset) \
+	_pal_lld_readgroup(port, mask, offset)
 
 /**
  * @brief   Writes a group of bits.
@@ -290,8 +288,8 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_writegroup(port, mask, offset, bits)                        \
-  _pal_lld_writegroup(port, mask, offset, bits)
+#define pal_lld_writegroup(port, mask, offset, bits) \
+	_pal_lld_writegroup(port, mask, offset, bits)
 
 /**
  * @brief   Pads group mode setup.
@@ -306,8 +304,8 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 /**
  * @brief   Reads a logical state from an I/O pad.
@@ -323,8 +321,7 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_readpad(port, pad)                                          \
-  (SIU.GPDI[((port) * 16) + (pad)].R)
+#define pal_lld_readpad(port, pad) (SIU.GPDI[((port)*16) + (pad)].R)
 
 /**
  * @brief   Writes a logical state on an output pad.
@@ -341,8 +338,8 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_writepad(port, pad, bit)                                    \
-  (SIU.GPDO[((port) * 16) + (pad)].R = (bit))
+#define pal_lld_writepad(port, pad, bit) \
+	(SIU.GPDO[((port)*16) + (pad)].R = (bit))
 
 /**
  * @brief   Sets a pad logical state to @p PAL_HIGH.
@@ -352,8 +349,7 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_setpad(port, pad)                                           \
-    (SIU.GPDO[((port) * 16) + (pad)].R = 1)
+#define pal_lld_setpad(port, pad) (SIU.GPDO[((port)*16) + (pad)].R = 1)
 
 /**
  * @brief   Clears a pad logical state to @p PAL_LOW.
@@ -363,8 +359,7 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_clearpad(port, pad)                                         \
-    (SIU.GPDO[((port) * 16) + (pad)].R = 0)
+#define pal_lld_clearpad(port, pad) (SIU.GPDO[((port)*16) + (pad)].R = 0)
 
 /**
  * @brief   Toggles a pad logical state.
@@ -377,8 +372,8 @@ typedef struct {
  *
  * @notapi
  */
-#define pal_lld_togglepad(port, pad)                                        \
-    (SIU.GPDO[((port) * 16) + (pad)].R = ~SIU.GPDO[((port) * 16) + (pad)].R)
+#define pal_lld_togglepad(port, pad) \
+	(SIU.GPDO[((port)*16) + (pad)].R = ~SIU.GPDO[((port)*16) + (pad)].R)
 
 /**
  * @brief   Pad mode setup.
@@ -401,17 +396,15 @@ extern const PALConfig pal_default_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  ioportmask_t _pal_lld_readgroup(ioportid_t port,
-                                  ioportmask_t mask,
-                                  uint_fast8_t offset);
-  void _pal_lld_writegroup(ioportid_t port,
-                           ioportmask_t mask,
-                           uint_fast8_t offset,
-                           ioportmask_t bits);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+ioportmask_t _pal_lld_readgroup(ioportid_t port,
+																ioportmask_t mask,
+																uint_fast8_t offset);
+void _pal_lld_writegroup(ioportid_t port,
+												 ioportmask_t mask,
+												 uint_fast8_t offset,
+												 ioportmask_t bits);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

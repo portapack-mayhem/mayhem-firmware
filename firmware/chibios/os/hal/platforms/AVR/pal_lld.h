@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -52,9 +52,9 @@
 /**
  * @brief   AVR setup registers.
  */
-typedef struct  {
-  uint8_t  out;
-  uint8_t  dir;
+typedef struct {
+	uint8_t out;
+	uint8_t dir;
 } avr_gpio_setup_t;
 
 /**
@@ -63,10 +63,10 @@ typedef struct  {
  *          ports, the ports with abnormal layout cannot be used through
  *          PAL driver. Example: PORT F on Mega128.
  */
-typedef struct  {
-  volatile uint8_t  in;
-  volatile uint8_t  dir;
-  volatile uint8_t  out;
+typedef struct {
+	volatile uint8_t in;
+	volatile uint8_t dir;
+	volatile uint8_t out;
 } avr_gpio_registers_t;
 
 /**
@@ -78,37 +78,37 @@ typedef struct  {
  */
 typedef struct {
 #if defined(PORTA) || defined(__DOXYGEN__)
-  avr_gpio_setup_t porta;
+	avr_gpio_setup_t porta;
 #endif
 #if defined(PORTB) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portb;
+	avr_gpio_setup_t portb;
 #endif
 #if defined(PORTC) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portc;
+	avr_gpio_setup_t portc;
 #endif
 #if defined(PORTD) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portd;
+	avr_gpio_setup_t portd;
 #endif
 #if defined(PORTE) || defined(__DOXYGEN__)
-  avr_gpio_setup_t porte;
+	avr_gpio_setup_t porte;
 #endif
 #if defined(PORTF) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portf;
+	avr_gpio_setup_t portf;
 #endif
 #if defined(PORTG) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portg;
+	avr_gpio_setup_t portg;
 #endif
 #if defined(PORTH) || defined(__DOXYGEN__)
-  avr_gpio_setup_t porth;
+	avr_gpio_setup_t porth;
 #endif
 #if defined(PORTJ) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portj;
+	avr_gpio_setup_t portj;
 #endif
 #if defined(PORTK) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portk;
+	avr_gpio_setup_t portk;
 #endif
 #if defined(PORTL) || defined(__DOXYGEN__)
-  avr_gpio_setup_t portl;
+	avr_gpio_setup_t portl;
 #endif
 } PALConfig;
 
@@ -128,7 +128,7 @@ typedef uint8_t iomode_t;
  *          any assumption about it, use the provided macros when populating
  *          variables of this type.
  */
-typedef avr_gpio_registers_t *ioportid_t;
+typedef avr_gpio_registers_t* ioportid_t;
 
 /*===========================================================================*/
 /* I/O Ports Identifiers.                                                    */
@@ -138,77 +138,77 @@ typedef avr_gpio_registers_t *ioportid_t;
 /**
  * @brief   GPIO port A identifier.
  */
-#define IOPORT1			((volatile avr_gpio_registers_t *)&PINA)
+#define IOPORT1 ((volatile avr_gpio_registers_t*)&PINA)
 #endif
 
 #if defined(PORTB) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port B identifier.
  */
-#define IOPORT2			((volatile avr_gpio_registers_t *)&PINB)
+#define IOPORT2 ((volatile avr_gpio_registers_t*)&PINB)
 #endif
 
 #if defined(PORTC) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port C identifier.
  */
-#define IOPORT3			((volatile avr_gpio_registers_t *)&PINC)
+#define IOPORT3 ((volatile avr_gpio_registers_t*)&PINC)
 #endif
 
 #if defined(PORTD) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port D identifier.
  */
-#define IOPORT4			((volatile avr_gpio_registers_t *)&PIND)
+#define IOPORT4 ((volatile avr_gpio_registers_t*)&PIND)
 #endif
 
 #if defined(PORTE) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port E identifier.
  */
-#define IOPORT5			((volatile avr_gpio_registers_t *)&PINE)
+#define IOPORT5 ((volatile avr_gpio_registers_t*)&PINE)
 #endif
 
 #if defined(PORTF) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port F identifier.
  */
-#define IOPORT6			((volatile avr_gpio_registers_t *)&PINF)
+#define IOPORT6 ((volatile avr_gpio_registers_t*)&PINF)
 #endif
 
 #if defined(PORTG) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port G identifier.
  */
-#define IOPORT7			((volatile avr_gpio_registers_t *)&PING)
+#define IOPORT7 ((volatile avr_gpio_registers_t*)&PING)
 #endif
 
 #if defined(PORTH) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port H identifier.
  */
-#define IOPORT8         ((volatile avr_gpio_registers_t *)&PINH)
+#define IOPORT8 ((volatile avr_gpio_registers_t*)&PINH)
 #endif
 
 #if defined(PORTJ) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port J identifier.
  */
-#define IOPORT9         ((volatile avr_gpio_registers_t *)&PINJ)
+#define IOPORT9 ((volatile avr_gpio_registers_t*)&PINJ)
 #endif
 
 #if defined(PORTK) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port K identifier.
  */
-#define IOPORT10        ((volatile avr_gpio_registers_t *)&PINK)
+#define IOPORT10 ((volatile avr_gpio_registers_t*)&PINK)
 #endif
 
 #if defined(PORTL) || defined(__DOXYGEN__)
 /**
  * @brief   GPIO port L identifier.
  */
-#define IOPORT11        ((volatile avr_gpio_registers_t *)&PINL)
+#define IOPORT11 ((volatile avr_gpio_registers_t*)&PINL)
 #endif
 
 /*===========================================================================*/
@@ -270,8 +270,8 @@ typedef avr_gpio_registers_t *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 /**
  * @brief   Sets a pad logical state to @p PAL_HIGH.
@@ -281,15 +281,12 @@ typedef avr_gpio_registers_t *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setpad(port, pad)                                           \
-__asm__ __volatile__                                                        \
-(                                                                           \
-	"sbi %0,%1\n\t"                                                         \
-	:                                                                       \
-	: "I" (_SFR_IO_ADDR(port->out)),                                        \
-	  "I" (pad)                                                             \
-								                                            \
-)
+#define pal_lld_setpad(port, pad)                               \
+	__asm__ __volatile__("sbi %0,%1\n\t"                          \
+											 :                                        \
+											 : "I"(_SFR_IO_ADDR(port->out)), "I"(pad) \
+                                                                \
+	)
 
 /**
  * @brief   Clears a pad logical state to @p PAL_LOW.
@@ -299,25 +296,20 @@ __asm__ __volatile__                                                        \
  *
  * @notapi
  */
-#define pal_lld_clearpad(port, pad)                                         \
-__asm__ __volatile__                                                        \
-(                                                                           \
-	"cbi %0,%1\n\t"                                                         \
-	:                                                                       \
-	: "I" (_SFR_IO_ADDR(port->out)),                                        \
-	  "I" (pad)                                                             \
-								                                            \
-)
+#define pal_lld_clearpad(port, pad)                             \
+	__asm__ __volatile__("cbi %0,%1\n\t"                          \
+											 :                                        \
+											 : "I"(_SFR_IO_ADDR(port->out)), "I"(pad) \
+                                                                \
+	)
 
 extern ROMCONST PALConfig pal_default_config;
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

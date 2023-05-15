@@ -4,20 +4,20 @@
  * Copyright (c) 2006, Atmel Corporation
 
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * - Redistributions of source code must retain the above copyright notice,
  * this list of conditions and the disclaiimer below.
- * 
+ *
  * - Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the disclaimer below in the documentation and/or
- * other materials provided with the distribution. 
- * 
+ * other materials provided with the distribution.
+ *
  * Atmel's name may not be used to endorse or promote products derived from
- * this software without specific prior written permission. 
- * 
+ * this software without specific prior written permission.
+ *
  * DISCLAIMER: THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
@@ -34,10 +34,10 @@
 //------------------------------------------------------------------------------
 /// \dir
 /// !Purpose
-/// 
+///
 /// Methods and definitions for configuring interrupts using the Advanced
 /// Interrupt Controller (AIC).
-/// 
+///
 /// !Usage
 /// -# Configure an interrupt source using AIC_ConfigureIT
 /// -# Enable or disable interrupt generation of a particular source with
@@ -58,8 +58,8 @@
 //------------------------------------------------------------------------------
 
 #ifndef AT91C_AIC_SRCTYPE_INT_HIGH_LEVEL
-    /// Redefinition of missing constant.
-    #define AT91C_AIC_SRCTYPE_INT_HIGH_LEVEL AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE
+/// Redefinition of missing constant.
+#define AT91C_AIC_SRCTYPE_INT_HIGH_LEVEL AT91C_AIC_SRCTYPE_INT_LEVEL_SENSITIVE
 #endif
 
 //------------------------------------------------------------------------------
@@ -67,12 +67,11 @@
 //------------------------------------------------------------------------------
 
 extern void AIC_ConfigureIT(unsigned int source,
-                                   unsigned int mode,
-                                   void (*handler)( void ));
+														unsigned int mode,
+														void (*handler)(void));
 
 extern void AIC_EnableIT(unsigned int source);
 
 extern void AIC_DisableIT(unsigned int source);
 
-#endif //#ifndef AIC_H
-
+#endif	//#ifndef AIC_H

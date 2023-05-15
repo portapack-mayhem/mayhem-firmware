@@ -33,10 +33,10 @@ void XC2C64A::write_sram(const verify_blocks_t& blocks) {
 	enable();
 
 	shift_ir(instruction_t::ISC_WRITE);
-	for(const auto& block : blocks) {
+	for (const auto& block : blocks) {
 		tap.state(state_t::shift_dr);
-		tap.shift({ block.data.data(), block_length }, false);
-		tap.shift({ &block.id, block_id_length }, true);
+		tap.shift({block.data.data(), block_length}, false);
+		tap.shift({&block.id, block_id_length}, true);
 		tap.state(state_t::run_test_idle);
 	}
 
@@ -57,21 +57,22 @@ bool XC2C64A::verify_sram(const verify_blocks_t& blocks) {
 	shift_ir(instruction_t::ISC_SRAM_READ);
 
 	// Prime the operation with a read of an empty row.
-	const jtag::tap::bits_t empty_row { block_length };
+	const jtag::tap::bits_t empty_row{block_length};
 
 	tap.state(state_t::shift_dr);
 	tap.shift(empty_row, false);
-	
+
 	auto error = false;
-	for(const auto& block : blocks) {
-		tap.shift({ &block.id, block_id_length }, true);
+	for (const auto& block : blocks) {
+		tap.shift({&block.id, block_id_length}, true);
 		tap.state(state_t::run_test_idle);
-		
+
 		tap.state(state_t::shift_dr);
-		error |= tap.shift(empty_row, { block.data.data(), block_length }, { block.mask.data(), block_length }, false);
+		error |= tap.shift(empty_row, {block.data.data(), block_length},
+											 {block.mask.data(), block_length}, false);
 	}
 	// Redundant operation to finish the row.
-	tap.shift({ &blocks[0].id, block_id_length }, true);
+	tap.shift({&blocks[0].id, block_id_length}, true);
 	tap.state(state_t::run_test_idle);
 	tap.set_end_dr(state_t::run_test_idle);
 
@@ -94,17 +95,18 @@ bool XC2C64A::verify_eeprom(const verify_blocks_t& blocks) {
 
 	shift_ir(instruction_t::ISC_READ);
 
-	const jtag::tap::bits_t empty_row { block_length };
+	const jtag::tap::bits_t empty_row{block_length};
 
 	auto error = false;
-	for(const auto& block : blocks) {
+	for (const auto& block : blocks) {
 		tap.set_end_dr(state_t::pause_dr);
-		tap.shift_dr({ &block.id, block_id_length });
+		tap.shift_dr({&block.id, block_id_length});
 		tap.set_end_ir(state_t::run_test_idle);
 		tap.wait(state_t::pause_dr, state_t::pause_dr, 20);
 		tap.set_end_ir(state_t::run_test_idle);
 		tap.wait(state_t::run_test_idle, state_t::run_test_idle, 100);
-		error |= tap.shift_dr(empty_row, { block.data.data(), block_length }, { block.mask.data(), block_length });
+		error |= tap.shift_dr(empty_row, {block.data.data(), block_length},
+													{block.mask.data(), block_length});
 		tap.wait(state_t::run_test_idle, state_t::run_test_idle, 100);
 	}
 
@@ -126,7 +128,7 @@ void XC2C64A::init_from_eeprom() {
 
 	discharge();
 	init();
-	
+
 	disable();
 	bypass();
 
@@ -135,7 +137,7 @@ void XC2C64A::init_from_eeprom() {
 
 bool XC2C64A::shift_ir(const instruction_t instruction) {
 	const ir_t ir_buffer = toUType(instruction);
-	const jtag::tap::bits_t bits { &ir_buffer, ir_length };
+	const jtag::tap::bits_t bits{&ir_buffer, ir_length};
 	return tap.shift_ir(bits);
 }
 

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -33,8 +33,8 @@
  * @{
  */
 
-#include "ch.h"
 #include "hal.h"
+#include "ch.h"
 
 /*===========================================================================*/
 /* Driver local definitions.                                                 */
@@ -66,65 +66,64 @@
  * @init
  */
 void halInit(void) {
-
-  hal_lld_init();
+	hal_lld_init();
 
 #if HAL_USE_TM || defined(__DOXYGEN__)
-  tmInit();
+	tmInit();
 #endif
 #if HAL_USE_PAL || defined(__DOXYGEN__)
-  palInit(&pal_default_config);
+	palInit(&pal_default_config);
 #endif
 #if HAL_USE_ADC || defined(__DOXYGEN__)
-  adcInit();
+	adcInit();
 #endif
 #if HAL_USE_CAN || defined(__DOXYGEN__)
-  canInit();
+	canInit();
 #endif
 #if HAL_USE_EXT || defined(__DOXYGEN__)
-  extInit();
+	extInit();
 #endif
 #if HAL_USE_GPT || defined(__DOXYGEN__)
-  gptInit();
+	gptInit();
 #endif
 #if HAL_USE_I2C || defined(__DOXYGEN__)
-  i2cInit();
+	i2cInit();
 #endif
 #if HAL_USE_ICU || defined(__DOXYGEN__)
-  icuInit();
+	icuInit();
 #endif
 #if HAL_USE_MAC || defined(__DOXYGEN__)
-  macInit();
+	macInit();
 #endif
 #if HAL_USE_PWM || defined(__DOXYGEN__)
-  pwmInit();
+	pwmInit();
 #endif
 #if HAL_USE_SERIAL || defined(__DOXYGEN__)
-  sdInit();
+	sdInit();
 #endif
 #if HAL_USE_SDC || defined(__DOXYGEN__)
-  sdcInit();
+	sdcInit();
 #endif
 #if HAL_USE_SPI || defined(__DOXYGEN__)
-  spiInit();
+	spiInit();
 #endif
 #if HAL_USE_UART || defined(__DOXYGEN__)
-  uartInit();
+	uartInit();
 #endif
 #if HAL_USE_USB || defined(__DOXYGEN__)
-  usbInit();
+	usbInit();
 #endif
 #if HAL_USE_MMC_SPI || defined(__DOXYGEN__)
-  mmcInit();
+	mmcInit();
 #endif
 #if HAL_USE_SERIAL_USB || defined(__DOXYGEN__)
-  sduInit();
+	sduInit();
 #endif
 #if HAL_USE_RTC || defined(__DOXYGEN__)
-  rtcInit();
+	rtcInit();
 #endif
-  /* Board specific initialization.*/
-  boardInit();
+	/* Board specific initialization.*/
+	boardInit();
 }
 
 #if HAL_IMPLEMENTS_COUNTERS || defined(__DOXYGEN__)
@@ -172,10 +171,10 @@ void halInit(void) {
  * @special
  */
 bool_t halIsCounterWithin(halrtcnt_t start, halrtcnt_t end) {
-  halrtcnt_t now = halGetCounterValue();
+	halrtcnt_t now = halGetCounterValue();
 
-  return end > start ? (now >= start) && (now < end) :
-                       (now >= start) || (now < end);
+	return end > start ? (now >= start) && (now < end)
+										 : (now >= start) || (now < end);
 }
 
 /**
@@ -191,10 +190,10 @@ bool_t halIsCounterWithin(halrtcnt_t start, halrtcnt_t end) {
  * @special
  */
 void halPolledDelay(halrtcnt_t ticks) {
-  halrtcnt_t start = halGetCounterValue();
-  halrtcnt_t timeout  = start + (ticks);
-  while (halIsCounterWithin(start, timeout))
-    ;
+	halrtcnt_t start = halGetCounterValue();
+	halrtcnt_t timeout = start + (ticks);
+	while (halIsCounterWithin(start, timeout))
+		;
 }
 #endif /* HAL_IMPLEMENTS_COUNTERS */
 

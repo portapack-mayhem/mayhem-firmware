@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -49,49 +49,48 @@
 
 #include "ch.h"
 
-#if !defined(STM32F10X_LD) && !defined(STM32F10X_LD_VL) &&                  \
-    !defined(STM32F10X_MD) && !defined(STM32F10X_MD_VL) &&                  \
-    !defined(STM32F10X_HD) && !defined(STM32F10X_XL) &&                     \
-    !defined(STM32F10X_CL)
+#if !defined(STM32F10X_LD) && !defined(STM32F10X_LD_VL) && \
+		!defined(STM32F10X_MD) && !defined(STM32F10X_MD_VL) && \
+		!defined(STM32F10X_HD) && !defined(STM32F10X_XL) && !defined(STM32F10X_CL)
 #include "board.h"
 #endif
 
-#if defined(STM32F10X_MD_VL) ||  defined(__DOXYGEN__)
-#define NUM_VECTORS     46
-#elif defined(STM32F10X_HD)  || defined(STM32F10X_XL)
-#define NUM_VECTORS     60
+#if defined(STM32F10X_MD_VL) || defined(__DOXYGEN__)
+#define NUM_VECTORS 46
+#elif defined(STM32F10X_HD) || defined(STM32F10X_XL)
+#define NUM_VECTORS 60
 #elif defined(STM32F10X_CL)
-#define NUM_VECTORS     68
+#define NUM_VECTORS 68
 #else
-#define NUM_VECTORS     43
+#define NUM_VECTORS 43
 #endif
 
 /**
  * @brief   Type of an IRQ vector.
  */
-typedef void  (*irq_vector_t)(void);
+typedef void (*irq_vector_t)(void);
 
 /**
  * @brief   Type of a structure representing the whole vectors table.
  */
 typedef struct {
-  uint32_t      *init_stack;
-  irq_vector_t  reset_vector;
-  irq_vector_t  nmi_vector;
-  irq_vector_t  hardfault_vector;
-  irq_vector_t  memmanage_vector;
-  irq_vector_t  busfault_vector;
-  irq_vector_t  usagefault_vector;
-  irq_vector_t  vector1c;
-  irq_vector_t  vector20;
-  irq_vector_t  vector24;
-  irq_vector_t  vector28;
-  irq_vector_t  svcall_vector;
-  irq_vector_t  debugmonitor_vector;
-  irq_vector_t  vector34;
-  irq_vector_t  pendsv_vector;
-  irq_vector_t  systick_vector;
-  irq_vector_t  vectors[NUM_VECTORS];
+	uint32_t* init_stack;
+	irq_vector_t reset_vector;
+	irq_vector_t nmi_vector;
+	irq_vector_t hardfault_vector;
+	irq_vector_t memmanage_vector;
+	irq_vector_t busfault_vector;
+	irq_vector_t usagefault_vector;
+	irq_vector_t vector1c;
+	irq_vector_t vector20;
+	irq_vector_t vector24;
+	irq_vector_t vector28;
+	irq_vector_t svcall_vector;
+	irq_vector_t debugmonitor_vector;
+	irq_vector_t vector34;
+	irq_vector_t pendsv_vector;
+	irq_vector_t systick_vector;
+	irq_vector_t vectors[NUM_VECTORS];
 } vectors_t;
 
 #if !defined(__DOXYGEN__)
@@ -154,13 +153,13 @@ extern void VectorDC(void);
 extern void VectorE0(void);
 extern void VectorE4(void);
 extern void VectorE8(void);
-#if defined(STM32F10X_MD_VL) || defined(STM32F10X_HD) ||                    \
-    defined(STM32F10X_XL)    || defined(STM32F10X_CL)
+#if defined(STM32F10X_MD_VL) || defined(STM32F10X_HD) || \
+		defined(STM32F10X_XL) || defined(STM32F10X_CL)
 extern void VectorEC(void);
 extern void VectorF0(void);
 extern void VectorF4(void);
 #endif
-#if defined(STM32F10X_HD)    || defined(STM32F10X_XL) || defined(STM32F10X_CL)
+#if defined(STM32F10X_HD) || defined(STM32F10X_XL) || defined(STM32F10X_CL)
 extern void VectorF8(void);
 extern void VectorFC(void);
 extern void Vector100(void);
@@ -192,41 +191,47 @@ extern void Vector14C(void);
  * @brief   STM32 vectors table.
  */
 #if !defined(__DOXYGEN__)
-__attribute__ ((section("vectors")))
+__attribute__((section("vectors")))
 #endif
 vectors_t _vectors = {
-  &__main_stack_end__,ResetHandler,       NMIVector,          HardFaultVector,
-  MemManageVector,    BusFaultVector,     UsageFaultVector,   Vector1C,
-  Vector20,           Vector24,           Vector28,           SVCallVector,
-  DebugMonitorVector, Vector34,           PendSVVector,       SysTickVector,
-  {
-    Vector40,           Vector44,           Vector48,           Vector4C,
-    Vector50,           Vector54,           Vector58,           Vector5C,
-    Vector60,           Vector64,           Vector68,           Vector6C,
-    Vector70,           Vector74,           Vector78,           Vector7C,
-    Vector80,           Vector84,           Vector88,           Vector8C,
-    Vector90,           Vector94,           Vector98,           Vector9C,
-    VectorA0,           VectorA4,           VectorA8,           VectorAC,
-    VectorB0,           VectorB4,           VectorB8,           VectorBC,
-    VectorC0,           VectorC4,           VectorC8,           VectorCC,
-    VectorD0,           VectorD4,           VectorD8,           VectorDC,
-    VectorE0,           VectorE4,           VectorE8,
-#if defined(STM32F10X_MD_VL) || defined(STM32F10X_HD) ||                    \
-    defined(STM32F10X_XL)    || defined(STM32F10X_CL)
-    VectorEC,           VectorF0,           VectorF4,
+		&__main_stack_end__,
+		ResetHandler,
+		NMIVector,
+		HardFaultVector,
+		MemManageVector,
+		BusFaultVector,
+		UsageFaultVector,
+		Vector1C,
+		Vector20,
+		Vector24,
+		Vector28,
+		SVCallVector,
+		DebugMonitorVector,
+		Vector34,
+		PendSVVector,
+		SysTickVector,
+		{Vector40,	Vector44,	 Vector48,	Vector4C,	 Vector50,	Vector54,
+		 Vector58,	Vector5C,	 Vector60,	Vector64,	 Vector68,	Vector6C,
+		 Vector70,	Vector74,	 Vector78,	Vector7C,	 Vector80,	Vector84,
+		 Vector88,	Vector8C,	 Vector90,	Vector94,	 Vector98,	Vector9C,
+		 VectorA0,	VectorA4,	 VectorA8,	VectorAC,	 VectorB0,	VectorB4,
+		 VectorB8,	VectorBC,	 VectorC0,	VectorC4,	 VectorC8,	VectorCC,
+		 VectorD0,	VectorD4,	 VectorD8,	VectorDC,	 VectorE0,	VectorE4,
+		 VectorE8,
+#if defined(STM32F10X_MD_VL) || defined(STM32F10X_HD) || \
+		defined(STM32F10X_XL) || defined(STM32F10X_CL)
+		 VectorEC,	VectorF0,	 VectorF4,
 #endif
-#if defined(STM32F10X_HD)    || defined(STM32F10X_XL) || defined(STM32F10X_CL)
-    VectorF8,           VectorFC,           Vector100,          Vector104,
-    Vector108,          Vector10C,          Vector110,          Vector114,
-    Vector118,          Vector11C,          Vector120,          Vector124,
-    Vector128,          Vector12C,
+#if defined(STM32F10X_HD) || defined(STM32F10X_XL) || defined(STM32F10X_CL)
+		 VectorF8,	VectorFC,	 Vector100, Vector104, Vector108, Vector10C,
+		 Vector110, Vector114, Vector118, Vector11C, Vector120, Vector124,
+		 Vector128, Vector12C,
 #endif
 #if defined(STM32F10X_CL)
-    Vector130,          Vector134,          Vector138,          Vector13C,
-    Vector140,          Vector144,          Vector148,          Vector14C
+		 Vector130, Vector134, Vector138, Vector13C, Vector140, Vector144,
+		 Vector148, Vector14C
 #endif
-  }
-};
+		}};
 
 /**
  * @brief   Unhandled exceptions handler.
@@ -240,21 +245,23 @@ __attribute__ ((naked))
 #endif
 void _unhandled_exception(void) {
 
-  while (TRUE)
-    ;
+	while (TRUE)
+		;
 }
 
 void NMIVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void HardFaultVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void MemManageVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void BusFaultVector(void) __attribute__((weak, alias("_unhandled_exception")));
-void UsageFaultVector(void) __attribute__((weak, alias("_unhandled_exception")));
+void UsageFaultVector(void)
+		__attribute__((weak, alias("_unhandled_exception")));
 void Vector1C(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector20(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector24(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector28(void) __attribute__((weak, alias("_unhandled_exception")));
 void SVCallVector(void) __attribute__((weak, alias("_unhandled_exception")));
-void DebugMonitorVector(void) __attribute__((weak, alias("_unhandled_exception")));
+void DebugMonitorVector(void)
+		__attribute__((weak, alias("_unhandled_exception")));
 void Vector34(void) __attribute__((weak, alias("_unhandled_exception")));
 void PendSVVector(void) __attribute__((weak, alias("_unhandled_exception")));
 void SysTickVector(void) __attribute__((weak, alias("_unhandled_exception")));
@@ -301,13 +308,13 @@ void VectorDC(void) __attribute__((weak, alias("_unhandled_exception")));
 void VectorE0(void) __attribute__((weak, alias("_unhandled_exception")));
 void VectorE4(void) __attribute__((weak, alias("_unhandled_exception")));
 void VectorE8(void) __attribute__((weak, alias("_unhandled_exception")));
-#if defined(STM32F10X_MD_VL) || defined(STM32F10X_HD) ||                    \
-    defined(STM32F10X_XL)    || defined(STM32F10X_CL)
+#if defined(STM32F10X_MD_VL) || defined(STM32F10X_HD) || \
+		defined(STM32F10X_XL) || defined(STM32F10X_CL)
 void VectorEC(void) __attribute__((weak, alias("_unhandled_exception")));
 void VectorF0(void) __attribute__((weak, alias("_unhandled_exception")));
 void VectorF4(void) __attribute__((weak, alias("_unhandled_exception")));
 #endif
-#if defined(STM32F10X_HD)    || defined(STM32F10X_XL) || defined(STM32F10X_CL)
+#if defined(STM32F10X_HD) || defined(STM32F10X_XL) || defined(STM32F10X_CL)
 void VectorF8(void) __attribute__((weak, alias("_unhandled_exception")));
 void VectorFC(void) __attribute__((weak, alias("_unhandled_exception")));
 void Vector100(void) __attribute__((weak, alias("_unhandled_exception")));

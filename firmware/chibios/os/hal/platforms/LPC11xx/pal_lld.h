@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,10 +44,10 @@
  * @brief   GPIO port setup info.
  */
 typedef struct {
-  /** Initial value for FIO_PIN register.*/
-  uint32_t      data;
-  /** Initial value for FIO_DIR register.*/
-  uint32_t      dir;
+	/** Initial value for FIO_PIN register.*/
+	uint32_t data;
+	/** Initial value for FIO_DIR register.*/
+	uint32_t dir;
 } lpc111x_gpio_setup_t;
 
 /**
@@ -63,14 +63,14 @@ typedef struct {
  *          @p board.c.
  */
 typedef struct {
-  /** @brief GPIO 0 setup data.*/
-  lpc111x_gpio_setup_t   P0;
-  /** @brief GPIO 1 setup data.*/
-  lpc111x_gpio_setup_t   P1;
-  /** @brief GPIO 2 setup data.*/
-  lpc111x_gpio_setup_t   P2;
-  /** @brief GPIO 3 setup data.*/
-  lpc111x_gpio_setup_t   P3;
+	/** @brief GPIO 0 setup data.*/
+	lpc111x_gpio_setup_t P0;
+	/** @brief GPIO 1 setup data.*/
+	lpc111x_gpio_setup_t P1;
+	/** @brief GPIO 2 setup data.*/
+	lpc111x_gpio_setup_t P2;
+	/** @brief GPIO 3 setup data.*/
+	lpc111x_gpio_setup_t P3;
 } PALConfig;
 
 /**
@@ -97,7 +97,7 @@ typedef uint32_t iomode_t;
 /**
  * @brief   Port Identifier.
  */
-typedef LPC_GPIO_TypeDef *ioportid_t;
+typedef LPC_GPIO_TypeDef* ioportid_t;
 
 /*===========================================================================*/
 /* I/O Ports Identifiers.                                                    */
@@ -106,26 +106,26 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
 /**
  * @brief   GPIO0 port identifier.
  */
-#define IOPORT1         LPC_GPIO0
-#define GPIO0           LPC_GPIO0
+#define IOPORT1 LPC_GPIO0
+#define GPIO0 LPC_GPIO0
 
 /**
  * @brief   GPIO1 port identifier.
  */
-#define IOPORT2         LPC_GPIO1
-#define GPIO1           LPC_GPIO1
+#define IOPORT2 LPC_GPIO1
+#define GPIO1 LPC_GPIO1
 
 /**
  * @brief   GPIO2 port identifier.
  */
-#define IOPORT3         LPC_GPIO2
-#define GPIO2           LPC_GPIO2
+#define IOPORT3 LPC_GPIO2
+#define GPIO2 LPC_GPIO2
 
 /**
  * @brief   GPIO3 port identifier.
  */
-#define IOPORT4         LPC_GPIO3
-#define GPIO3           LPC_GPIO3
+#define IOPORT4 LPC_GPIO3
+#define GPIO3 LPC_GPIO3
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
@@ -212,8 +212,8 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_readgroup(port, mask, offset)                               \
-  ((port)->MASKED_ACCESS[(mask) << (offset)])
+#define pal_lld_readgroup(port, mask, offset) \
+	((port)->MASKED_ACCESS[(mask) << (offset)])
 
 /**
  * @brief   Writes a group of bits.
@@ -229,8 +229,8 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_writegroup(port, mask, offset, bits)                        \
-  ((port)->MASKED_ACCESS[(mask) << (offset)] = (bits))
+#define pal_lld_writegroup(port, mask, offset, bits) \
+	((port)->MASKED_ACCESS[(mask) << (offset)] = (bits))
 
 /**
  * @brief   Pads group mode setup.
@@ -245,8 +245,8 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 /**
  * @brief   Writes a logical state on an output pad.
@@ -263,8 +263,8 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_writepad(port, pad, bit)                                    \
-  ((port)->MASKED_ACCESS[1 << (pad)] = (bit) << (pad))
+#define pal_lld_writepad(port, pad, bit) \
+	((port)->MASKED_ACCESS[1 << (pad)] = (bit) << (pad))
 
 /**
  * @brief   Sets a pad logical state to @p PAL_HIGH.
@@ -277,8 +277,8 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setpad(port, pad)                                           \
-  ((port)->MASKED_ACCESS[1 << (pad)] = 1 << (pad))
+#define pal_lld_setpad(port, pad) \
+	((port)->MASKED_ACCESS[1 << (pad)] = 1 << (pad))
 
 /**
  * @brief   Clears a pad logical state to @p PAL_LOW.
@@ -291,8 +291,7 @@ typedef LPC_GPIO_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_clearpad(port, pad)                                         \
-  ((port)->MASKED_ACCESS[1 << (pad)] = 0)
+#define pal_lld_clearpad(port, pad) ((port)->MASKED_ACCESS[1 << (pad)] = 0)
 
 #if !defined(__DOXYGEN__)
 extern const PALConfig pal_default_config;
@@ -301,10 +300,8 @@ extern const PALConfig pal_default_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

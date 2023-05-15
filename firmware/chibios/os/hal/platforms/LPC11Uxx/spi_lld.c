@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -54,29 +54,27 @@ SPIDriver SPID2;
  *
  * @param[in] spip      pointer to the @p SPIDriver object
  */
-static void ssp_fifo_preload(SPIDriver *spip) {
-  LPC_SSPx_Type *ssp = spip->ssp;
-  uint32_t n = spip->txcnt > LPC_SSP_FIFO_DEPTH ?
-               LPC_SSP_FIFO_DEPTH : spip->txcnt;
+static void ssp_fifo_preload(SPIDriver* spip) {
+	LPC_SSPx_Type* ssp = spip->ssp;
+	uint32_t n =
+			spip->txcnt > LPC_SSP_FIFO_DEPTH ? LPC_SSP_FIFO_DEPTH : spip->txcnt;
 
-  while(((ssp->SR & SR_TNF) != 0) && (n > 0)) {
-    if (spip->txptr != NULL) {
-      if ((ssp->CR0 & CR0_DSSMASK) > CR0_DSS8BIT) {
-        const uint16_t *p = spip->txptr;
-        ssp->DR = *p++;
-        spip->txptr = p;
-      }
-      else {
-        const uint8_t *p = spip->txptr;
-        ssp->DR = *p++;
-        spip->txptr = p;
-      }
-    }
-    else
-      ssp->DR = 0xFFFFFFFF;
-    n--;
-    spip->txcnt--;
-  }
+	while (((ssp->SR & SR_TNF) != 0) && (n > 0)) {
+		if (spip->txptr != NULL) {
+			if ((ssp->CR0 & CR0_DSSMASK) > CR0_DSS8BIT) {
+				const uint16_t* p = spip->txptr;
+				ssp->DR = *p++;
+				spip->txptr = p;
+			} else {
+				const uint8_t* p = spip->txptr;
+				ssp->DR = *p++;
+				spip->txptr = p;
+			}
+		} else
+			ssp->DR = 0xFFFFFFFF;
+		n--;
+		spip->txcnt--;
+	}
 }
 
 /**
@@ -84,44 +82,42 @@ static void ssp_fifo_preload(SPIDriver *spip) {
  *
  * @param[in] spip      pointer to the @p SPIDriver object
  */
-static void spi_serve_interrupt(SPIDriver *spip) {
-  LPC_SSPx_Type *ssp = spip->ssp;
+static void spi_serve_interrupt(SPIDriver* spip) {
+	LPC_SSPx_Type* ssp = spip->ssp;
 
-  if ((ssp->MIS & MIS_ROR) != 0) {
-    /* The overflow condition should never happen because priority is given
-       to receive but a hook macro is provided anyway...*/
-    LPC_SPI_SSP_ERROR_HOOK(spip);
-  }
-  ssp->ICR = ICR_RT | ICR_ROR;
-  while ((ssp->SR & SR_RNE) != 0) {
-    if (spip->rxptr != NULL) {
-      if ((ssp->CR0 & CR0_DSSMASK) > CR0_DSS8BIT) {
-        uint16_t *p = spip->rxptr;
-        *p++ = ssp->DR;
-        spip->rxptr = p;
-      }
-      else {
-        uint8_t *p = spip->rxptr;
-        *p++ = ssp->DR;
-        spip->rxptr = p;
-      }
-    }
-    else
-      (void)ssp->DR;
-    if (--spip->rxcnt == 0) {
-      chDbgAssert(spip->txcnt == 0,
-                  "spi_serve_interrupt(), #1", "counter out of synch");
-      /* Stops the IRQ sources.*/
-      ssp->IMSC = 0;
-      /* Portable SPI ISR code defined in the high level driver, note, it is
-         a macro.*/
-      _spi_isr_code(spip);
-      return;
-    }
-  }
-  ssp_fifo_preload(spip);
-  if (spip->txcnt == 0)
-    ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_RX;
+	if ((ssp->MIS & MIS_ROR) != 0) {
+		/* The overflow condition should never happen because priority is given
+			 to receive but a hook macro is provided anyway...*/
+		LPC_SPI_SSP_ERROR_HOOK(spip);
+	}
+	ssp->ICR = ICR_RT | ICR_ROR;
+	while ((ssp->SR & SR_RNE) != 0) {
+		if (spip->rxptr != NULL) {
+			if ((ssp->CR0 & CR0_DSSMASK) > CR0_DSS8BIT) {
+				uint16_t* p = spip->rxptr;
+				*p++ = ssp->DR;
+				spip->rxptr = p;
+			} else {
+				uint8_t* p = spip->rxptr;
+				*p++ = ssp->DR;
+				spip->rxptr = p;
+			}
+		} else
+			(void)ssp->DR;
+		if (--spip->rxcnt == 0) {
+			chDbgAssert(spip->txcnt == 0, "spi_serve_interrupt(), #1",
+									"counter out of synch");
+			/* Stops the IRQ sources.*/
+			ssp->IMSC = 0;
+			/* Portable SPI ISR code defined in the high level driver, note, it is
+				 a macro.*/
+			_spi_isr_code(spip);
+			return;
+		}
+	}
+	ssp_fifo_preload(spip);
+	if (spip->txcnt == 0)
+		ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_RX;
 }
 
 /*===========================================================================*/
@@ -135,12 +131,11 @@ static void spi_serve_interrupt(SPIDriver *spip) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector90) {
+	CH_IRQ_PROLOGUE();
 
-  CH_IRQ_PROLOGUE();
+	spi_serve_interrupt(&SPID1);
 
-  spi_serve_interrupt(&SPID1);
-
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_EPILOGUE();
 }
 #endif
 
@@ -151,12 +146,11 @@ CH_IRQ_HANDLER(Vector90) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector78) {
+	CH_IRQ_PROLOGUE();
 
-  CH_IRQ_PROLOGUE();
+	spi_serve_interrupt(&SPID2);
 
-  spi_serve_interrupt(&SPID2);
-
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_EPILOGUE();
 }
 #endif
 
@@ -170,15 +164,14 @@ CH_IRQ_HANDLER(Vector78) {
  * @notapi
  */
 void spi_lld_init(void) {
-
 #if LPC_SPI_USE_SSP0
-  spiObjectInit(&SPID1);
-  SPID1.ssp = LPC_SSP0;
+	spiObjectInit(&SPID1);
+	SPID1.ssp = LPC_SSP0;
 #endif /* LPC_SPI_USE_SSP0 */
 
 #if LPC_SPI_USE_SSP1
-  spiObjectInit(&SPID2);
-  SPID2.ssp = LPC_SSP1;
+	spiObjectInit(&SPID2);
+	SPID2.ssp = LPC_SSP1;
 #endif /* LPC_SPI_USE_SSP0 */
 }
 
@@ -189,35 +182,34 @@ void spi_lld_init(void) {
  *
  * @notapi
  */
-void spi_lld_start(SPIDriver *spip) {
-
-  if (spip->state == SPI_STOP) {
-    /* Clock activation.*/
+void spi_lld_start(SPIDriver* spip) {
+	if (spip->state == SPI_STOP) {
+		/* Clock activation.*/
 #if LPC_SPI_USE_SSP0
-    if (&SPID1 == spip) {
-      LPC_SYSCON->SSP0CLKDIV = LPC_SPI_SSP0CLKDIV;
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 11);
-      LPC_SYSCON->PRESETCTRL |= 1;
-      nvicEnableVector(SSP0_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SPI_SSP0_IRQ_PRIORITY));
-    }
+		if (&SPID1 == spip) {
+			LPC_SYSCON->SSP0CLKDIV = LPC_SPI_SSP0CLKDIV;
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 11);
+			LPC_SYSCON->PRESETCTRL |= 1;
+			nvicEnableVector(SSP0_IRQn,
+											 CORTEX_PRIORITY_MASK(LPC_SPI_SSP0_IRQ_PRIORITY));
+		}
 #endif
 #if LPC_SPI_USE_SSP1
-    if (&SPID2 == spip) {
-      LPC_SYSCON->SSP1CLKDIV = LPC_SPI_SSP1CLKDIV;
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 18);
-      LPC_SYSCON->PRESETCTRL |= 4;
-      nvicEnableVector(SSP1_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC_SPI_SSP1_IRQ_PRIORITY));
-    }
+		if (&SPID2 == spip) {
+			LPC_SYSCON->SSP1CLKDIV = LPC_SPI_SSP1CLKDIV;
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 18);
+			LPC_SYSCON->PRESETCTRL |= 4;
+			nvicEnableVector(SSP1_IRQn,
+											 CORTEX_PRIORITY_MASK(LPC_SPI_SSP1_IRQ_PRIORITY));
+		}
 #endif
-  }
-  /* Configuration.*/
-  spip->ssp->CR1  = 0;
-  spip->ssp->ICR  = ICR_RT | ICR_ROR;
-  spip->ssp->CR0  = spip->config->cr0;
-  spip->ssp->CPSR = spip->config->cpsr;
-  spip->ssp->CR1  = CR1_SSE;
+	}
+	/* Configuration.*/
+	spip->ssp->CR1 = 0;
+	spip->ssp->ICR = ICR_RT | ICR_ROR;
+	spip->ssp->CR0 = spip->config->cr0;
+	spip->ssp->CPSR = spip->config->cpsr;
+	spip->ssp->CR1 = CR1_SSE;
 }
 
 /**
@@ -227,29 +219,28 @@ void spi_lld_start(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_stop(SPIDriver *spip) {
-
-  if (spip->state != SPI_STOP) {
-    spip->ssp->CR1  = 0;
-    spip->ssp->CR0  = 0;
-    spip->ssp->CPSR = 0;
+void spi_lld_stop(SPIDriver* spip) {
+	if (spip->state != SPI_STOP) {
+		spip->ssp->CR1 = 0;
+		spip->ssp->CR0 = 0;
+		spip->ssp->CPSR = 0;
 #if LPC_SPI_USE_SSP0
-    if (&SPID1 == spip) {
-      LPC_SYSCON->PRESETCTRL &= ~1;
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 11);
-      LPC_SYSCON->SSP0CLKDIV = 0;
-      nvicDisableVector(SSP0_IRQn);
-    }
+		if (&SPID1 == spip) {
+			LPC_SYSCON->PRESETCTRL &= ~1;
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 11);
+			LPC_SYSCON->SSP0CLKDIV = 0;
+			nvicDisableVector(SSP0_IRQn);
+		}
 #endif
 #if LPC_SPI_USE_SSP1
-    if (&SPID2 == spip) {
-      LPC_SYSCON->PRESETCTRL &= ~4;
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 18);
-      LPC_SYSCON->SSP1CLKDIV = 0;
-      nvicDisableVector(SSP1_IRQn);
-    }
+		if (&SPID2 == spip) {
+			LPC_SYSCON->PRESETCTRL &= ~4;
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 18);
+			LPC_SYSCON->SSP1CLKDIV = 0;
+			nvicDisableVector(SSP1_IRQn);
+		}
 #endif
-  }
+	}
 }
 
 /**
@@ -259,9 +250,8 @@ void spi_lld_stop(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_select(SPIDriver *spip) {
-
-  palClearPad(spip->config->ssport, spip->config->sspad);
+void spi_lld_select(SPIDriver* spip) {
+	palClearPad(spip->config->ssport, spip->config->sspad);
 }
 
 /**
@@ -272,9 +262,8 @@ void spi_lld_select(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_unselect(SPIDriver *spip) {
-
-  palSetPad(spip->config->ssport, spip->config->sspad);
+void spi_lld_unselect(SPIDriver* spip) {
+	palSetPad(spip->config->ssport, spip->config->sspad);
 }
 
 /**
@@ -288,13 +277,12 @@ void spi_lld_unselect(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_ignore(SPIDriver *spip, size_t n) {
-
-  spip->rxptr = NULL;
-  spip->txptr = NULL;
-  spip->rxcnt = spip->txcnt = n;
-  ssp_fifo_preload(spip);
-  spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
+void spi_lld_ignore(SPIDriver* spip, size_t n) {
+	spip->rxptr = NULL;
+	spip->txptr = NULL;
+	spip->rxcnt = spip->txcnt = n;
+	ssp_fifo_preload(spip);
+	spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
 }
 
 /**
@@ -312,14 +300,15 @@ void spi_lld_ignore(SPIDriver *spip, size_t n) {
  *
  * @notapi
  */
-void spi_lld_exchange(SPIDriver *spip, size_t n,
-                      const void *txbuf, void *rxbuf) {
-
-  spip->rxptr = rxbuf;
-  spip->txptr = txbuf;
-  spip->rxcnt = spip->txcnt = n;
-  ssp_fifo_preload(spip);
-  spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
+void spi_lld_exchange(SPIDriver* spip,
+											size_t n,
+											const void* txbuf,
+											void* rxbuf) {
+	spip->rxptr = rxbuf;
+	spip->txptr = txbuf;
+	spip->rxcnt = spip->txcnt = n;
+	ssp_fifo_preload(spip);
+	spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
 }
 
 /**
@@ -335,13 +324,12 @@ void spi_lld_exchange(SPIDriver *spip, size_t n,
  *
  * @notapi
  */
-void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf) {
-
-  spip->rxptr = NULL;
-  spip->txptr = txbuf;
-  spip->rxcnt = spip->txcnt = n;
-  ssp_fifo_preload(spip);
-  spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
+void spi_lld_send(SPIDriver* spip, size_t n, const void* txbuf) {
+	spip->rxptr = NULL;
+	spip->txptr = txbuf;
+	spip->rxcnt = spip->txcnt = n;
+	ssp_fifo_preload(spip);
+	spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
 }
 
 /**
@@ -357,13 +345,12 @@ void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf) {
  *
  * @notapi
  */
-void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
-
-  spip->rxptr = rxbuf;
-  spip->txptr = NULL;
-  spip->rxcnt = spip->txcnt = n;
-  ssp_fifo_preload(spip);
-  spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
+void spi_lld_receive(SPIDriver* spip, size_t n, void* rxbuf) {
+	spip->rxptr = rxbuf;
+	spip->txptr = NULL;
+	spip->rxcnt = spip->txcnt = n;
+	ssp_fifo_preload(spip);
+	spip->ssp->IMSC = IMSC_ROR | IMSC_RT | IMSC_TX | IMSC_RX;
 }
 
 /**
@@ -378,12 +365,11 @@ void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
  * @param[in] frame     the data frame to send over the SPI bus
  * @return              The received data frame from the SPI bus.
  */
-uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint16_t frame) {
-
-  spip->ssp->DR = (uint32_t)frame;
-  while ((spip->ssp->SR & SR_RNE) == 0)
-    ;
-  return (uint16_t)spip->ssp->DR;
+uint16_t spi_lld_polled_exchange(SPIDriver* spip, uint16_t frame) {
+	spip->ssp->DR = (uint32_t)frame;
+	while ((spip->ssp->SR & SR_RNE) == 0)
+		;
+	return (uint16_t)spip->ssp->DR;
 }
 
 #endif /* HAL_USE_SPI */

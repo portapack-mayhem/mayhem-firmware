@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -50,25 +50,25 @@
 /**
  * @brief   @p BaseChannel specific methods.
  */
-#define _base_channel_methods                                               \
-  _base_sequential_stream_methods                                           \
-  /* Channel put method with timeout specification.*/                       \
-  msg_t (*putt)(void *instance, uint8_t b, systime_t time);                 \
-  /* Channel get method with timeout specification.*/                       \
-  msg_t (*gett)(void *instance, systime_t time);                            \
-  /* Channel write method with timeout specification.*/                     \
-  size_t (*writet)(void *instance, const uint8_t *bp,                       \
-                   size_t n, systime_t time);                               \
-  /* Channel read method with timeout specification.*/                      \
-  size_t (*readt)(void *instance, uint8_t *bp, size_t n, systime_t time);
+#define _base_channel_methods                                                  \
+	_base_sequential_stream_methods /* Channel put method with timeout           \
+																		 specification.*/                          \
+																			msg_t (*putt)(void* instance, uint8_t b, \
+																										systime_t time);           \
+	/* Channel get method with timeout specification.*/                          \
+	msg_t (*gett)(void* instance, systime_t time);                               \
+	/* Channel write method with timeout specification.*/                        \
+	size_t (*writet)(void* instance, const uint8_t* bp, size_t n,                \
+									 systime_t time);                                            \
+	/* Channel read method with timeout specification.*/                         \
+	size_t (*readt)(void* instance, uint8_t* bp, size_t n, systime_t time);
 
 /**
  * @brief   @p BaseChannel specific data.
  * @note    It is empty because @p BaseChannel is only an interface without
  *          implementation.
  */
-#define _base_channel_data                                                  \
-  _base_sequential_stream_data
+#define _base_channel_data _base_sequential_stream_data
 
 /**
  * @extends BaseSequentialStreamVMT
@@ -76,7 +76,7 @@
  * @brief   @p BaseChannel virtual methods table.
  */
 struct BaseChannelVMT {
-  _base_channel_methods
+	_base_channel_methods
 };
 
 /**
@@ -87,9 +87,9 @@ struct BaseChannelVMT {
  *          introduces generic I/O primitives with timeout specification.
  */
 typedef struct {
-  /** @brief Virtual Methods Table.*/
-  const struct BaseChannelVMT *vmt;
-  _base_channel_data
+	/** @brief Virtual Methods Table.*/
+	const struct BaseChannelVMT* vmt;
+	_base_channel_data
 } BaseChannel;
 
 /**
@@ -212,32 +212,30 @@ typedef struct {
  * @{
  */
 /** @brief No pending conditions.*/
-#define CHN_NO_ERROR            0
+#define CHN_NO_ERROR 0
 /** @brief Connection happened.*/
-#define CHN_CONNECTED           1
+#define CHN_CONNECTED 1
 /** @brief Disconnection happened.*/
-#define CHN_DISCONNECTED        2
+#define CHN_DISCONNECTED 2
 /** @brief Data available in the input queue.*/
-#define CHN_INPUT_AVAILABLE     4
+#define CHN_INPUT_AVAILABLE 4
 /** @brief Output queue empty.*/
-#define CHN_OUTPUT_EMPTY        8
+#define CHN_OUTPUT_EMPTY 8
 /** @brief Transmission end.*/
-#define CHN_TRANSMISSION_END    16
+#define CHN_TRANSMISSION_END 16
 /** @} */
 
 /**
  * @brief   @p BaseAsynchronousChannel specific methods.
  */
-#define _base_asynchronous_channel_methods                                  \
-  _base_channel_methods                                                     \
+#define _base_asynchronous_channel_methods _base_channel_methods
 
 /**
  * @brief   @p BaseAsynchronousChannel specific data.
  */
-#define _base_asynchronous_channel_data                                     \
-  _base_channel_data                                                        \
-  /* I/O condition event source.*/                                          \
-  EventSource           event;
+#define _base_asynchronous_channel_data               \
+	_base_channel_data /* I/O condition event source.*/ \
+			EventSource event;
 
 /**
  * @extends BaseChannelVMT
@@ -245,7 +243,7 @@ typedef struct {
  * @brief   @p BaseAsynchronousChannel virtual methods table.
  */
 struct BaseAsynchronousChannelVMT {
-  _base_asynchronous_channel_methods
+	_base_asynchronous_channel_methods
 };
 
 /**
@@ -256,9 +254,9 @@ struct BaseAsynchronousChannelVMT {
  *          for asynchronous I/O for use in an event-driven environment.
  */
 typedef struct {
-  /** @brief Virtual Methods Table.*/
-  const struct BaseAsynchronousChannelVMT *vmt;
-  _base_asynchronous_channel_data
+	/** @brief Virtual Methods Table.*/
+	const struct BaseAsynchronousChannelVMT* vmt;
+	_base_asynchronous_channel_data
 } BaseAsynchronousChannel;
 
 /**
@@ -289,9 +287,8 @@ typedef struct {
  *
  * @iclass
  */
-#define chnAddFlagsI(ip, flags) {                                           \
-  chEvtBroadcastFlagsI(&(ip)->event, flags);                                \
-}
+#define chnAddFlagsI(ip, flags) \
+	{ chEvtBroadcastFlagsI(&(ip)->event, flags); }
 /** @} */
 
 #endif /* CH_USE_EVENTS */
