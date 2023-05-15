@@ -34,133 +34,6 @@ using namespace portapack;
 
 namespace ui {
 
-	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume )
-	{
-		File settings_file;
-		size_t length, file_position = 0;
-		char * pos;
-		char * line_start;
-		char * line_end;
-		char file_data[257];
-
-		uint32_t it = 0 ;
-		uint32_t nb_params = RECON_SETTINGS_NB_PARAMS ;
-		std::string params[ RECON_SETTINGS_NB_PARAMS ];
-
-		bool check_sd_card = (sd_card::status() == sd_card::Status::Mounted) ? true : false ;
-
-		if( check_sd_card )
-		{
-			auto result = settings_file.open( source );
-			if( !result.is_valid() )
-			{
-				while( it < nb_params )
-				{
-					// Read a 256 bytes block from file
-					settings_file.seek(file_position);
-					memset(file_data, 0, 257);
-					auto read_size = settings_file.read(file_data, 256);
-					if (read_size.is_error())
-						break ;
-					file_position += 256;
-					// Reset line_start to beginning of buffer
-					line_start = file_data;
-					pos=line_start;
-					while ((line_end = strstr(line_start, "\x0A"))) {
-						length = line_end - line_start - 1 ;
-						params[ it ]  = string( pos , length );
-						it ++ ;	
-						line_start = line_end + 1;
-						pos=line_start ;
-						if (line_start - file_data >= 256) 
-							break;
-						if( it >= nb_params )
-							break ;
-					}			
-					if (read_size.value() != 256)
-						break;	// End of file
-
-					// Restart at beginning of last incomplete line
-					file_position -= (file_data + 256 - line_start);
-				}
-			}
-		}
-
-		if( it < nb_params )
-		{
-			/* bad number of params, signal defaults */
-			input_file  = "RECON" ;
-			output_file = "RECON_RESULTS" ;
-			recon_lock_duration = RECON_DEF_LOCK_DURATION ;
-			recon_lock_nb_match = RECON_DEF_NB_MATCH ;
-			recon_squelch_level = -14 ;
-			recon_match_mode = RECON_MATCH_CONTINUOUS ;
-			wait = RECON_DEF_WAIT_DURATION ;
-			volume = 40 ;
-			return false ;
-		}
-
-		if( it > 0 )
-			input_file = params[ 0 ];
-		else
-			input_file  = "RECON" ;
-
-		if( it > 1 )
-			output_file= params[ 1 ];
-		else
-			output_file = "RECON_RESULTS" ;	
-
-		if( it > 2 )
-			recon_lock_duration = strtoll( params[ 2 ].c_str() , nullptr , 10 );
-		else
-			recon_lock_duration = RECON_DEF_LOCK_DURATION ;
-
-		if( it > 3 )
-			recon_lock_nb_match = strtoll( params[ 3 ].c_str() , nullptr , 10 );
-		else
-			recon_lock_nb_match = RECON_DEF_NB_MATCH ;
-
-		if( it > 4 )
-			recon_squelch_level = strtoll( params[ 4 ].c_str() , nullptr , 10 );
-		else
-			recon_squelch_level = -14 ;
-
-		if( it > 5 )
-			recon_match_mode    = strtoll( params[ 5 ].c_str() , nullptr , 10 );
-		else
-			recon_match_mode = RECON_MATCH_CONTINUOUS ;
-
-		if( it > 6 )
-			wait = strtoll( params[ 6 ].c_str() , nullptr , 10 );
-		else
-			wait = RECON_DEF_WAIT_DURATION ;
-
-		if( it > 8 )
-			volume = strtoll( params[ 8 ].c_str() , nullptr , 10 );
-		else
-			volume = 40 ;
-
-		return true ;
-	}
-
-	bool ReconSetupSaveStrings( std::string dest, std::string input_file , std::string output_file , uint32_t recon_lock_duration , uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume )
-	{
-		File settings_file;
-
-		auto result = settings_file.create( dest );
-		if( result.is_valid() )
-			return false ;
-		settings_file.write_line( input_file );
-		settings_file.write_line( output_file );
-		settings_file.write_line( to_string_dec_uint( recon_lock_duration ) );
-		settings_file.write_line( to_string_dec_uint( recon_lock_nb_match ) );
-		settings_file.write_line( to_string_dec_int( recon_squelch_level ) );
-		settings_file.write_line( to_string_dec_uint( recon_match_mode ) );
-		settings_file.write_line( to_string_dec_int( wait ) );
-		settings_file.write_line( to_string_dec_int( volume ) );
-		return true ;
-	}
-
 	ReconSetupViewMain::ReconSetupViewMain( NavigationView &nav , Rect parent_rect , std::string input_file , std::string output_file ) : View( parent_rect ) , _input_file { input_file } , _output_file { output_file } 
 	{
 		hidden(true);
@@ -180,8 +53,8 @@ namespace ui {
 		checkbox_continuous.set_value( persistent_memory::recon_continuous() );
 		checkbox_clear_output.set_value( persistent_memory::recon_clear_output() );
 
-		text_input_file.set( _input_file );	
-		button_output_file.set_text( _output_file );	
+		text_input_file.set( _input_file );
+		button_output_file.set_text( _output_file );
 
 		button_load_freqs.on_select = [this, &nav](Button&) {
 			auto open_view = nav.push<FileLoadView>(".TXT");
@@ -205,7 +78,7 @@ namespace ui {
 				std::string str_file_path = new_file_path.string();
 				if (str_file_path.find(dir_filter) != string::npos) { // assert file from the FREQMAN folder
 					_output_file = new_file_path.stem().string();
-					button_output_file.set_text( _output_file );	
+					button_output_file.set_text( _output_file );
 				} else {
 					nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
 				}

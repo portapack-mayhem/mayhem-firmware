@@ -49,37 +49,37 @@ namespace ui {
 
 			void focus() override;
 
-			const Style style_grey {		// recon
+			const Style style_grey { // recon
 				.font = font::fixed_8x16,
 					.background = Color::black(),
 					.foreground = Color::grey(),
 			};
 
-			const Style style_white {		// recon
+			const Style style_white { // recon
 				.font = font::fixed_8x16,
 					.background = Color::black(),
 					.foreground = Color::white(),
 			};
 
-			const Style style_yellow {		//Found signal
+			const Style style_yellow { //found signal
 				.font = font::fixed_8x16,
 					.background = Color::black(),
 					.foreground = Color::yellow(),
 			};
 
-			const Style style_green {		//Found signal
+			const Style style_green { //Found signal
 				.font = font::fixed_8x16,
 					.background = Color::black(),
 					.foreground = Color::green(),
 			};
 
-			const Style style_red {		//erasing freq
+			const Style style_red { //erasing freq
 				.font = font::fixed_8x16,
 					.background = Color::black(),
 					.foreground = Color::red(),
 			};
 
-			const Style style_blue {		// quick recon, wait == 0
+			const Style style_blue { // quick recon, wait == 0
 				.font = font::fixed_8x16,
 					.background = Color::black(),
 					.foreground = Color::blue(),
@@ -92,7 +92,7 @@ namespace ui {
 		private:
 			NavigationView& nav_;
 
-            void audio_output_start();
+			void audio_output_start();
 			bool check_sd_card();
 			size_t change_mode( freqman_index_t mod_type);
 			void show_max( bool refresh_display = false );
@@ -106,6 +106,9 @@ namespace ui {
 			void recon_redraw();
 			void handle_retune();
 			void handle_coded_squelch(const uint32_t value);
+			bool ReconSetupLoadStrings( const std::string &source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume );
+			bool ReconSetupSaveStrings( const std::string &dest, const std::string &input_file , const std::string &output_file , uint32_t recon_lock_duration , uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume );
+			bool ReconSaveFreq( const std::string &freq_file_path , size_t index , bool warn_if_exists );
 
 			jammer::jammer_range_t frequency_range { false, 0, MAX_UFREQ };  //perfect for manual recon task too...
 			int32_t squelch { 0 };
@@ -127,16 +130,16 @@ namespace ui {
 			bool load_hamradios = { true };
 			bool update_ranges = { true };
 			bool fwd = { true };
-            bool recon = true ;
+			bool recon = true ;
 			uint32_t recon_lock_nb_match = { 3 };
-			uint32_t recon_lock_duration = { RECON_DEF_LOCK_DURATION };
+			uint32_t recon_lock_duration = { RECON_MIN_LOCK_DURATION };
 			uint32_t recon_match_mode = { RECON_MATCH_CONTINUOUS };
 			bool scanner_mode { false };
 			bool manual_mode { false };
 			bool sd_card_mounted = false ;
 			int32_t volume = 40 ;
-            int32_t stepper = 0 ;
-            int32_t index_stepper = 0 ;
+			int32_t stepper = 0 ;
+			int32_t index_stepper = 0 ;
 			int64_t freq = 0 ;
 			uint32_t step = 0 ;
 			freqman_index_t def_modulation  = 0 ;
@@ -146,9 +149,22 @@ namespace ui {
 			freqman_entry last_entry = { } ;
 			bool entry_has_changed = false ;
 			uint32_t freq_lock { 0 };
-            int64_t minfreq = 0 ;
+			int64_t minfreq = 0 ;
 			int64_t maxfreq = 0 ;
 			bool has_looped = false ;
+			int8_t status = -1 ; // 0 recon , 1 locking , 2 locked
+			int32_t last_timer = -1 ;
+			int8_t last_db = -127 ;
+			uint16_t last_nb_match = 999 ;
+			uint16_t last_freq_lock = 999 ;
+			size_t last_list_size = 0 ;
+			int8_t last_rssi_min = -127 ;
+			int8_t last_rssi_med = -127 ;
+			int8_t last_rssi_max = -127 ;
+			int32_t last_index = -1 ;
+			int32_t last_squelch_index = -1 ;
+			int64_t last_freq = 0 ;
+			std::string freq_file_path = { } ;
 
 			Labels labels 
 			{ 
@@ -183,7 +199,7 @@ namespace ui {
 				{ 3 * 8, 1 * 16 },
 					6,
 					{ }
-			};		
+			};
 
 			NumberField field_squelch {
 				{ 12 * 8, 1 * 16 },
@@ -196,7 +212,7 @@ namespace ui {
 			NumberField field_wait {
 				{ 20 * 8, 1 * 16 },
 					5,
-					{ -(10000-STATS_UPDATE_INTERVAL) , (10000-STATS_UPDATE_INTERVAL) },
+					{ -RECON_MAX_LOCK_DURATION , RECON_MAX_LOCK_DURATION },
 					STATS_UPDATE_INTERVAL,
 					' ',
 			};
@@ -204,8 +220,8 @@ namespace ui {
 			NumberField field_lock_wait {
 				{ 26 * 8, 1 * 16 },
 					4,
-					{ RECON_DEF_LOCK_DURATION , (10000-RECON_DEF_LOCK_DURATION) },
-					RECON_DEF_LOCK_DURATION,
+					{ RECON_MIN_LOCK_DURATION , RECON_MAX_LOCK_DURATION },
+					STATS_UPDATE_INTERVAL,
 					' ',
 			};
 
@@ -223,24 +239,19 @@ namespace ui {
 			};
 
 			Text desc_cycle {
-				{0, 4 * 16, SCREEN_W , 16 },	   
+				{0, 4 * 16, SCREEN_W , 16 },   
 			};
 
-			/* BigFrequency big_display {		//Show frequency in glamour
-			   { 4, 7 * 16 - 8 , 28 * 8, 52 },
-			   0
-			   }; */
-
-			Text big_display {		//Show frequency in text mode
+			Text big_display { //Show frequency in text mode
 				{ 0, 5 * 16 , 23 * 8, 16 },
 			};
 
-			Text freq_stats {		//Show frequency stats in text mode
+			Text freq_stats { //Show frequency stats in text mode
 				{ 0, 6 * 16 , 23 * 8, 16 },
 			};
 
 			// TIMER: 9999
-			Text text_timer {		//Show frequency stats in text mode
+			Text text_timer { //Show frequency stats in text mode
 				{ 0, 7 * 16 , 11 * 8, 16 },
 			};
 
@@ -266,7 +277,7 @@ namespace ui {
 					"RECON"
 			};
 
-			Text file_name {		//Show file used
+			Text file_name { //show file used
 				{ 0 , 8 * 16 + 6 , SCREEN_W - 7 * 8, 16 },
 			};
 
@@ -351,7 +362,7 @@ namespace ui {
 					}
 			};
 			// app save settings
-			std::app_settings settings { }; 		
+			std::app_settings settings { }; 
 			std::app_settings::AppSettings app_settings { };
 	};
 
