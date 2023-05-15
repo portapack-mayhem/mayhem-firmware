@@ -28,18 +28,14 @@ namespace ui {
 
 /* BtnGridView **************************************************************/
 
-BtnGridView::BtnGridView(
-	Rect new_parent_rect,
-	bool keep_highlight
-) : keep_highlight { keep_highlight }
-{
+BtnGridView::BtnGridView(Rect new_parent_rect, bool keep_highlight)
+		: keep_highlight{keep_highlight} {
 	set_parent_rect(new_parent_rect);
 
 	set_focusable(true);
 
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
+	signal_token_tick_second = rtc_time::signal_tick_second +=
+			[this]() { this->on_tick_second(); };
 
 	add_child(&arrow_more);
 	arrow_more.set_focusable(false);
@@ -66,12 +62,11 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
 
 	displayed_max = (parent_rect().size().height() / button_h);
-	arrow_more.set_parent_rect( { 228, (Coord)(displayed_max * button_h), 8, 8 } );
+	arrow_more.set_parent_rect({228, (Coord)(displayed_max * button_h), 8, 8});
 	displayed_max *= rows_;
 
 	// TODO: Clean this up :(
 	if (menu_item_views.size()) {
-
 		for (auto item : menu_item_views) {
 			remove_child(item);
 			delete item;
@@ -81,25 +76,21 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
 
 	button_w = 240 / rows_;
 	for (size_t c = 0; c < displayed_max; c++) {
-		auto item = new NewButton {  };
+		auto item = new NewButton{};
 		menu_item_views.push_back(item);
 		add_child(item);
 
-		item->set_parent_rect({
-			(int)(c % rows_) * button_w,
-			(int)(c / rows_) * button_h,
-			button_w, button_h
-		});
+		item->set_parent_rect({(int)(c % rows_) * button_w,
+													 (int)(c / rows_) * button_h, button_w, button_h});
 	}
 
 	update_items();
 }
 
 void BtnGridView::set_arrow_enabled(bool new_value) {
-	if(new_value){
+	if (new_value) {
 		add_child(&arrow_more);
-	}
-	else{
+	} else {
 		remove_child(&arrow_more);
 	}
 };
@@ -140,10 +131,9 @@ void BtnGridView::update_items() {
 			item->hidden(true);
 			item->set_text(" ");
 			item->set_bitmap(nullptr);
-			item->on_select = [](){};
+			item->on_select = []() {};
 			item->set_dirty();
-		}
-		else {
+		} else {
 			// Assign item data to NewButtons according to offset
 			item->hidden(false);
 			item->set_text(menu_items[i + offset].text);
@@ -170,7 +160,8 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
 	if (new_value >= item_count)
 		new_value = item_count - 1;
 
-	if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
+	if (((uint32_t)new_value > offset) &&
+			((new_value - offset) >= displayed_max)) {
 		// Shift BtnGridView up
 		highlighted_item = new_value;
 		offset = new_value - displayed_max + rows_;
@@ -209,27 +200,27 @@ void BtnGridView::on_blur() {
 }
 
 bool BtnGridView::on_key(const KeyEvent key) {
-	switch(key) {
-	case KeyEvent::Up:
-		return set_highlighted(highlighted_item - rows_);
+	switch (key) {
+		case KeyEvent::Up:
+			return set_highlighted(highlighted_item - rows_);
 
-	case KeyEvent::Down:
-		return set_highlighted(highlighted_item + rows_);
+		case KeyEvent::Down:
+			return set_highlighted(highlighted_item + rows_);
 
-	case KeyEvent::Right:
-		return set_highlighted(highlighted_item + 1);
+		case KeyEvent::Right:
+			return set_highlighted(highlighted_item + 1);
 
-	case KeyEvent::Left:
-		return set_highlighted(highlighted_item - 1);
+		case KeyEvent::Left:
+			return set_highlighted(highlighted_item - 1);
 
-	case KeyEvent::Select:
-		if( menu_items[highlighted_item].on_select ) {
-			menu_items[highlighted_item].on_select();
-		}
-		return true;
+		case KeyEvent::Select:
+			if (menu_items[highlighted_item].on_select) {
+				menu_items[highlighted_item].on_select();
+			}
+			return true;
 
-	default:
-		return false;
+		default:
+			return false;
 	}
 }
 

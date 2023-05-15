@@ -25,8 +25,8 @@
 
 #include "utility.hpp"
 
-#include "hackrf_hal.hpp"
 #include "hackrf_gpio.hpp"
+#include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
 #include "hal.h"
@@ -37,7 +37,8 @@ namespace rffc507x {
  * of the processor and GPIO probably produce at least 20ns pulse width.
  */
 constexpr float seconds_during_reset = 1.0e-6;
-constexpr halrtcnt_t ticks_during_reset = (base_m4_clk_f * seconds_during_reset + 1);
+constexpr halrtcnt_t ticks_during_reset =
+		(base_m4_clk_f * seconds_during_reset + 1);
 
 /* Empirical testing indicates >3.5us delay required after reset, before
  * registers can be reliably written. Make it 5us, just for fun. Tests were
@@ -45,13 +46,14 @@ constexpr halrtcnt_t ticks_during_reset = (base_m4_clk_f * seconds_during_reset 
  * temperature minimum delay of 2.9us to the requirement above.
  */
 constexpr float seconds_after_reset = 5.0e-6;
-constexpr halrtcnt_t ticks_after_reset = (base_m4_clk_f * seconds_after_reset + 1);
+constexpr halrtcnt_t ticks_after_reset =
+		(base_m4_clk_f * seconds_after_reset + 1);
 
 constexpr auto reference_frequency = rffc5072_reference_f;
 
 namespace vco {
 
-constexpr rf::FrequencyRange range { 2700000000, 5400000000 };
+constexpr rf::FrequencyRange range{2700000000, 5400000000};
 
 } /* namespace vco */
 
@@ -63,7 +65,8 @@ constexpr size_t divider_log2_max = 5;
 constexpr size_t divider_min = 1U << divider_log2_min;
 constexpr size_t divider_max = 1U << divider_log2_max;
 
-constexpr rf::FrequencyRange range { vco::range.minimum / divider_max, vco::range.maximum / divider_min };
+constexpr rf::FrequencyRange range{vco::range.minimum / divider_max,
+																	 vco::range.maximum / divider_min};
 
 size_t divider_log2(const rf::Frequency lo_frequency) {
 	/* TODO: Error */
@@ -75,7 +78,7 @@ size_t divider_log2(const rf::Frequency lo_frequency) {
 	/* Compute LO divider. */
 	auto lo_divider_log2 = lo::divider_log2_min;
 	auto vco_frequency = lo_frequency;
-	while( vco::range.below_range(vco_frequency) ) {
+	while (vco::range.below_range(vco_frequency)) {
 		vco_frequency <<= 1;
 		lo_divider_log2 += 1;
 	}
@@ -97,9 +100,8 @@ constexpr size_t divider_max = 1U << divider_log2_max;
 
 constexpr size_t divider_log2(const rf::Frequency vco_frequency) {
 	return (vco_frequency > (prescaler::divider_min * prescaler::max_frequency))
-		? prescaler::divider_log2_max
-		: prescaler::divider_log2_min
-		;
+						 ? prescaler::divider_log2_max
+						 : prescaler::divider_log2_min;
 }
 
 } /* namespace prescaler */
@@ -109,9 +111,7 @@ struct SynthConfig {
 	const size_t prescaler_divider_log2;
 	const uint64_t n_divider_q24;
 
-	static SynthConfig calculate(
-		const rf::Frequency lo_frequency
-	) {
+	static SynthConfig calculate(const rf::Frequency lo_frequency) {
 		/* RFFC507x frequency synthesizer is is accurate to about 2ppb (two parts
 		 * per BILLION). There's not much point to worrying about rounding and
 		 * tuning error, when it amounts to 8Hz at 5GHz!
@@ -121,15 +121,17 @@ struct SynthConfig {
 
 		const rf::Frequency vco_frequency = lo_frequency * lo_divider;
 
-		const size_t prescaler_divider_log2 = prescaler::divider_log2(vco_frequency);
+		const size_t prescaler_divider_log2 =
+				prescaler::divider_log2(vco_frequency);
 
-		const uint64_t prescaled_lo_q24 = vco_frequency << (24 - prescaler_divider_log2);
+		const uint64_t prescaled_lo_q24 = vco_frequency
+																			<< (24 - prescaler_divider_log2);
 		const uint64_t n_divider_q24 = prescaled_lo_q24 / reference_frequency;
 
 		return {
-			lo_divider_log2,
-			prescaler_divider_log2,
-			n_divider_q24,
+				lo_divider_log2,
+				prescaler_divider_log2,
+				n_divider_q24,
 		};
 	}
 };
@@ -167,9 +169,9 @@ void RFFC507x::reset() {
 }
 
 void RFFC507x::flush() {
-	if( _dirty ) {
-		for(size_t i=0; i<_map.w.size(); i++) {
-			if( _dirty[i] ) {
+	if (_dirty) {
+		for (size_t i = 0; i < _map.w.size(); i++) {
+			if (_dirty[i]) {
 				write(i, _map.w[i]);
 			}
 		}
@@ -238,7 +240,7 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
 	/* Boost charge pump leakage if VCO frequency > 3.2GHz, indicated by
 	 * prescaler divider set to 4 (log2=2) instead of 2 (log2=1).
 	 */
-	if( synth_config.prescaler_divider_log2 == 2 ) {
+	if (synth_config.prescaler_divider_log2 == 2) {
 		_map.r.lf.pllcpl = 3;
 	} else {
 		_map.r.lf.pllcpl = 2;
@@ -257,7 +259,7 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
 }
 
 void RFFC507x::set_gpo1(const bool new_value) {
-	if( new_value ) {
+	if (new_value) {
 		_map.r.gpo.p2gpo |= 1;
 		_map.r.gpo.p1gpo |= 1;
 	} else {
