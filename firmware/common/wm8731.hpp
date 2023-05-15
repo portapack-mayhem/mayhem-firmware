@@ -350,8 +350,8 @@ class WM8731 : public audio::Codec {
 	void microphone_enable(int8_t wm8731_boost_GUI) override {
 		microphone_mute(
 				true);	// c/m to reduce "plop noise" when changing wm8731_boost_GUI.
-		// chThdSleepMilliseconds(20);  					// does not help to reduce the "plop
-		// noise"
+		// chThdSleepMilliseconds(20);  					// does not help to reduce the
+		// "plop noise"
 		microphone_boost(
 				(wm8731_boost_GUI < 2)
 						? 1
@@ -361,7 +361,7 @@ class WM8731 : public audio::Codec {
 							 // msegs trade off speed .
 		microphone_mute(false);
 		//	(void)alc_mode; 		In prev. fw version ,  when we did not use at all
-		//param., to avoid "unused warning" when compiling.)
+		// param., to avoid "unused warning" when compiling.)
 	}
 
 	void microphone_disable() override {
