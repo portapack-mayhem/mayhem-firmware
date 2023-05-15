@@ -45,22 +45,6 @@ std::string truncate(const fs::path& path, size_t max_length) {
 	return ::truncate(path.string(), max_length);
 }
 
-// Gets a human readable file size string.
-std::string get_pretty_size(uint32_t file_size) {
-	static const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
-	size_t suffix_index = 0;
-	
-	while (file_size >= 1024) {
-		file_size /= 1024;
-		suffix_index++;
-	}
-
-	if (suffix_index > 4)
-		suffix_index = 4;
-	
-	return to_string_dec_uint(file_size) + suffix[suffix_index];
-}
-
 // Case insensitive path equality on underlying "native" string.
 bool iequal(
 	const fs::path& lhs,
@@ -290,7 +274,7 @@ void FileManBaseView::refresh_list() {
 	
 		} else {
 			const auto& assoc = get_assoc(entry.path.extension());
-			auto size_str = get_pretty_size(entry.size);
+			auto size_str = to_string_file_size(entry.size);
 			
 			menu_view.add_item({
 				entry_name + std::string(21 - entry_name.length(), ' ') + size_str,

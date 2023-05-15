@@ -56,6 +56,9 @@ std::string to_string_datetime(const rtc::RTC& value, const TimeFormat format = 
 std::string to_string_timestamp(const rtc::RTC& value);
 std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 
+// Gets a human readable file size string.
+std::string to_string_file_size(uint32_t file_size);
+
 std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision);
 double get_decimals(double num, int16_t mult,  bool round = false); //euquiq added
 

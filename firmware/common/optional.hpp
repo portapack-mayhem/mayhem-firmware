@@ -32,7 +32,7 @@ public:
 	constexpr Optional(T&& value) : value_ { std::move(value) }, valid_ { true } { };
 
 	bool is_valid() const { return valid_; };
-	T value() const { return value_; };
+	const T& value() const { return value_; };
 
 private:
 	T value_;
