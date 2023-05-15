@@ -35,7 +35,7 @@
 
 // 1Mhz helper
 #ifdef OneMHz
-    #undef OneMHz
+#undef OneMHz
 #endif
 #define OneMHz 1000000
 
@@ -43,12 +43,15 @@
 #define RECON_MATCH_CONTINUOUS 0
 #define RECON_MATCH_SPARSE 1
 
-// statistics update interval (change here if it's evolving) in ms
+// statistics update interval in ms (change here if the statistics API is changing it's pace)
 #define STATS_UPDATE_INTERVAL 100
+
+// maximum lock duration
+#define RECON_MAX_LOCK_DURATION 9900
 
 // default number of match to have a lock
 #define RECON_DEF_NB_MATCH 3
-#define RECON_DEF_LOCK_DURATION 100  // have to be >= and a multiple of STATS_UPDATE_INTERVAL
+#define RECON_MIN_LOCK_DURATION 100  // have to be >= and a multiple of STATS_UPDATE_INTERVAL
 #define RECON_DEF_WAIT_DURATION 1000 // will be incremented/decremented by STATS_UPDATE_INTERVAL steps
 
 // screen size helper
@@ -59,9 +62,6 @@
 #define RECON_SETTINGS_NB_PARAMS 8
 
 namespace ui {
-
-	bool ReconSetupLoadStrings( std::string source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume );
-	bool ReconSetupSaveStrings( std::string dest, const std::string input_file , const std::string output_file , const uint32_t recon_lock_duration , const uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume );
 
 	class ReconSetupViewMain : public View {
 		public:
@@ -88,7 +88,7 @@ namespace ui {
 			};
 			Button button_output_file {
 				{ 1 * 8 , 5 * 16 - 2, 18 * 8, 22 },  
-					"RECON_RESULTS"	
+					"RECON_RESULTS"
 			};
 
 			Checkbox checkbox_autosave_freqs {
@@ -117,7 +117,7 @@ namespace ui {
 
 	class ReconSetupViewMore : public View {
 		public:
-			ReconSetupViewMore( NavigationView& nav, Rect parent_rect , const uint32_t _recon_lock_duration , const uint32_t _recon_lock_nb_match , const uint32_t _recon_match_mode );
+			ReconSetupViewMore( NavigationView& nav, Rect parent_rect , uint32_t _recon_lock_duration , uint32_t _recon_lock_nb_match , uint32_t _recon_match_mode );
 
 			void Save( uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , uint32_t &recon_match_mode );
 
@@ -125,9 +125,9 @@ namespace ui {
 
 		private:
 
-			const uint32_t _recon_lock_duration = STATS_UPDATE_INTERVAL ;
-			const uint32_t _recon_lock_nb_match = RECON_DEF_NB_MATCH ;
-			const uint32_t _recon_match_mode = RECON_MATCH_CONTINUOUS ;
+			uint32_t _recon_lock_duration = STATS_UPDATE_INTERVAL ;
+			uint32_t _recon_lock_nb_match = RECON_DEF_NB_MATCH ;
+			uint32_t _recon_match_mode = RECON_MATCH_CONTINUOUS ;
 
 			Checkbox checkbox_load_freqs {
 				{ 1 * 8, 12 },
@@ -159,10 +159,10 @@ namespace ui {
 			NumberField field_recon_lock_duration {
 				{ 1 * 8, 132 },             // position X , Y
 					4,                      // number of displayed digits (even empty)
-					{ STATS_UPDATE_INTERVAL , 10000-STATS_UPDATE_INTERVAL },           // range of number
-					STATS_UPDATE_INTERVAL,                     // rotary encoder increment
-					' ',                    // filling character 
-					false                   // can loop
+					{ -RECON_MAX_LOCK_DURATION , RECON_MAX_LOCK_DURATION }, // range of number
+					STATS_UPDATE_INTERVAL,                                  // rotary encoder increment
+					' ',                                                    // filling character 
+					false                                                   // can loop
 			};
 			Text text_recon_lock_nb {
 				{ 1 * 8 , 162 , 25 * 8 , 22 },  
@@ -189,7 +189,7 @@ namespace ui {
 
 	class ReconSetupView : public View {
 		public:
-			ReconSetupView( NavigationView& nav , std::string _input_file , std::string _output_file , const uint32_t _recon_lock_duration , const uint32_t _recon_lock_nb_match , const uint32_t _recon_match_mode );
+			ReconSetupView( NavigationView& nav , std::string _input_file , std::string _output_file , uint32_t _recon_lock_duration , uint32_t _recon_lock_nb_match , uint32_t _recon_match_mode );
 
 			std::function<void( std::vector<std::string> messages )> on_changed { };
 
