@@ -27,19 +27,14 @@
 
 namespace dsp {
 
-GoertzelDetector::GoertzelDetector(
-	const float frequency,
-	const uint32_t sample_rate
-) {
+GoertzelDetector::GoertzelDetector(const float frequency,
+																	 const uint32_t sample_rate) {
 	coefficient = 2.0 * sin_f32((2.0 * pi * frequency / sample_rate) - pi / 2.0);
 }
 
-float GoertzelDetector::execute(
-	const buffer_s16_t& src
-) {
-
+float GoertzelDetector::execute(const buffer_s16_t& src) {
 	const size_t count = src.count;
-	
+
 	for (size_t i = 0; i < count; i++) {
 		s[2] = s[1];
 		s[1] = s[0];

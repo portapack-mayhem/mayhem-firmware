@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -64,10 +64,9 @@ SPIDriver SPID1;
  * @notapi
  */
 void spi_lld_init(void) {
-
 #if PLATFORM_SPI_USE_SPI1
-  /* Driver initialization.*/
-  spiObjectInit(&SPID1);
+	/* Driver initialization.*/
+	spiObjectInit(&SPID1);
 #endif /* PLATFORM_SPI_USE_SPI1 */
 }
 
@@ -78,18 +77,15 @@ void spi_lld_init(void) {
  *
  * @notapi
  */
-void spi_lld_start(SPIDriver *spip) {
-
-  if (spip->state == SPI_STOP) {
-    /* Enables the peripheral.*/
+void spi_lld_start(SPIDriver* spip) {
+	if (spip->state == SPI_STOP) {
+		/* Enables the peripheral.*/
 #if PLATFORM_SPI_USE_SPI1
-    if (&SPID1 == spip) {
-
-    }
+		if (&SPID1 == spip) {
+		}
 #endif /* PLATFORM_SPI_USE_SPI1 */
-  }
-  /* Configures the peripheral.*/
-
+	}
+	/* Configures the peripheral.*/
 }
 
 /**
@@ -99,18 +95,16 @@ void spi_lld_start(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_stop(SPIDriver *spip) {
+void spi_lld_stop(SPIDriver* spip) {
+	if (spip->state == SPI_READY) {
+		/* Resets the peripheral.*/
 
-  if (spip->state == SPI_READY) {
-    /* Resets the peripheral.*/
-
-    /* Disables the peripheral.*/
+		/* Disables the peripheral.*/
 #if PLATFORM_SPI_USE_SPI1
-    if (&SPID1 == spip) {
-
-    }
+		if (&SPID1 == spip) {
+		}
 #endif /* PLATFORM_SPI_USE_SPI1 */
-  }
+	}
 }
 
 /**
@@ -120,10 +114,8 @@ void spi_lld_stop(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_select(SPIDriver *spip) {
-
-  (void)spip;
-
+void spi_lld_select(SPIDriver* spip) {
+	(void)spip;
 }
 
 /**
@@ -134,10 +126,8 @@ void spi_lld_select(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_unselect(SPIDriver *spip) {
-
-  (void)spip;
-
+void spi_lld_unselect(SPIDriver* spip) {
+	(void)spip;
 }
 
 /**
@@ -151,11 +141,9 @@ void spi_lld_unselect(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_ignore(SPIDriver *spip, size_t n) {
-
-  (void)spip;
-  (void)n;
-
+void spi_lld_ignore(SPIDriver* spip, size_t n) {
+	(void)spip;
+	(void)n;
 }
 
 /**
@@ -173,14 +161,14 @@ void spi_lld_ignore(SPIDriver *spip, size_t n) {
  *
  * @notapi
  */
-void spi_lld_exchange(SPIDriver *spip, size_t n,
-                      const void *txbuf, void *rxbuf) {
-
-  (void)spip;
-  (void)n;
-  (void)txbuf;
-  (void)rxbuf;
-
+void spi_lld_exchange(SPIDriver* spip,
+											size_t n,
+											const void* txbuf,
+											void* rxbuf) {
+	(void)spip;
+	(void)n;
+	(void)txbuf;
+	(void)rxbuf;
 }
 
 /**
@@ -196,12 +184,10 @@ void spi_lld_exchange(SPIDriver *spip, size_t n,
  *
  * @notapi
  */
-void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf) {
-
-  (void)spip;
-  (void)n;
-  (void)txbuf;
-
+void spi_lld_send(SPIDriver* spip, size_t n, const void* txbuf) {
+	(void)spip;
+	(void)n;
+	(void)txbuf;
 }
 
 /**
@@ -217,12 +203,10 @@ void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf) {
  *
  * @notapi
  */
-void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
-
-  (void)spip;
-  (void)n;
-  (void)rxbuf;
-
+void spi_lld_receive(SPIDriver* spip, size_t n, void* rxbuf) {
+	(void)spip;
+	(void)n;
+	(void)rxbuf;
 }
 
 /**
@@ -237,12 +221,11 @@ void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
  * @param[in] frame     the data frame to send over the SPI bus
  * @return              The received data frame from the SPI bus.
  */
-uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint16_t frame) {
+uint16_t spi_lld_polled_exchange(SPIDriver* spip, uint16_t frame) {
+	(void)spip;
+	(void)frame;
 
-  (void)spip;
-  (void)frame;
-
-  return 0;
+	return 0;
 }
 
 #endif /* HAL_USE_SPI */

@@ -4,20 +4,20 @@
  * Copyright (c) 2006, Atmel Corporation
 
  * All rights reserved.
- * 
+ *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
- * 
+ *
  * - Redistributions of source code must retain the above copyright notice,
  * this list of conditions and the disclaiimer below.
- * 
+ *
  * - Redistributions in binary form must reproduce the above copyright notice,
  * this list of conditions and the disclaimer below in the documentation and/or
- * other materials provided with the distribution. 
- * 
+ * other materials provided with the distribution.
+ *
  * Atmel's name may not be used to endorse or promote products derived from
- * this software without specific prior written permission. 
- * 
+ * this software without specific prior written permission.
+ *
  * DISCLAIMER: THIS SOFTWARE IS PROVIDED BY ATMEL "AS IS" AND ANY EXPRESS OR
  * IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NON-INFRINGEMENT ARE
@@ -50,35 +50,31 @@
 /// \param handler  Interrupt handler function.
 //------------------------------------------------------------------------------
 void AIC_ConfigureIT(unsigned int source,
-                            unsigned int mode,
-                            void (*handler)( void ))
-{
-    // Disable the interrupt first
-    AT91C_BASE_AIC->AIC_IDCR = 1 << source;
+										 unsigned int mode,
+										 void (*handler)(void)) {
+	// Disable the interrupt first
+	AT91C_BASE_AIC->AIC_IDCR = 1 << source;
 
-    // Configure mode and handler
-    AT91C_BASE_AIC->AIC_SMR[source] = mode;
-    AT91C_BASE_AIC->AIC_SVR[source] = (unsigned int) handler;
+	// Configure mode and handler
+	AT91C_BASE_AIC->AIC_SMR[source] = mode;
+	AT91C_BASE_AIC->AIC_SVR[source] = (unsigned int)handler;
 
-    // Clear interrupt
-    AT91C_BASE_AIC->AIC_ICCR = 1 << source;
+	// Clear interrupt
+	AT91C_BASE_AIC->AIC_ICCR = 1 << source;
 }
 
 //------------------------------------------------------------------------------
 /// Enables interrupts coming from the given (unique) source.
 /// \param source  Interrupt source to enable.
 //------------------------------------------------------------------------------
-void AIC_EnableIT(unsigned int source)
-{
-    AT91C_BASE_AIC->AIC_IECR = 1 << source;
+void AIC_EnableIT(unsigned int source) {
+	AT91C_BASE_AIC->AIC_IECR = 1 << source;
 }
 
 //------------------------------------------------------------------------------
 /// Disables interrupts coming from the given (unique) source.
 /// \param source  Interrupt source to enable.
 //------------------------------------------------------------------------------
-void AIC_DisableIT(unsigned int source)
-{
-    AT91C_BASE_AIC->AIC_IDCR = 1 << source;
+void AIC_DisableIT(unsigned int source) {
+	AT91C_BASE_AIC->AIC_IDCR = 1 << source;
 }
-

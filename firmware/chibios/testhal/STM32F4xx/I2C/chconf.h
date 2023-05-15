@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -29,7 +29,7 @@
 #define _CHCONF_H_
 
 //#define CORTEX_VTOR_INIT       0x000E0000
-#define CORTEX_VTOR_INIT  0x00000000
+#define CORTEX_VTOR_INIT 0x00000000
 
 /*===========================================================================*/
 /* Kernel parameters.                                                        */
@@ -41,7 +41,7 @@
  *          setting also defines the system tick time unit.
  */
 #if !defined(CH_FREQUENCY) || defined(__DOXYGEN__)
-#define CH_FREQUENCY                    1000
+#define CH_FREQUENCY 1000
 #endif
 
 /**
@@ -56,7 +56,7 @@
  *          and generally faster.
  */
 #if !defined(CH_TIME_QUANTUM) || defined(__DOXYGEN__)
-#define CH_TIME_QUANTUM                 0//20
+#define CH_TIME_QUANTUM 0	 // 20
 #endif
 
 /**
@@ -71,7 +71,7 @@
  * @note    Requires @p CH_USE_MEMCORE.
  */
 #if !defined(CH_MEMCORE_SIZE) || defined(__DOXYGEN__)
-#define CH_MEMCORE_SIZE                 0
+#define CH_MEMCORE_SIZE 0
 #endif
 
 /**
@@ -88,7 +88,7 @@
  *          enter a sleep state.
  */
 #if !defined(CH_NO_IDLE_THREAD) || defined(__DOXYGEN__)
-#define CH_NO_IDLE_THREAD               FALSE
+#define CH_NO_IDLE_THREAD FALSE
 #endif
 
 /*===========================================================================*/
@@ -104,7 +104,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_OPTIMIZE_SPEED) || defined(__DOXYGEN__)
-#define CH_OPTIMIZE_SPEED               FALSE
+#define CH_OPTIMIZE_SPEED FALSE
 #endif
 
 /*===========================================================================*/
@@ -118,7 +118,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_REGISTRY) || defined(__DOXYGEN__)
-#define CH_USE_REGISTRY                 TRUE
+#define CH_USE_REGISTRY TRUE
 #endif
 
 /**
@@ -129,7 +129,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_WAITEXIT) || defined(__DOXYGEN__)
-#define CH_USE_WAITEXIT                 TRUE
+#define CH_USE_WAITEXIT TRUE
 #endif
 
 /**
@@ -139,7 +139,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_SEMAPHORES) || defined(__DOXYGEN__)
-#define CH_USE_SEMAPHORES               TRUE
+#define CH_USE_SEMAPHORES TRUE
 #endif
 
 /**
@@ -147,11 +147,12 @@
  * @details If enabled then the threads are enqueued on semaphores by
  *          priority rather than in FIFO order.
  *
- * @note    The default is @p FALSE. Enable this if you have special requirements.
+ * @note    The default is @p FALSE. Enable this if you have special
+ * requirements.
  * @note    Requires @p CH_USE_SEMAPHORES.
  */
 #if !defined(CH_USE_SEMAPHORES_PRIORITY) || defined(__DOXYGEN__)
-#define CH_USE_SEMAPHORES_PRIORITY      FALSE
+#define CH_USE_SEMAPHORES_PRIORITY FALSE
 #endif
 
 /**
@@ -163,7 +164,7 @@
  * @note    Requires @p CH_USE_SEMAPHORES.
  */
 #if !defined(CH_USE_SEMSW) || defined(__DOXYGEN__)
-#define CH_USE_SEMSW                    TRUE
+#define CH_USE_SEMSW TRUE
 #endif
 
 /**
@@ -173,7 +174,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_MUTEXES) || defined(__DOXYGEN__)
-#define CH_USE_MUTEXES                  TRUE
+#define CH_USE_MUTEXES TRUE
 #endif
 
 /**
@@ -185,7 +186,7 @@
  * @note    Requires @p CH_USE_MUTEXES.
  */
 #if !defined(CH_USE_CONDVARS) || defined(__DOXYGEN__)
-#define CH_USE_CONDVARS                 FALSE
+#define CH_USE_CONDVARS FALSE
 #endif
 
 /**
@@ -197,7 +198,7 @@
  * @note    Requires @p CH_USE_CONDVARS.
  */
 #if !defined(CH_USE_CONDVARS_TIMEOUT) || defined(__DOXYGEN__)
-#define CH_USE_CONDVARS_TIMEOUT         TRUE
+#define CH_USE_CONDVARS_TIMEOUT TRUE
 #endif
 
 /**
@@ -207,7 +208,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_EVENTS) || defined(__DOXYGEN__)
-#define CH_USE_EVENTS                   TRUE
+#define CH_USE_EVENTS TRUE
 #endif
 
 /**
@@ -219,7 +220,7 @@
  * @note    Requires @p CH_USE_EVENTS.
  */
 #if !defined(CH_USE_EVENTS_TIMEOUT) || defined(__DOXYGEN__)
-#define CH_USE_EVENTS_TIMEOUT           FALSE
+#define CH_USE_EVENTS_TIMEOUT FALSE
 #endif
 
 /**
@@ -230,7 +231,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_MESSAGES) || defined(__DOXYGEN__)
-#define CH_USE_MESSAGES                 TRUE
+#define CH_USE_MESSAGES TRUE
 #endif
 
 /**
@@ -238,11 +239,12 @@
  * @details If enabled then messages are served by priority rather than in
  *          FIFO order.
  *
- * @note    The default is @p FALSE. Enable this if you have special requirements.
+ * @note    The default is @p FALSE. Enable this if you have special
+ * requirements.
  * @note    Requires @p CH_USE_MESSAGES.
  */
 #if !defined(CH_USE_MESSAGES_PRIORITY) || defined(__DOXYGEN__)
-#define CH_USE_MESSAGES_PRIORITY        FALSE
+#define CH_USE_MESSAGES_PRIORITY FALSE
 #endif
 
 /**
@@ -254,7 +256,7 @@
  * @note    Requires @p CH_USE_SEMAPHORES.
  */
 #if !defined(CH_USE_MAILBOXES) || defined(__DOXYGEN__)
-#define CH_USE_MAILBOXES                TRUE
+#define CH_USE_MAILBOXES TRUE
 #endif
 
 /**
@@ -264,7 +266,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_QUEUES) || defined(__DOXYGEN__)
-#define CH_USE_QUEUES                   TRUE
+#define CH_USE_QUEUES TRUE
 #endif
 
 /**
@@ -275,7 +277,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_MEMCORE) || defined(__DOXYGEN__)
-#define CH_USE_MEMCORE                  TRUE
+#define CH_USE_MEMCORE TRUE
 #endif
 
 /**
@@ -289,7 +291,7 @@
  * @note    Mutexes are recommended.
  */
 #if !defined(CH_USE_HEAP) || defined(__DOXYGEN__)
-#define CH_USE_HEAP                     FALSE
+#define CH_USE_HEAP FALSE
 #endif
 
 /**
@@ -303,7 +305,7 @@
  *          appropriate documentation.
  */
 #if !defined(CH_USE_MALLOC_HEAP) || defined(__DOXYGEN__)
-#define CH_USE_MALLOC_HEAP              FALSE
+#define CH_USE_MALLOC_HEAP FALSE
 #endif
 
 /**
@@ -314,7 +316,7 @@
  * @note    The default is @p TRUE.
  */
 #if !defined(CH_USE_MEMPOOLS) || defined(__DOXYGEN__)
-#define CH_USE_MEMPOOLS                 TRUE
+#define CH_USE_MEMPOOLS TRUE
 #endif
 
 /**
@@ -327,7 +329,7 @@
  * @note    Requires @p CH_USE_HEAP and/or @p CH_USE_MEMPOOLS.
  */
 #if !defined(CH_USE_DYNAMIC) || defined(__DOXYGEN__)
-#define CH_USE_DYNAMIC                  FALSE
+#define CH_USE_DYNAMIC FALSE
 #endif
 
 /*===========================================================================*/
@@ -341,7 +343,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(CH_DBG_SYSTEM_STATE_CHECK) || defined(__DOXYGEN__)
-#define CH_DBG_SYSTEM_STATE_CHECK       TRUE
+#define CH_DBG_SYSTEM_STATE_CHECK TRUE
 #endif
 
 /**
@@ -352,7 +354,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(CH_DBG_ENABLE_CHECKS) || defined(__DOXYGEN__)
-#define CH_DBG_ENABLE_CHECKS            TRUE
+#define CH_DBG_ENABLE_CHECKS TRUE
 #endif
 
 /**
@@ -364,7 +366,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(CH_DBG_ENABLE_ASSERTS) || defined(__DOXYGEN__)
-#define CH_DBG_ENABLE_ASSERTS           TRUE
+#define CH_DBG_ENABLE_ASSERTS TRUE
 #endif
 
 /**
@@ -375,7 +377,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(CH_DBG_ENABLE_TRACE) || defined(__DOXYGEN__)
-#define CH_DBG_ENABLE_TRACE             TRUE
+#define CH_DBG_ENABLE_TRACE TRUE
 #endif
 
 /**
@@ -389,7 +391,7 @@
  *          @p panic_msg variable set to @p NULL.
  */
 #if !defined(CH_DBG_ENABLE_STACK_CHECK) || defined(__DOXYGEN__)
-#define CH_DBG_ENABLE_STACK_CHECK       TRUE
+#define CH_DBG_ENABLE_STACK_CHECK TRUE
 #endif
 
 /**
@@ -401,7 +403,7 @@
  * @note    The default is @p FALSE.
  */
 #if !defined(CH_DBG_FILL_THREADS) || defined(__DOXYGEN__)
-#define CH_DBG_FILL_THREADS             TRUE
+#define CH_DBG_FILL_THREADS TRUE
 #endif
 
 /**
@@ -414,7 +416,7 @@
  *          some test cases into the test suite.
  */
 #if !defined(CH_DBG_THREADS_PROFILING) || defined(__DOXYGEN__)
-#define CH_DBG_THREADS_PROFILING        TRUE
+#define CH_DBG_THREADS_PROFILING TRUE
 #endif
 
 /*===========================================================================*/
@@ -426,8 +428,7 @@
  * @details User fields added to the end of the @p Thread structure.
  */
 #if !defined(THREAD_EXT_FIELDS) || defined(__DOXYGEN__)
-#define THREAD_EXT_FIELDS                                                   \
-  /* Add threads custom fields here.*/
+#define THREAD_EXT_FIELDS /* Add threads custom fields here.*/
 #endif
 
 /**
@@ -438,9 +439,8 @@
  *          the threads creation APIs.
  */
 #if !defined(THREAD_EXT_INIT_HOOK) || defined(__DOXYGEN__)
-#define THREAD_EXT_INIT_HOOK(tp) {                                          \
-  /* Add threads initialization code here.*/                                \
-}
+#define THREAD_EXT_INIT_HOOK(tp) \
+	{ /* Add threads initialization code here.*/ }
 #endif
 
 /**
@@ -452,9 +452,8 @@
  *          terminate.
  */
 #if !defined(THREAD_EXT_EXIT_HOOK) || defined(__DOXYGEN__)
-#define THREAD_EXT_EXIT_HOOK(tp) {                                          \
-  /* Add threads finalization code here.*/                                  \
-}
+#define THREAD_EXT_EXIT_HOOK(tp) \
+	{ /* Add threads finalization code here.*/ }
 #endif
 
 /**
@@ -462,9 +461,8 @@
  * @details This hook is invoked just before switching between threads.
  */
 #if !defined(THREAD_CONTEXT_SWITCH_HOOK) || defined(__DOXYGEN__)
-#define THREAD_CONTEXT_SWITCH_HOOK(ntp, otp) {                              \
-  /* Context switch code here.*/                                            \
-}
+#define THREAD_CONTEXT_SWITCH_HOOK(ntp, otp) \
+	{ /* Context switch code here.*/ }
 #endif
 
 /**
@@ -472,9 +470,8 @@
  * @details This hook is continuously invoked by the idle thread loop.
  */
 #if !defined(IDLE_LOOP_HOOK) || defined(__DOXYGEN__)
-#define IDLE_LOOP_HOOK() {                                                  \
-  /* Idle loop code here.*/                                                 \
-}
+#define IDLE_LOOP_HOOK() \
+	{ /* Idle loop code here.*/ }
 #endif
 
 /**
@@ -483,9 +480,8 @@
  *          after processing the virtual timers queue.
  */
 #if !defined(SYSTEM_TICK_EVENT_HOOK) || defined(__DOXYGEN__)
-#define SYSTEM_TICK_EVENT_HOOK() {                                          \
-  /* System tick event code here.*/                                         \
-}
+#define SYSTEM_TICK_EVENT_HOOK() \
+	{ /* System tick event code here.*/ }
 #endif
 
 /**
@@ -494,15 +490,14 @@
  *          the system is halted.
  */
 #if !defined(SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
-#define SYSTEM_HALT_HOOK() {                                                \
-  /* System halt code here.*/                                               \
-}
+#define SYSTEM_HALT_HOOK() \
+	{ /* System halt code here.*/ }
 #endif
 
 /*===========================================================================*/
 /* Port-specific settings (override port settings defaulted in chcore.h).    */
 /*===========================================================================*/
 
-#endif  /* _CHCONF_H_ */
+#endif /* _CHCONF_H_ */
 
 /** @} */

@@ -1,32 +1,32 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 /*
-   Concepts and parts of this file have been contributed by Uladzimir Pylinsky
-   aka barthess.
+	 Concepts and parts of this file have been contributed by Uladzimir Pylinsky
+	 aka barthess.
  */
 
 /**
@@ -70,8 +70,7 @@
  * @init
  */
 void rtcInit(void) {
-
-  rtc_lld_init();
+	rtc_lld_init();
 }
 
 /**
@@ -82,13 +81,12 @@ void rtcInit(void) {
  *
  * @api
  */
-void rtcSetTime(RTCDriver *rtcp, const RTCTime *timespec) {
+void rtcSetTime(RTCDriver* rtcp, const RTCTime* timespec) {
+	chDbgCheck((rtcp != NULL) && (timespec != NULL), "rtcSetTime");
 
-  chDbgCheck((rtcp != NULL) && (timespec != NULL), "rtcSetTime");
-
-  chSysLock();
-  rtcSetTimeI(rtcp, timespec);
-  chSysUnlock();
+	chSysLock();
+	rtcSetTimeI(rtcp, timespec);
+	chSysUnlock();
 }
 
 /**
@@ -99,13 +97,12 @@ void rtcSetTime(RTCDriver *rtcp, const RTCTime *timespec) {
  *
  * @api
  */
-void rtcGetTime(RTCDriver *rtcp, RTCTime *timespec) {
+void rtcGetTime(RTCDriver* rtcp, RTCTime* timespec) {
+	chDbgCheck((rtcp != NULL) && (timespec != NULL), "rtcGetTime");
 
-  chDbgCheck((rtcp != NULL) && (timespec != NULL), "rtcGetTime");
-
-  chSysLock();
-  rtcGetTimeI(rtcp, timespec);
-  chSysUnlock();
+	chSysLock();
+	rtcGetTimeI(rtcp, timespec);
+	chSysUnlock();
 }
 
 #if (RTC_ALARMS > 0) || defined(__DOXYGEN__)
@@ -118,15 +115,12 @@ void rtcGetTime(RTCDriver *rtcp, RTCTime *timespec) {
  *
  * @api
  */
-void rtcSetAlarm(RTCDriver *rtcp,
-                 rtcalarm_t alarm,
-                 const RTCAlarm *alarmspec) {
+void rtcSetAlarm(RTCDriver* rtcp, rtcalarm_t alarm, const RTCAlarm* alarmspec) {
+	chDbgCheck((rtcp != NULL) && (alarm < RTC_ALARMS), "rtcSetAlarm");
 
-  chDbgCheck((rtcp != NULL) && (alarm < RTC_ALARMS), "rtcSetAlarm");
-
-  chSysLock();
-  rtcSetAlarmI(rtcp, alarm, alarmspec);
-  chSysUnlock();
+	chSysLock();
+	rtcSetAlarmI(rtcp, alarm, alarmspec);
+	chSysUnlock();
 }
 
 /**
@@ -140,16 +134,13 @@ void rtcSetAlarm(RTCDriver *rtcp,
  *
  * @api
  */
-void rtcGetAlarm(RTCDriver *rtcp,
-                 rtcalarm_t alarm,
-                 RTCAlarm *alarmspec) {
+void rtcGetAlarm(RTCDriver* rtcp, rtcalarm_t alarm, RTCAlarm* alarmspec) {
+	chDbgCheck((rtcp != NULL) && (alarm < RTC_ALARMS) && (alarmspec != NULL),
+						 "rtcGetAlarm");
 
-  chDbgCheck((rtcp != NULL) && (alarm < RTC_ALARMS) && (alarmspec != NULL),
-             "rtcGetAlarm");
-
-  chSysLock();
-  rtcGetAlarmI(rtcp, alarm, alarmspec);
-  chSysUnlock();
+	chSysLock();
+	rtcGetAlarmI(rtcp, alarm, alarmspec);
+	chSysUnlock();
 }
 #endif /* RTC_ALARMS > 0 */
 
@@ -164,13 +155,12 @@ void rtcGetAlarm(RTCDriver *rtcp,
  *
  * @api
  */
-void rtcSetCallback(RTCDriver *rtcp, rtccb_t callback) {
+void rtcSetCallback(RTCDriver* rtcp, rtccb_t callback) {
+	chDbgCheck((rtcp != NULL), "rtcSetCallback");
 
-  chDbgCheck((rtcp != NULL), "rtcSetCallback");
-
-  chSysLock();
-  rtcSetCallbackI(rtcp, callback);
-  chSysUnlock();
+	chSysLock();
+	rtcSetCallbackI(rtcp, callback);
+	chSysUnlock();
 }
 #endif /* RTC_SUPPORTS_CALLBACKS */
 
@@ -182,10 +172,9 @@ void rtcSetCallback(RTCDriver *rtcp, rtccb_t callback) {
  *
  * @api
  */
-uint32_t rtcGetTimeFat(RTCDriver *rtcp) {
-
-  chDbgCheck((rtcp != NULL), "rtcSetTime");
-  return rtc_lld_get_time_fat(rtcp);
+uint32_t rtcGetTimeFat(RTCDriver* rtcp) {
+	chDbgCheck((rtcp != NULL), "rtcSetTime");
+	return rtc_lld_get_time_fat(rtcp);
 }
 
 #endif /* HAL_USE_RTC */

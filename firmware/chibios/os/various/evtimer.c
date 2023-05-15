@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -22,16 +22,16 @@
  * @{
  */
 
-#include "ch.h"
 #include "evtimer.h"
+#include "ch.h"
 
-static void tmrcb(void *p) {
-  EvTimer *etp = p;
+static void tmrcb(void* p) {
+	EvTimer* etp = p;
 
-  chSysLockFromIsr();
-  chEvtBroadcastI(&etp->et_es);
-  chVTSetI(&etp->et_vt, etp->et_interval, tmrcb, etp);
-  chSysUnlockFromIsr();
+	chSysLockFromIsr();
+	chEvtBroadcastI(&etp->et_es);
+	chVTSetI(&etp->et_vt, etp->et_interval, tmrcb, etp);
+	chSysUnlockFromIsr();
 }
 
 /**
@@ -40,14 +40,13 @@ static void tmrcb(void *p) {
  *
  * @param etp pointer to an initialized @p EvTimer structure.
  */
-void evtStart(EvTimer *etp) {
+void evtStart(EvTimer* etp) {
+	chSysLock();
 
-  chSysLock();
+	if (!chVTIsArmedI(&etp->et_vt))
+		chVTSetI(&etp->et_vt, etp->et_interval, tmrcb, etp);
 
-  if (!chVTIsArmedI(&etp->et_vt))
-    chVTSetI(&etp->et_vt, etp->et_interval, tmrcb, etp);
-
-  chSysUnlock();
+	chSysUnlock();
 }
 
 /**
@@ -56,9 +55,8 @@ void evtStart(EvTimer *etp) {
  *
  * @param etp pointer to an initialized @p EvTimer structure.
  */
-void evtStop(EvTimer *etp) {
-
-  chVTReset(&etp->et_vt);
+void evtStop(EvTimer* etp) {
+	chVTReset(&etp->et_vt);
 }
 
 /** @} */

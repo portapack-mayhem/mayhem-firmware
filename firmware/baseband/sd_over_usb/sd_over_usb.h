@@ -23,16 +23,16 @@
 #ifndef __USB_SD_OVER_USB_H__
 #define __USB_SD_OVER_USB_H__
 
-#include <stddef.h>
 #include <common/usb.h>
 #include <common/usb_request.h>
 #include <common/usb_standard_request.h>
 #include <hackrf_usb/usb_device.h>
 #include <hackrf_usb/usb_endpoint.h>
-#include <libopencm3/lpc43xx/m4/nvic.h>
 #include <libopencm3/lpc43xx/cgu.h>
-#include "platform_detect.h"
+#include <libopencm3/lpc43xx/m4/nvic.h>
+#include <stddef.h>
 #include "hackrf_core.h"
+#include "platform_detect.h"
 #include "usb_bulk_buffer.h"
 
 void start_usb(void);

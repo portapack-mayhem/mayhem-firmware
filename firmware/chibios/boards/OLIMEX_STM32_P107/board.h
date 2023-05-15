@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 #ifndef _BOARD_H_
@@ -25,13 +25,13 @@
  * Board identifier.
  */
 #define BOARD_OLIMEX_STM32_P107_REV_A
-#define BOARD_NAME              "Olimex STM32-P107 Rev.A"
+#define BOARD_NAME "Olimex STM32-P107 Rev.A"
 
 /*
  * Board frequencies.
  */
-#define STM32_LSECLK            32768
-#define STM32_HSECLK            25000000
+#define STM32_LSECLK 32768
+#define STM32_HSECLK 25000000
 
 /*
  * MCU type, supported types are defined in ./os/hal/platforms/hal_lld.h.
@@ -41,17 +41,17 @@
 /*
  * Ethernet PHY type.
  */
-#define BOARD_PHY_ID            MII_STE101P_ID
+#define BOARD_PHY_ID MII_STE101P_ID
 #define BOARD_PHY_RMII
 
 /*
  * IO pins assignments.
  */
-#define GPIOA_SWITCH_WKUP       0
-#define GPIOA_SPI3_CS_MMC       4
-#define GPIOC_LED_STATUS1       6
-#define GPIOC_LED_STATUS2       7
-#define GPIOC_SWITCH_TAMPER     13
+#define GPIOA_SWITCH_WKUP 0
+#define GPIOA_SPI3_CS_MMC 4
+#define GPIOC_LED_STATUS1 6
+#define GPIOC_LED_STATUS2 7
+#define GPIOC_SWITCH_TAMPER 13
 
 /*
  * I/O ports initial setup, this configuration is established soon after reset
@@ -97,9 +97,9 @@
  * PA14 - Normal input      (TCK).
  * PA15 - Normal input      (TDI).
  */
-#define VAL_GPIOACRL            0x48878B44      /*  PA7...PA0 */
-#define VAL_GPIOACRH            0x4444444B      /* PA15...PA8 */
-#define VAL_GPIOAODR            0xFFFFFFFF
+#define VAL_GPIOACRL 0x48878B44 /*  PA7...PA0 */
+#define VAL_GPIOACRH 0x4444444B /* PA15...PA8 */
+#define VAL_GPIOAODR 0xFFFFFFFF
 
 /*
  * Port B setup:
@@ -120,9 +120,9 @@
  * PB14 - Input with PU     (unconnected).
  * PB15 - Push Pull output  (CS_UEXT).
  */
-#define VAL_GPIOBCRL            0x88844488      /*  PB7...PB0 */
-#define VAL_GPIOBCRH            0x38BBB8FF      /* PB15...PB8 */
-#define VAL_GPIOBODR            0xFFFFFFFF
+#define VAL_GPIOBCRL 0x88844488 /*  PB7...PB0 */
+#define VAL_GPIOBCRH 0x38BBB8FF /* PB15...PB8 */
+#define VAL_GPIOBODR 0xFFFFFFFF
 
 /*
  * Port C setup:
@@ -143,9 +143,9 @@
  * PC14 - Normal input      (OSC32 IN).
  * PC15 - Normal input      (OSC32 OUT).
  */
-#define VAL_GPIOCCRL            0x334488B8      /*  PC7...PC0 */
-#define VAL_GPIOCCRH            0x444B8B88      /* PC15...PC8 */
-#define VAL_GPIOCODR            0xFFFFFF3F
+#define VAL_GPIOCCRL 0x334488B8 /*  PC7...PC0 */
+#define VAL_GPIOCCRH 0x444B8B88 /* PC15...PC8 */
+#define VAL_GPIOCODR 0xFFFFFF3F
 
 /*
  * Port D setup:
@@ -166,9 +166,9 @@
  * PD14 - Input with PU     (unconnected).
  * PD15 - Input with PU     (unconnected).
  */
-#define VAL_GPIODCRL            0x38B88888      /*  PD7...PD0 */
-#define VAL_GPIODCRH            0x888B484B      /* PD15...PD8 */
-#define VAL_GPIODODR            0xFFFFFFFF
+#define VAL_GPIODCRL 0x38B88888 /*  PD7...PD0 */
+#define VAL_GPIODCRH 0x888B484B /* PD15...PD8 */
+#define VAL_GPIODODR 0xFFFFFFFF
 
 /*
  * Port E setup.
@@ -176,15 +176,15 @@
  * PE14 - Normal input      (ETH_RMII_MDINT).
  * PE15 - Normal input      (USB_FAULT).
  */
-#define VAL_GPIOECRL            0x88888888      /*  PE7...PE0 */
-#define VAL_GPIOECRH            0x44888888      /* PE15...PE8 */
-#define VAL_GPIOEODR            0xFFFFFFFF
+#define VAL_GPIOECRL 0x88888888 /*  PE7...PE0 */
+#define VAL_GPIOECRH 0x44888888 /* PE15...PE8 */
+#define VAL_GPIOEODR 0xFFFFFFFF
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void boardInit(void);
+void boardInit(void);
 #ifdef __cplusplus
 }
 #endif

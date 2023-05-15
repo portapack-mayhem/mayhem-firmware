@@ -1,16 +1,16 @@
 /******************************************************************************
  * @file:    system_LPC11xx.h
  * @purpose: CMSIS Cortex-M0 Device Peripheral Access Layer Header File
- *           for the NXP LPC11xx Device Series 
+ *           for the NXP LPC11xx Device Series
  * @version: V1.0
  * @date:    25. Nov. 2008
  *----------------------------------------------------------------------------
  *
  * Copyright (C) 2008 ARM Limited. All rights reserved.
  *
- * ARM Limited (ARM) is supplying this software for use with Cortex-M0 
- * processor based microcontrollers.  This file can be freely distributed 
- * within development tools that are supporting such ARM based processors. 
+ * ARM Limited (ARM) is supplying this software for use with Cortex-M0
+ * processor based microcontrollers.  This file can be freely distributed
+ * within development tools that are supporting such ARM based processors.
  *
  * THIS SOFTWARE IS PROVIDED "AS IS".  NO WARRANTIES, WHETHER EXPRESS, IMPLIED
  * OR STATUTORY, INCLUDING, BUT NOT LIMITED TO, IMPLIED WARRANTIES OF
@@ -20,16 +20,15 @@
  *
  ******************************************************************************/
 
-
 #ifndef __SYSTEM_LPC11xx_H
 #define __SYSTEM_LPC11xx_H
 
 /* Vector Table Base ---------------------------------------------------------*/
-#define NVIC_VectTab_RAM             (0x10000000)
-#define NVIC_VectTab_FLASH           (0x00000000)
+#define NVIC_VectTab_RAM (0x10000000)
+#define NVIC_VectTab_FLASH (0x00000000)
 
 extern uint32_t ClockSource;
-extern uint32_t SystemFrequency;    /*!< System Clock Frequency (Core Clock)  */
+extern uint32_t SystemFrequency; /*!< System Clock Frequency (Core Clock)  */
 extern uint32_t SystemAHBFrequency;
 
 /**
@@ -41,5 +40,5 @@ extern uint32_t SystemAHBFrequency;
  * @brief  Setup the microcontroller system.
  *         Initialize the System and update the SystemFrequency variable.
  */
-extern void SystemInit (void);
+extern void SystemInit(void);
 #endif

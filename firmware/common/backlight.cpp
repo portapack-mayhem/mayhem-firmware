@@ -26,31 +26,31 @@
 namespace portapack {
 
 void BacklightOnOff::on() {
-	if( !is_on() ) {
+	if (!is_on()) {
 		io.lcd_backlight(true);
 		on_ = true;
 	}
 }
 
 void BacklightOnOff::off() {
-	if( is_on() ) {
+	if (is_on()) {
 		io.lcd_backlight(false);
 		on_ = false;
 	}
 }
 
-void BacklightCAT4004::set_level(const value_t value) {		
+void BacklightCAT4004::set_level(const value_t value) {
 	auto target = value;
 
 	// Clip target value to valid range.
-	if( target < 0 ) {
+	if (target < 0) {
 		target = 0;
 	}
-	if( target > maximum_level ) {
+	if (target > maximum_level) {
 		target = maximum_level;
 	}
 
-	if( is_on() ) {
+	if (is_on()) {
 		pulses(target);
 	} else {
 		level_ = target;
@@ -58,7 +58,7 @@ void BacklightCAT4004::set_level(const value_t value) {
 }
 
 void BacklightCAT4004::on() {
-	if( !is_on() ) {
+	if (!is_on()) {
 		io.lcd_backlight(true);
 		halPolledDelay(ticks_setup);
 		on_ = true;
@@ -72,7 +72,7 @@ void BacklightCAT4004::on() {
 }
 
 void BacklightCAT4004::off() {
-	if( is_on() ) {
+	if (is_on()) {
 		io.lcd_backlight(false);
 		chThdSleepMilliseconds(ms_pwrdwn);
 		on_ = false;
@@ -80,7 +80,7 @@ void BacklightCAT4004::off() {
 }
 
 void BacklightCAT4004::pulses(value_t target) {
-	while(level() != target) {
+	while (level() != target) {
 		pulse();
 	}
 }
@@ -92,7 +92,7 @@ void BacklightCAT4004::pulse() {
 	halPolledDelay(ticks_hi);
 
 	level_ -= 1;
-	if( level_ < 0 ) {
+	if (level_ < 0) {
 		level_ = levels() - 1;
 	}
 }

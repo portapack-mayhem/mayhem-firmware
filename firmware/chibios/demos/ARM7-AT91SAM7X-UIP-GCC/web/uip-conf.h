@@ -106,45 +106,45 @@ typedef unsigned short uip_stats_t;
  *
  * \hideinitializer
  */
-#define UIP_CONF_BUFFER_SIZE     1518
+#define UIP_CONF_BUFFER_SIZE 1518
 
 /**
  * CPU byte order.
  *
  * \hideinitializer
  */
-#define UIP_CONF_BYTE_ORDER      LITTLE_ENDIAN
+#define UIP_CONF_BYTE_ORDER LITTLE_ENDIAN
 
 /**
  * Logging on or off
  *
  * \hideinitializer
  */
-#define UIP_CONF_LOGGING         0
+#define UIP_CONF_LOGGING 0
 
 /**
  * UDP support on or off
  *
  * \hideinitializer
  */
-#define UIP_CONF_UDP             0
+#define UIP_CONF_UDP 0
 
 /**
  * UDP checksums on or off
  *
  * \hideinitializer
  */
-#define UIP_CONF_UDP_CHECKSUMS   1
+#define UIP_CONF_UDP_CHECKSUMS 1
 
 /**
  * uIP statistics on or off
  *
  * \hideinitializer
  */
-#define UIP_CONF_STATISTICS      1
+#define UIP_CONF_STATISTICS 1
 
 /* Here we include the header file for the application(s) we use in
-   our project. */
+	 our project. */
 /*#include "smtp.h"*/
 /*#include "hello-world.h"*/
 /*#include "telnetd.h"*/

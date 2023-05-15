@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -58,11 +58,12 @@
  *
  * @api
  */
-#define rccEnableAPB1(mask, lp) {                                           \
-  RCC->APB1ENR |= (mask);                                                   \
-  if (lp)                                                                   \
-    RCC->APB1LPENR |= (mask);                                               \
-}
+#define rccEnableAPB1(mask, lp) \
+	{                             \
+		RCC->APB1ENR |= (mask);     \
+		if (lp)                     \
+			RCC->APB1LPENR |= (mask); \
+	}
 
 /**
  * @brief   Disables the clock of one or more peripheral on the APB1 bus.
@@ -72,11 +73,12 @@
  *
  * @api
  */
-#define rccDisableAPB1(mask, lp) {                                          \
-  RCC->APB1ENR &= ~(mask);                                                  \
-  if (lp)                                                                   \
-    RCC->APB1LPENR &= ~(mask);                                              \
-}
+#define rccDisableAPB1(mask, lp) \
+	{                              \
+		RCC->APB1ENR &= ~(mask);     \
+		if (lp)                      \
+			RCC->APB1LPENR &= ~(mask); \
+	}
 
 /**
  * @brief   Resets one or more peripheral on the APB1 bus.
@@ -85,10 +87,11 @@
  *
  * @api
  */
-#define rccResetAPB1(mask) {                                                \
-  RCC->APB1RSTR |= (mask);                                                  \
-  RCC->APB1RSTR = 0;                                                        \
-}
+#define rccResetAPB1(mask)   \
+	{                          \
+		RCC->APB1RSTR |= (mask); \
+		RCC->APB1RSTR = 0;       \
+	}
 
 /**
  * @brief   Enables the clock of one or more peripheral on the APB2 bus.
@@ -98,11 +101,12 @@
  *
  * @api
  */
-#define rccEnableAPB2(mask, lp) {                                           \
-  RCC->APB2ENR |= (mask);                                                   \
-  if (lp)                                                                   \
-    RCC->APB2LPENR |= (mask);                                               \
-}
+#define rccEnableAPB2(mask, lp) \
+	{                             \
+		RCC->APB2ENR |= (mask);     \
+		if (lp)                     \
+			RCC->APB2LPENR |= (mask); \
+	}
 
 /**
  * @brief   Disables the clock of one or more peripheral on the APB2 bus.
@@ -112,11 +116,12 @@
  *
  * @api
  */
-#define rccDisableAPB2(mask, lp) {                                          \
-  RCC->APB2ENR &= ~(mask);                                                  \
-  if (lp)                                                                   \
-    RCC->APB2LPENR &= ~(mask);                                              \
-}
+#define rccDisableAPB2(mask, lp) \
+	{                              \
+		RCC->APB2ENR &= ~(mask);     \
+		if (lp)                      \
+			RCC->APB2LPENR &= ~(mask); \
+	}
 
 /**
  * @brief   Resets one or more peripheral on the APB2 bus.
@@ -125,10 +130,11 @@
  *
  * @api
  */
-#define rccResetAPB2(mask) {                                                \
-  RCC->APB2RSTR |= (mask);                                                  \
-  RCC->APB2RSTR = 0;                                                        \
-}
+#define rccResetAPB2(mask)   \
+	{                          \
+		RCC->APB2RSTR |= (mask); \
+		RCC->APB2RSTR = 0;       \
+	}
 
 /**
  * @brief   Enables the clock of one or more peripheral on the AHB1 bus.
@@ -138,11 +144,12 @@
  *
  * @api
  */
-#define rccEnableAHB1(mask, lp) {                                           \
-  RCC->AHB1ENR |= (mask);                                                   \
-  if (lp)                                                                   \
-    RCC->AHB1LPENR |= (mask);                                               \
-}
+#define rccEnableAHB1(mask, lp) \
+	{                             \
+		RCC->AHB1ENR |= (mask);     \
+		if (lp)                     \
+			RCC->AHB1LPENR |= (mask); \
+	}
 
 /**
  * @brief   Disables the clock of one or more peripheral on the AHB1 bus.
@@ -152,11 +159,12 @@
  *
  * @api
  */
-#define rccDisableAHB1(mask, lp) {                                          \
-  RCC->AHB1ENR &= ~(mask);                                                  \
-  if (lp)                                                                   \
-    RCC->AHB1LPENR &= ~(mask);                                              \
-}
+#define rccDisableAHB1(mask, lp) \
+	{                              \
+		RCC->AHB1ENR &= ~(mask);     \
+		if (lp)                      \
+			RCC->AHB1LPENR &= ~(mask); \
+	}
 
 /**
  * @brief   Resets one or more peripheral on the AHB1 bus.
@@ -165,10 +173,11 @@
  *
  * @api
  */
-#define rccResetAHB1(mask) {                                                \
-  RCC->AHB1RSTR |= (mask);                                                  \
-  RCC->AHB1RSTR = 0;                                                        \
-}
+#define rccResetAHB1(mask)   \
+	{                          \
+		RCC->AHB1RSTR |= (mask); \
+		RCC->AHB1RSTR = 0;       \
+	}
 
 /**
  * @brief   Enables the clock of one or more peripheral on the AHB2 bus.
@@ -178,11 +187,12 @@
  *
  * @api
  */
-#define rccEnableAHB2(mask, lp) {                                           \
-  RCC->AHB2ENR |= (mask);                                                   \
-  if (lp)                                                                   \
-    RCC->AHB2LPENR |= (mask);                                               \
-}
+#define rccEnableAHB2(mask, lp) \
+	{                             \
+		RCC->AHB2ENR |= (mask);     \
+		if (lp)                     \
+			RCC->AHB2LPENR |= (mask); \
+	}
 
 /**
  * @brief   Disables the clock of one or more peripheral on the AHB2 bus.
@@ -192,11 +202,12 @@
  *
  * @api
  */
-#define rccDisableAHB2(mask, lp) {                                          \
-  RCC->AHB2ENR &= ~(mask);                                                  \
-  if (lp)                                                                   \
-    RCC->AHB2LPENR &= ~(mask);                                              \
-}
+#define rccDisableAHB2(mask, lp) \
+	{                              \
+		RCC->AHB2ENR &= ~(mask);     \
+		if (lp)                      \
+			RCC->AHB2LPENR &= ~(mask); \
+	}
 
 /**
  * @brief   Resets one or more peripheral on the AHB2 bus.
@@ -205,10 +216,11 @@
  *
  * @api
  */
-#define rccResetAHB2(mask) {                                                \
-  RCC->AHB2RSTR |= (mask);                                                  \
-  RCC->AHB2RSTR = 0;                                                        \
-}
+#define rccResetAHB2(mask)   \
+	{                          \
+		RCC->AHB2RSTR |= (mask); \
+		RCC->AHB2RSTR = 0;       \
+	}
 
 /**
  * @brief   Enables the clock of one or more peripheral on the AHB3 (FSMC) bus.
@@ -218,11 +230,12 @@
  *
  * @api
  */
-#define rccEnableAHB3(mask, lp) {                                           \
-  RCC->AHB3ENR |= (mask);                                                   \
-  if (lp)                                                                   \
-    RCC->AHB3LPENR |= (mask);                                               \
-}
+#define rccEnableAHB3(mask, lp) \
+	{                             \
+		RCC->AHB3ENR |= (mask);     \
+		if (lp)                     \
+			RCC->AHB3LPENR |= (mask); \
+	}
 
 /**
  * @brief   Disables the clock of one or more peripheral on the AHB3 (FSMC) bus.
@@ -232,11 +245,12 @@
  *
  * @api
  */
-#define rccDisableAHB3(mask, lp) {                                          \
-  RCC->AHB3ENR &= ~(mask);                                                  \
-  if (lp)                                                                   \
-    RCC->AHB3LPENR &= ~(mask);                                              \
-}
+#define rccDisableAHB3(mask, lp) \
+	{                              \
+		RCC->AHB3ENR &= ~(mask);     \
+		if (lp)                      \
+			RCC->AHB3LPENR &= ~(mask); \
+	}
 
 /**
  * @brief   Resets one or more peripheral on the AHB3 (FSMC) bus.
@@ -245,10 +259,11 @@
  *
  * @api
  */
-#define rccResetAHB3(mask) {                                                \
-  RCC->AHB3RSTR |= (mask);                                                  \
-  RCC->AHB3RSTR = 0;                                                        \
-}
+#define rccResetAHB3(mask)   \
+	{                          \
+		RCC->AHB3RSTR |= (mask); \
+		RCC->AHB3RSTR = 0;       \
+	}
 /** @} */
 
 /**
@@ -439,7 +454,6 @@
 #define rccResetPWRInterface() rccResetAPB1(RCC_APB1RSTR_PWRRST)
 /** @} */
 
-
 /**
  * @name    CAN peripherals specific RCC operations
  * @{
@@ -507,9 +521,10 @@
  *
  * @api
  */
-#define rccEnableETH(lp) rccEnableAHB1(RCC_AHB1ENR_ETHMACEN |               \
-                                       RCC_AHB1ENR_ETHMACTXEN |             \
-                                       RCC_AHB1ENR_ETHMACRXEN, lp)
+#define rccEnableETH(lp)                                                      \
+	rccEnableAHB1(                                                              \
+			RCC_AHB1ENR_ETHMACEN | RCC_AHB1ENR_ETHMACTXEN | RCC_AHB1ENR_ETHMACRXEN, \
+			lp)
 
 /**
  * @brief   Disables the ETH peripheral clock.
@@ -519,9 +534,10 @@
  *
  * @api
  */
-#define rccDisableETH(lp) rccDisableAHB1(RCC_AHB1ENR_ETHMACEN |             \
-                                         RCC_AHB1ENR_ETHMACTXEN |           \
-                                         RCC_AHB1ENR_ETHMACRXEN, lp)
+#define rccDisableETH(lp)                                                     \
+	rccDisableAHB1(                                                             \
+			RCC_AHB1ENR_ETHMACEN | RCC_AHB1ENR_ETHMACTXEN | RCC_AHB1ENR_ETHMACRXEN, \
+			lp)
 
 /**
  * @brief   Resets the ETH peripheral.

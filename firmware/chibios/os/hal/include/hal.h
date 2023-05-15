@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -36,22 +36,20 @@
 #ifndef _HAL_H_
 #define _HAL_H_
 
-#include "ch.h"
 #include "board.h"
+#include "ch.h"
 #include "halconf.h"
 
 #include "hal_lld.h"
 
 /* Abstract interfaces.*/
-#include "io_channel.h"
 #include "io_block.h"
+#include "io_channel.h"
 
 /* Shared headers.*/
 #include "mmcsd.h"
 
 /* Layered drivers.*/
-#include "tm.h"
-#include "pal.h"
 #include "adc.h"
 #include "can.h"
 #include "ext.h"
@@ -59,11 +57,13 @@
 #include "i2c.h"
 #include "icu.h"
 #include "mac.h"
+#include "pal.h"
 #include "pwm.h"
 #include "rtc.h"
-#include "serial.h"
 #include "sdc.h"
+#include "serial.h"
 #include "spi.h"
+#include "tm.h"
 #include "uart.h"
 #include "usb.h"
 
@@ -130,8 +130,8 @@
  *
  * @api
  */
-#define US2RTT(usec) (((halGetCounterFrequency() + 999999UL) / 1000000UL) * \
-                      (usec))
+#define US2RTT(usec) \
+	(((halGetCounterFrequency() + 999999UL) / 1000000UL) * (usec))
 
 /**
  * @brief   Realtime ticks to seconds to.
@@ -205,10 +205,10 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void halInit(void);
+void halInit(void);
 #if HAL_IMPLEMENTS_COUNTERS
-  bool_t halIsCounterWithin(halrtcnt_t start, halrtcnt_t end);
-  void halPolledDelay(halrtcnt_t ticks);
+bool_t halIsCounterWithin(halrtcnt_t start, halrtcnt_t end);
+void halPolledDelay(halrtcnt_t ticks);
 #endif /* HAL_IMPLEMENTS_COUNTERS */
 #ifdef __cplusplus
 }

@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 #ifndef _BOARD_H_
@@ -25,13 +25,13 @@
  * Board identifier.
  */
 #define BOARD_OLIMEX_STM32_LCD
-#define BOARD_NAME              "Olimex STM32-LCD"
+#define BOARD_NAME "Olimex STM32-LCD"
 
 /*
  * Board frequencies.
  */
-#define STM32_LSECLK            32768
-#define STM32_HSECLK            8000000
+#define STM32_LSECLK 32768
+#define STM32_HSECLK 8000000
 
 /*
  * MCU type, supported types are defined in ./os/hal/platforms/hal_lld.h.
@@ -41,19 +41,19 @@
 /*
  * IO pins assignments.
  */
-#define GPIOA_SPI1NSS           4
+#define GPIOA_SPI1NSS 4
 
-#define GPIOB_SPI2NSS           12
+#define GPIOB_SPI2NSS 12
 
-#define GPIOA_USB_P             0
-#define GPIOD_USB_DISC          2
+#define GPIOA_USB_P 0
+#define GPIOD_USB_DISC 2
 
-#define GPIOE_TFT_RST			2
-#define GPIOD_TFT_LIGHT			13
-#define GPIOC_TFT_YD			0
-#define GPIOC_TFT_YU			1
-#define GPIOC_TFT_XL			2
-#define GPIOC_TFT_XR			3
+#define GPIOE_TFT_RST 2
+#define GPIOD_TFT_LIGHT 13
+#define GPIOC_TFT_YD 0
+#define GPIOC_TFT_YU 1
+#define GPIOC_TFT_XL 2
+#define GPIOC_TFT_XR 3
 
 /*
  * I/O ports initial setup, this configuration is established soon after reset
@@ -88,17 +88,17 @@
  * PA11 - Normal input      (USB DM).
  * PA12 - Normal input      (USB DP).
  */
-#define VAL_GPIOACRL            0x88884B84      /*  PA7...PA0 */
-#define VAL_GPIOACRH            0x88844888      /* PA15...PA8 */
-#define VAL_GPIOAODR            0xFFFFFFFF
+#define VAL_GPIOACRL 0x88884B84 /*  PA7...PA0 */
+#define VAL_GPIOACRH 0x88844888 /* PA15...PA8 */
+#define VAL_GPIOAODR 0xFFFFFFFF
 
 /*
  * Port B setup.
  * Everything input with pull-up except:
  */
-#define VAL_GPIOBCRL            0x88888888      /*  PB7...PB0 */
-#define VAL_GPIOBCRH            0x88888888      /* PB15...PB8 */
-#define VAL_GPIOBODR            0xFFFFFFFF
+#define VAL_GPIOBCRL 0x88888888 /*  PB7...PB0 */
+#define VAL_GPIOBCRH 0x88888888 /* PB15...PB8 */
+#define VAL_GPIOBODR 0xFFFFFFFF
 
 /*
  * Port C setup.
@@ -115,9 +115,9 @@
  * PC14 - Normal input		(XTAL).
  * PC15 - Normal input		(XTAL).
  */
-#define VAL_GPIOCCRL            0x88880000      /*  PC7...PC0 */
-#define VAL_GPIOCCRH            0x448BBBBB	    /* PC15...PC8 */
-#define VAL_GPIOCODR            0xFFFFFFFF
+#define VAL_GPIOCCRL 0x88880000 /*  PC7...PC0 */
+#define VAL_GPIOCCRH 0x448BBBBB /* PC15...PC8 */
+#define VAL_GPIOCODR 0xFFFFFFFF
 
 /*
  * Port D setup.
@@ -134,9 +134,9 @@
  * PD14 - Alternate PP 50M  (FSMC_D0)
  * PD15 - Alternate PP 50M  (FSMC_D1)
  */
-#define VAL_GPIODCRL            0xBBBB8BBB      /*  PD7...PD0 */
-#define VAL_GPIODCRH            0xBB388BBB      /* PD15...PD8 */
-#define VAL_GPIODODR            0xFFFFFFFF
+#define VAL_GPIODCRL 0xBBBB8BBB /*  PD7...PD0 */
+#define VAL_GPIODCRH 0xBB388BBB /* PD15...PD8 */
+#define VAL_GPIODODR 0xFFFFFFFF
 
 /*
  * Port E setup.
@@ -153,25 +153,25 @@
  * PE14 - Alternate PP 50M  (FSMC_D11)
  * PE15 - Alternate PP 50M  (FSMC_D12)
  */
-#define VAL_GPIOECRL            0xB888B388      /*  PE7...PE0 */
-#define VAL_GPIOECRH            0xBBBBBBBB      /* PE15...PE8 */
-#define VAL_GPIOEODR            0xFFFFFFFF
+#define VAL_GPIOECRL 0xB888B388 /*  PE7...PE0 */
+#define VAL_GPIOECRH 0xBBBBBBBB /* PE15...PE8 */
+#define VAL_GPIOEODR 0xFFFFFFFF
 
 /*
  * Port F setup.
  * Everything input with pull-up expect:
  */
-#define VAL_GPIOFCRL            0x88888888      /*  PF7...PF0 */
-#define VAL_GPIOFCRH            0x88888888      /* PF15...PF8 */
-#define VAL_GPIOFODR            0xFFFFFFFF
+#define VAL_GPIOFCRL 0x88888888 /*  PF7...PF0 */
+#define VAL_GPIOFCRH 0x88888888 /* PF15...PF8 */
+#define VAL_GPIOFODR 0xFFFFFFFF
 
 /*
  * Port G setup.
  * Everything input with pull-up expect:
  */
-#define VAL_GPIOGCRL            0x88888888      /*  PG7...PG0 */
-#define VAL_GPIOGCRH            0x88888888      /* PG15...PG8 */
-#define VAL_GPIOGODR            0xFFFFFFFF
+#define VAL_GPIOGCRL 0x88888888 /*  PG7...PG0 */
+#define VAL_GPIOGCRH 0x88888888 /* PG15...PG8 */
+#define VAL_GPIOGODR 0xFFFFFFFF
 
 /*
  * USB bus activation macro, required by the USB driver.
@@ -187,7 +187,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void boardInit(void);
+void boardInit(void);
 #ifdef __cplusplus
 }
 #endif

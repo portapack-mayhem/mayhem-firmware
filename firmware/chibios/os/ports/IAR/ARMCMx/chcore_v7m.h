@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -43,7 +43,7 @@
 /**
  * @brief   Disabled value for BASEPRI register.
  */
-#define CORTEX_BASEPRI_DISABLED         0
+#define CORTEX_BASEPRI_DISABLED 0
 
 /*===========================================================================*/
 /* Port macros.                                                              */
@@ -63,7 +63,7 @@
  *          reduce this value to zero when compiling with optimizations.
  */
 #if !defined(PORT_IDLE_THREAD_STACK_SIZE)
-#define PORT_IDLE_THREAD_STACK_SIZE     16
+#define PORT_IDLE_THREAD_STACK_SIZE 16
 #endif
 
 /**
@@ -76,14 +76,14 @@
  *          when compiler optimizations are enabled.
  */
 #if !defined(PORT_INT_REQUIRED_STACK)
-#define PORT_INT_REQUIRED_STACK         32
+#define PORT_INT_REQUIRED_STACK 32
 #endif
 
 /**
  * @brief   Enables the use of the WFI instruction in the idle thread loop.
  */
 #if !defined(CORTEX_ENABLE_WFI_IDLE)
-#define CORTEX_ENABLE_WFI_IDLE          FALSE
+#define CORTEX_ENABLE_WFI_IDLE FALSE
 #endif
 
 /**
@@ -92,7 +92,7 @@
  *          level in the middle of the numeric priorities range.
  */
 #if !defined(CORTEX_PRIORITY_SYSTICK)
-#define CORTEX_PRIORITY_SYSTICK         (CORTEX_PRIORITY_LEVELS >> 1)
+#define CORTEX_PRIORITY_SYSTICK (CORTEX_PRIORITY_LEVELS >> 1)
 #elif !CORTEX_IS_VALID_PRIORITY(CORTEX_PRIORITY_SYSTICK)
 /* If it is externally redefined then better perform a validity check on it.*/
 #error "invalid priority level specified for CORTEX_PRIORITY_SYSTICK"
@@ -103,10 +103,10 @@
  * @details Activating this option activates the FPU support in the kernel.
  */
 #if !defined(CORTEX_USE_FPU)
-#define CORTEX_USE_FPU                  CORTEX_HAS_FPU
+#define CORTEX_USE_FPU CORTEX_HAS_FPU
 #elif CORTEX_USE_FPU && !CORTEX_HAS_FPU
 /* This setting requires an FPU presence check in case it is externally
-   redefined.*/
+	 redefined.*/
 #error "the selected core does not have an FPU"
 #endif
 
@@ -115,7 +115,7 @@
  * @details Activating this option makes the Kernel work in compact mode.
  */
 #if !defined(CORTEX_SIMPLIFIED_PRIORITY)
-#define CORTEX_SIMPLIFIED_PRIORITY      FALSE
+#define CORTEX_SIMPLIFIED_PRIORITY FALSE
 #endif
 
 /**
@@ -126,7 +126,7 @@
  *          priority level.
  */
 #if !defined(CORTEX_PRIORITY_SVCALL)
-#define CORTEX_PRIORITY_SVCALL          (CORTEX_MAXIMUM_PRIORITY + 1)
+#define CORTEX_PRIORITY_SVCALL (CORTEX_MAXIMUM_PRIORITY + 1)
 #elif !CORTEX_IS_VALID_PRIORITY(CORTEX_PRIORITY_SVCALL)
 /* If it is externally redefined then better perform a validity check on it.*/
 #error "invalid priority level specified for CORTEX_PRIORITY_SVCALL"
@@ -136,7 +136,7 @@
  * @brief   NVIC VTOR initialization expression.
  */
 #if !defined(CORTEX_VTOR_INIT) || defined(__DOXYGEN__)
-#define CORTEX_VTOR_INIT                0x00000000
+#define CORTEX_VTOR_INIT 0x00000000
 #endif
 
 /**
@@ -145,7 +145,7 @@
  *          priority with no sub-priority.
  */
 #if !defined(CORTEX_PRIGROUP_INIT) || defined(__DOXYGEN__)
-#define CORTEX_PRIGROUP_INIT            (7 - CORTEX_PRIORITY_BITS)
+#define CORTEX_PRIGROUP_INIT (7 - CORTEX_PRIORITY_BITS)
 #endif
 
 /*===========================================================================*/
@@ -156,18 +156,17 @@
 /**
  * @brief   Maximum usable priority for normal ISRs.
  */
-#define CORTEX_MAX_KERNEL_PRIORITY      (CORTEX_PRIORITY_SVCALL + 1)
+#define CORTEX_MAX_KERNEL_PRIORITY (CORTEX_PRIORITY_SVCALL + 1)
 
 /**
  * @brief   BASEPRI level within kernel lock.
  * @note    In compact kernel mode this constant value is enforced to zero.
  */
-#define CORTEX_BASEPRI_KERNEL                                               \
-  CORTEX_PRIORITY_MASK(CORTEX_MAX_KERNEL_PRIORITY)
+#define CORTEX_BASEPRI_KERNEL CORTEX_PRIORITY_MASK(CORTEX_MAX_KERNEL_PRIORITY)
 #else
 
-#define CORTEX_MAX_KERNEL_PRIORITY      1
-#define CORTEX_BASEPRI_KERNEL           0
+#define CORTEX_MAX_KERNEL_PRIORITY 1
+#define CORTEX_BASEPRI_KERNEL 0
 #endif
 
 /**
@@ -176,7 +175,7 @@
  *          @p CORTEX_MAX_KERNEL_PRIORITY, this handler always have the
  *          highest priority that cannot preempt the kernel.
  */
-#define CORTEX_PRIORITY_PENDSV          CORTEX_MAX_KERNEL_PRIORITY
+#define CORTEX_PRIORITY_PENDSV CORTEX_MAX_KERNEL_PRIORITY
 
 /*===========================================================================*/
 /* Port exported info.                                                       */
@@ -191,20 +190,20 @@
 /**
  * @brief   Name of the implemented architecture.
  */
-#define CH_ARCHITECTURE_NAME            "ARMv7-M"
+#define CH_ARCHITECTURE_NAME "ARMv7-M"
 
 /**
  * @brief   Name of the architecture variant.
  */
-#define CH_CORE_VARIANT_NAME            "Cortex-M3"
+#define CH_CORE_VARIANT_NAME "Cortex-M3"
 
 #elif (CORTEX_MODEL == CORTEX_M4)
 #define CH_ARCHITECTURE_ARM_v7ME
-#define CH_ARCHITECTURE_NAME            "ARMv7-ME"
+#define CH_ARCHITECTURE_NAME "ARMv7-ME"
 #if CORTEX_USE_FPU
-#define CH_CORE_VARIANT_NAME            "Cortex-M4F"
+#define CH_CORE_VARIANT_NAME "Cortex-M4F"
 #else
-#define CH_CORE_VARIANT_NAME            "Cortex-M4"
+#define CH_CORE_VARIANT_NAME "Cortex-M4"
 #endif
 #endif
 
@@ -212,9 +211,9 @@
  * @brief   Port-specific information string.
  */
 #if !CORTEX_SIMPLIFIED_PRIORITY || defined(__DOXYGEN__)
-#define CH_PORT_INFO                    "Advanced kernel mode"
+#define CH_PORT_INFO "Advanced kernel mode"
 #else
-#define CH_PORT_INFO                    "Compact kernel mode"
+#define CH_PORT_INFO "Compact kernel mode"
 #endif
 
 /*===========================================================================*/
@@ -226,7 +225,7 @@
 /**
  * @brief   Generic ARM register.
  */
-typedef void *regarm_t;
+typedef void* regarm_t;
 
 /**
  * @brief   Stack and memory alignment enforcement.
@@ -237,68 +236,68 @@ typedef void *regarm_t;
 typedef uint64_t stkalign_t;
 
 /* The documentation of the following declarations is in chconf.h in order
-   to not have duplicated structure names into the documentation.*/
+	 to not have duplicated structure names into the documentation.*/
 #if !defined(__DOXYGEN__)
 
 struct extctx {
-  regarm_t      r0;
-  regarm_t      r1;
-  regarm_t      r2;
-  regarm_t      r3;
-  regarm_t      r12;
-  regarm_t      lr_thd;
-  regarm_t      pc;
-  regarm_t      xpsr;
+	regarm_t r0;
+	regarm_t r1;
+	regarm_t r2;
+	regarm_t r3;
+	regarm_t r12;
+	regarm_t lr_thd;
+	regarm_t pc;
+	regarm_t xpsr;
 #if CORTEX_USE_FPU
-  regarm_t      s0;
-  regarm_t      s1;
-  regarm_t      s2;
-  regarm_t      s3;
-  regarm_t      s4;
-  regarm_t      s5;
-  regarm_t      s6;
-  regarm_t      s7;
-  regarm_t      s8;
-  regarm_t      s9;
-  regarm_t      s10;
-  regarm_t      s11;
-  regarm_t      s12;
-  regarm_t      s13;
-  regarm_t      s14;
-  regarm_t      s15;
-  regarm_t      fpscr;
-  regarm_t      reserved;
+	regarm_t s0;
+	regarm_t s1;
+	regarm_t s2;
+	regarm_t s3;
+	regarm_t s4;
+	regarm_t s5;
+	regarm_t s6;
+	regarm_t s7;
+	regarm_t s8;
+	regarm_t s9;
+	regarm_t s10;
+	regarm_t s11;
+	regarm_t s12;
+	regarm_t s13;
+	regarm_t s14;
+	regarm_t s15;
+	regarm_t fpscr;
+	regarm_t reserved;
 #endif /* CORTEX_USE_FPU */
 };
 
 struct intctx {
 #if CORTEX_USE_FPU
-  regarm_t      s16;
-  regarm_t      s17;
-  regarm_t      s18;
-  regarm_t      s19;
-  regarm_t      s20;
-  regarm_t      s21;
-  regarm_t      s22;
-  regarm_t      s23;
-  regarm_t      s24;
-  regarm_t      s25;
-  regarm_t      s26;
-  regarm_t      s27;
-  regarm_t      s28;
-  regarm_t      s29;
-  regarm_t      s30;
-  regarm_t      s31;
+	regarm_t s16;
+	regarm_t s17;
+	regarm_t s18;
+	regarm_t s19;
+	regarm_t s20;
+	regarm_t s21;
+	regarm_t s22;
+	regarm_t s23;
+	regarm_t s24;
+	regarm_t s25;
+	regarm_t s26;
+	regarm_t s27;
+	regarm_t s28;
+	regarm_t s29;
+	regarm_t s30;
+	regarm_t s31;
 #endif /* CORTEX_USE_FPU */
-  regarm_t      r4;
-  regarm_t      r5;
-  regarm_t      r6;
-  regarm_t      r7;
-  regarm_t      r8;
-  regarm_t      r9;
-  regarm_t      r10;
-  regarm_t      r11;
-  regarm_t      lr;
+	regarm_t r4;
+	regarm_t r5;
+	regarm_t r6;
+	regarm_t r7;
+	regarm_t r8;
+	regarm_t r9;
+	regarm_t r10;
+	regarm_t r11;
+	regarm_t lr;
 };
 
 #endif /* !defined(__DOXYGEN__) */
@@ -309,7 +308,7 @@ struct intctx {
  *          structure representing the stack pointer at context switch time.
  */
 struct context {
-  struct intctx *r13;
+	struct intctx* r13;
 };
 
 /**
@@ -317,27 +316,26 @@ struct context {
  * @details This code usually setup the context switching frame represented
  *          by an @p intctx structure.
  */
-#define SETUP_CONTEXT(workspace, wsize, pf, arg) {                          \
-  tp->p_ctx.r13 = (struct intctx *)((uint8_t *)workspace +                  \
-                                     wsize -                                \
-                                     sizeof(struct intctx));                \
-  tp->p_ctx.r13->r4 = (regarm_t)pf;                                         \
-  tp->p_ctx.r13->r5 = (regarm_t)arg;                                        \
-  tp->p_ctx.r13->lr = (regarm_t)_port_thread_start;                         \
-}
+#define SETUP_CONTEXT(workspace, wsize, pf, arg)                               \
+	{                                                                            \
+		tp->p_ctx.r13 =                                                            \
+				(struct intctx*)((uint8_t*)workspace + wsize - sizeof(struct intctx)); \
+		tp->p_ctx.r13->r4 = (regarm_t)pf;                                          \
+		tp->p_ctx.r13->r5 = (regarm_t)arg;                                         \
+		tp->p_ctx.r13->lr = (regarm_t)_port_thread_start;                          \
+	}
 
 /**
  * @brief   Enforces a correct alignment for a stack area size value.
  */
-#define STACK_ALIGN(n) ((((n) - 1) | (sizeof(stkalign_t) - 1)) + 1)
+#define STACK_ALIGN(n) ((((n)-1) | (sizeof(stkalign_t) - 1)) + 1)
 
 /**
  * @brief   Computes the thread working area global size.
  */
-#define THD_WA_SIZE(n) STACK_ALIGN(sizeof(Thread) +                         \
-                                   sizeof(struct intctx) +                  \
-                                   sizeof(struct extctx) +                  \
-                                   (n) + (PORT_INT_REQUIRED_STACK))
+#define THD_WA_SIZE(n)                                                         \
+	STACK_ALIGN(sizeof(Thread) + sizeof(struct intctx) + sizeof(struct extctx) + \
+							(n) + (PORT_INT_REQUIRED_STACK))
 
 /**
  * @brief   Static working area allocation.
@@ -435,10 +433,11 @@ struct context {
  * @note    In this port it raises/lowers the base priority to kernel level.
  */
 #if !CORTEX_SIMPLIFIED_PRIORITY || defined(__DOXYGEN__)
-#define port_suspend() {                                                    \
-  __set_BASEPRI(CORTEX_BASEPRI_KERNEL);                                     \
-  __enable_interrupt();                                                     \
-}
+#define port_suspend()                    \
+	{                                       \
+		__set_BASEPRI(CORTEX_BASEPRI_KERNEL); \
+		__enable_interrupt();                 \
+	}
 #else /* CORTEX_SIMPLIFIED_PRIORITY */
 #define port_suspend() __disable_interrupt()
 #endif /* CORTEX_SIMPLIFIED_PRIORITY */
@@ -448,10 +447,11 @@ struct context {
  * @note    In this port it lowers the base priority to user level.
  */
 #if !CORTEX_SIMPLIFIED_PRIORITY || defined(__DOXYGEN__)
-#define port_enable() {                                                     \
-  __set_BASEPRI(CORTEX_BASEPRI_DISABLED);                                   \
-  __enable_interrupt();                                                     \
-}
+#define port_enable()                       \
+	{                                         \
+		__set_BASEPRI(CORTEX_BASEPRI_DISABLED); \
+		__enable_interrupt();                   \
+	}
 #else /* CORTEX_SIMPLIFIED_PRIORITY */
 #define port_enable() __enable_interrupt()
 #endif /* CORTEX_SIMPLIFIED_PRIORITY */
@@ -465,7 +465,7 @@ struct context {
  * @note    Implemented as an inlined @p WFI instruction.
  */
 #if CORTEX_ENABLE_WFI_IDLE || defined(__DOXYGEN__)
-#define port_wait_for_interrupt() asm ("wfi")
+#define port_wait_for_interrupt() asm("wfi")
 #else
 #define port_wait_for_interrupt()
 #endif
@@ -483,23 +483,24 @@ struct context {
 #if !CH_DBG_ENABLE_STACK_CHECK || defined(__DOXYGEN__)
 #define port_switch(ntp, otp) _port_switch(ntp, otp)
 #else
-#define port_switch(ntp, otp) {                                             \
-  if ((stkalign_t *)(__get_SP() - sizeof(struct intctx)) < otp->p_stklimit) \
-    chDbgPanic("stack overflow");                                           \
-  _port_switch(ntp, otp);                                                   \
-}
+#define port_switch(ntp, otp)                                                \
+	{                                                                          \
+		if ((stkalign_t*)(__get_SP() - sizeof(struct intctx)) < otp->p_stklimit) \
+			chDbgPanic("stack overflow");                                          \
+		_port_switch(ntp, otp);                                                  \
+	}
 #endif
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void port_halt(void);
-  void _port_init(void);
-  void _port_irq_epilogue(void);
-  void _port_switch_from_isr(void);
-  void _port_exit_from_isr(void);
-  void _port_switch(Thread *ntp, Thread *otp);
-  void _port_thread_start(void);
+void port_halt(void);
+void _port_init(void);
+void _port_irq_epilogue(void);
+void _port_switch_from_isr(void);
+void _port_exit_from_isr(void);
+void _port_switch(Thread* ntp, Thread* otp);
+void _port_thread_start(void);
 #ifdef __cplusplus
 }
 #endif

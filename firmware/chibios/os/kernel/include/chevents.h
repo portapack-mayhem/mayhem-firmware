@@ -1,31 +1,31 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 /*
-   Concepts and parts of this file have been contributed by Scott (skute).
+	 Concepts and parts of this file have been contributed by Scott (skute).
  */
 
 /**
@@ -47,25 +47,25 @@ typedef struct EventListener EventListener;
  * @brief   Event Listener structure.
  */
 struct EventListener {
-  EventListener         *el_next;       /**< @brief Next Event Listener
-                                                    registered on the Event
-                                                    Source.                 */
-  Thread                *el_listener;   /**< @brief Thread interested in the
-                                                    Event Source.           */
-  eventmask_t           el_mask;        /**< @brief Event flags mask associated
-                                                    by the thread to the Event
-                                                    Source.                 */
-  flagsmask_t           el_flags;       /**< @brief Flags added to the listener
-                                                    by the event source.    */
+	EventListener* el_next; /**< @brief Next Event Listener
+																			registered on the Event
+																			Source.                 */
+	Thread* el_listener;		/**< @brief Thread interested in the
+																			Event Source.           */
+	eventmask_t el_mask;		/**< @brief Event flags mask associated
+																			by the thread to the Event
+																			Source.                 */
+	flagsmask_t el_flags;		/**< @brief Flags added to the listener
+																			by the event source.    */
 };
 
 /**
  * @brief   Event Source structure.
  */
 typedef struct EventSource {
-  EventListener         *es_next;       /**< @brief First Event Listener
-                                                    registered on the Event
-                                                    Source.                 */
+	EventListener* es_next; /**< @brief First Event Listener
+																			registered on the Event
+																			Source.                 */
 } EventSource;
 
 /**
@@ -79,7 +79,8 @@ typedef void (*evhandler_t)(eventid_t);
  *          source that is part of a bigger structure.
  * @param name the name of the event source variable
  */
-#define _EVENTSOURCE_DATA(name) {(void *)(&name)}
+#define _EVENTSOURCE_DATA(name) \
+	{ (void*)(&name) }
 
 /**
  * @brief   Static event source initializer.
@@ -93,7 +94,7 @@ typedef void (*evhandler_t)(eventid_t);
 /**
  * @brief   All events allowed mask.
  */
-#define ALL_EVENTS      ((eventmask_t)-1)
+#define ALL_EVENTS ((eventmask_t)-1)
 
 /**
  * @brief   Returns an event mask from an event identifier.
@@ -120,7 +121,7 @@ typedef void (*evhandler_t)(eventid_t);
  * @api
  */
 #define chEvtRegister(esp, elp, eid) \
-  chEvtRegisterMask(esp, elp, EVENT_MASK(eid))
+	chEvtRegisterMask(esp, elp, EVENT_MASK(eid))
 
 /**
  * @brief   Initializes an Event Source.
@@ -131,8 +132,7 @@ typedef void (*evhandler_t)(eventid_t);
  *
  * @init
  */
-#define chEvtInit(esp) \
-  ((esp)->es_next = (EventListener *)(void *)(esp))
+#define chEvtInit(esp) ((esp)->es_next = (EventListener*)(void*)(esp))
 
 /**
  * @brief   Verifies if there is at least one @p EventListener registered.
@@ -141,8 +141,7 @@ typedef void (*evhandler_t)(eventid_t);
  *
  * @iclass
  */
-#define chEvtIsListeningI(esp) \
-  ((void *)(esp) != (void *)(esp)->es_next)
+#define chEvtIsListeningI(esp) ((void*)(esp) != (void*)(esp)->es_next)
 
 /**
  * @brief   Signals all the Event Listeners registered on the specified Event
@@ -172,28 +171,26 @@ typedef void (*evhandler_t)(eventid_t);
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void chEvtRegisterMask(EventSource *esp,
-                         EventListener *elp,
-                         eventmask_t mask);
-  void chEvtUnregister(EventSource *esp, EventListener *elp);
-  eventmask_t chEvtGetAndClearEvents(eventmask_t mask);
-  eventmask_t chEvtAddEvents(eventmask_t mask);
-  flagsmask_t chEvtGetAndClearFlags(EventListener *elp);
-  flagsmask_t chEvtGetAndClearFlagsI(EventListener *elp);
-  void chEvtSignal(Thread *tp, eventmask_t mask);
-  void chEvtSignalI(Thread *tp, eventmask_t mask);
-  void chEvtBroadcastFlags(EventSource *esp, flagsmask_t flags);
-  void chEvtBroadcastFlagsI(EventSource *esp, flagsmask_t flags);
-  void chEvtDispatch(const evhandler_t *handlers, eventmask_t mask);
+void chEvtRegisterMask(EventSource* esp, EventListener* elp, eventmask_t mask);
+void chEvtUnregister(EventSource* esp, EventListener* elp);
+eventmask_t chEvtGetAndClearEvents(eventmask_t mask);
+eventmask_t chEvtAddEvents(eventmask_t mask);
+flagsmask_t chEvtGetAndClearFlags(EventListener* elp);
+flagsmask_t chEvtGetAndClearFlagsI(EventListener* elp);
+void chEvtSignal(Thread* tp, eventmask_t mask);
+void chEvtSignalI(Thread* tp, eventmask_t mask);
+void chEvtBroadcastFlags(EventSource* esp, flagsmask_t flags);
+void chEvtBroadcastFlagsI(EventSource* esp, flagsmask_t flags);
+void chEvtDispatch(const evhandler_t* handlers, eventmask_t mask);
 #if CH_OPTIMIZE_SPEED || !CH_USE_EVENTS_TIMEOUT
-  eventmask_t chEvtWaitOne(eventmask_t mask);
-  eventmask_t chEvtWaitAny(eventmask_t mask);
-  eventmask_t chEvtWaitAll(eventmask_t mask);
+eventmask_t chEvtWaitOne(eventmask_t mask);
+eventmask_t chEvtWaitAny(eventmask_t mask);
+eventmask_t chEvtWaitAll(eventmask_t mask);
 #endif
 #if CH_USE_EVENTS_TIMEOUT
-  eventmask_t chEvtWaitOneTimeout(eventmask_t mask, systime_t time);
-  eventmask_t chEvtWaitAnyTimeout(eventmask_t mask, systime_t time);
-  eventmask_t chEvtWaitAllTimeout(eventmask_t mask, systime_t time);
+eventmask_t chEvtWaitOneTimeout(eventmask_t mask, systime_t time);
+eventmask_t chEvtWaitAnyTimeout(eventmask_t mask, systime_t time);
+eventmask_t chEvtWaitAllTimeout(eventmask_t mask, systime_t time);
 #endif
 #ifdef __cplusplus
 }

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -59,52 +59,40 @@
  * queue-level function or macro.
  */
 
-static size_t write(void *ip, const uint8_t *bp, size_t n) {
-
-  return chOQWriteTimeout(&((SerialDriver *)ip)->oqueue, bp,
-                          n, TIME_INFINITE);
+static size_t write(void* ip, const uint8_t* bp, size_t n) {
+	return chOQWriteTimeout(&((SerialDriver*)ip)->oqueue, bp, n, TIME_INFINITE);
 }
 
-static size_t read(void *ip, uint8_t *bp, size_t n) {
-
-  return chIQReadTimeout(&((SerialDriver *)ip)->iqueue, bp,
-                         n, TIME_INFINITE);
+static size_t read(void* ip, uint8_t* bp, size_t n) {
+	return chIQReadTimeout(&((SerialDriver*)ip)->iqueue, bp, n, TIME_INFINITE);
 }
 
-static msg_t put(void *ip, uint8_t b) {
-
-  return chOQPutTimeout(&((SerialDriver *)ip)->oqueue, b, TIME_INFINITE);
+static msg_t put(void* ip, uint8_t b) {
+	return chOQPutTimeout(&((SerialDriver*)ip)->oqueue, b, TIME_INFINITE);
 }
 
-static msg_t get(void *ip) {
-
-  return chIQGetTimeout(&((SerialDriver *)ip)->iqueue, TIME_INFINITE);
+static msg_t get(void* ip) {
+	return chIQGetTimeout(&((SerialDriver*)ip)->iqueue, TIME_INFINITE);
 }
 
-static msg_t putt(void *ip, uint8_t b, systime_t timeout) {
-
-  return chOQPutTimeout(&((SerialDriver *)ip)->oqueue, b, timeout);
+static msg_t putt(void* ip, uint8_t b, systime_t timeout) {
+	return chOQPutTimeout(&((SerialDriver*)ip)->oqueue, b, timeout);
 }
 
-static msg_t gett(void *ip, systime_t timeout) {
-
-  return chIQGetTimeout(&((SerialDriver *)ip)->iqueue, timeout);
+static msg_t gett(void* ip, systime_t timeout) {
+	return chIQGetTimeout(&((SerialDriver*)ip)->iqueue, timeout);
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
-
-  return chOQWriteTimeout(&((SerialDriver *)ip)->oqueue, bp, n, time);
+static size_t writet(void* ip, const uint8_t* bp, size_t n, systime_t time) {
+	return chOQWriteTimeout(&((SerialDriver*)ip)->oqueue, bp, n, time);
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
-
-  return chIQReadTimeout(&((SerialDriver *)ip)->iqueue, bp, n, time);
+static size_t readt(void* ip, uint8_t* bp, size_t n, systime_t time) {
+	return chIQReadTimeout(&((SerialDriver*)ip)->iqueue, bp, n, time);
 }
 
-static const struct SerialDriverVMT vmt = {
-  write, read, put, get,
-  putt, gett, writet, readt
-};
+static const struct SerialDriverVMT vmt = {write, read, put,		get,
+																					 putt,	gett, writet, readt};
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
@@ -118,8 +106,7 @@ static const struct SerialDriverVMT vmt = {
  * @init
  */
 void sdInit(void) {
-
-  sd_lld_init();
+	sd_lld_init();
 }
 
 /**
@@ -137,13 +124,12 @@ void sdInit(void) {
  *
  * @init
  */
-void sdObjectInit(SerialDriver *sdp, qnotify_t inotify, qnotify_t onotify) {
-
-  sdp->vmt = &vmt;
-  chEvtInit(&sdp->event);
-  sdp->state = SD_STOP;
-  chIQInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, inotify, sdp);
-  chOQInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFERS_SIZE, onotify, sdp);
+void sdObjectInit(SerialDriver* sdp, qnotify_t inotify, qnotify_t onotify) {
+	sdp->vmt = &vmt;
+	chEvtInit(&sdp->event);
+	sdp->state = SD_STOP;
+	chIQInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, inotify, sdp);
+	chOQInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFERS_SIZE, onotify, sdp);
 }
 
 /**
@@ -156,17 +142,15 @@ void sdObjectInit(SerialDriver *sdp, qnotify_t inotify, qnotify_t onotify) {
  *
  * @api
  */
-void sdStart(SerialDriver *sdp, const SerialConfig *config) {
+void sdStart(SerialDriver* sdp, const SerialConfig* config) {
+	chDbgCheck(sdp != NULL, "sdStart");
 
-  chDbgCheck(sdp != NULL, "sdStart");
-
-  chSysLock();
-  chDbgAssert((sdp->state == SD_STOP) || (sdp->state == SD_READY),
-              "sdStart(), #1",
-              "invalid state");
-  sd_lld_start(sdp, config);
-  sdp->state = SD_READY;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((sdp->state == SD_STOP) || (sdp->state == SD_READY),
+							"sdStart(), #1", "invalid state");
+	sd_lld_start(sdp, config);
+	sdp->state = SD_READY;
+	chSysUnlock();
 }
 
 /**
@@ -178,20 +162,18 @@ void sdStart(SerialDriver *sdp, const SerialConfig *config) {
  *
  * @api
  */
-void sdStop(SerialDriver *sdp) {
+void sdStop(SerialDriver* sdp) {
+	chDbgCheck(sdp != NULL, "sdStop");
 
-  chDbgCheck(sdp != NULL, "sdStop");
-
-  chSysLock();
-  chDbgAssert((sdp->state == SD_STOP) || (sdp->state == SD_READY),
-              "sdStop(), #1",
-              "invalid state");
-  sd_lld_stop(sdp);
-  sdp->state = SD_STOP;
-  chOQResetI(&sdp->oqueue);
-  chIQResetI(&sdp->iqueue);
-  chSchRescheduleS();
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((sdp->state == SD_STOP) || (sdp->state == SD_READY),
+							"sdStop(), #1", "invalid state");
+	sd_lld_stop(sdp);
+	sdp->state = SD_STOP;
+	chOQResetI(&sdp->oqueue);
+	chIQResetI(&sdp->iqueue);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -210,15 +192,14 @@ void sdStop(SerialDriver *sdp) {
  *
  * @iclass
  */
-void sdIncomingDataI(SerialDriver *sdp, uint8_t b) {
+void sdIncomingDataI(SerialDriver* sdp, uint8_t b) {
+	chDbgCheckClassI();
+	chDbgCheck(sdp != NULL, "sdIncomingDataI");
 
-  chDbgCheckClassI();
-  chDbgCheck(sdp != NULL, "sdIncomingDataI");
-
-  if (chIQIsEmptyI(&sdp->iqueue))
-    chnAddFlagsI(sdp, CHN_INPUT_AVAILABLE);
-  if (chIQPutI(&sdp->iqueue, b) < Q_OK)
-    chnAddFlagsI(sdp, SD_OVERRUN_ERROR);
+	if (chIQIsEmptyI(&sdp->iqueue))
+		chnAddFlagsI(sdp, CHN_INPUT_AVAILABLE);
+	if (chIQPutI(&sdp->iqueue, b) < Q_OK)
+		chnAddFlagsI(sdp, SD_OVERRUN_ERROR);
 }
 
 /**
@@ -236,16 +217,16 @@ void sdIncomingDataI(SerialDriver *sdp, uint8_t b) {
  *
  * @iclass
  */
-msg_t sdRequestDataI(SerialDriver *sdp) {
-  msg_t  b;
+msg_t sdRequestDataI(SerialDriver* sdp) {
+	msg_t b;
 
-  chDbgCheckClassI();
-  chDbgCheck(sdp != NULL, "sdRequestDataI");
+	chDbgCheckClassI();
+	chDbgCheck(sdp != NULL, "sdRequestDataI");
 
-  b = chOQGetI(&sdp->oqueue);
-  if (b < Q_OK)
-    chnAddFlagsI(sdp, CHN_OUTPUT_EMPTY);
-  return b;
+	b = chOQGetI(&sdp->oqueue);
+	if (b < Q_OK)
+		chnAddFlagsI(sdp, CHN_OUTPUT_EMPTY);
+	return b;
 }
 
 #endif /* HAL_USE_SERIAL */

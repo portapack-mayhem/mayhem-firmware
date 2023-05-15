@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -67,13 +67,12 @@
  * @retval Q_RESET      if the queue has been reset.
  * @retval Q_TIMEOUT    if the queue operation timed out.
  */
-static msg_t qwait(GenericQueue *qp, systime_t time) {
-
-  if (TIME_IMMEDIATE == time)
-    return Q_TIMEOUT;
-  currp->p_u.wtobjp = qp;
-  queue_insert(currp, &qp->q_waiting);
-  return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
+static msg_t qwait(GenericQueue* qp, systime_t time) {
+	if (TIME_IMMEDIATE == time)
+		return Q_TIMEOUT;
+	currp->p_u.wtobjp = qp;
+	queue_insert(currp, &qp->q_waiting);
+	return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
 }
 
 /**
@@ -92,15 +91,17 @@ static msg_t qwait(GenericQueue *qp, systime_t time) {
  *
  * @init
  */
-void chIQInit(InputQueue *iqp, uint8_t *bp, size_t size, qnotify_t infy,
-              void *link) {
-
-  queue_init(&iqp->q_waiting);
-  iqp->q_counter = 0;
-  iqp->q_buffer = iqp->q_rdptr = iqp->q_wrptr = bp;
-  iqp->q_top = bp + size;
-  iqp->q_notify = infy;
-  iqp->q_link = link;
+void chIQInit(InputQueue* iqp,
+							uint8_t* bp,
+							size_t size,
+							qnotify_t infy,
+							void* link) {
+	queue_init(&iqp->q_waiting);
+	iqp->q_counter = 0;
+	iqp->q_buffer = iqp->q_rdptr = iqp->q_wrptr = bp;
+	iqp->q_top = bp + size;
+	iqp->q_notify = infy;
+	iqp->q_link = link;
 }
 
 /**
@@ -114,14 +115,13 @@ void chIQInit(InputQueue *iqp, uint8_t *bp, size_t size, qnotify_t infy,
  *
  * @iclass
  */
-void chIQResetI(InputQueue *iqp) {
+void chIQResetI(InputQueue* iqp) {
+	chDbgCheckClassI();
 
-  chDbgCheckClassI();
-
-  iqp->q_rdptr = iqp->q_wrptr = iqp->q_buffer;
-  iqp->q_counter = 0;
-  while (notempty(&iqp->q_waiting))
-    chSchReadyI(fifo_remove(&iqp->q_waiting))->p_u.rdymsg = Q_RESET;
+	iqp->q_rdptr = iqp->q_wrptr = iqp->q_buffer;
+	iqp->q_counter = 0;
+	while (notempty(&iqp->q_waiting))
+		chSchReadyI(fifo_remove(&iqp->q_waiting))->p_u.rdymsg = Q_RESET;
 }
 
 /**
@@ -137,22 +137,21 @@ void chIQResetI(InputQueue *iqp) {
  *
  * @iclass
  */
-msg_t chIQPutI(InputQueue *iqp, uint8_t b) {
+msg_t chIQPutI(InputQueue* iqp, uint8_t b) {
+	chDbgCheckClassI();
 
-  chDbgCheckClassI();
+	if (chIQIsFullI(iqp))
+		return Q_FULL;
 
-  if (chIQIsFullI(iqp))
-    return Q_FULL;
+	iqp->q_counter++;
+	*iqp->q_wrptr++ = b;
+	if (iqp->q_wrptr >= iqp->q_top)
+		iqp->q_wrptr = iqp->q_buffer;
 
-  iqp->q_counter++;
-  *iqp->q_wrptr++ = b;
-  if (iqp->q_wrptr >= iqp->q_top)
-    iqp->q_wrptr = iqp->q_buffer;
+	if (notempty(&iqp->q_waiting))
+		chSchReadyI(fifo_remove(&iqp->q_waiting))->p_u.rdymsg = Q_OK;
 
-  if (notempty(&iqp->q_waiting))
-    chSchReadyI(fifo_remove(&iqp->q_waiting))->p_u.rdymsg = Q_OK;
-
-  return Q_OK;
+	return Q_OK;
 }
 
 /**
@@ -175,28 +174,28 @@ msg_t chIQPutI(InputQueue *iqp, uint8_t b) {
  *
  * @api
  */
-msg_t chIQGetTimeout(InputQueue *iqp, systime_t time) {
-  uint8_t b;
+msg_t chIQGetTimeout(InputQueue* iqp, systime_t time) {
+	uint8_t b;
 
-  chSysLock();
-  if (iqp->q_notify)
-    iqp->q_notify(iqp);
+	chSysLock();
+	if (iqp->q_notify)
+		iqp->q_notify(iqp);
 
-  while (chIQIsEmptyI(iqp)) {
-    msg_t msg;
-    if ((msg = qwait((GenericQueue *)iqp, time)) < Q_OK) {
-      chSysUnlock();
-      return msg;
-    }
-  }
+	while (chIQIsEmptyI(iqp)) {
+		msg_t msg;
+		if ((msg = qwait((GenericQueue*)iqp, time)) < Q_OK) {
+			chSysUnlock();
+			return msg;
+		}
+	}
 
-  iqp->q_counter--;
-  b = *iqp->q_rdptr++;
-  if (iqp->q_rdptr >= iqp->q_top)
-    iqp->q_rdptr = iqp->q_buffer;
+	iqp->q_counter--;
+	b = *iqp->q_rdptr++;
+	if (iqp->q_rdptr >= iqp->q_top)
+		iqp->q_rdptr = iqp->q_buffer;
 
-  chSysUnlock();
-  return b;
+	chSysUnlock();
+	return b;
 }
 
 /**
@@ -223,37 +222,36 @@ msg_t chIQGetTimeout(InputQueue *iqp, systime_t time) {
  *
  * @api
  */
-size_t chIQReadTimeout(InputQueue *iqp, uint8_t *bp,
-                       size_t n, systime_t time) {
-  qnotify_t nfy = iqp->q_notify;
-  size_t r = 0;
+size_t chIQReadTimeout(InputQueue* iqp, uint8_t* bp, size_t n, systime_t time) {
+	qnotify_t nfy = iqp->q_notify;
+	size_t r = 0;
 
-  chDbgCheck(n > 0, "chIQReadTimeout");
+	chDbgCheck(n > 0, "chIQReadTimeout");
 
-  chSysLock();
-  while (TRUE) {
-    if (nfy)
-      nfy(iqp);
+	chSysLock();
+	while (TRUE) {
+		if (nfy)
+			nfy(iqp);
 
-    while (chIQIsEmptyI(iqp)) {
-      if (qwait((GenericQueue *)iqp, time) != Q_OK) {
-        chSysUnlock();
-        return r;
-      }
-    }
+		while (chIQIsEmptyI(iqp)) {
+			if (qwait((GenericQueue*)iqp, time) != Q_OK) {
+				chSysUnlock();
+				return r;
+			}
+		}
 
-    iqp->q_counter--;
-    *bp++ = *iqp->q_rdptr++;
-    if (iqp->q_rdptr >= iqp->q_top)
-      iqp->q_rdptr = iqp->q_buffer;
+		iqp->q_counter--;
+		*bp++ = *iqp->q_rdptr++;
+		if (iqp->q_rdptr >= iqp->q_top)
+			iqp->q_rdptr = iqp->q_buffer;
 
-    chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
-    r++;
-    if (--n == 0)
-      return r;
+		chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+		r++;
+		if (--n == 0)
+			return r;
 
-    chSysLock();
-  }
+		chSysLock();
+	}
 }
 
 /**
@@ -272,15 +270,17 @@ size_t chIQReadTimeout(InputQueue *iqp, uint8_t *bp,
  *
  * @init
  */
-void chOQInit(OutputQueue *oqp, uint8_t *bp, size_t size, qnotify_t onfy,
-              void *link) {
-
-  queue_init(&oqp->q_waiting);
-  oqp->q_counter = size;
-  oqp->q_buffer = oqp->q_rdptr = oqp->q_wrptr = bp;
-  oqp->q_top = bp + size;
-  oqp->q_notify = onfy;
-  oqp->q_link = link;
+void chOQInit(OutputQueue* oqp,
+							uint8_t* bp,
+							size_t size,
+							qnotify_t onfy,
+							void* link) {
+	queue_init(&oqp->q_waiting);
+	oqp->q_counter = size;
+	oqp->q_buffer = oqp->q_rdptr = oqp->q_wrptr = bp;
+	oqp->q_top = bp + size;
+	oqp->q_notify = onfy;
+	oqp->q_link = link;
 }
 
 /**
@@ -294,14 +294,13 @@ void chOQInit(OutputQueue *oqp, uint8_t *bp, size_t size, qnotify_t onfy,
  *
  * @iclass
  */
-void chOQResetI(OutputQueue *oqp) {
+void chOQResetI(OutputQueue* oqp) {
+	chDbgCheckClassI();
 
-  chDbgCheckClassI();
-
-  oqp->q_rdptr = oqp->q_wrptr = oqp->q_buffer;
-  oqp->q_counter = chQSizeI(oqp);
-  while (notempty(&oqp->q_waiting))
-    chSchReadyI(fifo_remove(&oqp->q_waiting))->p_u.rdymsg = Q_RESET;
+	oqp->q_rdptr = oqp->q_wrptr = oqp->q_buffer;
+	oqp->q_counter = chQSizeI(oqp);
+	while (notempty(&oqp->q_waiting))
+		chSchReadyI(fifo_remove(&oqp->q_waiting))->p_u.rdymsg = Q_RESET;
 }
 
 /**
@@ -326,28 +325,27 @@ void chOQResetI(OutputQueue *oqp) {
  *
  * @api
  */
-msg_t chOQPutTimeout(OutputQueue *oqp, uint8_t b, systime_t time) {
+msg_t chOQPutTimeout(OutputQueue* oqp, uint8_t b, systime_t time) {
+	chSysLock();
+	while (chOQIsFullI(oqp)) {
+		msg_t msg;
 
-  chSysLock();
-  while (chOQIsFullI(oqp)) {
-    msg_t msg;
+		if ((msg = qwait((GenericQueue*)oqp, time)) < Q_OK) {
+			chSysUnlock();
+			return msg;
+		}
+	}
 
-    if ((msg = qwait((GenericQueue *)oqp, time)) < Q_OK) {
-      chSysUnlock();
-      return msg;
-    }
-  }
+	oqp->q_counter--;
+	*oqp->q_wrptr++ = b;
+	if (oqp->q_wrptr >= oqp->q_top)
+		oqp->q_wrptr = oqp->q_buffer;
 
-  oqp->q_counter--;
-  *oqp->q_wrptr++ = b;
-  if (oqp->q_wrptr >= oqp->q_top)
-    oqp->q_wrptr = oqp->q_buffer;
+	if (oqp->q_notify)
+		oqp->q_notify(oqp);
 
-  if (oqp->q_notify)
-    oqp->q_notify(oqp);
-
-  chSysUnlock();
-  return Q_OK;
+	chSysUnlock();
+	return Q_OK;
 }
 
 /**
@@ -360,23 +358,23 @@ msg_t chOQPutTimeout(OutputQueue *oqp, uint8_t b, systime_t time) {
  *
  * @iclass
  */
-msg_t chOQGetI(OutputQueue *oqp) {
-  uint8_t b;
+msg_t chOQGetI(OutputQueue* oqp) {
+	uint8_t b;
 
-  chDbgCheckClassI();
+	chDbgCheckClassI();
 
-  if (chOQIsEmptyI(oqp))
-    return Q_EMPTY;
+	if (chOQIsEmptyI(oqp))
+		return Q_EMPTY;
 
-  oqp->q_counter++;
-  b = *oqp->q_rdptr++;
-  if (oqp->q_rdptr >= oqp->q_top)
-    oqp->q_rdptr = oqp->q_buffer;
+	oqp->q_counter++;
+	b = *oqp->q_rdptr++;
+	if (oqp->q_rdptr >= oqp->q_top)
+		oqp->q_rdptr = oqp->q_buffer;
 
-  if (notempty(&oqp->q_waiting))
-    chSchReadyI(fifo_remove(&oqp->q_waiting))->p_u.rdymsg = Q_OK;
+	if (notempty(&oqp->q_waiting))
+		chSchReadyI(fifo_remove(&oqp->q_waiting))->p_u.rdymsg = Q_OK;
 
-  return b;
+	return b;
 }
 
 /**
@@ -403,36 +401,38 @@ msg_t chOQGetI(OutputQueue *oqp) {
  *
  * @api
  */
-size_t chOQWriteTimeout(OutputQueue *oqp, const uint8_t *bp,
-                        size_t n, systime_t time) {
-  qnotify_t nfy = oqp->q_notify;
-  size_t w = 0;
+size_t chOQWriteTimeout(OutputQueue* oqp,
+												const uint8_t* bp,
+												size_t n,
+												systime_t time) {
+	qnotify_t nfy = oqp->q_notify;
+	size_t w = 0;
 
-  chDbgCheck(n > 0, "chOQWriteTimeout");
+	chDbgCheck(n > 0, "chOQWriteTimeout");
 
-  chSysLock();
-  while (TRUE) {
-    while (chOQIsFullI(oqp)) {
-      if (qwait((GenericQueue *)oqp, time) != Q_OK) {
-        chSysUnlock();
-        return w;
-      }
-    }
-    oqp->q_counter--;
-    *oqp->q_wrptr++ = *bp++;
-    if (oqp->q_wrptr >= oqp->q_top)
-      oqp->q_wrptr = oqp->q_buffer;
+	chSysLock();
+	while (TRUE) {
+		while (chOQIsFullI(oqp)) {
+			if (qwait((GenericQueue*)oqp, time) != Q_OK) {
+				chSysUnlock();
+				return w;
+			}
+		}
+		oqp->q_counter--;
+		*oqp->q_wrptr++ = *bp++;
+		if (oqp->q_wrptr >= oqp->q_top)
+			oqp->q_wrptr = oqp->q_buffer;
 
-    if (nfy)
-      nfy(oqp);
+		if (nfy)
+			nfy(oqp);
 
-    chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
-    w++;
-    if (--n == 0)
-      return w;
-    chSysLock();
-  }
+		chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+		w++;
+		if (--n == 0)
+			return w;
+		chSysLock();
+	}
 }
-#endif  /* CH_USE_QUEUES */
+#endif /* CH_USE_QUEUES */
 
 /** @} */

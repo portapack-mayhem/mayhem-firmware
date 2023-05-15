@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -40,20 +40,22 @@
 /**
  * @brief   Platform name.
  */
-#define PLATFORM_NAME           "LPC122x"
+#define PLATFORM_NAME "LPC122x"
 
-#define IRCOSCCLK               12000000    /**< High speed internal clock. */
-#define WDGOSCCLK               1600000     /**< Watchdog internal clock.   */
+#define IRCOSCCLK 12000000 /**< High speed internal clock. */
+#define WDGOSCCLK 1600000	 /**< Watchdog internal clock.   */
 
-#define SYSPLLCLKSEL_IRCOSC     0           /**< Internal RC oscillator
-                                                 clock source.              */
-#define SYSPLLCLKSEL_SYSOSC     1           /**< System oscillator clock
-                                                 source.                    */
+#define SYSPLLCLKSEL_IRCOSC     \
+	0 /**< Internal RC oscillator \
+				 clock source.              */
+#define SYSPLLCLKSEL_SYSOSC      \
+	1 /**< System oscillator clock \
+				 source.                    */
 
-#define SYSMAINCLKSEL_IRCOSC    0           /**< Clock source is IRC.       */
-#define SYSMAINCLKSEL_PLLIN     1           /**< Clock source is PLLIN.     */
-#define SYSMAINCLKSEL_WDGOSC    2           /**< Clock source is WDGOSC.    */
-#define SYSMAINCLKSEL_PLLOUT    3           /**< Clock source is PLLOUT.    */
+#define SYSMAINCLKSEL_IRCOSC 0 /**< Clock source is IRC.       */
+#define SYSMAINCLKSEL_PLLIN 1	 /**< Clock source is PLLIN.     */
+#define SYSMAINCLKSEL_WDGOSC 2 /**< Clock source is WDGOSC.    */
+#define SYSMAINCLKSEL_PLLOUT 3 /**< Clock source is PLLOUT.    */
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
@@ -63,7 +65,7 @@
  * @brief   System PLL clock source.
  */
 #if !defined(LPC122x_PLLCLK_SOURCE) || defined(__DOXYGEN__)
-#define LPC122x_PLLCLK_SOURCE               SYSPLLCLKSEL_SYSOSC
+#define LPC122x_PLLCLK_SOURCE SYSPLLCLKSEL_SYSOSC
 #endif
 
 /**
@@ -72,7 +74,7 @@
  *          must not exceed the CCO ratings.
  */
 #if !defined(LPC122x_SYSPLL_MUL) || defined(__DOXYGEN__)
-#define LPC122x_SYSPLL_MUL                  2
+#define LPC122x_SYSPLL_MUL 2
 #endif
 
 /**
@@ -80,14 +82,14 @@
  * @note    The value must be chosen between (2, 4, 8, 16).
  */
 #if !defined(LPC122x_SYSPLL_DIV) || defined(__DOXYGEN__)
-#define LPC122x_SYSPLL_DIV                  8
+#define LPC122x_SYSPLL_DIV 8
 #endif
 
 /**
  * @brief   System main clock source.
  */
 #if !defined(LPC122x_MAINCLK_SOURCE) || defined(__DOXYGEN__)
-#define LPC122x_MAINCLK_SOURCE              SYSMAINCLKSEL_PLLOUT
+#define LPC122x_MAINCLK_SOURCE SYSMAINCLKSEL_PLLOUT
 #endif
 
 /**
@@ -95,7 +97,7 @@
  * @note    The value must be chosen between (1...255).
  */
 #if !defined(LPC122x_SYSCLK_DIV) || defined(__DOXYGEN__)
-#define LPC122x_SYSABHCLK_DIV               1
+#define LPC122x_SYSABHCLK_DIV 1
 #endif
 
 /*===========================================================================*/
@@ -106,18 +108,18 @@
  * @brief   Calculated SYSOSCCTRL setting.
  */
 #if (SYSOSCCLK < 18000000) || defined(__DOXYGEN__)
-#define LPC122x_SYSOSCCTRL      0
+#define LPC122x_SYSOSCCTRL 0
 #else
-#define LPC122x_SYSOSCCTRL      1
+#define LPC122x_SYSOSCCTRL 1
 #endif
 
 /**
  * @brief   PLL input clock frequency.
  */
 #if (LPC122x_PLLCLK_SOURCE == SYSPLLCLKSEL_SYSOSC) || defined(__DOXYGEN__)
-#define LPC122x_SYSPLLCLKIN     SYSOSCCLK
+#define LPC122x_SYSPLLCLKIN SYSOSCCLK
 #elif LPC122x_PLLCLK_SOURCE == SYSPLLCLKSEL_IRCOSC
-#define LPC122x_SYSPLLCLKIN     IRCOSCCLK
+#define LPC122x_SYSPLLCLKIN IRCOSCCLK
 #else
 #error "invalid LPC122x_PLLCLK_SOURCE clock source specified"
 #endif
@@ -125,8 +127,8 @@
 /**
  * @brief   MSEL mask in SYSPLLCTRL register.
  */
-#if (LPC122x_SYSPLL_MUL >= 1) && (LPC122x_SYSPLL_MUL <= 32) ||              \
-    defined(__DOXYGEN__)
+#if (LPC122x_SYSPLL_MUL >= 1) && (LPC122x_SYSPLL_MUL <= 32) || \
+		defined(__DOXYGEN__)
 #define LPC122x_SYSPLLCTRL_MSEL (LPC122x_SYSPLL_MUL - 1)
 #else
 #error "LPC122x_SYSPLL_MUL out of range (1...32)"
@@ -150,8 +152,8 @@
 /**
  * @brief   CCP frequency.
  */
-#define  LPC122x_SYSPLLCCO   (LPC122x_SYSPLLCLKIN * LPC122x_SYSPLL_MUL *    \
-                              LPC122x_SYSPLL_DIV)
+#define LPC122x_SYSPLLCCO \
+	(LPC122x_SYSPLLCLKIN * LPC122x_SYSPLL_MUL * LPC122x_SYSPLL_DIV)
 
 #if (LPC122x_SYSPLLCCO < 156000000) || (LPC122x_SYSPLLCCO > 320000000)
 #error "CCO frequency out of the acceptable range (156...320)"
@@ -160,16 +162,16 @@
 /**
  * @brief   PLL output clock frequency.
  */
-#define  LPC122x_SYSPLLCLKOUT   (LPC122x_SYSPLLCCO / LPC122x_SYSPLL_DIV)
+#define LPC122x_SYSPLLCLKOUT (LPC122x_SYSPLLCCO / LPC122x_SYSPLL_DIV)
 
 #if (LPC122x_MAINCLK_SOURCE == SYSMAINCLKSEL_IRCOSC) || defined(__DOXYGEN__)
-#define LPC122x_MAINCLK     IRCOSCCLK
+#define LPC122x_MAINCLK IRCOSCCLK
 #elif LPC122x_MAINCLK_SOURCE == SYSMAINCLKSEL_PLLIN
-#define LPC122x_MAINCLK     LPC122x_SYSPLLCLKIN
+#define LPC122x_MAINCLK LPC122x_SYSPLLCLKIN
 #elif LPC122x_MAINCLK_SOURCE == SYSMAINCLKSEL_WDGOSC
-#define LPC122x_MAINCLK     WDGOSCCLK
+#define LPC122x_MAINCLK WDGOSCCLK
 #elif LPC122x_MAINCLK_SOURCE == SYSMAINCLKSEL_PLLOUT
-#define LPC122x_MAINCLK     LPC122x_SYSPLLCLKOUT
+#define LPC122x_MAINCLK LPC122x_SYSPLLCLKOUT
 #else
 #error "invalid LPC122x_MAINCLK_SOURCE clock source specified"
 #endif
@@ -177,7 +179,7 @@
 /**
  * @brief   AHB clock.
  */
-#define  LPC122x_SYSCLK     (LPC122x_MAINCLK / LPC122x_SYSABHCLK_DIV)
+#define LPC122x_SYSCLK (LPC122x_MAINCLK / LPC122x_SYSABHCLK_DIV)
 #if LPC122x_SYSCLK > 45000000
 #error "AHB clock frequency out of the acceptable range (45MHz max)"
 #endif
@@ -186,9 +188,9 @@
  * @brief   Flash wait states.
  */
 #if (LPC122x_SYSCLK <= 30000000) || defined(__DOXYGEN__)
-#define LPC122x_FLASHCFG_FLASHTIM   0
+#define LPC122x_FLASHCFG_FLASHTIM 0
 #else
-#define LPC122x_FLASHCFG_FLASHTIM   1
+#define LPC122x_FLASHCFG_FLASHTIM 1
 #endif
 
 /*===========================================================================*/
@@ -206,8 +208,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void hal_lld_init(void);
-  void lpc122x_clock_init(void);
+void hal_lld_init(void);
+void lpc122x_clock_init(void);
 #ifdef __cplusplus
 }
 #endif

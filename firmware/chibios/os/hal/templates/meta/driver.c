@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -59,8 +59,7 @@
  * @init
  */
 void xxxInit(void) {
-
-  xxx_lld_init();
+	xxx_lld_init();
 }
 
 /**
@@ -70,10 +69,9 @@ void xxxInit(void) {
  *
  * @init
  */
-void xxxObjectInit(XXXDriver *xxxp) {
-
-  xxxp->state  = XXX_STOP;
-  xxxp->config = NULL;
+void xxxObjectInit(XXXDriver* xxxp) {
+	xxxp->state = XXX_STOP;
+	xxxp->config = NULL;
 }
 
 /**
@@ -84,17 +82,16 @@ void xxxObjectInit(XXXDriver *xxxp) {
  *
  * @api
  */
-void xxxStart(XXXDriver *xxxp, const XXXConfig *config) {
+void xxxStart(XXXDriver* xxxp, const XXXConfig* config) {
+	chDbgCheck((xxxp != NULL) && (config != NULL), "xxxStart");
 
-  chDbgCheck((xxxp != NULL) && (config != NULL), "xxxStart");
-
-  chSysLock();
-  chDbgAssert((xxxp->state == XXX_STOP) || (xxxp->state == XXX_READY),
-              "xxxStart(), #1", "invalid state");
-  xxxp->config = config;
-  xxx_lld_start(xxxp);
-  xxxp->state = XXX_READY;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((xxxp->state == XXX_STOP) || (xxxp->state == XXX_READY),
+							"xxxStart(), #1", "invalid state");
+	xxxp->config = config;
+	xxx_lld_start(xxxp);
+	xxxp->state = XXX_READY;
+	chSysUnlock();
 }
 
 /**
@@ -104,16 +101,15 @@ void xxxStart(XXXDriver *xxxp, const XXXConfig *config) {
  *
  * @api
  */
-void xxxStop(XXXDriver *xxxp) {
+void xxxStop(XXXDriver* xxxp) {
+	chDbgCheck(xxxp != NULL, "xxxStop");
 
-  chDbgCheck(xxxp != NULL, "xxxStop");
-
-  chSysLock();
-  chDbgAssert((xxxp->state == XXX_STOP) || (xxxp->state == XXX_READY),
-              "xxxStop(), #1", "invalid state");
-  xxx_lld_stop(xxxp);
-  xxxp->state = XXX_STOP;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((xxxp->state == XXX_STOP) || (xxxp->state == XXX_READY),
+							"xxxStop(), #1", "invalid state");
+	xxx_lld_stop(xxxp);
+	xxxp->state = XXX_STOP;
+	chSysUnlock();
 }
 
 #endif /* HAL_USE_XXX */

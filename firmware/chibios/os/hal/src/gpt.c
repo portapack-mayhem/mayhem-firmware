@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -66,8 +66,7 @@
  * @init
  */
 void gptInit(void) {
-
-  gpt_lld_init();
+	gpt_lld_init();
 }
 
 /**
@@ -77,10 +76,9 @@ void gptInit(void) {
  *
  * @init
  */
-void gptObjectInit(GPTDriver *gptp) {
-
-  gptp->state  = GPT_STOP;
-  gptp->config = NULL;
+void gptObjectInit(GPTDriver* gptp) {
+	gptp->state = GPT_STOP;
+	gptp->config = NULL;
 }
 
 /**
@@ -91,17 +89,16 @@ void gptObjectInit(GPTDriver *gptp) {
  *
  * @api
  */
-void gptStart(GPTDriver *gptp, const GPTConfig *config) {
+void gptStart(GPTDriver* gptp, const GPTConfig* config) {
+	chDbgCheck((gptp != NULL) && (config != NULL), "gptStart");
 
-  chDbgCheck((gptp != NULL) && (config != NULL), "gptStart");
-
-  chSysLock();
-  chDbgAssert((gptp->state == GPT_STOP) || (gptp->state == GPT_READY),
-              "gptStart(), #1", "invalid state");
-  gptp->config = config;
-  gpt_lld_start(gptp);
-  gptp->state = GPT_READY;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((gptp->state == GPT_STOP) || (gptp->state == GPT_READY),
+							"gptStart(), #1", "invalid state");
+	gptp->config = config;
+	gpt_lld_start(gptp);
+	gptp->state = GPT_READY;
+	chSysUnlock();
 }
 
 /**
@@ -111,16 +108,15 @@ void gptStart(GPTDriver *gptp, const GPTConfig *config) {
  *
  * @api
  */
-void gptStop(GPTDriver *gptp) {
+void gptStop(GPTDriver* gptp) {
+	chDbgCheck(gptp != NULL, "gptStop");
 
-  chDbgCheck(gptp != NULL, "gptStop");
-
-  chSysLock();
-  chDbgAssert((gptp->state == GPT_STOP) || (gptp->state == GPT_READY),
-              "gptStop(), #1", "invalid state");
-  gpt_lld_stop(gptp);
-  gptp->state = GPT_STOP;
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert((gptp->state == GPT_STOP) || (gptp->state == GPT_READY),
+							"gptStop(), #1", "invalid state");
+	gpt_lld_stop(gptp);
+	gptp->state = GPT_STOP;
+	chSysUnlock();
 }
 
 /**
@@ -136,15 +132,14 @@ void gptStop(GPTDriver *gptp) {
  *
  * @api
  */
-void gptChangeInterval(GPTDriver *gptp, gptcnt_t interval) {
+void gptChangeInterval(GPTDriver* gptp, gptcnt_t interval) {
+	chDbgCheck(gptp != NULL, "gptChangeInterval");
 
-  chDbgCheck(gptp != NULL, "gptChangeInterval");
-
-  chSysLock();
-  chDbgAssert(gptp->state == GPT_CONTINUOUS,
-              "gptChangeInterval(), #1", "invalid state");
-  gptChangeIntervalI(gptp, interval);
-  chSysUnlock();
+	chSysLock();
+	chDbgAssert(gptp->state == GPT_CONTINUOUS, "gptChangeInterval(), #1",
+							"invalid state");
+	gptChangeIntervalI(gptp, interval);
+	chSysUnlock();
 }
 
 /**
@@ -155,11 +150,10 @@ void gptChangeInterval(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @api
  */
-void gptStartContinuous(GPTDriver *gptp, gptcnt_t interval) {
-
-  chSysLock();
-  gptStartContinuousI(gptp, interval);
-  chSysUnlock();
+void gptStartContinuous(GPTDriver* gptp, gptcnt_t interval) {
+	chSysLock();
+	gptStartContinuousI(gptp, interval);
+	chSysUnlock();
 }
 
 /**
@@ -170,15 +164,14 @@ void gptStartContinuous(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @iclass
  */
-void gptStartContinuousI(GPTDriver *gptp, gptcnt_t interval) {
+void gptStartContinuousI(GPTDriver* gptp, gptcnt_t interval) {
+	chDbgCheckClassI();
+	chDbgCheck(gptp != NULL, "gptStartContinuousI");
+	chDbgAssert(gptp->state == GPT_READY, "gptStartContinuousI(), #1",
+							"invalid state");
 
-  chDbgCheckClassI();
-  chDbgCheck(gptp != NULL, "gptStartContinuousI");
-  chDbgAssert(gptp->state == GPT_READY,
-              "gptStartContinuousI(), #1", "invalid state");
-
-  gptp->state = GPT_CONTINUOUS;
-  gpt_lld_start_timer(gptp, interval);
+	gptp->state = GPT_CONTINUOUS;
+	gpt_lld_start_timer(gptp, interval);
 }
 
 /**
@@ -189,11 +182,10 @@ void gptStartContinuousI(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @api
  */
-void gptStartOneShot(GPTDriver *gptp, gptcnt_t interval) {
-
-  chSysLock();
-  gptStartOneShotI(gptp, interval);
-  chSysUnlock();
+void gptStartOneShot(GPTDriver* gptp, gptcnt_t interval) {
+	chSysLock();
+	gptStartOneShotI(gptp, interval);
+	chSysUnlock();
 }
 
 /**
@@ -204,15 +196,14 @@ void gptStartOneShot(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @api
  */
-void gptStartOneShotI(GPTDriver *gptp, gptcnt_t interval) {
+void gptStartOneShotI(GPTDriver* gptp, gptcnt_t interval) {
+	chDbgCheckClassI();
+	chDbgCheck(gptp != NULL, "gptStartOneShotI");
+	chDbgAssert(gptp->state == GPT_READY, "gptStartOneShotI(), #1",
+							"invalid state");
 
-  chDbgCheckClassI();
-  chDbgCheck(gptp != NULL, "gptStartOneShotI");
-  chDbgAssert(gptp->state == GPT_READY,
-              "gptStartOneShotI(), #1", "invalid state");
-
-  gptp->state = GPT_ONESHOT;
-  gpt_lld_start_timer(gptp, interval);
+	gptp->state = GPT_ONESHOT;
+	gpt_lld_start_timer(gptp, interval);
 }
 
 /**
@@ -222,11 +213,10 @@ void gptStartOneShotI(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @api
  */
-void gptStopTimer(GPTDriver *gptp) {
-
-  chSysLock();
-  gptStopTimerI(gptp);
-  chSysUnlock();
+void gptStopTimer(GPTDriver* gptp) {
+	chSysLock();
+	gptStopTimerI(gptp);
+	chSysUnlock();
 }
 
 /**
@@ -236,16 +226,15 @@ void gptStopTimer(GPTDriver *gptp) {
  *
  * @api
  */
-void gptStopTimerI(GPTDriver *gptp) {
+void gptStopTimerI(GPTDriver* gptp) {
+	chDbgCheckClassI();
+	chDbgCheck(gptp != NULL, "gptStopTimerI");
+	chDbgAssert((gptp->state == GPT_READY) || (gptp->state == GPT_CONTINUOUS) ||
+									(gptp->state == GPT_ONESHOT),
+							"gptStopTimerI(), #1", "invalid state");
 
-  chDbgCheckClassI();
-  chDbgCheck(gptp != NULL, "gptStopTimerI");
-  chDbgAssert((gptp->state == GPT_READY) || (gptp->state == GPT_CONTINUOUS) ||
-              (gptp->state == GPT_ONESHOT),
-              "gptStopTimerI(), #1", "invalid state");
-
-  gptp->state = GPT_READY;
-  gpt_lld_stop_timer(gptp);
+	gptp->state = GPT_READY;
+	gpt_lld_stop_timer(gptp);
 }
 
 /**
@@ -260,14 +249,13 @@ void gptStopTimerI(GPTDriver *gptp) {
  *
  * @api
  */
-void gptPolledDelay(GPTDriver *gptp, gptcnt_t interval) {
+void gptPolledDelay(GPTDriver* gptp, gptcnt_t interval) {
+	chDbgAssert(gptp->state == GPT_READY, "gptPolledDelay(), #1",
+							"invalid state");
 
-  chDbgAssert(gptp->state == GPT_READY,
-              "gptPolledDelay(), #1", "invalid state");
-
-  gptp->state = GPT_ONESHOT;
-  gpt_lld_polled_delay(gptp, interval);
-  gptp->state = GPT_READY;
+	gptp->state = GPT_ONESHOT;
+	gpt_lld_polled_delay(gptp, interval);
+	gptp->state = GPT_READY;
 }
 
 #endif /* HAL_USE_GPT */

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -69,14 +69,13 @@
  *
  * @init
  */
-void chMBInit(Mailbox *mbp, msg_t *buf, cnt_t n) {
+void chMBInit(Mailbox* mbp, msg_t* buf, cnt_t n) {
+	chDbgCheck((mbp != NULL) && (buf != NULL) && (n > 0), "chMBInit");
 
-  chDbgCheck((mbp != NULL) && (buf != NULL) && (n > 0), "chMBInit");
-
-  mbp->mb_buffer = mbp->mb_wrptr = mbp->mb_rdptr = buf;
-  mbp->mb_top = &buf[n];
-  chSemInit(&mbp->mb_emptysem, n);
-  chSemInit(&mbp->mb_fullsem, 0);
+	mbp->mb_buffer = mbp->mb_wrptr = mbp->mb_rdptr = buf;
+	mbp->mb_top = &buf[n];
+	chSemInit(&mbp->mb_emptysem, n);
+	chSemInit(&mbp->mb_fullsem, 0);
 }
 
 /**
@@ -88,16 +87,15 @@ void chMBInit(Mailbox *mbp, msg_t *buf, cnt_t n) {
  *
  * @api
  */
-void chMBReset(Mailbox *mbp) {
+void chMBReset(Mailbox* mbp) {
+	chDbgCheck(mbp != NULL, "chMBReset");
 
-  chDbgCheck(mbp != NULL, "chMBReset");
-
-  chSysLock();
-  mbp->mb_wrptr = mbp->mb_rdptr = mbp->mb_buffer;
-  chSemResetI(&mbp->mb_emptysem, mbp->mb_top - mbp->mb_buffer);
-  chSemResetI(&mbp->mb_fullsem, 0);
-  chSchRescheduleS();
-  chSysUnlock();
+	chSysLock();
+	mbp->mb_wrptr = mbp->mb_rdptr = mbp->mb_buffer;
+	chSemResetI(&mbp->mb_emptysem, mbp->mb_top - mbp->mb_buffer);
+	chSemResetI(&mbp->mb_fullsem, 0);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -119,13 +117,13 @@ void chMBReset(Mailbox *mbp) {
  *
  * @api
  */
-msg_t chMBPost(Mailbox *mbp, msg_t msg, systime_t time) {
-  msg_t rdymsg;
+msg_t chMBPost(Mailbox* mbp, msg_t msg, systime_t time) {
+	msg_t rdymsg;
 
-  chSysLock();
-  rdymsg = chMBPostS(mbp, msg, time);
-  chSysUnlock();
-  return rdymsg;
+	chSysLock();
+	rdymsg = chMBPostS(mbp, msg, time);
+	chSysUnlock();
+	return rdymsg;
 }
 
 /**
@@ -147,21 +145,21 @@ msg_t chMBPost(Mailbox *mbp, msg_t msg, systime_t time) {
  *
  * @sclass
  */
-msg_t chMBPostS(Mailbox *mbp, msg_t msg, systime_t time) {
-  msg_t rdymsg;
+msg_t chMBPostS(Mailbox* mbp, msg_t msg, systime_t time) {
+	msg_t rdymsg;
 
-  chDbgCheckClassS();
-  chDbgCheck(mbp != NULL, "chMBPostS");
+	chDbgCheckClassS();
+	chDbgCheck(mbp != NULL, "chMBPostS");
 
-  rdymsg = chSemWaitTimeoutS(&mbp->mb_emptysem, time);
-  if (rdymsg == RDY_OK) {
-    *mbp->mb_wrptr++ = msg;
-    if (mbp->mb_wrptr >= mbp->mb_top)
-      mbp->mb_wrptr = mbp->mb_buffer;
-    chSemSignalI(&mbp->mb_fullsem);
-    chSchRescheduleS();
-  }
-  return rdymsg;
+	rdymsg = chSemWaitTimeoutS(&mbp->mb_emptysem, time);
+	if (rdymsg == RDY_OK) {
+		*mbp->mb_wrptr++ = msg;
+		if (mbp->mb_wrptr >= mbp->mb_top)
+			mbp->mb_wrptr = mbp->mb_buffer;
+		chSemSignalI(&mbp->mb_fullsem);
+		chSchRescheduleS();
+	}
+	return rdymsg;
 }
 
 /**
@@ -178,19 +176,18 @@ msg_t chMBPostS(Mailbox *mbp, msg_t msg, systime_t time) {
  *
  * @iclass
  */
-msg_t chMBPostI(Mailbox *mbp, msg_t msg) {
+msg_t chMBPostI(Mailbox* mbp, msg_t msg) {
+	chDbgCheckClassI();
+	chDbgCheck(mbp != NULL, "chMBPostI");
 
-  chDbgCheckClassI();
-  chDbgCheck(mbp != NULL, "chMBPostI");
-
-  if (chSemGetCounterI(&mbp->mb_emptysem) <= 0)
-    return RDY_TIMEOUT;
-  chSemFastWaitI(&mbp->mb_emptysem);
-  *mbp->mb_wrptr++ = msg;
-  if (mbp->mb_wrptr >= mbp->mb_top)
-    mbp->mb_wrptr = mbp->mb_buffer;
-  chSemSignalI(&mbp->mb_fullsem);
-  return RDY_OK;
+	if (chSemGetCounterI(&mbp->mb_emptysem) <= 0)
+		return RDY_TIMEOUT;
+	chSemFastWaitI(&mbp->mb_emptysem);
+	*mbp->mb_wrptr++ = msg;
+	if (mbp->mb_wrptr >= mbp->mb_top)
+		mbp->mb_wrptr = mbp->mb_buffer;
+	chSemSignalI(&mbp->mb_fullsem);
+	return RDY_OK;
 }
 
 /**
@@ -212,13 +209,13 @@ msg_t chMBPostI(Mailbox *mbp, msg_t msg) {
  *
  * @api
  */
-msg_t chMBPostAhead(Mailbox *mbp, msg_t msg, systime_t time) {
-  msg_t rdymsg;
+msg_t chMBPostAhead(Mailbox* mbp, msg_t msg, systime_t time) {
+	msg_t rdymsg;
 
-  chSysLock();
-  rdymsg = chMBPostAheadS(mbp, msg, time);
-  chSysUnlock();
-  return rdymsg;
+	chSysLock();
+	rdymsg = chMBPostAheadS(mbp, msg, time);
+	chSysUnlock();
+	return rdymsg;
 }
 
 /**
@@ -240,21 +237,21 @@ msg_t chMBPostAhead(Mailbox *mbp, msg_t msg, systime_t time) {
  *
  * @sclass
  */
-msg_t chMBPostAheadS(Mailbox *mbp, msg_t msg, systime_t time) {
-  msg_t rdymsg;
+msg_t chMBPostAheadS(Mailbox* mbp, msg_t msg, systime_t time) {
+	msg_t rdymsg;
 
-  chDbgCheckClassS();
-  chDbgCheck(mbp != NULL, "chMBPostAheadS");
+	chDbgCheckClassS();
+	chDbgCheck(mbp != NULL, "chMBPostAheadS");
 
-  rdymsg = chSemWaitTimeoutS(&mbp->mb_emptysem, time);
-  if (rdymsg == RDY_OK) {
-    if (--mbp->mb_rdptr < mbp->mb_buffer)
-      mbp->mb_rdptr = mbp->mb_top - 1;
-    *mbp->mb_rdptr = msg;
-    chSemSignalI(&mbp->mb_fullsem);
-    chSchRescheduleS();
-  }
-  return rdymsg;
+	rdymsg = chSemWaitTimeoutS(&mbp->mb_emptysem, time);
+	if (rdymsg == RDY_OK) {
+		if (--mbp->mb_rdptr < mbp->mb_buffer)
+			mbp->mb_rdptr = mbp->mb_top - 1;
+		*mbp->mb_rdptr = msg;
+		chSemSignalI(&mbp->mb_fullsem);
+		chSchRescheduleS();
+	}
+	return rdymsg;
 }
 
 /**
@@ -271,19 +268,18 @@ msg_t chMBPostAheadS(Mailbox *mbp, msg_t msg, systime_t time) {
  *
  * @iclass
  */
-msg_t chMBPostAheadI(Mailbox *mbp, msg_t msg) {
+msg_t chMBPostAheadI(Mailbox* mbp, msg_t msg) {
+	chDbgCheckClassI();
+	chDbgCheck(mbp != NULL, "chMBPostAheadI");
 
-  chDbgCheckClassI();
-  chDbgCheck(mbp != NULL, "chMBPostAheadI");
-
-  if (chSemGetCounterI(&mbp->mb_emptysem) <= 0)
-    return RDY_TIMEOUT;
-  chSemFastWaitI(&mbp->mb_emptysem);
-  if (--mbp->mb_rdptr < mbp->mb_buffer)
-    mbp->mb_rdptr = mbp->mb_top - 1;
-  *mbp->mb_rdptr = msg;
-  chSemSignalI(&mbp->mb_fullsem);
-  return RDY_OK;
+	if (chSemGetCounterI(&mbp->mb_emptysem) <= 0)
+		return RDY_TIMEOUT;
+	chSemFastWaitI(&mbp->mb_emptysem);
+	if (--mbp->mb_rdptr < mbp->mb_buffer)
+		mbp->mb_rdptr = mbp->mb_top - 1;
+	*mbp->mb_rdptr = msg;
+	chSemSignalI(&mbp->mb_fullsem);
+	return RDY_OK;
 }
 
 /**
@@ -305,13 +301,13 @@ msg_t chMBPostAheadI(Mailbox *mbp, msg_t msg) {
  *
  * @api
  */
-msg_t chMBFetch(Mailbox *mbp, msg_t *msgp, systime_t time) {
-  msg_t rdymsg;
+msg_t chMBFetch(Mailbox* mbp, msg_t* msgp, systime_t time) {
+	msg_t rdymsg;
 
-  chSysLock();
-  rdymsg = chMBFetchS(mbp, msgp, time);
-  chSysUnlock();
-  return rdymsg;
+	chSysLock();
+	rdymsg = chMBFetchS(mbp, msgp, time);
+	chSysUnlock();
+	return rdymsg;
 }
 
 /**
@@ -333,21 +329,21 @@ msg_t chMBFetch(Mailbox *mbp, msg_t *msgp, systime_t time) {
  *
  * @sclass
  */
-msg_t chMBFetchS(Mailbox *mbp, msg_t *msgp, systime_t time) {
-  msg_t rdymsg;
+msg_t chMBFetchS(Mailbox* mbp, msg_t* msgp, systime_t time) {
+	msg_t rdymsg;
 
-  chDbgCheckClassS();
-  chDbgCheck((mbp != NULL) && (msgp != NULL), "chMBFetchS");
+	chDbgCheckClassS();
+	chDbgCheck((mbp != NULL) && (msgp != NULL), "chMBFetchS");
 
-  rdymsg = chSemWaitTimeoutS(&mbp->mb_fullsem, time);
-  if (rdymsg == RDY_OK) {
-    *msgp = *mbp->mb_rdptr++;
-    if (mbp->mb_rdptr >= mbp->mb_top)
-      mbp->mb_rdptr = mbp->mb_buffer;
-    chSemSignalI(&mbp->mb_emptysem);
-    chSchRescheduleS();
-  }
-  return rdymsg;
+	rdymsg = chSemWaitTimeoutS(&mbp->mb_fullsem, time);
+	if (rdymsg == RDY_OK) {
+		*msgp = *mbp->mb_rdptr++;
+		if (mbp->mb_rdptr >= mbp->mb_top)
+			mbp->mb_rdptr = mbp->mb_buffer;
+		chSemSignalI(&mbp->mb_emptysem);
+		chSchRescheduleS();
+	}
+	return rdymsg;
 }
 
 /**
@@ -364,19 +360,18 @@ msg_t chMBFetchS(Mailbox *mbp, msg_t *msgp, systime_t time) {
  *
  * @iclass
  */
-msg_t chMBFetchI(Mailbox *mbp, msg_t *msgp) {
+msg_t chMBFetchI(Mailbox* mbp, msg_t* msgp) {
+	chDbgCheckClassI();
+	chDbgCheck((mbp != NULL) && (msgp != NULL), "chMBFetchI");
 
-  chDbgCheckClassI();
-  chDbgCheck((mbp != NULL) && (msgp != NULL), "chMBFetchI");
-
-  if (chSemGetCounterI(&mbp->mb_fullsem) <= 0)
-    return RDY_TIMEOUT;
-  chSemFastWaitI(&mbp->mb_fullsem);
-  *msgp = *mbp->mb_rdptr++;
-  if (mbp->mb_rdptr >= mbp->mb_top)
-    mbp->mb_rdptr = mbp->mb_buffer;
-  chSemSignalI(&mbp->mb_emptysem);
-  return RDY_OK;
+	if (chSemGetCounterI(&mbp->mb_fullsem) <= 0)
+		return RDY_TIMEOUT;
+	chSemFastWaitI(&mbp->mb_fullsem);
+	*msgp = *mbp->mb_rdptr++;
+	if (mbp->mb_rdptr >= mbp->mb_top)
+		mbp->mb_rdptr = mbp->mb_buffer;
+	chSemSignalI(&mbp->mb_emptysem);
+	return RDY_OK;
 }
 #endif /* CH_USE_MAILBOXES */
 

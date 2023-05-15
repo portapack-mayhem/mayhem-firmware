@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -48,15 +48,15 @@
 /*===========================================================================*/
 /* Driver interrupt handlers.                                                */
 /*===========================================================================*/
-static void ext_lld_interrupt( uint32_t n ) {
-  uint32_t reason;
-  
-  reason =  ((LPC_GPIO_PIN_INT->RISE)>> n   ) & 0x01;
-  reason |= ((LPC_GPIO_PIN_INT->FALL)>>(n-1)) & 0x02;
-  LPC_GPIO_PIN_INT->RISE = (1<<n);
-  LPC_GPIO_PIN_INT->FALL = (1<<n);
-  LPC_GPIO_PIN_INT->IST  = (1<<n);
-  EXTD1.config->channels[n].cb(&EXTD1, n, reason);
+static void ext_lld_interrupt(uint32_t n) {
+	uint32_t reason;
+
+	reason = ((LPC_GPIO_PIN_INT->RISE) >> n) & 0x01;
+	reason |= ((LPC_GPIO_PIN_INT->FALL) >> (n - 1)) & 0x02;
+	LPC_GPIO_PIN_INT->RISE = (1 << n);
+	LPC_GPIO_PIN_INT->FALL = (1 << n);
+	LPC_GPIO_PIN_INT->IST = (1 << n);
+	EXTD1.config->channels[n].cb(&EXTD1, n, reason);
 }
 
 /**
@@ -65,10 +65,9 @@ static void ext_lld_interrupt( uint32_t n ) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector40) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(0);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(0);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -77,10 +76,9 @@ CH_IRQ_HANDLER(Vector40) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector44) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(1);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(1);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -89,10 +87,9 @@ CH_IRQ_HANDLER(Vector44) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector48) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(2);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(2);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -101,10 +98,9 @@ CH_IRQ_HANDLER(Vector48) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector4C) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(3);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(3);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -113,10 +109,9 @@ CH_IRQ_HANDLER(Vector4C) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector50) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(4);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(4);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -125,10 +120,9 @@ CH_IRQ_HANDLER(Vector50) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector54) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(5);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(5);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -137,10 +131,9 @@ CH_IRQ_HANDLER(Vector54) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector58) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(6);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(6);
+	CH_IRQ_EPILOGUE();
 }
 
 /**
@@ -149,34 +142,28 @@ CH_IRQ_HANDLER(Vector58) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector5C) {
-
-  CH_IRQ_PROLOGUE();
-  ext_lld_interrupt(7);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	ext_lld_interrupt(7);
+	CH_IRQ_EPILOGUE();
 }
 
 /*===========================================================================*/
 /* Driver exported functions.                                                */
 /*===========================================================================*/
-static const uint8_t LPC11_EXT_EXTIn_IRQ_PRIORITY[] =
-    { LPC11_EXT_EXTI0_IRQ_PRIORITY,
-      LPC11_EXT_EXTI1_IRQ_PRIORITY,
-      LPC11_EXT_EXTI2_IRQ_PRIORITY,
-      LPC11_EXT_EXTI3_IRQ_PRIORITY,
-      LPC11_EXT_EXTI4_IRQ_PRIORITY,
-      LPC11_EXT_EXTI5_IRQ_PRIORITY,
-      LPC11_EXT_EXTI6_IRQ_PRIORITY,
-      LPC11_EXT_EXTI7_IRQ_PRIORITY };
+static const uint8_t LPC11_EXT_EXTIn_IRQ_PRIORITY[] = {
+		LPC11_EXT_EXTI0_IRQ_PRIORITY, LPC11_EXT_EXTI1_IRQ_PRIORITY,
+		LPC11_EXT_EXTI2_IRQ_PRIORITY, LPC11_EXT_EXTI3_IRQ_PRIORITY,
+		LPC11_EXT_EXTI4_IRQ_PRIORITY, LPC11_EXT_EXTI5_IRQ_PRIORITY,
+		LPC11_EXT_EXTI6_IRQ_PRIORITY, LPC11_EXT_EXTI7_IRQ_PRIORITY};
 
 /**
  * @brief   Enables EXTI IRQ sources.
  *
  * @notapi
  */
-void ext_lld_exti_irq_enable( uint32_t exti_n ) {
-
-  nvicEnableVector(FLEX_INT0_IRQn + exti_n,
-                   CORTEX_PRIORITY_MASK(LPC11_EXT_EXTIn_IRQ_PRIORITY[exti_n]));
+void ext_lld_exti_irq_enable(uint32_t exti_n) {
+	nvicEnableVector(FLEX_INT0_IRQn + exti_n,
+									 CORTEX_PRIORITY_MASK(LPC11_EXT_EXTIn_IRQ_PRIORITY[exti_n]));
 }
 
 /**
@@ -184,9 +171,8 @@ void ext_lld_exti_irq_enable( uint32_t exti_n ) {
  *
  * @notapi
  */
-void ext_lld_exti_irq_disable( uint32_t exti_n ) {
-
-  nvicDisableVector(FLEX_INT0_IRQn + exti_n);
+void ext_lld_exti_irq_disable(uint32_t exti_n) {
+	nvicDisableVector(FLEX_INT0_IRQn + exti_n);
 }
 
 #endif /* HAL_USE_EXT */

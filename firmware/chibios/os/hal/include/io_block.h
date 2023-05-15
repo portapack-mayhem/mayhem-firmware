@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -49,60 +49,60 @@
  * @brief   Driver state machine possible states.
  */
 typedef enum {
-  BLK_UNINIT = 0,                   /**< Not initialized.                   */
-  BLK_STOP = 1,                     /**< Stopped.                           */
-  BLK_ACTIVE = 2,                   /**< Interface active.                  */
-  BLK_CONNECTING = 3,               /**< Connection in progress.            */
-  BLK_DISCONNECTING = 4,            /**< Disconnection in progress.         */
-  BLK_READY = 5,                    /**< Device ready.                      */
-  BLK_READING = 6,                  /**< Read operation in progress.        */
-  BLK_WRITING = 7,                  /**< Write operation in progress.       */
-  BLK_SYNCING = 8                   /**< Sync. operation in progress.       */
+	BLK_UNINIT = 0,				 /**< Not initialized.                   */
+	BLK_STOP = 1,					 /**< Stopped.                           */
+	BLK_ACTIVE = 2,				 /**< Interface active.                  */
+	BLK_CONNECTING = 3,		 /**< Connection in progress.            */
+	BLK_DISCONNECTING = 4, /**< Disconnection in progress.         */
+	BLK_READY = 5,				 /**< Device ready.                      */
+	BLK_READING = 6,			 /**< Read operation in progress.        */
+	BLK_WRITING = 7,			 /**< Write operation in progress.       */
+	BLK_SYNCING = 8				 /**< Sync. operation in progress.       */
 } blkstate_t;
 
 /**
  * @brief   Block device info.
  */
 typedef struct {
-  uint32_t      blk_size;           /**< @brief Block size in bytes.        */
-  uint32_t      blk_num;            /**< @brief Total number of blocks.     */
+	uint32_t blk_size; /**< @brief Block size in bytes.        */
+	uint32_t blk_num;	 /**< @brief Total number of blocks.     */
 } BlockDeviceInfo;
 
 /**
  * @brief   @p BaseBlockDevice specific methods.
  */
 #define _base_block_device_methods                                          \
-  /* Removable media detection.*/                                           \
-  bool_t (*is_inserted)(void *instance);                                    \
-  /* Removable write protection detection.*/                                \
-  bool_t (*is_protected)(void *instance);                                   \
-  /* Connection to the block device.*/                                      \
-  bool_t (*connect)(void *instance);                                        \
-  /* Disconnection from the block device.*/                                 \
-  bool_t (*disconnect)(void *instance);                                     \
-  /* Reads one or more blocks.*/                                            \
-  bool_t (*read)(void *instance, uint32_t startblk,                         \
-                 uint8_t *buffer, uint32_t n);                              \
-  /* Writes one or more blocks.*/                                           \
-  bool_t (*write)(void *instance, uint32_t startblk,                        \
-                  const uint8_t *buffer, uint32_t n);                       \
-  /* Write operations synchronization.*/                                    \
-  bool_t (*sync)(void *instance);                                           \
-  /* Obtains info about the media.*/                                        \
-  bool_t (*get_info)(void *instance, BlockDeviceInfo *bdip);
+	/* Removable media detection.*/                                           \
+	bool_t (*is_inserted)(void* instance);                                    \
+	/* Removable write protection detection.*/                                \
+	bool_t (*is_protected)(void* instance);                                   \
+	/* Connection to the block device.*/                                      \
+	bool_t (*connect)(void* instance);                                        \
+	/* Disconnection from the block device.*/                                 \
+	bool_t (*disconnect)(void* instance);                                     \
+	/* Reads one or more blocks.*/                                            \
+	bool_t (*read)(void* instance, uint32_t startblk, uint8_t* buffer,        \
+								 uint32_t n);                                               \
+	/* Writes one or more blocks.*/                                           \
+	bool_t (*write)(void* instance, uint32_t startblk, const uint8_t* buffer, \
+									uint32_t n);                                              \
+	/* Write operations synchronization.*/                                    \
+	bool_t (*sync)(void* instance);                                           \
+	/* Obtains info about the media.*/                                        \
+	bool_t (*get_info)(void* instance, BlockDeviceInfo* bdip);
 
 /**
  * @brief   @p BaseBlockDevice specific data.
  */
-#define _base_block_device_data                                             \
-  /* Driver state.*/                                                        \
-  blkstate_t            state;
+#define _base_block_device_data \
+	/* Driver state.*/            \
+	blkstate_t state;
 
 /**
  * @brief   @p BaseBlockDevice virtual methods table.
  */
 struct BaseBlockDeviceVMT {
-  _base_block_device_methods
+	_base_block_device_methods
 };
 
 /**
@@ -110,9 +110,9 @@ struct BaseBlockDeviceVMT {
  * @details This class represents a generic, block-accessible, device.
  */
 typedef struct {
-  /** @brief Virtual Methods Table.*/
-  const struct BaseBlockDeviceVMT *vmt;
-  _base_block_device_data
+	/** @brief Virtual Methods Table.*/
+	const struct BaseBlockDeviceVMT* vmt;
+	_base_block_device_data
 } BaseBlockDevice;
 
 /**
@@ -143,10 +143,10 @@ typedef struct {
  *
  * @special
  */
-#define blkIsTransferring(ip) ((((ip)->state) == BLK_CONNECTING) ||         \
-                               (((ip)->state) == BLK_DISCONNECTING) ||      \
-                               (((ip)->state) == BLK_READING) ||            \
-                               (((ip)->state) == BLK_WRITING))
+#define blkIsTransferring(ip)                                                \
+	((((ip)->state) == BLK_CONNECTING) ||                                      \
+	 (((ip)->state) == BLK_DISCONNECTING) || (((ip)->state) == BLK_READING) || \
+	 (((ip)->state) == BLK_WRITING))
 
 /**
  * @brief   Returns the media insertion status.
@@ -222,8 +222,7 @@ typedef struct {
  *
  * @api
  */
-#define blkRead(ip, startblk, buf, n)                                       \
-  ((ip)->vmt->read(ip, startblk, buf, n))
+#define blkRead(ip, startblk, buf, n) ((ip)->vmt->read(ip, startblk, buf, n))
 
 /**
  * @brief   Writes one or more blocks.
@@ -239,8 +238,7 @@ typedef struct {
  *
  * @api
  */
-#define blkWrite(ip, startblk, buf, n)                                      \
-  ((ip)->vmt->write(ip, startblk, buf, n))
+#define blkWrite(ip, startblk, buf, n) ((ip)->vmt->write(ip, startblk, buf, n))
 
 /**
  * @brief   Ensures write synchronization.

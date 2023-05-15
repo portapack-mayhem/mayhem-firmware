@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -83,12 +83,11 @@
  *
  * @init
  */
-void chSemInit(Semaphore *sp, cnt_t n) {
+void chSemInit(Semaphore* sp, cnt_t n) {
+	chDbgCheck((sp != NULL) && (n >= 0), "chSemInit");
 
-  chDbgCheck((sp != NULL) && (n >= 0), "chSemInit");
-
-  queue_init(&sp->s_queue);
-  sp->s_cnt = n;
+	queue_init(&sp->s_queue);
+	sp->s_cnt = n;
 }
 
 /**
@@ -106,12 +105,11 @@ void chSemInit(Semaphore *sp, cnt_t n) {
  *
  * @api
  */
-void chSemReset(Semaphore *sp, cnt_t n) {
-
-  chSysLock();
-  chSemResetI(sp, n);
-  chSchRescheduleS();
-  chSysUnlock();
+void chSemReset(Semaphore* sp, cnt_t n) {
+	chSysLock();
+	chSemResetI(sp, n);
+	chSchRescheduleS();
+	chSysUnlock();
 }
 
 /**
@@ -133,20 +131,19 @@ void chSemReset(Semaphore *sp, cnt_t n) {
  *
  * @iclass
  */
-void chSemResetI(Semaphore *sp, cnt_t n) {
-  cnt_t cnt;
+void chSemResetI(Semaphore* sp, cnt_t n) {
+	cnt_t cnt;
 
-  chDbgCheckClassI();
-  chDbgCheck((sp != NULL) && (n >= 0), "chSemResetI");
-  chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
-              ((sp->s_cnt < 0) && notempty(&sp->s_queue)),
-              "chSemResetI(), #1",
-              "inconsistent semaphore");
+	chDbgCheckClassI();
+	chDbgCheck((sp != NULL) && (n >= 0), "chSemResetI");
+	chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
+									((sp->s_cnt < 0) && notempty(&sp->s_queue)),
+							"chSemResetI(), #1", "inconsistent semaphore");
 
-  cnt = sp->s_cnt;
-  sp->s_cnt = n;
-  while (++cnt <= 0)
-    chSchReadyI(lifo_remove(&sp->s_queue))->p_u.rdymsg = RDY_RESET;
+	cnt = sp->s_cnt;
+	sp->s_cnt = n;
+	while (++cnt <= 0)
+		chSchReadyI(lifo_remove(&sp->s_queue))->p_u.rdymsg = RDY_RESET;
 }
 
 /**
@@ -161,13 +158,13 @@ void chSemResetI(Semaphore *sp, cnt_t n) {
  *
  * @api
  */
-msg_t chSemWait(Semaphore *sp) {
-  msg_t msg;
+msg_t chSemWait(Semaphore* sp) {
+	msg_t msg;
 
-  chSysLock();
-  msg = chSemWaitS(sp);
-  chSysUnlock();
-  return msg;
+	chSysLock();
+	msg = chSemWaitS(sp);
+	chSysUnlock();
+	return msg;
 }
 
 /**
@@ -182,22 +179,20 @@ msg_t chSemWait(Semaphore *sp) {
  *
  * @sclass
  */
-msg_t chSemWaitS(Semaphore *sp) {
+msg_t chSemWaitS(Semaphore* sp) {
+	chDbgCheckClassS();
+	chDbgCheck(sp != NULL, "chSemWaitS");
+	chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
+									((sp->s_cnt < 0) && notempty(&sp->s_queue)),
+							"chSemWaitS(), #1", "inconsistent semaphore");
 
-  chDbgCheckClassS();
-  chDbgCheck(sp != NULL, "chSemWaitS");
-  chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
-              ((sp->s_cnt < 0) && notempty(&sp->s_queue)),
-              "chSemWaitS(), #1",
-              "inconsistent semaphore");
-
-  if (--sp->s_cnt < 0) {
-    currp->p_u.wtobjp = sp;
-    sem_insert(currp, &sp->s_queue);
-    chSchGoSleepS(THD_STATE_WTSEM);
-    return currp->p_u.rdymsg;
-  }
-  return RDY_OK;
+	if (--sp->s_cnt < 0) {
+		currp->p_u.wtobjp = sp;
+		sem_insert(currp, &sp->s_queue);
+		chSchGoSleepS(THD_STATE_WTSEM);
+		return currp->p_u.rdymsg;
+	}
+	return RDY_OK;
 }
 
 /**
@@ -219,13 +214,13 @@ msg_t chSemWaitS(Semaphore *sp) {
  *
  * @api
  */
-msg_t chSemWaitTimeout(Semaphore *sp, systime_t time) {
-  msg_t msg;
+msg_t chSemWaitTimeout(Semaphore* sp, systime_t time) {
+	msg_t msg;
 
-  chSysLock();
-  msg = chSemWaitTimeoutS(sp, time);
-  chSysUnlock();
-  return msg;
+	chSysLock();
+	msg = chSemWaitTimeoutS(sp, time);
+	chSysUnlock();
+	return msg;
 }
 
 /**
@@ -247,25 +242,23 @@ msg_t chSemWaitTimeout(Semaphore *sp, systime_t time) {
  *
  * @sclass
  */
-msg_t chSemWaitTimeoutS(Semaphore *sp, systime_t time) {
+msg_t chSemWaitTimeoutS(Semaphore* sp, systime_t time) {
+	chDbgCheckClassS();
+	chDbgCheck(sp != NULL, "chSemWaitTimeoutS");
+	chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
+									((sp->s_cnt < 0) && notempty(&sp->s_queue)),
+							"chSemWaitTimeoutS(), #1", "inconsistent semaphore");
 
-  chDbgCheckClassS();
-  chDbgCheck(sp != NULL, "chSemWaitTimeoutS");
-  chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
-              ((sp->s_cnt < 0) && notempty(&sp->s_queue)),
-              "chSemWaitTimeoutS(), #1",
-              "inconsistent semaphore");
-
-  if (--sp->s_cnt < 0) {
-    if (TIME_IMMEDIATE == time) {
-      sp->s_cnt++;
-      return RDY_TIMEOUT;
-    }
-    currp->p_u.wtobjp = sp;
-    sem_insert(currp, &sp->s_queue);
-    return chSchGoSleepTimeoutS(THD_STATE_WTSEM, time);
-  }
-  return RDY_OK;
+	if (--sp->s_cnt < 0) {
+		if (TIME_IMMEDIATE == time) {
+			sp->s_cnt++;
+			return RDY_TIMEOUT;
+		}
+		currp->p_u.wtobjp = sp;
+		sem_insert(currp, &sp->s_queue);
+		return chSchGoSleepTimeoutS(THD_STATE_WTSEM, time);
+	}
+	return RDY_OK;
 }
 
 /**
@@ -275,18 +268,16 @@ msg_t chSemWaitTimeoutS(Semaphore *sp, systime_t time) {
  *
  * @api
  */
-void chSemSignal(Semaphore *sp) {
+void chSemSignal(Semaphore* sp) {
+	chDbgCheck(sp != NULL, "chSemSignal");
+	chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
+									((sp->s_cnt < 0) && notempty(&sp->s_queue)),
+							"chSemSignal(), #1", "inconsistent semaphore");
 
-  chDbgCheck(sp != NULL, "chSemSignal");
-  chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
-              ((sp->s_cnt < 0) && notempty(&sp->s_queue)),
-              "chSemSignal(), #1",
-              "inconsistent semaphore");
-
-  chSysLock();
-  if (++sp->s_cnt <= 0)
-    chSchWakeupS(fifo_remove(&sp->s_queue), RDY_OK);
-  chSysUnlock();
+	chSysLock();
+	if (++sp->s_cnt <= 0)
+		chSchWakeupS(fifo_remove(&sp->s_queue), RDY_OK);
+	chSysUnlock();
 }
 
 /**
@@ -300,22 +291,20 @@ void chSemSignal(Semaphore *sp) {
  *
  * @iclass
  */
-void chSemSignalI(Semaphore *sp) {
+void chSemSignalI(Semaphore* sp) {
+	chDbgCheckClassI();
+	chDbgCheck(sp != NULL, "chSemSignalI");
+	chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
+									((sp->s_cnt < 0) && notempty(&sp->s_queue)),
+							"chSemSignalI(), #1", "inconsistent semaphore");
 
-  chDbgCheckClassI();
-  chDbgCheck(sp != NULL, "chSemSignalI");
-  chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
-              ((sp->s_cnt < 0) && notempty(&sp->s_queue)),
-              "chSemSignalI(), #1",
-              "inconsistent semaphore");
-
-  if (++sp->s_cnt <= 0) {
-    /* Note, it is done this way in order to allow a tail call on
-             chSchReadyI().*/
-    Thread *tp = fifo_remove(&sp->s_queue);
-    tp->p_u.rdymsg = RDY_OK;
-    chSchReadyI(tp);
-  }
+	if (++sp->s_cnt <= 0) {
+		/* Note, it is done this way in order to allow a tail call on
+						 chSchReadyI().*/
+		Thread* tp = fifo_remove(&sp->s_queue);
+		tp->p_u.rdymsg = RDY_OK;
+		chSchReadyI(tp);
+	}
 }
 
 /**
@@ -331,20 +320,18 @@ void chSemSignalI(Semaphore *sp) {
  *
  * @iclass
  */
-void chSemAddCounterI(Semaphore *sp, cnt_t n) {
+void chSemAddCounterI(Semaphore* sp, cnt_t n) {
+	chDbgCheckClassI();
+	chDbgCheck((sp != NULL) && (n > 0), "chSemAddCounterI");
+	chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
+									((sp->s_cnt < 0) && notempty(&sp->s_queue)),
+							"chSemAddCounterI(), #1", "inconsistent semaphore");
 
-  chDbgCheckClassI();
-  chDbgCheck((sp != NULL) && (n > 0), "chSemAddCounterI");
-  chDbgAssert(((sp->s_cnt >= 0) && isempty(&sp->s_queue)) ||
-              ((sp->s_cnt < 0) && notempty(&sp->s_queue)),
-              "chSemAddCounterI(), #1",
-              "inconsistent semaphore");
-
-  while (n > 0) {
-    if (++sp->s_cnt <= 0)
-      chSchReadyI(fifo_remove(&sp->s_queue))->p_u.rdymsg = RDY_OK;
-    n--;
-  }
+	while (n > 0) {
+		if (++sp->s_cnt <= 0)
+			chSchReadyI(fifo_remove(&sp->s_queue))->p_u.rdymsg = RDY_OK;
+		n--;
+	}
 }
 
 #if CH_USE_SEMSW || defined(__DOXYGEN__)
@@ -363,35 +350,32 @@ void chSemAddCounterI(Semaphore *sp, cnt_t n) {
  *
  * @api
  */
-msg_t chSemSignalWait(Semaphore *sps, Semaphore *spw) {
-  msg_t msg;
+msg_t chSemSignalWait(Semaphore* sps, Semaphore* spw) {
+	msg_t msg;
 
-  chDbgCheck((sps != NULL) && (spw != NULL), "chSemSignalWait");
-  chDbgAssert(((sps->s_cnt >= 0) && isempty(&sps->s_queue)) ||
-              ((sps->s_cnt < 0) && notempty(&sps->s_queue)),
-              "chSemSignalWait(), #1",
-              "inconsistent semaphore");
-  chDbgAssert(((spw->s_cnt >= 0) && isempty(&spw->s_queue)) ||
-              ((spw->s_cnt < 0) && notempty(&spw->s_queue)),
-              "chSemSignalWait(), #2",
-              "inconsistent semaphore");
+	chDbgCheck((sps != NULL) && (spw != NULL), "chSemSignalWait");
+	chDbgAssert(((sps->s_cnt >= 0) && isempty(&sps->s_queue)) ||
+									((sps->s_cnt < 0) && notempty(&sps->s_queue)),
+							"chSemSignalWait(), #1", "inconsistent semaphore");
+	chDbgAssert(((spw->s_cnt >= 0) && isempty(&spw->s_queue)) ||
+									((spw->s_cnt < 0) && notempty(&spw->s_queue)),
+							"chSemSignalWait(), #2", "inconsistent semaphore");
 
-  chSysLock();
-  if (++sps->s_cnt <= 0)
-    chSchReadyI(fifo_remove(&sps->s_queue))->p_u.rdymsg = RDY_OK;
-  if (--spw->s_cnt < 0) {
-    Thread *ctp = currp;
-    sem_insert(ctp, &spw->s_queue);
-    ctp->p_u.wtobjp = spw;
-    chSchGoSleepS(THD_STATE_WTSEM);
-    msg = ctp->p_u.rdymsg;
-  }
-  else {
-    chSchRescheduleS();
-    msg = RDY_OK;
-  }
-  chSysUnlock();
-  return msg;
+	chSysLock();
+	if (++sps->s_cnt <= 0)
+		chSchReadyI(fifo_remove(&sps->s_queue))->p_u.rdymsg = RDY_OK;
+	if (--spw->s_cnt < 0) {
+		Thread* ctp = currp;
+		sem_insert(ctp, &spw->s_queue);
+		ctp->p_u.wtobjp = spw;
+		chSchGoSleepS(THD_STATE_WTSEM);
+		msg = ctp->p_u.rdymsg;
+	} else {
+		chSchRescheduleS();
+		msg = RDY_OK;
+	}
+	chSysUnlock();
+	return msg;
 }
 #endif /* CH_USE_SEMSW */
 

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -59,13 +59,12 @@
  *
  * @init
  */
-void chPoolInit(MemoryPool *mp, size_t size, memgetfunc_t provider) {
+void chPoolInit(MemoryPool* mp, size_t size, memgetfunc_t provider) {
+	chDbgCheck((mp != NULL) && (size >= sizeof(void*)), "chPoolInit");
 
-  chDbgCheck((mp != NULL) && (size >= sizeof(void *)), "chPoolInit");
-
-  mp->mp_next = NULL;
-  mp->mp_object_size = size;
-  mp->mp_provider = provider;
+	mp->mp_next = NULL;
+	mp->mp_object_size = size;
+	mp->mp_provider = provider;
 }
 
 /**
@@ -81,15 +80,14 @@ void chPoolInit(MemoryPool *mp, size_t size, memgetfunc_t provider) {
  *
  * @api
  */
-void chPoolLoadArray(MemoryPool *mp, void *p, size_t n) {
+void chPoolLoadArray(MemoryPool* mp, void* p, size_t n) {
+	chDbgCheck((mp != NULL) && (n != 0), "chPoolLoadArray");
 
-  chDbgCheck((mp != NULL) && (n != 0), "chPoolLoadArray");
-
-  while (n) {
-    chPoolAdd(mp, p);
-    p = (void *)(((uint8_t *)p) + mp->mp_object_size);
-    n--;
-  }
+	while (n) {
+		chPoolAdd(mp, p);
+		p = (void*)(((uint8_t*)p) + mp->mp_object_size);
+		n--;
+	}
 }
 
 /**
@@ -102,17 +100,17 @@ void chPoolLoadArray(MemoryPool *mp, void *p, size_t n) {
  *
  * @iclass
  */
-void *chPoolAllocI(MemoryPool *mp) {
-  void *objp;
+void* chPoolAllocI(MemoryPool* mp) {
+	void* objp;
 
-  chDbgCheckClassI();
-  chDbgCheck(mp != NULL, "chPoolAllocI");
+	chDbgCheckClassI();
+	chDbgCheck(mp != NULL, "chPoolAllocI");
 
-  if ((objp = mp->mp_next) != NULL)
-    mp->mp_next = mp->mp_next->ph_next;
-  else if (mp->mp_provider != NULL)
-    objp = mp->mp_provider(mp->mp_object_size);
-  return objp;
+	if ((objp = mp->mp_next) != NULL)
+		mp->mp_next = mp->mp_next->ph_next;
+	else if (mp->mp_provider != NULL)
+		objp = mp->mp_provider(mp->mp_object_size);
+	return objp;
 }
 
 /**
@@ -125,13 +123,13 @@ void *chPoolAllocI(MemoryPool *mp) {
  *
  * @api
  */
-void *chPoolAlloc(MemoryPool *mp) {
-  void *objp;
+void* chPoolAlloc(MemoryPool* mp) {
+	void* objp;
 
-  chSysLock();
-  objp = chPoolAllocI(mp);
-  chSysUnlock();
-  return objp;
+	chSysLock();
+	objp = chPoolAllocI(mp);
+	chSysUnlock();
+	return objp;
 }
 
 /**
@@ -146,14 +144,14 @@ void *chPoolAlloc(MemoryPool *mp) {
  *
  * @iclass
  */
-void chPoolFreeI(MemoryPool *mp, void *objp) {
-  struct pool_header *php = objp;
+void chPoolFreeI(MemoryPool* mp, void* objp) {
+	struct pool_header* php = objp;
 
-  chDbgCheckClassI();
-  chDbgCheck((mp != NULL) && (objp != NULL), "chPoolFreeI");
+	chDbgCheckClassI();
+	chDbgCheck((mp != NULL) && (objp != NULL), "chPoolFreeI");
 
-  php->ph_next = mp->mp_next;
-  mp->mp_next = php;
+	php->ph_next = mp->mp_next;
+	mp->mp_next = php;
 }
 
 /**
@@ -168,11 +166,10 @@ void chPoolFreeI(MemoryPool *mp, void *objp) {
  *
  * @api
  */
-void chPoolFree(MemoryPool *mp, void *objp) {
-
-  chSysLock();
-  chPoolFreeI(mp, objp);
-  chSysUnlock();
+void chPoolFree(MemoryPool* mp, void* objp) {
+	chSysLock();
+	chPoolFreeI(mp, objp);
+	chSysUnlock();
 }
 
 #endif /* CH_USE_MEMPOOLS */

@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -42,11 +42,11 @@
  * @name    Queue functions returned status value
  * @{
  */
-#define Q_OK            RDY_OK      /**< @brief Operation successful.       */
-#define Q_TIMEOUT       RDY_TIMEOUT /**< @brief Timeout condition.          */
-#define Q_RESET         RDY_RESET   /**< @brief Queue has been reset.       */
-#define Q_EMPTY         -3          /**< @brief Queue empty.                */
-#define Q_FULL          -4          /**< @brief Queue full,                 */
+#define Q_OK RDY_OK						/**< @brief Operation successful.       */
+#define Q_TIMEOUT RDY_TIMEOUT /**< @brief Timeout condition.          */
+#define Q_RESET RDY_RESET			/**< @brief Queue has been reset.       */
+#define Q_EMPTY -3						/**< @brief Queue empty.                */
+#define Q_FULL -4							/**< @brief Queue full,                 */
 /** @} */
 
 /**
@@ -55,7 +55,7 @@
 typedef struct GenericQueue GenericQueue;
 
 /** @brief Queue notification callback type.*/
-typedef void (*qnotify_t)(GenericQueue *qp);
+typedef void (*qnotify_t)(GenericQueue* qp);
 
 /**
  * @brief   Generic I/O queue structure.
@@ -67,15 +67,15 @@ typedef void (*qnotify_t)(GenericQueue *qp);
  *          @ref system_states) and is non-blocking.
  */
 struct GenericQueue {
-  ThreadsQueue          q_waiting;  /**< @brief Queue of waiting threads.   */
-  size_t                q_counter;  /**< @brief Resources counter.          */
-  uint8_t               *q_buffer;  /**< @brief Pointer to the queue buffer.*/
-  uint8_t               *q_top;     /**< @brief Pointer to the first location
-                                                after the buffer.           */
-  uint8_t               *q_wrptr;   /**< @brief Write pointer.              */
-  uint8_t               *q_rdptr;   /**< @brief Read pointer.               */
-  qnotify_t             q_notify;   /**< @brief Data notification callback. */
-  void                  *q_link;    /**< @brief Application defined field.  */
+	ThreadsQueue q_waiting; /**< @brief Queue of waiting threads.   */
+	size_t q_counter;				/**< @brief Resources counter.          */
+	uint8_t* q_buffer;			/**< @brief Pointer to the queue buffer.*/
+	uint8_t* q_top;					/**< @brief Pointer to the first location
+																			after the buffer.           */
+	uint8_t* q_wrptr;				/**< @brief Write pointer.              */
+	uint8_t* q_rdptr;				/**< @brief Read pointer.               */
+	qnotify_t q_notify;			/**< @brief Data notification callback. */
+	void* q_link;						/**< @brief Application defined field.  */
 };
 
 /**
@@ -177,8 +177,8 @@ typedef GenericQueue InputQueue;
  *
  * @iclass
  */
-#define chIQIsFullI(iqp) ((bool_t)(((iqp)->q_wrptr == (iqp)->q_rdptr) &&   \
-                                   ((iqp)->q_counter != 0)))
+#define chIQIsFullI(iqp) \
+	((bool_t)(((iqp)->q_wrptr == (iqp)->q_rdptr) && ((iqp)->q_counter != 0)))
 
 /**
  * @brief   Input queue read.
@@ -206,16 +206,12 @@ typedef GenericQueue InputQueue;
  * @param[in] inotify   input notification callback pointer
  * @param[in] link      application defined pointer
  */
-#define _INPUTQUEUE_DATA(name, buffer, size, inotify, link) {               \
-  _THREADSQUEUE_DATA(name),                                                 \
-  0,                                                                        \
-  (uint8_t *)(buffer),                                                      \
-  (uint8_t *)(buffer) + (size),                                             \
-  (uint8_t *)(buffer),                                                      \
-  (uint8_t *)(buffer),                                                      \
-  (inotify),                                                                \
-  (link)                                                                    \
-}
+#define _INPUTQUEUE_DATA(name, buffer, size, inotify, link)                  \
+	{                                                                          \
+		_THREADSQUEUE_DATA(name), 0, (uint8_t*)(buffer),                         \
+				(uint8_t*)(buffer) + (size), (uint8_t*)(buffer), (uint8_t*)(buffer), \
+				(inotify), (link)                                                    \
+	}
 
 /**
  * @brief   Static input queue initializer.
@@ -228,8 +224,8 @@ typedef GenericQueue InputQueue;
  * @param[in] inotify   input notification callback pointer
  * @param[in] link      application defined pointer
  */
-#define INPUTQUEUE_DECL(name, buffer, size, inotify, link)                  \
-  InputQueue name = _INPUTQUEUE_DATA(name, buffer, size, inotify, link)
+#define INPUTQUEUE_DECL(name, buffer, size, inotify, link) \
+	InputQueue name = _INPUTQUEUE_DATA(name, buffer, size, inotify, link)
 
 /**
  * @extends GenericQueue
@@ -280,8 +276,8 @@ typedef GenericQueue OutputQueue;
  *
  * @iclass
  */
-#define chOQIsEmptyI(oqp) ((bool_t)(((oqp)->q_wrptr == (oqp)->q_rdptr) &&   \
-                                    ((oqp)->q_counter != 0)))
+#define chOQIsEmptyI(oqp) \
+	((bool_t)(((oqp)->q_wrptr == (oqp)->q_rdptr) && ((oqp)->q_counter != 0)))
 
 /**
  * @brief   Evaluates to @p TRUE if the specified output queue is full.
@@ -310,7 +306,7 @@ typedef GenericQueue OutputQueue;
  * @api
  */
 #define chOQPut(oqp, b) chOQPutTimeout(oqp, b, TIME_INFINITE)
- /** @} */
+/** @} */
 
 /**
  * @brief   Data part of a static output queue initializer.
@@ -323,16 +319,12 @@ typedef GenericQueue OutputQueue;
  * @param[in] onotify   output notification callback pointer
  * @param[in] link      application defined pointer
  */
-#define _OUTPUTQUEUE_DATA(name, buffer, size, onotify, link) {              \
-  _THREADSQUEUE_DATA(name),                                                 \
-  (size),                                                                   \
-  (uint8_t *)(buffer),                                                      \
-  (uint8_t *)(buffer) + (size),                                             \
-  (uint8_t *)(buffer),                                                      \
-  (uint8_t *)(buffer),                                                      \
-  (onotify),                                                                \
-  (link)                                                                    \
-}
+#define _OUTPUTQUEUE_DATA(name, buffer, size, onotify, link)                 \
+	{                                                                          \
+		_THREADSQUEUE_DATA(name), (size), (uint8_t*)(buffer),                    \
+				(uint8_t*)(buffer) + (size), (uint8_t*)(buffer), (uint8_t*)(buffer), \
+				(onotify), (link)                                                    \
+	}
 
 /**
  * @brief   Static output queue initializer.
@@ -345,27 +337,34 @@ typedef GenericQueue OutputQueue;
  * @param[in] onotify   output notification callback pointer
  * @param[in] link      application defined pointer
  */
-#define OUTPUTQUEUE_DECL(name, buffer, size, onotify, link)                 \
-  OutputQueue name = _OUTPUTQUEUE_DATA(name, buffer, size, onotify, link)
+#define OUTPUTQUEUE_DECL(name, buffer, size, onotify, link) \
+	OutputQueue name = _OUTPUTQUEUE_DATA(name, buffer, size, onotify, link)
 
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void chIQInit(InputQueue *iqp, uint8_t *bp, size_t size, qnotify_t infy,
-                void *link);
-  void chIQResetI(InputQueue *iqp);
-  msg_t chIQPutI(InputQueue *iqp, uint8_t b);
-  msg_t chIQGetTimeout(InputQueue *iqp, systime_t time);
-  size_t chIQReadTimeout(InputQueue *iqp, uint8_t *bp,
-                         size_t n, systime_t time);
+void chIQInit(InputQueue* iqp,
+							uint8_t* bp,
+							size_t size,
+							qnotify_t infy,
+							void* link);
+void chIQResetI(InputQueue* iqp);
+msg_t chIQPutI(InputQueue* iqp, uint8_t b);
+msg_t chIQGetTimeout(InputQueue* iqp, systime_t time);
+size_t chIQReadTimeout(InputQueue* iqp, uint8_t* bp, size_t n, systime_t time);
 
-  void chOQInit(OutputQueue *oqp, uint8_t *bp, size_t size, qnotify_t onfy,
-                void *link);
-  void chOQResetI(OutputQueue *oqp);
-  msg_t chOQPutTimeout(OutputQueue *oqp, uint8_t b, systime_t time);
-  msg_t chOQGetI(OutputQueue *oqp);
-  size_t chOQWriteTimeout(OutputQueue *oqp, const uint8_t *bp,
-                          size_t n, systime_t time);
+void chOQInit(OutputQueue* oqp,
+							uint8_t* bp,
+							size_t size,
+							qnotify_t onfy,
+							void* link);
+void chOQResetI(OutputQueue* oqp);
+msg_t chOQPutTimeout(OutputQueue* oqp, uint8_t b, systime_t time);
+msg_t chOQGetI(OutputQueue* oqp);
+size_t chOQWriteTimeout(OutputQueue* oqp,
+												const uint8_t* bp,
+												size_t n,
+												systime_t time);
 #ifdef __cplusplus
 }
 #endif

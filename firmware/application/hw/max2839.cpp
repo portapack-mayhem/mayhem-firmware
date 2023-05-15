@@ -22,8 +22,8 @@
 
 #include "max2839.hpp"
 
-#include "hackrf_hal.hpp"
 #include "hackrf_gpio.hpp"
+#include "hackrf_hal.hpp"
 using namespace hackrf::one;
 
 #include "ch.h"
@@ -37,10 +37,8 @@ namespace lna {
 
 using namespace max283x::lna;
 
-constexpr std::array<uint8_t, 8> lookup_8db_steps {
-	0b11, 0b11, 0b10, 0b10,
-	0b01, 0b00, 0b00, 0b00
-};
+constexpr std::array<uint8_t, 8> lookup_8db_steps{0b11, 0b11, 0b10, 0b10,
+																									0b01, 0b00, 0b00, 0b00};
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
 	const auto db_sat = gain_db_range.clip(db);
@@ -53,7 +51,7 @@ namespace vga {
 
 using namespace max283x::vga;
 
-constexpr range_t<int8_t> gain_db_range_internal { 0, 63 };
+constexpr range_t<int8_t> gain_db_range_internal{0, 63};
 
 static uint_fast8_t gain_ordinal(const int8_t db) {
 	const auto db_sat = gain_db_range_internal.clip(db);
@@ -81,7 +79,8 @@ static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
 	/* Determine filter setting that will provide bandwidth greater than or
 	 * equal to requested bandwidth.
 	 */
-	return std::lower_bound(bandwidths.cbegin(), bandwidths.cend(), bandwidth) - bandwidths.cbegin();
+	return std::lower_bound(bandwidths.cbegin(), bandwidths.cend(), bandwidth) -
+				 bandwidths.cbegin();
 }
 
 } /* namespace filter */
@@ -90,7 +89,8 @@ static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
  * temperature sense conversion from the ADC.
  */
 constexpr float seconds_for_temperature_sense_adc_conversion = 30.0e-6;
-constexpr halrtcnt_t ticks_for_temperature_sense_adc_conversion = (base_m4_clk_f * seconds_for_temperature_sense_adc_conversion + 1);
+constexpr halrtcnt_t ticks_for_temperature_sense_adc_conversion =
+		(base_m4_clk_f * seconds_for_temperature_sense_adc_conversion + 1);
 
 constexpr uint32_t reference_frequency = max283x_reference_f;
 constexpr uint32_t pll_factor = 1.0 / (4.0 / 3.0 / reference_frequency) + 0.5;
@@ -104,38 +104,38 @@ void MAX2839::init() {
 	gpio_max283x_enable.output();
 	gpio_max2839_rxtx.output();
 
-	_map.r.rxrf_1.MIMOmode = 1;			/* enable RXINB */
+	_map.r.rxrf_1.MIMOmode = 1; /* enable RXINB */
 
 	_map.r.pa_drv.TXVGA_GAIN_SPI_EN = 1;
 	_map.r.tx_gain.TXVGA_GAIN_SPI = 0x00;
 
-	_map.r.hpfsm_3.HPC_STOP = 1;		/* 1kHz */
+	_map.r.hpfsm_3.HPC_STOP = 1; /* 1kHz */
 
-	_map.r.rxrf_2.LNAgain_SPI_EN = 1;	/* control LNA gain from SPI */
+	_map.r.rxrf_2.LNAgain_SPI_EN = 1; /* control LNA gain from SPI */
 	_map.r.lpf_vga_1.L = 0b000;
 	_map.r.lpf_vga_2.L = 0b000;
 
-	_map.r.rx_top_1.VGAgain_SPI_EN = 1;	/* control VGA gain from SPI */
+	_map.r.rx_top_1.VGAgain_SPI_EN = 1; /* control VGA gain from SPI */
 	_map.r.lpf_vga_1.VGA = 0b000000;
 	_map.r.lpf_vga_2.VGA = 0b010101;
 
-	_map.r.lpf_vga_2.BUFF_VCM = 0b11;	/* maximum RX output common-mode voltage */
+	_map.r.lpf_vga_2.BUFF_VCM = 0b11; /* maximum RX output common-mode voltage */
 
-	_map.r.lpf_vga_1.ModeCtrl = 0b01;	/* Rx LPF */
-	_map.r.lpf.FT = 0b0000;				/* 1.75 MHz LPF */
+	_map.r.lpf_vga_1.ModeCtrl = 0b01; /* Rx LPF */
+	_map.r.lpf.FT = 0b0000;						/* 1.75 MHz LPF */
 
-	_map.r.spi_en.EN_SPI = 1;			/* enable chip functions when ENABLE pin set */
+	_map.r.spi_en.EN_SPI = 1; /* enable chip functions when ENABLE pin set */
 
 	_map.r.lo_gen.LOGEN_2GM = 0;
 
-	_map.r.rssi_vga.RSSI_MODE = 1;		/* RSSI independent of RXHP */
+	_map.r.rssi_vga.RSSI_MODE = 1; /* RSSI independent of RXHP */
 
 	/*
 	 * There are two LNA band settings, but we only use one of them.
 	 * Switching to the other one doesn't make the overall spectrum any
 	 * flatter but adds a surprise step in the middle.
 	 */
-	_map.r.rxrf_1.LNAband = 0;			/* 2.3 - 2.5GHz */
+	_map.r.rxrf_1.LNAband = 0; /* 2.3 - 2.5GHz */
 
 	_dirty.set();
 	flush();
@@ -144,20 +144,24 @@ void MAX2839::init() {
 }
 
 enum class Mask {
-	Enable   = 0b01,
-	RxTx     = 0b10,
+	Enable = 0b01,
+	RxTx = 0b10,
 	Shutdown = 0b00,
-	Standby  = RxTx,
-	Receive  = Enable | RxTx,
+	Standby = RxTx,
+	Receive = Enable | RxTx,
 	Transmit = Enable,
 };
 
 Mask mode_mask(const Mode mode) {
 	switch (mode) {
-		case Mode::Standby:  return Mask::Standby;
-		case Mode::Receive:  return Mask::Receive;
-		case Mode::Transmit: return Mask::Transmit;
-		default: return Mask::Shutdown;
+		case Mode::Standby:
+			return Mask::Standby;
+		case Mode::Receive:
+			return Mask::Receive;
+		case Mode::Transmit:
+			return Mask::Transmit;
+		default:
+			return Mask::Shutdown;
 	}
 }
 
@@ -168,9 +172,9 @@ void MAX2839::set_mode(const Mode mode) {
 }
 
 void MAX2839::flush() {
-	if( _dirty ) {
-		for(size_t n=0; n<reg_count; n++) {
-			if( _dirty[n] ) {
+	if (_dirty) {
+		for (size_t n = 0; n < reg_count; n++) {
+			if (_dirty[n]) {
 				write(n, _map.w[n]);
 			}
 		}
@@ -283,14 +287,14 @@ void MAX2839::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
 
 bool MAX2839::set_frequency(const rf::Frequency lo_frequency) {
 	/* TODO: This is a sad implementation. Refactor. */
-	if( lo::band[0].contains(lo_frequency) ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b00;	/* 2300 - 2399.99MHz */
-	} else if( lo::band[1].contains(lo_frequency)  ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b01;	/* 2400 - 2499.99MHz */
-	} else if( lo::band[2].contains(lo_frequency) ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b10;	/* 2500 - 2599.99MHz */
-	} else if( lo::band[3].contains(lo_frequency) ) {
-		_map.r.syn_int_div.LOGEN_BSW = 0b11;	/* 2600 - 2700Hz */
+	if (lo::band[0].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b00; /* 2300 - 2399.99MHz */
+	} else if (lo::band[1].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b01; /* 2400 - 2499.99MHz */
+	} else if (lo::band[2].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b10; /* 2500 - 2599.99MHz */
+	} else if (lo::band[3].contains(lo_frequency)) {
+		_map.r.syn_int_div.LOGEN_BSW = 0b11; /* 2600 - 2700Hz */
 	} else {
 		return false;
 	}
@@ -327,7 +331,7 @@ void MAX2839::set_rx_buff_vcm(const size_t v) {
 }
 
 reg_t MAX2839::temp_sense() {
-	if( !_map.r.rx_top_2.ts_en ) {
+	if (!_map.r.rx_top_2.ts_en) {
 		_map.r.rx_top_2.ts_en = 1;
 		flush_one(Register::RX_TOP_2);
 
@@ -351,4 +355,4 @@ reg_t MAX2839::temp_sense() {
 	return value;
 }
 
-}
+}	 // namespace max2839

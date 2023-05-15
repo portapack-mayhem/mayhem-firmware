@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 #ifndef _BOARD_H_
@@ -30,19 +30,19 @@
 /*
  * All inputs with pullups.
  */
-#define VAL_DDRA  0x00
+#define VAL_DDRA 0x00
 #define VAL_PORTA 0xFF
 
 /*
  * All inputs with pullups.
  */
-#define VAL_DDRB  0x00
+#define VAL_DDRB 0x00
 #define VAL_PORTB 0xFF
 
 /*
  * All inputs with pullups.
  */
-#define VAL_DDRC  0x00
+#define VAL_DDRC 0x00
 #define VAL_PORTC 0xFF
 
 /*       PD7 PD6 PD5 PD4 PD3 PD2 PD1 PD0
@@ -51,7 +51,7 @@
  *        PU HiZ VAL  PU VAL HiZ HiZ HiZ
  * PORTD   1   0  ?1   1   1   0   0   0
  */
-#define VAL_DDRD  0x28
+#define VAL_DDRD 0x28
 #define VAL_PORTD 0xB8
 
 /*       PE7 PE6 BUT LED PE3 PE2 PE1 PE0
@@ -60,7 +60,7 @@
  *        PU  PU HiZ VAL  PU  PU VAL HiZ
  * PORTE   1   1   0   1   1   1   1   0
  */
-#define VAL_DDRE  0x12
+#define VAL_DDRE 0x12
 #define VAL_PORTE 0xDE
 
 /*       TDI TDO TMS TCK PF3 PF2 PF1 PF0
@@ -70,7 +70,7 @@
  * PORTF   0   0   0   0   1   1   1   1
  *
  */
-#define VAL_DDRF  0x00
+#define VAL_DDRF 0x00
 #define VAL_PORTF 0x0F
 
 /*         x   x   x   x   x PG2 PG1 PG0
@@ -80,17 +80,17 @@
  * PORTG   0   0   0   0   0   1   1   1
  *
  */
-#define VAL_DDRG  0x00
+#define VAL_DDRG 0x00
 #define VAL_PORTG 0x07
 
-#define PORTE_LED               4
-#define PORTE_BUTTON            5
+#define PORTE_LED 4
+#define PORTE_BUTTON 5
 
 #if !defined(_FROM_ASM_)
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void boardInit(void);
+void boardInit(void);
 #ifdef __cplusplus
 }
 #endif

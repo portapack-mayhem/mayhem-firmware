@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -43,10 +43,10 @@
  * @brief   FIO port setup info.
  */
 typedef struct {
-  /** Initial value for FIO_PIN register.*/
-  uint32_t      pin;
-  /** Initial value for FIO_DIR register.*/
-  uint32_t      dir;
+	/** Initial value for FIO_PIN register.*/
+	uint32_t pin;
+	/** Initial value for FIO_DIR register.*/
+	uint32_t dir;
 } lpc214x_fio_setup_t;
 
 /**
@@ -57,16 +57,16 @@ typedef struct {
  *          or whole ports can be reprogrammed at later time.
  */
 typedef struct {
-  /** @brief PINSEL0 initial value.*/
-  uint32_t              pinsel0;
-  /** @brief PINSEL1 initial value.*/
-  uint32_t              pinsel1;
-  /** @brief PINSEL2 initial value.*/
-  uint32_t              pinsel2;
-  /** @brief Port 0 setup data.*/
-  lpc214x_fio_setup_t   P0Data;
-  /** @brief Port 1 setup data.*/
-  lpc214x_fio_setup_t   P1Data;
+	/** @brief PINSEL0 initial value.*/
+	uint32_t pinsel0;
+	/** @brief PINSEL1 initial value.*/
+	uint32_t pinsel1;
+	/** @brief PINSEL2 initial value.*/
+	uint32_t pinsel2;
+	/** @brief Port 0 setup data.*/
+	lpc214x_fio_setup_t P0Data;
+	/** @brief Port 1 setup data.*/
+	lpc214x_fio_setup_t P1Data;
 } PALConfig;
 
 /**
@@ -93,7 +93,7 @@ typedef uint32_t iomode_t;
 /**
  * @brief   Port Identifier.
  */
-typedef FIO * ioportid_t;
+typedef FIO* ioportid_t;
 
 /*===========================================================================*/
 /* I/O Ports Identifiers.                                                    */
@@ -102,12 +102,12 @@ typedef FIO * ioportid_t;
 /**
  * @brief   FIO port 0 identifier.
  */
-#define IOPORT1        FIO0Base
+#define IOPORT1 FIO0Base
 
 /**
  * @brief   FIO port 1 identifier.
  */
-#define IOPORT2        FIO1Base
+#define IOPORT2 FIO1Base
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
@@ -197,10 +197,9 @@ typedef FIO * ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_writegroup(port, mask, offset, bits)                    \
-  ((port)->FIO_MASK = ~((mask) << (offset)),                            \
-   (port)->FIO_PIN = (bits) << (offset),                                \
-   (port)->FIO_MASK = 0)
+#define pal_lld_writegroup(port, mask, offset, bits) \
+	((port)->FIO_MASK = ~((mask) << (offset)),         \
+	 (port)->FIO_PIN = (bits) << (offset), (port)->FIO_MASK = 0)
 
 /**
  * @brief   Pads group mode setup.
@@ -218,8 +217,8 @@ typedef FIO * ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 /**
  * @brief   Writes a logical state on an output pad.
@@ -246,10 +245,8 @@ extern const PALConfig pal_default_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

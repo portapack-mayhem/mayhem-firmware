@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -67,10 +67,9 @@ MACDriver ETHD1;
  * @notapi
  */
 void mac_lld_init(void) {
-
 #if PLATFORM_MAC_USE_MAC1
-  /* Driver initialization.*/
-  macObjectInit(&MACD1);
+	/* Driver initialization.*/
+	macObjectInit(&MACD1);
 #endif /* PLATFORM_MAC_USE_MAC1 */
 }
 
@@ -81,18 +80,15 @@ void mac_lld_init(void) {
  *
  * @notapi
  */
-void mac_lld_start(MACDriver *macp) {
-
-  if (macp->state == MAC_STOP) {
-    /* Enables the peripheral.*/
+void mac_lld_start(MACDriver* macp) {
+	if (macp->state == MAC_STOP) {
+		/* Enables the peripheral.*/
 #if PLATFORM_MAC_USE_MAC1
-    if (&MACD1 == macp) {
-
-    }
+		if (&MACD1 == macp) {
+		}
 #endif /* PLATFORM_MAC_USE_MAC1 */
-  }
-  /* Configures the peripheral.*/
-
+	}
+	/* Configures the peripheral.*/
 }
 
 /**
@@ -102,18 +98,16 @@ void mac_lld_start(MACDriver *macp) {
  *
  * @notapi
  */
-void mac_lld_stop(MACDriver *macp) {
+void mac_lld_stop(MACDriver* macp) {
+	if (macp->state == MAC_ACTIVE) {
+		/* Resets the peripheral.*/
 
-  if (macp->state == MAC_ACTIVE) {
-    /* Resets the peripheral.*/
-
-    /* Disables the peripheral.*/
+		/* Disables the peripheral.*/
 #if PLATFORM_MAC_USE_MAC1
-    if (&MACD1 == macp) {
-
-    }
+		if (&MACD1 == macp) {
+		}
 #endif /* PLATFORM_MAC_USE_MAC1 */
-  }
+	}
 }
 
 /**
@@ -129,13 +123,12 @@ void mac_lld_stop(MACDriver *macp) {
  *
  * @notapi
  */
-msg_t mac_lld_get_transmit_descriptor(MACDriver *macp,
-                                      MACTransmitDescriptor *tdp) {
+msg_t mac_lld_get_transmit_descriptor(MACDriver* macp,
+																			MACTransmitDescriptor* tdp) {
+	(void)macp;
+	(void)tdp;
 
-  (void)macp;
-  (void)tdp;
-
-  return RDY_OK;
+	return RDY_OK;
 }
 
 /**
@@ -146,10 +139,8 @@ msg_t mac_lld_get_transmit_descriptor(MACDriver *macp,
  *
  * @notapi
  */
-void mac_lld_release_transmit_descriptor(MACTransmitDescriptor *tdp) {
-
-  (void)tdp;
-
+void mac_lld_release_transmit_descriptor(MACTransmitDescriptor* tdp) {
+	(void)tdp;
 }
 
 /**
@@ -163,13 +154,12 @@ void mac_lld_release_transmit_descriptor(MACTransmitDescriptor *tdp) {
  *
  * @notapi
  */
-msg_t mac_lld_get_receive_descriptor(MACDriver *macp,
-                                     MACReceiveDescriptor *rdp) {
+msg_t mac_lld_get_receive_descriptor(MACDriver* macp,
+																		 MACReceiveDescriptor* rdp) {
+	(void)macp;
+	(void)rdp;
 
-  (void)macp;
-  (void)rdp;
-
-  return RDY_OK;
+	return RDY_OK;
 }
 
 /**
@@ -181,10 +171,8 @@ msg_t mac_lld_get_receive_descriptor(MACDriver *macp,
  *
  * @notapi
  */
-void mac_lld_release_receive_descriptor(MACReceiveDescriptor *rdp) {
-
-  (void)rdp;
-
+void mac_lld_release_receive_descriptor(MACReceiveDescriptor* rdp) {
+	(void)rdp;
 }
 
 /**
@@ -197,11 +185,10 @@ void mac_lld_release_receive_descriptor(MACReceiveDescriptor *rdp) {
  *
  * @notapi
  */
-bool_t mac_lld_poll_link_status(MACDriver *macp) {
+bool_t mac_lld_poll_link_status(MACDriver* macp) {
+	(void)macp;
 
-  (void)macp;
-
-  return FALSE;
+	return FALSE;
 }
 
 /**
@@ -218,14 +205,13 @@ bool_t mac_lld_poll_link_status(MACDriver *macp) {
  *
  * @notapi
  */
-size_t mac_lld_write_transmit_descriptor(MACTransmitDescriptor *tdp,
-                                         uint8_t *buf,
-                                         size_t size) {
+size_t mac_lld_write_transmit_descriptor(MACTransmitDescriptor* tdp,
+																				 uint8_t* buf,
+																				 size_t size) {
+	(void)tdp;
+	(void)buf;
 
-  (void)tdp;
-  (void)buf;
-
-  return size;
+	return size;
 }
 
 /**
@@ -241,14 +227,13 @@ size_t mac_lld_write_transmit_descriptor(MACTransmitDescriptor *tdp,
  *
  * @notapi
  */
-size_t mac_lld_read_receive_descriptor(MACReceiveDescriptor *rdp,
-                                       uint8_t *buf,
-                                       size_t size) {
+size_t mac_lld_read_receive_descriptor(MACReceiveDescriptor* rdp,
+																			 uint8_t* buf,
+																			 size_t size) {
+	(void)rdp;
+	(void)buf;
 
-  (void)rdp;
-  (void)buf;
-
-  return size;
+	return size;
 }
 
 #if MAC_USE_ZERO_COPY || defined(__DOXYGEN__)
@@ -273,15 +258,14 @@ size_t mac_lld_read_receive_descriptor(MACReceiveDescriptor *rdp,
  *
  * @notapi
  */
-uint8_t *mac_lld_get_next_transmit_buffer(MACTransmitDescriptor *tdp,
-                                          size_t size,
-                                          size_t *sizep) {
+uint8_t* mac_lld_get_next_transmit_buffer(MACTransmitDescriptor* tdp,
+																					size_t size,
+																					size_t* sizep) {
+	(void)tdp;
+	(void)size;
+	(void)sizep;
 
-  (void)tdp;
-  (void)size;
-  (void)sizep;
-
-  return NULL;
+	return NULL;
 }
 
 /**
@@ -298,13 +282,12 @@ uint8_t *mac_lld_get_next_transmit_buffer(MACTransmitDescriptor *tdp,
  *
  * @notapi
  */
-const uint8_t *mac_lld_get_next_receive_buffer(MACReceiveDescriptor *rdp,
-                                               size_t *sizep) {
+const uint8_t* mac_lld_get_next_receive_buffer(MACReceiveDescriptor* rdp,
+																							 size_t* sizep) {
+	(void)rdp;
+	(void)sizep;
 
-  (void)rdp;
-  (void)sizep;
-
-  return NULL;
+	return NULL;
 }
 #endif /* MAC_USE_ZERO_COPY */
 

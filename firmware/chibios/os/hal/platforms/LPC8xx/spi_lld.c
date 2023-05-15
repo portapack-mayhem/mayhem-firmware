@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -49,28 +49,25 @@ SPIDriver SPID2;
 /* Driver local functions.                                                   */
 /*===========================================================================*/
 
-static void spi_load_txdata(SPIDriver *spip) {
+static void spi_load_txdata(SPIDriver* spip) {
+	LPC_SPI_TypeDef* spi = spip->spi;
 
-  LPC_SPI_TypeDef *spi = spip->spi;
+	if (--spip->txcnt == 0) {
+		spi->TXCTRL |= SPI_TXCTRL_EOT;
+	}
 
-  if (--spip->txcnt == 0) {
-    spi->TXCTRL |= SPI_TXCTRL_EOT;
-  }
-
-  if (spip->txptr != NULL) {
-    if ((spi->TXCTRL & SPI_TXCTRL_FLEN_MASK) > SPI_TXCTRL_FLEN(8)) {
-      const uint16_t *p = spip->txptr;
-      spi->TXDAT = *p++;
-      spip->txptr = p;
-    }
-    else {
-      const uint8_t *p = spip->txptr;
-      spi->TXDAT = *p++;
-      spip->txptr = p;
-    }
-  }
-  else
-    spi->TXDAT = 0xffff;
+	if (spip->txptr != NULL) {
+		if ((spi->TXCTRL & SPI_TXCTRL_FLEN_MASK) > SPI_TXCTRL_FLEN(8)) {
+			const uint16_t* p = spip->txptr;
+			spi->TXDAT = *p++;
+			spip->txptr = p;
+		} else {
+			const uint8_t* p = spip->txptr;
+			spi->TXDAT = *p++;
+			spip->txptr = p;
+		}
+	} else
+		spi->TXDAT = 0xffff;
 }
 
 /**
@@ -78,55 +75,51 @@ static void spi_load_txdata(SPIDriver *spip) {
  *
  * @param[in] spip      pointer to the @p SPIDriver object
  */
-static void spi_serve_interrupt(SPIDriver *spip) {
+static void spi_serve_interrupt(SPIDriver* spip) {
+	LPC_SPI_TypeDef* spi = spip->spi;
 
-  LPC_SPI_TypeDef *spi = spip->spi;
+	if (spi->INTSTAT & (SPI_STAT_RXOV | SPI_STAT_TXUR)) {
+		/* The overflow condition should never happen becausepriority is given
+			 to receive but a hook macro is provided anyway...*/
+		LPC8xx_SPI_ERROR_HOOK(spip);
+		spi->STAT = (SPI_STAT_RXOV | SPI_STAT_TXUR);
+	}
 
-  if (spi->INTSTAT & (SPI_STAT_RXOV | SPI_STAT_TXUR)) {
-    /* The overflow condition should never happen becausepriority is given
-       to receive but a hook macro is provided anyway...*/
-    LPC8xx_SPI_ERROR_HOOK(spip);
-    spi->STAT = (SPI_STAT_RXOV | SPI_STAT_TXUR);
-  }
+	if (spi->INTSTAT & SPI_STAT_TXRDY) {
+		spi_load_txdata(spip);
+	}
 
-  if (spi->INTSTAT & SPI_STAT_TXRDY) {
-    spi_load_txdata( spip );
-  }
+	if (spip->txcnt == 0) {
+		spi->INTENCLR = (SPI_STAT_TXRDY | SPI_STAT_TXUR);
+	}
 
-  if (spip->txcnt == 0) {
-    spi->INTENCLR = (SPI_STAT_TXRDY | SPI_STAT_TXUR);
-  }
+	if (spi->INTSTAT & SPI_STAT_RXRDY) {
+		if (spip->rxptr != NULL) {
+			if ((spi->TXCTRL & SPI_TXCTRL_FLEN_MASK) > SPI_TXCTRL_FLEN(8)) {
+				uint16_t* p = spip->rxptr;
+				*p++ = spi->RXDAT;
+				spip->rxptr = p;
+			} else {
+				uint8_t* p = spip->rxptr;
+				*p++ = spi->RXDAT;
+				spip->rxptr = p;
+			}
+		} else
+			(void)spi->RXDAT;
 
-  if (spi->INTSTAT & SPI_STAT_RXRDY) {
-    if (spip->rxptr != NULL) {
-      if ((spi->TXCTRL & SPI_TXCTRL_FLEN_MASK) > SPI_TXCTRL_FLEN(8)) {
-        uint16_t *p = spip->rxptr;
-        *p++ = spi->RXDAT;
-        spip->rxptr = p;
-      }
-      else {
-        uint8_t *p = spip->rxptr;
-        *p++ = spi->RXDAT;
-        spip->rxptr = p;
-      }
-    }
-    else
-      (void)spi->RXDAT;
-      
-    if (--spip->rxcnt == 0) {
-      chDbgAssert(spip->txcnt == 0,
-                  "spi_serve_interrupt(), #1", "counter out of synch");
-      /* Stops the IRQ sources.*/
-      spi->INTENCLR = (SPI_STAT_RXRDY | SPI_STAT_TXRDY |
-                        SPI_STAT_RXOV | SPI_STAT_TXUR);
+		if (--spip->rxcnt == 0) {
+			chDbgAssert(spip->txcnt == 0, "spi_serve_interrupt(), #1",
+									"counter out of synch");
+			/* Stops the IRQ sources.*/
+			spi->INTENCLR =
+					(SPI_STAT_RXRDY | SPI_STAT_TXRDY | SPI_STAT_RXOV | SPI_STAT_TXUR);
 
-      /* Portable SPI ISR code defined in the high level driver, note, it is
-         a macro.*/
-      _spi_isr_code(spip);
-      return;
-    }
-  }
-
+			/* Portable SPI ISR code defined in the high level driver, note, it is
+				 a macro.*/
+			_spi_isr_code(spip);
+			return;
+		}
+	}
 }
 
 /*===========================================================================*/
@@ -140,10 +133,9 @@ static void spi_serve_interrupt(SPIDriver *spip) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector40) {
-
-  CH_IRQ_PROLOGUE();
-  spi_serve_interrupt(&SPID1);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	spi_serve_interrupt(&SPID1);
+	CH_IRQ_EPILOGUE();
 }
 #endif
 
@@ -154,10 +146,9 @@ CH_IRQ_HANDLER(Vector40) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector44) {
-
-  CH_IRQ_PROLOGUE();
-  spi_serve_interrupt(&SPID2);
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_PROLOGUE();
+	spi_serve_interrupt(&SPID2);
+	CH_IRQ_EPILOGUE();
 }
 #endif
 
@@ -171,15 +162,14 @@ CH_IRQ_HANDLER(Vector44) {
  * @notapi
  */
 void spi_lld_init(void) {
-
 #if LPC8xx_SPI_USE_SPI0
-  spiObjectInit(&SPID1);
-  SPID1.spi = LPC_SPI0;  
+	spiObjectInit(&SPID1);
+	SPID1.spi = LPC_SPI0;
 #endif
 
 #if LPC8xx_SPI_USE_SPI1
-  spiObjectInit(&SPID2);
-  SPID2.spi = LPC_SPI1;
+	spiObjectInit(&SPID2);
+	SPID2.spi = LPC_SPI1;
 #endif
 }
 
@@ -190,33 +180,32 @@ void spi_lld_init(void) {
  *
  * @notapi
  */
-void spi_lld_start(SPIDriver *spip) {
-
-  if (spip->state == SPI_STOP) {
+void spi_lld_start(SPIDriver* spip) {
+	if (spip->state == SPI_STOP) {
 #if LPC8xx_SPI_USE_SPI0
-    if (&SPID1 == spip) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1<<11);
-      LPC_SYSCON->PRESETCTRL |= (1<<0);
-      spip->spi->DIV = LPC8xx_SPI_SPI0CLKDIV;
-      nvicEnableVector(SPI0_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC8xx_SPI_SPI0_IRQ_PRIORITY));
-    }
+		if (&SPID1 == spip) {
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 11);
+			LPC_SYSCON->PRESETCTRL |= (1 << 0);
+			spip->spi->DIV = LPC8xx_SPI_SPI0CLKDIV;
+			nvicEnableVector(SPI0_IRQn,
+											 CORTEX_PRIORITY_MASK(LPC8xx_SPI_SPI0_IRQ_PRIORITY));
+		}
 #endif
 #if LPC8xx_SPI_USE_SPI1
-    if (&SPID2 == spip) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1<<12);
-      LPC_SYSCON->PRESETCTRL |= (1<<1);
-      spip->spi->DIV = LPC8xx_SPI_SPI1CLKDIV;
-      nvicEnableVector(SPI1_IRQn,
-                       CORTEX_PRIORITY_MASK(LPC8xx_SPI_SPI1_IRQ_PRIORITY));
-    }
+		if (&SPID2 == spip) {
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 12);
+			LPC_SYSCON->PRESETCTRL |= (1 << 1);
+			spip->spi->DIV = LPC8xx_SPI_SPI1CLKDIV;
+			nvicEnableVector(SPI1_IRQn,
+											 CORTEX_PRIORITY_MASK(LPC8xx_SPI_SPI1_IRQ_PRIORITY));
+		}
 #endif
-  }
+	}
 
-  spip->spi->DLY    = spip->config->dly;
-  spip->spi->TXCTRL = spip->config->txctrl;
-  spip->spi->STAT   = (SPI_STAT_RXOV | SPI_STAT_TXUR);
-  spip->spi->CFG    = spip->config->cfg | SPI_CFG_ENABLE;
+	spip->spi->DLY = spip->config->dly;
+	spip->spi->TXCTRL = spip->config->txctrl;
+	spip->spi->STAT = (SPI_STAT_RXOV | SPI_STAT_TXUR);
+	spip->spi->CFG = spip->config->cfg | SPI_CFG_ENABLE;
 }
 
 /**
@@ -226,28 +215,26 @@ void spi_lld_start(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_stop(SPIDriver *spip) {
-
-  if (spip->state != SPI_STOP) {
-    spip->spi->CFG = 0;
+void spi_lld_stop(SPIDriver* spip) {
+	if (spip->state != SPI_STOP) {
+		spip->spi->CFG = 0;
 
 #if LPC8xx_SPI_USE_SPI0
-    if (&SPID1 == spip) {
-      nvicDisableVector(SPI0_IRQn);
-      LPC_SYSCON->PRESETCTRL &= ~(1<<0);
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1<<11);
-    }
+		if (&SPID1 == spip) {
+			nvicDisableVector(SPI0_IRQn);
+			LPC_SYSCON->PRESETCTRL &= ~(1 << 0);
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 11);
+		}
 #endif
 
 #if LPC8xx_SPI_USE_SPI1
-    if (&SPID2 == spip) {
-      nvicDisableVector(SPI1_IRQn);
-      LPC_SYSCON->PRESETCTRL &= ~(1<<1);
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1<<12);
-    }
+		if (&SPID2 == spip) {
+			nvicDisableVector(SPI1_IRQn);
+			LPC_SYSCON->PRESETCTRL &= ~(1 << 1);
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 12);
+		}
 #endif
-
-  }
+	}
 }
 
 /**
@@ -257,9 +244,9 @@ void spi_lld_stop(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_select(SPIDriver *spip) {
-  /* Hardware controls SSEL */
-  (void)spip;
+void spi_lld_select(SPIDriver* spip) {
+	/* Hardware controls SSEL */
+	(void)spip;
 }
 
 /**
@@ -270,9 +257,9 @@ void spi_lld_select(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_unselect(SPIDriver *spip) {
-  /* Hardware controls SSEL */
-  (void)spip;
+void spi_lld_unselect(SPIDriver* spip) {
+	/* Hardware controls SSEL */
+	(void)spip;
 }
 
 /**
@@ -290,21 +277,21 @@ void spi_lld_unselect(SPIDriver *spip) {
  *
  * @notapi
  */
-void spi_lld_exchange(SPIDriver *spip, size_t n,
-                      const void *txbuf, void *rxbuf) {
+void spi_lld_exchange(SPIDriver* spip,
+											size_t n,
+											const void* txbuf,
+											void* rxbuf) {
+	spip->rxptr = rxbuf;
+	spip->txptr = txbuf;
+	spip->rxcnt = spip->txcnt = n;
+	spip->spi->TXCTRL &= ~SPI_TXCTRL_EOT;
+	spi_load_txdata(spip);
 
-  spip->rxptr = rxbuf;
-  spip->txptr = txbuf;
-  spip->rxcnt = spip->txcnt = n;
-  spip->spi->TXCTRL &= ~SPI_TXCTRL_EOT;
-  spi_load_txdata(spip);
-
-  if (spip->txcnt == 0)
-    spip->spi->INTENSET = (SPI_STAT_RXRDY | SPI_STAT_RXOV);
-  else
-    spip->spi->INTENSET = (SPI_STAT_RXRDY | SPI_STAT_TXRDY |
-                            SPI_STAT_RXOV | SPI_STAT_TXUR);
-  
+	if (spip->txcnt == 0)
+		spip->spi->INTENSET = (SPI_STAT_RXRDY | SPI_STAT_RXOV);
+	else
+		spip->spi->INTENSET =
+				(SPI_STAT_RXRDY | SPI_STAT_TXRDY | SPI_STAT_RXOV | SPI_STAT_TXUR);
 }
 
 /**
@@ -318,9 +305,8 @@ void spi_lld_exchange(SPIDriver *spip, size_t n,
  *
  * @notapi
  */
-void spi_lld_ignore(SPIDriver *spip, size_t n) {
-
-  spi_lld_exchange( spip, n, NULL, NULL);
+void spi_lld_ignore(SPIDriver* spip, size_t n) {
+	spi_lld_exchange(spip, n, NULL, NULL);
 }
 
 /**
@@ -336,9 +322,8 @@ void spi_lld_ignore(SPIDriver *spip, size_t n) {
  *
  * @notapi
  */
-void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf) {
-
-  spi_lld_exchange( spip, n, txbuf, NULL);
+void spi_lld_send(SPIDriver* spip, size_t n, const void* txbuf) {
+	spi_lld_exchange(spip, n, txbuf, NULL);
 }
 
 /**
@@ -354,9 +339,8 @@ void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf) {
  *
  * @notapi
  */
-void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
-
-  spi_lld_exchange( spip, n, NULL, rxbuf);
+void spi_lld_receive(SPIDriver* spip, size_t n, void* rxbuf) {
+	spi_lld_exchange(spip, n, NULL, rxbuf);
 }
 
 /**
@@ -371,13 +355,12 @@ void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf) {
  * @param[in] frame     the data frame to send over the SPI bus
  * @return              The received data frame from the SPI bus.
  */
-uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint16_t frame) {
-
-  spip->spi->TXCTRL |= SPI_TXCTRL_EOT;
-  spip->spi->TXDAT = frame;
-  while ((spip->spi->STAT & SPI_STAT_RXRDY) == 0)
-    ;
-  return (uint16_t)spip->spi->RXDAT;
+uint16_t spi_lld_polled_exchange(SPIDriver* spip, uint16_t frame) {
+	spip->spi->TXCTRL |= SPI_TXCTRL_EOT;
+	spip->spi->TXDAT = frame;
+	while ((spip->spi->STAT & SPI_STAT_RXRDY) == 0)
+		;
+	return (uint16_t)spip->spi->RXDAT;
 }
 
 #endif /* HAL_USE_SPI */

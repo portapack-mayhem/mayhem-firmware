@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -55,8 +55,8 @@
 
 #if CH_USE_MEMCORE || defined(__DOXYGEN__)
 
-static uint8_t *nextmem;
-static uint8_t *endmem;
+static uint8_t* nextmem;
+static uint8_t* endmem;
 
 /**
  * @brief   Low level memory manager initialization.
@@ -65,14 +65,14 @@ static uint8_t *endmem;
  */
 void _core_init(void) {
 #if CH_MEMCORE_SIZE == 0
-  extern uint8_t __heap_base__[];
-  extern uint8_t __heap_end__[];
-  nextmem = (uint8_t *)MEM_ALIGN_NEXT(__heap_base__);
-  endmem = (uint8_t *)MEM_ALIGN_PREV(__heap_end__);
+	extern uint8_t __heap_base__[];
+	extern uint8_t __heap_end__[];
+	nextmem = (uint8_t*)MEM_ALIGN_NEXT(__heap_base__);
+	endmem = (uint8_t*)MEM_ALIGN_PREV(__heap_end__);
 #else
-  static stkalign_t buffer[MEM_ALIGN_NEXT(CH_MEMCORE_SIZE)/MEM_ALIGN_SIZE];
-  nextmem = (uint8_t *)&buffer[0];
-  endmem = (uint8_t *)&buffer[MEM_ALIGN_NEXT(CH_MEMCORE_SIZE)/MEM_ALIGN_SIZE];
+	static stkalign_t buffer[MEM_ALIGN_NEXT(CH_MEMCORE_SIZE) / MEM_ALIGN_SIZE];
+	nextmem = (uint8_t*)&buffer[0];
+	endmem = (uint8_t*)&buffer[MEM_ALIGN_NEXT(CH_MEMCORE_SIZE) / MEM_ALIGN_SIZE];
 #endif
 }
 
@@ -88,13 +88,13 @@ void _core_init(void) {
  *
  * @api
  */
-void *chCoreAlloc(size_t size) {
-  void *p;
+void* chCoreAlloc(size_t size) {
+	void* p;
 
-  chSysLock();
-  p = chCoreAllocI(size);
-  chSysUnlock();
-  return p;
+	chSysLock();
+	p = chCoreAllocI(size);
+	chSysUnlock();
+	return p;
 }
 
 /**
@@ -109,17 +109,17 @@ void *chCoreAlloc(size_t size) {
  *
  * @iclass
  */
-void *chCoreAllocI(size_t size) {
-  void *p;
+void* chCoreAllocI(size_t size) {
+	void* p;
 
-  chDbgCheckClassI();
+	chDbgCheckClassI();
 
-  size = MEM_ALIGN_NEXT(size);
-  if ((size_t)(endmem - nextmem) < size)
-    return NULL;
-  p = nextmem;
-  nextmem += size;
-  return p;
+	size = MEM_ALIGN_NEXT(size);
+	if ((size_t)(endmem - nextmem) < size)
+		return NULL;
+	p = nextmem;
+	nextmem += size;
+	return p;
 }
 
 /**
@@ -130,8 +130,7 @@ void *chCoreAllocI(size_t size) {
  * @api
  */
 size_t chCoreStatus(void) {
-
-  return (size_t)(endmem - nextmem);
+	return (size_t)(endmem - nextmem);
 }
 #endif /* CH_USE_MEMCORE */
 

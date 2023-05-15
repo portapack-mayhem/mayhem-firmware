@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -49,22 +49,22 @@
 /**
  * @brief   Standard output modes mask.
  */
-#define PWM_OUTPUT_MASK                         0x0F
+#define PWM_OUTPUT_MASK 0x0F
 
 /**
  * @brief   Output not driven, callback only.
  */
-#define PWM_OUTPUT_DISABLED                     0x00
+#define PWM_OUTPUT_DISABLED 0x00
 
 /**
  * @brief   Positive PWM logic, active is logic level one.
  */
-#define PWM_OUTPUT_ACTIVE_HIGH                  0x01
+#define PWM_OUTPUT_ACTIVE_HIGH 0x01
 
 /**
  * @brief   Inverse PWM logic, active is logic level zero.
  */
-#define PWM_OUTPUT_ACTIVE_LOW                   0x02
+#define PWM_OUTPUT_ACTIVE_LOW 0x02
 /** @} */
 
 /*===========================================================================*/
@@ -83,9 +83,9 @@
  * @brief   Driver state machine possible states.
  */
 typedef enum {
-  PWM_UNINIT = 0,                   /**< Not initialized.                   */
-  PWM_STOP = 1,                     /**< Stopped.                           */
-  PWM_READY = 2,                    /**< Ready.                             */
+	PWM_UNINIT = 0, /**< Not initialized.                   */
+	PWM_STOP = 1,		/**< Stopped.                           */
+	PWM_READY = 2,	/**< Ready.                             */
 } pwmstate_t;
 
 /**
@@ -98,7 +98,7 @@ typedef struct PWMDriver PWMDriver;
  *
  * @param[in] pwmp      pointer to a @p PWMDriver object
  */
-typedef void (*pwmcallback_t)(PWMDriver *pwmp);
+typedef void (*pwmcallback_t)(PWMDriver* pwmp);
 
 #include "pwm_lld.h"
 
@@ -124,9 +124,9 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @api
  */
-#define PWM_FRACTION_TO_WIDTH(pwmp, denominator, numerator)                 \
-  ((pwmcnt_t)((((pwmcnt_t)(pwmp)->period) *                                 \
-               (pwmcnt_t)(numerator)) / (pwmcnt_t)(denominator)))
+#define PWM_FRACTION_TO_WIDTH(pwmp, denominator, numerator)          \
+	((pwmcnt_t)((((pwmcnt_t)(pwmp)->period) * (pwmcnt_t)(numerator)) / \
+							(pwmcnt_t)(denominator)))
 
 /**
  * @brief   Converts from degrees to pulse width.
@@ -141,8 +141,8 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @api
  */
-#define PWM_DEGREES_TO_WIDTH(pwmp, degrees)                                 \
-  PWM_FRACTION_TO_WIDTH(pwmp, 36000, degrees)
+#define PWM_DEGREES_TO_WIDTH(pwmp, degrees) \
+	PWM_FRACTION_TO_WIDTH(pwmp, 36000, degrees)
 
 /**
  * @brief   Converts from percentage to pulse width.
@@ -157,8 +157,8 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @api
  */
-#define PWM_PERCENTAGE_TO_WIDTH(pwmp, percentage)                           \
-  PWM_FRACTION_TO_WIDTH(pwmp, 10000, percentage)
+#define PWM_PERCENTAGE_TO_WIDTH(pwmp, percentage) \
+	PWM_FRACTION_TO_WIDTH(pwmp, 10000, percentage)
 /** @} */
 
 /**
@@ -180,10 +180,11 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @iclass
  */
-#define pwmChangePeriodI(pwmp, value) {                                     \
-  (pwmp)->period = (value);                                                 \
-  pwm_lld_change_period(pwmp, value);                                       \
-}
+#define pwmChangePeriodI(pwmp, value)   \
+	{                                     \
+		(pwmp)->period = (value);           \
+		pwm_lld_change_period(pwmp, value); \
+	}
 
 /**
  * @brief   Enables a PWM channel.
@@ -199,8 +200,8 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @iclass
  */
-#define pwmEnableChannelI(pwmp, channel, width)                             \
-  pwm_lld_enable_channel(pwmp, channel, width)
+#define pwmEnableChannelI(pwmp, channel, width) \
+	pwm_lld_enable_channel(pwmp, channel, width)
 
 /**
  * @brief   Disables a PWM channel.
@@ -216,8 +217,7 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @iclass
  */
-#define pwmDisableChannelI(pwmp, channel)                                   \
-  pwm_lld_disable_channel(pwmp, channel)
+#define pwmDisableChannelI(pwmp, channel) pwm_lld_disable_channel(pwmp, channel)
 
 /**
  * @brief   Returns a PWM channel status.
@@ -228,8 +228,8 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
  *
  * @iclass
  */
-#define pwmIsChannelEnabledI(pwmp, channel)                                 \
-  pwm_lld_is_channel_enabled(pwmp, channel)
+#define pwmIsChannelEnabledI(pwmp, channel) \
+	pwm_lld_is_channel_enabled(pwmp, channel)
 /** @} */
 
 /*===========================================================================*/
@@ -239,15 +239,13 @@ typedef void (*pwmcallback_t)(PWMDriver *pwmp);
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void pwmInit(void);
-  void pwmObjectInit(PWMDriver *pwmp);
-  void pwmStart(PWMDriver *pwmp, const PWMConfig *config);
-  void pwmStop(PWMDriver *pwmp);
-  void pwmChangePeriod(PWMDriver *pwmp, pwmcnt_t period);
-  void pwmEnableChannel(PWMDriver *pwmp,
-                        pwmchannel_t channel,
-                        pwmcnt_t width);
-  void pwmDisableChannel(PWMDriver *pwmp, pwmchannel_t channel);
+void pwmInit(void);
+void pwmObjectInit(PWMDriver* pwmp);
+void pwmStart(PWMDriver* pwmp, const PWMConfig* config);
+void pwmStop(PWMDriver* pwmp);
+void pwmChangePeriod(PWMDriver* pwmp, pwmcnt_t period);
+void pwmEnableChannel(PWMDriver* pwmp, pwmchannel_t channel, pwmcnt_t width);
+void pwmDisableChannel(PWMDriver* pwmp, pwmchannel_t channel);
 #ifdef __cplusplus
 }
 #endif

@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -35,17 +35,17 @@
  * @brief   This switch defines whether the driver implementation supports
  *          a low power switch mode with automatic an wakeup feature.
  */
-#define CAN_SUPPORTS_SLEEP          TRUE
+#define CAN_SUPPORTS_SLEEP TRUE
 
 /**
  * @brief   This implementation supports three transmit mailboxes.
  */
-#define CAN_TX_MAILBOXES            3
+#define CAN_TX_MAILBOXES 3
 
 /**
  * @brief   This implementation supports two receive mailboxes.
  */
-#define CAN_RX_MAILBOXES            2
+#define CAN_RX_MAILBOXES 2
 
 /*===========================================================================*/
 /* Driver pre-compile time settings.                                         */
@@ -60,7 +60,7 @@
  * @details If set to @p TRUE the support for CAN1 is included.
  */
 #if !defined(PLATFORM_CAN_USE_CAN1) || defined(__DOXYGEN__)
-#define PLATFORM_CAN_USE_CAN1               FALSE
+#define PLATFORM_CAN_USE_CAN1 FALSE
 #endif
 /** @} */
 
@@ -87,24 +87,24 @@ typedef uint32_t canmbx_t;
  *          machine data endianness, it can be still useful for a quick filling.
  */
 typedef struct {
-  struct {
-    uint8_t                 DLC:4;          /**< @brief Data length.        */
-    uint8_t                 RTR:1;          /**< @brief Frame type.         */
-    uint8_t                 IDE:1;          /**< @brief Identifier type.    */
-  };
-  union {
-    struct {
-      uint32_t              SID:11;         /**< @brief Standard identifier.*/
-    };
-    struct {
-      uint32_t              EID:29;         /**< @brief Extended identifier.*/
-    };
-  };
-  union {
-    uint8_t                 data8[8];       /**< @brief Frame data.         */
-    uint16_t                data16[4];      /**< @brief Frame data.         */
-    uint32_t                data32[2];      /**< @brief Frame data.         */
-  };
+	struct {
+		uint8_t DLC : 4; /**< @brief Data length.        */
+		uint8_t RTR : 1; /**< @brief Frame type.         */
+		uint8_t IDE : 1; /**< @brief Identifier type.    */
+	};
+	union {
+		struct {
+			uint32_t SID : 11; /**< @brief Standard identifier.*/
+		};
+		struct {
+			uint32_t EID : 29; /**< @brief Extended identifier.*/
+		};
+	};
+	union {
+		uint8_t data8[8];		/**< @brief Frame data.         */
+		uint16_t data16[4]; /**< @brief Frame data.         */
+		uint32_t data32[2]; /**< @brief Frame data.         */
+	};
 } CANTxFrame;
 
 /**
@@ -113,24 +113,24 @@ typedef struct {
  *          machine data endianness, it can be still useful for a quick filling.
  */
 typedef struct {
-  struct {
-    uint8_t                 DLC:4;          /**< @brief Data length.        */
-    uint8_t                 RTR:1;          /**< @brief Frame type.         */
-    uint8_t                 IDE:1;          /**< @brief Identifier type.    */
-  };
-  union {
-    struct {
-      uint32_t              SID:11;         /**< @brief Standard identifier.*/
-    };
-    struct {
-      uint32_t              EID:29;         /**< @brief Extended identifier.*/
-    };
-  };
-  union {
-    uint8_t                 data8[8];       /**< @brief Frame data.         */
-    uint16_t                data16[4];      /**< @brief Frame data.         */
-    uint32_t                data32[2];      /**< @brief Frame data.         */
-  };
+	struct {
+		uint8_t DLC : 4; /**< @brief Data length.        */
+		uint8_t RTR : 1; /**< @brief Frame type.         */
+		uint8_t IDE : 1; /**< @brief Identifier type.    */
+	};
+	union {
+		struct {
+			uint32_t SID : 11; /**< @brief Standard identifier.*/
+		};
+		struct {
+			uint32_t EID : 29; /**< @brief Extended identifier.*/
+		};
+	};
+	union {
+		uint8_t data8[8];		/**< @brief Frame data.         */
+		uint16_t data16[4]; /**< @brief Frame data.         */
+		uint32_t data32[2]; /**< @brief Frame data.         */
+	};
 } CANRxFrame;
 
 /**
@@ -140,7 +140,7 @@ typedef struct {
  * @note    It could not be present on some architectures.
  */
 typedef struct {
-  uint32_t                  dummy;
+	uint32_t dummy;
 } CANFilter;
 
 /**
@@ -150,66 +150,66 @@ typedef struct {
  * @note    It could be empty on some architectures.
  */
 typedef struct {
-  uint32_t                  dummy;
+	uint32_t dummy;
 } CANConfig;
 
 /**
  * @brief   Structure representing an CAN driver.
  */
 typedef struct {
-  /**
-   * @brief   Driver state.
-   */
-  canstate_t                state;
-  /**
-   * @brief   Current configuration data.
-   */
-  const CANConfig           *config;
-  /**
-   * @brief   Transmission queue semaphore.
-   */
-  Semaphore                 txsem;
-  /**
-   * @brief   Receive queue semaphore.
-   */
-  Semaphore                 rxsem;
-  /**
-   * @brief   One or more frames become available.
-   * @note    After broadcasting this event it will not be broadcasted again
-   *          until the received frames queue has been completely emptied. It
-   *          is <b>not</b> broadcasted for each received frame. It is
-   *          responsibility of the application to empty the queue by
-   *          repeatedly invoking @p chReceive() when listening to this event.
-   *          This behavior minimizes the interrupt served by the system
-   *          because CAN traffic.
-   * @note    The flags associated to the listeners will indicate which
-   *          receive mailboxes become non-empty.
-   */
-  EventSource               rxfull_event;
-  /**
-   * @brief   One or more transmission mailbox become available.
-   * @note    The flags associated to the listeners will indicate which
-   *          transmit mailboxes become empty.
-   *
-   */
-  EventSource               txempty_event;
-  /**
-   * @brief   A CAN bus error happened.
-   * @note    The flags associated to the listeners will indicate the
-   *          error(s) that have occurred.
-   */
-  EventSource               error_event;
-#if CAN_USE_SLEEP_MODE || defined (__DOXYGEN__)
-  /**
-   * @brief   Entering sleep state event.
-   */
-  EventSource               sleep_event;
-  /**
-   * @brief   Exiting sleep state event.
-   */
-  EventSource               wakeup_event;
+	/**
+	 * @brief   Driver state.
+	 */
+	canstate_t state;
+	/**
+	 * @brief   Current configuration data.
+	 */
+	const CANConfig* config;
+	/**
+	 * @brief   Transmission queue semaphore.
+	 */
+	Semaphore txsem;
+	/**
+	 * @brief   Receive queue semaphore.
+	 */
+	Semaphore rxsem;
+	/**
+	 * @brief   One or more frames become available.
+	 * @note    After broadcasting this event it will not be broadcasted again
+	 *          until the received frames queue has been completely emptied. It
+	 *          is <b>not</b> broadcasted for each received frame. It is
+	 *          responsibility of the application to empty the queue by
+	 *          repeatedly invoking @p chReceive() when listening to this event.
+	 *          This behavior minimizes the interrupt served by the system
+	 *          because CAN traffic.
+	 * @note    The flags associated to the listeners will indicate which
+	 *          receive mailboxes become non-empty.
+	 */
+	EventSource rxfull_event;
+	/**
+	 * @brief   One or more transmission mailbox become available.
+	 * @note    The flags associated to the listeners will indicate which
+	 *          transmit mailboxes become empty.
+	 *
+	 */
+	EventSource txempty_event;
+	/**
+	 * @brief   A CAN bus error happened.
+	 * @note    The flags associated to the listeners will indicate the
+	 *          error(s) that have occurred.
+	 */
+	EventSource error_event;
+#if CAN_USE_SLEEP_MODE || defined(__DOXYGEN__)
+	/**
+	 * @brief   Entering sleep state event.
+	 */
+	EventSource sleep_event;
+	/**
+	 * @brief   Exiting sleep state event.
+	 */
+	EventSource wakeup_event;
 #endif /* CAN_USE_SLEEP_MODE */
-  /* End of the mandatory fields.*/
+	/* End of the mandatory fields.*/
 } CANDriver;
 
 /*===========================================================================*/
@@ -227,22 +227,18 @@ extern CANDriver CAND1;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void can_lld_init(void);
-  void can_lld_start(CANDriver *canp);
-  void can_lld_stop(CANDriver *canp);
-  bool_t can_lld_is_tx_empty(CANDriver *canp,
-                             canmbx_t mailbox);
-  void can_lld_transmit(CANDriver *canp,
-                        canmbx_t mailbox,
-                        const CANTxFrame *crfp);
-  bool_t can_lld_is_rx_nonempty(CANDriver *canp,
-                                canmbx_t mailbox);
-  void can_lld_receive(CANDriver *canp,
-                       canmbx_t mailbox,
-                       CANRxFrame *ctfp);
+void can_lld_init(void);
+void can_lld_start(CANDriver* canp);
+void can_lld_stop(CANDriver* canp);
+bool_t can_lld_is_tx_empty(CANDriver* canp, canmbx_t mailbox);
+void can_lld_transmit(CANDriver* canp,
+											canmbx_t mailbox,
+											const CANTxFrame* crfp);
+bool_t can_lld_is_rx_nonempty(CANDriver* canp, canmbx_t mailbox);
+void can_lld_receive(CANDriver* canp, canmbx_t mailbox, CANRxFrame* ctfp);
 #if CAN_USE_SLEEP_MODE
-  void can_lld_sleep(CANDriver *canp);
-  void can_lld_wakeup(CANDriver *canp);
+void can_lld_sleep(CANDriver* canp);
+void can_lld_wakeup(CANDriver* canp);
 #endif /* CAN_USE_SLEEP_MODE */
 #ifdef __cplusplus
 }

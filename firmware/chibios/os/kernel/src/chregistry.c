@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -57,48 +57,46 @@
 
 #if CH_USE_REGISTRY || defined(__DOXYGEN__)
 
-#define _offsetof(st, m)                                                     \
-  ((size_t)((char *)&((st *)0)->m - (char *)0))
+#define _offsetof(st, m) ((size_t)((char*)&((st*)0)->m - (char*)0))
 
 /*
  * OS signature in ROM plus debug-related information.
  */
 ROMCONST chdebug_t ch_debug = {
-  "main",
-  (uint8_t)0,
-  (uint8_t)sizeof (chdebug_t),
-  (uint16_t)((CH_KERNEL_MAJOR << 11) |
-             (CH_KERNEL_MINOR << 6) |
-             (CH_KERNEL_PATCH << 0)),
-  (uint8_t)sizeof (void *),
-  (uint8_t)sizeof (systime_t),
-  (uint8_t)sizeof (Thread),
-  (uint8_t)_offsetof(Thread, p_prio),
-  (uint8_t)_offsetof(Thread, p_ctx),
-  (uint8_t)_offsetof(Thread, p_newer),
-  (uint8_t)_offsetof(Thread, p_older),
-  (uint8_t)_offsetof(Thread, p_name),
+		"main",
+		(uint8_t)0,
+		(uint8_t)sizeof(chdebug_t),
+		(uint16_t)((CH_KERNEL_MAJOR << 11) | (CH_KERNEL_MINOR << 6) |
+							 (CH_KERNEL_PATCH << 0)),
+		(uint8_t)sizeof(void*),
+		(uint8_t)sizeof(systime_t),
+		(uint8_t)sizeof(Thread),
+		(uint8_t)_offsetof(Thread, p_prio),
+		(uint8_t)_offsetof(Thread, p_ctx),
+		(uint8_t)_offsetof(Thread, p_newer),
+		(uint8_t)_offsetof(Thread, p_older),
+		(uint8_t)_offsetof(Thread, p_name),
 #if CH_DBG_ENABLE_STACK_CHECK
-  (uint8_t)_offsetof(Thread, p_stklimit),
+		(uint8_t)_offsetof(Thread, p_stklimit),
 #else
-  (uint8_t)0,
+		(uint8_t)0,
 #endif
-  (uint8_t)_offsetof(Thread, p_state),
-  (uint8_t)_offsetof(Thread, p_flags),
+		(uint8_t)_offsetof(Thread, p_state),
+		(uint8_t)_offsetof(Thread, p_flags),
 #if CH_USE_DYNAMIC
-  (uint8_t)_offsetof(Thread, p_refs),
+		(uint8_t)_offsetof(Thread, p_refs),
 #else
-  (uint8_t)0,
+		(uint8_t)0,
 #endif
 #if CH_TIME_QUANTUM > 0
-  (uint8_t)_offsetof(Thread, p_preempt),
+		(uint8_t)_offsetof(Thread, p_preempt),
 #else
-  (uint8_t)0,
+		(uint8_t)0,
 #endif
 #if CH_DBG_THREADS_PROFILING
-  (uint8_t)_offsetof(Thread, p_time)
+		(uint8_t)_offsetof(Thread, p_time)
 #else
-  (uint8_t)0
+		(uint8_t)0
 #endif
 };
 
@@ -114,16 +112,16 @@ ROMCONST chdebug_t ch_debug = {
  *
  * @api
  */
-Thread *chRegFirstThread(void) {
-  Thread *tp;
+Thread* chRegFirstThread(void) {
+	Thread* tp;
 
-  chSysLock();
-  tp = rlist.r_newer;
+	chSysLock();
+	tp = rlist.r_newer;
 #if CH_USE_DYNAMIC
-  tp->p_refs++;
+	tp->p_refs++;
 #endif
-  chSysUnlock();
-  return tp;
+	chSysUnlock();
+	return tp;
 }
 
 /**
@@ -137,25 +135,25 @@ Thread *chRegFirstThread(void) {
  *
  * @api
  */
-Thread *chRegNextThread(Thread *tp) {
-  Thread *ntp;
+Thread* chRegNextThread(Thread* tp) {
+	Thread* ntp;
 
-  chSysLock();
-  ntp = tp->p_newer;
-  if (ntp == (Thread *)&rlist)
-    ntp = NULL;
+	chSysLock();
+	ntp = tp->p_newer;
+	if (ntp == (Thread*)&rlist)
+		ntp = NULL;
 #if CH_USE_DYNAMIC
-  else {
-    chDbgAssert(ntp->p_refs < 255, "chRegNextThread(), #1",
-                "too many references");
-    ntp->p_refs++;
-  }
+	else {
+		chDbgAssert(ntp->p_refs < 255, "chRegNextThread(), #1",
+								"too many references");
+		ntp->p_refs++;
+	}
 #endif
-  chSysUnlock();
+	chSysUnlock();
 #if CH_USE_DYNAMIC
-  chThdRelease(tp);
+	chThdRelease(tp);
 #endif
-  return ntp;
+	return ntp;
 }
 
 #endif /* CH_USE_REGISTRY */

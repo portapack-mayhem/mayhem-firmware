@@ -1,28 +1,28 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
-                 2011,2012,2013 Giovanni Di Sirio.
+		ChibiOS/RT - Copyright (C) 2006,2007,2008,2009,2010,
+								 2011,2012,2013 Giovanni Di Sirio.
 
-    This file is part of ChibiOS/RT.
+		This file is part of ChibiOS/RT.
 
-    ChibiOS/RT is free software; you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation; either version 3 of the License, or
-    (at your option) any later version.
+		ChibiOS/RT is free software; you can redistribute it and/or modify
+		it under the terms of the GNU General Public License as published by
+		the Free Software Foundation; either version 3 of the License, or
+		(at your option) any later version.
 
-    ChibiOS/RT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
+		ChibiOS/RT is distributed in the hope that it will be useful,
+		but WITHOUT ANY WARRANTY; without even the implied warranty of
+		MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+		GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License
-    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+		You should have received a copy of the GNU General Public License
+		along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-                                      ---
+																			---
 
-    A special exception to the GPL can be applied should you wish to distribute
-    a combined work that includes ChibiOS/RT, without being obliged to provide
-    the source code for any proprietary components. See the file exception.txt
-    for full details of how and when the exception can be applied.
+		A special exception to the GPL can be applied should you wish to distribute
+		a combined work that includes ChibiOS/RT, without being obliged to provide
+		the source code for any proprietary components. See the file exception.txt
+		for full details of how and when the exception can be applied.
 */
 
 /**
@@ -50,8 +50,7 @@
  *
  * @api
  */
-#define S2ST(sec)                                                           \
-  ((systime_t)((sec) * CH_FREQUENCY))
+#define S2ST(sec) ((systime_t)((sec)*CH_FREQUENCY))
 
 /**
  * @brief   Milliseconds to system ticks.
@@ -63,9 +62,9 @@
  *
  * @api
  */
-#define MS2ST(msec)                                                         \
-  ((systime_t)(((((uint32_t)(msec)) * ((uint32_t)CH_FREQUENCY) - 1UL) /     \
-                1000UL) + 1UL))
+#define MS2ST(msec) \
+	((systime_t)(     \
+			((((uint32_t)(msec)) * ((uint32_t)CH_FREQUENCY) - 1UL) / 1000UL) + 1UL))
 
 /**
  * @brief   Microseconds to system ticks.
@@ -78,14 +77,15 @@
  * @api
  */
 #define US2ST(usec)                                                         \
-  ((systime_t)(((((uint32_t)(usec)) * ((uint32_t)CH_FREQUENCY) - 1UL) /     \
-                1000000UL) + 1UL))
+	((systime_t)(                                                             \
+			((((uint32_t)(usec)) * ((uint32_t)CH_FREQUENCY) - 1UL) / 1000000UL) + \
+			1UL))
 /** @} */
 
 /**
  * @brief   Virtual Timer callback function.
  */
-typedef void (*vtfunc_t)(void *);
+typedef void (*vtfunc_t)(void*);
 
 /**
  * @brief   Virtual Timer structure type.
@@ -98,15 +98,15 @@ typedef struct VirtualTimer VirtualTimer;
  * @brief   Virtual Timer descriptor structure.
  */
 struct VirtualTimer {
-  VirtualTimer          *vt_next;   /**< @brief Next timer in the delta
-                                                list.                       */
-  VirtualTimer          *vt_prev;   /**< @brief Previous timer in the delta
-                                                list.                       */
-  systime_t             vt_time;    /**< @brief Time delta before timeout.  */
-  vtfunc_t              vt_func;    /**< @brief Timer callback function
-                                                pointer.                    */
-  void                  *vt_par;    /**< @brief Timer callback function
-                                                parameter.                  */
+	VirtualTimer* vt_next; /**< @brief Next timer in the delta
+																		 list.                       */
+	VirtualTimer* vt_prev; /**< @brief Previous timer in the delta
+																		 list.                       */
+	systime_t vt_time;		 /**< @brief Time delta before timeout.  */
+	vtfunc_t vt_func;			 /**< @brief Timer callback function
+																		 pointer.                    */
+	void* vt_par;					 /**< @brief Timer callback function
+																		 parameter.                  */
 };
 
 /**
@@ -116,12 +116,12 @@ struct VirtualTimer {
  *          timer is often used in the code.
  */
 typedef struct {
-  VirtualTimer          *vt_next;   /**< @brief Next timer in the delta
-                                                list.                       */
-  VirtualTimer          *vt_prev;   /**< @brief Last timer in the delta
-                                                list.                       */
-  systime_t             vt_time;    /**< @brief Must be initialized to -1.  */
-  volatile systime_t    vt_systime; /**< @brief System Time counter.        */
+	VirtualTimer* vt_next;				 /**< @brief Next timer in the delta
+																						 list.                       */
+	VirtualTimer* vt_prev;				 /**< @brief Last timer in the delta
+																						 list.                       */
+	systime_t vt_time;						 /**< @brief Must be initialized to -1.  */
+	volatile systime_t vt_systime; /**< @brief System Time counter.        */
 } VTList;
 
 /**
@@ -137,23 +137,24 @@ typedef struct {
  *
  * @iclass
  */
-#define chVTDoTickI() {                                                     \
-  vtlist.vt_systime++;                                                      \
-  if (&vtlist != (VTList *)vtlist.vt_next) {                                \
-    VirtualTimer *vtp;                                                      \
-                                                                            \
-    --vtlist.vt_next->vt_time;                                              \
-    while (!(vtp = vtlist.vt_next)->vt_time) {                              \
-      vtfunc_t fn = vtp->vt_func;                                           \
-      vtp->vt_func = (vtfunc_t)NULL;                                        \
-      vtp->vt_next->vt_prev = (void *)&vtlist;                              \
-      (&vtlist)->vt_next = vtp->vt_next;                                    \
-      chSysUnlockFromIsr();                                                 \
-      fn(vtp->vt_par);                                                      \
-      chSysLockFromIsr();                                                   \
-    }                                                                       \
-  }                                                                         \
-}
+#define chVTDoTickI()                            \
+	{                                              \
+		vtlist.vt_systime++;                         \
+		if (&vtlist != (VTList*)vtlist.vt_next) {    \
+			VirtualTimer* vtp;                         \
+                                                 \
+			--vtlist.vt_next->vt_time;                 \
+			while (!(vtp = vtlist.vt_next)->vt_time) { \
+				vtfunc_t fn = vtp->vt_func;              \
+				vtp->vt_func = (vtfunc_t)NULL;           \
+				vtp->vt_next->vt_prev = (void*)&vtlist;  \
+				(&vtlist)->vt_next = vtp->vt_next;       \
+				chSysUnlockFromIsr();                    \
+				fn(vtp->vt_par);                         \
+				chSysLockFromIsr();                      \
+			}                                          \
+		}                                            \
+	}
 
 /**
  * @brief   Returns @p TRUE if the specified timer is armed.
@@ -181,11 +182,12 @@ typedef struct {
  *
  * @api
  */
-#define chVTSet(vtp, time, vtfunc, par) {                                   \
-  chSysLock();                                                              \
-  chVTSetI(vtp, time, vtfunc, par);                                         \
-  chSysUnlock();                                                            \
-}
+#define chVTSet(vtp, time, vtfunc, par) \
+	{                                     \
+		chSysLock();                        \
+		chVTSetI(vtp, time, vtfunc, par);   \
+		chSysUnlock();                      \
+	}
 
 /**
  * @brief   Disables a Virtual Timer.
@@ -195,12 +197,13 @@ typedef struct {
  *
  * @api
  */
-#define chVTReset(vtp) {                                                    \
-  chSysLock();                                                              \
-  if (chVTIsArmedI(vtp))                                                    \
-    chVTResetI(vtp);                                                        \
-  chSysUnlock();                                                            \
-}
+#define chVTReset(vtp)     \
+	{                        \
+		chSysLock();           \
+		if (chVTIsArmedI(vtp)) \
+			chVTResetI(vtp);     \
+		chSysUnlock();         \
+	}
 
 /**
  * @brief   Current system time.
@@ -238,8 +241,8 @@ typedef struct {
  *
  * @api
  */
-#define chTimeIsWithin(start, end)                                          \
-  (chTimeElapsedSince(start) < ((end) - (start)))
+#define chTimeIsWithin(start, end) \
+	(chTimeElapsedSince(start) < ((end) - (start)))
 /** @} */
 
 extern VTList vtlist;
@@ -250,9 +253,9 @@ extern VTList vtlist;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _vt_init(void);
-  void chVTSetI(VirtualTimer *vtp, systime_t time, vtfunc_t vtfunc, void *par);
-  void chVTResetI(VirtualTimer *vtp);
+void _vt_init(void);
+void chVTSetI(VirtualTimer* vtp, systime_t time, vtfunc_t vtfunc, void* par);
+void chVTResetI(VirtualTimer* vtp);
 #ifdef __cplusplus
 }
 #endif

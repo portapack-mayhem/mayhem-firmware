@@ -30,7 +30,7 @@ using namespace portapack;
 namespace ui {
 
 void ToneSearchView::focus() {
-	//field_frequency_min.focus();
+	// field_frequency_min.focus();
 }
 
 ToneSearchView::~ToneSearchView() {
@@ -38,17 +38,14 @@ ToneSearchView::~ToneSearchView() {
 	baseband::shutdown();
 }
 
-ToneSearchView::ToneSearchView(
-	NavigationView& nav
-) : nav_ (nav)
-{
-	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-	
+ToneSearchView::ToneSearchView(NavigationView& nav) : nav_(nav) {
+	// baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+
 	add_children({
-		&labels,
-		&field_lna,
-		&field_vga,
-		&field_rf_amp,
+			&labels,
+			&field_lna,
+			&field_vga,
+			&field_rf_amp,
 	});
 }
 

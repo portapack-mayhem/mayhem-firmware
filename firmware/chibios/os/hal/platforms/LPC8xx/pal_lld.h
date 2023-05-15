@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -57,10 +57,10 @@
  *          @p board.c.
  */
 typedef struct {
-  /** Initial value for FIO_PIN register.*/
-  uint32_t      data;
-  /** Initial value for FIO_DIR register.*/
-  uint32_t      dir;
+	/** Initial value for FIO_PIN register.*/
+	uint32_t data;
+	/** Initial value for FIO_DIR register.*/
+	uint32_t dir;
 } PALConfig;
 
 /**
@@ -87,7 +87,7 @@ typedef uint32_t iomode_t;
 /**
  * @brief   Port Identifier.
  */
-typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
+typedef LPC_GPIO_PORT_TypeDef* ioportid_t;
 
 /*===========================================================================*/
 /* I/O Ports Identifiers.                                                    */
@@ -96,9 +96,8 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
 /**
  * @brief   GPIO0 port identifier.
  */
-#define IOPORT1         LPC_GPIO_PORT
-#define GPIO0           LPC_GPIO_PORT
-
+#define IOPORT1 LPC_GPIO_PORT
+#define GPIO0 LPC_GPIO_PORT
 
 /*===========================================================================*/
 /* Implementation, some of the following macros could be implemented as      */
@@ -172,7 +171,6 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  */
 #define pal_lld_clearport(port, bits) ((port)->CLR0 = (bits))
 
-
 /**
  * @brief   Toggles a bits mask on a I/O port.
  * @note    The @ref PAL provides a default software implementation of this
@@ -186,7 +184,6 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  * @api
  */
 #define pal_lld_toggleport(port, bits) ((port)->NOT0 = (bits))
-
 
 /**
  * @brief   Writes a group of bits.
@@ -202,9 +199,9 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_writegroup(port, mask, offset, bits)                        \
-  (port)->MASK0 = (~(mask) << (offset));                                     \
-  (port)->MPIN0 = ((bits) << (offset))
+#define pal_lld_writegroup(port, mask, offset, bits) \
+	(port)->MASK0 = (~(mask) << (offset));             \
+	(port)->MPIN0 = ((bits) << (offset))
 
 /**
  * @brief   Pads group mode setup.
@@ -219,8 +216,8 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setgroupmode(port, mask, offset, mode)                      \
-  _pal_lld_setgroupmode(port, mask << offset, mode)
+#define pal_lld_setgroupmode(port, mask, offset, mode) \
+	_pal_lld_setgroupmode(port, mask << offset, mode)
 
 /**
  * @brief   Writes a logical state on an output pad.
@@ -237,8 +234,7 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_writepad(port, pad, bit)                                    \
-  ((port)->W0[(pad)] = (bit))
+#define pal_lld_writepad(port, pad, bit) ((port)->W0[(pad)] = (bit))
 
 /**
  * @brief   Sets a pad logical state to @p PAL_HIGH.
@@ -251,8 +247,7 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_setpad(port, pad)                                           \
-  ((port)->W0[(pad)] = 1)
+#define pal_lld_setpad(port, pad) ((port)->W0[(pad)] = 1)
 
 /**
  * @brief   Clears a pad logical state to @p PAL_LOW.
@@ -265,8 +260,7 @@ typedef LPC_GPIO_PORT_TypeDef *ioportid_t;
  *
  * @notapi
  */
-#define pal_lld_clearpad(port, pad)                                         \
-  ((port)->W0[(pad)] = 0)
+#define pal_lld_clearpad(port, pad) ((port)->W0[(pad)] = 0)
 
 #if !defined(__DOXYGEN__)
 extern const PALConfig pal_default_config;
@@ -275,10 +269,8 @@ extern const PALConfig pal_default_config;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void _pal_lld_init(const PALConfig *config);
-  void _pal_lld_setgroupmode(ioportid_t port,
-                             ioportmask_t mask,
-                             iomode_t mode);
+void _pal_lld_init(const PALConfig* config);
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode);
 #ifdef __cplusplus
 }
 #endif

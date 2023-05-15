@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -76,14 +76,13 @@ GPTDriver GPTD4;
  *
  * @param[in] gptp      pointer to a @p GPTDriver object
  */
-static void gpt_lld_serve_interrupt(GPTDriver *gptp) {
-
-  gptp->tmr->IR = 1;                        /* Clear interrupt on match MR0.*/
-  if (gptp->state == GPT_ONESHOT) {
-    gptp->state = GPT_READY;                /* Back in GPT_READY state.     */
-    gpt_lld_stop_timer(gptp);               /* Timer automatically stopped. */
-  }
-  gptp->config->callback(gptp);
+static void gpt_lld_serve_interrupt(GPTDriver* gptp) {
+	gptp->tmr->IR = 1; /* Clear interrupt on match MR0.*/
+	if (gptp->state == GPT_ONESHOT) {
+		gptp->state = GPT_READY;	/* Back in GPT_READY state.     */
+		gpt_lld_stop_timer(gptp); /* Timer automatically stopped. */
+	}
+	gptp->config->callback(gptp);
 }
 
 /*===========================================================================*/
@@ -97,12 +96,11 @@ static void gpt_lld_serve_interrupt(GPTDriver *gptp) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector80) {
+	CH_IRQ_PROLOGUE();
 
-  CH_IRQ_PROLOGUE();
+	gpt_lld_serve_interrupt(&GPTD1);
 
-  gpt_lld_serve_interrupt(&GPTD1);
-
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_EPILOGUE();
 }
 #endif /* LPC11xx_GPT_USE_CT16B0 */
 
@@ -113,12 +111,11 @@ CH_IRQ_HANDLER(Vector80) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector84) {
+	CH_IRQ_PROLOGUE();
 
-  CH_IRQ_PROLOGUE();
+	gpt_lld_serve_interrupt(&GPTD2);
 
-  gpt_lld_serve_interrupt(&GPTD2);
-
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_EPILOGUE();
 }
 #endif /* LPC11xx_GPT_USE_CT16B0 */
 
@@ -129,12 +126,11 @@ CH_IRQ_HANDLER(Vector84) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector88) {
+	CH_IRQ_PROLOGUE();
 
-  CH_IRQ_PROLOGUE();
+	gpt_lld_serve_interrupt(&GPTD3);
 
-  gpt_lld_serve_interrupt(&GPTD3);
-
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_EPILOGUE();
 }
 #endif /* LPC11xx_GPT_USE_CT32B0 */
 
@@ -145,12 +141,11 @@ CH_IRQ_HANDLER(Vector88) {
  * @isr
  */
 CH_IRQ_HANDLER(Vector8C) {
+	CH_IRQ_PROLOGUE();
 
-  CH_IRQ_PROLOGUE();
+	gpt_lld_serve_interrupt(&GPTD4);
 
-  gpt_lld_serve_interrupt(&GPTD4);
-
-  CH_IRQ_EPILOGUE();
+	CH_IRQ_EPILOGUE();
 }
 #endif /* LPC11xx_GPT_USE_CT32B1 */
 
@@ -164,29 +159,28 @@ CH_IRQ_HANDLER(Vector8C) {
  * @notapi
  */
 void gpt_lld_init(void) {
-
 #if LPC11xx_GPT_USE_CT16B0
-  /* Driver initialization.*/
-  GPTD1.tmr = LPC_TMR16B0;
-  gptObjectInit(&GPTD1);
+	/* Driver initialization.*/
+	GPTD1.tmr = LPC_TMR16B0;
+	gptObjectInit(&GPTD1);
 #endif
 
 #if LPC11xx_GPT_USE_CT16B1
-  /* Driver initialization.*/
-  GPTD2.tmr = LPC_TMR16B1;
-  gptObjectInit(&GPTD2);
+	/* Driver initialization.*/
+	GPTD2.tmr = LPC_TMR16B1;
+	gptObjectInit(&GPTD2);
 #endif
 
 #if LPC11xx_GPT_USE_CT32B0
-  /* Driver initialization.*/
-  GPTD3.tmr = LPC_TMR32B0;
-  gptObjectInit(&GPTD3);
+	/* Driver initialization.*/
+	GPTD3.tmr = LPC_TMR32B0;
+	gptObjectInit(&GPTD3);
 #endif
 
 #if LPC11xx_GPT_USE_CT32B1
-  /* Driver initialization.*/
-  GPTD4.tmr = LPC_TMR32B1;
-  gptObjectInit(&GPTD4);
+	/* Driver initialization.*/
+	GPTD4.tmr = LPC_TMR32B1;
+	gptObjectInit(&GPTD4);
 #endif
 }
 
@@ -197,47 +191,47 @@ void gpt_lld_init(void) {
  *
  * @notapi
  */
-void gpt_lld_start(GPTDriver *gptp) {
-  uint32_t pr;
+void gpt_lld_start(GPTDriver* gptp) {
+	uint32_t pr;
 
-  if (gptp->state == GPT_STOP) {
-    /* Clock activation.*/
+	if (gptp->state == GPT_STOP) {
+		/* Clock activation.*/
 #if LPC11xx_GPT_USE_CT16B0
-    if (&GPTD1 == gptp) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 7);
-      nvicEnableVector(TIMER_16_0_IRQn, CORTEX_PRIORITY_MASK(2));
-    }
+		if (&GPTD1 == gptp) {
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 7);
+			nvicEnableVector(TIMER_16_0_IRQn, CORTEX_PRIORITY_MASK(2));
+		}
 #endif
 #if LPC11xx_GPT_USE_CT16B1
-    if (&GPTD2 == gptp) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 8);
-      nvicEnableVector(TIMER_16_1_IRQn, CORTEX_PRIORITY_MASK(3));
-    }
+		if (&GPTD2 == gptp) {
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 8);
+			nvicEnableVector(TIMER_16_1_IRQn, CORTEX_PRIORITY_MASK(3));
+		}
 #endif
 #if LPC11xx_GPT_USE_CT32B0
-    if (&GPTD3 == gptp) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 9);
-      nvicEnableVector(TIMER_32_0_IRQn, CORTEX_PRIORITY_MASK(2));
-    }
+		if (&GPTD3 == gptp) {
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 9);
+			nvicEnableVector(TIMER_32_0_IRQn, CORTEX_PRIORITY_MASK(2));
+		}
 #endif
 #if LPC11xx_GPT_USE_CT32B1
-    if (&GPTD4 == gptp) {
-      LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 10);
-      nvicEnableVector(TIMER_32_1_IRQn, CORTEX_PRIORITY_MASK(2));
-    }
+		if (&GPTD4 == gptp) {
+			LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 10);
+			nvicEnableVector(TIMER_32_1_IRQn, CORTEX_PRIORITY_MASK(2));
+		}
 #endif
-  }
+	}
 
-  /* Prescaler value calculation.*/
-  pr = (uint16_t)((LPC11xx_SYSCLK / gptp->config->frequency) - 1);
-  chDbgAssert(((uint32_t)(pr + 1) * gptp->config->frequency) == LPC11xx_SYSCLK,
-              "gpt_lld_start(), #1", "invalid frequency");
+	/* Prescaler value calculation.*/
+	pr = (uint16_t)((LPC11xx_SYSCLK / gptp->config->frequency) - 1);
+	chDbgAssert(((uint32_t)(pr + 1) * gptp->config->frequency) == LPC11xx_SYSCLK,
+							"gpt_lld_start(), #1", "invalid frequency");
 
-  /* Timer configuration.*/
-  gptp->tmr->PR  = pr;
-  gptp->tmr->IR  = 1;
-  gptp->tmr->MCR = 0;
-  gptp->tmr->TCR = 0;
+	/* Timer configuration.*/
+	gptp->tmr->PR = pr;
+	gptp->tmr->IR = 1;
+	gptp->tmr->MCR = 0;
+	gptp->tmr->TCR = 0;
 }
 
 /**
@@ -247,37 +241,36 @@ void gpt_lld_start(GPTDriver *gptp) {
  *
  * @notapi
  */
-void gpt_lld_stop(GPTDriver *gptp) {
-
-  if (gptp->state == GPT_READY) {
-    gptp->tmr->MCR = 0;
-    gptp->tmr->TCR = 0;
+void gpt_lld_stop(GPTDriver* gptp) {
+	if (gptp->state == GPT_READY) {
+		gptp->tmr->MCR = 0;
+		gptp->tmr->TCR = 0;
 
 #if LPC11xx_GPT_USE_CT16B0
-    if (&GPTD1 == gptp) {
-      nvicDisableVector(TIMER_16_0_IRQn);
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 7);
-    }
+		if (&GPTD1 == gptp) {
+			nvicDisableVector(TIMER_16_0_IRQn);
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 7);
+		}
 #endif
 #if LPC11xx_GPT_USE_CT16B1
-    if (&GPTD2 == gptp) {
-      nvicDisableVector(TIMER_16_1_IRQn);
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 8);
-    }
+		if (&GPTD2 == gptp) {
+			nvicDisableVector(TIMER_16_1_IRQn);
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 8);
+		}
 #endif
 #if LPC11xx_GPT_USE_CT32B0
-    if (&GPTD3 == gptp) {
-      nvicDisableVector(TIMER_32_0_IRQn);
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 9);
-    }
+		if (&GPTD3 == gptp) {
+			nvicDisableVector(TIMER_32_0_IRQn);
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 9);
+		}
 #endif
 #if LPC11xx_GPT_USE_CT32B1
-    if (&GPTD4 == gptp) {
-      nvicDisableVector(TIMER_32_1_IRQn);
-      LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 10);
-    }
+		if (&GPTD4 == gptp) {
+			nvicDisableVector(TIMER_32_1_IRQn);
+			LPC_SYSCON->SYSAHBCLKCTRL &= ~(1 << 10);
+		}
 #endif
-  }
+	}
 }
 
 /**
@@ -288,13 +281,12 @@ void gpt_lld_stop(GPTDriver *gptp) {
  *
  * @notapi
  */
-void gpt_lld_start_timer(GPTDriver *gptp, gptcnt_t interval) {
-
-  gptp->tmr->MR0 = interval - 1;
-  gptp->tmr->IR  = 1;
-  gptp->tmr->MCR = 3;                       /* IRQ and clr TC on match MR0. */
-  gptp->tmr->TCR = 2;                       /* Reset counter and prescaler. */
-  gptp->tmr->TCR = 1;                       /* Timer enabled.               */
+void gpt_lld_start_timer(GPTDriver* gptp, gptcnt_t interval) {
+	gptp->tmr->MR0 = interval - 1;
+	gptp->tmr->IR = 1;
+	gptp->tmr->MCR = 3; /* IRQ and clr TC on match MR0. */
+	gptp->tmr->TCR = 2; /* Reset counter and prescaler. */
+	gptp->tmr->TCR = 1; /* Timer enabled.               */
 }
 
 /**
@@ -304,11 +296,10 @@ void gpt_lld_start_timer(GPTDriver *gptp, gptcnt_t interval) {
  *
  * @notapi
  */
-void gpt_lld_stop_timer(GPTDriver *gptp) {
-
-  gptp->tmr->IR  = 1;
-  gptp->tmr->MCR = 0;
-  gptp->tmr->TCR = 0;
+void gpt_lld_stop_timer(GPTDriver* gptp) {
+	gptp->tmr->IR = 1;
+	gptp->tmr->MCR = 0;
+	gptp->tmr->TCR = 0;
 }
 
 /**
@@ -322,15 +313,14 @@ void gpt_lld_stop_timer(GPTDriver *gptp) {
  *
  * @notapi
  */
-void gpt_lld_polled_delay(GPTDriver *gptp, gptcnt_t interval) {
-
-  gptp->tmr->MR0 = interval - 1;
-  gptp->tmr->IR  = 1;
-  gptp->tmr->MCR = 4;                       /* Stop TC on match MR0.        */
-  gptp->tmr->TCR = 2;                       /* Reset counter and prescaler. */
-  gptp->tmr->TCR = 1;                       /* Timer enabled.               */
-  while (gptp->tmr->TCR & 1)
-    ;
+void gpt_lld_polled_delay(GPTDriver* gptp, gptcnt_t interval) {
+	gptp->tmr->MR0 = interval - 1;
+	gptp->tmr->IR = 1;
+	gptp->tmr->MCR = 4; /* Stop TC on match MR0.        */
+	gptp->tmr->TCR = 2; /* Reset counter and prescaler. */
+	gptp->tmr->TCR = 1; /* Timer enabled.               */
+	while (gptp->tmr->TCR & 1)
+		;
 }
 
 #endif /* HAL_USE_GPT */

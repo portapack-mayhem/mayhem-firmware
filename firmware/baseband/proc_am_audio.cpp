@@ -28,14 +28,15 @@
 #include <array>
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
+	if (!configured) {
 		return;
 	}
 
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 
-	channel_spectrum.feed(decim_1_out, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+	channel_spectrum.feed(decim_1_out, channel_filter_low_f,
+												channel_filter_high_f, channel_filter_transition);
 
 	const auto decim_2_out = decim_2.execute(decim_1_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_2_out, dst_buffer);
@@ -49,7 +50,7 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 }
 
 buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
-	if( modulation_ssb ) {
+	if (modulation_ssb) {
 		return demod_ssb.execute(channel, audio_buffer);
 	} else {
 		return demod_am.execute(channel, audio_buffer);
@@ -57,45 +58,53 @@ buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
 }
 
 void NarrowbandAMAudio::on_message(const Message* const message) {
-	switch(message->id) {
-	case Message::ID::UpdateSpectrum:
-	case Message::ID::SpectrumStreamingConfig:
-		channel_spectrum.on_message(message);
-		break;
+	switch (message->id) {
+		case Message::ID::UpdateSpectrum:
+		case Message::ID::SpectrumStreamingConfig:
+			channel_spectrum.on_message(message);
+			break;
 
-	case Message::ID::AMConfigure:
-		configure(*reinterpret_cast<const AMConfigureMessage*>(message));
-		break;
+		case Message::ID::AMConfigure:
+			configure(*reinterpret_cast<const AMConfigureMessage*>(message));
+			break;
 
-	case Message::ID::CaptureConfig:
-		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
-		break;
-		
-	default:
-		break;
+		case Message::ID::CaptureConfig:
+			capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+			break;
+
+		default:
+			break;
 	}
 }
 
 void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+	constexpr size_t decim_0_output_fs =
+			decim_0_input_fs / decim_0.decimation_factor;
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+	constexpr size_t decim_1_output_fs =
+			decim_1_input_fs / decim_1.decimation_factor;
 
 	constexpr size_t decim_2_input_fs = decim_1_output_fs;
-	constexpr size_t decim_2_output_fs = decim_2_input_fs / decim_2_decimation_factor;
+	constexpr size_t decim_2_output_fs =
+			decim_2_input_fs / decim_2_decimation_factor;
 
 	constexpr size_t channel_filter_input_fs = decim_2_output_fs;
-	//const size_t channel_filter_output_fs = channel_filter_input_fs / channel_filter_decimation_factor;
+	// const size_t channel_filter_output_fs = channel_filter_input_fs /
+	// channel_filter_decimation_factor;
 
 	decim_0.configure(message.decim_0_filter.taps, 33554432);
 	decim_1.configure(message.decim_1_filter.taps, 131072);
 	decim_2.configure(message.decim_2_filter.taps, decim_2_decimation_factor);
-	channel_filter.configure(message.channel_filter.taps, channel_filter_decimation_factor);
-	channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
-	channel_filter_high_f = message.channel_filter.high_frequency_normalized * channel_filter_input_fs;
-	channel_filter_transition = message.channel_filter.transition_normalized * channel_filter_input_fs;
+	channel_filter.configure(message.channel_filter.taps,
+													 channel_filter_decimation_factor);
+	channel_filter_low_f =
+			message.channel_filter.low_frequency_normalized * channel_filter_input_fs;
+	channel_filter_high_f = message.channel_filter.high_frequency_normalized *
+													channel_filter_input_fs;
+	channel_filter_transition =
+			message.channel_filter.transition_normalized * channel_filter_input_fs;
 	channel_spectrum.set_decimation_factor(1.0f);
 	modulation_ssb = (message.modulation == AMConfigureMessage::Modulation::SSB);
 	audio_output.configure(message.audio_hpf_config);
@@ -104,7 +113,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 }
 
 void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
-	if( message.config ) {
+	if (message.config) {
 		audio_output.set_stream(std::make_unique<StreamInput>(message.config));
 	} else {
 		audio_output.set_stream(nullptr);
@@ -112,7 +121,7 @@ void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<NarrowbandAMAudio>() };
+	EventDispatcher event_dispatcher{std::make_unique<NarrowbandAMAudio>()};
 	event_dispatcher.run();
 	return 0;
 }

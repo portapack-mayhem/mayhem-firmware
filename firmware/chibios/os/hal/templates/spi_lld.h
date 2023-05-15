@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -44,7 +44,7 @@
  * @details If set to @p TRUE the support for SPI1 is included.
  */
 #if !defined(PLATFORM_SPI_USE_SPI1) || defined(__DOXYGEN__)
-#define PLATFORM_SPI_USE_SPI1               FALSE
+#define PLATFORM_SPI_USE_SPI1 FALSE
 #endif
 /** @} */
 
@@ -67,7 +67,7 @@ typedef struct SPIDriver SPIDriver;
  * @param[in] spip      pointer to the @p SPIDriver object triggering the
  *                      callback
  */
-typedef void (*spicallback_t)(SPIDriver *spip);
+typedef void (*spicallback_t)(SPIDriver* spip);
 
 /**
  * @brief   Driver configuration structure.
@@ -75,11 +75,11 @@ typedef void (*spicallback_t)(SPIDriver *spip);
  *          architecture dependent, fields.
  */
 typedef struct {
-  /**
-   * @brief Operation complete callback.
-   */
-  spicallback_t         end_cb;
-  /* End of the mandatory fields.*/
+	/**
+	 * @brief Operation complete callback.
+	 */
+	spicallback_t end_cb;
+	/* End of the mandatory fields.*/
 } SPIConfig;
 
 /**
@@ -88,34 +88,34 @@ typedef struct {
  *          architecture dependent, fields.
  */
 struct SPIDriver {
-  /**
-   * @brief Driver state.
-   */
-  spistate_t            state;
-  /**
-   * @brief Current configuration data.
-   */
-  const SPIConfig       *config;
+	/**
+	 * @brief Driver state.
+	 */
+	spistate_t state;
+	/**
+	 * @brief Current configuration data.
+	 */
+	const SPIConfig* config;
 #if SPI_USE_WAIT || defined(__DOXYGEN__)
-  /**
-   * @brief Waiting thread.
-   */
-  Thread                *thread;
+	/**
+	 * @brief Waiting thread.
+	 */
+	Thread* thread;
 #endif /* SPI_USE_WAIT */
 #if SPI_USE_MUTUAL_EXCLUSION || defined(__DOXYGEN__)
 #if CH_USE_MUTEXES || defined(__DOXYGEN__)
-  /**
-   * @brief Mutex protecting the bus.
-   */
-  Mutex                 mutex;
+	/**
+	 * @brief Mutex protecting the bus.
+	 */
+	Mutex mutex;
 #elif CH_USE_SEMAPHORES
-  Semaphore             semaphore;
+	Semaphore semaphore;
 #endif
 #endif /* SPI_USE_MUTUAL_EXCLUSION */
 #if defined(SPI_DRIVER_EXT_FIELDS)
-  SPI_DRIVER_EXT_FIELDS
+	SPI_DRIVER_EXT_FIELDS
 #endif
-  /* End of the mandatory fields.*/
+	/* End of the mandatory fields.*/
 };
 
 /*===========================================================================*/
@@ -133,17 +133,19 @@ extern SPIDriver SPID1;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void spi_lld_init(void);
-  void spi_lld_start(SPIDriver *spip);
-  void spi_lld_stop(SPIDriver *spip);
-  void spi_lld_select(SPIDriver *spip);
-  void spi_lld_unselect(SPIDriver *spip);
-  void spi_lld_ignore(SPIDriver *spip, size_t n);
-  void spi_lld_exchange(SPIDriver *spip, size_t n,
-                        const void *txbuf, void *rxbuf);
-  void spi_lld_send(SPIDriver *spip, size_t n, const void *txbuf);
-  void spi_lld_receive(SPIDriver *spip, size_t n, void *rxbuf);
-  uint16_t spi_lld_polled_exchange(SPIDriver *spip, uint16_t frame);
+void spi_lld_init(void);
+void spi_lld_start(SPIDriver* spip);
+void spi_lld_stop(SPIDriver* spip);
+void spi_lld_select(SPIDriver* spip);
+void spi_lld_unselect(SPIDriver* spip);
+void spi_lld_ignore(SPIDriver* spip, size_t n);
+void spi_lld_exchange(SPIDriver* spip,
+											size_t n,
+											const void* txbuf,
+											void* rxbuf);
+void spi_lld_send(SPIDriver* spip, size_t n, const void* txbuf);
+void spi_lld_receive(SPIDriver* spip, size_t n, void* rxbuf);
+uint16_t spi_lld_polled_exchange(SPIDriver* spip, uint16_t frame);
 #ifdef __cplusplus
 }
 #endif

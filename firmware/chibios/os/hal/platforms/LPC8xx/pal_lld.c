@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -54,13 +54,12 @@
  *
  * @notapi
  */
-void _pal_lld_init(const PALConfig *config) {
+void _pal_lld_init(const PALConfig* config) {
+	/* Enable clocks to GPIO */
+	LPC_SYSCON->SYSAHBCLKCTRL |= (1 << 6);
 
-  /* Enable clocks to GPIO */
-  LPC_SYSCON->SYSAHBCLKCTRL |= (1<<6);
-
-  LPC_GPIO_PORT->DIR0 = config->dir;
-  LPC_GPIO_PORT->PIN0 = config->data;
+	LPC_GPIO_PORT->DIR0 = config->dir;
+	LPC_GPIO_PORT->PIN0 = config->data;
 }
 
 /**
@@ -78,26 +77,22 @@ void _pal_lld_init(const PALConfig *config) {
  *
  * @notapi
  */
-void _pal_lld_setgroupmode(ioportid_t port,
-                           ioportmask_t mask,
-                           iomode_t mode) {
-                           
-  switch (mode)
-  {
-  case PAL_MODE_RESET:
-  case PAL_MODE_INPUT:
-    port->DIR0 &= ~mask;
-    break;
+void _pal_lld_setgroupmode(ioportid_t port, ioportmask_t mask, iomode_t mode) {
+	switch (mode) {
+		case PAL_MODE_RESET:
+		case PAL_MODE_INPUT:
+			port->DIR0 &= ~mask;
+			break;
 
-  case PAL_MODE_UNCONNECTED:
-    palSetPort(port, PAL_WHOLE_PORT);
-    //no break
-  case PAL_MODE_OUTPUT_PUSHPULL:
-    port->DIR0 |=  mask;
-    break;
-  }
+		case PAL_MODE_UNCONNECTED:
+			palSetPort(port, PAL_WHOLE_PORT);
+			// no break
+		case PAL_MODE_OUTPUT_PUSHPULL:
+			port->DIR0 |= mask;
+			break;
+	}
 
-  return;
+	return;
 }
 
 #endif /* HAL_USE_PAL */

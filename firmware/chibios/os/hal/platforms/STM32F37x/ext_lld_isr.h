@@ -1,17 +1,17 @@
 /*
-    ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
+		ChibiOS/RT - Copyright (C) 2006-2013 Giovanni Di Sirio
 
-    Licensed under the Apache License, Version 2.0 (the "License");
-    you may not use this file except in compliance with the License.
-    You may obtain a copy of the License at
+		Licensed under the Apache License, Version 2.0 (the "License");
+		you may not use this file except in compliance with the License.
+		You may obtain a copy of the License at
 
-        http://www.apache.org/licenses/LICENSE-2.0
+				http://www.apache.org/licenses/LICENSE-2.0
 
-    Unless required by applicable law or agreed to in writing, software
-    distributed under the License is distributed on an "AS IS" BASIS,
-    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-    See the License for the specific language governing permissions and
-    limitations under the License.
+		Unless required by applicable law or agreed to in writing, software
+		distributed under the License is distributed on an "AS IS" BASIS,
+		WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+		See the License for the specific language governing permissions and
+		limitations under the License.
 */
 
 /**
@@ -43,91 +43,91 @@
  * @brief   EXTI0 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI0_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI0_IRQ_PRIORITY        6
+#define STM32_EXT_EXTI0_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI1 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI1_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI1_IRQ_PRIORITY        6
+#define STM32_EXT_EXTI1_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI2 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI2_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI2_IRQ_PRIORITY        6
+#define STM32_EXT_EXTI2_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI3 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI3_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI3_IRQ_PRIORITY        6
+#define STM32_EXT_EXTI3_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI4 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI4_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI4_IRQ_PRIORITY        6
+#define STM32_EXT_EXTI4_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI5..9 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI5_9_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI5_9_IRQ_PRIORITY      6
+#define STM32_EXT_EXTI5_9_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI10..15 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI10_15_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI10_15_IRQ_PRIORITY    6
+#define STM32_EXT_EXTI10_15_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI16 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI16_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI16_IRQ_PRIORITY       6
+#define STM32_EXT_EXTI16_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI17 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI17_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI17_IRQ_PRIORITY       6
+#define STM32_EXT_EXTI17_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI18 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI18_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI18_IRQ_PRIORITY       6
+#define STM32_EXT_EXTI18_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI19 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI19_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI19_IRQ_PRIORITY       6
+#define STM32_EXT_EXTI19_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI20 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI20_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI20_IRQ_PRIORITY       6
+#define STM32_EXT_EXTI20_IRQ_PRIORITY 6
 #endif
 
 /**
  * @brief   EXTI21..22 interrupt priority level setting.
  */
 #if !defined(STM32_EXT_EXTI21_22_IRQ_PRIORITY) || defined(__DOXYGEN__)
-#define STM32_EXT_EXTI21_22_IRQ_PRIORITY    6
+#define STM32_EXT_EXTI21_22_IRQ_PRIORITY 6
 #endif
 /** @} */
 
@@ -150,8 +150,8 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void ext_lld_exti_irq_enable(void);
-  void ext_lld_exti_irq_disable(void);
+void ext_lld_exti_irq_enable(void);
+void ext_lld_exti_irq_disable(void);
 #ifdef __cplusplus
 }
 #endif
