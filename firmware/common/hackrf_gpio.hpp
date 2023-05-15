@@ -22,8 +22,8 @@
 #ifndef __HACKRF_GPIO_H__
 #define __HACKRF_GPIO_H__
 
-#include "pins.hpp"
 #include "led.hpp"
+#include "pins.hpp"
 
 #include <array>
 
@@ -89,11 +89,11 @@ constexpr GPIO gpio_r9_not_ant_pwr = gpio[GPIO2_4];
 
 /* LEDs */
 
-constexpr LED led_usb	{ gpio_led_usb };
-constexpr LED led_rx	{ gpio_led_rx };
-constexpr LED led_tx	{ gpio_led_tx };
+constexpr LED led_usb{gpio_led_usb};
+constexpr LED led_rx{gpio_led_rx};
+constexpr LED led_tx{gpio_led_tx};
 
 } /* namespace one */
 } /* namespace hackrf */
 
-#endif/*__HACKRF_GPIO_H__*/
+#endif /*__HACKRF_GPIO_H__*/

@@ -22,8 +22,8 @@
 #ifndef __BUFFER_H__
 #define __BUFFER_H__
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 /* LPC43xx RTC structure. Avoiding using the ChibiOS-defined structure because
  * it pulls in all sorts of dependencies and initialization and other stuff that
@@ -34,8 +34,8 @@
  */
 #if defined(LPC43XX_M4)
 struct Timestamp {
-	uint32_t tv_date { 0 };
-	uint32_t tv_time { 0 };
+	uint32_t tv_date{0};
+	uint32_t tv_time{0};
 
 	static Timestamp now();
 };
@@ -47,45 +47,31 @@ struct Timestamp {
 using Timestamp = lpc43xx::rtc::RTC;
 #endif
 
-template<typename T>
+template <typename T>
 struct buffer_t {
 	T* const p;
 	const size_t count;
 	const uint32_t sampling_rate;
 	const Timestamp timestamp;
 
-	constexpr buffer_t(
-	) : p { nullptr },
-		count { 0 },
-		sampling_rate { 0 },
-		timestamp { }
-	{
-	}
+	constexpr buffer_t() : p{nullptr}, count{0}, sampling_rate{0}, timestamp{} {}
 
-	constexpr buffer_t(
-		const buffer_t<T>& other
-	) : p { other.p },
-		count { other.count },
-		sampling_rate { other.sampling_rate },
-		timestamp { other.timestamp }
-	{
-	}
+	constexpr buffer_t(const buffer_t<T>& other)
+			: p{other.p},
+				count{other.count},
+				sampling_rate{other.sampling_rate},
+				timestamp{other.timestamp} {}
 
-	constexpr buffer_t(
-		T* const p,
-		const size_t count,
-		const uint32_t sampling_rate = 0,
-		const Timestamp timestamp = { }
-	) : p { p },
-		count { count },
-		sampling_rate { sampling_rate },
-		timestamp { timestamp }
-	{
-	}
+	constexpr buffer_t(T* const p,
+										 const size_t count,
+										 const uint32_t sampling_rate = 0,
+										 const Timestamp timestamp = {})
+			: p{p},
+				count{count},
+				sampling_rate{sampling_rate},
+				timestamp{timestamp} {}
 
-	operator bool() const {
-		return (p != nullptr);
-	}
+	operator bool() const { return (p != nullptr); }
 };
 
-#endif/*__BUFFER_H__*/
+#endif /*__BUFFER_H__*/

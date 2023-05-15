@@ -24,81 +24,72 @@
 
 #include <cstdint>
 
-#include "message.hpp"
 #include "fifo.hpp"
+#include "message.hpp"
 
 #include <ch.h>
 
 class MessageQueue {
-public:
+ public:
 	MessageQueue() = delete;
 	MessageQueue(const MessageQueue&) = delete;
 	MessageQueue(MessageQueue&&) = delete;
-	
-	MessageQueue(
-		uint8_t* const data,
-		size_t k
-	) : fifo { data, k }
-	{
+
+	MessageQueue(uint8_t* const data, size_t k) : fifo{data, k} {
 		chMtxInit(&mutex_write);
 	}
 
-	template<typename T>
+	template <typename T>
 	bool push(const T& message) {
-		static_assert(sizeof(T) <= Message::MAX_SIZE, "Message::MAX_SIZE too small for message type");
-		static_assert(std::is_base_of<Message, T>::value, "type is not based on Message");
+		static_assert(sizeof(T) <= Message::MAX_SIZE,
+									"Message::MAX_SIZE too small for message type");
+		static_assert(std::is_base_of<Message, T>::value,
+									"type is not based on Message");
 
 		return push(&message, sizeof(message));
 	}
 
-	template<typename T>
+	template <typename T>
 	bool push_and_wait(const T& message) {
 		const bool result = push(message);
-		if( result ) {
+		if (result) {
 			// TODO: More graceful method of waiting for empty? Maybe sleep for a bit?
-			while( !is_empty() );
+			while (!is_empty())
+				;
 		}
 		return result;
 	}
 
-	template<typename HandlerFn>
+	template <typename HandlerFn>
 	void handle(HandlerFn handler) {
 		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-		while(Message* const message = peek(message_buffer)) {
+		while (Message* const message = peek(message_buffer)) {
 			handler(message);
 			skip();
 		}
 	}
 
-	bool is_empty() const {
-		return fifo.is_empty();
-	}
+	bool is_empty() const { return fifo.is_empty(); }
 
-	void reset() {
-		fifo.reset();
-	}
-	
-private:
+	void reset() { fifo.reset(); }
+
+ private:
 	FIFO<uint8_t> fifo;
-	Mutex mutex_write { };
+	Mutex mutex_write{};
 
 	Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
 		Message* const p = reinterpret_cast<Message*>(buf.data());
 		return fifo.peek_r(buf.data(), buf.size()) ? p : nullptr;
 	}
 
-	bool skip() {
-		return fifo.skip();
-	}
+	bool skip() { return fifo.skip(); }
 
 	Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
 		Message* const p = reinterpret_cast<Message*>(buf.data());
 		return fifo.out_r(buf.data(), buf.size()) ? p : nullptr;
 	}
 
-	size_t len() const {
-		return fifo.len();
-	}
+	size_t len() const { return fifo.len(); }
 
 	bool push(const void* const buf, const size_t len) {
 		chMtxLock(&mutex_write);
@@ -106,7 +97,7 @@ private:
 		chMtxUnlock();
 
 		const bool success = (result == len);
-		if( success ) {
+		if (success) {
 			signal();
 		}
 		return success;
@@ -115,4 +106,4 @@ private:
 	void signal();
 };
 
-#endif/*__MESSAGE_QUEUE_H__*/
+#endif /*__MESSAGE_QUEUE_H__*/

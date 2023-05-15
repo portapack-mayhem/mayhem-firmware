@@ -22,35 +22,35 @@
 #ifndef __RSSI_STATS_COLLECTOR_H__
 #define __RSSI_STATS_COLLECTOR_H__
 
-#include "rssi.hpp"
 #include "message.hpp"
+#include "rssi.hpp"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 class RSSIStatisticsCollector {
-public:
-	template<typename Callback>
+ public:
+	template <typename Callback>
 	void process(const rf::rssi::buffer_t& buffer, Callback callback) {
 		auto p = buffer.p;
-		if( p == nullptr ) {
+		if (p == nullptr) {
 			return;
 		}
 
-		if( statistics.count == 0 ) {
+		if (statistics.count == 0) {
 			const auto value_0 = *p;
 			statistics.min = value_0;
 			statistics.max = value_0;
 		}
-		
+
 		const auto end = &p[buffer.count];
-		while(p < end) {
+		while (p < end) {
 			const uint32_t value = *(p++);
 
-			if( statistics.min > value ) {
+			if (statistics.min > value) {
 				statistics.min = value;
 			}
-			if( statistics.max < value ) {
+			if (statistics.max < value) {
 				statistics.max = value;
 			}
 
@@ -60,16 +60,16 @@ public:
 
 		const size_t samples_per_update = buffer.sampling_rate * update_interval;
 
-		if( statistics.count >= samples_per_update ) {
+		if (statistics.count >= samples_per_update) {
 			callback(statistics);
 			statistics.accumulator = 0;
 			statistics.count = 0;
 		}
 	}
 
-private:
-	static constexpr float update_interval { 0.1f };
-	RSSIStatistics statistics { };
+ private:
+	static constexpr float update_interval{0.1f};
+	RSSIStatistics statistics{};
 };
 
-#endif/*__RSSI_STATS_COLLECTOR_H__*/
+#endif /*__RSSI_STATS_COLLECTOR_H__*/

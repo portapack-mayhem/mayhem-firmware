@@ -28,7 +28,7 @@
 #include "signal.hpp"
 
 namespace sd_card {
-	
+
 extern FATFS fs;
 
 enum class Status : int32_t {
@@ -47,4 +47,4 @@ Status status();
 
 } /* namespace sd_card */
 
-#endif/*__SD_CARD_H__*/
+#endif /*__SD_CARD_H__*/

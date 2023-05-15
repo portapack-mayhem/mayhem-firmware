@@ -26,14 +26,14 @@
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
 
-#include "i2c_pp.hpp"
-#include "spi_pp.hpp"
-#include "si5351.hpp"
-#include "lcd_ili9341.hpp"
 #include "backlight.hpp"
+#include "i2c_pp.hpp"
+#include "lcd_ili9341.hpp"
+#include "si5351.hpp"
+#include "spi_pp.hpp"
 
-#include "radio.hpp"
 #include "clock_manager.hpp"
+#include "radio.hpp"
 #include "temperature_logger.hpp"
 
 namespace portapack {

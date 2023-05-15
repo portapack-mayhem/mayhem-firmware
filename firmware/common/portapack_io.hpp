@@ -22,18 +22,18 @@
 #ifndef __PORTAPACK_IO_H__
 #define __PORTAPACK_IO_H__
 
-#include <cstdint>
-#include <cstddef>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 
-#include "platform.hpp"
 #include "gpio.hpp"
+#include "platform.hpp"
 #include "ui.hpp"
 
 namespace portapack {
 
 class IO {
-public:
+ public:
 	enum class TouchPinsConfig : uint8_t {
 		XN_BIT = (1 << 0),
 		XP_BIT = (1 << 1),
@@ -79,23 +79,20 @@ public:
 		SenseY = XP_IN | XN_IN | YP_OUT_1 | YN_OUT_0,
 	};
 
-	constexpr IO(
-		GPIO gpio_dir,
-		GPIO gpio_lcd_rdx,
-		GPIO gpio_lcd_wrx,
-		GPIO gpio_io_stbx,
-		GPIO gpio_addr,
-		GPIO gpio_rot_a,
-		GPIO gpio_rot_b
-	) : gpio_dir { gpio_dir },
-		gpio_lcd_rdx { gpio_lcd_rdx },
-		gpio_lcd_wrx { gpio_lcd_wrx },
-		gpio_io_stbx { gpio_io_stbx },
-		gpio_addr { gpio_addr },
-		gpio_rot_a { gpio_rot_a },
-		gpio_rot_b { gpio_rot_b }
-	{
-	};
+	constexpr IO(GPIO gpio_dir,
+							 GPIO gpio_lcd_rdx,
+							 GPIO gpio_lcd_wrx,
+							 GPIO gpio_io_stbx,
+							 GPIO gpio_addr,
+							 GPIO gpio_rot_a,
+							 GPIO gpio_rot_b)
+			: gpio_dir{gpio_dir},
+				gpio_lcd_rdx{gpio_lcd_rdx},
+				gpio_lcd_wrx{gpio_lcd_wrx},
+				gpio_io_stbx{gpio_io_stbx},
+				gpio_addr{gpio_addr},
+				gpio_rot_a{gpio_rot_a},
+				gpio_rot_b{gpio_rot_b} {};
 
 	void init();
 
@@ -104,58 +101,47 @@ public:
 	void audio_reset_state(const bool active);
 	void reference_oscillator(const bool enable);
 
-	void lcd_data_write_command_and_data(
-		const uint_fast8_t command,
-		const uint8_t* data,
-		const size_t data_count
-	) {
+	void lcd_data_write_command_and_data(const uint_fast8_t command,
+																			 const uint8_t* data,
+																			 const size_t data_count) {
 		lcd_command(command);
-		for(size_t i=0; i<data_count; i++) {
+		for (size_t i = 0; i < data_count; i++) {
 			lcd_write_data(data[i]);
 		}
 	}
-	
+
 	void lcd_data_write_command_and_data(
-		const uint_fast8_t command,
-		const std::initializer_list<uint8_t>& data
-	) {
+			const uint_fast8_t command,
+			const std::initializer_list<uint8_t>& data) {
 		lcd_command(command);
-		for(const auto d : data) {
+		for (const auto d : data) {
 			lcd_write_data(d);
 		}
 	}
 
-	void lcd_data_read_command_and_data(
-		const uint_fast8_t command,
-		uint16_t* const data,
-		const size_t data_count
-	) {
+	void lcd_data_read_command_and_data(const uint_fast8_t command,
+																			uint16_t* const data,
+																			const size_t data_count) {
 		lcd_command(command);
-		for(size_t i=0; i<data_count; i++) {
+		for (size_t i = 0; i < data_count; i++) {
 			data[i] = lcd_read_data();
 		}
 	}
 
-	void lcd_write_word(const uint32_t w) {
-		lcd_write_data(w);
-	}
+	void lcd_write_word(const uint32_t w) { lcd_write_data(w); }
 
 	void lcd_write_words(const uint16_t* const w, size_t n) {
-		for(size_t i=0; i<n; i++) {
+		for (size_t i = 0; i < n; i++) {
 			lcd_write_data(w[i]);
 		}
 	}
 
-	void lcd_write_pixel(const ui::Color pixel) {
-		lcd_write_data(pixel.v);
-	}
+	void lcd_write_pixel(const ui::Color pixel) { lcd_write_data(pixel.v); }
 
-	uint32_t lcd_read_word() {
-		return lcd_read_data();
-	}
+	uint32_t lcd_read_word() { return lcd_read_data(); }
 
 	void lcd_write_pixels(const ui::Color pixel, size_t n) {
-		while(n--) {
+		while (n--) {
 			lcd_write_data(pixel.v);
 		}
 	}
@@ -163,7 +149,7 @@ public:
 	void lcd_write_pixels_unrolled8(const ui::Color pixel, size_t n) {
 		auto v = pixel.v;
 		n >>= 3;
-		while(n--) {
+		while (n--) {
 			lcd_write_data(v);
 			lcd_write_data(v);
 			lcd_write_data(v);
@@ -174,22 +160,22 @@ public:
 			lcd_write_data(v);
 		}
 	}
-	
+
 	void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
-		for(size_t i=0; i<n; i++) {
+		for (size_t i = 0; i < n; i++) {
 			lcd_write_pixel(pixels[i]);
 		}
 	}
 
 	void lcd_read_bytes(uint8_t* byte, size_t byte_count) {
 		size_t word_count = byte_count / 2;
-		while(word_count) {
+		while (word_count) {
 			const auto word = lcd_read_data();
 			*(byte++) = word >> 8;
 			*(byte++) = word >> 0;
 			word_count--;
 		}
-		if( byte_count & 1 ) {
+		if (byte_count & 1) {
 			const auto word = lcd_read_data();
 			*(byte++) = word >> 8;
 		}
@@ -210,15 +196,11 @@ public:
 
 	uint32_t io_update(const TouchPinsConfig write_value);
 
-	uint32_t lcd_te() {
-		return gpio_rot_a.read();
-	}
+	uint32_t lcd_te() { return gpio_rot_a.read(); }
 
-	uint32_t dfu_read() {
-		return gpio_rot_b.read();
-	}
+	uint32_t dfu_read() { return gpio_rot_b.read(); }
 
-private:
+ private:
 	const GPIO gpio_dir;
 	const GPIO gpio_lcd_rdx;
 	const GPIO gpio_lcd_wrx;
@@ -231,47 +213,27 @@ private:
 	static constexpr size_t gpio_data_shift = 8;
 	static constexpr ioportmask_t gpio_data_mask = 0xffU << gpio_data_shift;
 
-	uint8_t io_reg { 0x03 };
+	uint8_t io_reg{0x03};
 
-	void lcd_rd_assert() {
-		gpio_lcd_rdx.clear();
-	}
+	void lcd_rd_assert() { gpio_lcd_rdx.clear(); }
 
-	void lcd_rd_deassert() {
-		gpio_lcd_rdx.set();
-	}
+	void lcd_rd_deassert() { gpio_lcd_rdx.set(); }
 
-	void lcd_wr_assert() {
-		gpio_lcd_wrx.clear();
-	}
+	void lcd_wr_assert() { gpio_lcd_wrx.clear(); }
 
-	void lcd_wr_deassert() {
-		gpio_lcd_wrx.set();
-	}
+	void lcd_wr_deassert() { gpio_lcd_wrx.set(); }
 
-	void io_stb_assert() {
-		gpio_io_stbx.clear();
-	}
+	void io_stb_assert() { gpio_io_stbx.clear(); }
 
-	void io_stb_deassert() {
-		gpio_io_stbx.set();
-	}
+	void io_stb_deassert() { gpio_io_stbx.set(); }
 
-	void addr(const bool value) {
-		gpio_addr.write(value);
-	}
+	void addr(const bool value) { gpio_addr.write(value); }
 
-	void addr_1() {
-		gpio_addr.set();
-	}
+	void addr_1() { gpio_addr.set(); }
 
-	void addr_0() {
-		gpio_addr.clear();
-	}
+	void addr_0() { gpio_addr.clear(); }
 
-	void data_mask_set() {
-		LPC_GPIO->MASK[gpio_data_port_id] = ~gpio_data_mask;
-	}
+	void data_mask_set() { LPC_GPIO->MASK[gpio_data_port_id] = ~gpio_data_mask; }
 
 	void dir_write() {
 		gpio_dir.clear();
@@ -302,34 +264,34 @@ private:
 	}
 
 	void lcd_command(const uint32_t value) {
-		data_write_high(0);		/* Drive high byte (with zero -- don't care) */
-		dir_write();			/* Turn around data bus, MCU->CPLD */
-		addr(0);				/* Indicate command */
+		data_write_high(0); /* Drive high byte (with zero -- don't care) */
+		dir_write();				/* Turn around data bus, MCU->CPLD */
+		addr(0);						/* Indicate command */
 		__asm__("nop");
 		__asm__("nop");
 		__asm__("nop");
-		lcd_wr_assert();		/* Latch high byte */
+		lcd_wr_assert(); /* Latch high byte */
 
-		data_write_low(value);	/* Drive low byte (pass-through) */
+		data_write_low(value); /* Drive low byte (pass-through) */
 		__asm__("nop");
 		__asm__("nop");
 		__asm__("nop");
-		lcd_wr_deassert();		/* Complete write operation */
+		lcd_wr_deassert(); /* Complete write operation */
 
-		addr(1);				/* Set up for data phase (most likely after a command) */
+		addr(1); /* Set up for data phase (most likely after a command) */
 	}
 
 	void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
 		// NOTE: Assumes and DIR=0 and ADDR=1 from command phase.
-		data_write_high(value);	/* Drive high byte */
+		data_write_high(value); /* Drive high byte */
 		__asm__("nop");
-		lcd_wr_assert();		/* Latch high byte */
+		lcd_wr_assert(); /* Latch high byte */
 
-		data_write_low(value);	/* Drive low byte (pass-through) */
+		data_write_low(value); /* Drive low byte (pass-through) */
 		__asm__("nop");
 		__asm__("nop");
 		__asm__("nop");
-		lcd_wr_deassert();		/* Complete write operation */
+		lcd_wr_deassert(); /* Complete write operation */
 	}
 
 	uint32_t lcd_read_data() {
@@ -340,14 +302,14 @@ private:
 		lcd_rd_assert();
 		/* Wait for passthrough data(15:8) to settle -- ~16ns (3 cycles) typical */
 		/* Wait for read control L duration (355ns) */
-		halPolledDelay(71);	// 355ns
+		halPolledDelay(71);	 // 355ns
 		const auto value_high = data_read();
 
 		/* Latch data[7:0] */
 		lcd_rd_deassert();
 		/* Wait for latched data[7:0] to settle -- ~26ns (5 cycles) typical */
 		/* Wait for read control H duration (90ns) */
-		halPolledDelay(18);	// 90ns
+		halPolledDelay(18);	 // 90ns
 
 		const auto value_low = data_read();
 		return (value_high << 8) | value_low;
@@ -366,22 +328,22 @@ private:
 		__asm__("nop");
 		io_stb_deassert();
 	}
-/*
-	void lcd_data_write_command_and_data(
-		const uint_fast16_t command,
-		const uint8_t* const data,
-		const size_t count
-	) {
-		lcd_data_write_command(command);
-		for(size_t i=0; i<count; i++) {
-			lcd_data_write_data(data[i]);
+	/*
+		void lcd_data_write_command_and_data(
+			const uint_fast16_t command,
+			const uint8_t* const data,
+			const size_t count
+		) {
+			lcd_data_write_command(command);
+			for(size_t i=0; i<count; i++) {
+				lcd_data_write_data(data[i]);
+			}
 		}
-	}
-*/
+	*/
 };
 
 extern IO io;
 
 } /* namespace portapack */
 
-#endif/*__PORTAPACK_IO_H__*/
+#endif /*__PORTAPACK_IO_H__*/

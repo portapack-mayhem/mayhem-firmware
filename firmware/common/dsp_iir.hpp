@@ -34,49 +34,42 @@ struct iir_biquad_config_t {
 // 0..2 - b, 3..5 - a
 typedef std::array<float, 6> iir_biquad_df2_config_t;
 
-constexpr iir_biquad_config_t iir_config_passthrough {
-	{ { 1.0f, 0.0f, 0.0f } },
-	{ { 0.0f, 0.0f, 0.0f } },
+constexpr iir_biquad_config_t iir_config_passthrough{
+		{{1.0f, 0.0f, 0.0f}},
+		{{0.0f, 0.0f, 0.0f}},
 };
 
-constexpr iir_biquad_config_t iir_config_no_pass {
-	{ { 0.0f, 0.0f, 0.0f } },
-	{ { 0.0f, 0.0f, 0.0f } },
+constexpr iir_biquad_config_t iir_config_no_pass{
+		{{0.0f, 0.0f, 0.0f}},
+		{{0.0f, 0.0f, 0.0f}},
 };
 
 class IIRBiquadFilter {
-public:
+ public:
 	// http://www.musicdsp.org/files/Audio-EQ-Cookbook.txt
-	constexpr IIRBiquadFilter(
-	) : IIRBiquadFilter(iir_config_no_pass)
-	{
-	}
+	constexpr IIRBiquadFilter() : IIRBiquadFilter(iir_config_no_pass) {}
 
 	// Assume all coefficients are normalized so that a0=1.0
-	constexpr IIRBiquadFilter(
-		const iir_biquad_config_t& config
-	) : config(config)
-	{
-	}
+	constexpr IIRBiquadFilter(const iir_biquad_config_t& config)
+			: config(config) {}
 
 	void configure(const iir_biquad_config_t& new_config);
 
 	void execute(const buffer_f32_t& buffer_in, const buffer_f32_t& buffer_out);
 	void execute_in_place(const buffer_f32_t& buffer);
 
-private:
+ private:
 	iir_biquad_config_t config;
-	std::array<float, 3> x { { 0.0f, 0.0f, 0.0f } };
-	std::array<float, 3> y { { 0.0f, 0.0f, 0.0f } };
+	std::array<float, 3> x{{0.0f, 0.0f, 0.0f}};
+	std::array<float, 3> y{{0.0f, 0.0f, 0.0f}};
 };
 
 class IIRBiquadDF2Filter {
-public:
-
+ public:
 	void configure(const iir_biquad_df2_config_t& config);
 	float execute(float z);
 
-private:
+ private:
 	float b0 = 0;
 	float b1 = 0;
 	float b2 = 0;
@@ -87,4 +80,4 @@ private:
 	float z1 = 0;
 };
 
-#endif/*__DSP_IIR_H__*/
+#endif /*__DSP_IIR_H__*/

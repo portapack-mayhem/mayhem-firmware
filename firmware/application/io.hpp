@@ -26,14 +26,16 @@
 namespace stream {
 
 class Reader {
-public:
-	virtual File::Result<File::Size> read(void* const buffer, const File::Size bytes) = 0;
+ public:
+	virtual File::Result<File::Size> read(void* const buffer,
+																				const File::Size bytes) = 0;
 	virtual ~Reader() = default;
 };
 
 class Writer {
-public:
-	virtual File::Result<File::Size> write(const void* const buffer, const File::Size bytes) = 0;
+ public:
+	virtual File::Result<File::Size> write(const void* const buffer,
+																				 const File::Size bytes) = 0;
 	virtual ~Writer() = default;
 };
 

@@ -388,7 +388,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 			{"Memory", ui::Color::dark_cyan(), &bitmap_icon_memory,
 			 [&nav]() { nav.push<DebugMemoryView>(); }},
 			//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){
-			//nav.push<NotImplementedView>(); } },
+			// nav.push<NotImplementedView>(); } },
 			{"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard,
 			 [&nav]() { nav.push<SDCardDebugView>(); }},
 			{"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals,

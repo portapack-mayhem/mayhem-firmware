@@ -24,8 +24,8 @@
 
 #include <cstdint>
 
-#include "complex.hpp"
 #include "buffer.hpp"
+#include "complex.hpp"
 
 using buffer_c8_t = buffer_t<complex8_t>;
 using buffer_c16_t = buffer_t<complex16_t>;
@@ -33,4 +33,4 @@ using buffer_s16_t = buffer_t<int16_t>;
 using buffer_c32_t = buffer_t<complex32_t>;
 using buffer_f32_t = buffer_t<float>;
 
-#endif/*__DSP_TYPES_H__*/
+#endif /*__DSP_TYPES_H__*/

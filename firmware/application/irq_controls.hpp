@@ -22,8 +22,8 @@
 #ifndef __IRQ_CONTROLS_H__
 #define __IRQ_CONTROLS_H__
 
-#include <cstdint>
 #include <bitset>
+#include <cstdint>
 
 #include "touch.hpp"
 
@@ -50,7 +50,7 @@ namespace debug {
 
 uint8_t switches();
 
-} /* debug */
-} /* control */
+}	 // namespace debug
+}	 // namespace control
 
-#endif/*__IRQ_CONTROLS_H__*/
+#endif /*__IRQ_CONTROLS_H__*/

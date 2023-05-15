@@ -499,7 +499,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 					[&nav]() { nav.push<ADSBRxView>(); },
 			},
 			//{ "ACARS",	ui::Color::yellow(),	&bitmap_icon_adsb,			[&nav](){
-			//nav.push<ACARSAppView>(); }, },
+			// nav.push<ACARSAppView>(); }, },
 			{"AIS Boats", ui::Color::green(), &bitmap_icon_ais,
 			 [&nav]() { nav.push<AISAppView>(); }},
 			{"AFSK", ui::Color::yellow(), &bitmap_icon_modem,
@@ -588,7 +588,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 			{"S.Painter", ui::Color::orange(), &bitmap_icon_morse,
 			 [&nav]() { nav.push<SpectrumPainterView>(); }},
 			//{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote, [&nav](){
-			//nav.push<RemoteView>(); } },
+			// nav.push<RemoteView>(); } },
 	});
 }
 
@@ -601,17 +601,17 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 	}
 	add_items({
 			//{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){
-			//nav.push<TestView>(); } },
+			// nav.push<TestView>(); } },
 			{"Freq. manager", ui::Color::green(), &bitmap_icon_freqman,
 			 [&nav]() { nav.push<FrequencyManagerView>(); }},
 			{"File manager", ui::Color::yellow(), &bitmap_icon_dir,
 			 [&nav]() { nav.push<FileManagerView>(); }},
 			//{ "Notepad",		ui::Color::dark_grey(),	&bitmap_icon_notepad, [&nav](){
-			//nav.push<NotImplementedView>(); } },
+			// nav.push<NotImplementedView>(); } },
 			{"Signal gen", ui::Color::green(), &bitmap_icon_cwgen,
 			 [&nav]() { nav.push<SigGenView>(); }},
 			//{ "Tone search",	ui::Color::dark_grey(), nullptr,					[&nav](){
-			//nav.push<ToneSearchView>(); } },
+			// nav.push<ToneSearchView>(); } },
 			{"Wav viewer", ui::Color::yellow(), &bitmap_icon_soundboard,
 			 [&nav]() { nav.push<ViewWavView>(); }},
 			{"Antenna length", ui::Color::green(), &bitmap_icon_tools_antenna,
@@ -670,7 +670,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 			{"HackRF", ui::Color::cyan(), &bitmap_icon_hackrf,
 			 [this, &nav]() { hackrf_mode(nav); }},
 			//{ "About", 		ui::Color::cyan(),			nullptr,				[&nav](){
-			//nav.push<AboutView>(); } }
+			// nav.push<AboutView>(); } }
 	});
 	set_max_rows(2);	// allow wider buttons
 	set_arrow_enabled(false);

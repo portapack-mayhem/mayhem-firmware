@@ -24,76 +24,63 @@
 #ifndef __UI_NRF_RX_H__
 #define __UI_NRF_RX_H__
 
+#include "app_settings.hpp"
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "app_settings.hpp"
-#include "ui_record_view.hpp"	// DEBUG
+#include "ui_record_view.hpp"	 // DEBUG
 
 #include "utility.hpp"
 
 namespace ui {
 
 class NRFRxView : public View {
-public:
+ public:
 	NRFRxView(NavigationView& nav);
 	~NRFRxView();
 
 	void focus() override;
 
 	std::string title() const override { return "NRF RX"; };
-	
-private:
+
+ private:
 	void on_data(uint32_t value, bool is_data);
-	
+
 	// app save settings
-	std::app_settings 		settings { }; 		
-	std::app_settings::AppSettings 	app_settings { };
+	std::app_settings settings{};
+	std::app_settings::AppSettings app_settings{};
 
-	uint8_t console_color { 0 };
-	uint32_t prev_value { 0 };
+	uint8_t console_color{0};
+	uint32_t prev_value{0};
 
-	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
+	RFAmpField field_rf_amp{{13 * 8, 0 * 16}};
+	LNAGainField field_lna{{15 * 8, 0 * 16}};
+	VGAGainField field_vga{{18 * 8, 0 * 16}};
+	RSSI rssi{
+			{21 * 8, 0, 6 * 8, 4},
 	};
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
+	Channel channel{
+			{21 * 8, 5, 6 * 8, 4},
 	};
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
+
+	FrequencyField field_frequency{
+			{0 * 8, 0 * 16},
 	};
-	RSSI rssi {
-		{ 21 * 8, 0, 6 * 8, 4 },
-	};
-	Channel channel {
-		{ 21 * 8, 5, 6 * 8, 4 },
-	};
-	
-	FrequencyField field_frequency {
-		{ 0 * 8, 0 * 16 },
-	};
-	
-	Button button_modem_setup {
-		{ 240 - 12 * 8, 1 * 16, 96, 24 },
-		"Modem setup"
-	};
-	
-	Console console {
-		{ 0, 4 * 16, 240, 240 }
-	};
+
+	Button button_modem_setup{{240 - 12 * 8, 1 * 16, 96, 24}, "Modem setup"};
+
+	Console console{{0, 4 * 16, 240, 240}};
 
 	void update_freq(rf::Frequency f);
-	//void on_data_afsk(const AFSKDataMessage& message);
-	
-	MessageHandlerRegistration message_handler_packet {
-		Message::ID::AFSKData,
-		[this](Message* const p) {
-			const auto message = static_cast<const AFSKDataMessage*>(p);
-			this->on_data(message->value, message->is_data);
-		}
-	};
+	// void on_data_afsk(const AFSKDataMessage& message);
+
+	MessageHandlerRegistration message_handler_packet{
+			Message::ID::AFSKData, [this](Message* const p) {
+				const auto message = static_cast<const AFSKDataMessage*>(p);
+				this->on_data(message->value, message->is_data);
+			}};
 };
 
 } /* namespace ui */
 
-#endif/*__UI_NRF_RX_H__*/
+#endif /*__UI_NRF_RX_H__*/

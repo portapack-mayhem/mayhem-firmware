@@ -22,58 +22,50 @@
 #ifndef __BLOCK_DECIMATOR_H__
 #define __BLOCK_DECIMATOR_H__
 
-#include <cstdint>
-#include <cstddef>
 #include <array>
+#include <cstddef>
+#include <cstdint>
 
-#include "dsp_types.hpp"
 #include "complex.hpp"
+#include "dsp_types.hpp"
 
-template<typename T, size_t N>
+template <typename T, size_t N>
 class BlockDecimator {
-public:
-	constexpr BlockDecimator(
-		const size_t factor
-	) : factor_ { factor }
-	{
-	}
+ public:
+	constexpr BlockDecimator(const size_t factor) : factor_{factor} {}
 
 	void set_input_sampling_rate(const uint32_t new_sampling_rate) {
-		if( new_sampling_rate != input_sampling_rate() ) {
+		if (new_sampling_rate != input_sampling_rate()) {
 			input_sampling_rate_ = new_sampling_rate;
 			reset_state();
 		}
 	}
 
-	uint32_t input_sampling_rate() const {
-		return input_sampling_rate_;
-	}
+	uint32_t input_sampling_rate() const { return input_sampling_rate_; }
 
 	void set_factor(const size_t new_factor) {
-		if( new_factor != factor() ) {
+		if (new_factor != factor()) {
 			factor_ = new_factor;
 			reset_state();
 		}
 	}
 
-	size_t factor() const {
-		return factor_;
-	}
+	size_t factor() const { return factor_; }
 
 	uint32_t output_sampling_rate() const {
 		return input_sampling_rate() / factor();
 	}
 
-	template<typename BlockCallback>
+	template <typename BlockCallback>
 	void feed(const buffer_t<T>& src, BlockCallback callback) {
 		/* NOTE: Input block size must be >= factor */
 
 		set_input_sampling_rate(src.sampling_rate);
 
-		while( src_i < src.count ) {
+		while (src_i < src.count) {
 			buffer[dst_i++] = src.p[src_i];
-			if( dst_i == buffer.size() ) {
-				callback({ buffer.data(), buffer.size(), output_sampling_rate() });
+			if (dst_i == buffer.size()) {
+				callback({buffer.data(), buffer.size(), output_sampling_rate()});
 				reset_state();
 				dst_i = 0;
 			}
@@ -84,12 +76,12 @@ public:
 		src_i -= src.count;
 	}
 
-private:
-	std::array<T, N> buffer { };
-	uint32_t input_sampling_rate_ { 0 };
-	size_t factor_ { 1 };
-	size_t src_i { 0 };
-	size_t dst_i { 0 };
+ private:
+	std::array<T, N> buffer{};
+	uint32_t input_sampling_rate_{0};
+	size_t factor_{1};
+	size_t src_i{0};
+	size_t dst_i{0};
 
 	void reset_state() {
 		src_i = 0;
@@ -97,4 +89,4 @@ private:
 	}
 };
 
-#endif/*__BLOCK_DECIMATOR_H__*/
+#endif /*__BLOCK_DECIMATOR_H__*/

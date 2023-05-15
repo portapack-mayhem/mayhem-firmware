@@ -30,25 +30,25 @@
 
 #include "message.hpp"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 namespace ui {
 namespace tv {
 
 class TimeScopeView : public View {
-public:
+ public:
 	TimeScopeView(const Rect parent_rect);
-	
+
 	void paint(Painter& painter) override;
-	
+
 	void on_audio_spectrum(const AudioSpectrum* spectrum);
-	
-private:
+
+ private:
 	static constexpr int cursor_band_height = 4;
-	
-	int16_t audio_spectrum[128] { 0 };
-	
+
+	int16_t audio_spectrum[128]{0};
+
 	/*Labels labels {
 		{ { 6 * 8, 0 * 16 }, "Hz", Color::light_grey() }
 	};*/
@@ -60,38 +60,37 @@ private:
 		48000 / 240,
 		' '
 	};*/
-	
-	Waveform waveform {
-		{ 0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16 },
-		audio_spectrum,
-		128,
-		0,
-		false,
-		Color::white()
-	};
+
+	Waveform waveform{{0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16},
+										audio_spectrum,
+										128,
+										0,
+										false,
+										Color::white()};
 };
 
 class TVView : public Widget {
-public:
+ public:
 	void on_show() override;
 	void on_hide() override;
 
 	void paint(Painter& painter) override;
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 	void on_adjust_xcorr(uint8_t xcorr);
-	//ui::Color video_buffer[13312];
-        uint8_t video_buffer_int[13312+128] { 0 }; //128 is for the over length caused by x_correction
-	uint32_t count=0;
-        uint8_t x_correction=0;
-private:
+	// ui::Color video_buffer[13312];
+	uint8_t video_buffer_int[13312 + 128]{
+			0};	 // 128 is for the over length caused by x_correction
+	uint32_t count = 0;
+	uint8_t x_correction = 0;
+
+ private:
 	void clear();
-	
 };
 
 class TVWidget : public View {
-public:
-	std::function<void(int32_t offset)> on_select { };
-	
+ public:
+	std::function<void(int32_t offset)> on_select{};
+
 	TVWidget();
 
 	TVWidget(const TVWidget&) = delete;
@@ -103,68 +102,57 @@ public:
 	void on_hide() override;
 
 	void set_parent_rect(const Rect new_parent_rect) override;
-	
+
 	void show_audio_spectrum_view(const bool show);
 
 	void paint(Painter& painter) override;
-	NumberField field_xcorr {
-		{ 0 * 8, 0 * 16 },
-		5,
-		{ 0, 128 },
-		1,
-		' '
-	};
+	NumberField field_xcorr{{0 * 8, 0 * 16}, 5, {0, 128}, 1, ' '};
 
-private:
+ private:
 	void update_widgets_rect();
-	
-	const Rect audio_spectrum_view_rect { 0 * 8, 0 * 16, 30 * 8, 2 * 16 + 20 };
+
+	const Rect audio_spectrum_view_rect{0 * 8, 0 * 16, 30 * 8, 2 * 16 + 20};
 	static constexpr Dim audio_spectrum_height = 16 * 2 + 20;
 	static constexpr Dim scale_height = 20;
-	
-	TVView tv_view { };
 
-	ChannelSpectrumFIFO* channel_fifo { nullptr };
-	AudioSpectrum* audio_spectrum_data { nullptr };
-	bool audio_spectrum_update { false };
-	
-	std::unique_ptr<TimeScopeView> audio_spectrum_view { };
-	
-	int sampling_rate { 0 };
-	int32_t cursor_position { 0 };
-	ui::Rect tv_normal_rect { };
-	ui::Rect tv_reduced_rect { };
+	TVView tv_view{};
 
-	MessageHandlerRegistration message_handler_channel_spectrum_config {
-		Message::ID::ChannelSpectrumConfig,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
-			this->channel_fifo = message.fifo;
-		}
-	};
-	MessageHandlerRegistration message_handler_audio_spectrum {
-		Message::ID::AudioSpectrum,
-		[this](const Message* const p) {
-			const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
-			this->audio_spectrum_data = message.data;
-			this->audio_spectrum_update = true;
-		}
-	};
-	MessageHandlerRegistration message_handler_frame_sync {
-		Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			if( this->channel_fifo ) {
-				ChannelSpectrum channel_spectrum;
-				while( channel_fifo->out(channel_spectrum) ) {
-					this->on_channel_spectrum(channel_spectrum);
+	ChannelSpectrumFIFO* channel_fifo{nullptr};
+	AudioSpectrum* audio_spectrum_data{nullptr};
+	bool audio_spectrum_update{false};
+
+	std::unique_ptr<TimeScopeView> audio_spectrum_view{};
+
+	int sampling_rate{0};
+	int32_t cursor_position{0};
+	ui::Rect tv_normal_rect{};
+	ui::Rect tv_reduced_rect{};
+
+	MessageHandlerRegistration message_handler_channel_spectrum_config{
+			Message::ID::ChannelSpectrumConfig, [this](const Message* const p) {
+				const auto message =
+						*reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
+				this->channel_fifo = message.fifo;
+			}};
+	MessageHandlerRegistration message_handler_audio_spectrum{
+			Message::ID::AudioSpectrum, [this](const Message* const p) {
+				const auto message = *reinterpret_cast<const AudioSpectrumMessage*>(p);
+				this->audio_spectrum_data = message.data;
+				this->audio_spectrum_update = true;
+			}};
+	MessageHandlerRegistration message_handler_frame_sync{
+			Message::ID::DisplayFrameSync, [this](const Message* const) {
+				if (this->channel_fifo) {
+					ChannelSpectrum channel_spectrum;
+					while (channel_fifo->out(channel_spectrum)) {
+						this->on_channel_spectrum(channel_spectrum);
+					}
 				}
-			}
-			if (this->audio_spectrum_update) {
-				this->audio_spectrum_update = false;
-				this->on_audio_spectrum();
-			}
-		}
-	};
+				if (this->audio_spectrum_update) {
+					this->audio_spectrum_update = false;
+					this->on_audio_spectrum();
+				}
+			}};
 
 	void on_channel_spectrum(const ChannelSpectrum& spectrum);
 	void on_audio_spectrum();
@@ -173,4 +161,4 @@ private:
 } /* namespace tv */
 } /* namespace ui */
 
-#endif/*__UI_TV_H__*/
+#endif /*__UI_TV_H__*/

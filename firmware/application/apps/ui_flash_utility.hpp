@@ -23,39 +23,34 @@
 #ifndef __UI_FLSH_UITILTY_H__
 #define __UI_FLSH_UITILTY_H__
 
-#include "ui_widget.hpp"
-#include "ui_navigation.hpp"
-#include "string_format.hpp"
-#include "ff.h"
 #include "baseband_api.hpp"
 #include "core_control.hpp"
+#include "ff.h"
+#include "string_format.hpp"
+#include "ui_navigation.hpp"
+#include "ui_widget.hpp"
 
 #include <cstdint>
 
 namespace ui {
 
 class FlashUtilityView : public View {
-public:
+ public:
 	FlashUtilityView(NavigationView& nav);
 
 	void focus() override;
-	
-	std::string title() const override { return "Flash Utility"; };	
 
-private:
+	std::string title() const override { return "Flash Utility"; };
+
+ private:
 	NavigationView& nav_;
-	
+
 	bool confirmed = false;
 	static Thread* thread;
 
-	Labels labels {
-		{ { 4, 4 }, "Select firmware to flash:", Color::white() }
-	};
+	Labels labels{{{4, 4}, "Select firmware to flash:", Color::white()}};
 
-	MenuView menu_view {
-		{ 0, 2 * 8, 240, 26 * 8 },
-		true
-	};
+	MenuView menu_view{{0, 2 * 8, 240, 26 * 8}, true};
 
 	void firmware_selected(std::filesystem::path::string_type path);
 	void flash_firmware(std::filesystem::path::string_type path);
@@ -63,4 +58,4 @@ private:
 
 } /* namespace ui */
 
-#endif/*__UI_FLSH_UITILTY_H__*/
+#endif /*__UI_FLSH_UITILTY_H__*/

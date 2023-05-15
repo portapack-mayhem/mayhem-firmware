@@ -23,23 +23,23 @@
 #ifndef __TRANSMITTER_MODEL_H__
 #define __TRANSMITTER_MODEL_H__
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
-#include "receiver_model.hpp"
-#include "message.hpp"
-#include "rf_path.hpp"
 #include "max2837.hpp"
-#include "volume.hpp"
+#include "message.hpp"
+#include "receiver_model.hpp"
+#include "rf_path.hpp"
 #include "signal.hpp"
+#include "volume.hpp"
 
 class TransmitterModel {
-public:
+ public:
 	rf::Frequency tuning_frequency() const;
 	void set_tuning_frequency(rf::Frequency f);
 
 	void set_antenna_bias();
-	
+
 	bool rf_amp() const;
 	void set_rf_amp(bool enabled);
 
@@ -51,10 +51,10 @@ public:
 
 	int32_t vga() const;
 	void set_vga(int32_t v_db);
-	
+
 	int32_t tx_gain() const;
 	void set_tx_gain(int32_t v_db);
-	
+
 	uint32_t channel_bandwidth() const;
 	void set_channel_bandwidth(uint32_t v);
 
@@ -64,16 +64,16 @@ public:
 	void enable();
 	void disable();
 
-private:
-	bool enabled_ { false };
-	bool rf_amp_ { false };
-	int32_t lna_gain_db_ { 0 };
-	uint32_t channel_bandwidth_ { 1 };
-	uint32_t baseband_bandwidth_ { max2837::filter::bandwidth_minimum };
-	int32_t vga_gain_db_ { 8 };
-	int32_t tx_gain_db_ { 47 };
-	uint32_t sampling_rate_ { 3072000 };
-	SignalToken signal_token_tick_second { };
+ private:
+	bool enabled_{false};
+	bool rf_amp_{false};
+	int32_t lna_gain_db_{0};
+	uint32_t channel_bandwidth_{1};
+	uint32_t baseband_bandwidth_{max2837::filter::bandwidth_minimum};
+	int32_t vga_gain_db_{8};
+	int32_t tx_gain_db_{47};
+	uint32_t sampling_rate_{3072000};
+	SignalToken signal_token_tick_second{};
 
 	void update_tuning_frequency();
 	void update_antenna_bias();
@@ -86,4 +86,4 @@ private:
 	void on_tick_second();
 };
 
-#endif/*__TRANSMITTER_MODEL_H__*/
+#endif /*__TRANSMITTER_MODEL_H__*/

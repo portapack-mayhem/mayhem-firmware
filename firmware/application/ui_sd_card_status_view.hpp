@@ -23,26 +23,26 @@
 #ifndef __UI_SD_CARD_STATUS_VIEW_H__
 #define __UI_SD_CARD_STATUS_VIEW_H__
 
-#include "ui_widget.hpp"
 #include "sd_card.hpp"
+#include "ui_widget.hpp"
 
 namespace ui {
 
 class SDCardStatusView : public Image {
-public:
+ public:
 	SDCardStatusView(const Rect parent_rect);
-	
+
 	void on_show() override;
 	void on_hide() override;
 
 	void paint(Painter& painter) override;
 
-private:
-	SignalToken sd_card_status_signal_token { };
+ private:
+	SignalToken sd_card_status_signal_token{};
 
 	void on_status(const sd_card::Status status);
 };
 
 } /* namespace ui */
 
-#endif/*__UI_SD_CARD_STATUS_VIEW_H__*/
+#endif /*__UI_SD_CARD_STATUS_VIEW_H__*/

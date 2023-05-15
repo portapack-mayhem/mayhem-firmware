@@ -758,8 +758,8 @@ void AK4951::microphone_enable(int8_t alc_mode) {
 	}
 
 	// Common  part  for all alc_mode , --------------------------
-	// const uint_fast8_t mgain = 0b0111;		// Already pre-loaded , in above switch
-	// case .
+	// const uint_fast8_t mgain = 0b0111;		// Already pre-loaded , in above
+	// switch case .
 	map.r.signal_select_1.MGAIN20 =
 			mgain & 7;	// writing 3 lower bits of mgain , (pre-amp mic gain).
 	map.r.signal_select_1.PMMP =
@@ -788,7 +788,7 @@ void AK4951::microphone_disable() {
 
 	map.r.auto_hpf_control.AHPF =
 			0;	//----------- new code addition , Restore disable Wind noise filter
-					//OFF (AHPF bit=“0”).
+					// OFF (AHPF bit=“0”).
 	update(Register::AutoHPFControl);
 
 	// Restore original AUDIO PATH , condition,  (Digital filter block PATH is BY

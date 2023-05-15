@@ -22,8 +22,8 @@
 #ifndef __BASEBAND_H__
 #define __BASEBAND_H__
 
-#include "complex.hpp"
 #include "buffer.hpp"
+#include "complex.hpp"
 
 namespace baseband {
 
@@ -37,4 +37,4 @@ enum class Direction {
 
 } /* namespace baseband */
 
-#endif/*__BASEBAND_H__*/
+#endif /*__BASEBAND_H__*/

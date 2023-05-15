@@ -23,31 +23,31 @@
 #ifndef __ACARS_APP_H__
 #define __ACARS_APP_H__
 
-#include "ui_widget.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
+#include "ui_widget.hpp"
 
 #include "log_file.hpp"
 
 #include "acars_packet.hpp"
 
 class ACARSLogger {
-public:
+ public:
 	Optional<File::Error> append(const std::string& filename) {
 		return log_file.append(filename);
 	}
-	
-	void log_raw_data(const acars::Packet& packet, const uint32_t frequency);
-	//void log_decoded(const acars::Packet& packet, const std::string text);
 
-private:
-	LogFile log_file { };
+	void log_raw_data(const acars::Packet& packet, const uint32_t frequency);
+	// void log_decoded(const acars::Packet& packet, const std::string text);
+
+ private:
+	LogFile log_file{};
 };
 
 namespace ui {
 
 class ACARSAppView : public View {
-public:
+ public:
 	ACARSAppView(NavigationView& nav);
 	~ACARSAppView();
 
@@ -55,62 +55,46 @@ public:
 
 	std::string title() const override { return "ACARS (WIP)"; };
 
-private:
-	bool logging { false };
-	uint32_t packet_counter { 0 };
+ private:
+	bool logging{false};
+	uint32_t packet_counter{0};
 
-	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
+	RFAmpField field_rf_amp{{13 * 8, 0 * 16}};
+	LNAGainField field_lna{{15 * 8, 0 * 16}};
+	VGAGainField field_vga{{18 * 8, 0 * 16}};
+	RSSI rssi{
+			{21 * 8, 0, 6 * 8, 4},
 	};
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
-	};
-	RSSI rssi {
-		{ 21 * 8, 0, 6 * 8, 4 },
-	};
-	Channel channel {
-		{ 21 * 8, 5, 6 * 8, 4 },
-	};
-	
-	FrequencyField field_frequency {
-		{ 0 * 8, 0 * 8 },
-	};
-	Checkbox check_log {
-		{ 22 * 8, 21 },
-		3,
-		"LOG",
-		true
+	Channel channel{
+			{21 * 8, 5, 6 * 8, 4},
 	};
 
-	Console console {
-		{ 0, 3 * 16, 240, 256 }
+	FrequencyField field_frequency{
+			{0 * 8, 0 * 8},
 	};
+	Checkbox check_log{{22 * 8, 21}, 3, "LOG", true};
 
-	std::unique_ptr<ACARSLogger> logger { };
+	Console console{{0, 3 * 16, 240, 256}};
 
-	uint32_t target_frequency_ { };
-	
+	std::unique_ptr<ACARSLogger> logger{};
+
+	uint32_t target_frequency_{};
+
 	void update_freq(rf::Frequency f);
 
 	void on_packet(const acars::Packet& packet);
 
 	uint32_t target_frequency() const;
 	void set_target_frequency(const uint32_t new_value);
-	
-	MessageHandlerRegistration message_handler_packet {
-		Message::ID::ACARSPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const ACARSPacketMessage*>(p);
-			const acars::Packet packet { message->packet };
-			this->on_packet(packet);
-		}
-	};
 
+	MessageHandlerRegistration message_handler_packet{
+			Message::ID::ACARSPacket, [this](Message* const p) {
+				const auto message = static_cast<const ACARSPacketMessage*>(p);
+				const acars::Packet packet{message->packet};
+				this->on_packet(packet);
+			}};
 };
 
 } /* namespace ui */
 
-#endif/*__ACARS_APP_H__*/
+#endif /*__ACARS_APP_H__*/

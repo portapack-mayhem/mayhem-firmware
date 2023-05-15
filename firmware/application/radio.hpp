@@ -24,8 +24,8 @@
 
 #include "rf_path.hpp"
 
-#include <cstdint>
 #include <cstddef>
+#include <cstdint>
 
 namespace radio {
 
@@ -76,4 +76,4 @@ uint8_t temp_sense();
 
 } /* namespace radio */
 
-#endif/*__RADIO_H__*/
+#endif /*__RADIO_H__*/

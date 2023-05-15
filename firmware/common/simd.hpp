@@ -36,29 +36,13 @@ struct vec4_s8 {
 };
 
 struct vec2_s16 {
-	constexpr vec2_s16(
-	) : v { 0, 0 }
-	{
-	}
+	constexpr vec2_s16() : v{0, 0} {}
 
-	constexpr vec2_s16(
-		const int16_t v
-	) : v { v, v }
-	{
-	}
-	
-	constexpr vec2_s16(
-		const int16_t v0,
-		const int16_t v1
-	) : v { v0, v1 }
-	{
-	}
+	constexpr vec2_s16(const int16_t v) : v{v, v} {}
 
-	constexpr vec2_s16(
-		const vec2_s16& other
-	) : w { other.w }
-	{
-	}
+	constexpr vec2_s16(const int16_t v0, const int16_t v1) : v{v0, v1} {}
+
+	constexpr vec2_s16(const vec2_s16& other) : w{other.w} {}
 
 	vec2_s16& operator=(const vec2_s16& other) {
 		w = other.w;
@@ -77,19 +61,25 @@ static inline vec4_s8 rev16(const vec4_s8 v) {
 	return result;
 }
 
-static inline vec4_s8 pkhbt(const vec4_s8 v1, const vec4_s8 v2, const size_t sh = 0) {
+static inline vec4_s8 pkhbt(const vec4_s8 v1,
+														const vec4_s8 v2,
+														const size_t sh = 0) {
 	vec4_s8 result;
 	result.w = __PKHBT(v1.w, v2.w, sh);
 	return result;
 }
 
-static inline vec2_s16 pkhbt(const vec2_s16 v1, const vec2_s16 v2, const size_t sh = 0) {
+static inline vec2_s16 pkhbt(const vec2_s16 v1,
+														 const vec2_s16 v2,
+														 const size_t sh = 0) {
 	vec2_s16 result;
 	result.w = __PKHBT(v1.w, v2.w, sh);
 	return result;
 }
 
-static inline vec2_s16 pkhtb(const vec2_s16 v1, const vec2_s16 v2, const size_t sh = 0) {
+static inline vec2_s16 pkhtb(const vec2_s16 v1,
+														 const vec2_s16 v2,
+														 const size_t sh = 0) {
 	vec2_s16 result;
 	result.w = __PKHTB(v1.w, v2.w, sh);
 	return result;
@@ -101,14 +91,18 @@ static inline vec2_s16 sxtb16(const vec4_s8 v, const size_t sh = 0) {
 	return result;
 }
 
-static inline int32_t smlsd(const vec2_s16 v1, const vec2_s16 v2, const int32_t accum) {
+static inline int32_t smlsd(const vec2_s16 v1,
+														const vec2_s16 v2,
+														const int32_t accum) {
 	return __SMLSD(v1.w, v2.w, accum);
 }
 
-static inline int32_t smlad(const vec2_s16 v1, const vec2_s16 v2, const int32_t accum) {
+static inline int32_t smlad(const vec2_s16 v1,
+														const vec2_s16 v2,
+														const int32_t accum) {
 	return __SMLAD(v1.w, v2.w, accum);
 }
 
 #endif /* defined(LPC43XX_M4) */
 
-#endif/*__SIMD_H__*/
+#endif /*__SIMD_H__*/

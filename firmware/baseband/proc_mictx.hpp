@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -23,58 +23,57 @@
 #ifndef __PROC_MICTX_H__
 #define __PROC_MICTX_H__
 
+#include "audio_input.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
-#include "audio_input.hpp"
-#include "tone_gen.hpp"
 #include "dsp_modulate.hpp"
+#include "tone_gen.hpp"
 
 class MicTXProcessor : public BasebandProcessor {
-public:
+ public:
 	void execute(const buffer_c8_t& buffer) override;
-	
+
 	void on_message(const Message* const msg) override;
 
-private:
+ private:
 	static constexpr size_t baseband_fs = 1536000U;
-	
-	bool configured { false };
-	
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit };
-	
+
+	bool configured{false};
+
+	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20,
+																 baseband::Direction::Transmit};
+
 	int16_t audio_data[64];
-	buffer_s16_t audio_buffer {
-		audio_data,
-		sizeof(int16_t) * 64
-	};
-	
-	AudioInput audio_input { };
+	buffer_s16_t audio_buffer{audio_data, sizeof(int16_t) * 64};
+
+	AudioInput audio_input{};
 	// ToneGen tone_gen { };   moved to  dsp_modulate.cpp
-	// ToneGen beep_gen { };   moved to  dsp_modulate.cpp	
-	dsp::modulate::Modulator *modulator = NULL ;
+	// ToneGen beep_gen { };   moved to  dsp_modulate.cpp
+	dsp::modulate::Modulator* modulator = NULL;
 
-	bool am_enabled { false };
-	bool fm_enabled { true };
-	bool usb_enabled { false };
-	bool lsb_enabled { false };
-	bool dsb_enabled { false };
+	bool am_enabled{false};
+	bool fm_enabled{true};
+	bool usb_enabled{false};
+	bool lsb_enabled{false};
+	bool dsb_enabled{false};
 
-	uint32_t divider { };
-	float audio_gain { };
-	uint8_t audio_shift_bits_s16 { } ; // shift bits factor to the captured ADC S16 audio sample.
+	uint32_t divider{};
+	float audio_gain{};
+	uint8_t audio_shift_bits_s16{};	 // shift bits factor to the captured ADC S16
+																	 // audio sample.
 
-	uint64_t power_acc { 0 };
-	uint32_t power_acc_count { 0 };
-	bool play_beep { false };
-	uint32_t fm_delta { 0 };
-	uint32_t phase { 0 }, sphase { 0 };
-	int32_t sample { 0 }, delta { };
-	uint32_t beep_index { }, beep_timer { };
-	
-	int8_t re { 0 }, im { 0 };
-	
-	AudioLevelReportMessage level_message { };
-	TXProgressMessage txprogress_message { };
+	uint64_t power_acc{0};
+	uint32_t power_acc_count{0};
+	bool play_beep{false};
+	uint32_t fm_delta{0};
+	uint32_t phase{0}, sphase{0};
+	int32_t sample{0}, delta{};
+	uint32_t beep_index{}, beep_timer{};
+
+	int8_t re{0}, im{0};
+
+	AudioLevelReportMessage level_message{};
+	TXProgressMessage txprogress_message{};
 };
 
 #endif

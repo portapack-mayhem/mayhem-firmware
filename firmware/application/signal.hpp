@@ -23,8 +23,8 @@
 #define __SIGNAL_H__
 
 #include <cstdint>
-#include <list>
 #include <functional>
+#include <list>
 #include <memory>
 
 #include "utility.hpp"
@@ -39,9 +39,9 @@
 
 using SignalToken = uint32_t;
 
-template<class... Args>
+template <class... Args>
 struct Signal {
-	using Callback = std::function<void (Args...)>;
+	using Callback = std::function<void(Args...)>;
 
 	SignalToken operator+=(const Callback& callback) {
 		const SignalToken token = next_token++;
@@ -50,36 +50,30 @@ struct Signal {
 	}
 
 	bool operator-=(const SignalToken token) {
-		entries.remove_if([token](EntryType& entry) {
-			return entry.get()->token == token;
-		});
+		entries.remove_if(
+				[token](EntryType& entry) { return entry.get()->token == token; });
 		return true;
 	}
 
 	void emit(Args... args) {
-		for(auto& entry : entries) {
+		for (auto& entry : entries) {
 			entry.get()->callback(args...);
 		};
 	}
 
-private:
+ private:
 	struct CallbackEntry {
 		const Callback callback;
 		const SignalToken token;
 
-		constexpr CallbackEntry(
-			const Callback& callback,
-			const SignalToken token
-		) : callback { callback },
-			token { token }
-		{
-		}
+		constexpr CallbackEntry(const Callback& callback, const SignalToken token)
+				: callback{callback}, token{token} {}
 	};
 
 	using EntryType = std::unique_ptr<CallbackEntry>;
-	
-	std::list<EntryType> entries { };
+
+	std::list<EntryType> entries{};
 	SignalToken next_token = 1;
 };
 
-#endif/*__SIGNAL_H__*/
+#endif /*__SIGNAL_H__*/

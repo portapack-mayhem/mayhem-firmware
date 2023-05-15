@@ -23,8 +23,8 @@
 #define __UI_CHANNEL_H__
 
 #include "ui.hpp"
-#include "ui_widget.hpp"
 #include "ui_painter.hpp"
+#include "ui_widget.hpp"
 
 #include "event_m0.hpp"
 
@@ -35,29 +35,23 @@
 namespace ui {
 
 class Channel : public Widget {
-public:
-	Channel(
-		const Rect parent_rect
-	) : Widget { parent_rect },
-		max_db_ { -120 }
-	{
-	}
+ public:
+	Channel(const Rect parent_rect) : Widget{parent_rect}, max_db_{-120} {}
 
 	void paint(Painter& painter) override;
 
-private:
+ private:
 	int32_t max_db_;
 
-	MessageHandlerRegistration message_handler_stats {
-		Message::ID::ChannelStatistics,
-		[this](const Message* const p) {
-			this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
-		}
-	};
+	MessageHandlerRegistration message_handler_stats{
+			Message::ID::ChannelStatistics, [this](const Message* const p) {
+				this->on_statistics_update(
+						static_cast<const ChannelStatisticsMessage*>(p)->statistics);
+			}};
 
 	void on_statistics_update(const ChannelStatistics& statistics);
 };
 
-}
+}	 // namespace ui
 
-#endif/*__UI_CHANNEL_H__*/
+#endif /*__UI_CHANNEL_H__*/

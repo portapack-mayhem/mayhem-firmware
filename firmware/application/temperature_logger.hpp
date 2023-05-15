@@ -22,24 +22,24 @@
 #ifndef __TEMPERATURE_LOGGER_H__
 #define __TEMPERATURE_LOGGER_H__
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
-#include <array>
 #include <vector>
 
 class TemperatureLogger {
-public:	
+ public:
 	using sample_t = uint8_t;
 
 	void second_tick();
 
 	size_t size() const;
 	size_t capacity() const;
-	
+
 	std::vector<sample_t> history() const;
 
-private:
-	std::array<sample_t, 128> samples { };
+ private:
+	std::array<sample_t, 128> samples{};
 
 	static constexpr size_t sample_interval = 5;
 	size_t sample_phase = 0;
@@ -49,4 +49,4 @@ private:
 	void push_sample(const sample_t sample);
 };
 
-#endif/*__TEMPERATURE_LOGGER_H__*/
+#endif /*__TEMPERATURE_LOGGER_H__*/
