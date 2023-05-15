@@ -57,8 +57,8 @@ class ToneGen {
 	uint32_t tone_phase_{0};
 
 	//	uint8_t delta_ { 0 };		// TODO:  Added for Radio Sonde.cpp PR 376, 381 ,
-	//we need to check if keep or not. 	uint8_t tone_phase_ { 0 };  // TODO:  Added
-	//for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
+	// we need to check if keep or not. 	uint8_t tone_phase_ { 0 };  // TODO:
+	// Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
 
 	/**
 	 * Generator function which selects every other sample from the reference sine
