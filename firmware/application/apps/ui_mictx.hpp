@@ -31,6 +31,7 @@
 #include "tone_key.hpp"
 #include "message.hpp"
 #include "receiver_model.hpp"
+#include "ui_transmitter.hpp"
 
 namespace ui {
 
@@ -115,11 +116,9 @@ private:
 		{ { 17 * 8, 1 * 8 }, "Boost", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
 		{ { 15 * 8, 3 * 8 }, "FM TXBW:    kHz", Color::light_grey() },		// to be more symetric and consistent to the below FM RXBW
-		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
-		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
-		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
-		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },
-		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },
+		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },				// now , no need to handle GAIN , Amp here It is handled by ui_transmitter.cpp
+		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },		// we delete  { { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
+		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },					// we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
@@ -136,11 +135,9 @@ private:
 		{ { 17 * 8, 1 * 8 }, "ALC", Color::light_grey() },
 		{ { 3 * 8, 3 * 8 }, "F:", Color::light_grey() },
 		{ { 15 * 8, 3 * 8 }, "FM TXBW:    kHz", Color::light_grey() },
-		{ { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
-		{ {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
-		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },
-		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },
-		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },
+		{ { 18 * 8, (5 * 8) }, "Mode:", Color::light_grey() },				// now , no need to handle GAIN , Amp here It is handled by ui_transmitter.cpp
+		{ { 3 * 8, 8 * 8 }, "TX Activation:", Color::light_grey() },		// we delete  { { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
+		{ { 4 * 8, 10 * 8 }, "LVL:", Color::light_grey() },					// we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
 		{ {12 * 8, 10 * 8 }, "ATT:", Color::light_grey() },
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
@@ -212,22 +209,11 @@ OptionsField options_wm8731_boost_mode {
 		1,
 		' '
 	};
-	
-	NumberField field_rfgain {
-		{ 8 * 8, 5 * 8 },
-		2,
-		{ 0, 47 },
-		1,
-		' '
+
+	TransmitterView2 tx_view {					// new handling of NumberField field_rfgain, NumberField field_rfamp
+		2 * 8		// y line position.
 	};
-	NumberField field_rfamp {
-		{ 15 * 8, 5 * 8 },
-		2,
-		{ 0, 14 },
-		14,
-		' '
-	};
-	
+		
 	OptionsField options_mode {
 		{ 24 * 8, 5 * 8 },
 		4,

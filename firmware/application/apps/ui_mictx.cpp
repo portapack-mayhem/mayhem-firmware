@@ -90,9 +90,7 @@ void MicTXView::set_tx(bool enable) {
 			rxaudio(false); //Then turn off audio RX
 		transmitting = true;
 		configure_baseband();
-		transmitter_model.set_tuning_frequency(tx_frequency);
-		transmitter_model.set_tx_gain(tx_gain);
-		transmitter_model.set_rf_amp(rf_amp);
+		transmitter_model.set_tuning_frequency(tx_frequency);		// Now,no need: transmitter_model.set_tx_gain(tx_gain), nor (rf_amp);
 		transmitter_model.enable();
 		portapack::pin_i2s0_rx_sda.mode(3);		// This is already done in audio::init but gets changed by the CPLD overlay reprogramming
 	} else {
@@ -234,8 +232,7 @@ MicTXView::MicTXView(
 		&field_va_attack,
 		&field_va_decay,
 		&field_bw,
-		&field_rfgain,
-		&field_rfamp,
+		&tx_view,					// it already integrates previous rfgain, rfamp.
 		&options_mode,
 		&field_frequency,
 		&options_tone_key,
@@ -264,8 +261,7 @@ MicTXView::MicTXView(
 		&field_va_attack,
 		&field_va_decay,
 		&field_bw,
-		&field_rfgain,
-		&field_rfamp,
+		&tx_view,					// it already integrates previous rfgain, rfamp.
 		&options_mode,
 		&field_frequency,
 		&options_tone_key,
@@ -366,20 +362,8 @@ MicTXView::MicTXView(
 	};
 	field_bw.set_value(10);	// pre-default first time, TX  deviation FM for NFM / FM
 	
-	
-	tx_gain = transmitter_model.tx_gain();
-	field_rfgain.on_change = [this](int32_t v) {
-		tx_gain = v;
-		
-	};
-	field_rfgain.set_value(tx_gain);
+	// now , no need direct update , field_rfgain , field_rfamp (it is done in ui_transmitter.cpp)
 
-	rf_amp = transmitter_model.rf_amp();
-	field_rfamp.on_change = [this](int32_t v) {
-		rf_amp = (bool)v;
-	};
-	field_rfamp.set_value(rf_amp ? 14 : 0);
-	
 	options_mode.on_change = [this](size_t, int32_t v) {   //{ "NFM/FM", 0 }, { " WFM  ", 1 },{ "AM", 2 },{ "USB", 3 },{ "LSB", 4 },{ "DSB", 5 }
 		enable_am  = false;
 		enable_usb = false;
