@@ -125,11 +125,10 @@ void TransmitterModel::enable() {
 	update_vga();
 	update_baseband_bandwidth();
 	update_sampling_rate();
-	
+
 	led_tx.on();
-	signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-		this->on_tick_second();
-	};
+	signal_token_tick_second = rtc_time::signal_tick_second +=
+			[this]() { this->on_tick_second(); };
 	if (portapack::persistent_memory::stealth_mode()) {
 		DisplaySleepMessage message;
 		EventDispatcher::send_message(message);
@@ -143,7 +142,7 @@ void TransmitterModel::disable() {
 	// TODO: Responsibility for enabling/disabling the radio is muddy.
 	// Some happens in ReceiverModel, some inside radio namespace.
 	radio::disable();
-	
+
 	rtc_time::signal_tick_second -= signal_token_tick_second;
 	led_tx.off();
 }
@@ -183,7 +182,7 @@ void TransmitterModel::update_sampling_rate() {
 	// protocols that need quick RX/TX turn-around.
 
 	// Disabling baseband while changing sampling rates seems like a good idea...
-	
+
 	radio::set_baseband_rate(sampling_rate());
 	update_tuning_frequency();
 }

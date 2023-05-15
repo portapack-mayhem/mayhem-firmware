@@ -30,14 +30,11 @@
 namespace dsp {
 namespace demodulate {
 
-buffer_f32_t AM::execute(
-	const buffer_c16_t& src,
-	const buffer_f32_t& dst
-) {
+buffer_f32_t AM::execute(const buffer_c16_t& src, const buffer_f32_t& dst) {
 	const void* src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
-	while(src_p < src_end) {
+	while (src_p < src_end) {
 		const uint32_t sample0 = *__SIMD32(src_p)++;
 		const uint32_t sample1 = *__SIMD32(src_p)++;
 		const uint32_t mag_sq0 = __SMUAD(sample0, sample0);
@@ -46,24 +43,21 @@ buffer_f32_t AM::execute(
 		*(dst_p++) = __builtin_sqrtf(mag_sq1) * k;
 	}
 
-	return { dst.p, src.count, src.sampling_rate };
+	return {dst.p, src.count, src.sampling_rate};
 }
 
-buffer_f32_t SSB::execute(
-	const buffer_c16_t& src,
-	const buffer_f32_t& dst
-) {
+buffer_f32_t SSB::execute(const buffer_c16_t& src, const buffer_f32_t& dst) {
 	const complex16_t* src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
-	while(src_p < src_end) {
+	while (src_p < src_end) {
 		*(dst_p++) = (src_p++)->real() * k;
 		*(dst_p++) = (src_p++)->real() * k;
 		*(dst_p++) = (src_p++)->real() * k;
 		*(dst_p++) = (src_p++)->real() * k;
 	}
 
-	return { dst.p, src.count, src.sampling_rate };
+	return {dst.p, src.count, src.sampling_rate};
 }
 /*
 static inline float angle_approx_4deg0(const complex32_t t) {
@@ -72,7 +66,7 @@ static inline float angle_approx_4deg0(const complex32_t t) {
 }
 */
 static inline float angle_approx_0deg27(const complex32_t t) {
-	if( t.real() ) {
+	if (t.real()) {
 		const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
 		return x / (1.0f + 0.28086f * x * x);
 	} else {
@@ -84,16 +78,13 @@ static inline float angle_precise(const complex32_t t) {
 	return atan2f(t.imag(), t.real());
 }
 
-buffer_f32_t FM::execute(
-	const buffer_c16_t& src,
-	const buffer_f32_t& dst
-) {
+buffer_f32_t FM::execute(const buffer_c16_t& src, const buffer_f32_t& dst) {
 	auto z = z_;
 
 	const void* src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	auto dst_p = dst.p;
-	while(src_p < src_end) {
+	while (src_p < src_end) {
 		const auto s0 = *__SIMD32(src_p)++;
 		const auto s1 = *__SIMD32(src_p)++;
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
@@ -104,19 +95,16 @@ buffer_f32_t FM::execute(
 	}
 	z_ = z;
 
-	return { dst.p, src.count, src.sampling_rate };
+	return {dst.p, src.count, src.sampling_rate};
 }
 
-buffer_s16_t FM::execute(
-	const buffer_c16_t& src,
-	const buffer_s16_t& dst
-) {
+buffer_s16_t FM::execute(const buffer_c16_t& src, const buffer_s16_t& dst) {
 	auto z = z_;
 
 	const void* src_p = src.p;
 	const auto src_end = &src.p[src.count];
 	void* dst_p = dst.p;
-	while(src_p < src_end) {
+	while (src_p < src_end) {
 		const auto s0 = *__SIMD32(src_p)++;
 		const auto s1 = *__SIMD32(src_p)++;
 		const auto t0 = multiply_conjugate_s16_s32(s0, z);
@@ -126,15 +114,11 @@ buffer_s16_t FM::execute(
 		const int32_t theta0_sat = __SSAT(theta0_int, 16);
 		const int32_t theta1_int = angle_approx_0deg27(t1) * ks16;
 		const int32_t theta1_sat = __SSAT(theta1_int, 16);
-		*__SIMD32(dst_p)++ = __PKHBT(
-			theta0_sat,
-			theta1_sat,
-			16
-		);
+		*__SIMD32(dst_p)++ = __PKHBT(theta0_sat, theta1_sat, 16);
 	}
 	z_ = z;
 
-	return { dst.p, src.count, src.sampling_rate };
+	return {dst.p, src.count, src.sampling_rate};
 }
 
 void FM::configure(const float sampling_rate, const float deviation_hz) {
@@ -147,5 +131,5 @@ void FM::configure(const float sampling_rate, const float deviation_hz) {
 	ks16 = 32767.0f * kf;
 }
 
-}
-}
+}	 // namespace demodulate
+}	 // namespace dsp

@@ -25,19 +25,10 @@
 
 namespace ui {
 
-DfuMenu::DfuMenu(NavigationView& nav) : nav_ (nav) {
-	add_children({
-		&text_head,
-		&labels,
-		&text_info_line_1,
-		&text_info_line_2,
-		&text_info_line_3,
-		&text_info_line_4,
-		&text_info_line_5,
-		&text_info_line_6,
-		&text_info_line_7,
-		&text_info_line_8
-	});
+DfuMenu::DfuMenu(NavigationView& nav) : nav_(nav) {
+	add_children({&text_head, &labels, &text_info_line_1, &text_info_line_2,
+								&text_info_line_3, &text_info_line_4, &text_info_line_5,
+								&text_info_line_6, &text_info_line_7, &text_info_line_8});
 }
 
 void DfuMenu::paint(Painter& painter) {
@@ -50,50 +41,35 @@ void DfuMenu::paint(Painter& painter) {
 	text_info_line_5.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
 	text_info_line_6.set(to_string_dec_uint(shared_memory.m4_cpu_usage, 6));
 	text_info_line_7.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
-	text_info_line_8.set(to_string_dec_uint(chTimeNow()/1000, 6));
+	text_info_line_8.set(to_string_dec_uint(chTimeNow() / 1000, 6));
 
 	constexpr auto margin = 5;
 	constexpr auto lines = 8 + 2;
 
 	painter.fill_rectangle(
-		{
-			{6 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
-			{15 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}
-		},
-		ui::Color::black()
-	);
+			{{6 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
+			 {15 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
+			ui::Color::black());
 
 	painter.fill_rectangle(
-		{
-			{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
-			{CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}
-		},
-		ui::Color::dark_cyan()
-	);
+			{{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
+			 {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
+			ui::Color::dark_cyan());
 
 	painter.fill_rectangle(
-		{
-			{21 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
-			{CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}
-		},
-		ui::Color::dark_cyan()
-	);
+			{{21 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
+			 {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
+			ui::Color::dark_cyan());
 
 	painter.fill_rectangle(
-		{
-			{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
-			{17 * CHARACTER_WIDTH + margin * 2, 8}
-		},
-		ui::Color::dark_cyan()
-	);
+			{{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
+			 {17 * CHARACTER_WIDTH + margin * 2, 8}},
+			ui::Color::dark_cyan());
 
 	painter.fill_rectangle(
-		{
-			{5 * CHARACTER_WIDTH - margin, (lines+3) * LINE_HEIGHT + margin},
-			{17 * CHARACTER_WIDTH + margin * 2, 8}
-		},
-		ui::Color::dark_cyan()
-	);
+			{{5 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
+			 {17 * CHARACTER_WIDTH + margin * 2, 8}},
+			ui::Color::dark_cyan());
 }
 
 } /* namespace ui */

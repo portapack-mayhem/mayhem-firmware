@@ -41,15 +41,15 @@ void TestProcessor::execute(const buffer_c8_t& buffer) {
 	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
 
-	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
+	for (size_t i = 0; i < decimator_out.count; i++) {
+		if (mf.execute_once(decimator_out.p[i])) {
 			clock_recovery_fsk_9600(mf.get_output());
 		}
 	}
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<TestProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<TestProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

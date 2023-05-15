@@ -29,6 +29,4 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "utility.hpp"
 
-namespace jammer {
-
-} /* namespace jammer */
+namespace jammer {} /* namespace jammer */

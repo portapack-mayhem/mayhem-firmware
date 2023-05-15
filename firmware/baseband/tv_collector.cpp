@@ -33,22 +33,23 @@
 #include <algorithm>
 
 void TvCollector::on_message(const Message* const message) {
-	switch(message->id) {
-	case Message::ID::UpdateSpectrum:
-		update();
-		break;
+	switch (message->id) {
+		case Message::ID::UpdateSpectrum:
+			update();
+			break;
 
-	case Message::ID::SpectrumStreamingConfig:
-		set_state(*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
-		break;
+		case Message::ID::SpectrumStreamingConfig:
+			set_state(
+					*reinterpret_cast<const SpectrumStreamingConfigMessage*>(message));
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 }
 
 void TvCollector::set_state(const SpectrumStreamingConfigMessage& message) {
-	if( message.mode == SpectrumStreamingConfigMessage::Mode::Running ) {
+	if (message.mode == SpectrumStreamingConfigMessage::Mode::Running) {
 		start();
 	} else {
 		stop();
@@ -57,7 +58,7 @@ void TvCollector::set_state(const SpectrumStreamingConfigMessage& message) {
 
 void TvCollector::start() {
 	streaming = true;
-	ChannelSpectrumConfigMessage message { &fifo };
+	ChannelSpectrumConfigMessage message{&fifo};
 	shared_memory.application_queue.push(message);
 }
 
@@ -66,9 +67,7 @@ void TvCollector::stop() {
 	fifo.reset_in();
 }
 
-void TvCollector::set_decimation_factor(
-	const size_t decimation_factor
-) {
+void TvCollector::set_decimation_factor(const size_t decimation_factor) {
 	channel_spectrum_decimator.set_factor(decimation_factor);
 }
 
@@ -77,39 +76,36 @@ void TvCollector::set_decimation_factor(
  * perform the deferred task on the buffer of data we prepared.
  */
 
-void TvCollector::feed(
-	const buffer_c16_t& channel
-) {
+void TvCollector::feed(const buffer_c16_t& channel) {
 	// Called from baseband processing thread.
-	channel_spectrum_decimator.feed(channel,[this](const buffer_c16_t& data) {this->post_message(data);});
+	channel_spectrum_decimator.feed(
+			channel, [this](const buffer_c16_t& data) { this->post_message(data); });
 }
 
 void TvCollector::post_message(const buffer_c16_t& data) {
 	// Called from baseband processing thread.
-        float re, im;
+	float re, im;
 	float mag;
-	if( streaming && !channel_spectrum_request_update ) {
-                for(size_t i=0; i<256; i++) 
-		{
-                        re = (float)(data.p[i].real());
+	if (streaming && !channel_spectrum_request_update) {
+		for (size_t i = 0; i < 256; i++) {
+			re = (float)(data.p[i].real());
 			im = (float)(data.p[i].imag());
-			mag = __builtin_sqrtf((re * re) + (im * im)) ;
+			mag = __builtin_sqrtf((re * re) + (im * im));
 			channel_spectrum[i] = {mag, mag};
 		}
-                channel_spectrum_sampling_rate = data.sampling_rate;
+		channel_spectrum_sampling_rate = data.sampling_rate;
 		channel_spectrum_request_update = true;
 		EventDispatcher::events_flag(EVT_MASK_SPECTRUM);
 	}
 }
 
-
 void TvCollector::update() {
 	// Called from idle thread (after EVT_MASK_SPECTRUM is flagged)
-	if( streaming && channel_spectrum_request_update ) {
+	if (streaming && channel_spectrum_request_update) {
 		ChannelSpectrum spectrum;
 		spectrum.sampling_rate = channel_spectrum_sampling_rate;
-		for(size_t i=0; i<spectrum.db.size(); i++) {
-                        const auto corrected_sample = channel_spectrum[i].real();
+		for (size_t i = 0; i < spectrum.db.size(); i++) {
+			const auto corrected_sample = channel_spectrum[i].real();
 			const unsigned int v = corrected_sample + 127.0f;
 			spectrum.db[i] = std::max(0U, std::min(255U, v));
 		}

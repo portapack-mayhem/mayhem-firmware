@@ -28,33 +28,32 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <algorithm>    // std::max
+#include <algorithm>	// std::max
 #include <cmath>
-
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 	// This is called at 1500Hz
-	
-	if (!configured) return;
-	
+
+	if (!configured)
+		return;
+
 	// Get 24kHz audio
 	const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 	const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 	const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
 	auto audio = demod.execute(channel_out, audio_buffer);
-	smooth.Process(audio.p, audio.count); // Smooth the data to  make decoding more accurate
+	smooth.Process(
+			audio.p, audio.count);	// Smooth the data to  make decoding more accurate
 	audio_output.write(audio);
-	
+
 	processDemodulatedSamples(audio.p, 16);
 	extractFrames();
-
 }
 
 // ====================================================================
 //
 // ====================================================================
-int POCSAGProcessor::OnDataWord(uint32_t word, int pos)
-{
+int POCSAGProcessor::OnDataWord(uint32_t word, int pos) {
 	packet.set(pos, word);
 	return 0;
 }
@@ -62,10 +61,8 @@ int POCSAGProcessor::OnDataWord(uint32_t word, int pos)
 // ====================================================================
 //
 // ====================================================================
-int POCSAGProcessor::OnDataFrame(int len, int baud)
-{
-	if (len > 0)
-	{
+int POCSAGProcessor::OnDataFrame(int len, int baud) {
+	if (len > 0) {
 		packet.set_bitrate(baud);
 		packet.set_flag(pocsag::PacketFlag::NORMAL);
 		packet.set_timestamp(Timestamp::now());
@@ -82,11 +79,13 @@ void POCSAGProcessor::on_message(const Message* const message) {
 
 void POCSAGProcessor::configure() {
 	constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+	constexpr size_t decim_0_output_fs =
+			decim_0_input_fs / decim_0.decimation_factor;
 
 	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
-	
+	constexpr size_t decim_1_output_fs =
+			decim_1_input_fs / decim_1.decimation_factor;
+
 	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
 	const size_t channel_filter_output_fs = channel_filter_input_fs / 2;
 
@@ -108,8 +107,6 @@ void POCSAGProcessor::configure() {
 	configured = true;
 }
 
-
-
 // -----------------------------
 // Frame extractraction methods
 // -----------------------------
@@ -118,33 +115,29 @@ void POCSAGProcessor::configure() {
 #define MAX_WITHOUT_SINGLE (64)
 #define MAX_BAD_TRANS (10)
 
-#define M_SYNC				(0x7cd215d8)
-#define M_NOTSYNC			(0x832dea27)
+#define M_SYNC (0x7cd215d8)
+#define M_NOTSYNC (0x832dea27)
 
-#define M_IDLE				(0x7a89c197)
+#define M_IDLE (0x7a89c197)
 
 // ====================================================================
 //
 // ====================================================================
-inline int bitsDiff(unsigned long left, unsigned long right)
-{
+inline int bitsDiff(unsigned long left, unsigned long right) {
 	unsigned long xord = left ^ right;
 	int count = 0;
-	for (int i = 0; i < 32; i++)
-	{
-		if ((xord & 0x01) != 0) ++count;
+	for (int i = 0; i < 32; i++) {
+		if ((xord & 0x01) != 0)
+			++count;
 		xord = xord >> 1;
 	}
-	return(count);
-
+	return (count);
 }
-
 
 // ====================================================================
 //
 // ====================================================================
-void POCSAGProcessor::initFrameExtraction()
-{
+void POCSAGProcessor::initFrameExtraction() {
 	m_averageSymbolLen_1024 = m_maxSymSamples_1024;
 	m_lastStableSymbolLen_1024 = m_minSymSamples_1024;
 
@@ -159,8 +152,7 @@ void POCSAGProcessor::initFrameExtraction()
 // ====================================================================
 //
 // ====================================================================
-void POCSAGProcessor::resetVals()
-{
+void POCSAGProcessor::resetVals() {
 	// Reset the parameters
 	// --------------------
 	m_goodTransitions = 0;
@@ -187,11 +179,15 @@ void POCSAGProcessor::resetVals()
 // ====================================================================
 //
 // ====================================================================
-void POCSAGProcessor::setFrameExtractParams(long a_samplesPerSec, long a_maxBaud, long a_minBaud, long maxRunOfSameValue)
-{
+void POCSAGProcessor::setFrameExtractParams(long a_samplesPerSec,
+																						long a_maxBaud,
+																						long a_minBaud,
+																						long maxRunOfSameValue) {
 	m_samplesPerSec = a_samplesPerSec;
-	m_minSymSamples_1024 = (uint32_t)(1024.0f * (float)a_samplesPerSec / (float)a_maxBaud);
-	m_maxSymSamples_1024 = (uint32_t)(1024.0f*(float)a_samplesPerSec / (float)a_minBaud);
+	m_minSymSamples_1024 =
+			(uint32_t)(1024.0f * (float)a_samplesPerSec / (float)a_maxBaud);
+	m_maxSymSamples_1024 =
+			(uint32_t)(1024.0f * (float)a_samplesPerSec / (float)a_minBaud);
 	m_maxRunOfSameValue = maxRunOfSameValue;
 
 	m_shortestGoodTrans_1024 = m_maxSymSamples_1024;
@@ -207,16 +203,15 @@ void POCSAGProcessor::setFrameExtractParams(long a_samplesPerSec, long a_maxBaud
 // ====================================================================
 //
 // ====================================================================
-int POCSAGProcessor::processDemodulatedSamples(float * sampleBuff, int noOfSamples)
-{
+int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff,
+																							 int noOfSamples) {
 	bool transition = false;
 	uint32_t samplePos_1024 = 0;
 	uint32_t len_1024 = 0;
 
 	// Loop through the block of data
 	// ------------------------------
-	for (int pos = 0; pos < noOfSamples; ++pos)
-	{
+	for (int pos = 0; pos < noOfSamples; ++pos) {
 		m_sample = sampleBuff[pos];
 		m_valMid += (m_sample - m_valMid) / 1024.0f;
 
@@ -224,42 +219,46 @@ int POCSAGProcessor::processDemodulatedSamples(float * sampleBuff, int noOfSampl
 
 		// Detect Transition
 		// -----------------
-		transition = ! ((m_lastSample < m_valMid) ^ (m_sample >= m_valMid)); // use XOR for speed
+		transition = !((m_lastSample < m_valMid) ^
+									 (m_sample >= m_valMid));	 // use XOR for speed
 
 		// If this is a transition
 		// -----------------------
-		if (transition)
-		{
+		if (transition) {
 			// Calculate samples since last trans
 			// ----------------------------------
-			int32_t fractional_1024 = (int32_t)(((m_sample - m_valMid)*1024) / (m_sample - m_lastSample));
-			if (fractional_1024 < 0) { fractional_1024 = -fractional_1024; }
+			int32_t fractional_1024 =
+					(int32_t)(((m_sample - m_valMid) * 1024) / (m_sample - m_lastSample));
+			if (fractional_1024 < 0) {
+				fractional_1024 = -fractional_1024;
+			}
 
-			samplePos_1024 = (m_sampleNo<<10)-fractional_1024;
+			samplePos_1024 = (m_sampleNo << 10) - fractional_1024;
 			len_1024 = samplePos_1024 - m_lastTransPos_1024;
 			m_lastTransPos_1024 = samplePos_1024;
 
 			// If symbol is large enough to be valid
 			// -------------------------------------
-			if (len_1024 > m_minSymSamples_1024)
-			{
+			if (len_1024 > m_minSymSamples_1024) {
 				// Check for shortest good transition
 				// ----------------------------------
 				if ((len_1024 < m_shortestGoodTrans_1024) &&
-					(m_goodTransitions < BAUD_STABLE))	// detect change of symbol size
+						(m_goodTransitions < BAUD_STABLE))	// detect change of symbol size
 				{
-					int32_t fractionOfShortest_1024 = (len_1024<<10) / m_shortestGoodTrans_1024;
+					int32_t fractionOfShortest_1024 =
+							(len_1024 << 10) / m_shortestGoodTrans_1024;
 
 					// If currently at half the baud rate
 					// ----------------------------------
-					if ((fractionOfShortest_1024 > 410) && (fractionOfShortest_1024 < 614)) // 0.4 and 0.6
+					if ((fractionOfShortest_1024 > 410) &&
+							(fractionOfShortest_1024 < 614))	// 0.4 and 0.6
 					{
 						m_averageSymbolLen_1024 /= 2;
 						m_shortestGoodTrans_1024 = len_1024;
 					}
 					// If currently at the wrong baud rate
 					// -----------------------------------
-					else if (fractionOfShortest_1024 < 768) // 0.75
+					else if (fractionOfShortest_1024 < 768)	 // 0.75
 					{
 						m_averageSymbolLen_1024 = len_1024;
 						m_shortestGoodTrans_1024 = len_1024;
@@ -271,104 +270,106 @@ int POCSAGProcessor::processDemodulatedSamples(float * sampleBuff, int noOfSampl
 				// Calc the number of bits since events
 				// ------------------------------------
 				int32_t halfSymbol_1024 = m_averageSymbolLen_1024 / 2;
-				int bitsSinceLastTrans = max((uint32_t)1, (len_1024+halfSymbol_1024) / m_averageSymbolLen_1024 );
-				int bitsSinceLastSingle = (((m_sampleNo<<10)-m_lastSingleBitPos_1024) + halfSymbol_1024) / m_averageSymbolLen_1024;
+				int bitsSinceLastTrans = max((uint32_t)1, (len_1024 + halfSymbol_1024) /
+																											m_averageSymbolLen_1024);
+				int bitsSinceLastSingle =
+						(((m_sampleNo << 10) - m_lastSingleBitPos_1024) + halfSymbol_1024) /
+						m_averageSymbolLen_1024;
 
 				// Check for single bit
 				// --------------------
-				if (bitsSinceLastTrans == 1)
-				{
+				if (bitsSinceLastTrans == 1) {
 					m_lastSingleBitPos_1024 = samplePos_1024;
 				}
 
 				// If too long since last transition
 				// ---------------------------------
-				if (bitsSinceLastTrans > MAX_CONSEC_SAME)
-				{
+				if (bitsSinceLastTrans > MAX_CONSEC_SAME) {
 					resetVals();
 				}
 				// If too long sice last single bit
 				// --------------------------------
-				else if (bitsSinceLastSingle > MAX_WITHOUT_SINGLE)
-				{
+				else if (bitsSinceLastSingle > MAX_WITHOUT_SINGLE) {
 					resetVals();
-				}
-				else
-				{
+				} else {
 					// If this is a good transition
 					// ----------------------------
-					int32_t offsetFromExtectedTransition_1024 = len_1024 - (bitsSinceLastTrans*m_averageSymbolLen_1024);
-					if (offsetFromExtectedTransition_1024 < 0) { offsetFromExtectedTransition_1024 = -offsetFromExtectedTransition_1024; }
-					if (offsetFromExtectedTransition_1024 < ((int32_t)m_averageSymbolLen_1024 / 4)) // Has to be within 1/4 of symbol to be good
+					int32_t offsetFromExtectedTransition_1024 =
+							len_1024 - (bitsSinceLastTrans * m_averageSymbolLen_1024);
+					if (offsetFromExtectedTransition_1024 < 0) {
+						offsetFromExtectedTransition_1024 =
+								-offsetFromExtectedTransition_1024;
+					}
+					if (offsetFromExtectedTransition_1024 <
+							((int32_t)m_averageSymbolLen_1024 /
+							 4))	// Has to be within 1/4 of symbol to be good
 					{
 						++m_goodTransitions;
 						uint32_t bitsCount = min((uint32_t)BAUD_STABLE, m_goodTransitions);
 
-						uint32_t propFromPrevious = m_averageSymbolLen_1024*bitsCount;
+						uint32_t propFromPrevious = m_averageSymbolLen_1024 * bitsCount;
 						uint32_t propFromCurrent = (len_1024 / bitsSinceLastTrans);
-						m_averageSymbolLen_1024 = (propFromPrevious + propFromCurrent) / (bitsCount + 1);
+						m_averageSymbolLen_1024 =
+								(propFromPrevious + propFromCurrent) / (bitsCount + 1);
 						m_badTransitions = 0;
-						//if ( len < m_shortestGoodTrans ){m_shortestGoodTrans = len;}
+						// if ( len < m_shortestGoodTrans ){m_shortestGoodTrans = len;}
 						// Store the old symbol size
-						if (m_goodTransitions >= BAUD_STABLE) 
-						{ 
-							m_lastStableSymbolLen_1024 = m_averageSymbolLen_1024; 
+						if (m_goodTransitions >= BAUD_STABLE) {
+							m_lastStableSymbolLen_1024 = m_averageSymbolLen_1024;
 						}
 					}
 				}
 
 				// Set the point of the last bit if not yet stable
 				// -----------------------------------------------
-				if ((m_goodTransitions < BAUD_STABLE) || (m_badTransitions > 0))
-				{
+				if ((m_goodTransitions < BAUD_STABLE) || (m_badTransitions > 0)) {
 					m_lastBitPos_1024 = samplePos_1024 - (m_averageSymbolLen_1024 / 2);
 				}
 
 				// Calculate the exact positiom of the next bit
 				// --------------------------------------------
-				int32_t thisPlusHalfsymbol_1024 = samplePos_1024 + (m_averageSymbolLen_1024/2);
+				int32_t thisPlusHalfsymbol_1024 =
+						samplePos_1024 + (m_averageSymbolLen_1024 / 2);
 				int32_t lastPlusSymbol = m_lastBitPos_1024 + m_averageSymbolLen_1024;
-				m_nextBitPos_1024 = lastPlusSymbol + ((thisPlusHalfsymbol_1024 - lastPlusSymbol) / 16);
+				m_nextBitPos_1024 =
+						lastPlusSymbol + ((thisPlusHalfsymbol_1024 - lastPlusSymbol) / 16);
 
 				// Check for bad pos error
 				// -----------------------
-				if (m_nextBitPos_1024 < samplePos_1024) m_nextBitPos_1024 += m_averageSymbolLen_1024;
+				if (m_nextBitPos_1024 < samplePos_1024)
+					m_nextBitPos_1024 += m_averageSymbolLen_1024;
 
 				// Calculate integer sample after next bit
 				// ---------------------------------------
-				m_nextBitPosInt = (m_nextBitPos_1024>>10) + 1;
+				m_nextBitPosInt = (m_nextBitPos_1024 >> 10) + 1;
 
-			} // symbol is large enough to be valid
-			else
-			{
+			}	 // symbol is large enough to be valid
+			else {
 				// Bad transition, so reset the counts
 				// -----------------------------------
 				++m_badTransitions;
-				if (m_badTransitions > MAX_BAD_TRANS)
-				{
+				if (m_badTransitions > MAX_BAD_TRANS) {
 					resetVals();
 				}
 			}
-		}  // end of if transition
+		}	 // end of if transition
 
 		// Reached the point of the next bit
 		// ---------------------------------
-		if (m_sampleNo >= m_nextBitPosInt)
-		{
+		if (m_sampleNo >= m_nextBitPosInt) {
 			// Everything is good so extract a bit
 			// -----------------------------------
-			if (m_goodTransitions > 20)
-			{
+			if (m_goodTransitions > 20) {
 				// Store value at the center of bit
 				// --------------------------------
 				storeBit();
 			}
 			// Check for long 1 or zero
 			// ------------------------
-			uint32_t bitsSinceLastTrans = ((m_sampleNo<<10) - m_lastTransPos_1024) / m_averageSymbolLen_1024;
-			if (bitsSinceLastTrans > m_maxRunOfSameValue) 
-			{ 
-				resetVals(); 
+			uint32_t bitsSinceLastTrans =
+					((m_sampleNo << 10) - m_lastTransPos_1024) / m_averageSymbolLen_1024;
+			if (bitsSinceLastTrans > m_maxRunOfSameValue) {
+				resetVals();
 			}
 
 			// Store the point of the last bit
@@ -381,13 +382,13 @@ int POCSAGProcessor::processDemodulatedSamples(float * sampleBuff, int noOfSampl
 
 			// Look for the bit after the next bit pos
 			// ---------------------------------------
-			m_nextBitPosInt = (m_nextBitPos_1024>>10) + 1;
+			m_nextBitPosInt = (m_nextBitPos_1024 >> 10) + 1;
 
-		} // Reached the point of the next bit
+		}	 // Reached the point of the next bit
 
 		m_lastSample = m_sample;
 
-	} // Loop through the block of data
+	}	 // Loop through the block of data
 
 	return getNoOfBits();
 }
@@ -395,34 +396,29 @@ int POCSAGProcessor::processDemodulatedSamples(float * sampleBuff, int noOfSampl
 // ====================================================================
 //
 // ====================================================================
-void POCSAGProcessor::storeBit()
-{
-	if (++m_bitsStart >= BIT_BUF_SIZE) { m_bitsStart = 0; }
+void POCSAGProcessor::storeBit() {
+	if (++m_bitsStart >= BIT_BUF_SIZE) {
+		m_bitsStart = 0;
+	}
 
 	// Calculate the bit value
 	float sample = (m_sample + m_lastSample) / 2;
-	//int32_t sample_1024 = m_sample_1024;
+	// int32_t sample_1024 = m_sample_1024;
 	bool bit = sample > m_valMid;
 
 	// If buffer not full
-	if (m_bitsStart != m_bitsEnd)
-	{
+	if (m_bitsStart != m_bitsEnd) {
 		// Decide on output val
-		if (bit)
-		{
+		if (bit) {
 			m_bits[m_bitsStart] = 0;
-		}
-		else
-		{
+		} else {
 			m_bits[m_bitsStart] = 1;
 		}
 	}
 	// Throw away bits if the buffer is full
-	else
-	{
-		if (--m_bitsStart <= -1) 
-		{ 
-			m_bitsStart = BIT_BUF_SIZE - 1; 
+	else {
+		if (--m_bitsStart <= -1) {
+			m_bitsStart = BIT_BUF_SIZE - 1;
 		}
 	}
 }
@@ -430,82 +426,68 @@ void POCSAGProcessor::storeBit()
 // ====================================================================
 //
 // ====================================================================
-int POCSAGProcessor::extractFrames()
-{
+int POCSAGProcessor::extractFrames() {
 	int msgCnt = 0;
 	// While there is unread data in the bits buffer
 	//----------------------------------------------
-	while (getNoOfBits() > 0)
-	{
+	while (getNoOfBits() > 0) {
 		m_fifo.codeword = (m_fifo.codeword << 1) + getBit();
 		m_fifo.numBits++;
 
 		// If number of bits in fifo equals 32
 		//------------------------------------
-		if (m_fifo.numBits >= 32)
-		{
+		if (m_fifo.numBits >= 32) {
 			// Not got sync
 			// ------------
-			if (!m_gotSync)
-			{
-				if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2)
-				{
+			if (!m_gotSync) {
+				if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2) {
 					m_inverted = false;
 					m_gotSync = true;
 					m_numCode = -1;
 					m_fifo.numBits = 0;
-				}
-				else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2)
-				{
+				} else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2) {
 					m_inverted = true;
 					m_gotSync = true;
 					m_numCode = -1;
 					m_fifo.numBits = 0;
-				}
-				else
-				{
+				} else {
 					// Cause it to load one more bit
 					m_fifo.numBits = 31;
 				}
-			} // Not got sync
-			else
-			{
+			}	 // Not got sync
+			else {
 				// Increment the word count
 				// ------------------------
-				++m_numCode; // It got set to -1 when a sync was found, now count the 16 words
+				++m_numCode;	// It got set to -1 when a sync was found, now count the
+											// 16 words
 				uint32_t val = m_inverted ? ~m_fifo.codeword : m_fifo.codeword;
 				OnDataWord(val, m_numCode);
 
 				// If at the end of a 16 word block
 				// --------------------------------
-				if (m_numCode >= 15)
-				{
-					msgCnt += OnDataFrame(m_numCode+1, (m_samplesPerSec<<10) / m_lastStableSymbolLen_1024);
+				if (m_numCode >= 15) {
+					msgCnt += OnDataFrame(m_numCode + 1, (m_samplesPerSec << 10) /
+																									 m_lastStableSymbolLen_1024);
 					m_gotSync = false;
 					m_numCode = -1;
 				}
 				m_fifo.numBits = 0;
 			}
-		} // If number of bits in fifo equals 32
-	} // While there is unread data in the bits buffer
+		}	 // If number of bits in fifo equals 32
+	}		 // While there is unread data in the bits buffer
 	return msgCnt;
-} // extractFrames
+}	 // extractFrames
 
 // ====================================================================
 //
 // ====================================================================
-short POCSAGProcessor::getBit()
-{
-	if (m_bitsEnd != m_bitsStart)
-	{
-		if (++m_bitsEnd >= BIT_BUF_SIZE) 
-		{ 
-			m_bitsEnd = 0; 
+short POCSAGProcessor::getBit() {
+	if (m_bitsEnd != m_bitsStart) {
+		if (++m_bitsEnd >= BIT_BUF_SIZE) {
+			m_bitsEnd = 0;
 		}
 		return m_bits[m_bitsEnd];
-	}
-	else
-	{
+	} else {
 		return -1;
 	}
 }
@@ -513,27 +495,26 @@ short POCSAGProcessor::getBit()
 // ====================================================================
 //
 // ====================================================================
-int POCSAGProcessor::getNoOfBits()
-{
+int POCSAGProcessor::getNoOfBits() {
 	int bits = m_bitsEnd - m_bitsStart;
-	if (bits < 0) { bits += BIT_BUF_SIZE; }
+	if (bits < 0) {
+		bits += BIT_BUF_SIZE;
+	}
 	return bits;
 }
 
 // ====================================================================
 //
 // ====================================================================
-uint32_t POCSAGProcessor::getRate()
-{
-	return ((m_samplesPerSec<<10)+512) / m_lastStableSymbolLen_1024;
+uint32_t POCSAGProcessor::getRate() {
+	return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
 }
-
 
 // ====================================================================
 //
 // ====================================================================
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<POCSAGProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

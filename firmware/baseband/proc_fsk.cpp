@@ -29,11 +29,10 @@
 
 void FSKProcessor::execute(const buffer_c8_t& buffer) {
 	int8_t re, im;
-	
-	// This is called at 2.28M/2048 = 1113Hz
-	
-	for (size_t i = 0; i < buffer.count; i++) {
 
+	// This is called at 2.28M/2048 = 1113Hz
+
+	for (size_t i = 0; i < buffer.count; i++) {
 		if (configured) {
 			if (sample_count >= samples_per_bit) {
 				if (bit_pos > length) {
@@ -43,7 +42,9 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 					shared_memory.application_queue.push(txprogress_message);
 					configured = false;
 				} else {
-					cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+					cur_bit =
+							(shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) &
+							0x80;
 					bit_pos++;
 					if (progress_count >= progress_notice) {
 						progress_count = 0;
@@ -58,12 +59,12 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 			} else {
 				sample_count++;
 			}
-		
+
 			if (cur_bit)
 				phase += shift_one;
 			else
 				phase += shift_zero;
-			
+
 			sphase = phase + (64 << 24);
 
 			re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
@@ -72,28 +73,28 @@ void FSKProcessor::execute(const buffer_c8_t& buffer) {
 			re = 0;
 			im = 0;
 		}
-	
+
 		buffer.p[i] = {re, im};
 	}
 }
 
 void FSKProcessor::on_message(const Message* const p) {
 	const auto message = *reinterpret_cast<const FSKConfigureMessage*>(p);
-	
+
 	if (message.id == Message::ID::FSKConfigure) {
 		samples_per_bit = message.samples_per_bit;
-		length = message.stream_length + 32;			// Why ?!
-		
+		length = message.stream_length + 32;	// Why ?!
+
 		shift_one = message.shift * (0xFFFFFFFFULL / 2280000);
 		shift_zero = -shift_one;
-		
+
 		progress_notice = message.progress_notice;
-		
+
 		sample_count = samples_per_bit;
 		progress_count = 0;
 		bit_pos = 0;
 		cur_bit = 0;
-		
+
 		txprogress_message.progress = 0;
 		txprogress_message.done = false;
 		configured = true;
@@ -101,7 +102,7 @@ void FSKProcessor::on_message(const Message* const p) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<FSKProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<FSKProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

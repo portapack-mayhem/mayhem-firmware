@@ -34,11 +34,12 @@
 void initialize_flash();
 void erase_flash();
 void initialize_sdcard();
-void write_firmware(FIL *);
-void write_page(size_t, uint8_t *, size_t);
+void write_firmware(FIL*);
+void write_page(size_t, uint8_t*, size_t);
 
 int main() {
-	const TCHAR *filename = reinterpret_cast<const TCHAR *>(&shared_memory.bb_data.data[0]);
+	const TCHAR* filename =
+			reinterpret_cast<const TCHAR*>(&shared_memory.bb_data.data[0]);
 
 	initialize_flash();
 	palSetPad(LED_PORT, LEDRX_PAD);
@@ -47,7 +48,8 @@ int main() {
 	initialize_sdcard();
 
 	FIL firmware_file;
-	if (f_open(&firmware_file, filename, FA_READ) != FR_OK) chDbgPanic("no file");
+	if (f_open(&firmware_file, filename, FA_READ) != FR_OK)
+		chDbgPanic("no file");
 
 	palSetPad(LED_PORT, LEDTX_PAD);
 
@@ -58,7 +60,7 @@ int main() {
 
 	f_close(&firmware_file);
 
-	while(1)
+	while (1)
 		__WFE();
 
 	return 0;
@@ -85,19 +87,22 @@ void initialize_sdcard() {
 	static FATFS fs;
 
 	sdcStart(&SDCD1, nullptr);
-	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
-	if (f_mount(&fs, reinterpret_cast<const TCHAR*>(_T("")), 1) != FR_OK) chDbgPanic("no sd card #2");
+	if (sdcConnect(&SDCD1) == CH_FAILED)
+		chDbgPanic("no sd card #1");
+	if (f_mount(&fs, reinterpret_cast<const TCHAR*>(_T("")), 1) != FR_OK)
+		chDbgPanic("no sd card #2");
 }
 
-void write_firmware(FIL *firmware_file) {
-	uint8_t *data_buffer = &shared_memory.bb_data.data[0];
+void write_firmware(FIL* firmware_file) {
+	uint8_t* data_buffer = &shared_memory.bb_data.data[0];
 
 	for (size_t page_index = 0; page_index < NUM_PAGES; page_index++) {
 		if (page_index % 32 == 0)
 			palTogglePad(LED_PORT, LEDTX_PAD);
 
 		size_t bytes_read;
-		if (f_read(firmware_file, data_buffer, PAGE_LEN, &bytes_read) != FR_OK) chDbgPanic("no data");
+		if (f_read(firmware_file, data_buffer, PAGE_LEN, &bytes_read) != FR_OK)
+			chDbgPanic("no data");
 
 		if (bytes_read > 0)
 			write_page(page_index, data_buffer, bytes_read);
@@ -107,7 +112,7 @@ void write_firmware(FIL *firmware_file) {
 	}
 }
 
-void write_page(size_t page_index, uint8_t *data_buffer, size_t data_length) {
+void write_page(size_t page_index, uint8_t* data_buffer, size_t data_length) {
 	w25q80bv::wait_not_busy();
 	w25q80bv::remove_write_protection();
 	w25q80bv::wait_not_busy();

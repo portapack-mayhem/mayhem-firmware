@@ -46,9 +46,9 @@ static std::array<Debounce, 8> switch_debounce;
 
 static Encoder encoder;
 
-static volatile uint32_t encoder_position { 0 };
+static volatile uint32_t encoder_position{0};
 
-static volatile uint32_t touch_phase { 0 };
+static volatile uint32_t touch_phase{0};
 
 /* TODO: Change how touch scanning works. It produces a decent amount of noise
  * when changing potential on the resistive touch pad. Among other things, I
@@ -60,11 +60,11 @@ static volatile uint32_t touch_phase { 0 };
  * Noise will only occur when the panel is being touched. Not ideal, but
  * an acceptable improvement.
  */
-static std::array<portapack::IO::TouchPinsConfig, 3> touch_pins_configs {
-	/* State machine will pause here until touch is detected. */
-	portapack::IO::TouchPinsConfig::SensePressure,
-	portapack::IO::TouchPinsConfig::SenseX,
-	portapack::IO::TouchPinsConfig::SenseY,
+static std::array<portapack::IO::TouchPinsConfig, 3> touch_pins_configs{
+		/* State machine will pause here until touch is detected. */
+		portapack::IO::TouchPinsConfig::SensePressure,
+		portapack::IO::TouchPinsConfig::SenseX,
+		portapack::IO::TouchPinsConfig::SenseY,
 };
 
 static touch::Frame temp_frame;
@@ -79,37 +79,37 @@ static bool touch_update() {
 	const auto samples = touch::adc::get();
 	const auto current_phase = touch_pins_configs[touch_phase];
 
-	switch(current_phase) {
-	case portapack::IO::TouchPinsConfig::SensePressure:
-		{
+	switch (current_phase) {
+		case portapack::IO::TouchPinsConfig::SensePressure: {
 			const auto z1 = samples.xp - samples.xn;
 			const auto z2 = samples.yp - samples.yn;
-			const auto touch_raw = (z1 > touch::touch_threshold) || (z2 > touch::touch_threshold);
+			const auto touch_raw =
+					(z1 > touch::touch_threshold) || (z2 > touch::touch_threshold);
 			touch_debounce = (touch_debounce << 1) | (touch_raw ? 1U : 0U);
-			touch_detected = ((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
-			if( !touch_detected && !touch_cycle ) {
-				temp_frame.pressure = { };
+			touch_detected =
+					((touch_debounce & touch_debounce_mask) == touch_debounce_mask);
+			if (!touch_detected && !touch_cycle) {
+				temp_frame.pressure = {};
 				return false;
 			} else {
 				temp_frame.pressure += samples;
 			}
-		}
-		break;
+		} break;
 
-	case portapack::IO::TouchPinsConfig::SenseX:
-		temp_frame.x += samples;
-		break;
+		case portapack::IO::TouchPinsConfig::SenseX:
+			temp_frame.x += samples;
+			break;
 
-	case portapack::IO::TouchPinsConfig::SenseY:
-		temp_frame.y += samples;
-		break;
+		case portapack::IO::TouchPinsConfig::SenseY:
+			temp_frame.y += samples;
+			break;
 
-	default:
-		break;
+		default:
+			break;
 	}
 
 	touch_phase++;
-	if( touch_phase >= touch_pins_configs.size() ) {
+	if (touch_phase >= touch_pins_configs.size()) {
 		/* New iteration, calculate values and flag touch event */
 		touch_phase = 0;
 		temp_frame.touch = touch_detected;
@@ -127,7 +127,7 @@ static uint8_t switches_raw = 0;
 static bool switches_update(const uint8_t raw) {
 	// TODO: Only fire event on press, not release?
 	bool switch_changed = false;
-	for(size_t i=0; i<switch_debounce.size(); i++) {
+	for (size_t i = 0; i < switch_debounce.size(); i++) {
 		switch_changed |= switch_debounce[i].feed((raw >> i) & 1);
 	}
 
@@ -135,14 +135,13 @@ static bool switches_update(const uint8_t raw) {
 }
 
 static bool encoder_read() {
-	const auto delta = encoder.update(
-		switch_debounce[5].state(),
-		switch_debounce[6].state()
-	);
+	const auto delta =
+			encoder.update(switch_debounce[5].state(), switch_debounce[6].state());
 
-	if( delta != 0 ) {
+	if (delta != 0) {
 		encoder_position += delta;
-		return true;;
+		return true;
+		;
 	} else {
 		return false;
 	}
@@ -150,15 +149,17 @@ static bool encoder_read() {
 
 void timer0_callback(GPTDriver* const) {
 	eventmask_t event_mask = 0;
-	if( touch_update() ) event_mask |= EVT_MASK_TOUCH;
+	if (touch_update())
+		event_mask |= EVT_MASK_TOUCH;
 	switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
-	if( switches_update(switches_raw) ) {
+	if (switches_update(switches_raw)) {
 		event_mask |= EVT_MASK_SWITCHES;
-		if( encoder_read() ) event_mask |= EVT_MASK_ENCODER;
+		if (encoder_read())
+			event_mask |= EVT_MASK_ENCODER;
 	}
 
 	/* Signal event loop */
-	if( event_mask ) {
+	if (event_mask) {
 		chSysLockFromIsr();
 		chEvtSignalI(thread_controls_event, event_mask);
 		chSysUnlockFromIsr();
@@ -167,16 +168,18 @@ void timer0_callback(GPTDriver* const) {
 
 /* TODO: Refactor some/all of this to appropriate shared headers? */
 static constexpr uint32_t timer0_count_f = 1000000;
-static constexpr uint32_t timer0_prescaler_ratio = (base_m0_clk_f / timer0_count_f);
+static constexpr uint32_t timer0_prescaler_ratio =
+		(base_m0_clk_f / timer0_count_f);
 static constexpr uint32_t ui_interrupt_rate = 1000;
-static constexpr uint32_t timer0_match_count = timer0_count_f / ui_interrupt_rate;
+static constexpr uint32_t timer0_match_count =
+		timer0_count_f / ui_interrupt_rate;
 
 /* GPT driver refers to configuration structure during runtime, so make sure
  * it sticks around.
  */
-static GPTConfig timer0_config {
-	.callback = timer0_callback,
-	.pr = timer0_prescaler_ratio - 1,
+static GPTConfig timer0_config{
+		.callback = timer0_callback,
+		.pr = timer0_prescaler_ratio - 1,
 };
 
 void controls_init() {
@@ -193,12 +196,13 @@ void controls_init() {
 
 SwitchesState get_switches_state() {
 	SwitchesState result;
-	for(size_t i=0; i<result.size()-1; i++) {
- 		// TODO: Ignore multiple keys at the same time?
- 		result[i] = switch_debounce[i].state();
+	for (size_t i = 0; i < result.size() - 1; i++) {
+		// TODO: Ignore multiple keys at the same time?
+		result[i] = switch_debounce[i].state();
 	}
 
-	result[result.size()-1] = switch_debounce[switch_debounce.size()-1].state();
+	result[result.size() - 1] =
+			switch_debounce[switch_debounce.size() - 1].state();
 
 	return result;
 }
@@ -218,5 +222,5 @@ uint8_t switches() {
 	return switches_raw;
 }
 
-} /* debug */
-} /* control */
+}	 // namespace debug
+}	 // namespace control

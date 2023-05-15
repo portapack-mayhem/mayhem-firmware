@@ -42,18 +42,18 @@
 #include <libopencm3/lpc43xx/ssp.h>
 
 #ifdef HACKRF_ONE
-	#include "portapack.h"
+#include "portapack.h"
 #endif
 
 #include "gpio_lpc.h"
 
 /* GPIO Output PinMux */
 static struct gpio_t gpio_led[] = {
-	GPIO(2, 1),
-	GPIO(2, 2),
-	GPIO(2, 8),
+		GPIO(2, 1),
+		GPIO(2, 2),
+		GPIO(2, 8),
 #ifdef RAD1O
-	GPIO(5, 26),
+		GPIO(5, 26),
 #endif
 };
 
@@ -146,17 +146,17 @@ static struct gpio_t gpio_h1r9_hw_sync_enable = GPIO(5, 5);
 // clang-format on
 
 i2c_bus_t i2c0 = {
-	.obj = (void*) I2C0_BASE,
-	.start = i2c_lpc_start,
-	.stop = i2c_lpc_stop,
-	.transfer = i2c_lpc_transfer,
+		.obj = (void*)I2C0_BASE,
+		.start = i2c_lpc_start,
+		.stop = i2c_lpc_stop,
+		.transfer = i2c_lpc_transfer,
 };
 
 i2c_bus_t i2c1 = {
-	.obj = (void*) I2C1_BASE,
-	.start = i2c_lpc_start,
-	.stop = i2c_lpc_stop,
-	.transfer = i2c_lpc_transfer,
+		.obj = (void*)I2C1_BASE,
+		.start = i2c_lpc_start,
+		.stop = i2c_lpc_stop,
+		.transfer = i2c_lpc_transfer,
 };
 
 // const i2c_lpc_config_t i2c_config_si5351c_slow_clock = {
@@ -164,136 +164,137 @@ i2c_bus_t i2c1 = {
 // };
 
 const i2c_lpc_config_t i2c_config_si5351c_fast_clock = {
-	.duty_cycle_count = 255,
+		.duty_cycle_count = 255,
 };
 
 si5351c_driver_t clock_gen = {
-	.bus = &i2c0,
-	.i2c_address = 0x60,
+		.bus = &i2c0,
+		.i2c_address = 0x60,
 };
 
 const ssp_config_t ssp_config_max283x = {
-	/* FIXME speed up once everything is working reliably */
-	/*
-	// Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
-	const uint8_t serial_clock_rate = 32;
-	const uint8_t clock_prescale_rate = 128;
-	*/
-	// Freq About 4.857MHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
-	.data_bits = SSP_DATA_16BITS,
-	.serial_clock_rate = 21,
-	.clock_prescale_rate = 2,
-	.gpio_select = &gpio_max283x_select,
+		/* FIXME speed up once everything is working reliably */
+		/*
+		// Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with
+		PCLK=PLL1=204MHz const uint8_t serial_clock_rate = 32; const uint8_t
+		clock_prescale_rate = 128;
+		*/
+		// Freq About 4.857MHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with
+		// PCLK=PLL1=204MHz
+		.data_bits = SSP_DATA_16BITS,
+		.serial_clock_rate = 21,
+		.clock_prescale_rate = 2,
+		.gpio_select = &gpio_max283x_select,
 };
 
 const ssp_config_t ssp_config_max5864 = {
-	/* FIXME speed up once everything is working reliably */
-	/*
-	// Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
-	const uint8_t serial_clock_rate = 32;
-	const uint8_t clock_prescale_rate = 128;
-	*/
-	// Freq About 4.857MHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
-	.data_bits = SSP_DATA_8BITS,
-	.serial_clock_rate = 21,
-	.clock_prescale_rate = 2,
-	.gpio_select = &gpio_max5864_select,
+		/* FIXME speed up once everything is working reliably */
+		/*
+		// Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with
+		PCLK=PLL1=204MHz const uint8_t serial_clock_rate = 32; const uint8_t
+		clock_prescale_rate = 128;
+		*/
+		// Freq About 4.857MHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with
+		// PCLK=PLL1=204MHz
+		.data_bits = SSP_DATA_8BITS,
+		.serial_clock_rate = 21,
+		.clock_prescale_rate = 2,
+		.gpio_select = &gpio_max5864_select,
 };
 
 spi_bus_t spi_bus_ssp1 = {
-	.obj = (void*) SSP1_BASE,
-	.config = &ssp_config_max5864,
-	.start = spi_ssp_start,
-	.stop = spi_ssp_stop,
-	.transfer = spi_ssp_transfer,
-	.transfer_gather = spi_ssp_transfer_gather,
+		.obj = (void*)SSP1_BASE,
+		.config = &ssp_config_max5864,
+		.start = spi_ssp_start,
+		.stop = spi_ssp_stop,
+		.transfer = spi_ssp_transfer,
+		.transfer_gather = spi_ssp_transfer_gather,
 };
 
 max283x_driver_t max283x = {};
 
 max5864_driver_t max5864 = {
-	.bus = &spi_bus_ssp1,
-	.target_init = max5864_target_init,
+		.bus = &spi_bus_ssp1,
+		.target_init = max5864_target_init,
 };
 
 const ssp_config_t ssp_config_w25q80bv = {
-	.data_bits = SSP_DATA_8BITS,
-	.serial_clock_rate = 2,
-	.clock_prescale_rate = 2,
-	.gpio_select = &gpio_w25q80bv_select,
+		.data_bits = SSP_DATA_8BITS,
+		.serial_clock_rate = 2,
+		.clock_prescale_rate = 2,
+		.gpio_select = &gpio_w25q80bv_select,
 };
 
 spi_bus_t spi_bus_ssp0 = {
-	.obj = (void*) SSP0_BASE,
-	.config = &ssp_config_w25q80bv,
-	.start = spi_ssp_start,
-	.stop = spi_ssp_stop,
-	.transfer = spi_ssp_transfer,
-	.transfer_gather = spi_ssp_transfer_gather,
+		.obj = (void*)SSP0_BASE,
+		.config = &ssp_config_w25q80bv,
+		.start = spi_ssp_start,
+		.stop = spi_ssp_stop,
+		.transfer = spi_ssp_transfer,
+		.transfer_gather = spi_ssp_transfer_gather,
 };
 
 w25q80bv_driver_t spi_flash = {
-	.bus = &spi_bus_ssp0,
-	.gpio_hold = &gpio_w25q80bv_hold,
-	.gpio_wp = &gpio_w25q80bv_wp,
-	.target_init = w25q80bv_target_init,
+		.bus = &spi_bus_ssp0,
+		.gpio_hold = &gpio_w25q80bv_hold,
+		.gpio_wp = &gpio_w25q80bv_wp,
+		.target_init = w25q80bv_target_init,
 };
 
 sgpio_config_t sgpio_config = {
-	.gpio_q_invert = &gpio_q_invert,
-	.gpio_hw_sync_enable = &gpio_hw_sync_enable,
-	.slice_mode_multislice = true,
+		.gpio_q_invert = &gpio_q_invert,
+		.gpio_hw_sync_enable = &gpio_hw_sync_enable,
+		.slice_mode_multislice = true,
 };
 
 rf_path_t rf_path = {
-	.switchctrl = 0,
+		.switchctrl = 0,
 #ifdef HACKRF_ONE
-	.gpio_hp = &gpio_hp,
-	.gpio_lp = &gpio_lp,
-	.gpio_tx_mix_bp = &gpio_tx_mix_bp,
-	.gpio_no_mix_bypass = &gpio_no_mix_bypass,
-	.gpio_rx_mix_bp = &gpio_rx_mix_bp,
-	.gpio_tx_amp = &gpio_tx_amp,
-	.gpio_tx = &gpio_tx,
-	.gpio_mix_bypass = &gpio_mix_bypass,
-	.gpio_rx = &gpio_rx,
-	.gpio_no_tx_amp_pwr = &gpio_no_tx_amp_pwr,
-	.gpio_amp_bypass = &gpio_amp_bypass,
-	.gpio_rx_amp = &gpio_rx_amp,
-	.gpio_no_rx_amp_pwr = &gpio_no_rx_amp_pwr,
+		.gpio_hp = &gpio_hp,
+		.gpio_lp = &gpio_lp,
+		.gpio_tx_mix_bp = &gpio_tx_mix_bp,
+		.gpio_no_mix_bypass = &gpio_no_mix_bypass,
+		.gpio_rx_mix_bp = &gpio_rx_mix_bp,
+		.gpio_tx_amp = &gpio_tx_amp,
+		.gpio_tx = &gpio_tx,
+		.gpio_mix_bypass = &gpio_mix_bypass,
+		.gpio_rx = &gpio_rx,
+		.gpio_no_tx_amp_pwr = &gpio_no_tx_amp_pwr,
+		.gpio_amp_bypass = &gpio_amp_bypass,
+		.gpio_rx_amp = &gpio_rx_amp,
+		.gpio_no_rx_amp_pwr = &gpio_no_rx_amp_pwr,
 #endif
 #ifdef RAD1O
-	.gpio_tx_rx_n = &gpio_tx_rx_n,
-	.gpio_tx_rx = &gpio_tx_rx,
-	.gpio_by_mix = &gpio_by_mix,
-	.gpio_by_mix_n = &gpio_by_mix_n,
-	.gpio_by_amp = &gpio_by_amp,
-	.gpio_by_amp_n = &gpio_by_amp_n,
-	.gpio_mixer_en = &gpio_mixer_en,
-	.gpio_low_high_filt = &gpio_low_high_filt,
-	.gpio_low_high_filt_n = &gpio_low_high_filt_n,
-	.gpio_tx_amp = &gpio_tx_amp,
-	.gpio_rx_lna = &gpio_rx_lna,
+		.gpio_tx_rx_n = &gpio_tx_rx_n,
+		.gpio_tx_rx = &gpio_tx_rx,
+		.gpio_by_mix = &gpio_by_mix,
+		.gpio_by_mix_n = &gpio_by_mix_n,
+		.gpio_by_amp = &gpio_by_amp,
+		.gpio_by_amp_n = &gpio_by_amp_n,
+		.gpio_mixer_en = &gpio_mixer_en,
+		.gpio_low_high_filt = &gpio_low_high_filt,
+		.gpio_low_high_filt_n = &gpio_low_high_filt_n,
+		.gpio_tx_amp = &gpio_tx_amp,
+		.gpio_rx_lna = &gpio_rx_lna,
 #endif
 };
 
 jtag_gpio_t jtag_gpio_cpld = {
-	.gpio_tms = &gpio_cpld_tms,
-	.gpio_tck = &gpio_cpld_tck,
-	.gpio_tdi = &gpio_cpld_tdi,
-	.gpio_tdo = &gpio_cpld_tdo,
+		.gpio_tms = &gpio_cpld_tms,
+		.gpio_tck = &gpio_cpld_tck,
+		.gpio_tdi = &gpio_cpld_tdi,
+		.gpio_tdo = &gpio_cpld_tdo,
 #ifdef HACKRF_ONE
-	.gpio_pp_tms = &gpio_cpld_pp_tms,
-	.gpio_pp_tdo = &gpio_cpld_pp_tdo,
+		.gpio_pp_tms = &gpio_cpld_pp_tms,
+		.gpio_pp_tdo = &gpio_cpld_pp_tdo,
 #endif
 };
 
 jtag_t jtag_cpld = {
-	.gpio = &jtag_gpio_cpld,
+		.gpio = &jtag_gpio_cpld,
 };
 
-void delay(uint32_t duration)
-{
+void delay(uint32_t duration) {
 	uint32_t i;
 
 	for (i = 0; i < duration; i++) {
@@ -301,21 +302,20 @@ void delay(uint32_t duration)
 	}
 }
 
-void delay_us_at_mhz(uint32_t us, uint32_t mhz)
-{
+void delay_us_at_mhz(uint32_t us, uint32_t mhz) {
 	// The loop below takes 3 cycles per iteration.
 	uint32_t loop_iterations = (us * mhz) / 3;
-	asm volatile("start%=:\n"
-		     "    subs %[ITERATIONS], #1\n" // 1 cycle
-		     "    bpl start%=\n"            // 2 cycles
-		     :
-		     : [ITERATIONS] "r"(loop_iterations));
+	asm volatile(
+			"start%=:\n"
+			"    subs %[ITERATIONS], #1\n"	// 1 cycle
+			"    bpl start%=\n"							// 2 cycles
+			:
+			: [ITERATIONS] "r"(loop_iterations));
 }
 
 /* GCD algo from wikipedia */
 /* http://en.wikipedia.org/wiki/Greatest_common_divisor */
-static uint32_t gcd(uint32_t u, uint32_t v)
-{
+static uint32_t gcd(uint32_t u, uint32_t v) {
 	int s;
 
 	if (!u || !v) {
@@ -349,8 +349,7 @@ static uint32_t gcd(uint32_t u, uint32_t v)
 	return u << s;
 }
 
-bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom)
-{
+bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom) {
 	const uint64_t VCO_FREQ = 800 * 1000 * 1000; /* 800 MHz */
 	uint32_t MSx_P1, MSx_P2, MSx_P3;
 	uint32_t a, b, c;
@@ -380,7 +379,7 @@ bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom)
 		} else {
 			/* Approximate */
 			c = (1 << 20) - 1;
-			b = ((uint64_t) c * (uint64_t) rem) / rate_num;
+			b = ((uint64_t)c * (uint64_t)rem) / rate_num;
 
 			g = gcd(b, c);
 			b /= g;
@@ -421,10 +420,12 @@ bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom)
 		si5351c_configure_multisynth(&clock_gen, 0, MSx_P1, MSx_P2, MSx_P3, 1);
 
 		/* MS0/CLK1 is the source for the CPLD (CODEC_X2_CLK). */
-		si5351c_configure_multisynth(&clock_gen, 1, 0, 0, 0, 0); //p1 doesn't matter
+		si5351c_configure_multisynth(&clock_gen, 1, 0, 0, 0,
+																 0);	// p1 doesn't matter
 
 		/* MS0/CLK2 is the source for SGPIO (CODEC_X2_CLK) */
-		si5351c_configure_multisynth(&clock_gen, 2, 0, 0, 0, 0); //p1 doesn't matter
+		si5351c_configure_multisynth(&clock_gen, 2, 0, 0, 0,
+																 0);	// p1 doesn't matter
 	}
 
 	if (streaming) {
@@ -434,56 +435,55 @@ bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom)
 	return true;
 }
 
-bool sample_rate_set(const uint32_t sample_rate_hz)
-{
+bool sample_rate_set(const uint32_t sample_rate_hz) {
 	uint32_t p1 = 4608;
 	uint32_t p2 = 0;
 	uint32_t p3 = 0;
 
 	switch (sample_rate_hz) {
-	case 8000000:
-		p1 = SI_INTDIV(50); // 800MHz / 50 = 16 MHz (SGPIO), 8 MHz (codec)
-		break;
+		case 8000000:
+			p1 = SI_INTDIV(50);	 // 800MHz / 50 = 16 MHz (SGPIO), 8 MHz (codec)
+			break;
 
-	case 9216000:
-		// 43.40277777777778: a = 43; b = 29; c = 72
-		p1 = 5043;
-		p2 = 40;
-		p3 = 72;
-		break;
+		case 9216000:
+			// 43.40277777777778: a = 43; b = 29; c = 72
+			p1 = 5043;
+			p2 = 40;
+			p3 = 72;
+			break;
 
-	case 10000000:
-		p1 = SI_INTDIV(40); // 800MHz / 40 = 20 MHz (SGPIO), 10 MHz (codec)
-		break;
+		case 10000000:
+			p1 = SI_INTDIV(40);	 // 800MHz / 40 = 20 MHz (SGPIO), 10 MHz (codec)
+			break;
 
-	case 12288000:
-		// 32.552083333333336: a = 32; b = 159; c = 288
-		p1 = 3654;
-		p2 = 192;
-		p3 = 288;
-		break;
+		case 12288000:
+			// 32.552083333333336: a = 32; b = 159; c = 288
+			p1 = 3654;
+			p2 = 192;
+			p3 = 288;
+			break;
 
-	case 12500000:
-		p1 = SI_INTDIV(32); // 800MHz / 32 = 25 MHz (SGPIO), 12.5 MHz (codec)
-		break;
+		case 12500000:
+			p1 = SI_INTDIV(32);	 // 800MHz / 32 = 25 MHz (SGPIO), 12.5 MHz (codec)
+			break;
 
-	case 16000000:
-		p1 = SI_INTDIV(25); // 800MHz / 25 = 32 MHz (SGPIO), 16 MHz (codec)
-		break;
+		case 16000000:
+			p1 = SI_INTDIV(25);	 // 800MHz / 25 = 32 MHz (SGPIO), 16 MHz (codec)
+			break;
 
-	case 18432000:
-		// 21.70138888889: a = 21; b = 101; c = 144
-		p1 = 2265;
-		p2 = 112;
-		p3 = 144;
-		break;
+		case 18432000:
+			// 21.70138888889: a = 21; b = 101; c = 144
+			p1 = 2265;
+			p2 = 112;
+			p3 = 144;
+			break;
 
-	case 20000000:
-		p1 = SI_INTDIV(20); // 800MHz / 20 = 40 MHz (SGPIO), 20 MHz (codec)
-		break;
+		case 20000000:
+			p1 = SI_INTDIV(20);	 // 800MHz / 20 = 40 MHz (SGPIO), 20 MHz (codec)
+			break;
 
-	default:
-		return false;
+		default:
+			return false;
 	}
 
 	if (detected_platform() == BOARD_ID_HACKRF1_R9) {
@@ -501,29 +501,18 @@ bool sample_rate_set(const uint32_t sample_rate_hz)
 		si5351c_configure_multisynth(&clock_gen, 0, p1, p2, p3, 1);
 
 		/* MS0/CLK1 is the source for the CPLD (CODEC_X2_CLK). */
-		si5351c_configure_multisynth(
-			&clock_gen,
-			1,
-			p1,
-			0,
-			1,
-			0); //p1 doesn't matter
+		si5351c_configure_multisynth(&clock_gen, 1, p1, 0, 1,
+																 0);	// p1 doesn't matter
 
 		/* MS0/CLK2 is the source for SGPIO (CODEC_X2_CLK) */
-		si5351c_configure_multisynth(
-			&clock_gen,
-			2,
-			p1,
-			0,
-			1,
-			0); //p1 doesn't matter
+		si5351c_configure_multisynth(&clock_gen, 2, p1, 0, 1,
+																 0);	// p1 doesn't matter
 	}
 
 	return true;
 }
 
-bool baseband_filter_bandwidth_set(const uint32_t bandwidth_hz)
-{
+bool baseband_filter_bandwidth_set(const uint32_t bandwidth_hz) {
 	uint32_t bandwidth_hz_real;
 	bandwidth_hz_real = max283x_set_lpf_bandwidth(&max283x, bandwidth_hz);
 
@@ -534,13 +523,12 @@ bool baseband_filter_bandwidth_set(const uint32_t bandwidth_hz)
 	return bandwidth_hz_real != 0;
 }
 
-/* 
+/*
 Configure PLL1 (Main MCU Clock) to max speed (204MHz).
 Note: PLL1 clock is used by M4/M0 core, Peripheral, APB1.
 This function shall be called after cpu_clock_init().
 */
-static void cpu_clock_pll1_max_speed(void)
-{
+static void cpu_clock_pll1_max_speed(void) {
 	uint32_t reg_val;
 
 	/* This function implements the sequence recommended in:
@@ -549,7 +537,8 @@ static void cpu_clock_pll1_max_speed(void)
 	/* 1. Select the IRC as BASE_M4_CLK source. */
 	reg_val = CGU_BASE_M4_CLK;
 	reg_val &= ~CGU_BASE_M4_CLK_CLK_SEL_MASK;
-	reg_val |= CGU_BASE_M4_CLK_CLK_SEL(CGU_SRC_IRC) | CGU_BASE_M4_CLK_AUTOBLOCK(1);
+	reg_val |=
+			CGU_BASE_M4_CLK_CLK_SEL(CGU_SRC_IRC) | CGU_BASE_M4_CLK_AUTOBLOCK(1);
 	CGU_BASE_M4_CLK = reg_val;
 
 	/* 2. Enable the crystal oscillator. */
@@ -585,7 +574,8 @@ static void cpu_clock_pll1_max_speed(void)
 	CGU_PLL1_CTRL = reg_val;
 
 	/* 6. Wait for PLL1 to lock. */
-	while (!(CGU_PLL1_STAT & CGU_PLL1_STAT_LOCK_MASK)) {}
+	while (!(CGU_PLL1_STAT & CGU_PLL1_STAT_LOCK_MASK)) {
+	}
 
 	/* 7. Set the PLL1 P-divider to divide by 2 (DIRECT=0, PSEL=0). */
 	CGU_PLL1_CTRL &= ~CGU_PLL1_CTRL_DIRECT_MASK;
@@ -605,8 +595,7 @@ static void cpu_clock_pll1_max_speed(void)
 
 /* clock startup for LPC4320 configure PLL1 to max speed (204MHz).
 Note: PLL1 clock is used by M4/M0 core, Peripheral, APB1. */
-void cpu_clock_init(void)
-{
+void cpu_clock_init(void) {
 	/* use IRC as clock source for APB1 (including I2C0) */
 	CGU_BASE_APB1_CLK = CGU_BASE_APB1_CLK_CLK_SEL(CGU_SRC_IRC);
 
@@ -643,30 +632,15 @@ void cpu_clock_init(void)
 
 	if (detected_platform() == BOARD_ID_HACKRF1_R9) {
 		/* MS0/CLK0 is the reference for both RFFC5071 and MAX2839. */
-		si5351c_configure_multisynth(
-			&clock_gen,
-			0,
-			20 * 128 - 512,
-			0,
-			1,
-			0); /* 800/20 = 40MHz */
+		si5351c_configure_multisynth(&clock_gen, 0, 20 * 128 - 512, 0, 1,
+																 0); /* 800/20 = 40MHz */
 	} else {
 		/* MS4/CLK4 is the source for the RFFC5071 mixer (MAX2837 on rad1o). */
-		si5351c_configure_multisynth(
-			&clock_gen,
-			4,
-			20 * 128 - 512,
-			0,
-			1,
-			0); /* 800/20 = 40MHz */
+		si5351c_configure_multisynth(&clock_gen, 4, 20 * 128 - 512, 0, 1,
+																 0); /* 800/20 = 40MHz */
 		/* MS5/CLK5 is the source for the MAX2837 clock input (MAX2871 on rad1o). */
-		si5351c_configure_multisynth(
-			&clock_gen,
-			5,
-			20 * 128 - 512,
-			0,
-			1,
-			0); /* 800/20 = 40MHz */
+		si5351c_configure_multisynth(&clock_gen, 5, 20 * 128 - 512, 0, 1,
+																 0); /* 800/20 = 40MHz */
 	}
 
 	/* MS6/CLK6 is unused. */
@@ -680,17 +654,17 @@ void cpu_clock_init(void)
 	si5351c_reset_pll(&clock_gen);
 	si5351c_enable_clock_outputs(&clock_gen);
 
-	//FIXME disable I2C
+	// FIXME disable I2C
 	/* Kick I2C0 down to 400kHz when we switch over to APB1 clock = 204MHz */
 	i2c_bus_start(clock_gen.bus, &i2c_config_si5351c_fast_clock);
-	
+
 	/*
 	 * 12MHz clock is entering LPC XTAL1/OSC input now.
 	 * On HackRF One and Jawbreaker, there is a 12 MHz crystal at the LPC.
 	 * Set up PLL1 to run from XTAL1 input.
 	 */
 
-	//FIXME a lot of the details here should be in a CGU driver
+	// FIXME a lot of the details here should be in a CGU driver
 
 	/* set xtal oscillator to low frequency mode */
 	CGU_XTAL_OSC_CTRL &= ~CGU_XTAL_OSC_CTRL_HF_MASK;
@@ -699,50 +673,51 @@ void cpu_clock_init(void)
 
 	/* use XTAL_OSC as clock source for APB1 */
 	CGU_BASE_APB1_CLK =
-		CGU_BASE_APB1_CLK_AUTOBLOCK(1) | CGU_BASE_APB1_CLK_CLK_SEL(CGU_SRC_XTAL);
+			CGU_BASE_APB1_CLK_AUTOBLOCK(1) | CGU_BASE_APB1_CLK_CLK_SEL(CGU_SRC_XTAL);
 
 	/* use XTAL_OSC as clock source for APB3 */
 	CGU_BASE_APB3_CLK =
-		CGU_BASE_APB3_CLK_AUTOBLOCK(1) | CGU_BASE_APB3_CLK_CLK_SEL(CGU_SRC_XTAL);
+			CGU_BASE_APB3_CLK_AUTOBLOCK(1) | CGU_BASE_APB3_CLK_CLK_SEL(CGU_SRC_XTAL);
 
 	/* use XTAL_OSC as clock source for PLL0USB */
 	CGU_PLL0USB_CTRL = CGU_PLL0USB_CTRL_PD(1) | CGU_PLL0USB_CTRL_AUTOBLOCK(1) |
-		CGU_PLL0USB_CTRL_CLK_SEL(CGU_SRC_XTAL);
-	while (CGU_PLL0USB_STAT & CGU_PLL0USB_STAT_LOCK_MASK) {}
+										 CGU_PLL0USB_CTRL_CLK_SEL(CGU_SRC_XTAL);
+	while (CGU_PLL0USB_STAT & CGU_PLL0USB_STAT_LOCK_MASK) {
+	}
 
 	/* configure PLL0USB to produce 480 MHz clock from 12 MHz XTAL_OSC */
 	/* Values from User Manual v1.4 Table 94, for 12MHz oscillator. */
 	CGU_PLL0USB_MDIV = 0x06167FFA;
 	CGU_PLL0USB_NP_DIV = 0x00302062;
-	CGU_PLL0USB_CTRL |=
-		(CGU_PLL0USB_CTRL_PD(1) | CGU_PLL0USB_CTRL_DIRECTI(1) |
-		 CGU_PLL0USB_CTRL_DIRECTO(1) | CGU_PLL0USB_CTRL_CLKEN(1));
+	CGU_PLL0USB_CTRL |= (CGU_PLL0USB_CTRL_PD(1) | CGU_PLL0USB_CTRL_DIRECTI(1) |
+											 CGU_PLL0USB_CTRL_DIRECTO(1) | CGU_PLL0USB_CTRL_CLKEN(1));
 
 	/* power on PLL0USB and wait until stable */
 	CGU_PLL0USB_CTRL &= ~CGU_PLL0USB_CTRL_PD_MASK;
-	while (!(CGU_PLL0USB_STAT & CGU_PLL0USB_STAT_LOCK_MASK)) {}
+	while (!(CGU_PLL0USB_STAT & CGU_PLL0USB_STAT_LOCK_MASK)) {
+	}
 
 	/* use PLL0USB as clock source for USB0 */
 	CGU_BASE_USB0_CLK = CGU_BASE_USB0_CLK_AUTOBLOCK(1) |
-		CGU_BASE_USB0_CLK_CLK_SEL(CGU_SRC_PLL0USB);
+											CGU_BASE_USB0_CLK_CLK_SEL(CGU_SRC_PLL0USB);
 
 	/* Switch peripheral clock over to use PLL1 (204MHz) */
 	CGU_BASE_PERIPH_CLK = CGU_BASE_PERIPH_CLK_AUTOBLOCK(1) |
-		CGU_BASE_PERIPH_CLK_CLK_SEL(CGU_SRC_PLL1);
+												CGU_BASE_PERIPH_CLK_CLK_SEL(CGU_SRC_PLL1);
 
 	/* Switch APB1 clock over to use PLL1 (204MHz) */
 	CGU_BASE_APB1_CLK =
-		CGU_BASE_APB1_CLK_AUTOBLOCK(1) | CGU_BASE_APB1_CLK_CLK_SEL(CGU_SRC_PLL1);
+			CGU_BASE_APB1_CLK_AUTOBLOCK(1) | CGU_BASE_APB1_CLK_CLK_SEL(CGU_SRC_PLL1);
 
 	/* Switch APB3 clock over to use PLL1 (204MHz) */
 	CGU_BASE_APB3_CLK =
-		CGU_BASE_APB3_CLK_AUTOBLOCK(1) | CGU_BASE_APB3_CLK_CLK_SEL(CGU_SRC_PLL1);
+			CGU_BASE_APB3_CLK_AUTOBLOCK(1) | CGU_BASE_APB3_CLK_CLK_SEL(CGU_SRC_PLL1);
 
 	CGU_BASE_SSP0_CLK =
-		CGU_BASE_SSP0_CLK_AUTOBLOCK(1) | CGU_BASE_SSP0_CLK_CLK_SEL(CGU_SRC_PLL1);
+			CGU_BASE_SSP0_CLK_AUTOBLOCK(1) | CGU_BASE_SSP0_CLK_CLK_SEL(CGU_SRC_PLL1);
 
 	CGU_BASE_SSP1_CLK =
-		CGU_BASE_SSP1_CLK_AUTOBLOCK(1) | CGU_BASE_SSP1_CLK_CLK_SEL(CGU_SRC_PLL1);
+			CGU_BASE_SSP1_CLK_AUTOBLOCK(1) | CGU_BASE_SSP1_CLK_CLK_SEL(CGU_SRC_PLL1);
 
 #if (defined JAWBREAKER || defined HACKRF_ONE)
 	/* Disable unused clocks */
@@ -757,13 +732,15 @@ void cpu_clock_init(void)
 	CGU_IDIVE_CTRL = CGU_IDIVE_CTRL_PD(1);
 
 	/* Base clocks */
-	CGU_BASE_SPIFI_CLK = CGU_BASE_SPIFI_CLK_PD(1); /* SPIFI is only used at boot */
-	CGU_BASE_USB1_CLK = CGU_BASE_USB1_CLK_PD(1);   /* USB1 is not exposed on HackRF */
+	CGU_BASE_SPIFI_CLK =
+			CGU_BASE_SPIFI_CLK_PD(1); /* SPIFI is only used at boot */
+	CGU_BASE_USB1_CLK =
+			CGU_BASE_USB1_CLK_PD(1); /* USB1 is not exposed on HackRF */
 	CGU_BASE_PHY_RX_CLK = CGU_BASE_PHY_RX_CLK_PD(1);
 	CGU_BASE_PHY_TX_CLK = CGU_BASE_PHY_TX_CLK_PD(1);
 	CGU_BASE_LCD_CLK = CGU_BASE_LCD_CLK_PD(1);
 	CGU_BASE_VADC_CLK = CGU_BASE_VADC_CLK_PD(1);
-	//CGU_BASE_SDIO_CLK = CGU_BASE_SDIO_CLK_PD(1); // << BREAKS
+	// CGU_BASE_SDIO_CLK = CGU_BASE_SDIO_CLK_PD(1); // << BREAKS
 	CGU_BASE_UART0_CLK = CGU_BASE_UART0_CLK_PD(1);
 	CGU_BASE_UART1_CLK = CGU_BASE_UART1_CLK_PD(1);
 	CGU_BASE_UART2_CLK = CGU_BASE_UART2_CLK_PD(1);
@@ -781,7 +758,7 @@ void cpu_clock_init(void)
 	CCU1_CLK_APB3_ADC1_CFG = 0;
 	CCU1_CLK_APB3_CAN0_CFG = 0;
 	CCU1_CLK_APB3_DAC_CFG = 0;
-	//CCU1_CLK_M4_DMA_CFG = 0;
+	// CCU1_CLK_M4_DMA_CFG = 0;
 	CCU1_CLK_M4_EMC_CFG = 0;
 	CCU1_CLK_M4_EMCDIV_CFG = 0;
 	CCU1_CLK_M4_ETHERNET_CFG = 0;
@@ -789,11 +766,11 @@ void cpu_clock_init(void)
 	CCU1_CLK_M4_QEI_CFG = 0;
 	CCU1_CLK_M4_RITIMER_CFG = 0;
 	// CCU1_CLK_M4_SCT_CFG = 0;
-	//CCU1_CLK_M4_SDIO_CFG = 0; // << BREAKS
+	// CCU1_CLK_M4_SDIO_CFG = 0; // << BREAKS
 	CCU1_CLK_M4_SPIFI_CFG = 0;
 	CCU1_CLK_M4_TIMER0_CFG = 0;
-	//CCU1_CLK_M4_TIMER1_CFG = 0;
-	//CCU1_CLK_M4_TIMER2_CFG = 0;
+	// CCU1_CLK_M4_TIMER1_CFG = 0;
+	// CCU1_CLK_M4_TIMER2_CFG = 0;
 	CCU1_CLK_M4_TIMER3_CFG = 0;
 	CCU1_CLK_M4_UART1_CFG = 0;
 	CCU1_CLK_M4_USART0_CFG = 0;
@@ -817,10 +794,10 @@ void cpu_clock_init(void)
 	}
 }
 
-clock_source_t activate_best_clock_source(void)
-{
+clock_source_t activate_best_clock_source(void) {
 #ifdef HACKRF_ONE
-	/* Ensure PortaPack reference oscillator is off while checking for external clock input. */
+	/* Ensure PortaPack reference oscillator is off while checking for external
+	 * clock input. */
 	if (portapack_reference_oscillator && portapack()) {
 		portapack_reference_oscillator(false);
 	}
@@ -833,10 +810,12 @@ clock_source_t activate_best_clock_source(void)
 		source = CLOCK_SOURCE_EXTERNAL;
 	} else {
 #ifdef HACKRF_ONE
-		/* Enable PortaPack reference oscillator (if present), and check for valid clock. */
+		/* Enable PortaPack reference oscillator (if present), and check for valid
+		 * clock. */
 		if (portapack_reference_oscillator && portapack()) {
 			portapack_reference_oscillator(true);
-			delay(510000); /* loop iterations @ 204MHz for >10ms for oscillator to enable. */
+			delay(510000); /* loop iterations @ 204MHz for >10ms for oscillator to
+												enable. */
 			if (si5351c_clkin_signal_valid(&clock_gen)) {
 				source = CLOCK_SOURCE_PORTAPACK;
 			} else {
@@ -847,27 +826,24 @@ clock_source_t activate_best_clock_source(void)
 		/* No external or PortaPack clock was found. Use HackRF Si5351C crystal. */
 	}
 
-	si5351c_set_clock_source(
-		&clock_gen,
-		(source == CLOCK_SOURCE_HACKRF) ? PLL_SOURCE_XTAL : PLL_SOURCE_CLKIN);
+	si5351c_set_clock_source(&clock_gen, (source == CLOCK_SOURCE_HACKRF)
+																					 ? PLL_SOURCE_XTAL
+																					 : PLL_SOURCE_CLKIN);
 	hackrf_ui()->set_clock_source(source);
 	return source;
 }
 
-void ssp1_set_mode_max283x(void)
-{
+void ssp1_set_mode_max283x(void) {
 	spi_bus_start(&spi_bus_ssp1, &ssp_config_max283x);
 }
 
-void ssp1_set_mode_max5864(void)
-{
+void ssp1_set_mode_max5864(void) {
 	spi_bus_start(max5864.bus, &ssp_config_max5864);
 }
 
-void pin_setup(void)
-{
+void pin_setup(void) {
 	/* Configure all GPIO as Input (safe state) */
-	//gpio_init();
+	// gpio_init();
 
 	/* TDI and TMS pull-ups are required in all JTAG-compliant devices.
 	 *
@@ -973,8 +949,7 @@ void pin_setup(void)
 	sgpio_configure_pin_functions(&sgpio_config);
 }
 
-void enable_1v8_power(void)
-{
+void enable_1v8_power(void) {
 	if (detected_platform() == BOARD_ID_HACKRF1_R9) {
 #ifdef HACKRF_ONE
 		gpio_set(&gpio_h1r9_1v8_enable);
@@ -984,8 +959,7 @@ void enable_1v8_power(void)
 	}
 }
 
-void disable_1v8_power(void)
-{
+void disable_1v8_power(void) {
 	if (detected_platform() == BOARD_ID_HACKRF1_R9) {
 #ifdef HACKRF_ONE
 		gpio_clear(&gpio_h1r9_1v8_enable);
@@ -996,8 +970,7 @@ void disable_1v8_power(void)
 }
 
 #ifdef HACKRF_ONE
-void enable_rf_power(void)
-{
+void enable_rf_power(void) {
 	uint32_t i;
 
 	/* many short pulses to avoid one big voltage glitch */
@@ -1012,8 +985,7 @@ void enable_rf_power(void)
 	}
 }
 
-void disable_rf_power(void)
-{
+void disable_rf_power(void) {
 	if (detected_platform() == BOARD_ID_HACKRF1_R9) {
 		gpio_set(&gpio_h1r9_vaa_disable);
 	} else {
@@ -1023,37 +995,31 @@ void disable_rf_power(void)
 #endif
 
 #ifdef RAD1O
-void enable_rf_power(void)
-{
+void enable_rf_power(void) {
 	gpio_set(&gpio_vaa_enable);
 
 	/* Let the voltage stabilize */
 	delay(1000000);
 }
 
-void disable_rf_power(void)
-{
+void disable_rf_power(void) {
 	gpio_clear(&gpio_vaa_enable);
 }
 #endif
 
-void led_on(const led_t led)
-{
+void led_on(const led_t led) {
 	gpio_set(&gpio_led[led]);
 }
 
-void led_off(const led_t led)
-{
+void led_off(const led_t led) {
 	gpio_clear(&gpio_led[led]);
 }
 
-void led_toggle(const led_t led)
-{
+void led_toggle(const led_t led) {
 	gpio_toggle(&gpio_led[led]);
 }
 
-void set_leds(const uint8_t state)
-{
+void set_leds(const uint8_t state) {
 	int num_leds = 3;
 #ifdef RAD1O
 	num_leds = 4;
@@ -1063,13 +1029,11 @@ void set_leds(const uint8_t state)
 	}
 }
 
-void hw_sync_enable(const hw_sync_mode_t hw_sync_mode)
-{
+void hw_sync_enable(const hw_sync_mode_t hw_sync_mode) {
 	gpio_write(sgpio_config.gpio_hw_sync_enable, hw_sync_mode == 1);
 }
 
-void halt_and_flash(const uint32_t duration)
-{
+void halt_and_flash(const uint32_t duration) {
 	/* blink LED1, LED2, and LED3 */
 	while (1) {
 		led_on(LED1);

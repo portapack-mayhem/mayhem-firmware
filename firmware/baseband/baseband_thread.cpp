@@ -43,19 +43,15 @@ WORKING_AREA(baseband_thread_wa, 4096);
 
 Thread* BasebandThread::thread = nullptr;
 
-BasebandThread::BasebandThread(
-	uint32_t sampling_rate,
-	BasebandProcessor* const baseband_processor,
-	const tprio_t priority,
-	baseband::Direction direction
-) : baseband_processor { baseband_processor },
-	_direction { direction },
-	sampling_rate { sampling_rate }
-{
+BasebandThread::BasebandThread(uint32_t sampling_rate,
+															 BasebandProcessor* const baseband_processor,
+															 const tprio_t priority,
+															 baseband::Direction direction)
+		: baseband_processor{baseband_processor},
+			_direction{direction},
+			sampling_rate{sampling_rate} {
 	thread = chThdCreateStatic(baseband_thread_wa, sizeof(baseband_thread_wa),
-		priority, ThreadBase::fn,
-		this
-	);
+														 priority, ThreadBase::fn, this);
 }
 
 BasebandThread::~BasebandThread() {
@@ -72,26 +68,22 @@ void BasebandThread::run() {
 	baseband_sgpio.init();
 	baseband::dma::init();
 
-	const auto baseband_buffer = std::make_unique<std::array<baseband::sample_t, 8192>>();
-	baseband::dma::configure(
-		baseband_buffer->data(),
-		direction()
-	);
-	//baseband::dma::allocate(4, 2048);
+	const auto baseband_buffer =
+			std::make_unique<std::array<baseband::sample_t, 8192>>();
+	baseband::dma::configure(baseband_buffer->data(), direction());
+	// baseband::dma::allocate(4, 2048);
 
 	baseband_sgpio.configure(direction());
 	baseband::dma::enable(direction());
 	baseband_sgpio.streaming_enable();
 
-	while( !chThdShouldTerminate() ) {
+	while (!chThdShouldTerminate()) {
 		// TODO: Place correct sampling rate into buffer returned here:
 		const auto buffer_tmp = baseband::dma::wait_for_buffer();
-		if( buffer_tmp ) {
-			buffer_c8_t buffer {
-				buffer_tmp.p, buffer_tmp.count, sampling_rate
-			};
+		if (buffer_tmp) {
+			buffer_c8_t buffer{buffer_tmp.p, buffer_tmp.count, sampling_rate};
 
-			if( baseband_processor ) {
+			if (baseband_processor) {
 				baseband_processor->execute(buffer);
 			}
 		}

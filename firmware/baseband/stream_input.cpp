@@ -24,17 +24,17 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-StreamInput::StreamInput(CaptureConfig* const config) :
-	fifo_buffers_empty { buffers_empty.data(), buffer_count_max_log2 },
-	fifo_buffers_full { buffers_full.data(), buffer_count_max_log2 },
-	config { config },
-	data { std::make_unique<uint8_t[]>(config->write_size * config->buffer_count) }
-{
+StreamInput::StreamInput(CaptureConfig* const config)
+		: fifo_buffers_empty{buffers_empty.data(), buffer_count_max_log2},
+			fifo_buffers_full{buffers_full.data(), buffer_count_max_log2},
+			config{config},
+			data{std::make_unique<uint8_t[]>(config->write_size *
+																			 config->buffer_count)} {
 	config->fifo_buffers_empty = &fifo_buffers_empty;
 	config->fifo_buffers_full = &fifo_buffers_full;
 
-	for(size_t i=0; i<config->buffer_count; i++) {
-		buffers[i] = { &(data.get()[i * config->write_size]), config->write_size };
+	for (size_t i = 0; i < config->buffer_count; i++) {
+		buffers[i] = {&(data.get()[i * config->write_size]), config->write_size};
 		fifo_buffers_empty.in(&buffers[i]);
 	}
 }
@@ -43,20 +43,20 @@ size_t StreamInput::write(const void* const data, const size_t length) {
 	const uint8_t* p = static_cast<const uint8_t*>(data);
 	size_t written = 0;
 
-	while( written < length ) {
-		if( !active_buffer ) {
+	while (written < length) {
+		if (!active_buffer) {
 			// We need an empty buffer...
-			if( !fifo_buffers_empty.out(active_buffer) ) {
+			if (!fifo_buffers_empty.out(active_buffer)) {
 				// ...but none are available. Samples were dropped.
 				break;
 			}
 		}
-		
+
 		const auto remaining = length - written;
 		written += active_buffer->write(&p[written], remaining);
 
-		if( active_buffer->is_full() ) {
-			if( !fifo_buffers_full.in(active_buffer) ) {
+		if (active_buffer->is_full()) {
+			if (!fifo_buffers_full.in(active_buffer)) {
 				// FIFO is full of buffers, there's no place for this one.
 				// Bail out of the loop, and try submitting the buffer in the
 				// next pass.

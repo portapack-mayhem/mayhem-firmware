@@ -53,5 +53,5 @@ uint8_t get_cpu_utilisation_in_percent() {
 		return 100;
 	}
 
-    return (uint8_t) utilisation;
+	return (uint8_t)utilisation;
 }

@@ -33,7 +33,7 @@ namespace {
 
 bool card_present = false;
 
-Status status_ { Status::NotPresent };
+Status status_{Status::NotPresent};
 
 FRESULT mount() {
 	return f_mount(&fs, reinterpret_cast<const TCHAR*>(_T("")), 0);
@@ -45,14 +45,14 @@ Signal<Status> status_signal;
 
 void poll_inserted() {
 	const auto card_present_now = sdcIsCardInserted(&SDCD1);
-	if( card_present_now != card_present ) {
+	if (card_present_now != card_present) {
 		card_present = card_present_now;
 
-		Status new_status { card_present ? Status::Present : Status::NotPresent };
+		Status new_status{card_present ? Status::Present : Status::NotPresent};
 
-		if( card_present ) {
-			if( sdcConnect(&SDCD1) == CH_SUCCESS ) {
-				if( mount() == FR_OK ) {
+		if (card_present) {
+			if (sdcConnect(&SDCD1) == CH_SUCCESS) {
+				if (mount() == FR_OK) {
 					new_status = Status::Mounted;
 				} else {
 					new_status = Status::MountError;
