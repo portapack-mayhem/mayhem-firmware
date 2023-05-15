@@ -266,7 +266,6 @@ namespace ui {
 
                 //FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
                 if( (!scanner_mode) && autosave && frequency_list.size() > 0 ) {
-                    freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
                     ReconSaveFreq( freq_file_path , current_index , false );
                 }
             }
@@ -636,8 +635,6 @@ namespace ui {
 
                         File freqman_file;
 
-                        std::string freq_file_path = "FREQMAN/" + output_file + ".TXT";
-
                         delete_file( freq_file_path );
 
                         auto result = freqman_file.create( freq_file_path );
@@ -656,7 +653,6 @@ namespace ui {
                 {
                     File recon_file;
                     File tmp_recon_file;
-                    std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
                     std::string tmp_freq_file_path = freq_file_path+".TMP" ;
                     std::string frequency_to_add ;
 
@@ -712,7 +708,7 @@ namespace ui {
             {
                 text_cycle.set_text( " " );
                 desc_cycle.set( "no entries in list" ); //Show new description
-                delete_file( "FREQMAN/"+output_file+".TXT" );
+                delete_file( freq_file_path );
             }
             timer = 0 ;
             freq_lock = 0 ;
@@ -823,7 +819,6 @@ namespace ui {
         button_add.on_select = [this](ButtonWithEncoder&) {  //frequency_list[current_index]
             if( !scanner_mode)
             {
-                freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
                 ReconSaveFreq( freq_file_path , current_index , true );
             }
         };
@@ -868,6 +863,7 @@ namespace ui {
             open_view -> on_changed = [this](std::vector<std::string> result) {
                 input_file = result[0];
                 output_file = result[1];
+                freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
                 recon_lock_duration = strtol( result[2].c_str() , nullptr , 10 );
                 recon_lock_nb_match = strtol( result[3].c_str() , nullptr , 10 );
                 recon_match_mode = strtol( result[4].c_str() , nullptr , 10 );
@@ -958,6 +954,7 @@ namespace ui {
 
         //Loading input and output file from settings
         ReconSetupLoadStrings( "RECON/RECON.CFG" , input_file , output_file , recon_lock_duration , recon_lock_nb_match , squelch , recon_match_mode , wait , volume );
+        freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
 
         field_squelch.set_value( squelch );
         field_wait.set_value(wait);
@@ -975,7 +972,7 @@ namespace ui {
 
         if( filedelete )
         {
-            delete_file( "FREQMAN/"+output_file+".TXT" );
+            delete_file( freq_file_path );
         }
 
         frequency_file_load( false ); /* do not stop all at start */
