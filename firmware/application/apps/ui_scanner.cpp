@@ -205,33 +205,33 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
 	current_index = freq_idx;	//since it is an ongoing scan, this is a new index
 	current_frequency = freq;
 
-	if (scan_thread)
-	switch (scan_thread->is_freq_lock())
-	{
-	case 0:										//NO FREQ LOCK, ONGOING STANDARD SCANNING
-		bigdisplay_update(BDC_GREY);
-		break;
-	case 1:										//STARTING LOCK FREQ
-		bigdisplay_update(BDC_YELLOW);
-		break;
-	case MAX_FREQ_LOCK:							//FREQ IS STRONG: GREEN and scanner will pause when on_statistics_update()
-		bigdisplay_update(BDC_GREEN);
-		break;
-	default:	//freq lock is checking the signal, do not update display
-		return;
+	if (scan_thread) {
+		switch (scan_thread->is_freq_lock())
+		{
+		case 0:										//NO FREQ LOCK, ONGOING STANDARD SCANNING
+			bigdisplay_update(BDC_GREY);
+			break;
+		case 1:										//STARTING LOCK FREQ
+			bigdisplay_update(BDC_YELLOW);
+			break;
+		case MAX_FREQ_LOCK:							//FREQ IS STRONG: GREEN and scanner will pause when on_statistics_update()
+			bigdisplay_update(BDC_GREEN);
+			break;
+		default:	//freq lock is checking the signal, do not update display
+			return;
+		}
 	}
 
-		if (!manual_search) {
-			if (frequency_list.size() > 0) {
-				text_current_index.set( to_string_dec_uint(freq_idx + 1, 3) );
-			}
-
-			if (freq_idx < description_list.size() && description_list[freq_idx].size() > 1)
-				desc_current_index.set( description_list[freq_idx] );	//Show description from file
-			else
-				desc_current_index.set(desc_freq_list_scan);			//Show Scan file name (no description in file)
+	if (!manual_search) {
+		if (frequency_list.size() > 0) {
+			text_current_index.set( to_string_dec_uint(freq_idx + 1, 3) );
 		}
 
+		if (freq_idx < description_list.size() && description_list[freq_idx].size() > 1)
+			desc_current_index.set( description_list[freq_idx] );	//Show description from file
+		else
+			desc_current_index.set(desc_freq_list_scan);			//Show Scan file name (no description in file)
+	}
 }
 
 void ScannerView::focus() {
