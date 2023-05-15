@@ -391,9 +391,9 @@ void ClockManager::init_clock_generator() {
 
 	// Wait for PLL(s) to lock.
 	uint8_t device_status_mask =
-			hackrf_r9
-					? 0x20
-					: (ref_pll == ClockControl::MultiSynthSource::PLLB) ? 0x40 : 0x20;
+			hackrf_r9																						? 0x20
+			: (ref_pll == ClockControl::MultiSynthSource::PLLB) ? 0x40
+																													: 0x20;
 	while ((clock_generator.device_status() & device_status_mask) != 0)
 		;
 
