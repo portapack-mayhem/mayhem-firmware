@@ -48,7 +48,7 @@ options_t freqman_entry_bandwidths[ 4 ] = {
     { //WFM
         { "200k" , 0 },
         { "180k" , 1 },
-        { "40k"  , 2 },
+        { " 40k" , 2 },
     }
 };
 
@@ -145,6 +145,10 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
 
         // Reset line_start to beginning of buffer
         line_start = file_data;
+
+        // If EOF reached, insert 0x0A after, in case the last line doesn't have a C/R
+        if (read_size.value() < 256)
+            *(line_start + read_size.value()) = 0x0A;
 
         // Look for complete lines in buffer
         while ((line_end = strstr(line_start, "\x0A"))) {
