@@ -299,6 +299,11 @@ void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t d
 	send_message(&message);
 }
 
+void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw){
+	SpectrumPainterBufferConfigureRequestMessage message { width, height, update, bw };
+	send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag) {
