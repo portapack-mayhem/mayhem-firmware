@@ -224,12 +224,10 @@ class MicTXView : public View {
 					{"OFF+04dB", 2},	// WM8731 Mic Boost OFF to avoid ADC sat in high
 														// voice  ,relative  G =  +04 dB's (respect ref
 														// level) , always effective sampling 24khz
-					{"OFF-02dB",
-					 3},	// WM8731 Mic Boost OFF to avoid ADC sat in high voice ,relative
-								// G =  -02 dB's (respect ref level)
-					{"OFF-08dB",
-					 4},	// WM8731 Mic Boost OFF to avoid ADC sat in high voice ,relative
-								// G =  -12 dB's (respect ref level)
+					{"OFF-02dB", 3},	// WM8731 Mic Boost OFF to avoid ADC sat in high
+														// voice ,relative G =  -02 dB's (respect ref level)
+					{"OFF-08dB", 4},	// WM8731 Mic Boost OFF to avoid ADC sat in high
+														// voice ,relative G =  -12 dB's (respect ref level)
 			}};
 
 	FrequencyField field_frequency{

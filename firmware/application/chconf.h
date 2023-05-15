@@ -483,8 +483,9 @@
  *          terminate.
  */
 #if !defined(THREAD_EXT_EXIT_HOOK) || defined(__DOXYGEN__)
-#define THREAD_EXT_EXIT_HOOK(tp) \
-	{ /* Add threads finalization code here.*/ }
+#define THREAD_EXT_EXIT_HOOK(tp)             \
+	{ /* Add threads finalization code here.*/ \
+	}
 #endif
 
 /**
@@ -506,8 +507,9 @@
  * @details This hook is continuously invoked by the idle thread loop.
  */
 #if !defined(IDLE_LOOP_HOOK) || defined(__DOXYGEN__)
-#define IDLE_LOOP_HOOK() \
-	{ /* Idle loop code here.*/ }
+#define IDLE_LOOP_HOOK()      \
+	{ /* Idle loop code here.*/ \
+	}
 #endif
 
 /**
@@ -516,8 +518,9 @@
  *          after processing the virtual timers queue.
  */
 #if !defined(SYSTEM_TICK_EVENT_HOOK) || defined(__DOXYGEN__)
-#define SYSTEM_TICK_EVENT_HOOK() \
-	{ /* System tick event code here.*/ }
+#define SYSTEM_TICK_EVENT_HOOK()      \
+	{ /* System tick event code here.*/ \
+	}
 #endif
 
 /**
@@ -526,8 +529,9 @@
  *          the system is halted.
  */
 #if !defined(SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
-#define SYSTEM_HALT_HOOK() \
-	{ /* System halt code here.*/ }
+#define SYSTEM_HALT_HOOK()      \
+	{ /* System halt code here.*/ \
+	}
 #endif
 
 /** @} */
