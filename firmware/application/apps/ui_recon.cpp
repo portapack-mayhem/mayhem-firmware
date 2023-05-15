@@ -29,6 +29,64 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+    bool ReconView::ReconSaveFreq( const std::string &freq_file_path , size_t freq_index , bool warn_if_exists )
+    {
+        File recon_file;
+
+        if( frequency_list.size() == 0 || ( frequency_list.size() && current_index > (int32_t)frequency_list.size() ) )
+            return false ;
+
+        freqman_entry entry = frequency_list[ freq_index ] ;
+        entry . frequency_a =  freq ;
+        entry . frequency_b =  0 ;
+        entry . modulation =  last_entry.modulation ;
+        entry . bandwidth =  last_entry.bandwidth ;
+        entry . type = SINGLE ;
+
+        std::string frequency_to_add ;
+        get_freq_string( entry , frequency_to_add );
+
+        auto result = recon_file.open(freq_file_path); //First recon if freq is already in txt
+        if (!result.is_valid()) {
+            char one_char[1]; //Read it char by char
+            std::string line; //and put read line in here
+            bool found=false;
+            for (size_t pointer=0; pointer < recon_file.size();pointer++) {
+                recon_file.seek(pointer);
+                recon_file.read(one_char, 1);
+                if ((int)one_char[0] > 31) { //ascii space upwards
+                    line += one_char[0];     //add it to the textline
+                }
+                else if (one_char[0] == '\n') { //New Line
+                    if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
+                        found=true;
+                        break;
+                    }
+                    line.clear(); //Ready for next textline
+                }
+            }
+            if( !found) {
+                result = recon_file.append(freq_file_path); //Second: append if it is not there
+                if( !result.is_valid() )
+                {
+                    recon_file.write_line( frequency_to_add );
+                }
+            }
+            if(found && warn_if_exists)
+            {
+                nav_.display_modal("Error", "Frequency already exists");
+            }
+        }
+        else {
+            result = recon_file.create( freq_file_path ); //First freq if no output file
+            if( !result.is_valid() )
+            {
+                recon_file.write_line( frequency_to_add );
+            }
+        }
+        return true ;
+    }
+
     bool ReconView::ReconSetupLoadStrings( const std::string &source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume )
     {
         File settings_file;
@@ -208,53 +266,8 @@ namespace ui {
 
                 //FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
                 if( (!scanner_mode) && autosave && frequency_list.size() > 0 ) {
-                    File recon_file;
-                    std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
-                    std::string frequency_to_add ;
-
-                    freqman_entry entry = frequency_list[ current_index ] ;
-                    entry . frequency_a =  freq ;
-                    entry . frequency_b =  0 ;
-                    entry . modulation =  last_entry.modulation ;
-                    entry . bandwidth =  last_entry.bandwidth ;
-                    entry . type = SINGLE ;
-
-                    get_freq_string( entry , frequency_to_add );
-
-                    auto result = recon_file.open(freq_file_path); //First recon if freq is already in txt
-                    if (!result.is_valid()) {
-                        char one_char[1]; //Read it char by char
-                        std::string line; //and put read line in here
-                        bool found=false;
-                        for (size_t pointer=0; pointer < recon_file.size();pointer++) {
-                            recon_file.seek(pointer);
-                            recon_file.read(one_char, 1);
-                            if ((int)one_char[0] > 31) { //ascii space upwards
-                                line += one_char[0];     //add it to the textline
-                            }
-                            else if (one_char[0] == '\n') { //New Line
-                                if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-                                    found=true;
-                                    break;
-                                }
-                                line.clear(); //Ready for next textline
-                            }
-                        }
-                        if( !found) {
-                            result = recon_file.append(freq_file_path); //Second: append if it is not there
-                            if( !result.is_valid() )
-                            {
-                                recon_file.write_line( frequency_to_add );
-                            }
-                        }
-                    }
-                    else {
-                        result = recon_file.create( freq_file_path ); //First freq if no output file
-                        if( !result.is_valid() )
-                        {
-                            recon_file.write_line( frequency_to_add );
-                        }
-                    }
+                    freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
+                    ReconSaveFreq( freq_file_path , current_index , false );
                 }
             }
         }
@@ -810,60 +823,8 @@ namespace ui {
         button_add.on_select = [this](ButtonWithEncoder&) {  //frequency_list[current_index]
             if( !scanner_mode)
             {
-                if( frequency_list.size() && frequency_list.size() && current_index < (int32_t)frequency_list.size() )
-                {
-                    bool found=false;
-                    File recon_file;
-                    std::string freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
-                    std::string frequency_to_add ;
-
-                    freqman_entry entry = frequency_list[ current_index ] ;
-                    entry . frequency_a =  freq ;
-                    entry . frequency_b =  0 ;
-                    entry . modulation =  last_entry.modulation ;
-                    entry . bandwidth =  last_entry.bandwidth;
-                    entry . type = SINGLE ;
-
-                    get_freq_string( entry , frequency_to_add );
-
-                    auto result = recon_file.open(freq_file_path); //First recon if freq is already in txt
-                    if (!result.is_valid()) {
-                        char one_char[1]; //Read it char by char
-                        std::string line; //and put read line in here
-                        for (size_t pointer=0; pointer < recon_file.size();pointer++) {
-                            recon_file.seek(pointer);
-                            recon_file.read(one_char, 1);
-                            if ((int)one_char[0] > 31) { //ascii space upwards
-                                line += one_char[0]; //Add it to the textline
-                            }
-                            else if (one_char[0] == '\n') { //New Line
-                                if (line.compare(0, frequency_to_add.size(),frequency_to_add) == 0) {
-                                    found=true;
-                                    break;
-                                }
-                                line.clear(); // ready for next textline
-                            }
-                        }
-                        if( !found) {
-                            result = recon_file.append(freq_file_path); //Second: append if it is not there
-                            if( !result.is_valid() )
-                            {
-                                recon_file.write_line( frequency_to_add );
-                            }
-                        }
-                        if (found) {
-                            nav_.display_modal("Error", "Frequency already exists");
-                        }
-                    }
-                    else
-                    {
-                        auto result = recon_file.create(freq_file_path); //third: create if it is not there
-                        if( !result.is_valid() )
-                        {
-                            recon_file.write_line( frequency_to_add );
-                        }
-                    }
-                }
+                freq_file_path = "/FREQMAN/"+output_file+".TXT" ;
+                ReconSaveFreq( freq_file_path , current_index , true );
             }
         };
 

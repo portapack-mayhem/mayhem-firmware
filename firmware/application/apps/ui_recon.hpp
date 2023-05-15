@@ -108,6 +108,7 @@ namespace ui {
             void handle_coded_squelch(const uint32_t value);
             bool ReconSetupLoadStrings( const std::string &source, std::string &input_file , std::string &output_file , uint32_t &recon_lock_duration , uint32_t &recon_lock_nb_match , int32_t &recon_squelch_level , uint32_t &recon_match_mode , int32_t &wait , int32_t &volume );
             bool ReconSetupSaveStrings( const std::string &dest, const std::string &input_file , const std::string &output_file , uint32_t recon_lock_duration , uint32_t recon_lock_nb_match , int32_t recon_squelch_level , uint32_t recon_match_mode , int32_t wait , int32_t volume );
+            bool ReconSaveFreq( const std::string &freq_file_path , size_t index , bool warn_if_exists );
 
             jammer::jammer_range_t frequency_range { false, 0, MAX_UFREQ };  //perfect for manual recon task too...
             int32_t squelch { 0 };
@@ -163,6 +164,7 @@ namespace ui {
             int32_t last_index = -1 ;
             int32_t last_squelch_index = -1 ;
             int64_t last_freq = 0 ;
+            std::string freq_file_path = { } ;
 
             Labels labels 
             { 
