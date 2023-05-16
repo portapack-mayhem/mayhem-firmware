@@ -192,8 +192,8 @@ TransmitterView::~TransmitterView() {
 /* TransmitterView2 *******************************************************/
 
 void TransmitterView2::paint(Painter& painter) {
-	size_t c;
-	Point pos = { 3*8, screen_pos().y() };
+//	Not using TransmitterView2, but if we delete it,we got , top line 1 a blanking rect.
+	(void) painter;	// Avoid  warning: unused parameter .
 }
 
 void TransmitterView2::on_tx_gain_changed(int32_t tx_gain) {
