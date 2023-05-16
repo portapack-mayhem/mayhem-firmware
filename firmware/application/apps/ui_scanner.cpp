@@ -298,9 +298,10 @@ ScannerView::ScannerView(
 	freqman_set_modulation_option( field_mode );
 	freqman_set_step_option( field_step );
 
-	change_mode(NFM_MODULATION);				//Start on default NFM
-	field_mode.set_by_value(NFM_MODULATION);	//Reflect the mode into the manual selector
-	field_step.set_by_value(12500);				//Start with NFM_1 step interval
+	// Default starting modulation (these may be overridden in SCANNER.TXT)
+	change_mode(AM_MODULATION);					//Default modulation
+	field_mode.set_by_value(AM_MODULATION);		//Reflect the mode into the manual selector
+	field_step.set_by_value(9000);				//Default step interval (Hz)
 
 	//FUTURE: perhaps additional settings should be stored in persistent memory vs using defaults
 	//HELPER: Pre-setting a manual range, based on stored frequency
@@ -310,8 +311,8 @@ ScannerView::ScannerView(
 	frequency_range.max = stored_freq + 1000000;
 	button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
+	// Button to load txt files from the FREQMAN folder
 	button_load.on_select = [this, &nav](Button&) {
-		// load txt files from the FREQMAN folder
 		auto open_view = nav.push<FileLoadView>(".TXT");
 		open_view->on_changed = [this](std::filesystem::path new_file_path) {
 
@@ -329,8 +330,8 @@ ScannerView::ScannerView(
 		};
 	};
 
+	// Button to clear in-memory frequency list
 	button_clear.on_select = [this, &nav](Button&) {
-		// clear in-memory frequency list
 		if (scan_thread && frequency_list.size()) {
 			scan_thread->stop();					//STOP SCANNER THREAD
 			frequency_list.clear();
@@ -345,6 +346,7 @@ ScannerView::ScannerView(
 		}
 	};
 
+	// Button to configure starting frequency for a manual range search
 	button_manual_start.on_select = [this, &nav](Button& button) {
 		auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
@@ -353,6 +355,7 @@ ScannerView::ScannerView(
 		};
 	};
 	
+	// Button to configure ending frequency for a manual range search
 	button_manual_end.on_select = [this, &nav](Button& button) {
 		auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
 		new_view->on_changed = [this, &button](rf::Frequency f) {
@@ -361,6 +364,7 @@ ScannerView::ScannerView(
 		};
 	};
 
+	// Button to pause/resume scan (note that some other buttons will trigger resume also)
 	button_pause.on_select = [this](ButtonWithEncoder&) {
 		if ( userpause )
 			user_resume();
@@ -371,6 +375,7 @@ ScannerView::ScannerView(
 		}
 	};
 
+	// Encoder dial causes frequency change when focus is on pause button
 	button_pause.on_change = [this]() {
 		int32_t encoder_delta { (button_pause.get_encoder_delta()>0)? 1 : -1 };
 
@@ -384,6 +389,7 @@ ScannerView::ScannerView(
 		button_pause.set_encoder_delta( 0 );
 	};
 
+	// Button to switch to Audio app
 	button_audio_app.on_select = [this](Button&) {
 		if (scan_thread)
 			scan_thread->stop();
@@ -391,6 +397,7 @@ ScannerView::ScannerView(
 		nav_.push<AnalogAudioView>();
 	};
 
+	// Button to switch to Mic app
 	button_mic_app.on_select = [this](Button&) {
 		if (scan_thread)
 			scan_thread->stop();
@@ -398,6 +405,7 @@ ScannerView::ScannerView(
 		nav_.push<MicTXView>();
 	};
 
+	// Button to delete current frequency from scan Freq List
 	button_remove.on_select = [this](Button&) {
 		if (scan_thread && (frequency_list.size() > current_index)) {
 			scan_thread->set_scanning(false);		//PAUSE Scanning if necessary
@@ -413,6 +421,7 @@ ScannerView::ScannerView(
 		}
 	};
 
+	// Button to toggle between Manual Search and Freq List Scan modes
 	button_manual_search.on_select = [this](Button&) {
 		if (!manual_search) {
 			if (!frequency_range.min || !frequency_range.max) {
@@ -437,6 +446,7 @@ ScannerView::ScannerView(
 		start_scan_thread(); 						//RESTART SCANNER THREAD in selected mode
 	};
 
+	// Mode field was changed (AM/NFM/WFM)
 	field_mode.on_change = [this](size_t, OptionsField::value_t v) {
 		receiver_model.disable();
 		baseband::shutdown();
@@ -446,6 +456,7 @@ ScannerView::ScannerView(
 		receiver_model.enable(); 
 	};
 
+	// Step field was changed (Hz) -- only affects manual Search mode
 	field_step.on_change = [this](size_t, OptionsField::value_t v) {
 		(void)v;		// prevent compiler Unused warning
 
@@ -462,6 +473,7 @@ ScannerView::ScannerView(
 		}
 	};
 
+	// Button to toggle Forward/Reverse
 	button_dir.on_select = [this](Button&) {
 		fwd = !fwd;
 		if (scan_thread)
@@ -472,8 +484,8 @@ ScannerView::ScannerView(
 		bigdisplay_update(BDC_GREY);			//Back to grey color
 	};
 
-
-	button_add.on_select = [this](Button&) {  // Add current_frequency to scan freq list and file
+	// Button to add current frequency (found during Search) to the Scan Frequency List
+	button_add.on_select = [this](Button&) { 
 		File scanner_file;
 		const std::string freq_file_path = "FREQMAN/" + loaded_file_name + ".TXT";
 		auto result = scanner_file.open(freq_file_path);	//First search if freq is already in txt
@@ -579,22 +591,24 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 		loaded_file_name = file_name; // keep loaded filename in memory
 		for(auto& entry : database) {									// READ LINE PER LINE
 			if (frequency_list.size() < FREQMAN_MAX_PER_FILE) {			//We got space!
-
+				//
 				// Get modulation & bw & step from file if specified
 				// Note these values could be different for each line in the file, but we only look at the first one
+				//
+				// Note that freqman requires a very specific string for these parameters,
+				// so check syntax in frequency file if specified value isn't being loaded
+				//
 				if (def_mod_index == -1)
 					def_mod_index = entry.modulation;
 
 				if (def_bw_index == -1)
 					def_bw_index = entry.bandwidth;
 
+				if (def_step_index == -1)
+					def_step_index = entry.step;
+
+				// Get frequency
 				if (entry.type == RANGE)  {
-
-					// Note that freqman_entry_get_step_from_str_short() requires a very specific string for frequency step,
-					// so check syntax in frequency file if specified step value isn't being loaded
-					if (def_step_index == -1)
-						def_step_index = entry.step;
-
 					if (!found_range) {
 						// Set Start & End Search Range instead of populating the small in-memory frequency table
 						// NOTE:  There may be multiple single frequencies in file, but only one search range is supported.
@@ -604,10 +618,24 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
 						frequency_range.max = entry.frequency_b;
 						button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 					}
-				} else if ( entry.type == SINGLE )  {
+				}
+				else if ( entry.type == SINGLE )  {
 					found_single = true;
 					frequency_list.push_back(entry.frequency_a);
 					description_list.push_back(entry.description);
+				}
+				else if ( entry.type == HAMRADIO ) {
+					// For HAM repeaters, add both receive & transmit frequencies to scan list and modify description
+					// (FUTURE fw versions might handle these differently)
+					found_single = true;
+					frequency_list.push_back(entry.frequency_a);
+					description_list.push_back("R:" + entry.description);
+
+					if ( (entry.frequency_a != entry.frequency_b) && 
+						 (frequency_list.size() < FREQMAN_MAX_PER_FILE) ) {
+						frequency_list.push_back(entry.frequency_b);
+						description_list.push_back("T:" + entry.description);
+					 }			 
 				}
 			}
 			else
