@@ -189,4 +189,72 @@ TransmitterView::~TransmitterView() {
 	baseband::shutdown();
 }
 
+/* TransmitterView2 *******************************************************/
+
+void TransmitterView2::paint(Painter& painter) {
+//	Not using TransmitterView2, but if we delete it,we got , top line 1 a blanking rect.
+	(void) painter;	// Avoid  warning: unused parameter .
+}
+
+void TransmitterView2::on_tx_gain_changed(int32_t tx_gain) {
+	transmitter_model.set_tx_gain(tx_gain);
+	update_gainlevel_styles();
+}
+
+void TransmitterView2::on_tx_amp_changed(bool rf_amp) {
+	transmitter_model.set_rf_amp(rf_amp);
+	update_gainlevel_styles();
+}
+
+void TransmitterView2::update_gainlevel_styles() {
+	const Style *new_style_ptr = NULL;
+	int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
+	
+	if(tot_gain > POWER_THRESHOLD_HIGH) {
+		new_style_ptr = &style_power_high;
+	} else if(tot_gain > POWER_THRESHOLD_MED) {
+		new_style_ptr = &style_power_med;
+	} else if(tot_gain > POWER_THRESHOLD_LOW) {
+		new_style_ptr = &style_power_low;
+	}
+
+	field_gain.set_style(new_style_ptr);
+	text_gain.set_style(new_style_ptr);
+	field_amp.set_style(new_style_ptr);
+	text_amp.set_style(new_style_ptr);
+}
+
+void TransmitterView2::on_show() {
+	field_gain.set_value(transmitter_model.tx_gain());
+	field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
+
+	update_gainlevel_styles();
+}
+
+TransmitterView2::TransmitterView2(	const Coord y)
+{
+	set_parent_rect({ 3*8, y, 20 * 8, 1 * 8 });		// set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
+	
+	add_children({
+		&text_gain,
+		&field_gain,
+		&text_amp,
+		&field_amp,
+	});
+	
+	field_gain.on_change = [this](uint32_t tx_gain) {
+		on_tx_gain_changed(tx_gain);
+	};
+	
+	field_amp.on_change = [this](uint32_t rf_amp) {
+		on_tx_amp_changed((bool) rf_amp);
+	};
+}
+
+TransmitterView2::~TransmitterView2() {
+	audio::output::stop();
+	transmitter_model.disable();
+	baseband::shutdown();
+}
+
 } /* namespace ui */
