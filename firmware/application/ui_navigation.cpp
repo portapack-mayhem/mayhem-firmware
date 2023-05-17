@@ -838,8 +838,11 @@ ModalMessageView::ModalMessageView(
 	if (type == INFO) {
 		add_child(&button_ok);
 		
-		button_ok.on_select = [&nav](Button&){
-			nav.pop();
+		button_ok.on_select = [this, &nav](Button&){
+			if (on_choice_)
+				on_choice_(true); // Assumes handler will pop.
+			else
+				nav.pop();
 		};
 	} else if (type == YESNO) {
 		add_children({

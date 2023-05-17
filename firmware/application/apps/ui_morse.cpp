@@ -118,7 +118,7 @@ bool MorseView::start_tx() {
 	update_tx_duration();
 	
 	if (!symbol_count) {
-		nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.", INFO, nullptr);
+		nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.");
 		return false;
 	}
 	
