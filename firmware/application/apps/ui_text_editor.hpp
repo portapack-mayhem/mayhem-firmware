@@ -37,33 +37,35 @@
 namespace ui {
 
 enum class LineEnding : uint8_t {
-    LF,
-    CRLF
+	LF,
+	CRLF
 };
 
 enum class ScrollDirection : uint8_t {
-    Vertical,
-    Horizontal
+	Vertical,
+	Horizontal
 };
 
+// TODO: RAM is _very_ limited. Need to
+// rework this to not store every line.
 struct FileInfo {
-    /* Offsets of newlines. */
-    std::vector<uint32_t> newlines;
-    LineEnding line_ending;
-    File::Size size;
+	/* Offsets of newlines. */
+	std::vector<uint32_t> newlines;
+	LineEnding line_ending;
+	File::Size size;
 
-    uint32_t line_count() const {
-        return newlines.size();
-    }
+	uint32_t line_count() const {
+		return newlines.size();
+	}
 
-    uint16_t line_length(uint32_t line) const {
-        if (line >= line_count())
-            return 0;
+	uint16_t line_length(uint32_t line) const {
+		if (line >= line_count())
+			return 0;
 
-        auto start = line == 0 ? 0 : (newlines[line - 1] + 1);
-        auto end = newlines[line];
-        return end - start;
-    }
+		auto start = line == 0 ? 0 : (newlines[line - 1] + 1);
+		auto end = newlines[line];
+		return end - start;
+	}
 };
 
 /*class TextViewer : public Widget {
@@ -74,63 +76,79 @@ public:
 	TextEditorView(NavigationView& nav);
 	//TextEditorView(NavigationView& nav, const std::filesystem::path& path);
 
-    std::string title() const override {
-        return "Notepad";
-    };
-    
-    void paint(Painter& painter) override;
-    bool on_key(KeyEvent delta) override;
-    bool on_encoder(EncoderEvent delta) override;
+	std::string title() const override {
+		return "Notepad";
+	};
+	
+	void on_focus() override;
+	void paint(Painter& painter) override;
+	bool on_key(KeyEvent delta) override;
+	bool on_encoder(EncoderEvent delta) override;
 
 private:
-    static constexpr uint8_t max_line = 15;
-    static constexpr uint8_t max_col = 29;
+	static constexpr uint8_t max_line = 16;
+	static constexpr uint8_t max_col = 30;
 
-    // TODO: should these be common somewhere?
-    static constexpr Style style_default {
+	// TODO: should these be common somewhere?
+	static constexpr Style style_default {
 		.font = font::fixed_8x16,
 		.background = Color::black(),
 		.foreground = Color::white(),
 	};
 
-    void refresh_ui();
-    void refresh_file_info();
-    std::string read(uint32_t offset, uint32_t length = 30);
+	/* Returns true if the cursor was updated. */
+	bool apply_scrolling_constraints(
+		int16_t delta_line, int16_t delta_col);
 
-    void paint_text(Painter& painter, uint32_t line, uint16_t col);
-    void paint_cursor(Painter& painter);
+	void refresh_ui();
+	void refresh_file_info();
+	void open_file(const std::filesystem::path& path);
+	std::string read(uint32_t offset, uint32_t length = 30);
 
-    // Gets the length of the current line;
-    uint16_t line_length() const;
+	void paint_text(Painter& painter, uint32_t line, uint16_t col);
+	void paint_cursor(Painter& painter);
 
-    NavigationView& nav_;
+	// Gets the length of the current line.
+	uint16_t line_length() const;
 
-    File     file_{ };
-    FileInfo info_{ };
-    LogFile  log_{ };
+	NavigationView& nav_;
 
-    struct {
-        uint32_t line{ };
-        uint16_t col{ };
-        uint32_t first_line{ };
-        uint32_t first_col{ };
-        bool redraw_text{ true };
-    } paint_state_{ };
+	File     file_{ };
+	FileInfo info_{ };
+	LogFile  log_{ };
 
-    struct {
-        uint32_t line{ };
-        uint16_t col{ };
-        ScrollDirection dir{ ScrollDirection::Vertical };
-    } cursor_{ };
+	struct {
+		// Previous cursor state.
+		uint32_t line{ };
+		uint16_t col{ };
 
-    /* 8px grid is 30 wide, 36 tall. */
-    /* 16px font height or 18 total rows. */
-    /* 240 x 288px */
+		// Previous draw state.
+		uint32_t first_line{ };
+		uint16_t first_col{ };
+		bool redraw_text{ true };
+		bool has_file{ false };
+	} paint_state_{ };
 
-    Text text_position {
-        { 0 * 8, 36 * 8, 30 * 8, 2 * 8 },
-        ""
-    };
+	struct {
+		uint32_t line{ };
+		uint16_t col{ };
+		ScrollDirection dir{ ScrollDirection::Vertical };
+	} cursor_{ };
+
+	/* 8px grid is 30 wide, 38 tall. */
+	/* 16px font height or 19 rows. */
+	/* Titlebar is 16px tall, so 18 rows left. */
+	/* 240 x 320, (304 with titlebar) */
+
+	Button button_open {
+		{ 10 * 8, 4 * 8, 10 * 8, 4 * 8 },
+		"Open File"
+	};
+
+	Text text_position {
+		{ 0 * 8, 36 * 8, 29 * 8, 2 * 8 },
+		""
+	};
 };
 
 } // namespace ui

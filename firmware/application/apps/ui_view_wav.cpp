@@ -118,58 +118,62 @@ void ViewWavView::reset_controls() {
 }
 
 ViewWavView::ViewWavView(
-    NavigationView& nav)
-    : nav_(nav) {
-    wav_reader = std::make_unique<WAVFileReader>();
-
-    add_children({&labels,
-                  &text_filename,
-                  &text_samplerate,
-                  &text_title,
-                  &text_duration,
-                  &button_open,
-                  &waveform,
-                  &field_pos_seconds,
-                  &field_pos_samples,
-                  &field_scale,
-                  &field_cursor_a,
-                  &field_cursor_b,
-                  &text_delta});
-    reset_controls();
-    button_open.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".WAV");
-        open_view->on_changed = [this](std::filesystem::path file_path) {
-            if (!wav_reader->open(file_path)) {
-                nav_.display_modal("Error", "Couldn't open file.", INFO, nullptr);
-                return;
-            }
-            if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
-                nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n16-bit mono files.", INFO, nullptr);
-                return;
-            }
-            load_wav(file_path);
-            field_pos_seconds.focus();
-        };
-    };
-
-    field_scale.on_change = [this](int32_t value) {
-        update_scale(value);
-    };
-    field_pos_seconds.on_change = [this](int32_t) {
-        on_pos_changed();
-    };
-    field_pos_samples.on_change = [this](int32_t) {
-        on_pos_changed();
-    };
-
-    field_cursor_a.on_change = [this](int32_t v) {
-        waveform.set_cursor(0, v);
-        refresh_measurements();
-    };
-    field_cursor_b.on_change = [this](int32_t v) {
-        waveform.set_cursor(1, v);
-        refresh_measurements();
-    };
+	NavigationView& nav
+) : nav_(nav)
+{
+	wav_reader = std::make_unique<WAVFileReader>();
+	
+	add_children({
+		&labels,
+		&text_filename,
+		&text_samplerate,
+		&text_title,
+		&text_duration,
+		&button_open,
+		&waveform,
+		&field_pos_seconds,
+		&field_pos_samples,
+		&field_scale,
+		&field_cursor_a,
+		&field_cursor_b,
+		&text_delta
+	});
+	reset_controls();
+	button_open.on_select = [this, &nav](Button&) {
+		auto open_view = nav.push<FileLoadView>(".WAV");
+		open_view->on_changed = [this](std::filesystem::path file_path) {
+			if (!wav_reader->open(file_path)) {
+		nav_.display_modal("Error", "Couldn't open file.");
+		return;
+	}
+	if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
+		nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n16-bit mono files.");
+		return;
+	}
+			load_wav(file_path);
+			field_pos_seconds.focus();
+		};
+	};
+	
+	field_scale.on_change = [this](int32_t value) {
+		update_scale(value);
+	};
+	field_pos_seconds.on_change = [this](int32_t) {
+		on_pos_changed();
+	};
+	field_pos_samples.on_change = [this](int32_t) {
+		on_pos_changed();
+	};
+	
+	field_cursor_a.on_change = [this](int32_t v) {
+		waveform.set_cursor(0, v);
+		refresh_measurements();
+	};
+	field_cursor_b.on_change = [this](int32_t v) {
+		waveform.set_cursor(1, v);
+		refresh_measurements();
+	};
+	
 }
 
 void ViewWavView::focus() {

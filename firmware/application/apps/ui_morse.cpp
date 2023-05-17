@@ -114,27 +114,27 @@ void MorseView::paint(Painter&) {
 }
 
 bool MorseView::start_tx() {
-    // Re-generate message, just in case
-    update_tx_duration();
-
-    if (!symbol_count) {
-        nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.", INFO, nullptr);
-        return false;
-    }
-
-    progressbar.set_max(symbol_count);
-
-    transmitter_model.set_sampling_rate(1536000U);
-    transmitter_model.set_baseband_bandwidth(1750000);
-    transmitter_model.enable();
-
-    if (modulation == CW) {
-        ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
-    } else if (modulation == FM) {
-        baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
-    }
-
-    return true;
+	// Re-generate message, just in case
+	update_tx_duration();
+	
+	if (!symbol_count) {
+		nav_.display_modal("Error", "Message too long,\nmust be < 256 symbols.");
+		return false;
+	}
+	
+	progressbar.set_max(symbol_count);
+	
+	transmitter_model.set_sampling_rate(1536000U);
+	transmitter_model.set_baseband_bandwidth(1750000);
+	transmitter_model.enable();
+	
+	if (modulation == CW) {
+		ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
+	} else if (modulation == FM) {
+		baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
+	}
+	
+	return true;
 }
 
 void MorseView::update_tx_duration() {

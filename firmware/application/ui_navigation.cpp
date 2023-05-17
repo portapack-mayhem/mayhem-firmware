@@ -773,53 +773,61 @@ void NotImplementedView::focus() {
 /* ModalMessageView ******************************************************/
 
 ModalMessageView::ModalMessageView(
-    NavigationView& nav,
-    const std::string& title,
-    const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice)
-    : title_{title},
-      message_{message},
-      type_{type},
-      on_choice_{on_choice} {
-    if (type == INFO) {
-        add_child(&button_ok);
-
-        button_ok.on_select = [&nav](Button&) {
-            nav.pop();
-        };
-    } else if (type == YESNO) {
-        add_children({&button_yes,
-                      &button_no});
-
-        button_yes.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(true);
-            nav.pop();
-        };
-        button_no.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(false);
-            nav.pop();
-        };
-    } else if (type == YESCANCEL) {
-        add_children({&button_yes,
-                      &button_no});
-
-        button_yes.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(true);
-            nav.pop();
-        };
-        button_no.on_select = [this, &nav](Button&) {
-            // if (on_choice_) on_choice_(false);
-            nav.pop_modal();
-        };
-    } else {  // ABORT
-        add_child(&button_ok);
-
-        button_ok.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(true);
-            nav.pop_modal();
-        };
-    }
+	NavigationView& nav,
+	const std::string& title,
+	const std::string& message,
+	const modal_t type,
+	const std::function<void(bool)> on_choice
+) : title_ { title },
+	message_ { message },
+	type_ { type },
+	on_choice_ { on_choice }
+{
+	if (type == INFO) {
+		add_child(&button_ok);
+		
+		button_ok.on_select = [this, &nav](Button&){
+			if (on_choice_)
+				on_choice_(true); // Assumes handler will pop.
+			else
+				nav.pop();
+		};
+	} else if (type == YESNO) {
+		add_children({
+			&button_yes,
+			&button_no
+		});
+		
+		button_yes.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(true);
+			nav.pop();
+		};
+		button_no.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(false);
+			nav.pop();
+		};
+	} else if (type == YESCANCEL) {
+		add_children({
+			&button_yes,
+			&button_no
+		});
+		
+		button_yes.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(true);
+			nav.pop();
+		};
+		button_no.on_select = [this, &nav](Button&){
+			//if (on_choice_) on_choice_(false);
+			nav.pop_modal();
+		};
+	} else {	// ABORT
+		add_child(&button_ok);
+		
+		button_ok.on_select = [this, &nav](Button&){
+			if (on_choice_) on_choice_(true);
+			nav.pop_modal();
+		};
+	}
 }
 
 void ModalMessageView::paint(Painter& painter) {
