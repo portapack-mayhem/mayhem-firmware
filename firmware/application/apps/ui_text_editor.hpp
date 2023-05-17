@@ -58,11 +58,15 @@ struct FileInfo {
 		return newlines.size();
 	}
 
+	uint32_t line_start(uint32_t line) const {
+		return line == 0 ? 0 : (newlines[line - 1] + 1);
+	}
+
 	uint16_t line_length(uint32_t line) const {
 		if (line >= line_count())
 			return 0;
 
-		auto start = line == 0 ? 0 : (newlines[line - 1] + 1);
+		auto start = line_start(line);
 		auto end = newlines[line];
 		return end - start;
 	}

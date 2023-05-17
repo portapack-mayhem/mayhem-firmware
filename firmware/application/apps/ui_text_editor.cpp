@@ -132,25 +132,27 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
 	int32_t new_line = cursor_.line + delta_line;
 	int32_t new_col = cursor_.col + delta_col;
 
+	auto new_line_length = info_.line_length(new_line);
+
 	if (new_col < 0)
 		--new_line;
-	else if (new_col >= line_length()) {
+	else if (new_col > new_line_length && delta_line == 0) {
+		// Only want to wrap if moving horizontally.
 		new_col = 0;
 		++new_line;
 	}
 
-	auto new_line_length = info_.line_length(new_line);
-
-	if (new_line < 0 || (uint32_t)new_line >= info_.line_count()) {
-		// HACK: Fix for real.
-		cursor_.col = 0;
+	if (new_line < 0 || (uint32_t)new_line >= info_.line_count())
 		return false;
-	}
+
+	new_line_length = info_.line_length(new_line);
 
 	// TODO: don't wrap with encoder?
 	// Wrap or clamp column.
-	if (new_col >= new_line_length || new_col < 0)
-		new_col = new_line_length - 1;
+	if (new_line_length == 0)
+		new_col = 0;
+	else if (new_col > new_line_length || new_col < 0)
+		new_col = new_line_length;
 
 	cursor_.line = new_line;
 	cursor_.col = new_col;
@@ -204,7 +206,7 @@ void TextEditorView::refresh_file_info() {
 		// Fake a newline at the end for consistency.
 		// Could check if there already is a trailing newline, but it doesn't hurt.
 		if (result.value() < buffer_size) {
-			info_.newlines.push_back(base_offset );
+			info_.newlines.push_back(base_offset);
 			break;
 		}
 	}
@@ -253,7 +255,7 @@ void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
 
 	auto r = screen_rect();
 	auto& lines = info_.newlines;
-	auto line_offset = line == 0 ? 0 : (lines[line] + 1);
+	auto line_start = info_.line_start(line);
 
 	// Draw the lines from the file
 	for (uint32_t i = 0; i < max_line && i < lines.size(); ++i) {
@@ -261,23 +263,24 @@ void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
 		int32_t read_length = max_col;
 
 		// Don't read past end of the line.
-		if (line_offset + col + read_length > line_end)
-			read_length = line_end - col - line_offset;
+		if (line_start + col + (uint32_t)read_length > line_end)
+			read_length = line_end - col - line_start;
 
-		if (read_length > 0) {
+		if (read_length > 0)
 			painter.draw_string(
 				{ 0, r.location().y() + (int)i * 16 },
-				style_default, read(line_offset + col, read_length));
+				style_default, read(line_start + col, read_length));
+
+		// Erase empty line sectons.
+		if (read_length >= 0) {
+			int32_t clear_width = max_col - read_length;
+			if (clear_width > 0)
+				painter.fill_rectangle(
+					{(max_col - clear_width) * 8, r.location().y() + (int)i * 16, clear_width * 8, 16 },
+					style_default.background);
 		}
 
-		int32_t clear_width = max_col - read_length;
-		if (clear_width > 0)
-			painter.fill_rectangle(
-				{(max_col - clear_width) * 8, r.location().y() + (int)i * 16, clear_width * 8, 16 },
-				style_default.foreground);
-
-
-		line_offset = lines[line + i] + 1 /* newline */;
+		line_start = lines[line + i] + 1 /* newline */;
 	}
 }
 
@@ -290,6 +293,8 @@ void TextEditorView::paint_cursor(Painter& painter) {
 		painter.draw_rectangle(
 			{ (int)col * 8, r.location().y() + (int)line * 16, 8, 16 }, c);
 	};
+
+	// TOOD: bug where cursor doesn't clear at EOF.
 
 	// Clear old cursor.
 	draw_cursor(paint_state_.line, paint_state_.col, style_default.background);
