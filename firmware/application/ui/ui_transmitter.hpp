@@ -165,6 +165,69 @@ private:
 	void update_gainlevel_styles(void);
 };
 
+
+class TransmitterView2 : public View {
+public:
+	
+	TransmitterView2(const Coord y);
+
+	~TransmitterView2();
+	
+	void on_show() override;
+	void paint(Painter& painter) override;
+	
+private:
+	const Style style_power_low {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::yellow(),
+	};
+	const Style style_power_med {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::orange(),
+	};
+	const Style style_power_high {
+		.font = font::fixed_8x16,
+		.background = Color::black(),
+		.foreground = Color::red(),
+	};
+
+	Text text_gain {
+		{ 0, 3 * 8, 5 * 8, 1 * 16 },
+		"Gain:"
+	};
+	
+	NumberField field_gain {
+		{ 5 * 8, 3 * 8 },
+		2,
+		{ max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum },
+		max2837::tx::gain_db_step,
+		' '
+	};
+
+	Text text_amp {
+		{ 8 * 8, 3 * 8, 5 * 8, 1 * 16 },
+		"Amp:"
+	};
+
+	NumberField field_amp {
+		{ 12 * 8, 3 * 8 },
+		2,
+		{ 0, 14 },
+		14,
+		' '
+	};
+
+
+	void on_tx_gain_changed(int32_t tx_gain);
+	void on_tx_amp_changed(bool rf_amp);
+
+	void update_gainlevel_styles(void);
+};
+
+
+
 } /* namespace ui */
 
 #endif/*__UI_TRANSMITTER_H__*/
