@@ -210,6 +210,7 @@ set(CPPSRC
 	ui/ui_alphanum.cpp
 	ui/ui_audio.cpp
 	ui/ui_channel.cpp
+	ui/ui_font_fixed_5x8.cpp
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
         ui/ui_qrcode.cpp

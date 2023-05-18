@@ -274,15 +274,17 @@ void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
 
 		if (read_length > 0)
 			painter.draw_string(
-				{ 0, r.location().y() + (int)i * 16 },
+				{ 0, r.location().y() + (int)i * char_height },
 				style_default, read(line_start + col, read_length));
 
 		// Erase empty line sectons.
 		if (read_length >= 0) {
 			int32_t clear_width = max_col - read_length;
 			if (clear_width > 0)
-				painter.fill_rectangle(
-					{(max_col - clear_width) * 8, r.location().y() + (int)i * 16, clear_width * 8, 16 },
+				painter.fill_rectangle({
+					(max_col - clear_width) * char_width,
+					r.location().y() + (int)i * char_height,
+					clear_width * char_width, char_height },
 					style_default.background);
 		}
 
@@ -296,8 +298,10 @@ void TextEditorView::paint_cursor(Painter& painter) {
 		line = line - paint_state_.first_line;
 		col = col - paint_state_.first_col;
 
-		painter.draw_rectangle(
-			{ (int)col * 8, r.location().y() + (int)line * 16, 8, 16 }, c);
+		painter.draw_rectangle({
+			(int)col * char_width - 1,
+			r.location().y() + (int)line * char_height,
+			char_width + 1, char_height}, c);
 	};
 
 	// TOOD: bug where cursor doesn't clear at EOF.

@@ -23,9 +23,10 @@
 #define __UI_TEXT_EDITOR_H__
 
 #include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
+#include "ui_font_fixed_5x8.hpp"
 #include "ui_navigation.hpp"
+#include "ui_painter.hpp"
+#include "ui_widget.hpp"
 //#include "ui_textentry.hpp"
 
 #include "file.hpp"
@@ -95,12 +96,14 @@ public:
 	bool on_encoder(EncoderEvent delta) override;
 
 private:
-	static constexpr uint8_t max_line = 16;
-	static constexpr uint8_t max_col = 30;
+	static constexpr uint8_t max_line = 32;
+	static constexpr uint8_t max_col = 48;
+	static constexpr int8_t char_width = 5;
+	static constexpr int8_t char_height = 8;
 
 	// TODO: should these be common somewhere?
 	static constexpr Style style_default {
-		.font = font::fixed_8x16,
+		.font = font::fixed_5x8,
 		.background = Color::black(),
 		.foreground = Color::white(),
 	};
