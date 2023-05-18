@@ -212,7 +212,7 @@ set(CPPSRC
 	ui/ui_channel.cpp
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
-        ui/ui_qrcode.cpp
+	ui/ui_qrcode.cpp
 	ui/ui_menu.cpp
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
@@ -240,7 +240,7 @@ set(CPPSRC
 	apps/ui_sd_over_usb.cpp
 	apps/ui_freqman.cpp
 	apps/ui_jammer.cpp
-	apps/ui_keyfob.cpp
+    #apps/ui_keyfob.cpp
 	apps/ui_lcr.cpp
 	apps/lge_app.cpp
 	apps/ui_looking_glass_app.cpp
