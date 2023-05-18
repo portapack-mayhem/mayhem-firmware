@@ -31,23 +31,22 @@ using namespace lpc43xx;
 static Thread* thread_rtc_event = NULL;
 
 void rtc_interrupt_enable() {
-	thread_rtc_event = chThdSelf();
-	rtc::interrupt::enable_second_inc();
-	nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
+    thread_rtc_event = chThdSelf();
+    rtc::interrupt::enable_second_inc();
+    nvicEnableVector(RTC_IRQn, CORTEX_PRIORITY_MASK(LPC_RTC_IRQ_PRIORITY));
 }
 
 extern "C" {
 
 CH_IRQ_HANDLER(RTC_IRQHandler) {
-	CH_IRQ_PROLOGUE();
+    CH_IRQ_PROLOGUE();
 
-	chSysLockFromIsr();
-	chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
-	chSysUnlockFromIsr();
+    chSysLockFromIsr();
+    chEvtSignalI(thread_rtc_event, EVT_MASK_RTC_TICK);
+    chSysUnlockFromIsr();
 
-	rtc::interrupt::clear_all();
+    rtc::interrupt::clear_all();
 
-	CH_IRQ_EPILOGUE();
+    CH_IRQ_EPILOGUE();
 }
-
 }

@@ -26,27 +26,27 @@
 namespace testapp {
 
 size_t Packet::length() const {
-	return decoder_.symbols_count();
+    return decoder_.symbols_count();
 }
 
 bool Packet::is_valid() const {
-	return true;
+    return true;
 }
 
 Timestamp Packet::received_at() const {
-	return packet_.timestamp();
+    return packet_.timestamp();
 }
 
 FormattedSymbols Packet::symbols_formatted() const {
-	return format_symbols(decoder_);
+    return format_symbols(decoder_);
 }
 
 uint32_t Packet::value() const {
-	return (reader_.read(10 * 8, 6) << 8) | reader_.read(9 * 8, 8);
+    return (reader_.read(10 * 8, 6) << 8) | reader_.read(9 * 8, 8);
 }
 
 uint32_t Packet::alt() const {
-	return reader_.read(1 * 8, 12);
+    return reader_.read(1 * 8, 12);
 }
 
 } /* namespace testapp */

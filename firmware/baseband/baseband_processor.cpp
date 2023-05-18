@@ -26,11 +26,10 @@
 #include "message.hpp"
 
 void BasebandProcessor::feed_channel_stats(const buffer_c16_t& channel) {
-	channel_stats.feed(
-		channel,
-		[](const ChannelStatistics& statistics) {
-			const ChannelStatisticsMessage channel_stats_message { statistics };
-			shared_memory.application_queue.push(channel_stats_message);
-		}
-	);
+    channel_stats.feed(
+        channel,
+        [](const ChannelStatistics& statistics) {
+            const ChannelStatisticsMessage channel_stats_message{statistics};
+            shared_memory.application_queue.push(channel_stats_message);
+        });
 }

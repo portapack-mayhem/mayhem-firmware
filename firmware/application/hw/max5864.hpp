@@ -27,33 +27,32 @@
 namespace max5864 {
 
 enum class Mode : uint8_t {
-	Shutdown	= 0x00,
-	Idle		= 0x01,
-	Receive		= 0x02,
-	Transmit	= 0x03,
-	Transceiver	= 0x04,
-	Standby		= 0x05,
+    Shutdown = 0x00,
+    Idle = 0x01,
+    Receive = 0x02,
+    Transmit = 0x03,
+    Transceiver = 0x04,
+    Standby = 0x05,
 };
 
 class MAX5864 {
-public:
-	constexpr MAX5864(
-		spi::arbiter::Target& target
-	) : _target(target)
-	{
-	}
+   public:
+    constexpr MAX5864(
+        spi::arbiter::Target& target)
+        : _target(target) {
+    }
 
-	void init() {
-		/* Shut down explicitly, as there is no other reset mechanism. */
-		set_mode(Mode::Shutdown);
-	}
+    void init() {
+        /* Shut down explicitly, as there is no other reset mechanism. */
+        set_mode(Mode::Shutdown);
+    }
 
-	void set_mode(const Mode mode);
+    void set_mode(const Mode mode);
 
-private:
-	spi::arbiter::Target& _target;
+   private:
+    spi::arbiter::Target& _target;
 };
 
-}
+}  // namespace max5864
 
-#endif/*__MAX5864_H__*/
+#endif /*__MAX5864_H__*/

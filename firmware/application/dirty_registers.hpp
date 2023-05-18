@@ -27,38 +27,38 @@
 
 #include "utility.hpp"
 
-template<typename RegisterType, size_t RegisterCount>
+template <typename RegisterType, size_t RegisterCount>
 class DirtyRegisters {
-public:
-	using mask_t = std::bitset<RegisterCount>;
+   public:
+    using mask_t = std::bitset<RegisterCount>;
 
-	/* TODO: I feel like I might regret implementing this cast operator... */
-	operator bool() const {
-		return mask.any();
-	}
+    /* TODO: I feel like I might regret implementing this cast operator... */
+    operator bool() const {
+        return mask.any();
+    }
 
-	void set() {
-		mask.set();
-	}
+    void set() {
+        mask.set();
+    }
 
-	void clear() {
-		mask.reset();
-	}
+    void clear() {
+        mask.reset();
+    }
 
-	void clear(const size_t reg_num) {
-		mask.reset(reg_num);
-	}
+    void clear(const size_t reg_num) {
+        mask.reset(reg_num);
+    }
 
-	typename mask_t::reference operator[](const size_t reg_num) {
-		return mask[reg_num];
-	}
+    typename mask_t::reference operator[](const size_t reg_num) {
+        return mask[reg_num];
+    }
 
-	typename mask_t::reference operator[](const RegisterType reg) {
-		return mask[toUType(reg)];
-	}
+    typename mask_t::reference operator[](const RegisterType reg) {
+        return mask[toUType(reg)];
+    }
 
-private:
-	mask_t mask { };
+   private:
+    mask_t mask{};
 };
 
-#endif/*__DIRTY_REGISTERS_H__*/
+#endif /*__DIRTY_REGISTERS_H__*/

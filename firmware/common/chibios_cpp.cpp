@@ -26,33 +26,33 @@
 #include <ch.h>
 
 void* operator new(size_t size) {
-	void *p = chHeapAlloc(0x0, size);
-	if (p == nullptr)
-		chDbgPanic("Out of Memory");
-	return p;
+    void* p = chHeapAlloc(0x0, size);
+    if (p == nullptr)
+        chDbgPanic("Out of Memory");
+    return p;
 }
 
 void* operator new[](size_t size) {
-	void *p = chHeapAlloc(0x0, size);
-	if (p == nullptr)
-		chDbgPanic("Out of Memory");
-	return p;
+    void* p = chHeapAlloc(0x0, size);
+    if (p == nullptr)
+        chDbgPanic("Out of Memory");
+    return p;
 }
 
 void operator delete(void* p) noexcept {
-	chHeapFree(p);
+    chHeapFree(p);
 }
 
 void operator delete[](void* p) noexcept {
-	chHeapFree(p);
+    chHeapFree(p);
 }
 
 void operator delete(void* ptr, std::size_t) noexcept {
-	::operator delete(ptr);
+    ::operator delete(ptr);
 }
 
 void operator delete[](void* ptr, std::size_t) noexcept {
-	::operator delete(ptr);
+    ::operator delete(ptr);
 }
 
 extern uint8_t __heap_base__[];
@@ -61,14 +61,14 @@ extern uint8_t __heap_end__[];
 namespace chibios {
 
 size_t heap_size() {
-	return __heap_end__ - __heap_base__;
+    return __heap_end__ - __heap_base__;
 }
 
 size_t heap_used() {
-	const auto core_free = chCoreStatus();
-	size_t heap_free = 0;
-	chHeapStatus(NULL, &heap_free);
-	return heap_size() - (core_free + heap_free);
+    const auto core_free = chCoreStatus();
+    size_t heap_free = 0;
+    chHeapStatus(NULL, &heap_free);
+    return heap_size() - (core_free + heap_free);
 }
 
 } /* namespace chibios */

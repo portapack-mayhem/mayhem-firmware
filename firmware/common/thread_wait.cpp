@@ -22,21 +22,21 @@
 #include "thread_wait.hpp"
 
 int ThreadWait::sleep() {
-	chSysLock();
-	thread_to_wake = chThdSelf();
-	chSchGoSleepS(THD_STATE_SUSPENDED);
-	const auto result = chThdSelf()->p_u.rdymsg;
-	chSysUnlock();
-	return result;
+    chSysLock();
+    thread_to_wake = chThdSelf();
+    chSchGoSleepS(THD_STATE_SUSPENDED);
+    const auto result = chThdSelf()->p_u.rdymsg;
+    chSysUnlock();
+    return result;
 }
 
 bool ThreadWait::wake_from_interrupt(const int value) {
-	if( thread_to_wake ) {
-		thread_to_wake->p_u.rdymsg = value;
-		chSchReadyI(thread_to_wake);
-		thread_to_wake = nullptr;
-		return true;
-	} else {
-		return false;
-	}
+    if (thread_to_wake) {
+        thread_to_wake->p_u.rdymsg = value;
+        chSchReadyI(thread_to_wake);
+        thread_to_wake = nullptr;
+        return true;
+    } else {
+        return false;
+    }
 }

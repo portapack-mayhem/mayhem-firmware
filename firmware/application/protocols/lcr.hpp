@@ -34,4 +34,4 @@ std::string generate_message(std::string rgsb, std::vector<std::string> litteral
 
 } /* namespace lcr */
 
-#endif/*__LCR_H__*/
+#endif /*__LCR_H__*/

@@ -31,41 +31,40 @@
 #include <cstddef>
 
 class BasebandStatsCollector {
-public:
-	BasebandStatsCollector(
-		const Thread* const thread_idle,
-		const Thread* const thread_main,
-		const Thread* const thread_rssi,
-		const Thread* const thread_baseband
-	) : thread_idle { thread_idle },
-		thread_main { thread_main },
-		thread_rssi { thread_rssi },
-		thread_baseband { thread_baseband }
-	{
-	}
+   public:
+    BasebandStatsCollector(
+        const Thread* const thread_idle,
+        const Thread* const thread_main,
+        const Thread* const thread_rssi,
+        const Thread* const thread_baseband)
+        : thread_idle{thread_idle},
+          thread_main{thread_main},
+          thread_rssi{thread_rssi},
+          thread_baseband{thread_baseband} {
+    }
 
-	template<typename Callback>
-	void process(const buffer_c8_t& buffer, Callback callback) {
-		if( process(buffer) ) {
-			callback(capture_statistics());
-		}
-	}
+    template <typename Callback>
+    void process(const buffer_c8_t& buffer, Callback callback) {
+        if (process(buffer)) {
+            callback(capture_statistics());
+        }
+    }
 
-private:
-	static constexpr float report_interval { 1.0f };
-	size_t samples { 0 };
-	size_t samples_last_report { 0 };
-	const Thread* const thread_idle;
-	uint32_t last_idle_ticks { 0 };
-	const Thread* const thread_main;
-	uint32_t last_main_ticks { 0 };
-	const Thread* const thread_rssi;
-	uint32_t last_rssi_ticks { 0 };
-	const Thread* const thread_baseband;
-	uint32_t last_baseband_ticks { 0 };
+   private:
+    static constexpr float report_interval{1.0f};
+    size_t samples{0};
+    size_t samples_last_report{0};
+    const Thread* const thread_idle;
+    uint32_t last_idle_ticks{0};
+    const Thread* const thread_main;
+    uint32_t last_main_ticks{0};
+    const Thread* const thread_rssi;
+    uint32_t last_rssi_ticks{0};
+    const Thread* const thread_baseband;
+    uint32_t last_baseband_ticks{0};
 
-	bool process(const buffer_c8_t& buffer);
-	BasebandStatistics capture_statistics();
+    bool process(const buffer_c8_t& buffer);
+    BasebandStatistics capture_statistics();
 };
 
-#endif/*__BASEBAND_STATS_COLLECTOR_H__*/
+#endif /*__BASEBAND_STATS_COLLECTOR_H__*/

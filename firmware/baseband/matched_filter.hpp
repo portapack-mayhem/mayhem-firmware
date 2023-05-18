@@ -35,62 +35,59 @@ namespace matched_filter {
 // a multiple of the complex sinusoid period.
 
 class MatchedFilter {
-public:
-	using sample_t = std::complex<float>;
-	using tap_t = std::complex<float>;
+   public:
+    using sample_t = std::complex<float>;
+    using tap_t = std::complex<float>;
 
-	using taps_t = tap_t[];
+    using taps_t = tap_t[];
 
-	template<class T>
-	MatchedFilter(
-		const T& taps,
-		size_t decimation_factor = 1
-	) {
-		configure(taps, decimation_factor);
-	}
+    template <class T>
+    MatchedFilter(
+        const T& taps,
+        size_t decimation_factor = 1) {
+        configure(taps, decimation_factor);
+    }
 
-	template<class T>
-	void configure(
-		const T& taps,
-		size_t decimation_factor
-	) {
-		configure(taps.data(), taps.size(), decimation_factor);
- 	}
+    template <class T>
+    void configure(
+        const T& taps,
+        size_t decimation_factor) {
+        configure(taps.data(), taps.size(), decimation_factor);
+    }
 
-	bool execute_once(const sample_t input);
+    bool execute_once(const sample_t input);
 
-	float get_output() const {
-		return output;
-	}
+    float get_output() const {
+        return output;
+    }
 
-private:
-	using samples_t = sample_t[];
+   private:
+    using samples_t = sample_t[];
 
-	std::unique_ptr<samples_t> samples_ { };
-	std::unique_ptr<taps_t> taps_reversed_ { };
-	size_t taps_count_ { 0 };
-	size_t decimation_factor_ { 1 };
-	size_t decimation_phase { 0 };
-	float output { 0 };
+    std::unique_ptr<samples_t> samples_{};
+    std::unique_ptr<taps_t> taps_reversed_{};
+    size_t taps_count_{0};
+    size_t decimation_factor_{1};
+    size_t decimation_phase{0};
+    float output{0};
 
-	void shift_by_decimation_factor();
+    void shift_by_decimation_factor();
 
-	void advance_decimation_phase() {
-		decimation_phase = (decimation_phase + 1) % decimation_factor_;
-	}
+    void advance_decimation_phase() {
+        decimation_phase = (decimation_phase + 1) % decimation_factor_;
+    }
 
-	bool is_new_decimation_cycle() const {
-		return (decimation_phase == 0);
-	}
+    bool is_new_decimation_cycle() const {
+        return (decimation_phase == 0);
+    }
 
-	void configure(
-		const tap_t* const taps,
-		const size_t taps_count,
-		const size_t decimation_factor
-	);
+    void configure(
+        const tap_t* const taps,
+        const size_t taps_count,
+        const size_t decimation_factor);
 };
 
 } /* namespace matched_filter */
 } /* namespace dsp */
 
-#endif/*__MATCHED_FILTER_H__*/
+#endif /*__MATCHED_FILTER_H__*/

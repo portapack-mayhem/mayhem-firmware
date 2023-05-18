@@ -35,32 +35,30 @@
 namespace ui {
 
 class FlashUtilityView : public View {
-public:
-	FlashUtilityView(NavigationView& nav);
+   public:
+    FlashUtilityView(NavigationView& nav);
 
-	void focus() override;
-	
-	std::string title() const override { return "Flash Utility"; };	
+    void focus() override;
 
-private:
-	NavigationView& nav_;
-	
-	bool confirmed = false;
-	static Thread* thread;
+    std::string title() const override { return "Flash Utility"; };
 
-	Labels labels {
-		{ { 4, 4 }, "Select firmware to flash:", Color::white() }
-	};
+   private:
+    NavigationView& nav_;
 
-	MenuView menu_view {
-		{ 0, 2 * 8, 240, 26 * 8 },
-		true
-	};
+    bool confirmed = false;
+    static Thread* thread;
 
-	void firmware_selected(std::filesystem::path::string_type path);
-	void flash_firmware(std::filesystem::path::string_type path);
+    Labels labels{
+        {{4, 4}, "Select firmware to flash:", Color::white()}};
+
+    MenuView menu_view{
+        {0, 2 * 8, 240, 26 * 8},
+        true};
+
+    void firmware_selected(std::filesystem::path::string_type path);
+    void flash_firmware(std::filesystem::path::string_type path);
 };
 
 } /* namespace ui */
 
-#endif/*__UI_FLSH_UITILTY_H__*/
+#endif /*__UI_FLSH_UITILTY_H__*/

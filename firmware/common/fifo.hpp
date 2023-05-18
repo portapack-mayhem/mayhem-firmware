@@ -31,209 +31,208 @@
 
 /* FIFO implementation inspired by Linux kfifo. */
 
-template<typename T>
+template <typename T>
 class FIFO {
-public:
-	constexpr FIFO(
-		T* data,
-		size_t k
-	) : _data { data },
-		_size { 1U << k },
-		_in { 0 },
-		_out { 0 }
-	{
-	}
+   public:
+    constexpr FIFO(
+        T* data,
+        size_t k)
+        : _data{data},
+          _size{1U << k},
+          _in{0},
+          _out{0} {
+    }
 
-	void reset() {
-		_in = _out = 0;
-	}
+    void reset() {
+        _in = _out = 0;
+    }
 
-	void reset_in() {
-		_in = _out;
-	}
-	
-	void reset_out() {
-		_out = _in;
-	}
+    void reset_in() {
+        _in = _out;
+    }
 
-	size_t len() const {
-		return _in - _out;
-	}
+    void reset_out() {
+        _out = _in;
+    }
 
-	size_t unused() const {
-		return size() - (_in - _out);
-	}
+    size_t len() const {
+        return _in - _out;
+    }
 
-	bool is_empty() const {
-		return _in == _out;
-	}
+    size_t unused() const {
+        return size() - (_in - _out);
+    }
 
-	bool is_full() const {
-		return unused() == 0;
-	}
+    bool is_empty() const {
+        return _in == _out;
+    }
 
-	bool in(const T& val) {
-		if( is_full() ) {
-			return false;
-		}
+    bool is_full() const {
+        return unused() == 0;
+    }
 
-		_data[_in & mask()] = val;
-		smp_wmb();
-		_in += 1;
-		
-		return true;
-	}
+    bool in(const T& val) {
+        if (is_full()) {
+            return false;
+        }
 
-	size_t in(const T* const buf, size_t len) {
-		const size_t l = unused();
-		if( len > l ) {
-			len = l;
-		}
+        _data[_in & mask()] = val;
+        smp_wmb();
+        _in += 1;
 
-		copy_in(buf, len, _in);
-		_in += len;
-		return len;
-	}
+        return true;
+    }
 
-	size_t in_r(const void* const buf, const size_t len) {
-		if( (len + recsize()) > unused() ) {
-			return 0;
-		}
+    size_t in(const T* const buf, size_t len) {
+        const size_t l = unused();
+        if (len > l) {
+            len = l;
+        }
 
-		poke_n(len);
-		copy_in((const T*)buf, len, _in + recsize());
-		_in += len + recsize();
-		return len;
-	}
+        copy_in(buf, len, _in);
+        _in += len;
+        return len;
+    }
 
-	bool out(T& val) {
-		if( is_empty() ) {
-			return false;
-		}
+    size_t in_r(const void* const buf, const size_t len) {
+        if ((len + recsize()) > unused()) {
+            return 0;
+        }
 
-		val = _data[_out & mask()];		// Crashes
-		smp_wmb();						// Ok
-		_out += 1;						// Crashes
+        poke_n(len);
+        copy_in((const T*)buf, len, _in + recsize());
+        _in += len + recsize();
+        return len;
+    }
 
-		return true;
-	}
+    bool out(T& val) {
+        if (is_empty()) {
+            return false;
+        }
 
-	size_t out(T* const buf, size_t len) {
-		len = out_peek(buf, len);
-		_out += len;
-		return len;
-	}
+        val = _data[_out & mask()];  // Crashes
+        smp_wmb();                   // Ok
+        _out += 1;                   // Crashes
 
-	bool skip() {
-		if( is_empty() ) {
-			return false;
-		}
+        return true;
+    }
 
-		size_t len = peek_n();
-		_out += len + recsize();
-		return true;
-	}
+    size_t out(T* const buf, size_t len) {
+        len = out_peek(buf, len);
+        _out += len;
+        return len;
+    }
 
-	size_t peek_r(void* const buf, size_t len) {
-		if( is_empty() ) {
-			return 0;
-		}
+    bool skip() {
+        if (is_empty()) {
+            return false;
+        }
 
-		size_t n;
-		len = out_copy_r((T*)buf, len, &n);
-		return len;
-	}
+        size_t len = peek_n();
+        _out += len + recsize();
+        return true;
+    }
 
-	size_t out_r(void* const buf, size_t len) {
-		if( is_empty() ) {
-			return 0;
-		}
+    size_t peek_r(void* const buf, size_t len) {
+        if (is_empty()) {
+            return 0;
+        }
 
-		size_t n;
-		len = out_copy_r((T*)buf, len, &n);
-		_out += n + recsize();
-		return len;
-	}
+        size_t n;
+        len = out_copy_r((T*)buf, len, &n);
+        return len;
+    }
 
-private:
-	size_t size() const {
-		return _size;
-	}
+    size_t out_r(void* const buf, size_t len) {
+        if (is_empty()) {
+            return 0;
+        }
 
-	static constexpr size_t esize() {
-		return sizeof(T);
-	}
+        size_t n;
+        len = out_copy_r((T*)buf, len, &n);
+        _out += n + recsize();
+        return len;
+    }
 
-	size_t mask() const {
-		return size() - 1;
-	}
+   private:
+    size_t size() const {
+        return _size;
+    }
 
-	static constexpr size_t recsize() {
-		return 2;
-	}
+    static constexpr size_t esize() {
+        return sizeof(T);
+    }
 
-	void smp_wmb() {
-		__DMB();
-	}
+    size_t mask() const {
+        return size() - 1;
+    }
 
-	size_t peek_n() {
-		size_t l = _data[_out & mask()];
-		if( recsize() > 1 ) {
-			l |= _data[(_out + 1) & mask()] << 8;
-		}
-		return l;
-	}
+    static constexpr size_t recsize() {
+        return 2;
+    }
 
-	void poke_n(const size_t n) {
-		_data[_in & mask()] = n & 0xff;
-		if( recsize() > 1 ) {
-			_data[(_in + 1) & mask()] = (n >> 8) & 0xff;
-		}
-	}
+    void smp_wmb() {
+        __DMB();
+    }
 
-	void copy_in(const T* const src, const size_t len, size_t off) {
-		off &= mask();
-		const size_t l = std::min(len, size() - off);
+    size_t peek_n() {
+        size_t l = _data[_out & mask()];
+        if (recsize() > 1) {
+            l |= _data[(_out + 1) & mask()] << 8;
+        }
+        return l;
+    }
 
-		memcpy(&_data[off], &src[0], l * esize());
-		memcpy(&_data[0], &src[l], (len - l) * esize());
-		smp_wmb();
-	}
+    void poke_n(const size_t n) {
+        _data[_in & mask()] = n & 0xff;
+        if (recsize() > 1) {
+            _data[(_in + 1) & mask()] = (n >> 8) & 0xff;
+        }
+    }
 
-	void copy_out(T* const dst, const size_t len, size_t off) {
-		off &= mask();
-		const size_t l = std::min(len, size() - off);
+    void copy_in(const T* const src, const size_t len, size_t off) {
+        off &= mask();
+        const size_t l = std::min(len, size() - off);
 
-		memcpy(&dst[0], &_data[off], l * esize());
-		memcpy(&dst[l], &_data[0], (len - l) * esize());
-		smp_wmb();
-	}
+        memcpy(&_data[off], &src[0], l * esize());
+        memcpy(&_data[0], &src[l], (len - l) * esize());
+        smp_wmb();
+    }
 
-	size_t out_copy_r(void *buf, size_t len, size_t* const n) {
-		*n = peek_n();
+    void copy_out(T* const dst, const size_t len, size_t off) {
+        off &= mask();
+        const size_t l = std::min(len, size() - off);
 
-		if( len > *n ) {
-			len = *n;
-		}
+        memcpy(&dst[0], &_data[off], l * esize());
+        memcpy(&dst[l], &_data[0], (len - l) * esize());
+        smp_wmb();
+    }
 
-		copy_out((T*)buf, len, _out + recsize());
-		return len;
-	}
+    size_t out_copy_r(void* buf, size_t len, size_t* const n) {
+        *n = peek_n();
 
-	size_t out_peek(T* const buf, size_t buf_len) {
-		const size_t l = len();
-		if( buf_len > l ) {
-			buf_len = l;
-		}
+        if (len > *n) {
+            len = *n;
+        }
 
-		copy_out(buf, buf_len, _out);
-		return buf_len;
-	}
+        copy_out((T*)buf, len, _out + recsize());
+        return len;
+    }
 
-	T* const _data;
-	const size_t _size;
-	volatile size_t _in;
-	volatile size_t _out;
+    size_t out_peek(T* const buf, size_t buf_len) {
+        const size_t l = len();
+        if (buf_len > l) {
+            buf_len = l;
+        }
+
+        copy_out(buf, buf_len, _out);
+        return buf_len;
+    }
+
+    T* const _data;
+    const size_t _size;
+    volatile size_t _in;
+    volatile size_t _out;
 };
 
-#endif/*__FIFO_H__*/
+#endif /*__FIFO_H__*/

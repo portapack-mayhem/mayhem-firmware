@@ -30,4 +30,4 @@ extern const std::array<ui::Color, 256> spectrum_rgb2_lut;
 extern const std::array<ui::Color, 256> spectrum_rgb3_lut;
 extern const std::array<ui::Color, 256> spectrum_rgb4_lut;
 
-#endif/*__SPECTRUM_COLOR_LUT_H__*/
+#endif /*__SPECTRUM_COLOR_LUT_H__*/

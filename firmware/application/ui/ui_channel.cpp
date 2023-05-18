@@ -28,36 +28,33 @@
 namespace ui {
 
 void Channel::paint(Painter& painter) {
-	const auto r = screen_rect();
+    const auto r = screen_rect();
 
-	constexpr int db_min = -96;
-	constexpr int db_max = 0;
-	constexpr int db_delta = db_max - db_min;
-	const range_t<int> x_max_range { 0, r.width() - 1 };
-	const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
+    constexpr int db_min = -96;
+    constexpr int db_max = 0;
+    constexpr int db_delta = db_max - db_min;
+    const range_t<int> x_max_range{0, r.width() - 1};
+    const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
 
-	const Rect r0 { r.left(), r.top(), x_max, r.height() };
-	painter.fill_rectangle(
-		r0,
-		Color::blue()
-	);
+    const Rect r0{r.left(), r.top(), x_max, r.height()};
+    painter.fill_rectangle(
+        r0,
+        Color::blue());
 
-	const Rect r1 { r.left() + x_max, r.top(), 1, r.height() };
-	painter.fill_rectangle(
-		r1,
-		Color::white()
-	);
+    const Rect r1{r.left() + x_max, r.top(), 1, r.height()};
+    painter.fill_rectangle(
+        r1,
+        Color::white());
 
-	const Rect r2 { r.left() + x_max + 1, r.top(), r.width() - (x_max + 1), r.height() };
-	painter.fill_rectangle(
-		r2,
-		Color::black()
-	);
+    const Rect r2{r.left() + x_max + 1, r.top(), r.width() - (x_max + 1), r.height()};
+    painter.fill_rectangle(
+        r2,
+        Color::black());
 }
 
 void Channel::on_statistics_update(const ChannelStatistics& statistics) {
-	max_db_ = statistics.max_db;
-	set_dirty();
+    max_db_ = statistics.max_db;
+    set_dirty();
 }
 
 } /* namespace ui */

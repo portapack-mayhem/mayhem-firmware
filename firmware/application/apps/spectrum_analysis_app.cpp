@@ -25,10 +25,10 @@
 using namespace portapack;
 
 SpectrumAnalysisModel::SpectrumAnalysisModel() {
-	receiver_model.set_baseband_configuration({
-		.mode = 4,
-		.sampling_rate = 20000000,
-		.decimation_factor = 1,
-	});
-	receiver_model.set_baseband_bandwidth(12000000);
+    receiver_model.set_baseband_configuration({
+        .mode = 4,
+        .sampling_rate = 20000000,
+        .decimation_factor = 1,
+    });
+    receiver_model.set_baseband_bandwidth(12000000);
 }

@@ -31,38 +31,34 @@
 static Thread* thread_lcd_frame_event = NULL;
 
 static void pin_int4_interrupt_enable() {
-	thread_lcd_frame_event = chThdSelf();
-	nvicEnableVector(PIN_INT4_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_PIN_INT4_IRQ_PRIORITY));
+    thread_lcd_frame_event = chThdSelf();
+    nvicEnableVector(PIN_INT4_IRQn, CORTEX_PRIORITY_MASK(LPC43XX_PIN_INT4_IRQ_PRIORITY));
 }
 
 void lcd_frame_sync_configure() {
-	/* Positive edge sensitivity */
-	LPC_GPIO_INT->ISEL &= ~(1U << 4);
-	LPC_GPIO_INT->SIENR = (1U << 4);
-	LPC_GPIO_INT->CIENF = (1U << 4);
-	LPC_GPIO_INT->IST = (1U << 4);
+    /* Positive edge sensitivity */
+    LPC_GPIO_INT->ISEL &= ~(1U << 4);
+    LPC_GPIO_INT->SIENR = (1U << 4);
+    LPC_GPIO_INT->CIENF = (1U << 4);
+    LPC_GPIO_INT->IST = (1U << 4);
 
-	LPC_SCU->PINTSEL1 =
-		  (LPC_SCU->PINTSEL1 & ~(0xffU << 0))
-		| (portapack::gpio_lcd_te.pad() << 0)
-		| (portapack::gpio_lcd_te.port() << 5)
-		;
+    LPC_SCU->PINTSEL1 =
+        (LPC_SCU->PINTSEL1 & ~(0xffU << 0)) | (portapack::gpio_lcd_te.pad() << 0) | (portapack::gpio_lcd_te.port() << 5);
 
-	pin_int4_interrupt_enable();
+    pin_int4_interrupt_enable();
 }
 
 extern "C" {
 
 CH_IRQ_HANDLER(PIN_INT4_IRQHandler) {
-	CH_IRQ_PROLOGUE();
+    CH_IRQ_PROLOGUE();
 
-	chSysLockFromIsr();
-	chEvtSignalI(thread_lcd_frame_event, EVT_MASK_LCD_FRAME_SYNC);
-	chSysUnlockFromIsr();
+    chSysLockFromIsr();
+    chEvtSignalI(thread_lcd_frame_event, EVT_MASK_LCD_FRAME_SYNC);
+    chSysUnlockFromIsr();
 
-	LPC_GPIO_INT->IST = (1U << 4);
+    LPC_GPIO_INT->IST = (1U << 4);
 
-	CH_IRQ_EPILOGUE();
+    CH_IRQ_EPILOGUE();
 }
-
 }

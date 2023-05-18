@@ -24,71 +24,59 @@
 #ifndef __DATABASE_H__
 #define __DATABASE_H__
 
-
 #include <cstddef>
 #include <cstdint>
 #include <string>
 
 #include "file.hpp"
 
-
-
 namespace std {
 class database {
+   public:
+#define DATABASE_RECORD_FOUND 0       // record found in database
+#define DATABASE_NOT_FOUND -1         // database not found / could not be opened
+#define DATABASE_RECORD_NOT_FOUND -2  // record could not be found in database
 
+    struct MidDBRecord {
+        char country[32];  // country name
+    };
 
+    int retrieve_mid_record(MidDBRecord* record, std::string search_term);
 
-public:
+    struct AirlinesDBRecord {
+        char airline[32];  // airline name
+        char country[32];  // country name
+    };
 
-#define DATABASE_RECORD_FOUND	 	 0		// record found in database
-#define DATABASE_NOT_FOUND		-1		// database not found / could not be opened
-#define DATABASE_RECORD_NOT_FOUND	-2		// record could not be found in database
+    int retrieve_airline_record(AirlinesDBRecord* record, std::string search_term);
 
-	struct MidDBRecord {
-		char 	country[32];			// country name
-	};
+    struct AircraftDBRecord {
+        char aircraft_registration[9];   // aircraft registration
+        char aircraft_manufacturer[33];  // aircraft manufacturer
+        char aircraft_model[33];         // aircraft model
+        char icao_type[5];               // ICAO type descripton or when unavailable ICAO type designator
+        char aircraft_owner[33];         // aircraft owner
+        char aircraft_operator[33];      // aircraft operator
+    };
 
-	int retrieve_mid_record(MidDBRecord* record, std::string search_term);
+    int retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term);
 
-	struct AirlinesDBRecord {
-		char 	airline[32];			// airline name
-		char 	country[32];			// country name
-	};
+   private:
+    string file_path = "";      // path inclusing filename
+    int index_item_length = 0;  // length of index item
+    int record_length = 0;      // length of record
 
-	int retrieve_airline_record(AirlinesDBRecord* record, std::string search_term);
+    File db_file{};
+    int number_of_records = 0;
+    int position = 0;
 
-	struct AircraftDBRecord { 
-		char 	aircraft_registration[9];	// aircraft registration
-		char 	aircraft_manufacturer[33];	// aircraft manufacturer
-		char 	aircraft_model[33];		// aircraft model
-		char	icao_type[5];			// ICAO type descripton or when unavailable ICAO type designator
-		char 	aircraft_owner[33];		// aircraft owner
-		char 	aircraft_operator[33];		// aircraft operator
+    char file_buffer[32]{0};
+    bool found = false;
 
-	};
+    int result = 0;
 
-	int retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term);
-
-private:
-	string 	file_path = "";				// path inclusing filename
-	int  	index_item_length = 0;			// length of index item
-	int  	record_length = 0;			// length of record
-
-	File 	db_file { };
-	int 	number_of_records = 0;
-	int 	position = 0;
-
-	char 	file_buffer[32] { 0 };
-	bool 	found = false;
-
-	int 	result = 0;
-
-	int retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term);
-
-
+    int retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term);
 };
-} // namespace std
+}  // namespace std
 
-
-
-#endif/*__DATABASE_H__*/
+#endif /*__DATABASE_H__*/

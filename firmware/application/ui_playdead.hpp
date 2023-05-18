@@ -29,34 +29,32 @@
 namespace ui {
 
 class PlayDeadView : public View {
-public:
-	PlayDeadView(NavigationView& nav);
-	
-	void focus() override;
-	void paint(Painter& painter) override;
+   public:
+    PlayDeadView(NavigationView& nav);
 
-private:
-	uint32_t sequence = 0;
-	
-	Text text_playdead1 {
-		{ 6 * 8, 7 * 16, 14 * 8, 16 },
-		"\x46irmwa" "re " "er\x72o\x72"
-	};
-	Text text_playdead2 {
-		{ 6 * 8, 9 * 16, 16 * 8, 16 },
-		""
-	};
-	Text text_playdead3 {
-		{ 6 * 8, 12 * 16, 16 * 8, 16 },
-		"Please reset"
-	};
-	
-	Button button_seq_entry {
-		{ 240, 0, 1, 1 },
-		""
-	};
+    void focus() override;
+    void paint(Painter& painter) override;
+
+   private:
+    uint32_t sequence = 0;
+
+    Text text_playdead1{
+        {6 * 8, 7 * 16, 14 * 8, 16},
+        "\x46irmwa"
+        "re "
+        "er\x72o\x72"};
+    Text text_playdead2{
+        {6 * 8, 9 * 16, 16 * 8, 16},
+        ""};
+    Text text_playdead3{
+        {6 * 8, 12 * 16, 16 * 8, 16},
+        "Please reset"};
+
+    Button button_seq_entry{
+        {240, 0, 1, 1},
+        ""};
 };
 
 } /* namespace ui */
 
-#endif/*__UI_PLAYDEAD_H__*/
+#endif /*__UI_PLAYDEAD_H__*/

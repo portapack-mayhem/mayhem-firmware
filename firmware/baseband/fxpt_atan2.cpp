@@ -38,7 +38,7 @@
  */
 /*
 static inline int16_t q15_from_double(const double d) {
-	return lrint(d * 32768);
+        return lrint(d * 32768);
 }
 */
 /**
@@ -49,16 +49,16 @@ static inline int16_t q15_from_double(const double d) {
  * @param i 16-bit signed integer
  * @return negative absolute value of i; defined for all values of i
  */
- /*
+/*
 static inline int16_t s16_nabs(const int16_t j) {
 #if (((int16_t)-1) >> 1) == ((int16_t)-1)
-	// signed right shift sign-extends (arithmetic)
-	const int16_t negSign = ~(j >> 15); // splat sign bit into all 16 and complement
-	// if j is positive (negSign is -1), xor will invert j and sub will add 1
-	// otherwise j is unchanged
-	return (j ^ negSign) - negSign;
+        // signed right shift sign-extends (arithmetic)
+        const int16_t negSign = ~(j >> 15); // splat sign bit into all 16 and complement
+        // if j is positive (negSign is -1), xor will invert j and sub will add 1
+        // otherwise j is unchanged
+        return (j ^ negSign) - negSign;
 #else
-	return (j < 0 ? j : -j);
+        return (j < 0 ? j : -j);
 #endif
 }
 */
@@ -71,13 +71,13 @@ static inline int16_t s16_nabs(const int16_t j) {
  * @return product of j and k, in same format
  */
 static inline int16_t q15_mul(const int16_t j, const int16_t k) {
-	const int32_t intermediate = j * k;
-#if 0 // don't round
+    const int32_t intermediate = j * k;
+#if 0    // don't round
 	return intermediate >> 15;
-#elif 0 // biased rounding
-	return (intermediate + 0x4000) >> 15;
-#else // unbiased rounding
-	return (intermediate + ((intermediate & 0x7FFF) == 0x4000 ? 0 : 0x4000)) >> 15;
+#elif 0  // biased rounding
+    return (intermediate + 0x4000) >> 15;
+#else    // unbiased rounding
+    return (intermediate + ((intermediate & 0x7FFF) == 0x4000 ? 0 : 0x4000)) >> 15;
 #endif
 }
 
@@ -92,7 +92,7 @@ static inline int16_t q15_mul(const int16_t j, const int16_t k) {
  * @return numer / denom in same format as numer and denom
  */
 static inline int16_t q15_div(const int16_t numer, const int16_t denom) {
-	return (static_cast<int32_t>(numer) << 15) / denom;
+    return (static_cast<int32_t>(numer) << 15) / denom;
 }
 
 /**
@@ -112,41 +112,41 @@ static inline int16_t q15_div(const int16_t numer, const int16_t denom) {
  */
 
 static inline int16_t nabs(const int16_t j) {
-	//return -abs(x);
-	return (j < 0 ? j : -j);
+    // return -abs(x);
+    return (j < 0 ? j : -j);
 }
 
 int16_t fxpt_atan2(const int16_t y, const int16_t x) {
-	static const int16_t k1 = 2847;
-	static const int16_t k2 = 11039;
-	if (x == y) { // x/y or y/x would return -1 since 1 isn't representable
-		if (y > 0) { // 1/8
-			return 8192;
-		} else if (y < 0) { // 5/8
-			return 40960;
-		} else { // x = y = 0
-			return 0;
-		}
-	}
-	const int16_t nabs_y = nabs(y);
-	const int16_t nabs_x = nabs(x);
-	if (nabs_x < nabs_y) { // octants 1, 4, 5, 8
-		const int16_t y_over_x = q15_div(y, x);
-		const int16_t correction = q15_mul(k1, nabs(y_over_x));
-		const int16_t unrotated = q15_mul(k2 + correction, y_over_x);
-		if (x > 0) { // octants 1, 8
-			return unrotated;
-		} else { // octants 4, 5
-			return 32768 + unrotated;
-		}
-	} else { // octants 2, 3, 6, 7
-		const int16_t x_over_y = q15_div(x, y);
-		const int16_t correction = q15_mul(k1, nabs(x_over_y));
-		const int16_t unrotated = q15_mul(k2 + correction, x_over_y);
-		if (y > 0) { // octants 2, 3
-			return 16384 - unrotated;
-		} else { // octants 6, 7
-			return 49152 - unrotated;
-		}
-	}
+    static const int16_t k1 = 2847;
+    static const int16_t k2 = 11039;
+    if (x == y) {     // x/y or y/x would return -1 since 1 isn't representable
+        if (y > 0) {  // 1/8
+            return 8192;
+        } else if (y < 0) {  // 5/8
+            return 40960;
+        } else {  // x = y = 0
+            return 0;
+        }
+    }
+    const int16_t nabs_y = nabs(y);
+    const int16_t nabs_x = nabs(x);
+    if (nabs_x < nabs_y) {  // octants 1, 4, 5, 8
+        const int16_t y_over_x = q15_div(y, x);
+        const int16_t correction = q15_mul(k1, nabs(y_over_x));
+        const int16_t unrotated = q15_mul(k2 + correction, y_over_x);
+        if (x > 0) {  // octants 1, 8
+            return unrotated;
+        } else {  // octants 4, 5
+            return 32768 + unrotated;
+        }
+    } else {  // octants 2, 3, 6, 7
+        const int16_t x_over_y = q15_div(x, y);
+        const int16_t correction = q15_mul(k1, nabs(x_over_y));
+        const int16_t unrotated = q15_mul(k2 + correction, x_over_y);
+        if (y > 0) {  // octants 2, 3
+            return 16384 - unrotated;
+        } else {  // octants 6, 7
+            return 49152 - unrotated;
+        }
+    }
 }

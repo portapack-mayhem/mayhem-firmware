@@ -28,16 +28,16 @@
 #include "signal.hpp"
 
 namespace sd_card {
-	
+
 extern FATFS fs;
 
 enum class Status : int32_t {
-	IOError = -3,
-	MountError = -2,
-	ConnectError = -1,
-	NotPresent = 0,
-	Present = 1,
-	Mounted = 2,
+    IOError = -3,
+    MountError = -2,
+    ConnectError = -1,
+    NotPresent = 0,
+    Present = 1,
+    Mounted = 2,
 };
 
 extern Signal<Status> status_signal;
@@ -47,4 +47,4 @@ Status status();
 
 } /* namespace sd_card */
 
-#endif/*__SD_CARD_H__*/
+#endif /*__SD_CARD_H__*/

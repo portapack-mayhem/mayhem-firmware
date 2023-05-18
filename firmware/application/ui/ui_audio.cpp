@@ -28,45 +28,41 @@
 namespace ui {
 
 void Audio::paint(Painter& painter) {
-	const auto r = screen_rect();
+    const auto r = screen_rect();
 
-	constexpr int db_min = -96;
-	constexpr int db_max = 0;
-	constexpr int db_delta = db_max - db_min;
-	const range_t<int> x_rms_range { 0, r.width() - 1 };
-	const auto x_rms = x_rms_range.clip((rms_db_ - db_min) * r.width() / db_delta);
-	const range_t<int> x_max_range { x_rms + 1, r.width() };
-	const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
+    constexpr int db_min = -96;
+    constexpr int db_max = 0;
+    constexpr int db_delta = db_max - db_min;
+    const range_t<int> x_rms_range{0, r.width() - 1};
+    const auto x_rms = x_rms_range.clip((rms_db_ - db_min) * r.width() / db_delta);
+    const range_t<int> x_max_range{x_rms + 1, r.width()};
+    const auto x_max = x_max_range.clip((max_db_ - db_min) * r.width() / db_delta);
 
-	const Rect r0 { r.left(), r.top(), x_rms, r.height() };
-	painter.fill_rectangle(
-		r0,
-		Color::green()
-	);
+    const Rect r0{r.left(), r.top(), x_rms, r.height()};
+    painter.fill_rectangle(
+        r0,
+        Color::green());
 
-	const Rect r1 { r.left() + x_rms, r.top(), 1, r.height() };
-	painter.fill_rectangle(
-		r1,
-		Color::black()
-	);
+    const Rect r1{r.left() + x_rms, r.top(), 1, r.height()};
+    painter.fill_rectangle(
+        r1,
+        Color::black());
 
-	const Rect r2 { r.left() + x_rms + 1, r.top(), x_max - (x_rms + 1), r.height() };
-	painter.fill_rectangle(
-		r2,
-		Color::red()
-	);
+    const Rect r2{r.left() + x_rms + 1, r.top(), x_max - (x_rms + 1), r.height()};
+    painter.fill_rectangle(
+        r2,
+        Color::red());
 
-	const Rect r3 { r.left() + x_max, r.top(), r.width() - x_max, r.height() };
-	painter.fill_rectangle(
-		r3,
-		Color::black()
-	);
+    const Rect r3{r.left() + x_max, r.top(), r.width() - x_max, r.height()};
+    painter.fill_rectangle(
+        r3,
+        Color::black());
 }
 
 void Audio::on_statistics_update(const AudioStatistics& statistics) {
-	rms_db_ = statistics.rms_db;
-	max_db_ = statistics.max_db;
-	set_dirty();
+    rms_db_ = statistics.rms_db;
+    max_db_ = statistics.max_db;
+    set_dirty();
 }
 
 } /* namespace ui */

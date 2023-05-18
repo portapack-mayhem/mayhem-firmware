@@ -25,38 +25,35 @@
 
 namespace ui {
 
-SdOverUsbView::SdOverUsbView(NavigationView& nav) : nav_ (nav) {
-	add_children({
-		&labels,
-		&button_run
-	});
+SdOverUsbView::SdOverUsbView(NavigationView& nav)
+    : nav_(nav) {
+    add_children({&labels,
+                  &button_run});
 
-	button_run.on_select = [this](Button&) {
-		ui::Painter painter;
-			painter.fill_rectangle(
-			{ 0, 0, portapack::display.width(), portapack::display.height() },
-			ui::Color::black()
-		);
+    button_run.on_select = [this](Button&) {
+        ui::Painter painter;
+        painter.fill_rectangle(
+            {0, 0, portapack::display.width(), portapack::display.height()},
+            ui::Color::black());
 
-		painter.draw_bitmap(
-			{ portapack::display.width()/2-8, portapack::display.height()/2-8 },
-			bitmap_icon_hackrf,
-			ui::Color::yellow(),
-			ui::Color::black()
-		);
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
+            bitmap_icon_hackrf,
+            ui::Color::yellow(),
+            ui::Color::black());
 
-		sdcDisconnect(&SDCD1);
-		sdcStop(&SDCD1);
+        sdcDisconnect(&SDCD1);
+        sdcStop(&SDCD1);
 
-		portapack::shutdown(true);
-		m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
-		m0_halt();
-		/* will not return*/
-	};
+        portapack::shutdown(true);
+        m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
+        m0_halt();
+        /* will not return*/
+    };
 }
 
 void SdOverUsbView::focus() {
-	button_run.focus();
+    button_run.focus();
 }
 
 } /* namespace ui */

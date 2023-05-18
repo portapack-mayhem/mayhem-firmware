@@ -24,4 +24,4 @@
 
 #include "ch.h"
 
-#endif/*__EVENT_H__*/
+#endif /*__EVENT_H__*/

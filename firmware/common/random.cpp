@@ -24,16 +24,14 @@
 static unsigned long state[N]; /* the array for the state vector  */
 static int rnd_left = 1;
 static int rnd_init = 0;
-static unsigned long *rnd_next;
+static unsigned long* rnd_next;
 
 /* initializes state[N] with a seed */
-void init_genrand(unsigned long s)
-{
+void init_genrand(unsigned long s) {
     int j;
     state[0] = s & 0xffffffffUL;
 
-    for (j = 1; j < N; j++)
-    {
+    for (j = 1; j < N; j++) {
         state[j] = (1812433253UL * (state[j - 1] ^ (state[j - 1] >> 30)) + j);
         /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
         /* In the previous versions, MSBs of the seed affect   */
@@ -46,9 +44,8 @@ void init_genrand(unsigned long s)
     rnd_init = 1;
 }
 
-static void next_state(void)
-{
-    unsigned long *p = state;
+static void next_state(void) {
+    unsigned long* p = state;
     int j;
 
     /* if init_genrand() has not been called, */
@@ -68,8 +65,7 @@ static void next_state(void)
     *p = p[M - N] ^ TWIST(p[0], state[0]);
 }
 
-long genrand_int31(void)
-{
+long genrand_int31(void) {
     unsigned long y;
 
     if (--rnd_left == 0)

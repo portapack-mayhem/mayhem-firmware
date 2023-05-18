@@ -28,7 +28,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-    extern void unlz4_len(const void *aSource, void *aDestination, uint32_t aLength);
+extern void unlz4_len(const void* aSource, void* aDestination, uint32_t aLength);
 #ifdef __cplusplus
 }
 #endif

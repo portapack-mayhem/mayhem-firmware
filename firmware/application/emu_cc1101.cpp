@@ -25,22 +25,22 @@
 namespace cc1101 {
 
 void CC1101Emu::whitening_init() {
-	whitening_pn = 0x1FF;
+    whitening_pn = 0x1FF;
 }
 
 // See TI app note DN509
 uint8_t CC1101Emu::whiten_byte(uint8_t byte) {
-	uint_fast8_t new_bit;
-	
-	byte ^= (whitening_pn & 0xFF);
-	
-	for (size_t step = 0; step < 8; step++) {
-		new_bit = (whitening_pn & 1) ^ ((whitening_pn >> 5) & 1);
-		whitening_pn >>= 1;
-		whitening_pn |= (new_bit << 8);
-	}
-	
-	return byte;
+    uint_fast8_t new_bit;
+
+    byte ^= (whitening_pn & 0xFF);
+
+    for (size_t step = 0; step < 8; step++) {
+        new_bit = (whitening_pn & 1) ^ ((whitening_pn >> 5) & 1);
+        whitening_pn >>= 1;
+        whitening_pn |= (new_bit << 8);
+    }
+
+    return byte;
 }
 
 } /* namespace cc1101 */

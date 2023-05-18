@@ -29,30 +29,29 @@
 #include "utility.hpp"
 
 class RFM69 {
-public:
+   public:
     RFM69(const uint8_t num_preamble, const uint16_t sync_word, const bool CRC, const bool manchester)
-        : num_preamble_(num_preamble), sync_word_(sync_word), CRC_(CRC), manchester_(manchester)
-    { }
-	//~RFM69();
-	
-	void set_sync_word(const uint16_t sync_word) {
-		sync_word_ = sync_word;
-	};
-	void set_data_config(const bool CRC, const bool manchester) {
-		CRC_ = CRC;
-		manchester_ = manchester;
-	};
-	void set_num_preamble(const uint8_t num_preamble) {
-		num_preamble_ = num_preamble;
-	};
-	
-	uint32_t gen_frame(std::vector<uint8_t>& payload);
+        : num_preamble_(num_preamble), sync_word_(sync_word), CRC_(CRC), manchester_(manchester) {}
+    //~RFM69();
 
-private:
-	uint8_t num_preamble_ { 5 };
-	uint16_t sync_word_ { 0x2DD4 };
-	bool CRC_ { true };
-	bool manchester_ { false };
+    void set_sync_word(const uint16_t sync_word) {
+        sync_word_ = sync_word;
+    };
+    void set_data_config(const bool CRC, const bool manchester) {
+        CRC_ = CRC;
+        manchester_ = manchester;
+    };
+    void set_num_preamble(const uint8_t num_preamble) {
+        num_preamble_ = num_preamble;
+    };
+
+    uint32_t gen_frame(std::vector<uint8_t>& payload);
+
+   private:
+    uint8_t num_preamble_{5};
+    uint16_t sync_word_{0x2DD4};
+    bool CRC_{true};
+    bool manchester_{false};
 };
 
-#endif/*__RFM69_H__*/
+#endif /*__RFM69_H__*/

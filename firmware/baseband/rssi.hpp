@@ -40,4 +40,4 @@ void stop();
 } /* namespace rssi */
 } /* namespace rf */
 
-#endif/*__RSSI_H__*/
+#endif /*__RSSI_H__*/

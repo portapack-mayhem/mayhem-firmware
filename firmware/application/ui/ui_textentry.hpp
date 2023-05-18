@@ -29,30 +29,29 @@
 namespace ui {
 
 class TextEntryView : public View {
-public:
-	std::function<void(std::string&)> on_changed { };
-	
-	void focus() override;
-	std::string title() const override { return "Text entry"; };
+   public:
+    std::function<void(std::string&)> on_changed{};
 
-	void set_cursor(uint32_t pos);
-	
-protected:
-	TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
-	
-	TextEntryView(const TextEntryView&) = delete;
-	TextEntryView(TextEntryView&&) = delete;
-	TextEntryView& operator=(const TextEntryView&) = delete;
-	TextEntryView& operator=(TextEntryView&&) = delete;
+    void focus() override;
+    std::string title() const override { return "Text entry"; };
 
-	void char_add(const char c);
-	void char_delete();
-	
-	TextField text_input;
-	Button button_ok {
-		{ 10 * 8, 33 * 8, 9 * 8, 32 },
-		"OK"
-	};
+    void set_cursor(uint32_t pos);
+
+   protected:
+    TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
+
+    TextEntryView(const TextEntryView&) = delete;
+    TextEntryView(TextEntryView&&) = delete;
+    TextEntryView& operator=(const TextEntryView&) = delete;
+    TextEntryView& operator=(TextEntryView&&) = delete;
+
+    void char_add(const char c);
+    void char_delete();
+
+    TextField text_input;
+    Button button_ok{
+        {10 * 8, 33 * 8, 9 * 8, 32},
+        "OK"};
 };
 
 // Show the TextEntry view to receive keyboard input.
@@ -60,18 +59,18 @@ protected:
 // by reference and its lifetime must be ensured by the
 // caller until the TextEntry view is dismissed.
 void text_prompt(
-	NavigationView& nav,
-	std::string& str,
-	size_t max_length,
-	std::function<void(std::string&)> on_done = nullptr);
+    NavigationView& nav,
+    std::string& str,
+    size_t max_length,
+    std::function<void(std::string&)> on_done = nullptr);
 
 void text_prompt(
-	NavigationView& nav,
-	std::string& str,
-	uint32_t cursor_pos,
-	size_t max_length,
-	std::function<void(std::string&)> on_done = nullptr);
+    NavigationView& nav,
+    std::string& str,
+    uint32_t cursor_pos,
+    size_t max_length,
+    std::function<void(std::string&)> on_done = nullptr);
 
 } /* namespace ui */
 
-#endif/*__UI_TEXTENTRY_H__*/
+#endif /*__UI_TEXTENTRY_H__*/

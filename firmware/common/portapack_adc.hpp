@@ -39,4 +39,4 @@ constexpr size_t adc1_rssi_input = 1;
 
 } /* namespace portapack */
 
-#endif/*__PORTAPACK_ADC_H__*/
+#endif /*__PORTAPACK_ADC_H__*/
