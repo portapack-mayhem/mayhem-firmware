@@ -23,15 +23,15 @@
 
 static void lfsr_iterate_internal(lfsr_word_t& v) {
     /*
-	    Generated with lfsr-generator:
-	    http://lfsr-generator.sourceforge.net
-	    =============================================
-		config          : fibonacci
-		length          : 31
-		taps            : (31, 18)
-		shift-amounts   : (12, 12, 8)
-		shift-direction : left
-	*/
+            Generated with lfsr-generator:
+            http://lfsr-generator.sourceforge.net
+            =============================================
+                config          : fibonacci
+                length          : 31
+                taps            : (31, 18)
+                shift-amounts   : (12, 12, 8)
+                shift-direction : left
+        */
     enum {
         length = 31,
         tap_0 = 31,

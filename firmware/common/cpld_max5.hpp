@@ -64,10 +64,10 @@ class CPLD {
     void enable();
 
     /* Check ID:
-	 * The silicon ID is checked before any Program or Verify process. The
-	 * time required to read this silicon ID is relatively small compared to
-	 * the overall programming time.
-	 */
+     * The silicon ID is checked before any Program or Verify process. The
+     * time required to read this silicon ID is relatively small compared to
+     * the overall programming time.
+     */
     bool silicon_id_ok();
 
     uint32_t usercode();
@@ -175,19 +175,19 @@ class CPLD {
 /*
 class ModeISP {
 public:
-	ModeISP(
-		CPLD& cpld
-	) : cpld(cpld)
-	{
-		cpld.enter_isp();
-	}
+        ModeISP(
+                CPLD& cpld
+        ) : cpld(cpld)
+        {
+                cpld.enter_isp();
+        }
 
-	~ModeISP() {
-		cpld.exit_isp();
-	}
+        ~ModeISP() {
+                cpld.exit_isp();
+        }
 
 private:
-	CPLD& cpld;
+        CPLD& cpld;
 };
 */
 } /* namespace max5 */

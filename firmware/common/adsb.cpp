@@ -68,7 +68,7 @@ void encode_frame_id(ADSBFrame& frame, const uint32_t ICAO_address, const std::s
         callsign_coded <<= 6;
         callsign_coded |= s;
 
-        //callsign[c] = ch;
+        // callsign[c] = ch;
     }
 
     // Insert callsign in frame
@@ -100,12 +100,12 @@ std::string decode_frame_id(ADSBFrame& frame) {
 }
 
 /*void generate_frame_emergency(ADSBFrame& frame, const uint32_t ICAO_address, const uint8_t code) {
-	make_frame_mode_s(frame, ICAO_address);
-	
-	frame.push_byte((28 << 3) + 1);	// TC = 28 (Emergency), subtype = 1 (Emergency)
-	frame.push_byte(code << 5);
-	
-	frame.make_CRC();
+        make_frame_mode_s(frame, ICAO_address);
+
+        frame.push_byte((28 << 3) + 1);	// TC = 28 (Emergency), subtype = 1 (Emergency)
+        frame.push_byte(code << 5);
+
+        frame.make_CRC();
 }*/
 
 // Mode S services. (Mode Select Beacon System). There are two types of Mode S interrogations: The short (56 bits) . and the long (112 bits )
@@ -212,7 +212,7 @@ int cpr_NL(float lat) {
     // from testing, but if you find it might be an issue,
     // switch to cpr_NL_approx() instead:
 
-    //return cpr_NL_approx(lat);
+    // return cpr_NL_approx(lat);
 
     return cpr_NL_precise(lat);
 }
@@ -368,7 +368,7 @@ void encode_frame_velo(ADSBFrame& frame, const uint32_t ICAO_address, const uint
     velo_ew = static_cast<int32_t>(sin_f32(DEG_TO_RAD(angle)) * speed);             // East direction, is the projection from West -> East is directly sin(angle=Compas Bearing) , (90º is the max +1, EAST) max velo_EW
     velo_ns = static_cast<int32_t>(sin_f32((pi / 2 - DEG_TO_RAD(angle))) * speed);  // North direction,is the projection of North = cos(angle=Compas Bearing), cos(angle)= sen(90-angle) (0º is the max +1 NORTH) max velo_NS
 
-    v_rate_coded_abs = (abs(v_rate) / 64) + 1;  //encoding vertical rate source.  (Decoding, VR ft/min = (Decimal v_rate_value - 1)* 64)
+    v_rate_coded_abs = (abs(v_rate) / 64) + 1;  // encoding vertical rate source.  (Decoding, VR ft/min = (Decimal v_rate_value - 1)* 64)
 
     velo_ew_abs = abs(velo_ew) + 1;  // encoding Velo speed EW , when sign Direction is 0 (+): West->East, (-) 1: East->West
     velo_ns_abs = abs(velo_ns) + 1;  // encoding Velo speed NS , when sign Direction is 0 (+): South->North , (-) 1: North->South
@@ -401,16 +401,16 @@ adsb_vel decode_frame_velo(ADSBFrame& frame) {
     uint8_t* frame_data = frame.get_raw_data();
     uint8_t velo_type = frame.get_msg_sub();
 
-    if (velo_type >= 1 && velo_type <= 4) {  //vertical rate is always present
+    if (velo_type >= 1 && velo_type <= 4) {  // vertical rate is always present
 
         velo.v_rate = (((frame_data[8] & 0x07) << 6) | ((frame_data[9] >> 2) - 1)) * 64;
 
-        if ((frame_data[8] & 0x8) >> 3) velo.v_rate *= -1;  //check v_rate sign
+        if ((frame_data[8] & 0x8) >> 3) velo.v_rate *= -1;  // check v_rate sign
     }
 
-    if (velo_type == 1 || velo_type == 2) {  //Ground Speed
+    if (velo_type == 1 || velo_type == 2) {  // Ground Speed
         int32_t raw_ew = ((frame_data[5] & 0x03) << 8) | frame_data[6];
-        int32_t velo_ew = raw_ew - 1;  //velocities are all offset by one (this is part of the spec)
+        int32_t velo_ew = raw_ew - 1;  // velocities are all offset by one (this is part of the spec)
 
         int32_t raw_ns = ((frame_data[7] & 0x7f) << 3) | (frame_data[8] >> 5);
         int32_t velo_ns = raw_ns - 1;
@@ -420,20 +420,20 @@ adsb_vel decode_frame_velo(ADSBFrame& frame) {
             velo_ns = velo_ns << 2;
         }
 
-        if (frame_data[5] & 0x04) velo_ew *= -1;  //check ew direction sign
-        if (frame_data[7] & 0x80) velo_ns *= -1;  //check ns direction sign
+        if (frame_data[5] & 0x04) velo_ew *= -1;  // check ew direction sign
+        if (frame_data[7] & 0x80) velo_ns *= -1;  // check ns direction sign
 
         velo.speed = fast_int_magnitude(velo_ns, velo_ew);
 
         if (velo.speed) {
-            //calculate heading in degrees from ew/ns velocities
+            // calculate heading in degrees from ew/ns velocities
             int16_t heading_temp = (int16_t)(int_atan2(velo_ew, velo_ns));  // Nearest degree
             // We don't want negative values but a 0-360 scale.
             if (heading_temp < 0) heading_temp += 360.0;
             velo.heading = (uint16_t)heading_temp;
         }
 
-    } else if (velo_type == 3 || velo_type == 4) {  //Airspeed
+    } else if (velo_type == 3 || velo_type == 4) {  // Airspeed
         velo.valid = frame_data[5] & (1 << 2);
         velo.heading = ((((frame_data[5] & 0x03) << 8) | frame_data[6]) * 45) << 7;
     }

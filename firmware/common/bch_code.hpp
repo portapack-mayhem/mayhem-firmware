@@ -3,7 +3,7 @@
  * Copyright (C) 2016 Furrtek
  *
  * BCH Encoder/Decoder - Adapted from GNURadio
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify

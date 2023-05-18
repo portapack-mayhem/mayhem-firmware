@@ -99,7 +99,7 @@ void WM8731::init() {
         .reserved0 = 0,
     });
 
-    //set_line_in_volume(0.0_dB);
+    // set_line_in_volume(0.0_dB);
     headphone_mute();
 }
 

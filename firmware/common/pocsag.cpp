@@ -395,7 +395,7 @@ void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState* const state) {
         if (!(codeword & 0x80000000U)) {
             // Address codeword
             if (state->mode == STATE_CLEAR) {
-                //if (codeword != POCSAG_IDLEWORD) {
+                // if (codeword != POCSAG_IDLEWORD) {
                 if (!(bitsDiff(codeword, POCSAG_IDLEWORD) < 1)) {
                     state->function = (codeword >> 11) & 3;
                     state->address = (codeword >> 10) & 0x1FFFF8U;  // 18 MSBs are transmitted
@@ -435,7 +435,7 @@ void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState* const state) {
 
                 // Translate non-printable chars
                 if ((ascii_char < 32) || (ascii_char > 126)) {
-                    //output_text += "[" + to_string_dec_uint(ascii_char) + "]";
+                    // output_text += "[" + to_string_dec_uint(ascii_char) + "]";
                     output_text += ".";
                 } else
                     output_text += ascii_char;

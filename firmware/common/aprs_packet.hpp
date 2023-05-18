@@ -31,7 +31,7 @@
 
 namespace aprs {
 
-const int APRS_MIN_LENGTH = 18;  //14 bytes address, control byte and pid. 2 CRC.
+const int APRS_MIN_LENGTH = 18;  // 14 bytes address, control byte and pid. 2 CRC.
 
 struct aprs_pos {
     float latitude;
@@ -182,7 +182,7 @@ class APRSPacket {
 
         std::string lat_str, lng_str;
         char first;
-        //bool supports_compression = true;
+        // bool supports_compression = true;
         bool is_mic_e_format = false;
         std::string::size_type start;
 
@@ -197,7 +197,7 @@ class APRSPacket {
                 break;
             case ';':
                 start = 18;
-                //supports_compression = false;
+                // supports_compression = false;
                 break;
             case '`':
             case '\'':
@@ -366,7 +366,7 @@ class APRSPacket {
         for (uint8_t i = information_start; i < information_start + 3 && i < payload_size - 2; i++) {
             uint8_t ascii = payload[i];
 
-            if (i - information_start == 0) {  //deg
+            if (i - information_start == 0) {  // deg
                 ascii -= 28;
                 ascii += lng_offset;
 
@@ -377,13 +377,13 @@ class APRSPacket {
                 }
 
                 lng += ascii;
-            } else if (i - information_start == 1) {  //min
+            } else if (i - information_start == 1) {  // min
                 ascii -= 28;
                 if (ascii >= 60) {
                     ascii -= 60;
                 }
                 lng += ascii / 60.0;
-            } else if (i - information_start == 2) {  //hundredth minutes
+            } else if (i - information_start == 2) {  // hundredth minutes
                 ascii -= 28;
 
                 lng += (ascii / 100.0) / 60.0;
@@ -418,21 +418,21 @@ class APRSPacket {
         if (ascii >= 'P' && ascii <= 'Z') {
             return true;
         }
-        return false;  //not technical definition, but the other case is invalid
+        return false;  // not technical definition, but the other case is invalid
     }
 
     bool is_mic_e_lng_W(uint8_t ascii) {
         if (ascii >= 'P' && ascii <= 'Z') {
             return true;
         }
-        return false;  //not technical definition, but the other case is invalid
+        return false;  // not technical definition, but the other case is invalid
     }
 
     uint8_t get_mic_e_lng_offset(uint8_t ascii) {
         if (ascii >= 'P' && ascii <= 'Z') {
             return 100;
         }
-        return 0;  //not technical definition, but the other case is invalid
+        return 0;  // not technical definition, but the other case is invalid
     }
 
     bool parse_address(uint8_t start, ADDRESS_TYPE address_type) {

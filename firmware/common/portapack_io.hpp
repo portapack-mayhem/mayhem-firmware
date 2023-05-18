@@ -65,8 +65,8 @@ class IO {
         Float = XP_IN | XN_IN | YP_IN | YN_IN,
 
         /* Drive one plane to 0V, other plane is pulled up. Watch for when pulled-up
-		 * plane falls to ~0V.
-		 */
+         * plane falls to ~0V.
+         */
         WaitTouch = XP_OUT_0 | XN_OUT_0 | YP_IN | YN_IN,
 
         /* Create a voltage divider between X plane, touch resistance, Y plane. */
@@ -272,11 +272,11 @@ class IO {
         gpio_dir.clear();
         LPC_GPIO->DIR[gpio_data_port_id] |= gpio_data_mask;
         /* TODO: Manipulating DIR[3] makes me queasy. The RFFC5072 DATA pin
-		 * is also on port 3, and switches direction periodically...
-		 * Time to resort to bit-banding to enforce atomicity? But then, how
-		 * to change direction on eight bits efficiently? Or do I care, since
-		 * the PortaPack data bus shouldn't change direction too frequently?
-		 */
+         * is also on port 3, and switches direction periodically...
+         * Time to resort to bit-banding to enforce atomicity? But then, how
+         * to change direction on eight bits efficiently? Or do I care, since
+         * the PortaPack data bus shouldn't change direction too frequently?
+         */
     }
 
     void dir_read() {
@@ -362,16 +362,16 @@ class IO {
         io_stb_deassert();
     }
     /*
-	void lcd_data_write_command_and_data(
-		const uint_fast16_t command,
-		const uint8_t* const data,
-		const size_t count
-	) {
-		lcd_data_write_command(command);
-		for(size_t i=0; i<count; i++) {
-			lcd_data_write_data(data[i]);
-		}
-	}
+        void lcd_data_write_command_and_data(
+                const uint_fast16_t command,
+                const uint8_t* const data,
+                const size_t count
+        ) {
+                lcd_data_write_command(command);
+                for(size_t i=0; i<count; i++) {
+                        lcd_data_write_data(data[i]);
+                }
+        }
 */
 };
 

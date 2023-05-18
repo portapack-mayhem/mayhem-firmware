@@ -87,12 +87,12 @@ bool CPLD::program(
     bulk_erase();
 
     /* Program:
-	 * involves shifting in the address, data, and program instruction and
-	 * generating the program pulse to program the flash cells. The program
-	 * pulse is automatically generated internally by waiting in the run/test/
-	 * idle state for the specified program pulse time of 75 μs. This process
-	 * is repeated for each address in the CFM and UFM blocks.
-	 */
+     * involves shifting in the address, data, and program instruction and
+     * generating the program pulse to program the flash cells. The program
+     * pulse is automatically generated internally by waiting in the run/test/
+     * idle state for the specified program pulse time of 75 μs. This process
+     * is repeated for each address in the CFM and UFM blocks.
+     */
     program_block(0x0000, block_0);
     program_block(0x0001, block_1);
 
@@ -102,9 +102,9 @@ bool CPLD::program(
         /* Do "something". Not sure what, but it happens after verify. */
         /* Starts with a sequence the same as Program: Block 0. */
         /* Perhaps it is a write to tell the CPLD that the bitstream
-		 * verified OK, and it's OK to load and execute? And despite only
-		 * one bit changing, a write must be a multiple of a particular
-		 * length (64 bits)? */
+         * verified OK, and it's OK to load and execute? And despite only
+         * one bit changing, a write must be a multiple of a particular
+         * length (64 bits)? */
         sector_select(0x0000);
         shift_ir(instruction_t::ISC_PROGRAM);
         jtag.runtest_tck(93);  // 5 us

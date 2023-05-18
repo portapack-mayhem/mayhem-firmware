@@ -39,15 +39,15 @@ struct PinConfig {
         return (((~ifilt) & 1) << 7) | ((input & 1) << 6) | ((fast & 1) << 5) | (((~pu) & 1) << 4) | ((pd & 1) << 3) | ((mode & 7) << 0);
     }
     /*
-	constexpr operator uint32_t() {
-		return scu::sfs::mode::value(mode)
-			<< scu::sfs::epd::value(pd)
-			<< scu::sfs::epun::value(~pu)
-			<< scu::sfs::ehs::value(fast)
-			<< scu::sfs::ezi::value(input)
-			<< scu::sfs::zif::value(~ifilt)
-			;
-	}
+        constexpr operator uint32_t() {
+                return scu::sfs::mode::value(mode)
+                        << scu::sfs::epd::value(pd)
+                        << scu::sfs::epun::value(~pu)
+                        << scu::sfs::ehs::value(fast)
+                        << scu::sfs::ezi::value(input)
+                        << scu::sfs::zif::value(~ifilt)
+                        ;
+        }
 */
     static constexpr PinConfig reset() {
         return {.mode = 0, .pd = 0, .pu = 1, .fast = 0, .input = 0, .ifilt = 1};
@@ -213,14 +213,14 @@ struct GPIO {
           _gpio_mode{gpio_mode} {
     }
     /*
-	constexpr GPIO(
-		const GPIO& gpio
-	) : _pin { gpio._pin },
-		_gpio_port { gpio._gpio_port },
-		_gpio_pad { gpio._gpio_pad },
-		_gpio_mode { gpio._gpio_mode }
-	{
-	}
+        constexpr GPIO(
+                const GPIO& gpio
+        ) : _pin { gpio._pin },
+                _gpio_port { gpio._gpio_port },
+                _gpio_pad { gpio._gpio_pad },
+                _gpio_mode { gpio._gpio_mode }
+        {
+        }
 */
     constexpr ioportid_t port() const {
         return _gpio_port;

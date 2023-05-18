@@ -65,12 +65,12 @@ Optional<Reading> Packet::reading_fsk_19k2_schrader() const {
 
 Optional<Reading> Packet::reading_ook_8k192_schrader() const {
     /*
-	 * Preamble: 11*2, 01*14, 11, 10
-	 * Function code: 3 Manchester symbols
-	 * ID: 24 Manchester symbols (one variant seen with 21 symbols?)
-	 * Pressure: 8 Manchester symbols
-	 * Checksum: 2 Manchester symbols (2 LSBs of sum incl this field == 3)
-	 */
+     * Preamble: 11*2, 01*14, 11, 10
+     * Function code: 3 Manchester symbols
+     * ID: 24 Manchester symbols (one variant seen with 21 symbols?)
+     * Pressure: 8 Manchester symbols
+     * Checksum: 2 Manchester symbols (2 LSBs of sum incl this field == 3)
+     */
     const auto flags = reader_.read(0, 3);
     const auto checksum = reader_.read(35, 2);
 
@@ -93,16 +93,16 @@ Optional<Reading> Packet::reading_ook_8k192_schrader() const {
 
 Optional<Reading> Packet::reading_ook_8k4_schrader() const {
     /*
-	 * Preamble: 01*40
-	 * System ID: 01100101, ??*20 (not really sure what this data is)
-	 * ID: 32 Manchester symbols
-	 * Value: 8 Manchester symbols (pressure)
-	 * Value: 8 Manchester symbols (temperature)
-	 * Checksum: 8 Manchester symbols (uint8_t sum of bytes starting with system ID)
-	 */
+     * Preamble: 01*40
+     * System ID: 01100101, ??*20 (not really sure what this data is)
+     * ID: 32 Manchester symbols
+     * Value: 8 Manchester symbols (pressure)
+     * Value: 8 Manchester symbols (temperature)
+     * Checksum: 8 Manchester symbols (uint8_t sum of bytes starting with system ID)
+     */
     /* NOTE: First four bits of packet are consumed in preamble detection.
-	 * Those bits assumed to be 0b0100", which may not be entirely true...
-	 */
+     * Those bits assumed to be 0b0100", which may not be entirely true...
+     */
     constexpr uint8_t first_nibble = 0x4;
     // const auto system_id = (first_nibble << 20) | reader_.read(0, 20);
     const auto id = reader_.read(20, 32);

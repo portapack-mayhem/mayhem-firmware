@@ -105,12 +105,12 @@ namespace cache {
 void defaults();
 
 /* Load cached settings from values in persistent RAM, replacing with defaults
-			 * if persistent RAM contents appear to be invalid. */
+ * if persistent RAM contents appear to be invalid. */
 void init();
 
 /* Calculate a check value for cached settings, and copy the check value and
-			 * settings into persistent RAM. Intended to be called periodically to update
-			 * persistent settings with current settings. */
+ * settings into persistent RAM. Intended to be called periodically to update
+ * persistent settings with current settings. */
 void persist();
 
 } /* namespace cache */
@@ -188,8 +188,8 @@ void set_config_speaker(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 
-//uint8_t ui_config_textentry();
-//void set_config_textentry(uint8_t new_value);
+// uint8_t ui_config_textentry();
+// void set_config_textentry(uint8_t new_value);
 
 uint32_t pocsag_last_address();
 void set_pocsag_last_address(uint32_t address);

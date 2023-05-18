@@ -81,8 +81,8 @@ class BufferExchange {
     }
 
    private:
-    //CaptureConfig* const config_capture;
-    //ReplayConfig* const config_replay;
+    // CaptureConfig* const config_capture;
+    // ReplayConfig* const config_replay;
     FIFO<StreamBuffer*>* fifo_buffers_for_baseband{nullptr};
     FIFO<StreamBuffer*>* fifo_buffers_for_application{nullptr};
     Thread* thread{nullptr};

@@ -134,11 +134,11 @@ void lcd_init() {
     io.lcd_data_write_command_and_data(0xB6, {0x0A, 0xA2, 0x27, 0x00});
 
     // Power Control 1
-    //VRH[5:0]
+    // VRH[5:0]
     io.lcd_data_write_command_and_data(0xC0, {0x1B});
 
     // Power Control 2
-    //SAP[2:0];BT[3:0]
+    // SAP[2:0];BT[3:0]
     io.lcd_data_write_command_and_data(0xC1, {0x12});
 
     // VCOM Control 1
@@ -162,14 +162,14 @@ void lcd_init() {
     // DPI=101 (16 bits/pixel), DBI=101 (16 bits/pixel)
     io.lcd_data_write_command_and_data(0x3A, {0x55});
 
-    //io.lcd_data_write_command_and_data(0xF6, { 0x01, 0x30 });
-    // WEMODE=1 (reset column and page number on overflow)
-    // MDT[1:0]
-    // EPF[1:0]=00 (use channel MSB for LSB)
-    // RIM=0 (If COLMOD[6:4]=101 (65k color), 16-bit RGB interface (1 transfer/pixel))
-    // RM=0 (system interface/VSYNC interface)
-    // DM[1:0]=00 (internal clock operation)
-    // ENDIAN=0 (doesn't matter with 16-bit interface)
+    // io.lcd_data_write_command_and_data(0xF6, { 0x01, 0x30 });
+    //  WEMODE=1 (reset column and page number on overflow)
+    //  MDT[1:0]
+    //  EPF[1:0]=00 (use channel MSB for LSB)
+    //  RIM=0 (If COLMOD[6:4]=101 (65k color), 16-bit RGB interface (1 transfer/pixel))
+    //  RM=0 (system interface/VSYNC interface)
+    //  DM[1:0]=00 (internal clock operation)
+    //  ENDIAN=0 (doesn't matter with 16-bit interface)
     io.lcd_data_write_command_and_data(0xF6, {0x01, 0x30, 0x00});
 
     // 3Gamma Function Disable
@@ -406,11 +406,11 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
 }
 
 /*
-	Draw BMP from SD card.
-	Currently supported formats:
-		16bpp ARGB, RGB565
-		24bpp RGB
-		32bpp ARGB
+        Draw BMP from SD card.
+        Currently supported formats:
+                16bpp ARGB, RGB565
+                24bpp RGB
+                32bpp ARGB
 */
 bool ILI9341::drawBMP2(const ui::Point p, const std::string file) {
     File bmpimage;

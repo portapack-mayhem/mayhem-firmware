@@ -37,12 +37,12 @@ class GPIOTarget : public Target {
     // initializing a bunch as the object gets passed around. So don't let
     // it get passed around...
     /*
-	GPIOTarget() = delete;
-	GPIOTarget(const GPIOTarget&) = delete;
-	GPIOTarget(GPIOTarget&&) = delete;
-	GPIOTarget& operator=(const GPIOTarget&) = delete;
-	GPIOTarget& operator=(GPIOTarget&&) = delete;
-	*/
+        GPIOTarget() = delete;
+        GPIOTarget(const GPIOTarget&) = delete;
+        GPIOTarget(GPIOTarget&&) = delete;
+        GPIOTarget& operator=(const GPIOTarget&) = delete;
+        GPIOTarget& operator=(GPIOTarget&&) = delete;
+        */
     GPIOTarget(
         GPIO gpio_tck,
         GPIO gpio_tms,
@@ -76,8 +76,8 @@ class GPIOTarget : public Target {
 
     void delay(const size_t clocks) override {
         /* TODO: Use more precise timing mechanism, using the frequency
-		 * specified by SVF file.
-		 */
+         * specified by SVF file.
+         */
         halPolledDelay(clocks * systicks_per_tck);
     }
 
@@ -85,8 +85,8 @@ class GPIOTarget : public Target {
         const Target::bit_t tms_value,
         const Target::bit_t tdi_value) override {
         /* TODO: Use more precise timing mechanism, using the frequency
-		 * specified by SVF file.
-		 */
+         * specified by SVF file.
+         */
         const auto result = tdo();
         tms(tms_value);
         tdi(tdi_value);

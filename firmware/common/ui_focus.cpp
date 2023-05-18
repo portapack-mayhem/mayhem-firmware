@@ -197,7 +197,7 @@ void FocusManager::update(
             if (!collection.empty())
                 set_focus_widget(collection[0].first);
         } else if (nearest != collection.cend()) {
-            //focus->blur();
+            // focus->blur();
             const auto new_focus = (*nearest).first;
             set_focus_widget(new_focus);
         } else {

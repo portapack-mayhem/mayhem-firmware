@@ -24,30 +24,30 @@
 #include "sonde_packet.hpp"
 #include "string_format.hpp"
 #include <cstring>
-//#include <complex>
+// #include <complex>
 
 namespace sonde {
 
-static uint8_t calibytes[51 * 16];  //need these vars to survive
-static uint8_t calfrchk[51];        //so subframes are preserved while populated
+static uint8_t calibytes[51 * 16];  // need these vars to survive
+static uint8_t calfrchk[51];        // so subframes are preserved while populated
 
-//Defines for Vaisala RS41, from https://github.com/rs1729/RS/blob/master/rs41/rs41sg.c
+// Defines for Vaisala RS41, from https://github.com/rs1729/RS/blob/master/rs41/rs41sg.c
 #define MASK_LEN 64
 
-//Following values include the 4 bytes less shift, consumed in detecting the header on proc_sonde
-#define block_status 0x35   //0x039  // 40 bytes
-#define block_gpspos 0x10E  //0x112  // 21 bytes
-#define block_meas 0x61     //0x65  // 42 bytes
-#define pos_FrameNb 0x37    //0x03B  // 2 byte
-#define pos_SondeID 0x39    //0x03D  // 8 byte
-#define pos_Voltage 0x041   //0x045  // 3 bytes (but first one is the important one) voltage x 10 ie: 26 = 2.6v
-#define pos_CalData 0x04E   //0x052  // 1 byte, counter 0x00..0x32
-#define pos_temp 0x063      //0x067  // 3 bytes (uint24_t)
-#define pos_GPSecefX 0x110  //0x114  // 4 byte
-#define pos_GPSecefY 0x114  //0x118  // 4 byte (not actually used since Y and Z are following X, and grabbed in that same loop)
-#define pos_GPSecefZ 0x118  //0x11C  // 4 byte (same as Y)
+// Following values include the 4 bytes less shift, consumed in detecting the header on proc_sonde
+#define block_status 0x35   // 0x039  // 40 bytes
+#define block_gpspos 0x10E  // 0x112  // 21 bytes
+#define block_meas 0x61     // 0x65  // 42 bytes
+#define pos_FrameNb 0x37    // 0x03B  // 2 byte
+#define pos_SondeID 0x39    // 0x03D  // 8 byte
+#define pos_Voltage 0x041   // 0x045  // 3 bytes (but first one is the important one) voltage x 10 ie: 26 = 2.6v
+#define pos_CalData 0x04E   // 0x052  // 1 byte, counter 0x00..0x32
+#define pos_temp 0x063      // 0x067  // 3 bytes (uint24_t)
+#define pos_GPSecefX 0x110  // 0x114  // 4 byte
+#define pos_GPSecefY 0x114  // 0x118  // 4 byte (not actually used since Y and Z are following X, and grabbed in that same loop)
+#define pos_GPSecefZ 0x118  // 0x11C  // 4 byte (same as Y)
 
-#define PI 3.1415926535897932384626433832795  //3.1416 //(3.1415926535897932384626433832795)
+#define PI 3.1415926535897932384626433832795  // 3.1416 //(3.1415926535897932384626433832795)
 
 Packet::Packet(
     const baseband::Packet& packet,
@@ -64,7 +64,7 @@ Packet::Packet(
             type_ = Type::Meteomodem_M10;
         else if (id_byte == 0x648F)
             type_ = Type::Meteomodem_M2K2;
-        else if (id_byte == 0x4520)  //https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
+        else if (id_byte == 0x4520)  // https://raw.githubusercontent.com/projecthorus/radiosonde_auto_rx/master/demod/mod/m20mod.c
             type_ = Type::Meteomodem_M20;
     }
 }
@@ -81,22 +81,22 @@ Packet::Type Packet::type() const {
     return type_;
 }
 
-//euquiq here:
-//RS41SG 320 bits header, 320bytes frame (or more if it is an "extended frame")
-//The raw data is xor-scrambled with the values in the 64 bytes vaisala_mask (see.hpp)
-//from 0x008 to 0x037 (48 bytes reed-solomon error correction data)
+// euquiq here:
+// RS41SG 320 bits header, 320bytes frame (or more if it is an "extended frame")
+// The raw data is xor-scrambled with the values in the 64 bytes vaisala_mask (see.hpp)
+// from 0x008 to 0x037 (48 bytes reed-solomon error correction data)
 
-uint8_t Packet::vaisala_descramble(const uint32_t pos) const {  //vaisala_descramble(const uint32_t pos) const {
+uint8_t Packet::vaisala_descramble(const uint32_t pos) const {  // vaisala_descramble(const uint32_t pos) const {
     // packet_[i]; its a bit;  packet_.size the total (should be 2560 bits)
     uint8_t value = 0;
     for (uint8_t i = 0; i < 8; i++)
-        value = (value << 1) | packet_[(pos * 8) + (7 - i)];  //get the byte from the bits collection
+        value = (value << 1) | packet_[(pos * 8) + (7 - i)];  // get the byte from the bits collection
 
-    //packetReader reader { packet_ };				//This works just as above.
-    //value = reader.read(pos * 8,8);
-    //shift pos because first 4 bytes are consumed by proc_sonde in finding the vaisala signature
+    // packetReader reader { packet_ };				//This works just as above.
+    // value = reader.read(pos * 8,8);
+    // shift pos because first 4 bytes are consumed by proc_sonde in finding the vaisala signature
     uint32_t mask_pos = pos + 4;
-    value = value ^ vaisala_mask[mask_pos % MASK_LEN];  //descramble with the xor pseudorandom table
+    value = value ^ vaisala_mask[mask_pos % MASK_LEN];  // descramble with the xor pseudorandom table
     return value;
 };
 
@@ -114,8 +114,8 @@ GPS_data Packet::get_GPS_data() const {
         uint8_t XYZ_bytes[4];
         int32_t XYZ;  // 32bit
         double_t X[3];
-        for (int32_t k = 0; k < 3; k++) {    //Get X,Y,Z ECEF position from GPS
-            for (int32_t i = 0; i < 4; i++)  //each one is 4 bytes (32 bits)
+        for (int32_t k = 0; k < 3; k++) {    // Get X,Y,Z ECEF position from GPS
+            for (int32_t i = 0; i < 4; i++)  // each one is 4 bytes (32 bits)
                 XYZ_bytes[i] = vaisala_descramble(pos_GPSecefX + (4 * k) + i);
             memcpy(&XYZ, XYZ_bytes, 4);
             X[k] = XYZ / 100.0;
@@ -145,11 +145,11 @@ uint32_t Packet::battery_voltage() const {
     if (type_ == Type::Meteomodem_M10)
         return (reader_bi_m.read(69 * 8, 8) + (reader_bi_m.read(70 * 8, 8) << 8)) * 1000 / 150;
     else if (type_ == Type::Meteomodem_M20) {
-        return 0;  //NOT SUPPPORTED YET
+        return 0;  // NOT SUPPPORTED YET
     } else if (type_ == Type::Meteomodem_M2K2)
         return reader_bi_m.read(69 * 8, 8) * 66;  // Actually 65.8
     else if (type_ == Type::Vaisala_RS41_SG) {
-        uint32_t voltage = vaisala_descramble(pos_Voltage) * 100;  //byte 69 = voltage * 10 (check if this value needs to be multiplied)
+        uint32_t voltage = vaisala_descramble(pos_Voltage) * 100;  // byte 69 = voltage * 10 (check if this value needs to be multiplied)
         return voltage;
     } else {
         return 0;  // Unknown
@@ -170,10 +170,10 @@ temp_humid Packet::get_temp_humid() const {
     result.humid = 0;
     result.temp = 0;
 
-    if (type_ == Type::Vaisala_RS41_SG && crc_ok_RS41())  //Only process if packet is healthy
+    if (type_ == Type::Vaisala_RS41_SG && crc_ok_RS41())  // Only process if packet is healthy
     {
-        //memset(calfrchk, 0, 51); // is this necessary ? only if the sondeID changes (new sonde)
-        //original code from https://github.com/rs1729/RS/blob/master/rs41/rs41ptu.c
+        // memset(calfrchk, 0, 51); // is this necessary ? only if the sondeID changes (new sonde)
+        // original code from https://github.com/rs1729/RS/blob/master/rs41/rs41ptu.c
         float Rf1,     // ref-resistor f1 (750 Ohm)
             Rf2,       // ref-resistor f2 (1100 Ohm)
             co1[3],    // { -243.911 , 0.187654 , 8.2e-06 }
@@ -188,12 +188,12 @@ temp_humid Packet::get_temp_humid() const {
 
         //-------------- populate calibytes (from getFrameConf)
 
-        uint8_t calfr = vaisala_descramble(pos_CalData);  //get subframe #slot
+        uint8_t calfr = vaisala_descramble(pos_CalData);  // get subframe #slot
 
-        for (i = 0; i < 16; i++)                                                  //Load subrfame calibration page (16 bytes) into #slot
-            calibytes[calfr * 16 + i] = vaisala_descramble(pos_CalData + 1 + i);  //pos = pos_CalData + 1 + i ; vaisala_descramble(pos)
+        for (i = 0; i < 16; i++)                                                  // Load subrfame calibration page (16 bytes) into #slot
+            calibytes[calfr * 16 + i] = vaisala_descramble(pos_CalData + 1 + i);  // pos = pos_CalData + 1 + i ; vaisala_descramble(pos)
 
-        calfrchk[calfr] = 1;  //flag this #slot as populated
+        calfrchk[calfr] = 1;  // flag this #slot as populated
 
         memcpy(&Rf1, calibytes + 61, 4);  // 0x03*0x10+13
         memcpy(&Rf2, calibytes + 65, 4);  // 0x04*0x10+ 1
@@ -224,7 +224,7 @@ temp_humid Packet::get_temp_humid() const {
 
         //----Check if necessary calibytes are already present for calculation
 
-        if (calfrchk[0x03] && calfrchk[0x04] && calfrchk[0x04] && calfrchk[0x05] && calfrchk[0x05] && calfrchk[0x06])  //Calibites OK for Temperature
+        if (calfrchk[0x03] && calfrchk[0x04] && calfrchk[0x04] && calfrchk[0x05] && calfrchk[0x05] && calfrchk[0x06])  // Calibites OK for Temperature
         {
             //----------get_Tc------------------------
             float* p = co1;
@@ -294,10 +294,10 @@ std::string Packet::serial_number() const {
     } else if (type_ == Type::Vaisala_RS41_SG) {
         std::string serial_id = "";
         uint8_t achar;
-        for (uint8_t i = 0; i < 8; i++) {  //euquiq: Serial ID is 8 bytes long, each byte a char
+        for (uint8_t i = 0; i < 8; i++) {  // euquiq: Serial ID is 8 bytes long, each byte a char
             achar = vaisala_descramble(pos_SondeID + i);
             if (achar < 32 || achar > 126)
-                return "?";  //Maybe there are ids with less than 8 bytes and this is not OK.
+                return "?";  // Maybe there are ids with less than 8 bytes and this is not OK.
             serial_id += (char)achar;
         }
         return serial_id;
@@ -307,13 +307,13 @@ std::string Packet::serial_number() const {
 }
 
 FormattedSymbols Packet::symbols_formatted() const {
-    if (type_ == Type::Vaisala_RS41_SG) {     //Euquiq: now we distinguish different types
-        uint32_t bytes = packet_.size() / 8;  //Need the byte amount, which if full, it SHOULD be 320 size() should return 2560
+    if (type_ == Type::Vaisala_RS41_SG) {     // Euquiq: now we distinguish different types
+        uint32_t bytes = packet_.size() / 8;  // Need the byte amount, which if full, it SHOULD be 320 size() should return 2560
         std::string hex_data;
         std::string hex_error;
-        hex_data.reserve(bytes * 2);  //2 hexa chars per byte
+        hex_data.reserve(bytes * 2);  // 2 hexa chars per byte
         hex_error.reserve(1);
-        for (uint32_t i = 0; i < bytes; i++)  //log will show the packet starting on the last 4 bytes from signature 93DF1A60
+        for (uint32_t i = 0; i < bytes; i++)  // log will show the packet starting on the last 4 bytes from signature 93DF1A60
             hex_data += to_string_hex(vaisala_descramble(i), 2);
         return {hex_data, hex_error};
     } else {
@@ -328,16 +328,16 @@ bool Packet::crc_ok() const {
         case Type::Vaisala_RS41_SG:
             return crc_ok_RS41();
         default:
-            return true;  //euquiq: it was false, but if no crc routine, then no way to check
+            return true;  // euquiq: it was false, but if no crc routine, then no way to check
     }
 }
 
-//each data block has a 2 byte header, data, and 2 byte tail:
-// 1st byte: block ID
-// 2nd byte: data length (without header or tail)
-// <data>
-// 2 bytes CRC16 over the data.
-bool Packet::crc_ok_RS41() const  //check CRC for the data blocks we need
+// each data block has a 2 byte header, data, and 2 byte tail:
+//  1st byte: block ID
+//  2nd byte: data length (without header or tail)
+//  <data>
+//  2 bytes CRC16 over the data.
+bool Packet::crc_ok_RS41() const  // check CRC for the data blocks we need
 {
     if (!crc16rs41(block_status))
         return false;
@@ -351,7 +351,7 @@ bool Packet::crc_ok_RS41() const  //check CRC for the data blocks we need
     return true;
 }
 
-//Checks CRC16 on a RS41 field:
+// Checks CRC16 on a RS41 field:
 bool Packet::crc16rs41(uint32_t field_start) const {
     int crc16poly = 0x1021;
     int rem = 0xFFFF, b, j;
@@ -360,7 +360,7 @@ bool Packet::crc16rs41(uint32_t field_start) const {
     uint8_t length = vaisala_descramble(pos);
 
     if (pos + length + 2 > packet_.size() / 8)
-        return false;  //Out of packet!
+        return false;  // Out of packet!
 
     for (b = 0; b < length; b++) {
         pos++;
@@ -375,7 +375,7 @@ bool Packet::crc16rs41(uint32_t field_start) const {
             rem &= 0xFFFF;
         }
     }
-    //Check calculated CRC against packet's one
+    // Check calculated CRC against packet's one
     pos++;
     int crcok = vaisala_descramble(pos) | (vaisala_descramble(pos + 1) << 8);
     if (crcok != rem)

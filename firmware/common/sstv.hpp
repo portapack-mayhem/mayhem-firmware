@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -75,7 +75,7 @@ struct sstv_mode {
     bool gaps;
     uint32_t samples_per_sync;
     uint32_t samples_per_gap;
-    //std::pair<uint16_t, uint16_t> luma_range;
+    // std::pair<uint16_t, uint16_t> luma_range;
 };
 
 constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {

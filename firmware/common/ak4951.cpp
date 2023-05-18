@@ -315,7 +315,7 @@ void AK4951::microphone_enable(int8_t alc_mode) {
                 map.r.l_ch_input_volume_control.IV = 0xA8;  // Left, Input Digital Volume Setting, (FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
                 map.r.r_ch_input_volume_control.IV = 0xA8;  // Right Input Dig Vol Setting, same comment as above , Then value of IVOL should be <= than REF’s
 
-                //The EQn (n=1, 2, 3, 4 or 5) coefficient must be set when EQn bit = “0” or PMPFIL bit = “0”.
+                // The EQn (n=1, 2, 3, 4 or 5) coefficient must be set when EQn bit = “0” or PMPFIL bit = “0”.
                 map.r.digital_filter_select_3.EQ1 = 1;   // EQ1 Coeffic Setting , (0: Disable-default, audio data passes  EQ1 block by 0dB gain). When EQ1="1”, the settings of E1A15-0, E1B15-0 and E1C15-0 bits are enabled
                 update(Register::DigitalFilterSelect3);  // A,B,C EQ1 Coefficients are already pre-loaded in ak4951.hpp
 
@@ -361,7 +361,7 @@ void AK4951::microphone_enable(int8_t alc_mode) {
                 break;
 
             case 8:                                         // ALC-> on, (-03dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
-                map.r.alc_mode_control_2.REF = 0x98;        //REF7-0 bits,max gain at ALC recovery operation,(FFH +36dBs , D0H +18dBs, A0H 0dBs, 98H=-03dBs)
+                map.r.alc_mode_control_2.REF = 0x98;        // REF7-0 bits,max gain at ALC recovery operation,(FFH +36dBs , D0H +18dBs, A0H 0dBs, 98H=-03dBs)
                 map.r.l_ch_input_volume_control.IV = 0x98;  // Left, Input Digital Volume Setting, (FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
                 map.r.r_ch_input_volume_control.IV = 0x98;  // Right Input Dig Vol Setting, same comment as above , Then value of IVOL should be <= than REF’s
 
@@ -522,8 +522,8 @@ void AK4951::microphone_disable() {
     map.r.auto_hpf_control.AHPF = 0;  //----------- new code addition , Restore disable Wind noise filter OFF (AHPF bit=“0”).
     update(Register::AutoHPFControl);
 
-    //Restore original AUDIO PATH , condition,  (Digital filter block PATH is BY PASSED)  (we can also swith off DIG. BLOCK power , PMPFIL=0)
-    // The Path in Recording Mode 2 & Playback Mode 2 , (NO DIG FILTER BLOCK AT ALL, not for MIC recording, nor for Playback)
+    // Restore original AUDIO PATH , condition,  (Digital filter block PATH is BY PASSED)  (we can also swith off DIG. BLOCK power , PMPFIL=0)
+    //  The Path in Recording Mode 2 & Playback Mode 2 , (NO DIG FILTER BLOCK AT ALL, not for MIC recording, nor for Playback)
     map.r.digital_filter_mode.ADCPF = 1;     // new code addition , ADCPF bit swith ("0" Mic  after ADC Output connected (recording mode) to the DIGITAL FILTER  BLOCK. ("1" Playback mode)
     map.r.digital_filter_mode.PFSDO = 0;     // new code addition , ADC bit switch ("0" : 1st order HPF) connectedto the  Output. By bass DIGITAL block .
     map.r.digital_filter_mode.PFDAC = 0b00;  // new code addition , (Input selector for DAC (not used in MIC), SDTI= Audio Serial Data Input Pin)

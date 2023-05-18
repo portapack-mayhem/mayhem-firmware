@@ -50,7 +50,7 @@ class Packet {
     std::string registration_number() const;
 
     uint32_t read(const size_t start_bit, const size_t length) const;
-    //std::string text(const size_t start_bit, const size_t character_count) const;
+    // std::string text(const size_t start_bit, const size_t character_count) const;
 
     bool crc_ok() const;
 
