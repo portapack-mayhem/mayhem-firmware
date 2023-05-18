@@ -23,6 +23,9 @@
 #ifndef __UI_MICTX_H__
 #define __UI_MICTX_H__
 
+#define SHORT_UI	true
+#define NORMAL_UI	false
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -123,7 +126,7 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { 7 * 8, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },		//we remove the label "FM" because we will display all MOD types RX_BW.
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },				//we remove the label "FM" because we will display all MOD types RX_BW.
 		{ {20 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F_RX:", Color::light_grey() }, 			
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -142,7 +145,7 @@ private:
 		{ {20 * 8, 10 * 8 }, "DEC:", Color::light_grey() },
 		{ { 4 * 8, ( 13 * 8 ) - 2 }, "TONE KEY:", Color::light_grey() },
 		{ { (6 * 8)+4, 23 * 8 }, "VOL:", Color::light_grey() },
-		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },			//we remove the label "FM" because we will display all MOD types RX_BW.
+		{ {14 * 8, 23 * 8 }, "RXBW:", Color::light_grey() },				//we remove the label "FM" because we will display all MOD types RX_BW.
 		{ {20 * 8, 25 * 8 }, "SQ:", Color::light_grey() },
 		{ { 5 * 8, 25 * 8 }, "F_RX:", Color::light_grey() },
 		{ { 5 * 8, 27 * 8 }, "LNA:", Color::light_grey()},
@@ -210,8 +213,9 @@ OptionsField options_wm8731_boost_mode {
 		' '
 	};
 
-	TransmitterView2 tx_view {					// new handling of NumberField field_rfgain, NumberField field_rfamp
-		2 * 8		// y line position.
+	TransmitterView2 tx_view {				// new handling of NumberField field_rfgain, NumberField field_rfamp
+	//	3*8, 2*8, SHORT_UI					// x(columns), y (line) position. (used in Replay / GPS Simul / Playlist App's) 
+		3*8, 2*8, NORMAL_UI					// x(columns), y (line) position. (used in Mic App)
 	};
 		
 	OptionsField options_mode {

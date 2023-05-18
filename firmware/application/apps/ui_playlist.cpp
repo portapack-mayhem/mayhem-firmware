@@ -149,8 +149,8 @@ void PlaylistView::start() {
 
 		playlist_entry item = playlist_db.front();
 		playlist_db.pop_front();
-	//		playlist_entry item = playlist_db[0];
-//	for (playlist_entry item : playlist_db) {
+	//	playlist_entry item = playlist_db[0];
+	//	for (playlist_entry item : playlist_db) {
 	//	file_path = item.replay_file;
 	//	rf::Frequency replay_frequency = strtoll(item.replay_frequency.c_str(),nullptr,10);
 		on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate);
@@ -181,21 +181,12 @@ void PlaylistView::start() {
 				}
 			);
 		}
-		field_rfgain.on_change = [this](int32_t v) {
-			tx_gain = v;
-		};  
-		field_rfgain.set_value(tx_gain);
-		receiver_model.set_tx_gain(tx_gain); 
-		
-
-		field_rfamp.on_change = [this](int32_t v) {
-			rf_amp = (bool)v;
-		};
-		field_rfamp.set_value(rf_amp ? 14 : 0);
 
 		//Enable Bias Tee if selected
 		radio::set_antenna_bias(portapack::get_antenna_bias());
-			
+
+		rf_amp =(transmitter_model.rf_amp() );	// recover rf_amp settings applied from ui_transmiter.cpp	
+
 		radio::enable({
 			receiver_model.tuning_frequency(),
 			sample_rate * 8,
@@ -244,22 +235,16 @@ PlaylistView::PlaylistView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-
-	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
-	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
-
 	baseband::run_image(portapack::spi_flash::image_tag_replay);
 
 	add_children({
-		&labels,
 		&button_open,
 		&text_filename,
 		&text_sample_rate,
 		&text_duration,
 		&progressbar,
 		&field_frequency,
-		&field_rfgain, 
-		&field_rfamp,       // let's not use common rf_amp
+		&tx_view,			// this handles now the previous rfgain, rfamp
 		&check_loop,
 		&button_play,
 		&waterfall,

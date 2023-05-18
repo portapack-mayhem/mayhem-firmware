@@ -169,7 +169,7 @@ private:
 class TransmitterView2 : public View {
 public:
 	
-	TransmitterView2(const Coord y);
+	TransmitterView2(const Coord x,  const Coord y, bool short_UI);
 
 	~TransmitterView2();
 	
@@ -193,9 +193,9 @@ private:
 		.foreground = Color::red(),
 	};
 
-	Text text_gain {
+	Text text_gain_amp {
 		{ 0, 3 * 8, 5 * 8, 1 * 16 },
-		"Gain:"
+		"Gain:   Amp:"
 	};
 	
 	NumberField field_gain {
@@ -206,11 +206,6 @@ private:
 		' '
 	};
 
-	Text text_amp {
-		{ 8 * 8, 3 * 8, 5 * 8, 1 * 16 },
-		"Amp:"
-	};
-
 	NumberField field_amp {
 		{ 12 * 8, 3 * 8 },
 		2,
@@ -219,6 +214,26 @@ private:
 		' '
 	};
 
+	Text text_gain_amp_short_UI {
+		{ 0, (3 * 8)-1, 5 * 8, 1 * 16 },
+		"Gain   A:"
+	};
+
+	NumberField field_gain_short_UI {
+		{ (4 * 8)+2 , 3 * 8 },
+		2,
+		{ max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum },
+		max2837::tx::gain_db_step,
+		' '
+	};
+
+	NumberField field_amp_short_UI {
+		{ (9 * 8)-2, 3 * 8 },
+		2,
+		{ 0, 14 },
+		14,
+		' '
+	};
 
 	void on_tx_gain_changed(int32_t tx_gain);
 	void on_tx_amp_changed(bool rf_amp);

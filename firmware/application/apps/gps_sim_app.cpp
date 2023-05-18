@@ -141,18 +141,9 @@ void GpsSimAppView::start() {
 			}
 		);
 	}
-	field_rfgain.on_change = [this](int32_t v) {
-		tx_gain = v;
-	};  
-	field_rfgain.set_value(tx_gain);
-	receiver_model.set_tx_gain(tx_gain); 
-    
 
- 	field_rfamp.on_change = [this](int32_t v) {
-		rf_amp = (bool)v;
-	};
-	field_rfamp.set_value(rf_amp ? 14 : 0);
-	
+	rf_amp =(transmitter_model.rf_amp() );	// recover rf_amp settings applied from ui_transmiter.cpp
+
 	radio::enable({
 		receiver_model.tuning_frequency(),
 		sample_rate ,
@@ -193,21 +184,16 @@ GpsSimAppView::GpsSimAppView(
 	NavigationView& nav
 ) : nav_ (nav)
 {
-	tx_gain = 35;field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max 47dBs ).
-	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
-	
 	baseband::run_image(portapack::spi_flash::image_tag_gps);
 
 	add_children({
-		&labels,
 		&button_open,
 		&text_filename,
 		&text_sample_rate,
 		&text_duration,
 		&progressbar,
 		&field_frequency,
-		&field_rfgain,
-		&field_rfamp,       // let's not use common persistent rf_amp , local rfamp is enough
+		&tx_view,			// now it handles previous rfgain , rfamp.
 		&check_loop,
 		&button_play,
 		&waterfall,

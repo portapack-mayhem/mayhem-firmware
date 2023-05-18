@@ -190,6 +190,10 @@ TransmitterView::~TransmitterView() {
 }
 
 /* TransmitterView2 *******************************************************/
+// Derivative from TransmitterView (that handles many param. freq, fre_step, start_button, gain, amp, used in the majority of the TX App's.
+// This one ,is a simple version ,  it is only handling 2 x param  (TX GAIN and AMP ) in one line .
+// We use normal character lines , in Mic App,  called (x pos, y pos,  NORMAL_UI)
+// We use short compact char lines , in Replay / GPS Simul / Playlist App , called (x pos , y pos,SHORT_UI )
 
 void TransmitterView2::paint(Painter& painter) {
 //	Not using TransmitterView2, but if we delete it,we got , top line 1 a blanking rect.
@@ -219,36 +223,49 @@ void TransmitterView2::update_gainlevel_styles() {
 	}
 
 	field_gain.set_style(new_style_ptr);
-	text_gain.set_style(new_style_ptr);
+	text_gain_amp.set_style(new_style_ptr);
 	field_amp.set_style(new_style_ptr);
-	text_amp.set_style(new_style_ptr);
+
+	field_gain_short_UI.set_style(new_style_ptr);
+	text_gain_amp_short_UI.set_style(new_style_ptr);
+	field_amp_short_UI.set_style(new_style_ptr);
 }
 
 void TransmitterView2::on_show() {
 	field_gain.set_value(transmitter_model.tx_gain());
 	field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
 
+	field_gain_short_UI.set_value(transmitter_model.tx_gain());
+	field_amp_short_UI.set_value(transmitter_model.rf_amp() ? 14 : 0);
+	
 	update_gainlevel_styles();
 }
 
-TransmitterView2::TransmitterView2(	const Coord y)
+TransmitterView2::TransmitterView2(	const Coord x, const Coord y, bool short_UI)
 {
-	set_parent_rect({ 3*8, y, 20 * 8, 1 * 8 });		// set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
-	
+	set_parent_rect({ x , y, 20 * 8, 1 * 8 });		// set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
+
 	add_children({
-		&text_gain,
-		&field_gain,
-		&text_amp,
-		&field_amp,
+		&(short_UI ? text_gain_amp_short_UI : text_gain_amp),
+		&(short_UI ? field_gain_short_UI : field_gain),
+		&(short_UI ? field_amp_short_UI  : field_amp),
 	});
-	
-	field_gain.on_change = [this](uint32_t tx_gain) {
-		on_tx_gain_changed(tx_gain);
-	};
-	
-	field_amp.on_change = [this](uint32_t rf_amp) {
-		on_tx_amp_changed((bool) rf_amp);
-	};
+
+	if (short_UI) {
+		field_gain_short_UI.on_change = [this](uint32_t tx_gain) {
+			on_tx_gain_changed(tx_gain);
+		};
+		field_amp_short_UI.on_change = [this](uint32_t rf_amp) {
+			on_tx_amp_changed((bool) rf_amp);
+		};
+	} else {
+		field_gain.on_change = [this](uint32_t tx_gain) {
+			on_tx_gain_changed(tx_gain);
+		};
+		field_amp.on_change = [this](uint32_t rf_amp) {
+			on_tx_amp_changed((bool) rf_amp);
+		};
+	}			
 }
 
 TransmitterView2::~TransmitterView2() {

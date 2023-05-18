@@ -24,6 +24,9 @@
 #ifndef __GPS_SIM_APP_HPP__
 #define __GPS_SIM_APP_HPP__
 
+#define SHORT_UI	true
+#define NORMAL_UI	false
+
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -32,6 +35,7 @@
 
 #include <string>
 #include <memory>
+#include "ui_transmitter.hpp"
 
 namespace ui {
 
@@ -77,10 +81,6 @@ private:
 	std::unique_ptr<ReplayThread> replay_thread { };
 	bool ready_signal { false };
 
-	Labels labels {
-		{ { 10 * 8, 2 * 16 }, "GAIN   A:", Color::light_grey() }
-	};
-	
 	Button button_open {
 		{ 0 * 8, 0 * 16, 10 * 8, 2 * 16 },
 		"Open file"
@@ -106,20 +106,12 @@ private:
 	FrequencyField field_frequency {
 		{ 0 * 8, 2 * 16 },
 	};
-	NumberField field_rfgain {
-		{ 14 * 8, 2 * 16 },
-		2,
-		{ 0, 47 },
-		1,
-		' '	
+
+	TransmitterView2 tx_view {				// new handling of NumberField field_rfgain, NumberField field_rfamp
+		74, 1*8, SHORT_UI					// x(columns), y (line) position. (Used in Replay / GPS Simul / Playlist App)
+//		10*8, 2*8, NORMAL_UI				// x(columns), y (line) position. (Used in Mic App)
 	};
-	NumberField field_rfamp {     // previously we were using "RFAmpField field_rf_amp" but that is general Receiver amp setting.
-		{ 19 * 8, 2 * 16 },
-		2,
-		{ 0, 14 },                // this time we will display GUI , 0 or 14 dBs same as Mic and Replay App
-		14,
-		' '
-	};
+
 	Checkbox check_loop {
 		{ 21 * 8, 2 * 16 },
 		4,
