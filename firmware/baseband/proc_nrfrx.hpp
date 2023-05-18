@@ -68,15 +68,15 @@ class NRFRxProcessor : public BasebandProcessor {
     std::array<int16_t, 1000> rb_buf{0};
 
     /*dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
-	dsp::decimate::FIRAndDecimateComplex channel_filter { };*/
+        dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
+        dsp::decimate::FIRAndDecimateComplex channel_filter { };*/
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
     dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
 
     dsp::demodulate::FM demod{};
     int rb_head{-1};
     int32_t g_threshold{0};
-    //uint8_t g_srate {8};
+    // uint8_t g_srate {8};
     uint8_t channel_number{38};
     int skipSamples{1000};
     int RB_SIZE{1000};

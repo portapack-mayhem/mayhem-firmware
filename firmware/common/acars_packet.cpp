@@ -33,7 +33,7 @@ size_t Packet::length() const {
 }
 
 bool Packet::is_valid() const {
-    return true;  //length_valid() && crc_ok();
+    return true;  // length_valid() && crc_ok();
 }
 
 Timestamp Packet::received_at() const {
@@ -61,19 +61,19 @@ uint32_t Packet::read(const size_t start_bit, const size_t length) const {
 }
 
 /*std::string Packet::text(
-	const size_t start_bit,
-	const size_t character_count
+        const size_t start_bit,
+        const size_t character_count
 ) const {
-	std::string result;
-	result.reserve(character_count);
-	
-	const size_t character_length = 6;
-	const size_t end_bit = start_bit + character_count * character_length;
-	for(size_t i=start_bit; i<end_bit; i+=character_length) {
-		result += char_to_ascii(field_.read(i, character_length));
-	} 
+        std::string result;
+        result.reserve(character_count);
 
-	return result;
+        const size_t character_length = 6;
+        const size_t end_bit = start_bit + character_count * character_length;
+        for(size_t i=start_bit; i<end_bit; i+=character_length) {
+                result += char_to_ascii(field_.read(i, character_length));
+        }
+
+        return result;
 }*/
 
 bool Packet::crc_ok() const {

@@ -44,7 +44,7 @@ namespace cc1101 {
 
 class CC1101Emu {
    public:
-    //CC1101Emu();
+    // CC1101Emu();
     //~CC1101Emu();
 
     enum packet_mode_t {

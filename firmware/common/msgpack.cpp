@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -108,7 +108,7 @@ bool MsgPack::get_string(const void* buffer, const bool inc, std::string& value)
         if (!get_raw_word(buffer, true, (uint16_t*)&length)) return false;  // Couldn't get str16 length
     }
 
-    memcpy(&value[0], ((uint8_t*)buffer), length);  //std::string(
+    memcpy(&value[0], ((uint8_t*)buffer), length);  // std::string(
 
     if (inc) seek_ptr += length;
     return true;

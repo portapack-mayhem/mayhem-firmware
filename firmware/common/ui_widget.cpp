@@ -115,16 +115,16 @@ void Widget::hidden(bool hide) {
             // TODO: Instead of dirtying parent entirely, dirty only children
             // that overlap with this widget.
 
-            //parent()->dirty_overlapping_children_in_rect(parent_rect());
+            // parent()->dirty_overlapping_children_in_rect(parent_rect());
 
             /* TODO: Notify self and all non-hidden children that they're
-			 * now effectively hidden?
-			 */
+             * now effectively hidden?
+             */
         } else {
             set_dirty();
             /* TODO: Notify self and all non-hidden children that they're
-			 * now effectively shown?
-			 */
+             * now effectively shown?
+             */
         }
     }
 }
@@ -134,7 +134,7 @@ void Widget::focus() {
 }
 
 void Widget::on_focus() {
-    //set_dirty();
+    // set_dirty();
 }
 
 void Widget::blur() {
@@ -142,7 +142,7 @@ void Widget::blur() {
 }
 
 void Widget::on_blur() {
-    //set_dirty();
+    // set_dirty();
 }
 
 bool Widget::focusable() const {
@@ -196,11 +196,11 @@ void Widget::visible(bool v) {
         flags.visible = v;
 
         /* TODO: This on_show/on_hide implementation seems inelegant.
-		 * But I need *some* way to take/configure resources when
-		 * a widget becomes visible, and reverse the process when the
-		 * widget becomes invisible, whether the widget (or parent) is
-		 * hidden, or the widget (or parent) is removed from the tree.
-		 */
+         * But I need *some* way to take/configure resources when
+         * a widget becomes visible, and reverse the process when the
+         * widget becomes invisible, whether the widget (or parent) is
+         * hidden, or the widget (or parent) is removed from the tree.
+         */
         if (v) {
             on_show();
         } else {
@@ -642,7 +642,7 @@ void Console::write(std::string message) {
 
 void Console::writeln(std::string message) {
     write(message + "\n");
-    //crlf();
+    // crlf();
 }
 
 void Console::paint(Painter&) {
@@ -652,7 +652,7 @@ void Console::paint(Painter&) {
 void Console::on_show() {
     enable_scrolling(true);
     clear();
-    //visible = true;
+    // visible = true;
 }
 
 bool Console::scrolling_enabled = false;
@@ -671,10 +671,10 @@ void Console::enable_scrolling(bool enable) {
 
 void Console::on_hide() {
     /* TODO: Clear region to eliminate brief flash of content at un-shifted
-	 * position?
-	 */
+     * position?
+     */
     enable_scrolling(false);
-    //visible = false;
+    // visible = false;
 }
 
 void Console::crlf() {
@@ -1175,7 +1175,7 @@ void NewButton::paint(Painter& painter) {
         painter.draw_bitmap(
             {r.location().x() + (r.size().width() / 2) - 8, r.location().y() + 6},
             *bitmap_,
-            color_,  //Color::green(), //fg,
+            color_,  // Color::green(), //fg,
             bg);
         y += 10;
     }
@@ -1929,8 +1929,8 @@ Waveform::Waveform(
       offset_{offset},
       digital_{digital},
       color_{color} {
-    //set_focusable(false);
-    //previous_data.resize(length_, 0);
+    // set_focusable(false);
+    // previous_data.resize(length_, 0);
 }
 
 void Waveform::set_cursor(const uint32_t i, const int16_t position) {
@@ -2025,7 +2025,7 @@ VuMeter::VuMeter(
     : Widget{parent_rect},
       LEDs_{LEDs},
       show_max_{show_max} {
-    //set_focusable(false);
+    // set_focusable(false);
     LED_height = std::max(1UL, parent_rect.size().height() / LEDs);
     split = 256 / LEDs;
 }

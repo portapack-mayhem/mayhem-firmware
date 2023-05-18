@@ -63,8 +63,8 @@ void IO::lcd_reset_state(const bool active) {
 
 void IO::audio_reset_state(const bool active) {
     /* NOTE: This overwrites the contents of the IO register, which for now
-	 * have no significance. But someday...?
-	 */
+     * have no significance. But someday...?
+     */
     io_reg = (io_reg & 0xfd) | ((active ? 1 : 0) << 1);
     io_write(1, io_reg);
 }
@@ -77,10 +77,10 @@ void IO::reference_oscillator(const bool enable) {
 
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
     /* Very touchy code to save context of PortaPack data bus while the
-	 * resistive touch pin drive is changed. Order of operations is
-	 * important to prevent latching spurious data into the LCD or IO
-	 * registers.
-	 */
+     * resistive touch pin drive is changed. Order of operations is
+     * important to prevent latching spurious data into the LCD or IO
+     * registers.
+     */
 
     const auto save_data = data_read();
     const auto addr = gpio_addr.read();

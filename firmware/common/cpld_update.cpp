@@ -57,8 +57,8 @@ CpldUpdateStatus update_if_necessary(
     cpld.enable();
 
     /* If silicon ID doesn't match, there's a serious problem. Leave CPLD
-	 * in passive state.
-	 */
+     * in passive state.
+     */
     if (!cpld.silicon_id_ok()) {
         return CpldUpdateStatus::Silicon_id_check_failed;
     }
@@ -72,8 +72,8 @@ CpldUpdateStatus update_if_necessary(
     }
 
     /* If programming OK, reset CPLD to user mode. Otherwise leave it in
-	 * passive (ISP) state.
-	 */
+     * passive (ISP) state.
+     */
     if (ok) {
         cpld.disable();
         cpld.bypass();

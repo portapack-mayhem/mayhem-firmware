@@ -267,7 +267,7 @@ class WidebandSpectrumConfigMessage : public Message {
 
 struct AudioSpectrum {
     std::array<uint8_t, 128> db{{0}};
-    //uint32_t sampling_rate { 0 };
+    // uint32_t sampling_rate { 0 };
 };
 
 class AudioSpectrumMessage : public Message {

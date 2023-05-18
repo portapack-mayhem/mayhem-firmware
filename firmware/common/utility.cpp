@@ -83,9 +83,9 @@ float fast_pow2(const float val) {
 }
 
 float mag2_to_dbv_norm(const float mag2) {
-    constexpr float mag2_log2_max = 0.0f;  //std::log2(1.0f);
+    constexpr float mag2_log2_max = 0.0f;  // std::log2(1.0f);
     constexpr float log_mag2_mag_factor = 0.5f;
-    constexpr float log2_log10_factor = 0.3010299956639812f;  //std::log10(2.0f);
+    constexpr float log2_log10_factor = 0.3010299956639812f;  // std::log10(2.0f);
     constexpr float log10_dbv_factor = 20.0f;
     constexpr float mag2_to_db_factor = log_mag2_mag_factor * log2_log10_factor * log10_dbv_factor;
     return (fast_log2(mag2) - mag2_log2_max) * mag2_to_db_factor;

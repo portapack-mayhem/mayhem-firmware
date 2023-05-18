@@ -37,9 +37,9 @@
 
 namespace std {
 /* https://github.com/AE9RB/fftbench/blob/master/cxlr.hpp
-	 * Nice trick from AE9RB (David Turnbull) to get compiler to produce simpler
-	 * fma (fused multiply-accumulate) instead of worrying about NaN handling
-	 */
+ * Nice trick from AE9RB (David Turnbull) to get compiler to produce simpler
+ * fma (fused multiply-accumulate) instead of worrying about NaN handling
+ */
 inline complex<float>
 operator*(const complex<float>& v1, const complex<float>& v2) {
     return complex<float>{
@@ -133,7 +133,7 @@ void fft_c_preswapped(std::array<T, N>& data, const size_t from, const size_t to
     }
 }
 
-/* 
+/*
    ifft(v,N):
    [0] If N==1 then return.
    [1] For k = 0 to N/2-1, let ve[k] = v[2*k]

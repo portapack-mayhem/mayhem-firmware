@@ -361,7 +361,7 @@ class WM8731 : public audio::Codec {
     }
 
     void microphone_mute(const bool mute) {
-        map.r.analog_audio_path_control.mutemic = (mute ? 1 : 0);  //1 = Enable Mute ,  0 = Disable Mute
+        map.r.analog_audio_path_control.mutemic = (mute ? 1 : 0);  // 1 = Enable Mute ,  0 = Disable Mute
         write(Register::AnalogAudioPathControl);
     }
 

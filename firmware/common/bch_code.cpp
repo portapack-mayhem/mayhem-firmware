@@ -3,7 +3,7 @@
  * Copyright (C) 2016 Furrtek
  *
  * BCH Encoder/Decoder - Adapted from GNURadio
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -30,11 +30,11 @@
 
 void BCHCode::generate_gf() {
     /*
-	* generate GF(2**m) from the irreducible polynomial p(X) in p[0]..p[m]
-	* lookup tables:  index->polynomial form   alpha_to[] contains j=alpha**i;
-	* polynomial form -> index form  index_of[j=alpha**i] = i alpha=2 is the
-	* primitive element of GF(2**m) 
-	*/
+     * generate GF(2**m) from the irreducible polynomial p(X) in p[0]..p[m]
+     * lookup tables:  index->polynomial form   alpha_to[] contains j=alpha**i;
+     * polynomial form -> index form  index_of[j=alpha**i] = i alpha=2 is the
+     * primitive element of GF(2**m)
+     */
 
     int i, mask;
     mask = 1;
@@ -68,10 +68,10 @@ void BCHCode::generate_gf() {
 }
 
 void BCHCode::gen_poly() {
-    /* 
-	* Compute generator polynomial of BCH code of length = 31, redundancy = 10
-	* (OK, this is not very efficient, but we only do it once, right? :)
-	*/
+    /*
+     * Compute generator polynomial of BCH code of length = 31, redundancy = 10
+     * (OK, this is not very efficient, but we only do it once, right? :)
+     */
 
     int ii, jj, ll, kaux;
     int test, aux, nocycles, root, noterms, rdncy;
@@ -222,8 +222,8 @@ int BCHCode::decode(int recd[]) {
             syn_error = 1;  // set flag if non-zero syndrome
         }
         /* NOTE: If only error detection is needed,
-		 * then exit the program here...
-		 */
+         * then exit the program here...
+         */
         // Convert syndrome from polynomial form to index form
         s[i] = index_of[s[i]];
     };
@@ -232,13 +232,13 @@ int BCHCode::decode(int recd[]) {
         if (s[1] != -1) {
             s3 = (s[1] * 3) % n;
             if (s[3] == s3) {  // Was it a single error ?
-                //printf("One error at %d\n", s[1]);
+                // printf("One error at %d\n", s[1]);
                 recd[s[1]] ^= 1;  // Yes: Correct it
             } else {
                 /* Assume two errors occurred and solve
-				 * for the coefficients of sigma(x), the
-				 * error locator polynomial
-				 */
+                 * for the coefficients of sigma(x), the
+                 * error locator polynomial
+                 */
                 if (s[3] != -1) {
                     aux = alpha_to[s3] ^ alpha_to[s[3]];
                 } else {
@@ -247,12 +247,12 @@ int BCHCode::decode(int recd[]) {
                 elp[0] = 0;
                 elp[1] = (s[2] - index_of[aux] + n) % n;
                 elp[2] = (s[1] - index_of[aux] + n) % n;
-                //printf("sigma(x) = ");
-                //for (i = 0; i <= 2; i++) {
+                // printf("sigma(x) = ");
+                // for (i = 0; i <= 2; i++) {
                 //	printf("%3d ", elp[i]);
-                //}
-                //printf("\n");
-                //printf("Roots: ");
+                // }
+                // printf("\n");
+                // printf("Roots: ");
 
                 // Find roots of the error location polynomial
                 for (i = 1; i <= 2; i++) {

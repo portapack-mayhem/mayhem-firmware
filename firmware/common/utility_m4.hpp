@@ -30,7 +30,7 @@ static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type
     // conjugate: conj(a + bj) = a - bj
     // multiply: (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j
     // conjugate-multiply: (ac + bd) + (bc - ad)j
-    //return { a.real() * b.real() + a.imag() * b.imag(), a.imag() * b.real() - a.real() * b.imag() };
+    // return { a.real() * b.real() + a.imag() * b.imag(), a.imag() * b.real() - a.real() * b.imag() };
     // NOTE: Did not use combination of SMUAD and SMUSDX because of non-saturating arithmetic.
     // const int32_t r = __SMUAD(a, b);
     // const int32_t i = __SMUSDX(b, a);

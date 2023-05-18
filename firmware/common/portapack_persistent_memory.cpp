@@ -63,8 +63,8 @@ constexpr modem_baudrate_range_t modem_baudrate_range{50, 9600};
 constexpr int32_t modem_baudrate_reset_value{1200};
 
 /*using modem_bw_range_t = range_t<int32_t>;
-		  constexpr modem_bw_range_t modem_bw_range { 1000, 50000 };
-		  constexpr int32_t modem_bw_reset_value { 15000 };*/
+                  constexpr modem_bw_range_t modem_bw_range { 1000, 50000 };
+                  constexpr int32_t modem_bw_reset_value { 15000 };*/
 
 using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range{1, 99};
@@ -382,15 +382,15 @@ struct backup_ram_t {
     }
 
     /* Calculate a check value from `this`, and check against
-				 * the stored value.
-				 */
+     * the stored value.
+     */
     bool is_valid() {
         return compute_check_value() == check_value;
     }
 
     /* Assuming `this` contains valid data, update the checksum
-				 * and copy to the destination.
-				 */
+     * and copy to the destination.
+     */
     void persist_to(backup_ram_t& dst) {
         check_value = compute_check_value();
         copy(*this, dst);
@@ -515,13 +515,13 @@ void set_modem_baudrate(const int32_t new_value) {
 }
 
 /*int32_t modem_bw() {
-		  modem_bw_range.reset_if_outside(data->modem_bw, modem_bw_reset_value);
-		  return data->modem_bw;
-		  }
+                  modem_bw_range.reset_if_outside(data->modem_bw, modem_bw_reset_value);
+                  return data->modem_bw;
+                  }
 
-		  void set_modem_bw(const int32_t new_value) {
-		  data->modem_bw = modem_bw_range.clip(new_value);
-		  }*/
+                  void set_modem_bw(const int32_t new_value) {
+                  data->modem_bw = modem_bw_range.clip(new_value);
+                  }*/
 
 uint8_t modem_repeat() {
     modem_repeat_range.reset_if_outside(data->modem_repeat, modem_repeat_reset_value);
@@ -653,16 +653,16 @@ void set_config_backlight_timer(const backlight_config_t& new_value) {
 }
 
 /*void set_config_textentry(uint8_t new_value) {
-		  data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
-		  }
+                  data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
+                  }
 
-		  uint8_t ui_config_textentry() {
-		  return ((data->ui_config >> 2) & 1);
-		  }*/
+                  uint8_t ui_config_textentry() {
+                  return ((data->ui_config >> 2) & 1);
+                  }*/
 
 /*void set_ui_config(const uint32_t new_value) {
-		  data->ui_config = new_value;
-		  }*/
+                  data->ui_config = new_value;
+                  }*/
 
 uint32_t pocsag_last_address() {
     return data->pocsag_last_address;

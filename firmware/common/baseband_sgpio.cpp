@@ -29,48 +29,48 @@ namespace baseband {
 /*
 
 struct PinConfig {
-	P_OUT_CFG p_out_cfg;
-	P_OE_CFG p_oe_cfg { P_OE_CFG::GPIO_OE };
+        P_OUT_CFG p_out_cfg;
+        P_OE_CFG p_oe_cfg { P_OE_CFG::GPIO_OE };
 
-	constexpr SGPIOPinConfig(
-		P_OUT_CFG p_out_cfg
-	) :
-		p_out_cfg(p_out_cfg)
-	{
-	}
+        constexpr SGPIOPinConfig(
+                P_OUT_CFG p_out_cfg
+        ) :
+                p_out_cfg(p_out_cfg)
+        {
+        }
 };
 
 static constexpr bool slice_mode_multislice = false;
 
 static constexpr P_OUT_CFG output_multiplexing_mode =
-	slice_mode_multislice ? P_OUT_CFG::DOUT_DOUTM8C : P_OUT_CFG::DOUT_DOUTM8A;
+        slice_mode_multislice ? P_OUT_CFG::DOUT_DOUTM8C : P_OUT_CFG::DOUT_DOUTM8A;
 
 static constexpr std::array<PinConfig, 16> pin_config { {
-	[PIN_D0]		= { output_multiplexing_mode, SLICE_A },
-	[PIN_D1]		= { output_multiplexing_mode, SLICE_I },
-	[PIN_D2]		= { output_multiplexing_mode, },
-	[PIN_D3]		= { output_multiplexing_mode, },
-	[PIN_D4]		= { output_multiplexing_mode, },
-	[PIN_D5]		= { output_multiplexing_mode, },
-	[PIN_D6]		= { output_multiplexing_mode, },
-	[PIN_D7]		= { output_multiplexing_mode, },
-	[PIN_CLKIN]		= { P_OUT_CFG::DOUT_DOUTM1, },
-	[PIN_CAPTURE]	= { P_OUT_CFG::DOUT_DOUTM1, },
-	[PIN_DISABLE]	= { P_OUT_CFG::GPIO_OUT, },
-	[PIN_DIRECTION]	= { P_OUT_CFG::GPIO_OUT, },
-	[PIN_INVERT]	= { P_OUT_CFG::GPIO_OUT, },
-	[PIN_DECIM0]	= { P_OUT_CFG::GPIO_OUT, },
-	[PIN_DECIM1]	= { P_OUT_CFG::DOUT_DOUTM1, },
-	[PIN_DECIM2]	= { P_OUT_CFG::GPIO_OUT, },
+        [PIN_D0]		= { output_multiplexing_mode, SLICE_A },
+        [PIN_D1]		= { output_multiplexing_mode, SLICE_I },
+        [PIN_D2]		= { output_multiplexing_mode, },
+        [PIN_D3]		= { output_multiplexing_mode, },
+        [PIN_D4]		= { output_multiplexing_mode, },
+        [PIN_D5]		= { output_multiplexing_mode, },
+        [PIN_D6]		= { output_multiplexing_mode, },
+        [PIN_D7]		= { output_multiplexing_mode, },
+        [PIN_CLKIN]		= { P_OUT_CFG::DOUT_DOUTM1, },
+        [PIN_CAPTURE]	= { P_OUT_CFG::DOUT_DOUTM1, },
+        [PIN_DISABLE]	= { P_OUT_CFG::GPIO_OUT, },
+        [PIN_DIRECTION]	= { P_OUT_CFG::GPIO_OUT, },
+        [PIN_INVERT]	= { P_OUT_CFG::GPIO_OUT, },
+        [PIN_DECIM0]	= { P_OUT_CFG::GPIO_OUT, },
+        [PIN_DECIM1]	= { P_OUT_CFG::DOUT_DOUTM1, },
+        [PIN_DECIM2]	= { P_OUT_CFG::GPIO_OUT, },
 } };
 */
 /*
 static constexpr std::array<LPC_SGPIO_OUT_MUX_CFG_Type, 16> out_mux_cfg_receive {
-	{ },
+        { },
 };
 
 static constexpr std::array<LPC_SGPIO_OUT_MUX_CFG_Type, 16> out_mux_cfg_transmit {
-	{ },
+        { },
 };
 */
 

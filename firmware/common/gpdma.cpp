@@ -74,8 +74,8 @@ CH_IRQ_HANDLER(DMA_IRQHandler) {
 
     const auto tc_stat = LPC_GPDMA->INTTCSTAT;
     /* TODO: Service the higher channel numbers first, they're higher priority
-	 * right?!?
-	 */
+     * right?!?
+     */
     for (size_t i = 0; i < handlers_table.size(); i++) {
         if ((tc_stat >> i) & 1) {
             if (handlers_table[i].tc) {
@@ -86,9 +86,9 @@ CH_IRQ_HANDLER(DMA_IRQHandler) {
     LPC_GPDMA->INTTCCLR = tc_stat;
 
     /* Test for *any* error first, before looping, since errors should be
-	 * exceptional and we should spend as little time on them in the common
-	 * case.
-	 */
+     * exceptional and we should spend as little time on them in the common
+     * case.
+     */
     const auto err_stat = LPC_GPDMA->INTERRSTAT;
     if (err_stat) {
         for (size_t i = 0; i < handlers_table.size(); i++) {

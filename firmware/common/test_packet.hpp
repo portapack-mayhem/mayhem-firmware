@@ -50,15 +50,15 @@ class Packet {
     uint32_t value() const;
     uint32_t alt() const;
     /*std::string serial_number() const;
-	uint32_t GPS_altitude() const;
-	float GPS_latitude() const;
-	float GPS_longitude() const;
-	std::string signature() const;
-	uint32_t battery_voltage() const;*/
+        uint32_t GPS_altitude() const;
+        float GPS_latitude() const;
+        float GPS_longitude() const;
+        std::string signature() const;
+        uint32_t battery_voltage() const;*/
 
     FormattedSymbols symbols_formatted() const;
 
-    //bool crc_ok() const;
+    // bool crc_ok() const;
 
    private:
     using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;

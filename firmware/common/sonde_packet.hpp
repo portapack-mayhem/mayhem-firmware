@@ -93,7 +93,7 @@ class Packet {
     const FieldReader<BiphaseMDecoder, BitRemapNone> reader_bi_m;
     Type type_;
 
-    using packetReader = FieldReader<baseband::Packet, BitRemapByteReverse>;  //baseband::Packet instead of BiphaseMDecoder
+    using packetReader = FieldReader<baseband::Packet, BitRemapByteReverse>;  // baseband::Packet instead of BiphaseMDecoder
 
     bool crc_ok_M10() const;
     bool crc_ok_RS41() const;

@@ -328,7 +328,7 @@ class Console : public Widget {
     void on_hide() override;
 
    private:
-    //bool visible = false;
+    // bool visible = false;
     Point pos{0, 0};
     std::string buffer{};
     static bool scrolling_enabled;
@@ -449,7 +449,7 @@ class ButtonWithEncoder : public Widget {
 class NewButton : public Widget {
    public:
     std::function<void(void)> on_select{};
-    //std::function<void(NewButton&)> on_select { };
+    // std::function<void(NewButton&)> on_select { };
     std::function<bool(NewButton&, KeyEvent)> on_dir{};
     std::function<void(NewButton&)> on_highlight{};
 
