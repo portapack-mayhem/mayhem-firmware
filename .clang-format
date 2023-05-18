@@ -3,5 +3,12 @@ BasedOnStyle: Chromium
 IndentWidth: '2'
 TabWidth: '2'
 UseTab: Always
+SortIncludes: 'false'
+AllowAllArgumentsOnNextLine: 'true'
+ColumnLimit: 0
+IndentAccessModifiers : 'false'
+Cpp11BracedListStyle: 'true'
+AllowShortLoopsOnASingleLine: 'true'
+AllowShortIfStatementsOnASingleLine: 'true'
 
 ...
