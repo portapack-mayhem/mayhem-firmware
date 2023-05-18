@@ -40,4 +40,4 @@ size_t heap_used();
 
 } /* namespace chibios */
 
-#endif/*__CHIBIOS_CPP_H__*/
+#endif /*__CHIBIOS_CPP_H__*/

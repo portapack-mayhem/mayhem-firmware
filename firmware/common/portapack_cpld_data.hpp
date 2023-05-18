@@ -38,7 +38,7 @@ namespace rev_20150901 {
 extern const std::array<uint16_t, 3328> block_0;
 extern const std::array<uint16_t, 512> block_1;
 
-const Config config { block_0, block_1 };
+const Config config{block_0, block_1};
 
 } /* namespace rev_20150901 */
 
@@ -47,11 +47,11 @@ namespace rev_20170522 {
 extern const std::array<uint16_t, 3328> block_0;
 extern const std::array<uint16_t, 512> block_1;
 
-const Config config { block_0, block_1 };
+const Config config{block_0, block_1};
 
 } /* namespace rev_20170522 */
 
 } /* namespace cpld */
 } /* namespace portapack */
 
-#endif/*__PORTAPACK_CPLD_DATA_H__*/
+#endif /*__PORTAPACK_CPLD_DATA_H__*/

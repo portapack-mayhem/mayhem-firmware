@@ -29,21 +29,21 @@ void irq_usb(void);
 void usb_transfer(void);
 
 CH_IRQ_HANDLER(Vector60) {
-	irq_usb();
+  irq_usb();
 }
 }
 
 int main() {
-	sdcStart(&SDCD1, nullptr);
-	if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
+  sdcStart(&SDCD1, nullptr);
+  if (sdcConnect(&SDCD1) == CH_FAILED) chDbgPanic("no sd card #1");
 
-	start_usb();
+  start_usb();
 
-	while (true) {
-		usb_transfer();
-	}
+  while (true) {
+    usb_transfer();
+  }
 
-	return 0;
+  return 0;
 }
 
 void update_performance_counters() {}

@@ -30,6 +30,6 @@ namespace font {
 extern const ui::Font fixed_8x16;
 
 } /* namespace font */
-} /* namspace ui */
+}  // namespace ui
 
-#endif/*__UI_FONT_FIXED_8X16_H__*/
+#endif /*__UI_FONT_FIXED_8X16_H__*/

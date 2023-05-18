@@ -28,12 +28,12 @@
 #include "touch.hpp"
 
 enum class Switch {
-	Right = 0,
-	Left = 1,
-	Down = 2,
-	Up = 3,
-	Sel = 4,
-	Dfu = 5,
+  Right = 0,
+  Left = 1,
+  Down = 2,
+  Up = 3,
+  Sel = 4,
+  Dfu = 5,
 };
 
 using SwitchesState = std::bitset<6>;
@@ -50,7 +50,7 @@ namespace debug {
 
 uint8_t switches();
 
-} /* debug */
-} /* control */
+}  // namespace debug
+}  // namespace control
 
-#endif/*__IRQ_CONTROLS_H__*/
+#endif /*__IRQ_CONTROLS_H__*/

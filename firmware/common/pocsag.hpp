@@ -24,7 +24,7 @@
 #define __POCSAG_H__
 
 #define POCSAG_PREAMBLE_LENGTH 576
-#define POCSAG_TIMEOUT (576 * 2)		// Preamble length * 2
+#define POCSAG_TIMEOUT (576 * 2)  // Preamble length * 2
 #define POCSAG_SYNCWORD 0x7CD215D8
 #define POCSAG_IDLEWORD 0x7A89C197
 #define POCSAG_AUDIO_RATE 24000
@@ -38,50 +38,48 @@ namespace pocsag {
 // Todo: these enums suck, make a better decode_batch
 
 enum Mode : uint32_t {
-	STATE_CLEAR,
-	STATE_HAVE_ADDRESS,
-	STATE_GETTING_MSG
+  STATE_CLEAR,
+  STATE_HAVE_ADDRESS,
+  STATE_GETTING_MSG
 };
 
 enum OutputType : uint32_t {
-	EMPTY,
-	ADDRESS,
-	MESSAGE
+  EMPTY,
+  ADDRESS,
+  MESSAGE
 };
 
 enum MessageType : uint32_t {
-	ADDRESS_ONLY,
-	NUMERIC_ONLY,
-	ALPHANUMERIC
+  ADDRESS_ONLY,
+  NUMERIC_ONLY,
+  ALPHANUMERIC
 };
 
 struct POCSAGState {
-	uint32_t function;
-	uint32_t address;
-	Mode mode = STATE_CLEAR;
-	OutputType out_type = EMPTY;
-	uint32_t ascii_data;
-	uint32_t ascii_idx;
-	uint32_t errors;
-	std::string output;
+  uint32_t function;
+  uint32_t address;
+  Mode mode = STATE_CLEAR;
+  OutputType out_type = EMPTY;
+  uint32_t ascii_data;
+  uint32_t ascii_idx;
+  uint32_t errors;
+  std::string output;
 };
 
 const pocsag::BitRate pocsag_bitrates[4] = {
-	pocsag::BitRate::FSK512,
-	pocsag::BitRate::FSK1200,
-	pocsag::BitRate::FSK2400,
-	pocsag::BitRate::FSK3200
-};
+    pocsag::BitRate::FSK512,
+    pocsag::BitRate::FSK1200,
+    pocsag::BitRate::FSK2400,
+    pocsag::BitRate::FSK3200};
 
 std::string bitrate_str(BitRate bitrate);
 std::string flag_str(PacketFlag packetflag);
 
-void insert_BCH(BCHCode& BCH_code, uint32_t * codeword);
+void insert_BCH(BCHCode& BCH_code, uint32_t* codeword);
 uint32_t get_digit_code(char code);
-void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message,
-					const uint32_t address, std::vector<uint32_t>& codewords);
-void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState * const state);
+void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message, const uint32_t address, std::vector<uint32_t>& codewords);
+void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState* const state);
 
 } /* namespace pocsag */
 
-#endif/*__POCSAG_H__*/
+#endif /*__POCSAG_H__*/

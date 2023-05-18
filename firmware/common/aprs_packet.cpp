@@ -24,4 +24,4 @@
 
 namespace aprs {
 
-} /* namespace zwave */
+}  // namespace aprs

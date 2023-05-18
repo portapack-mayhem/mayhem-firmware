@@ -24,44 +24,43 @@
 #include <hal.h>
 
 void IIRBiquadFilter::configure(const iir_biquad_config_t& new_config) {
-	config = new_config;
+  config = new_config;
 }
 
 void IIRBiquadFilter::execute(const buffer_f32_t& buffer_in, const buffer_f32_t& buffer_out) {
-	const auto a_ = config.a;
-	const auto b_ = config.b;
-	
-	auto x_ = x;
-	auto y_ = y;
+  const auto a_ = config.a;
+  const auto b_ = config.b;
 
-	// TODO: Assert that buffer_out.count == buffer_in.count.
-	for(size_t i=0; i<buffer_out.count; i++) {
-		x_[0] = x_[1];
-		x_[1] = x_[2];
-		x_[2] = buffer_in.p[i];
+  auto x_ = x;
+  auto y_ = y;
 
-		y_[0] = y_[1];
-		y_[1] = y_[2];
-		y_[2] = b_[0] * x_[2] + b_[1] * x_[1] + b_[2] * x_[0]
-		                      - a_[1] * y_[1] - a_[2] * y_[0];
+  // TODO: Assert that buffer_out.count == buffer_in.count.
+  for (size_t i = 0; i < buffer_out.count; i++) {
+    x_[0] = x_[1];
+    x_[1] = x_[2];
+    x_[2] = buffer_in.p[i];
 
-		buffer_out.p[i] = y_[2];
-	}
+    y_[0] = y_[1];
+    y_[1] = y_[2];
+    y_[2] = b_[0] * x_[2] + b_[1] * x_[1] + b_[2] * x_[0] - a_[1] * y_[1] - a_[2] * y_[0];
 
-	x = x_;
-	y = y_;
+    buffer_out.p[i] = y_[2];
+  }
+
+  x = x_;
+  y = y_;
 }
 
 void IIRBiquadFilter::execute_in_place(const buffer_f32_t& buffer) {
-	execute(buffer, buffer);
+  execute(buffer, buffer);
 }
 
 void IIRBiquadDF2Filter::configure(const iir_biquad_df2_config_t& config) {
-	b0 = config[0] / config[3];
-	b1 = config[1] / config[3];
-	b2 = config[2] / config[3];
-	a1 = config[4] / config[3];
-	a2 = config[5] / config[3];
+  b0 = config[0] / config[3];
+  b1 = config[1] / config[3];
+  b2 = config[2] / config[3];
+  a1 = config[4] / config[3];
+  a2 = config[5] / config[3];
 }
 
 //  scipy.signal.sosfilt
@@ -73,11 +72,11 @@ void IIRBiquadDF2Filter::configure(const iir_biquad_df2_config_t& config) {
 //  zi[i, s, 1] = (b[s, 2] * x_n - a[s, 1] * x[i, n])
 
 float IIRBiquadDF2Filter::execute(float x) {
-	float y;
-	
-	y = b0 * x + z0;
-	z0 = b1 * x - a1 * y + z1;
-	z1 = b2 * x - a2 * y;
+  float y;
 
-	return y;
+  y = b0 * x + z0;
+  z0 = b1 * x - a1 * y + z1;
+  z1 = b2 * x - a2 * y;
+
+  return y;
 }

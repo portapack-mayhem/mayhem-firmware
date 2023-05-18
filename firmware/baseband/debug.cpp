@@ -28,117 +28,120 @@
 #include "portapack_shared_memory.hpp"
 #include "performance_counter.hpp"
 
-void write_m4_panic_msg(const char *panic_message, struct extctx *ctxp) {
-    if (ctxp == nullptr) {
-        shared_memory.bb_data.data[0] = 0;
-    }
-    else {
-        shared_memory.bb_data.data[0] = 1;
-        *((uint32_t *)&shared_memory.bb_data.data[4]) = SCB->CFSR;
-        memcpy(&shared_memory.bb_data.data[8], ctxp, sizeof(struct extctx));
-    }
+void write_m4_panic_msg(const char* panic_message, struct extctx* ctxp) {
+  if (ctxp == nullptr) {
+    shared_memory.bb_data.data[0] = 0;
+  } else {
+    shared_memory.bb_data.data[0] = 1;
+    *((uint32_t*)&shared_memory.bb_data.data[4]) = SCB->CFSR;
+    memcpy(&shared_memory.bb_data.data[8], ctxp, sizeof(struct extctx));
+  }
 
-	for(size_t i=0; i<sizeof(shared_memory.m4_panic_msg); i++) {
-		if( *panic_message == 0 ) {
-			shared_memory.m4_panic_msg[i] = 0;
-		} else {
-			shared_memory.m4_panic_msg[i] = *(panic_message++);
-		}
-	}
+  for (size_t i = 0; i < sizeof(shared_memory.m4_panic_msg); i++) {
+    if (*panic_message == 0) {
+      shared_memory.m4_panic_msg[i] = 0;
+    } else {
+      shared_memory.m4_panic_msg[i] = *(panic_message++);
+    }
+  }
 }
 
 extern "C" {
 #if CH_DBG_ENABLED
 void port_halt(void) {
-	port_disable();
+  port_disable();
 
-    if (dbg_panic_msg == nullptr)
-        dbg_panic_msg = "system halted";
+  if (dbg_panic_msg == nullptr)
+    dbg_panic_msg = "system halted";
 
-    write_m4_panic_msg(dbg_panic_msg, nullptr);
+  write_m4_panic_msg(dbg_panic_msg, nullptr);
 
-    while (true) {
-        HALT_IF_DEBUGGING();
-    }
+  while (true) {
+    HALT_IF_DEBUGGING();
+  }
 }
 #endif
 
 CH_IRQ_HANDLER(MemManageVector) {
 #if CH_DBG_ENABLED
-	chDbgPanic("MemManage");
+  chDbgPanic("MemManage");
 #else
-	chSysHalt();
+  chSysHalt();
 #endif
 }
 
 CH_IRQ_HANDLER(BusFaultVector) {
 #if CH_DBG_ENABLED
-	chDbgPanic("BusFault");
+  chDbgPanic("BusFault");
 #else
-	chSysHalt();
+  chSysHalt();
 #endif
 }
 
 CH_IRQ_HANDLER(UsageFaultVector) {
 #if CH_DBG_ENABLED
-	chDbgPanic("UsageFault");
+  chDbgPanic("UsageFault");
 #else
-	chSysHalt();
+  chSysHalt();
 #endif
 }
 
 CH_IRQ_HANDLER(HardFaultVector) {
 #if CH_DBG_ENABLED
-    regarm_t _saved_lr;
-    asm volatile ("mov     %0, lr" : "=r" (_saved_lr) : : "memory");
+  regarm_t _saved_lr;
+  asm volatile("mov     %0, lr"
+               : "=r"(_saved_lr)
+               :
+               : "memory");
 
-    struct extctx *ctxp;
-    port_lock_from_isr();
+  struct extctx* ctxp;
+  port_lock_from_isr();
 
-    if ((uint32_t)_saved_lr & 0x04)
-        ctxp = (struct extctx *)__get_PSP();
-    else
-        ctxp = (struct extctx *)__get_MSP();
+  if ((uint32_t)_saved_lr & 0x04)
+    ctxp = (struct extctx*)__get_PSP();
+  else
+    ctxp = (struct extctx*)__get_MSP();
 
-    volatile uint32_t stack_space_left = get_free_stack_space();
-    if (stack_space_left < 16)
-        write_m4_panic_msg("Stack Overflow", ctxp);
-    
-    else write_m4_panic_msg("Hard Fault", ctxp);
+  volatile uint32_t stack_space_left = get_free_stack_space();
+  if (stack_space_left < 16)
+    write_m4_panic_msg("Stack Overflow", ctxp);
 
-	port_disable();
+  else
+    write_m4_panic_msg("Hard Fault", ctxp);
 
-    while (true) {
-        HALT_IF_DEBUGGING();
-    }
+  port_disable();
+
+  while (true) {
+    HALT_IF_DEBUGGING();
+  }
 
 #else
-	chSysHalt();
+  chSysHalt();
 #endif
 }
 
 void update_performance_counters() {
-	auto performance_counter_active = shared_memory.request_m4_performance_counter;
-	if (performance_counter_active == 0x00)
-		return;
+  auto performance_counter_active = shared_memory.request_m4_performance_counter;
+  if (performance_counter_active == 0x00)
+    return;
 
-	static bool last_paint_state = false;
-	if ((((chTimeNow()>>10) & 0x01) == 0x01) == last_paint_state)
-		return;
+  static bool last_paint_state = false;
+  if ((((chTimeNow() >> 10) & 0x01) == 0x01) == last_paint_state)
+    return;
 
-    // Idle thread state is sometimes unuseable
-   	if (chThdGetTicks(chSysGetIdleThread()) > 0x10000000)
-        return;
+  // Idle thread state is sometimes unuseable
+  if (chThdGetTicks(chSysGetIdleThread()) > 0x10000000)
+    return;
 
-	last_paint_state = !last_paint_state;
+  last_paint_state = !last_paint_state;
 
-	auto utilisation = get_cpu_utilisation_in_percent();
-	auto free_stack = (uint32_t)get_free_stack_space();
-	auto free_heap = chCoreStatus();
+  auto utilisation = get_cpu_utilisation_in_percent();
+  auto free_stack = (uint32_t)get_free_stack_space();
+  auto free_heap = chCoreStatus();
 
-	shared_memory.m4_cpu_usage = utilisation;
-	shared_memory.m4_stack_usage = free_stack;
-	shared_memory.m4_heap_usage = free_heap;
+  shared_memory.m4_cpu_usage = utilisation;
+  shared_memory.m4_stack_usage = free_stack;
+  shared_memory.m4_heap_usage = free_heap;
 }
 
 } /* extern "C" */

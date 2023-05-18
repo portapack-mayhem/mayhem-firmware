@@ -97,107 +97,104 @@
 #include <cstddef>
 #include <bitset>
 
-
-#define BEEP_MIN_DURATION 			60
-#define BEEP_DURATION_RANGE 		100
-#define BEEP_BASE_FREQ				200
-#define RSSI_CEILING	 			1000
-#define PROPORTIONAL_BEEP_THRES		0.8
-#define RSSI_PITCH_WEIGHT			0.5
-#define AUDIO_SAMPLE_RATE			24000
+#define BEEP_MIN_DURATION 60
+#define BEEP_DURATION_RANGE 100
+#define BEEP_BASE_FREQ 200
+#define RSSI_CEILING 1000
+#define PROPORTIONAL_BEEP_THRES 0.8
+#define RSSI_PITCH_WEIGHT 0.5
+#define AUDIO_SAMPLE_RATE 24000
 
 class SondeProcessor : public BasebandProcessor {
-public:
-	SondeProcessor();
-	
-	void execute(const buffer_c8_t& buffer) override;
-	void on_message(const Message* const msg);
-private:
+ public:
+  SondeProcessor();
 
-	static constexpr size_t baseband_fs = 2457600;
+  void execute(const buffer_c8_t& buffer) override;
+  void on_message(const Message* const msg);
 
-	std::array<int16_t, 32> audio { };
+ private:
+  static constexpr size_t baseband_fs = 2457600;
 
-	const buffer_s16_t audio_buffer {
-		(int16_t*) audio.data(),
-		sizeof(audio) / sizeof(int16_t)
-	};
+  std::array<int16_t, 32> audio{};
 
-	AudioOutput audio_output { };
+  const buffer_s16_t audio_buffer{
+      (int16_t*)audio.data(),
+      sizeof(audio) / sizeof(int16_t)};
 
-	bool beep_play { false };
-	bool silence_play { false };
-	bool pitch_rssi_enabled { false };
+  AudioOutput audio_output{};
 
-	uint32_t last_rssi { 0 };
+  bool beep_play{false};
+  bool silence_play{false};
+  bool pitch_rssi_enabled{false};
 
-	ToneGen tone_gen { };
+  uint32_t last_rssi{0};
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
+  ToneGen tone_gen{};
 
-	std::array<complex16_t, 512> dst { };
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
+  BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
+  RSSIThread rssi_thread{NORMALPRIO + 10};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0 { };
-	dsp::decimate::FIRC16xR16x32Decim8 decim_1 { };
-	dsp::matched_filter::MatchedFilter mf { baseband::ais::square_taps_38k4_1t_p, 2 };
+  std::array<complex16_t, 512> dst{};
+  const buffer_c16_t dst_buffer{
+      dst.data(),
+      dst.size()};
 
-	// Actually 4800bits/s but the Manchester coding doubles the symbol rate
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_9600 {
-		19200, 9600, { 0.0555f },
-		[this](const float raw_symbol) {
-			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_9600_Meteomodem.execute(sliced_symbol);
-		}
-	};
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_9600_Meteomodem {
-		{ 0b00110011001100110101100110110011, 32, 1 },
-		{ },
-		{ 88 * 2 * 8 },
-		[this](const baseband::Packet& packet) {
-			const SondePacketMessage message { sonde::Packet::Type::Meteomodem_unknown, packet };
-			shared_memory.application_queue.push(message);
-		}
-	};
-	
-	clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800 {
-		19200, 4800, { 0.0555f },
-		[this](const float raw_symbol) {
-			const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-			this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
-		}
-	};
-	PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala {
-		{ 0b00001000011011010101001110001000, 32, 1 }, //euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw format) (these bits are not passed at the beginning of packet)
-		//{ 0b0000100001101101010100111000100001000100011010010100100000011111, 64, 1 }, //euquiq whole header detection would be 8 bytes.
-		{ },
-		{ 320 * 8 },
-		[this](const baseband::Packet& packet) {
-			const SondePacketMessage message { sonde::Packet::Type::Vaisala_RS41_SG, packet };
-			shared_memory.application_queue.push(message);
-		}
-	};
+  dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
+  dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+  dsp::matched_filter::MatchedFilter mf{baseband::ais::square_taps_38k4_1t_p, 2};
 
-	void play_beep();
-	void stop_beep();
-	
-	/**
+  // Actually 4800bits/s but the Manchester coding doubles the symbol rate
+  clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_9600{
+      19200,
+      9600,
+      {0.0555f},
+      [this](const float raw_symbol) {
+        const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+        this->packet_builder_fsk_9600_Meteomodem.execute(sliced_symbol);
+      }};
+  PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_9600_Meteomodem{
+      {0b00110011001100110101100110110011, 32, 1},
+      {},
+      {88 * 2 * 8},
+      [this](const baseband::Packet& packet) {
+        const SondePacketMessage message{sonde::Packet::Type::Meteomodem_unknown, packet};
+        shared_memory.application_queue.push(message);
+      }};
+
+  clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery_fsk_4800{
+      19200,
+      4800,
+      {0.0555f},
+      [this](const float raw_symbol) {
+        const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
+        this->packet_builder_fsk_4800_Vaisala.execute(sliced_symbol);
+      }};
+  PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_fsk_4800_Vaisala{
+      {0b00001000011011010101001110001000, 32, 1},  //euquiq Header detects 4 of 8 bytes 0x10B6CA11 /this is in raw format) (these bits are not passed at the beginning of packet)
+      //{ 0b0000100001101101010100111000100001000100011010010100100000011111, 64, 1 }, //euquiq whole header detection would be 8 bytes.
+      {},
+      {320 * 8},
+      [this](const baseband::Packet& packet) {
+        const SondePacketMessage message{sonde::Packet::Type::Vaisala_RS41_SG, packet};
+        shared_memory.application_queue.push(message);
+      }};
+
+  void play_beep();
+  void stop_beep();
+
+  /**
 	 * Used for filling the audio buffer with the waveform
 	 * generated by the ToneGen class:
 	 * 
 	 */
-	void generate_beep();
+  void generate_beep();
 
-	/**
+  /**
 	 * Used for filling the audio buffer with silence:
 	 */
-	void generate_silence();
-	
-	void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
+  void generate_silence();
+
+  void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };
 
-#endif/*__PROC_ERT_H__*/
+#endif /*__PROC_ERT_H__*/

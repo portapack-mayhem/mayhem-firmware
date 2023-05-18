@@ -24,33 +24,32 @@
 namespace ui {
 
 Glyph Font::glyph(const char c) const {
-	if( c < c_start ) {
-		return { w, h, data };
-	}
-	const size_t index = c - c_start;
-	if( index >= c_count ) {
-		return { w, h, data };
-	} else {
-		return { w, h, &data[index * data_stride] };
-	}
+  if (c < c_start) {
+    return {w, h, data};
+  }
+  const size_t index = c - c_start;
+  if (index >= c_count) {
+    return {w, h, data};
+  } else {
+    return {w, h, &data[index * data_stride]};
+  }
 }
 
 Dim Font::line_height() const {
-	return h;
+  return h;
 }
 
 Size Font::size_of(const std::string s) const {
-	Size size;
+  Size size;
 
-	for(const auto c : s) {
-		const auto glyph_data = glyph(c);
-		size = {
-			size.width() + glyph_data.w(),
-			std::max(size.height(), glyph_data.h())
-		};
-	}
+  for (const auto c : s) {
+    const auto glyph_data = glyph(c);
+    size = {
+        size.width() + glyph_data.w(),
+        std::max(size.height(), glyph_data.h())};
+  }
 
-	return size;
+  return size;
 }
 
 } /* namespace ui */

@@ -22,4 +22,4 @@
 #ifndef __GCC_H__
 #define __GCC_H__
 
-#endif/*__GCC_H__*/
+#endif /*__GCC_H__*/

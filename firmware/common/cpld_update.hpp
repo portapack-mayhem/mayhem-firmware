@@ -28,15 +28,14 @@ namespace portapack {
 namespace cpld {
 
 enum class CpldUpdateStatus {
-	Success = 0,
-	Idcode_check_failed = 1,
-	Silicon_id_check_failed = 2,
-	Program_failed = 3
+  Success = 0,
+  Idcode_check_failed = 1,
+  Silicon_id_check_failed = 2,
+  Program_failed = 3
 };
 
 CpldUpdateStatus update_if_necessary(
-	const Config config
-);
+    const Config config);
 
 } /* namespace cpld */
 } /* namespace portapack */
@@ -45,11 +44,11 @@ namespace hackrf {
 namespace cpld {
 
 bool load_sram();
-void load_sram_no_verify(); // added to solve issue #637 , "ghost" signal at RX , after using any TX App
+void load_sram_no_verify();  // added to solve issue #637 , "ghost" signal at RX , after using any TX App
 bool verify_eeprom();
 void init_from_eeprom();
 
 } /* namespace cpld */
 } /* namespace hackrf */
 
-#endif/*__CPLD_UPDATE_H__*/
+#endif /*__CPLD_UPDATE_H__*/
