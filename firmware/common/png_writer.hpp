@@ -32,33 +32,33 @@
 #include "crc.hpp"
 
 class PNGWriter {
- public:
-  ~PNGWriter();
+   public:
+    ~PNGWriter();
 
-  Optional<File::Error> create(const std::filesystem::path& filename);
+    Optional<File::Error> create(const std::filesystem::path& filename);
 
-  void write_scanline(const std::array<ui::ColorRGB888, 240>& scanline);
+    void write_scanline(const std::array<ui::ColorRGB888, 240>& scanline);
 
- private:
-  // TODO: These constants are baked in a few places, do not change blithely.
-  static constexpr int width{240};
-  static constexpr int height{320};
+   private:
+    // TODO: These constants are baked in a few places, do not change blithely.
+    static constexpr int width{240};
+    static constexpr int height{320};
 
-  File file{};
-  int scanline_count{0};
-  CRC<32, true, true> crc{0x04c11db7, 0xffffffff, 0xffffffff};
-  Adler32 adler_32{};
+    File file{};
+    int scanline_count{0};
+    CRC<32, true, true> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+    Adler32 adler_32{};
 
-  void write_chunk_header(const size_t length, const std::array<uint8_t, 4>& type);
-  void write_chunk_content(const void* const p, const size_t count);
+    void write_chunk_header(const size_t length, const std::array<uint8_t, 4>& type);
+    void write_chunk_content(const void* const p, const size_t count);
 
-  template <size_t N>
-  void write_chunk_content(const std::array<uint8_t, N>& data) {
-    write_chunk_content(data.data(), sizeof(data));
-  }
+    template <size_t N>
+    void write_chunk_content(const std::array<uint8_t, N>& data) {
+        write_chunk_content(data.data(), sizeof(data));
+    }
 
-  void write_chunk_crc();
-  void write_uint32_be(const uint32_t v);
+    void write_chunk_crc();
+    void write_uint32_be(const uint32_t v);
 };
 
 #endif /*__PNG_WRITER_H__*/

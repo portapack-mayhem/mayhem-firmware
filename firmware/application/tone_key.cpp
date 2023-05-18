@@ -84,43 +84,43 @@ const tone_key_t tone_keys = {
     {"Shure 19kHz", 19000.0}};
 
 void tone_keys_populate(OptionsField& field) {
-  using option_t = std::pair<std::string, int32_t>;
-  using options_t = std::vector<option_t>;
-  options_t tone_key_options;
-  std::string tone_name;
+    using option_t = std::pair<std::string, int32_t>;
+    using options_t = std::vector<option_t>;
+    options_t tone_key_options;
+    std::string tone_name;
 
-  for (size_t c = 0; c < tone_keys.size(); c++) {
-    if (c && c < 51) {
-      auto f = tone_keys[c].second;
-      tone_name = "CTCSS " + tone_keys[c].first + " " + to_string_dec_uint(f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10);
-    } else {
-      tone_name = tone_keys[c].first;
+    for (size_t c = 0; c < tone_keys.size(); c++) {
+        if (c && c < 51) {
+            auto f = tone_keys[c].second;
+            tone_name = "CTCSS " + tone_keys[c].first + " " + to_string_dec_uint(f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10);
+        } else {
+            tone_name = tone_keys[c].first;
+        }
+
+        tone_key_options.emplace_back(tone_name, c);
     }
 
-    tone_key_options.emplace_back(tone_name, c);
-  }
-
-  field.set_options(tone_key_options);
+    field.set_options(tone_key_options);
 }
 
 float tone_key_frequency(const tone_index index) {
-  return tone_keys[index].second;
+    return tone_keys[index].second;
 }
 
 std::string tone_key_string(tone_index index) {
-  if (index < 0 || (unsigned)index >= tone_keys.size())
-    return std::string("");
-  return tone_keys[index].first;
+    if (index < 0 || (unsigned)index >= tone_keys.size())
+        return std::string("");
+    return tone_keys[index].first;
 }
 
 tone_index tone_key_index_by_string(char* str) {
-  if (!str)
+    if (!str)
+        return -1;
+    for (tone_index index = 0; (unsigned)index < tone_keys.size(); index++) {
+        if (tone_keys[index].first.compare(str) >= 0)
+            return index;
+    }
     return -1;
-  for (tone_index index = 0; (unsigned)index < tone_keys.size(); index++) {
-    if (tone_keys[index].first.compare(str) >= 0)
-      return index;
-  }
-  return -1;
 }
 
 /* tone_index tone_key_index_by_value( int32_t freq )

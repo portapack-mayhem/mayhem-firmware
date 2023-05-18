@@ -30,28 +30,28 @@
 namespace serializer {
 
 enum parity_enum : uint8_t {
-  NONE = 0,
-  EVEN = 1,
-  ODD = 2
+    NONE = 0,
+    EVEN = 1,
+    ODD = 2
 };
 
 enum order_enum : uint8_t {
-  MSB_FIRST = 0,
-  LSB_FIRST = 1
+    MSB_FIRST = 0,
+    LSB_FIRST = 1
 };
 
 struct serial_format_t {
-  uint8_t data_bits;
-  parity_enum parity;
-  uint8_t stop_bits;
-  order_enum bit_order;
+    uint8_t data_bits;
+    parity_enum parity;
+    uint8_t stop_bits;
+    order_enum bit_order;
 
-  constexpr serial_format_t()
-      : data_bits(7),
-        parity(parity_enum::EVEN),
-        stop_bits(1),
-        bit_order(order_enum::LSB_FIRST) {
-  }
+    constexpr serial_format_t()
+        : data_bits(7),
+          parity(parity_enum::EVEN),
+          stop_bits(1),
+          bit_order(order_enum::LSB_FIRST) {
+    }
 };
 
 size_t symbol_count(const serial_format_t& serial_format);

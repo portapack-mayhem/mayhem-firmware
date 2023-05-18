@@ -102,33 +102,33 @@ constexpr std::array<std::complex<float>, 16> rect_taps_38k4_4k8_1t_2k4_p{{
 }};
 
 class ACARSProcessor : public BasebandProcessor {
- public:
-  ACARSProcessor();
+   public:
+    ACARSProcessor();
 
-  void execute(const buffer_c8_t& buffer) override;
+    void execute(const buffer_c8_t& buffer) override;
 
- private:
-  static constexpr size_t baseband_fs = 2457600;
+   private:
+    static constexpr size_t baseband_fs = 2457600;
 
-  BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-  RSSIThread rssi_thread{NORMALPRIO + 10};
+    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
+    RSSIThread rssi_thread{NORMALPRIO + 10};
 
-  std::array<complex16_t, 512> dst{};
-  const buffer_c16_t dst_buffer{
-      dst.data(),
-      dst.size()};
+    std::array<complex16_t, 512> dst{};
+    const buffer_c16_t dst_buffer{
+        dst.data(),
+        dst.size()};
 
-  dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};  // Translate already done here !
-  dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-  dsp::matched_filter::MatchedFilter mf{rect_taps_38k4_4k8_1t_2k4_p, 8};
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};  // Translate already done here !
+    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    dsp::matched_filter::MatchedFilter mf{rect_taps_38k4_4k8_1t_2k4_p, 8};
 
-  clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery{
-      4800,
-      2400,
-      {0.0555f},
-      [this](const float symbol) { this->consume_symbol(symbol); }};
-  symbol_coding::ACARSDecoder acars_decode{};
-  /*PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
+    clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery{
+        4800,
+        2400,
+        {0.0555f},
+        [this](const float symbol) { this->consume_symbol(symbol); }};
+    symbol_coding::ACARSDecoder acars_decode{};
+    /*PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
 		{ 0b011010000110100010000000, 24, 1 },	// SYN, SYN, SOH
 		{ },
 		{ 128 },
@@ -136,10 +136,10 @@ class ACARSProcessor : public BasebandProcessor {
 			this->payload_handler(packet);
 		}
 	};*/
-  baseband::Packet packet{};
+    baseband::Packet packet{};
 
-  void consume_symbol(const float symbol);
-  void payload_handler(const baseband::Packet& packet);
+    void consume_symbol(const float symbol);
+    void payload_handler(const baseband::Packet& packet);
 };
 
 #endif /*__PROC_ACARS_H__*/

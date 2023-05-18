@@ -104,113 +104,113 @@ const uint8_t button_codes[32] = {
 namespace ui {
 
 class TouchTunesView : public View {
- public:
-  TouchTunesView(NavigationView& nav);
-  ~TouchTunesView();
+   public:
+    TouchTunesView(NavigationView& nav);
+    ~TouchTunesView();
 
-  void focus() override;
+    void focus() override;
 
-  std::string title() const override { return "TouchTunes"; };
+    std::string title() const override { return "TouchTunes"; };
 
- private:
-  uint32_t scan_button_index{};
-  uint32_t pin{0};
+   private:
+    uint32_t scan_button_index{};
+    uint32_t pin{0};
 
-  enum tx_modes {
-    IDLE = 0,
-    SINGLE,
-    SCAN
-  };
+    enum tx_modes {
+        IDLE = 0,
+        SINGLE,
+        SCAN
+    };
 
-  tx_modes tx_mode = IDLE;
+    tx_modes tx_mode = IDLE;
 
-  void start_tx(const uint32_t button_index);
-  void stop_tx();
-  void on_tx_progress(const uint32_t progress, const bool done);
-  void start_ew();
-  void stop_ew();
+    void start_tx(const uint32_t button_index);
+    void stop_tx();
+    void on_tx_progress(const uint32_t progress, const bool done);
+    void start_ew();
+    void stop_ew();
 
-  struct remote_layout_t {
-    Point position;
-    std::string text;
-  };
+    struct remote_layout_t {
+        Point position;
+        std::string text;
+    };
 
-  const std::array<remote_layout_t, 32> remote_layout{{{{12 * 8, 0}, "PAUSE"},
-                                                       {{21 * 8, 0}, "POWER"},
+    const std::array<remote_layout_t, 32> remote_layout{{{{12 * 8, 0}, "PAUSE"},
+                                                         {{21 * 8, 0}, "POWER"},
 
-                                                       {{14 * 8, 5 * 8}, "P1"},
-                                                       {{18 * 8, 5 * 8}, "P2"},
-                                                       {{22 * 8, 5 * 8}, "P3"},
+                                                         {{14 * 8, 5 * 8}, "P1"},
+                                                         {{18 * 8, 5 * 8}, "P2"},
+                                                         {{22 * 8, 5 * 8}, "P3"},
 
-                                                       {{14 * 8, 10 * 8}, "F1"},
-                                                       {{18 * 8 + 4, 10 * 8}, "^"},
-                                                       {{22 * 8, 10 * 8}, "F2"},
+                                                         {{14 * 8, 10 * 8}, "F1"},
+                                                         {{18 * 8 + 4, 10 * 8}, "^"},
+                                                         {{22 * 8, 10 * 8}, "F2"},
 
-                                                       {{14 * 8, 14 * 8}, "<"},
-                                                       {{18 * 8, 14 * 8}, "OK"},
-                                                       {{23 * 8, 14 * 8}, ">"},
+                                                         {{14 * 8, 14 * 8}, "<"},
+                                                         {{18 * 8, 14 * 8}, "OK"},
+                                                         {{23 * 8, 14 * 8}, ">"},
 
-                                                       {{14 * 8, 18 * 8}, "F3"},
-                                                       {{18 * 8 + 4, 18 * 8}, "V"},
-                                                       {{22 * 8, 18 * 8}, "F4"},
+                                                         {{14 * 8, 18 * 8}, "F3"},
+                                                         {{18 * 8 + 4, 18 * 8}, "V"},
+                                                         {{22 * 8, 18 * 8}, "F4"},
 
-                                                       {{0 * 8, 5 * 8}, "1"},
-                                                       {{4 * 8, 5 * 8}, "2"},
-                                                       {{8 * 8, 5 * 8}, "3"},
-                                                       {{0 * 8, 10 * 8}, "4"},
-                                                       {{4 * 8, 10 * 8}, "5"},
-                                                       {{8 * 8, 10 * 8}, "6"},
-                                                       {{0 * 8, 15 * 8}, "7"},
-                                                       {{4 * 8, 15 * 8}, "8"},
-                                                       {{8 * 8, 15 * 8}, "9"},
-                                                       {{0 * 8, 20 * 8}, "*"},
-                                                       {{4 * 8, 20 * 8}, "0"},
-                                                       {{8 * 8, 20 * 8}, "#"},
+                                                         {{0 * 8, 5 * 8}, "1"},
+                                                         {{4 * 8, 5 * 8}, "2"},
+                                                         {{8 * 8, 5 * 8}, "3"},
+                                                         {{0 * 8, 10 * 8}, "4"},
+                                                         {{4 * 8, 10 * 8}, "5"},
+                                                         {{8 * 8, 10 * 8}, "6"},
+                                                         {{0 * 8, 15 * 8}, "7"},
+                                                         {{4 * 8, 15 * 8}, "8"},
+                                                         {{8 * 8, 15 * 8}, "9"},
+                                                         {{0 * 8, 20 * 8}, "*"},
+                                                         {{4 * 8, 20 * 8}, "0"},
+                                                         {{8 * 8, 20 * 8}, "#"},
 
-                                                       {{13 * 8, 23 * 8}, "+"},
-                                                       {{18 * 8, 23 * 8}, "+"},
-                                                       {{23 * 8, 23 * 8}, "+"},
+                                                         {{13 * 8, 23 * 8}, "+"},
+                                                         {{18 * 8, 23 * 8}, "+"},
+                                                         {{23 * 8, 23 * 8}, "+"},
 
-                                                       {{13 * 8, 29 * 8}, "-"},
-                                                       {{18 * 8, 29 * 8}, "-"},
-                                                       {{23 * 8, 29 * 8}, "-"}}};
+                                                         {{13 * 8, 29 * 8}, "-"},
+                                                         {{18 * 8, 29 * 8}, "-"},
+                                                         {{23 * 8, 29 * 8}, "-"}}};
 
-  Labels labels{
-      {{2 * 8, 1 * 8}, "PIN:", Color::light_grey()},
-      {{13 * 8 + 4, 27 * 8}, "VOL1 VOL2 VOL3", Color::light_grey()}};
+    Labels labels{
+        {{2 * 8, 1 * 8}, "PIN:", Color::light_grey()},
+        {{13 * 8 + 4, 27 * 8}, "VOL1 VOL2 VOL3", Color::light_grey()}};
 
-  std::array<Button, 32> buttons{};
+    std::array<Button, 32> buttons{};
 
-  NumberField field_pin{
-      {6 * 8, 1 * 8},
-      3,
-      {0, 255},
-      1,
-      '0'};
+    NumberField field_pin{
+        {6 * 8, 1 * 8},
+        3,
+        {0, 255},
+        1,
+        '0'};
 
-  Checkbox check_scan{
-      {2 * 8, 25 * 8},
-      4,
-      "Scan"};
+    Checkbox check_scan{
+        {2 * 8, 25 * 8},
+        4,
+        "Scan"};
 
-  Checkbox check_ew{
-      {2 * 8, 29 * 8},
-      4,
-      "EW Mode"};
+    Checkbox check_ew{
+        {2 * 8, 29 * 8},
+        4,
+        "EW Mode"};
 
-  Text text_status{
-      {2 * 8, 33 * 8, 128, 16},
-      "Ready"};
+    Text text_status{
+        {2 * 8, 33 * 8, 128, 16},
+        "Ready"};
 
-  ProgressBar progressbar{
-      {2 * 8, 35 * 8, 208, 16}};
+    ProgressBar progressbar{
+        {2 * 8, 35 * 8, 208, 16}};
 
-  MessageHandlerRegistration message_handler_tx_progress{
-      Message::ID::TXProgress,
-      [this](const Message* const p) {
-        const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-        this->on_tx_progress(message.progress, message.done);
-      }};
+    MessageHandlerRegistration message_handler_tx_progress{
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            this->on_tx_progress(message.progress, message.done);
+        }};
 };
 
 } /* namespace ui */

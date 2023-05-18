@@ -32,67 +32,67 @@
 namespace jtag {
 
 class JTAG {
- public:
-  constexpr JTAG(
-      Target& target)
-      : target(target) {
-  }
-
-  void reset() {
-    /* ??? -> Test-Logic-Reset */
-    for (size_t i = 0; i < 8; i++) {
-      target.clock(1, 0);
+   public:
+    constexpr JTAG(
+        Target& target)
+        : target(target) {
     }
-  }
 
-  void run_test_idle() {
-    /* Test-Logic-Reset -> Run-Test/Idle */
-    target.clock(0, 0);
-  }
+    void reset() {
+        /* ??? -> Test-Logic-Reset */
+        for (size_t i = 0; i < 8; i++) {
+            target.clock(1, 0);
+        }
+    }
 
-  void runtest_tck(const size_t count) {
-    target.delay(count);
-  }
+    void run_test_idle() {
+        /* Test-Logic-Reset -> Run-Test/Idle */
+        target.clock(0, 0);
+    }
 
-  uint32_t shift_ir(const size_t count, const uint32_t value) {
-    /* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
-    target.clock(1, 0);
-    target.clock(1, 0);
-    /* Scan -> Capture -> Shift */
-    target.clock(0, 0);
-    target.clock(0, 0);
+    void runtest_tck(const size_t count) {
+        target.delay(count);
+    }
 
-    const auto result = shift(count, value);
+    uint32_t shift_ir(const size_t count, const uint32_t value) {
+        /* Run-Test/Idle -> Select-DR-Scan -> Select-IR-Scan */
+        target.clock(1, 0);
+        target.clock(1, 0);
+        /* Scan -> Capture -> Shift */
+        target.clock(0, 0);
+        target.clock(0, 0);
 
-    /* Exit1 -> Update */
-    target.clock(1, 0);
-    /* Update -> Run-Test/Idle */
-    target.clock(0, 0);
+        const auto result = shift(count, value);
 
-    return result;
-  }
+        /* Exit1 -> Update */
+        target.clock(1, 0);
+        /* Update -> Run-Test/Idle */
+        target.clock(0, 0);
 
-  uint32_t shift_dr(const size_t count, const uint32_t value) {
-    /* Run-Test/Idle -> Select-DR-Scan */
-    target.clock(1, 0);
-    /* Scan -> Capture -> Shift */
-    target.clock(0, 0);
-    target.clock(0, 0);
+        return result;
+    }
 
-    const auto result = shift(count, value);
+    uint32_t shift_dr(const size_t count, const uint32_t value) {
+        /* Run-Test/Idle -> Select-DR-Scan */
+        target.clock(1, 0);
+        /* Scan -> Capture -> Shift */
+        target.clock(0, 0);
+        target.clock(0, 0);
 
-    /* Exit1 -> Update */
-    target.clock(1, 0);
-    /* Update -> Run-Test/Idle */
-    target.clock(0, 0);
+        const auto result = shift(count, value);
 
-    return result;
-  }
+        /* Exit1 -> Update */
+        target.clock(1, 0);
+        /* Update -> Run-Test/Idle */
+        target.clock(0, 0);
 
- private:
-  Target& target;
+        return result;
+    }
 
-  uint32_t shift(const size_t count, uint32_t value);
+   private:
+    Target& target;
+
+    uint32_t shift(const size_t count, uint32_t value);
 };
 
 } /* namespace jtag */

@@ -30,18 +30,18 @@
 
 template <size_t N>
 struct fir_taps_real {
-  float low_frequency_normalized;
-  float high_frequency_normalized;
-  float transition_normalized;
-  std::array<int16_t, N> taps;
+    float low_frequency_normalized;
+    float high_frequency_normalized;
+    float transition_normalized;
+    std::array<int16_t, N> taps;
 };
 
 template <size_t N>
 struct fir_taps_complex {
-  float low_frequency_normalized;
-  float high_frequency_normalized;
-  float transition_normalized;
-  std::array<complex16_t, N> taps;
+    float low_frequency_normalized;
+    float high_frequency_normalized;
+    float transition_normalized;
+    std::array<complex16_t, N> taps;
 };
 
 // NBFM 16K0F3E emission type /////////////////////////////////////////////

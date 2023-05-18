@@ -87,66 +87,66 @@
 #define USB_TRANSFER_SIZE 0x2000
 
 typedef struct {
-  uint32_t signature;
-  uint32_t tag;
-  uint32_t data_len;
-  uint8_t flags;
-  uint8_t lun;
-  uint8_t cmd_len;
-  uint8_t cmd_data[16];
+    uint32_t signature;
+    uint32_t tag;
+    uint32_t data_len;
+    uint8_t flags;
+    uint8_t lun;
+    uint8_t cmd_len;
+    uint8_t cmd_data[16];
 } __attribute__((packed)) msd_cbw_t;
 
 typedef struct {
-  uint8_t peripheral;
-  uint8_t removable;
-  uint8_t version;
-  uint8_t response_data_format;
-  uint8_t additional_length;
-  uint8_t sccstp;
-  uint8_t bqueetc;
-  uint8_t cmdque;
-  uint8_t vendorID[8];
-  uint8_t productID[16];
-  uint8_t productRev[4];
+    uint8_t peripheral;
+    uint8_t removable;
+    uint8_t version;
+    uint8_t response_data_format;
+    uint8_t additional_length;
+    uint8_t sccstp;
+    uint8_t bqueetc;
+    uint8_t cmdque;
+    uint8_t vendorID[8];
+    uint8_t productID[16];
+    uint8_t productRev[4];
 } scsi_inquiry_response_t;
 
 typedef struct {
-  uint32_t signature;
-  uint32_t tag;
-  uint32_t data_residue;
-  uint8_t status;
+    uint32_t signature;
+    uint32_t tag;
+    uint32_t data_residue;
+    uint8_t status;
 } __attribute__((packed)) msd_csw_t;
 
 typedef struct {
-  uint8_t header[4];
-  uint8_t blocknum[4];
-  uint8_t blocklen[4];
+    uint8_t header[4];
+    uint8_t blocknum[4];
+    uint8_t blocklen[4];
 } scsi_read_format_capacities_response_t;
 
 typedef struct {
-  uint32_t last_block_addr;
-  uint32_t block_size;
+    uint32_t last_block_addr;
+    uint32_t block_size;
 } scsi_read_capacity10_response_t;
 
 typedef struct {
-  uint8_t byte[18];
+    uint8_t byte[18];
 } scsi_sense_response_t;
 
 typedef struct {
-  uint8_t byte[4];
+    uint8_t byte[4];
 } scsi_mode_sense6_response_t;
 
 typedef struct {
-  uint32_t first_lba;
-  uint16_t blk_cnt;
+    uint32_t first_lba;
+    uint16_t blk_cnt;
 } data_request_t;
 
 typedef struct {
-  uint8_t peripheral;
-  uint8_t page_code;
-  uint8_t reserved;
-  uint8_t page_length;
-  uint8_t serialNumber[8];
+    uint8_t peripheral;
+    uint8_t page_code;
+    uint8_t reserved;
+    uint8_t page_length;
+    uint8_t serialNumber[8];
 } scsi_unit_serial_number_inquiry_response_t;
 
 static inline uint16_t bswap_16(const uint16_t x)
@@ -155,18 +155,18 @@ static inline uint16_t bswap_16(const uint16_t x)
     __attribute__((always_inline));
 
 static inline uint16_t bswap_16(const uint16_t x) {
-  uint8_t tmp;
-  union {
-    uint16_t x;
-    uint8_t b[2];
-  } data;
+    uint8_t tmp;
+    union {
+        uint16_t x;
+        uint8_t b[2];
+    } data;
 
-  data.x = x;
-  tmp = data.b[0];
-  data.b[0] = data.b[1];
-  data.b[1] = tmp;
+    data.x = x;
+    tmp = data.b[0];
+    data.b[0] = data.b[1];
+    data.b[1] = tmp;
 
-  return data.x;
+    return data.x;
 }
 
 static inline uint32_t bswap_32(const uint32_t x)
@@ -175,21 +175,21 @@ static inline uint32_t bswap_32(const uint32_t x)
     __attribute__((always_inline));
 
 static inline uint32_t bswap_32(const uint32_t x) {
-  uint8_t tmp;
-  union {
-    uint32_t x;
-    uint8_t b[4];
-  } data;
+    uint8_t tmp;
+    union {
+        uint32_t x;
+        uint8_t b[4];
+    } data;
 
-  data.x = x;
-  tmp = data.b[0];
-  data.b[0] = data.b[3];
-  data.b[3] = tmp;
-  tmp = data.b[1];
-  data.b[1] = data.b[2];
-  data.b[2] = tmp;
+    data.x = x;
+    tmp = data.b[0];
+    data.b[0] = data.b[3];
+    data.b[3] = tmp;
+    tmp = data.b[1];
+    data.b[1] = data.b[2];
+    data.b[2] = tmp;
 
-  return data.x;
+    return data.x;
 }
 
 #define be16_to_cpu(x) bswap_16(x)

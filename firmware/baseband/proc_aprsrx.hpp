@@ -73,73 +73,73 @@ static uint16_t crc_ccitt_tab[256] = {
     0x7bc7, 0x6a4e, 0x58d5, 0x495c, 0x3de3, 0x2c6a, 0x1ef1, 0x0f78};
 
 class APRSRxProcessor : public BasebandProcessor {
- public:
-  void execute(const buffer_c8_t& buffer) override;
+   public:
+    void execute(const buffer_c8_t& buffer) override;
 
-  void on_message(const Message* const message) override;
+    void on_message(const Message* const message) override;
 
- private:
-  static constexpr size_t baseband_fs = 3072000;
-  static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
+   private:
+    static constexpr size_t baseband_fs = 3072000;
+    static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
 
-  size_t samples_per_bit{};
+    size_t samples_per_bit{};
 
-  enum State {
-    WAIT_FLAG,
-    WAIT_FRAME,
-    IN_FRAME
-  };
+    enum State {
+        WAIT_FLAG,
+        WAIT_FRAME,
+        IN_FRAME
+    };
 
-  BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-  RSSIThread rssi_thread{NORMALPRIO + 10};
+    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
+    RSSIThread rssi_thread{NORMALPRIO + 10};
 
-  std::array<complex16_t, 512> dst{};
-  const buffer_c16_t dst_buffer{
-      dst.data(),
-      dst.size()};
-  std::array<float, 32> audio{};
-  const buffer_f32_t audio_buffer{
-      audio.data(),
-      audio.size()};
+    std::array<complex16_t, 512> dst{};
+    const buffer_c16_t dst_buffer{
+        dst.data(),
+        dst.size()};
+    std::array<float, 32> audio{};
+    const buffer_f32_t audio_buffer{
+        audio.data(),
+        audio.size()};
 
-  // Array size ok down to 375 bauds (24000 / 375)
-  std::array<int32_t, 64> delay_line{0};
+    // Array size ok down to 375 bauds (24000 / 375)
+    std::array<int32_t, 64> delay_line{0};
 
-  dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-  dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
-  dsp::decimate::FIRAndDecimateComplex channel_filter{};
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
+    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    dsp::decimate::FIRAndDecimateComplex channel_filter{};
 
-  std::unique_ptr<StreamInput> stream{};
+    std::unique_ptr<StreamInput> stream{};
 
-  dsp::demodulate::FM demod{};
+    dsp::demodulate::FM demod{};
 
-  AudioOutput audio_output{};
+    AudioOutput audio_output{};
 
-  State state{};
-  size_t delay_line_index{};
-  uint32_t bit_counter{0};
-  uint32_t word_bits{0};
-  uint32_t sample_bits{0};
-  uint32_t phase{}, phase_inc{};
-  int32_t sample_mixed{}, prev_mixed{}, sample_filtered{}, prev_filtered{};
-  uint8_t last_bit = 0;
-  uint8_t ones_count = 0;
-  uint8_t current_byte = 0;
-  uint8_t byte_index = 0;
-  uint8_t packet_buffer[256];
-  size_t packet_buffer_size = 0;
+    State state{};
+    size_t delay_line_index{};
+    uint32_t bit_counter{0};
+    uint32_t word_bits{0};
+    uint32_t sample_bits{0};
+    uint32_t phase{}, phase_inc{};
+    int32_t sample_mixed{}, prev_mixed{}, sample_filtered{}, prev_filtered{};
+    uint8_t last_bit = 0;
+    uint8_t ones_count = 0;
+    uint8_t current_byte = 0;
+    uint8_t byte_index = 0;
+    uint8_t packet_buffer[256];
+    size_t packet_buffer_size = 0;
 
-  bool configured{false};
-  bool wait_start{0};
-  bool bit_value{0};
+    bool configured{false};
+    bool wait_start{0};
+    bool bit_value{0};
 
-  aprs::APRSPacket aprs_packet{};
+    aprs::APRSPacket aprs_packet{};
 
-  void configure(const APRSRxConfigureMessage& message);
-  void capture_config(const CaptureConfigMessage& message);
-  void parse_packet();
-  bool parse_bit(const uint8_t bit);
-  void parse_ax25();
+    void configure(const APRSRxConfigureMessage& message);
+    void capture_config(const CaptureConfigMessage& message);
+    void parse_packet();
+    bool parse_bit(const uint8_t bit);
+    void parse_ax25();
 };
 
 #endif /*__PROC_TPMS_H__*/

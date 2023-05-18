@@ -33,40 +33,40 @@
 namespace acars {
 
 class Packet {
- public:
-  constexpr Packet(
-      const baseband::Packet& packet)
-      : packet_{packet},
-        field_{packet_} {
-  }
+   public:
+    constexpr Packet(
+        const baseband::Packet& packet)
+        : packet_{packet},
+          field_{packet_} {
+    }
 
-  size_t length() const;
+    size_t length() const;
 
-  bool is_valid() const;
+    bool is_valid() const;
 
-  Timestamp received_at() const;
+    Timestamp received_at() const;
 
-  uint8_t block_id() const;
-  std::string registration_number() const;
+    uint8_t block_id() const;
+    std::string registration_number() const;
 
-  uint32_t read(const size_t start_bit, const size_t length) const;
-  //std::string text(const size_t start_bit, const size_t character_count) const;
+    uint32_t read(const size_t start_bit, const size_t length) const;
+    //std::string text(const size_t start_bit, const size_t character_count) const;
 
-  bool crc_ok() const;
+    bool crc_ok() const;
 
- private:
-  using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
-  using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
+   private:
+    using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
+    using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
 
-  const baseband::Packet packet_;
-  const Reader field_;
+    const baseband::Packet packet_;
+    const Reader field_;
 
-  const size_t fcs_length = 16;
+    const size_t fcs_length = 16;
 
-  size_t data_and_fcs_length() const;
-  size_t data_length() const;
+    size_t data_and_fcs_length() const;
+    size_t data_length() const;
 
-  bool length_valid() const;
+    bool length_valid() const;
 };
 
 } /* namespace acars */

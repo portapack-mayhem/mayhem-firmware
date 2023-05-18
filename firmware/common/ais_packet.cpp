@@ -28,43 +28,43 @@
 namespace ais {
 
 struct PacketLengthRange {
-  constexpr PacketLengthRange()
-      : min_bytes{0},
-        max_bytes{0} {
-  }
+    constexpr PacketLengthRange()
+        : min_bytes{0},
+          max_bytes{0} {
+    }
 
-  constexpr PacketLengthRange(
-      const uint16_t min_bits,
-      const uint16_t max_bits)
-      : min_bytes{static_cast<uint8_t>(min_bits / 8U)},
-        max_bytes{static_cast<uint8_t>(max_bits / 8U)} {
-    // static_assert((min_bits & 7) == 0, "minimum bits not a multiple of 8");
-    // static_assert((max_bits & 7) == 0, "minimum bits not a multiple of 8");
-  }
+    constexpr PacketLengthRange(
+        const uint16_t min_bits,
+        const uint16_t max_bits)
+        : min_bytes{static_cast<uint8_t>(min_bits / 8U)},
+          max_bytes{static_cast<uint8_t>(max_bits / 8U)} {
+        // static_assert((min_bits & 7) == 0, "minimum bits not a multiple of 8");
+        // static_assert((max_bits & 7) == 0, "minimum bits not a multiple of 8");
+    }
 
-  constexpr bool contains(const size_t bit_count) const {
-    return !is_above(bit_count) && !is_below(bit_count);
-  }
+    constexpr bool contains(const size_t bit_count) const {
+        return !is_above(bit_count) && !is_below(bit_count);
+    }
 
-  constexpr bool is_above(const size_t bit_count) const {
-    return (min() > bit_count);
-  }
+    constexpr bool is_above(const size_t bit_count) const {
+        return (min() > bit_count);
+    }
 
-  constexpr bool is_below(const size_t bit_count) const {
-    return (max() < bit_count);
-  }
+    constexpr bool is_below(const size_t bit_count) const {
+        return (max() < bit_count);
+    }
 
-  constexpr size_t min() const {
-    return min_bytes * 8;
-  }
+    constexpr size_t min() const {
+        return min_bytes * 8;
+    }
 
-  constexpr size_t max() const {
-    return max_bytes * 8;
-  }
+    constexpr size_t max() const {
+        return max_bytes * 8;
+    }
 
- private:
-  const uint8_t min_bytes;
-  const uint8_t max_bytes;
+   private:
+    const uint8_t min_bytes;
+    const uint8_t max_bytes;
 };
 
 static constexpr std::array<PacketLengthRange, 64> packet_length_range{{
@@ -103,115 +103,115 @@ static constexpr std::array<PacketLengthRange, 64> packet_length_range{{
 }};
 
 struct PacketLengthValidator {
-  constexpr bool operator()(const uint_fast8_t message_id, const size_t length) const {
-    return packet_length_range[message_id].contains(length);
-  }
+    constexpr bool operator()(const uint_fast8_t message_id, const size_t length) const {
+        return packet_length_range[message_id].contains(length);
+    }
 };
 
 struct PacketTooLong {
-  constexpr bool operator()(const uint_fast8_t message_id, const size_t length) const {
-    return packet_length_range[message_id].is_below(length);
-  }
+    constexpr bool operator()(const uint_fast8_t message_id, const size_t length) const {
+        return packet_length_range[message_id].is_below(length);
+    }
 };
 
 static constexpr char char_to_ascii(const uint8_t c) {
-  return (c ^ 32) + 32;
+    return (c ^ 32) + 32;
 }
 
 size_t Packet::length() const {
-  return packet_.size();
+    return packet_.size();
 }
 
 bool Packet::is_valid() const {
-  return length_valid() && crc_ok();
+    return length_valid() && crc_ok();
 }
 
 Timestamp Packet::received_at() const {
-  return packet_.timestamp();
+    return packet_.timestamp();
 }
 
 uint32_t Packet::message_id() const {
-  return field_.read(0, 6);
+    return field_.read(0, 6);
 }
 
 MMSI Packet::user_id() const {
-  return field_.read(8, 30);
+    return field_.read(8, 30);
 }
 
 MMSI Packet::source_id() const {
-  return field_.read(8, 30);
+    return field_.read(8, 30);
 }
 
 uint32_t Packet::read(const size_t start_bit, const size_t length) const {
-  return field_.read(start_bit, length);
+    return field_.read(start_bit, length);
 }
 
 std::string Packet::text(
     const size_t start_bit,
     const size_t character_count) const {
-  std::string result;
-  result.reserve(character_count);
+    std::string result;
+    result.reserve(character_count);
 
-  const size_t character_length = 6;
-  const size_t end_bit = start_bit + character_count * character_length;
-  for (size_t i = start_bit; i < end_bit; i += character_length) {
-    result += char_to_ascii(field_.read(i, character_length));
-  }
+    const size_t character_length = 6;
+    const size_t end_bit = start_bit + character_count * character_length;
+    for (size_t i = start_bit; i < end_bit; i += character_length) {
+        result += char_to_ascii(field_.read(i, character_length));
+    }
 
-  return result;
+    return result;
 }
 
 DateTime Packet::datetime(const size_t start_bit) const {
-  return {
-      static_cast<uint16_t>(field_.read(start_bit + 0, 14)),
-      static_cast<uint8_t>(field_.read(start_bit + 14, 4)),
-      static_cast<uint8_t>(field_.read(start_bit + 18, 5)),
-      static_cast<uint8_t>(field_.read(start_bit + 23, 5)),
-      static_cast<uint8_t>(field_.read(start_bit + 28, 6)),
-      static_cast<uint8_t>(field_.read(start_bit + 34, 6)),
-  };
+    return {
+        static_cast<uint16_t>(field_.read(start_bit + 0, 14)),
+        static_cast<uint8_t>(field_.read(start_bit + 14, 4)),
+        static_cast<uint8_t>(field_.read(start_bit + 18, 5)),
+        static_cast<uint8_t>(field_.read(start_bit + 23, 5)),
+        static_cast<uint8_t>(field_.read(start_bit + 28, 6)),
+        static_cast<uint8_t>(field_.read(start_bit + 34, 6)),
+    };
 }
 
 Latitude Packet::latitude(const size_t start_bit) const {
-  return field_.read(start_bit, 27);
+    return field_.read(start_bit, 27);
 }
 
 Longitude Packet::longitude(const size_t start_bit) const {
-  return field_.read(start_bit, 28);
+    return field_.read(start_bit, 28);
 }
 
 bool Packet::crc_ok() const {
-  CRCReader field_crc{packet_};
-  CRC<16> ais_fcs{0x1021, 0xffff, 0xffff};
+    CRCReader field_crc{packet_};
+    CRC<16> ais_fcs{0x1021, 0xffff, 0xffff};
 
-  for (size_t i = 0; i < data_length(); i += 8) {
-    ais_fcs.process_byte(field_crc.read(i, 8));
-  }
+    for (size_t i = 0; i < data_length(); i += 8) {
+        ais_fcs.process_byte(field_crc.read(i, 8));
+    }
 
-  return (ais_fcs.checksum() == (unsigned)field_crc.read(data_length(), fcs_length));
+    return (ais_fcs.checksum() == (unsigned)field_crc.read(data_length(), fcs_length));
 }
 
 size_t Packet::data_and_fcs_length() const {
-  // Subtract end flag (8 bits) - one unstuffing bit (occurs during end flag).
-  return length() - 7;
+    // Subtract end flag (8 bits) - one unstuffing bit (occurs during end flag).
+    return length() - 7;
 }
 
 size_t Packet::data_length() const {
-  return data_and_fcs_length() - fcs_length;
+    return data_and_fcs_length() - fcs_length;
 }
 
 bool Packet::length_valid() const {
-  const size_t extra_bits = data_and_fcs_length() & 7;
-  if (extra_bits != 0) {
-    return false;
-  }
+    const size_t extra_bits = data_and_fcs_length() & 7;
+    if (extra_bits != 0) {
+        return false;
+    }
 
-  const PacketLengthValidator packet_length_valid;
-  if (!packet_length_valid(message_id(), data_length())) {
-    return false;
-  }
+    const PacketLengthValidator packet_length_valid;
+    if (!packet_length_valid(message_id(), data_length())) {
+        return false;
+    }
 
-  return true;
+    return true;
 }
 
 } /* namespace ais */

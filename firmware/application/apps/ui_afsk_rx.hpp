@@ -32,85 +32,85 @@
 #include "utility.hpp"
 
 class AFSKLogger {
- public:
-  Optional<File::Error> append(const std::string& filename) {
-    return log_file.append(filename);
-  }
+   public:
+    Optional<File::Error> append(const std::string& filename) {
+        return log_file.append(filename);
+    }
 
-  void log_raw_data(const std::string& data);
+    void log_raw_data(const std::string& data);
 
- private:
-  LogFile log_file{};
+   private:
+    LogFile log_file{};
 };
 
 namespace ui {
 
 class AFSKRxView : public View {
- public:
-  AFSKRxView(NavigationView& nav);
-  ~AFSKRxView();
+   public:
+    AFSKRxView(NavigationView& nav);
+    ~AFSKRxView();
 
-  void focus() override;
+    void focus() override;
 
-  std::string title() const override { return "AFSK RX"; };
+    std::string title() const override { return "AFSK RX"; };
 
- private:
-  void on_data(uint32_t value, bool is_data);
+   private:
+    void on_data(uint32_t value, bool is_data);
 
-  // app save settings
-  std::app_settings settings{};
-  std::app_settings::AppSettings app_settings{};
+    // app save settings
+    std::app_settings settings{};
+    std::app_settings::AppSettings app_settings{};
 
-  uint8_t console_color{0};
-  uint32_t prev_value{0};
-  std::string str_log{""};
-  bool logging{false};
+    uint8_t console_color{0};
+    uint32_t prev_value{0};
+    std::string str_log{""};
+    bool logging{false};
 
-  RFAmpField field_rf_amp{
-      {13 * 8, 0 * 16}};
-  LNAGainField field_lna{
-      {15 * 8, 0 * 16}};
-  VGAGainField field_vga{
-      {18 * 8, 0 * 16}};
-  RSSI rssi{
-      {21 * 8, 0, 6 * 8, 4},
-  };
-  Channel channel{
-      {21 * 8, 5, 6 * 8, 4},
-  };
+    RFAmpField field_rf_amp{
+        {13 * 8, 0 * 16}};
+    LNAGainField field_lna{
+        {15 * 8, 0 * 16}};
+    VGAGainField field_vga{
+        {18 * 8, 0 * 16}};
+    RSSI rssi{
+        {21 * 8, 0, 6 * 8, 4},
+    };
+    Channel channel{
+        {21 * 8, 5, 6 * 8, 4},
+    };
 
-  FrequencyField field_frequency{
-      {0 * 8, 0 * 16},
-  };
+    FrequencyField field_frequency{
+        {0 * 8, 0 * 16},
+    };
 
-  Checkbox check_log{
-      {0 * 8, 1 * 16},
-      3,
-      "LOG",
-      false};
+    Checkbox check_log{
+        {0 * 8, 1 * 16},
+        3,
+        "LOG",
+        false};
 
-  Text text_debug{
-      {0 * 8, 12 + 2 * 16, 240, 16},
-      "DEBUG"};
+    Text text_debug{
+        {0 * 8, 12 + 2 * 16, 240, 16},
+        "DEBUG"};
 
-  Button button_modem_setup{
-      {240 - 12 * 8, 1 * 16, 96, 24},
-      "Modem setup"};
+    Button button_modem_setup{
+        {240 - 12 * 8, 1 * 16, 96, 24},
+        "Modem setup"};
 
-  Console console{
-      {0, 4 * 16, 240, 240}};
+    Console console{
+        {0, 4 * 16, 240, 240}};
 
-  void update_freq(rf::Frequency f);
-  void on_data_afsk(const AFSKDataMessage& message);
+    void update_freq(rf::Frequency f);
+    void on_data_afsk(const AFSKDataMessage& message);
 
-  std::unique_ptr<AFSKLogger> logger{};
+    std::unique_ptr<AFSKLogger> logger{};
 
-  MessageHandlerRegistration message_handler_packet{
-      Message::ID::AFSKData,
-      [this](Message* const p) {
-        const auto message = static_cast<const AFSKDataMessage*>(p);
-        this->on_data(message->value, message->is_data);
-      }};
+    MessageHandlerRegistration message_handler_packet{
+        Message::ID::AFSKData,
+        [this](Message* const p) {
+            const auto message = static_cast<const AFSKDataMessage*>(p);
+            this->on_data(message->value, message->is_data);
+        }};
 };
 
 } /* namespace ui */

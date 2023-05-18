@@ -25,13 +25,13 @@
 #include "buffer_exchange.hpp"
 
 struct BasebandCapture {
-  BasebandCapture(CaptureConfig* const config) {
-    baseband::capture_start(config);
-  }
+    BasebandCapture(CaptureConfig* const config) {
+        baseband::capture_start(config);
+    }
 
-  ~BasebandCapture() {
-    baseband::capture_stop();
-  }
+    ~BasebandCapture() {
+        baseband::capture_stop();
+    }
 };
 
 // CaptureThread //////////////////////////////////////////////////////////
@@ -46,44 +46,44 @@ CaptureThread::CaptureThread(
       writer{std::move(writer)},
       success_callback{std::move(success_callback)},
       error_callback{std::move(error_callback)} {
-  // Need significant stack for FATFS
-  thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, CaptureThread::static_fn, this);
+    // Need significant stack for FATFS
+    thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, CaptureThread::static_fn, this);
 }
 
 CaptureThread::~CaptureThread() {
-  if (thread) {
-    chThdTerminate(thread);
-    chThdWait(thread);
-    thread = nullptr;
-  }
+    if (thread) {
+        chThdTerminate(thread);
+        chThdWait(thread);
+        thread = nullptr;
+    }
 }
 
 msg_t CaptureThread::static_fn(void* arg) {
-  auto obj = static_cast<CaptureThread*>(arg);
-  const auto error = obj->run();
-  if (error.is_valid() && obj->error_callback) {
-    obj->error_callback(error.value());
-  } else {
-    if (obj->success_callback) {
-      obj->success_callback();
+    auto obj = static_cast<CaptureThread*>(arg);
+    const auto error = obj->run();
+    if (error.is_valid() && obj->error_callback) {
+        obj->error_callback(error.value());
+    } else {
+        if (obj->success_callback) {
+            obj->success_callback();
+        }
     }
-  }
-  return 0;
+    return 0;
 }
 
 Optional<File::Error> CaptureThread::run() {
-  BasebandCapture capture{&config};
-  BufferExchange buffers{&config};
+    BasebandCapture capture{&config};
+    BufferExchange buffers{&config};
 
-  while (!chThdShouldTerminate()) {
-    auto buffer = buffers.get();
-    auto write_result = writer->write(buffer->data(), buffer->size());
-    if (write_result.is_error()) {
-      return write_result.error();
+    while (!chThdShouldTerminate()) {
+        auto buffer = buffers.get();
+        auto write_result = writer->write(buffer->data(), buffer->size());
+        if (write_result.is_error()) {
+            return write_result.error();
+        }
+        buffer->empty();
+        buffers.put(buffer);
     }
-    buffer->empty();
-    buffers.put(buffer);
-  }
 
-  return {};
+    return {};
 }

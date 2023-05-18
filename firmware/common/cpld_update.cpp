@@ -35,56 +35,56 @@ namespace cpld {
 
 CpldUpdateStatus update_if_necessary(
     const Config config) {
-  jtag::GPIOTarget target{
-      portapack::gpio_cpld_tck,
-      portapack::gpio_cpld_tms,
-      portapack::gpio_cpld_tdi,
-      portapack::gpio_cpld_tdo};
-  jtag::JTAG jtag{target};
-  CPLD cpld{jtag};
+    jtag::GPIOTarget target{
+        portapack::gpio_cpld_tck,
+        portapack::gpio_cpld_tms,
+        portapack::gpio_cpld_tdi,
+        portapack::gpio_cpld_tdo};
+    jtag::JTAG jtag{target};
+    CPLD cpld{jtag};
 
-  /* Unknown state */
-  cpld.reset();
-  cpld.run_test_idle();
+    /* Unknown state */
+    cpld.reset();
+    cpld.run_test_idle();
 
-  /* Run-Test/Idle */
-  if (!cpld.idcode_ok()) {
-    return CpldUpdateStatus::Idcode_check_failed;
-  }
+    /* Run-Test/Idle */
+    if (!cpld.idcode_ok()) {
+        return CpldUpdateStatus::Idcode_check_failed;
+    }
 
-  cpld.sample();
-  cpld.bypass();
-  cpld.enable();
+    cpld.sample();
+    cpld.bypass();
+    cpld.enable();
 
-  /* If silicon ID doesn't match, there's a serious problem. Leave CPLD
+    /* If silicon ID doesn't match, there's a serious problem. Leave CPLD
 	 * in passive state.
 	 */
-  if (!cpld.silicon_id_ok()) {
-    return CpldUpdateStatus::Silicon_id_check_failed;
-  }
+    if (!cpld.silicon_id_ok()) {
+        return CpldUpdateStatus::Silicon_id_check_failed;
+    }
 
-  /* Verify CPLD contents against current bitstream. */
-  auto ok = cpld.verify(config.block_0, config.block_1);
+    /* Verify CPLD contents against current bitstream. */
+    auto ok = cpld.verify(config.block_0, config.block_1);
 
-  /* CPLD verifies incorrectly. Erase and program with current bitstream. */
-  if (!ok) {
-    ok = cpld.program(config.block_0, config.block_1);
-  }
+    /* CPLD verifies incorrectly. Erase and program with current bitstream. */
+    if (!ok) {
+        ok = cpld.program(config.block_0, config.block_1);
+    }
 
-  /* If programming OK, reset CPLD to user mode. Otherwise leave it in
+    /* If programming OK, reset CPLD to user mode. Otherwise leave it in
 	 * passive (ISP) state.
 	 */
-  if (ok) {
-    cpld.disable();
-    cpld.bypass();
+    if (ok) {
+        cpld.disable();
+        cpld.bypass();
 
-    /* Initiate SRAM reload from flash we just programmed. */
-    cpld.sample();
-    cpld.clamp();
-    cpld.disable();
-  }
+        /* Initiate SRAM reload from flash we just programmed. */
+        cpld.sample();
+        cpld.clamp();
+        cpld.disable();
+    }
 
-  return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
+    return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
 }
 
 } /* namespace cpld */
@@ -94,52 +94,52 @@ namespace hackrf {
 namespace cpld {
 
 static jtag::GPIOTarget jtag_target_hackrf() {
-  return {
-      hackrf::one::gpio_cpld_tck,
-      hackrf::one::gpio_cpld_tms,
-      hackrf::one::gpio_cpld_tdi,
-      hackrf::one::gpio_cpld_tdo,
-  };
+    return {
+        hackrf::one::gpio_cpld_tck,
+        hackrf::one::gpio_cpld_tms,
+        hackrf::one::gpio_cpld_tdi,
+        hackrf::one::gpio_cpld_tdo,
+    };
 }
 
 bool load_sram() {
-  auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-  hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+    auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+    hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
 
-  hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
-  const auto ok = hackrf_cpld.verify_sram(hackrf::one::cpld::verify_blocks);
+    hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
+    const auto ok = hackrf_cpld.verify_sram(hackrf::one::cpld::verify_blocks);
 
-  return ok;
+    return ok;
 }
 
 void load_sram_no_verify() {
-  // CoolRunner II family has Hybrid memory CPLD arquitecture (SRAM+NVM)
-  // It seems that after using TX App somehow , I do not why , the CPLD_SRAM part needs to be re_loaded to solve #637 ghost beat
-  // load_sram() it is already called at each boot in portapack.cpp ,including verify CPLD part.
-  // Here we skipped CPLD verify part,just to be quicker (in case any CPLD problem it will be detected in the boot process).
+    // CoolRunner II family has Hybrid memory CPLD arquitecture (SRAM+NVM)
+    // It seems that after using TX App somehow , I do not why , the CPLD_SRAM part needs to be re_loaded to solve #637 ghost beat
+    // load_sram() it is already called at each boot in portapack.cpp ,including verify CPLD part.
+    // Here we skipped CPLD verify part,just to be quicker (in case any CPLD problem it will be detected in the boot process).
 
-  auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-  hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+    auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+    hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
 
-  hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
+    hackrf_cpld.write_sram(hackrf::one::cpld::verify_blocks);
 
-  return;
+    return;
 }
 
 bool verify_eeprom() {
-  auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-  hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+    auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+    hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
 
-  const auto ok = hackrf_cpld.verify_eeprom(hackrf::one::cpld::verify_blocks);
+    const auto ok = hackrf_cpld.verify_eeprom(hackrf::one::cpld::verify_blocks);
 
-  return ok;
+    return ok;
 }
 
 void init_from_eeprom() {
-  auto jtag_target_hackrf_cpld = jtag_target_hackrf();
-  hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+    auto jtag_target_hackrf_cpld = jtag_target_hackrf();
+    hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
 
-  hackrf_cpld.init_from_eeprom();
+    hackrf_cpld.init_from_eeprom();
 }
 
 } /* namespace cpld */

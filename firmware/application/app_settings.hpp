@@ -33,45 +33,45 @@
 
 namespace std {
 class app_settings {
- public:
+   public:
 #define SETTINGS_OK 0               // settings found
 #define SETTINGS_UNABLE_TO_LOAD -1  // settings (file) not found
 #define SETTINGS_UNABLE_TO_SAVE -2  // unable to save settings
 #define SETTINGS_DISABLED -3        // load/save settings disabled in settings
 
-  struct AppSettings {
-    uint32_t baseband_bandwidth;
-    uint32_t channel_bandwidth;
-    uint8_t lna;
-    uint8_t modulation;
-    uint8_t rx_amp;
-    uint32_t rx_frequency;
-    uint32_t sampling_rate;
-    uint8_t tx_amp;
-    uint32_t tx_frequency;
-    uint8_t tx_gain;
-    uint8_t vga;
-    uint32_t step;
-    uint8_t am_config_index;
-    uint8_t nbfm_config_index;
-    uint8_t wfm_config_index;
-    uint8_t squelch;
-  };
+    struct AppSettings {
+        uint32_t baseband_bandwidth;
+        uint32_t channel_bandwidth;
+        uint8_t lna;
+        uint8_t modulation;
+        uint8_t rx_amp;
+        uint32_t rx_frequency;
+        uint32_t sampling_rate;
+        uint8_t tx_amp;
+        uint32_t tx_frequency;
+        uint8_t tx_gain;
+        uint8_t vga;
+        uint32_t step;
+        uint8_t am_config_index;
+        uint8_t nbfm_config_index;
+        uint8_t wfm_config_index;
+        uint8_t squelch;
+    };
 
-  int load(std::string application, AppSettings* settings);
-  int save(std::string application, AppSettings* settings);
+    int load(std::string application, AppSettings* settings);
+    int save(std::string application, AppSettings* settings);
 
- private:
+   private:
 #define MAX_FILE_CONTENT_SIZE 1000
 
-  char file_content[MAX_FILE_CONTENT_SIZE] = {};
-  std::string file_path = "";
-  std::string folder = "SETTINGS";
-  int rc = SETTINGS_OK;
-  File settings_file{};
-  long long int setting_value{};
+    char file_content[MAX_FILE_CONTENT_SIZE] = {};
+    std::string file_path = "";
+    std::string folder = "SETTINGS";
+    int rc = SETTINGS_OK;
+    File settings_file{};
+    long long int setting_value{};
 
-  long long int read_long_long(char* file_content, const char* setting_text);
+    long long int read_long_long(char* file_content, const char* setting_text);
 
 };  // class app_settings
 }  // namespace std

@@ -32,36 +32,36 @@
 namespace adsb {
 
 enum downlink_format {
-  DF_ADSB = 17,
-  DF_EHS_SQUAWK = 21,  //  DF 21: Comm-B with identity reply . Mode S enhanced surveillance of squawk + (MB_field = Track and turn report (BDS 5,0)).
-                       //  Confirmed that it is Detected correctly by dump1090. and sdrangel.
+    DF_ADSB = 17,
+    DF_EHS_SQUAWK = 21,  //  DF 21: Comm-B with identity reply . Mode S enhanced surveillance of squawk + (MB_field = Track and turn report (BDS 5,0)).
+                         //  Confirmed that it is Detected correctly by dump1090. and sdrangel.
 };
 
 enum type_code {
-  TC_IDENT = 4,
-  TC_AIRBORNE_POS = 11,
-  TC_AIRBORNE_VELO = 19
+    TC_IDENT = 4,
+    TC_AIRBORNE_POS = 11,
+    TC_AIRBORNE_VELO = 19
 };
 
 enum data_selector {
-  BDS_ID = 0x20,
-  BDS_ID_MARKS = 0x21,
-  BDS_INTENT = 0x40,
-  BDS_HEADING = 0x60
+    BDS_ID = 0x20,
+    BDS_ID_MARKS = 0x21,
+    BDS_INTENT = 0x40,
+    BDS_HEADING = 0x60
 };
 
 struct adsb_pos {
-  bool valid;
-  float latitude;
-  float longitude;
-  int32_t altitude;
+    bool valid;
+    float latitude;
+    float longitude;
+    int32_t altitude;
 };
 
 struct adsb_vel {
-  bool valid;
-  int32_t speed;     //knot
-  uint16_t heading;  //degree
-  int32_t v_rate;    //ft/min
+    bool valid;
+    int32_t speed;     //knot
+    uint16_t heading;  //degree
+    int32_t v_rate;    //ft/min
 };
 
 const float CPR_MAX_VALUE = 131072.0;

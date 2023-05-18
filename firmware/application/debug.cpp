@@ -37,162 +37,162 @@ void draw_line(int32_t, const char*, regarm_t);
 static bool error_shown = false;
 
 void draw_guru_meditation_header(uint8_t source, const char* hint) {
-  ui::Painter painter;
-  ui::Style style_default{
-      .font = ui::font::fixed_8x16,
-      .background = ui::Color::black(),
-      .foreground = ui::Color::white()};
+    ui::Painter painter;
+    ui::Style style_default{
+        .font = ui::font::fixed_8x16,
+        .background = ui::Color::black(),
+        .foreground = ui::Color::white()};
 
-  painter.fill_rectangle(
-      {0, 0, portapack::display.width(), portapack::display.height()},
-      ui::Color::red());
+    painter.fill_rectangle(
+        {0, 0, portapack::display.width(), portapack::display.height()},
+        ui::Color::red());
 
-  constexpr int border = 8;
-  painter.fill_rectangle(
-      {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
-      ui::Color::black());
+    constexpr int border = 8;
+    painter.fill_rectangle(
+        {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
+        ui::Color::black());
 
-  // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-  painter.draw_string({48, 24}, style_default, "M? Guru");
-  painter.draw_string({48 + 8 * 8, 24}, style_default, "Meditation");
+    // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
+    painter.draw_string({48, 24}, style_default, "M? Guru");
+    painter.draw_string({48 + 8 * 8, 24}, style_default, "Meditation");
 
-  if (source == CORTEX_M0)
-    painter.draw_string({48 + 8, 24}, style_default, "0");
+    if (source == CORTEX_M0)
+        painter.draw_string({48 + 8, 24}, style_default, "0");
 
-  if (source == CORTEX_M4)
-    painter.draw_string({48 + 8, 24}, style_default, "4");
+    if (source == CORTEX_M4)
+        painter.draw_string({48 + 8, 24}, style_default, "4");
 
-  painter.draw_string({15, 55}, style_default, "Hint: ");
-  painter.draw_string({15 + 8 * 8, 55}, style_default, hint);
+    painter.draw_string({15, 55}, style_default, "Hint: ");
+    painter.draw_string({15 + 8 * 8, 55}, style_default, hint);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint) {
-  if (error_shown == false) {
-    error_shown = true;
-    draw_guru_meditation_header(source, hint);
-  }
+    if (error_shown == false) {
+        error_shown = true;
+        draw_guru_meditation_header(source, hint);
+    }
 
-  if (source == CORTEX_M0)
-    runtime_error(hackrf::one::led_rx);
+    if (source == CORTEX_M0)
+        runtime_error(hackrf::one::led_rx);
 
-  if (source == CORTEX_M4)
-    runtime_error(hackrf::one::led_tx);
+    if (source == CORTEX_M4)
+        runtime_error(hackrf::one::led_tx);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp, uint32_t cfsr = 0) {
-  if (error_shown == false) {
-    error_shown = true;
-    draw_guru_meditation_header(source, hint);
+    if (error_shown == false) {
+        error_shown = true;
+        draw_guru_meditation_header(source, hint);
 
-    if (ctxp != nullptr) {
-      int i = 0;
-      draw_line(80 + i++ * 20, "r0:", ctxp->r0);
-      draw_line(80 + i++ * 20, "r1:", ctxp->r1);
-      draw_line(80 + i++ * 20, "r2:", ctxp->r2);
-      draw_line(80 + i++ * 20, "r3:", ctxp->r3);
-      draw_line(80 + i++ * 20, "r12:", ctxp->r12);
+        if (ctxp != nullptr) {
+            int i = 0;
+            draw_line(80 + i++ * 20, "r0:", ctxp->r0);
+            draw_line(80 + i++ * 20, "r1:", ctxp->r1);
+            draw_line(80 + i++ * 20, "r2:", ctxp->r2);
+            draw_line(80 + i++ * 20, "r3:", ctxp->r3);
+            draw_line(80 + i++ * 20, "r12:", ctxp->r12);
 
-      // NOTE: run for M0
-      // # arm-none-eabi-gdb --batch --eval-command="x/8i 0x<link_register_value_here>" firmware/application/application.elf
-      // or for M4
-      // # arm-none-eabi-gdb --batch --eval-command="x/8i 0x<link_register_value_here>" firmware/baseband/<image_name_here>.elf
-      // to see whats causing the fault.
-      draw_line(80 + i++ * 20, "lr:", ctxp->lr_thd);
-      draw_line(80 + i++ * 20, "pc:", ctxp->pc);
+            // NOTE: run for M0
+            // # arm-none-eabi-gdb --batch --eval-command="x/8i 0x<link_register_value_here>" firmware/application/application.elf
+            // or for M4
+            // # arm-none-eabi-gdb --batch --eval-command="x/8i 0x<link_register_value_here>" firmware/baseband/<image_name_here>.elf
+            // to see whats causing the fault.
+            draw_line(80 + i++ * 20, "lr:", ctxp->lr_thd);
+            draw_line(80 + i++ * 20, "pc:", ctxp->pc);
 
-      // see SCB_CFSR_* in libopencm3/cm3/scb.h for details
-      if (cfsr != 0)
-        draw_line(80 + i++ * 20, "cfsr:", (void*)cfsr);
+            // see SCB_CFSR_* in libopencm3/cm3/scb.h for details
+            if (cfsr != 0)
+                draw_line(80 + i++ * 20, "cfsr:", (void*)cfsr);
+        }
     }
-  }
 
-  if (source == CORTEX_M0)
-    runtime_error(hackrf::one::led_rx);
+    if (source == CORTEX_M0)
+        runtime_error(hackrf::one::led_rx);
 
-  if (source == CORTEX_M4)
-    runtime_error(hackrf::one::led_tx);
+    if (source == CORTEX_M4)
+        runtime_error(hackrf::one::led_tx);
 }
 
 void draw_line(int32_t y_offset, const char* label, regarm_t value) {
-  ui::Painter painter;
-  ui::Style style_default{
-      .font = ui::font::fixed_8x16,
-      .background = ui::Color::black(),
-      .foreground = ui::Color::white()};
+    ui::Painter painter;
+    ui::Style style_default{
+        .font = ui::font::fixed_8x16,
+        .background = ui::Color::black(),
+        .foreground = ui::Color::white()};
 
-  painter.draw_string({15, y_offset}, style_default, label);
-  painter.draw_string({15 + 8 * 8, y_offset}, style_default, to_string_hex((uint32_t)value, 8));
+    painter.draw_string({15, y_offset}, style_default, label);
+    painter.draw_string({15 + 8 * 8, y_offset}, style_default, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(LED led) {
-  led.off();
+    led.off();
 
-  while (true) {
-    volatile size_t n = 1000000U;
-    while (n--)
-      ;
-    led.toggle();
-  }
+    while (true) {
+        volatile size_t n = 1000000U;
+        while (n--)
+            ;
+        led.toggle();
+    }
 }
 
 extern "C" {
 #if CH_DBG_ENABLED
 void port_halt(void) {
-  port_disable();
+    port_disable();
 
-  if (dbg_panic_msg == nullptr)
-    dbg_panic_msg = "system halted";
+    if (dbg_panic_msg == nullptr)
+        dbg_panic_msg = "system halted";
 
-  draw_guru_meditation(CORTEX_M0, dbg_panic_msg);
+    draw_guru_meditation(CORTEX_M0, dbg_panic_msg);
 }
 #endif
 
 CH_IRQ_HANDLER(MemManageVector) {
 #if CH_DBG_ENABLED
-  chDbgPanic("MemManage");
+    chDbgPanic("MemManage");
 #else
-  chSysHalt();
+    chSysHalt();
 #endif
 }
 
 CH_IRQ_HANDLER(BusFaultVector) {
 #if CH_DBG_ENABLED
-  chDbgPanic("BusFault");
+    chDbgPanic("BusFault");
 #else
-  chSysHalt();
+    chSysHalt();
 #endif
 }
 
 CH_IRQ_HANDLER(UsageFaultVector) {
 #if CH_DBG_ENABLED
-  chDbgPanic("UsageFault");
+    chDbgPanic("UsageFault");
 #else
-  chSysHalt();
+    chSysHalt();
 #endif
 }
 
 CH_IRQ_HANDLER(HardFaultVector) {
 #if CH_DBG_ENABLED
-  CH_IRQ_PROLOGUE();
-  struct extctx* ctxp;
-  port_lock_from_isr();
+    CH_IRQ_PROLOGUE();
+    struct extctx* ctxp;
+    port_lock_from_isr();
 
-  if ((uint32_t)_saved_lr & 0x04)
-    ctxp = (struct extctx*)__get_PSP();
-  else
-    ctxp = (struct extctx*)__get_MSP();
+    if ((uint32_t)_saved_lr & 0x04)
+        ctxp = (struct extctx*)__get_PSP();
+    else
+        ctxp = (struct extctx*)__get_MSP();
 
-  port_disable();
+    port_disable();
 
-  auto stack_space_left = get_free_stack_space();
-  if (stack_space_left < 16)
-    draw_guru_meditation(CORTEX_M0, "Stack Overflow", ctxp);
+    auto stack_space_left = get_free_stack_space();
+    if (stack_space_left < 16)
+        draw_guru_meditation(CORTEX_M0, "Stack Overflow", ctxp);
 
-  draw_guru_meditation(CORTEX_M0, "Hard Fault", ctxp);
+    draw_guru_meditation(CORTEX_M0, "Hard Fault", ctxp);
 
-  CH_IRQ_EPILOGUE();
+    CH_IRQ_EPILOGUE();
 #else
-  chSysHalt();
+    chSysHalt();
 #endif
 }
 

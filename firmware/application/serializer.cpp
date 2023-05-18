@@ -40,12 +40,12 @@ namespace serializer {
  */
 
 size_t symbol_count(const serial_format_t& serial_format) {
-  size_t count;
+    size_t count;
 
-  count = 1 + serial_format.data_bits + serial_format.stop_bits;  // Start + data + stop
-  if (serial_format.parity) count++;
+    count = 1 + serial_format.data_bits + serial_format.stop_bits;  // Start + data + stop
+    if (serial_format.parity) count++;
 
-  return count;
+    return count;
 };
 
 } /* namespace serializer */

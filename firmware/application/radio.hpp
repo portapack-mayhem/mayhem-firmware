@@ -30,13 +30,13 @@
 namespace radio {
 
 struct Configuration {
-  rf::Frequency tuning_frequency;
-  uint32_t baseband_rate;
-  uint32_t baseband_filter_bandwidth;
-  rf::Direction direction;
-  bool rf_amp;
-  int8_t lna_gain;
-  int8_t vga_gain;
+    rf::Frequency tuning_frequency;
+    uint32_t baseband_rate;
+    uint32_t baseband_filter_bandwidth;
+    rf::Direction direction;
+    bool rf_amp;
+    int8_t lna_gain;
+    int8_t vga_gain;
 };
 
 void init();

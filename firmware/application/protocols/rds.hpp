@@ -36,16 +36,16 @@ namespace rds {
 #define RDS_OFFSET_D 0b0110110100
 
 struct RDS_flags {
-  uint16_t PI_code;
-  uint8_t PTY;
-  uint8_t DI;
-  bool TP;
-  bool TA;
-  bool MS;
+    uint16_t PI_code;
+    uint8_t PTY;
+    uint8_t DI;
+    bool TP;
+    bool TA;
+    bool MS;
 };
 
 struct RDSGroup {
-  uint32_t block[4];
+    uint32_t block[4];
 };
 
 uint32_t make_block(uint32_t blockdata, uint16_t offset);

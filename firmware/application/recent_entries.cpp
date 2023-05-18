@@ -34,26 +34,26 @@ RecentEntriesHeader::RecentEntriesHeader(
 }
 
 void RecentEntriesHeader::paint(Painter& painter) {
-  const auto r = screen_rect();
-  const auto& parent_style = style();
+    const auto r = screen_rect();
+    const auto& parent_style = style();
 
-  const Style style{
-      .font = parent_style.font,
-      .background = Color::blue(),
-      .foreground = parent_style.foreground,
-  };
+    const Style style{
+        .font = parent_style.font,
+        .background = Color::blue(),
+        .foreground = parent_style.foreground,
+    };
 
-  auto p = r.location();
-  for (const auto& column : _columns) {
-    const auto width = column.second;
-    auto text = column.first;
-    if (width > text.length()) {
-      text.append(width - text.length(), ' ');
+    auto p = r.location();
+    for (const auto& column : _columns) {
+        const auto width = column.second;
+        auto text = column.first;
+        if (width > text.length()) {
+            text.append(width - text.length(), ' ');
+        }
+
+        painter.draw_string(p, style, text);
+        p += {static_cast<Coord>((width * 8) + 8), 0};
     }
-
-    painter.draw_string(p, style, text);
-    p += {static_cast<Coord>((width * 8) + 8), 0};
-  }
 }
 
 } /* namespace ui */

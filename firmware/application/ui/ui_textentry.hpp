@@ -29,29 +29,29 @@
 namespace ui {
 
 class TextEntryView : public View {
- public:
-  std::function<void(std::string&)> on_changed{};
+   public:
+    std::function<void(std::string&)> on_changed{};
 
-  void focus() override;
-  std::string title() const override { return "Text entry"; };
+    void focus() override;
+    std::string title() const override { return "Text entry"; };
 
-  void set_cursor(uint32_t pos);
+    void set_cursor(uint32_t pos);
 
- protected:
-  TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
+   protected:
+    TextEntryView(NavigationView& nav, std::string& str, size_t max_length);
 
-  TextEntryView(const TextEntryView&) = delete;
-  TextEntryView(TextEntryView&&) = delete;
-  TextEntryView& operator=(const TextEntryView&) = delete;
-  TextEntryView& operator=(TextEntryView&&) = delete;
+    TextEntryView(const TextEntryView&) = delete;
+    TextEntryView(TextEntryView&&) = delete;
+    TextEntryView& operator=(const TextEntryView&) = delete;
+    TextEntryView& operator=(TextEntryView&&) = delete;
 
-  void char_add(const char c);
-  void char_delete();
+    void char_add(const char c);
+    void char_delete();
 
-  TextField text_input;
-  Button button_ok{
-      {10 * 8, 33 * 8, 9 * 8, 32},
-      "OK"};
+    TextField text_input;
+    Button button_ok{
+        {10 * 8, 33 * 8, 9 * 8, 32},
+        "OK"};
 };
 
 // Show the TextEntry view to receive keyboard input.

@@ -36,27 +36,27 @@
 namespace baseband {
 
 struct AMConfig {
-  const fir_taps_real<32> decim_2;  // added to handle two types decim_2 9k, 6k
-  const fir_taps_complex<64> channel;
-  const AMConfigureMessage::Modulation modulation;
+    const fir_taps_real<32> decim_2;  // added to handle two types decim_2 9k, 6k
+    const fir_taps_complex<64> channel;
+    const AMConfigureMessage::Modulation modulation;
 
-  void apply() const;
+    void apply() const;
 };
 
 struct NBFMConfig {
-  const fir_taps_real<24> decim_0;
-  const fir_taps_real<32> decim_1;
-  const fir_taps_real<32> channel;
-  const size_t deviation;
+    const fir_taps_real<24> decim_0;
+    const fir_taps_real<32> decim_1;
+    const fir_taps_real<32> channel;
+    const size_t deviation;
 
-  void apply(const uint8_t squelch_level) const;
+    void apply(const uint8_t squelch_level) const;
 };
 
 struct WFMConfig {
-  const fir_taps_real<24> decim_0;  // To handle both WFM filters , 200k and 40K for NOAA APT
-  const fir_taps_real<16> decim_1;
+    const fir_taps_real<24> decim_0;  // To handle both WFM filters , 200k and 40K for NOAA APT
+    const fir_taps_real<16> decim_1;
 
-  void apply() const;
+    void apply() const;
 };
 
 void set_tone(const uint32_t index, const uint32_t delta, const uint32_t duration);

@@ -44,186 +44,186 @@
 namespace ui {
 
 class TXGainField : public NumberField {
- public:
-  std::function<void(void)> on_show_options{};
+   public:
+    std::function<void(void)> on_show_options{};
 
-  TXGainField(Point parent_pos);
+    TXGainField(Point parent_pos);
 };
 
 class TransmitterView : public View {
- public:
-  std::function<void(void)> on_edit_frequency{};
-  std::function<void(void)> on_start{};
-  std::function<void(void)> on_stop{};
+   public:
+    std::function<void(void)> on_edit_frequency{};
+    std::function<void(void)> on_start{};
+    std::function<void(void)> on_stop{};
 
-  TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock);
-  TransmitterView(
-      const Coord y,
-      const uint32_t frequency_step,
-      const uint32_t channel_bandwidth)
-      : TransmitterView{y, frequency_step, channel_bandwidth, false} {
-  }
+    TransmitterView(const Coord y, const uint64_t frequency_step, const uint32_t channel_bandwidth, const bool lock);
+    TransmitterView(
+        const Coord y,
+        const uint32_t frequency_step,
+        const uint32_t channel_bandwidth)
+        : TransmitterView{y, frequency_step, channel_bandwidth, false} {
+    }
 
-  ~TransmitterView();
+    ~TransmitterView();
 
-  void on_show() override;
-  void paint(Painter& painter) override;
-  void focus() override;
+    void on_show() override;
+    void paint(Painter& painter) override;
+    void focus() override;
 
-  void set_transmitting(const bool transmitting);
+    void set_transmitting(const bool transmitting);
 
- private:
-  const Style style_start{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::green(),
-  };
-  const Style style_stop{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::red(),
-  };
-  const Style style_locked{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::dark_grey(),
-  };
-  const Style style_power_low{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::yellow(),
-  };
-  const Style style_power_med{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::orange(),
-  };
-  const Style style_power_high{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::red(),
-  };
+   private:
+    const Style style_start{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+    const Style style_stop{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    const Style style_locked{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::dark_grey(),
+    };
+    const Style style_power_low{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    const Style style_power_med{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::orange(),
+    };
+    const Style style_power_high{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
 
-  bool lock_{false};
-  bool transmitting_{false};
+    bool lock_{false};
+    bool transmitting_{false};
 
-  FrequencyField field_frequency{
-      {0, 1 * 8}};
+    FrequencyField field_frequency{
+        {0, 1 * 8}};
 
-  Text text_gain{
-      {0, 3 * 8, 5 * 8, 1 * 16},
-      "Gain:"};
+    Text text_gain{
+        {0, 3 * 8, 5 * 8, 1 * 16},
+        "Gain:"};
 
-  NumberField field_gain{
-      {5 * 8, 3 * 8},
-      2,
-      {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
-      max2837::tx::gain_db_step,
-      ' '};
+    NumberField field_gain{
+        {5 * 8, 3 * 8},
+        2,
+        {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
+        max2837::tx::gain_db_step,
+        ' '};
 
-  Text text_bw{
-      {18 * 8, 1 * 8, 3 * 8, 1 * 16},
-      "kHz"};
-  NumberField field_bw{
-      {15 * 8, 1 * 8},
-      3,
-      {1, 150},
-      1,
-      ' '};
+    Text text_bw{
+        {18 * 8, 1 * 8, 3 * 8, 1 * 16},
+        "kHz"};
+    NumberField field_bw{
+        {15 * 8, 1 * 8},
+        3,
+        {1, 150},
+        1,
+        ' '};
 
-  Text text_amp{
-      {11 * 8, 3 * 8, 5 * 8, 1 * 16},
-      "Amp:"};
+    Text text_amp{
+        {11 * 8, 3 * 8, 5 * 8, 1 * 16},
+        "Amp:"};
 
-  NumberField field_amp{
-      {16 * 8, 3 * 8},
-      2,
-      {0, 14},
-      14,
-      ' '};
+    NumberField field_amp{
+        {16 * 8, 3 * 8},
+        2,
+        {0, 14},
+        14,
+        ' '};
 
-  Button button_start{
-      {21 * 8, 1 * 8, 9 * 8, 32},
-      "START"};
+    Button button_start{
+        {21 * 8, 1 * 8, 9 * 8, 32},
+        "START"};
 
-  FrequencyStepView field_frequency_step{
-      {10 * 8 - 4, 1 * 8},
-  };
+    FrequencyStepView field_frequency_step{
+        {10 * 8 - 4, 1 * 8},
+    };
 
-  void on_tuning_frequency_changed(rf::Frequency f);
-  void on_channel_bandwidth_changed(uint32_t channel_bandwidth);
-  void on_tx_gain_changed(int32_t tx_gain);
-  void on_tx_amp_changed(bool rf_amp);
+    void on_tuning_frequency_changed(rf::Frequency f);
+    void on_channel_bandwidth_changed(uint32_t channel_bandwidth);
+    void on_tx_gain_changed(int32_t tx_gain);
+    void on_tx_amp_changed(bool rf_amp);
 
-  void update_gainlevel_styles(void);
+    void update_gainlevel_styles(void);
 };
 
 class TransmitterView2 : public View {
- public:
-  TransmitterView2(const Coord x, const Coord y, bool short_UI);
+   public:
+    TransmitterView2(const Coord x, const Coord y, bool short_UI);
 
-  ~TransmitterView2();
+    ~TransmitterView2();
 
-  void on_show() override;
-  void paint(Painter& painter) override;
+    void on_show() override;
+    void paint(Painter& painter) override;
 
- private:
-  const Style style_power_low{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::yellow(),
-  };
-  const Style style_power_med{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::orange(),
-  };
-  const Style style_power_high{
-      .font = font::fixed_8x16,
-      .background = Color::black(),
-      .foreground = Color::red(),
-  };
+   private:
+    const Style style_power_low{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    const Style style_power_med{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::orange(),
+    };
+    const Style style_power_high{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
 
-  Text text_gain_amp{
-      {0, 3 * 8, 5 * 8, 1 * 16},
-      "Gain:   Amp:"};
+    Text text_gain_amp{
+        {0, 3 * 8, 5 * 8, 1 * 16},
+        "Gain:   Amp:"};
 
-  NumberField field_gain{
-      {5 * 8, 3 * 8},
-      2,
-      {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
-      max2837::tx::gain_db_step,
-      ' '};
+    NumberField field_gain{
+        {5 * 8, 3 * 8},
+        2,
+        {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
+        max2837::tx::gain_db_step,
+        ' '};
 
-  NumberField field_amp{
-      {12 * 8, 3 * 8},
-      2,
-      {0, 14},
-      14,
-      ' '};
+    NumberField field_amp{
+        {12 * 8, 3 * 8},
+        2,
+        {0, 14},
+        14,
+        ' '};
 
-  Text text_gain_amp_short_UI{
-      {0, (3 * 8) - 1, 5 * 8, 1 * 16},
-      "Gain   A:"};
+    Text text_gain_amp_short_UI{
+        {0, (3 * 8) - 1, 5 * 8, 1 * 16},
+        "Gain   A:"};
 
-  NumberField field_gain_short_UI{
-      {(4 * 8) + 2, 3 * 8},
-      2,
-      {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
-      max2837::tx::gain_db_step,
-      ' '};
+    NumberField field_gain_short_UI{
+        {(4 * 8) + 2, 3 * 8},
+        2,
+        {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
+        max2837::tx::gain_db_step,
+        ' '};
 
-  NumberField field_amp_short_UI{
-      {(9 * 8) - 2, 3 * 8},
-      2,
-      {0, 14},
-      14,
-      ' '};
+    NumberField field_amp_short_UI{
+        {(9 * 8) - 2, 3 * 8},
+        2,
+        {0, 14},
+        14,
+        ' '};
 
-  void on_tx_gain_changed(int32_t tx_gain);
-  void on_tx_amp_changed(bool rf_amp);
+    void on_tx_gain_changed(int32_t tx_gain);
+    void on_tx_amp_changed(bool rf_amp);
 
-  void update_gainlevel_styles(void);
+    void update_gainlevel_styles(void);
 };
 
 } /* namespace ui */

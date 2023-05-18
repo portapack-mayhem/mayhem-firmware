@@ -32,9 +32,9 @@
 using namespace lpc43xx;
 
 enum TimeFormat {
-  YMDHMS = 0,
-  HMS = 1,
-  HM = 2
+    YMDHMS = 0,
+    HMS = 1,
+    HM = 2
 };
 
 const char unit_prefix[7]{'n', 'u', 'm', 0, 'k', 'M', 'G'};

@@ -47,59 +47,59 @@ Color term_colors[16] = {
     Color::white()};
 
 bool Rect::contains(const Point p) const {
-  return (p.x() >= left()) && (p.y() >= top()) &&
-         (p.x() < right()) && (p.y() < bottom());
+    return (p.x() >= left()) && (p.y() >= top()) &&
+           (p.x() < right()) && (p.y() < bottom());
 }
 
 Rect Rect::intersect(const Rect& o) const {
-  const auto x1 = std::max(left(), o.left());
-  const auto x2 = std::min(right(), o.right());
-  const auto y1 = std::max(top(), o.top());
-  const auto y2 = std::min(bottom(), o.bottom());
-  if ((x2 >= x1) && (y2 > y1)) {
-    return {x1, y1, x2 - x1, y2 - y1};
-  } else {
-    return {};
-  }
+    const auto x1 = std::max(left(), o.left());
+    const auto x2 = std::min(right(), o.right());
+    const auto y1 = std::max(top(), o.top());
+    const auto y2 = std::min(bottom(), o.bottom());
+    if ((x2 >= x1) && (y2 > y1)) {
+        return {x1, y1, x2 - x1, y2 - y1};
+    } else {
+        return {};
+    }
 }
 
 // TODO: This violates the principle of least surprise!
 // This does a union, but that might not be obvious from "+=" syntax.
 Rect& Rect::operator+=(const Rect& p) {
-  if (is_empty()) {
-    *this = p;
-  }
-  if (!p.is_empty()) {
-    const auto x1 = std::min(left(), p.left());
-    const auto y1 = std::min(top(), p.top());
-    _pos = {x1, y1};
-    const auto x2 = std::max(right(), p.right());
-    const auto y2 = std::max(bottom(), p.bottom());
-    _size = {x2 - x1, y2 - y1};
-  }
-  return *this;
+    if (is_empty()) {
+        *this = p;
+    }
+    if (!p.is_empty()) {
+        const auto x1 = std::min(left(), p.left());
+        const auto y1 = std::min(top(), p.top());
+        _pos = {x1, y1};
+        const auto x2 = std::max(right(), p.right());
+        const auto y2 = std::max(bottom(), p.bottom());
+        _size = {x2 - x1, y2 - y1};
+    }
+    return *this;
 }
 
 Rect& Rect::operator+=(const Point& p) {
-  _pos += p;
-  return *this;
+    _pos += p;
+    return *this;
 }
 
 Rect& Rect::operator-=(const Point& p) {
-  _pos -= p;
-  return *this;
+    _pos -= p;
+    return *this;
 }
 
 Point polar_to_point(float angle, uint32_t distance) {
-  //polar to compass with y negated for screen drawing
-  return Point(sin_f32(DEG_TO_RAD(-angle) + pi) * distance,
-               sin_f32(DEG_TO_RAD(-angle) - (pi / 2)) * distance);
+    //polar to compass with y negated for screen drawing
+    return Point(sin_f32(DEG_TO_RAD(-angle) + pi) * distance,
+                 sin_f32(DEG_TO_RAD(-angle) - (pi / 2)) * distance);
 }
 
 Point fast_polar_to_point(int32_t angle, uint32_t distance) {
-  //polar to compass with y negated for screen drawing
-  return Point((int16_sin_s4(((1 << 16) * (-angle + 180)) / 360) * distance) / (1 << 16),
-               (int16_sin_s4(((1 << 16) * (-angle - 90)) / 360) * distance) / (1 << 16));
+    //polar to compass with y negated for screen drawing
+    return Point((int16_sin_s4(((1 << 16) * (-angle + 180)) / 360) * distance) / (1 << 16),
+                 (int16_sin_s4(((1 << 16) * (-angle - 90)) / 360) * distance) / (1 << 16));
 }
 
 } /* namespace ui */

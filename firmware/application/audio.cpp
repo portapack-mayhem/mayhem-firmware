@@ -135,33 +135,33 @@ static audio::Codec* audio_codec = nullptr;
 namespace output {
 
 void start() {
-  i2s::i2s0::tx_start();
-  unmute();
+    i2s::i2s0::tx_start();
+    unmute();
 }
 
 void stop() {
-  mute();
-  i2s::i2s0::tx_stop();
+    mute();
+    i2s::i2s0::tx_stop();
 }
 
 void mute() {
-  i2s::i2s0::tx_mute();
-  audio_codec->headphone_disable();
+    i2s::i2s0::tx_mute();
+    audio_codec->headphone_disable();
 }
 
 void unmute() {
-  i2s::i2s0::tx_unmute();
-  audio_codec->headphone_enable();
+    i2s::i2s0::tx_unmute();
+    audio_codec->headphone_enable();
 }
 
 void speaker_mute() {
-  i2s::i2s0::tx_mute();
-  audio_codec->speaker_disable();
+    i2s::i2s0::tx_mute();
+    audio_codec->speaker_disable();
 }
 
 void speaker_unmute() {
-  i2s::i2s0::tx_unmute();
-  audio_codec->speaker_enable();
+    i2s::i2s0::tx_unmute();
+    audio_codec->speaker_enable();
 }
 
 } /* namespace output */
@@ -169,13 +169,13 @@ void speaker_unmute() {
 namespace input {
 
 void start(int8_t alc_mode) {
-  audio_codec->microphone_enable(alc_mode);  // added user-GUI selection for AK4951, ALC mode parameter.
-  i2s::i2s0::rx_start();
+    audio_codec->microphone_enable(alc_mode);  // added user-GUI selection for AK4951, ALC mode parameter.
+    i2s::i2s0::rx_start();
 }
 
 void stop() {
-  i2s::i2s0::rx_stop();
-  audio_codec->microphone_disable();
+    i2s::i2s0::rx_stop();
+    audio_codec->microphone_disable();
 }
 
 } /* namespace input */
@@ -183,11 +183,11 @@ void stop() {
 namespace headphone {
 
 volume_range_t volume_range() {
-  return audio_codec->headphone_gain_range();
+    return audio_codec->headphone_gain_range();
 }
 
 void set_volume(const volume_t volume) {
-  audio_codec->set_headphone_volume(volume);
+    audio_codec->set_headphone_volume(volume);
 }
 
 } /* namespace headphone */
@@ -195,51 +195,51 @@ void set_volume(const volume_t volume) {
 namespace debug {
 
 size_t reg_count() {
-  return audio_codec->reg_count();
+    return audio_codec->reg_count();
 }
 
 uint32_t reg_read(const size_t register_number) {
-  return audio_codec->reg_read(register_number);
+    return audio_codec->reg_read(register_number);
 }
 
 std::string codec_name() {
-  return audio_codec->name();
+    return audio_codec->name();
 }
 
 size_t reg_bits() {
-  return audio_codec->reg_bits();
+    return audio_codec->reg_bits();
 }
 
 } /* namespace debug */
 
 void init(audio::Codec* const codec) {
-  clock_manager.start_audio_pll();
+    clock_manager.start_audio_pll();
 
-  // Configure I2S before activating codec interface.
-  i2s::i2s0::configure(
-      i2s0_config_tx_master_base_clk,
-      i2s0_config_rx_four_wire,
-      i2s0_config_dma);
+    // Configure I2S before activating codec interface.
+    i2s::i2s0::configure(
+        i2s0_config_tx_master_base_clk,
+        i2s0_config_rx_four_wire,
+        i2s0_config_dma);
 
-  audio_codec = codec;
-  audio_codec->init();
+    audio_codec = codec;
+    audio_codec->init();
 
-  // Set pin mode, since it's likely GPIO (as left after CPLD JTAG interactions).
-  portapack::pin_i2s0_rx_sda.mode(3);
+    // Set pin mode, since it's likely GPIO (as left after CPLD JTAG interactions).
+    portapack::pin_i2s0_rx_sda.mode(3);
 }
 
 void shutdown() {
-  audio_codec->reset();
-  input::stop();
-  output::stop();
+    audio_codec->reset();
+    input::stop();
+    output::stop();
 
-  i2s::i2s0::shutdown();
+    i2s::i2s0::shutdown();
 
-  clock_manager.stop_audio_pll();
+    clock_manager.stop_audio_pll();
 }
 
 void set_rate(const Rate rate) {
-  clock_manager.set_base_audio_clock_divider(toUType(rate));
+    clock_manager.set_base_audio_clock_divider(toUType(rate));
 }
 
 } /* namespace audio */

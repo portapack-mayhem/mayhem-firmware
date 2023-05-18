@@ -39,439 +39,439 @@ using namespace max283x;
 constexpr size_t reg_count = 32;
 
 enum class Register : address_t {
-  RXRF_1 = 0,
-  RXRF_2 = 1,
-  LPF_1 = 2,
-  LPF_2 = 3,
-  LPF_3_VGA_1 = 4,
-  VGA_2 = 5,
-  VGA_3_RX_TOP = 6,
-  TEMP_SENSE = 7,
-  RX_TOP_RX_BIAS = 8,
-  RX_TOP = 9,
-  TX_TOP_1 = 10,
-  TX_TOP_2 = 11,
-  HPFSM_1 = 12,
-  HPFSM_2 = 13,
-  HPFSM_3 = 14,
-  HPFSM_4 = 15,
-  SPI_EN = 16,
-  SYN_FR_DIV_1 = 17,
-  SYN_FR_DIV_2 = 18,
-  SYN_INT_DIV = 19,
-  SYN_CFG_1 = 20,
-  SYN_CFG_2 = 21,
-  VAS_CFG = 22,
-  LO_MISC = 23,
-  XTAL_CFG = 24,
-  VCO_CFG = 25,
-  LO_GEN = 26,
-  PA_DRV_PA_DAC = 27,
-  PA_DAC = 28,
-  TX_GAIN = 29,
-  TX_LO_IQ = 30,
-  TX_DC_CORR = 31,
+    RXRF_1 = 0,
+    RXRF_2 = 1,
+    LPF_1 = 2,
+    LPF_2 = 3,
+    LPF_3_VGA_1 = 4,
+    VGA_2 = 5,
+    VGA_3_RX_TOP = 6,
+    TEMP_SENSE = 7,
+    RX_TOP_RX_BIAS = 8,
+    RX_TOP = 9,
+    TX_TOP_1 = 10,
+    TX_TOP_2 = 11,
+    HPFSM_1 = 12,
+    HPFSM_2 = 13,
+    HPFSM_3 = 14,
+    HPFSM_4 = 15,
+    SPI_EN = 16,
+    SYN_FR_DIV_1 = 17,
+    SYN_FR_DIV_2 = 18,
+    SYN_INT_DIV = 19,
+    SYN_CFG_1 = 20,
+    SYN_CFG_2 = 21,
+    VAS_CFG = 22,
+    LO_MISC = 23,
+    XTAL_CFG = 24,
+    VCO_CFG = 25,
+    LO_GEN = 26,
+    PA_DRV_PA_DAC = 27,
+    PA_DAC = 28,
+    TX_GAIN = 29,
+    TX_LO_IQ = 30,
+    TX_DC_CORR = 31,
 };
 
 struct RXRF_1_Type {
-  reg_t LNA_EN : 1;
-  reg_t Mixer_EN : 1;
-  reg_t RxLO_EN : 1;
-  reg_t Lbias : 2;
-  reg_t Mbias : 2;
-  reg_t buf : 2;
-  reg_t LNAband : 1;
-  reg_t RESERVED0 : 6;
+    reg_t LNA_EN : 1;
+    reg_t Mixer_EN : 1;
+    reg_t RxLO_EN : 1;
+    reg_t Lbias : 2;
+    reg_t Mbias : 2;
+    reg_t buf : 2;
+    reg_t LNAband : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(RXRF_1_Type) == sizeof(reg_t), "RXRF_1_Type wrong size");
 
 struct RXRF_2_Type {
-  reg_t LNAtune : 1;
-  reg_t LNAde_Q : 1;
-  reg_t L : 3;
-  reg_t iqerr_trim : 5;
-  reg_t RESERVED0 : 6;
+    reg_t LNAtune : 1;
+    reg_t LNAde_Q : 1;
+    reg_t L : 3;
+    reg_t iqerr_trim : 5;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(RXRF_2_Type) == sizeof(reg_t), "RXRF_2_Type wrong size");
 
 struct LPF_1_Type {
-  reg_t LPF_EN : 1;
-  reg_t TxBB_EN : 1;
-  reg_t ModeCtrl : 2;
-  reg_t FT : 4;
-  reg_t dF : 2;
-  reg_t RESERVED0 : 6;
+    reg_t LPF_EN : 1;
+    reg_t TxBB_EN : 1;
+    reg_t ModeCtrl : 2;
+    reg_t FT : 4;
+    reg_t dF : 2;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(LPF_1_Type) == sizeof(reg_t), "LPF_1_Type wrong size");
 
 struct LPF_2_Type {
-  reg_t PT_SPI : 4;
-  reg_t Bqd : 3;
-  reg_t TxRPCM : 3;
-  reg_t RESERVED0 : 6;
+    reg_t PT_SPI : 4;
+    reg_t Bqd : 3;
+    reg_t TxRPCM : 3;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(LPF_2_Type) == sizeof(reg_t), "LPF_2_Type wrong size");
 
 struct LPF_3_VGA_1_Type {
-  reg_t RP : 2;
-  reg_t TxBuff : 2;
-  reg_t VGA_EN : 1;
-  reg_t VGAMUX_enable : 1;
-  reg_t BUFF_Curr : 2;
-  reg_t BUFF_VCM : 2;
-  reg_t RESERVED0 : 6;
+    reg_t RP : 2;
+    reg_t TxBuff : 2;
+    reg_t VGA_EN : 1;
+    reg_t VGAMUX_enable : 1;
+    reg_t BUFF_Curr : 2;
+    reg_t BUFF_VCM : 2;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(LPF_3_VGA_1_Type) == sizeof(reg_t), "LPF_3_VGA_1_Type wrong size");
 
 struct VGA_2_Type {
-  reg_t VGA : 5;
-  reg_t sel_In1_In2 : 1;
-  reg_t turbo15n20 : 1;
-  reg_t VGA_Curr : 2;
-  reg_t fuse_arm : 1;
-  reg_t RESERVED0 : 6;
+    reg_t VGA : 5;
+    reg_t sel_In1_In2 : 1;
+    reg_t turbo15n20 : 1;
+    reg_t VGA_Curr : 2;
+    reg_t fuse_arm : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(VGA_2_Type) == sizeof(reg_t), "VGA_2_Type wrong size");
 
 struct VGA_3_RX_TOP_Type {
-  reg_t RESERVED0 : 6;
-  reg_t RSSI_EN_SPIenables : 1;
-  reg_t RSSI_MUX : 1;
-  reg_t RSSI_MODE : 1;
-  reg_t LPF_MODE_SEL : 1;
-  reg_t RESERVED1 : 6;
+    reg_t RESERVED0 : 6;
+    reg_t RSSI_EN_SPIenables : 1;
+    reg_t RSSI_MUX : 1;
+    reg_t RSSI_MODE : 1;
+    reg_t LPF_MODE_SEL : 1;
+    reg_t RESERVED1 : 6;
 };
 
 static_assert(sizeof(VGA_3_RX_TOP_Type) == sizeof(reg_t), "VGA_3_RX_TOP_Type wrong size");
 
 struct TEMP_SENSE_Type {
-  reg_t ts_adc : 5;
-  reg_t RESERVED0 : 1;
-  reg_t PLL_test_output : 1;
-  reg_t VAS_test_output : 1;
-  reg_t HPFSM_test_output : 1;
-  reg_t LOGEN_trim_divider_test_output : 1;
-  reg_t RESERVED1 : 6;
+    reg_t ts_adc : 5;
+    reg_t RESERVED0 : 1;
+    reg_t PLL_test_output : 1;
+    reg_t VAS_test_output : 1;
+    reg_t HPFSM_test_output : 1;
+    reg_t LOGEN_trim_divider_test_output : 1;
+    reg_t RESERVED1 : 6;
 };
 
 static_assert(sizeof(TEMP_SENSE_Type) == sizeof(reg_t), "TEMP_SENSE_Type wrong size");
 
 struct RX_TOP_RX_BIAS_Type {
-  reg_t LNAgain_SPI_EN : 1;
-  reg_t VGAgain_SPI_EN : 1;
-  reg_t EN_Bias_Trim : 1;
-  reg_t BIAS_TRIM_SPI : 5;
-  reg_t BIAS_TRIM_CNTRL : 1;
-  reg_t RX_IQERR_SPI_EN : 1;
-  reg_t RESERVED0 : 6;
+    reg_t LNAgain_SPI_EN : 1;
+    reg_t VGAgain_SPI_EN : 1;
+    reg_t EN_Bias_Trim : 1;
+    reg_t BIAS_TRIM_SPI : 5;
+    reg_t BIAS_TRIM_CNTRL : 1;
+    reg_t RX_IQERR_SPI_EN : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(RX_TOP_RX_BIAS_Type) == sizeof(reg_t), "RX_TOP_RX_BIAS_Type wrong size");
 
 struct RX_TOP_Type {
-  reg_t ts_adc_trigger : 1;
-  reg_t ts_en : 1;
-  reg_t LPFtrim_SPI_EN : 1;
-  reg_t DOUT_DRVH : 1;
-  reg_t DOUT_PU : 1;
-  reg_t DOUT_SEL : 3;
-  reg_t fuse_th : 1;
-  reg_t fuse_burn_gkt : 1;
-  reg_t RESERVED0 : 6;
+    reg_t ts_adc_trigger : 1;
+    reg_t ts_en : 1;
+    reg_t LPFtrim_SPI_EN : 1;
+    reg_t DOUT_DRVH : 1;
+    reg_t DOUT_PU : 1;
+    reg_t DOUT_SEL : 3;
+    reg_t fuse_th : 1;
+    reg_t fuse_burn_gkt : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(RX_TOP_Type) == sizeof(reg_t), "RX_TOP_Type wrong size");
 
 struct TX_TOP_1_Type {
-  reg_t RESERVED0 : 1;
-  reg_t TXCAL_GAIN : 2;
-  reg_t TXCAL_V2I_FILT : 3;
-  reg_t TX_BIAS_ADJ : 2;
-  reg_t RESERVED1 : 2;
-  reg_t RESERVED2 : 6;
+    reg_t RESERVED0 : 1;
+    reg_t TXCAL_GAIN : 2;
+    reg_t TXCAL_V2I_FILT : 3;
+    reg_t TX_BIAS_ADJ : 2;
+    reg_t RESERVED1 : 2;
+    reg_t RESERVED2 : 6;
 };
 
 static_assert(sizeof(TX_TOP_1_Type) == sizeof(reg_t), "TX_TOP_1_Type wrong size");
 
 struct TX_TOP_2_Type {
-  reg_t AMD_SPI_EN : 1;
-  reg_t TXMXR_V2I_GAIN : 4;
-  reg_t RESERVED0 : 5;
-  reg_t RESERVED1 : 6;
+    reg_t AMD_SPI_EN : 1;
+    reg_t TXMXR_V2I_GAIN : 4;
+    reg_t RESERVED0 : 5;
+    reg_t RESERVED1 : 6;
 };
 
 static_assert(sizeof(TX_TOP_2_Type) == sizeof(reg_t), "TX_TOP_2_Type wrong size");
 
 struct HPFSM_1_Type {
-  reg_t HPC_10M : 2;
-  reg_t HPC_10M_GAIN : 2;
-  reg_t HPC_600k : 3;
-  reg_t HPC_600k_GAIN : 3;
-  reg_t RESERVED0 : 6;
+    reg_t HPC_10M : 2;
+    reg_t HPC_10M_GAIN : 2;
+    reg_t HPC_600k : 3;
+    reg_t HPC_600k_GAIN : 3;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(HPFSM_1_Type) == sizeof(reg_t), "HPFSM_1_Type wrong size");
 
 struct HPFSM_2_Type {
-  reg_t HPC_100k : 2;
-  reg_t HPC_100k_GAIN : 2;
-  reg_t HPC_30k : 2;
-  reg_t HPC_30k_GAIN : 2;
-  reg_t HPC_1k : 2;
-  reg_t RESERVED0 : 6;
+    reg_t HPC_100k : 2;
+    reg_t HPC_100k_GAIN : 2;
+    reg_t HPC_30k : 2;
+    reg_t HPC_30k_GAIN : 2;
+    reg_t HPC_1k : 2;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(HPFSM_2_Type) == sizeof(reg_t), "HPFSM_2_Type wrong size");
 
 struct HPFSM_3_Type {
-  reg_t HPC_1k_GAIN : 2;
-  reg_t HPC_DELAY : 2;
-  reg_t HPC_STOP : 2;
-  reg_t HPC_STOP_M2 : 2;
-  reg_t HPC_RXGAIN_EN : 1;
-  reg_t HPC_MODE : 1;
-  reg_t RESERVED0 : 6;
+    reg_t HPC_1k_GAIN : 2;
+    reg_t HPC_DELAY : 2;
+    reg_t HPC_STOP : 2;
+    reg_t HPC_STOP_M2 : 2;
+    reg_t HPC_RXGAIN_EN : 1;
+    reg_t HPC_MODE : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(HPFSM_3_Type) == sizeof(reg_t), "HPFSM_3_Type wrong size");
 
 struct HPFSM_4_Type {
-  reg_t HPC_DIVH : 1;
-  reg_t HPC_TST : 5;
-  reg_t HPC_SEQ_BYP : 1;
-  reg_t DOUT_CSB_SEL : 1;
-  reg_t RESERVED0 : 2;
-  reg_t RESERVED1 : 6;
+    reg_t HPC_DIVH : 1;
+    reg_t HPC_TST : 5;
+    reg_t HPC_SEQ_BYP : 1;
+    reg_t DOUT_CSB_SEL : 1;
+    reg_t RESERVED0 : 2;
+    reg_t RESERVED1 : 6;
 };
 
 static_assert(sizeof(HPFSM_4_Type) == sizeof(reg_t), "HPFSM_4_Type wrong size");
 
 struct SPI_EN_Type {
-  reg_t EN_SPI : 1;
-  reg_t CAL_SPI : 1;
-  reg_t LOGEN_SPI_EN : 1;
-  reg_t SYN_SPI_EN : 1;
-  reg_t VAS_SPI_EN : 1;
-  reg_t PADRV_SPI_EN : 1;
-  reg_t PADAC_SPI_EN : 1;
-  reg_t PADAC_TX_EN : 1;
-  reg_t TXMX_SPI_EN : 1;
-  reg_t TXLO_SPI_EN : 1;
-  reg_t RESERVED0 : 6;
+    reg_t EN_SPI : 1;
+    reg_t CAL_SPI : 1;
+    reg_t LOGEN_SPI_EN : 1;
+    reg_t SYN_SPI_EN : 1;
+    reg_t VAS_SPI_EN : 1;
+    reg_t PADRV_SPI_EN : 1;
+    reg_t PADAC_SPI_EN : 1;
+    reg_t PADAC_TX_EN : 1;
+    reg_t TXMX_SPI_EN : 1;
+    reg_t TXLO_SPI_EN : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(SPI_EN_Type) == sizeof(reg_t), "SPI_EN_Type wrong size");
 
 struct SYN_FR_DIV_1_Type {
-  reg_t SYN_FRDIV_9_0 : 10;
-  reg_t RESERVED0 : 6;
+    reg_t SYN_FRDIV_9_0 : 10;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(SYN_FR_DIV_1_Type) == sizeof(reg_t), "SYN_FR_DIV_1_Type wrong size");
 
 struct SYN_FR_DIV_2_Type {
-  reg_t SYN_FRDIV_19_10 : 10;
-  reg_t RESERVED0 : 6;
+    reg_t SYN_FRDIV_19_10 : 10;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(SYN_FR_DIV_2_Type) == sizeof(reg_t), "SYN_FR_DIV_2_Type wrong size");
 
 struct SYN_INT_DIV_Type {
-  reg_t SYN_INTDIV : 8;
-  reg_t LOGEN_BSW : 2;
-  reg_t RESERVED0 : 6;
+    reg_t SYN_INTDIV : 8;
+    reg_t LOGEN_BSW : 2;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(SYN_INT_DIV_Type) == sizeof(reg_t), "SYN_INT_DIV_Type wrong size");
 
 struct SYN_CFG_1_Type {
-  reg_t SYN_MODE_FR_EN : 1;
-  reg_t SYN_REF_DIV_RATIO : 2;
-  reg_t SYN_CP_CURRENT : 2;
-  reg_t SYN_CLOCKOUT_DRIVE : 1;
-  reg_t SYN_TURBO_EN : 1;
-  reg_t CP_TRM_SET : 1;
-  reg_t CP_TRM_CODE : 2;
-  reg_t RESERVED0 : 6;
+    reg_t SYN_MODE_FR_EN : 1;
+    reg_t SYN_REF_DIV_RATIO : 2;
+    reg_t SYN_CP_CURRENT : 2;
+    reg_t SYN_CLOCKOUT_DRIVE : 1;
+    reg_t SYN_TURBO_EN : 1;
+    reg_t CP_TRM_SET : 1;
+    reg_t CP_TRM_CODE : 2;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(SYN_CFG_1_Type) == sizeof(reg_t), "SYN_CFG_1_Type wrong size");
 
 struct SYN_CFG_2_Type {
-  reg_t SYN_CP_COMMON_MODE_EN : 1;
-  reg_t SYN_PRESCALER_BIAS_BOOST : 1;
-  reg_t SYN_CP_BETA_CURRENT_COMP_EN : 1;
-  reg_t SYN_SD_CLK_SEL : 1;
-  reg_t SYN_CP_PW_ADJ : 1;
-  reg_t SYN_CP_LIN_CURRENT_SEL : 2;
-  reg_t SYN_TEST_OUT_SEL : 3;
-  reg_t RESERVED0 : 6;
+    reg_t SYN_CP_COMMON_MODE_EN : 1;
+    reg_t SYN_PRESCALER_BIAS_BOOST : 1;
+    reg_t SYN_CP_BETA_CURRENT_COMP_EN : 1;
+    reg_t SYN_SD_CLK_SEL : 1;
+    reg_t SYN_CP_PW_ADJ : 1;
+    reg_t SYN_CP_LIN_CURRENT_SEL : 2;
+    reg_t SYN_TEST_OUT_SEL : 3;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(SYN_CFG_2_Type) == sizeof(reg_t), "SYN_CFG_2_Type wrong size");
 
 struct VAS_CFG_Type {
-  reg_t VAS_MODE : 1;
-  reg_t VAS_RELOCK_SEL : 1;
-  reg_t VAS_DIV : 3;
-  reg_t VAS_DLY : 2;
-  reg_t VAS_TRIG_EN : 1;
-  reg_t VAS_ADE : 1;
-  reg_t VAS_ADL_SPI : 1;
-  reg_t RESERVED0 : 6;
+    reg_t VAS_MODE : 1;
+    reg_t VAS_RELOCK_SEL : 1;
+    reg_t VAS_DIV : 3;
+    reg_t VAS_DLY : 2;
+    reg_t VAS_TRIG_EN : 1;
+    reg_t VAS_ADE : 1;
+    reg_t VAS_ADL_SPI : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(VAS_CFG_Type) == sizeof(reg_t), "VAS_CFG_Type wrong size");
 
 struct LO_MISC_Type {
-  reg_t VAS_SPI : 5;
-  reg_t XTAL_BIAS_SEL : 2;
-  reg_t XTAL_E2C_BIAS_SEL : 1;
-  reg_t VAS_SE : 1;
-  reg_t VCO_SPI_EN : 1;
-  reg_t RESERVED0 : 6;
+    reg_t VAS_SPI : 5;
+    reg_t XTAL_BIAS_SEL : 2;
+    reg_t XTAL_E2C_BIAS_SEL : 1;
+    reg_t VAS_SE : 1;
+    reg_t VCO_SPI_EN : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(LO_MISC_Type) == sizeof(reg_t), "LO_MISC_Type wrong size");
 
 struct XTAL_CFG_Type {
-  reg_t XTAL_FTUNE : 7;
-  reg_t XTAL_CLKOUT_EN : 1;
-  reg_t XTAL_CLKOUT_DIV : 1;
-  reg_t XTAL_CORE_EN : 1;
-  reg_t RESERVED0 : 6;
+    reg_t XTAL_FTUNE : 7;
+    reg_t XTAL_CLKOUT_EN : 1;
+    reg_t XTAL_CLKOUT_DIV : 1;
+    reg_t XTAL_CORE_EN : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(XTAL_CFG_Type) == sizeof(reg_t), "XTAL_CFG_Type wrong size");
 
 struct VCO_CFG_Type {
-  reg_t VCO_BIAS_SPI_EN : 1;
-  reg_t VCO_BIAS_SPI : 4;
-  reg_t VCO_CMEN : 1;
-  reg_t VCO_PDET_TST : 2;
-  reg_t VCO_BUF_BIASH : 2;
-  reg_t RESERVED0 : 6;
+    reg_t VCO_BIAS_SPI_EN : 1;
+    reg_t VCO_BIAS_SPI : 4;
+    reg_t VCO_CMEN : 1;
+    reg_t VCO_PDET_TST : 2;
+    reg_t VCO_BUF_BIASH : 2;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(VCO_CFG_Type) == sizeof(reg_t), "VCO_CFG_Type wrong size");
 
 struct LO_GEN_Type {
-  reg_t LOGEN_BIASH1 : 2;
-  reg_t LOGEN_BIASH2 : 1;
-  reg_t LOGEN_2GM : 1;
-  reg_t LOGEN_TRIM1 : 1;
-  reg_t LOGEN_TRIM2 : 1;
-  reg_t VAS_TST : 4;
-  reg_t RESERVED0 : 6;
+    reg_t LOGEN_BIASH1 : 2;
+    reg_t LOGEN_BIASH2 : 1;
+    reg_t LOGEN_2GM : 1;
+    reg_t LOGEN_TRIM1 : 1;
+    reg_t LOGEN_TRIM2 : 1;
+    reg_t VAS_TST : 4;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(LO_GEN_Type) == sizeof(reg_t), "LO_GEN_Type wrong size");
 
 struct PA_DRV_PA_DAC_Type {
-  reg_t PADRV_BIAS : 3;
-  reg_t PADRV_DOWN_SPI_EN : 1;
-  reg_t PADRV_DOWN_SPI_SEL : 1;
-  reg_t PADAC_IV : 1;
-  reg_t PADAC_VMODE : 1;
-  reg_t PADAC_DIVH : 1;
-  reg_t TXGATE_EN : 1;
-  reg_t TX_DCCORR_EN : 1;
-  reg_t RESERVED0 : 6;
+    reg_t PADRV_BIAS : 3;
+    reg_t PADRV_DOWN_SPI_EN : 1;
+    reg_t PADRV_DOWN_SPI_SEL : 1;
+    reg_t PADAC_IV : 1;
+    reg_t PADAC_VMODE : 1;
+    reg_t PADAC_DIVH : 1;
+    reg_t TXGATE_EN : 1;
+    reg_t TX_DCCORR_EN : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(PA_DRV_PA_DAC_Type) == sizeof(reg_t), "PA_DRV_PA_DAC_Type wrong size");
 
 struct PA_DAC_Type {
-  reg_t PADAC_BIAS : 6;
-  reg_t PADAC_DLY : 4;
-  reg_t RESERVED0 : 6;
+    reg_t PADAC_BIAS : 6;
+    reg_t PADAC_DLY : 4;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(PA_DAC_Type) == sizeof(reg_t), "PA_DAC_Type wrong size");
 
 struct TX_GAIN_Type {
-  reg_t TXVGA_GAIN_SPI_EN : 1;
-  reg_t TXVGA_GAIN_MSB_SPI_EN : 1;
-  reg_t TX_DCCORR_SPI_EN : 1;
-  reg_t FUSE_ARM : 1;
-  reg_t TXVGA_GAIN_SPI : 6;
-  reg_t RESERVED0 : 6;
+    reg_t TXVGA_GAIN_SPI_EN : 1;
+    reg_t TXVGA_GAIN_MSB_SPI_EN : 1;
+    reg_t TX_DCCORR_SPI_EN : 1;
+    reg_t FUSE_ARM : 1;
+    reg_t TXVGA_GAIN_SPI : 6;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(TX_GAIN_Type) == sizeof(reg_t), "TX_GAIN_Type wrong size");
 
 struct TX_LO_IQ_Type {
-  reg_t TXLO_IQ_SPI : 5;
-  reg_t TXLO_IQ_SPI_EN : 1;
-  reg_t TXLO_BUFF : 2;
-  reg_t FUSE_GKT : 1;
-  reg_t FUSE_RTH : 1;
-  reg_t RESERVED0 : 6;
+    reg_t TXLO_IQ_SPI : 5;
+    reg_t TXLO_IQ_SPI_EN : 1;
+    reg_t TXLO_BUFF : 2;
+    reg_t FUSE_GKT : 1;
+    reg_t FUSE_RTH : 1;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(TX_LO_IQ_Type) == sizeof(reg_t), "TX_LO_IQ_Type wrong size");
 
 struct TX_DC_CORR_Type {
-  reg_t TX_DCCORR_I : 5;
-  reg_t TX_DCCORR_Q : 5;
-  reg_t RESERVED0 : 6;
+    reg_t TX_DCCORR_I : 5;
+    reg_t TX_DCCORR_Q : 5;
+    reg_t RESERVED0 : 6;
 };
 
 static_assert(sizeof(TX_DC_CORR_Type) == sizeof(reg_t), "TX_DC_CORR_Type wrong size");
 
 struct Register_Type {
-  RXRF_1_Type rxrf_1; /*  0 */
-  RXRF_2_Type rxrf_2;
-  LPF_1_Type lpf_1;
-  LPF_2_Type lpf_2;
-  LPF_3_VGA_1_Type lpf_3_vga_1; /*  4 */
-  VGA_2_Type vga_2;
-  VGA_3_RX_TOP_Type vga_3_rx_top;
-  TEMP_SENSE_Type temp_sense;
-  RX_TOP_RX_BIAS_Type rx_top_rx_bias; /*  8 */
-  RX_TOP_Type rx_top;
-  TX_TOP_1_Type tx_top_1;
-  TX_TOP_2_Type tx_top_2;
-  HPFSM_1_Type hpfsm_1; /* 12 */
-  HPFSM_2_Type hpfsm_2;
-  HPFSM_3_Type hpfsm_3;
-  HPFSM_4_Type hpfsm_4;
-  SPI_EN_Type spi_en; /* 16 */
-  SYN_FR_DIV_1_Type syn_fr_div_1;
-  SYN_FR_DIV_2_Type syn_fr_div_2;
-  SYN_INT_DIV_Type syn_int_div;
-  SYN_CFG_1_Type syn_cfg_1; /* 20 */
-  SYN_CFG_2_Type syn_cfg_2;
-  VAS_CFG_Type vas_cfg;
-  LO_MISC_Type lo_misc;
-  XTAL_CFG_Type xtal_cfg; /* 24 */
-  VCO_CFG_Type vco_cfg;
-  LO_GEN_Type lo_gen;
-  PA_DRV_PA_DAC_Type pa_drv_pa_dac;
-  PA_DAC_Type pa_dac; /* 28 */
-  TX_GAIN_Type tx_gain;
-  TX_LO_IQ_Type tx_lo_iq;
-  TX_DC_CORR_Type tx_dc_corr;
+    RXRF_1_Type rxrf_1; /*  0 */
+    RXRF_2_Type rxrf_2;
+    LPF_1_Type lpf_1;
+    LPF_2_Type lpf_2;
+    LPF_3_VGA_1_Type lpf_3_vga_1; /*  4 */
+    VGA_2_Type vga_2;
+    VGA_3_RX_TOP_Type vga_3_rx_top;
+    TEMP_SENSE_Type temp_sense;
+    RX_TOP_RX_BIAS_Type rx_top_rx_bias; /*  8 */
+    RX_TOP_Type rx_top;
+    TX_TOP_1_Type tx_top_1;
+    TX_TOP_2_Type tx_top_2;
+    HPFSM_1_Type hpfsm_1; /* 12 */
+    HPFSM_2_Type hpfsm_2;
+    HPFSM_3_Type hpfsm_3;
+    HPFSM_4_Type hpfsm_4;
+    SPI_EN_Type spi_en; /* 16 */
+    SYN_FR_DIV_1_Type syn_fr_div_1;
+    SYN_FR_DIV_2_Type syn_fr_div_2;
+    SYN_INT_DIV_Type syn_int_div;
+    SYN_CFG_1_Type syn_cfg_1; /* 20 */
+    SYN_CFG_2_Type syn_cfg_2;
+    VAS_CFG_Type vas_cfg;
+    LO_MISC_Type lo_misc;
+    XTAL_CFG_Type xtal_cfg; /* 24 */
+    VCO_CFG_Type vco_cfg;
+    LO_GEN_Type lo_gen;
+    PA_DRV_PA_DAC_Type pa_drv_pa_dac;
+    PA_DAC_Type pa_dac; /* 28 */
+    TX_GAIN_Type tx_gain;
+    TX_LO_IQ_Type tx_lo_iq;
+    TX_DC_CORR_Type tx_dc_corr;
 };
 
 static_assert(sizeof(Register_Type) == reg_count * sizeof(reg_t), "Register_Type wrong size");
 
 struct RegisterMap {
-  constexpr RegisterMap(
-      Register_Type values)
-      : r(values) {
-  }
+    constexpr RegisterMap(
+        Register_Type values)
+        : r(values) {
+    }
 
-  union {
-    Register_Type r;
-    std::array<reg_t, reg_count> w;
-  };
+    union {
+        Register_Type r;
+        std::array<reg_t, reg_count> w;
+    };
 };
 
 static_assert(sizeof(RegisterMap) == reg_count * sizeof(reg_t), "RegisterMap type wrong size");
@@ -771,19 +771,19 @@ constexpr RegisterMap initial_register_values{Register_Type{
 }};
 
 class MAX2837 : public MAX283x {
- public:
-  constexpr MAX2837(
-      spi::arbiter::Target& target)
-      : _target(target) {
-  }
+   public:
+    constexpr MAX2837(
+        spi::arbiter::Target& target)
+        : _target(target) {
+    }
 
-  void init() override;
-  void set_mode(const Mode mode) override;
+    void init() override;
+    void set_mode(const Mode mode) override;
 
-  void set_tx_vga_gain(const int_fast8_t db) override;
-  void set_lna_gain(const int_fast8_t db) override;
-  void set_vga_gain(const int_fast8_t db) override;
-  void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) override;
+    void set_tx_vga_gain(const int_fast8_t db) override;
+    void set_lna_gain(const int_fast8_t db) override;
+    void set_vga_gain(const int_fast8_t db) override;
+    void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) override;
 #if 0
 	void rx_cal() {
 		_map.r.spi_en.EN_SPI = 1;
@@ -825,31 +825,31 @@ class MAX2837 : public MAX283x {
 	}
 #endif
 
-  bool set_frequency(const rf::Frequency lo_frequency) override;
+    bool set_frequency(const rf::Frequency lo_frequency) override;
 
-  void set_rx_lo_iq_calibration(const size_t v) override;
-  void set_rx_bias_trim(const size_t v);
-  void set_vco_bias(const size_t v);
-  void set_rx_buff_vcm(const size_t v) override;
+    void set_rx_lo_iq_calibration(const size_t v) override;
+    void set_rx_bias_trim(const size_t v);
+    void set_vco_bias(const size_t v);
+    void set_rx_buff_vcm(const size_t v) override;
 
-  reg_t temp_sense() override;
+    reg_t temp_sense() override;
 
-  reg_t read(const address_t reg_num) override;
+    reg_t read(const address_t reg_num) override;
 
- private:
-  spi::arbiter::Target& _target;
+   private:
+    spi::arbiter::Target& _target;
 
-  RegisterMap _map{initial_register_values};
-  DirtyRegisters<Register, reg_count> _dirty{};
+    RegisterMap _map{initial_register_values};
+    DirtyRegisters<Register, reg_count> _dirty{};
 
-  void flush_one(const Register reg);
+    void flush_one(const Register reg);
 
-  void write(const address_t reg_num, const reg_t value);
+    void write(const address_t reg_num, const reg_t value);
 
-  void write(const Register reg, const reg_t value);
-  reg_t read(const Register reg);
+    void write(const Register reg, const reg_t value);
+    reg_t read(const Register reg);
 
-  void flush();
+    void flush();
 };
 
 }  // namespace max2837

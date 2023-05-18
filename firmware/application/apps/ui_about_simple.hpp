@@ -9,29 +9,29 @@
 
 namespace ui {
 class AboutView : public View {
- public:
-  AboutView(NavigationView& nav);
-  void focus() override;
-  std::string title() const override { return "About"; };
-  int32_t timer{180};
-  short frame{0};
+   public:
+    AboutView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "About"; };
+    int32_t timer{180};
+    short frame{0};
 
- private:
-  void update();
+   private:
+    void update();
 
-  Console console{
-      {0, 10, 240, 240}};
+    Console console{
+        {0, 10, 240, 240}};
 
-  Button button_ok{
-      {240 / 3, 270, 240 / 3, 24},
-      "OK",
-  };
+    Button button_ok{
+        {240 / 3, 270, 240 / 3, 24},
+        "OK",
+    };
 
-  MessageHandlerRegistration message_handler_update{
-      Message::ID::DisplayFrameSync,
-      [this](const Message* const) {
-        this->update();
-      }};
+    MessageHandlerRegistration message_handler_update{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->update();
+        }};
 };
 }  // namespace ui
 

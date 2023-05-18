@@ -102,35 +102,35 @@ constexpr auto bandwidth_maximum = bandwidths[bandwidths.size() - 1];
 /*************************************************************************/
 
 enum Mode {
-  Shutdown,
-  Standby,
-  Receive,
-  Transmit,
+    Shutdown,
+    Standby,
+    Receive,
+    Transmit,
 };
 
 using reg_t = uint16_t;
 using address_t = uint8_t;
 
 class MAX283x {
- public:
-  virtual ~MAX283x() = default;
+   public:
+    virtual ~MAX283x() = default;
 
-  virtual void init();
-  virtual void set_mode(const Mode mode);
+    virtual void init();
+    virtual void set_mode(const Mode mode);
 
-  virtual void set_tx_vga_gain(const int_fast8_t db);
-  virtual void set_lna_gain(const int_fast8_t db);
-  virtual void set_vga_gain(const int_fast8_t db);
-  virtual void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum);
+    virtual void set_tx_vga_gain(const int_fast8_t db);
+    virtual void set_lna_gain(const int_fast8_t db);
+    virtual void set_vga_gain(const int_fast8_t db);
+    virtual void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum);
 
-  virtual bool set_frequency(const rf::Frequency lo_frequency);
+    virtual bool set_frequency(const rf::Frequency lo_frequency);
 
-  virtual void set_rx_lo_iq_calibration(const size_t v);
-  virtual void set_rx_buff_vcm(const size_t v);
+    virtual void set_rx_lo_iq_calibration(const size_t v);
+    virtual void set_rx_buff_vcm(const size_t v);
 
-  virtual reg_t temp_sense();
+    virtual reg_t temp_sense();
 
-  virtual reg_t read(const address_t reg_num);
+    virtual reg_t read(const address_t reg_num);
 };
 
 }  // namespace max283x

@@ -43,14 +43,14 @@ const uint32_t de_bruijn_polys[14]{
     0b1010000101000101};
 
 struct de_bruijn {
- public:
-  size_t init(const uint32_t n);
-  uint32_t compute(const uint32_t steps);
+   public:
+    size_t init(const uint32_t n);
+    uint32_t compute(const uint32_t steps);
 
- private:
-  uint32_t length{};
-  uint32_t poly{};
-  uint32_t shift_register{};
+   private:
+    uint32_t length{};
+    uint32_t poly{};
+    uint32_t shift_register{};
 };
 
 #endif /*__DE_BRUIJN_H__*/

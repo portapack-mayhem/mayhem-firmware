@@ -30,43 +30,43 @@ namespace spi {
 namespace arbiter {
 
 class Arbiter {
- public:
-  constexpr Arbiter(
-      SPI& bus)
-      : _bus(bus),
-        _config(nullptr) {
-  }
-
-  void transfer(const SPIConfig* const config, void* const data, const size_t count) {
-    if (config != _config) {
-      _bus.stop();
-      _bus.start(*config);
-      _config = config;
+   public:
+    constexpr Arbiter(
+        SPI& bus)
+        : _bus(bus),
+          _config(nullptr) {
     }
-    _bus.transfer(data, count);
-  }
 
- private:
-  SPI& _bus;
-  const SPIConfig* _config;
+    void transfer(const SPIConfig* const config, void* const data, const size_t count) {
+        if (config != _config) {
+            _bus.stop();
+            _bus.start(*config);
+            _config = config;
+        }
+        _bus.transfer(data, count);
+    }
+
+   private:
+    SPI& _bus;
+    const SPIConfig* _config;
 };
 
 class Target {
- public:
-  constexpr Target(
-      Arbiter& arbiter,
-      const SPIConfig& config)
-      : _arbiter(arbiter),
-        _config(config) {
-  }
+   public:
+    constexpr Target(
+        Arbiter& arbiter,
+        const SPIConfig& config)
+        : _arbiter(arbiter),
+          _config(config) {
+    }
 
-  void transfer(void* const data, const size_t count) {
-    _arbiter.transfer(&_config, data, count);
-  }
+    void transfer(void* const data, const size_t count) {
+        _arbiter.transfer(&_config, data, count);
+    }
 
- private:
-  Arbiter& _arbiter;
-  const SPIConfig _config;
+   private:
+    Arbiter& _arbiter;
+    const SPIConfig _config;
 };
 
 }  // namespace arbiter

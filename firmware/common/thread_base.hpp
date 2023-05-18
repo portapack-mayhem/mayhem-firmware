@@ -25,19 +25,19 @@
 #include <ch.h>
 
 class ThreadBase {
- public:
-  virtual ~ThreadBase() = default;
+   public:
+    virtual ~ThreadBase() = default;
 
- protected:
-  static msg_t fn(void* arg) {
-    auto obj = static_cast<ThreadBase*>(arg);
-    obj->run();
+   protected:
+    static msg_t fn(void* arg) {
+        auto obj = static_cast<ThreadBase*>(arg);
+        obj->run();
 
-    return 0;
-  }
+        return 0;
+    }
 
- private:
-  virtual void run() = 0;
+   private:
+    virtual void run() = 0;
 };
 
 #endif /*__THREAD_BASE_H__*/

@@ -40,63 +40,63 @@
 namespace ui {
 
 class NuoptixView : public View {
- public:
-  NuoptixView(NavigationView& nav);
-  ~NuoptixView();
+   public:
+    NuoptixView(NavigationView& nav);
+    ~NuoptixView();
 
-  void focus() override;
+    void focus() override;
 
-  std::string title() const override { return "Nuoptix sync"; };
+    std::string title() const override { return "Nuoptix sync"; };
 
- private:
-  enum tx_modes {
-    IDLE = 0,
-    NORMAL,
-    IMPROVISE
-  };
+   private:
+    enum tx_modes {
+        IDLE = 0,
+        NORMAL,
+        IMPROVISE
+    };
 
-  tx_modes tx_mode{IDLE};
+    tx_modes tx_mode{IDLE};
 
-  void on_tuning_frequency_changed(rf::Frequency f);
-  void transmit(bool setup);
-  void on_tx_progress(const uint32_t progress, const bool done);
+    void on_tuning_frequency_changed(rf::Frequency f);
+    void transmit(bool setup);
+    void on_tx_progress(const uint32_t progress, const bool done);
 
-  uint32_t timecode{0};
+    uint32_t timecode{0};
 
-  Text text_timecode{
-      {10 * 8, 2 * 16, 9 * 8, 16},
-      "Timecode:"};
+    Text text_timecode{
+        {10 * 8, 2 * 16, 9 * 8, 16},
+        "Timecode:"};
 
-  NumberField number_timecode{
-      {13 * 8, 3 * 16},
-      4,
-      {1, 9999},
-      1,
-      '0'};
+    NumberField number_timecode{
+        {13 * 8, 3 * 16},
+        4,
+        {1, 9999},
+        1,
+        '0'};
 
-  Text text_mod{
-      {10 * 8, 5 * 16, 6 * 8, 16},
-      "Mod: "};
+    Text text_mod{
+        {10 * 8, 5 * 16, 6 * 8, 16},
+        "Mod: "};
 
-  ProgressBar progressbar{
-      {16, 14 * 16, 208, 16}};
+    ProgressBar progressbar{
+        {16, 14 * 16, 208, 16}};
 
-  /*Button button_impro {
+    /*Button button_impro {
 		{ 64, 184, 112, 40 },
 		"IMPROVISE"
 	};*/
 
-  TransmitterView tx_view{
-      16 * 16,
-      10000,
-      15};
+    TransmitterView tx_view{
+        16 * 16,
+        10000,
+        15};
 
-  MessageHandlerRegistration message_handler_tx_progress{
-      Message::ID::TXProgress,
-      [this](const Message* const p) {
-        const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-        this->on_tx_progress(message.progress, message.done);
-      }};
+    MessageHandlerRegistration message_handler_tx_progress{
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            this->on_tx_progress(message.progress, message.done);
+        }};
 };
 
 } /* namespace ui */

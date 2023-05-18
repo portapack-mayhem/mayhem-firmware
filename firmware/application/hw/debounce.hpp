@@ -25,16 +25,16 @@
 #include <cstdint>
 
 class Debounce {
- public:
-  bool feed(const uint8_t bit);
+   public:
+    bool feed(const uint8_t bit);
 
-  uint8_t state() const {
-    return state_;
-  }
+    uint8_t state() const {
+        return state_;
+    }
 
- private:
-  uint8_t history_{0};
-  uint8_t state_{0};
+   private:
+    uint8_t history_{0};
+    uint8_t state_{0};
 };
 
 #endif /*__DEBOUNCE_H__*/

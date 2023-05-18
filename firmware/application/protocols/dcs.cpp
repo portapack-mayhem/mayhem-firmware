@@ -540,8 +540,8 @@ const uint16_t dcs_parity[DCS_CODES_NB] = {
 };
 
 uint32_t dcs_word(uint32_t code) {
-  code &= 511;
-  return (dcs_parity[code] << 12) | (0b100 << 9) | code;
+    code &= 511;
+    return (dcs_parity[code] << 12) | (0b100 << 9) | code;
 }
 
 }  // namespace dcs

@@ -57,79 +57,79 @@ static constexpr std::array<uint8_t, 12> png_iend{{
 
 Optional<File::Error> PNGWriter::create(
     const std::filesystem::path& filename) {
-  const auto create_error = file.create(filename);
-  if (create_error.is_valid()) {
-    return create_error;
-  }
+    const auto create_error = file.create(filename);
+    if (create_error.is_valid()) {
+        return create_error;
+    }
 
-  file.write(png_file_header);
-  file.write(png_ihdr_screen_capture);
+    file.write(png_file_header);
+    file.write(png_ihdr_screen_capture);
 
-  write_chunk_header(
-      2 + height * (5 + 1 + width * 3) + 4,
-      png_idat_chunk_type);
+    write_chunk_header(
+        2 + height * (5 + 1 + width * 3) + 4,
+        png_idat_chunk_type);
 
-  constexpr std::array<uint8_t, 2> zlib_header{0x78, 0x01};  // Zlib CM, CINFO, FLG.
-  write_chunk_content(zlib_header);
+    constexpr std::array<uint8_t, 2> zlib_header{0x78, 0x01};  // Zlib CM, CINFO, FLG.
+    write_chunk_content(zlib_header);
 
-  return {};
+    return {};
 }
 
 PNGWriter::~PNGWriter() {
-  write_chunk_content(adler_32.bytes());
-  write_chunk_crc();
+    write_chunk_content(adler_32.bytes());
+    write_chunk_crc();
 
-  file.write(png_iend);
+    file.write(png_iend);
 }
 
 void PNGWriter::write_scanline(const std::array<ui::ColorRGB888, 240>& scanline) {
-  constexpr uint8_t scanline_filter_type = 0;
-  constexpr uint32_t deflate_block_length = 1 + sizeof(scanline);
+    constexpr uint8_t scanline_filter_type = 0;
+    constexpr uint32_t deflate_block_length = 1 + sizeof(scanline);
 
-  const std::array<uint8_t, 6> deflate_and_scanline_header{
-      static_cast<uint8_t>((scanline_count == (height - 1)) ? 0x01 : 0x00),  // DEFLATE header bits, bfinal=0, btype=00
-      static_cast<uint8_t>((deflate_block_length >> 0) & 0xff),              // Length LSB
-      static_cast<uint8_t>((deflate_block_length >> 8) & 0xff),              // Length MSB
-      static_cast<uint8_t>((deflate_block_length >> 0) & 0xff) ^ 0xff,       // ~Length LSB
-      static_cast<uint8_t>((deflate_block_length >> 8) & 0xff) ^ 0xff,       // ~Length MSB
-      scanline_filter_type,
-  };
-  write_chunk_content(deflate_and_scanline_header);
+    const std::array<uint8_t, 6> deflate_and_scanline_header{
+        static_cast<uint8_t>((scanline_count == (height - 1)) ? 0x01 : 0x00),  // DEFLATE header bits, bfinal=0, btype=00
+        static_cast<uint8_t>((deflate_block_length >> 0) & 0xff),              // Length LSB
+        static_cast<uint8_t>((deflate_block_length >> 8) & 0xff),              // Length MSB
+        static_cast<uint8_t>((deflate_block_length >> 0) & 0xff) ^ 0xff,       // ~Length LSB
+        static_cast<uint8_t>((deflate_block_length >> 8) & 0xff) ^ 0xff,       // ~Length MSB
+        scanline_filter_type,
+    };
+    write_chunk_content(deflate_and_scanline_header);
 
-  adler_32.feed(scanline_filter_type);
-  adler_32.feed(scanline);
+    adler_32.feed(scanline_filter_type);
+    adler_32.feed(scanline);
 
-  // Small writes to avoid some sort of large-transfer plus block
-  // boundary FatFs or SDC driver bug?
-  write_chunk_content(&scanline[0], 80 * sizeof(ui::ColorRGB888));
-  write_chunk_content(&scanline[80], 80 * sizeof(ui::ColorRGB888));
-  write_chunk_content(&scanline[160], 80 * sizeof(ui::ColorRGB888));
+    // Small writes to avoid some sort of large-transfer plus block
+    // boundary FatFs or SDC driver bug?
+    write_chunk_content(&scanline[0], 80 * sizeof(ui::ColorRGB888));
+    write_chunk_content(&scanline[80], 80 * sizeof(ui::ColorRGB888));
+    write_chunk_content(&scanline[160], 80 * sizeof(ui::ColorRGB888));
 
-  scanline_count++;
+    scanline_count++;
 }
 
 void PNGWriter::write_chunk_header(
     const size_t length,
     const std::array<uint8_t, 4>& type) {
-  write_uint32_be(length);
-  crc.reset();
-  write_chunk_content(type);
+    write_uint32_be(length);
+    crc.reset();
+    write_chunk_content(type);
 }
 
 void PNGWriter::write_chunk_content(const void* const p, const size_t count) {
-  file.write(p, count);
-  crc.process_bytes(p, count);
+    file.write(p, count);
+    crc.process_bytes(p, count);
 }
 
 void PNGWriter::write_chunk_crc() {
-  write_uint32_be(crc.checksum());
+    write_uint32_be(crc.checksum());
 }
 
 void PNGWriter::write_uint32_be(const uint32_t v) {
-  file.write(std::array<uint8_t, 4>{{
-      static_cast<uint8_t>((v >> 24) & 0xff),
-      static_cast<uint8_t>((v >> 16) & 0xff),
-      static_cast<uint8_t>((v >> 8) & 0xff),
-      static_cast<uint8_t>((v >> 0) & 0xff),
-  }});
+    file.write(std::array<uint8_t, 4>{{
+        static_cast<uint8_t>((v >> 24) & 0xff),
+        static_cast<uint8_t>((v >> 16) & 0xff),
+        static_cast<uint8_t>((v >> 8) & 0xff),
+        static_cast<uint8_t>((v >> 0) & 0xff),
+    }});
 }

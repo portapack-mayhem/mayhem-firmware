@@ -45,10 +45,10 @@ static const int8_t transition_map[] = {
 int_fast8_t Encoder::update(
     const uint_fast8_t phase_0,
     const uint_fast8_t phase_1) {
-  state <<= 1;
-  state |= phase_0;
-  state <<= 1;
-  state |= phase_1;
+    state <<= 1;
+    state |= phase_0;
+    state <<= 1;
+    state |= phase_1;
 
-  return transition_map[state & 0xf];
+    return transition_map[state & 0xf];
 }

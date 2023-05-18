@@ -32,97 +32,97 @@ namespace std {
 
 template <>
 struct complex<int8_t> {
- public:
-  typedef int8_t value_type;
-  typedef uint16_t rep_type;
+   public:
+    typedef int8_t value_type;
+    typedef uint16_t rep_type;
 
-  // constexpr complex(
-  // 	rep_type r
-  // ) : _rep { r }
-  // {
-  // }
+    // constexpr complex(
+    // 	rep_type r
+    // ) : _rep { r }
+    // {
+    // }
 
-  constexpr complex(
-      int8_t re = 0,
-      int8_t im = 0)
-      : _v{re, im} {
-  }
+    constexpr complex(
+        int8_t re = 0,
+        int8_t im = 0)
+        : _v{re, im} {
+    }
 
-  // constexpr complex(
-  // 	const complex& o
-  // ) : _rep { o._rep }
-  // {
-  // }
+    // constexpr complex(
+    // 	const complex& o
+    // ) : _rep { o._rep }
+    // {
+    // }
 
-  constexpr int8_t real() const { return _v[0]; }
-  constexpr int8_t imag() const { return _v[1]; }
+    constexpr int8_t real() const { return _v[0]; }
+    constexpr int8_t imag() const { return _v[1]; }
 
-  void real(int8_t v) { _v[0] = v; }
-  void imag(int8_t v) { _v[1] = v; }
+    void real(int8_t v) { _v[0] = v; }
+    void imag(int8_t v) { _v[1] = v; }
 
-  constexpr uint16_t __rep() const {
-    return _rep;
-  }
+    constexpr uint16_t __rep() const {
+        return _rep;
+    }
 
- private:
-  union {
-    value_type _v[2];
-    rep_type _rep;
-  };
+   private:
+    union {
+        value_type _v[2];
+        rep_type _rep;
+    };
 };
 
 template <>
 struct complex<int16_t> {
- public:
-  typedef int16_t value_type;
-  typedef uint32_t rep_type;
+   public:
+    typedef int16_t value_type;
+    typedef uint32_t rep_type;
 
-  // constexpr complex(
-  // 	rep_type r
-  // ) : _rep { r }
-  // {
-  // }
+    // constexpr complex(
+    // 	rep_type r
+    // ) : _rep { r }
+    // {
+    // }
 
-  constexpr complex(
-      int16_t re = 0,
-      int16_t im = 0)
-      : _v{re, im} {
-  }
+    constexpr complex(
+        int16_t re = 0,
+        int16_t im = 0)
+        : _v{re, im} {
+    }
 
-  // constexpr complex(
-  // 	const complex& o
-  // ) : _rep { o._rep }
-  // {
-  // }
+    // constexpr complex(
+    // 	const complex& o
+    // ) : _rep { o._rep }
+    // {
+    // }
 
-  constexpr int16_t real() const { return _v[0]; }
-  constexpr int16_t imag() const { return _v[1]; }
+    constexpr int16_t real() const { return _v[0]; }
+    constexpr int16_t imag() const { return _v[1]; }
 
-  void real(int16_t v) { _v[0] = v; }
-  void imag(int16_t v) { _v[1] = v; }
+    void real(int16_t v) { _v[0] = v; }
+    void imag(int16_t v) { _v[1] = v; }
 
-  template <class X>
-  complex<int16_t>& operator+=(const complex<X>& other) {
-    _v[0] += other.real();
-    _v[1] += other.imag();
-    return *this;
-  }
+    template <class X>
+    complex<int16_t>& operator+=(const complex<X>& other) {
+        _v[0] += other.real();
+        _v[1] += other.imag();
+        return *this;
+    }
 
-  constexpr uint32_t __rep() const {
-    return _rep;
-  }
+    constexpr uint32_t __rep() const {
+        return _rep;
+    }
 
-  constexpr operator std::complex<float>() const {
-    return {
-        static_cast<float>(_v[0]),
-        static_cast<float>(_v[1])};
-  }
+    constexpr operator std::complex<float>() const {
+        return {
+            static_cast<float>(_v[0]),
+            static_cast<float>(_v[1])};
+    }
 
- private:
-  union {
-    value_type _v[2];
-    rep_type _rep;
-  };
+   private:
+    union {
+        value_type _v[2];
+        rep_type _rep;
+    };
 };
 
 } /* namespace std */

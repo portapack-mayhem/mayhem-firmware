@@ -21,39 +21,39 @@
  */
 
 enum Condition {
-  cond_empty = -1,
-  stroke_a = 0,
-  stroke_b = 1,
-  stroke_c = 2,
-  stroke_d = 3,
-  last = 8
+    cond_empty = -1,
+    stroke_a = 0,
+    stroke_b = 1,
+    stroke_c = 2,
+    stroke_d = 3,
+    last = 8
 };
 
 enum Direction {
-  dir_empty = -1,
-  Uw = 0x0F,  // Wildcards
-  Dw = 0x1F,
-  Lw = 0xF0,
-  Rw = 0xF1,
-  U = 0x02,  // Orthos
-  D = 0x12,
-  L = 0x20,
-  R = 0x21,
-  UL = 0x00,  // Diagonals
-  DL = 0x10,
-  UR = 0x01,
-  DR = 0x11
+    dir_empty = -1,
+    Uw = 0x0F,  // Wildcards
+    Dw = 0x1F,
+    Lw = 0xF0,
+    Rw = 0xF1,
+    U = 0x02,  // Orthos
+    D = 0x12,
+    L = 0x20,
+    R = 0x21,
+    UL = 0x00,  // Diagonals
+    DL = 0x10,
+    UR = 0x01,
+    DR = 0x11
 };
 
 struct HandWriting {
-  uint8_t letter_count;
-  struct HandWritingLetter {
-    struct HandWritingMatch {
-      Condition cond;
-      Direction dir;
-    } match[3];
-    uint8_t count;
-  } letter[32];
+    uint8_t letter_count;
+    struct HandWritingLetter {
+        struct HandWritingMatch {
+            Condition cond;
+            Direction dir;
+        } match[3];
+        uint8_t count;
+    } letter[32];
 };
 
 const HandWriting handwriting_unistroke = {

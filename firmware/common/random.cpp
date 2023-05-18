@@ -28,55 +28,55 @@ static unsigned long* rnd_next;
 
 /* initializes state[N] with a seed */
 void init_genrand(unsigned long s) {
-  int j;
-  state[0] = s & 0xffffffffUL;
+    int j;
+    state[0] = s & 0xffffffffUL;
 
-  for (j = 1; j < N; j++) {
-    state[j] = (1812433253UL * (state[j - 1] ^ (state[j - 1] >> 30)) + j);
-    /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
-    /* In the previous versions, MSBs of the seed affect   */
-    /* only MSBs of the array state[].                     */
-    /* 2002/01/09 modified by Makoto Matsumoto             */
-    state[j] &= 0xffffffffUL; /* for >32 bit machines      */
-  }
+    for (j = 1; j < N; j++) {
+        state[j] = (1812433253UL * (state[j - 1] ^ (state[j - 1] >> 30)) + j);
+        /* See Knuth TAOCP Vol2. 3rd Ed. P.106 for multiplier. */
+        /* In the previous versions, MSBs of the seed affect   */
+        /* only MSBs of the array state[].                     */
+        /* 2002/01/09 modified by Makoto Matsumoto             */
+        state[j] &= 0xffffffffUL; /* for >32 bit machines      */
+    }
 
-  rnd_left = 1;
-  rnd_init = 1;
+    rnd_left = 1;
+    rnd_init = 1;
 }
 
 static void next_state(void) {
-  unsigned long* p = state;
-  int j;
+    unsigned long* p = state;
+    int j;
 
-  /* if init_genrand() has not been called, */
-  /* a default initial seed is used         */
-  if (rnd_init == 0)
-    init_genrand(5489UL);
+    /* if init_genrand() has not been called, */
+    /* a default initial seed is used         */
+    if (rnd_init == 0)
+        init_genrand(5489UL);
 
-  rnd_left = N;
-  rnd_next = state;
+    rnd_left = N;
+    rnd_next = state;
 
-  for (j = N - M + 1; --j; p++)
-    *p = p[M] ^ TWIST(p[0], p[1]);
+    for (j = N - M + 1; --j; p++)
+        *p = p[M] ^ TWIST(p[0], p[1]);
 
-  for (j = M; --j; p++)
-    *p = p[M - N] ^ TWIST(p[0], p[1]);
+    for (j = M; --j; p++)
+        *p = p[M - N] ^ TWIST(p[0], p[1]);
 
-  *p = p[M - N] ^ TWIST(p[0], state[0]);
+    *p = p[M - N] ^ TWIST(p[0], state[0]);
 }
 
 long genrand_int31(void) {
-  unsigned long y;
+    unsigned long y;
 
-  if (--rnd_left == 0)
-    next_state();
-  y = *rnd_next++;
+    if (--rnd_left == 0)
+        next_state();
+    y = *rnd_next++;
 
-  /* Tempering */
-  y ^= (y >> 11);
-  y ^= (y << 7) & 0x9d2c5680UL;
-  y ^= (y << 15) & 0xefc60000UL;
-  y ^= (y >> 18);
+    /* Tempering */
+    y ^= (y >> 11);
+    y ^= (y << 7) & 0x9d2c5680UL;
+    y ^= (y << 15) & 0xefc60000UL;
+    y ^= (y >> 18);
 
-  return (long)(y >> 1);
+    return (long)(y >> 1);
 }

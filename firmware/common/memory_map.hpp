@@ -34,29 +34,29 @@ namespace portapack {
 namespace memory {
 
 struct region_t {
- public:
-  constexpr region_t(
-      const uint32_t base,
-      const size_t size)
-      : base_{base},
-        size_{size} {
-  }
+   public:
+    constexpr region_t(
+        const uint32_t base,
+        const size_t size)
+        : base_{base},
+          size_{size} {
+    }
 
-  constexpr uint32_t base() const {
-    return base_;
-  }
+    constexpr uint32_t base() const {
+        return base_;
+    }
 
-  constexpr uint32_t end() const {
-    return base_ + size_;
-  }
+    constexpr uint32_t end() const {
+        return base_ + size_;
+    }
 
-  constexpr size_t size() const {
-    return size_;
-  }
+    constexpr size_t size() const {
+        return size_;
+    }
 
- private:
-  const uint32_t base_;
-  const size_t size_;
+   private:
+    const uint32_t base_;
+    const size_t size_;
 };
 
 namespace map {

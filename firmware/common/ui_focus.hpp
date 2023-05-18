@@ -29,15 +29,15 @@ namespace ui {
 class Widget;
 
 class FocusManager {
- public:
-  Widget* focus_widget() const;
-  void set_focus_widget(Widget* const new_focus_widget);
+   public:
+    Widget* focus_widget() const;
+    void set_focus_widget(Widget* const new_focus_widget);
 
-  void update(Widget* const top_widget, const KeyEvent event);
-  //void update(Widget* const top_widget, const TouchEvent event);
+    void update(Widget* const top_widget, const KeyEvent event);
+    //void update(Widget* const top_widget, const TouchEvent event);
 
- private:
-  Widget* focus_widget_{nullptr};
+   private:
+    Widget* focus_widget_{nullptr};
 };
 
 } /* namespace ui */

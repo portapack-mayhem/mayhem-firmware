@@ -32,12 +32,12 @@ namespace sd_card {
 extern FATFS fs;
 
 enum class Status : int32_t {
-  IOError = -3,
-  MountError = -2,
-  ConnectError = -1,
-  NotPresent = 0,
-  Present = 1,
-  Mounted = 2,
+    IOError = -3,
+    MountError = -2,
+    ConnectError = -1,
+    NotPresent = 0,
+    Present = 1,
+    Mounted = 2,
 };
 
 extern Signal<Status> status_signal;

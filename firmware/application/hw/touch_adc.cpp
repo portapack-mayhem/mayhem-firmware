@@ -53,29 +53,29 @@ constexpr lpc43xx::adc::Config adc0_config{
 };
 
 void init() {
-  adc0::clock_enable();
-  adc0::interrupts_disable();
-  adc0::power_up(adc0_config);
-  adc0::interrupts_enable(adc0_interrupt_mask);
+    adc0::clock_enable();
+    adc0::interrupts_disable();
+    adc0::power_up(adc0_config);
+    adc0::interrupts_enable(adc0_interrupt_mask);
 }
 
 void start() {
-  adc0::start_burst();
+    adc0::start_burst();
 }
 
 // static constexpr bool monitor_overruns_and_not_dones = false;
 
 Samples get() {
-  const auto xp_reg = LPC_ADC0->DR[portapack::adc0_touch_xp_input];
-  const auto xn_reg = LPC_ADC0->DR[portapack::adc0_touch_xn_input];
-  const auto yp_reg = LPC_ADC0->DR[portapack::adc0_touch_yp_input];
-  const auto yn_reg = LPC_ADC0->DR[portapack::adc0_touch_yn_input];
-  return {
-      (xp_reg >> 6) & 0x3ff,
-      (xn_reg >> 6) & 0x3ff,
-      (yp_reg >> 6) & 0x3ff,
-      (yn_reg >> 6) & 0x3ff,
-  };
+    const auto xp_reg = LPC_ADC0->DR[portapack::adc0_touch_xp_input];
+    const auto xn_reg = LPC_ADC0->DR[portapack::adc0_touch_xn_input];
+    const auto yp_reg = LPC_ADC0->DR[portapack::adc0_touch_yp_input];
+    const auto yn_reg = LPC_ADC0->DR[portapack::adc0_touch_yn_input];
+    return {
+        (xp_reg >> 6) & 0x3ff,
+        (xn_reg >> 6) & 0x3ff,
+        (yp_reg >> 6) & 0x3ff,
+        (yn_reg >> 6) & 0x3ff,
+    };
 }
 
 } /* namespace adc */

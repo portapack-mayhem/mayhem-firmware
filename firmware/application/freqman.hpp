@@ -44,51 +44,51 @@ using namespace tonekey;
 typedef int8_t freqman_index_t;
 
 enum freqman_error {
-  NO_ERROR = 0,
-  ERROR_ACCESS,
-  ERROR_NOFILES,
-  ERROR_DUPLICATE
+    NO_ERROR = 0,
+    ERROR_ACCESS,
+    ERROR_NOFILES,
+    ERROR_DUPLICATE
 };
 
 enum freqman_entry_type {
-  SINGLE = 0,  //f=
-  RANGE,       //a=,b=
-  HAMRADIO,    //r=,t=
-  ERROR_TYPE
+    SINGLE = 0,  //f=
+    RANGE,       //a=,b=
+    HAMRADIO,    //r=,t=
+    ERROR_TYPE
 };
 
 enum freqman_entry_modulation {
-  AM_MODULATION = 0,
-  NFM_MODULATION,
-  WFM_MODULATION,
-  MODULATION_DEF,
-  ERROR_MODULATION
+    AM_MODULATION = 0,
+    NFM_MODULATION,
+    WFM_MODULATION,
+    MODULATION_DEF,
+    ERROR_MODULATION
 };
 
 //Entry step placed for AlainD freqman version (or any other enhanced version)
 enum freqman_entry_step {
-  STEP_DEF = -1,  // default
-  AM_US,          // 10 kHz   AM/CB
-  AM_EUR,         // 9 kHz	LW/MW
-  NFM_1,          // 12,5 kHz (Analogic PMR 446)
-  NFM_2,          // 6,25 kHz  (Digital PMR 446)
-  FM_1,           // 100 kHz
-  FM_2,           // 50 kHz
-  N_1,            // 25 kHz
-  N_2,            // 250 kHz
-  AIRBAND,        // AIRBAND 8,33 kHz
-  ERROR_STEP
+    STEP_DEF = -1,  // default
+    AM_US,          // 10 kHz   AM/CB
+    AM_EUR,         // 9 kHz	LW/MW
+    NFM_1,          // 12,5 kHz (Analogic PMR 446)
+    NFM_2,          // 6,25 kHz  (Digital PMR 446)
+    FM_1,           // 100 kHz
+    FM_2,           // 50 kHz
+    N_1,            // 25 kHz
+    N_2,            // 250 kHz
+    AIRBAND,        // AIRBAND 8,33 kHz
+    ERROR_STEP
 };
 
 struct freqman_entry {
-  rf::Frequency frequency_a{0};  // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
-  rf::Frequency frequency_b{0};  // 'b=freq_end' or 't=tx_freq'
-  std::string description{};     // 'd=desc'
-  freqman_entry_type type{};     // SINGLE,RANGE,HAMRADIO
-  freqman_index_t modulation{};  // AM,NFM,WFM
-  freqman_index_t bandwidth{};   // AM_DSB, ...
-  freqman_index_t step{};        // 5khz (SA AM,...
-  tone_index tone{};             // 0XZ, 11 1ZB,...
+    rf::Frequency frequency_a{0};  // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
+    rf::Frequency frequency_b{0};  // 'b=freq_end' or 't=tx_freq'
+    std::string description{};     // 'd=desc'
+    freqman_entry_type type{};     // SINGLE,RANGE,HAMRADIO
+    freqman_index_t modulation{};  // AM,NFM,WFM
+    freqman_index_t bandwidth{};   // AM_DSB, ...
+    freqman_index_t step{};        // 5khz (SA AM,...
+    tone_index tone{};             // 0XZ, 11 1ZB,...
 };
 
 using freqman_db = std::vector<freqman_entry>;

@@ -29,18 +29,18 @@
 namespace ui {
 
 class SDCardStatusView : public Image {
- public:
-  SDCardStatusView(const Rect parent_rect);
+   public:
+    SDCardStatusView(const Rect parent_rect);
 
-  void on_show() override;
-  void on_hide() override;
+    void on_show() override;
+    void on_hide() override;
 
-  void paint(Painter& painter) override;
+    void paint(Painter& painter) override;
 
- private:
-  SignalToken sd_card_status_signal_token{};
+   private:
+    SignalToken sd_card_status_signal_token{};
 
-  void on_status(const sd_card::Status status);
+    void on_status(const sd_card::Status status);
 };
 
 } /* namespace ui */

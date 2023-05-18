@@ -38,18 +38,18 @@ size_t make_bitstream(std::string& fragments);
 void bitstream_append(size_t& bitstream_length, uint32_t bit_count, uint32_t bits);
 
 struct encoder_def_t {
-  char name[16];              // Encoder chip ref/name
-  char address_symbols[8];    // List of possible symbols like "01", "01F"...
-  char data_symbols[8];       // Same
-  uint16_t clk_per_symbol;    // Oscillator periods per symbol
-  uint16_t clk_per_fragment;  // Oscillator periods per symbol fragment (state)
-  char bit_format[4][20];     // List of fragments for each symbol in previous *_symbols list order
-  uint8_t word_length;        // Total # of symbols (not counting sync)
-  char word_format[32];       // A for Address, D for Data, S for sync
-  char sync[64];              // Like bit_format
-  uint32_t default_speed;     // Default encoder clk frequency (often set by shitty resistor)
-  uint8_t repeat_min;         // Minimum repeat count
-  uint16_t pause_symbols;     // Length of pause between repeats in symbols
+    char name[16];              // Encoder chip ref/name
+    char address_symbols[8];    // List of possible symbols like "01", "01F"...
+    char data_symbols[8];       // Same
+    uint16_t clk_per_symbol;    // Oscillator periods per symbol
+    uint16_t clk_per_fragment;  // Oscillator periods per symbol fragment (state)
+    char bit_format[4][20];     // List of fragments for each symbol in previous *_symbols list order
+    uint8_t word_length;        // Total # of symbols (not counting sync)
+    char word_format[32];       // A for Address, D for Data, S for sync
+    char sync[64];              // Like bit_format
+    uint32_t default_speed;     // Default encoder clk frequency (often set by shitty resistor)
+    uint8_t repeat_min;         // Minimum repeat count
+    uint16_t pause_symbols;     // Length of pause between repeats in symbols
 };
 
 // Warning ! If this is changed, make sure that ENCODER_UM3750 is still valid !

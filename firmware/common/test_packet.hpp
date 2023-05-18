@@ -33,39 +33,39 @@
 namespace testapp {
 
 class Packet {
- public:
-  Packet(
-      const baseband::Packet& packet)
-      : packet_{packet},
-        decoder_{packet_},
-        reader_{decoder_} {
-  }
+   public:
+    Packet(
+        const baseband::Packet& packet)
+        : packet_{packet},
+          decoder_{packet_},
+          reader_{decoder_} {
+    }
 
-  size_t length() const;
+    size_t length() const;
 
-  bool is_valid() const;
+    bool is_valid() const;
 
-  Timestamp received_at() const;
+    Timestamp received_at() const;
 
-  uint32_t value() const;
-  uint32_t alt() const;
-  /*std::string serial_number() const;
+    uint32_t value() const;
+    uint32_t alt() const;
+    /*std::string serial_number() const;
 	uint32_t GPS_altitude() const;
 	float GPS_latitude() const;
 	float GPS_longitude() const;
 	std::string signature() const;
 	uint32_t battery_voltage() const;*/
 
-  FormattedSymbols symbols_formatted() const;
+    FormattedSymbols symbols_formatted() const;
 
-  //bool crc_ok() const;
+    //bool crc_ok() const;
 
- private:
-  using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
+   private:
+    using Reader = FieldReader<ManchesterDecoder, BitRemapNone>;
 
-  const baseband::Packet packet_;
-  const ManchesterDecoder decoder_;
-  const Reader reader_;
+    const baseband::Packet packet_;
+    const ManchesterDecoder decoder_;
+    const Reader reader_;
 };
 
 } /* namespace testapp */

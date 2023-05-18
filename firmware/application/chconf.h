@@ -448,11 +448,11 @@
  * @details User fields added to the end of the @p Thread structure.
  */
 #if !defined(THREAD_EXT_FIELDS) || defined(__DOXYGEN__)
-#define THREAD_EXT_FIELDS              \
-  /* Add threads custom fields here.*/ \
-  uint32_t switches;                   \
-  uint32_t start_ticks;                \
-  uint32_t total_ticks;
+#define THREAD_EXT_FIELDS                \
+    /* Add threads custom fields here.*/ \
+    uint32_t switches;                   \
+    uint32_t start_ticks;                \
+    uint32_t total_ticks;
 #endif
 
 /**
@@ -463,13 +463,13 @@
  *          the threads creation APIs.
  */
 #if !defined(THREAD_EXT_INIT_HOOK) || defined(__DOXYGEN__)
-#define THREAD_EXT_INIT_HOOK(tp)               \
-  {                                            \
-    /* Add threads initialization code here.*/ \
-    tp->switches = 0;                          \
-    tp->start_ticks = 0;                       \
-    tp->total_ticks = 0;                       \
-  }
+#define THREAD_EXT_INIT_HOOK(tp)                   \
+    {                                              \
+        /* Add threads initialization code here.*/ \
+        tp->switches = 0;                          \
+        tp->start_ticks = 0;                       \
+        tp->total_ticks = 0;                       \
+    }
 #endif
 
 /**
@@ -481,10 +481,10 @@
  *          terminate.
  */
 #if !defined(THREAD_EXT_EXIT_HOOK) || defined(__DOXYGEN__)
-#define THREAD_EXT_EXIT_HOOK(tp)             \
-  {                                          \
-    /* Add threads finalization code here.*/ \
-  }
+#define THREAD_EXT_EXIT_HOOK(tp)                 \
+    {                                            \
+        /* Add threads finalization code here.*/ \
+    }
 #endif
 
 /**
@@ -492,13 +492,13 @@
  * @details This hook is invoked just before switching between threads.
  */
 #if !defined(THREAD_CONTEXT_SWITCH_HOOK) || defined(__DOXYGEN__)
-#define THREAD_CONTEXT_SWITCH_HOOK(ntp, otp)                   \
-  {                                                            \
-    /* System halt code here.*/                                \
-    otp->switches++;                                           \
-    ntp->start_ticks = *((volatile uint32_t*)0x400C4008);      \
-    otp->total_ticks += (ntp->start_ticks - otp->start_ticks); \
-  }
+#define THREAD_CONTEXT_SWITCH_HOOK(ntp, otp)                       \
+    {                                                              \
+        /* System halt code here.*/                                \
+        otp->switches++;                                           \
+        ntp->start_ticks = *((volatile uint32_t*)0x400C4008);      \
+        otp->total_ticks += (ntp->start_ticks - otp->start_ticks); \
+    }
 #endif
 
 /**
@@ -506,10 +506,10 @@
  * @details This hook is continuously invoked by the idle thread loop.
  */
 #if !defined(IDLE_LOOP_HOOK) || defined(__DOXYGEN__)
-#define IDLE_LOOP_HOOK()      \
-  {                           \
-    /* Idle loop code here.*/ \
-  }
+#define IDLE_LOOP_HOOK()          \
+    {                             \
+        /* Idle loop code here.*/ \
+    }
 #endif
 
 /**
@@ -518,10 +518,10 @@
  *          after processing the virtual timers queue.
  */
 #if !defined(SYSTEM_TICK_EVENT_HOOK) || defined(__DOXYGEN__)
-#define SYSTEM_TICK_EVENT_HOOK()      \
-  {                                   \
-    /* System tick event code here.*/ \
-  }
+#define SYSTEM_TICK_EVENT_HOOK()          \
+    {                                     \
+        /* System tick event code here.*/ \
+    }
 #endif
 
 /**
@@ -530,10 +530,10 @@
  *          the system is halted.
  */
 #if !defined(SYSTEM_HALT_HOOK) || defined(__DOXYGEN__)
-#define SYSTEM_HALT_HOOK()      \
-  {                             \
-    /* System halt code here.*/ \
-  }
+#define SYSTEM_HALT_HOOK()          \
+    {                               \
+        /* System halt code here.*/ \
+    }
 #endif
 
 /** @} */

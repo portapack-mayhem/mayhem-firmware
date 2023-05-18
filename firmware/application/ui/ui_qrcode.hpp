@@ -33,53 +33,53 @@
 namespace ui {
 
 class QRCodeImage : public Widget {
- public:
-  QRCodeImage(Rect parent_rect);
-  void set_text(const char* qr_text) {
-    qr_text_ = qr_text;
-  }
-  void paint(Painter& painter) override;
-  // for -weffc++ to be killed
-  ~QRCodeImage();  // destructor
-  QRCodeImage(const QRCodeImage& Image);
-  QRCodeImage& operator=(const QRCodeImage& Image);  // assignment
+   public:
+    QRCodeImage(Rect parent_rect);
+    void set_text(const char* qr_text) {
+        qr_text_ = qr_text;
+    }
+    void paint(Painter& painter) override;
+    // for -weffc++ to be killed
+    ~QRCodeImage();  // destructor
+    QRCodeImage(const QRCodeImage& Image);
+    QRCodeImage& operator=(const QRCodeImage& Image);  // assignment
 
- private:
-  const char* qr_text_ = NULL;
+   private:
+    const char* qr_text_ = NULL;
 };
 
 class QRCodeView : public View {
- public:
-  QRCodeView(
-      NavigationView& nav,
-      const char* qr_text,
-      const std::function<void(void)> on_close = nullptr);
-  ~QRCodeView();
+   public:
+    QRCodeView(
+        NavigationView& nav,
+        const char* qr_text,
+        const std::function<void(void)> on_close = nullptr);
+    ~QRCodeView();
 
-  QRCodeView(const QRCodeView&) = delete;
-  QRCodeView(QRCodeView&&) = delete;
-  QRCodeView& operator=(const QRCodeView&) = delete;
-  QRCodeView& operator=(QRCodeView&&) = delete;
+    QRCodeView(const QRCodeView&) = delete;
+    QRCodeView(QRCodeView&&) = delete;
+    QRCodeView& operator=(const QRCodeView&) = delete;
+    QRCodeView& operator=(QRCodeView&&) = delete;
 
-  std::string title() const override { return "QR code"; };
-  void focus() override;
+    std::string title() const override { return "QR code"; };
+    void focus() override;
 
- private:
-  NavigationView& nav_;
+   private:
+    NavigationView& nav_;
 
-  std::function<void(void)> on_close_{nullptr};
+    std::function<void(void)> on_close_{nullptr};
 
-  QRCodeImage qr_code{
-      {50, 100, 100, 100}};
+    QRCodeImage qr_code{
+        {50, 100, 100, 100}};
 
-  //Text text_qr {
-  //	{ 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
-  //	"-"
-  //};
+    //Text text_qr {
+    //	{ 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
+    //	"-"
+    //};
 
-  Button button_close{
-      {9 * 8, 31 * 8, 12 * 8, 3 * 16},
-      "Back"};
+    Button button_close{
+        {9 * 8, 31 * 8, 12 * 8, 3 * 16},
+        "Back"};
 };
 
 } /* namespace ui */

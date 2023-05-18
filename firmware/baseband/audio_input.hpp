@@ -34,11 +34,11 @@
 #include <memory>
 
 class AudioInput {
- public:
-  void read_audio_buffer(buffer_s16_t& audio);
+   public:
+    void read_audio_buffer(buffer_s16_t& audio);
 
- private:
-  /*static constexpr float k = 32768.0f;
+   private:
+    /*static constexpr float k = 32768.0f;
 	static constexpr float ki = 1.0f / k;
 
 	IIRBiquadFilter hpf { };*/

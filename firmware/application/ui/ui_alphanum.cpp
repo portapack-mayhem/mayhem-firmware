@@ -35,83 +35,83 @@ AlphanumView::AlphanumView(
     std::string& str,
     size_t max_length)
     : TextEntryView(nav, str, max_length) {
-  size_t n;
+    size_t n;
 
-  add_children({&button_mode,
-                &text_raw,
-                &field_raw});
+    add_children({&button_mode,
+                  &text_raw,
+                  &field_raw});
 
-  const auto button_fn = [this](Button& button) {
-    this->on_button(button);
-  };
-
-  n = 0;
-  for (auto& button : buttons) {
-    button.id = n;
-    button.on_highlight = [this](Button& button) {
-      focused_button = button.id;
+    const auto button_fn = [this](Button& button) {
+        this->on_button(button);
     };
-    button.on_select = button_fn;
-    button.set_parent_rect({static_cast<Coord>((n % 5) * (240 / 5)),
-                            static_cast<Coord>((n / 5) * 38 + 24),
-                            240 / 5, 38});
-    add_child(&button);
-    n++;
-  }
 
-  set_mode(mode);
+    n = 0;
+    for (auto& button : buttons) {
+        button.id = n;
+        button.on_highlight = [this](Button& button) {
+            focused_button = button.id;
+        };
+        button.on_select = button_fn;
+        button.set_parent_rect({static_cast<Coord>((n % 5) * (240 / 5)),
+                                static_cast<Coord>((n / 5) * 38 + 24),
+                                240 / 5, 38});
+        add_child(&button);
+        n++;
+    }
 
-  button_mode.on_select = [this](Button&) {
-    set_mode(mode + 1);
-  };
+    set_mode(mode);
 
-  field_raw.set_value('0');
-  field_raw.on_select = [this](NumberField&) {
-    char_add(field_raw.value());
-  };
+    button_mode.on_select = [this](Button&) {
+        set_mode(mode + 1);
+    };
+
+    field_raw.set_value('0');
+    field_raw.on_select = [this](NumberField&) {
+        char_add(field_raw.value());
+    };
 }
 
 void AlphanumView::set_mode(const uint32_t new_mode) {
-  size_t n = 0;
+    size_t n = 0;
 
-  if (new_mode < 3)
-    mode = new_mode;
-  else
-    mode = 0;
+    if (new_mode < 3)
+        mode = new_mode;
+    else
+        mode = 0;
 
-  const char* key_list = key_sets[mode].second;
+    const char* key_list = key_sets[mode].second;
 
-  for (auto& button : buttons) {
-    const std::string label{
-        key_list[n]};
-    button.set_text(label);
-    n++;
-  }
+    for (auto& button : buttons) {
+        const std::string label{
+            key_list[n]};
+        button.set_text(label);
+        n++;
+    }
 
-  if (mode < 2)
-    button_mode.set_text(key_sets[mode + 1].first);
-  else
-    button_mode.set_text(key_sets[0].first);
+    if (mode < 2)
+        button_mode.set_text(key_sets[mode + 1].first);
+    else
+        button_mode.set_text(key_sets[0].first);
 }
 
 void AlphanumView::on_button(Button& button) {
-  const auto c = button.text()[0];
+    const auto c = button.text()[0];
 
-  if (c == '<')
-    char_delete();
-  else
-    char_add(c);
+    if (c == '<')
+        char_delete();
+    else
+        char_add(c);
 }
 
 bool AlphanumView::on_encoder(const EncoderEvent delta) {
-  focused_button += delta;
-  if (focused_button < 0) {
-    focused_button = buttons.size() - 1;
-  } else if (focused_button >= (int16_t)buttons.size()) {
-    focused_button = 0;
-  }
-  buttons[focused_button].focus();
-  return true;
+    focused_button += delta;
+    if (focused_button < 0) {
+        focused_button = buttons.size() - 1;
+    } else if (focused_button >= (int16_t)buttons.size()) {
+        focused_button = 0;
+    }
+    buttons[focused_button].focus();
+    return true;
 }
 
 }  // namespace ui

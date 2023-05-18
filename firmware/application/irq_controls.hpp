@@ -28,12 +28,12 @@
 #include "touch.hpp"
 
 enum class Switch {
-  Right = 0,
-  Left = 1,
-  Down = 2,
-  Up = 3,
-  Sel = 4,
-  Dfu = 5,
+    Right = 0,
+    Left = 1,
+    Down = 2,
+    Up = 3,
+    Sel = 4,
+    Dfu = 5,
 };
 
 using SwitchesState = std::bitset<6>;

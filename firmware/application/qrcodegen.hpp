@@ -62,12 +62,12 @@ static const bool true = 1;
 #endif
 
 typedef struct QRCode {
-  uint8_t version;
-  uint8_t size;
-  uint8_t ecc;
-  uint8_t mode;
-  uint8_t mask;
-  uint8_t* modules;
+    uint8_t version;
+    uint8_t size;
+    uint8_t ecc;
+    uint8_t mode;
+    uint8_t mask;
+    uint8_t* modules;
 } QRCode;
 
 #ifdef __cplusplus

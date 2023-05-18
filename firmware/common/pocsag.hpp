@@ -38,32 +38,32 @@ namespace pocsag {
 // Todo: these enums suck, make a better decode_batch
 
 enum Mode : uint32_t {
-  STATE_CLEAR,
-  STATE_HAVE_ADDRESS,
-  STATE_GETTING_MSG
+    STATE_CLEAR,
+    STATE_HAVE_ADDRESS,
+    STATE_GETTING_MSG
 };
 
 enum OutputType : uint32_t {
-  EMPTY,
-  ADDRESS,
-  MESSAGE
+    EMPTY,
+    ADDRESS,
+    MESSAGE
 };
 
 enum MessageType : uint32_t {
-  ADDRESS_ONLY,
-  NUMERIC_ONLY,
-  ALPHANUMERIC
+    ADDRESS_ONLY,
+    NUMERIC_ONLY,
+    ALPHANUMERIC
 };
 
 struct POCSAGState {
-  uint32_t function;
-  uint32_t address;
-  Mode mode = STATE_CLEAR;
-  OutputType out_type = EMPTY;
-  uint32_t ascii_data;
-  uint32_t ascii_idx;
-  uint32_t errors;
-  std::string output;
+    uint32_t function;
+    uint32_t address;
+    Mode mode = STATE_CLEAR;
+    OutputType out_type = EMPTY;
+    uint32_t ascii_data;
+    uint32_t ascii_idx;
+    uint32_t errors;
+    std::string output;
 };
 
 const pocsag::BitRate pocsag_bitrates[4] = {

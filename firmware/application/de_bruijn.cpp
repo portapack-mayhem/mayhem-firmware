@@ -73,32 +73,32 @@
  */
 
 size_t de_bruijn::init(const uint32_t n) {
-  // Cap
-  if ((n < 3) || (n > 16))
-    length = 3;
-  else
-    length = n;
+    // Cap
+    if ((n < 3) || (n > 16))
+        length = 3;
+    else
+        length = n;
 
-  poly = de_bruijn_polys[length - 3];
-  shift_register = 1;
+    poly = de_bruijn_polys[length - 3];
+    shift_register = 1;
 
-  return (1U << length) + (length - 1);
+    return (1U << length) + (length - 1);
 }
 
 uint32_t de_bruijn::compute(const uint32_t steps) {
-  uint32_t step, bits, masked;
-  uint8_t new_bit;
+    uint32_t step, bits, masked;
+    uint8_t new_bit;
 
-  for (step = 0; step < steps; step++) {
-    masked = shift_register & poly;
-    new_bit = 0;
-    for (bits = 0; bits < length; bits++) {
-      new_bit ^= (masked & 1);
-      masked >>= 1;
+    for (step = 0; step < steps; step++) {
+        masked = shift_register & poly;
+        new_bit = 0;
+        for (bits = 0; bits < length; bits++) {
+            new_bit ^= (masked & 1);
+            masked >>= 1;
+        }
+        shift_register <<= 1;
+        shift_register |= new_bit;
     }
-    shift_register <<= 1;
-    shift_register |= new_bit;
-  }
 
-  return shift_register;
+    return shift_register;
 }

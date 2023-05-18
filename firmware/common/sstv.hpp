@@ -36,46 +36,46 @@ namespace sstv {
 #define SSTV_VIS_ONE SSTV_F2D(1100)
 
 enum sstv_color_seq {
-  SSTV_COLOR_RGB,
-  SSTV_COLOR_GBR,
-  SSTV_COLOR_YUV  // Not supported for now
+    SSTV_COLOR_RGB,
+    SSTV_COLOR_GBR,
+    SSTV_COLOR_YUV  // Not supported for now
 };
 
 #define SSTV_MODES_NB 6
 
 // From http://www.graphics.stanford.edu/~seander/bithacks.html, nice !
 constexpr inline uint8_t sstv_parity(uint8_t code) {
-  uint8_t out = code;
-  out ^= code >> 4;
-  out &= 0x0F;
-  return (((0b0110100110010110 >> out) & 1) << 7) | code;
+    uint8_t out = code;
+    out ^= code >> 4;
+    out &= 0x0F;
+    return (((0b0110100110010110 >> out) & 1) << 7) | code;
 }
 
 struct sstv_tone {
-  uint32_t frequency;
-  uint32_t duration;
+    uint32_t frequency;
+    uint32_t duration;
 };
 
 struct sstv_scanline {
-  sstv_tone start_tone;
-  sstv_tone gap_tone;
-  uint8_t luma[320];
+    sstv_tone start_tone;
+    sstv_tone gap_tone;
+    uint8_t luma[320];
 };
 
 struct sstv_mode {
-  char name[16];
-  uint8_t vis_code;
-  bool color;  // Unused for now
-  sstv_color_seq color_sequence;
-  uint16_t pixels;
-  uint16_t lines;
-  uint32_t samples_per_pixel;
-  bool sync_on_first;
-  uint8_t sync_index;
-  bool gaps;
-  uint32_t samples_per_sync;
-  uint32_t samples_per_gap;
-  //std::pair<uint16_t, uint16_t> luma_range;
+    char name[16];
+    uint8_t vis_code;
+    bool color;  // Unused for now
+    sstv_color_seq color_sequence;
+    uint16_t pixels;
+    uint16_t lines;
+    uint32_t samples_per_pixel;
+    bool sync_on_first;
+    uint8_t sync_index;
+    bool gaps;
+    uint32_t samples_per_sync;
+    uint32_t samples_per_gap;
+    //std::pair<uint16_t, uint16_t> luma_range;
 };
 
 constexpr sstv_mode sstv_modes[SSTV_MODES_NB] = {

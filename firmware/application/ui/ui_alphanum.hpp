@@ -32,51 +32,51 @@
 namespace ui {
 
 class AlphanumView : public TextEntryView {
- public:
-  AlphanumView(NavigationView& nav, std::string& str, size_t max_length);
+   public:
+    AlphanumView(NavigationView& nav, std::string& str, size_t max_length);
 
-  AlphanumView(const AlphanumView&) = delete;
-  AlphanumView(AlphanumView&&) = delete;
-  AlphanumView& operator=(const AlphanumView&) = delete;
-  AlphanumView& operator=(AlphanumView&&) = delete;
+    AlphanumView(const AlphanumView&) = delete;
+    AlphanumView(AlphanumView&&) = delete;
+    AlphanumView& operator=(const AlphanumView&) = delete;
+    AlphanumView& operator=(AlphanumView&&) = delete;
 
-  bool on_encoder(const EncoderEvent delta) override;
+    bool on_encoder(const EncoderEvent delta) override;
 
- private:
-  const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ' .<";
-  const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz' .<";
-  const char* const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
+   private:
+    const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ' .<";
+    const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz' .<";
+    const char* const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
 
-  const std::pair<std::string, const char*> key_sets[3] = {
-      {"Upper", keys_upper},
-      {"Lower", keys_lower},
-      {"Digit", keys_digit}};
+    const std::pair<std::string, const char*> key_sets[3] = {
+        {"Upper", keys_upper},
+        {"Lower", keys_lower},
+        {"Digit", keys_digit}};
 
-  int16_t focused_button = 0;
-  uint32_t mode = 0;  // Uppercase
+    int16_t focused_button = 0;
+    uint32_t mode = 0;  // Uppercase
 
-  void set_mode(const uint32_t new_mode);
-  void on_button(Button& button);
+    void set_mode(const uint32_t new_mode);
+    void on_button(Button& button);
 
-  std::array<Button, 30> buttons{};
+    std::array<Button, 30> buttons{};
 
-  Button button_mode{
-      {21 * 8, 33 * 8, 8 * 8, 32},
-      ""};
+    Button button_mode{
+        {21 * 8, 33 * 8, 8 * 8, 32},
+        ""};
 
-  Text text_raw{
-      {1 * 8, 33 * 8, 4 * 8, 16},
-      "Raw:"};
-  NumberField field_raw{
-      {5 * 8, 33 * 8},
-      3,
-      {1, 255},
-      1,
-      '0'};
+    Text text_raw{
+        {1 * 8, 33 * 8, 4 * 8, 16},
+        "Raw:"};
+    NumberField field_raw{
+        {5 * 8, 33 * 8},
+        3,
+        {1, 255},
+        1,
+        '0'};
 
-  Button button_ok{
-      {10 * 8, 33 * 8, 9 * 8, 32},
-      "OK"};
+    Button button_ok{
+        {10 * 8, 33 * 8, 9 * 8, 32},
+        "OK"};
 };
 
 } /* namespace ui */

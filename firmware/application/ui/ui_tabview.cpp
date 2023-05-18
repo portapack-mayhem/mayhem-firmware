@@ -28,7 +28,7 @@ using namespace portapack;
 namespace ui {
 
 Tab::Tab() {
-  set_focusable(true);
+    set_focusable(true);
 };
 
 void Tab::set(
@@ -36,115 +36,115 @@ void Tab::set(
     Dim width,
     std::string text,
     Color text_color) {
-  set_parent_rect({(Coord)(index * width), 0, width, 24});
+    set_parent_rect({(Coord)(index * width), 0, width, 24});
 
-  text_ = text.substr(0, (width - 8) / 8);
-  text_color_ = text_color;
+    text_ = text.substr(0, (width - 8) / 8);
+    text_color_ = text_color;
 
-  index_ = index;
+    index_ = index;
 }
 
 void Tab::paint(Painter& painter) {
-  const auto rect = screen_rect();
-  const Color color = highlighted() ? Color::black() : Color::grey();
+    const auto rect = screen_rect();
+    const Color color = highlighted() ? Color::black() : Color::grey();
 
-  painter.fill_rectangle({rect.left(), rect.top(), rect.width() - 8, rect.height()}, color);
+    painter.fill_rectangle({rect.left(), rect.top(), rect.width() - 8, rect.height()}, color);
 
-  if (!highlighted())
-    painter.draw_hline({rect.left(), rect.top()}, rect.width() - 9, Color::light_grey());
+    if (!highlighted())
+        painter.draw_hline({rect.left(), rect.top()}, rect.width() - 9, Color::light_grey());
 
-  painter.draw_bitmap(
-      {rect.right() - 8, rect.top()},
-      bitmap_tab_edge,
-      color,
-      Color::dark_grey());
+    painter.draw_bitmap(
+        {rect.right() - 8, rect.top()},
+        bitmap_tab_edge,
+        color,
+        Color::dark_grey());
 
-  auto text_point = rect.center() - Point(4, 0) - Point(text_.size() * 8 / 2, 16 / 2);
+    auto text_point = rect.center() - Point(4, 0) - Point(text_.size() * 8 / 2, 16 / 2);
 
-  painter.draw_string(
-      text_point,
-      {ui::font::fixed_8x16, color, text_color_},
-      text_);
+    painter.draw_string(
+        text_point,
+        {ui::font::fixed_8x16, color, text_color_},
+        text_);
 
-  if (has_focus())
-    painter.draw_hline(text_point + Point(0, 16), text_.size() * 8, Color::white());
+    if (has_focus())
+        painter.draw_hline(text_point + Point(0, 16), text_.size() * 8, Color::white());
 }
 
 bool Tab::on_key(const KeyEvent key) {
-  if (key == KeyEvent::Select) {
-    static_cast<TabView*>(parent())->set_selected(index_);
-    return true;
-  }
+    if (key == KeyEvent::Select) {
+        static_cast<TabView*>(parent())->set_selected(index_);
+        return true;
+    }
 
-  return false;
+    return false;
 }
 
 bool Tab::on_touch(const TouchEvent event) {
-  switch (event.type) {
-    case TouchEvent::Type::Start:
-      focus();
-      set_dirty();
-      return true;
+    switch (event.type) {
+        case TouchEvent::Type::Start:
+            focus();
+            set_dirty();
+            return true;
 
-    case TouchEvent::Type::End:
-      static_cast<TabView*>(parent())->set_selected(index_);
-      return true;
+        case TouchEvent::Type::End:
+            static_cast<TabView*>(parent())->set_selected(index_);
+            return true;
 
-    default:
-      return false;
-  }
+        default:
+            return false;
+    }
 }
 
 void TabView::set_selected(uint32_t index) {
-  Tab* tab;
+    Tab* tab;
 
-  if (index >= n_tabs)
-    return;
+    if (index >= n_tabs)
+        return;
 
-  // Hide previous view
-  views[current_tab]->hidden(true);
+    // Hide previous view
+    views[current_tab]->hidden(true);
 
-  tab = &tabs[current_tab];
-  tab->set_highlighted(false);
-  tab->set_focusable(true);
-  tab->set_dirty();
+    tab = &tabs[current_tab];
+    tab->set_highlighted(false);
+    tab->set_focusable(true);
+    tab->set_dirty();
 
-  // Show new view
-  views[index]->hidden(false);
+    // Show new view
+    views[index]->hidden(false);
 
-  tab = &tabs[index];
-  current_tab = index;
-  tab->set_highlighted(true);
-  tab->set_focusable(false);
-  tab->set_dirty();
+    tab = &tabs[index];
+    current_tab = index;
+    tab->set_highlighted(true);
+    tab->set_focusable(false);
+    tab->set_dirty();
 }
 
 void TabView::on_show() {
-  set_selected(current_tab);
+    set_selected(current_tab);
 }
 
 void TabView::focus() {
-  views[current_tab]->focus();
+    views[current_tab]->focus();
 }
 
 TabView::TabView(std::initializer_list<TabDef> tab_definitions) {
-  size_t i = 0;
+    size_t i = 0;
 
-  n_tabs = tab_definitions.size();
-  if (n_tabs > MAX_TABS)
-    n_tabs = MAX_TABS;
+    n_tabs = tab_definitions.size();
+    if (n_tabs > MAX_TABS)
+        n_tabs = MAX_TABS;
 
-  size_t tab_width = 240 / n_tabs;
+    size_t tab_width = 240 / n_tabs;
 
-  set_parent_rect({0, 0, 30 * 8, 3 * 8});
+    set_parent_rect({0, 0, 30 * 8, 3 * 8});
 
-  for (auto& tab_definition : tab_definitions) {
-    tabs[i].set(i, tab_width, tab_definition.text, tab_definition.color);
-    views[i] = tab_definition.view;
-    add_child(&tabs[i]);
-    i++;
-    if (i == MAX_TABS) break;
-  }
+    for (auto& tab_definition : tab_definitions) {
+        tabs[i].set(i, tab_width, tab_definition.text, tab_definition.color);
+        views[i] = tab_definition.view;
+        add_child(&tabs[i]);
+        i++;
+        if (i == MAX_TABS) break;
+    }
 }
 
 TabView::~TabView() {

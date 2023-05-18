@@ -129,19 +129,19 @@ static constexpr std::array<float, sine_table_f32_period + 2> sine_table_f32{
     -2.45412285e-02, 0.00000000e+00, 2.45412285e-02};
 
 inline float sin_f32(const float w) {
-  const float x = w / (2 * pi);            // normalization
-  const float x_frac = x - std::floor(x);  // [0, 1]
+    const float x = w / (2 * pi);            // normalization
+    const float x_frac = x - std::floor(x);  // [0, 1]
 
-  const float n = x_frac * sine_table_f32_period;
-  const uint16_t n_int = static_cast<uint16_t>(n);
-  const float n_frac = n - n_int;
+    const float n = x_frac * sine_table_f32_period;
+    const uint16_t n_int = static_cast<uint16_t>(n);
+    const float n_frac = n - n_int;
 
-  const float p0 = sine_table_f32[n_int];
-  const float p1 = sine_table_f32[n_int + 1];
-  const float diff = p1 - p0;
-  const float result = p0 + n_frac * diff;  // linear interpolation
+    const float p0 = sine_table_f32[n_int];
+    const float p1 = sine_table_f32[n_int + 1];
+    const float diff = p1 - p0;
+    const float result = p0 + n_frac * diff;  // linear interpolation
 
-  return result;
+    return result;
 }
 
 #endif /*__SINE_TABLE_H__*/

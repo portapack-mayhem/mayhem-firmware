@@ -31,51 +31,51 @@
 using namespace sstv;
 
 class SSTVTXProcessor : public BasebandProcessor {
- public:
-  void execute(const buffer_c8_t& buffer) override;
+   public:
+    void execute(const buffer_c8_t& buffer) override;
 
-  void on_message(const Message* const p) override;
+    void on_message(const Message* const p) override;
 
- private:
-  // 1900 300ms
-  // 1200 10ms
-  // 1900 300ms
-  const std::pair<uint32_t, uint32_t> calibration_sequence[3] = {
-      {SSTV_F2D(1900), SSTV_MS2S(300)},
-      {SSTV_F2D(1200), SSTV_MS2S(10)},
-      {SSTV_F2D(1900), SSTV_MS2S(300)}};
+   private:
+    // 1900 300ms
+    // 1200 10ms
+    // 1900 300ms
+    const std::pair<uint32_t, uint32_t> calibration_sequence[3] = {
+        {SSTV_F2D(1900), SSTV_MS2S(300)},
+        {SSTV_F2D(1200), SSTV_MS2S(10)},
+        {SSTV_F2D(1900), SSTV_MS2S(300)}};
 
-  enum state_t {
-    STATE_CALIBRATION = 0,
-    STATE_VIS,
-    STATE_SYNC,
-    STATE_PIXELS
-  };
+    enum state_t {
+        STATE_CALIBRATION = 0,
+        STATE_VIS,
+        STATE_SYNC,
+        STATE_PIXELS
+    };
 
-  state_t state{};
+    state_t state{};
 
-  bool configured{false};
+    bool configured{false};
 
-  BasebandThread baseband_thread{3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
+    BasebandThread baseband_thread{3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
-  uint32_t vis_code_sequence[10]{};
-  sstv_scanline scanline_buffer[2]{};
-  uint8_t buffer_flip{0}, substep{0};
-  uint32_t pixel_duration{};
+    uint32_t vis_code_sequence[10]{};
+    sstv_scanline scanline_buffer[2]{};
+    uint8_t buffer_flip{0}, substep{0};
+    uint32_t pixel_duration{};
 
-  sstv_scanline* current_scanline{};
+    sstv_scanline* current_scanline{};
 
-  uint8_t pixel_luma{};
-  uint32_t fm_delta{0};
-  uint32_t tone_phase{0};
-  uint32_t tone_delta{0};
-  uint32_t pixel_index{0};
-  uint32_t sample_count{0};
-  uint32_t phase{0}, sphase{0};
-  int32_t tone_sample{0}, delta{0};
-  int8_t re{}, im{};
+    uint8_t pixel_luma{};
+    uint32_t fm_delta{0};
+    uint32_t tone_phase{0};
+    uint32_t tone_delta{0};
+    uint32_t pixel_index{0};
+    uint32_t sample_count{0};
+    uint32_t phase{0}, sphase{0};
+    int32_t tone_sample{0}, delta{0};
+    int8_t re{}, im{};
 
-  RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
+    RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
 };
 
 #endif

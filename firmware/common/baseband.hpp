@@ -31,8 +31,8 @@ using sample_t = complex8_t;
 using buffer_t = buffer_t<sample_t>;
 
 enum class Direction {
-  Receive = 0,
-  Transmit = 1,
+    Receive = 0,
+    Transmit = 1,
 };
 
 } /* namespace baseband */

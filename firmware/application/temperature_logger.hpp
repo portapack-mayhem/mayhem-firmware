@@ -28,25 +28,25 @@
 #include <vector>
 
 class TemperatureLogger {
- public:
-  using sample_t = uint8_t;
+   public:
+    using sample_t = uint8_t;
 
-  void second_tick();
+    void second_tick();
 
-  size_t size() const;
-  size_t capacity() const;
+    size_t size() const;
+    size_t capacity() const;
 
-  std::vector<sample_t> history() const;
+    std::vector<sample_t> history() const;
 
- private:
-  std::array<sample_t, 128> samples{};
+   private:
+    std::array<sample_t, 128> samples{};
 
-  static constexpr size_t sample_interval = 5;
-  size_t sample_phase = 0;
-  size_t samples_count = 0;
+    static constexpr size_t sample_interval = 5;
+    size_t sample_phase = 0;
+    size_t samples_count = 0;
 
-  sample_t read_sample();
-  void push_sample(const sample_t sample);
+    sample_t read_sample();
+    void push_sample(const sample_t sample);
 };
 
 #endif /*__TEMPERATURE_LOGGER_H__*/

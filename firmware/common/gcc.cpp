@@ -40,7 +40,7 @@ void __verbose_terminate_handler() {
 /* NOTE: Hack to address bloat when using C++ class virtual destructors.
  */
 extern "C" __attribute__((weak)) void __cxa_pure_virtual(void) {
-  chSysHalt();
+    chSysHalt();
 }
 
 #endif
@@ -49,8 +49,8 @@ extern "C" __attribute__((weak)) void __cxa_pure_virtual(void) {
  * _exit().
  */
 extern "C" void abort() {
-  /* while() loop to avoid noreturn-is-returning warning. */
-  while (1) {
-    chSysHalt();
-  }
+    /* while() loop to avoid noreturn-is-returning warning. */
+    while (1) {
+        chSysHalt();
+    }
 }

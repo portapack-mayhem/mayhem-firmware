@@ -29,117 +29,117 @@
 namespace ui {
 
 class TouchCalibrationView : public View {
- public:
-  TouchCalibrationView(NavigationView& nav);
+   public:
+    TouchCalibrationView(NavigationView& nav);
 
-  void focus() override;
+    void focus() override;
 
-  std::string title() const override { return "Calibration"; };
+    std::string title() const override { return "Calibration"; };
 
- private:
-  enum class Phase {
-    Init,
-    Calibrate0,
-    Calibrate1,
-    Calibrate2,
-    Verify0,
-    Verify1,
-    Verify2,
-    Success,
-    Failure,
-  };
+   private:
+    enum class Phase {
+        Init,
+        Calibrate0,
+        Calibrate1,
+        Calibrate2,
+        Verify0,
+        Verify1,
+        Verify2,
+        Success,
+        Failure,
+    };
 
-  NavigationView& nav;
-  Phase phase{Phase::Init};
+    NavigationView& nav;
+    Phase phase{Phase::Init};
 
-  void update_target();
+    void update_target();
 
-  void set_phase(const Phase value);
+    void set_phase(const Phase value);
 
-  uint32_t distance_squared(const Point& touch_point, const Image& target);
+    uint32_t distance_squared(const Point& touch_point, const Image& target);
 
-  void touch_complete();
-  void on_ok();
-  void on_cancel();
+    void touch_complete();
+    void on_ok();
+    void on_cancel();
 
-  const uint32_t samples_limit{40};
-  const uint32_t verify_d_sq_max = 10 * 10;
+    const uint32_t samples_limit{40};
+    const uint32_t verify_d_sq_max = 10 * 10;
 
-  uint32_t samples_count{0};
+    uint32_t samples_count{0};
 
-  touch::DigitizerPoint average{};
+    touch::DigitizerPoint average{};
 
-  std::array<touch::DigitizerPoint, 3> digitizer_points{};
+    std::array<touch::DigitizerPoint, 3> digitizer_points{};
 
-  touch::Calibration calibration;
+    touch::Calibration calibration;
 
-  Image image_calibrate_0{
-      {32 - 16, 32 - 16, 32, 32},
-      &bitmap_target_calibrate,
-      Color::white(),
-      Color::black()};
+    Image image_calibrate_0{
+        {32 - 16, 32 - 16, 32, 32},
+        &bitmap_target_calibrate,
+        Color::white(),
+        Color::black()};
 
-  Image image_calibrate_1{
-      {240 - 32 - 16, (320 - 16) / 2 - 16, 32, 32},
-      &bitmap_target_calibrate,
-      Color::white(),
-      Color::black()};
+    Image image_calibrate_1{
+        {240 - 32 - 16, (320 - 16) / 2 - 16, 32, 32},
+        &bitmap_target_calibrate,
+        Color::white(),
+        Color::black()};
 
-  Image image_calibrate_2{
-      {240 / 2 - 16, (320 - 16) - 32 - 16, 32, 32},
-      &bitmap_target_calibrate,
-      Color::white(),
-      Color::black()};
+    Image image_calibrate_2{
+        {240 / 2 - 16, (320 - 16) - 32 - 16, 32, 32},
+        &bitmap_target_calibrate,
+        Color::white(),
+        Color::black()};
 
-  Image image_verify_0{
-      {32 - 16, 32 - 16, 32, 32},
-      &bitmap_target_verify,
-      Color::white(),
-      Color::black()};
+    Image image_verify_0{
+        {32 - 16, 32 - 16, 32, 32},
+        &bitmap_target_verify,
+        Color::white(),
+        Color::black()};
 
-  Image image_verify_1{
-      {240 - 32 - 16, (320 - 16) / 2 - 16, 32, 32},
-      &bitmap_target_verify,
-      Color::white(),
-      Color::black()};
+    Image image_verify_1{
+        {240 - 32 - 16, (320 - 16) / 2 - 16, 32, 32},
+        &bitmap_target_verify,
+        Color::white(),
+        Color::black()};
 
-  Image image_verify_2{
-      {240 / 2 - 16, (320 - 16) - 32 - 16, 32, 32},
-      &bitmap_target_verify,
-      Color::white(),
-      Color::black()};
+    Image image_verify_2{
+        {240 / 2 - 16, (320 - 16) - 32 - 16, 32, 32},
+        &bitmap_target_verify,
+        Color::white(),
+        Color::black()};
 
-  Text label_calibrate{
-      {16, 5 * 16, 26 * 8, 1 * 16},
-      "Touch targets to calibrate"};
+    Text label_calibrate{
+        {16, 5 * 16, 26 * 8, 1 * 16},
+        "Touch targets to calibrate"};
 
-  Text label_verify{
-      {28, 5 * 16, 23 * 8, 1 * 16},
-      "Touch targets to verify"};
+    Text label_verify{
+        {28, 5 * 16, 23 * 8, 1 * 16},
+        "Touch targets to verify"};
 
-  Text label_success{
-      {32, 5 * 16, 22 * 8, 1 * 16},
-      "Apply new calibration?"};
+    Text label_success{
+        {32, 5 * 16, 22 * 8, 1 * 16},
+        "Apply new calibration?"};
 
-  Text label_failure{
-      {16, 5 * 16, 26 * 8, 1 * 16},
-      "Calibration failed. Retry?"};
+    Text label_failure{
+        {16, 5 * 16, 26 * 8, 1 * 16},
+        "Calibration failed. Retry?"};
 
-  Button button_cancel{
-      {40, 200, 64, 24},
-      "Cancel"};
+    Button button_cancel{
+        {40, 200, 64, 24},
+        "Cancel"};
 
-  Button button_ok{
-      {136, 200, 64, 24},
-      "OK"};
+    Button button_ok{
+        {136, 200, 64, 24},
+        "OK"};
 
-  void on_frame_sync();
+    void on_frame_sync();
 
-  MessageHandlerRegistration message_handler_frame_sync{
-      Message::ID::DisplayFrameSync,
-      [this](const Message* const) {
-        this->on_frame_sync();
-      }};
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_frame_sync();
+        }};
 };
 
 } /* namespace ui */

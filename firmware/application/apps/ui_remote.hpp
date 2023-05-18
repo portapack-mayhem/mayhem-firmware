@@ -27,16 +27,16 @@
 namespace ui {
 
 class RemoteView : public View {
- public:
-  RemoteView(NavigationView& nav);
-  ~RemoteView();
+   public:
+    RemoteView(NavigationView& nav);
+    ~RemoteView();
 
-  void focus() override;
+    void focus() override;
 
-  std::string title() const override { return "Custom remote"; };
+    std::string title() const override { return "Custom remote"; };
 
- private:
-  /*enum tx_modes {
+   private:
+    /*enum tx_modes {
 		IDLE = 0,
 		SINGLE,
 		SCAN
@@ -51,12 +51,12 @@ class RemoteView : public View {
 	
 	const std::array<remote_layout_t, 32> remote_layout { };*/
 
-  Labels labels{
-      {{1 * 8, 0}, "Work in progress...", Color::light_grey()}};
+    Labels labels{
+        {{1 * 8, 0}, "Work in progress...", Color::light_grey()}};
 
-  Button button{
-      {60, 64, 120, 32},
-      "Exit"};
+    Button button{
+        {60, 64, 120, 32},
+        "Exit"};
 };
 
 } /* namespace ui */

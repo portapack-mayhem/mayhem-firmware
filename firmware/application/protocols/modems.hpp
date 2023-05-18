@@ -33,18 +33,18 @@ namespace modems {
 #define AFSK_TX_SAMPLERATE 1536000U
 
 enum ModemModulation {
-  AFSK = 0,
-  FSK,
-  PSK,
-  AM  // SSB
+    AFSK = 0,
+    FSK,
+    PSK,
+    AM  // SSB
 };
 
 struct modem_def_t {
-  char name[16];
-  ModemModulation modulation;
-  uint16_t mark_freq;
-  uint16_t space_freq;
-  uint16_t baudrate;
+    char name[16];
+    ModemModulation modulation;
+    uint16_t mark_freq;
+    uint16_t space_freq;
+    uint16_t baudrate;
 };
 
 constexpr modem_def_t modem_defs[MODEM_DEF_COUNT] = {
