@@ -75,7 +75,7 @@ void AX25Frame::add_byte(uint8_t byte, bool is_flag, bool is_data) {
 
 void AX25Frame::flush() {
     if (bit_counter)
-        *bb_data_ptr = current_byte << (8 - bit_counter);  //euquiq: This was 7 but there are 8 bits
+        *bb_data_ptr = current_byte << (8 - bit_counter);  // euquiq: This was 7 but there are 8 bits
 };
 
 void AX25Frame::add_flag() {

@@ -38,7 +38,7 @@ class ACARSLogger {
     }
 
     void log_raw_data(const acars::Packet& packet, const uint32_t frequency);
-    //void log_decoded(const acars::Packet& packet, const std::string text);
+    // void log_decoded(const acars::Packet& packet, const std::string text);
 
    private:
     LogFile log_file{};

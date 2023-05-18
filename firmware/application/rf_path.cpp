@@ -130,7 +130,7 @@ struct Config {
 
     void apply() const {
         /* NOTE: Assumes order in gpios[] and Config bitfield match,
-		 * after the 'tx' and 'rx' fields which are handled specially. */
+         * after the 'tx' and 'rx' fields which are handled specially. */
         for (size_t n = 0; n < gpios.size() + 2; n++) {
             bool value = (*this)[n];
             switch (n) {
@@ -218,18 +218,18 @@ void Path::set_rf_amp(const bool new_rf_amp) {
 
 void Path::update() {
     /* 0 ^ 0 => 0 & 0 = 0 ^ 0 = 0 (no change)
-	 * 0 ^ 1 => 1 & 0 = 0 ^ 0 = 0 (ignore change to 1)
-	 * 1 ^ 0 => 1 & 1 = 1 ^ 1 = 0 (allow change to 0)
-	 * 1 ^ 1 => 0 & 1 = 0 ^ 1 = 1 (no change)
-	 */
-    //const Config changed = _config ^ config_next;
-    //const Config turned_off = _config & changed;
+     * 0 ^ 1 => 1 & 0 = 0 ^ 0 = 0 (ignore change to 1)
+     * 1 ^ 0 => 1 & 1 = 1 ^ 1 = 0 (allow change to 0)
+     * 1 ^ 1 => 0 & 1 = 0 ^ 1 = 1 (no change)
+     */
+    // const Config changed = _config ^ config_next;
+    // const Config turned_off = _config & changed;
 
     /* In transition, ignore the bits that are turning on. So this transition phase
-	 * only turns off signals. It doesn't turn on signals.
-	 */
-    //const Config transition_config = _config ^ turned_off;
-    //update_signals(transition_config);
+     * only turns off signals. It doesn't turn on signals.
+     */
+    // const Config transition_config = _config ^ turned_off;
+    // update_signals(transition_config);
 
     /* Move to the final state by turning on required signals. */
     const auto config = get_config(direction, band, rf_amp);

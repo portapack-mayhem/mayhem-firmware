@@ -49,9 +49,9 @@ TimeScopeView::TimeScopeView(
                   &waveform});
 
     /*field_frequency.on_change = [this](int32_t) {
-		set_dirty();
-	};
-	field_frequency.set_value(10);*/
+                set_dirty();
+        };
+        field_frequency.set_value(10);*/
 }
 
 void TimeScopeView::paint(Painter& painter) {
@@ -61,14 +61,14 @@ void TimeScopeView::paint(Painter& painter) {
 
     // Cursor
     /*
-	const Rect r_cursor {
-		field_frequency.value() / (48000 / 240), r.bottom() - 32 - cursor_band_height,
-		1, cursor_band_height
-	};
-	painter.fill_rectangle(
-		r_cursor,
-		Color::red()
-	);*/
+        const Rect r_cursor {
+                field_frequency.value() / (48000 / 240), r.bottom() - 32 - cursor_band_height,
+                1, cursor_band_height
+        };
+        painter.fill_rectangle(
+                r_cursor,
+                Color::red()
+        );*/
 }
 
 void TimeScopeView::on_audio_spectrum(const AudioSpectrum* spectrum) {
@@ -88,8 +88,8 @@ void TVView::on_show() {
 
 void TVView::on_hide() {
     /* TODO: Clear region to eliminate brief flash of content at un-shifted
-	 * position?
-	 */
+     * position?
+     */
     display.scroll_disable();
 }
 
@@ -104,35 +104,35 @@ void TVView::on_adjust_xcorr(uint8_t xcorr) {
 
 void TVView::on_channel_spectrum(
     const ChannelSpectrum& spectrum) {
-    //portapack has limitations
-    // 1.screen resolution (less than 240x320) 2.samples each call back (128 or 256)
-    // 3.memory size (for ui::Color, the buffer size
-    //spectrum.db[i] is 256 long
-    //768x625 ->128x625 ->128x312 -> 128x104
-    //originally @6MHz sample rate, the PAL should be 768x625
-    //I reduced sample rate to 2MHz(3 times less samples), then calculate mag (effectively decimate by 2)
-    //the resolution is now changed to 128x625. The total decimation factor is 6, which changes how many samples in a line
-    //However 625 is too large for the screen, also interlaced scanning is harder to realize in portapack than normal computer.
-    //So I decided to simply drop half of the lines, once y is larger than 625/2=312.5 or 312, I recognize it as a new frame.
-    //then the resolution is changed to 128x312
-    //128x312 is now able to put into a 240x320 screen, but the buffer for a whole frame is 128x312=39936, which is too large
-    //according to my test, I can only make a buffer with a length of 13312 of type ui::Color. which is 1/3 of what I wanted.
-    //So now the resolution is changed to 128x104, the height is shrinked to 1/3 of the original height.
-    //I was expecting to see 1/3 height of original video.
+    // portapack has limitations
+    //  1.screen resolution (less than 240x320) 2.samples each call back (128 or 256)
+    //  3.memory size (for ui::Color, the buffer size
+    // spectrum.db[i] is 256 long
+    // 768x625 ->128x625 ->128x312 -> 128x104
+    // originally @6MHz sample rate, the PAL should be 768x625
+    // I reduced sample rate to 2MHz(3 times less samples), then calculate mag (effectively decimate by 2)
+    // the resolution is now changed to 128x625. The total decimation factor is 6, which changes how many samples in a line
+    // However 625 is too large for the screen, also interlaced scanning is harder to realize in portapack than normal computer.
+    // So I decided to simply drop half of the lines, once y is larger than 625/2=312.5 or 312, I recognize it as a new frame.
+    // then the resolution is changed to 128x312
+    // 128x312 is now able to put into a 240x320 screen, but the buffer for a whole frame is 128x312=39936, which is too large
+    // according to my test, I can only make a buffer with a length of 13312 of type ui::Color. which is 1/3 of what I wanted.
+    // So now the resolution is changed to 128x104, the height is shrinked to 1/3 of the original height.
+    // I was expecting to see 1/3 height of original video.
 
-    //Look how nice is that! I am now able to meet the requirements of 1 and 3 for portapack. Also the length of a line is 128
-    //Each call back gives me 256 samples which is exactly 2 lines. What a coincidence!
+    // Look how nice is that! I am now able to meet the requirements of 1 and 3 for portapack. Also the length of a line is 128
+    // Each call back gives me 256 samples which is exactly 2 lines. What a coincidence!
 
-    //After some experiment, I did some improvements.
-    //1.I found that instead of 1/3 of the frame is shown, I got 3 whole frames shrinked into one window.
-    //So I made the height twice simply by painting 2 identical lines in the place of original lines
-    //2.I found sometimes there is an horizontal offset, so I added x_correction to move the frame back to center manually
-    //3.I changed video_buffer's type, from ui::Color to uint_8, since I don't need 3 digit to represent a grey scale value.
-    //I was hoping that by doing this, I can have a longer buffer like 39936, then the frame will looks better vertically
-    //however this is useless until now.
+    // After some experiment, I did some improvements.
+    // 1.I found that instead of 1/3 of the frame is shown, I got 3 whole frames shrinked into one window.
+    // So I made the height twice simply by painting 2 identical lines in the place of original lines
+    // 2.I found sometimes there is an horizontal offset, so I added x_correction to move the frame back to center manually
+    // 3.I changed video_buffer's type, from ui::Color to uint_8, since I don't need 3 digit to represent a grey scale value.
+    // I was hoping that by doing this, I can have a longer buffer like 39936, then the frame will looks better vertically
+    // however this is useless until now.
 
     for (size_t i = 0; i < 256; i++) {
-        //video_buffer[i+count*256] = spectrum_rgb4_lut[spectrum.db[i]];
+        // video_buffer[i+count*256] = spectrum_rgb4_lut[spectrum.db[i]];
         video_buffer_int[i + count * 256] = 255 - spectrum.db[i];
     }
     count = count + 1;
@@ -142,18 +142,18 @@ void TVView::on_channel_spectrum(
         uint32_t bmp_px;
 
         /*for (line = 0; line < 104; line++)
-		{
-			for (bmp_px = 0; bmp_px < 128; bmp_px++) 
-			{
-				//line_buffer[bmp_px] = video_buffer[bmp_px+line*128];
-				line_buffer[bmp_px] = spectrum_rgb4_lut[video_buffer_int[bmp_px+line*128 + x_correction]];
-			}
+                {
+                        for (bmp_px = 0; bmp_px < 128; bmp_px++)
+                        {
+                                //line_buffer[bmp_px] = video_buffer[bmp_px+line*128];
+                                line_buffer[bmp_px] = spectrum_rgb4_lut[video_buffer_int[bmp_px+line*128 + x_correction]];
+                        }
 
-			display.render_line({ 0, line + 100 }, 128, line_buffer);
-		}*/
+                        display.render_line({ 0, line + 100 }, 128, line_buffer);
+                }*/
         for (line = 0; line < 208; line = line + 2) {
             for (bmp_px = 0; bmp_px < 128; bmp_px++) {
-                //line_buffer[bmp_px] = video_buffer[bmp_px+line*128];
+                // line_buffer[bmp_px] = video_buffer[bmp_px+line*128];
                 line_buffer[bmp_px] = spectrum_rgb4_lut[video_buffer_int[bmp_px + line / 2 * 128 + x_correction]];
             }
 

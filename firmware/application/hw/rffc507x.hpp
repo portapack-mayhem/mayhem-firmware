@@ -562,9 +562,9 @@ constexpr RegisterMap default_revision_2 { std::array<reg_t, reg_count> {
 #endif
 constexpr RegisterMap default_hackrf_one{Register_Type{
     /* Started with recommended defaults for revision 1 devices
-	 * (mrev_id = 001), RFFC2071/2072/5071/5072, RFMD2080/2081.
-	 * Modified according to mixer programming guide.
-	 */
+     * (mrev_id = 001), RFFC2071/2072/5071/5072, RFMD2080/2081.
+     * Modified according to mixer programming guide.
+     */
     .lf = {
         /* 0 */
         .pllcpl = 0b010,

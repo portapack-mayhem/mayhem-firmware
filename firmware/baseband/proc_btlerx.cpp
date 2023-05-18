@@ -32,11 +32,11 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     // FM demodulation
 
     /*const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-	const auto channel = decim_1.execute(decim_0_out, dst_buffer);
+        const auto channel = decim_1.execute(decim_0_out, dst_buffer);
 
-	feed_channel_stats(channel);
-	
-	auto audio_oversampled = demod.execute(channel, work_audio_buffer);*/
+        feed_channel_stats(channel);
+
+        auto audio_oversampled = demod.execute(channel, work_audio_buffer);*/
 
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(decim_0_out);
@@ -44,20 +44,20 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     auto audio_oversampled = demod.execute(decim_0_out, work_audio_buffer);
 
     /*std::fill(spectrum.begin(), spectrum.end(), 0);
-	for(size_t i=0; i<spectrum.size(); i++) {
-		spectrum[i] += buffer.p[i];
-	}
-	const buffer_c16_t buffer_c16 {spectrum.data(),spectrum.size(),buffer.sampling_rate};
-	feed_channel_stats(buffer_c16);
-	
-	auto audio_oversampled = demod.execute(buffer_c16, work_audio_buffer);*/
+        for(size_t i=0; i<spectrum.size(); i++) {
+                spectrum[i] += buffer.p[i];
+        }
+        const buffer_c16_t buffer_c16 {spectrum.data(),spectrum.size(),buffer.sampling_rate};
+        feed_channel_stats(buffer_c16);
+
+        auto audio_oversampled = demod.execute(buffer_c16, work_audio_buffer);*/
     // Audio signal processing
     for (size_t c = 0; c < audio_oversampled.count; c++) {
         /*const int32_t sample_int = audio_oversampled.p[c] * 32768.0f;
-		int32_t current_sample = __SSAT(sample_int, 16);
-		current_sample /= 128;*/
+                int32_t current_sample = __SSAT(sample_int, 16);
+                current_sample /= 128;*/
 
-        int32_t current_sample = audio_oversampled.p[c];  //if I directly use this, some results can pass crc but not correct.
+        int32_t current_sample = audio_oversampled.p[c];  // if I directly use this, some results can pass crc but not correct.
         rb_head++;
         rb_head = (rb_head) % RB_SIZE;
 
@@ -86,14 +86,14 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             }
 
             bool packet_detected = false;
-            //if ( transitions==4 && abs(g_threshold)<15500)
+            // if ( transitions==4 && abs(g_threshold)<15500)
             if (transitions == 4) {
                 uint8_t packet_data[500];
                 int packet_length;
                 uint32_t packet_crc;
-                //uint32_t calced_crc; // NOTE: restore when CRC is passing
+                // uint32_t calced_crc; // NOTE: restore when CRC is passing
                 uint64_t packet_addr_l;
-                //uint32_t result; // NOTE: restore when CRC is passing
+                // uint32_t result; // NOTE: restore when CRC is passing
                 uint8_t crc[3];
                 uint8_t packet_header_arr[2];
 
@@ -208,19 +208,19 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
                     counter = counter + 1;
                 }
                 for (v = 0; v < 3; v++) crc_result = (crc_result << 8) | crc[v];
-                //calced_crc = crc_result; // NOTE: restore when CRC is passing
+                // calced_crc = crc_result; // NOTE: restore when CRC is passing
 
                 packet_crc = 0;
                 for (int c = 0; c < 3; c++) packet_crc = (packet_crc << 8) | packet_data[packet_length + 2 + c];
 
                 if (packet_addr_l == 0x8E89BED6)
-                //if (packet_crc==calced_crc) // NOTE: restore when CRC is passing
+                // if (packet_crc==calced_crc) // NOTE: restore when CRC is passing
                 {
                     uint8_t mac_data[6];
                     int counter = 0;
                     for (int i = 7; i >= 2; i--) {
                         uint8_t byte_temp6 = (uint8_t)(((packet_data[i] * 0x0802LU & 0x22110LU) | (packet_data[i] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                        //result = byte_temp6; // NOTE: restore when CRC is passing
+                        // result = byte_temp6; // NOTE: restore when CRC is passing
                         mac_data[counter] = byte_temp6;
                         counter = counter + 1;
                     }
@@ -275,7 +275,7 @@ void BTLERxProcessor::on_message(const Message* const message) {
 }
 
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
-    (void)message;  //avoid warning
+    (void)message;  // avoid warning
     decim_0.configure(taps_200k_wfm_decim_0.taps, 33554432);
     decim_1.configure(taps_200k_wfm_decim_1.taps, 131072);
     demod.configure(audio_fs, 5000);

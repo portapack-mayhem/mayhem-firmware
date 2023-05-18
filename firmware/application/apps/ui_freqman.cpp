@@ -164,11 +164,11 @@ FrequencySaveView::FrequencySaveView(
 
     // Todo: add back ?
     /*for (size_t n = 0; n < database.size(); n++) {
-		if (database[n].value == value_) {
-			error_ = ERROR_DUPLICATE;
-			break;
-		}
-	}*/
+                if (database[n].value == value_) {
+                        error_ = ERROR_DUPLICATE;
+                        break;
+                }
+        }*/
 
     add_children({&labels,
                   &big_display,
@@ -189,7 +189,7 @@ FrequencySaveView::FrequencySaveView(
 void FrequencyLoadView::refresh_widgets(const bool v) {
     menu_view.hidden(v);
     text_empty.hidden(!v);
-    //display.fill_rectangle(menu_view.screen_rect(), Color::black());
+    // display.fill_rectangle(menu_view.screen_rect(), Color::black());
     set_dirty();
 }
 
@@ -269,12 +269,12 @@ void FrequencyManagerView::refresh_widgets(const bool v) {
     button_delete.hidden(v);
     menu_view.hidden(v);
     text_empty.hidden(!v);
-    //display.fill_rectangle(menu_view.screen_rect(), Color::black());
+    // display.fill_rectangle(menu_view.screen_rect(), Color::black());
     set_dirty();
 }
 
 FrequencyManagerView::~FrequencyManagerView() {
-    //save_freqman_file(file_list[categories[current_category_id].second], database);
+    // save_freqman_file(file_list[categories[current_category_id].second], database);
 }
 
 FrequencyManagerView::FrequencyManagerView(

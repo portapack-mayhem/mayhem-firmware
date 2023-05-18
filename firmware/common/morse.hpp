@@ -59,7 +59,7 @@ constexpr char foxhunt_codes[11][4] = {
 
 // 0=dot 1=dash
 constexpr uint16_t morse_ITU[63] = {
-    //    Code    Size
+    // Code    Size
     0b1010110000000110,  // !: 101011- 110
     0b0100100000000110,  // ": 010010- 110
     0,                   // #
@@ -126,7 +126,7 @@ constexpr uint16_t morse_ITU[63] = {
 };
 
 constexpr uint16_t prosigns[12] = {
-    //    	  Code		Size
+    // 	  Code		Size
     0b0001110000001001,  // <SOS>: 000111000	1001
     0b0101000000000100,  // <AA>:  0101----- 0100
     0b0101000000000101,  // <AR>:  01010---- 0101

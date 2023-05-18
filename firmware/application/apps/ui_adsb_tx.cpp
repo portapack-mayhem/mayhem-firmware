@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -222,25 +222,25 @@ void ADSBTXThread::run() {
     uint8_t* bin_ptr = shared_memory.bb_data.data;
     uint8_t* raw_ptr;
     uint32_t frame_index = 0;  //, plane_index = 0;
-    //uint32_t regen = 0;
-    //float offs = 0;
+    // uint32_t regen = 0;
+    // float offs = 0;
 
     while (!chThdShouldTerminate()) {
         /*if (!regen) {
-			regen = 10;
-			
-			encode_frame_id(frames[0], plane_index, "DEMO" + to_string_dec_uint(plane_index));
-			encode_frame_pos(frames[1], plane_index, 5000, plane_lats[plane_index]/8 + offs + 38.5, plane_lons[plane_index]/8 + 125.8, 0);
-			encode_frame_pos(frames[2], plane_index, 5000, plane_lats[plane_index]/8 + offs + 38.5, plane_lons[plane_index]/8 + 125.8, 1);
-			encode_frame_identity(frames[3], plane_index, 1337);
-			
-			if (plane_index == 11)
-				plane_index = 0;
-			else
-				plane_index++;
-			
-			offs += 0.001;
-		}*/
+                        regen = 10;
+
+                        encode_frame_id(frames[0], plane_index, "DEMO" + to_string_dec_uint(plane_index));
+                        encode_frame_pos(frames[1], plane_index, 5000, plane_lats[plane_index]/8 + offs + 38.5, plane_lons[plane_index]/8 + 125.8, 0);
+                        encode_frame_pos(frames[2], plane_index, 5000, plane_lats[plane_index]/8 + offs + 38.5, plane_lons[plane_index]/8 + 125.8, 1);
+                        encode_frame_identity(frames[3], plane_index, 1337);
+
+                        if (plane_index == 11)
+                                plane_index = 0;
+                        else
+                                plane_index++;
+
+                        offs += 0.001;
+                }*/
 
         memset(bin_ptr, 0, 256);  // 112 bits * 2 parts = 224 should be enough
 
@@ -253,7 +253,7 @@ void ADSBTXThread::run() {
         manchester_encode(bin_ptr + 16, raw_ptr, 112, 0);
 
         // Display in hex for debug
-        //text_frame.set(to_string_hex_array(frames[0].get_raw_data(), 14));
+        // text_frame.set(to_string_hex_array(frames[0].get_raw_data(), 14));
 
         baseband::set_adsb();
 
@@ -262,7 +262,7 @@ void ADSBTXThread::run() {
         frame_index++;
         if (frame_index >= frames_.size()) {
             frame_index = 0;
-            //if (regen)
+            // if (regen)
             //	regen--;
         }
     }
@@ -288,16 +288,16 @@ void ADSBTxView::generate_frames() {
     frames.clear();
 
     /* This scheme kinda sucks. Each "tab"'s collect_frames method
-	 * is called to generate its related frame(s). Getting values
-	 * from each widget of each tab would be better ?
-	 * */
+     * is called to generate its related frame(s). Getting values
+     * from each widget of each tab would be better ?
+     * */
     view_position.collect_frames(ICAO_address, frames);
     view_callsign.collect_frames(ICAO_address, frames);
     view_speed.collect_frames(ICAO_address, frames);
     view_squawk.collect_frames(ICAO_address, frames);
 
     // Show how many frames were generated
-    //text_frame.set(to_string_dec_uint(frames.size()) + " frame(s).");
+    // text_frame.set(to_string_dec_uint(frames.size()) + " frame(s).");
 }
 
 void ADSBTxView::start_tx() {

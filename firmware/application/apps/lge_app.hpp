@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2019 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify

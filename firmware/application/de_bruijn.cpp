@@ -31,23 +31,23 @@
  * The shift register is init with 1 and shifted left each step
  * The polynomial is kept on the right, and used as a AND mask applied on the corresponding shift register bits
  * The resulting bits are XORed together to produce the new bit pushed in the shift register
- * 
+ *
  * 		0001 (init)
  * AND	1001 (polynomial)
  *      0001 XOR'd -> 1
- * 
+ *
  * 		00011 (shift left)
  * AND	 1001
  *       0001 XOR'd -> 1
- * 
+ *
  * 		000111 (shift left)
  * AND	  1001
  *        0001 XOR'd -> 1
- * 
+ *
  * 		0001111 (shift left)
  * AND	   1001
  *         1001 XOR'd -> 0
- * 
+ *
  * 		00011110 (shift left)
  * AND	    1001
  *          1000 XOR'd -> 1

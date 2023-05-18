@@ -262,9 +262,9 @@ SetUIView::SetUIView(NavigationView& nav) {
                 persistent_memory::set_clock_with_date(false);
         }
 
-        if (checkbox_speaker.value()) audio::output::speaker_mute();      //Just mute audio if speaker is disabled
-        persistent_memory::set_config_speaker(checkbox_speaker.value());  //Store Speaker status
-        StatusRefreshMessage message{};                                   //Refresh status bar with/out speaker
+        if (checkbox_speaker.value()) audio::output::speaker_mute();      // Just mute audio if speaker is disabled
+        persistent_memory::set_config_speaker(checkbox_speaker.value());  // Store Speaker status
+        StatusRefreshMessage message{};                                   // Refresh status bar with/out speaker
         EventDispatcher::send_message(message);
 
         persistent_memory::set_config_splash(checkbox_showsplash.value());
@@ -327,7 +327,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         }
         // Retune to take converter change in account
         receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
-        //Refresh status bar with/out converter
+        // Refresh status bar with/out converter
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
@@ -341,7 +341,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         portapack::persistent_memory::set_config_converter(v);
         // Retune to take converter change in account
         receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
-        //Refresh status bar with/out converter
+        // Refresh status bar with/out converter
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
@@ -349,7 +349,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
     converter_mode.set_by_value(portapack::persistent_memory::config_updown_converter());
     converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
         portapack::persistent_memory::set_config_updown_converter(v);
-        //Refresh status bar with icon up or down
+        // Refresh status bar with icon up or down
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
@@ -408,7 +408,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
         if (v) {
             auto result = pmem_flag_file_handle.open(pmem_flag_file);
             if (result.is_valid()) {
-                auto result = pmem_flag_file_handle.create(pmem_flag_file);  //third: create if it is not there
+                auto result = pmem_flag_file_handle.create(pmem_flag_file);  // third: create if it is not there
                 if (!result.is_valid()) {
                     text_pmem_status.set("pmem flag file created");
                 } else {
@@ -440,7 +440,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
             text_pmem_status.set("!problem loading settings!");
         } else {
             text_pmem_status.set("settings loaded");
-            //Refresh status bar with icon up or down
+            // Refresh status bar with icon up or down
             StatusRefreshMessage message{};
             EventDispatcher::send_message(message);
         }

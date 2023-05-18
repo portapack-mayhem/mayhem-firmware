@@ -39,9 +39,9 @@ class AudioInput {
 
    private:
     /*static constexpr float k = 32768.0f;
-	static constexpr float ki = 1.0f / k;
+        static constexpr float ki = 1.0f / k;
 
-	IIRBiquadFilter hpf { };*/
+        IIRBiquadFilter hpf { };*/
 };
 
 #endif /*__AUDIO_INPUT_H__*/

@@ -61,12 +61,12 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
             // samples, so we need to keep feeding the buffer
             // and not be able to take advantage of the circular
             // buffer loop:
-            //beep_play = false;
+            // beep_play = false;
             generate_beep();
         }
 
         if (silence_play) {
-            //silence_play = false;
+            // silence_play = false;
             generate_silence();
         }
     }

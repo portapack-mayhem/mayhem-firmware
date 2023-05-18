@@ -47,22 +47,22 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
     }
 
     /* 384kHz complex<int16_t>[256]
-	 * -> FM demodulation
-	 * -> 384kHz int16_t[256] */
+     * -> FM demodulation
+     * -> 384kHz int16_t[256] */
     /* TODO: To improve adjacent channel rejection, implement complex channel filter:
-	 *		pass < +/- 100kHz, stop > +/- 200kHz
-	 */
+     *		pass < +/- 100kHz, stop > +/- 200kHz
+     */
 
     auto audio_oversampled = demod.execute(channel, work_audio_buffer);
 
     /* 384kHz int16_t[256]
-	 * -> 4th order CIC decimation by 2, gain of 1
-	 * -> 192kHz int16_t[128] */
+     * -> 4th order CIC decimation by 2, gain of 1
+     * -> 192kHz int16_t[128] */
     auto audio_4fs = audio_dec_1.execute(audio_oversampled, work_audio_buffer);
 
     /* 192kHz int16_t[128]
-	 * -> 4th order CIC decimation by 2, gain of 1
-	 * -> 96kHz int16_t[64] */
+     * -> 4th order CIC decimation by 2, gain of 1
+     * -> 96kHz int16_t[64] */
     auto audio_2fs = audio_dec_2.execute(audio_4fs, work_audio_buffer);
 
     // Input: 96kHz int16_t[64]
@@ -100,7 +100,7 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
             } else {
                 const size_t spectrum_end = spectrum.db.size();
                 for (size_t i = 0; i < spectrum_end; i++) {
-                    //const auto corrected_sample = spectrum_window_hamming_3(audio_spectrum, i);
+                    // const auto corrected_sample = spectrum_window_hamming_3(audio_spectrum, i);
                     const auto corrected_sample = audio_spectrum[i];
                     const auto mag2 = magnitude_squared(corrected_sample * (1.0f / 32768.0f));
                     const float db = mag2_to_dbv_norm(mag2);
@@ -118,8 +118,8 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
     }
 
     /* 96kHz int16_t[64]
-	 * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
-	 * -> 48kHz int16_t[32] */
+     * -> FIR filter, <15kHz (0.156fs) pass, >19kHz (0.198fs) stop, gain of 1
+     * -> 48kHz int16_t[32] */
     auto audio = audio_filter.execute(audio_2fs, work_audio_buffer);
 
     /* -> 48kHz int16_t[32] */

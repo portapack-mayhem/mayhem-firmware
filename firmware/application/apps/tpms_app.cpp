@@ -173,14 +173,14 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
 
     /*	radio::enable({
-		tuning_frequency(),
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	}); */
+                tuning_frequency(),
+                sampling_rate,
+                baseband_bandwidth,
+                rf::Direction::Receive,
+                receiver_model.rf_amp(),
+                static_cast<int8_t>(receiver_model.lna()),
+                static_cast<int8_t>(receiver_model.vga()),
+        }); */
 
     options_band.on_change = [this](size_t, OptionsField::value_t v) {
         this->on_band_changed(v);

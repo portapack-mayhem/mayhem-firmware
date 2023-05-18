@@ -173,7 +173,7 @@ class AnalogAudioView : public View {
     uint16_t spec_trigger = 63;
 
     NavigationView& nav_;
-    //bool exit_on_squelch { false };
+    // bool exit_on_squelch { false };
 
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4},
@@ -247,16 +247,16 @@ class AnalogAudioView : public View {
 
     void update_modulation(const ReceiverModel::Mode modulation);
 
-    //void squelched();
+    // void squelched();
     void handle_coded_squelch(const uint32_t value);
 
     /*MessageHandlerRegistration message_handler_squelch_signal {
-		Message::ID::RequestSignal,
-		[this](const Message* const p) {
-			(void)p;
-			this->squelched();
-		}
-	};*/
+                Message::ID::RequestSignal,
+                [this](const Message* const p) {
+                        (void)p;
+                        this->squelched();
+                }
+        };*/
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,

@@ -178,7 +178,7 @@ void PlaylistView::start() {
             });
     }
 
-    //Enable Bias Tee if selected
+    // Enable Bias Tee if selected
     radio::set_antenna_bias(portapack::get_antenna_bias());
 
     rf_amp = (transmitter_model.rf_amp());  // recover rf_amp settings applied from ui_transmiter.cpp
@@ -187,7 +187,7 @@ void PlaylistView::start() {
                    sample_rate * 8,
                    baseband_bandwidth,
                    rf::Direction::Transmit,
-                   rf_amp,  //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
+                   rf_amp,  // previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
                    static_cast<int8_t>(receiver_model.lna()),
                    static_cast<int8_t>(receiver_model.vga())});
 
@@ -206,7 +206,7 @@ void PlaylistView::stop(const bool do_loop) {
             start();
         }
     } else {
-        radio::set_antenna_bias(false);  //Turn off Bias Tee
+        radio::set_antenna_bias(false);  // Turn off Bias Tee
         radio::disable();
         button_play.set_bitmap(&bitmap_play);
     }

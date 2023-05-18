@@ -74,8 +74,8 @@ void Si5351::set_ms_frequency(
     const uint32_t vco_frequency,
     const size_t r_div) {
     /* TODO: Factor out the VCO frequency, which should be an attribute held
-	 * by the Si5351 object.
-	 */
+     * by the Si5351 object.
+     */
     const uint32_t a = vco_frequency / frequency;
     const uint32_t remainder = vco_frequency - (frequency * a);
     const uint32_t denom = gcd(remainder, frequency);
@@ -83,8 +83,8 @@ void Si5351::set_ms_frequency(
     const uint32_t c = frequency / denom;
 
     /* TODO: Switch between integer and fractional modes depending on the
-	 * values of a and b.
-	 */
+     * values of a and b.
+     */
     const MultisynthFractional ms{
         .f_src = vco_frequency,
         .a = a,

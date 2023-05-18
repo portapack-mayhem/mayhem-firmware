@@ -163,11 +163,11 @@ class SystemStatusView : public View {
         Color::dark_grey()};
 
     /*ImageButton button_textentry {
-		{ 170, 0, 2 * 8, 1 * 16 },
-		&bitmap_icon_unistroke,
-		Color::white(),
-		Color::dark_grey()
-	};*/
+                { 170, 0, 2 * 8, 1 * 16 },
+                &bitmap_icon_unistroke,
+                Color::white(),
+                Color::dark_grey()
+        };*/
 
     ImageButton button_camera{
         {21 * 8, 0, 2 * 8, 1 * 16},
@@ -299,20 +299,20 @@ class SystemView : public View {
 
 /*class NotImplementedView : public View {
 public:
-	NotImplementedView(NavigationView& nav);
+        NotImplementedView(NavigationView& nav);
 
-	void focus() override;
+        void focus() override;
 
 private:
-	Text text_title {
-		{ 5 * 8, 7 * 16, 19 * 8, 16 },
-		"Not Yet Implemented"
-	};
+        Text text_title {
+                { 5 * 8, 7 * 16, 19 * 8, 16 },
+                "Not Yet Implemented"
+        };
 
-	Button button_done {
-		{ 10 * 8, 13 * 16, 10 * 8, 24 },
-		"Bummer",
-	};
+        Button button_done {
+                { 10 * 8, 13 * 16, 10 * 8, 24 },
+                "Bummer",
+        };
 };*/
 
 class ModalMessageView : public View {

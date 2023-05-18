@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2019 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -95,8 +95,8 @@ void LGEView::generate_frame_nickname() {
         0x00, 0x00};
     uint32_t c;
 
-    //data_header[2] = field_room.value();	// ?
-    //data_footer[0] = field_room.value();	// ?
+    // data_header[2] = field_room.value();	// ?
+    // data_footer[0] = field_room.value();	// ?
 
     data.insert(data.begin(), data_header.begin(), data_header.end());
 
@@ -191,7 +191,7 @@ void LGEView::generate_frame_start() {
     // 0A 05 FF FF FF FF 02 EC FF FF FF A3 35
     std::vector<uint8_t> data{0x02, 0xEC, 0xFF, 0xFF, 0xFF};
 
-    //data[0] = field_room.value();	// ?
+    // data[0] = field_room.value();	// ?
 
     console.write("\n\x1B\x0DStart:\x1B\x10");
     generate_lge_frame(0x05, data);
@@ -270,10 +270,10 @@ void LGEView::on_tx_progress(const uint32_t progress, const bool done) {
     transmitter_model.disable();
 
     /*if (repeats < 2) {
-		chThdSleep(100);
-		repeats++;
-		start_tx();
-	} else {*/
+                chThdSleep(100);
+                repeats++;
+                start_tx();
+        } else {*/
     if (tx_mode == ALL) {
         if (channel_index < 2) {
             channel_index++;

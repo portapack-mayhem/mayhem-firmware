@@ -193,8 +193,8 @@ class FIRAndDecimateComplex {
     using taps_t = tap_t[];
 
     /* NOTE! Current code makes an assumption that block of samples to be
-	 * processed will be a multiple of the taps_count.
-	 */
+     * processed will be a multiple of the taps_count.
+     */
 
     template <typename T>
     void configure(

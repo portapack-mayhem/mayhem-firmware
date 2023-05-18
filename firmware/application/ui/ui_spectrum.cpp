@@ -58,7 +58,7 @@ void AudioSpectrumView::paint(Painter& painter) {
 
     painter.fill_rectangle(r, Color::black());
 
-    //if( !spectrum_sampling_rate ) return;
+    // if( !spectrum_sampling_rate ) return;
 
     // Cursor
     const Rect r_cursor{
@@ -156,9 +156,11 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
         const Dim pixel_offset = tick_offset * magnitude * spectrum_bins / spectrum_sampling_rate;
 
         const std::string zero_pad =
-            ((magnitude_n % 3) == 0) ? "" : ((magnitude_n % 3) == 1) ? "0" : "00";
+            ((magnitude_n % 3) == 0) ? "" : ((magnitude_n % 3) == 1) ? "0"
+                                                                     : "00";
         const std::string unit =
-            (magnitude_n >= 6) ? "M" : (magnitude_n >= 3) ? "k" : "";
+            (magnitude_n >= 6) ? "M" : (magnitude_n >= 3) ? "k"
+                                                          : "";
         const std::string label = to_string_dec_uint(tick_offset) + zero_pad + unit;
         const auto label_width = style().font.size_of(label).width();
 
@@ -256,8 +258,8 @@ void WaterfallView::on_show() {
 
 void WaterfallView::on_hide() {
     /* TODO: Clear region to eliminate brief flash of content at un-shifted
-	 * position?
-	 */
+     * position?
+     */
     display.scroll_disable();
 }
 

@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -72,10 +72,10 @@ class QRCodeView : public View {
     QRCodeImage qr_code{
         {50, 100, 100, 100}};
 
-    //Text text_qr {
+    // Text text_qr {
     //	{ 0 * 8, 10 * 16, 32 * 8, 1 * 8 },
     //	"-"
-    //};
+    // };
 
     Button button_close{
         {9 * 8, 31 * 8, 12 * 8, 3 * 16},

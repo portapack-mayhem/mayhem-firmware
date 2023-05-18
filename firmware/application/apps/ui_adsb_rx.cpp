@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -206,7 +206,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
         text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
 
     text_infos.set(entry_copy.info_string);
-    if (entry_copy.velo.heading < 360 && entry_copy.velo.speed >= 0) {  //I don't like this but...
+    if (entry_copy.velo.heading < 360 && entry_copy.velo.speed >= 0) {  // I don't like this but...
         text_info2.set("Hdg:" + to_string_dec_uint(entry_copy.velo.heading) + " Spd:" + to_string_dec_int(entry_copy.velo.speed));
     } else {
         text_info2.set("");
@@ -295,7 +295,7 @@ ADSBRxView::~ADSBRxView() {
     // save app settings
     settings.save("rx_adsb", &app_settings);
 
-    //TODO: once all apps keep there own settin previous frequency logic can be removed
+    // TODO: once all apps keep there own settin previous frequency logic can be removed
     receiver_model.set_tuning_frequency(prevFreq);
     rtc_time::signal_tick_second -= signal_token_tick_second;
     receiver_model.disable();

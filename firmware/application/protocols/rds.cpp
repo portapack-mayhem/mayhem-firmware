@@ -114,7 +114,7 @@ void gen_PSN(std::vector<RDSGroup>& frame, const std::string& psname, const RDS_
 
 void gen_RadioText(std::vector<RDSGroup>& frame, const std::string& text, const bool AB, const RDS_flags* rds_flags) {
     size_t c;
-    //RDSGroup * groups_ptr;
+    // RDSGroup * groups_ptr;
     std::string radiotext_buffer = text;
     size_t rt_length, group_count;
     RDSGroup group;
@@ -125,7 +125,7 @@ void gen_RadioText(std::vector<RDSGroup>& frame, const std::string& text, const 
 
     group_count = rt_length >> 2;  // 4 characters per group
 
-    //groups_ptr = (RDSGroup*)chHeapAlloc(0, group_count * sizeof(RDSGroup));
+    // groups_ptr = (RDSGroup*)chHeapAlloc(0, group_count * sizeof(RDSGroup));
 
     frame.clear();
 

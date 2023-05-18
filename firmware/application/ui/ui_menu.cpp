@@ -286,15 +286,15 @@ bool MenuView::on_encoder(const EncoderEvent event) {
  */
 /*
 bool MenuView::on_touch(const TouchEvent event) {
-	size_t i = 0;
-	for(const auto child : children_) {
-		if( child->screen_rect().contains(event.point) ) {
-			return set_highlighted(i);
-		}
-		i++;
-	}
+        size_t i = 0;
+        for(const auto child : children_) {
+                if( child->screen_rect().contains(event.point) ) {
+                        return set_highlighted(i);
+                }
+                i++;
+        }
 
-	return false;
+        return false;
 }
 */
 } /* namespace ui */

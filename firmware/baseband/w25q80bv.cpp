@@ -62,7 +62,7 @@ void setup() {
     MMIO32(SCU_FLASH_WP) = SCU_GPIO_FAST;
     MMIO32(SCU_SSP0_CS) = (SCU_GPIO_FAST | SCU_CONF_FUNCTION4);
 
-    //remove hardware write protection
+    // remove hardware write protection
     /* drive CS, HOLD, and WP pins high */
     palSetPad(W25Q80BV_HOLD_PORT, W25Q80BV_HOLD_PAD);
     palSetPad(W25Q80BV_WP_PORT, W25Q80BV_WP_PAD);

@@ -65,8 +65,8 @@ buffer_f32_t SSB::execute(
 }
 /*
 static inline float angle_approx_4deg0(const complex32_t t) {
-	const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
-	return 16384.0f * x;
+        const auto x = static_cast<float>(t.imag()) / static_cast<float>(t.real());
+        return 16384.0f * x;
 }
 */
 static inline float angle_approx_0deg27(const complex32_t t) {
@@ -134,10 +134,10 @@ buffer_s16_t FM::execute(
 
 void FM::configure(const float sampling_rate, const float deviation_hz) {
     /*
-	 * angle: -pi to pi. output range: -32768 to 32767.
-	 * Maximum delta-theta (output of atan2) at maximum deviation frequency:
-	 * delta_theta_max = 2 * pi * deviation / sampling_rate
-	 */
+     * angle: -pi to pi. output range: -32768 to 32767.
+     * Maximum delta-theta (output of atan2) at maximum deviation frequency:
+     * delta_theta_max = 2 * pi * deviation / sampling_rate
+     */
     kf = static_cast<float>(1.0f / (2.0 * pi * deviation_hz / sampling_rate));
     ks16 = 32767.0f * kf;
 }

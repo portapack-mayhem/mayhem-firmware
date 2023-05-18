@@ -164,11 +164,11 @@ void APRSRxView::on_packet(const APRSPacketMessage* message) {
         logger->log_raw_data(stream_text);
     }
 
-    //if(reset_console){ //having more than one console causes issues when switching tabs where one is disabled, and the other enabled breaking the scoll setup.
+    // if(reset_console){ //having more than one console causes issues when switching tabs where one is disabled, and the other enabled breaking the scoll setup.
     //	console.on_hide();
     //	console.on_show();
     //	reset_console = false;
-    //}
+    // }
 
     console.writeln(str_console);
 }
@@ -208,8 +208,8 @@ void APRSRxView::on_data(uint32_t value, bool is_data) {
 }
 
 void APRSRxView::on_show() {
-    //some bug where the display scroll area is set to the entire screen when switching from the list tab with details showing back to the stream view.
-    //reset_console = true;
+    // some bug where the display scroll area is set to the entire screen when switching from the list tab with details showing back to the stream view.
+    // reset_console = true;
 }
 
 APRSRxView::~APRSRxView() {
@@ -259,31 +259,31 @@ APRSTableView::APRSTableView(NavigationView& nav, Rect parent_rec)
     };
 
     /*	for(size_t i = 0; i <32 ; i++){
-		std::string id = "test" + i;
-		auto& entry = ::on_packet(recent, i);			
-		entry.set_source_formatted(id);	
-	}
+                std::string id = "test" + i;
+                auto& entry = ::on_packet(recent, i);
+                entry.set_source_formatted(id);
+        }
 
-	recent_entries_view.set_dirty(); 	*/
+        recent_entries_view.set_dirty(); 	*/
 
     /*
 
-	std::string str1 = "test1";
-	std::string str12 = "test2";
-	std::string str13 = "test2";
+        std::string str1 = "test1";
+        std::string str12 = "test2";
+        std::string str13 = "test2";
 
-	auto& entry = ::on_packet(recent, 0x1);			
-	entry.set_source_formatted(str1);	
+        auto& entry = ::on_packet(recent, 0x1);
+        entry.set_source_formatted(str1);
 
-	auto& entry2 = ::on_packet(recent, 0x2);			
-	entry2.set_source_formatted(str12);	
+        auto& entry2 = ::on_packet(recent, 0x2);
+        entry2.set_source_formatted(str12);
 
-	auto& entry3 = ::on_packet(recent, 0x2);			
-	entry2.set_source_formatted(str13);	
+        auto& entry3 = ::on_packet(recent, 0x2);
+        entry2.set_source_formatted(str13);
 
-	recent_entries_view.set_dirty(); 	
+        recent_entries_view.set_dirty();
 
-	*/
+        */
 }
 
 void APRSTableView::on_pkt(const APRSPacketMessage* message) {
@@ -304,7 +304,7 @@ void APRSTableView::on_pkt(const APRSPacketMessage* message) {
     entry.set_source_formatted(source_formatted);
 
     if (entry.has_position && !packet.has_position()) {
-        //maintain position info
+        // maintain position info
     } else {
         entry.set_has_position(packet.has_position());
         entry.set_pos(packet.get_position());
@@ -343,7 +343,7 @@ void APRSDetailsView::set_entry(const APRSRecentEntry& entry) {
 
 void APRSDetailsView::update() {
     if (!hidden()) {
-        //uint32_t age = entry_copy.age;
+        // uint32_t age = entry_copy.age;
 
         console.clear(true);
         console.write(entry_copy.info_string);
@@ -372,7 +372,7 @@ APRSDetailsView::APRSDetailsView(
     button_see_map.on_select = [this, &nav](Button&) {
         geomap_view = nav.push<GeoMapView>(
             entry_copy.source_formatted,
-            0,  //entry_copy.pos.altitude,
+            0,  // entry_copy.pos.altitude,
             GeoPos::alt_unit::FEET,
             entry_copy.pos.latitude,
             entry_copy.pos.longitude,

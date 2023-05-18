@@ -63,13 +63,13 @@ void IIRBiquadDF2Filter::configure(const iir_biquad_df2_config_t& config) {
     a2 = config[5] / config[3];
 }
 
-//  scipy.signal.sosfilt
+// scipy.signal.sosfilt
 //
-//  x_n = x[i, n]  # make a temporary copy
-//  # Use direct II transposed structure:
-//  x[i, n] = b[s, 0] * x_n + zi[i, s, 0]
-//  zi[i, s, 0] = (b[s, 1] * x_n - a[s, 0] * x[i, n] + zi[i, s, 1])
-//  zi[i, s, 1] = (b[s, 2] * x_n - a[s, 1] * x[i, n])
+// x_n = x[i, n]  # make a temporary copy
+// # Use direct II transposed structure:
+// x[i, n] = b[s, 0] * x_n + zi[i, s, 0]
+// zi[i, s, 0] = (b[s, 1] * x_n - a[s, 0] * x[i, n] + zi[i, s, 1])
+// zi[i, s, 1] = (b[s, 2] * x_n - a[s, 1] * x[i, n])
 
 float IIRBiquadDF2Filter::execute(float x) {
     float y;

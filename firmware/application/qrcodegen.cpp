@@ -60,11 +60,11 @@ static const uint8_t NUM_ERROR_CORRECTION_BLOCKS[4][40] = {
 };
 
 static const uint16_t NUM_RAW_DATA_MODULES[40] = {
-    //  1,   2,   3,   4,    5,    6,    7,    8,    9,   10,   11,   12,   13,   14,   15,   16,   17,
+    // 1,   2,   3,   4,    5,    6,    7,    8,    9,   10,   11,   12,   13,   14,   15,   16,   17,
     208, 359, 567, 807, 1079, 1383, 1568, 1936, 2336, 2768, 3232, 3728, 4256, 4651, 5243, 5867, 6523,
-    //   18,   19,   20,   21,    22,    23,    24,    25,   26,    27,     28,    29,    30,    31,
+    // 18,   19,   20,   21,    22,    23,    24,    25,   26,    27,     28,    29,    30,    31,
     7211, 7931, 8683, 9252, 10068, 10916, 11796, 12708, 13652, 14628, 15371, 16411, 17483, 18587,
-    //    32,    33,    34,    35,    36,    37,    38,    39,    40
+    // 32,    33,    34,    35,    36,    37,    38,    39,    40
     19723, 20891, 22091, 23008, 24272, 25568, 26896, 28256, 29648};
 
 // @TODO: Put other LOCK_VERSIONS here
@@ -638,8 +638,8 @@ static void rs_init(uint8_t degree, uint8_t* coeff) {
 static void rs_getRemainder(uint8_t degree, uint8_t* coeff, uint8_t* data, uint8_t length, uint8_t* result, uint8_t stride) {
     // Compute the remainder by performing polynomial division
 
-    //for (uint8_t i = 0; i < degree; i++) { result[] = 0; }
-    //memset(result, 0, degree);
+    // for (uint8_t i = 0; i < degree; i++) { result[] = 0; }
+    // memset(result, 0, degree);
 
     for (uint8_t i = 0; i < length; i++) {
         uint8_t factor = data[i] ^ result[0];
@@ -711,7 +711,7 @@ static int8_t encodeDataCodewords(BitBucket* dataCodewords, const uint8_t* text,
         }
     }
 
-    //bb_setBits(dataCodewords, length, 4, getModeBits(version, mode));
+    // bb_setBits(dataCodewords, length, 4, getModeBits(version, mode));
 
     return mode;
 }
@@ -903,6 +903,6 @@ uint8_t qrcode_getHexLength(QRCode *qrcode) {
 }
 
 void qrcode_getHex(QRCode *qrcode, char *result) {
-    
+
 }
 */

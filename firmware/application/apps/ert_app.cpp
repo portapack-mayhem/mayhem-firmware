@@ -124,14 +124,14 @@ ERTAppView::ERTAppView(NavigationView&) {
     receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
 
     /*	radio::enable({
-		initial_target_frequency,
-		sampling_rate,
-		baseband_bandwidth,
-		rf::Direction::Receive,
-		receiver_model.rf_amp(),
-		static_cast<int8_t>(receiver_model.lna()),
-		static_cast<int8_t>(receiver_model.vga()),
-	}); */
+                initial_target_frequency,
+                sampling_rate,
+                baseband_bandwidth,
+                rf::Direction::Receive,
+                receiver_model.rf_amp(),
+                static_cast<int8_t>(receiver_model.lna()),
+                static_cast<int8_t>(receiver_model.vga()),
+        }); */
 
     logger = std::make_unique<ERTLogger>();
     if (logger) {

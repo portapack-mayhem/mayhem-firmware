@@ -82,9 +82,9 @@ class NuoptixView : public View {
         {16, 14 * 16, 208, 16}};
 
     /*Button button_impro {
-		{ 64, 184, 112, 40 },
-		"IMPROVISE"
-	};*/
+                { 64, 184, 112, 40 },
+                "IMPROVISE"
+        };*/
 
     TransmitterView tx_view{
         16 * 16,

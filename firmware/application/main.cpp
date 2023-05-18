@@ -33,83 +33,83 @@
 
 // Note about matched filters: see proc_sonde.hpp
 
-//TEST: Goertzel tone detect
-//TEST: Menuview refresh, seems to blink a lot
-//TEST: Check AFSK transmit end, skips last bits ?
-//TEST: Imperial in whipcalc
+// TEST: Goertzel tone detect
+// TEST: Menuview refresh, seems to blink a lot
+// TEST: Check AFSK transmit end, skips last bits ?
+// TEST: Imperial in whipcalc
 
-//BUG: Console lock-up if first string to be printed starts with escape character ?
-//BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
-//BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
-//BUG: SCANNER Multiple slices
-//GLITCH: The about view scroller sometimes misses lines because of a race condition between the display scrolling and drawing the line
-//GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
+// BUG: Console lock-up if first string to be printed starts with escape character ?
+// BUG: (Workaround ok) CPLD-related rx ok, tx bad, see portapack.cpp lines 214+ to disable CPLD overlay
+// BUG: SCANNER Lock on frequency, if frequency jump, still locked on first one
+// BUG: SCANNER Multiple slices
+// GLITCH: The about view scroller sometimes misses lines because of a race condition between the display scrolling and drawing the line
+// GLITCH: Start of tx using ReplayThread plays a small bit of previous transmission (content of 1 buffer ?)
 //	See fifo.reset_in() ?
 
-//FIXED: Update button in signal gen doesn't work for shape change
-//BUG: Signal gen noise shape doesn't work
-//TODO: Continue acars receiver. See matched filter, probably doesn't shift the spectrum correctly
-//TODO: Add larger description text field in frequency load, under menuview
-//TODO: Allow apps to select a preferred FREQMAN file
-//TODO: Make play button larger in Replay
-//TODO: Add default headphones volume setting in Audio settings
-//TODO: Put LNA and VGA controls in Soundboard
-//TODO: Make CTCSS display only when squelch is opened
-//TODO: DCS decoder
-//TODO: Increase resolution of audio FFT view ? Currently 48k/(256/2) (375Hz) because of the use of real values (half of FFT output)
-//TODO: Move Touchtunes remote to Custom remote
-//TODO: Use escapes \x1B to set colors in text, it works !
-//TODO: Open files in File Manager
-//TODO: Ask for filename after record
-//TODO: Super simple text file viewer
-//TODO: Clean up ReplayThread
-//TODO: Cap Wav viewer position
-//TODO: Adapt wav viewer position step
-//TODO: Use unit_auto_scale
-//TODO: Remove make_bistream from encoders.cpp, too complex, stinks. bitstream_append should be enough.
-//TODO: Continue work on proc_afskrx_corr, see python script (it works !)
-//TODO: De bruijn sequence scanner for encoders
-//TODO: FILEMAN Move files
-//TODO: Use separate thread for scanning in EPAR TX
-//TODO: Make freqman refresh simpler (use previous black rectangle method)
-//TODO: Merge AFSK and TONES procs ?
-//TODO: NFM RX mode: nav.pop on squelch
-//TODO: MORSE use prosigns
-//TODO: MORSE live keying mode
-//TODO: Use to_string_short_freq wherever possible
-//TODO: SCANNER Waveform widget as FFT view ?
-//TODO: Optimize (and group ?) CTCSS tone gen code
+// FIXED: Update button in signal gen doesn't work for shape change
+// BUG: Signal gen noise shape doesn't work
+// TODO: Continue acars receiver. See matched filter, probably doesn't shift the spectrum correctly
+// TODO: Add larger description text field in frequency load, under menuview
+// TODO: Allow apps to select a preferred FREQMAN file
+// TODO: Make play button larger in Replay
+// TODO: Add default headphones volume setting in Audio settings
+// TODO: Put LNA and VGA controls in Soundboard
+// TODO: Make CTCSS display only when squelch is opened
+// TODO: DCS decoder
+// TODO: Increase resolution of audio FFT view ? Currently 48k/(256/2) (375Hz) because of the use of real values (half of FFT output)
+// TODO: Move Touchtunes remote to Custom remote
+// TODO: Use escapes \x1B to set colors in text, it works !
+// TODO: Open files in File Manager
+// TODO: Ask for filename after record
+// TODO: Super simple text file viewer
+// TODO: Clean up ReplayThread
+// TODO: Cap Wav viewer position
+// TODO: Adapt wav viewer position step
+// TODO: Use unit_auto_scale
+// TODO: Remove make_bistream from encoders.cpp, too complex, stinks. bitstream_append should be enough.
+// TODO: Continue work on proc_afskrx_corr, see python script (it works !)
+// TODO: De bruijn sequence scanner for encoders
+// TODO: FILEMAN Move files
+// TODO: Use separate thread for scanning in EPAR TX
+// TODO: Make freqman refresh simpler (use previous black rectangle method)
+// TODO: Merge AFSK and TONES procs ?
+// TODO: NFM RX mode: nav.pop on squelch
+// TODO: MORSE use prosigns
+// TODO: MORSE live keying mode
+// TODO: Use to_string_short_freq wherever possible
+// TODO: SCANNER Waveform widget as FFT view ?
+// TODO: Optimize (and group ?) CTCSS tone gen code
 /*
 Continuous (Fox-oring)
-12s transmit, 48s space (Sprint 1/5th) 
-60s transmit, 240s space (Classic 1/5 min) 
-60s transmit, 360s space (Classic 1/7 min) 
+12s transmit, 48s space (Sprint 1/5th)
+60s transmit, 240s space (Classic 1/5 min)
+60s transmit, 360s space (Classic 1/7 min)
 */
-//TODO: FreqMan: Remove and rename categories
-//TODO: Mousejack ?
-//TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
-//TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
-//TODO: RDS multiple groups (sequence)
-//TODO: Use ModalMessageView confirmation for TX ?
-//TODO: Use msgpack for settings, lists... on sd card
+// TODO: FreqMan: Remove and rename categories
+// TODO: Mousejack ?
+// TODO: Move frequencykeypad from ui_receiver to ui_widget (used everywhere)
+// TODO: ADS-B draw trajectory + GPS coordinates + scale, and playback
+// TODO: RDS multiple groups (sequence)
+// TODO: Use ModalMessageView confirmation for TX ?
+// TODO: Use msgpack for settings, lists... on sd card
 
 // Multimon-style stuff:
-//TODO: DMR detector
-//TODO: GSM channel detector
-//TODO: Playdead amnesia and login
-//TODO: Setup: Play dead by default ? Enable/disable ?
+// TODO: DMR detector
+// TODO: GSM channel detector
+// TODO: Playdead amnesia and login
+// TODO: Setup: Play dead by default ? Enable/disable ?
 
 // Old or low-priority stuff:
-//TODO: Bodet :)
-//TODO: Analog TV tx with camcorder font character generator
-//TODO: Scan for OOK TX
-//TODO: Check more OOK encoders
-//BUG (fixed ?): No audio in about when shown second time
-//TODO: Show MD5 mismatches for modules not found, etc...
-//TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
-//BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
-//TODO: Two players tic-tac-toe
-//TODO: Analog TV pong game
+// TODO: Bodet :)
+// TODO: Analog TV tx with camcorder font character generator
+// TODO: Scan for OOK TX
+// TODO: Check more OOK encoders
+// BUG (fixed ?): No audio in about when shown second time
+// TODO: Show MD5 mismatches for modules not found, etc...
+// TODO: Module name/filename in modules.hpp to indicate requirement in case it's not found ui_loadmodule
+// BUG: Description doesn't show up first time going to system>module info (UI drawn on top)
+// TODO: Two players tic-tac-toe
+// TODO: Analog TV pong game
 
 #include "ch.h"
 

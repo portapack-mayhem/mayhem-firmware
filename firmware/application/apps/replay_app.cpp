@@ -141,7 +141,7 @@ void ReplayAppView::start() {
             });
     }
 
-    //Enable Bias Tee if selected
+    // Enable Bias Tee if selected
     radio::set_antenna_bias(portapack::get_antenna_bias());
 
     rf_amp = (transmitter_model.rf_amp());  // recover rf_amp settings applied from ui_transmiter.cpp
@@ -150,7 +150,7 @@ void ReplayAppView::start() {
                    sample_rate * 8,
                    baseband_bandwidth,
                    rf::Direction::Transmit,
-                   rf_amp,  //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
+                   rf_amp,  // previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
                    static_cast<int8_t>(receiver_model.lna()),
                    static_cast<int8_t>(receiver_model.vga())});
 
@@ -167,7 +167,7 @@ void ReplayAppView::stop(const bool do_loop) {
     if (do_loop && check_loop.value()) {
         start();
     } else {
-        radio::set_antenna_bias(false);  //Turn off Bias Tee
+        radio::set_antenna_bias(false);  // Turn off Bias Tee
         radio::disable();
         button_play.set_bitmap(&bitmap_play);
     }
@@ -235,7 +235,7 @@ ReplayAppView::ReplayAppView(
 ReplayAppView::~ReplayAppView() {
     radio::disable();
 
-    display.fill_rectangle({0, 0, 240, 320}, Color::black());  //Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
+    display.fill_rectangle({0, 0, 240, 320}, Color::black());  // Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
     chThdSleepMilliseconds(40);                                // (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )
     hackrf::cpld::load_sram_no_verify();                       // to leave all  RX reception ok, without "ghost interference signal problem" at the exit .
 

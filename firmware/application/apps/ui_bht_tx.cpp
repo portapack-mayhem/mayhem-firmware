@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -45,11 +45,11 @@ void BHTView::start_tx() {
 
         view_xylos.generate_message();
 
-        //if (tx_mode == SINGLE) {
+        // if (tx_mode == SINGLE) {
         progressbar.set_max(XY_TONE_COUNT);
         /*} else if (tx_mode == SCAN) {
-			progressbar.set_max(XY_TONE_COUNT * view_xylos.get_scan_remaining());
-		}*/
+                        progressbar.set_max(XY_TONE_COUNT * view_xylos.get_scan_remaining());
+                }*/
 
         transmitter_model.set_sampling_rate(TONES_SAMPLERATE);
         transmitter_model.enable();
@@ -65,11 +65,11 @@ void BHTView::start_tx() {
 
         auto bitstream_length = view_EPAR.generate_message();
 
-        //if (tx_mode == SINGLE) {
+        // if (tx_mode == SINGLE) {
         progressbar.set_max(2 * EPAR_REPEAT_COUNT);
         /*} else if (tx_mode == SCAN) {
-			progressbar.set_max(2 * EPAR_REPEAT_COUNT * view_EPAR.get_scan_remaining());
-		}*/
+                        progressbar.set_max(2 * EPAR_REPEAT_COUNT * view_EPAR.get_scan_remaining());
+                }*/
 
         transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
         transmitter_model.enable();

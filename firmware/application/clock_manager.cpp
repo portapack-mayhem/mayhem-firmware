@@ -75,20 +75,20 @@ static_assert(si5351_pll_clkin_10m.p2() == 0, "PLL CLKIN P2 wrong");
 static_assert(si5351_pll_clkin_10m.p3() == 1, "PLL CLKIN P3 wrong");
 /*
 constexpr si5351::MultisynthFractional si5351_ms_18m432 {
-	.f_src = si5351_vco_f,
-	.a = 43,
-	.b = 29,
-	.c = 72,
-	.r_div = 1,
+        .f_src = si5351_vco_f,
+        .a = 43,
+        .b = 29,
+        .c = 72,
+        .r_div = 1,
 };
 */
 /*
 constexpr si5351::MultisynthFractional si5351_ms_0_20m {
-	.f_src = si5351_vco_f,
-	.a = 20,
-	.b = 0,
-	.c = 1,
-	.r_div = 1,
+        .f_src = si5351_vco_f,
+        .a = 20,
+        .b = 0,
+        .c = 1,
+        .r_div = 1,
 };
 constexpr auto si5351_ms_0_20m_reg = si5351_ms_0_20m.reg(0);
 */
@@ -305,9 +305,9 @@ void ClockManager::init_clock_generator() {
     // Wait for PLL(s) to lock.
     uint8_t device_status_mask = hackrf_r9
                                      ? 0x20
-                                     : (ref_pll == ClockControl::MultiSynthSource::PLLB)
-                                           ? 0x40
-                                           : 0x20;
+                                 : (ref_pll == ClockControl::MultiSynthSource::PLLB)
+                                     ? 0x40
+                                     : 0x20;
     while ((clock_generator.device_status() & device_status_mask) != 0)
         ;
 
@@ -384,9 +384,9 @@ void ClockManager::enable_codec_clocks() {
         clock_generator.enable_clock(clock_generator_output_og_sgpio);
     }
     /* Turn on all outputs at the same time. This probably doesn't ensure
-	 * their phase relationships. For example, clocks that output frequencies
-	 * in a 2:1 relationship may start with the slower clock high or low?
-	 */
+     * their phase relationships. For example, clocks that output frequencies
+     * in a 2:1 relationship may start with the slower clock high or low?
+     */
     if (hackrf_r9) {
         clock_generator.enable_output_mask(1U << clock_generator_output_r9_sgpio);
     } else {
@@ -397,9 +397,9 @@ void ClockManager::enable_codec_clocks() {
 
 void ClockManager::disable_codec_clocks() {
     /* Turn off outputs before disabling clocks. It seems the clock needs to
-	 * be enabled for the output to come to rest at the state specified by
-	 * CLKx_DISABLE_STATE.
-	 */
+     * be enabled for the output to come to rest at the state specified by
+     * CLKx_DISABLE_STATE.
+     */
     if (hackrf_r9) {
         clock_generator.disable_output_mask(1U << clock_generator_output_r9_sgpio);
         clock_generator.disable_clock(clock_generator_output_r9_sgpio);
@@ -438,10 +438,10 @@ void ClockManager::disable_if_clocks() {
 
 void ClockManager::set_sampling_frequency(const uint32_t frequency) {
     /* Codec clock is at sampling frequency, CPLD and SGPIO clocks are at
-	 * twice the frequency, and derived from the MS0 synth. So it's only
-	 * necessary to change the MS0 synth frequency, and ensure the output
-	 * is divided by two.
-	 */
+     * twice the frequency, and derived from the MS0 synth. So it's only
+     * necessary to change the MS0 synth frequency, and ensure the output
+     * is divided by two.
+     */
     if (hackrf_r9) {
         clock_generator.set_ms_frequency(clock_generator_output_r9_sgpio, frequency * 2, si5351_vco_f, 0);
     } else {
@@ -451,9 +451,9 @@ void ClockManager::set_sampling_frequency(const uint32_t frequency) {
 
 void ClockManager::set_reference_ppb(const int32_t ppb) {
     /* NOTE: This adjustment only affects PLLA when it is derived from the 25MHz crystal.
-	 * It is assumed an external clock coming in to CLKIN/PLLB is sufficiently accurate as to not need adjustment.
-	 * TODO: Revisit the above policy. It may be good to allow adjustment of the external reference too.
-	 */
+     * It is assumed an external clock coming in to CLKIN/PLLB is sufficiently accurate as to not need adjustment.
+     * TODO: Revisit the above policy. It may be good to allow adjustment of the external reference too.
+     */
     if (hackrf_r9 && reference.source != ReferenceSource::Xtal) {
         return;
     }
@@ -513,12 +513,12 @@ void ClockManager::start_audio_pll() {
     });
 
     /* For 40MHz clock source, 48kHz audio rate, 256Fs MCLK:
-	 * 		Fout=12.288MHz, Fcco=491.52MHz
-	 *	OG:	PSEL=20, NSEL=125, MSEL=768
-	 *		PDEC=31, NDEC=45, MDEC=30542
-	 *	r9:	PSEL=20, NSEL=125, MSEL=3072
-	 *		PDEC=31, NDEC=45, MDEC=8308
-	 */
+     * 		Fout=12.288MHz, Fcco=491.52MHz
+     *	OG:	PSEL=20, NSEL=125, MSEL=768
+     *		PDEC=31, NDEC=45, MDEC=30542
+     *	r9:	PSEL=20, NSEL=125, MSEL=3072
+     *		PDEC=31, NDEC=45, MDEC=8308
+     */
     cgu::pll0audio::mdiv({
         .mdec = hackrf_r9 ? 8308UL : 30542UL,
     });

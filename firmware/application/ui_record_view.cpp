@@ -37,20 +37,20 @@ using namespace portapack;
 namespace ui {
 
 /*void RecordView::toggle_pitch_rssi() {
-	pitch_rssi_enabled = !pitch_rssi_enabled;
-	
-	// Send to RSSI widget
-	const PitchRSSIConfigureMessage message {
-		pitch_rssi_enabled,
-		0
-	};
-	shared_memory.application_queue.push(message);
-	
-	if( !pitch_rssi_enabled ) {
-		button_pitch_rssi.set_foreground(Color::orange());
-	} else {
-		button_pitch_rssi.set_foreground(Color::green());
-	}
+        pitch_rssi_enabled = !pitch_rssi_enabled;
+
+        // Send to RSSI widget
+        const PitchRSSIConfigureMessage message {
+                pitch_rssi_enabled,
+                0
+        };
+        shared_memory.application_queue.push(message);
+
+        if( !pitch_rssi_enabled ) {
+                button_pitch_rssi.set_foreground(Color::orange());
+        } else {
+                button_pitch_rssi.set_foreground(Color::green());
+        }
 }*/
 
 RecordView::RecordView(
@@ -79,8 +79,8 @@ RecordView::RecordView(
     rect_background.set_parent_rect({{0, 0}, size()});
 
     /*button_pitch_rssi.on_select = [this](ImageButton&) {
-		this->toggle_pitch_rssi();
-	};*/
+                this->toggle_pitch_rssi();
+        };*/
 
     button_record.on_select = [this](ImageButton&) {
         this->toggle();
@@ -100,12 +100,12 @@ void RecordView::focus() {
 }
 
 void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
-    /* We are changing "REC" icon background to yellow in  BW rec Options >600kHz 
-	where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
-	Those decimated recorded files,has not the full IQ  samples . 
-	are ok as recorded spectrum indication, but they  should not be used by Replay app. 
-	 	
-	We keep original black  background in all the correct IQ .C16 files BW's Options */
+    /* We are changing "REC" icon background to yellow in  BW rec Options >600kHz
+        where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
+        Those decimated recorded files,has not the full IQ  samples .
+        are ok as recorded spectrum indication, but they  should not be used by Replay app.
+
+        We keep original black  background in all the correct IQ .C16 files BW's Options */
     if (new_sampling_rate > 4800000) {  // > BW >600kHz  (fs=8*BW), (750kHz ...2750kHz)
         button_record.set_background(ui::Color::yellow());
     } else {
@@ -159,7 +159,7 @@ void RecordView::start() {
     if (filename_date_frequency) {
         rtcGetTime(&RTCD1, &datetime);
 
-        //ISO 8601
+        // ISO 8601
         std::string date_time = to_string_dec_uint(datetime.year(), 4, '0') +
                                 to_string_dec_uint(datetime.month(), 2, '0') +
                                 to_string_dec_uint(datetime.day(), 2, '0') + "T" +
@@ -276,8 +276,8 @@ void RecordView::update_status_display() {
     }
 
     /*if (pitch_rssi_enabled) {
-		button_pitch_rssi.invert_colors();
-	}*/
+                button_pitch_rssi.invert_colors();
+        }*/
 
     if (sampling_rate) {
         const auto space_info = std::filesystem::space(u"");

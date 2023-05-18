@@ -175,10 +175,10 @@ si5351c_driver_t clock_gen = {
 const ssp_config_t ssp_config_max283x = {
     /* FIXME speed up once everything is working reliably */
     /*
-	// Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
-	const uint8_t serial_clock_rate = 32;
-	const uint8_t clock_prescale_rate = 128;
-	*/
+        // Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
+        const uint8_t serial_clock_rate = 32;
+        const uint8_t clock_prescale_rate = 128;
+        */
     // Freq About 4.857MHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
     .data_bits = SSP_DATA_16BITS,
     .serial_clock_rate = 21,
@@ -189,10 +189,10 @@ const ssp_config_t ssp_config_max283x = {
 const ssp_config_t ssp_config_max5864 = {
     /* FIXME speed up once everything is working reliably */
     /*
-	// Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
-	const uint8_t serial_clock_rate = 32;
-	const uint8_t clock_prescale_rate = 128;
-	*/
+        // Freq About 0.0498MHz / 49.8KHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
+        const uint8_t serial_clock_rate = 32;
+        const uint8_t clock_prescale_rate = 128;
+        */
     // Freq About 4.857MHz => Freq = PCLK / (CPSDVSR * [SCR+1]) with PCLK=PLL1=204MHz
     .data_bits = SSP_DATA_8BITS,
     .serial_clock_rate = 21,
@@ -308,7 +308,7 @@ void delay_us_at_mhz(uint32_t us, uint32_t mhz) {
         "    subs %[ITERATIONS], #1\n"  // 1 cycle
         "    bpl start%=\n"             // 2 cycles
         :
-        : [ ITERATIONS ] "r"(loop_iterations));
+        : [ITERATIONS] "r"(loop_iterations));
 }
 
 /* GCD algo from wikipedia */
@@ -405,23 +405,23 @@ bool sample_rate_frac_set(uint32_t rate_num, uint32_t rate_denom) {
 
     if (detected_platform() == BOARD_ID_HACKRF1_R9) {
         /*
-		 * On HackRF One r9 all sample clocks are externally derived
-		 * from MS1/CLK1 operating at twice the sample rate.
-		 */
+         * On HackRF One r9 all sample clocks are externally derived
+         * from MS1/CLK1 operating at twice the sample rate.
+         */
         si5351c_configure_multisynth(&clock_gen, 1, MSx_P1, MSx_P2, MSx_P3, 0);
     } else {
         /*
-		 * On other platforms the clock generator produces three
-		 * different sample clocks, all derived from multisynth 0.
-		 */
+         * On other platforms the clock generator produces three
+         * different sample clocks, all derived from multisynth 0.
+         */
         /* MS0/CLK0 is the source for the MAX5864/CPLD (CODEC_CLK). */
         si5351c_configure_multisynth(&clock_gen, 0, MSx_P1, MSx_P2, MSx_P3, 1);
 
         /* MS0/CLK1 is the source for the CPLD (CODEC_X2_CLK). */
-        si5351c_configure_multisynth(&clock_gen, 1, 0, 0, 0, 0);  //p1 doesn't matter
+        si5351c_configure_multisynth(&clock_gen, 1, 0, 0, 0, 0);  // p1 doesn't matter
 
         /* MS0/CLK2 is the source for SGPIO (CODEC_X2_CLK) */
-        si5351c_configure_multisynth(&clock_gen, 2, 0, 0, 0, 0);  //p1 doesn't matter
+        si5351c_configure_multisynth(&clock_gen, 2, 0, 0, 0, 0);  // p1 doesn't matter
     }
 
     if (streaming) {
@@ -484,15 +484,15 @@ bool sample_rate_set(const uint32_t sample_rate_hz) {
 
     if (detected_platform() == BOARD_ID_HACKRF1_R9) {
         /*
-		 * On HackRF One r9 all sample clocks are externally derived
-		 * from MS1/CLK1 operating at twice the sample rate.
-		 */
+         * On HackRF One r9 all sample clocks are externally derived
+         * from MS1/CLK1 operating at twice the sample rate.
+         */
         si5351c_configure_multisynth(&clock_gen, 1, p1, p2, p3, 0);
     } else {
         /*
-		 * On other platforms the clock generator produces three
-		 * different sample clocks, all derived from multisynth 0.
-		 */
+         * On other platforms the clock generator produces three
+         * different sample clocks, all derived from multisynth 0.
+         */
         /* MS0/CLK0 is the source for the MAX5864/CPLD (CODEC_CLK). */
         si5351c_configure_multisynth(&clock_gen, 0, p1, p2, p3, 1);
 
@@ -503,7 +503,7 @@ bool sample_rate_set(const uint32_t sample_rate_hz) {
             p1,
             0,
             1,
-            0);  //p1 doesn't matter
+            0);  // p1 doesn't matter
 
         /* MS0/CLK2 is the source for SGPIO (CODEC_X2_CLK) */
         si5351c_configure_multisynth(
@@ -512,7 +512,7 @@ bool sample_rate_set(const uint32_t sample_rate_hz) {
             p1,
             0,
             1,
-            0);  //p1 doesn't matter
+            0);  // p1 doesn't matter
     }
 
     return true;
@@ -529,7 +529,7 @@ bool baseband_filter_bandwidth_set(const uint32_t bandwidth_hz) {
     return bandwidth_hz_real != 0;
 }
 
-/* 
+/*
 Configure PLL1 (Main MCU Clock) to max speed (204MHz).
 Note: PLL1 clock is used by M4/M0 core, Peripheral, APB1.
 This function shall be called after cpu_clock_init().
@@ -538,7 +538,7 @@ static void cpu_clock_pll1_max_speed(void) {
     uint32_t reg_val;
 
     /* This function implements the sequence recommended in:
-	 * UM10503 Rev 2.4 (Aug 2018), section 13.2.1.1, page 167. */
+     * UM10503 Rev 2.4 (Aug 2018), section 13.2.1.1, page 167. */
 
     /* 1. Select the IRC as BASE_M4_CLK source. */
     reg_val = CGU_BASE_M4_CLK;
@@ -556,7 +556,7 @@ static void cpu_clock_pll1_max_speed(void) {
     CGU_PLL1_CTRL |= CGU_PLL1_CTRL_AUTOBLOCK(1);
 
     /* 5. Reconfigure PLL1 to produce the final output frequency, with the
-	 *    crystal oscillator as clock source. */
+     *    crystal oscillator as clock source. */
     reg_val = CGU_PLL1_CTRL;
     // clang-format off
 	reg_val &= ~( CGU_PLL1_CTRL_CLK_SEL_MASK |
@@ -619,21 +619,21 @@ void cpu_clock_init(void) {
     si5351c_configure_pll_multisynth(&clock_gen);
 
     /*
-	 * Clocks on HackRF One r9:
-	 *   CLK0 -> MAX5864/CPLD/SGPIO (sample clocks)
-	 *   CLK1 -> RFFC5072/MAX2839
-	 *   CLK2 -> External Clock Output/LPC43xx (power down at boot)
-	 *
-	 * Clocks on other platforms:
-	 *   CLK0 -> MAX5864/CPLD
-	 *   CLK1 -> CPLD
-	 *   CLK2 -> SGPIO
-	 *   CLK3 -> External Clock Output (power down at boot)
-	 *   CLK4 -> RFFC5072 (MAX2837 on rad1o)
-	 *   CLK5 -> MAX2837 (MAX2871 on rad1o)
-	 *   CLK6 -> none
-	 *   CLK7 -> LPC43xx (uses a 12MHz crystal by default)
-	 */
+     * Clocks on HackRF One r9:
+     *   CLK0 -> MAX5864/CPLD/SGPIO (sample clocks)
+     *   CLK1 -> RFFC5072/MAX2839
+     *   CLK2 -> External Clock Output/LPC43xx (power down at boot)
+     *
+     * Clocks on other platforms:
+     *   CLK0 -> MAX5864/CPLD
+     *   CLK1 -> CPLD
+     *   CLK2 -> SGPIO
+     *   CLK3 -> External Clock Output (power down at boot)
+     *   CLK4 -> RFFC5072 (MAX2837 on rad1o)
+     *   CLK5 -> MAX2837 (MAX2871 on rad1o)
+     *   CLK6 -> none
+     *   CLK7 -> LPC43xx (uses a 12MHz crystal by default)
+     */
 
     if (detected_platform() == BOARD_ID_HACKRF1_R9) {
         /* MS0/CLK0 is the reference for both RFFC5071 and MAX2839. */
@@ -674,17 +674,17 @@ void cpu_clock_init(void) {
     si5351c_reset_pll(&clock_gen);
     si5351c_enable_clock_outputs(&clock_gen);
 
-    //FIXME disable I2C
+    // FIXME disable I2C
     /* Kick I2C0 down to 400kHz when we switch over to APB1 clock = 204MHz */
     i2c_bus_start(clock_gen.bus, &i2c_config_si5351c_fast_clock);
 
     /*
-	 * 12MHz clock is entering LPC XTAL1/OSC input now.
-	 * On HackRF One and Jawbreaker, there is a 12 MHz crystal at the LPC.
-	 * Set up PLL1 to run from XTAL1 input.
-	 */
+     * 12MHz clock is entering LPC XTAL1/OSC input now.
+     * On HackRF One and Jawbreaker, there is a 12 MHz crystal at the LPC.
+     * Set up PLL1 to run from XTAL1 input.
+     */
 
-    //FIXME a lot of the details here should be in a CGU driver
+    // FIXME a lot of the details here should be in a CGU driver
 
     /* set xtal oscillator to low frequency mode */
     CGU_XTAL_OSC_CTRL &= ~CGU_XTAL_OSC_CTRL_HF_MASK;
@@ -759,7 +759,7 @@ void cpu_clock_init(void) {
     CGU_BASE_PHY_TX_CLK = CGU_BASE_PHY_TX_CLK_PD(1);
     CGU_BASE_LCD_CLK = CGU_BASE_LCD_CLK_PD(1);
     CGU_BASE_VADC_CLK = CGU_BASE_VADC_CLK_PD(1);
-    //CGU_BASE_SDIO_CLK = CGU_BASE_SDIO_CLK_PD(1); // << BREAKS
+    // CGU_BASE_SDIO_CLK = CGU_BASE_SDIO_CLK_PD(1); // << BREAKS
     CGU_BASE_UART0_CLK = CGU_BASE_UART0_CLK_PD(1);
     CGU_BASE_UART1_CLK = CGU_BASE_UART1_CLK_PD(1);
     CGU_BASE_UART2_CLK = CGU_BASE_UART2_CLK_PD(1);
@@ -777,7 +777,7 @@ void cpu_clock_init(void) {
     CCU1_CLK_APB3_ADC1_CFG = 0;
     CCU1_CLK_APB3_CAN0_CFG = 0;
     CCU1_CLK_APB3_DAC_CFG = 0;
-    //CCU1_CLK_M4_DMA_CFG = 0;
+    // CCU1_CLK_M4_DMA_CFG = 0;
     CCU1_CLK_M4_EMC_CFG = 0;
     CCU1_CLK_M4_EMCDIV_CFG = 0;
     CCU1_CLK_M4_ETHERNET_CFG = 0;
@@ -785,11 +785,11 @@ void cpu_clock_init(void) {
     CCU1_CLK_M4_QEI_CFG = 0;
     CCU1_CLK_M4_RITIMER_CFG = 0;
     // CCU1_CLK_M4_SCT_CFG = 0;
-    //CCU1_CLK_M4_SDIO_CFG = 0; // << BREAKS
+    // CCU1_CLK_M4_SDIO_CFG = 0; // << BREAKS
     CCU1_CLK_M4_SPIFI_CFG = 0;
     CCU1_CLK_M4_TIMER0_CFG = 0;
-    //CCU1_CLK_M4_TIMER1_CFG = 0;
-    //CCU1_CLK_M4_TIMER2_CFG = 0;
+    // CCU1_CLK_M4_TIMER1_CFG = 0;
+    // CCU1_CLK_M4_TIMER2_CFG = 0;
     CCU1_CLK_M4_TIMER3_CFG = 0;
     CCU1_CLK_M4_UART1_CFG = 0;
     CCU1_CLK_M4_USART0_CFG = 0;
@@ -859,22 +859,22 @@ void ssp1_set_mode_max5864(void) {
 
 void pin_setup(void) {
     /* Configure all GPIO as Input (safe state) */
-    //gpio_init();
+    // gpio_init();
 
     /* TDI and TMS pull-ups are required in all JTAG-compliant devices.
-	 *
-	 * The HackRF CPLD is always present, so let the CPLD pull up its TDI and TMS.
-	 *
-	 * The PortaPack may not be present, so pull up the PortaPack TMS pin from the
-	 * microcontroller.
-	 *
-	 * TCK is recommended to be held low, so use microcontroller pull-down.
-	 *
-	 * TDO is undriven except when in Shift-IR or Shift-DR phases.
-	 * Use the microcontroller to pull down to keep from floating.
-	 *
-	 * LPC43xx pull-up and pull-down resistors are approximately 53K.
-	 */
+     *
+     * The HackRF CPLD is always present, so let the CPLD pull up its TDI and TMS.
+     *
+     * The PortaPack may not be present, so pull up the PortaPack TMS pin from the
+     * microcontroller.
+     *
+     * TCK is recommended to be held low, so use microcontroller pull-down.
+     *
+     * TDO is undriven except when in Shift-IR or Shift-DR phases.
+     * Use the microcontroller to pull down to keep from floating.
+     *
+     * LPC43xx pull-up and pull-down resistors are approximately 53K.
+     */
 #ifdef HACKRF_ONE
     scu_pinmux(SCU_PINMUX_PP_TMS, SCU_GPIO_PUP | SCU_CONF_FUNCTION0);
     scu_pinmux(SCU_PINMUX_PP_TDO, SCU_GPIO_PDN | SCU_CONF_FUNCTION0);

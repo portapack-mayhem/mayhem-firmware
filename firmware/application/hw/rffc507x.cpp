@@ -68,10 +68,10 @@ constexpr rf::FrequencyRange range{vco::range.minimum / divider_max, vco::range.
 size_t divider_log2(const rf::Frequency lo_frequency) {
     /* TODO: Error */
     /*
-	if( lo::range.out_of_range(lo_frequency) ) {
-		return;
-	}
-	*/
+        if( lo::range.out_of_range(lo_frequency) ) {
+                return;
+        }
+        */
     /* Compute LO divider. */
     auto lo_divider_log2 = lo::divider_log2_min;
     auto vco_frequency = lo_frequency;
@@ -111,9 +111,9 @@ struct SynthConfig {
     static SynthConfig calculate(
         const rf::Frequency lo_frequency) {
         /* RFFC507x frequency synthesizer is is accurate to about 2ppb (two parts
-		 * per BILLION). There's not much point to worrying about rounding and
-		 * tuning error, when it amounts to 8Hz at 5GHz!
-		 */
+         * per BILLION). There's not much point to worrying about rounding and
+         * tuning error, when it amounts to 8Hz at 5GHz!
+         */
         const size_t lo_divider_log2 = lo::divider_log2(lo_frequency);
         const size_t lo_divider = 1U << lo_divider_log2;
 
@@ -156,8 +156,8 @@ void RFFC507x::init() {
 
 void RFFC507x::reset() {
     /* TODO: Is RESETB pin ignored if sdi_ctrl.sipin=1? Programming guide
-	 * description of sdi_ctrl.sipin suggests the pin is not ignored.
-	 */
+     * description of sdi_ctrl.sipin suggests the pin is not ignored.
+     */
     gpio_rffc5072_resetx.clear();
     halPolledDelay(ticks_during_reset);
     gpio_rffc5072_resetx.set();
@@ -204,9 +204,9 @@ void RFFC507x::enable() {
     /* TODO: Reset PLLCPL after CT_CAL? */
 
     /* TODO: After device is enabled and CT_cal is complete and VCO > 3.2GHz,
-	 * change prescaler divider to 2, update synthesizer ratio, change
-	 * lf.pllcpl from 3 to 2.
-	 */
+     * change prescaler divider to 2, update synthesizer ratio, change
+     * lf.pllcpl from 3 to 2.
+     */
 }
 
 void RFFC507x::disable() {
@@ -217,14 +217,14 @@ void RFFC507x::disable() {
 void RFFC507x::set_mixer_current(const uint8_t value) {
     /* MIX IDD = 0b000 appears to turn the mixer completely off */
     /* TODO: Adjust mixer current. Graphs in datasheet suggest:
-	 * MIX_IDD=1 has lowest noise figure (10.1dB vs 13dB @ MIX_IDD=7).
-	 * MIX_IDD=5 has highest IP3 (24dBm vs 10.3dBm @ MIX_IDD=1).
-	 * MIX_IDD=5 has highest P1dB (11.8dBm vs 1.5dBm @ MIX_IDD=1).
-	 * Mixer input impedance ~85 Ohms at MIX_IDD=4.
-	 * Mixer input impedance inversely proportional to MIX_IDD.
-	 * Balun balanced (mixer) side is 100 Ohms. Perhaps reduce MIX_IDD
-	 * a bit to get 100 Ohms from mixer.
-	 */
+     * MIX_IDD=1 has lowest noise figure (10.1dB vs 13dB @ MIX_IDD=7).
+     * MIX_IDD=5 has highest IP3 (24dBm vs 10.3dBm @ MIX_IDD=1).
+     * MIX_IDD=5 has highest P1dB (11.8dBm vs 1.5dBm @ MIX_IDD=1).
+     * Mixer input impedance ~85 Ohms at MIX_IDD=4.
+     * Mixer input impedance inversely proportional to MIX_IDD.
+     * Balun balanced (mixer) side is 100 Ohms. Perhaps reduce MIX_IDD
+     * a bit to get 100 Ohms from mixer.
+     */
     _map.r.mix_cont.p1mixidd = value;
     _map.r.mix_cont.p2mixidd = value;
     flush_one(Register::MIX_CONT);
@@ -234,8 +234,8 @@ void RFFC507x::set_frequency(const rf::Frequency lo_frequency) {
     const SynthConfig synth_config = SynthConfig::calculate(lo_frequency);
 
     /* Boost charge pump leakage if VCO frequency > 3.2GHz, indicated by
-	 * prescaler divider set to 4 (log2=2) instead of 2 (log2=1).
-	 */
+     * prescaler divider set to 4 (log2=2) instead of 2 (log2=1).
+     */
     if (synth_config.prescaler_divider_log2 == 2) {
         _map.r.lf.pllcpl = 3;
     } else {
@@ -268,8 +268,8 @@ void RFFC507x::set_gpo1(const bool new_value) {
 
 spi::reg_t RFFC507x::readback(const Readback readback) {
     /* TODO: This clobbers the rest of the DEV_CTRL register
-	 * Time to implement bitfields for registers.
-	 */
+     * Time to implement bitfields for registers.
+     */
     _map.r.dev_ctrl.readsel = toUType(readback);
     flush_one(Register::DEV_CTRL);
 

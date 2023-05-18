@@ -44,8 +44,8 @@ void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack:
             unlz4_len(src, dst, chunk->compressed_data_size);
 
             /* M4 core is assumed to be sleeping with interrupts off, so we can mess
-			 * with its address space and RAM without concern.
-			 */
+             * with its address space and RAM without concern.
+             */
             LPC_CREG->M4MEMMAP = to.base();
 
             /* Reset M4 core and optionally all peripherals */

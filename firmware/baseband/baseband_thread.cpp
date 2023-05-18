@@ -74,7 +74,7 @@ void BasebandThread::run() {
     baseband::dma::configure(
         baseband_buffer->data(),
         direction());
-    //baseband::dma::allocate(4, 2048);
+    // baseband::dma::allocate(4, 2048);
 
     baseband_sgpio.configure(direction());
     baseband::dma::enable(direction());

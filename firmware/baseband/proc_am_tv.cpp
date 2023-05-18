@@ -44,14 +44,14 @@ void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
     channel_spectrum.feed(buffer_c16);
 
     int8_t re;
-    //int8_t im;
-    //int8_t mag;
+    // int8_t im;
+    // int8_t mag;
 
     for (size_t i = 0; i < 128; i++) {
         re = buffer.p[i].real();
-        //im = buffer.p[i].imag();
-        //mag = __builtin_sqrtf((re * re) + (im * im)) ;
-        const unsigned int v = re + 127.0f;  //timescope
+        // im = buffer.p[i].imag();
+        // mag = __builtin_sqrtf((re * re) + (im * im)) ;
+        const unsigned int v = re + 127.0f;  // timescope
         audio_spectrum.db[i] = std::max(0U, std::min(255U, v));
     }
     AudioSpectrumMessage message{&audio_spectrum};

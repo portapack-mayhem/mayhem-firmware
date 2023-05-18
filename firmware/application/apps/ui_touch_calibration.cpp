@@ -77,8 +77,8 @@ void TouchCalibrationView::update_target() {
     button_ok.hidden((phase != Phase::Success) && (phase != Phase::Failure));
 
     /* TODO: Such a hack to get around a poor repaint implementation! This "technique"
-	 * occurs in other places...
-	 */
+     * occurs in other places...
+     */
     set_dirty();
 }
 

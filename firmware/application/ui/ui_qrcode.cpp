@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -59,7 +59,7 @@ void QRCodeImage::paint(Painter& painter) {
     // The structure to manage the QR code
     QRCode qrcode;
 
-    //Either small or large QR code can be shown..
+    // Either small or large QR code can be shown..
 
     if (portapack::persistent_memory::show_bigger_qr_code()) {  // show large QR code
         int qr_version = 2;
@@ -118,7 +118,7 @@ QRCodeView::QRCodeView(
       on_close_(on_close) {
     add_children({&qr_code,
                   &button_close});
-    //text_qr.set(qr_text);
+    // text_qr.set(qr_text);
     qr_code.set_text(qr_text);
 
     button_close.on_select = [&nav](Button&) {

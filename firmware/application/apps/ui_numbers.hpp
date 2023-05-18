@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -149,9 +149,9 @@ class NumbersStationView : public View {
         5,
         "Armed"};
     /*Button button_tx_now {
-		{ 18 * 8, 13 * 16, 10 * 8, 32 },
-		"TX now"
-	};*/
+                { 18 * 8, 13 * 16, 10 * 8, 32 },
+                "TX now"
+        };*/
     Button button_exit{
         {21 * 8, 16 * 16, 64, 32},
         "Exit"};

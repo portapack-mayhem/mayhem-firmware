@@ -273,7 +273,7 @@ void JammerView::start_tx() {
         transmitter_model.enable();
 
         baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
-        mscounter = 0;  //euquiq: Reset internal ms counter for do_timer()
+        mscounter = 0;  // euquiq: Reset internal ms counter for do_timer()
     } else {
         if (out_of_ranges)
             nav_.display_modal("Error", "Jamming bandwidth too large.\nMust be less than 24MHz.");
@@ -292,13 +292,13 @@ void JammerView::stop_tx() {
     cooling = false;
 }
 
-//called each 1/60th of second
+// called each 1/60th of second
 void JammerView::on_timer() {
     if (++mscounter == 60) {
         mscounter = 0;
         if (jamming) {
             if (cooling) {
-                if (++seconds >= field_timepause.value()) {  //Re-start TX
+                if (++seconds >= field_timepause.value()) {  // Re-start TX
                     transmitter_model.enable();
                     button_transmit.set_text("STOP");
                     baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
@@ -314,7 +314,7 @@ void JammerView::on_timer() {
                     seconds = 0;
                 }
             } else {
-                if (++seconds >= field_timetx.value())  //Start cooling period:
+                if (++seconds >= field_timetx.value())  // Start cooling period:
                 {
                     transmitter_model.disable();
                     button_transmit.set_text("PAUSED");

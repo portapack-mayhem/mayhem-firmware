@@ -93,7 +93,7 @@ SpectrumPainterView::SpectrumPainterView(
             if (tx_mode == 0 && image_input_avaliable == false)
                 return;
 
-            //Enable Bias Tee if selected
+            // Enable Bias Tee if selected
             radio::set_antenna_bias(portapack::get_antenna_bias());
 
             radio::enable({portapack::receiver_model.tuning_frequency(),

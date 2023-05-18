@@ -37,9 +37,9 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
     auto audio_oversampled = demod.execute(decim_0_out, work_audio_buffer);
     // Audio signal processing
     for (size_t c = 0; c < audio_oversampled.count; c++) {
-        int g_srate = 4;  //4 for 250KPS
-        //int g_srate = 1; //1 for 1MPS, not working yet
-        int32_t current_sample = audio_oversampled.p[c];  //if I directly use this, some results can pass crc but not correct.
+        int g_srate = 4;  // 4 for 250KPS
+        // int g_srate = 1; //1 for 1MPS, not working yet
+        int32_t current_sample = audio_oversampled.p[c];  // if I directly use this, some results can pass crc but not correct.
         rb_head++;
         rb_head = (rb_head) % RB_SIZE;
 
@@ -69,7 +69,7 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
             }
 
             bool packet_detected = false;
-            //if ( transitions==4 && abs(g_threshold)<15500)
+            // if ( transitions==4 && abs(g_threshold)<15500)
             if (transitions == 4 && abs(g_threshold) < 15500) {
                 int packet_length = 0;
                 uint8_t tmp_buf[10];
@@ -98,7 +98,7 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
 
                 for (int t = 0; t < 5; t++) packet_addr_l |= ((uint64_t)tmp_buf[t]) << (4 - t) * 8;
 
-                //channel_number = 26;
+                // channel_number = 26;
 
                 /* extract pcf */
                 for (int t = 0; t < 2; t++) {
@@ -187,7 +187,7 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
                 packet_crc = tmp_buf[0] << 8 | tmp_buf[1];
 
                 /* NRF24L01+ packet found, dump information */
-                //if (packet_addr_l==0xE7E7E7E7)
+                // if (packet_addr_l==0xE7E7E7E7)
                 if (packet_crc == calced_crc) {
                     data_message.is_data = false;
                     data_message.value = 'A';
@@ -203,12 +203,12 @@ void NRFRxProcessor::execute(const buffer_c8_t& buffer) {
                         shared_memory.application_queue.push(data_message);
                     }
                     /*data_message.is_data = true;
-					data_message.value = packet_addr_l;
-					shared_memory.application_queue.push(data_message);
+                                        data_message.value = packet_addr_l;
+                                        shared_memory.application_queue.push(data_message);
 
-					data_message.is_data = true;
-					data_message.value = packet_addr_l >> 8;
-					shared_memory.application_queue.push(data_message);*/
+                                        data_message.is_data = true;
+                                        data_message.value = packet_addr_l >> 8;
+                                        shared_memory.application_queue.push(data_message);*/
 
                     data_message.is_data = false;
                     data_message.value = 'B';
@@ -242,7 +242,7 @@ void NRFRxProcessor::on_message(const Message* const message) {
 }
 
 void NRFRxProcessor::configure(const NRFRxConfigureMessage& message) {
-    (void)message;  //avoir unused warning
+    (void)message;  // avoir unused warning
     decim_0.configure(taps_200k_wfm_decim_0.taps, 33554432);
     decim_1.configure(taps_200k_wfm_decim_1.taps, 131072);
     demod.configure(audio_fs, 5000);

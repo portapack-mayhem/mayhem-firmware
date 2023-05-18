@@ -43,10 +43,10 @@ void RSSI::paint(Painter& painter) {
     const auto r = screen_rect();
 
     constexpr int rssi_sample_range = 256;
-    //constexpr float rssi_voltage_min = 0.4;
+    // constexpr float rssi_voltage_min = 0.4;
     constexpr float rssi_voltage_max = 2.2;
     constexpr float adc_voltage_max = 3.3;
-    //constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+    // constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
     constexpr int raw_min = 0;
     constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
     constexpr int raw_delta = raw_max - raw_min;
@@ -129,7 +129,7 @@ void RSSI::paint(Painter& painter) {
 
         // y_max
         const Rect r3{r.left(), r.bottom() - y_max, r.width(), y_max - y_avg};
-        //const Rect r3 {  r.left(), r.bottom() - y_max , r.width() , y_max - y_avg - 1 };
+        // const Rect r3 {  r.left(), r.bottom() - y_max , r.width() , y_max - y_avg - 1 };
         painter.fill_rectangle(
             r3,
             Color::red());
@@ -304,7 +304,7 @@ void RSSIGraph::paint(Painter& painter) {
         if( size < 1 )
             size = 1 ;
 
-       int xpos = r.right() ; 
+       int xpos = r.right() ;
         for ( int n = 2 ; (unsigned)n <= graph_list.size(); n++) {
             auto& entry = graph_list[graph_list.size()-n];
             auto& prev_entry = graph_list[graph_list.size()-(n-1)];
@@ -325,7 +325,7 @@ void RSSIGraph::paint(Painter& painter) {
                     r1,
                     Color::red());
 
-            // y_avg    
+            // y_avg
             top_y_val = max( entry.rssi_avg , prev_entry.rssi_avg );
             width_y = abs(  entry.rssi_avg - prev_entry.rssi_avg  );
             if( width_y == 0 )
@@ -369,10 +369,10 @@ void RSSIGraph::add_values(int16_t rssi_min, int16_t rssi_avg, int16_t rssi_max,
     const auto r = screen_rect();
 
     constexpr int rssi_sample_range = 256;
-    //constexpr float rssi_voltage_min = 0.4;
+    // constexpr float rssi_voltage_min = 0.4;
     constexpr float rssi_voltage_max = 2.2;
     constexpr float adc_voltage_max = 3.3;
-    //constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
+    // constexpr int raw_min = rssi_sample_range * rssi_voltage_min / adc_voltage_max;
     constexpr int raw_min = 0;
     constexpr int raw_max = rssi_sample_range * rssi_voltage_max / adc_voltage_max;
     constexpr int raw_delta = raw_max - raw_min;

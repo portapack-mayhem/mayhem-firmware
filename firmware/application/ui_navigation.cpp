@@ -148,9 +148,9 @@ SystemStatusView::SystemStatusView(
         button_stealth.set_foreground(ui::Color::green());
 
     /*if (!portapack::persistent_memory::ui_config_textentry())
-		button_textentry.set_bitmap(&bitmap_icon_keyboard);
-	else
-		button_textentry.set_bitmap(&bitmap_icon_unistroke);*/
+                button_textentry.set_bitmap(&bitmap_icon_keyboard);
+        else
+                button_textentry.set_bitmap(&bitmap_icon_unistroke);*/
 
     refresh();
 
@@ -180,8 +180,8 @@ SystemStatusView::SystemStatusView(
     };
 
     /*button_textentry.on_select = [this](ImageButton&) {
-		this->on_textentry();
-	};*/
+                this->on_textentry();
+        };*/
 
     button_camera.on_select = [this](ImageButton&) {
         this->on_camera();
@@ -310,7 +310,7 @@ void SystemStatusView::on_bias_tee() {
         nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector?", YESNO, [this](bool v) {
             if (v) {
                 portapack::set_antenna_bias(true);
-                //radio::set_antenna_bias(true);
+                // radio::set_antenna_bias(true);
                 receiver_model.set_antenna_bias();
                 transmitter_model.set_antenna_bias();
                 refresh();
@@ -318,7 +318,7 @@ void SystemStatusView::on_bias_tee() {
         });
     } else {
         portapack::set_antenna_bias(false);
-        //radio::set_antenna_bias(false);
+        // radio::set_antenna_bias(false);
         receiver_model.set_antenna_bias();
         transmitter_model.set_antenna_bias();
         refresh();
@@ -326,15 +326,15 @@ void SystemStatusView::on_bias_tee() {
 }
 
 /*void SystemStatusView::on_textentry() {
-	uint8_t cfg;
-	
-	cfg = portapack::persistent_memory::ui_config_textentry();
-	portapack::persistent_memory::set_config_textentry(cfg ^ 1);
-	
-	if (!cfg)
-		button_textentry.set_bitmap(&bitmap_icon_unistroke);
-	else
-		button_textentry.set_bitmap(&bitmap_icon_keyboard);
+        uint8_t cfg;
+
+        cfg = portapack::persistent_memory::ui_config_textentry();
+        portapack::persistent_memory::set_config_textentry(cfg ^ 1);
+
+        if (!cfg)
+                button_textentry.set_bitmap(&bitmap_icon_unistroke);
+        else
+                button_textentry.set_bitmap(&bitmap_icon_keyboard);
 }*/
 
 void SystemStatusView::on_camera() {
@@ -528,14 +528,14 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"Level", ui::Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
         {"APRS", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }}
         /*
-		{ "DMR", 		ui::Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SIGFOX", 	ui::Color::dark_grey(),	&bitmap_icon_fox,		[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
-		{ "LoRa", 		ui::Color::dark_grey(),	&bitmap_icon_lora,		[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SSTV", 		ui::Color::dark_grey(), &bitmap_icon_sstv,		[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "TETRA", 		ui::Color::dark_grey(),	&bitmap_icon_tetra,		[&nav](){ nav.push<NotImplementedView>(); } },*/
+                { "DMR", 		ui::Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
+                { "SIGFOX", 	ui::Color::dark_grey(),	&bitmap_icon_fox,		[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
+                { "LoRa", 		ui::Color::dark_grey(),	&bitmap_icon_lora,		[&nav](){ nav.push<NotImplementedView>(); } },
+                { "SSTV", 		ui::Color::dark_grey(), &bitmap_icon_sstv,		[&nav](){ nav.push<NotImplementedView>(); } },
+                { "TETRA", 		ui::Color::dark_grey(),	&bitmap_icon_tetra,		[&nav](){ nav.push<NotImplementedView>(); } },*/
     });
 
-    //set_highlighted(0);		// Default selection is "Audio"
+    // set_highlighted(0);		// Default selection is "Audio"
 }
 
 /* TransmittersMenuView **************************************************/
@@ -621,7 +621,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
     });
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);
-    //set_highlighted(1);		// Startup selection
+    // set_highlighted(1);		// Startup selection
 }
 
 /* SystemView ************************************************************/
@@ -674,9 +674,9 @@ SystemView::SystemView(
 
     // Initial view
     /*if ((portapack::persistent_memory::playing_dead() == 0x5920C1DF) ||		// Enable code
-		(portapack::persistent_memory::ui_config() & 16)) {					// Login option
-		navigation_view.push<PlayDeadView>();
-	} else {*/
+                (portapack::persistent_memory::ui_config() & 16)) {					// Login option
+                navigation_view.push<PlayDeadView>();
+        } else {*/
 
     navigation_view.push<SystemMenuView>();
 
@@ -693,7 +693,7 @@ SystemView::SystemView(
     status_view.set_back_enabled(false);
     status_view.set_title_image_enabled(true);
     status_view.set_dirty();
-    //else
+    // else
     //	navigation_view.push<SystemMenuView>();
 
     //}
@@ -754,18 +754,18 @@ void BMPView::paint(Painter&) {
 /* NotImplementedView ****************************************************/
 
 /*NotImplementedView::NotImplementedView(NavigationView& nav) {
-	button_done.on_select = [&nav](Button&){
-		nav.pop();
-	};
+        button_done.on_select = [&nav](Button&){
+                nav.pop();
+        };
 
-	add_children({
-		&text_title,
-		&button_done,
-	});
+        add_children({
+                &text_title,
+                &button_done,
+        });
 }
 
 void NotImplementedView::focus() {
-	button_done.focus();
+        button_done.focus();
 }*/
 
 /* ModalMessageView ******************************************************/
@@ -807,7 +807,7 @@ ModalMessageView::ModalMessageView(
             nav.pop();
         };
         button_no.on_select = [this, &nav](Button&) {
-            //if (on_choice_) on_choice_(false);
+            // if (on_choice_) on_choice_(false);
             nav.pop_modal();
         };
     } else {  // ABORT

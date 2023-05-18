@@ -53,14 +53,14 @@ class MicTXView : public View {
     // PTT: Enable through KeyEvent (only works with presses), disable by polling :(
     // This is the old "RIGHT BUTTON" method.
     /*
-	bool on_key(const KeyEvent key) {
-		if ((key == KeyEvent::Right) && (!va_enabled) && ptt_enabled) {
-			set_tx(true);
-			return true;
-		} else
-			return false;
-	};
-	*/
+        bool on_key(const KeyEvent key) {
+                if ((key == KeyEvent::Right) && (!va_enabled) && ptt_enabled) {
+                        set_tx(true);
+                        return true;
+                } else
+                        return false;
+        };
+        */
 
     std::string title() const override { return "Microphone"; };
 
@@ -106,7 +106,7 @@ class MicTXView : public View {
     bool button_touch{false};
     uint8_t shift_bits_s16{4};  // shift bits factor to the captured ADC S16 audio sample.
 
-    //AM TX Stuff
+    // AM TX Stuff
     bool enable_am{false};
     bool enable_dsb{false};
     bool enable_usb{false};
@@ -125,7 +125,7 @@ class MicTXView : public View {
         {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
         {{4 * 8, (13 * 8) - 2}, "TONE KEY:", Color::light_grey()},
         {{7 * 8, 23 * 8}, "VOL:", Color::light_grey()},
-        {{14 * 8, 23 * 8}, "RXBW:", Color::light_grey()},  //we remove the label "FM" because we will display all MOD types RX_BW.
+        {{14 * 8, 23 * 8}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
         {{20 * 8, 25 * 8}, "SQ:", Color::light_grey()},
         {{5 * 8, 25 * 8}, "F_RX:", Color::light_grey()},
         {{5 * 8, 27 * 8}, "LNA:", Color::light_grey()},
@@ -143,7 +143,7 @@ class MicTXView : public View {
         {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
         {{4 * 8, (13 * 8) - 2}, "TONE KEY:", Color::light_grey()},
         {{(6 * 8) + 4, 23 * 8}, "VOL:", Color::light_grey()},
-        {{14 * 8, 23 * 8}, "RXBW:", Color::light_grey()},  //we remove the label "FM" because we will display all MOD types RX_BW.
+        {{14 * 8, 23 * 8}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
         {{20 * 8, 25 * 8}, "SQ:", Color::light_grey()},
         {{5 * 8, 25 * 8}, "F_RX:", Color::light_grey()},
         {{5 * 8, 27 * 8}, "LNA:", Color::light_grey()},
@@ -220,13 +220,13 @@ class MicTXView : public View {
             {"DSB-SC", 5}  // We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).
         }};
     /*
-	Checkbox check_va {
-		{ 3 * 8, (10 * 8) - 4 },
-		7,
-		"Voice activation",
-		false
-	};
-	*/
+        Checkbox check_va {
+                { 3 * 8, (10 * 8) - 4 },
+                7,
+                "Voice activation",
+                false
+        };
+        */
 
     OptionsField field_va{
         {17 * 8, 8 * 8},

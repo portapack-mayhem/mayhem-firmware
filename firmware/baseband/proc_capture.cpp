@@ -46,7 +46,7 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
         const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
         const size_t written = stream->write(decimator_out.p, bytes_to_write);
         if (written != bytes_to_write) {
-            //TODO eventually report error somewhere
+            // TODO eventually report error somewhere
         }
     }
 

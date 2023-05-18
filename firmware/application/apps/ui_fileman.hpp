@@ -140,57 +140,57 @@ class FileLoadView : public FileManBaseView {
 // but it will OOM if launched from within FileManager.
 class FileSaveView : public View {
 public:
-	FileSaveView(
-		NavigationView& nav,
-		const std::filesystem::path& path,
-		const std::filesystem::path& file);
+        FileSaveView(
+                NavigationView& nav,
+                const std::filesystem::path& path,
+                const std::filesystem::path& file);
 
-	std::function<void(std::filesystem::path)> on_save { };
+        std::function<void(std::filesystem::path)> on_save { };
 
 private:
-	static constexpr size_t max_filename_length = 64;
+        static constexpr size_t max_filename_length = 64;
 
-	void refresh_widgets();
+        void refresh_widgets();
 
-	NavigationView& nav_;
-	std::filesystem::path path_;
-	std::filesystem::path file_;
-	std::string buffer_ { };
+        NavigationView& nav_;
+        std::filesystem::path path_;
+        std::filesystem::path file_;
+        std::string buffer_ { };
 
-	Labels labels {
-		{ { 0 * 8, 1 * 16 }, "Path:", Color::light_grey() },
-		{ { 0 * 8, 6 * 16 }, "Filename:", Color::light_grey() },
-	};
+        Labels labels {
+                { { 0 * 8, 1 * 16 }, "Path:", Color::light_grey() },
+                { { 0 * 8, 6 * 16 }, "Filename:", Color::light_grey() },
+        };
 
-	Text text_path {
-		{ 0 * 8, 2 * 16, 30 * 8, 16 },
-		"",
-	};
+        Text text_path {
+                { 0 * 8, 2 * 16, 30 * 8, 16 },
+                "",
+        };
 
-	Button button_edit_path {
-		{ 18 * 8, 3 * 16, 11 * 8, 32 },
-		"Edit Path"
-	};
+        Button button_edit_path {
+                { 18 * 8, 3 * 16, 11 * 8, 32 },
+                "Edit Path"
+        };
 
-	Text text_name {
-		{ 0 * 8, 7 * 16, 30 * 8, 16 },
-		"",
-	};
+        Text text_name {
+                { 0 * 8, 7 * 16, 30 * 8, 16 },
+                "",
+        };
 
-	Button button_edit_name {
-		{ 18 * 8, 8 * 16, 11 * 8, 32 },
-		"Edit Name"
-	};
+        Button button_edit_name {
+                { 18 * 8, 8 * 16, 11 * 8, 32 },
+                "Edit Name"
+        };
 
-	Button button_save {
-		{ 10 * 8, 16 * 16, 9 * 8, 32 },
-		"Save"
-	};
+        Button button_save {
+                { 10 * 8, 16 * 16, 9 * 8, 32 },
+                "Save"
+        };
 
-	Button button_cancel {
-		{ 20 * 8, 16 * 16, 9 * 8, 32 },
-		"Cancel"
-	};
+        Button button_cancel {
+                { 20 * 8, 16 * 16, 9 * 8, 32 },
+                "Cancel"
+        };
 };
 */
 

@@ -122,11 +122,11 @@ void init() {
     gpdma_channel_sgpio.set_handlers(transfer_complete, dma_error);
 #if defined(PORTAPACK_BASEBAND_DMA_NO_SYNC)
     /* Disable synchronization logic to improve(?) DMA response time.
-	 * SGPIO (peripheral) must be on same clock as GPDMA peripheral.
-	 * SGPIO runs from BASE_PERIPH_CLK, which is set to PLL1 in normal
-	 * operation, same as the M4 and M0 cores. Memory, of course, is
-	 * running from the same clock as the cores.
-	 */
+     * SGPIO (peripheral) must be on same clock as GPDMA peripheral.
+     * SGPIO runs from BASE_PERIPH_CLK, which is set to PLL1 in normal
+     * operation, same as the M4 and M0 cores. Memory, of course, is
+     * running from the same clock as the cores.
+     */
     LPC_GPDMA->SYNC |= (1 << gpdma_src_peripheral);
     LPC_GPDMA->SYNC |= (1 << gpdma_dest_peripheral);
 #endif

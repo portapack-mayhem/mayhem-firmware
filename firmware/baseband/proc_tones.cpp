@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -61,7 +61,7 @@ void TonesProcessor::execute(const buffer_c8_t& buffer) {
 
                 digit_pos++;
 
-                if (digit >= 32) {  //  || (tone_deltas[digit] == 0)
+                if (digit >= 32) {  // || (tone_deltas[digit] == 0)
                     sample_count = shared_memory.bb_data.tones_data.silence;
                 } else {
                     if (!dual_tone) {

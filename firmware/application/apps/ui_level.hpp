@@ -62,21 +62,21 @@ class LevelView : public View {
     };
 
     const Style style_yellow{
-        //Found signal
+        // Found signal
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::yellow(),
     };
 
     const Style style_green{
-        //Found signal
+        // Found signal
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::green(),
     };
 
     const Style style_red{
-        //erasing freq
+        // erasing freq
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::red(),

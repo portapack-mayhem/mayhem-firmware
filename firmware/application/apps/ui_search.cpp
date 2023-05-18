@@ -124,15 +124,15 @@ void SearchView::do_detection() {
 
                         // TODO
                         /*nav_.pop();
-						receiver_model.disable();
-						baseband::shutdown();
-						nav_.pop();*/
+                                                receiver_model.disable();
+                                                baseband::shutdown();
+                                                nav_.pop();*/
 
                         /*if (options_goto.selected_index() == 1)
-							nav_.push<AnalogAudioView>(false);
-						else if (options_goto.selected_index() == 2)
-							nav_.push<POCSAGAppView>();
-						*/
+                                                        nav_.push<AnalogAudioView>(false);
+                                                else if (options_goto.selected_index() == 2)
+                                                        nav_.push<POCSAGAppView>();
+                                                */
                     } else
                         text_infos.set("Out of range");
                 }

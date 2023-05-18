@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -74,8 +74,8 @@ class CoasterPagerView : public View {
         "Scan"};
 
     /*ProgressBar progressbar {
-		{ 5 * 8, 12 * 16, 20 * 8, 16 },
-	};*/
+                { 5 * 8, 12 * 16, 20 * 8, 16 },
+        };*/
     Text text_message{
         {5 * 8, 13 * 16, 20 * 8, 16},
         ""};

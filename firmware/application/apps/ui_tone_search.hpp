@@ -52,18 +52,18 @@ class ToneSearchView : public View {
         {18 * 8, 0 * 16}};
 
     /*
-	MessageHandlerRegistration message_handler_frame_sync {
-		Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			if( this->fifo ) {
-				ChannelSpectrum channel_spectrum;
-				while( fifo->out(channel_spectrum) ) {
-					this->on_channel_spectrum(channel_spectrum);
-				}
-			}
-			this->do_timers();
-		}
-	};*/
+        MessageHandlerRegistration message_handler_frame_sync {
+                Message::ID::DisplayFrameSync,
+                [this](const Message* const) {
+                        if( this->fifo ) {
+                                ChannelSpectrum channel_spectrum;
+                                while( fifo->out(channel_spectrum) ) {
+                                        this->on_channel_spectrum(channel_spectrum);
+                                }
+                        }
+                        this->do_timers();
+                }
+        };*/
 };
 
 } /* namespace ui */

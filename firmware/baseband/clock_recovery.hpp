@@ -35,16 +35,16 @@ class GardnerTimingErrorDetector {
     static constexpr size_t samples_per_symbol{2};
 
     /*
-	Expects retimed samples at a rate of twice the expected symbol rate.
-	Calculates timing error, sends symbol and error to handler.
-	*/
+        Expects retimed samples at a rate of twice the expected symbol rate.
+        Calculates timing error, sends symbol and error to handler.
+        */
     template <typename SymbolHandler>
     void operator()(
         const float in,
         SymbolHandler symbol_handler) {
         /* NOTE: Algorithm is sensitive to input magnitude. Timing error value
-		 * will scale proportionally. Best practice is to use error sign only.
-		 */
+         * will scale proportionally. Best practice is to use error sign only.
+         */
         t[2] = t[1];
         t[1] = t[0];
         t[0] = in;

@@ -43,13 +43,13 @@ void SoundBoardView::stop() {
     transmitter_model.disable();
     tx_view.set_transmitting(false);
 
-    //button_play.set_bitmap(&bitmap_play);
+    // button_play.set_bitmap(&bitmap_play);
     ready_signal = false;
 }
 
 void SoundBoardView::handle_replay_thread_done(const uint32_t return_code) {
     stop();
-    //progressbar.set_value(0);
+    // progressbar.set_value(0);
 
     if (return_code == ReplayThread::END_OF_FILE) {
         if (check_random.value()) {
@@ -91,9 +91,9 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     playing_id = id;
 
-    //progressbar.set_max(reader->sample_count());
+    // progressbar.set_max(reader->sample_count());
 
-    //button_play.set_bitmap(&bitmap_stop);
+    // button_play.set_bitmap(&bitmap_stop);
 
     sample_rate = reader->sample_rate();
 
@@ -112,10 +112,10 @@ void SoundBoardView::start_tx(const uint32_t id) {
         0,  // Gain is unused
         8,  // shift_bits_s16, default 8 bits, but  also unused
         TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
-        0,  //AM
-        0,  //DSB
-        0,  //USB
-        0   //LSB
+        0,  // AM
+        0,  // DSB
+        0,  // USB
+        0   // LSB
     );
     baseband::set_sample_rate(sample_rate);
 
@@ -127,16 +127,16 @@ void SoundBoardView::start_tx(const uint32_t id) {
 }
 
 /*void SoundBoardView::show_infos() {
-	if (!reader->open(file_list[menu_view.highlighted_index()]))
-		return;
-	
-	text_duration.set(to_string_time_ms(reader->ms_duration()));
-	text_title.set(reader->title().substr(0, 15));
+        if (!reader->open(file_list[menu_view.highlighted_index()]))
+                return;
+
+        text_duration.set(to_string_time_ms(reader->ms_duration()));
+        text_title.set(reader->title().substr(0, 15));
 }*/
 
 void SoundBoardView::on_tx_progress(const uint32_t progress) {
     (void)progress;  // avoid warning
-                     //progressbar.set_value(progress);
+                     // progressbar.set_value(progress);
 }
 
 void SoundBoardView::on_select_entry() {
@@ -162,8 +162,8 @@ void SoundBoardView::refresh_list() {
                 if (entry_extension == ".WAV") {
                     if (reader->open(u"/WAV/" + entry.path().native())) {
                         if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
-                            //sounds[c].ms_duration = reader->ms_duration();
-                            //sounds[c].path = u"WAV/" + entry.path().native();
+                            // sounds[c].ms_duration = reader->ms_duration();
+                            // sounds[c].path = u"WAV/" + entry.path().native();
                             if (count >= (page - 1) * 100 && count < page * 100) {
                                 file_list.push_back(entry.path());
                                 if (file_list.size() == 100) {
@@ -257,7 +257,7 @@ SoundBoardView::SoundBoardView(
         refresh_list();
     };
 
-    //text_title.set(to_string_dec_uint(file_list.size()));
+    // text_title.set(to_string_dec_uint(file_list.size()));
 
     tone_keys_populate(options_tone_key);
     options_tone_key.set_selected_index(0);

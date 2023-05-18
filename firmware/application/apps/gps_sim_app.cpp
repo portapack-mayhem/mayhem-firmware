@@ -147,7 +147,7 @@ void GpsSimAppView::start() {
                    sample_rate,
                    baseband_bandwidth,
                    rf::Direction::Transmit,
-                   rf_amp,  //  previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
+                   rf_amp,  // previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
                    static_cast<int8_t>(receiver_model.lna()),
                    static_cast<int8_t>(receiver_model.vga())});
 }

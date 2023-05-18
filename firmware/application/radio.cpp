@@ -127,23 +127,23 @@ void set_direction(const rf::Direction new_direction) {
 
     if (hackrf_r9) {
         /*
-		 * HackRF One r9 inverts analog baseband only for RX. Previous hardware
-		 * revisions inverted analog baseband for neither direction because of
-		 * compensation in the CPLD. If we ever simplify the CPLD to handle RX
-		 * and TX the same way, we will need to update this baseband_invert
-		 * logic.
-		 */
+         * HackRF One r9 inverts analog baseband only for RX. Previous hardware
+         * revisions inverted analog baseband for neither direction because of
+         * compensation in the CPLD. If we ever simplify the CPLD to handle RX
+         * and TX the same way, we will need to update this baseband_invert
+         * logic.
+         */
         baseband_invert = (direction == rf::Direction::Receive);
     } else {
         /*
-		 * Analog baseband is inverted in RX but not TX. The RX inversion is
-		 * corrected by the CPLD, but future hardware or CPLD changes may
-		 * change this for either or both directions. For a given hardware+CPLD
-		 * platform, baseband inversion is set here for RX and/or TX. Spectrum
-		 * inversion resulting from the mixer is tracked separately according
-		 * to the tuning configuration. We ask the CPLD to apply a correction
-		 * for the total inversion.
-		 */
+         * Analog baseband is inverted in RX but not TX. The RX inversion is
+         * corrected by the CPLD, but future hardware or CPLD changes may
+         * change this for either or both directions. For a given hardware+CPLD
+         * platform, baseband inversion is set here for RX and/or TX. Spectrum
+         * inversion resulting from the mixer is tracked separately according
+         * to the tuning configuration. We ask the CPLD to apply a correction
+         * for the total inversion.
+         */
         baseband_invert = false;
     }
     baseband_cpld.set_invert(mixer_invert ^ baseband_invert);
@@ -163,10 +163,10 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
     rf::Frequency final_frequency = frequency;
     // if feature is enabled
     if (portapack::persistent_memory::config_converter()) {
-        //downconvert
+        // downconvert
         if (portapack::persistent_memory::config_updown_converter()) {
             final_frequency = frequency - portapack::persistent_memory::config_converter_freq();
-        } else  //upconvert
+        } else  // upconvert
         {
             final_frequency = frequency + portapack::persistent_memory::config_converter_freq();
         }

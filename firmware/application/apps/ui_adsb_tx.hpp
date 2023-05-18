@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -167,45 +167,45 @@ class ADSBTxView : public View {
 
    private:
     /*enum tx_modes {
-		IDLE = 0,
-		SINGLE,
-		SEQUENCE
-	};*/
+                IDLE = 0,
+                SINGLE,
+                SEQUENCE
+        };*/
 
     /*const float plane_lats[12] = {
-		0,
-		-1,
-		-2,
-		-3,
-		-4,
-		-5,
-		-4.5,
-		-5,
-		-4,
-		-3,
-		-2,
-		-1
-	};
-	const float plane_lons[12] = {
-		0,
-		1,
-		1,
-		1,
-		2,
-		1,
-		0,
-		-1,
-		-2,
-		-1,
-		-1,
-		-1
-	};*/
+                0,
+                -1,
+                -2,
+                -3,
+                -4,
+                -5,
+                -4.5,
+                -5,
+                -4,
+                -3,
+                -2,
+                -1
+        };
+        const float plane_lons[12] = {
+                0,
+                1,
+                1,
+                1,
+                2,
+                1,
+                0,
+                -1,
+                -2,
+                -1,
+                -1,
+                -1
+        };*/
 
     // app save settings
     std::app_settings settings{};
     std::app_settings::AppSettings app_settings{};
 
-    //tx_modes tx_mode = IDLE;
+    // tx_modes tx_mode = IDLE;
     NavigationView& nav_;
     std::vector<ADSBFrame> frames{};
 

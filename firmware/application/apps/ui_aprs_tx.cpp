@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -59,8 +59,8 @@ void APRSTXView::start_tx() {
         sym_dest.value_string().c_str(), num_ssid_dest.value(),
         payload);
 
-    //uint8_t * bb_data_ptr = shared_memory.bb_data.data;
-    //text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
+    // uint8_t * bb_data_ptr = shared_memory.bb_data.data;
+    // text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
 
     transmitter_model.set_tuning_frequency(persistent_memory::tuned_frequency());
     transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
@@ -72,7 +72,7 @@ void APRSTXView::start_tx() {
         1200,
         2200,
         1,
-        10000,  //APRS uses fixed 10k bandwidth
+        10000,  // APRS uses fixed 10k bandwidth
         8);
 }
 

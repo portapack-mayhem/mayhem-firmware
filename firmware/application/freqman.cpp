@@ -32,18 +32,18 @@ options_t freqman_entry_modulations = {
     {"WFM", 2}};
 
 options_t freqman_entry_bandwidths[4] = {
-    {//AM
+    {// AM
      {"DSB 9k", 0},
      {"DSB 6k", 1},
      {"USB+3k", 2},
      {"LSB-3k", 3},
      {"CW", 4}},
-    {//NFM
+    {// NFM
      {"8k5", 0},
      {"11k", 1},
      {"16k", 2}},
     {
-        //WFM
+        // WFM
         {"200k", 0},
         {"180k", 1},
         {"40k", 2},

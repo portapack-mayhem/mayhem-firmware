@@ -49,18 +49,18 @@ extern "C" {
 
 void __late_init(void) {
     /*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
+     * System initializations.
+     * - HAL initialization, this also initializes the configured device drivers
+     *   and performs the board-specific initializations.
+     * - Kernel initialization, the main() function becomes a thread and the
+     *   RTOS is active.
+     */
     halInit();
 
     /* After this call, scheduler, systick, heap, etc. are available. */
     /* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
+     * require the heap.
+     */
     chSysInit();
 
     /* Baseband initialization */

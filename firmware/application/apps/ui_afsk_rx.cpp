@@ -129,7 +129,7 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
         // Colorize differently after message splits
         str_console += (char)((console_color & 3) + 9);
 
-        //value = deframe_word(value);
+        // value = deframe_word(value);
 
         value &= 0xFF;                                          // ABCDEFGH
         value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);  // EFGHABCD
@@ -145,7 +145,7 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
             str_byte += "[" + to_string_hex(value, 2) + "]";
         }
 
-        //str_byte = to_string_bin(value & 0xFF, 8) + "  ";
+        // str_byte = to_string_bin(value & 0xFF, 8) + "  ";
 
         console.write(str_console);
 

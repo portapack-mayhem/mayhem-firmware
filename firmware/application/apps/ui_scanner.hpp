@@ -33,7 +33,7 @@
 #include "string_format.hpp"
 #include "file.hpp"
 
-#define SCANNER_SLEEP_MS 50  //ms that Scanner Thread sleeps per loop
+#define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
 #define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
 
@@ -95,21 +95,21 @@ class ScannerView : public View {
     };
 
     const Style style_yellow{
-        //Found signal
+        // Found signal
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::dark_yellow(),
     };
 
     const Style style_green{
-        //Found signal
+        // Found signal
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::green(),
     };
 
     const Style style_red{
-        //erasing freq
+        // erasing freq
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::red(),
@@ -119,7 +119,7 @@ class ScannerView : public View {
     std::vector<rf::Frequency> frequency_list{};
     std::vector<string> description_list{};
 
-    //void set_parent_rect(const Rect new_parent_rect) override;
+    // void set_parent_rect(const Rect new_parent_rect) override;
 
    private:
     NavigationView& nav_;
@@ -137,7 +137,7 @@ class ScannerView : public View {
     void on_headphone_volume_changed(int32_t v);
     void handle_retune(int64_t freq, uint32_t freq_idx);
 
-    jammer::jammer_range_t frequency_range{false, 0, 0};  //perfect for manual scan task too...
+    jammer::jammer_range_t frequency_range{false, 0, 0};  // perfect for manual scan task too...
     int32_t squelch{0};
     uint32_t browse_timer{0};
     uint32_t lock_timer{0};
@@ -152,7 +152,7 @@ class ScannerView : public View {
     rf::Frequency current_frequency{0};
     bool userpause{false};
     bool manual_search{false};
-    bool fwd{true};  //to preserve direction setting even if scan_thread restarted
+    bool fwd{true};  // to preserve direction setting even if scan_thread restarted
 
     enum bigdisplay_color_type {
         BDC_GREY,
@@ -204,7 +204,7 @@ class ScannerView : public View {
     };
 
     NumberField field_browse_wait{
-        //Signal-Active wait timer - time to wait before moving on even when signal locked
+        // Signal-Active wait timer - time to wait before moving on even when signal locked
         {21 * 8, 1 * 16},
         2,
         {0, 99},
@@ -213,7 +213,7 @@ class ScannerView : public View {
     };
 
     NumberField field_lock_wait{
-        //Signal-Lost wait timer - time to wait before moving on after losing signal lock
+        // Signal-Lost wait timer - time to wait before moving on after losing signal lock
         {28 * 8, 1 * 16},
         2,
         {0, 99},
@@ -237,7 +237,7 @@ class ScannerView : public View {
         {0, 4 * 16, 240 - 6 * 8, 16},
     };
 
-    BigFrequency big_display{//Show frequency in glamour
+    BigFrequency big_display{// Show frequency in glamour
                              {4, 6 * 16, 28 * 8, 52},
                              0};
 
@@ -256,13 +256,13 @@ class ScannerView : public View {
     OptionsField field_mode{
         {5 * 8, (26 * 8) + 4},
         6,
-        {}  //Text strings get filled by freqman_set_modulation_option()
+        {}  // Text strings get filled by freqman_set_modulation_option()
     };
 
     OptionsField field_step{
         {17 * 8, (26 * 8) + 4},
         12,
-        {}  //Text strings get filled by freqman_set_step_option()
+        {}  // Text strings get filled by freqman_set_step_option()
     };
 
     ButtonWithEncoder button_pause{

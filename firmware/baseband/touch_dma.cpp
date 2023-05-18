@@ -90,15 +90,15 @@ constexpr gpdma::channel::Config config() {
 static gpdma::channel::LLI lli;
 
 constexpr size_t channels_per_sample = 8;
-//constexpr size_t samples_per_frame = 40;
-//constexpr size_t channel_samples_per_frame = channels_per_sample * samples_per_frame;
+// constexpr size_t samples_per_frame = 40;
+// constexpr size_t channel_samples_per_frame = channels_per_sample * samples_per_frame;
 
 void init() {
 }
 
 void allocate() {
-    //samples = new sample_t[channel_samples_per_frame];
-    //lli = new gpdma::channel::LLI;
+    // samples = new sample_t[channel_samples_per_frame];
+    // lli = new gpdma::channel::LLI;
     lli.srcaddr = reinterpret_cast<uint32_t>(&LPC_ADC0->DR[0]);
     lli.destaddr = reinterpret_cast<uint32_t>(&shared_memory.touch_adc_frame.dr[0]);
     lli.lli = lli_pointer(&lli);
@@ -106,8 +106,8 @@ void allocate() {
 }
 
 void free() {
-    //delete samples;
-    //delete lli;
+    // delete samples;
+    // delete lli;
 }
 
 void enable() {

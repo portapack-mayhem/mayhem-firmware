@@ -478,8 +478,8 @@ static_assert(sizeof(RegisterMap) == reg_count * sizeof(reg_t), "RegisterMap typ
 
 constexpr RegisterMap initial_register_values{Register_Type{
     /* Best effort to reconcile default values specified in three
-	 * different places in the MAX2837 documentation.
-	 */
+     * different places in the MAX2837 documentation.
+     */
     .rxrf_1 = {
         /* 0 */
         .LNA_EN = 0,

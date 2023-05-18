@@ -102,12 +102,12 @@ void WAVFileReader::data_seek(const uint64_t Offset) {
 }
 
 /*int WAVFileReader::seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples) {
-	const auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
+        const auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
 
-	if (result.is_error())
-		return 0;
-		
-	return 1;
+        if (result.is_error())
+                return 0;
+
+        return 1;
 }*/
 
 uint16_t WAVFileReader::channels() {

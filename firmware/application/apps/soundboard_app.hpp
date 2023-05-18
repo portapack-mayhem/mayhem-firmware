@@ -74,9 +74,9 @@ class SoundBoardView : public View {
     bool ready_signal{false};
     lfsr_word_t lfsr_v = 1;
 
-    //void show_infos();
+    // void show_infos();
     void start_tx(const uint32_t id);
-    //void on_ctcss_changed(uint32_t v);
+    // void on_ctcss_changed(uint32_t v);
     void stop();
     bool is_active() const;
     void set_ready();
@@ -110,12 +110,12 @@ class SoundBoardView : public View {
     };
 
     /*Text text_title {
-		{ 6 * 8, 20 * 8 + 4, 15 * 8, 16 }
-	};*/
+                { 6 * 8, 20 * 8 + 4, 15 * 8, 16 }
+        };*/
 
     /*Text text_duration {
-		{ 22 * 8, 20 * 8 + 4, 6 * 8, 16 }
-	};*/
+                { 22 * 8, 20 * 8 + 4, 6 * 8, 16 }
+        };*/
 
     OptionsField options_tone_key{
         {32, 180},
@@ -132,9 +132,9 @@ class SoundBoardView : public View {
         6,
         "Random"};
 
-    //ProgressBar progressbar {
+    // ProgressBar progressbar {
     //	{ 0 * 8, 30 * 8 - 4, 30 * 8, 16 }
-    //};
+    // };
 
     TransmitterView tx_view{
         16 * 16,

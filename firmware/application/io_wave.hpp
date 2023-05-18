@@ -111,7 +111,7 @@ class WAVFileReader : public FileReader {
     void data_seek(const uint64_t Offset);
     void rewind();
     uint32_t ms_duration();
-    //int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
+    // int seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples);
     uint16_t channels();
     uint32_t sample_rate();
     uint32_t data_size();

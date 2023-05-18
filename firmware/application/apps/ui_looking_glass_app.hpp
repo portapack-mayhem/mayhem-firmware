@@ -159,8 +159,8 @@ class GlassView : public View {
         4,
         {
             {"OFF ", 0},
-            {"MID ", 118},  //85 +25 (110) + a bit more to kill all blue
-            {"HIGH", 202},  //168 + 25 (193)
+            {"MID ", 118},  // 85 +25 (110) + a bit more to kill all blue
+            {"HIGH", 202},  // 168 + 25 (193)
         }};
 
     RFAmpField field_rf_amp{

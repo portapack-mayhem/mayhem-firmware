@@ -64,21 +64,21 @@ class ReconView : public View {
     };
 
     const Style style_yellow{
-        //found signal
+        // found signal
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::yellow(),
     };
 
     const Style style_green{
-        //Found signal
+        // Found signal
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::green(),
     };
 
     const Style style_red{
-        //erasing freq
+        // erasing freq
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::red(),
@@ -93,7 +93,7 @@ class ReconView : public View {
 
     std::string title() const override { return "Recon"; };
 
-    //void set_parent_rect(const Rect new_parent_rect) override;
+    // void set_parent_rect(const Rect new_parent_rect) override;
 
    private:
     NavigationView& nav_;
@@ -116,7 +116,7 @@ class ReconView : public View {
     bool ReconSetupSaveStrings(const std::string& dest, const std::string& input_file, const std::string& output_file, uint32_t recon_lock_duration, uint32_t recon_lock_nb_match, int32_t recon_squelch_level, uint32_t recon_match_mode, int32_t wait, int32_t volume);
     bool ReconSaveFreq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
 
-    jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  //perfect for manual recon task too...
+    jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
     int32_t squelch{0};
     int32_t db{0};
     int32_t timer{0};
@@ -243,18 +243,18 @@ class ReconView : public View {
     };
 
     Text big_display{
-        //Show frequency in text mode
+        // Show frequency in text mode
         {0, 5 * 16, 23 * 8, 16},
     };
 
     Text freq_stats{
-        //Show frequency stats in text mode
+        // Show frequency stats in text mode
         {0, 6 * 16, 23 * 8, 16},
     };
 
     // TIMER: 9999
     Text text_timer{
-        //Show frequency stats in text mode
+        // Show frequency stats in text mode
         {0, 7 * 16, 11 * 8, 16},
     };
 
@@ -277,7 +277,7 @@ class ReconView : public View {
         "RECON"};
 
     Text file_name{
-        //show file used
+        // show file used
         {0, 8 * 16 + 6, SCREEN_W - 7 * 8, 16},
     };
 

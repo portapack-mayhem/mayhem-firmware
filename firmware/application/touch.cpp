@@ -30,9 +30,9 @@ namespace touch {
 
 Metrics calculate_metrics(const Frame& frame) {
     /* TODO: Yikes! M0 doesn't have floating point, so this code is
-	 * expensive! On the other hand, it seems to be working well (and
-	 * fast *enough*?), so maybe leave it alone at least for now.
-	 */
+     * expensive! On the other hand, it seems to be working well (and
+     * fast *enough*?), so maybe leave it alone at least for now.
+     */
 
     const auto x_max = frame.x.xp;
     const auto x_min = frame.x.xn;
@@ -55,7 +55,7 @@ Metrics calculate_metrics(const Frame& frame) {
     const float z2_norm = float(z2_position - z_min) / z_range;
 
     const float r_x_plate = 330.0f;
-    //const float r_y_plate = 600.0f;
+    // const float r_y_plate = 600.0f;
     const float r_touch = r_x_plate * x_norm * (z2_norm / z1_norm - 1.0f);
 
     return {
@@ -79,7 +79,7 @@ ui::Point Calibration::translate(const DigitizerPoint& p) const {
 void Manager::feed(const Frame& frame) {
     // touch_debounce.feed(touch_raw);
     const auto touch_raw = frame.touch;
-    //const auto touch_stable = touch_debounce.state();
+    // const auto touch_stable = touch_debounce.state();
     const auto touch_stable = frame.touch;
     bool touch_down_pressure = false;
     bool touch_up_pressure = false;

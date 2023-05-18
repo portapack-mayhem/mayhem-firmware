@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -120,7 +120,7 @@ void NumbersStationView::prepare_audio() {
 }
 
 void NumbersStationView::start_tx() {
-    //sample_length = sound_sizes[10];		// Announce
+    // sample_length = sound_sizes[10];		// Announce
     sample_counter = sample_length;
 
     code_index = 0;
@@ -186,7 +186,7 @@ NumbersStationView::NumbersStationView(
     voice_t temp_voice{};
     bool valid;
     uint32_t c;
-    //uint8_t y, m, d, dayofweek;
+    // uint8_t y, m, d, dayofweek;
 
     reader = std::make_unique<WAVFileReader>();
 
@@ -280,17 +280,17 @@ NumbersStationView::NumbersStationView(
     symfield_code.set_sym(10, 12);  // End
 
     /*
-	rtc::RTC datetime;
-	rtcGetTime(&RTCD1, &datetime);
-	
-	// Thanks, Sakamoto-sama !
-	y = datetime.year();
-	m = datetime.month();
-	d = datetime.day();
-	y -= m < 3;
-	dayofweek = (y + y/4 - y/100 + y/400 + month_table[m-1] + d) % 7;
-	
-	text_title.set(day_of_week[dayofweek]);
+        rtc::RTC datetime;
+        rtcGetTime(&RTCD1, &datetime);
+
+        // Thanks, Sakamoto-sama !
+        y = datetime.year();
+        m = datetime.month();
+        d = datetime.day();
+        y -= m < 3;
+        dayofweek = (y + y/4 - y/100 + y/400 + month_table[m-1] + d) % 7;
+
+        text_title.set(day_of_week[dayofweek]);
 */
 
     button_exit.on_select = [&nav](Button&) {

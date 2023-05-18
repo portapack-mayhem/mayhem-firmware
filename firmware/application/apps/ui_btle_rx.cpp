@@ -105,45 +105,45 @@ BTLERxView::BTLERxView(NavigationView& nav) {
 }
 
 void BTLERxView::on_data(uint32_t value, bool is_data) {
-    //std::string str_console = "\x1B";
+    // std::string str_console = "\x1B";
     std::string str_console = "";
     if (is_data) {
         // Colorize differently after message splits
-        //str_console += (char)((console_color & 3) + 9);
+        // str_console += (char)((console_color & 3) + 9);
 
-        //value &= 0xFF;											// ABCDEFGH
-        //value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);	// EFGHABCD
-        //value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);	// GHEFCDAB
-        //value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
-        //value &= 0x7F;											// Ignore parity, which is the MSB now
+        // value &= 0xFF;											// ABCDEFGH
+        // value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);	// EFGHABCD
+        // value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);	// GHEFCDAB
+        // value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
+        // value &= 0x7F;											// Ignore parity, which is the MSB now
 
-        //if ((value >= 32) && (value < 127)) {
+        // if ((value >= 32) && (value < 127)) {
         //	str_console += (char)value;							// Printable
-        //}
+        // }
 
-        //str_console += (char)'A';
-        //str_console += (char)value;
-        //str_console += "[" + to_string_hex(value, 2) + "]";
+        // str_console += (char)'A';
+        // str_console += (char)value;
+        // str_console += "[" + to_string_hex(value, 2) + "]";
         str_console += ":" + to_string_hex(value, 2);
         console.write(str_console);
 
         /*if ((value != 0x7F) && (prev_value == 0x7F)) {
-			// Message split
-			console.writeln("");
-			console_color++;
-			
-			
-		}*/
-        //prev_value = value;
+                        // Message split
+                        console.writeln("");
+                        console_color++;
+
+
+                }*/
+        // prev_value = value;
     } else {
         // Baudrate estimation
-        //text_debug.set("~" + to_string_dec_uint(value));
+        // text_debug.set("~" + to_string_dec_uint(value));
         if (value == 'A') {
             console.write("mac");
         } else if (value == 'B') {
             console.writeln("");
         }
-        //console.writeln("");
+        // console.writeln("");
     }
 }
 

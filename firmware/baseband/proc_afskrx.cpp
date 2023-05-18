@@ -144,15 +144,15 @@ void AFSKRxProcessor::on_message(const Message* const message) {
 
 void AFSKRxProcessor::configure(const AFSKRxConfigureMessage& message) {
     /*constexpr size_t decim_0_input_fs = baseband_fs;
-	constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+        constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
-	constexpr size_t decim_1_input_fs = decim_0_output_fs;
-	constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
-	
-	constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-	const size_t channel_filter_output_fs = channel_filter_input_fs / 2;
+        constexpr size_t decim_1_input_fs = decim_0_output_fs;
+        constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
 
-	const size_t demod_input_fs = channel_filter_output_fs;*/
+        constexpr size_t channel_filter_input_fs = decim_1_output_fs;
+        const size_t channel_filter_output_fs = channel_filter_input_fs / 2;
+
+        const size_t demod_input_fs = channel_filter_output_fs;*/
 
     decim_0.configure(taps_11k0_decim_0.taps, 33554432);
     decim_1.configure(taps_11k0_decim_1.taps, 131072);

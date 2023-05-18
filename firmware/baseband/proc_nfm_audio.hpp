@@ -98,7 +98,7 @@ class NarrowbandFMAudio : public BasebandProcessor {
     void configure(const NBFMConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
-    //RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
+    // RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
     CodedSquelchMessage ctcss_message{0};
 };
 

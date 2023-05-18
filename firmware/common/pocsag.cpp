@@ -324,7 +324,7 @@ inline int errorCorrection(uint32_t* val) {
 
     /* run through error detection and correction routine */
 
-    //  for (i=0; i<=20; i++)
+    // for (i=0; i<=20; i++)
     ecc = 0;
     for (i = 31; i >= 11; --i) {
         if ((*val & (1 << i))) {
@@ -333,7 +333,7 @@ inline int errorCorrection(uint32_t* val) {
         }
     }
 
-    //  for (i=21; i<=30; i++)
+    // for (i=21; i<=30; i++)
     acc = 0;
     for (i = 10; i >= 1; --i) {
         acc = acc << 1;

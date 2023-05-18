@@ -112,7 +112,7 @@ class EventDispatcher {
 
     void on_touch_event(ui::TouchEvent event);
 
-    //void blink_timer();
+    // void blink_timer();
     void handle_lcd_frame_sync();
     void handle_switches();
     void handle_encoder();

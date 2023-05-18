@@ -112,10 +112,10 @@ class JammerView : public View {
 
     JammerChannel* jammer_channels = (JammerChannel*)shared_memory.bb_data.data;
     bool jamming{false};
-    bool cooling{false};     //euquiq: Indicates jammer in cooldown
-    uint16_t seconds = 0;    //euquiq: seconds counter for toggling tx / cooldown
-    int16_t mscounter = 0;   //euquiq: Internal ms counter for do_timer()
-    lfsr_word_t lfsr_v = 1;  //euquiq: Used to generate "random" Jitter
+    bool cooling{false};     // euquiq: Indicates jammer in cooldown
+    uint16_t seconds = 0;    // euquiq: seconds counter for toggling tx / cooldown
+    int16_t mscounter = 0;   // euquiq: Internal ms counter for do_timer()
+    lfsr_word_t lfsr_v = 1;  // euquiq: Used to generate "random" Jitter
 
     static constexpr Style style_val{
         .font = font::fixed_8x16,
@@ -145,8 +145,8 @@ class JammerView : public View {
         {{1 * 8, 25 * 8}, "Speed:", Color::light_grey()},
         {{3 * 8, 27 * 8}, "Hop:", Color::light_grey()},
         {{4 * 8, 29 * 8}, "TX:", Color::light_grey()},
-        {{1 * 8, 31 * 8}, "Sle3p:", Color::light_grey()},   //euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
-        {{0 * 8, 33 * 8}, "Jitter:", Color::light_grey()},  //Maybe the repository curator can keep the "mystype" for some versions.
+        {{1 * 8, 31 * 8}, "Sle3p:", Color::light_grey()},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
+        {{0 * 8, 33 * 8}, "Jitter:", Color::light_grey()},  // Maybe the repository curator can keep the "mystype" for some versions.
         {{11 * 8, 29 * 8}, "Secs.", Color::light_grey()},
         {{11 * 8, 31 * 8}, "Secs.", Color::light_grey()},
         {{11 * 8, 33 * 8}, "/60", Color::light_grey()},

@@ -196,15 +196,15 @@ class EncodersView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     /*const Style style_address {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::red(),
-	};
-	const Style style_data {
-		.font = font::fixed_8x16,
-		.background = Color::black(),
-		.foreground = Color::blue(),
-	};*/
+                .font = font::fixed_8x16,
+                .background = Color::black(),
+                .foreground = Color::red(),
+        };
+        const Style style_data {
+                .font = font::fixed_8x16,
+                .background = Color::black(),
+                .foreground = Color::blue(),
+        };*/
 
     Rect view_rect = {0, 4 * 8, 240, 168};
 

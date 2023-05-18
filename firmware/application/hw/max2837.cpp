@@ -80,8 +80,8 @@ using namespace max283x::filter;
 
 static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
     /* Determine filter setting that will provide bandwidth greater than or
-	 * equal to requested bandwidth.
-	 */
+     * equal to requested bandwidth.
+     */
     return std::lower_bound(bandwidths.cbegin(), bandwidths.cend(), bandwidth) - bandwidths.cbegin();
 }
 

@@ -56,7 +56,7 @@ SIGFRXView::~SIGFRXView() {
 void SIGFRXView::paint(Painter& painter) {
     uint8_t i, xp;
 
-    //portapack::display.drawBMP({0, 302-160}, fox_bmp);
+    // portapack::display.drawBMP({0, 302-160}, fox_bmp);
     portapack::display.fill_rectangle({0, 16, 240, 160 - 16}, ui::Color::white());
     for (i = 0; i < 6; i++) {
         xp = sigfrx_marks[i * 3];
@@ -102,14 +102,14 @@ void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 
 void SIGFRXView::on_show() {
     /*EventDispatcher::message_map().register_handler(Message::ID::ChannelSpectrum,
-		[this](const Message* const p) {
-			this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
-		}
-	);*/
+                [this](const Message* const p) {
+                        this->on_channel_spectrum(reinterpret_cast<const ChannelSpectrumMessage*>(p)->spectrum);
+                }
+        );*/
 }
 
 void SIGFRXView::on_hide() {
-    //EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrum);
+    // EventDispatcher::message_map().unregister_handler(Message::ID::ChannelSpectrum);
 }
 
 SIGFRXView::SIGFRXView(

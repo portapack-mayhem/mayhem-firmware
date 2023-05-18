@@ -115,9 +115,9 @@ class TPMSProcessor : public BasebandProcessor {
 
     PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_8k192_schrader{
         /* Preamble: 11*2, 01*14, 11, 10
-		 * Payload: 37 Manchester-encoded bits
-		 * Bit rate: 4096 Hz
-		 */
+         * Payload: 37 Manchester-encoded bits
+         * Bit rate: 4096 Hz
+         */
         {0b010101010101010101011110, 24, 0},
         {},
         {37 * 2},
@@ -131,9 +131,9 @@ class TPMSProcessor : public BasebandProcessor {
 
     PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder_ook_8k4_schrader{
         /* Preamble: 01*40, 01, 10, 01, 01
-		 * Payload: 76 Manchester-encoded bits
-		 * Bit rate: 4200 Hz
-		 */
+         * Payload: 76 Manchester-encoded bits
+         * Bit rate: 4200 Hz
+         */
         {0b01010101010101010101010101100101, 32, 0},
         {},
         {76 * 2},

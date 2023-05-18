@@ -289,8 +289,8 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
                         uint32_t propFromCurrent = (len_1024 / bitsSinceLastTrans);
                         m_averageSymbolLen_1024 = (propFromPrevious + propFromCurrent) / (bitsCount + 1);
                         m_badTransitions = 0;
-                        //if ( len < m_shortestGoodTrans ){m_shortestGoodTrans = len;}
-                        // Store the old symbol size
+                        // if ( len < m_shortestGoodTrans ){m_shortestGoodTrans = len;}
+                        //  Store the old symbol size
                         if (m_goodTransitions >= BAUD_STABLE) {
                             m_lastStableSymbolLen_1024 = m_averageSymbolLen_1024;
                         }
@@ -376,7 +376,7 @@ void POCSAGProcessor::storeBit() {
 
     // Calculate the bit value
     float sample = (m_sample + m_lastSample) / 2;
-    //int32_t sample_1024 = m_sample_1024;
+    // int32_t sample_1024 = m_sample_1024;
     bool bit = sample > m_valMid;
 
     // If buffer not full

@@ -78,7 +78,7 @@ class BTLERxView : public View {
         {0, 4 * 16, 240, 240}};
 
     void update_freq(rf::Frequency f);
-    //void on_data_afsk(const AFSKDataMessage& message);
+    // void on_data_afsk(const AFSKDataMessage& message);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::AFSKData,

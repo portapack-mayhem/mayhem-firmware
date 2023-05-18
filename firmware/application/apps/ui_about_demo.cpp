@@ -61,7 +61,7 @@ void AboutView::on_show() {
 
     baseband::set_audiotx_data(32, 50, false, 0);
 
-    //audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
+    // audio::headphone::set_volume(volume_t::decibel(0 - 99) + audio::headphone::volume_range().max);
 }
 
 void AboutView::render_video() {

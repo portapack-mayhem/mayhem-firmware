@@ -291,7 +291,7 @@ struct data_t {
     bool hide_converter;
     // enable or disable converter
     bool converter;
-    //  set up converter (false) or down converter (true) converter
+    // set up converter (false) or down converter (true) converter
     bool updown_converter;
     // up/down converter offset
     int64_t converter_frequency_offset;

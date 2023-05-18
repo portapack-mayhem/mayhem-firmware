@@ -69,12 +69,12 @@ void APRSRxProcessor::execute(const buffer_c8_t& buffer) {
         sample_bits |= bit;
 
         /*
-		int16_t scaled = bit == 1 ? 32767 : -32767;
+                int16_t scaled = bit == 1 ? 32767 : -32767;
 
-		if( stream ) {
-			const size_t bytes_to_write = sizeof(scaled) * 1;
-			const auto result = stream->write(&scaled, bytes_to_write);
-		}
+                if( stream ) {
+                        const size_t bytes_to_write = sizeof(scaled) * 1;
+                        const auto result = stream->write(&scaled, bytes_to_write);
+                }
 */
 
         // Check for "clean" transition: either 0011 or 1100
@@ -108,7 +108,7 @@ void APRSRxProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void APRSRxProcessor::parse_packet() {
-    //validate crc
+    // validate crc
     if (packet_buffer_size >= aprs::APRS_MIN_LENGTH) {
         uint16_t crc = 0xFFFF;
 
@@ -139,25 +139,25 @@ bool APRSRxProcessor::parse_bit(const uint8_t current_bit) {
     uint8_t decoded_bit = ~(current_bit ^ last_bit) & 0x1;
     last_bit = current_bit;
 
-    //int16_t log = decoded_bit == 0 ? -32768 : 32767;
-    //if(stream){
-    //    const size_t bytes_to_write = sizeof(log) * 1;
-    //    const auto result = stream->write(&log, bytes_to_write);
-    //}
+    // int16_t log = decoded_bit == 0 ? -32768 : 32767;
+    // if(stream){
+    //     const size_t bytes_to_write = sizeof(log) * 1;
+    //     const auto result = stream->write(&log, bytes_to_write);
+    // }
 
     if (decoded_bit & 0x1) {
         if (ones_count < 8) {
             ones_count++;
         }
     } else {
-        if (ones_count > 6) {  //not valid
+        if (ones_count > 6) {  // not valid
             state = WAIT_FLAG;
             current_byte = 0;
             ones_count = 0;
             byte_index = 0;
             packet_buffer_size = 0;
             return false;
-        } else if (ones_count == 6) {  //flag
+        } else if (ones_count == 6) {  // flag
             bool done = false;
             if (state == IN_FRAME) {
                 done = true;
@@ -170,7 +170,7 @@ bool APRSRxProcessor::parse_bit(const uint8_t current_bit) {
             byte_index = 0;
 
             return done;
-        } else if (ones_count == 5) {  //bit stuff
+        } else if (ones_count == 5) {  // bit stuff
             ones_count = 0;
             return false;
         } else {
@@ -178,7 +178,7 @@ bool APRSRxProcessor::parse_bit(const uint8_t current_bit) {
         }
     }
 
-    //store
+    // store
     current_byte = current_byte >> 1;
     current_byte |= (decoded_bit == 0x1 ? 0x80 : 0x0);
     byte_index++;
@@ -214,10 +214,10 @@ void APRSRxProcessor::on_message(const Message* const message) {
 
 void APRSRxProcessor::capture_config(const CaptureConfigMessage& message) {
     if (message.config) {
-        //stream = std::make_unique<StreamInput>(message.config);
+        // stream = std::make_unique<StreamInput>(message.config);
         audio_output.set_stream(std::make_unique<StreamInput>(message.config));
     } else {
-        //stream.reset();
+        // stream.reset();
         audio_output.set_stream(nullptr);
     }
 }

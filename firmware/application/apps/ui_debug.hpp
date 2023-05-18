@@ -100,10 +100,10 @@ class TemperatureWidget : public Widget {
 
     std::string temperature_str(const temperature_t temperature) const;
 
-    static constexpr temperature_t display_temp_min = -10;  //Accomodate negative values, present in cold startup cases
+    static constexpr temperature_t display_temp_min = -10;  // Accomodate negative values, present in cold startup cases
     static constexpr temperature_t display_temp_scale = 3;
     static constexpr int bar_width = 1;
-    static constexpr int temp_len = 4;  //Now scale shows up to 4 chars ("-10C")
+    static constexpr int temp_len = 4;  // Now scale shows up to 4 chars ("-10C")
 };
 
 class TemperatureView : public View {
@@ -265,21 +265,21 @@ class DebugControlsView : public View {
 
 /*class DebugLCRView : public View {
 public:
-	DebugLCRView(NavigationView& nav, std::string lcrstring);
+        DebugLCRView(NavigationView& nav, std::string lcrstring);
 
-	void focus() override;
-	
-	std::string title() const override { return "LCR debug"; };
+        void focus() override;
+
+        std::string title() const override { return "LCR debug"; };
 
 private:
-	Console console {
-		{ 8, 16, 224, 240 }
-	};
-	
-	Button button_exit {
-		{ 72, 264, 96, 32 },
-		"Exit"
-	};
+        Console console {
+                { 8, 16, 224, 240 }
+        };
+
+        Button button_exit {
+                { 72, 264, 96, 32 },
+                "Exit"
+        };
 };*/
 
 class DebugPeripheralsMenuView : public BtnGridView {

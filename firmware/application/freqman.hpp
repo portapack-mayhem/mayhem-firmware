@@ -51,9 +51,9 @@ enum freqman_error {
 };
 
 enum freqman_entry_type {
-    SINGLE = 0,  //f=
-    RANGE,       //a=,b=
-    HAMRADIO,    //r=,t=
+    SINGLE = 0,  // f=
+    RANGE,       // a=,b=
+    HAMRADIO,    // r=,t=
     ERROR_TYPE
 };
 
@@ -65,7 +65,7 @@ enum freqman_entry_modulation {
     ERROR_MODULATION
 };
 
-//Entry step placed for AlainD freqman version (or any other enhanced version)
+// Entry step placed for AlainD freqman version (or any other enhanced version)
 enum freqman_entry_step {
     STEP_DEF = -1,  // default
     AM_US,          // 10 kHz   AM/CB

@@ -85,7 +85,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 
         switch (sampling_rate) {  // we use the var fs (sampling_rate) , to set up BPF aprox < fs_max/2 by Nyquist theorem.
 
-            case 0 ... 2000000:                                  //  BW Captured range  (0 <= 250kHz max )  fs = 8 x 250 kHz
+            case 0 ... 2000000:                                  // BW Captured range  (0 <= 250kHz max )  fs = 8 x 250 kHz
                 anti_alias_baseband_bandwidth_filter = 1750000;  // Minimum BPF MAX2837 for all those lower BW options.
                 break;
 

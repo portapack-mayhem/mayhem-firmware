@@ -77,8 +77,8 @@ uint8_t handle_inquiry(msd_cbw_t* msd_cbw_data) {
     scsi_inquiry_response_t ret = {
         0x00,  /* direct access block device     */
         0x80,  /* removable                      */
-        0x00,  //0x04,           /* SPC-2                          */
-        0x00,  //0x02,           /* response data format           */
+        0x00,  // 0x04,           /* SPC-2                          */
+        0x00,  // 0x02,           /* response data format           */
         0x20,  /* response has 0x20 + 4 bytes    */
         0x00,
         0x00,

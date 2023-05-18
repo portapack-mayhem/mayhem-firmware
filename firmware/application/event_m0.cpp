@@ -168,8 +168,8 @@ void EventDispatcher::dispatch(const eventmask_t events) {
     }
 
     /*if( events & EVT_MASK_LCD_FRAME_SYNC ) {
-		blink_timer();
-	}*/
+                blink_timer();
+        }*/
 
     if (!EventDispatcher::display_sleep) {
         if (events & EVT_MASK_LCD_FRAME_SYNC) {
@@ -240,15 +240,15 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
 
 void EventDispatcher::on_touch_event(ui::TouchEvent event) {
     /* TODO: Capture widget receiving the Start event, send Move and
-	 * End events to the same widget.
-	 */
+     * End events to the same widget.
+     */
     /* Capture Start widget.
-	 * If touch is over Start widget at Move event, then the widget
-	 * should be highlighted. If the touch is not over the Start
-	 * widget at Move event, widget should un-highlight.
-	 * If touch is over Start widget at End event, then the widget
-	 * action should occur.
-	 */
+     * If touch is over Start widget at Move event, then the widget
+     * should be highlighted. If the touch is not over the Start
+     * widget at Move event, widget should un-highlight.
+     * If touch is over Start widget at End event, then the widget
+     * action should occur.
+     */
     if (event.type == ui::TouchEvent::Type::Start) {
         captured_widget = touch_widget(this->top_widget, event);
     }

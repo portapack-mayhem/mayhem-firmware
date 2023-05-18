@@ -425,28 +425,28 @@ void AK4951::microphone_enable(int8_t alc_mode) {
         map.r.alc_mode_control_1.ALCEQN = 1;     // ALC EQ Off =1 not used by now,   0: ALC EQ On (default)
         update(Register::ALCModeControl1);
 
-        //   map.r.alc_mode_control_2.REF = 0x??;   	// Pre-loaded in top part. Maximum gain at ALC recovery operation,.(FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
+        // map.r.alc_mode_control_2.REF = 0x??;   	// Pre-loaded in top part. Maximum gain at ALC recovery operation,.(FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
         update(Register::ALCModeControl2);
 
-        //   map.r.l_ch_input_volume_control.IV = 0x??; // Pre-loaded in top part. Left, Input Digital Volume Setting,  (FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
+        // map.r.l_ch_input_volume_control.IV = 0x??; // Pre-loaded in top part. Left, Input Digital Volume Setting,  (FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
         update(Register::LchInputVolumeControl);
 
-        //   map.r.r_ch_input_volume_control.IV = 0x??; // Pre-loaded in top part. Right,Input Digital Volume Setting, (FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
+        // map.r.r_ch_input_volume_control.IV = 0x??; // Pre-loaded in top part. Right,Input Digital Volume Setting, (FFH +36dBs , D0H +18dBs, A0H 0dBs, 70H=-18dBs)
         update(Register::RchInputVolumeControl);
 
         //---------------Switch ON, Digital Automatic Wind Noise Filter reduction  -------------------
         // Difficult to realise that Dynamic HPF Wind noise filter benefit, maybe because we have another fixed HPF 236.8 Hz .
         // Anyway ,  we propose to  activate it , with default  setting conditions.
         map.r.power_management_1.PMPFIL = 0;  // (*1) To programm SENC, STG , we need PMPFIL = 0 . (but this disconnect Digital block power supply.
-        update(Register::PowerManagement1);   //  Updated PMPFIL to 0 . (*1)
+        update(Register::PowerManagement1);   // Updated PMPFIL to 0 . (*1)
 
-        map.r.auto_hpf_control.STG = 0b00;    //  (00=LOW ATTENUATION Level), lets put 11 (HIGH ATTENUATION Level) (default 00)
-        map.r.auto_hpf_control.SENC = 0b011;  //  (000=LOW sensitivity detection)… 111((MAX sensitivity detection) (default 011)
-        map.r.auto_hpf_control.AHPF = 1;      //  Autom. Wind noise filter ON  (AHPF bit=“1”).It atten. wind noise when detecting ,and adjusts the atten. level dynamically.
+        map.r.auto_hpf_control.STG = 0b00;    // (00=LOW ATTENUATION Level), lets put 11 (HIGH ATTENUATION Level) (default 00)
+        map.r.auto_hpf_control.SENC = 0b011;  // (000=LOW sensitivity detection)… 111((MAX sensitivity detection) (default 011)
+        map.r.auto_hpf_control.AHPF = 1;      // Autom. Wind noise filter ON  (AHPF bit=“1”).It atten. wind noise when detecting ,and adjusts the atten. level dynamically.
         update(Register::AutoHPFControl);
 
-        //  We are in Digital Block ON , (Wind Noise Filter+ALC+LPF+EQ),==>  needs at the end , PMPFIL=1 , Program. Dig.filter ON
-        //  map.r.power_management_1.PMPFIL = 1;	// that instruction is at the end , we can skp pre-loading Programmable Dig. filter ON (*1)
+        // We are in Digital Block ON , (Wind Noise Filter+ALC+LPF+EQ),==>  needs at the end , PMPFIL=1 , Program. Dig.filter ON
+        // map.r.power_management_1.PMPFIL = 1;	// that instruction is at the end , we can skp pre-loading Programmable Dig. filter ON (*1)
         //---------------------------------------------------------------------
 
         // Writing AUDIO PATH diagramm, Changing  Audio mode path : Playback mode1 /-Recording mode2. (Figure 37 AK4951 datasheet, Table 27. Recording Playback Mode)

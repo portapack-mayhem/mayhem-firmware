@@ -78,8 +78,8 @@ using namespace max283x::filter;
 
 static uint_fast8_t bandwidth_ordinal(const uint32_t bandwidth) {
     /* Determine filter setting that will provide bandwidth greater than or
-	 * equal to requested bandwidth.
-	 */
+     * equal to requested bandwidth.
+     */
     return std::lower_bound(bandwidths.cbegin(), bandwidths.cend(), bandwidth) - bandwidths.cbegin();
 }
 
@@ -130,10 +130,10 @@ void MAX2839::init() {
     _map.r.rssi_vga.RSSI_MODE = 1; /* RSSI independent of RXHP */
 
     /*
-	 * There are two LNA band settings, but we only use one of them.
-	 * Switching to the other one doesn't make the overall spectrum any
-	 * flatter but adds a surprise step in the middle.
-	 */
+     * There are two LNA band settings, but we only use one of them.
+     * Switching to the other one doesn't make the overall spectrum any
+     * flatter but adds a surprise step in the middle.
+     */
     _map.r.rxrf_1.LNAband = 0; /* 2.3 - 2.5GHz */
 
     _dirty.set();
@@ -225,15 +225,15 @@ void MAX2839::configure_rx_gain() {
     vga_gain &= 0x3e;
 
     /*
-	 * MAX2839 has lower full-scale RX output voltage than MAX2837, so we
-	 * adjust the VGA (baseband) gain to compensate.
-	 */
+     * MAX2839 has lower full-scale RX output voltage than MAX2837, so we
+     * adjust the VGA (baseband) gain to compensate.
+     */
     vga_gain += 3;
 
     /*
-	 * If that adjustment puts VGA gain out of range, use LNA gain to
-	 * compensate.  MAX2839 VGA gain can be any number from 0 through 63.
-	 */
+     * If that adjustment puts VGA gain out of range, use LNA gain to
+     * compensate.  MAX2839 VGA gain can be any number from 0 through 63.
+     */
     if (vga_gain > 63) {
         if (lna_gain <= 32) {
             vga_gain -= 8;
@@ -244,9 +244,9 @@ void MAX2839::configure_rx_gain() {
     }
 
     /*
-	 * MAX2839 lacks max-24 dB (16 dB) and max-40 dB (0 dB) LNA gain
-	 * settings, so we use VGA gain to compensate.
-	 */
+     * MAX2839 lacks max-24 dB (16 dB) and max-40 dB (0 dB) LNA gain
+     * settings, so we use VGA gain to compensate.
+     */
     if (lna_gain == 0) {
         lna_gain = 8;
         vga_gain = (vga_gain >= 8) ? vga_gain - 8 : 0;
@@ -343,9 +343,9 @@ reg_t MAX2839::temp_sense() {
     halPolledDelay(ticks_for_temperature_sense_adc_conversion);
 
     /*
-	 * Things look very similar to MAX2837, so this probably works, but the
-	 * MAX2839 data sheet does not describe the TEMP_SENSE register contents.
-	 */
+     * Things look very similar to MAX2837, so this probably works, but the
+     * MAX2839 data sheet does not describe the TEMP_SENSE register contents.
+     */
     const auto value = read(Register::TEMP_SENSE);
 
     _map.r.rx_top_2.ts_adc_trigger = 0;

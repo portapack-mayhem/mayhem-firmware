@@ -32,7 +32,7 @@ void TestLogger::log_raw_data(const testapp::Packet& packet, const int32_t alt) 
     std::string entry = to_string_dec_uint(packet.value()) + " " + to_string_dec_int(alt);
 
     // Raw hex dump
-    //for (size_t c = 0; c < 10; c++)
+    // for (size_t c = 0; c < 10; c++)
     //	entry += to_string_hex(packet[c], 8) + " ";
 
     log_file.write_entry(packet.received_at(), entry);
@@ -127,14 +127,14 @@ void TestView::on_packet(const testapp::Packet& packet) {
     if (logger && logging)
         logger->log_raw_data(packet, raw_alt - cal_value);
 
-    //radio::disable();
+    // radio::disable();
 
     /*text_serial.set(packet.serial_number());
-	text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
-	
-	altitude = packet.GPS_altitude();
-	latitude = packet.GPS_latitude();
-	longitude = packet.GPS_longitude();*/
+        text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
+
+        altitude = packet.GPS_altitude();
+        latitude = packet.GPS_latitude();
+        longitude = packet.GPS_longitude();*/
 }
 
 void TestView::set_target_frequency(const uint32_t new_value) {

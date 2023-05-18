@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -32,8 +32,8 @@ class ToneGen {
                      square };  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
 
     /*ToneGen(const size_t sample_rate
-	) : sample_rate_ { sample_rate }
-	{};*/
+        ) : sample_rate_ { sample_rate }
+        {};*/
 
     void configure(const uint32_t delta, const float tone_mix_weight);
     void configure(const uint32_t freq, const float tone_mix_weight, const tone_type tone_type, const uint32_t sample_rate);
@@ -54,13 +54,13 @@ class ToneGen {
     //	uint8_t tone_phase_ { 0 };  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
 
     /**
-	 * Generator function which selects every other sample from the reference sine waveform to the output sample:
-	 */
+     * Generator function which selects every other sample from the reference sine waveform to the output sample:
+     */
     int32_t tone_sine();  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
 
     /**
-	 * Generator function for square waves:
-	 */
+     * Generator function for square waves:
+     */
     int32_t tone_square();  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
 };
 

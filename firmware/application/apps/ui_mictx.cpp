@@ -82,8 +82,8 @@ void MicTXView::configure_baseband() {
 
 void MicTXView::set_tx(bool enable) {
     if (enable) {
-        if (rx_enabled)      //If audio RX is enabled
-            rxaudio(false);  //Then turn off audio RX
+        if (rx_enabled)      // If audio RX is enabled
+            rxaudio(false);  // Then turn off audio RX
         transmitting = true;
         configure_baseband();
         transmitter_model.set_tuning_frequency(tx_frequency);  // Now,no need: transmitter_model.set_tx_gain(tx_gain), nor (rf_amp);
@@ -91,14 +91,14 @@ void MicTXView::set_tx(bool enable) {
         portapack::pin_i2s0_rx_sda.mode(3);  // This is already done in audio::init but gets changed by the CPLD overlay reprogramming
     } else {
         if (transmitting && rogerbeep_enabled) {
-            baseband::request_beep();  //Transmit the roger beep
-            transmitting = false;      //And flag the end of the transmission so ...
+            baseband::request_beep();  // Transmit the roger beep
+            transmitting = false;      // And flag the end of the transmission so ...
         } else {                       // (if roger beep was enabled, this will be executed after the beep ends transmitting.
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();
-            if (rx_enabled)     //If audio RX is enabled and we've been transmitting
-                rxaudio(true);  //Turn back on audio RX
+            if (rx_enabled)     // If audio RX is enabled and we've been transmitting
+                rxaudio(true);  // Turn back on audio RX
         }
     }
 }
@@ -142,9 +142,9 @@ void MicTXView::do_timing() {
 
 /* Hmmmm. Maybe useless now.
 void MicTXView::on_tuning_frequency_changed(rf::Frequency f) {
-	transmitter_model.set_tuning_frequency(f);
-	//if ( rx_enabled )
-		receiver_model.set_tuning_frequency(f); //Update freq also for RX
+        transmitter_model.set_tuning_frequency(f);
+        //if ( rx_enabled )
+                receiver_model.set_tuning_frequency(f); //Update freq also for RX
 }
 */
 
@@ -183,8 +183,8 @@ void MicTXView::rxaudio(bool is_on) {
         receiver_model.enable();
         hackrf::cpld::load_sram_no_verify();  // to have a good RX without any ghost inside Mic App
         audio::output::start();
-    } else {                                                                    //These incredibly convoluted steps are required for the vumeter to reappear when stopping RX.
-        receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);  //This fixes something with AM RX...
+    } else {                                                                    // These incredibly convoluted steps are required for the vumeter to reappear when stopping RX.
+        receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);  // This fixes something with AM RX...
         receiver_model.disable();
         baseband::shutdown();
 
@@ -197,7 +197,7 @@ void MicTXView::rxaudio(bool is_on) {
 }
 
 void MicTXView::on_headphone_volume_changed(int32_t v) {
-    //if (rx_enabled) {
+    // if (rx_enabled) {
     const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
     receiver_model.set_headphone_volume(new_volume);
     //}
@@ -284,7 +284,7 @@ MicTXView::MicTXView(
         options_wm8731_boost_mode.on_change = [this](size_t, int8_t v) {
             switch (v) {
                 case 0:                  // +12 dB’s respect reference level orig fw 1.5.x fw FM : when +20dB's boost ON) and shift bits (>>8),
-                    shift_bits_s16 = 6;  //  now mic-boost on (+20dBs) and shift bits (>>6), +20+12=32 dB’s (orig fw +20 dBs+ 0dBs)=> +12dB's respect ref.
+                    shift_bits_s16 = 6;  // now mic-boost on (+20dBs) and shift bits (>>6), +20+12=32 dB’s (orig fw +20 dBs+ 0dBs)=> +12dB's respect ref.
                     break;
                 case 1:                  // +06 dB’s reference level , (when +20dB's boost ON)
                     shift_bits_s16 = 7;  // now mic-boost on (+20dBs) and shift bits (>>7), +20+06=26 dB’s (orig fw +20 dBs+ 0dBs) => +06dB's respect ref.
@@ -299,7 +299,7 @@ MicTXView::MicTXView(
                     shift_bits_s16 = 6;  // -08 dB’s respect ref level , (when +20dB's boost OFF)
                     break;               // now mic-boost off (+00dBs) shift bits (6) (+0+12dB's)=12 dBs => -08dB's respect ref.
             }
-            ak4951_alc_and_wm8731_boost_GUI = v;                   //  0,..4 WM8731_boost dB's options, (combination boost on/off , and effective gain in captured data >>x)
+            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0,..4 WM8731_boost dB's options, (combination boost on/off , and effective gain in captured data >>x)
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731) , set up the proper wm_boost on/off , 0..4 (0,1) boost_on , (2,3,4) boost_0ff
             configure_baseband();                                  // to update in real timme,sending msg ,  var-parameters >>shift_bits FM msg ,to audio_tx from M0 to M4 Proc -
         };
@@ -324,7 +324,7 @@ MicTXView::MicTXView(
             transmitter_model.set_tuning_frequency(f);
         } else {                                         // activated receiver.
             if (bool_same_F_tx_rx_enabled)               // user selected common freq- TX = RX
-                receiver_model.set_tuning_frequency(f);  //Update common freq also for RX
+                receiver_model.set_tuning_frequency(f);  // Update common freq also for RX
         }
     };
     field_frequency.on_edit = [this, &nav]() {
@@ -337,7 +337,7 @@ MicTXView::MicTXView(
                 transmitter_model.set_tuning_frequency(f);
             } else {
                 if (bool_same_F_tx_rx_enabled)
-                    receiver_model.set_tuning_frequency(f);  //Update freq also for RX
+                    receiver_model.set_tuning_frequency(f);  // Update freq also for RX
             }
             this->field_frequency.set_value(f);
             set_dirty();
@@ -370,8 +370,8 @@ MicTXView::MicTXView(
                 enable_dsb = false;
                 field_bw.set_value(10);  // pre-default deviation FM for WFM
                 // field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
-                //if (rx_enabled)
-                rxaudio(rx_enabled);         //Update now if we have RX audio on
+                // if (rx_enabled)
+                rxaudio(rx_enabled);         // Update now if we have RX audio on
                 options_tone_key.hidden(0);  // we are in FM mode , we should have active the Key-tones & CTCSS option.
 
                 rxbw.emplace_back(" NFM1:8k5  ", 0);  // restore the original dynamic field_rxbw value.
@@ -390,8 +390,8 @@ MicTXView::MicTXView(
                 enable_wfm = true;
                 field_bw.set_value(75);  // pre-default deviation FM for WFM
                 // field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
-                //if (rx_enabled)
-                rxaudio(rx_enabled);         //Update now if we have RX audio on
+                // if (rx_enabled)
+                rxaudio(rx_enabled);         // Update now if we have RX audio on
                 options_tone_key.hidden(0);  // we are in WFM mode , we should have active the Key-tones & CTCSS option.
 
                 rxbw.emplace_back("  200k-WFM ", 0);  // We allow the user selection of the 3 x WFM BW filters, (0) WFM-200K, (1) WFM-180K , (2) WFM-40K .
@@ -404,7 +404,7 @@ MicTXView::MicTXView(
                 break;
             case 2:  //{ "AM", 2 }
                 enable_am = true;
-                rxaudio(rx_enabled);                     //Update now if we have RX audio on
+                rxaudio(rx_enabled);                     // Update now if we have RX audio on
                 options_tone_key.set_selected_index(0);  // we are NOT in FM mode ,  we reset the possible previous key-tones &CTCSS selection.
                 set_dirty();                             // Refresh display
                 options_tone_key.hidden(1);              // we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
@@ -419,7 +419,7 @@ MicTXView::MicTXView(
                 break;
             case 3:  //{ "USB", 3 }
                 enable_usb = true;
-                rxaudio(rx_enabled);               //Update now if we have RX audio on
+                rxaudio(rx_enabled);               // Update now if we have RX audio on
                 check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB , by now.
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
@@ -430,7 +430,7 @@ MicTXView::MicTXView(
                 break;
             case 4:  //{ "LSB", 4 }
                 enable_lsb = true;
-                rxaudio(rx_enabled);               //Update now if we have RX audio on
+                rxaudio(rx_enabled);               // Update now if we have RX audio on
                 check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB , by now.
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
@@ -441,7 +441,7 @@ MicTXView::MicTXView(
                 break;
             case 5:  //{ "DSB-SC", 5 }
                 enable_dsb = true;
-                rxaudio(rx_enabled);        //Update now if we have RX audio on
+                rxaudio(rx_enabled);        // Update now if we have RX audio on
                 check_rogerbeep.hidden(0);  // make visible again the "rogerbeep" selection.
 
                 rxbw.emplace_back("SSB1:USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-C case to the  field_rxbw value.
@@ -451,17 +451,17 @@ MicTXView::MicTXView(
 
                 break;
         }
-        //configure_baseband();
+        // configure_baseband();
     };
 
     /*
-	check_va.on_select = [this](Checkbox&, bool v) {
-		va_enabled = v;
-		text_ptt.hidden(v);			//hide / show PTT text
-		check_rxactive.hidden(v); 	//hide / show the RX AUDIO
-		set_dirty();				//Refresh display
-	};
-	*/
+        check_va.on_select = [this](Checkbox&, bool v) {
+                va_enabled = v;
+                text_ptt.hidden(v);			//hide / show PTT text
+                check_rxactive.hidden(v); 	//hide / show the RX AUDIO
+                set_dirty();				//Refresh display
+        };
+        */
     field_va.set_selected_index(1);
     field_va.on_change = [this](size_t, int32_t v) {
         switch (v) {
@@ -497,8 +497,8 @@ MicTXView::MicTXView(
 
     check_common_freq_tx_rx.on_select = [this](Checkbox&, bool v) {
         bool_same_F_tx_rx_enabled = v;
-        field_rxfrequency.hidden(v);                                           //Hide or show separated freq RX field . (When no hide user can enter down indep. freq for RX)
-        set_dirty();                                                           //Refresh GUI interface
+        field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field . (When no hide user can enter down indep. freq for RX)
+        set_dirty();                                                           // Refresh GUI interface
         receiver_model.set_tuning_frequency(v ? tx_frequency : rx_frequency);  // To go to the proper tuned freq. when toggling it
     };
 
@@ -522,8 +522,8 @@ MicTXView::MicTXView(
         //		vumeter.set_value(0);	//Start with a clean vumeter
         rx_enabled = v;
         //		check_va.hidden(v); 	//Hide or show voice activation
-        rxaudio(v);   //Activate-Deactivate audio rx accordingly
-        set_dirty();  //Refresh interface
+        rxaudio(v);   // Activate-Deactivate audio rx accordingly
+        set_dirty();  // Refresh interface
     };
 
     field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
@@ -629,9 +629,9 @@ MicTXView::~MicTXView() {
     audio::input::stop();
     transmitter_model.set_tuning_frequency(tx_frequency);  // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
     transmitter_model.disable();
-    if (rx_enabled)  //Also turn off audio rx if enabled
+    if (rx_enabled)  // Also turn off audio rx if enabled
         rxaudio(false);
-    hackrf::cpld::load_sram_no_verify();  //  to leave all RX ok, without ghost signal problem at the exit .
+    hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
     baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 

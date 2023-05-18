@@ -34,8 +34,8 @@ void RemoteView::focus() {
 }
 
 RemoteView::~RemoteView() {
-    //transmitter_model.disable();
-    //baseband::shutdown();
+    // transmitter_model.disable();
+    // baseband::shutdown();
 }
 
 RemoteView::RemoteView(

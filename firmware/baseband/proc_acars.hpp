@@ -129,13 +129,13 @@ class ACARSProcessor : public BasebandProcessor {
         [this](const float symbol) { this->consume_symbol(symbol); }};
     symbol_coding::ACARSDecoder acars_decode{};
     /*PacketBuilder<BitPattern, NeverMatch, FixedLength> packet_builder {
-		{ 0b011010000110100010000000, 24, 1 },	// SYN, SYN, SOH
-		{ },
-		{ 128 },
-		[this](const baseband::Packet& packet) {
-			this->payload_handler(packet);
-		}
-	};*/
+                { 0b011010000110100010000000, 24, 1 },	// SYN, SYN, SOH
+                { },
+                { 128 },
+                [this](const baseband::Packet& packet) {
+                        this->payload_handler(packet);
+                }
+        };*/
     baseband::Packet packet{};
 
     void consume_symbol(const float symbol);

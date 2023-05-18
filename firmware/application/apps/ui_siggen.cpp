@@ -62,8 +62,8 @@ void SigGenView::start_tx() {
     update_tone();
 
     /*auto duration = field_stop.value();
-	if (!checkbox_auto.value())
-		duration = 0;*/
+        if (!checkbox_auto.value())
+                duration = 0;*/
     update_config();
 }
 

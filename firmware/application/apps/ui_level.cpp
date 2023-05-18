@@ -80,10 +80,10 @@ LevelView::LevelView(NavigationView& nav)
         sd_card_mounted = true;
     }
 
-    change_mode(NFM_MODULATION);              //Start on AM
-    field_mode.set_by_value(NFM_MODULATION);  //Reflect the mode into the manual selector
+    change_mode(NFM_MODULATION);              // Start on AM
+    field_mode.set_by_value(NFM_MODULATION);  // Reflect the mode into the manual selector
 
-    //HELPER: Pre-setting a manual range, based on stored frequency
+    // HELPER: Pre-setting a manual range, based on stored frequency
     freq = persistent_memory::tuned_frequency();
     receiver_model.set_tuning_frequency(freq);
     button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
@@ -162,7 +162,7 @@ LevelView::LevelView(NavigationView& nav)
     // default peak value
     peak_mode.set_selected_index(2);
     rssi_resolution.set_selected_index(1);
-    //FILL STEP OPTIONS
+    // FILL STEP OPTIONS
     freqman_set_modulation_option(field_mode);
     freqman_set_step_option_short(step_mode);
     freq_stats_rssi.set_style(&style_white);
@@ -209,7 +209,7 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
     switch (new_mod) {
         case AM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            //bw DSB (0) default
+            // bw DSB (0) default
             field_bw.set_selected_index(0);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
@@ -221,7 +221,7 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             break;
         case NFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            //bw 16k (2) default
+            // bw 16k (2) default
             field_bw.set_selected_index(2);
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
@@ -232,7 +232,7 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             break;
         case WFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            //bw 200k (0) only/default
+            // bw 200k (0) only/default
             field_bw.set_selected_index(0);
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);

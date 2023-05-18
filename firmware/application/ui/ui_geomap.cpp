@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -132,7 +132,7 @@ int32_t GeoPos::altitude() {
 GeoMap::GeoMap(
     Rect parent_rect)
     : Widget{parent_rect}, markerListLen(0) {
-    //set_focusable(true);
+    // set_focusable(true);
 }
 
 void GeoMap::paint(Painter& painter) {
@@ -175,7 +175,7 @@ void GeoMap::paint(Painter& painter) {
         }  // Draw the other markers
     }
 
-    //Draw the marker in the center
+    // Draw the marker in the center
     draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
 }
 
@@ -260,17 +260,17 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
         display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
         tagOffset = 16;
     } else if (angle_ < 360) {
-        //if we have a valid angle draw bearing
+        // if we have a valid angle draw bearing
         draw_bearing(itemPoint, itemAngle, 10, color);
         tagOffset = 10;
     } else {
-        //draw a small cross
+        // draw a small cross
         display.fill_rectangle({itemPoint - Point(8, 1), {16, 2}}, color);
         display.fill_rectangle({itemPoint - Point(1, 8), {2, 16}}, color);
         tagOffset = 8;
     }
-    //center tag above point
-    if (itemTag.find_first_not_of(' ') != itemTag.npos) {  //only draw tag if we have something other than spaces
+    // center tag above point
+    if (itemTag.find_first_not_of(' ') != itemTag.npos) {  // only draw tag if we have something other than spaces
         painter.draw_string(itemPoint - Point(((int)itemTag.length() * 8 / 2), 14 + tagOffset),
                             style().font, fontColor, backColor, itemTag);
     }

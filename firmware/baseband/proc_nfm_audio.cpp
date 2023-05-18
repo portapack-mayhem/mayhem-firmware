@@ -30,7 +30,7 @@
 #include <cstddef>
 
 void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
-    //bool new_state;
+    // bool new_state;
 
     if (!configured) {
         return;
@@ -52,8 +52,8 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
 
         if (ctcss_detect_enabled) {
             /* 24kHz int16_t[16]
-			 * -> FIR filter, <300Hz pass, >300Hz stop, gain of 1
-			 * -> 12kHz int16_t[8] */
+             * -> FIR filter, <300Hz pass, >300Hz stop, gain of 1
+             * -> 12kHz int16_t[8] */
             auto audio_ctcss = ctcss_filter.execute(audio, work_audio_buffer);
 
             // s16 to f32 for hpf
@@ -96,11 +96,11 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
         audio_output.write(tone_buffer);
 
         /*new_state = audio_output.is_squelched();
-		
-		if (new_state && !old_state)
-			shared_memory.application_queue.push(sig_message);
-		
-		old_state = new_state;*/
+
+                if (new_state && !old_state)
+                        shared_memory.application_queue.push(sig_message);
+
+                old_state = new_state;*/
     }
 }
 

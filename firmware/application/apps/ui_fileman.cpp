@@ -354,59 +354,59 @@ void FileLoadView::refresh_widgets(const bool) {
 /* FileSaveView **************************************************************/
 /*
 FileSaveView::FileSaveView(
-	NavigationView& nav,
-	const fs::path& path,
-	const fs::path& file
+        NavigationView& nav,
+        const fs::path& path,
+        const fs::path& file
 ) : nav_{ nav },
-	path_{ path },
-	file_{ file }
+        path_{ path },
+        file_{ file }
 {
-	add_children({
-		&labels,
-		&text_path,
-		&button_edit_path,
-		&text_name,
-		&button_edit_name,
-		&button_save,
-		&button_cancel,
-	});
-	
-	button_edit_path.on_select = [this](Button&) {
-		buffer_ = path_.string();
-		text_prompt(nav_, buffer_, max_filename_length,
-			[this](std::string&) {
-				path_ = buffer_;
-				refresh_widgets();
-			});
-	};
+        add_children({
+                &labels,
+                &text_path,
+                &button_edit_path,
+                &text_name,
+                &button_edit_name,
+                &button_save,
+                &button_cancel,
+        });
 
-	button_edit_name.on_select = [this](Button&) {
-		buffer_ = file_.string();
-		text_prompt(nav_, buffer_, max_filename_length,
-			[this](std::string&) {
-				file_ = buffer_;
-				refresh_widgets();
-			});
-	};
+        button_edit_path.on_select = [this](Button&) {
+                buffer_ = path_.string();
+                text_prompt(nav_, buffer_, max_filename_length,
+                        [this](std::string&) {
+                                path_ = buffer_;
+                                refresh_widgets();
+                        });
+        };
 
-	button_save.on_select = [this](Button&) {
-		if (on_save)
-			on_save(path_ / file_);
-		else
-			nav_.pop();
-	};
+        button_edit_name.on_select = [this](Button&) {
+                buffer_ = file_.string();
+                text_prompt(nav_, buffer_, max_filename_length,
+                        [this](std::string&) {
+                                file_ = buffer_;
+                                refresh_widgets();
+                        });
+        };
 
-	button_cancel.on_select = [this](Button&) {
-		nav_.pop();
-	};
+        button_save.on_select = [this](Button&) {
+                if (on_save)
+                        on_save(path_ / file_);
+                else
+                        nav_.pop();
+        };
 
-	refresh_widgets();
+        button_cancel.on_select = [this](Button&) {
+                nav_.pop();
+        };
+
+        refresh_widgets();
 }
 
 void FileSaveView::refresh_widgets() {
-	text_path.set(truncate(path_, 30));
-	text_name.set(truncate(file_, 30));
-	set_dirty();
+        text_path.set(truncate(path_, 30));
+        text_name.set(truncate(file_, 30));
+        set_dirty();
 }
 */
 /* FileManagerView ***********************************************************/

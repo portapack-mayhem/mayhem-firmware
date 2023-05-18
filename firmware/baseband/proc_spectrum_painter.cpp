@@ -80,7 +80,7 @@ void SpectrumPainterProcessor::run() {
             for (uint32_t fft_index = 0; fft_index < fft_width; fft_index++) {
                 if (fft_index < qu) {
                 } else if (fft_index < qu * 3) {
-                    //TODO: Improve index handling
+                    // TODO: Improve index handling
                     auto image_index = fft_index - qu;
 
                     auto bin_power = data[image_index];  // 0 to 255

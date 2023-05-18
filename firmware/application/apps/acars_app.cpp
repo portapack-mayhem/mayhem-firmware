@@ -37,7 +37,7 @@ void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequ
     entry.reserve(256);
 
     // Raw hex dump of all the bytes
-    //for (size_t c = 0; c < packet.length(); c += 32)
+    // for (size_t c = 0; c < packet.length(); c += 32)
     //	entry += to_string_hex(packet.read(c, 32), 8) + " ";
 
     for (size_t c = 0; c < 256; c += 32)
@@ -47,10 +47,10 @@ void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequ
 }
 
 /*void ACARSLogger::log_decoded(
-	const acars::Packet& packet,
-	const std::string text) {
-	
-	log_file.write_entry(packet.timestamp(), text);
+        const acars::Packet& packet,
+        const std::string text) {
+
+        log_file.write_entry(packet.timestamp(), text);
 }*/
 
 namespace ui {
@@ -114,17 +114,17 @@ void ACARSAppView::on_packet(const acars::Packet& packet) {
     std::string console_info;
 
     /*if (!packet.is_valid()) {
-		console_info = to_string_datetime(packet.received_at(), HMS);
-		console_info += " INVALID";
-		
-		console.writeln(console_info);
-	} else {
-		console_info = to_string_datetime(packet.received_at(), HMS);
-		console_info += ":" + to_string_bin(packet.read(0, 32), 32);
-		//console_info += " REG:" + packet.registration_number();
-		
-		console.writeln(console_info);
-	}*/
+                console_info = to_string_datetime(packet.received_at(), HMS);
+                console_info += " INVALID";
+
+                console.writeln(console_info);
+        } else {
+                console_info = to_string_datetime(packet.received_at(), HMS);
+                console_info += ":" + to_string_bin(packet.read(0, 32), 32);
+                //console_info += " REG:" + packet.registration_number();
+
+                console.writeln(console_info);
+        }*/
 
     packet_counter++;
     if (packet_counter % 10 == 0)

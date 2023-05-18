@@ -183,8 +183,8 @@ void controls_init() {
     touch::adc::start();
 
     /* GPT timer 0 is used to scan user interface controls -- touch screen,
-	 * navigation switches.
-	 */
+     * navigation switches.
+     */
     gptStart(&GPTD1, &timer0_config);
     gptStartContinuous(&GPTD1, timer0_match_count);
 }

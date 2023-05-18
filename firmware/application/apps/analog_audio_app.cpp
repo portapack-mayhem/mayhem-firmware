@@ -163,7 +163,7 @@ AnalogAudioView::AnalogAudioView(
     }
     field_frequency.set_value(receiver_model.tuning_frequency());
 
-    //Filename Datetime and Frequency
+    // Filename Datetime and Frequency
     record_view.set_filename_date_frequency(true);
 
     field_frequency.set_step(receiver_model.frequency_step());

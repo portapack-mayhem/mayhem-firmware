@@ -269,8 +269,8 @@ static PortaPackModel portapack_model() {
     return model.value();
 }
 
-//audio_codec_wm8731 = H1R1 & H2+
-//audio_codec_ak4951 = H1R2
+// audio_codec_wm8731 = H1R1 & H2+
+// audio_codec_ak4951 = H1R2
 
 static audio::Codec* portapack_audio_codec() {
     /* I2C ready OK, Automatic recognition of audio chip */
@@ -349,7 +349,7 @@ static void shutdown_base() {
 }
 
 /* Clock scheme after exiting bootloader in SPIFI mode:
- * 
+ *
  * XTAL_OSC = powered down
  *
  * PLL0USB = powered down
@@ -371,7 +371,7 @@ static void shutdown_base() {
  */
 
 /* Clock scheme during PortaPack operation:
- * 
+ *
  * XTAL_OSC = powered down
  *
  * PLL0USB = powered down
@@ -424,20 +424,20 @@ bool init() {
     cgu::pll1::disable();
 
     /* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
-	 * core clock speed to the 110 - 204MHz range.
-	 */
+     * core clock speed to the 110 - 204MHz range.
+     */
 
     /* Step into the 90-110MHz M4 clock range */
     /* OG:
-	 * 	Fclkin = 40M
-	 * 		/N=2 = 20M = PFDin
-	 * 	Fcco = PFDin * (M=10) = 200M
-	 * r9:
-	 * 	Fclkin = 10M
-	 * 		/N=1 = 10M = PFDin
-	 * 	Fcco = PFDin * (M=20) = 200M
-	 * Fclk = Fcco / (2*(P=1)) = 100M
-	 */
+     * 	Fclkin = 40M
+     * 		/N=2 = 20M = PFDin
+     * 	Fcco = PFDin * (M=10) = 200M
+     * r9:
+     * 	Fclkin = 10M
+     * 		/N=1 = 10M = PFDin
+     * 	Fcco = PFDin * (M=20) = 200M
+     * Fclk = Fcco / (2*(P=1)) = 100M
+     */
     cgu::pll1::ctrl({
         .pd = 1,
         .bypass = 0,

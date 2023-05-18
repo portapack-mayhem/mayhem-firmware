@@ -57,9 +57,9 @@ struct serial_format_t {
 size_t symbol_count(const serial_format_t& serial_format);
 
 /*{ "7-Even-1 R", "7E1", 7, EVEN,	1, false, false },
-	{ "7E1 LUT   ", "7Ea", 7, EVEN,	1, true, true },
-	{ "7-Odd-1   ", "7o1", 7, ODD,	1, true, false },
-	{ "8-Even-0  ", "8E0", 8, EVEN,	1, true, false }*/
+        { "7E1 LUT   ", "7Ea", 7, EVEN,	1, true, true },
+        { "7-Odd-1   ", "7o1", 7, ODD,	1, true, false },
+        { "8-Even-0  ", "8E0", 8, EVEN,	1, true, false }*/
 
 } /* namespace serializer */
 

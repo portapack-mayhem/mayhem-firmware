@@ -194,7 +194,7 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
     File bmpimage;
     bmpimage.open(this->file);
 
-    //seek to line
+    // seek to line
     uint32_t line_size = width * (type == 2 ? 4 : (type == 1 ? 3 : 2));
     uint32_t line_offset = y * line_size;
     bmpimage.seek(data_start + line_offset);

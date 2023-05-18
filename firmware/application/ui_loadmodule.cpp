@@ -62,7 +62,7 @@ void LoadModuleView::on_show() {
     for (c = 0; c < 16; c++) {
         if (md5_signature[c] != _hash[c]) break;
     }
-    //text_info.set(to_string_hex(*((unsigned int*)0x10087FF0), 8));
+    // text_info.set(to_string_hex(*((unsigned int*)0x10087FF0), 8));
 
     if (c == 16) {
         text_info.set("Module already loaded :)");
@@ -124,11 +124,11 @@ int LoadModuleView::load_image() {
 }
 
 void LoadModuleView::loadmodule() {
-    //baseband::shutdown();
+    // baseband::shutdown();
 
     /*EventDispatcher::message_map().register_handler(Message::ID::ReadyForSwitch,
-		[this](Message* const p) {
-			(void)p;*/
+                [this](Message* const p) {
+                        (void)p;*/
     if (load_image()) {
         text_infob.set("Module loaded :)");
         _mod_loaded = true;

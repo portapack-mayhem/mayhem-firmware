@@ -54,12 +54,12 @@ class WipeSDView : public View {
 
     void run() {
         lfsr_word_t v = 1;
-        //DIR d;
+        // DIR d;
         const auto buffer = std::make_unique<std::array<uint8_t, 512>>();
 
-        //f_opendir(&d, (TCHAR*)u"");
+        // f_opendir(&d, (TCHAR*)u"");
 
-        uint32_t count = 512;  //sd_card::fs.n_fats * sd_card::fs.fsize;
+        uint32_t count = 512;  // sd_card::fs.n_fats * sd_card::fs.fsize;
         progress.set_max(count);
 
         for (uint32_t c = 0; c < count; c++) {

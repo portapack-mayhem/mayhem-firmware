@@ -50,16 +50,16 @@ class TimeScopeView : public View {
     int16_t audio_spectrum[128]{0};
 
     /*Labels labels {
-		{ { 6 * 8, 0 * 16 }, "Hz", Color::light_grey() }
-	};*/
+                { { 6 * 8, 0 * 16 }, "Hz", Color::light_grey() }
+        };*/
     /*
-	NumberField field_frequency {
-		{ 0 * 8, 0 * 16 },
-		5,
-		{ 0, 48000 },
-		48000 / 240,
-		' '
-	};*/
+        NumberField field_frequency {
+                { 0 * 8, 0 * 16 },
+                5,
+                { 0, 48000 },
+                48000 / 240,
+                ' '
+        };*/
 
     Waveform waveform{
         {0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16},
@@ -78,8 +78,8 @@ class TVView : public Widget {
     void paint(Painter& painter) override;
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void on_adjust_xcorr(uint8_t xcorr);
-    //ui::Color video_buffer[13312];
-    uint8_t video_buffer_int[13312 + 128]{0};  //128 is for the over length caused by x_correction
+    // ui::Color video_buffer[13312];
+    uint8_t video_buffer_int[13312 + 128]{0};  // 128 is for the over length caused by x_correction
     uint32_t count = 0;
     uint8_t x_correction = 0;
 

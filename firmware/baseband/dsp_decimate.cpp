@@ -32,10 +32,10 @@ static inline complex32_t mac_fs4_shift(
     const size_t index,
     const complex32_t accum) {
     /* Accumulate sample * tap results for samples already in z buffer.
-	 * Multiply using swap/negation to achieve Fs/4 shift.
-	 * For iterations where samples are shifting out of z buffer (being discarded).
-	 * Expect negated tap t[2] to accomodate instruction set limitations.
-	 */
+     * Multiply using swap/negation to achieve Fs/4 shift.
+     * For iterations where samples are shifting out of z buffer (being discarded).
+     * Expect negated tap t[2] to accomodate instruction set limitations.
+     */
     const bool negated_t2 = index & 1;
     const auto q1_i0 = z[index * 2 + 0];
     const auto i1_q0 = z[index * 2 + 1];
@@ -51,10 +51,10 @@ static inline complex32_t mac_shift(
     const size_t index,
     const complex32_t accum) {
     /* Accumulate sample * tap results for samples already in z buffer.
-	 * For iterations where samples are shifting out of z buffer (being discarded).
-	 * real += i1 * t1 + i0 * t0
-	 * imag += q1 * t1 + q0 * t0
-	 */
+     * For iterations where samples are shifting out of z buffer (being discarded).
+     * real += i1 * t1 + i0 * t0
+     * imag += q1 * t1 + q0 * t0
+     */
     const auto i1_i0 = z[index * 2 + 0];
     const auto q1_q0 = z[index * 2 + 1];
     const auto t1_t0 = t[index];
@@ -70,9 +70,9 @@ static inline complex32_t mac_fs4_shift_and_store(
     const size_t index,
     const complex32_t accum) {
     /* Accumulate sample * tap results for samples already in z buffer.
-	 * Place new samples into z buffer.
-	 * Expect negated tap t[2] to accomodate instruction set limitations.
-	 */
+     * Place new samples into z buffer.
+     * Expect negated tap t[2] to accomodate instruction set limitations.
+     */
     const bool negated_t2 = index & 1;
     const auto q1_i0 = z[decimation_factor + index * 2 + 0];
     const auto i1_q0 = z[decimation_factor + index * 2 + 1];
@@ -91,9 +91,9 @@ static inline complex32_t mac_shift_and_store(
     const size_t index,
     const complex32_t accum) {
     /* Accumulate sample * tap results for samples already in z buffer.
-	 * Place new samples into z buffer.
-	 * Expect negated tap t[2] to accomodate instruction set limitations.
-	 */
+     * Place new samples into z buffer.
+     * Expect negated tap t[2] to accomodate instruction set limitations.
+     */
     const auto i1_i0 = z[decimation_factor + index * 2 + 0];
     const auto q1_q0 = z[decimation_factor + index * 2 + 1];
     const auto t1_t0 = t[decimation_factor / 2 + index];
@@ -113,9 +113,9 @@ static inline complex32_t mac_fs4_shift_and_store_new_c8_samples(
     const size_t length,
     const complex32_t accum) {
     /* Accumulate sample * tap results for new samples.
-	 * Place new samples into z buffer.
-	 * Expect negated tap t[2] to accomodate instruction set limitations.
-	 */
+     * Place new samples into z buffer.
+     * Expect negated tap t[2] to accomodate instruction set limitations.
+     */
     const bool negated_t2 = index & 1;
     const auto q1_i1_q0_i0 = in[index];
     const auto t1_t0 = t[(length - decimation_factor) / 2 + index];
@@ -139,9 +139,9 @@ static inline complex32_t mac_shift_and_store_new_c16_samples(
     const size_t length,
     const complex32_t accum) {
     /* Accumulate sample * tap results for new samples.
-	 * Place new samples into z buffer.
-	 * Expect negated tap t[2] to accomodate instruction set limitations.
-	 */
+     * Place new samples into z buffer.
+     * Expect negated tap t[2] to accomodate instruction set limitations.
+     */
     const auto q0_i0 = in[index * 2 + 0];
     const auto q1_i1 = in[index * 2 + 1];
     const auto i1_i0 = pkhbt(q0_i0, q1_i1, 16);
@@ -158,9 +158,9 @@ static inline uint32_t scale_round_and_pack(
     const complex32_t value,
     const int32_t scale_factor) {
     /* Multiply 32-bit components of the complex<int32_t> by a scale factor,
-	 * into int64_ts, then round to nearest LSB (1 << 32), saturate to 16 bits,
-	 * and pack into a complex<int16_t>.
-	 */
+     * into int64_ts, then round to nearest LSB (1 << 32), saturate to 16 bits,
+     * and pack into a complex<int16_t>.
+     */
     const auto scaled_real = __SMMULR(value.real(), scale_factor);
     const auto saturated_real = __SSAT(scaled_real, 16);
 
@@ -395,15 +395,15 @@ buffer_c16_t FIRC16xR16x32Decim8::execute(
 
 buffer_c16_t Complex8DecimateBy2CIC3::execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
     /* Decimates by two using a non-recursive third-order CIC filter.
-	 */
+     */
 
     /* CIC filter (decimating by two):
-	 * 	D_I0 = i3 * 1 + i2 * 3 + i1 * 3 + i0 * 1
-	 * 	D_Q0 = q3 * 1 + q2 * 3 + q1 * 3 + q0 * 1
-	 *
-	 * 	D_I1 = i5 * 1 + i4 * 3 + i3 * 3 + i2 * 1
-	 * 	D_Q1 = q5 * 1 + q4 * 3 + q3 * 3 + q2 * 1
-	 */
+     * 	D_I0 = i3 * 1 + i2 * 3 + i1 * 3 + i0 * 1
+     * 	D_Q0 = q3 * 1 + q2 * 3 + q1 * 3 + q0 * 1
+     *
+     * 	D_I1 = i5 * 1 + i4 * 3 + i3 * 3 + i2 * 1
+     * 	D_Q1 = q5 * 1 + q4 * 3 + q3 * 3 + q2 * 1
+     */
 
     uint32_t i1_i0 = _i1_i0;
     uint32_t q1_q0 = _q1_q0;
@@ -452,35 +452,35 @@ buffer_c16_t Complex8DecimateBy2CIC3::execute(const buffer_c8_t& src, const buff
 
 buffer_c16_t TranslateByFSOver4AndDecimateBy2CIC3::execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
     /* Translates incoming complex<int8_t> samples by -fs/4,
-	 * decimates by two using a non-recursive third-order CIC filter.
-	 */
+     * decimates by two using a non-recursive third-order CIC filter.
+     */
 
     /* Derivation of algorithm:
-	 * Original CIC filter (decimating by two):
-	 * 	D_I0 = i3 * 1 + i2 * 3 + i1 * 3 + i0 * 1
-	 * 	D_Q0 = q3 * 1 + q2 * 3 + q1 * 3 + q0 * 1
-	 *
-	 * 	D_I1 = i5 * 1 + i4 * 3 + i3 * 3 + i2 * 1
-	 * 	D_Q1 = q5 * 1 + q4 * 3 + q3 * 3 + q2 * 1
-	 *
-	 * Translate -fs/4, phased 180 degrees, accomplished by complex multiplication
-	 * of complex length-4 sequence:
-	 *
-	 * Substitute:
-	 *	i0 = -i0, q0 = -q0
-	 *	i1 = -q1, q1 =  i1
-	 *	i2 =  i2, q2 =  q2
-	 *	i3 =  q3, q3 = -i3
-	 *	i4 = -i4, q4 = -q4
-	 *	i5 = -q5, q5 =  i5
-	 *
-	 * Resulting taps (with decimation by 2, four samples in, two samples out):
-	 *	D_I0 =  q3 * 1 +  i2 * 3 + -q1 * 3 + -i0 * 1
-	 *	D_Q0 = -i3 * 1 +  q2 * 3 +  i1 * 3 + -q0 * 1
- 	 *
-	 *	D_I1 = -q5 * 1 + -i4 * 3 +  q3 * 3 +  i2 * 1
-	 *	D_Q1 =  i5 * 1 + -q4 * 3 + -i3 * 3 +  q2 * 1
-	 */
+     * Original CIC filter (decimating by two):
+     * 	D_I0 = i3 * 1 + i2 * 3 + i1 * 3 + i0 * 1
+     * 	D_Q0 = q3 * 1 + q2 * 3 + q1 * 3 + q0 * 1
+     *
+     * 	D_I1 = i5 * 1 + i4 * 3 + i3 * 3 + i2 * 1
+     * 	D_Q1 = q5 * 1 + q4 * 3 + q3 * 3 + q2 * 1
+     *
+     * Translate -fs/4, phased 180 degrees, accomplished by complex multiplication
+     * of complex length-4 sequence:
+     *
+     * Substitute:
+     *	i0 = -i0, q0 = -q0
+     *	i1 = -q1, q1 =  i1
+     *	i2 =  i2, q2 =  q2
+     *	i3 =  q3, q3 = -i3
+     *	i4 = -i4, q4 = -q4
+     *	i5 = -q5, q5 =  i5
+     *
+     * Resulting taps (with decimation by 2, four samples in, two samples out):
+     *	D_I0 =  q3 * 1 +  i2 * 3 + -q1 * 3 + -i0 * 1
+     *	D_Q0 = -i3 * 1 +  q2 * 3 +  i1 * 3 + -q0 * 1
+     *
+     *	D_I1 = -q5 * 1 + -i4 * 3 +  q3 * 3 +  i2 * 1
+     *	D_Q1 =  i5 * 1 + -q4 * 3 + -i3 * 3 +  q2 * 1
+     */
 
     // 6 cycles per complex input sample, not including loop overhead.
     uint32_t q1_i0 = _q1_i0;
@@ -538,10 +538,10 @@ buffer_c16_t DecimateBy2CIC3::execute(
     const buffer_c16_t& src,
     const buffer_c16_t& dst) {
     /* Complex non-recursive 3rd-order CIC filter (taps 1,3,3,1).
-	 * Gain of 8.
-	 * Consumes 16 bytes (4 s16:s16 samples) per loop iteration,
-	 * Produces  8 bytes (2 s16:s16 samples) per loop iteration.
-	 */
+     * Gain of 8.
+     * Consumes 16 bytes (4 s16:s16 samples) per loop iteration,
+     * Produces  8 bytes (2 s16:s16 samples) per loop iteration.
+     */
     uint32_t t1 = _iq0;
     uint32_t t2 = _iq1;
     const uint32_t taps = 0x00000003;
@@ -594,9 +594,9 @@ buffer_s16_t FIR64AndDecimateBy2Real::execute(
     const buffer_s16_t& src,
     const buffer_s16_t& dst) {
     /* int16_t input (sample count "n" must be multiple of 4)
-	 * -> int16_t output, decimated by 2.
-	 * taps are normalized to 1 << 16 == 1.0.
-	 */
+     * -> int16_t output, decimated by 2.
+     * taps are normalized to 1 << 16 == 1.0.
+     */
     auto src_p = src.p;
     auto dst_p = dst.p;
     int32_t n = src.count;
@@ -635,9 +635,9 @@ buffer_c16_t FIRAndDecimateComplex::execute(
     const buffer_c16_t& src,
     const buffer_c16_t& dst) {
     /* int16_t input (sample count "n" must be multiple of decimation_factor)
-	 * -> int16_t output, decimated by decimation_factor.
-	 * taps are normalized to 1 << 16 == 1.0.
-	 */
+     * -> int16_t output, decimated by decimation_factor.
+     * taps are normalized to 1 << 16 == 1.0.
+     */
     const auto output_sampling_rate = src.sampling_rate / decimation_factor_;
     const size_t output_samples = src.count / decimation_factor_;
 
@@ -701,8 +701,8 @@ buffer_c16_t FIRAndDecimateComplex::execute(
         }
 
         /* TODO: Re-evaluate whether saturation is performed, normalization,
-		 * all that jazz.
-		 */
+         * all that jazz.
+         */
         const int32_t r = t_real >> 16;
         const int32_t i = t_imag >> 16;
         const int32_t r_sat = __SSAT(r, 16);

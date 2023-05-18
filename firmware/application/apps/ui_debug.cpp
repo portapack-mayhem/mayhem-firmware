@@ -119,7 +119,7 @@ void TemperatureWidget::paint(Painter& painter) {
 
 TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t sensor_value) const {
     /*It seems to be a temperature difference of 25C*/
-    return -40 + (sensor_value * 4.31) + 25;  //max2837 datasheet temp 25ºC has sensor value: 15
+    return -40 + (sensor_value * 4.31) + 25;  // max2837 datasheet temp 25ºC has sensor value: 15
 }
 
 std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
@@ -382,34 +382,34 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 }
 
 /*DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {
-	
-	std::string debug_text;
-	
-	add_children({
-		&console,
-		&button_exit
-	});
 
-	for(const auto c : lcr_string) {
-		if ((c < 32) || (c > 126))
-			debug_text += "[" + to_string_dec_uint(c) + "]";
-		else
-			debug_text += c;
-	}
-	
-	debug_text += "\n\n";
-	debug_text += "Length: " + to_string_dec_uint(lcr_string.length()) + '\n';
-	debug_text += "Checksum: " + to_string_dec_uint(lcr_string.back()) + '\n';
-	
-	console.write(debug_text);
-	
-	button_exit.on_select = [this, &nav](Button&){
-		nav.pop();
-	};
+        std::string debug_text;
+
+        add_children({
+                &console,
+                &button_exit
+        });
+
+        for(const auto c : lcr_string) {
+                if ((c < 32) || (c > 126))
+                        debug_text += "[" + to_string_dec_uint(c) + "]";
+                else
+                        debug_text += c;
+        }
+
+        debug_text += "\n\n";
+        debug_text += "Length: " + to_string_dec_uint(lcr_string.length()) + '\n';
+        debug_text += "Checksum: " + to_string_dec_uint(lcr_string.back()) + '\n';
+
+        console.write(debug_text);
+
+        button_exit.on_select = [this, &nav](Button&){
+                nav.pop();
+        };
 }
-	
+
 void DebugLCRView::focus() {
-	button_exit.focus();
+        button_exit.focus();
 }*/
 
 } /* namespace ui */

@@ -38,7 +38,7 @@
  */
 /*
 static inline int16_t q15_from_double(const double d) {
-	return lrint(d * 32768);
+        return lrint(d * 32768);
 }
 */
 /**
@@ -52,13 +52,13 @@ static inline int16_t q15_from_double(const double d) {
 /*
 static inline int16_t s16_nabs(const int16_t j) {
 #if (((int16_t)-1) >> 1) == ((int16_t)-1)
-	// signed right shift sign-extends (arithmetic)
-	const int16_t negSign = ~(j >> 15); // splat sign bit into all 16 and complement
-	// if j is positive (negSign is -1), xor will invert j and sub will add 1
-	// otherwise j is unchanged
-	return (j ^ negSign) - negSign;
+        // signed right shift sign-extends (arithmetic)
+        const int16_t negSign = ~(j >> 15); // splat sign bit into all 16 and complement
+        // if j is positive (negSign is -1), xor will invert j and sub will add 1
+        // otherwise j is unchanged
+        return (j ^ negSign) - negSign;
 #else
-	return (j < 0 ? j : -j);
+        return (j < 0 ? j : -j);
 #endif
 }
 */
@@ -112,7 +112,7 @@ static inline int16_t q15_div(const int16_t numer, const int16_t denom) {
  */
 
 static inline int16_t nabs(const int16_t j) {
-    //return -abs(x);
+    // return -abs(x);
     return (j < 0 ? j : -j);
 }
 

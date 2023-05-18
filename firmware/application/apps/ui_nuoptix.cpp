@@ -174,15 +174,15 @@ NuoptixView::NuoptixView(
     };
 
     /*button_impro.on_select = [this](Button&){
-		if (tx_mode == IMPROVISE) {
-			tx_mode = IDLE;
-			button_impro.set_text("IMPROVISE");
-		} else if (tx_mode == IDLE) {
-			tx_mode = IMPROVISE;
-			button_impro.set_text("STOP");
-			transmit(true);
-		}
-	};*/
+                if (tx_mode == IMPROVISE) {
+                        tx_mode = IDLE;
+                        button_impro.set_text("IMPROVISE");
+                } else if (tx_mode == IDLE) {
+                        tx_mode = IMPROVISE;
+                        button_impro.set_text("STOP");
+                        transmit(true);
+                }
+        };*/
 }
 
 }  // namespace ui

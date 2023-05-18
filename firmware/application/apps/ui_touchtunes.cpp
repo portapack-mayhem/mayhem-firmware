@@ -94,7 +94,7 @@ void TouchTunesView::start_ew() {
     transmitter_model.set_tx_gain(47);
     transmitter_model.enable();
 
-    //UI
+    // UI
     text_status.set("Jamming...");
     progressbar.set_max(1);
     progressbar.set_value(1);

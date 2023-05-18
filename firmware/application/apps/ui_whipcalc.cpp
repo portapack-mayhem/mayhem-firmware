@@ -46,9 +46,9 @@ void WhipCalcView::update_result() {
         // Metric
         length = (speed_of_light_mps / (double)field_frequency.value()) * divider;
         auto m = to_string_dec_int((int)length, 0);
-        //auto cm = to_string_dec_int(int(length * 100.0) % 100, 2);
-        //auto mm = to_string_dec_int(int(length * 1000.0) % 10, 1);
-        calclength = get_decimals(length, 100);  //cm
+        // auto cm = to_string_dec_int(int(length * 100.0) % 100, 2);
+        // auto mm = to_string_dec_int(int(length * 1000.0) % 10, 1);
+        calclength = get_decimals(length, 100);  // cm
         auto cm = to_string_dec_int(int(calclength), 0);
         auto mm = to_string_dec_int(int(get_decimals(calclength, 10, true)), 0);
         text_result_metric.set(m + "m " + cm + "." + mm + "cm");
@@ -56,7 +56,7 @@ void WhipCalcView::update_result() {
         // Imperial
         calclength = (speed_of_light_fps / (double)field_frequency.value()) * divider;
         auto feet = to_string_dec_int(int(calclength), 0);
-        calclength = get_decimals(calclength, 12);  //inches
+        calclength = get_decimals(calclength, 12);  // inches
         auto inch = to_string_dec_int(int(calclength), 0);
         auto inch_c = to_string_dec_int(int(get_decimals(calclength, 10, true)), 0);
         text_result_imperial.set(feet + "ft " + inch + "." + inch_c + "in");
@@ -66,37 +66,37 @@ void WhipCalcView::update_result() {
         return;
     }
 
-    uint8_t ant_count = 9;                      //Shown antennas counter
-    length *= 1000;                             //Get length in mm needed to extend the antenna
-    for (antenna_entry antenna : antenna_db) {  //go thru all antennas available
+    uint8_t ant_count = 9;                      // Shown antennas counter
+    length *= 1000;                             // Get length in mm needed to extend the antenna
+    for (antenna_entry antenna : antenna_db) {  // go thru all antennas available
         uint16_t element, refined_quarter = 0;
         for (element = 0; element < antenna.elements.size(); element++) {
-            if (length == antenna.elements[element])  //Exact element in length
+            if (length == antenna.elements[element])  // Exact element in length
             {
-                element++;  //Real element is +1  (zero based vector)
-                break;      //Done with this ant
+                element++;  // Real element is +1  (zero based vector)
+                break;      // Done with this ant
             } else if (length < antenna.elements[element]) {
                 double remain, this_element, quarter = 0;
-                remain = length - antenna.elements[element - 1];                           //mm needed from this element to reach length
-                this_element = antenna.elements[element] - antenna.elements[element - 1];  //total mm on this element
-                quarter = (remain * 4) / this_element;                                     //havoc & portack ended on this int(quarter) resolution.
-                if (quarter - int(quarter) > 0.5) {                                        //rounding gave a measure closer to next quarter
+                remain = length - antenna.elements[element - 1];                           // mm needed from this element to reach length
+                this_element = antenna.elements[element] - antenna.elements[element - 1];  // total mm on this element
+                quarter = (remain * 4) / this_element;                                     // havoc & portack ended on this int(quarter) resolution.
+                if (quarter - int(quarter) > 0.5) {                                        // rounding gave a measure closer to next quarter
                     refined_quarter = int(quarter) + 1;
-                    if (refined_quarter == 4) {  //rounding gave a measure closer to next element
+                    if (refined_quarter == 4) {  // rounding gave a measure closer to next element
                         refined_quarter = 0;
                         element++;
                     }
                 } else {
                     refined_quarter = int(quarter);
                 }
-                break;  //Done with this ant
+                break;  // Done with this ant
             }
         }
         /*if (!ant_count)
-		{
-			console.write(" and more ...");
-			break;
-		}*/
+                {
+                        console.write(" and more ...");
+                        break;
+                }*/
         console.write(antenna.label + ": " + to_string_dec_int(element, 1) + frac_str[refined_quarter] + " elements\n");
         ant_count--;  // For now, just showing all.
     }
@@ -122,19 +122,19 @@ WhipCalcView::WhipCalcView(NavigationView& nav) {
             antennas_file.seek(pointer);
             antennas_file.read(one_char, 1);
             if ((int)one_char[0] >= ' ')
-                line += one_char[0];         //Add it to the textline
-            else if (one_char[0] == '\n') {  //New Line
-                txtline_process(line);       //make sense of this textline
-                line.clear();                //Ready for next textline
+                line += one_char[0];         // Add it to the textline
+            else if (one_char[0] == '\n') {  // New Line
+                txtline_process(line);       // make sense of this textline
+                line.clear();                // Ready for next textline
             }
         }
         if (line.length() > 0)
-            txtline_process(line);  //Last line had no newline at end ?
+            txtline_process(line);  // Last line had no newline at end ?
     }
 
     if (!antenna_db.size())
         add_default_antenna();
-    //antennas_on_memory.set(to_string_dec_int(antenna_db.size(),0) + " antennas");	//tell user
+    // antennas_on_memory.set(to_string_dec_int(antenna_db.size(),0) + " antennas");	//tell user
 
     options_type.set_selected_index(2);  // Quarter wave
     options_type.on_change = [this](size_t, OptionsField::value_t) {
@@ -163,7 +163,7 @@ WhipCalcView::WhipCalcView(NavigationView& nav) {
 
 void ui::WhipCalcView::txtline_process(std::string& line) {
     if (line.find("#") != std::string::npos)
-        return;  //Line is just a comment
+        return;  // Line is just a comment
 
     char separator = ',';
     size_t previous = 0;
@@ -173,25 +173,25 @@ void ui::WhipCalcView::txtline_process(std::string& line) {
 
     while (current != std::string::npos) {
         if (!previous)
-            new_antenna.label.assign(line, 0, current);  //antenna label
+            new_antenna.label.assign(line, 0, current);  // antenna label
         else {
             value = std::stoi(line.substr(previous, current - previous));
-            if (!value) return;                     //No element length? abort antenna
-            new_antenna.elements.push_back(value);  //Store this new element
+            if (!value) return;                     // No element length? abort antenna
+            new_antenna.elements.push_back(value);  // Store this new element
         }
         previous = current + 1;
-        current = line.find(separator, previous);  //Search for next space delimiter
+        current = line.find(separator, previous);  // Search for next space delimiter
     }
 
-    if (!previous) return;                                         //Not even a label ? drop this antenna!
-    value = std::stoi(line.substr(previous, current - previous));  //Last element
+    if (!previous) return;                                         // Not even a label ? drop this antenna!
+    value = std::stoi(line.substr(previous, current - previous));  // Last element
 
     if (!value) return;
     new_antenna.elements.push_back(value);
-    antenna_db.push_back(new_antenna);  //Add this antenna
+    antenna_db.push_back(new_antenna);  // Add this antenna
 }
 
 void ui::WhipCalcView::add_default_antenna() {
-    antenna_db.push_back({"ANT500", {185, 315, 450, 586, 724, 862}});  //store a default ant500
+    antenna_db.push_back({"ANT500", {185, 315, 450, 586, 724, 862}});  // store a default ant500
 }
 }  // namespace ui

@@ -116,8 +116,8 @@ struct DigitizerPoint {
 
 struct Calibration {
     /* Touch screen calibration matrix, based on article by Carlos E. Vidales:
-	 * http://www.embedded.com/design/system-integration/4023968/How-To-Calibrate-Touch-Screens
-	 */
+     * http://www.embedded.com/design/system-integration/4023968/How-To-Calibrate-Touch-Screens
+     */
 
     constexpr Calibration(
         const std::array<DigitizerPoint, 3>& s,
@@ -219,7 +219,7 @@ class Manager {
     Filter<touch_count_threshold> filter_x{};
     Filter<touch_count_threshold> filter_y{};
 
-    //Debounce touch_debounce;
+    // Debounce touch_debounce;
 
     State state{State::NoTouch};
 

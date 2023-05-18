@@ -88,9 +88,9 @@ uint32_t deframe_word(uint32_t raw_word) {
     serial_format_t serial_format = persistent_memory::serial_format();
 
     /*if (serial_format.parity == ODD)
-		parity = 1;
-	else
-		parity = 0;*/
+                parity = 1;
+        else
+                parity = 0;*/
 
     size_t data_bits = serial_format.data_bits;
 
@@ -106,7 +106,7 @@ uint32_t deframe_word(uint32_t raw_word) {
             deframed_word <<= 1;
             deframed_word |= cur_bit;
 
-            //parity += cur_bit;
+            // parity += cur_bit;
 
             raw_word >>= 1;
         }

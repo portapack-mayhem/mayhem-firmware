@@ -54,7 +54,7 @@ void ACARSProcessor::execute(const buffer_c8_t& buffer) {
 void ACARSProcessor::consume_symbol(
     const float raw_symbol) {
     const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
-    //const auto decoded_symbol = acars_decode(sliced_symbol);
+    // const auto decoded_symbol = acars_decode(sliced_symbol);
 
     // DEBUG
     packet.add(sliced_symbol);
@@ -63,7 +63,7 @@ void ACARSProcessor::consume_symbol(
         packet.clear();
     }
 
-    //packet_builder.execute(decoded_symbol);
+    // packet_builder.execute(decoded_symbol);
 }
 
 void ACARSProcessor::payload_handler(

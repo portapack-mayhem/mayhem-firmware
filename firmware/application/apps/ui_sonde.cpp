@@ -76,7 +76,7 @@ SondeView::SondeView(NavigationView& nav) {
         target_frequency_ = receiver_model.tuning_frequency();
 
     field_frequency.set_value(target_frequency_);
-    field_frequency.set_step(500);  //euquiq: was 10000, but we are using this for fine-tunning
+    field_frequency.set_step(500);  // euquiq: was 10000, but we are using this for fine-tunning
     field_frequency.on_change = [this](rf::Frequency f) {
         set_target_frequency(f);
         field_frequency.set_value(f);
@@ -121,7 +121,7 @@ SondeView::SondeView(NavigationView& nav) {
             GeoPos::alt_unit::METERS,
             gps_info.lat,
             gps_info.lon,
-            999);  //set a dummy heading out of range to draw a cross...probably not ideal?
+            999);  // set a dummy heading out of range to draw a cross...probably not ideal?
     };
 
     logger = std::make_unique<SondeLogger>();
@@ -199,7 +199,7 @@ char* SondeView::float_to_char(float x, char* p) {
 }
 
 void SondeView::on_packet(const sonde::Packet& packet) {
-    if (!use_crc || packet.crc_ok())  //euquiq: Reject bad packet if crc is on
+    if (!use_crc || packet.crc_ok())  // euquiq: Reject bad packet if crc is on
     {
         char buffer_lat[10] = {};
         char buffer_lon[10] = {};
@@ -211,19 +211,19 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         text_signature.set(packet.type_string());
 
-        sonde_id = packet.serial_number();  //used also as tag on the geomap
+        sonde_id = packet.serial_number();  // used also as tag on the geomap
         text_serial.set(sonde_id);
 
         text_timestamp.set(to_string_timestamp(packet.received_at()));
 
         text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 2) + "V");
 
-        text_frame.set(to_string_dec_uint(packet.frame(), 0));  //euquiq: integrate frame #, temp & humid.
+        text_frame.set(to_string_dec_uint(packet.frame(), 0));  // euquiq: integrate frame #, temp & humid.
 
         temp_humid_info = packet.get_temp_humid();
         if (temp_humid_info.humid != 0) {
             double decimals = abs(get_decimals(temp_humid_info.humid, 10, true));
-            //if (decimals < 0)
+            // if (decimals < 0)
             //	decimals = -decimals;
             text_humid.set(to_string_dec_int((int)temp_humid_info.humid) + "." + to_string_dec_uint(decimals, 1) + "%");
         }
@@ -258,8 +258,8 @@ void SondeView::on_headphone_volume_changed(int32_t v) {
 
 void SondeView::set_target_frequency(const uint32_t new_value) {
     target_frequency_ = new_value;
-    //radio::set_tuning_frequency(tuning_frequency());
-    // we better remember the tuned frequency, by using this function instead:
+    // radio::set_tuning_frequency(tuning_frequency());
+    //  we better remember the tuned frequency, by using this function instead:
     receiver_model.set_tuning_frequency(target_frequency_);
 }
 

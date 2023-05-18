@@ -149,7 +149,7 @@ TransmitterView::TransmitterView(
         }
     }
 
-    //field_frequency.set_value(transmitter_model.tuning_frequency());
+    // field_frequency.set_value(transmitter_model.tuning_frequency());
     field_frequency.set_step(frequency_step);
     field_frequency.on_change = [this](rf::Frequency f) {
         on_tuning_frequency_changed(f);

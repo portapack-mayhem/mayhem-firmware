@@ -90,7 +90,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
             constexpr int raw_delta = raw_max - raw_min;
             const range_t<int> y_max_range{0, 320 - (108 + 16)};
 
-            //drawing and keeping track of max freq
+            // drawing and keeping track of max freq
             for (uint16_t xpos = 0; xpos < 240; xpos++) {
                 // save max powerwull freq
                 if (spectrum_data[xpos] > max_freq_power) {
@@ -180,7 +180,7 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         }
         f_center += (256 - (2 * offset)) * each_bin_size;  // Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
                                                            // lost bins are taken in account so next slice first ignored bins overlap previous kept ones
-    } else                                                 //slow scan
+    } else                                                 // slow scan
     {
         offset = 32;
         uint8_t bin_length = 80;
@@ -414,7 +414,7 @@ GlassView::GlassView(
         field_frequency_max.set_step(v);
         steps = v;
     };
-    steps_config.set_selected_index(0);  //default of 1 Mhz steps
+    steps_config.set_selected_index(0);  // default of 1 Mhz steps
 
     scan_type.on_change = [this](size_t n, OptionsField::value_t v) {
         (void)n;
@@ -452,14 +452,14 @@ GlassView::GlassView(
         }
         set_dirty();
     };
-    view_config.set_selected_index(0);  //default spectrum
+    view_config.set_selected_index(0);  // default spectrum
 
     level_integration.on_change = [this](size_t n, OptionsField::value_t v) {
         (void)n;
         reset_live_view(true);
         live_frequency_integrate = v;
     };
-    level_integration.set_selected_index(3);  //default integration of ( 3 * old value + new_value ) / 4
+    level_integration.set_selected_index(3);  // default integration of ( 3 * old value + new_value ) / 4
 
     filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
         (void)n;
