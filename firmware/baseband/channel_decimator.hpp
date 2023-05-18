@@ -30,7 +30,7 @@
 #include <array>
 
 class ChannelDecimator {
-public:
+ public:
 	enum class DecimationFactor {
 		By2,
 		By4,
@@ -38,13 +38,12 @@ public:
 		By16,
 		By32,
 	};
-	
+
 	constexpr ChannelDecimator(
-		const DecimationFactor decimation_factor,
-		const bool fs_over_4_downconvert = true
-	) : decimation_factor { decimation_factor },
-		fs_over_4_downconvert { fs_over_4_downconvert }
-	{
+			const DecimationFactor decimation_factor,
+			const bool fs_over_4_downconvert = true)
+			: decimation_factor{decimation_factor},
+				fs_over_4_downconvert{fs_over_4_downconvert} {
 	}
 
 	void set_decimation_factor(const DecimationFactor f) {
@@ -57,25 +56,24 @@ public:
 		return decimated;
 	}
 
-private:
-	std::array<complex16_t, 1024> work_baseband { };
+ private:
+	std::array<complex16_t, 1024> work_baseband{};
 
-	dsp::decimate::TranslateByFSOver4AndDecimateBy2CIC3 translate { };
-	dsp::decimate::Complex8DecimateBy2CIC3 cic_0 { };
-	dsp::decimate::DecimateBy2CIC3 cic_1 { };
-	dsp::decimate::DecimateBy2CIC3 cic_2 { };
-	dsp::decimate::DecimateBy2CIC3 cic_3 { };
-	dsp::decimate::DecimateBy2CIC3 cic_4 { };
+	dsp::decimate::TranslateByFSOver4AndDecimateBy2CIC3 translate{};
+	dsp::decimate::Complex8DecimateBy2CIC3 cic_0{};
+	dsp::decimate::DecimateBy2CIC3 cic_1{};
+	dsp::decimate::DecimateBy2CIC3 cic_2{};
+	dsp::decimate::DecimateBy2CIC3 cic_3{};
+	dsp::decimate::DecimateBy2CIC3 cic_4{};
 
-	DecimationFactor decimation_factor { DecimationFactor::By32 };
-	const bool fs_over_4_downconvert { true };
+	DecimationFactor decimation_factor{DecimationFactor::By32};
+	const bool fs_over_4_downconvert{true};
 
 	buffer_c16_t execute_decimation(const buffer_c8_t& buffer);
 
 	buffer_c16_t execute_stage_0(
-		const buffer_c8_t& buffer,
-		const buffer_c16_t& work_baseband_buffer
-	);
+			const buffer_c8_t& buffer,
+			const buffer_c16_t& work_baseband_buffer);
 };
 
-#endif/*__CHANNEL_DECIMATOR_H__*/
+#endif /*__CHANNEL_DECIMATOR_H__*/

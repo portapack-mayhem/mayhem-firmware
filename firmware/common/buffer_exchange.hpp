@@ -28,7 +28,7 @@
 #include "io.hpp"
 
 class BufferExchange {
-public:
+ public:
 	BufferExchange(CaptureConfig* const config);
 	BufferExchange(ReplayConfig* const config);
 	~BufferExchange();
@@ -46,7 +46,7 @@ public:
 	StreamBuffer* get() {
 		return get(fifo_buffers_for_application);
 	}
-	
+
 	StreamBuffer* get_prefill() {
 		return get_prefill(fifo_buffers_for_application);
 	}
@@ -54,7 +54,7 @@ public:
 	bool put(StreamBuffer* const p) {
 		return fifo_buffers_for_baseband->in(p);
 	}
-	
+
 	bool put_app(StreamBuffer* const p) {
 		return fifo_buffers_for_application->in(p);
 	}
@@ -75,23 +75,23 @@ public:
 #endif
 
 	static void handle_isr() {
-		if( obj ) {
+		if (obj) {
 			obj->check_fifo_isr();
 		}
 	}
 
-private:
+ private:
 	//CaptureConfig* const config_capture;
 	//ReplayConfig* const config_replay;
-	FIFO<StreamBuffer*>* fifo_buffers_for_baseband { nullptr };
-	FIFO<StreamBuffer*>* fifo_buffers_for_application { nullptr };
-	Thread* thread { nullptr };
+	FIFO<StreamBuffer*>* fifo_buffers_for_baseband{nullptr};
+	FIFO<StreamBuffer*>* fifo_buffers_for_application{nullptr};
+	Thread* thread{nullptr};
 	static BufferExchange* obj;
-	
+
 	enum {
 		CAPTURE,
 		REPLAY
-	} direction { };
+	} direction{};
 
 	void check_fifo_isr() {
 		if (!empty())
@@ -100,13 +100,13 @@ private:
 
 	void wakeup_isr() {
 		auto thread_tmp = thread;
-		if( thread_tmp ) {
+		if (thread_tmp) {
 			thread = nullptr;
 			chSchReadyI(thread_tmp);
 		}
 	}
 
 	StreamBuffer* get(FIFO<StreamBuffer*>* fifo);
-	
+
 	StreamBuffer* get_prefill(FIFO<StreamBuffer*>* fifo);
 };

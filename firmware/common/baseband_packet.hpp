@@ -30,17 +30,17 @@
 namespace baseband {
 
 class Packet {
-public:
+ public:
 	void set_timestamp(const Timestamp& value) {
 		timestamp_ = value;
 	}
-	
+
 	Timestamp timestamp() const {
 		return timestamp_;
 	}
 
 	void add(const bool symbol) {
-		if( count < capacity() ) {
+		if (count < capacity()) {
 			data[count++] = symbol;
 		}
 	}
@@ -61,12 +61,12 @@ public:
 		count = 0;
 	}
 
-private:
-	std::bitset<2560> data { };
-	Timestamp timestamp_ { };
-	size_t count { 0 };
+ private:
+	std::bitset<2560> data{};
+	Timestamp timestamp_{};
+	size_t count{0};
 };
 
 } /* namespace baseband */
 
-#endif/*__BASEBAND_PACKET_H__*/
+#endif /*__BASEBAND_PACKET_H__*/

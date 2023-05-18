@@ -40,7 +40,7 @@ static void init() {
 
 static void halt() {
 	port_disable();
-	while(true) {
+	while (true) {
 		port_wait_for_interrupt();
 	}
 }
@@ -69,9 +69,9 @@ void __late_init(void) {
 
 void _default_exit(void) {
 	// TODO: Is this complete?
-	
+
 	nvicDisableVector(DMA_IRQn);
-	
+
 	chSysDisable();
 
 	systick_stop();
@@ -83,5 +83,4 @@ void _default_exit(void) {
 
 	halt();
 }
-
 }

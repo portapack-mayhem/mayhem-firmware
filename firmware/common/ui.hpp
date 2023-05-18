@@ -32,115 +32,109 @@ using Coord = int16_t;
 using Dim = int16_t;
 
 struct Color {
-	uint16_t v;			// rrrrrGGGGGGbbbbb
+	uint16_t v;	 // rrrrrGGGGGGbbbbb
 
-	constexpr Color(
-	) : v { 0 }
-	{
-	}
-	
-	constexpr Color(
-		uint16_t v
-	) : v { v }
-	{
+	constexpr Color()
+			: v{0} {
 	}
 
 	constexpr Color(
-		uint8_t r,
-		uint8_t g,
-		uint8_t b
-	) : v {
-		static_cast<uint16_t>(
-			  ((r & 0xf8) << 8)
-			| ((g & 0xfc) << 3)
-			| ((b & 0xf8) >> 3)
-		)}
-	{
+			uint16_t v)
+			: v{v} {
+	}
+
+	constexpr Color(
+			uint8_t r,
+			uint8_t g,
+			uint8_t b)
+			: v{
+						static_cast<uint16_t>(
+								((r & 0xf8) << 8) | ((g & 0xfc) << 3) | ((b & 0xf8) >> 3))} {
 	}
 
 	uint8_t to_greyscale() {
 		uint32_t r = ((v >> 11) & 31U) << 3;
-		uint32_t g = ((v >> 5)  & 63U) << 2;
-		uint32_t b = (v         & 31U) << 3;
+		uint32_t g = ((v >> 5) & 63U) << 2;
+		uint32_t b = (v & 31U) << 3;
 
 		uint32_t grey = (r * 299 + g * 587 + b * 114) / 1000;
 
 		return (uint8_t)grey;
 	}
-	
+
 	Color operator-() const {
 		return (v ^ 0xffff);
 	}
 
 	static constexpr Color black() {
-		return {   0,   0,   0 };
+		return {0, 0, 0};
 	}
 
 	static constexpr Color red() {
-		return { 255,   0,   0 };
+		return {255, 0, 0};
 	}
 	static constexpr Color dark_red() {
-		return { 159,   0,   0 };
+		return {159, 0, 0};
 	}
-	
+
 	static constexpr Color orange() {
-		return { 255, 175,   0 };
+		return {255, 175, 0};
 	}
 	static constexpr Color dark_orange() {
-		return { 191,  95,   0 };
+		return {191, 95, 0};
 	}
 
 	static constexpr Color yellow() {
-		return { 255, 255,   0 };
+		return {255, 255, 0};
 	}
 	static constexpr Color dark_yellow() {
-		return { 191, 191,   0 };
+		return {191, 191, 0};
 	}
 
 	static constexpr Color green() {
-		return {   0, 255,   0 };
+		return {0, 255, 0};
 	}
 	static constexpr Color dark_green() {
-		return {   0, 159,   0 };
+		return {0, 159, 0};
 	}
 
 	static constexpr Color blue() {
-		return {   0,   0, 255 };
+		return {0, 0, 255};
 	}
 	static constexpr Color dark_blue() {
-		return {   0,	0, 191 };
+		return {0, 0, 191};
 	}
-	
+
 	static constexpr Color cyan() {
-		return {   0, 255, 255 };
+		return {0, 255, 255};
 	}
 	static constexpr Color dark_cyan() {
-		return {   0, 191, 191 };
+		return {0, 191, 191};
 	}
-	
+
 	static constexpr Color magenta() {
-		return { 255,   0, 255 };
+		return {255, 0, 255};
 	}
 	static constexpr Color dark_magenta() {
-		return { 191,   0, 191 };
+		return {191, 0, 191};
 	}
 
 	static constexpr Color white() {
-		return { 255, 255, 255 };
+		return {255, 255, 255};
 	}
-	
+
 	static constexpr Color light_grey() {
-		return { 191, 191, 191 };
+		return {191, 191, 191};
 	}
 	static constexpr Color grey() {
-		return { 127, 127, 127 };
+		return {127, 127, 127};
 	}
 	static constexpr Color dark_grey() {
-		return {  63,  63,  63 };
+		return {63, 63, 63};
 	}
-	
+
 	static constexpr Color purple() {
-		return { 204,  0, 102 };
+		return {204, 0, 102};
 	}
 };
 
@@ -153,23 +147,21 @@ struct ColorRGB888 {
 };
 
 struct Point {
-private:
+ private:
 	Coord _x;
 	Coord _y;
 
-public:
-	constexpr Point(
-	) : _x { 0 },
-		_y { 0 }
-	{
+ public:
+	constexpr Point()
+			: _x{0},
+				_y{0} {
 	}
 
 	constexpr Point(
-		int x,
-		int y
-	) : _x { static_cast<Coord>(x) },
-		_y { static_cast<Coord>(y) }
-	{
+			int x,
+			int y)
+			: _x{static_cast<Coord>(x)},
+				_y{static_cast<Coord>(y)} {
 	}
 
 	constexpr int x() const {
@@ -181,15 +173,15 @@ public:
 	}
 
 	constexpr Point operator-() const {
-		return { -_x, -_y };
+		return {-_x, -_y};
 	}
 
 	constexpr Point operator+(const Point& p) const {
-		return { _x + p._x, _y + p._y };
+		return {_x + p._x, _y + p._y};
 	}
 
 	constexpr Point operator-(const Point& p) const {
-		return { _x - p._x, _y - p._y };
+		return {_x - p._x, _y - p._y};
 	}
 
 	Point& operator+=(const Point& p) {
@@ -206,23 +198,21 @@ public:
 };
 
 struct Size {
-private:
+ private:
 	Dim _w;
 	Dim _h;
 
-public:
-	constexpr Size(
-	) : _w { 0 },
-		_h { 0 }
-	{
+ public:
+	constexpr Size()
+			: _w{0},
+				_h{0} {
 	}
 
 	constexpr Size(
-		int w,
-		int h
-	) : _w { static_cast<Dim>(w) },
-		_h { static_cast<Dim>(h) }
-	{
+			int w,
+			int h)
+			: _w{static_cast<Dim>(w)},
+				_h{static_cast<Dim>(h)} {
 	}
 
 	int width() const {
@@ -239,33 +229,32 @@ public:
 };
 
 struct Rect {
-private:
+ private:
 	Point _pos;
 	Size _size;
 
-public:
-	constexpr Rect(
-	) : _pos { },
-		_size { }
-	{
+ public:
+	constexpr Rect()
+			: _pos{},
+				_size{} {
 	}
 
 	constexpr Rect(
-		int x, int y,
-		int w, int h
-	) : _pos { x, y },
-		_size { w, h }
-	{
+			int x,
+			int y,
+			int w,
+			int h)
+			: _pos{x, y},
+				_size{w, h} {
 	}
 
 	constexpr Rect(
-		Point pos,
-		Size size
-	) : _pos(pos),
-		_size(size)
-	{
+			Point pos,
+			Size size)
+			: _pos(pos),
+				_size(size) {
 	}
-	
+
 	Point location() const {
 		return _pos;
 	}
@@ -273,7 +262,7 @@ public:
 	Size size() const {
 		return _size;
 	}
-	
+
 	int top() const {
 		return _pos.y();
 	}
@@ -299,7 +288,7 @@ public:
 	}
 
 	Point center() const {
-		return { _pos.x() + _size.width() / 2, _pos.y() + _size.height() / 2 };
+		return {_pos.x() + _size.width() / 2, _pos.y() + _size.height() / 2};
 	}
 
 	bool is_empty() const {
@@ -311,7 +300,7 @@ public:
 	Rect intersect(const Rect& o) const;
 
 	Rect operator+(const Point& p) const {
-		return { _pos + p, _size };
+		return {_pos + p, _size};
 	}
 
 	Rect& operator+=(const Rect& p);
@@ -358,4 +347,4 @@ Point fast_polar_to_point(int32_t angle, uint32_t distance);
 
 } /* namespace ui */
 
-#endif/*__UI_H__*/
+#endif /*__UI_H__*/

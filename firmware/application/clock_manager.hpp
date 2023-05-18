@@ -32,11 +32,11 @@
 using namespace lpc43xx;
 
 class ClockManager {
-public:
+ public:
 	enum ReferenceSource {
-		Xtal,     /* 10 MHz crystal onboard the HackRF */
+		Xtal,			 /* 10 MHz crystal onboard the HackRF */
 		PortaPack, /* 10 MHz TCXO on 20180820 and newer PortaPack revisions. */
-		External, /* HackRF external clock input SMA, or from PortaPack with TCXO feature. */
+		External,	 /* HackRF external clock input SMA, or from PortaPack with TCXO feature. */
 	};
 	using ReferenceFrequency = uint32_t;
 
@@ -46,12 +46,11 @@ public:
 	} Reference;
 
 	constexpr ClockManager(
-		I2C& i2c0,
-		si5351::Si5351& clock_generator
-	) : i2c0(i2c0),
-		clock_generator(clock_generator),
-		reference({ReferenceSource::Xtal, 10000000})
-	{
+			I2C& i2c0,
+			si5351::Si5351& clock_generator)
+			: i2c0(i2c0),
+				clock_generator(clock_generator),
+				reference({ReferenceSource::Xtal, 10000000}) {
 	}
 
 	void init_clock_generator();
@@ -78,7 +77,7 @@ public:
 
 	void enable_clock_output(bool enable);
 
-private:
+ private:
 	I2C& i2c0;
 	si5351::Si5351& clock_generator;
 	Reference reference;
@@ -99,4 +98,4 @@ private:
 	bool loss_of_signal();
 };
 
-#endif/*__CLOCK_MANAGER_H__*/
+#endif /*__CLOCK_MANAGER_H__*/

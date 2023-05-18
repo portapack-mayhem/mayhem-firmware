@@ -31,7 +31,7 @@
 #include <memory>
 
 class StreamInput {
-public:
+ public:
 	StreamInput(CaptureConfig* const config);
 
 	StreamInput(const StreamInput&) = delete;
@@ -41,18 +41,18 @@ public:
 
 	size_t write(const void* const data, const size_t length);
 
-private:
+ private:
 	static constexpr size_t buffer_count_max_log2 = 3;
 	static constexpr size_t buffer_count_max = 1U << buffer_count_max_log2;
-	
+
 	FIFO<StreamBuffer*> fifo_buffers_empty;
 	FIFO<StreamBuffer*> fifo_buffers_full;
-	std::array<StreamBuffer, buffer_count_max> buffers { };
-	std::array<StreamBuffer*, buffer_count_max> buffers_empty { };
-	std::array<StreamBuffer*, buffer_count_max> buffers_full { };
-	StreamBuffer* active_buffer { nullptr };
-	CaptureConfig* const config { nullptr };
-	std::unique_ptr<uint8_t[]> data { };
+	std::array<StreamBuffer, buffer_count_max> buffers{};
+	std::array<StreamBuffer*, buffer_count_max> buffers_empty{};
+	std::array<StreamBuffer*, buffer_count_max> buffers_full{};
+	StreamBuffer* active_buffer{nullptr};
+	CaptureConfig* const config{nullptr};
+	std::unique_ptr<uint8_t[]> data{};
 };
 
-#endif/*__STREAM_INPUT_H__*/
+#endif /*__STREAM_INPUT_H__*/

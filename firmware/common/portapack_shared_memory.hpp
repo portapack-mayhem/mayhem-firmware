@@ -39,7 +39,7 @@ struct ToneDef {
 	uint32_t delta;
 	uint32_t duration;
 };
-	
+
 struct ToneData {
 	ToneDef tone_defs[32];
 	uint32_t silence;
@@ -51,27 +51,27 @@ struct SharedMemory {
 	static constexpr size_t application_queue_k = 11;
 	static constexpr size_t app_local_queue_k = 11;
 
-	uint8_t application_queue_data[1 << application_queue_k] { 0 };
-	uint8_t app_local_queue_data[1 << app_local_queue_k] { 0 };
-	const Message* volatile baseband_message { nullptr };
-	MessageQueue application_queue { application_queue_data, application_queue_k };
-	MessageQueue app_local_queue { app_local_queue_data, app_local_queue_k };
+	uint8_t application_queue_data[1 << application_queue_k]{0};
+	uint8_t app_local_queue_data[1 << app_local_queue_k]{0};
+	const Message* volatile baseband_message{nullptr};
+	MessageQueue application_queue{application_queue_data, application_queue_k};
+	MessageQueue app_local_queue{app_local_queue_data, app_local_queue_k};
 
-	char m4_panic_msg[32] { 0 };
-	
+	char m4_panic_msg[32]{0};
+
 	union {
 		ToneData tones_data;
 		JammerChannel jammer_channels[24];
 		uint8_t data[512];
-	} bb_data { { { { 0, 0 } }, 0, { 0 } } };
+	} bb_data{{{{0, 0}}, 0, {0}}};
 
-	uint8_t volatile request_m4_performance_counter{ 0 };
-	uint8_t volatile m4_cpu_usage{ 0 };
-	uint16_t volatile m4_stack_usage{ 0 };
-	uint32_t volatile m4_heap_usage{ 0 };
-	uint16_t volatile m4_buffer_missed{ 0 };
+	uint8_t volatile request_m4_performance_counter{0};
+	uint8_t volatile m4_cpu_usage{0};
+	uint16_t volatile m4_stack_usage{0};
+	uint32_t volatile m4_heap_usage{0};
+	uint16_t volatile m4_buffer_missed{0};
 };
 
 extern SharedMemory& shared_memory;
 
-#endif/*__PORTAPACK_SHARED_MEMORY_H__*/
+#endif /*__PORTAPACK_SHARED_MEMORY_H__*/

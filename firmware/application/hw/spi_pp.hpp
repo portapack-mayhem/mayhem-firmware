@@ -28,9 +28,9 @@
 #include "hal.h"
 
 class SPI {
-public:
-	constexpr SPI(SPIDriver* const driver) :
-		_driver(driver) {
+ public:
+	constexpr SPI(SPIDriver* const driver)
+			: _driver(driver) {
 	}
 
 	void start(const SPIConfig& config) {
@@ -49,8 +49,8 @@ public:
 		spiReleaseBus(_driver);
 	}
 
-private:
+ private:
 	SPIDriver* const _driver;
 };
 
-#endif/*__SPI_PP_H__*/
+#endif /*__SPI_PP_H__*/

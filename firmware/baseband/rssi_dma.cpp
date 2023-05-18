@@ -53,41 +53,41 @@ constexpr uint32_t gpdma_dest_peripheral = gpdma_peripheral;
 
 constexpr gpdma::channel::LLIPointer lli_pointer(const void* lli) {
 	return {
-		.lm = gpdma_ahb_master_lli_fetch,
-		.r = 0,
-		.lli = reinterpret_cast<uint32_t>(lli),
+			.lm = gpdma_ahb_master_lli_fetch,
+			.r = 0,
+			.lli = reinterpret_cast<uint32_t>(lli),
 	};
 }
 
 constexpr gpdma::channel::Control control(const size_t number_of_transfers) {
 	return {
-		.transfersize = number_of_transfers,
-		.sbsize = 0,  /* Burst size: 1 transfer */
-		.dbsize = 0,  /* Burst size: 1 transfer */
-		.swidth = 0,  /* Source transfer width: byte (8 bits) */
-		.dwidth = 2,  /* Destination transfer width: word (32 bits) */
-		.s = gpdma_ahb_master_peripheral,
-		.d = gpdma_ahb_master_memory,
-		.si = 0,
-		.di = 1,
-		.prot1 = 0,
-		.prot2 = 0,
-		.prot3 = 0,
-		.i = 1,
+			.transfersize = number_of_transfers,
+			.sbsize = 0, /* Burst size: 1 transfer */
+			.dbsize = 0, /* Burst size: 1 transfer */
+			.swidth = 0, /* Source transfer width: byte (8 bits) */
+			.dwidth = 2, /* Destination transfer width: word (32 bits) */
+			.s = gpdma_ahb_master_peripheral,
+			.d = gpdma_ahb_master_memory,
+			.si = 0,
+			.di = 1,
+			.prot1 = 0,
+			.prot2 = 0,
+			.prot3 = 0,
+			.i = 1,
 	};
 }
 
 constexpr gpdma::channel::Config config() {
 	return {
-		.e = 0,
-		.srcperipheral = gpdma_src_peripheral,
-		.destperipheral = gpdma_dest_peripheral,
-		.flowcntrl = gpdma::FlowControl::PeripheralToMemory_DMAControl,
-		.ie = 1,
-		.itc = 1,
-		.l = 0,
-		.a = 0,
-		.h = 0,
+			.e = 0,
+			.srcperipheral = gpdma_src_peripheral,
+			.destperipheral = gpdma_dest_peripheral,
+			.flowcntrl = gpdma::FlowControl::PeripheralToMemory_DMAControl,
+			.ie = 1,
+			.itc = 1,
+			.l = 0,
+			.a = 0,
+			.h = 0,
 	};
 }
 
@@ -96,10 +96,10 @@ struct buffers_config_t {
 	size_t items_per_buffer;
 };
 
-static buffers_config_t			buffers_config;
+static buffers_config_t buffers_config;
 
-static sample_t				*samples	{ nullptr };
-static gpdma::channel::LLI	*lli		{ nullptr };
+static sample_t* samples{nullptr};
+static gpdma::channel::LLI* lli{nullptr};
 
 static ThreadWait thread_wait;
 
@@ -121,8 +121,8 @@ void init() {
 
 void allocate(size_t buffer_count, size_t items_per_buffer) {
 	buffers_config = {
-		.count = buffer_count,
-		.items_per_buffer = items_per_buffer,
+			.count = buffer_count,
+			.items_per_buffer = items_per_buffer,
 	};
 
 	const auto peripheral = reinterpret_cast<uint32_t>(&LPC_ADC1->DR[portapack::adc1_rssi_input]) + 1;
@@ -131,7 +131,7 @@ void allocate(size_t buffer_count, size_t items_per_buffer) {
 	samples = new sample_t[buffers_config.count * buffers_config.items_per_buffer];
 	lli = new gpdma::channel::LLI[buffers_config.count];
 
-	for(size_t i=0; i<buffers_config.count; i++) {
+	for (size_t i = 0; i < buffers_config.count; i++) {
 		const auto memory = reinterpret_cast<uint32_t>(&samples[i * buffers_config.items_per_buffer]);
 		lli[i].srcaddr = peripheral;
 		lli[i].destaddr = memory;
@@ -162,12 +162,12 @@ void disable() {
 rf::rssi::buffer_t wait_for_buffer() {
 	const auto next_index = thread_wait.sleep();
 
-	if( next_index >= 0 ) {
+	if (next_index >= 0) {
 		const size_t free_index = (next_index + buffers_config.count - 2) % buffers_config.count;
-		return { reinterpret_cast<sample_t*>(lli[free_index].destaddr), buffers_config.items_per_buffer };
+		return {reinterpret_cast<sample_t*>(lli[free_index].destaddr), buffers_config.items_per_buffer};
 	} else {
 		// TODO: Should I return here, or loop if RDY_RESET?
-		return { nullptr, 0 };
+		return {nullptr, 0};
 	}
 }
 

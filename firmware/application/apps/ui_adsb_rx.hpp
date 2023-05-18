@@ -40,106 +40,105 @@ using namespace adsb;
 
 namespace ui {
 
-#define ADSB_CURRENT 		10		// Seconds
-#define ADSB_RECENT 		30		// Seconds
-#define ADSB_REMOVE 		300		// Used for removing old entries
+#define ADSB_CURRENT 10	 // Seconds
+#define ADSB_RECENT 30	 // Seconds
+#define ADSB_REMOVE 300	 // Used for removing old entries
 
-#define AIRCRAFT_ID_L		1		// aircraft ID message type (lowest type id)
-#define AIRCRAFT_ID_H		4		// aircraft ID message type (highest type id)
+#define AIRCRAFT_ID_L 1	 // aircraft ID message type (lowest type id)
+#define AIRCRAFT_ID_H 4	 // aircraft ID message type (highest type id)
 
-#define SURFACE_POS_L		5		// surface position (lowest type id)
-#define SURFACE_POS_H		8		// surface position (highest type id)
+#define SURFACE_POS_L 5	 // surface position (lowest type id)
+#define SURFACE_POS_H 8	 // surface position (highest type id)
 
-#define AIRBORNE_POS_BARO_L	9		// airborne position (lowest type id)
-#define AIRBORNE_POS_BARO_H	18		// airborne position (highest type id)
+#define AIRBORNE_POS_BARO_L 9		// airborne position (lowest type id)
+#define AIRBORNE_POS_BARO_H 18	// airborne position (highest type id)
 
-#define AIRBORNE_VEL		19		// airborne velocities
+#define AIRBORNE_VEL 19	 // airborne velocities
 
-#define AIRBORNE_POS_GPS_L	20		// airborne position (lowest type id)
-#define AIRBORNE_POS_GPS_H	22		// airborne position (highest type id)
+#define AIRBORNE_POS_GPS_L 20	 // airborne position (lowest type id)
+#define AIRBORNE_POS_GPS_H 22	 // airborne position (highest type id)
 
-#define RESERVED_L			23		// reserved for other uses
-#define RESERVED_H			31		// reserved for other uses
+#define RESERVED_L 23	 // reserved for other uses
+#define RESERVED_H 31	 // reserved for other uses
 
-#define VEL_GND_SUBSONIC		1
-#define VEL_GND_SUPERSONIC		2
-#define VEL_AIR_SUBSONIC		3
-#define VEL_AIR_SUPERSONIC		4
+#define VEL_GND_SUBSONIC 1
+#define VEL_GND_SUPERSONIC 2
+#define VEL_AIR_SUBSONIC 3
+#define VEL_AIR_SUPERSONIC 4
 
-#define O_E_FRAME_TIMEOUT		20	// timeout between odd and even frames
+#define O_E_FRAME_TIMEOUT 20	// timeout between odd and even frames
 
 struct AircraftRecentEntry {
 	using Key = uint32_t;
-	
+
 	static constexpr Key invalid_key = 0xffffffff;
-	
-	uint32_t ICAO_address { };
-	uint16_t hits { 0 };
-	
-	uint16_t age_state { 1 };
-	uint32_t age { 0 };
-	uint32_t amp { 0 };
-	adsb_pos pos { false, 0, 0, 0 };
-	adsb_vel velo { false, 0, 999, 0 };
-	ADSBFrame frame_pos_even { };
-	ADSBFrame frame_pos_odd { };
-	
-	std::string icaoStr {"      "};
-	std::string callsign { "        " };
-	std::string info_string { "" };
-	
+
+	uint32_t ICAO_address{};
+	uint16_t hits{0};
+
+	uint16_t age_state{1};
+	uint32_t age{0};
+	uint32_t amp{0};
+	adsb_pos pos{false, 0, 0, 0};
+	adsb_vel velo{false, 0, 999, 0};
+	ADSBFrame frame_pos_even{};
+	ADSBFrame frame_pos_odd{};
+
+	std::string icaoStr{"      "};
+	std::string callsign{"        "};
+	std::string info_string{""};
+
 	AircraftRecentEntry(
-		const uint32_t ICAO_address
-	) : ICAO_address { ICAO_address }
-	{
-		this->icaoStr = to_string_hex(ICAO_address, 6); 
+			const uint32_t ICAO_address)
+			: ICAO_address{ICAO_address} {
+		this->icaoStr = to_string_hex(ICAO_address, 6);
 	}
 
 	Key key() const {
 		return ICAO_address;
 	}
-	
+
 	void set_callsign(std::string& new_callsign) {
 		callsign = new_callsign;
 	}
-	
+
 	void inc_hit() {
 		hits++;
 	}
-	
+
 	void set_frame_pos(ADSBFrame& frame, uint32_t parity) {
 		if (!parity)
 			frame_pos_even = frame;
 		else
 			frame_pos_odd = frame;
-		
+
 		if (!frame_pos_even.empty() && !frame_pos_odd.empty()) {
 			if (abs(frame_pos_even.get_rx_timestamp() - frame_pos_odd.get_rx_timestamp()) < O_E_FRAME_TIMEOUT)
 				pos = decode_frame_pos(frame_pos_even, frame_pos_odd);
 		}
 	}
 
-	void set_frame_velo(ADSBFrame& frame){
+	void set_frame_velo(ADSBFrame& frame) {
 		velo = decode_frame_velo(frame);
 	}
-	
+
 	void set_info_string(std::string& new_info_string) {
 		info_string = new_info_string;
 	}
-	
+
 	void reset_age() {
 		age = 0;
 	}
-	
+
 	void inc_age(int delta) {
-		age+=delta;
-		if (age < ADSB_CURRENT){
+		age += delta;
+		if (age < ADSB_CURRENT) {
 			age_state = pos.valid ? 0 : 1;
-		} else if(age < ADSB_RECENT){
+		} else if (age < ADSB_RECENT) {
 			age_state = 2;
-		} else if(age < ADSB_REMOVE){
+		} else if (age < ADSB_REMOVE) {
 			age_state = 3;
-		} else{
+		} else {
 			age_state = 4;
 		}
 	}
@@ -148,19 +147,18 @@ struct AircraftRecentEntry {
 using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
 
 class ADSBLogger {
-public:
+ public:
 	Optional<File::Error> append(const std::filesystem::path& filename) {
 		return log_file.append(filename);
 	}
 	void log_str(std::string& logline);
 
-private:
-	LogFile log_file { };
+ private:
+	LogFile log_file{};
 };
 
-
 class ADSBRxAircraftDetailsView : public View {
-public:
+ public:
 	ADSBRxAircraftDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
 	~ADSBRxAircraftDetailsView();
 
@@ -168,91 +166,79 @@ public:
 	ADSBRxAircraftDetailsView(ADSBRxAircraftDetailsView&&) = delete;
 	ADSBRxAircraftDetailsView& operator=(const ADSBRxAircraftDetailsView&) = delete;
 	ADSBRxAircraftDetailsView& operator=(ADSBRxAircraftDetailsView&&) = delete;
-	
+
 	void focus() override;
-	
+
 	void update(const AircraftRecentEntry& entry);
-	
+
 	std::string title() const override { return "AC Details"; };
 
 	AircraftRecentEntry get_current_entry() { return entry_copy; }
 
 	std::database::AircraftDBRecord aircraft_record = {};
-	
-private:
-	AircraftRecentEntry 		entry_copy { 0 };
-	std::function<void(void)> 	on_close_ { };
-	bool 				send_updates { false };
-	std::database 			db = { };
-	std::string 			icao_code = "";
-	int 				return_code = 0;
 
-	Labels labels {
-	        { { 0 * 8, 1 * 16 }, "ICAO:", Color::light_grey() },
-		{ { 0 * 8, 2 * 16 }, "Registration:", Color::light_grey() },
-		{ { 0 * 8, 3 * 16 }, "Manufacturer:", Color::light_grey() },
-		{ { 0 * 8, 5 * 16 }, "Model:", Color::light_grey() },
-		{ { 0 * 8, 7 * 16 }, "Type:", Color::light_grey() },
-		{ { 0 * 8, 8 * 16 }, "Number of engines:", Color::light_grey() },
-		{ { 0 * 8, 9 * 16 }, "Engine type:", Color::light_grey() },
-                { { 0 * 8, 11 * 16 }, "Owner:", Color::light_grey() },
-                { { 0 * 8, 13 * 16 }, "Operator:", Color::light_grey() }
-	};
-	
-        Text text_icao_address {
-		{ 5 * 8, 1 * 16, 6 * 8, 16},
-		"-"	
-        };
+ private:
+	AircraftRecentEntry entry_copy{0};
+	std::function<void(void)> on_close_{};
+	bool send_updates{false};
+	std::database db = {};
+	std::string icao_code = "";
+	int return_code = 0;
 
-	Text text_registration {
-		{ 13 * 8, 2 * 16, 8 * 8, 16 },
-		"-"
-	};
-	
-	Text text_manufacturer {
-		{ 0 * 8, 4 * 16, 19 * 8, 16 },
-		"-"
-	};
-	
-	Text text_model {
-		{ 0 * 8, 6 * 16, 30 * 8, 16 },
-		"-"
-	};
-	
-	Text text_type {
-		{ 5 * 8, 7 * 16, 22 * 8, 16 },
-		"-"
-	};
-	
-	Text text_number_of_engines {
-		{ 18 * 8, 8 * 16, 30 * 8, 16 },
-		"-"
-	};
+	Labels labels{
+			{{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
+			{{0 * 8, 2 * 16}, "Registration:", Color::light_grey()},
+			{{0 * 8, 3 * 16}, "Manufacturer:", Color::light_grey()},
+			{{0 * 8, 5 * 16}, "Model:", Color::light_grey()},
+			{{0 * 8, 7 * 16}, "Type:", Color::light_grey()},
+			{{0 * 8, 8 * 16}, "Number of engines:", Color::light_grey()},
+			{{0 * 8, 9 * 16}, "Engine type:", Color::light_grey()},
+			{{0 * 8, 11 * 16}, "Owner:", Color::light_grey()},
+			{{0 * 8, 13 * 16}, "Operator:", Color::light_grey()}};
 
-	Text text_engine_type {
-		{ 0 * 8, 10 * 16, 30 * 8, 16},
-		"-"
-	};
+	Text text_icao_address{
+			{5 * 8, 1 * 16, 6 * 8, 16},
+			"-"};
 
-	Text text_owner {
-		{ 0 * 8, 12 * 16, 30 * 8, 16 },
-		"-"
-	};
+	Text text_registration{
+			{13 * 8, 2 * 16, 8 * 8, 16},
+			"-"};
 
-	Text text_operator {
-		{ 0 * 8, 14 * 16, 30 * 8, 16 },
-		"-"
-	};
+	Text text_manufacturer{
+			{0 * 8, 4 * 16, 19 * 8, 16},
+			"-"};
 
-	Button button_close {
-		{ 9 * 8, 16 * 16, 12 * 8, 3 * 16 },
-		"Back"
-	};
+	Text text_model{
+			{0 * 8, 6 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_type{
+			{5 * 8, 7 * 16, 22 * 8, 16},
+			"-"};
+
+	Text text_number_of_engines{
+			{18 * 8, 8 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_engine_type{
+			{0 * 8, 10 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_owner{
+			{0 * 8, 12 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_operator{
+			{0 * 8, 14 * 16, 30 * 8, 16},
+			"-"};
+
+	Button button_close{
+			{9 * 8, 16 * 16, 12 * 8, 3 * 16},
+			"Back"};
 };
 
-
 class ADSBRxDetailsView : public View {
-public:
+ public:
 	ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
 	~ADSBRxDetailsView();
 
@@ -260,171 +246,151 @@ public:
 	ADSBRxDetailsView(ADSBRxDetailsView&&) = delete;
 	ADSBRxDetailsView& operator=(const ADSBRxDetailsView&) = delete;
 	ADSBRxDetailsView& operator=(ADSBRxDetailsView&&) = delete;
-	
+
 	void focus() override;
-	
+
 	void update(const AircraftRecentEntry& entry);
-	
+
 	std::string title() const override { return "Details"; };
 
 	AircraftRecentEntry get_current_entry() { return entry_copy; }
 
-
 	std::database::AirlinesDBRecord airline_record = {};
-	
-	GeoMapView* geomap_view { nullptr };
-private:
-	AircraftRecentEntry 		entry_copy { 0 };
-	std::function<void(void)> 	on_close_ { };
-	ADSBRxAircraftDetailsView* 	aircraft_details_view { nullptr };
-	bool 				send_updates { false };
-	std::database 			db = { };	
-	std::string 			airline_code = "";
-	int 				return_code = 0;
-	
-	Labels labels {
-	        { { 0 * 8, 1 * 16 }, "ICAO:", Color::light_grey() },
-		{ { 13 * 8, 1 * 16 }, "Callsign:", Color::light_grey() },
-		{ { 0 * 8, 2 * 16 }, "Last seen:", Color::light_grey() },
-		{ { 0 * 8, 3 * 16 }, "Airline:", Color::light_grey() },
-		{ { 0 * 8, 5 * 16 }, "Country:", Color::light_grey() },
-		{ { 0 * 8, 13 * 16 }, "Even position frame:", Color::light_grey() },
-		{ { 0 * 8, 15 * 16 }, "Odd position frame:", Color::light_grey() }
-	};
-	
-        Text text_icao_address {
-		{ 5 * 8, 1 * 16, 6 * 8, 16},
-		"-"	
-        };
 
-	Text text_callsign {
-		{ 22 * 8, 1 * 16, 8 * 8, 16 },
-		"-"
-	};
-	
-	Text text_last_seen {
-		{ 11 * 8, 2 * 16, 19 * 8, 16 },
-		"-"
-	};
-	
-	Text text_airline {
-		{ 0 * 8, 4 * 16, 30 * 8, 16 },
-		"-"
-	};
-	
-	Text text_country {
-		{ 8 * 8, 5 * 16, 22 * 8, 16 },
-		"-"
-	};
-	
-	Text text_infos {
-		{ 0 * 8, 6 * 16, 30 * 8, 16 },
-		"-"
-	};
+	GeoMapView* geomap_view{nullptr};
 
-	Text text_info2 {
-		{0*8, 7*16, 30*8, 16},
-		"-"
-	};
+ private:
+	AircraftRecentEntry entry_copy{0};
+	std::function<void(void)> on_close_{};
+	ADSBRxAircraftDetailsView* aircraft_details_view{nullptr};
+	bool send_updates{false};
+	std::database db = {};
+	std::string airline_code = "";
+	int return_code = 0;
 
-	Text text_frame_pos_even {
-		{ 0 * 8, 14 * 16, 30 * 8, 16 },
-		"-"
-	};
-	Text text_frame_pos_odd {
-		{ 0 * 8, 16 * 16, 30 * 8, 16 },
-		"-"
-	};
-	
-	Button button_aircraft_details {
-		{ 2 * 8, 9 * 16, 12 * 8, 3 * 16 },
-		"A/C details" 
-	};		
+	Labels labels{
+			{{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
+			{{13 * 8, 1 * 16}, "Callsign:", Color::light_grey()},
+			{{0 * 8, 2 * 16}, "Last seen:", Color::light_grey()},
+			{{0 * 8, 3 * 16}, "Airline:", Color::light_grey()},
+			{{0 * 8, 5 * 16}, "Country:", Color::light_grey()},
+			{{0 * 8, 13 * 16}, "Even position frame:", Color::light_grey()},
+			{{0 * 8, 15 * 16}, "Odd position frame:", Color::light_grey()}};
 
-	Button button_see_map {
-		{ 16 * 8, 9 * 16, 12 * 8, 3 * 16 },
-		"See on map"
-	};
+	Text text_icao_address{
+			{5 * 8, 1 * 16, 6 * 8, 16},
+			"-"};
+
+	Text text_callsign{
+			{22 * 8, 1 * 16, 8 * 8, 16},
+			"-"};
+
+	Text text_last_seen{
+			{11 * 8, 2 * 16, 19 * 8, 16},
+			"-"};
+
+	Text text_airline{
+			{0 * 8, 4 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_country{
+			{8 * 8, 5 * 16, 22 * 8, 16},
+			"-"};
+
+	Text text_infos{
+			{0 * 8, 6 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_info2{
+			{0 * 8, 7 * 16, 30 * 8, 16},
+			"-"};
+
+	Text text_frame_pos_even{
+			{0 * 8, 14 * 16, 30 * 8, 16},
+			"-"};
+	Text text_frame_pos_odd{
+			{0 * 8, 16 * 16, 30 * 8, 16},
+			"-"};
+
+	Button button_aircraft_details{
+			{2 * 8, 9 * 16, 12 * 8, 3 * 16},
+			"A/C details"};
+
+	Button button_see_map{
+			{16 * 8, 9 * 16, 12 * 8, 3 * 16},
+			"See on map"};
 };
 
-	
 class ADSBRxView : public View {
-public:
+ public:
 	ADSBRxView(NavigationView& nav);
 	~ADSBRxView();
-	
+
 	ADSBRxView(const ADSBRxView&) = delete;
 	ADSBRxView(ADSBRxView&&) = delete;
 	ADSBRxView& operator=(const ADSBRxView&) = delete;
 	ADSBRxView& operator=(ADSBRxView&&) = delete;
-	
+
 	void focus() override;
-	
+
 	std::string title() const override { return "ADS-B RX"; };
 
-	void replace_entry(AircraftRecentEntry & entry);
+	void replace_entry(AircraftRecentEntry& entry);
 	void remove_old_entries();
 	AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
 	void sort_entries_by_state();
 
-private:
-	rf::Frequency prevFreq = { 0 };
-	std::unique_ptr<ADSBLogger> logger { };
-	void on_frame(const ADSBFrameMessage * message);
+ private:
+	rf::Frequency prevFreq = {0};
+	std::unique_ptr<ADSBLogger> logger{};
+	void on_frame(const ADSBFrameMessage* message);
 	void on_tick_second();
-	int updateState = { 0 };
+	int updateState = {0};
 	void updateRecentEntries();
 	void updateDetailsAndMap(int ageStep);
 
-	#define MARKER_UPDATE_SECONDS (5)
-	int ticksSinceMarkerRefresh { MARKER_UPDATE_SECONDS-1 };
+#define MARKER_UPDATE_SECONDS (5)
+	int ticksSinceMarkerRefresh{MARKER_UPDATE_SECONDS - 1};
 	// app save settings
-	std::app_settings 		settings { }; 		
-	std::app_settings::AppSettings 	app_settings { };
-	
-	const RecentEntriesColumns columns { {
-		{ "ICAO/Call", 9 },
-		{ "Lvl", 3 },
-		{ "Spd", 3 },
-		{ "Amp", 3 },
-		{ "Hit", 3 },
-		{ "Age", 4 }
-	} };
-	AircraftRecentEntries recent { };
-	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view { columns, recent };
-	
-	SignalToken signal_token_tick_second { };
-	ADSBRxDetailsView* details_view { nullptr };
-	uint32_t detailed_entry_key { 0 };
-	bool send_updates { false };
-	
-	Labels labels {
-		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   AMP:", Color::light_grey() }
-	};
-	
-	LNAGainField field_lna {
-		{ 4 * 8, 0 * 16 }
+	std::app_settings settings{};
+	std::app_settings::AppSettings app_settings{};
+
+	const RecentEntriesColumns columns{{{"ICAO/Call", 9},
+																			{"Lvl", 3},
+																			{"Spd", 3},
+																			{"Amp", 3},
+																			{"Hit", 3},
+																			{"Age", 4}}};
+	AircraftRecentEntries recent{};
+	RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view{columns, recent};
+
+	SignalToken signal_token_tick_second{};
+	ADSBRxDetailsView* details_view{nullptr};
+	uint32_t detailed_entry_key{0};
+	bool send_updates{false};
+
+	Labels labels{
+			{{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
+
+	LNAGainField field_lna{
+			{4 * 8, 0 * 16}};
+
+	VGAGainField field_vga{
+			{11 * 8, 0 * 16}};
+
+	RFAmpField field_rf_amp{
+			{18 * 8, 0 * 16}};
+
+	RSSI rssi{
+			{20 * 8, 4, 10 * 8, 8},
 	};
 
-	VGAGainField field_vga {
-		{ 11 * 8, 0 * 16 }
-	};
-	
-	RFAmpField field_rf_amp {
-		{ 18 * 8, 0 * 16 }
-	};
-	
-	RSSI rssi {
-		{ 20 * 8, 4, 10 * 8, 8 },
-	};
-	
-	MessageHandlerRegistration message_handler_frame {
-		Message::ID::ADSBFrame,
-		[this](Message* const p) {
-			const auto message = static_cast<const ADSBFrameMessage*>(p);
-			this->on_frame(message);
-		}
-	};
+	MessageHandlerRegistration message_handler_frame{
+			Message::ID::ADSBFrame,
+			[this](Message* const p) {
+				const auto message = static_cast<const ADSBFrameMessage*>(p);
+				this->on_frame(message);
+			}};
 };
 
 } /* namespace ui */

@@ -40,18 +40,18 @@ using GPIOs = std::array<GPIO, 11>;
 /* TODO: ARM GCC 4.8 2014q3 doesn't like this array inside struct Config.
  * No idea why.
  */
-constexpr GPIOs gpios {
-	gpio_mix_bypass,
-	gpio_not_mix_bypass,
-	gpio_tx_mix_bp,
-	gpio_rx_mix_bp,
-	gpio_hp,
-	gpio_lp,
-	gpio_amp_bypass,
-	gpio_tx_amp,
-	gpio_not_tx_amp_pwr,
-	gpio_rx_amp,
-	gpio_not_rx_amp_pwr,
+constexpr GPIOs gpios{
+		gpio_mix_bypass,
+		gpio_not_mix_bypass,
+		gpio_tx_mix_bp,
+		gpio_rx_mix_bp,
+		gpio_hp,
+		gpio_lp,
+		gpio_amp_bypass,
+		gpio_tx_amp,
+		gpio_not_tx_amp_pwr,
+		gpio_rx_amp,
+		gpio_not_rx_amp_pwr,
 };
 
 struct Config {
@@ -59,53 +59,49 @@ struct Config {
 
 	union {
 		struct {
-			bool tx				: 1;
-			bool rx				: 1;
-			bool mix_bypass		: 1;
-			bool not_mix_bypass	: 1;
-			bool tx_mix_bp		: 1;
-			bool rx_mix_bp		: 1;
-			bool hp				: 1;
-			bool lp 			: 1;
-			bool amp_bypass		: 1;
-			bool tx_amp			: 1;
-			bool not_tx_amp		: 1;
-			bool rx_amp			: 1;
-			bool not_rx_amp		: 1;
+			bool tx : 1;
+			bool rx : 1;
+			bool mix_bypass : 1;
+			bool not_mix_bypass : 1;
+			bool tx_mix_bp : 1;
+			bool rx_mix_bp : 1;
+			bool hp : 1;
+			bool lp : 1;
+			bool amp_bypass : 1;
+			bool tx_amp : 1;
+			bool not_tx_amp : 1;
+			bool rx_amp : 1;
+			bool not_rx_amp : 1;
 		};
 		base_type w;
 	};
 
 	constexpr Config(
-		const Direction direction,
-		const Band band,
-		const bool amplify
-	) :
-		tx(direction == Direction::Transmit),
-		rx(direction == Direction::Receive),
-		mix_bypass(band == Band::Mid),
-		not_mix_bypass(band != Band::Mid),
-		tx_mix_bp((direction == Direction::Transmit) && (band == Band::Mid)),
-		rx_mix_bp((direction == Direction::Receive) && (band == Band::Mid)),
-		hp(band == Band::High),
-		lp(band == Band::Low),
-		amp_bypass(!amplify),
-		tx_amp((direction == Direction::Transmit) && amplify),
-		not_tx_amp(!tx_amp),
-		rx_amp((direction == Direction::Receive) && amplify),
-		not_rx_amp(!rx_amp)
-	{
+			const Direction direction,
+			const Band band,
+			const bool amplify)
+			: tx(direction == Direction::Transmit),
+				rx(direction == Direction::Receive),
+				mix_bypass(band == Band::Mid),
+				not_mix_bypass(band != Band::Mid),
+				tx_mix_bp((direction == Direction::Transmit) && (band == Band::Mid)),
+				rx_mix_bp((direction == Direction::Receive) && (band == Band::Mid)),
+				hp(band == Band::High),
+				lp(band == Band::Low),
+				amp_bypass(!amplify),
+				tx_amp((direction == Direction::Transmit) && amplify),
+				not_tx_amp(!tx_amp),
+				rx_amp((direction == Direction::Receive) && amplify),
+				not_rx_amp(!rx_amp) {
+	}
+
+	constexpr Config()
+			: Config(Direction::Receive, Band::Mid, false) {
 	}
 
 	constexpr Config(
-	) : Config(Direction::Receive, Band::Mid, false)
-	{
-	}
-
-	constexpr Config(
-		const base_type w
-	) : w(w)
-	{
+			const base_type w)
+			: w(w) {
 	}
 
 	constexpr Config operator^(const Config& r) const {
@@ -163,29 +159,27 @@ using ConfigDirection = std::array<ConfigAmp, 2>;
 using ConfigBand = std::array<ConfigDirection, 3>;
 
 constexpr ConfigAmp config_amp(
-	const Direction direction,
-	const Band band
-) {
-	return { {
-		{ .direction = direction, .band = band, .amplify = false },
-		{ .direction = direction, .band = band, .amplify = true  },
-	} };
+		const Direction direction,
+		const Band band) {
+	return {{
+			{.direction = direction, .band = band, .amplify = false},
+			{.direction = direction, .band = band, .amplify = true},
+	}};
 }
 
 constexpr ConfigDirection config_rx_tx(
-	const Band band
-) {
+		const Band band) {
 	return {
-		config_amp(Direction::Receive, band),
-		config_amp(Direction::Transmit, band),
+			config_amp(Direction::Receive, band),
+			config_amp(Direction::Transmit, band),
 	};
 }
 
 constexpr ConfigBand config_band() {
 	return {
-		config_rx_tx(Band::Low),
-		config_rx_tx(Band::Mid),
-		config_rx_tx(Band::High),
+			config_rx_tx(Band::Low),
+			config_rx_tx(Band::Mid),
+			config_rx_tx(Band::High),
 	};
 }
 
@@ -194,10 +188,9 @@ constexpr ConfigBand config_table = config_band();
 static_assert(sizeof(config_table) == sizeof(Config::base_type) * 3 * 2 * 2, "rf path config table unexpected size");
 
 constexpr Config get_config(
-	const Direction direction,
-	const Band band,
-	const bool amplify
-) {
+		const Direction direction,
+		const Band band,
+		const bool amplify) {
 	return config_table[toUType(band)][toUType(direction)][amplify ? 1 : 0];
 }
 
@@ -243,5 +236,5 @@ void Path::update() {
 	config.apply();
 }
 
-} /* path */
-} /* rf */
+}	 // namespace path
+}	 // namespace rf

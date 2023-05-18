@@ -33,16 +33,16 @@ using namespace acars;
 
 void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequency) {
 	(void)frequency;
-	std::string entry { };	//= "Raw: F:" + to_string_dec_uint(frequency) + "Hz ";
+	std::string entry{};	//= "Raw: F:" + to_string_dec_uint(frequency) + "Hz ";
 	entry.reserve(256);
-	
+
 	// Raw hex dump of all the bytes
 	//for (size_t c = 0; c < packet.length(); c += 32)
 	//	entry += to_string_hex(packet.read(c, 32), 8) + " ";
-	
+
 	for (size_t c = 0; c < 256; c += 32)
 		entry += to_string_bin(packet.read(c, 32), 32);
-	
+
 	log_file.write_entry(packet.received_at(), entry);
 }
 
@@ -57,27 +57,25 @@ namespace ui {
 
 void ACARSAppView::update_freq(rf::Frequency f) {
 	set_target_frequency(f);
-	portapack::persistent_memory::set_tuned_frequency(f);	// Maybe not ?
+	portapack::persistent_memory::set_tuned_frequency(f);	 // Maybe not ?
 }
 
 ACARSAppView::ACARSAppView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_acars);
 
-	add_children({
-		&rssi,
-		&channel,
-		&field_rf_amp,
-		&field_lna,
-		&field_vga,
-		&field_frequency,
-		&check_log,
-		&console
-	});
-	
+	add_children({&rssi,
+								&channel,
+								&field_rf_amp,
+								&field_lna,
+								&field_vga,
+								&field_frequency,
+								&check_log,
+								&console});
+
 	receiver_model.set_sampling_rate(2457600);
 	receiver_model.set_baseband_bandwidth(1750000);
 	receiver_model.enable();
-	
+
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	update_freq(receiver_model.tuning_frequency());
 	field_frequency.set_step(receiver_model.frequency_step());
@@ -92,12 +90,12 @@ ACARSAppView::ACARSAppView(NavigationView& nav) {
 			field_frequency.set_value(f);
 		};
 	};
-	
+
 	check_log.set_value(logging);
 	check_log.on_select = [this](Checkbox&, bool v) {
 		logging = v;
 	};
-	
+
 	logger = std::make_unique<ACARSLogger>();
 	if (logger)
 		logger->append(LOG_ROOT_DIR "/ACARS.TXT");
@@ -114,7 +112,7 @@ void ACARSAppView::focus() {
 
 void ACARSAppView::on_packet(const acars::Packet& packet) {
 	std::string console_info;
-	
+
 	/*if (!packet.is_valid()) {
 		console_info = to_string_datetime(packet.received_at(), HMS);
 		console_info += " INVALID";
@@ -127,11 +125,11 @@ void ACARSAppView::on_packet(const acars::Packet& packet) {
 		
 		console.writeln(console_info);
 	}*/
-	
+
 	packet_counter++;
 	if (packet_counter % 10 == 0)
 		console.writeln("Block #" + to_string_dec_uint(packet_counter));
-	
+
 	// Log raw data whatever it contains
 	if (logger && logging)
 		logger->log_raw_data(packet, target_frequency());

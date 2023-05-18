@@ -37,7 +37,7 @@ void CPLD::bypass() {
 void CPLD::sample() {
 	shift_ir(instruction_t::SAMPLE);
 	jtag.runtest_tck(93);
-	for(size_t i=0; i<80; i++) {
+	for (size_t i = 0; i < 80; i++) {
 		jtag.shift_dr(3, 0b111);
 	}
 }
@@ -60,12 +60,12 @@ void CPLD::clamp() {
 
 void CPLD::enable() {
 	shift_ir(instruction_t::ISC_ENABLE);
-	jtag.runtest_tck(18003);		// 1ms
+	jtag.runtest_tck(18003);	// 1ms
 }
 
 void CPLD::disable() {
 	shift_ir(instruction_t::ISC_DISABLE);
-	jtag.runtest_tck(18003);		// 1ms
+	jtag.runtest_tck(18003);	// 1ms
 }
 
 /* Sector erase:
@@ -82,9 +82,8 @@ void CPLD::bulk_erase() {
 }
 
 bool CPLD::program(
-	const std::array<uint16_t, 3328>& block_0,
-	const std::array<uint16_t, 512>& block_1
-) {
+		const std::array<uint16_t, 3328>& block_0,
+		const std::array<uint16_t, 512>& block_1) {
 	bulk_erase();
 
 	/* Program:
@@ -99,7 +98,7 @@ bool CPLD::program(
 
 	const auto verify_ok = verify(block_0, block_1);
 
-	if( verify_ok ) {
+	if (verify_ok) {
 		/* Do "something". Not sure what, but it happens after verify. */
 		/* Starts with a sequence the same as Program: Block 0. */
 		/* Perhaps it is a write to tell the CPLD that the bitstream
@@ -108,27 +107,26 @@ bool CPLD::program(
 		 * length (64 bits)? */
 		sector_select(0x0000);
 		shift_ir(instruction_t::ISC_PROGRAM);
-		jtag.runtest_tck(93);		// 5 us
+		jtag.runtest_tck(93);	 // 5 us
 
 		/* TODO: Use data from cpld_block_0, with appropriate bit(s) changed */
 		/* Perhaps this is the "ISP_DONE" bit? */
 		jtag.shift_dr(16, block_0[0] & 0xfbff);
-		jtag.runtest_tck(1800);		// 100us
+		jtag.runtest_tck(1800);	 // 100us
 		jtag.shift_dr(16, block_0[1]);
-		jtag.runtest_tck(1800);		// 100us
+		jtag.runtest_tck(1800);	 // 100us
 		jtag.shift_dr(16, block_0[2]);
-		jtag.runtest_tck(1800);		// 100us
+		jtag.runtest_tck(1800);	 // 100us
 		jtag.shift_dr(16, block_0[3]);
-		jtag.runtest_tck(1800);		// 100us
+		jtag.runtest_tck(1800);	 // 100us
 	}
 
 	return verify_ok;
 }
 
 bool CPLD::verify(
-	const std::array<uint16_t, 3328>& block_0,
-	const std::array<uint16_t, 512>& block_1
-) {
+		const std::array<uint16_t, 3328>& block_0,
+		const std::array<uint16_t, 512>& block_1) {
 	/* Verify */
 	const auto block_0_success = verify_block(0x0000, block_0);
 	const auto block_1_success = verify_block(0x0001, block_1);
@@ -136,16 +134,16 @@ bool CPLD::verify(
 }
 
 uint32_t CPLD::crc() {
-	crc_t crc { 0x04c11db7, 0xffffffff, 0xffffffff };
+	crc_t crc{0x04c11db7, 0xffffffff, 0xffffffff};
 	block_crc(0, 3328, crc);
-	block_crc(1,  512, crc);
+	block_crc(1, 512, crc);
 	return crc.checksum();
 }
 
 void CPLD::sector_select(const uint16_t id) {
 	shift_ir(instruction_t::ISC_ADDRESS_SHIFT);
 	jtag.runtest_tck(93);		// 5us
-	jtag.shift_dr(13, id);		// Sector ID
+	jtag.shift_dr(13, id);	// Sector ID
 }
 
 bool CPLD::idcode_ok() {
@@ -157,7 +155,7 @@ bool CPLD::idcode_ok() {
 std::array<uint16_t, 5> CPLD::read_silicon_id() {
 	sector_select(0x0089);
 	shift_ir(instruction_t::ISC_READ);
-	jtag.runtest_tck(93);		// 5us
+	jtag.runtest_tck(93);	 // 5us
 
 	std::array<uint16_t, 5> silicon_id;
 	silicon_id[0] = jtag.shift_dr(16, 0xffff);
@@ -177,17 +175,16 @@ bool CPLD::silicon_id_ok() {
 	const auto silicon_id = read_silicon_id();
 
 	return (
-		(silicon_id[0] == 0x8232) &&
-		(silicon_id[1] == 0x2aa2) &&
-		(silicon_id[2] == 0x4a82) &&
-		(silicon_id[3] == 0x8c0c) &&
-		(silicon_id[4] == 0x0000)
-	);
+			(silicon_id[0] == 0x8232) &&
+			(silicon_id[1] == 0x2aa2) &&
+			(silicon_id[2] == 0x4a82) &&
+			(silicon_id[3] == 0x8c0c) &&
+			(silicon_id[4] == 0x0000));
 }
 
 uint32_t CPLD::usercode() {
 	shift_ir(instruction_t::USERCODE);
-	jtag.runtest_tck(93);	// 5us
+	jtag.runtest_tck(93);	 // 5us
 	return jtag.shift_dr(32, 0xffffffff);
 }
 
@@ -198,36 +195,34 @@ void CPLD::erase_sector(const uint16_t id) {
 }
 
 void CPLD::program_block(
-	const uint16_t id,
-	const uint16_t* const data,
-	const size_t count
-) {
+		const uint16_t id,
+		const uint16_t* const data,
+		const size_t count) {
 	sector_select(id);
 	shift_ir(instruction_t::ISC_PROGRAM);
-	jtag.runtest_tck(93);		// 5us
+	jtag.runtest_tck(93);	 // 5us
 
-	for(size_t i=0; i<count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		jtag.shift_dr(16, data[i]);
 		jtag.runtest_tck(1800);
 	}
 }
 
 bool CPLD::verify_block(
-	const uint16_t id,
-	const uint16_t* const data,
-	const size_t count
-) {
+		const uint16_t id,
+		const uint16_t* const data,
+		const size_t count) {
 	sector_select(id);
 	shift_ir(instruction_t::ISC_READ);
-	jtag.runtest_tck(93);		// 5us
+	jtag.runtest_tck(93);	 // 5us
 
 	bool success = true;
-	for(size_t i=0; i<count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		const auto from_device = jtag.shift_dr(16, 0xffff);
-		if( from_device != data[i] ) {
-			if( (id == 0) && (i == 0) ) {
+		if (from_device != data[i]) {
+			if ((id == 0) && (i == 0)) {
 				// Account for bit that indicates bitstream is valid.
-				if( (from_device & 0xfbff) != (data[i] & 0xfbff) ) {
+				if ((from_device & 0xfbff) != (data[i] & 0xfbff)) {
 					success = false;
 				}
 			} else {
@@ -241,12 +236,12 @@ bool CPLD::verify_block(
 bool CPLD::is_blank_block(const uint16_t id, const size_t count) {
 	sector_select(id);
 	shift_ir(instruction_t::ISC_READ);
-	jtag.runtest_tck(93);		// 5us
+	jtag.runtest_tck(93);	 // 5us
 
 	bool success = true;
-	for(size_t i=0; i<count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		const auto from_device = jtag.shift_dr(16, 0xffff);
-		if( from_device != 0xffff ) {
+		if (from_device != 0xffff) {
 			success = false;
 		}
 	}
@@ -256,9 +251,9 @@ bool CPLD::is_blank_block(const uint16_t id, const size_t count) {
 void CPLD::block_crc(const uint16_t id, const size_t count, crc_t& crc) {
 	sector_select(id);
 	shift_ir(instruction_t::ISC_READ);
-	jtag.runtest_tck(93);		// 5us
+	jtag.runtest_tck(93);	 // 5us
 
-	for(size_t i=0; i<count; i++) {
+	for (size_t i = 0; i < count; i++) {
 		const uint16_t from_device = jtag.shift_dr(16, 0xffff);
 		crc.process_bytes(&from_device, sizeof(from_device));
 	}

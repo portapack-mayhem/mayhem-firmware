@@ -28,7 +28,7 @@
 #include <array>
 
 void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
+	if (!configured) {
 		return;
 	}
 
@@ -49,7 +49,7 @@ void NarrowbandAMAudio::execute(const buffer_c8_t& buffer) {
 }
 
 buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
-	if( modulation_ssb ) {
+	if (modulation_ssb) {
 		return demod_ssb.execute(channel, audio_buffer);
 	} else {
 		return demod_am.execute(channel, audio_buffer);
@@ -57,22 +57,22 @@ buffer_f32_t NarrowbandAMAudio::demodulate(const buffer_c16_t& channel) {
 }
 
 void NarrowbandAMAudio::on_message(const Message* const message) {
-	switch(message->id) {
-	case Message::ID::UpdateSpectrum:
-	case Message::ID::SpectrumStreamingConfig:
-		channel_spectrum.on_message(message);
-		break;
+	switch (message->id) {
+		case Message::ID::UpdateSpectrum:
+		case Message::ID::SpectrumStreamingConfig:
+			channel_spectrum.on_message(message);
+			break;
 
-	case Message::ID::AMConfigure:
-		configure(*reinterpret_cast<const AMConfigureMessage*>(message));
-		break;
+		case Message::ID::AMConfigure:
+			configure(*reinterpret_cast<const AMConfigureMessage*>(message));
+			break;
 
-	case Message::ID::CaptureConfig:
-		capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
-		break;
-		
-	default:
-		break;
+		case Message::ID::CaptureConfig:
+			capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+			break;
+
+		default:
+			break;
 	}
 }
 
@@ -104,7 +104,7 @@ void NarrowbandAMAudio::configure(const AMConfigureMessage& message) {
 }
 
 void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
-	if( message.config ) {
+	if (message.config) {
 		audio_output.set_stream(std::make_unique<StreamInput>(message.config));
 	} else {
 		audio_output.set_stream(nullptr);
@@ -112,7 +112,7 @@ void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<NarrowbandAMAudio>() };
+	EventDispatcher event_dispatcher{std::make_unique<NarrowbandAMAudio>()};
 	event_dispatcher.run();
 	return 0;
 }

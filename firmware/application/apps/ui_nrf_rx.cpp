@@ -46,21 +46,19 @@ void NRFRxView::update_freq(rf::Frequency f) {
 
 NRFRxView::NRFRxView(NavigationView& nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_nrf_rx);
-	
-	add_children({
-		&rssi,
-		&channel,
-		&field_rf_amp,
-		&field_lna,
-		&field_vga,
-		&field_frequency,
-		&button_modem_setup,
-		&console
-	});
-	
+
+	add_children({&rssi,
+								&channel,
+								&field_rf_amp,
+								&field_lna,
+								&field_vga,
+								&field_frequency,
+								&button_modem_setup,
+								&console});
+
 	// load app settings
 	auto rc = settings.load("rx_nrf", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		field_lna.set_value(app_settings.lna);
 		field_vga.set_value(app_settings.vga);
 		field_rf_amp.set_value(app_settings.rx_amp);
@@ -76,7 +74,7 @@ NRFRxView::NRFRxView(NavigationView& nav) {
 	serial_format.stop_bits = 1;
 	serial_format.bit_order = LSB_FIRST;
 	persistent_memory::set_serial_format(serial_format);
-	
+
 	field_frequency.set_value(receiver_model.tuning_frequency());
 	field_frequency.set_step(100);
 	field_frequency.on_change = [this](rf::Frequency f) {
@@ -93,14 +91,13 @@ NRFRxView::NRFRxView(NavigationView& nav) {
 	button_modem_setup.on_select = [&nav](Button&) {
 		nav.push<ModemSetupView>();
 	};
-	
-	
+
 	// Auto-configure modem for LCR RX (will be removed later)
 	baseband::set_nrf(persistent_memory::modem_baudrate(), 8, 0, false);
-	
+
 	audio::set_rate(audio::Rate::Hz_24000);
 	audio::output::start();
-	
+
 	receiver_model.set_sampling_rate(4000000);
 	receiver_model.set_baseband_bandwidth(4000000);
 	receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
@@ -113,25 +110,23 @@ void NRFRxView::on_data(uint32_t value, bool is_data) {
 	if (is_data) {
 		// Colorize differently after message splits
 		//str_console += (char)((console_color & 3) + 9);
-		
+
 		//value &= 0xFF;											// ABCDEFGH
 		//value = ((value & 0xF0) >> 4) | ((value & 0x0F) << 4);	// EFGHABCD
 		//value = ((value & 0xCC) >> 2) | ((value & 0x33) << 2);	// GHEFCDAB
 		//value = ((value & 0xAA) >> 1) | ((value & 0x55) << 1);	// HGFEDCBA
 		//value &= 0x7F;											// Ignore parity, which is the MSB now
-		
+
 		//if ((value >= 32) && (value < 127)) {
 		//	str_console += (char)value;							// Printable
-		//} 
-		
+		//}
+
 		//str_console += (char)'A';
 		//str_console += (char)value;
-		//str_console += "[" + to_string_hex(value, 2) + "]";	
-		str_console += " " + to_string_hex(value, 2) ;	
+		//str_console += "[" + to_string_hex(value, 2) + "]";
+		str_console += " " + to_string_hex(value, 2);
 		console.write(str_console);
-		
-		
-		
+
 		/*if ((value != 0x7F) && (prev_value == 0x7F)) {
 			// Message split
 			console.writeln("");
@@ -142,13 +137,12 @@ void NRFRxView::on_data(uint32_t value, bool is_data) {
 		//prev_value = value;
 	} else {
 		// Baudrate estimation
-		//text_debug.set("~" + to_string_dec_uint(value)); 
-		if (value == 'A')
-		{console.write("addr:");}
-		else if (value == 'B')
-		{console.write(" data:");}
-		else if (value == 'C')
-		{
+		//text_debug.set("~" + to_string_dec_uint(value));
+		if (value == 'A') {
+			console.write("addr:");
+		} else if (value == 'B') {
+			console.write(" data:");
+		} else if (value == 'C') {
 			console.writeln("");
 			console.writeln("");
 		}
@@ -157,7 +151,6 @@ void NRFRxView::on_data(uint32_t value, bool is_data) {
 }
 
 NRFRxView::~NRFRxView() {
-
 	// save app settings
 	app_settings.rx_frequency = field_frequency.value();
 	settings.save("rx_nrf", &app_settings);

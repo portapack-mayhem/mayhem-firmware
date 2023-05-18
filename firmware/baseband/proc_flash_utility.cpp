@@ -34,11 +34,11 @@
 void initialize_flash();
 void erase_flash();
 void initialize_sdcard();
-void write_firmware(FIL *);
-void write_page(size_t, uint8_t *, size_t);
+void write_firmware(FIL*);
+void write_page(size_t, uint8_t*, size_t);
 
 int main() {
-	const TCHAR *filename = reinterpret_cast<const TCHAR *>(&shared_memory.bb_data.data[0]);
+	const TCHAR* filename = reinterpret_cast<const TCHAR*>(&shared_memory.bb_data.data[0]);
 
 	initialize_flash();
 	palSetPad(LED_PORT, LEDRX_PAD);
@@ -58,7 +58,7 @@ int main() {
 
 	f_close(&firmware_file);
 
-	while(1)
+	while (1)
 		__WFE();
 
 	return 0;
@@ -89,8 +89,8 @@ void initialize_sdcard() {
 	if (f_mount(&fs, reinterpret_cast<const TCHAR*>(_T("")), 1) != FR_OK) chDbgPanic("no sd card #2");
 }
 
-void write_firmware(FIL *firmware_file) {
-	uint8_t *data_buffer = &shared_memory.bb_data.data[0];
+void write_firmware(FIL* firmware_file) {
+	uint8_t* data_buffer = &shared_memory.bb_data.data[0];
 
 	for (size_t page_index = 0; page_index < NUM_PAGES; page_index++) {
 		if (page_index % 32 == 0)
@@ -107,7 +107,7 @@ void write_firmware(FIL *firmware_file) {
 	}
 }
 
-void write_page(size_t page_index, uint8_t *data_buffer, size_t data_length) {
+void write_page(size_t page_index, uint8_t* data_buffer, size_t data_length) {
 	w25q80bv::wait_not_busy();
 	w25q80bv::remove_write_protection();
 	w25q80bv::wait_not_busy();

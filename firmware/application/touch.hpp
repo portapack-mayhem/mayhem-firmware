@@ -46,33 +46,30 @@ struct Samples {
 	sample_t yp;
 	sample_t yn;
 
-	constexpr Samples(
-	) : Samples { 0 }
-	{
+	constexpr Samples()
+			: Samples{0} {
 	}
 
 	constexpr Samples(
-		uint32_t v
-	) : xp { static_cast<sample_t>(v) },
-		xn { static_cast<sample_t>(v) },
-		yp { static_cast<sample_t>(v) },
-		yn { static_cast<sample_t>(v) }
-	{
+			uint32_t v)
+			: xp{static_cast<sample_t>(v)},
+				xn{static_cast<sample_t>(v)},
+				yp{static_cast<sample_t>(v)},
+				yn{static_cast<sample_t>(v)} {
 	}
 
 	constexpr Samples(
-		uint32_t xp,
-		uint32_t xn,
-		uint32_t yp,
-		uint32_t yn
-	) : xp { static_cast<sample_t>(xp) },
-		xn { static_cast<sample_t>(xn) },
-		yp { static_cast<sample_t>(yp) },
-		yn { static_cast<sample_t>(yn) }
-	{
+			uint32_t xp,
+			uint32_t xn,
+			uint32_t yp,
+			uint32_t yn)
+			: xp{static_cast<sample_t>(xp)},
+				xn{static_cast<sample_t>(xn)},
+				yp{static_cast<sample_t>(yp)},
+				yn{static_cast<sample_t>(yn)} {
 	}
 
-	Samples& operator +=(const Samples& r) {
+	Samples& operator+=(const Samples& r) {
 		xp += r.xp;
 		xn += r.xn;
 		yp += r.yp;
@@ -82,28 +79,26 @@ struct Samples {
 
 	Samples operator/(const unsigned int r) const {
 		return {
-			static_cast<sample_t>(xp / r),
-			static_cast<sample_t>(xn / r),
-			static_cast<sample_t>(yp / r),
-			static_cast<sample_t>(yn / r)
-		};
+				static_cast<sample_t>(xp / r),
+				static_cast<sample_t>(xn / r),
+				static_cast<sample_t>(yp / r),
+				static_cast<sample_t>(yn / r)};
 	}
 
 	Samples operator>>(const size_t n) const {
 		return {
-			static_cast<sample_t>(xp >> n),
-			static_cast<sample_t>(xn >> n),
-			static_cast<sample_t>(yp >> n),
-			static_cast<sample_t>(yn >> n)
-		};
+				static_cast<sample_t>(xp >> n),
+				static_cast<sample_t>(xn >> n),
+				static_cast<sample_t>(yp >> n),
+				static_cast<sample_t>(yn >> n)};
 	}
 };
 
 struct Frame {
-	Samples pressure { };
-	Samples x { };
-	Samples y { };
-	bool touch { false };
+	Samples pressure{};
+	Samples x{};
+	Samples y{};
+	bool touch{false};
 };
 
 struct Metrics {
@@ -125,30 +120,27 @@ struct Calibration {
 	 */
 
 	constexpr Calibration(
-		const std::array<DigitizerPoint, 3>& s,
-		const std::array<ui::Point, 3>& d
-	) : k { (s[0].x - s[2].x) * (s[1].y - s[2].y) - (s[1].x - s[2].x) * (s[0].y - s[2].y) },
-		a { (d[0].x() - d[2].x()) * (s[1].y - s[2].y) - (d[1].x() - d[2].x()) * (s[0].y - s[2].y) },
-		b { (s[0].x - s[2].x) * (d[1].x() - d[2].x()) - (d[0].x() - d[2].x()) * (s[1].x - s[2].x) },
-		c { s[0].y * (s[2].x * d[1].x() - s[1].x * d[2].x()) + s[1].y * (s[0].x * d[2].x() - s[2].x * d[0].x()) + s[2].y * (s[1].x * d[0].x() - s[0].x * d[1].x()) },
-		d { (d[0].y() - d[2].y()) * (s[1].y - s[2].y) - (d[1].y() - d[2].y()) * (s[0].y - s[2].y) },
-		e { (s[0].x - s[2].x) * (d[1].y() - d[2].y()) - (d[0].y() - d[2].y()) * (s[1].x - s[2].x) },
-		f { s[0].y * (s[2].x * d[1].y() - s[1].x * d[2].y()) + s[1].y * (s[0].x * d[2].y() - s[2].x * d[0].y()) + s[2].y * (s[1].x * d[0].y() - s[0].x * d[1].y()) }
-	{
+			const std::array<DigitizerPoint, 3>& s,
+			const std::array<ui::Point, 3>& d)
+			: k{(s[0].x - s[2].x) * (s[1].y - s[2].y) - (s[1].x - s[2].x) * (s[0].y - s[2].y)},
+				a{(d[0].x() - d[2].x()) * (s[1].y - s[2].y) - (d[1].x() - d[2].x()) * (s[0].y - s[2].y)},
+				b{(s[0].x - s[2].x) * (d[1].x() - d[2].x()) - (d[0].x() - d[2].x()) * (s[1].x - s[2].x)},
+				c{s[0].y * (s[2].x * d[1].x() - s[1].x * d[2].x()) + s[1].y * (s[0].x * d[2].x() - s[2].x * d[0].x()) + s[2].y * (s[1].x * d[0].x() - s[0].x * d[1].x())},
+				d{(d[0].y() - d[2].y()) * (s[1].y - s[2].y) - (d[1].y() - d[2].y()) * (s[0].y - s[2].y)},
+				e{(s[0].x - s[2].x) * (d[1].y() - d[2].y()) - (d[0].y() - d[2].y()) * (s[1].x - s[2].x)},
+				f{s[0].y * (s[2].x * d[1].y() - s[1].x * d[2].y()) + s[1].y * (s[0].x * d[2].y() - s[2].x * d[0].y()) + s[2].y * (s[1].x * d[0].y() - s[0].x * d[1].y())} {
 	}
 
-	constexpr Calibration() :
-		Calibration(
-			/* Values derived from one PortaPack H1 unit. */
-			{ { { 256, 731 }, { 880, 432 }, { 568, 146 } } },
-			{ { {  32,  48 }, { 208, 168 }, { 120, 288 } } }
-		)
-	{
+	constexpr Calibration()
+			: Calibration(
+						/* Values derived from one PortaPack H1 unit. */
+						{{{256, 731}, {880, 432}, {568, 146}}},
+						{{{32, 48}, {208, 168}, {120, 288}}}) {
 	}
 
 	ui::Point translate(const DigitizerPoint& p) const;
 
-private:
+ private:
 	int32_t k;
 	int32_t a;
 	int32_t b;
@@ -158,9 +150,9 @@ private:
 	int32_t f;
 };
 
-template<size_t N>
+template <size_t N>
 class Filter {
-public:
+ public:
 	constexpr Filter() = default;
 
 	void reset() {
@@ -183,7 +175,7 @@ public:
 	}
 
 	bool stable(const uint32_t bound) const {
-		if( history_valid() ) {
+		if (history_valid()) {
 			const auto minmax = std::minmax_element(history.cbegin(), history.cend());
 			const auto min = *minmax.first;
 			const auto max = *minmax.second;
@@ -194,13 +186,13 @@ public:
 		}
 	}
 
-private:
-	static constexpr uint32_t history_history_mask { (1U << N) - 1 };
+ private:
+	static constexpr uint32_t history_history_mask{(1U << N) - 1};
 
-	std::array<sample_t, N> history { };
-	uint32_t history_history { 0 };
-	int32_t accumulator { 0 };
-	size_t n { 0 };
+	std::array<sample_t, N> history{};
+	uint32_t history_history{0};
+	int32_t accumulator{0};
+	size_t n{0};
 
 	bool history_valid() const {
 		return (history_history & history_history_mask) == history_history_mask;
@@ -208,32 +200,31 @@ private:
 };
 
 class Manager {
-public:
-	std::function<void(ui::TouchEvent)> on_event { };
+ public:
+	std::function<void(ui::TouchEvent)> on_event{};
 
 	void feed(const Frame& frame);
 
-private:
+ private:
 	enum State {
 		NoTouch,
 		TouchDetected,
 	};
 
-	static constexpr size_t touch_count_threshold { 3 };
-	static constexpr uint32_t touch_stable_bound { 8 };
+	static constexpr size_t touch_count_threshold{3};
+	static constexpr uint32_t touch_stable_bound{8};
 
 	// Ensure filter length is equal or less than touch_count_threshold,
 	// or coordinates from the last touch will be in the initial averages.
-	Filter<touch_count_threshold> filter_x { };
-	Filter<touch_count_threshold> filter_y { };
+	Filter<touch_count_threshold> filter_x{};
+	Filter<touch_count_threshold> filter_y{};
 
 	//Debounce touch_debounce;
 
-	State state { State::NoTouch };
+	State state{State::NoTouch};
 
 	bool point_stable() const {
-		return filter_x.stable(touch_stable_bound)
-			&& filter_y.stable(touch_stable_bound);
+		return filter_x.stable(touch_stable_bound) && filter_y.stable(touch_stable_bound);
 	}
 
 	ui::Point filtered_point() const;
@@ -251,12 +242,12 @@ private:
 	}
 
 	void fire_event(ui::TouchEvent::Type type) {
-		if( on_event ) {
-			on_event({ filtered_point(), type });
+		if (on_event) {
+			on_event({filtered_point(), type});
 		}
 	}
 };
 
 } /* namespace touch */
 
-#endif/*__TOUCH_H__*/
+#endif /*__TOUCH_H__*/

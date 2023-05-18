@@ -33,7 +33,7 @@
 #include "hal.h"
 
 class SDCardTestThread {
-public:
+ public:
 	enum Result {
 		FailCompare = -8,
 		FailReadIncomplete = -7,
@@ -47,34 +47,33 @@ public:
 		OK = 1,
 	};
 	std::string ResultStr[10] = {
-		"Compare",
-		"Read incomplete",
-		"Write incomplete",
-		"Abort",
-		"File Open Read",
-		"File Open Write",
-		"Heap",
-		"Thread",
-		"Incomplete",
-		"OK",
+			"Compare",
+			"Read incomplete",
+			"Write incomplete",
+			"Abort",
+			"File Open Read",
+			"File Open Write",
+			"Heap",
+			"Thread",
+			"Incomplete",
+			"OK",
 	};
 
 	struct Stats {
-		halrtcnt_t write_duration_min { 0 };
-		halrtcnt_t write_duration_max { 0 };
-		halrtcnt_t write_test_duration { 0 };
-		File::Size write_bytes { 0 };
-		size_t write_count { 0 };
+		halrtcnt_t write_duration_min{0};
+		halrtcnt_t write_duration_max{0};
+		halrtcnt_t write_test_duration{0};
+		File::Size write_bytes{0};
+		size_t write_count{0};
 
-		halrtcnt_t read_duration_min { 0 };
-		halrtcnt_t read_duration_max { 0 };
-		halrtcnt_t read_test_duration { 0 };
-		File::Size read_bytes { 0 };
-		size_t read_count { 0 };
+		halrtcnt_t read_duration_min{0};
+		halrtcnt_t read_duration_max{0};
+		halrtcnt_t read_test_duration{0};
+		File::Size read_bytes{0};
+		size_t read_count{0};
 	};
 
-	SDCardTestThread(
-	) {
+	SDCardTestThread() {
 		thread = chThdCreateFromHeap(NULL, 3072, NORMALPRIO + 10, SDCardTestThread::static_fn, this);
 	}
 
@@ -91,14 +90,14 @@ public:
 		chThdWait(thread);
 	}
 
-private:
+ private:
 	static constexpr File::Size write_size = 16384;
 	static constexpr File::Size bytes_to_write = 16 * 1024 * 1024;
 	static constexpr File::Size bytes_to_read = bytes_to_write;
 
 	static Thread* thread;
-	volatile Result _result { Result::Incomplete };
-	Stats _stats { };
+	volatile Result _result{Result::Incomplete};
+	Stats _stats{};
 
 	static msg_t static_fn(void* arg) {
 		auto obj = static_cast<SDCardTestThread*>(arg);
@@ -107,33 +106,33 @@ private:
 	}
 
 	Result run() {
-		const std::filesystem::path filename { u"_PPTEST_.DAT" };
+		const std::filesystem::path filename{u"_PPTEST_.DAT"};
 
 		const auto write_result = write(filename);
-		if( write_result != Result::OK ) {
+		if (write_result != Result::OK) {
 			return write_result;
 		}
 
-		if( _stats.write_bytes < bytes_to_write ) {
+		if (_stats.write_bytes < bytes_to_write) {
 			return Result::FailWriteIncomplete;
 		}
 
-		if( chThdShouldTerminate() ) {
+		if (chThdShouldTerminate()) {
 			return Result::FailAbort;
 		}
 
 		const auto read_result = read(filename);
-		if( read_result != Result::OK ) {
+		if (read_result != Result::OK) {
 			return read_result;
 		}
 
 		f_unlink(reinterpret_cast<const TCHAR*>(filename.c_str()));
 
-		if( _stats.read_bytes < bytes_to_read ) {
+		if (_stats.read_bytes < bytes_to_read) {
 			return Result::FailReadIncomplete;
 		}
 
-		if( chThdShouldTerminate() ) {
+		if (chThdShouldTerminate()) {
 			return Result::FailAbort;
 		}
 
@@ -142,28 +141,27 @@ private:
 
 	Result write(const std::filesystem::path& filename) {
 		const auto buffer = std::make_unique<std::array<uint8_t, write_size>>();
-		if( !buffer ) {
+		if (!buffer) {
 			return Result::FailHeap;
 		}
 
 		File file;
 		auto file_create_error = file.create(filename);
-		if( file_create_error.is_valid() ) {
+		if (file_create_error.is_valid()) {
 			return Result::FailFileOpenWrite;
 		}
 
 		lfsr_word_t v = 1;
 
 		const halrtcnt_t test_start = halGetCounterValue();
-		while( !chThdShouldTerminate() && (_stats.write_bytes < bytes_to_write) ) {
+		while (!chThdShouldTerminate() && (_stats.write_bytes < bytes_to_write)) {
 			lfsr_fill(v,
-				reinterpret_cast<lfsr_word_t*>(buffer->data()),
-				sizeof(*buffer.get()) / sizeof(lfsr_word_t)
-			);
+								reinterpret_cast<lfsr_word_t*>(buffer->data()),
+								sizeof(*buffer.get()) / sizeof(lfsr_word_t));
 
 			const halrtcnt_t write_start = halGetCounterValue();
 			const auto result_write = file.write(buffer->data(), buffer->size());
-			if( result_write.is_error() ) {
+			if (result_write.is_error()) {
 				break;
 			}
 			const halrtcnt_t write_end = halGetCounterValue();
@@ -171,16 +169,16 @@ private:
 			_stats.write_count++;
 
 			const halrtcnt_t write_duration = write_end - write_start;
-			if( (_stats.write_duration_min == 0) || (write_duration < _stats.write_duration_min) ) {
+			if ((_stats.write_duration_min == 0) || (write_duration < _stats.write_duration_min)) {
 				_stats.write_duration_min = write_duration;
 			}
-			if( write_duration > _stats.write_duration_max ) {
+			if (write_duration > _stats.write_duration_max) {
 				_stats.write_duration_max = write_duration;
 			}
 		}
 
 		file.sync();
-		
+
 		const halrtcnt_t test_end = halGetCounterValue();
 		_stats.write_test_duration = test_end - test_start;
 
@@ -189,23 +187,23 @@ private:
 
 	Result read(const std::filesystem::path& filename) {
 		const auto buffer = std::make_unique<std::array<uint8_t, write_size>>();
-		if( !buffer ) {
+		if (!buffer) {
 			return Result::FailHeap;
 		}
 
 		File file;
 		auto file_open_error = file.open(filename);
-		if( file_open_error.is_valid() ) {
+		if (file_open_error.is_valid()) {
 			return Result::FailFileOpenRead;
 		}
 
 		lfsr_word_t v = 1;
 
 		const halrtcnt_t test_start = halGetCounterValue();
-		while( !chThdShouldTerminate() && (_stats.read_bytes < bytes_to_read) ) {
+		while (!chThdShouldTerminate() && (_stats.read_bytes < bytes_to_read)) {
 			const halrtcnt_t read_start = halGetCounterValue();
 			const auto result_read = file.read(buffer->data(), buffer->size());
-			if( result_read.is_error() ) {
+			if (result_read.is_error()) {
 				break;
 			}
 			const halrtcnt_t read_end = halGetCounterValue();
@@ -213,23 +211,22 @@ private:
 			_stats.read_count++;
 
 			const halrtcnt_t read_duration = read_end - read_start;
-			if( (_stats.read_duration_min == 0) || (read_duration < _stats.read_duration_min) ) {
+			if ((_stats.read_duration_min == 0) || (read_duration < _stats.read_duration_min)) {
 				_stats.read_duration_min = read_duration;
 			}
-			if( read_duration > _stats.read_duration_max ) {
+			if (read_duration > _stats.read_duration_max) {
 				_stats.read_duration_max = read_duration;
 			}
 
-			if( !lfsr_compare(v,
-				reinterpret_cast<lfsr_word_t*>(buffer->data()),
-				sizeof(*buffer.get()) / sizeof(lfsr_word_t))
-			) {
+			if (!lfsr_compare(v,
+												reinterpret_cast<lfsr_word_t*>(buffer->data()),
+												sizeof(*buffer.get()) / sizeof(lfsr_word_t))) {
 				return Result::FailCompare;
 			}
 		}
 
 		file.sync();
-		
+
 		const halrtcnt_t test_end = halGetCounterValue();
 		_stats.read_test_duration = test_end - test_start;
 
@@ -237,42 +234,42 @@ private:
 	}
 };
 
-Thread* SDCardTestThread::thread { nullptr };
+Thread* SDCardTestThread::thread{nullptr};
 
 namespace ui {
 
 SDCardDebugView::SDCardDebugView(NavigationView& nav) {
 	add_children({
-		&text_title,
-		&text_csd_title,
-		&text_csd_value_3,
-		&text_csd_value_2,
-		&text_csd_value_1,
-		&text_csd_value_0,
-		&text_bus_width_title,
-		&text_bus_width_value,
-		&text_card_type_title,
-		&text_card_type_value,
-		&text_block_size_title,
-		&text_block_size_value,
-		&text_block_count_title,
-		&text_block_count_value,
-		&text_capacity_title,
-		&text_capacity_value,
-		&text_test_write_time_title,
-		&text_test_write_time_value,
-		&text_test_write_rate_title,
-		&text_test_write_rate_value,
-		&text_test_read_time_title,
-		&text_test_read_time_value,
-		&text_test_read_rate_title,
-		&text_test_read_rate_value,
-		&button_test,
-		&button_ok,
+			&text_title,
+			&text_csd_title,
+			&text_csd_value_3,
+			&text_csd_value_2,
+			&text_csd_value_1,
+			&text_csd_value_0,
+			&text_bus_width_title,
+			&text_bus_width_value,
+			&text_card_type_title,
+			&text_card_type_value,
+			&text_block_size_title,
+			&text_block_size_value,
+			&text_block_count_title,
+			&text_block_count_value,
+			&text_capacity_title,
+			&text_capacity_value,
+			&text_test_write_time_title,
+			&text_test_write_time_value,
+			&text_test_write_rate_title,
+			&text_test_write_rate_value,
+			&text_test_read_time_title,
+			&text_test_read_time_value,
+			&text_test_read_rate_title,
+			&text_test_read_rate_value,
+			&button_test,
+			&button_ok,
 	});
 
-	button_test.on_select = [this](Button&){ this->on_test(); };
-	button_ok.on_select = [&nav](Button&){ nav.pop(); };
+	button_test.on_select = [this](Button&) { this->on_test(); };
+	button_ok.on_select = [&nav](Button&) { nav.pop(); };
 }
 
 void SDCardDebugView::on_show() {
@@ -291,7 +288,7 @@ void SDCardDebugView::focus() {
 }
 
 static std::string format_3dot3_string(const uint32_t value_in_thousandths) {
-	if( value_in_thousandths < 1000000U ) {
+	if (value_in_thousandths < 1000000U) {
 		const uint32_t thousandths_part = value_in_thousandths % 1000;
 		const uint32_t integer_part = value_in_thousandths / 1000U;
 		return to_string_dec_uint(integer_part, 3) + "." + to_string_dec_uint(thousandths_part, 3, '0');
@@ -301,9 +298,9 @@ static std::string format_3dot3_string(const uint32_t value_in_thousandths) {
 }
 
 static std::string format_bytes_size_string(uint64_t value) {
-	static const std::array<char, 5> suffix { { ' ', 'K', 'M', 'G', 'T' } };
+	static const std::array<char, 5> suffix{{' ', 'K', 'M', 'G', 'T'}};
 	size_t suffix_index = 1;
-	while( (value >= 1000000U) && (suffix_index < suffix.size()) ) {
+	while ((value >= 1000000U) && (suffix_index < suffix.size())) {
 		value /= 1000U;
 		suffix_index++;
 	}
@@ -326,14 +323,21 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 	text_test_read_rate_value.set("");
 
 	const bool is_inserted = sdcIsCardInserted(&SDCD1);
-	if( is_inserted ) {
+	if (is_inserted) {
 		const auto card_width_flags = LPC_SDMMC->CTYPE & 0x10001;
 		size_t card_width = 0;
-		switch(card_width_flags) {
-		case 0x00000: card_width = 1; break;
-		case 0x00001: card_width = 4; break;
-		case 0x10001: card_width = 8; break;
-		default: break;
+		switch (card_width_flags) {
+			case 0x00000:
+				card_width = 1;
+				break;
+			case 0x00001:
+				card_width = 4;
+				break;
+			case 0x10001:
+				card_width = 8;
+				break;
+			default:
+				break;
 		}
 
 		text_bus_width_value.set(card_width ? to_string_dec_uint(card_width, 1) : "X");
@@ -343,14 +347,22 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 		disk_ioctl(0, MMC_GET_TYPE, &card_type);
 
 		std::string formatted_card_type;
-		switch(card_type & SDC_MODE_CARDTYPE_MASK) {
-		case SDC_MODE_CARDTYPE_SDV11: formatted_card_type = "SD V1.1"; break;
-		case SDC_MODE_CARDTYPE_SDV20: formatted_card_type = "SD V2.0"; break;
-		case SDC_MODE_CARDTYPE_MMC:   formatted_card_type = "MMC";     break;
-		default: formatted_card_type = "???"; break;
+		switch (card_type & SDC_MODE_CARDTYPE_MASK) {
+			case SDC_MODE_CARDTYPE_SDV11:
+				formatted_card_type = "SD V1.1";
+				break;
+			case SDC_MODE_CARDTYPE_SDV20:
+				formatted_card_type = "SD V2.0";
+				break;
+			case SDC_MODE_CARDTYPE_MMC:
+				formatted_card_type = "MMC";
+				break;
+			default:
+				formatted_card_type = "???";
+				break;
 		}
 
-		if( card_type & SDC_MODE_HIGH_CAPACITY ) {
+		if (card_type & SDC_MODE_HIGH_CAPACITY) {
 			formatted_card_type += ", SDHC";
 		}
 		text_card_type_value.set(formatted_card_type);
@@ -363,7 +375,7 @@ void SDCardDebugView::on_status(const sd_card::Status) {
 		text_csd_value_0.set(to_string_hex(csd[0], 8));
 
 		BlockDeviceInfo block_device_info;
-		if( sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS ) {
+		if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
 			text_block_size_value.set(to_string_dec_uint(block_device_info.blk_size, 5));
 			text_block_count_value.set(to_string_dec_uint(block_device_info.blk_num, 9));
 			const uint64_t capacity = block_device_info.blk_size * uint64_t(block_device_info.blk_num);
@@ -392,7 +404,7 @@ void SDCardDebugView::on_test() {
 	SDCardTestThread thread;
 
 	// uint32_t spinner_phase = 0;
-	while( thread.result() == SDCardTestThread::Result::Incomplete ) {
+	while (thread.result() == SDCardTestThread::Result::Incomplete) {
 		chThdSleepMilliseconds(100);
 
 		// spinner_phase += 1;
@@ -407,33 +419,29 @@ void SDCardDebugView::on_test() {
 		// text_test_write_value.set({ c });
 	}
 
-	if( thread.result() == SDCardTestThread::Result::OK ) {
+	if (thread.result() == SDCardTestThread::Result::OK) {
 		const auto stats = thread.stats();
 		const auto write_duration_avg = stats.write_test_duration / stats.write_count;
 
 		text_test_write_time_value.set(
-			format_ticks_as_ms(stats.write_duration_min) + "/" +
-			format_ticks_as_ms(write_duration_avg) + "/" +
-			format_ticks_as_ms(stats.write_duration_max)
-		);
+				format_ticks_as_ms(stats.write_duration_min) + "/" +
+				format_ticks_as_ms(write_duration_avg) + "/" +
+				format_ticks_as_ms(stats.write_duration_max));
 
 		text_test_write_rate_value.set(
-			format_bytes_per_ticks_as_mib(stats.write_bytes, stats.write_duration_min * stats.write_count) + " " +
-			format_bytes_per_ticks_as_mib(stats.write_bytes, stats.write_test_duration)
-		);
+				format_bytes_per_ticks_as_mib(stats.write_bytes, stats.write_duration_min * stats.write_count) + " " +
+				format_bytes_per_ticks_as_mib(stats.write_bytes, stats.write_test_duration));
 
 		const auto read_duration_avg = stats.read_test_duration / stats.read_count;
 
 		text_test_read_time_value.set(
-			format_ticks_as_ms(stats.read_duration_min) + "/" +
-			format_ticks_as_ms(read_duration_avg) + "/" +
-			format_ticks_as_ms(stats.read_duration_max)
-		);
+				format_ticks_as_ms(stats.read_duration_min) + "/" +
+				format_ticks_as_ms(read_duration_avg) + "/" +
+				format_ticks_as_ms(stats.read_duration_max));
 
 		text_test_read_rate_value.set(
-			format_bytes_per_ticks_as_mib(stats.read_bytes, stats.read_duration_min * stats.read_count) + " " +
-			format_bytes_per_ticks_as_mib(stats.read_bytes, stats.read_test_duration)
-		);
+				format_bytes_per_ticks_as_mib(stats.read_bytes, stats.read_duration_min * stats.read_count) + " " +
+				format_bytes_per_ticks_as_mib(stats.read_bytes, stats.read_test_duration));
 	} else {
 		text_test_write_time_value.set("Fail: " + thread.ResultStr[thread.result() + 8]);
 	}

@@ -52,15 +52,15 @@ void ScriptView::on_delete() {
 
 void ScriptView::setup_list() {
 	//size_t n;
-	
+
 	menu_view.clear();
-	
+
 	/*for (n = 0; n < frequencies.size(); n++) {
 		menu_view.add_item({ freqman_item_string(frequencies[n]), ui::Color::white(), nullptr, [this](){ on_frequency_select(); } });
 	}*/
-	
-	menu_view.set_parent_rect({ 0, 0, 240, 168 });
-	menu_view.set_highlighted(menu_view.highlighted());		// Refresh
+
+	menu_view.set_parent_rect({0, 0, 240, 168});
+	menu_view.set_highlighted(menu_view.highlighted());	 // Refresh
 }
 
 void ScriptView::focus() {
@@ -68,44 +68,39 @@ void ScriptView::focus() {
 }
 
 ScriptView::ScriptView(
-	NavigationView& nav
-) {
-	
-	add_children({
-		&menu_view,
-		&text_edit,
-		&button_edit_freq,
-		&button_edit_desc,
-		&button_del,
-		&button_exit
-	});
-	
+		NavigationView& nav) {
+	add_children({&menu_view,
+								&text_edit,
+								&button_edit_freq,
+								&button_edit_desc,
+								&button_del,
+								&button_exit});
+
 	setup_list();
-	
+
 	button_edit_freq.on_select = [this, &nav](Button&) {
 		/*auto new_view = nav.push<FrequencyKeypadView>(frequencies[menu_view.highlighted()].value);
 		new_view->on_changed = [this](rf::Frequency f) {
 			on_edit_freq(f);
 		};*/
 	};
-	
+
 	button_edit_desc.on_select = [this, &nav](Button&) {
 		on_edit_desc(nav);
 	};
-	
+
 	button_del.on_select = [this, &nav](Button&) {
 		nav.push<ModalMessageView>("Confirm", "Are you sure?", YESNO,
-			[this](bool choice) {
-				if (choice) {
-					on_delete();
-				}
-			}
-		);
+															 [this](bool choice) {
+																 if (choice) {
+																	 on_delete();
+																 }
+															 });
 	};
-	
+
 	button_exit.on_select = [this, &nav](Button&) {
 		nav.pop();
 	};
 }
 
-}
+}	 // namespace ui

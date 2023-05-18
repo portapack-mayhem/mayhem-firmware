@@ -44,16 +44,15 @@ void ACARSProcessor::execute(const buffer_c8_t& buffer) {
 	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
 
-	for(size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
+	for (size_t i = 0; i < decimator_out.count; i++) {
+		if (mf.execute_once(decimator_out.p[i])) {
 			clock_recovery(mf.get_output());
 		}
 	}
 }
 
 void ACARSProcessor::consume_symbol(
-	const float raw_symbol
-) {
+		const float raw_symbol) {
 	const uint_fast8_t sliced_symbol = (raw_symbol >= 0.0f) ? 1 : 0;
 	//const auto decoded_symbol = acars_decode(sliced_symbol);
 
@@ -68,14 +67,13 @@ void ACARSProcessor::consume_symbol(
 }
 
 void ACARSProcessor::payload_handler(
-	const baseband::Packet& packet
-) {
-	const ACARSPacketMessage message { packet };
+		const baseband::Packet& packet) {
+	const ACARSPacketMessage message{packet};
 	shared_memory.application_queue.push(message);
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<ACARSProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<ACARSProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

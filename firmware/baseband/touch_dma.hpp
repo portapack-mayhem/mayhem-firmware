@@ -47,4 +47,4 @@ buffer_t wait_for_buffer();
 } /* namespace dma */
 } /* namespace touch */
 
-#endif/*__TOUCH_DMA_H__*/
+#endif /*__TOUCH_DMA_H__*/

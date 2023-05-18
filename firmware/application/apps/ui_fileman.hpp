@@ -31,9 +31,9 @@
 namespace ui {
 
 struct fileman_entry {
-	std::filesystem::path path { };
-	uint32_t size { };
-	bool is_directory { };
+	std::filesystem::path path{};
+	uint32_t size{};
+	bool is_directory{};
 };
 
 enum class EmptyReason : uint8_t {
@@ -49,19 +49,18 @@ enum class ClipboardMode : uint8_t {
 };
 
 class FileManBaseView : public View {
-public:
+ public:
 	FileManBaseView(
-		NavigationView& nav,
-		std::string filter
-	);
+			NavigationView& nav,
+			std::string filter);
 
-	virtual ~FileManBaseView() { }
+	virtual ~FileManBaseView() {}
 
-	void focus() override;	
+	void focus() override;
 	std::string title() const override { return "Fileman"; };
 	void push_dir(const std::filesystem::path& path);
-	
-protected:
+
+ protected:
 	static constexpr size_t max_filename_length = 64;
 	static constexpr size_t max_items_shown = 100;
 
@@ -70,15 +69,15 @@ protected:
 		const Bitmap* icon;
 		ui::Color color;
 	};
-	
+
 	const std::vector<file_assoc_t> file_types = {
-		{ u".TXT", &bitmap_icon_file_text, ui::Color::white() },
-		{ u".PNG", &bitmap_icon_file_image, ui::Color::green() },
-		{ u".BMP", &bitmap_icon_file_image, ui::Color::green() },
-		{ u".C8",  &bitmap_icon_file_iq, ui::Color::dark_cyan() },
-		{ u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan() },
-		{ u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta() },
-		{ u"", &bitmap_icon_file, ui::Color::light_grey() } // NB: Must be last.
+			{u".TXT", &bitmap_icon_file_text, ui::Color::white()},
+			{u".PNG", &bitmap_icon_file_image, ui::Color::green()},
+			{u".BMP", &bitmap_icon_file_image, ui::Color::green()},
+			{u".C8", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
+			{u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
+			{u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta()},
+			{u"", &bitmap_icon_file, ui::Color::light_grey()}	 // NB: Must be last.
 	};
 
 	std::filesystem::path get_selected_full_path() const;
@@ -92,51 +91,47 @@ protected:
 
 	NavigationView& nav_;
 
-	EmptyReason empty_ { EmptyReason::NotEmpty };
-	std::function<void(KeyEvent)> on_select_entry { nullptr };
-	std::function<void(bool)> on_refresh_widgets { nullptr };
+	EmptyReason empty_{EmptyReason::NotEmpty};
+	std::function<void(KeyEvent)> on_select_entry{nullptr};
+	std::function<void(bool)> on_refresh_widgets{nullptr};
 
-	const std::filesystem::path parent_dir_path { u".." };
-	std::filesystem::path current_path { u"" };
-	std::filesystem::path extension_filter { u"" };
+	const std::filesystem::path parent_dir_path{u".."};
+	std::filesystem::path current_path{u""};
+	std::filesystem::path extension_filter{u""};
 
-	std::vector<fileman_entry> entry_list { };
-	std::vector<uint32_t> saved_index_stack { };
-	
-	Labels labels {
-		{ { 0, 0 }, "Path:", Color::light_grey() }
+	std::vector<fileman_entry> entry_list{};
+	std::vector<uint32_t> saved_index_stack{};
+
+	Labels labels{
+			{{0, 0}, "Path:", Color::light_grey()}};
+
+	Text text_current{
+			{6 * 8, 0 * 8, 24 * 8, 16},
+			"",
 	};
 
-	Text text_current {
-		{ 6 * 8, 0 * 8, 24 * 8, 16 },
-		"",
-	};
-	
-	MenuView menu_view {
-		{ 0, 2 * 8, 240, 26 * 8 },
-		true
-	};
+	MenuView menu_view{
+			{0, 2 * 8, 240, 26 * 8},
+			true};
 
 	// HACK: for item count limit.
-	Text text_info {
-		{ 1 * 8, 35 * 8, 15 * 8, 16 },
-		""
-	};
-	
-	Button button_exit {
-		{ 21 * 8, 34 * 8, 9 * 8, 32 },
-		"Exit"
-	};
+	Text text_info{
+			{1 * 8, 35 * 8, 15 * 8, 16},
+			""};
+
+	Button button_exit{
+			{21 * 8, 34 * 8, 9 * 8, 32},
+			"Exit"};
 };
 
 class FileLoadView : public FileManBaseView {
-public:
-	std::function<void(std::filesystem::path)> on_changed { };
-	
-	FileLoadView(NavigationView& nav, std::string filter);
-	virtual ~FileLoadView() { }
+ public:
+	std::function<void(std::filesystem::path)> on_changed{};
 
-private:
+	FileLoadView(NavigationView& nav, std::string filter);
+	virtual ~FileLoadView() {}
+
+ private:
 	void refresh_widgets(const bool v);
 };
 
@@ -200,16 +195,16 @@ private:
 */
 
 class FileManagerView : public FileManBaseView {
-public:
+ public:
 	FileManagerView(NavigationView& nav);
-	virtual ~FileManagerView() { }
+	virtual ~FileManagerView() {}
 
-private:
+ private:
 	// Passed by ref to other views needing lifetime extension.
-	std::string name_buffer { };
-	std::filesystem::path clipboard_path { };
-	ClipboardMode clipboard_mode { ClipboardMode::None }; 
-	
+	std::string name_buffer{};
+	std::filesystem::path clipboard_path{};
+	ClipboardMode clipboard_mode{ClipboardMode::None};
+
 	void refresh_widgets(const bool v);
 	void on_rename();
 	void on_delete();
@@ -219,64 +214,55 @@ private:
 
 	// True if the selected entry is a real file item.
 	bool selected_is_valid() const;
-	
-	Labels labels {
-		{ { 0, 26 * 8 }, "Created ", Color::light_grey() }
-	};
-	
-	Text text_date {
-		{ 8 * 8, 26 * 8 , 19 * 8, 16 },
-		""
-	};
 
-	NewButton button_rename {
-		{ 0 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_rename,
-		Color::dark_blue()
-	};
+	Labels labels{
+			{{0, 26 * 8}, "Created ", Color::light_grey()}};
 
-	NewButton button_delete {
-		{ 4 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_trash,
-		Color::red()
-	};
+	Text text_date{
+			{8 * 8, 26 * 8, 19 * 8, 16},
+			""};
 
-	NewButton button_cut {
-		{ 9 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_cut,
-		Color::dark_grey()
-	};
+	NewButton button_rename{
+			{0 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_rename,
+			Color::dark_blue()};
 
-	NewButton button_copy {
-		{ 13 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_copy,
-		Color::dark_grey()
-	};
+	NewButton button_delete{
+			{4 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_trash,
+			Color::red()};
 
-	NewButton button_paste {
-		{ 17 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_paste,
-		Color::dark_grey()
-	};
+	NewButton button_cut{
+			{9 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_cut,
+			Color::dark_grey()};
 
-	NewButton button_new_dir {
-		{ 22 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_new_dir,
-		Color::green()
-	};
+	NewButton button_copy{
+			{13 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_copy,
+			Color::dark_grey()};
 
-	NewButton button_new_file {
-		{ 26 * 8, 29 * 8, 4 * 8, 32 },
-		{ },
-		&bitmap_icon_new_file,
-		Color::green()
-	};
+	NewButton button_paste{
+			{17 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_paste,
+			Color::dark_grey()};
+
+	NewButton button_new_dir{
+			{22 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_new_dir,
+			Color::green()};
+
+	NewButton button_new_file{
+			{26 * 8, 29 * 8, 4 * 8, 32},
+			{},
+			&bitmap_icon_new_file,
+			Color::green()};
 };
 
 } /* namespace ui */

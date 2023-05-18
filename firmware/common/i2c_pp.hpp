@@ -50,37 +50,38 @@ struct I2CClockConfig {
 };
 
 class I2C {
-public:
+ public:
 	using address_t = uint8_t;
 
-	constexpr I2C(I2CDriver* const driver) :
-		_driver(driver) {
+	constexpr I2C(I2CDriver* const driver)
+			: _driver(driver) {
 	}
 
 	void start(const I2CConfig& config);
 	void stop();
 
 	bool receive(
-		const address_t slave_address,
-		uint8_t* const data, const size_t count,
-		const systime_t timeout = TIME_INFINITE
-	);
+			const address_t slave_address,
+			uint8_t* const data,
+			const size_t count,
+			const systime_t timeout = TIME_INFINITE);
 
 	bool transmit(
-		const address_t slave_address,
-		const uint8_t* const data, const size_t count,
-		const systime_t timeout = TIME_INFINITE
-	);
+			const address_t slave_address,
+			const uint8_t* const data,
+			const size_t count,
+			const systime_t timeout = TIME_INFINITE);
 
-private:
+ private:
 	I2CDriver* const _driver;
 
 	bool transfer(
-		const address_t slave_address,
-		const uint8_t* const data_tx, const size_t count_tx,
-		uint8_t* const data_rx, const size_t count_rx,
-		const systime_t timeout
-	);
+			const address_t slave_address,
+			const uint8_t* const data_tx,
+			const size_t count_tx,
+			uint8_t* const data_rx,
+			const size_t count_rx,
+			const systime_t timeout);
 };
 
-#endif/*__I2C_PP_H__*/
+#endif /*__I2C_PP_H__*/

@@ -6,7 +6,6 @@ UseTab: Always
 SortIncludes: 'false'
 AllowAllArgumentsOnNextLine: 'true'
 ColumnLimit: 0
-IndentAccessModifiers : 'false'
 Cpp11BracedListStyle: 'true'
 AllowShortLoopsOnASingleLine: 'true'
 AllowShortIfStatementsOnASingleLine: 'true'

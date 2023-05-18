@@ -27,11 +27,11 @@
 #include "baseband_thread.hpp"
 
 class NOOPProcessor : public BasebandProcessor {
-public:
+ public:
 	void execute(const buffer_c8_t& buffer) override;
 
-private:
-	BasebandThread baseband_thread { 1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit };
+ private:
+	BasebandThread baseband_thread{1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 };
 
 #endif

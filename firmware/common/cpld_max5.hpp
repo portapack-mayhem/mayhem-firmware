@@ -35,15 +35,14 @@ namespace max5 {
 
 struct Config {
 	const std::array<uint16_t, 3328>& block_0;
-	const std::array<uint16_t,  512>& block_1;
+	const std::array<uint16_t, 512>& block_1;
 };
 
 class CPLD {
-public:
+ public:
 	constexpr CPLD(
-		jtag::JTAG& jtag
-	) : jtag(jtag)
-	{
+			jtag::JTAG& jtag)
+			: jtag(jtag) {
 	}
 
 	void bypass();
@@ -78,14 +77,12 @@ public:
 	void bulk_erase();
 
 	bool program(
-		const std::array<uint16_t, 3328>& block_0,
-		const std::array<uint16_t, 512>& block_1
-	);
+			const std::array<uint16_t, 3328>& block_0,
+			const std::array<uint16_t, 512>& block_1);
 
 	bool verify(
-		const std::array<uint16_t, 3328>& block_0,
-		const std::array<uint16_t, 512>& block_1
-	);
+			const std::array<uint16_t, 3328>& block_0,
+			const std::array<uint16_t, 512>& block_1);
 
 	bool is_blank();
 
@@ -93,43 +90,43 @@ public:
 
 	std::pair<bool, uint8_t> boundary_scan();
 
-private:
+ private:
 	using idcode_t = uint32_t;
 	static constexpr size_t idcode_length = 32;
-	static constexpr idcode_t idcode      = 0b00000010000010100101000011011101;
+	static constexpr idcode_t idcode = 0b00000010000010100101000011011101;
 	static constexpr idcode_t idcode_mask = 0b11111111111111111111111111111111;
-	
+
 	static constexpr size_t ir_length = 10;
 
 	using ir_t = uint16_t;
 
 	enum class instruction_t : ir_t {
-		BYPASS            = 0b1111111111, // 0x3ff
-		EXTEST            = 0b0000001111, // 0x00f
-		SAMPLE            = 0b0000000101, // 0x005
-		IDCODE            = 0b0000000110, // 0x006
-		USERCODE          = 0b0000000111, // 0x007
-		CLAMP             = 0b0000001010, // 0x00a
-		HIGHZ             = 0b0000001011, // 0x00b
-		ISC_ENABLE        = 0b1011001100, // 0x2cc
-		ISC_DISABLE       = 0b1000000001, // 0x201
-		ISC_PROGRAM       = 0b1011110100, // 0x2f4
-		ISC_ERASE         = 0b1011110010, // 0x2f2
-		ISC_ADDRESS_SHIFT = 0b1000000011, // 0x203
-		ISC_READ          = 0b1000000101, // 0x205
-		ISC_NOOP          = 0b1000010000, // 0x210
- 	};
+		BYPASS = 0b1111111111,						 // 0x3ff
+		EXTEST = 0b0000001111,						 // 0x00f
+		SAMPLE = 0b0000000101,						 // 0x005
+		IDCODE = 0b0000000110,						 // 0x006
+		USERCODE = 0b0000000111,					 // 0x007
+		CLAMP = 0b0000001010,							 // 0x00a
+		HIGHZ = 0b0000001011,							 // 0x00b
+		ISC_ENABLE = 0b1011001100,				 // 0x2cc
+		ISC_DISABLE = 0b1000000001,				 // 0x201
+		ISC_PROGRAM = 0b1011110100,				 // 0x2f4
+		ISC_ERASE = 0b1011110010,					 // 0x2f2
+		ISC_ADDRESS_SHIFT = 0b1000000011,	 // 0x203
+		ISC_READ = 0b1000000101,					 // 0x205
+		ISC_NOOP = 0b1000010000,					 // 0x210
+	};
 
 	void shift_ir(const instruction_t instruction) {
 		shift_ir(static_cast<ir_t>(instruction));
 	}
-	
+
 	void shift_ir(const uint32_t value) {
 		jtag.shift_ir(ir_length, value);
 	}
 
 	void shift_dr(std::bitset<240>& value) {
-		for(size_t i=0; i<value.size(); i++) {
+		for (size_t i = 0; i < value.size(); i++) {
 			value[i] = shift_dr(1, value[i]);
 		}
 	}
@@ -147,30 +144,26 @@ private:
 	void erase_sector(const uint16_t id);
 
 	void program_block(
-		const uint16_t id,
-		const uint16_t* const data,
-		const size_t count
-	);
+			const uint16_t id,
+			const uint16_t* const data,
+			const size_t count);
 
-	template<size_t N>
+	template <size_t N>
 	void program_block(
-		const uint16_t id,
-		const std::array<uint16_t, N>& data
-	) {
+			const uint16_t id,
+			const std::array<uint16_t, N>& data) {
 		program_block(id, data.data(), data.size());
 	}
 
 	bool verify_block(
-		const uint16_t id,
-		const uint16_t* const data,
-		const size_t count
-	);
+			const uint16_t id,
+			const uint16_t* const data,
+			const size_t count);
 
-	template<size_t N>
+	template <size_t N>
 	bool verify_block(
-		const uint16_t id,
-		const std::array<uint16_t, N>& data
-	) {
+			const uint16_t id,
+			const std::array<uint16_t, N>& data) {
 		return verify_block(id, data.data(), data.size());
 	}
 
@@ -200,4 +193,4 @@ private:
 } /* namespace max5 */
 } /* namespace cpld */
 
-#endif/*__CPLD_MAX5_H__*/
+#endif /*__CPLD_MAX5_H__*/

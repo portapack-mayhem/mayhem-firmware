@@ -28,17 +28,16 @@
 
 #include <cstdint>
 
-void MicTXProcessor::execute(const buffer_c8_t& buffer){
-
+void MicTXProcessor::execute(const buffer_c8_t& buffer) {
 	// This is called at 1536000/2048 = 750Hz
-	
+
 	if (!configured) return;
-	
+
 	audio_input.read_audio_buffer(audio_buffer);
-	modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, play_beep ) ;	
-	modulator->execute(audio_buffer, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider );	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
-    
-   /* Original fw 1.3.1  good reference, beep and vu-meter
+	modulator->set_gain_shiftbits_vumeter_beep(audio_gain, audio_shift_bits_s16, play_beep);
+	modulator->execute(audio_buffer, buffer, configured, beep_index, beep_timer, txprogress_message, level_message, power_acc_count, divider);	// Now "Key Tones & CTCSS" baseband additon inside FM mod. dsp_modulate.cpp"
+
+	/* Original fw 1.3.1  good reference, beep and vu-meter
 	for (size_t i = 0; i < buffer.count; i++) {
 		
 		if (!play_beep) {
@@ -71,9 +70,9 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 			}
 			sample = beep_gen.process(0);    // TODO : Pending how to move inside modulate.cpp
 		} 
-	 */ 	
-				
-       /* Original fw 1.3.1  good reference FM moulation version, including "key tones CTCSS"  fw 1.3.1 
+	 */
+
+	/* Original fw 1.3.1  good reference FM moulation version, including "key tones CTCSS"  fw 1.3.1 
 		sample = tone_gen.process(sample);
 				
 		// FM
@@ -98,17 +97,17 @@ void MicTXProcessor::execute(const buffer_c8_t& buffer){
 void MicTXProcessor::on_message(const Message* const msg) {
 	const AudioTXConfigMessage config_message = *reinterpret_cast<const AudioTXConfigMessage*>(msg);
 	const RequestSignalMessage request_message = *reinterpret_cast<const RequestSignalMessage*>(msg);
-	
-	switch(msg->id) {
+
+	switch (msg->id) {
 		case Message::ID::AudioTXConfig:
 			if (fm_enabled) {
-				 dsp::modulate::FM *fm = new dsp::modulate::FM();
+				dsp::modulate::FM* fm = new dsp::modulate::FM();
 
 				// Config fm_delta private var inside DSP modulate.cpp
-				 fm->set_fm_delta(config_message.deviation_hz * (0xFFFFFFUL / baseband_fs));
+				fm->set_fm_delta(config_message.deviation_hz * (0xFFFFFFUL / baseband_fs));
 
-				 // Config properly the private tone_gen function parameters inside DSP modulate.cpp  	
-				 fm->set_tone_gen_configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);		
+				// Config properly the private tone_gen function parameters inside DSP modulate.cpp
+				fm->set_tone_gen_configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);
 				modulator = fm;
 			}
 
@@ -116,7 +115,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 				modulator = new dsp::modulate::SSB();
 				modulator->set_mode(dsp::modulate::Mode::USB);
 			}
-			
+
 			if (lsb_enabled) {
 				modulator = new dsp::modulate::SSB();
 				modulator->set_mode(dsp::modulate::Mode::LSB);
@@ -130,8 +129,8 @@ void MicTXProcessor::on_message(const Message* const msg) {
 				modulator->set_mode(dsp::modulate::Mode::DSB);
 			}
 
-			modulator->set_over(baseband_fs / 24000); // Keep no change.
-			
+			modulator->set_over(baseband_fs / 24000);	 // Keep no change.
+
 			am_enabled = config_message.am_enabled;
 			usb_enabled = config_message.usb_enabled;
 			lsb_enabled = config_message.lsb_enabled;
@@ -139,21 +138,21 @@ void MicTXProcessor::on_message(const Message* const msg) {
 			if (!am_enabled || !usb_enabled || !lsb_enabled || !dsb_enabled) {
 				fm_enabled = true;
 			}
-			
+
 			audio_gain = config_message.audio_gain;
 			audio_shift_bits_s16 = config_message.audio_shift_bits_s16;
 			divider = config_message.divider;
 			power_acc_count = 0;
 
 			// now this config  moved, in the case Message::ID::AudioTXConfig , only FM case.
-			// tone_gen.configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);	
-			
+			// tone_gen.configure(config_message.tone_key_delta, config_message.tone_key_mix_weight);
+
 			txprogress_message.done = true;
 
 			play_beep = false;
 			configured = true;
 			break;
-		
+
 		case Message::ID::RequestSignal:
 			if (request_message.signal == RequestSignalMessage::Signal::BeepRequest) {
 				beep_index = 0;
@@ -168,7 +167,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<MicTXProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<MicTXProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

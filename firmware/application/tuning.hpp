@@ -29,24 +29,22 @@ namespace config {
 
 struct Config {
 	/* Empty config to denote an error, in lieu of throwing an exception. */
-	constexpr Config(
-	) : first_lo_frequency(0),
-		second_lo_frequency(0),
-		rf_path_band(rf::path::Band::Mid),
-		mixer_invert(false)
-	{
+	constexpr Config()
+			: first_lo_frequency(0),
+				second_lo_frequency(0),
+				rf_path_band(rf::path::Band::Mid),
+				mixer_invert(false) {
 	}
 
 	constexpr Config(
-		rf::Frequency first_lo_frequency,
-		rf::Frequency second_lo_frequency,
-		rf::path::Band rf_path_band,
-		bool mixer_invert
-	) : first_lo_frequency(first_lo_frequency),
-		second_lo_frequency(second_lo_frequency),
-		rf_path_band(rf_path_band),
-		mixer_invert(mixer_invert)
-	{
+			rf::Frequency first_lo_frequency,
+			rf::Frequency second_lo_frequency,
+			rf::path::Band rf_path_band,
+			bool mixer_invert)
+			: first_lo_frequency(first_lo_frequency),
+				second_lo_frequency(second_lo_frequency),
+				rf_path_band(rf_path_band),
+				mixer_invert(mixer_invert) {
 	}
 
 	bool is_valid() const {
@@ -64,4 +62,4 @@ Config create(const rf::Frequency target_frequency);
 } /* namespace config */
 } /* namespace tuning */
 
-#endif/*__TUNING_H__*/
+#endif /*__TUNING_H__*/

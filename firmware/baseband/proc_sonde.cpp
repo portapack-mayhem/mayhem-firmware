@@ -29,7 +29,6 @@
 #include "audio_output.hpp"
 
 SondeProcessor::SondeProcessor() {
-
 	decim_0.configure(taps_11k0_decim_0.taps, 33554432);
 	decim_1.configure(taps_11k0_decim_1.taps, 131072);
 
@@ -48,15 +47,15 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
 	/* 38.4kHz, 32 samples */
 	feed_channel_stats(decimator_out);
 
-	for (size_t i=0; i<decimator_out.count; i++) {
-		if( mf.execute_once(decimator_out.p[i]) ) {
+	for (size_t i = 0; i < decimator_out.count; i++) {
+		if (mf.execute_once(decimator_out.p[i])) {
 			clock_recovery_fsk_9600(mf.get_output());
 			clock_recovery_fsk_4800(mf.get_output());
 		}
 	}
 
-	if(pitch_rssi_enabled) {
-		if(beep_play) {
+	if (pitch_rssi_enabled) {
+		if (beep_play) {
 			// if we let the buffer underrun, for some reason
 			// once it starts looping it ignores zero (silence)
 			// samples, so we need to keep feeding the buffer
@@ -65,8 +64,8 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
 			//beep_play = false;
 			generate_beep();
 		}
-		
-		if(silence_play) {
+
+		if (silence_play) {
 			//silence_play = false;
 			generate_silence();
 		}
@@ -74,26 +73,24 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void SondeProcessor::on_message(const Message* const msg) {
-	switch(msg->id) {		
+	switch (msg->id) {
 		case Message::ID::RequestSignal:
 			if ((*reinterpret_cast<const RequestSignalMessage*>(msg)).signal == RequestSignalMessage::Signal::BeepRequest) {
-				float rssi_ratio = (float) last_rssi / (float) RSSI_CEILING;
+				float rssi_ratio = (float)last_rssi / (float)RSSI_CEILING;
 				int beep_duration = 0;
 
-				if(rssi_ratio <= PROPORTIONAL_BEEP_THRES) {
+				if (rssi_ratio <= PROPORTIONAL_BEEP_THRES) {
 					beep_duration = BEEP_MIN_DURATION;
+				} else if (rssi_ratio < 1) {
+					beep_duration = (int)rssi_ratio * BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
+				} else {
+					beep_duration = BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
 				}
-				else if(rssi_ratio < 1) {
-					beep_duration =  (int) rssi_ratio * BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
-				}
-				else {
-					beep_duration =  BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
-				}
-				
+
 				play_beep();
 				chThdSleepMilliseconds(beep_duration);
 				stop_beep();
-			}		
+			}
 			break;
 
 		case Message::ID::PitchRSSIConfigure:
@@ -118,15 +115,15 @@ void SondeProcessor::stop_beep() {
 void SondeProcessor::generate_beep() {
 	// here we let the samples be created using the ToneGen class:
 
-	for(uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
-		audio_buffer.p[i] = (int16_t) ((tone_gen.process(0) >> 16) & 0x0000FFFF);
+	for (uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
+		audio_buffer.p[i] = (int16_t)((tone_gen.process(0) >> 16) & 0x0000FFFF);
 	}
 
 	audio_output.write(audio_buffer);
 }
 
 void SondeProcessor::generate_silence() {
-	for(uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
+	for (uint8_t i = 0; i < sizeof(audio_buffer.p); i++) {
 		audio_buffer.p[i] = 0;
 	}
 
@@ -136,14 +133,14 @@ void SondeProcessor::generate_silence() {
 void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message) {
 	pitch_rssi_enabled = message.enabled;
 
-	uint32_t freq = (int) ((float) message.rssi * (float) RSSI_PITCH_WEIGHT + (float) BEEP_BASE_FREQ);
+	uint32_t freq = (int)((float)message.rssi * (float)RSSI_PITCH_WEIGHT + (float)BEEP_BASE_FREQ);
 
 	last_rssi = message.rssi;
 	tone_gen.configure(freq, 1.0, ToneGen::tone_type::sine, AUDIO_SAMPLE_RATE);
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<SondeProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<SondeProcessor>()};
 	event_dispatcher.run();
 
 	return 0;

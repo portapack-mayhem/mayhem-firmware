@@ -140,31 +140,29 @@ Continuous (Fox-oring)
 #include "sd_card.hpp"
 
 #include <string.h>
- 
-#include "rffc507x.hpp"      /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
+
+#include "rffc507x.hpp" /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
 rffc507x::RFFC507x first_if;
 
 static void event_loop() {
 	static ui::Context context;
-	static ui::SystemView system_view {
-		context,
-		portapack::display.screen_rect()
-	};
+	static ui::SystemView system_view{
+			context,
+			portapack::display.screen_rect()};
 
-	EventDispatcher event_dispatcher { &system_view, context };
-	static MessageHandlerRegistration message_handler_display_sleep {
-		Message::ID::DisplaySleep,
-		[&event_dispatcher](const Message* const) {
-			event_dispatcher.set_display_sleep(true);
-		}
-	};
+	EventDispatcher event_dispatcher{&system_view, context};
+	static MessageHandlerRegistration message_handler_display_sleep{
+			Message::ID::DisplaySleep,
+			[&event_dispatcher](const Message* const) {
+				event_dispatcher.set_display_sleep(true);
+			}};
 
 	event_dispatcher.run();
 }
 
 int main(void) {
-	first_if.init();    /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
-	if( portapack::init() ) {
+	first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
+	if (portapack::init()) {
 		portapack::display.init();
 
 		// sdcStart(&SDCD1, nullptr); // Commented out as now happens in portapack.cpp
@@ -174,7 +172,6 @@ int main(void) {
 		rtc_interrupt_enable();
 
 		event_loop();
-
 
 		sdcDisconnect(&SDCD1);
 		sdcStop(&SDCD1);

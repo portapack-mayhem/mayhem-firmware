@@ -26,42 +26,42 @@ namespace wolfson {
 namespace wm8731 {
 
 void WM8731::configure_interface_i2s_slave() {
-	write(DigitalAudioInterfaceFormat {
-		.format = 2,
-		.iwl = 0,
-		.lrp = 0,
-		.lrswap = 0,
-		.ms = 0,
-		.bclkinv = 0,
-		.reserved0 = 0,
+	write(DigitalAudioInterfaceFormat{
+			.format = 2,
+			.iwl = 0,
+			.lrp = 0,
+			.lrswap = 0,
+			.ms = 0,
+			.bclkinv = 0,
+			.reserved0 = 0,
 	});
 }
 
 void WM8731::configure_interface_i2s_master() {
-	write(DigitalAudioInterfaceFormat {
-		.format = 2,
-		.iwl = 0,
-		.lrp = 0,
-		.lrswap = 0,
-		.ms = 1,
-		.bclkinv = 0,
-		.reserved0 = 0,
+	write(DigitalAudioInterfaceFormat{
+			.format = 2,
+			.iwl = 0,
+			.lrp = 0,
+			.lrswap = 0,
+			.ms = 1,
+			.bclkinv = 0,
+			.reserved0 = 0,
 	});
 }
 
 void WM8731::init() {
 	reset();
 
-	write(PowerDownControl {
-		.lineinpd = 1,	
-		.micpd = 0,
-		.adcpd = 0,
-		.dacpd = 0,
-		.outpd = 0,
-		.oscpd = 1,
-		.clkoutpd = 1,
-		.poweroff = 0,
-		.reserved0 = 0,
+	write(PowerDownControl{
+			.lineinpd = 1,
+			.micpd = 0,
+			.adcpd = 0,
+			.dacpd = 0,
+			.outpd = 0,
+			.oscpd = 1,
+			.clkoutpd = 1,
+			.poweroff = 0,
+			.reserved0 = 0,
 	});
 
 	// write(SamplingControl {
@@ -75,28 +75,28 @@ void WM8731::init() {
 
 	configure_interface_i2s_slave();
 
-	write(DigitalAudioPathControl {
-		.adchpd = 0,
-		.deemp = 0,
-		.dacmu = 0,
-		.hpor = 0,
-		.reserved0 = 0,
+	write(DigitalAudioPathControl{
+			.adchpd = 0,
+			.deemp = 0,
+			.dacmu = 0,
+			.hpor = 0,
+			.reserved0 = 0,
 	});
 
-	write(AnalogAudioPathControl {
-		.micboost = 0,	// Disable 20dB boost by default
-		.mutemic = 0,	// Disable mute (unmute)
-		.insel = 1,		// Microphone input to ADC
-		.bypass = 0,
-		.dacsel = 1,
-		.sidetone = 0,
-		.sideatt = 0,
-		.reserved0 = 0,
+	write(AnalogAudioPathControl{
+			.micboost = 0,	// Disable 20dB boost by default
+			.mutemic = 0,		// Disable mute (unmute)
+			.insel = 1,			// Microphone input to ADC
+			.bypass = 0,
+			.dacsel = 1,
+			.sidetone = 0,
+			.sideatt = 0,
+			.reserved0 = 0,
 	});
 
-	write(ActiveControl {
-		.active = 1,
-		.reserved0 = 0,
+	write(ActiveControl{
+			.active = 1,
+			.reserved0 = 0,
 	});
 
 	//set_line_in_volume(0.0_dB);
@@ -117,9 +117,9 @@ bool WM8731::write(const Register reg) {
 
 bool WM8731::write(const address_t reg_address, const reg_t value) {
 	const uint16_t word = (reg_address << 9) | value;
-	const std::array<uint8_t, 2> values {
-		static_cast<uint8_t>(word >> 8),
-		static_cast<uint8_t>(word & 0xff),
+	const std::array<uint8_t, 2> values{
+			static_cast<uint8_t>(word >> 8),
+			static_cast<uint8_t>(word & 0xff),
 	};
 	return bus.transmit(bus_address, values.data(), values.size());
 }

@@ -34,7 +34,7 @@ using bit_t = uint_fast8_t;
 using data_t = uint32_t;
 
 class SPI {
-public:
+ public:
 	enum class Direction {
 		Write = 0,
 		Read = 1,
@@ -50,7 +50,7 @@ public:
 		transfer_word(Direction::Write, address, value);
 	}
 
-private:
+ private:
 	void select(const bool active);
 
 	void direction_out();
@@ -64,7 +64,7 @@ private:
 	data_t transfer_word(const Direction direction, const address_t address, const data_t data_out);
 };
 
-} /* spi */
-} /* rffc507x */
+}	 // namespace spi
+}	 // namespace rffc507x
 
-#endif/*__RFFC507X_SPI_H__*/
+#endif /*__RFFC507X_SPI_H__*/

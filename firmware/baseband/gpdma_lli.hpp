@@ -48,12 +48,12 @@ struct ChainConfig {
 };
 
 enum class BurstSize : uint8_t {
-	Transfer1   = 0,
-	Transfer4   = 1,
-	Transfer8   = 2,
-	Transfer16  = 3,
-	Transfer32  = 4,
-	Transfer64  = 5,
+	Transfer1 = 0,
+	Transfer4 = 1,
+	Transfer8 = 2,
+	Transfer16 = 3,
+	Transfer32 = 4,
+	Transfer64 = 5,
 	Transfer128 = 6,
 	Transfer256 = 7,
 };
@@ -85,89 +85,87 @@ struct ChannelConfig {
 	Endpoint destination;
 
 	constexpr gpdma::channel::Control control(
-		const size_t transfer_size,
-		const bool last
-	) {
+			const size_t transfer_size,
+			const bool last) {
 		return {
-			.transfersize = transfer_size,
-			.sbsize = toUType(source.burst_size),
-			.dbsize = toUType(destination.burst_size),
-			.swidth = toUType(source.transfer_size),
-			.dwidth = toUType(destination.transfer_size),
-			.s = source_endpoint_type(flow_control),
-			.d = destination_endpoint_type(flow_control),
-			.si = toUType(source.increment),
-			.di = toUType(destination.increment),
-			.prot1 = 0,
-			.prot2 = 0,
-			.prot3 = 0,
-			.i = ((chain.interrupt == Interrupt::All) || last) ? 1U : 0U,
+				.transfersize = transfer_size,
+				.sbsize = toUType(source.burst_size),
+				.dbsize = toUType(destination.burst_size),
+				.swidth = toUType(source.transfer_size),
+				.dwidth = toUType(destination.transfer_size),
+				.s = source_endpoint_type(flow_control),
+				.d = destination_endpoint_type(flow_control),
+				.si = toUType(source.increment),
+				.di = toUType(destination.increment),
+				.prot1 = 0,
+				.prot2 = 0,
+				.prot3 = 0,
+				.i = ((chain.interrupt == Interrupt::All) || last) ? 1U : 0U,
 		};
 	}
 
 	constexpr gpdma::channel::Config config() {
 		return {
-			.e = 0,
-			.srcperipheral = source.peripheral,
-			.destperipheral = destination.peripheral,
-			.flowcntrl = flow_control,
-			.ie = 1,
-			.itc = 1,
-			.l = 0,
-			.a = 0,
-			.h = 0,
+				.e = 0,
+				.srcperipheral = source.peripheral,
+				.destperipheral = destination.peripheral,
+				.flowcntrl = flow_control,
+				.ie = 1,
+				.itc = 1,
+				.l = 0,
+				.a = 0,
+				.h = 0,
 		};
 	};
 };
 
-constexpr ChannelConfig channel_config_baseband_tx {
-	{ ChainType::Loop, 4, Interrupt::All },
-	gpdma::FlowControl::MemoryToPeripheral_DMAControl,
-	{ 0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::Yes },
-	{ 0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::No  },
+constexpr ChannelConfig channel_config_baseband_tx{
+		{ChainType::Loop, 4, Interrupt::All},
+		gpdma::FlowControl::MemoryToPeripheral_DMAControl,
+		{0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::Yes},
+		{0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::No},
 };
 
-constexpr ChannelConfig channel_config_baseband_rx {
-	{ ChainType::Loop, 4, Interrupt::All },
-	gpdma::FlowControl::PeripheralToMemory_DMAControl,
-	{ 0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::No  },
-	{ 0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::Yes },
+constexpr ChannelConfig channel_config_baseband_rx{
+		{ChainType::Loop, 4, Interrupt::All},
+		gpdma::FlowControl::PeripheralToMemory_DMAControl,
+		{0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::No},
+		{0x00, BurstSize::Transfer1, TransferWidth::Word, Increment::Yes},
 };
 
-constexpr ChannelConfig channel_config_audio_tx {
-	{ ChainType::Loop, 4, Interrupt::All },
-	gpdma::FlowControl::MemoryToPeripheral_DMAControl,
-	{ 0x0a, BurstSize::Transfer32, TransferWidth::Word, Increment::Yes },
-	{ 0x0a, BurstSize::Transfer32, TransferWidth::Word, Increment::No  },
+constexpr ChannelConfig channel_config_audio_tx{
+		{ChainType::Loop, 4, Interrupt::All},
+		gpdma::FlowControl::MemoryToPeripheral_DMAControl,
+		{0x0a, BurstSize::Transfer32, TransferWidth::Word, Increment::Yes},
+		{0x0a, BurstSize::Transfer32, TransferWidth::Word, Increment::No},
 };
 
-constexpr ChannelConfig channel_config_audio_rx {
-	{ ChainType::Loop, 4, Interrupt::All },
-	gpdma::FlowControl::PeripheralToMemory_DMAControl,
-	{ 0x09, BurstSize::Transfer32, TransferWidth::Word, Increment::No  },
-	{ 0x09, BurstSize::Transfer32, TransferWidth::Word, Increment::Yes },
+constexpr ChannelConfig channel_config_audio_rx{
+		{ChainType::Loop, 4, Interrupt::All},
+		gpdma::FlowControl::PeripheralToMemory_DMAControl,
+		{0x09, BurstSize::Transfer32, TransferWidth::Word, Increment::No},
+		{0x09, BurstSize::Transfer32, TransferWidth::Word, Increment::Yes},
 };
 
-constexpr ChannelConfig channel_config_rssi {
-	{ ChainType::Loop, 4, Interrupt::All },
-	gpdma::FlowControl::PeripheralToMemory_DMAControl,
-	{ 0x0e, BurstSize::Transfer1, TransferWidth::Byte, Increment::No  },
-	{ 0x0e, BurstSize::Transfer1, TransferWidth::Word, Increment::Yes },
+constexpr ChannelConfig channel_config_rssi{
+		{ChainType::Loop, 4, Interrupt::All},
+		gpdma::FlowControl::PeripheralToMemory_DMAControl,
+		{0x0e, BurstSize::Transfer1, TransferWidth::Byte, Increment::No},
+		{0x0e, BurstSize::Transfer1, TransferWidth::Word, Increment::Yes},
 };
 
 class Chain {
-public:
+ public:
 	using chain_t = std::vector<gpdma::channel::LLI>;
 	using chain_p = std::unique_ptr<chain_t>;
 
-	Chain(const ChannelConfig& cc) :
-		chain(std::make_unique<chain_t>(cc.chain.length))
-	{
+	Chain(const ChannelConfig& cc)
+			: chain(std::make_unique<chain_t>(cc.chain.length)) {
 		set_lli_sequential(cc.chain_type);
 		set_source_address()...
 	}
 
-private:
+ private:
 	chain_p chain;
 
 	void set_source_peripheral(void* const address) {
@@ -180,7 +178,7 @@ private:
 
 	void set_source_address(void* const address, const size_t increment) {
 		size_t offset = 0;
-		for(auto& item : *chain) {
+		for (auto& item : *chain) {
 			item.srcaddr = (uint32_t)address + offset;
 			offset += increment;
 		}
@@ -188,23 +186,23 @@ private:
 
 	void set_destination_address(void* const address, const size_t increment) {
 		size_t offset = 0;
-		for(auto& item : *chain) {
+		for (auto& item : *chain) {
 			item.destaddr = (uint32_t)address + offset;
 			offset += increment;
 		}
 	}
 
 	void set_control(const gpdma::channel::Control control) {
-		for(auto& item : *chain) {
+		for (auto& item : *chain) {
 			item.control = control;
 		}
 	}
 
 	void set_lli_sequential(ChainType chain_type) {
-		for(auto& item : *chain) {
+		for (auto& item : *chain) {
 			item.lli = lli_pointer(&item + 1);
 		}
-		if( chain_type == ChainType::Loop ) {
+		if (chain_type == ChainType::Loop) {
 			chain[chain->size() - 1].lli = lli_pointer(&chain[0]);
 		} else {
 			chain[chain->size() - 1].lli = lli_pointer(nullptr);
@@ -213,9 +211,9 @@ private:
 
 	gpdma::channel::LLIPointer lli_pointer(const void* lli) {
 		return {
-			.lm = 0,
-			.r = 0,
-			.lli = reinterpret_cast<uint32_t>(lli),
+				.lm = 0,
+				.r = 0,
+				.lli = reinterpret_cast<uint32_t>(lli),
 		};
 	}
 };

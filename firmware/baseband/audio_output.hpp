@@ -36,14 +36,13 @@
 #include <memory>
 
 class AudioOutput {
-public:
+ public:
 	void configure(const bool do_proc);
-	
+
 	void configure(
-		const iir_biquad_config_t& hpf_config,
-		const iir_biquad_config_t& deemph_config = iir_config_passthrough,
-		const float squelch_threshold = 0.0f
-	);
+			const iir_biquad_config_t& hpf_config,
+			const iir_biquad_config_t& deemph_config = iir_config_passthrough,
+			const float squelch_threshold = 0.0f);
 
 	void write(const buffer_s16_t& audio);
 	void write(const buffer_f32_t& audio);
@@ -51,25 +50,25 @@ public:
 	void set_stream(std::unique_ptr<StreamInput> new_stream) {
 		stream = std::move(new_stream);
 	}
-	
+
 	bool is_squelched();
 
-private:
+ private:
 	static constexpr float k = 32768.0f;
 	static constexpr float ki = 1.0f / k;
 
-	BlockDecimator<float, 32> block_buffer { 1 };	
+	BlockDecimator<float, 32> block_buffer{1};
 
-	IIRBiquadFilter hpf { };
-	IIRBiquadFilter deemph { };
-	FMSquelch squelch { };
+	IIRBiquadFilter hpf{};
+	IIRBiquadFilter deemph{};
+	FMSquelch squelch{};
 
-	std::unique_ptr<StreamInput> stream { };
+	std::unique_ptr<StreamInput> stream{};
 
-	AudioStatsCollector audio_stats { };
+	AudioStatsCollector audio_stats{};
 
 	uint64_t audio_present_history = 0;
-	
+
 	bool audio_present = false;
 	bool do_processing = true;
 
@@ -78,4 +77,4 @@ private:
 	void feed_audio_stats(const buffer_f32_t& audio);
 };
 
-#endif/*__AUDIO_OUTPUT_H__*/
+#endif /*__AUDIO_OUTPUT_H__*/

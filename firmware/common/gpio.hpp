@@ -36,15 +36,9 @@ struct PinConfig {
 	const uint32_t ifilt;
 
 	constexpr operator uint16_t() const {
-		return
-			  (((~ifilt) & 1) << 7)
-			|  ((input   & 1) << 6)
-			|  ((fast    & 1) << 5)
-			| (((~pu)    & 1) << 4)
-			|  ((pd      & 1) << 3)
-			|  ((mode    & 7) << 0);
+		return (((~ifilt) & 1) << 7) | ((input & 1) << 6) | ((fast & 1) << 5) | (((~pu) & 1) << 4) | ((pd & 1) << 3) | ((mode & 7) << 0);
 	}
-/*
+	/*
 	constexpr operator uint32_t() {
 		return scu::sfs::mode::value(mode)
 			<< scu::sfs::epd::value(pd)
@@ -56,65 +50,57 @@ struct PinConfig {
 	}
 */
 	static constexpr PinConfig reset() {
-		return { .mode = 0, .pd = 0, .pu = 1, .fast = 0, .input = 0, .ifilt = 1 };
+		return {.mode = 0, .pd = 0, .pu = 1, .fast = 0, .input = 0, .ifilt = 1};
 	}
 
 	static constexpr PinConfig floating(
-		const uint32_t mode
-	) {
+			const uint32_t mode) {
 		return {
-			.mode = mode,
-			.pd = 0,
-			.pu = 0,
-			.fast = 0,
-			.input = 0,
-			.ifilt = 1
-		};
+				.mode = mode,
+				.pd = 0,
+				.pu = 0,
+				.fast = 0,
+				.input = 0,
+				.ifilt = 1};
 	}
 
 	static constexpr PinConfig floating_input(
-		const uint32_t mode
-	) {
+			const uint32_t mode) {
 		return {
-			.mode = mode,
-			.pd = 0,
-			.pu = 0,
-			.fast = 0,
-			.input = 1,
-			.ifilt = 1
-		};
+				.mode = mode,
+				.pd = 0,
+				.pu = 0,
+				.fast = 0,
+				.input = 1,
+				.ifilt = 1};
 	}
 
 	static constexpr PinConfig floating_input_with_pull(
-		const uint32_t pull_direction,
-		const uint32_t mode
-	) {
+			const uint32_t pull_direction,
+			const uint32_t mode) {
 		return {
-			.mode = mode,
-			.pd = (pull_direction == 0) ? 1U : 0U,
-			.pu = (pull_direction == 1) ? 1U : 0U,
-			.fast = 0,
-			.input = 1,
-			.ifilt = 1
-		};
+				.mode = mode,
+				.pd = (pull_direction == 0) ? 1U : 0U,
+				.pu = (pull_direction == 1) ? 1U : 0U,
+				.fast = 0,
+				.input = 1,
+				.ifilt = 1};
 	}
 
 	static constexpr PinConfig gpio_led(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 0, .input = 0, .ifilt = 1 };
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 0, .input = 0, .ifilt = 1};
 	}
 
 	static constexpr PinConfig gpio_inout_with_pull(
-		const uint32_t mode,
-		const uint32_t pull_direction
-	) {
+			const uint32_t mode,
+			const uint32_t pull_direction) {
 		return {
-			.mode = mode,
-			.pd = (pull_direction == 0) ? 1U : 0U,
-			.pu = (pull_direction == 1) ? 1U : 0U,
-			.fast = 0,
-			.input = 1,
-			.ifilt = 1
-		};
+				.mode = mode,
+				.pd = (pull_direction == 0) ? 1U : 0U,
+				.pu = (pull_direction == 1) ? 1U : 0U,
+				.fast = 0,
+				.input = 1,
+				.ifilt = 1};
 	}
 
 	static constexpr PinConfig gpio_inout_with_pullup(const uint32_t mode) {
@@ -126,17 +112,15 @@ struct PinConfig {
 	}
 
 	static constexpr PinConfig gpio_out_with_pull(
-		const uint32_t mode,
-		const uint32_t pull_direction
-	) {
+			const uint32_t mode,
+			const uint32_t pull_direction) {
 		return {
-			.mode = mode,
-			.pd = (pull_direction == 0) ? 1U : 0U,
-			.pu = (pull_direction == 1) ? 1U : 0U,
-			.fast = 0,
-			.input = 0,
-			.ifilt = 1
-		};
+				.mode = mode,
+				.pd = (pull_direction == 0) ? 1U : 0U,
+				.pu = (pull_direction == 1) ? 1U : 0U,
+				.fast = 0,
+				.input = 0,
+				.ifilt = 1};
 	}
 
 	static constexpr PinConfig gpio_out_with_pulldown(const uint32_t mode) {
@@ -148,21 +132,19 @@ struct PinConfig {
 	}
 
 	static constexpr PinConfig sgpio_in_fast(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 0, .input = 1, .ifilt = 0 };
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 0, .input = 1, .ifilt = 0};
 	}
 
 	static constexpr PinConfig sgpio_out_fast_with_pull(
-		const uint32_t mode,
-		const uint32_t pull_direction
-	) {
+			const uint32_t mode,
+			const uint32_t pull_direction) {
 		return {
-			.mode = mode,
-			.pd = (pull_direction == 0) ? 1U : 0U,
-			.pu = (pull_direction == 1) ? 1U : 0U,
-			.fast = 1,
-			.input = 0,
-			.ifilt = 1
-		};
+				.mode = mode,
+				.pd = (pull_direction == 0) ? 1U : 0U,
+				.pu = (pull_direction == 1) ? 1U : 0U,
+				.fast = 1,
+				.input = 0,
+				.ifilt = 1};
 	}
 
 	static constexpr PinConfig sgpio_out_fast_with_pullup(const uint32_t mode) {
@@ -170,23 +152,23 @@ struct PinConfig {
 	}
 
 	static constexpr PinConfig sgpio_inout_fast(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0 };
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0};
 	}
 
 	static constexpr PinConfig i2c(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 0, .input = 1, .ifilt = 1 };
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 0, .input = 1, .ifilt = 1};
 	}
 
-	static constexpr PinConfig spifi_sck(const uint32_t mode ) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0 };
+	static constexpr PinConfig spifi_sck(const uint32_t mode) {
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0};
 	}
 
 	static constexpr PinConfig spifi_inout(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0 };
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0};
 	}
 
 	static constexpr PinConfig spifi_cs(const uint32_t mode) {
-		return { .mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0 };
+		return {.mode = mode, .pd = 0, .pu = 0, .fast = 1, .input = 1, .ifilt = 0};
 	}
 };
 
@@ -196,16 +178,15 @@ struct Pin {
 	// Pin(Pin&&) = delete;
 
 	constexpr Pin(
-		const uint8_t port,
-		const uint8_t pad
-	) : _pin_port { port },
-		_pin_pad { pad }
-	{
+			const uint8_t port,
+			const uint8_t pad)
+			: _pin_port{port},
+				_pin_pad{pad} {
 	}
 
 	void mode(const uint_fast16_t mode) const {
 		LPC_SCU->SFSP[_pin_port][_pin_pad] =
-			(LPC_SCU->SFSP[_pin_port][_pin_pad] & 0xfffffff8) | mode;
+				(LPC_SCU->SFSP[_pin_port][_pin_pad] & 0xfffffff8) | mode;
 	}
 
 	void configure(const PinConfig config) const {
@@ -222,17 +203,16 @@ struct GPIO {
 	// GPIO(GPIO&&) = delete;
 
 	constexpr GPIO(
-		const Pin& pin,
-		const ioportid_t gpio_port,
-		const iopadid_t gpio_pad,
-		const uint16_t gpio_mode
-	) : _pin { pin },
-		_gpio_port { gpio_port },
-		_gpio_pad { gpio_pad },
-		_gpio_mode { gpio_mode }
-	{
+			const Pin& pin,
+			const ioportid_t gpio_port,
+			const iopadid_t gpio_pad,
+			const uint16_t gpio_mode)
+			: _pin{pin},
+				_gpio_port{gpio_port},
+				_gpio_pad{gpio_pad},
+				_gpio_mode{gpio_mode} {
 	}
-/*
+	/*
 	constexpr GPIO(
 		const GPIO& gpio
 	) : _pin { gpio._pin },
@@ -300,4 +280,4 @@ struct GPIO {
 	const uint16_t _gpio_mode;
 };
 
-#endif/*__GPIO_H__*/
+#endif /*__GPIO_H__*/

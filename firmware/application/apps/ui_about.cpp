@@ -40,9 +40,8 @@ namespace ui {
 
 // This is pretty much WaterfallView but in the opposite direction
 CreditsWidget::CreditsWidget(
-	Rect parent_rect
-) : Widget { parent_rect }
-{
+		Rect parent_rect)
+		: Widget{parent_rect} {
 }
 
 void CreditsWidget::paint(Painter&) {
@@ -60,80 +59,74 @@ void CreditsWidget::on_hide() {
 }
 
 void CreditsWidget::new_row(
-	const std::array<Color, 240>& pixel_row
-) {
+		const std::array<Color, 240>& pixel_row) {
 	// Glitch be here (see comment in main.cpp)
 	const auto draw_y = display.scroll(-1);
-	
+
 	display.draw_pixels(
-		{ { 0, draw_y - 1 }, { 240, 1 } },
-		pixel_row
-	);
+			{{0, draw_y - 1}, {240, 1}},
+			pixel_row);
 }
 
 void CreditsWidget::clear() {
 	display.fill_rectangle(
-		screen_rect(),
-		Color::black()
-	);
+			screen_rect(),
+			Color::black());
 }
 
 void AboutView::update() {
 	size_t i = 0;
 	std::array<Color, 240> pixel_row;
-	
+
 	slow_down++;
 	if (slow_down % 3 < 2) return;
-	
+
 	if (!timer) {
 		if (loop) {
 			credits_index = 0;
 			loop = false;
 		}
-		
+
 		text = credits[credits_index].text;
 		timer = credits[credits_index].delay;
 		start_pos = credits[credits_index].start_pos;
-		
+
 		if (timer < 0) {
 			timer = 240;
 			loop = true;
 		} else
 			timer += 16;
-		
+
 		render_line = 0;
 		credits_index++;
 	} else
 		timer--;
-	
+
 	if (render_line < 16) {
 		for (const auto c : text) {
 			const auto glyph = style().font.glyph(c);
-			
-			const size_t start = (glyph.size().width() / 8) * render_line; 
+
+			const size_t start = (glyph.size().width() / 8) * render_line;
 			for (Dim c = 0; c < glyph.size().width(); c++) {
 				const auto pixel = glyph.pixels()[start + (c >> 3)] & (1U << (c & 0x7));
 				pixel_row[start_pos + i + c] = pixel ? Color::white() : Color::black();
 			}
-			
+
 			const auto advance = glyph.advance();
 			i += advance.x();
 		}
 		render_line++;
 	}
-	
+
 	credits_display.new_row(pixel_row);
 }
 
 AboutView::AboutView(
-	NavigationView& nav
-) {
-	add_children({
-		&credits_display,
-		&button_ok
-	});
+		NavigationView& nav) {
+	add_children({&credits_display,
+								&button_ok});
 
-	button_ok.on_select = [&nav](Button&){
+	button_ok.on_select = [&nav](Button&) {
 		nav.pop();
 	};
 }

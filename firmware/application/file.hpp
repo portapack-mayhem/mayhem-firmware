@@ -42,29 +42,27 @@ struct filesystem_error {
 	constexpr filesystem_error() = default;
 
 	constexpr filesystem_error(
-		FRESULT fatfs_error
-	) : err { fatfs_error }
-	{
+			FRESULT fatfs_error)
+			: err{fatfs_error} {
 	}
 
 	constexpr filesystem_error(
-		unsigned int other_error
-	) : err { other_error }
-	{
+			unsigned int other_error)
+			: err{other_error} {
 	}
 
 	uint32_t code() const {
 		return err;
 	}
-	
+
 	std::string what() const;
 
 	bool ok() const {
 		return err == FR_OK;
 	}
 
-private:
-	uint32_t err { FR_OK };
+ private:
+	uint32_t err{FR_OK};
 };
 
 struct path {
@@ -73,48 +71,41 @@ struct path {
 
 	static constexpr value_type preferred_separator = u'/';
 
-	path(
-	) : _s { }
-	{
+	path()
+			: _s{} {
 	}
 
 	path(
-		const path& p
-	) : _s { p._s }
-	{
+			const path& p)
+			: _s{p._s} {
 	}
 
 	path(
-		path&& p
-	) : _s { std::move(p._s) }
-	{
+			path&& p)
+			: _s{std::move(p._s)} {
 	}
 
-	template<class Source>
+	template <class Source>
 	path(
-		const Source& source
-	) : path { std::begin(source), std::end(source) }
-	{
+			const Source& source)
+			: path{std::begin(source), std::end(source)} {
 	}
 
-	template<class InputIt>
+	template <class InputIt>
 	path(
-		InputIt first,
-		InputIt last
-	) : _s { first, last }
-	{
+			InputIt first,
+			InputIt last)
+			: _s{first, last} {
 	}
 
 	path(
-		const char16_t* const s
-	) : _s { s }
-	{
+			const char16_t* const s)
+			: _s{s} {
 	}
 
 	path(
-		const TCHAR* const s
-	) : _s { reinterpret_cast<const std::filesystem::path::value_type*>(s) }
-	{
+			const TCHAR* const s)
+			: _s{reinterpret_cast<const std::filesystem::path::value_type*>(s)} {
 	}
 
 	path& operator=(const path& p) {
@@ -165,7 +156,7 @@ struct path {
 
 	path& replace_extension(const path& replacement = path());
 
-private:
+ private:
 	string_type _s;
 };
 
@@ -198,7 +189,7 @@ struct directory_entry : public FILINFO {
 		return fsize;
 	};
 
-	const std::filesystem::path path() const noexcept { return { fname }; };
+	const std::filesystem::path path() const noexcept { return {fname}; };
 };
 
 class directory_iterator {
@@ -211,22 +202,22 @@ class directory_iterator {
 		}
 	};
 
-	std::shared_ptr<Impl> impl { };
-	const path pattern { };
+	std::shared_ptr<Impl> impl{};
+	const path pattern{};
 
 	friend bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs);
 
-public:
+ public:
 	using difference_type = std::ptrdiff_t;
 	using value_type = directory_entry;
 	using pointer = const directory_entry*;
 	using reference = const directory_entry&;
 	using iterator_category = std::input_iterator_tag;
 
-	directory_iterator() noexcept { };
+	directory_iterator() noexcept {};
 	directory_iterator(std::filesystem::path path, std::filesystem::path wild);
-	
-	~directory_iterator() { }
+
+	~directory_iterator() {}
 
 	directory_iterator& operator++();
 
@@ -236,10 +227,16 @@ public:
 	}
 };
 
-inline const directory_iterator& begin(const directory_iterator& iter) noexcept { return iter; };
-inline directory_iterator end(const directory_iterator&) noexcept { return { }; };
+inline const directory_iterator& begin(const directory_iterator& iter) noexcept {
+	return iter;
+};
+inline directory_iterator end(const directory_iterator&) noexcept {
+	return {};
+};
 
-inline bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs) { return lhs.impl != rhs.impl; };
+inline bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs) {
+	return lhs.impl != rhs.impl;
+};
 
 bool is_directory(const file_status s);
 bool is_regular_file(const file_status s);
@@ -279,19 +276,19 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 
 /* Dangerous to expose these, as FatFs native error values are byte-sized. However,
  * my filesystem_error implementation is fine with it. */
-#define FR_DISK_FULL	(0x100)
-#define FR_EOF          (0x101)
-#define FR_BAD_SEEK		(0x102)
-#define FR_UNEXPECTED	(0x103)
+#define FR_DISK_FULL (0x100)
+#define FR_EOF (0x101)
+#define FR_BAD_SEEK (0x102)
+#define FR_UNEXPECTED (0x103)
 
 class File {
-public:
+ public:
 	using Size = uint64_t;
 	using Offset = uint64_t;
 	using Timestamp = uint32_t;
 	using Error = std::filesystem::filesystem_error;
 
-	template<typename T>
+	template <typename T>
 	struct Result {
 		enum class Type {
 			Success,
@@ -321,27 +318,25 @@ public:
 		Result() = delete;
 
 		constexpr Result(
-			T value
-		) : type { Type::Success },
-			value_ { value }
-		{
+				T value)
+				: type{Type::Success},
+					value_{value} {
 		}
 
 		constexpr Result(
-			Error error
-		) : type { Type::Error },
-			error_ { error }
-		{
+				Error error)
+				: type{Type::Error},
+					error_{error} {
 		}
 
 		~Result() {
-			if( type == Type::Success ) {
+			if (type == Type::Success) {
 				value_.~T();
 			}
 		}
 	};
 
-	File() { };
+	File(){};
 	~File();
 
 	/* Prevent copies */
@@ -355,12 +350,12 @@ public:
 
 	Result<Size> read(void* const data, const Size bytes_to_read);
 	Result<Size> write(const void* const data, const Size bytes_to_write);
-	
+
 	Result<Offset> seek(const uint64_t Offset);
 	Timestamp created_date();
 	Size size();
 
-	template<size_t N>
+	template <size_t N>
 	Result<Size> write(const std::array<uint8_t, N>& data) {
 		return write(data.data(), N);
 	}
@@ -370,10 +365,10 @@ public:
 	// TODO: Return Result<>.
 	Optional<Error> sync();
 
-private:
-	FIL f { };
+ private:
+	FIL f{};
 
 	Optional<Error> open_fatfs(const std::filesystem::path& filename, BYTE mode);
 };
 
-#endif/*__FILE_H__*/
+#endif /*__FILE_H__*/

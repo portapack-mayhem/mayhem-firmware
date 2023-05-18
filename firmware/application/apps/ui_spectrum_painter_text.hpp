@@ -35,90 +35,78 @@
 namespace ui {
 
 class SpectrumInputTextView : public View {
-public:
+ public:
 	SpectrumInputTextView(NavigationView& nav);
 	~SpectrumInputTextView();
 
 	void focus() override;
 	void paint(Painter&) override;
-	
+
 	uint16_t get_width();
 	uint16_t get_height();
 	std::vector<uint8_t> get_line(uint16_t);
 
-private:
-	std::string buffer { "PORTAPACK" };
-	std::string message { };
+ private:
+	std::string buffer{"PORTAPACK"};
+	std::string message{};
 	void on_set_text(NavigationView& nav);
 
-	Text text_message_0 {
-		{ 0 * 8, 0 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_1 {
-		{ 0 * 8, 1 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_2 {
-		{ 0 * 8, 2 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_3 {
-		{ 0 * 8, 3 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_4 {
-		{ 0 * 8, 4 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_5 {
-		{ 0 * 8, 5 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_6 {
-		{ 0 * 8, 6 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_7 {
-		{ 0 * 8, 7 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_8 {
-		{ 0 * 8, 8 * 16, 30 * 8, 16 },
-		""
-	};
-	
-	Text text_message_9 {
-		{ 0 * 8, 9 * 16, 30 * 8, 16 },
-		""
-	};
+	Text text_message_0{
+			{0 * 8, 0 * 16, 30 * 8, 16},
+			""};
 
-	std::array<Text*, 10> text_message { { 
-		&text_message_0,
-		&text_message_1,
-		&text_message_2,
-		&text_message_3,
-		&text_message_4,
-		&text_message_5,
-		&text_message_6,
-		&text_message_7,
-		&text_message_8,
-		&text_message_9,
-	} };
+	Text text_message_1{
+			{0 * 8, 1 * 16, 30 * 8, 16},
+			""};
 
-	Button button_message {
-		{ 0 * 8, 11 * 16 - 4, 30 * 8, 28 },
-		"Set message"
-	};
+	Text text_message_2{
+			{0 * 8, 2 * 16, 30 * 8, 16},
+			""};
 
+	Text text_message_3{
+			{0 * 8, 3 * 16, 30 * 8, 16},
+			""};
+
+	Text text_message_4{
+			{0 * 8, 4 * 16, 30 * 8, 16},
+			""};
+
+	Text text_message_5{
+			{0 * 8, 5 * 16, 30 * 8, 16},
+			""};
+
+	Text text_message_6{
+			{0 * 8, 6 * 16, 30 * 8, 16},
+			""};
+
+	Text text_message_7{
+			{0 * 8, 7 * 16, 30 * 8, 16},
+			""};
+
+	Text text_message_8{
+			{0 * 8, 8 * 16, 30 * 8, 16},
+			""};
+
+	Text text_message_9{
+			{0 * 8, 9 * 16, 30 * 8, 16},
+			""};
+
+	std::array<Text*, 10> text_message{{
+			&text_message_0,
+			&text_message_1,
+			&text_message_2,
+			&text_message_3,
+			&text_message_4,
+			&text_message_5,
+			&text_message_6,
+			&text_message_7,
+			&text_message_8,
+			&text_message_9,
+	}};
+
+	Button button_message{
+			{0 * 8, 11 * 16 - 4, 30 * 8, 28},
+			"Set message"};
 };
 
-}
+}	 // namespace ui

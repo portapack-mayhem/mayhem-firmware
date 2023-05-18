@@ -33,8 +33,8 @@
 namespace audio {
 
 class Codec {
-public:
-	virtual ~Codec() { }
+ public:
+	virtual ~Codec() {}
 
 	virtual std::string name() const = 0;
 
@@ -42,7 +42,7 @@ public:
 	virtual void init() = 0;
 
 	virtual void speaker_enable() = 0;
- 	virtual void speaker_disable() = 0;
+	virtual void speaker_disable() = 0;
 
 	virtual void headphone_enable() = 0;
 	virtual void headphone_disable() = 0;
@@ -59,7 +59,7 @@ public:
 
 namespace output {
 
-void start();		// this  other start(),no changed. ,in namespace output , used to config audio playback mode, 
+void start();	 // this  other start(),no changed. ,in namespace output , used to config audio playback mode,
 void stop();
 
 void mute();
@@ -72,7 +72,7 @@ void speaker_unmute();
 
 namespace input {
 
-void start(int8_t alc_mode);  // added parameter user-GUI select AK4951-ALC mode for config mic path,(recording mode in datasheet),
+void start(int8_t alc_mode);	// added parameter user-GUI select AK4951-ALC mode for config mic path,(recording mode in datasheet),
 void stop();
 
 } /* namespace input */
@@ -115,4 +115,4 @@ void set_rate(const Rate rate);
 
 } /* namespace audio */
 
-#endif/*__AUDIO_H__*/
+#endif /*__AUDIO_H__*/

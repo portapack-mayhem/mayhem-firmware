@@ -45,11 +45,11 @@ enum PacketFlag : uint32_t {
 };
 
 class POCSAGPacket {
-public:
+ public:
 	void set_timestamp(const Timestamp& value) {
 		timestamp_ = value;
 	}
-	
+
 	Timestamp timestamp() const {
 		return timestamp_;
 	}
@@ -62,19 +62,19 @@ public:
 	uint32_t operator[](const size_t index) const {
 		return (index < 16) ? codewords[index] : 0;
 	}
-	
+
 	void set_bitrate(const uint16_t bitrate) {
 		bitrate_ = bitrate;
 	}
-	
+
 	uint16_t bitrate() const {
 		return bitrate_;
 	}
-	
+
 	void set_flag(const PacketFlag flag) {
 		flag_ = flag;
 	}
-	
+
 	PacketFlag flag() const {
 		return flag_;
 	}
@@ -85,13 +85,13 @@ public:
 		flag_ = NORMAL;
 	}
 
-private:
-	uint16_t bitrate_ { 0 };
-	PacketFlag flag_ { NORMAL };
-	std::array <uint32_t, 16> codewords { 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0 , 0  };
-	Timestamp timestamp_ { };
+ private:
+	uint16_t bitrate_{0};
+	PacketFlag flag_{NORMAL};
+	std::array<uint32_t, 16> codewords{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+	Timestamp timestamp_{};
 };
 
 } /* namespace pocsag */
 
-#endif/*__POCSAG_PACKET_H__*/
+#endif /*__POCSAG_PACKET_H__*/

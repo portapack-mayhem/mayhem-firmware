@@ -25,8 +25,8 @@
 #include "gpio.hpp"
 
 struct LED {
-	constexpr LED(const GPIO gpio) :
-		_gpio { gpio } {
+	constexpr LED(const GPIO gpio)
+			: _gpio{gpio} {
 	}
 
 	void setup() const {
@@ -51,8 +51,8 @@ struct LED {
 		_gpio.write(value);
 	}
 
-private:
+ private:
 	const GPIO _gpio;
 };
 
-#endif/*__LED_H__*/
+#endif /*__LED_H__*/

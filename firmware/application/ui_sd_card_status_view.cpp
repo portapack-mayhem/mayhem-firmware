@@ -34,23 +34,23 @@ namespace ui {
 namespace detail {
 
 const Bitmap& bitmap_sd_card(const sd_card::Status status) {
-	switch(status) {
-	case sd_card::Status::IOError:
-	case sd_card::Status::MountError:
-	case sd_card::Status::ConnectError:
-		return bitmap_sd_card_error;
+	switch (status) {
+		case sd_card::Status::IOError:
+		case sd_card::Status::MountError:
+		case sd_card::Status::ConnectError:
+			return bitmap_sd_card_error;
 
-	case sd_card::Status::NotPresent:
-		return bitmap_sd_card_unknown;
+		case sd_card::Status::NotPresent:
+			return bitmap_sd_card_unknown;
 
-	case sd_card::Status::Present:
-		return bitmap_sd_card_unknown;
+		case sd_card::Status::Present:
+			return bitmap_sd_card_unknown;
 
-	case sd_card::Status::Mounted:
-		return bitmap_sd_card_ok;
+		case sd_card::Status::Mounted:
+			return bitmap_sd_card_ok;
 
-	default:
-		return bitmap_sd_card_unknown;
+		default:
+			return bitmap_sd_card_unknown;
 	}
 }
 
@@ -59,32 +59,31 @@ static constexpr Color color_sd_card_unknown = Color::yellow();
 static constexpr Color color_sd_card_ok = Color::green();
 
 const Color color_sd_card(const sd_card::Status status) {
-	switch(status) {
-	case sd_card::Status::IOError:
-	case sd_card::Status::MountError:
-	case sd_card::Status::ConnectError:
-		return color_sd_card_error;
+	switch (status) {
+		case sd_card::Status::IOError:
+		case sd_card::Status::MountError:
+		case sd_card::Status::ConnectError:
+			return color_sd_card_error;
 
-	case sd_card::Status::NotPresent:
-		return color_sd_card_unknown;
+		case sd_card::Status::NotPresent:
+			return color_sd_card_unknown;
 
-	case sd_card::Status::Present:
-		return color_sd_card_unknown;
+		case sd_card::Status::Present:
+			return color_sd_card_unknown;
 
-	case sd_card::Status::Mounted:
-		return color_sd_card_ok;
+		case sd_card::Status::Mounted:
+			return color_sd_card_ok;
 
-	default:
-		return color_sd_card_unknown;
+		default:
+			return color_sd_card_unknown;
 	}
 }
 
 } /* namespace detail */
 
 SDCardStatusView::SDCardStatusView(
-	const Rect parent_rect
-) : Image { parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::dark_grey() }
-{
+		const Rect parent_rect)
+		: Image{parent_rect, &bitmap_sd_card_unknown, detail::color_sd_card_unknown, Color::dark_grey()} {
 }
 
 void SDCardStatusView::on_show() {

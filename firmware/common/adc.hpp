@@ -36,15 +36,7 @@ struct CR {
 	uint32_t edge;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((sel & 0xff) << 0)
-			| ((clkdiv & 0xff) << 8)
-			| ((0 & 1) << 16)
-			| (((10 - resolution) & 7) << 17)
-			| ((1 & 1) << 21)
-			| ((0 & 7) << 24)
-			| ((edge & 1) << 27)
-			;
+		return ((sel & 0xff) << 0) | ((clkdiv & 0xff) << 8) | ((0 & 1) << 16) | (((10 - resolution) & 7) << 17) | ((1 & 1) << 21) | ((0 & 7) << 24) | ((edge & 1) << 27);
 	}
 };
 
@@ -52,31 +44,31 @@ struct Config {
 	uint32_t cr;
 };
 
-template<uint32_t BaseAddress>
+template <uint32_t BaseAddress>
 class ADC {
-public:
+ public:
 	static void power_up(const Config config) {
 		adcp().CR = config.cr;
 	}
 
 	static void clock_enable() {
-		if( &adcp() == LPC_ADC0 ) {
+		if (&adcp() == LPC_ADC0) {
 			LPC_CCU1->CLK_APB3_ADC0_CFG.AUTO = 1;
 			LPC_CCU1->CLK_APB3_ADC0_CFG.RUN = 1;
 		}
-		if( &adcp() == LPC_ADC1 ) {
+		if (&adcp() == LPC_ADC1) {
 			LPC_CCU1->CLK_APB3_ADC1_CFG.AUTO = 1;
 			LPC_CCU1->CLK_APB3_ADC1_CFG.RUN = 1;
 		}
 	}
 
 	static void clock_disable() {
-		if( &adcp() == LPC_ADC0 ) {
+		if (&adcp() == LPC_ADC0) {
 			LPC_CCU1->CLK_APB3_ADC0_CFG.RUN = 0;
-		}  
-		if( &adcp() == LPC_ADC1 ) {
+		}
+		if (&adcp() == LPC_ADC1) {
 			LPC_CCU1->CLK_APB3_ADC1_CFG.RUN = 0;
-		}  
+		}
 	}
 
 	static void disable() {
@@ -115,15 +107,15 @@ public:
 
 	static uint32_t convert(size_t n) {
 		start_once(n);
-		while(true) {
+		while (true) {
 			const uint32_t data = adcp().DR[n];
-			if( (data >> 31) & 1 ) {
+			if ((data >> 31) & 1) {
 				return (data >> 6) & 0x3ff;
 			}
 		}
 	}
 
-private:
+ private:
 	static LPC_ADCx_Type& adcp() {
 		return *reinterpret_cast<LPC_ADCx_Type*>(BaseAddress);
 	}
@@ -132,4 +124,4 @@ private:
 } /* namespace adc */
 } /* namespace lpc43xx */
 
-#endif/*__ADC_H__*/
+#endif /*__ADC_H__*/

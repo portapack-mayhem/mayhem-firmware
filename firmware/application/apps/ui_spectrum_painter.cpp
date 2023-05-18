@@ -32,27 +32,27 @@
 namespace ui {
 
 SpectrumPainterView::SpectrumPainterView(
-	NavigationView& nav
-) : nav_ (nav) {
+		NavigationView& nav)
+		: nav_(nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_spectrum_painter);
 
 	add_children({
-		&labels,
-		&tab_view,
-		&input_image,
-		&input_text,
-		&progressbar,
-		&field_frequency,
-		&field_rfgain, 
-		&field_rfamp,
-		&check_loop,
-		&button_play,
-		&option_bandwidth,
-		&field_duration,
-		&field_pause,
+			&labels,
+			&tab_view,
+			&input_image,
+			&input_text,
+			&progressbar,
+			&field_frequency,
+			&field_rfgain,
+			&field_rfamp,
+			&check_loop,
+			&button_play,
+			&option_bandwidth,
+			&field_duration,
+			&field_pause,
 	});
 
-	Rect view_rect = { 0, 3 * 8, 240, 80 };
+	Rect view_rect = {0, 3 * 8, 240, 80};
 	input_image.set_parent_rect(view_rect);
 	input_text.set_parent_rect(view_rect);
 
@@ -70,14 +70,14 @@ SpectrumPainterView::SpectrumPainterView(
 	};
 
 	tx_gain = 10;
-	field_rfgain.set_value(tx_gain);  // Initial default  value (-12 dB's max ).
-    field_rfgain.on_change = [this](int32_t v) { // allow initial value change just after opened file.
+	field_rfgain.set_value(tx_gain);							// Initial default  value (-12 dB's max ).
+	field_rfgain.on_change = [this](int32_t v) {	// allow initial value change just after opened file.
 		tx_gain = v;
 		portapack::transmitter_model.set_tx_gain(tx_gain);
 	};
 
-	field_rfamp.set_value(rf_amp ? 14 : 0);  // Initial default value True. (TX RF amp on , +14dB's)
-	field_rfamp.on_change = [this](int32_t v) {	// allow initial value change just after opened file.	
+	field_rfamp.set_value(rf_amp ? 14 : 0);			 // Initial default value True. (TX RF amp on , +14dB's)
+	field_rfamp.on_change = [this](int32_t v) {	 // allow initial value change just after opened file.
 		rf_amp = (bool)v;
 		portapack::transmitter_model.set_rf_amp(rf_amp);
 	};
@@ -96,17 +96,15 @@ SpectrumPainterView::SpectrumPainterView(
 			//Enable Bias Tee if selected
 			radio::set_antenna_bias(portapack::get_antenna_bias());
 
-			radio::enable({
-				portapack::receiver_model.tuning_frequency(),
-				3072000U,
-				1750000,
-				rf::Direction::Transmit,
-				rf_amp,
-				static_cast<int8_t>(portapack::receiver_model.lna()),
-				static_cast<int8_t>(portapack::receiver_model.vga())
-			});  
+			radio::enable({portapack::receiver_model.tuning_frequency(),
+										 3072000U,
+										 1750000,
+										 rf::Direction::Transmit,
+										 rf_amp,
+										 static_cast<int8_t>(portapack::receiver_model.lna()),
+										 static_cast<int8_t>(portapack::receiver_model.vga())});
 
-			if (portapack::persistent_memory::stealth_mode()){
+			if (portapack::persistent_memory::stealth_mode()) {
 				DisplaySleepMessage message;
 				EventDispatcher::send_message(message);
 			}
@@ -116,8 +114,7 @@ SpectrumPainterView::SpectrumPainterView(
 			if (tx_mode == 0) {
 				tx_current_max_lines = input_image.get_height();
 				tx_current_width = input_image.get_width();
-			}
-			else {
+			} else {
 				tx_current_max_lines = input_text.get_height();
 				tx_current_width = input_text.get_width();
 			}
@@ -126,8 +123,7 @@ SpectrumPainterView::SpectrumPainterView(
 			progressbar.set_value(0);
 
 			baseband::set_spectrum_painter_config(tx_current_width, tx_current_max_lines, false, option_bandwidth.selected_index_value());
-		}
-		else {
+		} else {
 			stop_tx();
 		}
 	};
@@ -156,8 +152,7 @@ void SpectrumPainterView::stop_tx() {
 void SpectrumPainterView::frame_sync() {
 	if (tx_active) {
 		if (fifo->is_empty()) {
-
-			int32_t sequence_duration = (field_duration.value() + ( check_loop.value() ? field_pause.value() : 0)) * 1000;
+			int32_t sequence_duration = (field_duration.value() + (check_loop.value() ? field_pause.value() : 0)) * 1000;
 			int32_t sequence_time = tx_time_elapsed() % sequence_duration;
 			bool is_pausing = sequence_time > field_duration.value() * 1000;
 
@@ -165,7 +160,7 @@ void SpectrumPainterView::frame_sync() {
 				fifo->in(std::vector<uint8_t>(tx_current_width));
 			} else {
 				auto current_time_line = sequence_time * tx_current_max_lines / (field_duration.value() * 1000);
-				
+
 				if (tx_current_line > current_time_line && !check_loop.value()) {
 					fifo->in(std::vector<uint8_t>(tx_current_width));
 					stop_tx();
@@ -178,8 +173,7 @@ void SpectrumPainterView::frame_sync() {
 				if (tx_mode == 0) {
 					std::vector<uint8_t> line = input_image.get_line(current_time_line);
 					fifo->in(line);
-				}
-				else {
+				} else {
 					std::vector<uint8_t> line = input_text.get_line(current_time_line);
 					fifo->in(line);
 				}
@@ -214,20 +208,19 @@ void SpectrumPainterView::paint(Painter& painter) {
 	View::paint(painter);
 
 	size_t c;
-	Point pos = { 0, screen_pos().y() + 8 + footer_location };
-	
+	Point pos = {0, screen_pos().y() + 8 + footer_location};
+
 	for (c = 0; c < 20; c++) {
 		painter.draw_bitmap(
-			pos,
-			bitmap_stripes,
-			ui::Color(191, 191, 0),
-			ui::Color::black()
-		);
+				pos,
+				bitmap_stripes,
+				ui::Color(191, 191, 0),
+				ui::Color::black());
 		if (c != 9)
-			pos += { 24, 0 };
+			pos += {24, 0};
 		else
-			pos = { 0, screen_pos().y() + 8 + footer_location + 32 + 8 };
+			pos = {0, screen_pos().y() + 8 + footer_location + 32 + 8};
 	}
 }
 
-}
+}	 // namespace ui

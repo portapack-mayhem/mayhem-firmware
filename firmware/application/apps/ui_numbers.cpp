@@ -48,14 +48,14 @@ NumbersStationView::~NumbersStationView() {
 	baseband::shutdown();
 }
 
-NumbersStationView::wav_file_t * NumbersStationView::get_wav(uint32_t index) {
+NumbersStationView::wav_file_t* NumbersStationView::get_wav(uint32_t index) {
 	return &current_voice->available_wavs[index];
 }
 
 void NumbersStationView::prepare_audio() {
 	uint8_t code;
-	wav_file_t * wav_file;
-	
+	wav_file_t* wav_file;
+
 	if (sample_counter >= sample_length) {
 		if (segment == ANNOUNCE) {
 			if (!announce_loop) {
@@ -68,21 +68,21 @@ void NumbersStationView::prepare_audio() {
 				announce_loop--;
 			}
 		}
-		
+
 		if (segment == MESSAGE) {
 			if (code_index == 25) {
 				transmitter_model.disable();
 				return;
 			}
-			
+
 			code = symfield_code.get_sym(code_index);
-			
+
 			if (code >= 10) {
 				memset(audio_buffer, 0, 1024);
 				if (code == 10) {
-					pause = 11025;		// p: 0.25s @ 44100Hz
+					pause = 11025;	// p: 0.25s @ 44100Hz
 				} else if (code == 11) {
-					pause = 33075;		// P: 0.75s @ 44100Hz
+					pause = 33075;	// P: 0.75s @ 44100Hz
 				} else if (code == 12) {
 					transmitter_model.disable();
 					return;
@@ -93,19 +93,19 @@ void NumbersStationView::prepare_audio() {
 				sample_length = wav_file->length;
 			}
 			code_index++;
-		}		
+		}
 		sample_counter = 0;
 	}
-	
+
 	if (!pause) {
 		auto bytes_read = reader->read(audio_buffer, 1024).value();
-		
+
 		// Unsigned to signed, pretty stupid :/
 		for (size_t n = 0; n < bytes_read; n++)
 			audio_buffer[n] -= 0x80;
 		for (size_t n = bytes_read; n < 1024; n++)
 			audio_buffer[n] = 0;
-		
+
 		sample_counter += 1024;
 	} else {
 		if (pause >= 1024) {
@@ -115,54 +115,53 @@ void NumbersStationView::prepare_audio() {
 			pause = 0;
 		}
 	}
-	
+
 	baseband::set_fifo_data(audio_buffer);
 }
 
 void NumbersStationView::start_tx() {
 	//sample_length = sound_sizes[10];		// Announce
 	sample_counter = sample_length;
-	
+
 	code_index = 0;
 	announce_loop = 2;
 	segment = ANNOUNCE;
-	
+
 	prepare_audio();
-	
+
 	transmitter_model.set_sampling_rate(1536000U);
 	transmitter_model.set_rf_amp(true);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
-	
+
 	baseband::set_audiotx_data(
-		(1536000 / 44100) - 1,		// TODO: Read wav file's samplerate
-		12000,
-		1,
-		false,
-		0
-	);
+			(1536000 / 44100) - 1,	// TODO: Read wav file's samplerate
+			12000,
+			1,
+			false,
+			0);
 }
 
 void NumbersStationView::on_tick_second() {
 	armed_blink = not armed_blink;
-	
+
 	if (armed_blink)
 		check_armed.set_style(&style_red);
 	else
 		check_armed.set_style(&style());
-	
+
 	check_armed.set_dirty();
 }
 
 void NumbersStationView::on_voice_changed(size_t index) {
 	std::string code_list = "";
-	
+
 	for (const auto& wavs : voices[index].available_wavs)
 		code_list += wavs.code;
-	
+
 	for (uint32_t c = 0; c < 25; c++)
 		symfield_code.set_symbol_list(c, code_list);
-	
+
 	current_voice = &voices[index];
 }
 
@@ -178,27 +177,26 @@ bool NumbersStationView::check_wav_validity(const std::string dir, const std::st
 }
 
 NumbersStationView::NumbersStationView(
-	NavigationView& nav
-) : nav_ (nav)
-{
+		NavigationView& nav)
+		: nav_(nav) {
 	std::vector<std::filesystem::path> directory_list;
 	using option_t = std::pair<std::string, int32_t>;
 	using options_t = std::vector<option_t>;
 	options_t voice_options;
-	voice_t temp_voice { };
+	voice_t temp_voice{};
 	bool valid;
 	uint32_t c;
 	//uint8_t y, m, d, dayofweek;
-	
+
 	reader = std::make_unique<WAVFileReader>();
-	
+
 	// Search for valid voice directories
 	directory_list = scan_root_directories("/numbers");
 	if (!directory_list.size()) {
 		file_error = true;
 		return;
 	}
-	
+
 	for (const auto& dir : directory_list) {
 		c = 0;
 		for (const auto& file_name : file_names) {
@@ -207,7 +205,7 @@ NumbersStationView::NumbersStationView(
 				temp_voice.available_wavs.clear();
 				break;	// Invalid required file means invalid voice
 			} else if (valid) {
-				temp_voice.available_wavs.push_back({ file_name.code, c++, 0, 0 });	// TODO: Needs length and samplerate
+				temp_voice.available_wavs.push_back({file_name.code, c++, 0, 0});	 // TODO: Needs length and samplerate
 			}
 		}
 		if (!temp_voice.available_wavs.empty()) {
@@ -222,34 +220,32 @@ NumbersStationView::NumbersStationView(
 					c++;
 				}
 			}
-			
+
 			temp_voice.accent = c ? true : false;
 			temp_voice.dir = dir.string();
-			
+
 			voices.push_back(temp_voice);
 		}
 	}
-	
+
 	if (voices.empty()) {
 		file_error = true;
 		return;
 	}
-	
+
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
-	
-	add_children({
-		&labels,
-		&symfield_code,
-		&check_armed,
-		&options_voices,
-		&text_voice_flags,
-		//&button_tx_now,
-		&button_exit
-	});
-	
+
+	add_children({&labels,
+								&symfield_code,
+								&check_armed,
+								&options_voices,
+								&text_voice_flags,
+								//&button_tx_now,
+								&button_exit});
+
 	for (const auto& voice : voices)
 		voice_options.emplace_back(voice.dir.substr(0, 4), 0);
-	
+
 	options_voices.set_options(voice_options);
 	options_voices.on_change = [this](size_t i, int32_t) {
 		this->on_voice_changed(i);
@@ -257,7 +253,7 @@ NumbersStationView::NumbersStationView(
 	options_voices.set_selected_index(0);
 
 	check_armed.set_value(false);
-	
+
 	check_armed.on_select = [this](Checkbox&, bool v) {
 		if (v) {
 			armed_blink = false;
@@ -269,7 +265,7 @@ NumbersStationView::NumbersStationView(
 			rtc_time::signal_tick_second -= signal_token_tick_second;
 		}
 	};
-	
+
 	// DEBUG
 	symfield_code.set_sym(0, 10);
 	symfield_code.set_sym(1, 3);
@@ -283,7 +279,7 @@ NumbersStationView::NumbersStationView(
 	symfield_code.set_sym(9, 0);
 	symfield_code.set_sym(10, 12);	// End
 
-/*
+	/*
 	rtc::RTC datetime;
 	rtcGetTime(&RTCD1, &datetime);
 	
@@ -297,7 +293,7 @@ NumbersStationView::NumbersStationView(
 	text_title.set(day_of_week[dayofweek]);
 */
 
-	button_exit.on_select = [&nav](Button&){
+	button_exit.on_select = [&nav](Button&) {
 		nav.pop();
 	};
 }

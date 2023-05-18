@@ -78,17 +78,17 @@ size_t de_bruijn::init(const uint32_t n) {
 		length = 3;
 	else
 		length = n;
-	
+
 	poly = de_bruijn_polys[length - 3];
 	shift_register = 1;
-	
+
 	return (1U << length) + (length - 1);
 }
 
 uint32_t de_bruijn::compute(const uint32_t steps) {
 	uint32_t step, bits, masked;
 	uint8_t new_bit;
-	
+
 	for (step = 0; step < steps; step++) {
 		masked = shift_register & poly;
 		new_bit = 0;
@@ -99,6 +99,6 @@ uint32_t de_bruijn::compute(const uint32_t steps) {
 		shift_register <<= 1;
 		shift_register |= new_bit;
 	}
-	
+
 	return shift_register;
 }

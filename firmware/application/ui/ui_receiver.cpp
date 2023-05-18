@@ -35,11 +35,10 @@ namespace ui {
 /* FrequencyField ********************************************************/
 
 FrequencyField::FrequencyField(
-	const Point parent_pos
-) : Widget { { parent_pos, { 8 * 10, 16 } } },
-	length_ { 11 },
-	range(rf::tuning_range)
-{
+		const Point parent_pos)
+		: Widget{{parent_pos, {8 * 10, 16}}},
+			length_{11},
+			range(rf::tuning_range) {
 	set_focusable(true);
 }
 
@@ -50,9 +49,9 @@ rf::Frequency FrequencyField::value() const {
 void FrequencyField::set_value(rf::Frequency new_value) {
 	new_value = clamp_value(new_value);
 
-	if( new_value != value_ ) {
+	if (new_value != value_) {
 		value_ = new_value;
-		if( on_change ) {
+		if (on_change) {
 			on_change(value_);
 		}
 		set_dirty();
@@ -70,15 +69,14 @@ void FrequencyField::paint(Painter& painter) {
 	const auto paint_style = has_focus() ? style().invert() : style();
 
 	painter.draw_string(
-		screen_pos(),
-		paint_style,
-		str_value
-	);
+			screen_pos(),
+			paint_style,
+			str_value);
 }
 
 bool FrequencyField::on_key(const ui::KeyEvent event) {
-	if( event == ui::KeyEvent::Select ) {
-		if( on_edit ) {
+	if (event == ui::KeyEvent::Select) {
+		if (on_edit) {
 			on_edit();
 			return true;
 		}
@@ -87,7 +85,7 @@ bool FrequencyField::on_key(const ui::KeyEvent event) {
 }
 
 bool FrequencyField::on_encoder(const EncoderEvent delta) {
-	if (step == 0) { // 'Auto' mode.'
+	if (step == 0) {	// 'Auto' mode.'
 		auto ms = RTT2MS(halGetCounterValue());
 		auto delta_ms = last_ms_ <= ms ? ms - last_ms_ : ms;
 		last_ms_ = ms;
@@ -97,7 +95,7 @@ bool FrequencyField::on_encoder(const EncoderEvent delta) {
 		// Linear doesn't feel right. Hyperbolic felt better.
 		// To get these magic numbers, I graphed the function until the
 		// curve shape seemed about right then tested on device.
-		delta_ms = std::min(145ull, delta_ms) + 5; // Prevent DIV/0
+		delta_ms = std::min(145ull, delta_ms) + 5;	// Prevent DIV/0
 		int64_t scale = 200'000'000 / (0.001'55 * pow(delta_ms, 5.45)) + 8;
 		set_value(value() + (delta * scale));
 	} else {
@@ -107,14 +105,14 @@ bool FrequencyField::on_encoder(const EncoderEvent delta) {
 }
 
 bool FrequencyField::on_touch(const TouchEvent event) {
-	if( event.type == TouchEvent::Type::Start ) {
+	if (event.type == TouchEvent::Type::Start) {
 		focus();
 	}
 	return true;
 }
 
 void FrequencyField::on_focus() {
-	if( on_show_options ) {
+	if (on_show_options) {
 		on_show_options();
 	}
 }
@@ -129,8 +127,7 @@ bool FrequencyKeypadView::on_encoder(const EncoderEvent delta) {
 	focused_button += delta;
 	if (focused_button < 0) {
 		focused_button = buttons.size() - 1;
-	}
-	else if (focused_button >= (int16_t)buttons.size()) {
+	} else if (focused_button >= (int16_t)buttons.size()) {
 		focused_button = 0;
 	}
 	buttons[focused_button].focus();
@@ -138,9 +135,8 @@ bool FrequencyKeypadView::on_encoder(const EncoderEvent delta) {
 }
 
 FrequencyKeypadView::FrequencyKeypadView(
-	NavigationView& nav,
-	const rf::Frequency value
-) {
+		NavigationView& nav,
+		const rf::Frequency value) {
 	add_child(&text_value);
 
 	const auto button_fn = [this](Button& button) {
@@ -150,31 +146,26 @@ FrequencyKeypadView::FrequencyKeypadView(
 	const char* const key_caps = "123456789<0.";
 
 	int n = 0;
-	for(auto& button : buttons) {
+	for (auto& button : buttons) {
 		add_child(&button);
-		const std::string label {
-			key_caps[n]
-		};
+		const std::string label{
+				key_caps[n]};
 		button.id = n;
 		button.on_highlight = [this](Button& button) {
 			focused_button = button.id;
 		};
 		button.on_select = button_fn;
-		button.set_parent_rect({
-			(n % 3) * button_w,
-			(n / 3) * button_h + 24,
-			button_w, button_h
-		});
+		button.set_parent_rect({(n % 3) * button_w,
+														(n / 3) * button_h + 24,
+														button_w, button_h});
 		button.set_text(label);
 		n++;
 	}
-	
-	add_children({
-		&button_save,
-		&button_load,
-		&button_close
-	});
-	
+
+	add_children({&button_save,
+								&button_load,
+								&button_close});
+
 	button_save.on_select = [this, &nav](Button&) {
 		nav.push<FrequencySaveView>(this->value());
 	};
@@ -186,7 +177,7 @@ FrequencyKeypadView::FrequencyKeypadView(
 	};
 
 	button_close.on_select = [this, &nav](Button&) {
-		if( on_changed ) {
+		if (on_changed) {
 			on_changed(this->value());
 		}
 		nav.pop();
@@ -215,9 +206,9 @@ void FrequencyKeypadView::set_value(const rf::Frequency new_value) {
 
 void FrequencyKeypadView::on_button(Button& button) {
 	const auto s = button.text();
-	if( s == "." ) {
+	if (s == ".") {
 		field_toggle();
-	} else if( s == "<" ) {
+	} else if (s == "<") {
 		digit_delete();
 	} else {
 		digit_add(s[0]);
@@ -226,8 +217,8 @@ void FrequencyKeypadView::on_button(Button& button) {
 }
 
 void FrequencyKeypadView::digit_add(const char c) {
-	if( state == State::DigitMHz ) {
-		if( clear_field_if_digits_entered ) {
+	if (state == State::DigitMHz) {
+		if (clear_field_if_digits_entered) {
 			mhz.clear();
 		}
 		mhz.add_digit(c);
@@ -238,7 +229,7 @@ void FrequencyKeypadView::digit_add(const char c) {
 }
 
 void FrequencyKeypadView::digit_delete() {
-	if( state == State::DigitMHz ) {
+	if (state == State::DigitMHz) {
 		mhz.delete_digit();
 	} else {
 		submhz.delete_digit();
@@ -246,7 +237,7 @@ void FrequencyKeypadView::digit_delete() {
 }
 
 void FrequencyKeypadView::field_toggle() {
-	if( state == State::DigitMHz ) {
+	if (state == State::DigitMHz) {
 		state = State::DigitSubMHz;
 		submhz.clear();
 	} else {
@@ -263,10 +254,9 @@ void FrequencyKeypadView::update_text() {
 /* FrequencyOptionsView **************************************************/
 
 FrequencyOptionsView::FrequencyOptionsView(
-	const Rect parent_rect,
-	const Style* const style
-) : View { parent_rect }
-{
+		const Rect parent_rect,
+		const Style* const style)
+		: View{parent_rect} {
 	set_style(style);
 
 	field_step.on_change = [this](size_t n, OptionsField::value_t v) {
@@ -279,11 +269,11 @@ FrequencyOptionsView::FrequencyOptionsView(
 	};
 
 	add_children({
-		&text_step,
-		&field_step,
+			&text_step,
+			&field_step,
 	});
 
-	if( portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::Xtal ) {
+	if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::Xtal) {
 		add_child(&field_ppm);
 		add_child(&text_ppm);
 	}
@@ -298,13 +288,13 @@ void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) {
 }
 
 void FrequencyOptionsView::on_step_changed(rf::Frequency v) {
-	if( on_change_step ) {
+	if (on_change_step) {
 		on_change_step(v);
 	}
 }
 
 void FrequencyOptionsView::on_reference_ppm_correction_changed(int32_t v) {
-	if( on_change_reference_ppm_correction ) {
+	if (on_change_reference_ppm_correction) {
 		on_change_reference_ppm_correction(v);
 	}
 }
@@ -312,15 +302,14 @@ void FrequencyOptionsView::on_reference_ppm_correction_changed(int32_t v) {
 /* RFAmpField ************************************************************/
 
 RFAmpField::RFAmpField(
-	Point parent_pos
-) : NumberField {
-		parent_pos,
-		1,
-		{ 0, 1 },
-		1,
-		' ',
-	}
-{
+		Point parent_pos)
+		: NumberField{
+					parent_pos,
+					1,
+					{0, 1},
+					1,
+					' ',
+			} {
 	set_value(receiver_model.rf_amp());
 
 	on_change = [](int32_t v) {
@@ -331,29 +320,28 @@ RFAmpField::RFAmpField(
 /* RadioGainOptionsView **************************************************/
 
 RadioGainOptionsView::RadioGainOptionsView(
-	const Rect parent_rect,
-	const Style* const style
-) : View { parent_rect }
-{
+		const Rect parent_rect,
+		const Style* const style)
+		: View{parent_rect} {
 	set_style(style);
 
 	add_children({
-		&label_rf_amp,
-		&field_rf_amp,
+			&label_rf_amp,
+			&field_rf_amp,
 	});
 }
 
 /* LNAGainField **********************************************************/
 
 LNAGainField::LNAGainField(
-	Point parent_pos
-) : NumberField {
-		parent_pos, 2,
-		{ max283x::lna::gain_db_range.minimum, max283x::lna::gain_db_range.maximum },
-		max283x::lna::gain_db_step,
-		' ',
-	}
-{
+		Point parent_pos)
+		: NumberField{
+					parent_pos,
+					2,
+					{max283x::lna::gain_db_range.minimum, max283x::lna::gain_db_range.maximum},
+					max283x::lna::gain_db_step,
+					' ',
+			} {
 	set_value(receiver_model.lna());
 
 	on_change = [](int32_t v) {
@@ -363,7 +351,7 @@ LNAGainField::LNAGainField(
 
 void LNAGainField::on_focus() {
 	//Widget::on_focus();
-	if( on_show_options ) {
+	if (on_show_options) {
 		on_show_options();
 	}
 }
@@ -371,14 +359,14 @@ void LNAGainField::on_focus() {
 /* VGAGainField **********************************************************/
 
 VGAGainField::VGAGainField(
-	Point parent_pos
-) : NumberField {
-		parent_pos, 2,
-		{ max283x::vga::gain_db_range.minimum, max283x::vga::gain_db_range.maximum },
-		max283x::vga::gain_db_step,
-		' ',
-	}
-{
+		Point parent_pos)
+		: NumberField{
+					parent_pos,
+					2,
+					{max283x::vga::gain_db_range.minimum, max283x::vga::gain_db_range.maximum},
+					max283x::vga::gain_db_step,
+					' ',
+			} {
 	set_value(receiver_model.vga());
 
 	on_change = [](int32_t v) {
@@ -388,7 +376,7 @@ VGAGainField::VGAGainField(
 
 void VGAGainField::on_focus() {
 	//Widget::on_focus();
-	if( on_show_options ) {
+	if (on_show_options) {
 		on_show_options();
 	}
 }

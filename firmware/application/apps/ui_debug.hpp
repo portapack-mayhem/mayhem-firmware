@@ -37,63 +37,61 @@
 namespace ui {
 
 class DebugMemoryView : public View {
-public:
+ public:
 	DebugMemoryView(NavigationView& nav);
 
 	void focus() override;
 
 	std::string title() const override { return "Memory"; };
 
-private:
-	Text text_title {
-		{ 96, 96, 48, 16 },
-		"Memory",
+ private:
+	Text text_title{
+			{96, 96, 48, 16},
+			"Memory",
 	};
 
-	Text text_label_m0_core_free {
-		{ 0, 128, 144, 16 },
-		"M0 Core Free Bytes",
+	Text text_label_m0_core_free{
+			{0, 128, 144, 16},
+			"M0 Core Free Bytes",
 	};
 
-	Text text_label_m0_core_free_value {
-		{ 200, 128, 40, 16 },
+	Text text_label_m0_core_free_value{
+			{200, 128, 40, 16},
 	};
 
-	Text text_label_m0_heap_fragmented_free {
-		{ 0, 144, 184, 16 },
-		"M0 Heap Fragmented Free",
+	Text text_label_m0_heap_fragmented_free{
+			{0, 144, 184, 16},
+			"M0 Heap Fragmented Free",
 	};
 
-	Text text_label_m0_heap_fragmented_free_value {
-		{ 200, 144, 40, 16 },
+	Text text_label_m0_heap_fragmented_free_value{
+			{200, 144, 40, 16},
 	};
 
-	Text text_label_m0_heap_fragments {
-		{ 0, 160, 136, 16 },
-		"M0 Heap Fragments",
+	Text text_label_m0_heap_fragments{
+			{0, 160, 136, 16},
+			"M0 Heap Fragments",
 	};
 
-	Text text_label_m0_heap_fragments_value {
-		{ 200, 160, 40, 16 },
+	Text text_label_m0_heap_fragments_value{
+			{200, 160, 40, 16},
 	};
 
-	Button button_done {
-		{ 72, 192, 96, 24 },
-		"Done"
-	};
+	Button button_done{
+			{72, 192, 96, 24},
+			"Done"};
 };
 
 class TemperatureWidget : public Widget {
-public:
+ public:
 	explicit TemperatureWidget(
-		Rect parent_rect
-	) : Widget { parent_rect }
-	{
+			Rect parent_rect)
+			: Widget{parent_rect} {
 	}
 
 	void paint(Painter& painter) override;
 
-private:
+ private:
 	using sample_t = uint32_t;
 	using temperature_t = int32_t;
 
@@ -102,34 +100,33 @@ private:
 
 	std::string temperature_str(const temperature_t temperature) const;
 
-	static constexpr temperature_t display_temp_min = -10;  //Accomodate negative values, present in cold startup cases
+	static constexpr temperature_t display_temp_min = -10;	//Accomodate negative values, present in cold startup cases
 	static constexpr temperature_t display_temp_scale = 3;
 	static constexpr int bar_width = 1;
-	static constexpr int temp_len = 4; //Now scale shows up to 4 chars ("-10C")
+	static constexpr int temp_len = 4;	//Now scale shows up to 4 chars ("-10C")
 };
 
 class TemperatureView : public View {
-public:
+ public:
 	explicit TemperatureView(NavigationView& nav);
 
 	void focus() override;
 
 	std::string title() const override { return "Temperature"; };
 
-private:
-	Text text_title {
-		{ 76, 16, 240, 16 },
-		"Temperature",
+ private:
+	Text text_title{
+			{76, 16, 240, 16},
+			"Temperature",
 	};
 
-	TemperatureWidget temperature_widget {
-		{ 0, 40, 240, 180 },
+	TemperatureWidget temperature_widget{
+			{0, 40, 240, 180},
 	};
 
-	Button button_done {
-		{ 72, 264, 96, 24 },
-		"Done"
-	};
+	Button button_done{
+			{72, 264, 96, 24},
+			"Done"};
 };
 
 struct RegistersWidgetConfig {
@@ -174,17 +171,16 @@ struct RegistersWidgetConfig {
 };
 
 class RegistersWidget : public Widget {
-public:
+ public:
 	RegistersWidget(
-		RegistersWidgetConfig&& config,
-		std::function<uint32_t(const size_t register_number)>&& reader
-	);
+			RegistersWidgetConfig&& config,
+			std::function<uint32_t(const size_t register_number)>&& reader);
 
 	void update();
 
 	void paint(Painter& painter) override;
 
-private:
+ private:
 	const RegistersWidgetConfig config;
 	const std::function<uint32_t(const size_t register_number)> reader;
 
@@ -195,39 +191,35 @@ private:
 };
 
 class RegistersView : public View {
-public:
+ public:
 	RegistersView(
-		NavigationView& nav,
-		const std::string& title,
-		RegistersWidgetConfig&& config,
-		std::function<uint32_t(const size_t register_number)>&& reader
-	);
+			NavigationView& nav,
+			const std::string& title,
+			RegistersWidgetConfig&& config,
+			std::function<uint32_t(const size_t register_number)>&& reader);
 
 	void focus();
 
-private:
-	Text text_title { };
+ private:
+	Text text_title{};
 
 	RegistersWidget registers_widget;
 
-	Button button_update {
-		{ 16, 256, 96, 24 },
-		"Update"
-	};
+	Button button_update{
+			{16, 256, 96, 24},
+			"Update"};
 
-	Button button_done {
-		{ 128, 256, 96, 24 },
-		"Done"
-	};
+	Button button_done{
+			{128, 256, 96, 24},
+			"Done"};
 };
 
 class ControlsSwitchesWidget : public Widget {
-public:
+ public:
 	ControlsSwitchesWidget(
-		Rect parent_rect
-	) : Widget { parent_rect },
-		key_event_mask(0)
-	{
+			Rect parent_rect)
+			: Widget{parent_rect},
+				key_event_mask(0) {
 		set_focusable(true);
 	}
 
@@ -236,41 +228,39 @@ public:
 
 	void paint(Painter& painter) override;
 
-private:
+ private:
 	uint8_t key_event_mask;
 
-	MessageHandlerRegistration message_handler_frame_sync {
-		Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			this->on_frame_sync();
-		}
-	};
+	MessageHandlerRegistration message_handler_frame_sync{
+			Message::ID::DisplayFrameSync,
+			[this](const Message* const) {
+				this->on_frame_sync();
+			}};
 
 	void on_frame_sync();
 };
 
 class DebugControlsView : public View {
-public:
+ public:
 	explicit DebugControlsView(NavigationView& nav);
 
 	void focus() override;
 
 	std::string title() const override { return "Buttons Test"; };
 
-private:
-	Text text_title {
-		{ 64, 16, 184, 16 },
-		"Controls State",
+ private:
+	Text text_title{
+			{64, 16, 184, 16},
+			"Controls State",
 	};
 
-	ControlsSwitchesWidget switches_widget {
-		{ 80, 80, 80, 112 },
+	ControlsSwitchesWidget switches_widget{
+			{80, 80, 80, 112},
 	};
 
-	Button button_done {
-		{ 72, 264, 96, 24 },
-		"Done"
-	};
+	Button button_done{
+			{72, 264, 96, 24},
+			"Done"};
 };
 
 /*class DebugLCRView : public View {
@@ -293,17 +283,17 @@ private:
 };*/
 
 class DebugPeripheralsMenuView : public BtnGridView {
-public:
+ public:
 	DebugPeripheralsMenuView(NavigationView& nav);
-	std::string title() const override { return "Peripherals"; };	
+	std::string title() const override { return "Peripherals"; };
 };
 
 class DebugMenuView : public BtnGridView {
-public:
+ public:
 	DebugMenuView(NavigationView& nav);
-	std::string title() const override { return "Debug"; };	
+	std::string title() const override { return "Debug"; };
 };
 
 } /* namespace ui */
 
-#endif/*__UI_DEBUG_H__*/
+#endif /*__UI_DEBUG_H__*/

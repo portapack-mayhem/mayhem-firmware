@@ -32,26 +32,26 @@ namespace ui {
 
 uint8_t KeyfobView::subaru_get_checksum() {
 	uint8_t checksum = 0;
-	
+
 	for (size_t i = 0; i < 9; i++) {
-		checksum ^= (frame[i] & 0x0F);			// 00 11 22 33 44 55 66 77 88 9-
+		checksum ^= (frame[i] & 0x0F);	// 00 11 22 33 44 55 66 77 88 9-
 		checksum ^= ((frame[i] >> 4) & 0x0F);
 	}
-	
+
 	checksum ^= ((frame[9] >> 4) & 0x0F);
 	checksum++;
 	checksum &= 0x0F;
-	
+
 	return checksum;
 }
 
 bool KeyfobView::subaru_is_valid() {
 	if (frame[0] != 0x55)
 		return false;
-	
+
 	if (subaru_get_checksum() != (frame[9] & 0x0F))
 		return false;
-	
+
 	return true;
 }
 
@@ -70,10 +70,10 @@ void KeyfobView::subaru_set_code(const uint16_t code) {
 int32_t KeyfobView::subaru_get_command() {
 	uint32_t command_a = frame[5] & 0x0F;
 	uint32_t command_b = frame[6] & 0x0F;
-	
+
 	if (command_a != command_b)
 		return -1;
-	
+
 	return command_a;
 }
 
@@ -96,7 +96,7 @@ void KeyfobView::generate_payload(size_t& bitstream_length) {
 size_t KeyfobView::generate_frame() {
 	size_t bitstream_length = 0;
 	uint64_t payload;
-	
+
 	// Symfield word to frame
 	payload = field_payload_a.value_hex_u64();
 	for (size_t i = 0; i < 5; i++) {
@@ -112,7 +112,7 @@ size_t KeyfobView::generate_frame() {
 	// Recompute checksum
 	frame[9] = (frame[9] & 0xF0) | subaru_get_checksum();
 	update_symfields();
-	
+
 	// Preamble: 128x 01
 	for (size_t i = 0; i < 128; i++)
 		bitstream_append(bitstream_length, 2, 0b01);
@@ -128,7 +128,7 @@ size_t KeyfobView::generate_frame() {
 
 	// Payload again
 	generate_payload(bitstream_length);
-	
+
 	return bitstream_length;
 }
 
@@ -141,8 +141,8 @@ KeyfobView::~KeyfobView() {
 	settings.save("tx_keyfob", &app_settings);
 
 	transmitter_model.disable();
-	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
-	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
+	hackrf::cpld::load_sram_no_verify();	// to leave all RX ok, without ghost signal problem at the exit .
+	baseband::shutdown();									// better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
 void KeyfobView::update_progress(const uint32_t progress) {
@@ -185,74 +185,71 @@ void KeyfobView::on_command_change(uint32_t value) {
 
 void KeyfobView::start_tx() {
 	progressbar.set_max(repeats - 1);
-	
+
 	update_progress(1);
-	
+
 	size_t bitstream_length = generate_frame();
 
 	transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
-	
+
 	baseband::set_ook_data(
-		bitstream_length,
-		subaru_samples_per_bit,
-		repeats,
-		200		// Pause symbols
+			bitstream_length,
+			subaru_samples_per_bit,
+			repeats,
+			200	 // Pause symbols
 	);
 }
 
 KeyfobView::KeyfobView(
-	NavigationView& nav
-) : nav_ { nav }
-{
+		NavigationView& nav)
+		: nav_{nav} {
 	baseband::run_image(portapack::spi_flash::image_tag_ook);
 
-	add_children({
-		&labels,
-		&options_make,
-		&options_command,
-		&field_payload_a,
-		&field_payload_b,
-		&text_status,
-		&progressbar,
-		&tx_view
-	});
-	
+	add_children({&labels,
+								&options_make,
+								&options_command,
+								&field_payload_a,
+								&field_payload_b,
+								&text_status,
+								&progressbar,
+								&tx_view});
+
 	// load app settings
 	auto rc = settings.load("tx_keyfob", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		transmitter_model.set_rf_amp(app_settings.tx_amp);
-		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+		transmitter_model.set_tx_gain(app_settings.tx_gain);
 	}
 
 	frame[0] = 0x55;
 	update_symfields();
-	
+
 	options_make.on_change = [this](size_t index, int32_t) {
 		on_make_change(index);
 	};
-	
+
 	options_command.on_change = [this](size_t, int32_t value) {
 		on_command_change(value);
 	};
-	
+
 	options_make.set_selected_index(0);
-	
+
 	transmitter_model.set_tuning_frequency(433920000);	// Fixed 433.92MHz
-	
+
 	tx_view.on_edit_frequency = [this, &nav]() {
 		auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
 		new_view->on_changed = [this](rf::Frequency f) {
 			transmitter_model.set_tuning_frequency(f);
 		};
 	};
-	
+
 	tx_view.on_start = [this]() {
 		start_tx();
 		tx_view.set_transmitting(true);
 	};
-	
+
 	tx_view.on_stop = [this]() {
 		tx_view.set_transmitting(false);
 	};

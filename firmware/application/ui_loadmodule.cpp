@@ -57,13 +57,13 @@ void LoadModuleView::focus() {
 void LoadModuleView::on_show() {
 	char md5_signature[16];
 	uint8_t c;
-	
-	memcpy(md5_signature, (const void *)(0x10087FF0), 16);
-	for (c=0; c<16; c++) {
+
+	memcpy(md5_signature, (const void*)(0x10087FF0), 16);
+	for (c = 0; c < 16; c++) {
 		if (md5_signature[c] != _hash[c]) break;
 	}
 	//text_info.set(to_string_hex(*((unsigned int*)0x10087FF0), 8));
-	
+
 	if (c == 16) {
 		text_info.set("Module already loaded :)");
 		_mod_loaded = true;
@@ -83,12 +83,12 @@ int LoadModuleView::load_image() {
 	FIL modfile;
 	DIR rootdir;
 	FRESULT res;
-	
+
 	// Scan SD card root directory for files with the right MD5 fingerprint at the right location
 	if (f_opendir(&rootdir, "/") == FR_OK) {
 		for (;;) {
 			res = f_readdir(&rootdir, &modinfo);
-			if (res != FR_OK || modinfo.fname[0] == 0) break;	// Reached last file, abort
+			if (res != FR_OK || modinfo.fname[0] == 0) break;	 // Reached last file, abort
 			// Only care about files with .bin extension
 			if ((!(modinfo.fattrib & AM_DIR)) && (modinfo.fname[9] == 'B') && (modinfo.fname[10] == 'I') && (modinfo.fname[11] == 'N')) {
 				res = f_open(&modfile, modinfo.fname, FA_OPEN_EXISTING | FA_READ);
@@ -119,44 +119,38 @@ int LoadModuleView::load_image() {
 		}
 		f_closedir(&rootdir);
 	}
-	
+
 	return 0;
 }
 
 void LoadModuleView::loadmodule() {
 	//baseband::shutdown();
-	
+
 	/*EventDispatcher::message_map().register_handler(Message::ID::ReadyForSwitch,
 		[this](Message* const p) {
 			(void)p;*/
-			if (load_image()) {
-				text_infob.set("Module loaded :)");
-				_mod_loaded = true;
-			} else {
-				text_info.set("Module not found :(");
-				_mod_loaded = false;
-			}
+	if (load_image()) {
+		text_infob.set("Module loaded :)");
+		_mod_loaded = true;
+	} else {
+		text_info.set("Module not found :(");
+		_mod_loaded = false;
+	}
 	//	}
 	//);
-	
 }
 
 LoadModuleView::LoadModuleView(
-	NavigationView& nav,
-	const char * hash,
-	ViewID viewid
-)
-{
+		NavigationView& nav,
+		const char* hash,
+		ViewID viewid) {
+	add_children({&text_info,
+								&text_infob,
+								&button_ok});
 
-	add_children({
-		&text_info,
-		&text_infob,
-		&button_ok
-	});
-	
 	_hash = hash;
 
-	button_ok.on_select = [this, &nav, viewid](Button&){
+	button_ok.on_select = [this, &nav, viewid](Button&) {
 		nav.pop();
 		if (_mod_loaded == true) {
 			if (viewid == AudioTX) nav.push<AudioTXView>();

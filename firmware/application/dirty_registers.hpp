@@ -27,9 +27,9 @@
 
 #include "utility.hpp"
 
-template<typename RegisterType, size_t RegisterCount>
+template <typename RegisterType, size_t RegisterCount>
 class DirtyRegisters {
-public:
+ public:
 	using mask_t = std::bitset<RegisterCount>;
 
 	/* TODO: I feel like I might regret implementing this cast operator... */
@@ -57,8 +57,8 @@ public:
 		return mask[toUType(reg)];
 	}
 
-private:
-	mask_t mask { };
+ private:
+	mask_t mask{};
 };
 
-#endif/*__DIRTY_REGISTERS_H__*/
+#endif /*__DIRTY_REGISTERS_H__*/

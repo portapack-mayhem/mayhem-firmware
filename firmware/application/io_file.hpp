@@ -29,7 +29,7 @@
 #include <cstdint>
 
 class FileReader : public stream::Reader {
-public:
+ public:
 	FileReader() = default;
 
 	FileReader(const FileReader&) = delete;
@@ -40,16 +40,16 @@ public:
 	Optional<File::Error> open(const std::filesystem::path& filename) {
 		return file.open(filename);
 	}
-	
+
 	File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
-	
-protected:
-	File file { };
-	uint64_t bytes_read { 0 };
+
+ protected:
+	File file{};
+	uint64_t bytes_read{0};
 };
 
 class FileWriter : public stream::Writer {
-public:
+ public:
 	FileWriter() = default;
 
 	FileWriter(const FileWriter&) = delete;
@@ -62,10 +62,10 @@ public:
 	}
 
 	File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
-	
-protected:
-	File file { };
-	uint64_t bytes_written { 0 };
+
+ protected:
+	File file{};
+	uint64_t bytes_written{0};
 };
 
 using RawFileWriter = FileWriter;

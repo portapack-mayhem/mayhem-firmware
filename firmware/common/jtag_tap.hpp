@@ -31,28 +31,25 @@ namespace jtag {
 namespace tap {
 
 class bits_t {
-public:
-	constexpr bits_t(
-	) : p { nullptr },
-		count { 0 }
-	{
+ public:
+	constexpr bits_t()
+			: p{nullptr},
+				count{0} {
 	}
 
 	constexpr bits_t(
-		const size_t count,
-		const bool default_value = true
-	) : p { nullptr },
-		count { count },
-		default_value { default_value }
-	{
+			const size_t count,
+			const bool default_value = true)
+			: p{nullptr},
+				count{count},
+				default_value{default_value} {
 	}
 
 	constexpr bits_t(
-		const uint8_t* const p,
-		const size_t count
-	) : p { p },
-		count { count }
-	{
+			const uint8_t* const p,
+			const size_t count)
+			: p{p},
+				count{count} {
 	}
 
 	size_t length() const;
@@ -61,10 +58,10 @@ public:
 
 	bool operator[](const size_t index) const;
 
-private:
-	const uint8_t* p { nullptr };
-	size_t count { 0 };
-	bool default_value { false };
+ private:
+	const uint8_t* p{nullptr};
+	size_t count{0};
+	bool default_value{false};
 
 	size_t bytes() const;
 };
@@ -90,26 +87,24 @@ enum class state_t : uint8_t {
 };
 
 class TAPState {
-public:
-	constexpr TAPState(
-	) : _state { state_t::test_logic_reset }
-	{
+ public:
+	constexpr TAPState()
+			: _state{state_t::test_logic_reset} {
 	}
 
 	state_t state() const;
 	void advance(const bool tms);
 	bool advance_toward(const state_t desired_state) const;
 
-private:
+ private:
 	state_t _state;
 };
 
 class TAPMachine {
-public:
+ public:
 	constexpr TAPMachine(
-		jtag::Target& target
-	) : target { target }
-	{
+			jtag::Target& target)
+			: target{target} {
 	}
 
 	void set_run_test(const uint32_t value);
@@ -120,26 +115,26 @@ public:
 	bool shift(const bits_t& tdi, const bool end_tms) {
 		return shift(tdi, {}, {}, end_tms);
 	}
-	
+
 	bool shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms);
 
 	bool shift_ir(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
 	bool shift_dr(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
 
 	void state(const state_t state);
-	
+
 	void wait(const state_t wait_state, const state_t end_state, const uint32_t wait_time);
 
-private:
+ private:
 	jtag::Target& target;
-	TAPState tap { };
+	TAPState tap{};
 
-	uint32_t _run_test { 0 };
-	uint8_t _repeat { 0 };
-	state_t _end_ir { };
-	state_t _end_dr { };
+	uint32_t _run_test{0};
+	uint8_t _repeat{0};
+	state_t _end_ir{};
+	state_t _end_dr{};
 
-	bool clock(const bool tms, const bool tdi=false);
+	bool clock(const bool tms, const bool tdi = false);
 	void advance_to_state(const state_t desired_state);
 	void delay_us(const uint32_t microseconds);
 
@@ -152,4 +147,4 @@ private:
 } /* namespace tap */
 } /* namespace jtag */
 
-#endif/*__JTAG_TAP_H__*/
+#endif /*__JTAG_TAP_H__*/

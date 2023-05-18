@@ -36,12 +36,16 @@ namespace ert {
 namespace format {
 
 std::string type(Packet::Type value) {
-	switch(value) {
-	default:
-	case Packet::Type::Unknown:	return "???";
-	case Packet::Type::IDM:		return "IDM";
-	case Packet::Type::SCM:		return "SCM";
-	case Packet::Type::SCMPLUS:	return "SCM+";
+	switch (value) {
+		default:
+		case Packet::Type::Unknown:
+			return "???";
+		case Packet::Type::IDM:
+			return "IDM";
+		case Packet::Type::SCM:
+			return "SCM";
+		case Packet::Type::SCMPLUS:
+			return "SCM+";
 	}
 }
 
@@ -67,7 +71,7 @@ void ERTLogger::on_packet(const ert::Packet& packet) {
 	log_file.write_entry(packet.received_at(), entry);
 }
 
-const ERTRecentEntry::Key ERTRecentEntry::invalid_key { };
+const ERTRecentEntry::Key ERTRecentEntry::invalid_key{};
 
 void ERTRecentEntry::update(const ert::Packet& packet) {
 	received_count++;
@@ -77,16 +81,15 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
 
 namespace ui {
 
-template<>
+template <>
 void RecentEntriesTable<ERTRecentEntries>::draw(
-	const Entry& entry,
-	const Rect& target_rect,
-	Painter& painter,
-	const Style& style
-) {
+		const Entry& entry,
+		const Rect& target_rect,
+		Painter& painter,
+		const Style& style) {
 	std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
 
-	if( entry.received_count > 999 ) {
+	if (entry.received_count > 999) {
 		line += " +++";
 	} else {
 		line += " " + to_string_dec_uint(entry.received_count, 3);
@@ -100,16 +103,16 @@ ERTAppView::ERTAppView(NavigationView&) {
 	baseband::run_image(portapack::spi_flash::image_tag_ert);
 
 	add_children({
-		&field_rf_amp,
-		&field_lna,
-		&field_vga,
-		&rssi,
-		&recent_entries_view,
+			&field_rf_amp,
+			&field_lna,
+			&field_vga,
+			&rssi,
+			&recent_entries_view,
 	});
 
 	// load app settings
 	auto rc = settings.load("rx_ert", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		field_lna.set_value(app_settings.lna);
 		field_vga.set_value(app_settings.vga);
 		field_rf_amp.set_value(app_settings.rx_amp);
@@ -118,9 +121,9 @@ ERTAppView::ERTAppView(NavigationView&) {
 	receiver_model.set_tuning_frequency(initial_target_frequency);
 	receiver_model.set_sampling_rate(sampling_rate);
 	receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-	receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+	receiver_model.enable();	// Before using radio::enable(), but not updating Ant.DC-Bias.
 
-/*	radio::enable({
+	/*	radio::enable({
 		initial_target_frequency,
 		sampling_rate,
 		baseband_bandwidth,
@@ -131,17 +134,16 @@ ERTAppView::ERTAppView(NavigationView&) {
 	}); */
 
 	logger = std::make_unique<ERTLogger>();
-	if( logger ) {
-		logger->append( LOG_ROOT_DIR "/ERT.TXT" );
+	if (logger) {
+		logger->append(LOG_ROOT_DIR "/ERT.TXT");
 	}
 }
 
 ERTAppView::~ERTAppView() {
-
 	// save app settings
 	settings.save("rx_ert", &app_settings);
 
-	receiver_model.disable(); // to switch off all, including DC bias and change flag enabled_
+	receiver_model.disable();	 // to switch off all, including DC bias and change flag enabled_
 
 	baseband::shutdown();
 }
@@ -152,16 +154,16 @@ void ERTAppView::focus() {
 
 void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	recent_entries_view.set_parent_rect({ 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height });
+	recent_entries_view.set_parent_rect({0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height});
 }
 
 void ERTAppView::on_packet(const ert::Packet& packet) {
-	if( logger ) {
+	if (logger) {
 		logger->on_packet(packet);
 	}
 
-	if( packet.crc_ok() ) {
-		auto& entry = ::on_packet(recent, ERTRecentEntry::Key { packet.id(), packet.commodity_type() });
+	if (packet.crc_ok()) {
+		auto& entry = ::on_packet(recent, ERTRecentEntry::Key{packet.id(), packet.commodity_type()});
 		entry.update(packet);
 		recent_entries_view.set_dirty();
 	}

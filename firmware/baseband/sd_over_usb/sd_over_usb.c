@@ -26,23 +26,22 @@
 bool scsi_running = false;
 
 usb_request_status_t report_max_lun(
-	usb_endpoint_t* const endpoint,
-	const usb_transfer_stage_t stage)
-{
+		usb_endpoint_t* const endpoint,
+		const usb_transfer_stage_t stage) {
 	if (stage == USB_TRANSFER_STAGE_SETUP) {
 		endpoint->buffer[0] = 0;
 		usb_transfer_schedule_block(
-			endpoint->in,
-			&endpoint->buffer,
-			1,
-			NULL,
-			NULL);
+				endpoint->in,
+				&endpoint->buffer,
+				1,
+				NULL,
+				NULL);
 
 		usb_transfer_schedule_ack(endpoint->out);
 
 		scsi_running = true;
 	}
-	
+
 	return USB_REQUEST_STATUS_OK;
 }
 
@@ -58,11 +57,10 @@ usb_request_status_t usb_class_request(usb_endpoint_t* const endpoint, const usb
 }
 
 const usb_request_handlers_t usb_request_handlers = {
-	.standard = usb_standard_request,
-	.class = usb_class_request,
-	.vendor = 0,
-	.reserved = 0
-};
+		.standard = usb_standard_request,
+		.class = usb_class_request,
+		.vendor = 0,
+		.reserved = 0};
 
 void usb_configuration_changed(usb_device_t* const device) {
 	(void)device;
@@ -103,8 +101,7 @@ void irq_usb(void) {
 }
 
 volatile bool transfer_complete = false;
-void scsi_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred)
-{
+void scsi_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred) {
 	(void)user_data;
 	(void)bytes_transferred;
 
@@ -115,17 +112,18 @@ void usb_transfer(void) {
 	if (scsi_running) {
 		transfer_complete = false;
 		usb_transfer_schedule_block(
-			&usb_endpoint_bulk_out,
-			&usb_bulk_buffer[0x4000],
-			USB_TRANSFER_SIZE,
-			scsi_bulk_transfer_complete,
-			NULL);
+				&usb_endpoint_bulk_out,
+				&usb_bulk_buffer[0x4000],
+				USB_TRANSFER_SIZE,
+				scsi_bulk_transfer_complete,
+				NULL);
 
-		while (!transfer_complete);
+		while (!transfer_complete)
+			;
 
-		msd_cbw_t *msd_cbw_data = (msd_cbw_t *) &usb_bulk_buffer[0x4000];
+		msd_cbw_t* msd_cbw_data = (msd_cbw_t*)&usb_bulk_buffer[0x4000];
 
-		if (msd_cbw_data->signature == MSD_CBW_SIGNATURE){
+		if (msd_cbw_data->signature == MSD_CBW_SIGNATURE) {
 			scsi_command(msd_cbw_data);
 		}
 	}

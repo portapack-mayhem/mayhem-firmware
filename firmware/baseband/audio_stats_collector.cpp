@@ -26,11 +26,11 @@
 void AudioStatsCollector::consume_audio_buffer(const buffer_f32_t& src) {
 	auto src_p = src.p;
 	const auto src_end = &src.p[src.count];
-	while(src_p < src_end) {
+	while (src_p < src_end) {
 		const auto sample = *(src_p++);
 		const auto sample_squared = sample * sample;
 		squared_sum += sample_squared;
-		if( sample_squared > max_squared ) {
+		if (sample_squared > max_squared) {
 			max_squared = sample_squared;
 		}
 	}
@@ -41,7 +41,7 @@ bool AudioStatsCollector::update_stats(const size_t sample_count, const size_t s
 
 	const size_t samples_per_update = sampling_rate * update_interval;
 
-	if( count >= samples_per_update ) {
+	if (count >= samples_per_update) {
 		statistics.rms_db = mag2_to_dbv_norm(squared_sum / count);
 		statistics.max_db = mag2_to_dbv_norm(max_squared);
 		statistics.count = count;

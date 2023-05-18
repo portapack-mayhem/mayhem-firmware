@@ -26,12 +26,13 @@
 #include <complex>
 #include <cmath>
 
-constexpr float pi { 3.141592653589793238462643383279502884f };
+constexpr float pi{3.141592653589793238462643383279502884f};
 
 namespace std {
 
-template<> struct complex<int8_t> {
-public:
+template <>
+struct complex<int8_t> {
+ public:
 	typedef int8_t value_type;
 	typedef uint16_t rep_type;
 
@@ -42,10 +43,9 @@ public:
 	// }
 
 	constexpr complex(
-		int8_t re = 0,
-		int8_t im = 0
-	) : _v { re, im }
-	{
+			int8_t re = 0,
+			int8_t im = 0)
+			: _v{re, im} {
 	}
 
 	// constexpr complex(
@@ -64,15 +64,16 @@ public:
 		return _rep;
 	}
 
-private:
+ private:
 	union {
 		value_type _v[2];
 		rep_type _rep;
 	};
 };
 
-template<> struct complex<int16_t> {
-public:
+template <>
+struct complex<int16_t> {
+ public:
 	typedef int16_t value_type;
 	typedef uint32_t rep_type;
 
@@ -83,10 +84,9 @@ public:
 	// }
 
 	constexpr complex(
-		int16_t re = 0,
-		int16_t im = 0
-	) : _v { re, im }
-	{
+			int16_t re = 0,
+			int16_t im = 0)
+			: _v{re, im} {
 	}
 
 	// constexpr complex(
@@ -101,7 +101,7 @@ public:
 	void real(int16_t v) { _v[0] = v; }
 	void imag(int16_t v) { _v[1] = v; }
 
-	template<class X>
+	template <class X>
 	complex<int16_t>& operator+=(const complex<X>& other) {
 		_v[0] += other.real();
 		_v[1] += other.imag();
@@ -114,12 +114,11 @@ public:
 
 	constexpr operator std::complex<float>() const {
 		return {
-			static_cast<float>(_v[0]),
-			static_cast<float>(_v[1])
-		};
+				static_cast<float>(_v[0]),
+				static_cast<float>(_v[1])};
 	}
 
-private:
+ private:
 	union {
 		value_type _v[2];
 		rep_type _rep;
@@ -128,7 +127,7 @@ private:
 
 } /* namespace std */
 
-using complex8_t  = std::complex<int8_t>;
+using complex8_t = std::complex<int8_t>;
 using complex16_t = std::complex<int16_t>;
 using complex32_t = std::complex<int32_t>;
 
@@ -136,4 +135,4 @@ static_assert(sizeof(complex8_t) == 2, "complex8_t size wrong");
 static_assert(sizeof(complex16_t) == 4, "complex16_t size wrong");
 static_assert(sizeof(complex32_t) == 8, "complex32_t size wrong");
 
-#endif/*__COMPLEX_H__*/
+#endif /*__COMPLEX_H__*/

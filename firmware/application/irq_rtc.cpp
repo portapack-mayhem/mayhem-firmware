@@ -49,5 +49,4 @@ CH_IRQ_HANDLER(RTC_IRQHandler) {
 
 	CH_IRQ_EPILOGUE();
 }
-
 }

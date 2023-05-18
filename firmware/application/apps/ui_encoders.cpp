@@ -31,8 +31,8 @@ using namespace portapack;
 namespace ui {
 
 EncodersConfigView::EncodersConfigView(
-	NavigationView&, Rect parent_rect
-) {
+		NavigationView&,
+		Rect parent_rect) {
 	using option_t = std::pair<std::string, int32_t>;
 	std::vector<option_t> enc_options;
 	size_t i;
@@ -43,18 +43,16 @@ EncodersConfigView::EncodersConfigView(
 	// Default encoder def
 	encoder_def = &encoder_defs[0];
 
-	add_children({
-		&labels,
-		&options_enctype,
-		&field_repeat_min,
-		&field_clk,
-		&field_clk_step,
-		&field_frameduration,
-		&field_frameduration_step,
-		&symfield_word,
-		&text_format,
-		&waveform
-	});
+	add_children({&labels,
+								&options_enctype,
+								&field_repeat_min,
+								&field_clk,
+								&field_clk_step,
+								&field_frameduration,
+								&field_frameduration_step,
+								&symfield_word,
+								&text_format,
+								&waveform});
 
 	// Load encoder types in option field
 	for (i = 0; i < ENC_TYPES_COUNT; i++)
@@ -182,17 +180,15 @@ void EncodersScanView::focus() {
 }
 
 EncodersScanView::EncodersScanView(
-	NavigationView&, Rect parent_rect
-) {
+		NavigationView&,
+		Rect parent_rect) {
 	set_parent_rect(parent_rect);
 	hidden(true);
 
-	add_children({
-		&labels,
-		&field_length,
-		&bit_length_10,
-		&bit_length
-	});
+	add_children({&labels,
+								&field_length,
+								&bit_length_10,
+								&bit_length});
 
 	field_length.set_value(8);
 	bit_length_10.set_value(40);
@@ -209,8 +205,8 @@ EncodersView::~EncodersView() {
 	settings.save("tx_ook", &app_settings);
 
 	transmitter_model.disable();
-	hackrf::cpld::load_sram_no_verify(); // ghost signal c/m to the problem at the exit .
-	baseband::shutdown(); // better this function after load_sram()
+	hackrf::cpld::load_sram_no_verify();	// ghost signal c/m to the problem at the exit .
+	baseband::shutdown();									// better this function after load_sram()
 }
 
 void EncodersView::update_progress() {
@@ -253,9 +249,9 @@ void EncodersView::start_tx(const bool scan) {
 		tx_mode = SCAN;
 		scan_width = view_scan.field_length.value();
 		samples_per_bit =
-			((view_scan.bit_length_10.value() * 10 + view_scan.bit_length.value()) * OOK_SAMPLERATE) / 1000000UL;
+				((view_scan.bit_length_10.value() * 10 + view_scan.bit_length.value()) * OOK_SAMPLERATE) / 1000000UL;
 		constexpr auto sym_len = 4;
-		const uint32_t seq_len = ((1 << (scan_width - 1)) * 2) * ((uint64_t) samples_per_bit) * sym_len / 2048UL;
+		const uint32_t seq_len = ((1 << (scan_width - 1)) * 2) * ((uint64_t)samples_per_bit) * sym_len / 2048UL;
 		progressbar.set_max(seq_len);
 		repeat_min = seq_len;
 	} else {
@@ -275,28 +271,24 @@ void EncodersView::start_tx(const bool scan) {
 	transmitter_model.enable();
 
 	baseband::set_ook_data(
-		bitstream_length,
-		samples_per_bit,
-		repeat_min,
-		view_config.pause_symbols(),
-		scan_width
-	);
+			bitstream_length,
+			samples_per_bit,
+			repeat_min,
+			view_config.pause_symbols(),
+			scan_width);
 }
 
 EncodersView::EncodersView(
-	NavigationView& nav
-) : nav_ { nav }
-{
+		NavigationView& nav)
+		: nav_{nav} {
 	baseband::run_image(portapack::spi_flash::image_tag_ook);
 
-	add_children({
-		&tab_view,
-		&view_config,
-		&view_scan,
-		&text_status,
-		&progressbar,
-		&tx_view
-	});
+	add_children({&tab_view,
+								&view_config,
+								&view_scan,
+								&text_status,
+								&progressbar,
+								&tx_view});
 
 	// load app settings
 	auto rc = settings.load("tx_ook", &app_settings);

@@ -27,16 +27,14 @@
 namespace units {
 
 class Pressure {
-public:
-	constexpr Pressure(
-	) : kpa_ { 0 }
-	{
+ public:
+	constexpr Pressure()
+			: kpa_{0} {
 	}
 
 	constexpr Pressure(
-		const int kilopascal
-	) : kpa_ { static_cast<int16_t>(kilopascal) }
-	{
+			const int kilopascal)
+			: kpa_{static_cast<int16_t>(kilopascal)} {
 	}
 
 	int kilopascal() const {
@@ -47,21 +45,19 @@ public:
 		return kpa_ * 1000 / 6895;
 	}
 
-private:
+ private:
 	int16_t kpa_;
 };
 
 class Temperature {
-public:
-	constexpr Temperature(
-	) : c_ { 0 }
-	{
+ public:
+	constexpr Temperature()
+			: c_{0} {
 	}
 
 	constexpr Temperature(
-		const int celsius
-	) : c_ { static_cast<int16_t>(celsius) }
-	{
+			const int celsius)
+			: c_{static_cast<int16_t>(celsius)} {
 	}
 
 	int celsius() const {
@@ -72,10 +68,10 @@ public:
 		return (c_ * 9 / 5) + 32;
 	}
 
-private:
+ private:
 	int16_t c_;
 };
 
 } /* namespace units */
 
-#endif/*__UNITS_H__*/
+#endif /*__UNITS_H__*/

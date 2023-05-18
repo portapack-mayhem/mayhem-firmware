@@ -39,7 +39,9 @@ static inline bool flag_saturation() {
 
 static inline void clear_flag_saturation() {
 	uint32_t flags = 1;
-	__asm volatile ("MSR APSR_nzcvqg, %0" : : "r" (flags));
+	__asm volatile("MSR APSR_nzcvqg, %0"
+								 :
+								 : "r"(flags));
 }
 
 } /* namespace m4 */
@@ -102,27 +104,27 @@ inline void clear() {
 	LPC_CREG->M0APPTXEVENT = 0;
 }
 
-} /* namespace */
+}	 // namespace m0apptxevent
 
 } /* namespace creg */
 
 namespace cgu {
 
 enum class CLK_SEL : uint8_t {
-	RTC_32KHZ	= 0x00,
-	IRC			= 0x01,
+	RTC_32KHZ = 0x00,
+	IRC = 0x01,
 	ENET_RX_CLK = 0x02,
 	ENET_TX_CLK = 0x03,
-	GP_CLKIN	= 0x04,
-	XTAL		= 0x06,
-	PLL0USB		= 0x07,
-	PLL0AUDIO	= 0x08,
-	PLL1		= 0x09,
-	IDIVA		= 0x0c,
-	IDIVB		= 0x0d,
-	IDIVC		= 0x0e,
-	IDIVD		= 0x0f,
-	IDIVE		= 0x10,
+	GP_CLKIN = 0x04,
+	XTAL = 0x06,
+	PLL0USB = 0x07,
+	PLL0AUDIO = 0x08,
+	PLL1 = 0x09,
+	IDIVA = 0x0c,
+	IDIVB = 0x0d,
+	IDIVC = 0x0e,
+	IDIVD = 0x0f,
+	IDIVE = 0x10,
 };
 
 struct IDIV_CTRL {
@@ -132,12 +134,7 @@ struct IDIV_CTRL {
 	CLK_SEL clk_sel;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((pd & 1) << 0)
-			| ((idiv & 255) << 2)
-			| ((autoblock & 1) << 11)
-			| ((toUType(clk_sel) & 0x1f) << 24)
-			;
+		return ((pd & 1) << 0) | ((idiv & 255) << 2) | ((autoblock & 1) << 11) | ((toUType(clk_sel) & 0x1f) << 24);
 	}
 };
 
@@ -157,19 +154,7 @@ struct CTRL {
 	CLK_SEL clk_sel;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((pd & 1) << 0)
-			| ((bypass & 1) << 1)
-			| ((directi & 1) << 2)
-			| ((directo & 1) << 3)
-			| ((clken & 1) << 4)
-			| ((frm & 1) << 6)
-			| ((autoblock & 1) << 11)
-			| ((pllfract_req & 1) << 12)
-			| ((sel_ext & 1) << 13)
-			| ((mod_pd & 1) << 14)
-			| ((toUType(clk_sel) & 0x1f) << 24)
-			;
+		return ((pd & 1) << 0) | ((bypass & 1) << 1) | ((directi & 1) << 2) | ((directo & 1) << 3) | ((clken & 1) << 4) | ((frm & 1) << 6) | ((autoblock & 1) << 11) | ((pllfract_req & 1) << 12) | ((sel_ext & 1) << 13) | ((mod_pd & 1) << 14) | ((toUType(clk_sel) & 0x1f) << 24);
 	}
 };
 
@@ -186,10 +171,7 @@ struct NP_DIV {
 	uint32_t ndec;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((pdec & 0x7f) << 0)
-			| ((ndec & 0x3ff) << 12)
-			;
+		return ((pdec & 0x7f) << 0) | ((ndec & 0x3ff) << 12);
 	}
 };
 
@@ -253,17 +235,7 @@ struct CTRL {
 	CLK_SEL clk_sel;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((pd & 1) << 0)
-			| ((bypass & 1) << 1)
-			| ((fbsel & 1) << 6)
-			| ((direct & 1) << 7)
-			| ((psel & 3) << 8)
-			| ((autoblock & 1) << 11)
-			| ((nsel & 3) << 12)
-			| ((msel & 0xff) << 16)
-			| ((toUType(clk_sel) & 0x1f) << 24)
-			;
+		return ((pd & 1) << 0) | ((bypass & 1) << 1) | ((fbsel & 1) << 6) | ((direct & 1) << 7) | ((psel & 3) << 8) | ((autoblock & 1) << 11) | ((nsel & 3) << 12) | ((msel & 0xff) << 16) | ((toUType(clk_sel) & 0x1f) << 24);
 	}
 };
 
@@ -366,8 +338,7 @@ inline void reset_mask(const uint64_t mask) {
 
 inline Status status(const Reset reset) {
 	return static_cast<Status>(
-		(LPC_RGU->RESET_STATUS[toUType(reset) >> 4] >> ((toUType(reset) & 0xf) * 2)) & 3
-	);
+			(LPC_RGU->RESET_STATUS[toUType(reset) >> 4] >> ((toUType(reset) & 0xf) * 2)) & 3);
 }
 
 inline bool active(const Reset reset) {
@@ -405,14 +376,7 @@ struct SFS {
 	uint32_t zif;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((mode & 7) << 0)
-			| ((epd	& 1) << 3)
-			| ((epun & 1) << 4)
-			| ((ehs	& 1) << 5)
-			| ((ezi	& 1) << 6)
-			| ((zif	& 1) << 7)
-			;
+		return ((mode & 7) << 0) | ((epd & 1) << 3) | ((epun & 1) << 4) | ((ehs & 1) << 5) | ((ezi & 1) << 6) | ((zif & 1) << 7);
 	}
 };
 
@@ -467,18 +431,7 @@ struct CTRL {
 	uint32_t dmaen;
 
 	constexpr operator uint32_t() const {
-		return
-			  ((timeout & 0xffff) <<	0)
-			| ((cshigh & 1) << 16)
-			| ((d_prftch_dis & 1) << 21)
-			| ((inten & 1) << 22)
-			| ((mode3 & 1) << 23)
-			| ((prftch_dis & 1) << 27)
-			| ((dual & 1) << 28)
-			| ((rfclk & 1) << 29)
-			| ((fbclk & 1) << 30)
-			| ((dmaen & 1) << 31)
-			;
+		return ((timeout & 0xffff) << 0) | ((cshigh & 1) << 16) | ((d_prftch_dis & 1) << 21) | ((inten & 1) << 22) | ((mode3 & 1) << 23) | ((prftch_dis & 1) << 27) | ((dual & 1) << 28) | ((rfclk & 1) << 29) | ((fbclk & 1) << 30) | ((dmaen & 1) << 31);
 	}
 };
 
@@ -507,27 +460,24 @@ inline void enable_second_inc() {
 	LPC_RTC->CIIR = (1U << 0);
 }
 
-} /* namespace */
+}	 // namespace interrupt
 
 #if HAL_USE_RTC
 struct RTC : public RTCTime {
 	constexpr RTC(
-		uint32_t year,
-		uint32_t month,
-		uint32_t day,
-		uint32_t hour,
-		uint32_t minute,
-		uint32_t second
-	) : RTCTime {
-			(year << 16) | (month << 8) | (day << 0),
-			(hour << 16) | (minute << 8) | (second << 0)
-		}
-	{
+			uint32_t year,
+			uint32_t month,
+			uint32_t day,
+			uint32_t hour,
+			uint32_t minute,
+			uint32_t second)
+			: RTCTime{
+						(year << 16) | (month << 8) | (day << 0),
+						(hour << 16) | (minute << 8) | (second << 0)} {
 	}
 
-	constexpr RTC(
-	) : RTCTime { 0, 0 }
-	{
+	constexpr RTC()
+			: RTCTime{0, 0} {
 	}
 
 	uint16_t year() const {
@@ -563,4 +513,4 @@ static_assert(offsetof(LPC_RTC_Type, ASEC) == 0x060, "RTC ASEC offset wrong");
 
 } /* namespace lpc43xx */
 
-#endif/*__LPC43XX_CPP_H__*/
+#endif /*__LPC43XX_CPP_H__*/

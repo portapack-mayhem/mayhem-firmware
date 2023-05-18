@@ -39,10 +39,10 @@ bool SoundBoardView::is_active() const {
 void SoundBoardView::stop() {
 	if (is_active())
 		replay_thread.reset();
-	
+
 	transmitter_model.disable();
 	tx_view.set_transmitting(false);
-	
+
 	//button_play.set_bitmap(&bitmap_play);
 	ready_signal = false;
 }
@@ -50,7 +50,7 @@ void SoundBoardView::stop() {
 void SoundBoardView::handle_replay_thread_done(const uint32_t return_code) {
 	stop();
 	//progressbar.set_value(0);
-	
+
 	if (return_code == ReplayThread::END_OF_FILE) {
 		if (check_random.value()) {
 			lfsr_v = lfsr_iterate(lfsr_v);
@@ -81,49 +81,48 @@ void SoundBoardView::start_tx(const uint32_t id) {
 	auto reader = std::make_unique<WAVFileReader>();
 	uint32_t tone_key_index = options_tone_key.selected_index();
 	uint32_t sample_rate;
-	
+
 	stop();
 
 	if (!reader->open(u"/WAV/" + file_list[id].native())) {
 		file_error();
 		return;
 	}
-	
+
 	playing_id = id;
-	
+
 	//progressbar.set_max(reader->sample_count());
-	
+
 	//button_play.set_bitmap(&bitmap_stop);
-	
+
 	sample_rate = reader->sample_rate();
-	
+
 	replay_thread = std::make_unique<ReplayThread>(
-		std::move(reader),
-		read_size, buffer_count,
-		&ready_signal,
-		[](uint32_t return_code) {
-			ReplayThreadDoneMessage message { return_code };
-			EventDispatcher::send_message(message);
-		}
-	);
-	
+			std::move(reader),
+			read_size, buffer_count,
+			&ready_signal,
+			[](uint32_t return_code) {
+				ReplayThreadDoneMessage message{return_code};
+				EventDispatcher::send_message(message);
+			});
+
 	baseband::set_audiotx_config(
-		1536000 / 20,		// Update vu-meter at 20Hz
-		transmitter_model.channel_bandwidth(),
-		0,	// Gain is unused
-		8,	// shift_bits_s16, default 8 bits, but  also unused
-		TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
-		0, //AM
-		0, //DSB
-		0, //USB
-		0 //LSB
+			1536000 / 20,	 // Update vu-meter at 20Hz
+			transmitter_model.channel_bandwidth(),
+			0,	// Gain is unused
+			8,	// shift_bits_s16, default 8 bits, but  also unused
+			TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
+			0,	//AM
+			0,	//DSB
+			0,	//USB
+			0		//LSB
 	);
 	baseband::set_sample_rate(sample_rate);
-	
+
 	transmitter_model.set_sampling_rate(1536000);
 	transmitter_model.set_baseband_bandwidth(1750000);
 	transmitter_model.enable();
-	
+
 	tx_view.set_transmitting(true);
 }
 
@@ -136,8 +135,8 @@ void SoundBoardView::start_tx(const uint32_t id) {
 }*/
 
 void SoundBoardView::on_tx_progress(const uint32_t progress) {
-	(void)progress ; // avoid warning
-	//progressbar.set_value(progress);
+	(void)progress;	 // avoid warning
+									 //progressbar.set_value(progress);
 }
 
 void SoundBoardView::on_select_entry() {
@@ -146,30 +145,28 @@ void SoundBoardView::on_select_entry() {
 
 void SoundBoardView::refresh_list() {
 	auto reader = std::make_unique<WAVFileReader>();
-	
+
 	file_list.clear();
 	c_page = page;
-	
+
 	// List directories and files, put directories up top
 	uint32_t count = 0;
 	for (const auto& entry : std::filesystem::directory_iterator(u"WAV", u"*")) {
 		if (std::filesystem::is_regular_file(entry.status())) {
 			if (entry.path().string().length()) {
-			
 				auto entry_extension = entry.path().extension().string();
-			
-				for (auto &c: entry_extension)
+
+				for (auto& c : entry_extension)
 					c = toupper(c);
-				
+
 				if (entry_extension == ".WAV") {
-					
 					if (reader->open(u"/WAV/" + entry.path().native())) {
 						if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
 							//sounds[c].ms_duration = reader->ms_duration();
 							//sounds[c].path = u"WAV/" + entry.path().native();
-							if (count >= (page - 1) * 100 && count < page * 100){
+							if (count >= (page - 1) * 100 && count < page * 100) {
 								file_list.push_back(entry.path());
-								if (file_list.size() == 100){
+								if (file_list.size() == 100) {
 									page++;
 									break;
 								}
@@ -184,11 +181,11 @@ void SoundBoardView::refresh_list() {
 
 	if (!file_list.size()) {
 		// Hide widgets, show warning
-		if (page == 1){
+		if (page == 1) {
 			menu_view.hidden(true);
 			text_empty.hidden(false);
 			set_dirty();
-		}else{
+		} else {
 			page = 1;
 			refresh_list();
 			return;
@@ -198,60 +195,55 @@ void SoundBoardView::refresh_list() {
 		menu_view.hidden(false);
 		text_empty.hidden(true);
 		set_dirty();
-	
+
 		menu_view.clear();
-		
+
 		for (size_t n = 0; n < file_list.size(); n++) {
-			menu_view.add_item({
-				file_list[n].string().substr(0, 30),
-				ui::Color::white(),
-				nullptr,
-				[this](KeyEvent){
-					on_select_entry();
-				}
-			});
+			menu_view.add_item({file_list[n].string().substr(0, 30),
+													ui::Color::white(),
+													nullptr,
+													[this](KeyEvent) {
+														on_select_entry();
+													}});
 		}
 
 		page_info.set("Page: " + to_string_dec_uint(c_page) + "    Sounds: " + to_string_dec_uint(file_list.size()));
-		menu_view.set_highlighted(0);	// Refresh
+		menu_view.set_highlighted(0);	 // Refresh
 	}
 
-	if (file_list.size() < 100){
+	if (file_list.size() < 100) {
 		page = 1;
 	}
 }
 
 SoundBoardView::SoundBoardView(
-	NavigationView& nav
-) : nav_ (nav)
-{
+		NavigationView& nav)
+		: nav_(nav) {
 	baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
-	
-	add_children({
-		&labels,
-		&menu_view,
-		&text_empty,
-		&options_tone_key,
-		//&text_title,
-		//&text_duration,
-		//&progressbar,
-		&page_info,
-		&check_loop,
-		&check_random,
-		&button_prev_page,
-		&button_next_page,
-		&tx_view
-	});
+
+	add_children({&labels,
+								&menu_view,
+								&text_empty,
+								&options_tone_key,
+								//&text_title,
+								//&text_duration,
+								//&progressbar,
+								&page_info,
+								&check_loop,
+								&check_random,
+								&button_prev_page,
+								&button_next_page,
+								&tx_view});
 
 	// load app settings
 	auto rc = settings.load("tx_soundboard", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		transmitter_model.set_rf_amp(app_settings.tx_amp);
 		transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
 		transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
-		transmitter_model.set_tx_gain(app_settings.tx_gain);		
+		transmitter_model.set_tx_gain(app_settings.tx_gain);
 	}
-	
+
 	refresh_list();
 
 	button_next_page.on_select = [this](Button&) {
@@ -264,12 +256,12 @@ SoundBoardView::SoundBoardView(
 		page = c_page - 1;
 		refresh_list();
 	};
-	
+
 	//text_title.set(to_string_dec_uint(file_list.size()));
-	
+
 	tone_keys_populate(options_tone_key);
 	options_tone_key.set_selected_index(0);
-	
+
 	check_loop.set_value(false);
 	check_random.set_value(false);
 
@@ -279,11 +271,11 @@ SoundBoardView::SoundBoardView(
 			transmitter_model.set_tuning_frequency(f);
 		};
 	};
-	
+
 	tx_view.on_start = [this]() {
 		start_tx(menu_view.highlighted_index());
 	};
-	
+
 	tx_view.on_stop = [this]() {
 		tx_view.set_transmitting(false);
 		stop();
@@ -292,13 +284,13 @@ SoundBoardView::SoundBoardView(
 
 SoundBoardView::~SoundBoardView() {
 	// save app settings
-	app_settings.tx_frequency = transmitter_model.tuning_frequency();	
+	app_settings.tx_frequency = transmitter_model.tuning_frequency();
 	settings.save("tx_soundboard", &app_settings);
 
 	stop();
 	transmitter_model.disable();
-	hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
-	baseband::shutdown(); // better this function at the end, not load_sram() that sometimes produces hang up.
+	hackrf::cpld::load_sram_no_verify();	// to leave all RX ok, without ghost signal problem at the exit.
+	baseband::shutdown();									// better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
-}
+}	 // namespace ui

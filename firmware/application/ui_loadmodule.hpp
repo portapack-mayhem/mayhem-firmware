@@ -44,31 +44,28 @@ enum ViewID {
 };
 
 class LoadModuleView : public View {
-public:
-	LoadModuleView(NavigationView& nav, const char * hash, ViewID viewid);
+ public:
+	LoadModuleView(NavigationView& nav, const char* hash, ViewID viewid);
 	void loadmodule();
-	
+
 	void on_show() override;
 	void focus() override;
 
-private:
+ private:
 	int load_image(void);
-	const char * _hash;
+	const char* _hash;
 	bool _mod_loaded = false;
-	
-	Text text_info {
-		{ 8, 64, 224, 16 },
-		"-"
-	};
-	Text text_infob {
-		{ 8, 64+16, 224, 16 },
-		"-"
-	};
-	
-	Button button_ok {
-		{ 88, 128, 64, 32 },
-		"OK"
-	};
+
+	Text text_info{
+			{8, 64, 224, 16},
+			"-"};
+	Text text_infob{
+			{8, 64 + 16, 224, 16},
+			"-"};
+
+	Button button_ok{
+			{88, 128, 64, 32},
+			"OK"};
 };
 
 } /* namespace ui */

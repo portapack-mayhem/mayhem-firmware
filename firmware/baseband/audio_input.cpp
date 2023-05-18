@@ -34,7 +34,7 @@
 
 void AudioInput::read_audio_buffer(buffer_s16_t& audio) {
 	auto audio_buffer = audio::dma::rx_empty_buffer();
-	
-	for (size_t i=0; i<audio_buffer.count; i++)
+
+	for (size_t i = 0; i < audio_buffer.count; i++)
 		audio.p[i] = audio_buffer.p[i].right;
 }

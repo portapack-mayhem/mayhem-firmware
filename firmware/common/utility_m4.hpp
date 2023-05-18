@@ -40,8 +40,8 @@ static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type
 	const int32_t ir = __SMULTB(a, b);
 	const int32_t ri = __SMULBT(a, b);
 	const int32_t i = __QSUB(ir, ri);
-	return { r, i };
+	return {r, i};
 }
 #endif /* defined(LPC43XX_M4) */
 
-#endif/*__UTILITY_M4_H__*/
+#endif /*__UTILITY_M4_H__*/

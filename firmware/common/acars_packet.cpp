@@ -47,9 +47,9 @@ uint8_t Packet::block_id() const {
 std::string Packet::registration_number() const {
 	std::string result;
 	result.reserve(7);
-	
+
 	const size_t character_length = 8;
-	for(size_t i=16; i<(16+7*character_length); i+=character_length) {
+	for (size_t i = 16; i < (16 + 7 * character_length); i += character_length) {
 		result += (field_.read(i, character_length) & 0x7F);
 	}
 
@@ -77,10 +77,10 @@ uint32_t Packet::read(const size_t start_bit, const size_t length) const {
 }*/
 
 bool Packet::crc_ok() const {
-	CRCReader field_crc { packet_ };
-	CRC<16> acars_fcs { 0x1021, 0x0000, 0x0000 };
-	
-	for(size_t i=0; i<data_length(); i+=8) {
+	CRCReader field_crc{packet_};
+	CRC<16> acars_fcs{0x1021, 0x0000, 0x0000};
+
+	for (size_t i = 0; i < data_length(); i += 8) {
 		acars_fcs.process_byte(field_crc.read(i, 8));
 	}
 
@@ -97,11 +97,11 @@ size_t Packet::data_length() const {
 
 bool Packet::length_valid() const {
 	const size_t extra_bits = data_and_fcs_length() & 7;
-	if( extra_bits != 0 ) {
+	if (extra_bits != 0) {
 		return false;
 	}
 
 	return true;
 }
 
-} /* namespace ais */
+}	 // namespace acars

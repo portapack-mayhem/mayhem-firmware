@@ -28,17 +28,14 @@
 
 // This is called at 3072000/2048 = 1500Hz
 void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
-	
 	if (!configured) return;
-	
+
 	for (size_t i = 0; i < buffer.count; i++) {
-		
 		if (!sample_count) {
-			
 			// This FSM is a mess. It seems to do a lot where it shouldn't (I/Q loop),
 			// but it actually doesn't do much. Used for sequencing the different parts
 			// of the scanline. Todo: simplify !
-			
+
 			if (state == STATE_CALIBRATION) {
 				// Once per picture
 				tone_delta = calibration_sequence[substep].first;
@@ -67,7 +64,7 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
 					}
 				} else {
 					tone_delta = vis_code_sequence[substep];
-					sample_count = SSTV_MS2S(30);	// A VIS code bit is 30ms
+					sample_count = SSTV_MS2S(30);	 // A VIS code bit is 30ms
 					substep++;
 				}
 			} else if (state == STATE_SYNC) {
@@ -80,7 +77,7 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
 				tone_delta = SSTV_F2D(1500 + ((current_scanline->luma[pixel_index] * 800) / 256));
 				sample_count = pixel_duration;
 				pixel_index++;
-				
+
 				if (pixel_index >= 320) {
 					// Scanline done, (dirty) state jump
 					pixel_index = 0;
@@ -95,16 +92,16 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
 		// Tone synth
 		tone_sample = (sine_table_i8[(tone_phase & 0xFF000000U) >> 24]);
 		tone_phase += tone_delta;
-		
+
 		// FM
 		delta = tone_sample * fm_delta;
-		
+
 		phase += delta;
 		sphase = phase + (64 << 24);
 
 		re = (sine_table_i8[(sphase & 0xFF000000U) >> 24]);
 		im = (sine_table_i8[(phase & 0xFF000000U) >> 24]);
-		
+
 		buffer.p[i] = {re, im};
 	}
 }
@@ -112,36 +109,36 @@ void SSTVTXProcessor::execute(const buffer_c8_t& buffer) {
 void SSTVTXProcessor::on_message(const Message* const msg) {
 	const auto message = *reinterpret_cast<const SSTVConfigureMessage*>(msg);
 	uint8_t vis_code;
-	
-	switch(msg->id) {
+
+	switch (msg->id) {
 		case Message::ID::SSTVConfigure:
 			pixel_duration = message.pixel_duration;
-			
+
 			if (!pixel_duration) {
-				configured = false;		// Shutdown
+				configured = false;	 // Shutdown
 				return;
 			}
-			
+
 			vis_code = message.vis_code;
-			
+
 			// VIS code:
 			// 1200, (0=1300, 1=1100), 1200
 			vis_code_sequence[0] = SSTV_VIS_SS;
 			for (uint32_t c = 0; c < 8; c++)
 				vis_code_sequence[c + 1] = ((vis_code >> c) & 1) ? SSTV_VIS_ONE : SSTV_VIS_ZERO;
 			vis_code_sequence[9] = SSTV_VIS_SS;
-			
+
 			fm_delta = 9000 * (0xFFFFFFULL / 3072000);	// Fixed bw for now
-			
+
 			pixel_index = 0;
 			sample_count = 0;
 			tone_phase = 0;
 			state = STATE_CALIBRATION;
 			substep = 0;
-			
+
 			configured = true;
 			break;
-		
+
 		case Message::ID::FIFOData:
 			memcpy(&scanline_buffer[buffer_flip], static_cast<const FIFODataMessage*>(msg)->data, sizeof(sstv_scanline));
 			break;
@@ -152,7 +149,7 @@ void SSTVTXProcessor::on_message(const Message* const msg) {
 }
 
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<SSTVTXProcessor>() };
+	EventDispatcher event_dispatcher{std::make_unique<SSTVTXProcessor>()};
 	event_dispatcher.run();
 	return 0;
 }

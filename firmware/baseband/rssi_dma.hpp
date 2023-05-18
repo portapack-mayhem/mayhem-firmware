@@ -46,4 +46,4 @@ rf::rssi::buffer_t wait_for_buffer();
 } /* namespace rssi */
 } /* namespace rf */
 
-#endif/*__RSSI_DMA_H__*/
+#endif /*__RSSI_DMA_H__*/

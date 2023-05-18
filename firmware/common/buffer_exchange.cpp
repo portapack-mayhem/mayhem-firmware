@@ -21,11 +21,10 @@
 
 #include "buffer_exchange.hpp"
 
-BufferExchange* BufferExchange::obj { nullptr };
+BufferExchange* BufferExchange::obj{nullptr};
 
 BufferExchange::BufferExchange(
-	CaptureConfig* const config
-)	// : config_capture { config }
+		CaptureConfig* const config)	// : config_capture { config }
 {
 	obj = this;
 	// In capture mode, baseband wants empty buffers, app waits for full buffers
@@ -34,8 +33,7 @@ BufferExchange::BufferExchange(
 }
 
 BufferExchange::BufferExchange(
-	ReplayConfig* const config
-)	// : config_replay { config }
+		ReplayConfig* const config)	 // : config_replay { config }
 {
 	obj = this;
 	// In replay mode, baseband wants full buffers, app waits for empty buffers
@@ -50,11 +48,11 @@ BufferExchange::~BufferExchange() {
 }
 
 StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
-	while(true) {
-		StreamBuffer* p { nullptr };
+	while (true) {
+		StreamBuffer* p{nullptr};
 		fifo->out(p);
-		
-		if( p ) {
+
+		if (p) {
 			return p;
 		}
 
@@ -67,8 +65,8 @@ StreamBuffer* BufferExchange::get(FIFO<StreamBuffer*>* fifo) {
 }
 
 StreamBuffer* BufferExchange::get_prefill(FIFO<StreamBuffer*>* fifo) {
-	StreamBuffer* p { nullptr };
+	StreamBuffer* p{nullptr};
 	fifo->out(p);
-	
+
 	return p;
 }

@@ -37,36 +37,35 @@
 #include <memory>
 
 class CaptureProcessor : public BasebandProcessor {
-public:
+ public:
 	CaptureProcessor();
 
 	void execute(const buffer_c8_t& buffer) override;
 
 	void on_message(const Message* const message) override;
 
-private:
+ private:
 	// TODO: Repeated value needs to be transmitted from application side.
 	size_t baseband_fs = 0;
 	static constexpr auto spectrum_rate_hz = 50.0f;
 
-	BasebandThread baseband_thread { baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive };
-	RSSIThread rssi_thread { NORMALPRIO + 10 };
+	BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
+	RSSIThread rssi_thread{NORMALPRIO + 10};
 
-	std::array<complex16_t, 512> dst { };
-	const buffer_c16_t dst_buffer {
-		dst.data(),
-		dst.size()
-	};
+	std::array<complex16_t, 512> dst{};
+	const buffer_c16_t dst_buffer{
+			dst.data(),
+			dst.size()};
 
-	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0 { };
-	dsp::decimate::FIRC16xR16x16Decim2 decim_1 { };
+	dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+	dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
 	int32_t channel_filter_low_f = 0;
 	int32_t channel_filter_high_f = 0;
 	int32_t channel_filter_transition = 0;
 
-	std::unique_ptr<StreamInput> stream { };
+	std::unique_ptr<StreamInput> stream{};
 
-	SpectrumCollector channel_spectrum { };
+	SpectrumCollector channel_spectrum{};
 	size_t spectrum_interval_samples = 0;
 	size_t spectrum_samples = 0;
 
@@ -74,4 +73,4 @@ private:
 	void capture_config(const CaptureConfigMessage& message);
 };
 
-#endif/*__PROC_CAPTURE_HPP__*/
+#endif /*__PROC_CAPTURE_HPP__*/

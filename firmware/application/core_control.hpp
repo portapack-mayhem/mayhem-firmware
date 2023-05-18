@@ -32,4 +32,4 @@ void m4_request_shutdown();
 
 void m0_halt();
 
-#endif/*__CORE_CONTROL_H__*/
+#endif /*__CORE_CONTROL_H__*/

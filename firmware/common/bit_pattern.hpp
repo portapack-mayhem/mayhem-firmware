@@ -26,7 +26,7 @@
 #include <cstddef>
 
 class BitHistory {
-public:
+ public:
 	void add(const uint_fast8_t bit) {
 		history = (history << 1) | (bit & 1);
 	}
@@ -35,27 +35,25 @@ public:
 		return history;
 	}
 
-private:
-	uint64_t history { 0 };
+ private:
+	uint64_t history{0};
 };
 
 class BitPattern {
-public:
-	constexpr BitPattern(
-	) : code_ { 0 },
-		mask_ { 0 },
-		maximum_hanning_distance_ { 0 }
-	{
+ public:
+	constexpr BitPattern()
+			: code_{0},
+				mask_{0},
+				maximum_hanning_distance_{0} {
 	}
-	
+
 	constexpr BitPattern(
-		const uint64_t code,
-		const size_t code_length,
-		const size_t maximum_hanning_distance = 0
-	) : code_ { code },
-		mask_ { (1ULL << code_length) - 1ULL },
-		maximum_hanning_distance_ { maximum_hanning_distance }
-	{
+			const uint64_t code,
+			const size_t code_length,
+			const size_t maximum_hanning_distance = 0)
+			: code_{code},
+				mask_{(1ULL << code_length) - 1ULL},
+				maximum_hanning_distance_{maximum_hanning_distance} {
 	}
 
 	bool operator()(const BitHistory& history, const size_t) const {
@@ -64,10 +62,10 @@ public:
 		return (count <= maximum_hanning_distance_);
 	}
 
-private:
+ private:
 	uint64_t code_;
 	uint64_t mask_;
 	size_t maximum_hanning_distance_;
 };
 
-#endif/*__BIT_PATTERN_H__*/
+#endif /*__BIT_PATTERN_H__*/

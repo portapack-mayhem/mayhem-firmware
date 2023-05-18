@@ -34,9 +34,7 @@ namespace ui {
 SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
 	hidden(true);
 
-	add_children({
-		&button_load_image
-	});
+	add_children({&button_load_image});
 
 	button_load_image.on_select = [this, &nav](Button&) {
 		auto open_view = nav.push<FileLoadView>(".bmp");
@@ -45,8 +43,7 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
 		if (std::filesystem::is_directory(data_directory) == false) {
 			if (make_new_directory(data_directory).ok())
 				open_view->push_dir(data_directory);
-		}
-		else
+		} else
 			open_view->push_dir(data_directory);
 
 		open_view->on_changed = [this](std::filesystem::path new_file_path) {
@@ -63,7 +60,7 @@ SpectrumInputImageView::~SpectrumInputImageView() {
 }
 
 void SpectrumInputImageView::focus() {
-    button_load_image.focus();
+	button_load_image.focus();
 }
 
 bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string file) {
@@ -76,26 +73,26 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 	ui::Color line_buffer[240];
 
 	auto result = bmpimage.open(file);
-	if(result.is_valid())
+	if (result.is_valid())
 		return false;
 
 	bmpimage.seek(file_pos);
 	auto read_size = bmpimage.read(&bmp_header, sizeof(bmp_header));
-	if (!((bmp_header.signature == 0x4D42) && // "BM" Signature
-		(bmp_header.planes == 1) && // Seems always to be 1
-		(bmp_header.compression == 0 || bmp_header.compression == 3 ))) {	// No compression
-			return false;
+	if (!((bmp_header.signature == 0x4D42) &&																// "BM" Signature
+				(bmp_header.planes == 1) &&																				// Seems always to be 1
+				(bmp_header.compression == 0 || bmp_header.compression == 3))) {	// No compression
+		return false;
 	}
 
-	switch(bmp_header.bpp) {
+	switch (bmp_header.bpp) {
 		case 16:
 			file_pos = 0x36;
 			memset(buffer, 0, 16);
 			bmpimage.read(buffer, 16);
-			if(buffer[1] == 0x7C)
-				type = 3; // A1R5G5B5
+			if (buffer[1] == 0x7C)
+				type = 3;	 // A1R5G5B5
 			else
-				type = 0; // R5G6B5
+				type = 0;	 // R5G6B5
 			break;
 		case 24:
 			type = 1;
@@ -117,20 +114,20 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 
 	py = height + 16;
 
-	while(1) {
-		while(px < width) {
+	while (1) {
+		while (px < width) {
 			bmpimage.seek(file_pos);
 			memset(buffer, 0, 257);
 			read_size = bmpimage.read(buffer, 256);
 			if (read_size.is_error())
-				return false;	// Read error
+				return false;	 // Read error
 
 			pointer = 0;
-			while(pointer < 256) {
-				if(pointer + 4 > 256)
+			while (pointer < 256) {
+				if (pointer + 4 > 256)
 					break;
-				switch(type) {
-					case 0: // R5G6B5
+				switch (type) {
+					case 0:	 // R5G6B5
 						if ((((1 << zoom_factor) - 1) & px) == 0x00)
 							line_buffer[px >> zoom_factor] = ui::Color(((uint16_t)buffer[pointer] & 0x1F) | ((uint16_t)buffer[pointer] & 0xE0) << 1 | ((uint16_t)buffer[pointer + 1] & 0x7F) << 9);
 
@@ -138,7 +135,7 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 						file_pos += 2;
 						break;
 
-					case 3: // A1R5G5B5
+					case 3:	 // A1R5G5B5
 						if ((((1 << zoom_factor) - 1) & px) == 0x00)
 							line_buffer[px >> zoom_factor] = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
 
@@ -146,15 +143,15 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 						file_pos += 2;
 						break;
 
-					case 1: // 24
+					case 1:	 // 24
 					default:
 						if ((((1 << zoom_factor) - 1) & px) == 0x00)
 							line_buffer[px >> zoom_factor] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
 						pointer += 3;
 						file_pos += 3;
 						break;
-						
-					case 2: // 32
+
+					case 2:	 // 32
 						if ((((1 << zoom_factor) - 1) & px) == 0x00)
 							line_buffer[px >> zoom_factor] = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
 						pointer += 4;
@@ -163,33 +160,33 @@ bool SpectrumInputImageView::drawBMP_scaled(const ui::Rect r, const std::string 
 				}
 
 				px++;
-				if(px >= width) {
+				if (px >= width) {
 					break;
 				}
 			}
 
-			if(read_size.value() != 256)
+			if (read_size.value() != 256)
 				break;
 		}
 
 		if ((((1 << zoom_factor) - 1) & py) == 0x00)
-			portapack::display.render_line({ r.left(), r.top() + (py >> zoom_factor) }, px >> zoom_factor, line_buffer);
+			portapack::display.render_line({r.left(), r.top() + (py >> zoom_factor)}, px >> zoom_factor, line_buffer);
 
 		px = 0;
 		py--;
 
-		if(read_size.value() < 256 || py < 0)
+		if (read_size.value() < 256 || py < 0)
 			break;
 	}
 
 	return true;
 }
 
-uint16_t SpectrumInputImageView::get_width(){
+uint16_t SpectrumInputImageView::get_width() {
 	return this->width;
 }
 
-uint16_t SpectrumInputImageView::get_height(){
+uint16_t SpectrumInputImageView::get_height() {
 	return this->height;
 }
 
@@ -211,27 +208,27 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 	int pointer = 0;
 	for (uint16_t px = 0; px < width; px++) {
 		ui::Color color;
-		switch(type) {
-		case 0: // R5G6B5
-			pointer = px * 2;
-			color = ui::Color(((uint16_t)buffer[pointer] & 0x1F) | ((uint16_t)buffer[pointer] & 0xE0) << 1 | ((uint16_t)buffer[pointer + 1] & 0x7F) << 9);
-			break;
+		switch (type) {
+			case 0:	 // R5G6B5
+				pointer = px * 2;
+				color = ui::Color(((uint16_t)buffer[pointer] & 0x1F) | ((uint16_t)buffer[pointer] & 0xE0) << 1 | ((uint16_t)buffer[pointer + 1] & 0x7F) << 9);
+				break;
 
-		case 3: // A1R5G5B5
-			pointer = px * 2;
-			color = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
-			break;
+			case 3:	 // A1R5G5B5
+				pointer = px * 2;
+				color = ui::Color((uint16_t)buffer[pointer] | ((uint16_t)buffer[pointer + 1] << 8));
+				break;
 
-		case 1: // 24
-		default:
-			pointer = px * 3;
-			color = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
-			break;
+			case 1:	 // 24
+			default:
+				pointer = px * 3;
+				color = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
+				break;
 
-		case 2: // 32
-			pointer = px * 4;
-			color = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
-			break;
+			case 2:	 // 32
+				pointer = px * 4;
+				color = ui::Color(buffer[pointer + 2], buffer[pointer + 1], buffer[pointer]);
+				break;
 		}
 
 		grey_buffer[px] = color.to_greyscale();
@@ -240,7 +237,7 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 	delete buffer;
 
 	std::vector<uint8_t> values(width);
-	for(int i = 0; i < width; i++) {
+	for (int i = 0; i < width; i++) {
 		values[i] = grey_buffer[i];
 	}
 
@@ -251,15 +248,14 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
 
 void SpectrumInputImageView::paint(Painter& painter) {
 	painter.fill_rectangle(
-		{{0, 40}, {240, 204}},
-		style().background
-	);
+			{{0, 40}, {240, 204}},
+			style().background);
 
 	if (!painted) {
 		// This is very slow for big pictures. Do only once.
-		this->drawBMP_scaled({{ 0, 40 }, {240, 160}}, this->file);
+		this->drawBMP_scaled({{0, 40}, {240, 160}}, this->file);
 		painted = true;
 	}
 }
 
-}
+}	 // namespace ui

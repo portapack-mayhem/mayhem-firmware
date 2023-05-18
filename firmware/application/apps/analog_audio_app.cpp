@@ -43,17 +43,17 @@ namespace ui {
 /* AMOptionsView *********************************************************/
 
 AMOptionsView::AMOptionsView(
-	const Rect parent_rect, const Style* const style
-) : View { parent_rect }
-{
+		const Rect parent_rect,
+		const Style* const style)
+		: View{parent_rect} {
 	set_style(style);
 
 	add_children({
-		&label_config,
-		&options_config,
+			&label_config,
+			&options_config,
 	});
 
-	freqman_set_bandwidth_option( AM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
+	freqman_set_bandwidth_option(AM_MODULATION, options_config);	// adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.am_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_am_configuration(n);
@@ -63,24 +63,22 @@ AMOptionsView::AMOptionsView(
 /* NBFMOptionsView *******************************************************/
 
 NBFMOptionsView::NBFMOptionsView(
-	const Rect parent_rect, const Style* const style
-) : View { parent_rect }
-{
+		const Rect parent_rect,
+		const Style* const style)
+		: View{parent_rect} {
 	set_style(style);
 
-	add_children({
-		&label_config,
-		&options_config,
-		&text_squelch,
-		&field_squelch
-	});
+	add_children({&label_config,
+								&options_config,
+								&text_squelch,
+								&field_squelch});
 
-	freqman_set_bandwidth_option( NFM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
+	freqman_set_bandwidth_option(NFM_MODULATION, options_config);	 // adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.nbfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_nbfm_configuration(n);
 	};
-	
+
 	field_squelch.set_value(receiver_model.squelch_level());
 	field_squelch.on_change = [this](int32_t v) {
 		receiver_model.set_squelch_level(v);
@@ -90,38 +88,36 @@ NBFMOptionsView::NBFMOptionsView(
 /* WFMOptionsView *******************************************************/
 
 WFMOptionsView::WFMOptionsView(
-	const Rect parent_rect, const Style* const style
-) : View { parent_rect }
-{
+		const Rect parent_rect,
+		const Style* const style)
+		: View{parent_rect} {
 	set_style(style);
 
 	add_children({
-		&label_config,
-		&options_config,
+			&label_config,
+			&options_config,
 	});
 
-	freqman_set_bandwidth_option( WFM_MODULATION , options_config );		// adding the common message from freqman.cpp to the options_config
+	freqman_set_bandwidth_option(WFM_MODULATION, options_config);	 // adding the common message from freqman.cpp to the options_config
 	options_config.set_selected_index(receiver_model.wfm_configuration());
 	options_config.on_change = [this](size_t n, OptionsField::value_t) {
 		receiver_model.set_wfm_configuration(n);
 	};
 }
 
-
 /* SPECOptionsView *******************************************************/
 
 SPECOptionsView::SPECOptionsView(
-	AnalogAudioView* view, const Rect parent_rect, const Style* const style
-) : View { parent_rect }
-{
+		AnalogAudioView* view,
+		const Rect parent_rect,
+		const Style* const style)
+		: View{parent_rect} {
 	set_style(style);
 
-	add_children({
-		&label_config,
-		&options_config,
-		&text_speed,
-		&field_speed
-	});
+	add_children({&label_config,
+								&options_config,
+								&text_speed,
+								&field_speed});
 
 	options_config.set_selected_index(view->get_spec_bw_index());
 	options_config.on_change = [this, view](size_t n, OptionsField::value_t bw) {
@@ -137,22 +133,19 @@ SPECOptionsView::SPECOptionsView(
 /* AnalogAudioView *******************************************************/
 
 AnalogAudioView::AnalogAudioView(
-	NavigationView& nav
-) : nav_ (nav)
-{
-	add_children({
-		&rssi,
-		&channel,
-		&audio,
-		&field_frequency,
-		&field_lna,
-		&field_vga,
-		&options_modulation,
-		&field_volume,
-		&text_ctcss,
-		&record_view,
-		&waterfall
-	});
+		NavigationView& nav)
+		: nav_(nav) {
+	add_children({&rssi,
+								&channel,
+								&audio,
+								&field_frequency,
+								&field_lna,
+								&field_vga,
+								&options_modulation,
+								&field_volume,
+								&text_ctcss,
+								&record_view,
+								&waterfall});
 
 	// Set on_change before initialising the field
 	field_frequency.on_change = [this](rf::Frequency f) {
@@ -161,7 +154,7 @@ AnalogAudioView::AnalogAudioView(
 
 	// load app settings
 	auto rc = settings.load("rx_audio", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		field_lna.set_value(app_settings.lna);
 		field_vga.set_value(app_settings.vga);
 		receiver_model.set_rf_amp(app_settings.rx_amp);
@@ -169,7 +162,7 @@ AnalogAudioView::AnalogAudioView(
 		receiver_model.set_configuration_without_init(static_cast<ReceiverModel::Mode>(app_settings.modulation), app_settings.step, app_settings.am_config_index, app_settings.nbfm_config_index, app_settings.wfm_config_index, app_settings.squelch);
 	}
 	field_frequency.set_value(receiver_model.tuning_frequency());
-	
+
 	//Filename Datetime and Frequency
 	record_view.set_filename_date_frequency(true);
 
@@ -213,7 +206,7 @@ AnalogAudioView::AnalogAudioView(
 	record_view.on_error = [&nav](std::string message) {
 		nav.display_modal("Error", message);
 	};
-	
+
 	waterfall.on_select = [this](int32_t offset) {
 		field_frequency.set_value(receiver_model.tuning_frequency() + offset);
 	};
@@ -234,7 +227,7 @@ void AnalogAudioView::set_spec_bw(size_t index, uint32_t bw) {
 
 	baseband::set_spectrum(bw, spec_trigger);
 	receiver_model.set_sampling_rate(bw);
-	receiver_model.set_baseband_bandwidth(bw/2);
+	receiver_model.set_baseband_bandwidth(bw / 2);
 }
 
 uint16_t AnalogAudioView::get_spec_trigger() {
@@ -248,7 +241,6 @@ void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
 }
 
 AnalogAudioView::~AnalogAudioView() {
-
 	// save app settings
 	app_settings.rx_frequency = field_frequency.value();
 	app_settings.lna = receiver_model.lna();
@@ -266,7 +258,7 @@ AnalogAudioView::~AnalogAudioView() {
 	// both?
 	audio::output::stop();
 
-	receiver_model.set_sampling_rate(3072000); 	// Just a hack to avoid hanging other apps if the last modulation was SPEC
+	receiver_model.set_sampling_rate(3072000);	// Just a hack to avoid hanging other apps if the last modulation was SPEC
 	receiver_model.disable();
 
 	baseband::shutdown();
@@ -281,8 +273,8 @@ void AnalogAudioView::on_hide() {
 
 void AnalogAudioView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	
-	const ui::Rect waterfall_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
+
+	const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
 	waterfall.set_parent_rect(waterfall_rect);
 }
 
@@ -308,11 +300,11 @@ void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation
 }
 
 void AnalogAudioView::remove_options_widget() {
-	if( options_widget ) {
+	if (options_widget) {
 		remove_child(options_widget.get());
 		options_widget.reset();
 	}
-	
+
 	field_lna.set_style(nullptr);
 	options_modulation.set_style(nullptr);
 	field_frequency.set_style(nullptr);
@@ -321,7 +313,7 @@ void AnalogAudioView::remove_options_widget() {
 void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 	remove_options_widget();
 
-	if( new_widget ) {
+	if (new_widget) {
 		options_widget = std::move(new_widget);
 	} else {
 		// TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
@@ -357,33 +349,33 @@ void AnalogAudioView::on_show_options_modulation() {
 	std::unique_ptr<Widget> widget;
 
 	const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
-	switch(modulation) {
-	case ReceiverModel::Mode::AMAudio:
-		widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
-		waterfall.show_audio_spectrum_view(false);
-		text_ctcss.hidden(true);
-		break;
+	switch (modulation) {
+		case ReceiverModel::Mode::AMAudio:
+			widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
+			waterfall.show_audio_spectrum_view(false);
+			text_ctcss.hidden(true);
+			break;
 
-	case ReceiverModel::Mode::NarrowbandFMAudio:
-		widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, &style_options_group);
-		waterfall.show_audio_spectrum_view(false);
-		text_ctcss.hidden(false);
-		break;
-	
-	case ReceiverModel::Mode::WidebandFMAudio:
-		widget = std::make_unique<WFMOptionsView>(options_view_rect, &style_options_group);
-		waterfall.show_audio_spectrum_view(true);
-		text_ctcss.hidden(true);
-		break;
-	
-	case ReceiverModel::Mode::SpectrumAnalysis:
-		widget = std::make_unique<SPECOptionsView>(this, nbfm_view_rect, &style_options_group);
-		waterfall.show_audio_spectrum_view(false);
-		text_ctcss.hidden(true);
-		break;
-		
-	default:
-		break;
+		case ReceiverModel::Mode::NarrowbandFMAudio:
+			widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, &style_options_group);
+			waterfall.show_audio_spectrum_view(false);
+			text_ctcss.hidden(false);
+			break;
+
+		case ReceiverModel::Mode::WidebandFMAudio:
+			widget = std::make_unique<WFMOptionsView>(options_view_rect, &style_options_group);
+			waterfall.show_audio_spectrum_view(true);
+			text_ctcss.hidden(true);
+			break;
+
+		case ReceiverModel::Mode::SpectrumAnalysis:
+			widget = std::make_unique<SPECOptionsView>(this, nbfm_view_rect, &style_options_group);
+			waterfall.show_audio_spectrum_view(false);
+			text_ctcss.hidden(true);
+			break;
+
+		default:
+			break;
 	}
 
 	set_options_widget(std::move(widget));
@@ -411,13 +403,21 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	baseband::shutdown();
 
 	portapack::spi_flash::image_tag_t image_tag;
-	switch(modulation) {
-	case ReceiverModel::Mode::AMAudio:				image_tag = portapack::spi_flash::image_tag_am_audio;			break;
-	case ReceiverModel::Mode::NarrowbandFMAudio:	image_tag = portapack::spi_flash::image_tag_nfm_audio;			break;
-	case ReceiverModel::Mode::WidebandFMAudio:		image_tag = portapack::spi_flash::image_tag_wfm_audio;			break;
-	case ReceiverModel::Mode::SpectrumAnalysis:		image_tag = portapack::spi_flash::image_tag_wideband_spectrum;	break;
-	default:
-		return;
+	switch (modulation) {
+		case ReceiverModel::Mode::AMAudio:
+			image_tag = portapack::spi_flash::image_tag_am_audio;
+			break;
+		case ReceiverModel::Mode::NarrowbandFMAudio:
+			image_tag = portapack::spi_flash::image_tag_nfm_audio;
+			break;
+		case ReceiverModel::Mode::WidebandFMAudio:
+			image_tag = portapack::spi_flash::image_tag_wfm_audio;
+			break;
+		case ReceiverModel::Mode::SpectrumAnalysis:
+			image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
+			break;
+		default:
+			return;
 	}
 
 	baseband::run_image(image_tag);
@@ -430,32 +430,37 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
 	receiver_model.set_modulation(modulation);
 
 	receiver_model.set_sampling_rate(is_wideband_spectrum_mode ? spec_bw : 3072000);
-	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw/2 : 1750000);
+	receiver_model.set_baseband_bandwidth(is_wideband_spectrum_mode ? spec_bw / 2 : 1750000);
 
 	receiver_model.enable();
 
 	// TODO: This doesn't belong here! There's a better way.
 	size_t sampling_rate = 0;
-	switch(modulation) {
-	case ReceiverModel::Mode::AMAudio:				sampling_rate = 12000; break;
-	case ReceiverModel::Mode::NarrowbandFMAudio:	sampling_rate = 24000; break;
-	case ReceiverModel::Mode::WidebandFMAudio:		sampling_rate = 48000; break;
-	default:
-		break;
+	switch (modulation) {
+		case ReceiverModel::Mode::AMAudio:
+			sampling_rate = 12000;
+			break;
+		case ReceiverModel::Mode::NarrowbandFMAudio:
+			sampling_rate = 24000;
+			break;
+		case ReceiverModel::Mode::WidebandFMAudio:
+			sampling_rate = 48000;
+			break;
+		default:
+			break;
 	}
 	record_view.set_sampling_rate(sampling_rate);
 
-	if( !is_wideband_spectrum_mode ) {
+	if (!is_wideband_spectrum_mode) {
 		audio::output::unmute();
 	}
 }
 
-
 void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
 	float diff, min_diff = value;
-	size_t min_idx { 0 };
+	size_t min_idx{0};
 	size_t c;
-	
+
 	// Find nearest match
 	for (c = 0; c < tone_keys.size(); c++) {
 		diff = abs(((float)value / 100.0) - tone_keys[c].second);
@@ -464,7 +469,7 @@ void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
 			min_diff = diff;
 		}
 	}
-	
+
 	// Arbitrary confidence threshold
 	if (min_diff < 40)
 		text_ctcss.set("CTCSS " + tone_keys[min_idx].first);

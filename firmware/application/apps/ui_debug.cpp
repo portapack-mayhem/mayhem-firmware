@@ -41,16 +41,14 @@ namespace ui {
 /* DebugMemoryView *******************************************************/
 
 DebugMemoryView::DebugMemoryView(NavigationView& nav) {
-	add_children({
-		&text_title,
-		&text_label_m0_core_free,
-		&text_label_m0_core_free_value,
-		&text_label_m0_heap_fragmented_free,
-		&text_label_m0_heap_fragmented_free_value,
-		&text_label_m0_heap_fragments,
-		&text_label_m0_heap_fragments_value,
-		&button_done
-	});
+	add_children({&text_title,
+								&text_label_m0_core_free,
+								&text_label_m0_core_free_value,
+								&text_label_m0_heap_fragmented_free,
+								&text_label_m0_heap_fragmented_free_value,
+								&text_label_m0_heap_fragments,
+								&text_label_m0_heap_fragments_value,
+								&button_done});
 
 	const auto m0_core_free = chCoreStatus();
 	text_label_m0_core_free_value.set(to_string_dec_uint(m0_core_free, 5));
@@ -60,7 +58,7 @@ DebugMemoryView::DebugMemoryView(NavigationView& nav) {
 	text_label_m0_heap_fragmented_free_value.set(to_string_dec_uint(m0_fragmented_free_space, 5));
 	text_label_m0_heap_fragments_value.set(to_string_dec_uint(m0_fragments, 5));
 
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
+	button_done.on_select = [&nav](Button&) { nav.pop(); };
 }
 
 void DebugMemoryView::focus() {
@@ -73,57 +71,55 @@ void TemperatureWidget::paint(Painter& painter) {
 	const auto logger = portapack::temperature_logger;
 
 	const auto rect = screen_rect();
-	const Color color_background { 0, 0, 64 };
+	const Color color_background{0, 0, 64};
 	const Color color_foreground = Color::green();
-	const Color color_reticle { 128, 128, 128 };
+	const Color color_reticle{128, 128, 128};
 
 	const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
-	const Rect graph_rect {
-		rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
-		graph_width, rect.height()
-	};
-	const Rect frame_rect {
-		graph_rect.left() - 1, graph_rect.top() - 1,
-		graph_rect.width() + 2, graph_rect.height() + 2
-	};
+	const Rect graph_rect{
+			rect.left() + (rect.width() - graph_width) / 2, rect.top() + 8,
+			graph_width, rect.height()};
+	const Rect frame_rect{
+			graph_rect.left() - 1, graph_rect.top() - 1,
+			graph_rect.width() + 2, graph_rect.height() + 2};
 	painter.draw_rectangle(frame_rect, color_reticle);
 	painter.fill_rectangle(graph_rect, color_background);
 
 	const auto history = logger.history();
-	for(size_t i=0; i<history.size(); i++) {
+	for (size_t i = 0; i < history.size(); i++) {
 		const Coord x = graph_rect.right() - (history.size() - i) * bar_width;
 		const auto sample = history[i];
 		const auto temp = temperature(sample);
 		const auto y = screen_y(temp, graph_rect);
 		const Dim bar_height = graph_rect.bottom() - y;
-		painter.fill_rectangle({ x, y, bar_width, bar_height }, color_foreground);
+		painter.fill_rectangle({x, y, bar_width, bar_height}, color_foreground);
 	}
 
-	if( !history.empty() ) {
+	if (!history.empty()) {
 		const auto sample = history.back();
 		const auto temp = temperature(sample);
 		const auto last_y = screen_y(temp, graph_rect);
 		const Coord x = graph_rect.right() + 8;
 		const Coord y = last_y - 8;
 
-		painter.draw_string({ x, y }, style(), temperature_str(temp));
+		painter.draw_string({x, y}, style(), temperature_str(temp));
 	}
 
 	const auto display_temp_max = display_temp_min + (graph_rect.height() / display_temp_scale);
-	for(auto temp=display_temp_min; temp<=display_temp_max; temp+=10) {
+	for (auto temp = display_temp_min; temp <= display_temp_max; temp += 10) {
 		const int32_t tick_length = 6;
 		const auto tick_x = graph_rect.left() - tick_length;
 		const auto tick_y = screen_y(temp, graph_rect);
-		painter.fill_rectangle({ tick_x, tick_y, tick_length, 1 }, color_reticle);
+		painter.fill_rectangle({tick_x, tick_y, tick_length, 1}, color_reticle);
 		const auto text_x = graph_rect.left() - temp_len * 8 - 8;
 		const auto text_y = tick_y - 8;
-		painter.draw_string({ text_x, text_y }, style(), temperature_str(temp));
+		painter.draw_string({text_x, text_y}, style(), temperature_str(temp));
 	}
 }
 
 TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t sensor_value) const {
 	/*It seems to be a temperature difference of 25C*/
-	return -40 +(sensor_value * 4.31)+25;  //max2837 datasheet temp 25ºC has sensor value: 15
+	return -40 + (sensor_value * 4.31) + 25;	//max2837 datasheet temp 25ºC has sensor value: 15
 }
 
 std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
@@ -131,9 +127,8 @@ std::string TemperatureWidget::temperature_str(const temperature_t temperature) 
 }
 
 Coord TemperatureWidget::screen_y(
-	const temperature_t temperature,
-	const Rect& rect
-) const {
+		const temperature_t temperature,
+		const Rect& rect) const {
 	int y_raw = rect.bottom() - ((temperature - display_temp_min) * display_temp_scale);
 	const auto y_limit = std::min(rect.bottom(), std::max(rect.top(), y_raw));
 	return y_limit;
@@ -143,12 +138,12 @@ Coord TemperatureWidget::screen_y(
 
 TemperatureView::TemperatureView(NavigationView& nav) {
 	add_children({
-		&text_title,
-		&temperature_widget,
-		&button_done,
+			&text_title,
+			&temperature_widget,
+			&button_done,
 	});
 
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
+	button_done.on_select = [&nav](Button&) { nav.pop(); };
 }
 
 void TemperatureView::focus() {
@@ -158,12 +153,11 @@ void TemperatureView::focus() {
 /* RegistersWidget *******************************************************/
 
 RegistersWidget::RegistersWidget(
-	RegistersWidgetConfig&& config,
-	std::function<uint32_t(const size_t register_number)>&& reader
-) : Widget { },
-	config(std::move(config)),
-	reader(std::move(reader))
-{
+		RegistersWidgetConfig&& config,
+		std::function<uint32_t(const size_t register_number)>&& reader)
+		: Widget{},
+			config(std::move(config)),
+			reader(std::move(reader)) {
 }
 
 void RegistersWidget::update() {
@@ -180,70 +174,62 @@ void RegistersWidget::paint(Painter& painter) {
 void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
 	const auto pos = screen_pos();
 
-	for(size_t i=0; i<config.registers_count; i+=config.registers_per_row()) {
-		const Point offset {
-			left, static_cast<int>((i / config.registers_per_row()) * row_height)
-		};
+	for (size_t i = 0; i < config.registers_count; i += config.registers_per_row()) {
+		const Point offset{
+				left, static_cast<int>((i / config.registers_per_row()) * row_height)};
 
 		const auto text = to_string_hex(i, config.legend_length());
 		painter.draw_string(
-			pos + offset,
-			style().invert(),
-			text
-		);
+				pos + offset,
+				style().invert(),
+				text);
 	}
 }
 
 void RegistersWidget::draw_values(
-	const Coord left,
-	Painter& painter
-) {
+		const Coord left,
+		Painter& painter) {
 	const auto pos = screen_pos();
 
-	for(size_t i=0; i<config.registers_count; i++) {
+	for (size_t i = 0; i < config.registers_count; i++) {
 		const Point offset = {
-			static_cast<int>(left + config.legend_width() + 8 + (i % config.registers_per_row()) * (config.value_width() + 8)),
-			static_cast<int>((i / config.registers_per_row()) * row_height)
-		};
+				static_cast<int>(left + config.legend_width() + 8 + (i % config.registers_per_row()) * (config.value_width() + 8)),
+				static_cast<int>((i / config.registers_per_row()) * row_height)};
 
 		const auto value = reader(i);
 
 		const auto text = to_string_hex(value, config.value_length());
 		painter.draw_string(
-			pos + offset,
-			style(),
-			text
-		);
+				pos + offset,
+				style(),
+				text);
 	}
 }
 
 /* RegistersView *********************************************************/
 
 RegistersView::RegistersView(
-	NavigationView& nav,
-	const std::string& title,
-	RegistersWidgetConfig&& config,
-	std::function<uint32_t(const size_t register_number)>&& reader
-) : registers_widget { std::move(config), std::move(reader) }
-{
+		NavigationView& nav,
+		const std::string& title,
+		RegistersWidgetConfig&& config,
+		std::function<uint32_t(const size_t register_number)>&& reader)
+		: registers_widget{std::move(config), std::move(reader)} {
 	add_children({
-		&text_title,
-		&registers_widget,
-		&button_update,
-		&button_done,
+			&text_title,
+			&registers_widget,
+			&button_update,
+			&button_done,
 	});
 
-	button_update.on_select = [this](Button&){
+	button_update.on_select = [this](Button&) {
 		this->registers_widget.update();
 	};
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
+	button_done.on_select = [&nav](Button&) { nav.pop(); };
 
-	registers_widget.set_parent_rect({ 0, 48, 240, 192 });
+	registers_widget.set_parent_rect({0, 48, 240, 192});
 
-	text_title.set_parent_rect({
-		(240 - static_cast<int>(title.size()) * 8) / 2, 16,
-		static_cast<int>(title.size()) * 8, 16
-	});
+	text_title.set_parent_rect({(240 - static_cast<int>(title.size()) * 8) / 2, 16,
+															static_cast<int>(title.size()) * 8, 16});
 	text_title.set(title);
 }
 
@@ -255,9 +241,8 @@ void RegistersView::focus() {
 
 void ControlsSwitchesWidget::on_show() {
 	display.fill_rectangle(
-		screen_rect(),
-		Color::black()
-	);
+			screen_rect(),
+			Color::black());
 }
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
@@ -268,68 +253,68 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 void ControlsSwitchesWidget::paint(Painter& painter) {
 	const auto pos = screen_pos();
 
-	const std::array<Rect, 8> button_rects { {
-		{ 64, 32, 16, 16 }, // Right
-		{  0, 32, 16, 16 }, // Left
-		{ 32, 64, 16, 16 }, // Down
-		{ 32,  0, 16, 16 }, // Up
-		{ 32, 32, 16, 16 }, // Select
-		{ 16, 96, 16, 16 }, // Encoder phase 0
-		{ 48, 96, 16, 16 }, // Encoder phase 1
-		{ 96,  0, 16, 16 }, // Dfu
-	} };
+	const std::array<Rect, 8> button_rects{{
+			{64, 32, 16, 16},	 // Right
+			{0, 32, 16, 16},	 // Left
+			{32, 64, 16, 16},	 // Down
+			{32, 0, 16, 16},	 // Up
+			{32, 32, 16, 16},	 // Select
+			{16, 96, 16, 16},	 // Encoder phase 0
+			{48, 96, 16, 16},	 // Encoder phase 1
+			{96, 0, 16, 16},	 // Dfu
+	}};
 
-	for(const auto r : button_rects) {
+	for (const auto r : button_rects) {
 		painter.fill_rectangle(r + pos, Color::blue());
 	}
 
-	const std::array<Rect, 8> raw_rects { {
-		{ 64 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Right
-		{  0 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Left
-		{ 32 + 1, 64 + 1, 16 - 2, 16 - 2 }, // Down
-		{ 32 + 1,  0 + 1, 16 - 2, 16 - 2 }, // Up
-		{ 32 + 1, 32 + 1, 16 - 2, 16 - 2 }, // Select
-		{ 16 + 1, 96 + 1, 16 - 2, 16 - 2 }, // Encoder phase 0
-		{ 48 + 1, 96 + 1, 16 - 2, 16 - 2 }, // Encoder phase 1
-		{ 96 + 1,  0 + 1, 16 - 2, 16 - 2 }, // Dfu
-	} };
+	const std::array<Rect, 8> raw_rects{{
+			{64 + 1, 32 + 1, 16 - 2, 16 - 2},	 // Right
+			{0 + 1, 32 + 1, 16 - 2, 16 - 2},	 // Left
+			{32 + 1, 64 + 1, 16 - 2, 16 - 2},	 // Down
+			{32 + 1, 0 + 1, 16 - 2, 16 - 2},	 // Up
+			{32 + 1, 32 + 1, 16 - 2, 16 - 2},	 // Select
+			{16 + 1, 96 + 1, 16 - 2, 16 - 2},	 // Encoder phase 0
+			{48 + 1, 96 + 1, 16 - 2, 16 - 2},	 // Encoder phase 1
+			{96 + 1, 0 + 1, 16 - 2, 16 - 2},	 // Dfu
+	}};
 
 	auto switches_raw = control::debug::switches();
-	for(const auto r : raw_rects) {
+	for (const auto r : raw_rects) {
 		if (switches_raw & 1)
 			painter.fill_rectangle(r + pos, Color::yellow());
 
 		switches_raw >>= 1;
 	}
 
-	const std::array<Rect, 6> debounced_rects { {
-		{ 64 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Right
-		{  0 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Left
-		{ 32 + 2, 64 + 2, 16 - 4, 16 - 4 }, // Down
-		{ 32 + 2,  0 + 2, 16 - 4, 16 - 4 }, // Up
-		{ 32 + 2, 32 + 2, 16 - 4, 16 - 4 }, // Select
-		{ 96 + 2,  0 + 2, 16 - 4, 16 - 4 }, // Dfu
-	} };
+	const std::array<Rect, 6> debounced_rects{{
+			{64 + 2, 32 + 2, 16 - 4, 16 - 4},	 // Right
+			{0 + 2, 32 + 2, 16 - 4, 16 - 4},	 // Left
+			{32 + 2, 64 + 2, 16 - 4, 16 - 4},	 // Down
+			{32 + 2, 0 + 2, 16 - 4, 16 - 4},	 // Up
+			{32 + 2, 32 + 2, 16 - 4, 16 - 4},	 // Select
+			{96 + 2, 0 + 2, 16 - 4, 16 - 4},	 // Dfu
+	}};
 
 	auto switches_debounced = get_switches_state().to_ulong();
-	for(const auto r : debounced_rects) {
+	for (const auto r : debounced_rects) {
 		if (switches_debounced & 1)
 			painter.fill_rectangle(r + pos, Color::green());
 
 		switches_debounced >>= 1;
 	}
 
-	const std::array<Rect, 6> events_rects { {
-		{ 64 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Right
-		{  0 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Left
-		{ 32 + 3, 64 + 3, 16 - 6, 16 - 6 }, // Down
-		{ 32 + 3,  0 + 3, 16 - 6, 16 - 6 }, // Up
-		{ 32 + 3, 32 + 3, 16 - 6, 16 - 6 }, // Select
-		{ 96 + 3,  0 + 3, 16 - 6, 16 - 6 }, // Dfu
-	} };
+	const std::array<Rect, 6> events_rects{{
+			{64 + 3, 32 + 3, 16 - 6, 16 - 6},	 // Right
+			{0 + 3, 32 + 3, 16 - 6, 16 - 6},	 // Left
+			{32 + 3, 64 + 3, 16 - 6, 16 - 6},	 // Down
+			{32 + 3, 0 + 3, 16 - 6, 16 - 6},	 // Up
+			{32 + 3, 32 + 3, 16 - 6, 16 - 6},	 // Select
+			{96 + 3, 0 + 3, 16 - 6, 16 - 6},	 // Dfu
+	}};
 
 	auto switches_event = key_event_mask;
-	for(const auto r : events_rects) {
+	for (const auto r : events_rects) {
 		if (switches_event & 1)
 			painter.fill_rectangle(r + pos, Color::red());
 
@@ -345,12 +330,12 @@ void ControlsSwitchesWidget::on_frame_sync() {
 
 DebugControlsView::DebugControlsView(NavigationView& nav) {
 	add_children({
-		&text_title,
-		&switches_widget,
-		&button_done,
+			&text_title,
+			&switches_widget,
+			&button_done,
 	});
 
-	button_done.on_select = [&nav](Button&){ nav.pop(); };
+	button_done.on_select = [&nav](Button&) { nav.pop(); };
 }
 
 void DebugControlsView::focus() {
@@ -360,45 +345,40 @@ void DebugControlsView::focus() {
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
-	const char * max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
-	const char * si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
+	const char* max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
+	const char* si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
 	add_items({
-		{ "RFFC5072",    ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
-			"RFFC5072", RegistersWidgetConfig { 31, 16 },
-			[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }
-		); } },
-		{ max283x,     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav, max283x](){ nav.push<RegistersView>(
-			max283x, RegistersWidgetConfig { 32, 10 },
-			[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }
-		); } },
-		{ si5351x,     ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav, si5351x](){ nav.push<RegistersView>(
-			si5351x, RegistersWidgetConfig { 96, 8 },
-			[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }
-		); } },
-		{ audio::debug::codec_name(), ui::Color::dark_cyan(),	&bitmap_icon_peripherals_details,	[&nav](){ nav.push<RegistersView>(
-			audio::debug::codec_name(), RegistersWidgetConfig { audio::debug::reg_count(), audio::debug::reg_bits() },
-			[](const size_t register_number) { return audio::debug::reg_read(register_number); }
-		); } },
+			{"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(
+																																														"RFFC5072", RegistersWidgetConfig{31, 16},
+																																														[](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }); }},
+			{max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(
+																																																	max283x, RegistersWidgetConfig{32, 10},
+																																																	[](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }); }},
+			{si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(
+																																																	si5351x, RegistersWidgetConfig{96, 8},
+																																																	[](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }); }},
+			{audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(
+																																																						audio::debug::codec_name(), RegistersWidgetConfig{audio::debug::reg_count(), audio::debug::reg_bits()},
+																																																						[](const size_t register_number) { return audio::debug::reg_read(register_number); }); }},
 	});
-	set_max_rows(2); // allow wider buttons
+	set_max_rows(2);	// allow wider buttons
 }
 
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
-    if( portapack::persistent_memory::show_gui_return_icon() )
-    {
-        add_items( { { "..", 		ui::Color::light_grey(),&bitmap_icon_previous,	[&nav](){ nav.pop(); } } } );
-    }
+	if (portapack::persistent_memory::show_gui_return_icon()) {
+		add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+	}
 	add_items({
-		{ "Memory", 		ui::Color::dark_cyan(),	&bitmap_icon_memory,	[&nav](){ nav.push<DebugMemoryView>(); } },
-		//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-		{ "SD Card",		ui::Color::dark_cyan(),	&bitmap_icon_sdcard,	[&nav](){ nav.push<SDCardDebugView>(); } },
-		{ "Peripherals",	ui::Color::dark_cyan(),	&bitmap_icon_peripherals,	[&nav](){ nav.push<DebugPeripheralsMenuView>(); } },
-		{ "Temperature",	ui::Color::dark_cyan(),	&bitmap_icon_temperature,	[&nav](){ nav.push<TemperatureView>(); } },
-		{ "Buttons Test",	ui::Color::dark_cyan(),	&bitmap_icon_controls,	[&nav](){ nav.push<DebugControlsView>(); } },
+			{"Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
+			//{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
+			{"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
+			{"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
+			{"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
+			{"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
 	});
-	set_max_rows(2); // allow wider buttons
+	set_max_rows(2);	// allow wider buttons
 }
 
 /*DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {

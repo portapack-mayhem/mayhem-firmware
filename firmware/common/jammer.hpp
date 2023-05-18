@@ -42,4 +42,4 @@ enum JammerType : uint32_t {
 
 } /* namespace jammer */
 
-#endif/*__JAMMER_H__*/
+#endif /*__JAMMER_H__*/

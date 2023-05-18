@@ -33,16 +33,15 @@
 namespace acars {
 
 class Packet {
-public:
+ public:
 	constexpr Packet(
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		field_ { packet_ }
-	{
+			const baseband::Packet& packet)
+			: packet_{packet},
+				field_{packet_} {
 	}
 
 	size_t length() const;
-	
+
 	bool is_valid() const;
 
 	Timestamp received_at() const;
@@ -55,10 +54,10 @@ public:
 
 	bool crc_ok() const;
 
-private:
+ private:
 	using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
 	using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
-	
+
 	const baseband::Packet packet_;
 	const Reader field_;
 
@@ -72,4 +71,4 @@ private:
 
 } /* namespace acars */
 
-#endif/*__ACARS_PACKET_H__*/
+#endif /*__ACARS_PACKET_H__*/

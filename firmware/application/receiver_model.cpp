@@ -38,25 +38,26 @@ using namespace portapack;
 
 namespace {
 
-static constexpr std::array<baseband::AMConfig, 5> am_configs { {	// we config here all the non COMMON  parameters to each AM modulation type in RX.
-	{ taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB },		// AM DSB-C  BW 9khz  (+-4k5)	commercial EU bandwidth .
-	{ taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB },		// AM DSB-C  BW 6khz  (+-3k0)	narrow AM , ham equipments.
-	{ taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB },		// SSB USB   BW 2K8   (+ 2K8)
-	{ taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB },		// SSB LSB   BW 2K8   (- 2K8)
-	{ taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB },		// SSB USB   BW 0K7   (+ 0K7)  used to get audio tone from CW Morse, assuming tx shifted +700hz aprox 
-} };
+static constexpr std::array<baseband::AMConfig, 5> am_configs{{
+		// we config here all the non COMMON  parameters to each AM modulation type in RX.
+		{taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB},	// AM DSB-C  BW 9khz  (+-4k5)	commercial EU bandwidth .
+		{taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB},	// AM DSB-C  BW 6khz  (+-3k0)	narrow AM , ham equipments.
+		{taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB},	// SSB USB   BW 2K8   (+ 2K8)
+		{taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB},	// SSB LSB   BW 2K8   (- 2K8)
+		{taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB},	// SSB USB   BW 0K7   (+ 0K7)  used to get audio tone from CW Morse, assuming tx shifted +700hz aprox
+}};
 
-static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs { {
-	{ taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500 },
-	{ taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500 },
-	{ taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000 },
-} };
+static constexpr std::array<baseband::NBFMConfig, 3> nbfm_configs{{
+		{taps_4k25_decim_0, taps_4k25_decim_1, taps_4k25_channel, 2500},
+		{taps_11k0_decim_0, taps_11k0_decim_1, taps_11k0_channel, 2500},
+		{taps_16k0_decim_0, taps_16k0_decim_1, taps_16k0_channel, 5000},
+}};
 
-static constexpr std::array<baseband::WFMConfig, 3> wfm_configs { {
-	{taps_200k_wfm_decim_0, taps_200k_wfm_decim_1 },
-    {taps_180k_wfm_decim_0,  taps_180k_wfm_decim_1  },
-    {taps_40k_wfm_decim_0,  taps_40k_wfm_decim_1  },
-} };
+static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
+		{taps_200k_wfm_decim_0, taps_200k_wfm_decim_1},
+		{taps_180k_wfm_decim_0, taps_180k_wfm_decim_1},
+		{taps_40k_wfm_decim_0, taps_40k_wfm_decim_1},
+}};
 
 } /* namespace */
 
@@ -174,7 +175,7 @@ void ReceiverModel::enable() {
 	update_baseband_bandwidth();
 	update_sampling_rate();
 	update_modulation();
-	
+
 	// TODO: would challenge if this should belong to the
 	// receiver_model namespace:
 	update_headphone_volume();
@@ -197,7 +198,7 @@ void ReceiverModel::disable() {
 }
 
 int32_t ReceiverModel::tuning_offset() {
-	if( (modulation() == Mode::SpectrumAnalysis) ) {
+	if ((modulation() == Mode::SpectrumAnalysis)) {
 		return 0;
 	} else {
 		return -(sampling_rate() / 4);
@@ -234,21 +235,21 @@ void ReceiverModel::update_tx_gain() {
 }
 
 void ReceiverModel::set_am_configuration(const size_t n) {
-	if( n < am_configs.size() ) {
+	if (n < am_configs.size()) {
 		am_config_index = n;
 		update_modulation();
 	}
 }
 
 void ReceiverModel::set_nbfm_configuration(const size_t n) {
-	if( n < nbfm_configs.size() ) {
+	if (n < nbfm_configs.size()) {
 		nbfm_config_index = n;
 		update_modulation();
 	}
 }
 
 void ReceiverModel::set_wfm_configuration(const size_t n) {
-	if( n < wfm_configs.size() ) {
+	if (n < wfm_configs.size()) {
 		wfm_config_index = n;
 		update_modulation();
 	}
@@ -272,23 +273,23 @@ void ReceiverModel::update_headphone_volume() {
 }
 
 void ReceiverModel::update_modulation() {
-	switch(modulation()) {
-	default:
-	case Mode::AMAudio:
-		update_am_configuration();
-		break;
+	switch (modulation()) {
+		default:
+		case Mode::AMAudio:
+			update_am_configuration();
+			break;
 
-	case Mode::NarrowbandFMAudio:
-		update_nbfm_configuration();
-		break;
+		case Mode::NarrowbandFMAudio:
+			update_nbfm_configuration();
+			break;
 
-	case Mode::WidebandFMAudio:
-		update_wfm_configuration();
-		break;
+		case Mode::WidebandFMAudio:
+			update_wfm_configuration();
+			break;
 
-	case Mode::SpectrumAnalysis:
-	case Mode::Capture:
-		break;
+		case Mode::SpectrumAnalysis:
+		case Mode::Capture:
+			break;
 	}
 }
 

@@ -25,17 +25,17 @@
 #include <cstdint>
 
 class volume_t {
-public:
+ public:
 	constexpr volume_t operator-() const {
-		return { -cb };
+		return {-cb};
 	}
 
 	constexpr volume_t operator+(const volume_t& other) const {
-		return { cb + other.cb };
+		return {cb + other.cb};
 	}
 
 	constexpr volume_t operator-(const volume_t& other) const {
-		return { cb - other.cb };
+		return {cb - other.cb};
 	}
 
 	volume_t& operator+=(const volume_t& other) {
@@ -52,11 +52,11 @@ public:
 	}
 
 	static constexpr volume_t centibel(const int cb) {
-		return { cb };
+		return {cb};
 	}
 
 	static constexpr volume_t decibel(const int db) {
-		return { db * 10 };
+		return {db * 10};
 	}
 
 	int32_t centibel() const {
@@ -67,13 +67,12 @@ public:
 		return cb / 10;
 	}
 
-private:
+ private:
 	int32_t cb;
 
 	constexpr volume_t(
-		const int cb
-	) : cb(cb)
-	{
+			const int cb)
+			: cb(cb) {
 	}
 };
 
@@ -90,10 +89,10 @@ struct volume_range_t {
 	volume_t max;
 
 	volume_t limit(const volume_t value) const {
-		if( value < min ) {
+		if (value < min) {
 			return min;
 		}
-		if( value > max ) {
+		if (value > max) {
 			return max;
 		}
 		return value;
@@ -105,4 +104,4 @@ struct volume_range_t {
 	}
 };
 
-#endif/*__VOLUME_H__*/
+#endif /*__VOLUME_H__*/

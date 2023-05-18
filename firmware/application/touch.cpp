@@ -59,21 +59,21 @@ Metrics calculate_metrics(const Frame& frame) {
 	const float r_touch = r_x_plate * x_norm * (z2_norm / z1_norm - 1.0f);
 
 	return {
-		.x = x_norm,
-		.y = y_norm,
-		.r = r_touch,
+			.x = x_norm,
+			.y = y_norm,
+			.r = r_touch,
 	};
 }
 
 ui::Point Calibration::translate(const DigitizerPoint& p) const {
-	static constexpr range_t<int32_t> x_range { 0, 240 - 1 };
-	static constexpr range_t<int32_t> y_range { 0, 320 - 1 };
+	static constexpr range_t<int32_t> x_range{0, 240 - 1};
+	static constexpr range_t<int32_t> y_range{0, 320 - 1};
 
 	const int32_t x = (a * p.x + b * p.y + c) / k;
 	const int32_t y = (d * p.x + e * p.y + f) / k;
 	const auto x_clipped = x_range.clip(x);
 	const auto y_clipped = y_range.clip(y);
-	return { x_clipped, y_clipped };
+	return {x_clipped, y_clipped};
 }
 
 void Manager::feed(const Frame& frame) {
@@ -86,7 +86,7 @@ void Manager::feed(const Frame& frame) {
 
 	// Only feed coordinate averaging if there's a touch.
 	// TODO: Separate threshold to gate coordinates for filtering?
-	if( touch_raw ) {
+	if (touch_raw) {
 		const auto metrics = calculate_metrics(frame);
 
 		constexpr float r_touch_down_threshold = 3200.0f;
@@ -95,7 +95,7 @@ void Manager::feed(const Frame& frame) {
 		touch_down_pressure = (metrics.r < r_touch_down_threshold);
 		touch_up_pressure = (metrics.r < r_touch_up_threshold);
 
-		if( touch_down_pressure ) {
+		if (touch_down_pressure) {
 			filter_x.feed(metrics.x * 1024);
 			filter_y.feed(metrics.y * 1024);
 		}
@@ -104,33 +104,33 @@ void Manager::feed(const Frame& frame) {
 		filter_y.reset();
 	}
 
-	switch(state) {
-	case State::NoTouch:
-		if( touch_stable && touch_down_pressure && !persistent_memory::disable_touchscreen()) {
-			if( point_stable() ) {
-				state = State::TouchDetected;
-				touch_started();
+	switch (state) {
+		case State::NoTouch:
+			if (touch_stable && touch_down_pressure && !persistent_memory::disable_touchscreen()) {
+				if (point_stable()) {
+					state = State::TouchDetected;
+					touch_started();
+				}
 			}
-		}
-		break;
+			break;
 
-	case State::TouchDetected:
-		if( touch_stable && touch_up_pressure ) {
-			touch_moved();
-		} else {
+		case State::TouchDetected:
+			if (touch_stable && touch_up_pressure) {
+				touch_moved();
+			} else {
+				state = State::NoTouch;
+				touch_ended();
+			}
+			break;
+
+		default:
 			state = State::NoTouch;
-			touch_ended();
-		}
-		break;
-
-	default:
-		state = State::NoTouch;
-		break;
+			break;
 	}
 }
 
 ui::Point Manager::filtered_point() const {
-	return persistent_memory::touch_calibration().translate({ filter_x.value(), filter_y.value() });
+	return persistent_memory::touch_calibration().translate({filter_x.value(), filter_y.value()});
 }
 
 } /* namespace touch */

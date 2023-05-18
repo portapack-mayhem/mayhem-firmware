@@ -42,20 +42,17 @@ namespace ui {
 /* AnalogTvView *******************************************************/
 
 AnalogTvView::AnalogTvView(
-	NavigationView& nav
-) : nav_ (nav)
-{
-	add_children({
-		&rssi,
-		&channel,
-		&audio,
-		&field_frequency,
-		&field_lna,
-		&field_vga,
-		&options_modulation,
-		&field_volume,
-		&tv
-	});
+		NavigationView& nav)
+		: nav_(nav) {
+	add_children({&rssi,
+								&channel,
+								&audio,
+								&field_frequency,
+								&field_lna,
+								&field_vga,
+								&options_modulation,
+								&field_volume,
+								&tv});
 
 	// Set on_change before initialising the field
 	field_frequency.on_change = [this](rf::Frequency f) {
@@ -64,14 +61,13 @@ AnalogTvView::AnalogTvView(
 
 	// load app settings
 	auto rc = settings.load("rx_tv", &app_settings);
-	if(rc == SETTINGS_OK) {
+	if (rc == SETTINGS_OK) {
 		field_lna.set_value(app_settings.lna);
 		field_vga.set_value(app_settings.vga);
 		receiver_model.set_rf_amp(app_settings.rx_amp);
 		field_frequency.set_value(app_settings.rx_frequency);
-	}
-	else field_frequency.set_value(receiver_model.tuning_frequency());
-
+	} else
+		field_frequency.set_value(receiver_model.tuning_frequency());
 
 	field_frequency.set_step(receiver_model.frequency_step());
 	field_frequency.on_edit = [this, &nav]() {
@@ -108,17 +104,16 @@ AnalogTvView::AnalogTvView(
 	field_volume.on_change = [this](int32_t v) {
 		this->on_headphone_volume_changed(v);
 	};
-	
+
 	tv.on_select = [this](int32_t offset) {
 		field_frequency.set_value(receiver_model.tuning_frequency() + offset);
 	};
 
 	update_modulation(static_cast<ReceiverModel::Mode>(modulation));
-        on_modulation_changed(ReceiverModel::Mode::WidebandFMAudio);
+	on_modulation_changed(ReceiverModel::Mode::WidebandFMAudio);
 }
 
 AnalogTvView::~AnalogTvView() {
-
 	// save app settings
 	app_settings.rx_frequency = field_frequency.value();
 	settings.save("rx_tv", &app_settings);
@@ -139,8 +134,8 @@ void AnalogTvView::on_hide() {
 
 void AnalogTvView::set_parent_rect(const Rect new_parent_rect) {
 	View::set_parent_rect(new_parent_rect);
-	
-	const ui::Rect tv_rect { 0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height };
+
+	const ui::Rect tv_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
 	tv.set_parent_rect(tv_rect);
 }
 
@@ -166,11 +161,11 @@ void AnalogTvView::on_modulation_changed(const ReceiverModel::Mode modulation) {
 }
 
 void AnalogTvView::remove_options_widget() {
-	if( options_widget ) {
+	if (options_widget) {
 		remove_child(options_widget.get());
 		options_widget.reset();
 	}
-	
+
 	field_lna.set_style(nullptr);
 	options_modulation.set_style(nullptr);
 	field_frequency.set_style(nullptr);
@@ -179,7 +174,7 @@ void AnalogTvView::remove_options_widget() {
 void AnalogTvView::set_options_widget(std::unique_ptr<Widget> new_widget) {
 	remove_options_widget();
 
-	if( new_widget ) {
+	if (new_widget) {
 		options_widget = std::move(new_widget);
 	} else {
 		// TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
@@ -216,7 +211,7 @@ void AnalogTvView::on_show_options_modulation() {
 
 	static_cast<ReceiverModel::Mode>(receiver_model.modulation());
 	tv.show_audio_spectrum_view(true);
-	
+
 	set_options_widget(std::move(widget));
 	options_modulation.set_style(&style_options_group_new);
 }
@@ -231,8 +226,8 @@ void AnalogTvView::on_reference_ppm_correction_changed(int32_t v) {
 }
 
 void AnalogTvView::on_headphone_volume_changed(int32_t v) {
-	(void)v; //avoid warning
-	//tv::TVView::set_headphone_volume(this,v);
+	(void)v;	//avoid warning
+						//tv::TVView::set_headphone_volume(this,v);
 }
 
 void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {
@@ -241,13 +236,13 @@ void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {
 	baseband::shutdown();
 
 	portapack::spi_flash::image_tag_t image_tag;
-	image_tag = portapack::spi_flash::image_tag_am_tv;	
+	image_tag = portapack::spi_flash::image_tag_am_tv;
 
 	baseband::run_image(image_tag);
 
 	receiver_model.set_modulation(modulation);
-        receiver_model.set_sampling_rate(2000000);
-        receiver_model.set_baseband_bandwidth(2000000);
+	receiver_model.set_sampling_rate(2000000);
+	receiver_model.set_baseband_bandwidth(2000000);
 	receiver_model.enable();
 }
 

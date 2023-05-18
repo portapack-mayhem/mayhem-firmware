@@ -25,10 +25,10 @@
 #include <ch.h>
 
 class ThreadBase {
-public:
+ public:
 	virtual ~ThreadBase() = default;
-	
-protected:
+
+ protected:
 	static msg_t fn(void* arg) {
 		auto obj = static_cast<ThreadBase*>(arg);
 		obj->run();
@@ -36,8 +36,8 @@ protected:
 		return 0;
 	}
 
-private:
+ private:
 	virtual void run() = 0;
 };
 
-#endif/*__THREAD_BASE_H__*/
+#endif /*__THREAD_BASE_H__*/

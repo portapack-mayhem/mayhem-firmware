@@ -38,15 +38,11 @@ RemoteView::~RemoteView() {
 	//baseband::shutdown();
 }
 
-
 RemoteView::RemoteView(
-	NavigationView& nav
-) {
-	add_children({
-		&labels,
-		&button
-	});
-	
+		NavigationView& nav) {
+	add_children({&labels,
+								&button});
+
 	button.on_select = [this, &nav](Button&) {
 		nav.pop();
 	};

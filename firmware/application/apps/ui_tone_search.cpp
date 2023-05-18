@@ -39,16 +39,15 @@ ToneSearchView::~ToneSearchView() {
 }
 
 ToneSearchView::ToneSearchView(
-	NavigationView& nav
-) : nav_ (nav)
-{
+		NavigationView& nav)
+		: nav_(nav) {
 	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-	
+
 	add_children({
-		&labels,
-		&field_lna,
-		&field_vga,
-		&field_rf_amp,
+			&labels,
+			&field_lna,
+			&field_vga,
+			&field_rf_amp,
 	});
 }
 
