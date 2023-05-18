@@ -1,8 +1,6 @@
 ---
 BasedOnStyle: Chromium
 IndentWidth: '4'
-# TabWidth: '2'
-# UseTab: Always
 SortIncludes: 'false'
 AllowAllArgumentsOnNextLine: 'true'
 ColumnLimit: 0
