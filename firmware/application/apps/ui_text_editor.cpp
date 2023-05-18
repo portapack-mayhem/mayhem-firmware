@@ -44,7 +44,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
 });
 	set_focusable(true);
 
-	log_.append("NOTEPAD.TXT");
+	//log_.append("LOGS/NOTEPAD.TXT");
 
 	button_open.on_select = [this](Button&) {
 		auto open_view = nav_.push<FileLoadView>(".TXT");
@@ -161,16 +161,15 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
 }
 
 void TextEditorView::refresh_ui() {
-	button_open.hidden(paint_state_.has_file);
-	text_position.hidden(!paint_state_.has_file);
-
 	if (paint_state_.has_file) {
 		text_position.set(
 			to_string_dec_uint(cursor_.col + 1) + ":" +
 			to_string_dec_uint(cursor_.line + 1) + "/" +
 			to_string_dec_uint(info_.line_count()) +
+			(info_.truncated ? "*" : "") +
 			" Size: " +
 			to_string_file_size(info_.size));
+		focus();
 	} else {
 		button_open.focus();
 	}
@@ -187,6 +186,7 @@ void TextEditorView::refresh_file_info() {
 	info_.newlines.clear();
 	info_.line_ending = LineEnding::LF;
 	info_.size = file_.size();
+	info_.truncated = false;
 
 	while (true) {
 		auto result = file_.read(buffer, buffer_size);
@@ -207,6 +207,12 @@ void TextEditorView::refresh_file_info() {
 		// Could check if there already is a trailing newline, but it doesn't hurt.
 		if (result.value() < buffer_size) {
 			info_.newlines.push_back(base_offset);
+			break;
+		}
+
+		// HACK HACK: only show first 1000 lines for now.
+		if (info_.newlines.size() >= 1000) {
+			info_.truncated = true;
 			break;
 		}
 	}

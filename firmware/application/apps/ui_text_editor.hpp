@@ -48,11 +48,16 @@ enum class ScrollDirection : uint8_t {
 
 // TODO: RAM is _very_ limited. Need to
 // rework this to not store every line.
+// Should be able to get away with only
+// abount one screen of lines so long as
+// you can't scroll more than one screen
+// at a time.
 struct FileInfo {
 	/* Offsets of newlines. */
 	std::vector<uint32_t> newlines;
 	LineEnding line_ending;
 	File::Size size;
+	bool truncated;
 
 	uint32_t line_count() const {
 		return newlines.size();
@@ -119,7 +124,7 @@ private:
 
 	File     file_{ };
 	FileInfo info_{ };
-	LogFile  log_{ };
+	//LogFile  log_{ };
 
 	struct {
 		// Previous cursor state.
@@ -144,13 +149,16 @@ private:
 	/* Titlebar is 16px tall, so 18 rows left. */
 	/* 240 x 320, (304 with titlebar) */
 
+	// TODO: The scrollable view should be its own widget
+	// otherwise control navigation doesn't work.
+
 	Button button_open {
-		{ 10 * 8, 4 * 8, 10 * 8, 4 * 8 },
+		{ 19 * 8, 34 * 8, 11 * 8, 4 * 8 },
 		"Open File"
 	};
 
 	Text text_position {
-		{ 0 * 8, 36 * 8, 29 * 8, 2 * 8 },
+		{ 0 * 8, 36 * 8, 19 * 8, 2 * 8 },
 		""
 	};
 };
