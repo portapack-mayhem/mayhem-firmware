@@ -203,7 +203,7 @@ class TransmitterView2 : public View {
         ' '};
 
     Text text_gain_amp_short_UI{
-        {0, (3 * 8) - 1, 5 * 8, 1 * 16},
+        {0, (3 * 8), 5 * 8, 1 * 16},
         "Gain   A:"};
 
     NumberField field_gain_short_UI{
