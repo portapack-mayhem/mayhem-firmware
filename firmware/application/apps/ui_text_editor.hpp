@@ -38,13 +38,13 @@
 namespace ui {
 
 enum class LineEnding : uint8_t {
-	LF,
-	CRLF
+    LF,
+    CRLF
 };
 
 enum class ScrollDirection : uint8_t {
-	Vertical,
-	Horizontal
+    Vertical,
+    Horizontal
 };
 
 // TODO: RAM is _very_ limited. Need to
@@ -54,118 +54,117 @@ enum class ScrollDirection : uint8_t {
 // you can't scroll more than one screen
 // at a time.
 struct FileInfo {
-	/* Offsets of newlines. */
-	std::vector<uint32_t> newlines;
-	LineEnding line_ending;
-	File::Size size;
-	bool truncated;
+    /* Offsets of newlines. */
+    std::vector<uint32_t> newlines;
+    LineEnding line_ending;
+    File::Size size;
+    bool truncated;
 
-	uint32_t line_count() const {
-		return newlines.size();
-	}
+    uint32_t line_count() const {
+        return newlines.size();
+    }
 
-	uint32_t line_start(uint32_t line) const {
-		return line == 0 ? 0 : (newlines[line - 1] + 1);
-	}
+    uint32_t line_start(uint32_t line) const {
+        return line == 0 ? 0 : (newlines[line - 1] + 1);
+    }
 
-	uint16_t line_length(uint32_t line) const {
-		if (line >= line_count())
-			return 0;
+    uint16_t line_length(uint32_t line) const {
+        if (line >= line_count())
+            return 0;
 
-		auto start = line_start(line);
-		auto end = newlines[line];
-		return end - start;
-	}
+        auto start = line_start(line);
+        auto end = newlines[line];
+        return end - start;
+    }
 };
 
 /*class TextViewer : public Widget {
 };*/
 
 class TextEditorView : public View {
-public:
-	TextEditorView(NavigationView& nav);
-	//TextEditorView(NavigationView& nav, const std::filesystem::path& path);
+   public:
+    TextEditorView(NavigationView& nav);
+    // TextEditorView(NavigationView& nav, const std::filesystem::path& path);
 
-	std::string title() const override {
-		return "Notepad";
-	};
-	
-	void on_focus() override;
-	void paint(Painter& painter) override;
-	bool on_key(KeyEvent delta) override;
-	bool on_encoder(EncoderEvent delta) override;
+    std::string title() const override {
+        return "Notepad";
+    };
 
-private:
-	static constexpr uint8_t max_line = 32;
-	static constexpr uint8_t max_col = 48;
-	static constexpr int8_t char_width = 5;
-	static constexpr int8_t char_height = 8;
+    void on_focus() override;
+    void paint(Painter& painter) override;
+    bool on_key(KeyEvent delta) override;
+    bool on_encoder(EncoderEvent delta) override;
 
-	// TODO: should these be common somewhere?
-	static constexpr Style style_default {
-		.font = font::fixed_5x8,
-		.background = Color::black(),
-		.foreground = Color::white(),
-	};
+   private:
+    static constexpr uint8_t max_line = 32;
+    static constexpr uint8_t max_col = 48;
+    static constexpr int8_t char_width = 5;
+    static constexpr int8_t char_height = 8;
 
-	/* Returns true if the cursor was updated. */
-	bool apply_scrolling_constraints(
-		int16_t delta_line, int16_t delta_col);
+    // TODO: should these be common somewhere?
+    static constexpr Style style_default{
+        .font = font::fixed_5x8,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
 
-	void refresh_ui();
-	void refresh_file_info();
-	void open_file(const std::filesystem::path& path);
-	std::string read(uint32_t offset, uint32_t length = 30);
+    /* Returns true if the cursor was updated. */
+    bool apply_scrolling_constraints(
+        int16_t delta_line,
+        int16_t delta_col);
 
-	void paint_text(Painter& painter, uint32_t line, uint16_t col);
-	void paint_cursor(Painter& painter);
+    void refresh_ui();
+    void refresh_file_info();
+    void open_file(const std::filesystem::path& path);
+    std::string read(uint32_t offset, uint32_t length = 30);
 
-	// Gets the length of the current line.
-	uint16_t line_length() const;
+    void paint_text(Painter& painter, uint32_t line, uint16_t col);
+    void paint_cursor(Painter& painter);
 
-	NavigationView& nav_;
+    // Gets the length of the current line.
+    uint16_t line_length() const;
 
-	File     file_{ };
-	FileInfo info_{ };
-	//LogFile  log_{ };
+    NavigationView& nav_;
 
-	struct {
-		// Previous cursor state.
-		uint32_t line{ };
-		uint16_t col{ };
+    File file_{};
+    FileInfo info_{};
+    // LogFile  log_{ };
 
-		// Previous draw state.
-		uint32_t first_line{ };
-		uint16_t first_col{ };
-		bool redraw_text{ true };
-		bool has_file{ false };
-	} paint_state_{ };
+    struct {
+        // Previous cursor state.
+        uint32_t line{};
+        uint16_t col{};
 
-	struct {
-		uint32_t line{ };
-		uint16_t col{ };
-		ScrollDirection dir{ ScrollDirection::Vertical };
-	} cursor_{ };
+        // Previous draw state.
+        uint32_t first_line{};
+        uint16_t first_col{};
+        bool redraw_text{true};
+        bool has_file{false};
+    } paint_state_{};
 
-	/* 8px grid is 30 wide, 38 tall. */
-	/* 16px font height or 19 rows. */
-	/* Titlebar is 16px tall, so 18 rows left. */
-	/* 240 x 320, (304 with titlebar) */
+    struct {
+        uint32_t line{};
+        uint16_t col{};
+        ScrollDirection dir{ScrollDirection::Vertical};
+    } cursor_{};
 
-	// TODO: The scrollable view should be its own widget
-	// otherwise control navigation doesn't work.
+    /* 8px grid is 30 wide, 38 tall. */
+    /* 16px font height or 19 rows. */
+    /* Titlebar is 16px tall, so 18 rows left. */
+    /* 240 x 320, (304 with titlebar) */
 
-	Button button_open {
-		{ 24 * 8, 34 * 8, 6 * 8, 4 * 8 },
-		"Open"
-	};
+    // TODO: The scrollable view should be its own widget
+    // otherwise control navigation doesn't work.
 
-	Text text_position {
-		{ 0 * 8, 36 * 8, 24 * 8, 2 * 8 },
-		""
-	};
+    Button button_open{
+        {24 * 8, 34 * 8, 6 * 8, 4 * 8},
+        "Open"};
+
+    Text text_position{
+        {0 * 8, 36 * 8, 24 * 8, 2 * 8},
+        ""};
 };
 
-} // namespace ui
+}  // namespace ui
 
-#endif // __UI_TEXT_EDITOR_H__
+#endif  // __UI_TEXT_EDITOR_H__

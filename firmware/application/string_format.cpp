@@ -214,18 +214,18 @@ std::string to_string_FAT_timestamp(const FATTimestamp& timestamp) {
 }
 
 std::string to_string_file_size(uint32_t file_size) {
-	static const std::string suffix[5] = { "B", "kB", "MB", "GB", "??" };
-	size_t suffix_index = 0;
-	
-	while (file_size >= 1024) {
-		file_size /= 1024;
-		suffix_index++;
-	}
+    static const std::string suffix[5] = {"B", "kB", "MB", "GB", "??"};
+    size_t suffix_index = 0;
 
-	if (suffix_index > 4)
-		suffix_index = 4;
-	
-	return to_string_dec_uint(file_size) + suffix[suffix_index];
+    while (file_size >= 1024) {
+        file_size /= 1024;
+        suffix_index++;
+    }
+
+    if (suffix_index > 4)
+        suffix_index = 4;
+
+    return to_string_dec_uint(file_size) + suffix[suffix_index];
 }
 
 std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision) {

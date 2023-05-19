@@ -30,14 +30,14 @@ void on_tick_second() {
 }
 
 rtc::RTC now() {
-	rtc::RTC datetime;
-	rtcGetTime(&RTCD1, &datetime);
-	return datetime;
+    rtc::RTC datetime;
+    rtcGetTime(&RTCD1, &datetime);
+    return datetime;
 }
 
 rtc::RTC now(rtc::RTC& out_datetime) {
-	rtcGetTime(&RTCD1, &out_datetime);
-	return out_datetime;
+    rtcGetTime(&RTCD1, &out_datetime);
+    return out_datetime;
 }
 
 } /* namespace rtc_time */

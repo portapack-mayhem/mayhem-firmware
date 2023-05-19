@@ -34,7 +34,7 @@ using namespace portapack;
 using namespace modems;
 
 void AFSKLogger::log_raw_data(const std::string& data) {
-	log_file.write_entry(data);
+    log_file.write_entry(data);
 }
 
 namespace ui {

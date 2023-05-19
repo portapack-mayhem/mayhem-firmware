@@ -29,7 +29,7 @@ namespace font {
 
 extern const ui::Font fixed_5x8;
 
-} /* namespace font */
-} /* namspace ui */
+}  // namespace font
+}  // namespace ui
 
 #endif /*__UI_FONT_FIXED_5X8_H__*/

@@ -572,19 +572,18 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 /* UtilitiesMenuView *****************************************************/
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
-	if( portapack::persistent_memory::show_gui_return_icon() )
-	{
-		add_items( { { "..", ui::Color::light_grey(),&bitmap_icon_previous , [&nav](){ nav.pop(); } } } );
-	}
-	add_items({
-		//{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
-		{ "Freq. manager",	ui::Color::green(), 	&bitmap_icon_freqman,		[&nav](){ nav.push<FrequencyManagerView>(); } },
-		{ "File manager", 	ui::Color::yellow(),	&bitmap_icon_dir,			[&nav](){ nav.push<FileManagerView>(); } },
-		{ "Notepad",		ui::Color::dark_cyan(),	&bitmap_icon_notepad,	[	&nav](){ nav.push<TextEditorView>(); } },
-		{ "Signal gen", 	ui::Color::green(), 	&bitmap_icon_cwgen,			[&nav](){ nav.push<SigGenView>(); } },
-		//{ "Tone search",	ui::Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); } },
-		{ "Wav viewer",	ui::Color::yellow(),	&bitmap_icon_soundboard,	[&nav](){ nav.push<ViewWavView>(); } },
-		{ "Antenna length",	ui::Color::green(),		&bitmap_icon_tools_antenna,	[&nav](){ nav.push<WhipCalcView>(); } },
+    if (portapack::persistent_memory::show_gui_return_icon()) {
+        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+    }
+    add_items({
+        //{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
+        {"Freq. manager", ui::Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
+        {"File manager", ui::Color::yellow(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
+        {"Notepad", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
+        {"Signal gen", ui::Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
+        //{ "Tone search",	ui::Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); } },
+        {"Wav viewer", ui::Color::yellow(), &bitmap_icon_soundboard, [&nav]() { nav.push<ViewWavView>(); }},
+        {"Antenna length", ui::Color::green(), &bitmap_icon_tools_antenna, [&nav]() { nav.push<WhipCalcView>(); }},
 
         {"Wipe SD card", ui::Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
         {"Flash Utility", ui::Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
@@ -773,61 +772,56 @@ void NotImplementedView::focus() {
 /* ModalMessageView ******************************************************/
 
 ModalMessageView::ModalMessageView(
-	NavigationView& nav,
-	const std::string& title,
-	const std::string& message,
-	const modal_t type,
-	const std::function<void(bool)> on_choice
-) : title_ { title },
-	message_ { message },
-	type_ { type },
-	on_choice_ { on_choice }
-{
-	if (type == INFO) {
-		add_child(&button_ok);
-		
-		button_ok.on_select = [this, &nav](Button&){
-			if (on_choice_)
-				on_choice_(true); // Assumes handler will pop.
-			else
-				nav.pop();
-		};
-	} else if (type == YESNO) {
-		add_children({
-			&button_yes,
-			&button_no
-		});
-		
-		button_yes.on_select = [this, &nav](Button&){
-			if (on_choice_) on_choice_(true);
-			nav.pop();
-		};
-		button_no.on_select = [this, &nav](Button&){
-			if (on_choice_) on_choice_(false);
-			nav.pop();
-		};
-	} else if (type == YESCANCEL) {
-		add_children({
-			&button_yes,
-			&button_no
-		});
-		
-		button_yes.on_select = [this, &nav](Button&){
-			if (on_choice_) on_choice_(true);
-			nav.pop();
-		};
-		button_no.on_select = [this, &nav](Button&){
-			//if (on_choice_) on_choice_(false);
-			nav.pop_modal();
-		};
-	} else {	// ABORT
-		add_child(&button_ok);
-		
-		button_ok.on_select = [this, &nav](Button&){
-			if (on_choice_) on_choice_(true);
-			nav.pop_modal();
-		};
-	}
+    NavigationView& nav,
+    const std::string& title,
+    const std::string& message,
+    const modal_t type,
+    const std::function<void(bool)> on_choice)
+    : title_{title},
+      message_{message},
+      type_{type},
+      on_choice_{on_choice} {
+    if (type == INFO) {
+        add_child(&button_ok);
+
+        button_ok.on_select = [this, &nav](Button&) {
+            if (on_choice_)
+                on_choice_(true);  // Assumes handler will pop.
+            else
+                nav.pop();
+        };
+    } else if (type == YESNO) {
+        add_children({&button_yes,
+                      &button_no});
+
+        button_yes.on_select = [this, &nav](Button&) {
+            if (on_choice_) on_choice_(true);
+            nav.pop();
+        };
+        button_no.on_select = [this, &nav](Button&) {
+            if (on_choice_) on_choice_(false);
+            nav.pop();
+        };
+    } else if (type == YESCANCEL) {
+        add_children({&button_yes,
+                      &button_no});
+
+        button_yes.on_select = [this, &nav](Button&) {
+            if (on_choice_) on_choice_(true);
+            nav.pop();
+        };
+        button_no.on_select = [this, &nav](Button&) {
+            // if (on_choice_) on_choice_(false);
+            nav.pop_modal();
+        };
+    } else {  // ABORT
+        add_child(&button_ok);
+
+        button_ok.on_select = [this, &nav](Button&) {
+            if (on_choice_) on_choice_(true);
+            nav.pop_modal();
+        };
+    }
 }
 
 void ModalMessageView::paint(Painter& painter) {

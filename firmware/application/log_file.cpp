@@ -23,7 +23,7 @@
 #include "string_format.hpp"
 
 Optional<File::Error> LogFile::write_entry(const std::string& entry) {
-	return write_entry(rtc_time::now(), entry);
+    return write_entry(rtc_time::now(), entry);
 }
 
 Optional<File::Error> LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {

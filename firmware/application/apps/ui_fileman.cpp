@@ -249,37 +249,35 @@ void FileManBaseView::refresh_list() {
     if (on_refresh_widgets)
         on_refresh_widgets(false);
 
-	auto prev_highlight = menu_view.highlighted_index();
-	menu_view.clear();
-	
-	for (const auto& entry : entry_list) {
-		auto entry_name = truncate(entry.path, 20);
-	
-		if (entry.is_directory) {
-			menu_view.add_item({
-				entry_name,
-				ui::Color::yellow(),
-				&bitmap_icon_dir,
-				[this](KeyEvent key) {
-					if (on_select_entry)
-						on_select_entry(key);
-				}
-			});
-	
-		} else {
-			const auto& assoc = get_assoc(entry.path.extension());
-			auto size_str = to_string_file_size(entry.size);
-			
-			menu_view.add_item({
-				entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
-				assoc.color,
-				assoc.icon,
-				[this](KeyEvent key) {
-					if (on_select_entry)
-						on_select_entry(key);
-				}
-			});
-		}
+    auto prev_highlight = menu_view.highlighted_index();
+    menu_view.clear();
+
+    for (const auto& entry : entry_list) {
+        auto entry_name = truncate(entry.path, 20);
+
+        if (entry.is_directory) {
+            menu_view.add_item(
+                {entry_name,
+                 ui::Color::yellow(),
+                 &bitmap_icon_dir,
+                 [this](KeyEvent key) {
+                     if (on_select_entry)
+                         on_select_entry(key);
+                 }});
+
+        } else {
+            const auto& assoc = get_assoc(entry.path.extension());
+            auto size_str = to_string_file_size(entry.size);
+
+            menu_view.add_item(
+                {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
+                 assoc.color,
+                 assoc.icon,
+                 [this](KeyEvent key) {
+                     if (on_select_entry)
+                         on_select_entry(key);
+                 }});
+        }
 
         // HACK: Should page menu items instead of limiting the number.
         if (menu_view.item_count() >= max_items_shown)

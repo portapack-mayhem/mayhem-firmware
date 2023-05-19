@@ -76,7 +76,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 }
 
 void ADSBLogger::log_str(std::string& logline) {
-	log_file.write_entry(logline);
+    log_file.write_entry(logline);
 }
 
 // Aircraft Details
