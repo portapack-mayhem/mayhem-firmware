@@ -35,6 +35,49 @@ GlassView::~GlassView() {
     baseband::shutdown();
 }
 
+void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power) {
+    if (mode == LOOKING_GLASS_SINGLEPASS) {
+        // analog audio app like view
+        if (bin < 120) {
+            if (spectrum.db[SPEC_NB_BINS - 120 + bin] > max_power)
+                max_power = spectrum.db[SPEC_NB_BINS - 120 + bin];
+        } else {
+            if (spectrum.db[bin - 120] > max_power)
+                max_power = spectrum.db[bin - 120];
+        }
+    } else if (mode == LOOKING_GLASS_FASTSCAN) {
+        // view is made in multiple pass, use original bin picking
+        // Center 12 bins are ignored (DC spike is blanked) Leftmost and rightmost 2 bins are ignored
+        if (bin < 120) {
+            if (spectrum.db[SPEC_NB_BINS - 2 - 120 + bin] > max_power)
+                max_power = spectrum.db[SPEC_NB_BINS - 2 - 120 + bin];
+        } else {
+            if (spectrum.db[2 + bin - 120] > max_power)
+                max_power = spectrum.db[2 + bin - 120];
+        }
+    } else  // if( mode == LOOKING_GLASS_SLOWSCAN )
+    {
+        if (bin < 120) {
+            if (spectrum.db[SPEC_NB_BINS - offset - 120 + bin] > max_power)
+                max_power = spectrum.db[SPEC_NB_BINS - offset - 120 + bin];
+        } else {
+            if (spectrum.db[offset + bin - 120] > max_power)
+                max_power = spectrum.db[offset + bin - 120];
+        }
+    }
+}
+
+void GlassView::on_marker_change() {
+    if (mode == LOOKING_GLASS_SINGLEPASS) {
+        marker = f_min + (marker_pixel_index * looking_glass_range) / SCREEN_W;
+    } else  // if( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
+    {
+        marker = f_min + (offset * each_bin_size) + (marker_pixel_index * looking_glass_range) / SCREEN_W;
+    }
+    button_marker.set_text(to_string_short_freq(marker));
+    PlotMarker(marker_pixel_index);  // Refresh marker on screen
+}
+
 // Returns the next multiple of num that is a multiple of multiplier
 int64_t GlassView::next_mult_of(int64_t num, int64_t multiplier) {
     return ((num / multiplier) + 1) * multiplier;
@@ -52,6 +95,13 @@ void GlassView::adjust_range(int64_t* f_min, int64_t* f_max, int64_t width) {
     *f_max += delta_span;
 }
 
+void GlassView::retune() {
+    // Start a new sweep
+    radio::set_tuning_frequency(f_center);  // tune rx for this new slice directly, faster than using persistent memory saving
+    chThdSleepMilliseconds(5);
+    baseband::spectrum_streaming_start();  // Do the RX
+}
+
 void GlassView::on_lna_changed(int32_t v_db) {
     receiver_model.set_lna(v_db);
 }
@@ -66,22 +116,20 @@ void GlassView::reset_live_view(bool clear_screen) {
     if (clear_screen) {
         // only clear screen in peak mode
         if (live_frequency_view == 2) {
-            display.fill_rectangle({{0, 108 + 16}, {240, 320 - (108 + 16)}}, {0, 0, 0});
+            display.fill_rectangle({{0, 108 + 16}, {SCREEN_W, 320 - (108 + 16)}}, {0, 0, 0});
         }
     }
 }
 
 void GlassView::add_spectrum_pixel(uint8_t power) {
-    static int64_t last_max_freq = 0;
-
     spectrum_row[pixel_index] = spectrum_rgb3_lut[power];                                                                           // row of colors
     spectrum_data[pixel_index] = (live_frequency_integrate * spectrum_data[pixel_index] + power) / (live_frequency_integrate + 1);  // smoothing
     pixel_index++;
 
-    if (pixel_index == 240)  // got an entire waterfall line
+    if (pixel_index == SCREEN_W)  // got an entire waterfall line
     {
         if (live_frequency_view > 0) {
-            constexpr int rssi_sample_range = 256;
+            constexpr int rssi_sample_range = SPEC_NB_BINS;
             constexpr float rssi_voltage_min = 0.4;
             constexpr float rssi_voltage_max = 2.2;
             constexpr float adc_voltage_max = 3.3;
@@ -91,11 +139,11 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
             const range_t<int> y_max_range{0, 320 - (108 + 16)};
 
             // drawing and keeping track of max freq
-            for (uint16_t xpos = 0; xpos < 240; xpos++) {
+            for (uint16_t xpos = 0; xpos < SCREEN_W; xpos++) {
                 // save max powerwull freq
                 if (spectrum_data[xpos] > max_freq_power) {
                     max_freq_power = spectrum_data[xpos];
-                    max_freq_hold = f_min + ((f_max - f_min) * xpos) / 240;
+                    max_freq_hold = f_center + ((looking_glass_range)*xpos) / SCREEN_W;
                 }
 
                 int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (320 - (108 + 16))) / raw_delta);
@@ -110,117 +158,51 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                 last_max_freq = max_freq_hold;
                 freq_stats.set("MAX HOLD: " + to_string_short_freq(max_freq_hold));
             }
-            PlotMarker(marker);
+            PlotMarker(marker_pixel_index);
         } else {
-            display.draw_pixels({{0, display.scroll(1)}, {240, 1}}, spectrum_row);  // new line at top, one less var, speedier
+            display.draw_pixels({{0, display.scroll(1)}, {SCREEN_W, 1}}, spectrum_row);  // new line at top, one less var, speedier
         }
         pixel_index = 0;  // Start New cascade line
     }
 }
 
-// Apparently, the spectrum object returns an array of 256 bins
+// Apparently, the spectrum object returns an array of SPEC_NB_BINS (256) bins
 // Each having the radio signal power for it's corresponding frequency slot
 void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    // default fast scan offset
-    uint8_t offset = 2;
     baseband::spectrum_streaming_stop();
-    if (fast_scan || (LOOKING_GLASS_SLICE_WIDTH < LOOKING_GLASS_SLICE_WIDTH_MAX)) {
-        // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
-        // Spectrum.db has 256 bins.
-        // All things said and done, we actually need 240 of those bins
-        for (uint8_t bin = 0; bin < 240; bin++) {
-            // if the view is done in one pass, show it like in analog_audio_app
-            if ((LOOKING_GLASS_SLICE_WIDTH < LOOKING_GLASS_SLICE_WIDTH_MAX)) {
-                // Center 16 bins are ignored (DC spike is blanked)
-                if (bin < 120) {
-                    if (spectrum.db[256 - 120 + bin] > max_power)  // 134
-                        max_power = spectrum.db[256 - 120 + bin];
-                } else {
-                    if (spectrum.db[bin - 120] > max_power)  // 118
-                        max_power = spectrum.db[bin - 120];
-                }
-            } else  // view is made in multiple pass, use original bin picking
-            {
-                // Center 12 bins are ignored (DC spike is blanked) Leftmost and rightmost 2 bins are ignored
-                if (bin < 120) {
-                    if (spectrum.db[134 + bin] > max_power)  // 134
-                        max_power = spectrum.db[134 + bin];
-                } else {
-                    if (spectrum.db[bin - 118] > max_power)  // 118
-                        max_power = spectrum.db[bin - 118];
-                }
-            }
-
-            if (bin == 120) {
-                bins_Hz_size += 12 * each_bin_size;  // add DC bin Hz count into the "pixel fulfilled bag of Hz"
-            } else {
-                bins_Hz_size += each_bin_size;  // add this bin Hz count into the "pixel fulfilled bag of Hz"
-            }
-
-            if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
-            {
-                if (min_color_power < max_power)
-                    add_spectrum_pixel(max_power);  // Pixel will represent max_power
-                else
-                    add_spectrum_pixel(0);  // Filtered out, show black
-
-                max_power = 0;
-
-                if (!pixel_index)  // Received indication that a waterfall line has been completed
-                {
-                    bins_Hz_size = 0;                                  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                    f_center = f_center_ini - offset * each_bin_size;  // Start a new sweep
-                    radio::set_tuning_frequency(f_center);             // tune rx for this new slice directly, faster than using persistent memory saving
-                    chThdSleepMilliseconds(10);
-                    baseband::spectrum_streaming_start();  // Do the RX
-                    return;
-                }
-                bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
-            }
+    // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
+    // we actually need SCREEN_W (240) of those bins
+    for (bin = offset; bin < bin_length + offset; bin++) {
+        get_max_power(spectrum, bin, max_power);
+        if (ignore_dc && bin == 119) {
+            uint8_t next_max_power = 0;
+            get_max_power(spectrum, 120, next_max_power);
+            bins_Hz_size += 12 * each_bin_size;  // add the ignored DC spike to "pixel fulfilled bag of Hz"
+            max_power = (max_power + next_max_power) / 2;
         }
-        f_center += (256 - (2 * offset)) * each_bin_size;  // Move into the next bandwidth slice NOTE: spectrum.sampling_rate = LOOKING_GLASS_SLICE_WIDTH
-                                                           // lost bins are taken in account so next slice first ignored bins overlap previous kept ones
-    } else                                                 // slow scan
-    {
-        offset = 32;
-        uint8_t bin_length = 80;
-        for (uint8_t bin = offset; bin < bin_length + offset; bin++) {
-            if (bin < 120) {
-                if (spectrum.db[134 + bin] > max_power)  // 134
-                    max_power = spectrum.db[134 + bin];
-            } else {
-                if (spectrum.db[bin - 118] > max_power)  // 118
-                    max_power = spectrum.db[bin - 118];
-            }
+        bins_Hz_size += each_bin_size;  // add this bin Hz count into the "pixel fulfilled bag of Hz"
 
-            bins_Hz_size += each_bin_size;  // add this bin Hz count into the "pixel fulfilled bag of Hz"
+        if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
+        {
+            if (min_color_power < max_power)
+                add_spectrum_pixel(max_power);  // Pixel will represent max_power
+            else
+                add_spectrum_pixel(0);  // Filtered out, show black
 
-            if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
+            max_power = 0;
+
+            if (!pixel_index)  // Received indication that a waterfall line has been completed
             {
-                if (min_color_power < max_power)
-                    add_spectrum_pixel(max_power);  // Pixel will represent max_power
-                else
-                    add_spectrum_pixel(0);  // Filtered out, show black
-
-                max_power = 0;
-
-                if (!pixel_index)  // Received indication that a waterfall line has been completed
-                {
-                    bins_Hz_size = 0;                                  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                    f_center = f_center_ini - offset * each_bin_size;  // Start a new sweep
-                    radio::set_tuning_frequency(f_center);             // tune rx for this new slice directly, faster than using persistent memory saving
-                    chThdSleepMilliseconds(10);
-                    baseband::spectrum_streaming_start();  // Do the RX
-                    return;
-                }
-                bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
+                bins_Hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
+                f_center = f_center_ini;
+                retune();
+                return;  // signal a new line
             }
+            bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
         }
-        f_center += bin_length * each_bin_size;
     }
-    radio::set_tuning_frequency(f_center);  // tune rx for this new slice directly, faster than using persistent memory saving
-    chThdSleepMilliseconds(5);
-    baseband::spectrum_streaming_start();  // Do the RX
+    f_center += looking_glass_step;
+    retune();
 }
 
 void GlassView::on_hide() {
@@ -237,61 +219,86 @@ void GlassView::on_range_changed() {
     reset_live_view(false);
     f_min = field_frequency_min.value();
     f_max = field_frequency_max.value();
-    search_span = f_max - f_min;
+    f_min = f_min * MHZ_DIV;  // Transpose into full frequency realm
+    f_max = f_max * MHZ_DIV;
+    looking_glass_range = f_max - f_min;
+    if (looking_glass_range < LOOKING_GLASS_SLICE_WIDTH_MAX) {
+        mode = LOOKING_GLASS_SINGLEPASS;
+    } else {
+        mode = scan_type.selected_index_value();
+    }
 
+    if (mode == LOOKING_GLASS_SINGLEPASS) {
+        // if the view is done in one pass, show it like in analog_audio_app
+        offset = 0;
+        bin_length = SCREEN_W;
+        ignore_dc = 0;
+    } else if (mode == LOOKING_GLASS_FASTSCAN) {
+        // view is made in multiple pass, use original bin picking
+        offset = 0;
+        bin_length = SCREEN_W;
+        ignore_dc = 1;
+    } else  // if( mode == LOOKING_GLASS_SLOWSCAN )
+    {
+        offset = 16;
+        bin_length = 80;
+        ignore_dc = 0;
+    }
+    each_bin_size = looking_glass_bandwidth / SPEC_NB_BINS;
+    if (mode != LOOKING_GLASS_SINGLEPASS) {
+        looking_glass_step = (bin_length + (ignore_dc * 12)) * each_bin_size;
+    } else {
+        looking_glass_step = SPEC_NB_BINS * each_bin_size;
+    }
+    adjust_range(&f_min, &f_max, SCREEN_W);
+    looking_glass_range = f_max - f_min;
+    marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
+    search_span = looking_glass_range / MHZ_DIV;
+    button_range.set_text("      ");  // clear up to 6 chars
     if (locked_range) {
         button_range.set_text(">" + to_string_dec_uint(search_span) + "<");
     } else {
         button_range.set_text(" " + to_string_dec_uint(search_span) + " ");
     }
 
-    f_min = (f_min)*MHZ_DIV;  // Transpose into full frequency realm
-    f_max = (f_max)*MHZ_DIV;
-    adjust_range(&f_min, &f_max, 240);
-
-    marker_pixel_step = (f_max - f_min) / 240;  // Each pixel value in Hz
-    marker = f_min + (f_max - f_min) / 2;
-    button_marker.set_text(to_string_short_freq(marker));
-    PlotMarker(marker);  // Refresh marker on screen
-
-    pixel_index = 0;  // reset pixel counter
-    max_power = 0;
+    pixel_index = 0;   // reset pixel counter
+    max_power = 0;     // reset save max power level
     bins_Hz_size = 0;  // reset amount of Hz filled up by pixels
-    if ((f_max - f_min) <= LOOKING_GLASS_SLICE_WIDTH_MAX) {
-        LOOKING_GLASS_SLICE_WIDTH = (f_max - f_min);
-        receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);
-        receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH / 2);
-    } else if (LOOKING_GLASS_SLICE_WIDTH != LOOKING_GLASS_SLICE_WIDTH_MAX) {
-        LOOKING_GLASS_SLICE_WIDTH = LOOKING_GLASS_SLICE_WIDTH_MAX;
-        receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);
-        receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH);
+
+    if (mode == LOOKING_GLASS_SINGLEPASS) {
+        looking_glass_bandwidth = looking_glass_range;
+        looking_glass_sampling_rate = looking_glass_bandwidth / 2;
+        each_bin_size = looking_glass_bandwidth / SCREEN_W;
+    } else  // if ( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
+    {
+        looking_glass_sampling_rate = LOOKING_GLASS_SLICE_WIDTH_MAX;
+        looking_glass_bandwidth = LOOKING_GLASS_SLICE_WIDTH_MAX;
+        each_bin_size = looking_glass_bandwidth / SPEC_NB_BINS;
     }
-    if (next_mult_of(LOOKING_GLASS_SLICE_WIDTH, 256) > LOOKING_GLASS_SLICE_WIDTH_MAX)
-        LOOKING_GLASS_SLICE_WIDTH = LOOKING_GLASS_SLICE_WIDTH_MAX;
-    else
-        LOOKING_GLASS_SLICE_WIDTH = next_mult_of(LOOKING_GLASS_SLICE_WIDTH, 256);
+
+    on_marker_change();
+
+    // set the sample rate and bandwidth
+    receiver_model.set_sampling_rate(looking_glass_sampling_rate);
+    receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);
 
     receiver_model.set_squelch_level(0);
-    each_bin_size = LOOKING_GLASS_SLICE_WIDTH / 256;
-    f_center_ini = f_min + (LOOKING_GLASS_SLICE_WIDTH / 2);  // Initial center frequency for sweep
-    f_center = f_center_ini;                                 // Reset sweep into first slice
-    baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, field_trigger.value());
-    receiver_model.set_tuning_frequency(f_center_ini);  // tune rx for this slice
+    f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
+    f_center = f_center_ini;                               // Reset sweep into first slice
+    baseband::set_spectrum(looking_glass_sampling_rate, field_trigger.value());
+    receiver_model.set_tuning_frequency(f_center);  // tune rx for this slice
 }
 
-void GlassView::PlotMarker(rf::Frequency pos) {
-    pos -= f_min;
-    pos = pos / marker_pixel_step;  // Real pixel
-
+void GlassView::PlotMarker(uint8_t pos) {
     uint8_t shift_y = 0;
     if (live_frequency_view > 0)  // plot one line down when in live view
     {
         shift_y = 16;
     }
-    portapack::display.fill_rectangle({0, 100 + shift_y, 240, 8}, Color::black());         // Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({(int)pos - 2, 100 + shift_y, 5, 3}, Color::red());  // Red marker top
-    portapack::display.fill_rectangle({(int)pos - 1, 103 + shift_y, 3, 3}, Color::red());  // Red marker middle
-    portapack::display.fill_rectangle({(int)pos, 106 + shift_y, 1, 2}, Color::red());      // Red marker bottom
+    portapack::display.fill_rectangle({0, 100 + shift_y, SCREEN_W, 8}, Color::black());  // Clear old marker and whole marker rectangle btw
+    portapack::display.fill_rectangle({pos - 2, 100 + shift_y, 5, 3}, Color::red());     // Red marker top
+    portapack::display.fill_rectangle({pos - 1, 103 + shift_y, 3, 3}, Color::red());     // Red marker middle
+    portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Color::red());         // Red marker bottom
 }
 
 GlassView::GlassView(
@@ -335,15 +342,15 @@ GlassView::GlassView(
             field_frequency_max.set_value(v + min_size);
         if (locked_range)
             field_frequency_max.set_value(v + min_size);
-        this->on_range_changed();
+        on_range_changed();
     };
     field_frequency_min.set_value(presets_db[0].min);  // Defaults to first preset
     field_frequency_min.set_step(steps);
 
     field_frequency_min.on_select = [this, &nav](NumberField& field) {
-        auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_min.value() * 1000000);
+        auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_min.value() * MHZ_DIV);
         new_view->on_changed = [this, &field](rf::Frequency f) {
-            int32_t freq = f / 1000000;
+            int32_t freq = f / MHZ_DIV;
             int32_t min_size = steps;
             if (locked_range)
                 min_size = search_span;
@@ -354,7 +361,7 @@ GlassView::GlassView(
             field_frequency_min.set_value(freq);
             if (field_frequency_max.value() < (freq + min_size))
                 field_frequency_max.set_value(freq + min_size);
-            this->on_range_changed();
+            on_range_changed();
         };
     };
 
@@ -373,26 +380,26 @@ GlassView::GlassView(
             field_frequency_min.set_value(v - min_size);
         if (locked_range)
             field_frequency_min.set_value(v - min_size);
-        this->on_range_changed();
+        on_range_changed();
     };
     field_frequency_max.set_value(presets_db[0].max);  // Defaults to first preset
     field_frequency_max.set_step(steps);
 
     field_frequency_max.on_select = [this, &nav](NumberField& field) {
-        auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value() * 1000000);
+        auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value() * MHZ_DIV);
         new_view->on_changed = [this, &field](rf::Frequency f) {
             int32_t min_size = steps;
             if (locked_range)
                 min_size = search_span;
             if (min_size < 2)
                 min_size = 2;
-            int32_t freq = f / 1000000;
+            int32_t freq = f / MHZ_DIV;
             if (freq < min_size)
                 freq = min_size;
             field_frequency_max.set_value(freq);
             if (field_frequency_min.value() > (freq - min_size))
                 field_frequency_min.set_value(freq - min_size);
-            this->on_range_changed();
+            on_range_changed();
         };
     };
 
@@ -418,7 +425,8 @@ GlassView::GlassView(
 
     scan_type.on_change = [this](size_t n, OptionsField::value_t v) {
         (void)n;
-        fast_scan = v;
+        mode = v;
+        on_range_changed();
     };
     scan_type.set_selected_index(0);  // default legacy fast scan
 
@@ -434,7 +442,7 @@ GlassView::GlassView(
             button_rst.hidden(true);
             display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates
         } else if (v == 1) {
-            display.fill_rectangle({{0, 108}, {240, 24}}, {0, 0, 0});
+            display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
             live_frequency_view = 1;
             display.scroll_disable();
             level_integration.hidden(false);
@@ -442,7 +450,7 @@ GlassView::GlassView(
             button_jump.hidden(false);
             button_rst.hidden(false);
         } else if (v == 2) {
-            display.fill_rectangle({{0, 108}, {240, 24}}, {0, 0, 0});
+            display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
             live_frequency_view = 2;
             display.scroll_disable();
             level_integration.hidden(false);
@@ -472,18 +480,19 @@ GlassView::GlassView(
         (void)n;
         field_frequency_min.set_value(presets_db[v].min, false);
         field_frequency_max.set_value(presets_db[v].max, false);
-        this->on_range_changed();
+        on_range_changed();
     };
 
     button_marker.on_change = [this]() {
-        marker = marker + button_marker.get_encoder_delta() * marker_pixel_step;
-        if (marker < f_min)
-            marker = f_min;
-        if (marker > f_max)
-            marker = f_max;
-        button_marker.set_text(to_string_short_freq(marker));
+        if (((int)marker_pixel_index + button_marker.get_encoder_delta()) < 0) {
+            marker_pixel_index = 0;
+        } else if (((int)marker_pixel_index + button_marker.get_encoder_delta()) > SCREEN_W) {
+            marker_pixel_index = SCREEN_W;
+        } else {
+            marker_pixel_index = marker_pixel_index + button_marker.get_encoder_delta();
+        }
+        on_marker_change();
         button_marker.set_encoder_delta(0);
-        PlotMarker(marker);  // Refresh marker on screen
     };
 
     button_marker.on_select = [this](ButtonWithEncoder&) {
@@ -494,7 +503,7 @@ GlassView::GlassView(
     };
 
     field_trigger.on_change = [this](int32_t v) {
-        baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, v);
+        baseband::set_spectrum(looking_glass_sampling_rate, v);
     };
     field_trigger.set_value(32);  // Defaults to 32, as normal triggering resolution
 
@@ -522,16 +531,17 @@ GlassView::GlassView(
     };
 
     display.scroll_set_area(109, 319);
-    baseband::set_spectrum(LOOKING_GLASS_SLICE_WIDTH, field_trigger.value());  // trigger:
-    // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute ,
-    // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made,
-    // at which time it pushes the buffer up with channel_spectrum.feed
+    baseband::set_spectrum(looking_glass_sampling_rate, field_trigger.value());  // trigger:
+                                                                                 // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute ,
+                                                                                 // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made,
+                                                                                 // at which time it pushes the buffer up with channel_spectrum.feed
 
+    marker_pixel_index = 120;
     on_range_changed();
 
     receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-    receiver_model.set_sampling_rate(LOOKING_GLASS_SLICE_WIDTH);       // 20mhz
-    receiver_model.set_baseband_bandwidth(LOOKING_GLASS_SLICE_WIDTH);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
+    receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
+    receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);
     receiver_model.enable();
 }
