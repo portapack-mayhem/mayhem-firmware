@@ -230,6 +230,8 @@ void TextEditorView::open_file(const fs::path& path) {
 		refresh_file_info();
 		paint_state_.first_line = 0;
 		paint_state_.first_col = 0;
+		cursor_.line = 0;
+		cursor_.col = 0;
 	} else {
 		nav_.display_modal("Read Error", "Cannot open file:\n" + result.value().what());
 		paint_state_.has_file = false;
@@ -305,6 +307,7 @@ void TextEditorView::paint_cursor(Painter& painter) {
 	};
 
 	// TOOD: bug where cursor doesn't clear at EOF.
+	// TODO: XOR cursor?
 
 	// Clear old cursor.
 	draw_cursor(paint_state_.line, paint_state_.col, style_default.background);

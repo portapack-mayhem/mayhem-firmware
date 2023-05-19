@@ -156,12 +156,12 @@ private:
 	// otherwise control navigation doesn't work.
 
 	Button button_open {
-		{ 19 * 8, 34 * 8, 11 * 8, 4 * 8 },
-		"Open File"
+		{ 24 * 8, 34 * 8, 6 * 8, 4 * 8 },
+		"Open"
 	};
 
 	Text text_position {
-		{ 0 * 8, 36 * 8, 19 * 8, 2 * 8 },
+		{ 0 * 8, 36 * 8, 24 * 8, 2 * 8 },
 		""
 	};
 };
