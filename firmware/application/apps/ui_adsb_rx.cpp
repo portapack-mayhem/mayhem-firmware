@@ -76,9 +76,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 }
 
 void ADSBLogger::log_str(std::string& logline) {
-    rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
-    log_file.write_entry(datetime, logline);
+    log_file.write_entry(logline);
 }
 
 // Aircraft Details

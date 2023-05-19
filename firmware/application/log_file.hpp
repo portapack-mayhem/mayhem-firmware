@@ -25,10 +25,7 @@
 #include <string>
 
 #include "file.hpp"
-
-#include "lpc43xx_cpp.hpp"
-
-using namespace lpc43xx;
+#include "rtc_time.hpp"
 
 #define LOG_ROOT_DIR "LOGS"
 
@@ -42,6 +39,7 @@ class LogFile {
         return file.append(filename);
     }
 
+    Optional<File::Error> write_entry(const std::string& entry);
     Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
    private:

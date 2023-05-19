@@ -44,7 +44,7 @@
         {"1750k", 1750000},                                                                                                        \
         {"2000k", 2000000},                                                                                                        \
         {"2500k", 2500000},                                                                                                        \
-    { "2750k", 2750000 }  // That is our max Capture option , to keep using later / 8 decimation (22Mhz sampling  ADC)
+        {"2750k", 2750000},  // That is our max Capture option , to keep using later / 8 decimation (22Mhz sampling  ADC)
 
 namespace ui {
 
