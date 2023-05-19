@@ -3,7 +3,7 @@
 Licensed under [GNU GPL v3](../../../LICENSE)
 
 Python3 script creates a MID (Marine Identification Digit) database.
-MID is part of MMSI and determines (among other things) the conutry. 
+MID is part of MMSI and determines country (among other things). 
 
 
 USAGE:

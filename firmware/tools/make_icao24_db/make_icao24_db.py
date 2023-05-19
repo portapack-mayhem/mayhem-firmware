@@ -48,16 +48,15 @@ with open('aircraftDatabase.csv', 'rt') as csv_file:
                 owner=row[13][:32].encode('ascii', 'ignore')
                 operator=row[9][:32].encode('ascii', 'ignore')
                 #padding
-                icao24_codes=icao24_codes+bytearray(icao24_code+'\0', encoding='ascii')
+                icao24_codes.extend(bytearray(icao24_code+'\0', encoding='ascii'))
                 registration_padding=bytearray('\0' * (9 - len(registration)), encoding='ascii')    
                 manufacturer_padding=bytearray('\0' * (33 - len(manufacturer)), encoding='ascii')
                 model_padding=bytearray('\0' * (33 - len(model)), encoding='ascii')
                 actype_padding=bytearray('\0' * (5 - len(actype)), encoding='ascii')
                 owner_padding=bytearray('\0' * (33 - len(owner)), encoding='ascii')
                 operator_padding=bytearray('\0' * (33 - len(operator)), encoding='ascii')
-                data=data+bytearray(registration+registration_padding+manufacturer+manufacturer_padding+model+model_padding+actype+actype_padding+owner+owner_padding+operator+operator_padding)
+                data.extend(bytearray(registration+registration_padding+manufacturer+manufacturer_padding+model+model_padding+actype+actype_padding+owner+owner_padding+operator+operator_padding))
                 row_count+=1
-
 database.write(icao24_codes+data)
 print("Total of", row_count, "ICAO codes stored in database")
 
