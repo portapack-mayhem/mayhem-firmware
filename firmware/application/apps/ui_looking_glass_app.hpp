@@ -38,7 +38,18 @@
 namespace ui {
 #define LOOKING_GLASS_SLICE_WIDTH_MAX 20000000
 #define MHZ_DIV 1000000
-#define X2_MHZ_DIV 2000000
+
+// blanked DC (16 centered bins ignored ) and top left and right (2 bins ignored on each side )
+#define LOOKING_GLASS_FASTSCAN 0
+// only first half used (so DC spike is not ignored, it's stopped before the DC spike) minus the 2 first bins
+#define LOOKING_GLASS_SLOWSCAN 1
+// analog audio view like
+#define LOOKING_GLASS_SINGLEPASS 2
+// one spectrum line number of bins
+#define SPEC_NB_BINS 256
+// screen dimensions
+#define SCREEN_W 240
+#define SCREEN_H 320
 
 class GlassView : public View {
    public:
@@ -78,16 +89,12 @@ class GlassView : public View {
     };
 
     std::vector<preset_entry> presets_db{};
-
-    // Each slice bandwidth 20 MHz and a multiple of 256
-    // since we are using LOOKING_GLASS_SLICE_WIDTH/256 as the each_bin_size
-    // it should also be a multiple of 2 since we are using LOOKING_GLASS_SLICE_WIDTH / 2 as centering freq
-    int64_t LOOKING_GLASS_SLICE_WIDTH = 20000000;
-
-    // frequency rounding helpers
+    void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
+    void on_marker_change();
     int64_t next_mult_of(int64_t num, int64_t multiplier);
     void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
-
+    void retune();
+    bool move_to_next_position();
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void do_timers();
     void on_range_changed();
@@ -95,7 +102,7 @@ class GlassView : public View {
     void on_vga_changed(int32_t v_db);
     void reset_live_view(bool clear_screen);
     void add_spectrum_pixel(uint8_t power);
-    void PlotMarker(rf::Frequency pos);
+    void PlotMarker(uint8_t pos);
     void load_Presets();
     void txtline_process(std::string& line);
     void populate_Presets();
@@ -106,13 +113,20 @@ class GlassView : public View {
     rf::Frequency f_center{0};
     rf::Frequency f_center_ini{0};
     rf::Frequency marker{0};
+    uint8_t marker_pixel_index{0};
     rf::Frequency marker_pixel_step{0};
-    rf::Frequency each_bin_size{LOOKING_GLASS_SLICE_WIDTH / 256};
+    // size of one spectrum bin in Hz
+    rf::Frequency each_bin_size{0};
+    // consumed number of Hz, used to know if we have filled a 'bag' , a corresponding pixel length on screen
     rf::Frequency bins_Hz_size{0};
+    rf::Frequency looking_glass_sampling_rate{0};
+    rf::Frequency looking_glass_bandwidth{0};
+    rf::Frequency looking_glass_range{0};
+    rf::Frequency looking_glass_step{0};
     uint8_t min_color_power{0};
     uint32_t pixel_index{0};
-    std::array<Color, 240> spectrum_row = {0};
-    std::array<uint8_t, 240> spectrum_data = {0};
+    std::array<Color, SCREEN_W> spectrum_row = {0};
+    std::array<uint8_t, SCREEN_W> spectrum_data = {0};
     ChannelSpectrumFIFO* fifo{nullptr};
     uint8_t max_power = 0;
     int32_t steps = 0;
@@ -120,8 +134,15 @@ class GlassView : public View {
     int16_t live_frequency_integrate = 3;
     int64_t max_freq_hold = 0;
     int16_t max_freq_power = -1000;
-    bool fast_scan = true;  // default to legacy fast scan
     bool locked_range = false;
+    uint8_t bin_length = SCREEN_W;
+    uint8_t real_bin_length = SCREEN_W;
+    uint8_t offset = 0;
+    uint8_t tune_offset = 0;
+    uint8_t bin = 0;
+    int64_t last_max_freq = 0;
+    uint8_t mode = LOOKING_GLASS_FASTSCAN;
+    uint8_t ignore_dc = 0;
 
     Labels labels{
         {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
@@ -200,8 +221,8 @@ class GlassView : public View {
         {17 * 8, 4 * 16},
         2,
         {
-            {"F-", true},
-            {"S-", false},
+            {"F-", LOOKING_GLASS_FASTSCAN},
+            {"S-", LOOKING_GLASS_SLOWSCAN},
         }};
 
     OptionsField view_config{
@@ -230,15 +251,15 @@ class GlassView : public View {
         }};
 
     Button button_jump{
-        {240 - 4 * 8, 5 * 16, 4 * 8, 16},
+        {SCREEN_W - 4 * 8, 5 * 16, 4 * 8, 16},
         "JMP"};
 
     Button button_rst{
-        {240 - 9 * 8, 5 * 16, 4 * 8, 16},
+        {SCREEN_W - 9 * 8, 5 * 16, 4 * 8, 16},
         "RST"};
 
     Text freq_stats{
-        {0 * 8, 5 * 16, 240 - 10 * 8, 8},
+        {0 * 8, 5 * 16, SCREEN_W - 10 * 8, 8},
         ""};
 
     MessageHandlerRegistration message_handler_spectrum_config{

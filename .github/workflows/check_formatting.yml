@@ -1,6 +1,6 @@
 name: Check formatting
 
-on: [push, pull_request]
+on: [pull_request]
 
 jobs:
   check_date:
