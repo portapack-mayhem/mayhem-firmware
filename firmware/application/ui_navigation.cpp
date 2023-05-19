@@ -66,6 +66,7 @@
 #include "ui_sonde.hpp"
 #include "ui_sstvtx.hpp"
 //#include "ui_test.hpp"
+#include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_playlist.hpp"
@@ -578,7 +579,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         //{ "Test app", 		ui::Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
         {"Freq. manager", ui::Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
         {"File manager", ui::Color::yellow(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
-        //{ "Notepad",		ui::Color::dark_grey(),	&bitmap_icon_notepad,		[&nav](){ nav.push<NotImplementedView>(); } },
+        {"Notepad", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
         {"Signal gen", ui::Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
         //{ "Tone search",	ui::Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); } },
         {"Wav viewer", ui::Color::yellow(), &bitmap_icon_soundboard, [&nav]() { nav.push<ViewWavView>(); }},
@@ -783,8 +784,11 @@ ModalMessageView::ModalMessageView(
     if (type == INFO) {
         add_child(&button_ok);
 
-        button_ok.on_select = [&nav](Button&) {
-            nav.pop();
+        button_ok.on_select = [this, &nav](Button&) {
+            if (on_choice_)
+                on_choice_(true);  // Assumes handler will pop.
+            else
+                nav.pop();
         };
     } else if (type == YESNO) {
         add_children({&button_yes,

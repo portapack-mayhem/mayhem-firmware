@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -19,25 +19,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "rtc_time.hpp"
+#ifndef __UI_FONT_FIXED_5X8_H__
+#define __UI_FONT_FIXED_5X8_H__
 
-namespace rtc_time {
+#include "ui_text.hpp"
 
-Signal<> signal_tick_second;
+namespace ui {
+namespace font {
 
-void on_tick_second() {
-    signal_tick_second.emit();
-}
+extern const ui::Font fixed_5x8;
 
-rtc::RTC now() {
-    rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
-    return datetime;
-}
+}  // namespace font
+}  // namespace ui
 
-rtc::RTC now(rtc::RTC& out_datetime) {
-    rtcGetTime(&RTCD1, &out_datetime);
-    return out_datetime;
-}
-
-} /* namespace rtc_time */
+#endif /*__UI_FONT_FIXED_5X8_H__*/
