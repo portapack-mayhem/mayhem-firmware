@@ -296,6 +296,12 @@ struct data_t {
     // up/down converter offset
     int64_t converter_frequency_offset;
 
+    // frequency correction
+    int16_t frequency_rx_correction;
+    bool updown_frequency_rx_correction;
+    int16_t frequency_tx_correction;
+    bool updown_frequency_tx_correction;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           tuned_frequency(tuned_frequency_reset_value),
@@ -327,7 +333,11 @@ struct data_t {
           hide_converter(0),
           converter(0),
           updown_converter(0),
-          converter_frequency_offset(0) {
+          converter_frequency_offset(0),
+          frequency_rx_correction(0),
+          updown_frequency_rx_correction(0),
+          frequency_tx_correction(0),
+          updown_frequency_tx_correction(0) {
     }
 };
 
@@ -755,20 +765,47 @@ bool config_updown_converter() {
 int64_t config_converter_freq() {
     return data->converter_frequency_offset;
 }
-void set_config_hide_converter(const bool v) {
+
+void set_config_hide_converter(bool v) {
     data->hide_converter = v;
     if (v) {
         data->converter = false;
     }
 }
-void set_config_converter(const bool v) {
+void set_config_converter(bool v) {
     data->converter = v;
 }
-void set_config_updown_converter(const bool v) {
+void set_config_updown_converter(bool v) {
     data->updown_converter = v;
 }
-void set_config_converter_freq(const int64_t v) {
+void set_config_converter_freq(int64_t v) {
     data->converter_frequency_offset = v;
+}
+
+// frequency correction settings
+bool config_freq_tx_correction_updown() {
+    return data->updown_frequency_tx_correction;
+}
+void set_freq_tx_correction_updown(bool v) {
+    data->updown_frequency_tx_correction = v;
+}
+bool config_freq_rx_correction_updown() {
+    return data->updown_frequency_rx_correction;
+}
+void set_freq_rx_correction_updown(bool v) {
+    data->updown_frequency_rx_correction = v;
+}
+int16_t config_freq_tx_correction() {
+    return data->frequency_tx_correction;
+}
+int16_t config_freq_rx_correction() {
+    return data->frequency_rx_correction;
+}
+void set_config_freq_tx_correction(uint16_t v) {
+    data->frequency_tx_correction = v;
+}
+void set_config_freq_rx_correction(uint16_t v) {
+    data->frequency_rx_correction = v;
 }
 
 // sd persisting settings

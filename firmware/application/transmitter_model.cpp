@@ -149,7 +149,12 @@ void TransmitterModel::disable() {
 }
 
 void TransmitterModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::tuned_frequency());
+    if (portapack::persistent_memory::config_freq_tx_correction_updown()) {  // freq correction down
+        radio::set_tuning_frequency(persistent_memory::tuned_frequency() - persistent_memory::config_freq_tx_correction());
+    } else  // // freq correction up
+    {
+        radio::set_tuning_frequency(persistent_memory::tuned_frequency() + persistent_memory::config_freq_tx_correction());
+    }
 }
 
 void TransmitterModel::update_antenna_bias() {
