@@ -329,13 +329,49 @@ class SetConverterSettingsView : public View {
         "",
     };
 
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
+    Button button_return{
         {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
+        "return",
+    };
+};
+
+class SetFrequencyCorrectionView : public View {
+   public:
+    SetFrequencyCorrectionView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "FreqCorrect"; };
+
+   private:
+    Text text_freqCorrection_about{
+        {0, 2 * 16, 240, 16},
+        "Set Frequency correction:"};
+
+    OptionsField frequency_rx_correction_mode{
+        {18, 5 * 16 + 4},
+        0,
+        {{" + ", 0},
+         {" - ", 1}}};
+
+    OptionsField frequency_tx_correction_mode{
+        {18, 9 * 16 + 4},
+        0,
+        {{" + ", 0},
+         {" - ", 1}}};
+
+    Button button_freq_rx_correction{
+        {18 + 4 * 8, 5 * 16, 20 * 8, 24},
+        "",
+    };
+    Button button_freq_tx_correction{
+        {18 + 4 * 8, 9 * 16, 20 * 8, 24},
+        "",
+    };
+
+    Button button_return{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Return",
     };
 };
 
