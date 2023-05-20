@@ -206,12 +206,7 @@ int32_t ReceiverModel::tuning_offset() {
 }
 
 void ReceiverModel::update_tuning_frequency() {
-    if (portapack::persistent_memory::config_freq_rx_correction_updown()) {  // freq correction down
-        radio::set_tuning_frequency(persistent_memory::tuned_frequency() - persistent_memory::config_freq_rx_correction());
-    } else  // // freq correction up
-    {
-        radio::set_tuning_frequency(persistent_memory::tuned_frequency() + persistent_memory::config_freq_rx_correction());
-    }
+    radio::set_tuning_frequency(persistent_memory::tuned_frequency());
 }
 
 void ReceiverModel::update_antenna_bias() {
