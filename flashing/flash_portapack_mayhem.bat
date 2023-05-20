@@ -10,7 +10,7 @@ echo.
 pause
 
 echo.
-hackrf_update.exe portapack-h1_h2-mayhem.bin
+"utils/hackrf_update.exe" portapack-h1_h2-mayhem.bin
 echo.
 echo If your device never boot after flashing, please refer to https://github.com/eried/portapack-mayhem/wiki/Won't-boot
 echo.
