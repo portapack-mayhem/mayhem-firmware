@@ -206,7 +206,7 @@ int32_t ReceiverModel::tuning_offset() {
 }
 
 void ReceiverModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::tuned_frequency());
+    radio::set_tuning_frequency(persistent_memory::tuned_frequency() + tuning_offset());
 }
 
 void ReceiverModel::update_antenna_bias() {
