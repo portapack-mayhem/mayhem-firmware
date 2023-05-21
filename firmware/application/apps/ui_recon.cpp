@@ -52,7 +52,7 @@ void ReconView::colorize_waits() {
     }
 }
 
-bool ReconView::ReconSaveFreq(const std::string& freq_file_path, size_t freq_index, bool warn_if_exists) {
+bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_index, bool warn_if_exists) {
     File recon_file;
 
     if (frequency_list.size() == 0 || (frequency_list.size() && current_index > (int32_t)frequency_list.size()))
@@ -104,7 +104,7 @@ bool ReconView::ReconSaveFreq(const std::string& freq_file_path, size_t freq_ind
     return true;
 }
 
-bool ReconView::ReconSetupLoadStrings(const std::string& source, std::string& input_file, std::string& output_file, uint32_t& recon_lock_duration, uint32_t& recon_lock_nb_match, int32_t& recon_squelch_level, uint32_t& recon_match_mode, int32_t& wait, int32_t& volume) {
+bool ReconView::recon_load_config_from_sd() {
     File settings_file;
     size_t length, file_position = 0;
     char* pos;
@@ -116,39 +116,37 @@ bool ReconView::ReconSetupLoadStrings(const std::string& source, std::string& in
     uint32_t nb_params = RECON_SETTINGS_NB_PARAMS;
     std::string params[RECON_SETTINGS_NB_PARAMS];
 
-    bool check_sd_card = (sd_card::status() == sd_card::Status::Mounted) ? true : false;
+    make_new_directory(u"SETTINGS");
 
-    if (check_sd_card) {
-        auto result = settings_file.open(source);
-        if (!result.is_valid()) {
-            while (it < nb_params) {
-                // Read a 256 bytes block from file
-                settings_file.seek(file_position);
-                memset(file_data, 0, 257);
-                auto read_size = settings_file.read(file_data, 256);
-                if (read_size.is_error())
-                    break;
-                file_position += 256;
-                // Reset line_start to beginning of buffer
-                line_start = file_data;
+    auto result = settings_file.open(RECON_CFG_FILE);
+    if (!result.is_valid()) {
+        while (it < nb_params) {
+            // Read a 256 bytes block from file
+            settings_file.seek(file_position);
+            memset(file_data, 0, 257);
+            auto read_size = settings_file.read(file_data, 256);
+            if (read_size.is_error())
+                break;
+            file_position += 256;
+            // Reset line_start to beginning of buffer
+            line_start = file_data;
+            pos = line_start;
+            while ((line_end = strstr(line_start, "\x0A"))) {
+                length = line_end - line_start - 1;
+                params[it] = string(pos, length);
+                it++;
+                line_start = line_end + 1;
                 pos = line_start;
-                while ((line_end = strstr(line_start, "\x0A"))) {
-                    length = line_end - line_start - 1;
-                    params[it] = string(pos, length);
-                    it++;
-                    line_start = line_end + 1;
-                    pos = line_start;
-                    if (line_start - file_data >= 256)
-                        break;
-                    if (it >= nb_params)
-                        break;
-                }
-                if (read_size.value() != 256)
-                    break;  // End of file
-
-                // Restart at beginning of last incomplete line
-                file_position -= (file_data + 256 - line_start);
+                if (line_start - file_data >= 256)
+                    break;
+                if (it >= nb_params)
+                    break;
             }
+            if (read_size.value() != 256)
+                break;  // End of file
+
+            // Restart at beginning of last incomplete line
+            file_position -= (file_data + 256 - line_start);
         }
     }
 
@@ -158,7 +156,7 @@ bool ReconView::ReconSetupLoadStrings(const std::string& source, std::string& in
         output_file = "RECON_RESULTS";
         recon_lock_duration = RECON_MIN_LOCK_DURATION;
         recon_lock_nb_match = RECON_DEF_NB_MATCH;
-        recon_squelch_level = -14;
+        squelch = -14;
         recon_match_mode = RECON_MATCH_CONTINUOUS;
         wait = RECON_DEF_WAIT_DURATION;
         volume = 40;
@@ -186,9 +184,9 @@ bool ReconView::ReconSetupLoadStrings(const std::string& source, std::string& in
         recon_lock_nb_match = RECON_DEF_NB_MATCH;
 
     if (it > 4)
-        recon_squelch_level = strtoll(params[4].c_str(), nullptr, 10);
+        squelch = strtoll(params[4].c_str(), nullptr, 10);
     else
-        recon_squelch_level = -14;
+        squelch = -14;
 
     if (it > 5)
         recon_match_mode = strtoll(params[5].c_str(), nullptr, 10);
@@ -208,17 +206,19 @@ bool ReconView::ReconSetupLoadStrings(const std::string& source, std::string& in
     return true;
 }
 
-bool ReconView::ReconSetupSaveStrings(const std::string& dest, const std::string& input_file, const std::string& output_file, uint32_t recon_lock_duration, uint32_t recon_lock_nb_match, int32_t recon_squelch_level, uint32_t recon_match_mode, int32_t wait, int32_t volume) {
+bool ReconView::recon_save_config_to_sd() {
     File settings_file;
 
-    auto result = settings_file.create(dest);
+    make_new_directory(u"SETTINGS");
+
+    auto result = settings_file.create(RECON_CFG_FILE);
     if (result.is_valid())
         return false;
     settings_file.write_line(input_file);
     settings_file.write_line(output_file);
     settings_file.write_line(to_string_dec_uint(recon_lock_duration));
     settings_file.write_line(to_string_dec_uint(recon_lock_nb_match));
-    settings_file.write_line(to_string_dec_int(recon_squelch_level));
+    settings_file.write_line(to_string_dec_int(squelch));
     settings_file.write_line(to_string_dec_uint(recon_match_mode));
     settings_file.write_line(to_string_dec_int(wait));
     settings_file.write_line(to_string_dec_int(volume));
@@ -228,10 +228,6 @@ bool ReconView::ReconSetupSaveStrings(const std::string& dest, const std::string
 void ReconView::audio_output_start() {
     audio::output::start();
     this->on_headphone_volume_changed((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-}
-
-bool ReconView::check_sd_card() {
-    return (sd_card::status() == sd_card::Status::Mounted) ? true : false;
 }
 
 void ReconView::recon_redraw() {
@@ -268,7 +264,7 @@ void ReconView::recon_redraw() {
 
             // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
             if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
-                ReconSaveFreq(freq_file_path, current_index, false);
+                recon_save_freq(freq_file_path, current_index, false);
             }
         }
     }
@@ -347,9 +343,9 @@ void ReconView::focus() {
 }
 
 ReconView::~ReconView() {
-    ReconSetupSaveStrings("RECON/RECON.CFG", input_file, output_file, recon_lock_duration, recon_lock_nb_match, squelch, recon_match_mode, wait, field_volume.value());
-
-    // save app settings
+    // save app config
+    recon_save_config_to_sd();
+    // save app common settings
     settings.save("recon", &app_settings);
 
     audio::output::stop();
@@ -393,11 +389,6 @@ ReconView::ReconView(NavigationView& nav)
                   &button_mic_app,
                   &button_remove});
 
-    // Recon directory
-    if (check_sd_card()) {  // Check to see if SD Card is mounted
-        make_new_directory(u"/RECON");
-        sd_card_mounted = true;
-    }
     def_step = 0;
     // HELPER: Pre-setting a manual range, based on stored frequency
     rf::Frequency stored_freq = persistent_memory::tuned_frequency();
@@ -421,7 +412,6 @@ ReconView::ReconView(NavigationView& nav)
     load_ranges = persistent_memory::recon_load_ranges();
     load_hamradios = persistent_memory::recon_load_hamradios();
     update_ranges = persistent_memory::recon_update_ranges_when_recon();
-
     field_volume.set_value(volume);
     if (sd_card_mounted) {
         // load auto common app settings
@@ -747,7 +737,7 @@ ReconView::ReconView(NavigationView& nav)
 
     button_add.on_select = [this](ButtonWithEncoder&) {  // frequency_list[current_index]
         if (!scanner_mode) {
-            ReconSaveFreq(freq_file_path, current_index, true);
+            recon_save_freq(freq_file_path, current_index, true);
         }
     };
 
@@ -789,7 +779,7 @@ ReconView::ReconView(NavigationView& nav)
             recon_lock_nb_match = strtol(result[3].c_str(), nullptr, 10);
             recon_match_mode = strtol(result[4].c_str(), nullptr, 10);
 
-            ReconSetupSaveStrings("RECON/RECON.CFG", input_file, output_file, recon_lock_duration, recon_lock_nb_match, squelch, recon_match_mode, wait, field_volume.value());
+            recon_save_config_to_sd();
 
             autosave = persistent_memory::recon_autosave_freqs();
             autostart = persistent_memory::recon_autostart_recon();
@@ -841,7 +831,7 @@ ReconView::ReconView(NavigationView& nav)
     file_name.set("=>");
 
     // Loading input and output file from settings
-    ReconSetupLoadStrings("RECON/RECON.CFG", input_file, output_file, recon_lock_duration, recon_lock_nb_match, squelch, recon_match_mode, wait, volume);
+    recon_load_config_from_sd();
     freq_file_path = "/FREQMAN/" + output_file + ".TXT";
 
     field_squelch.set_value(squelch);
