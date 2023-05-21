@@ -25,8 +25,8 @@
 #include <cstdint>
 
 // consecutive # of times button input must be same (<=8)
-#define DEBOUNCE_COUNT   4
-#define DEBOUNCE_MASK    ((1 << DEBOUNCE_COUNT) - 1)
+#define DEBOUNCE_COUNT 4
+#define DEBOUNCE_MASK ((1 << DEBOUNCE_COUNT) - 1)
 
 class Debounce {
    public:
