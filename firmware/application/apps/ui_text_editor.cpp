@@ -64,22 +64,10 @@ std::string FileWrapper::get_text(Offset line, Offset col, Offset length) {
     return read(range->start + col, to_read);
 }
 
-void FileWrapper::ensure_cached(Line first, Line last) {
-    /*auto first_offset = offset_for_line(first);
-    auto last_offset = offset_for_line(last);
+Optional<FileWrapper::Range> FileWrapper::line_range(Line line) {
+    ensure_cached(line);
 
-    if (first_offset.is_valid() && last_offset.is_valid())
-        return;
-
-    if (!first_offset.is_valid())
-        ; // Move window up
-    else
-        ; // Move window down*/
-}
-
-Optional<FileWrapper::Range> FileWrapper::line_range(Line line) const {
     auto offset = offset_for_line(line);
-
     if (!offset.is_valid())
         return {};
 
@@ -89,7 +77,7 @@ Optional<FileWrapper::Range> FileWrapper::line_range(Line line) const {
     return {Range{start, end}};
 }
 
-FileWrapper::Offset FileWrapper::line_length(Line line) const {
+FileWrapper::Offset FileWrapper::line_length(Line line) {
     auto range = line_range(line);
 
     if (range.is_valid())
@@ -126,7 +114,7 @@ std::string FileWrapper::read(Offset offset, Offset length) {
 
     auto result = file_.read(&buffer[0], length);
     if (result.is_ok())
-        /* Resize causing problems? */;
+        buffer.resize(*result); // Resize causing problems?
     else
         return result.error().what();  // TODO: Log
 
@@ -140,6 +128,42 @@ Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
         return {};
 
     return {actual};
+}
+
+void FileWrapper::ensure_cached(Line line) {
+    if (line >= line_count_)
+        return; // TODO: Log
+
+    auto result = offset_for_line(line);
+
+    if (result.is_valid())
+        return;
+
+    if (line < start_line_) {
+        /*while (line < start_line) {
+            auto offset = previous_newline(start_offset);
+            if (!offset.is_valid()) {
+                // Must be at the beginning. TODO is this possible?
+                return;
+            }
+
+            newlines_.push_front(*offset);
+            start_line 
+        }*/
+        ;
+    } else {
+        while (line > start_line_ + newlines_.size()) {
+            auto offset = next_newline(newlines_.back() + 1);
+            if (!offset.is_valid()) {
+                // Must be at end. TODO is this possible?
+                return;
+            }
+
+            start_line_++;
+            start_offset_ = newlines_.front() + 1;
+            newlines_.push_back(*offset);
+        }
+    }
 }
 
 Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
@@ -168,7 +192,7 @@ Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
             }
         }
 
-        if (*result < buffer_size)
+        if (offset == 0)
             break;
 
     } while(true);
@@ -422,7 +446,7 @@ void TextEditorView::paint_cursor(Painter& painter) {
     paint_state_.col = cursor_.col;
 }
 
-uint16_t TextEditorView::line_length() const {
+uint16_t TextEditorView::line_length() {
     return file_.line_length(cursor_.line);
 }
 

@@ -47,6 +47,89 @@ enum class ScrollDirection : uint8_t {
     Horizontal
 };
 
+// TODO: find a common place for this.
+/* Implements a fixed-size, circular buffer.
+ * NB: Holds Capacity - 1 items. */
+template <typename T, size_t Capacity>
+class CircularBuffer {
+   public:
+    CircularBuffer() = default;
+
+    CircularBuffer(const CircularBuffer&) = delete;
+    CircularBuffer(CircularBuffer&&) = delete;
+    CircularBuffer& operator=(const CircularBuffer&) = delete;
+    CircularBuffer& operator=(CircularBuffer&&) = delete;
+
+    void push_front(T val) {
+        head_ = head_ > 0 ? head_ - 1 : last_index;
+        if (head_ == end_)
+            pop_back();
+
+        data_[head_] = std::move(val);
+    }
+
+    void pop_front() {
+        if (!empty())
+            head_ = head_ < last_index ? head_ + 1 : 0;
+    }
+
+    void push_back(T val) {
+        data_[end_] = std::move(val);
+
+        end_ = end_ < last_index ? end_ + 1 : 0;
+        if (head_ == end_)
+            pop_front();
+    }
+
+    void pop_back() {
+        if (!empty())
+            end_ = end_ > 0 ? end_ - 1 : last_index;
+    }
+
+    T& operator[](size_t ix) {
+        ix += head_;
+        if (ix >= Capacity)
+            ix -= Capacity;
+        return data_[ix];
+    }
+
+    const T& operator[](size_t ix) const {
+        return const_cast<CircularBuffer*>(this)->operator[](ix);
+    }
+
+    const T& front() const {
+        return data_[head_];
+    }
+
+    const T& back() const {
+        auto end = end_ > 0 ? end_ - 1 : last_index;
+        return data_[end];
+    }
+
+    size_t size() const {
+        auto end = end_;
+        if (end < head_)
+            end += Capacity;
+        return end - head_;
+    }
+
+    bool empty() const {
+        return head_ == end_;
+    }
+
+    void clear() {
+        head_ = 0;
+        end_ = 0;
+    }
+
+   private:
+    static constexpr size_t last_index = Capacity;
+    size_t head_{0};
+    size_t end_{0};
+
+    T data_[Capacity]{};
+};
+
 /* Wraps a file and provides an API for accessing lines efficiently. */
 class FileWrapper {
    public:
@@ -68,15 +151,11 @@ class FileWrapper {
     Optional<Error> open(const std::filesystem::path& path);
     std::string get_text(Line line, Column col, Offset length);
 
-    // TODO: Seems like a implemention leak. Can this "just work"?
-    /* Ensure the range of lines specified are in the newline cache. */
-    void ensure_cached(Line first, Line last);
-
     File::Size size() const { return file_.size(); }
     uint32_t line_count() const { return line_count_; }
 
-    Optional<Range> line_range(Line line) const;
-    Offset line_length(Line line) const;
+    Optional<Range> line_range(Line line);
+    Offset line_length(Line line);
 
    private:
     /* Number of newline offsets to cache. */
@@ -87,6 +166,9 @@ class FileWrapper {
 
     /* Returns the offset into the newline cache if valid. */
     Optional<Offset> offset_for_line(Line line) const;
+
+    /* Ensure specified line is in the newline cache. */
+    void ensure_cached(Line line);
 
     /* Helpers for finding the prev/next newline. */
     Optional<Offset> previous_newline(Offset start);
@@ -102,7 +184,7 @@ class FileWrapper {
     Offset start_line_{0};
 
     LineEnding line_ending_{LineEnding::LF};
-    std::vector<Offset> newlines_{};
+    CircularBuffer<Offset, max_newlines + 1> newlines_{};
 };
 
 class TextEditorView : public View {
@@ -142,7 +224,7 @@ class TextEditorView : public View {
     void paint_cursor(Painter& painter);
 
     // Gets the length of the current line.
-    uint16_t line_length() const;
+    uint16_t line_length();
 
     NavigationView& nav_;
 
