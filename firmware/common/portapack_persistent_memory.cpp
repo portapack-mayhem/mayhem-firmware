@@ -297,9 +297,9 @@ struct data_t {
     int64_t converter_frequency_offset;
 
     // frequency correction
-    int16_t frequency_rx_correction;
+    uint32_t frequency_rx_correction;
     bool updown_frequency_rx_correction;
-    int16_t frequency_tx_correction;
+    uint32_t frequency_tx_correction;
     bool updown_frequency_tx_correction;
 
     constexpr data_t()
@@ -795,16 +795,16 @@ bool config_freq_rx_correction_updown() {
 void set_freq_rx_correction_updown(bool v) {
     data->updown_frequency_rx_correction = v;
 }
-int16_t config_freq_tx_correction() {
+uint32_t config_freq_tx_correction() {
     return data->frequency_tx_correction;
 }
-int16_t config_freq_rx_correction() {
+uint32_t config_freq_rx_correction() {
     return data->frequency_rx_correction;
 }
-void set_config_freq_tx_correction(uint16_t v) {
+void set_config_freq_tx_correction(uint32_t v) {
     data->frequency_tx_correction = v;
 }
-void set_config_freq_rx_correction(uint16_t v) {
+void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
