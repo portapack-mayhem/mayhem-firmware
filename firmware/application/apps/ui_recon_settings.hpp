@@ -139,20 +139,20 @@ class ReconSetupViewMore : public View {
         {1 * 8, 102},
         3,
         "auto update m-ranges"};
+
+    NumberField field_recon_lock_duration{
+        {1 * 8, 132},                                      // position X , Y
+        4,                                                 // number of displayed digits (even empty)
+        {STATS_UPDATE_INTERVAL, RECON_MAX_LOCK_DURATION},  // range of number
+        STATS_UPDATE_INTERVAL,                             // rotary encoder increment
+        ' ',                                               // filling character
+        false                                              // can loop
+    };
+
     Text text_recon_lock_duration{
         {1 * 8, 132, 22 * 8, 22},
         "    ms (lock duration)"};
-    NumberField field_recon_lock_duration{
-        {1 * 8, 132},                                         // position X , Y
-        4,                                                    // number of displayed digits (even empty)
-        {-RECON_MAX_LOCK_DURATION, RECON_MAX_LOCK_DURATION},  // range of number
-        STATS_UPDATE_INTERVAL,                                // rotary encoder increment
-        ' ',                                                  // filling character
-        false                                                 // can loop
-    };
-    Text text_recon_lock_nb{
-        {1 * 8, 162, 25 * 8, 22},
-        "    x (nb lock to match freq)"};
+
     NumberField field_recon_lock_nb_match{
         {1 * 8, 162},
         4,
@@ -160,6 +160,11 @@ class ReconSetupViewMore : public View {
         1,
         ' ',
         false};
+
+    Text text_recon_lock_nb{
+        {1 * 8, 162, 25 * 8, 22},
+        "    x (nb lock to match freq)"};
+
     OptionsField field_recon_match_mode{
         {1 * 8, 192},
         20,  // CONTINUOUS MATCH MODE / SPARSE TIMED MATCH MODE
@@ -195,6 +200,7 @@ class ReconSetupView : public View {
     TabView tab_view{
         {"Main", Color::cyan(), &viewMain},
         {"More", Color::green(), &viewMore}};
+
     Button button_save{
         {9 * 8, 255, 14 * 8, 40},
         "SAVE"};
