@@ -52,7 +52,7 @@ jobs:
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          zip -r sdcard.zip sdcard
+          cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-h1_h2-mayhem_${{ steps.version_date.outputs.date }}.bin && zip -r sdcard.zip sdcard
       - name: Create changelog
         run: |
           CHANGELOG=$(python3 .github/workflows/changelog.py)
