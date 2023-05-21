@@ -33,6 +33,8 @@
 
 namespace ui {
 
+#define MAX_FREQ_CORRECTION 4294967295  // maximum possible for an uint32_t
+
 struct SetDateTimeModel {
     uint16_t year;
     uint8_t month;
