@@ -28,9 +28,8 @@ using namespace portapack;
 using portapack::memory::map::backup_ram;
 
 namespace ui {
-    
-void ReconView::colorize_waits()
-{
+
+void ReconView::colorize_waits() {
     // colorize wait on match
     if (wait == 0) {
         field_wait.set_style(&style_blue);
@@ -42,17 +41,13 @@ void ReconView::colorize_waits()
         field_wait.set_style(&style_green);
     }
     // colorize lock time if in SPARSE mode as in continuous the lock_wait time is disarmed at first lock count
-    if( recon_match_mode == RECON_MATCH_SPARSE )
-    {
+    if (recon_match_mode == RECON_MATCH_SPARSE) {
         if ((recon_lock_duration / STATS_UPDATE_INTERVAL) <= recon_lock_nb_match) {
-             field_lock_wait.set_style(&style_yellow);
-        }
-        else {
+            field_lock_wait.set_style(&style_yellow);
+        } else {
             field_lock_wait.set_style(&style_white);
         }
-    }
-    else
-    {
+    } else {
         field_lock_wait.set_style(&style_white);
     }
 }
