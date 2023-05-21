@@ -35,6 +35,7 @@ set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 
 add_subdirectory(application)
 add_subdirectory(baseband)
+add_subdirectory(baseband-test)
 
 # NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
 add_custom_command(
