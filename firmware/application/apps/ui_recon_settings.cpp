@@ -92,7 +92,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
     };
 };
 
-void ReconSetupViewMain::Save(std::string& input_file, std::string& output_file) {
+void ReconSetupViewMain::save(std::string& input_file, std::string& output_file) {
     persistent_memory::set_recon_autosave_freqs(checkbox_autosave_freqs.value());
     persistent_memory::set_recon_autostart_recon(checkbox_autostart_recon.value());
     persistent_memory::set_recon_continuous(checkbox_continuous.value());
@@ -100,7 +100,7 @@ void ReconSetupViewMain::Save(std::string& input_file, std::string& output_file)
     input_file = _input_file;
     output_file = _output_file;
 };
-void ReconSetupViewMore::Save(uint32_t& recon_lock_duration, uint32_t& recon_lock_nb_match, uint32_t& recon_match_mode) {
+void ReconSetupViewMore::save(uint32_t& recon_lock_duration, uint32_t& recon_lock_nb_match, uint32_t& recon_match_mode) {
     persistent_memory::set_recon_load_freqs(checkbox_load_freqs.value());
     persistent_memory::set_recon_load_ranges(checkbox_load_ranges.value());
     persistent_memory::set_recon_load_hamradios(checkbox_load_hamradios.value());
@@ -162,8 +162,8 @@ ReconSetupView::ReconSetupView(
                   &button_save});
 
     button_save.on_select = [this, &nav](Button&) {
-        viewMain.Save(input_file, output_file);
-        viewMore.Save(recon_lock_duration, recon_lock_nb_match, recon_match_mode);
+        viewMain.save(input_file, output_file);
+        viewMore.save(recon_lock_duration, recon_lock_nb_match, recon_match_mode);
         std::vector<std::string> messages;
         messages.push_back(input_file);
         messages.push_back(output_file);
