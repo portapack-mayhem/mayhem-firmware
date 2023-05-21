@@ -139,14 +139,14 @@ class ReconSetupViewMore : public View {
         {1 * 8, 102},
         3,
         "auto update m-ranges"};
-    
+
     NumberField field_recon_lock_duration{
-        {1 * 8, 132},                                         // position X , Y
-        4,                                                    // number of displayed digits (even empty)
+        {1 * 8, 132},                                      // position X , Y
+        4,                                                 // number of displayed digits (even empty)
         {STATS_UPDATE_INTERVAL, RECON_MAX_LOCK_DURATION},  // range of number
-        STATS_UPDATE_INTERVAL,                                // rotary encoder increment
-        ' ',                                                  // filling character
-        false                                                 // can loop
+        STATS_UPDATE_INTERVAL,                             // rotary encoder increment
+        ' ',                                               // filling character
+        false                                              // can loop
     };
 
     Text text_recon_lock_duration{
