@@ -25,7 +25,7 @@
 
 // Returns TRUE if button state changed (after debouncing)
 bool Debounce::feed(const uint8_t bit) {
-    history_ = (history_ << 1) | (bit & 1);     // bitmap of last 8 readings
+    history_ = (history_ << 1) | (bit & 1);
 
     if (state_ == 0) {
         // Previous button state was 0 (released);
