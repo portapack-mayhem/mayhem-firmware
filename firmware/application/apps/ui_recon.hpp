@@ -42,6 +42,8 @@
 
 namespace ui {
 
+#define RECON_CFG_FILE "SETTINGS/recon.cfg"
+
 class ReconView : public View {
    public:
     ReconView(NavigationView& nav);
@@ -113,10 +115,9 @@ class ReconView : public View {
     void recon_redraw();
     void handle_retune();
     void handle_coded_squelch(const uint32_t value);
-    bool ReconSetupLoadStrings(const std::string& source, std::string& input_file, std::string& output_file, uint32_t& recon_lock_duration, uint32_t& recon_lock_nb_match, int32_t& recon_squelch_level, uint32_t& recon_match_mode, int32_t& wait, int32_t& volume);
-    bool ReconSetupSaveStrings(const std::string& dest, const std::string& input_file, const std::string& output_file, uint32_t recon_lock_duration, uint32_t recon_lock_nb_match, int32_t recon_squelch_level, uint32_t recon_match_mode, int32_t wait, int32_t volume);
-    bool ReconSaveFreq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
-
+    bool recon_load_config_from_sd();
+    bool recon_save_config_to_sd();
+    bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
     int32_t squelch{0};
     int32_t db{0};

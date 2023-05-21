@@ -66,7 +66,7 @@ namespace ui {
 class ReconSetupViewMain : public View {
    public:
     ReconSetupViewMain(NavigationView& nav, Rect parent_rect, std::string input_file, std::string output_file);
-    void Save(std::string& input_file, std::string& output_file);
+    void save(std::string& input_file, std::string& output_file);
     void focus() override;
 
    private:
@@ -111,7 +111,7 @@ class ReconSetupViewMore : public View {
    public:
     ReconSetupViewMore(NavigationView& nav, Rect parent_rect, uint32_t _recon_lock_duration, uint32_t _recon_lock_nb_match, uint32_t _recon_match_mode);
 
-    void Save(uint32_t& recon_lock_duration, uint32_t& recon_lock_nb_match, uint32_t& recon_match_mode);
+    void save(uint32_t& recon_lock_duration, uint32_t& recon_lock_nb_match, uint32_t& recon_match_mode);
 
     void focus() override;
 
