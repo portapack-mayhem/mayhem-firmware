@@ -29,7 +29,9 @@
 #include "ui_widget.hpp"
 //#include "ui_textentry.hpp"
 
+#include "circular_buffer.hpp"
 #include "file.hpp"
+#include "optional.hpp"
 #include "log_file.hpp"
 
 #include <string>
@@ -47,89 +49,6 @@ enum class ScrollDirection : uint8_t {
     Horizontal
 };
 
-// TODO: find a common place for this.
-/* Implements a fixed-size, circular buffer.
- * NB: Holds Capacity - 1 items. */
-template <typename T, size_t Capacity>
-class CircularBuffer {
-   public:
-    CircularBuffer() = default;
-
-    CircularBuffer(const CircularBuffer&) = delete;
-    CircularBuffer(CircularBuffer&&) = delete;
-    CircularBuffer& operator=(const CircularBuffer&) = delete;
-    CircularBuffer& operator=(CircularBuffer&&) = delete;
-
-    void push_front(T val) {
-        head_ = head_ > 0 ? head_ - 1 : last_index;
-        if (head_ == end_)
-            pop_back();
-
-        data_[head_] = std::move(val);
-    }
-
-    void pop_front() {
-        if (!empty())
-            head_ = head_ < last_index ? head_ + 1 : 0;
-    }
-
-    void push_back(T val) {
-        data_[end_] = std::move(val);
-
-        end_ = end_ < last_index ? end_ + 1 : 0;
-        if (head_ == end_)
-            pop_front();
-    }
-
-    void pop_back() {
-        if (!empty())
-            end_ = end_ > 0 ? end_ - 1 : last_index;
-    }
-
-    T& operator[](size_t ix) {
-        ix += head_;
-        if (ix >= Capacity)
-            ix -= Capacity;
-        return data_[ix];
-    }
-
-    const T& operator[](size_t ix) const {
-        return const_cast<CircularBuffer*>(this)->operator[](ix);
-    }
-
-    const T& front() const {
-        return data_[head_];
-    }
-
-    const T& back() const {
-        auto end = end_ > 0 ? end_ - 1 : last_index;
-        return data_[end];
-    }
-
-    size_t size() const {
-        auto end = end_;
-        if (end < head_)
-            end += Capacity;
-        return end - head_;
-    }
-
-    bool empty() const {
-        return head_ == end_;
-    }
-
-    void clear() {
-        head_ = 0;
-        end_ = 0;
-    }
-
-   private:
-    static constexpr size_t last_index = Capacity;
-    size_t head_{0};
-    size_t end_{0};
-
-    T data_[Capacity]{};
-};
-
 /* Wraps a file and provides an API for accessing lines efficiently. */
 class FileWrapper {
    public:
@@ -142,7 +61,7 @@ class FileWrapper {
         Offset end;
     };
 
-    FileWrapper() = default;
+    FileWrapper();
 
     /* Prevent copies. */
     FileWrapper(const FileWrapper&) = delete;
@@ -185,6 +104,13 @@ class FileWrapper {
 
     LineEnding line_ending_{LineEnding::LF};
     CircularBuffer<Offset, max_newlines + 1> newlines_{};
+
+    bool logging_{true};
+    LogFile  log_{};
+    void log(const std::string& str) {
+        if (logging_)
+            log_.write_entry(str);
+    }
 };
 
 class TextEditorView : public View {

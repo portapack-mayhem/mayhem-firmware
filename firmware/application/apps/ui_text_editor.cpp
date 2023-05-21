@@ -37,6 +37,11 @@ namespace ui {
 
 /* FileWrapper ******************************************************/
 
+FileWrapper::FileWrapper() {
+    if (logging_)
+        log_.append("LOGS/FileWrapper.txt");
+}
+
 Optional<FileWrapper::Error> FileWrapper::open(const fs::path& path) {
     file_ = File();
     auto result = file_.open(path);
@@ -71,7 +76,7 @@ Optional<FileWrapper::Range> FileWrapper::line_range(Line line) {
     if (!offset.is_valid())
         return {};
 
-    auto start = *offset == 0 ? start_offset_ : newlines_[*offset - 1] + 1;
+    auto start = *offset == 0 ? start_offset_ : (newlines_[*offset - 1] + 1);
     auto end = newlines_[*offset] + 1;
 
     return {Range{start, end}};
@@ -103,6 +108,9 @@ void FileWrapper::initialize() {
         offset = *result + 1;
         result = next_newline(offset);
     }
+
+    log(std::string{"Lines: " + to_string_dec_uint(line_count_) +
+        " newlines_.size():" + to_string_dec_uint(newlines_.size()));
 }
 
 std::string FileWrapper::read(Offset offset, Offset length) {
@@ -114,7 +122,7 @@ std::string FileWrapper::read(Offset offset, Offset length) {
 
     auto result = file_.read(&buffer[0], length);
     if (result.is_ok())
-        buffer.resize(*result); // Resize causing problems?
+        ; //buffer.resize(*result); // Resize causing problems?
     else
         return result.error().what();  // TODO: Log
 
@@ -122,9 +130,11 @@ std::string FileWrapper::read(Offset offset, Offset length) {
 }
 
 Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
-    Offset actual = line - start_line_;
+    if (line > line_count_)
+        return {};
 
-    if (actual > newlines_.size())  // NB: underflow wrap.
+    Offset actual = line - start_line_;
+    if (actual > newlines_.size()) // NB: underflow wrap.
         return {};
 
     return {actual};
@@ -135,33 +145,39 @@ void FileWrapper::ensure_cached(Line line) {
         return; // TODO: Log
 
     auto result = offset_for_line(line);
-
     if (result.is_valid())
         return;
 
     if (line < start_line_) {
-        /*while (line < start_line) {
-            auto offset = previous_newline(start_offset);
-            if (!offset.is_valid()) {
-                // Must be at the beginning. TODO is this possible?
-                return;
-            }
+        log("Moving cache backward.");
+        while (line < start_line_ && start_offset_ >= 2) {
+            // start_offset_ - 1 should be a newline. Need to
+            // find the new value for start_offset_. start_line_
+            // has to be > 0 to get into this block so there should
+            // always be one newline before start_offset_.
+            auto offset = previous_newline(start_offset_ - 2);
+            newlines_.push_front(start_offset_ - 1);
 
-            newlines_.push_front(*offset);
-            start_line 
-        }*/
-        ;
+            if (!offset.is_valid()) {
+                // Must be at beginning.
+                start_line_ = 0;
+                start_offset_ = 0;
+            } else {
+                // Found an previous newline, the new start_line_
+                // starts at the newline offset + 1.
+                start_line_--;
+                start_offset_ = *offset + 1;
+            }
+        }
     } else {
+        log("Moving cache forward.");
         while (line > start_line_ + newlines_.size()) {
             auto offset = next_newline(newlines_.back() + 1);
-            if (!offset.is_valid()) {
-                // Must be at end. TODO is this possible?
-                return;
-            }
-
-            start_line_++;
-            start_offset_ = newlines_.front() + 1;
-            newlines_.push_back(*offset);
+            if (offset.is_valid()) {
+                start_line_++;
+                start_offset_ = newlines_.front() + 1;
+                newlines_.push_back(*offset);
+            } /* else at the EOF. */
         }
     }
 }
@@ -170,19 +186,22 @@ Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
     constexpr size_t buffer_size = 128;
     char buffer[buffer_size];
     Offset offset = start;
+    auto to_read = buffer_size;
 
     do
     {
-        if (offset < buffer_size)
+        if (offset < to_read) {
+            // NB: Char at 'offset' was read in the previous iteration.
+            to_read = offset;
             offset = 0;
-        else
-            offset -= buffer_size;
+        } else
+            offset -= to_read;
 
         file_.seek(offset);
 
-        auto result = file_.read(buffer, buffer_size);
+        auto result = file_.read(buffer, to_read);
         if (result.is_error())
-            return {};
+            break;
 
         // Find newlines in the buffer backwards.
         for (int32_t i = *result - 1; i >= 0; --i) {
