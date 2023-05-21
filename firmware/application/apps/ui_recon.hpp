@@ -109,6 +109,7 @@ class ReconView : public View {
     void on_headphone_volume_changed(int32_t v);
     void on_index_delta(int32_t v);
     void on_stepper_delta(int32_t v);
+    void colorize_waits();
     void recon_redraw();
     void handle_retune();
     void handle_coded_squelch(const uint32_t value);

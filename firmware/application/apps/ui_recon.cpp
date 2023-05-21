@@ -29,6 +29,29 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+void ReconView::colorize_waits() {
+    // colorize wait on match
+    if (wait == 0) {
+        field_wait.set_style(&style_blue);
+    } else if (wait >= 500) {
+        field_wait.set_style(&style_white);
+    } else if (wait > -500 && wait < 500) {
+        field_wait.set_style(&style_red);
+    } else if (wait <= -500) {
+        field_wait.set_style(&style_green);
+    }
+    // colorize lock time if in SPARSE mode as in continuous the lock_wait time is disarmed at first lock count
+    if (recon_match_mode == RECON_MATCH_SPARSE) {
+        if ((recon_lock_duration / STATS_UPDATE_INTERVAL) <= recon_lock_nb_match) {
+            field_lock_wait.set_style(&style_yellow);
+        } else {
+            field_lock_wait.set_style(&style_white);
+        }
+    } else {
+        field_lock_wait.set_style(&style_white);
+    }
+}
+
 bool ReconView::ReconSaveFreq(const std::string& freq_file_path, size_t freq_index, bool warn_if_exists) {
     File recon_file;
 
@@ -778,7 +801,9 @@ ReconView::ReconView(NavigationView& nav)
 
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
 
+            field_wait.set_value(wait);
             field_lock_wait.set_value(recon_lock_duration);
+            colorize_waits();
 
             frequency_file_load(false);
             if (autostart) {
@@ -794,29 +819,12 @@ ReconView::ReconView(NavigationView& nav)
 
     field_wait.on_change = [this](int32_t v) {
         wait = v;
-        if (wait == 0) {
-            field_wait.set_style(&style_blue);
-        } else if (wait >= 500) {
-            field_wait.set_style(&style_white);
-        } else if (wait > -500 && wait < 500) {
-            field_wait.set_style(&style_red);
-        } else if (wait <= -500) {
-            field_wait.set_style(&style_green);
-        }
+        colorize_waits();
     };
 
     field_lock_wait.on_change = [this](uint32_t v) {
         recon_lock_duration = v;
-        if (recon_match_mode == RECON_MATCH_CONTINUOUS) {
-            if ((v / STATS_UPDATE_INTERVAL) > recon_lock_nb_match) {
-                field_lock_wait.set_style(&style_white);
-            } else if ((v / STATS_UPDATE_INTERVAL) == recon_lock_nb_match) {
-                field_lock_wait.set_style(&style_yellow);
-            }
-        } else  // RECON_MATCH_SPARSE
-        {
-            field_lock_wait.set_style(&style_white);
-        }
+        colorize_waits();
     };
 
     field_squelch.on_change = [this](int32_t v) {
@@ -839,6 +847,8 @@ ReconView::ReconView(NavigationView& nav)
     field_squelch.set_value(squelch);
     field_wait.set_value(wait);
     field_lock_wait.set_value(recon_lock_duration);
+    colorize_waits();
+
     field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
     // fill modulation and step options
@@ -860,7 +870,6 @@ ReconView::ReconView(NavigationView& nav)
     } else {
         recon_pause();
     }
-
     recon_redraw();
 }
 
