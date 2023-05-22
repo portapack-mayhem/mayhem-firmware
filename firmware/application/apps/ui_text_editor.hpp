@@ -106,7 +106,7 @@ class FileWrapper {
     CircularBuffer<Offset, max_newlines + 1> newlines_{};
 
     bool logging_{true};
-    LogFile  log_{};
+    LogFile log_{};
     void log(const std::string& str) {
         if (logging_)
             log_.write_entry(str);

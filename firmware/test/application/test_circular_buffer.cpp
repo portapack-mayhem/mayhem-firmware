@@ -237,7 +237,7 @@ SCENARIO("Items can be accessed randomly") {
 
         WHEN("accessing items after push_back") {
             cb.push_back(4);
-            
+
             THEN("front should be at 0") {
                 CHECK(cb.front() == cb[0]);
             }

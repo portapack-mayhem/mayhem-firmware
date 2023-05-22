@@ -109,7 +109,7 @@ void FileWrapper::initialize() {
         result = next_newline(offset);
     }
 
-    log(std::string{"Lines: " + to_string_dec_uint(line_count_) +
+    log(std::string{"Lines: "} + to_string_dec_uint(line_count_) +
         " newlines_.size():" + to_string_dec_uint(newlines_.size()));
 }
 
@@ -122,7 +122,7 @@ std::string FileWrapper::read(Offset offset, Offset length) {
 
     auto result = file_.read(&buffer[0], length);
     if (result.is_ok())
-        ; //buffer.resize(*result); // Resize causing problems?
+        ;  // buffer.resize(*result); // Resize causing problems?
     else
         return result.error().what();  // TODO: Log
 
@@ -134,7 +134,7 @@ Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
         return {};
 
     Offset actual = line - start_line_;
-    if (actual > newlines_.size()) // NB: underflow wrap.
+    if (actual > newlines_.size())  // NB: underflow wrap.
         return {};
 
     return {actual};
@@ -142,7 +142,7 @@ Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
 
 void FileWrapper::ensure_cached(Line line) {
     if (line >= line_count_)
-        return; // TODO: Log
+        return;  // TODO: Log
 
     auto result = offset_for_line(line);
     if (result.is_valid())
@@ -188,8 +188,7 @@ Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
     Offset offset = start;
     auto to_read = buffer_size;
 
-    do
-    {
+    do {
         if (offset < to_read) {
             // NB: Char at 'offset' was read in the previous iteration.
             to_read = offset;
@@ -214,9 +213,9 @@ Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
         if (offset == 0)
             break;
 
-    } while(true);
+    } while (true);
 
-    return {}; // Didn't find one.
+    return {};  // Didn't find one.
 }
 
 Optional<FileWrapper::Offset> FileWrapper::next_newline(Offset start) {
