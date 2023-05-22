@@ -77,6 +77,7 @@ class FileManBaseView : public View {
         {u".C8", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta()},
+        {u".PPPL", &bitmap_icon_file_iq, ui::Color::white()},
         {u"", &bitmap_icon_file, ui::Color::light_grey()}  // NB: Must be last.
     };
 
