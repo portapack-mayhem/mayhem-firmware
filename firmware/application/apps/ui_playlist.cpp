@@ -44,7 +44,6 @@ void PlaylistView::set_ready() {
 void PlaylistView::load_file(std::filesystem::path playlist_path) {
     File playlist_file;
 
-
     auto error = playlist_file.open(playlist_path.string());
     if (!error.is_valid()) {
         std::string line;
@@ -61,7 +60,7 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
             }
         }
         if (line.length() > 0) {
-                total_tracks++;
+            total_tracks++;
             txtline_process(line);
         }
     }
@@ -97,7 +96,7 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     auto data_open_error = data_file.open("/" + new_file_path.string());
     if (!data_open_error.is_valid()) {
         track_number++;
-    }else if (data_open_error.is_valid()){
+    } else if (data_open_error.is_valid()) {
         file_error("101");
         return;
     }
@@ -115,7 +114,7 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     progressbar.set_max(file_size);
     text_filename.set(file_path.filename().string().substr(0, 12));
     text_duration.set(to_string_time_ms(duration));
-//    text_track.set(std::to_string(track_number) + "/" + std::to_string(total_tracks));
+    // text_track.set(std::to_string(track_number) + "/" + std::to_string(total_tracks));
 
     button_play.focus();
 }
@@ -215,9 +214,9 @@ void PlaylistView::stop(const bool do_loop) {
         replay_thread.reset();
     }
 
-    //TODO: the logic here could be more beautiful but maybe they are all same for compiler anyway....
+    // TODO: the logic here could be more beautiful but maybe they are all same for compiler anyway....
 
-    if(check_loop.value()) {
+    if (check_loop.value()) {
         if (do_loop) {
             if (playlist_db.size() > 0) {
                 start();
@@ -230,7 +229,7 @@ void PlaylistView::stop(const bool do_loop) {
             radio::disable();
             button_play.set_bitmap(&bitmap_play);
         }
-    }else if (!check_loop.value()) {
+    } else if (!check_loop.value()) {
         if (do_loop && (total_tracks != track_number)) {
             if (playlist_db.size() > 0) {
                 start();
@@ -274,8 +273,8 @@ PlaylistView::PlaylistView(
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
-//        &text_track,
-        //TODO: add track number
+        // &text_track,
+        // TODO: add track number
         &waterfall,
     });
 

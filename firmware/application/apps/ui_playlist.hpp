@@ -108,7 +108,6 @@ class PlaylistView : public View {
     ProgressBar progressbar{
         {18 * 8, 1 * 16, 12 * 8, 16}};
 
-
     FrequencyField field_frequency{
         {0 * 8, 2 * 16},
     };
@@ -123,18 +122,16 @@ class PlaylistView : public View {
         {21 * 8, 2 * 16},
         4,
         "Loop",
-        true
-    };
+        true};
     ImageButton button_play{
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Color::green(),
-        Color::black()
-    };
-    //TODO: add track number
-//    Text text_track{
-//        {18 * 8, 1 * 16, 12 * 8, 16},
-//        "0/0"};
+        Color::black()};
+    // TODO: add track number
+    // Text text_track{
+    //     {18 * 8, 1 * 16, 12 * 8, 16},
+    //     "0/0"};
 
     spectrum::WaterfallWidget waterfall{};
 
