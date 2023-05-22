@@ -97,7 +97,7 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     if (!data_open_error.is_valid()) {
         track_number++;
     } else if (data_open_error.is_valid()) {
-        file_error("101");
+        file_error("C16 file\n" + new_file_path.string() + "\nread error.");
         return;
     }
 
@@ -128,7 +128,7 @@ void PlaylistView::focus() {
 }
 
 void PlaylistView::file_error(std::string error_message) {
-    nav_.display_modal("Error" + error_message, "File " + file_path.string() + " read error. " + file_path.string());
+    nav_.display_modal("Error", "Error for \n" + file_path.string() + "\n" + error_message);
 }
 
 bool PlaylistView::is_active() const {
@@ -173,7 +173,7 @@ void PlaylistView::start() {
     auto p = std::make_unique<FileReader>();
     auto open_error = p->open(file_path);
     if (open_error.is_valid()) {
-        file_error("172");
+        file_error("illegal grammar(176)");
         return;  // Fixes TX bug if there's a file error
     } else {
         reader = std::move(p);
@@ -252,7 +252,7 @@ void PlaylistView::handle_replay_thread_done(const uint32_t return_code) {
         stop(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop(false);
-        file_error("251");
+        file_error("Illegal grammar(255)");
     }
 
     progressbar.set_value(0);
