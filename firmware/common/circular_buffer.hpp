@@ -22,8 +22,13 @@
 #ifndef __CIRCULAR_BUFFER_H__
 #define __CIRCULAR_BUFFER_H__
 
+#include <stddef.h>  // For size_t
+#include <memory>
+
 /* Implements a fixed-size, circular buffer.
- * NB: Holds Capacity - 1 items. */
+ * NB: Holds Capacity - 1 items.
+ * There are no bounds checks on accessors so ensure there are
+ * items in the buffer before accessing front/back/operator[]. */
 template <typename T, size_t Capacity>
 class CircularBuffer {
    public:
@@ -37,14 +42,14 @@ class CircularBuffer {
     void push_front(T val) {
         head_ = head_ > 0 ? head_ - 1 : last_index;
         if (head_ == end_)
-            pop_back();
+            pop_back_internal();
 
         data_[head_] = std::move(val);
     }
 
     void pop_front() {
         if (!empty())
-            head_ = head_ < last_index ? head_ + 1 : 0;
+            pop_front_internal();
     }
 
     void push_back(T val) {
@@ -52,12 +57,12 @@ class CircularBuffer {
 
         end_ = end_ < last_index ? end_ + 1 : 0;
         if (head_ == end_)
-            pop_front();
+            pop_front_internal();
     }
 
     void pop_back() {
         if (!empty())
-            end_ = end_ > 0 ? end_ - 1 : last_index;
+            pop_back_internal();
     }
 
     T& operator[](size_t ix) & {
@@ -67,20 +72,20 @@ class CircularBuffer {
         return data_[ix];
     }
 
-    const T& operator[](size_t ix) const & {
+    const T& operator[](size_t ix) const& {
         return const_cast<CircularBuffer*>(this)->operator[](ix);
     }
 
-    const T& front() const & {
+    const T& front() const& {
         return data_[head_];
     }
 
-    const T& back() const & {
+    const T& back() const& {
         auto end = end_ > 0 ? end_ - 1 : last_index;
         return data_[end];
     }
 
-    size_t size() const & {
+    size_t size() const& {
         auto end = end_;
         if (end < head_)
             end += Capacity;
@@ -97,7 +102,15 @@ class CircularBuffer {
     }
 
    private:
-    static constexpr size_t last_index = Capacity;
+    void pop_front_internal() {
+        head_ = head_ < last_index ? head_ + 1 : 0;
+    }
+
+    void pop_back_internal() {
+        end_ = end_ > 0 ? end_ - 1 : last_index;
+    }
+
+    static constexpr size_t last_index = Capacity - 1;
     size_t head_{0};
     size_t end_{0};
 
