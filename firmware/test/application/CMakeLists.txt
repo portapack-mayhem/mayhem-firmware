@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Bernd Herzog
+# Copyright (C) 2023 Bernd Herzog, Kyle Reed
 #
 # This file is part of PortaPack.
 #
@@ -18,30 +18,28 @@
 # Boston, MA 02110-1301, USA.
 #
 
+project(application_test)
+
 enable_language(C CXX ASM)
 
-project(baseband_test)
-
-include(${CHIBIOS_PORTAPACK}/boards/PORTAPACK_BASEBAND/board.cmake)
-include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M4/platform.cmake)
+include(${CHIBIOS_PORTAPACK}/boards/PORTAPACK_APPLICATION/board.cmake)
+include(${CHIBIOS_PORTAPACK}/os/hal/platforms/LPC43xx_M0/platform.cmake)
 include(${CHIBIOS}/os/hal/hal.cmake)
-include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M4/port.cmake)
+include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M0/port.cmake)
 include(${CHIBIOS}/os/kernel/kernel.cmake)
-
+include(${CHIBIOS_PORTAPACK}/os/various/fatfs_bindings/fatfs.cmake)
 include(${CHIBIOS}/test/test.cmake)
 
-set(TEST_FILENAME testrunner)
-set(HOST_TOOLCHAIN g++)
-set(DDEFS -DLPC43XX -DLPC43XX_M4 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"')
+set(CMAKE_CXX_COMPILER g++)
 
-set(CPP_FILES
+add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/main.cpp
-	${PROJECT_SOURCE_DIR}/dsp_fft_test.cpp
-	${COMMON}/dsp_fft.cpp
+	${PROJECT_SOURCE_DIR}/test_basics.cpp
+	${PROJECT_SOURCE_DIR}/test_optional.cpp
 )
 
-set(CPP_INCLUDES
-	${PROJECT_SOURCE_DIR}/include
+target_include_directories(application_test PRIVATE
+	${DOCTESTINC}
 	${COMMON}
 	${PORTINC}
 	${KERNINC}
@@ -53,12 +51,20 @@ set(CPP_INCLUDES
 	${BASEBAND}
 )
 
-add_custom_target(
-	baseband_test ALL
-	COMMAND echo ${CPP_INCLUDES} | sed "s/[^[:space:]]*/-I \\\\0/g" > include_files
-	COMMAND ${HOST_TOOLCHAIN} ${DDEFS} -o ${TEST_FILENAME} -g ${CPP_FILES} `cat include_files`
+target_compile_options(application_test PRIVATE
+	-DLPC43XX
+	-DLPC43XX_M0
+	-D__NEWLIB__
+	-DHACKRF_ONE
+	-DTOOLCHAIN_GCC
+	-DTOOLCHAIN_GCC_ARM
+	-D_RANDOM_TCC=0
+	-DVERSION_STRING=\"${VERSION}\"
+	${USE_CPPOPT}
+	${USE_OPT}
+	${CPPWARN}
 )
 
-add_test(NAME /home/j39f3fs/dev/portapack-mayhem
-    COMMAND ${TEST_FILENAME}
+add_test(NAME application_test
+    COMMAND application_test
 )
