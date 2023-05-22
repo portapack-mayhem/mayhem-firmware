@@ -239,18 +239,16 @@ void ReconView::recon_redraw() {
     }
     if (last_entry.frequency_a != freq) {
         last_entry.frequency_a = freq;
-        big_display.set("FREQ: " + to_string_short_freq(freq) + " MHz");
+        big_display.set("FREQ:" + to_string_short_freq(freq) + " MHz");
     }
-    if (last_db != db || last_list_size != frequency_list.size() || last_freq_lock != freq_lock || last_nb_match != recon_lock_nb_match) {
-        last_freq_lock = freq;
-        last_list_size = frequency_list.size();
-        last_db = db;
+    if (last_nb_match != recon_lock_nb_match || last_freq_lock != freq_lock) {
+        last_freq_lock = freq_lock;
         last_nb_match = recon_lock_nb_match;
-        text_max.set("/" + to_string_dec_uint(frequency_list.size()) + " " + to_string_dec_int(db) + " db " + to_string_dec_uint(freq_lock) + "/" + to_string_dec_uint(recon_lock_nb_match));
+        text_nb_locks.set(to_string_dec_uint(freq_lock) + "/" + to_string_dec_uint(recon_lock_nb_match));
         if (freq_lock == 0) {
             // NO FREQ LOCK, ONGOING STANDARD SCANNING
             big_display.set_style(&style_white);
-            if (!userpause)
+            if (recon)
                 button_pause.set_text("<PAUSE>");
             else
                 button_pause.set_text("<RESUME>");
@@ -261,12 +259,16 @@ void ReconView::recon_redraw() {
         } else if (freq_lock >= recon_lock_nb_match) {
             big_display.set_style(&style_green);
             button_pause.set_text("<UNLOCK>");
-
             // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
             if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
                 recon_save_freq(freq_file_path, current_index, false);
             }
         }
+    }
+    if (last_db != db || last_list_size != frequency_list.size()) {
+        last_list_size = frequency_list.size();
+        last_db = db;
+        text_max.set("/" + to_string_dec_uint(frequency_list.size()) + " " + to_string_dec_int(db) + " db");
     }
 }
 
@@ -305,7 +307,7 @@ void ReconView::handle_retune() {
         if (last_index != current_index) {
             last_index = current_index;
             if ((int32_t)frequency_list.size() && current_index < (int32_t)frequency_list.size() && frequency_list[current_index].type == RANGE) {
-                if (update_ranges) {
+                if (update_ranges && !manual_mode) {
                     button_manual_start.set_text(to_string_short_freq(frequency_list[current_index].frequency_a));
                     frequency_range.min = frequency_list[current_index].frequency_a;
                     if (frequency_list[current_index].frequency_b != 0) {
@@ -371,6 +373,7 @@ ReconView::ReconView(NavigationView& nav)
                   &rssi,
                   &text_cycle,
                   &text_max,
+                  &text_nb_locks,
                   &desc_cycle,
                   &big_display,
                   &freq_stats,
@@ -508,7 +511,7 @@ ReconView::ReconView(NavigationView& nav)
                 }
                 button_pause.set_text("<PAUSE>");  // Show button for non continuous stop
             } else {
-                if (userpause) {
+                if (!recon) {
                     recon_resume();
                 } else {
                     recon_pause();
@@ -653,7 +656,6 @@ ReconView::ReconView(NavigationView& nav)
         scanner_mode = false;
         manual_mode = true;
         recon_pause();
-
         if (!frequency_range.min || !frequency_range.max) {
             nav_.display_modal("Error", "Both START and END freqs\nneed a value");
         } else if (frequency_range.min > frequency_range.max) {
@@ -668,10 +670,10 @@ ReconView::ReconView(NavigationView& nav)
 
             manual_freq_entry.type = RANGE;
             manual_freq_entry.description =
-                "R " + to_string_short_freq(frequency_range.min) + ">" + to_string_short_freq(frequency_range.max) + " S"  // current Manual range
-                + to_string_short_freq(freqman_entry_get_step_value(def_step)).erase(0, 1);                                // euquiq: lame kludge to reduce spacing in step freq
-            manual_freq_entry.frequency_a = frequency_range.min;                                                           // min range val
-            manual_freq_entry.frequency_b = frequency_range.max;                                                           // max range val
+                to_string_short_freq(frequency_range.min).erase(0, 1) + ">" + to_string_short_freq(frequency_range.max).erase(0, 1) + " S:"  // current Manual range
+                + freqman_entry_get_step_string_short(def_step);                                                                             // euquiq: lame kludge to reduce spacing in step freq
+            manual_freq_entry.frequency_a = frequency_range.min;                                                                             // min range val
+            manual_freq_entry.frequency_b = frequency_range.max;                                                                             // max range val
             manual_freq_entry.modulation = -1;
             manual_freq_entry.bandwidth = -1;
             manual_freq_entry.step = def_step;
@@ -690,7 +692,11 @@ ReconView::ReconView(NavigationView& nav)
             file_name.set_style(&style_white);
             file_name.set("MANUAL RANGE RECON");
             desc_cycle.set_style(&style_white);
-            desc_cycle.set("MANUAL RANGE RECON");
+
+            last_entry.modulation = -1;
+            last_entry.bandwidth = -1;
+            last_entry.step = -1;
+            last_index = -1;
 
             current_index = 0;
             freq = manual_freq_entry.frequency_a;
@@ -709,7 +715,7 @@ ReconView::ReconView(NavigationView& nav)
             button_dir.set_text("FW>");
         }
         timer = 0;
-        if (userpause)
+        if (!recon)
             recon_resume();
     };
 
@@ -767,9 +773,6 @@ ReconView::ReconView(NavigationView& nav)
 
     button_recon_setup.on_select = [this, &nav](Button&) {
         audio::output::stop();
-
-        frequency_list.clear();
-
         auto open_view = nav.push<ReconSetupView>(input_file, output_file, recon_lock_duration, recon_lock_nb_match, recon_match_mode);
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
@@ -778,7 +781,6 @@ ReconView::ReconView(NavigationView& nav)
             recon_lock_duration = strtol(result[2].c_str(), nullptr, 10);
             recon_lock_nb_match = strtol(result[3].c_str(), nullptr, 10);
             recon_match_mode = strtol(result[4].c_str(), nullptr, 10);
-
             recon_save_config_to_sd();
 
             autosave = persistent_memory::recon_autosave_freqs();
@@ -788,7 +790,6 @@ ReconView::ReconView(NavigationView& nav)
             load_freqs = persistent_memory::recon_load_freqs();
             load_ranges = persistent_memory::recon_load_ranges();
             load_hamradios = persistent_memory::recon_load_hamradios();
-
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
 
             field_wait.set_value(wait);
@@ -796,13 +797,11 @@ ReconView::ReconView(NavigationView& nav)
             colorize_waits();
 
             frequency_file_load(false);
+
             if (autostart) {
                 recon_resume();
             } else {
                 recon_pause();
-            }
-            if (userpause != true) {
-                recon_resume();
             }
         };
     };
@@ -957,7 +956,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
                 break;
         }
         text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-        if (update_ranges) {
+        if (update_ranges && !manual_mode) {
             button_manual_start.set_text(to_string_short_freq(frequency_list[current_index].frequency_a));
             frequency_range.min = frequency_list[current_index].frequency_a;
             if (frequency_list[current_index].frequency_b != 0) {
@@ -977,7 +976,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     db = statistics.max_db;
-    if (!userpause) {
+    if (recon) {
         if (!timer) {
             status = 0;
             continuous_lock = false;
@@ -1176,7 +1175,6 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                                 break;
                         }
                     }
-                    // send a pause message with the right freq
                     if (has_looped && !continuous) {
                         recon_pause();
                     }
@@ -1194,7 +1192,6 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
 void ReconView::recon_pause() {
     timer = 0;
     freq_lock = 0;
-    userpause = true;
     continuous_lock = false;
     recon = false;
 
@@ -1207,7 +1204,6 @@ void ReconView::recon_pause() {
 void ReconView::recon_resume() {
     timer = 0;
     freq_lock = 0;
-    userpause = false;
     continuous_lock = false;
     recon = true;
 
@@ -1221,7 +1217,8 @@ void ReconView::on_index_delta(int32_t v) {
     if (v > 0) {
         fwd = true;
         button_dir.set_text("FW>");
-    } else {
+    }
+    if (v < 0) {
         fwd = false;
         button_dir.set_text("<RW");
     }
@@ -1236,7 +1233,8 @@ void ReconView::on_stepper_delta(int32_t v) {
     if (v > 0) {
         fwd = true;
         button_dir.set_text("FW>");
-    } else {
+    }
+    if (v < 0) {
         fwd = false;
         button_dir.set_text("<RW");
     }
