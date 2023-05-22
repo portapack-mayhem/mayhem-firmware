@@ -14,6 +14,6 @@ echo.
 pause
 
 echo.
-dfu-util-static.exe --device 1fc9:000c --download hackrf_one_usb.dfu --reset
+"utils/dfu-util-static.exe" --device 1fc9:000c --download "utils/hackrf_one_usb.dfu" --reset
 echo.
 pause
