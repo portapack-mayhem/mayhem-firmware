@@ -316,8 +316,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
                   &check_converter,
                   &converter_mode,
                   &button_converter_freq,
-                  &button_save,
-                  &button_cancel});
+                  &button_return});
 
     check_show_converter.set_value(!portapack::persistent_memory::config_hide_converter());
     check_show_converter.on_select = [this](Checkbox&, bool v) {
@@ -365,16 +364,69 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         };
     };
 
-    button_save.on_select = [&nav, this](Button&) {
-        nav.pop();
-    };
-    button_cancel.on_select = [&nav, this](Button&) {
+    button_return.on_select = [&nav, this](Button&) {
         nav.pop();
     };
 }
 
 void SetConverterSettingsView::focus() {
-    button_save.focus();
+    button_return.focus();
+}
+
+// ---------------------------------------------------------
+// Frequency Correction Settings
+// ---------------------------------------------------------
+SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
+    add_children({&text_freqCorrection_about,
+                  &frequency_rx_correction_mode,
+                  &frequency_tx_correction_mode,
+                  &button_freq_rx_correction,
+                  &button_freq_tx_correction,
+                  &button_return});
+
+    frequency_rx_correction_mode.set_by_value(portapack::persistent_memory::config_freq_rx_correction_updown());
+    frequency_rx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        portapack::persistent_memory::set_freq_rx_correction_updown(v);
+    };
+
+    frequency_tx_correction_mode.set_by_value(portapack::persistent_memory::config_freq_rx_correction_updown());
+    frequency_tx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        portapack::persistent_memory::set_freq_tx_correction_updown(v);
+    };
+
+    button_freq_rx_correction.set_text(to_string_short_freq(portapack::persistent_memory::config_freq_rx_correction()) + "MHz (Rx)");
+    button_freq_rx_correction.on_select = [this, &nav](Button& button) {
+        auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq());
+        new_view->on_changed = [this, &button](rf::Frequency f) {
+            if (f >= MAX_FREQ_CORRECTION)
+                f = MAX_FREQ_CORRECTION;
+            portapack::persistent_memory::set_config_freq_rx_correction(f);
+            // Retune to take converter change in account
+            receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+            button_freq_rx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
+        };
+    };
+
+    button_freq_tx_correction.set_text(to_string_short_freq(portapack::persistent_memory::config_freq_tx_correction()) + "MHz (Tx)");
+    button_freq_tx_correction.on_select = [this, &nav](Button& button) {
+        auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq());
+        new_view->on_changed = [this, &button](rf::Frequency f) {
+            if (f >= MAX_FREQ_CORRECTION)
+                f = MAX_FREQ_CORRECTION;
+            portapack::persistent_memory::set_config_freq_tx_correction(f);
+            // Retune to take converter change in account
+            receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+            button_freq_tx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
+        };
+    };
+
+    button_return.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetFrequencyCorrectionView::focus() {
+    button_return.focus();
 }
 
 // ---------------------------------------------------------
@@ -528,6 +580,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetAppSettingsView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
+        {"FreqCorrection", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
     });

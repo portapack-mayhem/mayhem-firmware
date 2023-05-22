@@ -161,7 +161,7 @@ void set_direction(const rf::Direction new_direction) {
 
 bool set_tuning_frequency(const rf::Frequency frequency) {
     rf::Frequency final_frequency = frequency;
-    // if feature is enabled
+    // if converter feature is enabled
     if (portapack::persistent_memory::config_converter()) {
         // downconvert
         if (portapack::persistent_memory::config_updown_converter()) {
@@ -171,6 +171,19 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
             final_frequency = frequency + portapack::persistent_memory::config_converter_freq();
         }
     }
+    // apply frequency correction
+    if (direction == rf::Direction::Transmit) {
+        if (portapack::persistent_memory::config_freq_tx_correction_updown())  // tx freq correction down
+            final_frequency = final_frequency - portapack::persistent_memory::config_freq_tx_correction();
+        else  // tx freq correction up
+            final_frequency = final_frequency + portapack::persistent_memory::config_freq_tx_correction();
+    } else {
+        if (portapack::persistent_memory::config_freq_rx_correction_updown())  // rx freq correction down
+            final_frequency = final_frequency - portapack::persistent_memory::config_freq_rx_correction();
+        else  // rx freq correction up
+            final_frequency = final_frequency + portapack::persistent_memory::config_freq_rx_correction();
+    }
+
     const auto tuning_config = tuning::config::create(final_frequency);
     if (tuning_config.is_valid()) {
         first_if.disable();

@@ -97,11 +97,9 @@ class LevelView : public View {
     size_t change_mode(freqman_index_t mod_type);
     void on_statistics_update(const ChannelStatistics& statistics);
     void set_display_freq(int64_t freq);
-    bool check_sd_card();
 
     int32_t db{0};
     long long int MAX_UFREQ = {7200000000};  // maximum usable freq
-    bool sd_card_mounted = false;
     rf::Frequency freq = {0};
 
     Labels labels{

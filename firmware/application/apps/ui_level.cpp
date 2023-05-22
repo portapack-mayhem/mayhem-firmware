@@ -29,10 +29,6 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
-bool LevelView::check_sd_card() {
-    return (sd_card::status() == sd_card::Status::Mounted) ? true : false;
-}
-
 void LevelView::focus() {
     button_frequency.focus();
 }
@@ -74,12 +70,6 @@ LevelView::LevelView(NavigationView& nav)
     field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v); };
     field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
-    // Level directory
-    if (check_sd_card()) {  // Check to see if SD Card is mounted
-        make_new_directory(u"/LEVEL");
-        sd_card_mounted = true;
-    }
-
     change_mode(NFM_MODULATION);              // Start on AM
     field_mode.set_by_value(NFM_MODULATION);  // Reflect the mode into the manual selector
 
@@ -89,14 +79,12 @@ LevelView::LevelView(NavigationView& nav)
     button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
 
     // load auto common app settings
-    if (sd_card_mounted) {
-        auto rc = settings.load("level", &app_settings);
-        if (rc == SETTINGS_OK) {
-            field_lna.set_value(app_settings.lna);
-            field_vga.set_value(app_settings.vga);
-            field_rf_amp.set_value(app_settings.rx_amp);
-            receiver_model.set_rf_amp(app_settings.rx_amp);
-        }
+    auto rc = settings.load("level", &app_settings);
+    if (rc == SETTINGS_OK) {
+        field_lna.set_value(app_settings.lna);
+        field_vga.set_value(app_settings.vga);
+        field_rf_amp.set_value(app_settings.rx_amp);
+        receiver_model.set_rf_amp(app_settings.rx_amp);
     }
 
     button_frequency.on_select = [this, &nav](ButtonWithEncoder& button) {
