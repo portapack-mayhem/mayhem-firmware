@@ -21,6 +21,8 @@
 
 #include "ui_fileman.hpp"
 #include "ui_text_editor.hpp"
+
+#include "log_file.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -31,18 +33,239 @@ template <typename T>
 T mid(const T& val1, const T& val2, const T& val3) {
     return std::max(val1, std::min(val2, val3));
 }
+
+/*void log(const std::string& msg) {
+    LogFile log{};
+    log.append("LOGS/Notepad.txt");
+    log.write_entry(msg);
+}*/
 }  // namespace
 
 namespace ui {
 
+/* FileWrapper ******************************************************/
+
+FileWrapper::FileWrapper() {
+}
+
+Optional<FileWrapper::Error> FileWrapper::open(const fs::path& path) {
+    file_ = File();
+    auto result = file_.open(path);
+
+    if (!result.is_valid())  // No error
+        initialize();
+
+    return result;
+}
+
+std::string FileWrapper::get_text(Offset line, Offset col, Offset length) {
+    // TODO: better way to return errors.
+    auto range = line_range(line);
+    int32_t to_read = length;
+
+    if (!range.is_valid())
+        return "[UNCACHED LINE]";
+
+    // Don't read past end of line.
+    if (range->start + col + to_read >= range->end)
+        to_read = range->end - col - range->start;
+
+    if (to_read <= 0)
+        return {};
+
+    return read(range->start + col, to_read);
+}
+
+Optional<FileWrapper::Range> FileWrapper::line_range(Line line) {
+    ensure_cached(line);
+
+    auto offset = offset_for_line(line);
+    if (!offset.is_valid())
+        return {};
+
+    auto start = *offset == 0 ? start_offset_ : (newlines_[*offset - 1] + 1);
+    auto end = newlines_[*offset] + 1;
+
+    return {Range{start, end}};
+}
+
+FileWrapper::Offset FileWrapper::line_length(Line line) {
+    auto range = line_range(line);
+
+    if (range.is_valid())
+        return range->end - range->start;
+
+    return 0;
+}
+
+void FileWrapper::initialize() {
+    start_offset_ = 0;
+    start_line_ = 0;
+    line_count_ = 0;
+    newlines_.clear();
+    line_ending_ = LineEnding::LF;
+
+    Offset offset = 0;
+    auto result = next_newline(offset);
+
+    while (result.is_valid()) {
+        ++line_count_;
+        if (newlines_.size() < max_newlines)
+            newlines_.push_back(*result);
+        offset = *result + 1;
+        result = next_newline(offset);
+    }
+}
+
+std::string FileWrapper::read(Offset offset, Offset length) {
+    // TODO: better way to return errors.
+    if (offset + length > file_.size())
+        return {"[BAD OFFSET]"};
+
+    std::string buffer(length, '\0');
+    file_.seek(offset);
+
+    auto result = file_.read(&buffer[0], length);
+    if (result.is_ok())
+        buffer.resize(*result);
+    else
+        return result.error().what();
+
+    return buffer;
+}
+
+Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
+    if (line >= line_count_)
+        return {};
+
+    Offset actual = line - start_line_;
+    if (actual < newlines_.size())  // NB: underflow wrap.
+        return {actual};
+
+    return {};
+}
+
+void FileWrapper::ensure_cached(Line line) {
+    if (line >= line_count_)
+        return;
+
+    auto result = offset_for_line(line);
+    if (result.is_valid())
+        return;
+
+    if (line < start_line_) {
+        while (line < start_line_ && start_offset_ >= 2) {
+            // start_offset_ - 1 should be a newline. Need to
+            // find the new value for start_offset_. start_line_
+            // has to be > 0 to get into this block so there should
+            // always be one newline before start_offset_.
+            auto offset = previous_newline(start_offset_ - 2);
+            newlines_.push_front(start_offset_ - 1);
+
+            if (!offset.is_valid()) {
+                // Must be at beginning.
+                start_line_ = 0;
+                start_offset_ = 0;
+            } else {
+                // Found an previous newline, the new start_line_
+                // starts at the newline offset + 1.
+                start_line_--;
+                start_offset_ = *offset + 1;
+            }
+        }
+    } else {
+        while (line >= start_line_ + newlines_.size()) {
+            auto offset = next_newline(newlines_.back() + 1);
+            if (offset.is_valid()) {
+                start_line_++;
+                start_offset_ = newlines_.front() + 1;
+                newlines_.push_back(*offset);
+            } /* else at the EOF. */
+        }
+    }
+}
+
+Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
+    constexpr size_t buffer_size = 128;
+    char buffer[buffer_size];
+    Offset offset = start;
+    auto to_read = buffer_size;
+
+    do {
+        if (offset < to_read) {
+            // NB: Char at 'offset' was read in the previous iteration.
+            to_read = offset;
+            offset = 0;
+        } else
+            offset -= to_read;
+
+        file_.seek(offset);
+
+        auto result = file_.read(buffer, to_read);
+        if (result.is_error())
+            break;
+
+        // Find newlines in the buffer backwards.
+        for (int32_t i = *result - 1; i >= 0; --i) {
+            switch (buffer[i]) {
+                case '\n':
+                    return {offset + i};
+            }
+        }
+
+        if (offset == 0)
+            break;
+
+    } while (true);
+
+    return {};  // Didn't find one.
+}
+
+Optional<FileWrapper::Offset> FileWrapper::next_newline(Offset start) {
+    constexpr size_t buffer_size = 128;
+    char buffer[buffer_size];
+    Offset offset = start;
+
+    // EOF, nothing to do.
+    if (start >= size())
+        return {};
+
+    file_.seek(offset);
+
+    while (true) {
+        auto result = file_.read(buffer, buffer_size);
+        if (result.is_error())
+            return {};
+
+        // Find newlines in the buffer.
+        for (Offset i = 0; i < *result; ++i) {
+            switch (buffer[i]) {
+                case '\n':
+                    return {offset + i};
+            }
+        }
+
+        offset += *result;
+
+        if (*result < buffer_size)
+            break;
+    }
+
+    // Fake a newline at the end for consistency.
+    return {offset};
+}
+
+/* TextEditorView ***************************************************/
+
 TextEditorView::TextEditorView(NavigationView& nav)
     : nav_{nav} {
     add_children(
-        {&button_open,
-         &text_position});
+        {
+            &button_open,
+            &text_position,
+            &text_size,
+        });
     set_focusable(true);
-
-    // log_.append("LOGS/NOTEPAD.TXT");
 
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".TXT");
@@ -54,6 +277,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
 
 void TextEditorView::on_focus() {
     refresh_ui();
+    button_open.focus();
 }
 
 void TextEditorView::paint(Painter& painter) {
@@ -63,16 +287,19 @@ void TextEditorView::paint(Painter& painter) {
     if (!paint_state_.has_file)
         return;
 
+    // Move the viewport vertically.
     if (cursor_.line < first_line)
         first_line = cursor_.line;
     else if (cursor_.line >= first_line + max_line)
         first_line = cursor_.line - max_line + 1;
 
+    // Move the viewport horizontally.
     if (cursor_.col < first_col)
         first_col = cursor_.col;
     if (cursor_.col >= first_col + max_col)
         first_col = cursor_.col - max_col + 1;
 
+    // Viewport updated? Redraw text.
     if (first_line != paint_state_.first_line ||
         first_col != paint_state_.first_col) {
         paint_state_.first_line = first_line;
@@ -129,28 +356,27 @@ bool TextEditorView::on_encoder(EncoderEvent delta) {
 bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t delta_col) {
     int32_t new_line = cursor_.line + delta_line;
     int32_t new_col = cursor_.col + delta_col;
-
-    auto new_line_length = info_.line_length(new_line);
+    int32_t new_line_length = file_.line_length(new_line);
 
     if (new_col < 0)
         --new_line;
-    else if (new_col > new_line_length && delta_line == 0) {
-        // Only want to wrap if moving horizontally.
+    else if (new_col >= new_line_length && delta_line == 0) {
+        // Only wrap if moving horizontally.
         new_col = 0;
         ++new_line;
     }
 
-    if (new_line < 0 || (uint32_t)new_line >= info_.line_count())
+    if (new_line < 0 || (uint32_t)new_line >= file_.line_count())
         return false;
 
-    new_line_length = info_.line_length(new_line);
+    new_line_length = file_.line_length(new_line);
 
     // TODO: don't wrap with encoder?
     // Wrap or clamp column.
     if (new_line_length == 0)
         new_col = 0;
-    else if (new_col > new_line_length || new_col < 0)
-        new_col = new_line_length;
+    else if (new_col >= new_line_length || new_col < 0)
+        new_col = new_line_length - 1;
 
     cursor_.line = new_line;
     cursor_.col = new_col;
@@ -161,98 +387,36 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
 void TextEditorView::refresh_ui() {
     if (paint_state_.has_file) {
         text_position.set(
-            to_string_dec_uint(cursor_.col + 1) + ":" +
-            to_string_dec_uint(cursor_.line + 1) + "/" +
-            to_string_dec_uint(info_.line_count()) +
-            (info_.truncated ? "*" : "") +
-            " Size: " +
-            to_string_file_size(info_.size));
-        focus();
+            "Ln " + to_string_dec_uint(cursor_.line + 1) +
+            ", Col " + to_string_dec_uint(cursor_.col + 1));
+        text_size.set(
+            "Lines:" + to_string_dec_uint(file_.line_count()) +
+            " (" + to_string_file_size(file_.size()) + ")");
     } else {
-        button_open.focus();
+        // if (!button_open.has_focus())
+        //     button_open.focus();
+        text_position.set("");
+        text_size.set("");
     }
 
     set_dirty();
 }
 
-void TextEditorView::refresh_file_info() {
-    constexpr size_t buffer_size = 128;
-    char buffer[buffer_size];
-    uint32_t base_offset = 0;
-
-    file_.seek(0);
-    info_.newlines.clear();
-    info_.line_ending = LineEnding::LF;
-    info_.size = file_.size();
-    info_.truncated = false;
-
-    while (true) {
-        auto result = file_.read(buffer, buffer_size);
-        if (result.is_error())
-            break;  // TODO: report error?
-
-        // TODO: CRLF state machine for cross block.
-        for (uint32_t i = 0; i < result.value(); ++i) {
-            switch (buffer[i]) {
-                case '\n':
-                    info_.newlines.push_back(base_offset + i);
-            }
-        }
-
-        base_offset += result.value();
-
-        // Fake a newline at the end for consistency.
-        // Could check if there already is a trailing newline, but it doesn't hurt.
-        if (result.value() < buffer_size) {
-            info_.newlines.push_back(base_offset);
-            break;
-        }
-
-        // HACK HACK: only show first 1000 lines for now.
-        if (info_.newlines.size() >= 1000) {
-            info_.truncated = true;
-            break;
-        }
-    }
-
-    refresh_ui();
-}
-
 void TextEditorView::open_file(const fs::path& path) {
     // TODO: need a temp backing file for edits.
-
     auto result = file_.open(path);
-    paint_state_.has_file = !result.is_valid(); /* Has an error. */
 
-    if (paint_state_.has_file) {
-        refresh_file_info();
-        paint_state_.first_line = 0;
-        paint_state_.first_col = 0;
-        cursor_.line = 0;
-        cursor_.col = 0;
-    } else {
-        nav_.display_modal("Read Error", "Cannot open file:\n" + result.value().what());
-        paint_state_.has_file = false;
-    }
+    if (result.is_valid())
+        nav_.display_modal("Read Error", "Cannot open file:\n" + result->what());
+
+    paint_state_.has_file = !result.is_valid();  // Has an error.
+    paint_state_.first_line = 0;
+    paint_state_.first_col = 0;
+    cursor_.line = 0;
+    cursor_.col = 0;
 
     paint_state_.redraw_text = true;
     refresh_ui();
-}
-
-std::string TextEditorView::read(uint32_t offset, uint32_t length) {
-    if (offset >= info_.size)
-        return {"[BAD OFFSET]"};
-
-    std::string buffer(length + 1, '\0');
-    file_.seek(offset);
-
-    auto result = file_.read(&buffer[0], length);
-    if (result.is_ok())
-        /* resize? */;
-    else
-        return result.error().what();
-
-    return buffer;
 }
 
 void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
@@ -260,35 +424,28 @@ void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
     // Only the new lines/characters would need to be refetched.
 
     auto r = screen_rect();
-    auto& lines = info_.newlines;
-    auto line_start = info_.line_start(line);
 
     // Draw the lines from the file
-    for (uint32_t i = 0; i < max_line && i < lines.size(); ++i) {
-        auto line_end = lines[line + i];
-        int32_t read_length = max_col;
+    for (auto i = 0u; i < max_line; ++i) {
+        if (line + i >= file_.line_count())
+            break;
 
-        // Don't read past end of the line.
-        if (line_start + col + (uint32_t)read_length > line_end)
-            read_length = line_end - col - line_start;
+        auto str = file_.get_text(line + i, col, max_col);
 
-        if (read_length > 0)
+        // Draw text.
+        if (str.length() > 0)
             painter.draw_string(
                 {0, r.location().y() + (int)i * char_height},
-                style_default, read(line_start + col, read_length));
+                style_default, str);
 
-        // Erase empty line sectons.
-        if (read_length >= 0) {
-            int32_t clear_width = max_col - read_length;
-            if (clear_width > 0)
-                painter.fill_rectangle(
-                    {(max_col - clear_width) * char_width,
-                     r.location().y() + (int)i * char_height,
-                     clear_width * char_width, char_height},
-                    style_default.background);
-        }
-
-        line_start = lines[line + i] + 1 /* newline */;
+        // Clear empty line sections.
+        int32_t clear_width = max_col - str.length();
+        if (clear_width > 0)
+            painter.fill_rectangle(
+                {(max_col - clear_width) * char_width,
+                 r.location().y() + (int)i * char_height,
+                 clear_width * char_width, char_height},
+                style_default.background);
     }
 }
 
@@ -305,9 +462,7 @@ void TextEditorView::paint_cursor(Painter& painter) {
             c);
     };
 
-    // TOOD: bug where cursor doesn't clear at EOF.
     // TODO: XOR cursor?
-
     // Clear old cursor.
     draw_cursor(paint_state_.line, paint_state_.col, style_default.background);
     draw_cursor(cursor_.line, cursor_.col, style_default.foreground);
@@ -315,8 +470,8 @@ void TextEditorView::paint_cursor(Painter& painter) {
     paint_state_.col = cursor_.col;
 }
 
-uint16_t TextEditorView::line_length() const {
-    return info_.line_length(cursor_.line);
+uint16_t TextEditorView::line_length() {
+    return file_.line_length(cursor_.line);
 }
 
 }  // namespace ui

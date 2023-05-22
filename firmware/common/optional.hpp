@@ -28,14 +28,27 @@ template <typename T>
 class Optional {
    public:
     constexpr Optional()
-        : value_{}, valid_{false} {};
+        : value_{}, valid_{false} {}
     constexpr Optional(const T& value)
-        : value_{value}, valid_{true} {};
+        : value_{value}, valid_{true} {}
     constexpr Optional(T&& value)
-        : value_{std::move(value)}, valid_{true} {};
+        : value_{std::move(value)}, valid_{true} {}
 
-    bool is_valid() const { return valid_; };
-    const T& value() const { return value_; };
+    bool is_valid() const { return valid_; }
+
+    // TODO: Throw if not valid?
+    T& value() & { return value_; }
+    T& operator*() & { return value_; }
+    const T& value() const& { return value_; }
+    const T& operator*() const& { return value_; }
+
+    T&& value() && { return value_; }
+    T&& operator*() && { return value_; }
+    const T&& value() const&& { return value_; }
+    const T&& operator*() const&& { return value_; }
+
+    T* operator->() { return &value_; }
+    const T* operator->() const { return &value_; }
 
    private:
     T value_;

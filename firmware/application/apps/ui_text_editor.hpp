@@ -29,8 +29,9 @@
 #include "ui_widget.hpp"
 //#include "ui_textentry.hpp"
 
+#include "circular_buffer.hpp"
 #include "file.hpp"
-#include "log_file.hpp"
+#include "optional.hpp"
 
 #include <string>
 #include <vector>
@@ -47,44 +48,68 @@ enum class ScrollDirection : uint8_t {
     Horizontal
 };
 
-// TODO: RAM is _very_ limited. Need to
-// rework this to not store every line.
-// Should be able to get away with only
-// abount one screen of lines so long as
-// you can't scroll more than one screen
-// at a time.
-struct FileInfo {
-    /* Offsets of newlines. */
-    std::vector<uint32_t> newlines;
-    LineEnding line_ending;
-    File::Size size;
-    bool truncated;
+/* Wraps a file and provides an API for accessing lines efficiently. */
+class FileWrapper {
+   public:
+    using Error = std::filesystem::filesystem_error;
+    using Offset = uint32_t;  // TODO: make enums?
+    using Line = uint32_t;
+    using Column = uint32_t;
+    using Range = struct {
+        // Offset of the line start.
+        Offset start;
+        // Offset of one past the line end.
+        Offset end;
+    };
 
-    uint32_t line_count() const {
-        return newlines.size();
-    }
+    FileWrapper();
 
-    uint32_t line_start(uint32_t line) const {
-        return line == 0 ? 0 : (newlines[line - 1] + 1);
-    }
+    /* Prevent copies. */
+    FileWrapper(const FileWrapper&) = delete;
+    FileWrapper& operator=(const FileWrapper&) = delete;
 
-    uint16_t line_length(uint32_t line) const {
-        if (line >= line_count())
-            return 0;
+    Optional<Error> open(const std::filesystem::path& path);
+    std::string get_text(Line line, Column col, Offset length);
 
-        auto start = line_start(line);
-        auto end = newlines[line];
-        return end - start;
-    }
+    File::Size size() const { return file_.size(); }
+    uint32_t line_count() const { return line_count_; }
+
+    Optional<Range> line_range(Line line);
+    Offset line_length(Line line);
+
+   private:
+    /* Number of newline offsets to cache. */
+    static constexpr Offset max_newlines = 64;
+
+    void initialize();
+    std::string read(Offset offset, Offset length = 30);
+
+    /* Returns the offset into the newline cache if valid. */
+    Optional<Offset> offset_for_line(Line line) const;
+
+    /* Ensure specified line is in the newline cache. */
+    void ensure_cached(Line line);
+
+    /* Helpers for finding the prev/next newline. */
+    Optional<Offset> previous_newline(Offset start);
+    Optional<Offset> next_newline(Offset start);
+
+    File file_{};
+
+    /* Total number of lines in the file. */
+    Offset line_count_{0};
+
+    /* The offset and line of the newlines cache. */
+    Offset start_offset_{0};
+    Offset start_line_{0};
+
+    LineEnding line_ending_{LineEnding::LF};
+    CircularBuffer<Offset, max_newlines + 1> newlines_{};
 };
-
-/*class TextViewer : public Widget {
-};*/
 
 class TextEditorView : public View {
    public:
     TextEditorView(NavigationView& nav);
-    // TextEditorView(NavigationView& nav, const std::filesystem::path& path);
 
     std::string title() const override {
         return "Notepad";
@@ -101,7 +126,6 @@ class TextEditorView : public View {
     static constexpr int8_t char_width = 5;
     static constexpr int8_t char_height = 8;
 
-    // TODO: should these be common somewhere?
     static constexpr Style style_default{
         .font = font::fixed_5x8,
         .background = Color::black(),
@@ -114,21 +138,17 @@ class TextEditorView : public View {
         int16_t delta_col);
 
     void refresh_ui();
-    void refresh_file_info();
     void open_file(const std::filesystem::path& path);
-    std::string read(uint32_t offset, uint32_t length = 30);
 
     void paint_text(Painter& painter, uint32_t line, uint16_t col);
     void paint_cursor(Painter& painter);
 
     // Gets the length of the current line.
-    uint16_t line_length() const;
+    uint16_t line_length();
 
     NavigationView& nav_;
 
-    File file_{};
-    FileInfo info_{};
-    // LogFile  log_{ };
+    FileWrapper file_{};
 
     struct {
         // Previous cursor state.
@@ -148,11 +168,6 @@ class TextEditorView : public View {
         ScrollDirection dir{ScrollDirection::Vertical};
     } cursor_{};
 
-    /* 8px grid is 30 wide, 38 tall. */
-    /* 16px font height or 19 rows. */
-    /* Titlebar is 16px tall, so 18 rows left. */
-    /* 240 x 320, (304 with titlebar) */
-
     // TODO: The scrollable view should be its own widget
     // otherwise control navigation doesn't work.
 
@@ -161,6 +176,10 @@ class TextEditorView : public View {
         "Open"};
 
     Text text_position{
+        {0 * 8, 34 * 8, 24 * 8, 2 * 8},
+        ""};
+
+    Text text_size{
         {0 * 8, 36 * 8, 24 * 8, 2 * 8},
         ""};
 };

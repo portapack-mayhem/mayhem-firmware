@@ -311,6 +311,10 @@ class File {
             return value_;
         }
 
+        const T& operator*() const& {
+            return value_;
+        }
+
         Error error() const {
             return error_;
         }
@@ -339,6 +343,9 @@ class File {
     File(){};
     ~File();
 
+    File(File&&) = default;
+    File& operator=(File&&) = default;
+
     /* Prevent copies */
     File(const File&) = delete;
     File& operator=(const File&) = delete;
@@ -352,8 +359,8 @@ class File {
     Result<Size> write(const void* const data, const Size bytes_to_write);
 
     Result<Offset> seek(const uint64_t Offset);
-    Timestamp created_date();
-    Size size();
+    // Timestamp created_date() const;
+    Size size() const;
 
     template <size_t N>
     Result<Size> write(const std::array<uint8_t, N>& data) {
