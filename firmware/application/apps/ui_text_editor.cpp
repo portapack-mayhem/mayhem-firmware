@@ -21,6 +21,8 @@
 
 #include "ui_fileman.hpp"
 #include "ui_text_editor.hpp"
+
+#include "log_file.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -31,6 +33,12 @@ template <typename T>
 T mid(const T& val1, const T& val2, const T& val3) {
     return std::max(val1, std::min(val2, val3));
 }
+
+/*void log(const std::string& msg) {
+    LogFile log{};
+    log.append("LOGS/Notepad.txt");
+    log.write_entry(msg);
+}*/
 }  // namespace
 
 namespace ui {
@@ -38,8 +46,6 @@ namespace ui {
 /* FileWrapper ******************************************************/
 
 FileWrapper::FileWrapper() {
-    if (logging_)
-        log_.append("LOGS/FileWrapper.txt");
 }
 
 Optional<FileWrapper::Error> FileWrapper::open(const fs::path& path) {
@@ -53,14 +59,15 @@ Optional<FileWrapper::Error> FileWrapper::open(const fs::path& path) {
 }
 
 std::string FileWrapper::get_text(Offset line, Offset col, Offset length) {
+    // TODO: better way to return errors.
     auto range = line_range(line);
     int32_t to_read = length;
 
     if (!range.is_valid())
-        return "[UNCACHED LINE]";  // TODO: Log
+        return "[UNCACHED LINE]";
 
     // Don't read past end of line.
-    if (range->start + col + to_read > range->end)
+    if (range->start + col + to_read >= range->end)
         to_read = range->end - col - range->start;
 
     if (to_read <= 0)
@@ -108,48 +115,45 @@ void FileWrapper::initialize() {
         offset = *result + 1;
         result = next_newline(offset);
     }
-
-    log(std::string{"Lines: "} + to_string_dec_uint(line_count_) +
-        " newlines_.size():" + to_string_dec_uint(newlines_.size()));
 }
 
 std::string FileWrapper::read(Offset offset, Offset length) {
-    if (offset >= file_.size())
-        return {"[BAD OFFSET]"};  // TODO: Log
+    // TODO: better way to return errors.
+    if (offset + length > file_.size())
+        return {"[BAD OFFSET]"};
 
-    std::string buffer(length + 1, '\0');
+    std::string buffer(length, '\0');
     file_.seek(offset);
 
     auto result = file_.read(&buffer[0], length);
     if (result.is_ok())
-        ;  // buffer.resize(*result); // Resize causing problems?
+        buffer.resize(*result);
     else
-        return result.error().what();  // TODO: Log
+        return result.error().what();
 
     return buffer;
 }
 
 Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
-    if (line > line_count_)
+    if (line >= line_count_)
         return {};
 
     Offset actual = line - start_line_;
-    if (actual > newlines_.size())  // NB: underflow wrap.
-        return {};
+    if (actual < newlines_.size())  // NB: underflow wrap.
+        return {actual};
 
-    return {actual};
+    return {};
 }
 
 void FileWrapper::ensure_cached(Line line) {
     if (line >= line_count_)
-        return;  // TODO: Log
+        return;
 
     auto result = offset_for_line(line);
     if (result.is_valid())
         return;
 
     if (line < start_line_) {
-        log("Moving cache backward.");
         while (line < start_line_ && start_offset_ >= 2) {
             // start_offset_ - 1 should be a newline. Need to
             // find the new value for start_offset_. start_line_
@@ -170,8 +174,7 @@ void FileWrapper::ensure_cached(Line line) {
             }
         }
     } else {
-        log("Moving cache forward.");
-        while (line > start_line_ + newlines_.size()) {
+        while (line >= start_line_ + newlines_.size()) {
             auto offset = next_newline(newlines_.back() + 1);
             if (offset.is_valid()) {
                 start_line_++;
@@ -257,11 +260,12 @@ Optional<FileWrapper::Offset> FileWrapper::next_newline(Offset start) {
 TextEditorView::TextEditorView(NavigationView& nav)
     : nav_{nav} {
     add_children(
-        {&button_open,
-         &text_position});
+        {
+            &button_open,
+            &text_position,
+            &text_size,
+        });
     set_focusable(true);
-
-    // log_.append("LOGS/NOTEPAD.TXT");
 
     button_open.on_select = [this](Button&) {
         auto open_view = nav_.push<FileLoadView>(".TXT");
@@ -273,6 +277,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
 
 void TextEditorView::on_focus() {
     refresh_ui();
+    button_open.focus();
 }
 
 void TextEditorView::paint(Painter& painter) {
@@ -355,7 +360,7 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
 
     if (new_col < 0)
         --new_line;
-    else if (new_col > new_line_length && delta_line == 0) {
+    else if (new_col >= new_line_length && delta_line == 0) {
         // Only wrap if moving horizontally.
         new_col = 0;
         ++new_line;
@@ -370,8 +375,8 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
     // Wrap or clamp column.
     if (new_line_length == 0)
         new_col = 0;
-    else if (new_col > new_line_length || new_col < 0)
-        new_col = new_line_length;
+    else if (new_col >= new_line_length || new_col < 0)
+        new_col = new_line_length - 1;
 
     cursor_.line = new_line;
     cursor_.col = new_col;
@@ -382,13 +387,16 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
 void TextEditorView::refresh_ui() {
     if (paint_state_.has_file) {
         text_position.set(
-            to_string_dec_uint(cursor_.col + 1) + ":" +
-            to_string_dec_uint(cursor_.line + 1) + "/" +
-            to_string_dec_uint(file_.line_count()) +
-            " Size: " +
-            to_string_file_size(file_.size()));
+            "Ln " + to_string_dec_uint(cursor_.line + 1) +
+            ", Col " + to_string_dec_uint(cursor_.col + 1));
+        text_size.set(
+            "Lines:" + to_string_dec_uint(file_.line_count()) +
+            " (" + to_string_file_size(file_.size()) + ")");
     } else {
-        button_open.focus();
+        // if (!button_open.has_focus())
+        //     button_open.focus();
+        text_position.set("");
+        text_size.set("");
     }
 
     set_dirty();
@@ -454,9 +462,7 @@ void TextEditorView::paint_cursor(Painter& painter) {
             c);
     };
 
-    // TOOD: Bug where cursor doesn't clear at EOF.
     // TODO: XOR cursor?
-
     // Clear old cursor.
     draw_cursor(paint_state_.line, paint_state_.col, style_default.background);
     draw_cursor(cursor_.line, cursor_.col, style_default.foreground);

@@ -32,7 +32,6 @@
 #include "circular_buffer.hpp"
 #include "file.hpp"
 #include "optional.hpp"
-#include "log_file.hpp"
 
 #include <string>
 #include <vector>
@@ -57,7 +56,9 @@ class FileWrapper {
     using Line = uint32_t;
     using Column = uint32_t;
     using Range = struct {
+        // Offset of the line start.
         Offset start;
+        // Offset of one past the line end.
         Offset end;
     };
 
@@ -104,13 +105,6 @@ class FileWrapper {
 
     LineEnding line_ending_{LineEnding::LF};
     CircularBuffer<Offset, max_newlines + 1> newlines_{};
-
-    bool logging_{true};
-    LogFile log_{};
-    void log(const std::string& str) {
-        if (logging_)
-            log_.write_entry(str);
-    }
 };
 
 class TextEditorView : public View {
@@ -155,7 +149,6 @@ class TextEditorView : public View {
     NavigationView& nav_;
 
     FileWrapper file_{};
-    // LogFile  log_{};
 
     struct {
         // Previous cursor state.
@@ -183,6 +176,10 @@ class TextEditorView : public View {
         "Open"};
 
     Text text_position{
+        {0 * 8, 34 * 8, 24 * 8, 2 * 8},
+        ""};
+
+    Text text_size{
         {0 * 8, 36 * 8, 24 * 8, 2 * 8},
         ""};
 };
