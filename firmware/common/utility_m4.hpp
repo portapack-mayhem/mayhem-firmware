@@ -27,21 +27,21 @@
 #include <hal.h>
 
 static inline complex32_t multiply_conjugate_s16_s32(const complex16_t::rep_type a, const complex16_t::rep_type b) {
-	// conjugate: conj(a + bj) = a - bj
-	// multiply: (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j
-	// conjugate-multiply: (ac + bd) + (bc - ad)j
-	//return { a.real() * b.real() + a.imag() * b.imag(), a.imag() * b.real() - a.real() * b.imag() };
-	// NOTE: Did not use combination of SMUAD and SMUSDX because of non-saturating arithmetic.
-	// const int32_t r = __SMUAD(a, b);
-	// const int32_t i = __SMUSDX(b, a);
-	const int32_t rr = __SMULBB(a, b);
-	const int32_t ii = __SMULTT(a, b);
-	const int32_t r = __QADD(rr, ii);
-	const int32_t ir = __SMULTB(a, b);
-	const int32_t ri = __SMULBT(a, b);
-	const int32_t i = __QSUB(ir, ri);
-	return { r, i };
+    // conjugate: conj(a + bj) = a - bj
+    // multiply: (a + bj) * (c + dj) = (ac - bd) + (bc + ad)j
+    // conjugate-multiply: (ac + bd) + (bc - ad)j
+    // return { a.real() * b.real() + a.imag() * b.imag(), a.imag() * b.real() - a.real() * b.imag() };
+    // NOTE: Did not use combination of SMUAD and SMUSDX because of non-saturating arithmetic.
+    // const int32_t r = __SMUAD(a, b);
+    // const int32_t i = __SMUSDX(b, a);
+    const int32_t rr = __SMULBB(a, b);
+    const int32_t ii = __SMULTT(a, b);
+    const int32_t r = __QADD(rr, ii);
+    const int32_t ir = __SMULTB(a, b);
+    const int32_t ri = __SMULBT(a, b);
+    const int32_t i = __QSUB(ir, ri);
+    return {r, i};
 }
 #endif /* defined(LPC43XX_M4) */
 
-#endif/*__UTILITY_M4_H__*/
+#endif /*__UTILITY_M4_H__*/

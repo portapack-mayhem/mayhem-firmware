@@ -33,44 +33,41 @@
 
 void runtime_error(LED);
 std::string number_to_hex_string(uint32_t);
-void draw_line(int32_t, const char *, regarm_t);
+void draw_line(int32_t, const char*, regarm_t);
 static bool error_shown = false;
 
-void draw_guru_meditation_header(uint8_t source, const char *hint) {
+void draw_guru_meditation_header(uint8_t source, const char* hint) {
     ui::Painter painter;
-    ui::Style style_default {
+    ui::Style style_default{
         .font = ui::font::fixed_8x16,
         .background = ui::Color::black(),
-        .foreground = ui::Color::white()
-    };
+        .foreground = ui::Color::white()};
 
     painter.fill_rectangle(
-        { 0, 0, portapack::display.width(), portapack::display.height() },
-        ui::Color::red()
-    );
+        {0, 0, portapack::display.width(), portapack::display.height()},
+        ui::Color::red());
 
     constexpr int border = 8;
     painter.fill_rectangle(
-        { border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2) },
-        ui::Color::black()
-    );
+        {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
+        ui::Color::black());
 
     // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-    painter.draw_string({ 48, 24 }, style_default, "M? Guru");
-    painter.draw_string({ 48 + 8*8, 24 }, style_default, "Meditation");
+    painter.draw_string({48, 24}, style_default, "M? Guru");
+    painter.draw_string({48 + 8 * 8, 24}, style_default, "Meditation");
 
     if (source == CORTEX_M0)
-        painter.draw_string({ 48 + 8, 24 }, style_default, "0");
-    
+        painter.draw_string({48 + 8, 24}, style_default, "0");
+
     if (source == CORTEX_M4)
-        painter.draw_string({ 48 + 8, 24 }, style_default, "4");
-    
-    painter.draw_string({ 15, 55 }, style_default, "Hint: ");
-    painter.draw_string({ 15 + 8*8, 55 }, style_default, hint);
+        painter.draw_string({48 + 8, 24}, style_default, "4");
+
+    painter.draw_string({15, 55}, style_default, "Hint: ");
+    painter.draw_string({15 + 8 * 8, 55}, style_default, hint);
 }
 
-void draw_guru_meditation(uint8_t source, const char *hint) {
-    if(error_shown == false){
+void draw_guru_meditation(uint8_t source, const char* hint) {
+    if (error_shown == false) {
         error_shown = true;
         draw_guru_meditation_header(source, hint);
     }
@@ -79,12 +76,11 @@ void draw_guru_meditation(uint8_t source, const char *hint) {
         runtime_error(hackrf::one::led_rx);
 
     if (source == CORTEX_M4)
-    	runtime_error(hackrf::one::led_tx);
+        runtime_error(hackrf::one::led_tx);
 }
 
-void draw_guru_meditation(uint8_t source, const char *hint, struct extctx *ctxp, uint32_t cfsr = 0) {
-    if(error_shown == false)
-    {
+void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp, uint32_t cfsr = 0) {
+    if (error_shown == false) {
         error_shown = true;
         draw_guru_meditation_header(source, hint);
 
@@ -106,35 +102,35 @@ void draw_guru_meditation(uint8_t source, const char *hint, struct extctx *ctxp,
 
             // see SCB_CFSR_* in libopencm3/cm3/scb.h for details
             if (cfsr != 0)
-                draw_line(80 + i++ * 20, "cfsr:", (void *)cfsr);
+                draw_line(80 + i++ * 20, "cfsr:", (void*)cfsr);
         }
     }
-    
+
     if (source == CORTEX_M0)
         runtime_error(hackrf::one::led_rx);
 
     if (source == CORTEX_M4)
-    	runtime_error(hackrf::one::led_tx);
+        runtime_error(hackrf::one::led_tx);
 }
 
-void draw_line(int32_t y_offset, const char *label, regarm_t value){
+void draw_line(int32_t y_offset, const char* label, regarm_t value) {
     ui::Painter painter;
-    ui::Style style_default {
+    ui::Style style_default{
         .font = ui::font::fixed_8x16,
         .background = ui::Color::black(),
-        .foreground = ui::Color::white()
-    };
+        .foreground = ui::Color::white()};
 
-    painter.draw_string({ 15, y_offset }, style_default, label);
-    painter.draw_string({ 15 + 8*8, y_offset }, style_default, to_string_hex((uint32_t)value, 8));
+    painter.draw_string({15, y_offset}, style_default, label);
+    painter.draw_string({15 + 8 * 8, y_offset}, style_default, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(LED led) {
     led.off();
 
-    while(true) {
+    while (true) {
         volatile size_t n = 1000000U;
-        while(n--);
+        while (n--)
+            ;
         led.toggle();
     }
 }
@@ -178,13 +174,13 @@ CH_IRQ_HANDLER(UsageFaultVector) {
 CH_IRQ_HANDLER(HardFaultVector) {
 #if CH_DBG_ENABLED
     CH_IRQ_PROLOGUE();
-    struct extctx *ctxp;
+    struct extctx* ctxp;
     port_lock_from_isr();
 
     if ((uint32_t)_saved_lr & 0x04)
-        ctxp = (struct extctx *)__get_PSP();
+        ctxp = (struct extctx*)__get_PSP();
     else
-        ctxp = (struct extctx *)__get_MSP();
+        ctxp = (struct extctx*)__get_MSP();
 
     port_disable();
 

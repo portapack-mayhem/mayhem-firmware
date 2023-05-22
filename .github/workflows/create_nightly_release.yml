@@ -47,12 +47,18 @@ jobs:
         run: mkdir ${{ github.workspace }}/build
       - name: Run the Docker image
         run: docker run -e VERSION_STRING=${{ steps.version_date.outputs.date }} -i -v ${{ github.workspace }}:/havoc portapack-dev
+      - name: Download world map
+        run: |
+          wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
+      - name: Unzip world map
+        run: |
+          unzip world_map.zip -d sdcard/ADSB
       - name: Create Firmware ZIP
         run: |
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          zip -r sdcard.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && zip -r sdcard.zip sdcard
       - name: Create changelog
         run: |
           CHANGELOG=$(python3 .github/workflows/changelog.py)

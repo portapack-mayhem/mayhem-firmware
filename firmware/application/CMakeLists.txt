@@ -210,9 +210,10 @@ set(CPPSRC
 	ui/ui_alphanum.cpp
 	ui/ui_audio.cpp
 	ui/ui_channel.cpp
+	ui/ui_font_fixed_5x8.cpp
 	ui/ui_font_fixed_8x16.cpp
 	ui/ui_geomap.cpp
-        ui/ui_qrcode.cpp
+	ui/ui_qrcode.cpp
 	ui/ui_menu.cpp
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
@@ -240,7 +241,7 @@ set(CPPSRC
 	apps/ui_sd_over_usb.cpp
 	apps/ui_freqman.cpp
 	apps/ui_jammer.cpp
-	apps/ui_keyfob.cpp
+    #apps/ui_keyfob.cpp
 	apps/ui_lcr.cpp
 	apps/lge_app.cpp
 	apps/ui_looking_glass_app.cpp
@@ -259,6 +260,7 @@ set(CPPSRC
 	apps/ui_sonde.cpp
 	apps/ui_sstvtx.cpp
 	# apps/ui_test.cpp
+	apps/ui_text_editor.cpp
 	apps/ui_tone_search.cpp
 	apps/ui_touch_calibration.cpp
 	apps/ui_touchtunes.cpp
@@ -281,6 +283,9 @@ set(CPPSRC
 	apps/ui_level.cpp  
 	apps/tpms_app.cpp
 	apps/tpms_app.cpp
+	apps/ui_spectrum_painter.cpp
+	apps/ui_spectrum_painter_image.cpp
+	apps/ui_spectrum_painter_text.cpp
 	protocols/aprs.cpp
 	protocols/ax25.cpp
 	protocols/bht.cpp

@@ -30,26 +30,25 @@ using namespace portapack;
 namespace ui {
 
 void ToneSearchView::focus() {
-	//field_frequency_min.focus();
+    // field_frequency_min.focus();
 }
 
 ToneSearchView::~ToneSearchView() {
-	receiver_model.disable();
-	baseband::shutdown();
+    receiver_model.disable();
+    baseband::shutdown();
 }
 
 ToneSearchView::ToneSearchView(
-	NavigationView& nav
-) : nav_ (nav)
-{
-	//baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-	
-	add_children({
-		&labels,
-		&field_lna,
-		&field_vga,
-		&field_rf_amp,
-	});
+    NavigationView& nav)
+    : nav_(nav) {
+    // baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+
+    add_children({
+        &labels,
+        &field_lna,
+        &field_vga,
+        &field_rf_amp,
+    });
 }
 
 } /* namespace ui */

@@ -53,69 +53,68 @@
 extern "C" {
 
 void __late_init(void) {
-	/*
-	 * System initializations.
-	 * - HAL initialization, this also initializes the configured device drivers
-	 *   and performs the board-specific initializations.
-	 * - Kernel initialization, the main() function becomes a thread and the
-	 *   RTOS is active.
-	 */
-	halInit();
+    /*
+     * System initializations.
+     * - HAL initialization, this also initializes the configured device drivers
+     *   and performs the board-specific initializations.
+     * - Kernel initialization, the main() function becomes a thread and the
+     *   RTOS is active.
+     */
+    halInit();
 
-	/* After this call, scheduler, systick, heap, etc. are available. */
-	/* By doing chSysInit() here, it runs before C++ constructors, which may
-	 * require the heap.
-	 */
-	chSysInit();
+    /* After this call, scheduler, systick, heap, etc. are available. */
+    /* By doing chSysInit() here, it runs before C++ constructors, which may
+     * require the heap.
+     */
+    chSysInit();
 }
-
 }
 
 static void init() {
-	audio::dma::init();
-	audio::dma::configure();
-	audio::dma::enable();
+    audio::dma::init();
+    audio::dma::configure();
+    audio::dma::enable();
 
-	LPC_CREG->DMAMUX = portapack::gpdma_mux;
-	gpdma::controller.enable();
-	nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
+    LPC_CREG->DMAMUX = portapack::gpdma_mux;
+    gpdma::controller.enable();
+    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 
-	touch::dma::init();
-	touch::dma::allocate();
-	touch::dma::enable();
+    touch::dma::init();
+    touch::dma::allocate();
+    touch::dma::enable();
 }
 
 static void halt() {
-	port_disable();
-	while(true) {
-		port_wait_for_interrupt();
-	}
+    port_disable();
+    while (true) {
+        port_wait_for_interrupt();
+    }
 }
 
 static void shutdown() {
-	// TODO: Is this complete?
-	
-	nvicDisableVector(DMA_IRQn);
-	
-	chSysDisable();
+    // TODO: Is this complete?
 
-	systick_stop();
+    nvicDisableVector(DMA_IRQn);
 
-	ShutdownMessage shutdown_message;
-	shared_memory.application_queue.push(shutdown_message);
+    chSysDisable();
 
-	halt();
+    systick_stop();
+
+    ShutdownMessage shutdown_message;
+    shared_memory.application_queue.push(shutdown_message);
+
+    halt();
 }
 
 int main(void) {
-	init();
+    init();
 
-	/* TODO: Ensure DMAs are configured to point at first LLI in chain. */
+    /* TODO: Ensure DMAs are configured to point at first LLI in chain. */
 
-	EventDispatcher event_dispatcher;
-	event_dispatcher.run();
+    EventDispatcher event_dispatcher;
+    event_dispatcher.run();
 
-	shutdown();
+    shutdown();
 
-	return 0;
+    return 0;
 }

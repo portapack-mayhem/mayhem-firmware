@@ -26,27 +26,29 @@
 
 extern uint32_t __process_stack_base__;
 extern uint32_t __process_stack_end__;
-#define CRT0_STACKS_FILL_PATTERN    0x55555555
+#define CRT0_STACKS_FILL_PATTERN 0x55555555
 
-inline uint32_t get_free_stack_space(){
-    uint32_t *p;
-    for (p = &__process_stack_base__; *p == CRT0_STACKS_FILL_PATTERN && p < &__process_stack_end__; p++);
+inline uint32_t get_free_stack_space() {
+    uint32_t* p;
+    for (p = &__process_stack_base__; *p == CRT0_STACKS_FILL_PATTERN && p < &__process_stack_end__; p++)
+        ;
     auto stack_space_left = p - &__process_stack_base__;
 
     return stack_space_left;
 }
 
 /* Executes a breakpoint only when a debugger is attached. */
-#define HALT_IF_DEBUGGING()                              \
-  do {                                                   \
-    if ((*(volatile uint32_t *)0xE000EDF0) & (1 << 0)) { \
-      __asm__ __volatile__("bkpt 1");                    \
-    }                                                    \
-} while (0)
+#define HALT_IF_DEBUGGING()                                 \
+    do {                                                    \
+        if ((*(volatile uint32_t*)0xE000EDF0) & (1 << 0)) { \
+            __asm__ __volatile__("bkpt 1");                 \
+        }                                                   \
+    } while (0)
 
 /* Stops execution until a debugger is attached. */
 #define HALT_UNTIL_DEBUGGING()                                \
-  while (!((*(volatile uint32_t *)0xE000EDF0) & (1 << 0))) {} \
-  __asm__ __volatile__("bkpt 1")
+    while (!((*(volatile uint32_t*)0xE000EDF0) & (1 << 0))) { \
+    }                                                         \
+    __asm__ __volatile__("bkpt 1")
 
-#endif/*__DEBUG_H__*/
+#endif /*__DEBUG_H__*/

@@ -30,59 +30,57 @@
 #include <cstdint>
 
 void WidebandFMAudio::execute(const buffer_c8_t& buffer) {
-	if( !configured ) {
-		return;
-	}
-	
-	std::fill(spectrum.begin(), spectrum.end(), 0);
+    if (!configured) {
+        return;
+    }
 
-	for(size_t i=0; i<spectrum.size(); i++) {
-		spectrum[i] += buffer.p[i];
-	}
+    std::fill(spectrum.begin(), spectrum.end(), 0);
 
-	const buffer_c16_t buffer_c16 {spectrum.data(),spectrum.size(),buffer.sampling_rate};
-	channel_spectrum.feed(buffer_c16);
+    for (size_t i = 0; i < spectrum.size(); i++) {
+        spectrum[i] += buffer.p[i];
+    }
 
-        int8_t re ;
-	//int8_t im;  
-	//int8_t mag;
+    const buffer_c16_t buffer_c16{spectrum.data(), spectrum.size(), buffer.sampling_rate};
+    channel_spectrum.feed(buffer_c16);
 
-        for (size_t i = 0; i < 128; i++) 
-	{
-		re = buffer.p[i].real();
-		//im = buffer.p[i].imag();
-		//mag = __builtin_sqrtf((re * re) + (im * im)) ;
-		const unsigned int v =  re + 127.0f; //timescope
-		audio_spectrum.db[i] = std::max(0U, std::min(255U, v));
-	}
-	AudioSpectrumMessage message { &audio_spectrum };
-	shared_memory.application_queue.push(message);
+    int8_t re;
+    // int8_t im;
+    // int8_t mag;
+
+    for (size_t i = 0; i < 128; i++) {
+        re = buffer.p[i].real();
+        // im = buffer.p[i].imag();
+        // mag = __builtin_sqrtf((re * re) + (im * im)) ;
+        const unsigned int v = re + 127.0f;  // timescope
+        audio_spectrum.db[i] = std::max(0U, std::min(255U, v));
+    }
+    AudioSpectrumMessage message{&audio_spectrum};
+    shared_memory.application_queue.push(message);
 }
 
 void WidebandFMAudio::on_message(const Message* const message) {
-	switch(message->id) {
-	case Message::ID::UpdateSpectrum:
-	case Message::ID::SpectrumStreamingConfig:
-		channel_spectrum.on_message(message);
-		break;
+    switch (message->id) {
+        case Message::ID::UpdateSpectrum:
+        case Message::ID::SpectrumStreamingConfig:
+            channel_spectrum.on_message(message);
+            break;
 
-	case Message::ID::WFMConfigure:
-		configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
-		break;
-		
-	default:
-		break;
-	}
+        case Message::ID::WFMConfigure:
+            configure(*reinterpret_cast<const WFMConfigureMessage*>(message));
+            break;
+
+        default:
+            break;
+    }
 }
 
 void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
-	(void)message; // avoid warning
-	configured = true;
+    (void)message;  // avoid warning
+    configured = true;
 }
 
-
 int main() {
-	EventDispatcher event_dispatcher { std::make_unique<WidebandFMAudio>() };
-	event_dispatcher.run();
-	return 0;
+    EventDispatcher event_dispatcher{std::make_unique<WidebandFMAudio>()};
+    event_dispatcher.run();
+    return 0;
 }

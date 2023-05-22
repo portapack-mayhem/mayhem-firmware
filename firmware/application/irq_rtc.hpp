@@ -24,4 +24,4 @@
 
 void rtc_interrupt_enable();
 
-#endif/*__IPC_RTC_H__*/
+#endif /*__IPC_RTC_H__*/

@@ -1,28 +1,22 @@
 #include "ui_about_simple.hpp"
 
-namespace ui
-{
-    AboutView::AboutView(NavigationView &nav)
-    {
-        add_children({&console, &button_ok});
+namespace ui {
+AboutView::AboutView(NavigationView& nav) {
+    add_children({&console, &button_ok});
 
-        button_ok.on_select = [&nav](Button &)
-        {
-            nav.pop();
-        };
+    button_ok.on_select = [&nav](Button&) {
+        nav.pop();
+    };
 
-        console.writeln("\x1B\x07List of contributors:\x1B\x10");
-        console.writeln("");
-    }
+    console.writeln("\x1B\x07List of contributors:\x1B\x10");
+    console.writeln("");
+}
 
-    void AboutView::update()
-    {
-        if (++timer > 200)
-        {
-            timer = 0;
+void AboutView::update() {
+    if (++timer > 200) {
+        timer = 0;
 
-            switch (++frame)
-            {
+        switch (++frame) {
             case 1:
                 // TODO: Generate this automatically from github
                 // https://github.com/eried/portapack-mayhem/graphs/contributors?to=2022-01-01&from=2020-04-12&type=c
@@ -71,15 +65,14 @@ namespace ui
                 console.writeln("yhetti,ckuethe,smunaut");
                 console.writeln("wishi,mrbubble62,scateu...");
                 console.writeln("");
-                frame = 0; // Loop
+                frame = 0;  // Loop
                 break;
-            }
         }
     }
+}
 
-    void AboutView::focus()
-    {
-        button_ok.focus();
-    }
+void AboutView::focus() {
+    button_ok.focus();
+}
 
 } /* namespace ui */

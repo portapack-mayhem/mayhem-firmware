@@ -35,4 +35,4 @@ Samples get();
 } /* namespace adc */
 } /* namespace touch */
 
-#endif/*__TOUCH_ADC_H__*/
+#endif /*__TOUCH_ADC_H__*/

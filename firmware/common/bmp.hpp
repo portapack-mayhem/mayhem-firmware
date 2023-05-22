@@ -22,32 +22,32 @@
 
 #pragma pack(push, 1)
 struct bmp_header_t {
-	uint16_t signature;
-	uint32_t size;
-	uint16_t reserved_1;
-	uint16_t reserved_2;
-	uint32_t image_data;
-	uint32_t BIH_size;
-	uint32_t width;
-	uint32_t height;
-	uint16_t planes;
-	uint16_t bpp;
-	uint32_t compression;
-	uint32_t data_size;
-	uint32_t h_res;
-	uint32_t v_res;
-	uint32_t colors_count;
-	uint32_t icolors_count;
+    uint16_t signature;
+    uint32_t size;
+    uint16_t reserved_1;
+    uint16_t reserved_2;
+    uint32_t image_data;
+    uint32_t BIH_size;
+    uint32_t width;
+    uint32_t height;
+    uint16_t planes;
+    uint16_t bpp;
+    uint32_t compression;
+    uint32_t data_size;
+    uint32_t h_res;
+    uint32_t v_res;
+    uint32_t colors_count;
+    uint32_t icolors_count;
 };
 #pragma pack(pop)
 
 #pragma pack(push, 1)
 struct bmp_palette_t {
-	struct color_t {
-		uint8_t B;
-		uint8_t G;
-		uint8_t R;
-		uint8_t A;
-	} color[16];
+    struct color_t {
+        uint8_t B;
+        uint8_t G;
+        uint8_t R;
+        uint8_t A;
+    } color[16];
 };
 #pragma pack(pop)

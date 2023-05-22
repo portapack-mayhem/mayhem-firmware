@@ -30,65 +30,59 @@
 #include "rtc_time.hpp"
 
 namespace ui {
-	
+
 enum script_keyword {
-	STOP = 0,
-	WAIT_N,
-	WAIT_RTC,
-	IF,
-	LOOP,
-	END,
-	TX,
-	RX
+    STOP = 0,
+    WAIT_N,
+    WAIT_RTC,
+    IF,
+    LOOP,
+    END,
+    TX,
+    RX
 };
 
 struct script_line {
-	script_keyword keyword;
+    script_keyword keyword;
 };
 
 class ScriptView : public View {
-public:
-	ScriptView(NavigationView& nav);
-	
-	void focus() override;
+   public:
+    ScriptView(NavigationView& nav);
 
-	std::string title() const override { return "Script editor"; };
+    void focus() override;
 
-private:
-	void on_frequency_select();
-	void on_edit_freq(rf::Frequency f);
-	void on_edit_desc(NavigationView& nav);
-	void on_delete();
-	void setup_list();
-	
-	std::vector<script_line> script { };
+    std::string title() const override { return "Script editor"; };
 
-	MenuView menu_view {
-		{ 0, 0, 240, 168 },
-		true
-	};
+   private:
+    void on_frequency_select();
+    void on_edit_freq(rf::Frequency f);
+    void on_edit_desc(NavigationView& nav);
+    void on_delete();
+    void setup_list();
 
-	Text text_edit {
-		{ 16, 194, 5 * 8, 16 },
-		"Edit:"
-	};
-	Button button_edit_freq {
-		{ 16, 194 + 16, 88, 32 },
-		"Frequency"
-	};
-	Button button_edit_desc {
-		{ 16, 194 + 16 + 34, 88, 32 },
-		"Description"
-	};
-	Button button_del {
-		{ 160, 192, 72, 64 },
-		"Delete"
-	};
-	
-	Button button_exit {
-		{ 160, 264, 72, 32 },
-		"Exit"
-	};
+    std::vector<script_line> script{};
+
+    MenuView menu_view{
+        {0, 0, 240, 168},
+        true};
+
+    Text text_edit{
+        {16, 194, 5 * 8, 16},
+        "Edit:"};
+    Button button_edit_freq{
+        {16, 194 + 16, 88, 32},
+        "Frequency"};
+    Button button_edit_desc{
+        {16, 194 + 16 + 34, 88, 32},
+        "Description"};
+    Button button_del{
+        {160, 192, 72, 64},
+        "Delete"};
+
+    Button button_exit{
+        {160, 264, 72, 32},
+        "Exit"};
 };
 
 } /* namespace ui */

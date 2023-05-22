@@ -34,69 +34,67 @@
  */
 
 class GainComputer {
-public:
-	constexpr GainComputer(
-		float ratio,
-		float threshold
-	) : ratio { ratio },
-		slope { 1.0f / ratio - 1.0f },
-		threshold_db { threshold }
-	{
-	}
+   public:
+    constexpr GainComputer(
+        float ratio,
+        float threshold)
+        : ratio{ratio},
+          slope{1.0f / ratio - 1.0f},
+          threshold_db{threshold} {
+    }
 
-	float operator()(const float x) const;
+    float operator()(const float x) const;
 
-private:
-	const float ratio;
-	const float slope;
-	const float threshold_db;
+   private:
+    const float ratio;
+    const float slope;
+    const float threshold_db;
 
-	static constexpr float knee_width_db = 0.0f;
+    static constexpr float knee_width_db = 0.0f;
 
-	static constexpr float db_floor = -120.0f;
-	static constexpr float lin_floor = std::pow(10.0f, db_floor / 20.0f);
-	static constexpr float log2_db_k = 20.0f * std::log10(2.0f);
+    static constexpr float db_floor = -120.0f;
+    static constexpr float lin_floor = std::pow(10.0f, db_floor / 20.0f);
+    static constexpr float log2_db_k = 20.0f * std::log10(2.0f);
 };
 
 class PeakDetectorBranchingSmooth {
-public:
-	constexpr PeakDetectorBranchingSmooth(
-		float att_a,
-		float rel_a
-	) : att_a { att_a },
-		rel_a { rel_a }
-	{
-	}
+   public:
+    constexpr PeakDetectorBranchingSmooth(
+        float att_a,
+        float rel_a)
+        : att_a{att_a},
+          rel_a{rel_a} {
+    }
 
-	float operator()(const float db) {
-		const auto a = (db > state) ? att_a : rel_a;
-		state = db + a * (state - db);
-		return state;
-	}
+    float operator()(const float db) {
+        const auto a = (db > state) ? att_a : rel_a;
+        state = db + a * (state - db);
+        return state;
+    }
 
-private:
-	float state { 0.0f };
-	const float att_a;
-	const float rel_a;
+   private:
+    float state{0.0f};
+    const float att_a;
+    const float rel_a;
 };
 
 class FeedForwardCompressor {
-public:
-	void execute_in_place(const buffer_f32_t& buffer);
+   public:
+    void execute_in_place(const buffer_f32_t& buffer);
 
-private:
-	static constexpr float fs = 12000.0f;
-	static constexpr float ratio = 10.0f;
-	static constexpr float threshold = -30.0f;
+   private:
+    static constexpr float fs = 12000.0f;
+    static constexpr float ratio = 10.0f;
+    static constexpr float threshold = -30.0f;
 
-	GainComputer gain_computer { ratio, threshold };
-	PeakDetectorBranchingSmooth peak_detector { tau_alpha(0.010f, fs), tau_alpha(0.300f, fs) };
+    GainComputer gain_computer{ratio, threshold};
+    PeakDetectorBranchingSmooth peak_detector{tau_alpha(0.010f, fs), tau_alpha(0.300f, fs)};
 
-	float execute_once(const float x);
+    float execute_once(const float x);
 
-	static constexpr float tau_alpha(const float tau, const float fs) {
-		return std::exp(-1.0f / (tau * fs));
-	}
+    static constexpr float tau_alpha(const float tau, const float fs) {
+        return std::exp(-1.0f / (tau * fs));
+    }
 };
 
-#endif/*__AUDIO_COMPRESSOR_H__*/
+#endif /*__AUDIO_COMPRESSOR_H__*/

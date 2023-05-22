@@ -25,22 +25,27 @@
 #include <string>
 
 #include "file.hpp"
+#include "rtc_time.hpp"
 
-#include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+#define LOG_ROOT_DIR "LOGS"
 
 class LogFile {
-public:
-	Optional<File::Error> append(const std::filesystem::path& filename) {
-		return file.append(filename);
-	}
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        auto result = ensure_directory(filename.parent_path());
+        if (result.code())
+            return {result};
 
-	Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
+        return file.append(filename);
+    }
 
-private:
-	File file { };
+    Optional<File::Error> write_entry(const std::string& entry);
+    Optional<File::Error> write_entry(const rtc::RTC& datetime, const std::string& entry);
 
-	Optional<File::Error> write_line(const std::string& message);
+   private:
+    File file{};
+
+    Optional<File::Error> write_line(const std::string& message);
 };
 
-#endif/*__LOG_FILE_H__*/
+#endif /*__LOG_FILE_H__*/

@@ -31,25 +31,24 @@
 namespace ui {
 
 class BasebandStatsView : public View {
-public:
-	BasebandStatsView();
+   public:
+    BasebandStatsView();
 
-private:
-	Text text_stats {
-		{  0 * 8, 0, (4 * 4 + 3) * 8, 1 * 16 },
-		"",
-	};
+   private:
+    Text text_stats{
+        {0 * 8, 0, (4 * 4 + 3) * 8, 1 * 16},
+        "",
+    };
 
-	MessageHandlerRegistration message_handler_stats {
-		Message::ID::BasebandStatistics,
-		[this](const Message* const p) {
-			this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
-		}
-	};
+    MessageHandlerRegistration message_handler_stats{
+        Message::ID::BasebandStatistics,
+        [this](const Message* const p) {
+            this->on_statistics_update(static_cast<const BasebandStatisticsMessage*>(p)->statistics);
+        }};
 
-	void on_statistics_update(const BasebandStatistics& statistics);
+    void on_statistics_update(const BasebandStatistics& statistics);
 };
 
 } /* namespace ui */
 
-#endif/*__UI_BASEBAND_STATS_VIEW_H__*/
+#endif /*__UI_BASEBAND_STATS_VIEW_H__*/

@@ -27,44 +27,43 @@
 #include <cmath>
 
 class PhaseDetectorEarlyLateGate {
-public:
-	using history_t = uint32_t;
+   public:
+    using history_t = uint32_t;
 
-	using symbol_t = bool;
-	using error_t = int;
+    using symbol_t = bool;
+    using error_t = int;
 
-	struct result_t {
-		symbol_t symbol;
-		error_t error;
-	};
+    struct result_t {
+        symbol_t symbol;
+        error_t error;
+    };
 
-	constexpr PhaseDetectorEarlyLateGate(
-		const size_t samples_per_symbol
-	) : sample_threshold { samples_per_symbol / 2 },
-		late_mask { (1UL << sample_threshold) - 1UL },
-		early_mask { late_mask << sample_threshold }
-	{
-	}
+    constexpr PhaseDetectorEarlyLateGate(
+        const size_t samples_per_symbol)
+        : sample_threshold{samples_per_symbol / 2},
+          late_mask{(1UL << sample_threshold) - 1UL},
+          early_mask{late_mask << sample_threshold} {
+    }
 
-	result_t operator()(const history_t symbol_history) const {
-		static_assert(sizeof(history_t) == sizeof(unsigned long), "popcountl size mismatch");
+    result_t operator()(const history_t symbol_history) const {
+        static_assert(sizeof(history_t) == sizeof(unsigned long), "popcountl size mismatch");
 
-		// history = ...0111, early
-		// history = ...1110, late
+        // history = ...0111, early
+        // history = ...1110, late
 
-		const size_t late_side = __builtin_popcountl(symbol_history & late_mask);
-		const size_t early_side = __builtin_popcountl(symbol_history & early_mask);
-		const size_t total_count = late_side + early_side;
-		const auto lateness = static_cast<int>(late_side) - static_cast<int>(early_side);
-		const symbol_t symbol = (total_count >= sample_threshold);
-		const error_t error = symbol ? -lateness : lateness;
-		return { symbol, error };
-	}
+        const size_t late_side = __builtin_popcountl(symbol_history & late_mask);
+        const size_t early_side = __builtin_popcountl(symbol_history & early_mask);
+        const size_t total_count = late_side + early_side;
+        const auto lateness = static_cast<int>(late_side) - static_cast<int>(early_side);
+        const symbol_t symbol = (total_count >= sample_threshold);
+        const error_t error = symbol ? -lateness : lateness;
+        return {symbol, error};
+    }
 
-private:
-	const size_t sample_threshold;
-	const history_t late_mask;
-	const history_t early_mask;
+   private:
+    const size_t sample_threshold;
+    const history_t late_mask;
+    const history_t early_mask;
 };
 
-#endif/*__PHASE_DETECTOR_HPP__*/
+#endif /*__PHASE_DETECTOR_HPP__*/

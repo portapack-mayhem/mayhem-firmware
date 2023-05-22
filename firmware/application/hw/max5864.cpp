@@ -29,8 +29,8 @@
 namespace max5864 {
 
 void MAX5864::set_mode(const Mode mode) {
-	std::array<uint8_t, 1> command { toUType(mode) };
-	_target.transfer(command.data(), command.size());
+    std::array<uint8_t, 1> command{toUType(mode)};
+    _target.transfer(command.data(), command.size());
 }
 
-}
+}  // namespace max5864

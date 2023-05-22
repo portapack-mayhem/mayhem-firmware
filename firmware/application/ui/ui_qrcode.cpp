@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * 
+ *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -33,116 +33,97 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "complex.hpp"
 
-
 namespace ui {
 
 QRCodeImage::QRCodeImage(
-	Rect parent_rect
-) : Widget { parent_rect }
-{
-	
+    Rect parent_rect)
+    : Widget{parent_rect} {
 }
 
-QRCodeImage::~QRCodeImage( )
-{
-
+QRCodeImage::~QRCodeImage() {
 }
 
-QRCodeImage::QRCodeImage(const QRCodeImage&Image) : Widget { }
-{
+QRCodeImage::QRCodeImage(const QRCodeImage& Image)
+    : Widget{} {
     (void)Image;
 }
 
-QRCodeImage & QRCodeImage::operator=(const QRCodeImage&Image)
-{
+QRCodeImage& QRCodeImage::operator=(const QRCodeImage& Image) {
     (void)Image;
     return *this;
 }
 
 void QRCodeImage::paint(Painter& painter) {
+    (void)painter;
 
-    (void)painter ;
+    // The structure to manage the QR code
+    QRCode qrcode;
 
-	// The structure to manage the QR code
-	QRCode qrcode;
+    // Either small or large QR code can be shown..
 
+    if (portapack::persistent_memory::show_bigger_qr_code()) {  // show large QR code
+        int qr_version = 2;
 
-	//Either small or large QR code can be shown..
+        // Allocate a chunk of memory to store the QR code
+        uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
 
-	if(portapack::persistent_memory::show_bigger_qr_code()) { // show large QR code
-		int qr_version =  2; 
+        qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
-		// Allocate a chunk of memory to store the QR code
-		uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
+        display.fill_rectangle(Rect(10, 30, 220, 220), Color::white());
 
-		qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
+        for (uint8_t y = 0; y < qrcode.size; y++) {
+            for (uint8_t x = 0; x < qrcode.size; x++) {
+                if (qrcode_getModule(&qrcode, x, y)) {
+                    display.fill_rectangle(Rect(20 + (x * 8), 40 + (y * 8), 8, 8), Color::black());
+                }
+            }
+        }
 
+    }
 
-		display.fill_rectangle(Rect(10, 30, 220, 220), Color::white());
+    else {  // show small QR code
+        int qr_version = 10;
 
-		for (uint8_t y = 0; y < qrcode.size; y++) {
-    			for (uint8_t x = 0; x < qrcode.size; x++) {
-        			if (qrcode_getModule(&qrcode, x, y)) {
-            				display.fill_rectangle(Rect(20+(x*8), 40+(y*8), 8, 8), Color::black());
+        // Allocate a chunk of memory to store the QR code
+        uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
 
-        			} 
-    			}
-		}
+        qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
-	}
+        display.fill_rectangle(Rect(92, 97, 63, 63), Color::white());
 
-	else { // show small QR code
-		int qr_version =  10; 
-
-		// Allocate a chunk of memory to store the QR code
-		uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
-
-		qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
-
-
-		display.fill_rectangle(Rect(92, 97, 63, 63), Color::white());
-
-		for (uint8_t y = 0; y < qrcode.size; y++) {
-    			for (uint8_t x = 0; x < qrcode.size; x++) {
-        			if (qrcode_getModule(&qrcode, x, y)) {
-            				display.draw_pixel(Point(95+x,100+y), Color::black());
-
-        			} 
-    			}
-		}
-
-	}
+        for (uint8_t y = 0; y < qrcode.size; y++) {
+            for (uint8_t x = 0; x < qrcode.size; x++) {
+                if (qrcode_getModule(&qrcode, x, y)) {
+                    display.draw_pixel(Point(95 + x, 100 + y), Color::black());
+                }
+            }
+        }
+    }
 }
 
 void QRCodeView::focus() {
-	button_close.focus();
+    button_close.focus();
 }
 
 QRCodeView::~QRCodeView() {
-	if (on_close_)
-		on_close_();
+    if (on_close_)
+        on_close_();
 }
 
 QRCodeView::QRCodeView(
-	NavigationView& nav,
-	const char * qr_text,
-	const std::function<void(void)> on_close
-) : nav_ (nav),
-	on_close_(on_close)
-{
+    NavigationView& nav,
+    const char* qr_text,
+    const std::function<void(void)> on_close)
+    : nav_(nav),
+      on_close_(on_close) {
+    add_children({&qr_code,
+                  &button_close});
+    // text_qr.set(qr_text);
+    qr_code.set_text(qr_text);
 
-
-        add_children({
-		&qr_code,
-		&button_close});
-        //text_qr.set(qr_text);	
-	qr_code.set_text(qr_text);
-
-	button_close.on_select =  [&nav](Button&){
-		nav.pop();
-	};
+    button_close.on_select = [&nav](Button&) {
+        nav.pop();
+    };
 }
-
-
 
 } /* namespace ui */

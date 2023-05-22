@@ -29,47 +29,47 @@
 #include <cstddef>
 
 class RSSIStatisticsCollector {
-public:
-	template<typename Callback>
-	void process(const rf::rssi::buffer_t& buffer, Callback callback) {
-		auto p = buffer.p;
-		if( p == nullptr ) {
-			return;
-		}
+   public:
+    template <typename Callback>
+    void process(const rf::rssi::buffer_t& buffer, Callback callback) {
+        auto p = buffer.p;
+        if (p == nullptr) {
+            return;
+        }
 
-		if( statistics.count == 0 ) {
-			const auto value_0 = *p;
-			statistics.min = value_0;
-			statistics.max = value_0;
-		}
-		
-		const auto end = &p[buffer.count];
-		while(p < end) {
-			const uint32_t value = *(p++);
+        if (statistics.count == 0) {
+            const auto value_0 = *p;
+            statistics.min = value_0;
+            statistics.max = value_0;
+        }
 
-			if( statistics.min > value ) {
-				statistics.min = value;
-			}
-			if( statistics.max < value ) {
-				statistics.max = value;
-			}
+        const auto end = &p[buffer.count];
+        while (p < end) {
+            const uint32_t value = *(p++);
 
-			statistics.accumulator += value;
-		}
-		statistics.count += buffer.count;
+            if (statistics.min > value) {
+                statistics.min = value;
+            }
+            if (statistics.max < value) {
+                statistics.max = value;
+            }
 
-		const size_t samples_per_update = buffer.sampling_rate * update_interval;
+            statistics.accumulator += value;
+        }
+        statistics.count += buffer.count;
 
-		if( statistics.count >= samples_per_update ) {
-			callback(statistics);
-			statistics.accumulator = 0;
-			statistics.count = 0;
-		}
-	}
+        const size_t samples_per_update = buffer.sampling_rate * update_interval;
 
-private:
-	static constexpr float update_interval { 0.1f };
-	RSSIStatistics statistics { };
+        if (statistics.count >= samples_per_update) {
+            callback(statistics);
+            statistics.accumulator = 0;
+            statistics.count = 0;
+        }
+    }
+
+   private:
+    static constexpr float update_interval{0.1f};
+    RSSIStatistics statistics{};
 };
 
-#endif/*__RSSI_STATS_COLLECTOR_H__*/
+#endif /*__RSSI_STATS_COLLECTOR_H__*/

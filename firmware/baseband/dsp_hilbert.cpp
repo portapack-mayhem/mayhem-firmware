@@ -25,33 +25,57 @@
 namespace dsp {
 
 HilbertTransform::HilbertTransform() {
-	n = 0;
+    n = 0;
 
-	sos_i.configure(half_band_lpf_config);
-	sos_q.configure(half_band_lpf_config);
+    sos_i.configure(half_band_lpf_config);
+    sos_q.configure(half_band_lpf_config);
 }
 
-void HilbertTransform::execute(float in, float &out_i, float &out_q) {
-	float a = 0, b = 0;
-	
-	switch (n) {
-		case 0:		a = in;		b = 0;		break;
-		case 1:		a = 0;		b = -in;	break;
-		case 2:		a = -in;	b = 0;		break;
-		case 3:		a = 0;		b = in;		break;
-	}
-	
-	float i = sos_i.execute(a) * 2.0f;
-	float q = sos_q.execute(b) * 2.0f;
-	
-	switch (n) {
-		case 0:		out_i = i;	out_q = q;	break;
-		case 1:		out_i = -q;	out_q = i;	break;
-		case 2:		out_i = -i;	out_q = -q;	break;
-		case 3:		out_i = q;	out_q = -i;	break;
-	}
+void HilbertTransform::execute(float in, float& out_i, float& out_q) {
+    float a = 0, b = 0;
 
-	n = (n + 1) % 4;
+    switch (n) {
+        case 0:
+            a = in;
+            b = 0;
+            break;
+        case 1:
+            a = 0;
+            b = -in;
+            break;
+        case 2:
+            a = -in;
+            b = 0;
+            break;
+        case 3:
+            a = 0;
+            b = in;
+            break;
+    }
+
+    float i = sos_i.execute(a) * 2.0f;
+    float q = sos_q.execute(b) * 2.0f;
+
+    switch (n) {
+        case 0:
+            out_i = i;
+            out_q = q;
+            break;
+        case 1:
+            out_i = -q;
+            out_q = i;
+            break;
+        case 2:
+            out_i = -i;
+            out_q = -q;
+            break;
+        case 3:
+            out_i = q;
+            out_q = -i;
+            break;
+    }
+
+    n = (n + 1) % 4;
 }
 
 } /* namespace dsp */

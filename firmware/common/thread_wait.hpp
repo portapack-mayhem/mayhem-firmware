@@ -25,12 +25,12 @@
 #include <ch.h>
 
 class ThreadWait {
-public:
-	int sleep();
-	bool wake_from_interrupt(const int value);
+   public:
+    int sleep();
+    bool wake_from_interrupt(const int value);
 
-private:
-	Thread* thread_to_wake { nullptr };
+   private:
+    Thread* thread_to_wake{nullptr};
 };
 
-#endif/*__THREAD_WAIT_H__*/
+#endif /*__THREAD_WAIT_H__*/

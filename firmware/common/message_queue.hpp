@@ -30,89 +30,89 @@
 #include <ch.h>
 
 class MessageQueue {
-public:
-	MessageQueue() = delete;
-	MessageQueue(const MessageQueue&) = delete;
-	MessageQueue(MessageQueue&&) = delete;
-	
-	MessageQueue(
-		uint8_t* const data,
-		size_t k
-	) : fifo { data, k }
-	{
-		chMtxInit(&mutex_write);
-	}
+   public:
+    MessageQueue() = delete;
+    MessageQueue(const MessageQueue&) = delete;
+    MessageQueue(MessageQueue&&) = delete;
 
-	template<typename T>
-	bool push(const T& message) {
-		static_assert(sizeof(T) <= Message::MAX_SIZE, "Message::MAX_SIZE too small for message type");
-		static_assert(std::is_base_of<Message, T>::value, "type is not based on Message");
+    MessageQueue(
+        uint8_t* const data,
+        size_t k)
+        : fifo{data, k} {
+        chMtxInit(&mutex_write);
+    }
 
-		return push(&message, sizeof(message));
-	}
+    template <typename T>
+    bool push(const T& message) {
+        static_assert(sizeof(T) <= Message::MAX_SIZE, "Message::MAX_SIZE too small for message type");
+        static_assert(std::is_base_of<Message, T>::value, "type is not based on Message");
 
-	template<typename T>
-	bool push_and_wait(const T& message) {
-		const bool result = push(message);
-		if( result ) {
-			// TODO: More graceful method of waiting for empty? Maybe sleep for a bit?
-			while( !is_empty() );
-		}
-		return result;
-	}
+        return push(&message, sizeof(message));
+    }
 
-	template<typename HandlerFn>
-	void handle(HandlerFn handler) {
-		std::array<uint8_t, Message::MAX_SIZE> message_buffer;
-		while(Message* const message = peek(message_buffer)) {
-			handler(message);
-			skip();
-		}
-	}
+    template <typename T>
+    bool push_and_wait(const T& message) {
+        const bool result = push(message);
+        if (result) {
+            // TODO: More graceful method of waiting for empty? Maybe sleep for a bit?
+            while (!is_empty())
+                ;
+        }
+        return result;
+    }
 
-	bool is_empty() const {
-		return fifo.is_empty();
-	}
+    template <typename HandlerFn>
+    void handle(HandlerFn handler) {
+        std::array<uint8_t, Message::MAX_SIZE> message_buffer;
+        while (Message* const message = peek(message_buffer)) {
+            handler(message);
+            skip();
+        }
+    }
 
-	void reset() {
-		fifo.reset();
-	}
-	
-private:
-	FIFO<uint8_t> fifo;
-	Mutex mutex_write { };
+    bool is_empty() const {
+        return fifo.is_empty();
+    }
 
-	Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
-		Message* const p = reinterpret_cast<Message*>(buf.data());
-		return fifo.peek_r(buf.data(), buf.size()) ? p : nullptr;
-	}
+    void reset() {
+        fifo.reset();
+    }
 
-	bool skip() {
-		return fifo.skip();
-	}
+   private:
+    FIFO<uint8_t> fifo;
+    Mutex mutex_write{};
 
-	Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
-		Message* const p = reinterpret_cast<Message*>(buf.data());
-		return fifo.out_r(buf.data(), buf.size()) ? p : nullptr;
-	}
+    Message* peek(std::array<uint8_t, Message::MAX_SIZE>& buf) {
+        Message* const p = reinterpret_cast<Message*>(buf.data());
+        return fifo.peek_r(buf.data(), buf.size()) ? p : nullptr;
+    }
 
-	size_t len() const {
-		return fifo.len();
-	}
+    bool skip() {
+        return fifo.skip();
+    }
 
-	bool push(const void* const buf, const size_t len) {
-		chMtxLock(&mutex_write);
-		const auto result = fifo.in_r(buf, len);
-		chMtxUnlock();
+    Message* pop(std::array<uint8_t, Message::MAX_SIZE>& buf) {
+        Message* const p = reinterpret_cast<Message*>(buf.data());
+        return fifo.out_r(buf.data(), buf.size()) ? p : nullptr;
+    }
 
-		const bool success = (result == len);
-		if( success ) {
-			signal();
-		}
-		return success;
-	}
+    size_t len() const {
+        return fifo.len();
+    }
 
-	void signal();
+    bool push(const void* const buf, const size_t len) {
+        chMtxLock(&mutex_write);
+        const auto result = fifo.in_r(buf, len);
+        chMtxUnlock();
+
+        const bool success = (result == len);
+        if (success) {
+            signal();
+        }
+        return success;
+    }
+
+    void signal();
 };
 
-#endif/*__MESSAGE_QUEUE_H__*/
+#endif /*__MESSAGE_QUEUE_H__*/

@@ -26,32 +26,31 @@
 #define __DE_BRUIJN_H__
 
 // n from 3 to 16
-const uint32_t de_bruijn_polys[14] {
-	0b0000000000000101,
-	0b0000000000001001,
-	0b0000000000011011,
-	0b0000000000110011,
-	0b0000000001010011,
-	0b0000000010001101,
-	0b0000000100100001,
-	0b0000001000100001,
-	0b0000010001100001,
-	0b0000110101000011,
-	0b0001001001100101,
-	0b0010101100000011,
-	0b0101000000001001,
-	0b1010000101000101
-};
+const uint32_t de_bruijn_polys[14]{
+    0b0000000000000101,
+    0b0000000000001001,
+    0b0000000000011011,
+    0b0000000000110011,
+    0b0000000001010011,
+    0b0000000010001101,
+    0b0000000100100001,
+    0b0000001000100001,
+    0b0000010001100001,
+    0b0000110101000011,
+    0b0001001001100101,
+    0b0010101100000011,
+    0b0101000000001001,
+    0b1010000101000101};
 
 struct de_bruijn {
-public:
-	size_t init(const uint32_t n);
-	uint32_t compute(const uint32_t steps);
+   public:
+    size_t init(const uint32_t n);
+    uint32_t compute(const uint32_t steps);
 
-private:
-	uint32_t length { };
-	uint32_t poly { };
-	uint32_t shift_register { };
+   private:
+    uint32_t length{};
+    uint32_t poly{};
+    uint32_t shift_register{};
 };
 
-#endif/*__DE_BRUIJN_H__*/
+#endif /*__DE_BRUIJN_H__*/

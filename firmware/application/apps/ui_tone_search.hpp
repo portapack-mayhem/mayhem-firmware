@@ -28,46 +28,42 @@
 namespace ui {
 
 class ToneSearchView : public View {
-public:
-	ToneSearchView(NavigationView& nav);
-	~ToneSearchView();
-	
-	void focus() override;
-	
-	std::string title() const override { return "Tone search"; };
+   public:
+    ToneSearchView(NavigationView& nav);
+    ~ToneSearchView();
 
-private:
-	NavigationView& nav_;
-	
-	Labels labels {
-		{ { 0 * 8, 0 * 8 }, "LNA:   VGA:   AMP:", Color::light_grey() }
-	};
-	
-	LNAGainField field_lna {
-		{ 4 * 8, 0 * 16 }
-	};
-	
-	VGAGainField field_vga {
-		{ 11 * 8, 0 * 16 }
-	};
-	
-	RFAmpField field_rf_amp {
-		{ 18 * 8, 0 * 16 }
-	};
-	
-	/*
-	MessageHandlerRegistration message_handler_frame_sync {
-		Message::ID::DisplayFrameSync,
-		[this](const Message* const) {
-			if( this->fifo ) {
-				ChannelSpectrum channel_spectrum;
-				while( fifo->out(channel_spectrum) ) {
-					this->on_channel_spectrum(channel_spectrum);
-				}
-			}
-			this->do_timers();
-		}
-	};*/
+    void focus() override;
+
+    std::string title() const override { return "Tone search"; };
+
+   private:
+    NavigationView& nav_;
+
+    Labels labels{
+        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
+
+    LNAGainField field_lna{
+        {4 * 8, 0 * 16}};
+
+    VGAGainField field_vga{
+        {11 * 8, 0 * 16}};
+
+    RFAmpField field_rf_amp{
+        {18 * 8, 0 * 16}};
+
+    /*
+        MessageHandlerRegistration message_handler_frame_sync {
+                Message::ID::DisplayFrameSync,
+                [this](const Message* const) {
+                        if( this->fifo ) {
+                                ChannelSpectrum channel_spectrum;
+                                while( fifo->out(channel_spectrum) ) {
+                                        this->on_channel_spectrum(channel_spectrum);
+                                }
+                        }
+                        this->do_timers();
+                }
+        };*/
 };
 
 } /* namespace ui */

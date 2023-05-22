@@ -23,17 +23,24 @@
 
 #include "utility.hpp"
 
+// Returns TRUE if button state changed (after debouncing)
 bool Debounce::feed(const uint8_t bit) {
-	history_ = (history_ << 1) | (bit & 1);
+    history_ = (history_ << 1) | (bit & 1);
 
-	if( history_ == 0b00001111 ) {
-		state_ = 1;
-		return true;
-	}
-	if( history_ == 0b11110000 ) {
-		state_ = 0;
-		return true;
-	}
-
-	return false;
+    if (state_ == 0) {
+        // Previous button state was 0 (released);
+        // Has button been held for DEBOUNCE_COUNT ticks?
+        if ((history_ & DEBOUNCE_MASK) == DEBOUNCE_MASK) {
+            state_ = 1;
+            return true;
+        }
+    } else {
+        // Previous button state was 1 (pressed);
+        // Has button been released for DEBOUNCE_COUNT ticks?
+        if ((history_ & DEBOUNCE_MASK) == 0) {
+            state_ = 0;
+            return true;
+        }
+    }
+    return false;
 }

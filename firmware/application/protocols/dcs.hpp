@@ -33,4 +33,4 @@ uint32_t dcs_word(uint32_t code);
 
 }
 
-#endif/*__DCS_H_*/
+#endif /*__DCS_H_*/

@@ -32,60 +32,56 @@
 namespace ais {
 
 struct DateTime {
-	uint16_t year;
-	uint8_t month;
-	uint8_t day;
-	uint8_t hour;
-	uint8_t minute;
-	uint8_t second;
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    uint8_t hour;
+    uint8_t minute;
+    uint8_t second;
 };
 
-template<size_t FieldSize, int32_t DegMax, uint32_t NAValue>
+template <size_t FieldSize, int32_t DegMax, uint32_t NAValue>
 struct LatLonBase {
-	
-	constexpr LatLonBase(
-	) : LatLonBase { raw_not_available }
-	{
-	}
-	
-	constexpr LatLonBase(
-		const int32_t raw
-	) : raw_ { raw }
-	{
-	}
+    constexpr LatLonBase()
+        : LatLonBase{raw_not_available} {
+    }
 
-	constexpr LatLonBase(
-		const LatLonBase& other
-	) : raw_ { other.raw_ }
-	{
-	}
-	
-	LatLonBase& operator=( const LatLonBase &)=default;
+    constexpr LatLonBase(
+        const int32_t raw)
+        : raw_{raw} {
+    }
 
-	int32_t normalized() const {
-		return static_cast<int32_t>(raw() << sign_extend_shift) / (1 << sign_extend_shift);
-	}
+    constexpr LatLonBase(
+        const LatLonBase& other)
+        : raw_{other.raw_} {
+    }
 
-	int32_t raw() const {
-		return raw_;
-	}
+    LatLonBase& operator=(const LatLonBase&) = default;
 
-	bool is_not_available() const {
-		return raw() == raw_not_available;
-	}
+    int32_t normalized() const {
+        return static_cast<int32_t>(raw() << sign_extend_shift) / (1 << sign_extend_shift);
+    }
 
-	bool is_valid() const {
-		return (normalized() >= raw_valid_min) && (normalized() <= raw_valid_max);
-	}
+    int32_t raw() const {
+        return raw_;
+    }
 
-private:
-	int32_t raw_;
+    bool is_not_available() const {
+        return raw() == raw_not_available;
+    }
 
-	static constexpr size_t sign_extend_shift = 32 - FieldSize;
+    bool is_valid() const {
+        return (normalized() >= raw_valid_min) && (normalized() <= raw_valid_max);
+    }
 
-	static constexpr int32_t raw_not_available = NAValue;
-	static constexpr int32_t raw_valid_min = -DegMax * 60 * 10000;
-	static constexpr int32_t raw_valid_max =  DegMax * 60 * 10000;
+   private:
+    int32_t raw_;
+
+    static constexpr size_t sign_extend_shift = 32 - FieldSize;
+
+    static constexpr int32_t raw_not_available = NAValue;
+    static constexpr int32_t raw_valid_min = -DegMax * 60 * 10000;
+    static constexpr int32_t raw_valid_max = DegMax * 60 * 10000;
 };
 
 using Latitude = LatLonBase<27, 90, 0x3412140>;
@@ -99,50 +95,49 @@ using TrueHeading = uint16_t;
 using MMSI = uint32_t;
 
 class Packet {
-public:
-	constexpr Packet(
-		const baseband::Packet& packet
-	) : packet_ { packet },
-		field_ { packet_ }
-	{
-	}
+   public:
+    constexpr Packet(
+        const baseband::Packet& packet)
+        : packet_{packet},
+          field_{packet_} {
+    }
 
-	size_t length() const;
-	
-	bool is_valid() const;
+    size_t length() const;
 
-	Timestamp received_at() const;
+    bool is_valid() const;
 
-	uint32_t message_id() const;
-	MMSI user_id() const;
-	MMSI source_id() const;
+    Timestamp received_at() const;
 
-	uint32_t read(const size_t start_bit, const size_t length) const;
+    uint32_t message_id() const;
+    MMSI user_id() const;
+    MMSI source_id() const;
 
-	std::string text(const size_t start_bit, const size_t character_count) const;
+    uint32_t read(const size_t start_bit, const size_t length) const;
 
-	DateTime datetime(const size_t start_bit) const;
+    std::string text(const size_t start_bit, const size_t character_count) const;
 
-	Latitude latitude(const size_t start_bit) const;
-	Longitude longitude(const size_t start_bit) const;
+    DateTime datetime(const size_t start_bit) const;
 
-	bool crc_ok() const;
+    Latitude latitude(const size_t start_bit) const;
+    Longitude longitude(const size_t start_bit) const;
 
-private:
-	using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
-	using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
-	
-	const baseband::Packet packet_;
-	const Reader field_;
+    bool crc_ok() const;
 
-	const size_t fcs_length = 16;
+   private:
+    using Reader = FieldReader<baseband::Packet, BitRemapByteReverse>;
+    using CRCReader = FieldReader<baseband::Packet, BitRemapNone>;
 
-	size_t data_and_fcs_length() const;
-	size_t data_length() const;
+    const baseband::Packet packet_;
+    const Reader field_;
 
-	bool length_valid() const;
+    const size_t fcs_length = 16;
+
+    size_t data_and_fcs_length() const;
+    size_t data_length() const;
+
+    bool length_valid() const;
 };
 
 } /* namespace ais */
 
-#endif/*__AIS_PACKET_H__*/
+#endif /*__AIS_PACKET_H__*/

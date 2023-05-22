@@ -32,8 +32,8 @@ using CPLD = ::cpld::xilinx::XC2C64A;
 
 extern const CPLD::verify_blocks_t verify_blocks;
 
-} /* namespace hackrf */
+}  // namespace cpld
 } /* namespace one */
-} /* namespace cpld */
+}  // namespace hackrf
 
-#endif/*__HACKRF_CPLD_DATA_H__*/
+#endif /*__HACKRF_CPLD_DATA_H__*/

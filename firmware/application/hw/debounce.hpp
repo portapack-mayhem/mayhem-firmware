@@ -24,17 +24,21 @@
 
 #include <cstdint>
 
-class Debounce {
-public:
-	bool feed(const uint8_t bit);
-	
-	uint8_t state() const {
-		return state_;
-	}
+// consecutive # of times button input must be same (<=8)
+#define DEBOUNCE_COUNT 4
+#define DEBOUNCE_MASK ((1 << DEBOUNCE_COUNT) - 1)
 
-private:
-	uint8_t history_ { 0 };
-	uint8_t state_ { 0 };
+class Debounce {
+   public:
+    bool feed(const uint8_t bit);
+
+    uint8_t state() const {
+        return state_;
+    }
+
+   private:
+    uint8_t history_{0};
+    uint8_t state_{0};
 };
 
-#endif/*__DEBOUNCE_H__*/
+#endif /*__DEBOUNCE_H__*/

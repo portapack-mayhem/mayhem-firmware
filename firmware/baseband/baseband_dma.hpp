@@ -33,9 +33,8 @@ namespace dma {
 
 void init();
 void configure(
-	baseband::sample_t* const buffer_base,
-	const baseband::Direction direction
-);
+    baseband::sample_t* const buffer_base,
+    const baseband::Direction direction);
 
 void enable(const baseband::Direction direction);
 bool is_enabled();
@@ -47,4 +46,4 @@ baseband::buffer_t wait_for_buffer();
 } /* namespace dma */
 } /* namespace baseband */
 
-#endif/*__BASEBAND_DMA_H__*/
+#endif /*__BASEBAND_DMA_H__*/

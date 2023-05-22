@@ -24,12 +24,21 @@
 
 #include "signal.hpp"
 
+#include "lpc43xx_cpp.hpp"
+using namespace lpc43xx;
+
 namespace rtc_time {
 
 extern Signal<> signal_tick_second;
 
 void on_tick_second();
 
+/* Returns the current RTCTime from the RTC. */
+rtc::RTC now();
+
+/* Returns the current RTCTime from the RTC. */
+rtc::RTC now(rtc::RTC& out_datetime);
+
 } /* namespace rtc_time */
 
-#endif/*__RTC_TIME_H__*/
+#endif /*__RTC_TIME_H__*/

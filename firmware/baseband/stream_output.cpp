@@ -25,53 +25,52 @@
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
-StreamOutput::StreamOutput(ReplayConfig* const config) :
-	fifo_buffers_empty { buffers_empty.data(), buffer_count_max_log2 },
-	fifo_buffers_full { buffers_full.data(), buffer_count_max_log2 },
-	config { config },
-	data { std::make_unique<uint8_t[]>(config->read_size * config->buffer_count) }
-{
-	config->fifo_buffers_empty = &fifo_buffers_empty;
-	config->fifo_buffers_full = &fifo_buffers_full;
+StreamOutput::StreamOutput(ReplayConfig* const config)
+    : fifo_buffers_empty{buffers_empty.data(), buffer_count_max_log2},
+      fifo_buffers_full{buffers_full.data(), buffer_count_max_log2},
+      config{config},
+      data{std::make_unique<uint8_t[]>(config->read_size * config->buffer_count)} {
+    config->fifo_buffers_empty = &fifo_buffers_empty;
+    config->fifo_buffers_full = &fifo_buffers_full;
 
-	for(size_t i=0; i<config->buffer_count; i++) {
-		// Set buffers to point consecutively in previously allocated unique_ptr "data"
-		buffers[i] = { &(data.get()[i * config->read_size]), config->read_size };
-		// Put all buffer pointers in the "empty buffer" FIFO
-		fifo_buffers_empty.in(&buffers[i]);
-	}
+    for (size_t i = 0; i < config->buffer_count; i++) {
+        // Set buffers to point consecutively in previously allocated unique_ptr "data"
+        buffers[i] = {&(data.get()[i * config->read_size]), config->read_size};
+        // Put all buffer pointers in the "empty buffer" FIFO
+        fifo_buffers_empty.in(&buffers[i]);
+    }
 }
 
 size_t StreamOutput::read(void* const data, const size_t length) {
-	uint8_t* p = static_cast<uint8_t*>(data);
-	size_t read = 0;
+    uint8_t* p = static_cast<uint8_t*>(data);
+    size_t read = 0;
 
-	while( read < length ) {
-		if( !active_buffer ) {
-			// We need a full buffer...
-			if( !fifo_buffers_full.out(active_buffer) ) {
-				// ...but none are available. Hole in transmission (inform app and stop ?)
-				break;
-			}
-		}
-		
-		const auto remaining = length - read;
-		read += active_buffer->read(&p[read], remaining);
+    while (read < length) {
+        if (!active_buffer) {
+            // We need a full buffer...
+            if (!fifo_buffers_full.out(active_buffer)) {
+                // ...but none are available. Hole in transmission (inform app and stop ?)
+                break;
+            }
+        }
 
-		if( active_buffer->is_empty() ) {
-			if( !fifo_buffers_empty.in(active_buffer) ) {
-				// Empty buffers FIFO is already full.
-				// This should never happen if the number of buffers is less
-				// than the capacity of the FIFO.
-				break;
-			}
-			// Tell M0 (IRQ) that a buffer has been consumed.
-			active_buffer = nullptr;
-			creg::m4txevent::assert_event();
-		}
-	}
+        const auto remaining = length - read;
+        read += active_buffer->read(&p[read], remaining);
 
-	config->baseband_bytes_received += length;
+        if (active_buffer->is_empty()) {
+            if (!fifo_buffers_empty.in(active_buffer)) {
+                // Empty buffers FIFO is already full.
+                // This should never happen if the number of buffers is less
+                // than the capacity of the FIFO.
+                break;
+            }
+            // Tell M0 (IRQ) that a buffer has been consumed.
+            active_buffer = nullptr;
+            creg::m4txevent::assert_event();
+        }
+    }
 
-	return read;
+    config->baseband_bytes_received += length;
+
+    return read;
 }

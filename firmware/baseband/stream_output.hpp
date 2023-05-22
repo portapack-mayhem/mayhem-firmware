@@ -32,28 +32,28 @@
 #include <memory>
 
 class StreamOutput {
-public:
-	StreamOutput(ReplayConfig* const config);
-	
-	StreamOutput(const StreamOutput&) = delete;
-	StreamOutput(StreamOutput&&) = delete;
-	StreamOutput& operator=(const StreamOutput&) = delete;
-	StreamOutput& operator=(StreamOutput&&) = delete;
+   public:
+    StreamOutput(ReplayConfig* const config);
 
-	size_t read(void* const data, const size_t length);
+    StreamOutput(const StreamOutput&) = delete;
+    StreamOutput(StreamOutput&&) = delete;
+    StreamOutput& operator=(const StreamOutput&) = delete;
+    StreamOutput& operator=(StreamOutput&&) = delete;
 
-private:
-	static constexpr size_t buffer_count_max_log2 = 3;
-	static constexpr size_t buffer_count_max = 1U << buffer_count_max_log2;
-	
-	FIFO<StreamBuffer*> fifo_buffers_empty;
-	FIFO<StreamBuffer*> fifo_buffers_full;
-	std::array<StreamBuffer, buffer_count_max> buffers { };
-	std::array<StreamBuffer*, buffer_count_max> buffers_empty { };
-	std::array<StreamBuffer*, buffer_count_max> buffers_full { };
-	StreamBuffer* active_buffer { nullptr };
-	ReplayConfig* const config { nullptr };
-	std::unique_ptr<uint8_t[]> data { };
+    size_t read(void* const data, const size_t length);
+
+   private:
+    static constexpr size_t buffer_count_max_log2 = 3;
+    static constexpr size_t buffer_count_max = 1U << buffer_count_max_log2;
+
+    FIFO<StreamBuffer*> fifo_buffers_empty;
+    FIFO<StreamBuffer*> fifo_buffers_full;
+    std::array<StreamBuffer, buffer_count_max> buffers{};
+    std::array<StreamBuffer*, buffer_count_max> buffers_empty{};
+    std::array<StreamBuffer*, buffer_count_max> buffers_full{};
+    StreamBuffer* active_buffer{nullptr};
+    ReplayConfig* const config{nullptr};
+    std::unique_ptr<uint8_t[]> data{};
 };
 
-#endif/*__STREAM_OUTPUT_H__*/
+#endif /*__STREAM_OUTPUT_H__*/

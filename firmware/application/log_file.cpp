@@ -20,18 +20,21 @@
  */
 
 #include "log_file.hpp"
-
 #include "string_format.hpp"
 
+Optional<File::Error> LogFile::write_entry(const std::string& entry) {
+    return write_entry(rtc_time::now(), entry);
+}
+
 Optional<File::Error> LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
-	std::string timestamp = to_string_timestamp(datetime);
-	return write_line(timestamp + " " + entry);
+    std::string timestamp = to_string_timestamp(datetime);
+    return write_line(timestamp + " " + entry);
 }
 
 Optional<File::Error> LogFile::write_line(const std::string& message) {
-	auto error = file.write_line(message);
-	if( !error.is_valid() ) {
-		file.sync();
-	}
-	return error;
+    auto error = file.write_line(message);
+    if (!error.is_valid()) {
+        file.sync();
+    }
+    return error;
 }

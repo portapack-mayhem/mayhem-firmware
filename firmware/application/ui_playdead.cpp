@@ -27,57 +27,56 @@
 using namespace portapack;
 
 namespace ui {
-	
+
 void PlayDeadView::focus() {
-	button_seq_entry.focus();
+    button_seq_entry.focus();
 }
 
 void PlayDeadView::paint(Painter& painter) {
-	if (persistent_memory::config_login()) {
-		// Blank the whole display
-		painter.fill_rectangle(
-			display.screen_rect(),
-			style().background
-		);
-	}
+    if (persistent_memory::config_login()) {
+        // Blank the whole display
+        painter.fill_rectangle(
+            display.screen_rect(),
+            style().background);
+    }
 }
 
 PlayDeadView::PlayDeadView(NavigationView& nav) {
-	rtc::RTC datetime;
-	
-	persistent_memory::set_playing_dead(0x5920C1DF);		// Enable
-	
-	add_children({
-		&text_playdead1,
-		&text_playdead2,
-		&text_playdead3,
-		&button_seq_entry,
-	});
-	
-	// Seed from RTC
-	rtcGetTime(&RTCD1, &datetime);
-	text_playdead2.set("0x" + to_string_hex(lfsr_iterate(datetime.second()), 6) + "00");
-	
-	text_playdead3.hidden(true);
-	
-	button_seq_entry.on_dir = [this](Button&, KeyEvent key){
-		sequence = (sequence << 3) | (static_cast<std::underlying_type<KeyEvent>::type>(key) + 1);
-		return true;
-	};
-	
-	button_seq_entry.on_select = [this, &nav](Button&){
-		if (sequence == persistent_memory::playdead_sequence()) {
-			persistent_memory::set_playing_dead(0x82175E23);		// Disable
-			if (persistent_memory::config_login()) {
-				text_playdead3.hidden(false);
-			} else {
-				nav.pop();
-				nav.push<SystemMenuView>();
-			}
-		} else {
-			sequence = 0;
-		}
-	};
+    rtc::RTC datetime;
+
+    persistent_memory::set_playing_dead(0x5920C1DF);  // Enable
+
+    add_children({
+        &text_playdead1,
+        &text_playdead2,
+        &text_playdead3,
+        &button_seq_entry,
+    });
+
+    // Seed from RTC
+    rtcGetTime(&RTCD1, &datetime);
+    text_playdead2.set("0x" + to_string_hex(lfsr_iterate(datetime.second()), 6) + "00");
+
+    text_playdead3.hidden(true);
+
+    button_seq_entry.on_dir = [this](Button&, KeyEvent key) {
+        sequence = (sequence << 3) | (static_cast<std::underlying_type<KeyEvent>::type>(key) + 1);
+        return true;
+    };
+
+    button_seq_entry.on_select = [this, &nav](Button&) {
+        if (sequence == persistent_memory::playdead_sequence()) {
+            persistent_memory::set_playing_dead(0x82175E23);  // Disable
+            if (persistent_memory::config_login()) {
+                text_playdead3.hidden(false);
+            } else {
+                nav.pop();
+                nav.push<SystemMenuView>();
+            }
+        } else {
+            sequence = 0;
+        }
+    };
 }
 
 } /* namespace ui */

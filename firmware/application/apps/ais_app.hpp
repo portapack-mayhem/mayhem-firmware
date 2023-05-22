@@ -50,64 +50,62 @@ using namespace lpc43xx;
 #include "recent_entries.hpp"
 
 struct AISPosition {
-	rtc::RTC timestamp { };
-	ais::Latitude latitude { };
-	ais::Longitude longitude { };
-	ais::RateOfTurn rate_of_turn { -128 };
-	ais::SpeedOverGround speed_over_ground { 1023 };
-	ais::CourseOverGround course_over_ground { 3600 };
-	ais::TrueHeading true_heading { 511 };
+    rtc::RTC timestamp{};
+    ais::Latitude latitude{};
+    ais::Longitude longitude{};
+    ais::RateOfTurn rate_of_turn{-128};
+    ais::SpeedOverGround speed_over_ground{1023};
+    ais::CourseOverGround course_over_ground{3600};
+    ais::TrueHeading true_heading{511};
 };
 
 struct AISRecentEntry {
-	using Key = ais::MMSI;
+    using Key = ais::MMSI;
 
-	static constexpr Key invalid_key = 0xffffffff;
+    static constexpr Key invalid_key = 0xffffffff;
 
-	ais::MMSI mmsi;
-	std::string name;
-	std::string call_sign;
-	std::string destination;
-	AISPosition last_position;
-	size_t received_count;
-	int8_t navigational_status;
+    ais::MMSI mmsi;
+    std::string name;
+    std::string call_sign;
+    std::string destination;
+    AISPosition last_position;
+    size_t received_count;
+    int8_t navigational_status;
 
-	AISRecentEntry(
-	) : AISRecentEntry { 0 }
-	{
-	}
+    AISRecentEntry()
+        : AISRecentEntry{0} {
+    }
 
-	AISRecentEntry(
-		const ais::MMSI& mmsi
-	) : mmsi { mmsi },
-		name { },
-		call_sign { },
-		destination { },
-		last_position { },
-		received_count { 0 },
-		navigational_status { -1 }
-	{
-	}
+    AISRecentEntry(
+        const ais::MMSI& mmsi)
+        : mmsi{mmsi},
+          name{},
+          call_sign{},
+          destination{},
+          last_position{},
+          received_count{0},
+          navigational_status{-1} {
+    }
 
-	Key key() const {
-		return mmsi;
-	}
+    Key key() const {
+        return mmsi;
+    }
 
-	void update(const ais::Packet& packet);
+    void update(const ais::Packet& packet);
 };
 
 using AISRecentEntries = RecentEntries<AISRecentEntry>;
 
 class AISLogger {
-public:
-	Optional<File::Error> append(const std::filesystem::path& filename) {
-		return log_file.append(filename);
-	}
-	
-	void on_packet(const ais::Packet& packet);
+   public:
+    Optional<File::Error> append(const std::filesystem::path& filename) {
+        return log_file.append(filename);
+    }
 
-private:
-	LogFile log_file { };
+    void on_packet(const ais::Packet& packet);
+
+   private:
+    LogFile log_file{};
 };
 
 namespace ui {
@@ -115,142 +113,132 @@ namespace ui {
 using AISRecentEntriesView = RecentEntriesView<AISRecentEntries>;
 
 class AISRecentEntryDetailView : public View {
-public:
-	std::function<void(void)> on_close { };
+   public:
+    std::function<void(void)> on_close{};
 
-	AISRecentEntryDetailView(NavigationView& nav);
+    AISRecentEntryDetailView(NavigationView& nav);
 
-	void set_entry(const AISRecentEntry& new_entry);
-	const AISRecentEntry& entry() const { return entry_; };
+    void set_entry(const AISRecentEntry& new_entry);
+    const AISRecentEntry& entry() const { return entry_; };
 
-	void update_position();
-	void focus() override;
-	void paint(Painter&) override;
+    void update_position();
+    void focus() override;
+    void paint(Painter&) override;
 
-    AISRecentEntryDetailView(const AISRecentEntryDetailView&Entry);
-    AISRecentEntryDetailView &operator=(const AISRecentEntryDetailView&Entry);
+    AISRecentEntryDetailView(const AISRecentEntryDetailView& Entry);
+    AISRecentEntryDetailView& operator=(const AISRecentEntryDetailView& Entry);
 
-private:
-	AISRecentEntry entry_ { };
+   private:
+    AISRecentEntry entry_{};
 
-	Button button_done {
-		{ 125, 224, 96, 24 },
-		"Done"
-	};
-	Button button_see_map {
-		{ 19, 224, 96, 24 },
-		"See on map"
-	};
-	GeoMapView* geomap_view { nullptr };
-	bool send_updates { false };
+    Button button_done{
+        {125, 224, 96, 24},
+        "Done"};
+    Button button_see_map{
+        {19, 224, 96, 24},
+        "See on map"};
+    GeoMapView* geomap_view{nullptr};
+    bool send_updates{false};
 
-	Rect draw_field(
-		Painter& painter,
-		const Rect& draw_rect,
-		const Style& style,
-		const std::string& label,
-		const std::string& value
-	);
+    Rect draw_field(
+        Painter& painter,
+        const Rect& draw_rect,
+        const Style& style,
+        const std::string& label,
+        const std::string& value);
 };
 
 class AISAppView : public View {
-public:
-	AISAppView(NavigationView& nav);
-	~AISAppView();
+   public:
+    AISAppView(NavigationView& nav);
+    ~AISAppView();
 
-	void set_parent_rect(const Rect new_parent_rect) override;
+    void set_parent_rect(const Rect new_parent_rect) override;
 
-	// Prevent painting of region covered entirely by a child.
-	// TODO: Add flag to View that specifies view does not need to be cleared before painting.
-	void paint(Painter&) override { };
+    // Prevent painting of region covered entirely by a child.
+    // TODO: Add flag to View that specifies view does not need to be cleared before painting.
+    void paint(Painter&) override{};
 
-	void focus() override;
+    void focus() override;
 
-	std::string title() const override { return "AIS RX"; };
+    std::string title() const override { return "AIS RX"; };
 
-private:
-	static constexpr uint32_t initial_target_frequency = 162025000;
-	static constexpr uint32_t sampling_rate = 2457600;
-	static constexpr uint32_t baseband_bandwidth = 1750000;
+   private:
+    static constexpr uint32_t initial_target_frequency = 162025000;
+    static constexpr uint32_t sampling_rate = 2457600;
+    static constexpr uint32_t baseband_bandwidth = 1750000;
 
+    // app save settings
+    std::app_settings settings{};
+    std::app_settings::AppSettings app_settings{};
 
-	// app save settings
-	std::app_settings 		settings { }; 		
-	std::app_settings::AppSettings 	app_settings { };
+    NavigationView& nav_;
 
-	NavigationView& nav_;
+    AISRecentEntries recent{};
+    std::unique_ptr<AISLogger> logger{};
 
-	AISRecentEntries recent { };
-	std::unique_ptr<AISLogger> logger { };
+    const RecentEntriesColumns columns{{
+        {"MMSI", 9},
+        {"Name/Call", 20},
+    }};
+    AISRecentEntriesView recent_entries_view{columns, recent};
+    AISRecentEntryDetailView recent_entry_detail_view{nav_};
 
-	const RecentEntriesColumns columns { {
-		{ "MMSI", 9 },
-		{ "Name/Call", 20 },
-	} };
-	AISRecentEntriesView recent_entries_view { columns, recent };
-	AISRecentEntryDetailView recent_entry_detail_view { nav_ };
+    static constexpr auto header_height = 1 * 16;
 
-	static constexpr auto header_height = 1 * 16;
+    Text label_channel{
+        {0 * 8, 0 * 16, 2 * 8, 1 * 16},
+        "Ch"};
 
-	Text label_channel {
-		{ 0 * 8, 0 * 16, 2 * 8, 1 * 16 },
-		"Ch"
-	};
+    OptionsField options_channel{
+        {3 * 8, 0 * 16},
+        3,
+        {
+            {"87B", 161975000},
+            {"88B", 162025000},
+        }};
 
-	OptionsField options_channel {
-		{ 3 * 8, 0 * 16 },
-		3,
-		{
-			{ "87B", 161975000 },
-			{ "88B", 162025000 },
-		}
-	};
+    RFAmpField field_rf_amp{
+        {13 * 8, 0 * 16}};
 
-	RFAmpField field_rf_amp {
-		{ 13 * 8, 0 * 16 }
-	};
+    LNAGainField field_lna{
+        {15 * 8, 0 * 16}};
 
-	LNAGainField field_lna {
-		{ 15 * 8, 0 * 16 }
-	};
+    VGAGainField field_vga{
+        {18 * 8, 0 * 16}};
 
-	VGAGainField field_vga {
-		{ 18 * 8, 0 * 16 }
-	};
+    RSSI rssi{
+        {21 * 8, 0, 6 * 8, 4},
+    };
 
-	RSSI rssi {
-		{ 21 * 8, 0, 6 * 8, 4 },
-	};
+    Channel channel{
+        {21 * 8, 5, 6 * 8, 4},
+    };
 
-	Channel channel {
-		{ 21 * 8, 5, 6 * 8, 4 },
-	};
+    MessageHandlerRegistration message_handler_packet{
+        Message::ID::AISPacket,
+        [this](Message* const p) {
+            const auto message = static_cast<const AISPacketMessage*>(p);
+            const ais::Packet packet{message->packet};
+            if (packet.is_valid()) {
+                this->on_packet(packet);
+            }
+        }};
 
-	MessageHandlerRegistration message_handler_packet {
-		Message::ID::AISPacket,
-		[this](Message* const p) {
-			const auto message = static_cast<const AISPacketMessage*>(p);
-			const ais::Packet packet { message->packet };
-			if( packet.is_valid() ) {
-				this->on_packet(packet);
-			}
-		}
-	};
+    uint32_t target_frequency_ = initial_target_frequency;
 
-	uint32_t target_frequency_ = initial_target_frequency;
+    void on_packet(const ais::Packet& packet);
+    void on_show_list();
+    void on_show_detail(const AISRecentEntry& entry);
 
-	void on_packet(const ais::Packet& packet);
-	void on_show_list();
-	void on_show_detail(const AISRecentEntry& entry);
+    void on_frequency_changed(const uint32_t new_target_frequency);
 
-	void on_frequency_changed(const uint32_t new_target_frequency);
+    uint32_t target_frequency() const;
+    void set_target_frequency(const uint32_t new_value);
 
-	uint32_t target_frequency() const;
-	void set_target_frequency(const uint32_t new_value);
-
-	uint32_t tuning_frequency() const;
+    uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */
 
-#endif/*__AIS_APP_H__*/
+#endif /*__AIS_APP_H__*/

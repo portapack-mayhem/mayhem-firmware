@@ -28,11 +28,13 @@
 
 namespace aprs {
 
-	void make_aprs_frame(
-		const char * src_address, const uint32_t src_ssid,
-		const char * dest_address, const uint32_t dest_ssid,
-		const std::string& payload);
+void make_aprs_frame(
+    const char* src_address,
+    const uint32_t src_ssid,
+    const char* dest_address,
+    const uint32_t dest_ssid,
+    const std::string& payload);
 
 } /* namespace aprs */
 
-#endif/*__APRS_H__*/
+#endif /*__APRS_H__*/

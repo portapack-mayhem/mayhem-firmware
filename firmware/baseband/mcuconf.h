@@ -37,12 +37,12 @@
  */
 
 //#define LPC_ADC0_IRQ_PRIORITY               2
-#define LPC_DMA_IRQ_PRIORITY                3
+#define LPC_DMA_IRQ_PRIORITY 3
 //#define LPC_ADC1_IRQ_PRIORITY               4
 
-#define LPC43XX_M0APPTXEVENT_IRQ_PRIORITY   4
+#define LPC43XX_M0APPTXEVENT_IRQ_PRIORITY 4
 
 /* M4 is initialized by M0, which has already started PLL1 */
 #if !defined(LPC43XX_M4_CLK) || defined(__DOXYGEN__)
-#define LPC43XX_M4_CLK                      200000000
+#define LPC43XX_M4_CLK 200000000
 #endif

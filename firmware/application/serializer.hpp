@@ -30,38 +30,37 @@
 namespace serializer {
 
 enum parity_enum : uint8_t {
-	NONE = 0,
-	EVEN = 1,
-	ODD = 2
+    NONE = 0,
+    EVEN = 1,
+    ODD = 2
 };
 
 enum order_enum : uint8_t {
-	MSB_FIRST = 0,
-	LSB_FIRST = 1
+    MSB_FIRST = 0,
+    LSB_FIRST = 1
 };
 
 struct serial_format_t {
-	uint8_t data_bits;
-	parity_enum parity;
-	uint8_t stop_bits;
-	order_enum bit_order;
+    uint8_t data_bits;
+    parity_enum parity;
+    uint8_t stop_bits;
+    order_enum bit_order;
 
-	constexpr serial_format_t() :
-		data_bits(7),
-		parity(parity_enum::EVEN),
-		stop_bits(1),
-		bit_order(order_enum::LSB_FIRST)
-	{
-	}
+    constexpr serial_format_t()
+        : data_bits(7),
+          parity(parity_enum::EVEN),
+          stop_bits(1),
+          bit_order(order_enum::LSB_FIRST) {
+    }
 };
 
 size_t symbol_count(const serial_format_t& serial_format);
 
-	/*{ "7-Even-1 R", "7E1", 7, EVEN,	1, false, false },
-	{ "7E1 LUT   ", "7Ea", 7, EVEN,	1, true, true },
-	{ "7-Odd-1   ", "7o1", 7, ODD,	1, true, false },
-	{ "8-Even-0  ", "8E0", 8, EVEN,	1, true, false }*/
+/*{ "7-Even-1 R", "7E1", 7, EVEN,	1, false, false },
+        { "7E1 LUT   ", "7Ea", 7, EVEN,	1, true, true },
+        { "7-Odd-1   ", "7o1", 7, ODD,	1, true, false },
+        { "8-Even-0  ", "8E0", 8, EVEN,	1, true, false }*/
 
 } /* namespace serializer */
 
-#endif/*__SERIALIZER_H__*/
+#endif /*__SERIALIZER_H__*/

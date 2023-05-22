@@ -23,35 +23,35 @@
 #include "ch.h"
 
 uint8_t get_cpu_utilisation_in_percent() {
-	static systime_t last_time = 0;
-	static systime_t last_idle_ticks = 0;
+    static systime_t last_time = 0;
+    static systime_t last_idle_ticks = 0;
 
-	auto now = chTimeNow();
-	auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
+    auto now = chTimeNow();
+    auto idle_ticks = chThdGetTicks(chSysGetIdleThread());
 
-	if (last_time == 0) {
-		last_time = now;
-		last_idle_ticks = idle_ticks;
+    if (last_time == 0) {
+        last_time = now;
+        last_idle_ticks = idle_ticks;
 
-		return 0;
-	}
+        return 0;
+    }
 
-	int32_t time_elapsed = now - last_time;
-	int32_t idle_elapsed = idle_ticks - last_idle_ticks;
+    int32_t time_elapsed = now - last_time;
+    int32_t idle_elapsed = idle_ticks - last_idle_ticks;
 
-	int32_t working_ticks = time_elapsed - idle_elapsed;
+    int32_t working_ticks = time_elapsed - idle_elapsed;
 
-	if (working_ticks < 0)
-		working_ticks = 0;
+    if (working_ticks < 0)
+        working_ticks = 0;
 
-	auto utilisation = working_ticks * 100 / time_elapsed;
+    auto utilisation = working_ticks * 100 / time_elapsed;
 
-	last_time = now;
-	last_idle_ticks = idle_ticks;
+    last_time = now;
+    last_idle_ticks = idle_ticks;
 
-	if (utilisation > 100) {
-		return 100;
-	}
+    if (utilisation > 100) {
+        return 100;
+    }
 
-    return (uint8_t) utilisation;
+    return (uint8_t)utilisation;
 }

@@ -35,28 +35,27 @@
 namespace ui {
 
 class SdOverUsbView : public View {
-public:
-	SdOverUsbView(NavigationView& nav);
+   public:
+    SdOverUsbView(NavigationView& nav);
 
-	void focus() override;
+    void focus() override;
 
-	std::string title() const override { return "Flash Utility"; };	
+    std::string title() const override { return "SD over USB"; };
 
-private:
-	NavigationView& nav_;
-	
-	Labels labels {
-		{ { 3 * 8, 2 * 16 }, "Click Run to start the", Color::white() },
-		{ { 3 * 8, 3 * 16 }, "USB Mass Storage Mode.", Color::white() },
-		{ { 3 * 8, 5 * 16 }, "It can take up to 20s", Color::white() },
-		{ { 3 * 8, 6 * 16 }, "for the drive to be", Color::white() },
-		{ { 3 * 8, 7 * 16 }, "available.", Color::white() },
-	};
+   private:
+    NavigationView& nav_;
 
-	Button button_run {
-		{ 9 * 8, 15 * 16, 12 * 8, 3 * 16 },
-		"Run" 
-	};		
+    Labels labels{
+        {{3 * 8, 2 * 16}, "Click Run to start the", Color::white()},
+        {{3 * 8, 3 * 16}, "USB Mass Storage Mode.", Color::white()},
+        {{3 * 8, 5 * 16}, "It can take up to 20s", Color::white()},
+        {{3 * 8, 6 * 16}, "for the drive to be", Color::white()},
+        {{3 * 8, 7 * 16}, "available.", Color::white()},
+    };
+
+    Button button_run{
+        {9 * 8, 15 * 16, 12 * 8, 3 * 16},
+        "Run"};
 };
 
 } /* namespace ui */

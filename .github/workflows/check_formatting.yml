@@ -1,0 +1,23 @@
+name: Check formatting
+
+on: [pull_request]
+
+jobs:
+  check_date:
+    runs-on: ubuntu-latest
+    name: Check formatting
+    strategy:
+      matrix:
+        path:
+          - "firmware/common"
+          - "firmware/application"
+          - "firmware/baseband"
+    steps:
+      - uses: actions/checkout@v2
+      - name: print latest_commit
+        run: echo ${{ github.sha }}
+      - name: clang-format Check
+        uses: jidicula/clang-format-action@v4.11.0
+        with:
+          check-path: ${{ matrix.path }}
+          fallback-style: Chromium

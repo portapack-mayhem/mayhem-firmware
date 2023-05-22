@@ -30,13 +30,13 @@
 namespace audio {
 
 struct sample_t {
-	union {
-		struct {
-			int16_t left;
-			int16_t right;
-		};
-		uint32_t raw;
-	};
+    union {
+        struct {
+            int16_t left;
+            int16_t right;
+        };
+        uint32_t raw;
+    };
 };
 
 using buffer_t = buffer_t<sample_t>;
@@ -54,4 +54,4 @@ audio::buffer_t rx_empty_buffer();
 } /* namespace dma */
 } /* namespace audio */
 
-#endif/*__AUDIO_DMA_H__*/
+#endif /*__AUDIO_DMA_H__*/
