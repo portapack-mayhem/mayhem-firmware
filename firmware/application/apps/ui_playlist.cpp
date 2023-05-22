@@ -31,6 +31,7 @@
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include <unistd.h>
+#include <fstream>
 
 using namespace portapack;
 
@@ -43,6 +44,7 @@ void PlaylistView::set_ready() {
 void PlaylistView::load_file(std::filesystem::path playlist_path) {
     File playlist_file;
 
+
     auto error = playlist_file.open(playlist_path.string());
     if (!error.is_valid()) {
         std::string line;
@@ -53,11 +55,13 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
             if ((int)one_char[0] >= ' ') {
                 line += one_char[0];
             } else if (one_char[0] == '\n') {
+                total_tracks++;
                 txtline_process(line);
                 line.clear();
             }
         }
         if (line.length() > 0) {
+                total_tracks++;
             txtline_process(line);
         }
     }
@@ -91,8 +95,10 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     File data_file;
     // Get file size
     auto data_open_error = data_file.open("/" + new_file_path.string());
-    if (data_open_error.is_valid()) {
-        file_error();
+    if (!data_open_error.is_valid()) {
+        track_number++;
+    }else if (data_open_error.is_valid()){
+        file_error("101");
         return;
     }
 
@@ -109,6 +115,7 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     progressbar.set_max(file_size);
     text_filename.set(file_path.filename().string().substr(0, 12));
     text_duration.set(to_string_time_ms(duration));
+//    text_track.set(std::to_string(track_number) + "/" + std::to_string(total_tracks));
 
     button_play.focus();
 }
@@ -121,8 +128,8 @@ void PlaylistView::focus() {
     button_open.focus();
 }
 
-void PlaylistView::file_error() {
-    nav_.display_modal("Error", "File " + file_path.string() + " read error. " + file_path.string());
+void PlaylistView::file_error(std::string error_message) {
+    nav_.display_modal("Error" + error_message, "File " + file_path.string() + " read error. " + file_path.string());
 }
 
 bool PlaylistView::is_active() const {
@@ -136,7 +143,16 @@ bool PlaylistView::loop() const {
 void PlaylistView::toggle() {
     if (is_active()) {
         stop(false);
+        total_tracks = 0;
+        track_number = 0;
+        playlist_db.clear();
+        playlist_masterdb.clear();
     } else {
+        total_tracks = 0;
+        track_number = 0;
+        playlist_db.clear();
+        playlist_masterdb.clear();
+        load_file(now_play_list_file);
         start();
     }
 }
@@ -158,7 +174,7 @@ void PlaylistView::start() {
     auto p = std::make_unique<FileReader>();
     auto open_error = p->open(file_path);
     if (open_error.is_valid()) {
-        file_error();
+        file_error("172");
         return;  // Fixes TX bug if there's a file error
     } else {
         reader = std::move(p);
@@ -198,17 +214,35 @@ void PlaylistView::stop(const bool do_loop) {
     if (is_active()) {
         replay_thread.reset();
     }
-    if (do_loop) {
-        if (playlist_db.size() > 0) {
-            start();
+
+    //TODO: the logic here could be more beautiful but maybe they are all same for compiler anyway....
+
+    if(check_loop.value()) {
+        if (do_loop) {
+            if (playlist_db.size() > 0) {
+                start();
+            } else {
+                playlist_db = playlist_masterdb;
+                start();
+            }
         } else {
-            playlist_db = playlist_masterdb;
-            start();
+            radio::set_antenna_bias(false);  // Turn off Bias Tee
+            radio::disable();
+            button_play.set_bitmap(&bitmap_play);
         }
-    } else {
-        radio::set_antenna_bias(false);  // Turn off Bias Tee
-        radio::disable();
-        button_play.set_bitmap(&bitmap_play);
+    }else if (!check_loop.value()) {
+        if (do_loop && (total_tracks != track_number)) {
+            if (playlist_db.size() > 0) {
+                start();
+            } else {
+                playlist_db = playlist_masterdb;
+                start();
+            }
+        } else {
+            radio::set_antenna_bias(false);  // Turn off Bias Tee
+            radio::disable();
+            button_play.set_bitmap(&bitmap_play);
+        }
     }
 
     ready_signal = false;
@@ -219,7 +253,7 @@ void PlaylistView::handle_replay_thread_done(const uint32_t return_code) {
         stop(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop(false);
-        file_error();
+        file_error("251");
     }
 
     progressbar.set_value(0);
@@ -240,6 +274,8 @@ PlaylistView::PlaylistView(
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
+//        &text_track,
+        //TODO: add track number
         &waterfall,
     });
 
@@ -264,8 +300,9 @@ PlaylistView::PlaylistView(
     };
 
     button_open.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".TXT");
+        auto open_view = nav.push<FileLoadView>(".PPPL");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            now_play_list_file = new_file_path;
             load_file(new_file_path);
         };
     };
