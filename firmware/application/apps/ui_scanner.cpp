@@ -744,7 +744,7 @@ void ScannerView::scan_resume() {
 }
 
 void ScannerView::user_resume() {
-    browse_timer = browse_wait * STATISTICS_UPDATES_PER_SEC;  // Will trigger a scan_resume() on_statistics_update, also advancing to next freq.
+    browse_timer = browse_wait * STATISTICS_UPDATES_PER_SEC + 1;  // Will trigger a scan_resume() on_statistics_update, also advancing to next freq.
     button_pause.set_text("<PAUSE>");                         // Show button for pause, arrows indicate rotary encoder enabled for freq change
     userpause = false;                                        // Resume scanning
 }
