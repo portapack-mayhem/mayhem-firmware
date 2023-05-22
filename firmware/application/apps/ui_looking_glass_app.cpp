@@ -144,9 +144,13 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                 // save max powerwull freq
                 if (spectrum_data[xpos] > max_freq_power) {
                     max_freq_power = spectrum_data[xpos];
-                    max_freq_hold = f_center + ((looking_glass_range)*xpos) / SCREEN_W;
+                    if (mode == LOOKING_GLASS_SINGLEPASS) {
+                        max_freq_hold = f_min + (xpos * looking_glass_range) / SCREEN_W;
+                    } else  // if( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
+                    {
+                        max_freq_hold = f_min + (offset * each_bin_size) + (xpos * looking_glass_range) / SCREEN_W;
+                    }
                 }
-
                 int16_t point = y_max_range.clip(((spectrum_data[xpos] - raw_min) * (320 - (108 + 16))) / raw_delta);
                 uint8_t color_gradient = (point * 255) / 212;
                 // clear if not in peak view
