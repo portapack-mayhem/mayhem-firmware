@@ -125,7 +125,6 @@ class ReconView : public View {
     int32_t wait{RECON_DEF_WAIT_DURATION};  // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
     freqman_db frequency_list = {};
     int32_t current_index{0};
-    bool userpause{false};
     bool continuous_lock{false};
     std::string input_file = {"RECON"};
     std::string output_file = {"RECON_RESULTS"};
@@ -229,15 +228,21 @@ class ReconView : public View {
     };
 
     RSSI rssi{
-        {0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4, 16},
+        {0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4, 14},
     };
 
     ButtonWithEncoder text_cycle{
         {0, 3 * 16, 4 * 8, 16},
         ""};
 
+    // "/XXX -XXX db" =>  12 chars max
     Text text_max{
-        {4 * 8, 3 * 16, SCREEN_W - 7 * 8 - 4 * 8, 16},
+        {4 * 8, 3 * 16, 12 * 8, 16},
+    };
+
+    // "XX/XX" =>  5 chars max
+    Text text_nb_locks{
+        {16 * 8, 3 * 16, 5 * 8, 16},
     };
 
     Text desc_cycle{
