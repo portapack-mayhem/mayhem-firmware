@@ -45,10 +45,6 @@ Consider that the hardware and firmware has been created and maintain by a [lot]
 
 To support the people behind the hardware, please buy a genuine [HackRF](https://greatscottgadgets.com/hackrf/) and [PortaPack](https://store.sharebrained.com/products/portapack-for-hackrf-one-kit).
 
-As a last option, if you want to send money directly to me for getting more boards, antennas and such:
-
-[![paypal](https://www.paypalobjects.com/en_US/i/btn/btn_donate_LG.gif)](https://www.paypal.com/cgi-bin/webscr?cmd=_s-xclick&hosted_button_id=CBPQA4HRRPJQ6&source=url)
-
 ## What if I really want something specific?
 If what you need can be relevant in general, you can [request a feature](https://github.com/eried/portapack-mayhem/issues/new?labels=enhancement&template=feature_request.md).
 
