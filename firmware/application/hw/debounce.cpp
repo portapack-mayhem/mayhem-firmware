@@ -40,7 +40,7 @@ bool Debounce::feed(const uint8_t bit) {
         } else {
             // It's a real button release; stop simulating
             repeat_ctr_ = 0;
-        }   
+        }
     }
 
     if (state_ == 0) {
