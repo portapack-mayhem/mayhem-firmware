@@ -24,14 +24,27 @@
 
 #include <cstdint>
 
+enum encoder_sensitivity {
+    DIAL_SENSITIVITY_LOW = 0,
+    DIAL_SENSITIVITY_MEDIUM,
+    DIAL_SENSITIVITY_HIGH,
+    NUM_DIAL_SENSITIVITY
+};
+
 class Encoder {
    public:
     int_fast8_t update(
         const uint_fast8_t phase_0,
         const uint_fast8_t phase_1);
 
+    void set_sensitivity(const uint8_t v) {
+        if (v < NUM_DIAL_SENSITIVITY)
+            sensitivity_ = v;
+    };
+
    private:
     uint_fast8_t state{0};
+    uint8_t sensitivity_{DIAL_SENSITIVITY_MEDIUM};
 };
 
 #endif /*__ENCODER_H__*/
