@@ -82,11 +82,14 @@ class PlaylistView : public View {
     bool loop() const;
     void set_ready();
     void handle_replay_thread_done(const uint32_t return_code);
-    void file_error();
+    void file_error(std::string error_message);
 
     std::filesystem::path file_path{};
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
+    int track_number{0};
+    int total_tracks{0};
+    std::filesystem::path now_play_list_file{};
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -125,6 +128,10 @@ class PlaylistView : public View {
         &bitmap_play,
         Color::green(),
         Color::black()};
+    // TODO: add track number
+    // Text text_track{
+    //     {18 * 8, 1 * 16, 12 * 8, 16},
+    //     "0/0"};
 
     spectrum::WaterfallWidget waterfall{};
 

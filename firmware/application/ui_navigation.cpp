@@ -22,7 +22,7 @@
 
 #include "ui_navigation.hpp"
 
-//#include "modules.h"
+// #include "modules.h"
 
 #include "portapack.hpp"
 #include "event_m0.hpp"
@@ -46,13 +46,13 @@
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
-//#include "ui_keyfob.hpp"
+// #include "ui_keyfob.hpp"
 #include "ui_lcr.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
-//#include "ui_numbers.hpp"
-//#include "ui_nuoptix.hpp"
-//#include "ui_playdead.hpp"
+// #include "ui_numbers.hpp"
+// #include "ui_nuoptix.hpp"
+// #include "ui_playdead.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
 #include "ui_remote.hpp"
@@ -65,7 +65,7 @@
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
 #include "ui_sstvtx.hpp"
-//#include "ui_test.hpp"
+// #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
@@ -76,7 +76,7 @@
 #include "ui_sd_over_usb.hpp"
 #include "ui_spectrum_painter.hpp"
 
-//#include "acars_app.hpp"
+// #include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 #include "analog_tv_app.hpp"
@@ -563,7 +563,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
         {"TouchTune", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<TouchTunesView>(); }},
-        {"Playlist", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<PlaylistView>(); }},
+        {"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
         {"S.Painter", ui::Color::orange(), &bitmap_icon_morse, [&nav]() { nav.push<SpectrumPainterView>(); }},
         //{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
     });
