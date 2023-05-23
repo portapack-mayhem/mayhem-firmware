@@ -77,8 +77,8 @@ class FileManBaseView : public View {
         {u".C8", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta()},
-        {u".PPPL", &bitmap_icon_file_iq, ui::Color::white()},
-        {u"", &bitmap_icon_file, ui::Color::light_grey()}  // NB: Must be last.
+        {u".PPL", &bitmap_icon_file_iq, ui::Color::white()},  // PPL is the file extension for playlist app
+        {u"", &bitmap_icon_file, ui::Color::light_grey()}     // NB: Must be last.
     };
 
     std::filesystem::path get_selected_full_path() const;

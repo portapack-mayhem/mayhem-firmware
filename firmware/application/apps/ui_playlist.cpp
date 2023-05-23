@@ -215,6 +215,12 @@ void PlaylistView::stop(const bool do_loop) {
     }
 
     // TODO: the logic here could be more beautiful but maybe they are all same for compiler anyway....
+    // Notes of the logic here in case if it needed to be changed in the future:
+    // 1. check_loop.value() is for the LOOP checkbox
+    // 2. do_loop is a part of the replay thread, not a user - control thing.
+    // 3. when (total_tracks != track_number) is true, it means that the current track is not the last track.
+    // Thus, (do_loop && (total_tracks != track_number)) is for the case when the start() func were called with true AND not the last track.
+    // Which means it do loop until the last track.
 
     if (check_loop.value()) {
         if (do_loop) {
@@ -299,7 +305,7 @@ PlaylistView::PlaylistView(
     };
 
     button_open.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".PPPL");
+        auto open_view = nav.push<FileLoadView>(".PPL");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             now_play_list_file = new_file_path;
             load_file(new_file_path);
