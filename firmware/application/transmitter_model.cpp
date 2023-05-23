@@ -138,7 +138,6 @@ void TransmitterModel::enable() {
 
 void TransmitterModel::disable() {
     enabled_ = false;
-    radio::set_antenna_bias(false);
 
     // TODO: Responsibility for enabling/disabling the radio is muddy.
     // Some happens in ReceiverModel, some inside radio namespace.

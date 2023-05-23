@@ -521,7 +521,8 @@ void shutdown(const bool leave_screen_on) {
         display.shutdown();
     }
 
-    radio::disable();
+    receiver_model.disable();
+    transmitter_model.disable();
     audio::shutdown();
 
     hackrf::cpld::init_from_eeprom();

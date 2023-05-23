@@ -36,6 +36,8 @@
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
 
+/* TODO: This would be better as a class to add
+ * guardrails on setting properties. */
 namespace portapack {
 
 extern portapack::IO io;
@@ -59,6 +61,8 @@ extern bool antenna_bias;
 
 extern TemperatureLogger temperature_logger;
 
+/* Get or set the antenna_bias flag.
+ * NB: Does not actually update the radio state. */
 void set_antenna_bias(const bool v);
 bool get_antenna_bias();
 

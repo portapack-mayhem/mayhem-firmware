@@ -307,11 +307,10 @@ void SystemStatusView::on_stealth() {
 }
 
 void SystemStatusView::on_bias_tee() {
-    if (!portapack::antenna_bias) {
+    if (!portapack::get_antenna_bias()) {
         nav_.display_modal("Bias voltage", "Enable DC voltage on\nantenna connector?", YESNO, [this](bool v) {
             if (v) {
                 portapack::set_antenna_bias(true);
-                // radio::set_antenna_bias(true);
                 receiver_model.set_antenna_bias();
                 transmitter_model.set_antenna_bias();
                 refresh();
@@ -319,9 +318,12 @@ void SystemStatusView::on_bias_tee() {
         });
     } else {
         portapack::set_antenna_bias(false);
-        // radio::set_antenna_bias(false);
         receiver_model.set_antenna_bias();
         transmitter_model.set_antenna_bias();
+
+        // Ensure this is disabled. The models don't actually
+        // update the radio unless they are 'enabled_'.
+        radio::set_antenna_bias(false);
         refresh();
     }
 }

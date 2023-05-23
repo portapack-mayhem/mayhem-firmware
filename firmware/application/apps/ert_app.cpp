@@ -121,17 +121,7 @@ ERTAppView::ERTAppView(NavigationView&) {
     receiver_model.set_tuning_frequency(initial_target_frequency);
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
-
-    /*	radio::enable({
-                initial_target_frequency,
-                sampling_rate,
-                baseband_bandwidth,
-                rf::Direction::Receive,
-                receiver_model.rf_amp(),
-                static_cast<int8_t>(receiver_model.lna()),
-                static_cast<int8_t>(receiver_model.vga()),
-        }); */
+    receiver_model.enable();
 
     logger = std::make_unique<ERTLogger>();
     if (logger) {
@@ -143,7 +133,7 @@ ERTAppView::~ERTAppView() {
     // save app settings
     settings.save("rx_ert", &app_settings);
 
-    receiver_model.disable();  // to switch off all, including DC bias and change flag enabled_
+    receiver_model.disable();
 
     baseband::shutdown();
 }

@@ -97,8 +97,10 @@ void GlassView::adjust_range(int64_t* f_min, int64_t* f_max, int64_t width) {
 }
 
 void GlassView::retune() {
-    // Start a new sweep
-    radio::set_tuning_frequency(f_center);  // tune rx for this new slice directly, faster than using persistent memory saving
+    // Start a new sweep.
+    // Tune rx for this new slice directly because the model
+    // saves to persistent memory which is slower.
+    radio::set_tuning_frequency(f_center);
     chThdSleepMilliseconds(5);
     baseband::spectrum_streaming_start();  // Do the RX
 }

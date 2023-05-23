@@ -286,7 +286,6 @@ void JammerView::stop_tx() {
     button_transmit.set_style(&style_val);
     button_transmit.set_text("START");
     transmitter_model.disable();
-    radio::disable();
     baseband::set_jammer(false, JammerType::TYPE_FSK, 0);
     jamming = false;
     cooling = false;
