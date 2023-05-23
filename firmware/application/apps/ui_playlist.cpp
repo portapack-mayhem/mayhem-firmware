@@ -173,7 +173,7 @@ void PlaylistView::start() {
     auto p = std::make_unique<FileReader>();
     auto open_error = p->open(file_path);
     if (open_error.is_valid()) {
-        file_error("illegal grammar(176)");
+        file_error("Illegal grammar");
         return;  // Fixes TX bug if there's a file error
     } else {
         reader = std::move(p);
@@ -218,7 +218,7 @@ void PlaylistView::stop(const bool do_loop) {
     // Notes of the logic here in case if it needed to be changed in the future:
     // 1. check_loop.value() is for the LOOP checkbox
     // 2. do_loop is a part of the replay thread, not a user - control thing.
-    // 3. when (total_tracks != track_number) is true, it means that the current track is not the last track.
+    // 3. when (total_tracks >= track_number) is true, it means that the current track is not the last track.
     // Thus, (do_loop && (total_tracks != track_number)) is for the case when the start() func were called with true AND not the last track.
     // Which means it do loop until the last track.
 
@@ -236,7 +236,7 @@ void PlaylistView::stop(const bool do_loop) {
             button_play.set_bitmap(&bitmap_play);
         }
     } else if (!check_loop.value()) {
-        if (do_loop && (total_tracks != track_number)) {
+        if (do_loop && (total_tracks >= track_number)) {
             if (playlist_db.size() > 0) {
                 start();
             } else {
@@ -258,7 +258,7 @@ void PlaylistView::handle_replay_thread_done(const uint32_t return_code) {
         stop(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop(false);
-        file_error("Illegal grammar(255)");
+        file_error("Replay thread read error");
     }
 
     progressbar.set_value(0);
