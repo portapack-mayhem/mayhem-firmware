@@ -101,6 +101,7 @@ class ReconView : public View {
    private:
     NavigationView& nav_;
 
+    void reset_indexes();
     void audio_output_start();
     bool check_sd_card();
     size_t change_mode(freqman_index_t mod_type);
@@ -129,6 +130,7 @@ class ReconView : public View {
     bool continuous_lock{false};
     std::string input_file = {"RECON"};
     std::string output_file = {"RECON_RESULTS"};
+    std::string description = {"...no description..."};
     bool autosave = {true};
     bool autostart = {true};
     bool continuous = {true};
@@ -271,7 +273,7 @@ class ReconView : public View {
         {12 * 8 + 4, 7 * 16, 14 * 8, 1 * 8},
         ""};
 
-    Button button_recon_setup{
+    Button button_config{
         {SCREEN_W - 7 * 8, 2 * 16, 7 * 8, 28},
         "CONFIG"};
 

@@ -30,6 +30,14 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+void ReconView::reset_indexes() {
+    last_entry.modulation = -1;
+    last_entry.bandwidth = -1;
+    last_entry.step = -1;
+    description = "...no description...";
+    current_index = 0;
+}
+
 void ReconView::colorize_waits() {
     // colorize wait on match
     if (wait == 0) {
@@ -367,7 +375,7 @@ ReconView::ReconView(NavigationView& nav)
                   &field_squelch,
                   &field_wait,
                   &field_lock_wait,
-                  &button_recon_setup,
+                  &button_config,
                   &button_scanner_mode,
                   &button_looking_glass,
                   &file_name,
@@ -550,7 +558,9 @@ ReconView::ReconView(NavigationView& nav)
 
     button_remove.on_select = [this](ButtonWithEncoder&) {
         if (frequency_list.size() > 0) {
-            if (scanner_mode) {
+            if (!manual_mode) {
+                // scanner or recon (!scanner) mode
+                // in both we delete index from live view, but only remove in output file in scanner_mode
                 if (current_index >= (int32_t)frequency_list.size()) {
                     current_index = frequency_list.size() - 1;
                 }
@@ -576,11 +586,11 @@ ReconView::ReconView(NavigationView& nav)
                         desc_cycle.set("...no description...");
                     }
                     text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-
+                }
+                // also remove from output file if in scanner mode
+                if (scanner_mode) {
                     File freqman_file;
-
                     delete_file(freq_file_path);
-
                     auto result = freqman_file.create(freq_file_path);
                     if (!result.is_valid()) {
                         for (size_t n = 0; n < frequency_list.size(); n++) {
@@ -590,7 +600,7 @@ ReconView::ReconView(NavigationView& nav)
                         }
                     }
                 }
-            } else  // RECON MODE / MANUAL, only remove matching from output
+            } else if (manual_mode)  // only remove from output
             {
                 File recon_file;
                 File tmp_recon_file;
@@ -654,6 +664,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_recon.on_select = [this](Button&) {
+        button_remove.set_text("DELETE");
         scanner_mode = false;
         manual_mode = true;
         recon_pause();
@@ -759,10 +770,12 @@ ReconView::ReconView(NavigationView& nav)
             scanner_mode = false;
             button_scanner_mode.set_style(&style_blue);
             button_scanner_mode.set_text("RECON");
+            button_remove.set_text("DELETE");
         } else {
             scanner_mode = true;
             button_scanner_mode.set_style(&style_red);
             button_scanner_mode.set_text("SCANNER");
+            button_scanner_mode.set_text("REMOVE");
         }
         frequency_file_load(true);
         if (autostart) {
@@ -772,8 +785,22 @@ ReconView::ReconView(NavigationView& nav)
         }
     };
 
-    button_recon_setup.on_select = [this, &nav](Button&) {
+    button_config.on_select = [this, &nav](Button&) {
         audio::output::stop();
+
+        // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
+        if (!manual_mode) {
+            frequency_list.clear();
+            reset_indexes();
+            freq_stats.set_style(&style_white);
+            freq_stats.set("0/0/0");
+            text_cycle.set_text(" ");
+            text_max.set(" ");
+            desc_cycle.set_style(&style_white);
+            desc_cycle.set( description );
+            handle_retune();
+        }
+
         auto open_view = nav.push<ReconSetupView>(input_file, output_file, recon_lock_duration, recon_lock_nb_match, recon_match_mode);
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
@@ -934,15 +961,10 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         default:
             break;
     }
-    last_entry.modulation = -1;
-    last_entry.bandwidth = -1;
-    last_entry.step = -1;
-
+    reset_indexes();
     step_mode.set_selected_index(def_step);  // Impose the default step into the manual step selector
     receiver_model.enable();
     receiver_model.set_squelch_level(0);
-    std::string description = "...no description...";
-    current_index = 0;
     if (frequency_list.size() != 0) {
         switch (frequency_list[current_index].type) {
             case RANGE:
