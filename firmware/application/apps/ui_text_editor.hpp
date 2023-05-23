@@ -110,6 +110,9 @@ class FileWrapper {
 class TextEditorView : public View {
    public:
     TextEditorView(NavigationView& nav);
+    TextEditorView(
+        NavigationView& nav,
+        const std::filesystem::path& path);
 
     std::string title() const override {
         return "Notepad";

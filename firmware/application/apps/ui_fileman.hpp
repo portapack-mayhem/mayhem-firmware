@@ -121,7 +121,7 @@ class FileManBaseView : public View {
         ""};
 
     Button button_exit{
-        {21 * 8, 34 * 8, 9 * 8, 32},
+        {22 * 8, 34 * 8, 9 * 8, 32},
         "Exit"};
 };
 
@@ -264,6 +264,12 @@ class FileManagerView : public FileManBaseView {
         {},
         &bitmap_icon_new_file,
         Color::green()};
+
+    NewButton button_open_notepad{
+        {0 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_notepad,
+        Color::orange()};
 };
 
 } /* namespace ui */
