@@ -20,9 +20,7 @@
  */
 
 #include "encoder.hpp"
-
 #include "utility.hpp"
-
 
 // Now supporting 3 levels of rotary encoder dial sensitivity
 //
