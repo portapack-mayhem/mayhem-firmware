@@ -67,7 +67,6 @@ bool Debounce::feed(const uint8_t bit) {
                     // Delay reached; trigger repeat code on NEXT tick
                     repeat_ctr_ = 1;
                     held_time_ = 0;
-                    return false;
                 }
             } else {
                 // Button not continuously pressed; reset counter
