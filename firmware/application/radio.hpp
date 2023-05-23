@@ -55,8 +55,8 @@ void set_baseband_rate(const uint32_t rate);
 void set_antenna_bias(const bool on);
 
 /* Use ReceiverModel or TransmitterModel instead. */
-//void enable(Configuration configuration);
-//void configure(Configuration configuration);
+// void enable(Configuration configuration);
+// void configure(Configuration configuration);
 void disable();
 
 namespace debug {
