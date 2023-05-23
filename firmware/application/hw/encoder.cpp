@@ -57,7 +57,7 @@ static const uint32_t transition_map_[NUM_DIAL_SENSITIVITY] = {
 
 int_fast8_t Encoder::update(
     const uint_fast8_t phase_0,
-    const uint_fast8_t phase_1) {  
+    const uint_fast8_t phase_1) {
     state <<= 1;
     state |= phase_0;
     state <<= 1;
