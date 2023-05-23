@@ -268,11 +268,16 @@ TextEditorView::TextEditorView(NavigationView& nav)
     set_focusable(true);
 
     button_open.on_select = [this](Button&) {
-        auto open_view = nav_.push<FileLoadView>(".TXT");
+        auto open_view = nav_.push<FileLoadView>("");
         open_view->on_changed = [this](std::filesystem::path path) {
             open_file(path);
         };
     };
+}
+
+TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
+    : TextEditorView(nav) {
+    open_file(path);
 }
 
 void TextEditorView::on_focus() {
@@ -364,6 +369,20 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
         // Only wrap if moving horizontally.
         new_col = 0;
         ++new_line;
+    }
+
+    // Snap to first/last to make navigating easier.
+    if (new_line < 0 && new_col > 0) {
+        new_line = 0;
+        new_col = 0;
+    } else if (new_line >= (int32_t)file_.line_count()) {
+        auto last_line = file_.line_count() - 1;
+        int32_t last_col = file_.line_length(last_line) - 1;
+
+        if (new_col < last_col) {
+            new_line = last_line;
+            new_col = last_col;
+        }
     }
 
     if (new_line < 0 || (uint32_t)new_line >= file_.line_count())

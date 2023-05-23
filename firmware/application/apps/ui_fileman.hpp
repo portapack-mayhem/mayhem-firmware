@@ -263,6 +263,12 @@ class FileManagerView : public FileManBaseView {
         {},
         &bitmap_icon_new_file,
         Color::green()};
+
+    NewButton button_open_notepad{
+        {0 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_notepad,
+        Color::orange()};
 };
 
 } /* namespace ui */

@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include "ui_fileman.hpp"
+#include "ui_text_editor.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
@@ -510,16 +511,19 @@ FileManagerView::FileManagerView(
         refresh_widgets(v);
     };
 
-    add_children({&menu_view,
-                  &labels,
-                  &text_date,
-                  &button_rename,
-                  &button_delete,
-                  &button_cut,
-                  &button_copy,
-                  &button_paste,
-                  &button_new_dir,
-                  &button_new_file});
+    add_children({
+        &menu_view,
+        &labels,
+        &text_date,
+        &button_rename,
+        &button_delete,
+        &button_cut,
+        &button_copy,
+        &button_paste,
+        &button_new_dir,
+        &button_new_file,
+        &button_open_notepad,
+    });
 
     menu_view.on_highlight = [this]() {
         if (selected_is_valid())
@@ -577,6 +581,14 @@ FileManagerView::FileManagerView(
 
     button_new_file.on_select = [this]() {
         on_new_file();
+    };
+
+    button_open_notepad.on_select = [this]() {
+        if (selected_is_valid() && !get_selected_entry().is_directory) {
+            auto path = get_selected_full_path();
+            nav_.replace<TextEditorView>(path);
+        } else
+            nav_.display_modal("Open in Notepad", "Can't open that in Notepad.");
     };
 }
 
