@@ -907,7 +907,6 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         button_scanner_mode.set_style(&style_blue);
         button_scanner_mode.set_text("RECON");
     }
-    file_name.set_style(&style_white);
     desc_cycle.set_style(&style_white);
     if (!load_freqman_file_ex(file_input, frequency_list, load_freqs, load_ranges, load_hamradios)) {
         file_name.set_style(&style_red);
