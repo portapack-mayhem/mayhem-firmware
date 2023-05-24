@@ -42,6 +42,9 @@ using namespace hackrf::one;
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 
+/* Direct access to the radio. Setting values incorrectly can damage
+ * the device. Applications should use ReceiverModel or TransmitterModel
+ * instead of calling these functions directly. */
 namespace radio {
 
 static constexpr uint32_t ssp1_cpsr = 2;
@@ -245,18 +248,7 @@ void set_antenna_bias(const bool on) {
     }
 }
 
-void disable() {
-    set_antenna_bias(false);
-    baseband_codec.set_mode(max5864::Mode::Shutdown);
-    second_if->set_mode(max2837::Mode::Standby);
-    first_if.disable();
-    set_rf_amp(false);
-
-    led_rx.off();
-    led_tx.off();
-}
-
-void enable(Configuration configuration) {
+/*void enable(Configuration configuration) {
     configure(configuration);
 }
 
@@ -268,6 +260,17 @@ void configure(Configuration configuration) {
     set_baseband_rate(configuration.baseband_rate);
     set_baseband_filter_bandwidth(configuration.baseband_filter_bandwidth);
     set_direction(configuration.direction);
+}*/
+
+void disable() {
+    set_antenna_bias(false);
+    baseband_codec.set_mode(max5864::Mode::Shutdown);
+    second_if->set_mode(max2837::Mode::Standby);
+    first_if.disable();
+    set_rf_amp(false);
+
+    led_rx.off();
+    led_tx.off();
 }
 
 namespace debug {

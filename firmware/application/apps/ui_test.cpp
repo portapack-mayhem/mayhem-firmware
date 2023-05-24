@@ -81,19 +81,14 @@ TestView::TestView(NavigationView& nav) {
     if (logger)
         logger->append("saucepan.txt");
 
-    radio::enable({
-        tuning_frequency(),
-        sampling_rate,
-        baseband_bandwidth,
-        rf::Direction::Receive,
-        receiver_model.rf_amp(),
-        static_cast<int8_t>(receiver_model.lna()),
-        static_cast<int8_t>(receiver_model.vga()),
-    });
+    receiver_model.set_tuning_frequency(tuning_frequency());
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
+    receiver_model.enable();
 }
 
 TestView::~TestView() {
-    radio::disable();
+    receiver_model.disable();
     baseband::shutdown();
 }
 
@@ -127,8 +122,6 @@ void TestView::on_packet(const testapp::Packet& packet) {
     if (logger && logging)
         logger->log_raw_data(packet, raw_alt - cal_value);
 
-    // radio::disable();
-
     /*text_serial.set(packet.serial_number());
         text_voltage.set(unit_auto_scale(packet.battery_voltage(), 2, 3) + "V");
 
@@ -139,7 +132,7 @@ void TestView::on_packet(const testapp::Packet& packet) {
 
 void TestView::set_target_frequency(const uint32_t new_value) {
     target_frequency_ = new_value;
-    radio::set_tuning_frequency(tuning_frequency());
+    receiver_model.set_tuning_frequency(tuning_frequency());
 }
 
 uint32_t TestView::tuning_frequency() const {
