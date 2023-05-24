@@ -102,10 +102,6 @@ int_fast8_t Encoder::update(
     state <<= 1;
     state |= phase_1;
 
-    // get dial sensitivity setting from pmem if valid
-    uint8_t sensitivity = portapack::persistent_memory::config_encoder_dial_sensitivity();
-    if (sensitivity >= portapack::persistent_memory::NUM_DIAL_SENSITIVITY)
-        sensitivity = portapack::persistent_memory::DIAL_SENSITIVITY_MEDIUM;
-
-    return transition_map[sensitivity][state & 0xf];
+    // dial sensitivity setting is stored in pmem
+    return transition_map[portapack::persistent_memory::config_encoder_dial_sensitivity()][state & 0xf];
 }
