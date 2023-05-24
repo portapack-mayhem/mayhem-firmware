@@ -69,7 +69,7 @@ SpectrumPainterView::SpectrumPainterView(
         };
     };
 
-    tx_gain = 10;
+    tx_gain = portapack::transmitter_model.tx_gain();
     field_rfgain.set_value(tx_gain);              // Initial default  value (-12 dB's max ).
     field_rfgain.on_change = [this](int32_t v) {  // allow initial value change just after opened file.
         tx_gain = v;
