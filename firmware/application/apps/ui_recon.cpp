@@ -30,6 +30,16 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+void ReconView::clear_freqlist_for_ui_action() {
+    audio::output::stop();
+    // flag to detect and reload frequency_list
+    freqlist_cleared_for_ui_action = true;
+    // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
+    if (!manual_mode) {
+        frequency_list.clear();
+    }
+}
+
 void ReconView::reset_indexes() {
     last_entry.modulation = -1;
     last_entry.bandwidth = -1;
@@ -437,6 +447,7 @@ ReconView::ReconView(NavigationView& nav)
     }
 
     button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
+        clear_freqlist_for_ui_action();
         auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
         new_view->on_changed = [this, &button](rf::Frequency f) {
             frequency_range.min = f;
@@ -445,6 +456,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_end.on_select = [this, &nav](ButtonWithEncoder& button) {
+        clear_freqlist_for_ui_action();
         auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
         new_view->on_changed = [this, &button](rf::Frequency f) {
             frequency_range.max = f;
@@ -786,19 +798,11 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_config.on_select = [this, &nav](Button&) {
-        audio::output::stop();
-
-        // flag to detect and reload frequency_list
-        config_cleared_freqlist = true;
-
-        // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
-        if (!manual_mode) {
-            frequency_list.clear();
-        }
+        clear_freqlist_for_ui_action();
 
         auto open_view = nav.push<ReconSetupView>(input_file, output_file, recon_lock_duration, recon_lock_nb_match, recon_match_mode);
         open_view->on_changed = [this](std::vector<std::string> result) {
-            config_cleared_freqlist = false;
+            freqlist_cleared_for_ui_action = false;
             input_file = result[0];
             output_file = result[1];
             freq_file_path = "/FREQMAN/" + output_file + ".TXT";
@@ -995,7 +999,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     // hack to reload the list if it was cleared by going into CONFIG
-    if (config_cleared_freqlist) {
+    if (freqlist_cleared_for_ui_action) {
         if (!manual_mode) {
             frequency_file_load(false);
         }
@@ -1004,7 +1008,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         } else {
             recon_pause();
         }
-        config_cleared_freqlist = false;
+        freqlist_cleared_for_ui_action = false;
     }
     db = statistics.max_db;
     if (recon) {

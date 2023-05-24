@@ -101,6 +101,7 @@ class ReconView : public View {
    private:
     NavigationView& nav_;
 
+    void clear_freqlist_for_ui_action();
     void reset_indexes();
     void audio_output_start();
     bool check_sd_card();
@@ -128,7 +129,7 @@ class ReconView : public View {
     freqman_db frequency_list = {};
     int32_t current_index{0};
     bool continuous_lock{false};
-    bool config_cleared_freqlist{false};
+    bool freqlist_cleared_for_ui_action{false};  // flag positioned by ui widgets to manage freqlist unload/load
     std::string input_file = {"RECON"};
     std::string output_file = {"RECON_RESULTS"};
     std::string description = {"...no description..."};
