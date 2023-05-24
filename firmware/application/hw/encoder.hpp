@@ -25,8 +25,8 @@
 #include <cstdint>
 
 enum encoder_sensitivity {
-    DIAL_SENSITIVITY_LOW = 0,
-    DIAL_SENSITIVITY_MEDIUM,
+    DIAL_SENSITIVITY_MEDIUM = 0,
+    DIAL_SENSITIVITY_LOW,
     NUM_DIAL_SENSITIVITY
 };
 
