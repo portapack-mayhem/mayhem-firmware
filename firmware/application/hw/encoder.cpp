@@ -53,10 +53,10 @@ static const int8_t transition_map[][16] = {
     // Medium Sensitivity (default)
     {
         0,   // 0000: noop
-        0,   // 0001: start
-        0,   // 0010: start
+        0,   // 0001: start (use -1 for high-sensitivity)
+        0,   // 0010: start (use 1 for high-sensitivity)
         0,   // 0011: rate
-        1,   // 0100: end
+        1,   // 0100: end (use 1 for high-sensitivity)
         0,   // 0101: noop
         0,   // 0110: rate
         -1,  // 0111: end
@@ -65,30 +65,10 @@ static const int8_t transition_map[][16] = {
         0,   // 1010: noop
         1,   // 1011: end
         0,   // 1100: rate
-        0,   // 1101: start
-        0,   // 1110: start
+        0,   // 1101: start (use 1 for high-sensitivity)
+        0,   // 1110: start (use -1 for high-sensitivity)
         0,   // 1111: noop
     }
-//
-// Highest sensitivity - disabled for now (unnecessary/touchy)
-// {
-//      0,   // 0000: noop
-//      -1,  // 0001: start
-//      1,   // 0010: start
-//      0,   // 0011: rate
-//      1,   // 0100: end
-//      0,   // 0101: noop
-//      0,   // 0110: rate
-//      -1,  // 0111: end
-//      -1,  // 1000: end
-//      0,   // 1001: rate
-//      0,   // 1010: noop
-//      1,   // 1011: end
-//      0,   // 1100: rate
-//      1,   // 1101: start
-//      -1,  // 1110: start
-//      0,   // 1111: noop
-// }
 };
 
 int_fast8_t Encoder::update(
