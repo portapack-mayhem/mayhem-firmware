@@ -121,7 +121,7 @@ class FileManBaseView : public View {
         ""};
 
     Button button_exit{
-        {22 * 8, 34 * 8, 9 * 8, 32},
+        {22 * 8, 34 * 8, 8 * 8, 32},
         "Exit"};
 };
 

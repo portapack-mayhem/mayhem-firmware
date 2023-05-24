@@ -69,7 +69,7 @@ SpectrumPainterView::SpectrumPainterView(
         };
     };
 
-    tx_gain = 10;
+    tx_gain = portapack::transmitter_model.tx_gain();
     field_rfgain.set_value(tx_gain);              // Initial default  value (-12 dB's max ).
     field_rfgain.on_change = [this](int32_t v) {  // allow initial value change just after opened file.
         tx_gain = v;
@@ -93,16 +93,9 @@ SpectrumPainterView::SpectrumPainterView(
             if (tx_mode == 0 && image_input_avaliable == false)
                 return;
 
-            // Enable Bias Tee if selected
-            radio::set_antenna_bias(portapack::get_antenna_bias());
-
-            radio::enable({portapack::receiver_model.tuning_frequency(),
-                           3072000U,
-                           1750000,
-                           rf::Direction::Transmit,
-                           rf_amp,
-                           static_cast<int8_t>(portapack::receiver_model.lna()),
-                           static_cast<int8_t>(portapack::receiver_model.vga())});
+            portapack::transmitter_model.set_sampling_rate(3072000U);
+            portapack::transmitter_model.set_baseband_bandwidth(1750000);
+            portapack::transmitter_model.enable();
 
             if (portapack::persistent_memory::stealth_mode()) {
                 DisplaySleepMessage message;

@@ -107,7 +107,7 @@ SondeView::SondeView(NavigationView& nav) {
     receiver_model.set_tuning_frequency(tuning_frequency());
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+    receiver_model.enable();
 
     // QR code with geo URI
     button_see_qr.on_select = [this, &nav](Button&) {
@@ -155,7 +155,7 @@ SondeView::~SondeView() {
 
     baseband::set_pitch_rssi(0, false);
 
-    receiver_model.disable();  // to switch off all, including DC bias.
+    receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
 }
@@ -258,8 +258,6 @@ void SondeView::on_headphone_volume_changed(int32_t v) {
 
 void SondeView::set_target_frequency(const uint32_t new_value) {
     target_frequency_ = new_value;
-    // radio::set_tuning_frequency(tuning_frequency());
-    //  we better remember the tuned frequency, by using this function instead:
     receiver_model.set_tuning_frequency(target_frequency_);
 }
 

@@ -196,6 +196,15 @@ SetRadioView::SetRadioView(
     check_bias.set_value(portapack::get_antenna_bias());
     check_bias.on_select = [this](Checkbox&, bool v) {
         portapack::set_antenna_bias(v);
+
+        // Update the radio.
+        receiver_model.set_antenna_bias();
+        transmitter_model.set_antenna_bias();
+        // The models won't actually disable this if they are not 'enabled_'.
+        // Be extra sure this is turned off.
+        if (!v)
+            radio::set_antenna_bias(false);
+
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
