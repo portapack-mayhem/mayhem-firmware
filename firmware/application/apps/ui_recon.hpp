@@ -128,6 +128,7 @@ class ReconView : public View {
     freqman_db frequency_list = {};
     int32_t current_index{0};
     bool continuous_lock{false};
+    bool config_cleared_freqlist{false};
     std::string input_file = {"RECON"};
     std::string output_file = {"RECON_RESULTS"};
     std::string description = {"...no description..."};

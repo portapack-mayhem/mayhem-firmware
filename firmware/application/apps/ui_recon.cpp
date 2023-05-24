@@ -788,21 +788,17 @@ ReconView::ReconView(NavigationView& nav)
     button_config.on_select = [this, &nav](Button&) {
         audio::output::stop();
 
+        // flag to detect and reload frequency_list
+        config_cleared_freqlist = true;
+
         // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
         if (!manual_mode) {
             frequency_list.clear();
-            reset_indexes();
-            freq_stats.set_style(&style_white);
-            freq_stats.set("0/0/0");
-            text_cycle.set_text(" ");
-            text_max.set(" ");
-            desc_cycle.set_style(&style_white);
-            desc_cycle.set( description );
-            handle_retune();
         }
 
         auto open_view = nav.push<ReconSetupView>(input_file, output_file, recon_lock_duration, recon_lock_nb_match, recon_match_mode);
         open_view->on_changed = [this](std::vector<std::string> result) {
+            config_cleared_freqlist = false;
             input_file = result[0];
             output_file = result[1];
             freq_file_path = "/FREQMAN/" + output_file + ".TXT";
@@ -998,6 +994,18 @@ void ReconView::frequency_file_load(bool stop_all_before) {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
+    // hack to reload the list if it was cleared by going into CONFIG
+    if (config_cleared_freqlist) {
+        if (!manual_mode) {
+            frequency_file_load(false);
+        }
+        if (autostart) {
+            recon_resume();
+        } else {
+            recon_pause();
+        }
+        config_cleared_freqlist = false;
+    }
     db = statistics.max_db;
     if (recon) {
         if (!timer) {
