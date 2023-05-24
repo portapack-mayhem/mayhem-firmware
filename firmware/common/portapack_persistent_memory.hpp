@@ -99,6 +99,13 @@ struct backlight_config_t {
     bool _timeout_enabled;
 };
 
+enum encoder_dial_sensitivity {
+    DIAL_SENSITIVITY_MEDIUM = 0,
+    DIAL_SENSITIVITY_LOW = 1,
+    DIAL_SENSITIVITY_HIGH = 2,
+    NUM_DIAL_SENSITIVITY
+};
+
 namespace cache {
 
 /* Set values in cache to sensible defaults. */
@@ -199,6 +206,8 @@ void set_config_login(bool v);
 void set_config_speaker(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
+uint8_t config_encoder_dial_sensitivity();
+void set_encoder_dial_sensitivity(uint8_t v);
 
 // uint8_t ui_config_textentry();
 // void set_config_textentry(uint8_t new_value);
