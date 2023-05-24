@@ -141,7 +141,7 @@ void GpsSimAppView::start() {
             });
     }
 
-    transmitter_model.set_sampling_rate(sample_rate * 8);
+    transmitter_model.set_sampling_rate(sample_rate);
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 }

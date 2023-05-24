@@ -125,6 +125,7 @@ void TransmitterModel::enable() {
     update_vga();
     update_baseband_bandwidth();
     update_sampling_rate();
+    update_tx_gain();
 
     led_tx.on();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
