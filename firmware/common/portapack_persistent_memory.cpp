@@ -302,6 +302,9 @@ struct data_t {
     uint32_t frequency_tx_correction;
     bool updown_frequency_tx_correction;
 
+    // Rotary encoder dial sensitivity (encoder.cpp/hpp)
+    uint8_t encoder_dial_sensitivity;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           tuned_frequency(tuned_frequency_reset_value),
@@ -337,7 +340,8 @@ struct data_t {
           frequency_rx_correction(0),
           updown_frequency_rx_correction(0),
           frequency_tx_correction(0),
-          updown_frequency_tx_correction(0) {
+          updown_frequency_tx_correction(0),
+          encoder_dial_sensitivity(0) {
     }
 };
 
@@ -806,6 +810,14 @@ void set_config_freq_tx_correction(uint32_t v) {
 }
 void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
+}
+
+// rotary encoder dial settings
+uint8_t config_encoder_dial_sensitivity() {
+    return data->encoder_dial_sensitivity;
+}
+void set_encoder_dial_sensitivity(uint8_t v) {
+    data->encoder_dial_sensitivity = v;
 }
 
 // sd persisting settings
