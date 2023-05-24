@@ -27,7 +27,7 @@
 enum encoder_sensitivity {
     DIAL_SENSITIVITY_LOW = 0,
     DIAL_SENSITIVITY_MEDIUM,
-//    DIAL_SENSITIVITY_HIGH,  // disabled for now (unnecessary/touchy)
+//  DIAL_SENSITIVITY_HIGH,  // disabled for now (unnecessary/touchy)
     NUM_DIAL_SENSITIVITY
 };
 
