@@ -20,7 +20,11 @@
  */
 
 #include "encoder.hpp"
+
 #include "utility.hpp"
+
+#include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 
 // Now supporting multiple levels of rotary encoder dial sensitivity
 //
@@ -34,39 +38,58 @@ static const int8_t transition_map[][16] = {
     // Normal (Medium) Sensitivity -- default
     {
         0,   // 0000: noop
-        0,   // 0001: start (use -1 for high-sensitivity)
-        0,   // 0010: start (use 1 for high-sensitivity)
+        0,   // 0001: ccw start
+        0,   // 0010: cw start
         0,   // 0011: rate
-        1,   // 0100: end (use 1 for high-sensitivity)
+        1,   // 0100: cw end
         0,   // 0101: noop
         0,   // 0110: rate
-        -1,  // 0111: end
-        -1,  // 1000: end
+        -1,  // 0111: ccw end
+        -1,  // 1000: ccw end
         0,   // 1001: rate
         0,   // 1010: noop
-        1,   // 1011: end
+        1,   // 1011: cw end
         0,   // 1100: rate
-        0,   // 1101: start (use 1 for high-sensitivity)
-        0,   // 1110: start (use -1 for high-sensitivity)
+        0,   // 1101: cw start
+        0,   // 1110: ccw start
         0,   // 1111: noop
     },
     // Low Sensitivity
     {
         0,   // 0000: noop
-        0,   // 0001: start
-        0,   // 0010: start
+        0,   // 0001: ccw start
+        0,   // 0010: cw start
         0,   // 0011: rate
-        1,   // 0100: end
+        1,   // 0100: cw end
         0,   // 0101: noop
         0,   // 0110: rate
-        0,   // 0111: end
-        -1,  // 1000: end
+        0,   // 0111: ccw end
+        -1,  // 1000: ccw end
         0,   // 1001: rate
         0,   // 1010: noop
-        0,   // 1011: end
+        0,   // 1011: cw end
         0,   // 1100: rate
-        0,   // 1101: start
-        0,   // 1110: start
+        0,   // 1101: cw start
+        0,   // 1110: ccw start
+        0,   // 1111: noop
+    },
+    // High Sensitivity
+    {
+        0,   // 0000: noop
+        -1,  // 0001: ccw start
+        1,   // 0010: cw start
+        0,   // 0011: rate
+        1,   // 0100: cw end
+        0,   // 0101: noop
+        0,   // 0110: rate
+        -1,  // 0111: ccw end
+        -1,  // 1000: ccw end
+        0,   // 1001: rate
+        0,   // 1010: noop
+        1,   // 1011: cw end
+        0,   // 1100: rate
+        1,   // 1101: cw start
+        -1,  // 1110: ccw start
         0,   // 1111: noop
     },
 };
@@ -79,5 +102,10 @@ int_fast8_t Encoder::update(
     state <<= 1;
     state |= phase_1;
 
-    return transition_map[sensitivity_][state & 0xf];
+    // get dial sensitivity setting from pmem if valid
+    uint8_t sensitivity = portapack::persistent_memory::config_encoder_dial_sensitivity();
+    if (sensitivity >= portapack::persistent_memory::NUM_DIAL_SENSITIVITY)
+        sensitivity = portapack::persistent_memory::DIAL_SENSITIVITY_MEDIUM;
+
+    return transition_map[sensitivity][state & 0xf];
 }
