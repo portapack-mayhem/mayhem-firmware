@@ -146,13 +146,15 @@ void PlaylistView::toggle() {
         track_number = 0;
         playlist_db.clear();
         playlist_masterdb.clear();
-    } else {
+    } else {  // Thanks kallanreed for providing this logic!
         total_tracks = 0;
         track_number = 0;
         playlist_db.clear();
         playlist_masterdb.clear();
         load_file(now_play_list_file);
-        start();
+        if (!playlist_db.empty()) {
+            start();
+        }
     }
 }
 
@@ -207,7 +209,7 @@ void PlaylistView::stop(const bool do_loop) {
     // Notes of the logic here in case if it needed to be changed in the future:
     // 1. check_loop.value() is for the LOOP checkbox
     // 2. do_loop is a part of the replay thread, not a user - control thing.
-    // 3. when (total_tracks >= track_number) is true, it means that the current track is not the last track.
+    // 3. when (total_tracks > track_number) is true, it means that the current track is not the last track.
     // Thus, (do_loop && (total_tracks != track_number)) is for the case when the start() func were called with true AND not the last track.
     // Which means it do loop until the last track.
 
@@ -224,7 +226,7 @@ void PlaylistView::stop(const bool do_loop) {
             button_play.set_bitmap(&bitmap_play);
         }
     } else if (!check_loop.value()) {
-        if (do_loop && (total_tracks >= track_number)) {
+        if (do_loop && (total_tracks > track_number)) {
             if (playlist_db.size() > 0) {
                 start();
             } else {
@@ -316,7 +318,8 @@ void PlaylistView::on_hide() {
 void PlaylistView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
-    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(),
+                                  new_parent_rect.height() - header_height};
     waterfall.set_parent_rect(waterfall_rect);
 }
 
