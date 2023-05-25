@@ -146,18 +146,19 @@ void PlaylistView::toggle() {
         track_number = 0;
         playlist_db.clear();
         playlist_masterdb.clear();
-    } else if (!thread_null || (!playlist_db.empty() || !playlist_masterdb.empty())) {
+    } else {
         total_tracks = 0;
         track_number = 0;
         playlist_db.clear();
         playlist_masterdb.clear();
         load_file(now_play_list_file);
-        start();
+        if (!playlist_db.empty()) {
+            start();
+        }
     }
 }
 
 void PlaylistView::start() {
-    thread_null = false;
     stop(false);
 
     playlist_entry item = playlist_db.front();
