@@ -71,33 +71,19 @@ class PlaylistView : public View {
     const size_t buffer_count{3};
 
     void load_file(std::filesystem::path playlist_path);
-
     void txtline_process(std::string&);
-
     void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate);
-
     void on_target_frequency_changed(rf::Frequency f);
-
     void on_tx_progress(const uint32_t progress);
-
     void set_target_frequency(const rf::Frequency new_value);
-
     rf::Frequency target_frequency() const;
-
     void toggle();
-
     void start();
-
     void stop(const bool do_loop);
-
     bool is_active() const;
-
     bool loop() const;
-
     void set_ready();
-
     void handle_replay_thread_done(const uint32_t return_code);
-
     void file_error(std::string error_message);
 
     std::filesystem::path file_path{};
