@@ -87,6 +87,7 @@ class PlaylistView : public View {
     std::filesystem::path file_path{};
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
+    bool thread_null{true};
     int track_number{0};
     int total_tracks{0};
     std::filesystem::path now_play_list_file{};
