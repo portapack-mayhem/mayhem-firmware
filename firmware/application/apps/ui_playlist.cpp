@@ -146,7 +146,7 @@ void PlaylistView::toggle() {
         track_number = 0;
         playlist_db.clear();
         playlist_masterdb.clear();
-    } else if(!thread_null || (!playlist_db.empty() || !playlist_masterdb.empty())) {
+    } else if (!thread_null || (!playlist_db.empty() || !playlist_masterdb.empty())) {
         total_tracks = 0;
         track_number = 0;
         playlist_db.clear();
@@ -317,7 +317,8 @@ void PlaylistView::on_hide() {
 void PlaylistView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
-    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(),
+                                  new_parent_rect.height() - header_height};
     waterfall.set_parent_rect(waterfall_rect);
 }
 
