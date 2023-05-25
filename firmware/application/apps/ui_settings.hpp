@@ -432,6 +432,38 @@ class SetQRCodeView : public View {
     };
 };
 
+using portapack::persistent_memory::encoder_dial_sensitivity;
+
+class SetEncoderDialView : public View {
+   public:
+    SetEncoderDialView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Encoder Dial"; };
+
+   private:
+    Labels labels{
+        {{2 * 8, 3 * 16}, "Dial sensitivity:", Color::light_grey()},
+    };
+
+    OptionsField field_encoder_dial_sensitivity{
+        {20 * 8, 3 * 16},
+        6,
+        {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
+         {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_MEDIUM},
+         {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SetPersistentMemoryView : public View {
    public:
     SetPersistentMemoryView(NavigationView& nav);

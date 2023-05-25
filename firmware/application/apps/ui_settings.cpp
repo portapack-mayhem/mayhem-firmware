@@ -529,9 +529,9 @@ void SetPersistentMemoryView::focus() {
     button_return.focus();
 }
 
-//
-// Audio settings
-//
+// ---------------------------------------------------------
+// Audio Settings
+// ---------------------------------------------------------
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
@@ -554,6 +554,9 @@ void SetAudioView::focus() {
     button_save.focus();
 }
 
+// ---------------------------------------------------------
+// QR Code Settings
+// ------------------------------------------------------
 SetQRCodeView::SetQRCodeView(NavigationView& nav) {
     add_children({&checkbox_bigger_qr,
                   &button_save,
@@ -576,6 +579,31 @@ void SetQRCodeView::focus() {
 }
 
 // ---------------------------------------------------------
+// Rotary Encoder Dial Settings
+// ---------------------------------------------------------
+SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_encoder_dial_sensitivity,
+                  &button_save,
+                  &button_cancel});
+
+    field_encoder_dial_sensitivity.set_by_value(persistent_memory::config_encoder_dial_sensitivity());
+
+    button_save.on_select = [&nav, this](Button&) {
+        persistent_memory::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetEncoderDialView::focus() {
+    button_save.focus();
+}
+
+// ---------------------------------------------------------
 // Settings main menu
 // ---------------------------------------------------------
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
@@ -593,6 +621,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"FreqCorrection", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
+        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

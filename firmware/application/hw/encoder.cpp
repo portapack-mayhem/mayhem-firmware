@@ -23,23 +23,75 @@
 
 #include "utility.hpp"
 
-static const int8_t transition_map[] = {
-    0,   // 0000: noop
-    0,   // 0001: start
-    0,   // 0010: start
-    0,   // 0011: rate
-    1,   // 0100: end
-    0,   // 0101: noop
-    0,   // 0110: rate
-    -1,  // 0111: end
-    -1,  // 1000: end
-    0,   // 1001: rate
-    0,   // 1010: noop
-    1,   // 1011: end
-    0,   // 1100: rate
-    0,   // 1101: start
-    0,   // 1110: start
-    0,   // 1111: noop
+#include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
+
+// Now supporting multiple levels of rotary encoder dial sensitivity
+//
+// Portapack H2 normally has a 30-step encoder, meaning one step (pulse) every
+// 12 degrees of rotation.
+//
+// For each encoder "pulse" there are 4 state transitions, and we can choose
+// between looking at all of them (high sensitivity), half of them (medium/default),
+// or one quarter of them (low sensitivity).
+static const int8_t transition_map[][16] = {
+    // Normal (Medium) Sensitivity -- default
+    {
+        0,   // 0000: noop
+        0,   // 0001: ccw start
+        0,   // 0010: cw start
+        0,   // 0011: rate
+        1,   // 0100: cw end
+        0,   // 0101: noop
+        0,   // 0110: rate
+        -1,  // 0111: ccw end
+        -1,  // 1000: ccw end
+        0,   // 1001: rate
+        0,   // 1010: noop
+        1,   // 1011: cw end
+        0,   // 1100: rate
+        0,   // 1101: cw start
+        0,   // 1110: ccw start
+        0,   // 1111: noop
+    },
+    // Low Sensitivity
+    {
+        0,   // 0000: noop
+        0,   // 0001: ccw start
+        0,   // 0010: cw start
+        0,   // 0011: rate
+        1,   // 0100: cw end
+        0,   // 0101: noop
+        0,   // 0110: rate
+        0,   // 0111: ccw end
+        -1,  // 1000: ccw end
+        0,   // 1001: rate
+        0,   // 1010: noop
+        0,   // 1011: cw end
+        0,   // 1100: rate
+        0,   // 1101: cw start
+        0,   // 1110: ccw start
+        0,   // 1111: noop
+    },
+    // High Sensitivity
+    {
+        0,   // 0000: noop
+        -1,  // 0001: ccw start
+        1,   // 0010: cw start
+        0,   // 0011: rate
+        1,   // 0100: cw end
+        0,   // 0101: noop
+        0,   // 0110: rate
+        -1,  // 0111: ccw end
+        -1,  // 1000: ccw end
+        0,   // 1001: rate
+        0,   // 1010: noop
+        1,   // 1011: cw end
+        0,   // 1100: rate
+        1,   // 1101: cw start
+        -1,  // 1110: ccw start
+        0,   // 1111: noop
+    },
 };
 
 int_fast8_t Encoder::update(
@@ -50,5 +102,6 @@ int_fast8_t Encoder::update(
     state <<= 1;
     state |= phase_1;
 
-    return transition_map[state & 0xf];
+    // dial sensitivity setting is stored in pmem
+    return transition_map[portapack::persistent_memory::config_encoder_dial_sensitivity()][state & 0xf];
 }
