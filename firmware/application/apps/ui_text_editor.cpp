@@ -186,7 +186,6 @@ void FileWrapper::ensure_cached(Line line) {
 }
 
 Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
-    constexpr size_t buffer_size = 128;
     char buffer[buffer_size];
     Offset offset = start;
     auto to_read = buffer_size;
@@ -222,7 +221,6 @@ Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
 }
 
 Optional<FileWrapper::Offset> FileWrapper::next_newline(Offset start) {
-    constexpr size_t buffer_size = 128;
     char buffer[buffer_size];
     Offset offset = start;
 
@@ -255,37 +253,16 @@ Optional<FileWrapper::Offset> FileWrapper::next_newline(Offset start) {
     return {offset};
 }
 
-/* TextEditorView ***************************************************/
+/* TextViewer *******************************************************/
 
-TextEditorView::TextEditorView(NavigationView& nav)
-    : nav_{nav} {
-    add_children(
-        {
-            &button_open,
-            &text_position,
-            &text_size,
-        });
+TextViewer::TextViewer(Rect parent_rect)
+    : Widget(parent_rect),
+      max_line{static_cast<uint8_t>(parent_rect.height() / char_height)},
+      max_col{static_cast<uint8_t>(parent_rect.width() / char_width)} {
     set_focusable(true);
-
-    button_open.on_select = [this](Button&) {
-        auto open_view = nav_.push<FileLoadView>("");
-        open_view->on_changed = [this](std::filesystem::path path) {
-            open_file(path);
-        };
-    };
 }
 
-TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
-    : TextEditorView(nav) {
-    open_file(path);
-}
-
-void TextEditorView::on_focus() {
-    refresh_ui();
-    button_open.focus();
-}
-
-void TextEditorView::paint(Painter& painter) {
+void TextViewer::paint(Painter& painter) {
     auto first_line = paint_state_.first_line;
     auto first_col = paint_state_.first_col;
 
@@ -320,7 +297,7 @@ void TextEditorView::paint(Painter& painter) {
     paint_cursor(painter);
 }
 
-bool TextEditorView::on_key(const KeyEvent key) {
+bool TextViewer::on_key(const KeyEvent key) {
     int16_t delta_col = 0;
     int16_t delta_line = 0;
 
@@ -340,11 +317,12 @@ bool TextEditorView::on_key(const KeyEvent key) {
     auto updated = apply_scrolling_constraints(delta_line, delta_col);
 
     if (updated)
-        refresh_ui();
+        redraw();
+
     return updated;
 }
 
-bool TextEditorView::on_encoder(EncoderEvent delta) {
+bool TextViewer::on_encoder(EncoderEvent delta) {
     bool updated = false;
 
     if (cursor_.dir == ScrollDirection::Horizontal)
@@ -353,12 +331,12 @@ bool TextEditorView::on_encoder(EncoderEvent delta) {
         updated = apply_scrolling_constraints(delta, 0);
 
     if (updated)
-        refresh_ui();
+        redraw();
 
     return updated;
 }
 
-bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t delta_col) {
+bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_col) {
     int32_t new_line = cursor_.line + delta_line;
     int32_t new_col = cursor_.col + delta_col;
     int32_t new_line_length = file_.line_length(new_line);
@@ -403,30 +381,12 @@ bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t del
     return true;
 }
 
-void TextEditorView::refresh_ui() {
-    if (paint_state_.has_file) {
-        text_position.set(
-            "Ln " + to_string_dec_uint(cursor_.line + 1) +
-            ", Col " + to_string_dec_uint(cursor_.col + 1));
-        text_size.set(
-            "Lines:" + to_string_dec_uint(file_.line_count()) +
-            " (" + to_string_file_size(file_.size()) + ")");
-    } else {
-        // if (!button_open.has_focus())
-        //     button_open.focus();
-        text_position.set("");
-        text_size.set("");
-    }
-
-    set_dirty();
-}
-
-void TextEditorView::open_file(const fs::path& path) {
-    // TODO: need a temp backing file for edits.
+void TextViewer::open_file(const fs::path& path) {
     auto result = file_.open(path);
 
-    if (result.is_valid())
-        nav_.display_modal("Read Error", "Cannot open file:\n" + result->what());
+    // TODO
+    // if (result.is_valid())
+    //    nav_.display_modal("Read Error", "Cannot open file:\n" + result->what());
 
     paint_state_.has_file = !result.is_valid();  // Has an error.
     paint_state_.first_line = 0;
@@ -435,11 +395,15 @@ void TextEditorView::open_file(const fs::path& path) {
     cursor_.col = 0;
 
     paint_state_.redraw_text = true;
-    refresh_ui();
+    redraw();
 }
 
-void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
-    // TODO: A line cache would use more memory but save a lot of IO.
+void TextViewer::redraw() {
+    set_dirty();
+}
+
+void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
+    // CONSIDER: A line cache would use more memory but save a lot of IO.
     // Only the new lines/characters would need to be refetched.
 
     auto r = screen_rect();
@@ -454,21 +418,21 @@ void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
         // Draw text.
         if (str.length() > 0)
             painter.draw_string(
-                {0, r.location().y() + (int)i * char_height},
-                style_default, str);
+                {0, r.top() + (int)i * char_height},
+                style_text, str);
 
         // Clear empty line sections.
         int32_t clear_width = max_col - str.length();
         if (clear_width > 0)
             painter.fill_rectangle(
                 {(max_col - clear_width) * char_width,
-                 r.location().y() + (int)i * char_height,
+                 r.top() + (int)i * char_height,
                  clear_width * char_width, char_height},
-                style_default.background);
+                style_text.background);
     }
 }
 
-void TextEditorView::paint_cursor(Painter& painter) {
+void TextViewer::paint_cursor(Painter& painter) {
     auto draw_cursor = [this, &painter](uint32_t line, uint16_t col, Color c) {
         auto r = screen_rect();
         line = line - paint_state_.first_line;
@@ -476,21 +440,102 @@ void TextEditorView::paint_cursor(Painter& painter) {
 
         painter.draw_rectangle(
             {(int)col * char_width - 1,
-             r.location().y() + (int)line * char_height,
+             r.top() + (int)line * char_height,
              char_width + 1, char_height},
             c);
     };
 
-    // TODO: XOR cursor?
+    // CONSIDER: XOR cursor?
+
     // Clear old cursor.
-    draw_cursor(paint_state_.line, paint_state_.col, style_default.background);
-    draw_cursor(cursor_.line, cursor_.col, style_default.foreground);
+    draw_cursor(paint_state_.line, paint_state_.col, style_text.background);
+    draw_cursor(cursor_.line, cursor_.col, style_text.foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
 
-uint16_t TextEditorView::line_length() {
+uint16_t TextViewer::line_length() {
     return file_.line_length(cursor_.line);
+}
+
+/* TextEditorMenu ***************************************************/
+
+TextEditorMenu::TextEditorMenu()
+    : View{{7 * 4, 9 * 4, 25 * 8, 25 * 8}} {
+    add_children(
+        {
+            &rect_frame,
+            &button_cut,
+            &button_paste,
+            &button_copy,
+            &button_open,
+            &button_edit,
+            &button_newline,
+            &button_save,
+            &button_back,
+            &button_exit,
+        });
+}
+
+void TextEditorMenu::on_focus() {
+    button_edit.focus();
+}
+
+/* TextEditorView ***************************************************/
+
+TextEditorView::TextEditorView(NavigationView& nav)
+    : nav_{nav} {
+    add_children(
+        {
+            &viewer,
+            &menu,
+            &button_menu,
+            &text_position,
+            &text_size,
+        });
+
+    viewer.on_select = [this]() {
+        nav_.display_modal("TEST", "Select Pressed");
+    };
+
+    /*button_open.on_select = [this](Button&) {
+        auto open_view = nav_.push<FileLoadView>("");
+        open_view->on_changed = [this](std::filesystem::path path) {
+            viewer.open_file(path);
+        };
+    };*/
+
+    button_menu.on_select = [this]() {
+        menu.visible(!menu.visible());
+        set_dirty();
+    };
+}
+
+TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
+    : TextEditorView(nav) {
+    viewer.open_file(path);
+}
+
+void TextEditorView::on_focus() {
+    //refresh_ui();
+    //button_open.focus();
+    menu.focus();
+}
+
+void TextEditorView::refresh_ui() {
+    /*if (paint_state_.has_file) {
+        text_position.set(
+            "Ln " + to_string_dec_uint(viewer.line() + 1) +
+            ", Col " + to_string_dec_uint(viewer.col() + 1));
+        text_size.set(
+            "Lines:" + to_string_dec_uint(file_.line_count()) +
+            " (" + to_string_file_size(file_.size()) + ")");
+    } else {
+        text_position.set("");
+        text_size.set("");
+    }*/
+
+    set_dirty();
 }
 
 }  // namespace ui
