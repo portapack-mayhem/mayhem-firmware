@@ -52,7 +52,7 @@ class AMOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        5,
+        6,  // number of blanking characters
         {
             // using  common messages from freqman.cpp
         }};
