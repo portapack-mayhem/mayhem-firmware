@@ -47,13 +47,12 @@ uint8_t FreqManUIList::set_index(uint8_t index) {
 uint8_t FreqManUIList::set_highlighted(uint8_t index) {
     if (freqlist_db.size() == 0)
         return 0;
-     if (index >= freqlist_nb_lines)
-     {
-         if( freqlist_nb_lines > 0 )
+    if (index >= freqlist_nb_lines) {
+        if (freqlist_nb_lines > 0)
             index = freqlist_nb_lines - 1;
-         else
-            index = 0 ;
-     }
+        else
+            index = 0;
+    }
     highlighted_index = index;
     return index;
 }
