@@ -110,12 +110,6 @@ void FreqManUIList::set_db(freqman_db& db) {
     highlighted_index = 0;
 }
 
-void FreqManUIList::on_hide() {
-}
-
-void FreqManUIList::on_show() {
-}
-
 void FreqManUIList::on_focus() {
     if (on_highlight)
         on_highlight(*this);

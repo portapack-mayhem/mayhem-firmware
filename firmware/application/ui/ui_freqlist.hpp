@@ -54,8 +54,6 @@ class FreqManUIList : public Widget {
     void on_focus() override;
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
-    void on_hide() override;
-    void on_show() override;
     bool on_encoder(EncoderEvent delta) override;
 
     uint8_t set_highlighted_index(int index);  // set highlighted_index and return capped highlighted_index value to set in caller
