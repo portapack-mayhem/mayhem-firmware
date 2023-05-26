@@ -70,7 +70,7 @@ void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint
 
 void GlassView::on_marker_change() {
     if (mode == LOOKING_GLASS_SINGLEPASS) {
-        marker = f_min + (marker_pixel_index * looking_glass_range) / SCREEN_W;
+        marker = f_min + 8 * each_bin_size + (marker_pixel_index * (looking_glass_range - (4 * each_bin_size))) / SCREEN_W;
     } else  // if( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
     {
         marker = f_min + (offset * each_bin_size) + (marker_pixel_index * looking_glass_range) / SCREEN_W;
