@@ -34,16 +34,16 @@ Metrics calculate_metrics(const Frame& frame) {
      * fast *enough*?), so maybe leave it alone at least for now.
      */
 
-    const auto x_max = frame.x.xp;
-    const auto x_min = frame.x.xn;
+    const auto x_max = frame.x.xp / 16;
+    const auto x_min = frame.x.xn / 16;
     const auto x_range = x_max - x_min;
-    const float x_position = (frame.x.yp + frame.x.yn) * 0.5f;
+    const float x_position = (frame.x.yp / 16 + frame.x.yn / 16) * 0.5f;
     const float x_norm = (x_position - x_min) / x_range;
 
-    const auto y_max = frame.y.yn;
-    const auto y_min = frame.y.yp;
+    const auto y_max = frame.y.yn / 16;
+    const auto y_min = frame.y.yp / 16;
     const auto y_range = y_max - y_min;
-    const float y_position = (frame.y.xp + frame.y.xn) * 0.5f;
+    const float y_position = (frame.y.xp / 16 + frame.y.xn / 16) * 0.5f;
     const float y_norm = (y_position - y_min) / y_range;
 
     const auto z_max = frame.pressure.yp;
