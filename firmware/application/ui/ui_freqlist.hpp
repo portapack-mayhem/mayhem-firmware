@@ -33,21 +33,23 @@
 
 namespace ui {
 
-class FreqmanUIList : public Widget {
+
+class FreqManUIList : public Widget {
    public:
-    FreqmanUIList(
-        const Rect parent_rect)
-        : Widget{parent_rect} {
+    std::function<void(FreqManUIList&)> on_select{};
+    std::function<void(FreqManUIList&)> on_touch_release{};  // Executed when releasing touch, after on_select.
+    std::function<void(FreqManUIList&)> on_touch_press{};    // Executed when touching, before on_select.
+    std::function<bool(FreqManUIList&, KeyEvent)> on_dir{};
+    std::function<void(FreqManUIList&)> on_highlight{};
+
+    FreqManUIList(Rect parent_rect, bool instant_exec);  // instant_exec: Execute on_select when you touching instead of releasing
+    FreqManUIList(
+        Rect parent_rect)
+        : FreqManUIList{parent_rect, false} {
     }
-
-    std::function<void(FreqmanUIList&)> on_select{};
-    std::function<void(FreqmanUIList&)> on_touch_release{};  // Executed when releasing touch, after on_select.
-    std::function<void(FreqmanUIList&)> on_touch_press{};    // Executed when touching, before on_select.
-    std::function<bool(FreqmanUIList&, KeyEvent)> on_dir{};
-    std::function<void(FreqmanUIList&)> on_highlight{};
-
-    void paint(Painter& painter) override;
-    void set_db( freqman_db &db );
+    FreqManUIList()
+        : FreqManUIList{{}, {}} {
+    }
 
     void paint(Painter& painter) override;
     void on_focus() override;
@@ -55,18 +57,26 @@ class FreqmanUIList : public Widget {
     bool on_touch(const TouchEvent event) override;
     void on_hide() override;
     void on_show() override;
+    bool on_encoder(EncoderEvent delta) override;
+
+    uint8_t set_index( uint8_t index ); // set index and return capped index value to set in caller
+    uint8_t set_highlighted( uint8_t index ); // set highlighted_index and return capped highlighted_index value to set in caller 
+    uint8_t get_index(); // return highlighed + index
+    void set_db( freqman_db &db );
 
    private:
          static constexpr Style style_default{
-        .font = font::fixed_5x8,
+        .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::white(),
     };
 
-        static constexpr int8_t char_height = 8;
+    static constexpr int8_t char_height = 16;
+    bool instant_exec_{false};
     freqman_db freqlist_db {};
     uint8_t current_index{0};
-    uint8_t highligh_index{0};
+    uint8_t highlighted_index{0};
+    uint8_t freqlist_nb_lines{3}; 
 };
 
 }  // namespace ui

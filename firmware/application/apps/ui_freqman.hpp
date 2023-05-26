@@ -28,6 +28,7 @@
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
 #include "freqman.hpp"
+#include "ui_freqlist.hpp"
 
 namespace ui {
 
@@ -65,9 +66,9 @@ class FreqManBaseView : public View {
         14,
         {}};
 
-    MenuView menu_view{
-        {0, 3 * 8, 240, 23 * 8},
-        true};
+    FreqManUIList menu_view{
+        {0, 3 * 8, 240, 23 * 8}};
+
     Text text_empty{
         {7 * 8, 12 * 8, 16 * 8, 16},
         "Empty category !",
