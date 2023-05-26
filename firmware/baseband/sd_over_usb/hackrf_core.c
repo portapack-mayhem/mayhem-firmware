@@ -807,10 +807,6 @@ void cpu_clock_init(void) {
     // CCU2_CLK_APLL_CFG = 0;
     // CCU2_CLK_SDIO_CFG = 0;
 #endif
-
-    if (detected_platform() == BOARD_ID_HACKRF1_R9) {
-        clkin_detect_init();
-    }
 }
 
 clock_source_t activate_best_clock_source(void) {
