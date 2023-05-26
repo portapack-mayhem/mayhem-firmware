@@ -218,6 +218,7 @@ set(CPPSRC
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
+	ui/ui_freqlist.cpp
 	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
 	ui/ui_tabview.cpp
