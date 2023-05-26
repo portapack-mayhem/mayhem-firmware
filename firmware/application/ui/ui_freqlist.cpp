@@ -47,8 +47,13 @@ uint8_t FreqManUIList::set_index(uint8_t index) {
 uint8_t FreqManUIList::set_highlighted(uint8_t index) {
     if (freqlist_db.size() == 0)
         return 0;
-    if (index >= freqlist_nb_lines)
-        index = freqlist_nb_lines - 1;
+     if (index >= freqlist_nb_lines)
+     {
+         if( freqlist_nb_lines > 0 )
+            index = freqlist_nb_lines - 1;
+         else
+            index = 0 ;
+     }
     highlighted_index = index;
     return index;
 }
@@ -59,7 +64,8 @@ uint8_t FreqManUIList::get_index() {
 
 void FreqManUIList::paint(Painter& painter) {
     const auto r = screen_rect();
-    const Rect r_widget_screen{r.left(), r.top(), r.width(), r.height()};
+    uint8_t focused = has_focus();
+    const Rect r_widget_screen{r.left() + focused, r.top() + focused, r.width() - 2 * focused, r.height() - 2 * +focused};
     painter.fill_rectangle(
         r_widget_screen,
         Color::black());
@@ -85,7 +91,6 @@ void FreqManUIList::paint(Painter& painter) {
             break;
         }
     }
-    freqlist_nb_lines = nb_lines;
     if (has_focus() || highlighted()) {
         const Rect r_focus{r.left(), r.top(), r.width(), r.height()};
         painter.draw_rectangle(

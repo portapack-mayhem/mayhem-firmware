@@ -75,7 +75,7 @@ class FreqManUIList : public Widget {
     freqman_db freqlist_db{};
     uint8_t current_index{0};
     uint8_t highlighted_index{0};
-    uint8_t freqlist_nb_lines{3};
+    uint8_t freqlist_nb_lines{0};
 };
 
 }  // namespace ui
