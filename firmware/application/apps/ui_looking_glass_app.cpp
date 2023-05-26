@@ -70,7 +70,7 @@ void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint
 
 void GlassView::on_marker_change() {
     if (mode == LOOKING_GLASS_SINGLEPASS) {
-        marker = f_min + 8 * each_bin_size + (marker_pixel_index * (looking_glass_range - (4 * each_bin_size))) / SCREEN_W;
+        marker = f_min + (marker_pixel_index * looking_glass_range) / SCREEN_W;
     } else  // if( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
     {
         marker = f_min + (offset * each_bin_size) + (marker_pixel_index * looking_glass_range) / SCREEN_W;
@@ -234,7 +234,6 @@ void GlassView::on_range_changed() {
     } else {
         mode = scan_type.selected_index_value();
     }
-
     if (mode == LOOKING_GLASS_SINGLEPASS) {
         // if the view is done in one pass, show it like in analog_audio_app
         offset = 0;
@@ -251,17 +250,24 @@ void GlassView::on_range_changed() {
         bin_length = 80;
         ignore_dc = 0;
     }
-    each_bin_size = looking_glass_bandwidth / SPEC_NB_BINS;
-    if (mode != LOOKING_GLASS_SINGLEPASS) {
-        looking_glass_step = (bin_length + (ignore_dc * 12)) * each_bin_size;
-    } else {
-        looking_glass_step = SPEC_NB_BINS * each_bin_size;
-    }
+
     adjust_range(&f_min, &f_max, SCREEN_W);
     looking_glass_range = f_max - f_min;
-    marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
+    if (mode == LOOKING_GLASS_SINGLEPASS) {
+        looking_glass_bandwidth = looking_glass_range;
+        looking_glass_sampling_rate = looking_glass_bandwidth / 2;
+        each_bin_size = looking_glass_bandwidth / bin_length;
+        looking_glass_step = bin_length * each_bin_size;
+    } else {  // if ( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
+        looking_glass_bandwidth = LOOKING_GLASS_SLICE_WIDTH_MAX;
+        looking_glass_sampling_rate = LOOKING_GLASS_SLICE_WIDTH_MAX;
+        each_bin_size = LOOKING_GLASS_SLICE_WIDTH_MAX / SPEC_NB_BINS;
+        looking_glass_step = (bin_length + (ignore_dc * 12)) * each_bin_size;
+    }
     search_span = looking_glass_range / MHZ_DIV;
-    button_range.set_text("      ");  // clear up to 6 chars
+    marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
+                                                         //
+    button_range.set_text("      ");                     // clear up to 6 chars
     if (locked_range) {
         button_range.set_text(">" + to_string_dec_uint(search_span) + "<");
     } else {
@@ -271,18 +277,6 @@ void GlassView::on_range_changed() {
     pixel_index = 0;   // reset pixel counter
     max_power = 0;     // reset save max power level
     bins_Hz_size = 0;  // reset amount of Hz filled up by pixels
-
-    if (mode == LOOKING_GLASS_SINGLEPASS) {
-        looking_glass_bandwidth = looking_glass_range;
-        looking_glass_sampling_rate = looking_glass_bandwidth / 2;
-        each_bin_size = looking_glass_bandwidth / SCREEN_W;
-    } else  // if ( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
-    {
-        looking_glass_sampling_rate = LOOKING_GLASS_SLICE_WIDTH_MAX;
-        looking_glass_bandwidth = LOOKING_GLASS_SLICE_WIDTH_MAX;
-        each_bin_size = looking_glass_bandwidth / SPEC_NB_BINS;
-    }
-
     on_marker_change();
 
     // set the sample rate and bandwidth
