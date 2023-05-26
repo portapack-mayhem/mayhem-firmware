@@ -33,7 +33,6 @@
 
 namespace ui {
 
-
 class FreqManUIList : public Widget {
    public:
     std::function<void(FreqManUIList&)> on_select{};
@@ -59,13 +58,13 @@ class FreqManUIList : public Widget {
     void on_show() override;
     bool on_encoder(EncoderEvent delta) override;
 
-    uint8_t set_index( uint8_t index ); // set index and return capped index value to set in caller
-    uint8_t set_highlighted( uint8_t index ); // set highlighted_index and return capped highlighted_index value to set in caller 
-    uint8_t get_index(); // return highlighed + index
-    void set_db( freqman_db &db );
+    uint8_t set_index(uint8_t index);        // set index and return capped index value to set in caller
+    uint8_t set_highlighted(uint8_t index);  // set highlighted_index and return capped highlighted_index value to set in caller
+    uint8_t get_index();                     // return highlighed + index
+    void set_db(freqman_db& db);
 
    private:
-         static constexpr Style style_default{
+    static constexpr Style style_default{
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::white(),
@@ -73,10 +72,10 @@ class FreqManUIList : public Widget {
 
     static constexpr int8_t char_height = 16;
     bool instant_exec_{false};
-    freqman_db freqlist_db {};
+    freqman_db freqlist_db{};
     uint8_t current_index{0};
     uint8_t highlighted_index{0};
-    uint8_t freqlist_nb_lines{3}; 
+    uint8_t freqlist_nb_lines{3};
 };
 
 }  // namespace ui
