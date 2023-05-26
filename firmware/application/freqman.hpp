@@ -32,10 +32,10 @@
 #include "string_format.hpp"
 #include "ui_widget.hpp"
 
-#define FREQMAN_DESC_MAX_LEN 24         // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
-#define FREQMAN_MAX_PER_FILE 115        // Maximum of entries we can read. This is a hardware limit
-                                        // It was tested and lowered to leave a bit of space to the caller
-#define FREQMAN_MAX_PER_FILE_STR "115"  // STRING OF FREQMAN_MAX_PER_FILE
+#define FREQMAN_DESC_MAX_LEN 24        // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
+#define FREQMAN_MAX_PER_FILE 60        // Maximum of entries we can read. This is a hardware limit
+                                       // It was tested and lowered to leave a bit of space to the caller
+#define FREQMAN_MAX_PER_FILE_STR "60"  // STRING OF FREQMAN_MAX_PER_FILE
 
 using namespace ui;
 using namespace std;
