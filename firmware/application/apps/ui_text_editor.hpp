@@ -27,16 +27,20 @@
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
-//#include "ui_textentry.hpp"
 
 #include "circular_buffer.hpp"
 #include "file.hpp"
 #include "optional.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 
 namespace ui {
+
+/* TODO:
+ * - Copy on write into temp file so startup is fast.
+ */
 
 enum class LineEnding : uint8_t {
     LF,
@@ -47,10 +51,6 @@ enum class ScrollDirection : uint8_t {
     Vertical,
     Horizontal
 };
-
-/* TODO:
- * - Copy on write into temp file so startup is fast.
- */
 
 /* Wraps a file and provides an API for accessing lines efficiently. */
 class FileWrapper {
@@ -123,16 +123,17 @@ class TextViewer : public Widget {
     TextViewer& operator=(TextViewer&&) = delete;
 
     std::function<void()> on_select{};
-    std::function<void()> on_redraw{};
-    std::function<void()> on_cursor_movedr3{};
+    std::function<void()> on_cursor_moved{};
 
     void paint(Painter& painter) override;
     bool on_key(KeyEvent delta) override;
     bool on_encoder(EncoderEvent delta) override;
 
-    void open_file(const std::filesystem::path& path);
+    void redraw(bool redraw_text = false);
 
-    void redraw();
+    void set_file(FileWrapper& file) { reset_file(&file); }
+    void clear_file() { reset_file(); }
+    bool has_file() const { return file_ != nullptr; }
 
     uint32_t line() const { return cursor_.line; }
     uint32_t col() const { return cursor_.col; }
@@ -157,10 +158,12 @@ class TextViewer : public Widget {
     void paint_text(Painter& painter, uint32_t line, uint16_t col);
     void paint_cursor(Painter& painter);
 
+    void reset_file(FileWrapper* file = nullptr);
+
     // Gets the length of the current line.
     uint16_t line_length();
 
-    FileWrapper file_{};
+    FileWrapper* file_{};
 
     struct {
         // Previous cursor state.
@@ -171,7 +174,6 @@ class TextViewer : public Widget {
         uint32_t first_line{};
         uint16_t first_col{};
         bool redraw_text{true};
-        bool has_file{false};
     } paint_state_{};
 
     struct {
@@ -181,13 +183,29 @@ class TextViewer : public Widget {
     } cursor_{};
 };
 
+/* Menu control for the TextEditor. */
 class TextEditorMenu : public View {
    public:
     TextEditorMenu();
 
-    void on_focus() override;
+    void on_show() override;
+    void on_hide() override;
+
+    std::function<void()>& on_cut() { return button_cut.on_select; }
+    std::function<void()>& on_paste() { return button_paste.on_select; }
+    std::function<void()>& on_copy() { return button_copy.on_select; }
+
+    std::function<void()>& on_delete_line() { return button_delline.on_select; }
+    std::function<void()>& on_edit_line() { return button_edit.on_select; }
+    std::function<void()>& on_add_line() { return button_addline.on_select; }
+
+    std::function<void()>& on_open() { return button_open.on_select; }
+    std::function<void()>& on_save() { return button_save.on_select; }
+    std::function<void()>& on_exit() { return button_exit.on_select; }
 
    private:
+    void hide_children(bool hidden);
+
     Rectangle rect_frame{
         {0 * 8, 0 * 8, 23 * 8, 23 * 8},
         Color::dark_grey()};
@@ -210,11 +228,11 @@ class TextEditorMenu : public View {
         &bitmap_icon_copy,
         Color::dark_grey()};
 
-    NewButton button_open{
+    NewButton button_delline{
         {1 * 8, 8 * 8, 7 * 8, 7 * 8},
-        "Open",
-        &bitmap_icon_load,
-        Color::green()};
+        "-Line",
+        &bitmap_icon_delete,
+        Color::dark_red()};
 
     NewButton button_edit{
         {8 * 8, 8 * 8, 7 * 8, 7 * 8},
@@ -222,23 +240,23 @@ class TextEditorMenu : public View {
         &bitmap_icon_rename,
         Color::dark_blue()};
 
-    NewButton button_newline{
+    NewButton button_addline{
         {15 * 8, 8 * 8, 7 * 8, 7 * 8},
         "+Line",
         &bitmap_icon_scanner,
         Color::dark_blue()};
 
-    NewButton button_save{
+    NewButton button_open{
         {1 * 8, 15 * 8, 7 * 8, 7 * 8},
+        "Open",
+        &bitmap_icon_load,
+        Color::green()};
+
+    NewButton button_save{
+        {8 * 8, 15 * 8, 7 * 8, 7 * 8},
         "Save",
         &bitmap_icon_save,
         Color::green()};
-
-    NewButton button_back{
-        {8 * 8, 15 * 8, 7 * 8, 7 * 8},
-        "Back",
-        &bitmap_icon_back,
-        Color::dark_grey()};
 
     NewButton button_exit{
         {15 * 8, 15 * 8, 7 * 8, 7 * 8},
@@ -247,6 +265,7 @@ class TextEditorMenu : public View {
         Color::dark_red()};
 };
 
+/* View viewing and minor edits on a text file. */
 class TextEditorView : public View {
    public:
     TextEditorView(NavigationView& nav);
@@ -258,12 +277,18 @@ class TextEditorView : public View {
         return "Notepad";
     };
 
-    void on_focus() override;
+    void on_show() override;
 
    private:
+    void open_file(const std::filesystem::path& path);
     void refresh_ui();
+    void update_position();
+    void hide_menu(bool hidden = true);
+    void show_file_picker();
+    void show_nyi();
 
     NavigationView& nav_;
+    std::unique_ptr<FileWrapper> file_{};
 
     TextViewer viewer{
         /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */
