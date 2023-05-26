@@ -97,8 +97,10 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     if (!load_freqman_file(file_list[categories[current_category_id].second], database))
         error_ = ERROR_ACCESS;
-    else
+    else {
+        menu_view.set_db(database);
         refresh_list();
+    }
 }
 
 void FreqManBaseView::refresh_list() {
@@ -108,20 +110,6 @@ void FreqManBaseView::refresh_list() {
     } else {
         if (on_refresh_widgets)
             on_refresh_widgets(false);
-
-        menu_view.clear();
-
-        for (size_t n = 0; n < database.size(); n++) {
-            menu_view.add_item({freqman_item_string(database[n], 30),
-                                ui::Color::white(),
-                                nullptr,
-                                [this](KeyEvent) {
-                                    if (on_select_frequency)
-                                        on_select_frequency();
-                                }});
-        }
-
-        menu_view.set_highlighted(0);  // Refresh
     }
 }
 
@@ -206,18 +194,13 @@ FrequencyLoadView::FrequencyLoadView(
     // Resize menu view to fill screen
     menu_view.set_parent_rect({0, 3 * 8, 240, 30 * 8});
 
-    // Just to allow exit on left
-    menu_view.on_left = [&nav, this]() {
-        nav.pop();
-    };
-
     change_category(last_category_id);
     refresh_list();
 
-    on_select_frequency = [&nav, this]() {
+    menu_view.on_select = [&nav, this](FreqManUIList&) {
         nav_.pop();
 
-        auto& entry = database[menu_view.highlighted_index()];
+        auto& entry = database[menu_view.get_index()];
 
         if (entry.type == RANGE) {
             // User chose a frequency range entry
@@ -235,14 +218,14 @@ FrequencyLoadView::FrequencyLoadView(
 }
 
 void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
-    database[menu_view.highlighted_index()].frequency_a = f;
+    database[menu_view.get_index()].frequency_a = f;
     save_freqman_file(file_list[categories[current_category_id].second], database);
     refresh_list();
 }
 
 void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
     text_prompt(nav, desc_buffer, 28, [this](std::string& buffer) {
-        database[menu_view.highlighted_index()].description = buffer;
+        database[menu_view.get_index()].description = buffer;
         refresh_list();
         save_freqman_file(file_list[categories[current_category_id].second], database);
     });
@@ -258,7 +241,7 @@ void FrequencyManagerView::on_new_category(NavigationView& nav) {
 }
 
 void FrequencyManagerView::on_delete() {
-    database.erase(database.begin() + menu_view.highlighted_index());
+    database.erase(database.begin() + menu_view.get_index());
     save_freqman_file(file_list[categories[current_category_id].second], database);
     refresh_list();
 }
@@ -292,15 +275,10 @@ FrequencyManagerView::FrequencyManagerView(
                   &button_edit_desc,
                   &button_delete});
 
-    // Just to allow exit on left
-    menu_view.on_left = [&nav, this]() {
-        nav.pop();
-    };
-
     change_category(last_category_id);
     refresh_list();
 
-    on_select_frequency = [this]() {
+    menu_view.on_select = [this](FreqManUIList&) {
         button_edit_freq.focus();
     };
 
@@ -310,14 +288,14 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_edit_freq.on_select = [this, &nav](Button&) {
-        auto new_view = nav.push<FrequencyKeypadView>(database[menu_view.highlighted_index()].frequency_a);
+        auto new_view = nav.push<FrequencyKeypadView>(database[menu_view.get_index()].frequency_a);
         new_view->on_changed = [this](rf::Frequency f) {
             on_edit_freq(f);
         };
     };
 
     button_edit_desc.on_select = [this, &nav](Button&) {
-        desc_buffer = database[menu_view.highlighted_index()].description;
+        desc_buffer = database[menu_view.get_index()].description;
         on_edit_desc(nav);
     };
 
