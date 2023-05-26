@@ -35,25 +35,28 @@ FreqManUIList::FreqManUIList(
     this->set_focusable(true);
 }
 
-uint8_t FreqManUIList::set_index(uint8_t index) {
-    if (freqlist_db.size() == 0)
+uint8_t FreqManUIList::set_highlighted_index(int index) {
+    if (current_index + index >= freqlist_db.size())
+        return highlighted_index;
+    if (freqlist_db.size() == 0) {
+        current_index = highlighted_index = 0;
         return 0;
-    if (index >= freqlist_db.size())
-        index = freqlist_db.size() - 1;
-    current_index = index;
-    return index;
-}
-
-uint8_t FreqManUIList::set_highlighted(uint8_t index) {
-    if (freqlist_db.size() == 0)
-        return 0;
-    if (index >= freqlist_nb_lines) {
-        if (freqlist_nb_lines > 0)
-            index = freqlist_nb_lines - 1;
-        else
-            index = 0;
     }
+    if (index < 0) {
+        index = 0;
+        if (current_index > 0)
+            current_index--;
+    }
+    if (index >= freqlist_nb_lines) {
+        index = freqlist_nb_lines - 1;
+        if (current_index + index < freqlist_db.size())
+            current_index++;
+        else
+            current_index = freqlist_db.size() - freqlist_nb_lines - 1;
+    }
+
     highlighted_index = index;
+
     return index;
 }
 
@@ -62,6 +65,7 @@ uint8_t FreqManUIList::get_index() {
 }
 
 void FreqManUIList::paint(Painter& painter) {
+    freqlist_nb_lines = 0;
     const auto r = screen_rect();
     uint8_t focused = has_focus();
     const Rect r_widget_screen{r.left() + focused, r.top() + focused, r.width() - 2 * focused, r.height() - 2 * +focused};
@@ -90,6 +94,7 @@ void FreqManUIList::paint(Painter& painter) {
             break;
         }
     }
+    freqlist_nb_lines = nb_lines;
     if (has_focus() || highlighted()) {
         const Rect r_focus{r.left(), r.top(), r.width(), r.height()};
         painter.draw_rectangle(
@@ -157,22 +162,7 @@ bool FreqManUIList::on_touch(const TouchEvent event) {
 }
 
 bool FreqManUIList::on_encoder(EncoderEvent delta) {
-    if (delta > 0) {
-        if (highlighted_index < 10)
-            highlighted_index++;
-        else
-            current_index++;
-    }
-    if (delta < 0) {
-        if (highlighted_index > 0)
-            highlighted_index--;
-        else {
-            if (current_index > 0)
-                current_index--;
-        }
-    }
-    current_index = set_index(current_index);
-    highlighted_index = set_highlighted(highlighted_index);
+    set_highlighted_index((int)highlighted_index + delta);
     set_dirty();
     return true;
 }

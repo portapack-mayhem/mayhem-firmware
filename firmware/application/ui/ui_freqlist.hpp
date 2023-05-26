@@ -58,9 +58,8 @@ class FreqManUIList : public Widget {
     void on_show() override;
     bool on_encoder(EncoderEvent delta) override;
 
-    uint8_t set_index(uint8_t index);        // set index and return capped index value to set in caller
-    uint8_t set_highlighted(uint8_t index);  // set highlighted_index and return capped highlighted_index value to set in caller
-    uint8_t get_index();                     // return highlighed + index
+    uint8_t set_highlighted_index(int index);  // set highlighted_index and return capped highlighted_index value to set in caller
+    uint8_t get_index();                       // return highlighed + index
     void set_db(freqman_db& db);
 
    private:
@@ -73,9 +72,9 @@ class FreqManUIList : public Widget {
     static constexpr int8_t char_height = 16;
     bool instant_exec_{false};
     freqman_db freqlist_db{};
-    uint8_t current_index{0};
-    uint8_t highlighted_index{0};
-    uint8_t freqlist_nb_lines{0};
+    int current_index{0};
+    int highlighted_index{0};
+    int freqlist_nb_lines{0};
 };
 
 }  // namespace ui
