@@ -35,6 +35,7 @@ class Optional {
         : value_{std::move(value)}, valid_{true} {}
 
     bool is_valid() const { return valid_; }
+    operator bool() const { return valid_; }
 
     // TODO: Throw if not valid?
     T& value() & { return value_; }
