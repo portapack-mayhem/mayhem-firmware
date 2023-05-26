@@ -122,7 +122,9 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
     freqman_index_t step = 0;
     freqman_index_t tone = 0;
 
-    db.clear();
+    //db.clear();
+    //db.shrink_to_fit():
+    std::vector<freqman_entry>().swap(db);
 
     auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
     if (result.is_valid())

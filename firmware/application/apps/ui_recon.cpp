@@ -36,7 +36,9 @@ void ReconView::clear_freqlist_for_ui_action() {
     freqlist_cleared_for_ui_action = true;
     // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
     if (!manual_mode) {
-        frequency_list.clear();
+        std::vector<freqman_entry>().swap(frequency_list);
+    } else {
+        frequency_list.shrink_to_fit();
     }
 }
 
@@ -687,7 +689,8 @@ ReconView::ReconView(NavigationView& nav)
         } else {
             audio::output::stop();
 
-            frequency_list.clear();
+            std::vector<freqman_entry>().swap(frequency_list);
+
             freqman_entry manual_freq_entry;
 
             def_step = step_mode.selected_index();  // max range val
@@ -894,9 +897,9 @@ void ReconView::frequency_file_load(bool stop_all_before) {
     (void)(stop_all_before);
     audio::output::stop();
 
-    def_step = step_mode.selected_index();  // use def_step from manual selector
-    frequency_list.clear();                 // clear the existing frequency list (expected behavior)
-    std::string file_input = input_file;    // default recon mode
+    def_step = step_mode.selected_index();              // use def_step from manual selector
+    std::vector<freqman_entry>().swap(frequency_list);  // clear the existing frequency list (expected behavior)
+    std::string file_input = input_file;                // default recon mode
     if (scanner_mode) {
         file_input = output_file;
         file_name.set_style(&style_red);
