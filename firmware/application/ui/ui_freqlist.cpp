@@ -35,13 +35,9 @@ FreqManUIList::FreqManUIList(
     this->set_focusable(true);
 }
 
-uint8_t FreqManUIList::set_highlighted_index(int index) {
+void FreqManUIList::set_highlighted_index(int index) {
     if ((unsigned)(current_index + index) >= freqlist_db.size())
-        return highlighted_index;
-    if (freqlist_db.size() == 0) {
-        current_index = highlighted_index = 0;
-        return 0;
-    }
+        return;
     if (index < 0) {
         index = 0;
         if (current_index > 0)
@@ -54,10 +50,7 @@ uint8_t FreqManUIList::set_highlighted_index(int index) {
         else
             current_index = freqlist_db.size() - freqlist_nb_lines - 1;
     }
-
     highlighted_index = index;
-
-    return index;
 }
 
 uint8_t FreqManUIList::get_index() {

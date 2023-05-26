@@ -56,8 +56,8 @@ class FreqManUIList : public Widget {
     bool on_touch(const TouchEvent event) override;
     bool on_encoder(EncoderEvent delta) override;
 
-    uint8_t set_highlighted_index(int index);  // set highlighted_index and return capped highlighted_index value to set in caller
-    uint8_t get_index();                       // return highlighed + index
+    bool set_highlighted_index(int index);  // set highlighted_index and return capped highlighted_index value to set in caller
+    uint8_t get_index();                    // return highlighed + index
     void set_db(freqman_db& db);
 
    private:
