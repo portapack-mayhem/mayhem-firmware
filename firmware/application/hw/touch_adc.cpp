@@ -71,10 +71,10 @@ Samples get() {
     const auto yp_reg = LPC_ADC0->DR[portapack::adc0_touch_yp_input];
     const auto yn_reg = LPC_ADC0->DR[portapack::adc0_touch_yn_input];
     return {
-        (xp_reg >> 6) & 0x3ff,
-        (xn_reg >> 6) & 0x3ff,
-        (yp_reg >> 6) & 0x3ff,
-        (yn_reg >> 6) & 0x3ff,
+        ((xp_reg >> 6) & 0x3ff) * 16,
+        ((xn_reg >> 6) & 0x3ff) * 16,
+        ((yp_reg >> 6) & 0x3ff) * 16,
+        ((yn_reg >> 6) & 0x3ff) * 16,
     };
 }
 
