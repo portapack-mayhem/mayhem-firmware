@@ -241,10 +241,11 @@ std::filesystem::filesystem_error rename_file(
 std::filesystem::filesystem_error copy_file(
     const std::filesystem::path& file_path,
     const std::filesystem::path& dest_path) {
+    // Decent compromise between memory and speed.
+    constexpr size_t buffer_size = 512;
+    uint8_t buffer[buffer_size];
     File src;
     File dst;
-    constexpr size_t buffer_size = 128;
-    uint8_t buffer[buffer_size];
 
     auto error = src.open(file_path);
     if (error.is_valid()) return error.value();
