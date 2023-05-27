@@ -303,6 +303,10 @@ class File {
             return type == Type::Success;
         }
 
+        operator bool() const {
+            return is_ok();
+        }
+
         bool is_error() const {
             return type == Type::Error;
         }
@@ -355,10 +359,10 @@ class File {
     Optional<Error> append(const std::filesystem::path& filename);
     Optional<Error> create(const std::filesystem::path& filename);
 
-    Result<Size> read(void* const data, const Size bytes_to_read);
-    Result<Size> write(const void* const data, const Size bytes_to_write);
+    Result<Size> read(void* data, const Size bytes_to_read);
+    Result<Size> write(const void* data, Size bytes_to_write);
 
-    Result<Offset> seek(const uint64_t Offset);
+    Result<Offset> seek(uint64_t Offset);
     // Timestamp created_date() const;
     Size size() const;
 
