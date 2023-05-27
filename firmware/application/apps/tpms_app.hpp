@@ -38,10 +38,6 @@
 
 namespace std {
 
-constexpr bool operator==(const tpms::TransponderID& lhs, const tpms::TransponderID& rhs) {
-    return (lhs.value() == rhs.value());
-}
-
 } /* namespace std */
 
 struct TPMSRecentEntry {

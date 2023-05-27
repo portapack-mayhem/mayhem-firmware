@@ -60,6 +60,10 @@ class TransponderID {
         return id_;
     }
 
+    constexpr bool operator==(const TransponderID &other) const {
+        return id_ == other.id_;
+    }
+
    private:
     uint32_t id_;
 };
