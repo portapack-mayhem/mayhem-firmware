@@ -25,10 +25,10 @@
 #include "usb_type.h"
 #include "usb_descriptor.h"
 
-#define USB_VENDOR_ID (0x1D50)
+#define USB_VENDOR_ID (0x0781) /* SanDisk Corp. */
 
 #ifdef HACKRF_ONE
-#define USB_PRODUCT_ID (0x6089)
+#define USB_PRODUCT_ID (0xa7a8) /* SD card reader */
 #elif JAWBREAKER
 #define USB_PRODUCT_ID (0x604B)
 #elif RAD1O
@@ -37,7 +37,7 @@
 #define USB_PRODUCT_ID (0xFFFF)
 #endif
 
-#define USB_API_VERSION (0x0107)
+#define USB_API_VERSION (0x0127) /* hardware revision */
 
 #define USB_WORD(x) (x & 0xFF), ((x >> 8) & 0xFF)
 
