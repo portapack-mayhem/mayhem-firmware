@@ -288,6 +288,7 @@ class File {
     using Timestamp = uint32_t;
     using Error = std::filesystem::filesystem_error;
 
+    // TODO: move to common.
     template <typename T>
     struct Result {
         enum class Type {
@@ -311,12 +312,21 @@ class File {
             return type == Type::Error;
         }
 
-        const T& value() const {
+        const T& value() const& {
             return value_;
         }
 
         const T& operator*() const& {
             return value_;
+        }
+
+        /* Allows value to be moved out of the Result. */
+        T take() {
+            if (is_error())
+                return {};
+            T temp;
+            std::swap(temp, value_);
+            return temp;
         }
 
         Error error() const {
@@ -326,9 +336,9 @@ class File {
         Result() = delete;
 
         constexpr Result(
-            T value)
+            T&& value)
             : type{Type::Success},
-              value_{value} {
+              value_{std::forward<T>(value)} {
         }
 
         constexpr Result(
@@ -338,9 +348,8 @@ class File {
         }
 
         ~Result() {
-            if (type == Type::Success) {
+            if (is_ok())
                 value_.~T();
-            }
         }
     };
 

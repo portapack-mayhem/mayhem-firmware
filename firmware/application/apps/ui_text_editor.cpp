@@ -194,13 +194,13 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
         auto str = file_->get_text(line + i, col, max_col);
 
         // Draw text.
-        if (str.length() > 0)
+        if (str && str->length() > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                style_text, str);
+                style_text, *str);
 
         // Clear empty line sections.
-        int32_t clear_width = max_col - str.length();
+        int32_t clear_width = max_col - (str ? str->length() : 0);
         if (clear_width > 0)
             painter.fill_rectangle(
                 {(max_col - clear_width) * char_width,
@@ -357,15 +357,14 @@ void TextEditorView::on_show() {
 }
 
 void TextEditorView::open_file(const fs::path& path) {
-    auto file = std::make_unique<FileWrapper>();
-    auto error = file->open(path);
+    auto result = FileWrapper::open(path);
 
-    if (error) {
-        nav_.display_modal("Read Error", "Cannot open file:\n" + error->what());
+    if (!result) {
+        nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
         file_.reset();
         viewer.clear_file();
     } else {
-        file_ = std::move(file);
+        file_ = result.take();
         viewer.set_file(*file_);
     }
 

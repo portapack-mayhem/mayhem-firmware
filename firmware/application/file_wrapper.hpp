@@ -62,8 +62,9 @@ class BufferWrapper {
         : wrapped_{buffer} {
         initialize();
     }
+    virtual ~BufferWrapper() {}
 
-    /* Prevent copies. */
+    /* Prevent copies */
     BufferWrapper(const BufferWrapper&) = delete;
     BufferWrapper& operator=(const BufferWrapper&) = delete;
 
@@ -114,9 +115,15 @@ class BufferWrapper {
         return 0;
     }
 
+    /* Gets the index of the first line in the cache.
+     * Only really useful for unit testing or diagnostics. */
+    Offset start_line() { return start_line_; };
+
    private:
     /* Number of newline offsets to cache. */
     static constexpr Offset max_newlines = CacheSize;
+
+    /* Size of stack buffer used for reading/writing. */
     static constexpr size_t buffer_size = 512;
 
     void initialize() {
@@ -124,6 +131,13 @@ class BufferWrapper {
         start_line_ = 0;
         line_count_ = 0;
         newlines_.clear();
+
+        // Special case for empty files to keep them consistent.
+        if (size() == 0) {
+            line_count_ = 1;
+            newlines_.push_back(0);
+            return;
+        }
 
         Offset offset = 0;
         auto result = next_newline(offset);
@@ -142,12 +156,12 @@ class BufferWrapper {
             return {};
 
         std::string buffer;
-        buffer.reserve(length);
+        buffer.resize(length);
         wrapped_.seek(offset);
 
         auto result = wrapped_.read(&buffer[0], length);
         if (!result)
-            return {};
+            return {}; // TODO: surface read errors?
 
         buffer.resize(*result);
         return buffer;
@@ -207,9 +221,8 @@ class BufferWrapper {
     }
 
     /* Helpers for finding the prev/next newline. */
-    Optional<Offset> previous_newline(Offset start) {
+    Optional<Offset> previous_newline(Offset offset) {
         char buffer[buffer_size];
-        Offset offset = start;
         auto to_read = buffer_size;
 
         do {
@@ -242,14 +255,12 @@ class BufferWrapper {
         return {};  // Didn't find one.
     }
 
-    Optional<Offset> next_newline(Offset start) {
-        char buffer[buffer_size];
-        Offset offset = start;
-
-        // EOF, nothing to do.
-        if (start >= size())
+    Optional<Offset> next_newline(Offset offset) {
+        // EOF, no more newlines to find.
+        if (offset >= size())
             return {};
 
+        char buffer[buffer_size];
         wrapped_.seek(offset);
 
         while (true) {
@@ -271,8 +282,8 @@ class BufferWrapper {
                 break;
         }
 
-        // Fake a newline at the end for consistency.
-        return offset;
+        // For consistency, treat the end of the file as a "newline".
+        return size() - 1;
     }
 
     BufferType& wrapped_;
@@ -288,21 +299,33 @@ class BufferWrapper {
     CircularBuffer<Offset, max_newlines + 1> newlines_{};
 };
 
-using FileWrapper = BufferWrapper<File, 64>;
+/* A BufferWrapper over a file. */
+class FileWrapper : public BufferWrapper<File, 64> {
+   public:
+    template <typename T>
+    using Result = File::Result<T>;
+    using Error = File::Error;
+    static Result<std::unique_ptr<FileWrapper>> open(const std::filesystem::path& path) {
+        File file;
+        auto error = file.open(path);
+
+        if (error)
+            return *error;
+
+        return std::unique_ptr<FileWrapper>(new FileWrapper(std::move(file)));
+    }
+
+   private:
+    FileWrapper(File file)
+        : BufferWrapper(file),
+          file_{std::move(file)} {}
+
+    File file_{};
+};
 
 template <uint32_t CacheSize = 64, typename T>
 BufferWrapper<T, CacheSize> wrap_buffer(T& buffer) {
     return {buffer};
 }
-
-/*inline Optional<std::filesystem::filesystem_error> FileWrapper::open(const fs::path& path) {
-    file_ = File();
-    auto error = file_.open(path);
-
-    if (!error)
-        initialize();
-
-    return error;
-}*/
 
 #endif  // __FILE_WRAPPER_HPP__
