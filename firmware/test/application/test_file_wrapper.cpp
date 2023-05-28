@@ -253,17 +253,17 @@ SCENARIO("Reading file lines.") {
 
         WHEN("Reading a line") {
             auto str = w.get_text(0, 0, 10);
-            
+
             THEN("It should read exactly one line.") {
                 REQUIRE(str);
-                CHECK_EQ(str->length(), 4); // Includes '\n'
+                CHECK_EQ(str->length(), 4);  // Includes '\n'
                 CHECK_EQ(*str, "abc\n");
             }
         }
 
         WHEN("Reading the last line") {
             auto str = w.get_text(w.line_count() - 1, 0, 10);
-            
+
             THEN("It should read exactly one line.") {
                 REQUIRE(str);
                 CHECK_EQ(str->length(), 3);
@@ -273,7 +273,7 @@ SCENARIO("Reading file lines.") {
 
         WHEN("Reading past the last line") {
             auto str = w.get_text(w.line_count(), 0, 10);
-            
+
             THEN("It should return empty value.") {
                 REQUIRE(!str);
             }
@@ -291,7 +291,7 @@ SCENARIO("Reading with cache miss.") {
 
         WHEN("Reading a cached line") {
             auto str = w.get_text(0, 0, 10);
-            
+
             THEN("It should read exactly one line.") {
                 REQUIRE(str);
                 CHECK_EQ(*str, "abc\n");
@@ -300,7 +300,7 @@ SCENARIO("Reading with cache miss.") {
 
         WHEN("Reading line after last cached line.") {
             auto str = w.get_text(w.line_count() - 1, 0, 10);
-            
+
             THEN("It should read exactly one line.") {
                 REQUIRE(str);
                 CHECK_EQ(*str, "mno");
@@ -315,7 +315,7 @@ SCENARIO("Reading with cache miss.") {
             // First move cache forward to end.
             w.get_text(w.line_count() - 1, 0, 10);
             auto str = w.get_text(1, 0, 10);
-            
+
             THEN("It should read exactly one line.") {
                 REQUIRE(str);
                 CHECK_EQ(*str, "def\n");
@@ -330,7 +330,7 @@ SCENARIO("Reading with cache miss.") {
             // First move cache forward to end, then back to beginning.
             w.get_text(w.line_count() - 1, 0, 10);
             auto str = w.get_text(0, 0, 10);
-            
+
             THEN("It should read exactly one line.") {
                 REQUIRE(str);
                 CHECK_EQ(*str, "abc\n");

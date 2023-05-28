@@ -58,7 +58,7 @@ class BufferWrapper {
         Offset end;
     };
 
-    BufferWrapper(BufferType& buffer)
+    BufferWrapper(BufferType* buffer)
         : wrapped_{buffer} {
         initialize();
     }
@@ -86,7 +86,7 @@ class BufferWrapper {
     }
 
     /* Gets the size of the buffer in bytes. */
-    File::Size size() const { return wrapped_.size(); }
+    File::Size size() const { return wrapped_->size(); }
 
     /* Get the count of the lines in the buffer. */
     uint32_t line_count() const { return line_count_; }
@@ -118,6 +118,14 @@ class BufferWrapper {
     /* Gets the index of the first line in the cache.
      * Only really useful for unit testing or diagnostics. */
     Offset start_line() { return start_line_; };
+
+   protected:
+    BufferWrapper() { }
+
+    void set_buffer(BufferType* buffer) {
+        wrapped_ = buffer;
+        initialize();
+    }
 
    private:
     /* Number of newline offsets to cache. */
@@ -157,11 +165,12 @@ class BufferWrapper {
 
         std::string buffer;
         buffer.resize(length);
-        wrapped_.seek(offset);
+        wrapped_->seek(offset);
 
-        auto result = wrapped_.read(&buffer[0], length);
-        if (!result)
-            return {}; // TODO: surface read errors?
+        auto result = wrapped_->read(&buffer[0], length);
+        if (result.is_error())
+            // TODO: better error handling.
+            return std::string{"[Bad Read]"};
 
         buffer.resize(*result);
         return buffer;
@@ -233,9 +242,9 @@ class BufferWrapper {
             } else
                 offset -= to_read;
 
-            wrapped_.seek(offset);
+            wrapped_->seek(offset);
 
-            auto result = wrapped_.read(buffer, to_read);
+            auto result = wrapped_->read(buffer, to_read);
             if (result.is_error())
                 break;
 
@@ -261,10 +270,10 @@ class BufferWrapper {
             return {};
 
         char buffer[buffer_size];
-        wrapped_.seek(offset);
+        wrapped_->seek(offset);
 
         while (true) {
-            auto result = wrapped_.read(buffer, buffer_size);
+            auto result = wrapped_->read(buffer, buffer_size);
             if (result.is_error())
                 return {};
 
@@ -286,7 +295,7 @@ class BufferWrapper {
         return size() - 1;
     }
 
-    BufferType& wrapped_;
+    BufferType* wrapped_{};
 
     /* Total number of lines in the buffer. */
     Offset line_count_{0};
@@ -306,26 +315,28 @@ class FileWrapper : public BufferWrapper<File, 64> {
     using Result = File::Result<T>;
     using Error = File::Error;
     static Result<std::unique_ptr<FileWrapper>> open(const std::filesystem::path& path) {
-        File file;
-        auto error = file.open(path);
+        auto fw = std::unique_ptr<FileWrapper>(new FileWrapper());
+        auto error = fw->file_.open(path);
 
         if (error)
             return *error;
 
-        return std::unique_ptr<FileWrapper>(new FileWrapper(std::move(file)));
+        fw->initialize();
+        return fw;
     }
 
    private:
-    FileWrapper(File file)
-        : BufferWrapper(file),
-          file_{std::move(file)} {}
+    FileWrapper() { }
+    void initialize() {
+        set_buffer(&file_);
+    }
 
     File file_{};
 };
 
 template <uint32_t CacheSize = 64, typename T>
 BufferWrapper<T, CacheSize> wrap_buffer(T& buffer) {
-    return {buffer};
+    return {&buffer};
 }
 
 #endif  // __FILE_WRAPPER_HPP__

@@ -356,8 +356,13 @@ class File {
     File(){};
     ~File();
 
-    File(File&&) = default;
-    File& operator=(File&&) = default;
+    File(File&& other) {
+        std::swap(f, other.f);
+    }
+    File& operator=(File&& other) {
+        std::swap(f, other.f);
+        return *this;
+    }
 
     /* Prevent copies */
     File(const File&) = delete;

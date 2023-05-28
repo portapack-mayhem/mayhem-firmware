@@ -181,9 +181,6 @@ void TextViewer::redraw(bool redraw_text) {
 }
 
 void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
-    // CONSIDER: A line cache would use more memory but save a lot of IO.
-    // Only the new lines/characters would need to be refetched.
-
     auto r = screen_rect();
 
     // Draw the lines from the file
@@ -193,13 +190,12 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
 
         auto str = file_->get_text(line + i, col, max_col);
 
-        // Draw text.
         if (str && str->length() > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
                 style_text, *str);
 
-        // Clear empty line sections.
+        // Clear empty line sections. This is less visually jarring than full clear.
         int32_t clear_width = max_col - (str ? str->length() : 0);
         if (clear_width > 0)
             painter.fill_rectangle(
