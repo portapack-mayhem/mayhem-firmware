@@ -120,7 +120,7 @@ class BufferWrapper {
     Offset start_line() { return start_line_; };
 
    protected:
-    BufferWrapper() { }
+    BufferWrapper() {}
 
     void set_buffer(BufferType* buffer) {
         wrapped_ = buffer;
@@ -326,7 +326,7 @@ class FileWrapper : public BufferWrapper<File, 64> {
     }
 
    private:
-    FileWrapper() { }
+    FileWrapper() {}
     void initialize() {
         set_buffer(&file_);
     }
