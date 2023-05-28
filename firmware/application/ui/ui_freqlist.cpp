@@ -65,8 +65,13 @@ void FreqManUIList::paint(Painter& painter) {
     painter.fill_rectangle(
         r_widget_screen,
         Color::black());
+    // only return after clearing the screen so previous entries are not shown anymore
     if (freqlist_db.size() == 0)
         return;
+    // coloration if file is too big
+    Style* text_color = &style_default;
+    if (freqlist_db.size() > FREQMAN_MAX_PER_FILE)
+        text_color = &style_yellow;
     uint8_t nb_lines = 0;
     for (uint8_t it = current_index; it < freqlist_db.size(); it++) {
         uint8_t line_height = (int)nb_lines * char_height;
@@ -75,7 +80,7 @@ void FreqManUIList::paint(Painter& painter) {
             // line is within the widget
             painter.draw_string(
                 {0, r.location().y() + (int)nb_lines * char_height},
-                style_default, description);
+                *text_color, description);
             if (nb_lines == highlighted_index) {
                 const Rect r_highlighted_freq{0, r.location().y() + (int)nb_lines * char_height, 240, char_height};
                 painter.draw_rectangle(
