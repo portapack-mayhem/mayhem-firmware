@@ -28,88 +28,17 @@
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
 
-#include "circular_buffer.hpp"
-#include "file.hpp"
+#include "file_wrapper.hpp"
 #include "optional.hpp"
 
 #include <memory>
 #include <string>
-#include <vector>
 
 namespace ui {
-
-/* TODO:
- * - Copy on write into temp file so startup is fast.
- */
-
-enum class LineEnding : uint8_t {
-    LF,
-    CRLF
-};
 
 enum class ScrollDirection : uint8_t {
     Vertical,
     Horizontal
-};
-
-/* Wraps a file and provides an API for accessing lines efficiently. */
-class FileWrapper {
-   public:
-    using Error = std::filesystem::filesystem_error;
-    using Offset = uint32_t;  // TODO: make enums?
-    using Line = uint32_t;
-    using Column = uint32_t;
-    using Range = struct {
-        // Offset of the line start.
-        Offset start;
-        // Offset of one past the line end.
-        Offset end;
-    };
-
-    FileWrapper();
-
-    /* Prevent copies. */
-    FileWrapper(const FileWrapper&) = delete;
-    FileWrapper& operator=(const FileWrapper&) = delete;
-
-    Optional<Error> open(const std::filesystem::path& path);
-    std::string get_text(Line line, Column col, Offset length);
-
-    File::Size size() const { return file_.size(); }
-    uint32_t line_count() const { return line_count_; }
-
-    Optional<Range> line_range(Line line);
-    Offset line_length(Line line);
-
-   private:
-    /* Number of newline offsets to cache. */
-    static constexpr Offset max_newlines = 64;
-    static constexpr size_t buffer_size = 512;
-
-    void initialize();
-    std::string read(Offset offset, Offset length = 30);
-
-    /* Returns the offset into the newline cache if valid. */
-    Optional<Offset> offset_for_line(Line line) const;
-
-    /* Ensure specified line is in the newline cache. */
-    void ensure_cached(Line line);
-
-    /* Helpers for finding the prev/next newline. */
-    Optional<Offset> previous_newline(Offset start);
-    Optional<Offset> next_newline(Offset start);
-
-    File file_{};
-
-    /* Total number of lines in the file. */
-    Offset line_count_{0};
-
-    /* The offset and line of the newlines cache. */
-    Offset start_offset_{0};
-    Offset start_line_{0};
-
-    LineEnding line_ending_{LineEnding::LF};
-    CircularBuffer<Offset, max_newlines + 1> newlines_{};
 };
 
 /* Control that renders a text file. */

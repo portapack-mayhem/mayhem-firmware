@@ -288,6 +288,7 @@ class File {
     using Timestamp = uint32_t;
     using Error = std::filesystem::filesystem_error;
 
+    // TODO: move to common.
     template <typename T>
     struct Result {
         enum class Type {
@@ -303,16 +304,29 @@ class File {
             return type == Type::Success;
         }
 
+        operator bool() const {
+            return is_ok();
+        }
+
         bool is_error() const {
             return type == Type::Error;
         }
 
-        const T& value() const {
+        const T& value() const& {
             return value_;
         }
 
         const T& operator*() const& {
             return value_;
+        }
+
+        /* Allows value to be moved out of the Result. */
+        T take() {
+            if (is_error())
+                return {};
+            T temp;
+            std::swap(temp, value_);
+            return temp;
         }
 
         Error error() const {
@@ -322,9 +336,9 @@ class File {
         Result() = delete;
 
         constexpr Result(
-            T value)
+            T&& value)
             : type{Type::Success},
-              value_{value} {
+              value_{std::forward<T>(value)} {
         }
 
         constexpr Result(
@@ -334,17 +348,21 @@ class File {
         }
 
         ~Result() {
-            if (type == Type::Success) {
+            if (is_ok())
                 value_.~T();
-            }
         }
     };
 
     File(){};
     ~File();
 
-    File(File&&) = default;
-    File& operator=(File&&) = default;
+    File(File&& other) {
+        std::swap(f, other.f);
+    }
+    File& operator=(File&& other) {
+        std::swap(f, other.f);
+        return *this;
+    }
 
     /* Prevent copies */
     File(const File&) = delete;
@@ -355,10 +373,10 @@ class File {
     Optional<Error> append(const std::filesystem::path& filename);
     Optional<Error> create(const std::filesystem::path& filename);
 
-    Result<Size> read(void* const data, const Size bytes_to_read);
-    Result<Size> write(const void* const data, const Size bytes_to_write);
+    Result<Size> read(void* data, const Size bytes_to_read);
+    Result<Size> write(const void* data, Size bytes_to_write);
 
-    Result<Offset> seek(const uint64_t Offset);
+    Result<Offset> seek(uint64_t Offset);
     // Timestamp created_date() const;
     Size size() const;
 

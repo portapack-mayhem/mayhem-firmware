@@ -39,216 +39,6 @@ namespace {
 
 namespace ui {
 
-/* FileWrapper ******************************************************/
-
-FileWrapper::FileWrapper() {
-}
-
-Optional<FileWrapper::Error> FileWrapper::open(const fs::path& path) {
-    file_ = File();
-    auto error = file_.open(path);
-
-    if (!error)
-        initialize();
-
-    return error;
-}
-
-std::string FileWrapper::get_text(Offset line, Offset col, Offset length) {
-    // TODO: better way to return errors.
-    auto range = line_range(line);
-    int32_t to_read = length;
-
-    if (!range)
-        return "[UNCACHED LINE]";
-
-    // Don't read past end of line.
-    if (range->start + col + to_read >= range->end)
-        to_read = range->end - col - range->start;
-
-    if (to_read <= 0)
-        return {};
-
-    return read(range->start + col, to_read);
-}
-
-Optional<FileWrapper::Range> FileWrapper::line_range(Line line) {
-    ensure_cached(line);
-
-    auto offset = offset_for_line(line);
-    if (!offset)
-        return {};
-
-    auto start = *offset == 0 ? start_offset_ : (newlines_[*offset - 1] + 1);
-    auto end = newlines_[*offset] + 1;
-
-    return {Range{start, end}};
-}
-
-FileWrapper::Offset FileWrapper::line_length(Line line) {
-    auto range = line_range(line);
-
-    if (range)
-        return range->end - range->start;
-
-    return 0;
-}
-
-void FileWrapper::initialize() {
-    start_offset_ = 0;
-    start_line_ = 0;
-    line_count_ = 0;
-    newlines_.clear();
-    line_ending_ = LineEnding::LF;
-
-    Offset offset = 0;
-    auto result = next_newline(offset);
-
-    while (result) {
-        ++line_count_;
-        if (newlines_.size() < max_newlines)
-            newlines_.push_back(*result);
-        offset = *result + 1;
-        result = next_newline(offset);
-    }
-}
-
-std::string FileWrapper::read(Offset offset, Offset length) {
-    // TODO: better way to return errors.
-    if (offset + length > file_.size())
-        return {"[BAD OFFSET]"};
-
-    std::string buffer(length, '\0');
-    file_.seek(offset);
-
-    auto result = file_.read(&buffer[0], length);
-    if (result.is_ok())
-        buffer.resize(*result);
-    else
-        return result.error().what();
-
-    return buffer;
-}
-
-Optional<FileWrapper::Offset> FileWrapper::offset_for_line(Line line) const {
-    if (line >= line_count_)
-        return {};
-
-    Offset actual = line - start_line_;
-    if (actual < newlines_.size())  // NB: underflow wrap.
-        return {actual};
-
-    return {};
-}
-
-void FileWrapper::ensure_cached(Line line) {
-    if (line >= line_count_)
-        return;
-
-    auto result = offset_for_line(line);
-    if (result)
-        return;
-
-    if (line < start_line_) {
-        while (line < start_line_ && start_offset_ >= 2) {
-            // start_offset_ - 1 should be a newline. Need to
-            // find the new value for start_offset_. start_line_
-            // has to be > 0 to get into this block so there should
-            // always be one newline before start_offset_.
-            auto offset = previous_newline(start_offset_ - 2);
-            newlines_.push_front(start_offset_ - 1);
-
-            if (!offset) {
-                // Must be at beginning.
-                start_line_ = 0;
-                start_offset_ = 0;
-            } else {
-                // Found an previous newline, the new start_line_
-                // starts at the newline offset + 1.
-                start_line_--;
-                start_offset_ = *offset + 1;
-            }
-        }
-    } else {
-        while (line >= start_line_ + newlines_.size()) {
-            auto offset = next_newline(newlines_.back() + 1);
-            if (offset) {
-                start_line_++;
-                start_offset_ = newlines_.front() + 1;
-                newlines_.push_back(*offset);
-            } /* else at the EOF. */
-        }
-    }
-}
-
-Optional<FileWrapper::Offset> FileWrapper::previous_newline(Offset start) {
-    char buffer[buffer_size];
-    Offset offset = start;
-    auto to_read = buffer_size;
-
-    do {
-        if (offset < to_read) {
-            // NB: Char at 'offset' was read in the previous iteration.
-            to_read = offset;
-            offset = 0;
-        } else
-            offset -= to_read;
-
-        file_.seek(offset);
-
-        auto result = file_.read(buffer, to_read);
-        if (result.is_error())
-            break;
-
-        // Find newlines in the buffer backwards.
-        for (int32_t i = *result - 1; i >= 0; --i) {
-            switch (buffer[i]) {
-                case '\n':
-                    return {offset + i};
-            }
-        }
-
-        if (offset == 0)
-            break;
-
-    } while (true);
-
-    return {};  // Didn't find one.
-}
-
-Optional<FileWrapper::Offset> FileWrapper::next_newline(Offset start) {
-    char buffer[buffer_size];
-    Offset offset = start;
-
-    // EOF, nothing to do.
-    if (start >= size())
-        return {};
-
-    file_.seek(offset);
-
-    while (true) {
-        auto result = file_.read(buffer, buffer_size);
-        if (result.is_error())
-            return {};
-
-        // Find newlines in the buffer.
-        for (Offset i = 0; i < *result; ++i) {
-            switch (buffer[i]) {
-                case '\n':
-                    return {offset + i};
-            }
-        }
-
-        offset += *result;
-
-        if (*result < buffer_size)
-            break;
-    }
-
-    // Fake a newline at the end for consistency.
-    return {offset};
-}
-
 /* TextViewer *******************************************************/
 
 TextViewer::TextViewer(Rect parent_rect)
@@ -391,9 +181,6 @@ void TextViewer::redraw(bool redraw_text) {
 }
 
 void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
-    // CONSIDER: A line cache would use more memory but save a lot of IO.
-    // Only the new lines/characters would need to be refetched.
-
     auto r = screen_rect();
 
     // Draw the lines from the file
@@ -403,14 +190,13 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
 
         auto str = file_->get_text(line + i, col, max_col);
 
-        // Draw text.
-        if (str.length() > 0)
+        if (str && str->length() > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                style_text, str);
+                style_text, *str);
 
-        // Clear empty line sections.
-        int32_t clear_width = max_col - str.length();
+        // Clear empty line sections. This is less visually jarring than full clear.
+        int32_t clear_width = max_col - (str ? str->length() : 0);
         if (clear_width > 0)
             painter.fill_rectangle(
                 {(max_col - clear_width) * char_width,
@@ -567,15 +353,14 @@ void TextEditorView::on_show() {
 }
 
 void TextEditorView::open_file(const fs::path& path) {
-    auto file = std::make_unique<FileWrapper>();
-    auto error = file->open(path);
+    auto result = FileWrapper::open(path);
 
-    if (error) {
-        nav_.display_modal("Read Error", "Cannot open file:\n" + error->what());
+    if (!result) {
+        nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
         file_.reset();
         viewer.clear_file();
     } else {
-        file_ = std::move(file);
+        file_ = result.take();
         viewer.set_file(*file_);
     }
 

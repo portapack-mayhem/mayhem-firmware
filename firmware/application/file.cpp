@@ -60,7 +60,7 @@ File::~File() {
     f_close(&f);
 }
 
-File::Result<File::Size> File::read(void* const data, const Size bytes_to_read) {
+File::Result<File::Size> File::read(void* data, Size bytes_to_read) {
     UINT bytes_read = 0;
     const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
     if (result == FR_OK) {
@@ -70,7 +70,7 @@ File::Result<File::Size> File::read(void* const data, const Size bytes_to_read) 
     }
 }
 
-File::Result<File::Size> File::write(const void* const data, const Size bytes_to_write) {
+File::Result<File::Size> File::write(const void* data, Size bytes_to_write) {
     UINT bytes_written = 0;
     const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
     if (result == FR_OK) {
@@ -84,7 +84,7 @@ File::Result<File::Size> File::write(const void* const data, const Size bytes_to
     }
 }
 
-File::Result<File::Offset> File::seek(const Offset new_position) {
+File::Result<File::Offset> File::seek(Offset new_position) {
     /* NOTE: Returns *old* position, not new position */
     const auto old_position = f_tell(&f);
     const auto result = f_lseek(&f, new_position);
