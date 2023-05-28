@@ -61,12 +61,16 @@ class FreqManUIList : public Widget {
     void set_db(freqman_db& db);
 
    private:
-    static constexpr Style style_default{
+    Style style_default{
         .font = font::fixed_8x16,
         .background = Color::black(),
         .foreground = Color::white(),
     };
-
+    Style style_yellow{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
     static constexpr int8_t char_height = 16;
     bool instant_exec_{false};
     freqman_db freqlist_db{};
