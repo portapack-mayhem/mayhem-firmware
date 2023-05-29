@@ -67,6 +67,9 @@ class TextViewer : public Widget {
     uint32_t line() const { return cursor_.line; }
     uint32_t col() const { return cursor_.col; }
 
+    // Gets the length of the current line.
+    uint16_t line_length();
+
    private:
     static constexpr int8_t char_width = 5;
     static constexpr int8_t char_height = 8;
@@ -88,9 +91,6 @@ class TextViewer : public Widget {
     void paint_cursor(Painter& painter);
 
     void reset_file(FileWrapper* file = nullptr);
-
-    // Gets the length of the current line.
-    uint16_t line_length();
 
     FileWrapper* file_{};
 
@@ -209,11 +209,15 @@ class TextEditorView : public View {
     void on_show() override;
 
    private:
+    static constexpr size_t max_edit_length = 1024;
+    std::string edit_line_buffer_{};
+
     void open_file(const std::filesystem::path& path);
     void refresh_ui();
     void update_position();
     void hide_menu(bool hidden = true);
     void show_file_picker();
+    void show_edit_line();
     void show_nyi();
 
     NavigationView& nav_;

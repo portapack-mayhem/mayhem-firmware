@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -50,6 +50,14 @@ class MockFile {
         return previous;
     }
 
+    Result<Offset> truncate() {
+        if (offset_ >= size())
+            return size() - 1;
+
+        data_.resize(offset_ + 1);
+        return offset_;
+    }
+
     Result<Size> read(void* data, Size bytes_to_read) {
         if (offset_ + bytes_to_read > size())
             bytes_to_read = size() - offset_;
@@ -60,6 +68,20 @@ class MockFile {
         memcpy(data, &data_[offset_], bytes_to_read);
         offset_ += bytes_to_read;
         return bytes_to_read;
+    }
+
+    Result<Size> write(const void* data, Size bytes_to_write) {
+        auto new_offset = offset_ + bytes_to_write;
+        if (new_offset >= size())
+            data_.resize(new_offset + 1);
+
+        memcpy(&data_[offset_], data, bytes_to_write);
+        offset_ = new_offset;
+        return bytes_to_write;
+    }
+
+    Optional<Error> sync() {
+        return {};
     }
 
     std::string data_;
@@ -342,5 +364,51 @@ SCENARIO("Reading with cache miss.") {
         }
     }
 }
+
+SCENARIO("Replace range of same size.") {
+    GIVEN("A file with lines") {
+        MockFile f{"abc\ndef"};
+        auto w = wrap_buffer(f);
+        auto init_line_count = w.line_count();
+        auto init_size = w.size();
+
+        WHEN("Replacing range without changing size") {
+            w.replace_range({0, 4}, "xyz");
+
+            THEN("size should not change.") {
+                CHECK_EQ(w.size(), init_size);
+            }
+
+            THEN("text should be replaced.") {
+                auto str = w.get_text(0, 0, 10);
+                REQUIRE(str);
+                CHECK_EQ(*str, "xyz\n");
+            }
+        }
+    }
+}
+
+/*SCENARIO("Deleting ranges.") {
+    GIVEN("A file with lines") {
+        MockFile f{"abc\ndef"};
+        auto w = wrap_buffer(f);
+        auto init_line_count = w.line_count();
+        auto init_size = w.size();
+
+        WHEN("Deleting the first line") {
+            w.delete_line(0);
+
+            THEN("should decrement line count and size.") {
+                CHECK_EQ(w.line_count(), init_line_count - 1);
+                CHECK_EQ(w.size(), init_size - 4);
+            }
+
+            THEN("should remove first line content") {
+                auto str = w.get_text(0, 0, 10);
+                CHECK_EQ(*str, "def");
+            }
+        }
+    }
+}*/
 
 TEST_SUITE_END();

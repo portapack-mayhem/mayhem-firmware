@@ -124,6 +124,15 @@ bool TextViewer::on_encoder(EncoderEvent delta) {
     return updated;
 }
 
+void TextViewer::redraw(bool redraw_text) {
+    paint_state_.redraw_text = redraw_text;
+    set_dirty();
+}
+
+uint16_t TextViewer::line_length() {
+    return file_->line_length(cursor_.line);
+}
+
 bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_col) {
     if (!has_file())
         return false;
@@ -173,11 +182,6 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
         on_cursor_moved();
 
     return true;
-}
-
-void TextViewer::redraw(bool redraw_text) {
-    paint_state_.redraw_text = redraw_text;
-    set_dirty();
 }
 
 void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
@@ -236,10 +240,6 @@ void TextViewer::reset_file(FileWrapper* file) {
     cursor_.line = 0;
     cursor_.col = 0;
     redraw(true);
-}
-
-uint16_t TextViewer::line_length() {
-    return file_->line_length(cursor_.line);
 }
 
 /* TextEditorMenu ***************************************************/
@@ -313,7 +313,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
         show_nyi();
     };
     menu.on_edit_line() = [this]() {
-        show_nyi();
+        show_edit_line();
     };
     menu.on_add_line() = [this]() {
         show_nyi();
@@ -407,6 +407,33 @@ void TextEditorView::show_file_picker() {
         open_file(path);
         hide_menu();
     };
+}
+
+void TextEditorView::show_edit_line() {
+    edit_line_buffer_.clear();
+    auto str = file_->get_text(viewer.line(), 0, viewer.line_length());
+    if (!str) {
+        nav_.display_modal("Error", "Failed to get line text.");
+        return;
+    }
+
+    std::swap(edit_line_buffer_, *str);
+    text_prompt(
+        nav_,
+        edit_line_buffer_,
+        viewer.col(),
+        max_edit_length,
+        [this](std::string& buffer) {
+            auto range = file_->line_range(viewer.line());
+            if (!range)
+                return;
+            file_->replace_range(*range, buffer);
+
+            // TODO: Need to clear buffer in the "cancel" case too.
+            // text_prompt needs an uncondition "on_exit" handler.
+            buffer.clear();
+            refresh_ui();
+        });
 }
 
 void TextEditorView::show_nyi() {

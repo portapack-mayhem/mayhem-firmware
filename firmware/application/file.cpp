@@ -44,8 +44,9 @@ Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BY
     }
 }
 
-Optional<File::Error> File::open(const std::filesystem::path& filename) {
-    return open_fatfs(filename, FA_READ);
+Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only) {
+    BYTE mode = read_only ? FA_READ : FA_READ | FA_WRITE;
+    return open_fatfs(filename, mode);
 }
 
 Optional<File::Error> File::append(const std::filesystem::path& filename) {
@@ -95,6 +96,15 @@ File::Result<File::Offset> File::seek(Offset new_position) {
         return {static_cast<Error>(FR_BAD_SEEK)};
     }
     return {static_cast<File::Offset>(old_position)};
+}
+
+File::Result<File::Offset> File::truncate() {
+    const auto position = f_tell(&f);
+    const auto result = f_truncate(&f);
+    if (result != FR_OK) {
+        return {static_cast<Error>(result)};
+    }
+    return {static_cast<File::Offset>(position)};
 }
 
 File::Size File::size() const {
@@ -248,19 +258,19 @@ std::filesystem::filesystem_error copy_file(
     File dst;
 
     auto error = src.open(file_path);
-    if (error.is_valid()) return error.value();
+    if (error) return error.value();
 
     error = dst.create(dest_path);
-    if (error.is_valid()) return error.value();
+    if (error) return error.value();
 
     while (true) {
         auto result = src.read(buffer, buffer_size);
         if (result.is_error()) return result.error();
 
-        result = dst.write(buffer, result.value());
+        result = dst.write(buffer, *result);
         if (result.is_error()) return result.error();
 
-        if (result.value() < buffer_size)
+        if (*result < buffer_size)
             break;
     }
 

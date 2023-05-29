@@ -36,12 +36,19 @@ enum class LineEnding : uint8_t {
 
 /* TODO:
  * - CRLF handling.
+ * - Avoid re-read on edits.
+ *   - Would need to read old/new text when editing to track newlines.
  */
+
+/* FatFs docs http://elm-chan.org/fsw/ff/00index_e.html */
 
 /* BufferType requires the following members
  * Size size()
  * Result<Size> read(void* data, Size bytes_to_read)
+ * Result<Size> write(const void* data, Size bytes_to_write)
  * Result<Offset> seek(uint32_t offset)
+ * Result<Offset> truncate()
+ * Optional<Error> sync()
  */
 
 /* Wraps a buffer and provides an API for accessing lines efficiently. */
@@ -52,10 +59,12 @@ class BufferWrapper {
     using Line = uint32_t;
     using Column = uint32_t;
     using Range = struct {
-        // Offset of the line start.
+        // Offset of the start, inclusive.
         Offset start;
-        // Offset of one past the line end.
+        // Offset of the end, exclusive.
         Offset end;
+
+        Offset length() const { return end - start; }
     };
 
     BufferWrapper(BufferType* buffer)
@@ -95,12 +104,12 @@ class BufferWrapper {
     Optional<Range> line_range(Line line) {
         ensure_cached(line);
 
-        auto offset = offset_for_line(line);
-        if (!offset)
+        auto index = index_for_line(line);
+        if (!index)
             return {};
 
-        auto start = *offset == 0 ? start_offset_ : (newlines_[*offset - 1] + 1);
-        auto end = newlines_[*offset] + 1;
+        auto start = *index == 0 ? start_offset_ : (newlines_[*index - 1] + 1);
+        auto end = newlines_[*index] + 1;
 
         return Range{start, end};
     }
@@ -108,16 +117,53 @@ class BufferWrapper {
     /* Gets the length of the line, or 0 if invalid. */
     Offset line_length(Line line) {
         auto range = line_range(line);
+        return range ? range->length() : 0;
+    }
+
+    /* Gets the buffer offset of the line & col if valid. */
+    Optional<Offset> get_offset(Line line, Column col) {
+        auto range = line_range(line);
 
         if (range)
-            return range->end - range->start;
+            return range->start + col;
 
-        return 0;
+        return {};
     }
 
     /* Gets the index of the first line in the cache.
      * Only really useful for unit testing or diagnostics. */
     Offset start_line() { return start_line_; };
+
+    /* Inserts a line before the specified line. */
+    void insert_line(Line line) {
+    }
+
+    /* Deletes the specified line. */
+    void delete_line(Line line) {
+        auto range = line_range(line);
+
+        if (range)
+            replace_range(*range, {});
+    }
+
+    /* Replace the specified range with the string contents.
+     * A range with start/end set to the same value will insert.
+     * A range with an empty string will delete. */
+    void replace_range(Range range, const std::string& value) {
+        int32_t delta_length = value.length() - range.length();
+
+        /* If delta_length == 0, it's an overwrite. Could still have
+         * added or removed newlines so caches will need to be rebuilt.
+         * If delta_length > 0, the file needs to grow and content needs
+         * to be shifted forward until the end of the range.
+         * If delta_length < 0, the file needs to be truncated and the
+         * content after the value needs to be shifted backward. */
+
+        // TODO: validation.
+        write(range.start, value);
+        wrapped_->sync();
+        rebuild_cache();
+    }
 
    protected:
     BufferWrapper() {}
@@ -138,6 +184,10 @@ class BufferWrapper {
         start_offset_ = 0;
         start_line_ = 0;
         line_count_ = 0;
+        rebuild_cache();
+    }
+
+    void rebuild_cache() {
         newlines_.clear();
 
         // Special case for empty files to keep them consistent.
@@ -147,7 +197,15 @@ class BufferWrapper {
             return;
         }
 
-        Offset offset = 0;
+        // TODO: think through this for edit cases.
+        // TODO: don't read to end, maybe could specify
+        // a range to re-read because it should be possible
+        // to tell where the dirty regions are. After the
+        // dirty region, it should be possible to fixup
+        // the line_count data.
+
+        line_count_ = start_line_;
+        Offset offset = start_offset_;
         auto result = next_newline(offset);
 
         while (result) {
@@ -176,8 +234,15 @@ class BufferWrapper {
         return buffer;
     }
 
-    /* Returns the offset of the line in the newline cache if valid. */
-    Optional<Offset> offset_for_line(Line line) const {
+    bool write(Offset offset, const std::string& value) {
+        wrapped_->seek(offset);
+        auto result = wrapped_->write(&value[0], value.length());
+
+        return result.is_ok();
+    }
+
+    /* Returns the index of the line in the newline cache if valid. */
+    Optional<Offset> index_for_line(Line line) const {
         if (line >= line_count_)
             return {};
 
@@ -193,8 +258,8 @@ class BufferWrapper {
         if (line >= line_count_)
             return;
 
-        auto result = offset_for_line(line);
-        if (result)
+        auto index = index_for_line(line);
+        if (index)
             return;
 
         if (line < start_line_) {
@@ -316,7 +381,7 @@ class FileWrapper : public BufferWrapper<File, 64> {
     using Error = File::Error;
     static Result<std::unique_ptr<FileWrapper>> open(const std::filesystem::path& path) {
         auto fw = std::unique_ptr<FileWrapper>(new FileWrapper());
-        auto error = fw->file_.open(path);
+        auto error = fw->file_.open(path, /*read_only*/ false);
 
         if (error)
             return *error;
@@ -324,6 +389,9 @@ class FileWrapper : public BufferWrapper<File, 64> {
         fw->initialize();
         return fw;
     }
+
+    /* Accesses the underlying file. */
+    File& file() { return file_; }
 
    private:
     FileWrapper() {}
