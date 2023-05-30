@@ -310,24 +310,31 @@ TextEditorView::TextEditorView(NavigationView& nav)
         show_nyi();
     };
     menu.on_delete_line() = [this]() {
-        show_nyi();
+        file_->delete_line(viewer.line());
+        file_dirty_ = true;
+        hide_menu(true);
     };
     menu.on_edit_line() = [this]() {
         show_edit_line();
     };
     menu.on_add_line() = [this]() {
-        show_nyi();
+        file_->insert_line(viewer.line());
+        file_dirty_ = true;
+        hide_menu(true);
     };
     menu.on_open() = [this]() {
-        // TODO: confirm.
-        show_file_picker();
+        show_save_prompt([this]() {
+            show_file_picker();
+        });
     };
     menu.on_save() = [this]() {
-        show_nyi();
+        save_temp_file();
+        hide_menu(true);
     };
     menu.on_exit() = [this]() {
-        // TODO: confirm.
-        nav_.pop();
+        show_save_prompt([this]() {
+            nav_.pop();
+        });
     };
 
     button_menu.on_select = [this]() {
@@ -345,6 +352,10 @@ TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
     open_file(path);
 }
 
+TextEditorView::~TextEditorView() {
+    delete_temp_file();
+}
+
 void TextEditorView::on_show() {
     if (file_)
         viewer.focus();
@@ -353,7 +364,12 @@ void TextEditorView::on_show() {
 }
 
 void TextEditorView::open_file(const fs::path& path) {
-    auto result = FileWrapper::open(path);
+    delete_temp_file();
+
+    path_ = path;
+    create_temp_file();
+
+    auto result = FileWrapper::open(get_temp_path());
 
     if (!result) {
         nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
@@ -428,16 +444,59 @@ void TextEditorView::show_edit_line() {
             if (!range)
                 return;
             file_->replace_range(*range, buffer);
-
-            // TODO: Need to clear buffer in the "cancel" case too.
-            // text_prompt needs an uncondition "on_exit" handler.
-            buffer.clear();
-            refresh_ui();
+            file_dirty_ = true;
         });
+    nav_.set_on_pop([this]() {
+        edit_line_buffer_.clear();
+        refresh_ui();
+        // TODO: Why does this crash?
+        //hide_menu(true);
+    });
 }
 
 void TextEditorView::show_nyi() {
     nav_.display_modal("Soon...", "Coming soon.");
+}
+
+void TextEditorView::show_save_prompt(std::function<void()> continuation) {
+    if (!file_dirty_) {
+        if (continuation)
+            continuation();
+        return;
+    }
+
+    nav_.display_modal(
+        "Save?", "Save changes?", YESNO,
+        [this](bool choice) {
+            if (choice)
+                save_temp_file();
+        });
+    nav_.set_on_pop(continuation);
+}
+
+void TextEditorView::create_temp_file() const {
+    delete_temp_file();
+    copy_file(path_, get_temp_path());
+}
+
+void TextEditorView::delete_temp_file() const {
+    auto temp_path = get_temp_path();
+    if (!temp_path.empty()) {
+        delete_file(temp_path);
+    }
+}
+
+void TextEditorView::save_temp_file() {
+    delete_file(path_);
+    copy_file(get_temp_path(), path_);
+    file_dirty_ = false;
+}
+
+fs::path TextEditorView::get_temp_path() const {
+    if (!path_.empty())
+        return path_ + "~";
+
+    return {};
 }
 
 }  // namespace ui

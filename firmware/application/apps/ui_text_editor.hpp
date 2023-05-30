@@ -201,6 +201,7 @@ class TextEditorView : public View {
     TextEditorView(
         NavigationView& nav,
         const std::filesystem::path& path);
+    ~TextEditorView();
 
     std::string title() const override {
         return "Notepad";
@@ -213,15 +214,24 @@ class TextEditorView : public View {
     std::string edit_line_buffer_{};
 
     void open_file(const std::filesystem::path& path);
+    void save_file();
     void refresh_ui();
     void update_position();
     void hide_menu(bool hidden = true);
     void show_file_picker();
     void show_edit_line();
     void show_nyi();
+    void show_save_prompt(std::function<void()> continuation);
+
+    void create_temp_file() const;
+    void delete_temp_file() const;
+    void save_temp_file();
+    std::filesystem::path get_temp_path() const;
 
     NavigationView& nav_;
     std::unique_ptr<FileWrapper> file_{};
+    std::filesystem::path path_{};
+    bool file_dirty_{false};
 
     TextViewer viewer{
         /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */

@@ -432,15 +432,15 @@ void NavigationView::pop(bool update) {
 
     // Can't pop last item from stack.
     if (view_stack.size() > 1) {
-        auto& top = view_stack.back();
-        if (top.on_pop)
-            top.on_pop();
+        auto on_pop = view_stack.back().on_pop;
 
         free_view();
         view_stack.pop_back();
 
         if (update)
             update_view();
+
+        if (on_pop) on_pop();
     }
 }
 

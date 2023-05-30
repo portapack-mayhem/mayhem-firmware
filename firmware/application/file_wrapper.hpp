@@ -36,9 +36,9 @@ enum class LineEnding : uint8_t {
 
 /* TODO:
  * - CRLF handling.
- * - Avoid re-read on edits.
+ * - Avoid full re-read on edits.
  *   - Would need to read old/new text when editing to track newlines.
- * - How to surface errors?
+ * - How to surface errors? Exceptions?
  */
 
 /* FatFs docs http://elm-chan.org/fsw/ff/00index_e.html */
@@ -155,7 +155,8 @@ class BufferWrapper {
      * A range with start/end set to the same value will insert.
      * A range with an empty string will delete. */
     void replace_range(Range range, const std::string& value) {
-        // TODO: validation.
+        if (range.start > size() || range.end > size() || range.start > range.end)
+            return;
 
         /* If delta_length == 0, it's an overwrite. Could still have
          * added or removed newlines so caches will need to be rebuilt.
@@ -187,7 +188,7 @@ class BufferWrapper {
     static constexpr Offset max_newlines = CacheSize;
 
     /* Size of stack buffer used for reading/writing. */
-    static constexpr size_t buffer_size = 512;
+    static constexpr Offset buffer_size = 512;
 
     void initialize() {
         start_offset_ = 0;
@@ -207,7 +208,7 @@ class BufferWrapper {
         }
 
         // TODO: think through this for edit cases.
-        // TODO: don't read to end, maybe could specify
+        // E.g. don't read to end, maybe could specify
         // a range to re-read because it should be possible
         // to tell where the dirty regions are. After the
         // dirty region, it should be possible to fixup
@@ -380,8 +381,8 @@ class BufferWrapper {
         auto to_read = buffer_size;
 
         // Number of bytes left to shift.
-        auto remaining = size() - src;
-        auto offset = size();
+        Offset remaining = size() - src;
+        Offset offset = size();
 
         while (remaining > 0) {
             offset -= std::min(remaining, buffer_size);
@@ -397,7 +398,6 @@ class BufferWrapper {
             if (result.is_error())
                 break;
 
-            // TODO: assert(*result <= remaining);
             remaining -= *result;
         }
     }
@@ -405,7 +405,7 @@ class BufferWrapper {
     /* Shrink the file and move file content so that the
      * content at src is shifted backward by 'delta'. */
     void shrink(Offset src, int32_t delta) {
-        if (delta > 0)  // Not a shrink.
+        if (delta >= 0)  // Not a shrink.
             return;
 
         char buffer[buffer_size];
@@ -427,7 +427,7 @@ class BufferWrapper {
         }
 
         // Delete the extra bytes at the end of the file.
-        wrapped_->seek(wrapped_->size() - 1 + delta);
+        //wrapped_->seek(wrapped_->size() + delta);
         wrapped_->truncate();
     }
 
