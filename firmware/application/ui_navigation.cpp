@@ -236,10 +236,8 @@ void SystemStatusView::refresh() {
 
     if (portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External) {
         button_clock_status.set_bitmap(&bitmap_icon_clk_ext);
-        //		button_bias_tee.set_foreground(ui::Color::green());   Typo?
     } else {
         button_clock_status.set_bitmap(&bitmap_icon_clk_int);
-        //		button_bias_tee.set_foreground(ui::Color::green());
     }
 
     if (portapack::persistent_memory::clkout_enabled()) {
@@ -420,42 +418,37 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     free_view();
 
     const auto p = new_view.get();
-    view_stack.emplace_back(std::move(new_view));
+    view_stack.emplace_back(ViewState{std::move(new_view), {}});
 
     update_view();
 
     return p;
 }
 
-void NavigationView::pop() {
+void NavigationView::pop(bool update) {
     if (view() == modal_view) {
         modal_view = nullptr;
     }
 
     // Can't pop last item from stack.
     if (view_stack.size() > 1) {
-        free_view();
+        auto& top = view_stack.back();
+        if (top.on_pop)
+            top.on_pop();
 
+        free_view();
         view_stack.pop_back();
 
-        update_view();
+        if (update)
+            update_view();
     }
 }
 
 void NavigationView::pop_modal() {
-    if (view() == modal_view) {
-        modal_view = nullptr;
-    }
-
-    // Pop modal view + underlying app view
-    if (view_stack.size() > 2) {
-        free_view();
-        view_stack.pop_back();
-        free_view();
-        view_stack.pop_back();
-
-        update_view();
-    }
+    // Pop modal view + underlying app view.
+    // TODO: this shouldn't be necessary.
+    pop(false);
+    pop();
 }
 
 void NavigationView::display_modal(
@@ -480,7 +473,7 @@ void NavigationView::free_view() {
 }
 
 void NavigationView::update_view() {
-    const auto new_view = view_stack.back().get();
+    const auto new_view = view_stack.back().view.get();
 
     add_child(new_view);
     new_view->set_parent_rect({{0, 0}, size()});
