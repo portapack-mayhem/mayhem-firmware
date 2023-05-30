@@ -167,9 +167,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
 // Apparently, the spectrum object returns an array of SPEC_NB_BINS (256) bins
 // Each having the radio signal power for it's corresponding frequency slot
 void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    // no stop on single pass as there is no retune
-    if (mode != LOOKING_GLASS_SINGLEPASS)
-        baseband::spectrum_streaming_stop();
+    baseband::spectrum_streaming_stop();
     // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
     // we actually need SCREEN_W (240) of those bins
     for (bin = 0; bin < bin_length; bin++) {
@@ -193,7 +191,8 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
                 if (mode != LOOKING_GLASS_SINGLEPASS) {
                     f_center = f_center_ini;
                     retune();
-                }
+                } else
+                    baseband::spectrum_streaming_start();
                 return;  // signal a new line
             }
             bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
@@ -202,7 +201,8 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     if (mode != LOOKING_GLASS_SINGLEPASS) {
         f_center += looking_glass_step;
         retune();
-    }
+    } else
+        baseband::spectrum_streaming_start();
 }
 
 void GlassView::on_hide() {
