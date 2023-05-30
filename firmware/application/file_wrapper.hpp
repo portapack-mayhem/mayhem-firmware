@@ -38,6 +38,7 @@ enum class LineEnding : uint8_t {
  * - CRLF handling.
  * - Avoid re-read on edits.
  *   - Would need to read old/new text when editing to track newlines.
+ * - How to surface errors?
  */
 
 /* FatFs docs http://elm-chan.org/fsw/ff/00index_e.html */
@@ -136,6 +137,10 @@ class BufferWrapper {
 
     /* Inserts a line before the specified line. */
     void insert_line(Line line) {
+        auto range = line_range(line);
+
+        if (range)
+            replace_range({range->start, range->start}, "\n");
     }
 
     /* Deletes the specified line. */
@@ -150,7 +155,7 @@ class BufferWrapper {
      * A range with start/end set to the same value will insert.
      * A range with an empty string will delete. */
     void replace_range(Range range, const std::string& value) {
-        int32_t delta_length = value.length() - range.length();
+        // TODO: validation.
 
         /* If delta_length == 0, it's an overwrite. Could still have
          * added or removed newlines so caches will need to be rebuilt.
@@ -158,8 +163,12 @@ class BufferWrapper {
          * to be shifted forward until the end of the range.
          * If delta_length < 0, the file needs to be truncated and the
          * content after the value needs to be shifted backward. */
+        int32_t delta_length = value.length() - range.length();
+        if (delta_length > 0)
+            expand(range.end, delta_length);
+        else if (delta_length < 0)
+            shrink(range.end, delta_length);
 
-        // TODO: validation.
         write(range.start, value);
         wrapped_->sync();
         rebuild_cache();
@@ -294,7 +303,7 @@ class BufferWrapper {
         }
     }
 
-    /* Helpers for finding the prev/next newline. */
+    /* Finding the first newline backward from offset. */
     Optional<Offset> previous_newline(Offset offset) {
         char buffer[buffer_size];
         auto to_read = buffer_size;
@@ -329,6 +338,7 @@ class BufferWrapper {
         return {};  // Didn't find one.
     }
 
+    /* Finding the first newline forward from offset. */
     Optional<Offset> next_newline(Offset offset) {
         // EOF, no more newlines to find.
         if (offset >= size())
@@ -358,6 +368,67 @@ class BufferWrapper {
 
         // For consistency, treat the end of the file as a "newline".
         return size() - 1;
+    }
+
+    /* Grow the file and move file content so that the
+     * content at src is shifted forward by 'delta'. */
+    void expand(Offset src, int32_t delta) {
+        if (delta <= 0)  // Not an expand.
+            return;
+
+        char buffer[buffer_size];
+        auto to_read = buffer_size;
+
+        // Number of bytes left to shift.
+        auto remaining = size() - src;
+        auto offset = size();
+
+        while (remaining > 0) {
+            offset -= std::min(remaining, buffer_size);
+            to_read = std::min(remaining, buffer_size);
+
+            wrapped_->seek(offset);
+            auto result = wrapped_->read(buffer, to_read);
+            if (result.is_error())
+                break;
+
+            wrapped_->seek(offset + delta);
+            result = wrapped_->write(buffer, *result);
+            if (result.is_error())
+                break;
+
+            // TODO: assert(*result <= remaining);
+            remaining -= *result;
+        }
+    }
+
+    /* Shrink the file and move file content so that the
+     * content at src is shifted backward by 'delta'. */
+    void shrink(Offset src, int32_t delta) {
+        if (delta > 0)  // Not a shrink.
+            return;
+
+        char buffer[buffer_size];
+        auto offset = src;
+
+        while (true) {
+            wrapped_->seek(offset);
+            auto result = wrapped_->read(buffer, buffer_size);
+            if (result.is_error())
+                break;
+
+            wrapped_->seek(offset + delta);
+            result = wrapped_->write(buffer, *result);
+
+            if (result.is_error() || result < buffer_size)
+                break;
+
+            offset += *result;
+        }
+
+        // Delete the extra bytes at the end of the file.
+        wrapped_->seek(wrapped_->size() - 1 + delta);
+        wrapped_->truncate();
     }
 
     BufferType* wrapped_{};
@@ -390,7 +461,7 @@ class FileWrapper : public BufferWrapper<File, 64> {
         return fw;
     }
 
-    /* Accesses the underlying file. */
+    /* Underlying file. */
     File& file() { return file_; }
 
    private:
