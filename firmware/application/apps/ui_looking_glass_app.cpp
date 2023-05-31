@@ -63,6 +63,7 @@ void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint
 rf::Frequency GlassView::get_freq_from_bin_pos(uint8_t pos) {
     rf::Frequency freq_at_pos = 0;
     if (mode == LOOKING_GLASS_SINGLEPASS) {
+        // starting from the middle, minus 8 ignored bin on each side. Since pos is [-120,120] after the (pos - 120), it's divided by SCREEN_W(240)/2 => 120
         freq_at_pos = f_center_ini + ((pos - 120) * ((looking_glass_range - ((16 * looking_glass_range) / SPEC_NB_BINS)) / 2)) / (SCREEN_W / 2);
     } else
         freq_at_pos = f_min - (offset * each_bin_size) + (pos * looking_glass_range) / SCREEN_W;
