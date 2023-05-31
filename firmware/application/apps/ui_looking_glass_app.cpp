@@ -62,7 +62,11 @@ void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint
 
 rf::Frequency GlassView::get_freq_from_bin_pos(uint8_t pos) {
     rf::Frequency freq_at_pos = 0;
-    freq_at_pos = f_min - (offset * each_bin_size) + (pos * looking_glass_range) / SCREEN_W;
+    if (mode == LOOKING_GLASS_SINGLEPASS) {
+        freq_at_pos = f_center_ini + ((pos - 120) * ((looking_glass_range - ((16 * looking_glass_range) / SPEC_NB_BINS)) / 2)) / (SCREEN_W / 2);
+    } else
+        freq_at_pos = f_min - (offset * each_bin_size) + (pos * looking_glass_range) / SCREEN_W;
+
     return freq_at_pos;
 }
 
@@ -222,18 +226,18 @@ void GlassView::on_range_changed() {
     f_min = f_min * MHZ_DIV;  // Transpose into full frequency realm
     f_max = f_max * MHZ_DIV;
     looking_glass_range = f_max - f_min;
-    adjust_range(&f_min, &f_max, SCREEN_W);
-    looking_glass_range = f_max - f_min;
-    if (looking_glass_range < LOOKING_GLASS_SLICE_WIDTH_MAX) {
+    if (looking_glass_range <= LOOKING_GLASS_SLICE_WIDTH_MAX) {
+        adjust_range(&f_min, &f_max, SCREEN_W);
+        looking_glass_range = f_max - f_min;
         // if the view is done in one pass, show it like in analog_audio_app
         mode = LOOKING_GLASS_SINGLEPASS;
         offset = 0;
         bin_length = SCREEN_W;
         ignore_dc = 0;
         looking_glass_bandwidth = looking_glass_range;
-        looking_glass_sampling_rate = looking_glass_bandwidth / 2;
-        each_bin_size = looking_glass_bandwidth / bin_length;
-        looking_glass_step = bin_length * each_bin_size;
+        looking_glass_sampling_rate = looking_glass_bandwidth;
+        each_bin_size = looking_glass_bandwidth / SCREEN_W;
+        looking_glass_step = looking_glass_bandwidth;
         f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
     } else {                                                   // if ( mode == LOOKING_GLASS_SLOWSCAN || mode == LOOKING_GLASS_FASTSCAN )
         // view is made in multiple pass, use original bin picking
@@ -247,6 +251,8 @@ void GlassView::on_range_changed() {
             bin_length = 80;
             ignore_dc = 0;
         }
+        adjust_range(&f_min, &f_max, SCREEN_W);
+        looking_glass_range = f_max - f_min;
         looking_glass_bandwidth = LOOKING_GLASS_SLICE_WIDTH_MAX;
         looking_glass_sampling_rate = LOOKING_GLASS_SLICE_WIDTH_MAX;
         each_bin_size = LOOKING_GLASS_SLICE_WIDTH_MAX / SPEC_NB_BINS;
