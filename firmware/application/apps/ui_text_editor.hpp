@@ -223,6 +223,7 @@ class TextEditorView : public View {
     void show_nyi();
     void show_save_prompt(std::function<void()> continuation);
 
+    void prepare_for_write();
     void create_temp_file() const;
     void delete_temp_file() const;
     void save_temp_file();
@@ -232,6 +233,7 @@ class TextEditorView : public View {
     std::unique_ptr<FileWrapper> file_{};
     std::filesystem::path path_{};
     bool file_dirty_{false};
+    bool has_temp_file_{false};
 
     TextViewer viewer{
         /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */

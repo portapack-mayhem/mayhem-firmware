@@ -427,7 +427,6 @@ class BufferWrapper {
         }
 
         // Delete the extra bytes at the end of the file.
-        //wrapped_->seek(wrapped_->size() + delta);
         wrapped_->truncate();
     }
 
@@ -463,6 +462,20 @@ class FileWrapper : public BufferWrapper<File, 64> {
 
     /* Underlying file. */
     File& file() { return file_; }
+
+    /* Swaps out the underlying file for the specified file.
+     * The swapped file is expected have the same contents.
+     * For copy-on-write scenario with a temp file. */
+    bool assume_file(const std::filesystem::path& path) {
+        File file;
+        auto error = file.open(path, /*read_only*/ false);
+
+        if (error)
+            return false;
+
+        file_ = std::move(file);
+        return true;
+    }
 
    private:
     FileWrapper() {}

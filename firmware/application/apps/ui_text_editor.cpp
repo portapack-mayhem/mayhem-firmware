@@ -30,11 +30,11 @@ using namespace portapack;
 namespace fs = std::filesystem;
 
 namespace {
-/*void log(const std::string& msg) {
+void log(const std::string& msg) {
     LogFile log{};
     log.append("LOGS/Notepad.txt");
     log.write_entry(msg);
-}*/
+}
 }  // namespace
 
 namespace ui {
@@ -310,16 +310,18 @@ TextEditorView::TextEditorView(NavigationView& nav)
         show_nyi();
     };
     menu.on_delete_line() = [this]() {
+        prepare_for_write();
         file_->delete_line(viewer.line());
-        file_dirty_ = true;
+        refresh_ui();
         hide_menu(true);
     };
     menu.on_edit_line() = [this]() {
         show_edit_line();
     };
     menu.on_add_line() = [this]() {
+        prepare_for_write();
         file_->insert_line(viewer.line());
-        file_dirty_ = true;
+        refresh_ui();
         hide_menu(true);
     };
     menu.on_open() = [this]() {
@@ -364,12 +366,10 @@ void TextEditorView::on_show() {
 }
 
 void TextEditorView::open_file(const fs::path& path) {
-    delete_temp_file();
-
-    path_ = path;
-    create_temp_file();
-
-    auto result = FileWrapper::open(get_temp_path());
+    path_ = {};
+    file_dirty_ = false;
+    has_temp_file_ = false;
+    auto result = FileWrapper::open(path);
 
     if (!result) {
         nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
@@ -377,6 +377,7 @@ void TextEditorView::open_file(const fs::path& path) {
         viewer.clear_file();
     } else {
         file_ = result.take();
+        path_ = path;
         viewer.set_file(*file_);
     }
 
@@ -410,10 +411,11 @@ void TextEditorView::hide_menu(bool hidden) {
     // not shown, otherwise menu focus gets confusing.
     viewer.set_focusable(hidden);
 
-    if (hidden)
+    if (hidden) {
         viewer.focus();
+        viewer.redraw(true);
+    }
 
-    viewer.redraw(true);
     set_dirty();
 }
 
@@ -443,13 +445,14 @@ void TextEditorView::show_edit_line() {
             auto range = file_->line_range(viewer.line());
             if (!range)
                 return;
+
+            prepare_for_write();
             file_->replace_range(*range, buffer);
-            file_dirty_ = true;
         });
     nav_.set_on_pop([this]() {
         edit_line_buffer_.clear();
         refresh_ui();
-        // TODO: Why does this crash?
+        // TODO: Why does this crash? Focus?
         //hide_menu(true);
     });
 }
@@ -474,9 +477,16 @@ void TextEditorView::show_save_prompt(std::function<void()> continuation) {
     nav_.set_on_pop(continuation);
 }
 
-void TextEditorView::create_temp_file() const {
+void TextEditorView::prepare_for_write() {
+    file_dirty_ = true;
+
+    if (has_temp_file_)
+        return;
+
+    has_temp_file_ = true;
     delete_temp_file();
     copy_file(path_, get_temp_path());
+    file_->assume_file(get_temp_path());
 }
 
 void TextEditorView::delete_temp_file() const {

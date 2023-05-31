@@ -27,6 +27,8 @@
 #include <cstdio>
 #include <string>
 
+// TODO: truncate basically puts an EOF at the R/W pos.
+
 /* Mocks the File interface with a backing string. */
 class MockFile {
    public:
