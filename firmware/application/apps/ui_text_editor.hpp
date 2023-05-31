@@ -66,6 +66,7 @@ class TextViewer : public Widget {
 
     uint32_t line() const { return cursor_.line; }
     uint32_t col() const { return cursor_.col; }
+    uint32_t offset() const;
 
     // Gets the length of the current line.
     uint16_t line_length();

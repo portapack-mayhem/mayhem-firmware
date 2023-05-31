@@ -30,11 +30,11 @@ using namespace portapack;
 namespace fs = std::filesystem;
 
 namespace {
-void log(const std::string& msg) {
+/*void log(const std::string& msg) {
     LogFile log{};
     log.append("LOGS/Notepad.txt");
     log.write_entry(msg);
-}
+}*/
 }  // namespace
 
 namespace ui {
@@ -127,6 +127,13 @@ bool TextViewer::on_encoder(EncoderEvent delta) {
 void TextViewer::redraw(bool redraw_text) {
     paint_state_.redraw_text = redraw_text;
     set_dirty();
+}
+
+uint32_t TextViewer::offset() const {
+    auto range = file_->line_range(cursor_.line);
+    if (range)
+        return range->start + col();
+    return 0;
 }
 
 uint16_t TextViewer::line_length() {
@@ -309,30 +316,41 @@ TextEditorView::TextEditorView(NavigationView& nav)
     menu.on_copy() = [this]() {
         show_nyi();
     };
+
     menu.on_delete_line() = [this]() {
         prepare_for_write();
         file_->delete_line(viewer.line());
         refresh_ui();
         hide_menu(true);
     };
+
     menu.on_edit_line() = [this]() {
         show_edit_line();
     };
+
     menu.on_add_line() = [this]() {
         prepare_for_write();
-        file_->insert_line(viewer.line());
+
+        if (viewer.offset() < file_->size() - 1)
+            file_->insert_line(viewer.line());
+        else
+            file_->insert_line(-1); // At end.
+
         refresh_ui();
         hide_menu(true);
     };
+
     menu.on_open() = [this]() {
         show_save_prompt([this]() {
             show_file_picker();
         });
     };
+
     menu.on_save() = [this]() {
         save_temp_file();
         hide_menu(true);
     };
+
     menu.on_exit() = [this]() {
         show_save_prompt([this]() {
             nav_.pop();
@@ -411,11 +429,10 @@ void TextEditorView::hide_menu(bool hidden) {
     // not shown, otherwise menu focus gets confusing.
     viewer.set_focusable(hidden);
 
-    if (hidden) {
+    if (hidden)
         viewer.focus();
-        viewer.redraw(true);
-    }
 
+    viewer.redraw(true);
     set_dirty();
 }
 

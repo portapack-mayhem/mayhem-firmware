@@ -27,8 +27,6 @@
 #include <cstdio>
 #include <string>
 
-// TODO: truncate basically puts an EOF at the R/W pos.
-
 /* Mocks the File interface with a backing string. */
 class MockFile {
    public:
@@ -49,18 +47,15 @@ class MockFile {
 
         auto previous = offset_;
 
-        if (offset >= size())
-            data_.resize(offset + 1);
+        if (offset > size())
+            data_.resize(offset);
 
         offset_ = offset;
         return previous;
     }
 
     Result<Offset> truncate() {
-        if (offset_ >= size())
-            return size() - 1;
-
-        data_.resize(offset_ + 1);
+        data_.resize(offset_);
         return offset_;
     }
 
@@ -138,9 +133,9 @@ TEST_SUITE("Test MockFile") {
             WHEN("seek() offset is size()") {
                 auto r = f.seek(f.size());
 
-                THEN("File should grow.") {
+                THEN("File should not grow.") {
                     CHECK(r.is_ok());
-                    CHECK_EQ(f.size(), init_size + 1);
+                    CHECK_EQ(f.size(), init_size);
                 }
             }
 
@@ -149,7 +144,7 @@ TEST_SUITE("Test MockFile") {
 
                 THEN("File should grow.") {
                     CHECK(r.is_ok());
-                    CHECK_EQ(f.size(), init_size + 2);
+                    CHECK_EQ(f.size(), init_size + 1);
                 }
             }
 
@@ -246,13 +241,30 @@ TEST_SUITE("Test MockFile") {
         }
     }
 
+    // This scenario was tested on device.
+    SCENARIO("File truncate") {
+        GIVEN("Valid file") {
+            MockFile f{"hello world"};
+
+            WHEN("truncating at offset 5") {
+                f.seek(5);
+                f.truncate();
+
+                THEN("resulting file should be 'hello'.") {
+                    CHECK_EQ(f.size(), 5);
+                    CHECK_EQ(f.data_, "hello");
+                }
+            }
+        }
+    }
+
     SCENARIO("File truncate") {
         GIVEN("Valid file") {
             MockFile f{"abc\ndef"};
             auto init_size = f.size();
 
             WHEN("R/W pointer at end") {
-                f.seek(f.size() - 1);
+                f.seek(f.size());
                 f.truncate();
 
                 THEN("It should not change size.") {
@@ -264,8 +276,8 @@ TEST_SUITE("Test MockFile") {
                 f.seek(3);
                 f.truncate();
 
-                THEN("It should not change size.") {
-                    CHECK_EQ(f.size(), 4);
+                THEN("It should change size.") {
+                    CHECK_EQ(f.size(), 3);
                 }
             }
         }
@@ -484,7 +496,10 @@ SCENARIO("Replace range that increases size.") {
     }
 
     GIVEN("A file larger than internal buffer_size (512)") {
-        MockFile f{std::string(600, 'a')};
+        std::string content = std::string(599, 'a');
+        content.push_back('x');
+        MockFile f{content};
+
         auto w = wrap_buffer(f);
         auto init_line_count = w.line_count();
         auto init_size = w.size();
@@ -500,6 +515,10 @@ SCENARIO("Replace range that increases size.") {
                 auto str = w.get_text(0, 0, 10);
                 REQUIRE(str);
                 CHECK_EQ(*str, "bbbaaaaaaa");
+            }
+
+            THEN("end text should be preserved.") {
+                CHECK_EQ(f.data_.back(), 'x');
             }
         }
     }
@@ -536,10 +555,10 @@ SCENARIO("Replace range that decreases size.") {
     }
 
     GIVEN("A file larger than internal buffer_size (512)") {
-        std::string content = std::string(600, 'a');
+        std::string content = std::string(599, 'a');
         content.push_back('x');
-
         MockFile f{content};
+
         auto w = wrap_buffer(f);
         auto init_line_count = w.line_count();
         auto init_size = w.size();
@@ -558,18 +577,15 @@ SCENARIO("Replace range that decreases size.") {
             }
 
             THEN("end should be moved toward front.") {
-                printf("s:'%s'\n", f.data_.c_str());
                 CHECK_EQ(f.data_.back(), 'x');
             }
         }
     }
 }
 
-// TODO: special case of insert/delete after last line.
-
-SCENARIO("Inserting ranges.") {
+SCENARIO("Insert line.") {
     GIVEN("A file with lines") {
-        MockFile f{"abc\ndef"};
+        MockFile f{"abc\ndef\nghi\n"};
         auto w = wrap_buffer(f);
         auto init_line_count = w.line_count();
         auto init_size = w.size();
@@ -582,17 +598,55 @@ SCENARIO("Inserting ranges.") {
                 CHECK_EQ(w.size(), init_size + 1);
             }
 
-            THEN("should insert empty line content") {
+            THEN("should insert empty line content.") {
                 auto str = w.get_text(0, 0, 10);
+                CHECK_EQ(*str, "\n");
+            }
+
+            THEN("first line should be pushed down.") {
+                auto str = w.get_text(1, 0, 10);
+                CHECK_EQ(*str, "abc\n");
+            }
+        }
+
+        WHEN("Inserting before the last line") {
+            w.insert_line(2);
+
+            THEN("should increment line count and size.") {
+                CHECK_EQ(w.line_count(), init_line_count + 1);
+                CHECK_EQ(w.size(), init_size + 1);
+            }
+
+            THEN("should insert empty line content.") {
+                auto str = w.get_text(2, 0, 10);
+                CHECK_EQ(*str, "\n");
+            }
+
+            THEN("last line should be pushed down.") {
+                auto str = w.get_text(3, 0, 10);
+                CHECK_EQ(*str, "ghi\n");
+            }
+        }
+
+        WHEN("Inserting after the last line") {
+            w.insert_line(w.line_count());
+
+            THEN("should increment line count and size.") {
+                CHECK_EQ(w.line_count(), init_line_count + 1);
+                CHECK_EQ(w.size(), init_size + 1);
+            }
+
+            THEN("should insert empty line content.") {
+                auto str = w.get_text(3, 0, 10);
                 CHECK_EQ(*str, "\n");
             }
         }
     }
 }
 
-SCENARIO("Deleting ranges.") {
+SCENARIO("Delete line.") {
     GIVEN("A file with lines") {
-        MockFile f{"abc\ndef"};
+        MockFile f{"abc\ndef\nghi"};
         auto w = wrap_buffer(f);
         auto init_line_count = w.line_count();
         auto init_size = w.size();
@@ -605,9 +659,37 @@ SCENARIO("Deleting ranges.") {
                 CHECK_EQ(w.size(), init_size - 4);
             }
 
-            THEN("should remove first line content") {
+            THEN("should remove first line content.") {
                 auto str = w.get_text(0, 0, 10);
-                CHECK_EQ(*str, "def");
+                CHECK_EQ(*str, "def\n");
+            }
+        }
+
+        WHEN("Deleting the middle line") {
+            w.delete_line(1);
+
+            THEN("should decrement line count and size.") {
+                CHECK_EQ(w.line_count(), init_line_count - 1);
+                CHECK_EQ(w.size(), init_size - 4);
+            }
+
+            THEN("should remove middle line content.") {
+                auto str = w.get_text(1, 0, 10);
+                CHECK_EQ(*str, "ghi");
+            }
+        }
+
+        WHEN("Deleting the last line") {
+            w.delete_line(2);
+
+            THEN("should decrement line count and size.") {
+                CHECK_EQ(w.line_count(), init_line_count - 1);
+                CHECK_EQ(w.size(), init_size - 3);
+            }
+
+            THEN("should remove last line content.") {
+                auto str = w.get_text(2, 0, 10);
+                CHECK(!str);
             }
         }
     }

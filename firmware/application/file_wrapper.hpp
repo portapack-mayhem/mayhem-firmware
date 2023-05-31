@@ -135,12 +135,15 @@ class BufferWrapper {
      * Only really useful for unit testing or diagnostics. */
     Offset start_line() { return start_line_; };
 
-    /* Inserts a line before the specified line. */
+    /* Inserts a line before the specified line or at the
+     * end of the buffer if line >= line_count. */
     void insert_line(Line line) {
         auto range = line_range(line);
 
         if (range)
             replace_range({range->start, range->start}, "\n");
+        else if (line >= line_count_)
+            replace_range({(Offset)size(), (Offset)size()}, "\n");
     }
 
     /* Deletes the specified line. */
@@ -420,7 +423,7 @@ class BufferWrapper {
             wrapped_->seek(offset + delta);
             result = wrapped_->write(buffer, *result);
 
-            if (result.is_error() || result < buffer_size)
+            if (result.is_error() || *result < buffer_size)
                 break;
 
             offset += *result;
