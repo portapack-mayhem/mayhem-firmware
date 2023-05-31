@@ -99,10 +99,7 @@ void GlassView::retune() {
     // Tune rx for this new slice directly because the model
     // saves to persistent memory which is slower.
     radio::set_tuning_frequency(f_center);
-    if (!pixel_index)
-        chThdSleepMilliseconds(10);  // stabilize drawing
-    else
-        chThdSleepMilliseconds(5);         // stabilize freq
+    chThdSleepMilliseconds(5);             // stabilize freq
     baseband::spectrum_streaming_start();  // Do the RX
 }
 
