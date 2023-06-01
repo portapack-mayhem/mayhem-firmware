@@ -219,7 +219,7 @@ class TextEditorView : public View {
     void refresh_ui();
     void update_position();
     void hide_menu(bool hidden = true);
-    void show_file_picker();
+    void show_file_picker(bool immediate = true);
     void show_edit_line();
     void show_nyi();
     void show_save_prompt(std::function<void()> continuation);

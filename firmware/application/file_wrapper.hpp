@@ -228,6 +228,8 @@ class BufferWrapper {
         // to tell where the dirty regions are. After the
         // dirty region, it should be possible to fixup
         // the line_count data.
+        // TODO: seems like shrink/expand could do this while
+        // they are running.
 
         line_count_ = start_line_;
         Offset offset = start_offset_;

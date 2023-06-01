@@ -335,16 +335,19 @@ TextEditorView::TextEditorView(NavigationView& nav)
         if (viewer.offset() < file_->size() - 1)
             file_->insert_line(viewer.line());
         else
-            file_->insert_line(-1);  // At end.
+            file_->insert_line(-1);  // add after last line.
 
         refresh_ui();
         hide_menu(true);
     };
 
     menu.on_open() = [this]() {
-        show_save_prompt([this]() {
+        /*show_save_prompt([this]() {
             show_file_picker();
-        });
+        });*/
+        // HACK: above should work but it's faulting.
+        show_save_prompt(nullptr);
+        show_file_picker(false);
     };
 
     menu.on_save() = [this]() {
@@ -385,6 +388,10 @@ void TextEditorView::on_show() {
 }
 
 void TextEditorView::open_file(const fs::path& path) {
+    file_.reset();
+    viewer.clear_file();
+    delete_temp_file();
+
     path_ = {};
     file_dirty_ = false;
     has_temp_file_ = false;
@@ -392,8 +399,7 @@ void TextEditorView::open_file(const fs::path& path) {
 
     if (!result) {
         nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
-        file_.reset();
-        viewer.clear_file();
+
     } else {
         file_ = *std::move(result);
         path_ = path;
@@ -437,8 +443,11 @@ void TextEditorView::hide_menu(bool hidden) {
     set_dirty();
 }
 
-void TextEditorView::show_file_picker() {
-    if (auto open_view = nav_.push<FileLoadView>("")) {
+void TextEditorView::show_file_picker(bool immediate) {
+    // TODO: immediate is a hack until nav_.on_pop is fixed.
+    auto open_view = immediate ? nav_.push<FileLoadView>("") : nav_.push_under_current<FileLoadView>("");
+
+    if (open_view) {
         open_view->on_changed = [this](std::filesystem::path path) {
             open_file(path);
             hide_menu();
@@ -501,6 +510,7 @@ void TextEditorView::prepare_for_write() {
     if (has_temp_file_)
         return;
 
+    // Copy to temp file on write.
     has_temp_file_ = true;
     delete_temp_file();
     copy_file(path_, get_temp_path());
@@ -515,9 +525,11 @@ void TextEditorView::delete_temp_file() const {
 }
 
 void TextEditorView::save_temp_file() {
-    delete_file(path_);
-    copy_file(get_temp_path(), path_);
-    file_dirty_ = false;
+    if (file_dirty_) {
+        delete_file(path_);
+        copy_file(get_temp_path(), path_);
+        file_dirty_ = false;
+    }
 }
 
 fs::path TextEditorView::get_temp_path() const {

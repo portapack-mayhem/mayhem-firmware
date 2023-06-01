@@ -425,30 +425,15 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     return p;
 }
 
-void NavigationView::pop(bool update) {
-    if (view() == modal_view) {
-        modal_view = nullptr;
-    }
-
-    // Can't pop last item from stack.
-    if (view_stack.size() > 1) {
-        auto on_pop = view_stack.back().on_pop;
-
-        free_view();
-        view_stack.pop_back();
-
-        if (update)
-            update_view();
-
-        if (on_pop) on_pop();
-    }
+void NavigationView::pop() {
+    pop(true);
 }
 
 void NavigationView::pop_modal() {
     // Pop modal view + underlying app view.
     // TODO: this shouldn't be necessary.
     pop(false);
-    pop();
+    pop(true);
 }
 
 void NavigationView::display_modal(
@@ -465,6 +450,25 @@ void NavigationView::display_modal(
     /* If a modal view is already visible, don't display another */
     if (!modal_view) {
         modal_view = push<ModalMessageView>(title, message, type, on_choice);
+    }
+}
+
+void NavigationView::pop(bool update) {
+    if (view() == modal_view) {
+        modal_view = nullptr;
+    }
+
+    // Can't pop last item from stack.
+    if (view_stack.size() > 1) {
+        auto on_pop = view_stack.back().on_pop;
+
+        free_view();
+        view_stack.pop_back();
+
+        if (update)
+            update_view();
+
+        if (on_pop) on_pop();
     }
 }
 
