@@ -320,13 +320,8 @@ class File {
             return value_;
         }
 
-        /* Allows value to be moved out of the Result. */
-        T take() {
-            if (is_error())
-                return {};
-            T temp;
-            std::swap(temp, value_);
-            return temp;
+        T&& operator*() && {
+            return std::move(value_);
         }
 
         Error error() const {
