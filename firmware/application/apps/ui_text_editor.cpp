@@ -335,7 +335,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
         if (viewer.offset() < file_->size() - 1)
             file_->insert_line(viewer.line());
         else
-            file_->insert_line(-1);  // add after last line.
+            file_->insert_line(-1);  // Add after last line.
 
         refresh_ui();
         hide_menu(true);
