@@ -500,6 +500,18 @@ void NavigationView::focus() {
     }
 }
 
+bool NavigationView::set_on_pop(std::function<void()> on_pop) {
+    if (view_stack.size() <= 1)
+        return false;
+
+    auto& top = view_stack.back();
+    if (top.on_pop)
+        return false;
+
+    top.on_pop = on_pop;
+    return true;
+}
+
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {

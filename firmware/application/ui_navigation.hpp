@@ -101,17 +101,7 @@ class NavigationView : public View {
 
     /* Sets the 'on_pop' handler for the current view.
      * Returns true if the handler was bound successfully. */
-    bool set_on_pop(std::function<void()> on_pop) {
-        if (view_stack.size() <= 1)
-            return false;
-
-        auto& top = view_stack.back();
-        if (top.on_pop)
-            return false;
-
-        top.on_pop = on_pop;
-        return true;
-    }
+    bool set_on_pop(std::function<void()> on_pop);
 
    private:
     struct ViewState {
