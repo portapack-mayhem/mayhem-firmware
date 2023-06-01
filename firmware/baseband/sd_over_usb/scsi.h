@@ -34,14 +34,15 @@
 #include "platform_detect.h"
 #include "hackrf_core.h"
 #include "usb_bulk_buffer.h"
-
+/*
 #define MSD_CBW_SIGNATURE 0x43425355
 #define MSD_CSW_SIGNATURE 0x53425355
-
+*/
 #define SCSI_CMD_TEST_UNIT_READY 0x00
 #define SCSI_CMD_REQUEST_SENSE 0x03
 #define SCSI_CMD_INQUIRY 0x12
 #define SCSI_CMD_MODE_SENSE_6 0x1A
+#define SCSI_CMD_MODE_SENSE_10 0x5A
 #define SCSI_CMD_START_STOP_UNIT 0x1B
 #define SCSI_CMD_SEND_DIAGNOSTIC 0x1D
 #define SCSI_CMD_PREVENT_ALLOW_MEDIUM_REMOVAL 0x1E
@@ -81,8 +82,8 @@
 #define SCSI_ASENSEQ_INIT_COMMAND_REQUIRED 0x02
 #define SCSI_ASENSEQ_OPERATION_IN_PROGRESS 0x07
 
-#define MSD_CBW_SIGNATURE 0x43425355
-#define MSD_CSW_SIGNATURE 0x53425355
+#define MSD_CBW_SIGNATURE 0x43425355 // USBC
+#define MSD_CSW_SIGNATURE 0x53425355 // USBS
 
 #define USB_TRANSFER_SIZE 0x2000
 
@@ -135,6 +136,10 @@ typedef struct {
 typedef struct {
     uint8_t byte[4];
 } scsi_mode_sense6_response_t;
+
+typedef struct {
+    uint16_t byte[4];
+} scsi_mode_sense10_response_t;
 
 typedef struct {
     uint32_t first_lba;
