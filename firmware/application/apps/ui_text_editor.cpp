@@ -193,21 +193,22 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
 
 void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
     auto r = screen_rect();
+    char buffer[max_col + 1];
 
     // Draw the lines from the file
     for (auto i = 0u; i < max_line; ++i) {
         if (line + i >= file_->line_count())
             break;
 
-        auto str = file_->get_text(line + i, col, max_col);
+        auto result = file_->get_text(line + i, col, buffer, max_col);
 
-        if (str && str->length() > 0)
+        if (result && *result > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                style_text, *str);
+                style_text, {buffer, *result});
 
         // Clear empty line sections. This is less visually jarring than full clear.
-        int32_t clear_width = max_col - (str ? str->length() : 0);
+        int32_t clear_width = max_col - (result ? *result : 0);
         if (clear_width > 0)
             painter.fill_rectangle(
                 {(max_col - clear_width) * char_width,
@@ -334,7 +335,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
         if (viewer.offset() < file_->size() - 1)
             file_->insert_line(viewer.line());
         else
-            file_->insert_line(-1); // At end.
+            file_->insert_line(-1);  // At end.
 
         refresh_ui();
         hide_menu(true);
@@ -394,7 +395,7 @@ void TextEditorView::open_file(const fs::path& path) {
         file_.reset();
         viewer.clear_file();
     } else {
-        file_ = result.take();
+        file_ = *std::move(result);
         path_ = path;
         viewer.set_file(*file_);
     }
@@ -437,22 +438,23 @@ void TextEditorView::hide_menu(bool hidden) {
 }
 
 void TextEditorView::show_file_picker() {
-    auto open_view = nav_.push<FileLoadView>("");
-    open_view->on_changed = [this](std::filesystem::path path) {
-        open_file(path);
-        hide_menu();
-    };
+    if (auto open_view = nav_.push<FileLoadView>("")) {
+        open_view->on_changed = [this](std::filesystem::path path) {
+            open_file(path);
+            hide_menu();
+        };
+    }
 }
 
 void TextEditorView::show_edit_line() {
-    edit_line_buffer_.clear();
     auto str = file_->get_text(viewer.line(), 0, viewer.line_length());
     if (!str) {
         nav_.display_modal("Error", "Failed to get line text.");
         return;
     }
 
-    std::swap(edit_line_buffer_, *str);
+    edit_line_buffer_ = *std::move(str);
+
     text_prompt(
         nav_,
         edit_line_buffer_,
@@ -469,8 +471,7 @@ void TextEditorView::show_edit_line() {
     nav_.set_on_pop([this]() {
         edit_line_buffer_.clear();
         refresh_ui();
-        // TODO: Why does this crash? Focus?
-        //hide_menu(true);
+        hide_menu(true);
     });
 }
 

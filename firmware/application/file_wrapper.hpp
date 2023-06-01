@@ -27,7 +27,7 @@
 #include "optional.hpp"
 
 #include <memory>
-#include <string>
+#include <string_view>
 
 enum class LineEnding : uint8_t {
     LF,
@@ -79,6 +79,18 @@ class BufferWrapper {
     BufferWrapper& operator=(const BufferWrapper&) = delete;
 
     Optional<std::string> get_text(Line line, Column col, Offset length) {
+        std::string buffer;
+        buffer.resize(length);
+
+        auto result = get_text(line, col, &buffer[0], length);
+        if (!result)
+            return {};
+
+        buffer.resize(*result);
+        return buffer;
+    }
+
+    Optional<Offset> get_text(Line line, Column col, char* output, Offset length) {
         auto range = line_range(line);
         int32_t to_read = length;
 
@@ -92,7 +104,7 @@ class BufferWrapper {
         if (to_read <= 0)
             return {};
 
-        return read(range->start + col, to_read);
+        return read(range->start + col, output, to_read);
     }
 
     /* Gets the size of the buffer in bytes. */
@@ -157,7 +169,7 @@ class BufferWrapper {
     /* Replace the specified range with the string contents.
      * A range with start/end set to the same value will insert.
      * A range with an empty string will delete. */
-    void replace_range(Range range, const std::string& value) {
+    void replace_range(Range range, std::string_view value) {
         if (range.start > size() || range.end > size() || range.start > range.end)
             return;
 
@@ -230,26 +242,22 @@ class BufferWrapper {
         }
     }
 
-    Optional<std::string> read(Offset offset, Offset length) {
+    Optional<Offset> read(Offset offset, char* buffer, Offset length) {
         if (offset + length > size())
             return {};
 
-        std::string buffer;
-        buffer.resize(length);
         wrapped_->seek(offset);
 
-        auto result = wrapped_->read(&buffer[0], length);
+        auto result = wrapped_->read(buffer, length);
         if (result.is_error())
-            // TODO: better error handling.
-            return std::string{"[Bad Read]"};
+            return {};
 
-        buffer.resize(*result);
-        return buffer;
+        return *result;
     }
 
-    bool write(Offset offset, const std::string& value) {
+    bool write(Offset offset, std::string_view value) {
         wrapped_->seek(offset);
-        auto result = wrapped_->write(&value[0], value.length());
+        auto result = wrapped_->write(value.data(), value.length());
 
         return result.is_ok();
     }
