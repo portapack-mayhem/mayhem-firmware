@@ -346,8 +346,12 @@ TextEditorView::TextEditorView(NavigationView& nav)
             show_file_picker();
         });*/
         // HACK: above should work but it's faulting.
-        show_save_prompt(nullptr);
-        show_file_picker(false);
+        if (!file_dirty_) {
+            show_file_picker();
+        } else {
+            show_save_prompt(nullptr);
+            show_file_picker(false);
+        }
     };
 
     menu.on_save() = [this]() {
