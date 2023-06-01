@@ -43,10 +43,8 @@ class Optional {
     const T& value() const& { return value_; }
     const T& operator*() const& { return value_; }
 
-    T&& value() && { return value_; }
-    T&& operator*() && { return value_; }
-    const T&& value() const&& { return value_; }
-    const T&& operator*() const&& { return value_; }
+    T&& value() && { return std::move(value_); }
+    T&& operator*() && { return std::move(value_); }
 
     T* operator->() { return &value_; }
     const T* operator->() const { return &value_; }

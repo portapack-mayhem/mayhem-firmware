@@ -19,6 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
+/* TODO:
+ * - Busy indicator while reading files.
+ */
+
 #ifndef __UI_TEXT_EDITOR_H__
 #define __UI_TEXT_EDITOR_H__
 
@@ -66,6 +70,10 @@ class TextViewer : public Widget {
 
     uint32_t line() const { return cursor_.line; }
     uint32_t col() const { return cursor_.col; }
+    uint32_t offset() const;
+
+    // Gets the length of the current line.
+    uint16_t line_length();
 
    private:
     static constexpr int8_t char_width = 5;
@@ -88,9 +96,6 @@ class TextViewer : public Widget {
     void paint_cursor(Painter& painter);
 
     void reset_file(FileWrapper* file = nullptr);
-
-    // Gets the length of the current line.
-    uint16_t line_length();
 
     FileWrapper* file_{};
 
@@ -201,6 +206,7 @@ class TextEditorView : public View {
     TextEditorView(
         NavigationView& nav,
         const std::filesystem::path& path);
+    ~TextEditorView();
 
     std::string title() const override {
         return "Notepad";
@@ -209,15 +215,30 @@ class TextEditorView : public View {
     void on_show() override;
 
    private:
+    static constexpr size_t max_edit_length = 1024;
+    std::string edit_line_buffer_{};
+
     void open_file(const std::filesystem::path& path);
+    void save_file();
     void refresh_ui();
     void update_position();
     void hide_menu(bool hidden = true);
-    void show_file_picker();
+    void show_file_picker(bool immediate = true);
+    void show_edit_line();
     void show_nyi();
+    void show_save_prompt(std::function<void()> continuation);
+
+    void prepare_for_write();
+    void create_temp_file() const;
+    void delete_temp_file() const;
+    void save_temp_file();
+    std::filesystem::path get_temp_path() const;
 
     NavigationView& nav_;
     std::unique_ptr<FileWrapper> file_{};
+    std::filesystem::path path_{};
+    bool file_dirty_{false};
+    bool has_temp_file_{false};
 
     TextViewer viewer{
         /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */

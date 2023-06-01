@@ -320,13 +320,8 @@ class File {
             return value_;
         }
 
-        /* Allows value to be moved out of the Result. */
-        T take() {
-            if (is_error())
-                return {};
-            T temp;
-            std::swap(temp, value_);
-            return temp;
+        T&& operator*() && {
+            return std::move(value_);
         }
 
         Error error() const {
@@ -369,7 +364,7 @@ class File {
     File& operator=(const File&) = delete;
 
     // TODO: Return Result<>.
-    Optional<Error> open(const std::filesystem::path& filename);
+    Optional<Error> open(const std::filesystem::path& filename, bool read_only = true);
     Optional<Error> append(const std::filesystem::path& filename);
     Optional<Error> create(const std::filesystem::path& filename);
 
@@ -377,6 +372,7 @@ class File {
     Result<Size> write(const void* data, Size bytes_to_write);
 
     Result<Offset> seek(uint64_t Offset);
+    Result<Offset> truncate();
     // Timestamp created_date() const;
     Size size() const;
 
