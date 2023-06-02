@@ -568,6 +568,19 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_mic_app.on_select = [this](Button&) {
+        if (frequency_list.size() > 0 && current_index >= 0 && (unsigned)current_index < frequency_list.size()) {
+            if (frequency_list[current_index].type == HAMRADIO) {
+                // if it's a HAMRADIO entry, then frequency_a is the freq at which the repeater reveive, so we have to set it in transmit in mic app
+                transmitter_model.set_tuning_frequency(frequency_list[current_index].frequency_a);
+                // if it's a HAMRADIO entry, then frequency_b is the freq at which the repeater transmit, so we have to set it in receive in mic app
+                receiver_model.set_tuning_frequency(frequency_list[current_index].frequency_b);
+            } else {
+                // it's single or range so we us actual tuned frequency
+                transmitter_model.set_tuning_frequency(freq);
+                receiver_model.set_tuning_frequency(freq);
+            }
+        }
+        // there is no way yet to set modulation and bandwidth from Recon to MicApp
         nav_.pop();
         nav_.push<MicTXView>();
     };
