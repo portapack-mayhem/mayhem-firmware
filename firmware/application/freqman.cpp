@@ -106,9 +106,8 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db) {
     return load_freqman_file_ex(file_stem, db, true, true, true, FREQMAN_MAX_PER_FILE);
 }
 
-bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t limit) {
-    // these are not enough to really start with a new, clean, empty vector
-    // swap is the only way to achieve a perfect memory liberation
+bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs = FREQMAN_MAX_PER_FILE) {
+    // swap with empty vector to ensure memory is immediately released
     std::vector<freqman_entry>().swap(db);
 
     File freqman_file;
@@ -228,7 +227,7 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
             if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
                 db.push_back({frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
                 n++;
-                if (n > limit) return true;
+                if (n > max_num_freqs) return true;
             }
 
             line_start = line_end + 1;
