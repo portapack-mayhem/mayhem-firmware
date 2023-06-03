@@ -66,7 +66,7 @@ void ScreenshotViewer::paint(Painter& painter) {
 
     constexpr size_t pixel_width = 240;
     constexpr size_t pixel_height = 320;
-    constexpr size_t read_chunk = 80; // NB: factor of 240.
+    constexpr size_t read_chunk = 80;  // NB: factor of 240.
     constexpr size_t buffer_size = sizeof(ColorRGB888) * read_chunk;
     uint8_t buffer[buffer_size];
     std::array<Color, pixel_width> pixel_data;
