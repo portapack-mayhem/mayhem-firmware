@@ -36,6 +36,7 @@
 #define FREQMAN_MAX_PER_FILE 60        // Maximum of entries we can read. This is a hardware limit
                                        // It was tested and lowered to leave a bit of space to the caller
 #define FREQMAN_MAX_PER_FILE_STR "60"  // STRING OF FREQMAN_MAX_PER_FILE
+#define FREQMAN_READ_BUF_SIZE 96       // max freqman line size including desc is 90, +6 for a bit of space
 
 using namespace ui;
 using namespace std;
@@ -96,7 +97,7 @@ using freqman_db = std::vector<freqman_entry>;
 
 std::vector<std::string> get_freqman_files();
 bool load_freqman_file(std::string& file_stem, freqman_db& db);
-bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios);
+bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t limit);
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
 bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
