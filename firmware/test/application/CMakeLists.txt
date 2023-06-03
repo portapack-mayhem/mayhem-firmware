@@ -38,10 +38,6 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/test_circular_buffer.cpp
 	${PROJECT_SOURCE_DIR}/test_file_wrapper.cpp
 	${PROJECT_SOURCE_DIR}/test_optional.cpp
-	${PROJECT_SOURCE_DIR}/test_screenshot_reader.cpp
-
-	# Product sources
-	${COMMON}/screenshot_reader.cpp
 )
 
 target_include_directories(application_test PRIVATE
@@ -73,9 +69,6 @@ target_compile_options(application_test PRIVATE
 	${CPPWARN}
 )
 
-# TODO: Maybe a better option vs setting working directory
-# would be to copy test_assets to the build output?
 add_test(NAME application_test
     COMMAND application_test
-	WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}/test_assets
 )
