@@ -22,7 +22,6 @@
 #include "ui_ss_viewer.hpp"
 #include "screenshot_reader.hpp"
 
-
 using namespace portapack;
 namespace fs = std::filesystem;
 
@@ -32,7 +31,8 @@ ScreenshotViewer::ScreenshotViewer(
     NavigationView& nav,
     const std::filesystem::path& path)
     : nav_{nav},
-    path_{path} {
+      path_{path} {
+    set_focusable(true);
 }
 
 bool ScreenshotViewer::on_key(KeyEvent) {
@@ -47,41 +47,50 @@ void ScreenshotViewer::paint(Painter& painter) {
         .foreground = ui::Color::white()};
     File file{};
 
-    painter.fill_rectangle({0,0, 240, 320}, Color::black());
+    painter.fill_rectangle({0, 0, 240, 320}, Color::black());
+
+    auto show_invalid = [&]() {
+        painter.draw_string({160, 10}, style_default, "Not a valid screenshot.");
+    };
 
     auto error = file.open(path_);
     if (error) {
-        painter.draw_string({160, 10}, style_default, "Cannot open file.");
+        painter.draw_string({160, 10}, style_default, error->what());
         return;
     }
 
-    constexpr uint32_t buffer_size = 64;
+    // Screenshots from PNGWriter are all this size.
+    if (file.size() != 232383) {
+        show_invalid();
+        return;
+    }
+
+    constexpr size_t pixel_width = 240;
+    constexpr size_t pixel_height = 320;
+    constexpr size_t buffer_size = sizeof(ColorRGB888) * pixel_width;
     uint8_t buffer[buffer_size];
-    uint32_t line = 0;
-    bool valid = true;
+    std::array<Color, pixel_width> pixel_data;
 
-    ScreenshotReader reader;
-    reader.on_line = [&](auto line_pixels) {
-        std::array<Color, 240> colors;
-        for (auto i = 0u; i < line_pixels.size(); ++i) {
-            auto& c8 = line_pixels[i];
-            colors[i] = Color(c8.r, c8.g, c8.b);
+    // Seek past all the headers.
+    file.seek(43);
+
+    for (auto line = 0u; line < pixel_height; ++line) {
+        // Seek past the per-line header.
+        file.seek(file.tell() + 6);
+        auto read = file.read(buffer, buffer_size);
+
+        if (!read || *read != buffer_size) {
+            show_invalid();
+            return;
         }
-        display.draw_pixels({0, line, 240, 1}, colors.data(), 240);
-    };
 
-    while (true) {
-        auto read = file.read(buffer, sizeof(buffer[0]), buffer_size);
-        if (read)
-            valid = reader.parse(buffer, *read);
+        ColorRGB888* c8 = (ColorRGB888*)buffer;
+        for (auto i = 0u; i < pixel_width; ++i) {
+            pixel_data[i] = Color(c8->r, c8->g, c8->b);
+            ++c8;
+        }
 
-        if (*read < buffer_size || !valid)
-            break;
-    }
-
-    if (!valid) {
-        painter.draw_string({160, 10}, style_default, "Not a valid screenshot.");
-        return;
+        display.draw_pixels({0, (int)line, pixel_width, 1}, pixel_data);
     }
 }
 

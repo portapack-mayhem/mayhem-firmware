@@ -85,9 +85,13 @@ File::Result<File::Size> File::write(const void* data, Size bytes_to_write) {
     }
 }
 
+File::Offset File::tell() const {
+    return f_tell(&f);
+}
+
 File::Result<File::Offset> File::seek(Offset new_position) {
     /* NOTE: Returns *old* position, not new position */
-    const auto old_position = f_tell(&f);
+    const auto old_position = tell();
     const auto result = f_lseek(&f, new_position);
     if (result != FR_OK) {
         return {static_cast<Error>(result)};

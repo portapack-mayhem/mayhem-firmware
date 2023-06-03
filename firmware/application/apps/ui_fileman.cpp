@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include "ui_fileman.hpp"
+#include "ui_ss_viewer.hpp"
 #include "ui_text_editor.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
@@ -67,15 +68,16 @@ bool iequal(
 
 // Inserts the entry into the entry list sorted directories first then by file name.
 void insert_sorted(std::vector<fileman_entry>& entries, fileman_entry&& entry) {
-    auto it = std::lower_bound(std::begin(entries), std::end(entries), entry,
-                               [](const fileman_entry& lhs, const fileman_entry& rhs) {
-                                   if (lhs.is_directory && !rhs.is_directory)
-                                       return true;
-                                   else if (!lhs.is_directory && rhs.is_directory)
-                                       return false;
-                                   else
-                                       return lhs.path < rhs.path;
-                               });
+    auto it = std::lower_bound(
+        std::begin(entries), std::end(entries), entry,
+        [](const fileman_entry& lhs, const fileman_entry& rhs) {
+            if (lhs.is_directory && !rhs.is_directory)
+                return true;
+            else if (!lhs.is_directory && rhs.is_directory)
+                return false;
+            else
+                return lhs.path < rhs.path;
+        });
 
     entries.insert(it, std::move(entry));
 }
@@ -398,6 +400,18 @@ void FileSaveView::refresh_widgets() {
 */
 /* FileManagerView ***********************************************************/
 
+void FileManagerView::refresh_widgets(const bool v) {
+    button_rename.hidden(v);
+    button_delete.hidden(v);
+    button_cut.hidden(v);
+    button_copy.hidden(v);
+    button_paste.hidden(v);
+    button_new_dir.hidden(v);
+    button_new_file.hidden(v);
+
+    set_dirty();
+}
+
 void FileManagerView::on_rename() {
     auto& entry = get_selected_entry();
     name_buffer = entry.path.filename().string();
@@ -407,58 +421,53 @@ void FileManagerView::on_rename() {
         pos != name_buffer.npos && !entry.is_directory)
         cursor_pos = pos;
 
-    text_prompt(nav_, name_buffer, cursor_pos, max_filename_length,
-                [this](std::string& renamed) {
-                    auto renamed_path = fs::path{renamed};
-                    rename_file(get_selected_full_path(), current_path / renamed_path);
+    text_prompt(
+        nav_, name_buffer, cursor_pos, max_filename_length,
+        [this](std::string& renamed) {
+            auto renamed_path = fs::path{renamed};
+            rename_file(get_selected_full_path(), current_path / renamed_path);
 
-                    auto has_partner = partner_file_prompt(nav_, get_selected_full_path(), "Rename",
-                                                           [this, renamed_path](const fs::path& partner, bool should_rename) mutable {
-                                                               if (should_rename) {
-                                                                   auto new_name = renamed_path.replace_extension(partner.extension());
-                                                                   rename_file(partner, current_path / new_name);
-                                                               }
-                                                               reload_current();
-                                                           });
-
-                    if (!has_partner)
-                        reload_current();
+            auto has_partner = partner_file_prompt(
+                nav_, get_selected_full_path(), "Rename",
+                [this, renamed_path](const fs::path& partner, bool should_rename) mutable {
+                    if (should_rename) {
+                        auto new_name = renamed_path.replace_extension(partner.extension());
+                        rename_file(partner, current_path / new_name);
+                    }
+                    reload_current();
                 });
+
+            if (!has_partner)
+                reload_current();
+        });
 }
 
 void FileManagerView::on_delete() {
     auto name = get_selected_entry().path.filename().string();
-    nav_.push<ModalMessageView>("Delete", "Delete " + name + "\nAre you sure?", YESNO,
-                                [this](bool choice) {
-                                    if (choice) {
-                                        delete_file(get_selected_full_path());
+    nav_.push<ModalMessageView>(
+        "Delete", "Delete " + name + "\nAre you sure?", YESNO,
+        [this](bool choice) {
+            if (choice) {
+                delete_file(get_selected_full_path());
 
-                                        auto has_partner = partner_file_prompt(
-                                            nav_, get_selected_full_path(), "Delete",
-                                            [this](const fs::path& partner, bool should_delete) {
-                                                if (should_delete)
-                                                    delete_file(partner);
-                                                reload_current();
-                                            });
+                auto has_partner = partner_file_prompt(
+                    nav_, get_selected_full_path(), "Delete",
+                    [this](const fs::path& partner, bool should_delete) {
+                        if (should_delete)
+                            delete_file(partner);
+                        reload_current();
+                    });
 
-                                        if (!has_partner)
-                                            reload_current();
-                                    }
-                                });
+                if (!has_partner)
+                    reload_current();
+            }
+        });
 }
 
 void FileManagerView::on_new_dir() {
     name_buffer = "";
     text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& dir_name) {
         make_new_directory(current_path / dir_name);
-        reload_current();
-    });
-}
-
-void FileManagerView::on_new_file() {
-    name_buffer = "";
-    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
-        make_new_file(current_path / file_name);
         reload_current();
     });
 }
@@ -483,21 +492,35 @@ void FileManagerView::on_paste() {
     reload_current();
 }
 
+void FileManagerView::on_new_file() {
+    name_buffer = "";
+    text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
+        make_new_file(current_path / file_name);
+        reload_current();
+    });
+}
+
+bool FileManagerView::handle_file_open() {
+    if (!selected_is_valid())
+        return false;
+
+    auto path = get_selected_full_path();
+    auto ext = path.extension();
+
+    if (iequal(u".TXT", ext) || iequal(u".PPL", ext)) {
+        nav_.push<TextEditorView>(path);
+        return true;
+    } else if (iequal(u".PNG", ext)) {
+        nav_.push<ScreenshotViewer>(path);
+        return true;
+    }
+
+    return false;
+}
+
 bool FileManagerView::selected_is_valid() const {
     return !entry_list.empty() &&
            get_selected_entry().path != parent_dir_path;
-}
-
-void FileManagerView::refresh_widgets(const bool v) {
-    button_rename.hidden(v);
-    button_delete.hidden(v);
-    button_cut.hidden(v);
-    button_copy.hidden(v);
-    button_paste.hidden(v);
-    button_new_dir.hidden(v);
-    button_new_file.hidden(v);
-
-    set_dirty();
 }
 
 FileManagerView::FileManagerView(
@@ -537,6 +560,8 @@ FileManagerView::FileManagerView(
     on_select_entry = [this](KeyEvent key) {
         if (key == KeyEvent::Select && get_selected_entry().is_directory) {
             push_dir(get_selected_entry().path);
+        } else if (key == KeyEvent::Select && handle_file_open()) {
+            return;
         } else {
             button_rename.focus();
         }

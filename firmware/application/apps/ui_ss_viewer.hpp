@@ -35,6 +35,7 @@ class ScreenshotViewer : public View {
     ScreenshotViewer(NavigationView& nav, const std::filesystem::path& path);
     bool on_key(KeyEvent key) override;
     void paint(Painter& painter) override;
+
    private:
     NavigationView& nav_;
     std::filesystem::path path_{};
@@ -42,4 +43,4 @@ class ScreenshotViewer : public View {
 
 }  // namespace ui
 
-#endif // __UI_SS_VIEWER_H__
+#endif  // __UI_SS_VIEWER_H__
