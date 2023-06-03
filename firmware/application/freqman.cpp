@@ -103,10 +103,13 @@ std::vector<std::string> get_freqman_files() {
 };
 
 bool load_freqman_file(std::string& file_stem, freqman_db& db) {
-    return load_freqman_file_ex(file_stem, db, true, true, true);
+    return load_freqman_file_ex(file_stem, db, true, true, true, FREQMAN_MAX_PER_FILE);
 }
 
-bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios) {
+bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs = FREQMAN_MAX_PER_FILE) {
+    // swap with empty vector to ensure memory is immediately released
+    std::vector<freqman_entry>().swap(db);
+
     File freqman_file;
     size_t length, n = 0, file_position = 0;
     char* pos;
@@ -114,40 +117,33 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
     char* line_end;
     std::string description;
     rf::Frequency frequency_a, frequency_b;
-    const int read_buf_size = 128;
-    char file_data[read_buf_size + 1];
+    char file_data[FREQMAN_READ_BUF_SIZE + 1];
     freqman_entry_type type;
     freqman_index_t modulation = 0;
     freqman_index_t bandwidth = 0;
     freqman_index_t step = 0;
     freqman_index_t tone = 0;
 
-    // these are not enough to really start with a new, clean, empty vector
-    // swap is the only way to achieve a perfect memory liberation
-    // db.clear();
-    // db.shrink_to_fit():
-    std::vector<freqman_entry>().swap(db);
-
     auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
     if (result.is_valid())
         return false;
 
     while (1) {
-        // Read a read_buf_size bytes block from file
+        // Read a FREQMAN_READ_BUF_SIZE block from file
         freqman_file.seek(file_position);
 
-        memset(file_data, 0, read_buf_size + 1);
-        auto read_size = freqman_file.read(file_data, read_buf_size);
+        memset(file_data, 0, FREQMAN_READ_BUF_SIZE + 1);
+        auto read_size = freqman_file.read(file_data, FREQMAN_READ_BUF_SIZE);
         if (read_size.is_error())
             return false;  // Read error
 
-        file_position += read_buf_size;
+        file_position += FREQMAN_READ_BUF_SIZE;
 
         // Reset line_start to beginning of buffer
         line_start = file_data;
 
         // If EOF reached, insert 0x0A after, in case the last line doesn't have a C/R
-        if (read_size.value() < read_buf_size)
+        if (read_size.value() < FREQMAN_READ_BUF_SIZE)
             *(line_start + read_size.value()) = 0x0A;
 
         // Look for complete lines in buffer
@@ -231,18 +227,18 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
             if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
                 db.push_back({frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
                 n++;
-                if (n > FREQMAN_MAX_PER_FILE) return true;
+                if (n > max_num_freqs) return true;
             }
 
             line_start = line_end + 1;
-            if (line_start - file_data >= read_buf_size) break;
+            if (line_start - file_data >= FREQMAN_READ_BUF_SIZE) break;
         }
 
-        if (read_size.value() != read_buf_size)
+        if (read_size.value() != FREQMAN_READ_BUF_SIZE)
             break;  // End of file
 
         // Restart at beginning of last incomplete line
-        file_position -= (file_data + read_buf_size - line_start);
+        file_position -= (file_data + FREQMAN_READ_BUF_SIZE - line_start);
     }
 
     /* populate implicitly specified modulation / bandwidth */

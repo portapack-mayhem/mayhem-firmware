@@ -44,6 +44,7 @@
 namespace ui {
 
 #define RECON_CFG_FILE "SETTINGS/recon.cfg"
+#define RECON_FREQMAN_MAX_PER_FILE 99  // maximum tested limit for load frequency from freqman to work
 
 class ReconView : public View {
    public:
