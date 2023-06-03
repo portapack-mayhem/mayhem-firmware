@@ -145,6 +145,7 @@ set(CPPSRC
 	${COMMON}/portapack_io.cpp
 	${COMMON}/portapack_persistent_memory.cpp
 	${COMMON}/portapack_shared_memory.cpp
+	${COMMON}/screenshot_reader.cpp
 	${COMMON}/sonde_packet.cpp
 	# ${COMMON}/test_packet.cpp
 	${COMMON}/tpms_packet.cpp
@@ -260,6 +261,7 @@ set(CPPSRC
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
 	apps/ui_sstvtx.cpp
+	apps/ui_ss_viewer.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
 	apps/ui_tone_search.cpp

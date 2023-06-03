@@ -59,7 +59,7 @@ class TextViewer : public Widget {
     std::function<void()> on_cursor_moved{};
 
     void paint(Painter& painter) override;
-    bool on_key(KeyEvent delta) override;
+    bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
 
     void redraw(bool redraw_text = false);
