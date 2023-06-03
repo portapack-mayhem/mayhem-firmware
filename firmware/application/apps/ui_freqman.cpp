@@ -95,6 +95,9 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     last_category_id = current_category_id = category_id;
 
+    std::vector<freqman_entry>().swap(database);
+    menu_view.set_db(database);
+
     if (!load_freqman_file(file_list[categories[current_category_id].second], database))
         error_ = ERROR_ACCESS;
     else {
