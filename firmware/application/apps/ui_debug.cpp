@@ -253,7 +253,7 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 void ControlsSwitchesWidget::paint(Painter& painter) {
     const auto pos = screen_pos();
 
-    const std::array<Rect, 8> button_rects{{
+    const std::array<Rect, 9> button_rects{{
         {64, 32, 16, 16},  // Right
         {0, 32, 16, 16},   // Left
         {32, 64, 16, 16},  // Down
@@ -262,11 +262,15 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {16, 96, 16, 16},  // Encoder phase 0
         {48, 96, 16, 16},  // Encoder phase 1
         {96, 0, 16, 16},   // Dfu
+        {96, 64, 16, 16},  // Touch
     }};
 
     for (const auto r : button_rects) {
         painter.fill_rectangle(r + pos, Color::blue());
     }
+
+    if (get_touch_frame().touch)
+        painter.fill_rectangle(button_rects[8] + pos, Color::yellow());
 
     const std::array<Rect, 8> raw_rects{{
         {64 + 1, 32 + 1, 16 - 2, 16 - 2},  // Right
