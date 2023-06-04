@@ -207,13 +207,8 @@ class AnalogAudioView : public View {
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
         }};
 
-    NumberField field_volume{
-        {28 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
 
     Text text_ctcss{
         {19 * 8, 1 * 16, 11 * 8, 1 * 16},
@@ -239,7 +234,6 @@ class AnalogAudioView : public View {
     void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);
     void on_reference_ppm_correction_changed(int32_t v);
-    void on_headphone_volume_changed(int32_t v);
     void on_edit_frequency();
 
     void remove_options_widget();

@@ -134,7 +134,6 @@ class ScannerView : public View {
     void bigdisplay_update(int32_t);
     void update_squelch_while_paused(int32_t max_db);
     void on_statistics_update(const ChannelStatistics& statistics);
-    void on_headphone_volume_changed(int32_t v);
     void handle_retune(int64_t freq, uint32_t freq_idx);
 
     jammer::jammer_range_t frequency_range{false, 0, 0};  // perfect for manual scan task too...
@@ -182,13 +181,8 @@ class ScannerView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    NumberField field_volume{
-        {24 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},

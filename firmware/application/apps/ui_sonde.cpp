@@ -128,13 +128,6 @@ SondeView::SondeView(NavigationView& nav) {
     if (logger)
         logger->append(LOG_ROOT_DIR "/SONDE.TXT");
 
-    // initialize audio:
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
-    };
-
     audio::output::start();
     audio::output::speaker_unmute();
 
@@ -249,11 +242,6 @@ void SondeView::on_packet(const sonde::Packet& packet) {
             baseband::request_beep();
         }
     }
-}
-
-void SondeView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
 }
 
 void SondeView::set_target_frequency(const uint32_t new_value) {

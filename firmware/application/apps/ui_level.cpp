@@ -68,9 +68,6 @@ LevelView::LevelView(NavigationView& nav)
 
     rssi.set_vertical_rssi(true);
 
-    field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v); };
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-
     change_mode(NFM_MODULATION);              // Start on AM
     field_mode.set_by_value(NFM_MODULATION);  // Reflect the mode into the manual selector
 
@@ -135,7 +132,7 @@ LevelView::LevelView(NavigationView& nav)
             audio::output::stop();
         } else if (v == 1) {
             audio::output::start();
-            this->on_headphone_volume_changed((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
+            receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // TODO: Needed?
         } else {
         }
     };
@@ -156,11 +153,6 @@ LevelView::LevelView(NavigationView& nav)
     freqman_set_step_option_short(step_mode);
     freq_stats_rssi.set_style(&style_white);
     freq_stats_db.set_style(&style_white);
-}
-
-void LevelView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {

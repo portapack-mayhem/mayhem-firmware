@@ -558,9 +558,6 @@ ScannerView::ScannerView(
     field_squelch.on_change = [this](int32_t v) { squelch = v; };
     field_squelch.set_value(-10);
 
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-    field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v); };
-
     // LEARN FREQUENCIES
     std::string scanner_txt = "SCANNER";
     frequency_file_load(scanner_txt);
@@ -667,8 +664,8 @@ void ScannerView::update_squelch_while_paused(int32_t max_db) {
     // Update audio & color based on signal level even if paused
     if (++color_timer > 2) {  // Counter to reduce color toggling when weak signal
         if (max_db > squelch) {
-            audio::output::start();                             // Re-enable audio when signal goes above squelch
-            on_headphone_volume_changed(field_volume.value());  // quick fix to make sure WM8731S chips don't stay silent after pause
+            audio::output::start();                                                  // Re-enable audio when signal goes above squelch
+            receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // quick fix to make sure WM8731S chips don't stay silent after pause
             bigdisplay_update(BDC_GREEN);
         } else {
             audio::output::stop();        // Silence audio when signal drops below squelch
@@ -730,7 +727,7 @@ void ScannerView::scan_pause() {
         scan_thread->set_scanning(false);  // WE STOP SCANNING
     }
     audio::output::start();
-    on_headphone_volume_changed(field_volume.value());  // quick fix to make sure WM8731S chips don't stay silent after pause
+    receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // quick fix to make sure WM8731S chips don't stay silent after pause
 }
 
 void ScannerView::scan_resume() {
@@ -747,11 +744,6 @@ void ScannerView::user_resume() {
     browse_timer = browse_wait * STATISTICS_UPDATES_PER_SEC + 1;  // Will trigger a scan_resume() on_statistics_update, also advancing to next freq.
     button_pause.set_text("<PAUSE>");                             // Show button for pause, arrows indicate rotary encoder enabled for freq change
     userpause = false;                                            // Resume scanning
-}
-
-void ScannerView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
 }
 
 void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a scan_thread->stop();  After this do a start_scan_thread()

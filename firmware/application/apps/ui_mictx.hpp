@@ -76,7 +76,6 @@ class MicTXView : public View {
     void configure_baseband();
 
     void rxaudio(bool is_on);
-    void on_headphone_volume_changed(int32_t v);
 
     void set_ptt_visibility(bool v);
 
@@ -279,13 +278,8 @@ class MicTXView : public View {
         "F  TX=RX",
         false};
 
-    NumberField field_volume{
-        {9 * 8, (23 * 8) + 2},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {9 * 8, (23 * 8) + 2}};
 
     OptionsField field_rxbw{
         {19 * 8, (23 * 8) + 2},

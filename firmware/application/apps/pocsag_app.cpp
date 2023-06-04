@@ -79,18 +79,21 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
         update_freq(f);
     };
 
-    // load app settings
+    // load app settings TODO: needed?
     auto rc = settings.load("rx_pocsag", &app_settings);
     if (rc == SETTINGS_OK) {
         field_lna.set_value(app_settings.lna);
         field_vga.set_value(app_settings.vga);
         field_rf_amp.set_value(app_settings.rx_amp);
         field_frequency.set_value(app_settings.rx_frequency);
-    } else
+    } else {
+        field_lna.set_value(receiver_model.lna());
+        field_vga.set_value(receiver_model.vga());
+        field_rf_amp.set_value(receiver_model.rf_amp());
         field_frequency.set_value(receiver_model.tuning_frequency());
+    }
 
     receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.enable();
@@ -105,22 +108,10 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
         };
     };
 
-    check_log.set_value(logging);
-    check_log.on_select = [this](Checkbox&, bool v) {
-        logging = v;
-    };
-
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
-    };
-
-    check_ignore.set_value(ignore);
-    check_ignore.on_select = [this](Checkbox&, bool v) {
-        ignore = v;
-    };
-
+    // TODO app setting instead?
     ignore_address = persistent_memory::pocsag_ignore_address();
+
+    // TODO is this common enough for a helper?
     for (size_t c = 0; c < 7; c++) {
         sym_ignore.set_sym(6 - c, ignore_address % 10);
         ignore_address /= 10;
@@ -150,20 +141,6 @@ POCSAGAppView::~POCSAGAppView() {
     baseband::shutdown();
 }
 
-void POCSAGAppView::focus() {
-    field_frequency.focus();
-}
-
-void POCSAGAppView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
-}
-
-// Useless ?
-void POCSAGAppView::set_parent_rect(const Rect new_parent_rect) {
-    View::set_parent_rect(new_parent_rect);
-}
-
 void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     std::string alphanum_text = "";
 
@@ -172,14 +149,14 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     else {
         pocsag_decode_batch(message->packet, &pocsag_state);
 
-        if ((ignore) && (pocsag_state.address == sym_ignore.value_dec_u32())) {
+        if ((ignore()) && (pocsag_state.address == sym_ignore.value_dec_u32())) {
             // Ignore (inform, but no log)
             // console.write("\n\x1B\x03" + to_string_time(message->packet.timestamp()) +
             //			" Ignored address " + to_string_dec_uint(pocsag_state.address));
             return;
         }
         // Too many errors for reliable decode
-        if ((ignore) && (pocsag_state.errors >= 3)) {
+        if ((ignore()) && (pocsag_state.errors >= 3)) {
             return;
         }
 
@@ -199,7 +176,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
 
             console.write(console_info);
 
-            if (logger && logging) {
+            if (logger && logging()) {
                 logger->log_decoded(message->packet, to_string_dec_uint(pocsag_state.address) +
                                                          " F" + to_string_dec_uint(pocsag_state.function) +
                                                          " Address only");
@@ -218,13 +195,14 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
                 console.write(pocsag_state.output);
             }
 
-            if (logger && logging)
+            if (logger && logging())
                 logger->log_decoded(message->packet, to_string_dec_uint(pocsag_state.address) +
                                                          " F" + to_string_dec_uint(pocsag_state.function) +
                                                          " Alpha: " + pocsag_state.output);
         }
     }
 
+    // TODO: make setting.
     // Log raw data whatever it contains
     if (logger && logging)
         logger->log_raw_data(message->packet, target_frequency());

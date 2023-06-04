@@ -100,11 +100,6 @@ AnalogTvView::AnalogTvView(
         this->on_show_options_modulation();
     };
 
-    field_volume.set_value(0);
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
-    };
-
     tv.on_select = [this](int32_t offset) {
         field_frequency.set_value(receiver_model.tuning_frequency() + offset);
     };
@@ -223,11 +218,6 @@ void AnalogTvView::on_frequency_step_changed(rf::Frequency f) {
 
 void AnalogTvView::on_reference_ppm_correction_changed(int32_t v) {
     persistent_memory::set_correction_ppb(v * 1000);
-}
-
-void AnalogTvView::on_headphone_volume_changed(int32_t v) {
-    (void)v;  // avoid warning
-              // tv::TVView::set_headphone_volume(this,v);
 }
 
 void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {

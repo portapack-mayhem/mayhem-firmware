@@ -74,6 +74,10 @@ class ReceiverModel {
     volume_t headphone_volume() const;
     void set_headphone_volume(volume_t v);
 
+    /* Volume range 0-99, normalized for audio HW. */
+    int32_t normalized_headphone_volume() const;
+    void set_normalized_headphone_volume(int32_t v);
+
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
 
