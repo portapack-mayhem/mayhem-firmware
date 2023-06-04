@@ -40,13 +40,15 @@ bool ScreenshotViewer::on_key(KeyEvent) {
 }
 
 void ScreenshotViewer::paint(Painter& painter) {
+    constexpr size_t pixel_width = 240;
+    constexpr size_t pixel_height = 320;
     Style style_default{
         .font = ui::font::fixed_8x16,
         .background = ui::Color::black(),
         .foreground = ui::Color::white()};
     File file{};
 
-    painter.fill_rectangle({0, 0, 240, 320}, Color::black());
+    painter.fill_rectangle({0, 0, pixel_width, pixel_height}, Color::black());
 
     auto show_invalid = [&]() {
         painter.draw_string({10, 160}, style_default, "Not a valid screenshot.");
@@ -64,9 +66,7 @@ void ScreenshotViewer::paint(Painter& painter) {
         return;
     }
 
-    constexpr size_t pixel_width = 240;
-    constexpr size_t pixel_height = 320;
-    constexpr size_t read_chunk = 80;  // NB: factor of 240.
+    constexpr size_t read_chunk = 80;  // NB: must be a factor of pixel_width.
     constexpr size_t buffer_size = sizeof(ColorRGB888) * read_chunk;
     uint8_t buffer[buffer_size];
     std::array<Color, pixel_width> pixel_data;
@@ -81,7 +81,7 @@ void ScreenshotViewer::paint(Painter& painter) {
         // Per comment in PNGWriter, read in chunks of 80.
         // NB: Reading in one large chunk caused corruption so there's
         // likely a bug lurking in the SD Card/FatFs layer.
-        for (auto offset = 0u; offset < pixel_width; offset += 80) {
+        for (auto offset = 0u; offset < pixel_width; offset += read_chunk) {
             auto read = file.read(buffer, buffer_size);
 
             if (!read || *read != buffer_size) {
