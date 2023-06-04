@@ -33,7 +33,7 @@ void AboutView::update() {
                 console.writeln("heurist1,intoxsick,ckuethe");
                 console.writeln("notpike,jLynx,zigad");
                 console.writeln("MichalLeonBorsuk,jimilinuxguy");
-                console.writeln("kallanreed");
+                console.writeln("kallanreed,bernd-herzog");
                 console.writeln("");
                 break;
 
