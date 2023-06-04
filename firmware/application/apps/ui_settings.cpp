@@ -446,14 +446,14 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     add_children({&text_pmem_about,
                   &text_pmem_informations,
                   &text_pmem_status,
-                  &check_load_mem_at_startup,
+                  &check_use_sdcard_for_pmem,
                   &button_save_mem_to_file,
                   &button_load_mem_from_file,
                   &button_load_mem_defaults,
                   &button_return});
 
-    check_load_mem_at_startup.set_value(portapack::persistent_memory::should_use_sdcard_for_pmem());
-    check_load_mem_at_startup.on_select = [this](Checkbox&, bool v) {
+    check_use_sdcard_for_pmem.set_value(portapack::persistent_memory::should_use_sdcard_for_pmem());
+    check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         std::string pmem_flag_file = PMEM_FILEFLAG;
         if (v) {
