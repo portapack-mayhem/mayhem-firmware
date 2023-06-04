@@ -452,18 +452,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
                   &button_load_mem_defaults,
                   &button_return});
 
-    bool load_mem_at_startup = false;
-    File pmem_flag_file_handle;
-
-    std::string folder = "SETTINGS";
-    make_new_directory(folder);
-
-    std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";
-    auto result = pmem_flag_file_handle.open(pmem_flag_file);
-    if (!result.is_valid()) {
-        load_mem_at_startup = true;
-    }
-    check_load_mem_at_startup.set_value(load_mem_at_startup);
+    check_load_mem_at_startup.set_value(portapack::persistent_memory::save_load_pmem_from_sdcard_flag());
     check_load_mem_at_startup.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";

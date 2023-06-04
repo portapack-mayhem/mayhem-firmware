@@ -244,6 +244,7 @@ void set_recon_load_hamradios(const bool v);
 void set_recon_match_mode(const bool v);
 
 // sd persisting settings
+bool save_load_pmem_from_sdcard_flag();
 int save_persistent_settings_to_file(std::string filename);
 int load_persistent_settings_from_file(std::string filename);
 
