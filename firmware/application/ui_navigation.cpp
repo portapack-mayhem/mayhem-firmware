@@ -126,6 +126,10 @@ SystemStatusView::SystemStatusView(
         &sd_card_status_view,
     });
 
+    if (portapack::persistent_memory::should_use_sdcard_for_pmem()) {
+        portapack::persistent_memory::load_persistent_settings_from_file();
+    }
+
     if (portapack::persistent_memory::config_speaker())
         button_speaker.hidden(false);
     else
@@ -156,6 +160,9 @@ SystemStatusView::SystemStatusView(
     refresh();
 
     button_back.on_select = [this](ImageButton&) {
+        if (portapack::persistent_memory::should_use_sdcard_for_pmem()) {
+            portapack::persistent_memory::save_persistent_settings_to_file();
+        }
         if (this->on_back)
             this->on_back();
     };
@@ -691,13 +698,6 @@ SystemView::SystemView(
         } else {*/
 
     navigation_view.push<SystemMenuView>();
-
-    File pmem_flag_file_handle;
-    std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";
-    auto result = pmem_flag_file_handle.open(pmem_flag_file);
-    if (!result.is_valid()) {
-        portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings");
-    }
 
     if (portapack::persistent_memory::config_splash()) {
         navigation_view.push<BMPView>();

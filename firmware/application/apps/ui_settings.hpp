@@ -485,10 +485,10 @@ class SetPersistentMemoryView : public View {
         {0, 3 * 16, 240, 16},
         ""};
 
-    Checkbox check_load_mem_at_startup{
+    Checkbox check_use_sdcard_for_pmem{
         {18, 6 * 16},
         19,
-        "load from sd at startup"};
+        "use sdcard for p.mem"};
 
     Button button_save_mem_to_file{
         {0, 8 * 16, 240, 32},
