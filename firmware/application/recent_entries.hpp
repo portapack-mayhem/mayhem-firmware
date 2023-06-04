@@ -128,7 +128,6 @@ class RecentEntriesTable : public Widget {
     RecentEntriesTable(
         Entries& recent)
         : recent{recent} {
-        set_focusable(true);
     }
 
     void paint(Painter& painter) override {
@@ -151,6 +150,7 @@ class RecentEntriesTable : public Widget {
             const auto item_style = (has_focus() && is_selected_key) ? s.invert() : s;
             draw(entry, target_rect, painter, item_style);
             target_rect += {0, target_rect.height()};
+            set_focusable(true);
         }
 
         painter.fill_rectangle(
