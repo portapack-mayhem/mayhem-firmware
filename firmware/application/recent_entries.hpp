@@ -137,6 +137,8 @@ class RecentEntriesTable : public Widget {
         Rect target_rect{r.location(), {r.width(), s.font.line_height()}};
         const size_t visible_item_count = r.height() / s.font.line_height();
 
+        set_focusable(!recent.empty());
+
         auto selected = find(recent, selected_key);
         if (selected == std::end(recent)) {
             selected = std::begin(recent);
@@ -150,7 +152,6 @@ class RecentEntriesTable : public Widget {
             const auto item_style = (has_focus() && is_selected_key) ? s.invert() : s;
             draw(entry, target_rect, painter, item_style);
             target_rect += {0, target_rect.height()};
-            set_focusable(true);
         }
 
         painter.fill_rectangle(
