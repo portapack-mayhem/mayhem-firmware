@@ -204,7 +204,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
 
     // TODO: make setting.
     // Log raw data whatever it contains
-    if (logger && logging)
+    if (logger && logging())
         logger->log_raw_data(message->packet, target_frequency());
 }
 

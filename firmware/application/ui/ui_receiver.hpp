@@ -339,7 +339,7 @@ class VGAGainField : public NumberField {
 
 class AudioVolumeField : public NumberField {
    public:
-    VGAGainField(Point parent_pos);
+    AudioVolumeField(Point parent_pos);
 };
 
 } /* namespace ui */

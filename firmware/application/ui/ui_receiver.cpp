@@ -390,12 +390,11 @@ AudioVolumeField::AudioVolumeField(
           /* length */ 2,
           /* range */ {0, 99},
           /* step */ 1,
-          /* fill char */ ' ',
-      } {
+          /* fill char */ ' '} {
     set_value(receiver_model.normalized_headphone_volume());
 
     on_change = [](int32_t v) {
-        receiver_model.normalized_headphone_volume(v);
+        receiver_model.set_normalized_headphone_volume(v);
     };
 }
 

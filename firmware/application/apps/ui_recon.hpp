@@ -195,165 +195,165 @@ class ReconView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    AudioVolumeField field_volume {
+    AudioVolumeField field_volume{
         {24 * 8, 0 * 16}};
 
-        OptionsField field_bw{
-            {3 * 8, 1 * 16},
-            6,
-            {}};
+    OptionsField field_bw{
+        {3 * 8, 1 * 16},
+        6,
+        {}};
 
-        NumberField field_squelch{
-            {12 * 8, 1 * 16},
-            3,
-            {-90, 20},
-            1,
-            ' ',
-        };
-
-        NumberField field_wait{
-            {20 * 8, 1 * 16},
-            5,
-            {-RECON_MAX_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
-            STATS_UPDATE_INTERVAL,
-            ' ',
-        };
-
-        NumberField field_lock_wait{
-            {26 * 8, 1 * 16},
-            4,
-            {RECON_MIN_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
-            STATS_UPDATE_INTERVAL,
-            ' ',
-        };
-
-        RSSI rssi{
-            {0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4, 14},
-        };
-
-        ButtonWithEncoder text_cycle{
-            {0, 3 * 16, 4 * 8, 16},
-            ""};
-
-        // "/XXX -XXX db" =>  12 chars max
-        Text text_max{
-            {4 * 8, 3 * 16, 12 * 8, 16},
-        };
-
-        // "XX/XX" =>  5 chars max
-        Text text_nb_locks{
-            {16 * 8, 3 * 16, 5 * 8, 16},
-        };
-
-        Text desc_cycle{
-            {0, 4 * 16, SCREEN_W, 16},
-        };
-
-        Text big_display{
-            // Show frequency in text mode
-            {0, 5 * 16, 23 * 8, 16},
-        };
-
-        Text freq_stats{
-            // Show frequency stats in text mode
-            {0, 6 * 16, 23 * 8, 16},
-        };
-
-        // TIMER: 9999
-        Text text_timer{
-            // Show frequency stats in text mode
-            {0, 7 * 16, 11 * 8, 16},
-        };
-
-        // T: Senn. 32.000k
-        Text text_ctcss{
-            {12 * 8 + 4, 7 * 16, 14 * 8, 1 * 8},
-            ""};
-
-        Button button_config{
-            {SCREEN_W - 7 * 8, 2 * 16, 7 * 8, 28},
-            "CONFIG"};
-
-        Button button_looking_glass{
-            {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
-            "GLASS"};
-
-        // Button can be RECON or SCANNER
-        Button button_scanner_mode{
-            {SCREEN_W - 7 * 8, 8 * 16, 7 * 8, 28},
-            "RECON"};
-
-        Text file_name{
-            // show file used
-            {0, 8 * 16 + 6, SCREEN_W - 7 * 8, 16},
-        };
-
-        ButtonWithEncoder button_manual_start{
-            {0 * 8, 11 * 16, 11 * 8, 28},
-            ""};
-
-        ButtonWithEncoder button_manual_end{
-            {12 * 8 - 6, 11 * 16, 11 * 8, 28},
-            ""};
-
-        Button button_manual_recon{
-            {23 * 8 - 3, 11 * 16, 7 * 8, 28},
-            "SEARCH"};
-
-        OptionsField field_mode{
-            {5 * 8, (26 * 8) + 4},
-            6,
-            {}};
-
-        OptionsField step_mode{
-            {17 * 8, (26 * 8) + 4},
-            12,
-            {}};
-
-        ButtonWithEncoder button_pause{
-            {0, (15 * 16) - 4, 72, 28},
-            "PAUSE"};
-
-        Button button_audio_app{
-            {84, (15 * 16) - 4, 72, 28},
-            "AUDIO"};
-
-        ButtonWithEncoder button_add{
-            {168, (15 * 16) - 4, 72, 28},
-            "<STORE>"};
-
-        Button button_dir{
-            {0, (35 * 8) - 4, 34, 28},
-            "FW>"};
-
-        Button button_restart{
-            {38, (35 * 8) - 4, 34, 28},
-            "RST"};
-
-        Button button_mic_app{
-            {84, (35 * 8) - 4, 72, 28},
-            "MIC TX"};
-
-        ButtonWithEncoder button_remove{
-            {168, (35 * 8) - 4, 72, 28},
-            "<REMOVE>"};
-
-        MessageHandlerRegistration message_handler_coded_squelch{
-            Message::ID::CodedSquelch,
-            [this](const Message* const p) {
-                const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
-                this->handle_coded_squelch(message.value);
-            }};
-
-        MessageHandlerRegistration message_handler_stats{
-            Message::ID::ChannelStatistics,
-            [this](const Message* const p) {
-                this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
-            }};
-        // app save settings
-        std::app_settings settings{};
-        std::app_settings::AppSettings app_settings{};
+    NumberField field_squelch{
+        {12 * 8, 1 * 16},
+        3,
+        {-90, 20},
+        1,
+        ' ',
     };
+
+    NumberField field_wait{
+        {20 * 8, 1 * 16},
+        5,
+        {-RECON_MAX_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
+        STATS_UPDATE_INTERVAL,
+        ' ',
+    };
+
+    NumberField field_lock_wait{
+        {26 * 8, 1 * 16},
+        4,
+        {RECON_MIN_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
+        STATS_UPDATE_INTERVAL,
+        ' ',
+    };
+
+    RSSI rssi{
+        {0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4, 14},
+    };
+
+    ButtonWithEncoder text_cycle{
+        {0, 3 * 16, 4 * 8, 16},
+        ""};
+
+    // "/XXX -XXX db" =>  12 chars max
+    Text text_max{
+        {4 * 8, 3 * 16, 12 * 8, 16},
+    };
+
+    // "XX/XX" =>  5 chars max
+    Text text_nb_locks{
+        {16 * 8, 3 * 16, 5 * 8, 16},
+    };
+
+    Text desc_cycle{
+        {0, 4 * 16, SCREEN_W, 16},
+    };
+
+    Text big_display{
+        // Show frequency in text mode
+        {0, 5 * 16, 23 * 8, 16},
+    };
+
+    Text freq_stats{
+        // Show frequency stats in text mode
+        {0, 6 * 16, 23 * 8, 16},
+    };
+
+    // TIMER: 9999
+    Text text_timer{
+        // Show frequency stats in text mode
+        {0, 7 * 16, 11 * 8, 16},
+    };
+
+    // T: Senn. 32.000k
+    Text text_ctcss{
+        {12 * 8 + 4, 7 * 16, 14 * 8, 1 * 8},
+        ""};
+
+    Button button_config{
+        {SCREEN_W - 7 * 8, 2 * 16, 7 * 8, 28},
+        "CONFIG"};
+
+    Button button_looking_glass{
+        {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
+        "GLASS"};
+
+    // Button can be RECON or SCANNER
+    Button button_scanner_mode{
+        {SCREEN_W - 7 * 8, 8 * 16, 7 * 8, 28},
+        "RECON"};
+
+    Text file_name{
+        // show file used
+        {0, 8 * 16 + 6, SCREEN_W - 7 * 8, 16},
+    };
+
+    ButtonWithEncoder button_manual_start{
+        {0 * 8, 11 * 16, 11 * 8, 28},
+        ""};
+
+    ButtonWithEncoder button_manual_end{
+        {12 * 8 - 6, 11 * 16, 11 * 8, 28},
+        ""};
+
+    Button button_manual_recon{
+        {23 * 8 - 3, 11 * 16, 7 * 8, 28},
+        "SEARCH"};
+
+    OptionsField field_mode{
+        {5 * 8, (26 * 8) + 4},
+        6,
+        {}};
+
+    OptionsField step_mode{
+        {17 * 8, (26 * 8) + 4},
+        12,
+        {}};
+
+    ButtonWithEncoder button_pause{
+        {0, (15 * 16) - 4, 72, 28},
+        "PAUSE"};
+
+    Button button_audio_app{
+        {84, (15 * 16) - 4, 72, 28},
+        "AUDIO"};
+
+    ButtonWithEncoder button_add{
+        {168, (15 * 16) - 4, 72, 28},
+        "<STORE>"};
+
+    Button button_dir{
+        {0, (35 * 8) - 4, 34, 28},
+        "FW>"};
+
+    Button button_restart{
+        {38, (35 * 8) - 4, 34, 28},
+        "RST"};
+
+    Button button_mic_app{
+        {84, (35 * 8) - 4, 72, 28},
+        "MIC TX"};
+
+    ButtonWithEncoder button_remove{
+        {168, (35 * 8) - 4, 72, 28},
+        "<REMOVE>"};
+
+    MessageHandlerRegistration message_handler_coded_squelch{
+        Message::ID::CodedSquelch,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
+            this->handle_coded_squelch(message.value);
+        }};
+
+    MessageHandlerRegistration message_handler_stats{
+        Message::ID::ChannelStatistics,
+        [this](const Message* const p) {
+            this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
+        }};
+    // app save settings
+    std::app_settings settings{};
+    std::app_settings::AppSettings app_settings{};
+};
 
 } /* namespace ui */
 
