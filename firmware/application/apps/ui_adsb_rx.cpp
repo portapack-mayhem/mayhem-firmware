@@ -53,7 +53,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         target_color = Color::light_grey();
     } else {
         aged_color = 0x08;
-        target_color = Color::dark_grey();
+        target_color = Color::grey();
     }
 
     std::string entry_string = "\x1B";
