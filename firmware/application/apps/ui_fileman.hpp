@@ -213,6 +213,8 @@ class FileManagerView : public FileManBaseView {
     void on_new_dir();
     void on_new_file();
 
+    bool handle_file_open();
+
     // True if the selected entry is a real file item.
     bool selected_is_valid() const;
 

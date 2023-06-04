@@ -371,6 +371,7 @@ class File {
     Result<Size> read(void* data, const Size bytes_to_read);
     Result<Size> write(const void* data, Size bytes_to_write);
 
+    Offset tell() const;
     Result<Offset> seek(uint64_t Offset);
     Result<Offset> truncate();
     // Timestamp created_date() const;
