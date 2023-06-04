@@ -198,11 +198,6 @@ AnalogAudioView::AnalogAudioView(
         this->on_show_options_modulation();
     };
 
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
-    };
-
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
     };
@@ -389,11 +384,6 @@ void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
 
 void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
     persistent_memory::set_correction_ppb(v * 1000);
-}
-
-void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
 }
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {

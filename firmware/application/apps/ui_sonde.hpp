@@ -109,13 +109,8 @@ class SondeView : public View {
         {21 * 8, 0, 6 * 8, 4},
     };
 
-    NumberField field_volume{
-        {28 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
 
     Checkbox check_beep{
         {22 * 8, 6 * 16},
@@ -181,7 +176,6 @@ class SondeView : public View {
         }};
 
     void on_packet(const sonde::Packet& packet);
-    void on_headphone_volume_changed(int32_t v);
     char* float_to_char(float x, char* p);
     void set_target_frequency(const uint32_t new_value);
 

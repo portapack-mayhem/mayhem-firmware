@@ -35,6 +35,7 @@ using namespace portapack;
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
+#include "utility.hpp"
 
 namespace {
 
@@ -154,6 +155,17 @@ void ReceiverModel::set_headphone_volume(volume_t v) {
     update_headphone_volume();
 }
 
+int32_t ReceiverModel::normalized_headphone_volume() const {
+    return (headphone_volume_ - audio::headphone::volume_range().max).decibel() + 99;
+}
+
+void ReceiverModel::set_normalized_headphone_volume(int32_t v) {
+    // TODO: Linear map instead to ensure 0 is minimal value.
+    v = clip<int32_t>(v, 0, 99);
+    auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
+    set_headphone_volume(new_volume);
+}
+
 uint8_t ReceiverModel::squelch_level() const {
     return squelch_level_;
 }
@@ -265,9 +277,6 @@ void ReceiverModel::update_sampling_rate() {
 }
 
 void ReceiverModel::update_headphone_volume() {
-    // TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
-    // both?
-
     audio::headphone::set_volume(headphone_volume_);
 }
 

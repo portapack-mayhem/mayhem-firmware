@@ -117,13 +117,8 @@ class LevelView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    NumberField field_volume{
-        {24 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},
@@ -202,7 +197,6 @@ class LevelView : public View {
     };
 
     void handle_coded_squelch(const uint32_t value);
-    void on_headphone_volume_changed(int32_t v);
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,

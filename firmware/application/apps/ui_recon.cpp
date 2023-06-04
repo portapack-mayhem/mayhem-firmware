@@ -250,7 +250,7 @@ bool ReconView::recon_save_config_to_sd() {
 
 void ReconView::audio_output_start() {
     audio::output::start();
-    this->on_headphone_volume_changed((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
+    receiver_model.set_headphone_volume(receiver_model.headphone_volume());
 }
 
 void ReconView::recon_redraw() {
@@ -868,10 +868,6 @@ ReconView::ReconView(NavigationView& nav)
         squelch = v;
     };
 
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
-    };
-
     // PRE-CONFIGURATION:
     button_scanner_mode.set_style(&style_blue);
     button_scanner_mode.set_text("RECON");
@@ -885,8 +881,6 @@ ReconView::ReconView(NavigationView& nav)
     field_wait.set_value(wait);
     field_lock_wait.set_value(recon_lock_duration);
     colorize_waits();
-
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
 
     // fill modulation and step options
     freqman_set_modulation_option(field_mode);
@@ -1299,11 +1293,6 @@ void ReconView::on_stepper_delta(int32_t v) {
 
     freq_lock = 0;
     timer = 0;
-}
-
-void ReconView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
 }
 
 size_t ReconView::change_mode(freqman_index_t new_mod) {

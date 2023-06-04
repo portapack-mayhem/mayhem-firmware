@@ -52,20 +52,18 @@ class POCSAGAppView : public View {
     POCSAGAppView(NavigationView& nav);
     ~POCSAGAppView();
 
-    void set_parent_rect(const Rect new_parent_rect) override;
-    void focus() override;
-
     std::string title() const override { return "POCSAG RX"; };
 
    private:
     static constexpr uint32_t initial_target_frequency = 466175000;
 
+    bool logging() const { return check_log.value(); };
+    bool ignore() const { return check_ignore.value(); };
+
     // app save settings
     std::app_settings settings{};
     std::app_settings::AppSettings app_settings{};
 
-    bool logging{false};
-    bool ignore{false};
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
 
@@ -88,13 +86,9 @@ class POCSAGAppView : public View {
     FrequencyField field_frequency{
         {0 * 8, 0 * 8},
     };
-    NumberField field_volume{
-        {28 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
 
     Checkbox check_ignore{
         {0 * 8, 21},
@@ -105,10 +99,11 @@ class POCSAGAppView : public View {
         {13 * 8, 25},
         7,
         SymField::SYMFIELD_DEC};
+
     Checkbox check_log{
         {240 - 8 * 8, 21},
         3,
-        "LOG",
+        "Log",
         false};
 
     Console console{
@@ -121,8 +116,6 @@ class POCSAGAppView : public View {
     void update_freq(rf::Frequency f);
 
     void on_packet(const POCSAGPacketMessage* message);
-
-    void on_headphone_volume_changed(int32_t v);
 
     uint32_t target_frequency() const;
     void set_target_frequency(const uint32_t new_value);

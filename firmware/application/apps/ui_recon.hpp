@@ -112,7 +112,6 @@ class ReconView : public View {
     void recon_resume();
     void frequency_file_load(bool stop_all_before = false);
     void on_statistics_update(const ChannelStatistics& statistics);
-    void on_headphone_volume_changed(int32_t v);
     void on_index_delta(int32_t v);
     void on_stepper_delta(int32_t v);
     void colorize_waits();
@@ -196,13 +195,8 @@ class ReconView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    NumberField field_volume{
-        {24 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},
