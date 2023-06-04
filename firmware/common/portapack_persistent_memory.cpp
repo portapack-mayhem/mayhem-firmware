@@ -820,18 +820,13 @@ void set_encoder_dial_sensitivity(uint8_t v) {
     data->encoder_dial_sensitivity = v;
 }
 
-bool save_load_pmem_from_sdcard_flag() {
-    File pmem_flag_file_handle;
-    std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";
-    auto result = pmem_flag_file_handle.open(pmem_flag_file);
-    if (!result.is_valid()) {
-        return true;
-    }
-    return false;
+bool should_use_sdcard_for_pmem() {
+    return std::filesystem::file_exists(PMEM_FILEFLAG);
 }
 
 // sd persisting settings
-int save_persistent_settings_to_file(std::string filename) {
+int save_persistent_settings_to_file() {
+    std::string filename = PMEM_SETTING_FILE;
     delete_file(filename);
     File outfile;
     auto result = outfile.create(filename);
@@ -842,7 +837,8 @@ int save_persistent_settings_to_file(std::string filename) {
     return true;
 }
 
-int load_persistent_settings_from_file(std::string filename) {
+int load_persistent_settings_from_file() {
+    std::string filename = PMEM_SETTING_FILE;
     File infile;
     auto result = infile.open(filename);
     if (!result.is_valid()) {

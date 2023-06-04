@@ -126,8 +126,8 @@ SystemStatusView::SystemStatusView(
         &sd_card_status_view,
     });
 
-    if (portapack::persistent_memory::save_load_pmem_from_sdcard_flag()) {
-        portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings");
+    if (portapack::persistent_memory::should_use_sdcard_for_pmem()) {
+        portapack::persistent_memory::load_persistent_settings_from_file();
     }
 
     if (portapack::persistent_memory::config_speaker())
@@ -160,8 +160,8 @@ SystemStatusView::SystemStatusView(
     refresh();
 
     button_back.on_select = [this](ImageButton&) {
-        if (portapack::persistent_memory::save_load_pmem_from_sdcard_flag()) {
-            portapack::persistent_memory::save_persistent_settings_to_file("SETTINGS/pmem_settings");
+        if (portapack::persistent_memory::should_use_sdcard_for_pmem()) {
+            portapack::persistent_memory::save_persistent_settings_to_file();
         }
         if (this->on_back)
             this->on_back();

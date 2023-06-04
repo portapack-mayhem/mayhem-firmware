@@ -452,10 +452,10 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
                   &button_load_mem_defaults,
                   &button_return});
 
-    check_load_mem_at_startup.set_value(portapack::persistent_memory::save_load_pmem_from_sdcard_flag());
+    check_load_mem_at_startup.set_value(portapack::persistent_memory::should_use_sdcard_for_pmem());
     check_load_mem_at_startup.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
-        std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";
+        std::string pmem_flag_file = PMEM_FILEFLAG;
         if (v) {
             auto result = pmem_flag_file_handle.open(pmem_flag_file);
             if (result.is_valid()) {
@@ -479,7 +479,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     };
 
     button_save_mem_to_file.on_select = [&nav, this](Button&) {
-        if (!portapack::persistent_memory::save_persistent_settings_to_file("SETTINGS/pmem_settings")) {
+        if (!portapack::persistent_memory::save_persistent_settings_to_file()) {
             text_pmem_status.set("!problem saving settings!");
         } else {
             text_pmem_status.set("settings saved");
@@ -487,7 +487,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     };
 
     button_load_mem_from_file.on_select = [&nav, this](Button&) {
-        if (!portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings")) {
+        if (!portapack::persistent_memory::load_persistent_settings_from_file()) {
             text_pmem_status.set("!problem loading settings!");
         } else {
             text_pmem_status.set("settings loaded");
