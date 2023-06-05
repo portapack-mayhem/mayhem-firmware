@@ -43,10 +43,11 @@ options_t freqman_entry_bandwidths[4] = {
      {"8k5", 0},
      {"11k", 1},
      {"16k", 2}},
-    {// WFM
-     {"40k", 2},
-     {"180k", 1},
-     {"200k", 0},
+    {
+        // WFM
+        {"40k", 2},
+        {"180k", 1},
+        {"200k", 0},
     }};
 
 options_t freqman_entry_steps = {
