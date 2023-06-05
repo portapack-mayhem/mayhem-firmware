@@ -346,7 +346,7 @@ struct data_t {
           frequency_tx_correction(0),
           updown_frequency_tx_correction(0),
           encoder_dial_sensitivity(0),
-          headphone_volume_cb(-540) {
+          headphone_volume_cb(-600) {
     }
 };
 
@@ -428,8 +428,9 @@ namespace cache {
 
 void defaults() {
     cached_backup_ram = backup_ram_t();
-
-    set_headphone_volume(-54.0_dB);
+    *data = data_t();  // This is a workaround for apparently alignment issue
+                       // that is causing backup_ram_t's block copy to be
+                       // misaligned. This force sets values through the struct.
 
     // defaults values for recon app
     set_recon_autosave_freqs(false);

@@ -243,7 +243,7 @@ bool ReconView::recon_save_config_to_sd() {
 
 void ReconView::audio_output_start() {
     audio::output::start();
-    receiver_model.set_headphone_volume(receiver_model.headphone_volume());
+    receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
 }
 
 void ReconView::recon_redraw() {
