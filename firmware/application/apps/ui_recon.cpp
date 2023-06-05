@@ -182,7 +182,6 @@ bool ReconView::recon_load_config_from_sd() {
         squelch = -14;
         recon_match_mode = RECON_MATCH_CONTINUOUS;
         wait = RECON_DEF_WAIT_DURATION;
-        volume = 40;
         return false;
     }
 
@@ -221,11 +220,6 @@ bool ReconView::recon_load_config_from_sd() {
     else
         wait = RECON_DEF_WAIT_DURATION;
 
-    if (it > 7)
-        volume = strtoll(params[7].c_str(), nullptr, 10);
-    else
-        volume = 40;
-
     return true;
 }
 
@@ -244,7 +238,6 @@ bool ReconView::recon_save_config_to_sd() {
     settings_file.write_line(to_string_dec_int(squelch));
     settings_file.write_line(to_string_dec_uint(recon_match_mode));
     settings_file.write_line(to_string_dec_int(wait));
-    settings_file.write_line(to_string_dec_int(volume));
     return true;
 }
 
@@ -438,7 +431,6 @@ ReconView::ReconView(NavigationView& nav)
     load_ranges = persistent_memory::recon_load_ranges();
     load_hamradios = persistent_memory::recon_load_hamradios();
     update_ranges = persistent_memory::recon_update_ranges_when_recon();
-    field_volume.set_value(volume);
     if (sd_card_mounted) {
         // load auto common app settings
         auto rc = settings.load("recon", &app_settings);

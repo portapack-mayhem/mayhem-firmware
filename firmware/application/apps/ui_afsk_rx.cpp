@@ -55,6 +55,7 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
+                  &field_volume,
                   &field_frequency,
                   &check_log,
                   &text_debug,
