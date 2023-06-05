@@ -132,7 +132,7 @@ LevelView::LevelView(NavigationView& nav)
             audio::output::stop();
         } else if (v == 1) {
             audio::output::start();
-            receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // TODO: Needed?
+            receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
         } else {
         }
     };

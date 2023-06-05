@@ -149,7 +149,6 @@ class ReconView : public View {
     bool scanner_mode{false};
     bool manual_mode{false};
     bool sd_card_mounted = false;
-    int32_t volume = 40;
     int32_t stepper = 0;
     int32_t index_stepper = 0;
     int64_t freq = 0;

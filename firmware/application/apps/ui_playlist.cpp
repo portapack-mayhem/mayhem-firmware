@@ -146,7 +146,7 @@ void PlaylistView::toggle() {
         track_number = 0;
         playlist_db.clear();
         playlist_masterdb.clear();
-    } else {  // Thanks kallanreed for providing this logic!
+    } else {
         total_tracks = 0;
         track_number = 0;
         playlist_db.clear();
