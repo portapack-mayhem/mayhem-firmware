@@ -31,6 +31,7 @@
 #include "touch.hpp"
 #include "modems.hpp"
 #include "serializer.hpp"
+#include "volume.hpp"
 
 // persistant memory from/to sdcard flag file
 #define PMEM_FILEFLAG "/SETTINGS/PMEM_FILEFLAG"
@@ -131,6 +132,9 @@ using ppb_t = int32_t;
 
 rf::Frequency tuned_frequency();
 void set_tuned_frequency(const rf::Frequency new_value);
+
+volume_t headphone_volume();
+void set_headphone_volume(volume_t new_value);
 
 ppb_t correction_ppb();
 void set_correction_ppb(const ppb_t new_value);

@@ -86,6 +86,7 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
+                  &field_volume,
                   &options_region,
                   &field_frequency,
                   &record_view,
