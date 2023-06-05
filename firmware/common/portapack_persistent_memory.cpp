@@ -39,6 +39,8 @@
 #include <fstream>
 #include "file.hpp"
 
+#include "irq_controls.hpp"
+
 using namespace std;
 
 namespace portapack {
@@ -445,7 +447,7 @@ void defaults() {
 }
 
 void init() {
-    if (backup_ram->is_valid()) {
+    if (!get_switches_state().test(4) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
 
