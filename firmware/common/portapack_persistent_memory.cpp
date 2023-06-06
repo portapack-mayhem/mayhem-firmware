@@ -447,7 +447,7 @@ void defaults() {
 }
 
 void init() {
-    if (!get_switches_state().test(4) && backup_ram->is_valid()) {
+    if (!get_switches_state()[(size_t)ui::KeyEvent::Select] && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
 
