@@ -867,5 +867,9 @@ int load_persistent_settings_from_file() {
     return false;
 }
 
+size_t data_size() {
+    return sizeof(data_t);
+}
+
 } /* namespace persistent_memory */
 } /* namespace portapack */

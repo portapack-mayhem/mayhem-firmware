@@ -30,6 +30,7 @@
 
 #include "rffc507x.hpp"
 #include "portapack.hpp"
+#include "memory_map.hpp"
 
 #include <functional>
 #include <utility>
@@ -261,6 +262,39 @@ class DebugControlsView : public View {
     Button button_done{
         {72, 264, 96, 24},
         "Done"};
+};
+
+class DebugPmemView : public View {
+   public:
+    DebugPmemView(NavigationView& nav);
+    void focus() override;
+    bool on_encoder(const EncoderEvent delta) override;
+    std::string title() const override { return "Pmem"; }
+    int32_t page{0};
+    static constexpr uint8_t page_size{96};  // Must be multiply of 4 otherwise bit shifting for register view wont work properly
+    static constexpr uint8_t page_max{(portapack::memory::map::backup_ram.size() + page_size - 1) / page_size - 1};
+
+   private:
+    struct pmem_data {
+        uint32_t regfile[63];
+        uint32_t check_value;
+    };
+
+    const pmem_data& data;
+
+    Text text_page{};
+
+    RegistersWidget registers_widget;
+
+    Text text_checksum{};
+
+    Button button_ok{
+        {240 / 3, 270, 240 / 3, 24},
+        "OK",
+    };
+
+    void update();
+    uint32_t registers_widget_feed(const size_t register_number);
 };
 
 /*class DebugLCRView : public View {
