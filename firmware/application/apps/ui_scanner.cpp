@@ -759,9 +759,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-            field_bw.set_selected_index(0);
-            receiver_model.set_am_configuration(field_bw.selected_index());
-            field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n); };
+            field_bw.set_by_value(0);
+            receiver_model.set_am_configuration(field_bw.selected_index_value());
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(1750000);
             break;
@@ -769,9 +769,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-            field_bw.set_selected_index(2);
-            receiver_model.set_nbfm_configuration(field_bw.selected_index());
-            field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_nbfm_configuration(n); };
+            field_bw.set_by_value(2);
+            receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(1750000);
             break;
@@ -779,9 +779,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
-            field_bw.set_selected_index(0);
-            receiver_model.set_wfm_configuration(field_bw.selected_index());
-            field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_wfm_configuration(n); };
+            field_bw.set_by_value(0);
+            receiver_model.set_wfm_configuration(field_bw.selected_index_value());
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(2000000);
             break;

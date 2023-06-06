@@ -1477,7 +1477,13 @@ void OptionsField::on_focus() {
 }
 
 bool OptionsField::on_encoder(const EncoderEvent delta) {
-    set_selected_index(selected_index() + delta);
+    int32_t new_value = selected_index() + delta;
+    if (new_value < 0)
+        new_value = options.size() - 1;
+    else if ((size_t)new_value >= options.size())
+        new_value = 0;
+
+    set_selected_index(new_value);
     return true;
 }
 
