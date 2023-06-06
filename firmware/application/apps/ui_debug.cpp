@@ -399,7 +399,7 @@ DebugPmemView::DebugPmemView(NavigationView& nav)
     registers_widget.set_parent_rect({0, 32, 240, 192});
 
     text_checksum.set_parent_rect({16, 240, 208, 16});
-    text_checksum.set("Size: " + std::to_string(portapack::persistent_memory::data_size()) + " CRC: " + to_string_hex(data.check_value, 8));
+    text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size()) + " CRC: " + to_string_hex(data.check_value, 8));
 
     button_ok.on_select = [&nav](Button&) {
         nav.pop();
