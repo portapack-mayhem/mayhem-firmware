@@ -447,7 +447,8 @@ void defaults() {
 }
 
 void init() {
-    if (!get_switches_state()[(size_t)ui::KeyEvent::Select] && backup_ram->is_valid()) {
+    const auto switches_state = get_switches_state();
+    if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
 

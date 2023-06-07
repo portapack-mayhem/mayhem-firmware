@@ -233,20 +233,23 @@ static PortaPackModel portapack_model() {
 
     if (!model.is_valid()) {
         const auto switches_state = get_switches_state();
-        if (switches_state[(size_t)ui::KeyEvent::Up]) {
-            save_config(1);
-            // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
-        } else if (switches_state[(size_t)ui::KeyEvent::Down]) {
-            save_config(2);
-            // model = PortaPackModel::R1_20150901;
-        } else if (switches_state[(size_t)ui::KeyEvent::Left]) {
-            save_config(3);
-            // model = PortaPackModel::R1_20150901;
-        } else if (switches_state[(size_t)ui::KeyEvent::Right]) {
-            save_config(4);
-            // model = PortaPackModel::R2_20170522;
-        } else if (switches_state[(size_t)ui::KeyEvent::Select]) {
-            save_config(0);
+        // Only save config if no other multi key boot action is triggered (like pmem reset)
+        if (switches_state.count() == 1) {
+            if (switches_state[(size_t)ui::KeyEvent::Up]) {
+                save_config(1);
+                // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
+            } else if (switches_state[(size_t)ui::KeyEvent::Down]) {
+                save_config(2);
+                // model = PortaPackModel::R1_20150901;
+            } else if (switches_state[(size_t)ui::KeyEvent::Left]) {
+                save_config(3);
+                // model = PortaPackModel::R1_20150901;
+            } else if (switches_state[(size_t)ui::KeyEvent::Right]) {
+                save_config(4);
+                // model = PortaPackModel::R2_20170522;
+            } else if (switches_state[(size_t)ui::KeyEvent::Select]) {
+                save_config(0);
+            }
         }
 
         if (load_config() == 1) {
