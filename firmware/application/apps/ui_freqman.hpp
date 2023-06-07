@@ -49,14 +49,13 @@ class FreqManBaseView : public View {
     std::function<void(int32_t category_id)> on_change_category{nullptr};
     std::function<void(void)> on_select_frequency{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
-    std::vector<std::string> file_list{};
-    int32_t current_category_id{0};
 
-    void populate_categories();
+    void get_freqman_files();
     void change_category(int32_t category_id);
     void refresh_list();
 
     freqman_db database{};
+    std::vector<std::string> file_list{};
 
     Labels label_category{
         {{0, 4}, "Category:", Color::light_grey()}};
@@ -75,8 +74,10 @@ class FreqManBaseView : public View {
     };
 
     Button button_exit{
-        {20 * 8, 34 * 8, 10 * 8, 4 * 8},
+        {16 * 8, 34 * 8, 14 * 8, 4 * 8},
         "Exit"};
+
+   private:
 };
 
 class FrequencySaveView : public FreqManBaseView {
@@ -154,7 +155,7 @@ class FrequencyManagerView : public FreqManBaseView {
         "Description"};
 
     Button button_delete{
-        {18 * 8, 27 * 8, 12 * 8, 32},
+        {16 * 8, 29 * 8, 14 * 8, 32},
         "Delete"};
 };
 

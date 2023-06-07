@@ -108,8 +108,19 @@ void FreqManUIList::paint(Painter& painter) {
 
 void FreqManUIList::set_db(freqman_db& db) {
     freqlist_db = db;
-    current_index = 0;
-    highlighted_index = 0;
+    if (db.size() == 0) {
+        current_index = 0;
+        highlighted_index = 0;
+    } else {
+        if ((unsigned)(current_index + highlighted_index) >= db.size()) {
+            current_index = db.size() - 1 - highlighted_index;
+        }
+        if (current_index < 0) {
+            current_index = 0;
+            if (highlighted_index > 0)
+                highlighted_index--;
+        }
+    }
 }
 
 void FreqManUIList::on_focus() {

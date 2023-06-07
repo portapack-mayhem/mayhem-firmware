@@ -95,7 +95,6 @@ struct freqman_entry {
 
 using freqman_db = std::vector<freqman_entry>;
 
-std::vector<std::string> get_freqman_files();
 bool load_freqman_file(std::string& file_stem, freqman_db& db);
 bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t limit);
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
