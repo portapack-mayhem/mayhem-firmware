@@ -29,8 +29,6 @@ using namespace portapack;
 
 namespace ui {
 
-static int32_t current_category_id = 0;
-
 FreqManBaseView::FreqManBaseView(
     NavigationView& nav)
     : nav_(nav) {
@@ -42,14 +40,9 @@ FreqManBaseView::FreqManBaseView(
     refresh_list();
 
     options_category.on_change = [this](size_t category_id, int32_t) {
-        if (on_change_category)
-            on_change_category(category_id);
-    };
-
-    // Default function
-    on_change_category = [this](int32_t category_id) {
         change_category(category_id);
     };
+    options_category.set_selected_index(current_category_id);
 
     button_exit.on_select = [this, &nav](Button&) {
         nav.pop();
@@ -89,7 +82,7 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     std::vector<freqman_entry>().swap(database);
 
-    if (!load_freqman_file(file_list[categories[current_category_id].second], database)) {
+    if (!load_freqman_file(file_list[categories[category_id].second], database)) {
         error_ = ERROR_ACCESS;
     }
     menu_view.set_db(database);
@@ -131,13 +124,13 @@ void FrequencySaveView::save_current_file() {
 
 void FrequencySaveView::on_save_name() {
     text_prompt(nav_, desc_buffer, 28, [this](std::string& buffer) {
-        database.push_back({value_, 0, buffer, SINGLE});
+        database.push_back({value_, 0, buffer, SINGLE, -1, -1, -1, -1});
         save_current_file();
     });
 }
 
 void FrequencySaveView::on_save_timestamp() {
-    database.push_back({value_, 0, live_timestamp.string(), SINGLE});
+    database.push_back({value_, 0, live_timestamp.string(), SINGLE, -1, -1, -1, -1});
     save_current_file();
 }
 
@@ -164,6 +157,9 @@ FrequencySaveView::FrequencySaveView(
 
     big_display.set(value);
 
+    // initialize
+    refresh_list();
+
     button_save_name.on_select = [this, &nav](Button&) {
         on_save_name();
     };
@@ -188,6 +184,8 @@ FrequencyLoadView::FrequencyLoadView(
 
     add_children({&menu_view,
                   &text_empty});
+
+    refresh_list();
 
     // Resize menu view to fill screen
     menu_view.set_parent_rect({0, 3 * 8, 240, 30 * 8});
@@ -269,9 +267,6 @@ FrequencyManagerView::FrequencyManagerView(
                   &button_edit_freq,
                   &button_edit_desc,
                   &button_delete});
-
-    refresh_list();
-    change_category(current_category_id);
 
     menu_view.on_select = [this](FreqManUIList&) {
         button_edit_freq.focus();
