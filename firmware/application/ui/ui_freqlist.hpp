@@ -66,6 +66,11 @@ class FreqManUIList : public Widget {
         .background = Color::black(),
         .foreground = Color::white(),
     };
+    Style style_highlight{
+        .font = font::fixed_8x16,
+        .background = Color::white(),
+        .foreground = Color::black(),
+    };
     Style style_yellow{
         .font = font::fixed_8x16,
         .background = Color::black(),
