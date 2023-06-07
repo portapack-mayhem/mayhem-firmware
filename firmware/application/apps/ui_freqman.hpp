@@ -30,8 +30,6 @@
 #include "freqman.hpp"
 #include "ui_freqlist.hpp"
 
-static int32_t current_category_id = 0;
-
 namespace ui {
 
 class FreqManBaseView : public View {
@@ -48,6 +46,7 @@ class FreqManBaseView : public View {
     NavigationView& nav_;
     freqman_error error_{NO_ERROR};
     options_t categories{};
+    std::function<void(int32_t category_id)> on_change_category{nullptr};
     std::function<void(void)> on_select_frequency{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
 
