@@ -50,7 +50,7 @@ class SIGFRXView : public View {
     uint8_t last_channel;
     uint8_t detect_counter = 0;
 
-    const Style style_white = Styles::style_default.invert();
+    const Style style_inverted = Styles::white.invert();
 
     const uint16_t sigfrx_marks[18] = {
         10, 8, 0,

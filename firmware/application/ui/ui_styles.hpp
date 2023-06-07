@@ -28,41 +28,41 @@ namespace ui {
 
 class Styles {
    public:
-    /* The default font, white on black background. */
-    static const Style style_default;
+    /* White foreground. */
+    static const Style white;
 
-    /* The small font, white on black background. */
-    static const Style style_small;
-
-    /* Grey foreground. */
-    static const Style style_grey;
+    /* White foreground, small font. */
+    static const Style white_small;
 
     /* Yellow foreground. */
-    static const Style style_yellow;
+    static const Style yellow;
 
     /* Green foreground. */
-    static const Style style_green;
+    static const Style green;
 
     /* Red foreground. */
-    static const Style style_red;
+    static const Style red;
 
     /* Blue foreground. */
-    static const Style style_blue;
+    static const Style blue;
 
     /* Blue background. */
-    static const Style style_bg_blue;
-
-    /* Dark grey foreground. */
-    static const Style style_dark_grey;
-
-    /* Dark grey background. */
-    static const Style style_bg_dark_grey;
+    static const Style bg_blue;
 
     /* Light grey foreground. */
-    static const Style style_light_grey;
+    static const Style light_grey;
+
+    /* Grey foreground. */
+    static const Style grey;
+
+    /* Dark grey foreground. */
+    static const Style dark_grey;
+
+    /* Dark grey background. */
+    static const Style bg_dark_grey;
 
     /* Orange foreground. */
-    static const Style style_orange;
+    static const Style orange;
 };
 
 }  // namespace ui

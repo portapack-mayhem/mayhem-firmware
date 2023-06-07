@@ -26,73 +26,73 @@
 
 using namespace ui;
 
-const Style Styles::style_default{
+const Style Styles::white{
     .font = ui::font::fixed_8x16,
     .background = ui::Color::black(),
     .foreground = ui::Color::white(),
 };
 
-const Style Styles::style_small{
+const Style Styles::white_small{
     .font = font::fixed_5x8,
     .background = Color::black(),
     .foreground = Color::white(),
 };
 
-const Style Styles::style_grey{
-    .font = font::fixed_8x16,
-    .background = Color::black(),
-    .foreground = Color::grey(),
-};
-
-const Style Styles::style_yellow{
+const Style Styles::yellow{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::yellow(),
 };
 
-const Style Styles::style_green{
+const Style Styles::green{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::green(),
 };
 
-const Style Styles::style_red{
+const Style Styles::red{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::red(),
 };
 
-const Style Styles::style_blue{
+const Style Styles::blue{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::blue(),
 };
 
-const Style Styles::style_bg_blue{
+const Style Styles::bg_blue{
     .font = font::fixed_8x16,
     .background = Color::blue(),
     .foreground = Color::white(),
 };
 
-const Style Styles::style_dark_grey{
-    .font = font::fixed_8x16,
-    .background = Color::black(),
-    .foreground = Color::dark_grey(),
-};
-
-const Style Styles::style_bg_dark_grey{
-    .font = font::fixed_8x16,
-    .background = Color::dark_grey(),
-    .foreground = Color::white(),
-};
-
-const Style Styles::style_light_grey{
+const Style Styles::light_grey{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::light_grey(),
 };
 
-const Style Styles::style_orange{
+const Style Styles::grey{
+    .font = font::fixed_8x16,
+    .background = Color::black(),
+    .foreground = Color::grey(),
+};
+
+const Style Styles::dark_grey{
+    .font = font::fixed_8x16,
+    .background = Color::black(),
+    .foreground = Color::dark_grey(),
+};
+
+const Style Styles::bg_dark_grey{
+    .font = font::fixed_8x16,
+    .background = Color::dark_grey(),
+    .foreground = Color::white(),
+};
+
+const Style Styles::orange{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::orange(),

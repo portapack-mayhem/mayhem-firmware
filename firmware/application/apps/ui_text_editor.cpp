@@ -205,7 +205,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
         if (result && *result > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                Styles::style_small, {buffer, *result});
+                Styles::white_small, {buffer, *result});
 
         // Clear empty line sections. This is less visually jarring than full clear.
         int32_t clear_width = max_col - (result ? *result : 0);
@@ -214,7 +214,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
                 {(max_col - clear_width) * char_width,
                  r.top() + (int)i * char_height,
                  clear_width * char_width, char_height},
-                Styles::style_small.background);
+                Styles::white_small.background);
     }
 }
 
@@ -235,8 +235,8 @@ void TextViewer::paint_cursor(Painter& painter) {
     };
 
     // Clear old cursor. CONSIDER: XOR cursor?
-    draw_cursor(paint_state_.line, paint_state_.col, Styles::style_small.background);
-    draw_cursor(cursor_.line, cursor_.col, Styles::style_small.foreground);
+    draw_cursor(paint_state_.line, paint_state_.col, Styles::white_small.background);
+    draw_cursor(cursor_.line, cursor_.col, Styles::white_small.foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }

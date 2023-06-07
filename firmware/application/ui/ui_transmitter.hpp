@@ -73,12 +73,12 @@ class TransmitterView : public View {
     void set_transmitting(const bool transmitting);
 
    private:
-    const Style& style_start = Styles::style_green;
-    const Style style_stop = Styles::style_red;
-    const Style style_locked = Styles::style_dark_grey;
-    const Style style_power_low = Styles::style_yellow;
-    const Style style_power_med = Styles::style_orange;
-    const Style style_power_high = Styles::style_red;
+    const Style& style_start = Styles::green;
+    const Style style_stop = Styles::red;
+    const Style style_locked = Styles::dark_grey;
+    const Style style_power_low = Styles::yellow;
+    const Style style_power_med = Styles::orange;
+    const Style style_power_high = Styles::red;
 
     bool lock_{false};
     bool transmitting_{false};
@@ -144,9 +144,9 @@ class TransmitterView2 : public View {
     void paint(Painter& painter) override;
 
    private:
-    const Style& style_power_low = Styles::style_yellow;
-    const Style& style_power_med = Styles::style_orange;
-    const Style& style_power_high = Styles::style_red;
+    const Style& style_power_low = Styles::yellow;
+    const Style& style_power_med = Styles::orange;
+    const Style& style_power_high = Styles::red;
 
     Text text_gain_amp{
         {0, 3 * 8, 5 * 8, 1 * 16},

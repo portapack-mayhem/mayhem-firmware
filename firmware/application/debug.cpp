@@ -50,17 +50,17 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
         Color::black());
 
     // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-    painter.draw_string({48, 24}, Styles::style_default, "M? Guru");
-    painter.draw_string({48 + 8 * 8, 24}, Styles::style_default, "Meditation");
+    painter.draw_string({48, 24}, Styles::white, "M? Guru");
+    painter.draw_string({48 + 8 * 8, 24}, Styles::white, "Meditation");
 
     if (source == CORTEX_M0)
-        painter.draw_string({48 + 8, 24}, Styles::style_default, "0");
+        painter.draw_string({48 + 8, 24}, Styles::white, "0");
 
     if (source == CORTEX_M4)
-        painter.draw_string({48 + 8, 24}, Styles::style_default, "4");
+        painter.draw_string({48 + 8, 24}, Styles::white, "4");
 
-    painter.draw_string({15, 55}, Styles::style_default, "Hint: ");
-    painter.draw_string({15 + 8 * 8, 55}, Styles::style_default, hint);
+    painter.draw_string({15, 55}, Styles::white, "Hint: ");
+    painter.draw_string({15 + 8 * 8, 55}, Styles::white, hint);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint) {
@@ -113,8 +113,8 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
 void draw_line(int32_t y_offset, const char* label, regarm_t value) {
     Painter painter;
 
-    painter.draw_string({15, y_offset}, Styles::style_default, label);
-    painter.draw_string({15 + 8 * 8, y_offset}, Styles::style_default, to_string_hex((uint32_t)value, 8));
+    painter.draw_string({15, y_offset}, Styles::white, label);
+    painter.draw_string({15 + 8 * 8, y_offset}, Styles::white, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(LED led) {

@@ -143,7 +143,7 @@ SystemStatusView::SystemStatusView(
     }
 
     button_back.id = -1;  // Special ID used by FocusManager
-    title.set_style(&Styles::style_bg_dark_grey);
+    title.set_style(&Styles::bg_dark_grey);
 
     if (portapack::persistent_memory::stealth_mode())
         button_stealth.set_foreground(ui::Color::green());
@@ -646,7 +646,7 @@ SystemView::SystemView(
     const Rect parent_rect)
     : View{parent_rect},
       context_(context) {
-    set_style(&ui::Styles::style_default);
+    set_style(&ui::Styles::white);
 
     constexpr ui::Dim status_view_height = 16;
     constexpr ui::Dim info_view_height = 16;

@@ -47,12 +47,12 @@ void ScreenshotViewer::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, pixel_width, pixel_height}, Color::black());
 
     auto show_invalid = [&]() {
-        painter.draw_string({10, 160}, Styles::style_default, "Not a valid screenshot.");
+        painter.draw_string({10, 160}, Styles::white, "Not a valid screenshot.");
     };
 
     auto error = file.open(path_);
     if (error) {
-        painter.draw_string({10, 160}, Styles::style_default, error->what());
+        painter.draw_string({10, 160}, Styles::white, error->what());
         return;
     }
 
