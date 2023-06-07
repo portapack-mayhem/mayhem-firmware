@@ -88,14 +88,12 @@ void FreqManBaseView::change_category(int32_t category_id) {
     current_category_id = category_id;
 
     std::vector<freqman_entry>().swap(database);
-    menu_view.set_db(database);
 
     if (!load_freqman_file(file_list[categories[current_category_id].second], database)) {
         error_ = ERROR_ACCESS;
-    } else {
-        menu_view.set_db(database);
-        menu_view.set_dirty();
     }
+    menu_view.set_db(database);
+    menu_view.set_dirty();
     if (!database.size()) {
         if (on_refresh_widgets)
             on_refresh_widgets(true);

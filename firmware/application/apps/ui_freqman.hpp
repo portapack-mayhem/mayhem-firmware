@@ -74,7 +74,7 @@ class FreqManBaseView : public View {
     };
 
     Button button_exit{
-        {20 * 8, 34 * 8, 10 * 8, 4 * 8},
+        {16 * 8, 34 * 8, 14 * 8, 4 * 8},
         "Exit"};
 
    private:
@@ -155,7 +155,7 @@ class FrequencyManagerView : public FreqManBaseView {
         "Description"};
 
     Button button_delete{
-        {18 * 8, 27 * 8, 12 * 8, 32},
+        {16 * 8, 29 * 8, 14 * 8, 32},
         "Delete"};
 };
 
