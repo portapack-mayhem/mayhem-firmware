@@ -25,11 +25,11 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 
-static int32_t current_category_id = 0;
-
 using namespace portapack;
 
 namespace ui {
+
+static int32_t current_category_id = 0;
 
 FreqManBaseView::FreqManBaseView(
     NavigationView& nav)
@@ -79,7 +79,7 @@ void FreqManBaseView::get_freqman_files() {
 void FreqManBaseView::change_category(int32_t category_id) {
     current_category_id = category_id;
 
-    if (!file_list.size()) return;
+    if (file_list.empty()) return;
 
     std::vector<freqman_entry>().swap(database);
 
@@ -87,11 +87,9 @@ void FreqManBaseView::change_category(int32_t category_id) {
         error_ = ERROR_ACCESS;
     }
     menu_view.set_db(database);
-    if (database.size() == 0)
-        text_empty.hidden(false);
-    else
-        text_empty.hidden(true);
+    text_empty.hidden(!database.empty());
     menu_view.set_dirty();
+    set_dirty();
 }
 
 void FreqManBaseView::refresh_list() {
@@ -156,6 +154,11 @@ FrequencySaveView::FrequencySaveView(
     };
     button_save_timestamp.on_select = [this, &nav](Button&) {
         on_save_timestamp();
+    };
+
+    options_category.on_change = [this, value](size_t category_id, int32_t) {
+        change_category(category_id);
+        big_display.set(value);
     };
 }
 
