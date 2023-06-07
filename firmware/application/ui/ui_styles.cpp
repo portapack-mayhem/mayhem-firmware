@@ -80,6 +80,12 @@ const Style Styles::style_dark_grey{
     .foreground = Color::dark_grey(),
 };
 
+const Style Styles::style_bg_dark_grey{
+    .font = font::fixed_8x16,
+    .background = Color::dark_grey(),
+    .foreground = Color::white(),
+};
+
 const Style Styles::style_light_grey{
     .font = font::fixed_8x16,
     .background = Color::black(),

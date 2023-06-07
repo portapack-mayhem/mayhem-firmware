@@ -55,6 +55,9 @@ class Styles {
     /* Dark grey foreground. */
     static const Style style_dark_grey;
 
+    /* Dark grey background. */
+    static const Style style_bg_dark_grey;
+
     /* Light grey foreground. */
     static const Style style_light_grey;
 
