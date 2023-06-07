@@ -24,6 +24,7 @@
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "ui_menu.hpp"
+#include "ui_styles.hpp"
 #include "ui_navigation.hpp"
 #include "clock_manager.hpp"
 #include "message.hpp"
@@ -48,6 +49,8 @@ class SIGFRXView : public View {
    private:
     uint8_t last_channel;
     uint8_t detect_counter = 0;
+
+    const Style style_white = Styles::style_default.invert();
 
     const uint16_t sigfrx_marks[18] = {
         10, 8, 0,
