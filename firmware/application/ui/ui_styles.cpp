@@ -29,7 +29,7 @@ using namespace ui;
 const Style Styles::style_default{
     .font = ui::font::fixed_8x16,
     .background = ui::Color::black(),
-    .foreground = ui::Color::white()
+    .foreground = ui::Color::white(),
 };
 
 const Style Styles::style_small{

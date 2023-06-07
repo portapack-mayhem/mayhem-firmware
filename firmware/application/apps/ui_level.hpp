@@ -48,8 +48,6 @@ class LevelView : public View {
 
     void focus() override;
 
-
-
     std::string title() const override { return "Level"; };
 
    private:

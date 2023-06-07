@@ -73,7 +73,6 @@ class TransmitterView : public View {
     void set_transmitting(const bool transmitting);
 
    private:
-
     const Style& style_start = Styles::style_green;
     const Style style_stop = Styles::style_red;
     const Style style_locked = Styles::style_dark_grey;

@@ -106,7 +106,6 @@ namespace ui {
 SystemStatusView::SystemStatusView(
     NavigationView& nav)
     : nav_(nav) {
-
     add_children({
         &backdrop,
         &button_back,
