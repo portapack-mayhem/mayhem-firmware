@@ -23,9 +23,9 @@
 #define __UI_FREQLIST_H__
 
 #include "ui.hpp"
-#include "ui_font_fixed_5x8.hpp"
 #include "ui_widget.hpp"
 #include "ui_painter.hpp"
+#include "ui_styles.hpp"
 #include "event_m0.hpp"
 #include "message.hpp"
 #include "freqman.hpp"
@@ -61,16 +61,6 @@ class FreqManUIList : public Widget {
     void set_db(freqman_db& db);
 
    private:
-    Style style_default{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
-    Style style_yellow{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
     static constexpr int8_t char_height = 16;
     bool instant_exec_{false};
     freqman_db freqlist_db{};

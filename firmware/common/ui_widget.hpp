@@ -27,7 +27,6 @@
 #include "ui_text.hpp"
 #include "ui_painter.hpp"
 #include "ui_focus.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "rtc_time.hpp"
 #include "radio.hpp"
 

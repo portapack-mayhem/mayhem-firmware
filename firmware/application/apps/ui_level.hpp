@@ -27,7 +27,7 @@
 #include "ui.hpp"
 #include "receiver_model.hpp"
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "freqman.hpp"
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
@@ -48,47 +48,7 @@ class LevelView : public View {
 
     void focus() override;
 
-    const Style style_grey{
-        // level
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
-    };
 
-    const Style style_white{
-        // level
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
-
-    const Style style_yellow{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-
-    const Style style_green{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
-
-    const Style style_red{
-        // erasing freq
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-
-    const Style style_blue{
-        // quick level, wait == 0
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::blue(),
-    };
 
     std::string title() const override { return "Level"; };
 

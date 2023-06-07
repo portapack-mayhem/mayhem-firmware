@@ -27,9 +27,9 @@
 #define __UI_TEXT_EDITOR_H__
 
 #include "ui.hpp"
-#include "ui_font_fixed_5x8.hpp"
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
+#include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
 #include "file_wrapper.hpp"
@@ -78,11 +78,6 @@ class TextViewer : public Widget {
    private:
     static constexpr int8_t char_width = 5;
     static constexpr int8_t char_height = 8;
-    static constexpr Style style_text{
-        .font = font::fixed_5x8,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
 
     const uint8_t max_line = 32;
     const uint8_t max_col = 48;

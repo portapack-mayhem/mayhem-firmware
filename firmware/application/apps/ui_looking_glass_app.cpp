@@ -490,11 +490,11 @@ GlassView::GlassView(
     button_range.on_select = [this](Button&) {
         if (locked_range) {
             locked_range = false;
-            button_range.set_style(&style_white);
+            button_range.set_style(&Styles::style_default);
             button_range.set_text(" " + to_string_dec_uint(search_span) + " ");
         } else {
             locked_range = true;
-            button_range.set_style(&style_red);
+            button_range.set_style(&Styles::style_red);
             button_range.set_text(">" + to_string_dec_uint(search_span) + "<");
         }
     };

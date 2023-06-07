@@ -127,11 +127,6 @@ class SetRadioView : public View {
     std::string title() const override { return "Radio"; };
 
    private:
-    const Style style_text{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::light_grey(),
-    };
     uint8_t freq_step_khz = 3;
 
     Text label_source{

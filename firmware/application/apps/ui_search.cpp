@@ -117,7 +117,7 @@ void SearchView::do_detection() {
                         recent_entries_view.set_dirty();
 
                         text_infos.set("Locked ! ");
-                        big_display.set_style(&style_locked);
+                        big_display.set_style(&Styles::style_green);
 
                         locked = true;
                         locked_bin = bin_max;
@@ -152,7 +152,7 @@ void SearchView::do_detection() {
                 recent_entries_view.set_dirty();
 
                 text_infos.set("Listening");
-                big_display.set_style(&style_grey);
+                big_display.set_style(&Styles::style_grey);
             }
         }
     }
@@ -362,11 +362,11 @@ SearchView::SearchView(
         nav.push<FrequencyKeypadView>(entry.frequency);
     };
 
-    text_mean.set_style(&style_grey);
-    text_slices.set_style(&style_grey);
-    text_rate.set_style(&style_grey);
-    progress_timers.set_style(&style_grey);
-    big_display.set_style(&style_grey);
+    text_mean.set_style(&Styles::style_grey);
+    text_slices.set_style(&Styles::style_grey);
+    text_rate.set_style(&Styles::style_grey);
+    progress_timers.set_style(&Styles::style_grey);
+    big_display.set_style(&Styles::style_grey);
 
     check_snap.set_value(true);
     options_snap.set_selected_index(1);  // 12.5kHz

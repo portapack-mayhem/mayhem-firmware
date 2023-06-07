@@ -20,6 +20,7 @@
  */
 
 #include "ui_spectrum_painter_text.hpp"
+#include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 #include "bmp.hpp"
 #include "baseband_api.hpp"
@@ -28,7 +29,6 @@
 #include "io_file.hpp"
 #include "file.hpp"
 #include "portapack_persistent_memory.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 

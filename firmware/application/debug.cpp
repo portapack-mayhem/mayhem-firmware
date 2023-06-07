@@ -26,10 +26,11 @@
 #include <hal.h>
 #include <string>
 
-#include "ui_painter.hpp"
 #include "portapack.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "string_format.hpp"
+#include "ui_styles.hpp"
+
+using namespace ui;
 
 void runtime_error(LED);
 std::string number_to_hex_string(uint32_t);
@@ -37,33 +38,29 @@ void draw_line(int32_t, const char*, regarm_t);
 static bool error_shown = false;
 
 void draw_guru_meditation_header(uint8_t source, const char* hint) {
-    ui::Painter painter;
-    ui::Style style_default{
-        .font = ui::font::fixed_8x16,
-        .background = ui::Color::black(),
-        .foreground = ui::Color::white()};
+    Painter painter;
 
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::red());
+        Color::red());
 
     constexpr int border = 8;
     painter.fill_rectangle(
         {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
-        ui::Color::black());
+        Color::black());
 
     // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-    painter.draw_string({48, 24}, style_default, "M? Guru");
-    painter.draw_string({48 + 8 * 8, 24}, style_default, "Meditation");
+    painter.draw_string({48, 24}, Styles::style_default, "M? Guru");
+    painter.draw_string({48 + 8 * 8, 24}, Styles::style_default, "Meditation");
 
     if (source == CORTEX_M0)
-        painter.draw_string({48 + 8, 24}, style_default, "0");
+        painter.draw_string({48 + 8, 24}, Styles::style_default, "0");
 
     if (source == CORTEX_M4)
-        painter.draw_string({48 + 8, 24}, style_default, "4");
+        painter.draw_string({48 + 8, 24}, Styles::style_default, "4");
 
-    painter.draw_string({15, 55}, style_default, "Hint: ");
-    painter.draw_string({15 + 8 * 8, 55}, style_default, hint);
+    painter.draw_string({15, 55}, Styles::style_default, "Hint: ");
+    painter.draw_string({15 + 8 * 8, 55}, Styles::style_default, hint);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint) {
@@ -114,14 +111,10 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
 }
 
 void draw_line(int32_t y_offset, const char* label, regarm_t value) {
-    ui::Painter painter;
-    ui::Style style_default{
-        .font = ui::font::fixed_8x16,
-        .background = ui::Color::black(),
-        .foreground = ui::Color::white()};
+    Painter painter;
 
-    painter.draw_string({15, y_offset}, style_default, label);
-    painter.draw_string({15 + 8 * 8, y_offset}, style_default, to_string_hex((uint32_t)value, 8));
+    painter.draw_string({15, y_offset}, Styles::style_default, label);
+    painter.draw_string({15 + 8 * 8, y_offset}, Styles::style_default, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(LED led) {

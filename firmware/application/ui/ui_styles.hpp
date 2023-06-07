@@ -19,29 +19,49 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __UI_SS_VIEWER_H__
-#define __UI_SS_VIEWER_H__
+#ifndef __UI_STYLES_H__
+#define __UI_STYLES_H__
 
-#include "ui.hpp"
-#include "ui_navigation.hpp"
 #include "ui_painter.hpp"
-#include "ui_styles.hpp"
-#include "ui_widget.hpp"
-#include "file.hpp"
 
 namespace ui {
 
-class ScreenshotViewer : public View {
+class Styles {
    public:
-    ScreenshotViewer(NavigationView& nav, const std::filesystem::path& path);
-    bool on_key(KeyEvent key) override;
-    void paint(Painter& painter) override;
+    /* The default font, white on black background. */
+    static const Style style_default;
 
-   private:
-    NavigationView& nav_;
-    std::filesystem::path path_{};
+    /* The small font, white on black background. */
+    static const Style style_small;
+
+    /* Grey foreground. */
+    static const Style style_grey;
+
+    /* Yellow foreground. */
+    static const Style style_yellow;
+
+    /* Green foreground. */
+    static const Style style_green;
+
+    /* Red foreground. */
+    static const Style style_red;
+
+    /* Blue foreground. */
+    static const Style style_blue;
+
+    /* Blue background. */
+    static const Style style_bg_blue;
+
+    /* Dark grey foreground. */
+    static const Style style_dark_grey;
+
+    /* Light grey foreground. */
+    static const Style style_light_grey;
+
+    /* Orange foreground. */
+    static const Style style_orange;
 };
 
 }  // namespace ui
 
-#endif  // __UI_SS_VIEWER_H__
+#endif /*__UI_STYLES_H__*/

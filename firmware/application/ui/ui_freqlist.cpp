@@ -69,9 +69,9 @@ void FreqManUIList::paint(Painter& painter) {
     if (freqlist_db.size() == 0)
         return;
     // coloration if file is too big
-    Style* text_color = &style_default;
+    auto text_color = &Styles::style_default;
     if (freqlist_db.size() > FREQMAN_MAX_PER_FILE)
-        text_color = &style_yellow;
+        text_color = &Styles::style_yellow;
     uint8_t nb_lines = 0;
     for (uint8_t it = current_index; it < freqlist_db.size(); it++) {
         uint8_t line_height = (int)nb_lines * char_height;

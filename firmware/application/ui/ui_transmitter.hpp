@@ -26,9 +26,9 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
+#include "ui_styles.hpp"
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 #include "rf_path.hpp"
 
@@ -73,36 +73,13 @@ class TransmitterView : public View {
     void set_transmitting(const bool transmitting);
 
    private:
-    const Style style_start{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
-    const Style style_stop{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-    const Style style_locked{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::dark_grey(),
-    };
-    const Style style_power_low{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-    const Style style_power_med{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::orange(),
-    };
-    const Style style_power_high{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
+
+    const Style& style_start = Styles::style_green;
+    const Style style_stop = Styles::style_red;
+    const Style style_locked = Styles::style_dark_grey;
+    const Style style_power_low = Styles::style_yellow;
+    const Style style_power_med = Styles::style_orange;
+    const Style style_power_high = Styles::style_red;
 
     bool lock_{false};
     bool transmitting_{false};
@@ -168,21 +145,9 @@ class TransmitterView2 : public View {
     void paint(Painter& painter) override;
 
    private:
-    const Style style_power_low{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-    const Style style_power_med{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::orange(),
-    };
-    const Style style_power_high{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
+    const Style& style_power_low = Styles::style_yellow;
+    const Style& style_power_med = Styles::style_orange;
+    const Style& style_power_high = Styles::style_red;
 
     Text text_gain_amp{
         {0, 3 * 8, 5 * 8, 1 * 16},

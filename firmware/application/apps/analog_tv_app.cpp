@@ -41,6 +41,8 @@ namespace ui {
 
 /* AnalogTvView *******************************************************/
 
+static const Style& style_options_group_new = Styles::style_bg_blue;
+
 AnalogTvView::AnalogTvView(
     NavigationView& nav)
     : nav_(nav) {
