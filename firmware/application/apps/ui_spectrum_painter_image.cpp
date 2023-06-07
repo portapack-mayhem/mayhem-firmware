@@ -234,14 +234,14 @@ std::vector<uint8_t> SpectrumInputImageView::get_line(uint16_t y) {
         grey_buffer[px] = color.to_greyscale();
     }
 
-    delete buffer;
+    delete[] buffer;
 
     std::vector<uint8_t> values(width);
     for (int i = 0; i < width; i++) {
         values[i] = grey_buffer[i];
     }
 
-    delete grey_buffer;
+    delete[] grey_buffer;
 
     return values;
 }
