@@ -32,6 +32,12 @@ const Style Styles::white{
     .foreground = ui::Color::white(),
 };
 
+const Style Styles::bg_white{
+    .font = ui::font::fixed_8x16,
+    .background = ui::Color::white(),
+    .foreground = ui::Color::black(),
+};
+
 const Style Styles::white_small{
     .font = font::fixed_5x8,
     .background = Color::black(),

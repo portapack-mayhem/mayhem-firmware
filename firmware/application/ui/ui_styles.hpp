@@ -31,6 +31,9 @@ class Styles {
     /* White foreground. */
     static const Style white;
 
+    /* White background. */
+    static const Style bg_white;
+
     /* White foreground, small font. */
     static const Style white_small;
 

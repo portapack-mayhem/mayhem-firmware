@@ -84,7 +84,7 @@ void FreqManUIList::paint(Painter& painter) {
                     Color::white());
                 painter.draw_string(
                     {0, r.location().y() + (int)nb_lines * char_height},
-                    style_highlight, description);
+                    Styles::bg_white, description);
             } else {
                 painter.draw_string(
                     {0, r.location().y() + (int)nb_lines * char_height},
