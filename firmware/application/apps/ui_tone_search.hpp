@@ -23,7 +23,6 @@
 #include "receiver_model.hpp"
 
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 

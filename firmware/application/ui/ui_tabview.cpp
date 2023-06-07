@@ -21,6 +21,7 @@
  */
 
 #include "ui_tabview.hpp"
+#include "ui_font_fixed_8x16.hpp"
 
 #include "portapack.hpp"
 using namespace portapack;

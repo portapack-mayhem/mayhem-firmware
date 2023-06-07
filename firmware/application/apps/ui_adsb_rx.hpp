@@ -24,7 +24,6 @@
 
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "string_format.hpp"
 
 #include "file.hpp"

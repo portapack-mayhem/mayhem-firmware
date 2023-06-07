@@ -25,7 +25,6 @@
 #include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 #include "bht.hpp"
 #include "bitmap.hpp"

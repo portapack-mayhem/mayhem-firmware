@@ -31,6 +31,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_styles.hpp"
 #include "string_format.hpp"
 #include "analog_audio_app.hpp"
 #include "spectrum_color_lut.hpp"
@@ -72,20 +73,6 @@ class GlassView : public View {
         rf::Frequency min{};
         rf::Frequency max{};
         std::string label{};
-    };
-
-    const Style style_white{
-        // free range
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
-
-    const Style style_red{
-        // locked range
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
     };
 
     std::vector<preset_entry> presets_db{};

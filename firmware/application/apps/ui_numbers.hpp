@@ -27,7 +27,6 @@
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "rtc_time.hpp"
 #include "clock_manager.hpp"
 #include "baseband_api.hpp"
@@ -62,11 +61,6 @@ class NumbersStationView : public View {
         MESSAGE,
         SIGNOFF
     };
-
-    Style style_red{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red()};
 
     typedef struct {
         char code;

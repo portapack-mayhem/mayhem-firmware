@@ -27,7 +27,6 @@
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "baseband_api.hpp"
 #include "ui_transmitter.hpp"
 #include "message.hpp"

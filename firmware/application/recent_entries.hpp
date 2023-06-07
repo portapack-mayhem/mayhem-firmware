@@ -23,7 +23,6 @@
 #define __RECENT_ENTRIES_H__
 
 #include "ui_widget.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 #include <cstddef>
 #include <cstdint>

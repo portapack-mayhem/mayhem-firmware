@@ -36,7 +36,7 @@ using portapack::receiver_model;
 using namespace portapack;
 
 #include "string_format.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "cpld_update.hpp"
 
 #include "freqman.hpp"
@@ -129,9 +129,9 @@ SetRadioView::SetRadioView(
     value_source.set(source_name);
     value_source_frequency.set(to_string_dec_uint(reference.frequency / 1000000, 2) + "." + to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
 
-    label_source.set_style(&style_text);
-    value_source.set_style(&style_text);
-    value_source_frequency.set_style(&style_text);
+    label_source.set_style(&Styles::light_grey);
+    value_source.set_style(&Styles::light_grey);
+    value_source_frequency.set_style(&Styles::light_grey);
 
     add_children({
         &label_source,
@@ -169,7 +169,7 @@ SetRadioView::SetRadioView(
     };
 
     field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
-    value_freq_step.set_style(&style_text);
+    value_freq_step.set_style(&Styles::light_grey);
 
     field_clkout_freq.on_select = [this](NumberField&) {
         freq_step_khz++;

@@ -26,7 +26,6 @@
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
 #include "core_control.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 

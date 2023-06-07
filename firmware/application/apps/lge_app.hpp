@@ -24,7 +24,6 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
-#include "ui_font_fixed_8x16.hpp"
 #include "rfm69.hpp"
 
 #include "message.hpp"
