@@ -281,6 +281,13 @@ bool get_freq_string(freqman_entry& entry, std::string& item_string) {
     return true;
 }
 
+bool delete_freqman_file(std::string& file_stem) {
+    File freqman_file;
+    std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
+    delete_file(freq_file_path);
+    return false;
+}
+
 bool save_freqman_file(std::string& file_stem, freqman_db& db) {
     File freqman_file;
     std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
