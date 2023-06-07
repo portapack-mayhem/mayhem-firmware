@@ -55,23 +55,23 @@ void ReconView::reset_indexes() {
 void ReconView::colorize_waits() {
     // colorize wait on match
     if (wait == 0) {
-        field_wait.set_style(&style_blue);
+        field_wait.set_style(&Styles::blue);
     } else if (wait >= 500) {
-        field_wait.set_style(&style_white);
+        field_wait.set_style(&Styles::white);
     } else if (wait > -500 && wait < 500) {
-        field_wait.set_style(&style_red);
+        field_wait.set_style(&Styles::red);
     } else if (wait <= -500) {
-        field_wait.set_style(&style_green);
+        field_wait.set_style(&Styles::green);
     }
     // colorize lock time if in SPARSE mode as in continuous the lock_wait time is disarmed at first lock count
     if (recon_match_mode == RECON_MATCH_SPARSE) {
         if ((recon_lock_duration / STATS_UPDATE_INTERVAL) <= recon_lock_nb_match) {
-            field_lock_wait.set_style(&style_yellow);
+            field_lock_wait.set_style(&Styles::yellow);
         } else {
-            field_lock_wait.set_style(&style_white);
+            field_lock_wait.set_style(&Styles::white);
         }
     } else {
-        field_lock_wait.set_style(&style_white);
+        field_lock_wait.set_style(&Styles::white);
     }
 }
 
@@ -263,17 +263,17 @@ void ReconView::recon_redraw() {
         text_nb_locks.set(to_string_dec_uint(freq_lock) + "/" + to_string_dec_uint(recon_lock_nb_match));
         if (freq_lock == 0) {
             // NO FREQ LOCK, ONGOING STANDARD SCANNING
-            big_display.set_style(&style_white);
+            big_display.set_style(&Styles::white);
             if (recon)
                 button_pause.set_text("<PAUSE>");
             else
                 button_pause.set_text("<RESUME>");
         } else if (freq_lock == 1 && recon_lock_nb_match != 1) {
             // STARTING LOCK FREQ
-            big_display.set_style(&style_yellow);
+            big_display.set_style(&Styles::yellow);
             button_pause.set_text("<SKPLCK>");
         } else if (freq_lock >= recon_lock_nb_match) {
-            big_display.set_style(&style_green);
+            big_display.set_style(&Styles::green);
             button_pause.set_text("<UNLOCK>");
             // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
             if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
@@ -716,18 +716,18 @@ ReconView::ReconView(NavigationView& nav)
 
             frequency_list.push_back(manual_freq_entry);
 
-            big_display.set_style(&style_white);  // Back to white color
+            big_display.set_style(&Styles::white);  // Back to white color
 
-            freq_stats.set_style(&style_white);
+            freq_stats.set_style(&Styles::white);
             freq_stats.set("0/0/0");
 
             text_cycle.set_text("1");
             text_max.set("/1");
-            button_scanner_mode.set_style(&style_white);
+            button_scanner_mode.set_style(&Styles::white);
             button_scanner_mode.set_text("MSEARCH");
-            file_name.set_style(&style_white);
+            file_name.set_style(&Styles::white);
             file_name.set("MANUAL RANGE RECON");
-            desc_cycle.set_style(&style_white);
+            desc_cycle.set_style(&Styles::white);
 
             last_entry.modulation = -1;
             last_entry.bandwidth = -1;
@@ -767,12 +767,12 @@ ReconView::ReconView(NavigationView& nav)
             recon_resume();
         }
         if (scanner_mode) {
-            file_name.set_style(&style_red);
-            button_scanner_mode.set_style(&style_red);
+            file_name.set_style(&Styles::red);
+            button_scanner_mode.set_style(&Styles::red);
             button_scanner_mode.set_text("SCANNER");
         } else {
-            file_name.set_style(&style_blue);
-            button_scanner_mode.set_style(&style_blue);
+            file_name.set_style(&Styles::blue);
+            button_scanner_mode.set_style(&Styles::blue);
             button_scanner_mode.set_text("RECON");
         }
     };
@@ -792,12 +792,12 @@ ReconView::ReconView(NavigationView& nav)
         manual_mode = false;
         if (scanner_mode) {
             scanner_mode = false;
-            button_scanner_mode.set_style(&style_blue);
+            button_scanner_mode.set_style(&Styles::blue);
             button_scanner_mode.set_text("RECON");
             button_remove.set_text("DELETE");
         } else {
             scanner_mode = true;
-            button_scanner_mode.set_style(&style_red);
+            button_scanner_mode.set_style(&Styles::red);
             button_scanner_mode.set_text("SCANNER");
             button_scanner_mode.set_text("REMOVE");
         }
@@ -861,7 +861,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     // PRE-CONFIGURATION:
-    button_scanner_mode.set_style(&style_blue);
+    button_scanner_mode.set_style(&Styles::blue);
     button_scanner_mode.set_text("RECON");
     file_name.set("=>");
 
@@ -907,31 +907,31 @@ void ReconView::frequency_file_load(bool stop_all_before) {
     std::string file_input = input_file;                // default recon mode
     if (scanner_mode) {
         file_input = output_file;
-        file_name.set_style(&style_red);
-        button_scanner_mode.set_style(&style_red);
+        file_name.set_style(&Styles::red);
+        button_scanner_mode.set_style(&Styles::red);
         button_scanner_mode.set_text("SCANNER");
     } else {
-        file_name.set_style(&style_blue);
-        button_scanner_mode.set_style(&style_blue);
+        file_name.set_style(&Styles::blue);
+        button_scanner_mode.set_style(&Styles::blue);
         button_scanner_mode.set_text("RECON");
     }
-    desc_cycle.set_style(&style_white);
+    desc_cycle.set_style(&Styles::white);
     if (!load_freqman_file_ex(file_input, frequency_list, load_freqs, load_ranges, load_hamradios, RECON_FREQMAN_MAX_PER_FILE)) {
-        file_name.set_style(&style_red);
-        desc_cycle.set_style(&style_red);
+        file_name.set_style(&Styles::red);
+        desc_cycle.set_style(&Styles::red);
         desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
         file_name.set("=> NO DATA");
     } else {
         file_name.set("=> " + file_input);
         if (frequency_list.size() == 0) {
-            file_name.set_style(&style_red);
-            desc_cycle.set_style(&style_red);
+            file_name.set_style(&Styles::red);
+            desc_cycle.set_style(&Styles::red);
             desc_cycle.set("/0 no entries in list");
             file_name.set("BadOrEmpty " + file_input);
         } else {
             if (frequency_list.size() > RECON_FREQMAN_MAX_PER_FILE) {
-                file_name.set_style(&style_yellow);
-                desc_cycle.set_style(&style_yellow);
+                file_name.set_style(&Styles::yellow);
+                desc_cycle.set_style(&Styles::yellow);
             }
         }
     }
@@ -1024,7 +1024,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             continuous_lock = false;
             freq_lock = 0;
             timer = recon_lock_duration;
-            big_display.set_style(&style_white);
+            big_display.set_style(&Styles::white);
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
         {
@@ -1239,7 +1239,7 @@ void ReconView::recon_pause() {
 
     audio_output_start();
 
-    big_display.set_style(&style_white);
+    big_display.set_style(&Styles::white);
     button_pause.set_text("<RESUME>");  // PAUSED, show resume
 }
 
@@ -1251,7 +1251,7 @@ void ReconView::recon_resume() {
 
     audio::output::stop();
 
-    big_display.set_style(&style_white);
+    big_display.set_style(&Styles::white);
     button_pause.set_text("<PAUSE>");
 }
 

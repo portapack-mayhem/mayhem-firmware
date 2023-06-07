@@ -44,6 +44,7 @@
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
+#include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
 // #include "ui_keyfob.hpp"
@@ -65,6 +66,7 @@
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
 #include "ui_sstvtx.hpp"
+#include "ui_styles.hpp"
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
@@ -104,12 +106,6 @@ namespace ui {
 SystemStatusView::SystemStatusView(
     NavigationView& nav)
     : nav_(nav) {
-    static constexpr Style style_systemstatus{
-        .font = font::fixed_8x16,
-        .background = Color::dark_grey(),
-        .foreground = Color::white(),
-    };
-
     add_children({
         &backdrop,
         &button_back,
@@ -147,7 +143,7 @@ SystemStatusView::SystemStatusView(
     }
 
     button_back.id = -1;  // Special ID used by FocusManager
-    title.set_style(&style_systemstatus);
+    title.set_style(&Styles::bg_dark_grey);
 
     if (portapack::persistent_memory::stealth_mode())
         button_stealth.set_foreground(ui::Color::green());
@@ -645,17 +641,12 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
 
 /* SystemView ************************************************************/
 
-static constexpr ui::Style style_default{
-    .font = ui::font::fixed_8x16,
-    .background = ui::Color::black(),
-    .foreground = ui::Color::white()};
-
 SystemView::SystemView(
     Context& context,
     const Rect parent_rect)
     : View{parent_rect},
       context_(context) {
-    set_style(&style_default);
+    set_style(&ui::Styles::white);
 
     constexpr ui::Dim status_view_height = 16;
     constexpr ui::Dim info_view_height = 16;

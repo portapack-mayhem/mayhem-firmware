@@ -151,8 +151,8 @@ LevelView::LevelView(NavigationView& nav)
     // FILL STEP OPTIONS
     freqman_set_modulation_option(field_mode);
     freqman_set_step_option_short(step_mode);
-    freq_stats_rssi.set_style(&style_white);
-    freq_stats_db.set_style(&style_white);
+    freq_stats_rssi.set_style(&Styles::white);
+    freq_stats_db.set_style(&Styles::white);
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {

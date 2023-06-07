@@ -26,7 +26,6 @@
 #include "ui.hpp"
 #include "file.hpp"
 #include "ui_navigation.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 #include "portapack.hpp"
 

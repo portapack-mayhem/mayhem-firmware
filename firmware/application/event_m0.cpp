@@ -42,7 +42,6 @@ using namespace lpc43xx;
 
 #include <array>
 
-#include "ui_font_fixed_8x16.hpp"
 #include "ui_navigation.hpp"
 
 extern "C" {
