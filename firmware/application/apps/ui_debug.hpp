@@ -270,9 +270,6 @@ class DebugPmemView : public View {
     void focus() override;
     bool on_encoder(const EncoderEvent delta) override;
     std::string title() const override { return "Pmem"; }
-    int32_t page{0};
-    static constexpr uint8_t page_size{96};  // Must be multiply of 4 otherwise bit shifting for register view wont work properly
-    static constexpr uint8_t page_max{(portapack::memory::map::backup_ram.size() + page_size - 1) / page_size - 1};
 
    private:
     struct pmem_data {
@@ -280,13 +277,18 @@ class DebugPmemView : public View {
         uint32_t check_value;
     };
 
+    static constexpr uint8_t page_size{96};  // Must be multiply of 4 otherwise bit shifting for register view wont work properly
+    static constexpr uint8_t page_max{(portapack::memory::map::backup_ram.size() + page_size - 1) / page_size - 1};
+
+    int32_t page{0};
+
     const pmem_data& data;
 
-    Text text_page{};
+    Text text_page{{16, 16, 208, 16}};
 
     RegistersWidget registers_widget;
 
-    Text text_checksum{};
+    Text text_checksum{{16, 240, 208, 16}};
 
     Button button_ok{
         {240 / 3, 270, 240 / 3, 24},

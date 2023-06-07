@@ -394,11 +394,8 @@ DebugPmemView::DebugPmemView(NavigationView& nav)
 
     add_children({&text_page, &registers_widget, &text_checksum, &button_ok});
 
-    text_page.set_parent_rect({16, 16, 208, 16});
-
     registers_widget.set_parent_rect({0, 32, 240, 192});
 
-    text_checksum.set_parent_rect({16, 240, 208, 16});
     text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size()) + " CRC: " + to_string_hex(data.check_value, 8));
 
     button_ok.on_select = [&nav](Button&) {
