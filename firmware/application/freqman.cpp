@@ -45,9 +45,9 @@ options_t freqman_entry_bandwidths[4] = {
      {"16k", 2}},
     {
         // WFM
-        {"200k", 0},
-        {"180k", 1},
         {"40k", 2},
+        {"180k", 1},
+        {"200k", 0},
     }};
 
 options_t freqman_entry_steps = {
@@ -85,22 +85,6 @@ options_t freqman_entry_steps_short = {
     {"250kHz", 250000},
     {"500kHz", 500000},
     {"1MHz", 1000000}};
-
-std::vector<std::string> get_freqman_files() {
-    std::vector<std::string> file_list;
-
-    auto files = scan_root_files(u"FREQMAN", u"*.TXT");
-
-    for (auto file : files) {
-        std::string file_name = file.stem().string();
-        // don't propose tmp / hidden files in freqman's list
-        if (file_name.length() && file_name[0] != '.') {
-            file_list.emplace_back(file_name);
-        }
-    }
-
-    return file_list;
-};
 
 bool load_freqman_file(std::string& file_stem, freqman_db& db) {
     return load_freqman_file_ex(file_stem, db, true, true, true, FREQMAN_MAX_PER_FILE);
@@ -299,26 +283,15 @@ bool get_freq_string(freqman_entry& entry, std::string& item_string) {
 
 bool save_freqman_file(std::string& file_stem, freqman_db& db) {
     File freqman_file;
-
-    std::string freq_file_path = "FREQMAN/" + file_stem + ".TXT";
-    std::string tmp_freq_file_path = "FREQMAN/" + file_stem + ".TXT.TMP";
-
-    if (!db.size()) {
-        delete_file("FREQMAN/" + file_stem + ".TXT");
-        return true;
-    }
-
-    delete_file(tmp_freq_file_path);
-    auto result = freqman_file.open(tmp_freq_file_path);
+    std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
+    delete_file(freq_file_path);
+    auto result = freqman_file.create(freq_file_path);
     if (!result.is_valid()) {
         for (size_t n = 0; n < db.size(); n++) {
-            std::string item_string;
-            auto& entry = db[n];
-            get_freq_string(entry, item_string);
-            freqman_file.write_line(item_string);
+            std::string line;
+            get_freq_string(db[n], line);
+            freqman_file.write_line(line);
         }
-        delete_file(freq_file_path);
-        rename_file(tmp_freq_file_path, freq_file_path);
         return true;
     }
     return false;
