@@ -35,7 +35,7 @@ class GoertzelDetector {
 
    private:
     float coefficient{};
-    int16_t s[2]{0};
+    int16_t s[3]{0};
 };
 
 } /* namespace dsp */
