@@ -257,6 +257,8 @@ bool should_use_sdcard_for_pmem();
 int save_persistent_settings_to_file();
 int load_persistent_settings_from_file();
 
+size_t data_size();
+
 } /* namespace persistent_memory */
 
 } /* namespace portapack */
