@@ -226,8 +226,13 @@ void FrequencyManagerView::on_new_category(NavigationView& nav) {
 }
 
 void FrequencyManagerView::on_delete() {
-    database.erase(database.begin() + menu_view.get_index());
-    save_freqman_file(file_list[categories[current_category_id].second], database);
+    if (database.empty()) {
+        delete_freqman_file(file_list[categories[current_category_id].second]);
+        refresh_list();
+    } else {
+        database.erase(database.begin() + menu_view.get_index());
+        save_freqman_file(file_list[categories[current_category_id].second], database);
+    }
     change_category(current_category_id);
 }
 
@@ -272,6 +277,9 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_edit_freq.on_select = [this, &nav](Button&) {
+        if (database.empty()) {
+            database.push_back({0, 0, "", SINGLE});
+        }
         auto new_view = nav.push<FrequencyKeypadView>(database[menu_view.get_index()].frequency_a);
         new_view->on_changed = [this](rf::Frequency f) {
             on_edit_freq(f);
@@ -279,6 +287,9 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_edit_desc.on_select = [this, &nav](Button&) {
+        if (database.empty()) {
+            database.push_back({0, 0, "", SINGLE});
+        }
         desc_buffer = database[menu_view.get_index()].description;
         on_edit_desc(nav);
     };
