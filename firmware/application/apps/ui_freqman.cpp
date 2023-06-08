@@ -277,9 +277,9 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_edit_freq.on_select = [this, &nav](Button&) {
-        if (database.empty()) 
+        if (database.empty()) {
             database.push_back({0, 0, "", SINGLE});
-
+        }
         auto new_view = nav.push<FrequencyKeypadView>(database[menu_view.get_index()].frequency_a);
         new_view->on_changed = [this](rf::Frequency f) {
             on_edit_freq(f);
@@ -287,9 +287,9 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_edit_desc.on_select = [this, &nav](Button&) {
-        if (database.empty()) 
+        if (database.empty()) {
             database.push_back({0, 0, "", SINGLE});
-
+        }
         desc_buffer = database[menu_view.get_index()].description;
         on_edit_desc(nav);
     };
