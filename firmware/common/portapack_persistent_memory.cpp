@@ -354,8 +354,8 @@ struct data_t {
 
 struct backup_ram_t {
    private:
-    uint32_t regfile[63];
-    uint32_t check_value;
+    volatile uint32_t regfile[63];
+    volatile uint32_t check_value;
 
     static void copy(const backup_ram_t& src, backup_ram_t& dst) {
         for (size_t i = 0; i < 63; i++) {
