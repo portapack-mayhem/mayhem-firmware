@@ -350,7 +350,6 @@ LNAGainField::LNAGainField(
 }
 
 void LNAGainField::on_focus() {
-    // Widget::on_focus();
     if (on_show_options) {
         on_show_options();
     }
@@ -375,7 +374,6 @@ VGAGainField::VGAGainField(
 }
 
 void VGAGainField::on_focus() {
-    // Widget::on_focus();
     if (on_show_options) {
         on_show_options();
     }

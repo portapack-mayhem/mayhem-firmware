@@ -26,86 +26,144 @@
 #include "file.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
-#include <cstring>
+
 #include <algorithm>
+#include <cstring>
+#include <string_view>
 
-namespace std {
+namespace fs = std::filesystem;
+using namespace portapack;
+using namespace std::literals;
 
-int app_settings::load(std::string application, AppSettings* settings) {
-    if (portapack::persistent_memory::load_app_settings()) {
-        file_path = folder + "/" + application + ".ini";
+namespace app_settings {
+constexpr auto settings_folder = u"SETTINGS";
 
-        auto error = settings_file.open(file_path);
-        if (!error.is_valid()) {
-            auto error = settings_file.read(file_content, std::min((int)settings_file.size(), MAX_FILE_CONTENT_SIZE));
+template <typename T>
+static void read_setting(
+    std::string_view file_content,
+    std::string_view setting_name,
+    T& value) {
+    auto pos = file_content.find(setting_name);
 
-            settings->baseband_bandwidth = std::app_settings::read_long_long(file_content, "baseband_bandwidth=");
-            settings->channel_bandwidth = std::app_settings::read_long_long(file_content, "channel_bandwidth=");
-            settings->lna = std::app_settings::read_long_long(file_content, "lna=");
-            settings->modulation = std::app_settings::read_long_long(file_content, "modulation=");
-            settings->rx_amp = std::app_settings::read_long_long(file_content, "rx_amp=");
-            settings->rx_frequency = std::app_settings::read_long_long(file_content, "rx_frequency=");
-            settings->sampling_rate = std::app_settings::read_long_long(file_content, "sampling_rate=");
-            settings->vga = std::app_settings::read_long_long(file_content, "vga=");
-            settings->tx_amp = std::app_settings::read_long_long(file_content, "tx_amp=");
-            settings->tx_frequency = std::app_settings::read_long_long(file_content, "tx_frequency=");
-            settings->tx_gain = std::app_settings::read_long_long(file_content, "tx_gain=");
-            settings->step = std::app_settings::read_long_long(file_content, "step=");
-            settings->modulation = std::app_settings::read_long_long(file_content, "modulation=");
-            settings->am_config_index = std::app_settings::read_long_long(file_content, "am_config_index=");
-            settings->nbfm_config_index = std::app_settings::read_long_long(file_content, "nbfm_config_index=");
-            settings->wfm_config_index = std::app_settings::read_long_long(file_content, "wfm_config_index=");
-            settings->squelch = std::app_settings::read_long_long(file_content, "squelch=");
-
-            rc = SETTINGS_OK;
-        } else
-            rc = SETTINGS_UNABLE_TO_LOAD;
-    } else
-        rc = SETTINGS_DISABLED;
-    return (rc);
-}
-
-int app_settings::save(std::string application, AppSettings* settings) {
-    if (portapack::persistent_memory::save_app_settings()) {
-        file_path = folder + "/" + application + ".ini";
-        make_new_directory(folder);
-
-        auto error = settings_file.create(file_path);
-        if (!error.is_valid()) {
-            // Save common setting
-            settings_file.write_line("baseband_bandwidth=" + to_string_dec_uint(portapack::receiver_model.baseband_bandwidth()));
-            settings_file.write_line("channel_bandwidth=" + to_string_dec_uint(portapack::transmitter_model.channel_bandwidth()));
-            settings_file.write_line("lna=" + to_string_dec_uint(portapack::receiver_model.lna()));
-            settings_file.write_line("rx_amp=" + to_string_dec_uint(portapack::receiver_model.rf_amp()));
-            settings_file.write_line("sampling_rate=" + to_string_dec_uint(portapack::receiver_model.sampling_rate()));
-            settings_file.write_line("tx_amp=" + to_string_dec_uint(portapack::transmitter_model.rf_amp()));
-            settings_file.write_line("tx_gain=" + to_string_dec_uint(portapack::transmitter_model.tx_gain()));
-            settings_file.write_line("vga=" + to_string_dec_uint(portapack::receiver_model.vga()));
-            // Save other settings from struct
-            settings_file.write_line("rx_frequency=" + to_string_dec_uint(settings->rx_frequency));
-            settings_file.write_line("tx_frequency=" + to_string_dec_uint(settings->tx_frequency));
-            settings_file.write_line("step=" + to_string_dec_uint(settings->step));
-            settings_file.write_line("modulation=" + to_string_dec_uint(settings->modulation));
-            settings_file.write_line("am_config_index=" + to_string_dec_uint(settings->am_config_index));
-            settings_file.write_line("nbfm_config_index=" + to_string_dec_uint(settings->nbfm_config_index));
-            settings_file.write_line("wfm_config_index=" + to_string_dec_uint(settings->wfm_config_index));
-            settings_file.write_line("squelch=" + to_string_dec_uint(settings->squelch));
-
-            rc = SETTINGS_OK;
-        } else
-            rc = SETTINGS_UNABLE_TO_SAVE;
-    } else
-        rc = SETTINGS_DISABLED;
-    return (rc);
-}
-
-long long int app_settings::read_long_long(char* file_content, const char* setting_text) {
-    auto position = strstr(file_content, (char*)setting_text);
-    if (position) {
-        position += strlen((char*)setting_text);
-        setting_value = strtoll(position, nullptr, 10);
+    if (pos != file_content.npos) {
+        pos += setting_name.length();
+        value = strtoll(&file_content[pos], nullptr, 10);
     }
-    return (setting_value);
 }
 
-} /* namespace std */
+template <typename T>
+static void write_setting(File& file, std::string_view setting_name, const T& value) {
+    file.write_line(std::string{setting_name} + to_string_dec_uint(value));
+}
+
+namespace setting {
+constexpr std::string_view baseband_bandwidth = "baseband_bandwidth="sv;
+constexpr std::string_view sampling_rate = "sampling_rate="sv;
+constexpr std::string_view channel_bandwidth = "channel_bandwidth="sv;
+constexpr std::string_view lna = "lna="sv;
+constexpr std::string_view vga = "vga="sv;
+constexpr std::string_view rx_amp = "rx_amp="sv;
+constexpr std::string_view tx_amp = "tx_amp="sv;
+constexpr std::string_view tx_gain = "tx_gain="sv;
+constexpr std::string_view rx_frequency = "rx_frequency="sv;
+constexpr std::string_view tx_frequency = "tx_frequency="sv;
+constexpr std::string_view step = "step="sv;
+constexpr std::string_view modulation = "modulation="sv;
+constexpr std::string_view am_config_index = "am_config_index="sv;
+constexpr std::string_view nbfm_config_index = "nbfm_config_index="sv;
+constexpr std::string_view wfm_config_index = "wfm_config_index="sv;
+constexpr std::string_view squelch = "squelch="sv;
+}  // namespace setting
+
+AppSettingsResult load_settings(const std::string& app_name, AppSettings& settings) {
+    if (!portapack::persistent_memory::load_app_settings())
+        return AppSettingsResult::SettingsDisabled;
+
+    auto file_path = fs::path{settings_folder} / app_name + u".ini";
+    auto data = File::read_file(file_path);
+
+    if (!data)
+        return AppSettingsResult::LoadFailed;
+
+    read_setting(*data, setting::baseband_bandwidth, settings.baseband_bandwidth);
+    read_setting(*data, setting::sampling_rate, settings.sampling_rate);
+    read_setting(*data, setting::channel_bandwidth, settings.channel_bandwidth);
+    read_setting(*data, setting::lna, settings.lna);
+    read_setting(*data, setting::vga, settings.vga);
+    read_setting(*data, setting::rx_amp, settings.rx_amp);
+    read_setting(*data, setting::tx_amp, settings.tx_amp);
+    read_setting(*data, setting::tx_gain, settings.tx_gain);
+
+    read_setting(*data, setting::rx_frequency, settings.rx_frequency);
+    read_setting(*data, setting::tx_frequency, settings.tx_frequency);
+    read_setting(*data, setting::step, settings.step);
+    read_setting(*data, setting::modulation, settings.modulation);
+    read_setting(*data, setting::am_config_index, settings.am_config_index);
+    read_setting(*data, setting::nbfm_config_index, settings.nbfm_config_index);
+    read_setting(*data, setting::wfm_config_index, settings.wfm_config_index);
+    read_setting(*data, setting::squelch, settings.squelch);
+
+    return AppSettingsResult::Ok;
+}
+
+AppSettingsResult save_settings(const std::string& app_name, AppSettings& settings) {
+    if (portapack::persistent_memory::save_app_settings())
+        return AppSettingsResult::SettingsDisabled;
+
+    File settings_file;
+    auto file_path = fs::path{settings_folder} / app_name + u".ini";
+    ensure_directory(settings_folder);
+
+    auto error = settings_file.create(file_path);
+    if (error)
+        return AppSettingsResult::SaveFailed;
+
+    write_setting(settings_file, setting::baseband_bandwidth, settings.baseband_bandwidth);
+    write_setting(settings_file, setting::sampling_rate, settings.sampling_rate);
+    write_setting(settings_file, setting::channel_bandwidth, settings.channel_bandwidth);
+    write_setting(settings_file, setting::lna, settings.lna);
+    write_setting(settings_file, setting::vga, settings.vga);
+    write_setting(settings_file, setting::rx_amp, settings.rx_amp);
+    write_setting(settings_file, setting::tx_amp, settings.tx_amp);
+    write_setting(settings_file, setting::tx_gain, settings.tx_gain);
+
+    write_setting(settings_file, setting::rx_frequency, settings.rx_frequency);
+    write_setting(settings_file, setting::tx_frequency, settings.tx_frequency);
+    write_setting(settings_file, setting::step, settings.step);
+    write_setting(settings_file, setting::modulation, settings.modulation);
+    write_setting(settings_file, setting::am_config_index, settings.am_config_index);
+    write_setting(settings_file, setting::nbfm_config_index, settings.nbfm_config_index);
+    write_setting(settings_file, setting::wfm_config_index, settings.wfm_config_index);
+    write_setting(settings_file, setting::squelch, settings.squelch);
+
+    return AppSettingsResult::Ok;
+}
+
+void copy_to_radio_model(const AppSettings& settings) {
+    // TODO
+}
+
+void copy_from_radio_model(AppSettings& settings) {
+    settings.baseband_bandwidth = receiver_model.baseband_bandwidth();
+    settings.sampling_rate = receiver_model.receiver_model.sampling_rate();
+    settings.channel_bandwidth = transmitter_model.channel_bandwidth();
+    settings.lna = receiver_model.lna();
+    settings.vga = receiver_model.vga();
+    settings.rx_amp = receiver_model.rf_amp();
+    settings.tx_amp = transmitter_model.rf_amp();
+    settings.tx_gain = transmitter_model.tx_gain();
+}
+
+/* AutoAppSettings *************************************************/
+AutoAppSettings::AutoAppSettings(std::string application)
+    : app_name_{std::move(application)},
+      settings_{} {
+    load_settings(app_name_, settings_);
+}
+
+AutoAppSettings::~AutoAppSettings() {
+    copy_from_radio_model(settings_);
+    save_settings(app_name_, settings_);
+}
+
+}  // namespace app_settings

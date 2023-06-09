@@ -27,53 +27,67 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <utility>
 
 #include "file.hpp"
 #include "string_format.hpp"
 
-namespace std {
-class app_settings {
+namespace app_settings {
+
+enum class AppSettingsResult : uint8_t {
+    Ok,                // settings found
+    LoadFailed,        // settings (file) not found
+    SaveFailed,        // unable to save settings
+    SettingsDisabled,  // load/save disabled in settings
+};
+
+struct AppSettings {
+    // The following are accessed via receiver/transmitter models.
+    uint32_t baseband_bandwidth;
+    uint32_t sampling_rate;
+    uint32_t channel_bandwidth;
+    uint8_t lna;
+    uint8_t vga;
+    uint8_t rx_amp;
+    uint8_t tx_amp;
+    uint8_t tx_gain;
+
+    uint32_t rx_frequency;
+    uint32_t tx_frequency;
+    uint32_t step;
+    uint8_t modulation;
+    uint8_t am_config_index;
+    uint8_t nbfm_config_index;
+    uint8_t wfm_config_index;
+    uint8_t squelch;
+};
+
+AppSettingsResult load_settings(const std::string& app_name, AppSettings& settings);
+AppSettingsResult save_settings(const std::string& app_name, AppSettings& settings);
+
+/* Copies common values to the receiver/transmitter models. */
+void copy_to_radio_model(const AppSettings& settings);
+
+/* Copies common values from the receiver/transmitter models. */
+void copy_from_radio_model(AppSettings& settings);
+
+/* RAII wrapper for automatically loading and saving settings for an app.
+ * NB: This should be added to a class before any LNA/VGA controls so that
+ * the receiver/transmitter models are set before the control ctors run. */
+class AutoAppSettings {
    public:
-#define SETTINGS_OK 0               // settings found
-#define SETTINGS_UNABLE_TO_LOAD -1  // settings (file) not found
-#define SETTINGS_UNABLE_TO_SAVE -2  // unable to save settings
-#define SETTINGS_DISABLED -3        // load/save settings disabled in settings
+    AutoAppSettings(std::string application);
+    ~AutoAppSettings();
 
-    struct AppSettings {
-        uint32_t baseband_bandwidth;
-        uint32_t channel_bandwidth;
-        uint8_t lna;
-        uint8_t modulation;
-        uint8_t rx_amp;
-        uint32_t rx_frequency;
-        uint32_t sampling_rate;
-        uint8_t tx_amp;
-        uint32_t tx_frequency;
-        uint8_t tx_gain;
-        uint8_t vga;
-        uint32_t step;
-        uint8_t am_config_index;
-        uint8_t nbfm_config_index;
-        uint8_t wfm_config_index;
-        uint8_t squelch;
-    };
+    // TODO: No move/copy.
 
-    int load(std::string application, AppSettings* settings);
-    int save(std::string application, AppSettings* settings);
+    AppSettings& settings() { return settings_; }
 
    private:
-#define MAX_FILE_CONTENT_SIZE 1000
+    std::string app_name_;
+    AppSettings settings_;
+};
 
-    char file_content[MAX_FILE_CONTENT_SIZE] = {};
-    std::string file_path = "";
-    std::string folder = "SETTINGS";
-    int rc = SETTINGS_OK;
-    File settings_file{};
-    long long int setting_value{};
-
-    long long int read_long_long(char* file_content, const char* setting_text);
-
-};  // class app_settings
-}  // namespace std
+}  // namespace app_settings
 
 #endif /*__APP_SETTINGS_H__*/
