@@ -43,21 +43,25 @@ class TransmitterModel {
     bool rf_amp() const;
     void set_rf_amp(bool enabled);
 
+    // TODO: does this make sense on TX?
     int32_t lna() const;
     void set_lna(int32_t v_db);
 
     uint32_t baseband_bandwidth() const;
     void set_baseband_bandwidth(uint32_t v);
 
+    // TODO: does this make sense on TX?
     int32_t vga() const;
     void set_vga(int32_t v_db);
 
     int32_t tx_gain() const;
     void set_tx_gain(int32_t v_db);
 
-    uint32_t channel_bandwidth() const;
-    void set_channel_bandwidth(uint32_t v);
+    // Unused
+    /*uint32_t channel_bandwidth() const;
+    void set_channel_bandwidth(uint32_t v);*/
 
+    // TODO: does this make sense on TX?
     uint32_t sampling_rate() const;
     void set_sampling_rate(uint32_t v);
 
@@ -68,7 +72,7 @@ class TransmitterModel {
     bool enabled_{false};
     bool rf_amp_{false};
     int32_t lna_gain_db_{0};
-    uint32_t channel_bandwidth_{1};
+    //uint32_t channel_bandwidth_{1};
     uint32_t baseband_bandwidth_{max2837::filter::bandwidth_minimum};
     int32_t vga_gain_db_{8};
     /* 35 should give approx 1m transmission range. */

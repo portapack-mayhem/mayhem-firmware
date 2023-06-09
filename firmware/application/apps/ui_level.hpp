@@ -53,6 +53,9 @@ class LevelView : public View {
    private:
     NavigationView& nav_;
 
+    app_settings::SettingsManager settings_{
+        "rx_level", app_settings::Mode::RX};
+
     size_t change_mode(freqman_index_t mod_type);
     void on_statistics_update(const ChannelStatistics& statistics);
     void set_display_freq(int64_t freq);
@@ -168,9 +171,6 @@ class LevelView : public View {
         [this](const Message* const p) {
             this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
 };
 
 } /* namespace ui */

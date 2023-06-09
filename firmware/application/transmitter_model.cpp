@@ -84,13 +84,13 @@ void TransmitterModel::set_vga(int32_t v_db) {
     update_vga();
 }
 
-uint32_t TransmitterModel::channel_bandwidth() const {
+/*uint32_t TransmitterModel::channel_bandwidth() const {
     return channel_bandwidth_;
 }
 
 void TransmitterModel::set_channel_bandwidth(uint32_t v) {
     channel_bandwidth_ = v;
-}
+}*/
 
 uint32_t TransmitterModel::sampling_rate() const {
     return sampling_rate_;
@@ -131,6 +131,7 @@ void TransmitterModel::enable() {
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
+
     if (portapack::persistent_memory::stealth_mode()) {
         DisplaySleepMessage message;
         EventDispatcher::send_message(message);

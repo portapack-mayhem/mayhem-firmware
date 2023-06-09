@@ -340,6 +340,9 @@ class ADSBRxView : public View {
     void sort_entries_by_state();
 
    private:
+    app_settings::SettingsManager settings_{
+        "rx_adsb", app_settings::Mode::RX};
+
     rf::Frequency prevFreq = {0};
     std::unique_ptr<ADSBLogger> logger{};
     void on_frame(const ADSBFrameMessage* message);
@@ -350,9 +353,6 @@ class ADSBRxView : public View {
 
 #define MARKER_UPDATE_SECONDS (5)
     int ticksSinceMarkerRefresh{MARKER_UPDATE_SECONDS - 1};
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
 
     const RecentEntriesColumns columns{{{"ICAO/Call", 9},
                                         {"Lvl", 3},

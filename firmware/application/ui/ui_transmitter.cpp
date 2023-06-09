@@ -20,16 +20,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// TODO: Consolidate and make TX Widgets instead like ui_receiver.
+
 #include "ui_transmitter.hpp"
 
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
-using namespace portapack;
-
 #include "string_format.hpp"
-
 #include "max2837.hpp"
+
+using namespace portapack;
 
 namespace ui {
 
@@ -189,14 +190,10 @@ TransmitterView::~TransmitterView() {
 }
 
 /* TransmitterView2 *******************************************************/
-// Derivative from TransmitterView (that handles many param. freq, fre_step, start_button, gain, amp, used in the majority of the TX App's.
-// This one ,is a simple version ,  it is only handling 2 x param  (TX GAIN and AMP ) in one line .
-// We use normal character lines , in Mic App,  called (x pos, y pos,  NORMAL_UI)
-// We use short compact char lines , in Replay / GPS Simul / Playlist App , called (x pos , y pos,SHORT_UI )
-
-void TransmitterView2::paint(Painter& painter) {
-    //	Not using TransmitterView2, but if we delete it,we got , top line 1 a blanking rect.
-    (void)painter;  // Avoid  warning: unused parameter .
+/* Simpler transmitter view that only renders TX Gain and Amp.
+ * There are two modes, NORMAL_UI and SHORT_UI. SHORT_UI abbreviates control labels. */
+void TransmitterView2::paint(Painter&) {
+    // All widgets paint themselves. Don't let base paint.
 }
 
 void TransmitterView2::on_tx_gain_changed(int32_t tx_gain) {
@@ -241,7 +238,7 @@ void TransmitterView2::on_show() {
 }
 
 TransmitterView2::TransmitterView2(const Coord x, const Coord y, bool short_UI) {
-    set_parent_rect({x, y, 20 * 8, 1 * 8});  // set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
+    set_parent_rect({x, y, 20 * 8, 1 * 8});
 
     add_children({
         &(short_UI ? text_gain_amp_short_UI : text_gain_amp),

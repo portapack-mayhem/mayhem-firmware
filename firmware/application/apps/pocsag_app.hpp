@@ -60,9 +60,8 @@ class POCSAGAppView : public View {
     bool logging() const { return check_log.value(); };
     bool ignore() const { return check_ignore.value(); };
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_pocsag", app_settings::Mode::RX};
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};

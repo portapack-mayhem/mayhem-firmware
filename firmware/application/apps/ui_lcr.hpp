@@ -79,9 +79,8 @@ class LCRView : public View {
         SCAN
     };
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_lcr", app_settings::Mode::TX};
 
     tx_modes tx_mode = IDLE;
     uint8_t scan_count{0}, scan_index{0};

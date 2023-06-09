@@ -43,9 +43,8 @@ class APRSTXView : public View {
     std::string title() const override { return "APRS TX"; };
 
    private:
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_aprs", app_settings::Mode::TX};
 
     std::string payload{""};
 

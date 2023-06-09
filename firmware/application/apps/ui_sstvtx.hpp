@@ -56,11 +56,10 @@ class SSTVTXView : public View {
 
    private:
     NavigationView& nav_;
+    app_settings::SettingsManager settings_{
+        "tx_sstv", app_settings::Mode::TX};
 
     sstv_scanline scanline_buffer{};
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
 
     bool file_error{false};
     File bmp_file{};

@@ -49,9 +49,8 @@ class LGEView : public View {
         ALL
     };
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_lge", app_settings::Mode::TX};
 
     tx_modes tx_mode = IDLE;
 

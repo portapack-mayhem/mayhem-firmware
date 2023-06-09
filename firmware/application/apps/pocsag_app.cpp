@@ -79,19 +79,19 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
         update_freq(f);
     };
 
-    // load app settings TODO: needed?
-    auto rc = settings.load("rx_pocsag", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-        field_frequency.set_value(app_settings.rx_frequency);
-    } else {
-        field_lna.set_value(receiver_model.lna());
-        field_vga.set_value(receiver_model.vga());
-        field_rf_amp.set_value(receiver_model.rf_amp());
-        field_frequency.set_value(receiver_model.tuning_frequency());
-    }
+    // // load app settings TODO: needed?
+    // auto rc = settings.load("rx_pocsag", &app_settings);
+    // if (rc == SETTINGS_OK) {
+    //     field_lna.set_value(app_settings.lna);
+    //     field_vga.set_value(app_settings.vga);
+    //     field_rf_amp.set_value(app_settings.rx_amp);
+    //     field_frequency.set_value(app_settings.rx_frequency);
+    // } else {
+    //     field_lna.set_value(receiver_model.lna());
+    //     field_vga.set_value(receiver_model.vga());
+    //     field_rf_amp.set_value(receiver_model.rf_amp());
+    //     field_frequency.set_value(receiver_model.tuning_frequency());
+    // }
 
     receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.set_sampling_rate(3072000);
@@ -128,9 +128,9 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 }
 
 POCSAGAppView::~POCSAGAppView() {
-    // save app settings
-    app_settings.rx_frequency = field_frequency.value();
-    settings.save("rx_pocsag", &app_settings);
+    // // save app settings
+    // app_settings.rx_frequency = field_frequency.value();
+    // settings.save("rx_pocsag", &app_settings);
 
     audio::output::stop();
 

@@ -43,8 +43,8 @@ class KeyfobView : public View {
     NavigationView& nav_;
 
     // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_keyfob", , app_settings::Mode::TX};
 
     // 1013210ns / bit
     static constexpr uint32_t subaru_samples_per_bit = (OOK_SAMPLERATE * 0.00101321);

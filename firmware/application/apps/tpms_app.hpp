@@ -105,9 +105,8 @@ class TPMSAppView : public View {
     static constexpr uint32_t sampling_rate = 2457600;
     static constexpr uint32_t baseband_bandwidth = 1750000;
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_tpms", app_settings::Mode::RX};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::TPMSPacket,

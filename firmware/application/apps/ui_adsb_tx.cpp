@@ -278,7 +278,7 @@ ADSBTxView::~ADSBTxView() {
     settings.save("tx_adsb", &app_settings);
 
     transmitter_model.disable();
-    hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, withouth ghost signal problem at the exit .
+    hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, withouth ghost signal problem at the exit.
     baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
 }
 
@@ -336,7 +336,7 @@ ADSBTxView::ADSBTxView(
     }
 
     tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
             transmitter_model.set_tuning_frequency(f);
         };

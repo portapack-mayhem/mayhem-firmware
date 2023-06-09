@@ -201,9 +201,8 @@ class ADSBTxView : public View {
                 -1
         };*/
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_adsb", app_settings::Mode::TX};
 
     // tx_modes tx_mode = IDLE;
     NavigationView& nav_;

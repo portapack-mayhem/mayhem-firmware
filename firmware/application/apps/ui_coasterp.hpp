@@ -51,8 +51,8 @@ class CoasterPagerView : public View {
     tx_modes tx_mode = IDLE;
 
     // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_coaster", app_settings::Mode::TX};
 
     void start_tx();
     void generate_frame();

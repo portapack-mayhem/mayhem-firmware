@@ -49,11 +49,10 @@ class SoundBoardView : public View {
     std::string title() const override { return "Soundbrd TX"; };
 
    private:
-    NavigationView& nav_;
+    app_settings::SettingsManager settings_{
+        "tx_soundboard", app_settings::Mode::TX};
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    NavigationView& nav_;
 
     enum tx_modes {
         NORMAL = 0,

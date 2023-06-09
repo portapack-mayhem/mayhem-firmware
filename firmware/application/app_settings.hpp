@@ -34,24 +34,28 @@
 
 namespace app_settings {
 
-enum class AppSettingsResult : uint8_t {
+enum class ResultCode : uint8_t {
     Ok,                // settings found
     LoadFailed,        // settings (file) not found
     SaveFailed,        // unable to save settings
     SettingsDisabled,  // load/save disabled in settings
 };
 
+enum class Mode : uint8_t {
+    RX,
+    TX
+};
+
+// TODO: separate types for TX/RX or union?
 struct AppSettings {
-    // The following are accessed via receiver/transmitter models.
+    Mode mode;
     uint32_t baseband_bandwidth;
     uint32_t sampling_rate;
-    uint32_t channel_bandwidth;
     uint8_t lna;
     uint8_t vga;
     uint8_t rx_amp;
     uint8_t tx_amp;
     uint8_t tx_gain;
-
     uint32_t rx_frequency;
     uint32_t tx_frequency;
     uint32_t step;
@@ -60,10 +64,12 @@ struct AppSettings {
     uint8_t nbfm_config_index;
     uint8_t wfm_config_index;
     uint8_t squelch;
+
+    uint8_t volume;
 };
 
-AppSettingsResult load_settings(const std::string& app_name, AppSettings& settings);
-AppSettingsResult save_settings(const std::string& app_name, AppSettings& settings);
+ResultCode load_settings(const std::string& app_name, AppSettings& settings);
+ResultCode save_settings(const std::string& app_name, AppSettings& settings);
 
 /* Copies common values to the receiver/transmitter models. */
 void copy_to_radio_model(const AppSettings& settings);
@@ -74,18 +80,25 @@ void copy_from_radio_model(AppSettings& settings);
 /* RAII wrapper for automatically loading and saving settings for an app.
  * NB: This should be added to a class before any LNA/VGA controls so that
  * the receiver/transmitter models are set before the control ctors run. */
-class AutoAppSettings {
+class SettingsManager {
    public:
-    AutoAppSettings(std::string application);
-    ~AutoAppSettings();
+    SettingsManager(std::string app_name, Mode mode);
+    ~SettingsManager();
 
-    // TODO: No move/copy.
+    SettingsManager(const SettingsManager&) = delete;
+    SettingsManager& operator=(const SettingsManager&) = delete;
+    SettingsManager(SettingsManager&&) = delete;
+    SettingsManager& operator=(SettingsManager&&) = delete;
 
-    AppSettings& settings() { return settings_; }
+    bool valid() const { return valid_; }
+    Mode mode() const { return settings_.mode; }
+
+    AppSettings& get() { return settings_; }
 
    private:
     std::string app_name_;
     AppSettings settings_;
+    bool valid_;
 };
 
 }  // namespace app_settings

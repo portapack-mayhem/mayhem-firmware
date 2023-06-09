@@ -380,15 +380,15 @@ AISAppView::AISAppView(NavigationView& nav)
         &recent_entry_detail_view,
     });
 
-    // load app settings
-    auto rc = settings.load("rx_ais", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-        target_frequency_ = app_settings.rx_frequency;
-    } else
-        target_frequency_ = initial_target_frequency;
+    // // load app settings
+    // auto rc = settings.load("rx_ais", &app_settings);
+    // if (rc == SETTINGS_OK) {
+    //     field_lna.set_value(app_settings.lna);
+    //     field_vga.set_value(app_settings.vga);
+    //     field_rf_amp.set_value(app_settings.rx_amp);
+    //     target_frequency_ = app_settings.rx_frequency;
+    // } else
+    //     target_frequency_ = initial_target_frequency;
 
     recent_entry_detail_view.hidden(true);
 
@@ -416,9 +416,9 @@ AISAppView::AISAppView(NavigationView& nav)
 }
 
 AISAppView::~AISAppView() {
-    // save app settings
-    app_settings.rx_frequency = target_frequency_;
-    settings.save("rx_ais", &app_settings);
+    // // save app settings
+    // app_settings.rx_frequency = target_frequency_;
+    // settings.save("rx_ais", &app_settings);
 
     receiver_model.disable();
 

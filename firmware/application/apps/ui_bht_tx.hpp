@@ -165,9 +165,8 @@ class BHTView : public View {
     std::string title() const override { return "BHT TX"; };
 
    private:
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_bht", app_settings::Mode::TX};
 
     void on_tx_progress(const uint32_t progress, const bool done);
     void start_tx();

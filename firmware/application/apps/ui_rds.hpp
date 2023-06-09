@@ -140,9 +140,8 @@ class RDSView : public View {
     NavigationView& nav_;
     RDS_flags rds_flags{};
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_rds", app_settings::Mode::TX};
 
     std::vector<RDSGroup> frame_psn{};
     std::vector<RDSGroup> frame_radiotext{};
