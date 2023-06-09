@@ -83,6 +83,7 @@ class GlassView : public View {
     rf::Frequency get_freq_from_bin_pos(uint8_t pos);
     void on_marker_change();
     void retune();
+    bool process_bins(uint8_t* powerlevel);
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void do_timers();
     void on_range_changed();

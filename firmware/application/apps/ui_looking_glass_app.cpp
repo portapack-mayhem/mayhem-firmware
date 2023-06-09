@@ -149,6 +149,31 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
     }
 }
 
+bool GlassView::process_bins(uint8_t* powerlevel) {
+    bins_Hz_size += each_bin_size;          // add the ignored DC spike to "pixel fulfilled bag of Hz"
+    if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
+    {
+        if (*powerlevel > min_color_power)
+            add_spectrum_pixel(*powerlevel);  // Pixel will represent max_power
+        else
+            add_spectrum_pixel(0);  // Filtered out, show black
+        *powerlevel = 0;
+
+        if (!pixel_index)  // Received indication that a waterfall line has been completed
+        {
+            bins_Hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
+            if (mode != LOOKING_GLASS_SINGLEPASS) {
+                f_center = f_center_ini;
+                retune();
+            } else
+                baseband::spectrum_streaming_start();
+            return true;  // signal a new line
+        }
+        bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
+    }
+    return false;
+}
+
 // Apparently, the spectrum object returns an array of SPEC_NB_BINS (256) bins
 // Each having the radio signal power for it's corresponding frequency slot
 void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
@@ -157,55 +182,19 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     // we actually need SCREEN_W (240) of those bins
     for (bin = 0; bin < bin_length; bin++) {
         get_max_power(spectrum, bin, max_power);
+        // process dc spike if enable
         if (bin == 119) {
             uint8_t next_max_power = 0;
             get_max_power(spectrum, bin + 1, next_max_power);
-            uint8_t med_max_power = (max_power + next_max_power) / 2;
             for (uint8_t it = 0; it < ignore_dc; it++) {
-                bins_Hz_size += each_bin_size;          // add the ignored DC spike to "pixel fulfilled bag of Hz"
-                if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
-                {
-                    if (med_max_power > min_color_power)
-                        add_spectrum_pixel(med_max_power);  // Pixel will represent max_power
-                    else
-                        add_spectrum_pixel(0);  // Filtered out, show black
-
-                    if (!pixel_index)  // Received indication that a waterfall line has been completed
-                    {
-                        bins_Hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                        if (mode != LOOKING_GLASS_SINGLEPASS) {
-                            f_center = f_center_ini;
-                            retune();
-                        } else
-                            baseband::spectrum_streaming_start();
-                        return;  // signal a new line
-                    }
-                    bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
-                }
+                uint8_t med_max_power = (max_power + next_max_power) / 2;  // due to the way process_bins works we have to keep resetting the color
+                if (process_bins(&med_max_power) == true)
+                    return;  // new line signaled, return
             }
         }
-        bins_Hz_size += each_bin_size;          // add this bin Hz count into the "pixel fulfilled bag of Hz"
-        if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
-        {
-            if (min_color_power < max_power)
-                add_spectrum_pixel(max_power);  // Pixel will represent max_power
-            else
-                add_spectrum_pixel(0);  // Filtered out, show black
-
-            max_power = 0;
-
-            if (!pixel_index)  // Received indication that a waterfall line has been completed
-            {
-                bins_Hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
-                if (mode != LOOKING_GLASS_SINGLEPASS) {
-                    f_center = f_center_ini;
-                    retune();
-                } else
-                    baseband::spectrum_streaming_start();
-                return;  // signal a new line
-            }
-            bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
-        }
+        // process actual bin
+        if (process_bins(&max_power) == true)
+            return;  // new line signaled, return
     }
     if (mode != LOOKING_GLASS_SINGLEPASS) {
         f_center += looking_glass_step;
