@@ -24,6 +24,7 @@
 #include "utility.hpp"
 
 #include <string>
+#include <array>
 
 namespace jtag {
 namespace tap {

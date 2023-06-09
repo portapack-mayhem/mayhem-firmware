@@ -24,6 +24,7 @@
 #define __TONESETS_H__
 
 #include <memory>
+#include <array>
 
 #define TONES_SAMPLERATE 1536000
 #define TONES_DELTA_COEF(sr) ((1ULL << 32) / sr)

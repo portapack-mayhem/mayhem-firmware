@@ -22,6 +22,8 @@
 #ifndef __MAX283X_H__
 #define __MAX283X_H__
 
+#include <array>
+
 #include "rf_path.hpp"
 
 namespace max283x {

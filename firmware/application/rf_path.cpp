@@ -162,8 +162,8 @@ constexpr ConfigAmp config_amp(
     const Direction direction,
     const Band band) {
     return {{
-        {.direction = direction, .band = band, .amplify = false},
-        {.direction = direction, .band = band, .amplify = true},
+        Config(direction, band, false),
+        Config(direction, band, true),
     }};
 }
 

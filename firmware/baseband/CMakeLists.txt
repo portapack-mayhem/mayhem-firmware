@@ -27,6 +27,8 @@
 
 enable_language(C CXX ASM)
 
+include(CheckCXXCompilerFlag)
+
 project(baseband_shared)
 
 # Compiler options here.
@@ -36,7 +38,13 @@ set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 set(USE_COPT "-std=gnu99")
 
 # C++ specific options here (added to USE_OPT).
-set(USE_CPPOPT "-std=c++17 -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+check_cxx_compiler_flag("-std=c++20" cpp20_supported)
+if(cpp20_supported)
+	set(USE_CPPOPT "-std=c++20")
+else()
+	set(USE_CPPOPT "-std=c++17")
+endif()
+set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
