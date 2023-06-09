@@ -235,7 +235,7 @@ void GlassView::on_range_changed() {
         // view is made in multiple pass, use original bin picking
         mode = scan_type.selected_index_value();
         if (mode == LOOKING_GLASS_FASTSCAN) {
-            offset = 8 ;
+            offset = 8;
             ignore_dc = SPEC_NB_BINS - SCREEN_W - offset;
             bin_length = SCREEN_W;
         } else {  // if( mode == LOOKING_GLASS_SLOWSCAN )
