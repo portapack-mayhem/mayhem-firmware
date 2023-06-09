@@ -25,6 +25,7 @@
 
 #include "radio.hpp"
 #include "string_format.hpp"
+#include "crc.hpp"
 
 #include "audio.hpp"
 
@@ -381,22 +382,35 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
-        {"Pmem", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
+        {"p.mem", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
 
 /* DebugPmemView *********************************************************/
 
+uint32_t pmem_checksum(volatile const uint32_t data[63]) {
+    CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+    for (size_t i = 0; i < 63; i++) {
+        const auto word = data[i];
+        crc.process_byte((word >> 0) & 0xff);
+        crc.process_byte((word >> 8) & 0xff);
+        crc.process_byte((word >> 16) & 0xff);
+        crc.process_byte((word >> 24) & 0xff);
+    }
+    return crc.checksum();
+}
+
 DebugPmemView::DebugPmemView(NavigationView& nav)
     : data{*reinterpret_cast<pmem_data*>(memory::map::backup_ram.base())}, registers_widget(RegistersWidgetConfig{page_size, 8}, std::bind(&DebugPmemView::registers_widget_feed, this, std::placeholders::_1)) {
     static_assert(sizeof(pmem_data) == memory::map::backup_ram.size());
 
-    add_children({&text_page, &registers_widget, &text_checksum, &button_ok});
+    add_children({&text_page, &registers_widget, &text_checksum, &text_checksum2, &button_ok});
 
     registers_widget.set_parent_rect({0, 32, 240, 192});
 
-    text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size()) + " CRC: " + to_string_hex(data.check_value, 8));
+    text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size(), 3) + "  CRC: " + to_string_hex(data.check_value, 8));
+    text_checksum2.set("Calculated CRC: " + to_string_hex(pmem_checksum(data.regfile), 8));
 
     button_ok.on_select = [&nav](Button&) {
         nav.pop();

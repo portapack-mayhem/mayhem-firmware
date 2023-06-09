@@ -269,7 +269,7 @@ class DebugPmemView : public View {
     DebugPmemView(NavigationView& nav);
     void focus() override;
     bool on_encoder(const EncoderEvent delta) override;
-    std::string title() const override { return "Pmem"; }
+    std::string title() const override { return "p.mem"; }
 
    private:
     struct pmem_data {
@@ -282,13 +282,14 @@ class DebugPmemView : public View {
 
     int32_t page{0};
 
-    const pmem_data& data;
+    volatile const pmem_data& data;
 
     Text text_page{{16, 16, 208, 16}};
 
     RegistersWidget registers_widget;
 
-    Text text_checksum{{16, 240, 208, 16}};
+    Text text_checksum{{16, 232, 208, 16}};
+    Text text_checksum2{{16, 248, 208, 16}};
 
     Button button_ok{
         {240 / 3, 270, 240 / 3, 24},
