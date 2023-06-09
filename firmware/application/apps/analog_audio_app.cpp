@@ -42,6 +42,8 @@ namespace ui {
 
 /* AMOptionsView *********************************************************/
 
+static const Style& style_options_group = Styles::bg_blue;
+
 AMOptionsView::AMOptionsView(
     const Rect parent_rect,
     const Style* const style)
@@ -54,8 +56,8 @@ AMOptionsView::AMOptionsView(
     });
 
     freqman_set_bandwidth_option(AM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
-    options_config.set_selected_index(receiver_model.am_configuration());
-    options_config.on_change = [this](size_t n, OptionsField::value_t) {
+    options_config.set_by_value(receiver_model.am_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
         receiver_model.set_am_configuration(n);
     };
 }
@@ -74,8 +76,8 @@ NBFMOptionsView::NBFMOptionsView(
                   &field_squelch});
 
     freqman_set_bandwidth_option(NFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
-    options_config.set_selected_index(receiver_model.nbfm_configuration());
-    options_config.on_change = [this](size_t n, OptionsField::value_t) {
+    options_config.set_by_value(receiver_model.nbfm_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
         receiver_model.set_nbfm_configuration(n);
     };
 
@@ -99,8 +101,8 @@ WFMOptionsView::WFMOptionsView(
     });
 
     freqman_set_bandwidth_option(WFM_MODULATION, options_config);  // adding the common message from freqman.cpp to the options_config
-    options_config.set_selected_index(receiver_model.wfm_configuration());
-    options_config.on_change = [this](size_t n, OptionsField::value_t) {
+    options_config.set_by_value(receiver_model.wfm_configuration());
+    options_config.on_change = [this](size_t, OptionsField::value_t n) {
         receiver_model.set_wfm_configuration(n);
     };
 }
@@ -196,11 +198,6 @@ AnalogAudioView::AnalogAudioView(
     };
     options_modulation.on_show_options = [this]() {
         this->on_show_options_modulation();
-    };
-
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
     };
 
     record_view.on_error = [&nav](std::string message) {
@@ -389,11 +386,6 @@ void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {
 
 void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
     persistent_memory::set_correction_ppb(v * 1000);
-}
-
-void AnalogAudioView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
 }
 
 void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {

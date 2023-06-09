@@ -79,6 +79,9 @@ class AFSKRxView : public View {
         {21 * 8, 5, 6 * 8, 4},
     };
 
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
+
     FrequencyField field_frequency{
         {0 * 8, 0 * 16},
     };

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -31,10 +32,11 @@
 #include "string_format.hpp"
 #include "ui_widget.hpp"
 
-#define FREQMAN_DESC_MAX_LEN 24         // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
-#define FREQMAN_MAX_PER_FILE 115        // Maximum of entries we can read. This is a hardware limit
-                                        // It was tested and lowered to leave a bit of space to the caller
-#define FREQMAN_MAX_PER_FILE_STR "115"  // STRING OF FREQMAN_MAX_PER_FILE
+#define FREQMAN_DESC_MAX_LEN 24        // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
+#define FREQMAN_MAX_PER_FILE 60        // Maximum of entries we can read. This is a hardware limit
+                                       // It was tested and lowered to leave a bit of space to the caller
+#define FREQMAN_MAX_PER_FILE_STR "60"  // STRING OF FREQMAN_MAX_PER_FILE
+#define FREQMAN_READ_BUF_SIZE 96       // max freqman line size including desc is 90, +6 for a bit of space
 
 using namespace ui;
 using namespace std;
@@ -93,10 +95,10 @@ struct freqman_entry {
 
 using freqman_db = std::vector<freqman_entry>;
 
-std::vector<std::string> get_freqman_files();
 bool load_freqman_file(std::string& file_stem, freqman_db& db);
-bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios);
+bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t limit);
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
+bool delete_freqman_file(std::string& file_stem);
 bool save_freqman_file(std::string& file_stem, freqman_db& db);
 bool create_freqman_file(std::string& file_stem, File& freqman_file);
 

@@ -395,7 +395,7 @@ AISAppView::AISAppView(NavigationView& nav)
     receiver_model.set_tuning_frequency(tuning_frequency());
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+    receiver_model.enable();
 
     options_channel.on_change = [this](size_t, OptionsField::value_t v) {
         this->on_frequency_changed(v);
@@ -420,7 +420,7 @@ AISAppView::~AISAppView() {
     app_settings.rx_frequency = target_frequency_;
     settings.save("rx_ais", &app_settings);
 
-    receiver_model.disable();  // to switch off all, including DC bias.
+    receiver_model.disable();
 
     baseband::shutdown();
 }
@@ -471,7 +471,7 @@ void AISAppView::on_frequency_changed(const uint32_t new_target_frequency) {
 
 void AISAppView::set_target_frequency(const uint32_t new_value) {
     target_frequency_ = new_value;
-    radio::set_tuning_frequency(tuning_frequency());
+    receiver_model.set_tuning_frequency(tuning_frequency());
 }
 
 uint32_t AISAppView::target_frequency() const {

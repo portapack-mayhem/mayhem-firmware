@@ -34,9 +34,28 @@ TEST_CASE("Instance with value should be valid.") {
     REQUIRE(o.is_valid());
 }
 
+TEST_CASE("Instance with value should be return true.") {
+    Optional<int> o{1};
+    REQUIRE((bool)o);
+}
+
 TEST_CASE("value() should return value.") {
     Optional<int> o{1};
     REQUIRE(o.value() == 1);
+}
+
+TEST_CASE("operator* should return value.") {
+    Optional<int> o{1};
+    REQUIRE(*o == 1);
+}
+
+TEST_CASE("operator-> should return value members.") {
+    struct S {
+        int i;
+    };
+
+    Optional<S> o{S{1}};
+    REQUIRE(o->i == 1);
 }
 
 TEST_SUITE_END();

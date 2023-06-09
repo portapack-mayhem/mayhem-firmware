@@ -27,6 +27,9 @@
 #include <cstdint>
 #include <cstddef>
 
+/* Direct access to the radio. Setting values incorrectly can damage
+ * the device. Applications should use ReceiverModel or TransmitterModel
+ * instead of calling these functions directly. */
 namespace radio {
 
 struct Configuration {
@@ -51,8 +54,9 @@ void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
 void set_baseband_rate(const uint32_t rate);
 void set_antenna_bias(const bool on);
 
-void enable(Configuration configuration);
-void configure(Configuration configuration);
+/* Use ReceiverModel or TransmitterModel instead. */
+// void enable(Configuration configuration);
+// void configure(Configuration configuration);
 void disable();
 
 namespace debug {

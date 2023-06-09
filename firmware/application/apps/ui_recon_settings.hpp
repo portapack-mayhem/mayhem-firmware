@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -59,7 +60,7 @@
 //#define SCREEN_H 320
 
 // recon settings nb params
-#define RECON_SETTINGS_NB_PARAMS 8
+#define RECON_SETTINGS_NB_PARAMS 7
 
 namespace ui {
 

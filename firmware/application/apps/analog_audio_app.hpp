@@ -28,17 +28,11 @@
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "app_settings.hpp"
 #include "tone_key.hpp"
 
 namespace ui {
-
-constexpr Style style_options_group{
-    .font = font::fixed_8x16,
-    .background = Color::blue(),
-    .foreground = Color::white(),
-};
 
 class AMOptionsView : public View {
    public:
@@ -52,7 +46,7 @@ class AMOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        5,
+        6,  // number of blanking characters
         {
             // using  common messages from freqman.cpp
         }};
@@ -207,13 +201,8 @@ class AnalogAudioView : public View {
             {"SPEC", toUType(ReceiverModel::Mode::SpectrumAnalysis)},
         }};
 
-    NumberField field_volume{
-        {28 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
 
     Text text_ctcss{
         {19 * 8, 1 * 16, 11 * 8, 1 * 16},
@@ -239,7 +228,6 @@ class AnalogAudioView : public View {
     void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);
     void on_reference_ppm_correction_changed(int32_t v);
-    void on_headphone_volume_changed(int32_t v);
     void on_edit_frequency();
 
     void remove_options_widget();

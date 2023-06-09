@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2018 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -26,7 +27,7 @@
 #include "ui.hpp"
 #include "receiver_model.hpp"
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "freqman.hpp"
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
@@ -43,6 +44,7 @@
 namespace ui {
 
 #define RECON_CFG_FILE "SETTINGS/recon.cfg"
+#define RECON_FREQMAN_MAX_PER_FILE 99  // maximum tested limit for load frequency from freqman to work
 
 class ReconView : public View {
    public:
@@ -51,48 +53,6 @@ class ReconView : public View {
 
     void focus() override;
 
-    const Style style_grey{
-        // recon
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
-    };
-
-    const Style style_white{
-        // recon
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
-
-    const Style style_yellow{
-        // found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-
-    const Style style_green{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
-
-    const Style style_red{
-        // erasing freq
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-
-    const Style style_blue{
-        // quick recon, wait == 0
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::blue(),
-    };
-
     std::string title() const override { return "Recon"; };
 
     // void set_parent_rect(const Rect new_parent_rect) override;
@@ -100,6 +60,8 @@ class ReconView : public View {
    private:
     NavigationView& nav_;
 
+    void clear_freqlist_for_ui_action();
+    void reset_indexes();
     void audio_output_start();
     bool check_sd_card();
     size_t change_mode(freqman_index_t mod_type);
@@ -108,7 +70,6 @@ class ReconView : public View {
     void recon_resume();
     void frequency_file_load(bool stop_all_before = false);
     void on_statistics_update(const ChannelStatistics& statistics);
-    void on_headphone_volume_changed(int32_t v);
     void on_index_delta(int32_t v);
     void on_stepper_delta(int32_t v);
     void colorize_waits();
@@ -126,8 +87,10 @@ class ReconView : public View {
     freqman_db frequency_list = {};
     int32_t current_index{0};
     bool continuous_lock{false};
+    bool freqlist_cleared_for_ui_action{false};  // flag positioned by ui widgets to manage freqlist unload/load
     std::string input_file = {"RECON"};
     std::string output_file = {"RECON_RESULTS"};
+    std::string description = {"...no description..."};
     bool autosave = {true};
     bool autostart = {true};
     bool continuous = {true};
@@ -144,7 +107,6 @@ class ReconView : public View {
     bool scanner_mode{false};
     bool manual_mode{false};
     bool sd_card_mounted = false;
-    int32_t volume = 40;
     int32_t stepper = 0;
     int32_t index_stepper = 0;
     int64_t freq = 0;
@@ -190,13 +152,8 @@ class ReconView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    NumberField field_volume{
-        {24 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},
@@ -270,7 +227,7 @@ class ReconView : public View {
         {12 * 8 + 4, 7 * 16, 14 * 8, 1 * 8},
         ""};
 
-    Button button_recon_setup{
+    Button button_config{
         {SCREEN_W - 7 * 8, 2 * 16, 7 * 8, 28},
         "CONFIG"};
 

@@ -22,6 +22,7 @@
 
 #include "portapack_persistent_memory.hpp"
 
+#include "audio.hpp"
 #include "portapack.hpp"
 #include "hal.h"
 
@@ -37,6 +38,8 @@
 #include <string>
 #include <fstream>
 #include "file.hpp"
+
+#include "irq_controls.hpp"
 
 using namespace std;
 
@@ -75,7 +78,7 @@ constexpr clkout_freq_range_t clkout_freq_range{10, 60000};
 constexpr uint32_t clkout_freq_reset_value{10000};
 
 enum data_structure_version_enum : uint32_t {
-    VERSION_CURRENT = 0x10000002,
+    VERSION_CURRENT = 0x10000003,
 };
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
@@ -302,6 +305,12 @@ struct data_t {
     uint32_t frequency_tx_correction;
     bool updown_frequency_tx_correction;
 
+    // Rotary encoder dial sensitivity (encoder.cpp/hpp)
+    uint8_t encoder_dial_sensitivity;
+
+    // Headphone volume in centibels.
+    int32_t headphone_volume_cb;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           tuned_frequency(tuned_frequency_reset_value),
@@ -337,7 +346,9 @@ struct data_t {
           frequency_rx_correction(0),
           updown_frequency_rx_correction(0),
           frequency_tx_correction(0),
-          updown_frequency_tx_correction(0) {
+          updown_frequency_tx_correction(0),
+          encoder_dial_sensitivity(0),
+          headphone_volume_cb(-600) {
     }
 };
 
@@ -419,6 +430,9 @@ namespace cache {
 
 void defaults() {
     cached_backup_ram = backup_ram_t();
+    *data = data_t();  // This is a workaround for apparently alignment issue
+                       // that is causing backup_ram_t's block copy to be
+                       // misaligned. This force sets values through the struct.
 
     // defaults values for recon app
     set_recon_autosave_freqs(false);
@@ -433,7 +447,8 @@ void defaults() {
 }
 
 void init() {
-    if (backup_ram->is_valid()) {
+    const auto switches_state = get_switches_state();
+    if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
 
@@ -463,6 +478,17 @@ rf::Frequency tuned_frequency() {
 
 void set_tuned_frequency(const rf::Frequency new_value) {
     data->tuned_frequency = rf::tuning_range.clip(new_value);
+}
+
+volume_t headphone_volume() {
+    auto volume = volume_t::centibel(data->headphone_volume_cb);
+    volume = audio::headphone::volume_range().limit(volume);
+    return volume;
+}
+
+void set_headphone_volume(volume_t new_value) {
+    new_value = audio::headphone::volume_range().limit(new_value);
+    data->headphone_volume_cb = new_value.centibel();
 }
 
 ppb_t correction_ppb() {
@@ -808,8 +834,21 @@ void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
+// rotary encoder dial settings
+uint8_t config_encoder_dial_sensitivity() {
+    return data->encoder_dial_sensitivity;
+}
+void set_encoder_dial_sensitivity(uint8_t v) {
+    data->encoder_dial_sensitivity = v;
+}
+
+bool should_use_sdcard_for_pmem() {
+    return std::filesystem::file_exists(PMEM_FILEFLAG);
+}
+
 // sd persisting settings
-int save_persistent_settings_to_file(std::string filename) {
+int save_persistent_settings_to_file() {
+    std::string filename = PMEM_SETTING_FILE;
     delete_file(filename);
     File outfile;
     auto result = outfile.create(filename);
@@ -820,7 +859,8 @@ int save_persistent_settings_to_file(std::string filename) {
     return true;
 }
 
-int load_persistent_settings_from_file(std::string filename) {
+int load_persistent_settings_from_file() {
+    std::string filename = PMEM_SETTING_FILE;
     File infile;
     auto result = infile.open(filename);
     if (!result.is_valid()) {
@@ -828,6 +868,10 @@ int load_persistent_settings_from_file(std::string filename) {
         return true;
     }
     return false;
+}
+
+size_t data_size() {
+    return sizeof(data_t);
 }
 
 } /* namespace persistent_memory */

@@ -381,4 +381,21 @@ void VGAGainField::on_focus() {
     }
 }
 
+/* AudioVolumeField *******************************************************/
+
+AudioVolumeField::AudioVolumeField(
+    Point parent_pos)
+    : NumberField{
+          parent_pos,
+          /* length */ 2,
+          /* range */ {0, 99},
+          /* step */ 1,
+          /* fill char */ ' '} {
+    set_value(receiver_model.normalized_headphone_volume());
+
+    on_change = [](int32_t v) {
+        receiver_model.set_normalized_headphone_volume(v);
+    };
+}
+
 } /* namespace ui */

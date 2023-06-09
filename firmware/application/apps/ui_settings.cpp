@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -35,7 +36,7 @@ using portapack::receiver_model;
 using namespace portapack;
 
 #include "string_format.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "cpld_update.hpp"
 
 #include "freqman.hpp"
@@ -128,9 +129,9 @@ SetRadioView::SetRadioView(
     value_source.set(source_name);
     value_source_frequency.set(to_string_dec_uint(reference.frequency / 1000000, 2) + "." + to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
 
-    label_source.set_style(&style_text);
-    value_source.set_style(&style_text);
-    value_source_frequency.set_style(&style_text);
+    label_source.set_style(&Styles::light_grey);
+    value_source.set_style(&Styles::light_grey);
+    value_source_frequency.set_style(&Styles::light_grey);
 
     add_children({
         &label_source,
@@ -168,7 +169,7 @@ SetRadioView::SetRadioView(
     };
 
     field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
-    value_freq_step.set_style(&style_text);
+    value_freq_step.set_style(&Styles::light_grey);
 
     field_clkout_freq.on_select = [this](NumberField&) {
         freq_step_khz++;
@@ -195,6 +196,15 @@ SetRadioView::SetRadioView(
     check_bias.set_value(portapack::get_antenna_bias());
     check_bias.on_select = [this](Checkbox&, bool v) {
         portapack::set_antenna_bias(v);
+
+        // Update the radio.
+        receiver_model.set_antenna_bias();
+        transmitter_model.set_antenna_bias();
+        // The models won't actually disable this if they are not 'enabled_'.
+        // Be extra sure this is turned off.
+        if (!v)
+            radio::set_antenna_bias(false);
+
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
@@ -436,27 +446,16 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     add_children({&text_pmem_about,
                   &text_pmem_informations,
                   &text_pmem_status,
-                  &check_load_mem_at_startup,
+                  &check_use_sdcard_for_pmem,
                   &button_save_mem_to_file,
                   &button_load_mem_from_file,
                   &button_load_mem_defaults,
                   &button_return});
 
-    bool load_mem_at_startup = false;
-    File pmem_flag_file_handle;
-
-    std::string folder = "SETTINGS";
-    make_new_directory(folder);
-
-    std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";
-    auto result = pmem_flag_file_handle.open(pmem_flag_file);
-    if (!result.is_valid()) {
-        load_mem_at_startup = true;
-    }
-    check_load_mem_at_startup.set_value(load_mem_at_startup);
-    check_load_mem_at_startup.on_select = [this](Checkbox&, bool v) {
+    check_use_sdcard_for_pmem.set_value(portapack::persistent_memory::should_use_sdcard_for_pmem());
+    check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
-        std::string pmem_flag_file = "/SETTINGS/PMEM_FILEFLAG";
+        std::string pmem_flag_file = PMEM_FILEFLAG;
         if (v) {
             auto result = pmem_flag_file_handle.open(pmem_flag_file);
             if (result.is_valid()) {
@@ -480,7 +479,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     };
 
     button_save_mem_to_file.on_select = [&nav, this](Button&) {
-        if (!portapack::persistent_memory::save_persistent_settings_to_file("SETTINGS/pmem_settings")) {
+        if (!portapack::persistent_memory::save_persistent_settings_to_file()) {
             text_pmem_status.set("!problem saving settings!");
         } else {
             text_pmem_status.set("settings saved");
@@ -488,7 +487,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     };
 
     button_load_mem_from_file.on_select = [&nav, this](Button&) {
-        if (!portapack::persistent_memory::load_persistent_settings_from_file("SETTINGS/pmem_settings")) {
+        if (!portapack::persistent_memory::load_persistent_settings_from_file()) {
             text_pmem_status.set("!problem loading settings!");
         } else {
             text_pmem_status.set("settings loaded");
@@ -519,9 +518,9 @@ void SetPersistentMemoryView::focus() {
     button_return.focus();
 }
 
-//
-// Audio settings
-//
+// ---------------------------------------------------------
+// Audio Settings
+// ---------------------------------------------------------
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
@@ -544,6 +543,9 @@ void SetAudioView::focus() {
     button_save.focus();
 }
 
+// ---------------------------------------------------------
+// QR Code Settings
+// ------------------------------------------------------
 SetQRCodeView::SetQRCodeView(NavigationView& nav) {
     add_children({&checkbox_bigger_qr,
                   &button_save,
@@ -566,6 +568,31 @@ void SetQRCodeView::focus() {
 }
 
 // ---------------------------------------------------------
+// Rotary Encoder Dial Settings
+// ---------------------------------------------------------
+SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_encoder_dial_sensitivity,
+                  &button_save,
+                  &button_cancel});
+
+    field_encoder_dial_sensitivity.set_by_value(persistent_memory::config_encoder_dial_sensitivity());
+
+    button_save.on_select = [&nav, this](Button&) {
+        persistent_memory::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetEncoderDialView::focus() {
+    button_save.focus();
+}
+
+// ---------------------------------------------------------
 // Settings main menu
 // ---------------------------------------------------------
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
@@ -583,6 +610,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"FreqCorrection", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
+        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

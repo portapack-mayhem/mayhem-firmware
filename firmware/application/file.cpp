@@ -44,8 +44,9 @@ Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BY
     }
 }
 
-Optional<File::Error> File::open(const std::filesystem::path& filename) {
-    return open_fatfs(filename, FA_READ);
+Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only) {
+    BYTE mode = read_only ? FA_READ : FA_READ | FA_WRITE;
+    return open_fatfs(filename, mode);
 }
 
 Optional<File::Error> File::append(const std::filesystem::path& filename) {
@@ -60,7 +61,7 @@ File::~File() {
     f_close(&f);
 }
 
-File::Result<File::Size> File::read(void* const data, const Size bytes_to_read) {
+File::Result<File::Size> File::read(void* data, Size bytes_to_read) {
     UINT bytes_read = 0;
     const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
     if (result == FR_OK) {
@@ -70,7 +71,7 @@ File::Result<File::Size> File::read(void* const data, const Size bytes_to_read) 
     }
 }
 
-File::Result<File::Size> File::write(const void* const data, const Size bytes_to_write) {
+File::Result<File::Size> File::write(const void* data, Size bytes_to_write) {
     UINT bytes_written = 0;
     const auto result = f_write(&f, data, bytes_to_write, &bytes_written);
     if (result == FR_OK) {
@@ -84,9 +85,13 @@ File::Result<File::Size> File::write(const void* const data, const Size bytes_to
     }
 }
 
-File::Result<File::Offset> File::seek(const Offset new_position) {
+File::Offset File::tell() const {
+    return f_tell(&f);
+}
+
+File::Result<File::Offset> File::seek(Offset new_position) {
     /* NOTE: Returns *old* position, not new position */
-    const auto old_position = f_tell(&f);
+    const auto old_position = tell();
     const auto result = f_lseek(&f, new_position);
     if (result != FR_OK) {
         return {static_cast<Error>(result)};
@@ -97,8 +102,17 @@ File::Result<File::Offset> File::seek(const Offset new_position) {
     return {static_cast<File::Offset>(old_position)};
 }
 
-File::Size File::size() {
-    return {static_cast<File::Size>(f_size(&f))};
+File::Result<File::Offset> File::truncate() {
+    const auto position = f_tell(&f);
+    const auto result = f_truncate(&f);
+    if (result != FR_OK) {
+        return {static_cast<Error>(result)};
+    }
+    return {static_cast<File::Offset>(position)};
+}
+
+File::Size File::size() const {
+    return f_size(&f);
 }
 
 Optional<File::Error> File::write_line(const std::string& s) {
@@ -241,25 +255,26 @@ std::filesystem::filesystem_error rename_file(
 std::filesystem::filesystem_error copy_file(
     const std::filesystem::path& file_path,
     const std::filesystem::path& dest_path) {
+    // Decent compromise between memory and speed.
+    constexpr size_t buffer_size = 512;
+    uint8_t buffer[buffer_size];
     File src;
     File dst;
-    constexpr size_t buffer_size = 128;
-    uint8_t buffer[buffer_size];
 
     auto error = src.open(file_path);
-    if (error.is_valid()) return error.value();
+    if (error) return error.value();
 
     error = dst.create(dest_path);
-    if (error.is_valid()) return error.value();
+    if (error) return error.value();
 
     while (true) {
         auto result = src.read(buffer, buffer_size);
         if (result.is_error()) return result.error();
 
-        result = dst.write(buffer, result.value());
+        result = dst.write(buffer, *result);
         if (result.is_error()) return result.error();
 
-        if (result.value() < buffer_size)
+        if (*result < buffer_size)
             break;
     }
 

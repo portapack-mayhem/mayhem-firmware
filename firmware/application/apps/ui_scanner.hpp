@@ -23,7 +23,7 @@
 #include "ui.hpp"
 #include "receiver_model.hpp"
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "freqman.hpp"
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
@@ -87,34 +87,6 @@ class ScannerView : public View {
 
     void focus() override;
 
-    const Style style_grey{
-        // scanning
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
-    };
-
-    const Style style_yellow{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::dark_yellow(),
-    };
-
-    const Style style_green{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
-
-    const Style style_red{
-        // erasing freq
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-
     std::string title() const override { return "Scanner"; };
     std::vector<rf::Frequency> frequency_list{};
     std::vector<string> description_list{};
@@ -134,7 +106,6 @@ class ScannerView : public View {
     void bigdisplay_update(int32_t);
     void update_squelch_while_paused(int32_t max_db);
     void on_statistics_update(const ChannelStatistics& statistics);
-    void on_headphone_volume_changed(int32_t v);
     void handle_retune(int64_t freq, uint32_t freq_idx);
 
     jammer::jammer_range_t frequency_range{false, 0, 0};  // perfect for manual scan task too...
@@ -182,13 +153,8 @@ class ScannerView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    NumberField field_volume{
-        {24 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},

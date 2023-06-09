@@ -178,7 +178,7 @@ void AboutView::draw_demoglyph(ui::Point p, char ch, ui::Color* pal) {
     int16_t lbx, il;
 
     // Map ASCII to font bitmap
-    if ((ch >= 32) || (ch < 96))
+    if ((ch >= 32) && (ch < 96))
         che = char_map[ch - 32];
     else
         che = 0xFF;

@@ -141,15 +141,9 @@ void GpsSimAppView::start() {
             });
     }
 
-    rf_amp = (transmitter_model.rf_amp());  // recover rf_amp settings applied from ui_transmiter.cpp
-
-    radio::enable({receiver_model.tuning_frequency(),
-                   sample_rate,
-                   baseband_bandwidth,
-                   rf::Direction::Transmit,
-                   rf_amp,  // previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
-                   static_cast<int8_t>(receiver_model.lna()),
-                   static_cast<int8_t>(receiver_model.vga())});
+    transmitter_model.set_sampling_rate(sample_rate);
+    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
+    transmitter_model.enable();
 }
 
 void GpsSimAppView::stop(const bool do_loop) {
@@ -159,7 +153,7 @@ void GpsSimAppView::stop(const bool do_loop) {
     if (do_loop && check_loop.value()) {
         start();
     } else {
-        radio::disable();
+        transmitter_model.disable();
         button_play.set_bitmap(&bitmap_play);
     }
 
@@ -224,7 +218,7 @@ GpsSimAppView::GpsSimAppView(
 }
 
 GpsSimAppView::~GpsSimAppView() {
-    radio::disable();
+    transmitter_model.disable();
     hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
     baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
 }

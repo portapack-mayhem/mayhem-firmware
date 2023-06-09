@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -126,11 +127,6 @@ class SetRadioView : public View {
     std::string title() const override { return "Radio"; };
 
    private:
-    const Style style_text{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::light_grey(),
-    };
     uint8_t freq_step_khz = 3;
 
     Text label_source{
@@ -431,6 +427,38 @@ class SetQRCodeView : public View {
     };
 };
 
+using portapack::persistent_memory::encoder_dial_sensitivity;
+
+class SetEncoderDialView : public View {
+   public:
+    SetEncoderDialView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Encoder Dial"; };
+
+   private:
+    Labels labels{
+        {{2 * 8, 3 * 16}, "Dial sensitivity:", Color::light_grey()},
+    };
+
+    OptionsField field_encoder_dial_sensitivity{
+        {20 * 8, 3 * 16},
+        6,
+        {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
+         {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_MEDIUM},
+         {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SetPersistentMemoryView : public View {
    public:
     SetPersistentMemoryView(NavigationView& nav);
@@ -452,10 +480,10 @@ class SetPersistentMemoryView : public View {
         {0, 3 * 16, 240, 16},
         ""};
 
-    Checkbox check_load_mem_at_startup{
+    Checkbox check_use_sdcard_for_pmem{
         {18, 6 * 16},
         19,
-        "load from sd at startup"};
+        "use sdcard for p.mem"};
 
     Button button_save_mem_to_file{
         {0, 8 * 16, 240, 32},

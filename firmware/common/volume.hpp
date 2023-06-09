@@ -23,6 +23,7 @@
 #define __VOLUME_H__
 
 #include <cstdint>
+#include "utility.hpp"
 
 class volume_t {
    public:
@@ -89,13 +90,7 @@ struct volume_range_t {
     volume_t max;
 
     volume_t limit(const volume_t value) const {
-        if (value < min) {
-            return min;
-        }
-        if (value > max) {
-            return max;
-        }
-        return value;
+        return clip(value, min, max);
     }
 
     volume_t normalize(const volume_t value) const {

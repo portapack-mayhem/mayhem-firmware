@@ -43,8 +43,8 @@ class AlphanumView : public TextEntryView {
     bool on_encoder(const EncoderEvent delta) override;
 
    private:
-    const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ' .<";
-    const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz' .<";
+    const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ, .<";
+    const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz, .<";
     const char* const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
 
     const std::pair<std::string, const char*> key_sets[3] = {

@@ -253,7 +253,7 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
 void ControlsSwitchesWidget::paint(Painter& painter) {
     const auto pos = screen_pos();
 
-    const std::array<Rect, 8> button_rects{{
+    const std::array<Rect, 9> button_rects{{
         {64, 32, 16, 16},  // Right
         {0, 32, 16, 16},   // Left
         {32, 64, 16, 16},  // Down
@@ -262,11 +262,15 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {16, 96, 16, 16},  // Encoder phase 0
         {48, 96, 16, 16},  // Encoder phase 1
         {96, 0, 16, 16},   // Dfu
+        {96, 64, 16, 16},  // Touch
     }};
 
     for (const auto r : button_rects) {
         painter.fill_rectangle(r + pos, Color::blue());
     }
+
+    if (get_touch_frame().touch)
+        painter.fill_rectangle(button_rects[8] + pos, Color::yellow());
 
     const std::array<Rect, 8> raw_rects{{
         {64 + 1, 32 + 1, 16 - 2, 16 - 2},  // Right
@@ -377,8 +381,52 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
+        {"Pmem", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
+}
+
+/* DebugPmemView *********************************************************/
+
+DebugPmemView::DebugPmemView(NavigationView& nav)
+    : data{*reinterpret_cast<pmem_data*>(memory::map::backup_ram.base())}, registers_widget(RegistersWidgetConfig{page_size, 8}, std::bind(&DebugPmemView::registers_widget_feed, this, std::placeholders::_1)) {
+    static_assert(sizeof(pmem_data) == memory::map::backup_ram.size());
+
+    add_children({&text_page, &registers_widget, &text_checksum, &button_ok});
+
+    registers_widget.set_parent_rect({0, 32, 240, 192});
+
+    text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size()) + " CRC: " + to_string_hex(data.check_value, 8));
+
+    button_ok.on_select = [&nav](Button&) {
+        nav.pop();
+    };
+
+    update();
+}
+
+bool DebugPmemView::on_encoder(const EncoderEvent delta) {
+    page = std::max(0l, std::min((int32_t)page_max, page + delta));
+
+    update();
+
+    return true;
+}
+
+void DebugPmemView::focus() {
+    button_ok.focus();
+}
+
+void DebugPmemView::update() {
+    text_page.set(to_string_hex(page_size * page, 2) + "+");
+    registers_widget.update();
+}
+
+uint32_t DebugPmemView::registers_widget_feed(const size_t register_number) {
+    if (page_size * page + register_number >= memory::map::backup_ram.size()) {
+        return 0xff;
+    }
+    return data.regfile[(page_size * page + register_number) / 4] >> (register_number % 4 * 8);
 }
 
 /*DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {

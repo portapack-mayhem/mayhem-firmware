@@ -25,7 +25,7 @@
 #include "spectrum_color_lut.hpp"
 
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "recent_entries.hpp"
 
 namespace ui {
@@ -89,19 +89,6 @@ class SearchView : public View {
 
    private:
     NavigationView& nav_;
-
-    const Style style_grey{
-        // For informations and lost signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
-    };
-
-    const Style style_locked{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
 
     struct slice_t {
         rf::Frequency center_frequency;

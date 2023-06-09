@@ -125,6 +125,7 @@ void TransmitterModel::enable() {
     update_vga();
     update_baseband_bandwidth();
     update_sampling_rate();
+    update_tx_gain();
 
     led_tx.on();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
@@ -138,7 +139,6 @@ void TransmitterModel::enable() {
 
 void TransmitterModel::disable() {
     enabled_ = false;
-    radio::set_antenna_bias(false);
 
     // TODO: Responsibility for enabling/disabling the radio is muddy.
     // Some happens in ReceiverModel, some inside radio namespace.

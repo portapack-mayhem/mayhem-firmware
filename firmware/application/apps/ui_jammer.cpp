@@ -36,8 +36,6 @@ void RangeView::focus() {
     check_enabled.focus();
 }
 
-extern constexpr Style RangeView::style_info;
-
 void RangeView::update_start(rf::Frequency f) {
     // Change everything except max
     frequency_range.min = f;
@@ -200,9 +198,6 @@ void JammerView::set_jammer_channel(uint32_t i, uint32_t width, uint64_t center,
     jammer_channels[i].duration = 30720 * duration;
 }
 
-extern constexpr Style JammerView::style_val;
-extern constexpr Style JammerView::style_cancel;
-
 void JammerView::start_tx() {
     uint32_t c, i = 0;
     size_t num_channels;
@@ -286,7 +281,6 @@ void JammerView::stop_tx() {
     button_transmit.set_style(&style_val);
     button_transmit.set_text("START");
     transmitter_model.disable();
-    radio::disable();
     baseband::set_jammer(false, JammerType::TYPE_FSK, 0);
     jamming = false;
     cooling = false;

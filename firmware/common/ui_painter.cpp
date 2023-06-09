@@ -35,18 +35,27 @@ Style Style::invert() const {
         .foreground = background};
 }
 
-int Painter::draw_char(const Point p, const Style& style, const char c) {
+int Painter::draw_char(Point p, const Style& style, char c) {
     const auto glyph = style.font.glyph(c);
     display.draw_glyph(p, glyph, style.foreground, style.background);
     return glyph.advance().x();
 }
 
-int Painter::draw_string(Point p, const Font& font, const Color foreground, const Color background, const std::string& text) {
+int Painter::draw_string(Point p, const Style& style, std::string_view text) {
+    return draw_string(p, style.font, style.foreground, style.background, text);
+}
+
+int Painter::draw_string(
+    Point p,
+    const Font& font,
+    Color foreground,
+    Color background,
+    std::string_view text) {
     bool escape = false;
     size_t width = 0;
     Color pen = foreground;
 
-    for (const auto c : text) {
+    for (auto c : text) {
         if (escape) {
             if (c <= 15)
                 pen = term_colors[c & 15];
@@ -65,48 +74,45 @@ int Painter::draw_string(Point p, const Font& font, const Color foreground, cons
             }
         }
     }
+
     return width;
 }
 
-int Painter::draw_string(Point p, const Style& style, const std::string& text) {
-    return draw_string(p, style.font, style.foreground, style.background, text);
-}
-
-void Painter::draw_bitmap(const Point p, const Bitmap& bitmap, const Color foreground, const Color background) {
+void Painter::draw_bitmap(Point p, const Bitmap& bitmap, Color foreground, Color background) {
     display.draw_bitmap(p, bitmap.size, bitmap.data, foreground, background);
 }
 
-void Painter::draw_hline(Point p, int width, const Color c) {
+void Painter::draw_hline(Point p, int width, Color c) {
     display.fill_rectangle({p, {width, 1}}, c);
 }
 
-void Painter::draw_vline(Point p, int height, const Color c) {
+void Painter::draw_vline(Point p, int height, Color c) {
     display.fill_rectangle({p, {1, height}}, c);
 }
 
-void Painter::draw_rectangle(const Rect r, const Color c) {
+void Painter::draw_rectangle(Rect r, Color c) {
     draw_hline(r.location(), r.width(), c);
     draw_vline({r.left(), r.top() + 1}, r.height() - 2, c);
     draw_vline({r.left() + r.width() - 1, r.top() + 1}, r.height() - 2, c);
     draw_hline({r.left(), r.top() + r.height() - 1}, r.width(), c);
 }
 
-void Painter::fill_rectangle(const Rect r, const Color c) {
+void Painter::fill_rectangle(Rect r, Color c) {
     display.fill_rectangle(r, c);
 }
 
-void Painter::fill_rectangle_unrolled8(const Rect r, const Color c) {
+void Painter::fill_rectangle_unrolled8(Rect r, Color c) {
     display.fill_rectangle_unrolled8(r, c);
 }
 
-void Painter::paint_widget_tree(Widget* const w) {
+void Painter::paint_widget_tree(Widget* w) {
     if (ui::is_dirty()) {
         paint_widget(w);
         ui::dirty_clear();
     }
 }
 
-void Painter::paint_widget(Widget* const w) {
+void Painter::paint_widget(Widget* w) {
     if (w->hidden()) {
         // Mark widget (and all children) as invisible.
         w->visible(false);

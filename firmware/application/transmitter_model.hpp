@@ -71,7 +71,8 @@ class TransmitterModel {
     uint32_t channel_bandwidth_{1};
     uint32_t baseband_bandwidth_{max2837::filter::bandwidth_minimum};
     int32_t vga_gain_db_{8};
-    int32_t tx_gain_db_{47};
+    /* 35 should give approx 1m transmission range. */
+    int32_t tx_gain_db_{35};
     uint32_t sampling_rate_{3072000};
     SignalToken signal_token_tick_second{};
 

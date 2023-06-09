@@ -29,18 +29,12 @@
 #include "ui_receiver.hpp"
 #include "ui_tv.hpp"
 #include "ui_record_view.hpp"
+#include "ui_styles.hpp"
 #include "app_settings.hpp"
-#include "ui_font_fixed_8x16.hpp"
 
 #include "tone_key.hpp"
 
 namespace ui {
-
-constexpr Style style_options_group_new{
-    .font = font::fixed_8x16,
-    .background = Color::blue(),
-    .foreground = Color::white(),
-};
 
 class AnalogTvView : public View {
    public:
@@ -98,13 +92,8 @@ class AnalogTvView : public View {
             {"TV ", toUType(ReceiverModel::Mode::WidebandFMAudio)},
         }};
 
-    NumberField field_volume{
-        {27 * 8, 0 * 16},
-        3,
-        {0, 255},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {27 * 8, 0 * 16}};
 
     std::unique_ptr<Widget> options_widget{};
 
@@ -118,7 +107,6 @@ class AnalogTvView : public View {
     void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);
     void on_reference_ppm_correction_changed(int32_t v);
-    void on_headphone_volume_changed(int32_t v);
     void on_edit_frequency();
 
     void remove_options_widget();

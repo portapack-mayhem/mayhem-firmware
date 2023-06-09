@@ -21,58 +21,53 @@
 
 #include "ui_fileman.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_textentry.hpp"
+
+#include "log_file.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
 
 namespace {
-template <typename T>
-T mid(const T& val1, const T& val2, const T& val3) {
-    return std::max(val1, std::min(val2, val3));
-}
+/*void log(const std::string& msg) {
+    LogFile log{};
+    log.append("LOGS/Notepad.txt");
+    log.write_entry(msg);
+}*/
 }  // namespace
 
 namespace ui {
 
-TextEditorView::TextEditorView(NavigationView& nav)
-    : nav_{nav} {
-    add_children(
-        {&button_open,
-         &text_position});
+/* TextViewer *******************************************************/
+
+TextViewer::TextViewer(Rect parent_rect)
+    : Widget(parent_rect),
+      max_line{static_cast<uint8_t>(parent_rect.height() / char_height)},
+      max_col{static_cast<uint8_t>(parent_rect.width() / char_width)} {
     set_focusable(true);
-
-    // log_.append("LOGS/NOTEPAD.TXT");
-
-    button_open.on_select = [this](Button&) {
-        auto open_view = nav_.push<FileLoadView>(".TXT");
-        open_view->on_changed = [this](std::filesystem::path path) {
-            open_file(path);
-        };
-    };
 }
 
-void TextEditorView::on_focus() {
-    refresh_ui();
-}
-
-void TextEditorView::paint(Painter& painter) {
+void TextViewer::paint(Painter& painter) {
     auto first_line = paint_state_.first_line;
     auto first_col = paint_state_.first_col;
 
-    if (!paint_state_.has_file)
+    if (!has_file())
         return;
 
+    // Move the viewport vertically.
     if (cursor_.line < first_line)
         first_line = cursor_.line;
     else if (cursor_.line >= first_line + max_line)
         first_line = cursor_.line - max_line + 1;
 
+    // Move the viewport horizontally.
     if (cursor_.col < first_col)
         first_col = cursor_.col;
     if (cursor_.col >= first_col + max_col)
         first_col = cursor_.col - max_col + 1;
 
+    // Viewport updated? Redraw text.
     if (first_line != paint_state_.first_line ||
         first_col != paint_state_.first_col) {
         paint_state_.first_line = first_line;
@@ -88,7 +83,7 @@ void TextEditorView::paint(Painter& painter) {
     paint_cursor(painter);
 }
 
-bool TextEditorView::on_key(const KeyEvent key) {
+bool TextViewer::on_key(const KeyEvent key) {
     int16_t delta_col = 0;
     int16_t delta_line = 0;
 
@@ -100,19 +95,22 @@ bool TextEditorView::on_key(const KeyEvent key) {
         delta_line = -1;
     else if (key == KeyEvent::Down)
         delta_line = 1;
-    /*	else if (key == KeyEvent::Select)
-            ; // TODO: Edit/Menu */
+    else if (key == KeyEvent::Select && on_select) {
+        on_select();
+        return true;
+    }
 
     // Always allow cursor direction to be updated.
     cursor_.dir = delta_col != 0 ? ScrollDirection::Horizontal : ScrollDirection::Vertical;
     auto updated = apply_scrolling_constraints(delta_line, delta_col);
 
     if (updated)
-        refresh_ui();
+        redraw();
+
     return updated;
 }
 
-bool TextEditorView::on_encoder(EncoderEvent delta) {
+bool TextViewer::on_encoder(EncoderEvent delta) {
     bool updated = false;
 
     if (cursor_.dir == ScrollDirection::Horizontal)
@@ -121,178 +119,109 @@ bool TextEditorView::on_encoder(EncoderEvent delta) {
         updated = apply_scrolling_constraints(delta, 0);
 
     if (updated)
-        refresh_ui();
+        redraw();
 
     return updated;
 }
 
-bool TextEditorView::apply_scrolling_constraints(int16_t delta_line, int16_t delta_col) {
+void TextViewer::redraw(bool redraw_text) {
+    paint_state_.redraw_text = redraw_text;
+    set_dirty();
+}
+
+uint32_t TextViewer::offset() const {
+    auto range = file_->line_range(cursor_.line);
+    if (range)
+        return range->start + col();
+    return 0;
+}
+
+uint16_t TextViewer::line_length() {
+    return file_->line_length(cursor_.line);
+}
+
+bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_col) {
+    if (!has_file())
+        return false;
+
     int32_t new_line = cursor_.line + delta_line;
     int32_t new_col = cursor_.col + delta_col;
-
-    auto new_line_length = info_.line_length(new_line);
+    int32_t new_line_length = file_->line_length(new_line);
 
     if (new_col < 0)
         --new_line;
-    else if (new_col > new_line_length && delta_line == 0) {
-        // Only want to wrap if moving horizontally.
+    else if (new_col >= new_line_length && delta_line == 0) {
+        // Only wrap if moving horizontally.
         new_col = 0;
         ++new_line;
     }
 
-    if (new_line < 0 || (uint32_t)new_line >= info_.line_count())
+    // Snap to first/last to make navigating easier.
+    if (new_line < 0 && new_col > 0) {
+        new_line = 0;
+        new_col = 0;
+    } else if (new_line >= (int32_t)file_->line_count()) {
+        auto last_line = file_->line_count() - 1;
+        int32_t last_col = file_->line_length(last_line) - 1;
+
+        if (new_col < last_col) {
+            new_line = last_line;
+            new_col = last_col;
+        }
+    }
+
+    if (new_line < 0 || (uint32_t)new_line >= file_->line_count())
         return false;
 
-    new_line_length = info_.line_length(new_line);
+    new_line_length = file_->line_length(new_line);
 
     // TODO: don't wrap with encoder?
     // Wrap or clamp column.
     if (new_line_length == 0)
         new_col = 0;
-    else if (new_col > new_line_length || new_col < 0)
-        new_col = new_line_length;
+    else if (new_col >= new_line_length || new_col < 0)
+        new_col = new_line_length - 1;
 
     cursor_.line = new_line;
     cursor_.col = new_col;
 
+    if (on_cursor_moved)
+        on_cursor_moved();
+
     return true;
 }
 
-void TextEditorView::refresh_ui() {
-    if (paint_state_.has_file) {
-        text_position.set(
-            to_string_dec_uint(cursor_.col + 1) + ":" +
-            to_string_dec_uint(cursor_.line + 1) + "/" +
-            to_string_dec_uint(info_.line_count()) +
-            (info_.truncated ? "*" : "") +
-            " Size: " +
-            to_string_file_size(info_.size));
-        focus();
-    } else {
-        button_open.focus();
-    }
-
-    set_dirty();
-}
-
-void TextEditorView::refresh_file_info() {
-    constexpr size_t buffer_size = 128;
-    char buffer[buffer_size];
-    uint32_t base_offset = 0;
-
-    file_.seek(0);
-    info_.newlines.clear();
-    info_.line_ending = LineEnding::LF;
-    info_.size = file_.size();
-    info_.truncated = false;
-
-    while (true) {
-        auto result = file_.read(buffer, buffer_size);
-        if (result.is_error())
-            break;  // TODO: report error?
-
-        // TODO: CRLF state machine for cross block.
-        for (uint32_t i = 0; i < result.value(); ++i) {
-            switch (buffer[i]) {
-                case '\n':
-                    info_.newlines.push_back(base_offset + i);
-            }
-        }
-
-        base_offset += result.value();
-
-        // Fake a newline at the end for consistency.
-        // Could check if there already is a trailing newline, but it doesn't hurt.
-        if (result.value() < buffer_size) {
-            info_.newlines.push_back(base_offset);
-            break;
-        }
-
-        // HACK HACK: only show first 1000 lines for now.
-        if (info_.newlines.size() >= 1000) {
-            info_.truncated = true;
-            break;
-        }
-    }
-
-    refresh_ui();
-}
-
-void TextEditorView::open_file(const fs::path& path) {
-    // TODO: need a temp backing file for edits.
-
-    auto result = file_.open(path);
-    paint_state_.has_file = !result.is_valid(); /* Has an error. */
-
-    if (paint_state_.has_file) {
-        refresh_file_info();
-        paint_state_.first_line = 0;
-        paint_state_.first_col = 0;
-        cursor_.line = 0;
-        cursor_.col = 0;
-    } else {
-        nav_.display_modal("Read Error", "Cannot open file:\n" + result.value().what());
-        paint_state_.has_file = false;
-    }
-
-    paint_state_.redraw_text = true;
-    refresh_ui();
-}
-
-std::string TextEditorView::read(uint32_t offset, uint32_t length) {
-    if (offset >= info_.size)
-        return {"[BAD OFFSET]"};
-
-    std::string buffer(length + 1, '\0');
-    file_.seek(offset);
-
-    auto result = file_.read(&buffer[0], length);
-    if (result.is_ok())
-        /* resize? */;
-    else
-        return result.error().what();
-
-    return buffer;
-}
-
-void TextEditorView::paint_text(Painter& painter, uint32_t line, uint16_t col) {
-    // TODO: A line cache would use more memory but save a lot of IO.
-    // Only the new lines/characters would need to be refetched.
-
+void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
     auto r = screen_rect();
-    auto& lines = info_.newlines;
-    auto line_start = info_.line_start(line);
+    char buffer[max_col + 1];
 
     // Draw the lines from the file
-    for (uint32_t i = 0; i < max_line && i < lines.size(); ++i) {
-        auto line_end = lines[line + i];
-        int32_t read_length = max_col;
+    for (auto i = 0u; i < max_line; ++i) {
+        if (line + i >= file_->line_count())
+            break;
 
-        // Don't read past end of the line.
-        if (line_start + col + (uint32_t)read_length > line_end)
-            read_length = line_end - col - line_start;
+        auto result = file_->get_text(line + i, col, buffer, max_col);
 
-        if (read_length > 0)
+        if (result && *result > 0)
             painter.draw_string(
-                {0, r.location().y() + (int)i * char_height},
-                style_default, read(line_start + col, read_length));
+                {0, r.top() + (int)i * char_height},
+                Styles::white_small, {buffer, *result});
 
-        // Erase empty line sectons.
-        if (read_length >= 0) {
-            int32_t clear_width = max_col - read_length;
-            if (clear_width > 0)
-                painter.fill_rectangle(
-                    {(max_col - clear_width) * char_width,
-                     r.location().y() + (int)i * char_height,
-                     clear_width * char_width, char_height},
-                    style_default.background);
-        }
-
-        line_start = lines[line + i] + 1 /* newline */;
+        // Clear empty line sections. This is less visually jarring than full clear.
+        int32_t clear_width = max_col - (result ? *result : 0);
+        if (clear_width > 0)
+            painter.fill_rectangle(
+                {(max_col - clear_width) * char_width,
+                 r.top() + (int)i * char_height,
+                 clear_width * char_width, char_height},
+                Styles::white_small.background);
     }
 }
 
-void TextEditorView::paint_cursor(Painter& painter) {
+void TextViewer::paint_cursor(Painter& painter) {
+    if (!has_focus())
+        return;
+
     auto draw_cursor = [this, &painter](uint32_t line, uint16_t col, Color c) {
         auto r = screen_rect();
         line = line - paint_state_.first_line;
@@ -300,23 +229,318 @@ void TextEditorView::paint_cursor(Painter& painter) {
 
         painter.draw_rectangle(
             {(int)col * char_width - 1,
-             r.location().y() + (int)line * char_height,
+             r.top() + (int)line * char_height,
              char_width + 1, char_height},
             c);
     };
 
-    // TOOD: bug where cursor doesn't clear at EOF.
-    // TODO: XOR cursor?
-
-    // Clear old cursor.
-    draw_cursor(paint_state_.line, paint_state_.col, style_default.background);
-    draw_cursor(cursor_.line, cursor_.col, style_default.foreground);
+    // Clear old cursor. CONSIDER: XOR cursor?
+    draw_cursor(paint_state_.line, paint_state_.col, Styles::white_small.background);
+    draw_cursor(cursor_.line, cursor_.col, Styles::white_small.foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
 
-uint16_t TextEditorView::line_length() const {
-    return info_.line_length(cursor_.line);
+void TextViewer::reset_file(FileWrapper* file) {
+    file_ = file;
+    paint_state_.first_line = 0;
+    paint_state_.first_col = 0;
+    cursor_.line = 0;
+    cursor_.col = 0;
+    redraw(true);
+}
+
+/* TextEditorMenu ***************************************************/
+
+TextEditorMenu::TextEditorMenu()
+    : View{{7 * 4, 9 * 4, 25 * 8, 25 * 8}} {
+    add_children(
+        {
+            &rect_frame,
+            &button_cut,
+            &button_paste,
+            &button_copy,
+            &button_delline,
+            &button_edit,
+            &button_addline,
+            &button_open,
+            &button_save,
+            &button_exit,
+        });
+}
+
+void TextEditorMenu::on_show() {
+    hide_children(false);
+    button_edit.focus();
+}
+
+void TextEditorMenu::on_hide() {
+    hide_children(true);
+}
+
+void TextEditorMenu::hide_children(bool hidden) {
+    for (auto child : children()) {
+        child->hidden(hidden);
+    }
+}
+
+/* TextEditorView ***************************************************/
+
+TextEditorView::TextEditorView(NavigationView& nav)
+    : nav_{nav} {
+    add_children(
+        {
+            &viewer,
+            &menu,
+            &button_menu,
+            &text_position,
+            &text_size,
+        });
+
+    viewer.on_select = [this]() {
+        // Treat as if menu button was pressed.
+        if (button_menu.on_select)
+            button_menu.on_select();
+    };
+
+    viewer.on_cursor_moved = [this]() {
+        update_position();
+    };
+
+    menu.hidden(true);
+    menu.on_cut() = [this]() {
+        show_nyi();
+    };
+    menu.on_paste() = [this]() {
+        show_nyi();
+    };
+    menu.on_copy() = [this]() {
+        show_nyi();
+    };
+
+    menu.on_delete_line() = [this]() {
+        prepare_for_write();
+        file_->delete_line(viewer.line());
+        refresh_ui();
+        hide_menu(true);
+    };
+
+    menu.on_edit_line() = [this]() {
+        show_edit_line();
+    };
+
+    menu.on_add_line() = [this]() {
+        prepare_for_write();
+
+        if (viewer.offset() < file_->size() - 1)
+            file_->insert_line(viewer.line());
+        else
+            file_->insert_line(-1);  // Add after last line.
+
+        refresh_ui();
+        hide_menu(true);
+    };
+
+    menu.on_open() = [this]() {
+        /*show_save_prompt([this]() {
+            show_file_picker();
+        });*/
+        // HACK: above should work but it's faulting.
+        if (!file_dirty_) {
+            show_file_picker();
+        } else {
+            show_save_prompt(nullptr);
+            show_file_picker(false);
+        }
+    };
+
+    menu.on_save() = [this]() {
+        save_temp_file();
+        hide_menu(true);
+    };
+
+    menu.on_exit() = [this]() {
+        show_save_prompt([this]() {
+            nav_.pop();
+        });
+    };
+
+    button_menu.on_select = [this]() {
+        if (file_) {
+            // Toggle menu.
+            hide_menu(!menu.hidden());
+        } else {
+            show_file_picker();
+        }
+    };
+}
+
+TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
+    : TextEditorView(nav) {
+    open_file(path);
+}
+
+TextEditorView::~TextEditorView() {
+    delete_temp_file();
+}
+
+void TextEditorView::on_show() {
+    if (file_)
+        viewer.focus();
+    else
+        button_menu.focus();
+}
+
+void TextEditorView::open_file(const fs::path& path) {
+    file_.reset();
+    viewer.clear_file();
+    delete_temp_file();
+
+    path_ = {};
+    file_dirty_ = false;
+    has_temp_file_ = false;
+    auto result = FileWrapper::open(path);
+
+    if (!result) {
+        nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
+
+    } else {
+        file_ = *std::move(result);
+        path_ = path;
+        viewer.set_file(*file_);
+    }
+
+    refresh_ui();
+}
+
+void TextEditorView::refresh_ui() {
+    if (file_) {
+        update_position();
+        text_size.set(
+            "Lines:" + to_string_dec_uint(file_->line_count()) +
+            " (" + to_string_file_size(file_->size()) + ")");
+    } else {
+        text_position.set("");
+        text_size.set("");
+    }
+}
+
+void TextEditorView::update_position() {
+    if (viewer.has_file()) {
+        text_position.set(
+            "Ln " + to_string_dec_uint(viewer.line() + 1) +
+            ", Col " + to_string_dec_uint(viewer.col() + 1));
+    }
+}
+
+void TextEditorView::hide_menu(bool hidden) {
+    menu.hidden(hidden);
+
+    // Only let the viewer be focused when the menu is
+    // not shown, otherwise menu focus gets confusing.
+    viewer.set_focusable(hidden);
+
+    if (hidden)
+        viewer.focus();
+
+    viewer.redraw(true);
+    set_dirty();
+}
+
+void TextEditorView::show_file_picker(bool immediate) {
+    // TODO: immediate is a hack until nav_.on_pop is fixed.
+    auto open_view = immediate ? nav_.push<FileLoadView>("") : nav_.push_under_current<FileLoadView>("");
+
+    if (open_view) {
+        open_view->on_changed = [this](std::filesystem::path path) {
+            open_file(path);
+            hide_menu();
+        };
+    }
+}
+
+void TextEditorView::show_edit_line() {
+    auto str = file_->get_text(viewer.line(), 0, viewer.line_length());
+    if (!str) {
+        nav_.display_modal("Error", "Failed to get line text.");
+        return;
+    }
+
+    edit_line_buffer_ = *std::move(str);
+
+    text_prompt(
+        nav_,
+        edit_line_buffer_,
+        viewer.col(),
+        max_edit_length,
+        [this](std::string& buffer) {
+            auto range = file_->line_range(viewer.line());
+            if (!range)
+                return;
+
+            prepare_for_write();
+            file_->replace_range(*range, buffer);
+        });
+    nav_.set_on_pop([this]() {
+        edit_line_buffer_.clear();
+        refresh_ui();
+        hide_menu(true);
+    });
+}
+
+void TextEditorView::show_nyi() {
+    nav_.display_modal("Soon...", "Coming soon.");
+}
+
+void TextEditorView::show_save_prompt(std::function<void()> continuation) {
+    if (!file_dirty_) {
+        if (continuation)
+            continuation();
+        return;
+    }
+
+    nav_.display_modal(
+        "Save?", "Save changes?", YESNO,
+        [this](bool choice) {
+            if (choice)
+                save_temp_file();
+        });
+    nav_.set_on_pop(continuation);
+}
+
+void TextEditorView::prepare_for_write() {
+    file_dirty_ = true;
+
+    if (has_temp_file_)
+        return;
+
+    // Copy to temp file on write.
+    has_temp_file_ = true;
+    delete_temp_file();
+    copy_file(path_, get_temp_path());
+    file_->assume_file(get_temp_path());
+}
+
+void TextEditorView::delete_temp_file() const {
+    auto temp_path = get_temp_path();
+    if (!temp_path.empty()) {
+        delete_file(temp_path);
+    }
+}
+
+void TextEditorView::save_temp_file() {
+    if (file_dirty_) {
+        delete_file(path_);
+        copy_file(get_temp_path(), path_);
+        file_dirty_ = false;
+    }
+}
+
+fs::path TextEditorView::get_temp_path() const {
+    if (!path_.empty())
+        return path_ + "~";
+
+    return {};
 }
 
 }  // namespace ui

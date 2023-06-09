@@ -76,7 +76,6 @@ class MicTXView : public View {
     void configure_baseband();
 
     void rxaudio(bool is_on);
-    void on_headphone_volume_changed(int32_t v);
 
     void set_ptt_visibility(bool v);
 
@@ -123,14 +122,15 @@ class MicTXView : public View {
         {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},             // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
         {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
         {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
-        {{4 * 8, (13 * 8) - 2}, "TONE KEY:", Color::light_grey()},
-        {{7 * 8, 23 * 8}, "VOL:", Color::light_grey()},
-        {{14 * 8, 23 * 8}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
-        {{20 * 8, 25 * 8}, "SQ:", Color::light_grey()},
-        {{5 * 8, 25 * 8}, "F_RX:", Color::light_grey()},
-        {{5 * 8, 27 * 8}, "LNA:", Color::light_grey()},
-        {{12 * 8, 27 * 8}, "VGA:", Color::light_grey()},
-        {{19 * 8, 27 * 8}, "AMP:", Color::light_grey()}};
+        {{3 * 8, (13 * 8) - 5}, "TONE KEY:", Color::light_grey()},
+        {{3 * 8, (18 * 8) - 1}, "======== Receiver ========", Color::green()},
+        {{5 * 8, (23 * 8) + 2}, "VOL:", Color::light_grey()},
+        {{14 * 8, (23 * 8) + 2}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
+        {{20 * 8, (25 * 8) + 2}, "SQ:", Color::light_grey()},
+        {{5 * 8, (25 * 8) + 2}, "F_RX:", Color::light_grey()},
+        {{5 * 8, (27 * 8) + 2}, "LNA:", Color::light_grey()},
+        {{12 * 8, (27 * 8) + 2}, "VGA:", Color::light_grey()},
+        {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()}};
     Labels labels_AK4951{
         {{3 * 8, 1 * 8}, "MIC-GAIN:", Color::light_grey()},
         {{17 * 8, 1 * 8}, "ALC", Color::light_grey()},
@@ -141,14 +141,15 @@ class MicTXView : public View {
         {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},           // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
         {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
         {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
-        {{4 * 8, (13 * 8) - 2}, "TONE KEY:", Color::light_grey()},
-        {{(6 * 8) + 4, 23 * 8}, "VOL:", Color::light_grey()},
-        {{14 * 8, 23 * 8}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
-        {{20 * 8, 25 * 8}, "SQ:", Color::light_grey()},
-        {{5 * 8, 25 * 8}, "F_RX:", Color::light_grey()},
-        {{5 * 8, 27 * 8}, "LNA:", Color::light_grey()},
-        {{12 * 8, 27 * 8}, "VGA:", Color::light_grey()},
-        {{19 * 8, 27 * 8}, "AMP:", Color::light_grey()}};
+        {{3 * 8, (13 * 8) - 5}, "TONE KEY:", Color::light_grey()},
+        {{3 * 8, (18 * 8) - 1}, "======== Receiver ========", Color::green()},
+        {{(5 * 8), (23 * 8) + 2}, "VOL:", Color::light_grey()},
+        {{14 * 8, (23 * 8) + 2}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
+        {{20 * 8, (25 * 8) + 2}, "SQ:", Color::light_grey()},
+        {{5 * 8, (25 * 8) + 2}, "F_RX:", Color::light_grey()},
+        {{5 * 8, (27 * 8) + 2}, "LNA:", Color::light_grey()},
+        {{12 * 8, (27 * 8) + 2}, "VGA:", Color::light_grey()},
+        {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()}};
 
     VuMeter vumeter{
         {0 * 8, 1 * 8, 2 * 8, 33 * 8},
@@ -210,7 +211,7 @@ class MicTXView : public View {
 
     OptionsField options_mode{
         {24 * 8, 5 * 8},
-        4,
+        6,
         {
             {"NFM/FM", 0},
             {" WFM  ", 1},
@@ -230,7 +231,7 @@ class MicTXView : public View {
 
     OptionsField field_va{
         {17 * 8, 8 * 8},
-        3,
+        4,
         {{" OFF", 0},
          {" PTT", 1},
          {"AUTO", 2}}};
@@ -255,38 +256,33 @@ class MicTXView : public View {
         ' '};
 
     OptionsField options_tone_key{
-        {10 * 8, (15 * 8) - 2},
+        {12 * 8, (13 * 8) - 5},
         23,
         {}};
 
     Checkbox check_rogerbeep{
-        {3 * 8, (16 * 8) + 7},
+        {3 * 8, (14 * 8) + 4},
         10,
         "Roger beep",
         false};
 
     Checkbox check_rxactive{
-        {3 * 8, (21 * 8) - 4},
-        18,  // it was 8, but if it is string size should be 18
-        "RX audio listening",
+        {3 * 8, (21 * 8) - 7},
+        8,  // it was 18, but if it is string size should be 8
+        "RX audio",
         false};
 
     Checkbox check_common_freq_tx_rx{
-        {18 * 8, (16 * 8) + 7},
+        {18 * 8, (21 * 8) - 7},
         8,
-        "F = F_RX",
+        "F  TX=RX",
         false};
 
-    NumberField field_volume{
-        {11 * 8, 23 * 8},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {9 * 8, (23 * 8) + 2}};
 
     OptionsField field_rxbw{
-        {19 * 8, 23 * 8},
+        {19 * 8, (23 * 8) + 2},
         3,
         {
             {" NFM1:8k5  ", 0},
@@ -295,7 +291,7 @@ class MicTXView : public View {
         }};
 
     NumberField field_squelch{
-        {23 * 8, 25 * 8},
+        {23 * 8, (25 * 8) + 2},
         2,
         {0, 99},
         1,
@@ -303,11 +299,11 @@ class MicTXView : public View {
     };
 
     FrequencyField field_rxfrequency{
-        {10 * 8, 25 * 8},
+        {10 * 8, (25 * 8) + 2},
     };
 
     NumberField field_rxlna{
-        {9 * 8, 27 * 8},
+        {9 * 8, (27 * 8) + 2},
         2,
         {0, 40},
         8,
@@ -315,7 +311,7 @@ class MicTXView : public View {
     };
 
     NumberField field_rxvga{
-        {16 * 8, 27 * 8},
+        {16 * 8, (27 * 8) + 2},
         2,
         {0, 62},
         2,
@@ -323,7 +319,7 @@ class MicTXView : public View {
     };
 
     NumberField field_rxamp{
-        {24 * 8, 27 * 8},
+        {24 * 8, (27 * 8) + 2},
         1,
         {0, 1},
         1,

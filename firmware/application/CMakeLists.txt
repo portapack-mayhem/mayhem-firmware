@@ -218,8 +218,10 @@ set(CPPSRC
 	ui/ui_btngrid.cpp
 	ui/ui_receiver.cpp
 	ui/ui_rssi.cpp
+	ui/ui_freqlist.cpp
 	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
+	ui/ui_styles.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
 	ui/ui_transmitter.cpp
@@ -259,6 +261,7 @@ set(CPPSRC
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
 	apps/ui_sstvtx.cpp
+	apps/ui_ss_viewer.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
 	apps/ui_tone_search.cpp

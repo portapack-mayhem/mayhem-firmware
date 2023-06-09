@@ -179,16 +179,16 @@ void ScannerView::bigdisplay_update(int32_t v) {
 
         switch (bigdisplay_current_color) {
             case BDC_GREY:
-                big_display.set_style(&style_grey);
+                big_display.set_style(&Styles::grey);
                 break;
             case BDC_YELLOW:
-                big_display.set_style(&style_yellow);
+                big_display.set_style(&Styles::yellow);
                 break;
             case BDC_GREEN:
-                big_display.set_style(&style_green);
+                big_display.set_style(&Styles::green);
                 break;
             case BDC_RED:
-                big_display.set_style(&style_red);
+                big_display.set_style(&Styles::red);
                 break;
             default:
                 break;
@@ -254,10 +254,10 @@ void ScannerView::show_max_index() {  // show total number of freqs to scan
     text_current_index.set("---");
 
     if (frequency_list.size() == FREQMAN_MAX_PER_FILE) {
-        text_max_index.set_style(&style_red);
+        text_max_index.set_style(&Styles::red);
         text_max_index.set("/ " + to_string_dec_uint(FREQMAN_MAX_PER_FILE) + " (DB MAX!)");
     } else {
-        text_max_index.set_style(&style_grey);
+        text_max_index.set_style(&Styles::grey);
         text_max_index.set("/ " + to_string_dec_uint(frequency_list.size()));
     }
 }
@@ -558,9 +558,6 @@ ScannerView::ScannerView(
     field_squelch.on_change = [this](int32_t v) { squelch = v; };
     field_squelch.set_value(-10);
 
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-    field_volume.on_change = [this](int32_t v) { this->on_headphone_volume_changed(v); };
-
     // LEARN FREQUENCIES
     std::string scanner_txt = "SCANNER";
     frequency_file_load(scanner_txt);
@@ -667,8 +664,8 @@ void ScannerView::update_squelch_while_paused(int32_t max_db) {
     // Update audio & color based on signal level even if paused
     if (++color_timer > 2) {  // Counter to reduce color toggling when weak signal
         if (max_db > squelch) {
-            audio::output::start();                             // Re-enable audio when signal goes above squelch
-            on_headphone_volume_changed(field_volume.value());  // quick fix to make sure WM8731S chips don't stay silent after pause
+            audio::output::start();                                                  // Re-enable audio when signal goes above squelch
+            receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // quick fix to make sure WM8731S chips don't stay silent after pause
             bigdisplay_update(BDC_GREEN);
         } else {
             audio::output::stop();        // Silence audio when signal drops below squelch
@@ -730,7 +727,7 @@ void ScannerView::scan_pause() {
         scan_thread->set_scanning(false);  // WE STOP SCANNING
     }
     audio::output::start();
-    on_headphone_volume_changed(field_volume.value());  // quick fix to make sure WM8731S chips don't stay silent after pause
+    receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // quick fix to make sure WM8731S chips don't stay silent after pause
 }
 
 void ScannerView::scan_resume() {
@@ -744,14 +741,9 @@ void ScannerView::scan_resume() {
 }
 
 void ScannerView::user_resume() {
-    browse_timer = browse_wait * STATISTICS_UPDATES_PER_SEC;  // Will trigger a scan_resume() on_statistics_update, also advancing to next freq.
-    button_pause.set_text("<PAUSE>");                         // Show button for pause, arrows indicate rotary encoder enabled for freq change
-    userpause = false;                                        // Resume scanning
-}
-
-void ScannerView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
+    browse_timer = browse_wait * STATISTICS_UPDATES_PER_SEC + 1;  // Will trigger a scan_resume() on_statistics_update, also advancing to next freq.
+    button_pause.set_text("<PAUSE>");                             // Show button for pause, arrows indicate rotary encoder enabled for freq change
+    userpause = false;                                            // Resume scanning
 }
 
 void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a scan_thread->stop();  After this do a start_scan_thread()
@@ -767,9 +759,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-            field_bw.set_selected_index(0);
-            receiver_model.set_am_configuration(field_bw.selected_index());
-            field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_am_configuration(n); };
+            field_bw.set_by_value(0);
+            receiver_model.set_am_configuration(field_bw.selected_index_value());
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(1750000);
             break;
@@ -777,9 +769,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
-            field_bw.set_selected_index(2);
-            receiver_model.set_nbfm_configuration(field_bw.selected_index());
-            field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_nbfm_configuration(n); };
+            field_bw.set_by_value(2);
+            receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(1750000);
             break;
@@ -787,9 +779,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
-            field_bw.set_selected_index(0);
-            receiver_model.set_wfm_configuration(field_bw.selected_index());
-            field_bw.on_change = [this](size_t n, OptionsField::value_t) { receiver_model.set_wfm_configuration(n); };
+            field_bw.set_by_value(0);
+            receiver_model.set_wfm_configuration(field_bw.selected_index_value());
+            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(2000000);
             break;

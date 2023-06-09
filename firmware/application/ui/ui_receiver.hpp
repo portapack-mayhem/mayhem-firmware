@@ -337,6 +337,11 @@ class VGAGainField : public NumberField {
     void on_focus() override;
 };
 
+class AudioVolumeField : public NumberField {
+   public:
+    AudioVolumeField(Point parent_pos);
+};
+
 } /* namespace ui */
 
 #endif /*__UI_RECEIVER_H__*/

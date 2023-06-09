@@ -94,13 +94,22 @@ int fast_int_magnitude(int y, int x);
 int int_atan2(int y, int x);
 int32_t int16_sin_s4(int32_t x);
 
+/* Returns value constrained to min and max. */
+template <class T>
+constexpr const T& clip(const T& value, const T& minimum, const T& maximum) {
+    return std::max(std::min(value, maximum), minimum);
+}
+
+// TODO: need to decide if this is inclusive or exclusive.
+// The implementations are different and cause the subtle
+// bugs mentioned below.
 template <class T>
 struct range_t {
     const T minimum;
     const T maximum;
 
     constexpr const T& clip(const T& value) const {
-        return std::max(std::min(value, maximum), minimum);
+        return ::clip(value, minimum, maximum);
     }
 
     constexpr void reset_if_outside(T& value, const T& reset_value) const {

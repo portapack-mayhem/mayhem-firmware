@@ -187,6 +187,10 @@ void controls_init() {
      */
     gptStart(&GPTD1, &timer0_config);
     gptStartContinuous(&GPTD1, timer0_match_count);
+
+    // Enable repeat for directional switches only
+    for (size_t i = 0; i < 4; i++)
+        switch_debounce[i].enable_repeat();
 }
 
 SwitchesState get_switches_state() {

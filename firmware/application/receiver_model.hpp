@@ -30,6 +30,7 @@
 #include "max283x.hpp"
 #include "volume.hpp"
 
+// TODO: consider a base class for ReceiverModel & TransmitterModel.
 class ReceiverModel {
    public:
     enum class Mode {
@@ -60,9 +61,6 @@ class ReceiverModel {
     int32_t vga() const;
     void set_vga(int32_t v_db);
 
-    int32_t tx_gain() const;
-    void set_tx_gain(int32_t v_db);
-
     uint32_t sampling_rate() const;
     void set_sampling_rate(uint32_t v);
 
@@ -71,6 +69,10 @@ class ReceiverModel {
 
     volume_t headphone_volume() const;
     void set_headphone_volume(volume_t v);
+
+    /* Volume range 0-99, normalized for audio HW. */
+    int32_t normalized_headphone_volume() const;
+    void set_normalized_headphone_volume(int32_t v);
 
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
@@ -87,7 +89,13 @@ class ReceiverModel {
     size_t wfm_configuration() const;
     void set_wfm_configuration(const size_t n);
 
-    void set_configuration_without_init(const Mode new_mode, const rf::Frequency new_frequency_step, const size_t new_am_config_index, const size_t new_nbfm_config_index, const size_t new_wfm_config_index, uint8_t new_squelch_level);
+    void set_configuration_without_init(
+        const Mode new_mode,
+        const rf::Frequency new_frequency_step,
+        const size_t new_am_config_index,
+        const size_t new_nbfm_config_index,
+        const size_t new_wfm_config_index,
+        uint8_t new_squelch_level);
 
    private:
     rf::Frequency frequency_step_{25000};
@@ -96,13 +104,11 @@ class ReceiverModel {
     int32_t lna_gain_db_{32};
     uint32_t baseband_bandwidth_{max283x::filter::bandwidth_minimum};
     int32_t vga_gain_db_{32};
-    int32_t tx_gain_db_{47};
     Mode mode_{Mode::NarrowbandFMAudio};
     uint32_t sampling_rate_{3072000};
     size_t am_config_index = 0;
     size_t nbfm_config_index = 0;
     size_t wfm_config_index = 0;
-    volume_t headphone_volume_{-43.0_dB};
     uint8_t squelch_level_{80};
 
     int32_t tuning_offset();
@@ -113,7 +119,7 @@ class ReceiverModel {
     void update_lna();
     void update_baseband_bandwidth();
     void update_vga();
-    void update_tx_gain();
+    // void update_tx_gain();
     void update_sampling_rate();
     void update_headphone_volume();
 

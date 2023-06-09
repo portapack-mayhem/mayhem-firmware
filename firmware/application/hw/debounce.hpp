@@ -28,6 +28,10 @@
 #define DEBOUNCE_COUNT 4
 #define DEBOUNCE_MASK ((1 << DEBOUNCE_COUNT) - 1)
 
+// # of timer0 ticks before a held button starts being counted as repeated presses
+#define REPEAT_INITIAL_DELAY 250
+#define REPEAT_SUBSEQUENT_DELAY 92
+
 class Debounce {
    public:
     bool feed(const uint8_t bit);
@@ -36,9 +40,16 @@ class Debounce {
         return state_;
     }
 
+    void enable_repeat() {
+        repeat_enabled_ = true;
+    }
+
    private:
     uint8_t history_{0};
     uint8_t state_{0};
+    bool repeat_enabled_{0};
+    uint16_t repeat_ctr_{0};
+    uint16_t held_time_{0};
 };
 
 #endif /*__DEBOUNCE_H__*/

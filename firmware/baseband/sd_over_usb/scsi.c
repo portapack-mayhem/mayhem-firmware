@@ -175,6 +175,22 @@ uint8_t mode_sense6(msd_cbw_t* msd_cbw_data) {
     return 0;
 }
 
+uint8_t mode_sense10(msd_cbw_t* msd_cbw_data) {
+    (void)msd_cbw_data;
+
+    scsi_mode_sense10_response_t ret = {
+        .byte = {
+            cpu_to_be16(sizeof(scsi_mode_sense6_response_t) - 2),
+            0,
+            0,
+            0}};
+
+    memcpy(&usb_bulk_buffer[0], &ret, sizeof(scsi_mode_sense10_response_t));
+    usb_send_bulk(&usb_bulk_buffer[0], sizeof(scsi_mode_sense10_response_t));
+
+    return 0;
+}
+
 static data_request_t decode_data_request(const uint8_t* cmd) {
     data_request_t req;
     uint32_t lba;
@@ -252,6 +268,10 @@ void scsi_command(msd_cbw_t* msd_cbw_data) {
 
         case SCSI_CMD_MODE_SENSE_6:
             status = mode_sense6(msd_cbw_data);
+            break;
+
+        case SCSI_CMD_MODE_SENSE_10:
+            status = mode_sense10(msd_cbw_data);
             break;
 
         case SCSI_CMD_READ_FORMAT_CAPACITIES:

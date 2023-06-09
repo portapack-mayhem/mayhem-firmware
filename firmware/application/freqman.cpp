@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -44,9 +45,9 @@ options_t freqman_entry_bandwidths[4] = {
      {"16k", 2}},
     {
         // WFM
-        {"200k", 0},
-        {"180k", 1},
         {"40k", 2},
+        {"180k", 1},
+        {"200k", 0},
     }};
 
 options_t freqman_entry_steps = {
@@ -85,27 +86,14 @@ options_t freqman_entry_steps_short = {
     {"500kHz", 500000},
     {"1MHz", 1000000}};
 
-std::vector<std::string> get_freqman_files() {
-    std::vector<std::string> file_list;
-
-    auto files = scan_root_files(u"FREQMAN", u"*.TXT");
-
-    for (auto file : files) {
-        std::string file_name = file.stem().string();
-        // don't propose tmp / hidden files in freqman's list
-        if (file_name.length() && file_name[0] != '.') {
-            file_list.emplace_back(file_name);
-        }
-    }
-
-    return file_list;
-};
-
 bool load_freqman_file(std::string& file_stem, freqman_db& db) {
-    return load_freqman_file_ex(file_stem, db, true, true, true);
+    return load_freqman_file_ex(file_stem, db, true, true, true, FREQMAN_MAX_PER_FILE);
 }
 
-bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios) {
+bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs = FREQMAN_MAX_PER_FILE) {
+    // swap with empty vector to ensure memory is immediately released
+    std::vector<freqman_entry>().swap(db);
+
     File freqman_file;
     size_t length, n = 0, file_position = 0;
     char* pos;
@@ -113,35 +101,33 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
     char* line_end;
     std::string description;
     rf::Frequency frequency_a, frequency_b;
-    char file_data[257];
+    char file_data[FREQMAN_READ_BUF_SIZE + 1];
     freqman_entry_type type;
     freqman_index_t modulation = 0;
     freqman_index_t bandwidth = 0;
     freqman_index_t step = 0;
     freqman_index_t tone = 0;
 
-    db.clear();
-
     auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
     if (result.is_valid())
         return false;
 
     while (1) {
-        // Read a 256 bytes block from file
+        // Read a FREQMAN_READ_BUF_SIZE block from file
         freqman_file.seek(file_position);
 
-        memset(file_data, 0, 257);
-        auto read_size = freqman_file.read(file_data, 256);
+        memset(file_data, 0, FREQMAN_READ_BUF_SIZE + 1);
+        auto read_size = freqman_file.read(file_data, FREQMAN_READ_BUF_SIZE);
         if (read_size.is_error())
             return false;  // Read error
 
-        file_position += 256;
+        file_position += FREQMAN_READ_BUF_SIZE;
 
         // Reset line_start to beginning of buffer
         line_start = file_data;
 
         // If EOF reached, insert 0x0A after, in case the last line doesn't have a C/R
-        if (read_size.value() < 256)
+        if (read_size.value() < FREQMAN_READ_BUF_SIZE)
             *(line_start + read_size.value()) = 0x0A;
 
         // Look for complete lines in buffer
@@ -221,23 +207,22 @@ bool load_freqman_file_ex(std::string& file_stem, freqman_db& db, bool load_freq
                 pos += 2;
                 length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
                 description = string(pos, length);
-            } else
-                description = "-";
+            }
             if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
                 db.push_back({frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
                 n++;
-                if (n > FREQMAN_MAX_PER_FILE) return true;
+                if (n > max_num_freqs) return true;
             }
 
             line_start = line_end + 1;
-            if (line_start - file_data >= 256) break;
+            if (line_start - file_data >= FREQMAN_READ_BUF_SIZE) break;
         }
 
-        if (read_size.value() != 256)
+        if (read_size.value() != FREQMAN_READ_BUF_SIZE)
             break;  // End of file
 
         // Restart at beginning of last incomplete line
-        file_position -= (file_data + 256 - line_start);
+        file_position -= (file_data + FREQMAN_READ_BUF_SIZE - line_start);
     }
 
     /* populate implicitly specified modulation / bandwidth */
@@ -296,29 +281,24 @@ bool get_freq_string(freqman_entry& entry, std::string& item_string) {
     return true;
 }
 
+bool delete_freqman_file(std::string& file_stem) {
+    File freqman_file;
+    std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
+    delete_file(freq_file_path);
+    return false;
+}
+
 bool save_freqman_file(std::string& file_stem, freqman_db& db) {
     File freqman_file;
-
-    std::string freq_file_path = "FREQMAN/" + file_stem + ".TXT";
-    std::string tmp_freq_file_path = "FREQMAN/" + file_stem + ".TXT.TMP";
-
-    if (!db.size()) {
-        delete_file("FREQMAN/" + file_stem + ".TXT");
-        return true;
-    }
-
-    delete_file(tmp_freq_file_path);
-    auto result = freqman_file.open(tmp_freq_file_path);
+    std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
+    delete_file(freq_file_path);
+    auto result = freqman_file.create(freq_file_path);
     if (!result.is_valid()) {
         for (size_t n = 0; n < db.size(); n++) {
-            std::string item_string;
-            auto& entry = db[n];
-            get_freq_string(entry, item_string);
-            freqman_file.write_line(item_string);
-            delete &item_string;
+            std::string line;
+            get_freq_string(db[n], line);
+            freqman_file.write_line(line);
         }
-        delete_file(freq_file_path);
-        rename_file(tmp_freq_file_path, freq_file_path);
         return true;
     }
     return false;

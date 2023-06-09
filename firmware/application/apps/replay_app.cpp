@@ -141,18 +141,9 @@ void ReplayAppView::start() {
             });
     }
 
-    // Enable Bias Tee if selected
-    radio::set_antenna_bias(portapack::get_antenna_bias());
-
-    rf_amp = (transmitter_model.rf_amp());  // recover rf_amp settings applied from ui_transmiter.cpp
-
-    radio::enable({receiver_model.tuning_frequency(),
-                   sample_rate * 8,
-                   baseband_bandwidth,
-                   rf::Direction::Transmit,
-                   rf_amp,  // previous code line : "receiver_model.rf_amp()," was passing the same rf_amp of all Receiver Apps
-                   static_cast<int8_t>(receiver_model.lna()),
-                   static_cast<int8_t>(receiver_model.vga())});
+    transmitter_model.set_sampling_rate(sample_rate * 8);
+    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
+    transmitter_model.enable();
 
     if (portapack::persistent_memory::stealth_mode()) {
         DisplaySleepMessage message;
@@ -167,8 +158,7 @@ void ReplayAppView::stop(const bool do_loop) {
     if (do_loop && check_loop.value()) {
         start();
     } else {
-        radio::set_antenna_bias(false);  // Turn off Bias Tee
-        radio::disable();
+        transmitter_model.disable();
         button_play.set_bitmap(&bitmap_play);
     }
 
@@ -233,7 +223,7 @@ ReplayAppView::ReplayAppView(
 }
 
 ReplayAppView::~ReplayAppView() {
-    radio::disable();
+    transmitter_model.disable();
 
     display.fill_rectangle({0, 0, 240, 320}, Color::black());  // Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
     chThdSleepMilliseconds(40);                                // (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )

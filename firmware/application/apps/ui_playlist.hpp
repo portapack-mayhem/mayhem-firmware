@@ -39,10 +39,13 @@ namespace ui {
 class PlaylistView : public View {
    public:
     PlaylistView(NavigationView& nav);
+
     ~PlaylistView();
 
     void on_hide() override;
+
     void set_parent_rect(const Rect new_parent_rect) override;
+
     void focus() override;
 
     std::string title() const override { return "Playlist"; };
@@ -66,15 +69,14 @@ class PlaylistView : public View {
     static constexpr uint32_t baseband_bandwidth = 2500000;
     const size_t read_size{16384};
     const size_t buffer_count{3};
+
     void load_file(std::filesystem::path playlist_path);
     void txtline_process(std::string&);
     void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate);
     void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const uint32_t progress);
-
     void set_target_frequency(const rf::Frequency new_value);
     rf::Frequency target_frequency() const;
-
     void toggle();
     void start();
     void stop(const bool do_loop);
@@ -82,11 +84,14 @@ class PlaylistView : public View {
     bool loop() const;
     void set_ready();
     void handle_replay_thread_done(const uint32_t return_code);
-    void file_error();
+    void file_error(std::string error_message);
 
     std::filesystem::path file_path{};
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
+    size_t track_number{0};
+    size_t total_tracks{0};
+    std::filesystem::path now_play_list_file{};
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -125,6 +130,10 @@ class PlaylistView : public View {
         &bitmap_play,
         Color::green(),
         Color::black()};
+    // TODO: add track number
+    // Text text_track{
+    //     {18 * 8, 1 * 16, 12 * 8, 16},
+    //     "0/0"};
 
     spectrum::WaterfallWidget waterfall{};
 

@@ -31,6 +31,12 @@
 #include "touch.hpp"
 #include "modems.hpp"
 #include "serializer.hpp"
+#include "volume.hpp"
+
+// persistant memory from/to sdcard flag file
+#define PMEM_FILEFLAG "/SETTINGS/PMEM_FILEFLAG"
+// persistant memory from/to sdcard flag file
+#define PMEM_SETTING_FILE "/SETTINGS/pmem_settings"
 
 using namespace modems;
 using namespace serializer;
@@ -99,6 +105,13 @@ struct backlight_config_t {
     bool _timeout_enabled;
 };
 
+enum encoder_dial_sensitivity {
+    DIAL_SENSITIVITY_MEDIUM = 0,
+    DIAL_SENSITIVITY_LOW = 1,
+    DIAL_SENSITIVITY_HIGH = 2,
+    NUM_DIAL_SENSITIVITY
+};
+
 namespace cache {
 
 /* Set values in cache to sensible defaults. */
@@ -119,6 +132,9 @@ using ppb_t = int32_t;
 
 rf::Frequency tuned_frequency();
 void set_tuned_frequency(const rf::Frequency new_value);
+
+volume_t headphone_volume();
+void set_headphone_volume(volume_t new_value);
 
 ppb_t correction_ppb();
 void set_correction_ppb(const ppb_t new_value);
@@ -199,6 +215,8 @@ void set_config_login(bool v);
 void set_config_speaker(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
+uint8_t config_encoder_dial_sensitivity();
+void set_encoder_dial_sensitivity(uint8_t v);
 
 // uint8_t ui_config_textentry();
 // void set_config_textentry(uint8_t new_value);
@@ -235,8 +253,11 @@ void set_recon_load_hamradios(const bool v);
 void set_recon_match_mode(const bool v);
 
 // sd persisting settings
-int save_persistent_settings_to_file(std::string filename);
-int load_persistent_settings_from_file(std::string filename);
+bool should_use_sdcard_for_pmem();
+int save_persistent_settings_to_file();
+int load_persistent_settings_from_file();
+
+size_t data_size();
 
 } /* namespace persistent_memory */
 

@@ -107,7 +107,7 @@ SondeView::SondeView(NavigationView& nav) {
     receiver_model.set_tuning_frequency(tuning_frequency());
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
-    receiver_model.enable();  // Before using radio::enable(), but not updating Ant.DC-Bias.
+    receiver_model.enable();
 
     // QR code with geo URI
     button_see_qr.on_select = [this, &nav](Button&) {
@@ -127,13 +127,6 @@ SondeView::SondeView(NavigationView& nav) {
     logger = std::make_unique<SondeLogger>();
     if (logger)
         logger->append(LOG_ROOT_DIR "/SONDE.TXT");
-
-    // initialize audio:
-    field_volume.set_value((receiver_model.headphone_volume() - audio::headphone::volume_range().max).decibel() + 99);
-
-    field_volume.on_change = [this](int32_t v) {
-        this->on_headphone_volume_changed(v);
-    };
 
     audio::output::start();
     audio::output::speaker_unmute();
@@ -155,7 +148,7 @@ SondeView::~SondeView() {
 
     baseband::set_pitch_rssi(0, false);
 
-    receiver_model.disable();  // to switch off all, including DC bias.
+    receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
 }
@@ -251,15 +244,8 @@ void SondeView::on_packet(const sonde::Packet& packet) {
     }
 }
 
-void SondeView::on_headphone_volume_changed(int32_t v) {
-    const auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
-    receiver_model.set_headphone_volume(new_volume);
-}
-
 void SondeView::set_target_frequency(const uint32_t new_value) {
     target_frequency_ = new_value;
-    // radio::set_tuning_frequency(tuning_frequency());
-    //  we better remember the tuned frequency, by using this function instead:
     receiver_model.set_tuning_frequency(target_frequency_);
 }
 

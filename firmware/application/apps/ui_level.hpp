@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2018 Furrtek
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  *
  * This file is part of PortaPack.
  *
@@ -26,7 +27,7 @@
 #include "ui.hpp"
 #include "receiver_model.hpp"
 #include "ui_receiver.hpp"
-#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
 #include "freqman.hpp"
 #include "analog_audio_app.hpp"
 #include "audio.hpp"
@@ -46,48 +47,6 @@ class LevelView : public View {
     ~LevelView();
 
     void focus() override;
-
-    const Style style_grey{
-        // level
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
-    };
-
-    const Style style_white{
-        // level
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
-
-    const Style style_yellow{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-
-    const Style style_green{
-        // Found signal
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
-
-    const Style style_red{
-        // erasing freq
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-
-    const Style style_blue{
-        // quick level, wait == 0
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::blue(),
-    };
 
     std::string title() const override { return "Level"; };
 
@@ -116,13 +75,8 @@ class LevelView : public View {
     RFAmpField field_rf_amp{
         {18 * 8, 0 * 16}};
 
-    NumberField field_volume{
-        {24 * 8, 0 * 16},
-        2,
-        {0, 99},
-        1,
-        ' ',
-    };
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     OptionsField field_bw{
         {3 * 8, 1 * 16},
@@ -201,7 +155,6 @@ class LevelView : public View {
     };
 
     void handle_coded_squelch(const uint32_t value);
-    void on_headphone_volume_changed(int32_t v);
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
