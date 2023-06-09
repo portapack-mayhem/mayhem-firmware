@@ -269,7 +269,7 @@ class DebugPmemView : public View {
     DebugPmemView(NavigationView& nav);
     void focus() override;
     bool on_encoder(const EncoderEvent delta) override;
-    std::string title() const override { return "P.mem"; }
+    std::string title() const override { return "p.mem"; }
 
    private:
     struct pmem_data {
