@@ -470,7 +470,7 @@ class SetPersistentMemoryView : public View {
    private:
     Text text_pmem_about{
         {0, 1 * 16, 240, 16},
-        "PersistentMemory from/to SD"};
+        "Persistent Memory from/to SD"};
 
     Text text_pmem_informations{
         {0, 2 * 16, 240, 16},
