@@ -60,7 +60,7 @@ class TransponderID {
         return id_;
     }
 
-    constexpr bool operator==(const TransponderID &other) const {
+    constexpr bool operator==(const TransponderID& other) const {
         return id_ == other.id_;
     }
 
