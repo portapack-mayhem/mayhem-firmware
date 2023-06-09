@@ -37,6 +37,7 @@
 #include "spectrum_color_lut.hpp"
 
 namespace ui {
+
 #define LOOKING_GLASS_SLICE_WIDTH_MAX 20000000
 #define MHZ_DIV 1000000
 
@@ -81,10 +82,7 @@ class GlassView : public View {
     void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
     rf::Frequency get_freq_from_bin_pos(uint8_t pos);
     void on_marker_change();
-    int64_t next_mult_of(int64_t num, int64_t multiplier);
-    void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
     void retune();
-    bool move_to_next_position();
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void do_timers();
     void on_range_changed();
