@@ -67,6 +67,7 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
     playlist_masterdb = playlist_db;
     text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
     tracks_progressbar.set_max(total_tracks);
+    button_play.focus();
     return;
 }
 
@@ -118,8 +119,6 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     text_duration.set(to_string_time_ms(duration));
     text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));  // Thanks @kallanreed @bernd-herzog @u-foka for this line
     tracks_progressbar.set_value(track_number);
-
-    button_play.focus();
 }
 
 void PlaylistView::on_tx_progress(const uint32_t progress) {
