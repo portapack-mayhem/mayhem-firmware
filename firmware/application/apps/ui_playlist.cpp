@@ -65,6 +65,8 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
         }
     }
     playlist_masterdb = playlist_db;
+    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
+    tracks_progressbar.set_max(total_tracks);
     return;
 }
 
@@ -95,7 +97,7 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     // Get file size
     auto data_open_error = data_file.open("/" + new_file_path.string());
     if (!data_open_error.is_valid()) {
-        track_number++;
+        track_number = track_number >= total_tracks ? 1 : track_number + 1;  // prevent track_number out of range
     } else if (data_open_error.is_valid()) {
         file_error("C16 file\n" + new_file_path.string() + "\nread error.");
         return;
@@ -111,16 +113,17 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     auto file_size = data_file.size();
     auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
 
-    progressbar.set_max(file_size);
-    text_filename.set(file_path.filename().string().substr(0, 12));
+    on_track_progressbar.set_max(file_size);
+    text_filename.set(file_path.filename().string().substr(0, 30));
     text_duration.set(to_string_time_ms(duration));
-    // text_track.set(std::to_string(track_number) + "/" + std::to_string(total_tracks));
+    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
+    tracks_progressbar.set_value(track_number);
 
     button_play.focus();
 }
 
 void PlaylistView::on_tx_progress(const uint32_t progress) {
-    progressbar.set_value(progress);
+    on_track_progressbar.set_value(progress);
 }
 
 void PlaylistView::focus() {
@@ -128,7 +131,16 @@ void PlaylistView::focus() {
 }
 
 void PlaylistView::file_error(std::string error_message) {
+    clean_playlist();
+    stop(false);
     nav_.display_modal("Error", "Error for \n" + file_path.string() + "\n" + error_message);
+}
+
+void PlaylistView::clean_playlist() {
+    total_tracks = 0;
+    track_number = 0;
+    playlist_db.clear();
+    playlist_masterdb.clear();
 }
 
 bool PlaylistView::is_active() const {
@@ -142,15 +154,9 @@ bool PlaylistView::loop() const {
 void PlaylistView::toggle() {
     if (is_active()) {
         stop(false);
-        total_tracks = 0;
-        track_number = 0;
-        playlist_db.clear();
-        playlist_masterdb.clear();
+        clean_playlist();
     } else {
-        total_tracks = 0;
-        track_number = 0;
-        playlist_db.clear();
-        playlist_masterdb.clear();
+        clean_playlist();
         load_file(now_play_list_file);
         if (!playlist_db.empty()) {
             start();
@@ -246,11 +252,11 @@ void PlaylistView::handle_replay_thread_done(const uint32_t return_code) {
     if (return_code == ReplayThread::END_OF_FILE) {
         stop(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
-        stop(false);
         file_error("Replay thread read error");
+        return;
     }
 
-    progressbar.set_value(0);
+    on_track_progressbar.set_value(0);
 }
 
 PlaylistView::PlaylistView(
@@ -263,14 +269,14 @@ PlaylistView::PlaylistView(
         &text_filename,
         &text_sample_rate,
         &text_duration,
-        &progressbar,
+        &tracks_progressbar,
+        &on_track_progressbar,
         &field_frequency,
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
-        // &text_track,
-        // TODO: add track number
-        &waterfall,
+        &text_track,
+        // &waterfall,////TODO add a list view to replace the waterfall
     });
 
     field_frequency.set_value(target_frequency());
@@ -311,17 +317,17 @@ void PlaylistView::on_hide() {
     stop(false);
     // TODO: Terrible kludge because widget system doesn't notify Waterfall that
     // it's being shown or hidden.
-    waterfall.on_hide();
+    // waterfall.on_hide();//TODO add a list view to replace the waterfall
     View::on_hide();
 }
 
-void PlaylistView::set_parent_rect(const Rect new_parent_rect) {
-    View::set_parent_rect(new_parent_rect);
-
-    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(),
-                                  new_parent_rect.height() - header_height};
-    waterfall.set_parent_rect(waterfall_rect);
-}
+// void PlaylistView::set_parent_rect(const Rect new_parent_rect) { //TODO add a list view to replace the waterfall
+//     View::set_parent_rect(new_parent_rect);
+//
+//     const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(),
+//                                   new_parent_rect.height() - header_height};
+//     waterfall.set_parent_rect(waterfall_rect);
+// }
 
 void PlaylistView::on_target_frequency_changed(rf::Frequency f) {
     set_target_frequency(f);
@@ -329,7 +335,7 @@ void PlaylistView::on_target_frequency_changed(rf::Frequency f) {
 
 void PlaylistView::set_target_frequency(const rf::Frequency new_value) {
     persistent_memory::set_tuned_frequency(new_value);
-    ;
+    // ;
 }
 
 rf::Frequency PlaylistView::target_frequency() const {

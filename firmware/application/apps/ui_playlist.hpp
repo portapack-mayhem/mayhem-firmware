@@ -44,7 +44,7 @@ class PlaylistView : public View {
 
     void on_hide() override;
 
-    void set_parent_rect(const Rect new_parent_rect) override;
+    // void set_parent_rect(const Rect new_parent_rect) override; ////TODO add a list view to replace the waterfall
 
     void focus() override;
 
@@ -85,6 +85,7 @@ class PlaylistView : public View {
     void set_ready();
     void handle_replay_thread_done(const uint32_t return_code);
     void file_error(std::string error_message);
+    void clean_playlist();
 
     std::filesystem::path file_path{};
     std::unique_ptr<ReplayThread> replay_thread{};
@@ -98,17 +99,20 @@ class PlaylistView : public View {
         "Open file"};
 
     Text text_filename{
-        {11 * 8, 0 * 16, 12 * 8, 16},
+        {0 * 8, 18 * 8, 30 * 8, 16},
         "-"};
     Text text_sample_rate{
-        {24 * 8, 0 * 16, 6 * 8, 16},
+        {11 * 8, 0 * 16, 6 * 8, 16},
         "-"};
 
     Text text_duration{
         {11 * 8, 1 * 16, 6 * 8, 16},
         "-"};
-    ProgressBar progressbar{
-        {18 * 8, 1 * 16, 12 * 8, 16}};
+    ProgressBar tracks_progressbar{
+        {0 * 8, 3 * 16, 30 * 8, 16}};
+
+    ProgressBar on_track_progressbar{
+        {0 * 8, 4 * 16, 30 * 8, 16}};
 
     FrequencyField field_frequency{
         {0 * 8, 2 * 16},
@@ -131,11 +135,11 @@ class PlaylistView : public View {
         Color::green(),
         Color::black()};
     // TODO: add track number
-    // Text text_track{
-    //     {18 * 8, 1 * 16, 12 * 8, 16},
-    //     "0/0"};
+    Text text_track{
+        {13 * 8, 20 * 8, 16 * 8, 16},
+        "0/0"};
 
-    spectrum::WaterfallWidget waterfall{};
+    // spectrum::WaterfallWidget waterfall{}; ////TODO add a list view to replace the waterfall
 
     MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,
