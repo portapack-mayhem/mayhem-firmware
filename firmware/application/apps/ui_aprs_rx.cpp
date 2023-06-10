@@ -74,7 +74,7 @@ void APRSRxView::focus() {
 }
 
 void APRSRxView::update_freq(rf::Frequency f) {
-    receiver_model.set_tuning_frequency(f);
+    receiver_model.set_target_frequency(f);
 }
 
 APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
@@ -91,14 +91,6 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
                   &field_frequency,
                   &record_view,
                   &console});
-
-    // load app settings
-    auto rc = settings.load("rx_aprs", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-    }
 
     // DEBUG
     record_view.on_error = [&nav](std::string message) {
@@ -119,15 +111,14 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
         }
     };
 
-    field_frequency.set_value(receiver_model.tuning_frequency());
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(100);
     field_frequency.on_change = [this](rf::Frequency f) {
         update_freq(f);
     };
     field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            update_freq(f);
             field_frequency.set_value(f);
         };
     };
@@ -211,9 +202,6 @@ void APRSRxView::on_show() {
 }
 
 APRSRxView::~APRSRxView() {
-    // save app settings
-    settings.save("rx_aprs", &app_settings);
-
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();

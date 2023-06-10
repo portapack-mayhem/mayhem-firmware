@@ -35,13 +35,6 @@ void LevelView::focus() {
 }
 
 LevelView::~LevelView() {
-    // save app settings
-    app_settings.lna = field_lna.value();
-    app_settings.vga = field_vga.value();
-    app_settings.rx_amp = field_rf_amp.value();
-
-    settings.save("level", &app_settings);
-
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -71,42 +64,31 @@ LevelView::LevelView(NavigationView& nav)
     change_mode(NFM_MODULATION);              // Start on AM
     field_mode.set_by_value(NFM_MODULATION);  // Reflect the mode into the manual selector
 
-    // HELPER: Pre-setting a manual range, based on stored frequency
-    freq = persistent_memory::tuned_frequency();
-    receiver_model.set_tuning_frequency(freq);
-    button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
-
-    // load auto common app settings
-    auto rc = settings.load("level", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-        receiver_model.set_rf_amp(app_settings.rx_amp);
-    }
+    freq_ = receiver_model.target_frequency();
+    button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
 
     button_frequency.on_select = [this, &nav](ButtonWithEncoder& button) {
-        auto new_view = nav_.push<FrequencyKeypadView>(freq);
+        auto new_view = nav_.push<FrequencyKeypadView>(freq_);
         new_view->on_changed = [this, &button](rf::Frequency f) {
-            freq = f;
-            receiver_model.set_tuning_frequency(f);  // Retune to actual freq
-            button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
+            freq_ = f;
+            receiver_model.set_target_frequency(f);  // Retune to actual freq
+            button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
         };
     };
 
     button_frequency.on_change = [this]() {
         int64_t def_step = freqman_entry_get_step_value(step_mode.selected_index());
-        freq = freq + (button_frequency.get_encoder_delta() * def_step);
-        if (freq < 1) {
-            freq = 1;
+        freq_ = freq_ + (button_frequency.get_encoder_delta() * def_step);
+        if (freq_ < 1) {
+            freq_ = 1;
         }
-        if (freq > (MAX_UFREQ - def_step)) {
-            freq = MAX_UFREQ;
+        if (freq_ > (MAX_UFREQ - def_step)) {
+            freq_ = MAX_UFREQ;
         }
         button_frequency.set_encoder_delta(0);
 
-        receiver_model.set_tuning_frequency(freq);  // Retune to actual freq
-        button_frequency.set_text("<" + to_string_short_freq(freq) + " MHz>");
+        receiver_model.set_target_frequency(freq_);  // Retune to actual freq
+        button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
     };
 
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {

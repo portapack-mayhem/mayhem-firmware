@@ -1362,14 +1362,21 @@ void ImageOptionsField::set_by_value(value_t v) {
     for (const auto& option : options) {
         if (option.second == v) {
             set_selected_index(new_index);
-            break;
+            return;
         }
+
         new_index++;
     }
+
+    // No exact match was found, default to 0.
+    set_selected_index(0);
 }
 
 void ImageOptionsField::set_options(options_t new_options) {
     options = new_options;
+
+    // Set an invalid index to force on_change.
+    selected_index_ = (size_t)-1;
     set_by_value(0);
     set_dirty();
 }
@@ -1440,19 +1447,25 @@ void OptionsField::set_selected_index(const size_t new_index, bool trigger_chang
 }
 
 void OptionsField::set_by_value(value_t v) {
-    size_t new_index{0};
+    size_t new_index = 0;
     for (const auto& option : options) {
         if (option.second == v) {
             set_selected_index(new_index);
-            break;
+            return;
         }
         new_index++;
     }
+
+    // No exact match was found, default to 0.
+    set_selected_index(0);
 }
 
 void OptionsField::set_options(options_t new_options) {
     options = new_options;
-    set_by_value(0);
+
+    // Set an invalid index to force on_change.
+    selected_index_ = (size_t)-1;
+    set_selected_index(0);
     set_dirty();
 }
 

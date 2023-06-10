@@ -334,8 +334,8 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         if (!v) {
             check_converter.set_value(false);
         }
-        // Retune to take converter change in account
-        receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+        // Retune to take converter change in account.
+        receiver_model.set_target_frequency(receiver_model.target_frequency());
         // Refresh status bar with/out converter
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
@@ -349,7 +349,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         }
         portapack::persistent_memory::set_config_converter(v);
         // Retune to take converter change in account
-        receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+        receiver_model.set_target_frequency(receiver_model.target_frequency());
         // Refresh status bar with/out converter
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
@@ -369,7 +369,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         new_view->on_changed = [this, &button](rf::Frequency f) {
             portapack::persistent_memory::set_config_converter_freq(f);
             // Retune to take converter change in account
-            receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+            receiver_model.set_target_frequency(receiver_model.target_frequency());
             button_converter_freq.set_text("<" + to_string_short_freq(f) + " MHz>");
         };
     };
@@ -412,7 +412,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
                 f = MAX_FREQ_CORRECTION;
             portapack::persistent_memory::set_config_freq_rx_correction(f);
             // Retune to take converter change in account
-            receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+            receiver_model.set_target_frequency(receiver_model.target_frequency());
             button_freq_rx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
         };
     };
@@ -425,7 +425,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
                 f = MAX_FREQ_CORRECTION;
             portapack::persistent_memory::set_config_freq_tx_correction(f);
             // Retune to take converter change in account
-            receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+            receiver_model.set_target_frequency(receiver_model.target_frequency());
             button_freq_tx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
         };
     };

@@ -130,8 +130,8 @@ void persist();
 
 using ppb_t = int32_t;
 
-rf::Frequency tuned_frequency();
-void set_tuned_frequency(const rf::Frequency new_value);
+rf::Frequency target_frequency();
+void set_target_frequency(const rf::Frequency new_value);
 
 volume_t headphone_volume();
 void set_headphone_volume(volume_t new_value);

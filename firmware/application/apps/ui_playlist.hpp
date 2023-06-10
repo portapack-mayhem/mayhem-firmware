@@ -23,16 +23,17 @@
 #define SHORT_UI true
 #define NORMAL_UI false
 
+#include "app_settings.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "replay_thread.hpp"
 #include "ui_spectrum.hpp"
+#include "ui_transmitter.hpp"
 
 #include <string>
 #include <memory>
 #include <deque>
-#include "ui_transmitter.hpp"
 
 namespace ui {
 
@@ -52,6 +53,8 @@ class PlaylistView : public View {
 
    private:
     NavigationView& nav_;
+    app_settings::SettingsManager settings_{
+        "tx_playlist", app_settings::Mode::TX};
 
     static constexpr ui::Dim header_height = 3 * 16;
 

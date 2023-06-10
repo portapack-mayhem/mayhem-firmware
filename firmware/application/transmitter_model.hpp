@@ -35,8 +35,9 @@
 
 class TransmitterModel {
    public:
-    rf::Frequency tuning_frequency() const;
-    void set_tuning_frequency(rf::Frequency f);
+    /* The frequency to transmit on. */
+    rf::Frequency target_frequency() const;
+    void set_target_frequency(rf::Frequency f);
 
     void set_antenna_bias();
 
@@ -57,9 +58,9 @@ class TransmitterModel {
     int32_t tx_gain() const;
     void set_tx_gain(int32_t v_db);
 
-    // Unused
-    /*uint32_t channel_bandwidth() const;
-    void set_channel_bandwidth(uint32_t v);*/
+    // TODO: Doesn't actually affect radio.
+    uint32_t channel_bandwidth() const;
+    void set_channel_bandwidth(uint32_t v);
 
     // TODO: does this make sense on TX?
     uint32_t sampling_rate() const;
@@ -72,7 +73,7 @@ class TransmitterModel {
     bool enabled_{false};
     bool rf_amp_{false};
     int32_t lna_gain_db_{0};
-    //uint32_t channel_bandwidth_{1};
+    uint32_t channel_bandwidth_{1};
     uint32_t baseband_bandwidth_{max2837::filter::bandwidth_minimum};
     int32_t vga_gain_db_{8};
     /* 35 should give approx 1m transmission range. */

@@ -23,6 +23,7 @@
 #ifndef __SIGGEN_H__
 #define __SIGGEN_H__
 
+#include "app_settings.hpp"
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -47,6 +48,9 @@ class SigGenView : public View {
     void update_config();
     void update_tone();
     void on_tx_progress(const uint32_t progress, const bool done);
+
+    app_settings::SettingsManager settings_{
+        "tx_siggen", app_settings::Mode::TX};
 
     const std::string shape_strings[7] = {
         "CW-just carrier",

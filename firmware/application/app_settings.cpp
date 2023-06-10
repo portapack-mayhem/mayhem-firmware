@@ -26,6 +26,7 @@
 #include "file.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "utility.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -64,6 +65,7 @@ constexpr std::string_view vga = "vga="sv;
 constexpr std::string_view rx_amp = "rx_amp="sv;
 constexpr std::string_view tx_amp = "tx_amp="sv;
 constexpr std::string_view tx_gain = "tx_gain="sv;
+constexpr std::string_view channel_bandwidth = "channel_bandwidth="sv;
 constexpr std::string_view rx_frequency = "rx_frequency="sv;
 constexpr std::string_view tx_frequency = "tx_frequency="sv;
 constexpr std::string_view step = "step="sv;
@@ -77,7 +79,10 @@ constexpr std::string_view volume = "volume="sv;
 
 // TODO: Only load/save values that are declared used.
 // This will prevent switching apps from changing setting unnecessarily.
-// TODO: track which values are actually read.
+// TODO: Track which values are actually read.
+// TODO: Maybe just use a dictionary which would allow for custom settings.
+// TODO: Create a control value binding which will allow controls to
+//       be declaratively bound to a setting and persistence will be magic.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
@@ -89,14 +94,14 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!data)
         return ResultCode::LoadFailed;
 
-    if (settings.mode == Mode::TX) {
+    if (flags_enabled(settings.mode, Mode::TX)) {
         read_setting(*data, setting::tx_frequency, settings.tx_frequency);
         read_setting(*data, setting::tx_amp, settings.tx_amp);
         read_setting(*data, setting::tx_gain, settings.tx_gain);
-    } else {
+        read_setting(*data, setting::channel_bandwidth, settings.channel_bandwidth);
+    } else if (flags_enabled(settings.mode, Mode::RX)) {
         read_setting(*data, setting::rx_frequency, settings.rx_frequency);
         read_setting(*data, setting::rx_amp, settings.rx_amp);
-        read_setting(*data, setting::step, settings.step);
         read_setting(*data, setting::modulation, settings.modulation);
         read_setting(*data, setting::am_config_index, settings.am_config_index);
         read_setting(*data, setting::nbfm_config_index, settings.nbfm_config_index);
@@ -108,6 +113,7 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     read_setting(*data, setting::sampling_rate, settings.sampling_rate);
     read_setting(*data, setting::lna, settings.lna);
     read_setting(*data, setting::vga, settings.vga);
+    read_setting(*data, setting::step, settings.step);
     read_setting(*data, setting::volume, settings.volume);
 
     return ResultCode::Ok;
@@ -125,14 +131,14 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
     if (error)
         return ResultCode::SaveFailed;
 
-    if (settings.mode == Mode::TX) {
+    if (flags_enabled(settings.mode, Mode::TX)) {
         write_setting(settings_file, setting::tx_frequency, settings.tx_frequency);
         write_setting(settings_file, setting::tx_amp, settings.tx_amp);
         write_setting(settings_file, setting::tx_gain, settings.tx_gain);
-    } else {
+        write_setting(settings_file, setting::channel_bandwidth, settings.channel_bandwidth);
+    } else if (flags_enabled(settings.mode, Mode::RX)) {
         write_setting(settings_file, setting::rx_frequency, settings.rx_frequency);
         write_setting(settings_file, setting::rx_amp, settings.rx_amp);
-        write_setting(settings_file, setting::step, settings.step);
         write_setting(settings_file, setting::modulation, settings.modulation);
         write_setting(settings_file, setting::am_config_index, settings.am_config_index);
         write_setting(settings_file, setting::nbfm_config_index, settings.nbfm_config_index);
@@ -144,25 +150,27 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
     write_setting(settings_file, setting::sampling_rate, settings.sampling_rate);
     write_setting(settings_file, setting::lna, settings.lna);
     write_setting(settings_file, setting::vga, settings.vga);
+    write_setting(settings_file, setting::step, settings.step);
     write_setting(settings_file, setting::volume, settings.volume);
 
     return ResultCode::Ok;
 }
 
 void copy_to_radio_model(const AppSettings& settings) {
-    if (settings.mode == Mode::TX) {
-        transmitter_model.set_tuning_frequency(settings.tx_frequency);
+    if (flags_enabled(settings.mode, Mode::TX)) {
+        transmitter_model.set_target_frequency(settings.tx_frequency);
         transmitter_model.set_baseband_bandwidth(settings.baseband_bandwidth);
         transmitter_model.set_tx_gain(settings.tx_gain);
         transmitter_model.set_rf_amp(settings.tx_amp);
+        transmitter_model.set_channel_bandwidth(settings.channel_bandwidth);
 
         // TODO: Do these make sense for TX?
         transmitter_model.set_lna(settings.lna);
         transmitter_model.set_vga(settings.vga);
         transmitter_model.set_sampling_rate(settings.sampling_rate);
 
-    } else {
-        receiver_model.set_tuning_frequency(settings.rx_frequency);
+    } else if (flags_enabled(settings.mode, Mode::RX)) {
+        receiver_model.set_target_frequency(settings.rx_frequency);
         receiver_model.set_baseband_bandwidth(settings.baseband_bandwidth);
         receiver_model.set_sampling_rate(settings.sampling_rate);
         receiver_model.set_lna(settings.lna);
@@ -171,22 +179,24 @@ void copy_to_radio_model(const AppSettings& settings) {
         receiver_model.set_squelch_level(settings.squelch);
     }
 
+    receiver_model.set_frequency_step(settings.volume);
     receiver_model.set_normalized_headphone_volume(settings.volume);
 }
 
 void copy_from_radio_model(AppSettings& settings) {
-    if (settings.mode == Mode::TX) {
-        settings.tx_frequency = transmitter_model.tuning_frequency();
+    if (flags_enabled(settings.mode, Mode::TX)) {
+        settings.tx_frequency = transmitter_model.target_frequency();
         settings.baseband_bandwidth = transmitter_model.baseband_bandwidth();
         settings.tx_amp = transmitter_model.rf_amp();
         settings.tx_gain = transmitter_model.tx_gain();
+        settings.channel_bandwidth = transmitter_model.channel_bandwidth();
 
         // TODO: Do these make sense for TX?
         settings.sampling_rate = transmitter_model.sampling_rate();
         settings.lna = transmitter_model.lna();
         settings.vga = transmitter_model.vga();
-    } else {
-        settings.rx_frequency = receiver_model.tuning_frequency();
+    } else if (flags_enabled(settings.mode, Mode::RX)) {
+        settings.rx_frequency = receiver_model.target_frequency();
         settings.baseband_bandwidth = receiver_model.baseband_bandwidth();
         settings.sampling_rate = receiver_model.sampling_rate();
         settings.lna = receiver_model.lna();
@@ -195,6 +205,7 @@ void copy_from_radio_model(AppSettings& settings) {
         settings.squelch = receiver_model.squelch_level();
     }
 
+    settings.step = receiver_model.frequency_step();
     settings.volume = receiver_model.normalized_headphone_volume();
 }
 
@@ -207,7 +218,8 @@ SettingsManager::SettingsManager(std::string app_name, Mode mode)
     auto result = load_settings(app_name_, settings_);
     valid_ = result == ResultCode::Ok;
 
-    copy_to_radio_model(settings_);
+    if (valid_)
+        copy_to_radio_model(settings_);
 }
 
 SettingsManager::~SettingsManager() {

@@ -42,8 +42,9 @@ enum class ResultCode : uint8_t {
 };
 
 enum class Mode : uint8_t {
-    RX,
-    TX
+    RX = 0x01,
+    TX = 0x02,
+    RX_TX = 0x03, // Both TX/RX
 };
 
 // TODO: separate types for TX/RX or union?
@@ -56,6 +57,7 @@ struct AppSettings {
     uint8_t rx_amp;
     uint8_t tx_amp;
     uint8_t tx_gain;
+    uint32_t channel_bandwidth;
     uint32_t rx_frequency;
     uint32_t tx_frequency;
     uint32_t step;
@@ -93,7 +95,7 @@ class SettingsManager {
     bool valid() const { return valid_; }
     Mode mode() const { return settings_.mode; }
 
-    AppSettings& get() { return settings_; }
+    AppSettings& raw() { return settings_; }
 
    private:
     std::string app_name_;

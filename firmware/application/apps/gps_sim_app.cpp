@@ -183,27 +183,24 @@ GpsSimAppView::GpsSimAppView(
         &text_duration,
         &progressbar,
         &field_frequency,
-        &tx_view,  // now it handles previous rfgain , rfamp.
+        &tx_view,  // now it handles previous rfgain, rfamp.
         &check_loop,
         &button_play,
         &waterfall,
     });
 
-    field_frequency.set_value(target_frequency());
-    field_frequency.set_step(receiver_model.frequency_step());
+    field_frequency.set_value(transmitter_model.target_frequency());
+    field_frequency.set_step(5000);
     field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_target_frequency_changed(f);
+        transmitter_model.set_target_frequency(f);
     };
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_target_frequency_changed(f);
             this->field_frequency.set_value(f);
         };
     };
-
-    field_frequency.set_step(5000);
 
     button_play.on_select = [this](ImageButton&) {
         this->toggle();
@@ -237,19 +234,6 @@ void GpsSimAppView::set_parent_rect(const Rect new_parent_rect) {
 
     const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
     waterfall.set_parent_rect(waterfall_rect);
-}
-
-void GpsSimAppView::on_target_frequency_changed(rf::Frequency f) {
-    set_target_frequency(f);
-}
-
-void GpsSimAppView::set_target_frequency(const rf::Frequency new_value) {
-    persistent_memory::set_tuned_frequency(new_value);
-    ;
-}
-
-rf::Frequency GpsSimAppView::target_frequency() const {
-    return persistent_memory::tuned_frequency();
 }
 
 } /* namespace ui */

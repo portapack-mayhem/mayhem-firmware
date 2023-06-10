@@ -26,6 +26,7 @@
 #define SHORT_UI true
 #define NORMAL_UI false
 
+#include "app_settings.hpp"
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -71,13 +72,16 @@ class MicTXView : public View {
     void update_vumeter();
     void do_timing();
     void set_tx(bool enable);
-    //	void on_tuning_frequency_changed(rf::Frequency f);
+    //	void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const bool done);
     void configure_baseband();
 
     void rxaudio(bool is_on);
 
     void set_ptt_visibility(bool v);
+
+    app_settings::SettingsManager settings_{
+        "tx_mic", app_settings::Mode::RX_TX};
 
     bool transmitting{false};
     bool va_enabled{false};

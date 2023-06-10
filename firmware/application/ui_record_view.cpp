@@ -168,7 +168,7 @@ void RecordView::start() {
                                 to_string_dec_uint(datetime.second());
 
         base_path = filename_stem_pattern.string() + "_" + date_time + "_" +
-                    trim(to_string_freq(receiver_model.tuning_frequency())) + "Hz";
+                    trim(to_string_freq(receiver_model.target_frequency())) + "Hz";
         base_path = folder / base_path;
     } else {
         base_path = next_filename_matching_pattern(folder / filename_stem_pattern);
@@ -185,7 +185,7 @@ void RecordView::start() {
             auto create_error = p->create(
                 base_path.replace_extension(u".WAV"),
                 sampling_rate,
-                to_string_dec_uint(receiver_model.tuning_frequency()) + "Hz");
+                to_string_dec_uint(receiver_model.target_frequency()) + "Hz");
             if (create_error.is_valid()) {
                 handle_error(create_error.value());
             } else {
@@ -256,7 +256,7 @@ Optional<File::Error> RecordView::write_metadata_file(const std::filesystem::pat
         if (error_line1.is_valid()) {
             return error_line1;
         }
-        const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.tuning_frequency()));
+        const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.target_frequency()));
         if (error_line2.is_valid()) {
             return error_line2;
         }

@@ -78,9 +78,9 @@ void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_fre
     const auto hex_formatted = packet.symbols_formatted();
 
     // TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
-    const auto tuning_frequency_str = to_string_dec_uint(target_frequency, 10);
+    const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
 
-    std::string entry = tuning_frequency_str + " " + tpms::format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
+    std::string entry = target_frequency_str + " " + tpms::format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
     log_file.write_entry(packet.received_at(), entry);
 }
 
@@ -157,25 +157,14 @@ TPMSAppView::TPMSAppView(NavigationView&) {
                   &field_vga,
                   &recent_entries_view});
 
-    // load app settings
-    auto rc = settings.load("rx_tpms", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-        options_band.set_by_value(app_settings.rx_frequency);
-    } else
-        options_band.set_by_value(receiver_model.tuning_frequency());
-
-    receiver_model.set_tuning_frequency(tuning_frequency());
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 
     options_band.on_change = [this](size_t, OptionsField::value_t v) {
-        this->on_band_changed(v);
+        receiver_model.set_target_frequency(v);
     };
-    options_band.set_by_value(target_frequency());
+    options_band.set_by_value(receiver_model.target_frequency());
 
     options_pressure.on_change = [this](size_t, int32_t i) {
         tpms::format::use_kpa = !i;
@@ -198,10 +187,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 }
 
 TPMSAppView::~TPMSAppView() {
-    // save app settings
-    app_settings.rx_frequency = target_frequency_;
-    settings.save("rx_tpms", &app_settings);
-
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -224,7 +209,7 @@ void TPMSAppView::set_parent_rect(const Rect new_parent_rect) {
 
 void TPMSAppView::on_packet(const tpms::Packet& packet) {
     if (logger) {
-        logger->on_packet(packet, target_frequency());
+        logger->on_packet(packet, receiver_model.target_frequency());
     }
 
     const auto reading_opt = packet.reading();
@@ -239,23 +224,6 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
 void TPMSAppView::on_show_list() {
     recent_entries_view.hidden(false);
     recent_entries_view.focus();
-}
-
-void TPMSAppView::on_band_changed(const uint32_t new_band_frequency) {
-    set_target_frequency(new_band_frequency);
-}
-
-void TPMSAppView::set_target_frequency(const uint32_t new_value) {
-    target_frequency_ = new_value;
-    receiver_model.set_tuning_frequency(tuning_frequency());
-}
-
-uint32_t TPMSAppView::target_frequency() const {
-    return target_frequency_;
-}
-
-uint32_t TPMSAppView::tuning_frequency() const {
-    return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

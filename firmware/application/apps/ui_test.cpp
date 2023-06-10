@@ -54,17 +54,15 @@ TestView::TestView(NavigationView& nav) {
                   &button_cal,
                   &check_log});
 
-    field_frequency.set_value(target_frequency_);
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(10000);
     field_frequency.on_change = [this](rf::Frequency f) {
-        set_target_frequency(f);
-        field_frequency.set_value(f);
+        receiver_model.set_target_frequency(f);
     };
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            set_target_frequency(f);
             field_frequency.set_value(f);
         };
     };
@@ -81,9 +79,6 @@ TestView::TestView(NavigationView& nav) {
     if (logger)
         logger->append("saucepan.txt");
 
-    receiver_model.set_tuning_frequency(tuning_frequency());
-    receiver_model.set_sampling_rate(sampling_rate);
-    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 }
 
@@ -128,15 +123,6 @@ void TestView::on_packet(const testapp::Packet& packet) {
         altitude = packet.GPS_altitude();
         latitude = packet.GPS_latitude();
         longitude = packet.GPS_longitude();*/
-}
-
-void TestView::set_target_frequency(const uint32_t new_value) {
-    target_frequency_ = new_value;
-    receiver_model.set_tuning_frequency(tuning_frequency());
-}
-
-uint32_t TestView::tuning_frequency() const {
-    return target_frequency_ - (sampling_rate / 4);
 }
 
 } /* namespace ui */

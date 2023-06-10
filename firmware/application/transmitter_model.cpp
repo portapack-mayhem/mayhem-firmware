@@ -35,12 +35,12 @@ using namespace portapack;
 #include "radio.hpp"
 #include "audio.hpp"
 
-rf::Frequency TransmitterModel::tuning_frequency() const {
-    return persistent_memory::tuned_frequency();
+rf::Frequency TransmitterModel::target_frequency() const {
+    return persistent_memory::target_frequency();
 }
 
-void TransmitterModel::set_tuning_frequency(rf::Frequency f) {
-    persistent_memory::set_tuned_frequency(f);
+void TransmitterModel::set_target_frequency(rf::Frequency f) {
+    persistent_memory::set_target_frequency(f);
     update_tuning_frequency();
 }
 
@@ -84,13 +84,13 @@ void TransmitterModel::set_vga(int32_t v_db) {
     update_vga();
 }
 
-/*uint32_t TransmitterModel::channel_bandwidth() const {
+uint32_t TransmitterModel::channel_bandwidth() const {
     return channel_bandwidth_;
 }
 
 void TransmitterModel::set_channel_bandwidth(uint32_t v) {
     channel_bandwidth_ = v;
-}*/
+}
 
 uint32_t TransmitterModel::sampling_rate() const {
     return sampling_rate_;
@@ -141,8 +141,6 @@ void TransmitterModel::enable() {
 void TransmitterModel::disable() {
     enabled_ = false;
 
-    // TODO: Responsibility for enabling/disabling the radio is muddy.
-    // Some happens in ReceiverModel, some inside radio namespace.
     radio::disable();
 
     rtc_time::signal_tick_second -= signal_token_tick_second;
@@ -150,7 +148,7 @@ void TransmitterModel::disable() {
 }
 
 void TransmitterModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::tuned_frequency());
+    radio::set_tuning_frequency(persistent_memory::target_frequency());
 }
 
 void TransmitterModel::update_antenna_bias() {

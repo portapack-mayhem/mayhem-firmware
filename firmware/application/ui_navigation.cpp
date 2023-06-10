@@ -217,9 +217,9 @@ void SystemStatusView::refresh() {
             button_converter.set_foreground(Color::light_grey());
         }
     }
-    // Retune to take converter change in account
-    receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
-    transmitter_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());
+    // Poke tunings to take converter change in account.
+    receiver_model.set_target_frequency(receiver_model.target_frequency());
+    transmitter_model.set_target_frequency(transmitter_model.target_frequency());
 
     if (!portapack::persistent_memory::config_speaker()) {
         button_speaker.set_foreground(Color::light_grey());
@@ -284,7 +284,9 @@ void SystemStatusView::on_converter() {
         portapack::persistent_memory::set_config_converter(false);
         button_converter.set_foreground(Color::light_grey());
     }
-    receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());  // Retune
+
+    // Poke to update tuning.
+    receiver_model.set_target_frequency(receiver_model.target_frequency());
 }
 
 void SystemStatusView::on_speaker() {

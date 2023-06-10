@@ -62,12 +62,12 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
 
 } /* namespace */
 
-rf::Frequency ReceiverModel::tuning_frequency() const {
-    return persistent_memory::tuned_frequency();
+rf::Frequency ReceiverModel::target_frequency() const {
+    return persistent_memory::target_frequency();
 }
 
-void ReceiverModel::set_tuning_frequency(rf::Frequency f) {
-    persistent_memory::set_tuned_frequency(f);
+void ReceiverModel::set_target_frequency(rf::Frequency f) {
+    persistent_memory::set_target_frequency(f);
     update_tuning_frequency();
 }
 
@@ -190,10 +190,6 @@ void ReceiverModel::disable() {
     // TODO: Responsibility for enabling/disabling the radio is muddy.
     // Some happens in ReceiverModel, some inside radio namespace.
     radio::disable();
-
-    // TODO: we are doing this repeatedly in different levels of the
-    // call stack. Keeping it for now, but there seem to be too many
-    // redundant calls:
     led_rx.off();
 }
 
@@ -206,7 +202,8 @@ int32_t ReceiverModel::tuning_offset() {
 }
 
 void ReceiverModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::tuned_frequency() + tuning_offset());
+    // TODO: use positive offset if freq < offset.
+    radio::set_tuning_frequency(target_frequency() + tuning_offset());
 }
 
 void ReceiverModel::update_antenna_bias() {

@@ -68,6 +68,7 @@ void MicTXView::on_tx_progress(const bool done) {
 }
 
 void MicTXView::configure_baseband() {
+    // TODO: Can this use the transmitter model instead?
     baseband::set_audiotx_config(
         sampling_rate / 20,  // Update vu-meter at 20Hz
         transmitting ? transmitter_model.channel_bandwidth() : 0,
@@ -86,7 +87,7 @@ void MicTXView::set_tx(bool enable) {
             rxaudio(false);  // Then turn off audio RX
         transmitting = true;
         configure_baseband();
-        transmitter_model.set_tuning_frequency(tx_frequency);  // Now,no need: transmitter_model.set_tx_gain(tx_gain), nor (rf_amp);
+        transmitter_model.set_target_frequency(tx_frequency);  // Now, no need: transmitter_model.set_tx_gain(tx_gain), nor (rf_amp);
         transmitter_model.enable();
         portapack::pin_i2s0_rx_sda.mode(3);  // This is already done in audio::init but gets changed by the CPLD overlay reprogramming
     } else {
@@ -140,14 +141,6 @@ void MicTXView::do_timing() {
     }
 }
 
-/* Hmmmm. Maybe useless now.
-void MicTXView::on_tuning_frequency_changed(rf::Frequency f) {
-        transmitter_model.set_tuning_frequency(f);
-        //if ( rx_enabled )
-                receiver_model.set_tuning_frequency(f); //Update freq also for RX
-}
-*/
-
 void MicTXView::rxaudio(bool is_on) {
     if (is_on) {
         audio::input::stop();
@@ -172,11 +165,11 @@ void MicTXView::rxaudio(bool is_on) {
         }
         receiver_model.set_sampling_rate(3072000);
         receiver_model.set_baseband_bandwidth(1750000);
-        //		receiver_model.set_tuning_frequency(field_frequency.value()); //probably this too can be commented out.
+        //		receiver_model.set_target_frequency(field_frequency.value()); //probably this too can be commented out.
         if (bool_same_F_tx_rx_enabled)                          // when stop TX ,define to which freq RX we return
-            receiver_model.set_tuning_frequency(tx_frequency);  // Update freq also for RX = TX
+            receiver_model.set_target_frequency(tx_frequency);  // Update freq also for RX = TX
         else
-            receiver_model.set_tuning_frequency(rx_frequency);  // Now with seperate freq controls!
+            receiver_model.set_target_frequency(rx_frequency);  // Now with separate freq controls!
         receiver_model.set_lna(rx_lna);
         receiver_model.set_vga(rx_vga);
         receiver_model.set_rf_amp(rx_amp);
@@ -294,11 +287,11 @@ MicTXView::MicTXView(
             }
             ak4951_alc_and_wm8731_boost_GUI = v;                   // 0,..4 WM8731_boost dB's options, (combination boost on/off , and effective gain in captured data >>x)
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731) , set up the proper wm_boost on/off , 0..4 (0,1) boost_on , (2,3,4) boost_0ff
-            configure_baseband();                                  // to update in real timme,sending msg ,  var-parameters >>shift_bits FM msg ,to audio_tx from M0 to M4 Proc -
+            configure_baseband();                                  // to update in real time, sending msg ,  var-parameters >>shift_bits FM msg ,to audio_tx from M0 to M4 Proc -
         };
         options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's .
     } else {
-        shift_bits_s16 = 8;  // Initialized default fixed >>8_FM for FM tx mod ,  shift audio data for AK4951  ,using top 8 bits s16 data (>>8)
+        shift_bits_s16 = 8;  // Initialized default fixed >>8_FM for FM tx mod , shift audio data for AK4951  ,using top 8 bits s16 data (>>8)
         options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
             ak4951_alc_and_wm8731_boost_GUI = v;                   // 0,..11,  AK4951 Mic -Automatic volume Level Control  options,
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (AK4951) ==> Set up proper ALC mode from 0..11 options
@@ -308,16 +301,16 @@ MicTXView::MicTXView(
 
     // options_ak4951_alc_mode.set_selected_index(0);
 
-    tx_frequency = transmitter_model.tuning_frequency();
-    field_frequency.set_value(transmitter_model.tuning_frequency());
+    tx_frequency = transmitter_model.target_frequency();
+    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_change = [this](rf::Frequency f) {
         tx_frequency = f;
         if (!rx_enabled) {  // not activated receiver. just update freq TX
-            transmitter_model.set_tuning_frequency(f);
+            transmitter_model.set_target_frequency(f);
         } else {                                         // activated receiver.
             if (bool_same_F_tx_rx_enabled)               // user selected common freq- TX = RX
-                receiver_model.set_tuning_frequency(f);  // Update common freq also for RX
+                receiver_model.set_target_frequency(f);  // Update common freq also for RX
         }
     };
     field_frequency.on_edit = [this, &nav]() {
@@ -327,10 +320,10 @@ MicTXView::MicTXView(
         new_view->on_changed = [this](rf::Frequency f) {
             tx_frequency = f;
             if (!rx_enabled) {
-                transmitter_model.set_tuning_frequency(f);
+                transmitter_model.set_target_frequency(f);
             } else {
                 if (bool_same_F_tx_rx_enabled)
-                    receiver_model.set_tuning_frequency(f);  // Update freq also for RX
+                    receiver_model.set_target_frequency(f);  // Update freq also for RX
             }
             this->field_frequency.set_value(f);
             set_dirty();
@@ -492,7 +485,7 @@ MicTXView::MicTXView(
         bool_same_F_tx_rx_enabled = v;
         field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field . (When no hide user can enter down indep. freq for RX)
         set_dirty();                                                           // Refresh GUI interface
-        receiver_model.set_tuning_frequency(v ? tx_frequency : rx_frequency);  // To go to the proper tuned freq. when toggling it
+        receiver_model.set_target_frequency(v ? tx_frequency : rx_frequency);  // To go to the proper tuned freq. when toggling it
     };
 
     field_va_level.on_change = [this](int32_t v) {
@@ -542,13 +535,13 @@ MicTXView::MicTXView(
     field_squelch.set_value(0);
     receiver_model.set_squelch_level(0);
 
-    rx_frequency = receiver_model.tuning_frequency();
+    rx_frequency = receiver_model.target_frequency();
     field_rxfrequency.set_value(rx_frequency);
     field_rxfrequency.set_step(receiver_model.frequency_step());
     field_rxfrequency.on_change = [this](rf::Frequency f) {  // available when field rxfrequency not hidden => user selected separated freq RX/TX-
         rx_frequency = f;
         if (rx_enabled)
-            receiver_model.set_tuning_frequency(f);
+            receiver_model.set_target_frequency(f);
     };
     field_rxfrequency.on_edit = [this, &nav]() {  // available when field rxfrequency not hidden => user selected separated freq RX/TX-
         focused_ui = 1;
@@ -557,7 +550,7 @@ MicTXView::MicTXView(
         new_view->on_changed = [this](rf::Frequency f) {
             rx_frequency = f;
             if (rx_enabled)
-                receiver_model.set_tuning_frequency(f);
+                receiver_model.set_target_frequency(f);
             this->field_rxfrequency.set_value(f);
             set_dirty();
         };
@@ -617,7 +610,7 @@ MicTXView::MicTXView(
 
 MicTXView::~MicTXView() {
     audio::input::stop();
-    transmitter_model.set_tuning_frequency(tx_frequency);  // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
+    transmitter_model.set_target_frequency(tx_frequency);  // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
     transmitter_model.disable();
     if (rx_enabled)  // Also turn off audio rx if enabled
         rxaudio(false);

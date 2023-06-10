@@ -52,16 +52,16 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
     receiver_model.set_baseband_bandwidth(1750000);
     //-------------------
 
-    field_frequency.set_value(receiver_model.tuning_frequency());
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_tuning_frequency_changed(f);
+        this->on_target_frequency_changed(f);
     };
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_tuning_frequency_changed(f);
+            this->on_target_frequency_changed(f);
             this->field_frequency.set_value(f);
         };
     };
@@ -162,8 +162,8 @@ void CaptureAppView::focus() {
     record_view.focus();
 }
 
-void CaptureAppView::on_tuning_frequency_changed(rf::Frequency f) {
-    receiver_model.set_tuning_frequency(f);
+void CaptureAppView::on_target_frequency_changed(rf::Frequency f) {
+    receiver_model.set_target_frequency(f);
 }
 
 } /* namespace ui */

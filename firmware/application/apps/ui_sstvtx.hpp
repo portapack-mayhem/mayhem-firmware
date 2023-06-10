@@ -74,7 +74,6 @@ class SSTVTXView : public View {
     void read_boundary(uint8_t* buffer, uint32_t position, uint32_t length);
     void on_bitmap_changed(const size_t index);
     void on_mode_changed(const size_t index);
-    void on_tuning_frequency_changed(rf::Frequency f);
     void start_tx();
     void prepare_scanline();
 

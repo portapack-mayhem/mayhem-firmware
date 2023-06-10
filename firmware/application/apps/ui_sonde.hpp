@@ -55,7 +55,6 @@ namespace ui {
 class SondeView : public View {
    public:
     static constexpr uint32_t sampling_rate = 2457600;
-    static constexpr uint32_t baseband_bandwidth = 1750000;
 
     SondeView(NavigationView& nav);
     ~SondeView();
@@ -177,9 +176,6 @@ class SondeView : public View {
 
     void on_packet(const sonde::Packet& packet);
     char* float_to_char(float x, char* p);
-    void set_target_frequency(const uint32_t new_value);
-
-    uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

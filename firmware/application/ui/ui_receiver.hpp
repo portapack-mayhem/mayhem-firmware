@@ -36,6 +36,7 @@
 
 namespace ui {
 
+// TODO: build in support for editing.
 class FrequencyField : public Widget {
    public:
     std::function<void(rf::Frequency)> on_change{};

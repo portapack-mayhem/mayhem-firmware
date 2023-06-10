@@ -186,7 +186,7 @@ JammerView::~JammerView() {
 
 void JammerView::on_retune(const rf::Frequency freq, const uint32_t range) {
     if (freq) {
-        transmitter_model.set_tuning_frequency(freq);
+        transmitter_model.set_target_frequency(freq);
         text_range_number.set(to_string_dec_uint(range, 2));
     }
 }

@@ -94,6 +94,14 @@ int fast_int_magnitude(int y, int x);
 int int_atan2(int y, int x);
 int32_t int16_sin_s4(int32_t x);
 
+template <typename TEnum>
+bool flags_enabled(TEnum value, TEnum flags) {
+    auto i_value = static_cast<std::underlying_type_t<TEnum>>(value);
+    auto i_flags = static_cast<std::underlying_type_t<TEnum>>(flags);
+
+    return (i_value & i_flags) == i_flags;
+}
+
 /* Returns value constrained to min and max. */
 template <class T>
 constexpr const T& clip(const T& value, const T& minimum, const T& maximum) {

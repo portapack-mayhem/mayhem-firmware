@@ -29,6 +29,7 @@
 #include "capture_app.hpp"
 #include "baseband_api.hpp"
 
+#include "app_settings.hpp"
 #include "portapack.hpp"
 #include "message.hpp"
 
@@ -53,11 +54,10 @@ class SpectrumPainterView : public View {
     std::string title() const override { return "Spec.Painter"; };
 
    private:
-    void on_target_frequency_changed(rf::Frequency f);
-    void set_target_frequency(const rf::Frequency new_value);
-    rf::Frequency target_frequency() const;
-
     NavigationView& nav_;
+    app_settings::SettingsManager settings_{
+        "tx_painter", app_settings::Mode::TX};
+
     bool image_input_avaliable{false};
     bool tx_active{false};
     uint32_t tx_mode{0};

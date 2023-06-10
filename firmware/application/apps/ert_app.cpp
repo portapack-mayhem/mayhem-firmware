@@ -110,15 +110,7 @@ ERTAppView::ERTAppView(NavigationView&) {
         &recent_entries_view,
     });
 
-    // load app settings
-    auto rc = settings.load("rx_ert", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-    }
-
-    receiver_model.set_tuning_frequency(initial_target_frequency);
+    receiver_model.set_target_frequency(initial_target_frequency);
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
@@ -130,11 +122,7 @@ ERTAppView::ERTAppView(NavigationView&) {
 }
 
 ERTAppView::~ERTAppView() {
-    // save app settings
-    settings.save("rx_ert", &app_settings);
-
     receiver_model.disable();
-
     baseband::shutdown();
 }
 

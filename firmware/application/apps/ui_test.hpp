@@ -51,9 +51,6 @@ namespace ui {
 
 class TestView : public View {
    public:
-    static constexpr uint32_t sampling_rate = 2457600 * 2;
-    static constexpr uint32_t baseband_bandwidth = 1750000;
-
     TestView(NavigationView& nav);
     ~TestView();
 
@@ -62,7 +59,6 @@ class TestView : public View {
     std::string title() const override { return "Test app"; };
 
    private:
-    uint32_t target_frequency_{439206000};
     Coord cur_x{0};
     uint32_t packet_count{0};
     uint32_t packets_lost{0};
@@ -112,12 +108,10 @@ class TestView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const TestAppPacketMessage*>(p);
             const testapp::Packet packet{message->packet};
-            this->on_packet(packet);
+            on_packet(packet);
         }};
 
     void on_packet(const testapp::Packet& packet);
-    void set_target_frequency(const uint32_t new_value);
-    uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

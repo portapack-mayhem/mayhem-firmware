@@ -53,11 +53,12 @@ void TransmitterView::paint(Painter& painter) {
     }
 }
 
-void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) {
-    transmitter_model.set_tuning_frequency(f);
+void TransmitterView::on_target_frequency_changed(rf::Frequency f) {
+    transmitter_model.set_target_frequency(f);
 }
 
 void TransmitterView::on_channel_bandwidth_changed(uint32_t channel_bandwidth) {
+    // TODO: this doesn't actually affect the radio through the model.
     transmitter_model.set_channel_bandwidth(channel_bandwidth);
 }
 
@@ -102,7 +103,7 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 }
 
 void TransmitterView::on_show() {
-    field_frequency.set_value(transmitter_model.tuning_frequency());
+    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency_step.set_by_value(receiver_model.frequency_step());
 
     field_gain.set_value(transmitter_model.tx_gain());
@@ -139,6 +140,7 @@ TransmitterView::TransmitterView(
         field_frequency.set_focusable(false);
         field_frequency.set_style(&style_locked);
     } else {
+        // TODO: Make a widget.
         if (channel_bandwidth) {
             add_children({&text_bw,
                           &field_bw});
@@ -150,10 +152,9 @@ TransmitterView::TransmitterView(
         }
     }
 
-    // field_frequency.set_value(transmitter_model.tuning_frequency());
     field_frequency.set_step(frequency_step);
     field_frequency.on_change = [this](rf::Frequency f) {
-        on_tuning_frequency_changed(f);
+        on_target_frequency_changed(f);
     };
     field_frequency.on_edit = [this]() {
         if (on_edit_frequency)

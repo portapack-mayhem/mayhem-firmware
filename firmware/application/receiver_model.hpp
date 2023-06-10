@@ -31,6 +31,7 @@
 #include "volume.hpp"
 
 // TODO: consider a base class for ReceiverModel & TransmitterModel.
+// There are multiple values that are actually shared by both.
 class ReceiverModel {
    public:
     enum class Mode {
@@ -41,8 +42,9 @@ class ReceiverModel {
         Capture = 4
     };
 
-    rf::Frequency tuning_frequency() const;
-    void set_tuning_frequency(rf::Frequency f);
+    /* The frequency to receive (no offset). */
+    rf::Frequency target_frequency() const;
+    void set_target_frequency(rf::Frequency f);
 
     rf::Frequency frequency_step() const;
     void set_frequency_step(rf::Frequency f);
@@ -119,7 +121,6 @@ class ReceiverModel {
     void update_lna();
     void update_baseband_bandwidth();
     void update_vga();
-    // void update_tx_gain();
     void update_sampling_rate();
     void update_headphone_volume();
 

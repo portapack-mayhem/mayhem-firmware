@@ -23,10 +23,10 @@
 #ifndef __ACARS_APP_H__
 #define __ACARS_APP_H__
 
+#include "app_settings.hpp"
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-
 #include "log_file.hpp"
 
 #include "acars_packet.hpp"
@@ -56,6 +56,9 @@ class ACARSAppView : public View {
     std::string title() const override { return "ACARS (WIP)"; };
 
    private:
+    app_settings::SettingsManager settings_{
+        "rx_acars.hpp", app_settings::Mode::RX};
+
     bool logging{false};
     uint32_t packet_counter{0};
 
@@ -86,14 +89,7 @@ class ACARSAppView : public View {
 
     std::unique_ptr<ACARSLogger> logger{};
 
-    uint32_t target_frequency_{};
-
-    void update_freq(rf::Frequency f);
-
     void on_packet(const acars::Packet& packet);
-
-    uint32_t target_frequency() const;
-    void set_target_frequency(const uint32_t new_value);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ACARSPacket,

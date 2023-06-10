@@ -122,7 +122,7 @@ void ScannerThread::run() {
                     if (force_one_step)
                         _index_stepper = 0;
 
-                    receiver_model.set_tuning_frequency(frequency_list_[frequency_index]);  // Retune
+                    receiver_model.set_target_frequency(frequency_list_[frequency_index]);  // Retune
                 }
                 message.freq = frequency_list_[frequency_index];
                 message.range = frequency_index;  // Inform freq (for coloring purposes also!)
@@ -160,7 +160,7 @@ void ScannerThread::run() {
                     if (force_one_step)
                         _index_stepper = 0;
 
-                    receiver_model.set_tuning_frequency(frequency_range_.min + frequency_index * def_step_hz_);  // Retune
+                    receiver_model.set_target_frequency(frequency_range_.min + frequency_index * def_step_hz_);  // Retune
                 }
                 message.freq = frequency_range_.min + frequency_index * def_step_hz_;
                 message.range = 0;  // Inform freq (for coloring purposes also!)
@@ -305,8 +305,7 @@ ScannerView::ScannerView(
     field_step.set_by_value(9000);           // Default step interval (Hz)
 
     // FUTURE: perhaps additional settings should be stored in persistent memory vs using defaults
-    // HELPER: Pre-setting a manual range, based on stored frequency
-    rf::Frequency stored_freq = persistent_memory::tuned_frequency();
+    rf::Frequency stored_freq = receiver_model.target_frequency();
     frequency_range.min = stored_freq - 1000000;
     button_manual_start.set_text(to_string_short_freq(frequency_range.min));
     frequency_range.max = stored_freq + 1000000;

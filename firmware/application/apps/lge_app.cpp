@@ -44,10 +44,6 @@ void LGEView::focus() {
 }
 
 LGEView::~LGEView() {
-    // save app settings
-    app_settings.tx_frequency = transmitter_model.tuning_frequency();
-    settings.save("tx_lge", &app_settings);
-
     transmitter_model.disable();
     hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
     baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
@@ -243,7 +239,7 @@ void LGEView::generate_frame_collier() {
 
 void LGEView::start_tx() {
     if (tx_mode == ALL) {
-        transmitter_model.set_tuning_frequency(channels[channel_index]);
+        transmitter_model.set_target_frequency(channels[channel_index]);
         tx_view.on_show();  // Refresh tuning frequency display
         tx_view.set_dirty();
     }
@@ -306,15 +302,6 @@ LGEView::LGEView(NavigationView& nav) {
                   &console,
                   &tx_view});
 
-    // load app settings
-    auto rc = settings.load("tx_lge", &app_settings);
-    if (rc == SETTINGS_OK) {
-        transmitter_model.set_rf_amp(app_settings.tx_amp);
-        transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
-        transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
-        transmitter_model.set_tx_gain(app_settings.tx_gain);
-    }
-
     field_room.set_value(1);
     field_team.set_value(1);
     field_player.set_value(1);
@@ -333,9 +320,9 @@ LGEView::LGEView(NavigationView& nav) {
     };
 
     tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            receiver_model.set_tuning_frequency(f);
+            transmitter_model.set_target_frequency(f);
         };
     };
 

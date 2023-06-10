@@ -151,7 +151,7 @@ AnalogAudioView::AnalogAudioView(
 
     // Set on_change before initialising the field
     field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_tuning_frequency_changed(f);
+        this->on_target_frequency_changed(f);
     };
 
     // // load app settings
@@ -163,7 +163,7 @@ AnalogAudioView::AnalogAudioView(
     //     // field_frequency.set_value(app_settings.rx_frequency);
     //     receiver_model.set_configuration_without_init(static_cast<ReceiverModel::Mode>(app_settings.modulation), app_settings.step, app_settings.am_config_index, app_settings.nbfm_config_index, app_settings.wfm_config_index, app_settings.squelch);
     // }
-    field_frequency.set_value(receiver_model.tuning_frequency());
+    field_frequency.set_value(receiver_model.target_frequency());
 
     // Filename Datetime and Frequency
     record_view.set_filename_date_frequency(true);
@@ -171,9 +171,9 @@ AnalogAudioView::AnalogAudioView(
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_tuning_frequency_changed(f);
+            this->on_target_frequency_changed(f);
             this->field_frequency.set_value(f);
         };
     };
@@ -205,7 +205,7 @@ AnalogAudioView::AnalogAudioView(
     };
 
     waterfall.on_select = [this](int32_t offset) {
-        field_frequency.set_value(receiver_model.tuning_frequency() + offset);
+        field_frequency.set_value(receiver_model.target_frequency() + offset);
     };
 
     audio::output::start();
@@ -279,8 +279,8 @@ void AnalogAudioView::focus() {
     field_frequency.focus();
 }
 
-void AnalogAudioView::on_tuning_frequency_changed(rf::Frequency f) {
-    receiver_model.set_tuning_frequency(f);
+void AnalogAudioView::on_target_frequency_changed(rf::Frequency f) {
+    receiver_model.set_target_frequency(f);
 }
 
 void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {

@@ -58,25 +58,16 @@ AnalogTvView::AnalogTvView(
 
     // Set on_change before initialising the field
     field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_tuning_frequency_changed(f);
+        this->on_target_frequency_changed(f);
     };
 
-    // load app settings
-    auto rc = settings.load("rx_tv", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        receiver_model.set_rf_amp(app_settings.rx_amp);
-        field_frequency.set_value(app_settings.rx_frequency);
-    } else
-        field_frequency.set_value(receiver_model.tuning_frequency());
-
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_tuning_frequency_changed(f);
+            this->on_target_frequency_changed(f);
             this->field_frequency.set_value(f);
         };
     };
@@ -103,7 +94,7 @@ AnalogTvView::AnalogTvView(
     };
 
     tv.on_select = [this](int32_t offset) {
-        field_frequency.set_value(receiver_model.tuning_frequency() + offset);
+        field_frequency.set_value(receiver_model.target_frequency() + offset);
     };
 
     update_modulation(static_cast<ReceiverModel::Mode>(modulation));
@@ -111,12 +102,6 @@ AnalogTvView::AnalogTvView(
 }
 
 AnalogTvView::~AnalogTvView() {
-    // save app settings
-    app_settings.rx_frequency = field_frequency.value();
-    settings.save("rx_tv", &app_settings);
-
-    // TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
-    // both?
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -140,8 +125,8 @@ void AnalogTvView::focus() {
     field_frequency.focus();
 }
 
-void AnalogTvView::on_tuning_frequency_changed(rf::Frequency f) {
-    receiver_model.set_tuning_frequency(f);
+void AnalogTvView::on_target_frequency_changed(rf::Frequency f) {
+    receiver_model.set_target_frequency(f);
 }
 
 void AnalogTvView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
