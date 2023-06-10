@@ -83,17 +83,20 @@ void PlaylistView::txtline_process(std::string& line) {
     previous = current + 1;
     current = line.find(',', previous);
     uint32_t sample_rate = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    previous = current + 1;
+    current = line.find(',', previous);
+    uint32_t item_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
 
     f = strtoll(freqs.c_str(), nullptr, 0);
     new_item.replay_frequency = f;
     new_item.replay_file = "/" + file;
     new_item.sample_rate = sample_rate;
-    new_item.next_delay = 0;
+    new_item.next_delay = item_delay;
 
     playlist_db.push_back(std::move(new_item));
 }
 
-void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate) {
+void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay) {
     File data_file;
     // Get file size
     auto data_open_error = data_file.open("/" + new_file_path.string());
@@ -110,6 +113,8 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     sample_rate = replay_sample_rate;
 
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
+
+    now_delay = next_delay;
 
     auto file_size = data_file.size();
     auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
@@ -168,7 +173,7 @@ void PlaylistView::start() {
 
     playlist_entry item = playlist_db.front();
     playlist_db.pop_front();
-    on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate);
+    on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate, item.next_delay);
     on_target_frequency_changed(item.replay_frequency);
 
     std::unique_ptr<stream::Reader> reader;
@@ -185,6 +190,10 @@ void PlaylistView::start() {
     if (reader) {
         button_play.set_bitmap(&bitmap_stop);
         baseband::set_sample_rate(sample_rate * 8);
+
+        if (now_delay != 0) { //this `if` is because, if the delay is 0, it will sleep forever
+            chThdSleepMilliseconds(now_delay);
+        }
 
         replay_thread = std::make_unique<ReplayThread>(
             std::move(reader),
