@@ -74,6 +74,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
     receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.enable();
 
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.on_change = [this](rf::Frequency f) {
         receiver_model.set_target_frequency(f);
     };
@@ -103,6 +104,10 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
     audio::output::unmute();
 
     baseband::set_pocsag();
+}
+
+void POCSAGAppView::focus() {
+    check_log.focus();
 }
 
 POCSAGAppView::~POCSAGAppView() {
@@ -169,10 +174,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
                 console.write(pocsag_state.output);
             }
 
-            if (logger && logging())
+            /*if (logger && logging())
                 logger->log_decoded(message->packet, to_string_dec_uint(pocsag_state.address) +
                                                          " F" + to_string_dec_uint(pocsag_state.function) +
-                                                         " Alpha: " + pocsag_state.output);
+                                                         " Alpha: " + pocsag_state.output);*/
         }
     }
 

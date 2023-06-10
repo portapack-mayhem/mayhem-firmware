@@ -53,6 +53,7 @@ class POCSAGAppView : public View {
     ~POCSAGAppView();
 
     std::string title() const override { return "POCSAG RX"; };
+    void focus() override;
 
    private:
     bool logging() const { return check_log.value(); };

@@ -57,6 +57,10 @@ static void write_setting(File& file, std::string_view setting_name, const T& va
     file.write_line(std::string{setting_name} + to_string_dec_uint(value));
 }
 
+static fs::path get_settings_path(const std::string& app_name) {
+    return fs::path{settings_folder} / app_name + u".ini";
+}
+
 namespace setting {
 constexpr std::string_view baseband_bandwidth = "baseband_bandwidth="sv;
 constexpr std::string_view sampling_rate = "sampling_rate="sv;
@@ -88,7 +92,7 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
         return ResultCode::SettingsDisabled;
 
-    auto file_path = fs::path{settings_folder} / app_name + u".ini";
+    auto file_path = get_settings_path(app_name);
     auto data = File::read_file(file_path);
 
     if (!data)
@@ -99,7 +103,9 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
         read_setting(*data, setting::tx_amp, settings.tx_amp);
         read_setting(*data, setting::tx_gain, settings.tx_gain);
         read_setting(*data, setting::channel_bandwidth, settings.channel_bandwidth);
-    } else if (flags_enabled(settings.mode, Mode::RX)) {
+    }
+    
+    if (flags_enabled(settings.mode, Mode::RX)) {
         read_setting(*data, setting::rx_frequency, settings.rx_frequency);
         read_setting(*data, setting::rx_amp, settings.rx_amp);
         read_setting(*data, setting::modulation, settings.modulation);
@@ -124,7 +130,7 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
         return ResultCode::SettingsDisabled;
 
     File settings_file;
-    auto file_path = fs::path{settings_folder} / app_name + u".ini";
+    auto file_path = get_settings_path(app_name);
     ensure_directory(settings_folder);
 
     auto error = settings_file.create(file_path);
@@ -136,7 +142,9 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
         write_setting(settings_file, setting::tx_amp, settings.tx_amp);
         write_setting(settings_file, setting::tx_gain, settings.tx_gain);
         write_setting(settings_file, setting::channel_bandwidth, settings.channel_bandwidth);
-    } else if (flags_enabled(settings.mode, Mode::RX)) {
+    }
+
+    if (flags_enabled(settings.mode, Mode::RX)) {
         write_setting(settings_file, setting::rx_frequency, settings.rx_frequency);
         write_setting(settings_file, setting::rx_amp, settings.rx_amp);
         write_setting(settings_file, setting::modulation, settings.modulation);
@@ -169,7 +177,9 @@ void copy_to_radio_model(const AppSettings& settings) {
         transmitter_model.set_vga(settings.vga);
         transmitter_model.set_sampling_rate(settings.sampling_rate);
 
-    } else if (flags_enabled(settings.mode, Mode::RX)) {
+    }
+
+    if (flags_enabled(settings.mode, Mode::RX)) {
         receiver_model.set_target_frequency(settings.rx_frequency);
         receiver_model.set_baseband_bandwidth(settings.baseband_bandwidth);
         receiver_model.set_sampling_rate(settings.sampling_rate);
@@ -195,7 +205,9 @@ void copy_from_radio_model(AppSettings& settings) {
         settings.sampling_rate = transmitter_model.sampling_rate();
         settings.lna = transmitter_model.lna();
         settings.vga = transmitter_model.vga();
-    } else if (flags_enabled(settings.mode, Mode::RX)) {
+    }
+
+    if (flags_enabled(settings.mode, Mode::RX)) {
         settings.rx_frequency = receiver_model.target_frequency();
         settings.baseband_bandwidth = receiver_model.baseband_bandwidth();
         settings.sampling_rate = receiver_model.sampling_rate();
@@ -216,15 +228,19 @@ SettingsManager::SettingsManager(std::string app_name, Mode mode)
       valid_{false} {
     settings_.mode = mode;
     auto result = load_settings(app_name_, settings_);
-    valid_ = result == ResultCode::Ok;
-
-    if (valid_)
+    
+    if(result == ResultCode::Ok) {
+        valid_ = true;
         copy_to_radio_model(settings_);
+    }
 }
 
 SettingsManager::~SettingsManager() {
-    copy_from_radio_model(settings_);
-    save_settings(app_name_, settings_);
+    if (portapack::persistent_memory::save_app_settings())
+    {
+        copy_from_radio_model(settings_);
+        save_settings(app_name_, settings_);
+    }
 }
 
 }  // namespace app_settings
