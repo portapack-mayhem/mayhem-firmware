@@ -137,8 +137,6 @@ class PlaylistView : public View {
         {13 * 8, 20 * 8, 16 * 8, 16},
         "0/0"};
 
-    // spectrum::WaterfallWidget waterfall{}; ////TODO add a list view to replace the waterfall
-
     MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,
         [this](const Message* const p) {
