@@ -64,7 +64,7 @@ rf::Frequency GlassView::get_freq_from_bin_pos(uint8_t pos) {
         // starting from the middle, minus 8 ignored bin on each side. Since pos is [-120,120] after the (pos - 120), it's divided by SCREEN_W(240)/2 => 120
         freq_at_pos = f_center_ini + ((pos - 120) * ((looking_glass_range - ((16 * looking_glass_range) / SPEC_NB_BINS)) / 2)) / (SCREEN_W / 2);
     } else
-        freq_at_pos = f_min + offset * each_bin_size + ((pos + 1) * (looking_glass_range + 12 * each_bin_size)) / SCREEN_W;
+        freq_at_pos = f_min + (2 * offset * each_bin_size) + (pos * looking_glass_range) / SCREEN_W;
 
     return freq_at_pos;
 }
@@ -228,9 +228,8 @@ void GlassView::on_range_changed() {
         looking_glass_sampling_rate = looking_glass_bandwidth;
         each_bin_size = looking_glass_bandwidth / SCREEN_W;
         looking_glass_step = looking_glass_bandwidth;
-        f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
-        // hide fast / slow mode buttons
-        scan_type.hidden(true);
+        f_center_ini = f_min + (looking_glass_bandwidth / 2);                            // Initial center frequency for sweep
+        portapack::display.fill_rectangle({17 * 8, 4 * 16, 2 * 8, 16}, Color::black());  // Clear old marker and whole marker rectangle btw
     } else {
         // view is made in multiple pass, use original bin picking
         mode = scan_type.selected_index_value();
@@ -239,17 +238,15 @@ void GlassView::on_range_changed() {
         each_bin_size = LOOKING_GLASS_SLICE_WIDTH_MAX / SPEC_NB_BINS;
         if (mode == LOOKING_GLASS_FASTSCAN) {
             offset = 2;
-            ignore_dc = (SPEC_NB_BINS - SCREEN_W - 2 * offset) / 2;
+            ignore_dc = 4;
             bin_length = SCREEN_W;
         } else {  // if( mode == LOOKING_GLASS_SLOWSCAN )
-            offset = 3;
+            offset = 2;
             bin_length = 80;
             ignore_dc = 0;
         }
         looking_glass_step = (bin_length + ignore_dc) * each_bin_size;
         f_center_ini = f_min - (offset * each_bin_size) + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
-        // show fast / slow mode buttons
-        scan_type.hidden(false);
     }
     search_span = looking_glass_range / MHZ_DIV;
     marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
