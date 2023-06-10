@@ -169,10 +169,6 @@ void PlaylistView::start() {
 
     playlist_entry item = playlist_db.front();
     playlist_db.pop_front();
-    //	playlist_entry item = playlist_db[0];
-    //	for (playlist_entry item : playlist_db) {
-    //	file_path = item.replay_file;
-    //	rf::Frequency replay_frequency = strtoll(item.replay_frequency.c_str(),nullptr,10);
     on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate);
     on_target_frequency_changed(item.replay_frequency);
 
@@ -276,7 +272,6 @@ PlaylistView::PlaylistView(
         &check_loop,
         &button_play,
         &text_track,
-        // &waterfall,////TODO add a list view to replace the waterfall
     });
 
     field_frequency.set_value(target_frequency());
@@ -317,17 +312,8 @@ void PlaylistView::on_hide() {
     stop(false);
     // TODO: Terrible kludge because widget system doesn't notify Waterfall that
     // it's being shown or hidden.
-    // waterfall.on_hide();//TODO add a list view to replace the waterfall
     View::on_hide();
 }
-
-// void PlaylistView::set_parent_rect(const Rect new_parent_rect) { //TODO add a list view to replace the waterfall
-//     View::set_parent_rect(new_parent_rect);
-//
-//     const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(),
-//                                   new_parent_rect.height() - header_height};
-//     waterfall.set_parent_rect(waterfall_rect);
-// }
 
 void PlaylistView::on_target_frequency_changed(rf::Frequency f) {
     set_target_frequency(f);

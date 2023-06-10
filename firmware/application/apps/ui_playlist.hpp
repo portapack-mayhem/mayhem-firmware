@@ -44,8 +44,6 @@ class PlaylistView : public View {
 
     void on_hide() override;
 
-    // void set_parent_rect(const Rect new_parent_rect) override; ////TODO add a list view to replace the waterfall
-
     void focus() override;
 
     std::string title() const override { return "Playlist"; };
