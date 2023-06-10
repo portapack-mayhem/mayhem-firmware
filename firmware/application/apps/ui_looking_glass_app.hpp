@@ -86,6 +86,8 @@ class GlassView : public View {
     bool process_bins(uint8_t* powerlevel);
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void do_timers();
+    int64_t next_mult_of(int64_t num, int64_t multiplier);
+    void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
     void on_range_changed();
     void on_lna_changed(int32_t v_db);
     void on_vga_changed(int32_t v_db);
