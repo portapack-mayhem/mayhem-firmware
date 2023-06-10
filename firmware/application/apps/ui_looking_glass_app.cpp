@@ -38,7 +38,7 @@ GlassView::~GlassView() {
 
 void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power) {
     if (mode == LOOKING_GLASS_SINGLEPASS) {
-        // analog audio app like view
+        // <20MHz spectrum mode
         if (bin < 120) {
             if (spectrum.db[SPEC_NB_BINS - 120 + bin] > max_power)
                 max_power = spectrum.db[SPEC_NB_BINS - 120 + bin];
@@ -46,19 +46,14 @@ void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint
             if (spectrum.db[bin - 120] > max_power)
                 max_power = spectrum.db[bin - 120];
         }
-    } else if (mode == LOOKING_GLASS_FASTSCAN) {
-        // FAST mode: center 12 bins are ignored in fast mode , (DC spike is blanked) leftmost and rightmost 2 bins are ignored
+    } else {
+        // FAST or SLOW mode
         if (bin < 120) {
             if (spectrum.db[134 + bin] > max_power)
                 max_power = spectrum.db[134 + bin];
         } else {
             if (spectrum.db[bin - 118] > max_power)
                 max_power = spectrum.db[bin - 118];
-        }
-    } else {
-        if (bin < 120) {
-            if (spectrum.db[134 + bin] > max_power)
-                max_power = spectrum.db[134 + bin];
         }
     }
 }
@@ -234,6 +229,8 @@ void GlassView::on_range_changed() {
         each_bin_size = looking_glass_bandwidth / SCREEN_W;
         looking_glass_step = looking_glass_bandwidth;
         f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
+        // hide fast / slow mode buttons
+        scan_type.hidden(true);
     } else {
         // view is made in multiple pass, use original bin picking
         mode = scan_type.selected_index_value();
@@ -251,6 +248,8 @@ void GlassView::on_range_changed() {
         }
         looking_glass_step = (bin_length + ignore_dc) * each_bin_size;
         f_center_ini = f_min - (offset * each_bin_size) + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
+        // show fast / slow mode buttons
+        scan_type.hidden(false);
     }
     search_span = looking_glass_range / MHZ_DIV;
     marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
