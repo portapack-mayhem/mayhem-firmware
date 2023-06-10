@@ -44,7 +44,7 @@ enum class ResultCode : uint8_t {
 enum class Mode : uint8_t {
     RX = 0x01,
     TX = 0x02,
-    RX_TX = 0x03, // Both TX/RX
+    RX_TX = 0x03,  // Both TX/RX
 };
 
 // TODO: separate types for TX/RX or union?

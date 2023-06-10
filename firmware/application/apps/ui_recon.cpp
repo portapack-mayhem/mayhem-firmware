@@ -879,8 +879,8 @@ ReconView::ReconView(NavigationView& nav)
     freqman_set_step_option(step_mode);
 
     // set radio
-    change_mode(AM_MODULATION);                                                            // start on AM.
-    field_mode.set_by_value(AM_MODULATION);                                                // reflect the mode into the manual selector
+    change_mode(AM_MODULATION);              // start on AM.
+    field_mode.set_by_value(AM_MODULATION);  // reflect the mode into the manual selector
 
     if (filedelete) {
         delete_file(freq_file_path);

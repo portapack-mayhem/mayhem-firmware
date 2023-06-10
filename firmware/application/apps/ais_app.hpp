@@ -223,7 +223,6 @@ class AISAppView : public View {
             }
         }};
 
-
     void on_packet(const ais::Packet& packet);
     void on_show_list();
     void on_show_detail(const AISRecentEntry& entry);

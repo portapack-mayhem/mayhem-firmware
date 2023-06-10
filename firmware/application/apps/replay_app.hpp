@@ -53,7 +53,7 @@ class ReplayAppView : public View {
    private:
     NavigationView& nav_;
     app_settings::SettingsManager settings_{
-        "tx_replay", app_settings::Mode::TX);
+        "tx_replay", app_settings::Mode::TX};
 
     static constexpr ui::Dim header_height = 3 * 16;
 

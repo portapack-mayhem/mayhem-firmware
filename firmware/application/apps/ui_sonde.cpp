@@ -93,7 +93,7 @@ SondeView::SondeView(NavigationView& nav) {
     };
 
     // TODO: Actually necessary?
-    //receiver_model.update_sampling_rate(sampling_rate);
+    // receiver_model.update_sampling_rate(sampling_rate);
     receiver_model.enable();
 
     // QR code with geo URI
