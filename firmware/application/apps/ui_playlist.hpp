@@ -32,7 +32,6 @@
 #include <string>
 #include <memory>
 #include <deque>
-#include <chrono>
 #include "ui_transmitter.hpp"
 
 namespace ui {
@@ -44,6 +43,8 @@ class PlaylistView : public View {
     ~PlaylistView();
 
     void on_hide() override;
+
+    void set_parent_rect(const Rect new_parent_rect) override;
 
     void focus() override;
 
@@ -99,20 +100,20 @@ class PlaylistView : public View {
         "Open file"};
 
     Text text_filename{
-        {0 * 8, 18 * 8, 30 * 8, 16},
+        {11 * 8, 0 * 16, 12 * 8, 16},
         "-"};
     Text text_sample_rate{
-        {11 * 8, 0 * 16, 6 * 8, 16},
+        {24 * 8, 0 * 16, 6 * 8, 16},
         "-"};
 
     Text text_duration{
         {11 * 8, 1 * 16, 6 * 8, 16},
         "-"};
     ProgressBar tracks_progressbar{
-        {0 * 8, 3 * 16, 30 * 8, 16}};
+        {18 * 8, 1 * 16, 12 * 8, 8}};
 
     ProgressBar on_track_progressbar{
-        {0 * 8, 4 * 16, 30 * 8, 16}};
+        {18 * 8, 3 * 8, 12 * 8, 8}};
 
     FrequencyField field_frequency{
         {0 * 8, 2 * 16},
@@ -135,9 +136,11 @@ class PlaylistView : public View {
         Color::green(),
         Color::black()};
     // TODO: add track number
-    Text text_track{
-        {13 * 8, 20 * 8, 16 * 8, 16},
-        "0/0"};
+    // Text text_track{ //removed because there's no space for it
+    //     {13 * 8, 20 * 8, 16 * 8, 16},
+    //     "0/0"};
+
+    spectrum::WaterfallWidget waterfall{};
 
     MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,

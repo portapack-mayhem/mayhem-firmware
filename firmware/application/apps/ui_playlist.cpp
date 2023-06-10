@@ -65,7 +65,7 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
         }
     }
     playlist_masterdb = playlist_db;
-    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
+    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks)); //removed because there's no space for it
     tracks_progressbar.set_max(total_tracks);
     button_play.focus();
     return;
@@ -120,9 +120,11 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
 
     on_track_progressbar.set_max(file_size);
-    text_filename.set(file_path.filename().string().substr(0, 30));
+    text_filename.set(file_path.filename().string().substr(0, 12));
     text_duration.set(to_string_time_ms(duration));
-    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));  // Thanks @kallanreed @bernd-herzog @u-foka for this line
+    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
+    //                                    ^Thanks @kallanreed @bernd-herzog @u-foka for this line
+    //                                    ^^removed because there's no space for it.
     tracks_progressbar.set_value(track_number);
 }
 
@@ -279,7 +281,8 @@ PlaylistView::PlaylistView(
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
-        &text_track,
+        // &text_track, // removed because there's no space for it
+        &waterfall,
     });
 
     field_frequency.set_value(target_frequency());
@@ -320,7 +323,17 @@ void PlaylistView::on_hide() {
     stop(false);
     // TODO: Terrible kludge because widget system doesn't notify Waterfall that
     // it's being shown or hidden.
+
+    waterfall.on_hide();
     View::on_hide();
+}
+
+void PlaylistView::set_parent_rect(const Rect new_parent_rect) {
+    View::set_parent_rect(new_parent_rect);
+
+    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(),
+                                  new_parent_rect.height() - header_height};
+    waterfall.set_parent_rect(waterfall_rect);
 }
 
 void PlaylistView::on_target_frequency_changed(rf::Frequency f) {
