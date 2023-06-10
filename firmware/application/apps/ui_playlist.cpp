@@ -320,7 +320,6 @@ void PlaylistView::on_target_frequency_changed(rf::Frequency f) {
 
 void PlaylistView::set_target_frequency(const rf::Frequency new_value) {
     persistent_memory::set_tuned_frequency(new_value);
-    // ;
 }
 
 rf::Frequency PlaylistView::target_frequency() const {
