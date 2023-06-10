@@ -191,7 +191,7 @@ void PlaylistView::start() {
         button_play.set_bitmap(&bitmap_stop);
         baseband::set_sample_rate(sample_rate * 8);
 
-        if (now_delay != 0) { //this `if` is because, if the delay is 0, it will sleep forever
+        if (now_delay != 0) {  // this `if` is because, if the delay is 0, it will sleep forever
             chThdSleepMilliseconds(now_delay);
         }
 
