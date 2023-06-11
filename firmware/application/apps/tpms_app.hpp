@@ -101,6 +101,7 @@ class TPMSAppView : public View {
     std::string title() const override { return "TPMS RX"; };
 
    private:
+    static constexpr uint32_t initial_target_frequency = 315000000;
     static constexpr uint32_t sampling_rate = 2457600;
     static constexpr uint32_t baseband_bandwidth = 1750000;
 

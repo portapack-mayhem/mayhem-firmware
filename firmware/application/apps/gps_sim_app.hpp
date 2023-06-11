@@ -66,11 +66,7 @@ class GpsSimAppView : public View {
     const size_t buffer_count{3};
 
     void on_file_changed(std::filesystem::path new_file_path);
-    void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const uint32_t progress);
-
-    void set_target_frequency(const rf::Frequency new_value);
-    rf::Frequency target_frequency() const;
 
     void toggle();
     void start();

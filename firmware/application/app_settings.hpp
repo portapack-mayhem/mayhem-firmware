@@ -92,7 +92,8 @@ class SettingsManager {
     SettingsManager(SettingsManager&&) = delete;
     SettingsManager& operator=(SettingsManager&&) = delete;
 
-    bool valid() const { return valid_; }
+    /* True if settings were successfully loaded from file. */
+    bool loaded() const { return loaded_; }
     Mode mode() const { return settings_.mode; }
 
     AppSettings& raw() { return settings_; }
@@ -100,7 +101,7 @@ class SettingsManager {
    private:
     std::string app_name_;
     AppSettings settings_;
-    bool valid_;
+    bool loaded_;
 };
 
 }  // namespace app_settings

@@ -51,6 +51,9 @@ namespace ui {
 
 class TestView : public View {
    public:
+   static constexpr uint32_t sampling_rate = 2457600 * 2;
+   static constexpr uint32_t baseband_bandwidth = 1750000;
+
     TestView(NavigationView& nav);
     ~TestView();
 

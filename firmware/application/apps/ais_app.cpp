@@ -382,6 +382,9 @@ AISAppView::AISAppView(NavigationView& nav)
 
     recent_entry_detail_view.hidden(true);
 
+    if (!settings_.loaded())
+        receiver_model.set_target_frequency(initial_target_frequency);
+
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();

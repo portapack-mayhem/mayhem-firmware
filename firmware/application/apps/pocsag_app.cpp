@@ -174,10 +174,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
                 console.write(pocsag_state.output);
             }
 
-            /*if (logger && logging())
+            if (logger && logging())
                 logger->log_decoded(message->packet, to_string_dec_uint(pocsag_state.address) +
                                                          " F" + to_string_dec_uint(pocsag_state.function) +
-                                                         " Alpha: " + pocsag_state.output);*/
+                                                         " Alpha: " + pocsag_state.output);
         }
     }
 

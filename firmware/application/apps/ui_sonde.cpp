@@ -92,8 +92,8 @@ SondeView::SondeView(NavigationView& nav) {
         use_crc = v;
     };
 
-    // TODO: Actually necessary?
-    // receiver_model.update_sampling_rate(sampling_rate);
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 
     // QR code with geo URI

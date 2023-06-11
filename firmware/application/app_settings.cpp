@@ -224,12 +224,12 @@ void copy_from_radio_model(AppSettings& settings) {
 SettingsManager::SettingsManager(std::string app_name, Mode mode)
     : app_name_{std::move(app_name)},
       settings_{},
-      valid_{false} {
+      loaded_{false} {
     settings_.mode = mode;
     auto result = load_settings(app_name_, settings_);
 
     if (result == ResultCode::Ok) {
-        valid_ = true;
+        loaded_ = true;
         copy_to_radio_model(settings_);
     }
 }

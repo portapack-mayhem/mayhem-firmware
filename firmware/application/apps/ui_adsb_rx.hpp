@@ -343,7 +343,6 @@ class ADSBRxView : public View {
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 
-    rf::Frequency prevFreq = {0};
     std::unique_ptr<ADSBLogger> logger{};
     void on_frame(const ADSBFrameMessage* message);
     void on_tick_second();

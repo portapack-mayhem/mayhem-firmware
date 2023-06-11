@@ -79,6 +79,8 @@ TestView::TestView(NavigationView& nav) {
     if (logger)
         logger->append("saucepan.txt");
 
+    receiver_model.set_sampling_rate(sampling_rate);
+    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 }
 

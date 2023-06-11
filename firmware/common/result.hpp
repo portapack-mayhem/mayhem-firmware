@@ -59,7 +59,6 @@ struct Result {
         return std::move(value_);
     }
 
-    // TODO: should this require lvalue?
     const TError& error() const& {
         return error_;
     }

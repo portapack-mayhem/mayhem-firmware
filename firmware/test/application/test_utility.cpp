@@ -22,7 +22,7 @@
 #include "doctest.h"
 #include "utility.hpp"
 
-TEST_SUITE_BEGIN("optional");
+TEST_SUITE_BEGIN("flags_enabled");
 
 enum class Flags : uint8_t {
     A = 0x1,
