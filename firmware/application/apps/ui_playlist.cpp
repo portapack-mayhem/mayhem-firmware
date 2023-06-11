@@ -71,11 +71,12 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
     return;
 }
 
-void PlaylistView::txtline_process(std::string& line) {
+void PlaylistView::txtline_process(std::string &line) {
     playlist_entry new_item;
     rf::Frequency f;
     size_t previous = 0;
-    size_t current = line.find(',');
+    auto current = std::string::npos;
+    current = line.find(',');
     std::string freqs = line.substr(0, current);
     previous = current + 1;
     current = line.find(',', previous);
@@ -84,8 +85,15 @@ void PlaylistView::txtline_process(std::string& line) {
     current = line.find(',', previous);
     uint32_t sample_rate = strtoll(line.substr(previous).c_str(), nullptr, 10);
     previous = current + 1;
+
+    uint32_t item_delay;
+
     current = line.find(',', previous);
-    uint32_t item_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    if (current == std::string::npos){ //compatibility with old PPL grammar
+        item_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    } else{
+        item_delay = 0;
+    }
 
     f = strtoll(freqs.c_str(), nullptr, 0);
     new_item.replay_frequency = f;
@@ -95,6 +103,7 @@ void PlaylistView::txtline_process(std::string& line) {
 
     playlist_db.push_back(std::move(new_item));
 }
+
 
 void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay) {
     File data_file;
@@ -193,7 +202,7 @@ void PlaylistView::start() {
         button_play.set_bitmap(&bitmap_stop);
         baseband::set_sample_rate(sample_rate * 8);
 
-        if (now_delay != 0) {  // this `if` is because, if the delay is 0, it will sleep forever
+        if (now_delay) {  // this `if` is because, if the delay is 0, it will sleep forever
             chThdSleepMilliseconds(now_delay);
         }
 
