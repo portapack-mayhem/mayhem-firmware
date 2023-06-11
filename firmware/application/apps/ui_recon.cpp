@@ -855,6 +855,8 @@ ReconView::ReconView(NavigationView& nav)
 
     field_nblocks.on_change = [this](int32_t v) {
         recon_lock_nb_match = v;
+        if ((unsigned)v < freq_lock)
+            freq_lock = v;
         colorize_waits();
     };
 
@@ -876,6 +878,7 @@ ReconView::ReconView(NavigationView& nav)
     recon_load_config_from_sd();
     freq_file_path = "/FREQMAN/" + output_file + ".TXT";
 
+    field_recon_match_mode.set_selected_index(recon_match_mode);
     field_squelch.set_value(squelch);
     field_wait.set_value(wait);
     field_lock_wait.set_value(recon_lock_duration);
