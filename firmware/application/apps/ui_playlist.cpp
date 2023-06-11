@@ -71,7 +71,7 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
     return;
 }
 
-void PlaylistView::txtline_process(std::string &line) {
+void PlaylistView::txtline_process(std::string& line) {
     playlist_entry new_item;
     rf::Frequency f;
     size_t previous = 0;
@@ -89,9 +89,9 @@ void PlaylistView::txtline_process(std::string &line) {
     uint32_t item_delay;
 
     current = line.find(',', previous);
-    if (current == std::string::npos){ //compatibility with old PPL grammar
+    if (current == std::string::npos) {  // compatibility with old PPL grammar
         item_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
-    } else{
+    } else {
         item_delay = 0;
     }
 
@@ -103,7 +103,6 @@ void PlaylistView::txtline_process(std::string &line) {
 
     playlist_db.push_back(std::move(new_item));
 }
-
 
 void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay) {
     File data_file;
