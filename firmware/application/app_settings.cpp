@@ -66,7 +66,15 @@ static void read_setting(
 
 template <typename T>
 static void write_setting(File& file, std::string_view setting_name, const T& value) {
-    file.write_line(std::string{setting_name} + to_string_dec_uint(value));
+    // NB: Not using file.write_line speed this up. This happens on every
+    // app exit when enabled so should be fast to keep the UX responsive.
+    StringFormatBuffer buffer;
+    size_t length = 0;
+    auto value_str = to_string_dec_uint(value, buffer, length);
+
+    file.write(setting_name.data(), setting_name.length());
+    file.write(value_str, length);
+    file.write("\r\n", 2);
 }
 
 static fs::path get_settings_path(const std::string& app_name) {
@@ -101,7 +109,6 @@ constexpr std::string_view volume = "volume="sv;
 //       be declaratively bound to a setting and persistence will be magic.
 // TODO: radio settings should be pushed and popped to prevent cross-app
 //       radio bugs caused by sharing a global model.
-// TODO: save is slow because of all of the allocations for File.write_line.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
