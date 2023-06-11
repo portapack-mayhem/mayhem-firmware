@@ -28,7 +28,6 @@
 #include "portapack_persistent_memory.hpp"
 #include "utility.hpp"
 
-
 #include <algorithm>
 #include <cstring>
 #include <string_view>
@@ -74,7 +73,7 @@ static fs::path get_settings_path(const std::string& app_name) {
     return fs::path{u"/SETTINGS"} / app_name + u".ini";
 }
 
-namespace setting { 
+namespace setting {
 constexpr std::string_view baseband_bandwidth = "baseband_bandwidth="sv;
 constexpr std::string_view sampling_rate = "sampling_rate="sv;
 constexpr std::string_view lna = "lna="sv;
@@ -102,6 +101,7 @@ constexpr std::string_view volume = "volume="sv;
 //       be declaratively bound to a setting and persistence will be magic.
 // TODO: radio settings should be pushed and popped to prevent cross-app
 //       radio bugs caused by sharing a global model.
+// TODO: save is slow because of all of the allocations for File.write_line.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
@@ -119,7 +119,7 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
         read_setting(*data, setting::tx_gain, settings.tx_gain);
         read_setting(*data, setting::channel_bandwidth, settings.channel_bandwidth);
     }
-    
+
     if (flags_enabled(settings.mode, Mode::RX)) {
         read_setting(*data, setting::rx_frequency, settings.rx_frequency);
         read_setting(*data, setting::rx_amp, settings.rx_amp);
@@ -227,16 +227,15 @@ SettingsManager::SettingsManager(std::string app_name, Mode mode)
       valid_{false} {
     settings_.mode = mode;
     auto result = load_settings(app_name_, settings_);
-    
-    if(result == ResultCode::Ok) {
+
+    if (result == ResultCode::Ok) {
         valid_ = true;
         copy_to_radio_model(settings_);
     }
 }
 
 SettingsManager::~SettingsManager() {
-    if (portapack::persistent_memory::save_app_settings())
-    {
+    if (portapack::persistent_memory::save_app_settings()) {
         copy_from_radio_model(settings_);
         save_settings(app_name_, settings_);
     }

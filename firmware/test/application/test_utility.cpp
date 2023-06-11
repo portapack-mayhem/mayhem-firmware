@@ -24,8 +24,7 @@
 
 TEST_SUITE_BEGIN("optional");
 
-enum class Flags : uint8_t
-{
+enum class Flags : uint8_t {
     A = 0x1,
     B = 0x2,
     C = 0x4,
