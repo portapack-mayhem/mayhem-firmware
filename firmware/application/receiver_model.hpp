@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "app_settings.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "max283x.hpp"
@@ -73,8 +74,8 @@ class ReceiverModel {
     void set_headphone_volume(volume_t v);
 
     /* Volume range 0-99, normalized for audio HW. */
-    int32_t normalized_headphone_volume() const;
-    void set_normalized_headphone_volume(int32_t v);
+    uint8_t normalized_headphone_volume() const;
+    void set_normalized_headphone_volume(uint8_t v);
 
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
@@ -98,6 +99,8 @@ class ReceiverModel {
         const size_t new_nbfm_config_index,
         const size_t new_wfm_config_index,
         uint8_t new_squelch_level);
+
+    void configure_from_app_settings(const app_settings::AppSettings& settings);
 
    private:
     rf::Frequency frequency_step_{25000};

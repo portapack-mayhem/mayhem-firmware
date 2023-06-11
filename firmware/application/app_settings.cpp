@@ -28,6 +28,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "utility.hpp"
 
+
 #include <algorithm>
 #include <cstring>
 #include <string_view>
@@ -36,8 +37,20 @@ namespace fs = std::filesystem;
 using namespace portapack;
 using namespace std::literals;
 
+/*#include "log_file.hpp"
+LogFile* g_pLog = nullptr;
+static void log_it(const std::string& msg) {
+    static LogFile s_log;
+    if (g_pLog == nullptr) {
+        delete_file("appset.txt");
+        s_log.append("appset.txt");
+        g_pLog = &s_log;
+    }
+
+    g_pLog->write_entry(msg);
+}*/
+
 namespace app_settings {
-constexpr auto settings_folder = u"SETTINGS";
 
 template <typename T>
 static void read_setting(
@@ -58,10 +71,10 @@ static void write_setting(File& file, std::string_view setting_name, const T& va
 }
 
 static fs::path get_settings_path(const std::string& app_name) {
-    return fs::path{settings_folder} / app_name + u".ini";
+    return fs::path{u"/SETTINGS"} / app_name + u".ini";
 }
 
-namespace setting {
+namespace setting { 
 constexpr std::string_view baseband_bandwidth = "baseband_bandwidth="sv;
 constexpr std::string_view sampling_rate = "sampling_rate="sv;
 constexpr std::string_view lna = "lna="sv;
@@ -87,6 +100,8 @@ constexpr std::string_view volume = "volume="sv;
 // TODO: Maybe just use a dictionary which would allow for custom settings.
 // TODO: Create a control value binding which will allow controls to
 //       be declaratively bound to a setting and persistence will be magic.
+// TODO: radio settings should be pushed and popped to prevent cross-app
+//       radio bugs caused by sharing a global model.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
@@ -126,12 +141,12 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
 }
 
 ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
-    if (portapack::persistent_memory::save_app_settings())
+    if (!portapack::persistent_memory::save_app_settings())
         return ResultCode::SettingsDisabled;
 
     File settings_file;
     auto file_path = get_settings_path(app_name);
-    ensure_directory(settings_folder);
+    ensure_directory(file_path.parent_path());
 
     auto error = settings_file.create(file_path);
     if (error)
@@ -165,29 +180,13 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
 }
 
 void copy_to_radio_model(const AppSettings& settings) {
-    if (flags_enabled(settings.mode, Mode::TX)) {
-        transmitter_model.set_target_frequency(settings.tx_frequency);
-        transmitter_model.set_baseband_bandwidth(settings.baseband_bandwidth);
-        transmitter_model.set_tx_gain(settings.tx_gain);
-        transmitter_model.set_rf_amp(settings.tx_amp);
-        transmitter_model.set_channel_bandwidth(settings.channel_bandwidth);
+    // NB: Don't actually adjust the radio here or it will hang.
 
-        // TODO: Do these make sense for TX?
-        transmitter_model.set_lna(settings.lna);
-        transmitter_model.set_vga(settings.vga);
-        transmitter_model.set_sampling_rate(settings.sampling_rate);
+    if (flags_enabled(settings.mode, Mode::TX))
+        transmitter_model.configure_from_app_settings(settings);
 
-    }
-
-    if (flags_enabled(settings.mode, Mode::RX)) {
-        receiver_model.set_target_frequency(settings.rx_frequency);
-        receiver_model.set_baseband_bandwidth(settings.baseband_bandwidth);
-        receiver_model.set_sampling_rate(settings.sampling_rate);
-        receiver_model.set_lna(settings.lna);
-        receiver_model.set_vga(settings.vga);
-        receiver_model.set_rf_amp(settings.rx_amp);
-        receiver_model.set_squelch_level(settings.squelch);
-    }
+    if (flags_enabled(settings.mode, Mode::RX))
+        receiver_model.configure_from_app_settings(settings);
 
     receiver_model.set_frequency_step(settings.volume);
     receiver_model.set_normalized_headphone_volume(settings.volume);

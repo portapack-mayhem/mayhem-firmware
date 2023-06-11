@@ -27,6 +27,7 @@
 #include <cstddef>
 
 #include "receiver_model.hpp"
+#include "app_settings.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "max2837.hpp"
@@ -68,6 +69,8 @@ class TransmitterModel {
 
     void enable();
     void disable();
+
+    void configure_from_app_settings(const app_settings::AppSettings& settings);
 
    private:
     bool enabled_{false};

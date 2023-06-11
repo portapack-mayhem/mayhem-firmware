@@ -27,13 +27,13 @@
 #include "portapack_persistent_memory.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-using namespace hackrf::one;
-using namespace portapack;
-
 #include "rtc_time.hpp"
 #include "event_m0.hpp"
 #include "radio.hpp"
 #include "audio.hpp"
+
+using namespace hackrf::one;
+using namespace portapack;
 
 rf::Frequency TransmitterModel::target_frequency() const {
     return persistent_memory::target_frequency();
@@ -145,6 +145,21 @@ void TransmitterModel::disable() {
 
     rtc_time::signal_tick_second -= signal_token_tick_second;
     led_tx.off();
+}
+
+void TransmitterModel::configure_from_app_settings(
+    const app_settings::AppSettings& settings) {
+    set_target_frequency(settings.tx_frequency);
+
+    baseband_bandwidth_ = settings.baseband_bandwidth;
+    channel_bandwidth_ = settings.channel_bandwidth;
+    tx_gain_db_ = settings.tx_gain;
+    rf_amp_ = settings.tx_amp;
+
+    // TODO: Do these make sense for TX?
+    lna_gain_db_ = settings.lna;
+    vga_gain_db_ = settings.vga;
+    sampling_rate_ = settings.sampling_rate;
 }
 
 void TransmitterModel::update_tuning_frequency() {
