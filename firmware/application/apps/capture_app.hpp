@@ -67,7 +67,7 @@ class CaptureAppView : public View {
     uint32_t sampling_rate = 0;
     uint32_t anti_alias_baseband_bandwidth_filter = 2500000;  // we rename the previous var , and change type static constexpr to normal var.
 
-    void on_tuning_frequency_changed(rf::Frequency f);
+    void on_target_frequency_changed(rf::Frequency f);
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},

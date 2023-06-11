@@ -46,7 +46,7 @@ using namespace std;
 namespace portapack {
 namespace persistent_memory {
 
-constexpr rf::Frequency tuned_frequency_reset_value{100000000};
+constexpr rf::Frequency target_frequency_reset_value{100000000};
 
 using ppb_range_t = range_t<ppb_t>;
 constexpr ppb_range_t ppb_range{-99000, 99000};
@@ -257,7 +257,7 @@ struct ui_config_t {
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
     data_structure_version_enum structure_version;
-    int64_t tuned_frequency;
+    int64_t target_frequency;
     int32_t correction_ppb;
     uint32_t touch_calibration_magic;
     touch::Calibration touch_calibration;
@@ -313,7 +313,7 @@ struct data_t {
 
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
-          tuned_frequency(tuned_frequency_reset_value),
+          target_frequency(target_frequency_reset_value),
           correction_ppb(ppb_reset_value),
           touch_calibration_magic(TOUCH_CALIBRATION_MAGIC),
           touch_calibration(touch::Calibration()),
@@ -471,13 +471,13 @@ void persist() {
 
 } /* namespace cache */
 
-rf::Frequency tuned_frequency() {
-    rf::tuning_range.reset_if_outside(data->tuned_frequency, tuned_frequency_reset_value);
-    return data->tuned_frequency;
+rf::Frequency target_frequency() {
+    rf::tuning_range.reset_if_outside(data->target_frequency, target_frequency_reset_value);
+    return data->target_frequency;
 }
 
-void set_tuned_frequency(const rf::Frequency new_value) {
-    data->tuned_frequency = rf::tuning_range.clip(new_value);
+void set_target_frequency(const rf::Frequency new_value) {
+    data->target_frequency = rf::tuning_range.clip(new_value);
 }
 
 volume_t headphone_volume() {

@@ -44,7 +44,7 @@ void AFSKRxView::focus() {
 }
 
 void AFSKRxView::update_freq(rf::Frequency f) {
-    receiver_model.set_tuning_frequency(f);
+    receiver_model.set_target_frequency(f);
 }
 
 AFSKRxView::AFSKRxView(NavigationView& nav) {
@@ -62,14 +62,6 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
                   &button_modem_setup,
                   &console});
 
-    // load app settings
-    auto rc = settings.load("rx_afsk", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-    }
-
     // Auto-configure modem for LCR RX (will be removed later)
     update_freq(467225500);  // 462713300
     auto def_bell202 = &modem_defs[0];
@@ -81,15 +73,14 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
 
-    field_frequency.set_value(receiver_model.tuning_frequency());
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(100);
     field_frequency.on_change = [this](rf::Frequency f) {
         update_freq(f);
     };
     field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            update_freq(f);
             field_frequency.set_value(f);
         };
     };
@@ -167,10 +158,6 @@ void AFSKRxView::on_data(uint32_t value, bool is_data) {
 }
 
 AFSKRxView::~AFSKRxView() {
-    // save app settings
-    app_settings.rx_frequency = field_frequency.value();
-    settings.save("rx_afsk", &app_settings);
-
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();

@@ -23,16 +23,17 @@
 #define SHORT_UI true
 #define NORMAL_UI false
 
+#include "app_settings.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "replay_thread.hpp"
 #include "ui_spectrum.hpp"
+#include "ui_transmitter.hpp"
 
 #include <string>
 #include <memory>
 #include <deque>
-#include "ui_transmitter.hpp"
 
 namespace ui {
 
@@ -52,6 +53,8 @@ class PlaylistView : public View {
 
    private:
     NavigationView& nav_;
+    app_settings::SettingsManager settings_{
+        "tx_playlist", app_settings::Mode::TX};
 
     static constexpr ui::Dim header_height = 3 * 16;
 
@@ -73,7 +76,6 @@ class PlaylistView : public View {
     void load_file(std::filesystem::path playlist_path);
     void txtline_process(std::string&);
     void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay);
-    void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const uint32_t progress);
     void set_target_frequency(const rf::Frequency new_value);
     rf::Frequency target_frequency() const;

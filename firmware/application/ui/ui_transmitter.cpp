@@ -20,16 +20,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// TODO: Consolidate and make TX Widgets instead like ui_receiver.
+
 #include "ui_transmitter.hpp"
 
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
-using namespace portapack;
-
 #include "string_format.hpp"
-
 #include "max2837.hpp"
+
+using namespace portapack;
 
 namespace ui {
 
@@ -52,11 +53,12 @@ void TransmitterView::paint(Painter& painter) {
     }
 }
 
-void TransmitterView::on_tuning_frequency_changed(rf::Frequency f) {
-    transmitter_model.set_tuning_frequency(f);
+void TransmitterView::on_target_frequency_changed(rf::Frequency f) {
+    transmitter_model.set_target_frequency(f);
 }
 
 void TransmitterView::on_channel_bandwidth_changed(uint32_t channel_bandwidth) {
+    // TODO: this doesn't actually affect the radio through the model.
     transmitter_model.set_channel_bandwidth(channel_bandwidth);
 }
 
@@ -101,7 +103,7 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 }
 
 void TransmitterView::on_show() {
-    field_frequency.set_value(transmitter_model.tuning_frequency());
+    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency_step.set_by_value(receiver_model.frequency_step());
 
     field_gain.set_value(transmitter_model.tx_gain());
@@ -138,6 +140,7 @@ TransmitterView::TransmitterView(
         field_frequency.set_focusable(false);
         field_frequency.set_style(&style_locked);
     } else {
+        // TODO: Make a widget.
         if (channel_bandwidth) {
             add_children({&text_bw,
                           &field_bw});
@@ -149,10 +152,9 @@ TransmitterView::TransmitterView(
         }
     }
 
-    // field_frequency.set_value(transmitter_model.tuning_frequency());
     field_frequency.set_step(frequency_step);
     field_frequency.on_change = [this](rf::Frequency f) {
-        on_tuning_frequency_changed(f);
+        on_target_frequency_changed(f);
     };
     field_frequency.on_edit = [this]() {
         if (on_edit_frequency)
@@ -189,14 +191,10 @@ TransmitterView::~TransmitterView() {
 }
 
 /* TransmitterView2 *******************************************************/
-// Derivative from TransmitterView (that handles many param. freq, fre_step, start_button, gain, amp, used in the majority of the TX App's.
-// This one ,is a simple version ,  it is only handling 2 x param  (TX GAIN and AMP ) in one line .
-// We use normal character lines , in Mic App,  called (x pos, y pos,  NORMAL_UI)
-// We use short compact char lines , in Replay / GPS Simul / Playlist App , called (x pos , y pos,SHORT_UI )
-
-void TransmitterView2::paint(Painter& painter) {
-    //	Not using TransmitterView2, but if we delete it,we got , top line 1 a blanking rect.
-    (void)painter;  // Avoid  warning: unused parameter .
+/* Simpler transmitter view that only renders TX Gain and Amp.
+ * There are two modes, NORMAL_UI and SHORT_UI. SHORT_UI abbreviates control labels. */
+void TransmitterView2::paint(Painter&) {
+    // All widgets paint themselves. Don't let base paint.
 }
 
 void TransmitterView2::on_tx_gain_changed(int32_t tx_gain) {
@@ -241,7 +239,7 @@ void TransmitterView2::on_show() {
 }
 
 TransmitterView2::TransmitterView2(const Coord x, const Coord y, bool short_UI) {
-    set_parent_rect({x, y, 20 * 8, 1 * 8});  // set_parent_rect({ 0, y, 30 * 8, 6 * 8 });
+    set_parent_rect({x, y, 20 * 8, 1 * 8});
 
     add_children({
         &(short_UI ? text_gain_amp_short_UI : text_gain_amp),

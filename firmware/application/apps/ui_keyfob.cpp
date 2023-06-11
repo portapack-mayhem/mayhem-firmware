@@ -236,12 +236,12 @@ KeyfobView::KeyfobView(
 
     options_make.set_selected_index(0);
 
-    transmitter_model.set_tuning_frequency(433920000);  // Fixed 433.92MHz
+    transmitter_model.set_target_frequency(433920000);  // Fixed 433.92MHz
 
     tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            transmitter_model.set_tuning_frequency(f);
+            transmitter_model.set_target_frequency(f);
         };
     };
 

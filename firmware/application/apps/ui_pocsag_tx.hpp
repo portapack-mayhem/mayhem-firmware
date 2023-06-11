@@ -58,16 +58,15 @@ class POCSAGTXView : public View {
     std::string message{};
     NavigationView& nav_;
 
+    app_settings::SettingsManager settings_{
+        "tx_pocsag", app_settings::Mode::TX};
+
     BCHCode BCH_code{
         {1, 0, 1, 0, 0, 1},
         5,
         31,
         21,
         2};
-
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
 
     void on_set_text(NavigationView& nav);
     void on_tx_progress(const uint32_t progress, const bool done);

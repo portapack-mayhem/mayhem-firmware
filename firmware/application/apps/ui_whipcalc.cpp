@@ -147,7 +147,7 @@ WhipCalcView::WhipCalcView(NavigationView& nav) {
     };
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
             this->field_frequency.set_value(f);
             this->update_result();
@@ -158,7 +158,7 @@ WhipCalcView::WhipCalcView(NavigationView& nav) {
         nav.pop();
     };
 
-    field_frequency.set_value(transmitter_model.tuning_frequency());
+    field_frequency.set_value(transmitter_model.target_frequency());
 }
 
 void ui::WhipCalcView::txtline_process(std::string& line) {

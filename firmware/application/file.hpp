@@ -26,6 +26,7 @@
 #include "ff.h"
 
 #include "optional.hpp"
+#include "result.hpp"
 
 #include <cstddef>
 #include <cstdint>
@@ -256,6 +257,7 @@ struct FATTimestamp {
 std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);
+
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error make_new_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
@@ -288,65 +290,8 @@ class File {
     using Timestamp = uint32_t;
     using Error = std::filesystem::filesystem_error;
 
-    // TODO: move to common.
     template <typename T>
-    struct Result {
-        enum class Type {
-            Success,
-            Error,
-        } type;
-        union {
-            T value_;
-            Error error_;
-        };
-
-        bool is_ok() const {
-            return type == Type::Success;
-        }
-
-        operator bool() const {
-            return is_ok();
-        }
-
-        bool is_error() const {
-            return type == Type::Error;
-        }
-
-        const T& value() const& {
-            return value_;
-        }
-
-        const T& operator*() const& {
-            return value_;
-        }
-
-        T&& operator*() && {
-            return std::move(value_);
-        }
-
-        Error error() const {
-            return error_;
-        }
-
-        Result() = delete;
-
-        constexpr Result(
-            T&& value)
-            : type{Type::Success},
-              value_{std::forward<T>(value)} {
-        }
-
-        constexpr Result(
-            Error error)
-            : type{Type::Error},
-              error_{error} {
-        }
-
-        ~Result() {
-            if (is_ok())
-                value_.~T();
-        }
-    };
+    using Result = Result<T, Error>;
 
     File(){};
     ~File();
@@ -374,7 +319,6 @@ class File {
     Offset tell() const;
     Result<Offset> seek(uint64_t Offset);
     Result<Offset> truncate();
-    // Timestamp created_date() const;
     Size size() const;
 
     template <size_t N>
@@ -386,6 +330,10 @@ class File {
 
     // TODO: Return Result<>.
     Optional<Error> sync();
+
+    /* Reads the entire file contents to a string.
+     * NB: This will likely fail for files larger than ~10kB. */
+    static Result<std::string> read_file(const std::filesystem::path& filename);
 
    private:
     FIL f{};

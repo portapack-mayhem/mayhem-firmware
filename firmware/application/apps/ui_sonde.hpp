@@ -65,6 +65,9 @@ class SondeView : public View {
     std::string title() const override { return "Radiosnd RX"; };
 
    private:
+    app_settings::SettingsManager settings_{
+        "rx_sonde", app_settings::Mode::RX};
+
     std::unique_ptr<SondeLogger> logger{};
     uint32_t target_frequency_{402700000};
     bool logging{false};
@@ -72,9 +75,6 @@ class SondeView : public View {
     bool beep{false};
 
     char geo_uri[32] = {};
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
 
     sonde::GPS_data gps_info{};
     sonde::temp_humid temp_humid_info{};
@@ -177,9 +177,6 @@ class SondeView : public View {
 
     void on_packet(const sonde::Packet& packet);
     char* float_to_char(float x, char* p);
-    void set_target_frequency(const uint32_t new_value);
-
-    uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

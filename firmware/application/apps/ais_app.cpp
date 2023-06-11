@@ -283,8 +283,8 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
     });
 
     button_done.on_select = [this](const ui::Button&) {
-        if (this->on_close) {
-            this->on_close();
+        if (on_close) {
+            on_close();
         }
     };
 
@@ -380,33 +380,25 @@ AISAppView::AISAppView(NavigationView& nav)
         &recent_entry_detail_view,
     });
 
-    // load app settings
-    auto rc = settings.load("rx_ais", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-        target_frequency_ = app_settings.rx_frequency;
-    } else
-        target_frequency_ = initial_target_frequency;
-
     recent_entry_detail_view.hidden(true);
 
-    receiver_model.set_tuning_frequency(tuning_frequency());
+    if (!settings_.loaded())
+        receiver_model.set_target_frequency(initial_target_frequency);
+
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 
     options_channel.on_change = [this](size_t, OptionsField::value_t v) {
-        this->on_frequency_changed(v);
+        receiver_model.set_target_frequency(v);
     };
-    options_channel.set_by_value(target_frequency());
+    options_channel.set_by_value(receiver_model.target_frequency());
 
     recent_entries_view.on_select = [this](const AISRecentEntry& entry) {
-        this->on_show_detail(entry);
+        on_show_detail(entry);
     };
     recent_entry_detail_view.on_close = [this]() {
-        this->on_show_list();
+        on_show_list();
     };
 
     logger = std::make_unique<AISLogger>();
@@ -416,12 +408,7 @@ AISAppView::AISAppView(NavigationView& nav)
 }
 
 AISAppView::~AISAppView() {
-    // save app settings
-    app_settings.rx_frequency = target_frequency_;
-    settings.save("rx_ais", &app_settings);
-
     receiver_model.disable();
-
     baseband::shutdown();
 }
 
@@ -463,23 +450,6 @@ void AISAppView::on_show_detail(const AISRecentEntry& entry) {
     recent_entry_detail_view.hidden(false);
     recent_entry_detail_view.set_entry(entry);
     recent_entry_detail_view.focus();
-}
-
-void AISAppView::on_frequency_changed(const uint32_t new_target_frequency) {
-    set_target_frequency(new_target_frequency);
-}
-
-void AISAppView::set_target_frequency(const uint32_t new_value) {
-    target_frequency_ = new_value;
-    receiver_model.set_tuning_frequency(tuning_frequency());
-}
-
-uint32_t AISAppView::target_frequency() const {
-    return target_frequency_;
-}
-
-uint32_t AISAppView::tuning_frequency() const {
-    return target_frequency() - (sampling_rate / 4);
 }
 
 } /* namespace ui */

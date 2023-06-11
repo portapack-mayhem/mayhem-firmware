@@ -29,12 +29,14 @@
 #include "file.hpp"
 #include "portapack_persistent_memory.hpp"
 
+using namespace portapack;
+
 namespace ui {
 
 SpectrumPainterView::SpectrumPainterView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_spectrum_painter);
+    baseband::run_image(spi_flash::image_tag_spectrum_painter);
 
     add_children({
         &labels,
@@ -56,30 +58,29 @@ SpectrumPainterView::SpectrumPainterView(
     input_image.set_parent_rect(view_rect);
     input_text.set_parent_rect(view_rect);
 
-    field_frequency.set_value(target_frequency());
+    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.set_step(5000);
     field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_target_frequency_changed(f);
+        transmitter_model.set_target_frequency(f);
     };
     field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(this->target_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_target_frequency_changed(f);
-            this->field_frequency.set_value(f);
+            field_frequency.set_value(f);
         };
     };
 
-    tx_gain = portapack::transmitter_model.tx_gain();
+    tx_gain = transmitter_model.tx_gain();
     field_rfgain.set_value(tx_gain);              // Initial default  value (-12 dB's max ).
     field_rfgain.on_change = [this](int32_t v) {  // allow initial value change just after opened file.
         tx_gain = v;
-        portapack::transmitter_model.set_tx_gain(tx_gain);
+        transmitter_model.set_tx_gain(tx_gain);
     };
 
     field_rfamp.set_value(rf_amp ? 14 : 0);      // Initial default value True. (TX RF amp on , +14dB's)
     field_rfamp.on_change = [this](int32_t v) {  // allow initial value change just after opened file.
         rf_amp = (bool)v;
-        portapack::transmitter_model.set_rf_amp(rf_amp);
+        transmitter_model.set_rf_amp(rf_amp);
     };
 
     input_image.on_input_avaliable = [this]() {
@@ -93,11 +94,11 @@ SpectrumPainterView::SpectrumPainterView(
             if (tx_mode == 0 && image_input_avaliable == false)
                 return;
 
-            portapack::transmitter_model.set_sampling_rate(3072000U);
-            portapack::transmitter_model.set_baseband_bandwidth(1750000);
-            portapack::transmitter_model.enable();
+            transmitter_model.set_sampling_rate(3072000U);
+            transmitter_model.set_baseband_bandwidth(1750000);
+            transmitter_model.enable();
 
-            if (portapack::persistent_memory::stealth_mode()) {
+            if (persistent_memory::stealth_mode()) {
                 DisplaySleepMessage message;
                 EventDispatcher::send_message(message);
             }
@@ -137,7 +138,7 @@ void SpectrumPainterView::start_tx() {
 
 void SpectrumPainterView::stop_tx() {
     button_play.set_bitmap(&bitmap_play);
-    portapack::transmitter_model.disable();
+    transmitter_model.disable();
     tx_active = false;
     tx_current_line = 0;
 }
@@ -176,25 +177,13 @@ void SpectrumPainterView::frame_sync() {
 }
 
 SpectrumPainterView::~SpectrumPainterView() {
-    portapack::transmitter_model.disable();
+    transmitter_model.disable();
     hackrf::cpld::load_sram_no_verify();
     baseband::shutdown();
 }
 
 void SpectrumPainterView::focus() {
     tab_view.focus();
-}
-
-void SpectrumPainterView::on_target_frequency_changed(rf::Frequency f) {
-    set_target_frequency(f);
-}
-
-void SpectrumPainterView::set_target_frequency(const rf::Frequency new_value) {
-    portapack::persistent_memory::set_tuned_frequency(new_value);
-}
-
-rf::Frequency SpectrumPainterView::target_frequency() const {
-    return portapack::persistent_memory::tuned_frequency();
 }
 
 void SpectrumPainterView::paint(Painter& painter) {

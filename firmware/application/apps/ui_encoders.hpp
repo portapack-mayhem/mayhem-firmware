@@ -184,8 +184,8 @@ class EncodersView : public View {
     };
 
     // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_ook", app_settings::Mode::TX};
 
     tx_modes tx_mode = IDLE;
     uint32_t repeat_index{0};

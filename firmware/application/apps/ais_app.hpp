@@ -154,9 +154,6 @@ class AISAppView : public View {
     ~AISAppView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-
-    // Prevent painting of region covered entirely by a child.
-    // TODO: Add flag to View that specifies view does not need to be cleared before painting.
     void paint(Painter&) override{};
 
     void focus() override;
@@ -168,9 +165,8 @@ class AISAppView : public View {
     static constexpr uint32_t sampling_rate = 2457600;
     static constexpr uint32_t baseband_bandwidth = 1750000;
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_ais", app_settings::Mode::RX};
 
     NavigationView& nav_;
 
@@ -225,18 +221,9 @@ class AISAppView : public View {
             }
         }};
 
-    uint32_t target_frequency_ = initial_target_frequency;
-
     void on_packet(const ais::Packet& packet);
     void on_show_list();
     void on_show_detail(const AISRecentEntry& entry);
-
-    void on_frequency_changed(const uint32_t new_target_frequency);
-
-    uint32_t target_frequency() const;
-    void set_target_frequency(const uint32_t new_value);
-
-    uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

@@ -187,9 +187,8 @@ class APRSRxView : public View {
     void on_data(uint32_t value, bool is_data);
     bool reset_console = false;
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_aprs", app_settings::Mode::RX};
 
     uint8_t console_color{0};
     std::string str_log{""};

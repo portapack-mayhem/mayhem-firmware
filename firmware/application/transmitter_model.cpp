@@ -27,20 +27,20 @@
 #include "portapack_persistent_memory.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-using namespace hackrf::one;
-using namespace portapack;
-
 #include "rtc_time.hpp"
 #include "event_m0.hpp"
 #include "radio.hpp"
 #include "audio.hpp"
 
-rf::Frequency TransmitterModel::tuning_frequency() const {
-    return persistent_memory::tuned_frequency();
+using namespace hackrf::one;
+using namespace portapack;
+
+rf::Frequency TransmitterModel::target_frequency() const {
+    return persistent_memory::target_frequency();
 }
 
-void TransmitterModel::set_tuning_frequency(rf::Frequency f) {
-    persistent_memory::set_tuned_frequency(f);
+void TransmitterModel::set_target_frequency(rf::Frequency f) {
+    persistent_memory::set_target_frequency(f);
     update_tuning_frequency();
 }
 
@@ -131,6 +131,7 @@ void TransmitterModel::enable() {
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
+
     if (portapack::persistent_memory::stealth_mode()) {
         DisplaySleepMessage message;
         EventDispatcher::send_message(message);
@@ -140,16 +141,29 @@ void TransmitterModel::enable() {
 void TransmitterModel::disable() {
     enabled_ = false;
 
-    // TODO: Responsibility for enabling/disabling the radio is muddy.
-    // Some happens in ReceiverModel, some inside radio namespace.
     radio::disable();
 
     rtc_time::signal_tick_second -= signal_token_tick_second;
     led_tx.off();
 }
 
+void TransmitterModel::configure_from_app_settings(
+    const app_settings::AppSettings& settings) {
+    set_target_frequency(settings.tx_frequency);
+
+    baseband_bandwidth_ = settings.baseband_bandwidth;
+    channel_bandwidth_ = settings.channel_bandwidth;
+    tx_gain_db_ = settings.tx_gain;
+    rf_amp_ = settings.tx_amp;
+
+    // TODO: Do these make sense for TX?
+    lna_gain_db_ = settings.lna;
+    vga_gain_db_ = settings.vga;
+    sampling_rate_ = settings.sampling_rate;
+}
+
 void TransmitterModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::tuned_frequency());
+    radio::set_tuning_frequency(persistent_memory::target_frequency());
 }
 
 void TransmitterModel::update_antenna_bias() {

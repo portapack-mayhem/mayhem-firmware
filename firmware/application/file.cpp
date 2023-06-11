@@ -23,8 +23,9 @@
 #include "file.hpp"
 
 #include <algorithm>
-#include <locale>
 #include <codecvt>
+#include <cstring>
+#include <locale>
 
 Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BYTE mode) {
     auto result = f_open(&f, reinterpret_cast<const TCHAR*>(filename.c_str()), mode);
@@ -136,6 +137,37 @@ Optional<File::Error> File::sync() {
     } else {
         return {result};
     }
+}
+
+File::Result<std::string> File::read_file(const std::filesystem::path& filename) {
+    constexpr size_t buffer_size = 0x80;
+    char* buffer[buffer_size];
+
+    File f;
+    auto error = f.open(filename);
+    if (error)
+        return *error;
+
+    std::string content;
+    content.resize(f.size());
+    auto str = &content[0];
+    auto total_read = 0u;
+
+    while (true) {
+        auto read = f.read(buffer, buffer_size);
+        if (!read)
+            return read.error();
+
+        memcpy(str, buffer, *read);
+        str += *read;
+        total_read += *read;
+
+        if (*read < buffer_size)
+            break;
+    }
+
+    content.resize(total_read);
+    return content;
 }
 
 /* Range used for filename matching.

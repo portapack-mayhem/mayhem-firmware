@@ -126,7 +126,7 @@ class TransmitterView : public View {
         {10 * 8 - 4, 1 * 8},
     };
 
-    void on_tuning_frequency_changed(rf::Frequency f);
+    void on_target_frequency_changed(rf::Frequency f);
     void on_channel_bandwidth_changed(uint32_t channel_bandwidth);
     void on_tx_gain_changed(int32_t tx_gain);
     void on_tx_amp_changed(bool rf_amp);

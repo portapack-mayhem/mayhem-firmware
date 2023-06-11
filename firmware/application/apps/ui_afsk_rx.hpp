@@ -57,9 +57,8 @@ class AFSKRxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_afsk", app_settings::Mode::RX};
 
     uint8_t console_color{0};
     uint32_t prev_value{0};

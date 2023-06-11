@@ -105,9 +105,8 @@ class TPMSAppView : public View {
     static constexpr uint32_t sampling_rate = 2457600;
     static constexpr uint32_t baseband_bandwidth = 1750000;
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_tpms", app_settings::Mode::RX};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::TPMSPacket,
@@ -171,18 +170,9 @@ class TPMSAppView : public View {
     }};
     TPMSRecentEntriesView recent_entries_view{columns, recent};
 
-    uint32_t target_frequency_ = initial_target_frequency;
-
     void on_packet(const tpms::Packet& packet);
     void on_show_list();
     void update_view();
-
-    void on_band_changed(const uint32_t new_band_frequency);
-
-    uint32_t target_frequency() const;
-    void set_target_frequency(const uint32_t new_value);
-
-    uint32_t tuning_frequency() const;
 };
 
 } /* namespace ui */

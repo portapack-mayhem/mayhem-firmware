@@ -291,7 +291,7 @@ void ReconView::recon_redraw() {
 void ReconView::handle_retune() {
     if (last_freq != freq) {
         last_freq = freq;
-        receiver_model.set_tuning_frequency(freq);  // Retune
+        receiver_model.set_target_frequency(freq);  // Retune
     }
     if (frequency_list.size() > 0) {
         if (last_entry.modulation != frequency_list[current_index].modulation && frequency_list[current_index].modulation >= 0) {
@@ -361,10 +361,8 @@ void ReconView::focus() {
 }
 
 ReconView::~ReconView() {
-    // save app config
+    // Save recon config.
     recon_save_config_to_sd();
-    // save app common settings
-    settings.save("recon", &app_settings);
 
     audio::output::stop();
     receiver_model.disable();
@@ -412,8 +410,7 @@ ReconView::ReconView(NavigationView& nav)
 
     def_step = 0;
     // HELPER: Pre-setting a manual range, based on stored frequency
-    rf::Frequency stored_freq = persistent_memory::tuned_frequency();
-    receiver_model.set_tuning_frequency(stored_freq);
+    rf::Frequency stored_freq = receiver_model.target_frequency();
     if (stored_freq - OneMHz > 0)
         frequency_range.min = stored_freq - OneMHz;
     else
@@ -424,6 +421,7 @@ ReconView::ReconView(NavigationView& nav)
     else
         frequency_range.max = MAX_UFREQ;
     button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+
     // Loading settings
     autostart = persistent_memory::recon_autostart_recon();
     autosave = persistent_memory::recon_autosave_freqs();
@@ -433,16 +431,6 @@ ReconView::ReconView(NavigationView& nav)
     load_ranges = persistent_memory::recon_load_ranges();
     load_hamradios = persistent_memory::recon_load_hamradios();
     update_ranges = persistent_memory::recon_update_ranges_when_recon();
-    if (sd_card_mounted) {
-        // load auto common app settings
-        auto rc = settings.load("recon", &app_settings);
-        if (rc == SETTINGS_OK) {
-            field_lna.set_value(app_settings.lna);
-            field_vga.set_value(app_settings.vga);
-            field_rf_amp.set_value(app_settings.rx_amp);
-            receiver_model.set_rf_amp(app_settings.rx_amp);
-        }
-    }
 
     button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
         clear_freqlist_for_ui_action();
@@ -563,17 +551,18 @@ ReconView::ReconView(NavigationView& nav)
         nav_.push<LevelView>();
     };
 
+    // TODO: *BUG* Both transmitter_model and receiver_model share the same pmem setting for target_frequency.
     button_mic_app.on_select = [this](Button&) {
         if (frequency_list.size() > 0 && current_index >= 0 && (unsigned)current_index < frequency_list.size()) {
             if (frequency_list[current_index].type == HAMRADIO) {
                 // if it's a HAMRADIO entry, then frequency_a is the freq at which the repeater reveive, so we have to set it in transmit in mic app
-                transmitter_model.set_tuning_frequency(frequency_list[current_index].frequency_a);
+                transmitter_model.set_target_frequency(frequency_list[current_index].frequency_a);
                 // if it's a HAMRADIO entry, then frequency_b is the freq at which the repeater transmit, so we have to set it in receive in mic app
-                receiver_model.set_tuning_frequency(frequency_list[current_index].frequency_b);
+                receiver_model.set_target_frequency(frequency_list[current_index].frequency_b);
             } else {
                 // it's single or range so we us actual tuned frequency
-                transmitter_model.set_tuning_frequency(freq);
-                receiver_model.set_tuning_frequency(freq);
+                transmitter_model.set_target_frequency(freq);
+                receiver_model.set_target_frequency(freq);
             }
         }
         // there is no way yet to set modulation and bandwidth from Recon to MicApp
@@ -672,7 +661,7 @@ ReconView::ReconView(NavigationView& nav)
                     }
                 }
             }
-            receiver_model.set_tuning_frequency(frequency_list[current_index].frequency_a);  // retune
+            receiver_model.set_target_frequency(frequency_list[current_index].frequency_a);  // retune
         }
         if (frequency_list.size() == 0) {
             text_cycle.set_text(" ");
@@ -890,9 +879,8 @@ ReconView::ReconView(NavigationView& nav)
     freqman_set_step_option(step_mode);
 
     // set radio
-    change_mode(AM_MODULATION);                                                            // start on AM.
-    field_mode.set_by_value(AM_MODULATION);                                                // reflect the mode into the manual selector
-    receiver_model.set_tuning_frequency(portapack::persistent_memory::tuned_frequency());  // first tune
+    change_mode(AM_MODULATION);              // start on AM.
+    field_mode.set_by_value(AM_MODULATION);  // reflect the mode into the manual selector
 
     if (filedelete) {
         delete_file(freq_file_path);

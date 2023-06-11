@@ -56,7 +56,6 @@ class NuoptixView : public View {
 
     tx_modes tx_mode{IDLE};
 
-    void on_tuning_frequency_changed(rf::Frequency f);
     void transmit(bool setup);
     void on_tx_progress(const uint32_t progress, const bool done);
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023
  *
  * This file is part of PortaPack.
  *
@@ -19,22 +19,25 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "log_file.hpp"
-#include "string_format.hpp"
+#include "doctest.h"
+#include "utility.hpp"
 
-Optional<File::Error> LogFile::write_entry(const std::string& entry) {
-    return write_entry(rtc_time::now(), entry);
+TEST_SUITE_BEGIN("flags_enabled");
+
+enum class Flags : uint8_t {
+    A = 0x1,
+    B = 0x2,
+    C = 0x4,
+};
+
+TEST_CASE("When flag set, flags_enabled should be true.") {
+    Flags f = Flags::A;
+    CHECK(flags_enabled(f, Flags::A));
 }
 
-Optional<File::Error> LogFile::write_entry(const rtc::RTC& datetime, const std::string& entry) {
-    std::string timestamp = to_string_timestamp(datetime);
-    return write_line(timestamp + " " + entry);
+TEST_CASE("When flag not set, flags_enabled should be false.") {
+    Flags f = Flags::B;
+    CHECK(flags_enabled(f, Flags::A) == false);
 }
 
-Optional<File::Error> LogFile::write_line(const std::string& message) {
-    auto error = file.write_line(message);
-    if (!error) {
-        file.sync();
-    }
-    return error;
-}
+TEST_SUITE_END();

@@ -271,7 +271,7 @@ void GlassView::on_range_changed() {
     receiver_model.set_squelch_level(0);
     f_center = f_center_ini;  // Reset sweep into first slice
     baseband::set_spectrum(looking_glass_bandwidth, field_trigger.value());
-    receiver_model.set_tuning_frequency(f_center);  // tune rx for this slice
+    receiver_model.set_target_frequency(f_center);  // tune rx for this slice
 }
 
 void GlassView::PlotMarker(uint8_t pos) {
@@ -467,7 +467,7 @@ GlassView::GlassView(
     };
 
     button_marker.on_select = [this](ButtonWithEncoder&) {
-        receiver_model.set_tuning_frequency(marker);  // Center tune rx in marker freq.
+        receiver_model.set_target_frequency(marker);  // Center tune rx in marker freq.
         receiver_model.set_frequency_step(MHZ_DIV);   // Preset a 1 MHz frequency step into RX -> AUDIO
         nav_.pop();
         nav_.push<AnalogAudioView>();  // Jump into audio view
@@ -491,7 +491,7 @@ GlassView::GlassView(
     };
 
     button_jump.on_select = [this](Button&) {
-        receiver_model.set_tuning_frequency(max_freq_hold);  // Center tune rx in marker freq.
+        receiver_model.set_target_frequency(max_freq_hold);  // Center tune rx in marker freq.
         receiver_model.set_frequency_step(MHZ_DIV);          // Preset a 1 MHz frequency step into RX -> AUDIO
         nav_.pop();
         nav_.push<AnalogAudioView>();  // Jump into audio view

@@ -27,6 +27,7 @@
 #include <cstddef>
 
 #include "receiver_model.hpp"
+#include "app_settings.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "max2837.hpp"
@@ -35,34 +36,41 @@
 
 class TransmitterModel {
    public:
-    rf::Frequency tuning_frequency() const;
-    void set_tuning_frequency(rf::Frequency f);
+    /* The frequency to transmit on. */
+    rf::Frequency target_frequency() const;
+    void set_target_frequency(rf::Frequency f);
 
     void set_antenna_bias();
 
     bool rf_amp() const;
     void set_rf_amp(bool enabled);
 
+    // TODO: does this make sense on TX?
     int32_t lna() const;
     void set_lna(int32_t v_db);
 
     uint32_t baseband_bandwidth() const;
     void set_baseband_bandwidth(uint32_t v);
 
+    // TODO: does this make sense on TX?
     int32_t vga() const;
     void set_vga(int32_t v_db);
 
     int32_t tx_gain() const;
     void set_tx_gain(int32_t v_db);
 
+    // TODO: Doesn't actually affect radio.
     uint32_t channel_bandwidth() const;
     void set_channel_bandwidth(uint32_t v);
 
+    // TODO: does this make sense on TX?
     uint32_t sampling_rate() const;
     void set_sampling_rate(uint32_t v);
 
     void enable();
     void disable();
+
+    void configure_from_app_settings(const app_settings::AppSettings& settings);
 
    private:
     bool enabled_{false};

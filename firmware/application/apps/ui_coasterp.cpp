@@ -38,10 +38,6 @@ void CoasterPagerView::focus() {
 }
 
 CoasterPagerView::~CoasterPagerView() {
-    // save app settings
-    app_settings.tx_frequency = transmitter_model.tuning_frequency();
-    settings.save("tx_coaster", &app_settings);
-
     transmitter_model.disable();
     hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
     baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
@@ -123,15 +119,6 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
                   &text_message,
                   &tx_view});
 
-    // load app settings
-    auto rc = settings.load("tx_coaster", &app_settings);
-    if (rc == SETTINGS_OK) {
-        transmitter_model.set_rf_amp(app_settings.tx_amp);
-        transmitter_model.set_channel_bandwidth(app_settings.channel_bandwidth);
-        transmitter_model.set_tuning_frequency(app_settings.tx_frequency);
-        transmitter_model.set_tx_gain(app_settings.tx_gain);
-    }
-
     // Bytes to nibbles
     for (c = 0; c < 16; c++)
         sym_data.set_sym(c, (data_init[c >> 1] >> ((c & 1) ? 0 : 4)) & 0x0F);
@@ -141,9 +128,9 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
     generate_frame();
 
     tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            receiver_model.set_tuning_frequency(f);
+            transmitter_model.set_target_frequency(f);
         };
     };
 

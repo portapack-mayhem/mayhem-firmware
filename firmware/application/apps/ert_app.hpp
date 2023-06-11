@@ -129,9 +129,8 @@ class ERTAppView : public View {
     ERTRecentEntries recent{};
     std::unique_ptr<ERTLogger> logger{};
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_ert", app_settings::Mode::RX};
 
     const RecentEntriesColumns columns{{
         {"ID", 10},

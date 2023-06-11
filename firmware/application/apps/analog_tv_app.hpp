@@ -52,9 +52,8 @@ class AnalogTvView : public View {
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_tv", app_settings::Mode::RX};
 
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
@@ -99,7 +98,7 @@ class AnalogTvView : public View {
 
     tv::TVWidget tv{};
 
-    void on_tuning_frequency_changed(rf::Frequency f);
+    void on_target_frequency_changed(rf::Frequency f);
     void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
     void on_modulation_changed(const ReceiverModel::Mode modulation);
     void on_show_options_frequency();

@@ -55,7 +55,6 @@ void SigGenView::update_tone() {
 
 void SigGenView::start_tx() {
     transmitter_model.set_sampling_rate(1536000);
-    //	transmitter_model.set_rf_amp(true);
     transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
@@ -116,9 +115,9 @@ SigGenView::SigGenView(
     };
 
     tx_view.on_edit_frequency = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            receiver_model.set_tuning_frequency(f);
+            transmitter_model.set_target_frequency(f);
         };
     };
 

@@ -68,9 +68,8 @@ class MorseView : public View {
     std::string message{};
     uint32_t time_units{0};
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "tx_morse", app_settings::Mode::TX};
 
     enum modulation_t {
         CW = 0,

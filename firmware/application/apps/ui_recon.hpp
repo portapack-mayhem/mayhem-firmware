@@ -60,6 +60,9 @@ class ReconView : public View {
    private:
     NavigationView& nav_;
 
+    app_settings::SettingsManager settings_{
+        "rx_recon", app_settings::Mode::RX};
+
     void clear_freqlist_for_ui_action();
     void reset_indexes();
     void audio_output_start();
@@ -322,9 +325,6 @@ class ReconView : public View {
         [this](const Message* const p) {
             this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
 };
 
 } /* namespace ui */

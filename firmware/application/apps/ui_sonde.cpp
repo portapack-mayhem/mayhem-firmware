@@ -65,27 +65,15 @@ SondeView::SondeView(NavigationView& nav) {
                   &button_see_qr,
                   &button_see_map});
 
-    // load app settings
-    auto rc = settings.load("rx_sonde", &app_settings);
-    if (rc == SETTINGS_OK) {
-        field_lna.set_value(app_settings.lna);
-        field_vga.set_value(app_settings.vga);
-        field_rf_amp.set_value(app_settings.rx_amp);
-        target_frequency_ = app_settings.rx_frequency;
-    } else
-        target_frequency_ = receiver_model.tuning_frequency();
-
-    field_frequency.set_value(target_frequency_);
+    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(500);  // euquiq: was 10000, but we are using this for fine-tunning
     field_frequency.on_change = [this](rf::Frequency f) {
-        set_target_frequency(f);
-        field_frequency.set_value(f);
+        receiver_model.set_target_frequency(f);
     };
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.tuning_frequency());
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            set_target_frequency(f);
             field_frequency.set_value(f);
         };
     };
@@ -104,7 +92,6 @@ SondeView::SondeView(NavigationView& nav) {
         use_crc = v;
     };
 
-    receiver_model.set_tuning_frequency(tuning_frequency());
     receiver_model.set_sampling_rate(sampling_rate);
     receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
@@ -142,10 +129,6 @@ SondeView::SondeView(NavigationView& nav) {
 }
 
 SondeView::~SondeView() {
-    // save app settings
-    app_settings.rx_frequency = target_frequency_;
-    settings.save("rx_sonde", &app_settings);
-
     baseband::set_pitch_rssi(0, false);
 
     receiver_model.disable();
@@ -216,15 +199,11 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         temp_humid_info = packet.get_temp_humid();
         if (temp_humid_info.humid != 0) {
             double decimals = abs(get_decimals(temp_humid_info.humid, 10, true));
-            // if (decimals < 0)
-            //	decimals = -decimals;
             text_humid.set(to_string_dec_int((int)temp_humid_info.humid) + "." + to_string_dec_uint(decimals, 1) + "%");
         }
 
         if (temp_humid_info.temp != 0) {
             double decimals = abs(get_decimals(temp_humid_info.temp, 10, true));
-            // if (decimals < 0)
-            // 	decimals = -decimals;
             text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + "C");
         }
 
@@ -242,15 +221,6 @@ void SondeView::on_packet(const sonde::Packet& packet) {
             baseband::request_beep();
         }
     }
-}
-
-void SondeView::set_target_frequency(const uint32_t new_value) {
-    target_frequency_ = new_value;
-    receiver_model.set_tuning_frequency(target_frequency_);
-}
-
-uint32_t SondeView::tuning_frequency() const {
-    return target_frequency_ - (sampling_rate / 4);
 }
 
 } /* namespace ui */

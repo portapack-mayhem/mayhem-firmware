@@ -26,16 +26,15 @@
 #include "portapack_persistent_memory.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-using namespace hackrf::one;
-using namespace portapack;
-
 #include "radio.hpp"
 #include "audio.hpp"
-
 #include "dsp_fir_taps.hpp"
 #include "dsp_iir.hpp"
 #include "dsp_iir_config.hpp"
 #include "utility.hpp"
+
+using namespace hackrf::one;
+using namespace portapack;
 
 namespace {
 
@@ -62,12 +61,12 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
 
 } /* namespace */
 
-rf::Frequency ReceiverModel::tuning_frequency() const {
-    return persistent_memory::tuned_frequency();
+rf::Frequency ReceiverModel::target_frequency() const {
+    return persistent_memory::target_frequency();
 }
 
-void ReceiverModel::set_tuning_frequency(rf::Frequency f) {
-    persistent_memory::set_tuned_frequency(f);
+void ReceiverModel::set_target_frequency(rf::Frequency f) {
+    persistent_memory::set_target_frequency(f);
     update_tuning_frequency();
 }
 
@@ -146,13 +145,14 @@ void ReceiverModel::set_headphone_volume(volume_t v) {
     update_headphone_volume();
 }
 
-int32_t ReceiverModel::normalized_headphone_volume() const {
-    return (headphone_volume() - audio::headphone::volume_range().max).decibel() + 99;
+uint8_t ReceiverModel::normalized_headphone_volume() const {
+    auto db = (headphone_volume() - audio::headphone::volume_range().max).decibel();
+    return clip<uint8_t>(db + 99, 0, 99);
 }
 
-void ReceiverModel::set_normalized_headphone_volume(int32_t v) {
+void ReceiverModel::set_normalized_headphone_volume(uint8_t v) {
     // TODO: Linear map instead to ensure 0 is minimal value or fix volume_range_t::normalize.
-    v = clip<int32_t>(v, 0, 99);
+    v = clip<uint8_t>(v, 0, 99);
     auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
     set_headphone_volume(new_volume);
 }
@@ -190,10 +190,6 @@ void ReceiverModel::disable() {
     // TODO: Responsibility for enabling/disabling the radio is muddy.
     // Some happens in ReceiverModel, some inside radio namespace.
     radio::disable();
-
-    // TODO: we are doing this repeatedly in different levels of the
-    // call stack. Keeping it for now, but there seem to be too many
-    // redundant calls:
     led_rx.off();
 }
 
@@ -206,7 +202,8 @@ int32_t ReceiverModel::tuning_offset() {
 }
 
 void ReceiverModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::tuned_frequency() + tuning_offset());
+    // TODO: use positive offset if freq < offset.
+    radio::set_tuning_frequency(target_frequency() + tuning_offset());
 }
 
 void ReceiverModel::update_antenna_bias() {
@@ -249,6 +246,32 @@ void ReceiverModel::set_wfm_configuration(const size_t n) {
         wfm_config_index = n;
         update_modulation();
     }
+}
+
+void ReceiverModel::set_configuration_without_init(
+    const Mode new_mode,
+    const rf::Frequency new_frequency_step,
+    const size_t new_am_config_index,
+    const size_t new_nbfm_config_index,
+    const size_t new_wfm_config_index,
+    uint8_t new_squelch_level) {
+    mode_ = new_mode;
+    frequency_step_ = new_frequency_step;
+    am_config_index = new_am_config_index;
+    nbfm_config_index = new_nbfm_config_index;
+    wfm_config_index = new_wfm_config_index;
+    squelch_level_ = new_squelch_level;
+}
+
+void ReceiverModel::configure_from_app_settings(
+    const app_settings::AppSettings& settings) {
+    set_target_frequency(settings.rx_frequency);
+    baseband_bandwidth_ = settings.baseband_bandwidth;
+    sampling_rate_ = settings.sampling_rate;
+    lna_gain_db_ = settings.lna;
+    vga_gain_db_ = settings.vga;
+    rf_amp_ = settings.rx_amp;
+    squelch_level_ = settings.squelch;
 }
 
 void ReceiverModel::update_sampling_rate() {
@@ -308,13 +331,4 @@ size_t ReceiverModel::wfm_configuration() const {
 
 void ReceiverModel::update_wfm_configuration() {
     wfm_configs[wfm_config_index].apply();
-}
-
-void ReceiverModel::set_configuration_without_init(const Mode new_mode, const rf::Frequency new_frequency_step, const size_t new_am_config_index, const size_t new_nbfm_config_index, const size_t new_wfm_config_index, uint8_t new_squelch_level) {
-    mode_ = new_mode;
-    frequency_step_ = new_frequency_step;
-    am_config_index = new_am_config_index;
-    nbfm_config_index = new_nbfm_config_index;
-    wfm_config_index = new_wfm_config_index;
-    squelch_level_ = new_squelch_level;
 }

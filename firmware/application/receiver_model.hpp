@@ -25,12 +25,14 @@
 #include <cstdint>
 #include <cstddef>
 
+#include "app_settings.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
 #include "max283x.hpp"
 #include "volume.hpp"
 
 // TODO: consider a base class for ReceiverModel & TransmitterModel.
+// There are multiple values that are actually shared by both.
 class ReceiverModel {
    public:
     enum class Mode {
@@ -41,8 +43,9 @@ class ReceiverModel {
         Capture = 4
     };
 
-    rf::Frequency tuning_frequency() const;
-    void set_tuning_frequency(rf::Frequency f);
+    /* The frequency to receive (no offset). */
+    rf::Frequency target_frequency() const;
+    void set_target_frequency(rf::Frequency f);
 
     rf::Frequency frequency_step() const;
     void set_frequency_step(rf::Frequency f);
@@ -71,8 +74,8 @@ class ReceiverModel {
     void set_headphone_volume(volume_t v);
 
     /* Volume range 0-99, normalized for audio HW. */
-    int32_t normalized_headphone_volume() const;
-    void set_normalized_headphone_volume(int32_t v);
+    uint8_t normalized_headphone_volume() const;
+    void set_normalized_headphone_volume(uint8_t v);
 
     uint8_t squelch_level() const;
     void set_squelch_level(uint8_t v);
@@ -97,6 +100,8 @@ class ReceiverModel {
         const size_t new_wfm_config_index,
         uint8_t new_squelch_level);
 
+    void configure_from_app_settings(const app_settings::AppSettings& settings);
+
    private:
     rf::Frequency frequency_step_{25000};
     bool enabled_{false};
@@ -119,7 +124,6 @@ class ReceiverModel {
     void update_lna();
     void update_baseband_bandwidth();
     void update_vga();
-    // void update_tx_gain();
     void update_sampling_rate();
     void update_headphone_volume();
 

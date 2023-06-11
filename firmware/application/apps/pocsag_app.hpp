@@ -53,16 +53,14 @@ class POCSAGAppView : public View {
     ~POCSAGAppView();
 
     std::string title() const override { return "POCSAG RX"; };
+    void focus() override;
 
    private:
-    static constexpr uint32_t initial_target_frequency = 466175000;
-
     bool logging() const { return check_log.value(); };
     bool ignore() const { return check_ignore.value(); };
 
-    // app save settings
-    std::app_settings settings{};
-    std::app_settings::AppSettings app_settings{};
+    app_settings::SettingsManager settings_{
+        "rx_pocsag", app_settings::Mode::RX};
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
@@ -111,14 +109,7 @@ class POCSAGAppView : public View {
 
     std::unique_ptr<POCSAGLogger> logger{};
 
-    uint32_t target_frequency_ = initial_target_frequency;
-
-    void update_freq(rf::Frequency f);
-
     void on_packet(const POCSAGPacketMessage* message);
-
-    uint32_t target_frequency() const;
-    void set_target_frequency(const uint32_t new_value);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::POCSAGPacket,
