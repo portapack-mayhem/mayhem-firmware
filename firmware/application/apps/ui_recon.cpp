@@ -530,8 +530,10 @@ ReconView::ReconView(NavigationView& nav)
             } else {
                 if (!recon) {
                     recon_resume();
+                    user_pause = false;
                 } else {
                     recon_pause();
+                    user_pause = true;
                 }
             }
         }
@@ -1010,7 +1012,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         if (!manual_mode) {
             frequency_file_load(false);
         }
-        if (autostart) {
+        if (autostart && !user_pause) {
             recon_resume();
         } else {
             recon_pause();

@@ -101,6 +101,7 @@ class ReconView : public View {
     bool update_ranges = {true};
     bool fwd = {true};
     bool recon = true;
+    bool user_pause = false;
     uint32_t recon_lock_nb_match = {3};
     uint32_t recon_lock_duration = {RECON_MIN_LOCK_DURATION};
     uint32_t recon_match_mode = {RECON_MATCH_CONTINUOUS};
