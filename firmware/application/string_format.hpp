@@ -23,6 +23,7 @@
 #define __STRING_FORMAT_H__
 
 #include <cstdint>
+#include <array>
 #include <string>
 
 #include "file.hpp"
@@ -38,6 +39,11 @@ enum TimeFormat {
 };
 
 const char unit_prefix[7]{'n', 'u', 'm', 0, 'k', 'M', 'G'};
+
+using StringFormatBuffer = std::array<char, 16>;
+
+/* uint32_t conversion without memory allocations. */
+char* to_string_dec_uint(const uint32_t n, StringFormatBuffer& buffer, size_t& length);
 
 // TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...
 std::string to_string_bin(const uint32_t n, const uint8_t l = 0);

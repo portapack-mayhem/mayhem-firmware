@@ -66,7 +66,15 @@ static void read_setting(
 
 template <typename T>
 static void write_setting(File& file, std::string_view setting_name, const T& value) {
-    file.write_line(std::string{setting_name} + to_string_dec_uint(value));
+    // NB: Not using file.write_line speed this up. This happens on every
+    // app exit when enabled so should be fast to keep the UX responsive.
+    StringFormatBuffer buffer;
+    size_t length = 0;
+    auto value_str = to_string_dec_uint(value, buffer, length);
+
+    file.write(setting_name.data(), setting_name.length());
+    file.write(value_str, length);
+    file.write("\r\n", 2);
 }
 
 static fs::path get_settings_path(const std::string& app_name) {

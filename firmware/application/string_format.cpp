@@ -21,6 +21,10 @@
 
 #include "string_format.hpp"
 
+/* This takes a pointer to the end of a buffer
+ * and fills it backwards towards the front.
+ * The return value 'q' is a pointer to the start.
+ * TODO: use std::array for all this. */
 static char* to_string_dec_uint_internal(
     char* p,
     uint32_t n) {
@@ -44,6 +48,9 @@ static char* to_string_dec_uint_pad_internal(
     const char fill) {
     auto q = to_string_dec_uint_internal(term, n);
 
+    // Fill with padding if needed.
+    // TODO: use std::array instead. There's no
+    // bounds checks on any of this!
     if (fill) {
         while ((term - q) < l) {
             *(--q) = fill;
@@ -51,6 +58,13 @@ static char* to_string_dec_uint_pad_internal(
     }
 
     return q;
+}
+
+char* to_string_dec_uint(const uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+    auto end = &buffer.back();
+    auto start = to_string_dec_uint_internal(end, n);
+    length = end - start;
+    return start;
 }
 
 std::string to_string_bin(
@@ -75,6 +89,7 @@ std::string to_string_dec_uint(
     auto term = p + sizeof(p) - 1;
     auto q = to_string_dec_uint_pad_internal(term, n, l, fill);
 
+    // TODO: is this needed, seems like pad already does this.
     // Right justify.
     while ((term - q) < l) {
         *(--q) = ' ';
