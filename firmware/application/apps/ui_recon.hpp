@@ -138,11 +138,10 @@ class ReconView : public View {
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "BW:      SQ:    W,L:     ,     ", Color::light_grey()},
-        {{3 * 8, 10 * 16}, "START       END     MANUAL", Color::light_grey()},
-        {{0 * 8, (26 * 8) + 4}, "MODE:", Color::light_grey()},
-        {{11 * 8, (26 * 8) + 4}, "STEP:", Color::light_grey()},
-    };
+        {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
+        {{0 * 8, (22 * 8)}, "                S:          ", Color::light_grey()},
+        {{0 * 8, (24 * 8) + 4}, "NBLCK: x      W,L:      ,     ", Color::light_grey()},
+        {{0 * 8, (26 * 8) + 4}, "MODE:    ,       SQUELCH:    ", Color::light_grey()}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};
@@ -156,37 +155,8 @@ class ReconView : public View {
     AudioVolumeField field_volume{
         {24 * 8, 0 * 16}};
 
-    OptionsField field_bw{
-        {3 * 8, 1 * 16},
-        6,
-        {}};
-
-    NumberField field_squelch{
-        {12 * 8, 1 * 16},
-        3,
-        {-90, 20},
-        1,
-        ' ',
-    };
-
-    NumberField field_wait{
-        {20 * 8, 1 * 16},
-        5,
-        {-RECON_MAX_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
-        STATS_UPDATE_INTERVAL,
-        ' ',
-    };
-
-    NumberField field_lock_wait{
-        {26 * 8, 1 * 16},
-        4,
-        {RECON_MIN_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
-        STATS_UPDATE_INTERVAL,
-        ' ',
-    };
-
     RSSI rssi{
-        {0 * 16, 2 * 16, SCREEN_W - 8 * 8 + 4, 14},
+        {0 * 16, 2 * 16 + 2, SCREEN_W - 8 * 8 + 4, 12},
     };
 
     ButtonWithEncoder text_cycle{
@@ -209,12 +179,12 @@ class ReconView : public View {
 
     Text big_display{
         // Show frequency in text mode
-        {0, 5 * 16, 23 * 8, 16},
+        {0, 5 * 16, 21 * 8, 16},
     };
 
     Text freq_stats{
         // Show frequency stats in text mode
-        {0, 6 * 16, 23 * 8, 16},
+        {0, 6 * 16, 21 * 8, 16},
     };
 
     // TIMER: 9999
@@ -225,7 +195,7 @@ class ReconView : public View {
 
     // T: Senn. 32.000k
     Text text_ctcss{
-        {12 * 8 + 4, 7 * 16, 14 * 8, 1 * 8},
+        {14 * 8, 7 * 16, 8 * 8, 1 * 8},
         ""};
 
     Button button_config{
@@ -238,35 +208,79 @@ class ReconView : public View {
 
     // Button can be RECON or SCANNER
     Button button_scanner_mode{
-        {SCREEN_W - 7 * 8, 8 * 16, 7 * 8, 28},
+        {SCREEN_W - 7 * 8, 7 * 16, 7 * 8, 28},
         "RECON"};
 
     Text file_name{
         // show file used
-        {0, 8 * 16 + 6, SCREEN_W - 7 * 8, 16},
+        {0, 1 * 16, SCREEN_W, 16},
     };
 
     ButtonWithEncoder button_manual_start{
-        {0 * 8, 11 * 16, 11 * 8, 28},
+        {0 * 8, 9 * 16, 11 * 8, 28},
         ""};
 
     ButtonWithEncoder button_manual_end{
-        {12 * 8 - 6, 11 * 16, 11 * 8, 28},
+        {12 * 8 - 6, 9 * 16, 11 * 8, 28},
         ""};
 
+    OptionsField field_recon_match_mode{
+        {0 * 8, 11 * 16},
+        16,  // CONTINUOUS MATCH MODE / SPARSE TIMED MATCH MODE
+        {
+            {"MATCH:CONTINOUS", 0},
+            {"MATCH:SPARSE", 1}}};
+
+    OptionsField step_mode{
+        {18 * 8, 11 * 16},
+        12,
+        {}};
+
     Button button_manual_recon{
-        {23 * 8 - 3, 11 * 16, 7 * 8, 28},
+        {23 * 8, 9 * 16, 7 * 8, 28},
         "SEARCH"};
 
+    NumberField field_nblocks{
+        {8 * 8, 24 * 8 + 4},
+        2,
+        {1, 99},
+        1,
+        ' ',
+    };
+
+    NumberField field_wait{
+        {19 * 8, 24 * 8 + 4},
+        5,
+        {-RECON_MAX_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
+        STATS_UPDATE_INTERVAL,
+        ' ',
+    };
+
+    NumberField field_lock_wait{
+        {25 * 8, 24 * 8 + 4},
+        4,
+        {RECON_MIN_LOCK_DURATION, RECON_MAX_LOCK_DURATION},
+        STATS_UPDATE_INTERVAL,
+        ' ',
+    };
+
     OptionsField field_mode{
-        {5 * 8, (26 * 8) + 4},
+        {6 * 8, (26 * 8) + 4},
+        3,
+        {}};
+
+    OptionsField field_bw{
+        {10 * 8, (26 * 8) + 4},
         6,
         {}};
 
-    OptionsField step_mode{
-        {17 * 8, (26 * 8) + 4},
-        12,
-        {}};
+    NumberField field_squelch{
+        {26 * 8, (26 * 8) + 4},
+        3,
+        {-90, 20},
+        1,
+        ' ',
+    };
 
     ButtonWithEncoder button_pause{
         {0, (15 * 16) - 4, 72, 28},

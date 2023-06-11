@@ -380,6 +380,7 @@ ReconView::ReconView(NavigationView& nav)
                   &field_volume,
                   &field_bw,
                   &field_squelch,
+                  &field_nblocks,
                   &field_wait,
                   &field_lock_wait,
                   &button_config,
@@ -399,6 +400,7 @@ ReconView::ReconView(NavigationView& nav)
                   &button_manual_end,
                   &button_manual_recon,
                   &field_mode,
+                  &field_recon_match_mode,
                   &step_mode,
                   &button_pause,
                   &button_audio_app,
@@ -814,15 +816,12 @@ ReconView::ReconView(NavigationView& nav)
     button_config.on_select = [this, &nav](Button&) {
         clear_freqlist_for_ui_action();
 
-        auto open_view = nav.push<ReconSetupView>(input_file, output_file, recon_lock_duration, recon_lock_nb_match, recon_match_mode);
+        auto open_view = nav.push<ReconSetupView>(input_file, output_file);
         open_view->on_changed = [this](std::vector<std::string> result) {
             freqlist_cleared_for_ui_action = false;
             input_file = result[0];
             output_file = result[1];
             freq_file_path = "/FREQMAN/" + output_file + ".TXT";
-            recon_lock_duration = strtol(result[2].c_str(), nullptr, 10);
-            recon_lock_nb_match = strtol(result[3].c_str(), nullptr, 10);
-            recon_match_mode = strtol(result[4].c_str(), nullptr, 10);
             recon_save_config_to_sd();
 
             autosave = persistent_memory::recon_autosave_freqs();
@@ -834,10 +833,6 @@ ReconView::ReconView(NavigationView& nav)
             load_hamradios = persistent_memory::recon_load_hamradios();
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
 
-            field_wait.set_value(wait);
-            field_lock_wait.set_value(recon_lock_duration);
-            colorize_waits();
-
             frequency_file_load(false);
 
             if (autostart) {
@@ -848,8 +843,18 @@ ReconView::ReconView(NavigationView& nav)
         };
     };
 
+    field_recon_match_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        recon_match_mode = v;
+        colorize_waits();
+    };
+
     field_wait.on_change = [this](int32_t v) {
         wait = v;
+        colorize_waits();
+    };
+
+    field_nblocks.on_change = [this](int32_t v) {
+        recon_lock_nb_match = v;
         colorize_waits();
     };
 
@@ -874,6 +879,7 @@ ReconView::ReconView(NavigationView& nav)
     field_squelch.set_value(squelch);
     field_wait.set_value(wait);
     field_lock_wait.set_value(recon_lock_duration);
+    field_nblocks.set_value(recon_lock_nb_match);
     colorize_waits();
 
     // fill modulation and step options
@@ -924,7 +930,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
         file_name.set("=> NO DATA");
     } else {
-        file_name.set("=> " + file_input);
+        file_name.set(file_input + "=>" + output_file);
         if (frequency_list.size() == 0) {
             file_name.set_style(&Styles::red);
             desc_cycle.set_style(&Styles::red);
@@ -1075,7 +1081,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         text_timer.set("TIMER: " + to_string_dec_int(timer));
     }
     if (timer) {
-        if (!continuous_lock)
+        if (!continuous_lock || recon_match_mode == RECON_MATCH_SPARSE)
             timer -= STATS_UPDATE_INTERVAL;
         if (timer < 0) {
             timer = 0;
@@ -1307,7 +1313,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(1750000);
-            text_ctcss.set("             ");
+            text_ctcss.set("        ");
             break;
         case NFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
@@ -1330,7 +1336,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
             receiver_model.set_sampling_rate(3072000);
             receiver_model.set_baseband_bandwidth(1750000);
-            text_ctcss.set("             ");
+            text_ctcss.set("        ");
             break;
         default:
             break;
@@ -1355,7 +1361,7 @@ void ReconView::handle_coded_squelch(const uint32_t value) {
     size_t c;
 
     if (field_mode.selected_index() != NFM_MODULATION) {
-        text_ctcss.set("             ");
+        text_ctcss.set("        ");
         return;
     }
 
@@ -1374,7 +1380,7 @@ void ReconView::handle_coded_squelch(const uint32_t value) {
         if (min_diff < 40)
             text_ctcss.set("T: " + tone_keys[min_idx].first);
         else
-            text_ctcss.set("             ");
+            text_ctcss.set("        ");
     }
 }
 } /* namespace ui */
