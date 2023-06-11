@@ -109,7 +109,6 @@ constexpr std::string_view volume = "volume="sv;
 //       be declaratively bound to a setting and persistence will be magic.
 // TODO: radio settings should be pushed and popped to prevent cross-app
 //       radio bugs caused by sharing a global model.
-// TODO: save is slow because of all of the allocations for File.write_line.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
