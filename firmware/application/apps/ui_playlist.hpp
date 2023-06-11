@@ -72,7 +72,7 @@ class PlaylistView : public View {
 
     void load_file(std::filesystem::path playlist_path);
     void txtline_process(std::string&);
-    void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate);
+    void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay);
     void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const uint32_t progress);
     void set_target_frequency(const rf::Frequency new_value);
@@ -85,12 +85,14 @@ class PlaylistView : public View {
     void set_ready();
     void handle_replay_thread_done(const uint32_t return_code);
     void file_error(std::string error_message);
+    void clean_playlist();
 
     std::filesystem::path file_path{};
     std::unique_ptr<ReplayThread> replay_thread{};
     bool ready_signal{false};
     size_t track_number{0};
     size_t total_tracks{0};
+    uint32_t now_delay{0};
     std::filesystem::path now_play_list_file{};
 
     Button button_open{
@@ -107,8 +109,11 @@ class PlaylistView : public View {
     Text text_duration{
         {11 * 8, 1 * 16, 6 * 8, 16},
         "-"};
-    ProgressBar progressbar{
-        {18 * 8, 1 * 16, 12 * 8, 16}};
+    ProgressBar tracks_progressbar{
+        {18 * 8, 1 * 16, 12 * 8, 8}};
+
+    ProgressBar on_track_progressbar{
+        {18 * 8, 3 * 8, 12 * 8, 8}};
 
     FrequencyField field_frequency{
         {0 * 8, 2 * 16},
@@ -131,8 +136,8 @@ class PlaylistView : public View {
         Color::green(),
         Color::black()};
     // TODO: add track number
-    // Text text_track{
-    //     {18 * 8, 1 * 16, 12 * 8, 16},
+    // Text text_track{ //removed because there's no space for it
+    //     {13 * 8, 20 * 8, 16 * 8, 16},
     //     "0/0"};
 
     spectrum::WaterfallWidget waterfall{};

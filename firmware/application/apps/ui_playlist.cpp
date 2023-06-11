@@ -65,6 +65,9 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
         }
     }
     playlist_masterdb = playlist_db;
+    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks)); //removed because there's no space for it
+    tracks_progressbar.set_max(total_tracks);
+    button_play.focus();
     return;
 }
 
@@ -72,7 +75,8 @@ void PlaylistView::txtline_process(std::string& line) {
     playlist_entry new_item;
     rf::Frequency f;
     size_t previous = 0;
-    size_t current = line.find(',');
+    auto current = std::string::npos;
+    current = line.find(',');
     std::string freqs = line.substr(0, current);
     previous = current + 1;
     current = line.find(',', previous);
@@ -80,22 +84,32 @@ void PlaylistView::txtline_process(std::string& line) {
     previous = current + 1;
     current = line.find(',', previous);
     uint32_t sample_rate = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    previous = current + 1;
+
+    uint32_t item_delay;
+
+    current = line.find(',', previous);
+    if (current == std::string::npos) {  // compatibility with old PPL grammar
+        item_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    } else {
+        item_delay = 0;
+    }
 
     f = strtoll(freqs.c_str(), nullptr, 0);
     new_item.replay_frequency = f;
     new_item.replay_file = "/" + file;
     new_item.sample_rate = sample_rate;
-    new_item.next_delay = 0;
+    new_item.next_delay = item_delay;
 
     playlist_db.push_back(std::move(new_item));
 }
 
-void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate) {
+void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay) {
     File data_file;
     // Get file size
     auto data_open_error = data_file.open("/" + new_file_path.string());
     if (!data_open_error.is_valid()) {
-        track_number++;
+        track_number = track_number >= total_tracks ? 1 : track_number + 1;  // prevent track_number out of range
     } else if (data_open_error.is_valid()) {
         file_error("C16 file\n" + new_file_path.string() + "\nread error.");
         return;
@@ -108,19 +122,22 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
 
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
 
+    now_delay = next_delay;
+
     auto file_size = data_file.size();
     auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
 
-    progressbar.set_max(file_size);
+    on_track_progressbar.set_max(file_size);
     text_filename.set(file_path.filename().string().substr(0, 12));
     text_duration.set(to_string_time_ms(duration));
-    // text_track.set(std::to_string(track_number) + "/" + std::to_string(total_tracks));
-
-    button_play.focus();
+    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
+    //                                    ^Thanks @kallanreed @bernd-herzog @u-foka for this line
+    //                                    ^^removed because there's no space for it.
+    tracks_progressbar.set_value(track_number);
 }
 
 void PlaylistView::on_tx_progress(const uint32_t progress) {
-    progressbar.set_value(progress);
+    on_track_progressbar.set_value(progress);
 }
 
 void PlaylistView::focus() {
@@ -128,7 +145,16 @@ void PlaylistView::focus() {
 }
 
 void PlaylistView::file_error(std::string error_message) {
+    clean_playlist();
+    stop(false);
     nav_.display_modal("Error", "Error for \n" + file_path.string() + "\n" + error_message);
+}
+
+void PlaylistView::clean_playlist() {
+    total_tracks = 0;
+    track_number = 0;
+    playlist_db.clear();
+    playlist_masterdb.clear();
 }
 
 bool PlaylistView::is_active() const {
@@ -142,15 +168,9 @@ bool PlaylistView::loop() const {
 void PlaylistView::toggle() {
     if (is_active()) {
         stop(false);
-        total_tracks = 0;
-        track_number = 0;
-        playlist_db.clear();
-        playlist_masterdb.clear();
+        clean_playlist();
     } else {
-        total_tracks = 0;
-        track_number = 0;
-        playlist_db.clear();
-        playlist_masterdb.clear();
+        clean_playlist();
         load_file(now_play_list_file);
         if (!playlist_db.empty()) {
             start();
@@ -163,11 +183,7 @@ void PlaylistView::start() {
 
     playlist_entry item = playlist_db.front();
     playlist_db.pop_front();
-    //	playlist_entry item = playlist_db[0];
-    //	for (playlist_entry item : playlist_db) {
-    //	file_path = item.replay_file;
-    //	rf::Frequency replay_frequency = strtoll(item.replay_frequency.c_str(),nullptr,10);
-    on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate);
+    on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate, item.next_delay);
     on_target_frequency_changed(item.replay_frequency);
 
     std::unique_ptr<stream::Reader> reader;
@@ -184,6 +200,10 @@ void PlaylistView::start() {
     if (reader) {
         button_play.set_bitmap(&bitmap_stop);
         baseband::set_sample_rate(sample_rate * 8);
+
+        if (now_delay) {  // this `if` is because, if the delay is 0, it will sleep forever
+            chThdSleepMilliseconds(now_delay);
+        }
 
         replay_thread = std::make_unique<ReplayThread>(
             std::move(reader),
@@ -246,11 +266,11 @@ void PlaylistView::handle_replay_thread_done(const uint32_t return_code) {
     if (return_code == ReplayThread::END_OF_FILE) {
         stop(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
-        stop(false);
         file_error("Replay thread read error");
+        return;
     }
 
-    progressbar.set_value(0);
+    on_track_progressbar.set_value(0);
 }
 
 PlaylistView::PlaylistView(
@@ -263,13 +283,13 @@ PlaylistView::PlaylistView(
         &text_filename,
         &text_sample_rate,
         &text_duration,
-        &progressbar,
+        &tracks_progressbar,
+        &on_track_progressbar,
         &field_frequency,
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
-        // &text_track,
-        // TODO: add track number
+        // &text_track, // removed because there's no space for it
         &waterfall,
     });
 
@@ -311,6 +331,7 @@ void PlaylistView::on_hide() {
     stop(false);
     // TODO: Terrible kludge because widget system doesn't notify Waterfall that
     // it's being shown or hidden.
+
     waterfall.on_hide();
     View::on_hide();
 }
@@ -329,7 +350,6 @@ void PlaylistView::on_target_frequency_changed(rf::Frequency f) {
 
 void PlaylistView::set_target_frequency(const rf::Frequency new_value) {
     persistent_memory::set_tuned_frequency(new_value);
-    ;
 }
 
 rf::Frequency PlaylistView::target_frequency() const {
