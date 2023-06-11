@@ -185,8 +185,16 @@ void copy_to_radio_model(const AppSettings& settings) {
     if (flags_enabled(settings.mode, Mode::TX))
         transmitter_model.configure_from_app_settings(settings);
 
-    if (flags_enabled(settings.mode, Mode::RX))
+    if (flags_enabled(settings.mode, Mode::RX)) {
         receiver_model.configure_from_app_settings(settings);
+        receiver_model.set_configuration_without_init(
+            static_cast<ReceiverModel::Mode>(settings.modulation),
+            settings.step,
+            settings.am_config_index,
+            settings.nbfm_config_index,
+            settings.wfm_config_index,
+            settings.squelch);
+    }
 
     receiver_model.set_frequency_step(settings.volume);
     receiver_model.set_normalized_headphone_volume(settings.volume);
@@ -214,6 +222,11 @@ void copy_from_radio_model(AppSettings& settings) {
         settings.vga = receiver_model.vga();
         settings.rx_amp = receiver_model.rf_amp();
         settings.squelch = receiver_model.squelch_level();
+
+        settings.modulation = static_cast<uint8_t>(receiver_model.modulation());
+        settings.am_config_index = receiver_model.am_configuration();
+        settings.nbfm_config_index = receiver_model.nbfm_configuration();
+        settings.wfm_config_index = receiver_model.wfm_configuration();
     }
 
     settings.step = receiver_model.frequency_step();

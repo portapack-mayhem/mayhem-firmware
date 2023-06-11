@@ -61,7 +61,7 @@ class ReconView : public View {
     NavigationView& nav_;
 
     app_settings::SettingsManager settings_{
-        "rx_recon", app_settings::Mode::RX_TX};
+        "rx_recon", app_settings::Mode::RX};
 
     void clear_freqlist_for_ui_action();
     void reset_indexes();

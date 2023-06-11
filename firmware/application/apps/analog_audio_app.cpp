@@ -149,32 +149,19 @@ AnalogAudioView::AnalogAudioView(
                   &record_view,
                   &waterfall});
 
-    // Set on_change before initialising the field
-    field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_target_frequency_changed(f);
-    };
-
-    // // load app settings
-    // auto rc = settings.load("rx_audio", &app_settings);
-    // if (rc == SETTINGS_OK) {
-    //     field_lna.set_value(app_settings.lna);
-    //     field_vga.set_value(app_settings.vga);
-    //     receiver_model.set_rf_amp(app_settings.rx_amp);
-    //     // field_frequency.set_value(app_settings.rx_frequency);
-    //     receiver_model.set_configuration_without_init(static_cast<ReceiverModel::Mode>(app_settings.modulation), app_settings.step, app_settings.am_config_index, app_settings.nbfm_config_index, app_settings.wfm_config_index, app_settings.squelch);
-    // }
-    field_frequency.set_value(receiver_model.target_frequency());
-
     // Filename Datetime and Frequency
     record_view.set_filename_date_frequency(true);
 
+    field_frequency.set_value(receiver_model.target_frequency());
+    field_frequency.on_change = [this](rf::Frequency f) {
+        receiver_model.set_target_frequency(f);
+    };
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
         auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_target_frequency_changed(f);
-            this->field_frequency.set_value(f);
+            field_frequency.set_value(f);
         };
     };
 
@@ -277,10 +264,6 @@ void AnalogAudioView::set_parent_rect(const Rect new_parent_rect) {
 
 void AnalogAudioView::focus() {
     field_frequency.focus();
-}
-
-void AnalogAudioView::on_target_frequency_changed(rf::Frequency f) {
-    receiver_model.set_target_frequency(f);
 }
 
 void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
