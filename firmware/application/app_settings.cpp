@@ -198,7 +198,7 @@ void copy_to_radio_model(const AppSettings& settings) {
 
     if (flags_enabled(settings.mode, Mode::RX)) {
         if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            transmitter_model.set_target_frequency(settings.tx_frequency);
+            transmitter_model.set_target_frequency(settings.rx_frequency);
 
         receiver_model.configure_from_app_settings(settings);
         receiver_model.set_configuration_without_init(
