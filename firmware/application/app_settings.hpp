@@ -61,7 +61,7 @@ struct AppSettings {
     Mode mode = Mode::RX;
     Options options = Options::None;
     uint32_t baseband_bandwidth = max283x::filter::bandwidth_minimum;
-    uint32_t sampling_rate = 3072000; // Good for 48k audio.
+    uint32_t sampling_rate = 3072000;  // Good for 48k audio.
     uint8_t lna = 32;
     uint8_t vga = 32;
     uint8_t rx_amp = 0;
@@ -71,7 +71,7 @@ struct AppSettings {
     uint32_t rx_frequency;
     uint32_t tx_frequency;
     uint32_t step = 25000;
-    uint8_t modulation = 1; // NFM
+    uint8_t modulation = 1;  // NFM
     uint8_t am_config_index = 0;
     uint8_t nbfm_config_index = 0;
     uint8_t wfm_config_index = 0;
