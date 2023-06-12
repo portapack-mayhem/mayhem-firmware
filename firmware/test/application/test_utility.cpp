@@ -22,7 +22,7 @@
 #include "doctest.h"
 #include "utility.hpp"
 
-TEST_SUITE_BEGIN("flags_enabled");
+TEST_SUITE_BEGIN("Flags operators");
 
 enum class Flags : uint8_t {
     A = 0x1,
@@ -30,14 +30,21 @@ enum class Flags : uint8_t {
     C = 0x4,
 };
 
+ENABLE_FLAGS_OPERATORS(Flags);
+
+TEST_CASE("operator| should combine flags.") {
+    constexpr Flags f = Flags::A | Flags::C;
+    static_assert(static_cast<int>(f) == 5);
+}
+
 TEST_CASE("When flag set, flags_enabled should be true.") {
-    Flags f = Flags::A;
-    CHECK(flags_enabled(f, Flags::A));
+    constexpr Flags f = Flags::A;
+    static_assert(flags_enabled(f, Flags::A));
 }
 
 TEST_CASE("When flag not set, flags_enabled should be false.") {
-    Flags f = Flags::B;
-    CHECK(flags_enabled(f, Flags::A) == false);
+    constexpr Flags f = Flags::B;
+    static_assert(flags_enabled(f, Flags::A) == false);
 }
 
 TEST_SUITE_END();

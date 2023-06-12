@@ -95,7 +95,25 @@ int int_atan2(int y, int x);
 int32_t int16_sin_s4(int32_t x);
 
 template <typename TEnum>
-bool flags_enabled(TEnum value, TEnum flags) {
+struct is_flags_type {
+    static constexpr bool value = false;
+};
+
+template <typename TEnum>
+constexpr bool is_flags_type_v = is_flags_type<TEnum>::value;
+
+#define ENABLE_FLAGS_OPERATORS(type) \
+    template <>                      \
+    struct is_flags_type<type> { static constexpr bool value = true; };
+
+template <typename TEnum>
+constexpr std::enable_if_t<is_flags_type_v<TEnum>, TEnum> operator|(TEnum a, TEnum b) {
+    using under_t = std::underlying_type_t<TEnum>;
+    return static_cast<TEnum>(static_cast<under_t>(a) | static_cast<under_t>(b));
+}
+
+template <typename TEnum>
+constexpr std::enable_if_t<is_flags_type_v<TEnum>, bool> flags_enabled(TEnum value, TEnum flags) {
     auto i_value = static_cast<std::underlying_type_t<TEnum>>(value);
     auto i_flags = static_cast<std::underlying_type_t<TEnum>>(flags);
 

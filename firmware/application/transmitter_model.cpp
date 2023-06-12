@@ -149,8 +149,6 @@ void TransmitterModel::disable() {
 
 void TransmitterModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
-    set_target_frequency(settings.tx_frequency);
-
     baseband_bandwidth_ = settings.baseband_bandwidth;
     channel_bandwidth_ = settings.channel_bandwidth;
     tx_gain_db_ = settings.tx_gain;
@@ -163,7 +161,7 @@ void TransmitterModel::configure_from_app_settings(
 }
 
 void TransmitterModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::target_frequency());
+    radio::set_tuning_frequency(target_frequency());
 }
 
 void TransmitterModel::update_antenna_bias() {

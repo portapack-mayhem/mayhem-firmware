@@ -30,6 +30,7 @@
 #include <utility>
 
 #include "file.hpp"
+#include "max283x.hpp"
 #include "string_format.hpp"
 
 namespace app_settings {
@@ -47,25 +48,34 @@ enum class Mode : uint8_t {
     RX_TX = 0x03,  // Both TX/RX
 };
 
+enum class Options {
+    None = 0x0000,
+
+    /* Don't use target frequency from app settings. */
+    UseGlobalTargetFrequency = 0x0001,
+};
+
 // TODO: separate types for TX/RX or union?
+/* NB: See RX/TX model headers for default values. */
 struct AppSettings {
-    Mode mode;
-    uint32_t baseband_bandwidth;
-    uint32_t sampling_rate;
-    uint8_t lna;
-    uint8_t vga;
-    uint8_t rx_amp;
-    uint8_t tx_amp;
-    uint8_t tx_gain;
-    uint32_t channel_bandwidth;
+    Mode mode = Mode::RX;
+    Options options = Options::None;
+    uint32_t baseband_bandwidth = max283x::filter::bandwidth_minimum;
+    uint32_t sampling_rate = 3072000;  // Good for 48k audio.
+    uint8_t lna = 32;
+    uint8_t vga = 32;
+    uint8_t rx_amp = 0;
+    uint8_t tx_amp = 0;
+    uint8_t tx_gain = 35;
+    uint32_t channel_bandwidth = 1;
     uint32_t rx_frequency;
     uint32_t tx_frequency;
-    uint32_t step;
-    uint8_t modulation;
-    uint8_t am_config_index;
-    uint8_t nbfm_config_index;
-    uint8_t wfm_config_index;
-    uint8_t squelch;
+    uint32_t step = 25000;
+    uint8_t modulation = 1;  // NFM
+    uint8_t am_config_index = 0;
+    uint8_t nbfm_config_index = 0;
+    uint8_t wfm_config_index = 0;
+    uint8_t squelch = 80;
 
     uint8_t volume;
 };
@@ -84,7 +94,7 @@ void copy_from_radio_model(AppSettings& settings);
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
    public:
-    SettingsManager(std::string app_name, Mode mode);
+    SettingsManager(std::string app_name, Mode mode, Options options = Options::None);
     ~SettingsManager();
 
     SettingsManager(const SettingsManager&) = delete;
@@ -105,5 +115,8 @@ class SettingsManager {
 };
 
 }  // namespace app_settings
+
+ENABLE_FLAGS_OPERATORS(app_settings::Mode);
+ENABLE_FLAGS_OPERATORS(app_settings::Options);
 
 #endif /*__APP_SETTINGS_H__*/
