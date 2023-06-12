@@ -56,7 +56,8 @@ class PlaylistView : public View {
     app_settings::SettingsManager settings_{
         "tx_playlist", app_settings::Mode::TX};
 
-    static constexpr ui::Dim header_height = 3 * 16;
+    // add or remove lines here to allow more header and less spectrum view, & vice versa
+    static constexpr ui::Dim header_height = 4 * 16;
 
     struct playlist_entry {
         rf::Frequency replay_frequency{0};
@@ -137,10 +138,10 @@ class PlaylistView : public View {
         &bitmap_play,
         Color::green(),
         Color::black()};
-    // TODO: add track number
-    // Text text_track{ //removed because there's no space for it
-    //     {13 * 8, 20 * 8, 16 * 8, 16},
-    //     "0/0"};
+
+    Text text_track{
+        {0 * 8, 3 * 16, 16 * 8, 16},
+        "0/0 no input playlist file"};
 
     spectrum::WaterfallWidget waterfall{};
 

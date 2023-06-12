@@ -54,18 +54,16 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
             if ((int)one_char[0] >= ' ') {
                 line += one_char[0];
             } else if (one_char[0] == '\n') {
-                total_tracks++;
                 txtline_process(line);
                 line.clear();
             }
         }
         if (line.length() > 0) {
-            total_tracks++;
             txtline_process(line);
         }
     }
     playlist_masterdb = playlist_db;
-    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks)); //removed because there's no space for it
+    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
     tracks_progressbar.set_max(total_tracks);
     button_play.focus();
     return;
@@ -73,35 +71,38 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
 
 void PlaylistView::txtline_process(std::string& line) {
     playlist_entry new_item;
-    rf::Frequency f;
     size_t previous = 0;
     auto current = std::string::npos;
+    // read freq
     current = line.find(',');
-    std::string freqs = line.substr(0, current);
+    if (current == std::string::npos) return;
+    errno = 0;
+    new_item.replay_frequency = strtoll(line.substr(0, current).c_str(), nullptr, 0);
+    if (new_item.replay_frequency == 0 || errno == EINVAL || errno == ERANGE)
+        return;
+    // read file
     previous = current + 1;
-    current = line.find(',', previous);
-    std::string file = line.substr(previous, current - previous);
+    if ((current = line.find(',', previous)) == std::string::npos) return;
+    new_item.replay_file = "/" + line.substr(previous, current - previous);
+    // read samplerate
     previous = current + 1;
+    errno = 0;
+    new_item.sample_rate = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    if (new_item.sample_rate == 0 || errno == EINVAL || errno == ERANGE)
+        return;
+    // optionnal read delay
     current = line.find(',', previous);
-    uint32_t sample_rate = strtoll(line.substr(previous).c_str(), nullptr, 10);
-    previous = current + 1;
-
-    uint32_t item_delay;
-
-    current = line.find(',', previous);
-    if (current == std::string::npos) {  // compatibility with old PPL grammar
-        item_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
+    if (current == std::string::npos) {
+        new_item.next_delay = 0;
     } else {
-        item_delay = 0;
+        errno = 0;
+        previous = current + 1;
+        new_item.next_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
+        if (errno == EINVAL || errno == ERANGE)
+            return;
     }
-
-    f = strtoll(freqs.c_str(), nullptr, 0);
-    new_item.replay_frequency = f;
-    new_item.replay_file = "/" + file;
-    new_item.sample_rate = sample_rate;
-    new_item.next_delay = item_delay;
-
     playlist_db.push_back(std::move(new_item));
+    total_tracks++;
 }
 
 void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay) {
@@ -130,9 +131,7 @@ void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Freq
     on_track_progressbar.set_max(file_size);
     text_filename.set(file_path.filename().string().substr(0, 12));
     text_duration.set(to_string_time_ms(duration));
-    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks));
-    //                                    ^Thanks @kallanreed @bernd-herzog @u-foka for this line
-    //                                    ^^removed because there's no space for it.
+    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
     tracks_progressbar.set_value(track_number);
 }
 
@@ -171,9 +170,13 @@ void PlaylistView::toggle() {
         clean_playlist();
     } else {
         clean_playlist();
-        load_file(now_play_list_file);
-        if (!playlist_db.empty()) {
-            start();
+        if (std::filesystem::file_exists(now_play_list_file.string())) {
+            load_file(now_play_list_file);
+            if (!playlist_db.empty()) {
+                start();
+            }
+        } else {
+            text_track.set("0/0 no input playlist file");
         }
     }
 }
@@ -199,6 +202,7 @@ void PlaylistView::start() {
 
     if (reader) {
         button_play.set_bitmap(&bitmap_stop);
+
         baseband::set_sample_rate(sample_rate * 8);
 
         if (now_delay) {  // this `if` is because, if the delay is 0, it will sleep forever
@@ -289,9 +293,11 @@ PlaylistView::PlaylistView(
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
-        // &text_track, // removed because there's no space for it
+        &text_track,  // removed because there's no space for it
         &waterfall,
     });
+
+    waterfall.show_audio_spectrum_view(false);
 
     field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.set_step(receiver_model.frequency_step());
@@ -316,7 +322,11 @@ PlaylistView::PlaylistView(
         auto open_view = nav.push<FileLoadView>(".PPL");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             now_play_list_file = new_file_path;
-            load_file(new_file_path);
+            if (std::filesystem::file_exists(now_play_list_file.string())) {
+                load_file(now_play_list_file);
+            } else {
+                text_track.set("0/0 no input playlist file");
+            }
         };
     };
 }
@@ -330,7 +340,6 @@ void PlaylistView::on_hide() {
     stop(false);
     // TODO: Terrible kludge because widget system doesn't notify Waterfall that
     // it's being shown or hidden.
-
     waterfall.on_hide();
     View::on_hide();
 }
