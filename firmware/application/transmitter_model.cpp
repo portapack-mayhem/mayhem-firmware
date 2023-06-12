@@ -161,7 +161,7 @@ void TransmitterModel::configure_from_app_settings(
 }
 
 void TransmitterModel::update_tuning_frequency() {
-    radio::set_tuning_frequency(persistent_memory::target_frequency());
+    radio::set_tuning_frequency(target_frequency());
 }
 
 void TransmitterModel::update_antenna_bias() {
