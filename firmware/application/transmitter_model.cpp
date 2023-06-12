@@ -149,8 +149,6 @@ void TransmitterModel::disable() {
 
 void TransmitterModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
-    set_target_frequency(settings.tx_frequency);
-
     baseband_bandwidth_ = settings.baseband_bandwidth;
     channel_bandwidth_ = settings.channel_bandwidth;
     tx_gain_db_ = settings.tx_gain;

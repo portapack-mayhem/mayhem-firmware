@@ -156,7 +156,8 @@ class AnalogAudioView : public View {
     static constexpr ui::Dim header_height = 3 * 16;
 
     app_settings::SettingsManager settings_{
-        "rx_audio", app_settings::Mode::RX};
+        "rx_audio", app_settings::Mode::RX,
+        app_settings::Options::UseGlobalTargetFrequency};
 
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};

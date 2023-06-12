@@ -47,9 +47,17 @@ enum class Mode : uint8_t {
     RX_TX = 0x03,  // Both TX/RX
 };
 
+enum class Options {
+    None = 0x0000,
+
+    /* Don't use target frequency from app settings. */
+    UseGlobalTargetFrequency = 0x0001,
+};
+
 // TODO: separate types for TX/RX or union?
 struct AppSettings {
-    Mode mode;
+    Mode mode = Mode::RX;
+    Options options = Options::None;
     uint32_t baseband_bandwidth;
     uint32_t sampling_rate;
     uint8_t lna;
@@ -84,7 +92,7 @@ void copy_from_radio_model(AppSettings& settings);
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
    public:
-    SettingsManager(std::string app_name, Mode mode);
+    SettingsManager(std::string app_name, Mode mode, Options options = Options::None);
     ~SettingsManager();
 
     SettingsManager(const SettingsManager&) = delete;
@@ -105,5 +113,8 @@ class SettingsManager {
 };
 
 }  // namespace app_settings
+
+ENABLE_FLAGS_OPERATORS(app_settings::Mode);
+ENABLE_FLAGS_OPERATORS(app_settings::Options);
 
 #endif /*__APP_SETTINGS_H__*/

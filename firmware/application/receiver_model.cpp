@@ -265,7 +265,6 @@ void ReceiverModel::set_configuration_without_init(
 
 void ReceiverModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
-    set_target_frequency(settings.rx_frequency);
     baseband_bandwidth_ = settings.baseband_bandwidth;
     sampling_rate_ = settings.sampling_rate;
     lna_gain_db_ = settings.lna;

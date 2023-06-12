@@ -189,10 +189,17 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
 void copy_to_radio_model(const AppSettings& settings) {
     // NB: Don't actually adjust the radio here or it will hang.
 
-    if (flags_enabled(settings.mode, Mode::TX))
+    if (flags_enabled(settings.mode, Mode::TX)) {
+        if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
+            transmitter_model.set_target_frequency(settings.tx_frequency);
+
         transmitter_model.configure_from_app_settings(settings);
+    }
 
     if (flags_enabled(settings.mode, Mode::RX)) {
+        if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
+            transmitter_model.set_target_frequency(settings.tx_frequency);
+
         receiver_model.configure_from_app_settings(settings);
         receiver_model.set_configuration_without_init(
             static_cast<ReceiverModel::Mode>(settings.modulation),
@@ -241,11 +248,15 @@ void copy_from_radio_model(AppSettings& settings) {
 }
 
 /* SettingsManager *************************************************/
-SettingsManager::SettingsManager(std::string app_name, Mode mode)
+SettingsManager::SettingsManager(
+    std::string app_name,
+    Mode mode,
+    Options options)
     : app_name_{std::move(app_name)},
       settings_{},
       loaded_{false} {
     settings_.mode = mode;
+    settings_.options = options;
     auto result = load_settings(app_name_, settings_);
 
     if (result == ResultCode::Ok) {
