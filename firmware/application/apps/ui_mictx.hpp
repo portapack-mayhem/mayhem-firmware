@@ -81,7 +81,8 @@ class MicTXView : public View {
     void set_ptt_visibility(bool v);
 
     app_settings::SettingsManager settings_{
-        "tx_mic", app_settings::Mode::RX_TX};
+        "tx_mic", app_settings::Mode::RX_TX,
+        app_settings::Options::UseGlobalTargetFrequency};
 
     bool transmitting{false};
     bool va_enabled{false};

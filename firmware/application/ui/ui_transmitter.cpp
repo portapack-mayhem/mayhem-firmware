@@ -104,7 +104,6 @@ void TransmitterView::set_transmitting(const bool transmitting) {
 
 void TransmitterView::on_show() {
     field_frequency.set_value(transmitter_model.target_frequency());
-    field_frequency_step.set_by_value(receiver_model.frequency_step());
 
     field_gain.set_value(transmitter_model.tx_gain());
     field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
@@ -152,7 +151,6 @@ TransmitterView::TransmitterView(
         }
     }
 
-    field_frequency.set_step(frequency_step);
     field_frequency.on_change = [this](rf::Frequency f) {
         on_target_frequency_changed(f);
     };
@@ -162,8 +160,11 @@ TransmitterView::TransmitterView(
     };
 
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
+        receiver_model.set_frequency_step(v);
         this->field_frequency.set_step(v);
     };
+    // TODO: Shouldn't be a ctor parameter because it doesn't work with app settings.
+    field_frequency_step.set_by_value(frequency_step);
 
     field_gain.on_change = [this](uint32_t tx_gain) {
         on_tx_gain_changed(tx_gain);
