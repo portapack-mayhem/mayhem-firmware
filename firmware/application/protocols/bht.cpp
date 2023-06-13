@@ -28,7 +28,9 @@ size_t gen_message_ep(uint8_t city_code, size_t family_code_ep, uint32_t relay_n
     const encoder_def_t* um3750_def;
     uint8_t bits[12];
     std::string ep_fragments;
-    // char ep_message[13] = { 0 };
+
+    // Pre-allocate to avoid fragmentation.
+    ep_fragments.reserve(384);
 
     // Repeated 2x 26 times
     // Whole frame + space = 128ms, data only = 64ms

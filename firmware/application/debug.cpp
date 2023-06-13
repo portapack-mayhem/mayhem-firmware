@@ -26,11 +26,25 @@
 #include <hal.h>
 #include <string>
 
+#include "log_file.hpp"
 #include "portapack.hpp"
 #include "string_format.hpp"
 #include "ui_styles.hpp"
 
 using namespace ui;
+
+#define DEBUG_LOG_FILE "debug_log.txt"
+LogFile* pg_debug_log = nullptr;
+void __debug_log(const std::string& msg) {
+    static LogFile s_log;
+    if (pg_debug_log == nullptr) {
+        delete_file(DEBUG_LOG_FILE);
+        s_log.append(DEBUG_LOG_FILE);
+        pg_debug_log = &s_log;
+    }
+
+    pg_debug_log->write_entry(msg);
+}
 
 void runtime_error(LED);
 std::string number_to_hex_string(uint32_t);
