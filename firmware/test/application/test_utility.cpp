@@ -48,3 +48,15 @@ TEST_CASE("When flag not set, flags_enabled should be false.") {
 }
 
 TEST_SUITE_END();
+
+TEST_CASE("Stash should save and restore value.") {
+    int val = 10;
+
+    {
+        Stash s{val};
+        val = 20;
+        CHECK_EQ(val, 20);
+    }
+
+    CHECK_EQ(val, 10);
+}

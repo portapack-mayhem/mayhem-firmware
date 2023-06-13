@@ -126,6 +126,22 @@ constexpr const T& clip(const T& value, const T& minimum, const T& maximum) {
     return std::max(std::min(value, maximum), minimum);
 }
 
+/* Saves state on construction and reverts it when destroyed. */
+template <typename T>
+struct Stash {
+    Stash(T& target)
+        : target_{target}, prev_{target} {
+    }
+
+    ~Stash() {
+        target_ = std::move(prev_);
+    }
+
+   private:
+    T& target_;
+    T prev_;
+};
+
 // TODO: need to decide if this is inclusive or exclusive.
 // The implementations are different and cause the subtle
 // bugs mentioned below.
