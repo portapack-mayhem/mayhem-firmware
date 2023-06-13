@@ -34,6 +34,7 @@
 
 #include "log_file.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ais_packet.hpp"
 
 #include "lpc43xx_cpp.hpp"
@@ -162,9 +163,11 @@ class AISAppView : public View {
 
    private:
     static constexpr uint32_t initial_target_frequency = 162025000;
-    static constexpr uint32_t sampling_rate = 2457600;
-    static constexpr uint32_t baseband_bandwidth = 1750000;
 
+    RxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        2457600 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_ais", app_settings::Mode::RX};
 

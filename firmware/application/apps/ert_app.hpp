@@ -29,6 +29,7 @@
 
 #include "event_m0.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "log_file.hpp"
 
 #include "ert_packet.hpp"
@@ -108,10 +109,6 @@ using ERTRecentEntriesView = RecentEntriesView<ERTRecentEntries>;
 
 class ERTAppView : public View {
    public:
-    static constexpr uint32_t initial_target_frequency = 911600000;
-    static constexpr uint32_t sampling_rate = 4194304;
-    static constexpr uint32_t baseband_bandwidth = 2500000;
-
     ERTAppView(NavigationView& nav);
     ~ERTAppView();
 
@@ -126,9 +123,15 @@ class ERTAppView : public View {
     std::string title() const override { return "ERT RX"; };
 
    private:
+    static constexpr uint32_t initial_target_frequency = 911600000;
+
     ERTRecentEntries recent{};
     std::unique_ptr<ERTLogger> logger{};
 
+    RxRadioState radio_state_{
+        2500000 /* bandwidth */,
+        4194304 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_ert", app_settings::Mode::RX};
 

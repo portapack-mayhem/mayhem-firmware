@@ -243,8 +243,7 @@ void LGEView::start_tx() {
         tx_view.on_show();  // Refresh tuning frequency display
         tx_view.set_dirty();
     }
-    transmitter_model.set_sampling_rate(2280000);
-    transmitter_model.set_baseband_bandwidth(1750000);
+
     transmitter_model.enable();
 
     chThdSleep(100);

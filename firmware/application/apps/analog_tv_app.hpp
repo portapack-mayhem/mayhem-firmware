@@ -31,6 +31,7 @@
 #include "ui_record_view.hpp"
 #include "ui_styles.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 
 #include "tone_key.hpp"
 
@@ -52,6 +53,7 @@ class AnalogTvView : public View {
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_tv", app_settings::Mode::RX};
 

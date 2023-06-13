@@ -67,8 +67,6 @@ ACARSAppView::ACARSAppView(NavigationView& nav) {
                   &check_log,
                   &console});
 
-    receiver_model.set_sampling_rate(2457600);
-    receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.enable();
 
     field_frequency.set_value(receiver_model.target_frequency());

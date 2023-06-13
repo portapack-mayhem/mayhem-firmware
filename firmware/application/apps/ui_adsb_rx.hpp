@@ -33,6 +33,7 @@
 #include "adsb.hpp"
 #include "message.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "crc.hpp"
 
 using namespace adsb;
@@ -340,6 +341,10 @@ class ADSBRxView : public View {
     void sort_entries_by_state();
 
    private:
+    RxRadioState radio_state_{
+        2500000 /* bandwidth */,
+        2000000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 

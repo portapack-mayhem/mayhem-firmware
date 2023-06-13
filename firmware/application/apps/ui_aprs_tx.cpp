@@ -57,9 +57,7 @@ void APRSTXView::start_tx() {
 
     // uint8_t * bb_data_ptr = shared_memory.bb_data.data;
     // text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
-
-    transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
-    transmitter_model.set_baseband_bandwidth(1750000);
+    
     transmitter_model.enable();
 
     baseband::set_afsk_data(

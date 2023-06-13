@@ -29,6 +29,7 @@
 #include "ui_record_view.hpp"  // DEBUG
 #include "ui_geomap.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "recent_entries.hpp"
 #include "ui_tabview.hpp"
 
@@ -187,6 +188,7 @@ class APRSRxView : public View {
     void on_data(uint32_t value, bool is_data);
     bool reset_console = false;
 
+    RxRadioState radio_state_;
     app_settings::SettingsManager settings_{
         "rx_aprs", app_settings::Mode::RX};
 

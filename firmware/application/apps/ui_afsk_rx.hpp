@@ -28,6 +28,7 @@
 #include "ui_receiver.hpp"
 #include "ui_record_view.hpp"  // DEBUG
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 
@@ -57,6 +58,7 @@ class AFSKRxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
 
+    RxRadioState radio_state_;
     app_settings::SettingsManager settings_{
         "rx_afsk", app_settings::Mode::RX};
 

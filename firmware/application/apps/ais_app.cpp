@@ -385,8 +385,6 @@ AISAppView::AISAppView(NavigationView& nav)
     if (!settings_.loaded())
         receiver_model.set_target_frequency(initial_target_frequency);
 
-    receiver_model.set_sampling_rate(sampling_rate);
-    receiver_model.set_baseband_bandwidth(baseband_bandwidth);
     receiver_model.enable();
 
     options_channel.on_change = [this](size_t, OptionsField::value_t v) {

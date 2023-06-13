@@ -24,6 +24,7 @@
 #define __ACARS_APP_H__
 
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
@@ -56,6 +57,10 @@ class ACARSAppView : public View {
     std::string title() const override { return "ACARS (WIP)"; };
 
    private:
+    RxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        2457600 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_acars.hpp", app_settings::Mode::RX};
 

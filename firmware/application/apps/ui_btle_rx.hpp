@@ -28,6 +28,7 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui_record_view.hpp"  // DEBUG
 
 #include "utility.hpp"
@@ -46,6 +47,10 @@ class BTLERxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
 
+    RxRadioState radio_state_{
+        4000000 /* bandwidth */,
+        4000000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_btle", app_settings::Mode::RX};
 

@@ -28,6 +28,7 @@
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "event_m0.hpp"
 
 #include "log_file.hpp"
@@ -102,9 +103,11 @@ class TPMSAppView : public View {
 
    private:
     static constexpr uint32_t initial_target_frequency = 315000000;
-    static constexpr uint32_t sampling_rate = 2457600;
-    static constexpr uint32_t baseband_bandwidth = 1750000;
 
+    RxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        2457600 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_tpms", app_settings::Mode::RX};
 

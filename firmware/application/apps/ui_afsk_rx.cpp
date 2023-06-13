@@ -104,8 +104,6 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
 
-    receiver_model.set_sampling_rate(3072000);
-    receiver_model.set_baseband_bandwidth(1750000);
     receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.enable();
 }
