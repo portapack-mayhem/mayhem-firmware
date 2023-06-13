@@ -1358,7 +1358,7 @@ void ImageOptionsField::set_selected_index(const size_t new_index) {
 }
 
 void ImageOptionsField::set_by_value(value_t v) {
-    size_t new_index{0};
+    size_t new_index = 0;
     for (const auto& option : options) {
         if (option.second == v) {
             set_selected_index(new_index);
@@ -1377,7 +1377,7 @@ void ImageOptionsField::set_options(options_t new_options) {
 
     // Set an invalid index to force on_change.
     selected_index_ = (size_t)-1;
-    set_by_value(0);
+    set_selected_index(0);
     set_dirty();
 }
 

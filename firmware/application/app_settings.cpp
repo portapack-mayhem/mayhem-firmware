@@ -36,19 +36,6 @@ namespace fs = std::filesystem;
 using namespace portapack;
 using namespace std::literals;
 
-/*#include "log_file.hpp"
-LogFile* g_pLog = nullptr;
-static void log_it(const std::string& msg) {
-    static LogFile s_log;
-    if (g_pLog == nullptr) {
-        delete_file("appset.txt");
-        s_log.append("appset.txt");
-        g_pLog = &s_log;
-    }
-
-    g_pLog->write_entry(msg);
-}*/
-
 namespace app_settings {
 
 template <typename T>

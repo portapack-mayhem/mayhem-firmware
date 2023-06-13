@@ -220,7 +220,6 @@ EPARView::EPARView(
 
     field_city.set_value(0);
     field_group.set_selected_index(2);
-
     field_city.on_change = [this](int32_t) { generate_message(); };
     field_group.on_change = [this](size_t, int32_t) { generate_message(); };
 
@@ -230,11 +229,11 @@ EPARView::EPARView(
 
     size_t n = 0;
     for (auto& relay_state : relay_states) {
-        relay_state.on_change = relay_state_fn;
         relay_state.set_parent_rect({static_cast<Coord>(90 + (n * 36)),
                                      80,
                                      24, 24});
         relay_state.set_options(relay_options);
+        relay_state.on_change = relay_state_fn;  // NB: set after set_options to avoid startup call.
         add_child(&relay_state);
         n++;
     }
@@ -303,11 +302,11 @@ XylosView::XylosView(
     };
 
     field_header_a.on_change = field_fn;
-    field_header_b.on_change = [this](int32_t) { generate_message(); };
-    field_city.on_change = [this](int32_t) { generate_message(); };
-    field_family.on_change = [this](int32_t) { generate_message(); };
-    field_subfamily.on_change = [this](int32_t) { generate_message(); };
-    field_receiver.on_change = [this](int32_t) { generate_message(); };
+    field_header_b.on_change = field_fn;
+    field_city.on_change = field_fn;
+    field_family.on_change = field_fn;
+    field_subfamily.on_change = field_fn;
+    field_receiver.on_change = field_fn;
 
     checkbox_wcsubfamily.on_select = [this](Checkbox&, bool v) {
         field_subfamily.set_focusable(!v);
@@ -328,11 +327,11 @@ XylosView::XylosView(
 
     size_t n = 0;
     for (auto& relay_state : relay_states) {
-        relay_state.on_change = relay_state_fn;
         relay_state.set_parent_rect({static_cast<Coord>(54 + (n * 36)),
                                      134,
                                      24, 24});
         relay_state.set_options(relay_options);
+        relay_state.on_change = relay_state_fn;  // NB: set after set_options to avoid startup call.
         add_child(&relay_state);
         n++;
     }

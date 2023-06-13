@@ -24,6 +24,12 @@
 #define __DEBUG_H__
 
 #include "hackrf_gpio.hpp"
+#include <string>
+
+void __debug_log(const std::string& msg);
+#define __LOG2(l, msg) __debug_log(std::string{#l} + ":" + msg)
+#define __LOG1(l, msg) __LOG2(l, msg)
+#define DEBUG_LOG(msg) __LOG1(__LINE__, msg)
 
 extern void draw_guru_meditation(uint8_t, const char*);
 extern void draw_guru_meditation(uint8_t, const char*, struct extctx*, uint32_t);
