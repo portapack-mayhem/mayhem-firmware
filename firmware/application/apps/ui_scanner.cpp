@@ -299,10 +299,10 @@ ScannerView::ScannerView(
     freqman_set_modulation_option(field_mode);
     freqman_set_step_option(field_step);
 
-    // Default starting modulation (these may be overridden in SCANNER.TXT)
+    // Default starting modulation (from saved App Settings if enabled, and may be overridden in SCANNER.TXT)
     field_mode.set_by_value((OptionsField::value_t)receiver_model.modulation());  // Reflect the mode into the manual selector
     field_step.set_by_value(receiver_model.frequency_step());                     // Default step interval (Hz)
-    change_mode((freqman_index_t)field_mode.selected_index_value());              // Default modulation
+    change_mode((freqman_index_t)field_mode.selected_index_value());
 
     // FUTURE: perhaps additional settings should be stored in persistent memory vs using defaults
     rf::Frequency stored_freq = receiver_model.target_frequency();
