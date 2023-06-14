@@ -69,6 +69,9 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
                   &sym_ignore,
                   &console});
 
+    if (!settings_.loaded())
+        receiver_model.set_target_frequency(initial_target_frequency);
+
     receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.set_sampling_rate(3072000);
     receiver_model.set_baseband_bandwidth(1750000);
