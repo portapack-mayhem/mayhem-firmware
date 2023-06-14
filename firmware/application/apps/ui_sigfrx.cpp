@@ -122,6 +122,7 @@ SIGFRXView::SIGFRXView(
     // TODO: use settings.
     receiver_model.set_lna(0);
     receiver_model.set_vga(0);
+    receiver_model.set_target_frequency(868110000);
 
     add_children({&text_type,
                   &text_channel,
