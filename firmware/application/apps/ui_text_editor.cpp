@@ -115,8 +115,10 @@ bool TextViewer::on_encoder(EncoderEvent delta) {
 
     if (cursor_.dir == ScrollDirection::Horizontal)
         updated = apply_scrolling_constraints(0, delta);
-    else
+    else {
+        delta *= 16;
         updated = apply_scrolling_constraints(delta, 0);
+    }
 
     if (updated)
         redraw();

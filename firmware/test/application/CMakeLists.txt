@@ -36,7 +36,9 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/main.cpp
 	${PROJECT_SOURCE_DIR}/test_basics.cpp
 	${PROJECT_SOURCE_DIR}/test_circular_buffer.cpp
+	${PROJECT_SOURCE_DIR}/test_file_reader.cpp
 	${PROJECT_SOURCE_DIR}/test_file_wrapper.cpp
+	${PROJECT_SOURCE_DIR}/test_mock_file.cpp
 	${PROJECT_SOURCE_DIR}/test_optional.cpp
 	${PROJECT_SOURCE_DIR}/test_utility.cpp
 )
