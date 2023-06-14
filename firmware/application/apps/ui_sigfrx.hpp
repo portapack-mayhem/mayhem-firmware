@@ -53,7 +53,7 @@ class SIGFRXView : public View {
 
     RxRadioState radio_state_{
         1750000 /* bandwidth */,
-        868110000 /* sampling rate */
+        3072000 /* sampling rate */
     };
 
     const uint16_t sigfrx_marks[18] = {
