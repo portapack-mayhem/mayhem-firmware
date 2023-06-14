@@ -94,6 +94,9 @@ class ScannerView : public View {
     // void set_parent_rect(const Rect new_parent_rect) override;
 
    private:
+    app_settings::SettingsManager settings_{
+        "scanner", app_settings::Mode::RX};
+
     NavigationView& nav_;
 
     void start_scan_thread();
