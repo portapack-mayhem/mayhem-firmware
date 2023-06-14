@@ -21,6 +21,7 @@
  */
 
 #include "receiver_model.hpp"
+#include "radio_state.hpp"
 
 #include "spectrum_color_lut.hpp"
 
@@ -89,6 +90,10 @@ class SearchView : public View {
 
    private:
     NavigationView& nav_;
+    RxRadioState radio_state_{
+        2500000 /* bandwidth */,
+        SEARCH_SLICE_WIDTH /* sampling rate */
+    };
 
     struct slice_t {
         rf::Frequency center_frequency;

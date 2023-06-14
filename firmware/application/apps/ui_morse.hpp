@@ -28,6 +28,7 @@
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "portapack.hpp"
 #include "message.hpp"
 #include "volume.hpp"
@@ -68,6 +69,10 @@ class MorseView : public View {
     std::string message{};
     uint32_t time_units{0};
 
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        1536000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_morse", app_settings::Mode::TX};
 

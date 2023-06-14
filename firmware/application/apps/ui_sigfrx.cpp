@@ -120,9 +120,6 @@ SIGFRXView::SIGFRXView(
         .decimation_factor = 4,
     });
     // TODO: use settings.
-    receiver_model.set_baseband_bandwidth(1750000);
-    receiver_model.set_target_frequency(868110000);
-
     receiver_model.set_lna(0);
     receiver_model.set_vga(0);
 

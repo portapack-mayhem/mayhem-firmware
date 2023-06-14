@@ -69,8 +69,6 @@ void CoasterPagerView::generate_frame() {
 void CoasterPagerView::start_tx() {
     generate_frame();
 
-    transmitter_model.set_sampling_rate(2280000);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     baseband::set_fsk_data(19 * 8, 2280000 / 1000, 5000, 32);

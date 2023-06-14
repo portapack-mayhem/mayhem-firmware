@@ -24,6 +24,7 @@
 #include "ui.hpp"
 #include "ui_transmitter.hpp"
 #include "transmitter_model.hpp"
+#include "radio_state.hpp"
 
 // The coding in notpike's script is quite complex, using multiple LUTs to form the data sent to the YSO.
 // The format is actually very simple if it is rather seen as short and long gaps between pulses (as seen in many OOK remotes).
@@ -113,6 +114,11 @@ class TouchTunesView : public View {
     std::string title() const override { return "TouchTunes"; };
 
    private:
+    TxRadioState radio_state_{
+        3500000 /* bandwidth */,
+        3072000 /* sampling rate */
+    };
+
     uint32_t scan_button_index{};
     uint32_t pin{0};
 

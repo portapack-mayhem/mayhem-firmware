@@ -58,7 +58,7 @@ class AFSKRxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
 
-    RxRadioState radio_state_;
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_afsk", app_settings::Mode::RX};
 

@@ -39,6 +39,7 @@
 #include "string_format.hpp"
 #include "file.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui_recon_settings.hpp"
 
 namespace ui {
@@ -60,6 +61,7 @@ class ReconView : public View {
    private:
     NavigationView& nav_;
 
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_recon", app_settings::Mode::RX};
 

@@ -129,7 +129,6 @@ void GpsSimAppView::start() {
 
     if (reader) {
         button_play.set_bitmap(&bitmap_stop);
-        baseband::set_sample_rate(sample_rate);
 
         replay_thread = std::make_unique<ReplayThread>(
             std::move(reader),
@@ -142,7 +141,6 @@ void GpsSimAppView::start() {
     }
 
     transmitter_model.set_sampling_rate(sample_rate);
-    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 }
 

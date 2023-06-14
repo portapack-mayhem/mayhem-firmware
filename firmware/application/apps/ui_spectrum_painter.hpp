@@ -30,6 +30,7 @@
 #include "baseband_api.hpp"
 
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "portapack.hpp"
 #include "message.hpp"
 
@@ -55,6 +56,7 @@ class SpectrumPainterView : public View {
 
    private:
     NavigationView& nav_;
+    TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "tx_painter", app_settings::Mode::TX};
 

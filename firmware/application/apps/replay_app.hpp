@@ -53,7 +53,7 @@ class ReplayAppView : public View {
 
    private:
     NavigationView& nav_;
-    TxRadioState radio_state_;
+    TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "tx_replay", app_settings::Mode::TX};
 

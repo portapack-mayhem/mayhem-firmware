@@ -262,8 +262,6 @@ void EncodersView::start_tx(const bool scan) {
     repeat_index = 1;
     update_progress();
 
-    transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     baseband::set_ook_data(

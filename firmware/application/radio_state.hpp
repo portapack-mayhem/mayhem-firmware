@@ -19,6 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+ #ifndef __RADIO_STATE_H__
+ #define __RADIO_STATE_H__
+
 #include <type_traits>
 #include <utility>
 #include "portapack.hpp"
@@ -54,3 +57,5 @@ class RadioState {
 
 using RxRadioState = RadioState<ReceiverModel, &portapack::receiver_model>;
 using TxRadioState = RadioState<TransmitterModel, &portapack::transmitter_model>;
+
+#endif  // __RADIO_STATE_H__

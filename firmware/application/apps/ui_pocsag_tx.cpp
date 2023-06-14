@@ -81,11 +81,9 @@ bool POCSAGTXView::start_tx() {
 
     progressbar.set_max(total_frames);
 
-    transmitter_model.set_sampling_rate(2280000);
     transmitter_model.set_rf_amp(true);
     transmitter_model.set_lna(40);
     transmitter_model.set_vga(40);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     uint8_t* data_ptr = shared_memory.bb_data.data;

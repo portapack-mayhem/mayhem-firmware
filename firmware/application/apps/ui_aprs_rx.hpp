@@ -188,7 +188,7 @@ class APRSRxView : public View {
     void on_data(uint32_t value, bool is_data);
     bool reset_console = false;
 
-    RxRadioState radio_state_;
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_aprs", app_settings::Mode::RX};
 

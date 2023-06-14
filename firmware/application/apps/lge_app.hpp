@@ -30,7 +30,7 @@
 #include "transmitter_model.hpp"
 #include "portapack.hpp"
 #include "app_settings.hpp"
-#include "radio_settings.hpp"
+#include "radio_state.hpp"
 
 namespace ui {
 

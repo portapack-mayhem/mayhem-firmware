@@ -34,6 +34,7 @@
 #include "message.hpp"
 #include "file.hpp"
 #include "io_wave.hpp"
+#include "radio_state.hpp"
 
 namespace ui {
 
@@ -53,6 +54,11 @@ class NumbersStationView : public View {
 
    private:
     NavigationView& nav_;
+
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        1536000 /* sampling rate */
+    };
 
     // Sequencing state machine
     enum segments {

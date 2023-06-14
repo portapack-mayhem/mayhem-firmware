@@ -261,9 +261,7 @@ void JammerView::start_tx() {
         button_transmit.set_style(&style_cancel);
         button_transmit.set_text("STOP");
 
-        transmitter_model.set_sampling_rate(3072000U);
         transmitter_model.set_rf_amp(field_amp.value());
-        transmitter_model.set_baseband_bandwidth(3500000U);
         transmitter_model.set_tx_gain(field_gain.value());
         transmitter_model.enable();
 

@@ -34,6 +34,7 @@
 #include "file.hpp"
 #include "bmp.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 
 using namespace sstv;
 
@@ -56,6 +57,7 @@ class SSTVTXView : public View {
 
    private:
     NavigationView& nav_;
+    TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "tx_sstv", app_settings::Mode::TX};
 

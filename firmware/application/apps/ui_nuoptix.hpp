@@ -33,6 +33,7 @@
 #include "message.hpp"
 #include "volume.hpp"
 #include "audio.hpp"
+#include "radio_state.hpp"
 
 #define NUOPTIX_TONE_LENGTH ((TONES_SAMPLERATE * 0.049) - 1)  // 49ms
 
@@ -52,6 +53,11 @@ class NuoptixView : public View {
         IDLE = 0,
         NORMAL,
         IMPROVISE
+    };
+
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        1536000 /* sampling rate */
     };
 
     tx_modes tx_mode{IDLE};

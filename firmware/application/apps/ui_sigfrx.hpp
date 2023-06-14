@@ -32,6 +32,7 @@
 #include "max2837.hpp"
 #include "volume.hpp"
 #include "receiver_model.hpp"
+#include "radio_state.hpp"
 
 namespace ui {
 
@@ -49,6 +50,11 @@ class SIGFRXView : public View {
    private:
     uint8_t last_channel;
     uint8_t detect_counter = 0;
+
+    RxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        868110000 /* sampling rate */
+    };
 
     const uint16_t sigfrx_marks[18] = {
         10, 8, 0,

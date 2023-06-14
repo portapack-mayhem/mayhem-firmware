@@ -112,7 +112,7 @@ ERTAppView::ERTAppView(NavigationView&) {
 
     if (!settings_.loaded())
         receiver_model.set_target_frequency(initial_target_frequency);
-    
+
     receiver_model.enable();
 
     logger = std::make_unique<ERTLogger>();

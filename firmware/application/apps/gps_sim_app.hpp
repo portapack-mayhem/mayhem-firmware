@@ -54,7 +54,10 @@ class GpsSimAppView : public View {
 
    private:
     NavigationView& nav_;
-    TxRadioSettings radio_settings_;
+    RxRadioState radio_state_{
+        3000000 /* bandwidth */,
+        500000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_gps", app_settings::Mode::TX};
 

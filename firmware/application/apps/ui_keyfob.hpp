@@ -24,6 +24,7 @@
 #include "ui_transmitter.hpp"
 #include "transmitter_model.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "encoders.hpp"
 
 using namespace encoders;
@@ -42,7 +43,10 @@ class KeyfobView : public View {
    private:
     NavigationView& nav_;
 
-    // app save settings
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        OOK_SAMPLERATE /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_keyfob", , app_settings::Mode::TX};
 

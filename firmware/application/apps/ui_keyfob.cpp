@@ -190,8 +190,6 @@ void KeyfobView::start_tx() {
 
     size_t bitstream_length = generate_frame();
 
-    transmitter_model.set_sampling_rate(OOK_SAMPLERATE);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     baseband::set_ook_data(

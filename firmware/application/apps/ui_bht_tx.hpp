@@ -166,7 +166,7 @@ class BHTView : public View {
     std::string title() const override { return "BHT TX"; };
 
    private:
-    TxRadioState radio_state_;
+    TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "tx_bht", app_settings::Mode::TX};
 

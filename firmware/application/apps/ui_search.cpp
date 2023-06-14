@@ -415,8 +415,6 @@ SearchView::SearchView(
     on_range_changed();
 
     receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-    receiver_model.set_sampling_rate(SEARCH_SLICE_WIDTH);
-    receiver_model.set_baseband_bandwidth(2500000);
     receiver_model.enable();
 }
 

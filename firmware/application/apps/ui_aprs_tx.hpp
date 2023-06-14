@@ -27,6 +27,7 @@
 #include "ui_transmitter.hpp"
 
 #include "message.hpp"
+#include "modems.hpp"
 #include "transmitter_model.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
