@@ -158,7 +158,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
                   &recent_entries_view});
 
     if (!settings_.loaded())
-        receiver_model.set_sampling_rate(initial_target_frequency);
+        receiver_model.set_target_frequency(initial_target_frequency);
 
     receiver_model.enable();
 
