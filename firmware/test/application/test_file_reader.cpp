@@ -93,14 +93,14 @@ TEST_CASE("String without delimiter returns 1 result.") {
     CHECK(r[0] == "hello");
 }
 
-TEST_CASE("It will split on delimiter") {
+TEST_CASE("It will split on delimiter.") {
     auto r = split_string("hello,world", ',');
     REQUIRE_EQ(r.size(), 2);
     CHECK(r[0] == "hello");
     CHECK(r[1] == "world");
 }
 
-TEST_CASE("It will return empty columns") {
+TEST_CASE("It will return empty columns.") {
     auto r = split_string("hello,,world", ',');
     REQUIRE_EQ(r.size(), 3);
     CHECK(r[0] == "hello");
@@ -108,7 +108,7 @@ TEST_CASE("It will return empty columns") {
     CHECK(r[2] == "world");
 }
 
-TEST_CASE("It will return empty first column") {
+TEST_CASE("It will return empty first column.") {
     auto r = split_string(",hello,world", ',');
     REQUIRE_EQ(r.size(), 3);
     CHECK(r[0] == "");
@@ -116,7 +116,7 @@ TEST_CASE("It will return empty first column") {
     CHECK(r[2] == "world");
 }
 
-TEST_CASE("It will return empty last column") {
+TEST_CASE("It will return empty last column.") {
     auto r = split_string("hello,world,", ',');
     REQUIRE_EQ(r.size(), 3);
     CHECK(r[0] == "hello");
@@ -124,7 +124,7 @@ TEST_CASE("It will return empty last column") {
     CHECK(r[2] == "");
 }
 
-TEST_CASE("It will split only empty columns") {
+TEST_CASE("It will split only empty columns.") {
     auto r = split_string(",,,,", ',');
     REQUIRE_EQ(r.size(), 5);
     CHECK(r[0] == "");
@@ -132,3 +132,24 @@ TEST_CASE("It will split only empty columns") {
 }
 
 TEST_SUITE_END();
+
+/* Simple example of how to use this to read settings by lines. */
+TEST_CASE("It can parse a settings file.") {
+    MockFile f{"100,File.txt,5\n200,File2.txt,7"};
+    BufferLineReader<MockFile> reader{f};
+    std::vector<std::string> data;
+
+    for (const auto& line : reader) {
+        auto cols = split_string(line, ',');
+        for (auto col : cols)
+            data.emplace_back(col);
+    }
+
+    REQUIRE_EQ(data.size(), 6);
+    CHECK(data[0] == "100");
+    CHECK(data[1] == "File.txt");
+    CHECK(data[2] == "5\n");  // NB: Newlines need to be manually trimmed.
+    CHECK(data[3] == "200");
+    CHECK(data[4] == "File2.txt");
+    CHECK(data[5] == "7");
+}
