@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
- #ifndef __RADIO_STATE_H__
- #define __RADIO_STATE_H__
+#ifndef __RADIO_STATE_H__
+#define __RADIO_STATE_H__
 
 #include <type_traits>
 #include <utility>

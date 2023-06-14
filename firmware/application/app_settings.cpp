@@ -197,7 +197,7 @@ void copy_to_radio_model(const AppSettings& settings) {
             settings.squelch);
     }
 
-    receiver_model.set_frequency_step(settings.volume);
+    receiver_model.set_frequency_step(settings.step);
     receiver_model.set_normalized_headphone_volume(settings.volume);
 }
 
