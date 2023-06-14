@@ -55,6 +55,8 @@ namespace ui {
 
 class SondeView : public View {
    public:
+    static constexpr uint32_t initial_target_frequency = 402700000;
+
     SondeView(NavigationView& nav);
     ~SondeView();
 

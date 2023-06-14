@@ -65,6 +65,9 @@ SondeView::SondeView(NavigationView& nav) {
                   &button_see_qr,
                   &button_see_map});
 
+    if (!settings_.loaded())
+        receiver_model.set_target_frequency(initial_target_frequency);
+
     field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(500);  // euquiq: was 10000, but we are using this for fine-tunning
     field_frequency.on_change = [this](rf::Frequency f) {
