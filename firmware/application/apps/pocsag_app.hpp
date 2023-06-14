@@ -56,6 +56,7 @@ class POCSAGAppView : public View {
     void focus() override;
 
    private:
+    static constexpr uint32_t initial_target_frequency = 466175000;
     bool logging() const { return check_log.value(); };
     bool ignore() const { return check_ignore.value(); };
 
