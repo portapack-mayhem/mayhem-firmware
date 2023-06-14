@@ -60,12 +60,12 @@ class BufferLineReader {
             const auto size = reader_->size();
 
             if (pos_ < size) {
-              cached_ = false;
-              pos_ += line_data_.length();
+                cached_ = false;
+                pos_ += line_data_.length();
             }
 
             if (pos_ >= size)
-              *this = reader_->end();
+                *this = reader_->end();
 
             return *this;
         }
@@ -96,28 +96,28 @@ class BufferLineReader {
         buffer_.seek(it.pos_);
 
         while (true) {
-          auto read = buffer_.read(buf, buf_size);
-          if (!read)
-            return false;
+            auto read = buffer_.read(buf, buf_size);
+            if (!read)
+                return false;
 
-          // Find newline.
-          auto len = 0u;
-          for (; len < *read; ++len) {
-            if (buf[len] == '\n') {
-              ++len;
-              break;
+            // Find newline.
+            auto len = 0u;
+            for (; len < *read; ++len) {
+                if (buf[len] == '\n') {
+                    ++len;
+                    break;
+                }
             }
-          }
 
-          // Reallocate if needed.
-          if (offset + len >= it.line_data_.length())
-            it.line_data_.resize(offset + len);
+            // Reallocate if needed.
+            if (offset + len >= it.line_data_.length())
+                it.line_data_.resize(offset + len);
 
-          std::strncpy(&it.line_data_[offset], buf, len);
-          offset += len;
+            std::strncpy(&it.line_data_[offset], buf, len);
+            offset += len;
 
-          if (len < buf_size)
-            break;
+            if (len < buf_size)
+                break;
         }
 
         it.line_data_.resize(offset);
@@ -132,24 +132,24 @@ using FileLineReader = BufferLineReader<File>;
  * string to split must be maintained while the views
  * are used or they will dangle. */
 std::vector<std::string_view> split_string(std::string_view str, char c) {
-  std::vector<std::string_view> cols;
-  size_t start = 0;
+    std::vector<std::string_view> cols;
+    size_t start = 0;
 
-  while (start < str.length()) {
-    auto it = str.find(c, start);
+    while (start < str.length()) {
+        auto it = str.find(c, start);
 
-    if (it == str.npos)
-      break;
+        if (it == str.npos)
+            break;
 
-    // TODO: allow empty?
-    cols.emplace_back(&str[start], it - start);
-    start = it + 1;
-  }
+        // TODO: allow empty?
+        cols.emplace_back(&str[start], it - start);
+        start = it + 1;
+    }
 
-  if (start <= str.length() && !str.empty())
-    cols.emplace_back(&str[start], str.length() - start);
+    if (start <= str.length() && !str.empty())
+        cols.emplace_back(&str[start], str.length() - start);
 
-  return cols;
+    return cols;
 }
 
 #endif

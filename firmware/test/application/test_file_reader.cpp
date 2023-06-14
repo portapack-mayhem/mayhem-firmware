@@ -80,56 +80,55 @@ TEST_CASE("It can iterate large lines.") {
 
 TEST_SUITE_END();
 
-
 TEST_SUITE_BEGIN("Test split_string");
 
 TEST_CASE("Empty string returns no results.") {
-  auto r = split_string("", ',');
-  CHECK(r.empty());
+    auto r = split_string("", ',');
+    CHECK(r.empty());
 }
 
 TEST_CASE("String without delimiter returns 1 result.") {
-  auto r = split_string("hello", ',');
-  REQUIRE_EQ(r.size(), 1);
-  CHECK(r[0] == "hello");
+    auto r = split_string("hello", ',');
+    REQUIRE_EQ(r.size(), 1);
+    CHECK(r[0] == "hello");
 }
 
 TEST_CASE("It will split on delimiter") {
-  auto r = split_string("hello,world", ',');
-  REQUIRE_EQ(r.size(), 2);
-  CHECK(r[0] == "hello");
-  CHECK(r[1] == "world");
+    auto r = split_string("hello,world", ',');
+    REQUIRE_EQ(r.size(), 2);
+    CHECK(r[0] == "hello");
+    CHECK(r[1] == "world");
 }
 
 TEST_CASE("It will return empty columns") {
-  auto r = split_string("hello,,world", ',');
-  REQUIRE_EQ(r.size(), 3);
-  CHECK(r[0] == "hello");
-  CHECK(r[1] == "");
-  CHECK(r[2] == "world");
+    auto r = split_string("hello,,world", ',');
+    REQUIRE_EQ(r.size(), 3);
+    CHECK(r[0] == "hello");
+    CHECK(r[1] == "");
+    CHECK(r[2] == "world");
 }
 
 TEST_CASE("It will return empty first column") {
-  auto r = split_string(",hello,world", ',');
-  REQUIRE_EQ(r.size(), 3);
-  CHECK(r[0] == "");
-  CHECK(r[1] == "hello");
-  CHECK(r[2] == "world");
+    auto r = split_string(",hello,world", ',');
+    REQUIRE_EQ(r.size(), 3);
+    CHECK(r[0] == "");
+    CHECK(r[1] == "hello");
+    CHECK(r[2] == "world");
 }
 
 TEST_CASE("It will return empty last column") {
-  auto r = split_string("hello,world,", ',');
-  REQUIRE_EQ(r.size(), 3);
-  CHECK(r[0] == "hello");
-  CHECK(r[1] == "world");
-  CHECK(r[2] == "");
+    auto r = split_string("hello,world,", ',');
+    REQUIRE_EQ(r.size(), 3);
+    CHECK(r[0] == "hello");
+    CHECK(r[1] == "world");
+    CHECK(r[2] == "");
 }
 
 TEST_CASE("It will split only empty columns") {
-  auto r = split_string(",,,,", ',');
-  REQUIRE_EQ(r.size(), 5);
-  CHECK(r[0] == "");
-  CHECK(r[4] == "");
+    auto r = split_string(",,,,", ',');
+    REQUIRE_EQ(r.size(), 5);
+    CHECK(r[0] == "");
+    CHECK(r[4] == "");
 }
 
 TEST_SUITE_END();
