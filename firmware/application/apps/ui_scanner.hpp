@@ -22,6 +22,7 @@
 
 #include "ui.hpp"
 #include "receiver_model.hpp"
+#include "radio_state.hpp"
 #include "ui_receiver.hpp"
 #include "ui_styles.hpp"
 #include "freqman.hpp"
@@ -95,6 +96,7 @@ class ScannerView : public View {
 
    private:
     NavigationView& nav_;
+    RxRadioState radio_state_{};
 
     void start_scan_thread();
     void change_mode(freqman_index_t mod_type);

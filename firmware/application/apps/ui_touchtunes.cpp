@@ -88,9 +88,7 @@ void TouchTunesView::on_tx_progress(const uint32_t progress, const bool done) {
 void TouchTunesView::start_ew() {
     // Radio
     transmitter_model.set_target_frequency(433920000);
-    transmitter_model.set_sampling_rate(3072000U);
     transmitter_model.set_rf_amp(true);
-    transmitter_model.set_baseband_bandwidth(3500000U);
     transmitter_model.set_tx_gain(47);
     transmitter_model.enable();
 

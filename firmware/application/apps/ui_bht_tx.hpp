@@ -32,6 +32,7 @@
 #include "transmitter_model.hpp"
 #include "encoders.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "portapack.hpp"
 
 namespace ui {
@@ -165,6 +166,7 @@ class BHTView : public View {
     std::string title() const override { return "BHT TX"; };
 
    private:
+    TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "tx_bht", app_settings::Mode::TX};
 

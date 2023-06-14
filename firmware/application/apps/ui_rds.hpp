@@ -25,6 +25,7 @@
 #include "ui_textentry.hpp"
 #include "ui_tabview.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "rds.hpp"
 
 using namespace rds;
@@ -140,6 +141,10 @@ class RDSView : public View {
     NavigationView& nav_;
     RDS_flags rds_flags{};
 
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        2280000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_rds", app_settings::Mode::TX};
 

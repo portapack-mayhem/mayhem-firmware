@@ -35,6 +35,7 @@
 
 #include "sonde_packet.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include <cstddef>
 #include <string>
 
@@ -54,9 +55,6 @@ namespace ui {
 
 class SondeView : public View {
    public:
-    static constexpr uint32_t sampling_rate = 2457600;
-    static constexpr uint32_t baseband_bandwidth = 1750000;
-
     SondeView(NavigationView& nav);
     ~SondeView();
 
@@ -65,6 +63,10 @@ class SondeView : public View {
     std::string title() const override { return "Radiosnd RX"; };
 
    private:
+    RxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        2457600 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_sonde", app_settings::Mode::RX};
 

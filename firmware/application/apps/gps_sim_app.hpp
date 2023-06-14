@@ -28,6 +28,7 @@
 #define NORMAL_UI false
 
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -53,6 +54,10 @@ class GpsSimAppView : public View {
 
    private:
     NavigationView& nav_;
+    RxRadioState radio_state_{
+        3000000 /* bandwidth */,
+        500000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_gps", app_settings::Mode::TX};
 

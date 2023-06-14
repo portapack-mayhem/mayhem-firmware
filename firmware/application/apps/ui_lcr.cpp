@@ -24,7 +24,6 @@
 #include "ui_modemsetup.hpp"
 
 #include "lcr.hpp"
-#include "modems.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "cpld_update.hpp"
@@ -130,8 +129,6 @@ void LCRView::start_tx(const bool scan) {
 
     modems::generate_data(lcr::generate_message(rgsb, litterals_list, options_ec.selected_index()), lcr_message_data);
 
-    transmitter_model.set_sampling_rate(AFSK_TX_SAMPLERATE);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     memcpy(shared_memory.bb_data.data, lcr_message_data, sizeof(lcr_message_data));

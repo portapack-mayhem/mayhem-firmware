@@ -518,7 +518,7 @@ GlassView::GlassView(
 }
 
 void GlassView::load_Presets() {
-    File presets_file;  // LOAD /WHIPCALC/ANTENNAS.TXT from microSD
+    File presets_file;
     auto result = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
     presets_db.clear();  // Start with fresh db
     if (result.is_valid()) {

@@ -24,6 +24,7 @@
 #define NORMAL_UI false
 
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -53,6 +54,7 @@ class PlaylistView : public View {
 
    private:
     NavigationView& nav_;
+    TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "tx_playlist", app_settings::Mode::TX};
 

@@ -56,7 +56,6 @@ void AboutView::on_show() {
     transmitter_model.set_rf_amp(true);
     transmitter_model.set_lna(40);
     transmitter_model.set_vga(40);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     baseband::set_audiotx_data(32, 50, false, 0);

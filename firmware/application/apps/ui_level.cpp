@@ -178,8 +178,6 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
             receiver_model.set_am_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
-            receiver_model.set_sampling_rate(3072000);
-            receiver_model.set_baseband_bandwidth(1750000);
             text_ctcss.set("             ");
             break;
         case NFM_MODULATION:
@@ -190,8 +188,6 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
-            receiver_model.set_sampling_rate(3072000);
-            receiver_model.set_baseband_bandwidth(1750000);
             break;
         case WFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
@@ -201,8 +197,6 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             receiver_model.set_wfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
-            receiver_model.set_sampling_rate(3072000);
-            receiver_model.set_baseband_bandwidth(1750000);
             text_ctcss.set("             ");
             break;
         default:

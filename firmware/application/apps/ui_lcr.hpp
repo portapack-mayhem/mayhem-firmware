@@ -26,8 +26,10 @@
 #include "ui_transmitter.hpp"
 
 #include "message.hpp"
+#include "modems.hpp"
 #include "transmitter_model.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 
 namespace ui {
 
@@ -79,6 +81,10 @@ class LCRView : public View {
         SCAN
     };
 
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        AFSK_TX_SAMPLERATE /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_lcr", app_settings::Mode::TX};
 

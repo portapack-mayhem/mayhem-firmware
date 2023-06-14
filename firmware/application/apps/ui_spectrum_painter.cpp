@@ -94,8 +94,6 @@ SpectrumPainterView::SpectrumPainterView(
             if (tx_mode == 0 && image_input_avaliable == false)
                 return;
 
-            transmitter_model.set_sampling_rate(3072000U);
-            transmitter_model.set_baseband_bandwidth(1750000);
             transmitter_model.enable();
 
             if (persistent_memory::stealth_mode()) {

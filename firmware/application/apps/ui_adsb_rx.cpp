@@ -514,8 +514,6 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 
     receiver_model.set_target_frequency(1090000000);
     receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
-    receiver_model.set_sampling_rate(2000000);
-    receiver_model.set_baseband_bandwidth(2500000);
     receiver_model.enable();
 }
 

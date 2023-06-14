@@ -51,9 +51,6 @@ namespace ui {
 
 class TestView : public View {
    public:
-    static constexpr uint32_t sampling_rate = 2457600 * 2;
-    static constexpr uint32_t baseband_bandwidth = 1750000;
-
     TestView(NavigationView& nav);
     ~TestView();
 
@@ -62,6 +59,11 @@ class TestView : public View {
     std::string title() const override { return "Test app"; };
 
    private:
+    RxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        2457600 * 2 /* sampling rate */
+    };
+
     Coord cur_x{0};
     uint32_t packet_count{0};
     uint32_t packets_lost{0};

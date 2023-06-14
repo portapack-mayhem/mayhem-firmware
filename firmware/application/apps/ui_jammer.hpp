@@ -29,6 +29,7 @@
 #include "message.hpp"
 #include "jammer.hpp"
 #include "lfsr_random.hpp"
+#include "radio_state.hpp"
 
 using namespace jammer;
 
@@ -99,6 +100,10 @@ class JammerView : public View {
 
    private:
     NavigationView& nav_;
+    TxRadioState radio_state_{
+        3500000 /* bandwidth */,
+        3072000 /* sampling rate */
+    };
 
     void start_tx();
     void on_timer();

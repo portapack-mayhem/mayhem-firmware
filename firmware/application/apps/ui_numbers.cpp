@@ -129,9 +129,7 @@ void NumbersStationView::start_tx() {
 
     prepare_audio();
 
-    transmitter_model.set_sampling_rate(1536000U);
     transmitter_model.set_rf_amp(true);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     baseband::set_audiotx_data(

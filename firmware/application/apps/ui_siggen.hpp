@@ -24,6 +24,7 @@
 #define __SIGGEN_H__
 
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -49,6 +50,10 @@ class SigGenView : public View {
     void update_tone();
     void on_tx_progress(const uint32_t progress, const bool done);
 
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        1536000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_siggen", app_settings::Mode::TX};
 

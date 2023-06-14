@@ -38,6 +38,7 @@
 #include "string_format.hpp"
 #include "file.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 
 namespace ui {
 
@@ -53,6 +54,7 @@ class LevelView : public View {
    private:
     NavigationView& nav_;
 
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_level", app_settings::Mode::RX};
 

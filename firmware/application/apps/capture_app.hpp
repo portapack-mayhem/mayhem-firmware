@@ -28,6 +28,7 @@
 #include "ui_receiver.hpp"
 #include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
+#include "radio_state.hpp"
 
 #define BW_OPTIONS                                                                                                                 \
     {"  8k5", 8500},                                                                                                               \
@@ -63,6 +64,8 @@ class CaptureAppView : public View {
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;
+
+    RxRadioState radio_state_{};
 
     uint32_t sampling_rate = 0;
     uint32_t anti_alias_baseband_bandwidth_filter = 2500000;  // we rename the previous var , and change type static constexpr to normal var.

@@ -27,6 +27,7 @@
 #include "encoders.hpp"
 #include "de_bruijn.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 
 using namespace encoders;
 
@@ -183,7 +184,10 @@ class EncodersView : public View {
         SCAN
     };
 
-    // app save settings
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        OOK_SAMPLERATE /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_ook", app_settings::Mode::TX};
 

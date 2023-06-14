@@ -27,6 +27,7 @@
 #define NORMAL_UI false
 
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -80,6 +81,11 @@ class MicTXView : public View {
 
     void set_ptt_visibility(bool v);
 
+    RxRadioState rx_radio_state_{};
+    TxRadioState tx_radio_state_{
+        1750000 /* bandwidth */,
+        sampling_rate /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_mic", app_settings::Mode::RX_TX,
         app_settings::Options::UseGlobalTargetFrequency};

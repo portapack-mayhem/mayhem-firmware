@@ -29,6 +29,7 @@
 
 #include "log_file.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 #include "pocsag.hpp"
 #include "pocsag_packet.hpp"
 
@@ -59,6 +60,7 @@ class POCSAGAppView : public View {
     bool logging() const { return check_log.value(); };
     bool ignore() const { return check_ignore.value(); };
 
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_pocsag", app_settings::Mode::RX};
 

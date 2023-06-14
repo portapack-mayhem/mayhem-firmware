@@ -31,6 +31,7 @@
 #include "io_wave.hpp"
 #include "tone_key.hpp"
 #include "app_settings.hpp"
+#include "radio_state.hpp"
 
 namespace ui {
 
@@ -49,6 +50,10 @@ class SoundBoardView : public View {
     std::string title() const override { return "Soundbrd TX"; };
 
    private:
+    TxRadioState radio_state_{
+        1750000 /* bandwidth */,
+        1536000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "tx_soundboard", app_settings::Mode::TX};
 

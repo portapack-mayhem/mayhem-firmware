@@ -106,6 +106,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
             EventDispatcher::send_message(message);
         });
 
+    // TODO: Delete all this and use tx model.
     baseband::set_audiotx_config(
         1536000 / 20,  // Update vu-meter at 20Hz
         transmitter_model.channel_bandwidth(),
@@ -119,8 +120,6 @@ void SoundBoardView::start_tx(const uint32_t id) {
     );
     baseband::set_sample_rate(sample_rate);
 
-    transmitter_model.set_sampling_rate(1536000);
-    transmitter_model.set_baseband_bandwidth(1750000);
     transmitter_model.enable();
 
     tx_view.set_transmitting(true);

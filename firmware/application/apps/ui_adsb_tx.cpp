@@ -299,8 +299,6 @@ void ADSBTxView::generate_frames() {
 void ADSBTxView::start_tx() {
     generate_frames();
 
-    transmitter_model.set_sampling_rate(4000000U);
-    transmitter_model.set_baseband_bandwidth(10000000);
     transmitter_model.enable();
 
     baseband::set_adsb();
