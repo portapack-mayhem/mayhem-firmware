@@ -19,29 +19,30 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CONVERT_H__
-#define __CONVERT_H__
-
-#include <charconv>
-#include <cstdlib>
-#include <string>
+#include "file_reader.hpp"
 #include <string_view>
-#include <type_traits>
+#include <vector>
 
-/* Zero-allocation conversion helper. */
-/* Notes:
- * - T must be an integer type.
- * - For base 16, input _must not_ contain a '0x' or '0X' prefix.
- * - For base 8 a leading 0 on the literal is allowed.
- * - Leading whitespce will cause the parse to fail.
- */
-// TODO: from_chars seems to cause code bloat.
-// Look into using strtol and friends instead.
+/* Splits the string on the specified char and returns
+ * a vector of string_views. NB: the lifetime of the
+ * string to split must be maintained while the views
+ * are used or they will dangle. */
+std::vector<std::string_view> split_string(std::string_view str, char c) {
+    std::vector<std::string_view> cols;
+    size_t start = 0;
 
-template <typename T>
-std::enable_if_t<std::is_integral_v<T>, bool> parse_int(std::string_view str, T& out_val, int base = 10) {
-    auto result = std::from_chars(str.data(), str.data() + str.length(), out_val, base);
-    return static_cast<int>(result.ec) == 0;
+    while (start < str.length()) {
+        auto it = str.find(c, start);
+
+        if (it == str.npos)
+            break;
+
+        cols.emplace_back(&str[start], it - start);
+        start = it + 1;
+    }
+
+    if (start <= str.length() && !str.empty())
+        cols.emplace_back(&str[start], str.length() - start);
+
+    return cols;
 }
-
-#endif /*__CONVERT_H__*/

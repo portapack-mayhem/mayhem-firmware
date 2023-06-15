@@ -535,18 +535,15 @@ void GlassView::load_Presets() {
             if (cols.size() != 3)
                 continue;
 
-            uint32_t min_freq = 0;
-            uint32_t max_freq = 0;
-            parse_int(cols[0], min_freq);
-            parse_int(cols[1], max_freq);
+            preset_entry entry{};
+            parse_int(cols[0], entry.min);
+            parse_int(cols[1], entry.max);
+            entry.label = trimr(cols[2]);
 
-            if (min_freq == 0 || max_freq == 0 || min_freq >= max_freq)
-                continue;
+            if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
+                continue;  // Invalid line.
 
-            presets_db.emplace_back(preset_entry{
-                min_freq,
-                max_freq,
-                trimr(cols[2])});
+            presets_db.emplace_back(std::move(entry));
         }
     }
 
