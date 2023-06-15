@@ -23,6 +23,7 @@
 
 #include "ui_looking_glass_app.hpp"
 #include "file_reader.hpp"
+#include "string_format.hpp"
 
 using namespace portapack;
 
@@ -537,7 +538,7 @@ void GlassView::load_Presets() {
             presets_db.emplace_back(preset_entry{
                 std::stoi(std::string{cols[0]}),
                 std::stoi(std::string{cols[1]}),
-                std::string{cols[2]}});
+                trimr(std::string{cols[2]})});
         }
     }
 
