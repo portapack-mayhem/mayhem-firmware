@@ -537,8 +537,7 @@ void GlassView::load_Presets() {
             presets_db.emplace_back(preset_entry{
                 std::stoi(std::string{cols[0]}),
                 std::stoi(std::string{cols[1]}),
-                std::string{cols[2]}
-            });        
+                std::string{cols[2]}});
         }
     }
 
