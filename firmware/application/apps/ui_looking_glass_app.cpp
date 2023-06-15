@@ -22,6 +22,7 @@
  */
 
 #include "ui_looking_glass_app.hpp"
+#include "convert.hpp"
 #include "file_reader.hpp"
 #include "string_format.hpp"
 
@@ -534,11 +535,15 @@ void GlassView::load_Presets() {
             if (cols.size() != 3)
                 continue;
 
-            // TODO: add some conversion helpers that take string_view.
-            presets_db.emplace_back(preset_entry{
-                std::stoi(std::string{cols[0]}),
-                std::stoi(std::string{cols[1]}),
-                trimr(std::string{cols[2]})});
+            preset_entry entry{};
+            parse_int(cols[0], entry.min);
+            parse_int(cols[1], entry.max);
+            entry.label = trimr(cols[2]);
+
+            if (entry.min == 0 || entry.max == 0 || entry.min >= entry.max)
+                continue;  // Invalid line.
+
+            presets_db.emplace_back(std::move(entry));
         }
     }
 
