@@ -283,17 +283,17 @@ double get_decimals(double num, int16_t mult, bool round) {
 
 static const char* whitespace_str = " \t\r\n";
 
-std::string trim(const std::string& str) {
+std::string trim(std::string_view str) {
     auto first = str.find_first_not_of(whitespace_str);
     auto last = str.find_last_not_of(whitespace_str);
-    return str.substr(first, last - first);
+    return std::string{str.substr(first, last - first)};
 }
 
-std::string trimr(const std::string& str) {
+std::string trimr(std::string_view str) {
     size_t last = str.find_last_not_of(whitespace_str);
-    return (last != std::string::npos) ? str.substr(0, last + 1) : "";  // Remove the trailing spaces
+    return std::string{last != std::string::npos ? str.substr(0, last + 1) : ""};
 }
 
-std::string truncate(const std::string& str, size_t length) {
-    return str.length() <= length ? str : str.substr(0, length);
+std::string truncate(std::string_view str, size_t length) {
+    return std::string{str.length() <= length ? str : str.substr(0, length)};
 }

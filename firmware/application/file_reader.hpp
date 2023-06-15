@@ -131,7 +131,7 @@ using FileLineReader = BufferLineReader<File>;
  * a vector of string_views. NB: the lifetime of the
  * string to split must be maintained while the views
  * are used or they will dangle. */
-std::vector<std::string_view> split_string(std::string_view str, char c) {
+inline std::vector<std::string_view> split_string(std::string_view str, char c) {
     std::vector<std::string_view> cols;
     size_t start = 0;
 

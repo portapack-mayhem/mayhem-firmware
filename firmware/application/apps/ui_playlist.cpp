@@ -22,6 +22,8 @@
  */
 
 #include "ui_playlist.hpp"
+#include "convert.hpp"
+#include "file_reader.hpp"
 #include "string_format.hpp"
 
 #include "ui_fileman.hpp"
@@ -43,78 +45,53 @@ void PlaylistView::set_ready() {
 
 void PlaylistView::load_file(std::filesystem::path playlist_path) {
     File playlist_file;
-
     auto error = playlist_file.open(playlist_path.string());
-    if (!error.is_valid()) {
-        std::string line;
-        char one_char[1];
-        for (size_t pointer = 0; pointer < playlist_file.size(); pointer++) {
-            playlist_file.seek(pointer);
-            playlist_file.read(one_char, 1);
-            if ((int)one_char[0] >= ' ') {
-                line += one_char[0];
-            } else if (one_char[0] == '\n') {
-                txtline_process(line);
-                line.clear();
-            }
-        }
-        if (line.length() > 0) {
-            txtline_process(line);
+
+    if (!error) {
+        auto reader = FileLineReader(playlist_file);
+        for (const auto& line : reader) {
+            if (line.length() == 0 || line[0] == '#')
+                continue;  // Empty or comment line.
+
+            auto cols = split_string(line, ',');
+            if (cols.size() < 3)
+                continue;  // Line doesn't have enough columns.
+
+            playlist_entry entry{};
+
+            parse_int(cols[0], entry.replay_frequency);
+            parse_int(cols[2], entry.sample_rate);
+            if (entry.replay_frequency == 0 || entry.sample_rate == 0)
+                continue;  // Invalid freq or rate.
+
+            entry.replay_file = std::string{"/"} + std::string{cols[1]};
+
+            if (cols.size() == 4)  // Optional delay value.
+                parse_int(cols[3], entry.next_delay);
+
+            playlist_db.emplace_back(std::move(entry));
         }
     }
+
+    total_tracks = playlist_db.size();
     playlist_masterdb = playlist_db;
     text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
     tracks_progressbar.set_max(total_tracks);
     button_play.focus();
-    return;
-}
-
-void PlaylistView::txtline_process(std::string& line) {
-    playlist_entry new_item;
-    size_t previous = 0;
-    auto current = std::string::npos;
-    // read freq
-    current = line.find(',');
-    if (current == std::string::npos) return;
-    errno = 0;
-    new_item.replay_frequency = strtoll(line.substr(0, current).c_str(), nullptr, 0);
-    if (new_item.replay_frequency == 0 || errno == EINVAL || errno == ERANGE)
-        return;
-    // read file
-    previous = current + 1;
-    if ((current = line.find(',', previous)) == std::string::npos) return;
-    new_item.replay_file = "/" + line.substr(previous, current - previous);
-    // read samplerate
-    previous = current + 1;
-    errno = 0;
-    new_item.sample_rate = strtoll(line.substr(previous).c_str(), nullptr, 10);
-    if (new_item.sample_rate == 0 || errno == EINVAL || errno == ERANGE)
-        return;
-    // optionnal read delay
-    current = line.find(',', previous);
-    if (current == std::string::npos) {
-        new_item.next_delay = 0;
-    } else {
-        errno = 0;
-        previous = current + 1;
-        new_item.next_delay = strtoll(line.substr(previous).c_str(), nullptr, 10);
-        if (errno == EINVAL || errno == ERANGE)
-            return;
-    }
-    playlist_db.push_back(std::move(new_item));
-    total_tracks++;
 }
 
 void PlaylistView::on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay) {
     File data_file;
+
     // Get file size
-    auto data_open_error = data_file.open("/" + new_file_path.string());
-    if (!data_open_error.is_valid()) {
-        track_number = track_number >= total_tracks ? 1 : track_number + 1;  // prevent track_number out of range
-    } else if (data_open_error.is_valid()) {
+    auto error = data_file.open("/" + new_file_path.string());
+
+    if (error) {
         file_error("C16 file\n" + new_file_path.string() + "\nread error.");
         return;
     }
+
+    track_number = track_number >= total_tracks ? 1 : track_number + 1;  // prevent track_number out of range
 
     file_path = new_file_path;
     field_frequency.set_value(replay_frequency);
@@ -290,7 +267,7 @@ PlaylistView::PlaylistView(
         &tx_view,  // this handles now the previous rfgain, rfamp
         &check_loop,
         &button_play,
-        &text_track,  // removed because there's no space for it
+        &text_track,
         &waterfall,
     });
 
