@@ -145,7 +145,7 @@ class ReconView : public View {
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
         {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
         {{0 * 8, (22 * 8)}, "                S:          ", Color::light_grey()},
-        {{0 * 8, (24 * 8) + 4}, "NBLCK: x      W,L:      ,     ", Color::light_grey()},
+        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Color::light_grey()},
         {{0 * 8, (26 * 8) + 4}, "MODE:    ,       SQUELCH:    ", Color::light_grey()}};
 
     LNAGainField field_lna{
@@ -160,26 +160,31 @@ class ReconView : public View {
     AudioVolumeField field_volume{
         {24 * 8, 0 * 16}};
 
+    Text file_name{
+        // show file used
+        {0, 1 * 16, SCREEN_W, 16},
+    };
+
+    Text desc_cycle{
+        {0, 2 * 16, SCREEN_W, 16},
+    };
+
     RSSI rssi{
-        {0 * 16, 2 * 16 + 2, SCREEN_W - 8 * 8 + 4, 12},
+        {0 * 16, 3 * 16 + 2, SCREEN_W - 8 * 8 + 4, 12},
     };
 
     ButtonWithEncoder text_cycle{
-        {0, 3 * 16, 4 * 8, 16},
+        {0, 4 * 16, 4 * 8, 16},
         ""};
 
     // "/XXX -XXX db" =>  12 chars max
     Text text_max{
-        {4 * 8, 3 * 16, 12 * 8, 16},
+        {4 * 8, 4 * 16, 12 * 8, 16},
     };
 
     // "XX/XX" =>  5 chars max
     Text text_nb_locks{
-        {16 * 8, 3 * 16, 5 * 8, 16},
-    };
-
-    Text desc_cycle{
-        {0, 4 * 16, SCREEN_W, 16},
+        {16 * 8, 4 * 16, 5 * 8, 16},
     };
 
     Text big_display{
@@ -203,23 +208,18 @@ class ReconView : public View {
         {14 * 8, 7 * 16, 8 * 8, 1 * 8},
         ""};
 
-    Button button_config{
-        {SCREEN_W - 7 * 8, 2 * 16, 7 * 8, 28},
-        "CONFIG"};
-
-    Button button_looking_glass{
-        {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
-        "GLASS"};
-
     // Button can be RECON or SCANNER
     Button button_scanner_mode{
-        {SCREEN_W - 7 * 8, 7 * 16, 7 * 8, 28},
+        {SCREEN_W - 7 * 8, 3 * 16, 7 * 8, 28},
         "RECON"};
 
-    Text file_name{
-        // show file used
-        {0, 1 * 16, SCREEN_W, 16},
-    };
+    Button button_loop_config{
+        {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
+        "[LOOP]"};
+
+    Button button_config{
+        {SCREEN_W - 7 * 8, 7 * 16, 7 * 8, 28},
+        "CONFIG"};
 
     ButtonWithEncoder button_manual_start{
         {0 * 8, 9 * 16, 11 * 8, 28},

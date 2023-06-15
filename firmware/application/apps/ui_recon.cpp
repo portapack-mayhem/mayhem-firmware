@@ -297,23 +297,12 @@ void ReconView::handle_retune() {
         if (last_entry.modulation != frequency_list[current_index].modulation && frequency_list[current_index].modulation >= 0) {
             last_entry.modulation = frequency_list[current_index].modulation;
             field_mode.set_selected_index(frequency_list[current_index].modulation);
+            last_entry.bandwidth = -1;
         }
         // Set bandwidth if any
         if (last_entry.bandwidth != frequency_list[current_index].bandwidth && frequency_list[current_index].bandwidth >= 0) {
             last_entry.bandwidth = frequency_list[current_index].bandwidth;
-            switch (frequency_list[current_index].modulation) {
-                case AM_MODULATION:
-                    receiver_model.set_am_configuration(freq);
-                    break;
-                case NFM_MODULATION:
-                    receiver_model.set_nbfm_configuration(freq);
-                    break;
-                case WFM_MODULATION:
-                    receiver_model.set_wfm_configuration(freq);
-                default:
-                    break;
-            }
-            field_bw.set_selected_index(freq);
+            field_bw.set_selected_index(frequency_list[current_index].bandwidth);
         }
         if (last_entry.step != frequency_list[current_index].step && frequency_list[current_index].step >= 0) {
             last_entry.step = frequency_list[current_index].step;
@@ -383,7 +372,7 @@ ReconView::ReconView(NavigationView& nav)
                   &field_lock_wait,
                   &button_config,
                   &button_scanner_mode,
-                  &button_looking_glass,
+                  &button_loop_config,
                   &file_name,
                   &rssi,
                   &text_cycle,
@@ -539,10 +528,21 @@ ReconView::ReconView(NavigationView& nav)
         nav_.push<AnalogAudioView>();
     };
 
-    button_looking_glass.on_select = [this](Button&) {
-        nav_.pop();
-        nav_.push<GlassView>();
+    button_loop_config.on_select = [this](Button&) {
+        if (continuous) {
+            continuous = false;
+            button_loop_config.set_style(&Styles::white);
+        } else {
+            continuous = true;
+            button_loop_config.set_style(&Styles::green);
+        }
+        persistent_memory::set_recon_continuous(continuous);
     };
+    if (continuous) {
+        button_loop_config.set_style(&Styles::green);
+    } else {
+        button_loop_config.set_style(&Styles::white);
+    }
 
     rssi.set_focusable(true);
     rssi.set_peak(true, 500);
@@ -815,7 +815,6 @@ ReconView::ReconView(NavigationView& nav)
 
             autosave = persistent_memory::recon_autosave_freqs();
             autostart = persistent_memory::recon_autostart_recon();
-            continuous = persistent_memory::recon_continuous();
             filedelete = persistent_memory::recon_clear_output();
             load_freqs = persistent_memory::recon_load_freqs();
             load_ranges = persistent_memory::recon_load_ranges();

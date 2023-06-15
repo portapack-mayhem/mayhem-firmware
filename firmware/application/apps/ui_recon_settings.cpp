@@ -44,12 +44,10 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
                   &button_output_file,
                   &checkbox_autosave_freqs,
                   &checkbox_autostart_recon,
-                  &checkbox_continuous,
                   &checkbox_clear_output});
 
     checkbox_autosave_freqs.set_value(persistent_memory::recon_autosave_freqs());
     checkbox_autostart_recon.set_value(persistent_memory::recon_autostart_recon());
-    checkbox_continuous.set_value(persistent_memory::recon_continuous());
     checkbox_clear_output.set_value(persistent_memory::recon_clear_output());
 
     text_input_file.set(_input_file);
@@ -96,7 +94,6 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
 void ReconSetupViewMain::save(std::string& input_file, std::string& output_file) {
     persistent_memory::set_recon_autosave_freqs(checkbox_autosave_freqs.value());
     persistent_memory::set_recon_autostart_recon(checkbox_autostart_recon.value());
-    persistent_memory::set_recon_continuous(checkbox_continuous.value());
     persistent_memory::set_recon_clear_output(checkbox_clear_output.value());
     input_file = _input_file;
     output_file = _output_file;

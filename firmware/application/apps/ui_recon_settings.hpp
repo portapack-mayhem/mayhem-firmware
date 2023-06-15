@@ -98,12 +98,8 @@ class ReconSetupViewMain : public View {
         3,
         "autostart recon"};
 
-    Checkbox checkbox_continuous{
-        {1 * 8, 11 * 16 - 4},
-        3,
-        "continuous"};
     Checkbox checkbox_clear_output{
-        {1 * 8, 13 * 16 - 4},
+        {1 * 8, 11 * 16 - 4},
         3,
         "clear output at start"};
 };
