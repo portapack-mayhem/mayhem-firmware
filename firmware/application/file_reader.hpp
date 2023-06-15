@@ -56,7 +56,7 @@ class BufferLineReader {
             return line_data_;
         }
 
-        iterator operator++() {
+        iterator& operator++() {
             const auto size = reader_->size();
 
             if (pos_ < size) {

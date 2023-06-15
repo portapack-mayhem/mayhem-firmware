@@ -22,6 +22,7 @@
  */
 
 #include "ui_looking_glass_app.hpp"
+#include "file_reader.hpp"
 
 using namespace portapack;
 
@@ -519,60 +520,33 @@ GlassView::GlassView(
 
 void GlassView::load_Presets() {
     File presets_file;
-    auto result = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
-    presets_db.clear();  // Start with fresh db
-    if (result.is_valid()) {
-        presets_Default();  // There is no txt, store a default range
-    } else {
-        std::string line;  // There is a txt file
-        char one_char[1];  // Read it char by char
-        for (size_t pointer = 0; pointer < presets_file.size(); pointer++) {
-            presets_file.seek(pointer);
-            presets_file.read(one_char, 1);
-            if ((int)one_char[0] > 31) {       // ascii space upwards
-                line += one_char[0];           // Add it to the textline
-            } else if (one_char[0] == '\n') {  // New Line
-                txtline_process(line);         // make sense of this textline
-                line.clear();                  // Ready for next textline
-            }
+    auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+    presets_db.clear();
+
+    if (!error) {
+        auto reader = FileLineReader(presets_file);
+        for (const auto& line : reader) {
+            if (line.length() == 0 || line[0] == '#')
+                continue;
+
+            auto cols = split_string(line, ',');
+            if (cols.size() != 3)
+                continue;
+
+            // TODO: add some conversion helpers that take string_view.
+            presets_db.emplace_back(preset_entry{
+                std::stoi(std::string{cols[0]}),
+                std::stoi(std::string{cols[1]}),
+                std::string{cols[2]}
+            });        
         }
-        if (line.length() > 0)
-            txtline_process(line);  // Last line had no newline at end ?
-        if (!presets_db.size())
-            presets_Default();  // no antenna on txt, use default
     }
+
+    // Couldn't load any from the file, load a default instead.
+    if (presets_db.empty())
+        presets_Default();
+
     populate_Presets();
-}
-
-void GlassView::txtline_process(std::string& line) {
-    if (line.find("#") != std::string::npos)
-        return;  // Line is just a comment
-
-    size_t comma = line.find(",");  // Get first comma position
-    if (comma == std::string::npos)
-        return;  // No comma at all
-
-    size_t previous = 0;
-    preset_entry new_preset;
-
-    new_preset.min = std::stoi(line.substr(0, comma));
-    if (!new_preset.min)
-        return;  // No frequency!
-
-    previous = comma + 1;
-    comma = line.find(",", previous);  // Search for next delimiter
-    if (comma == std::string::npos)
-        return;  // No comma at all
-
-    new_preset.max = std::stoi(line.substr(previous, comma - previous));
-    if (!new_preset.max)
-        return;  // No frequency!
-
-    new_preset.label = line.substr(comma + 1);
-    if (new_preset.label.size() == 0)
-        return;  // No label ?
-
-    presets_db.push_back(new_preset);  // Add this preset.
 }
 
 void GlassView::populate_Presets() {
@@ -580,9 +554,9 @@ void GlassView::populate_Presets() {
     using options_t = std::vector<option_t>;
     options_t entries;
 
-    for (preset_entry preset : presets_db) {  // go thru all available presets
+    for (const auto& preset : presets_db)
         entries.emplace_back(preset.label, entries.size());
-    }
+
     range_presets.set_options(entries);
 }
 
