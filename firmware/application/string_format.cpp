@@ -281,14 +281,16 @@ double get_decimals(double num, int16_t mult, bool round) {
     return intnum;
 }
 
+static const char* whitespace_str = " \t\r\n";
+
 std::string trim(const std::string& str) {
-    auto first = str.find_first_not_of(' ');
-    auto last = str.find_last_not_of(' ');
+    auto first = str.find_first_not_of(whitespace_str);
+    auto last = str.find_last_not_of(whitespace_str);
     return str.substr(first, last - first);
 }
 
-std::string trimr(std::string str) {
-    size_t last = str.find_last_not_of(' ');
+std::string trimr(const std::string& str) {
+    size_t last = str.find_last_not_of(whitespace_str);
     return (last != std::string::npos) ? str.substr(0, last + 1) : "";  // Remove the trailing spaces
 }
 

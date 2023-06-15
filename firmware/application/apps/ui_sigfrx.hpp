@@ -51,10 +51,7 @@ class SIGFRXView : public View {
     uint8_t last_channel;
     uint8_t detect_counter = 0;
 
-    RxRadioState radio_state_{
-        1750000 /* bandwidth */,
-        3072000 /* sampling rate */
-    };
+    RxRadioState radio_state_{};
 
     const uint16_t sigfrx_marks[18] = {
         10, 8, 0,
