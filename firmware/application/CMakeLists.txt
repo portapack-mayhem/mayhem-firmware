@@ -175,6 +175,7 @@ set(CPPSRC
 	#emu_cc1101.cpp
 	rfm69.cpp
 	event_m0.cpp
+	file_reader.cpp
 	file.cpp
 	freqman.cpp
 	io_file.cpp

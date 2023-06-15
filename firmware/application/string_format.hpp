@@ -25,6 +25,7 @@
 #include <cstdint>
 #include <array>
 #include <string>
+#include <string_view>
 
 #include "file.hpp"
 
@@ -66,10 +67,10 @@ std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 std::string to_string_file_size(uint32_t file_size);
 
 std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision);
-double get_decimals(double num, int16_t mult, bool round = false);  // euquiq added
+double get_decimals(double num, int16_t mult, bool round = false);
 
-std::string trim(const std::string& str);   // Remove whitespace at ends.
-std::string trimr(const std::string& str);  // Remove trailing spaces
-std::string truncate(const std::string& str, size_t length);
+std::string trim(std::string_view str);   // Remove whitespace at ends.
+std::string trimr(std::string_view str);  // Remove trailing spaces
+std::string truncate(std::string_view, size_t length);
 
 #endif /*__STRING_FORMAT_H__*/
