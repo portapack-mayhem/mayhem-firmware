@@ -63,10 +63,12 @@ class PlaylistView : public View {
         rf::Frequency replay_frequency{0};
         std::string replay_file{};
         uint32_t sample_rate{};
-        uint32_t next_delay{};
+        uint32_t initial_delay{};
     };
 
     std::unique_ptr<ReplayThread> replay_thread_{};
+    bool ready_signal_{}; // Used to signal the ReplayThread.
+
     size_t current_track_{0};
     const playlist_entry* current_entry_{};
     std::vector<playlist_entry> playlist_db_{};
@@ -74,7 +76,9 @@ class PlaylistView : public View {
 
     void load_file(const std::filesystem::path& path);
     void on_file_changed(const std::filesystem::path& path);
-    void show_file_error(const std::string& message);
+    void show_file_error(
+        const std::filesystem::path& path
+        const std::string& message);
 
     bool is_active() const;
     bool loop() const;
@@ -82,17 +86,19 @@ class PlaylistView : public View {
 
     void toggle();
     void start();
-    void play_next();
-    void stop(bool do_loop);
+    void next_track();
+    void send_current_track();
+    void stop();
 
+    void update_ui();
+
+    /* There are called by Message handlers. */
     void on_tx_progress(uint32_t progress);
     void handle_replay_thread_done(uint32_t return_code);
-    void reset_playlist();
-    void update_ui();
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
-        "Open file"};
+        "Open PPL"};
 
     Text text_filename{
         {11 * 8, 0 * 16, 12 * 8, 16},
@@ -136,31 +142,31 @@ class PlaylistView : public View {
 
     Text text_track{
         {0 * 8, 3 * 16, 16 * 8, 16},
-        "0/0 no input playlist file"};
+        "Open a playlist file."};
 
     spectrum::WaterfallWidget waterfall{};
 
     MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,
-        [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-            this->handle_replay_thread_done(message.return_code);
+        [this](const Message* p) {
+            auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            handle_replay_thread_done(message.return_code);
         }};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,
-        [this](const Message* const p) {
-            const auto message = static_cast<const RequestSignalMessage*>(p);
+        [this](const Message* p) {
+            auto message = static_cast<const RequestSignalMessage*>(p);
             if (message->signal == RequestSignalMessage::Signal::FillRequest) {
-                this->set_ready();
+                ready_signal_ = true;
             }
         }};
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
-        [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-            this->on_tx_progress(message.progress);
+        [this](const Message* p) {
+            auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            on_tx_progress(message.progress);
         }};
 };
 

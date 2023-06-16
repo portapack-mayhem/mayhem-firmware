@@ -36,10 +36,11 @@
 #include <fstream>
 
 using namespace portapack;
+using fs = std::filesystem;
 
 namespace ui {
 
-void PlaylistView::load_file(std::filesystem::path playlist_path) {
+void PlaylistView::load_file(const fs::path& playlist_path) {
     File playlist_file;
     auto error = playlist_file.open(playlist_path.string());
 
@@ -63,7 +64,7 @@ void PlaylistView::load_file(std::filesystem::path playlist_path) {
             entry.replay_file = std::string{"/"} + std::string{cols[1]};
 
             if (cols.size() == 4)  // Optional delay value.
-                parse_int(cols[3], entry.next_delay);
+                parse_int(cols[3], entry.initial_delay);
 
             playlist_db.emplace_back(std::move(entry));
         }
@@ -102,14 +103,14 @@ void stuff() {
     // tracks_progressbar.set_value(track_number);
 }
 
-void PlaylistView::on_file_changed(const std::filesystem::path& new_file_path) {
+void PlaylistView::on_file_changed(const fs::path& new_file_path) {
     playlist_path_ = new_file_path;
     load_file(playlist_path_);
     update_ui();
 }
 
-void PlaylistView::file_error(std::string error_message) {
-    nav_.display_modal("Error", "Error for \n" + file_path.string() + "\n" + error_message);
+void PlaylistView::show_file_error(const fs::path& path, const std::string& message) {
+    nav_.display_modal("Error", "Error opening file \n" + path.string() + "\n" + message);
 }
 
 bool PlaylistView::is_active() const {
@@ -170,20 +171,63 @@ void PlaylistView::start() {
 }
 
 /* Advance to the next track in the playlist. */
-void PlaylistView::play_next() {
+bool PlaylistView::next_track() {
     if (at_end()) {
         if (loop())
-            ; //restart
+            current_track_ = 0;
         else
-            stop();
-    }
+            return false; // All done.
+    } 
 
     current_entry_ = &playlist_db_[current_track_];
     current_track_++;
+
+    // TODO: send here?
+}
+
+void PlaylistView::send_current_track() {
+    replay_thread_.reset();
+    ready_signal_ = false;
+
+    if (!current_entry_)
+        return;
+
+    // Open the sample file to send.
+    auto reader = std::make_unique<FileReader>();
+    auto error = reader->.open(current_entry_->replay_file);
+    if (error) {
+        show_file_error(current_entry_->replay_file, "Can't open file to send.");
+        return;
+    }
+
+    // Wait a bit before sending if specified.
+    // TODO: this pauses the main thread, move into ReplayThread instead.
+    if (current_entry_->initial_delay > 0)
+        chThdSleepMilliseconds(current_entry_->initial_delay);
+
+    // ReplayThread starts immediately on contruction so
+    // these need to be set before creating the ReplayThread.
+    transmitter_model.set_target_frequency(current_entry_->replay_frequency);
+    transmitter_model.set_sampling_rate(current_entry_->sample_rate * 8);
+    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
+    transmitter_model.enable();
+
+    // Use the ReplayThread class to send the data.
+    replay_thread_ = std::make_unique<ReplayThread>(
+        std::move(reader),
+        /* read_size */ 0xFFFF,
+        /* buffer_count */ 3,
+        &ready_signal_,
+        [](uint32_t return_code) {
+            // TODO: even needed?
+            ReplayThreadDoneMessage message{return_code};
+            EventDispatcher::send_message(message);
+        });
 }
 
 void PlaylistView::stop() {
-    replay_thread.reset();
+    // This will terminate the underlying chThread.
+    replay_thread_.reset();
     transmitter_model.disable();
     update_ui();
 }
@@ -194,12 +238,15 @@ void PlaylistView::on_tx_progress(uint32_t progress) {
 
 void PlaylistView::handle_replay_thread_done(uint32_t return_code) {
     if (return_code == ReplayThread::END_OF_FILE) {
-        play_next();
-        return;
+        if (next_track()) {
+          sent_current_track();
+          return;
+        }
     }
     
     if (return_code == ReplayThread::READ_ERROR)
         file_error("Replay thread read error");
+
     stop();
 }
 
