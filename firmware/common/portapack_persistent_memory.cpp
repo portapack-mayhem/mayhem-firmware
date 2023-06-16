@@ -97,7 +97,7 @@ struct ui_config_t {
         HideClock = 25,
         ClockWithDate = 26,
         ClkOutEnabled = 27,
-        ConfigSpeaker = 28,
+        ConfigSpeakerMute = 28,
         StealthMode = 29,
         ConfigLogin = 30,
         ConfigSplash = 31,
@@ -216,12 +216,12 @@ struct ui_config_t {
         bit_write(bits_t::ClkOutEnabled, v);
     }
 
-    constexpr bool config_speaker() const {
-        return bit_read(bits_t::ConfigSpeaker);
+    constexpr bool config_speaker_mute() const {
+        return bit_read(bits_t::ConfigSpeakerMute);
     }
 
-    constexpr void set_config_speaker(bool v) {
-        bit_write(bits_t::ConfigSpeaker, v);
+    constexpr void set_config_speaker_mute(bool v) {
+        bit_write(bits_t::ConfigSpeakerMute, v);
     }
 
     constexpr bool stealth_mode() const {
@@ -250,7 +250,7 @@ struct ui_config_t {
 
     constexpr ui_config_t()
         : values(
-              (1 << ConfigSplash) | (1 << ConfigSpeaker) | (clkout_freq_reset_value << ClkoutFreqLSB) | (7 << BacklightTimeoutLSB)) {
+              (1 << ConfigSplash) | (clkout_freq_reset_value << ClkoutFreqLSB) | (7 << BacklightTimeoutLSB)) {
     }
 };
 
@@ -608,8 +608,8 @@ bool clkout_enabled() {
     return data->ui_config.clkout_enabled();
 }
 
-bool config_speaker() {
-    return data->ui_config.config_speaker();
+bool config_speaker_mute() {
+    return data->ui_config.config_speaker_mute();
 }
 
 bool stealth_mode() {
@@ -664,8 +664,8 @@ void set_clkout_enabled(bool v) {
     data->ui_config.set_clkout_enabled(v);
 }
 
-void set_config_speaker(bool v) {
-    data->ui_config.set_config_speaker(v);
+void set_config_speaker_mute(bool v) {
+    data->ui_config.set_config_speaker_mute(v);
 }
 
 void set_stealth_mode(bool v) {
