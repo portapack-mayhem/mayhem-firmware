@@ -201,8 +201,7 @@ void EncodersView::focus() {
 
 EncodersView::~EncodersView() {
     transmitter_model.disable();
-    hackrf::cpld::load_sram_no_verify();  // ghost signal c/m to the problem at the exit .
-    baseband::shutdown();                 // better this function after load_sram()
+    baseband::shutdown();
 }
 
 void EncodersView::update_progress() {
