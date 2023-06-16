@@ -2,6 +2,7 @@
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyleft  (ↄ) 2022 NotPike
+ * Copyright (C) 2023 Kyle Reed, zxkmm
  *
  * This file is part of PortaPack.
  *
@@ -44,67 +45,39 @@ void PlaylistView::load_file(const fs::path& playlist_path) {
     File playlist_file;
     auto error = playlist_file.open(playlist_path.string());
 
-    if (!error) {
-        auto reader = FileLineReader(playlist_file);
-        for (const auto& line : reader) {
-            if (line.length() == 0 || line[0] == '#')
-                continue;  // Empty or comment line.
+    if (error)
+      return;
 
-            auto cols = split_string(line, ',');
-            if (cols.size() < 3)
-                continue;  // Line doesn't have enough columns.
+    auto reader = FileLineReader(playlist_file);
+    for (const auto& line : reader) {
+        if (line.length() == 0 || line[0] == '#')
+            continue;  // Empty or comment line.
 
-            playlist_entry entry{};
+        auto cols = split_string(line, ',');
+        if (cols.size() < 3)
+            continue;  // Line doesn't have enough columns.
 
-            parse_int(cols[0], entry.replay_frequency);
-            parse_int(cols[2], entry.sample_rate);
-            if (entry.replay_frequency == 0 || entry.sample_rate == 0)
-                continue;  // Invalid freq or rate.
+        playlist_entry entry{};
 
-            entry.replay_file = std::string{"/"} + std::string{cols[1]};
+        parse_int(cols[0], entry.replay_frequency);
+        parse_int(cols[2], entry.sample_rate);
+        if (entry.replay_frequency == 0 || entry.sample_rate == 0)
+            continue;  // Invalid freq or rate.
 
-            if (cols.size() == 4)  // Optional delay value.
-                parse_int(cols[3], entry.initial_delay);
+        entry.replay_file = std::string{"/"} + std::string{cols[1]};
 
-            playlist_db.emplace_back(std::move(entry));
-        }
+        if (cols.size() == 4)  // Optional delay value.
+            parse_int(cols[3], entry.initial_delay);
+
+        playlist_db.emplace_back(std::move(entry));
     }
 }
 
-void stuff() {
-    // File data_file;
-
-    // // Get file size
-    // auto error = data_file.open("/" + new_file_path.string());
-
-    // if (error) {
-    //     file_error("C16 file\n" + new_file_path.string() + "\nread error.");
-    //     return;
-    // }
-
-    // track_number = track_number >= total_tracks ? 1 : track_number + 1;  // prevent track_number out of range
-
-    // file_path = new_file_path;
-    // field_frequency.set_value(replay_frequency);
-
-    // sample_rate = replay_sample_rate;
-
-    // text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
-
-    // now_delay = next_delay;
-
-    // auto file_size = data_file.size();
-    // auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
-
-    // on_track_progressbar.set_max(file_size);
-    // text_filename.set(file_path.filename().string().substr(0, 12));
-    // text_duration.set(to_string_time_ms(duration));
-    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
-    // tracks_progressbar.set_value(track_number);
-}
-
 void PlaylistView::on_file_changed(const fs::path& new_file_path) {
+    stop();
     playlist_path_ = new_file_path;
+    current_track_ = 0;
+    playlist_db_.clear();
     load_file(playlist_path_);
     update_ui();
 }
@@ -121,7 +94,7 @@ bool PlaylistView::loop() const {
     return check_loop.value();
 }
 
-bool PlaylistView::at_end() const {
+bool PlaylistView::is_done() const {
     current_track_ >= playlist_db_.size();
 }
 
@@ -133,46 +106,18 @@ void PlaylistView::toggle() {
 }
 
 void PlaylistView::start() {
-    /*playlist_entry item = playlist_db.front();
-    playlist_db.pop_front();
-    on_file_changed(item.replay_file, item.replay_frequency, item.sample_rate, item.next_delay);
-    transmitter_model.set_target_frequency(item.replay_frequency);
+  current_track_ = 0;
 
-    std::unique_ptr<stream::Reader> reader;
+  if (playlist_db_.empty())
+      return; // Nothing to do.
 
-    auto p = std::make_unique<FileReader>();
-    auto open_error = p->open(file_path);
-    if (open_error.is_valid()) {
-        file_error("Illegal grammar");
-        return;  // Fixes TX bug if there's a file error
-    } else {
-        reader = std::move(p);
-    }
-
-    if (reader) {
-        button_play.set_bitmap(&bitmap_stop);
-        if (now_delay) {  // this `if` is because, if the delay is 0, it will sleep forever
-            chThdSleepMilliseconds(now_delay);
-        }
-
-        replay_thread = std::make_unique<ReplayThread>(
-            std::move(reader),
-            read_size, buffer_count,
-            &ready_signal,
-            [](uint32_t return_code) {
-                ReplayThreadDoneMessage message{return_code};
-                EventDispatcher::send_message(message);
-            });
-    }
-
-    transmitter_model.set_sampling_rate(sample_rate * 8);
-    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
-    transmitter_model.enable();*/
+  if (next_track())
+     send_current_track();
 }
 
 /* Advance to the next track in the playlist. */
 bool PlaylistView::next_track() {
-    if (at_end()) {
+    if (is_done()) {
         if (loop())
             current_track_ = 0;
         else
@@ -181,8 +126,6 @@ bool PlaylistView::next_track() {
 
     current_entry_ = &playlist_db_[current_track_];
     current_track_++;
-
-    // TODO: send here?
 }
 
 void PlaylistView::send_current_track() {
@@ -226,10 +169,49 @@ void PlaylistView::send_current_track() {
 }
 
 void PlaylistView::stop() {
-    // This will terminate the underlying chThread.
+    // This terminates the underlying chThread.
     replay_thread_.reset();
     transmitter_model.disable();
     update_ui();
+}
+
+void update_ui() {
+
+    // File data_file;
+
+    // // Get file size
+    // auto error = data_file.open("/" + new_file_path.string());
+
+    // if (error) {
+    //     file_error("C16 file\n" + new_file_path.string() + "\nread error.");
+    //     return;
+    // }
+
+    // track_number = track_number >= total_tracks ? 1 : track_number + 1;  // prevent track_number out of range
+
+    // file_path = new_file_path;
+    // field_frequency.set_value(replay_frequency);
+
+    // sample_rate = replay_sample_rate;
+
+    // text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
+
+    // now_delay = next_delay;
+
+    // auto file_size = data_file.size();
+    // auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
+
+    // on_track_progressbar.set_max(file_size);
+    // text_filename.set(file_path.filename().string().substr(0, 12));
+    // text_duration.set(to_string_time_ms(duration));
+    // text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
+    // tracks_progressbar.set_value(track_number);
+
+    button_play.set_bitmap(is_active() ? &bitmap_stop : &bitmap_play);
+    total_tracks = playlist_db.size();
+    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
+    tracks_progressbar.set_max(total_tracks);
+    button_play.focus();
 }
 
 void PlaylistView::on_tx_progress(uint32_t progress) {
@@ -245,23 +227,9 @@ void PlaylistView::handle_replay_thread_done(uint32_t return_code) {
     }
     
     if (return_code == ReplayThread::READ_ERROR)
-        file_error("Replay thread read error");
+        file_error(current_entry_->replay_file, "Replay thread read error");
 
     stop();
-}
-
-void PlaylistView::reset_playlist() {
-    track_number = 0;
-    playlist_db.clear();
-}
-
-void update_ui() {
-    button_play.set_bitmap(&bitmap_play);
-    total_tracks = playlist_db.size();
-    playlist_masterdb = playlist_db;
-    text_track.set(to_string_dec_uint(track_number) + "/" + to_string_dec_uint(total_tracks) + " " + now_play_list_file.string());
-    tracks_progressbar.set_max(total_tracks);
-    button_play.focus();
 }
 
 PlaylistView::PlaylistView(
@@ -287,6 +255,7 @@ PlaylistView::PlaylistView(
     waterfall.show_audio_spectrum_view(false);
 
     // TODO: Freq field needed? Don't the freqs come the file?
+    // Just use a normal text field?
     // Could just make this a read-only field.
     field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.set_step(receiver_model.frequency_step());
@@ -297,14 +266,14 @@ PlaylistView::PlaylistView(
         // TODO: Provide separate modal method/scheme?
         auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->field_frequency.set_value(f);
+            field_frequency.set_value(f);
         };
     };
     field_frequency.set_step(5000);
     // ----------------------------------------------------------
 
     button_play.on_select = [this](ImageButton&) {
-        this->toggle();
+        toggle();
     };
 
     button_open.on_select = [this, &nav](Button&) {
