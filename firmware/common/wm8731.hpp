@@ -320,8 +320,9 @@ class WM8731 : public audio::Codec {
 
     void set_headphone_volume(const volume_t volume) override {
         headphone_volume = volume;
-        if (!mute_speaker_and_headphone)
+        if (!mute_speaker_and_headphone) {
             set_wm_headphone_volume(volume);
+        }
     }
 
     volume_range_t headphone_gain_range() const override {
@@ -338,25 +339,31 @@ class WM8731 : public audio::Codec {
     }
 
     void headphone_enable() override {
-        if (!mute_speaker_and_headphone)
+        headphone_was_enabled = true;
+        if (!mute_speaker_and_headphone) {
             set_wm_headphone_volume(headphone_volume);
+        }
     }
 
     void headphone_disable() override {
+        headphone_was_enabled = false;
         headphone_mute();
     }
 
     void speaker_enable(){
         mute_speaker_and_headphone = false;
-        headphone_enable();
+        // Restore headphone state if it was requested to be enabled
+        if (headphone_was_enabled) {
+            set_wm_headphone_volume(headphone_volume);
+        }
     }
 
     void speaker_disable(){
-        // On WM8731 only, the navigation bar "speaker mute" option also mutes headphones due to IC limitations.
-        // If there's a GPIO bit to shutdown the CS8122S/LTK8002D speaker amp then we don't know about it (TBD).
-        // On "some" PortaPack boards the speaker is electrically disabled when headphones are plugged in.
+        // On WM8731, the navigation bar "speaker mute" option also mutes headphones due to IC limitations.
+        // If there's a GPIO bit to shutdown the CS8122S/LTK8002D speaker amp only then we don't know about it (TBD).
+        // On some PortaPack boards the speaker is electrically disabled when headphones are plugged in.
         mute_speaker_and_headphone = true;
-        headphone_disable();
+        headphone_mute();
     }
 
     void microphone_enable(int8_t wm8731_boost_GUI) override {
@@ -403,6 +410,7 @@ class WM8731 : public audio::Codec {
     RegisterMap map{default_after_reset};
     volume_t headphone_volume = -60.0_dB;
     bool mute_speaker_and_headphone = false;
+    bool headphone_was_enabled = false;
 
     void configure_interface_i2s_slave();
     void configure_interface_i2s_master();
