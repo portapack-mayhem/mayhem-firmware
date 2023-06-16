@@ -34,20 +34,17 @@
 
 #include <string>
 #include <memory>
-#include <deque>
+#include <vector>
 
 namespace ui {
 
 class PlaylistView : public View {
    public:
     PlaylistView(NavigationView& nav);
-
     ~PlaylistView();
 
+    void set_parent_rect(Rect new_parent_rect) override;
     void on_hide() override;
-
-    void set_parent_rect(const Rect new_parent_rect) override;
-
     void focus() override;
 
     std::string title() const override { return "Playlist"; };
@@ -58,8 +55,9 @@ class PlaylistView : public View {
     app_settings::SettingsManager settings_{
         "tx_playlist", app_settings::Mode::TX};
 
-    // add or remove lines here to allow more header and less spectrum view, & vice versa
+    // More header == less spectrum view.
     static constexpr ui::Dim header_height = 4 * 16;
+    static constexpr uint32_t baseband_bandwidth = 2500000;
 
     struct playlist_entry {
         rf::Frequency replay_frequency{0};
@@ -67,37 +65,30 @@ class PlaylistView : public View {
         uint32_t sample_rate{};
         uint32_t next_delay{};
     };
-    std::deque<playlist_entry> playlist_db{};
-    std::deque<playlist_entry> playlist_masterdb{};
-    uint32_t sample_rate = 0;
-    int32_t tx_gain{47};
-    bool rf_amp{true};  // aux private var to store temporal, Replay App rf_amp user selection.
-    static constexpr uint32_t baseband_bandwidth = 2500000;
-    const size_t read_size{16384};
-    const size_t buffer_count{3};
 
-    void load_file(std::filesystem::path playlist_path);
-    void on_file_changed(std::filesystem::path new_file_path, rf::Frequency replay_frequency, uint32_t replay_sample_rate, uint32_t next_delay);
-    void on_tx_progress(const uint32_t progress);
-    void set_target_frequency(const rf::Frequency new_value);
-    rf::Frequency target_frequency() const;
-    void toggle();
-    void start();
-    void stop(const bool do_loop);
+    std::unique_ptr<ReplayThread> replay_thread_{};
+    size_t current_track_{0};
+    const playlist_entry* current_entry_{};
+    std::vector<playlist_entry> playlist_db_{};
+    std::filesystem::path playlist_path_{};
+
+    void load_file(const std::filesystem::path& path);
+    void on_file_changed(const std::filesystem::path& path);
+    void show_file_error(const std::string& message);
+
     bool is_active() const;
     bool loop() const;
-    void set_ready();
-    void handle_replay_thread_done(const uint32_t return_code);
-    void file_error(std::string error_message);
-    void clean_playlist();
+    bool at_end() const;
 
-    std::filesystem::path file_path{};
-    std::unique_ptr<ReplayThread> replay_thread{};
-    bool ready_signal{false};
-    size_t track_number{0};
-    size_t total_tracks{0};
-    uint32_t now_delay{0};
-    std::filesystem::path now_play_list_file{};
+    void toggle();
+    void start();
+    void play_next();
+    void stop(bool do_loop);
+
+    void on_tx_progress(uint32_t progress);
+    void handle_replay_thread_done(uint32_t return_code);
+    void reset_playlist();
+    void update_ui();
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -106,6 +97,7 @@ class PlaylistView : public View {
     Text text_filename{
         {11 * 8, 0 * 16, 12 * 8, 16},
         "-"};
+
     Text text_sample_rate{
         {24 * 8, 0 * 16, 6 * 8, 16},
         "-"};
@@ -113,6 +105,7 @@ class PlaylistView : public View {
     Text text_duration{
         {11 * 8, 1 * 16, 6 * 8, 16},
         "-"};
+
     ProgressBar tracks_progressbar{
         {18 * 8, 1 * 16, 12 * 8, 8}};
 
@@ -134,6 +127,7 @@ class PlaylistView : public View {
         4,
         "Loop",
         true};
+
     ImageButton button_play{
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
