@@ -30,6 +30,15 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+void ReconView::set_loop_config(bool v) {
+    continuous = v;
+    if (v)
+        button_loop_config.set_style(&Styles::green);
+    else
+        button_loop_config.set_style(&Styles::white);
+    persistent_memory::set_recon_continuous(continuous);
+}
+
 void ReconView::clear_freqlist_for_ui_action() {
     audio::output::stop();
     // flag to detect and reload frequency_list
@@ -529,20 +538,12 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_loop_config.on_select = [this](Button&) {
-        if (continuous) {
-            continuous = false;
-            button_loop_config.set_style(&Styles::white);
-        } else {
-            continuous = true;
-            button_loop_config.set_style(&Styles::green);
-        }
-        persistent_memory::set_recon_continuous(continuous);
+        if (continuous)
+            set_loop_config(false);
+        else
+            set_loop_config(true);
     };
-    if (continuous) {
-        button_loop_config.set_style(&Styles::green);
-    } else {
-        button_loop_config.set_style(&Styles::white);
-    }
+    set_loop_config(continuous);
 
     rssi.set_focusable(true);
     rssi.set_peak(true, 500);

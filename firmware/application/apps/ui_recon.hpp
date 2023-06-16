@@ -65,6 +65,7 @@ class ReconView : public View {
     app_settings::SettingsManager settings_{
         "rx_recon", app_settings::Mode::RX};
 
+    void set_loop_config(bool v);
     void clear_freqlist_for_ui_action();
     void reset_indexes();
     void audio_output_start();
@@ -84,6 +85,7 @@ class ReconView : public View {
     bool recon_load_config_from_sd();
     bool recon_save_config_to_sd();
     bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
+
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
     int32_t squelch{0};
     int32_t db{0};
@@ -105,40 +107,40 @@ class ReconView : public View {
     bool load_hamradios = {true};
     bool update_ranges = {true};
     bool fwd = {true};
-    bool recon = true;
-    bool user_pause = false;
+    bool recon = {true};
+    bool user_pause = {false};
     uint32_t recon_lock_nb_match = {3};
     uint32_t recon_lock_duration = {RECON_MIN_LOCK_DURATION};
     uint32_t recon_match_mode = {RECON_MATCH_CONTINUOUS};
     bool scanner_mode{false};
     bool manual_mode{false};
-    bool sd_card_mounted = false;
-    int32_t stepper = 0;
-    int32_t index_stepper = 0;
-    int64_t freq = 0;
-    uint32_t step = 0;
-    freqman_index_t def_modulation = 0;
-    freqman_index_t def_bandwidth = 0;
-    freqman_index_t def_step = 0;
-    tone_index tone = 0;
+    bool sd_card_mounted = {false};
+    int32_t stepper = {0};
+    int32_t index_stepper = {0};
+    int64_t freq = {0};
+    uint32_t step = {0};
+    freqman_index_t def_modulation = {0};
+    freqman_index_t def_bandwidth = {0};
+    freqman_index_t def_step = {0};
+    tone_index tone = {0};
     freqman_entry last_entry = {};
-    bool entry_has_changed = false;
+    bool entry_has_changed = {false};
     uint32_t freq_lock{0};
-    int64_t minfreq = 0;
-    int64_t maxfreq = 0;
-    bool has_looped = false;
-    int8_t status = -1;  // 0 recon , 1 locking , 2 locked
-    int32_t last_timer = -1;
-    int8_t last_db = -127;
-    uint16_t last_nb_match = 999;
-    uint16_t last_freq_lock = 999;
-    size_t last_list_size = 0;
-    int8_t last_rssi_min = -127;
-    int8_t last_rssi_med = -127;
-    int8_t last_rssi_max = -127;
-    int32_t last_index = -1;
-    int32_t last_squelch_index = -1;
-    int64_t last_freq = 0;
+    int64_t minfreq = {0};
+    int64_t maxfreq = {0};
+    bool has_looped = {false};
+    int8_t status = {-1};  // 0 recon , 1 locking , 2 locked
+    int32_t last_timer = {-1};
+    int8_t last_db = {-127};
+    uint16_t last_nb_match = {999};
+    uint16_t last_freq_lock = {999};
+    size_t last_list_size = {0};
+    int8_t last_rssi_min = {-127};
+    int8_t last_rssi_med = {-127};
+    int8_t last_rssi_max = {-127};
+    int32_t last_index = {-1};
+    int32_t last_squelch_index = {-1};
+    int64_t last_freq = {0};
     std::string freq_file_path = {};
 
     Labels labels{
