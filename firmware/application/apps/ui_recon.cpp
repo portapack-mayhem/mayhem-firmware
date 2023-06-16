@@ -32,10 +32,7 @@ namespace ui {
 
 void ReconView::set_loop_config(bool v) {
     continuous = v;
-    if (v)
-        button_loop_config.set_style(&Styles::green);
-    else
-        button_loop_config.set_style(&Styles::white);
+    button_loop_config.set_style(v ? &Styles::green : &Styles::white);
     persistent_memory::set_recon_continuous(continuous);
 }
 
