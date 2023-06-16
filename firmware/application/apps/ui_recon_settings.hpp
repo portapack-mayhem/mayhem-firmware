@@ -71,8 +71,8 @@ class ReconSetupViewMain : public View {
     void focus() override;
 
    private:
-    std::string _input_file = {"RECON"};
-    std::string _output_file = {"RECON_RESULTS"};
+    std::string _input_file{"RECON"};
+    std::string _output_file{"RECON_RESULTS"};
 
     Button button_load_freqs{
         {1 * 8, 12, 18 * 8, 22},
@@ -98,12 +98,8 @@ class ReconSetupViewMain : public View {
         3,
         "autostart recon"};
 
-    Checkbox checkbox_continuous{
-        {1 * 8, 11 * 16 - 4},
-        3,
-        "continuous"};
     Checkbox checkbox_clear_output{
-        {1 * 8, 13 * 16 - 4},
+        {1 * 8, 11 * 16 - 4},
         3,
         "clear output at start"};
 };
@@ -151,10 +147,10 @@ class ReconSetupView : public View {
    private:
     NavigationView& nav_;
 
-    std::string input_file = {"RECON"};
-    std::string output_file = {"RECON_RESULTS"};
+    std::string input_file{"RECON"};
+    std::string output_file{"RECON_RESULTS"};
 
-    Rect view_rect = {0, 3 * 8, SCREEN_W, 230};
+    Rect view_rect{0, 3 * 8, SCREEN_W, 230};
 
     ReconSetupViewMain viewMain{nav_, view_rect, input_file, output_file};
     ReconSetupViewMore viewMore{nav_, view_rect};

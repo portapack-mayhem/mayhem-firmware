@@ -65,6 +65,7 @@ class ReconView : public View {
     app_settings::SettingsManager settings_{
         "rx_recon", app_settings::Mode::RX};
 
+    void set_loop_config(bool v);
     void clear_freqlist_for_ui_action();
     void reset_indexes();
     void audio_output_start();
@@ -84,68 +85,69 @@ class ReconView : public View {
     bool recon_load_config_from_sd();
     bool recon_save_config_to_sd();
     bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
+
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
     int32_t squelch{0};
     int32_t db{0};
     int32_t timer{0};
     int32_t wait{RECON_DEF_WAIT_DURATION};  // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
-    freqman_db frequency_list = {};
+    freqman_db frequency_list{};
     int32_t current_index{0};
     bool continuous_lock{false};
     bool freqlist_cleared_for_ui_action{false};  // flag positioned by ui widgets to manage freqlist unload/load
-    std::string input_file = {"RECON"};
-    std::string output_file = {"RECON_RESULTS"};
-    std::string description = {"...no description..."};
-    bool autosave = {true};
-    bool autostart = {true};
-    bool continuous = {true};
-    bool filedelete = {true};
-    bool load_freqs = {true};
-    bool load_ranges = {true};
-    bool load_hamradios = {true};
-    bool update_ranges = {true};
-    bool fwd = {true};
-    bool recon = true;
-    bool user_pause = false;
-    uint32_t recon_lock_nb_match = {3};
-    uint32_t recon_lock_duration = {RECON_MIN_LOCK_DURATION};
-    uint32_t recon_match_mode = {RECON_MATCH_CONTINUOUS};
+    std::string input_file{"RECON"};
+    std::string output_file{"RECON_RESULTS"};
+    std::string description{"...no description..."};
+    bool autosave{true};
+    bool autostart{true};
+    bool continuous{true};
+    bool filedelete{true};
+    bool load_freqs{true};
+    bool load_ranges{true};
+    bool load_hamradios{true};
+    bool update_ranges{true};
+    bool fwd{true};
+    bool recon{true};
+    bool user_pause{false};
+    uint32_t recon_lock_nb_match{3};
+    uint32_t recon_lock_duration{RECON_MIN_LOCK_DURATION};
+    uint32_t recon_match_mode{RECON_MATCH_CONTINUOUS};
     bool scanner_mode{false};
     bool manual_mode{false};
-    bool sd_card_mounted = false;
-    int32_t stepper = 0;
-    int32_t index_stepper = 0;
-    int64_t freq = 0;
-    uint32_t step = 0;
-    freqman_index_t def_modulation = 0;
-    freqman_index_t def_bandwidth = 0;
-    freqman_index_t def_step = 0;
-    tone_index tone = 0;
-    freqman_entry last_entry = {};
-    bool entry_has_changed = false;
+    bool sd_card_mounted{false};
+    int32_t stepper{0};
+    int32_t index_stepper{0};
+    int64_t freq{0};
+    uint32_t step{0};
+    freqman_index_t def_modulation{0};
+    freqman_index_t def_bandwidth{0};
+    freqman_index_t def_step{0};
+    tone_index tone{0};
+    freqman_entry last_entry{};
+    bool entry_has_changed{false};
     uint32_t freq_lock{0};
-    int64_t minfreq = 0;
-    int64_t maxfreq = 0;
-    bool has_looped = false;
-    int8_t status = -1;  // 0 recon , 1 locking , 2 locked
-    int32_t last_timer = -1;
-    int8_t last_db = -127;
-    uint16_t last_nb_match = 999;
-    uint16_t last_freq_lock = 999;
-    size_t last_list_size = 0;
-    int8_t last_rssi_min = -127;
-    int8_t last_rssi_med = -127;
-    int8_t last_rssi_max = -127;
-    int32_t last_index = -1;
-    int32_t last_squelch_index = -1;
-    int64_t last_freq = 0;
-    std::string freq_file_path = {};
+    int64_t minfreq{0};
+    int64_t maxfreq{0};
+    bool has_looped{false};
+    int8_t status{-1};  // 0 recon , 1 locking , 2 locked
+    int32_t last_timer{-1};
+    int8_t last_db{-127};
+    uint16_t last_nb_match{999};
+    uint16_t last_freq_lock{999};
+    size_t last_list_size{0};
+    int8_t last_rssi_min{-127};
+    int8_t last_rssi_med{-127};
+    int8_t last_rssi_max{-127};
+    int32_t last_index{-1};
+    int32_t last_squelch_index{-1};
+    int64_t last_freq{0};
+    std::string freq_file_path{};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
         {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
         {{0 * 8, (22 * 8)}, "                S:          ", Color::light_grey()},
-        {{0 * 8, (24 * 8) + 4}, "NBLCK: x      W,L:      ,     ", Color::light_grey()},
+        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Color::light_grey()},
         {{0 * 8, (26 * 8) + 4}, "MODE:    ,       SQUELCH:    ", Color::light_grey()}};
 
     LNAGainField field_lna{
@@ -160,26 +162,31 @@ class ReconView : public View {
     AudioVolumeField field_volume{
         {24 * 8, 0 * 16}};
 
+    Text file_name{
+        // show file used
+        {0, 1 * 16, SCREEN_W, 16},
+    };
+
+    Text desc_cycle{
+        {0, 2 * 16, SCREEN_W, 16},
+    };
+
     RSSI rssi{
-        {0 * 16, 2 * 16 + 2, SCREEN_W - 8 * 8 + 4, 12},
+        {0 * 16, 3 * 16 + 2, SCREEN_W - 8 * 8 + 4, 12},
     };
 
     ButtonWithEncoder text_cycle{
-        {0, 3 * 16, 4 * 8, 16},
+        {0, 4 * 16, 4 * 8, 16},
         ""};
 
     // "/XXX -XXX db" =>  12 chars max
     Text text_max{
-        {4 * 8, 3 * 16, 12 * 8, 16},
+        {4 * 8, 4 * 16, 12 * 8, 16},
     };
 
     // "XX/XX" =>  5 chars max
     Text text_nb_locks{
-        {16 * 8, 3 * 16, 5 * 8, 16},
-    };
-
-    Text desc_cycle{
-        {0, 4 * 16, SCREEN_W, 16},
+        {16 * 8, 4 * 16, 5 * 8, 16},
     };
 
     Text big_display{
@@ -203,23 +210,18 @@ class ReconView : public View {
         {14 * 8, 7 * 16, 8 * 8, 1 * 8},
         ""};
 
-    Button button_config{
-        {SCREEN_W - 7 * 8, 2 * 16, 7 * 8, 28},
-        "CONFIG"};
-
-    Button button_looking_glass{
-        {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
-        "GLASS"};
-
     // Button can be RECON or SCANNER
     Button button_scanner_mode{
-        {SCREEN_W - 7 * 8, 7 * 16, 7 * 8, 28},
+        {SCREEN_W - 7 * 8, 3 * 16, 7 * 8, 28},
         "RECON"};
 
-    Text file_name{
-        // show file used
-        {0, 1 * 16, SCREEN_W, 16},
-    };
+    Button button_loop_config{
+        {SCREEN_W - 7 * 8, 5 * 16, 7 * 8, 28},
+        "[LOOP]"};
+
+    Button button_config{
+        {SCREEN_W - 7 * 8, 7 * 16, 7 * 8, 28},
+        "CONFIG"};
 
     ButtonWithEncoder button_manual_start{
         {0 * 8, 9 * 16, 11 * 8, 28},

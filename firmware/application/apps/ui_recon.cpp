@@ -30,6 +30,12 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+void ReconView::set_loop_config(bool v) {
+    continuous = v;
+    button_loop_config.set_style(v ? &Styles::green : &Styles::white);
+    persistent_memory::set_recon_continuous(continuous);
+}
+
 void ReconView::clear_freqlist_for_ui_action() {
     audio::output::stop();
     // flag to detect and reload frequency_list
@@ -93,9 +99,9 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
 
     auto result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
     if (!result.is_valid()) {
-        char one_char[1];  // Read it char by char
-        std::string line;  // and put read line in here
-        bool found = false;
+        char one_char[1]{};  // Read it char by char
+        std::string line{};  // and put read line in here
+        bool found{false};
         for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
             recon_file.seek(pointer);
             recon_file.read(one_char, 1);
@@ -128,16 +134,16 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
 }
 
 bool ReconView::recon_load_config_from_sd() {
-    File settings_file;
-    size_t length, file_position = 0;
-    char* pos;
-    char* line_start;
-    char* line_end;
-    char file_data[257];
-
-    uint32_t it = 0;
-    uint32_t nb_params = RECON_SETTINGS_NB_PARAMS;
-    std::string params[RECON_SETTINGS_NB_PARAMS];
+    File settings_file{};
+    size_t length{0};
+    size_t file_position{0};
+    char* pos{NULL};
+    char* line_start{NULL};
+    char* line_end{NULL};
+    char file_data[257]{};
+    uint32_t it{0};
+    uint32_t nb_params{RECON_SETTINGS_NB_PARAMS};
+    std::string params[RECON_SETTINGS_NB_PARAMS]{};
 
     make_new_directory(u"SETTINGS");
 
@@ -297,23 +303,12 @@ void ReconView::handle_retune() {
         if (last_entry.modulation != frequency_list[current_index].modulation && frequency_list[current_index].modulation >= 0) {
             last_entry.modulation = frequency_list[current_index].modulation;
             field_mode.set_selected_index(frequency_list[current_index].modulation);
+            last_entry.bandwidth = -1;
         }
         // Set bandwidth if any
         if (last_entry.bandwidth != frequency_list[current_index].bandwidth && frequency_list[current_index].bandwidth >= 0) {
             last_entry.bandwidth = frequency_list[current_index].bandwidth;
-            switch (frequency_list[current_index].modulation) {
-                case AM_MODULATION:
-                    receiver_model.set_am_configuration(freq);
-                    break;
-                case NFM_MODULATION:
-                    receiver_model.set_nbfm_configuration(freq);
-                    break;
-                case WFM_MODULATION:
-                    receiver_model.set_wfm_configuration(freq);
-                default:
-                    break;
-            }
-            field_bw.set_selected_index(freq);
+            field_bw.set_selected_index(frequency_list[current_index].bandwidth);
         }
         if (last_entry.step != frequency_list[current_index].step && frequency_list[current_index].step >= 0) {
             last_entry.step = frequency_list[current_index].step;
@@ -383,7 +378,7 @@ ReconView::ReconView(NavigationView& nav)
                   &field_lock_wait,
                   &button_config,
                   &button_scanner_mode,
-                  &button_looking_glass,
+                  &button_loop_config,
                   &file_name,
                   &rssi,
                   &text_cycle,
@@ -539,10 +534,10 @@ ReconView::ReconView(NavigationView& nav)
         nav_.push<AnalogAudioView>();
     };
 
-    button_looking_glass.on_select = [this](Button&) {
-        nav_.pop();
-        nav_.push<GlassView>();
+    button_loop_config.on_select = [this](Button&) {
+        set_loop_config(!continuous);
     };
+    set_loop_config(continuous);
 
     rssi.set_focusable(true);
     rssi.set_peak(true, 500);
@@ -603,7 +598,7 @@ ReconView::ReconView(NavigationView& nav)
                 }
                 // also remove from output file if in scanner mode
                 if (scanner_mode) {
-                    File freqman_file;
+                    File freqman_file{};
                     delete_file(freq_file_path);
                     auto result = freqman_file.create(freq_file_path);
                     if (!result.is_valid()) {
@@ -616,10 +611,10 @@ ReconView::ReconView(NavigationView& nav)
                 }
             } else if (manual_mode)  // only remove from output
             {
-                File recon_file;
-                File tmp_recon_file;
-                std::string tmp_freq_file_path = freq_file_path + ".TMP";
-                std::string frequency_to_add;
+                File recon_file{};
+                File tmp_recon_file{};
+                std::string tmp_freq_file_path{freq_file_path + ".TMP"};
+                std::string frequency_to_add{};
 
                 freqman_entry entry = frequency_list[current_index];
                 entry.frequency_a = freq;
@@ -636,8 +631,8 @@ ReconView::ReconView(NavigationView& nav)
                     bool found = false;
                     result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
                     if (!result.is_valid()) {
-                        char one_char[1];  // Read it char by char
-                        std::string line;  // and put read line in here
+                        char one_char[1]{};  // Read it char by char
+                        std::string line{};  // and put read line in here
                         for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
                             recon_file.seek(pointer);
                             recon_file.read(one_char, 1);
@@ -815,7 +810,6 @@ ReconView::ReconView(NavigationView& nav)
 
             autosave = persistent_memory::recon_autosave_freqs();
             autostart = persistent_memory::recon_autostart_recon();
-            continuous = persistent_memory::recon_continuous();
             filedelete = persistent_memory::recon_clear_output();
             load_freqs = persistent_memory::recon_load_freqs();
             load_ranges = persistent_memory::recon_load_ranges();
@@ -1341,9 +1335,10 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 }
 
 void ReconView::handle_coded_squelch(const uint32_t value) {
-    float diff, min_diff = value;
+    float diff{0.0};
+    float min_diff{(float)value};
     size_t min_idx{0};
-    size_t c;
+    size_t c{0};
 
     if (field_mode.selected_index() != NFM_MODULATION) {
         text_ctcss.set("        ");
