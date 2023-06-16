@@ -184,7 +184,7 @@ bool show_bigger_qr_code();
 bool hide_clock();
 bool clock_with_date();
 bool config_login();
-bool config_speaker();
+bool config_speaker_mute();
 backlight_config_t config_backlight_timer();
 bool disable_touchscreen();
 
@@ -212,7 +212,7 @@ void set_config_freq_rx_correction(uint32_t v);
 void set_clock_hidden(bool v);
 void set_clock_with_date(bool v);
 void set_config_login(bool v);
-void set_config_speaker(bool v);
+void set_config_speaker_mute(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
