@@ -122,8 +122,12 @@ void set_direction(const rf::Direction new_direction) {
     // teixeluis: undone "Hack to fix the CPLD (clocking ?) bug".
     // Apparently with current CPLD code from the hackrf repo,
     // toggling CPLD overlay should no longer be necessary:
-    if (direction != new_direction && new_direction == rf::Direction::Transmit) {
-        hackrf::cpld::init_from_eeprom();
+    if (direction != new_direction) {
+        if (new_direction == rf::Direction::Transmit)
+            hackrf::cpld::init_from_eeprom();
+        else
+            // Prevents ghosting when switching back to RX from TX mode.
+            hackrf::cpld::load_sram_no_verify();
     }
 
     direction = new_direction;
