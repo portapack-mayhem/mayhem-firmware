@@ -35,6 +35,10 @@
 using namespace hackrf::one;
 using namespace portapack;
 
+void TransmitterModel::set_rf_direction() {
+    radio::set_direction(rf::Direction::Transmit);
+}
+
 rf::Frequency TransmitterModel::target_frequency() const {
     return persistent_memory::target_frequency();
 }
@@ -117,7 +121,7 @@ void TransmitterModel::on_tick_second() {
 
 void TransmitterModel::enable() {
     enabled_ = true;
-    radio::set_direction(rf::Direction::Transmit);
+    set_rf_direction();
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();

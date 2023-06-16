@@ -36,6 +36,8 @@
 
 class TransmitterModel {
    public:
+    void set_rf_direction();
+
     /* The frequency to transmit on. */
     rf::Frequency target_frequency() const;
     void set_target_frequency(rf::Frequency f);

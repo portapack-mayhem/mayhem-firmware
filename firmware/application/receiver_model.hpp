@@ -43,6 +43,8 @@ class ReceiverModel {
         Capture = 4
     };
 
+    void set_rf_direction();
+
     /* The frequency to receive (no offset). */
     rf::Frequency target_frequency() const;
     void set_target_frequency(rf::Frequency f);

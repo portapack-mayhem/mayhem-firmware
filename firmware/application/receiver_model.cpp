@@ -61,6 +61,10 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
 
 } /* namespace */
 
+void ReceiverModel::set_rf_direction() {
+    radio::set_direction(rf::Direction::Receive);
+}
+
 rf::Frequency ReceiverModel::target_frequency() const {
     return persistent_memory::target_frequency();
 }
@@ -168,7 +172,7 @@ void ReceiverModel::set_squelch_level(uint8_t v) {
 
 void ReceiverModel::enable() {
     enabled_ = true;
-    radio::set_direction(rf::Direction::Receive);
+    set_rf_direction();
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();

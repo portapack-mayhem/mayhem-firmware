@@ -41,6 +41,7 @@ class RadioState {
     RadioState(uint32_t new_bandwidth, uint32_t new_sampling_rate)
         : prev_bandwidth_{model->baseband_bandwidth()},
           prev_sampling_rate_{model->sampling_rate()} {
+        model->set_rf_direction();
         model->set_baseband_bandwidth(new_bandwidth);
         model->set_sampling_rate(new_sampling_rate);
     }
