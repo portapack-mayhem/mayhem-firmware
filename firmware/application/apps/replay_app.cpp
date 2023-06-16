@@ -223,12 +223,9 @@ ReplayAppView::ReplayAppView(
 
 ReplayAppView::~ReplayAppView() {
     transmitter_model.disable();
-
-    display.fill_rectangle({0, 0, 240, 320}, Color::black());  // Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
+    baseband::shutdown();                                      // better this function at the end, after load_sram(). If not , sometimes produced hang up (now not , it is ok).
     chThdSleepMilliseconds(40);                                // (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )
-    hackrf::cpld::load_sram_no_verify();                       // to leave all  RX reception ok, without "ghost interference signal problem" at the exit .
-
-    baseband::shutdown();  // better this function at the end, after load_sram(). If not , sometimes produced hang up (now not , it is ok).
+    display.fill_rectangle({0, 0, 240, 320}, Color::black());  // Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
 }
 
 void ReplayAppView::on_hide() {
