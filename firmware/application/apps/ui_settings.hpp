@@ -212,17 +212,12 @@ class SetUIView : public View {
         20,
         "Disable touchscreen"};
 
-    Checkbox checkbox_speaker{
-        {3 * 8, 4 * 16},
-        20,
-        "Hide H1 Speaker option"};
-
     Checkbox checkbox_bloff{
-        {3 * 8, 6 * 16},
+        {3 * 8, 4 * 16},
         20,
         "Backlight off after:"};
     OptionsField options_bloff{
-        {52, 7 * 16 + 8},
+        {60, 5 * 16 + 8},
         20,
         {
             {"5 seconds", backlight_timeout_t::Timeout5Sec},
@@ -236,25 +231,25 @@ class SetUIView : public View {
         }};
 
     Checkbox checkbox_showsplash{
-        {3 * 8, 9 * 16},
+        {3 * 8, 7 * 16},
         20,
         "Show splash"};
 
     Checkbox checkbox_showclock{
-        {3 * 8, 11 * 16},
+        {3 * 8, 9 * 16},
         20,
         "Show clock with:"};
 
     OptionsField options_clockformat{
-        {52, 12 * 16 + 8},
+        {60, 10 * 16 + 8},
         20,
         {{"time only", 0},
          {"time and date", 1}}};
 
     Checkbox checkbox_guireturnflag{
-        {3 * 8, 14 * 16},
+        {3 * 8, 12 * 16},
         25,
-        "add return icon in GUI"};
+        "Show return icon in GUI"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
