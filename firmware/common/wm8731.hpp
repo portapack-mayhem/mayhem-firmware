@@ -315,7 +315,7 @@ class WM8731 : public audio::Codec {
             .lzcen = 0,
             .lrhpboth = 1,
             .reserved0 = 0,
-        });        
+        });
     }
 
     void set_headphone_volume(const volume_t volume) override {
@@ -350,7 +350,7 @@ class WM8731 : public audio::Codec {
         headphone_mute();
     }
 
-    void speaker_enable(){
+    void speaker_enable() {
         mute_speaker_and_headphone = false;
         // Restore headphone state if it was requested to be enabled
         if (headphone_was_enabled) {
@@ -358,7 +358,7 @@ class WM8731 : public audio::Codec {
         }
     }
 
-    void speaker_disable(){
+    void speaker_disable() {
         // On WM8731, the navigation bar "speaker mute" option also mutes headphones due to IC limitations.
         // If there's a GPIO bit to shutdown the CS8122S/LTK8002D speaker amp only then we don't know about it (TBD).
         // On some PortaPack boards the speaker is electrically disabled when headphones are plugged in.
