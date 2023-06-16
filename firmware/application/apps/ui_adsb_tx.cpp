@@ -26,7 +26,6 @@
 #include "manchester.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
-#include "cpld_update.hpp"
 #include "baseband_api.hpp"
 
 #include <cstring>
@@ -274,8 +273,7 @@ void ADSBTxView::focus() {
 
 ADSBTxView::~ADSBTxView() {
     transmitter_model.disable();
-    hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, withouth ghost signal problem at the exit.
-    baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
+    baseband::shutdown();
 }
 
 void ADSBTxView::generate_frames() {
