@@ -538,10 +538,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_loop_config.on_select = [this](Button&) {
-        if (continuous)
-            set_loop_config(false);
-        else
-            set_loop_config(true);
+        set_loop_config(!continuous);
     };
     set_loop_config(continuous);
 
