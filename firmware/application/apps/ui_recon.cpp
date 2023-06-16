@@ -102,9 +102,9 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
 
     auto result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
     if (!result.is_valid()) {
-        char one_char[1];  // Read it char by char
-        std::string line;  // and put read line in here
-        bool found = false;
+        char one_char[1]{};  // Read it char by char
+        std::string line{};  // and put read line in here
+        bool found{false};
         for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
             recon_file.seek(pointer);
             recon_file.read(one_char, 1);
@@ -137,16 +137,16 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
 }
 
 bool ReconView::recon_load_config_from_sd() {
-    File settings_file;
-    size_t length, file_position = 0;
-    char* pos;
-    char* line_start;
-    char* line_end;
-    char file_data[257];
-
-    uint32_t it = 0;
-    uint32_t nb_params = RECON_SETTINGS_NB_PARAMS;
-    std::string params[RECON_SETTINGS_NB_PARAMS];
+    File settings_file{};
+    size_t length{0};
+    size_t file_position{0};
+    char* pos{NULL};
+    char* line_start{NULL};
+    char* line_end{NULL};
+    char file_data[257]{};
+    uint32_t it{0};
+    uint32_t nb_params{RECON_SETTINGS_NB_PARAMS};
+    std::string params[RECON_SETTINGS_NB_PARAMS]{};
 
     make_new_directory(u"SETTINGS");
 
@@ -601,7 +601,7 @@ ReconView::ReconView(NavigationView& nav)
                 }
                 // also remove from output file if in scanner mode
                 if (scanner_mode) {
-                    File freqman_file;
+                    File freqman_file{};
                     delete_file(freq_file_path);
                     auto result = freqman_file.create(freq_file_path);
                     if (!result.is_valid()) {
@@ -614,10 +614,10 @@ ReconView::ReconView(NavigationView& nav)
                 }
             } else if (manual_mode)  // only remove from output
             {
-                File recon_file;
-                File tmp_recon_file;
-                std::string tmp_freq_file_path = freq_file_path + ".TMP";
-                std::string frequency_to_add;
+                File recon_file{};
+                File tmp_recon_file{};
+                std::string tmp_freq_file_path{freq_file_path + ".TMP"};
+                std::string frequency_to_add{};
 
                 freqman_entry entry = frequency_list[current_index];
                 entry.frequency_a = freq;
@@ -634,8 +634,8 @@ ReconView::ReconView(NavigationView& nav)
                     bool found = false;
                     result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
                     if (!result.is_valid()) {
-                        char one_char[1];  // Read it char by char
-                        std::string line;  // and put read line in here
+                        char one_char[1]{};  // Read it char by char
+                        std::string line{};  // and put read line in here
                         for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
                             recon_file.seek(pointer);
                             recon_file.read(one_char, 1);
@@ -1338,9 +1338,10 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 }
 
 void ReconView::handle_coded_squelch(const uint32_t value) {
-    float diff, min_diff = value;
+    float diff{0.0};
+    float min_diff{(float)value};
     size_t min_idx{0};
-    size_t c;
+    size_t c{0};
 
     if (field_mode.selected_index() != NFM_MODULATION) {
         text_ctcss.set("        ");
