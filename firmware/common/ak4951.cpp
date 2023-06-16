@@ -166,14 +166,19 @@ void AK4951::select_line_out(const LineOutSelect value) {
 }
 
 void AK4951::headphone_enable() {
-    set_dac_power(true);
-    set_headphone_power(true);
+    // Matching WM8731 behavior here by keeping headphones disabled while speaker is set to "mute"
+    headphone_was_enabled = true;
+    if (!mute_speaker_and_headphone) {
+        set_dac_power(true);
+        set_headphone_power(true);
 
-    // Wait for headphone amplifier charge pump power-up.
-    chThdSleepMilliseconds(35);
+        // Wait for headphone amplifier charge pump power-up.
+        chThdSleepMilliseconds(35);
+    }
 }
 
 void AK4951::headphone_disable() {
+    headphone_was_enabled = false;
     set_headphone_power(false);
     set_dac_power(false);
 }
@@ -198,6 +203,12 @@ void AK4951::speaker_enable() {
     // Exit the power-save mode of Speaker-Amp: SLPSN bit = “0” → “1”
     map.r.signal_select_1.SLPSN = 1;
     update(Register::SignalSelect1);
+
+    // Matching WM8731 behavior for consistency - restore headphone setting when speaker is unmuted
+    mute_speaker_and_headphone = false;
+    if (headphone_was_enabled) {
+        headphone_enable();
+    }
 }
 
 void AK4951::speaker_disable() {
@@ -214,6 +225,12 @@ void AK4951::speaker_disable() {
     // map.r.power_management_1.PMPFIL = 0;
     // update(Register::PowerManagement1);
     set_speaker_power(false);
+
+    // If there's a GPIO bit to shutdown the CS8122S/INS8002E/LTK8002D speaker amp only then we don't know about it (TBD).
+    // Matching WM8731 behavior for consistency (disable headphones too when navigation bar "speaker" is in mute mode).
+    // On some PortaPack boards the speaker is electrically disabled when headphones are plugged in.
+    mute_speaker_and_headphone = true;
+    set_headphone_power(false);
 }
 
 void AK4951::microphone_enable(int8_t alc_mode) {
