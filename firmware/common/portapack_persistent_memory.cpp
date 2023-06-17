@@ -286,7 +286,9 @@ struct misc_config_t {
         bit_write(bits_t::ConfigSpeakerDisable, v);
     }
 
-    constexpr misc_config_t() : values() {}
+    constexpr misc_config_t()
+        : values(0) {
+    }
 };
 
 /* struct must pack the same way on M4 and M0 cores. */
