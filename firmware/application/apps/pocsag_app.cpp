@@ -102,7 +102,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
         logger->append(LOG_ROOT_DIR "/POCSAG.TXT");
 
     audio::output::start();
-    audio::output::unmute();
 
     baseband::set_pocsag();
 }

@@ -306,8 +306,7 @@ class WM8731 : public audio::Codec {
         });
     }
 
-    void set_headphone_volume(const volume_t volume) override {
-        headphone_volume = volume;
+    void set_wm_headphone_volume(const volume_t volume) {
         const auto normalized = headphone_gain_range().normalize(volume);
         auto n = normalized.centibel() / 10;
 
@@ -319,6 +318,11 @@ class WM8731 : public audio::Codec {
         });
     }
 
+    void set_headphone_volume(const volume_t volume) override {
+        headphone_volume = volume;
+        set_wm_headphone_volume(volume);
+    }
+
     volume_range_t headphone_gain_range() const override {
         return {-121.0_dB, 6.0_dB};
     }
@@ -328,11 +332,11 @@ class WM8731 : public audio::Codec {
     }
 
     void headphone_mute() {
-        set_headphone_volume(headphone_gain_range().min);
+        set_wm_headphone_volume(headphone_gain_range().min);
     }
 
     void headphone_enable() override {
-        set_headphone_volume(headphone_volume);
+        set_wm_headphone_volume(headphone_volume);
     }
 
     void headphone_disable() override {

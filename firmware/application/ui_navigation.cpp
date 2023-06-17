@@ -126,11 +126,6 @@ SystemStatusView::SystemStatusView(
         portapack::persistent_memory::load_persistent_settings_from_file();
     }
 
-    if (portapack::persistent_memory::config_speaker())
-        button_speaker.hidden(false);
-    else
-        button_speaker.hidden(true);
-
     if (portapack::persistent_memory::config_hide_converter()) {
         button_converter.hidden(true);
     } else {
@@ -217,16 +212,16 @@ void SystemStatusView::refresh() {
             button_converter.set_foreground(Color::light_grey());
         }
     }
-    // Poke tunings to take converter change in account.
-    receiver_model.set_target_frequency(receiver_model.target_frequency());
-    transmitter_model.set_target_frequency(transmitter_model.target_frequency());
 
-    if (!portapack::persistent_memory::config_speaker()) {
+    portapack::set_speaker_disable(portapack::persistent_memory::config_speaker_disable());
+    portapack::set_audio_mute(portapack::persistent_memory::config_audio_mute());
+
+    if (portapack::persistent_memory::config_audio_mute()) {
         button_speaker.set_foreground(Color::light_grey());
         button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
-        button_speaker.hidden(false);
     } else {
-        button_speaker.hidden(true);
+        button_speaker.set_foreground(Color::green());
+        button_speaker.set_bitmap(&bitmap_icon_speaker);
     }
 
     if (portapack::get_antenna_bias()) {
@@ -285,20 +280,21 @@ void SystemStatusView::on_converter() {
         button_converter.set_foreground(Color::light_grey());
     }
 
-    // Poke to update tuning.
+    // Poke to update tuning
+    // NOTE: Code assumes here that a TX app isn't active, since RX & TX have diff tuning offsets
+    // (and there's only one tuner in the radio so can't update tuner for both).
     receiver_model.set_target_frequency(receiver_model.target_frequency());
 }
 
 void SystemStatusView::on_speaker() {
-    if (!portapack::speaker_mode) {
-        portapack::set_speaker_mode(true);
-        button_speaker.set_foreground(Color::green());
-        button_speaker.set_bitmap(&bitmap_icon_speaker);
+    if (portapack::persistent_memory::config_audio_mute()) {
+        portapack::set_audio_mute(false);
+        portapack::persistent_memory::set_config_audio_mute(false);
     } else {
-        portapack::set_speaker_mode(false);
-        button_speaker.set_foreground(Color::light_grey());
-        button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
+        portapack::set_audio_mute(true);
+        portapack::persistent_memory::set_config_audio_mute(true);
     }
+    refresh();
 }
 
 void SystemStatusView::on_stealth() {

@@ -235,7 +235,6 @@ SetFrequencyCorrectionModel SetRadioView::form_collect() {
 
 SetUIView::SetUIView(NavigationView& nav) {
     add_children({&checkbox_disable_touchscreen,
-                  &checkbox_speaker,
                   &checkbox_bloff,
                   &options_bloff,
                   &checkbox_showsplash,
@@ -246,7 +245,6 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &button_cancel});
 
     checkbox_disable_touchscreen.set_value(persistent_memory::disable_touchscreen());
-    checkbox_speaker.set_value(persistent_memory::config_speaker());
     checkbox_showsplash.set_value(persistent_memory::config_splash());
     checkbox_showclock.set_value(!persistent_memory::hide_clock());
     checkbox_guireturnflag.set_value(persistent_memory::show_gui_return_icon());
@@ -271,11 +269,6 @@ SetUIView::SetUIView(NavigationView& nav) {
             else
                 persistent_memory::set_clock_with_date(false);
         }
-
-        if (checkbox_speaker.value()) audio::output::speaker_mute();      // Just mute audio if speaker is disabled
-        persistent_memory::set_config_speaker(checkbox_speaker.value());  // Store Speaker status
-        StatusRefreshMessage message{};                                   // Refresh status bar with/out speaker
-        EventDispatcher::send_message(message);
 
         persistent_memory::set_config_splash(checkbox_showsplash.value());
         persistent_memory::set_clock_hidden(!checkbox_showclock.value());
@@ -524,13 +517,16 @@ void SetPersistentMemoryView::focus() {
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
+                  &checkbox_speaker_disable,
                   &button_save,
                   &button_cancel});
 
     field_tone_mix.set_value(persistent_memory::tone_mix());
+    checkbox_speaker_disable.set_value(persistent_memory::config_speaker_disable());
 
     button_save.on_select = [&nav, this](Button&) {
         persistent_memory::set_tone_mix(field_tone_mix.value());
+        persistent_memory::set_config_speaker_disable(checkbox_speaker_disable.value());
         nav.pop();
     };
 

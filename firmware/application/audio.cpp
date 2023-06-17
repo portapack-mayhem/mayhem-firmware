@@ -134,6 +134,10 @@ static audio::Codec* audio_codec = nullptr;
 
 namespace output {
 
+static bool cfg_speaker_disable = false;
+static bool nav_requested_mute = false;
+static bool app_requested_mute = false;
+
 void start() {
     i2s::i2s0::tx_start();
     unmute();
@@ -145,23 +149,46 @@ void stop() {
 }
 
 void mute() {
+    app_requested_mute = true;
     i2s::i2s0::tx_mute();
     audio_codec->headphone_disable();
-}
-
-void unmute() {
-    i2s::i2s0::tx_unmute();
-    audio_codec->headphone_enable();
-}
-
-void speaker_mute() {
-    i2s::i2s0::tx_mute();
     audio_codec->speaker_disable();
 }
 
+void unmute() {
+    app_requested_mute = false;
+    if (!nav_requested_mute) {
+        i2s::i2s0::tx_unmute();
+        audio_codec->headphone_enable();
+        if (!cfg_speaker_disable) {
+            audio_codec->speaker_enable();
+        }
+    }
+}
+
+void speaker_disable() {
+    cfg_speaker_disable = true;
+    audio_codec->speaker_disable();
+}
+
+void speaker_enable() {
+    cfg_speaker_disable = false;
+}
+
+// The following functions are used by the navigation-bar Speaker Mute only,
+// and override all other audio mute/unmute requests from apps
+void speaker_mute() {
+    nav_requested_mute = true;
+    i2s::i2s0::tx_mute();
+    audio_codec->speaker_disable();
+    audio_codec->headphone_disable();
+}
+
 void speaker_unmute() {
-    i2s::i2s0::tx_unmute();
-    audio_codec->speaker_enable();
+    nav_requested_mute = false;
+    if (!app_requested_mute) {
+        unmute();
+    }
 }
 
 } /* namespace output */

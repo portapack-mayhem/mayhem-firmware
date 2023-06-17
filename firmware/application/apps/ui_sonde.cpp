@@ -117,7 +117,6 @@ SondeView::SondeView(NavigationView& nav) {
         logger->append(LOG_ROOT_DIR "/SONDE.TXT");
 
     audio::output::start();
-    audio::output::speaker_unmute();
 
     // inject a PitchRSSIConfigureMessage in order to arm
     // the pitch rssi events that will be used by the
