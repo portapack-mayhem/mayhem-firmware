@@ -61,10 +61,6 @@ static constexpr std::array<baseband::WFMConfig, 3> wfm_configs{{
 
 } /* namespace */
 
-void ReceiverModel::set_rf_direction() {
-    radio::set_direction(rf::Direction::Receive);
-}
-
 rf::Frequency ReceiverModel::target_frequency() const {
     return persistent_memory::target_frequency();
 }
@@ -172,7 +168,7 @@ void ReceiverModel::set_squelch_level(uint8_t v) {
 
 void ReceiverModel::enable() {
     enabled_ = true;
-    set_rf_direction();
+    radio::set_direction(rf::Direction::Receive);
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();
@@ -252,12 +248,19 @@ void ReceiverModel::set_wfm_configuration(const size_t n) {
     }
 }
 
-void ReceiverModel::set_configuration_without_init(
-    const Mode new_mode,
-    const rf::Frequency new_frequency_step,
-    const size_t new_am_config_index,
-    const size_t new_nbfm_config_index,
-    const size_t new_wfm_config_index,
+void ReceiverModel::set_configuration_without_update(
+    uint32_t baseband_bandwidth,
+    uint32_t sampling_rate) {
+    baseband_bandwidth_ = baseband_bandwidth;
+    sampling_rate_ = sampling_rate;
+}
+
+void ReceiverModel::set_configuration_without_update(
+    Mode new_mode,
+    rf::Frequency new_frequency_step,
+    size_t new_am_config_index,
+    size_t new_nbfm_config_index,
+    size_t new_wfm_config_index,
     uint8_t new_squelch_level) {
     mode_ = new_mode;
     frequency_step_ = new_frequency_step;

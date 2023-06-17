@@ -113,10 +113,10 @@ bool load_sram() {
 }
 
 void load_sram_no_verify() {
-    // CoolRunner II family has Hybrid memory CPLD arquitecture (SRAM+NVM)
-    // It seems that after using TX App somehow , I do not why , the CPLD_SRAM part needs to be re_loaded to solve #637 ghost beat
-    // load_sram() it is already called at each boot in portapack.cpp ,including verify CPLD part.
-    // Here we skipped CPLD verify part,just to be quicker (in case any CPLD problem it will be detected in the boot process).
+    // CoolRunner II family has Hybrid memory CPLD architecture (SRAM+NVM)
+    // It seems that after using a TX App the CPLD_SRAM part needs to be re_loaded to solve #637 ghost beat.
+    // load_sram() it is already called at each boot in portapack.cpp, including verify CPLD part.
+    // Here we skipped CPLD verify part, just to be quicker (in case any CPLD problem it will be detected in the boot process).
 
     auto jtag_target_hackrf_cpld = jtag_target_hackrf();
     hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
