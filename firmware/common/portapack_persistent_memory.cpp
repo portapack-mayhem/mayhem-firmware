@@ -97,7 +97,7 @@ struct ui_config_t {
         HideClock = 25,
         ClockWithDate = 26,
         ClkOutEnabled = 27,
-        ConfigSpeakerMute = 28,
+        ConfigSpeakerHidden = 28,
         StealthMode = 29,
         ConfigLogin = 30,
         ConfigSplash = 31,
@@ -216,14 +216,6 @@ struct ui_config_t {
         bit_write(bits_t::ClkOutEnabled, v);
     }
 
-    constexpr bool config_speaker_mute() const {
-        return bit_read(bits_t::ConfigSpeakerMute);
-    }
-
-    constexpr void set_config_speaker_mute(bool v) {
-        bit_write(bits_t::ConfigSpeakerMute, v);
-    }
-
     constexpr bool stealth_mode() const {
         return bit_read(bits_t::StealthMode);
     }
@@ -251,6 +243,52 @@ struct ui_config_t {
     constexpr ui_config_t()
         : values(
               (1 << ConfigSplash) | (clkout_freq_reset_value << ClkoutFreqLSB) | (7 << BacklightTimeoutLSB)) {
+    }
+};
+
+struct misc_config_t {
+   private:
+    enum bits_t {
+        ConfigAudioMute = 0,
+        ConfigSpeakerDisable = 1,
+    };
+
+    // misc_config_t bits:
+    // ConfigAudioMute = set to mute all audio output (speakers & headphones)
+    // ConfigSpeakerDisable = set to disable only the speaker and leave headphones enabled (only supported on AK4951 codec)
+
+    uint32_t values;
+
+    constexpr bool bit_read(const bits_t n) const {
+        return ((values >> n) & 1) != 0;
+    }
+
+    constexpr void bit_write(const bits_t n, const bool v) {
+        if (bit_read(n) != v) {
+            values ^= 1 << n;
+        }
+    }
+
+   public:
+    constexpr bool config_audio_mute() const {
+        return bit_read(bits_t::ConfigAudioMute);
+    }
+
+    constexpr void set_config_audio_mute(bool v) {
+        bit_write(bits_t::ConfigAudioMute, v);
+    }
+    
+    constexpr bool config_speaker_disable() const {
+        return bit_read(bits_t::ConfigSpeakerDisable);
+    }
+
+    constexpr void set_config_speaker_disable(bool v) {
+        bit_write(bits_t::ConfigSpeakerDisable, v);
+    }
+
+    constexpr misc_config_t()
+        : values(
+                0) {
     }
 };
 
@@ -311,6 +349,9 @@ struct data_t {
     // Headphone volume in centibels.
     int32_t headphone_volume_cb;
 
+    // Misc flags
+    misc_config_t misc_config;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           target_frequency(target_frequency_reset_value),
@@ -348,7 +389,8 @@ struct data_t {
           frequency_tx_correction(0),
           updown_frequency_tx_correction(0),
           encoder_dial_sensitivity(0),
-          headphone_volume_cb(-600) {
+          headphone_volume_cb(-600),
+          misc_config() {
     }
 };
 
@@ -608,8 +650,12 @@ bool clkout_enabled() {
     return data->ui_config.clkout_enabled();
 }
 
-bool config_speaker_mute() {
-    return data->ui_config.config_speaker_mute();
+bool config_audio_mute() {
+    return data->misc_config.config_audio_mute();
+}
+
+bool config_speaker_disable() {
+    return data->misc_config.config_speaker_disable();
 }
 
 bool stealth_mode() {
@@ -664,8 +710,12 @@ void set_clkout_enabled(bool v) {
     data->ui_config.set_clkout_enabled(v);
 }
 
-void set_config_speaker_mute(bool v) {
-    data->ui_config.set_config_speaker_mute(v);
+void set_config_audio_mute(bool v) {
+    data->misc_config.set_config_audio_mute(v);
+}
+
+void set_config_speaker_disable(bool v) {
+    data->misc_config.set_config_speaker_disable(v);
 }
 
 void set_stealth_mode(bool v) {
