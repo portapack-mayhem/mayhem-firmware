@@ -30,7 +30,7 @@ using namespace portapack;
 
 namespace ui {
 void GlassView::focus() {
-    button_marker.focus();
+    range_presets.focus();
 }
 
 GlassView::~GlassView() {
