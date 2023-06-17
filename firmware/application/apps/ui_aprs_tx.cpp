@@ -26,7 +26,6 @@
 #include "aprs.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
-#include "cpld_update.hpp"
 #include "baseband_api.hpp"
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -45,8 +44,7 @@ void APRSTXView::focus() {
 
 APRSTXView::~APRSTXView() {
     transmitter_model.disable();
-    hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit.
-    baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
+    baseband::shutdown();
 }
 
 void APRSTXView::start_tx() {

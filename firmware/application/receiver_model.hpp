@@ -92,12 +92,17 @@ class ReceiverModel {
     size_t wfm_configuration() const;
     void set_wfm_configuration(const size_t n);
 
-    void set_configuration_without_init(
-        const Mode new_mode,
-        const rf::Frequency new_frequency_step,
-        const size_t new_am_config_index,
-        const size_t new_nbfm_config_index,
-        const size_t new_wfm_config_index,
+    /* Sets the model values without updating the radio. */
+    void set_configuration_without_update(
+        uint32_t baseband_bandwidth,
+        uint32_t sampling_rate);
+
+    void set_configuration_without_update(
+        Mode new_mode,
+        rf::Frequency new_frequency_step,
+        size_t new_am_config_index,
+        size_t new_nbfm_config_index,
+        size_t new_wfm_config_index,
         uint8_t new_squelch_level);
 
     void configure_from_app_settings(const app_settings::AppSettings& settings);

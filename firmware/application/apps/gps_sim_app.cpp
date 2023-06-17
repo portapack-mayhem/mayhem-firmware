@@ -29,7 +29,6 @@
 
 #include "baseband_api.hpp"
 #include "portapack.hpp"
-#include "cpld_update.hpp"
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -214,8 +213,7 @@ GpsSimAppView::GpsSimAppView(
 
 GpsSimAppView::~GpsSimAppView() {
     transmitter_model.disable();
-    hackrf::cpld::load_sram_no_verify();  // to leave all RX ok, without ghost signal problem at the exit .
-    baseband::shutdown();                 // better this function at the end, not load_sram() that sometimes produces hang up.
+    baseband::shutdown();
 }
 
 void GpsSimAppView::on_hide() {

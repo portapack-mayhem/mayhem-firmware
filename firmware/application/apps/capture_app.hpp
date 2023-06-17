@@ -28,24 +28,25 @@
 #include "ui_receiver.hpp"
 #include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
+#include "app_settings.hpp"
 #include "radio_state.hpp"
 
-#define BW_OPTIONS                                                                                                                 \
-    {"  8k5", 8500},                                                                                                               \
-        {"  11k", 11000},                                                                                                          \
-        {"  16k", 16000},                                                                                                          \
-        {"  25k", 25000},                                                                                                          \
-        {"  50k", 50000},                                                                                                          \
-        {" 100k", 100000},                                                                                                         \
-        {" 250k", 250000},                                                                                                         \
-        {" 500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/                   \
-        {" 600k", 600000}, /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec)  */      \
-        {" 750k", 750000}, /* From that BW onwards, the LCD is ok, but the recorded file is auto decimated,(not real file size) */ \
-        {"1100k", 1100000},                                                                                                        \
-        {"1750k", 1750000},                                                                                                        \
-        {"2000k", 2000000},                                                                                                        \
-        {"2500k", 2500000},                                                                                                        \
-        {"2750k", 2750000},  // That is our max Capture option , to keep using later / 8 decimation (22Mhz sampling  ADC)
+#define BW_OPTIONS                                                                                                             \
+    {"  8k5", 8500},                                                                                                           \
+        {"  11k", 11000},                                                                                                      \
+        {"  16k", 16000},                                                                                                      \
+        {"  25k", 25000},                                                                                                      \
+        {"  50k", 50000},                                                                                                      \
+        {" 100k", 100000},                                                                                                     \
+        {" 250k", 250000},                                                                                                     \
+        {" 500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/               \
+        {" 600k", 600000}, /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec) */   \
+        {" 750k", 750000}, /* From this BW onwards, the LCD is ok, but the recorded file is decimated, (not real file size) */ \
+        {"1100k", 1100000},                                                                                                    \
+        {"1750k", 1750000},                                                                                                    \
+        {"2000k", 2000000},                                                                                                    \
+        {"2500k", 2500000},                                                                                                    \
+        {"2750k", 2750000},  // That is our max Capture option, to keep using later / 8 decimation (22Mhz sampling  ADC)
 
 namespace ui {
 
@@ -55,10 +56,8 @@ class CaptureAppView : public View {
     ~CaptureAppView();
 
     void on_hide() override;
-
-    void set_parent_rect(const Rect new_parent_rect) override;
-
     void focus() override;
+    void set_parent_rect(const Rect new_parent_rect) override;
 
     std::string title() const override { return "Capture"; };
 
@@ -66,9 +65,12 @@ class CaptureAppView : public View {
     static constexpr ui::Dim header_height = 3 * 16;
 
     RxRadioState radio_state_{};
+    app_settings::SettingsManager settings_{
+        "rx_capture", app_settings::Mode::RX,
+        app_settings::Options::UseGlobalTargetFrequency};
 
     uint32_t sampling_rate = 0;
-    uint32_t anti_alias_baseband_bandwidth_filter = 2500000;  // we rename the previous var , and change type static constexpr to normal var.
+    uint32_t anti_alias_baseband_bandwidth_filter = 2500000;
 
     void on_target_frequency_changed(rf::Frequency f);
 

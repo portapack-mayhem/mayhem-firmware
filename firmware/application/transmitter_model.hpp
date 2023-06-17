@@ -70,6 +70,11 @@ class TransmitterModel {
     void enable();
     void disable();
 
+    /* Sets the model values without updating the radio. */
+    void set_configuration_without_update(
+        uint32_t baseband_bandwidth,
+        uint32_t sampling_rate);
+
     void configure_from_app_settings(const app_settings::AppSettings& settings);
 
    private:

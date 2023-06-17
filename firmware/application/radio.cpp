@@ -92,7 +92,8 @@ max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
 static baseband::CPLD baseband_cpld;
 
-static rf::Direction direction{rf::Direction::Receive};
+// Set invalid to force the set_direction CPLD workaround to run.
+static rf::Direction direction{-1};
 static bool baseband_invert = false;
 static bool mixer_invert = false;
 
@@ -115,15 +116,15 @@ void set_direction(const rf::Direction new_direction) {
     /* TODO: Refactor all the various "Direction" enumerations into one. */
     /* TODO: Only make changes if direction changes, but beware of clock enabling. */
 
-    // Hack to fix the CPLD (clocking ?) bug: toggle CPLD SRAM overlay depending on new direction
+    // Hack to fix the CPLD (clocking ?) bug: toggle CPLD SRAM overlay depending on new direction.
     // Use CPLD's EEPROM config when transmitting
     // Use the SRAM overlay when receiving
-
-    // teixeluis: undone "Hack to fix the CPLD (clocking ?) bug".
-    // Apparently with current CPLD code from the hackrf repo,
-    // toggling CPLD overlay should no longer be necessary:
-    if (direction != new_direction && new_direction == rf::Direction::Transmit) {
-        hackrf::cpld::init_from_eeprom();
+    if (direction != new_direction) {
+        if (new_direction == rf::Direction::Transmit)
+            hackrf::cpld::init_from_eeprom();
+        else
+            // Prevents ghosting when switching back to RX from TX mode.
+            hackrf::cpld::load_sram_no_verify();
     }
 
     direction = new_direction;

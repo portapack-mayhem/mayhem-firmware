@@ -147,6 +147,13 @@ void TransmitterModel::disable() {
     led_tx.off();
 }
 
+void TransmitterModel::set_configuration_without_update(
+    uint32_t baseband_bandwidth,
+    uint32_t sampling_rate) {
+    baseband_bandwidth_ = baseband_bandwidth;
+    sampling_rate_ = sampling_rate;
+}
+
 void TransmitterModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
     baseband_bandwidth_ = settings.baseband_bandwidth;
