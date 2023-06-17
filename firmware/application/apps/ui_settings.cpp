@@ -517,13 +517,16 @@ void SetPersistentMemoryView::focus() {
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
+                  &checkbox_speaker_disable,
                   &button_save,
                   &button_cancel});
 
     field_tone_mix.set_value(persistent_memory::tone_mix());
+    checkbox_speaker_disable.set_value(persistent_memory::config_speaker_disable());
 
     button_save.on_select = [&nav, this](Button&) {
         persistent_memory::set_tone_mix(field_tone_mix.value());
+        persistent_memory::set_config_speaker_disable(checkbox_speaker_disable.value());
         nav.pop();
     };
 
