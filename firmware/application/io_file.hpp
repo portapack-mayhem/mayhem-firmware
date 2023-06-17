@@ -38,14 +38,15 @@ class FileReader : public stream::Reader {
     FileReader& operator=(FileReader&&) = delete;
 
     Optional<File::Error> open(const std::filesystem::path& filename) {
-        return file.open(filename);
+        return file_.open(filename);
     }
 
     File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
+    const File& file() const& { return file_; }
 
    protected:
-    File file{};
-    uint64_t bytes_read{0};
+    File file_{};
+    uint64_t bytes_read_{0};
 };
 
 class FileWriter : public stream::Writer {
@@ -58,14 +59,15 @@ class FileWriter : public stream::Writer {
     FileWriter& operator=(FileWriter&&) = delete;
 
     Optional<File::Error> create(const std::filesystem::path& filename) {
-        return file.create(filename);
+        return file_.create(filename);
     }
 
     File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
+    const File& file() const& { return file_; }
 
    protected:
-    File file{};
-    uint64_t bytes_written{0};
+    File file_{};
+    uint64_t bytes_written_{0};
 };
 
 using RawFileWriter = FileWriter;

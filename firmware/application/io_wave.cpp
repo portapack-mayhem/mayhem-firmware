@@ -21,6 +21,7 @@
  */
 
 #include "io_wave.hpp"
+#include "utility.hpp"
 
 bool WAVFileReader::open(const std::filesystem::path& path) {
     size_t i = 0;
@@ -36,10 +37,10 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
         return true;
     }
 
-    auto error = file.open(path);
+    auto error = file_.open(path);
 
     if (!error.is_valid()) {
-        file.read((void*)&header, sizeof(header));  // Read header (RIFF and WAVE)
+        file_.read((void*)&header, sizeof(header));  // Read header (RIFF and WAVE)
 
         riff_size = header.cksize + 8;
         data_start = header.fmt.cksize + 28;
@@ -48,14 +49,14 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
 
         // Look for INAM (title) tag
         if (data_end < riff_size) {
-            file.seek(data_end);
-            while (file.read((void*)&ch, 1).is_ok()) {
+            file_.seek(data_end);
+            while (file_.read((void*)&ch, 1).is_ok()) {
                 if (ch == tag_INAM[i++]) {
                     if (i == 4) {
                         // Tag found, copy title
-                        file.read((void*)&title_size, sizeof(uint32_t));
+                        file_.read((void*)&title_size, sizeof(uint32_t));
                         if (title_size > 32) title_size = 32;
-                        file.read((void*)&title_buffer, title_size);
+                        file_.read((void*)&title_buffer, title_size);
                         title_string = title_buffer;
                         break;
                     }
@@ -86,7 +87,7 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
 }
 
 void WAVFileReader::rewind() {
-    file.seek(data_start);
+    file_.seek(data_start);
 }
 
 std::string WAVFileReader::title() {
@@ -94,15 +95,15 @@ std::string WAVFileReader::title() {
 }
 
 uint32_t WAVFileReader::ms_duration() {
-    return ((data_size_ * 1000) / sample_rate_) / bytes_per_sample;
+    return ::ms_duration(data_size_, sample_rate_, bytes_per_sample);
 }
 
 void WAVFileReader::data_seek(const uint64_t Offset) {
-    file.seek(data_start + (Offset * bytes_per_sample));
+    file_.seek(data_start + (Offset * bytes_per_sample));
 }
 
 /*int WAVFileReader::seek_mss(const uint16_t minutes, const uint8_t seconds, const uint32_t samples) {
-        const auto result = file.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
+        const auto result = file_.seek(data_start + ((((minutes * 60) + seconds) * sample_rate_) + samples) * bytes_per_sample);
 
         if (result.is_error())
                 return 0;
@@ -145,21 +146,21 @@ Optional<File::Error> WAVFileWriter::create(
 }
 
 Optional<File::Error> WAVFileWriter::update_header() {
-    header_t header{sampling_rate, (uint32_t)bytes_written - sizeof(header_t), info_chunk_size};
+    header_t header{sampling_rate, (uint32_t)bytes_written_ - sizeof(header_t), info_chunk_size};
 
-    const auto seek_0_result = file.seek(0);
+    const auto seek_0_result = file_.seek(0);
     if (seek_0_result.is_error()) {
         return seek_0_result.error();
     }
 
     const auto old_position = seek_0_result.value();
 
-    const auto write_result = file.write(&header, sizeof(header));
+    const auto write_result = file_.write(&header, sizeof(header));
     if (write_result.is_error()) {
         return write_result.error();
     }
 
-    const auto seek_old_result = file.seek(old_position);
+    const auto seek_old_result = file_.seek(old_position);
     if (seek_old_result.is_error()) {
         return seek_old_result.error();
     }
@@ -170,7 +171,7 @@ Optional<File::Error> WAVFileWriter::update_header() {
 Optional<File::Error> WAVFileWriter::write_tags() {
     tags_t tags{title};
 
-    const auto write_result = file.write(&tags, sizeof(tags));
+    const auto write_result = file_.write(&tags, sizeof(tags));
     if (write_result.is_error()) {
         return write_result.error();
     }
