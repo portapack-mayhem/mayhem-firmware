@@ -277,7 +277,7 @@ struct misc_config_t {
     constexpr void set_config_audio_mute(bool v) {
         bit_write(bits_t::ConfigAudioMute, v);
     }
-    
+
     constexpr bool config_speaker_disable() const {
         return bit_read(bits_t::ConfigSpeakerDisable);
     }
@@ -287,8 +287,7 @@ struct misc_config_t {
     }
 
     constexpr misc_config_t()
-        : values(
-                0) {
+        : values(0) {     
     }
 };
 
