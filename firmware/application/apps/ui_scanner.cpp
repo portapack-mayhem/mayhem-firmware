@@ -239,7 +239,7 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
 }
 
 void ScannerView::focus() {
-    field_mode.focus();
+    button_load.focus();
 }
 
 ScannerView::~ScannerView() {
