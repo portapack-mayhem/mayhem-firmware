@@ -96,13 +96,18 @@ bool get_antenna_bias() {
     return antenna_bias;
 }
 
-bool speaker_mode{false};
-void set_speaker_mode(const bool v) {
-    speaker_mode = v;
-    if (speaker_mode)
-        audio::output::speaker_unmute();
-    else
+void set_audio_mute(const bool v) {
+    if (v)
         audio::output::speaker_mute();
+    else
+        audio::output::speaker_unmute();
+}
+
+void set_speaker_disable(const bool v) {
+    if (v)
+        audio::output::speaker_disable();
+    else
+        audio::output::speaker_enable();
 }
 
 static constexpr uint32_t systick_count(const uint32_t clock_source_f) {
