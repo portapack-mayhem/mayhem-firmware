@@ -41,13 +41,13 @@ class RadioState {
     RadioState(uint32_t new_bandwidth, uint32_t new_sampling_rate)
         : prev_bandwidth_{model->baseband_bandwidth()},
           prev_sampling_rate_{model->sampling_rate()} {
-        model->set_baseband_bandwidth(new_bandwidth);
-        model->set_sampling_rate(new_sampling_rate);
+        model->set_configuration_without_update(
+            new_bandwidth, new_sampling_rate);
     }
 
     ~RadioState() {
-        model->set_baseband_bandwidth(prev_bandwidth_);
-        model->set_sampling_rate(prev_sampling_rate_);
+        model->set_configuration_without_update(
+            prev_bandwidth_, prev_sampling_rate_);
     }
 
    private:

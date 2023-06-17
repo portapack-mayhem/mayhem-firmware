@@ -20,7 +20,6 @@
  */
 
 #include "ui_spectrum_painter.hpp"
-#include "cpld_update.hpp"
 #include "bmp.hpp"
 #include "baseband_api.hpp"
 
@@ -176,7 +175,6 @@ void SpectrumPainterView::frame_sync() {
 
 SpectrumPainterView::~SpectrumPainterView() {
     transmitter_model.disable();
-    hackrf::cpld::load_sram_no_verify();
     baseband::shutdown();
 }
 

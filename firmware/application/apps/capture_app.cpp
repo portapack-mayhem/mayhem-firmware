@@ -21,10 +21,9 @@
  */
 
 #include "capture_app.hpp"
-
 #include "baseband_api.hpp"
-
 #include "portapack.hpp"
+
 using namespace portapack;
 
 namespace ui {
@@ -49,13 +48,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
     field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_target_frequency_changed(f);
+        receiver_model.set_target_frequency(f);
     };
     field_frequency.on_edit = [this, &nav]() {
         // TODO: Provide separate modal method/scheme?
         auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            this->on_target_frequency_changed(f);
             this->field_frequency.set_value(f);
         };
     };
@@ -68,15 +66,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
 
     option_bandwidth.on_change = [this](size_t, uint32_t base_rate) {
         sampling_rate = 8 * base_rate;  // Decimation by 8 done on baseband side
-                                        /* base_rate  is used for FFT calculation and display LCD, and also in  recording writing SD Card  rate. */
-        /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz , when selected 1 Mhz BW ...*/
-        /* ex. recording 500kHz BW  to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card  */
-
+                                        /* base_rate is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
+        /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
+        /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card  */
         waterfall.on_hide();
-        record_view.set_sampling_rate(sampling_rate);
-        receiver_model.set_sampling_rate(sampling_rate);
-        /* Set up  proper anti aliasing BPF bandwith in MAX2837 before ADC sampling according to the new added BW Options . */
 
+        /* Set up proper anti aliasing BPF bandwith in MAX2837 before ADC sampling according to the new added BW Options . */
         switch (sampling_rate) {  // we use the var fs (sampling_rate) , to set up BPF aprox < fs_max/2 by Nyquist theorem.
 
             case 0 ... 2000000:                                  // BW Captured range  (0 <= 250kHz max )  fs = 8 x 250 kHz
@@ -93,30 +88,33 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
                 break;
 
             case 14000000:  // BW capture 1,75Mhz  , fs = 8 x 1,75Mhz = 14Mhz
-                            // good BPF ,good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
+                            // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
                 anti_alias_baseband_bandwidth_filter = 5000000;
                 break;
 
             case 16000000:  // BW capture 2Mhz  , fs = 8 x 2Mhz = 16Mhz
-                            //  good BPF ,good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
+                            // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
                 anti_alias_baseband_bandwidth_filter = 6000000;
                 break;
 
             case 20000000:  // BW capture 2,5Mhz  , fs= 8 x 2,5 Mhz = 20Mhz
-                            //  good BPF ,good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
+                            // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
                 anti_alias_baseband_bandwidth_filter = 7000000;
                 break;
 
-            default:  // BW capture 2,75Mhz, fs = 8 x 2,75Mhz= 22Mhz max ADC sampling)  and others.
-                      //  We tested also 9Mhz FPB stightly too much noise floor , better 8Mhz
+            default:  // BW capture 2,75Mhz, fs = 8 x 2,75Mhz= 22Mhz max ADC sampling) and others.
+                      //  We tested also 9Mhz FPB stightly too much noise floor, better 8Mhz
                 anti_alias_baseband_bandwidth_filter = 8000000;
         }
+
+        record_view.set_sampling_rate(sampling_rate);
+        receiver_model.set_sampling_rate(sampling_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
 
         waterfall.on_show();
     };
 
-    option_bandwidth.set_selected_index(7);  // 500k,  Preselected starting default option 500kHz
+    option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
 
     receiver_model.set_modulation(ReceiverModel::Mode::Capture);
     receiver_model.enable();
@@ -132,8 +130,6 @@ CaptureAppView::~CaptureAppView() {
 }
 
 void CaptureAppView::on_hide() {
-    // TODO: Terrible kludge because widget system doesn't notify Waterfall that
-    // it's being shown or hidden.
     waterfall.on_hide();
     View::on_hide();
 }
@@ -141,16 +137,12 @@ void CaptureAppView::on_hide() {
 void CaptureAppView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
-    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
     waterfall.set_parent_rect(waterfall_rect);
 }
 
 void CaptureAppView::focus() {
     record_view.focus();
-}
-
-void CaptureAppView::on_target_frequency_changed(rf::Frequency f) {
-    receiver_model.set_target_frequency(f);
 }
 
 } /* namespace ui */

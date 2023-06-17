@@ -94,8 +94,6 @@ constexpr std::string_view volume = "volume="sv;
 // TODO: Maybe just use a dictionary which would allow for custom settings.
 // TODO: Create a control value binding which will allow controls to
 //       be declaratively bound to a setting and persistence will be magic.
-// TODO: radio settings should be pushed and popped to prevent cross-app
-//       radio bugs caused by sharing a global model.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
@@ -178,17 +176,17 @@ void copy_to_radio_model(const AppSettings& settings) {
 
     if (flags_enabled(settings.mode, Mode::TX)) {
         if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            transmitter_model.set_target_frequency(settings.tx_frequency);
+            persistent_memory::set_target_frequency(settings.tx_frequency);
 
         transmitter_model.configure_from_app_settings(settings);
     }
 
     if (flags_enabled(settings.mode, Mode::RX)) {
         if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            transmitter_model.set_target_frequency(settings.rx_frequency);
+            persistent_memory::set_target_frequency(settings.rx_frequency);
 
         receiver_model.configure_from_app_settings(settings);
-        receiver_model.set_configuration_without_init(
+        receiver_model.set_configuration_without_update(
             static_cast<ReceiverModel::Mode>(settings.modulation),
             settings.step,
             settings.am_config_index,
