@@ -859,8 +859,6 @@ class AK4951 : public audio::Codec {
     I2C& bus;
     const I2C::address_t bus_address;
     RegisterMap map{default_after_reset};
-    bool mute_speaker_and_headphone = false;
-    bool headphone_was_enabled = false;
 
     enum class LineOutSelect {
         Speaker,
