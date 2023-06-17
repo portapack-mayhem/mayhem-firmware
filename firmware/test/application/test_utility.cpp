@@ -60,3 +60,15 @@ TEST_CASE("Stash should save and restore value.") {
 
     CHECK_EQ(val, 10);
 }
+
+TEST_CASE("ms_duration should return duration.") {
+    auto sample_rate = 48'000;
+    auto bytes_per_sample = 2;  // 16 bit.
+    auto seconds = 5;
+    auto size = seconds * sample_rate * bytes_per_sample;
+    CHECK_EQ(ms_duration(size, sample_rate, bytes_per_sample), 5 * 1000);
+}
+
+TEST_CASE("ms_duration not fault when passed zero.") {
+    CHECK_EQ(ms_duration(0, 0, 0), 0);
+}
