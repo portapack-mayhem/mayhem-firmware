@@ -65,6 +65,8 @@ void stop();
 void mute();
 void unmute();
 
+void speaker_disable();
+void speaker_enable();
 void speaker_mute();
 void speaker_unmute();
 
