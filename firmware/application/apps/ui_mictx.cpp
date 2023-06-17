@@ -162,7 +162,7 @@ void MicTXView::rxaudio(bool is_on) {
                                                                                         // receiver_model.set_nbfm_configuration(n); is called above  , depending user's selection (8k5, 11k, 16k).
             }
         }
-        //		receiver_model.set_target_frequency(field_frequency.value()); //probably this too can be commented out.
+
         if (bool_same_F_tx_rx_enabled)                          // when stop TX ,define to which freq RX we return
             receiver_model.set_target_frequency(tx_frequency);  // Update freq also for RX = TX
         else
@@ -594,6 +594,12 @@ MicTXView::MicTXView(
             button_touch = true;
         }
     };
+
+    // These shouldn't be necessary, but because
+    // this app uses both transmitter_model and directly
+    // configures the baseband, these end up being required.
+    transmitter_model.set_sampling_rate(sampling_rate);
+    transmitter_model.set_baseband_bandwidth(1750000);
 
     set_tx(false);
 
