@@ -107,7 +107,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
 }
 
 void POCSAGAppView::focus() {
-    check_log.focus();
+    field_frequency.focus();
 }
 
 POCSAGAppView::~POCSAGAppView() {
