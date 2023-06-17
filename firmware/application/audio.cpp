@@ -134,6 +134,7 @@ static audio::Codec* audio_codec = nullptr;
 
 namespace output {
 
+static bool cfg_speaker_disable = false;
 static bool nav_requested_mute = false;
 static bool app_requested_mute = false;
 
@@ -159,8 +160,19 @@ void unmute() {
     if (!nav_requested_mute) {
         i2s::i2s0::tx_unmute();
         audio_codec->headphone_enable();
-        audio_codec->speaker_enable();
+        if (!cfg_speaker_disable) {
+            audio_codec->speaker_enable();
+        }
     }
+}
+
+void speaker_disable() {
+    cfg_speaker_disable = true;
+    audio_codec->speaker_disable();
+}
+
+void speaker_enable() {
+    cfg_speaker_disable = false;
 }
 
 // The following functions are used by the navigation-bar Speaker Mute only,
