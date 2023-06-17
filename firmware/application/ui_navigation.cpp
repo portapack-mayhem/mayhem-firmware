@@ -213,9 +213,10 @@ void SystemStatusView::refresh() {
         }
     }
 
-    portapack::set_speaker_mode(!portapack::persistent_memory::config_speaker_mute());
+    portapack::set_speaker_disable(portapack::persistent_memory::config_speaker_disable());
+    portapack::set_audio_mute(portapack::persistent_memory::config_audio_mute());
 
-    if (portapack::persistent_memory::config_speaker_mute()) {
+    if (portapack::persistent_memory::config_audio_mute()) {
         button_speaker.set_foreground(Color::light_grey());
         button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
     } else {
@@ -286,12 +287,12 @@ void SystemStatusView::on_converter() {
 }
 
 void SystemStatusView::on_speaker() {
-    if (portapack::persistent_memory::config_speaker_mute()) {
-        portapack::set_speaker_mode(true);
-        portapack::persistent_memory::set_config_speaker_mute(false);
+    if (portapack::persistent_memory::config_audio_mute()) {
+        portapack::set_audio_mute(false);
+        portapack::persistent_memory::set_config_audio_mute(false);
     } else {
-        portapack::set_speaker_mode(false);
-        portapack::persistent_memory::set_config_speaker_mute(true);
+        portapack::set_audio_mute(true);
+        portapack::persistent_memory::set_config_audio_mute(true);
     }
     refresh();
 }
