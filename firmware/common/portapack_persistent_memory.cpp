@@ -285,6 +285,8 @@ struct misc_config_t {
     constexpr void set_config_speaker_disable(bool v) {
         bit_write(bits_t::ConfigSpeakerDisable, v);
     }
+
+    constexpr misc_config_t() : values() {}
 };
 
 /* struct must pack the same way on M4 and M0 cores. */
@@ -385,7 +387,7 @@ struct data_t {
           updown_frequency_tx_correction(0),
           encoder_dial_sensitivity(0),
           headphone_volume_cb(-600),
-          misc_config(0) {
+          misc_config() {
     }
 };
 
