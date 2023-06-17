@@ -388,6 +388,11 @@ class SetAudioView : public View {
         1,
         '0'};
 
+    Checkbox checkbox_speaker_disable{
+        {2 * 8, 6 * 16},
+        25,
+        "Disable AK speaker amp"};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
