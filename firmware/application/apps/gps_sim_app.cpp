@@ -26,6 +26,7 @@
 
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
+#include "utility.hpp"
 
 #include "baseband_api.hpp"
 #include "portapack.hpp"
@@ -80,7 +81,7 @@ void GpsSimAppView::on_file_changed(std::filesystem::path new_file_path) {
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 1) + "Hz");
 
     auto file_size = data_file.size();
-    auto duration = (file_size * 1000) / (1 * 2 * sample_rate);
+    auto duration = ms_duration(file_size, sample_rate, 2);
 
     progressbar.set_max(file_size / 1024);
     text_filename.set(file_path.filename().string().substr(0, 12));

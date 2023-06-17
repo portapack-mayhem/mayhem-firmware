@@ -90,6 +90,21 @@ inline float magnitude_squared(const std::complex<float> c) {
     return r2 + i2;
 }
 
+/* Compute the duration in ms of a buffer. */
+inline uint32_t ms_duration(
+    uint64_t buffer_size,
+    uint32_t sample_rate,
+    uint32_t bytes_per_sample) {
+    /* bytes * sample * second  * ms
+     *         ------   -------   ------
+     *         bytes    samples   seconds
+     */
+    if (sample_rate == 0 || bytes_per_sample == 0)
+        return 0;
+
+    return buffer_size / bytes_per_sample / sample_rate * 1000;
+}
+
 int fast_int_magnitude(int y, int x);
 int int_atan2(int y, int x);
 int32_t int16_sin_s4(int32_t x);

@@ -29,6 +29,7 @@
 #include "baseband_api.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "utility.hpp"
 
 using namespace portapack;
 
@@ -79,7 +80,7 @@ void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
 
     auto file_size = data_file.size();
-    auto duration = (file_size * 1000) / (2 * 2 * sample_rate);
+    auto duration = ms_duration(file_size, sample_rate, 4);
 
     progressbar.set_max(file_size);
     text_filename.set(file_path.filename().string().substr(0, 12));

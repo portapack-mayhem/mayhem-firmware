@@ -44,6 +44,10 @@ class PlaylistView : public View {
     PlaylistView(NavigationView& nav);
     ~PlaylistView();
 
+    // Disable copy to make -Weffc++ happy.
+    PlaylistView(const PlaylistView&) = delete;
+    PlaylistView& operator=(const PlaylistView&) = delete;
+
     void set_parent_rect(Rect new_parent_rect) override;
     void on_hide() override;
     void focus() override;
@@ -62,23 +66,25 @@ class PlaylistView : public View {
 
     struct playlist_entry {
         rf::Frequency replay_frequency{0};
-        std::string replay_file{};
+        std::filesystem::path replay_file{};
         uint32_t sample_rate{};
         uint32_t initial_delay{};
     };
 
     std::unique_ptr<ReplayThread> replay_thread_{};
-    bool ready_signal_{}; // Used to signal the ReplayThread.
+    bool ready_signal_{};  // Used to signal the ReplayThread.
 
     size_t current_track_{0};
     const playlist_entry* current_entry_{};
+    size_t current_entry_size_{0};
     std::vector<playlist_entry> playlist_db_{};
     std::filesystem::path playlist_path_{};
 
     void load_file(const std::filesystem::path& path);
     void on_file_changed(const std::filesystem::path& path);
+    void reset();
     void show_file_error(
-        const std::filesystem::path& path
+        const std::filesystem::path& path,
         const std::string& message);
 
     bool is_active() const;
@@ -87,7 +93,7 @@ class PlaylistView : public View {
 
     void toggle();
     void start();
-    void next_track();
+    bool next_track();
     void send_current_track();
     void stop();
 
@@ -102,31 +108,25 @@ class PlaylistView : public View {
         "Open PPL"};
 
     Text text_filename{
-        {11 * 8, 0 * 16, 12 * 8, 16},
-        "-"};
+        {11 * 8, 0 * 16, 12 * 8, 16}};
 
     Text text_sample_rate{
-        {24 * 8, 0 * 16, 6 * 8, 16},
-        "-"};
+        {24 * 8, 0 * 16, 6 * 8, 16}};
 
     Text text_duration{
-        {11 * 8, 1 * 16, 6 * 8, 16},
-        "-"};
+        {11 * 8, 1 * 16, 6 * 8, 16}};
 
-    ProgressBar tracks_progressbar{
+    ProgressBar progressbar_track{
         {18 * 8, 1 * 16, 12 * 8, 8}};
 
-    ProgressBar on_track_progressbar{
+    ProgressBar progressbar_transmit{
         {18 * 8, 3 * 8, 12 * 8, 8}};
 
-    FrequencyField field_frequency{
-        {0 * 8, 2 * 16},
-    };
+    Text text_frequency{
+        {0 * 8, 2 * 16, 9 * 8, 16}};
 
     TransmitterView2 tx_view{
-        // new handling of NumberField field_rfgain, NumberField field_rfamp
-        74, 1 * 8, SHORT_UI  // x(columns), y (line) position. (Used in Repay / GPS Simul / Play list App)
-                             //		10*8, 2*8, NORMAL_UI				// x(columns), y (line) position. (Used in Mic App)
+        74, 1 * 8, SHORT_UI  // x(columns), y (line) position.
     };
 
     Checkbox check_loop{
@@ -142,8 +142,7 @@ class PlaylistView : public View {
         Color::black()};
 
     Text text_track{
-        {0 * 8, 3 * 16, 16 * 8, 16},
-        "Open a playlist file."};
+        {0 * 8, 3 * 16, 30 * 8, 16}};
 
     spectrum::WaterfallWidget waterfall{};
 
