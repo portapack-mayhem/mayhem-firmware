@@ -26,6 +26,7 @@
 
 #include "ui.hpp"
 #include "portapack.hpp"
+#include "app_settings.hpp"
 #include "baseband_api.hpp"
 #include "radio_state.hpp"
 #include "receiver_model.hpp"
@@ -71,6 +72,8 @@ class GlassView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{};
+    app_settings::SettingsManager settings_{
+        "rx_glass", app_settings::Mode::RX};
 
     struct preset_entry {
         rf::Frequency min{};

@@ -38,7 +38,7 @@ namespace ui {
 
 class AMOptionsView : public View {
    public:
-    AMOptionsView(const Rect parent_rect, const Style* const style);
+    AMOptionsView(Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -56,7 +56,7 @@ class AMOptionsView : public View {
 
 class NBFMOptionsView : public View {
    public:
-    NBFMOptionsView(const Rect parent_rect, const Style* const style);
+    NBFMOptionsView(Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -84,7 +84,7 @@ class NBFMOptionsView : public View {
 
 class WFMOptionsView : public View {
    public:
-    WFMOptionsView(const Rect parent_rect, const Style* const style);
+    WFMOptionsView(Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -103,7 +103,7 @@ class AnalogAudioView;
 
 class SPECOptionsView : public View {
    public:
-    SPECOptionsView(AnalogAudioView* view, const Rect parent_rect, const Style* const style);
+    SPECOptionsView(AnalogAudioView* view, Rect parent_rect, const Style* style);
 
    private:
     Text label_config{
@@ -140,10 +140,7 @@ class AnalogAudioView : public View {
     AnalogAudioView(NavigationView& nav);
     ~AnalogAudioView();
 
-    void on_hide() override;
-
-    void set_parent_rect(const Rect new_parent_rect) override;
-
+    void set_parent_rect(Rect new_parent_rect) override;
     void focus() override;
 
     std::string title() const override { return "Audio RX"; };
@@ -169,8 +166,6 @@ class AnalogAudioView : public View {
     size_t spec_bw_index = 0;
     uint32_t spec_bw = 20000000;
     uint16_t spec_trigger = 63;
-
-    // bool exit_on_squelch { false };
 
     RSSI rssi{
         {21 * 8, 0, 6 * 8, 4}};
@@ -221,7 +216,7 @@ class AnalogAudioView : public View {
     spectrum::WaterfallWidget waterfall{true};
 
     void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
-    void on_modulation_changed(const ReceiverModel::Mode modulation);
+    void on_modulation_changed(ReceiverModel::Mode modulation);
     void on_show_options_frequency();
     void on_show_options_rf_gain();
     void on_show_options_modulation();
@@ -231,22 +226,13 @@ class AnalogAudioView : public View {
     void remove_options_widget();
     void set_options_widget(std::unique_ptr<Widget> new_widget);
 
-    void update_modulation(const ReceiverModel::Mode modulation);
+    void update_modulation(ReceiverModel::Mode modulation);
 
-    // void squelched();
-    void handle_coded_squelch(const uint32_t value);
-
-    /*MessageHandlerRegistration message_handler_squelch_signal {
-                Message::ID::RequestSignal,
-                [this](const Message* const p) {
-                        (void)p;
-                        this->squelched();
-                }
-        };*/
+    void handle_coded_squelch(uint32_t value);
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
-        [this](const Message* const p) {
+        [this](const Message* p) {
             const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
             this->handle_coded_squelch(message.value);
         }};

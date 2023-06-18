@@ -311,10 +311,12 @@ WaterfallWidget::WaterfallWidget(const bool cursor) {
 }
 
 void WaterfallWidget::on_show() {
+    // TODO: Assert that baseband is not shutdown.
     baseband::spectrum_streaming_start();
 }
 
 void WaterfallWidget::on_hide() {
+    // TODO: Assert that baseband is not shutdown.
     baseband::spectrum_streaming_stop();
 }
 

@@ -22,21 +22,19 @@
 
 #include "analog_audio_app.hpp"
 
+#include "audio.hpp"
 #include "baseband_api.hpp"
-
+#include "file.hpp"
+#include "freqman.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
-using namespace portapack;
-using namespace tonekey;
-
-#include "audio.hpp"
-#include "file.hpp"
-
+#include "string_format.hpp"
 #include "utility.hpp"
 
-#include "string_format.hpp"
+#include "debug.hpp"
 
-#include "freqman.hpp"
+using namespace portapack;
+using namespace tonekey;
 
 namespace ui {
 
@@ -45,8 +43,8 @@ namespace ui {
 static const Style& style_options_group = Styles::bg_blue;
 
 AMOptionsView::AMOptionsView(
-    const Rect parent_rect,
-    const Style* const style)
+    Rect parent_rect,
+    const Style* style)
     : View{parent_rect} {
     set_style(style);
 
@@ -65,8 +63,8 @@ AMOptionsView::AMOptionsView(
 /* NBFMOptionsView *******************************************************/
 
 NBFMOptionsView::NBFMOptionsView(
-    const Rect parent_rect,
-    const Style* const style)
+    Rect parent_rect,
+    const Style* style)
     : View{parent_rect} {
     set_style(style);
 
@@ -90,8 +88,8 @@ NBFMOptionsView::NBFMOptionsView(
 /* WFMOptionsView *******************************************************/
 
 WFMOptionsView::WFMOptionsView(
-    const Rect parent_rect,
-    const Style* const style)
+    Rect parent_rect,
+    const Style* style)
     : View{parent_rect} {
     set_style(style);
 
@@ -111,8 +109,8 @@ WFMOptionsView::WFMOptionsView(
 
 SPECOptionsView::SPECOptionsView(
     AnalogAudioView* view,
-    const Rect parent_rect,
-    const Style* const style)
+    Rect parent_rect,
+    const Style* style)
     : View{parent_rect} {
     set_style(style);
 
@@ -137,6 +135,10 @@ SPECOptionsView::SPECOptionsView(
 AnalogAudioView::AnalogAudioView(
     NavigationView& nav)
     : nav_(nav) {
+    // A baseband image _must_ be running before
+    // interacting with the waterfall view.
+    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+
     add_children({&rssi,
                   &channel,
                   &audio,
@@ -164,9 +166,12 @@ AnalogAudioView::AnalogAudioView(
         this->on_show_options_rf_gain();
     };
 
-    const auto modulation = receiver_model.modulation();
-    options_modulation.set_by_value(toUType(modulation));
+    auto modulation = receiver_model.modulation();
+    // This app doesn't handle "Capture" mode.
+    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)
+        modulation = ReceiverModel::Mode::SpectrumAnalysis;
 
+    options_modulation.set_by_value(toUType(modulation));
     options_modulation.on_change = [this](size_t, OptionsField::value_t v) {
         this->on_modulation_changed(static_cast<ReceiverModel::Mode>(v));
     };
@@ -184,8 +189,9 @@ AnalogAudioView::AnalogAudioView(
 
     audio::output::start();
 
-    update_modulation(static_cast<ReceiverModel::Mode>(modulation));
-    on_modulation_changed(static_cast<ReceiverModel::Mode>(modulation));
+    // This call starts the correct baseband image to run
+    // and sets the radio up as necessary for the given modulation.
+    on_modulation_changed(modulation);
 }
 
 size_t AnalogAudioView::get_spec_bw_index() {
@@ -212,40 +218,15 @@ void AnalogAudioView::set_spec_trigger(uint16_t trigger) {
 }
 
 AnalogAudioView::~AnalogAudioView() {
-    // // save app settings
-    // app_settings.rx_frequency = field_frequency.value();
-    // app_settings.lna = receiver_model.lna();
-    // app_settings.vga = receiver_model.vga();
-    // app_settings.rx_amp = receiver_model.rf_amp();
-    // app_settings.step = receiver_model.frequency_step();
-    // app_settings.modulation = (uint8_t)receiver_model.modulation();
-    // app_settings.am_config_index = receiver_model.am_configuration();
-    // app_settings.nbfm_config_index = receiver_model.nbfm_configuration();
-    // app_settings.wfm_config_index = receiver_model.wfm_configuration();
-    // app_settings.squelch = receiver_model.squelch_level();
-    // settings.save("rx_audio", &app_settings);
-
-    // TODO: Manipulating audio codec here, and in ui_receiver.cpp. Good to do
-    // both?
     audio::output::stop();
-
-    receiver_model.set_sampling_rate(3072000);  // Just a hack to avoid hanging other apps if the last modulation was SPEC
     receiver_model.disable();
-
     baseband::shutdown();
 }
 
-void AnalogAudioView::on_hide() {
-    // TODO: Terrible kludge because widget system doesn't notify Waterfall that
-    // it's being shown or hidden.
-    waterfall.on_hide();
-    View::on_hide();
-}
-
-void AnalogAudioView::set_parent_rect(const Rect new_parent_rect) {
+void AnalogAudioView::set_parent_rect(Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
-    const ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
     waterfall.set_parent_rect(waterfall_rect);
 }
 
@@ -257,13 +238,15 @@ void AnalogAudioView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {
     receiver_model.set_baseband_bandwidth(bandwidth_hz);
 }
 
-void AnalogAudioView::on_modulation_changed(const ReceiverModel::Mode modulation) {
-    // TODO: Terrible kludge because widget system doesn't notify Waterfall that
-    // it's being shown or hidden.
-    waterfall.on_hide();
+void AnalogAudioView::on_modulation_changed(ReceiverModel::Mode modulation) {
+    // This app doesn't know what to do with "Capture" mode.
+    if (modulation > ReceiverModel::Mode::SpectrumAnalysis)
+        modulation = ReceiverModel::Mode::SpectrumAnalysis;
+
+    baseband::spectrum_streaming_stop();
     update_modulation(modulation);
     on_show_options_modulation();
-    waterfall.on_show();
+    baseband::spectrum_streaming_start();
 }
 
 void AnalogAudioView::remove_options_widget() {
@@ -315,7 +298,7 @@ void AnalogAudioView::on_show_options_rf_gain() {
 void AnalogAudioView::on_show_options_modulation() {
     std::unique_ptr<Widget> widget;
 
-    const auto modulation = static_cast<ReceiverModel::Mode>(receiver_model.modulation());
+    const auto modulation = receiver_model.modulation();
     switch (modulation) {
         case ReceiverModel::Mode::AMAudio:
             widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
@@ -342,6 +325,7 @@ void AnalogAudioView::on_show_options_modulation() {
             break;
 
         default:
+            chDbgPanic("Unhandled Mode");
             break;
     }
 
@@ -358,7 +342,7 @@ void AnalogAudioView::on_reference_ppm_correction_changed(int32_t v) {
     persistent_memory::set_correction_ppb(v * 1000);
 }
 
-void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
+void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
     audio::output::mute();
     record_view.stop();
 
@@ -379,7 +363,8 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
             image_tag = portapack::spi_flash::image_tag_wideband_spectrum;
             break;
         default:
-            return;
+            chDbgPanic("Unhandled Mode");
+            break;
     }
 
     baseband::run_image(image_tag);
@@ -418,7 +403,7 @@ void AnalogAudioView::update_modulation(const ReceiverModel::Mode modulation) {
     }
 }
 
-void AnalogAudioView::handle_coded_squelch(const uint32_t value) {
+void AnalogAudioView::handle_coded_squelch(uint32_t value) {
     float diff, min_diff = value;
     size_t min_idx{0};
     size_t c;

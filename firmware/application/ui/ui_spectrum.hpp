@@ -104,6 +104,10 @@ class FrequencyScale : public Widget {
     void draw_filter_ranges(Painter& painter, const Rect r);
 };
 
+/* NB: These visualizations rely on having a baseband image running.
+ * If the baseband is shutdown or otherwise not running when interacting
+ * with these, they will almost certainly hang the device. */
+
 class WaterfallView : public Widget {
    public:
     void on_show() override;
