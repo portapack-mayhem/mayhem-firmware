@@ -25,6 +25,7 @@
 
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_rssi.hpp"
 #include "ui_qrcode.hpp"
 #include "ui_geomap.hpp"
@@ -65,6 +66,7 @@ class SondeView : public View {
     std::string title() const override { return "Radiosnd RX"; };
 
    private:
+    NavigationView& nav_;
     RxRadioState radio_state_{
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
@@ -96,9 +98,9 @@ class SondeView : public View {
         {{4 * 8, 7 * 16}, "Temp:", Color::light_grey()},
         {{0 * 8, 8 * 16}, "Humidity:", Color::light_grey()}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
-    };
+        nav_};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -110,8 +112,7 @@ class SondeView : public View {
         {18 * 8, 0 * 16}};
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};

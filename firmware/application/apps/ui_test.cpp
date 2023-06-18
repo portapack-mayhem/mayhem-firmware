@@ -40,7 +40,8 @@ void TestLogger::log_raw_data(const testapp::Packet& packet, const int32_t alt) 
 
 namespace ui {
 
-TestView::TestView(NavigationView& nav) {
+TestView::TestView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_test);
 
     add_children({&labels,
@@ -54,18 +55,7 @@ TestView::TestView(NavigationView& nav) {
                   &button_cal,
                   &check_log});
 
-    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(10000);
-    field_frequency.on_change = [this](rf::Frequency f) {
-        receiver_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
 
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;

@@ -38,8 +38,6 @@ class ModemSetupView : public View {
     std::string title() const override { return "Modem setup"; };
 
    private:
-    void update_freq(rf::Frequency f);
-
     Labels labels{
         {{2 * 8, 11 * 8}, "Baudrate:", Color::light_grey()},
         {{2 * 8, 13 * 8}, "Mark:      Hz", Color::light_grey()},

@@ -43,11 +43,8 @@ void AFSKRxView::focus() {
     field_frequency.focus();
 }
 
-void AFSKRxView::update_freq(rf::Frequency f) {
-    receiver_model.set_target_frequency(f);
-}
-
-AFSKRxView::AFSKRxView(NavigationView& nav) {
+AFSKRxView::AFSKRxView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_afsk_rx);
 
     add_children({&rssi,
@@ -62,8 +59,8 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
                   &button_modem_setup,
                   &console});
 
-    // Auto-configure modem for LCR RX (will be removed later)
-    update_freq(467225500);  // 462713300
+    // Auto-configure modem for LCR RX (TODO remove)
+    field_frequency.set_value(467225500);
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;
@@ -73,17 +70,7 @@ AFSKRxView::AFSKRxView(NavigationView& nav) {
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
 
-    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(100);
-    field_frequency.on_change = [this](rf::Frequency f) {
-        update_freq(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {

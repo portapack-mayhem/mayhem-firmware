@@ -57,17 +57,7 @@ SpectrumPainterView::SpectrumPainterView(
     input_image.set_parent_rect(view_rect);
     input_text.set_parent_rect(view_rect);
 
-    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.set_step(5000);
-    field_frequency.on_change = [this](rf::Frequency f) {
-        transmitter_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
 
     tx_gain = transmitter_model.tx_gain();
     field_rfgain.set_value(tx_gain);              // Initial default  value (-12 dB's max ).

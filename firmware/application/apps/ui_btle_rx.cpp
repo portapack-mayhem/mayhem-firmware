@@ -40,11 +40,8 @@ void BTLERxView::focus() {
     field_frequency.focus();
 }
 
-void BTLERxView::update_freq(rf::Frequency f) {
-    receiver_model.set_target_frequency(f);
-}
-
-BTLERxView::BTLERxView(NavigationView& nav) {
+BTLERxView::BTLERxView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_btle_rx);
 
     add_children({&rssi,
@@ -56,8 +53,8 @@ BTLERxView::BTLERxView(NavigationView& nav) {
                   &button_modem_setup,
                   &console});
 
-    // Auto-configure modem for LCR RX (will be removed later)
-    update_freq(2426000000);
+    // Auto-configure modem for LCR RX (TODO: remove later)
+    field_frequency.set_value(2426000000);
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;
@@ -67,17 +64,7 @@ BTLERxView::BTLERxView(NavigationView& nav) {
     serial_format.bit_order = LSB_FIRST;
     persistent_memory::set_serial_format(serial_format);
 
-    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(100);
-    field_frequency.on_change = [this](rf::Frequency f) {
-        update_freq(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
 
     button_modem_setup.on_select = [&nav](Button&) {
         nav.push<ModemSetupView>();

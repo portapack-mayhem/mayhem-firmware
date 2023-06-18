@@ -55,7 +55,8 @@ void ACARSLogger::log_raw_data(const acars::Packet& packet, const uint32_t frequ
 
 namespace ui {
 
-ACARSAppView::ACARSAppView(NavigationView& nav) {
+ACARSAppView::ACARSAppView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_acars);
 
     add_children({&rssi,
@@ -68,19 +69,6 @@ ACARSAppView::ACARSAppView(NavigationView& nav) {
                   &console});
 
     receiver_model.enable();
-
-    field_frequency.set_value(receiver_model.target_frequency());
-    field_frequency.set_step(receiver_model.frequency_step());
-    field_frequency.on_change = [this](rf::Frequency f) {
-        receiver_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {

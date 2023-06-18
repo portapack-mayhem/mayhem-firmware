@@ -187,18 +187,7 @@ GpsSimAppView::GpsSimAppView(
         &waterfall,
     });
 
-    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.set_step(5000);
-    field_frequency.on_change = [this](rf::Frequency f) {
-        transmitter_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            this->field_frequency.set_value(f);
-        };
-    };
 
     button_play.on_select = [this](ImageButton&) {
         this->toggle();

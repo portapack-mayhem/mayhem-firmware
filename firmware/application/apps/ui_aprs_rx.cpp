@@ -73,12 +73,8 @@ void APRSRxView::focus() {
     options_region.focus();
 }
 
-void APRSRxView::update_freq(rf::Frequency f) {
-    receiver_model.set_target_frequency(f);
-}
-
 APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
-    : View(parent_rect) {
+    : View(parent_rect), nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_aprs_rx);
 
     add_children({&rssi,
@@ -111,18 +107,7 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
         }
     };
 
-    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(100);
-    field_frequency.on_change = [this](rf::Frequency f) {
-        update_freq(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
-
     options_region.set_selected_index(0, true);
 
     logger = std::make_unique<APRSLogger>();

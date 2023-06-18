@@ -41,7 +41,8 @@ void SondeLogger::on_packet(const sonde::Packet& packet) {
 
 namespace ui {
 
-SondeView::SondeView(NavigationView& nav) {
+SondeView::SondeView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_sonde);
 
     add_children({&labels,
@@ -66,20 +67,9 @@ SondeView::SondeView(NavigationView& nav) {
                   &button_see_map});
 
     if (!settings_.loaded())
-        receiver_model.set_target_frequency(initial_target_frequency);
+        field_frequency.set_value(initial_target_frequency);
 
-    field_frequency.set_value(receiver_model.target_frequency());
     field_frequency.set_step(500);  // euquiq: was 10000, but we are using this for fine-tunning
-    field_frequency.on_change = [this](rf::Frequency f) {
-        receiver_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
 
     geopos.set_read_only(true);
 

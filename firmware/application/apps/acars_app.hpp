@@ -27,6 +27,7 @@
 #include "radio_state.hpp"
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_rssi.hpp"
 #include "log_file.hpp"
 
@@ -57,6 +58,7 @@ class ACARSAppView : public View {
     std::string title() const override { return "ACARS (WIP)"; };
 
    private:
+    NavigationView& nav_;
     RxRadioState radio_state_{
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
@@ -74,15 +76,13 @@ class ACARSAppView : public View {
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
-    };
+        nav_};
     Checkbox check_log{
         {22 * 8, 21},
         3,

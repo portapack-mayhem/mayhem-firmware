@@ -26,6 +26,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_record_view.hpp"
 #include "ui_spectrum.hpp"
 #include "app_settings.hpp"
@@ -64,6 +65,7 @@ class CaptureAppView : public View {
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
+    NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_capture", app_settings::Mode::RX,
@@ -72,27 +74,22 @@ class CaptureAppView : public View {
     uint32_t sampling_rate = 0;
     uint32_t anti_alias_baseband_bandwidth_filter = 2500000;
 
-    void on_target_frequency_changed(rf::Frequency f);
-
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
     };
 
     RSSI rssi{
-        {24 * 8, 0, 6 * 8, 4},
-    };
+        {24 * 8, 0, 6 * 8, 4}};
 
     Channel channel{
-        {24 * 8, 5, 6 * 8, 4},
-    };
+        {24 * 8, 5, 6 * 8, 4}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
-    };
+        nav_};
 
     FrequencyStepView field_frequency_step{
-        {10 * 8, 0 * 16},
-    };
+        {10 * 8, 0 * 16}};
 
     RFAmpField field_rf_amp{
         {16 * 8, 0 * 16}};

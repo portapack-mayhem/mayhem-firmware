@@ -51,9 +51,8 @@ void POCSAGLogger::log_decoded(
 
 namespace ui {
 
-POCSAGAppView::POCSAGAppView(NavigationView& nav) {
-    uint32_t ignore_address;
-
+POCSAGAppView::POCSAGAppView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_pocsag);
 
     add_children({&rssi,
@@ -70,28 +69,16 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav) {
                   &console});
 
     if (!settings_.loaded())
-        receiver_model.set_target_frequency(initial_target_frequency);
+        field_frequency.set_value(initial_target_frequency);
 
     receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.enable();
 
-    field_frequency.set_value(receiver_model.target_frequency());
-    field_frequency.on_change = [this](rf::Frequency f) {
-        receiver_model.set_target_frequency(f);
-    };
-    field_frequency.set_step(receiver_model.frequency_step());
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
-
-    // TODO app setting instead?
+    // TODO: app setting instead?
+    uint32_t ignore_address;
     ignore_address = persistent_memory::pocsag_ignore_address();
 
-    // TODO is this common enough for a helper?
+    // TODO: is this common enough for a helper?
     for (size_t c = 0; c < 7; c++) {
         sym_ignore.set_sym(6 - c, ignore_address % 10);
         ignore_address /= 10;
@@ -156,9 +143,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
             console.write(console_info);
 
             if (logger && logging()) {
-                logger->log_decoded(message->packet, to_string_dec_uint(pocsag_state.address) +
-                                                         " F" + to_string_dec_uint(pocsag_state.function) +
-                                                         " Address only");
+                logger->log_decoded(
+                    message->packet, to_string_dec_uint(pocsag_state.address) +
+                                         " F" + to_string_dec_uint(pocsag_state.function) +
+                                         " Address only");
             }
 
             last_address = pocsag_state.address;
@@ -175,16 +163,17 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
             }
 
             if (logger && logging())
-                logger->log_decoded(message->packet, to_string_dec_uint(pocsag_state.address) +
-                                                         " F" + to_string_dec_uint(pocsag_state.function) +
-                                                         " Alpha: " + pocsag_state.output);
+                logger->log_decoded(
+                    message->packet, to_string_dec_uint(pocsag_state.address) +
+                                         " F" + to_string_dec_uint(pocsag_state.function) +
+                                         " Alpha: " + pocsag_state.output);
         }
     }
 
     // TODO: make setting.
     // Log raw data whatever it contains
-    if (logger && logging())
-        logger->log_raw_data(message->packet, receiver_model.target_frequency());
+    /*if (logger && logging())
+        logger->log_raw_data(message->packet, receiver_model.target_frequency());*/
 }
 
 } /* namespace ui */

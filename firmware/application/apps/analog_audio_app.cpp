@@ -152,19 +152,6 @@ AnalogAudioView::AnalogAudioView(
     // Filename Datetime and Frequency
     record_view.set_filename_date_frequency(true);
 
-    field_frequency.set_value(receiver_model.target_frequency());
-    field_frequency.on_change = [this](rf::Frequency f) {
-        receiver_model.set_target_frequency(f);
-    };
-    field_frequency.set_step(receiver_model.frequency_step());
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
-
     field_frequency.on_show_options = [this]() {
         this->on_show_options_frequency();
     };

@@ -188,26 +188,11 @@ ReplayAppView::ReplayAppView(
         &text_duration,
         &progressbar,
         &field_frequency,
-        &tx_view,  // now it handles previous rfgain , rfamp.
+        &tx_view,  // now it handles previous rfgain, rfamp.
         &check_loop,
         &button_play,
         &waterfall,
     });
-
-    field_frequency.set_value(transmitter_model.target_frequency());
-    field_frequency.set_step(receiver_model.frequency_step());
-    field_frequency.on_change = [this](rf::Frequency f) {
-        transmitter_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            field_frequency.set_value(f);
-        };
-    };
-
-    field_frequency.set_step(5000);
 
     button_play.on_select = [this](ImageButton&) {
         this->toggle();
