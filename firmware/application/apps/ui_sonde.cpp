@@ -137,7 +137,7 @@ SondeView::~SondeView() {
 }
 
 void SondeView::focus() {
-    field_vga.focus();
+    field_frequency.focus();
 }
 
 // used to convert float to character pointer, since unfortunately function like
