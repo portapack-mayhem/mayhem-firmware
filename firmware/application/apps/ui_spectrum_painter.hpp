@@ -94,9 +94,9 @@ class SpectrumPainterView : public View {
         {{1 * 8, footer_location + 2 * 16}, "BW:      Du:    P:", Color::light_grey()},
     };
 
-    FrequencyField field_frequency{
+    TxFrequencyField field_frequency{
         {0 * 8, footer_location + 1 * 16},
-    };
+        nav_};
 
     NumberField field_rfgain{
         {14 * 8, footer_location + 1 * 16},

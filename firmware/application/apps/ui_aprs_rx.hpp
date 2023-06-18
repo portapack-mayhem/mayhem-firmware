@@ -26,7 +26,8 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_record_view.hpp"  // DEBUG
+#include "ui_freq_field.hpp"
+#include "ui_record_view.hpp"
 #include "ui_geomap.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
@@ -188,6 +189,7 @@ class APRSRxView : public View {
     void on_data(uint32_t value, bool is_data);
     bool reset_console = false;
 
+    NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_aprs", app_settings::Mode::RX};
@@ -202,11 +204,9 @@ class APRSRxView : public View {
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
@@ -219,9 +219,9 @@ class APRSRxView : public View {
          {"AUS", 2},
          {"NZ ", 3}}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {3 * 8, 0 * 16},
-    };
+        nav_};
 
     // DEBUG
     RecordView record_view{
@@ -234,8 +234,6 @@ class APRSRxView : public View {
 
     Console console{
         {0, 2 * 16, 240, 240}};
-
-    void update_freq(rf::Frequency f);
 
     std::unique_ptr<APRSLogger> logger{};
 };

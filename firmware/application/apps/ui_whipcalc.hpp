@@ -26,6 +26,7 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
 #include <vector>
@@ -47,6 +48,7 @@ class WhipCalcView : public View {
         std::vector<uint16_t> elements{};
     };
 
+    NavigationView& nav_;
     std::vector<antenna_entry> antenna_db{};
     void update_result();
     uint16_t string_to_number(std::string);
@@ -59,9 +61,10 @@ class WhipCalcView : public View {
         {{5 * 8, 3 * 16}, "Metric:", Color::light_grey()},
         {{3 * 8, 4 * 16}, "Imperial:", Color::light_grey()}};
 
-    FrequencyField field_frequency{
+    TxFrequencyField field_frequency{
         {13 * 8, 1 * 16},
-    };
+        nav_,
+        false};
 
     OptionsField options_type{
         {13 * 8, 2 * 16},

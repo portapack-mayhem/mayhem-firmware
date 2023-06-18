@@ -25,6 +25,7 @@
 
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_rssi.hpp"
 
 #include "event_m0.hpp"
@@ -59,6 +60,7 @@ class TestView : public View {
     std::string title() const override { return "Test app"; };
 
    private:
+    NavigationView& nav_;
     RxRadioState radio_state_{
         1750000 /* bandwidth */,
         2457600 * 2 /* sampling rate */
@@ -75,9 +77,9 @@ class TestView : public View {
     Labels labels{
         {{0 * 8, 1 * 16}, "Data:", Color::light_grey()}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
-    };
+        nav_};
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
 

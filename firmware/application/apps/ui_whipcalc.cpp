@@ -102,7 +102,8 @@ void WhipCalcView::update_result() {
     }
 }
 
-WhipCalcView::WhipCalcView(NavigationView& nav) {
+WhipCalcView::WhipCalcView(NavigationView& nav)
+    : nav_{nav} {
     add_children({&labels,
                   //&antennas_on_memory,
                   &field_frequency,
@@ -142,16 +143,8 @@ WhipCalcView::WhipCalcView(NavigationView& nav) {
     };
 
     field_frequency.set_step(1000000);  // 1MHz step
-    field_frequency.on_change = [this](rf::Frequency) {
-        this->update_result();
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            this->field_frequency.set_value(f);
-            this->update_result();
-        };
+    field_frequency.updated = [this](rf::Frequency) {
+        update_result();
     };
 
     button_exit.on_select = [this, &nav](Button&) {

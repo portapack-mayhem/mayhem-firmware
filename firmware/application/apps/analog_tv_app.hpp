@@ -27,6 +27,7 @@
 #include "receiver_model.hpp"
 
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_tv.hpp"
 #include "ui_record_view.hpp"
 #include "ui_styles.hpp"
@@ -53,6 +54,7 @@ class AnalogTvView : public View {
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
+    NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_tv", app_settings::Mode::RX};
@@ -60,23 +62,18 @@ class AnalogTvView : public View {
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};
 
-    NavigationView& nav_;
-
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
 
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
 
     Audio audio{
-        {21 * 8, 10, 6 * 8, 4},
-    };
+        {21 * 8, 10, 6 * 8, 4}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {5 * 8, 0 * 16},
-    };
+        nav_};
 
     LNAGainField field_lna{
         {15 * 8, 0 * 16}};
@@ -100,7 +97,6 @@ class AnalogTvView : public View {
 
     tv::TVWidget tv{};
 
-    void on_target_frequency_changed(rf::Frequency f);
     void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
     void on_modulation_changed(const ReceiverModel::Mode modulation);
     void on_show_options_frequency();
@@ -108,7 +104,6 @@ class AnalogTvView : public View {
     void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);
     void on_reference_ppm_correction_changed(int32_t v);
-    void on_edit_frequency();
 
     void remove_options_widget();
     void set_options_widget(std::unique_ptr<Widget> new_widget);

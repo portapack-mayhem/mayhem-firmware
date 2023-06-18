@@ -31,6 +31,7 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "replay_thread.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_transmitter.hpp"
@@ -98,9 +99,10 @@ class ReplayAppView : public View {
     ProgressBar progressbar{
         {18 * 8, 1 * 16, 12 * 8, 16}};
 
-    FrequencyField field_frequency{
+    // TODO: Does this need to be a frequency field at all?
+    TxFrequencyField field_frequency{
         {0 * 8, 2 * 16},
-    };
+        nav_};
 
     TransmitterView2 tx_view{
         // new handling of NumberField field_rfgain, NumberField field_rfamp

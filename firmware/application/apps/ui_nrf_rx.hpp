@@ -27,6 +27,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui_record_view.hpp"  // DEBUG
@@ -47,6 +48,7 @@ class NRFRxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
 
+    NavigationView& nav_;
     RxRadioState radio_state_{
         4000000 /* bandwidth */,
         4000000 /* sampling rate */
@@ -64,15 +66,13 @@ class NRFRxView : public View {
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
-    };
+        nav_};
 
     Button button_modem_setup{
         {240 - 12 * 8, 1 * 16, 96, 24},
@@ -80,9 +80,6 @@ class NRFRxView : public View {
 
     Console console{
         {0, 4 * 16, 240, 240}};
-
-    void update_freq(rf::Frequency f);
-    // void on_data_afsk(const AFSKDataMessage& message);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::AFSKData,

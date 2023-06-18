@@ -28,7 +28,8 @@ using namespace portapack;
 
 namespace ui {
 
-CaptureAppView::CaptureAppView(NavigationView& nav) {
+CaptureAppView::CaptureAppView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_capture);
 
     add_children({
@@ -44,19 +45,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav) {
         &record_view,
         &waterfall,
     });
-
-    field_frequency.set_value(receiver_model.target_frequency());
-    field_frequency.set_step(receiver_model.frequency_step());
-    field_frequency.on_change = [this](rf::Frequency f) {
-        receiver_model.set_target_frequency(f);
-    };
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            this->field_frequency.set_value(f);
-        };
-    };
 
     field_frequency_step.set_by_value(receiver_model.frequency_step());
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {

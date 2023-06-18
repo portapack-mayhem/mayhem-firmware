@@ -24,6 +24,7 @@
 #define __POCSAG_APP_H__
 
 #include "ui_widget.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
 
@@ -61,6 +62,7 @@ class POCSAGAppView : public View {
     bool logging() const { return check_log.value(); };
     bool ignore() const { return check_ignore.value(); };
 
+    NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_pocsag", app_settings::Mode::RX};
@@ -75,18 +77,15 @@ class POCSAGAppView : public View {
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
     Audio audio{
-        {21 * 8, 10, 6 * 8, 4},
-    };
+        {21 * 8, 10, 6 * 8, 4}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
-    };
+        nav_};
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};

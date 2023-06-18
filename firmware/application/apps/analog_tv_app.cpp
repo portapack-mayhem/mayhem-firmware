@@ -56,22 +56,6 @@ AnalogTvView::AnalogTvView(
                   &field_volume,
                   &tv});
 
-    // Set on_change before initialising the field
-    field_frequency.on_change = [this](rf::Frequency f) {
-        this->on_target_frequency_changed(f);
-    };
-
-    field_frequency.set_value(receiver_model.target_frequency());
-    field_frequency.set_step(receiver_model.frequency_step());
-    field_frequency.on_edit = [this, &nav]() {
-        // TODO: Provide separate modal method/scheme?
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency());
-        new_view->on_changed = [this](rf::Frequency f) {
-            this->on_target_frequency_changed(f);
-            this->field_frequency.set_value(f);
-        };
-    };
-
     field_frequency.on_show_options = [this]() {
         this->on_show_options_frequency();
     };
@@ -123,10 +107,6 @@ void AnalogTvView::set_parent_rect(const Rect new_parent_rect) {
 
 void AnalogTvView::focus() {
     field_frequency.focus();
-}
-
-void AnalogTvView::on_target_frequency_changed(rf::Frequency f) {
-    receiver_model.set_target_frequency(f);
 }
 
 void AnalogTvView::on_baseband_bandwidth_changed(uint32_t bandwidth_hz) {

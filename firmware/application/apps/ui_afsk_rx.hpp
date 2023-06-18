@@ -26,7 +26,8 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_record_view.hpp"  // DEBUG
+#include "ui_freq_field.hpp"
+#include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "log_file.hpp"
@@ -58,6 +59,7 @@ class AFSKRxView : public View {
    private:
     void on_data(uint32_t value, bool is_data);
 
+    NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_afsk", app_settings::Mode::RX};
@@ -74,18 +76,16 @@ class AFSKRxView : public View {
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {0 * 8, 0 * 16},
-    };
+        nav_};
 
     Checkbox check_log{
         {0 * 8, 1 * 16},
@@ -104,7 +104,6 @@ class AFSKRxView : public View {
     Console console{
         {0, 4 * 16, 240, 240}};
 
-    void update_freq(rf::Frequency f);
     void on_data_afsk(const AFSKDataMessage& message);
 
     std::unique_ptr<AFSKLogger> logger{};

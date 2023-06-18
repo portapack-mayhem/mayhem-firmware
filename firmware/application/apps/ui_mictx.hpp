@@ -204,6 +204,7 @@ class MicTXView : public View {
             {"OFF-08dB", 4},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -12 dB's (respect ref level)
         }};
 
+    // TODO: Use TxFrequencyField
     FrequencyField field_frequency{
         {5 * 8, 3 * 8},
     };
@@ -309,6 +310,7 @@ class MicTXView : public View {
         ' ',
     };
 
+    // TODO: Use RxFrequencyField
     FrequencyField field_rxfrequency{
         {10 * 8, (25 * 8) + 2},
     };

@@ -26,6 +26,7 @@
 #include "receiver_model.hpp"
 
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
 #include "ui_styles.hpp"
@@ -156,6 +157,7 @@ class AnalogAudioView : public View {
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
+    NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_audio", app_settings::Mode::RX,
@@ -168,24 +170,20 @@ class AnalogAudioView : public View {
     uint32_t spec_bw = 20000000;
     uint16_t spec_trigger = 63;
 
-    NavigationView& nav_;
     // bool exit_on_squelch { false };
 
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4},
-    };
+        {21 * 8, 0, 6 * 8, 4}};
 
     Channel channel{
-        {21 * 8, 5, 6 * 8, 4},
-    };
+        {21 * 8, 5, 6 * 8, 4}};
 
     Audio audio{
-        {21 * 8, 10, 6 * 8, 4},
-    };
+        {21 * 8, 10, 6 * 8, 4}};
 
-    FrequencyField field_frequency{
+    RxFrequencyField field_frequency{
         {5 * 8, 0 * 16},
-    };
+        nav_};
 
     LNAGainField field_lna{
         {15 * 8, 0 * 16}};
@@ -229,7 +227,6 @@ class AnalogAudioView : public View {
     void on_show_options_modulation();
     void on_frequency_step_changed(rf::Frequency f);
     void on_reference_ppm_correction_changed(int32_t v);
-    void on_edit_frequency();
 
     void remove_options_widget();
     void set_options_widget(std::unique_ptr<Widget> new_widget);

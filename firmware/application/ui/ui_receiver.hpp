@@ -36,7 +36,6 @@
 
 namespace ui {
 
-// TODO: build in support for editing.
 class FrequencyField : public Widget {
    public:
     std::function<void(rf::Frequency)> on_change{};
@@ -45,7 +44,7 @@ class FrequencyField : public Widget {
 
     using range_t = rf::FrequencyRange;
 
-    FrequencyField(const Point parent_pos);
+    FrequencyField(Point parent_pos);
 
     rf::Frequency value() const;
 
@@ -54,9 +53,9 @@ class FrequencyField : public Widget {
 
     void paint(Painter& painter) override;
 
-    bool on_key(const ui::KeyEvent event) override;
-    bool on_encoder(const EncoderEvent delta) override;
-    bool on_touch(const TouchEvent event) override;
+    bool on_key(ui::KeyEvent event) override;
+    bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
     void on_focus() override;
 
    private:
