@@ -168,7 +168,6 @@ void unmute() {
 
 void speaker_disable() {
     cfg_speaker_disable = true;
-    audio_codec->speaker_disable();
 }
 
 void speaker_enable() {
@@ -190,6 +189,19 @@ void speaker_unmute() {
         unmute();
     }
 }
+
+void update_audio_mute() {
+    if (portapack::persistent_memory::config_speaker_disable())
+        speaker_disable();
+    else
+        speaker_enable();
+
+   if (portapack::persistent_memory::config_audio_mute())
+        speaker_mute();
+    else
+        speaker_unmute();
+}
+
 
 } /* namespace output */
 
