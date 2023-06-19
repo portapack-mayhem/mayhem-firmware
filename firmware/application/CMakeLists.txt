@@ -184,6 +184,7 @@ set(CPPSRC
 	irq_lcd_frame.cpp
 	irq_rtc.cpp
 	log_file.cpp
+	metadata_file.cpp
 	portapack.cpp
 	qrcodegen.cpp
 	radio.cpp

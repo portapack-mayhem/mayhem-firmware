@@ -27,11 +27,13 @@
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
 #include "baseband_api.hpp"
+#include "metadata_file.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "utility.hpp"
 
 using namespace portapack;
+namespace fs = std::filesystem;
 
 namespace ui {
 
@@ -39,51 +41,41 @@ void ReplayAppView::set_ready() {
     ready_signal = true;
 }
 
-void ReplayAppView::on_file_changed(std::filesystem::path new_file_path) {
-    File data_file, info_file;
-    char file_data[257];
+void ReplayAppView::on_file_changed(fs::path new_file_path) {
+    fs::path data_path = fs::path(u"/") + new_file_path;
+    File::Size file_size{};
 
-    // Get file size
-    auto data_open_error = data_file.open("/" + new_file_path.string());
-    if (data_open_error.is_valid()) {
-        file_error();
-        return;
-    }
-
-    file_path = new_file_path;
-
-    // Get original record frequency if available
-    std::filesystem::path info_file_path = file_path;
-    info_file_path.replace_extension(u".TXT");
-
-    sample_rate = 500000;
-
-    auto info_open_error = info_file.open("/" + info_file_path.string());
-    if (!info_open_error.is_valid()) {
-        memset(file_data, 0, 257);
-        auto read_size = info_file.read(file_data, 256);
-        if (!read_size.is_error()) {
-            auto pos1 = strstr(file_data, "center_frequency=");
-            if (pos1) {
-                pos1 += 17;
-                field_frequency.set_value(strtoll(pos1, nullptr, 10));
-            }
-
-            auto pos2 = strstr(file_data, "sample_rate=");
-            if (pos2) {
-                pos2 += 12;
-                sample_rate = strtoll(pos2, nullptr, 10);
-            }
+    {  // Get the size of the data file.
+        File data_file;
+        auto error = data_file.open(data_path);
+        if (error) {
+            file_error();
+            return;
         }
+
+        file_size = data_file.size();
     }
 
+    // Get original record frequency if available.
+    auto metadata_path = get_metadata_path(data_path);
+    auto metadata = read_metadata_file(metadata_path);
+
+    if (metadata) {
+        field_frequency.set_value(metadata->center_frequency);
+        sample_rate = metadata->sample_rate;
+    } else {
+        // TODO: This is interesting because it implies that the
+        // The capure will just be replayed at the freq set on the
+        // FrequencyField. Is that an intentional behavior?
+        sample_rate = 500000;
+    }
+
+    // UI Fixup.
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 0) + "Hz");
-
-    auto file_size = data_file.size();
-    auto duration = ms_duration(file_size, sample_rate, 4);
-
     progressbar.set_max(file_size);
     text_filename.set(file_path.filename().string().substr(0, 12));
+
+    auto duration = ms_duration(file_size, sample_rate, 4);
     text_duration.set(to_string_time_ms(duration));
 
     button_play.focus();
@@ -200,7 +192,7 @@ ReplayAppView::ReplayAppView(
 
     button_open.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".C16");
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+        open_view->on_changed = [this](fs::path new_file_path) {
             on_file_changed(new_file_path);
         };
     };
