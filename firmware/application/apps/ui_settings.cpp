@@ -527,6 +527,7 @@ SetAudioView::SetAudioView(NavigationView& nav) {
     button_save.on_select = [&nav, this](Button&) {
         persistent_memory::set_tone_mix(field_tone_mix.value());
         persistent_memory::set_config_speaker_disable(checkbox_speaker_disable.value());
+        audio::output::update_audio_mute();
         nav.pop();
     };
 
