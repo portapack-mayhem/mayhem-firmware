@@ -923,5 +923,81 @@ size_t data_size() {
     return sizeof(data_t);
 }
 
+bool dump_persistent_memory() {
+    std::string debug_dir = "DEBUG";
+    make_new_directory(debug_dir);
+
+    std::filesystem::path filename{};
+    File pmem_dump_file{};
+    filename = next_filename_matching_pattern(debug_dir + "/PMEMDUMP_????.*");
+    if (filename.empty()) {
+        return false;
+    }
+    filename = filename.replace_extension(u".TXT");
+    auto result = pmem_dump_file.create(filename);  // First freq if no output file
+    if (!result.is_valid()) {
+        std::string strbuf{};
+
+        strbuf = "structure_version: " + to_string_dec_uint(data->structure_version);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "target_frequency: " + to_string_dec_int(data->target_frequency);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "correction_ppb: " + to_string_dec_int(data->correction_ppb);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "modem_def_index: " + to_string_dec_uint(data->modem_def_index);
+        pmem_dump_file.write_line(strbuf);
+        // strbuf = "serial_format: " + to_string_dec_uint( data -> serial_format );
+        // pmem_dump_file.write_line(strbuf);
+        strbuf = "modem_bw: " + to_string_dec_int(data->modem_bw);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "afsk_mark_freq: " + to_string_dec_int(data->afsk_mark_freq);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "afsk_space_freq: " + to_string_dec_int(data->afsk_space_freq);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "modem_baudrate: " + to_string_dec_int(data->modem_baudrate);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "modem_repeat: " + to_string_dec_int(data->modem_repeat);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "playdead_magic: " + to_string_dec_uint(data->playdead_magic);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "playing_dead: " + to_string_dec_uint(data->playing_dead);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "playdead_sequence: " + to_string_dec_uint(data->playdead_sequence);
+        pmem_dump_file.write_line(strbuf);
+        // strbuf = "ui_config: " + to_string_dec_uint( data -> ui_config );
+        // pmem_dump_file.write_line(strbuf);
+        strbuf = "pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "hardware_config: " + to_string_dec_uint(data->hardware_config);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "recon_config: " + to_string_dec_uint(data->recon_config);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "hide_converter: " + to_string_dec_int(data->tone_mix);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "converter: " + to_string_dec_int(data->tone_mix);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "updown_converter: " + to_string_dec_int(data->tone_mix);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb);
+        pmem_dump_file.write_line(strbuf);
+        // strbuf = "misc_config: " + to_string_dec_int( data -> misc_config );
+        // pmem_dump_file.write_line(strbuf);
+        return true;
+    }
+    return false;
+}
+
 } /* namespace persistent_memory */
 } /* namespace portapack */

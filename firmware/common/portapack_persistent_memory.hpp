@@ -261,6 +261,8 @@ int load_persistent_settings_from_file();
 
 size_t data_size();
 
+bool dump_persistent_memory();
+
 } /* namespace persistent_memory */
 
 } /* namespace portapack */
