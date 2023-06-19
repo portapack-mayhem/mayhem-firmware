@@ -175,7 +175,11 @@ void AK4951::headphone_enable() {
 
 void AK4951::headphone_disable() {
     set_headphone_power(false);
-    set_dac_power(false);
+
+    // Don't power off DAC unless Speaker is disabled also
+    if (map.r.power_management_2.PMSL == 0) {
+        set_dac_power(false);
+    }
 }
 
 void AK4951::speaker_enable() {
@@ -210,7 +214,11 @@ void AK4951::speaker_disable() {
     update(Register::SignalSelect1);
 
     // Power down DAC, Programmable Filter and speaker: PMDAC=PMPFIL=PMSL bits= “1”→“0”
-    set_dac_power(false);
+    // Exception: Don't power off DAC unless Headphones are disabled too
+    if (map.r.power_management_2.PMHPL == 0) {
+        set_dac_power(false);
+    }
+
     // map.r.power_management_1.PMPFIL = 0;
     // update(Register::PowerManagement1);
     set_speaker_power(false);
