@@ -191,7 +191,6 @@ void update_audio_mute() {
         speaker_unmute();
 }
 
-
 } /* namespace output */
 
 namespace input {
