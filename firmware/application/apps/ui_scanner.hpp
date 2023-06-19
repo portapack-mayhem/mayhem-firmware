@@ -96,7 +96,7 @@ class ScannerView : public View {
 
    private:
     app_settings::SettingsManager settings_{
-        "scanner", app_settings::Mode::RX};
+        "rx_scanner", app_settings::Mode::RX};
 
     NavigationView& nav_;
     RxRadioState radio_state_{};

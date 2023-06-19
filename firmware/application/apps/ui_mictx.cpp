@@ -595,12 +595,6 @@ MicTXView::MicTXView(
         }
     };
 
-    // These shouldn't be necessary, but because
-    // this app uses both transmitter_model and directly
-    // configures the baseband, these end up being required.
-    transmitter_model.set_sampling_rate(sampling_rate);
-    transmitter_model.set_baseband_bandwidth(1750000);
-
     set_tx(false);
 
     audio::set_rate(audio::Rate::Hz_24000);

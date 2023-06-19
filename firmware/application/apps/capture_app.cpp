@@ -113,6 +113,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
 }
 
 CaptureAppView::~CaptureAppView() {
+    // Most other apps can't handle "Capture" mode, set to something standard.
+    receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.disable();
     baseband::shutdown();
 }

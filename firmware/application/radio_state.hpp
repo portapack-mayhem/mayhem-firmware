@@ -30,6 +30,12 @@
 
 /* Stashes current radio bandwidth and sampling rate.
  * Inits to defaults, and restores previous when destroyed.
+ * The idea here is that an app will eventually call enable
+ * on the model which will sync all of the model state into
+ * the radio. We tried lazily setting these using the
+ * set_configuration_without_update function, but there are
+ * still various UI components (mainly Waterfall) that need
+ * the radio set in order to load properly.
  * NB: This member must be added before SettingsManager. */
 template <typename TModel, TModel* model>
 class RadioState {
@@ -41,8 +47,9 @@ class RadioState {
     RadioState(uint32_t new_bandwidth, uint32_t new_sampling_rate)
         : prev_bandwidth_{model->baseband_bandwidth()},
           prev_sampling_rate_{model->sampling_rate()} {
-        model->set_configuration_without_update(
-            new_bandwidth, new_sampling_rate);
+        // Update the new settings in the radio.
+        model->set_sampling_rate(new_sampling_rate);
+        model->set_baseband_bandwidth(new_bandwidth);
     }
 
     ~RadioState() {

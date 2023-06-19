@@ -142,7 +142,9 @@ bool PlaylistView::next_track() {
 
 /* Transmits the current_entry_ */
 void PlaylistView::send_current_track() {
+    // Prepare to send a file.
     replay_thread_.reset();
+    transmitter_model.disable();
     ready_signal_ = false;
 
     if (!current_entry_)
@@ -171,6 +173,10 @@ void PlaylistView::send_current_track() {
     transmitter_model.set_sampling_rate(current_entry_->sample_rate * 8);
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
+
+    // Set baseband sample rate too for waterfall to be correct.
+    // TODO: Why doesn't the transmitter_model just handle this?
+    baseband::set_sample_rate(transmitter_model.sampling_rate());
 
     // Use the ReplayThread class to send the data.
     replay_thread_ = std::make_unique<ReplayThread>(
