@@ -69,6 +69,7 @@ void speaker_disable();
 void speaker_enable();
 void speaker_mute();
 void speaker_unmute();
+void update_audio_mute();
 
 } /* namespace output */
 

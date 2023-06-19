@@ -166,15 +166,6 @@ void unmute() {
     }
 }
 
-void speaker_disable() {
-    cfg_speaker_disable = true;
-    audio_codec->speaker_disable();
-}
-
-void speaker_enable() {
-    cfg_speaker_disable = false;
-}
-
 // The following functions are used by the navigation-bar Speaker Mute only,
 // and override all other audio mute/unmute requests from apps
 void speaker_mute() {
@@ -189,6 +180,15 @@ void speaker_unmute() {
     if (!app_requested_mute) {
         unmute();
     }
+}
+
+void update_audio_mute() {
+    cfg_speaker_disable = portapack::persistent_memory::config_speaker_disable();
+
+    if (portapack::persistent_memory::config_audio_mute())
+        speaker_mute();
+    else
+        speaker_unmute();
 }
 
 } /* namespace output */
