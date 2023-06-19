@@ -102,7 +102,8 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         waterfall.on_show();
     };
 
-    receiver_model.set_sampling_rate(8*500000);  // Set to any valid rate before waterfall.on_hide() code triggered by line below
+    // Set sampling rate to any valid rate before waterfall code is triggered by line below
+    receiver_model.set_sampling_rate(4000000);
     option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
 
     receiver_model.set_modulation(ReceiverModel::Mode::Capture);
