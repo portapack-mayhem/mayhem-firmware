@@ -148,14 +148,13 @@ void WhipCalcView::load_antenna_db() {
         return;
 
     auto reader = FileLineReader(antennas_file);
-    for (const auto& line : reader)
-    {
+    for (const auto& line : reader) {
         if (line.length() == 0 || line[0] == '#')
-            continue; // Empty or comment line.
+            continue;  // Empty or comment line.
 
         auto cols = split_string(line, ',');
         if (cols.size() < 2)
-            continue; // Line doesn't have enough columns.
+            continue;  // Line doesn't have enough columns.
 
         antenna_entry new_antenna{
             std::string{cols[0]}};

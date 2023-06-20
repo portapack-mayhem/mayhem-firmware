@@ -61,7 +61,8 @@ class WhipCalcView : public View {
         {{3 * 8, 4 * 16}, "Imperial:", Color::light_grey()}};
 
     TxFrequencyField field_frequency{
-        {13 * 8, 1 * 16}, nav_};
+        {13 * 8, 1 * 16},
+        nav_};
 
     OptionsField options_type{
         {13 * 8, 2 * 16},
