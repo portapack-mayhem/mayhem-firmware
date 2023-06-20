@@ -197,7 +197,8 @@ void RecordView::start() {
         case FileType::RawS16: {
             const auto metadata_file_error =
                 write_metadata_file(get_metadata_path(base_path),
-                                    {receiver_model.target_frequency(), sampling_rate});
+                                    {receiver_model.target_frequency(), sampling_rate / 8});
+                                    // Not sure why sample_rate is div. 8, but stored value matches rate settings. 
             if (metadata_file_error.is_valid()) {
                 handle_error(metadata_file_error.value());
                 return;
@@ -266,7 +267,7 @@ void RecordView::update_status_display() {
 
     if (sampling_rate) {
         const auto space_info = std::filesystem::space(u"");
-        const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4);
+        const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4); // TODO: Why 8/4??
         const uint32_t available_seconds = space_info.free / bytes_per_second;
         const uint32_t seconds = available_seconds % 60;
         const uint32_t available_minutes = available_seconds / 60;

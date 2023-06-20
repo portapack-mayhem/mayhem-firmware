@@ -51,8 +51,7 @@ class WhipCalcView : public View {
     NavigationView& nav_;
     std::vector<antenna_entry> antenna_db{};
     void update_result();
-    uint16_t string_to_number(std::string);
-    void txtline_process(std::string&);
+    void load_antenna_db();
     void add_default_antenna();
 
     Labels labels{
@@ -62,9 +61,7 @@ class WhipCalcView : public View {
         {{3 * 8, 4 * 16}, "Imperial:", Color::light_grey()}};
 
     TxFrequencyField field_frequency{
-        {13 * 8, 1 * 16},
-        nav_,
-        false};
+        {13 * 8, 1 * 16}, nav_};
 
     OptionsField options_type{
         {13 * 8, 2 * 16},
