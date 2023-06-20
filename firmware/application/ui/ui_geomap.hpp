@@ -158,6 +158,8 @@ class GeoMap : public Widget {
 
     bool on_touch(const TouchEvent event) override;
 
+    bool on_encoder(const EncoderEvent delta);
+
     bool init();
     void set_mode(GeoMapMode mode);
     void move(const float lon, const float lat);
@@ -177,11 +179,13 @@ class GeoMap : public Widget {
    private:
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
+    void map_zoom_line(ui::Color *buffer);
 
     GeoMapMode mode_{};
     File map_file{};
     uint16_t map_width{}, map_height{};
     int32_t map_center_x{}, map_center_y{};
+    int16_t map_zoom{1};
     float lon_ratio{}, lat_ratio{};
     double map_bottom{};
     double map_world_lon{};
