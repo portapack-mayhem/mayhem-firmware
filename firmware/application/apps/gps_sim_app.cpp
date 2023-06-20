@@ -43,12 +43,12 @@ void GpsSimAppView::set_ready() {
 }
 
 void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
-    fs::path data_path = fs::path(u"/") + new_file_path;
+    file_path = fs::path(u"/") + new_file_path;
     File::Size file_size{};
 
     {  // Get the size of the data file.
         File data_file;
-        auto error = data_file.open(data_path);
+        auto error = data_file.open(file_path);
         if (error) {
             file_error();
             return;
@@ -58,7 +58,7 @@ void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
     }
 
     // Get original record frequency if available.
-    auto metadata_path = get_metadata_path(data_path);
+    auto metadata_path = get_metadata_path(file_path);
     auto metadata = read_metadata_file(metadata_path);
 
     if (metadata) {
@@ -71,7 +71,7 @@ void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
     // UI Fixup.
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 1) + "Hz");
     progressbar.set_max(file_size / 1024);
-    text_filename.set(file_path.filename().string().substr(0, 12));
+    text_filename.set(truncate(file_path.filename().string(), 12));
 
     auto duration = ms_duration(file_size, sample_rate, 2);
     text_duration.set(to_string_time_ms(duration));

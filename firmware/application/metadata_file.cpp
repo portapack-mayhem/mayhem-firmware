@@ -50,7 +50,7 @@ Optional<File::Error> write_metadata_file(const fs::path& path, capture_metadata
         return error;
 
     // TODO: Why does this divide by 8? Leaving as is for back-compat, but it's odd.
-    error = f.write_line(std::string{center_freq_name} + "=" +
+    error = f.write_line(std::string{sample_rate_name} + "=" +
                          to_string_dec_uint(metadata.sample_rate / 8));
     if (error)
         return error;
