@@ -179,7 +179,7 @@ class GeoMap : public Widget {
    private:
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
-    void map_zoom_line(ui::Color *buffer);
+    void map_zoom_line(ui::Color* buffer);
 
     GeoMapMode mode_{};
     File map_file{};
