@@ -19,36 +19,43 @@
  * Boston, MA 02110-1301, USA.
  */
 
- #include "metadata_file.hpp"
- 
- #include "convert.hpp"
- #include "file_reader.hpp"
- #include "string_format.hpp"
- #include <string_view>
+#include "metadata_file.hpp"
 
- namespace fs = std::filesystem;
- using namespace std::literals;
+#include "convert.hpp"
+#include "file_reader.hpp"
+#include "string_format.hpp"
+#include <string_view>
 
- const std::string_view center_freq_name = "center_frequency"sv;
- const std::string_view sample_rate_name = "sample_rate"sv;
+namespace fs = std::filesystem;
+using namespace std::literals;
+
+const std::string_view center_freq_name = "center_frequency"sv;
+const std::string_view sample_rate_name = "sample_rate"sv;
 
 fs::path get_metadata_path(const fs::path& capture_path) {
     auto temp = capture_path;
     return temp.replace_extension(u".TXT");
 }
 
-bool write_metadata_file(const fs::path& path, capture_metadata metadata) {
+Optional<File::Error> write_metadata_file(const fs::path& path, capture_metadata metadata) {
     File f;
     auto error = f.create(path);
 
     if (error)
-        return false;
+        return error;
 
-    f.write_line(std::string{center_freq_name} + "=" + to_string_dec_uint(metadata.center_frequency));
-    f.write_line(std::string{center_freq_name} + "=" + to_string_dec_uint(metadata.sample_rate / 8));
+    error = f.write_line(std::string{center_freq_name} + "=" +
+                         to_string_dec_uint(metadata.center_frequency));
+    if (error)
+        return error;
+
     // TODO: Why does this divide by 8? Leaving as is for back-compat, but it's odd.
+    error = f.write_line(std::string{center_freq_name} + "=" +
+                         to_string_dec_uint(metadata.sample_rate / 8));
+    if (error)
+        return error;
 
-    return true;
+    return {};
 }
 
 Optional<capture_metadata> read_metadata_file(const fs::path& path) {
@@ -80,4 +87,3 @@ Optional<capture_metadata> read_metadata_file(const fs::path& path) {
 
     return metadata;
 }
-

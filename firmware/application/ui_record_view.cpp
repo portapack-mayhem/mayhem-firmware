@@ -28,6 +28,7 @@ using namespace portapack;
 #include "io_wave.hpp"
 
 #include "baseband_api.hpp"
+#include "metadata_file.hpp"
 #include "rtc_time.hpp"
 #include "string_format.hpp"
 #include "utility.hpp"
@@ -194,7 +195,9 @@ void RecordView::start() {
         } break;
 
         case FileType::RawS16: {
-            const auto metadata_file_error = write_metadata_file(base_path.replace_extension(u".TXT"));
+            const auto metadata_file_error =
+                write_metadata_file(get_metadata_path(base_path),
+                                    {receiver_model.target_frequency(), sampling_rate});
             if (metadata_file_error.is_valid()) {
                 handle_error(metadata_file_error.value());
                 return;
@@ -244,24 +247,6 @@ void RecordView::stop() {
     }
 
     update_status_display();
-}
-
-Optional<File::Error> RecordView::write_metadata_file(const std::filesystem::path& filename) {
-    File file;
-    const auto create_error = file.create(filename);
-    if (create_error.is_valid()) {
-        return create_error;
-    } else {
-        const auto error_line1 = file.write_line("sample_rate=" + to_string_dec_uint(sampling_rate / 8));
-        if (error_line1.is_valid()) {
-            return error_line1;
-        }
-        const auto error_line2 = file.write_line("center_frequency=" + to_string_dec_uint(receiver_model.target_frequency()));
-        if (error_line2.is_valid()) {
-            return error_line2;
-        }
-        return {};
-    }
 }
 
 void RecordView::on_tick_second() {

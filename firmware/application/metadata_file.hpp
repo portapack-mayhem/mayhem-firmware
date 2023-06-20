@@ -24,15 +24,16 @@
 
 #include "file.hpp"
 #include "optional.hpp"
+#include "rf_path.hpp"
 
 struct capture_metadata {
-    uint64_t center_frequency;
+    rf::Frequency center_frequency;
     uint32_t sample_rate;
 };
 
 std::filesystem::path get_metadata_path(const std::filesystem::path& capture_path);
 
-bool write_metadata_file(const std::filesystem::path& path, capture_metadata metadata);
+Optional<File::Error> write_metadata_file(const std::filesystem::path& path, capture_metadata metadata);
 Optional<capture_metadata> read_metadata_file(const std::filesystem::path& path);
 
 #endif  // __METADATA_FILE_HPP__

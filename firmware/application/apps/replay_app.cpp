@@ -41,7 +41,7 @@ void ReplayAppView::set_ready() {
     ready_signal = true;
 }
 
-void ReplayAppView::on_file_changed(fs::path new_file_path) {
+void ReplayAppView::on_file_changed(const fs::path& new_file_path) {
     fs::path data_path = fs::path(u"/") + new_file_path;
     File::Size file_size{};
 
@@ -65,7 +65,7 @@ void ReplayAppView::on_file_changed(fs::path new_file_path) {
         sample_rate = metadata->sample_rate;
     } else {
         // TODO: This is interesting because it implies that the
-        // The capure will just be replayed at the freq set on the
+        // The capture will just be replayed at the freq set on the
         // FrequencyField. Is that an intentional behavior?
         sample_rate = 500000;
     }
