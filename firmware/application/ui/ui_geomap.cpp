@@ -90,6 +90,7 @@ void GeoPos::set_report_change(bool v) {
 }
 
 void GeoPos::focus() {
+    // Not a good choice in Display Mode when no data fields are focusable
     field_altitude.focus();
 }
 
@@ -132,11 +133,42 @@ int32_t GeoPos::altitude() {
 GeoMap::GeoMap(
     Rect parent_rect)
     : Widget{parent_rect}, markerListLen(0) {
-    // set_focusable(true);
+    set_focusable(true);
+}
+
+bool GeoMap::on_encoder(const EncoderEvent delta) {
+    if ((delta > 0) && (map_zoom < 3)) {
+        map_zoom++;
+    } else if ((delta < 0) && (map_zoom > 1)) {
+        map_zoom--;
+    } else {
+        return false;
+    }
+
+    // Trigger map redraw
+    markerListUpdated = true;
+    return true;
+}
+
+void GeoMap::map_zoom_line(ui::Color *buffer) {
+    int16_t i, j;
+
+    if ((map_zoom <= 1) || (map_zoom > 6)) {
+        return;
+    }
+
+    // As long as MOD(240,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
+    // For 240 width, than means no check is needed for map_zoom values up to 6
+    for (i = 240/map_zoom - 1; i >= 0; i--) {
+        for (j = 0; j < map_zoom; j++) {
+            buffer[i*map_zoom + j] = buffer[i];
+        }
+    }
 }
 
 void GeoMap::paint(Painter& painter) {
-    uint16_t line;
+    uint16_t line, j;
+    uint32_t zoom_seek_x, zoom_seek_y;
     std::array<ui::Color, 240> map_line_buffer;
     const auto r = screen_rect();
 
@@ -145,10 +177,20 @@ void GeoMap::paint(Painter& painter) {
     int x_diff = abs(x_pos - prev_x_pos);
     int y_diff = abs(y_pos - prev_y_pos);
     if (markerListUpdated || (x_diff >= 3) || (y_diff >= 3)) {
-        for (line = 0; line < r.height(); line++) {
-            map_file.seek(4 + ((x_pos + (map_width * (y_pos + line))) << 1));
-            map_file.read(map_line_buffer.data(), r.width() << 1);
-            display.draw_pixels({0, r.top() + line, r.width(), 1}, map_line_buffer);
+        if (map_zoom == 1) {
+            zoom_seek_x = zoom_seek_y = 0;
+        } else {
+            zoom_seek_x = (r.width() - (r.width()/map_zoom))/2;
+            zoom_seek_y = (r.height() - (r.height()/map_zoom))/2;
+        }
+
+        for (line = 0; line < r.height()/map_zoom; line++) {
+            map_file.seek(4 + ((x_pos + zoom_seek_x + (map_width * (y_pos + line + zoom_seek_y))) << 1));
+            map_file.read(map_line_buffer.data(), (r.width() / map_zoom) << 1);
+            map_zoom_line(map_line_buffer.data());
+            for (j = 0; j < map_zoom; j++) {
+                display.draw_pixels({0, r.top() + line*map_zoom + j, r.width(), 1}, map_line_buffer);
+            }
         }
         prev_x_pos = x_pos;
         prev_y_pos = y_pos;
@@ -159,6 +201,12 @@ void GeoMap::paint(Painter& painter) {
             double lat_rad = sin(item.lat * pi / 180);
             int x = (map_width * (item.lon + 180) / 360) - x_pos;
             int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+
+            if (map_zoom != 1) {
+                x = ((x - r.width()/2) * map_zoom) + r.width()/2;
+                y = ((y - r.height()/2) * map_zoom) + r.height()/2;
+            }
+
             if ((x >= 0) && (x < r.width()) &&
                 (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
             {
