@@ -41,6 +41,12 @@
 
 #include "irq_controls.hpp"
 
+#include "string_format.hpp"
+#include "ui_styles.hpp"
+#include "ui_painter.hpp"
+
+#include <ch.h>
+
 using namespace std;
 
 namespace portapack {
@@ -83,26 +89,26 @@ enum data_structure_version_enum : uint32_t {
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
+enum bits_t {
+    BacklightTimeoutLSB = 0,
+    BacklightTimeoutEnable = 3,
+    ClkoutFreqLSB = 4,
+    ShowGUIReturnIcon = 20,
+    LoadAppSettings = 21,
+    SaveAppSettings = 22,
+    ShowBiggerQRCode = 23,
+    DisableTouchscreen = 24,
+    HideClock = 25,
+    ClockWithDate = 26,
+    ClkOutEnabled = 27,
+    ConfigSpeakerHidden = 28,  // unused since Speaker icon modifications
+    StealthMode = 29,
+    ConfigLogin = 30,
+    ConfigSplash = 31,
+};
+
 struct ui_config_t {
    private:
-    enum bits_t {
-        BacklightTimeoutLSB = 0,
-        BacklightTimeoutEnable = 3,
-        ClkoutFreqLSB = 4,
-        ShowGUIReturnIcon = 20,
-        LoadAppSettings = 21,
-        SaveAppSettings = 22,
-        ShowBiggerQRCode = 23,
-        DisableTouchscreen = 24,
-        HideClock = 25,
-        ClockWithDate = 26,
-        ClkOutEnabled = 27,
-        ConfigSpeakerHidden = 28,
-        StealthMode = 29,
-        ConfigLogin = 30,
-        ConfigSplash = 31,
-    };
-
     enum bits_mask_t : uint32_t {
         BacklightTimeoutMask = ((1 << 3) - 1) << bits_t::BacklightTimeoutLSB,
         ClkoutFreqMask = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
@@ -290,6 +296,8 @@ struct misc_config_t {
         : values(0) {
     }
 };
+
+/* IMPORTANT: Report your changes here in the dump_persistent_memory function a few lines later !! */
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
@@ -924,6 +932,8 @@ size_t data_size() {
 }
 
 bool dump_persistent_memory() {
+    ui::Painter painter;
+
     std::string debug_dir = "DEBUG";
     make_new_directory(debug_dir);
 
@@ -946,8 +956,15 @@ bool dump_persistent_memory() {
         pmem_dump_file.write_line(strbuf);
         strbuf = "modem_def_index: " + to_string_dec_uint(data->modem_def_index);
         pmem_dump_file.write_line(strbuf);
-        // strbuf = "serial_format: " + to_string_dec_uint( data -> serial_format );
-        // pmem_dump_file.write_line(strbuf);
+
+        strbuf = "serial_format.data_bit: " + to_string_dec_uint(data->serial_format.data_bits);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "serial_format.parity: " + to_string_dec_uint(data->serial_format.parity);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "serial_format.stop_bits: " + to_string_dec_uint(data->serial_format.stop_bits);
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "serial_format.bit_order: " + to_string_dec_uint(data->serial_format.bit_order);
+        pmem_dump_file.write_line(strbuf);
         strbuf = "modem_bw: " + to_string_dec_int(data->modem_bw);
         pmem_dump_file.write_line(strbuf);
         strbuf = "afsk_mark_freq: " + to_string_dec_int(data->afsk_mark_freq);
@@ -964,8 +981,37 @@ bool dump_persistent_memory() {
         pmem_dump_file.write_line(strbuf);
         strbuf = "playdead_sequence: " + to_string_dec_uint(data->playdead_sequence);
         pmem_dump_file.write_line(strbuf);
-        // strbuf = "ui_config: " + to_string_dec_uint( data -> ui_config );
-        // pmem_dump_file.write_line(strbuf);
+
+        const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
+        strbuf = "ui_config bit timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit timeout_seconds: " + to_string_dec_uint(backlight_timer.timeout_seconds());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit clkout_freq: " + to_string_dec_uint(clkout_freq());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit ShowBiggerQRCode: " + to_string_dec_uint(data->ui_config.show_bigger_qr_code());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit DisableTouchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit HideClock: " + to_string_dec_uint(data->ui_config.hide_clock());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit ClockWithDate: " + to_string_dec_uint(data->ui_config.clock_with_date());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit ClkOutEnabled: " + to_string_dec_uint(data->ui_config.clkout_enabled());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit StealthMode: " + to_string_dec_uint(data->ui_config.stealth_mode());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit ConfigLogin: " + to_string_dec_uint(data->ui_config.config_login());
+        pmem_dump_file.write_line(strbuf);
+        strbuf = "ui_config bit ConfigSplash: " + to_string_dec_uint(data->ui_config.config_splash());
+        pmem_dump_file.write_line(strbuf);
+
         strbuf = "pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address);
         pmem_dump_file.write_line(strbuf);
         strbuf = "pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address);
@@ -992,10 +1038,18 @@ bool dump_persistent_memory() {
         pmem_dump_file.write_line(strbuf);
         strbuf = "headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb);
         pmem_dump_file.write_line(strbuf);
-        // strbuf = "misc_config: " + to_string_dec_int( data -> misc_config );
-        // pmem_dump_file.write_line(strbuf);
+
+        strbuf = "misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute());
+        pmem_dump_file.write_line(strbuf);
+
+        strbuf = "misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable());
+        pmem_dump_file.write_line(strbuf);
+
+        painter.draw_string({0, 320 - 16}, ui::Styles::green, "Saved !!");
+
         return true;
     }
+    painter.draw_string({0, 320 - 16}, ui::Styles::red, "Could not dump pmem to file !!");
     return false;
 }
 
