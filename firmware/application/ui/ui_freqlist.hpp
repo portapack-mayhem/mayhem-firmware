@@ -64,7 +64,7 @@ class FreqManUIList : public Widget {
    private:
     static constexpr int8_t char_height = 16;
     bool instant_exec_{false};
-    freqman_db freqlist_db{};
+    freqman_db *freqlist_db{nullptr};
     int current_index{0};
     int highlighted_index{0};
     int freqlist_nb_lines{0};

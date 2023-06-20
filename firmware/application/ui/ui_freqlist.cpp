@@ -36,7 +36,7 @@ FreqManUIList::FreqManUIList(
 }
 
 void FreqManUIList::set_highlighted_index(int index) {
-    if ((unsigned)(current_index + index) >= freqlist_db.size())
+    if ((unsigned)(current_index + index) >= freqlist_db->size())
         return;
     if (index < 0) {
         index = 0;
@@ -45,10 +45,10 @@ void FreqManUIList::set_highlighted_index(int index) {
     }
     if (index >= freqlist_nb_lines) {
         index = freqlist_nb_lines - 1;
-        if ((unsigned)(current_index + index) < freqlist_db.size())
+        if ((unsigned)(current_index + index) < freqlist_db->size())
             current_index++;
         else
-            current_index = freqlist_db.size() - freqlist_nb_lines - 1;
+            current_index = freqlist_db->size() - freqlist_nb_lines - 1;
     }
     highlighted_index = index;
 }
@@ -66,17 +66,17 @@ void FreqManUIList::paint(Painter& painter) {
         r_widget_screen,
         Color::black());
     // only return after clearing the screen so previous entries are not shown anymore
-    if (freqlist_db.size() == 0)
+    if (freqlist_db->size() == 0)
         return;
     // coloration if file is too big
     auto text_color = &Styles::white;
-    if (freqlist_db.size() > FREQMAN_MAX_PER_FILE)
+    if (freqlist_db->size() > FREQMAN_MAX_PER_FILE)
         text_color = &Styles::yellow;
     uint8_t nb_lines = 0;
-    for (uint8_t it = current_index; it < freqlist_db.size(); it++) {
+    for (uint8_t it = current_index; it < freqlist_db->size(); it++) {
         uint8_t line_height = (int)nb_lines * char_height;
         if (line_height < (r.height() - char_height)) {  // line is within the widget
-            std::string description = freqman_item_string(freqlist_db[it], 30);
+            std::string description = freqman_item_string(freqlist_db->at(it), 30);
             if (nb_lines == highlighted_index) {
                 const Rect r_highlighted_freq{0, r.location().y() + (int)nb_lines * char_height, 240, char_height};
                 painter.fill_rectangle(
@@ -107,7 +107,7 @@ void FreqManUIList::paint(Painter& painter) {
 }
 
 void FreqManUIList::set_db(freqman_db& db) {
-    freqlist_db = db;
+    freqlist_db = &db;
     if (db.size() == 0) {
         current_index = 0;
         highlighted_index = 0;
