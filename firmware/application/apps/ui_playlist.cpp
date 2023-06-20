@@ -40,7 +40,9 @@ using namespace portapack;
 namespace fs = std::filesystem;
 
 /* TODO: wouldn't it be easier if the playlist were just a list of C16 files
- * (and maybe delays) and then read the data file next to the C16 file? */
+ * (and maybe delays) and then read the metadata file next to the C16 file?
+ * TODO: use metadata_file.hpp to read the metadata.
+ * TODO: change PPL format to only allow paths, and !<number> for delay. */
 
 namespace ui {
 

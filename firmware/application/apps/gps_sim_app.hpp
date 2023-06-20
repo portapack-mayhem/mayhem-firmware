@@ -71,7 +71,7 @@ class GpsSimAppView : public View {
     const size_t read_size{16384};
     const size_t buffer_count{3};
 
-    void on_file_changed(std::filesystem::path new_file_path);
+    void on_file_changed(const std::filesystem::path& new_file_path);
     void on_tx_progress(const uint32_t progress);
 
     void toggle();
