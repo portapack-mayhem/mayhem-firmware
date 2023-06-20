@@ -36,7 +36,7 @@ FreqManUIList::FreqManUIList(
 }
 
 void FreqManUIList::set_highlighted_index(int index) {
-    if ((unsigned)(current_index + index) >= freqlist_db->size())
+    if (freqlist_db == nullptr || (unsigned)(current_index + index) >= freqlist_db->size())
         return;
     if (index < 0) {
         index = 0;
@@ -66,7 +66,7 @@ void FreqManUIList::paint(Painter& painter) {
         r_widget_screen,
         Color::black());
     // only return after clearing the screen so previous entries are not shown anymore
-    if (freqlist_db->size() == 0)
+    if (freqlist_db == nullptr || freqlist_db->size() == 0)
         return;
     // coloration if file is too big
     auto text_color = &Styles::white;

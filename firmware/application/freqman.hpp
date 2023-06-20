@@ -35,7 +35,7 @@
 #define FREQMAN_DESC_MAX_LEN 24        // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
 #define FREQMAN_MAX_PER_FILE 100        // Maximum of entries we can read. This is a hardware limit
                                        // It was tested and lowered to leave a bit of space to the caller
-#define FREQMAN_MAX_PER_FILE_STR "60"  // STRING OF FREQMAN_MAX_PER_FILE
+
 #define FREQMAN_READ_BUF_SIZE 96       // max freqman line size including desc is 90, +6 for a bit of space
 
 using namespace ui;

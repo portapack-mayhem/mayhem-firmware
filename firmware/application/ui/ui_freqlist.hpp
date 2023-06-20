@@ -49,6 +49,8 @@ class FreqManUIList : public Widget {
     FreqManUIList()
         : FreqManUIList{{}, {}} {
     }
+    FreqManUIList(const FreqManUIList &other) = delete;
+    FreqManUIList& operator=(const FreqManUIList &other) = delete;
 
     void paint(Painter& painter) override;
     void on_focus() override;
