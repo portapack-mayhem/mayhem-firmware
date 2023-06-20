@@ -378,14 +378,26 @@ SearchView::SearchView(
 
     field_frequency_min.set_value(receiver_model.target_frequency() - 1000000);
     field_frequency_min.set_step(100000);
-    field_frequency_min.updated = [this](rf::Frequency) {
-        on_range_changed();
+    field_frequency_min.on_change = [this](rf::Frequency) {
+        this->on_range_changed();
+    };
+    field_frequency_min.on_edit = [this, &nav]() {
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency() - 1000000);
+        new_view->on_changed = [this](rf::Frequency f) {
+            this->field_frequency_min.set_value(f);
+        };
     };
 
     field_frequency_max.set_value(receiver_model.target_frequency() + 1000000);
     field_frequency_max.set_step(100000);
-    field_frequency_max.updated = [this](rf::Frequency) {
-        on_range_changed();
+    field_frequency_max.on_change = [this](rf::Frequency) {
+        this->on_range_changed();
+    };
+    field_frequency_max.on_edit = [this, &nav]() {
+        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency() + 1000000);
+        new_view->on_changed = [this](rf::Frequency f) {
+            this->field_frequency_max.set_value(f);
+        };
     };
 
     field_lna.set_value(receiver_model.lna());

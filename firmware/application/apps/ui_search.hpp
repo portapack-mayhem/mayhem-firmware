@@ -26,7 +26,6 @@
 #include "spectrum_color_lut.hpp"
 
 #include "ui_receiver.hpp"
-#include "ui_freq_field.hpp"
 #include "ui_styles.hpp"
 #include "recent_entries.hpp"
 
@@ -147,14 +146,10 @@ class SearchView : public View {
         {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Color::light_grey()},
         {{26 * 8, 25 * 8}, "MHz", Color::light_grey()}};
 
-    RxFrequencyField field_frequency_min{
-        {1 * 8, 1 * 16},
-        nav_,
-        false};
-    RxFrequencyField field_frequency_max{
-        {11 * 8, 1 * 16},
-        nav_,
-        false};
+    FrequencyField field_frequency_min{
+        {1 * 8, 1 * 16}};
+    FrequencyField field_frequency_max{
+        {11 * 8, 1 * 16}};
     LNAGainField field_lna{
         {22 * 8, 1 * 16}};
     VGAGainField field_vga{
