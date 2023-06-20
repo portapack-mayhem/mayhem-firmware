@@ -49,8 +49,8 @@ class FreqManUIList : public Widget {
     FreqManUIList()
         : FreqManUIList{{}, {}} {
     }
-    FreqManUIList(const FreqManUIList &other) = delete;
-    FreqManUIList& operator=(const FreqManUIList &other) = delete;
+    FreqManUIList(const FreqManUIList& other) = delete;
+    FreqManUIList& operator=(const FreqManUIList& other) = delete;
 
     void paint(Painter& painter) override;
     void on_focus() override;
@@ -66,7 +66,7 @@ class FreqManUIList : public Widget {
    private:
     static constexpr int8_t char_height = 16;
     bool instant_exec_{false};
-    freqman_db *freqlist_db{nullptr};
+    freqman_db* freqlist_db{nullptr};
     int current_index{0};
     int highlighted_index{0};
     int freqlist_nb_lines{0};
