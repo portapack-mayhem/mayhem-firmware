@@ -68,7 +68,6 @@ class RecordView : public View {
    private:
     void toggle();
     // void toggle_pitch_rssi();
-    Optional<File::Error> write_metadata_file(const std::filesystem::path& filename);
 
     void on_tick_second();
     void update_status_display();
