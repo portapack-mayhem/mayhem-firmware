@@ -158,8 +158,6 @@ class GeoMap : public Widget {
     void paint(Painter& painter) override;
 
     bool on_touch(const TouchEvent event) override;
-
-    void focus() override;
     bool on_encoder(const EncoderEvent delta) override;
 
     bool init();
