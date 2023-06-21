@@ -48,6 +48,9 @@ using namespace sd_card;
 
 namespace ui {
 
+constexpr uint16_t screen_width = 240;
+constexpr uint16_t screen_height = 320;
+
 enum modal_t {
     INFO = 0,
     YESNO,
@@ -120,6 +123,23 @@ class NavigationView : public View {
     View* push_view(std::unique_ptr<View> new_view);
 };
 
+/* Holds widgets and grows dynamically toward the left.
+ * 16px tall fixed and right-aligns all children in the
+ * order in which they were added. */
+class StatusTray : public View {
+   public:
+    StatusTray(Point top_right);
+
+    StatusTray(const StatusTray&) = delete;
+    StatusTray& operator=(const StatusTray&) = delete;
+
+    void add_status_icon();
+    void clear();
+
+   private:
+   uint16_t left_pos_{};
+};
+
 class SystemStatusView : public View {
    public:
     std::function<void(void)> on_back{};
@@ -156,6 +176,8 @@ class SystemStatusView : public View {
         Color::white(),
         Color::dark_grey()};
 
+    StatusTray status_icons{{ screen_width, 0 }};
+
     ImageButton button_speaker{
         {15 * 8, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
@@ -173,13 +195,6 @@ class SystemStatusView : public View {
         &bitmap_icon_stealth,
         Color::light_grey(),
         Color::dark_grey()};
-
-    /*ImageButton button_textentry {
-                { 170, 0, 2 * 8, 1 * 16 },
-                &bitmap_icon_unistroke,
-                Color::white(),
-                Color::dark_grey()
-        };*/
 
     ImageButton button_camera{
         {21 * 8, 0, 2 * 8, 1 * 16},

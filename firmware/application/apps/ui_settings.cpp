@@ -111,7 +111,7 @@ SetRadioView::SetRadioView(
         nav.pop();
     };
 
-    const auto reference = portapack::clock_manager.get_reference();
+    const auto reference = clock_manager.get_reference();
 
     std::string source_name("---");
     switch (reference.source) {
@@ -156,19 +156,19 @@ SetRadioView::SetRadioView(
                   &button_cancel});
 
     SetFrequencyCorrectionModel model{
-        static_cast<int8_t>(portapack::persistent_memory::correction_ppb() / 1000), 0};
+        static_cast<int8_t>(persistent_memory::correction_ppb() / 1000), 0};
 
     form_init(model);
 
-    check_clkout.set_value(portapack::persistent_memory::clkout_enabled());
+    check_clkout.set_value(persistent_memory::clkout_enabled());
     check_clkout.on_select = [this](Checkbox&, bool v) {
         clock_manager.enable_clock_output(v);
-        portapack::persistent_memory::set_clkout_enabled(v);
+        persistent_memory::set_clkout_enabled(v);
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
 
-    field_clkout_freq.set_value(portapack::persistent_memory::clkout_freq());
+    field_clkout_freq.set_value(persistent_memory::clkout_freq());
     value_freq_step.set_style(&Styles::light_grey);
 
     field_clkout_freq.on_select = [this](NumberField&) {
@@ -193,9 +193,9 @@ SetRadioView::SetRadioView(
         field_clkout_freq.set_step(pow(10, freq_step_khz));
     };
 
-    check_bias.set_value(portapack::get_antenna_bias());
+    check_bias.set_value(get_antenna_bias());
     check_bias.on_select = [this](Checkbox&, bool v) {
-        portapack::set_antenna_bias(v);
+        set_antenna_bias(v);
 
         // Update the radio.
         receiver_model.set_antenna_bias();
@@ -211,9 +211,9 @@ SetRadioView::SetRadioView(
 
     button_save.on_select = [this, &nav](Button&) {
         const auto model = this->form_collect();
-        portapack::persistent_memory::set_correction_ppb(model.ppm * 1000);
-        portapack::persistent_memory::set_clkout_freq(model.freq);
-        clock_manager.enable_clock_output(portapack::persistent_memory::clkout_enabled());
+        persistent_memory::set_correction_ppb(model.ppm * 1000);
+        persistent_memory::set_clkout_freq(model.freq);
+        clock_manager.enable_clock_output(persistent_memory::clkout_enabled());
         nav.pop();
     };
 }
@@ -321,9 +321,9 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
                   &button_converter_freq,
                   &button_return});
 
-    check_show_converter.set_value(!portapack::persistent_memory::config_hide_converter());
+    check_show_converter.set_value(!persistent_memory::ui_hide_converter());
     check_show_converter.on_select = [this](Checkbox&, bool v) {
-        portapack::persistent_memory::set_config_hide_converter(!v);
+        persistent_memory::set_ui_hide_converter(!v);
         if (!v) {
             check_converter.set_value(false);
         }
@@ -334,13 +334,13 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         EventDispatcher::send_message(message);
     };
 
-    check_converter.set_value(portapack::persistent_memory::config_converter());
+    check_converter.set_value(persistent_memory::config_converter());
     check_converter.on_select = [this](Checkbox&, bool v) {
         if (v) {
             check_show_converter.set_value(true);
-            portapack::persistent_memory::set_config_hide_converter(false);
+            persistent_memory::set_ui_hide_converter(false);
         }
-        portapack::persistent_memory::set_config_converter(v);
+        persistent_memory::set_config_converter(v);
         // Retune to take converter change in account
         receiver_model.set_target_frequency(receiver_model.target_frequency());
         // Refresh status bar with/out converter
@@ -348,19 +348,19 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         EventDispatcher::send_message(message);
     };
 
-    converter_mode.set_by_value(portapack::persistent_memory::config_updown_converter());
+    converter_mode.set_by_value(persistent_memory::config_updown_converter());
     converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        portapack::persistent_memory::set_config_updown_converter(v);
+        persistent_memory::set_config_updown_converter(v);
         // Refresh status bar with icon up or down
         StatusRefreshMessage message{};
         EventDispatcher::send_message(message);
     };
 
-    button_converter_freq.set_text(to_string_short_freq(portapack::persistent_memory::config_converter_freq()) + "MHz");
+    button_converter_freq.set_text(to_string_short_freq(persistent_memory::config_converter_freq()) + "MHz");
     button_converter_freq.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq());
+        auto new_view = nav.push<FrequencyKeypadView>(persistent_memory::config_converter_freq());
         new_view->on_changed = [this, &button](rf::Frequency f) {
-            portapack::persistent_memory::set_config_converter_freq(f);
+            persistent_memory::set_config_converter_freq(f);
             // Retune to take converter change in account
             receiver_model.set_target_frequency(receiver_model.target_frequency());
             button_converter_freq.set_text("<" + to_string_short_freq(f) + " MHz>");
@@ -387,36 +387,36 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
                   &button_freq_tx_correction,
                   &button_return});
 
-    frequency_rx_correction_mode.set_by_value(portapack::persistent_memory::config_freq_rx_correction_updown());
+    frequency_rx_correction_mode.set_by_value(persistent_memory::config_freq_rx_correction_updown());
     frequency_rx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        portapack::persistent_memory::set_freq_rx_correction_updown(v);
+        persistent_memory::set_freq_rx_correction_updown(v);
     };
 
-    frequency_tx_correction_mode.set_by_value(portapack::persistent_memory::config_freq_rx_correction_updown());
+    frequency_tx_correction_mode.set_by_value(persistent_memory::config_freq_rx_correction_updown());
     frequency_tx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
-        portapack::persistent_memory::set_freq_tx_correction_updown(v);
+        persistent_memory::set_freq_tx_correction_updown(v);
     };
 
-    button_freq_rx_correction.set_text(to_string_short_freq(portapack::persistent_memory::config_freq_rx_correction()) + "MHz (Rx)");
+    button_freq_rx_correction.set_text(to_string_short_freq(persistent_memory::config_freq_rx_correction()) + "MHz (Rx)");
     button_freq_rx_correction.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq());
+        auto new_view = nav.push<FrequencyKeypadView>(persistent_memory::config_converter_freq());
         new_view->on_changed = [this, &button](rf::Frequency f) {
             if (f >= MAX_FREQ_CORRECTION)
                 f = MAX_FREQ_CORRECTION;
-            portapack::persistent_memory::set_config_freq_rx_correction(f);
+            persistent_memory::set_config_freq_rx_correction(f);
             // Retune to take converter change in account
             receiver_model.set_target_frequency(receiver_model.target_frequency());
             button_freq_rx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
         };
     };
 
-    button_freq_tx_correction.set_text(to_string_short_freq(portapack::persistent_memory::config_freq_tx_correction()) + "MHz (Tx)");
+    button_freq_tx_correction.set_text(to_string_short_freq(persistent_memory::config_freq_tx_correction()) + "MHz (Tx)");
     button_freq_tx_correction.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(portapack::persistent_memory::config_converter_freq());
+        auto new_view = nav.push<FrequencyKeypadView>(persistent_memory::config_converter_freq());
         new_view->on_changed = [this, &button](rf::Frequency f) {
             if (f >= MAX_FREQ_CORRECTION)
                 f = MAX_FREQ_CORRECTION;
-            portapack::persistent_memory::set_config_freq_tx_correction(f);
+            persistent_memory::set_config_freq_tx_correction(f);
             // Retune to take converter change in account
             receiver_model.set_target_frequency(receiver_model.target_frequency());
             button_freq_tx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
@@ -445,7 +445,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
                   &button_load_mem_defaults,
                   &button_return});
 
-    check_use_sdcard_for_pmem.set_value(portapack::persistent_memory::should_use_sdcard_for_pmem());
+    check_use_sdcard_for_pmem.set_value(persistent_memory::should_use_sdcard_for_pmem());
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         std::string pmem_flag_file = PMEM_FILEFLAG;
@@ -472,7 +472,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     };
 
     button_save_mem_to_file.on_select = [&nav, this](Button&) {
-        if (!portapack::persistent_memory::save_persistent_settings_to_file()) {
+        if (!persistent_memory::save_persistent_settings_to_file()) {
             text_pmem_status.set("!problem saving settings!");
         } else {
             text_pmem_status.set("settings saved");
@@ -480,7 +480,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     };
 
     button_load_mem_from_file.on_select = [&nav, this](Button&) {
-        if (!portapack::persistent_memory::load_persistent_settings_from_file()) {
+        if (!persistent_memory::load_persistent_settings_from_file()) {
             text_pmem_status.set("!problem loading settings!");
         } else {
             text_pmem_status.set("settings loaded");
@@ -497,7 +497,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
             YESNO,
             [this](bool choice) {
                 if (choice) {
-                    portapack::persistent_memory::cache::defaults();
+                    persistent_memory::cache::defaults();
                 }
             });
     };
@@ -593,7 +593,7 @@ void SetEncoderDialView::focus() {
 // Settings main menu
 // ---------------------------------------------------------
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
-    if (portapack::persistent_memory::show_gui_return_icon()) {
+    if (persistent_memory::show_gui_return_icon()) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({

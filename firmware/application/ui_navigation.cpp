@@ -101,6 +101,9 @@ using portapack::transmitter_model;
 
 namespace ui {
 
+/* StatusTray ************************************************************/
+
+
 /* SystemStatusView ******************************************************/
 
 SystemStatusView::SystemStatusView(
@@ -126,7 +129,7 @@ SystemStatusView::SystemStatusView(
         portapack::persistent_memory::load_persistent_settings_from_file();
     }
 
-    if (portapack::persistent_memory::config_hide_converter()) {
+    if (portapack::persistent_memory::ui_hide_converter()) {
         button_converter.hidden(true);
     } else {
         button_converter.hidden(false);
@@ -199,7 +202,7 @@ SystemStatusView::SystemStatusView(
 }
 
 void SystemStatusView::refresh() {
-    if (portapack::persistent_memory::config_hide_converter()) {
+    if (portapack::persistent_memory::ui_hide_converter()) {
         button_converter.hidden(true);
     } else {
         if (portapack::persistent_memory::config_updown_converter()) {

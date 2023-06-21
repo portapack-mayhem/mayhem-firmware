@@ -101,7 +101,7 @@ enum bits_t {
     HideClock = 25,
     ClockWithDate = 26,
     ClkOutEnabled = 27,
-    ConfigSpeakerHidden = 28,  // unused since Speaker icon modifications
+    UNUSED = 28,
     StealthMode = 29,
     ConfigLogin = 30,
     ConfigSplash = 31,
@@ -252,6 +252,25 @@ struct ui_config_t {
     }
 };
 
+/* Additional UI config.
+ * NB: Will be default init - override in defaults(). */
+struct ui_config2_t {
+    /* Top icon bar */
+    bool hide_speaker : 1;
+    bool hide_converter : 1;
+    bool hide_stealth : 1;
+    bool hide_sleep : 1;
+    bool hide_bias_tee : 1;
+    bool hide_clock : 1;
+    bool hide_sd_card : 1;
+    bool reserved_0 : 1;
+
+    uint8_t placeholder_1;
+    uint8_t placeholder_2;
+    uint8_t placeholder_3;
+};
+static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
+
 struct misc_config_t {
    private:
     enum bits_t {
@@ -321,7 +340,7 @@ struct data_t {
     uint32_t playing_dead;
     uint32_t playdead_sequence;
 
-    // UI
+    // UI Config
     ui_config_t ui_config;
 
     uint32_t pocsag_last_address;
@@ -335,8 +354,7 @@ struct data_t {
     // Recon App
     uint64_t recon_config;
 
-    // converter: show or hide icon. Hiding cause auto disable to avoid mistakes
-    bool hide_converter;
+    bool placeholder_0;
     // enable or disable converter
     bool converter;
     // set up converter (false) or down converter (true) converter
@@ -353,11 +371,14 @@ struct data_t {
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
     uint8_t encoder_dial_sensitivity;
 
-    // Headphone volume in centibels.
+    // Headphone volume in centibels. (Only really needs 10 bits)
     int32_t headphone_volume_cb;
 
     // Misc flags
     misc_config_t misc_config;
+
+    // Additional UI settings.
+    ui_config2_t ui_config2;
 
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -387,7 +408,7 @@ struct data_t {
 
           hardware_config(0),
           recon_config(0),
-          hide_converter(0),
+          placeholder_0(0),
           converter(0),
           updown_converter(0),
           converter_frequency_offset(0),
@@ -397,7 +418,8 @@ struct data_t {
           updown_frequency_tx_correction(0),
           encoder_dial_sensitivity(0),
           headphone_volume_cb(-600),
-          misc_config() {
+          misc_config(),
+          ui_config2() {
     }
 };
 
@@ -470,6 +492,11 @@ struct backup_ram_t {
 static_assert(sizeof(backup_ram_t) == memory::map::backup_ram.size());
 static_assert(sizeof(data_t) <= sizeof(backup_ram_t) - sizeof(uint32_t));
 
+/* Uncomment to get a compiler error with the data_t size. */
+// template <size_t N>
+// struct ShowSize;
+// ShowSize<sizeof(data_t)> __data_t_size;
+
 static backup_ram_t* const backup_ram = reinterpret_cast<backup_ram_t*>(memory::map::backup_ram.base());
 
 static backup_ram_t cached_backup_ram;
@@ -479,9 +506,6 @@ namespace cache {
 
 void defaults() {
     cached_backup_ram = backup_ram_t();
-    *data = data_t();  // This is a workaround for apparently alignment issue
-                       // that is causing backup_ram_t's block copy to be
-                       // misaligned. This force sets values through the struct.
 
     // defaults values for recon app
     set_recon_autosave_freqs(false);
@@ -745,18 +769,6 @@ void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.set_config_backlight_timer(new_value);
 }
 
-/*void set_config_textentry(uint8_t new_value) {
-                  data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
-                  }
-
-                  uint8_t ui_config_textentry() {
-                  return ((data->ui_config >> 2) & 1);
-                  }*/
-
-/*void set_ui_config(const uint32_t new_value) {
-                  data->ui_config = new_value;
-                  }*/
-
 uint32_t pocsag_last_address() {
     return data->pocsag_last_address;
 }
@@ -781,6 +793,7 @@ void set_clkout_freq(uint32_t freq) {
     data->ui_config.set_clkout_freq(freq);
 }
 
+/* Recon app */
 bool recon_autosave_freqs() {
     return (data->recon_config & 0x80000000UL) ? true : false;
 }
@@ -836,9 +849,29 @@ void set_recon_load_hamradios(const bool v) {
 void set_recon_match_mode(const bool v) {
     data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23);
 }
-bool config_hide_converter() {
-    return data->hide_converter;
+
+/* UI Config 2 */
+bool ui_hide_speaker() { return data->ui_config2.hide_speaker; }
+bool ui_hide_converter() { return data->ui_config2.hide_converter; }
+bool ui_hide_stealth() { return data->ui_config2.hide_stealth; }
+bool ui_hide_sleep() { return data->ui_config2.hide_sleep; }
+bool ui_hide_bias_tee() { return data->ui_config2.hide_bias_tee; }
+bool ui_hide_clock() { return data->ui_config2.hide_clock; }
+bool ui_hide_sd_card() { return data->ui_config2.hide_sd_card; }
+
+void set_ui_hide_speaker(bool v) { data->ui_config2.hide_speaker = v; }
+void set_ui_hide_converter(bool v) {
+    data->ui_config2.hide_converter = v;
+    if (v)
+        data->converter = false;
 }
+void set_ui_hide_stealth(bool v) { data->ui_config2.hide_stealth = v; }
+void set_ui_hide_sleep(bool v) { data->ui_config2.hide_sleep = v; }
+void set_ui_hide_bias_tee(bool v) { data->ui_config2.hide_bias_tee = v; }
+void set_ui_hide_clock(bool v) { data->ui_config2.hide_clock = v; }
+void set_ui_hide_sd_card(bool v) { data->ui_config2.hide_sd_card = v; }
+
+/* Converter */
 bool config_converter() {
     return data->converter;
 }
@@ -849,12 +882,6 @@ int64_t config_converter_freq() {
     return data->converter_frequency_offset;
 }
 
-void set_config_hide_converter(bool v) {
-    data->hide_converter = v;
-    if (v) {
-        data->converter = false;
-    }
-}
 void set_config_converter(bool v) {
     data->converter = v;
 }
