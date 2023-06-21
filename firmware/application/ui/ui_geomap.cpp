@@ -219,7 +219,7 @@ void GeoMap::paint(Painter& painter) {
     // or the markers list was updated
     int x_diff = abs(x_pos - prev_x_pos);
     int y_diff = abs(y_pos - prev_y_pos);
-    if (markerListUpdated || (x_diff >= map_zoom*3) || (y_diff >= map_zoom*3)) {
+    if (markerListUpdated || (x_diff >= map_zoom * 3) || (y_diff >= map_zoom * 3)) {
         if (map_zoom == 1) {
             zoom_seek_x = zoom_seek_y = 0;
         } else {
