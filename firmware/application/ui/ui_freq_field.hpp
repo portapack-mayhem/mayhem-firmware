@@ -40,15 +40,14 @@ class BoundFrequencyField : public FrequencyField {
    public:
     decltype(FrequencyField::on_change) updated{};
 
-    BoundFrequencyField(Point parent_pos, NavigationView& nav, bool update_model = true)
+    BoundFrequencyField(Point parent_pos, NavigationView& nav)
         : FrequencyField(parent_pos) {
         // NB: There is no frequency_step on the tx_model.
         set_step(portapack::receiver_model.frequency_step());
         set_value(model->target_frequency());
 
-        on_change = [this, update_model](rf::Frequency f) {
-            if (update_model)
-                model->set_target_frequency(f);
+        on_change = [this](rf::Frequency f) {
+            model->set_target_frequency(f);
             if (updated)
                 updated(f);
         };
