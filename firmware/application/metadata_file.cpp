@@ -49,9 +49,8 @@ Optional<File::Error> write_metadata_file(const fs::path& path, capture_metadata
     if (error)
         return error;
 
-    // TODO: Why does this divide by 8? Leaving as is for back-compat, but it's odd.
     error = f.write_line(std::string{sample_rate_name} + "=" +
-                         to_string_dec_uint(metadata.sample_rate / 8));
+                         to_string_dec_uint(metadata.sample_rate));
     if (error)
         return error;
 

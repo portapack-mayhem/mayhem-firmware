@@ -23,8 +23,10 @@
 #include "ui_whipcalc.hpp"
 
 #include "ch.h"
-#include "portapack.hpp"
+#include "convert.hpp"
 #include "event_m0.hpp"
+#include "file_reader.hpp"
+#include "portapack.hpp"
 
 #include <cstring>
 
@@ -113,28 +115,12 @@ WhipCalcView::WhipCalcView(NavigationView& nav)
                   &console,
                   &button_exit});
 
-    File antennas_file;
-    auto error = antennas_file.open("WHIPCALC/ANTENNAS.TXT");
-
-    if (!error.is_valid()) {
-        std::string line;
-        char one_char[1];
-        for (size_t pointer = 0; pointer < antennas_file.size(); pointer++) {
-            antennas_file.seek(pointer);
-            antennas_file.read(one_char, 1);
-            if ((int)one_char[0] >= ' ')
-                line += one_char[0];         // Add it to the textline
-            else if (one_char[0] == '\n') {  // New Line
-                txtline_process(line);       // make sense of this textline
-                line.clear();                // Ready for next textline
-            }
-        }
-        if (line.length() > 0)
-            txtline_process(line);  // Last line had no newline at end ?
-    }
+    // Try loading antennas from file.
+    load_antenna_db();
 
     if (!antenna_db.size())
         add_default_antenna();
+
     // antennas_on_memory.set(to_string_dec_int(antenna_db.size(),0) + " antennas");	//tell user
 
     options_type.set_selected_index(2);  // Quarter wave
@@ -151,40 +137,42 @@ WhipCalcView::WhipCalcView(NavigationView& nav)
         nav.pop();
     };
 
-    field_frequency.set_value(transmitter_model.target_frequency());
+    update_result();
 }
 
-void ui::WhipCalcView::txtline_process(std::string& line) {
-    if (line.find("#") != std::string::npos)
-        return;  // Line is just a comment
+void WhipCalcView::load_antenna_db() {
+    File antennas_file;
+    auto error = antennas_file.open("/WHIPCALC/ANTENNAS.TXT");
 
-    char separator = ',';
-    size_t previous = 0;
-    uint16_t value = 0;
-    antenna_entry new_antenna;
-    size_t current = line.find(separator);
+    if (error)
+        return;
 
-    while (current != std::string::npos) {
-        if (!previous)
-            new_antenna.label.assign(line, 0, current);  // antenna label
-        else {
-            value = std::stoi(line.substr(previous, current - previous));
-            if (!value) return;                     // No element length? abort antenna
-            new_antenna.elements.push_back(value);  // Store this new element
+    auto reader = FileLineReader(antennas_file);
+    for (const auto& line : reader) {
+        if (line.length() == 0 || line[0] == '#')
+            continue;  // Empty or comment line.
+
+        auto cols = split_string(line, ',');
+        if (cols.size() < 2)
+            continue;  // Line doesn't have enough columns.
+
+        antenna_entry new_antenna{
+            std::string{cols[0]}};
+
+        // Add antenna elements.
+        for (auto i = 1ul; i < cols.size(); ++i) {
+            uint16_t length = 0;
+            if (parse_int(cols[i], length)) {
+                new_antenna.elements.push_back(length);
+            }
         }
-        previous = current + 1;
-        current = line.find(separator, previous);  // Search for next space delimiter
+
+        if (!new_antenna.elements.empty())
+            antenna_db.push_back(std::move(new_antenna));
     }
-
-    if (!previous) return;                                         // Not even a label ? drop this antenna!
-    value = std::stoi(line.substr(previous, current - previous));  // Last element
-
-    if (!value) return;
-    new_antenna.elements.push_back(value);
-    antenna_db.push_back(new_antenna);  // Add this antenna
 }
 
-void ui::WhipCalcView::add_default_antenna() {
+void WhipCalcView::add_default_antenna() {
     antenna_db.push_back({"ANT500", {185, 315, 450, 586, 724, 862}});  // store a default ant500
 }
 }  // namespace ui
