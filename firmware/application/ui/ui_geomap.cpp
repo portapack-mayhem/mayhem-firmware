@@ -143,14 +143,11 @@ GeoMap::GeoMap(
     : Widget{parent_rect}, markerListLen(0) {
 }
 
-void GeoMap::focus() {
-}
-
 bool GeoMap::on_encoder(const EncoderEvent delta) {
-    if ((delta > 0) && (map_zoom < 4)) {
+    if ((delta > 0) && (map_zoom < 5)) {
         map_zoom++;
 
-        // Make sure that MOD(240,map_zoom)==0 for the map_zoom_line() function
+        // Ensure that MOD(240,map_zoom)==0 for the map_zoom_line() function
         if (240 % map_zoom != 0) {
             map_zoom--;
         }
