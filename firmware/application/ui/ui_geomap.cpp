@@ -235,17 +235,20 @@ void GeoMap::paint(Painter& painter) {
         prev_x_pos = x_pos;
         prev_y_pos = y_pos;
 
+        // Draw crosshairs in center in manual panning mode
+        if (manual_panning_) {
+            display.fill_rectangle({r.center() - Point(16, 1), {32, 2}}, Color::red());
+            display.fill_rectangle({r.center() - Point(1, 16), {2, 32}}, Color::red());
+        }
+
         // Draw the other markers
         draw_markers(painter);
         markerListUpdated = false;
         set_clean();
     }
 
-    // Draw the marker in the center, or just crosshairs in manual panning mode
-    if (manual_panning_) {
-        display.fill_rectangle({r.center() - Point(16, 1), {32, 2}}, Color::red());
-        display.fill_rectangle({r.center() - Point(1, 16), {2, 32}}, Color::red());
-    } else {
+    // Draw the marker in the center
+    if (!manual_panning_) {
         draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
     }
 }
@@ -529,4 +532,71 @@ MapMarkerStored GeoMapView::store_marker(GeoMarker& marker) {
     return geomap.store_marker(marker);
 }
 
-} /* namespace ui */
+} /* namespace ui */ * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2017 Furrtek
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
+#include "ui_geomap.hpp"
+
+#include "portapack.hpp"
+
+#include <cstring>
+#include <stdio.h>
+
+using namespace portapack;
+
+#include "string_format.hpp"
+#include "complex.hpp"
+#include "ui_styles.hpp"
+
+namespace ui {
+
+GeoPos::GeoPos(
+    const Point pos,
+    const alt_unit altitude_unit)
+    : altitude_unit_(altitude_unit) {
+    set_parent_rect({pos, {30 * 8, 3 * 16}});
+
+    add_children({&labels_position,
+                  &field_altitude,
+                  &text_alt_unit,
+                  &field_lat_degrees,
+                  &field_lat_minutes,
+                  &field_lat_seconds,
+                  &text_lat_decimal,
+                  &field_lon_degrees,
+                  &field_lon_minutes,
+                  &field_lon_seconds,
+                  &text_lon_decimal});
+
+    // Defaults
+    set_altitude(0);
+    set_lat(0);
+    set_lon(0);
+
+    const auto changed_fn = [this](int32_t) {
+        float lat_value = lat();
+        float lon_value = lon();
+
+        text_lat_decimal.set(to_string_decimal(lat_value, 5));
+        text_lon_decimal.set(to_string_decimal(lon_value, 5));
+
+        if (on_change && report_change)
+
