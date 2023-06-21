@@ -31,6 +31,7 @@ using namespace portapack;
 
 #include "string_format.hpp"
 #include "complex.hpp"
+#include "ui_styles.hpp"
 
 namespace ui {
 
@@ -80,8 +81,8 @@ GeoPos::GeoPos(
 }
 
 void GeoPos::set_read_only(bool v) {
-    for (auto child : children_)
-        child->set_focusable(!v);
+    // only setting altitude to read-only (allow manual panning via lat/lon fields)
+    field_altitude.set_focusable(!v);
 }
 
 // Stupid hack to avoid an event loop
@@ -90,7 +91,15 @@ void GeoPos::set_report_change(bool v) {
 }
 
 void GeoPos::focus() {
-    field_altitude.focus();
+    if (field_altitude.focusable())
+        field_altitude.focus();
+    else
+        field_lat_degrees.focus();
+}
+
+void GeoPos::hide_altitude() {
+    // Color altitude grey to indicate it's not updated in manual panning mode
+    field_altitude.set_style(&Styles::grey);
 }
 
 void GeoPos::set_altitude(int32_t altitude) {
@@ -132,11 +141,74 @@ int32_t GeoPos::altitude() {
 GeoMap::GeoMap(
     Rect parent_rect)
     : Widget{parent_rect}, markerListLen(0) {
-    // set_focusable(true);
+}
+
+bool GeoMap::on_encoder(const EncoderEvent delta) {
+    if ((delta > 0) && (map_zoom < 5)) {
+        map_zoom++;
+
+        // Ensure that MOD(240,map_zoom)==0 for the map_zoom_line() function
+        if (240 % map_zoom != 0) {
+            map_zoom--;
+        }
+    } else if ((delta < 0) && (map_zoom > 1)) {
+        map_zoom--;
+    } else {
+        return false;
+    }
+
+    // Trigger map redraw
+    markerListUpdated = true;
+    set_dirty();
+    return true;
+}
+
+void GeoMap::map_zoom_line(ui::Color* buffer) {
+    if (map_zoom <= 1) {
+        return;
+    }
+
+    // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
+    // For 240 width, than means no check is needed for map_zoom values up to 6
+    for (int i = (240 / map_zoom) - 1; i >= 0; i--) {
+        for (int j = 0; j < map_zoom; j++) {
+            buffer[(i * map_zoom) + j] = buffer[i];
+        }
+    }
+}
+
+void GeoMap::draw_markers(Painter& painter) {
+    const auto r = screen_rect();
+
+    for (int i = 0; i < markerListLen; ++i) {
+        GeoMarker& item = markerList[i];
+        double lat_rad = sin(item.lat * pi / 180);
+        int x = (map_width * (item.lon + 180) / 360) - x_pos;
+        int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+
+        if (map_zoom != 1) {
+            x = ((x - (r.width() / 2)) * map_zoom) + (r.width() / 2);
+            y = ((y - (r.height() / 2)) * map_zoom) + (r.height() / 2);
+        }
+
+        if ((x >= 0) && (x < r.width()) &&
+            (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
+        {
+            ui::Point itemPoint(x, y + r.top());
+            if (y >= 32) {  // Dont draw text if it would overlap top
+                // Text and symbol
+                draw_marker(painter, itemPoint, item.angle, item.tag, Color::blue(), Color::blue(), Color::magenta());
+            } else {
+                // Only symbol
+                draw_bearing(itemPoint, item.angle, 10, Color::blue());
+            }
+        }
+    }
 }
 
 void GeoMap::paint(Painter& painter) {
-    uint16_t line;
+    uint16_t line, j;
+    uint32_t zoom_seek_x, zoom_seek_y;
     std::array<ui::Color, 240> map_line_buffer;
     const auto r = screen_rect();
 
@@ -144,39 +216,41 @@ void GeoMap::paint(Painter& painter) {
     // or the markers list was updated
     int x_diff = abs(x_pos - prev_x_pos);
     int y_diff = abs(y_pos - prev_y_pos);
-    if (markerListUpdated || (x_diff >= 3) || (y_diff >= 3)) {
-        for (line = 0; line < r.height(); line++) {
-            map_file.seek(4 + ((x_pos + (map_width * (y_pos + line))) << 1));
-            map_file.read(map_line_buffer.data(), r.width() << 1);
-            display.draw_pixels({0, r.top() + line, r.width(), 1}, map_line_buffer);
+    if (markerListUpdated || (x_diff >= map_zoom * 3) || (y_diff >= map_zoom * 3)) {
+        if (map_zoom == 1) {
+            zoom_seek_x = zoom_seek_y = 0;
+        } else {
+            zoom_seek_x = (r.width() - (r.width() / map_zoom)) / 2;
+            zoom_seek_y = (r.height() - (r.height() / map_zoom)) / 2;
+        }
+
+        for (line = 0; line < (r.height() / map_zoom); line++) {
+            map_file.seek(4 + ((x_pos + zoom_seek_x + (map_width * (y_pos + line + zoom_seek_y))) << 1));
+            map_file.read(map_line_buffer.data(), (r.width() / map_zoom) << 1);
+            map_zoom_line(map_line_buffer.data());
+            for (j = 0; j < map_zoom; j++) {
+                display.draw_pixels({0, r.top() + (line * map_zoom) + j, r.width(), 1}, map_line_buffer);
+            }
         }
         prev_x_pos = x_pos;
         prev_y_pos = y_pos;
 
+        // Draw crosshairs in center in manual panning mode
+        if (manual_panning_) {
+            display.fill_rectangle({r.center() - Point(16, 1), {32, 2}}, Color::red());
+            display.fill_rectangle({r.center() - Point(1, 16), {2, 32}}, Color::red());
+        }
+
         // Draw the other markers
-        for (int i = 0; i < markerListLen; ++i) {
-            GeoMarker& item = markerList[i];
-            double lat_rad = sin(item.lat * pi / 180);
-            int x = (map_width * (item.lon + 180) / 360) - x_pos;
-            int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
-            if ((x >= 0) && (x < r.width()) &&
-                (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
-            {
-                ui::Point itemPoint(x, y + r.top());
-                if (y >= 32) {  // Dont draw text if it would overlap top
-                    // Text and symbol
-                    draw_marker(painter, itemPoint, item.angle, item.tag, Color::blue(), Color::blue(), Color::magenta());
-                } else {
-                    // Only symbol
-                    draw_bearing(itemPoint, item.angle, 10, Color::blue());
-                }
-            }
-            markerListUpdated = false;
-        }  // Draw the other markers
+        draw_markers(painter);
+        markerListUpdated = false;
+        set_clean();
     }
 
     // Draw the marker in the center
-    draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
+    if (!manual_panning_) {
+        draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
+    }
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
@@ -234,6 +308,14 @@ bool GeoMap::init() {
 
 void GeoMap::set_mode(GeoMapMode mode) {
     mode_ = mode;
+}
+
+void GeoMap::set_manual_panning(bool v) {
+    manual_panning_ = v;
+}
+
+bool GeoMap::manual_panning() {
+    return manual_panning_;
 }
 
 void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
@@ -311,6 +393,11 @@ void GeoMapView::focus() {
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude) {
+    if (geomap.manual_panning()) {
+        geomap.set_dirty();
+        return;
+    }
+
     lat_ = lat;
     lon_ = lon;
     altitude_ = altitude;
@@ -342,6 +429,8 @@ void GeoMapView::setup() {
         altitude_ = altitude;
         lat_ = lat;
         lon_ = lon;
+        geopos.hide_altitude();
+        geomap.set_manual_panning(true);
         geomap.move(lon_, lat_);
         geomap.set_dirty();
     };
@@ -396,6 +485,7 @@ GeoMapView::GeoMapView(
     geomap.set_tag(tag);
     geomap.set_angle(angle);
     geomap.move(lon_, lat_);
+    geomap.set_focusable(true);
 
     geopos.set_read_only(true);
 }
@@ -425,6 +515,7 @@ GeoMapView::GeoMapView(
 
     geomap.set_mode(mode_);
     geomap.move(lon_, lat_);
+    geomap.set_focusable(true);
 
     button_ok.on_select = [this, on_done, &nav](Button&) {
         if (on_done)
