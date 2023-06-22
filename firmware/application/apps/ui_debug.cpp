@@ -383,7 +383,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
         {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
-        {"Dump P.Mem", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::dump_persistent_memory(); }},
+        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
