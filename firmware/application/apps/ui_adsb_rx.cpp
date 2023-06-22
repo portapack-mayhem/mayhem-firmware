@@ -468,7 +468,8 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
                 details_view->update(entry);
             }
             // Store if the view is present and the list isn't full
-            else if (otherMarkersCanBeSent && (markerStored != MARKER_LIST_FULL) && entry.pos.valid && (entry.age_state <= 2)) {
+            // Note -- Storing the selected entry too, in case map panning occurs
+            if (otherMarkersCanBeSent && (markerStored != MARKER_LIST_FULL) && entry.pos.valid && (entry.age_state <= 2)) {
                 marker.lon = entry.pos.longitude;
                 marker.lat = entry.pos.latitude;
                 marker.angle = entry.velo.heading;
