@@ -242,6 +242,7 @@ bool recon_clear_output();
 bool recon_load_freqs();
 bool recon_load_ranges();
 bool recon_update_ranges_when_recon();
+bool recon_auto_record_locked();
 bool recon_load_hamradios();
 bool recon_match_mode();
 void set_recon_autosave_freqs(const bool v);
@@ -251,6 +252,7 @@ void set_recon_clear_output(const bool v);
 void set_recon_load_freqs(const bool v);
 void set_recon_load_ranges(const bool v);
 void set_recon_update_ranges_when_recon(const bool v);
+void set_recon_auto_record_locked(const bool v);
 void set_recon_load_hamradios(const bool v);
 void set_recon_match_mode(const bool v);
 

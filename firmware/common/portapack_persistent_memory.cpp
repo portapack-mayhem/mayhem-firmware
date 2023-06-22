@@ -83,6 +83,13 @@ enum data_structure_version_enum : uint32_t {
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
+#define _bit_write(__value, __bit, _v)     \
+    if (_bit_read(__value, __bit) != _v) { \
+        __value ^= 1 << __bit;             \
+    }
+
+#define _bit_read(__value, __bit) (((__value >> __bit) & 1) != 0)
+
 struct ui_config_t {
    private:
     enum bits_t {
@@ -325,7 +332,7 @@ struct data_t {
     uint32_t hardware_config;
 
     // Recon App
-    uint64_t recon_config;
+    uint8_t recon_config;
 
     // converter: show or hide icon. Hiding cause auto disable to avoid mistakes
     bool hide_converter;
@@ -774,59 +781,66 @@ void set_clkout_freq(uint32_t freq) {
 }
 
 bool recon_autosave_freqs() {
-    return (data->recon_config & 0x80000000UL) ? true : false;
+    return _bit_read(data->recon_config, 0);
 }
 bool recon_autostart_recon() {
-    return (data->recon_config & 0x40000000UL) ? true : false;
+    return _bit_read(data->recon_config, 1);
 }
 bool recon_continuous() {
-    return (data->recon_config & 0x20000000UL) ? true : false;
+    return _bit_read(data->recon_config, 2);
 }
 bool recon_clear_output() {
-    return (data->recon_config & 0x10000000UL) ? true : false;
+    return _bit_read(data->recon_config, 3);
 }
 bool recon_load_freqs() {
-    return (data->recon_config & 0x08000000UL) ? true : false;
+    return _bit_read(data->recon_config, 4);
 }
 bool recon_load_ranges() {
-    return (data->recon_config & 0x04000000UL) ? true : false;
+    return _bit_read(data->recon_config, 5);
 }
 bool recon_update_ranges_when_recon() {
-    return (data->recon_config & 0x02000000UL) ? true : false;
+    return _bit_read(data->recon_config, 6);
 }
 bool recon_load_hamradios() {
-    return (data->recon_config & 0x01000000UL) ? true : false;
+    return _bit_read(data->recon_config, 7);
 }
 bool recon_match_mode() {
-    return (data->recon_config & 0x00800000UL) ? true : false;
+    return _bit_read(data->recon_config, 8);
+}
+bool recon_auto_record_locked() {
+    return _bit_read(data->recon_config, 9);
 }
 
 void set_recon_autosave_freqs(const bool v) {
-    data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
+    _bit_write(data->recon_config, 0, v);
 }
 void set_recon_autostart_recon(const bool v) {
+    _bit_write(data->recon_config, 1, v);
     data->recon_config = (data->recon_config & ~0x40000000UL) | (v << 30);
 }
 void set_recon_continuous(const bool v) {
-    data->recon_config = (data->recon_config & ~0x20000000UL) | (v << 29);
+    _bit_write(data->recon_config, 2, v);
 }
 void set_recon_clear_output(const bool v) {
-    data->recon_config = (data->recon_config & ~0x10000000UL) | (v << 28);
+    _bit_write(data->recon_config, 3, v);
 }
 void set_recon_load_freqs(const bool v) {
-    data->recon_config = (data->recon_config & ~0x08000000UL) | (v << 27);
+    _bit_write(data->recon_config, 4, v);
 }
 void set_recon_load_ranges(const bool v) {
-    data->recon_config = (data->recon_config & ~0x04000000UL) | (v << 26);
+    _bit_write(data->recon_config, 5, v);
 }
 void set_recon_update_ranges_when_recon(const bool v) {
-    data->recon_config = (data->recon_config & ~0x02000000UL) | (v << 25);
+    _bit_write(data->recon_config, 6, v);
 }
 void set_recon_load_hamradios(const bool v) {
-    data->recon_config = (data->recon_config & ~0x01000000UL) | (v << 24);
+    _bit_write(data->recon_config, 7, v);
 }
 void set_recon_match_mode(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23);
+    _bit_write(data->recon_config, 8, v);
+}
+void set_recon_auto_record_locked(const bool v) {
+    _bit_write(data->recon_config, 9, v);
 }
 bool config_hide_converter() {
     return data->hide_converter;
