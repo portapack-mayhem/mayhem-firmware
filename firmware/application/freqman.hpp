@@ -36,7 +36,7 @@
 #define FREQMAN_MAX_PER_FILE 90  // Maximum of entries we can read. This is a hardware limit
                                  // It was tested and lowered to leave a bit of space to the caller
 
-#define FREQMAN_READ_BUF_SIZE 128  // max freqman line size including desc is 90, + a bit of space
+#define FREQMAN_READ_BUF_SIZE 96  // max freqman line size including desc is 90, + a bit of space
 
 using namespace ui;
 using namespace std;

@@ -64,7 +64,7 @@ class FreqManBaseView : public View {
         14,
         {}};
 
-    FreqManUIList menu_view{
+    FreqManUIList freqlist_view{
         {0, 3 * 8, 240, 23 * 8}};
 
     Text text_empty{

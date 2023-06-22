@@ -39,15 +39,13 @@ void ReconView::set_loop_config(bool v) {
 void ReconView::clear_freqlist_for_ui_action() {
     audio::output::stop();
     // flag to detect and reload frequency_list
-    freqlist_cleared_for_ui_action = true;
-    // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
     if (!manual_mode) {
-        // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
-        // swap is the only way to achieve a perfect memory liberation
-        std::vector<freqman_entry>().swap(frequency_list);
-    } else {
+        frequency_list.clear();
         frequency_list.shrink_to_fit();
-    }
+        std::vector<freqman_entry>().swap(frequency_list);
+    } else
+        frequency_list.shrink_to_fit();
+    freqlist_cleared_for_ui_action = true;
 }
 
 void ReconView::reset_indexes() {
@@ -683,9 +681,10 @@ ReconView::ReconView(NavigationView& nav)
             nav_.display_modal("Error", "END freq\nis lower than START");
         } else {
             audio::output::stop();
-
             // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
             // swap is the only way to achieve a perfect memory liberation
+            std::vector<freqman_entry>().clear();
+            std::vector<freqman_entry>().shrink_to_fit();
             std::vector<freqman_entry>().swap(frequency_list);
 
             freqman_entry manual_freq_entry;
@@ -802,7 +801,6 @@ ReconView::ReconView(NavigationView& nav)
 
         auto open_view = nav.push<ReconSetupView>(input_file, output_file);
         open_view->on_changed = [this](std::vector<std::string> result) {
-            freqlist_cleared_for_ui_action = false;
             input_file = result[0];
             output_file = result[1];
             freq_file_path = "/FREQMAN/" + output_file + ".TXT";
@@ -817,6 +815,7 @@ ReconView::ReconView(NavigationView& nav)
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
 
             frequency_file_load(false);
+            freqlist_cleared_for_ui_action = false;
 
             if (autostart) {
                 recon_resume();

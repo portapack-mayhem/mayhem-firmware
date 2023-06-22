@@ -98,10 +98,10 @@ bool load_freqman_file(std::string& file_stem, freqman_db* db, bool load_freqs, 
     rf::Frequency frequency_a = 0, frequency_b = 0;
     char file_data[FREQMAN_READ_BUF_SIZE + 1] = {0};
     freqman_entry_type type = NOTYPE;
-    freqman_index_t modulation = 0;
-    freqman_index_t bandwidth = 0;
-    freqman_index_t step = 0;
-    freqman_index_t tone = 0;
+    freqman_index_t modulation = -1;
+    freqman_index_t bandwidth = -1;
+    freqman_index_t step = -1;
+    freqman_index_t tone = -1;
 
     auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
     if (result.is_valid())
@@ -202,6 +202,7 @@ bool load_freqman_file(std::string& file_stem, freqman_db* db, bool load_freqs, 
                 pos += 2;
                 length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
                 description = string(pos, length);
+                description.shrink_to_fit();
             }
             if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
                 (*db).push_back({frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
@@ -238,6 +239,7 @@ bool load_freqman_file(std::string& file_stem, freqman_db* db, bool load_freqs, 
             }
         }
     }
+    (*db).shrink_to_fit();
     return true;
 }
 
