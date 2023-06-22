@@ -205,8 +205,8 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, 
                 description.shrink_to_fit();
             }
             if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
-                freqman_entry entry = {frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone};
-                db.emplace_back(entry);
+                //freqman_entry entry = {frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone};
+                db.emplace_back(freqman_entry{frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
                 n++;
                 if (n > max_num_freqs) return true;
             }
