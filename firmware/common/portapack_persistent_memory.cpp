@@ -932,118 +932,69 @@ size_t data_size() {
 }
 
 bool dump_persistent_memory() {
-    ui::Painter painter;
-
+    ui::Painter painter{};
     std::string debug_dir = "DEBUG";
-    make_new_directory(debug_dir);
-
     std::filesystem::path filename{};
     File pmem_dump_file{};
+    // create new dump file name and DEBUG directory
+    make_new_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/PMEMDUMP_????.*");
     if (filename.empty()) {
         return false;
     }
     filename = filename.replace_extension(u".TXT");
+    // dump data fo filename
     auto result = pmem_dump_file.create(filename);  // First freq if no output file
     if (!result.is_valid()) {
-        std::string strbuf{};
-
-        strbuf = "structure_version: " + to_string_dec_uint(data->structure_version);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "target_frequency: " + to_string_dec_int(data->target_frequency);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "correction_ppb: " + to_string_dec_int(data->correction_ppb);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "modem_def_index: " + to_string_dec_uint(data->modem_def_index);
-        pmem_dump_file.write_line(strbuf);
-
-        strbuf = "serial_format.data_bit: " + to_string_dec_uint(data->serial_format.data_bits);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "serial_format.parity: " + to_string_dec_uint(data->serial_format.parity);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "serial_format.stop_bits: " + to_string_dec_uint(data->serial_format.stop_bits);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "serial_format.bit_order: " + to_string_dec_uint(data->serial_format.bit_order);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "modem_bw: " + to_string_dec_int(data->modem_bw);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "afsk_mark_freq: " + to_string_dec_int(data->afsk_mark_freq);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "afsk_space_freq: " + to_string_dec_int(data->afsk_space_freq);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "modem_baudrate: " + to_string_dec_int(data->modem_baudrate);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "modem_repeat: " + to_string_dec_int(data->modem_repeat);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "playdead_magic: " + to_string_dec_uint(data->playdead_magic);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "playing_dead: " + to_string_dec_uint(data->playing_dead);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "playdead_sequence: " + to_string_dec_uint(data->playdead_sequence);
-        pmem_dump_file.write_line(strbuf);
-
+        // full variables
+        pmem_dump_file.write_line("structure_version: " + to_string_dec_uint(data->structure_version));
+        pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(data->target_frequency));
+        pmem_dump_file.write_line("correction_ppb: " + to_string_dec_int(data->correction_ppb));
+        pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
+        pmem_dump_file.write_line("serial_format.data_bit: " + to_string_dec_uint(data->serial_format.data_bits));
+        pmem_dump_file.write_line("serial_format.parity: " + to_string_dec_uint(data->serial_format.parity));
+        pmem_dump_file.write_line("serial_format.stop_bits: " + to_string_dec_uint(data->serial_format.stop_bits));
+        pmem_dump_file.write_line("serial_format.bit_order: " + to_string_dec_uint(data->serial_format.bit_order));
+        pmem_dump_file.write_line("modem_bw: " + to_string_dec_int(data->modem_bw));
+        pmem_dump_file.write_line("afsk_mark_freq: " + to_string_dec_int(data->afsk_mark_freq));
+        pmem_dump_file.write_line("afsk_space_freq: " + to_string_dec_int(data->afsk_space_freq));
+        pmem_dump_file.write_line("modem_baudrate: " + to_string_dec_int(data->modem_baudrate));
+        pmem_dump_file.write_line("modem_repeat: " + to_string_dec_int(data->modem_repeat));
+        pmem_dump_file.write_line("playdead_magic: " + to_string_dec_uint(data->playdead_magic));
+        pmem_dump_file.write_line("playing_dead: " + to_string_dec_uint(data->playing_dead));
+        pmem_dump_file.write_line("playdead_sequence: " + to_string_dec_uint(data->playdead_sequence));
+        pmem_dump_file.write_line("pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address));
+        pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
+        pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
+        pmem_dump_file.write_line("recon_config: " + to_string_dec_uint(data->recon_config));
+        pmem_dump_file.write_line("hide_converter: " + to_string_dec_int(data->tone_mix));
+        pmem_dump_file.write_line("converter: " + to_string_dec_int(data->tone_mix));
+        pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->tone_mix));
+        pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction));
+        pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
+        pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
+        pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
+        pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
+        pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
+        // ui_config bits
         const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
-        strbuf = "ui_config bit timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit timeout_seconds: " + to_string_dec_uint(backlight_timer.timeout_seconds());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit clkout_freq: " + to_string_dec_uint(clkout_freq());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit ShowBiggerQRCode: " + to_string_dec_uint(data->ui_config.show_bigger_qr_code());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit DisableTouchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit HideClock: " + to_string_dec_uint(data->ui_config.hide_clock());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit ClockWithDate: " + to_string_dec_uint(data->ui_config.clock_with_date());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit ClkOutEnabled: " + to_string_dec_uint(data->ui_config.clkout_enabled());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit StealthMode: " + to_string_dec_uint(data->ui_config.stealth_mode());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit ConfigLogin: " + to_string_dec_uint(data->ui_config.config_login());
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "ui_config bit ConfigSplash: " + to_string_dec_uint(data->ui_config.config_splash());
-        pmem_dump_file.write_line(strbuf);
-
-        strbuf = "pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "hardware_config: " + to_string_dec_uint(data->hardware_config);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "recon_config: " + to_string_dec_uint(data->recon_config);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "hide_converter: " + to_string_dec_int(data->tone_mix);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "converter: " + to_string_dec_int(data->tone_mix);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "updown_converter: " + to_string_dec_int(data->tone_mix);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity);
-        pmem_dump_file.write_line(strbuf);
-        strbuf = "headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb);
-        pmem_dump_file.write_line(strbuf);
-
-        strbuf = "misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute());
-        pmem_dump_file.write_line(strbuf);
-
-        strbuf = "misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable());
-        pmem_dump_file.write_line(strbuf);
+        pmem_dump_file.write_line("ui_config bit timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled()));
+        pmem_dump_file.write_line("ui_config bit timeout_seconds: " + to_string_dec_uint(backlight_timer.timeout_seconds()));
+        pmem_dump_file.write_line("ui_config bit clkout_freq: " + to_string_dec_uint(clkout_freq()));
+        pmem_dump_file.write_line("ui_config bit show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon()));
+        pmem_dump_file.write_line("ui_config bit load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings()));
+        pmem_dump_file.write_line("ui_config bit save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings()));
+        pmem_dump_file.write_line("ui_config bit ShowBiggerQRCode: " + to_string_dec_uint(data->ui_config.show_bigger_qr_code()));
+        pmem_dump_file.write_line("ui_config bit DisableTouchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen()));
+        pmem_dump_file.write_line("ui_config bit HideClock: " + to_string_dec_uint(data->ui_config.hide_clock()));
+        pmem_dump_file.write_line("ui_config bit ClockWithDate: " + to_string_dec_uint(data->ui_config.clock_with_date()));
+        pmem_dump_file.write_line("ui_config bit ClkOutEnabled: " + to_string_dec_uint(data->ui_config.clkout_enabled()));
+        pmem_dump_file.write_line("ui_config bit StealthMode: " + to_string_dec_uint(data->ui_config.stealth_mode()));
+        pmem_dump_file.write_line("ui_config bit ConfigLogin: " + to_string_dec_uint(data->ui_config.config_login()));
+        pmem_dump_file.write_line("ui_config bit ConfigSplash: " + to_string_dec_uint(data->ui_config.config_splash()));
+        // misc_config bits
+        pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
+        pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
 
         painter.draw_string({0, 320 - 16}, ui::Styles::green, " " + filename.filename().string() + " DUMPED :-)");
 
