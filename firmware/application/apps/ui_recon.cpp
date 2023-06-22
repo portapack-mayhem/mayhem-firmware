@@ -39,15 +39,13 @@ void ReconView::set_loop_config(bool v) {
 void ReconView::clear_freqlist_for_ui_action() {
     audio::output::stop();
     // flag to detect and reload frequency_list
-    freqlist_cleared_for_ui_action = true;
-    // if in manual mode, there is enough memory to load freqman files, else we have to unload/reload
     if (!manual_mode) {
         // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
         // swap is the only way to achieve a perfect memory liberation
         std::vector<freqman_entry>().swap(frequency_list);
-    } else {
+    } else
         frequency_list.shrink_to_fit();
-    }
+    freqlist_cleared_for_ui_action = true;
 }
 
 void ReconView::reset_indexes() {
@@ -683,7 +681,6 @@ ReconView::ReconView(NavigationView& nav)
             nav_.display_modal("Error", "END freq\nis lower than START");
         } else {
             audio::output::stop();
-
             // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
             // swap is the only way to achieve a perfect memory liberation
             std::vector<freqman_entry>().swap(frequency_list);
@@ -802,7 +799,6 @@ ReconView::ReconView(NavigationView& nav)
 
         auto open_view = nav.push<ReconSetupView>(input_file, output_file);
         open_view->on_changed = [this](std::vector<std::string> result) {
-            freqlist_cleared_for_ui_action = false;
             input_file = result[0];
             output_file = result[1];
             freq_file_path = "/FREQMAN/" + output_file + ".TXT";
@@ -817,6 +813,7 @@ ReconView::ReconView(NavigationView& nav)
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
 
             frequency_file_load(false);
+            freqlist_cleared_for_ui_action = false;
 
             if (autostart) {
                 recon_resume();
@@ -894,10 +891,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
     audio::output::stop();
 
     def_step = step_mode.selected_index();  // use def_step from manual selector
-    // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
-    // swap is the only way to achieve a perfect memory liberation
-    std::vector<freqman_entry>().swap(frequency_list);  // clear the existing frequency list (expected behavior)
-    std::string file_input = input_file;                // default recon mode
+    std::string file_input = input_file;    // default recon mode
     if (scanner_mode) {
         file_input = output_file;
         file_name.set_style(&Styles::red);
@@ -909,7 +903,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         button_scanner_mode.set_text("RECON");
     }
     desc_cycle.set_style(&Styles::white);
-    if (!load_freqman_file_ex(file_input, frequency_list, load_freqs, load_ranges, load_hamradios, RECON_FREQMAN_MAX_PER_FILE)) {
+    if (!load_freqman_file(file_input, frequency_list, load_freqs, load_ranges, load_hamradios)) {
         file_name.set_style(&Styles::red);
         desc_cycle.set_style(&Styles::red);
         desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
@@ -922,7 +916,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
             desc_cycle.set("/0 no entries in list");
             file_name.set("BadOrEmpty " + file_input);
         } else {
-            if (frequency_list.size() > RECON_FREQMAN_MAX_PER_FILE) {
+            if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
                 file_name.set_style(&Styles::yellow);
                 desc_cycle.set_style(&Styles::yellow);
             }
