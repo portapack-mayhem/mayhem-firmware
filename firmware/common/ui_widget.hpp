@@ -500,6 +500,8 @@ class Image : public Widget {
 
     void paint(Painter& painter) override;
 
+    const Bitmap& bitmap() & { return *bitmap_; }
+
    private:
     const Bitmap* bitmap_;
     Color foreground_;

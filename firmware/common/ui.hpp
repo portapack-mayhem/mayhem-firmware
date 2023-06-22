@@ -31,6 +31,9 @@ namespace ui {
 using Coord = int16_t;
 using Dim = int16_t;
 
+constexpr uint16_t screen_width = 240;
+constexpr uint16_t screen_height = 320;
+
 struct Color {
     uint16_t v;  // rrrrrGGGGGGbbbbb
 

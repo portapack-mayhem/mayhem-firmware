@@ -259,11 +259,11 @@ struct ui_config2_t {
     bool hide_speaker : 1;
     bool hide_converter : 1;
     bool hide_stealth : 1;
+    bool hide_camera : 1;
     bool hide_sleep : 1;
     bool hide_bias_tee : 1;
     bool hide_clock : 1;
     bool hide_sd_card : 1;
-    bool reserved_0 : 1;
 
     uint8_t placeholder_1;
     uint8_t placeholder_2;
@@ -851,25 +851,57 @@ void set_recon_match_mode(const bool v) {
 }
 
 /* UI Config 2 */
-bool ui_hide_speaker() { return data->ui_config2.hide_speaker; }
-bool ui_hide_converter() { return data->ui_config2.hide_converter; }
-bool ui_hide_stealth() { return data->ui_config2.hide_stealth; }
-bool ui_hide_sleep() { return data->ui_config2.hide_sleep; }
-bool ui_hide_bias_tee() { return data->ui_config2.hide_bias_tee; }
-bool ui_hide_clock() { return data->ui_config2.hide_clock; }
-bool ui_hide_sd_card() { return data->ui_config2.hide_sd_card; }
+bool ui_hide_speaker() {
+    return data->ui_config2.hide_speaker;
+}
+bool ui_hide_converter() {
+    return data->ui_config2.hide_converter;
+}
+bool ui_hide_stealth() {
+    return data->ui_config2.hide_stealth;
+}
+bool ui_hide_camera() {
+    return data->ui_config2.hide_stealth;
+}
+bool ui_hide_sleep() {
+    return data->ui_config2.hide_sleep;
+}
+bool ui_hide_bias_tee() {
+    return data->ui_config2.hide_bias_tee;
+}
+bool ui_hide_clock() {
+    return data->ui_config2.hide_clock;
+}
+bool ui_hide_sd_card() {
+    return data->ui_config2.hide_sd_card;
+}
 
-void set_ui_hide_speaker(bool v) { data->ui_config2.hide_speaker = v; }
+void set_ui_hide_speaker(bool v) {
+    data->ui_config2.hide_speaker = v;
+}
 void set_ui_hide_converter(bool v) {
     data->ui_config2.hide_converter = v;
     if (v)
         data->converter = false;
 }
-void set_ui_hide_stealth(bool v) { data->ui_config2.hide_stealth = v; }
-void set_ui_hide_sleep(bool v) { data->ui_config2.hide_sleep = v; }
-void set_ui_hide_bias_tee(bool v) { data->ui_config2.hide_bias_tee = v; }
-void set_ui_hide_clock(bool v) { data->ui_config2.hide_clock = v; }
-void set_ui_hide_sd_card(bool v) { data->ui_config2.hide_sd_card = v; }
+void set_ui_hide_stealth(bool v) {
+    data->ui_config2.hide_stealth = v;
+}
+void set_ui_hide_camera(bool v) {
+    data->ui_config2.hide_camera = v;
+}
+void set_ui_hide_sleep(bool v) {
+    data->ui_config2.hide_sleep = v;
+}
+void set_ui_hide_bias_tee(bool v) {
+    data->ui_config2.hide_bias_tee = v;
+}
+void set_ui_hide_clock(bool v) {
+    data->ui_config2.hide_clock = v;
+}
+void set_ui_hide_sd_card(bool v) {
+    data->ui_config2.hide_sd_card = v;
+}
 
 /* Converter */
 bool config_converter() {
