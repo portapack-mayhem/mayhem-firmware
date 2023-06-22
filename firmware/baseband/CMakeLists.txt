@@ -32,7 +32,8 @@ include(CheckCXXCompilerFlag)
 project(baseband_shared)
 
 # Compiler options here.
-set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
+# -Wdouble-promotion 
+set(USE_OPT "-O2 -g3 -D_FORTIFY_SOURCE=1 -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -59,7 +60,7 @@ set(USE_LTO no)
 set(USE_THUMB yes)
 
 # Enable this if you want to see the full log while compiling.
-set(USE_VERBOSE_COMPILE no)
+set(USE_VERBOSE_COMPILE yes)
 
 #
 # Build global options
@@ -197,10 +198,10 @@ set(AOPT)
 set(TOPT "-mthumb -DTHUMB")
 
 # Define C warning options here
-set(CWARN "-Wall -Wextra")
+set(CWARN "-W -Wall -Wextra")
 
 # Define C++ warning options here
-set(CPPWARN "-Wall -Wextra")
+set(CPPWARN "-W -Wall -Wextra")
 
 #
 # Compiler settings

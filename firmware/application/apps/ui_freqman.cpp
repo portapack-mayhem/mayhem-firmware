@@ -81,14 +81,11 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     if (file_list.empty()) return;
 
-    std::vector<freqman_entry>().swap(database);
-
     if (!load_freqman_file(file_list[categories[category_id].second], database)) {
         error_ = ERROR_ACCESS;
     }
-    menu_view.set_db(database);
+    freqlist_view.set_db(database);
     text_empty.hidden(!database.empty());
-    menu_view.set_dirty();
     set_dirty();
 }
 
@@ -162,10 +159,14 @@ FrequencySaveView::FrequencySaveView(
     };
 }
 
+FrequencyLoadView::~FrequencyLoadView() {
+    std::vector<freqman_entry>().swap(database);
+}
+
 void FrequencyLoadView::refresh_widgets(const bool v) {
-    menu_view.hidden(v);
+    freqlist_view.hidden(v);
     text_empty.hidden(!v);
-    // display.fill_rectangle(menu_view.screen_rect(), Color::black());
+    // display.fill_rectangle(freqlist_view.screen_rect(), Color::black());
     set_dirty();
 }
 
@@ -176,17 +177,14 @@ FrequencyLoadView::FrequencyLoadView(
         refresh_widgets(v);
     };
 
-    add_children({&menu_view,
+    add_children({&freqlist_view,
                   &text_empty});
 
     // Resize menu view to fill screen
-    menu_view.set_parent_rect({0, 3 * 8, 240, 30 * 8});
+    freqlist_view.set_parent_rect({0, 3 * 8, 240, 30 * 8});
 
-    menu_view.on_select = [&nav, this](FreqManUIList&) {
-        nav_.pop();
-
-        auto& entry = database[menu_view.get_index()];
-
+    freqlist_view.on_select = [&nav, this](FreqManUIList&) {
+        auto& entry = database[freqlist_view.get_index()];
         if (entry.type == RANGE) {
             // User chose a frequency range entry
             if (on_range_loaded)
@@ -199,18 +197,21 @@ FrequencyLoadView::FrequencyLoadView(
             if (on_frequency_loaded)
                 on_frequency_loaded(entry.frequency_a);
         }
+        // swap with empty vector to ensure memory is immediately released
+        std::vector<freqman_entry>().swap(database);
+        nav_.pop();
     };
 }
 
 void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
-    database[menu_view.get_index()].frequency_a = f;
+    database[freqlist_view.get_index()].frequency_a = f;
     save_freqman_file(file_list[categories[current_category_id].second], database);
     change_category(current_category_id);
 }
 
 void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
     text_prompt(nav, desc_buffer, 28, [this](std::string& buffer) {
-        database[menu_view.get_index()].description = buffer;
+        database[freqlist_view.get_index()].description = buffer;
         save_freqman_file(file_list[categories[current_category_id].second], database);
         change_category(current_category_id);
     });
@@ -230,7 +231,7 @@ void FrequencyManagerView::on_delete() {
         delete_freqman_file(file_list[categories[current_category_id].second]);
         refresh_list();
     } else {
-        database.erase(database.begin() + menu_view.get_index());
+        database.erase(database.begin() + freqlist_view.get_index());
         save_freqman_file(file_list[categories[current_category_id].second], database);
     }
     change_category(current_category_id);
@@ -241,10 +242,9 @@ void FrequencyManagerView::refresh_widgets(const bool v) {
     button_edit_desc.hidden(v);
     button_delete.hidden(v);
     text_empty.hidden(!v);
-    menu_view.hidden(v);
-    menu_view.set_dirty();
+    freqlist_view.hidden(v);
     labels.hidden(v);
-    // display.fill_rectangle(menu_view.screen_rect(), Color::black());
+    // display.fill_rectangle(freqlist_view.screen_rect(), Color::black());
     set_dirty();
 }
 
@@ -261,13 +261,13 @@ FrequencyManagerView::FrequencyManagerView(
 
     add_children({&labels,
                   &button_new_category,
-                  &menu_view,
+                  &freqlist_view,
                   &text_empty,
                   &button_edit_freq,
                   &button_edit_desc,
                   &button_delete});
 
-    menu_view.on_select = [this](FreqManUIList&) {
+    freqlist_view.on_select = [this](FreqManUIList&) {
         button_edit_freq.focus();
     };
 
@@ -280,7 +280,7 @@ FrequencyManagerView::FrequencyManagerView(
         if (database.empty()) {
             database.push_back({0, 0, "", SINGLE});
         }
-        auto new_view = nav.push<FrequencyKeypadView>(database[menu_view.get_index()].frequency_a);
+        auto new_view = nav.push<FrequencyKeypadView>(database[freqlist_view.get_index()].frequency_a);
         new_view->on_changed = [this](rf::Frequency f) {
             on_edit_freq(f);
         };
@@ -290,7 +290,7 @@ FrequencyManagerView::FrequencyManagerView(
         if (database.empty()) {
             database.push_back({0, 0, "", SINGLE});
         }
-        desc_buffer = database[menu_view.get_index()].description;
+        desc_buffer = database[freqlist_view.get_index()].description;
         on_edit_desc(nav);
     };
 

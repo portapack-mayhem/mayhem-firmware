@@ -41,6 +41,12 @@
 
 #include "irq_controls.hpp"
 
+#include "string_format.hpp"
+#include "ui_styles.hpp"
+#include "ui_painter.hpp"
+
+#include <ch.h>
+
 using namespace std;
 
 namespace portapack {
@@ -90,26 +96,27 @@ static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
 #define _bit_read(__value, __bit) (((__value >> __bit) & 1) != 0)
 
+enum bits_t {
+    BacklightTimeoutLSB = 0,
+    BacklightTimeoutEnable = 3,
+    ClkoutFreqLSB = 4,
+    ShowGUIReturnIcon = 20,
+    LoadAppSettings = 21,
+    SaveAppSettings = 22,
+    ShowBiggerQRCode = 23,
+    DisableTouchscreen = 24,
+    HideClock = 25,
+    ClockWithDate = 26,
+    ClkOutEnabled = 27,
+    ConfigSpeakerHidden = 28,  // unused since Speaker icon modifications
+    StealthMode = 29,
+    ConfigLogin = 30,
+    ConfigSplash = 31,
+};
+>>>>>>> 0c7571382021992a5571e6370c9e8b87fcec82fe
+
 struct ui_config_t {
    private:
-    enum bits_t {
-        BacklightTimeoutLSB = 0,
-        BacklightTimeoutEnable = 3,
-        ClkoutFreqLSB = 4,
-        ShowGUIReturnIcon = 20,
-        LoadAppSettings = 21,
-        SaveAppSettings = 22,
-        ShowBiggerQRCode = 23,
-        DisableTouchscreen = 24,
-        HideClock = 25,
-        ClockWithDate = 26,
-        ClkOutEnabled = 27,
-        ConfigSpeakerHidden = 28,
-        StealthMode = 29,
-        ConfigLogin = 30,
-        ConfigSplash = 31,
-    };
-
     enum bits_mask_t : uint32_t {
         BacklightTimeoutMask = ((1 << 3) - 1) << bits_t::BacklightTimeoutLSB,
         ClkoutFreqMask = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
@@ -297,6 +304,8 @@ struct misc_config_t {
         : values(0) {
     }
 };
+
+/* IMPORTANT: Report your changes here in the dump_persistent_memory function a few lines later !! */
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
@@ -935,6 +944,126 @@ int load_persistent_settings_from_file() {
 
 size_t data_size() {
     return sizeof(data_t);
+}
+
+bool debug_dump() {
+    ui::Painter painter{};
+    std::string debug_dir = "DEBUG";
+    std::filesystem::path filename{};
+    File pmem_dump_file{};
+    // create new dump file name and DEBUG directory
+    make_new_directory(debug_dir);
+    filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
+    if (filename.empty()) {
+        return false;
+    }
+    // dump data fo filename
+    auto error = pmem_dump_file.create(filename);
+    if (error) {
+        painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
+        return false;
+    }
+
+    // write persistent memory
+    pmem_dump_file.write_line("[Persistent Memory]");
+    // full variables
+    pmem_dump_file.write_line("structure_version: " + to_string_dec_uint(data->structure_version));
+    pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(data->target_frequency));
+    pmem_dump_file.write_line("correction_ppb: " + to_string_dec_int(data->correction_ppb));
+    pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
+    pmem_dump_file.write_line("serial_format.data_bit: " + to_string_dec_uint(data->serial_format.data_bits));
+    pmem_dump_file.write_line("serial_format.parity: " + to_string_dec_uint(data->serial_format.parity));
+    pmem_dump_file.write_line("serial_format.stop_bits: " + to_string_dec_uint(data->serial_format.stop_bits));
+    pmem_dump_file.write_line("serial_format.bit_order: " + to_string_dec_uint(data->serial_format.bit_order));
+    pmem_dump_file.write_line("modem_bw: " + to_string_dec_int(data->modem_bw));
+    pmem_dump_file.write_line("afsk_mark_freq: " + to_string_dec_int(data->afsk_mark_freq));
+    pmem_dump_file.write_line("afsk_space_freq: " + to_string_dec_int(data->afsk_space_freq));
+    pmem_dump_file.write_line("modem_baudrate: " + to_string_dec_int(data->modem_baudrate));
+    pmem_dump_file.write_line("modem_repeat: " + to_string_dec_int(data->modem_repeat));
+    pmem_dump_file.write_line("playdead_magic: " + to_string_dec_uint(data->playdead_magic));
+    pmem_dump_file.write_line("playing_dead: " + to_string_dec_uint(data->playing_dead));
+    pmem_dump_file.write_line("playdead_sequence: " + to_string_dec_uint(data->playdead_sequence));
+    pmem_dump_file.write_line("pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address));
+    pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
+    pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
+    pmem_dump_file.write_line("recon_config: " + to_string_dec_uint(data->recon_config));
+    pmem_dump_file.write_line("hide_converter: " + to_string_dec_int(data->tone_mix));
+    pmem_dump_file.write_line("converter: " + to_string_dec_int(data->tone_mix));
+    pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->tone_mix));
+    pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction));
+    pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
+    pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
+    pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
+    pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
+    pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
+    // ui_config bits
+    const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
+    pmem_dump_file.write_line("ui_config backlight_timer.timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled()));
+    pmem_dump_file.write_line("ui_config backlight_timer.timeout_seconds: " + to_string_dec_uint(backlight_timer.timeout_seconds()));
+    pmem_dump_file.write_line("ui_config clkout_freq: " + to_string_dec_uint(clkout_freq()));
+    pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon()));
+    pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings()));
+    pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings()));
+    pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_bigger_qr_code()));
+    pmem_dump_file.write_line("ui_config disable_touchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen()));
+    pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock()));
+    pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_with_date()));
+    pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(data->ui_config.clkout_enabled()));
+    pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode()));
+    pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login()));
+    pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash()));
+    // misc_config bits
+    pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
+    pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
+
+    // receiver_model
+    pmem_dump_file.write_line("[Receiver Model]");
+    pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(receiver_model.target_frequency()));
+    pmem_dump_file.write_line("frequency_step: " + to_string_dec_uint(receiver_model.frequency_step()));
+    pmem_dump_file.write_line("lna: " + to_string_dec_int(receiver_model.lna()));
+    pmem_dump_file.write_line("vga: " + to_string_dec_int(receiver_model.vga()));
+    pmem_dump_file.write_line("rf_amp: " + to_string_dec_int(receiver_model.rf_amp()));
+    pmem_dump_file.write_line("baseband_bandwidth: " + to_string_dec_uint(receiver_model.baseband_bandwidth()));
+    pmem_dump_file.write_line("sampling_rate: " + to_string_dec_uint(receiver_model.sampling_rate()));
+    switch (receiver_model.modulation()) {
+        case ReceiverModel::Mode::AMAudio:
+            pmem_dump_file.write_line("modulation: Mode::AMAudio");
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            pmem_dump_file.write_line("modulation: Mode::NarrowbandFMAudio");
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            pmem_dump_file.write_line("modulation: Mode::WidebandFMAudio");
+            break;
+        case ReceiverModel::Mode::SpectrumAnalysis:
+            pmem_dump_file.write_line("modulation: Mode::SpectrumAnalysis");
+            break;
+        case ReceiverModel::Mode::Capture:
+            pmem_dump_file.write_line("modulation: Mode::Capture");
+            break;
+        default:
+            pmem_dump_file.write_line("modulation: !!unknown mode!!");
+            break;
+    }
+    pmem_dump_file.write_line("headphone_volume.centibel: " + to_string_dec_uint(receiver_model.headphone_volume().centibel()));
+    pmem_dump_file.write_line("normalized_headphone_volume: " + to_string_dec_uint(receiver_model.normalized_headphone_volume()));
+    pmem_dump_file.write_line("am_configuration: " + to_string_dec_uint(receiver_model.am_configuration()));
+    pmem_dump_file.write_line("nbfm_configuration: " + to_string_dec_uint(receiver_model.nbfm_configuration()));
+    pmem_dump_file.write_line("wfm_configuration: " + to_string_dec_uint(receiver_model.wfm_configuration()));
+    // transmitter_model
+    pmem_dump_file.write_line("[Transmitter Model]");
+    pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(transmitter_model.target_frequency()));
+    pmem_dump_file.write_line("lna: " + to_string_dec_int(transmitter_model.lna()));
+    pmem_dump_file.write_line("vga: " + to_string_dec_int(transmitter_model.vga()));
+    pmem_dump_file.write_line("rf_amp: " + to_string_dec_int(transmitter_model.rf_amp()));
+    pmem_dump_file.write_line("baseband_bandwidth: " + to_string_dec_uint(transmitter_model.baseband_bandwidth()));
+    pmem_dump_file.write_line("sampling_rate: " + to_string_dec_uint(transmitter_model.sampling_rate()));
+    pmem_dump_file.write_line("tx_gain: " + to_string_dec_int(transmitter_model.tx_gain()));
+    pmem_dump_file.write_line("channel_bandwidth: " + to_string_dec_uint(transmitter_model.channel_bandwidth()));
+
+    painter.draw_string({0, 320 - 16}, ui::Styles::green, filename.filename().string() + " DUMPED !");
+
+    return true;
 }
 
 } /* namespace persistent_memory */
