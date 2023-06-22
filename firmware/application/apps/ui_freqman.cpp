@@ -243,7 +243,6 @@ void FrequencyManagerView::refresh_widgets(const bool v) {
     button_delete.hidden(v);
     text_empty.hidden(!v);
     freqlist_view.hidden(v);
-    freqlist_view.set_dirty();
     labels.hidden(v);
     // display.fill_rectangle(freqlist_view.screen_rect(), Color::black());
     set_dirty();
