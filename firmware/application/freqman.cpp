@@ -86,9 +86,9 @@ options_t freqman_entry_steps_short = {
     {"500kHz", 500000},
     {"1MHz", 1000000}};
 
-bool load_freqman_file(std::string& file_stem, freqman_db* db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs) {
+bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs) {
     // swap with empty vector to ensure memory is immediately released
-    std::vector<freqman_entry>().swap((*db));
+    std::vector<freqman_entry>().swap(db);
     File freqman_file{};
     size_t length = 0, n = 0, file_position = 0;
     char* pos = NULL;
@@ -205,7 +205,7 @@ bool load_freqman_file(std::string& file_stem, freqman_db* db, bool load_freqs, 
                 description.shrink_to_fit();
             }
             if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
-                (*db).push_back({frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
+                db.push_back({frequency_a, frequency_b, description, type, modulation, bandwidth, step, tone});
                 n++;
                 if (n > max_num_freqs) return true;
             }
@@ -222,24 +222,24 @@ bool load_freqman_file(std::string& file_stem, freqman_db* db, bool load_freqs, 
     }
 
     /* populate implicitly specified modulation / bandwidth */
-    if ((*db).size() > 2) {
-        modulation = (*db)[0].modulation;
-        bandwidth = (*db)[0].bandwidth;
+    if (db.size() > 2) {
+        modulation = db[0].modulation;
+        bandwidth = db[0].bandwidth;
 
-        for (unsigned int it = 1; it < (*db).size(); it++) {
-            if ((*db)[it].modulation < 0) {
-                (*db)[it].modulation = modulation;
+        for (unsigned int it = 1; it < db.size(); it++) {
+            if (db[it].modulation < 0) {
+                db[it].modulation = modulation;
             } else {
-                modulation = (*db)[it].modulation;
+                modulation = db[it].modulation;
             }
-            if ((*db)[it].bandwidth < 0) {
-                (*db)[it].bandwidth = bandwidth;
+            if (db[it].bandwidth < 0) {
+                db[it].bandwidth = bandwidth;
             } else {
-                modulation = (*db)[it].bandwidth;
+                modulation = db[it].bandwidth;
             }
         }
     }
-    (*db).shrink_to_fit();
+    db.shrink_to_fit();
     return true;
 }
 

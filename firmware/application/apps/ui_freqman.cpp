@@ -81,7 +81,7 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     if (file_list.empty()) return;
 
-    if (!load_freqman_file(file_list[categories[category_id].second], &database)) {
+    if (!load_freqman_file(file_list[categories[category_id].second], database)) {
         error_ = ERROR_ACCESS;
     }
     freqlist_view.set_db(database);

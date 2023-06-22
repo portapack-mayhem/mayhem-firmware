@@ -40,8 +40,8 @@ void ReconView::clear_freqlist_for_ui_action() {
     audio::output::stop();
     // flag to detect and reload frequency_list
     if (!manual_mode) {
-        frequency_list.clear();
-        frequency_list.shrink_to_fit();
+        // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
+        // swap is the only way to achieve a perfect memory liberation
         std::vector<freqman_entry>().swap(frequency_list);
     } else
         frequency_list.shrink_to_fit();
@@ -683,8 +683,6 @@ ReconView::ReconView(NavigationView& nav)
             audio::output::stop();
             // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
             // swap is the only way to achieve a perfect memory liberation
-            std::vector<freqman_entry>().clear();
-            std::vector<freqman_entry>().shrink_to_fit();
             std::vector<freqman_entry>().swap(frequency_list);
 
             freqman_entry manual_freq_entry;
@@ -905,7 +903,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         button_scanner_mode.set_text("RECON");
     }
     desc_cycle.set_style(&Styles::white);
-    if (!load_freqman_file(file_input, &frequency_list, load_freqs, load_ranges, load_hamradios)) {
+    if (!load_freqman_file(file_input, frequency_list, load_freqs, load_ranges, load_hamradios)) {
         file_name.set_style(&Styles::red);
         desc_cycle.set_style(&Styles::red);
         desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
