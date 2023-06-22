@@ -1045,11 +1045,11 @@ bool dump_persistent_memory() {
         strbuf = "misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable());
         pmem_dump_file.write_line(strbuf);
 
-        painter.draw_string({0, 320 - 16}, ui::Styles::green, "Saved !!");
+        painter.draw_string({0, 320 - 16}, ui::Styles::green, " " + filename.filename().string() + " DUMPED :-)");
 
         return true;
     }
-    painter.draw_string({0, 320 - 16}, ui::Styles::red, "Could not dump pmem to file !!");
+    painter.draw_string({0, 320 - 16}, ui::Styles::red, "!! ERROR DUMPING " + filename.filename().string() + " !!");
     return false;
 }
 
