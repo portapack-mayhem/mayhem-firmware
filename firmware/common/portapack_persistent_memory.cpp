@@ -113,7 +113,6 @@ enum bits_t {
     ConfigLogin = 30,
     ConfigSplash = 31,
 };
->>>>>>> 0c7571382021992a5571e6370c9e8b87fcec82fe
 
 struct ui_config_t {
    private:
