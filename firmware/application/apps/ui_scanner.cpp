@@ -576,7 +576,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
         description_list.clear();
     }
 
-    if (load_freqman_file(file_name, database)) {
+    if (load_freqman_file(file_name, &database)) {
         loaded_file_name = file_name;                            // keep loaded filename in memory
         for (auto& entry : database) {                           // READ LINE PER LINE
             if (frequency_list.size() < FREQMAN_MAX_PER_FILE) {  // We got space!

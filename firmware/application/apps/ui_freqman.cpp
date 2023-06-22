@@ -81,9 +81,7 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     if (file_list.empty()) return;
 
-    std::vector<freqman_entry>().swap(database);
-
-    if (!load_freqman_file(file_list[categories[category_id].second], database)) {
+    if (!load_freqman_file(file_list[categories[category_id].second], &database)) {
         error_ = ERROR_ACCESS;
     }
     menu_view.set_db(database);
@@ -162,6 +160,10 @@ FrequencySaveView::FrequencySaveView(
     };
 }
 
+FrequencyLoadView::~FrequencyLoadView() {
+    std::vector<freqman_entry>().swap(database);
+}
+
 void FrequencyLoadView::refresh_widgets(const bool v) {
     menu_view.hidden(v);
     text_empty.hidden(!v);
@@ -199,6 +201,9 @@ FrequencyLoadView::FrequencyLoadView(
             if (on_frequency_loaded)
                 on_frequency_loaded(entry.frequency_a);
         }
+
+        // swap with empty vector to ensure memory is immediately released
+        std::vector<freqman_entry>().swap(database);
     };
 }
 

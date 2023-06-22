@@ -116,6 +116,7 @@ class FrequencyLoadView : public FreqManBaseView {
     std::function<void(rf::Frequency, rf::Frequency)> on_range_loaded{};
 
     FrequencyLoadView(NavigationView& nav);
+    ~FrequencyLoadView();
 
     std::string title() const override { return "Load freq."; };
 
