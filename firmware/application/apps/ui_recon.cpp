@@ -777,6 +777,9 @@ ReconView::ReconView(NavigationView& nav)
             button_scanner_mode.set_style(&Styles::blue);
             button_scanner_mode.set_text("RECON");
         }
+        if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
+            file_name.set_style(&Styles::yellow);
+        }
     };
 
     button_add.on_select = [this](ButtonWithEncoder&) {  // frequency_list[current_index]
@@ -913,29 +916,27 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         file_input = output_file;
         file_name.set_style(&Styles::red);
         button_scanner_mode.set_style(&Styles::red);
+        desc_cycle.set_style(&Styles::red);
         button_scanner_mode.set_text("SCANNER");
     } else {
         file_name.set_style(&Styles::blue);
         button_scanner_mode.set_style(&Styles::blue);
+        desc_cycle.set_style(&Styles::blue);
         button_scanner_mode.set_text("RECON");
     }
-    desc_cycle.set_style(&Styles::white);
     if (!load_freqman_file(file_input, frequency_list, load_freqs, load_ranges, load_hamradios)) {
         file_name.set_style(&Styles::red);
-        desc_cycle.set_style(&Styles::red);
         desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
         file_name.set("=> NO DATA");
     } else {
         file_name.set(file_input + "=>" + output_file);
         if (frequency_list.size() == 0) {
             file_name.set_style(&Styles::red);
-            desc_cycle.set_style(&Styles::red);
             desc_cycle.set("/0 no entries in list");
             file_name.set("BadOrEmpty " + file_input);
         } else {
             if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
                 file_name.set_style(&Styles::yellow);
-                desc_cycle.set_style(&Styles::yellow);
             }
         }
     }
