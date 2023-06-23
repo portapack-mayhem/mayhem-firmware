@@ -570,7 +570,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
         {"TouchTune", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<TouchTunesView>(); }},
         {"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
-        {"S.Painter", ui::Color::orange(), &bitmap_icon_morse, [&nav]() { nav.push<SpectrumPainterView>(); }},
+        {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
         //{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
     });
 }
