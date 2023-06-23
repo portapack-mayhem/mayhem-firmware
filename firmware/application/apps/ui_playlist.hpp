@@ -66,20 +66,9 @@ class PlaylistView : public View {
     static constexpr uint32_t baseband_bandwidth = 2500000;
 
     struct playlist_entry {
-        enum class Type {
-            File,
-            Delay
-        };
-
-        Type type;
-
-        // TODO: Variant or something?
         std::filesystem::path capture_path{};
         capture_metadata metadata{};
         uint32_t ms_delay{};
-
-        bool is_file() const { return type == Type::File; }
-        bool is_delay() const { return type == Type::Delay; }
     };
 
     std::unique_ptr<ReplayThread> replay_thread_{};

@@ -40,11 +40,6 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
-/* TODO: wouldn't it be easier if the playlist were just a list of C16 files
- * (and maybe delays) and then read the metadata file next to the C16 file?
- * TODO: use metadata_file.hpp to read the metadata.
- * TODO: change PPL format to only allow paths, and !<number> for delay. */
-
 namespace ui {
 
 void PlaylistView::load_file(const fs::path& playlist_path) {
@@ -60,24 +55,27 @@ void PlaylistView::load_file(const fs::path& playlist_path) {
             continue;  // Empty or comment line.
 
         playlist_entry entry{};
+        auto cols = split_string(line, ',');
 
-        if (line[0] == '!') {
-            entry.type = playlist_entry::Type::Delay;
-            std::string_view delay_view{line};
-            parse_int(delay_view.substr(1), entry.ms_delay);
-        } else {
-            entry.type = playlist_entry::Type::File;
-            entry.capture_path = trim(line);
+        entry.capture_path = trim(cols[0]);
 
-            // Read metafile if it exists.
-            auto metadata_path = get_metadata_path(entry.capture_path);
-            auto metadata = read_metadata_file(metadata_path);
+        // Read metafile if it exists.
+        auto metadata_path = get_metadata_path(entry.capture_path);
+        auto metadata = read_metadata_file(metadata_path);
 
-            if (metadata)
-                entry.metadata = *metadata;
-            else
-                entry.metadata = {transmitter_model.target_frequency(), 500'000};
+        if (metadata)
+            entry.metadata = *metadata;
+        else {
+            continue;
+            // TODO:
+            // For now, require a metadata file. Eventually, allow
+            // a user-defined center_freq like there was in Replay.
+            // entry.metadata = {0, 500'000};
         }
+
+        // Get optional delay value.
+        if (cols.size() > 1)
+            parse_int(cols[1], entry.ms_delay);
 
         playlist_db_.emplace_back(std::move(entry));
     }
@@ -157,17 +155,9 @@ void PlaylistView::send_current_track() {
     if (!current_entry_)
         return;
 
-    // TOOD: doesn't belong in this function.
-    if (current_entry_->is_delay()) {
-        // TODO: Use a timer so the UI isn't frozen.
-        if (current_entry_->ms_delay > 0)
-            chThdSleepMilliseconds(current_entry_->ms_delay);
-
-        // HACK: use a timer instead.
-        ReplayThreadDoneMessage message{ReplayThread::END_OF_FILE};
-        EventDispatcher::send_message(message);
-        return;
-    }
+    // TODO: Use a timer so the UI isn't frozen.
+    if (current_entry_->ms_delay > 0)
+        chThdSleepMilliseconds(current_entry_->ms_delay);
 
     // Open the sample file to send.
     auto reader = std::make_unique<FileReader>();
@@ -230,7 +220,7 @@ void PlaylistView::update_ui() {
     progressbar_track.set_max(playlist_db_.size());
     progressbar_transmit.set_max(current_entry_size_);
 
-    if (current_entry_ && current_entry_->is_file()) {
+    if (current_entry_) {
         auto duration = ms_duration(current_entry_size_, current_entry_->metadata.sample_rate, 4);
         text_filename.set(truncate(current_entry_->capture_path.filename().string(), 12));
         text_sample_rate.set(unit_auto_scale(current_entry_->metadata.sample_rate, 3, 0) + "Hz");
