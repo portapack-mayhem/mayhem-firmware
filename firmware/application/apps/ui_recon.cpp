@@ -36,13 +36,6 @@ void ReconView::set_loop_config(bool v) {
     persistent_memory::set_recon_continuous(continuous);
 }
 
-void ReconView::recon_start_recording() {
-    if (!recon_is_recording) {
-        button_audio_app.set_style(&Styles::red);
-        record_view.start();
-        recon_is_recording = true;
-    }
-}
 void ReconView::recon_stop_recording() {
     if (recon_is_recording) {
         button_audio_app.set_style(&Styles::white);
@@ -1068,7 +1061,12 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                 status = 2;
                 if (wait != 0) {
                     audio_output_start();
-                    recon_start_recording();
+                    // contents of a possible recon_start_recording(), but not yet since it's only called once
+                    if (!recon_is_recording) {
+                        button_audio_app.set_style(&Styles::red);
+                        record_view.start();
+                        recon_is_recording = true;
+                    }
                 }
                 if (wait >= 0) {
                     timer = wait;

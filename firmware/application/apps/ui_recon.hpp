@@ -84,7 +84,7 @@ class ReconView : public View {
     bool recon_load_config_from_sd();
     bool recon_save_config_to_sd();
     bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
-    void recon_start_recording();
+    // placeholder for possible void recon_start_recording();
     void recon_stop_recording();
 
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
