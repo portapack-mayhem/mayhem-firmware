@@ -89,13 +89,6 @@ enum data_structure_version_enum : uint32_t {
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
-#define _bit_write(__value, __bit, _v)    \
-    if (((__value >> __bit) & 1) != _v) { \
-        __value ^= 1 << __bit;            \
-    }
-
-#define _bit_read(__value, __bit) (((__value >> __bit) & 1) != 0)
-
 enum bits_t {
     BacklightTimeoutLSB = 0,
     BacklightTimeoutEnable = 3,
