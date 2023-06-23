@@ -108,6 +108,8 @@ class ReconView : public View {
     bool fwd{true};
     bool recon{true};
     bool user_pause{false};
+    bool recon_auto_record_locked{false};
+    bool recon_is_recording{false};
     uint32_t recon_lock_nb_match{3};
     uint32_t recon_lock_duration{RECON_MIN_LOCK_DURATION};
     uint32_t recon_match_mode{RECON_MATCH_CONTINUOUS};
@@ -315,6 +317,14 @@ class ReconView : public View {
     ButtonWithEncoder button_remove{
         {168, (35 * 8) - 4, 72, 28},
         "<REMOVE>"};
+
+    RecordView record_view{
+        {0, 0, 30 * 8, 1 * 16},
+        u"AUTO_AUDIO_",
+        u"AUDIO",
+        RecordView::FileType::WAV,
+        4096,
+        4};
 
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,

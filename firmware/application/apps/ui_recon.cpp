@@ -38,6 +38,11 @@ void ReconView::set_loop_config(bool v) {
 
 void ReconView::clear_freqlist_for_ui_action() {
     audio::output::stop();
+    if (recon_is_recording) {
+        button_audio_app.set_style(&Styles::white);
+        record_view.stop();
+        recon_is_recording = false;
+    }
     // flag to detect and reload frequency_list
     if (!manual_mode) {
         // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
@@ -356,7 +361,11 @@ void ReconView::focus() {
 ReconView::~ReconView() {
     // Save recon config.
     recon_save_config_to_sd();
-
+    if (recon_is_recording) {
+        button_audio_app.set_style(&Styles::white);
+        record_view.stop();
+        recon_is_recording = false;
+    }
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -399,7 +408,14 @@ ReconView::ReconView(NavigationView& nav)
                   &button_dir,
                   &button_restart,
                   &button_mic_app,
-                  &button_remove});
+                  &button_remove,
+                  &record_view});
+
+    record_view.hidden(true);
+    record_view.set_filename_date_frequency(true);
+    record_view.on_error = [&nav](std::string message) {
+        nav.display_modal("Error", message);
+    };
 
     def_step = 0;
     // HELPER: Pre-setting a manual range, based on stored frequency
@@ -424,6 +440,7 @@ ReconView::ReconView(NavigationView& nav)
     load_ranges = persistent_memory::recon_load_ranges();
     load_hamradios = persistent_memory::recon_load_hamradios();
     update_ranges = persistent_memory::recon_update_ranges_when_recon();
+    recon_auto_record_locked = persistent_memory::recon_auto_record_locked();
 
     button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
         clear_freqlist_for_ui_action();
@@ -796,7 +813,6 @@ ReconView::ReconView(NavigationView& nav)
 
     button_config.on_select = [this, &nav](Button&) {
         clear_freqlist_for_ui_action();
-
         auto open_view = nav.push<ReconSetupView>(input_file, output_file);
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
@@ -811,6 +827,7 @@ ReconView::ReconView(NavigationView& nav)
             load_ranges = persistent_memory::recon_load_ranges();
             load_hamradios = persistent_memory::recon_load_hamradios();
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
+            recon_auto_record_locked = persistent_memory::recon_auto_record_locked();
 
             frequency_file_load(false);
             freqlist_cleared_for_ui_action = false;
@@ -1019,6 +1036,11 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                 status = 1;
                 if (wait != 0) {
                     audio::output::stop();
+                    if (recon_is_recording) {
+                        button_audio_app.set_style(&Styles::white);
+                        record_view.stop();
+                        recon_is_recording = false;
+                    }
                 }
             }
             if (db > squelch)  // MATCHING LEVEL
@@ -1042,6 +1064,11 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                 status = 2;
                 if (wait != 0) {
                     audio_output_start();
+                    if (!recon_is_recording) {
+                        button_audio_app.set_style(&Styles::red);
+                        record_view.start();
+                        recon_is_recording = true;
+                    }
                 }
                 if (wait >= 0) {
                     timer = wait;
@@ -1277,10 +1304,13 @@ void ReconView::on_stepper_delta(int32_t v) {
 size_t ReconView::change_mode(freqman_index_t new_mod) {
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
-
+    if (recon_is_recording) {
+        record_view.stop();
+        recon_is_recording = false;
+    }
     receiver_model.disable();
     baseband::shutdown();
-
+    size_t recording_sampling_rate = 0;
     switch (new_mod) {
         case AM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
@@ -1291,6 +1321,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_am_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
             text_ctcss.set("        ");
+            recording_sampling_rate = 12000;
             break;
         case NFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
@@ -1300,6 +1331,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
+            recording_sampling_rate = 24000;
             break;
         case WFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
@@ -1310,10 +1342,13 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_wfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
             text_ctcss.set("        ");
+            recording_sampling_rate = 48000;
             break;
         default:
             break;
     }
+    record_view.set_sampling_rate(recording_sampling_rate);
+
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
