@@ -36,13 +36,24 @@ void ReconView::set_loop_config(bool v) {
     persistent_memory::set_recon_continuous(continuous);
 }
 
-void ReconView::clear_freqlist_for_ui_action() {
-    audio::output::stop();
+void ReconView::recon_start_recording() {
+    if (!recon_is_recording) {
+        button_audio_app.set_style(&Styles::red);
+        record_view.start();
+        recon_is_recording = true;
+    }
+}
+void ReconView::recon_stop_recording() {
     if (recon_is_recording) {
         button_audio_app.set_style(&Styles::white);
         record_view.stop();
         recon_is_recording = false;
     }
+}
+
+void ReconView::clear_freqlist_for_ui_action() {
+    recon_stop_recording();
+    audio::output::stop();
     // flag to detect and reload frequency_list
     if (!manual_mode) {
         // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
@@ -361,11 +372,7 @@ void ReconView::focus() {
 ReconView::~ReconView() {
     // Save recon config.
     recon_save_config_to_sd();
-    if (recon_is_recording) {
-        button_audio_app.set_style(&Styles::white);
-        record_view.stop();
-        recon_is_recording = false;
-    }
+    recon_stop_recording();
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
@@ -1036,12 +1043,8 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (status != 1) {
                 status = 1;
                 if (wait != 0) {
+                    recon_stop_recording();
                     audio::output::stop();
-                    if (recon_is_recording) {
-                        button_audio_app.set_style(&Styles::white);
-                        record_view.stop();
-                        recon_is_recording = false;
-                    }
                 }
             }
             if (db > squelch)  // MATCHING LEVEL
@@ -1065,11 +1068,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                 status = 2;
                 if (wait != 0) {
                     audio_output_start();
-                    if (!recon_is_recording) {
-                        button_audio_app.set_style(&Styles::red);
-                        record_view.start();
-                        recon_is_recording = true;
-                    }
+                    recon_start_recording();
                 }
                 if (wait >= 0) {
                     timer = wait;
