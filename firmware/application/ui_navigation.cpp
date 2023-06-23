@@ -568,7 +568,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
         {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
-        {"TouchTune", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<TouchTunesView>(); }},
+        {"TouchTune", ui::Color::yellow(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
         {"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
         {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
         //{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
