@@ -1302,10 +1302,7 @@ void ReconView::on_stepper_delta(int32_t v) {
 size_t ReconView::change_mode(freqman_index_t new_mod) {
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
-    if (recon_is_recording) {
-        record_view.stop();
-        recon_is_recording = false;
-    }
+    recon_stop_recording();
     receiver_model.disable();
     baseband::shutdown();
     size_t recording_sampling_rate = 0;
