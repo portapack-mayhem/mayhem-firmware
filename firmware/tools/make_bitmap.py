@@ -48,7 +48,6 @@ def convert_png(file):
 	name = path.basename(file).split(".")[0].lower();
 
 	f.write("static constexpr uint8_t bitmap_" + name + "_data[] = {\n")
-	f.write('	')		# Tab
 
 	for i in range(rgb_im.size[1]):
 		for j in range(rgb_im.size[0]):
@@ -60,17 +59,12 @@ def convert_png(file):
 				data += 128
 			
 			if j % 8 == 7:
-				f.write("0x%0.2X, " % data)
+				f.write("    0x%0.2X,\n" % data)
 				data = 0
-		
-		f.write("\n")
-		if i < rgb_im.size[1] - 1:
-			f.write('	')		# Tab
 
 	f.write("};\n")
-	f.write("static constexpr Bitmap bitmap_"  + name + " {\n")
-	f.write("	{ " + str(rgb_im.size[0]) + ", " + str(rgb_im.size[1]) + " }, bitmap_" + name+ "_data\n")
-	f.write("};\n\n")
+	f.write("static constexpr Bitmap bitmap_"  + name + "{\n")
+	f.write("    {" + str(rgb_im.size[0]) + ", " + str(rgb_im.size[1]) + "},\n    bitmap_" + name+ "_data};\n\n")
 	return
 
 count = 0
@@ -108,7 +102,6 @@ for file in listdir(sys.argv[1]):
         convert_png(sys.argv[1] + file)
         count += 1
 
-f.write("\n")
 f.write("} /* namespace ui */\n\n")
 f.write("#endif/*__BITMAP_HPP__*/\n")
 
