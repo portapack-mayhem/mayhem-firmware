@@ -5379,6 +5379,44 @@ static constexpr Bitmap bitmap_icon_paint{
     {16, 16},
     bitmap_icon_paint_data};
 
+static constexpr uint8_t bitmap_icon_touchtunes_data[] = {
+    0xE0,
+    0x07,
+    0x30,
+    0x0C,
+    0x7C,
+    0x3E,
+    0xC4,
+    0x23,
+    0x26,
+    0x64,
+    0x12,
+    0x48,
+    0x0F,
+    0xF3,
+    0x09,
+    0x95,
+    0x0F,
+    0xF1,
+    0x09,
+    0x91,
+    0x0F,
+    0xF1,
+    0xC9,
+    0x91,
+    0xE9,
+    0x91,
+    0xC9,
+    0x90,
+    0x0F,
+    0xF0,
+    0xFF,
+    0xFF,
+};
+static constexpr Bitmap bitmap_icon_touchtunes{
+    {16, 16},
+    bitmap_icon_touchtunes_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
