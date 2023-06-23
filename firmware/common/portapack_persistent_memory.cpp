@@ -89,26 +89,26 @@ enum data_structure_version_enum : uint32_t {
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
-enum bits_t {
-    BacklightTimeoutLSB = 0,
-    BacklightTimeoutEnable = 3,
-    ClkoutFreqLSB = 4,
-    ShowGUIReturnIcon = 20,
-    LoadAppSettings = 21,
-    SaveAppSettings = 22,
-    ShowBiggerQRCode = 23,
-    DisableTouchscreen = 24,
-    HideClock = 25,
-    ClockWithDate = 26,
-    ClkOutEnabled = 27,
-    ConfigSpeakerHidden = 28,  // unused since Speaker icon modifications
-    StealthMode = 29,
-    ConfigLogin = 30,
-    ConfigSplash = 31,
-};
-
 struct ui_config_t {
    private:
+    enum bits_t {
+        BacklightTimeoutLSB = 0,
+        BacklightTimeoutEnable = 3,
+        ClkoutFreqLSB = 4,
+        ShowGUIReturnIcon = 20,
+        LoadAppSettings = 21,
+        SaveAppSettings = 22,
+        ShowBiggerQRCode = 23,
+        DisableTouchscreen = 24,
+        HideClock = 25,
+        ClockWithDate = 26,
+        ClkOutEnabled = 27,
+        UNUSED = 28,
+        StealthMode = 29,
+        ConfigLogin = 30,
+        ConfigSplash = 31,
+    };
+
     enum bits_mask_t : uint32_t {
         BacklightTimeoutMask = ((1 << 3) - 1) << bits_t::BacklightTimeoutLSB,
         ClkoutFreqMask = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
@@ -252,6 +252,25 @@ struct ui_config_t {
     }
 };
 
+/* Additional UI config.
+ * NB: Will be default init - override in defaults(). */
+struct ui_config2_t {
+    /* Top icon bar */
+    bool hide_speaker : 1;
+    bool hide_converter : 1;
+    bool hide_stealth : 1;
+    bool hide_camera : 1;
+    bool hide_sleep : 1;
+    bool hide_bias_tee : 1;
+    bool hide_clock : 1;
+    bool hide_sd_card : 1;
+
+    uint8_t placeholder_1;
+    uint8_t placeholder_2;
+    uint8_t placeholder_3;
+};
+static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
+
 struct misc_config_t {
    private:
     enum bits_t {
@@ -321,7 +340,7 @@ struct data_t {
     uint32_t playing_dead;
     uint32_t playdead_sequence;
 
-    // UI
+    // UI Config
     ui_config_t ui_config;
 
     uint32_t pocsag_last_address;
@@ -335,8 +354,8 @@ struct data_t {
     // Recon App
     uint64_t recon_config;
 
-    // converter: show or hide icon. Hiding cause auto disable to avoid mistakes
-    bool hide_converter;
+    bool placeholder_0;
+
     // enable or disable converter
     bool converter;
     // set up converter (false) or down converter (true) converter
@@ -353,11 +372,14 @@ struct data_t {
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
     uint8_t encoder_dial_sensitivity;
 
-    // Headphone volume in centibels.
+    // Headphone volume in centibels. (Only really needs 10 bits)
     int32_t headphone_volume_cb;
 
     // Misc flags
     misc_config_t misc_config;
+
+    // Additional UI settings.
+    ui_config2_t ui_config2;
 
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -387,7 +409,7 @@ struct data_t {
 
           hardware_config(0),
           recon_config(0),
-          hide_converter(0),
+          placeholder_0(0),
           converter(0),
           updown_converter(0),
           converter_frequency_offset(0),
@@ -397,7 +419,8 @@ struct data_t {
           updown_frequency_tx_correction(0),
           encoder_dial_sensitivity(0),
           headphone_volume_cb(-600),
-          misc_config() {
+          misc_config(),
+          ui_config2() {
     }
 };
 
@@ -470,6 +493,11 @@ struct backup_ram_t {
 static_assert(sizeof(backup_ram_t) == memory::map::backup_ram.size());
 static_assert(sizeof(data_t) <= sizeof(backup_ram_t) - sizeof(uint32_t));
 
+/* Uncomment to get a compiler error with the data_t size. */
+// template <size_t N>
+// struct ShowSize;
+// ShowSize<sizeof(data_t)> __data_t_size;
+
 static backup_ram_t* const backup_ram = reinterpret_cast<backup_ram_t*>(memory::map::backup_ram.base());
 
 static backup_ram_t cached_backup_ram;
@@ -479,9 +507,6 @@ namespace cache {
 
 void defaults() {
     cached_backup_ram = backup_ram_t();
-    *data = data_t();  // This is a workaround for apparently alignment issue
-                       // that is causing backup_ram_t's block copy to be
-                       // misaligned. This force sets values through the struct.
 
     // defaults values for recon app
     set_recon_autosave_freqs(false);
@@ -745,18 +770,6 @@ void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.set_config_backlight_timer(new_value);
 }
 
-/*void set_config_textentry(uint8_t new_value) {
-                  data->ui_config = (data->ui_config & ~0b100) | ((new_value & 1) << 2);
-                  }
-
-                  uint8_t ui_config_textentry() {
-                  return ((data->ui_config >> 2) & 1);
-                  }*/
-
-/*void set_ui_config(const uint32_t new_value) {
-                  data->ui_config = new_value;
-                  }*/
-
 uint32_t pocsag_last_address() {
     return data->pocsag_last_address;
 }
@@ -781,6 +794,7 @@ void set_clkout_freq(uint32_t freq) {
     data->ui_config.set_clkout_freq(freq);
 }
 
+/* Recon app */
 bool recon_autosave_freqs() {
     return (data->recon_config & 0x80000000UL) ? true : false;
 }
@@ -836,9 +850,61 @@ void set_recon_load_hamradios(const bool v) {
 void set_recon_match_mode(const bool v) {
     data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23);
 }
-bool config_hide_converter() {
-    return data->hide_converter;
+
+/* UI Config 2 */
+bool ui_hide_speaker() {
+    return data->ui_config2.hide_speaker;
 }
+bool ui_hide_converter() {
+    return data->ui_config2.hide_converter;
+}
+bool ui_hide_stealth() {
+    return data->ui_config2.hide_stealth;
+}
+bool ui_hide_camera() {
+    return data->ui_config2.hide_camera;
+}
+bool ui_hide_sleep() {
+    return data->ui_config2.hide_sleep;
+}
+bool ui_hide_bias_tee() {
+    return data->ui_config2.hide_bias_tee;
+}
+bool ui_hide_clock() {
+    return data->ui_config2.hide_clock;
+}
+bool ui_hide_sd_card() {
+    return data->ui_config2.hide_sd_card;
+}
+
+void set_ui_hide_speaker(bool v) {
+    data->ui_config2.hide_speaker = v;
+}
+void set_ui_hide_converter(bool v) {
+    data->ui_config2.hide_converter = v;
+    if (v)
+        data->converter = false;
+}
+void set_ui_hide_stealth(bool v) {
+    data->ui_config2.hide_stealth = v;
+}
+void set_ui_hide_camera(bool v) {
+    data->ui_config2.hide_camera = v;
+}
+void set_ui_hide_sleep(bool v) {
+    data->ui_config2.hide_sleep = v;
+}
+void set_ui_hide_bias_tee(bool v) {
+    data->ui_config2.hide_bias_tee = v;
+}
+void set_ui_hide_clock(bool v) {
+    data->ui_config2.hide_clock = v;
+}
+void set_ui_hide_sd_card(bool v) {
+    data->ui_config2.hide_sd_card = v;
+}
+
+/* Converter */
 bool config_converter() {
     return data->converter;
 }
@@ -849,12 +915,6 @@ int64_t config_converter_freq() {
     return data->converter_frequency_offset;
 }
 
-void set_config_hide_converter(bool v) {
-    data->hide_converter = v;
-    if (v) {
-        data->converter = false;
-    }
-}
 void set_config_converter(bool v) {
     data->converter = v;
 }
@@ -951,6 +1011,7 @@ bool debug_dump() {
 
     // write persistent memory
     pmem_dump_file.write_line("[Persistent Memory]");
+
     // full variables
     pmem_dump_file.write_line("structure_version: " + to_string_dec_uint(data->structure_version));
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(data->target_frequency));
@@ -970,17 +1031,20 @@ bool debug_dump() {
     pmem_dump_file.write_line("playdead_sequence: " + to_string_dec_uint(data->playdead_sequence));
     pmem_dump_file.write_line("pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address));
     pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
+    pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
     pmem_dump_file.write_line("recon_config: " + to_string_dec_uint(data->recon_config));
-    pmem_dump_file.write_line("hide_converter: " + to_string_dec_int(data->tone_mix));
-    pmem_dump_file.write_line("converter: " + to_string_dec_int(data->tone_mix));
-    pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->tone_mix));
+    pmem_dump_file.write_line("placeholder_0: " + to_string_dec_int(data->placeholder_0));
+    pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
+    pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
+    pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(data->converter_frequency_offset));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
     pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
+
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
     pmem_dump_file.write_line("ui_config backlight_timer.timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled()));
@@ -997,6 +1061,17 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode()));
     pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login()));
     pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash()));
+
+    // ui_config2 bits
+    pmem_dump_file.write_line("ui_config2 hide_speaker: " + to_string_dec_uint(data->ui_config2.hide_speaker));
+    pmem_dump_file.write_line("ui_config2 hide_converter: " + to_string_dec_uint(data->ui_config2.hide_converter));
+    pmem_dump_file.write_line("ui_config2 hide_stealth: " + to_string_dec_uint(data->ui_config2.hide_stealth));
+    pmem_dump_file.write_line("ui_config2 hide_camera: " + to_string_dec_uint(data->ui_config2.hide_camera));
+    pmem_dump_file.write_line("ui_config2 hide_sleep: " + to_string_dec_uint(data->ui_config2.hide_sleep));
+    pmem_dump_file.write_line("ui_config2 hide_bias_tee: " + to_string_dec_uint(data->ui_config2.hide_bias_tee));
+    pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(data->ui_config2.hide_clock));
+    pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
+
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
@@ -1035,6 +1110,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("am_configuration: " + to_string_dec_uint(receiver_model.am_configuration()));
     pmem_dump_file.write_line("nbfm_configuration: " + to_string_dec_uint(receiver_model.nbfm_configuration()));
     pmem_dump_file.write_line("wfm_configuration: " + to_string_dec_uint(receiver_model.wfm_configuration()));
+
     // transmitter_model
     pmem_dump_file.write_line("[Transmitter Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(transmitter_model.target_frequency()));

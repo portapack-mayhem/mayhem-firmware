@@ -173,7 +173,6 @@ uint8_t config_cpld();
 void set_config_cpld(uint8_t i);
 
 bool config_splash();
-bool config_hide_converter();
 bool config_converter();
 bool config_updown_converter();
 int64_t config_converter_freq();
@@ -194,11 +193,9 @@ void set_load_app_settings(bool v);
 void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
 void set_config_splash(bool v);
-bool config_hide_converter();
 bool config_converter();
 bool config_updown_converter();
 int64_t config_converter_freq();
-void set_config_hide_converter(bool v);
 void set_config_converter(bool v);
 void set_config_updown_converter(bool v);
 void set_config_converter_freq(int64_t v);
@@ -219,9 +216,6 @@ void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
-
-// uint8_t ui_config_textentry();
-// void set_config_textentry(uint8_t new_value);
 
 uint32_t pocsag_last_address();
 void set_pocsag_last_address(uint32_t address);
@@ -253,6 +247,24 @@ void set_recon_load_ranges(const bool v);
 void set_recon_update_ranges_when_recon(const bool v);
 void set_recon_load_hamradios(const bool v);
 void set_recon_match_mode(const bool v);
+
+/* UI Config 2 */
+bool ui_hide_speaker();
+bool ui_hide_converter();
+bool ui_hide_stealth();
+bool ui_hide_camera();
+bool ui_hide_sleep();
+bool ui_hide_bias_tee();
+bool ui_hide_clock();
+bool ui_hide_sd_card();
+void set_ui_hide_speaker(bool v);
+void set_ui_hide_converter(bool v);
+void set_ui_hide_stealth(bool v);
+void set_ui_hide_camera(bool v);
+void set_ui_hide_sleep(bool v);
+void set_ui_hide_bias_tee(bool v);
+void set_ui_hide_clock(bool v);
+void set_ui_hide_sd_card(bool v);
 
 // sd persisting settings
 bool should_use_sdcard_for_pmem();

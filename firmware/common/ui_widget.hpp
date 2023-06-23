@@ -500,6 +500,8 @@ class Image : public Widget {
 
     void paint(Painter& painter) override;
 
+    const Bitmap& bitmap() & { return *bitmap_; }
+
    private:
     const Bitmap* bitmap_;
     Color foreground_;
@@ -518,6 +520,49 @@ class ImageButton : public Image {
 
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
+};
+
+/* A button that toggles between two images when set. */
+class ImageToggle : public ImageButton {
+   public:
+    std::function<void(bool value)> on_change{};
+
+    ImageToggle(
+        Rect parent_rect,
+        const Bitmap* bitmap_);
+
+    ImageToggle(
+        Rect parent_rect,
+        const Bitmap* bitmap_,
+        Color foreground_true,
+        Color foreground_false,
+        Color background_);
+
+    ImageToggle(
+        Rect parent_rect,
+        const Bitmap* bitmap_true,
+        const Bitmap* bitmap_false,
+        Color foreground_true,
+        Color background_true,
+        Color foreground_false,
+        Color background_false);
+
+    ImageToggle(const ImageToggle&) = delete;
+    ImageToggle& operator=(const ImageToggle&) = delete;
+
+    bool value() const;
+    void set_value(bool b);
+
+   private:
+    // Hide this field.
+    using ImageButton::on_select;
+    const Bitmap* bitmap_true_;
+    const Bitmap* bitmap_false_;
+    const Color foreground_true_;
+    const Color background_true_;
+    const Color foreground_false_;
+    const Color background_false_;
+    bool value_;
 };
 
 class ImageOptionsField : public Widget {
