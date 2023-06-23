@@ -32,8 +32,7 @@ include(CheckCXXCompilerFlag)
 project(application)
 
 # Compiler options here.
-# -Wdouble-promotion
-set(USE_OPT "-Os -g3 -D_FORTIFY_SOURCE=1 --specs=nano.specs")
+set(USE_OPT "-Os -g --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -41,11 +40,11 @@ set(USE_COPT "-std=gnu99")
 # C++ specific options here (added to USE_OPT).
 check_cxx_compiler_flag("-std=c++20" cpp20_supported)
 if(cpp20_supported)
-	set(USE_CPPOPT "-std=c++20 -Wno-volatile")
+	set(USE_CPPOPT "-std=c++20")
 else()
 	set(USE_CPPOPT "-std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized")
+set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -60,7 +59,7 @@ set(USE_LTO no)
 set(USE_THUMB yes)
 
 # Enable this if you want to see the full log while compiling.
-set(USE_VERBOSE_COMPILE yes)
+set(USE_VERBOSE_COMPILE no)
 
 #
 # Build global options
@@ -376,10 +375,10 @@ set(AOPT)
 set(TOPT "-mthumb -DTHUMB")
 
 # Define C warning options here
-set(CWARN "-W -Wall -Wextra -Wstrict-prototypes")
+set(CWARN "-Wall -Wextra -Wstrict-prototypes")
 
 # Define C++ warning options here
-set(CPPWARN "-W -Wall -Wextra -Wno-psabi")
+set(CPPWARN "-Wall -Wextra -Wno-psabi")
 
 #
 # Compiler settings
