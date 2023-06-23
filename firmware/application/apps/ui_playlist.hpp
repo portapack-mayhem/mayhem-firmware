@@ -25,13 +25,14 @@
 #define NORMAL_UI false
 
 #include "app_settings.hpp"
+#include "metadata_file.hpp"
 #include "radio_state.hpp"
-#include "ui_widget.hpp"
+#include "replay_thread.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "replay_thread.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_transmitter.hpp"
+#include "ui_widget.hpp"
 
 #include <string>
 #include <memory>
@@ -65,10 +66,20 @@ class PlaylistView : public View {
     static constexpr uint32_t baseband_bandwidth = 2500000;
 
     struct playlist_entry {
-        rf::Frequency replay_frequency{0};
-        std::filesystem::path replay_file{};
-        uint32_t sample_rate{};
-        uint32_t initial_delay{};
+        enum class Type {
+            File,
+            Delay
+        };
+
+        Type type;
+
+        // TODO: Variant or something?
+        std::filesystem::path capture_path{};
+        capture_metadata metadata{};
+        uint32_t ms_delay{};
+
+        bool is_file() const { return type == Type::File; }
+        bool is_delay() const { return type == Type::Delay; }
     };
 
     std::unique_ptr<ReplayThread> replay_thread_{};
@@ -122,12 +133,13 @@ class PlaylistView : public View {
     ProgressBar progressbar_transmit{
         {18 * 8, 3 * 8, 12 * 8, 8}};
 
+    // TODO: TxFrequencyField to set TX freq
+    // when metadata file not found.
     Text text_frequency{
         {0 * 8, 2 * 16, 9 * 8, 16}};
 
     TransmitterView2 tx_view{
-        74, 1 * 8, SHORT_UI  // x(columns), y (line) position.
-    };
+        74, 1 * 8, SHORT_UI};
 
     Checkbox check_loop{
         {21 * 8, 2 * 16},

@@ -23,11 +23,12 @@
  */
 
 #include "ui_playlist.hpp"
+
 #include "convert.hpp"
 #include "file_reader.hpp"
+#include "io_file.hpp"
 #include "string_format.hpp"
 #include "ui_fileman.hpp"
-#include "io_file.hpp"
 #include "utility.hpp"
 
 #include "baseband_api.hpp"
@@ -58,21 +59,25 @@ void PlaylistView::load_file(const fs::path& playlist_path) {
         if (line.length() == 0 || line[0] == '#')
             continue;  // Empty or comment line.
 
-        auto cols = split_string(line, ',');
-        if (cols.size() < 3)
-            continue;  // Line doesn't have enough columns.
-
         playlist_entry entry{};
 
-        parse_int(cols[0], entry.replay_frequency);
-        parse_int(cols[2], entry.sample_rate);
-        if (entry.replay_frequency == 0 || entry.sample_rate == 0)
-            continue;  // Invalid freq or rate.
+        if (line[0] == '!') {
+            entry.type = playlist_entry::Type::Delay;
+            std::string_view delay_view{line};
+            parse_int(delay_view.substr(1), entry.ms_delay);
+        } else {
+            entry.type = playlist_entry::Type::File;
+            entry.capture_path = trim(line);
 
-        entry.replay_file = fs::path{u"/"} + std::string{cols[1]};
+            // Read metafile if it exists.
+            auto metadata_path = get_metadata_path(entry.capture_path);
+            auto metadata = read_metadata_file(metadata_path);
 
-        if (cols.size() == 4)  // Optional delay value.
-            parse_int(cols[3], entry.initial_delay);
+            if (metadata)
+                entry.metadata = *metadata;
+            else
+                entry.metadata = {transmitter_model.target_frequency(), 500'000};
+        }
 
         playlist_db_.emplace_back(std::move(entry));
     }
@@ -152,11 +157,23 @@ void PlaylistView::send_current_track() {
     if (!current_entry_)
         return;
 
+    // TOOD: doesn't belong in this function.
+    if (current_entry_->is_delay()) {
+        // TODO: Use a timer so the UI isn't frozen.
+        if (current_entry_->ms_delay > 0)
+            chThdSleepMilliseconds(current_entry_->ms_delay);
+
+        // HACK: use a timer instead.
+        ReplayThreadDoneMessage message{ReplayThread::END_OF_FILE};
+        EventDispatcher::send_message(message);
+        return;
+    }
+
     // Open the sample file to send.
     auto reader = std::make_unique<FileReader>();
-    auto error = reader->open(current_entry_->replay_file);
+    auto error = reader->open(current_entry_->capture_path);
     if (error) {
-        show_file_error(current_entry_->replay_file, "Can't open file to send.");
+        show_file_error(current_entry_->capture_path, "Can't open file to send.");
         return;
     }
 
@@ -164,15 +181,10 @@ void PlaylistView::send_current_track() {
     current_entry_size_ = reader->file().size();
     progressbar_transmit.set_value(0);
 
-    // Wait a bit before sending if specified.
-    // TODO: this pauses the main thread, move into ReplayThread instead.
-    if (current_entry_->initial_delay > 0)
-        chThdSleepMilliseconds(current_entry_->initial_delay);
-
     // ReplayThread starts immediately on contruction so
     // these need to be set before creating the ReplayThread.
-    transmitter_model.set_target_frequency(current_entry_->replay_frequency);
-    transmitter_model.set_sampling_rate(current_entry_->sample_rate * 8);
+    transmitter_model.set_target_frequency(current_entry_->metadata.center_frequency);
+    transmitter_model.set_sampling_rate(current_entry_->metadata.sample_rate * 8);
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 
@@ -218,12 +230,12 @@ void PlaylistView::update_ui() {
     progressbar_track.set_max(playlist_db_.size());
     progressbar_transmit.set_max(current_entry_size_);
 
-    if (current_entry_) {
-        auto duration = ms_duration(current_entry_size_, current_entry_->sample_rate, 4);
-        text_filename.set(truncate(current_entry_->replay_file.filename().string(), 12));
-        text_sample_rate.set(unit_auto_scale(current_entry_->sample_rate, 3, 0) + "Hz");
+    if (current_entry_ && current_entry_->is_file()) {
+        auto duration = ms_duration(current_entry_size_, current_entry_->metadata.sample_rate, 4);
+        text_filename.set(truncate(current_entry_->capture_path.filename().string(), 12));
+        text_sample_rate.set(unit_auto_scale(current_entry_->metadata.sample_rate, 3, 0) + "Hz");
         text_duration.set(to_string_time_ms(duration));
-        text_frequency.set(to_string_short_freq(current_entry_->replay_frequency));
+        text_frequency.set(to_string_short_freq(current_entry_->metadata.center_frequency));
     } else {
         text_filename.set("-");
         text_sample_rate.set("-");
@@ -245,7 +257,7 @@ void PlaylistView::handle_replay_thread_done(uint32_t return_code) {
     }
 
     if (return_code == ReplayThread::READ_ERROR)
-        show_file_error(current_entry_->replay_file, "Replay read failed.");
+        show_file_error(current_entry_->capture_path, "Replay read failed.");
 
     stop();
 }
