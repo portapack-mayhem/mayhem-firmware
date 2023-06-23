@@ -5341,6 +5341,44 @@ static constexpr Bitmap bitmap_icon_new_dir{
     {16, 16},
     bitmap_icon_new_dir_data};
 
+static constexpr uint8_t bitmap_icon_paint_data[] = {
+    0xFE,
+    0x3F,
+    0xFF,
+    0x3F,
+    0xFF,
+    0xFF,
+    0xFF,
+    0xBF,
+    0xFE,
+    0xBF,
+    0x00,
+    0x80,
+    0x80,
+    0xFF,
+    0x80,
+    0x00,
+    0x80,
+    0x00,
+    0xC0,
+    0x01,
+    0xC0,
+    0x01,
+    0xC0,
+    0x01,
+    0xC0,
+    0x01,
+    0xC0,
+    0x01,
+    0xC0,
+    0x01,
+    0xC0,
+    0x01,
+};
+static constexpr Bitmap bitmap_icon_paint{
+    {16, 16},
+    bitmap_icon_paint_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
