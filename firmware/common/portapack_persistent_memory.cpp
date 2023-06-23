@@ -89,26 +89,26 @@ enum data_structure_version_enum : uint32_t {
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
-enum bits_t {
-    BacklightTimeoutLSB = 0,
-    BacklightTimeoutEnable = 3,
-    ClkoutFreqLSB = 4,
-    ShowGUIReturnIcon = 20,
-    LoadAppSettings = 21,
-    SaveAppSettings = 22,
-    ShowBiggerQRCode = 23,
-    DisableTouchscreen = 24,
-    HideClock = 25,
-    ClockWithDate = 26,
-    ClkOutEnabled = 27,
-    UNUSED = 28,
-    StealthMode = 29,
-    ConfigLogin = 30,
-    ConfigSplash = 31,
-};
-
 struct ui_config_t {
    private:
+    enum bits_t {
+        BacklightTimeoutLSB = 0,
+        BacklightTimeoutEnable = 3,
+        ClkoutFreqLSB = 4,
+        ShowGUIReturnIcon = 20,
+        LoadAppSettings = 21,
+        SaveAppSettings = 22,
+        ShowBiggerQRCode = 23,
+        DisableTouchscreen = 24,
+        HideClock = 25,
+        ClockWithDate = 26,
+        ClkOutEnabled = 27,
+        UNUSED = 28,
+        StealthMode = 29,
+        ConfigLogin = 30,
+        ConfigSplash = 31,
+    };
+
     enum bits_mask_t : uint32_t {
         BacklightTimeoutMask = ((1 << 3) - 1) << bits_t::BacklightTimeoutLSB,
         ClkoutFreqMask = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
@@ -355,6 +355,7 @@ struct data_t {
     uint64_t recon_config;
 
     bool placeholder_0;
+
     // enable or disable converter
     bool converter;
     // set up converter (false) or down converter (true) converter
@@ -1010,6 +1011,7 @@ bool debug_dump() {
 
     // write persistent memory
     pmem_dump_file.write_line("[Persistent Memory]");
+
     // full variables
     pmem_dump_file.write_line("structure_version: " + to_string_dec_uint(data->structure_version));
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(data->target_frequency));
@@ -1029,17 +1031,20 @@ bool debug_dump() {
     pmem_dump_file.write_line("playdead_sequence: " + to_string_dec_uint(data->playdead_sequence));
     pmem_dump_file.write_line("pocsag_last_address: " + to_string_dec_uint(data->pocsag_last_address));
     pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
+    pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
     pmem_dump_file.write_line("recon_config: " + to_string_dec_uint(data->recon_config));
-    pmem_dump_file.write_line("hide_converter: " + to_string_dec_int(data->tone_mix));
-    pmem_dump_file.write_line("converter: " + to_string_dec_int(data->tone_mix));
-    pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->tone_mix));
+    pmem_dump_file.write_line("placeholder_0: " + to_string_dec_int(data->placeholder_0));
+    pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
+    pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
+    pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(data->converter_frequency_offset));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
     pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
     pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
+
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
     pmem_dump_file.write_line("ui_config backlight_timer.timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled()));
@@ -1056,6 +1061,17 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode()));
     pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login()));
     pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash()));
+
+    // ui_config2 bits
+    pmem_dump_file.write_line("ui_config2 hide_speaker: " + to_string_dec_uint(data->ui_config2.hide_speaker));
+    pmem_dump_file.write_line("ui_config2 hide_converter: " + to_string_dec_uint(data->ui_config2.hide_converter));
+    pmem_dump_file.write_line("ui_config2 hide_stealth: " + to_string_dec_uint(data->ui_config2.hide_stealth));
+    pmem_dump_file.write_line("ui_config2 hide_camera: " + to_string_dec_uint(data->ui_config2.hide_camera));
+    pmem_dump_file.write_line("ui_config2 hide_sleep: " + to_string_dec_uint(data->ui_config2.hide_sleep));
+    pmem_dump_file.write_line("ui_config2 hide_bias_tee: " + to_string_dec_uint(data->ui_config2.hide_bias_tee));
+    pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(data->ui_config2.hide_clock));
+    pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
+
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
@@ -1094,6 +1110,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("am_configuration: " + to_string_dec_uint(receiver_model.am_configuration()));
     pmem_dump_file.write_line("nbfm_configuration: " + to_string_dec_uint(receiver_model.nbfm_configuration()));
     pmem_dump_file.write_line("wfm_configuration: " + to_string_dec_uint(receiver_model.wfm_configuration()));
+
     // transmitter_model
     pmem_dump_file.write_line("[Transmitter Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(transmitter_model.target_frequency()));
