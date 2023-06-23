@@ -237,7 +237,7 @@ void RecordView::start() {
 }
 
 void RecordView::on_hide() {
-    // stop();  // Stop current recording
+    stop();  // Stop current recording
     View::on_hide();
 }
 
