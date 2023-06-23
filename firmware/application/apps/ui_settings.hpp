@@ -27,6 +27,7 @@
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
+#include "bitmap.hpp"
 #include "ff.h"
 #include "portapack_persistent_memory.hpp"
 
@@ -34,7 +35,7 @@
 
 namespace ui {
 
-#define MAX_FREQ_CORRECTION 4294967295  // maximum possible for an uint32_t
+#define MAX_FREQ_CORRECTION INT32_MAX
 
 struct SetDateTimeModel {
     uint16_t year;
@@ -208,16 +209,16 @@ class SetUIView : public View {
 
    private:
     Checkbox checkbox_disable_touchscreen{
-        {3 * 8, 2 * 16},
+        {3 * 8, 1 * 16},
         20,
         "Disable touchscreen"};
 
     Checkbox checkbox_bloff{
-        {3 * 8, 4 * 16},
+        {3 * 8, 3 * 16},
         20,
         "Backlight off after:"};
     OptionsField options_bloff{
-        {60, 5 * 16 + 8},
+        {60, 4 * 16 + 8},
         20,
         {
             {"5 seconds", backlight_timeout_t::Timeout5Sec},
@@ -231,25 +232,61 @@ class SetUIView : public View {
         }};
 
     Checkbox checkbox_showsplash{
-        {3 * 8, 7 * 16},
+        {3 * 8, 6 * 16},
         20,
         "Show splash"};
 
     Checkbox checkbox_showclock{
-        {3 * 8, 9 * 16},
+        {3 * 8, 8 * 16},
         20,
         "Show clock with:"};
 
     OptionsField options_clockformat{
-        {60, 10 * 16 + 8},
+        {60, 9 * 16 + 8},
         20,
         {{"time only", 0},
          {"time and date", 1}}};
 
     Checkbox checkbox_guireturnflag{
-        {3 * 8, 12 * 16},
-        25,
-        "Show return icon in GUI"};
+        {3 * 8, 11 * 16},
+        20,
+        "Back button in menu"};
+
+    Labels labels{
+        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Color::light_grey()},
+    };
+
+    ImageToggle toggle_camera{
+        {7 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_camera};
+
+    ImageToggle toggle_sleep{
+        {9 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_sleep};
+
+    ImageToggle toggle_stealth{
+        {11 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_stealth};
+
+    ImageToggle toggle_converter{
+        {13 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_upconvert};
+
+    ImageToggle toggle_bias_tee{
+        {15 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_biast_off};
+
+    ImageToggle toggle_clock{
+        {17 * 8, 14 * 16 + 2, 8, 16},
+        &bitmap_icon_clk_ext};
+
+    ImageToggle toggle_speaker{
+        {18 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_speaker_mute};
+
+    ImageToggle toggle_sd_card{
+        {20 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_sd_card_ok};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},

@@ -123,6 +123,7 @@ class NavigationView : public View {
 /* Holds widgets and grows dynamically toward the left.
  * 16px tall fixed and right-aligns all children in the
  * order in which they were added. */
+// TODO: Could make this a generic "StackPanel" control.
 class StatusTray : public View {
    public:
     StatusTray(Point pos);
@@ -181,6 +182,7 @@ class SystemStatusView : public View {
 
     StatusTray status_icons{{screen_width, 0}};
 
+    // TODO: Convert to ImageToggle buttons.
     ImageButton button_speaker{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
@@ -218,7 +220,7 @@ class SystemStatusView : public View {
         Color::dark_grey()};
 
     ImageButton button_clock_status{
-        {0, 0 * 16, 12, 1 * 16},
+        {0, 0 * 16, 8, 1 * 16},
         &bitmap_icon_clk_int,
         Color::light_grey(),
         Color::dark_grey()};

@@ -1323,6 +1323,68 @@ bool ImageButton::on_touch(const TouchEvent event) {
     }
 }
 
+/* ImageToggle ***********************************************************/
+ImageToggle::ImageToggle(
+    Rect parent_rect,
+    const Bitmap* bitmap_)
+    : ImageToggle{parent_rect,
+                  bitmap_,
+                  Color::green(),
+                  Color::light_grey(),
+                  Color::dark_grey()} {}
+
+ImageToggle::ImageToggle(
+    Rect parent_rect,
+    const Bitmap* bitmap_,
+    Color foreground_true,
+    Color foreground_false,
+    Color background_)
+    : ImageToggle{parent_rect,
+                  bitmap_,
+                  bitmap_,
+                  foreground_true,
+                  background_,
+                  foreground_false,
+                  background_} {}
+
+ImageToggle::ImageToggle(
+    Rect parent_rect,
+    const Bitmap* bitmap_true,
+    const Bitmap* bitmap_false,
+    Color foreground_true,
+    Color background_true,
+    Color foreground_false,
+    Color background_false)
+    : ImageButton{parent_rect, bitmap_false, foreground_false, background_false},
+      bitmap_true_{bitmap_true},
+      bitmap_false_{bitmap_false},
+      foreground_true_{foreground_true},
+      background_true_{background_true},
+      foreground_false_{foreground_false},
+      background_false_{background_false},
+      value_{false} {
+    ImageButton::on_select = [this](ImageButton&) {
+        set_value(!value());
+    };
+}
+
+bool ImageToggle::value() const {
+    return value_;
+}
+
+void ImageToggle::set_value(bool b) {
+    if (b == value_)
+        return;
+
+    value_ = b;
+    set_bitmap(b ? bitmap_true_ : bitmap_false_);
+    set_foreground(b ? foreground_true_ : foreground_false_);
+    set_background(b ? background_true_ : background_false_);
+
+    if (on_change)
+        on_change(b);
+}
+
 /* ImageOptionsField *****************************************************/
 
 ImageOptionsField::ImageOptionsField(

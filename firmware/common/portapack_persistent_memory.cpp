@@ -861,7 +861,7 @@ bool ui_hide_stealth() {
     return data->ui_config2.hide_stealth;
 }
 bool ui_hide_camera() {
-    return data->ui_config2.hide_stealth;
+    return data->ui_config2.hide_camera;
 }
 bool ui_hide_sleep() {
     return data->ui_config2.hide_sleep;

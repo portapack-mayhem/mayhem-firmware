@@ -118,7 +118,7 @@ void StatusTray::add(Widget* child) {
 void StatusTray::update_layout() {
     // Widen the tray's parent rect.
     auto rect = parent_rect();
-    set_parent_rect({{rect.left() - width_, 0}, {rect.right() + width_, height}});
+    set_parent_rect({{rect.left() - width_, rect.top()}, {rect.right() + width_, height}});
 
     // Update the children.
     auto x = 0;
