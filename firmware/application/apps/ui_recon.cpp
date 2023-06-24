@@ -1081,7 +1081,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (field_mode.selected_index_value() != SPEC_MODULATION)
                         audio_output_start();
                     // contents of a possible recon_start_recording(), but not yet since it's only called once
-                    if (!recon_is_recording) {
+                    if (recon_auto_record_locked && !recon_is_recording) {
                         button_audio_app.set_style(&Styles::red);
                         record_view->start();
                         recon_is_recording = true;
