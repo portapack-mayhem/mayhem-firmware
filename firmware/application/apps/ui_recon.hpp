@@ -320,14 +320,6 @@ class ReconView : public View {
         {168, (35 * 8) - 4, 72, 28},
         "<REMOVE>"};
 
-    RecordView record_view{
-        {0, 0, 30 * 8, 1 * 16},
-        u"AUTO_AUDIO_",
-        u"AUDIO",
-        RecordView::FileType::WAV,
-        4096,
-        4};
-
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* const p) {
