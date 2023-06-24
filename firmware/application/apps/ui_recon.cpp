@@ -41,9 +41,9 @@ void ReconView::set_loop_config(bool v) {
 void ReconView::recon_stop_recording() {
     if (recon_is_recording) {
         button_audio_app.set_style(&Styles::white);
+        record_view->stop();
         recon_is_recording = false;
     }
-    record_view->stop();
 }
 
 void ReconView::clear_freqlist_for_ui_action() {
@@ -244,8 +244,8 @@ bool ReconView::recon_save_config_to_sd() {
 
     make_new_directory(u"SETTINGS");
 
-    auto result = settings_file.create(RECON_CFG_FILE);
-    if (result.is_valid())
+    auto error = settings_file.create(RECON_CFG_FILE);
+    if (error)
         return false;
     settings_file.write_line(input_file);
     settings_file.write_line(output_file);
@@ -292,10 +292,6 @@ void ReconView::recon_redraw() {
         } else if (freq_lock >= recon_lock_nb_match) {
             big_display.set_style(&Styles::green);
             button_pause.set_text("<UNLOCK>");
-            // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
-            if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
-                recon_save_freq(freq_file_path, current_index, false);
-            }
         }
     }
     if (last_db != db || last_list_size != frequency_list.size()) {
@@ -826,6 +822,8 @@ ReconView::ReconView(NavigationView& nav)
 
     button_config.on_select = [this, &nav](Button&) {
         clear_freqlist_for_ui_action();
+        freq_lock = 0;
+        timer = 0;
         auto open_view = nav.push<ReconSetupView>(input_file, output_file);
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
@@ -1023,9 +1021,13 @@ void ReconView::frequency_file_load(bool stop_all_before) {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
-    chrono_end = chTimeNow();
-    systime_t time_interval = chrono_end - chrono_start;
-    chrono_start = chrono_end;
+    systime_t time_interval = 100;
+
+    if (field_mode.selected_index_value() == SPEC_MODULATION) {
+        chrono_end = chTimeNow();
+        time_interval = chrono_end - chrono_start;
+        chrono_start = chrono_end;
+    }
 
     // hack to reload the list if it was cleared by going into CONFIG
     if (freqlist_cleared_for_ui_action) {
@@ -1077,6 +1079,10 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (status != 2) {
                 continuous_lock = false;
                 status = 2;
+                // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
+                if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
+                    recon_save_freq(freq_file_path, current_index, false);
+                }
                 if (wait != 0) {
                     if (field_mode.selected_index_value() != SPEC_MODULATION)
                         audio_output_start();
@@ -1085,6 +1091,10 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                         button_audio_app.set_style(&Styles::red);
                         record_view->start();
                         recon_is_recording = true;
+                    }
+                    // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
+                    if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
+                        recon_save_freq(freq_file_path, current_index, false);
                     }
                 }
                 if (wait >= 0) {
