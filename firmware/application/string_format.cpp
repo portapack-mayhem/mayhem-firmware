@@ -286,7 +286,7 @@ static const char* whitespace_str = " \t\r\n";
 std::string trim(std::string_view str) {
     auto first = str.find_first_not_of(whitespace_str);
     auto last = str.find_last_not_of(whitespace_str);
-    return std::string{str.substr(first, last - first)};
+    return std::string{str.substr(first, last - first + 1)};
 }
 
 std::string trimr(std::string_view str) {

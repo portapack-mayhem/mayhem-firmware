@@ -120,6 +120,30 @@ class NavigationView : public View {
     View* push_view(std::unique_ptr<View> new_view);
 };
 
+/* Holds widgets and grows dynamically toward the left.
+ * 16px tall fixed and right-aligns all children in the
+ * order in which they were added. */
+// TODO: Could make this a generic "StackPanel" control.
+class StatusTray : public View {
+   public:
+    StatusTray(Point pos);
+
+    StatusTray(const StatusTray&) = delete;
+    StatusTray& operator=(const StatusTray&) = delete;
+
+    void add(Widget* child);
+    void update_layout();
+    void clear();
+    void paint(Painter& painter) override;
+
+   private:
+    static constexpr uint8_t height = 16;
+    // This control grow to the left, so keep
+    // track of the right edge.
+    const Point pos_{};
+    uint8_t width_{};
+};
+
 class SystemStatusView : public View {
    public:
     std::function<void(void)> on_back{};
@@ -136,7 +160,7 @@ class SystemStatusView : public View {
     NavigationView& nav_;
 
     Rectangle backdrop{
-        {0 * 8, 0 * 16, 240, 16},
+        {0 * 8, 0 * 16, ui::screen_width, 16},
         Color::dark_grey()};
 
     ImageButton button_back{
@@ -156,63 +180,58 @@ class SystemStatusView : public View {
         Color::white(),
         Color::dark_grey()};
 
+    StatusTray status_icons{{screen_width, 0}};
+
+    // TODO: Convert to ImageToggle buttons.
     ImageButton button_speaker{
-        {15 * 8, 0, 2 * 8, 1 * 16},
+        {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
         Color::light_grey(),
         Color::dark_grey()};
 
     ImageButton button_converter{
-        {17 * 8, 0, 2 * 8, 1 * 16},
+        {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_upconvert,
         Color::light_grey(),
         Color::dark_grey()};
 
     ImageButton button_stealth{
-        {19 * 8, 0, 2 * 8, 1 * 16},
+        {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_stealth,
         Color::light_grey(),
         Color::dark_grey()};
 
-    /*ImageButton button_textentry {
-                { 170, 0, 2 * 8, 1 * 16 },
-                &bitmap_icon_unistroke,
-                Color::white(),
-                Color::dark_grey()
-        };*/
-
     ImageButton button_camera{
-        {21 * 8, 0, 2 * 8, 1 * 16},
+        {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_camera,
         Color::white(),
         Color::dark_grey()};
 
     ImageButton button_sleep{
-        {23 * 8, 0, 2 * 8, 1 * 16},
+        {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_sleep,
         Color::white(),
         Color::dark_grey()};
 
     ImageButton button_bias_tee{
-        {25 * 8, 0, 12, 1 * 16},
+        {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_biast_off,
         Color::light_grey(),
         Color::dark_grey()};
 
     ImageButton button_clock_status{
-        {27 * 8, 0 * 16, 2 * 8, 1 * 16},
+        {0, 0 * 16, 8, 1 * 16},
         &bitmap_icon_clk_int,
         Color::light_grey(),
         Color::dark_grey()};
 
     SDCardStatusView sd_card_status_view{
-        {28 * 8, 0 * 16, 2 * 8, 1 * 16}};
+        {0, 0 * 16, 2 * 8, 1 * 16}};
 
     void on_converter();
     void on_speaker();
     void on_stealth();
     void on_bias_tee();
-    // void on_textentry();
     void on_camera();
     void on_title();
     void refresh();
