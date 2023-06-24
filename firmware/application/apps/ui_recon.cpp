@@ -860,6 +860,8 @@ ReconView::ReconView(NavigationView& nav)
 
     field_wait.on_change = [this](int32_t v) {
         wait = v;
+        if (wait == -100)
+            wait = -200;
         colorize_waits();
     };
 
