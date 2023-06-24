@@ -150,7 +150,7 @@ class ReconView : public View {
         {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
         {{0 * 8, (22 * 8)}, "                S:          ", Color::light_grey()},
         {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Color::light_grey()},
-        {{0 * 8, (26 * 8) + 4}, "MODE:    ,       SQUELCH:    ", Color::light_grey()}};
+        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Color::light_grey()}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};
@@ -275,11 +275,11 @@ class ReconView : public View {
 
     OptionsField field_mode{
         {6 * 8, (26 * 8) + 4},
-        3,
+        4,
         {}};
 
     OptionsField field_bw{
-        {10 * 8, (26 * 8) + 4},
+        {11 * 8, (26 * 8) + 4},
         6,
         {}};
 
