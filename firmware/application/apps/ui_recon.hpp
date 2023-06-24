@@ -145,6 +145,8 @@ class ReconView : public View {
     int32_t last_squelch_index{-1};
     int64_t last_freq{0};
     std::string freq_file_path{};
+    systime_t chrono_start{};
+    systime_t chrono_end{};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},

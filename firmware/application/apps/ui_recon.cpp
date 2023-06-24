@@ -379,6 +379,8 @@ ReconView::~ReconView() {
 
 ReconView::ReconView(NavigationView& nav)
     : nav_{nav} {
+    chrono_start = chTimeNow();
+
     record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
     add_children({&labels,
                   &field_lna,
@@ -1019,6 +1021,10 @@ void ReconView::frequency_file_load(bool stop_all_before) {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
+    chrono_end = chTimeNow();
+    systime_t time_interval = chrono_end - chrono_start;
+    chrono_start = chrono_end;
+
     // hack to reload the list if it was cleared by going into CONFIG
     if (freqlist_cleared_for_ui_action) {
         if (!manual_mode) {
@@ -1097,10 +1103,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     }
     if (timer) {
         if (!continuous_lock || recon_match_mode == RECON_MATCH_SPARSE) {
-            if (field_mode.selected_index_value() != SPEC_MODULATION)
-                timer -= STATS_UPDATE_INTERVAL;
-            else
-                timer -= 10;
+            timer -= time_interval;
         }
         if (timer < 0) {
             timer = 0;
