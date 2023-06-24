@@ -122,10 +122,7 @@ class ReconView : public View {
     int32_t index_stepper{0};
     int64_t freq{0};
     uint32_t step{0};
-    freqman_index_t def_modulation{0};
-    freqman_index_t def_bandwidth{0};
     freqman_index_t def_step{0};
-    tone_index tone{0};
     freqman_entry last_entry{};
     bool entry_has_changed{false};
     uint32_t freq_lock{0};

@@ -1115,7 +1115,6 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (frequency_list.size() > 0) {
                 has_looped = false;
                 entry_has_changed = false;
-
                 if (recon || stepper != 0 || index_stepper != 0) {
                     if (index_stepper == 0) {
                         /* we are doing a range */
