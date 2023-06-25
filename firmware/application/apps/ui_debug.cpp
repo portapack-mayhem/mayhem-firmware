@@ -248,7 +248,7 @@ void ControlsSwitchesWidget::on_show() {
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
     key_event_mask = 1 << toUType(key);
-    long_press_key_event_mask = switch_long_press_occurred((size_t)key)? key_event_mask : 0;
+    long_press_key_event_mask = switch_long_press_occurred((size_t)key) ? key_event_mask : 0;
     return true;
 }
 
@@ -324,7 +324,7 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         if (switches_event & 1)
             painter.fill_rectangle(r + pos, Color::red());
 
-        switches_event >>= 1;            
+        switches_event >>= 1;
     }
 
     switches_event = long_press_key_event_mask;
