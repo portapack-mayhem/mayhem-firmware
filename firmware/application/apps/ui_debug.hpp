@@ -31,6 +31,7 @@
 #include "rffc507x.hpp"
 #include "portapack.hpp"
 #include "memory_map.hpp"
+#include "irq_controls.hpp"
 
 #include <functional>
 #include <utility>
@@ -220,7 +221,8 @@ class ControlsSwitchesWidget : public Widget {
     ControlsSwitchesWidget(
         Rect parent_rect)
         : Widget{parent_rect},
-          key_event_mask(0) {
+          key_event_mask(0),
+          long_press_key_event_mask{0} {
         set_focusable(true);
     }
 
@@ -231,6 +233,8 @@ class ControlsSwitchesWidget : public Widget {
 
    private:
     uint8_t key_event_mask;
+    uint8_t long_press_key_event_mask;
+
 
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
@@ -250,14 +254,21 @@ class DebugControlsView : public View {
     std::string title() const override { return "Buttons Test"; };
 
    private:
-    Text text_title{
-        {64, 16, 184, 16},
-        "Controls State",
-    };
+    Labels labels{
+        {{8 * 8, 1 * 16}, "Controls State", Color::white()},
+        {{0 * 8, 14 * 16}, "Long-Press Mode:", Color::grey()}};
 
     ControlsSwitchesWidget switches_widget{
         {80, 80, 80, 112},
     };
+
+    OptionsField options_switches_mode{
+        {17 * 8, 14 * 16},
+        8,
+        {
+            {"Disabled", 0},
+            {"Enabled", 0xFF},  // all KeyEvent bits to long-press mode
+        }};
 
     Button button_done{
         {72, 264, 96, 24},
