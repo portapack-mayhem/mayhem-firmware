@@ -47,10 +47,6 @@ class PlaylistView : public View {
     PlaylistView(NavigationView& nav);
     ~PlaylistView();
 
-    // Disable copy to make -Weffc++ happy.
-    PlaylistView(const PlaylistView&) = delete;
-    PlaylistView& operator=(const PlaylistView&) = delete;
-
     void set_parent_rect(Rect new_parent_rect) override;
     void on_hide() override;
     void focus() override;
@@ -68,7 +64,7 @@ class PlaylistView : public View {
     static constexpr uint32_t baseband_bandwidth = 2500000;
 
     struct playlist_entry {
-        std::filesystem::path capture_path{};
+        std::filesystem::path path{};
         capture_metadata metadata{};
         File::Size file_size{};
         uint32_t ms_delay{};
@@ -77,14 +73,18 @@ class PlaylistView : public View {
     std::unique_ptr<ReplayThread> replay_thread_{};
     bool ready_signal_{};  // Used to signal the ReplayThread.
 
+    size_t current_index_{0};
     bool playlist_dirty_{};
-    size_t current_track_{0};
     std::vector<playlist_entry> playlist_db_{};
     std::filesystem::path playlist_path_{};
 
     void load_file(const std::filesystem::path& path);
     Optional<playlist_entry> load_entry(std::filesystem::path&& path);
     void on_file_changed(const std::filesystem::path& path);
+    void open_file(bool prompt_save = true);
+    void save_file(bool show_dialogs = true);
+    void add_entry(std::filesystem::path&& path);
+    void delete_entry();
     void reset();
     void show_file_error(
         const std::filesystem::path& path,
@@ -93,7 +93,6 @@ class PlaylistView : public View {
     const playlist_entry* current() const;
 
     bool is_active() const;
-    bool loop() const;
     bool at_end() const;
 
     void toggle();
@@ -111,8 +110,8 @@ class PlaylistView : public View {
     Text text_filename{
         {0 * 8, 0 * 16, 30 * 8, 16}};
 
-    // TODO: TxFrequencyField to set TX freq
-    // when metadata file not found.
+    // TODO: delay duration field.
+    // TODO: TxFrequencyField to edit entry frequency.
     Text text_frequency{
         {0 * 8, 1 * 16, 9 * 8, 16}};
 
@@ -150,43 +149,37 @@ class PlaylistView : public View {
         {0 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_arrow_left,
-        Color::dark_grey()
-    };
+        Color::dark_grey()};
 
     NewButton button_add{
-        {5 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {6 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_new_file,
-        Color::dark_cyan()
-    };
+        Color::orange()};
 
     NewButton button_delete{
         {10 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_delete,
-        Color::dark_cyan()
-    };
+        Color::orange()};
 
     NewButton button_open{
-        {15 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {16 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_load,
-        Color::dark_blue()
-    };
+        Color::dark_blue()};
 
     NewButton button_save{
         {20 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_save,
-        Color::dark_blue()
-    };
+        Color::dark_blue()};
 
     NewButton button_next{
-        {25 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {26 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_arrow_right,
-        Color::dark_grey()
-    };
+        Color::dark_grey()};
 
     spectrum::WaterfallWidget waterfall{};
 
