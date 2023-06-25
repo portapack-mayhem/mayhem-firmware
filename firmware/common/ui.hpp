@@ -56,13 +56,18 @@ struct Color {
     }
 
     uint8_t to_greyscale() {
-        uint32_t r = ((v >> 11) & 31U) << 3;
-        uint32_t g = ((v >> 5) & 63U) << 2;
-        uint32_t b = (v & 31U) << 3;
+        uint32_t r = (v >> 8) & 0xf8;
+        uint32_t g = (v >> 3) & 0xfc;
+        uint32_t b = (v << 3) & 0xf8;
 
-        uint32_t grey = (r * 299 + g * 587 + b * 114) / 1000;
+        uint32_t grey = ((r * 306) + (g * 601) + (b * 117)) >> 10;
 
         return (uint8_t)grey;
+    }
+
+    uint16_t dark() {
+        // stripping bits 4 & 5 from each of the colors R/G/B
+        return (v & ((0xc8 << 8) | (0xcc << 3) | (0xc8 >> 3)));
     }
 
     Color operator-() const {
