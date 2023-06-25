@@ -448,7 +448,7 @@ class ButtonWithEncoder : public Widget {
 class NewButton : public Widget {
    public:
     std::function<void(void)> on_select{};
-    // std::function<void(NewButton&)> on_select { };
+    // std::function<void(NewButton&)> on_select{};
     std::function<bool(NewButton&, KeyEvent)> on_dir{};
     std::function<void(NewButton&)> on_highlight{};
 

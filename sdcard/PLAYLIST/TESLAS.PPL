@@ -1,0 +1,4 @@
+# Playlist file example
+# capture path, pre-delay milliseconds (optional)
+/SAMPLES/TeslaChargePort_US.C16
+/SAMPLES/TeslaChargePort_EU_AU.C16,100
