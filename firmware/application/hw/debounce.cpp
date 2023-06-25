@@ -30,7 +30,7 @@ bool Debounce::feed(const uint8_t bit) {
     // "Repeat" handling - simulated button release
     if (repeat_ctr_) {
         // Make sure the button is still being held continuously
-        if ((history_ == 0xFF) && !long_press_enabled_){
+        if ((history_ == 0xFF) && !long_press_enabled_) {
             // Simulate button press every REPEAT_SUBSEQUENT_DELAY ticks
             if (--repeat_ctr_ == 0) {
                 state_ = !state_;
@@ -57,7 +57,7 @@ bool Debounce::feed(const uint8_t bit) {
                 return false;
             }
             return true;
-        } 
+        }
     } else {
         // Previous button state was 1 (pressed);
         // Has button been released for DEBOUNCE_COUNT ticks?
@@ -98,7 +98,7 @@ bool Debounce::feed(const uint8_t bit) {
                     repeat_ctr_ = 1;
                     held_time_ = 0;
                 }
-             }
+            }
         } else {
             // Button not continuously pressed; reset counter
             held_time_ = 0;
