@@ -1093,7 +1093,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (auto_record_locked && !is_recording) {
                         button_audio_app.set_style(&Styles::red);
                         record_view->start();
-                        button_config.set_style(&Styles::grey);  // disable config while recording as it's causing an IO error pop up at exit
+                        button_config.set_style(&Styles::light_grey);  // disable config while recording as it's causing an IO error pop up at exit
                         is_recording = true;
                     }
                     // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
