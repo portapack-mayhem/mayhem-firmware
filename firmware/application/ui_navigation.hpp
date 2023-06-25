@@ -185,7 +185,13 @@ class SystemStatusView : public View {
     // TODO: Convert to ImageToggle buttons.
     ImageButton button_speaker{
         {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_speaker_mute,
+        &bitmap_icon_speaker,
+        Color::light_grey(),
+        Color::dark_grey()};
+
+    ImageButton button_mute{
+        {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_speaker_and_headphones,
         Color::light_grey(),
         Color::dark_grey()};
 
@@ -230,6 +236,7 @@ class SystemStatusView : public View {
 
     void on_converter();
     void on_speaker();
+    void on_mute();
     void on_stealth();
     void on_bias_tee();
     void on_camera();
