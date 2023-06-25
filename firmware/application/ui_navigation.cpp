@@ -565,10 +565,10 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
-        {"ADS-B [S]", ui::Color::yellow(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
+        {"ADS-B [S]", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
         {"APRS", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
         {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
-        {"GPS Sim", ui::Color::yellow(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
+        {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
         {"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }},
         //{ "Key fob",		ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
         {"LGE tool", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }},
@@ -581,7 +581,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
         {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
-        {"TouchTune", ui::Color::yellow(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
+        {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
         {"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
         {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
         //{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
@@ -597,7 +597,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
     add_items({
         //{ "Test app", 		Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
         {"Freq. manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
-        {"File manager", Color::yellow(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
+        {"File manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
         {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
         {"Signal gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
         //{ "Tone search",	Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); } },
@@ -606,7 +606,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
         {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
         {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
-        {"SD over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
+        {"SD over USB", Color::green(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -630,9 +630,9 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
         {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
         {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<ReplayAppView>(); }},
         {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
-        {"Scanner", Color::yellow(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
-        {"Microphone", Color::yellow(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
-        {"Looking Glass", Color::yellow(), &bitmap_icon_looking, [&nav]() { nav.push<GlassView>(); }},
+        {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
+        {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
+        {"Looking Glass", Color::green(), &bitmap_icon_looking, [&nav]() { nav.push<GlassView>(); }},
         {"Utilities", Color::cyan(), &bitmap_icon_utilities, [&nav]() { nav.push<UtilitiesMenuView>(); }},
         {"Settings", Color::cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SettingsMenuView>(); }},
         {"Debug", Color::light_grey(), &bitmap_icon_debug, [&nav]() { nav.push<DebugMenuView>(); }},
