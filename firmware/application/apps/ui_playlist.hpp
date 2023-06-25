@@ -25,6 +25,8 @@
 #define NORMAL_UI false
 
 #include "app_settings.hpp"
+#include "bitmap.hpp"
+#include "file.hpp"
 #include "metadata_file.hpp"
 #include "radio_state.hpp"
 #include "replay_thread.hpp"
@@ -62,34 +64,37 @@ class PlaylistView : public View {
         "tx_playlist", app_settings::Mode::TX};
 
     // More header == less spectrum view.
-    static constexpr ui::Dim header_height = 4 * 16;
+    static constexpr ui::Dim header_height = 6 * 16;
     static constexpr uint32_t baseband_bandwidth = 2500000;
 
     struct playlist_entry {
         std::filesystem::path capture_path{};
         capture_metadata metadata{};
+        File::Size file_size{};
         uint32_t ms_delay{};
     };
 
     std::unique_ptr<ReplayThread> replay_thread_{};
     bool ready_signal_{};  // Used to signal the ReplayThread.
 
+    bool playlist_dirty_{};
     size_t current_track_{0};
-    const playlist_entry* current_entry_{};
-    size_t current_entry_size_{0};
     std::vector<playlist_entry> playlist_db_{};
     std::filesystem::path playlist_path_{};
 
     void load_file(const std::filesystem::path& path);
+    Optional<playlist_entry> load_entry(std::filesystem::path&& path);
     void on_file_changed(const std::filesystem::path& path);
     void reset();
     void show_file_error(
         const std::filesystem::path& path,
         const std::string& message);
 
+    const playlist_entry* current() const;
+
     bool is_active() const;
     bool loop() const;
-    bool is_done() const;
+    bool at_end() const;
 
     void toggle();
     void start();
@@ -103,15 +108,13 @@ class PlaylistView : public View {
     void on_tx_progress(uint32_t progress);
     void handle_replay_thread_done(uint32_t return_code);
 
-    Button button_open{
-        {0 * 8, 0 * 16, 10 * 8, 2 * 16},
-        "Open PPL"};
-
     Text text_filename{
-        {11 * 8, 0 * 16, 12 * 8, 16}};
+        {0 * 8, 0 * 16, 30 * 8, 16}};
 
-    Text text_sample_rate{
-        {24 * 8, 0 * 16, 6 * 8, 16}};
+    // TODO: TxFrequencyField to set TX freq
+    // when metadata file not found.
+    Text text_frequency{
+        {0 * 8, 1 * 16, 9 * 8, 16}};
 
     Text text_duration{
         {11 * 8, 1 * 16, 6 * 8, 16}};
@@ -122,13 +125,11 @@ class PlaylistView : public View {
     ProgressBar progressbar_transmit{
         {18 * 8, 3 * 8, 12 * 8, 8}};
 
-    // TODO: TxFrequencyField to set TX freq
-    // when metadata file not found.
-    Text text_frequency{
-        {0 * 8, 2 * 16, 9 * 8, 16}};
+    Text text_sample_rate{
+        {0 * 8, 2 * 16, 7 * 8, 16}};
 
     TransmitterView2 tx_view{
-        74, 1 * 8, SHORT_UI};
+        9 * 8, 1 * 8, SHORT_UI};
 
     Checkbox check_loop{
         {21 * 8, 2 * 16},
@@ -144,6 +145,48 @@ class PlaylistView : public View {
 
     Text text_track{
         {0 * 8, 3 * 16, 30 * 8, 16}};
+
+    NewButton button_prev{
+        {0 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_arrow_left,
+        Color::dark_grey()
+    };
+
+    NewButton button_add{
+        {5 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_icon_new_file,
+        Color::dark_cyan()
+    };
+
+    NewButton button_delete{
+        {10 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_icon_delete,
+        Color::dark_cyan()
+    };
+
+    NewButton button_open{
+        {15 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_icon_load,
+        Color::dark_blue()
+    };
+
+    NewButton button_save{
+        {20 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_icon_save,
+        Color::dark_blue()
+    };
+
+    NewButton button_next{
+        {25 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_arrow_right,
+        Color::dark_grey()
+    };
 
     spectrum::WaterfallWidget waterfall{};
 

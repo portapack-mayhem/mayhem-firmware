@@ -54,37 +54,48 @@ void PlaylistView::load_file(const fs::path& playlist_path) {
         if (line.length() == 0 || line[0] == '#')
             continue;  // Empty or comment line.
 
-        playlist_entry entry{};
         auto cols = split_string(line, ',');
+        auto entry = load_entry(trim(cols[0]));
 
-        entry.capture_path = trim(cols[0]);
-
-        // Read metafile if it exists.
-        auto metadata_path = get_metadata_path(entry.capture_path);
-        auto metadata = read_metadata_file(metadata_path);
-
-        if (metadata)
-            entry.metadata = *metadata;
-        else {
+        if (!entry)
             continue;
-            // TODO:
-            // For now, require a metadata file. Eventually, allow
-            // a user-defined center_freq like there was in Replay.
-            // entry.metadata = {0, 500'000};
-        }
 
-        // Get optional delay value.
+        // Read optional delay value.
         if (cols.size() > 1)
-            parse_int(cols[1], entry.ms_delay);
+            parse_int(cols[1], entry->ms_delay);
 
-        playlist_db_.emplace_back(std::move(entry));
+        playlist_db_.emplace_back(*std::move(entry));
     }
+}
+
+Optional<PlaylistView::playlist_entry> PlaylistView::load_entry(fs::path&& path) {
+    File capture_file;
+
+    auto error = capture_file.open(path);
+    if (error)
+        return {};
+
+    // Read metafile if it exists.
+    auto metadata_path = get_metadata_path(path);
+    auto metadata = read_metadata_file(metadata_path);
+
+    // TODO: For now, require a metadata file. Eventually,
+    // allow a user-defined center_freq like there was in Replay.
+    // metadata = {0, 500'000};
+    if (!metadata)
+        return {};
+
+    return playlist_entry{
+        std::move(path),
+        *metadata,
+        capture_file.size(),
+        0u};
 }
 
 void PlaylistView::on_file_changed(const fs::path& new_file_path) {
     stop();
-    reset();
 
+    current_track_ = 0;
     playlist_path_ = new_file_path;
     playlist_db_.clear();
     load_file(playlist_path_);
@@ -93,14 +104,12 @@ void PlaylistView::on_file_changed(const fs::path& new_file_path) {
     button_play.focus();
 }
 
-void PlaylistView::reset() {
-    current_track_ = 0;
-    current_entry_ = nullptr;
-    current_entry_size_ = 0;
-}
-
 void PlaylistView::show_file_error(const fs::path& path, const std::string& message) {
     nav_.display_modal("Error", "Error opening file \n" + path.string() + "\n" + message);
+}
+
+const PlaylistView::playlist_entry* PlaylistView::current() const {
+    return playlist_db_.empty() ? nullptr : &playlist_db_[current_track_];
 }
 
 bool PlaylistView::is_active() const {
@@ -111,7 +120,7 @@ bool PlaylistView::loop() const {
     return check_loop.value();
 }
 
-bool PlaylistView::is_done() const {
+bool PlaylistView::at_end() const {
     return current_track_ >= playlist_db_.size();
 }
 
@@ -123,25 +132,24 @@ void PlaylistView::toggle() {
 }
 
 void PlaylistView::start() {
-    reset();
-
     if (playlist_db_.empty())
         return;  // Nothing to do.
 
-    if (next_track())
-        send_current_track();
+    current_track_ = 0u;
+    send_current_track();
 }
 
 /* Advance to the next track in the playlist. */
 bool PlaylistView::next_track() {
-    if (is_done()) {
-        if (loop())
-            current_track_ = 0;
-        else
-            return false;  // All done.
+    ++current_track_;
+
+    // Reset to the 0 once at the end to prevent current_track_
+    // from being outside the bounds of playlist_db_.
+    if (at_end()) {
+        current_track_ = 0;
+        return loop();  // Keep going if looping.
     }
-    current_entry_ = &playlist_db_[current_track_];
-    current_track_++;
+    
     return true;
 }
 
@@ -152,29 +160,28 @@ void PlaylistView::send_current_track() {
     transmitter_model.disable();
     ready_signal_ = false;
 
-    if (!current_entry_)
+    if (!current())
         return;
 
     // TODO: Use a timer so the UI isn't frozen.
-    if (current_entry_->ms_delay > 0)
-        chThdSleepMilliseconds(current_entry_->ms_delay);
+    if (current()->ms_delay > 0)
+        chThdSleepMilliseconds(current()->ms_delay);
 
     // Open the sample file to send.
     auto reader = std::make_unique<FileReader>();
-    auto error = reader->open(current_entry_->capture_path);
+    auto error = reader->open(current()->capture_path);
     if (error) {
-        show_file_error(current_entry_->capture_path, "Can't open file to send.");
+        show_file_error(current()->capture_path, "Can't open file to send.");
         return;
     }
 
-    // Get the sample file size for the progress bar.
-    current_entry_size_ = reader->file().size();
+    // Reset the transmit progress bar.
     progressbar_transmit.set_value(0);
 
     // ReplayThread starts immediately on contruction so
     // these need to be set before creating the ReplayThread.
-    transmitter_model.set_target_frequency(current_entry_->metadata.center_frequency);
-    transmitter_model.set_sampling_rate(current_entry_->metadata.sample_rate * 8);
+    transmitter_model.set_target_frequency(current()->metadata.center_frequency);
+    transmitter_model.set_sampling_rate(current()->metadata.sample_rate * 8);
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 
@@ -206,32 +213,36 @@ void PlaylistView::stop() {
 
 void PlaylistView::update_ui() {
     if (playlist_db_.empty()) {
-        text_track.set("Open a playlist file.");
-    } else {
-        text_track.set(
-            to_string_dec_uint(current_track_) + "/" +
-            to_string_dec_uint(playlist_db_.size()) + " " +
-            playlist_path_.filename().string());
-    }
-
-    button_play.set_bitmap(is_active() ? &bitmap_stop : &bitmap_play);
-
-    progressbar_track.set_value(current_track_);
-    progressbar_track.set_max(playlist_db_.size());
-    progressbar_transmit.set_max(current_entry_size_);
-
-    if (current_entry_) {
-        auto duration = ms_duration(current_entry_size_, current_entry_->metadata.sample_rate, 4);
-        text_filename.set(truncate(current_entry_->capture_path.filename().string(), 12));
-        text_sample_rate.set(unit_auto_scale(current_entry_->metadata.sample_rate, 3, 0) + "Hz");
-        text_duration.set(to_string_time_ms(duration));
-        text_frequency.set(to_string_short_freq(current_entry_->metadata.center_frequency));
-    } else {
+        // TODO: only set when playlist path is empty.
+        text_track.set("Open playlist or add capture.");
         text_filename.set("-");
         text_sample_rate.set("-");
         text_duration.set("-");
         text_frequency.set("-");
+
+        progressbar_track.set_value(0);
+        progressbar_track.set_max(0);
+        progressbar_transmit.set_max(0);
+
+    } else {
+        text_track.set(
+            to_string_dec_uint(current_track_ + 1) + "/" +
+            to_string_dec_uint(playlist_db_.size()) + " " +
+            playlist_path_.filename().string());
+
+        text_filename.set(truncate(current()->capture_path.filename().string(), 30));
+        text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3, 0) + "Hz");
+
+        auto duration = ms_duration(current()->file_size, current()->metadata.sample_rate, 4);
+        text_duration.set(to_string_time_ms(duration));
+        text_frequency.set(to_string_short_freq(current()->metadata.center_frequency));
+
+        progressbar_track.set_value(current_track_ + 1);
+        progressbar_track.set_max(playlist_db_.size());
+        progressbar_transmit.set_max(current()->file_size);
     }
+
+    button_play.set_bitmap(is_active() ? &bitmap_stop : &bitmap_play);
 }
 
 void PlaylistView::on_tx_progress(uint32_t progress) {
@@ -247,7 +258,7 @@ void PlaylistView::handle_replay_thread_done(uint32_t return_code) {
     }
 
     if (return_code == ReplayThread::READ_ERROR)
-        show_file_error(current_entry_->capture_path, "Replay read failed.");
+        show_file_error(current()->capture_path, "Replay read failed.");
 
     stop();
 }
@@ -258,7 +269,6 @@ PlaylistView::PlaylistView(
     baseband::run_image(portapack::spi_flash::image_tag_replay);
 
     add_children({
-        &button_open,
         &text_filename,
         &text_sample_rate,
         &text_duration,
@@ -269,6 +279,12 @@ PlaylistView::PlaylistView(
         &check_loop,
         &button_play,
         &text_track,
+        &button_prev,
+        &button_add,
+        &button_delete,
+        &button_open,
+        &button_save,
+        &button_next,
         &waterfall,
     });
 
@@ -278,11 +294,51 @@ PlaylistView::PlaylistView(
         toggle();
     };
 
-    button_open.on_select = [this, &nav](Button&) {
+    button_add.on_select = [this, &nav]() {
+        auto open_view = nav_.push<FileLoadView>(".C16");
+        open_view->on_changed = [this](fs::path path) {
+            auto entry = load_entry(std::move(path));
+            if (entry) {
+                playlist_db_.emplace_back(*std::move(entry));
+                current_track_ = playlist_db_.size() - 1;
+                playlist_dirty_ = true;
+            }
+            update_ui();
+        };
+    };
+
+    button_delete.on_select = [this, &nav]() {
+        // Ugh, STL, this is so nasty.
+        playlist_db_.erase(playlist_db_.begin() + current_track_);
+        current_track_ = playlist_db_.size() - 1;
+        playlist_dirty_ = true;
+        update_ui();
+    };
+
+    button_open.on_select = [this, &nav]() {
+        // TODO: Prompt save first?
         auto open_view = nav.push<FileLoadView>(".PPL");
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+        open_view->on_changed = [this](fs::path new_file_path) {
             on_file_changed(new_file_path);
         };
+    };
+
+    button_save.on_select = [this]() {
+        // TODO: Save, but need to geneate PPL in some cases.
+    };
+
+    button_prev.on_select = [this]() {
+        --current_track_;
+        if (at_end())
+            current_track_ = playlist_db_.size() - 1;
+        update_ui();
+    };
+
+    button_next.on_select = [this]() {
+        ++current_track_;
+        if (at_end())
+            current_track_ = 0;
+        update_ui();
     };
 
     update_ui();
