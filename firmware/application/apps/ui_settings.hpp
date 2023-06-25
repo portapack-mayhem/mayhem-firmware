@@ -280,12 +280,16 @@ class SetUIView : public View {
         {17 * 8, 14 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
-    ImageToggle toggle_speaker{
+    ImageToggle toggle_mute{
         {18 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_speaker_and_headphones_mute};
+
+    ImageToggle toggle_speaker{
+        {20 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
     ImageToggle toggle_sd_card{
-        {20 * 8, 14 * 16 + 2, 16, 16},
+        {22 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -424,11 +428,6 @@ class SetAudioView : public View {
         {10, 99},
         1,
         '0'};
-
-    Checkbox checkbox_speaker_disable{
-        {2 * 8, 6 * 16},
-        25,
-        "Disable AK speaker amp"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
