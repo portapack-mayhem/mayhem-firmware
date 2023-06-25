@@ -30,7 +30,8 @@ using options_t = std::vector<option_t>;
 options_t freqman_entry_modulations = {
     {"AM", 0},
     {"NFM", 1},
-    {"WFM", 2}};
+    {"WFM", 2},
+    {"SPEC", 3}};
 
 options_t freqman_entry_bandwidths[4] = {
     {// AM
@@ -48,6 +49,25 @@ options_t freqman_entry_bandwidths[4] = {
         {"40k", 2},
         {"180k", 1},
         {"200k", 0},
+    },
+    {
+        // SPEC
+        {"8k5", 8500},
+        {"11k", 11000},
+        {"16k", 16000},
+        {"25k", 25000},
+        {"50k", 50000},
+        {"100k", 100000},
+        {"250k", 250000},
+        {"500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/
+        {"600k", 600000}, /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec) */
+        {"650k", 650000},
+        {"750k", 750000}, /* From this BW onwards, the LCD is ok, but the recorded file is decimated, (not real file size) */
+        {"1100k", 1100000},
+        {"1750k", 1750000},
+        {"2000k", 2000000},
+        {"2500k", 2500000},
+        {"2750k", 2750000},  // That is our max Capture option, to keep using later / 8 decimation (22Mhz sampling  ADC)
     }};
 
 options_t freqman_entry_steps = {

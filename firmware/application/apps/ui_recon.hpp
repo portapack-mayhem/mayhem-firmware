@@ -84,6 +84,8 @@ class ReconView : public View {
     bool recon_load_config_from_sd();
     bool recon_save_config_to_sd();
     bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
+    // placeholder for possible void recon_start_recording();
+    void recon_stop_recording();
 
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
     int32_t squelch{0};
@@ -108,6 +110,8 @@ class ReconView : public View {
     bool fwd{true};
     bool recon{true};
     bool user_pause{false};
+    bool auto_record_locked{false};
+    bool is_recording{false};
     uint32_t recon_lock_nb_match{3};
     uint32_t recon_lock_duration{RECON_MIN_LOCK_DURATION};
     uint32_t recon_match_mode{RECON_MATCH_CONTINUOUS};
@@ -118,10 +122,7 @@ class ReconView : public View {
     int32_t index_stepper{0};
     int64_t freq{0};
     uint32_t step{0};
-    freqman_index_t def_modulation{0};
-    freqman_index_t def_bandwidth{0};
     freqman_index_t def_step{0};
-    tone_index tone{0};
     freqman_entry last_entry{};
     bool entry_has_changed{false};
     uint32_t freq_lock{0};
@@ -141,13 +142,15 @@ class ReconView : public View {
     int32_t last_squelch_index{-1};
     int64_t last_freq{0};
     std::string freq_file_path{};
+    systime_t chrono_start{};
+    systime_t chrono_end{};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
         {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
         {{0 * 8, (22 * 8)}, "                S:          ", Color::light_grey()},
         {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Color::light_grey()},
-        {{0 * 8, (26 * 8) + 4}, "MODE:    ,       SQUELCH:    ", Color::light_grey()}};
+        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Color::light_grey()}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};
@@ -272,11 +275,11 @@ class ReconView : public View {
 
     OptionsField field_mode{
         {6 * 8, (26 * 8) + 4},
-        3,
+        4,
         {}};
 
     OptionsField field_bw{
-        {10 * 8, (26 * 8) + 4},
+        {11 * 8, (26 * 8) + 4},
         6,
         {}};
 

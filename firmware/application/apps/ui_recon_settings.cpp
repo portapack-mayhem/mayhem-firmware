@@ -103,6 +103,7 @@ void ReconSetupViewMore::save() {
     persistent_memory::set_recon_load_ranges(checkbox_load_ranges.value());
     persistent_memory::set_recon_load_hamradios(checkbox_load_hamradios.value());
     persistent_memory::set_recon_update_ranges_when_recon(checkbox_update_ranges_when_recon.value());
+    persistent_memory::set_recon_auto_record_locked(checkbox_auto_record_locked.value());
 };
 
 void ReconSetupViewMain::focus() {
@@ -117,12 +118,14 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
     add_children({&checkbox_load_freqs,
                   &checkbox_load_ranges,
                   &checkbox_load_hamradios,
-                  &checkbox_update_ranges_when_recon});
+                  &checkbox_update_ranges_when_recon,
+                  &checkbox_auto_record_locked});
 
     checkbox_load_freqs.set_value(persistent_memory::recon_load_freqs());
     checkbox_load_ranges.set_value(persistent_memory::recon_load_ranges());
     checkbox_load_hamradios.set_value(persistent_memory::recon_load_hamradios());
     checkbox_update_ranges_when_recon.set_value(persistent_memory::recon_update_ranges_when_recon());
+    checkbox_auto_record_locked.set_value(persistent_memory::recon_auto_record_locked());
 };
 
 void ReconSetupViewMore::focus() {

@@ -822,6 +822,9 @@ bool recon_load_hamradios() {
 bool recon_match_mode() {
     return (data->recon_config & 0x00800000UL) ? true : false;
 }
+bool recon_auto_record_locked() {
+    return (data->recon_config & 0x00400000UL) ? true : false;
+}
 
 void set_recon_autosave_freqs(const bool v) {
     data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
@@ -849,6 +852,9 @@ void set_recon_load_hamradios(const bool v) {
 }
 void set_recon_match_mode(const bool v) {
     data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23);
+}
+void set_recon_auto_record_locked(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00400000UL) | (v << 22);
 }
 
 /* UI Config 2 */
@@ -925,24 +931,25 @@ void set_config_converter_freq(int64_t v) {
     data->converter_frequency_offset = v;
 }
 
-// frequency correction settings
+// Frequency correction settings
+
 bool config_freq_tx_correction_updown() {
     return data->updown_frequency_tx_correction;
 }
-void set_freq_tx_correction_updown(bool v) {
-    data->updown_frequency_tx_correction = v;
-}
 bool config_freq_rx_correction_updown() {
     return data->updown_frequency_rx_correction;
-}
-void set_freq_rx_correction_updown(bool v) {
-    data->updown_frequency_rx_correction = v;
 }
 uint32_t config_freq_tx_correction() {
     return data->frequency_tx_correction;
 }
 uint32_t config_freq_rx_correction() {
     return data->frequency_rx_correction;
+}
+void set_freq_tx_correction_updown(bool v) {
+    data->updown_frequency_tx_correction = v;
+}
+void set_freq_rx_correction_updown(bool v) {
+    data->updown_frequency_rx_correction = v;
 }
 void set_config_freq_tx_correction(uint32_t v) {
     data->frequency_tx_correction = v;
@@ -951,7 +958,8 @@ void set_config_freq_rx_correction(uint32_t v) {
     data->frequency_rx_correction = v;
 }
 
-// rotary encoder dial settings
+// Rotary encoder dial settings
+
 uint8_t config_encoder_dial_sensitivity() {
     return data->encoder_dial_sensitivity;
 }
@@ -959,11 +967,12 @@ void set_encoder_dial_sensitivity(uint8_t v) {
     data->encoder_dial_sensitivity = v;
 }
 
+// PMem to sdcard settings
+
 bool should_use_sdcard_for_pmem() {
     return std::filesystem::file_exists(PMEM_FILEFLAG);
 }
 
-// sd persisting settings
 int save_persistent_settings_to_file() {
     std::string filename = PMEM_SETTING_FILE;
     delete_file(filename);
@@ -987,9 +996,13 @@ int load_persistent_settings_from_file() {
     return false;
 }
 
+// Pmem size helper
+
 size_t data_size() {
     return sizeof(data_t);
 }
+
+// Dump pmem, receiver and transmitter models internals in human readable format
 
 bool debug_dump() {
     ui::Painter painter{};
@@ -1000,6 +1013,7 @@ bool debug_dump() {
     make_new_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
     if (filename.empty()) {
+        painter.draw_string({0, 320 - 16}, ui::Styles::red, "COULD NOT GET DUMP NAME !");
         return false;
     }
     // dump data fo filename
@@ -1008,7 +1022,6 @@ bool debug_dump() {
         painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
         return false;
     }
-
     // write persistent memory
     pmem_dump_file.write_line("[Persistent Memory]");
 
@@ -1075,7 +1088,6 @@ bool debug_dump() {
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
-
     // receiver_model
     pmem_dump_file.write_line("[Receiver Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(receiver_model.target_frequency()));
@@ -1121,9 +1133,8 @@ bool debug_dump() {
     pmem_dump_file.write_line("sampling_rate: " + to_string_dec_uint(transmitter_model.sampling_rate()));
     pmem_dump_file.write_line("tx_gain: " + to_string_dec_int(transmitter_model.tx_gain()));
     pmem_dump_file.write_line("channel_bandwidth: " + to_string_dec_uint(transmitter_model.channel_bandwidth()));
-
+    // on screen information
     painter.draw_string({0, 320 - 16}, ui::Styles::green, filename.filename().string() + " DUMPED !");
-
     return true;
 }
 

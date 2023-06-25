@@ -27,6 +27,7 @@
 
 #include "touch.hpp"
 
+// Must be same values as in ui::KeyEvent
 enum class Switch {
     Right = 0,
     Left = 1,
@@ -44,6 +45,8 @@ void controls_init();
 SwitchesState get_switches_state();
 EncoderPosition get_encoder_position();
 touch::Frame get_touch_frame();
+void switches_long_press_enable(SwitchesState v);
+bool switch_long_press_occurred(size_t v);
 
 namespace control {
 namespace debug {

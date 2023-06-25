@@ -59,10 +59,11 @@ enum freqman_entry_type : int8_t {
     NOTYPE       // undetected
 };
 
-enum freqman_entry_modulation : int8_t {
+enum freqman_entry_modulation : uint8_t {
     AM_MODULATION = 0,
     NFM_MODULATION,
     WFM_MODULATION,
+    SPEC_MODULATION,
 };
 
 // Entry step placed for AlainD freqman version (or any other enhanced version)
