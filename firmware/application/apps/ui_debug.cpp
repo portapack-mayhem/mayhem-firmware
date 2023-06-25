@@ -248,6 +248,7 @@ void ControlsSwitchesWidget::on_show() {
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
     key_event_mask = 1 << toUType(key);
+    long_press_key_event_mask = switch_long_press_occurred((size_t)key) ? key_event_mask : 0;
     return true;
 }
 
@@ -325,6 +326,14 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
 
         switches_event >>= 1;
     }
+
+    switches_event = long_press_key_event_mask;
+    for (const auto r : events_rects) {
+        if (switches_event & 1)
+            painter.fill_rectangle(r + pos, Color::cyan());
+
+        switches_event >>= 1;
+    }
 }
 
 void ControlsSwitchesWidget::on_frame_sync() {
@@ -335,12 +344,21 @@ void ControlsSwitchesWidget::on_frame_sync() {
 
 DebugControlsView::DebugControlsView(NavigationView& nav) {
     add_children({
-        &text_title,
+        &labels,
         &switches_widget,
+        &options_switches_mode,
         &button_done,
     });
 
-    button_done.on_select = [&nav](Button&) { nav.pop(); };
+    button_done.on_select = [&nav](Button&) {
+        switches_long_press_enable(0);
+        nav.pop();
+    };
+
+    options_switches_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        (void)v;
+        switches_long_press_enable(options_switches_mode.selected_index_value());
+    };
 }
 
 void DebugControlsView::focus() {

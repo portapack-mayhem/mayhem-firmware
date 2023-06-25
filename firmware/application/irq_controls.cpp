@@ -195,14 +195,31 @@ void controls_init() {
 
 SwitchesState get_switches_state() {
     SwitchesState result;
+
+    // Right, Left, Down, Up, & Select switches
     for (size_t i = 0; i < result.size() - 1; i++) {
         // TODO: Ignore multiple keys at the same time?
         result[i] = switch_debounce[i].state();
     }
 
-    result[result.size() - 1] = switch_debounce[switch_debounce.size() - 1].state();
-
+    // Grab Dfu switch from bit 7 and return in bit 5 so that all switches are grouped together in this 6-bit result
+    result[(size_t)Switch::Dfu] = switch_debounce[7].state();
     return result;
+}
+
+// Configure which switches support long press (note those switches will not support Repeat function)
+void switches_long_press_enable(SwitchesState switches_long_press_enabled) {
+    // Right, Left, Down, Up, & Select switches
+    for (size_t i = 0; i < switches_long_press_enabled.size() - 1; i++) {
+        switch_debounce[i].set_long_press_support(switches_long_press_enabled[i]);
+    }
+
+    // Dfu switch
+    switch_debounce[7].set_long_press_support(switches_long_press_enabled[(size_t)Switch::Dfu]);
+}
+
+bool switch_long_press_occurred(size_t v) {
+    return (v == (size_t)Switch::Dfu) ? switch_debounce[7].long_press_occurred() : switch_debounce[v].long_press_occurred();
 }
 
 EncoderPosition get_encoder_position() {
