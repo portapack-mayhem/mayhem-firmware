@@ -42,6 +42,7 @@ void ReconView::recon_stop_recording() {
     if (is_recording) {
         button_audio_app.set_style(&Styles::white);
         record_view->stop();
+        button_config.set_style(&Styles::white);  // disable config while recording as it's causing an IO error pop up at exit
         is_recording = false;
     }
 }
@@ -820,6 +821,8 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_config.on_select = [this, &nav](Button&) {
+        if (is_recording)  // disabling config while recording
+            return;
         clear_freqlist_for_ui_action();
         freq_lock = 0;
         timer = 0;
@@ -1090,6 +1093,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (auto_record_locked && !is_recording) {
                         button_audio_app.set_style(&Styles::red);
                         record_view->start();
+                        button_config.set_style(&Styles::grey);  // disable config while recording as it's causing an IO error pop up at exit
                         is_recording = true;
                     }
                     // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
