@@ -79,6 +79,10 @@ int Painter::draw_string(
 }
 
 void Painter::draw_bitmap(Point p, const Bitmap& bitmap, Color foreground, Color background) {
+    // If bright foreground colors on white background, darken the foreground color to improve visibility
+    if ((background.v == ui::Color::white().v) && (foreground.to_greyscale() > 175))
+        foreground = foreground.dark();
+
     display.draw_bitmap(p, bitmap.size, bitmap.data, foreground, background);
 }
 
