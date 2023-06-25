@@ -38,7 +38,7 @@ class Debounce {
     bool feed(const uint8_t bit);
 
     uint8_t state() const {
-        return pulse_upon_release_? 0 : state_;
+        return (pulse_upon_release_) ? 0 : state_;
     }
 
     void enable_repeat() {
