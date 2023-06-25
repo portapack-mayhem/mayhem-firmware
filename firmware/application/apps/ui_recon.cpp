@@ -39,10 +39,10 @@ void ReconView::set_loop_config(bool v) {
 }
 
 void ReconView::recon_stop_recording() {
-    if (recon_is_recording) {
+    if (is_recording) {
         button_audio_app.set_style(&Styles::white);
         record_view->stop();
-        recon_is_recording = false;
+        is_recording = false;
     }
 }
 
@@ -376,7 +376,6 @@ ReconView::~ReconView() {
 ReconView::ReconView(NavigationView& nav)
     : nav_{nav} {
     chrono_start = chTimeNow();
-
     record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
     add_children({&labels,
                   &field_lna,
@@ -414,7 +413,7 @@ ReconView::ReconView(NavigationView& nav)
                   &button_restart,
                   &button_mic_app,
                   &button_remove,
-                  &(*record_view)});
+                  record_view});
 
     record_view->hidden(true);
     record_view->set_filename_date_frequency(true);
@@ -445,7 +444,7 @@ ReconView::ReconView(NavigationView& nav)
     load_ranges = persistent_memory::recon_load_ranges();
     load_hamradios = persistent_memory::recon_load_hamradios();
     update_ranges = persistent_memory::recon_update_ranges_when_recon();
-    recon_auto_record_locked = persistent_memory::recon_auto_record_locked();
+    auto_record_locked = persistent_memory::recon_auto_record_locked();
 
     button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
         clear_freqlist_for_ui_action();
@@ -838,7 +837,7 @@ ReconView::ReconView(NavigationView& nav)
             load_ranges = persistent_memory::recon_load_ranges();
             load_hamradios = persistent_memory::recon_load_hamradios();
             update_ranges = persistent_memory::recon_update_ranges_when_recon();
-            recon_auto_record_locked = persistent_memory::recon_auto_record_locked();
+            auto_record_locked = persistent_memory::recon_auto_record_locked();
 
             frequency_file_load(false);
             freqlist_cleared_for_ui_action = false;
@@ -858,6 +857,7 @@ ReconView::ReconView(NavigationView& nav)
 
     field_wait.on_change = [this](int32_t v) {
         wait = v;
+        // replacing -100 by 200 else it's freezing the device
         if (wait == -100)
             wait = -200;
         colorize_waits();
@@ -1087,10 +1087,10 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (field_mode.selected_index_value() != SPEC_MODULATION)
                         audio_output_start();
                     // contents of a possible recon_start_recording(), but not yet since it's only called once
-                    if (recon_auto_record_locked && !recon_is_recording) {
+                    if (auto_record_locked && !is_recording) {
                         button_audio_app.set_style(&Styles::red);
                         record_view->start();
-                        recon_is_recording = true;
+                        is_recording = true;
                     }
                     // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
                     if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
@@ -1336,19 +1336,19 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
     recon_stop_recording();
     if (new_mod != SPEC_MODULATION) {
-        remove_children({&(*record_view)});
+        remove_children({record_view});
         delete record_view;
         record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
-        add_children({&(*record_view)});
+        add_children({record_view});
     }
     if (new_mod == SPEC_MODULATION) {
         audio::output::stop();
-        remove_children({&(*record_view)});
+        remove_children({record_view});
         delete record_view;
         record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_RAW_", u"CAPTURES", RecordView::FileType::RawS16, 16384, 3);
         record_view->set_filename_date_frequency(true);
-        add_children({&(*record_view)});
+        add_children({record_view});
     }
     record_view->hidden(true);
     record_view->on_error = [this](std::string message) {
