@@ -127,7 +127,7 @@ class SpectrumPainterView : public View {
     OptionsField option_bandwidth{
         {4 * 8, footer_location + 2 * 16},
         5,
-        {BW_OPTIONS}};
+        {}};
 
     NumberField field_duration{
         {13 * 8, footer_location + 2 * 16},

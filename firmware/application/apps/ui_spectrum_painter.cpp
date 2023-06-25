@@ -57,6 +57,8 @@ SpectrumPainterView::SpectrumPainterView(
     input_image.set_parent_rect(view_rect);
     input_text.set_parent_rect(view_rect);
 
+    freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
+
     field_frequency.set_step(5000);
 
     tx_gain = transmitter_model.tx_gain();
