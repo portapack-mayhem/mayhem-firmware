@@ -30,6 +30,7 @@ namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav)
     : nav_{nav} {
+    freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     baseband::run_image(portapack::spi_flash::image_tag_capture);
 
     add_children({

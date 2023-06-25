@@ -31,23 +31,7 @@
 #include "ui_spectrum.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
-
-#define BW_OPTIONS                                                                                                             \
-    {"  8k5", 8500},                                                                                                           \
-        {"  11k", 11000},                                                                                                      \
-        {"  16k", 16000},                                                                                                      \
-        {"  25k", 25000},                                                                                                      \
-        {"  50k", 50000},                                                                                                      \
-        {" 100k", 100000},                                                                                                     \
-        {" 250k", 250000},                                                                                                     \
-        {" 500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/               \
-        {" 600k", 600000}, /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec) */   \
-        {" 750k", 750000}, /* From this BW onwards, the LCD is ok, but the recorded file is decimated, (not real file size) */ \
-        {"1100k", 1100000},                                                                                                    \
-        {"1750k", 1750000},                                                                                                    \
-        {"2000k", 2000000},                                                                                                    \
-        {"2500k", 2500000},                                                                                                    \
-        {"2750k", 2750000},  // That is our max Capture option, to keep using later / 8 decimation (22Mhz sampling  ADC)
+#include "freqman.hpp"
 
 namespace ui {
 
@@ -103,7 +87,7 @@ class CaptureAppView : public View {
     OptionsField option_bandwidth{
         {5 * 8, 1 * 16},
         5,
-        {BW_OPTIONS}};
+        {}};
 
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
