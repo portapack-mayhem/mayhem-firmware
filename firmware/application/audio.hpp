@@ -43,6 +43,7 @@ class Codec {
 
     virtual void speaker_enable() = 0;
     virtual void speaker_disable() = 0;
+    virtual bool speaker_disable_supported() const = 0;
 
     virtual void headphone_enable() = 0;
     virtual void headphone_disable() = 0;
@@ -107,6 +108,7 @@ size_t reg_bits();
 
 void init(audio::Codec* const codec);
 void shutdown();
+bool speaker_disable_supported();
 
 enum class Rate {
     Hz_12000 = 4,
