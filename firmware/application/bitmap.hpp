@@ -5493,6 +5493,82 @@ static constexpr Bitmap bitmap_arrow_right{
     {16, 16},
     bitmap_arrow_right_data};
 
+static constexpr uint8_t bitmap_icon_speaker_and_headphones_data[] = {
+    0x20,
+    0x10,
+    0x30,
+    0x20,
+    0x38,
+    0x44,
+    0x3E,
+    0x48,
+    0x3E,
+    0x91,
+    0x3E,
+    0x92,
+    0x38,
+    0x92,
+    0x30,
+    0x92,
+    0x20,
+    0x92,
+    0x00,
+    0x92,
+    0x30,
+    0x91,
+    0x48,
+    0x48,
+    0x84,
+    0x44,
+    0x84,
+    0x20,
+    0x86,
+    0x11,
+    0x86,
+    0x01,
+};
+static constexpr Bitmap bitmap_icon_speaker_and_headphones{
+    {16, 16},
+    bitmap_icon_speaker_and_headphones_data};
+
+static constexpr uint8_t bitmap_icon_speaker_and_headphones_mute_data[] = {
+    0x40,
+    0x00,
+    0x60,
+    0x44,
+    0x70,
+    0x6C,
+    0x7C,
+    0x38,
+    0x7C,
+    0x10,
+    0x7C,
+    0x38,
+    0x70,
+    0x6C,
+    0x60,
+    0x44,
+    0x40,
+    0x00,
+    0x00,
+    0x44,
+    0x30,
+    0x6C,
+    0x48,
+    0x38,
+    0x84,
+    0x10,
+    0x84,
+    0x38,
+    0x86,
+    0x6D,
+    0x86,
+    0x45,
+};
+static constexpr Bitmap bitmap_icon_speaker_and_headphones_mute{
+    {16, 16},
+    bitmap_icon_speaker_and_headphones_mute_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
