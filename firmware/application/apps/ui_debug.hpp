@@ -235,7 +235,6 @@ class ControlsSwitchesWidget : public Widget {
     uint8_t key_event_mask;
     uint8_t long_press_key_event_mask;
 
-
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
