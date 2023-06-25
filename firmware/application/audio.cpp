@@ -269,4 +269,8 @@ void set_rate(const Rate rate) {
     clock_manager.set_base_audio_clock_divider(toUType(rate));
 }
 
+bool speaker_disable_supported() {
+    return audio_codec->speaker_disable_supported();
+}
+
 } /* namespace audio */
