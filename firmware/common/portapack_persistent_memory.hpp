@@ -252,6 +252,7 @@ void set_recon_match_mode(const bool v);
 
 /* UI Config 2 */
 bool ui_hide_speaker();
+bool ui_hide_mute();
 bool ui_hide_converter();
 bool ui_hide_stealth();
 bool ui_hide_camera();
@@ -260,6 +261,7 @@ bool ui_hide_bias_tee();
 bool ui_hide_clock();
 bool ui_hide_sd_card();
 void set_ui_hide_speaker(bool v);
+void set_ui_hide_mute(bool v);
 void set_ui_hide_converter(bool v);
 void set_ui_hide_stealth(bool v);
 void set_ui_hide_camera(bool v);
