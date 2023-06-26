@@ -34,6 +34,17 @@ class Optional {
     constexpr Optional(T&& value)
         : value_{std::move(value)}, valid_{true} {}
 
+    constexpr Optional& operator=(const T& value) {
+        value_ = value;
+        valid_ = true;
+        return *this;
+    }
+    constexpr Optional& operator=(T&& value) {
+        value_ = std::move(value);
+        valid_ = true;
+        return *this;
+    }
+
     bool is_valid() const { return valid_; }
     operator bool() const { return valid_; }
 

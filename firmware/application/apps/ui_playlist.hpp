@@ -90,7 +90,7 @@ class PlaylistView : public View {
         const std::filesystem::path& path,
         const std::string& message);
 
-    const playlist_entry* current() const;
+    playlist_entry* current();
 
     bool is_active() const;
     bool at_end() const;
@@ -110,10 +110,8 @@ class PlaylistView : public View {
     Text text_filename{
         {0 * 8, 0 * 16, 30 * 8, 16}};
 
-    // TODO: delay duration field.
-    // TODO: TxFrequencyField to edit entry frequency.
-    Text text_frequency{
-        {0 * 8, 1 * 16, 9 * 8, 16}};
+    FrequencyField field_frequency{
+        {0 * 8, 1 * 16}};
 
     Text text_sample_rate{
         {10 * 8, 1 * 16, 7 * 8, 16}};
@@ -126,6 +124,8 @@ class PlaylistView : public View {
 
     Text text_duration{
         {0 * 8, 2 * 16, 5 * 8, 16}};
+
+    // TODO: delay duration field.
 
     TransmitterView2 tx_view{
         9 * 8, 1 * 8, SHORT_UI};
