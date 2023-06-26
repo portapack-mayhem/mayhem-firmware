@@ -837,6 +837,10 @@ class AK4951 : public audio::Codec {
     void speaker_enable();
     void speaker_disable();
 
+    bool speaker_disable_supported() const override {
+        return true;
+    }
+
     void set_headphone_volume(const volume_t volume) override;
     void headphone_mute();
 

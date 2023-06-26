@@ -265,9 +265,11 @@ struct ui_config2_t {
     bool hide_clock : 1;
     bool hide_sd_card : 1;
 
+    bool hide_mute : 1;
+    bool UNUSED : 7;
+
     uint8_t placeholder_1;
     uint8_t placeholder_2;
-    uint8_t placeholder_3;
 };
 static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
 
@@ -861,6 +863,9 @@ void set_recon_auto_record_locked(const bool v) {
 bool ui_hide_speaker() {
     return data->ui_config2.hide_speaker;
 }
+bool ui_hide_mute() {
+    return data->ui_config2.hide_mute;
+}
 bool ui_hide_converter() {
     return data->ui_config2.hide_converter;
 }
@@ -885,6 +890,9 @@ bool ui_hide_sd_card() {
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
+}
+void set_ui_hide_mute(bool v) {
+    data->ui_config2.hide_mute = v;
 }
 void set_ui_hide_converter(bool v) {
     data->ui_config2.hide_converter = v;
@@ -1084,6 +1092,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_bias_tee: " + to_string_dec_uint(data->ui_config2.hide_bias_tee));
     pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(data->ui_config2.hide_clock));
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
+    pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(data->ui_config2.hide_mute));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));

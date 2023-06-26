@@ -184,6 +184,9 @@ void speaker_unmute() {
 
 void update_audio_mute() {
     cfg_speaker_disable = portapack::persistent_memory::config_speaker_disable();
+    if (cfg_speaker_disable) {
+        audio_codec->speaker_disable();
+    }
 
     if (portapack::persistent_memory::config_audio_mute())
         speaker_mute();
@@ -267,6 +270,10 @@ void shutdown() {
 
 void set_rate(const Rate rate) {
     clock_manager.set_base_audio_clock_divider(toUType(rate));
+}
+
+bool speaker_disable_supported() {
+    return audio_codec->speaker_disable_supported();
 }
 
 } /* namespace audio */

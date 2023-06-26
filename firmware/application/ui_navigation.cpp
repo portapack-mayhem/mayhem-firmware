@@ -183,6 +183,10 @@ SystemStatusView::SystemStatusView(
         this->on_speaker();
     };
 
+    button_mute.on_select = [this](ImageButton&) {
+        this->on_mute();
+    };
+
     button_stealth.on_select = [this](ImageButton&) {
         this->on_stealth();
     };
@@ -218,18 +222,32 @@ void SystemStatusView::refresh() {
     if (!pmem::ui_hide_converter()) status_icons.add(&button_converter);
     if (!pmem::ui_hide_bias_tee()) status_icons.add(&button_bias_tee);
     if (!pmem::ui_hide_clock()) status_icons.add(&button_clock_status);
-    if (!pmem::ui_hide_speaker()) status_icons.add(&button_speaker);
+    if (!pmem::ui_hide_mute()) status_icons.add(&button_mute);
+
+    // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
+    if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker())
+        status_icons.add(&button_speaker);
+
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
     status_icons.update_layout();
 
     // Update icon display (try to keep all in on place).
-    // Speaker
-    if (pmem::config_audio_mute()) {
+    // Speaker Enable/Disable (AK4951 boards only)
+    if (pmem::config_speaker_disable()) {
         button_speaker.set_foreground(Color::light_grey());
         button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
     } else {
         button_speaker.set_foreground(Color::green());
         button_speaker.set_bitmap(&bitmap_icon_speaker);
+    }
+
+    // Audio Mute (both headphones & speaker)
+    if (pmem::config_audio_mute()) {
+        button_mute.set_foreground(Color::light_grey());
+        button_mute.set_bitmap(&bitmap_icon_speaker_and_headphones_mute);
+    } else {
+        button_mute.set_foreground(Color::green());
+        button_mute.set_bitmap(&bitmap_icon_speaker_and_headphones);
     }
 
     // Clock status
@@ -295,6 +313,12 @@ void SystemStatusView::on_converter() {
 }
 
 void SystemStatusView::on_speaker() {
+    pmem::set_config_speaker_disable(!pmem::config_speaker_disable());
+    audio::output::update_audio_mute();
+    refresh();
+}
+
+void SystemStatusView::on_mute() {
     pmem::set_config_audio_mute(!pmem::config_audio_mute());
     audio::output::update_audio_mute();
     refresh();

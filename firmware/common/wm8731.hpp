@@ -345,6 +345,9 @@ class WM8731 : public audio::Codec {
 
     void speaker_enable(){};
     void speaker_disable(){};
+    bool speaker_disable_supported() const override {
+        return false;
+    }
 
     void microphone_enable(int8_t wm8731_boost_GUI) override {
         microphone_mute(true);  // c/m to reduce "plop noise" when changing wm8731_boost_GUI.

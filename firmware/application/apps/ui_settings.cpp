@@ -259,10 +259,15 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &toggle_converter,
                   &toggle_bias_tee,
                   &toggle_clock,
-                  &toggle_speaker,
+                  &toggle_mute,
                   &toggle_sd_card,
                   &button_save,
                   &button_cancel});
+
+    // Display "Disable speaker" option only if AK4951 Codec which has separate speaker/headphone control
+    if (audio::speaker_disable_supported()) {
+        add_child(&toggle_speaker);
+    }
 
     checkbox_disable_touchscreen.set_value(pmem::disable_touchscreen());
     checkbox_showsplash.set_value(pmem::config_splash());
@@ -287,6 +292,7 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_bias_tee.set_value(!pmem::ui_hide_bias_tee());
     toggle_clock.set_value(!pmem::ui_hide_clock());
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
+    toggle_mute.set_value(!pmem::ui_hide_mute());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
 
     button_save.on_select = [&nav, this](Button&) {
@@ -312,6 +318,7 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_bias_tee(!toggle_bias_tee.value());
         pmem::set_ui_hide_clock(!toggle_clock.value());
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
+        pmem::set_ui_hide_mute(!toggle_mute.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
         send_system_refresh();
 
@@ -549,16 +556,13 @@ void SetPersistentMemoryView::focus() {
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
-                  &checkbox_speaker_disable,
                   &button_save,
                   &button_cancel});
 
     field_tone_mix.set_value(pmem::tone_mix());
-    checkbox_speaker_disable.set_value(pmem::config_speaker_disable());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_tone_mix(field_tone_mix.value());
-        pmem::set_config_speaker_disable(checkbox_speaker_disable.value());
         audio::output::update_audio_mute();
         nav.pop();
     };
