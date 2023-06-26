@@ -264,7 +264,9 @@ struct ui_config2_t {
     bool hide_bias_tee : 1;
     bool hide_clock : 1;
     bool hide_sd_card : 1;
+
     bool hide_mute : 1;
+    bool UNUSED : 7;
 
     uint8_t placeholder_1;
     uint8_t placeholder_2;
