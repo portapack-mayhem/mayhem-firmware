@@ -40,6 +40,10 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
+/* TODO
+ * - Should frequency overrides be saved in the playlist?
+ */
+
 namespace ui {
 
 void PlaylistView::load_file(const fs::path& playlist_path) {
@@ -79,11 +83,9 @@ Optional<PlaylistView::playlist_entry> PlaylistView::load_entry(fs::path&& path)
     auto metadata_path = get_metadata_path(path);
     auto metadata = read_metadata_file(metadata_path);
 
-    // TODO: For now, require a metadata file. Eventually,
-    // allow a user-defined center_freq like there was in Replay.
-    // metadata = {0, 500'000};
+    // If no metadata found, fallback to the TX frequency.
     if (!metadata)
-        return {};
+        metadata = {transmitter_model.target_frequency(), 500'000};
 
     return playlist_entry{
         std::move(path),
@@ -125,6 +127,8 @@ void PlaylistView::open_file(bool prompt_save) {
 void PlaylistView::save_file(bool show_dialogs) {
     if (!playlist_dirty_ || playlist_path_.empty())
         return;
+
+    ensure_directory(playlist_path_.parent_path());
 
     File playlist_file;
     auto error = playlist_file.create(playlist_path_.string());
@@ -185,7 +189,7 @@ void PlaylistView::show_file_error(const fs::path& path, const std::string& mess
     nav_.display_modal("Error", "Error opening file \n" + path.string() + "\n" + message);
 }
 
-const PlaylistView::playlist_entry* PlaylistView::current() const {
+PlaylistView::playlist_entry* PlaylistView::current() {
     return playlist_db_.empty() ? nullptr : &playlist_db_[current_index_];
 }
 
@@ -289,10 +293,9 @@ void PlaylistView::stop() {
 
 void PlaylistView::update_ui() {
     if (playlist_db_.empty()) {
-        text_filename.set("");
+        text_filename.set("-");
         text_sample_rate.set("-");
         text_duration.set("-");
-        text_frequency.set("-");
 
         if (playlist_path_.empty())
             text_track.set("Open playlist or add capture.");
@@ -311,7 +314,7 @@ void PlaylistView::update_ui() {
 
         auto duration = ms_duration(current()->file_size, current()->metadata.sample_rate, 4);
         text_duration.set(to_string_time_ms(duration));
-        text_frequency.set(to_string_short_freq(current()->metadata.center_frequency));
+        field_frequency.set_value(current()->metadata.center_frequency);
 
         text_track.set(
             to_string_dec_uint(current_index_ + 1) + "/" +
@@ -355,7 +358,7 @@ PlaylistView::PlaylistView(
         &text_duration,
         &progressbar_track,
         &progressbar_transmit,
-        &text_frequency,
+        &field_frequency,
         &tx_view,
         &check_loop,
         &button_play,
@@ -370,6 +373,18 @@ PlaylistView::PlaylistView(
     });
 
     waterfall.show_audio_spectrum_view(false);
+
+    field_frequency.set_value(100'000'000);
+    field_frequency.on_change = [this](rf::Frequency f) {
+        if (current())
+            current()->metadata.center_frequency = f;
+    };
+    field_frequency.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_frequency.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            field_frequency.set_value(f);
+        };
+    };
 
     button_play.on_select = [this](ImageButton&) {
         toggle();

@@ -25,6 +25,8 @@
 
 namespace ui {
 
+static const char16_t* firmware_folder = u"/FIRMWARE";
+
 Thread* FlashUtilityView::thread{nullptr};
 static constexpr size_t max_filename_length = 26;
 
@@ -35,7 +37,9 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
-    for (const auto& entry : std::filesystem::directory_iterator(u"FIRMWARE", u"*.bin")) {
+    ensure_directory(firmware_folder);
+
+    for (const auto& entry : std::filesystem::directory_iterator(firmware_folder, u"*.bin")) {
         auto filename = entry.path().filename();
         auto path = entry.path().native();
 
