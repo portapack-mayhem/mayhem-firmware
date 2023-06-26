@@ -184,8 +184,9 @@ void speaker_unmute() {
 
 void update_audio_mute() {
     cfg_speaker_disable = portapack::persistent_memory::config_speaker_disable();
-    if (cfg_speaker_disable)
+    if (cfg_speaker_disable) {
         audio_codec->speaker_disable();
+    }
 
     if (portapack::persistent_memory::config_audio_mute())
         speaker_mute();
