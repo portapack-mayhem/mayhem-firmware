@@ -131,10 +131,12 @@ class StatusTray : public View {
     StatusTray(const StatusTray&) = delete;
     StatusTray& operator=(const StatusTray&) = delete;
 
+    void add_button(ImageButton* child);
     void add(Widget* child);
     void update_layout();
     void clear();
     void paint(Painter& painter) override;
+    uint8_t width() { return width_; };
 
    private:
     static constexpr uint8_t height = 16;
@@ -142,6 +144,7 @@ class StatusTray : public View {
     // track of the right edge.
     const Point pos_{};
     uint8_t width_{};
+    bool shading_{};
 };
 
 class SystemStatusView : public View {
