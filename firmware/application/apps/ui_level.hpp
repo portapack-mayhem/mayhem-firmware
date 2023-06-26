@@ -91,7 +91,7 @@ class LevelView : public View {
 
     OptionsField field_mode{
         {15 * 8, 1 * 16},
-        3,
+        4,
         {}};
 
     OptionsField step_mode{
