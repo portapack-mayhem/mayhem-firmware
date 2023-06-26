@@ -111,7 +111,7 @@ StatusTray::StatusTray(Point pos)
 }
 
 void StatusTray::add_button(ImageButton* child) {
-    child->set_background((shading_)? Color::dark_grey() : Color::darker_grey());
+    child->set_background((shading_) ? Color::dark_grey() : Color::darker_grey());
     shading_ = !shading_;
     add(child);
 }
@@ -306,7 +306,7 @@ void SystemStatusView::set_title(const std::string new_value) {
     } else {
         // Limit length of title string to prevent partial characters if too many StatusView icons
         size_t max_len = (240 - 16 - 7 - status_icons.width()) / 8;
-        title.set(truncate(new_value,max_len));
+        title.set(truncate(new_value, max_len));
     }
 }
 
