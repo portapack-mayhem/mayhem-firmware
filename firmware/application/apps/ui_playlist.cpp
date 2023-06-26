@@ -83,8 +83,9 @@ Optional<PlaylistView::playlist_entry> PlaylistView::load_entry(fs::path&& path)
     auto metadata_path = get_metadata_path(path);
     auto metadata = read_metadata_file(metadata_path);
 
+    // If no metadata found, fallback to the TX frequency.
     if (!metadata)
-        metadata = {100'000'000, 500'000};
+        metadata = {transmitter_model.target_frequency(), 500'000};
 
     return playlist_entry{
         std::move(path),
@@ -126,6 +127,8 @@ void PlaylistView::open_file(bool prompt_save) {
 void PlaylistView::save_file(bool show_dialogs) {
     if (!playlist_dirty_ || playlist_path_.empty())
         return;
+
+    ensure_directory(playlist_path_.parent_path());
 
     File playlist_file;
     auto error = playlist_file.create(playlist_path_.string());
