@@ -110,6 +110,12 @@ StatusTray::StatusTray(Point pos)
     set_focusable(false);
 }
 
+void StatusTray::add_button(ImageButton* child) {
+    child->set_background((shading_) ? Color::dark_grey() : Color::darker_grey());
+    shading_ = !shading_;
+    add(child);
+}
+
 void StatusTray::add(Widget* child) {
     width_ += child->parent_rect().width();
     add_child(child);
@@ -136,6 +142,7 @@ void StatusTray::clear() {
         child->set_parent(nullptr);
     children_.clear();
     width_ = 0;
+    shading_ = false;
     set_parent_rect({pos_, {width_, height}});
     set_dirty();
 }
@@ -216,17 +223,17 @@ void SystemStatusView::refresh() {
     // NB: Order of insertion is the display order Left->Right.
     // TODO: Might be better to support hide and only add once.
     status_icons.clear();
-    if (!pmem::ui_hide_camera()) status_icons.add(&button_camera);
-    if (!pmem::ui_hide_sleep()) status_icons.add(&button_sleep);
-    if (!pmem::ui_hide_stealth()) status_icons.add(&button_stealth);
-    if (!pmem::ui_hide_converter()) status_icons.add(&button_converter);
-    if (!pmem::ui_hide_bias_tee()) status_icons.add(&button_bias_tee);
-    if (!pmem::ui_hide_clock()) status_icons.add(&button_clock_status);
-    if (!pmem::ui_hide_mute()) status_icons.add(&button_mute);
+    if (!pmem::ui_hide_camera()) status_icons.add_button(&button_camera);
+    if (!pmem::ui_hide_sleep()) status_icons.add_button(&button_sleep);
+    if (!pmem::ui_hide_stealth()) status_icons.add_button(&button_stealth);
+    if (!pmem::ui_hide_converter()) status_icons.add_button(&button_converter);
+    if (!pmem::ui_hide_bias_tee()) status_icons.add_button(&button_bias_tee);
+    if (!pmem::ui_hide_clock()) status_icons.add_button(&button_clock_status);
+    if (!pmem::ui_hide_mute()) status_icons.add_button(&button_mute);
 
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker())
-        status_icons.add(&button_speaker);
+        status_icons.add_button(&button_speaker);
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
     status_icons.update_layout();
@@ -297,7 +304,9 @@ void SystemStatusView::set_title(const std::string new_value) {
     if (new_value.empty()) {
         title.set(default_title);
     } else {
-        title.set(new_value);
+        // Limit length of title string to prevent partial characters if too many StatusView icons
+        size_t max_len = (240 - 16 - 7 - status_icons.width()) / 8;
+        title.set(truncate(new_value, max_len));
     }
 }
 
