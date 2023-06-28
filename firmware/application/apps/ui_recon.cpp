@@ -30,8 +30,6 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
-static RecordView* record_view = NULL;
-
 void ReconView::set_loop_config(bool v) {
     continuous = v;
     button_loop_config.set_style(v ? &Styles::green : &Styles::white);
@@ -365,7 +363,6 @@ void ReconView::focus() {
 
 ReconView::~ReconView() {
     recon_stop_recording();
-    delete record_view;
     recon_save_config_to_sd();
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
@@ -377,7 +374,9 @@ ReconView::~ReconView() {
 ReconView::ReconView(NavigationView& nav)
     : nav_{nav} {
     chrono_start = chTimeNow();
-    record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
+    record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                               u"AUTO_AUDIO_", u"AUDIO",
+                                               RecordView::FileType::WAV, 4096, 4);
     add_children({&labels,
                   &field_lna,
                   &field_vga,
@@ -414,7 +413,7 @@ ReconView::ReconView(NavigationView& nav)
                   &button_restart,
                   &button_mic_app,
                   &button_remove,
-                  record_view});
+                  record_view.get()});
 
     record_view->hidden(true);
     record_view->set_filename_date_frequency(true);
@@ -1339,25 +1338,26 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
     recon_stop_recording();
-    if (new_mod != SPEC_MODULATION) {
-        remove_children({record_view});
-        delete record_view;
-        record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
-        record_view->set_filename_date_frequency(true);
-        add_children({record_view});
-    }
+    remove_child(record_view.get());
+
     if (new_mod == SPEC_MODULATION) {
         audio::output::stop();
-        remove_children({record_view});
-        delete record_view;
-        record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_RAW_", u"CAPTURES", RecordView::FileType::RawS16, 16384, 3);
-        record_view->set_filename_date_frequency(true);
-        add_children({record_view});
+        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                   u"AUTO_RAW_", u"CAPTURES",
+                                                   RecordView::FileType::RawS16, 16384, 3);
+    } else {
+        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                   u"AUTO_AUDIO_", u"AUDIO",
+                                                   RecordView::FileType::WAV, 4096, 4);
     }
+
     record_view->hidden(true);
+    record_view->set_filename_date_frequency(true);
     record_view->on_error = [this](std::string message) {
         nav_.display_modal("Error", message);
     };
+    add_child(record_view.get());
+
     receiver_model.disable();
     baseband::shutdown();
     size_t recording_sampling_rate = 0;
