@@ -42,6 +42,7 @@ namespace fs = std::filesystem;
 
 /* TODO
  * - Should frequency overrides be saved in the playlist?
+ * - Start playing from current track (vs start over)?
  */
 
 namespace ui {
@@ -252,7 +253,7 @@ void PlaylistView::send_current_track() {
         return;
     }
 
-    // ReplayThread starts immediately on contruction so
+    // ReplayThread starts immediately on construction so
     // these need to be set before creating the ReplayThread.
     transmitter_model.set_target_frequency(current()->metadata.center_frequency);
     transmitter_model.set_sampling_rate(current()->metadata.sample_rate * 8);
@@ -391,6 +392,8 @@ PlaylistView::PlaylistView(
     };
 
     button_add.on_select = [this, &nav]() {
+        if (is_active())
+            return;
         auto open_view = nav_.push<FileLoadView>(".C16");
         open_view->on_changed = [this](fs::path path) {
             add_entry(std::move(path));
@@ -398,18 +401,26 @@ PlaylistView::PlaylistView(
     };
 
     button_delete.on_select = [this, &nav]() {
+        if (is_active())
+            return;
         delete_entry();
     };
 
     button_open.on_select = [this, &nav]() {
+        if (is_active())
+            stop();
         open_file();
     };
 
     button_save.on_select = [this]() {
+        if (is_active())
+            stop();
         save_file();
     };
 
     button_prev.on_select = [this]() {
+        if (is_active())
+            return;
         --current_index_;
         if (at_end())
             current_index_ = playlist_db_.size() - 1;
@@ -417,6 +428,8 @@ PlaylistView::PlaylistView(
     };
 
     button_next.on_select = [this]() {
+        if (is_active())
+            return;
         ++current_index_;
         if (at_end())
             current_index_ = 0;
