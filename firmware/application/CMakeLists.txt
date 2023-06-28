@@ -50,7 +50,7 @@ set(USE_CPPOPT "${USE_CPPOPT} -flto -fno-rtti -fno-exceptions -Weffc++ -Wuniniti
 set(USE_LINK_GC yes)
 
 # Linker extra options here.
-set(USE_LDOPT )
+set(USE_LDOPT)
 
 # Enable this if you want link time optimizations (LTO)
 set(USE_LTO no)
