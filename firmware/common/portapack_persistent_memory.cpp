@@ -1036,7 +1036,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("\n[Persistent Memory]");
 
     // full variables
-    pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(data->structure_version,8));
+    pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(data->structure_version, 8));
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(data->target_frequency));
     pmem_dump_file.write_line("correction_ppb: " + to_string_dec_int(data->correction_ppb));
     pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
@@ -1056,7 +1056,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
-    pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config,16));
+    pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config, 16));
     pmem_dump_file.write_line("placeholder_0: " + to_string_dec_int(data->placeholder_0));
     pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
