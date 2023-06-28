@@ -488,6 +488,24 @@ path operator/(const path& lhs, const path& rhs) {
     return result;
 }
 
+bool path_iequal(
+    const path& lhs,
+    const path& rhs) {
+    const auto& lhs_str = lhs.native();
+    const auto& rhs_str = rhs.native();
+
+    // NB: Not correct for Unicode/locales.
+    if (lhs_str.length() == rhs_str.length()) {
+        for (size_t i = 0; i < lhs_str.length(); ++i)
+            if (towupper(lhs_str[i]) != towupper(rhs_str[i]))
+                return false;
+
+        return true;
+    }
+
+    return false;
+}
+
 directory_iterator::directory_iterator(
     std::filesystem::path path,
     std::filesystem::path wild)

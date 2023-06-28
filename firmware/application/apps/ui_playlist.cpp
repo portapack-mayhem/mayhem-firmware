@@ -47,6 +47,10 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
+// TODO: consolidate extesions into a shared header?
+static const fs::path c16_ext = u".C16";
+static const fs::path ppl_ext = u".PPL";
+
 void PlaylistView::load_file(const fs::path& playlist_path) {
     File playlist_file;
     auto error = playlist_file.open(playlist_path.string());
@@ -104,7 +108,6 @@ void PlaylistView::on_file_changed(const fs::path& new_file_path) {
     load_file(playlist_path_);
 
     update_ui();
-    button_play.focus();
 }
 
 void PlaylistView::open_file(bool prompt_save) {
@@ -120,8 +123,10 @@ void PlaylistView::open_file(bool prompt_save) {
     }
 
     auto open_view = nav_.push<FileLoadView>(".PPL");
+    open_view->push_dir(u"PLAYLIST");
     open_view->on_changed = [this](fs::path new_file_path) {
         on_file_changed(new_file_path);
+        button_play.focus();
     };
 }
 
@@ -157,10 +162,8 @@ void PlaylistView::save_file(bool show_dialogs) {
 }
 
 void PlaylistView::add_entry(fs::path&& path) {
-    if (playlist_path_.empty()) {
+    if (playlist_path_.empty())
         playlist_path_ = next_filename_matching_pattern(u"/PLAYLIST/PLAY_????.PPL");
-        button_play.focus();
-    }
 
     auto entry = load_entry(std::move(path));
     if (entry) {
@@ -395,8 +398,13 @@ PlaylistView::PlaylistView(
         if (is_active())
             return;
         auto open_view = nav_.push<FileLoadView>(".C16");
+        open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
+            // Set focus to play only on the first "add".
+            auto set_focus = playlist_path_.empty();
             add_entry(std::move(path));
+            if (set_focus)
+                button_play.focus();
         };
     };
 
@@ -439,6 +447,17 @@ PlaylistView::PlaylistView(
     update_ui();
 }
 
+PlaylistView::PlaylistView(
+    NavigationView& nav,
+    const fs::path& path)
+    : PlaylistView(nav) {
+    auto ext = path.extension();
+    if (path_iequal(ext, ppl_ext))
+        on_file_changed(path);
+    else if (path_iequal(ext, c16_ext))
+        add_entry(fs::path{path});
+}
+
 PlaylistView::~PlaylistView() {
     transmitter_model.disable();
     baseband::shutdown();
@@ -459,8 +478,11 @@ void PlaylistView::on_hide() {
     View::on_hide();
 }
 
-void PlaylistView::focus() {
-    button_open.focus();
+void PlaylistView::on_show() {
+    if (playlist_path_.empty())
+        button_add.focus();
+    else
+        button_play.focus();
 }
 
 } /* namespace ui */

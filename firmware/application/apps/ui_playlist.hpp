@@ -45,11 +45,12 @@ namespace ui {
 class PlaylistView : public View {
    public:
     PlaylistView(NavigationView& nav);
+    PlaylistView(NavigationView& nav, const std::filesystem::path& path);
     ~PlaylistView();
 
     void set_parent_rect(Rect new_parent_rect) override;
     void on_hide() override;
-    void focus() override;
+    void on_show() override;
 
     std::string title() const override { return "Replay"; };
 
