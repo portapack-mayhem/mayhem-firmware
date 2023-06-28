@@ -177,6 +177,8 @@ const std::vector<Widget*>& Widget::children() const {
 }
 
 Context& Widget::context() const {
+    chDbgAssert(parent_, "parent_ is null",
+                "Check that parent isn't null before deref.");
     return parent()->context();
 }
 

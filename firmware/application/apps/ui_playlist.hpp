@@ -48,9 +48,10 @@ class PlaylistView : public View {
     PlaylistView(NavigationView& nav, const std::filesystem::path& path);
     ~PlaylistView();
 
+    // Following 2 called by 'NavigationView::update_view' after view is created.
     void set_parent_rect(Rect new_parent_rect) override;
+    void focus() override;
     void on_hide() override;
-    void on_show() override;
 
     std::string title() const override { return "Replay"; };
 
