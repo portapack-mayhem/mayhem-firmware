@@ -99,7 +99,6 @@ class DfuMenu2 : public View {
     Text text_info_line_8{{14 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
-
 } /* namespace ui */
 
 #endif /*__UI_DFU_MENU_H__*/
