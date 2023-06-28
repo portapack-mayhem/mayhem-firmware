@@ -1339,7 +1339,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
     recon_stop_recording();
     remove_child(record_view.get());
-
+    record_view.reset();
     if (new_mod == SPEC_MODULATION) {
         audio::output::stop();
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
@@ -1350,14 +1350,12 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
                                                    u"AUTO_AUDIO_", u"AUDIO",
                                                    RecordView::FileType::WAV, 4096, 4);
     }
-
+    add_child(record_view.get());
     record_view->hidden(true);
     record_view->set_filename_date_frequency(true);
     record_view->on_error = [this](std::string message) {
         nav_.display_modal("Error", message);
     };
-    add_child(record_view.get());
-
     receiver_model.disable();
     baseband::shutdown();
     size_t recording_sampling_rate = 0;
@@ -1440,14 +1438,12 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     }
     if (new_mod != SPEC_MODULATION)
         record_view->set_sampling_rate(recording_sampling_rate);
-
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
             change_mode(v);
         }
     };
-
     // for some motive, audio output gets stopped.
     if (!recon && field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::start();  // so if recon was stopped we resume audio
