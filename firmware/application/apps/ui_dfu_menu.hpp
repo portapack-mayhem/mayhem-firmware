@@ -84,9 +84,9 @@ class DfuMenu2 : public View {
         {{5 * CHARACTER_WIDTH, 6 * LINE_HEIGHT}, "Bandwidt:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 7 * LINE_HEIGHT}, "Sampl Rt:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 8 * LINE_HEIGHT}, "Modulatn:", Color::dark_cyan()},
-        {{5 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "AM cfg:" , Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "AM cfg:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 10 * LINE_HEIGHT}, "NBFM cfg:", Color::dark_cyan()},
-        {{5 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "WFM cfg: ", Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "WFM cfg:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "", Color::dark_cyan()}};
 
     Text text_info_line_1{{14 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
