@@ -26,6 +26,7 @@
 
 #include <algorithm>
 #include "ui_fileman.hpp"
+#include "ui_playlist.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_text_editor.hpp"
 #include "string_format.hpp"
@@ -34,6 +35,13 @@
 
 using namespace portapack;
 namespace fs = std::filesystem;
+
+namespace ui {
+static const fs::path txt_ext{u".TXT"};
+static const fs::path ppl_ext{u".PPL"};
+static const fs::path c16_ext{u".C16"};
+static const fs::path png_ext{u".PNG"};
+}  // namespace ui
 
 namespace {
 using namespace ui;
@@ -45,25 +53,6 @@ bool is_hidden_file(const fs::path& path) {
 // Gets a truncated name from a path for display.
 std::string truncate(const fs::path& path, size_t max_length) {
     return ::truncate(path.string(), max_length);
-}
-
-// Case insensitive path equality on underlying "native" string.
-bool iequal(
-    const fs::path& lhs,
-    const fs::path& rhs) {
-    const auto& lhs_str = lhs.native();
-    const auto& rhs_str = rhs.native();
-
-    // NB: Not correct for Unicode/locales.
-    if (lhs_str.length() == rhs_str.length()) {
-        for (size_t i = 0; i < lhs_str.length(); ++i)
-            if (towupper(lhs_str[i]) != towupper(rhs_str[i]))
-                return false;
-
-        return true;
-    }
-
-    return false;
 }
 
 // Inserts the entry into the entry list sorted directories first then by file name.
@@ -86,15 +75,12 @@ void insert_sorted(std::vector<fileman_entry>& entries, fileman_entry&& entry) {
 fs::path get_partner_file(fs::path path) {
     if (fs::is_directory(path))
         return {};
-
-    const fs::path txt_path{u".TXT"};
-    const fs::path c16_path{u".C16"};
     auto ext = path.extension();
 
-    if (iequal(ext, txt_path))
-        ext = c16_path;
-    else if (iequal(ext, c16_path))
-        ext = txt_path;
+    if (path_iequal(ext, txt_ext))
+        ext = c16_ext;
+    else if (path_iequal(ext, c16_ext))
+        ext = txt_ext;
     else
         return {};
 
@@ -163,7 +149,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
             continue;
 
         if (fs::is_regular_file(entry.status())) {
-            if (!filtering || iequal(entry.path().extension(), extension_filter))
+            if (!filtering || path_iequal(entry.path().extension(), extension_filter))
                 insert_sorted(entry_list, {entry.path(), (uint32_t)entry.size(), false});
         } else if (fs::is_directory(entry.status())) {
             insert_sorted(entry_list, {entry.path(), 0, true});
@@ -301,7 +287,7 @@ const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
     size_t index = 0;
 
     for (; index < file_types.size() - 1; ++index)
-        if (iequal(ext, file_types[index].extension))
+        if (path_iequal(ext, file_types[index].extension))
             return file_types[index];
 
     // Default to last entry in the list.
@@ -507,10 +493,14 @@ bool FileManagerView::handle_file_open() {
     auto path = get_selected_full_path();
     auto ext = path.extension();
 
-    if (iequal(u".TXT", ext) || iequal(u".PPL", ext)) {
+    if (path_iequal(txt_ext, ext)) {
         nav_.push<TextEditorView>(path);
         return true;
-    } else if (iequal(u".PNG", ext)) {
+    } else if (path_iequal(c16_ext, ext) || path_iequal(ppl_ext, ext)) {
+        // TODO: Enough memory to push?
+        nav_.push<PlaylistView>(path);
+        return true;
+    } else if (path_iequal(png_ext, ext)) {
         nav_.push<ScreenshotViewer>(path);
         return true;
     }

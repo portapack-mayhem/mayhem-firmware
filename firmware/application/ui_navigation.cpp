@@ -584,7 +584,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
         {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
-        {"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
+        //{"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
         {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
         //{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
     });
@@ -630,7 +630,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
         {"Receive", Color::cyan(), &bitmap_icon_receivers, [&nav]() { nav.push<ReceiversMenuView>(); }},
         {"Transmit", Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); }},
         {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
-        {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<ReplayAppView>(); }},
+        {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<PlaylistView>(); }},
         {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
         {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
         {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},

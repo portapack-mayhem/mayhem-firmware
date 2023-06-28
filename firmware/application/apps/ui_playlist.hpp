@@ -45,13 +45,14 @@ namespace ui {
 class PlaylistView : public View {
    public:
     PlaylistView(NavigationView& nav);
+    PlaylistView(NavigationView& nav, const std::filesystem::path& path);
     ~PlaylistView();
 
     void set_parent_rect(Rect new_parent_rect) override;
     void on_hide() override;
-    void focus() override;
+    void on_show() override;
 
-    std::string title() const override { return "Playlist"; };
+    std::string title() const override { return "Replay"; };
 
    private:
     NavigationView& nav_;
@@ -146,40 +147,40 @@ class PlaylistView : public View {
         {0 * 8, 3 * 16, 30 * 8, 16}};
 
     NewButton button_prev{
-        {0 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {2 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_arrow_left,
         Color::dark_grey()};
 
-    NewButton button_add{
+    NewButton button_next{
         {6 * 8, 4 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_arrow_right,
+        Color::dark_grey()};
+
+    NewButton button_add{
+        {11 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_new_file,
         Color::orange()};
 
     NewButton button_delete{
-        {10 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {15 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_delete,
         Color::orange()};
 
     NewButton button_open{
-        {16 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {20 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_load,
         Color::dark_blue()};
 
     NewButton button_save{
-        {20 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {24 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_save,
         Color::dark_blue()};
-
-    NewButton button_next{
-        {26 * 8, 4 * 16, 4 * 8, 2 * 16},
-        "",
-        &bitmap_arrow_right,
-        Color::dark_grey()};
 
     spectrum::WaterfallWidget waterfall{};
 

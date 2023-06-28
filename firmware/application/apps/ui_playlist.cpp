@@ -42,9 +42,14 @@ namespace fs = std::filesystem;
 
 /* TODO
  * - Should frequency overrides be saved in the playlist?
+ * - Start playing from current track (vs start over)?
  */
 
 namespace ui {
+
+// TODO: consolidate extesions into a shared header?
+static const fs::path c16_ext = u".C16";
+static const fs::path ppl_ext = u".PPL";
 
 void PlaylistView::load_file(const fs::path& playlist_path) {
     File playlist_file;
@@ -103,7 +108,6 @@ void PlaylistView::on_file_changed(const fs::path& new_file_path) {
     load_file(playlist_path_);
 
     update_ui();
-    button_play.focus();
 }
 
 void PlaylistView::open_file(bool prompt_save) {
@@ -119,8 +123,10 @@ void PlaylistView::open_file(bool prompt_save) {
     }
 
     auto open_view = nav_.push<FileLoadView>(".PPL");
+    open_view->push_dir(u"PLAYLIST");
     open_view->on_changed = [this](fs::path new_file_path) {
         on_file_changed(new_file_path);
+        button_play.focus();
     };
 }
 
@@ -156,10 +162,8 @@ void PlaylistView::save_file(bool show_dialogs) {
 }
 
 void PlaylistView::add_entry(fs::path&& path) {
-    if (playlist_path_.empty()) {
+    if (playlist_path_.empty())
         playlist_path_ = next_filename_matching_pattern(u"/PLAYLIST/PLAY_????.PPL");
-        button_play.focus();
-    }
 
     auto entry = load_entry(std::move(path));
     if (entry) {
@@ -252,7 +256,7 @@ void PlaylistView::send_current_track() {
         return;
     }
 
-    // ReplayThread starts immediately on contruction so
+    // ReplayThread starts immediately on construction so
     // these need to be set before creating the ReplayThread.
     transmitter_model.set_target_frequency(current()->metadata.center_frequency);
     transmitter_model.set_sampling_rate(current()->metadata.sample_rate * 8);
@@ -391,25 +395,40 @@ PlaylistView::PlaylistView(
     };
 
     button_add.on_select = [this, &nav]() {
+        if (is_active())
+            return;
         auto open_view = nav_.push<FileLoadView>(".C16");
+        open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
+            // Set focus to play only on the first "add".
+            auto set_focus = playlist_path_.empty();
             add_entry(std::move(path));
+            if (set_focus)
+                button_play.focus();
         };
     };
 
     button_delete.on_select = [this, &nav]() {
+        if (is_active())
+            return;
         delete_entry();
     };
 
     button_open.on_select = [this, &nav]() {
+        if (is_active())
+            stop();
         open_file();
     };
 
     button_save.on_select = [this]() {
+        if (is_active())
+            stop();
         save_file();
     };
 
     button_prev.on_select = [this]() {
+        if (is_active())
+            return;
         --current_index_;
         if (at_end())
             current_index_ = playlist_db_.size() - 1;
@@ -417,6 +436,8 @@ PlaylistView::PlaylistView(
     };
 
     button_next.on_select = [this]() {
+        if (is_active())
+            return;
         ++current_index_;
         if (at_end())
             current_index_ = 0;
@@ -424,6 +445,17 @@ PlaylistView::PlaylistView(
     };
 
     update_ui();
+}
+
+PlaylistView::PlaylistView(
+    NavigationView& nav,
+    const fs::path& path)
+    : PlaylistView(nav) {
+    auto ext = path.extension();
+    if (path_iequal(ext, ppl_ext))
+        on_file_changed(path);
+    else if (path_iequal(ext, c16_ext))
+        add_entry(fs::path{path});
 }
 
 PlaylistView::~PlaylistView() {
@@ -446,8 +478,11 @@ void PlaylistView::on_hide() {
     View::on_hide();
 }
 
-void PlaylistView::focus() {
-    button_open.focus();
+void PlaylistView::on_show() {
+    if (playlist_path_.empty())
+        button_add.focus();
+    else
+        button_play.focus();
 }
 
 } /* namespace ui */

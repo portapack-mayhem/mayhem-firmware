@@ -168,6 +168,9 @@ bool operator>(const path& lhs, const path& rhs);
 path operator+(const path& lhs, const path& rhs);
 path operator/(const path& lhs, const path& rhs);
 
+/* Case insensitive path equality on underlying "native" string. */
+bool path_iequal(const path& lhs, const path& rhs);
+
 using file_status = BYTE;
 
 static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
