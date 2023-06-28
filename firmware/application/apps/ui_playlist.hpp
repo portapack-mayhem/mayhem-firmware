@@ -150,7 +150,7 @@ class PlaylistView : public View {
         "",
         &bitmap_arrow_left,
         Color::dark_grey()};
-    
+
     NewButton button_next{
         {6 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
@@ -180,8 +180,6 @@ class PlaylistView : public View {
         "",
         &bitmap_icon_save,
         Color::dark_blue()};
-
-
 
     spectrum::WaterfallWidget waterfall{};
 
