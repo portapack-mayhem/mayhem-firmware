@@ -1030,11 +1030,13 @@ bool debug_dump() {
         painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
         return false;
     }
+    pmem_dump_file.write_line("FW version " VERSION_STRING);
+
     // write persistent memory
-    pmem_dump_file.write_line("[Persistent Memory]");
+    pmem_dump_file.write_line("\n[Persistent Memory]");
 
     // full variables
-    pmem_dump_file.write_line("structure_version: " + to_string_dec_uint(data->structure_version));
+    pmem_dump_file.write_line("structure_version: 0x" + to_string_hex(data->structure_version, 8));
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_int(data->target_frequency));
     pmem_dump_file.write_line("correction_ppb: " + to_string_dec_int(data->correction_ppb));
     pmem_dump_file.write_line("modem_def_index: " + to_string_dec_uint(data->modem_def_index));
@@ -1054,7 +1056,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("pocsag_ignore_address: " + to_string_dec_uint(data->pocsag_ignore_address));
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
-    pmem_dump_file.write_line("recon_config: " + to_string_dec_uint(data->recon_config));
+    pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config, 16));
     pmem_dump_file.write_line("placeholder_0: " + to_string_dec_int(data->placeholder_0));
     pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
@@ -1098,7 +1100,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
     // receiver_model
-    pmem_dump_file.write_line("[Receiver Model]");
+    pmem_dump_file.write_line("\n[Receiver Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(receiver_model.target_frequency()));
     pmem_dump_file.write_line("frequency_step: " + to_string_dec_uint(receiver_model.frequency_step()));
     pmem_dump_file.write_line("lna: " + to_string_dec_int(receiver_model.lna()));
@@ -1126,14 +1128,14 @@ bool debug_dump() {
             pmem_dump_file.write_line("modulation: !!unknown mode!!");
             break;
     }
-    pmem_dump_file.write_line("headphone_volume.centibel: " + to_string_dec_uint(receiver_model.headphone_volume().centibel()));
+    pmem_dump_file.write_line("headphone_volume.centibel: " + to_string_dec_int(receiver_model.headphone_volume().centibel()));
     pmem_dump_file.write_line("normalized_headphone_volume: " + to_string_dec_uint(receiver_model.normalized_headphone_volume()));
     pmem_dump_file.write_line("am_configuration: " + to_string_dec_uint(receiver_model.am_configuration()));
     pmem_dump_file.write_line("nbfm_configuration: " + to_string_dec_uint(receiver_model.nbfm_configuration()));
     pmem_dump_file.write_line("wfm_configuration: " + to_string_dec_uint(receiver_model.wfm_configuration()));
 
     // transmitter_model
-    pmem_dump_file.write_line("[Transmitter Model]");
+    pmem_dump_file.write_line("\n[Transmitter Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(transmitter_model.target_frequency()));
     pmem_dump_file.write_line("lna: " + to_string_dec_int(transmitter_model.lna()));
     pmem_dump_file.write_line("vga: " + to_string_dec_int(transmitter_model.vga()));
