@@ -22,6 +22,7 @@
 #include "ui_dfu_menu.hpp"
 #include "portapack_shared_memory.hpp"
 #include "performance_counter.hpp"
+#include "portapack.hpp"
 
 namespace ui {
 
@@ -77,6 +78,59 @@ void DfuMenu::paint(Painter& painter) {
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
          {17 * CHARACTER_WIDTH + margin * 2, 8}},
+        ui::Color::dark_cyan());
+}
+
+DfuMenu2::DfuMenu2(NavigationView& nav)
+    : nav_(nav) {
+    add_children({&text_head,
+                  &labels,
+                  &text_info_line_1,
+                  &text_info_line_2,
+                  &text_info_line_3,
+                  &text_info_line_4,
+                  &text_info_line_5,
+                  &text_info_line_6,
+                  &text_info_line_7,
+                  &text_info_line_8});
+}
+
+void DfuMenu2::paint(Painter& painter) {
+    text_info_line_1.set(to_string_dec_uint(portapack::receiver_model.target_frequency(), 10));
+    text_info_line_2.set(to_string_dec_uint(portapack::receiver_model.baseband_bandwidth(), 10));
+    text_info_line_3.set(to_string_dec_uint(portapack::receiver_model.sampling_rate(), 10));
+    text_info_line_4.set(to_string_dec_uint((uint32_t)portapack::receiver_model.modulation(), 10));
+    text_info_line_5.set(to_string_dec_uint(portapack::receiver_model.am_configuration(), 10));
+    text_info_line_6.set(to_string_dec_uint(portapack::receiver_model.nbfm_configuration(), 10));
+    text_info_line_7.set(to_string_dec_uint(portapack::receiver_model.wfm_configuration(), 10));
+    text_info_line_8.set("");
+
+    constexpr auto margin = 5;
+    constexpr auto lines = 8 + 2;
+
+    painter.fill_rectangle(
+        {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
+         {19 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
+        ui::Color::black());
+
+    painter.fill_rectangle(
+        {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
+         {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
+        ui::Color::dark_cyan());
+
+    painter.fill_rectangle(
+        {{24 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
+         {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
+        ui::Color::dark_cyan());
+
+    painter.fill_rectangle(
+        {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
+         {21 * CHARACTER_WIDTH + margin * 2, 8}},
+        ui::Color::dark_cyan());
+
+    painter.fill_rectangle(
+        {{4 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
+         {21 * CHARACTER_WIDTH + margin * 2, 8}},
         ui::Color::dark_cyan());
 }
 

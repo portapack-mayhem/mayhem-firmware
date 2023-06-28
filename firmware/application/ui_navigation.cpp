@@ -714,20 +714,27 @@ Context& SystemView::context() const {
 }
 
 void SystemView::toggle_overlay() {
-    if (overlay_active) {
-        this->remove_child(&this->overlay);
-        this->set_dirty();
-        shared_memory.request_m4_performance_counter = 0;
-    } else {
-        this->add_child(&this->overlay);
-        this->set_dirty();
-        shared_memory.request_m4_performance_counter = 1;
-        shared_memory.m4_cpu_usage = 0;
-        shared_memory.m4_heap_usage = 0;
-        shared_memory.m4_stack_usage = 0;
+    switch (++overlay_active) {
+        case 1:
+            this->add_child(&this->overlay);
+            this->set_dirty();
+            shared_memory.request_m4_performance_counter = 1;
+            shared_memory.m4_cpu_usage = 0;
+            shared_memory.m4_heap_usage = 0;
+            shared_memory.m4_stack_usage = 0;
+            break;
+        case 2:
+            this->remove_child(&this->overlay);
+            this->add_child(&this->overlay2);
+            this->set_dirty();
+            shared_memory.request_m4_performance_counter = 0;
+            break;
+        case 3:
+            this->remove_child(&this->overlay2);
+            this->set_dirty();
+            overlay_active = 0;
+            break;
     }
-
-    overlay_active = !overlay_active;
 }
 
 void SystemView::paint_overlay() {
@@ -738,7 +745,10 @@ void SystemView::paint_overlay() {
             return;
 
         last_paint_state = !last_paint_state;
-        this->overlay.set_dirty();
+        if (overlay_active == 1)
+            this->overlay.set_dirty();
+        else
+            this->overlay2.set_dirty();
     }
 }
 
