@@ -144,7 +144,6 @@ class StatusTray : public View {
     // track of the right edge.
     const Point pos_{};
     uint8_t width_{};
-    bool shading_{};
 };
 
 class SystemStatusView : public View {
