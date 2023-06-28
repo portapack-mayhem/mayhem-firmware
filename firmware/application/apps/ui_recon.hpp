@@ -145,6 +145,8 @@ class ReconView : public View {
     systime_t chrono_start{};
     systime_t chrono_end{};
 
+    std::unique_ptr<RecordView> record_view{};
+
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
         {{3 * 8, 8 * 16}, "START       END", Color::light_grey()},
