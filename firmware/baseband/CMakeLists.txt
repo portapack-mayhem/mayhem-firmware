@@ -32,7 +32,7 @@ include(CheckCXXCompilerFlag)
 project(baseband_shared)
 
 # Compiler options here.
-set(USE_OPT "-O2 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
+set(USE_OPT "-O3 -g -falign-functions=16 -fno-math-errno --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -44,13 +44,13 @@ if(cpp20_supported)
 else()
 	set(USE_CPPOPT "-std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -flto -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
 
 # Linker extra options here.
-set(USE_LDOPT)
+set(USE_LDOPT )
 
 # Enable this if you want link time optimizations (LTO)
 set(USE_LTO no)
