@@ -170,10 +170,6 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
             new_line = last_line;
             new_col = last_col;
         }
-
-        // Pressing right arrow on last character in file wraps back to first character in line
-        if ((cursor_.line == last_line) && (cursor_.col == last_col))
-            new_col = 0;
     }
 
     if (new_line < 0 || (uint32_t)new_line >= file_->line_count())
@@ -241,8 +237,8 @@ void TextViewer::paint_cursor(Painter& painter) {
     };
 
     // Clear old cursor. CONSIDER: XOR cursor?
-    draw_cursor(paint_state_.line, paint_state_.col, zoom? Styles::white.background : Styles::white_small.background);
-    draw_cursor(cursor_.line, cursor_.col, zoom? Styles::white.foreground : Styles::white_small.foreground);
+    draw_cursor(paint_state_.line, paint_state_.col, zoom ? Styles::white.background : Styles::white_small.background);
+    draw_cursor(cursor_.line, cursor_.col, zoom ? Styles::white.foreground : Styles::white_small.foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
