@@ -42,10 +42,9 @@ namespace ui {
 /* TextViewer *******************************************************/
 
 TextViewer::TextViewer(Rect parent_rect)
-    : Widget(parent_rect),
-      max_line{static_cast<uint8_t>(parent_rect.height() / char_height)},
-      max_col{static_cast<uint8_t>(parent_rect.width() / char_width)} {
+    : Widget(parent_rect) {
     set_focusable(true);
+    set_font_zoom(false);
 }
 
 void TextViewer::paint(Painter& painter) {
@@ -212,7 +211,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
         if (result && *result > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                Styles::white_small, {buffer, *result});
+                style(), {buffer, *result});
 
         // Clear empty line sections. This is less visually jarring than full clear.
         int32_t clear_width = max_col - (result ? *result : 0);
@@ -221,7 +220,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
                 {(max_col - clear_width) * char_width,
                  r.top() + (int)i * char_height,
                  clear_width * char_width, char_height},
-                Styles::white_small.background);
+                style().background);
     }
 }
 
@@ -242,8 +241,8 @@ void TextViewer::paint_cursor(Painter& painter) {
     };
 
     // Clear old cursor. CONSIDER: XOR cursor?
-    draw_cursor(paint_state_.line, paint_state_.col, Styles::white_small.background);
-    draw_cursor(cursor_.line, cursor_.col, Styles::white_small.foreground);
+    draw_cursor(paint_state_.line, paint_state_.col, style().background);
+    draw_cursor(cursor_.line, cursor_.col, style().foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
@@ -255,6 +254,15 @@ void TextViewer::reset_file(FileWrapper* file) {
     cursor_.line = 0;
     cursor_.col = 0;
     redraw(true);
+}
+
+void TextViewer::set_font_zoom(bool zoom) {
+    font_zoom = zoom;
+    font_style = font_zoom ? &Styles::white : &Styles::white_small;
+    char_height = style().font.line_height();
+    char_width = style().font.char_width();
+    max_line = (uint8_t)(parent_rect().height() / char_height);
+    max_col = (uint8_t)(parent_rect().width() / char_width);
 }
 
 /* TextEditorMenu ***************************************************/

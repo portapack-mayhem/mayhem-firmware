@@ -78,12 +78,17 @@ class TextViewer : public Widget {
     // Gets the length of the current line.
     uint16_t line_length();
 
-   private:
-    static constexpr int8_t char_width = 5;
-    static constexpr int8_t char_height = 8;
+    const Style& style() { return *font_style; }
+    void set_font_zoom(bool zoom);
+    void toggle_font_zoom() { set_font_zoom(!font_zoom); };
 
-    const uint8_t max_line = 32;
-    const uint8_t max_col = 48;
+   private:
+    bool font_zoom{};
+    const Style* font_style{};
+    int8_t char_width{};
+    int8_t char_height{};
+    uint8_t max_line{};
+    uint8_t max_col{};
 
     /* Returns true if the cursor was updated. */
     bool apply_scrolling_constraints(
@@ -126,11 +131,9 @@ class TextEditorMenu : public View {
     std::function<void()>& on_home() { return button_home.on_select; }
     std::function<void()>& on_end() { return button_end.on_select; }
     std::function<void()>& on_copy() { return button_copy.on_select; }
-
     std::function<void()>& on_delete_line() { return button_delline.on_select; }
     std::function<void()>& on_edit_line() { return button_edit.on_select; }
     std::function<void()>& on_add_line() { return button_addline.on_select; }
-
     std::function<void()>& on_open() { return button_open.on_select; }
     std::function<void()>& on_save() { return button_save.on_select; }
     std::function<void()>& on_exit() { return button_exit.on_select; }
@@ -154,11 +157,11 @@ class TextEditorMenu : public View {
         &bitmap_arrow_right,
         Color::dark_grey()};
 
-    NewButton button_copy{
+    NewButton button_zoom{
         {15 * 8, 1 * 8, 7 * 8, 7 * 8},
-        "Copy",
-        &bitmap_icon_copy,
-        Color::dark_grey()};
+        "Zoom",
+        &bitmap_icon_search,
+        Color::dark_green()};
 
     NewButton button_delline{
         {1 * 8, 8 * 8, 7 * 8, 7 * 8},
