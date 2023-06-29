@@ -119,10 +119,10 @@ class PlaylistView : public View {
         {10 * 8, 1 * 16, 7 * 8, 16}};
 
     ProgressBar progressbar_track{
-        {18 * 8, 1 * 16, 12 * 8, 8}};
+        {18 * 8, 1 * 16, 12 * 8, 8 + 1}};
 
     ProgressBar progressbar_transmit{
-        {18 * 8, 3 * 8, 12 * 8, 8}};
+        {18 * 8, 3 * 8 - 1, 12 * 8, 8}};
 
     Text text_duration{
         {0 * 8, 2 * 16, 5 * 8, 16}};

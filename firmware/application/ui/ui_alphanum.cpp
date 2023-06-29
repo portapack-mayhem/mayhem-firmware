@@ -70,8 +70,9 @@ AlphanumView::AlphanumView(
     field_raw.on_select = [this](NumberField&) {
         char_add(field_raw.value());
     };
+
     // make text_raw_to_char widget display the char value from field_raw
-    field_raw.on_change = [this](long int) {
+    field_raw.on_change = [this](auto) {
         text_raw_to_char.set("AKA:" + std::string{static_cast<char>(field_raw.value())});
     };
 }
