@@ -63,7 +63,7 @@ class GlassView : public View {
     GlassView& operator=(const GlassView& nav);
 
     ~GlassView();
-    std::string title() const override { return "LookingGlass"; };
+    std::string title() const override { return "Looking Glass"; };
 
     void on_show() override;
     void on_hide() override;
