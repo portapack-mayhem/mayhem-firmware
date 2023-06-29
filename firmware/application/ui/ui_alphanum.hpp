@@ -43,14 +43,14 @@ class AlphanumView : public TextEntryView {
     bool on_encoder(const EncoderEvent delta) override;
 
    private:
-    const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ, .<";
-    const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz, .<";
+    const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ, ._";
+    const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz, ._";
     const char* const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
 
     const std::pair<std::string, const char*> key_sets[3] = {
-        {"Upper", keys_upper},
-        {"Lower", keys_lower},
-        {"Digit", keys_digit}};
+        {"ABC", keys_upper},
+        {"abc", keys_lower},
+        {"123.", keys_digit}};
 
     int16_t focused_button = 0;
     uint32_t mode = 0;  // Uppercase
@@ -59,10 +59,6 @@ class AlphanumView : public TextEntryView {
     void on_button(Button& button);
 
     std::array<Button, 30> buttons{};
-
-    Button button_mode{
-        {21 * 8, 33 * 8, 8 * 8, 32},
-        ""};
 
     Text text_raw{
         {1 * 8, 33 * 8, 4 * 8, 16},
@@ -79,9 +75,13 @@ class AlphanumView : public TextEntryView {
         {1 * 8, 35 * 8, 4 * 8, 16},
         "AKA:0"};
 
-    Button button_ok{
-        {10 * 8, 33 * 8, 9 * 8, 32},
-        "OK"};
+    Button button_delete{
+        {10 * 8, 33 * 8, 4 * 8, 32},
+        "DEL"};
+
+    Button button_mode{
+        {16 * 8 - 2, 33 * 8, 4 * 8 + 2, 32},
+        ""};
 };
 
 } /* namespace ui */

@@ -37,10 +37,13 @@ AlphanumView::AlphanumView(
     : TextEntryView(nav, str, max_length) {
     size_t n;
 
-    add_children({&button_mode,
-                  &text_raw,
-                  &field_raw,
-                  &text_raw_to_char});
+    add_children({
+        &text_raw,
+        &field_raw,
+        &text_raw_to_char,
+        &button_delete,
+        &button_mode,
+    });
 
     const auto button_fn = [this](Button& button) {
         this->on_button(button);
@@ -64,6 +67,10 @@ AlphanumView::AlphanumView(
 
     button_mode.on_select = [this](Button&) {
         set_mode(mode + 1);
+    };
+
+    button_delete.on_select = [this](Button&) {
+        char_delete();
     };
 
     field_raw.set_value('0');
@@ -103,9 +110,9 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
 
-    if (c == '<')
-        char_delete();
-    else
+//    if (c == '<')
+//        char_delete();
+//    else
         char_add(c);
 }
 
