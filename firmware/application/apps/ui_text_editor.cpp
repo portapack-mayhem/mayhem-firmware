@@ -251,6 +251,15 @@ void TextViewer::reset_file(FileWrapper* file) {
     redraw(true);
 }
 
+void TextViewer::set_font_zoom(bool zoom) {
+    font_zoom = zoom;
+    font_style = font_zoom ? &Styles::white : &Styles::white_small;
+    char_height = style().font.line_height();
+    char_width = style().font.char_width();
+    max_line = (uint8_t)(parent_rect().height() / char_height);
+    max_col = (uint8_t)(parent_rect().width() / char_width);
+}
+
 /* TextEditorMenu ***************************************************/
 
 TextEditorMenu::TextEditorMenu()
