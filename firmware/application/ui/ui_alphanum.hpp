@@ -77,7 +77,7 @@ class AlphanumView : public TextEntryView {
 
     Text text_raw_to_char{
         {1 * 8, 35 * 8, 4 * 8, 16},
-        "AKA: "};
+        "AKA:0"};
 
     Button button_ok{
         {10 * 8, 33 * 8, 9 * 8, 32},
