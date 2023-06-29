@@ -57,7 +57,6 @@ class AlphanumView : public TextEntryView {
 
     void set_mode(const uint32_t new_mode);
     void on_button(Button& button);
-    void on_tick();
 
     std::array<Button, 30> buttons{};
 
