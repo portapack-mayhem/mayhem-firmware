@@ -170,6 +170,10 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
             new_line = last_line;
             new_col = last_col;
         }
+
+        // Pressing right arrow on last character in file wraps back to first character in line
+        if ((cursor_.line == last_line) && (cursor_.col == last_col))
+            new_col = 0;
     }
 
     if (new_line < 0 || (uint32_t)new_line >= file_->line_count())
@@ -207,7 +211,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
         if (result && *result > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                Styles::white_small, {buffer, *result});
+                zoom ? Styles::white : Styles::white_small, {buffer, *result});
 
         // Clear empty line sections. This is less visually jarring than full clear.
         int32_t clear_width = max_col - (result ? *result : 0);
@@ -216,7 +220,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
                 {(max_col - clear_width) * char_width,
                  r.top() + (int)i * char_height,
                  clear_width * char_width, char_height},
-                Styles::white_small.background);
+                zoom ? Styles::white.background : Styles::white_small.background);
     }
 }
 
@@ -237,8 +241,8 @@ void TextViewer::paint_cursor(Painter& painter) {
     };
 
     // Clear old cursor. CONSIDER: XOR cursor?
-    draw_cursor(paint_state_.line, paint_state_.col, Styles::white_small.background);
-    draw_cursor(cursor_.line, cursor_.col, Styles::white_small.foreground);
+    draw_cursor(paint_state_.line, paint_state_.col, zoom? Styles::white.background : Styles::white_small.background);
+    draw_cursor(cursor_.line, cursor_.col, zoom? Styles::white.foreground : Styles::white_small.foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
@@ -261,7 +265,7 @@ TextEditorMenu::TextEditorMenu()
             &rect_frame,
             &button_cut,
             &button_paste,
-            &button_copy,
+            &button_zoom,
             &button_delline,
             &button_edit,
             &button_addline,
@@ -316,8 +320,10 @@ TextEditorView::TextEditorView(NavigationView& nav)
     menu.on_paste() = [this]() {
         show_nyi();
     };
-    menu.on_copy() = [this]() {
-        show_nyi();
+    menu.on_zoom() = [this]() {
+        viewer.text_zoom(viewer.parent_rect());
+        refresh_ui();
+        hide_menu(true);
     };
 
     menu.on_delete_line() = [this]() {
