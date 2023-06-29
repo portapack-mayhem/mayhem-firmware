@@ -37,9 +37,13 @@ AlphanumView::AlphanumView(
     : TextEntryView(nav, str, max_length) {
     size_t n;
 
-    add_children({&button_mode,
-                  &text_raw,
-                  &field_raw});
+    add_children({
+        &labels,
+        &field_raw,
+        &text_raw_to_char,
+        &button_delete,
+        &button_mode,
+    });
 
     const auto button_fn = [this](Button& button) {
         this->on_button(button);
@@ -65,9 +69,18 @@ AlphanumView::AlphanumView(
         set_mode(mode + 1);
     };
 
+    button_delete.on_select = [this](Button&) {
+        char_delete();
+    };
+
     field_raw.set_value('0');
     field_raw.on_select = [this](NumberField&) {
         char_add(field_raw.value());
+    };
+
+    // make text_raw_to_char widget display the char value from field_raw
+    field_raw.on_change = [this](auto) {
+        text_raw_to_char.set(std::string{static_cast<char>(field_raw.value())});
     };
 }
 
@@ -96,11 +109,7 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
-
-    if (c == '<')
-        char_delete();
-    else
-        char_add(c);
+    char_add(c);
 }
 
 bool AlphanumView::on_encoder(const EncoderEvent delta) {
