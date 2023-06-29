@@ -157,6 +157,12 @@ class TextEditorMenu : public View {
         &bitmap_arrow_right,
         Color::dark_grey()};
 
+    NewButton button_copy{
+        {15 * 8, 1 * 8, 7 * 8, 7 * 8},
+        "Copy",
+        &bitmap_icon_copy,
+        Color::dark_grey()};
+
     NewButton button_zoom{
         {15 * 8, 1 * 8, 7 * 8, 7 * 8},
         "Zoom",
