@@ -75,20 +75,26 @@ class TextViewer : public Widget {
     // Gets the length of the current line.
     uint16_t line_length();
 
-    void text_zoom(Rect parent_rect) {
-        zoom = !zoom;
-        char_height = zoom ? 16 : 8;
-        char_width = zoom ? 8 : 5;
-        max_line = (uint8_t)(parent_rect.height() / char_height);
-        max_col = (uint8_t)(parent_rect.width() / char_width);
+    const Style& style() { return *font_style; }
+
+    void set_font_zoom(bool zoom) {
+        font_zoom = zoom;
+        font_style = font_zoom ? &Styles::white : &Styles::white_small;
+        char_height = style().font.line_height();
+        char_width = style().font.char_width();
+        max_line = (uint8_t)(parent_rect().height() / char_height);
+        max_col = (uint8_t)(parent_rect().width() / char_width);
     }
 
+    void toggle_font_zoom() { set_font_zoom(!font_zoom); };
+
    private:
-    bool zoom = 0;
-    int8_t char_width = 5;
-    int8_t char_height = 8;
-    uint8_t max_line = 32;
-    uint8_t max_col = 48;
+    bool font_zoom{};
+    const Style* font_style{};
+    int8_t char_width{};
+    int8_t char_height{};
+    uint8_t max_line{};
+    uint8_t max_col{};
 
     /* Returns true if the cursor was updated. */
     bool apply_scrolling_constraints(
