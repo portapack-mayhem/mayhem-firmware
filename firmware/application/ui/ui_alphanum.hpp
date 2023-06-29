@@ -50,7 +50,7 @@ class AlphanumView : public TextEntryView {
     const std::pair<std::string, const char*> key_sets[3] = {
         {"ABC", keys_upper},
         {"abc", keys_lower},
-        {"123.", keys_digit}};
+        {"123", keys_digit}};
 
     int16_t focused_button = 0;
     uint32_t mode = 0;  // Uppercase
@@ -60,9 +60,9 @@ class AlphanumView : public TextEntryView {
 
     std::array<Button, 30> buttons{};
 
-    Text text_raw{
-        {1 * 8, 33 * 8, 4 * 8, 16},
-        "Raw:"};
+    Labels labels_raw{
+        {{1 * 8, 33 * 8}, "Raw:", Color::light_grey()},
+        {{1 * 8, 35 * 8}, "AKA:", Color::light_grey()}};
 
     NumberField field_raw{
         {5 * 8, 33 * 8},
@@ -72,8 +72,8 @@ class AlphanumView : public TextEntryView {
         '0'};
 
     Text text_raw_to_char{
-        {1 * 8, 35 * 8, 4 * 8, 16},
-        "AKA:0"};
+        {5 * 8, 35 * 8, 4 * 8, 16},
+        "0"};
 
     Button button_delete{
         {10 * 8 - 2, 33 * 8, 4 * 8 + 2, 32},

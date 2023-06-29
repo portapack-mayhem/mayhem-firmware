@@ -38,7 +38,8 @@ AlphanumView::AlphanumView(
     size_t n;
 
     add_children({
-        &text_raw,
+        &labels_raw,
+        // &text_raw,
         &field_raw,
         &text_raw_to_char,
         &button_delete,
