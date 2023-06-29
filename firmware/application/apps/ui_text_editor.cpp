@@ -138,6 +138,16 @@ uint32_t TextViewer::offset() const {
     return 0;
 }
 
+void TextViewer::cursor_home() {
+    cursor_.col = 0;
+    redraw();
+}
+
+void TextViewer::cursor_end() {
+    cursor_.col = line_length() - 1;
+    redraw();
+}
+
 uint16_t TextViewer::line_length() {
     return file_->line_length(cursor_.line);
 }
@@ -158,18 +168,14 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
         ++new_line;
     }
 
-    // Snap to first/last to make navigating easier.
-    if (new_line < 0 && new_col > 0) {
+    // Snap to first/last line to make navigating easier.
+    if (new_line < 0 && cursor_.line > 0) {
         new_line = 0;
-        new_col = 0;
     } else if (new_line >= (int32_t)file_->line_count()) {
         auto last_line = file_->line_count() - 1;
-        int32_t last_col = file_->line_length(last_line) - 1;
 
-        if (new_col < last_col) {
+        if (cursor_.line < last_line)
             new_line = last_line;
-            new_col = last_col;
-        }
     }
 
     if (new_line < 0 || (uint32_t)new_line >= file_->line_count())
@@ -177,7 +183,6 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
 
     new_line_length = file_->line_length(new_line);
 
-    // TODO: don't wrap with encoder?
     // Wrap or clamp column.
     if (new_line_length == 0)
         new_col = 0;
@@ -259,8 +264,8 @@ TextEditorMenu::TextEditorMenu()
     add_children(
         {
             &rect_frame,
-            &button_cut,
-            &button_paste,
+            &button_home,
+            &button_end,
             &button_copy,
             &button_delline,
             &button_edit,
@@ -310,14 +315,17 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.hidden(true);
-    menu.on_cut() = [this]() {
-        show_nyi();
+    menu.on_home() = [this]() {
+        viewer.cursor_home();
+        hide_menu(true);
     };
-    menu.on_paste() = [this]() {
-        show_nyi();
+
+    menu.on_end() = [this]() {
+        viewer.cursor_end();
+        hide_menu(true);
     };
+
     menu.on_copy() = [this]() {
-        show_nyi();
     };
 
     menu.on_delete_line() = [this]() {
@@ -488,10 +496,6 @@ void TextEditorView::show_edit_line() {
         refresh_ui();
         hide_menu(true);
     });
-}
-
-void TextEditorView::show_nyi() {
-    nav_.display_modal("Soon...", "Coming soon.");
 }
 
 void TextEditorView::show_save_prompt(std::function<void()> continuation) {

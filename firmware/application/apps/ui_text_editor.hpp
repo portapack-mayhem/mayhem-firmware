@@ -72,6 +72,9 @@ class TextViewer : public Widget {
     uint32_t col() const { return cursor_.col; }
     uint32_t offset() const;
 
+    void cursor_home();
+    void cursor_end();
+
     // Gets the length of the current line.
     uint16_t line_length();
 
@@ -120,8 +123,8 @@ class TextEditorMenu : public View {
     void on_show() override;
     void on_hide() override;
 
-    std::function<void()>& on_cut() { return button_cut.on_select; }
-    std::function<void()>& on_paste() { return button_paste.on_select; }
+    std::function<void()>& on_home() { return button_home.on_select; }
+    std::function<void()>& on_end() { return button_end.on_select; }
     std::function<void()>& on_copy() { return button_copy.on_select; }
 
     std::function<void()>& on_delete_line() { return button_delline.on_select; }
@@ -139,16 +142,16 @@ class TextEditorMenu : public View {
         {0 * 8, 0 * 8, 23 * 8, 23 * 8},
         Color::dark_grey()};
 
-    NewButton button_cut{
+    NewButton button_home{
         {1 * 8, 1 * 8, 7 * 8, 7 * 8},
-        "Cut",
-        &bitmap_icon_cut,
+        "Home",
+        &bitmap_arrow_left,
         Color::dark_grey()};
 
-    NewButton button_paste{
+    NewButton button_end{
         {8 * 8, 1 * 8, 7 * 8, 7 * 8},
-        "Paste",
-        &bitmap_icon_paste,
+        "End",
+        &bitmap_arrow_right,
         Color::dark_grey()};
 
     NewButton button_copy{
@@ -220,7 +223,6 @@ class TextEditorView : public View {
     void hide_menu(bool hidden = true);
     void show_file_picker(bool immediate = true);
     void show_edit_line();
-    void show_nyi();
     void show_save_prompt(std::function<void()> continuation);
 
     void prepare_for_write();
