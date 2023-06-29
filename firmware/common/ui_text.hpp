@@ -86,6 +86,8 @@ class Font {
     Glyph glyph(const char c) const;
 
     Dim line_height() const;
+    Dim char_width() const;
+
     Size size_of(const std::string s) const;
 
    private:

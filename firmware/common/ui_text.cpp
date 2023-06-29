@@ -39,6 +39,10 @@ Dim Font::line_height() const {
     return h;
 }
 
+Dim Font::char_width() const {
+    return w;
+}
+
 Size Font::size_of(const std::string s) const {
     Size size;
 
