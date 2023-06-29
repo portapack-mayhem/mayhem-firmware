@@ -130,7 +130,7 @@ class TextEditorMenu : public View {
 
     std::function<void()>& on_home() { return button_home.on_select; }
     std::function<void()>& on_end() { return button_end.on_select; }
-    std::function<void()>& on_copy() { return button_copy.on_select; }
+    std::function<void()>& on_zoom() { return button_zoom.on_select; }
     std::function<void()>& on_delete_line() { return button_delline.on_select; }
     std::function<void()>& on_edit_line() { return button_edit.on_select; }
     std::function<void()>& on_add_line() { return button_addline.on_select; }
@@ -155,12 +155,6 @@ class TextEditorMenu : public View {
         {8 * 8, 1 * 8, 7 * 8, 7 * 8},
         "End",
         &bitmap_arrow_right,
-        Color::dark_grey()};
-
-    NewButton button_copy{
-        {15 * 8, 1 * 8, 7 * 8, 7 * 8},
-        "Copy",
-        &bitmap_icon_copy,
         Color::dark_grey()};
 
     NewButton button_zoom{

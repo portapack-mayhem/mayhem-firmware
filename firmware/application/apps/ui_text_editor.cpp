@@ -274,7 +274,7 @@ TextEditorMenu::TextEditorMenu()
             &rect_frame,
             &button_home,
             &button_end,
-            &button_copy,
+            &button_zoom,
             &button_delline,
             &button_edit,
             &button_addline,
@@ -333,7 +333,10 @@ TextEditorView::TextEditorView(NavigationView& nav)
         hide_menu(true);
     };
 
-    menu.on_copy() = [this]() {
+    menu.on_zoom() = [this]() {
+        viewer.toggle_font_zoom();
+        refresh_ui();
+        hide_menu(true);
     };
 
     menu.on_delete_line() = [this]() {
