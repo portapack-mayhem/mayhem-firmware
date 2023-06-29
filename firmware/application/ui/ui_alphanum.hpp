@@ -45,7 +45,7 @@ class AlphanumView : public TextEntryView {
    private:
     const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ, ._";
     const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz, ._";
-    const char* const keys_digit = "0123456789!\"#'()*+-/:;=>?@[\\]<";
+    const char* const keys_digit = "0123456789!\"#'()*+-/:;=<>@[\\]?";
 
     const std::pair<std::string, const char*> key_sets[3] = {
         {"ABC", keys_upper},
