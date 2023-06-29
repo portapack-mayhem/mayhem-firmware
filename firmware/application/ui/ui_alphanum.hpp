@@ -60,7 +60,7 @@ class AlphanumView : public TextEntryView {
 
     std::array<Button, 30> buttons{};
 
-    Labels labels_raw{
+    Labels labels{
         {{1 * 8, 33 * 8}, "Raw:", Color::light_grey()},
         {{1 * 8, 35 * 8}, "AKA:", Color::light_grey()}};
 
