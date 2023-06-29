@@ -110,10 +110,10 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
 
-//    if (c == '<')
-//        char_delete();
-//    else
-        char_add(c);
+    // if (c == '<')
+    //     char_delete();
+    // else
+    char_add(c);
 }
 
 bool AlphanumView::on_encoder(const EncoderEvent delta) {
