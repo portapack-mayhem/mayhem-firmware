@@ -39,7 +39,8 @@ AlphanumView::AlphanumView(
 
     add_children({&button_mode,
                   &text_raw,
-                  &field_raw});
+                  &field_raw,
+                  &text_raw_to_char});
 
     const auto button_fn = [this](Button& button) {
         this->on_button(button);
@@ -68,6 +69,10 @@ AlphanumView::AlphanumView(
     field_raw.set_value('0');
     field_raw.on_select = [this](NumberField&) {
         char_add(field_raw.value());
+    };
+    // make text_raw_to_char widget display the char value from field_raw
+    field_raw.on_change = [this](long int) {
+        text_raw_to_char.set("AKA:" + std::string{static_cast<char>(field_raw.value())});
     };
 }
 

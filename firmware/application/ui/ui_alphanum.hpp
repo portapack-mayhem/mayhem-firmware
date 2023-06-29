@@ -57,6 +57,7 @@ class AlphanumView : public TextEntryView {
 
     void set_mode(const uint32_t new_mode);
     void on_button(Button& button);
+    void on_tick();
 
     std::array<Button, 30> buttons{};
 
@@ -67,12 +68,17 @@ class AlphanumView : public TextEntryView {
     Text text_raw{
         {1 * 8, 33 * 8, 4 * 8, 16},
         "Raw:"};
+
     NumberField field_raw{
         {5 * 8, 33 * 8},
         3,
         {1, 255},
         1,
         '0'};
+
+    Text text_raw_to_char{
+        {1 * 8, 35 * 8, 4 * 8, 16},
+        "AKA: "};
 
     Button button_ok{
         {10 * 8, 33 * 8, 9 * 8, 32},
