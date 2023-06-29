@@ -40,7 +40,7 @@ class FlashUtilityView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "Flash Utility"; };  // Removed the space because the title and speaker icon overlapped.
+    std::string title() const override { return "Flash Utility"; };
 
    private:
     NavigationView& nav_;
