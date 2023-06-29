@@ -80,7 +80,7 @@ AlphanumView::AlphanumView(
 
     // make text_raw_to_char widget display the char value from field_raw
     field_raw.on_change = [this](auto) {
-        text_raw_to_char.set("AKA:" + std::string{static_cast<char>(field_raw.value())});
+        text_raw_to_char.set(std::string{static_cast<char>(field_raw.value())});
     };
 }
 
@@ -109,10 +109,6 @@ void AlphanumView::set_mode(const uint32_t new_mode) {
 
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
-
-    // if (c == '<')
-    //     char_delete();
-    // else
     char_add(c);
 }
 
