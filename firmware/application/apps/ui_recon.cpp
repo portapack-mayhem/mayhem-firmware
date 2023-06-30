@@ -1426,32 +1426,20 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 }
 
 void ReconView::handle_coded_squelch(const uint32_t value) {
-    float diff{0.0};
-    float min_diff{(float)value};
-    size_t min_idx{0};
-    size_t c{0};
+    if (field_mode.selected_index() == NFM_MODULATION) {
+        tone_index idx = tone_key_index_by_value(value);
 
-    if (field_mode.selected_index() != NFM_MODULATION) {
-        text_ctcss.set("        ");
-        return;
-    }
-
-    // Find nearest match
-    for (c = 0; c < tone_keys.size(); c++) {
-        diff = abs(((float)value / 100.0) - tone_keys[c].second);
-        if (diff < min_diff) {
-            min_idx = c;
-            min_diff = diff;
+        if ((last_squelch_index < 0) || (last_squelch_index != idx)) {
+            last_squelch_index = idx;
+            if (idx >= 0) {
+                text_ctcss.set("T: " + tone_key_string(idx));
+                return;
+            }
+        } else {
+            return;
         }
     }
-
-    // Arbitrary confidence threshold
-    if (last_squelch_index < 0 || (unsigned)last_squelch_index != min_idx) {
-        last_squelch_index = min_idx;
-        if (min_diff < 40)
-            text_ctcss.set("T: " + tone_keys[min_idx].first);
-        else
-            text_ctcss.set("        ");
-    }
+    text_ctcss.set("        ");
 }
+
 } /* namespace ui */

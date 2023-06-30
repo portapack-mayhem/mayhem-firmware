@@ -404,22 +404,9 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
 }
 
 void AnalogAudioView::handle_coded_squelch(uint32_t value) {
-    float diff, min_diff = value;
-    size_t min_idx{0};
-    size_t c;
-
-    // Find nearest match
-    for (c = 0; c < tone_keys.size(); c++) {
-        diff = abs(((float)value / 100.0) - tone_keys[c].second);
-        if (diff < min_diff) {
-            min_idx = c;
-            min_diff = diff;
-        }
-    }
-
-    // Arbitrary confidence threshold
-    if (min_diff < 40)
-        text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
+    tone_index idx = tone_key_index_by_value(value);
+    if (idx >= 0)
+        text_ctcss.set("CTCSS " + tone_key_string(idx));
     else
         text_ctcss.set("???");
 }

@@ -73,9 +73,9 @@ const tone_key_t tone_keys = {
     {"34 M3", 218.100},
     {"35 M4", 225.700},
     {"49 9Z", 229.100},
-    {"36 --", 233.600},
-    {"37 --", 241.800},
-    {"38 --", 250.300},
+    {"36 M5", 233.600},
+    {"37 M6", 241.800},
+    {"38 M7", 250.300},
     {"50 0Z", 254.100},
     {"Axient 28kHz", 28000.0},
     {"Senn. 32.768k", 32768.0},
@@ -113,6 +113,36 @@ std::string tone_key_string(tone_index index) {
     return tone_keys[index].first;
 }
 
+std::string tone_key_string_by_value(uint32_t value) {
+    return tone_key_string(tone_key_index_by_value(value));
+}
+
+tone_index tone_key_index_by_value(uint32_t value) {
+    float diff;
+    float min_diff{(float)value};
+    float fvalue{(float)((min_diff + 50.0) / 100.0)};
+    tone_index min_idx{-1};
+    tone_index idx;
+
+    // Find nearest match
+    for (idx = 0; idx < (tone_index)tone_keys.size(); idx++) {
+        diff = abs(fvalue - tone_keys[idx].second);
+        if (diff < min_diff) {
+            min_idx = idx;
+            min_diff = diff;
+        } else {
+            // list is sorted in frequency order; if diff is getting larger than we've passed it
+            break;
+        }
+    }
+
+    // Arbitrary confidence threshold
+    if (min_diff < 40.0)
+        return min_idx;
+    else
+        return -1;
+}
+
 tone_index tone_key_index_by_string(char* str) {
     if (!str)
         return -1;
@@ -122,10 +152,5 @@ tone_index tone_key_index_by_string(char* str) {
     }
     return -1;
 }
-
-/* tone_index tone_key_index_by_value( int32_t freq )
-{
-        return -1 ;
-} */
 
 }  // namespace tonekey
