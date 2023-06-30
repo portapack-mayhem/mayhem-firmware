@@ -192,6 +192,10 @@ class WaterfallView : public View {
 };
 
 } /* namespace spectrum */
+
+/* Calculates the best anti_alias_baseband_bandwidth_filter for the given sampling rate. */
+uint32_t filter_bandwidth_for_sampling_rate(int32_t sampling_rate);
+
 } /* namespace ui */
 
 #endif /*__UI_SPECTRUM_H__*/
