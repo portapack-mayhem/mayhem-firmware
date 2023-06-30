@@ -97,7 +97,7 @@ class CaptureAppView : public View {
         16384,
         3};
 
-    spectrum::WaterfallWidget waterfall{};
+    spectrum::WaterfallView waterfall{};
 };
 
 } /* namespace ui */
