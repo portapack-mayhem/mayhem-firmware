@@ -34,9 +34,10 @@
 #include "volume.hpp"
 
 // persistant memory from/to sdcard flag file
-#define PMEM_FILEFLAG "/SETTINGS/PMEM_FILEFLAG"
+#define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
+
 // persistant memory from/to sdcard flag file
-#define PMEM_SETTING_FILE "/SETTINGS/pmem_settings"
+#define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
 
 using namespace modems;
 using namespace serializer;

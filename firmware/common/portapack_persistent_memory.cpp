@@ -90,167 +90,42 @@ enum data_structure_version_enum : uint32_t {
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
 struct ui_config_t {
-   private:
-    enum bits_t {
-        BacklightTimeoutLSB = 0,
-        BacklightTimeoutEnable = 3,
-        ClkoutFreqLSB = 4,
-        ShowGUIReturnIcon = 20,
-        LoadAppSettings = 21,
-        SaveAppSettings = 22,
-        ShowBiggerQRCode = 23,
-        DisableTouchscreen = 24,
-        HideClock = 25,
-        ClockWithDate = 26,
-        ClkOutEnabled = 27,
-        UNUSED = 28,
-        StealthMode = 29,
-        ConfigLogin = 30,
-        ConfigSplash = 31,
-    };
+// YUCK: bad packing :(
 
-    enum bits_mask_t : uint32_t {
-        BacklightTimeoutMask = ((1 << 3) - 1) << bits_t::BacklightTimeoutLSB,
-        ClkoutFreqMask = ((1 << 16) - 1) << bits_t::ClkoutFreqLSB,
-    };
+    uint8_t backlight_timeout : 3;
+    uint8_t enable_backlight_timeout : 1;
 
-    uint32_t values;
+    uint16_t clkout_freq;
 
-    constexpr bool bit_read(const bits_t n) const {
-        return ((values >> n) & 1) != 0;
-    }
+    bool show_gui_return_icon : 1;
+    bool load_app_settings : 1;
+    bool save_app_settings : 1;
+    bool show_large_qr_code : 1;
 
-    constexpr void bit_write(const bits_t n, const bool v) {
-        if (bit_read(n) != v) {
-            values ^= 1 << n;
-        }
-    }
+    bool disable_touchscreen : 1;
+    bool hide_clock : 1;
+    bool clock_show_date : 1;
+    bool clkout_enabled : 1;
+    bool UNUSED : 1;
+    bool stealth_mode : 1;
+    bool config_login : 1;
+    bool config_splash : 1;
 
-   public:
-    backlight_config_t config_backlight_timer() {
-        const auto timeout_enum = (backlight_timeout_t)((values & bits_mask_t::BacklightTimeoutMask) >> bits_t::BacklightTimeoutLSB);
-        const bool timeout_enabled = bit_read(bits_t::BacklightTimeoutEnable);
-        return backlight_config_t(timeout_enum, timeout_enabled);
-    }
+//     constexpr uint32_t clkout_freq() {
+//         uint32_t freq = (values & bits_mask_t::ClkoutFreqMask) >> bits_t::ClkoutFreqLSB;
+//         if (freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
+//             values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_reset_value << bits_t::ClkoutFreqLSB);
+//             return clkout_freq_reset_value;
+//         } else {
+//             return freq;
+//         }
+//     }
 
-    void set_config_backlight_timer(const backlight_config_t& new_value) {
-        values = (values & ~bits_mask_t::BacklightTimeoutMask) | ((new_value.timeout_enum() << bits_t::BacklightTimeoutLSB) & bits_mask_t::BacklightTimeoutMask);
-        bit_write(bits_t::BacklightTimeoutEnable, new_value.timeout_enabled());
-    }
-
-    constexpr uint32_t clkout_freq() {
-        uint32_t freq = (values & bits_mask_t::ClkoutFreqMask) >> bits_t::ClkoutFreqLSB;
-        if (freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
-            values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_reset_value << bits_t::ClkoutFreqLSB);
-            return clkout_freq_reset_value;
-        } else {
-            return freq;
-        }
-    }
-
-    constexpr void set_clkout_freq(uint32_t freq) {
-        values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_range.clip(freq) << bits_t::ClkoutFreqLSB);
-    }
-
-    // ui_config is an uint32_t var storing information bitwise
-    // bits 0-2 store the backlight timer
-    // bits 4-19 (16 bits) store the clkout frequency
-    // bits 21-31 store the different single bit configs depicted below
-    // bit 20 store the display state of the gui return icon, hidden (0) or shown (1)
-
-    constexpr bool show_gui_return_icon() const {  // add return icon in touchscreen menue
-        return bit_read(bits_t::ShowGUIReturnIcon);
-    }
-
-    constexpr void set_gui_return_icon(bool v) {
-        bit_write(bits_t::ShowGUIReturnIcon, v);
-    }
-
-    constexpr bool load_app_settings() const {  // load (last saved) app settings on startup of app
-        return bit_read(bits_t::LoadAppSettings);
-    }
-
-    constexpr void set_load_app_settings(bool v) {
-        bit_write(bits_t::LoadAppSettings, v);
-    }
-
-    constexpr bool save_app_settings() const {  // save app settings when closing app
-        return bit_read(bits_t::SaveAppSettings);
-    }
-
-    constexpr void set_save_app_settings(bool v) {
-        bit_write(bits_t::SaveAppSettings, v);
-    }
-
-    constexpr bool show_bigger_qr_code() const {  // show bigger QR code
-        return bit_read(bits_t::ShowBiggerQRCode);
-    }
-
-    constexpr void set_show_bigger_qr_code(bool v) {
-        bit_write(bits_t::ShowBiggerQRCode, v);
-    }
-
-    constexpr bool disable_touchscreen() const {  // Option to disable touch screen
-        return bit_read(bits_t::DisableTouchscreen);
-    }
-
-    constexpr void set_disable_touchscreen(bool v) {
-        bit_write(bits_t::DisableTouchscreen, v);
-    }
-
-    constexpr bool hide_clock() const {  // clock hidden from main menu
-        return bit_read(bits_t::HideClock);
-    }
-
-    constexpr void set_clock_hidden(bool v) {
-        bit_write(bits_t::HideClock, v);
-    }
-
-    constexpr bool clock_with_date() const {  // show clock with date, if not hidden
-        return bit_read(bits_t::ClockWithDate);
-    }
-
-    constexpr void set_clock_with_date(bool v) {
-        bit_write(bits_t::ClockWithDate, v);
-    }
-
-    constexpr bool clkout_enabled() const {
-        return bit_read(bits_t::ClkOutEnabled);
-    }
-
-    constexpr void set_clkout_enabled(bool v) {
-        bit_write(bits_t::ClkOutEnabled, v);
-    }
-
-    constexpr bool stealth_mode() const {
-        return bit_read(bits_t::StealthMode);
-    }
-
-    constexpr void set_stealth_mode(bool v) {
-        bit_write(bits_t::StealthMode, v);
-    }
-
-    constexpr bool config_login() const {
-        return bit_read(bits_t::ConfigLogin);
-    }
-
-    constexpr void set_config_login(bool v) {
-        bit_write(bits_t::ConfigLogin, v);
-    }
-
-    constexpr bool config_splash() const {
-        return bit_read(bits_t::ConfigSplash);
-    }
-
-    constexpr void set_config_splash(bool v) {
-        bit_write(bits_t::ConfigSplash, v);
-    }
-
-    constexpr ui_config_t()
-        : values(
-              (1 << ConfigSplash) | (clkout_freq_reset_value << ClkoutFreqLSB) | (7 << BacklightTimeoutLSB)) {
-    }
+//     constexpr void set_clkout_freq(uint32_t freq) {
+//         values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_range.clip(freq) << bits_t::ClkoutFreqLSB);
+//     }
 };
+static_assert(sizeof(ui_config_t) == sizeof(uint32_t));
 
 /* Additional UI config.
  * NB: Will be default init - override in defaults(). */
@@ -266,59 +141,37 @@ struct ui_config2_t {
     bool hide_sd_card : 1;
 
     bool hide_mute : 1;
-    bool UNUSED : 7;
+    bool UNUSED_1 : 1;
+    bool UNUSED_2 : 1;
+    bool UNUSED_3 : 1;
+    bool UNUSED_4 : 1;
+    bool UNUSED_5 : 1;
+    bool UNUSED_6 : 1;
+    bool UNUSED_7 : 1;
 
-    uint8_t placeholder_1;
-    uint8_t placeholder_2;
+    uint8_t PLACEHOLDER_2;
+    uint8_t PLACEHOLDER_3;
 };
 static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
 
 struct misc_config_t {
-   private:
-    enum bits_t {
-        ConfigAudioMute = 0,
-        ConfigSpeakerDisable = 1,
-    };
+    bool mute_audio : 1;
+    bool disable_speaker : 1;
+    bool UNUSED_2 : 1;
+    bool UNUSED_3 : 1;
+    bool UNUSED_4 : 1;
+    bool UNUSED_5 : 1;
+    bool UNUSED_6 : 1;
+    bool UNUSED_7 : 1;
 
-    // misc_config_t bits:
-    // ConfigAudioMute = set to mute all audio output (speakers & headphones)
-    // ConfigSpeakerDisable = set to disable only the speaker and leave headphones enabled (only supported on AK4951 codec)
-
-    uint32_t values;
-
-    constexpr bool bit_read(const bits_t n) const {
-        return ((values >> n) & 1) != 0;
-    }
-
-    constexpr void bit_write(const bits_t n, const bool v) {
-        if (bit_read(n) != v) {
-            values ^= 1 << n;
-        }
-    }
-
-   public:
-    constexpr bool config_audio_mute() const {
-        return bit_read(bits_t::ConfigAudioMute);
-    }
-
-    constexpr void set_config_audio_mute(bool v) {
-        bit_write(bits_t::ConfigAudioMute, v);
-    }
-
-    constexpr bool config_speaker_disable() const {
-        return bit_read(bits_t::ConfigSpeakerDisable);
-    }
-
-    constexpr void set_config_speaker_disable(bool v) {
-        bit_write(bits_t::ConfigSpeakerDisable, v);
-    }
-
-    constexpr misc_config_t()
-        : values(0) {
-    }
+    uint8_t PLACEHOLDER_1;
+    uint8_t PLACEHOLDER_2;
+    uint8_t PLACEHOLDER_3;
 };
+static_assert(sizeof(misc_config_t) == sizeof(uint32_t));
 
-/* IMPORTANT: Report your changes here in the dump_persistent_memory function a few lines later !! */
+
+/* IMPORTANT: Update dump_persistent_memory (below) when changing data_t. */
 
 /* struct must pack the same way on M4 and M0 cores. */
 struct data_t {
@@ -356,7 +209,14 @@ struct data_t {
     // Recon App
     uint64_t recon_config;
 
-    bool placeholder_0;
+    bool UNUSED_0 : 1;
+    bool UNUSED_1 : 1;
+    bool UNUSED_2 : 1;
+    bool UNUSED_3 : 1;
+    bool UNUSED_4 : 1;
+    bool UNUSED_5 : 1;
+    bool UNUSED_6 : 1;
+    bool UNUSED_7 : 1;
 
     // enable or disable converter
     bool converter;
@@ -411,14 +271,25 @@ struct data_t {
 
           hardware_config(0),
           recon_config(0),
-          placeholder_0(0),
-          converter(0),
-          updown_converter(0),
+
+          UNUSED_0(false),
+          UNUSED_1(false),
+          UNUSED_2(false),
+          UNUSED_3(false),
+          UNUSED_4(false),
+          UNUSED_5(false),
+          UNUSED_6(false),
+          UNUSED_7(false),
+
+          converter(false),
+          updown_converter(false),
           converter_frequency_offset(0),
+
           frequency_rx_correction(0),
-          updown_frequency_rx_correction(0),
+          updown_frequency_rx_correction(false),
           frequency_tx_correction(0),
-          updown_frequency_tx_correction(0),
+          updown_frequency_tx_correction(false),
+
           encoder_dial_sensitivity(0),
           headphone_volume_cb(-600),
           misc_config(),
@@ -652,56 +523,56 @@ void set_serial_format(const serial_format_t new_value) {
     data->serial_format = new_value;
 }
 
-bool show_gui_return_icon() {  // add return icon in touchscreen menue
-    return data->ui_config.show_gui_return_icon();
+bool show_gui_return_icon() {  // add return icon in touchscreen menu
+    return data->ui_config.show_gui_return_icon;
 }
 
 bool load_app_settings() {  // load (last saved) app settings on startup of app
-    return data->ui_config.load_app_settings();
+    return data->ui_config.load_app_settings;
 }
 
 bool save_app_settings() {  // save app settings when closing app
-    return data->ui_config.save_app_settings();
+    return data->ui_config.save_app_settings;
 }
 
 bool show_bigger_qr_code() {  // show bigger QR code
-    return data->ui_config.show_bigger_qr_code();
+    return data->ui_config.show_large_qr_code;
 }
 
 bool disable_touchscreen() {  // Option to disable touch screen
-    return data->ui_config.disable_touchscreen();
+    return data->ui_config.disable_touchscreen;
 }
 
-bool hide_clock() {  // clock hidden from main menu
-    return data->ui_config.hide_clock();
+bool hide_clock() {  // Hide clock from main menu
+    return data->ui_config.hide_clock;
 }
 
-bool clock_with_date() {  // show clock with date, if not hidden
-    return data->ui_config.clock_with_date();
+bool clock_with_date() {  // Show clock with date, if not hidden
+    return data->ui_config.clock_show_date;
 }
 
 bool clkout_enabled() {
-    return data->ui_config.clkout_enabled();
+    return data->ui_config.clkout_enabled;
 }
 
 bool config_audio_mute() {
-    return data->misc_config.config_audio_mute();
+    return data->misc_config.mute_audio;
 }
 
 bool config_speaker_disable() {
-    return data->misc_config.config_speaker_disable();
+    return data->misc_config.disable_speaker;
 }
 
 bool stealth_mode() {
-    return data->ui_config.stealth_mode();
+    return data->ui_config.stealth_mode;
 }
 
 bool config_login() {
-    return data->ui_config.config_login();
+    return data->ui_config.config_login;
 }
 
 bool config_splash() {
-    return data->ui_config.config_splash();
+    return data->ui_config.config_splash;
 }
 
 uint8_t config_cpld() {
@@ -709,59 +580,61 @@ uint8_t config_cpld() {
 }
 
 backlight_config_t config_backlight_timer() {
-    return data->ui_config.config_backlight_timer();
+    return {static_cast<backlight_timeout_t>(data->ui_config.backlight_timeout),
+            data->ui_config.enable_backlight_timeout == 1};
+
 }
 
 void set_gui_return_icon(bool v) {
-    data->ui_config.set_gui_return_icon(v);
+    data->ui_config.show_gui_return_icon = v;
 }
 
 void set_load_app_settings(bool v) {
-    data->ui_config.set_load_app_settings(v);
+    data->ui_config.load_app_settings = v;
 }
 
 void set_save_app_settings(bool v) {
-    data->ui_config.set_save_app_settings(v);
+    data->ui_config.save_app_settings = v;
 }
 
 void set_show_bigger_qr_code(bool v) {
-    data->ui_config.set_show_bigger_qr_code(v);
+    data->ui_config.show_large_qr_code = v;
 }
 
 void set_disable_touchscreen(bool v) {
-    data->ui_config.set_disable_touchscreen(v);
+    data->ui_config.disable_touchscreen = v;
 }
 
 void set_clock_hidden(bool v) {
-    data->ui_config.set_clock_hidden(v);
+    data->ui_config.hide_clock = v;
 }
 
 void set_clock_with_date(bool v) {
-    data->ui_config.set_clock_with_date(v);
+    data->ui_config.clock_show_date = v;
 }
 
 void set_clkout_enabled(bool v) {
-    data->ui_config.set_clkout_enabled(v);
+    data->ui_config.clkout_enabled = v;
 }
 
 void set_config_audio_mute(bool v) {
-    data->misc_config.set_config_audio_mute(v);
+    data->misc_config.mute_audio = v;
 }
 
 void set_config_speaker_disable(bool v) {
-    data->misc_config.set_config_speaker_disable(v);
+    data->misc_config.disable_speaker = v;
 }
 
 void set_stealth_mode(bool v) {
-    data->ui_config.set_stealth_mode(v);
+    data->ui_config.stealth_mode = v;
 }
 
 void set_config_login(bool v) {
-    data->ui_config.set_config_login(v);
+    data->ui_config.config_login = v;
 }
 
 void set_config_splash(bool v) {
-    data->ui_config.set_config_splash(v);
+    data->ui_config.config_splash = v;
 }
 
 void set_config_cpld(uint8_t i) {
@@ -769,7 +642,8 @@ void set_config_cpld(uint8_t i) {
 }
 
 void set_config_backlight_timer(const backlight_config_t& new_value) {
-    data->ui_config.set_config_backlight_timer(new_value);
+    data->ui_config.backlight_timeout = static_cast<uint8_t>(new_value.timeout_enum());
+    data->ui_config.enable_backlight_timeout = static_cast<uint8_t>(new_value.timeout_enabled());
 }
 
 uint32_t pocsag_last_address() {
@@ -789,11 +663,13 @@ void set_pocsag_ignore_address(uint32_t address) {
 }
 
 uint32_t clkout_freq() {
-    return data->ui_config.clkout_freq();
+    // TODO: range check
+    return data->ui_config.clkout_freq;
 }
 
 void set_clkout_freq(uint32_t freq) {
-    data->ui_config.set_clkout_freq(freq);
+    // TODO: range check
+    data->ui_config.clkout_freq = freq;
 }
 
 /* Recon app */
@@ -982,26 +858,23 @@ bool should_use_sdcard_for_pmem() {
 }
 
 int save_persistent_settings_to_file() {
-    std::string filename = PMEM_SETTING_FILE;
-    delete_file(filename);
     File outfile;
-    auto result = outfile.create(filename);
-    if (result.is_valid()) {
+    auto error = outfile.create(PMEM_SETTING_FILE);
+    if (error)
         return false;
-    }
+
     outfile.write(reinterpret_cast<char*>(&cached_backup_ram), sizeof(backup_ram_t));
     return true;
 }
 
 int load_persistent_settings_from_file() {
-    std::string filename = PMEM_SETTING_FILE;
     File infile;
-    auto result = infile.open(filename);
-    if (!result.is_valid()) {
-        infile.read(reinterpret_cast<char*>(&cached_backup_ram), sizeof(backup_ram_t));
-        return true;
-    }
-    return false;
+    auto error = infile.open(PMEM_SETTING_FILE);
+    if (error)
+        return false;
+
+    infile.read(reinterpret_cast<char*>(&cached_backup_ram), sizeof(backup_ram_t));
+    return true;
 }
 
 // Pmem size helper
@@ -1057,7 +930,14 @@ bool debug_dump() {
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
     pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config, 16));
-    pmem_dump_file.write_line("placeholder_0: " + to_string_dec_int(data->placeholder_0));
+    //pmem_dump_file.write_line("UNUSED_0: " + to_string_dec_int(data->UNUSED_0));
+    //pmem_dump_file.write_line("UNUSED_1: " + to_string_dec_int(data->UNUSED_1));
+    //pmem_dump_file.write_line("UNUSED_2: " + to_string_dec_int(data->UNUSED_2));
+    //pmem_dump_file.write_line("UNUSED_3: " + to_string_dec_int(data->UNUSED_3));
+    //pmem_dump_file.write_line("UNUSED_4: " + to_string_dec_int(data->UNUSED_4));
+    //pmem_dump_file.write_line("UNUSED_5: " + to_string_dec_int(data->UNUSED_5));
+    //pmem_dump_file.write_line("UNUSED_6: " + to_string_dec_int(data->UNUSED_6));
+    //pmem_dump_file.write_line("UNUSED_7: " + to_string_dec_int(data->UNUSED_7));
     pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(data->converter_frequency_offset));
@@ -1073,17 +953,17 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config backlight_timer.timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled()));
     pmem_dump_file.write_line("ui_config backlight_timer.timeout_seconds: " + to_string_dec_uint(backlight_timer.timeout_seconds()));
     pmem_dump_file.write_line("ui_config clkout_freq: " + to_string_dec_uint(clkout_freq()));
-    pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon()));
-    pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings()));
-    pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings()));
-    pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_bigger_qr_code()));
-    pmem_dump_file.write_line("ui_config disable_touchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen()));
-    pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock()));
-    pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_with_date()));
-    pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(data->ui_config.clkout_enabled()));
-    pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode()));
-    pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login()));
-    pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash()));
+    pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon));
+    pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings));
+    pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings));
+    pmem_dump_file.write_line("ui_config show_bigger_qr_code: " + to_string_dec_uint(data->ui_config.show_large_qr_code));
+    pmem_dump_file.write_line("ui_config disable_touchscreen: " + to_string_dec_uint(data->ui_config.disable_touchscreen));
+    pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
+    pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
+    pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(data->ui_config.clkout_enabled));
+    pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode));
+    pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login));
+    pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash));
 
     // ui_config2 bits
     pmem_dump_file.write_line("ui_config2 hide_speaker: " + to_string_dec_uint(data->ui_config2.hide_speaker));
