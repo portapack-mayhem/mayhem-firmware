@@ -161,7 +161,7 @@ class TextEditorMenu : public View {
         {15 * 8, 1 * 8, 7 * 8, 7 * 8},
         "Zoom",
         &bitmap_icon_search,
-        Color::dark_green()};
+        Color::orange()};
 
     NewButton button_delline{
         {1 * 8, 8 * 8, 7 * 8, 7 * 8},

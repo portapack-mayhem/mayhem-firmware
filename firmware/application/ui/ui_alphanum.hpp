@@ -76,11 +76,11 @@ class AlphanumView : public TextEntryView {
         "0"};
 
     Button button_delete{
-        {10 * 8 - 2, 33 * 8, 4 * 8 + 2, 32},
+        {9 * 8, 33 * 8, 6 * 8, 32},
         "<DEL"};
 
     Button button_mode{
-        {16 * 8 - 2, 33 * 8, 4 * 8 + 2, 32},
+        {16 * 8, 33 * 8, 5 * 8, 32},
         ""};
 };
 
