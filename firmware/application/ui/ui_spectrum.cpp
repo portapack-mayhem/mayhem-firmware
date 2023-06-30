@@ -375,4 +375,35 @@ void WaterfallWidget::on_audio_spectrum() {
 }
 
 } /* namespace spectrum */
+
+uint32_t filter_bandwidth_for_sampling_rate(int32_t sampling_rate) {
+    switch (sampling_rate) {  // Use the var fs (sampling_rate) to set up BPF aprox < fs_max / 2 by Nyquist theorem.
+        case 0 ... 2000000:   // BW Captured range (0 <= 250kHz max)  fs = 8 x 250 kHz.
+            return 1750000;   // Minimum BPF MAX2837 for all those lower BW options.
+
+        case 4000000 ... 6000000:  // BW capture range (500k...750kHz max)  fs_max = 8 x 750kHz = 6Mhz
+                                   // BW 500k...750kHz, ex. 500kHz (fs = 8 x BW = 4Mhz), BW 600kHz (fs = 4,8Mhz), BW 750 kHz (fs = 6Mhz).
+            return 2500000;        // In some IC, MAX2837 appears as 2250000, but both work similarly.
+
+        case 8800000:  // BW capture 1,1Mhz fs = 8 x 1,1Mhz = 8,8Mhz. (1Mhz showed slightly higher noise background).
+            return 3500000;
+
+        case 14000000:  // BW capture 1,75Mhz, fs = 8 x 1,75Mhz = 14Mhz
+                        // Good BPF, good matching, but LCD flickers, refresh rate should be < 20 Hz, reasonable picture.
+            return 5000000;
+
+        case 16000000:  // BW capture 2Mhz, fs = 8 x 2Mhz = 16Mhz
+                        // Good BPF, good matching, but LCD flickers, refresh rate should be < 20 Hz, reasonable picture.
+            return 6000000;
+
+        case 20000000:  // BW capture 2,5Mhz, fs = 8 x 2,5 Mhz = 20Mhz
+                        // Good BPF, good matching, but LCD flickers, refresh rate should be < 20 Hz, reasonable picture.
+            return 7000000;
+
+        default:  // BW capture 2,75Mhz, fs = 8 x 2,75Mhz = 22Mhz max ADC sampling and others.
+                  // We tested also 9Mhz FPB slightly too much noise floor, better at 8Mhz.
+            return 8000000;
+    }
+}
+
 } /* namespace ui */
