@@ -188,7 +188,7 @@ class PlaylistView : public View {
         &bitmap_icon_save,
         Color::dark_blue()};
 
-    spectrum::WaterfallWidget waterfall{};
+    spectrum::WaterfallView waterfall{};
 
     MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,

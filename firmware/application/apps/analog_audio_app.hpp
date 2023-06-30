@@ -213,7 +213,7 @@ class AnalogAudioView : public View {
         4096,
         4};
 
-    spectrum::WaterfallWidget waterfall{true};
+    spectrum::WaterfallView waterfall{true};
 
     void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
     void on_modulation_changed(ReceiverModel::Mode modulation);

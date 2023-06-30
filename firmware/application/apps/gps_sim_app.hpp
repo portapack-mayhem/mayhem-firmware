@@ -124,7 +124,7 @@ class GpsSimAppView : public View {
         Color::green(),
         Color::black()};
 
-    spectrum::WaterfallWidget waterfall{};
+    spectrum::WaterfallView waterfall{};
 
     MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,
