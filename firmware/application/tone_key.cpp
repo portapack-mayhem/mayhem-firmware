@@ -120,7 +120,7 @@ std::string tone_key_string_by_value(uint32_t value) {
 tone_index tone_key_index_by_value(uint32_t value) {
     float diff;
     float min_diff{(float)value};
-    float fvalue{(float)((min_diff + 50.0) / 100.0)};
+    float fvalue{(float)(min_diff / 100.0)};
     tone_index min_idx{-1};
     tone_index idx;
 
