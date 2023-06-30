@@ -140,7 +140,7 @@ tone_index tone_key_index_by_value(uint32_t value) {
     if (min_diff < 40.0)
         return min_idx;
     else
-        return -1 ;
+        return -1;
 }
 
 tone_index tone_key_index_by_string(char* str) {
