@@ -23,27 +23,21 @@
 #include "portapack_persistent_memory.hpp"
 
 #include "audio.hpp"
-#include "portapack.hpp"
-#include "hal.h"
-
-#include "utility.hpp"
-
-#include "memory_map.hpp"
-
 #include "crc.hpp"
-
-#include <algorithm>
-#include <utility>
-
-#include <string>
-#include <fstream>
 #include "file.hpp"
-
+#include "hal.h"
 #include "irq_controls.hpp"
-
+#include "memory_map.hpp"
+#include "portapack.hpp"
 #include "string_format.hpp"
 #include "ui_styles.hpp"
 #include "ui_painter.hpp"
+#include "utility.hpp"
+
+#include <algorithm>
+#include <string>
+#include <fstream>
+#include <utility>
 
 #include <ch.h>
 
@@ -71,9 +65,11 @@ using modem_baudrate_range_t = range_t<int32_t>;
 constexpr modem_baudrate_range_t modem_baudrate_range{50, 9600};
 constexpr int32_t modem_baudrate_reset_value{1200};
 
-/*using modem_bw_range_t = range_t<int32_t>;
-                  constexpr modem_bw_range_t modem_bw_range { 1000, 50000 };
-                  constexpr int32_t modem_bw_reset_value { 15000 };*/
+/*
+using modem_bw_range_t = range_t<int32_t>;
+constexpr modem_bw_range_t modem_bw_range { 1000, 50000 };
+constexpr int32_t modem_bw_reset_value { 15000 };
+*/
 
 using modem_repeat_range_t = range_t<int32_t>;
 constexpr modem_repeat_range_t modem_repeat_range{1, 99};
@@ -81,49 +77,36 @@ constexpr int32_t modem_repeat_reset_value{5};
 
 using clkout_freq_range_t = range_t<uint32_t>;
 constexpr clkout_freq_range_t clkout_freq_range{10, 60000};
-constexpr uint32_t clkout_freq_reset_value{10000};
+constexpr uint16_t clkout_freq_reset_value{10000};
 
 enum data_structure_version_enum : uint32_t {
-    VERSION_CURRENT = 0x10000003,
+    VERSION_CURRENT = 0x10000004,
 };
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
 
+/* UI config.
+ * NB: Will be default init - override in defaults(). */
 struct ui_config_t {
-// YUCK: bad packing :(
-
-    uint8_t backlight_timeout : 3;
-    uint8_t enable_backlight_timeout : 1;
-
     uint16_t clkout_freq;
 
-    bool show_gui_return_icon : 1;
-    bool load_app_settings : 1;
-    bool save_app_settings : 1;
-    bool show_large_qr_code : 1;
+    // NB: bitsfields have to be the same type or the compiler will
+    // split into a new byte hence uint8_t for these booleans.
+    uint8_t backlight_timeout : 3;
+    uint8_t enable_backlight_timeout : 1;
+    uint8_t show_gui_return_icon : 1;
+    uint8_t load_app_settings : 1;
+    uint8_t save_app_settings : 1;
+    uint8_t show_large_qr_code : 1;
 
     bool disable_touchscreen : 1;
     bool hide_clock : 1;
     bool clock_show_date : 1;
     bool clkout_enabled : 1;
-    bool UNUSED : 1;
+    bool UNUSED_1 : 1;
     bool stealth_mode : 1;
     bool config_login : 1;
     bool config_splash : 1;
-
-//     constexpr uint32_t clkout_freq() {
-//         uint32_t freq = (values & bits_mask_t::ClkoutFreqMask) >> bits_t::ClkoutFreqLSB;
-//         if (freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum) {
-//             values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_reset_value << bits_t::ClkoutFreqLSB);
-//             return clkout_freq_reset_value;
-//         } else {
-//             return freq;
-//         }
-//     }
-
-//     constexpr void set_clkout_freq(uint32_t freq) {
-//         values = (values & ~bits_mask_t::ClkoutFreqMask) | (clkout_freq_range.clip(freq) << bits_t::ClkoutFreqLSB);
-//     }
 };
 static_assert(sizeof(ui_config_t) == sizeof(uint32_t));
 
@@ -154,6 +137,8 @@ struct ui_config2_t {
 };
 static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
 
+/* Additional config.
+ * NB: Will be default init - override in defaults(). */
 struct misc_config_t {
     bool mute_audio : 1;
     bool disable_speaker : 1;
@@ -170,16 +155,17 @@ struct misc_config_t {
 };
 static_assert(sizeof(misc_config_t) == sizeof(uint32_t));
 
-
 /* IMPORTANT: Update dump_persistent_memory (below) when changing data_t. */
 
-/* struct must pack the same way on M4 and M0 cores. */
+/* Struct must pack the same way on M4 and M0 cores.
+ * NB: When adding new members, keep 32bit-aligned.*/
+
 struct data_t {
     data_structure_version_enum structure_version;
     int64_t target_frequency;
     int32_t correction_ppb;
     uint32_t touch_calibration_magic;
-    touch::Calibration touch_calibration;
+    touch::Calibration touch_calibration;  // 7 * 32 bits.
 
     // Modem
     uint32_t modem_def_index;
@@ -190,7 +176,7 @@ struct data_t {
     int32_t modem_baudrate;
     int32_t modem_repeat;
 
-    // Play dead unlock
+    // Play dead unlock (Used?)
     uint32_t playdead_magic;
     uint32_t playing_dead;
     uint32_t playdead_sequence;
@@ -209,33 +195,30 @@ struct data_t {
     // Recon App
     uint64_t recon_config;
 
-    bool UNUSED_0 : 1;
-    bool UNUSED_1 : 1;
-    bool UNUSED_2 : 1;
-    bool UNUSED_3 : 1;
+    // enable or disable converter
+    bool converter;
+    // set up converter (false) or down converter (true) converter
+    bool updown_converter;
+    bool updown_frequency_rx_correction;
+    bool updown_frequency_tx_correction;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
     bool UNUSED_7 : 1;
 
-    // enable or disable converter
-    bool converter;
-    // set up converter (false) or down converter (true) converter
-    bool updown_converter;
     // up/down converter offset
     int64_t converter_frequency_offset;
 
     // frequency correction
     uint32_t frequency_rx_correction;
-    bool updown_frequency_rx_correction;
     uint32_t frequency_tx_correction;
-    bool updown_frequency_tx_correction;
 
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
-    uint8_t encoder_dial_sensitivity;
+    uint16_t encoder_dial_sensitivity : 4;
+    uint16_t UNUSED_8 : 12;
 
-    // Headphone volume in centibels. (Only really needs 10 bits)
-    int32_t headphone_volume_cb;
+    // Headphone volume in centibels.
+    int16_t headphone_volume_cb;
 
     // Misc flags
     misc_config_t misc_config;
@@ -272,25 +255,22 @@ struct data_t {
           hardware_config(0),
           recon_config(0),
 
-          UNUSED_0(false),
-          UNUSED_1(false),
-          UNUSED_2(false),
-          UNUSED_3(false),
+          converter(false),
+          updown_converter(false),
+          updown_frequency_rx_correction(false),
+          updown_frequency_tx_correction(false),
           UNUSED_4(false),
           UNUSED_5(false),
           UNUSED_6(false),
           UNUSED_7(false),
 
-          converter(false),
-          updown_converter(false),
           converter_frequency_offset(0),
 
           frequency_rx_correction(0),
-          updown_frequency_rx_correction(false),
           frequency_tx_correction(0),
-          updown_frequency_tx_correction(false),
 
           encoder_dial_sensitivity(0),
+          UNUSED_8(0),
           headphone_volume_cb(-600),
           misc_config(),
           ui_config2() {
@@ -497,14 +477,16 @@ void set_modem_baudrate(const int32_t new_value) {
     data->modem_baudrate = modem_baudrate_range.clip(new_value);
 }
 
-/*int32_t modem_bw() {
-                  modem_bw_range.reset_if_outside(data->modem_bw, modem_bw_reset_value);
-                  return data->modem_bw;
-                  }
+/*
+int32_t modem_bw() {
+    modem_bw_range.reset_if_outside(data->modem_bw, modem_bw_reset_value);
+    return data->modem_bw;
+}
 
-                  void set_modem_bw(const int32_t new_value) {
-                  data->modem_bw = modem_bw_range.clip(new_value);
-                  }*/
+void set_modem_bw(const int32_t new_value) {
+    data->modem_bw = modem_bw_range.clip(new_value);
+}
+*/
 
 uint8_t modem_repeat() {
     modem_repeat_range.reset_if_outside(data->modem_repeat, modem_repeat_reset_value);
@@ -524,19 +506,19 @@ void set_serial_format(const serial_format_t new_value) {
 }
 
 bool show_gui_return_icon() {  // add return icon in touchscreen menu
-    return data->ui_config.show_gui_return_icon;
+    return data->ui_config.show_gui_return_icon != 0;
 }
 
 bool load_app_settings() {  // load (last saved) app settings on startup of app
-    return data->ui_config.load_app_settings;
+    return data->ui_config.load_app_settings != 0;
 }
 
 bool save_app_settings() {  // save app settings when closing app
-    return data->ui_config.save_app_settings;
+    return data->ui_config.save_app_settings != 0;
 }
 
 bool show_bigger_qr_code() {  // show bigger QR code
-    return data->ui_config.show_large_qr_code;
+    return data->ui_config.show_large_qr_code != 0;
 }
 
 bool disable_touchscreen() {  // Option to disable touch screen
@@ -582,23 +564,22 @@ uint8_t config_cpld() {
 backlight_config_t config_backlight_timer() {
     return {static_cast<backlight_timeout_t>(data->ui_config.backlight_timeout),
             data->ui_config.enable_backlight_timeout == 1};
-
 }
 
 void set_gui_return_icon(bool v) {
-    data->ui_config.show_gui_return_icon = v;
+    data->ui_config.show_gui_return_icon = v ? 1 : 0;
 }
 
 void set_load_app_settings(bool v) {
-    data->ui_config.load_app_settings = v;
+    data->ui_config.load_app_settings = v ? 1 : 0;
 }
 
 void set_save_app_settings(bool v) {
-    data->ui_config.save_app_settings = v;
+    data->ui_config.save_app_settings = v ? 1 : 0;
 }
 
 void set_show_bigger_qr_code(bool v) {
-    data->ui_config.show_large_qr_code = v;
+    data->ui_config.show_large_qr_code = v ? 1 : 0;
 }
 
 void set_disable_touchscreen(bool v) {
@@ -662,13 +643,16 @@ void set_pocsag_ignore_address(uint32_t address) {
     data->pocsag_ignore_address = address;
 }
 
-uint32_t clkout_freq() {
-    // TODO: range check
+uint16_t clkout_freq() {
+    auto freq = data->ui_config.clkout_freq;
+
+    if (freq < clkout_freq_range.minimum || freq > clkout_freq_range.maximum)
+        set_clkout_freq(clkout_freq_reset_value);
+
     return data->ui_config.clkout_freq;
 }
 
-void set_clkout_freq(uint32_t freq) {
-    // TODO: range check
+void set_clkout_freq(uint16_t freq) {
     data->ui_config.clkout_freq = freq;
 }
 
@@ -930,22 +914,19 @@ bool debug_dump() {
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
     pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config, 16));
-    //pmem_dump_file.write_line("UNUSED_0: " + to_string_dec_int(data->UNUSED_0));
-    //pmem_dump_file.write_line("UNUSED_1: " + to_string_dec_int(data->UNUSED_1));
-    //pmem_dump_file.write_line("UNUSED_2: " + to_string_dec_int(data->UNUSED_2));
-    //pmem_dump_file.write_line("UNUSED_3: " + to_string_dec_int(data->UNUSED_3));
-    //pmem_dump_file.write_line("UNUSED_4: " + to_string_dec_int(data->UNUSED_4));
-    //pmem_dump_file.write_line("UNUSED_5: " + to_string_dec_int(data->UNUSED_5));
-    //pmem_dump_file.write_line("UNUSED_6: " + to_string_dec_int(data->UNUSED_6));
-    //pmem_dump_file.write_line("UNUSED_7: " + to_string_dec_int(data->UNUSED_7));
     pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
+    pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
+    pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
+    // pmem_dump_file.write_line("UNUSED_4: " + to_string_dec_int(data->UNUSED_4));
+    // pmem_dump_file.write_line("UNUSED_5: " + to_string_dec_int(data->UNUSED_5));
+    // pmem_dump_file.write_line("UNUSED_6: " + to_string_dec_int(data->UNUSED_6));
+    // pmem_dump_file.write_line("UNUSED_7: " + to_string_dec_int(data->UNUSED_7));
     pmem_dump_file.write_line("converter_frequency_offset: " + to_string_dec_int(data->converter_frequency_offset));
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction));
-    pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
-    pmem_dump_file.write_line("updown_frequency_tx_correction: " + to_string_dec_int(data->updown_frequency_tx_correction));
     pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
+    // pmem_dump_file.write_line("UNUSED_8: " + to_string_dec_uint(data->UNUSED_8));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
 
     // ui_config bits

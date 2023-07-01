@@ -226,8 +226,8 @@ void set_pocsag_ignore_address(uint32_t address);
 
 bool clkout_enabled();
 void set_clkout_enabled(bool v);
-uint32_t clkout_freq();
-void set_clkout_freq(uint32_t freq);
+uint16_t clkout_freq();
+void set_clkout_freq(uint16_t freq);
 
 /* Recon app */
 bool recon_autosave_freqs();
