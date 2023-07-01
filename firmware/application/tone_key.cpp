@@ -25,10 +25,11 @@
 
 namespace tonekey {
 
+// Keep list in ascending order by tone frequency
 const tone_key_t tone_keys = {
     {"None", 0.0},
-    {"0 XZ", 67.000},
-    {"1 WZ", 69.400},
+    {"1 XZ", 67.000},
+    {"39 WZ", 69.300},
     {"2 XA", 71.900},
     {"3 WA", 74.400},
     {"4 XB", 77.000},
@@ -77,11 +78,11 @@ const tone_key_t tone_keys = {
     {"37 M6", 241.800},
     {"38 M7", 250.300},
     {"50 0Z", 254.100},
+    {"Shure 19kHz", 19000.0},
     {"Axient 28kHz", 28000.0},
-    {"Senn. 32.768k", 32768.0},
     {"Senn. 32.000k", 32000.0},
     {"Sony 32.382k", 32382.0},
-    {"Shure 19kHz", 19000.0}};
+    {"Senn. 32.768k", 32768.0}};
 
 void tone_keys_populate(OptionsField& field) {
     using option_t = std::pair<std::string, int32_t>;
