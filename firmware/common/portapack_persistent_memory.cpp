@@ -931,9 +931,9 @@ bool debug_dump() {
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
+    pmem_dump_file.write_line("ui_config clkout_freq: " + to_string_dec_uint(clkout_freq()));
     pmem_dump_file.write_line("ui_config backlight_timer.timeout_enabled: " + to_string_dec_uint(backlight_timer.timeout_enabled()));
     pmem_dump_file.write_line("ui_config backlight_timer.timeout_seconds: " + to_string_dec_uint(backlight_timer.timeout_seconds()));
-    pmem_dump_file.write_line("ui_config clkout_freq: " + to_string_dec_uint(clkout_freq()));
     pmem_dump_file.write_line("ui_config show_gui_return_icon: " + to_string_dec_uint(data->ui_config.show_gui_return_icon));
     pmem_dump_file.write_line("ui_config load_app_settings: " + to_string_dec_uint(data->ui_config.load_app_settings));
     pmem_dump_file.write_line("ui_config save_app_settings: " + to_string_dec_uint(data->ui_config.save_app_settings));
