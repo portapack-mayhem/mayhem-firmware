@@ -72,7 +72,7 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
                 cur_sample = audio_f[c];
                 if (cur_sample * prev_sample < 0.0) {
                     z_acc += z_timer;
-                    z_timer = 0;
+                    z_timer = 1;
                     z_count++;
                 } else
                     z_timer++;
