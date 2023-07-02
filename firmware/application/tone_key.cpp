@@ -129,7 +129,7 @@ std::string tone_key_string_by_value(uint32_t value, size_t max_length) {
     static uint32_t last_value;
     tone_index idx;
     std::string freq_str;
-    
+
     // If >10Hz difference between consecutive samples, it's probably noise, so ignore
     if (abs(value - last_value) > 10 * 100) {
         last_value = value;
@@ -151,7 +151,7 @@ std::string tone_key_string_by_value(uint32_t value, size_t max_length) {
         if (tone_display_toggle++ < TONE_DISPLAY_TOGGLE_COUNTER) {
             return "T: " + freq_str;
         } else {
-            if (tone_display_toggle >= TONE_DISPLAY_TOGGLE_COUNTER * 2)          
+            if (tone_display_toggle >= TONE_DISPLAY_TOGGLE_COUNTER * 2)
                 tone_display_toggle = 0;
 
             // If we don't find a close tone freq in the table, display frequency instead
