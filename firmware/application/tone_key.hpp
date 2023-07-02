@@ -30,6 +30,9 @@ using namespace ui;
 
 namespace tonekey {
 
+#define TONE_FREQ_TOLERANCE_HZ 4.0
+#define TONE_DISPLAY_TOGGLE_COUNTER 2
+
 typedef int32_t tone_index;
 
 using tone_key_t = std::vector<std::pair<std::string, float>>;
@@ -40,7 +43,8 @@ void tone_keys_populate(OptionsField& field);
 float tone_key_frequency(const tone_index index);
 
 std::string tone_key_string(const tone_index index);
-std::string tone_key_string_by_value(uint32_t value);
+std::string tone_key_value_string(const tone_index index);
+std::string tone_key_string_by_value(uint32_t value, size_t max_length);
 tone_index tone_key_index_by_value(uint32_t value);
 
 }  // namespace tonekey
