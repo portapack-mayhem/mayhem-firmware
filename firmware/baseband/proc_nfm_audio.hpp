@@ -87,8 +87,11 @@ class NarrowbandFMAudio : public BasebandProcessor {
     uint32_t tone_delta{0};
     bool pitch_rssi_enabled{false};
 
+    #define Z_MIN_FILTER_COUNT 224
+    #define Z_MIN_ZERO_CROSSINGS 20
+
     float cur_sample{}, prev_sample{};
-    uint32_t z_acc{0}, z_timer{0}, z_count{0};
+    uint32_t z_acc{0}, z_timer{0}, z_count{0}, z_filter_count{0};
     bool ctcss_detect_enabled{true};
     static constexpr float k = 32768.0f;
     static constexpr float ki = 1.0f / k;
