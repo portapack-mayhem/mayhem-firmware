@@ -90,10 +90,10 @@ void tone_keys_populate(OptionsField& field) {
     options_t tone_key_options;
     std::string tone_name;
 
-    for (size_t c = 0; c < tone_keys.size(); c++) {
-        if (c && c < 51) {
-            auto f = tone_keys[c].second;
-            tone_name = "CTCSS " + tone_keys[c].first + " " + to_string_dec_uint(f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10);
+    for (size_t c = 1; c < tone_keys.size(); c++) {
+        auto f = tone_keys[c].second;
+        if (f < 1000.0) {
+            tone_name = "CTCSS " + to_string_dec_uint(f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10) + " " + tone_keys[c].first;
         } else {
             tone_name = tone_keys[c].first;
         }
@@ -114,10 +114,58 @@ std::string tone_key_string(tone_index index) {
     return tone_keys[index].first;
 }
 
-std::string tone_key_string_by_value(uint32_t value) {
-    return tone_key_string(tone_key_index_by_value(value));
+// Return string showing frequency only from specific table index
+std::string tone_key_value_string(tone_index index) {
+    if (index < 0 || (unsigned)index >= tone_keys.size())
+        return std::string("");
+    auto f = tone_keys[index].second;
+    return to_string_dec_uint((uint32_t)f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10);
 }
 
+// Return variable-length string showing CTCSS tone from tone frequency
+// Value is in 0.01 Hz units
+std::string tone_key_string_by_value(uint32_t value, size_t max_length) {
+    static uint8_t tone_display_toggle{0};
+    static uint32_t last_value;
+    tone_index idx;
+    std::string freq_str;
+    
+    // If >10Hz difference between consecutive samples, it's probably noise, so ignore
+    if (abs(value - last_value) > 10 * 100) {
+        last_value = value;
+        tone_display_toggle = 0;
+        return "        ";
+    }
+    last_value = value;
+
+    // Only display 1/10 Hz accuracy if <1000 Hz; max 5 characters
+    if (value >= 1000 * 100)
+        freq_str = to_string_dec_int(value / 100);
+    else
+        freq_str = to_string_dec_int(value / 100) + "." + to_string_dec_uint((value / 10) % 10);
+
+    if (max_length >= 3 + 5 + 1 + 5) {
+        return "T: " + freq_str + " " + tone_key_string(tone_key_index_by_value(value));
+    } else {
+        // Not enough space; toggle between display of tone received and tone code #
+        if (tone_display_toggle++ < TONE_DISPLAY_TOGGLE_COUNTER) {
+            return "T: " + freq_str;
+        } else {
+            if (tone_display_toggle >= TONE_DISPLAY_TOGGLE_COUNTER * 2)          
+                tone_display_toggle = 0;
+
+            // If we don't find a close tone freq in the table, display frequency instead
+            idx = tone_key_index_by_value(value);
+            if (idx == -1)
+                return "T: " + freq_str;
+            else
+                return "T: " + tone_key_string(idx);
+        }
+    }
+}
+
+// Search tone_key table for tone frequency value
+// Value is in 0.01 Hz units
 tone_index tone_key_index_by_value(uint32_t value) {
     float diff;
     float min_diff{(float)value};
@@ -137,8 +185,8 @@ tone_index tone_key_index_by_value(uint32_t value) {
         }
     }
 
-    // Arbitrary confidence threshold
-    if (min_diff < 40.0)
+    // Arbitrary confidence threshold in Hz
+    if (min_diff < TONE_FREQ_TOLERANCE_HZ)
         return min_idx;
     else
         return -1;
