@@ -284,7 +284,7 @@ bool get_freq_string(freqman_entry& entry, std::string& item_string) {
         item_string = "r=" + to_string_dec_uint(frequency_a / 1000) + to_string_dec_uint(frequency_a % 1000UL, 3, '0');
         item_string += ",t=" + to_string_dec_uint(frequency_b / 1000) + to_string_dec_uint(frequency_b % 1000UL, 3, '0');
         if (entry.tone >= 0) {
-            item_string += ",c=" + tone_key_string(entry.tone);
+            item_string += ",c=" + tone_key_value_string(entry.tone);
         }
     }
     if (entry.modulation >= 0 && (unsigned)entry.modulation < freqman_entry_modulations.size()) {
