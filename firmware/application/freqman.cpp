@@ -221,15 +221,15 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, 
                     c = *(pos + length);
                     *(pos + length) = 0;
                     // ASCII Hz to integer Hz x 100
-                    tone_freq = strtoll( pos , nullptr , 10 ) * 100;
+                    tone_freq = strtoll(pos, nullptr, 10) * 100;
                     // stuff saved character back into string in case it was not a decimal point
                     *(pos + length) = c;
                     // now get first digit after decimal point (10ths of Hz)
                     pos += length + 1;
-                    if (c=='.' && *pos >= '0' && *pos <= '9')
+                    if (c == '.' && *pos >= '0' && *pos <= '9')
                         tone_freq += (*pos - '0') * 10;
                     // convert tone_freq (100x the freq in Hz) to a tone_key index
-                    tone = tone_key_index_by_value( tone_freq );
+                    tone = tone_key_index_by_value(tone_freq);
                 }
             }
             // Read description until , or LF
