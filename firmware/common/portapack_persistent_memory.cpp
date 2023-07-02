@@ -361,7 +361,10 @@ namespace cache {
 void defaults() {
     cached_backup_ram = backup_ram_t();
 
-    // defaults values for recon app
+    set_config_backlight_timer(Timeout3600Sec);
+    set_config_splash(true);
+
+    // Default values for recon app.
     set_recon_autosave_freqs(false);
     set_recon_autostart_recon(true);
     set_recon_continuous(true);
