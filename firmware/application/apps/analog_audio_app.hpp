@@ -71,10 +71,10 @@ class NBFMOptionsView : public View {
         }};
 
     Text text_squelch{
-        {9 * 8, 0 * 16, 8 * 8, 1 * 16},
+        {7 * 8, 0 * 16, 8 * 8, 1 * 16},
         "SQ   /99"};
     NumberField field_squelch{
-        {12 * 8, 0 * 16},
+        {10 * 8, 0 * 16},
         2,
         {0, 99},
         1,
@@ -200,7 +200,7 @@ class AnalogAudioView : public View {
         {28 * 8, 0 * 16}};
 
     Text text_ctcss{
-        {19 * 8, 1 * 16, 11 * 8, 1 * 16},
+        {16 * 8, 1 * 16, 14 * 8, 1 * 16},
         ""};
 
     std::unique_ptr<Widget> options_widget{};

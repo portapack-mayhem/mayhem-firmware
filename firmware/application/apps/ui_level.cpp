@@ -216,23 +216,10 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
 }
 
 void LevelView::handle_coded_squelch(const uint32_t value) {
-    static tone_index last_squelch_index = -1;
-
-    if (field_mode.selected_index() == NFM_MODULATION) {
-        tone_index idx = tone_key_index_by_value(value);
-
-        if ((last_squelch_index < 0) || (last_squelch_index != idx)) {
-            last_squelch_index = idx;
-            if (idx >= 0) {
-                text_ctcss.set("T: " + tone_key_string(idx));
-                return;
-            }
-        } else {
-            return;
-        }
-    }
-
-    text_ctcss.set("             ");
+    if (field_mode.selected_index() == NFM_MODULATION)
+        text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
+    else
+        text_ctcss.set("        ");
 }
 
 } /* namespace ui */

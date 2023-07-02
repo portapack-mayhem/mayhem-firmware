@@ -269,7 +269,7 @@ class MicTXView : public View {
 
     OptionsField options_tone_key{
         {12 * 8, (13 * 8) - 5},
-        23,
+        18,
         {}};
 
     Checkbox check_rogerbeep{

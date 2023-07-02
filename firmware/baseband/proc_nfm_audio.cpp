@@ -53,7 +53,9 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
         if (ctcss_detect_enabled) {
             /* 24kHz int16_t[16]
              * -> FIR filter, <300Hz pass, >300Hz stop, gain of 1
-             * -> 12kHz int16_t[8] */
+             * -> 12kHz int16_t[8]
+             *
+             * Note we're only processing a small section of the wave each time this fn is called */
             auto audio_ctcss = ctcss_filter.execute(audio, work_audio_buffer);
 
             // s16 to f32 for hpf
@@ -79,9 +81,11 @@ void NarrowbandFMAudio::execute(const buffer_c8_t& buffer) {
                 prev_sample = cur_sample;
             }
 
-            if (z_count >= 30) {
+            z_filter_count++;
+            if ((z_filter_count >= Z_MIN_FILTER_COUNT) && (z_count >= Z_MIN_ZERO_CROSSINGS)) {
                 ctcss_message.value = (100 * 12000 / 2 * z_count) / z_acc;
                 shared_memory.application_queue.push(ctcss_message);
+                z_filter_count = 0;
                 z_count = 0;
                 z_acc = 0;
             }

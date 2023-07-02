@@ -122,6 +122,8 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, 
     freqman_index_t bandwidth = -1;
     freqman_index_t step = -1;
     freqman_index_t tone = -1;
+    uint32_t tone_freq;
+    char c;
 
     auto result = freqman_file.open("FREQMAN/" + file_stem + ".TXT");
     if (result.is_valid())
@@ -210,12 +212,26 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, 
                 step = freqman_entry_get_step_from_str_short(pos);
             }
             // ctcss tone if any
-            /* disabled until better form
-               pos = strstr(line_start, "c=");
-               if (pos) {
-               pos += 2;
-               tone = tone_key_index_by_value( strtoll( pos , nullptr , 10 ) );
-               } */
+            pos = strstr(line_start, "c=");
+            if (pos) {
+                pos += 2;
+                // find decimal point and replace with 0 if there is one, for strtoll
+                length = strcspn(pos, ".,\x0A");
+                if (pos + length <= line_end) {
+                    c = *(pos + length);
+                    *(pos + length) = 0;
+                    // ASCII Hz to integer Hz x 100
+                    tone_freq = strtoll(pos, nullptr, 10) * 100;
+                    // stuff saved character back into string in case it was not a decimal point
+                    *(pos + length) = c;
+                    // now get first digit after decimal point (10ths of Hz)
+                    pos += length + 1;
+                    if (c == '.' && *pos >= '0' && *pos <= '9')
+                        tone_freq += (*pos - '0') * 10;
+                    // convert tone_freq (100x the freq in Hz) to a tone_key index
+                    tone = tone_key_index_by_value(tone_freq);
+                }
+            }
             // Read description until , or LF
             pos = strstr(line_start, "d=");
             if (pos) {
@@ -284,7 +300,7 @@ bool get_freq_string(freqman_entry& entry, std::string& item_string) {
         item_string = "r=" + to_string_dec_uint(frequency_a / 1000) + to_string_dec_uint(frequency_a % 1000UL, 3, '0');
         item_string += ",t=" + to_string_dec_uint(frequency_b / 1000) + to_string_dec_uint(frequency_b % 1000UL, 3, '0');
         if (entry.tone >= 0) {
-            item_string += ",c=" + tone_key_string(entry.tone);
+            item_string += ",c=" + tone_key_value_string(entry.tone);
         }
     }
     if (entry.modulation >= 0 && (unsigned)entry.modulation < freqman_entry_modulations.size()) {
