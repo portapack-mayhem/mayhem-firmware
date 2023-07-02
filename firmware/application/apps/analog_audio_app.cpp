@@ -404,11 +404,7 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
 }
 
 void AnalogAudioView::handle_coded_squelch(uint32_t value) {
-    tone_index idx = tone_key_index_by_value(value);
-    if (idx >= 0)
-        text_ctcss.set("CTCSS " + tone_key_string(idx));
-    else
-        text_ctcss.set("???");
+    text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
 }
 
 } /* namespace ui */
