@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -26,16 +27,16 @@
 #include <cstddef>
 
 #include "app_settings.hpp"
+#include "max283x.hpp"
 #include "message.hpp"
 #include "rf_path.hpp"
-#include "max283x.hpp"
 #include "volume.hpp"
 
 // TODO: consider a base class for ReceiverModel & TransmitterModel.
 // There are multiple values that are actually shared by both.
 class ReceiverModel {
    public:
-    enum class Mode : uint8_t{
+    enum class Mode : uint8_t {
         AMAudio = 0,
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
@@ -43,40 +44,52 @@ class ReceiverModel {
         Capture = 4
     };
 
-    constexpr uint32_t default_baseband_bandwidth = max283x::filter::bandwidth_minimum;
-    constexpr uint32_t default_sampling_rate = 3'072'000;
-    constexpr rf::Frequency default_frequency_step = 25'000;
-    constexpr uint8_t default_gain = 32;
-    constexpr bool default_amp = false;
-    constexpr Mode default_modulation = Mode::NarrowbandFMAudio;
-    constexpr uint8_t default_squelch = 80;
+    static constexpr uint32_t default_baseband_bandwidth = max283x::filter::bandwidth_minimum;
+    static constexpr uint32_t default_sampling_rate = 3'072'000;
+    static constexpr rf::Frequency default_frequency_step = 25'000;
+    static constexpr uint8_t default_gain = 32;
+    static constexpr bool default_amp = false;
+    static constexpr Mode default_modulation = Mode::NarrowbandFMAudio;
+    static constexpr uint8_t default_squelch = 80;
 
     /* The frequency to receive (no offset). */
     rf::Frequency target_frequency() const;
     void set_target_frequency(rf::Frequency f);
 
-    rf::Frequency frequency_step() const;
-    void set_frequency_step(rf::Frequency f);
-
-    void set_antenna_bias();
-
-    bool rf_amp() const;
-    void set_rf_amp(bool enabled);
-
-    int32_t lna() const;
-    void set_lna(int32_t v_db);
-
     uint32_t baseband_bandwidth() const;
     void set_baseband_bandwidth(uint32_t v);
-
-    int32_t vga() const;
-    void set_vga(int32_t v_db);
 
     uint32_t sampling_rate() const;
     void set_sampling_rate(uint32_t v);
 
+    rf::Frequency frequency_step() const;
+    void set_frequency_step(rf::Frequency f);
+
+    uint8_t lna() const;
+    void set_lna(uint8_t v_db);
+
+    uint8_t vga() const;
+    void set_vga(uint8_t v_db);
+
+    bool rf_amp() const;
+    void set_rf_amp(bool enabled);
+
     Mode modulation() const;
     void set_modulation(Mode v);
+
+    uint8_t am_configuration() const;
+    void set_am_configuration(uint8_t n);
+
+    uint8_t nbfm_configuration() const;
+    void set_nbfm_configuration(uint8_t n);
+
+    uint8_t wfm_configuration() const;
+    void set_wfm_configuration(uint8_t n);
+
+    uint8_t squelch_level() const;
+    void set_squelch_level(uint8_t v);
+
+    void set_antenna_bias();
 
     volume_t headphone_volume() const;
     void set_headphone_volume(volume_t v);
@@ -85,20 +98,8 @@ class ReceiverModel {
     uint8_t normalized_headphone_volume() const;
     void set_normalized_headphone_volume(uint8_t v);
 
-    uint8_t squelch_level() const;
-    void set_squelch_level(uint8_t v);
-
     void enable();
     void disable();
-
-    size_t am_configuration() const;
-    void set_am_configuration(const size_t n);
-
-    size_t nbfm_configuration() const;
-    void set_nbfm_configuration(const size_t n);
-
-    size_t wfm_configuration() const;
-    void set_wfm_configuration(const size_t n);
 
     /* Resets some members back to default. */
     void initialize();
@@ -130,18 +131,19 @@ class ReceiverModel {
     int32_t tuning_offset();
 
     void update_tuning_frequency();
-    void update_antenna_bias();
-    void update_rf_amp();
-    void update_lna();
     void update_baseband_bandwidth();
-    void update_vga();
     void update_sampling_rate();
-    void update_headphone_volume();
+    void update_lna();
+    void update_vga();
+    void update_rf_amp();
 
     void update_modulation();
     void update_am_configuration();
     void update_nbfm_configuration();
     void update_wfm_configuration();
+
+    void update_antenna_bias();
+    void update_headphone_volume();
 };
 
 #endif /*__RECEIVER_MODEL_H__*/

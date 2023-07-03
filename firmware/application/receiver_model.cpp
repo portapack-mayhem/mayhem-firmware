@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -70,36 +71,6 @@ void ReceiverModel::set_target_frequency(rf::Frequency f) {
     update_tuning_frequency();
 }
 
-rf::Frequency ReceiverModel::frequency_step() const {
-    return frequency_step_;
-}
-
-void ReceiverModel::set_frequency_step(rf::Frequency f) {
-    frequency_step_ = f;
-}
-
-void ReceiverModel::set_antenna_bias() {
-    update_antenna_bias();
-}
-
-bool ReceiverModel::rf_amp() const {
-    return rf_amp_;
-}
-
-void ReceiverModel::set_rf_amp(bool enabled) {
-    rf_amp_ = enabled;
-    update_rf_amp();
-}
-
-int32_t ReceiverModel::lna() const {
-    return lna_gain_db_;
-}
-
-void ReceiverModel::set_lna(int32_t v_db) {
-    lna_gain_db_ = v_db;
-    update_lna();
-}
-
 uint32_t ReceiverModel::baseband_bandwidth() const {
     return baseband_bandwidth_;
 }
@@ -107,15 +78,6 @@ uint32_t ReceiverModel::baseband_bandwidth() const {
 void ReceiverModel::set_baseband_bandwidth(uint32_t v) {
     baseband_bandwidth_ = v;
     update_baseband_bandwidth();
-}
-
-int32_t ReceiverModel::vga() const {
-    return vga_gain_db_;
-}
-
-void ReceiverModel::set_vga(int32_t v_db) {
-    vga_gain_db_ = v_db;
-    update_vga();
 }
 
 uint32_t ReceiverModel::sampling_rate() const {
@@ -127,13 +89,94 @@ void ReceiverModel::set_sampling_rate(uint32_t v) {
     update_sampling_rate();
 }
 
+rf::Frequency ReceiverModel::frequency_step() const {
+    return frequency_step_;
+}
+
+void ReceiverModel::set_frequency_step(rf::Frequency f) {
+    frequency_step_ = f;
+}
+
+uint8_t ReceiverModel::lna() const {
+    return lna_gain_db_;
+}
+
+void ReceiverModel::set_lna(uint8_t v_db) {
+    lna_gain_db_ = v_db;
+    update_lna();
+}
+
+uint8_t ReceiverModel::vga() const {
+    return vga_gain_db_;
+}
+
+void ReceiverModel::set_vga(uint8_t v_db) {
+    vga_gain_db_ = v_db;
+    update_vga();
+}
+
+bool ReceiverModel::rf_amp() const {
+    return rf_amp_;
+}
+
+void ReceiverModel::set_rf_amp(bool enabled) {
+    rf_amp_ = enabled;
+    update_rf_amp();
+}
+
 ReceiverModel::Mode ReceiverModel::modulation() const {
     return mode_;
 }
 
-void ReceiverModel::set_modulation(const Mode v) {
+void ReceiverModel::set_modulation(Mode v) {
     mode_ = v;
     update_modulation();
+}
+
+uint8_t ReceiverModel::am_configuration() const {
+    return am_config_index;
+}
+
+void ReceiverModel::set_am_configuration(uint8_t n) {
+    if (n < am_configs.size()) {
+        am_config_index = n;
+        update_modulation();
+    }
+}
+
+uint8_t ReceiverModel::nbfm_configuration() const {
+    return nbfm_config_index;
+}
+
+void ReceiverModel::set_nbfm_configuration(uint8_t n) {
+    if (n < nbfm_configs.size()) {
+        nbfm_config_index = n;
+        update_modulation();
+    }
+}
+
+uint8_t ReceiverModel::wfm_configuration() const {
+    return wfm_config_index;
+}
+
+void ReceiverModel::set_wfm_configuration(uint8_t n) {
+    if (n < wfm_configs.size()) {
+        wfm_config_index = n;
+        update_modulation();
+    }
+}
+
+uint8_t ReceiverModel::squelch_level() const {
+    return squelch_level_;
+}
+
+void ReceiverModel::set_squelch_level(uint8_t v) {
+    squelch_level_ = v;
+    update_modulation();
+}
+
+void ReceiverModel::set_antenna_bias() {
+    update_antenna_bias();
 }
 
 volume_t ReceiverModel::headphone_volume() const {
@@ -155,15 +198,6 @@ void ReceiverModel::set_normalized_headphone_volume(uint8_t v) {
     v = clip<uint8_t>(v, 0, 99);
     auto new_volume = volume_t::decibel(v - 99) + audio::headphone::volume_range().max;
     set_headphone_volume(new_volume);
-}
-
-uint8_t ReceiverModel::squelch_level() const {
-    return squelch_level_;
-}
-
-void ReceiverModel::set_squelch_level(uint8_t v) {
-    squelch_level_ = v;
-    update_modulation();
 }
 
 void ReceiverModel::enable() {
@@ -191,61 +225,6 @@ void ReceiverModel::disable() {
     // Some happens in ReceiverModel, some inside radio namespace.
     radio::disable();
     led_rx.off();
-}
-
-int32_t ReceiverModel::tuning_offset() {
-    if ((modulation() == Mode::SpectrumAnalysis)) {
-        return 0;
-    } else {
-        return -(sampling_rate() / 4);
-    }
-}
-
-void ReceiverModel::update_tuning_frequency() {
-    // TODO: use positive offset if freq < offset.
-    radio::set_tuning_frequency(target_frequency() + tuning_offset());
-}
-
-void ReceiverModel::update_antenna_bias() {
-    if (enabled_)
-        radio::set_antenna_bias(portapack::get_antenna_bias());
-}
-
-void ReceiverModel::update_rf_amp() {
-    radio::set_rf_amp(rf_amp_);
-}
-
-void ReceiverModel::update_lna() {
-    radio::set_lna_gain(lna_gain_db_);
-}
-
-void ReceiverModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth(baseband_bandwidth_);
-}
-
-void ReceiverModel::update_vga() {
-    radio::set_vga_gain(vga_gain_db_);
-}
-
-void ReceiverModel::set_am_configuration(const size_t n) {
-    if (n < am_configs.size()) {
-        am_config_index = n;
-        update_modulation();
-    }
-}
-
-void ReceiverModel::set_nbfm_configuration(const size_t n) {
-    if (n < nbfm_configs.size()) {
-        nbfm_config_index = n;
-        update_modulation();
-    }
-}
-
-void ReceiverModel::set_wfm_configuration(const size_t n) {
-    if (n < wfm_configs.size()) {
-        wfm_config_index = n;
-        update_modulation();
-    }
 }
 
 void ReceiverModel::initialize() {
@@ -287,6 +266,23 @@ void ReceiverModel::configure_from_app_settings(
     squelch_level_ = settings.squelch;
 }
 
+int32_t ReceiverModel::tuning_offset() {
+    if ((modulation() == Mode::SpectrumAnalysis)) {
+        return 0;
+    } else {
+        return -(sampling_rate() / 4);
+    }
+}
+
+void ReceiverModel::update_tuning_frequency() {
+    // TODO: use positive offset if freq < offset.
+    radio::set_tuning_frequency(target_frequency() + tuning_offset());
+}
+
+void ReceiverModel::update_baseband_bandwidth() {
+    radio::set_baseband_filter_bandwidth(baseband_bandwidth_);
+}
+
 void ReceiverModel::update_sampling_rate() {
     // TODO: Move more low-level radio control stuff to M4. It'll enable tighter
     // synchronization for things like wideband (sweeping) spectrum analysis, and
@@ -297,8 +293,16 @@ void ReceiverModel::update_sampling_rate() {
     update_tuning_frequency();
 }
 
-void ReceiverModel::update_headphone_volume() {
-    audio::headphone::set_volume(headphone_volume());
+void ReceiverModel::update_lna() {
+    radio::set_lna_gain(lna_gain_db_);
+}
+
+void ReceiverModel::update_vga() {
+    radio::set_vga_gain(vga_gain_db_);
+}
+
+void ReceiverModel::update_rf_amp() {
+    radio::set_rf_amp(rf_amp_);
 }
 
 void ReceiverModel::update_modulation() {
@@ -322,26 +326,23 @@ void ReceiverModel::update_modulation() {
     }
 }
 
-size_t ReceiverModel::am_configuration() const {
-    return am_config_index;
-}
-
 void ReceiverModel::update_am_configuration() {
     am_configs[am_config_index].apply();
-}
-
-size_t ReceiverModel::nbfm_configuration() const {
-    return nbfm_config_index;
 }
 
 void ReceiverModel::update_nbfm_configuration() {
     nbfm_configs[nbfm_config_index].apply(squelch_level_);
 }
 
-size_t ReceiverModel::wfm_configuration() const {
-    return wfm_config_index;
-}
-
 void ReceiverModel::update_wfm_configuration() {
     wfm_configs[wfm_config_index].apply();
+}
+
+void ReceiverModel::update_antenna_bias() {
+    if (enabled_)
+        radio::set_antenna_bias(portapack::get_antenna_bias());
+}
+
+void ReceiverModel::update_headphone_volume() {
+    audio::headphone::set_volume(headphone_volume());
 }
