@@ -160,7 +160,6 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     if (!settings_.loaded())
         receiver_model.set_target_frequency(initial_target_frequency);
 
-    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.enable();
 
     options_band.on_change = [this](size_t, OptionsField::value_t v) {
