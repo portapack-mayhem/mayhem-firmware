@@ -177,7 +177,7 @@ static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
 std::string to_string_hex(const uint64_t n, int32_t l) {
     char p[32];
 
-    l = std::min(l, 31L);
+    l = std::min<int32_t>(l, 31);
     to_string_hex_internal(p, n, l - 1);
     p[l] = 0;
     return p;

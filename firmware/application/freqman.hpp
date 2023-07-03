@@ -67,22 +67,22 @@ enum freqman_entry_modulation : uint8_t {
 };
 
 // Entry step placed for AlainD freqman version (or any other enhanced version)
-enum freqman_entry_step : int8_t {
-    AM_US,    // 10 kHz   AM/CB
-    AM_EUR,   // 9 kHz	LW/MW
+/*enum freqman_entry_step : int8_t {
+    AM_US,    // 10 kHz AM/CB
+    AM_EUR,   // 9 kHz LW/MW
     NFM_1,    // 12,5 kHz (Analogic PMR 446)
-    NFM_2,    // 6,25 kHz  (Digital PMR 446)
+    NFM_2,    // 6,25 kHz (Digital PMR 446)
     FM_1,     // 100 kHz
     FM_2,     // 50 kHz
     N_1,      // 25 kHz
     N_2,      // 250 kHz
     AIRBAND,  // AIRBAND 8,33 kHz
-};
+};*/
 
 struct freqman_entry {
     rf::Frequency frequency_a{0};               // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
     rf::Frequency frequency_b{0};               // 'b=freq_end' or 't=tx_freq'
-    std::string description{NULL};              // 'd=desc'
+    std::string description{};                  // 'd=desc'
     freqman_entry_type type{SINGLE};            // SINGLE,RANGE,HAMRADIO
     freqman_index_t modulation{AM_MODULATION};  // AM,NFM,WFM
     freqman_index_t bandwidth{0};               // AM_DSB, ...

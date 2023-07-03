@@ -177,6 +177,7 @@ set(CPPSRC
 	event_m0.cpp
 	file_reader.cpp
 	file.cpp
+	freqman_db.cpp
 	freqman.cpp
 	io_file.cpp
 	io_wave.cpp

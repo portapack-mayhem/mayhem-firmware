@@ -24,7 +24,7 @@
 #include "freqman.hpp"
 #include <algorithm>
 
-using option_t = std::pair<std::string, int32_t>;
+using option_t = std::pair<std::string, uint32_t>;
 using options_t = std::vector<option_t>;
 
 // TODO: Consolidate with receiver_model.
@@ -33,19 +33,24 @@ options_t freqman_entry_modulations = {
     {"AM", 0},
     {"NFM", 1},
     {"WFM", 2},
-    {"SPEC", 3}};
+    {"SPEC", 3},
+};
 
 options_t freqman_entry_bandwidths[4] = {
-    {// AM
-     {"DSB 9k", 0},
-     {"DSB 6k", 1},
-     {"USB+3k", 2},
-     {"LSB-3k", 3},
-     {"CW", 4}},
-    {// NFM
-     {"8k5", 0},
-     {"11k", 1},
-     {"16k", 2}},
+    {
+        // AM
+        {"DSB 9k", 0},
+        {"DSB 6k", 1},
+        {"USB+3k", 2},
+        {"LSB-3k", 3},
+        {"CW", 4},
+    },
+    {
+        // NFM
+        {"8k5", 0},
+        {"11k", 1},
+        {"16k", 2},
+    },
     {
         // WFM
         {"40k", 2},
@@ -106,7 +111,8 @@ options_t freqman_entry_steps_short = {
     {"100kHz", 100000},
     {"250kHz", 250000},
     {"500kHz", 500000},
-    {"1MHz", 1000000}};
+    {"1MHz", 1000000},
+};
 
 bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs) {
     // swap with empty vector to ensure memory is immediately released
@@ -261,6 +267,7 @@ bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs, 
     }
 
     /* populate implicitly specified modulation / bandwidth */
+    // ???
     if (db.size() > 2) {
         modulation = db[0].modulation;
         bandwidth = db[0].bandwidth;
@@ -363,7 +370,7 @@ std::string freqman_item_string(freqman_entry& entry, size_t max_length) {
             item_string = "H: " + entry.description;
             break;
         default:
-            item_string = "!UNKNOW TYPE " + entry.description;
+            item_string = "!UNKNOWN TYPE " + entry.description;
             break;
     }
 
