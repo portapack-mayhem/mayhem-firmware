@@ -35,13 +35,21 @@
 // There are multiple values that are actually shared by both.
 class ReceiverModel {
    public:
-    enum class Mode {
+    enum class Mode : uint8_t{
         AMAudio = 0,
         NarrowbandFMAudio = 1,
         WidebandFMAudio = 2,
         SpectrumAnalysis = 3,
         Capture = 4
     };
+
+    constexpr uint32_t default_baseband_bandwidth = max283x::filter::bandwidth_minimum;
+    constexpr uint32_t default_sampling_rate = 3'072'000;
+    constexpr rf::Frequency default_frequency_step = 25'000;
+    constexpr uint8_t default_gain = 32;
+    constexpr bool default_amp = false;
+    constexpr Mode default_modulation = Mode::NarrowbandFMAudio;
+    constexpr uint8_t default_squelch = 80;
 
     /* The frequency to receive (no offset). */
     rf::Frequency target_frequency() const;
@@ -92,10 +100,8 @@ class ReceiverModel {
     size_t wfm_configuration() const;
     void set_wfm_configuration(const size_t n);
 
-    /* Sets the model values without updating the radio. */
-    void set_configuration_without_update(
-        uint32_t baseband_bandwidth,
-        uint32_t sampling_rate);
+    /* Resets some members back to default. */
+    void initialize();
 
     void set_configuration_without_update(
         Mode new_mode,
@@ -108,18 +114,18 @@ class ReceiverModel {
     void configure_from_app_settings(const app_settings::AppSettings& settings);
 
    private:
-    rf::Frequency frequency_step_{25000};
-    bool enabled_{false};
-    bool rf_amp_{false};
-    int32_t lna_gain_db_{32};
-    uint32_t baseband_bandwidth_{max283x::filter::bandwidth_minimum};
-    int32_t vga_gain_db_{32};
-    Mode mode_{Mode::NarrowbandFMAudio};
-    uint32_t sampling_rate_{3072000};
-    size_t am_config_index = 0;
-    size_t nbfm_config_index = 0;
-    size_t wfm_config_index = 0;
-    uint8_t squelch_level_{80};
+    uint32_t baseband_bandwidth_ = default_baseband_bandwidth;
+    uint32_t sampling_rate_ = default_sampling_rate;
+    rf::Frequency frequency_step_ = default_frequency_step;
+    uint8_t lna_gain_db_ = default_gain;
+    uint8_t vga_gain_db_ = default_gain;
+    bool rf_amp_ = default_amp;
+    Mode mode_ = default_modulation;
+    uint8_t am_config_index = 0;
+    uint8_t nbfm_config_index = 0;
+    uint8_t wfm_config_index = 0;
+    uint8_t squelch_level_ = default_squelch;
+    bool enabled_ = false;
 
     int32_t tuning_offset();
 

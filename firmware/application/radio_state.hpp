@@ -28,38 +28,40 @@
 #include "receiver_model.hpp"
 #include "transmitter_model.hpp"
 
-/* Stashes current radio bandwidth and sampling rate.
- * Inits to defaults, and restores previous when destroyed.
- * The idea here is that an app will eventually call enable
- * on the model which will sync all of the model state into
- * the radio. We tried lazily setting these using the
- * set_configuration_without_update function, but there are
- * still various UI components (mainly Waterfall) that need
- * the radio set in order to load properly.
+/* Reinitialized model with defaults so each app can start
+ * with a clean, default model instance. We tried lazily
+ * setting these using the set_configuration_without_update
+ * function, but there are still various UI components
+ * (e.g. Waterfall) that need the radio set in order to load.
  * NB: This member must be added before SettingsManager. */
 template <typename TModel, TModel* model>
 class RadioState {
    public:
-    RadioState()
-        : RadioState(max2837::filter::bandwidth_minimum, 3072000) {
+    RadioState() {
+        model->initialize();
     }
 
-    RadioState(uint32_t new_bandwidth, uint32_t new_sampling_rate)
-        : prev_bandwidth_{model->baseband_bandwidth()},
-          prev_sampling_rate_{model->sampling_rate()} {
+    RadioState(uint32_t new_bandwidth, uint32_t new_sampling_rate) {
+        model->initialize();
         // Update the new settings in the radio.
         model->set_sampling_rate(new_sampling_rate);
         model->set_baseband_bandwidth(new_bandwidth);
     }
-
-    ~RadioState() {
-        model->set_configuration_without_update(
-            prev_bandwidth_, prev_sampling_rate_);
+    
+    template <
+        typename U = T,
+        typename Mode = std::enable_if_t<sizeof(typename TModel::Mode), typename TModel::Mode>
+    >
+    RadioState(
+        uint32_t new_bandwidth,
+        uint32_t new_sampling_rate,
+        Mode new_mode) {
+        model->initialize();
+        // Update the new settings in the radio.
+        model->set_sampling_rate(new_sampling_rate);
+        model->set_baseband_bandwidth(new_bandwidth);
+        model->set_modulation(new_mode);
     }
-
-   private:
-    const uint32_t prev_bandwidth_;
-    const uint32_t prev_sampling_rate_;
 };
 
 using RxRadioState = RadioState<ReceiverModel, &portapack::receiver_model>;

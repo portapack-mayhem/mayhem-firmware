@@ -248,11 +248,18 @@ void ReceiverModel::set_wfm_configuration(const size_t n) {
     }
 }
 
-void ReceiverModel::set_configuration_without_update(
-    uint32_t baseband_bandwidth,
-    uint32_t sampling_rate) {
-    baseband_bandwidth_ = baseband_bandwidth;
-    sampling_rate_ = sampling_rate;
+void ReceiverModel::initialize() {
+    baseband_bandwidth_ = default_baseband_bandwidth;
+    sampling_rate_ = default_sampling_rate;
+    frequency_step_ = default_frequency_step;
+    lna_gain_db_ = default_gain;
+    vga_gain_db_ = default_gain;
+    rf_amp_ = default_amp;
+    mode_ = default_modulation;
+    am_config_index = 0;
+    nbfm_config_index = 0;
+    wfm_config_index = 0;
+    squelch_level_ = default_squelch;
 }
 
 void ReceiverModel::set_configuration_without_update(

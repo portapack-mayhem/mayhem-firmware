@@ -147,6 +147,16 @@ void TransmitterModel::disable() {
     led_tx.off();
 }
 
+void TransmitterModel::initialize() {
+    baseband_bandwidth_ = default_baseband_bandwidth;
+    sampling_rate_ = default_sampling_rate;
+    channel_bandwidth_ = default_channel_bandwidth;
+    tx_gain_db_ = default_tx_gain;
+    lna_gain_db_ = default_gain;
+    vga_gain_db_ = default_gain;
+    rf_amp_ = default_amp;
+}
+
 void TransmitterModel::set_configuration_without_update(
     uint32_t baseband_bandwidth,
     uint32_t sampling_rate) {

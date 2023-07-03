@@ -36,6 +36,15 @@
 
 class TransmitterModel {
    public:
+    constexpr uint32_t default_baseband_bandwidth = max283x::filter::bandwidth_minimum;
+    constexpr uint32_t default_sampling_rate = 3'072'000;
+    constexpr uint32_t default_channel_bandwidth = 1;
+    constexpr rf::Frequency default_frequency_step = 25'000;
+    /* 35 should give approx 1m transmission range. */
+    constexpr uint8_t default_tx_gain = 35;
+    constexpr uint8_t default_gain = 0;
+    constexpr bool default_amp = false;
+
     /* The frequency to transmit on. */
     rf::Frequency target_frequency() const;
     void set_target_frequency(rf::Frequency f);
@@ -70,6 +79,8 @@ class TransmitterModel {
     void enable();
     void disable();
 
+    void initialize();
+
     /* Sets the model values without updating the radio. */
     void set_configuration_without_update(
         uint32_t baseband_bandwidth,
@@ -78,15 +89,14 @@ class TransmitterModel {
     void configure_from_app_settings(const app_settings::AppSettings& settings);
 
    private:
-    bool enabled_{false};
-    bool rf_amp_{false};
-    int32_t lna_gain_db_{0};
-    uint32_t channel_bandwidth_{1};
-    uint32_t baseband_bandwidth_{max2837::filter::bandwidth_minimum};
-    int32_t vga_gain_db_{8};
-    /* 35 should give approx 1m transmission range. */
-    int32_t tx_gain_db_{35};
-    uint32_t sampling_rate_{3072000};
+    uint32_t baseband_bandwidth_ = default_baseband_bandwidth;
+    uint32_t sampling_rate_ = default_sampling_rate;
+    uint32_t channel_bandwidth_ = default_channel_bandwidth;
+    uint8_t tx_gain_db_ = default_tx_gain;
+    int32_t lna_gain_db_ = default_gain;
+    int32_t vga_gain_db_ = default_gain;
+    bool rf_amp_ = default_amp;
+    bool enabled_ = false;
     SignalToken signal_token_tick_second{};
 
     void update_tuning_frequency();
