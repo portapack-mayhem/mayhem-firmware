@@ -85,6 +85,7 @@ SondeView::SondeView(NavigationView& nav)
         use_crc = v;
     };
 
+    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.enable();
 
     // QR code with geo URI
