@@ -75,7 +75,7 @@ class ReceiverModel {
     void set_rf_amp(bool enabled);
 
     Mode modulation() const;
-    void set_modulation(Mode v);
+    void set_modulation(Mode v, bool update = true);
 
     uint8_t am_configuration() const;
     void set_am_configuration(uint8_t n);

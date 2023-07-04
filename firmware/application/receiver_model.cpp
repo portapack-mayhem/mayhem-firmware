@@ -128,9 +128,10 @@ ReceiverModel::Mode ReceiverModel::modulation() const {
     return mode_;
 }
 
-void ReceiverModel::set_modulation(Mode v) {
+void ReceiverModel::set_modulation(Mode v, bool update) {
     mode_ = v;
-    update_modulation();
+    if (update)
+        update_modulation();
 }
 
 uint8_t ReceiverModel::am_configuration() const {
