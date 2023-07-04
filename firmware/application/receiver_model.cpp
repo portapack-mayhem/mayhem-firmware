@@ -40,9 +40,9 @@ using namespace portapack;
 namespace {
 
 static constexpr std::array<baseband::AMConfig, 5> am_configs{{
-    // we config here all the non COMMON  parameters to each AM modulation type in RX.
-    {taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB},  // AM DSB-C  BW 9khz  (+-4k5)	commercial EU bandwidth .
-    {taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB},  // AM DSB-C  BW 6khz  (+-3k0)	narrow AM , ham equipments.
+    // we config here all the non COMMON parameters to each AM modulation type in RX.
+    {taps_9k0_decim_2, taps_9k0_dsb_channel, AMConfigureMessage::Modulation::DSB},  // AM DSB-C  BW 9khz  (+-4k5)  commercial EU bandwidth .
+    {taps_6k0_decim_2, taps_6k0_dsb_channel, AMConfigureMessage::Modulation::DSB},  // AM DSB-C  BW 6khz  (+-3k0)  narrow AM , ham equipments.
     {taps_6k0_decim_2, taps_2k8_usb_channel, AMConfigureMessage::Modulation::SSB},  // SSB USB   BW 2K8   (+ 2K8)
     {taps_6k0_decim_2, taps_2k8_lsb_channel, AMConfigureMessage::Modulation::SSB},  // SSB LSB   BW 2K8   (- 2K8)
     {taps_6k0_decim_2, taps_0k7_usb_channel, AMConfigureMessage::Modulation::SSB},  // SSB USB   BW 0K7   (+ 0K7)  used to get audio tone from CW Morse, assuming tx shifted +700hz aprox
@@ -72,107 +72,106 @@ void ReceiverModel::set_target_frequency(rf::Frequency f) {
 }
 
 uint32_t ReceiverModel::baseband_bandwidth() const {
-    return baseband_bandwidth_;
+    return settings_.baseband_bandwidth;
 }
 
 void ReceiverModel::set_baseband_bandwidth(uint32_t v) {
-    baseband_bandwidth_ = v;
+    settings_.baseband_bandwidth = v;
     update_baseband_bandwidth();
 }
 
 uint32_t ReceiverModel::sampling_rate() const {
-    return sampling_rate_;
+    return settings_.sampling_rate;
 }
 
 void ReceiverModel::set_sampling_rate(uint32_t v) {
-    sampling_rate_ = v;
+    settings_.sampling_rate = v;
     update_sampling_rate();
 }
 
 rf::Frequency ReceiverModel::frequency_step() const {
-    return frequency_step_;
+    return settings_.frequency_step;
 }
 
 void ReceiverModel::set_frequency_step(rf::Frequency f) {
-    frequency_step_ = f;
+    settings_.frequency_step = f;
 }
 
 uint8_t ReceiverModel::lna() const {
-    return lna_gain_db_;
+    return settings_.lna_gain_db;
 }
 
 void ReceiverModel::set_lna(uint8_t v_db) {
-    lna_gain_db_ = v_db;
+    settings_.lna_gain_db = v_db;
     update_lna();
 }
 
 uint8_t ReceiverModel::vga() const {
-    return vga_gain_db_;
+    return settings_.vga_gain_db;
 }
 
 void ReceiverModel::set_vga(uint8_t v_db) {
-    vga_gain_db_ = v_db;
+    settings_.vga_gain_db = v_db;
     update_vga();
 }
 
 bool ReceiverModel::rf_amp() const {
-    return rf_amp_;
+    return settings_.rf_amp;
 }
 
 void ReceiverModel::set_rf_amp(bool enabled) {
-    rf_amp_ = enabled;
+    settings_.rf_amp = enabled;
     update_rf_amp();
 }
 
 ReceiverModel::Mode ReceiverModel::modulation() const {
-    return mode_;
+    return settings_.mode;
 }
 
-void ReceiverModel::set_modulation(Mode v, bool update) {
-    mode_ = v;
-    if (update)
-        update_modulation();
+void ReceiverModel::set_modulation(Mode v) {
+    settings_.mode = v;
+    update_modulation();
 }
 
 uint8_t ReceiverModel::am_configuration() const {
-    return am_config_index;
+    return settings_.am_config_index;
 }
 
 void ReceiverModel::set_am_configuration(uint8_t n) {
     if (n < am_configs.size()) {
-        am_config_index = n;
+        settings_.am_config_index = n;
         update_modulation();
     }
 }
 
 uint8_t ReceiverModel::nbfm_configuration() const {
-    return nbfm_config_index;
+    return settings_.nbfm_config_index;
 }
 
 void ReceiverModel::set_nbfm_configuration(uint8_t n) {
     if (n < nbfm_configs.size()) {
-        nbfm_config_index = n;
+        settings_.nbfm_config_index = n;
         update_modulation();
     }
 }
 
 uint8_t ReceiverModel::wfm_configuration() const {
-    return wfm_config_index;
+    return settings_.wfm_config_index;
 }
 
 void ReceiverModel::set_wfm_configuration(uint8_t n) {
     if (n < wfm_configs.size()) {
-        wfm_config_index = n;
+        settings_.wfm_config_index = n;
         update_modulation();
     }
 }
 
 uint8_t ReceiverModel::squelch_level() const {
-    return squelch_level_;
+    return settings_.squelch_level;
 }
 
 void ReceiverModel::set_squelch_level(uint8_t v) {
-    squelch_level_ = v;
+    settings_.squelch_level = v;
     update_modulation();
 }
 
@@ -229,17 +228,7 @@ void ReceiverModel::disable() {
 }
 
 void ReceiverModel::initialize() {
-    baseband_bandwidth_ = default_baseband_bandwidth;
-    sampling_rate_ = default_sampling_rate;
-    frequency_step_ = default_frequency_step;
-    lna_gain_db_ = default_gain;
-    vga_gain_db_ = default_gain;
-    rf_amp_ = default_amp;
-    mode_ = default_modulation;
-    am_config_index = 0;
-    nbfm_config_index = 0;
-    wfm_config_index = 0;
-    squelch_level_ = default_squelch;
+    settings_ = settings_t{};
 }
 
 void ReceiverModel::set_configuration_without_update(
@@ -249,22 +238,22 @@ void ReceiverModel::set_configuration_without_update(
     size_t new_nbfm_config_index,
     size_t new_wfm_config_index,
     uint8_t new_squelch_level) {
-    mode_ = new_mode;
-    frequency_step_ = new_frequency_step;
-    am_config_index = new_am_config_index;
-    nbfm_config_index = new_nbfm_config_index;
-    wfm_config_index = new_wfm_config_index;
-    squelch_level_ = new_squelch_level;
+    settings_.mode = new_mode;
+    settings_.frequency_step = new_frequency_step;
+    settings_.am_config_index = new_am_config_index;
+    settings_.nbfm_config_index = new_nbfm_config_index;
+    settings_.wfm_config_index = new_wfm_config_index;
+    settings_.squelch_level = new_squelch_level;
 }
 
 void ReceiverModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
-    baseband_bandwidth_ = settings.baseband_bandwidth;
-    sampling_rate_ = settings.sampling_rate;
-    lna_gain_db_ = settings.lna;
-    vga_gain_db_ = settings.vga;
-    rf_amp_ = settings.rx_amp;
-    squelch_level_ = settings.squelch;
+    settings_.baseband_bandwidth = settings.baseband_bandwidth;
+    settings_.sampling_rate = settings.sampling_rate;
+    settings_.lna_gain_db = settings.lna;
+    settings_.vga_gain_db = settings.vga;
+    settings_.rf_amp = settings.rx_amp;
+    settings_.squelch_level = settings.squelch;
 }
 
 int32_t ReceiverModel::tuning_offset() {
@@ -281,7 +270,7 @@ void ReceiverModel::update_tuning_frequency() {
 }
 
 void ReceiverModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth(baseband_bandwidth_);
+    radio::set_baseband_filter_bandwidth(baseband_bandwidth());
 }
 
 void ReceiverModel::update_sampling_rate() {
@@ -295,15 +284,15 @@ void ReceiverModel::update_sampling_rate() {
 }
 
 void ReceiverModel::update_lna() {
-    radio::set_lna_gain(lna_gain_db_);
+    radio::set_lna_gain(lna());
 }
 
 void ReceiverModel::update_vga() {
-    radio::set_vga_gain(vga_gain_db_);
+    radio::set_vga_gain(vga());
 }
 
 void ReceiverModel::update_rf_amp() {
-    radio::set_rf_amp(rf_amp_);
+    radio::set_rf_amp(rf_amp());
 }
 
 void ReceiverModel::update_modulation() {
@@ -328,15 +317,15 @@ void ReceiverModel::update_modulation() {
 }
 
 void ReceiverModel::update_am_configuration() {
-    am_configs[am_config_index].apply();
+    am_configs[am_configuration()].apply();
 }
 
 void ReceiverModel::update_nbfm_configuration() {
-    nbfm_configs[nbfm_config_index].apply(squelch_level_);
+    nbfm_configs[nbfm_configuration()].apply(squelch_level());
 }
 
 void ReceiverModel::update_wfm_configuration() {
-    wfm_configs[wfm_config_index].apply();
+    wfm_configs[wfm_configuration()].apply();
 }
 
 void ReceiverModel::update_antenna_bias() {

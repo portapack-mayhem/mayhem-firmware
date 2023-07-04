@@ -44,13 +44,19 @@ class ReceiverModel {
         Capture = 4
     };
 
-    static constexpr uint32_t default_baseband_bandwidth = max283x::filter::bandwidth_minimum;
-    static constexpr uint32_t default_sampling_rate = 3'072'000;
-    static constexpr rf::Frequency default_frequency_step = 25'000;
-    static constexpr uint8_t default_gain = 32;
-    static constexpr bool default_amp = false;
-    static constexpr Mode default_modulation = Mode::NarrowbandFMAudio;
-    static constexpr uint8_t default_squelch = 80;
+    struct settings_t {
+        uint32_t baseband_bandwidth = max283x::filter::bandwidth_minimum;
+        uint32_t sampling_rate = 3'072'000;
+        rf::Frequency frequency_step = 25'000;
+        uint8_t lna_gain_db = 32;
+        uint8_t vga_gain_db = 32;
+        bool rf_amp = false;
+        Mode mode = Mode::NarrowbandFMAudio;
+        uint8_t am_config_index = 0;
+        uint8_t nbfm_config_index = 0;
+        uint8_t wfm_config_index = 0;
+        uint8_t squelch_level = 80;
+    };
 
     /* The frequency to receive (no offset). */
     rf::Frequency target_frequency() const;
@@ -75,7 +81,7 @@ class ReceiverModel {
     void set_rf_amp(bool enabled);
 
     Mode modulation() const;
-    void set_modulation(Mode v, bool update = true);
+    void set_modulation(Mode v);
 
     uint8_t am_configuration() const;
     void set_am_configuration(uint8_t n);
@@ -114,18 +120,12 @@ class ReceiverModel {
 
     void configure_from_app_settings(const app_settings::AppSettings& settings);
 
+    /* Get access to the underlying settings to allow
+     * values to be set directly without calling update. */
+    settings_t& settings() { return settings_; }
+
    private:
-    uint32_t baseband_bandwidth_ = default_baseband_bandwidth;
-    uint32_t sampling_rate_ = default_sampling_rate;
-    rf::Frequency frequency_step_ = default_frequency_step;
-    uint8_t lna_gain_db_ = default_gain;
-    uint8_t vga_gain_db_ = default_gain;
-    bool rf_amp_ = default_amp;
-    Mode mode_ = default_modulation;
-    uint8_t am_config_index = 0;
-    uint8_t nbfm_config_index = 0;
-    uint8_t wfm_config_index = 0;
-    uint8_t squelch_level_ = default_squelch;
+    settings_t settings_{};
     bool enabled_ = false;
 
     int32_t tuning_offset();

@@ -114,6 +114,8 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
 
     if (flags_enabled(settings.mode, Mode::RX)) {
         read_setting(*data, setting::rx_frequency, settings.rx_frequency);
+        read_setting(*data, setting::lna, settings.lna);
+        read_setting(*data, setting::vga, settings.vga);
         read_setting(*data, setting::rx_amp, settings.rx_amp);
         read_setting(*data, setting::modulation, settings.modulation);
         read_setting(*data, setting::am_config_index, settings.am_config_index);
@@ -124,8 +126,6 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
 
     read_setting(*data, setting::baseband_bandwidth, settings.baseband_bandwidth);
     read_setting(*data, setting::sampling_rate, settings.sampling_rate);
-    read_setting(*data, setting::lna, settings.lna);
-    read_setting(*data, setting::vga, settings.vga);
     read_setting(*data, setting::step, settings.step);
     read_setting(*data, setting::volume, settings.volume);
 
@@ -153,6 +153,8 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
 
     if (flags_enabled(settings.mode, Mode::RX)) {
         write_setting(settings_file, setting::rx_frequency, settings.rx_frequency);
+        write_setting(settings_file, setting::lna, settings.lna);
+        write_setting(settings_file, setting::vga, settings.vga);
         write_setting(settings_file, setting::rx_amp, settings.rx_amp);
         write_setting(settings_file, setting::modulation, settings.modulation);
         write_setting(settings_file, setting::am_config_index, settings.am_config_index);
@@ -163,8 +165,6 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
 
     write_setting(settings_file, setting::baseband_bandwidth, settings.baseband_bandwidth);
     write_setting(settings_file, setting::sampling_rate, settings.sampling_rate);
-    write_setting(settings_file, setting::lna, settings.lna);
-    write_setting(settings_file, setting::vga, settings.vga);
     write_setting(settings_file, setting::step, settings.step);
     write_setting(settings_file, setting::volume, settings.volume);
 
@@ -173,6 +173,7 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
 
 void copy_to_radio_model(const AppSettings& settings) {
     // NB: Don't actually adjust the radio here or it will hang.
+    // Specifically 'modulation' which requires a running baseband.
 
     if (flags_enabled(settings.mode, Mode::TX)) {
         if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
@@ -203,14 +204,10 @@ void copy_from_radio_model(AppSettings& settings) {
     if (flags_enabled(settings.mode, Mode::TX)) {
         settings.tx_frequency = transmitter_model.target_frequency();
         settings.baseband_bandwidth = transmitter_model.baseband_bandwidth();
+        settings.sampling_rate = transmitter_model.sampling_rate();
         settings.tx_amp = transmitter_model.rf_amp();
         settings.tx_gain = transmitter_model.tx_gain();
         settings.channel_bandwidth = transmitter_model.channel_bandwidth();
-
-        // TODO: Do these make sense for TX?
-        settings.sampling_rate = transmitter_model.sampling_rate();
-        settings.lna = transmitter_model.lna();
-        settings.vga = transmitter_model.vga();
     }
 
     if (flags_enabled(settings.mode, Mode::RX)) {

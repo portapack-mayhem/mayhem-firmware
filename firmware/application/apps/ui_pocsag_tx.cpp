@@ -80,8 +80,7 @@ bool POCSAGTXView::start_tx() {
     progressbar.set_max(total_frames);
 
     transmitter_model.set_rf_amp(true);
-    transmitter_model.set_lna(40);
-    transmitter_model.set_vga(40);
+    transmitter_model.set_tx_gain(40);
     transmitter_model.enable();
 
     uint8_t* data_ptr = shared_memory.bb_data.data;

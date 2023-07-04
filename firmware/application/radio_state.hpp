@@ -53,7 +53,7 @@ class RadioState {
         typename Mode = std::enable_if_t<sizeof(typename U::Mode), typename U::Mode> >
     RadioState(Mode new_mode) {
         model->initialize();
-        model->set_modulation(new_mode, /* update */ false);
+        model->settings().mode = new_mode;
     }
 
     // NB: only enabled for RX model.
@@ -67,7 +67,7 @@ class RadioState {
         model->initialize();
         model->set_sampling_rate(new_sampling_rate);
         model->set_baseband_bandwidth(new_bandwidth);
-        model->set_modulation(new_mode, /* update */ false);
+        model->settings().mode = new_mode;
     }
 };
 

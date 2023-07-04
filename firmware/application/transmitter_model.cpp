@@ -44,64 +44,46 @@ void TransmitterModel::set_target_frequency(rf::Frequency f) {
 }
 
 uint32_t TransmitterModel::baseband_bandwidth() const {
-    return baseband_bandwidth_;
+    return settings_.baseband_bandwidth;
 }
 
 void TransmitterModel::set_baseband_bandwidth(uint32_t v) {
-    baseband_bandwidth_ = v;
+    settings_.baseband_bandwidth = v;
     update_baseband_bandwidth();
 }
 
 uint32_t TransmitterModel::sampling_rate() const {
-    return sampling_rate_;
+    return settings_.sampling_rate;
 }
 
 void TransmitterModel::set_sampling_rate(uint32_t v) {
-    sampling_rate_ = v;
+    settings_.sampling_rate = v;
     update_sampling_rate();
 }
 
 uint32_t TransmitterModel::channel_bandwidth() const {
-    return channel_bandwidth_;
+    return settings_.channel_bandwidth;
 }
 
 void TransmitterModel::set_channel_bandwidth(uint32_t v) {
-    channel_bandwidth_ = v;
+    settings_.channel_bandwidth = v;
 }
 
 uint8_t TransmitterModel::tx_gain() const {
-    return tx_gain_db_;
+    return settings_.tx_gain_db;
 }
 
 void TransmitterModel::set_tx_gain(uint8_t v_db) {
-    tx_gain_db_ = v_db;
+    settings_.tx_gain_db = v_db;
     update_tx_gain();
 }
 
-uint8_t TransmitterModel::lna() const {
-    return lna_gain_db_;
-}
-
-void TransmitterModel::set_lna(uint8_t v_db) {
-    lna_gain_db_ = v_db;
-    update_lna();
-}
-
-uint8_t TransmitterModel::vga() const {
-    return vga_gain_db_;
-}
-
-void TransmitterModel::set_vga(uint8_t v_db) {
-    vga_gain_db_ = v_db;
-    update_vga();
-}
-
 bool TransmitterModel::rf_amp() const {
-    return rf_amp_;
+    return settings_.rf_amp;
 }
 
 void TransmitterModel::set_rf_amp(bool enabled) {
-    rf_amp_ = enabled;
+    settings_.rf_amp = enabled;
     update_rf_amp();
 }
 
@@ -115,8 +97,6 @@ void TransmitterModel::enable() {
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();
-    update_lna();
-    update_vga();
     update_baseband_bandwidth();
     update_sampling_rate();
     update_tx_gain();
@@ -142,26 +122,16 @@ void TransmitterModel::disable() {
 }
 
 void TransmitterModel::initialize() {
-    baseband_bandwidth_ = default_baseband_bandwidth;
-    sampling_rate_ = default_sampling_rate;
-    channel_bandwidth_ = default_channel_bandwidth;
-    tx_gain_db_ = default_tx_gain;
-    lna_gain_db_ = default_gain;
-    vga_gain_db_ = default_gain;
-    rf_amp_ = default_amp;
+    settings_ = settings_t{};
 }
 
 void TransmitterModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
-    baseband_bandwidth_ = settings.baseband_bandwidth;
-    channel_bandwidth_ = settings.channel_bandwidth;
-    tx_gain_db_ = settings.tx_gain;
-    rf_amp_ = settings.tx_amp;
-
-    // TODO: Do these make sense for TX?
-    lna_gain_db_ = settings.lna;
-    vga_gain_db_ = settings.vga;
-    sampling_rate_ = settings.sampling_rate;
+    settings_.baseband_bandwidth = settings.baseband_bandwidth;
+    settings_.sampling_rate = settings.sampling_rate;
+    settings_.channel_bandwidth = settings.channel_bandwidth;
+    settings_.tx_gain_db = settings.tx_gain;
+    settings_.rf_amp = settings.tx_amp;
 }
 
 void TransmitterModel::update_tuning_frequency() {
@@ -169,7 +139,7 @@ void TransmitterModel::update_tuning_frequency() {
 }
 
 void TransmitterModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth(baseband_bandwidth_);
+    radio::set_baseband_filter_bandwidth(baseband_bandwidth());
 }
 
 void TransmitterModel::update_sampling_rate() {
@@ -184,19 +154,11 @@ void TransmitterModel::update_sampling_rate() {
 }
 
 void TransmitterModel::update_tx_gain() {
-    radio::set_tx_gain(tx_gain_db_);
-}
-
-void TransmitterModel::update_lna() {
-    radio::set_lna_gain(lna_gain_db_);
-}
-
-void TransmitterModel::update_vga() {
-    radio::set_vga_gain(vga_gain_db_);
+    radio::set_tx_gain(tx_gain());
 }
 
 void TransmitterModel::update_rf_amp() {
-    radio::set_rf_amp(rf_amp_);
+    radio::set_rf_amp(rf_amp());
 }
 
 void TransmitterModel::update_antenna_bias() {
