@@ -549,7 +549,7 @@ ReconView::ReconView(NavigationView& nav)
 
     button_audio_app.on_select = [this](Button&) {
         auto settings = receiver_model.settings();
-        settings.frequency_step = step;
+        settings.frequency_step = step_mode.selected_index_value();
         nav_.replace<AnalogAudioView>(settings);
     };
 

@@ -280,7 +280,7 @@ FrequencyOptionsView::FrequencyOptionsView(
 }
 
 void FrequencyOptionsView::set_step(rf::Frequency f) {
-    field_step.set_by_value(f);
+    field_step.set_by_nearest_value(f);
 }
 
 void FrequencyOptionsView::set_reference_ppm_correction(int32_t v) {

@@ -20,7 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "debug.hpp"
 #include "analog_audio_app.hpp"
 
 #include "audio.hpp"
@@ -31,8 +30,6 @@
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 #include "utility.hpp"
-
-#include "debug.hpp"
 
 using namespace portapack;
 using namespace tonekey;
