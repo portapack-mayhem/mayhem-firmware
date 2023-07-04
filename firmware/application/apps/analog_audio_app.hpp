@@ -138,6 +138,7 @@ class SPECOptionsView : public View {
 class AnalogAudioView : public View {
    public:
     AnalogAudioView(NavigationView& nav);
+    AnalogAudioView(NavigationView& nav, ReceiverModel::settings_t override);
     ~AnalogAudioView();
 
     void set_parent_rect(Rect new_parent_rect) override;

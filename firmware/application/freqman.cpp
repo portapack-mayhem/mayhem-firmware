@@ -27,6 +27,8 @@
 using option_t = std::pair<std::string, int32_t>;
 using options_t = std::vector<option_t>;
 
+// TODO: Consolidate with receiver_model.
+// These definitions are spread all over and stiched together with indices.
 options_t freqman_entry_modulations = {
     {"AM", 0},
     {"NFM", 1},

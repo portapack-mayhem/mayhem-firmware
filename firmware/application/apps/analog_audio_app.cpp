@@ -31,8 +31,6 @@
 #include "string_format.hpp"
 #include "utility.hpp"
 
-#include "debug.hpp"
-
 using namespace portapack;
 using namespace tonekey;
 
@@ -135,8 +133,7 @@ SPECOptionsView::SPECOptionsView(
 AnalogAudioView::AnalogAudioView(
     NavigationView& nav)
     : nav_(nav) {
-    // A baseband image _must_ be running before
-    // interacting with the waterfall view.
+    // A baseband image _must_ be running before add waterfall view.
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
     add_children({&rssi,
@@ -192,6 +189,15 @@ AnalogAudioView::AnalogAudioView(
     // This call starts the correct baseband image to run
     // and sets the radio up as necessary for the given modulation.
     on_modulation_changed(modulation);
+}
+
+AnalogAudioView::AnalogAudioView(
+    NavigationView& nav,
+    ReceiverModel::settings_t override)
+    : AnalogAudioView(nav) {
+    // TODO: Which other settings make sense to override?
+    on_frequency_step_changed(override.frequency_step);
+    options_modulation.set_by_value(toUType(override.mode));
 }
 
 size_t AnalogAudioView::get_spec_bw_index() {

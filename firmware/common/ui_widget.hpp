@@ -624,6 +624,7 @@ class OptionsField : public Widget {
     void set_selected_index(const size_t new_index, bool trigger_change = true);
 
     void set_by_value(value_t v);
+    void set_by_nearest_value(value_t v);
 
     void paint(Painter& painter) override;
 

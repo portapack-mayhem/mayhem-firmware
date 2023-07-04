@@ -106,8 +106,7 @@ class TPMSAppView : public View {
 
     RxRadioState radio_state_{
         1750000 /* bandwidth */,
-        2457600 /* sampling rate */
-    };
+        2457600 /* sampling rate */};
     app_settings::SettingsManager settings_{
         "rx_tpms", app_settings::Mode::RX};
 

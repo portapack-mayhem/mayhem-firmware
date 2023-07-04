@@ -1001,8 +1001,6 @@ bool debug_dump() {
     // transmitter_model
     pmem_dump_file.write_line("\n[Transmitter Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(transmitter_model.target_frequency()));
-    pmem_dump_file.write_line("lna: " + to_string_dec_int(transmitter_model.lna()));
-    pmem_dump_file.write_line("vga: " + to_string_dec_int(transmitter_model.vga()));
     pmem_dump_file.write_line("rf_amp: " + to_string_dec_int(transmitter_model.rf_amp()));
     pmem_dump_file.write_line("baseband_bandwidth: " + to_string_dec_uint(transmitter_model.baseband_bandwidth()));
     pmem_dump_file.write_line("sampling_rate: " + to_string_dec_uint(transmitter_model.sampling_rate()));

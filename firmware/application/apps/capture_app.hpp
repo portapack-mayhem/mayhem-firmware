@@ -50,7 +50,7 @@ class CaptureAppView : public View {
     static constexpr ui::Dim header_height = 3 * 16;
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
         "rx_capture", app_settings::Mode::RX,
         app_settings::Options::UseGlobalTargetFrequency};
