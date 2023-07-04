@@ -130,8 +130,8 @@ class ERTAppView : public View {
 
     RxRadioState radio_state_{
         2500000 /* bandwidth */,
-        4194304 /* sampling rate */
-    };
+        4194304 /* sampling rate */,
+        ReceiverModel::Mode::AMAudio};
     app_settings::SettingsManager settings_{
         "rx_ert", app_settings::Mode::RX};
 
