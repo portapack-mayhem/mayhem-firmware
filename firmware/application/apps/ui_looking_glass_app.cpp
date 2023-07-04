@@ -513,7 +513,6 @@ GlassView::GlassView(
     marker_pixel_index = 120;
     on_range_changed();
 
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);

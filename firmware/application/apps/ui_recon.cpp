@@ -366,7 +366,6 @@ ReconView::~ReconView() {
     recon_save_config_to_sd();
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
-    receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.disable();
     baseband::shutdown();
 }

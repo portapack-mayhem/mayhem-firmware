@@ -71,8 +71,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
-
-    receiver_model.set_modulation(ReceiverModel::Mode::Capture);
     receiver_model.enable();
 
     record_view.on_error = [&nav](std::string message) {
@@ -81,8 +79,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
 }
 
 CaptureAppView::~CaptureAppView() {
-    // Most other apps can't handle "Capture" mode, set to something standard.
-    receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.disable();
     baseband::shutdown();
 }

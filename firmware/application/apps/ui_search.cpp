@@ -414,7 +414,6 @@ SearchView::SearchView(
 
     on_range_changed();
 
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.enable();
 }
 
