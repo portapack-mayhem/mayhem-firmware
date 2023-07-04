@@ -163,7 +163,7 @@ void MicTXView::rxaudio(bool is_on) {
             }
         }
 
-        if (bool_same_F_tx_rx_enabled)                          // when stop TX ,efine to which freq RX we return
+        if (bool_same_F_tx_rx_enabled)                          // when stop TX, define to which freq RX we return
             receiver_model.set_target_frequency(tx_frequency);  // Update freq also for RX = TX
         else
             receiver_model.set_target_frequency(rx_frequency);  // Now with separate freq controls!

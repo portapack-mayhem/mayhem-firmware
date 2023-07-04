@@ -184,6 +184,8 @@ AnalogAudioView::AnalogAudioView(
         field_frequency.set_value(receiver_model.target_frequency() + offset);
     };
 
+    audio::output::start();
+
     // This call starts the correct baseband image to run
     // and sets the radio up as necessary for the given modulation.
     on_modulation_changed(modulation);
