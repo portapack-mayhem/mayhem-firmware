@@ -31,7 +31,7 @@
 
 namespace ui {
 
-static const std::filesystem::path splash_dot_bmp{u"/splash.bmp"};
+extern const std::filesystem::path splash_dot_bmp;
 
 class ScreenshotViewer : public View {
    public:
