@@ -133,4 +133,14 @@ using FileLineReader = BufferLineReader<File>;
  * are used or they will dangle. */
 std::vector<std::string_view> split_string(std::string_view str, char c);
 
+/* Returns the number of lines in a file. */
+template <typename BufferType>
+uint32_t count_lines(BufferLineReader<BufferType>& reader){
+    uint32_t count = 0;
+    for (const auto& line : reader)
+        ++count;
+
+    return count;
+}
+
 #endif

@@ -27,9 +27,9 @@
 #include <cstring>
 #include <string>
 #include "file.hpp"
-#include "ui_receiver.hpp"
-#include "tone_key.hpp"
+#include "freqman_db.hpp"
 #include "string_format.hpp"
+#include "ui_receiver.hpp"
 #include "ui_widget.hpp"
 
 #define FREQMAN_DESC_MAX_LEN 24  // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
@@ -38,13 +38,6 @@
 
 #define FREQMAN_READ_BUF_SIZE 96  // max freqman line size including desc is 90, + a bit of space
 
-using namespace ui;
-using namespace std;
-using namespace tonekey;
-
-// needs to be signed as -1 means not set
-typedef int8_t freqman_index_t;
-
 enum freqman_error : int8_t {
     NO_ERROR = 0,
     ERROR_ACCESS,
@@ -52,12 +45,12 @@ enum freqman_error : int8_t {
     ERROR_DUPLICATE
 };
 
-enum freqman_entry_type : int8_t {
+/*enum freqman_entry_type : int8_t {
     SINGLE = 0,  // f=
     RANGE,       // a=,b=
     HAMRADIO,    // r=,t=
     NOTYPE       // undetected
-};
+};*/
 
 enum freqman_entry_modulation : uint8_t {
     AM_MODULATION = 0,
@@ -79,7 +72,7 @@ enum freqman_entry_modulation : uint8_t {
     AIRBAND,  // AIRBAND 8,33 kHz
 };*/
 
-struct freqman_entry {
+/*struct freqman_entry {
     rf::Frequency frequency_a{0};               // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
     rf::Frequency frequency_b{0};               // 'b=freq_end' or 't=tx_freq'
     std::string description{};                  // 'd=desc'
@@ -88,23 +81,21 @@ struct freqman_entry {
     freqman_index_t bandwidth{0};               // AM_DSB, ...
     freqman_index_t step{0};                    // 5khz (SA AM,...
     tone_index tone{0};                         // 0XZ, 11 1ZB,...
-};
+};*/
 
-using freqman_db = std::vector<freqman_entry>;
-
-bool load_freqman_file(std::string& file_stem, freqman_db& db, bool load_freqs = true, bool load_ranges = true, bool load_hamradios = true, uint8_t max_num_freqs = FREQMAN_MAX_PER_FILE);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, bool load_freqs = true, bool load_ranges = true, bool load_hamradios = true, uint8_t max_num_freqs = FREQMAN_MAX_PER_FILE);
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
-bool delete_freqman_file(std::string& file_stem);
-bool save_freqman_file(std::string& file_stem, freqman_db& db);
-bool create_freqman_file(std::string& file_stem, File& freqman_file);
+bool delete_freqman_file(const std::string& file_stem);
+bool save_freqman_file(const std::string& file_stem, freqman_db& db);
+bool create_freqman_file(const std::string& file_stem, File& freqman_file);
 
 std::string freqman_item_string(freqman_entry& item, size_t max_length);
 
-void freqman_set_bandwidth_option(freqman_index_t modulation, OptionsField& option);
-void freqman_set_modulation_option(OptionsField& option);
-void freqman_set_step_option(OptionsField& option);
-void freqman_set_step_option_short(OptionsField& option);
-void freqman_set_tone_option(OptionsField& option);
+void freqman_set_bandwidth_option(freqman_index_t modulation, ui::OptionsField& option);
+void freqman_set_modulation_option(ui::OptionsField& option);
+void freqman_set_step_option(ui::OptionsField& option);
+void freqman_set_step_option_short(ui::OptionsField& option);
+void freqman_set_tone_option(ui::OptionsField& option);
 
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation);
 std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth);
@@ -115,9 +106,9 @@ int32_t freqman_entry_get_modulation_value(freqman_index_t modulation);
 int32_t freqman_entry_get_bandwidth_value(freqman_index_t modulation, freqman_index_t bandwidth);
 int32_t freqman_entry_get_step_value(freqman_index_t step);
 
-freqman_index_t freqman_entry_get_modulation_from_str(char* str);
+/*freqman_index_t freqman_entry_get_modulation_from_str(char* str);
 freqman_index_t freqman_entry_get_bandwidth_from_str(freqman_index_t modulation, char* str);
 freqman_index_t freqman_entry_get_step_from_str(char* str);
-freqman_index_t freqman_entry_get_step_from_str_short(char* str);
+freqman_index_t freqman_entry_get_step_from_str_short(char* str);*/
 
 #endif /*__FREQMAN_H__*/

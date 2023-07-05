@@ -64,6 +64,53 @@ TEST_CASE("It can parse modulation") {
     REQUIRE(
         parse_freqman_entry(
             "f=123000000,d=This is the description.,m=AM", e));
+    CHECK_EQ(e.modulation, 0);
+    
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=NFM", e));
+    CHECK_EQ(e.modulation, 1);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=WFM", e));
+    CHECK_EQ(e.modulation, 2);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=SPEC", e));
+    CHECK_EQ(e.modulation, 3);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=FOO", e));
+    CHECK_EQ(e.modulation, freqman_invalid_index);
+}
+
+TEST_CASE("It can parse frequency step") {
+    freqman_entry e;
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,s=0.1kHz", e));
+    CHECK_EQ(e.step, 0);
+    
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,s=50kHz", e));
+    CHECK_EQ(e.step, 11);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,s=FOO", e));
+    CHECK_EQ(e.step, freqman_invalid_index);
+}
+
+#if 0  // New tables for a future PR.
+TEST_CASE("It can parse modulation") {
+    freqman_entry e;
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=AM", e));
     CHECK_EQ(e.modulation, freqman_modulation::AM);
     
     REQUIRE(
@@ -85,8 +132,26 @@ TEST_CASE("It can parse modulation") {
         parse_freqman_entry(
             "f=123000000,d=This is the description.,m=FOO", e));
     CHECK_EQ(e.modulation, freqman_modulation::Unknown);
-
 }
+
+TEST_CASE("It can parse frequency step") {
+    freqman_entry e;
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,s=0.1kHz", e));
+    CHECK_EQ(e.step, freqman_step::_100Hz);
+    
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,s=50kHz", e));
+    CHECK_EQ(e.step, freqman_step::_50kHz);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,s=FOO", e));
+    CHECK_EQ(e.step, freqman_step::Unknown);
+}
+#endif
 
 
 TEST_SUITE_END();

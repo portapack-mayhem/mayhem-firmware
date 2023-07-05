@@ -67,6 +67,7 @@ class ReconView : public View {
     void set_loop_config(bool v);
     void clear_freqlist_for_ui_action();
     void reset_indexes();
+    void update_description();
     void audio_output_start();
     bool check_sd_card();
     size_t change_mode(freqman_index_t mod_type);
@@ -86,6 +87,10 @@ class ReconView : public View {
     bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
     // placeholder for possible void recon_start_recording();
     void recon_stop_recording();
+
+    // Returns true if 'current_index' is in bounds of frequency_list.
+    bool current_is_valid();
+    freqman_entry& current_entry();
 
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
     int32_t squelch{0};

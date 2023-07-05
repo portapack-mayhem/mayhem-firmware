@@ -23,13 +23,23 @@
 
 #include "ui_recon.hpp"
 #include "ui_fileman.hpp"
-#include "file.hpp"
 #include "capture_app.hpp"
+#include "file.hpp"
+#include "tone_key.hpp"
 
 using namespace portapack;
+using namespace tonekey;
 using portapack::memory::map::backup_ram;
 
 namespace ui {
+
+bool ReconView::current_is_valid() {
+    return (unsigned)current_index < frequency_list.size();
+}
+
+freqman_entry& ReconView::current_entry() {
+    return *frequency_list[current_index];
+}
 
 void ReconView::set_loop_config(bool v) {
     continuous = v;
@@ -56,9 +66,8 @@ void ReconView::clear_freqlist_for_ui_action() {
         audio::output::stop();
     // flag to detect and reload frequency_list
     if (!manual_mode) {
-        // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
-        // swap is the only way to achieve a perfect memory liberation
-        std::vector<freqman_entry>().swap(frequency_list);
+        // Clear doesn't actually free, re-assign so destructor runs on previous instance.
+        frequency_list = freqman_db{};
     } else
         frequency_list.shrink_to_fit();
     freqlist_cleared_for_ui_action = true;
@@ -68,8 +77,28 @@ void ReconView::reset_indexes() {
     last_entry.modulation = -1;
     last_entry.bandwidth = -1;
     last_entry.step = -1;
-    description = "...no description...";
     current_index = 0;
+}
+
+void ReconView::update_description() {
+    if (frequency_list.empty() || current_entry().description.empty()) {
+        description = "...no description...";
+        return;
+    } else {
+        switch (current_entry().type) {
+            case freqman_type::Range:
+                description = "R: ";
+                break;
+            case freqman_type::HamRadio:
+                description =  "H: ";
+                break;
+            default:
+                description =  "S: ";
+        }
+        description += current_entry().description;
+    }
+
+    desc_cycle.set(description);
 }
 
 void ReconView::colorize_waits() {
@@ -98,15 +127,15 @@ void ReconView::colorize_waits() {
 bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_index, bool warn_if_exists) {
     File recon_file;
 
-    if (frequency_list.size() == 0 || (frequency_list.size() && current_index > (int32_t)frequency_list.size()))
+    if (frequency_list.size() == 0 || !current_is_valid())
         return false;
 
-    freqman_entry entry = frequency_list[freq_index];
+    freqman_entry entry = *frequency_list[freq_index]; // Makes a copy.
     entry.frequency_a = freq;
     entry.frequency_b = 0;
     entry.modulation = last_entry.modulation;
     entry.bandwidth = last_entry.bandwidth;
-    entry.type = SINGLE;
+    entry.type = freqman_type::Single;
 
     std::string frequency_to_add;
     get_freq_string(entry, frequency_to_add);
@@ -176,7 +205,7 @@ bool ReconView::recon_load_config_from_sd() {
             pos = line_start;
             while ((line_end = strstr(line_start, "\x0A"))) {
                 length = line_end - line_start - 1;
-                params[it] = string(pos, length);
+                params[it] = std::string(pos, length);
                 it++;
                 line_start = line_end + 1;
                 pos = line_start;
@@ -311,53 +340,38 @@ void ReconView::handle_retune() {
         receiver_model.set_target_frequency(freq);  // Retune
     }
     if (frequency_list.size() > 0) {
-        if (last_entry.modulation != frequency_list[current_index].modulation && frequency_list[current_index].modulation >= 0) {
-            last_entry.modulation = frequency_list[current_index].modulation;
-            field_mode.set_selected_index(frequency_list[current_index].modulation);
+        if (last_entry.modulation != current_entry().modulation && is_valid(current_entry().modulation)) {
+            last_entry.modulation = current_entry().modulation;
+            field_mode.set_selected_index(current_entry().modulation);
             last_entry.bandwidth = -1;
         }
         // Set bandwidth if any
-        if (last_entry.bandwidth != frequency_list[current_index].bandwidth && frequency_list[current_index].bandwidth >= 0) {
-            last_entry.bandwidth = frequency_list[current_index].bandwidth;
-            field_bw.set_selected_index(frequency_list[current_index].bandwidth);
+        if (last_entry.bandwidth != current_entry().bandwidth && is_valid(current_entry().bandwidth)) {
+            last_entry.bandwidth = current_entry().bandwidth;
+            field_bw.set_selected_index(current_entry().bandwidth);
         }
-        if (last_entry.step != frequency_list[current_index].step && frequency_list[current_index].step >= 0) {
-            last_entry.step = frequency_list[current_index].step;
+        if (last_entry.step != current_entry().step && is_valid(current_entry().step)) {
+            last_entry.step = current_entry().step;
             step = freqman_entry_get_step_value(last_entry.step);
             step_mode.set_selected_index(step);
         }
         if (last_index != current_index) {
             last_index = current_index;
-            if ((int32_t)frequency_list.size() && current_index < (int32_t)frequency_list.size() && frequency_list[current_index].type == RANGE) {
+            if (frequency_list.size() && current_is_valid() && current_entry().type == freqman_type::Range) {
                 if (update_ranges && !manual_mode) {
-                    button_manual_start.set_text(to_string_short_freq(frequency_list[current_index].frequency_a));
-                    frequency_range.min = frequency_list[current_index].frequency_a;
-                    if (frequency_list[current_index].frequency_b != 0) {
-                        button_manual_end.set_text(to_string_short_freq(frequency_list[current_index].frequency_b));
-                        frequency_range.max = frequency_list[current_index].frequency_b;
+                    button_manual_start.set_text(to_string_short_freq(current_entry().frequency_a));
+                    frequency_range.min = current_entry().frequency_a;
+                    if (current_entry().frequency_b != 0) {
+                        button_manual_end.set_text(to_string_short_freq(current_entry().frequency_b));
+                        frequency_range.max = current_entry().frequency_b;
                     } else {
-                        button_manual_end.set_text(to_string_short_freq(frequency_list[current_index].frequency_a));
-                        frequency_range.max = frequency_list[current_index].frequency_a;
+                        button_manual_end.set_text(to_string_short_freq(current_entry().frequency_a));
+                        frequency_range.max = current_entry().frequency_a;
                     }
                 }
             }
             text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-            if (frequency_list[current_index].description.size() > 0) {
-                switch (frequency_list[current_index].type) {
-                    case RANGE:
-                        desc_cycle.set("R: " + frequency_list[current_index].description);  // Show new description
-                        break;
-                    case HAMRADIO:
-                        desc_cycle.set("H: " + frequency_list[current_index].description);  // Show new description
-                        break;
-                    default:
-                    case SINGLE:
-                        desc_cycle.set("S: " + frequency_list[current_index].description);  // Show new description
-                        break;
-                }
-            } else {
-                desc_cycle.set("...no description...");  // Show new description
-            }
+            update_description();
         }
     }
 }
@@ -576,11 +590,11 @@ ReconView::ReconView(NavigationView& nav)
     // TODO: *BUG* Both transmitter_model and receiver_model share the same pmem setting for target_frequency.
     button_mic_app.on_select = [this](Button&) {
         if (frequency_list.size() > 0 && current_index >= 0 && (unsigned)current_index < frequency_list.size()) {
-            if (frequency_list[current_index].type == HAMRADIO) {
-                // if it's a HAMRADIO entry, then frequency_a is the freq at which the repeater receives, so we have to set it in transmit in mic app
-                transmitter_model.set_target_frequency(frequency_list[current_index].frequency_a);
-                // if it's a HAMRADIO entry, then frequency_b is the freq at which the repeater transmits, so we have to set it in receive in mic app
-                receiver_model.set_target_frequency(frequency_list[current_index].frequency_b);
+            if (current_entry().type == freqman_type::HamRadio) {
+                // if it's a HamRadio entry, then frequency_a is the freq at which the repeater receives, so we have to set it in transmit in mic app
+                transmitter_model.set_target_frequency(current_entry().frequency_a);
+                // if it's a HamRadio entry, then frequency_b is the freq at which the repeater transmits, so we have to set it in receive in mic app
+                receiver_model.set_target_frequency(current_entry().frequency_b);
             } else {
                 // it's single or range so we us actual tuned frequency
                 transmitter_model.set_target_frequency(freq);
@@ -605,23 +619,8 @@ ReconView::ReconView(NavigationView& nav)
                     current_index = frequency_list.size() - 1;
                 }
                 if (frequency_list.size() > 0) {
-                    if (frequency_list[current_index].description.size() > 0) {
-                        switch (frequency_list[current_index].type) {
-                            case RANGE:
-                                desc_cycle.set("R: " + frequency_list[current_index].description);
-                                break;
-                            case HAMRADIO:
-                                desc_cycle.set("H: " + frequency_list[current_index].description);
-                                break;
-                            default:
-                            case SINGLE:
-                                desc_cycle.set("S: " + frequency_list[current_index].description);
-                                break;
-                        }
-                    } else {
-                        desc_cycle.set("...no description...");
-                    }
                     text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
+                    update_description();
                 }
                 // also remove from output file if in scanner mode
                 if (scanner_mode) {
@@ -631,7 +630,7 @@ ReconView::ReconView(NavigationView& nav)
                     if (!result.is_valid()) {
                         for (size_t n = 0; n < frequency_list.size(); n++) {
                             std::string line;
-                            get_freq_string(frequency_list[n], line);
+                            get_freq_string(*frequency_list[n], line);
                             freqman_file.write_line(line);
                         }
                     }
@@ -643,12 +642,12 @@ ReconView::ReconView(NavigationView& nav)
                 std::string tmp_freq_file_path{freq_file_path + ".TMP"};
                 std::string frequency_to_add{};
 
-                freqman_entry entry = frequency_list[current_index];
+                freqman_entry entry = current_entry();
                 entry.frequency_a = freq;
                 entry.frequency_b = 0;
                 entry.modulation = last_entry.modulation;
                 entry.bandwidth = last_entry.bandwidth;
-                entry.type = SINGLE;
+                entry.type = freqman_type::Single;
 
                 get_freq_string(entry, frequency_to_add);
 
@@ -683,7 +682,7 @@ ReconView::ReconView(NavigationView& nav)
                     }
                 }
             }
-            receiver_model.set_target_frequency(frequency_list[current_index].frequency_a);  // retune
+            receiver_model.set_target_frequency(current_entry().frequency_a);  // retune
         }
         if (frequency_list.size() == 0) {
             text_cycle.set_text(" ");
@@ -711,25 +710,23 @@ ReconView::ReconView(NavigationView& nav)
         } else {
             if (field_mode.selected_index_value() != SPEC_MODULATION)
                 audio::output::stop();
-            // clear and shrink_to_fit are not enough to really start with a new, clean, empty vector
-            // swap is the only way to achieve a perfect memory liberation
-            std::vector<freqman_entry>().swap(frequency_list);
-
-            freqman_entry manual_freq_entry;
+            // Clear doesn't actually free, re-assign so destructor runs on previous instance.
+            frequency_list = freqman_db{};
+            auto manual_freq_entry = std::make_unique<freqman_entry>();
 
             def_step = step_mode.selected_index();  // max range val
 
-            manual_freq_entry.type = RANGE;
-            manual_freq_entry.description =
+            manual_freq_entry->type = freqman_type::Range;
+            manual_freq_entry->description =
                 to_string_short_freq(frequency_range.min).erase(0, 1) + ">" + to_string_short_freq(frequency_range.max).erase(0, 1) + " S:"  // current Manual range
                 + freqman_entry_get_step_string_short(def_step);                                                                             // euquiq: lame kludge to reduce spacing in step freq
-            manual_freq_entry.frequency_a = frequency_range.min;                                                                             // min range val
-            manual_freq_entry.frequency_b = frequency_range.max;                                                                             // max range val
-            manual_freq_entry.modulation = -1;
-            manual_freq_entry.bandwidth = -1;
-            manual_freq_entry.step = def_step;
+            manual_freq_entry->frequency_a = frequency_range.min;                                                                             // min range val
+            manual_freq_entry->frequency_b = frequency_range.max;                                                                             // max range val
+            manual_freq_entry->modulation = freqman_invalid_index;
+            manual_freq_entry->bandwidth = freqman_invalid_index;
+            manual_freq_entry->step = def_step;
 
-            frequency_list.push_back(manual_freq_entry);
+            frequency_list.push_back(std::move(manual_freq_entry));
 
             big_display.set_style(&Styles::white);  // Back to white color
 
@@ -744,13 +741,13 @@ ReconView::ReconView(NavigationView& nav)
             file_name.set("MANUAL RANGE RECON");
             desc_cycle.set_style(&Styles::white);
 
-            last_entry.modulation = -1;
-            last_entry.bandwidth = -1;
-            last_entry.step = -1;
+            last_entry.modulation = freqman_invalid_index;
+            last_entry.bandwidth = freqman_invalid_index;
+            last_entry.step = freqman_invalid_index;
             last_index = -1;
 
             current_index = 0;
-            freq = manual_freq_entry.frequency_a;
+            freq = manual_freq_entry->frequency_a;
             handle_retune();
             recon_redraw();
             recon_resume();
@@ -795,7 +792,7 @@ ReconView::ReconView(NavigationView& nav)
         }
     };
 
-    button_add.on_select = [this](ButtonWithEncoder&) {  // frequency_list[current_index]
+    button_add.on_select = [this](ButtonWithEncoder&) {  // current_entry()
         if (!scanner_mode) {
             recon_save_freq(freq_file_path, current_index, true);
         }
@@ -962,71 +959,39 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         }
     }
 
-    if (frequency_list[0].step >= 0)
-        step = freqman_entry_get_step_value(frequency_list[0].step);
-    else
-        step = freqman_entry_get_step_value(def_step);
-
-    switch (frequency_list[0].type) {
-        case SINGLE:
-            freq = frequency_list[0].frequency_a;
-            break;
-        case RANGE:
-            minfreq = frequency_list[0].frequency_a;
-            maxfreq = frequency_list[0].frequency_b;
-            if (fwd) {
-                freq = minfreq;
-            } else {
-                freq = maxfreq;
-            }
-            if (frequency_list[0].step >= 0)
-                step = freqman_entry_get_step_value(frequency_list[0].step);
-            break;
-        case HAMRADIO:
-            minfreq = frequency_list[0].frequency_a;
-            maxfreq = frequency_list[0].frequency_b;
-            if (fwd) {
-                freq = minfreq;
-            } else {
-                freq = maxfreq;
-            }
-            break;
-        default:
-            break;
+    if (frequency_list.empty()) {
+        text_cycle.set_text(" ");
+        return;  // Can't really do much.
     }
+
     reset_indexes();
+    step = freqman_entry_get_step_value(
+        is_valid(current_entry().step) ? current_entry().step : def_step);
+
+    if (current_entry().type == freqman_type::Single) {
+        freq = current_entry().frequency_a;
+    } else if (current_entry().type != freqman_type::Unknown) {
+        minfreq = current_entry().frequency_a;
+        maxfreq = current_entry().frequency_b;
+        freq = fwd ? minfreq : maxfreq;
+    }
+
     step_mode.set_selected_index(def_step);  // Impose the default step into the manual step selector
     receiver_model.enable();
     receiver_model.set_squelch_level(0);
-    if (frequency_list.size() != 0) {
-        switch (frequency_list[current_index].type) {
-            case RANGE:
-                description = "R: " + frequency_list[current_index].description;
-                break;
-            case HAMRADIO:
-                description = "H: " + frequency_list[current_index].description;
-                break;
-            default:
-            case SINGLE:
-                description = "S: " + frequency_list[current_index].description;
-                break;
+    text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
+    if (update_ranges && !manual_mode) {
+        button_manual_start.set_text(to_string_short_freq(current_entry().frequency_a));
+        frequency_range.min = current_entry().frequency_a;
+        if (current_entry().frequency_b != 0) {
+            button_manual_end.set_text(to_string_short_freq(current_entry().frequency_b));
+            frequency_range.max = current_entry().frequency_b;
+        } else {
+            button_manual_end.set_text(to_string_short_freq(current_entry().frequency_a));
+            frequency_range.max = current_entry().frequency_a;
         }
-        text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-        if (update_ranges && !manual_mode) {
-            button_manual_start.set_text(to_string_short_freq(frequency_list[current_index].frequency_a));
-            frequency_range.min = frequency_list[current_index].frequency_a;
-            if (frequency_list[current_index].frequency_b != 0) {
-                button_manual_end.set_text(to_string_short_freq(frequency_list[current_index].frequency_b));
-                frequency_range.max = frequency_list[current_index].frequency_b;
-            } else {
-                button_manual_end.set_text(to_string_short_freq(frequency_list[current_index].frequency_a));
-                frequency_range.max = frequency_list[current_index].frequency_a;
-            }
-        }
-    } else {
-        text_cycle.set_text(" ");
     }
-    desc_cycle.set(description);
+    update_description();
     handle_retune();
 }
 
@@ -1156,7 +1121,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                 if (recon || stepper != 0 || index_stepper != 0) {
                     if (index_stepper == 0) {
                         /* we are doing a range */
-                        if (frequency_list[current_index].type == RANGE) {
+                        if (current_entry().type == freqman_type::Range) {
                             if ((fwd && stepper == 0) || stepper > 0) {
                                 // forward
                                 freq += step;
@@ -1186,7 +1151,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                                     }
                                 }
                             }
-                        } else if (frequency_list[current_index].type == SINGLE) {
+                        } else if (current_entry().type == freqman_type::Single) {
                             if ((fwd && stepper == 0) || stepper > 0) {  // forward
                                 current_index++;
                                 entry_has_changed = true;
@@ -1205,7 +1170,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                                     current_index = frequency_list.size() - 1;
                                 }
                             }
-                        } else if (frequency_list[current_index].type == HAMRADIO) {
+                        } else if (current_entry().type == freqman_type::HamRadio) {
                             if ((fwd && stepper == 0) || stepper > 0) {  // forward
                                 if ((minfreq != maxfreq) && freq == minfreq) {
                                     freq = maxfreq;
@@ -1259,22 +1224,22 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     // reload entry if changed
                     if (entry_has_changed) {
                         timer = 0;
-                        switch (frequency_list[current_index].type) {
-                            case SINGLE:
-                                freq = frequency_list[current_index].frequency_a;
+                        switch (current_entry().type) {
+                            case freqman_type::Single:
+                                freq = current_entry().frequency_a;
                                 break;
-                            case RANGE:
-                                minfreq = frequency_list[current_index].frequency_a;
-                                maxfreq = frequency_list[current_index].frequency_b;
+                            case freqman_type::Range:
+                                minfreq = current_entry().frequency_a;
+                                maxfreq = current_entry().frequency_b;
                                 if ((fwd && !stepper && !index_stepper) || stepper > 0 || index_stepper > 0) {
                                     freq = minfreq;
                                 } else if ((!fwd && !stepper && !index_stepper) || stepper < 0 || index_stepper < 0) {
                                     freq = maxfreq;
                                 }
                                 break;
-                            case HAMRADIO:
-                                minfreq = frequency_list[current_index].frequency_a;
-                                maxfreq = frequency_list[current_index].frequency_b;
+                            case freqman_type::HamRadio:
+                                minfreq = current_entry().frequency_a;
+                                maxfreq = current_entry().frequency_b;
                                 if ((fwd && !stepper && !index_stepper) || stepper > 0 || index_stepper > 0) {
                                     freq = minfreq;
                                 } else if ((!fwd && !stepper && !index_stepper) || stepper < 0 || index_stepper < 0) {

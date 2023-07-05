@@ -26,6 +26,7 @@
 #include "file.hpp"
 
 using namespace portapack;
+using namespace tonekey;
 using portapack::memory::map::backup_ram;
 
 namespace ui {

@@ -96,7 +96,7 @@ bool FrequencyField::on_encoder(const EncoderEvent delta) {
         // To get these magic numbers, I graphed the function until the
         // curve shape seemed about right then tested on device.
         delta_ms = std::min(145ull, delta_ms) + 5;  // Prevent DIV/0
-        int64_t scale = 200'000'000 / (0.001'55 * pow(delta_ms, 5.45)) + 8;
+        int64_t scale = 200'000'000 / (0.001'55 * std::pow(delta_ms, 5.45)) + 8;
         set_value(value() + (delta * scale));
     } else {
         set_value(value() + (delta * step));

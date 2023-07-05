@@ -318,7 +318,7 @@ ScannerView::ScannerView(
             std::string dir_filter = "FREQMAN/";
             std::string str_file_path = new_file_path.string();
 
-            if (str_file_path.find(dir_filter) != string::npos) {  // assert file from the FREQMAN folder
+            if (str_file_path.find(dir_filter) != std::string::npos) {  // assert file from the FREQMAN folder
                 scan_pause();
                 // get the filename without txt extension so we can use load_freqman_file fcn
                 std::string str_file_name = new_file_path.stem().string();
@@ -576,9 +576,9 @@ ScannerView::ScannerView(
 void ScannerView::frequency_file_load(std::string file_name, bool stop_all_before) {
     bool found_range{false};
     bool found_single{false};
-    freqman_index_t def_mod_index{-1};
-    freqman_index_t def_bw_index{-1};
-    freqman_index_t def_step_index{-1};
+    freqman_index_t def_mod_index{freqman_invalid_index};
+    freqman_index_t def_bw_index{freqman_invalid_index};
+    freqman_index_t def_step_index{freqman_invalid_index};
 
     // stop everything running now if required
     if (stop_all_before) {
@@ -587,56 +587,57 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
         description_list.clear();
     }
 
+    // TODO: Reuse freqman parsing.
     if (load_freqman_file(file_name, database)) {
-        loaded_file_name = file_name;                            // keep loaded filename in memory
-        for (auto& entry : database) {                           // READ LINE PER LINE
-            if (frequency_list.size() < FREQMAN_MAX_PER_FILE) {  // We got space!
-                //
-                // Get modulation & bw & step from file if specified
-                // Note these values could be different for each line in the file, but we only look at the first one
-                //
-                // Note that freqman requires a very specific string for these parameters,
-                // so check syntax in frequency file if specified value isn't being loaded
-                //
-                if (def_mod_index == -1)
-                    def_mod_index = entry.modulation;
+        loaded_file_name = file_name;
+        for (auto& entry_ptr : database) {
+            if (frequency_list.size() >= FREQMAN_MAX_PER_FILE)
+                break;
+            
+            auto& entry = *entry_ptr;
 
-                if (def_bw_index == -1)
-                    def_bw_index = entry.bandwidth;
+            // Get modulation & bw & step from file if specified
+            // Note these values could be different for each line in the file, but we only look at the first one
+            //
+            // Note that freqman requires a very specific string for these parameters,
+            // so check syntax in frequency file if specified value isn't being loaded
+            //
+            if (is_invalid(def_mod_index))
+                def_mod_index = entry.modulation;
 
-                if (def_step_index == -1)
-                    def_step_index = entry.step;
+            if (is_invalid(def_bw_index))
+                def_bw_index = entry.bandwidth;
 
-                // Get frequency
-                if (entry.type == RANGE) {
-                    if (!found_range) {
-                        // Set Start & End Search Range instead of populating the small in-memory frequency table
-                        // NOTE:  There may be multiple single frequencies in file, but only one search range is supported.
-                        found_range = true;
-                        frequency_range.min = entry.frequency_a;
-                        button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-                        frequency_range.max = entry.frequency_b;
-                        button_manual_end.set_text(to_string_short_freq(frequency_range.max));
-                    }
-                } else if (entry.type == SINGLE) {
-                    found_single = true;
-                    frequency_list.push_back(entry.frequency_a);
-                    description_list.push_back(entry.description);
-                } else if (entry.type == HAMRADIO) {
-                    // For HAM repeaters, add both receive & transmit frequencies to scan list and modify description
-                    // (FUTURE fw versions might handle these differently)
-                    found_single = true;
-                    frequency_list.push_back(entry.frequency_a);
-                    description_list.push_back("R:" + entry.description);
+            if (is_invalid(def_step_index))
+                def_step_index = entry.step;
 
-                    if ((entry.frequency_a != entry.frequency_b) &&
-                        (frequency_list.size() < FREQMAN_MAX_PER_FILE)) {
-                        frequency_list.push_back(entry.frequency_b);
-                        description_list.push_back("T:" + entry.description);
-                    }
+            // Get frequency
+            if (entry.type == freqman_type::Range) {
+                if (!found_range) {
+                    // Set Start & End Search Range instead of populating the small in-memory frequency table
+                    // NOTE:  There may be multiple single frequencies in file, but only one search range is supported.
+                    found_range = true;
+                    frequency_range.min = entry.frequency_a;
+                    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+                    frequency_range.max = entry.frequency_b;
+                    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
                 }
-            } else {
-                break;  // No more space: Stop reading the txt file !
+            } else if (entry.type == freqman_type::Single) {
+                found_single = true;
+                frequency_list.push_back(entry.frequency_a);
+                description_list.push_back(entry.description);
+            } else if (entry.type == freqman_type::HamRadio) {
+                // For HAM repeaters, add both receive & transmit frequencies to scan list and modify description
+                // (FUTURE fw versions might handle these differently)
+                found_single = true;
+                frequency_list.push_back(entry.frequency_a);
+                description_list.push_back("R:" + entry.description);
+
+                if ((entry.frequency_a != entry.frequency_b) &&
+                    (frequency_list.size() < FREQMAN_MAX_PER_FILE)) {
+                    frequency_list.push_back(entry.frequency_b);
+                    description_list.push_back("T:" + entry.description);
+                }
             }
         }
     } else {
@@ -650,13 +651,13 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
         desc_freq_list_scan = desc_freq_list_scan + "...";
     }
 
-    if ((def_mod_index != -1) && (def_mod_index != (freqman_index_t)field_mode.selected_index_value()))
+    if (is_valid(def_mod_index) && def_mod_index != (freqman_index_t)field_mode.selected_index_value())
         field_mode.set_by_value(def_mod_index);  // Update mode (also triggers a change callback that disables & reenables RF background)
 
-    if (def_bw_index != -1)  // Update BW if specified in file
+    if (is_valid(def_bw_index))  // Update BW if specified in file
         field_bw.set_selected_index(def_bw_index);
 
-    if (def_step_index != -1)  // Update step if specified in file
+    if (is_valid(def_step_index))  // Update step if specified in file
         field_step.set_selected_index(def_step_index);
 
     audio::output::stop();

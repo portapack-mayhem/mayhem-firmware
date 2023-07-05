@@ -24,19 +24,26 @@
 #ifndef __FREQMAN_DB_H__
 #define __FREQMAN_DB_H__
 
-#include "optional.hpp"
 #include "file.hpp"
+#include "utility.hpp"
 
+#include <array>
 #include <memory>
 #include <string>
 #include <string_view>
 #include <vector>
 
 using freqman_index_t = uint8_t;
-constexpr freqman_invalid_index = static_cast<freqman_index_t>(-1);
+constexpr freqman_index_t freqman_invalid_index = static_cast<freqman_index_t>(-1);
 
+/* Returns true if the value is not invalid_index. */
 constexpr bool is_valid(freqman_index_t index) {
     return index != freqman_invalid_index;
+}
+
+/* Returns true if the value is invalid_index. */
+constexpr bool is_invalid(freqman_index_t index) {
+    return index == freqman_invalid_index;
 }
 
 enum class freqman_type : uint8_t {
@@ -46,6 +53,11 @@ enum class freqman_type : uint8_t {
     Unknown,
 };
 
+#if 0  // New tables for a future PR.
+// TODO: attempt to consolidate all of these values
+// and settings into a single location.
+
+/* Modulation **********************************/
 enum class freqman_modulation : uint8_t {
     AM,
     NFM,
@@ -54,21 +66,93 @@ enum class freqman_modulation : uint8_t {
     Unknown,
 };
 
-// TODO: Polymorphic?
+struct freqman_modulation_info {
+    freqman_modulation modulation;
+    std::string_view name;
+};
+
+constexpr std::array<freqman_modulation_info, 5> freqman_modulations = {
+    freqman_modulation_info{ freqman_modulation::AM, "AM" },
+    freqman_modulation_info{ freqman_modulation::NFM, "NFM" },
+    freqman_modulation_info{ freqman_modulation::WFM, "WFM" },
+    freqman_modulation_info{ freqman_modulation::SPEC, "SPEC" },
+    freqman_modulation_info{ freqman_modulation::Unknown, "Unknown" }
+};
+
+static_assert(std::size(freqman_modulations) == (size_t)freqman_modulation::Unknown + 1);
+
+/* Step ****************************************/
+enum class freqman_step : uint8_t {
+    _100Hz,
+    _1kHz,
+    _5kHz,
+    _6_25kHz,
+    _8_33kHz,
+    _9kHz,
+    _10kHz,
+    _12_5kHz,
+    _15kHz,
+    _25kHz,
+    _30kHz,
+    _50kHz,
+    _100kHz,
+    _250kHz,
+    _500kHz,
+    _1MHz,
+    Unknown,
+};
+
+struct freqman_step_info {
+    freqman_step step;
+    std::string_view name;
+    std::string_view display_name;
+    uint32_t value;
+};
+
+// TODO: FrequencyStepView should use this list.
+constexpr std::array<freqman_step_info, 18> freqman_steps = {
+    freqman_step_info{ freqman_step::_100Hz,   "0.1kHz",  "0.1kHz      ", 100 },
+    freqman_step_info{ freqman_step::_1kHz,    "1kHz",    "1kHz        ", 1'000 },
+    freqman_step_info{ freqman_step::_5kHz,    "5kHz",    "5kHz (SA AM)", 5'000 },
+    freqman_step_info{ freqman_step::_6_25kHz, "6.25kHz", "6.25kHz(NFM)", 6'250 },
+    freqman_step_info{ freqman_step::_8_33kHz, "8.33kHz", "8.33kHz(AIR)", 8'330 },
+    freqman_step_info{ freqman_step::_9kHz,    "9kHz",    "9kHz (EU AM)", 9'000 },
+    freqman_step_info{ freqman_step::_10kHz,   "10kHz",   "10kHz(US AM)", 10'000 },
+    freqman_step_info{ freqman_step::_12_5kHz, "12.5kHz", "12.5kHz(NFM)", 12'500 },
+    freqman_step_info{ freqman_step::_15kHz,   "15kHz",   "15kHz  (HFM)", 15'000 },
+    freqman_step_info{ freqman_step::_25kHz,   "25kHz",   "25kHz   (N1)", 25'000 },
+    freqman_step_info{ freqman_step::_30kHz,   "30kHz",   "30kHz (OIRT)", 30'000 },
+    freqman_step_info{ freqman_step::_50kHz,   "50kHz",   "50kHz  (FM1)", 50'000 },
+    freqman_step_info{ freqman_step::_100kHz,  "100kHz",  "100kHz (FM2)", 100'000 },
+    freqman_step_info{ freqman_step::_250kHz,  "250kHz",  "250kHz  (N2)", 250'000 },
+    freqman_step_info{ freqman_step::_500kHz,  "500kHz",  "500kHz (WFM)", 500'000 },
+    freqman_step_info{ freqman_step::_1MHz,    "1MHz",    "1MHz        ", 1'000'000 },
+    freqman_step_info{ freqman_step::Unknown,  "Unknown", "Unknown     ", 0 },
+};
+
+static_assert(std::size(freqman_steps) == (size_t)freqman_step::Unknown + 1);
+#endif
+
+/* Freqman Entry *******************************/
 struct freqman_entry {
-    uint64_t frequency_a{0};     // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
-    uint64_t frequency_b{0};     // 'b=freq_end' or 't=tx_freq'
+    int64_t frequency_a{0};     // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
+    int64_t frequency_b{0};     // 'b=freq_end' or 't=tx_freq'
     std::string description{0};  // 'd=desc'
     freqman_type type{freqman_type::Unknown};
-    freqman_modulation modulation{freqman_modulation::Unknown};
-    freqman_bandwidth bandwidth{freqman_bandwidth::Unknown};
-    freqman_step step{freqman_step::Unknown};
-    freqman_tone tone{freqman_tone::Unknown};
+    freqman_index_t modulation{freqman_invalid_index};
+    freqman_index_t bandwidth{freqman_invalid_index};
+    freqman_index_t step{freqman_invalid_index};
+    freqman_index_t tone{freqman_invalid_index};
+};
+
+struct freqman_load_options {
 };
 
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
+using freqman_db = std::vector<freqman_entry_ptr>;
 
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
+freqman_db parse_freqman_file(const std::filesystem::path& path);
 
 class FreqmanDB {
    public:
@@ -81,7 +165,7 @@ class FreqmanDB {
     size_t size() const { return 0; };
 
    private:
-    std::vector<freqman_entry_ptr> entries_;
+    freqman_db entries_;
 };
 
 #endif /* __FREQMAN_DB_H__ */

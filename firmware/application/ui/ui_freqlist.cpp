@@ -76,7 +76,7 @@ void FreqManUIList::paint(Painter& painter) {
     for (uint8_t it = current_index; it < freqlist_db->size(); it++) {
         uint8_t line_height = (int)nb_lines * char_height;
         if (line_height < (r.height() - char_height)) {  // line is within the widget
-            std::string description = freqman_item_string(freqlist_db->at(it), 30);
+            std::string description = freqman_item_string(*freqlist_db->at(it), 30);
             if (nb_lines == highlighted_index) {
                 const Rect r_highlighted_freq{0, r.location().y() + (int)nb_lines * char_height, 240, char_height};
                 painter.fill_rectangle(
