@@ -25,6 +25,7 @@
 
 #include "ui.hpp"
 #include "ui_text.hpp"
+#include "file.hpp"
 
 #include <cstdint>
 #include <array>
@@ -58,7 +59,7 @@ class ILI9341 {
 
     void draw_pixel(const ui::Point p, const ui::Color color);
     void drawBMP(const ui::Point p, const uint8_t* bitmap, const bool transparency);
-    bool drawBMP2(const ui::Point p, const std::string file);
+    bool drawBMP2(const ui::Point p, const std::filesystem::path& file);
     void render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer);
     void render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer);
 

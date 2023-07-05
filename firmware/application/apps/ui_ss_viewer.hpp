@@ -31,6 +31,8 @@
 
 namespace ui {
 
+extern const std::filesystem::path splash_dot_bmp;
+
 class ScreenshotViewer : public View {
    public:
     ScreenshotViewer(NavigationView& nav, const std::filesystem::path& path);
@@ -40,6 +42,19 @@ class ScreenshotViewer : public View {
    private:
     NavigationView& nav_;
     std::filesystem::path path_{};
+};
+
+class SplashViewer : public View {
+   public:
+    SplashViewer(NavigationView& nav, const std::filesystem::path& path);
+    bool on_key(KeyEvent key) override;
+    void paint(Painter& painter) override;
+    void update_ss(void);
+
+   private:
+    NavigationView& nav_;
+    std::filesystem::path path_{};
+    bool valid_image{};
 };
 
 }  // namespace ui

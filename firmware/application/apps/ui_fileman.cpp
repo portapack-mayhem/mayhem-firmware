@@ -41,6 +41,7 @@ static const fs::path txt_ext{u".TXT"};
 static const fs::path ppl_ext{u".PPL"};
 static const fs::path c16_ext{u".C16"};
 static const fs::path png_ext{u".PNG"};
+static const fs::path bmp_ext{u".BMP"};
 }  // namespace ui
 
 namespace {
@@ -502,6 +503,10 @@ bool FileManagerView::handle_file_open() {
         return true;
     } else if (path_iequal(png_ext, ext)) {
         nav_.push<ScreenshotViewer>(path);
+        return true;
+    } else if (path_iequal(bmp_ext, ext)) {
+        nav_.push<SplashViewer>(path);
+        reload_current();
         return true;
     }
 
