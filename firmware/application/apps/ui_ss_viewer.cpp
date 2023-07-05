@@ -96,4 +96,41 @@ void ScreenshotViewer::paint(Painter& painter) {
     }
 }
 
+SplashViewer::SplashViewer(
+    NavigationView& nav,
+    const std::filesystem::path& path)
+    : nav_{nav},
+      path_{path} {
+    valid_image = false;
+    set_focusable(true);
+}
+
+bool SplashViewer::on_key(const KeyEvent key) {
+    if (valid_image && key == KeyEvent::Right) {
+        delete_file(splash_dot_bmp);
+        copy_file(path_, splash_dot_bmp);
+    }
+
+    nav_.pop();
+    return true;
+}
+
+void SplashViewer::paint(Painter& painter) {
+    constexpr size_t pixel_width = 240;
+    constexpr size_t pixel_height = 320;
+
+    painter.fill_rectangle({0, 0, pixel_width, pixel_height}, Color::black());
+
+    if (!portapack::display.drawBMP2({0, 0}, path_)) {
+        painter.draw_string({10, 160}, Styles::white, "Not a valid splash image.");
+        return;
+    }
+
+    // Show option to set splash screen if it's not already the splash screen
+    if (!path_iequal(path_, splash_dot_bmp)) {
+        painter.draw_string({0, 0}, Styles::white, "*RIGHT BUTTON UPDATES SPLASH*");
+        valid_image = true;
+    }
+}
+
 }  // namespace ui
