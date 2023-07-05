@@ -1420,8 +1420,13 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
         default:
             break;
     }
-    if (new_mod != SPEC_MODULATION)
+    if (new_mod != SPEC_MODULATION) {
         record_view->set_sampling_rate(recording_sampling_rate);
+        // reset receiver model to fix bug when going from SPEC to audio, the sound is distorded
+        receiver_model.set_sampling_rate(3072000);
+        receiver_model.set_baseband_bandwidth(1750000);
+    }
+
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
