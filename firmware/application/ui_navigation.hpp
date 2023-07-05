@@ -184,17 +184,22 @@ class SystemStatusView : public View {
 
     StatusTray status_icons{{screen_width, 0}};
 
-    // TODO: Convert to ImageToggle buttons.
-    ImageButton button_speaker{
+    ImageToggle toggle_speaker{
         {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_speaker_mute,
         &bitmap_icon_speaker,
         Color::light_grey(),
+        Color::dark_grey(),
+        Color::green(),
         Color::dark_grey()};
 
-    ImageButton button_mute{
+    ImageToggle toggle_mute{
         {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_speaker_and_headphones_mute,
         &bitmap_icon_speaker_and_headphones,
         Color::light_grey(),
+        Color::dark_grey(),
+        Color::green(),
         Color::dark_grey()};
 
     ImageButton button_converter{
@@ -203,11 +208,9 @@ class SystemStatusView : public View {
         Color::light_grey(),
         Color::dark_grey()};
 
-    ImageButton button_stealth{
+    ImageToggle toggle_stealth{
         {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_stealth,
-        Color::light_grey(),
-        Color::dark_grey()};
+        &bitmap_icon_stealth};
 
     ImageButton button_camera{
         {0, 0, 2 * 8, 1 * 16},
@@ -237,9 +240,6 @@ class SystemStatusView : public View {
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
     void on_converter();
-    void on_speaker();
-    void on_mute();
-    void on_stealth();
     void on_bias_tee();
     void on_camera();
     void on_title();
