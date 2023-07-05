@@ -135,7 +135,7 @@ class ReconSetupViewMore : public View {
     Checkbox checkbox_auto_record_locked{
         {1 * 8, 132},
         3,
-        "auto record locked periods"};
+        "record locked periods"};
 };
 
 class ReconSetupView : public View {

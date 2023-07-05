@@ -731,7 +731,7 @@ ReconView::ReconView(NavigationView& nav)
             text_cycle.set_text("1");
             text_max.set("/1");
             button_scanner_mode.set_style(&Styles::white);
-            button_scanner_mode.set_text("MSEARCH");
+            button_scanner_mode.set_text("MANUAL");
             file_name.set_style(&Styles::white);
             file_name.set("MANUAL RANGE RECON");
             desc_cycle.set_style(&Styles::white);
@@ -776,7 +776,7 @@ ReconView::ReconView(NavigationView& nav)
         if (scanner_mode) {
             file_name.set_style(&Styles::red);
             button_scanner_mode.set_style(&Styles::red);
-            button_scanner_mode.set_text("SCANNER");
+            button_scanner_mode.set_text("SCAN");
         } else {
             file_name.set_style(&Styles::blue);
             button_scanner_mode.set_style(&Styles::blue);
@@ -808,7 +808,7 @@ ReconView::ReconView(NavigationView& nav)
         } else {
             scanner_mode = true;
             button_scanner_mode.set_style(&Styles::red);
-            button_scanner_mode.set_text("SCANNER");
+            button_scanner_mode.set_text("SCAN");
             button_scanner_mode.set_text("REMOVE");
         }
         frequency_file_load(true);
@@ -930,7 +930,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         file_name.set_style(&Styles::red);
         button_scanner_mode.set_style(&Styles::red);
         desc_cycle.set_style(&Styles::red);
-        button_scanner_mode.set_text("SCANNER");
+        button_scanner_mode.set_text("SCAN");
     } else {
         file_name.set_style(&Styles::blue);
         button_scanner_mode.set_style(&Styles::blue);
