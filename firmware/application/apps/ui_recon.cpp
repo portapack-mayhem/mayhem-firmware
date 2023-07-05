@@ -1024,12 +1024,23 @@ void ReconView::frequency_file_load(bool stop_all_before) {
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     systime_t time_interval = 100;
+    uint32_t local_recon_lock_duration = recon_lock_duration;
 
+    chrono_end = chTimeNow();
     if (field_mode.selected_index_value() == SPEC_MODULATION) {
-        chrono_end = chTimeNow();
         time_interval = chrono_end - chrono_start;
-        chrono_start = chrono_end;
+        // capping here to avoid double check a frequency because time_interval is more than exactly 100 by a few units
+        // this is because we are making a measurement and not using a fixed value
+        if (time_interval > 100)
+            time_interval = 100;
+        if (field_lock_wait.value() == 0) {
+            if (time_interval <= 1)             // capping here to avoid freeze because too quick
+                local_recon_lock_duration = 2;  // minimum working tested value
+            else
+                local_recon_lock_duration = time_interval;
+        }
     }
+    chrono_start = chrono_end;
 
     // hack to reload the list if it was cleared by going into CONFIG
     if (freqlist_cleared_for_ui_action) {
@@ -1049,7 +1060,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             status = 0;
             continuous_lock = false;
             freq_lock = 0;
-            timer = recon_lock_duration;
+            timer = local_recon_lock_duration;
             big_display.set_style(&Styles::white);
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
@@ -1409,8 +1420,13 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
         default:
             break;
     }
-    if (new_mod != SPEC_MODULATION)
+    if (new_mod != SPEC_MODULATION) {
         record_view->set_sampling_rate(recording_sampling_rate);
+        // reset receiver model to fix bug when going from SPEC to audio, the sound is distorded
+        receiver_model.set_sampling_rate(3072000);
+        receiver_model.set_baseband_bandwidth(1750000);
+    }
+
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
