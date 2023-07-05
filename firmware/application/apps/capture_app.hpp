@@ -50,13 +50,12 @@ class CaptureAppView : public View {
     static constexpr ui::Dim header_height = 3 * 16;
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
         "rx_capture", app_settings::Mode::RX,
         app_settings::Options::UseGlobalTargetFrequency};
 
     uint32_t sampling_rate = 0;
-    uint32_t anti_alias_baseband_bandwidth_filter = 2500000;
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
@@ -97,7 +96,7 @@ class CaptureAppView : public View {
         16384,
         3};
 
-    spectrum::WaterfallWidget waterfall{};
+    spectrum::WaterfallView waterfall{};
 };
 
 } /* namespace ui */

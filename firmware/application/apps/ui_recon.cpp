@@ -30,8 +30,6 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
-static RecordView* record_view = NULL;
-
 void ReconView::set_loop_config(bool v) {
     continuous = v;
     button_loop_config.set_style(v ? &Styles::green : &Styles::white);
@@ -365,11 +363,9 @@ void ReconView::focus() {
 
 ReconView::~ReconView() {
     recon_stop_recording();
-    delete record_view;
     recon_save_config_to_sd();
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
-    receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -377,7 +373,9 @@ ReconView::~ReconView() {
 ReconView::ReconView(NavigationView& nav)
     : nav_{nav} {
     chrono_start = chTimeNow();
-    record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
+    record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                               u"AUTO_AUDIO_", u"AUDIO",
+                                               RecordView::FileType::WAV, 4096, 4);
     add_children({&labels,
                   &field_lna,
                   &field_vga,
@@ -414,7 +412,7 @@ ReconView::ReconView(NavigationView& nav)
                   &button_restart,
                   &button_mic_app,
                   &button_remove,
-                  record_view});
+                  record_view.get()});
 
     record_view->hidden(true);
     record_view->set_filename_date_frequency(true);
@@ -550,8 +548,9 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_audio_app.on_select = [this](Button&) {
-        nav_.pop();
-        nav_.push<AnalogAudioView>();
+        auto settings = receiver_model.settings();
+        settings.frequency_step = step_mode.selected_index_value();
+        nav_.replace<AnalogAudioView>(settings);
     };
 
     button_loop_config.on_select = [this](Button&) {
@@ -570,9 +569,9 @@ ReconView::ReconView(NavigationView& nav)
     button_mic_app.on_select = [this](Button&) {
         if (frequency_list.size() > 0 && current_index >= 0 && (unsigned)current_index < frequency_list.size()) {
             if (frequency_list[current_index].type == HAMRADIO) {
-                // if it's a HAMRADIO entry, then frequency_a is the freq at which the repeater reveive, so we have to set it in transmit in mic app
+                // if it's a HAMRADIO entry, then frequency_a is the freq at which the repeater receives, so we have to set it in transmit in mic app
                 transmitter_model.set_target_frequency(frequency_list[current_index].frequency_a);
-                // if it's a HAMRADIO entry, then frequency_b is the freq at which the repeater transmit, so we have to set it in receive in mic app
+                // if it's a HAMRADIO entry, then frequency_b is the freq at which the repeater transmits, so we have to set it in receive in mic app
                 receiver_model.set_target_frequency(frequency_list[current_index].frequency_b);
             } else {
                 // it's single or range so we us actual tuned frequency
@@ -580,9 +579,9 @@ ReconView::ReconView(NavigationView& nav)
                 receiver_model.set_target_frequency(freq);
             }
         }
-        // there is no way yet to set modulation and bandwidth from Recon to MicApp
-        nav_.pop();
-        nav_.push<MicTXView>();
+
+        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        nav_.replace<MicTXView>(receiver_model.settings());
     };
 
     button_remove.on_select = [this](ButtonWithEncoder&) {
@@ -732,7 +731,7 @@ ReconView::ReconView(NavigationView& nav)
             text_cycle.set_text("1");
             text_max.set("/1");
             button_scanner_mode.set_style(&Styles::white);
-            button_scanner_mode.set_text("MSEARCH");
+            button_scanner_mode.set_text("MANUAL");
             file_name.set_style(&Styles::white);
             file_name.set("MANUAL RANGE RECON");
             desc_cycle.set_style(&Styles::white);
@@ -777,7 +776,7 @@ ReconView::ReconView(NavigationView& nav)
         if (scanner_mode) {
             file_name.set_style(&Styles::red);
             button_scanner_mode.set_style(&Styles::red);
-            button_scanner_mode.set_text("SCANNER");
+            button_scanner_mode.set_text("SCAN");
         } else {
             file_name.set_style(&Styles::blue);
             button_scanner_mode.set_style(&Styles::blue);
@@ -809,7 +808,7 @@ ReconView::ReconView(NavigationView& nav)
         } else {
             scanner_mode = true;
             button_scanner_mode.set_style(&Styles::red);
-            button_scanner_mode.set_text("SCANNER");
+            button_scanner_mode.set_text("SCAN");
             button_scanner_mode.set_text("REMOVE");
         }
         frequency_file_load(true);
@@ -931,7 +930,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         file_name.set_style(&Styles::red);
         button_scanner_mode.set_style(&Styles::red);
         desc_cycle.set_style(&Styles::red);
-        button_scanner_mode.set_text("SCANNER");
+        button_scanner_mode.set_text("SCAN");
     } else {
         file_name.set_style(&Styles::blue);
         button_scanner_mode.set_style(&Styles::blue);
@@ -1339,22 +1338,21 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
     recon_stop_recording();
-    if (new_mod != SPEC_MODULATION) {
-        remove_children({record_view});
-        delete record_view;
-        record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_AUDIO_", u"AUDIO", RecordView::FileType::WAV, 4096, 4);
-        record_view->set_filename_date_frequency(true);
-        add_children({record_view});
-    }
+    remove_child(record_view.get());
+    record_view.reset();
     if (new_mod == SPEC_MODULATION) {
         audio::output::stop();
-        remove_children({record_view});
-        delete record_view;
-        record_view = new RecordView({0, 0, 30 * 8, 1 * 16}, u"AUTO_RAW_", u"CAPTURES", RecordView::FileType::RawS16, 16384, 3);
-        record_view->set_filename_date_frequency(true);
-        add_children({record_view});
+        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                   u"AUTO_RAW_", u"CAPTURES",
+                                                   RecordView::FileType::RawS16, 16384, 3);
+    } else {
+        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                   u"AUTO_AUDIO_", u"AUDIO",
+                                                   RecordView::FileType::WAV, 4096, 4);
     }
+    add_child(record_view.get());
     record_view->hidden(true);
+    record_view->set_filename_date_frequency(true);
     record_view->on_error = [this](std::string message) {
         nav_.display_modal("Error", message);
     };
@@ -1401,34 +1399,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
             field_bw.set_by_value(0);
             field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
-                uint32_t anti_alias_baseband_bandwidth_filter = 2500000;
-                switch (sampling_rate) {                                 // we use the var fs (sampling_rate) , to set up BPF aprox < fs_max/2 by Nyquist theorem.
-                    case 0 ... 2000000:                                  // BW Captured range  (0 <= 250kHz max )  fs = 8 x 250 kHz
-                        anti_alias_baseband_bandwidth_filter = 1750000;  // Minimum BPF MAX2837 for all those lower BW options.
-                        break;
-                    case 4000000 ... 6000000:                            // BW capture  range (500k ... 750kHz max )  fs_max = 8 x 750kHz = 6Mhz
-                                                                         // BW 500k ... 750kHz   ,  ex. 500kHz   (fs = 8*BW =  4Mhz) , BW 600kHz (fs = 4,8Mhz) , BW  750 kHz (fs = 6Mhz)
-                        anti_alias_baseband_bandwidth_filter = 2500000;  // in some IC MAX2837 appear 2250000 , but both works similar.
-                        break;
-                    case 8800000:  // BW capture 1,1Mhz  fs = 8 x 1,1Mhz = 8,8Mhz . (1Mhz showed slightly higher noise background).
-                        anti_alias_baseband_bandwidth_filter = 3500000;
-                        break;
-                    case 14000000:  // BW capture 1,75Mhz  , fs = 8 x 1,75Mhz = 14Mhz
-                                    // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
-                        anti_alias_baseband_bandwidth_filter = 5000000;
-                        break;
-                    case 16000000:  // BW capture 2Mhz  , fs = 8 x 2Mhz = 16Mhz
-                                    // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
-                        anti_alias_baseband_bandwidth_filter = 6000000;
-                        break;
-                    case 20000000:  // BW capture 2,5Mhz  , fs= 8 x 2,5 Mhz = 20Mhz
-                                    // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
-                        anti_alias_baseband_bandwidth_filter = 7000000;
-                        break;
-                    default:  // BW capture 2,75Mhz, fs = 8 x 2,75Mhz= 22Mhz max ADC sampling) and others.
-                              //  We tested also 9Mhz FPB stightly too much noise floor, better 8Mhz
-                        anti_alias_baseband_bandwidth_filter = 8000000;
-                }
+                auto anti_alias_baseband_bandwidth_filter = filter_bandwidth_for_sampling_rate(sampling_rate);
                 record_view->set_sampling_rate(sampling_rate);
                 receiver_model.set_sampling_rate(sampling_rate);
                 receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
@@ -1440,14 +1411,12 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     }
     if (new_mod != SPEC_MODULATION)
         record_view->set_sampling_rate(recording_sampling_rate);
-
     field_mode.set_selected_index(new_mod);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
             change_mode(v);
         }
     };
-
     // for some motive, audio output gets stopped.
     if (!recon && field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::start();  // so if recon was stopped we resume audio
@@ -1457,32 +1426,10 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
 }
 
 void ReconView::handle_coded_squelch(const uint32_t value) {
-    float diff{0.0};
-    float min_diff{(float)value};
-    size_t min_idx{0};
-    size_t c{0};
-
-    if (field_mode.selected_index() != NFM_MODULATION) {
+    if (field_mode.selected_index() == NFM_MODULATION)
+        text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
+    else
         text_ctcss.set("        ");
-        return;
-    }
-
-    // Find nearest match
-    for (c = 0; c < tone_keys.size(); c++) {
-        diff = abs(((float)value / 100.0) - tone_keys[c].second);
-        if (diff < min_diff) {
-            min_idx = c;
-            min_diff = diff;
-        }
-    }
-
-    // Arbitrary confidence threshold
-    if (last_squelch_index < 0 || (unsigned)last_squelch_index != min_idx) {
-        last_squelch_index = min_idx;
-        if (min_diff < 40)
-            text_ctcss.set("T: " + tone_keys[min_idx].first);
-        else
-            text_ctcss.set("        ");
-    }
 }
+
 } /* namespace ui */

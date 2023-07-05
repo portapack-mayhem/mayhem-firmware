@@ -36,7 +36,7 @@ using namespace portapack;
 namespace ui {
 namespace spectrum {
 
-/* AudioSpectrumView******************************************************/
+/* AudioSpectrumView ******************************************************/
 
 AudioSpectrumView::AudioSpectrumView(
     const Rect parent_rect)
@@ -247,28 +247,25 @@ void FrequencyScale::on_tick_second() {
     _blink = !_blink;
 }
 
-/* WaterfallView *********************************************************/
+/* WaterfallWidget *********************************************************/
+// TODO: buffer and use "paint" instead of immediate drawing would help with
+// preventing flicker from drawing. Would use more RAM however.
 
-void WaterfallView::on_show() {
+void WaterfallWidget::on_show() {
     clear();
 
     const auto screen_r = screen_rect();
     display.scroll_set_area(screen_r.top(), screen_r.bottom());
 }
 
-void WaterfallView::on_hide() {
+void WaterfallWidget::on_hide() {
     /* TODO: Clear region to eliminate brief flash of content at un-shifted
      * position?
      */
     display.scroll_disable();
 }
 
-void WaterfallView::paint(Painter& painter) {
-    // Do nothing.
-    (void)painter;
-}
-
-void WaterfallView::on_channel_spectrum(
+void WaterfallWidget::on_channel_spectrum(
     const ChannelSpectrum& spectrum) {
     /* TODO: static_assert that message.spectrum.db.size() >= pixel_row.size() */
 
@@ -290,16 +287,16 @@ void WaterfallView::on_channel_spectrum(
         pixel_row);
 }
 
-void WaterfallView::clear() {
+void WaterfallWidget::clear() {
     display.fill_rectangle(
         screen_rect(),
         Color::black());
 }
 
-/* WaterfallWidget *******************************************************/
+/* WaterfallView *******************************************************/
 
-WaterfallWidget::WaterfallWidget(const bool cursor) {
-    add_children({&waterfall_view,
+WaterfallView::WaterfallView(const bool cursor) {
+    add_children({&waterfall_widget,
                   &frequency_scale});
 
     frequency_scale.set_focusable(cursor);
@@ -310,17 +307,17 @@ WaterfallWidget::WaterfallWidget(const bool cursor) {
     };
 }
 
-void WaterfallWidget::on_show() {
+void WaterfallView::on_show() {
     // TODO: Assert that baseband is not shutdown.
     baseband::spectrum_streaming_start();
 }
 
-void WaterfallWidget::on_hide() {
+void WaterfallView::on_hide() {
     // TODO: Assert that baseband is not shutdown.
     baseband::spectrum_streaming_stop();
 }
 
-void WaterfallWidget::show_audio_spectrum_view(const bool show) {
+void WaterfallView::show_audio_spectrum_view(const bool show) {
     if ((audio_spectrum_view && show) || (!audio_spectrum_view && !show)) return;
 
     if (show) {
@@ -335,18 +332,18 @@ void WaterfallWidget::show_audio_spectrum_view(const bool show) {
     }
 }
 
-void WaterfallWidget::update_widgets_rect() {
+void WaterfallView::update_widgets_rect() {
     if (audio_spectrum_view) {
         frequency_scale.set_parent_rect({0, audio_spectrum_height, screen_rect().width(), scale_height});
-        waterfall_view.set_parent_rect(waterfall_reduced_rect);
+        waterfall_widget.set_parent_rect(waterfall_reduced_rect);
     } else {
         frequency_scale.set_parent_rect({0, 0, screen_rect().width(), scale_height});
-        waterfall_view.set_parent_rect(waterfall_normal_rect);
+        waterfall_widget.set_parent_rect(waterfall_normal_rect);
     }
-    waterfall_view.on_show();
+    waterfall_widget.on_show();
 }
 
-void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
+void WaterfallView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
 
     waterfall_normal_rect = {0, scale_height, new_parent_rect.width(), new_parent_rect.height() - scale_height};
@@ -355,13 +352,8 @@ void WaterfallWidget::set_parent_rect(const Rect new_parent_rect) {
     update_widgets_rect();
 }
 
-void WaterfallWidget::paint(Painter& painter) {
-    // TODO:
-    (void)painter;
-}
-
-void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    waterfall_view.on_channel_spectrum(spectrum);
+void WaterfallView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
+    waterfall_widget.on_channel_spectrum(spectrum);
     sampling_rate = spectrum.sampling_rate;
     frequency_scale.set_spectrum_sampling_rate(sampling_rate);
     frequency_scale.set_channel_filter(
@@ -370,9 +362,40 @@ void WaterfallWidget::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         spectrum.channel_filter_transition);
 }
 
-void WaterfallWidget::on_audio_spectrum() {
+void WaterfallView::on_audio_spectrum() {
     audio_spectrum_view->on_audio_spectrum(audio_spectrum_data);
 }
 
 } /* namespace spectrum */
+
+uint32_t filter_bandwidth_for_sampling_rate(int32_t sampling_rate) {
+    switch (sampling_rate) {  // Use the var fs (sampling_rate) to set up BPF aprox < fs_max / 2 by Nyquist theorem.
+        case 0 ... 2000000:   // BW Captured range (0 <= 250kHz max)  fs = 8 x 250 kHz.
+            return 1750000;   // Minimum BPF MAX2837 for all those lower BW options.
+
+        case 4000000 ... 6000000:  // BW capture range (500k...750kHz max)  fs_max = 8 x 750kHz = 6Mhz
+                                   // BW 500k...750kHz, ex. 500kHz (fs = 8 x BW = 4Mhz), BW 600kHz (fs = 4,8Mhz), BW 750 kHz (fs = 6Mhz).
+            return 2500000;        // In some IC, MAX2837 appears as 2250000, but both work similarly.
+
+        case 8800000:  // BW capture 1,1Mhz fs = 8 x 1,1Mhz = 8,8Mhz. (1Mhz showed slightly higher noise background).
+            return 3500000;
+
+        case 14000000:  // BW capture 1,75Mhz, fs = 8 x 1,75Mhz = 14Mhz
+                        // Good BPF, good matching, but LCD flickers, refresh rate should be < 20 Hz, reasonable picture.
+            return 5000000;
+
+        case 16000000:  // BW capture 2Mhz, fs = 8 x 2Mhz = 16Mhz
+                        // Good BPF, good matching, but LCD flickers, refresh rate should be < 20 Hz, reasonable picture.
+            return 6000000;
+
+        case 20000000:  // BW capture 2,5Mhz, fs = 8 x 2,5 Mhz = 20Mhz
+                        // Good BPF, good matching, but LCD flickers, refresh rate should be < 20 Hz, reasonable picture.
+            return 7000000;
+
+        default:  // BW capture 2,75Mhz, fs = 8 x 2,75Mhz = 22Mhz max ADC sampling and others.
+                  // We tested also 9Mhz FPB slightly too much noise floor, better at 8Mhz.
+            return 8000000;
+    }
+}
+
 } /* namespace ui */

@@ -177,6 +177,8 @@ const std::vector<Widget*>& Widget::children() const {
 }
 
 Context& Widget::context() const {
+    chDbgAssert(parent_, "parent_ is null",
+                "Check that parent isn't null before deref.");
     return parent()->context();
 }
 
@@ -1520,6 +1522,24 @@ void OptionsField::set_by_value(value_t v) {
 
     // No exact match was found, default to 0.
     set_selected_index(0);
+}
+
+void OptionsField::set_by_nearest_value(value_t v) {
+    size_t new_index = 0;
+    size_t curr_index = 0;
+    int32_t min_diff = INT32_MAX;
+
+    for (const auto& option : options) {
+        auto diff = abs(v - option.second);
+        if (diff < min_diff) {
+            min_diff = diff;
+            new_index = curr_index;
+        }
+
+        curr_index++;
+    }
+
+    set_selected_index(new_index);
 }
 
 void OptionsField::set_options(options_t new_options) {

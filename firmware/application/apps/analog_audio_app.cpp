@@ -31,8 +31,6 @@
 #include "string_format.hpp"
 #include "utility.hpp"
 
-#include "debug.hpp"
-
 using namespace portapack;
 using namespace tonekey;
 
@@ -135,8 +133,7 @@ SPECOptionsView::SPECOptionsView(
 AnalogAudioView::AnalogAudioView(
     NavigationView& nav)
     : nav_(nav) {
-    // A baseband image _must_ be running before
-    // interacting with the waterfall view.
+    // A baseband image _must_ be running before add waterfall view.
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
     add_children({&rssi,
@@ -192,6 +189,15 @@ AnalogAudioView::AnalogAudioView(
     // This call starts the correct baseband image to run
     // and sets the radio up as necessary for the given modulation.
     on_modulation_changed(modulation);
+}
+
+AnalogAudioView::AnalogAudioView(
+    NavigationView& nav,
+    ReceiverModel::settings_t override)
+    : AnalogAudioView(nav) {
+    // TODO: Which other settings make sense to override?
+    on_frequency_step_changed(override.frequency_step);
+    options_modulation.set_by_value(toUType(override.mode));
 }
 
 size_t AnalogAudioView::get_spec_bw_index() {
@@ -404,24 +410,7 @@ void AnalogAudioView::update_modulation(ReceiverModel::Mode modulation) {
 }
 
 void AnalogAudioView::handle_coded_squelch(uint32_t value) {
-    float diff, min_diff = value;
-    size_t min_idx{0};
-    size_t c;
-
-    // Find nearest match
-    for (c = 0; c < tone_keys.size(); c++) {
-        diff = abs(((float)value / 100.0) - tone_keys[c].second);
-        if (diff < min_diff) {
-            min_idx = c;
-            min_diff = diff;
-        }
-    }
-
-    // Arbitrary confidence threshold
-    if (min_diff < 40)
-        text_ctcss.set("CTCSS " + tone_keys[min_idx].first);
-    else
-        text_ctcss.set("???");
+    text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
 }
 
 } /* namespace ui */

@@ -71,10 +71,10 @@ class NBFMOptionsView : public View {
         }};
 
     Text text_squelch{
-        {9 * 8, 0 * 16, 8 * 8, 1 * 16},
+        {7 * 8, 0 * 16, 8 * 8, 1 * 16},
         "SQ   /99"};
     NumberField field_squelch{
-        {12 * 8, 0 * 16},
+        {10 * 8, 0 * 16},
         2,
         {0, 99},
         1,
@@ -138,6 +138,7 @@ class SPECOptionsView : public View {
 class AnalogAudioView : public View {
    public:
     AnalogAudioView(NavigationView& nav);
+    AnalogAudioView(NavigationView& nav, ReceiverModel::settings_t override);
     ~AnalogAudioView();
 
     void set_parent_rect(Rect new_parent_rect) override;
@@ -200,7 +201,7 @@ class AnalogAudioView : public View {
         {28 * 8, 0 * 16}};
 
     Text text_ctcss{
-        {19 * 8, 1 * 16, 11 * 8, 1 * 16},
+        {16 * 8, 1 * 16, 14 * 8, 1 * 16},
         ""};
 
     std::unique_ptr<Widget> options_widget{};
@@ -213,7 +214,7 @@ class AnalogAudioView : public View {
         4096,
         4};
 
-    spectrum::WaterfallWidget waterfall{true};
+    spectrum::WaterfallView waterfall{true};
 
     void on_baseband_bandwidth_changed(uint32_t bandwidth_hz);
     void on_modulation_changed(ReceiverModel::Mode modulation);

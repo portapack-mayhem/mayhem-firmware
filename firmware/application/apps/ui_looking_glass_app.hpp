@@ -63,7 +63,7 @@ class GlassView : public View {
     GlassView& operator=(const GlassView& nav);
 
     ~GlassView();
-    std::string title() const override { return "LookingGlass"; };
+    std::string title() const override { return "Looking Glass"; };
 
     void on_show() override;
     void on_hide() override;
@@ -71,7 +71,7 @@ class GlassView : public View {
 
    private:
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
     app_settings::SettingsManager settings_{
         "rx_glass", app_settings::Mode::RX};
 

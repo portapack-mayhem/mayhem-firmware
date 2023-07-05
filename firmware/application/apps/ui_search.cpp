@@ -122,17 +122,7 @@ void SearchView::do_detection() {
                         locked = true;
                         locked_bin = bin_max;
 
-                        // TODO
-                        /*nav_.pop();
-                                                receiver_model.disable();
-                                                baseband::shutdown();
-                                                nav_.pop();*/
-
-                        /*if (options_goto.selected_index() == 1)
-                                                        nav_.push<AnalogAudioView>(false);
-                                                else if (options_goto.selected_index() == 2)
-                                                        nav_.push<POCSAGAppView>();
-                                                */
+                        // TODO: open Audio.
                     } else
                         text_infos.set("Out of range");
                 }
@@ -414,7 +404,6 @@ SearchView::SearchView(
 
     on_range_changed();
 
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.enable();
 }
 

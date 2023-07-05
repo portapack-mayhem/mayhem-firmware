@@ -205,34 +205,7 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
             field_bw.set_by_value(0);
             field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
-                uint32_t anti_alias_baseband_bandwidth_filter = 2500000;
-                switch (sampling_rate) {                                 // we use the var fs (sampling_rate) , to set up BPF aprox < fs_max/2 by Nyquist theorem.
-                    case 0 ... 2000000:                                  // BW Captured range  (0 <= 250kHz max )  fs = 8 x 250 kHz
-                        anti_alias_baseband_bandwidth_filter = 1750000;  // Minimum BPF MAX2837 for all those lower BW options.
-                        break;
-                    case 4000000 ... 6000000:                            // BW capture  range (500k ... 750kHz max )  fs_max = 8 x 750kHz = 6Mhz
-                                                                         // BW 500k ... 750kHz   ,  ex. 500kHz   (fs = 8*BW =  4Mhz) , BW 600kHz (fs = 4,8Mhz) , BW  750 kHz (fs = 6Mhz)
-                        anti_alias_baseband_bandwidth_filter = 2500000;  // in some IC MAX2837 appear 2250000 , but both works similar.
-                        break;
-                    case 8800000:  // BW capture 1,1Mhz  fs = 8 x 1,1Mhz = 8,8Mhz . (1Mhz showed slightly higher noise background).
-                        anti_alias_baseband_bandwidth_filter = 3500000;
-                        break;
-                    case 14000000:  // BW capture 1,75Mhz  , fs = 8 x 1,75Mhz = 14Mhz
-                                    // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
-                        anti_alias_baseband_bandwidth_filter = 5000000;
-                        break;
-                    case 16000000:  // BW capture 2Mhz  , fs = 8 x 2Mhz = 16Mhz
-                                    // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
-                        anti_alias_baseband_bandwidth_filter = 6000000;
-                        break;
-                    case 20000000:  // BW capture 2,5Mhz  , fs= 8 x 2,5 Mhz = 20Mhz
-                                    // good BPF, good matching, but LCD making flicker , refresh rate should be < 20 Hz , but reasonable picture
-                        anti_alias_baseband_bandwidth_filter = 7000000;
-                        break;
-                    default:  // BW capture 2,75Mhz, fs = 8 x 2,75Mhz= 22Mhz max ADC sampling) and others.
-                              //  We tested also 9Mhz FPB stightly too much noise floor, better 8Mhz
-                        anti_alias_baseband_bandwidth_filter = 8000000;
-                }
+                auto anti_alias_baseband_bandwidth_filter = filter_bandwidth_for_sampling_rate(sampling_rate);
                 receiver_model.set_sampling_rate(sampling_rate);
                 receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
             };
@@ -243,34 +216,10 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
 }
 
 void LevelView::handle_coded_squelch(const uint32_t value) {
-    static int32_t last_idx = -1;
-
-    float diff, min_diff = value;
-    size_t min_idx{0};
-    size_t c;
-
-    if (field_mode.selected_index() != NFM_MODULATION) {
-        text_ctcss.set("             ");
-        return;
-    }
-
-    // Find nearest match
-    for (c = 0; c < tone_keys.size(); c++) {
-        diff = abs(((float)value / 100.0) - tone_keys[c].second);
-        if (diff < min_diff) {
-            min_idx = c;
-            min_diff = diff;
-        }
-    }
-
-    // Arbitrary confidence threshold
-    if (last_idx < 0 || (unsigned)last_idx != min_idx) {
-        last_idx = min_idx;
-        if (min_diff < 40)
-            text_ctcss.set("T: " + tone_keys[min_idx].first);
-        else
-            text_ctcss.set("             ");
-    }
+    if (field_mode.selected_index() == NFM_MODULATION)
+        text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
+    else
+        text_ctcss.set("        ");
 }
 
 } /* namespace ui */

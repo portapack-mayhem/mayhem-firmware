@@ -343,8 +343,8 @@ class ADSBRxView : public View {
    private:
     RxRadioState radio_state_{
         2500000 /* bandwidth */,
-        2000000 /* sampling rate */
-    };
+        2000000 /* sampling rate */,
+        ReceiverModel::Mode::SpectrumAnalysis};
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 

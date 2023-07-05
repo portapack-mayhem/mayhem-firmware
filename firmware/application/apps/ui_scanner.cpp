@@ -392,16 +392,17 @@ ScannerView::ScannerView(
     button_audio_app.on_select = [this](Button&) {
         if (scan_thread)
             scan_thread->stop();
-        nav_.pop();
-        nav_.push<AnalogAudioView>();
+        auto settings = receiver_model.settings();
+        settings.frequency_step = field_step.selected_index_value();
+        nav_.replace<AnalogAudioView>(settings);
     };
 
     // Button to switch to Mic app
     button_mic_app.on_select = [this](Button&) {
         if (scan_thread)
             scan_thread->stop();
-        nav_.pop();
-        nav_.push<MicTXView>();
+        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        nav_.replace<MicTXView>(receiver_model.settings());
     };
 
     // Button to delete current frequency from scan Freq List

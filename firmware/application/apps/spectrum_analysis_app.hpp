@@ -32,7 +32,7 @@ class SpectrumAnalysisModel {
 
 namespace ui {
 
-class SpectrumAnalysisView : public spectrum::WaterfallWidget {
+class SpectrumAnalysisView : public spectrum::WaterfallView {
    public:
    private:
     SpectrumAnalysisModel model;

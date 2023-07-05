@@ -42,10 +42,9 @@ namespace ui {
 /* TextViewer *******************************************************/
 
 TextViewer::TextViewer(Rect parent_rect)
-    : Widget(parent_rect),
-      max_line{static_cast<uint8_t>(parent_rect.height() / char_height)},
-      max_col{static_cast<uint8_t>(parent_rect.width() / char_width)} {
+    : Widget(parent_rect) {
     set_focusable(true);
+    set_font_zoom(false);
 }
 
 void TextViewer::paint(Painter& painter) {
@@ -138,6 +137,16 @@ uint32_t TextViewer::offset() const {
     return 0;
 }
 
+void TextViewer::cursor_home() {
+    cursor_.col = 0;
+    redraw();
+}
+
+void TextViewer::cursor_end() {
+    cursor_.col = line_length() - 1;
+    redraw();
+}
+
 uint16_t TextViewer::line_length() {
     return file_->line_length(cursor_.line);
 }
@@ -158,18 +167,14 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
         ++new_line;
     }
 
-    // Snap to first/last to make navigating easier.
-    if (new_line < 0 && new_col > 0) {
+    // Snap to first/last line to make navigating easier.
+    if (new_line < 0 && cursor_.line > 0) {
         new_line = 0;
-        new_col = 0;
     } else if (new_line >= (int32_t)file_->line_count()) {
         auto last_line = file_->line_count() - 1;
-        int32_t last_col = file_->line_length(last_line) - 1;
 
-        if (new_col < last_col) {
+        if (cursor_.line < last_line)
             new_line = last_line;
-            new_col = last_col;
-        }
     }
 
     if (new_line < 0 || (uint32_t)new_line >= file_->line_count())
@@ -177,7 +182,6 @@ bool TextViewer::apply_scrolling_constraints(int16_t delta_line, int16_t delta_c
 
     new_line_length = file_->line_length(new_line);
 
-    // TODO: don't wrap with encoder?
     // Wrap or clamp column.
     if (new_line_length == 0)
         new_col = 0;
@@ -207,7 +211,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
         if (result && *result > 0)
             painter.draw_string(
                 {0, r.top() + (int)i * char_height},
-                Styles::white_small, {buffer, *result});
+                style(), {buffer, *result});
 
         // Clear empty line sections. This is less visually jarring than full clear.
         int32_t clear_width = max_col - (result ? *result : 0);
@@ -216,7 +220,7 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
                 {(max_col - clear_width) * char_width,
                  r.top() + (int)i * char_height,
                  clear_width * char_width, char_height},
-                Styles::white_small.background);
+                style().background);
     }
 }
 
@@ -237,8 +241,8 @@ void TextViewer::paint_cursor(Painter& painter) {
     };
 
     // Clear old cursor. CONSIDER: XOR cursor?
-    draw_cursor(paint_state_.line, paint_state_.col, Styles::white_small.background);
-    draw_cursor(cursor_.line, cursor_.col, Styles::white_small.foreground);
+    draw_cursor(paint_state_.line, paint_state_.col, style().background);
+    draw_cursor(cursor_.line, cursor_.col, style().foreground);
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
@@ -252,6 +256,15 @@ void TextViewer::reset_file(FileWrapper* file) {
     redraw(true);
 }
 
+void TextViewer::set_font_zoom(bool zoom) {
+    font_zoom = zoom;
+    font_style = font_zoom ? &Styles::white : &Styles::white_small;
+    char_height = style().font.line_height();
+    char_width = style().font.char_width();
+    max_line = (uint8_t)(parent_rect().height() / char_height);
+    max_col = (uint8_t)(parent_rect().width() / char_width);
+}
+
 /* TextEditorMenu ***************************************************/
 
 TextEditorMenu::TextEditorMenu()
@@ -259,9 +272,9 @@ TextEditorMenu::TextEditorMenu()
     add_children(
         {
             &rect_frame,
-            &button_cut,
-            &button_paste,
-            &button_copy,
+            &button_home,
+            &button_end,
+            &button_zoom,
             &button_delline,
             &button_edit,
             &button_addline,
@@ -310,14 +323,20 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.hidden(true);
-    menu.on_cut() = [this]() {
-        show_nyi();
+    menu.on_home() = [this]() {
+        viewer.cursor_home();
+        hide_menu(true);
     };
-    menu.on_paste() = [this]() {
-        show_nyi();
+
+    menu.on_end() = [this]() {
+        viewer.cursor_end();
+        hide_menu(true);
     };
-    menu.on_copy() = [this]() {
-        show_nyi();
+
+    menu.on_zoom() = [this]() {
+        viewer.toggle_font_zoom();
+        refresh_ui();
+        hide_menu(true);
     };
 
     menu.on_delete_line() = [this]() {
@@ -488,10 +507,6 @@ void TextEditorView::show_edit_line() {
         refresh_ui();
         hide_menu(true);
     });
-}
-
-void TextEditorView::show_nyi() {
-    nav_.display_modal("Soon...", "Coming soon.");
 }
 
 void TextEditorView::show_save_prompt(std::function<void()> continuation) {

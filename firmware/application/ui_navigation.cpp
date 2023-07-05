@@ -179,16 +179,21 @@ SystemStatusView::SystemStatusView(
         this->on_converter();
     };
 
-    button_speaker.on_select = [this](ImageButton&) {
-        this->on_speaker();
+    toggle_speaker.on_change = [this](bool v) {
+        pmem::set_config_speaker_disable(v);
+        audio::output::update_audio_mute();
+        refresh();
     };
 
-    button_mute.on_select = [this](ImageButton&) {
-        this->on_mute();
+    toggle_mute.on_change = [this](bool v) {
+        pmem::set_config_audio_mute(v);
+        audio::output::update_audio_mute();
+        refresh();
     };
 
-    button_stealth.on_select = [this](ImageButton&) {
-        this->on_stealth();
+    toggle_stealth.on_change = [this](bool v) {
+        pmem::set_stealth_mode(v);
+        refresh();
     };
 
     button_bias_tee.on_select = [this](ImageButton&) {
@@ -208,6 +213,11 @@ SystemStatusView::SystemStatusView(
         this->on_clk();
     };
 
+    // Initialize toggle buttons
+    toggle_speaker.set_value(pmem::config_speaker_disable());
+    toggle_mute.set_value(pmem::config_audio_mute());
+    toggle_stealth.set_value(pmem::stealth_mode());
+
     audio::output::update_audio_mute();
     refresh();
 }
@@ -218,43 +228,22 @@ void SystemStatusView::refresh() {
     status_icons.clear();
     if (!pmem::ui_hide_camera()) status_icons.add(&button_camera);
     if (!pmem::ui_hide_sleep()) status_icons.add(&button_sleep);
-    if (!pmem::ui_hide_stealth()) status_icons.add(&button_stealth);
+    if (!pmem::ui_hide_stealth()) status_icons.add(&toggle_stealth);
     if (!pmem::ui_hide_converter()) status_icons.add(&button_converter);
     if (!pmem::ui_hide_bias_tee()) status_icons.add(&button_bias_tee);
     if (!pmem::ui_hide_clock()) status_icons.add(&button_clock_status);
-    if (!pmem::ui_hide_mute()) status_icons.add(&button_mute);
+    if (!pmem::ui_hide_mute()) status_icons.add(&toggle_mute);
 
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
-    if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker())
-        status_icons.add(&button_speaker);
+    if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
     status_icons.update_layout();
 
-    // Update icon display (try to keep all in on place).
-    // Speaker Enable/Disable (AK4951 boards only)
-    if (pmem::config_speaker_disable()) {
-        button_speaker.set_foreground(Color::light_grey());
-        button_speaker.set_bitmap(&bitmap_icon_speaker_mute);
-    } else {
-        button_speaker.set_foreground(Color::green());
-        button_speaker.set_bitmap(&bitmap_icon_speaker);
-    }
-
-    // Audio Mute (both headphones & speaker)
-    if (pmem::config_audio_mute()) {
-        button_mute.set_foreground(Color::light_grey());
-        button_mute.set_bitmap(&bitmap_icon_speaker_and_headphones_mute);
-    } else {
-        button_mute.set_foreground(Color::green());
-        button_mute.set_bitmap(&bitmap_icon_speaker_and_headphones);
-    }
-
     // Clock status
     bool external_clk = portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External;
     button_clock_status.set_bitmap(external_clk ? &bitmap_icon_clk_ext : &bitmap_icon_clk_int);
-    button_clock_status.set_foreground(
-        pmem::clkout_enabled() ? Color::green() : Color::light_grey());
+    button_clock_status.set_foreground(pmem::clkout_enabled() ? Color::green() : Color::light_grey());
 
     // Antenna DC Bias
     if (portapack::get_antenna_bias()) {
@@ -266,13 +255,8 @@ void SystemStatusView::refresh() {
     }
 
     // Converter
-    button_converter.set_bitmap(
-        pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
+    button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
     button_converter.set_foreground(pmem::config_converter() ? Color::red() : Color::light_grey());
-
-    // Stealth
-    button_stealth.set_foreground(
-        pmem::stealth_mode() ? Color::green() : Color::light_grey());
 
     set_dirty();
 }
@@ -311,23 +295,6 @@ void SystemStatusView::on_converter() {
     // (and there's only one tuner in the radio so can't update tuner for both).
     // TODO: Maybe expose the 'enabled_' flag on models.
     receiver_model.set_target_frequency(receiver_model.target_frequency());
-    refresh();
-}
-
-void SystemStatusView::on_speaker() {
-    pmem::set_config_speaker_disable(!pmem::config_speaker_disable());
-    audio::output::update_audio_mute();
-    refresh();
-}
-
-void SystemStatusView::on_mute() {
-    pmem::set_config_audio_mute(!pmem::config_audio_mute());
-    audio::output::update_audio_mute();
-    refresh();
-}
-
-void SystemStatusView::on_stealth() {
-    pmem::set_stealth_mode(!pmem::stealth_mode());
     refresh();
 }
 
@@ -608,7 +575,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
         {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
         {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
-        {"SD over USB", Color::green(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
+        {"SD over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

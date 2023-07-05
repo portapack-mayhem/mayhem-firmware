@@ -114,7 +114,7 @@ class LevelView : public View {
         }};
 
     Text text_ctcss{
-        {22 * 8, 3 * 16 + 4, 14 * 8, 1 * 8},
+        {22 * 8, 3 * 16 + 4, 8 * 8, 1 * 8},
         ""};
 
     // RSSI: XX/XX/XXX,dt: XX

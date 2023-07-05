@@ -108,6 +108,11 @@ void PlaylistView::on_file_changed(const fs::path& new_file_path) {
     load_file(playlist_path_);
 
     update_ui();
+
+    // TODO: fix in UI framework with 'try_focus()'?
+    // Hack around focus getting called by ctor before parent is set.
+    if (parent())
+        button_play.focus();
 }
 
 void PlaylistView::open_file(bool prompt_save) {
@@ -126,7 +131,6 @@ void PlaylistView::open_file(bool prompt_save) {
     open_view->push_dir(u"PLAYLIST");
     open_view->on_changed = [this](fs::path new_file_path) {
         on_file_changed(new_file_path);
-        button_play.focus();
     };
 }
 
@@ -162,8 +166,13 @@ void PlaylistView::save_file(bool show_dialogs) {
 }
 
 void PlaylistView::add_entry(fs::path&& path) {
-    if (playlist_path_.empty())
+    if (playlist_path_.empty()) {
         playlist_path_ = next_filename_matching_pattern(u"/PLAYLIST/PLAY_????.PPL");
+
+        // Hack around focus getting called by ctor before parent is set.
+        if (parent())
+            button_play.focus();
+    }
 
     auto entry = load_entry(std::move(path));
     if (entry) {
@@ -400,11 +409,7 @@ PlaylistView::PlaylistView(
         auto open_view = nav_.push<FileLoadView>(".C16");
         open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
-            // Set focus to play only on the first "add".
-            auto set_focus = playlist_path_.empty();
             add_entry(std::move(path));
-            if (set_focus)
-                button_play.focus();
         };
     };
 
@@ -472,17 +477,17 @@ void PlaylistView::set_parent_rect(Rect new_parent_rect) {
     waterfall.set_parent_rect(waterfall_rect);
 }
 
-void PlaylistView::on_hide() {
-    stop();
-    waterfall.on_hide();
-    View::on_hide();
-}
-
-void PlaylistView::on_show() {
+void PlaylistView::focus() {
     if (playlist_path_.empty())
         button_add.focus();
     else
         button_play.focus();
+}
+
+void PlaylistView::on_hide() {
+    stop();
+    waterfall.on_hide();
+    View::on_hide();
 }
 
 } /* namespace ui */

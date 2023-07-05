@@ -71,7 +71,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
     if (!settings_.loaded())
         field_frequency.set_value(initial_target_frequency);
 
-    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.enable();
 
     // TODO: app setting instead?
