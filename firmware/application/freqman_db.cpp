@@ -191,18 +191,19 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     return true;
 }
 
-freqman_db parse_freqman_file(const fs::path& path) {
+bool parse_freqman_file(const fs::path& path, freqman_db& db) {
     File f;
-    freqman_db db;
-
     auto error = f.open(path);
     if (error)
-        return db;
+        return false;
 
     auto reader = FileLineReader(f);
     auto line_count = count_lines(reader);
 
+    // Try to avoid a re-alloc if possible.
+    db.clear();
     db.reserve(line_count);
+
     for (const auto& line : reader) {
         freqman_entry_ptr entry{};
         if (!parse_freqman_entry(line, *entry))
@@ -211,5 +212,5 @@ freqman_db parse_freqman_file(const fs::path& path) {
         db.push_back(std::move(entry));
     }
 
-    return db;
+    return true;
 }

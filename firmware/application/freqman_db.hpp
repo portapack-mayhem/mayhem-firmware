@@ -152,7 +152,7 @@ using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
-freqman_db parse_freqman_file(const std::filesystem::path& path);
+bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db) ;
 
 class FreqmanDB {
    public:

@@ -137,8 +137,11 @@ std::vector<std::string_view> split_string(std::string_view str, char c);
 template <typename BufferType>
 uint32_t count_lines(BufferLineReader<BufferType>& reader){
     uint32_t count = 0;
-    for (const auto& line : reader)
+    auto it = reader.begin();
+    while (it != reader.end()) {
         ++count;
+        ++it;
+    }
 
     return count;
 }
