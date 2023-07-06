@@ -45,7 +45,7 @@
 namespace ui {
 
 #define RECON_CFG_FILE "SETTINGS/recon.cfg"
-#define RECON_PROCESS_DEMOD 1000
+#define RECON_PROCESS_DEMOD 0
 
 class ReconView : public View {
    public:
@@ -247,13 +247,13 @@ class ReconView : public View {
         {10 * 8, 11 * 16},
         7,  // PROCESSING MODE: DEMODULATED, OR RAW
         {
-            {"DEMOD", RECON_PROCESS_DEMOD},
-            {"RAW8k5", 0},
-            {"RAW11k", 1},
-            {"RAW16k", 2},
-            {"RAW25k", 3},
-            {"RAW50k", 4},
-            {"RW100k", 5}}};
+            {"DEMOD", 0},
+            {"RAW8k5", 1},
+            {"RAW11k", 2},
+            {"RAW16k", 3},
+            {"RAW25k", 4},
+            {"RAW50k", 5},
+            {"RW100k", 6}}};
 
     OptionsField step_mode{
         {18 * 8, 11 * 16},

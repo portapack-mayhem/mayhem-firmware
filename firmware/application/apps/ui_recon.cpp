@@ -225,7 +225,7 @@ bool ReconView::recon_save_config_to_sd() {
     settings_file.write_line(to_string_dec_uint(recon_lock_nb_match));
     settings_file.write_line(to_string_dec_int(squelch));
     settings_file.write_line(to_string_dec_uint(recon_match_mode));
-    settings_file.write_line(to_string_dec_uint(recon_processing_mode));
+    settings_file.write_line(to_string_dec_int(recon_processing_mode));
     settings_file.write_line(to_string_dec_int(wait));
     return true;
 }
@@ -295,11 +295,11 @@ void ReconView::handle_retune() {
             if (last_entry.modulation != SPEC_MODULATION) {
                 last_entry.modulation = SPEC_MODULATION;
                 field_mode.set_selected_index(SPEC_MODULATION);
-                field_bw.set_selected_index(recon_processing_mode);
+                field_bw.set_selected_index(recon_processing_mode - 1);
             }
-            if (last_entry.bandwidth != recon_processing_mode) {
-                field_bw.set_selected_index(recon_processing_mode);
-                last_entry.bandwidth = recon_processing_mode;
+            if (last_entry.bandwidth != recon_processing_mode - 1) {
+                field_bw.set_selected_index(recon_processing_mode - 1);
+                last_entry.bandwidth = recon_processing_mode - 1;
             }
         }
         if (last_entry.step != frequency_list[current_index].step && frequency_list[current_index].step >= 0) {
@@ -894,7 +894,6 @@ ReconView::ReconView(NavigationView& nav)
     freqman_set_modulation_option(field_mode);
     freqman_set_step_option(step_mode);
 
-    // set radio
     change_mode(AM_MODULATION);              // start on AM.
     field_mode.set_by_value(AM_MODULATION);  // reflect the mode into the manual selector
 
@@ -1057,7 +1056,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             big_display.set_style(&Styles::white);
             if (recon_processing_mode != RECON_PROCESS_DEMOD) {
                 field_mode.set_selected_index(SPEC_MODULATION);
-                field_bw.set_selected_index(recon_processing_mode);
+                field_bw.set_selected_index(recon_processing_mode - 1);
             }
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
