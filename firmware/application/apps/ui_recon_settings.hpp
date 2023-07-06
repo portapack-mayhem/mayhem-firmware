@@ -60,7 +60,7 @@
 //#define SCREEN_H 320
 
 // recon settings nb params
-#define RECON_SETTINGS_NB_PARAMS 7
+#define RECON_SETTINGS_NB_PARAMS 8
 
 namespace ui {
 

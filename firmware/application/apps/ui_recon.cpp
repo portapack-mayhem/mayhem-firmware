@@ -187,7 +187,6 @@ bool ReconView::recon_load_config_from_sd() {
             file_position -= (file_data + 256 - line_start);
         }
     }
-
     if (it < nb_params) {
         /* bad number of params, signal defaults */
         input_file = "RECON";
@@ -196,44 +195,18 @@ bool ReconView::recon_load_config_from_sd() {
         recon_lock_nb_match = RECON_DEF_NB_MATCH;
         squelch = -14;
         recon_match_mode = RECON_MATCH_CONTINUOUS;
+        recon_processing_mode = RECON_PROCESS_DEMOD;
         wait = RECON_DEF_WAIT_DURATION;
         return false;
     }
-
-    if (it > 0)
-        input_file = params[0];
-    else
-        input_file = "RECON";
-
-    if (it > 1)
-        output_file = params[1];
-    else
-        output_file = "RECON_RESULTS";
-
-    if (it > 2)
-        recon_lock_duration = strtoll(params[2].c_str(), nullptr, 10);
-    else
-        recon_lock_duration = RECON_MIN_LOCK_DURATION;
-
-    if (it > 3)
-        recon_lock_nb_match = strtoll(params[3].c_str(), nullptr, 10);
-    else
-        recon_lock_nb_match = RECON_DEF_NB_MATCH;
-
-    if (it > 4)
-        squelch = strtoll(params[4].c_str(), nullptr, 10);
-    else
-        squelch = -14;
-
-    if (it > 5)
-        recon_match_mode = strtoll(params[5].c_str(), nullptr, 10);
-    else
-        recon_match_mode = RECON_MATCH_CONTINUOUS;
-
-    if (it > 6)
-        wait = strtoll(params[6].c_str(), nullptr, 10);
-    else
-        wait = RECON_DEF_WAIT_DURATION;
+    input_file = params[0];
+    output_file = params[1];
+    recon_lock_duration = strtoll(params[2].c_str(), nullptr, 10);
+    recon_lock_nb_match = strtoll(params[3].c_str(), nullptr, 10);
+    squelch = strtoll(params[4].c_str(), nullptr, 10);
+    recon_match_mode = strtoll(params[5].c_str(), nullptr, 10);
+    recon_processing_mode = strtoll(params[6].c_str(), nullptr, 10);
+    wait = strtoll(params[7].c_str(), nullptr, 10);
 
     return true;
 }
@@ -252,6 +225,7 @@ bool ReconView::recon_save_config_to_sd() {
     settings_file.write_line(to_string_dec_uint(recon_lock_nb_match));
     settings_file.write_line(to_string_dec_int(squelch));
     settings_file.write_line(to_string_dec_uint(recon_match_mode));
+    settings_file.write_line(to_string_dec_uint(recon_processing_mode));
     settings_file.write_line(to_string_dec_int(wait));
     return true;
 }
@@ -306,15 +280,27 @@ void ReconView::handle_retune() {
         receiver_model.set_target_frequency(freq);  // Retune
     }
     if (frequency_list.size() > 0) {
-        if (last_entry.modulation != frequency_list[current_index].modulation && frequency_list[current_index].modulation >= 0) {
-            last_entry.modulation = frequency_list[current_index].modulation;
-            field_mode.set_selected_index(frequency_list[current_index].modulation);
-            last_entry.bandwidth = -1;
-        }
-        // Set bandwidth if any
-        if (last_entry.bandwidth != frequency_list[current_index].bandwidth && frequency_list[current_index].bandwidth >= 0) {
-            last_entry.bandwidth = frequency_list[current_index].bandwidth;
-            field_bw.set_selected_index(frequency_list[current_index].bandwidth);
+        if (recon_processing_mode == RECON_PROCESS_DEMOD) {
+            if (last_entry.modulation != frequency_list[current_index].modulation && frequency_list[current_index].modulation >= 0) {
+                last_entry.modulation = frequency_list[current_index].modulation;
+                field_mode.set_selected_index(frequency_list[current_index].modulation);
+                last_entry.bandwidth = -1;
+            }
+            // Set bandwidth if any
+            if (last_entry.bandwidth != frequency_list[current_index].bandwidth && frequency_list[current_index].bandwidth >= 0) {
+                last_entry.bandwidth = frequency_list[current_index].bandwidth;
+                field_bw.set_selected_index(frequency_list[current_index].bandwidth);
+            }
+        } else {
+            if (last_entry.modulation != SPEC_MODULATION) {
+                last_entry.modulation = SPEC_MODULATION;
+                field_mode.set_selected_index(SPEC_MODULATION);
+                field_bw.set_selected_index(recon_processing_mode);
+            }
+            if (last_entry.bandwidth != recon_processing_mode) {
+                field_bw.set_selected_index(recon_processing_mode);
+                last_entry.bandwidth = recon_processing_mode;
+            }
         }
         if (last_entry.step != frequency_list[current_index].step && frequency_list[current_index].step >= 0) {
             last_entry.step = frequency_list[current_index].step;
@@ -404,6 +390,7 @@ ReconView::ReconView(NavigationView& nav)
                   &button_manual_recon,
                   &field_mode,
                   &field_recon_match_mode,
+                  &field_recon_processing_mode,
                   &step_mode,
                   &button_pause,
                   &button_audio_app,
@@ -857,6 +844,11 @@ ReconView::ReconView(NavigationView& nav)
         colorize_waits();
     };
 
+    field_recon_processing_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        recon_processing_mode = v;
+        recon_save_config_to_sd();
+    };
+
     field_wait.on_change = [this](int32_t v) {
         wait = v;
         // replacing -100 by 200 else it's freezing the device
@@ -891,6 +883,7 @@ ReconView::ReconView(NavigationView& nav)
     freq_file_path = "/FREQMAN/" + output_file + ".TXT";
 
     field_recon_match_mode.set_selected_index(recon_match_mode);
+    field_recon_match_mode.set_selected_index(recon_processing_mode);
     field_squelch.set_value(squelch);
     field_wait.set_value(wait);
     field_lock_wait.set_value(recon_lock_duration);
@@ -1056,12 +1049,16 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     }
     db = statistics.max_db;
     if (recon) {
-        if (!timer) {
+        if (!timer && status != 0) {
             status = 0;
             continuous_lock = false;
             freq_lock = 0;
             timer = local_recon_lock_duration;
             big_display.set_style(&Styles::white);
+            if (recon_processing_mode != RECON_PROCESS_DEMOD) {
+                field_mode.set_selected_index(SPEC_MODULATION);
+                field_bw.set_selected_index(recon_processing_mode);
+            }
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
         {
@@ -1092,6 +1089,12 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (status != 2) {
                 continuous_lock = false;
                 status = 2;
+                if (recon_processing_mode != RECON_PROCESS_DEMOD) {
+                    if (frequency_list[current_index].modulation != -1)
+                        field_mode.set_selected_index(frequency_list[current_index].modulation);
+                    if (frequency_list[current_index].bandwidth != -1)
+                        field_bw.set_selected_index(frequency_list[current_index].bandwidth);
+                }
                 // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
                 if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
                     recon_save_freq(freq_file_path, current_index, false);

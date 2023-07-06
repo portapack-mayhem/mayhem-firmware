@@ -45,6 +45,7 @@
 namespace ui {
 
 #define RECON_CFG_FILE "SETTINGS/recon.cfg"
+#define RECON_PROCESS_DEMOD 1000
 
 class ReconView : public View {
    public:
@@ -115,6 +116,7 @@ class ReconView : public View {
     uint32_t recon_lock_nb_match{3};
     uint32_t recon_lock_duration{RECON_MIN_LOCK_DURATION};
     uint32_t recon_match_mode{RECON_MATCH_CONTINUOUS};
+    int32_t recon_processing_mode{0};
     bool scanner_mode{false};
     bool manual_mode{false};
     bool sd_card_mounted{false};
@@ -236,10 +238,32 @@ class ReconView : public View {
 
     OptionsField field_recon_match_mode{
         {0 * 8, 11 * 16},
-        16,  // CONTINUOUS MATCH MODE / SPARSE TIMED MATCH MODE
+        10,  // CONTINUOUS MATCH MODE / SPARSE TIMED MATCH MODE
         {
-            {"MATCH:CONTINOUS", 0},
-            {"MATCH:SPARSE", 1}}};
+            {"CONTINOUS:", 0},
+            {"SPARSE   :", 1}}};
+
+    OptionsField field_recon_processing_mode{
+        {11 * 8, 11 * 16},
+        6,  // PROCESSING MODE: DEMODULATED, OR RAW
+        {
+            {"DEMOD", RECON_PROCESS_DEMOD},
+            {"8k5", 0},
+            {"11k", 1},
+            {"16k", 2},
+            {"25k", 3},
+            {"50k", 4},
+            {"100k", 5},
+            {"250k", 6},
+            {"500k", 7},
+            {"600k", 8},
+            {"650k", 9},
+            {"750k", 10},
+            {"1100k", 11},
+            {"1750k", 12},
+            {"2000k", 13},
+            {"2500k", 14},
+            {"2750k", 15}}};
 
     OptionsField step_mode{
         {18 * 8, 11 * 16},
