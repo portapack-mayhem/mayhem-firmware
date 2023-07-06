@@ -146,13 +146,18 @@ struct freqman_entry {
 };
 
 struct freqman_load_options {
+    /* Loads all when set to 0. */
+    size_t max_entries{0};
+    bool load_freqs{true};
+    bool load_ranges{true};
+    bool load_hamradios{true};
 };
 
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
-bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db);
+bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqman_load_options options);
 
 class FreqmanDB {
    public:

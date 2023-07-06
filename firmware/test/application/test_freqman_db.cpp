@@ -22,8 +22,6 @@
 #include "doctest.h"
 #include "freqman_db.hpp"
 
-void __debug_log(const std::string&) {}
-
 TEST_SUITE_BEGIN("Freqman Parsing");
 
 TEST_CASE("It can parse basic single freq entry.") {

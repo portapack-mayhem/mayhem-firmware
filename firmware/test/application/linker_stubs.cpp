@@ -26,6 +26,8 @@
  * will not or cannot work (e.g. filesystem). We could build abstractions
  * but that's just device overhead that only supports testing. */
 
+#include <string>
+
 /* FatFS stubs */
 #include "ff.h"
 FRESULT f_close(FIL*) {
@@ -73,3 +75,6 @@ FRESULT f_unlink(const TCHAR*) {
 FRESULT f_write(FIL*, const void*, UINT, UINT*) {
     return FR_OK;
 }
+
+/* Debug */
+void __debug_log(const std::string&) {}

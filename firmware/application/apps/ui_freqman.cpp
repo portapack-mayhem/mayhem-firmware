@@ -65,7 +65,8 @@ void FreqManBaseView::focus() {
 }
 
 void FreqManBaseView::get_freqman_files() {
-    std::vector<std::string>().swap(file_list);
+    // Assume this does change much, clear will preserve the existing alloc.
+    file_list.clear();
 
     auto files = scan_root_files(u"FREQMAN", u"*.TXT");
 
@@ -73,7 +74,7 @@ void FreqManBaseView::get_freqman_files() {
         std::string file_name = file.stem().string();
         // don't propose tmp / hidden files in freqman's list
         if (file_name.length() && file_name[0] != '.') {
-            file_list.emplace_back(file_name);
+            file_list.emplace_back(std::move(file_name));
         }
     }
 };
@@ -83,7 +84,7 @@ void FreqManBaseView::change_category(int32_t category_id) {
 
     if (file_list.empty()) return;
 
-    if (!load_freqman_file(file_list[categories[category_id].second], database)) {
+    if (!load_freqman_file(file_list[categories[category_id].second], database, {})) {
         error_ = ERROR_ACCESS;
     }
     freqlist_view.set_db(database);

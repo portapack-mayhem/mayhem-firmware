@@ -28,8 +28,6 @@
 #include "freqman_db.hpp"
 #include "string_format.hpp"
 
-#include "debug.hpp"
-
 #include <array>
 #include <string_view>
 #include <vector>
@@ -147,6 +145,9 @@ const T* find_by_name(const std::array<T, N>& info, std::string_view name) {
 // TODO: How much format validation should this do?
 // It's very permissive right now, but entries can be invalid.
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
+    if (str.empty() || str[0] == '#')
+        return false;
+
     auto cols = split_string(str, ',');
     entry = freqman_entry{};
 
@@ -167,9 +168,33 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         } else if (key == "b") {
             parse_int(value, entry.frequency_b);
         } else if (key == "bw") {
-            // Bandwidth
+            // NB: Required modulation to be set.
+            if (entry.modulation < std::size(freqman_bandwidths)) {
+                entry.step = find_by_name(freqman_bandwidths[entry.modulation], value);
+            }
         } else if (key == "c") {
             // Tone
+            // // ctcss tone if any
+            // pos = strstr(line_start, "c=");
+            // if (pos) {
+            //     pos += 2;
+            //     // find decimal point and replace with 0 if there is one, for strtoll
+            //     length = strcspn(pos, ".,\x0A");
+            //     if (pos + length <= line_end) {
+            //         c = *(pos + length);
+            //         *(pos + length) = 0;
+            //         // ASCII Hz to integer Hz x 100
+            //         tone_freq = strtoll(pos, nullptr, 10) * 100;
+            //         // stuff saved character back into string in case it was not a decimal point
+            //         *(pos + length) = c;
+            //         // now get first digit after decimal point (10ths of Hz)
+            //         pos += length + 1;
+            //         if (c == '.' && *pos >= '0' && *pos <= '9')
+            //             tone_freq += (*pos - '0') * 10;
+            //         // convert tone_freq (100x the freq in Hz) to a tone_key index
+            //         tone = tone_key_index_by_value(tone_freq);
+            //     }
+            // }
         } else if (key == "d") {
             entry.description = trim(value);
         } else if (key == "f") {
@@ -184,8 +209,6 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
             entry.step = find_by_name(freqman_steps_short, value);
         } else if (key == "t") {
             parse_int(value, entry.frequency_b);
-        } else {
-            // Invalid.
         }
     }
 
@@ -193,31 +216,47 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     return true;
 }
 
-bool parse_freqman_file(const fs::path& path, freqman_db& db) {
-    DEBUG_LOG("Parsing file" + path.string());
+bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_options options) {
     File f;
     auto error = f.open(path);
     if (error)
         return false;
 
-    DEBUG_LOG("Counting lines");
-
     auto reader = FileLineReader(f);
     auto line_count = count_lines(reader);
-    DEBUG_LOG("Lines: " + to_string_dec_uint(line_count));
 
-    // Try to avoid a re-alloc if possible.
+    // Attempt to avoid a re-alloc if possible.
     db.clear();
     db.reserve(line_count);
 
     for (const auto& line : reader) {
-        freqman_entry_ptr entry = std::make_unique<freqman_entry>();
-        DEBUG_LOG("parsing line: " + line);
-        if (!parse_freqman_entry(line, *entry))
+        freqman_entry entry{};
+        if (!parse_freqman_entry(line, entry))
             continue;
 
-        db.push_back(std::move(entry));
+        // Filter by entry type.
+        if ((entry.type == freqman_type::Single && !options.load_freqs) ||
+            (entry.type == freqman_type::Range && !options.load_ranges) ||
+            (entry.type == freqman_type::HamRadio && !options.load_hamradios)) {
+            continue;
+        }
+
+        // Use previous entry's mod/band if current's isn't set.
+        if (!db.empty()) {
+            if (is_invalid(entry.modulation))
+                entry.modulation = db.back()->modulation;
+            if (is_invalid(entry.bandwidth))
+                entry.bandwidth = db.back()->bandwidth;
+        }
+
+        // Move the entry onto the heap and push.
+        db.push_back(std::make_unique<freqman_entry>(std::move(entry)));
+
+        // Limit to max_entries when specified.
+        if (options.max_entries > 0 && db.size() >= options.max_entries)
+            break;
     }
 
+    db.shrink_to_fit();
     return true;
 }

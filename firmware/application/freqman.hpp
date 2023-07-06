@@ -83,7 +83,7 @@ enum freqman_entry_modulation : uint8_t {
     tone_index tone{0};                         // 0XZ, 11 1ZB,...
 };*/
 
-bool load_freqman_file(const std::string& file_stem, freqman_db& db, bool load_freqs = true, bool load_ranges = true, bool load_hamradios = true, uint8_t max_num_freqs = FREQMAN_MAX_PER_FILE);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
 bool delete_freqman_file(const std::string& file_stem);
 bool save_freqman_file(const std::string& file_stem, freqman_db& db);

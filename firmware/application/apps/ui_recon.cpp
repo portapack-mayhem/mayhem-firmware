@@ -942,7 +942,12 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         desc_cycle.set_style(&Styles::blue);
         button_scanner_mode.set_text("RECON");
     }
-    if (!load_freqman_file(file_input, frequency_list, load_freqs, load_ranges, load_hamradios)) {
+    freqman_load_options options{
+        .max_entries = 0,  // was: FREQMAN_MAX_PER_FILE
+        .load_freqs = load_freqs,
+        .load_ranges = load_ranges,
+        .load_hamradios = load_hamradios};
+    if (!load_freqman_file(file_input, frequency_list, options)) {
         file_name.set_style(&Styles::red);
         desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
         file_name.set("=> NO DATA");
