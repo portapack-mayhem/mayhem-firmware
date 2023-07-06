@@ -245,15 +245,15 @@ class ReconView : public View {
 
     OptionsField field_recon_processing_mode{
         {11 * 8, 11 * 16},
-        6,  // PROCESSING MODE: DEMODULATED, OR RAW
+        7,  // PROCESSING MODE: DEMODULATED, OR RAW
         {
             {"DEMOD", RECON_PROCESS_DEMOD},
-            {"8k5", 0},
-            {"11k", 1},
-            {"16k", 2},
-            {"25k", 3},
-            {"50k", 4},
-            {"100k", 5}}};
+            {"RAW8k5", 0},
+            {"RAW11k", 1},
+            {"RAW16k", 2},
+            {"RAW25k", 3},
+            {"RAW50k", 4},
+            {"RW100k", 5}}};
 
     OptionsField step_mode{
         {18 * 8, 11 * 16},
