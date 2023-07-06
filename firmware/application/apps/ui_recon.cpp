@@ -883,7 +883,7 @@ ReconView::ReconView(NavigationView& nav)
     freq_file_path = "/FREQMAN/" + output_file + ".TXT";
 
     field_recon_match_mode.set_selected_index(recon_match_mode);
-    field_recon_match_mode.set_selected_index(recon_processing_mode);
+    field_recon_processing_mode.set_selected_index(recon_processing_mode);
     field_squelch.set_value(squelch);
     field_wait.set_value(wait);
     field_lock_wait.set_value(recon_lock_duration);
