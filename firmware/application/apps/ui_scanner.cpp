@@ -593,7 +593,7 @@ void ScannerView::frequency_file_load(std::string file_name, bool stop_all_befor
         for (auto& entry_ptr : database) {
             if (frequency_list.size() >= FREQMAN_MAX_PER_FILE)
                 break;
-            
+
             auto& entry = *entry_ptr;
 
             // Get modulation & bw & step from file if specified

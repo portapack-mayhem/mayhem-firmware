@@ -36,7 +36,8 @@
  */
 
 /* Iterates lines in buffer split on '\n'.
- * NB: very basic iterator impl, don't try anything fancy with it. */
+ * NB: very basic iterator impl, don't try anything fancy with it.
+ * For example, you _must_ deref the iterator after advancing it. */
 template <typename BufferType>
 class BufferLineReader {
    public:
@@ -135,13 +136,14 @@ std::vector<std::string_view> split_string(std::string_view str, char c);
 
 /* Returns the number of lines in a file. */
 template <typename BufferType>
-uint32_t count_lines(BufferLineReader<BufferType>& reader){
+uint32_t count_lines(BufferLineReader<BufferType>& reader) {
     uint32_t count = 0;
     auto it = reader.begin();
-    while (it != reader.end()) {
+
+    do {
+        *it;  // Necessary to force the file read.
         ++count;
-        ++it;
-    }
+    } while (++it != reader.end());
 
     return count;
 }

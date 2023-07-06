@@ -135,8 +135,8 @@ static_assert(std::size(freqman_steps) == (size_t)freqman_step::Unknown + 1);
 
 /* Freqman Entry *******************************/
 struct freqman_entry {
-    int64_t frequency_a{0};     // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
-    int64_t frequency_b{0};     // 'b=freq_end' or 't=tx_freq'
+    int64_t frequency_a{0};      // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
+    int64_t frequency_b{0};      // 'b=freq_end' or 't=tx_freq'
     std::string description{0};  // 'd=desc'
     freqman_type type{freqman_type::Unknown};
     freqman_index_t modulation{freqman_invalid_index};
@@ -152,7 +152,7 @@ using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
-bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db) ;
+bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db);
 
 class FreqmanDB {
    public:

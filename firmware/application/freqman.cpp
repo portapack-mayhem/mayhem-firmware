@@ -38,14 +38,13 @@ extern options_t freqman_bandwidths[4];
 extern options_t freqman_steps;
 extern options_t freqman_steps_short;
 
-
 bool load_freqman_file(const std::string& file_stem, freqman_db& db, bool, bool, bool, uint8_t) {
     fs::path path{u"FREQMAN/"};
     path += file_stem + ".TXT";
     return parse_freqman_file(path, db);
 
-// bool load_freqman_file(std::string& file_stem, freqman_db& db,
-//     bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs) {
+    // bool load_freqman_file(std::string& file_stem, freqman_db& db,
+    //     bool load_freqs, bool load_ranges, bool load_hamradios, uint8_t max_num_freqs) {
     // // swap with empty vector to ensure memory is immediately released
     // std::vector<freqman_entry>().swap(db);
     // File freqman_file{};
@@ -72,130 +71,128 @@ bool load_freqman_file(const std::string& file_stem, freqman_db& db, bool, bool,
     //     // Read a FREQMAN_READ_BUF_SIZE block from file
     //     freqman_file.seek(file_position);
 
-    //     memset(file_data, 0, FREQMAN_READ_BUF_SIZE + 1);
-    //     auto read_size = freqman_file.read(file_data, FREQMAN_READ_BUF_SIZE);
-    //     if (read_size.is_error())
-    //         return false;  // Read error
+    // memset(file_data, 0, FREQMAN_READ_BUF_SIZE + 1);
+    // auto read_size = freqman_file.read(file_data, FREQMAN_READ_BUF_SIZE);
+    // if (read_size.is_error())
+    //     return false;  // Read error
 
-    //     file_position += FREQMAN_READ_BUF_SIZE;
+    // file_position += FREQMAN_READ_BUF_SIZE;
 
-    //     // Reset line_start to beginning of buffer
-    //     line_start = file_data;
+    // // Reset line_start to beginning of buffer
+    // line_start = file_data;
 
-    //     // If EOF reached, insert 0x0A after, in case the last line doesn't have a C/R
-    //     if (read_size.value() < FREQMAN_READ_BUF_SIZE)
-    //         *(line_start + read_size.value()) = 0x0A;
+    // // If EOF reached, insert 0x0A after, in case the last line doesn't have a C/R
+    // if (read_size.value() < FREQMAN_READ_BUF_SIZE)
+    //     *(line_start + read_size.value()) = 0x0A;
 
-    //     // Look for complete lines in buffer
-    //     while ((line_end = strstr(line_start, "\x0A"))) {
-    //         *line_end = 0;  // Stop strstr() searches below at EOL
-    //         modulation = -1;
-    //         bandwidth = -1;
-    //         step = -1;
-    //         tone = -1;
-    //         type = NOTYPE;
+    // // Look for complete lines in buffer
+    // while ((line_end = strstr(line_start, "\x0A"))) {
+    //     *line_end = 0;  // Stop strstr() searches below at EOL
+    //     modulation = -1;
+    //     bandwidth = -1;
+    //     step = -1;
+    //     tone = -1;
+    //     type = NOTYPE;
 
-    //         frequency_a = frequency_b = 0;
-    //         // Read frequency
-    //         pos = strstr(line_start, "f=");
+    // frequency_a = frequency_b = 0;
+    // // Read frequency
+    // pos = strstr(line_start, "f=");
+    // if (pos) {
+    //     pos += 2;
+    //     frequency_a = strtoll(pos, nullptr, 10);
+    //     type = SINGLE;
+    // } else {
+    //     // ...or range
+    //     pos = strstr(line_start, "a=");
+    //     if (pos) {
+    //         pos += 2;
+    //         frequency_a = strtoll(pos, nullptr, 10);
+    //         type = RANGE;
+    //         pos = strstr(line_start, "b=");
+    //         if (pos) {
+    //             pos += 2;
+    //             frequency_b = strtoll(pos, nullptr, 10);
+    //         } else
+    //             frequency_b = 0;
+    //     } else {
+    //         // ... or hamradio
+    //         pos = strstr(line_start, "r=");
     //         if (pos) {
     //             pos += 2;
     //             frequency_a = strtoll(pos, nullptr, 10);
-    //             type = SINGLE;
-    //         } else {
-    //             // ...or range
-    //             pos = strstr(line_start, "a=");
+    //             type = HAMRADIO;
+    //             pos = strstr(line_start, "t=");
     //             if (pos) {
     //                 pos += 2;
-    //                 frequency_a = strtoll(pos, nullptr, 10);
-    //                 type = RANGE;
-    //                 pos = strstr(line_start, "b=");
-    //                 if (pos) {
-    //                     pos += 2;
-    //                     frequency_b = strtoll(pos, nullptr, 10);
-    //                 } else
-    //                     frequency_b = 0;
-    //             } else {
-    //                 // ... or hamradio
-    //                 pos = strstr(line_start, "r=");
-    //                 if (pos) {
-    //                     pos += 2;
-    //                     frequency_a = strtoll(pos, nullptr, 10);
-    //                     type = HAMRADIO;
-    //                     pos = strstr(line_start, "t=");
-    //                     if (pos) {
-    //                         pos += 2;
-    //                         frequency_b = strtoll(pos, nullptr, 10);
-    //                     } else
-    //                         frequency_b = frequency_a;
-    //                 } else
-    //                     frequency_a = 0;
-    //             }
-    //         }
-    //         // modulation if any
-    //         pos = strstr(line_start, "m=");
-    //         if (pos) {
-    //             pos += 2;
-    //             modulation = freqman_entry_get_modulation_from_str(pos);
-    //         }
-    //         // bandwidth if any
-    //         pos = strstr(line_start, "bw=");
-    //         if (pos) {
-    //             pos += 3;
-    //             bandwidth = freqman_entry_get_bandwidth_from_str(modulation, pos);
-    //         }
-    //         // step if any
-    //         pos = strstr(line_start, "s=");
-    //         if (pos) {
-    //             pos += 2;
-    //             step = freqman_entry_get_step_from_str_short(pos);
-    //         }
-    //         // ctcss tone if any
-    //         pos = strstr(line_start, "c=");
-    //         if (pos) {
-    //             pos += 2;
-    //             // find decimal point and replace with 0 if there is one, for strtoll
-    //             length = strcspn(pos, ".,\x0A");
-    //             if (pos + length <= line_end) {
-    //                 c = *(pos + length);
-    //                 *(pos + length) = 0;
-    //                 // ASCII Hz to integer Hz x 100
-    //                 tone_freq = strtoll(pos, nullptr, 10) * 100;
-    //                 // stuff saved character back into string in case it was not a decimal point
-    //                 *(pos + length) = c;
-    //                 // now get first digit after decimal point (10ths of Hz)
-    //                 pos += length + 1;
-    //                 if (c == '.' && *pos >= '0' && *pos <= '9')
-    //                     tone_freq += (*pos - '0') * 10;
-    //                 // convert tone_freq (100x the freq in Hz) to a tone_key index
-    //                 tone = tone_key_index_by_value(tone_freq);
-    //             }
-    //         }
-    //         // Read description until , or LF
-    //         pos = strstr(line_start, "d=");
-    //         if (pos) {
-    //             pos += 2;
-    //             length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
-    //             description = std::string(pos, length);
-    //             description.shrink_to_fit();
-    //         }
-    //         if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
-    //             freqman_entry entry = {frequency_a, frequency_b, std::move(description), type, modulation, bandwidth, step, tone};
-    //             db.emplace_back(entry);
-    //             n++;
-    //             if (n > max_num_freqs) return true;
-    //         }
-
-    //         line_start = line_end + 1;
-    //         if (line_start - file_data >= FREQMAN_READ_BUF_SIZE) break;
+    //                 frequency_b = strtoll(pos, nullptr, 10);
+    //             } else
+    //                 frequency_b = frequency_a;
+    //         } else
+    //             frequency_a = 0;
     //     }
-
-    //     if (read_size.value() != FREQMAN_READ_BUF_SIZE)
-    //         break;  // End of file
-
-    //     // Restart at beginning of last incomplete line
-    //     file_position -= (file_data + FREQMAN_READ_BUF_SIZE - line_start);
     // }
+    // // modulation if any
+    // pos = strstr(line_start, "m=");
+    // if (pos) {
+    //     pos += 2;
+    //     modulation = freqman_entry_get_modulation_from_str(pos);
+    // }
+    // // bandwidth if any
+    // pos = strstr(line_start, "bw=");
+    // if (pos) {
+    //     pos += 3;
+    //     bandwidth = freqman_entry_get_bandwidth_from_str(modulation, pos);
+    // }
+    // // step if any
+    // pos = strstr(line_start, "s=");
+    // if (pos) {
+    //     pos += 2;
+    //     step = freqman_entry_get_step_from_str_short(pos);
+    // }
+    // // ctcss tone if any
+    // pos = strstr(line_start, "c=");
+    // if (pos) {
+    //     pos += 2;
+    //     // find decimal point and replace with 0 if there is one, for strtoll
+    //     length = strcspn(pos, ".,\x0A");
+    //     if (pos + length <= line_end) {
+    //         c = *(pos + length);
+    //         *(pos + length) = 0;
+    //         // ASCII Hz to integer Hz x 100
+    //         tone_freq = strtoll(pos, nullptr, 10) * 100;
+    //         // stuff saved character back into string in case it was not a decimal point
+    //         *(pos + length) = c;
+    //         // now get first digit after decimal point (10ths of Hz)
+    //         pos += length + 1;
+    //         if (c == '.' && *pos >= '0' && *pos <= '9')
+    //             tone_freq += (*pos - '0') * 10;
+    //         // convert tone_freq (100x the freq in Hz) to a tone_key index
+    //         tone = tone_key_index_by_value(tone_freq);
+    //     }
+    // }
+    // // Read description until , or LF
+    // pos = strstr(line_start, "d=");
+    // if (pos) {
+    //     pos += 2;
+    //     length = std::min(strcspn(pos, ",\x0A"), (size_t)FREQMAN_DESC_MAX_LEN);
+    //     description = std::string(pos, length);
+    //     description.shrink_to_fit();
+    // }
+    // if ((type == SINGLE && load_freqs) || (type == RANGE && load_ranges) || (type == HAMRADIO && load_hamradios)) {
+    //     freqman_entry entry = {frequency_a, frequency_b, std::move(description), type, modulation, bandwidth, step, tone};
+    //     db.emplace_back(entry);
+    //     n++;
+    //     if (n > max_num_freqs) return true;
+    // }
+
+    // line_start = line_end + 1;
+    // if (line_start - file_data >= FREQMAN_READ_BUF_SIZE) break;
+
+    // if (read_size.value() != FREQMAN_READ_BUF_SIZE)
+    //     break;  // End of file
+
+    // // Restart at beginning of last incomplete line
+    // file_position -= (file_data + FREQMAN_READ_BUF_SIZE - line_start);
 
     // /* populate implicitly specified modulation / bandwidth */
     // // ???
@@ -203,17 +200,16 @@ bool load_freqman_file(const std::string& file_stem, freqman_db& db, bool, bool,
     //     modulation = db[0].modulation;
     //     bandwidth = db[0].bandwidth;
 
-    //     for (unsigned int it = 1; it < db.size(); it++) {
-    //         if (db[it].modulation < 0) {
-    //             db[it].modulation = modulation;
-    //         } else {
-    //             modulation = db[it].modulation;
-    //         }
-    //         if (db[it].bandwidth < 0) {
-    //             db[it].bandwidth = bandwidth;
-    //         } else {
-    //             modulation = db[it].bandwidth;
-    //         }
+    // for (unsigned int it = 1; it < db.size(); it++) {
+    //     if (db[it].modulation < 0) {
+    //         db[it].modulation = modulation;
+    //     } else {
+    //         modulation = db[it].modulation;
+    //     }
+    //     if (db[it].bandwidth < 0) {
+    //         db[it].bandwidth = bandwidth;
+    //     } else {
+    //         modulation = db[it].bandwidth;
     //     }
     // }
     // db.shrink_to_fit();
@@ -287,7 +283,6 @@ bool create_freqman_file(const std::string& file_stem, File& freqman_file) {
     return true;
 }
 
-
 std::string freqman_item_string(freqman_entry& entry, size_t max_length) {
     std::string item_string;
 
@@ -328,7 +323,6 @@ void freqman_set_step_option_short(OptionsField& option) {
     option.set_options(freqman_steps_short);
 }
 
-
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
     if (modulation >= freqman_modulations.size()) {
         return std::string("");  // unknown modulation
@@ -360,7 +354,6 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
     return freqman_steps_short[step].first;
 }
 
-
 int32_t freqman_entry_get_modulation_value(freqman_index_t modulation) {
     if (modulation >= freqman_modulations.size()) {
         return -1;  // unknown modulation
@@ -384,5 +377,3 @@ int32_t freqman_entry_get_step_value(freqman_index_t step) {
     }
     return freqman_steps[step].second;
 }
-
-

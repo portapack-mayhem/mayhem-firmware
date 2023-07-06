@@ -90,10 +90,10 @@ void ReconView::update_description() {
                 description = "R: ";
                 break;
             case freqman_type::HamRadio:
-                description =  "H: ";
+                description = "H: ";
                 break;
             default:
-                description =  "S: ";
+                description = "S: ";
         }
         description += current_entry().description;
     }
@@ -130,7 +130,7 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
     if (frequency_list.size() == 0 || !current_is_valid())
         return false;
 
-    freqman_entry entry = *frequency_list[freq_index]; // Makes a copy.
+    freqman_entry entry = *frequency_list[freq_index];  // Makes a copy.
     entry.frequency_a = freq;
     entry.frequency_b = 0;
     entry.modulation = last_entry.modulation;
@@ -720,8 +720,8 @@ ReconView::ReconView(NavigationView& nav)
             manual_freq_entry->description =
                 to_string_short_freq(frequency_range.min).erase(0, 1) + ">" + to_string_short_freq(frequency_range.max).erase(0, 1) + " S:"  // current Manual range
                 + freqman_entry_get_step_string_short(def_step);                                                                             // euquiq: lame kludge to reduce spacing in step freq
-            manual_freq_entry->frequency_a = frequency_range.min;                                                                             // min range val
-            manual_freq_entry->frequency_b = frequency_range.max;                                                                             // max range val
+            manual_freq_entry->frequency_a = frequency_range.min;                                                                            // min range val
+            manual_freq_entry->frequency_b = frequency_range.max;                                                                            // max range val
             manual_freq_entry->modulation = freqman_invalid_index;
             manual_freq_entry->bandwidth = freqman_invalid_index;
             manual_freq_entry->step = def_step;

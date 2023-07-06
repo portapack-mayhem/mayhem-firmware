@@ -196,7 +196,7 @@ FrequencyLoadView::FrequencyLoadView(
                 on_frequency_loaded(entry->frequency_a);
         }
 
-        nav_.pop(); // NB: this will call dtor.
+        nav_.pop();  // NB: this will call dtor.
     };
 }
 

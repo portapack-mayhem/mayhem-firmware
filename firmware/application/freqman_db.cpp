@@ -28,6 +28,8 @@
 #include "freqman_db.hpp"
 #include "string_format.hpp"
 
+#include "debug.hpp"
+
 #include <array>
 #include <string_view>
 #include <vector>
@@ -192,20 +194,25 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
 }
 
 bool parse_freqman_file(const fs::path& path, freqman_db& db) {
+    DEBUG_LOG("Parsing file" + path.string());
     File f;
     auto error = f.open(path);
     if (error)
         return false;
 
+    DEBUG_LOG("Counting lines");
+
     auto reader = FileLineReader(f);
     auto line_count = count_lines(reader);
+    DEBUG_LOG("Lines: " + to_string_dec_uint(line_count));
 
     // Try to avoid a re-alloc if possible.
     db.clear();
     db.reserve(line_count);
 
     for (const auto& line : reader) {
-        freqman_entry_ptr entry{};
+        freqman_entry_ptr entry = std::make_unique<freqman_entry>();
+        DEBUG_LOG("parsing line: " + line);
         if (!parse_freqman_entry(line, *entry))
             continue;
 

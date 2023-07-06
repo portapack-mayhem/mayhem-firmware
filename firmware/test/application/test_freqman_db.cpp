@@ -22,6 +22,8 @@
 #include "doctest.h"
 #include "freqman_db.hpp"
 
+void __debug_log(const std::string&) {}
+
 TEST_SUITE_BEGIN("Freqman Parsing");
 
 TEST_CASE("It can parse basic single freq entry.") {
@@ -65,7 +67,7 @@ TEST_CASE("It can parse modulation") {
         parse_freqman_entry(
             "f=123000000,d=This is the description.,m=AM", e));
     CHECK_EQ(e.modulation, 0);
-    
+
     REQUIRE(
         parse_freqman_entry(
             "f=123000000,d=This is the description.,m=NFM", e));
@@ -93,7 +95,7 @@ TEST_CASE("It can parse frequency step") {
         parse_freqman_entry(
             "f=123000000,d=This is the description.,s=0.1kHz", e));
     CHECK_EQ(e.step, 0);
-    
+
     REQUIRE(
         parse_freqman_entry(
             "f=123000000,d=This is the description.,s=50kHz", e));
@@ -152,6 +154,5 @@ TEST_CASE("It can parse frequency step") {
     CHECK_EQ(e.step, freqman_step::Unknown);
 }
 #endif
-
 
 TEST_SUITE_END();
