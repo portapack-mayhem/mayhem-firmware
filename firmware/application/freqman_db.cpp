@@ -144,6 +144,7 @@ const T* find_by_name(const std::array<T, N>& info, std::string_view name) {
 
 // TODO: How much format validation should this do?
 // It's very permissive right now, but entries can be invalid.
+// TODO: parse_int seems to hang on invalid input.
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     if (str.empty() || str[0] == '#')
         return false;
@@ -184,7 +185,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
             //         c = *(pos + length);
             //         *(pos + length) = 0;
             //         // ASCII Hz to integer Hz x 100
-            //         tone_freq = strtoll(pos, nullptr, 10) * 100;
+            //         tone_freq = strtoll(pos, nullptr, ) * 100;
             //         // stuff saved character back into string in case it was not a decimal point
             //         *(pos + length) = c;
             //         // now get first digit after decimal point (10ths of Hz)
@@ -241,7 +242,7 @@ bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_optio
             continue;
         }
 
-        // Use previous entry's mod/band if current's isn't set.
+        // Use previous entry's mod/band if current's aren't set.
         if (!db.empty()) {
             if (is_invalid(entry.modulation))
                 entry.modulation = db.back()->modulation;
