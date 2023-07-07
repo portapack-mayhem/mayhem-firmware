@@ -212,6 +212,12 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
         default:
             break;
     }
+    if (new_mod != SPEC_MODULATION) {
+        // reset receiver model to fix bug when going from SPEC to audio, the sound is distorded
+        receiver_model.set_sampling_rate(3072000);
+        receiver_model.set_baseband_bandwidth(1750000);
+    }
+
     return step_mode.selected_index();
 }
 
