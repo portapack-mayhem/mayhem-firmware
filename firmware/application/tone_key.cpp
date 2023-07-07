@@ -150,7 +150,7 @@ std::string tone_key_string_by_value(uint32_t value, size_t max_length) {
 // Value is in 0.01 Hz units
 tone_index tone_key_index_by_value(uint32_t value) {
     uint32_t diff;
-    uint32_t min_diff{value * 2};
+    uint32_t min_diff{UINT32_MAX};
     tone_index min_idx{-1};
     tone_index idx;
 

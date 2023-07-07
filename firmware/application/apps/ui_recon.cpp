@@ -74,9 +74,9 @@ void ReconView::clear_freqlist_for_ui_action() {
 }
 
 void ReconView::reset_indexes() {
-    last_entry.modulation = -1;
-    last_entry.bandwidth = -1;
-    last_entry.step = -1;
+    last_entry.modulation = freqman_invalid_index;
+    last_entry.bandwidth = freqman_invalid_index;
+    last_entry.step = freqman_invalid_index;
     current_index = 0;
 }
 
@@ -343,7 +343,7 @@ void ReconView::handle_retune() {
         if (last_entry.modulation != current_entry().modulation && is_valid(current_entry().modulation)) {
             last_entry.modulation = current_entry().modulation;
             field_mode.set_selected_index(current_entry().modulation);
-            last_entry.bandwidth = -1;
+            last_entry.bandwidth = freqman_invalid_index;
         }
         // Set bandwidth if any
         if (last_entry.bandwidth != current_entry().bandwidth && is_valid(current_entry().bandwidth)) {
@@ -710,23 +710,23 @@ ReconView::ReconView(NavigationView& nav)
         } else {
             if (field_mode.selected_index_value() != SPEC_MODULATION)
                 audio::output::stop();
+
             // Clear doesn't actually free, re-assign so destructor runs on previous instance.
             frequency_list = freqman_db{};
-            auto manual_freq_entry = std::make_unique<freqman_entry>();
+            current_index = 0;
+            frequency_list.push_back(std::make_unique<freqman_entry>());
 
-            def_step = step_mode.selected_index();  // max range val
-
-            manual_freq_entry->type = freqman_type::Range;
-            manual_freq_entry->description =
-                to_string_short_freq(frequency_range.min).erase(0, 1) + ">" + to_string_short_freq(frequency_range.max).erase(0, 1) + " S:"  // current Manual range
-                + freqman_entry_get_step_string_short(def_step);                                                                             // euquiq: lame kludge to reduce spacing in step freq
-            manual_freq_entry->frequency_a = frequency_range.min;                                                                            // min range val
-            manual_freq_entry->frequency_b = frequency_range.max;                                                                            // max range val
-            manual_freq_entry->modulation = freqman_invalid_index;
-            manual_freq_entry->bandwidth = freqman_invalid_index;
-            manual_freq_entry->step = def_step;
-
-            frequency_list.push_back(std::move(manual_freq_entry));
+            def_step = step_mode.selected_index();
+            current_entry().type = freqman_type::Range;
+            current_entry().description =
+                to_string_short_freq(frequency_range.min).erase(0, 1) + ">" +  // euquiq: lame kludge to reduce spacing in step freq
+                to_string_short_freq(frequency_range.max).erase(0, 1) + " S:" +
+                freqman_entry_get_step_string_short(def_step);                                                                             
+            current_entry().frequency_a = frequency_range.min;
+            current_entry().frequency_b = frequency_range.max;
+            current_entry().modulation = freqman_invalid_index;
+            current_entry().bandwidth = freqman_invalid_index;
+            current_entry().step = def_step;
 
             big_display.set_style(&Styles::white);  // Back to white color
 
@@ -746,8 +746,7 @@ ReconView::ReconView(NavigationView& nav)
             last_entry.step = freqman_invalid_index;
             last_index = -1;
 
-            current_index = 0;
-            freq = manual_freq_entry->frequency_a;
+            freq = current_entry().frequency_a;
             handle_retune();
             recon_redraw();
             recon_resume();

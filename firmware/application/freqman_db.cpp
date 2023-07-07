@@ -175,7 +175,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         } else if (key == "bw") {
             // NB: Requires modulation to be set first
             if (entry.modulation < std::size(freqman_bandwidths)) {
-                entry.step = find_by_name(freqman_bandwidths[entry.modulation], value);
+                entry.bandwidth = find_by_name(freqman_bandwidths[entry.modulation], value);
             }
         } else if (key == "c") {
             // Split into whole and fractional parts.
@@ -186,7 +186,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
 
             // Tones are stored as frequency / 100 for some reason.
             // E.g. 14572 would be 145.7 (NB: 1s place is dropped).
-            // TODO: Might be easier to just store the codes.
+            // TODO: Might be easier to just store the codes?
             // Multiply the whole part by 100 to get the tone frequency.
             tone_freq = whole_part * 100;
 

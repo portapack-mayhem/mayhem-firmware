@@ -87,6 +87,36 @@ TEST_CASE("It can parse modulation") {
     CHECK_EQ(e.modulation, freqman_invalid_index);
 }
 
+TEST_CASE("It can parse bandwidth") {
+    freqman_entry e;
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=AM,bw=DSB 6k", e));
+    CHECK_EQ(e.bandwidth, 1);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,bw=DSB 6k", e));
+    // Modulation wasn't set.
+    CHECK_EQ(e.bandwidth, freqman_invalid_index);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=WFM,bw=50k", e));
+    // Invalid bandwidth value.
+    CHECK_EQ(e.bandwidth, freqman_invalid_index);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,m=SPEC,bw=16k", e));
+    CHECK_EQ(e.modulation, 3);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,m=NFM,bw=11k,d=This is the description.", e));
+    CHECK_EQ(e.modulation, 1);
+}
+
 TEST_CASE("It can parse frequency step") {
     freqman_entry e;
     REQUIRE(
@@ -103,6 +133,37 @@ TEST_CASE("It can parse frequency step") {
         parse_freqman_entry(
             "f=123000000,d=This is the description.,s=FOO", e));
     CHECK_EQ(e.step, freqman_invalid_index);
+}
+
+TEST_CASE("It can parse tone freq") {
+    freqman_entry e;
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,c=0.0", e));
+    CHECK_EQ(e.tone, 0);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,c=67.0,d=This is the description.", e));
+    CHECK_EQ(e.tone, 1);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,c=67,d=This is the description.", e));
+    // Fractional can be omitted.
+    CHECK_EQ(e.tone, 1);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,c=69.33,d=This is the description.", e));
+    // Fractional extra digits can be omitted.
+    CHECK_EQ(e.tone, 2);
+
+    REQUIRE(
+        parse_freqman_entry(
+            "f=123000000,d=This is the description.,c=72", e));
+    // Should choose nearest.
+    CHECK_EQ(e.tone, 3);
 }
 
 #if 0  // New tables for a future PR.

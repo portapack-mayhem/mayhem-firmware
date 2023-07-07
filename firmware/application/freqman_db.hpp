@@ -147,7 +147,7 @@ struct freqman_entry {
 constexpr size_t freqman_default_max_entries = 150;
 
 struct freqman_load_options {
-    /* Loads all when set to 0. */
+    /* Loads all entries when set to 0. */
     size_t max_entries{freqman_default_max_entries};
     bool load_freqs{true};
     bool load_ranges{true};
