@@ -24,6 +24,7 @@
 #include "ui_recon.hpp"
 #include "ui_fileman.hpp"
 #include "file.hpp"
+#include "capture_app.hpp"
 
 using namespace portapack;
 using portapack::memory::map::backup_ram;
@@ -38,6 +39,10 @@ void ReconView::set_loop_config(bool v) {
 
 void ReconView::recon_stop_recording() {
     if (is_recording) {
+        if (field_mode.selected_index_value() == SPEC_MODULATION)
+            button_audio_app.set_text("RAW");
+        else
+            button_audio_app.set_text("AUDIO");
         button_audio_app.set_style(&Styles::white);
         record_view->stop();
         button_config.set_style(&Styles::white);  // disable config while recording as it's causing an IO error pop up at exit
@@ -550,7 +555,10 @@ ReconView::ReconView(NavigationView& nav)
     button_audio_app.on_select = [this](Button&) {
         auto settings = receiver_model.settings();
         settings.frequency_step = step_mode.selected_index_value();
-        nav_.replace<AnalogAudioView>(settings);
+        if (field_mode.selected_index_value() == SPEC_MODULATION)
+            nav_.replace<CaptureAppView>();
+        else
+            nav_.replace<AnalogAudioView>(settings);
     };
 
     button_loop_config.on_select = [this](Button&) {
@@ -1102,6 +1110,10 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     // contents of a possible recon_start_recording(), but not yet since it's only called once
                     if (auto_record_locked && !is_recording) {
                         button_audio_app.set_style(&Styles::red);
+                        if (field_mode.selected_index_value() == SPEC_MODULATION)
+                            button_audio_app.set_text("RAW REC");
+                        else
+                            button_audio_app.set_text("WAV REC");
                         record_view->start();
                         button_config.set_style(&Styles::light_grey);  // disable config while recording as it's causing an IO error pop up at exit
                         is_recording = true;
@@ -1421,10 +1433,13 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             break;
     }
     if (new_mod != SPEC_MODULATION) {
+        button_audio_app.set_text("AUDIO");
         record_view->set_sampling_rate(recording_sampling_rate);
         // reset receiver model to fix bug when going from SPEC to audio, the sound is distorded
         receiver_model.set_sampling_rate(3072000);
         receiver_model.set_baseband_bandwidth(1750000);
+    } else {
+        button_audio_app.set_text("RAW");
     }
 
     field_mode.set_selected_index(new_mod);
