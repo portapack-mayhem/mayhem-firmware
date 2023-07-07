@@ -24,11 +24,13 @@
 #include "file.hpp"
 #include "freqman.hpp"
 #include "tone_key.hpp"
+#include "ui_widget.hpp"
 
 #include <algorithm>
 
 namespace fs = std::filesystem;
 using namespace tonekey;
+using namespace ui;
 
 using option_t = std::pair<std::string, int32_t>;
 using options_t = std::vector<option_t>;
@@ -38,6 +40,15 @@ extern options_t freqman_bandwidths[4];
 extern options_t freqman_steps;
 extern options_t freqman_steps_short;
 
+const option_t* find_by_index(const options_t& options, freqman_index_t index) {
+    if (index < options.size())
+        return &options[index];
+    else
+        return nullptr;
+}
+
+// TODO: move into FreqmanDB type
+/* Freqman file handling. */
 bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options) {
     fs::path path{u"FREQMAN/"};
     path += file_stem + ".TXT";
@@ -135,12 +146,14 @@ std::string freqman_item_string(freqman_entry& entry, size_t max_length) {
     return item_string;
 }
 
+/* Set options. */
 void freqman_set_modulation_option(OptionsField& option) {
     option.set_options(freqman_modulations);
 }
 
 void freqman_set_bandwidth_option(freqman_index_t modulation, OptionsField& option) {
-    option.set_options(freqman_bandwidths[modulation]);
+    if (is_valid(modulation))
+        option.set_options(freqman_bandwidths[modulation]);
 }
 
 void freqman_set_step_option(OptionsField& option) {
@@ -151,57 +164,51 @@ void freqman_set_step_option_short(OptionsField& option) {
     option.set_options(freqman_steps_short);
 }
 
+/* Option name lookup. */
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
-    if (modulation >= freqman_modulations.size()) {
-        return std::string("");  // unknown modulation
-    }
-    return freqman_modulations[modulation].first;
+    if (auto opt = find_by_index(freqman_modulations, modulation))
+        return opt->first;
+    return {};
 }
 
 std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth) {
-    if (modulation >= freqman_modulations.size()) {
-        return std::string("");  // unknown modulation
+    if (modulation < freqman_modulations.size()) {
+        if (auto opt = find_by_index(freqman_bandwidths[modulation], bandwidth))
+            return opt->first;
     }
-    if (bandwidth > freqman_bandwidths[modulation].size()) {
-        return std::string("");  // unknown bandwidth for modulation
-    }
-    return freqman_bandwidths[modulation][bandwidth].first;
+    return {};
 }
 
 std::string freqman_entry_get_step_string(freqman_index_t step) {
-    if (step >= freqman_steps.size()) {
-        return std::string("");  // unknown modulation
-    }
-    return freqman_steps[step].first;
+    if (auto opt = find_by_index(freqman_steps, step))
+        return opt->first;
+    return {};
 }
 
 std::string freqman_entry_get_step_string_short(freqman_index_t step) {
-    if (step >= freqman_steps_short.size()) {
-        return std::string("");  // unknown modulation
-    }
-    return freqman_steps_short[step].first;
+    if (auto opt = find_by_index(freqman_steps_short, step))
+        return opt->first;
+    return {};
 }
 
+/* Option value lookup. */
+// TODO: use Optional instead of magic values.
 int32_t freqman_entry_get_modulation_value(freqman_index_t modulation) {
-    if (modulation >= freqman_modulations.size()) {
-        return -1;  // unknown modulation
-    }
-    return freqman_modulations[modulation].second;
+    if (auto opt = find_by_index(freqman_modulations, modulation))
+        return opt->second;
+    return -1;
 }
 
 int32_t freqman_entry_get_bandwidth_value(freqman_index_t modulation, freqman_index_t bandwidth) {
-    if (modulation >= freqman_modulations.size()) {
-        return -1;  // unknown modulation
+    if (modulation < freqman_modulations.size()) {
+        if (auto opt = find_by_index(freqman_bandwidths[modulation], bandwidth))
+            return opt->second;
     }
-    if (bandwidth > freqman_bandwidths[modulation].size()) {
-        return -1;  // unknown bandwidth for modulation
-    }
-    return freqman_bandwidths[modulation][bandwidth].second;
+    return -1;
 }
 
 int32_t freqman_entry_get_step_value(freqman_index_t step) {
-    if (step >= freqman_steps.size()) {
-        return -1;  // unknown step
-    }
-    return freqman_steps[step].second;
+    if (auto opt = find_by_index(freqman_steps, step))
+        return opt->second;
+    return -1;
 }

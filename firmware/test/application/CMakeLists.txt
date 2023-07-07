@@ -50,6 +50,7 @@ add_executable(application_test EXCLUDE_FROM_ALL
 
 	# Dependencies
 	${PROJECT_SOURCE_DIR}/../../application/file.cpp
+	${PROJECT_SOURCE_DIR}/../../application/tone_key.cpp
 	${PROJECT_SOURCE_DIR}/linker_stubs.cpp
 )
 

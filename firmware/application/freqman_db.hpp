@@ -53,36 +53,33 @@ enum class freqman_type : uint8_t {
     Unknown,
 };
 
-#if 0  // New tables for a future PR.
-// TODO: attempt to consolidate all of these values
-// and settings into a single location.
-
-/* Modulation **********************************/
-enum class freqman_modulation : uint8_t {
+/* Tables for next round of changes.
+ * // TODO: attempt to consolidate all of these values
+ * // and settings into a single location.
+ * // Should tone_keys get consolidated here too?
+ * enum class freqman_modulation : uint8_t {
     AM,
     NFM,
     WFM,
     SPEC,
     Unknown,
-};
-
-struct freqman_modulation_info {
-    freqman_modulation modulation;
-    std::string_view name;
-};
-
-constexpr std::array<freqman_modulation_info, 5> freqman_modulations = {
+ * };
+ *
+ * struct freqman_modulation_info {
+ *     freqman_modulation modulation;
+ *     std::string_view name;
+ * };
+ *
+ * constexpr std::array<freqman_modulation_info, 5> freqman_modulations = {
     freqman_modulation_info{ freqman_modulation::AM, "AM" },
     freqman_modulation_info{ freqman_modulation::NFM, "NFM" },
     freqman_modulation_info{ freqman_modulation::WFM, "WFM" },
     freqman_modulation_info{ freqman_modulation::SPEC, "SPEC" },
     freqman_modulation_info{ freqman_modulation::Unknown, "Unknown" }
-};
-
-static_assert(std::size(freqman_modulations) == (size_t)freqman_modulation::Unknown + 1);
-
-/* Step ****************************************/
-enum class freqman_step : uint8_t {
+ * };
+ * static_assert(std::size(freqman_modulations) == (size_t)freqman_modulation::Unknown + 1);
+ *
+ * enum class freqman_step : uint8_t {
     _100Hz,
     _1kHz,
     _5kHz,
@@ -100,17 +97,17 @@ enum class freqman_step : uint8_t {
     _500kHz,
     _1MHz,
     Unknown,
-};
-
-struct freqman_step_info {
-    freqman_step step;
-    std::string_view name;
-    std::string_view display_name;
-    uint32_t value;
-};
-
-// TODO: FrequencyStepView should use this list.
-constexpr std::array<freqman_step_info, 18> freqman_steps = {
+ * };
+ *
+ * struct freqman_step_info {
+ *     freqman_step step;
+ *     std::string_view name;
+ *     std::string_view display_name;
+ *     uint32_t value;
+ * };
+ *
+ * // TODO: FrequencyStepView should use this list.
+ * constexpr std::array<freqman_step_info, 18> freqman_steps = {
     freqman_step_info{ freqman_step::_100Hz,   "0.1kHz",  "0.1kHz      ", 100 },
     freqman_step_info{ freqman_step::_1kHz,    "1kHz",    "1kHz        ", 1'000 },
     freqman_step_info{ freqman_step::_5kHz,    "5kHz",    "5kHz (SA AM)", 5'000 },
@@ -128,10 +125,9 @@ constexpr std::array<freqman_step_info, 18> freqman_steps = {
     freqman_step_info{ freqman_step::_500kHz,  "500kHz",  "500kHz (WFM)", 500'000 },
     freqman_step_info{ freqman_step::_1MHz,    "1MHz",    "1MHz        ", 1'000'000 },
     freqman_step_info{ freqman_step::Unknown,  "Unknown", "Unknown     ", 0 },
-};
-
-static_assert(std::size(freqman_steps) == (size_t)freqman_step::Unknown + 1);
-#endif
+ * };
+ * static_assert(std::size(freqman_steps) == (size_t)freqman_step::Unknown + 1);
+*/
 
 /* Freqman Entry *******************************/
 struct freqman_entry {
@@ -145,9 +141,14 @@ struct freqman_entry {
     freqman_index_t tone{freqman_invalid_index};
 };
 
+/* A reasonable maximum number of items to load from a freqman file.
+ * Apps using freqman_db should be tested and this value tuned to
+ * ensure app memory stability. */
+constexpr size_t freqman_default_max_entries = 150;
+
 struct freqman_load_options {
     /* Loads all when set to 0. */
-    size_t max_entries{0};
+    size_t max_entries{freqman_default_max_entries};
     bool load_freqs{true};
     bool load_ranges{true};
     bool load_hamradios{true};
@@ -159,18 +160,20 @@ using freqman_db = std::vector<freqman_entry_ptr>;
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
 bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqman_load_options options);
 
-class FreqmanDB {
-   public:
-    FreqmanDB();
-    FreqmanDB(const FreqmanDB&) = delete;
-    FreqmanDB(FreqmanDB&&) = delete;
-    FreqmanDB& operator=(const FreqmanDB&) = delete;
-    FreqmanDB& operator=(FreqmanDB&&) = delete;
-
-    size_t size() const { return 0; };
-
-   private:
-    freqman_db entries_;
-};
+/* Type for next round of changes.
+ *class FreqmanDB {
+ *   public:
+ *    FreqmanDB();
+ *    FreqmanDB(const FreqmanDB&) = delete;
+ *    FreqmanDB(FreqmanDB&&) = delete;
+ *    FreqmanDB& operator=(const FreqmanDB&) = delete;
+ *    FreqmanDB& operator=(FreqmanDB&&) = delete;
+ *
+ *    size_t size() const { return 0; };
+ *
+ *   private:
+ *    freqman_db entries_;
+ *};
+ */
 
 #endif /* __FREQMAN_DB_H__ */

@@ -235,6 +235,7 @@ set(CPPSRC
 	ui/ui_styles.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
+	ui/ui_tone_key.cpp
 	ui/ui_transmitter.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp

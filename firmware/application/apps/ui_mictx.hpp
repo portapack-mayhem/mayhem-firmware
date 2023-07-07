@@ -35,7 +35,6 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "transmitter_model.hpp"
-#include "tone_key.hpp"
 #include "message.hpp"
 #include "receiver_model.hpp"
 #include "ui_transmitter.hpp"

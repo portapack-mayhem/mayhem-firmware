@@ -20,32 +20,28 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __TONE_KEY_H_
-#define __TONE_KEY_H_
+#include "ui_tone_key.hpp"
+#include <utility>
 
-#include <cstdint>
-#include <string>
-#include <vector>
+using namespace ui;
 
 namespace tonekey {
 
-#define TONE_FREQ_TOLERANCE_CENTIHZ (4 * 100)
-#define TONE_DISPLAY_TOGGLE_COUNTER 3
-#define F2Ix100(x) (int32_t)(x * 100.0)
+void tone_keys_populate(OptionsField& field) {
+    OptionsField::options_t tone_key_options;
+    std::string tone_name;
 
-using tone_index = int32_t;
-using tone_key_t = std::vector<std::pair<std::string, uint32_t>>;
+    for (size_t c = 0; c < tone_keys.size(); c++) {
+        auto f = tone_keys[c].second;
+        if ((c != 0) && (f < 1000 * 100))
+            tone_name = "CTCSS " + fx100_string(f) + " #" + tone_keys[c].first;
+        else
+            tone_name = tone_keys[c].first;
 
-extern const tone_key_t tone_keys;
+        tone_key_options.emplace_back(tone_name, c);
+    }
 
-float tone_key_frequency(tone_index index);
-
-std::string fx100_string(uint32_t f);
-std::string tone_key_string(tone_index index);
-std::string tone_key_value_string(tone_index index);
-std::string tone_key_string_by_value(uint32_t value, size_t max_length);
-tone_index tone_key_index_by_value(uint32_t value);
+    field.set_options(std::move(tone_key_options));
+}
 
 }  // namespace tonekey
-
-#endif /*__TONE_KEY_H_*/

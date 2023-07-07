@@ -32,11 +32,8 @@
 #include "ui_receiver.hpp"
 #include "ui_widget.hpp"
 
-#define FREQMAN_DESC_MAX_LEN 24  // This is the number of characters that can be drawn in front of "R: TEXT..." before taking a full screen line
-#define FREQMAN_MAX_PER_FILE 90  // Maximum of entries we can read. This is a hardware limit
-                                 // It was tested and lowered to leave a bit of space to the caller
-
-#define FREQMAN_READ_BUF_SIZE 96  // max freqman line size including desc is 90, + a bit of space
+// Defined for back-compat.
+#define FREQMAN_MAX_PER_FILE freqman_default_max_entries
 
 enum freqman_error : int8_t {
     NO_ERROR = 0,
@@ -45,43 +42,12 @@ enum freqman_error : int8_t {
     ERROR_DUPLICATE
 };
 
-/*enum freqman_entry_type : int8_t {
-    SINGLE = 0,  // f=
-    RANGE,       // a=,b=
-    HAMRADIO,    // r=,t=
-    NOTYPE       // undetected
-};*/
-
 enum freqman_entry_modulation : uint8_t {
     AM_MODULATION = 0,
     NFM_MODULATION,
     WFM_MODULATION,
-    SPEC_MODULATION,
+    SPEC_MODULATION
 };
-
-// Entry step placed for AlainD freqman version (or any other enhanced version)
-/*enum freqman_entry_step : int8_t {
-    AM_US,    // 10 kHz AM/CB
-    AM_EUR,   // 9 kHz LW/MW
-    NFM_1,    // 12,5 kHz (Analogic PMR 446)
-    NFM_2,    // 6,25 kHz (Digital PMR 446)
-    FM_1,     // 100 kHz
-    FM_2,     // 50 kHz
-    N_1,      // 25 kHz
-    N_2,      // 250 kHz
-    AIRBAND,  // AIRBAND 8,33 kHz
-};*/
-
-/*struct freqman_entry {
-    rf::Frequency frequency_a{0};               // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
-    rf::Frequency frequency_b{0};               // 'b=freq_end' or 't=tx_freq'
-    std::string description{};                  // 'd=desc'
-    freqman_entry_type type{SINGLE};            // SINGLE,RANGE,HAMRADIO
-    freqman_index_t modulation{AM_MODULATION};  // AM,NFM,WFM
-    freqman_index_t bandwidth{0};               // AM_DSB, ...
-    freqman_index_t step{0};                    // 5khz (SA AM,...
-    tone_index tone{0};                         // 0XZ, 11 1ZB,...
-};*/
 
 bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
@@ -105,10 +71,5 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step);
 int32_t freqman_entry_get_modulation_value(freqman_index_t modulation);
 int32_t freqman_entry_get_bandwidth_value(freqman_index_t modulation, freqman_index_t bandwidth);
 int32_t freqman_entry_get_step_value(freqman_index_t step);
-
-/*freqman_index_t freqman_entry_get_modulation_from_str(char* str);
-freqman_index_t freqman_entry_get_bandwidth_from_str(freqman_index_t modulation, char* str);
-freqman_index_t freqman_entry_get_step_from_str(char* str);
-freqman_index_t freqman_entry_get_step_from_str_short(char* str);*/
 
 #endif /*__FREQMAN_H__*/

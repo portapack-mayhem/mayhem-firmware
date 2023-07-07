@@ -27,8 +27,10 @@
 #include "file_reader.hpp"
 #include "freqman_db.hpp"
 #include "string_format.hpp"
+#include "tone_key.hpp"
 
 #include <array>
+#include <cctype>
 #include <string_view>
 #include <vector>
 
@@ -132,15 +134,17 @@ uint8_t find_by_name(const options_t& options, std::string_view name) {
     return freqman_invalid_index;
 }
 
-template <typename T, size_t N>
-const T* find_by_name(const std::array<T, N>& info, std::string_view name) {
-    for (const auto& it : info) {
-        if (it.name == name)
-            return &it;
-    }
-
-    return nullptr;
-}
+/* Impl for next round of changes.
+ *template <typename T, size_t N>
+ *const T* find_by_name(const std::array<T, N>& info, std::string_view name) {
+ *    for (const auto& it : info) {
+ *        if (it.name == name)
+ *            return &it;
+ *    }
+ *
+ *    return nullptr;
+ *}
+ */
 
 // TODO: How much format validation should this do?
 // It's very permissive right now, but entries can be invalid.
@@ -169,33 +173,31 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         } else if (key == "b") {
             parse_int(value, entry.frequency_b);
         } else if (key == "bw") {
-            // NB: Required modulation to be set.
+            // NB: Requires modulation to be set first
             if (entry.modulation < std::size(freqman_bandwidths)) {
                 entry.step = find_by_name(freqman_bandwidths[entry.modulation], value);
             }
         } else if (key == "c") {
-            // Tone
-            // // ctcss tone if any
-            // pos = strstr(line_start, "c=");
-            // if (pos) {
-            //     pos += 2;
-            //     // find decimal point and replace with 0 if there is one, for strtoll
-            //     length = strcspn(pos, ".,\x0A");
-            //     if (pos + length <= line_end) {
-            //         c = *(pos + length);
-            //         *(pos + length) = 0;
-            //         // ASCII Hz to integer Hz x 100
-            //         tone_freq = strtoll(pos, nullptr, ) * 100;
-            //         // stuff saved character back into string in case it was not a decimal point
-            //         *(pos + length) = c;
-            //         // now get first digit after decimal point (10ths of Hz)
-            //         pos += length + 1;
-            //         if (c == '.' && *pos >= '0' && *pos <= '9')
-            //             tone_freq += (*pos - '0') * 10;
-            //         // convert tone_freq (100x the freq in Hz) to a tone_key index
-            //         tone = tone_key_index_by_value(tone_freq);
-            //     }
-            // }
+            // Split into whole and fractional parts.
+            auto parts = split_string(value, '.');
+            int32_t tone_freq = 0;
+            int32_t whole_part = 0;
+            parse_int(parts[0], whole_part);
+
+            // Tones are stored as frequency / 100 for some reason.
+            // E.g. 14572 would be 145.7 (NB: 1s place is dropped).
+            // TODO: Might be easier to just store the codes.
+            // Multiply the whole part by 100 to get the tone frequency.
+            tone_freq = whole_part * 100;
+
+            // Add the fractional part, if present.
+            if (parts.size() > 1) {
+                auto c = parts[1].front();
+                auto digit = std::isdigit(c) ? c - '0' : 0;
+                tone_freq += digit * 10;
+            }
+            entry.tone = static_cast<freqman_index_t>(
+                tonekey::tone_key_index_by_value(tone_freq));
         } else if (key == "d") {
             entry.description = trim(value);
         } else if (key == "f") {
@@ -213,7 +215,6 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         }
     }
 
-    // TODO: Validate?
     return true;
 }
 

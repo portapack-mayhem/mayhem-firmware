@@ -20,32 +20,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __TONE_KEY_H_
-#define __TONE_KEY_H_
+#ifndef __UI_TONE_KEY_H_
+#define __UI_TONE_KEY_H_
 
-#include <cstdint>
-#include <string>
-#include <vector>
+#include "tone_key.hpp"
+#include "ui.hpp"
+#include "ui_widget.hpp"
 
 namespace tonekey {
 
-#define TONE_FREQ_TOLERANCE_CENTIHZ (4 * 100)
-#define TONE_DISPLAY_TOGGLE_COUNTER 3
-#define F2Ix100(x) (int32_t)(x * 100.0)
-
-using tone_index = int32_t;
-using tone_key_t = std::vector<std::pair<std::string, uint32_t>>;
-
-extern const tone_key_t tone_keys;
-
-float tone_key_frequency(tone_index index);
-
-std::string fx100_string(uint32_t f);
-std::string tone_key_string(tone_index index);
-std::string tone_key_value_string(tone_index index);
-std::string tone_key_string_by_value(uint32_t value, size_t max_length);
-tone_index tone_key_index_by_value(uint32_t value);
+void tone_keys_populate(ui::OptionsField& field);
 
 }  // namespace tonekey
 
-#endif /*__TONE_KEY_H_*/
+#endif /*__UI_TONE_KEY_H_*/
