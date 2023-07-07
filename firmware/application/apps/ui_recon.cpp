@@ -721,7 +721,7 @@ ReconView::ReconView(NavigationView& nav)
             current_entry().description =
                 to_string_short_freq(frequency_range.min).erase(0, 1) + ">" +  // euquiq: lame kludge to reduce spacing in step freq
                 to_string_short_freq(frequency_range.max).erase(0, 1) + " S:" +
-                freqman_entry_get_step_string_short(def_step);                                                                             
+                freqman_entry_get_step_string_short(def_step);
             current_entry().frequency_a = frequency_range.min;
             current_entry().frequency_b = frequency_range.max;
             current_entry().modulation = freqman_invalid_index;
