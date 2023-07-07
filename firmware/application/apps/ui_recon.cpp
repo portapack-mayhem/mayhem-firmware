@@ -791,7 +791,7 @@ ReconView::ReconView(NavigationView& nav)
         }
     };
 
-    button_add.on_select = [this](ButtonWithEncoder&) {  // current_entry()
+    button_add.on_select = [this](ButtonWithEncoder&) {
         if (!scanner_mode) {
             recon_save_freq(freq_file_path, current_index, true);
         }
@@ -942,7 +942,6 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         button_scanner_mode.set_text("RECON");
     }
     freqman_load_options options{
-        .max_entries = 0,  // was: FREQMAN_MAX_PER_FILE
         .load_freqs = load_freqs,
         .load_ranges = load_ranges,
         .load_hamradios = load_hamradios};
