@@ -504,7 +504,8 @@ bool DebugFontsView::on_key(KeyEvent) {
     return true;
 }
 
-DebugFontsView::DebugFontsView(NavigationView& nav): nav_{nav} {
+DebugFontsView::DebugFontsView(NavigationView& nav)
+    : nav_{nav} {
     set_focusable(true);
 }
 
