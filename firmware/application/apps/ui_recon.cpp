@@ -833,7 +833,7 @@ ReconView::ReconView(NavigationView& nav)
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
             output_file = result[1];
-            freq_file_path = "/FREQMAN/" + output_file + ".TXT";
+            freq_file_path = get_freqman_path(output_file).string();
             recon_save_config_to_sd();
 
             autosave = persistent_memory::recon_autosave_freqs();
@@ -892,7 +892,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // Loading input and output file from settings
     recon_load_config_from_sd();
-    freq_file_path = "/FREQMAN/" + output_file + ".TXT";
+    freq_file_path = get_freqman_path(output_file).string();
 
     field_recon_match_mode.set_selected_index(recon_match_mode);
     field_squelch.set_value(squelch);

@@ -314,17 +314,13 @@ ScannerView::ScannerView(
     // Button to load txt files from the FREQMAN folder
     button_load.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            std::string dir_filter = "FREQMAN/";
-            std::string str_file_path = new_file_path.string();
-
-            if (str_file_path.find(dir_filter) != std::string::npos) {  // assert file from the FREQMAN folder
+        open_view->push_dir(freqman_dir);
+        open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
+            if (new_file_path.native().find(freqman_dir.native()) == 0) {
                 scan_pause();
-                // get the filename without txt extension so we can use load_freqman_file fcn
-                std::string str_file_name = new_file_path.stem().string();
-                frequency_file_load(str_file_name, true);
+                frequency_file_load(new_file_path.stem().string(), true);
             } else {
-                nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
             }
         };
     };
@@ -494,6 +490,7 @@ ScannerView::ScannerView(
         bigdisplay_update(BDC_GREY);  // Back to grey color
     };
 
+    // TODO: remove this parsing?
     // Button to add current frequency (found during Search) to the Scan Frequency List
     button_add.on_select = [this](Button&) {
         File scanner_file;

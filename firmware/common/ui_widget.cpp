@@ -1482,11 +1482,11 @@ bool ImageOptionsField::on_touch(const TouchEvent event) {
 
 OptionsField::OptionsField(
     Point parent_pos,
-    int length,
+    size_t length,
     options_t options)
-    : Widget{{parent_pos, {8 * length, 16}}},
+    : Widget{{parent_pos, {8 * (int)length, 16}}},
       length_{length},
-      options{std::move(options)} {
+      options_{std::move(options)} {
     set_focusable(true);
 }
 
@@ -1494,16 +1494,20 @@ size_t OptionsField::selected_index() const {
     return selected_index_;
 }
 
-size_t OptionsField::selected_index_value() const {
-    return options[selected_index_].second;
+const OptionsField::name_t& OptionsField::selected_index_name() const {
+    return options_[selected_index_].first;
+}
+
+const OptionsField::value_t& OptionsField::selected_index_value() const {
+    return options_[selected_index_].second;
 }
 
 void OptionsField::set_selected_index(const size_t new_index, bool trigger_change) {
-    if (new_index < options.size()) {
+    if (new_index < options_.size()) {
         if (new_index != selected_index() || trigger_change) {
             selected_index_ = new_index;
             if (on_change) {
-                on_change(selected_index(), options[selected_index()].second);
+                on_change(selected_index(), options_[selected_index()].second);
             }
             set_dirty();
         }
@@ -1512,7 +1516,7 @@ void OptionsField::set_selected_index(const size_t new_index, bool trigger_chang
 
 void OptionsField::set_by_value(value_t v) {
     size_t new_index = 0;
-    for (const auto& option : options) {
+    for (const auto& option : options_) {
         if (option.second == v) {
             set_selected_index(new_index);
             return;
@@ -1529,7 +1533,7 @@ void OptionsField::set_by_nearest_value(value_t v) {
     size_t curr_index = 0;
     int32_t min_diff = INT32_MAX;
 
-    for (const auto& option : options) {
+    for (const auto& option : options_) {
         auto diff = abs(v - option.second);
         if (diff < min_diff) {
             min_diff = diff;
@@ -1543,7 +1547,7 @@ void OptionsField::set_by_nearest_value(value_t v) {
 }
 
 void OptionsField::set_options(options_t new_options) {
-    options = std::move(new_options);
+    options_ = std::move(new_options);
 
     // Set an invalid index to force on_change.
     selected_index_ = (size_t)-1;
@@ -1556,12 +1560,14 @@ void OptionsField::paint(Painter& painter) {
 
     painter.fill_rectangle({screen_rect().location(), {(int)length_ * 8, 16}}, ui::Color::black());
 
-    if (selected_index() < options.size()) {
-        const auto text = options[selected_index()].first;
+    if (selected_index() < options_.size()) {
+        std::string_view temp = selected_index_name();
+        if (temp.length() > length_)
+            temp = temp.substr(0, length_);
         painter.draw_string(
             screen_pos(),
             paint_style,
-            text);
+            selected_index_name());
     }
 }
 
@@ -1574,8 +1580,8 @@ void OptionsField::on_focus() {
 bool OptionsField::on_encoder(const EncoderEvent delta) {
     int32_t new_value = selected_index() + delta;
     if (new_value < 0)
-        new_value = options.size() - 1;
-    else if ((size_t)new_value >= options.size())
+        new_value = options_.size() - 1;
+    else if ((size_t)new_value >= options_.size())
         new_value = 0;
 
     set_selected_index(new_value);

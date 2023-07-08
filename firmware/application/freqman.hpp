@@ -53,7 +53,7 @@ bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_loa
 bool get_freq_string(freqman_entry& entry, std::string& item_string);
 bool delete_freqman_file(const std::string& file_stem);
 bool save_freqman_file(const std::string& file_stem, freqman_db& db);
-bool create_freqman_file(const std::string& file_stem, File& freqman_file);
+bool create_freqman_file(const std::string& file_stem);
 
 std::string freqman_item_string(freqman_entry& item, size_t max_length);
 

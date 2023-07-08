@@ -50,9 +50,7 @@ const option_t* find_by_index(const options_t& options, freqman_index_t index) {
 // TODO: move into FreqmanDB type
 /* Freqman file handling. */
 bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options) {
-    fs::path path{u"FREQMAN/"};
-    path += file_stem + ".TXT";
-    return parse_freqman_file(path, db, options);
+    return parse_freqman_file(get_freqman_path(file_stem), db, options);
 }
 
 bool get_freq_string(freqman_entry& entry, std::string& item_string) {
@@ -91,35 +89,31 @@ bool get_freq_string(freqman_entry& entry, std::string& item_string) {
 }
 
 bool delete_freqman_file(const std::string& file_stem) {
-    File freqman_file;
-    std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
-    delete_file(freq_file_path);
-    return false;
+    delete_file(get_freqman_path(file_stem));
+    return true;
 }
 
 bool save_freqman_file(const std::string& file_stem, freqman_db& db) {
+    auto path = get_freqman_path(file_stem);
+    delete_file(path);
+
     File freqman_file;
-    std::string freq_file_path = "/FREQMAN/" + file_stem + ".TXT";
-    delete_file(freq_file_path);
-    auto result = freqman_file.create(freq_file_path);
-    if (!result.is_valid()) {
-        for (size_t n = 0; n < db.size(); n++) {
-            std::string line;
-            get_freq_string(*db[n], line);
-            freqman_file.write_line(line);
-        }
-        return true;
-    }
-    return false;
-}
-
-bool create_freqman_file(const std::string& file_stem, File& freqman_file) {
-    auto result = freqman_file.create("FREQMAN/" + file_stem + ".TXT");
-
-    if (result.is_valid())
+    auto error = freqman_file.create(path);
+    if (error)
         return false;
 
+    std::string line;
+    for (size_t n = 0; n < db.size(); n++) {
+        get_freq_string(*db[n], line);
+        freqman_file.write_line(line);
+    }
+
     return true;
+}
+
+bool create_freqman_file(const std::string& file_stem) {
+    auto fs_error = make_new_file(get_freqman_path(file_stem));
+    return fs_error.ok();
 }
 
 std::string freqman_item_string(freqman_entry& entry, size_t max_length) {
