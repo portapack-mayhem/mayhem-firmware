@@ -492,20 +492,11 @@ uint16_t DebugFontsView::display_font(Painter& painter, uint16_t y_offset, const
 void DebugFontsView::paint(Painter& painter) {
     int16_t line_pos;
 
-    // 8x16 font
     line_pos = display_font(painter, 32, &Styles::white, "Fixed 8x16");
-
-    // 5x8 font
     display_font(painter, line_pos + 16, &Styles::white_small, "Fixed 5x8");
 }
 
-bool DebugFontsView::on_key(KeyEvent) {
-    nav_.pop();
-    return true;
-}
-
-DebugFontsView::DebugFontsView(NavigationView& nav)
-    : nav_{nav} {
+DebugFontsView::DebugFontsView(NavigationView& nav): nav_{nav} {
     set_focusable(true);
 }
 
