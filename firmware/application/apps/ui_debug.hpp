@@ -313,7 +313,6 @@ class DebugPmemView : public View {
 class DebugFontsView : public View {
    public:
     DebugFontsView(NavigationView& nav);
-    bool on_key(KeyEvent key) override;
     void paint(Painter& painter) override;
     std::string title() const override { return "Fonts"; };
 
