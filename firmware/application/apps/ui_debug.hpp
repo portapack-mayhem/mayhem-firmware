@@ -310,6 +310,17 @@ class DebugPmemView : public View {
     uint32_t registers_widget_feed(const size_t register_number);
 };
 
+class DebugFontsView : public View {
+   public:
+    DebugFontsView(NavigationView& nav);
+    void paint(Painter& painter) override;
+    std::string title() const override { return "Fonts"; };
+
+   private:
+    uint16_t display_font(Painter& painter, uint16_t y_offset, const Style* font_style, std::string_view font_name);
+    NavigationView& nav_;
+};
+
 /*class DebugLCRView : public View {
 public:
         DebugLCRView(NavigationView& nav, std::string lcrstring);
