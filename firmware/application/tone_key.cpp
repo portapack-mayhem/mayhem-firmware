@@ -88,25 +88,6 @@ std::string fx100_string(uint32_t f) {
     return to_string_dec_uint(f / 100) + "." + to_string_dec_uint((f / 10) % 10);
 }
 
-void tone_keys_populate(OptionsField& field) {
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    options_t tone_key_options;
-    std::string tone_name;
-
-    for (size_t c = 0; c < tone_keys.size(); c++) {
-        auto f = tone_keys[c].second;
-        if ((c != 0) && (f < 1000 * 100))
-            tone_name = "CTCSS " + fx100_string(f) + " #" + tone_keys[c].first;
-        else
-            tone_name = tone_keys[c].first;
-
-        tone_key_options.emplace_back(tone_name, c);
-    }
-
-    field.set_options(tone_key_options);
-}
-
 float tone_key_frequency(tone_index index) {
     return float(tone_keys[index].second) / 100.0;
 }
@@ -169,7 +150,7 @@ std::string tone_key_string_by_value(uint32_t value, size_t max_length) {
 // Value is in 0.01 Hz units
 tone_index tone_key_index_by_value(uint32_t value) {
     uint32_t diff;
-    uint32_t min_diff{value * 2};
+    uint32_t min_diff{UINT32_MAX};
     tone_index min_idx{-1};
     tone_index idx;
 
@@ -196,7 +177,7 @@ tone_index tone_key_index_by_string(char* str) {
     if (!str)
         return -1;
     for (tone_index index = 0; (unsigned)index < tone_keys.size(); index++) {
-        if (tone_keys[index].first.compare(str) >= 0)
+        if (tone_keys[index].first.compare(str) >= 0)  // TODO: why >=?
             return index;
     }
     return -1;

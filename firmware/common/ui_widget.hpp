@@ -575,10 +575,10 @@ class ImageOptionsField : public Widget {
     std::function<void(void)> on_show_options{};
 
     ImageOptionsField(
-        const Rect parent_rect,
-        const Color foreground,
-        const Color background,
-        const options_t options);
+        Rect parent_rect,
+        Color foreground,
+        Color background,
+        options_t options);
 
     ImageOptionsField()
         : ImageOptionsField{{}, Color::white(), Color::black(), {}} {

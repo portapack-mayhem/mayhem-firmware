@@ -22,21 +22,20 @@
 
 #include "ui_mictx.hpp"
 
-#include "baseband_api.hpp"
 #include "audio.hpp"
-
-#include "wm8731.hpp"
-using wolfson::wm8731::WM8731;
-
-#include "tonesets.hpp"
+#include "baseband_api.hpp"
+#include "irq_controls.hpp"
 #include "portapack_hal.hpp"
 #include "string_format.hpp"
-#include "irq_controls.hpp"
+#include "tonesets.hpp"
+#include "ui_tone_key.hpp"
+#include "wm8731.hpp"
 
 #include <cstring>
 
 using namespace tonekey;
 using namespace portapack;
+using wolfson::wm8731::WM8731;
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 

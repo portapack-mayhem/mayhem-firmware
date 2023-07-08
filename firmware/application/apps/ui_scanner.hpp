@@ -90,7 +90,7 @@ class ScannerView : public View {
 
     std::string title() const override { return "Scanner"; };
     std::vector<rf::Frequency> frequency_list{};
-    std::vector<string> description_list{};
+    std::vector<std::string> description_list{};
 
     // void set_parent_rect(const Rect new_parent_rect) override;
 

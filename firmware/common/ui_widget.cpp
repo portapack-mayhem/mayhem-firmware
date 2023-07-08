@@ -1390,12 +1390,12 @@ void ImageToggle::set_value(bool b) {
 /* ImageOptionsField *****************************************************/
 
 ImageOptionsField::ImageOptionsField(
-    const Rect parent_rect,
-    const Color foreground,
-    const Color background,
-    const options_t options)
+    Rect parent_rect,
+    Color foreground,
+    Color background,
+    options_t options)
     : Widget{parent_rect},
-      options{options},
+      options{std::move(options)},
       foreground_{foreground},
       background_{background} {
     set_focusable(true);
@@ -1437,7 +1437,7 @@ void ImageOptionsField::set_by_value(value_t v) {
 }
 
 void ImageOptionsField::set_options(options_t new_options) {
-    options = new_options;
+    options = std::move(new_options);
 
     // Set an invalid index to force on_change.
     selected_index_ = (size_t)-1;
@@ -1486,7 +1486,7 @@ OptionsField::OptionsField(
     options_t options)
     : Widget{{parent_pos, {8 * length, 16}}},
       length_{length},
-      options{options} {
+      options{std::move(options)} {
     set_focusable(true);
 }
 
@@ -1543,7 +1543,7 @@ void OptionsField::set_by_nearest_value(value_t v) {
 }
 
 void OptionsField::set_options(options_t new_options) {
-    options = new_options;
+    options = std::move(new_options);
 
     // Set an invalid index to force on_change.
     selected_index_ = (size_t)-1;
