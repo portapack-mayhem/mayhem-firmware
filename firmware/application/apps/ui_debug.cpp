@@ -496,7 +496,8 @@ void DebugFontsView::paint(Painter& painter) {
     display_font(painter, line_pos + 16, &Styles::white_small, "Fixed 5x8");
 }
 
-DebugFontsView::DebugFontsView(NavigationView& nav): nav_{nav} {
+DebugFontsView::DebugFontsView(NavigationView& nav)
+    : nav_{nav} {
     set_focusable(true);
 }
 
