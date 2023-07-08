@@ -144,7 +144,7 @@ struct freqman_entry {
 /* A reasonable maximum number of items to load from a freqman file.
  * Apps using freqman_db should be tested and this value tuned to
  * ensure app memory stability. */
-constexpr size_t freqman_default_max_entries = 150;
+constexpr size_t freqman_default_max_entries = 90;
 
 struct freqman_load_options {
     /* Loads all entries when set to 0. */
