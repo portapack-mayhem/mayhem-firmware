@@ -26,8 +26,6 @@
 #include "baseband_api.hpp"
 #include "utility.hpp"
 
-#include <algorithm>
-
 namespace ui {
 
 FreqManUIList::FreqManUIList(Rect parent_rect)
@@ -46,25 +44,36 @@ void FreqManUIList::paint(Painter& painter) {
         return;
     }
 
-    // TODO: over-limit color.
+    // Indicate when a file is too large by drawing in yellow.
+    auto over_max = db_->entry_count() > freqman_default_max_entries;
+    auto base_style = over_max ? &Styles::yellow : &Styles::white;
+
     // TODO: could minimize redraw/re-read if necessary
     //       with better change tracking.
-
     for (auto offset = 0u; offset < visible_lines_; ++offset) {
+        // The whole frame needs to be cleared so every line 'slot'
+        // is redrawn even when `text` just left empty.
         auto text = std::string{};
         auto index = start_index_ + offset;
-        auto line_position = rect.location() + Point{1, 1 + (int)offset * char_height};
-        auto& style = (offset == selected_index_ ? Styles::bg_white : Styles::white);
+        auto line_position = rect.location() + Point{4, 1 + (int)offset * char_height};
 
-        if (index < db_->entry_count())
-            text = freqman_item_string((*db_)[index], line_max_length);
+        // Highlight the selected item.
+        auto style = (offset == selected_index_) ? &Styles::bg_white : base_style;
+
+        if (index < db_->entry_count()) {
+            auto entry = (*db_)[index];
+            // db_ is directly backed by a file, so invalid lines cannot be
+            // pre-filtered. Just show an empty 'slot' in this case.
+            if (entry.type != freqman_type::Unknown)
+                text = freqman_item_string(entry, line_max_length);
+        }
 
         // Pad right with ' ' so trailing chars are cleaned up.
         // draw_glyph has less flicker than fill_rect when drawing.
         if (text.length() < line_max_length)
             text.resize(line_max_length, ' ');
 
-        painter.draw_string(line_position, style, text);
+        painter.draw_string(line_position, *style, text);
     }
 
     // Draw a bounding rectangle when focused.

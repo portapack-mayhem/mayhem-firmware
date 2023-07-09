@@ -173,7 +173,6 @@ bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqm
  * and empty lines in the file. This messes up the 'count' calculation.
  * Either have to live with 'size' being an upper bound have the callers
  * know to expect that entries may be empty. */
-
 // NB: This won't apply implicit mod/bandwidth.
 // TODO: Maybe just disallow empty lines and comments in freqman files?
 // TODO: Reuse for parse_freqman_file?
