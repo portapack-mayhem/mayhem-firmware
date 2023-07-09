@@ -51,19 +51,19 @@ void FreqManUIList::paint(Painter& painter) {
     //       with better change tracking.
 
     for (auto offset = 0u; offset < visible_lines_; ++offset) {
+        auto text = std::string{};
         auto index = start_index_ + offset;
-
-        if (index >= db_->entry_count())
-            break;
-
         auto line_position = rect.location() + Point{1, 1 + (int)offset * char_height};
         auto& style = (offset == selected_index_ ? Styles::bg_white : Styles::white);
-        auto text = freqman_item_string((*db_)[index], line_max_length);
+
+        if (index < db_->entry_count())
+            text = freqman_item_string((*db_)[index], line_max_length);
 
         // Pad right with ' ' so trailing chars are cleaned up.
-        // For some reason, draw_glyph has less flicker than fill_rect.
+        // draw_glyph has less flicker than fill_rect when drawing.
         if (text.length() < line_max_length)
             text.resize(line_max_length, ' ');
+
         painter.draw_string(line_position, style, text);
     }
 
