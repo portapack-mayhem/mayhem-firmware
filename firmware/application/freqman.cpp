@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -53,7 +54,7 @@ bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_loa
     return parse_freqman_file(get_freqman_path(file_stem), db, options);
 }
 
-bool get_freq_string(freqman_entry& entry, std::string& item_string) {
+bool get_freq_string(const freqman_entry& entry, std::string& item_string) {
     rf::Frequency frequency_a, frequency_b;
 
     frequency_a = entry.frequency_a;
@@ -116,7 +117,7 @@ bool create_freqman_file(const std::string& file_stem) {
     return fs_error.ok();
 }
 
-std::string freqman_item_string(freqman_entry& entry, size_t max_length) {
+std::string freqman_item_string(const freqman_entry& entry, size_t max_length) {
     std::string item_string;
 
     switch (entry.type) {
@@ -130,12 +131,12 @@ std::string freqman_item_string(freqman_entry& entry, size_t max_length) {
             item_string = "H: " + entry.description;
             break;
         default:
-            item_string = "!UNKNOWN TYPE " + entry.description;
+            item_string = "UNK: " + entry.description;
             break;
     }
 
     if (item_string.size() > max_length)
-        return item_string.substr(0, max_length - 3) + "...";
+        return item_string.substr(0, max_length - 1) + "+";
 
     return item_string;
 }

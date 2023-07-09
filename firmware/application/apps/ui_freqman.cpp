@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -22,107 +23,107 @@
 
 #include "ui_freqman.hpp"
 
-#include "portapack.hpp"
 #include "event_m0.hpp"
+#include "portapack.hpp"
+#include "utility.hpp"
+
+#include "debug.hpp"
 
 #include <memory>
 
 using namespace portapack;
+namespace fs = std::filesystem;
 
 namespace ui {
 
-static int32_t current_category_id = 0;
+/* FreqManBaseView ***************************************/
+
+size_t FreqManBaseView::current_category_index = 0;
 
 FreqManBaseView::FreqManBaseView(
     NavigationView& nav)
     : nav_(nav) {
-    add_children({&options_category,
-                  &label_category,
-                  &button_exit});
+    add_children(
+        {&label_category,
+         &options_category,
+         &button_exit});
 
-    // initialize
-    refresh_list();
-    options_category.on_change = [this](size_t category_id, int32_t) {
-        change_category(category_id);
+    options_category.on_change = [this](size_t new_index, int32_t) {
+        change_category(new_index);
     };
-    options_category.set_selected_index(current_category_id);
 
     button_exit.on_select = [this, &nav](Button&) {
         nav.pop();
     };
+
+    refresh_list();
 };
 
 void FreqManBaseView::focus() {
     button_exit.focus();
 
+    // TODO: Shouldn't be on focus.
     if (error_ == ERROR_ACCESS) {
-        nav_.display_modal("Error", "File acces error", ABORT, nullptr);
+        nav_.display_modal("Error", "File access error", ABORT, nullptr);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin /freqman", ABORT, nullptr);
+        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT, nullptr);
     } else {
         options_category.focus();
     }
 }
 
-void FreqManBaseView::get_freqman_files() {
-    // Assume this does change much, clear will preserve the existing alloc.
-    file_list.clear();
+void FreqManBaseView::change_category(size_t new_index) {
+    if (categories().empty())
+        return;
 
-    auto files = scan_root_files(u"FREQMAN", u"*.TXT");
-
-    for (auto file : files) {
-        std::string file_name = file.stem().string();
-        // don't propose tmp / hidden files in freqman's list
-        if (file_name.length() && file_name[0] != '.') {
-            file_list.emplace_back(std::move(file_name));
-        }
-    }
-};
-
-void FreqManBaseView::change_category(int32_t category_id) {
-    current_category_id = category_id;
-
-    if (file_list.empty()) return;
-
-    if (!load_freqman_file(file_list[categories[category_id].second], database, {})) {
+    current_category_index = new_index;
+    if (!db_.open(get_freqman_path(current_category()))) {
         error_ = ERROR_ACCESS;
     }
-    freqlist_view.set_db(database);
-    text_empty.hidden(!database.empty());
-    set_dirty();
+
+    freqlist_view.set_db(db_);
 }
 
 void FreqManBaseView::refresh_list() {
-    categories.clear();
-    get_freqman_files();
+    OptionsField::options_t new_categories;
 
-    for (size_t n = 0; n < file_list.size(); n++)
-        categories.emplace_back(std::make_pair(file_list[n].substr(0, 14), n));
+    scan_root_files(
+        freqman_dir, u"*.TXT", [&new_categories](const fs::path& path) {
+            // Skip temp/hidden files.
+            if (path.empty() || path.native()[0] == u'.')
+                return;
 
-    // Alphabetical sort
-    std::sort(categories.begin(), categories.end(), [](auto& left, auto& right) {
+            // The UI layer will truncate long file names when displaying.
+            new_categories.emplace_back(path.stem().string(), new_categories.size());
+        });
+
+    // Alphabetically sort the categories.
+    std::sort(new_categories.begin(), new_categories.end(), [](auto& left, auto& right) {
         return left.first < right.first;
     });
 
-    options_category.set_options(categories);
-    if ((unsigned)current_category_id >= categories.size())
-        current_category_id = categories.size() - 1;
+    // Preserve last selection; ensure in range.
+    current_category_index = clip(current_category_index, 0u, new_categories.size());
+    options_category.set_options(std::move(new_categories));
+    options_category.set_selected_index(current_category_index);
 }
 
+/* FrequencySaveView *************************************/
+
 void FrequencySaveView::save_current_file() {
-    save_freqman_file(file_list[categories[current_category_id].second], database);
+    // save_freqman_file(current_category(), database);
     nav_.pop();
 }
 
 void FrequencySaveView::on_save_name() {
-    text_prompt(nav_, desc_buffer, 28, [this](std::string& buffer) {
-        database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, buffer, freqman_type::Single}));
+    text_prompt(nav_, desc_buffer, 28, [this](std::string&) {
+        // database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, buffer, freqman_type::Single}));
         save_current_file();
     });
 }
 
 void FrequencySaveView::on_save_timestamp() {
-    database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, live_timestamp.string(), freqman_type::Single}));
+    // database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, live_timestamp.string(), freqman_type::Single}));
     save_current_file();
 }
 
@@ -133,19 +134,12 @@ FrequencySaveView::FrequencySaveView(
       value_(value) {
     desc_buffer.reserve(28);
 
-    // Todo: add back ?
-    /*for (size_t n = 0; n < database.size(); n++) {
-      if (database[n].value == value_) {
-      error_ = ERROR_DUPLICATE;
-      break;
-      }
-      }*/
-
-    add_children({&labels,
-                  &big_display,
-                  &button_save_name,
-                  &button_save_timestamp,
-                  &live_timestamp});
+    add_children(
+        {&labels,
+         &big_display,
+         &button_save_name,
+         &button_save_timestamp,
+         &live_timestamp});
 
     big_display.set(value);
 
@@ -155,140 +149,116 @@ FrequencySaveView::FrequencySaveView(
     button_save_timestamp.on_select = [this, &nav](Button&) {
         on_save_timestamp();
     };
-
     options_category.on_change = [this, value](size_t category_id, int32_t) {
         change_category(category_id);
-        big_display.set(value);
+        big_display.set(value);  // ???
     };
 }
 
-void FrequencyLoadView::refresh_widgets(const bool v) {
-    freqlist_view.hidden(v);
-    text_empty.hidden(!v);
-    // display.fill_rectangle(freqlist_view.screen_rect(), Color::black());
-    set_dirty();
-}
+/* FrequencyLoadView *************************************/
 
 FrequencyLoadView::FrequencyLoadView(
     NavigationView& nav)
     : FreqManBaseView(nav) {
-    on_refresh_widgets = [this](bool v) {
-        refresh_widgets(v);
-    };
+    add_children({&freqlist_view});
 
-    add_children({&freqlist_view,
-                  &text_empty});
+    // Resize to fill screen. +2 keeps text out of border.
+    freqlist_view.set_parent_rect({0, 3 * 8, screen_width, 15 * 16 + 2});
 
-    // Resize menu view to fill screen
-    freqlist_view.set_parent_rect({0, 3 * 8, 240, 30 * 8});
+    freqlist_view.on_select = [&nav, this](size_t index) {
+        auto entry = db_[index];
+        // TODO: Maybe return center of range if user choses a range when the app
+        // needs a unique frequency, instead of frequency_a?
+        auto has_range = entry.type == freqman_type::Range ||
+                         entry.type == freqman_type::HamRadio;
 
-    freqlist_view.on_select = [&nav, this](FreqManUIList&) {
-        auto& entry = database[freqlist_view.get_index()];
-        if (entry->type == freqman_type::Range) {
-            if (on_range_loaded)
-                on_range_loaded(entry->frequency_a, entry->frequency_b);
-            else if (on_frequency_loaded)
-                on_frequency_loaded(entry->frequency_a);
-            // TODO: Maybe return center of range if user choses a range when the app
-            // needs a unique frequency, instead of frequency_a?
-            // TODO: HamRadio?
-        } else {
-            if (on_frequency_loaded)
-                on_frequency_loaded(entry->frequency_a);
-        }
+        if (on_range_loaded && has_range)
+            on_range_loaded(entry.frequency_a, entry.frequency_b);
+        else if (on_frequency_loaded)
+            on_frequency_loaded(entry.frequency_a);
 
         nav_.pop();  // NB: this will call dtor.
     };
+    freqlist_view.on_leave = [this]() {
+        button_exit.focus();
+    };
 }
 
-void FrequencyManagerView::on_edit_freq(rf::Frequency f) {
-    database[freqlist_view.get_index()]->frequency_a = f;
-    save_freqman_file(file_list[categories[current_category_id].second], database);
-    change_category(current_category_id);
+/* FrequencyManagerView **********************************/
+// TODO: Why are all saves immediate?
+
+void FrequencyManagerView::on_edit_freq(rf::Frequency) {
+    // database[freqlist_view.get_index()]->frequency_a = f;
+    //  Save every time? Seems expensive.
+    // save_freqman_file(file_list[categories[current_category_index].second], database);
+    // change_category(current_category_index); ??? Refresh
 }
 
 void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
-    text_prompt(nav, desc_buffer, 28, [this](std::string& buffer) {
-        database[freqlist_view.get_index()]->description = std::move(buffer);
-        save_freqman_file(file_list[categories[current_category_id].second], database);
-        change_category(current_category_id);
+    text_prompt(nav, desc_buffer, 28, [this](std::string&) {
+        // database[freqlist_view.get_index()]->description = std::move(buffer);
+        //  Save every time? Seems expensive.
+        // save_freqman_file(file_list[categories[current_category_index].second], database);
+        // change_category(current_category_index);  ??? Refresh
     });
 }
 
 void FrequencyManagerView::on_new_category(NavigationView& nav) {
-    text_prompt(nav, desc_buffer, 12, [this](std::string& buffer) {
-        File freqman_file;
-        create_freqman_file(buffer, freqman_file);
+    text_prompt(nav, desc_buffer, 12, [this](std::string& new_name) {
+        create_freqman_file(new_name);
         refresh_list();
-        change_category(current_category_id);
     });
 }
 
 void FrequencyManagerView::on_delete() {
-    if (database.empty()) {
-        delete_freqman_file(file_list[categories[current_category_id].second]);
-        refresh_list();
-    } else {
-        database.erase(database.begin() + freqlist_view.get_index());
-        save_freqman_file(file_list[categories[current_category_id].second], database);
-    }
-    change_category(current_category_id);
-}
-
-void FrequencyManagerView::refresh_widgets(const bool v) {
-    button_edit_freq.hidden(v);
-    button_edit_desc.hidden(v);
-    button_delete.hidden(v);
-    text_empty.hidden(!v);
-    freqlist_view.hidden(v);
-    labels.hidden(v);
-    // display.fill_rectangle(freqlist_view.screen_rect(), Color::black());
-    set_dirty();
-}
-
-FrequencyManagerView::~FrequencyManagerView() {
-    // save_freqman_file(file_list[categories[current_category_id].second], database);
+    // if (db_.empty()) {
+    //     delete_freqman_file(current_category());
+    //     refresh_list();
+    // } else {
+    //     // TODO: clear
+    //     // database.erase(database.begin() + freqlist_view.get_index());
+    //     // save_freqman_file(file_list[categories[current_category_id].second], database);
+    // }
+    // change_category(current_category_index);
 }
 
 FrequencyManagerView::FrequencyManagerView(
     NavigationView& nav)
     : FreqManBaseView(nav) {
-    on_refresh_widgets = [this](bool v) {
-        refresh_widgets(v);
+    add_children(
+        {&freqlist_view,
+         &labels,
+         &button_new_category,
+         &button_edit_freq,
+         &button_edit_desc,
+         &button_delete});
+
+    freqlist_view.on_select = [this](size_t) {
+        button_edit_freq.focus();
     };
-
-    add_children({&labels,
-                  &button_new_category,
-                  &freqlist_view,
-                  &text_empty,
-                  &button_edit_freq,
-                  &button_edit_desc,
-                  &button_delete});
-
-    freqlist_view.on_select = [this](FreqManUIList&) {
+    // Allows for quickly exiting control.
+    freqlist_view.on_leave = [this]() {
         button_edit_freq.focus();
     };
 
     button_new_category.on_select = [this, &nav](Button&) {
-        desc_buffer = "";
+        desc_buffer.clear();
         on_new_category(nav);
     };
 
     button_edit_freq.on_select = [this, &nav](Button&) {
-        if (database.empty())
-            database.push_back(std::make_unique<freqman_entry>(freqman_entry{0, 0, "", freqman_type::Single}));
+        // TODO: Init, if empty.
 
-        auto new_view = nav.push<FrequencyKeypadView>(database[freqlist_view.get_index()]->frequency_a);
+        auto new_view = nav.push<FrequencyKeypadView>(current_entry().frequency_a);
         new_view->on_changed = [this](rf::Frequency f) {
             on_edit_freq(f);
         };
     };
 
     button_edit_desc.on_select = [this, &nav](Button&) {
-        if (database.empty())
-            database.push_back(std::make_unique<freqman_entry>(freqman_entry{0, 0, "", freqman_type::Single}));
+        // TODO: Init, if empty.
 
-        desc_buffer = database[freqlist_view.get_index()]->description;
+        desc_buffer = current_entry().description;
         on_edit_desc(nav);
     };
 

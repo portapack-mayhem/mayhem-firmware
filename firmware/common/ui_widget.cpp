@@ -1567,7 +1567,7 @@ void OptionsField::paint(Painter& painter) {
         painter.draw_string(
             screen_pos(),
             paint_style,
-            selected_index_name());
+            temp);
     }
 }
 

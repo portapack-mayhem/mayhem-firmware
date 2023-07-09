@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -20,15 +21,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "freqman.hpp"
+#include "freqman_db.hpp"
 #include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
+#include "ui_freqlist.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
+#include "ui_painter.hpp"
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
-#include "freqman.hpp"
-#include "ui_freqlist.hpp"
+#include "ui_widget.hpp"
 
 namespace ui {
 
@@ -40,49 +42,46 @@ class FreqManBaseView : public View {
     void focus() override;
 
    protected:
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
+    using options_t = OptionsField::options_t;
 
     NavigationView& nav_;
     freqman_error error_{NO_ERROR};
-    options_t categories{};
     std::function<void(void)> on_select_frequency{nullptr};
-    std::function<void(bool)> on_refresh_widgets{nullptr};
 
-    void get_freqman_files();
-    void change_category(int32_t category_id);
+    void change_category(size_t new_index);
+    /* Access the categories directly from the OptionsField.
+     * This avoids holding multiple copies of the file list. */
+    const options_t& categories() const { return options_category.options(); }
+    const auto& current_category() const { return options_category.selected_index_name(); }
+    freqman_entry current_entry() const { return db_[freqlist_view.get_index()]; }
     void refresh_list();
 
-    freqman_db database{};
-    std::vector<std::string> file_list{};
+    FreqmanDB db_{};
 
+    /* The top section (category) is 20px tall. */
     Labels label_category{
-        {{0, 4}, "Category:", Color::light_grey()}};
+        {{0, 2}, "Category:", Color::light_grey()}};
 
     OptionsField options_category{
-        {9 * 8, 4},
-        14,
+        {9 * 8, 2},
+        14 /* length */,
         {}};
 
     FreqManUIList freqlist_view{
-        {0, 3 * 8, 240, 23 * 8}};
-
-    Text text_empty{
-        {7 * 8, 12 * 8, 16 * 8, 16},
-        "Empty category !",
-    };
+        {0, 3 * 8, screen_width, 12 * 16 + 2 /* 2 Keeps text out of border. */}};
 
     Button button_exit{
-        {16 * 8, 34 * 8, 14 * 8, 4 * 8},
+        {15 * 8, 17 * 16, 15 * 8, 2 * 16},
         "Exit"};
 
-   private:
+   protected:
+    /* Static so selected category is persisted across UI instances. */
+    static size_t current_category_index;
 };
 
 class FrequencySaveView : public FreqManBaseView {
    public:
     FrequencySaveView(NavigationView& nav, const rf::Frequency value);
-
     std::string title() const override { return "Save freq."; };
 
    private:
@@ -94,20 +93,22 @@ class FrequencySaveView : public FreqManBaseView {
     void save_current_file();
 
     BigFrequency big_display{
-        {4, 2 * 16, 28 * 8, 32},
+        {0, 2 * 16, 28 * 8, 2 * 32},
         0};
 
     Labels labels{
-        {{1 * 8, 12 * 8}, "Save as:", Color::white()}};
+        {{1 * 8, 6 * 16}, "Save as:", Color::white()}};
 
     Button button_save_name{
-        {1 * 8, 17 * 8, 12 * 8, 48},
+        {1 * 8, 8 * 16, 12 * 8, 2 * 16},
         "Name (set)"};
+
     Button button_save_timestamp{
-        {1 * 8, 25 * 8, 12 * 8, 48},
+        {1 * 8, 13 * 16, 12 * 8, 2 * 16},
         "Timestamp:"};
+
     LiveDateTime live_timestamp{
-        {14 * 8, 27 * 8, 16 * 8, 16}};
+        {14 * 8, 14 * 16, 16 * 8, 1 * 16}};
 };
 
 class FrequencyLoadView : public FreqManBaseView {
@@ -116,45 +117,43 @@ class FrequencyLoadView : public FreqManBaseView {
     std::function<void(rf::Frequency, rf::Frequency)> on_range_loaded{};
 
     FrequencyLoadView(NavigationView& nav);
-
     std::string title() const override { return "Load freq."; };
 
    private:
-    void refresh_widgets(const bool v);
+    // void refresh_widgets(const bool v);
 };
 
 class FrequencyManagerView : public FreqManBaseView {
    public:
     FrequencyManagerView(NavigationView& nav);
-    ~FrequencyManagerView();
-
     std::string title() const override { return "Freqman"; };
 
    private:
     std::string desc_buffer{};
 
-    void refresh_widgets(const bool v);
+    // void refresh_widgets(const bool v);
     void on_edit_freq(rf::Frequency f);
     void on_edit_desc(NavigationView& nav);
     void on_new_category(NavigationView& nav);
     void on_delete();
 
     Labels labels{
-        {{4 * 8 + 4, 26 * 8}, "Edit:", Color::light_grey()}};
+        {{5 * 8, 14 * 16 - 4}, "Edit:", Color::light_grey()}};
 
     Button button_new_category{
-        {23 * 8, 2, 7 * 8, 20},
+        {23 * 8, 0 * 16, 7 * 8, 20},
         "New"};
 
     Button button_edit_freq{
-        {0 * 8, 29 * 8, 14 * 8, 32},
+        {0 * 8, 15 * 16, 15 * 8, 2 * 16},
         "Frequency"};
+
     Button button_edit_desc{
-        {0 * 8, 34 * 8, 14 * 8, 32},
+        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
         "Description"};
 
     Button button_delete{
-        {16 * 8, 29 * 8, 14 * 8, 32},
+        {15 * 8, 15 * 16, 15 * 8, 2 * 16},
         "Delete"};
 };
 

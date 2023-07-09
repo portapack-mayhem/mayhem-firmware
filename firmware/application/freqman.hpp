@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -50,12 +51,12 @@ enum freqman_entry_modulation : uint8_t {
 };
 
 bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
-bool get_freq_string(freqman_entry& entry, std::string& item_string);
+bool get_freq_string(const freqman_entry& entry, std::string& item_string);
 bool delete_freqman_file(const std::string& file_stem);
 bool save_freqman_file(const std::string& file_stem, freqman_db& db);
 bool create_freqman_file(const std::string& file_stem);
 
-std::string freqman_item_string(freqman_entry& item, size_t max_length);
+std::string freqman_item_string(const freqman_entry& item, size_t max_length);
 
 void freqman_set_bandwidth_option(freqman_index_t modulation, ui::OptionsField& option);
 void freqman_set_modulation_option(ui::OptionsField& option);

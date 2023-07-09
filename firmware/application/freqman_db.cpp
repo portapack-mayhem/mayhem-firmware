@@ -36,6 +36,14 @@
 
 namespace fs = std::filesystem;
 
+const std::filesystem::path freqman_dir{u"/FREQMAN"};
+const std::filesystem::path freqman_extension{u".TXT"};
+
+const std::filesystem::path get_freqman_path(const std::string& stem) {
+    return freqman_dir / stem + freqman_extension;
+}
+
+// NB: Don't include UI headers to keep this code unit testable.
 using option_t = std::pair<std::string, int32_t>;
 using options_t = std::vector<option_t>;
 
@@ -276,4 +284,28 @@ bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_optio
 
     db.shrink_to_fit();
     return true;
+}
+
+/* FreqmanDB ***********************************/
+
+bool FreqmanDB::open(const std::filesystem::path& path) {
+    auto result = FileWrapper::open(path);
+    if (!result)
+        return false;
+
+    wrapper_ = *std::move(result);
+    return true;
+}
+
+freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
+    auto length = wrapper_->line_length(line);
+    auto line_text = wrapper_->get_text(line, 0, length);
+
+    if (line_text) {
+        freqman_entry entry;
+        if (parse_freqman_entry(*line_text, entry))
+            return entry;
+    }
+
+    return {};
 }
