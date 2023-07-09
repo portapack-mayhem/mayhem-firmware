@@ -1112,11 +1112,13 @@ NewButton::NewButton(
     Rect parent_rect,
     std::string text,
     const Bitmap* bitmap,
-    Color color)
+    Color color,
+    bool vertical_center)
     : Widget{parent_rect},
       text_{text},
       bitmap_{bitmap},
-      color_{color} {
+      color_{color},
+      vertical_center_{vertical_center} {
     set_focusable(true);
 }
 
@@ -1143,6 +1145,11 @@ void NewButton::set_color(Color color) {
     set_dirty();
 }
 
+void NewButton::set_vertical_center(bool value) {
+    vertical_center_ = value;
+    set_dirty();
+}
+
 ui::Color NewButton::color() {
     return color_;
 }
@@ -1164,28 +1171,34 @@ void NewButton::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
-    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
-    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
+    painter.draw_rectangle({r.location(), {r.width(), 1}}, Color::light_grey());
+    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Color::dark_grey());
+    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Color::dark_grey());
 
     painter.fill_rectangle(
-        {r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2},
+        {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
         paint_style.background);
 
-    int y = r.location().y();
+    int y = r.top();
     if (bitmap_) {
+        int offset_y = vertical_center_ ? (r.height() / 2) - (bitmap_->size.height() / 2) : 6;
+        Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + offset_y};
+        y += bitmap_->size.height() - offset_y;
+
         painter.draw_bitmap(
-            {r.location().x() + (r.size().width() / 2) - 8, r.location().y() + 6},
+            bmp_pos,
             *bitmap_,
             color_,  // Color::green(), //fg,
             bg);
-        y += 10;
     }
-    const auto label_r = paint_style.font.size_of(text_);
-    painter.draw_string(
-        {r.location().x() + (r.size().width() - label_r.width()) / 2, y + (r.size().height() - label_r.height()) / 2},
-        paint_style,
-        text_);
+
+    if (!text_.empty()) {
+        const auto label_r = paint_style.font.size_of(text_);
+        painter.draw_string(
+            {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
+            paint_style,
+            text_);
+    }
 }
 
 void NewButton::on_focus() {

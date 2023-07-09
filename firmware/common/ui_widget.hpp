@@ -455,7 +455,8 @@ class NewButton : public Widget {
     NewButton(const NewButton&) = delete;
     NewButton& operator=(const NewButton&) = delete;
     NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
-    NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color);
+    NewButton(Rect parent_rect, std::string text,
+              const Bitmap* bitmap, Color color, bool vertical_center = false);
     NewButton()
         : NewButton{{}, {}, {}} {
     }
@@ -463,6 +464,7 @@ class NewButton : public Widget {
     void set_bitmap(const Bitmap* bitmap);
     void set_text(const std::string value);
     void set_color(Color value);
+    void set_vertical_center(bool value);
     std::string text() const;
     const Bitmap* bitmap();
     ui::Color color();
@@ -477,6 +479,7 @@ class NewButton : public Widget {
     std::string text_;
     const Bitmap* bitmap_;
     Color color_;
+    bool vertical_center_{false};
 };
 
 class Image : public Widget {
