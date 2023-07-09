@@ -146,15 +146,12 @@ uint8_t find_by_name(const options_t& options, std::string_view name) {
  *}
  */
 
-// TODO: How much format validation should this do?
-// It's very permissive right now, but entries can be invalid.
-// TODO: parse_int seems to hang on invalid input.
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     if (str.empty() || str[0] == '#')
         return false;
 
-    auto cols = split_string(str, ',');
     entry = freqman_entry{};
+    auto cols = split_string(str, ',');
 
     for (auto col : cols) {
         if (col.empty())
@@ -214,6 +211,24 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
             parse_int(value, entry.frequency_b);
         }
     }
+
+    // No valid frequency combination was set.
+    if (entry.type == freqman_type::Unknown)
+        return false;
+
+    // Ranges should have both frequencies set and A <= B.
+    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
+        if (entry.frequency_a == 0 || entry.frequency_b == 0)
+            return false;
+
+        if (entry.frequency_a > entry.frequency_b)
+            return false;
+    }
+
+    // TODO: Consider additional validation:
+    // - Tone only on HamRadio.
+    // - Fail on failed parse_int.
+    // - Fail if bandwidth set before modulation.
 
     return true;
 }
