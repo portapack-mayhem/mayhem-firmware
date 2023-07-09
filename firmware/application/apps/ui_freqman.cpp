@@ -187,15 +187,22 @@ FrequencyLoadView::FrequencyLoadView(
 /* FrequencyManagerView **********************************/
 // TODO: Why are all saves immediate?
 
-void FrequencyManagerView::on_edit_freq(rf::Frequency) {
+void FrequencyManagerView::on_edit_freq() {
+
+        //     // TODO: Init, if empty.
+        // auto new_view = nav.push<FrequencyKeypadView>(current_entry().frequency_a);
+        // new_view->on_changed = [this](rf::Frequency f) {
+        //     on_edit_freq();
+        // };
     // database[freqlist_view.get_index()]->frequency_a = f;
     //  Save every time? Seems expensive.
     // save_freqman_file(file_list[categories[current_category_index].second], database);
     // change_category(current_category_index); ??? Refresh
 }
 
-void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
-    text_prompt(nav, desc_buffer, 28, [this](std::string&) {
+void FrequencyManagerView::on_edit_desc() {
+    desc_buffer = current_entry().description;
+    text_prompt(nav_, desc_buffer, 28, [this](std::string&) {
         // database[freqlist_view.get_index()]->description = std::move(buffer);
         //  Save every time? Seems expensive.
         // save_freqman_file(file_list[categories[current_category_index].second], database);
@@ -203,14 +210,39 @@ void FrequencyManagerView::on_edit_desc(NavigationView& nav) {
     });
 }
 
-void FrequencyManagerView::on_new_category(NavigationView& nav) {
-    text_prompt(nav, desc_buffer, 12, [this](std::string& new_name) {
-        create_freqman_file(new_name);
-        refresh_list();
+void FrequencyManagerView::on_add_category() {
+    desc_buffer.clear();
+    text_prompt(nav_, desc_buffer, 12, [this](std::string& new_name) {
+        if (!new_name.empty()) {
+            create_freqman_file(new_name);
+            refresh_list();
+        }
     });
 }
 
-void FrequencyManagerView::on_delete() {
+void FrequencyManagerView::on_del_category() {
+    // desc_buffer.clear();
+    // text_prompt(nav_, desc_buffer, 12, [this](std::string& new_name) {
+    //     if (!new_name.empty()) {
+    //         create_freqman_file(new_name);
+    //         refresh_list();
+    //     }
+    // });
+}
+
+void FrequencyManagerView::on_add_entry() {
+    // if (db_.empty()) {
+    //     delete_freqman_file(current_category());
+    //     refresh_list();
+    // } else {
+    //     // TODO: clear
+    //     // database.erase(database.begin() + freqlist_view.get_index());
+    //     // save_freqman_file(file_list[categories[current_category_id].second], database);
+    // }
+    // change_category(current_category_index);
+}
+
+void FrequencyManagerView::on_del_entry() {
     // if (db_.empty()) {
     //     delete_freqman_file(current_category());
     //     refresh_list();
@@ -228,10 +260,12 @@ FrequencyManagerView::FrequencyManagerView(
     add_children(
         {&freqlist_view,
          &labels,
-         &button_new_category,
+         &button_add_category,
+         &button_del_category,
          &button_edit_freq,
          &button_edit_desc,
-         &button_delete});
+         &button_add_entry,
+         &button_del_entry});
 
     freqlist_view.on_select = [this](size_t) {
         button_edit_freq.focus();
@@ -241,29 +275,28 @@ FrequencyManagerView::FrequencyManagerView(
         button_edit_freq.focus();
     };
 
-    button_new_category.on_select = [this, &nav](Button&) {
-        desc_buffer.clear();
-        on_new_category(nav);
+    button_add_category.on_select = [this]() {
+        on_add_category();
     };
 
-    button_edit_freq.on_select = [this, &nav](Button&) {
-        // TODO: Init, if empty.
-
-        auto new_view = nav.push<FrequencyKeypadView>(current_entry().frequency_a);
-        new_view->on_changed = [this](rf::Frequency f) {
-            on_edit_freq(f);
-        };
+    button_del_category.on_select = [this]() {
+        on_del_category();
     };
 
-    button_edit_desc.on_select = [this, &nav](Button&) {
-        // TODO: Init, if empty.
-
-        desc_buffer = current_entry().description;
-        on_edit_desc(nav);
+    button_edit_freq.on_select = [this](Button&) {
+        on_edit_freq();
     };
 
-    button_delete.on_select = [this, &nav](Button&) {
-        on_delete();
+    button_edit_desc.on_select = [this](Button&) {
+        on_edit_desc();
+    };
+
+    button_add_entry.on_select = [this]() {
+        on_add_entry();
+    };
+
+    button_del_entry.on_select = [this]() {
+        on_del_entry();
     };
 }
 

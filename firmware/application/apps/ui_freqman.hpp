@@ -120,7 +120,6 @@ class FrequencyLoadView : public FreqManBaseView {
     std::string title() const override { return "Load freq."; };
 
    private:
-    // void refresh_widgets(const bool v);
 };
 
 class FrequencyManagerView : public FreqManBaseView {
@@ -131,18 +130,29 @@ class FrequencyManagerView : public FreqManBaseView {
    private:
     std::string desc_buffer{};
 
-    // void refresh_widgets(const bool v);
-    void on_edit_freq(rf::Frequency f);
-    void on_edit_desc(NavigationView& nav);
-    void on_new_category(NavigationView& nav);
-    void on_delete();
+    void on_edit_freq();
+    void on_edit_desc();
+    void on_add_category();
+    void on_del_category();
+    void on_add_entry();
+    void on_del_entry();
 
     Labels labels{
         {{5 * 8, 14 * 16 - 4}, "Edit:", Color::light_grey()}};
 
-    Button button_new_category{
-        {23 * 8, 0 * 16, 7 * 8, 20},
-        "New"};
+    NewButton button_add_category{
+        {23 * 8, 0 * 16, 7 * 4, 20},
+        {},
+        &bitmap_icon_new_file,
+        Color::white(),
+        true};
+    
+    NewButton button_del_category{
+        {26 * 8 + 4, 0 * 16, 7 * 4, 20},
+        {},
+        &bitmap_icon_trash,
+        Color::red(),
+        true};
 
     Button button_edit_freq{
         {0 * 8, 15 * 16, 15 * 8, 2 * 16},
@@ -152,9 +162,19 @@ class FrequencyManagerView : public FreqManBaseView {
         {0 * 8, 17 * 16, 15 * 8, 2 * 16},
         "Description"};
 
-    Button button_delete{
-        {15 * 8, 15 * 16, 15 * 8, 2 * 16},
-        "Delete"};
+    NewButton button_add_entry{
+        {15 * 8, 15 * 16, 7 * 8 + 4, 2 * 16},
+        {},
+        &bitmap_icon_add,
+        Color::white(),
+        true};
+
+    NewButton button_del_entry{
+        {22 * 8 + 4, 15 * 16, 7 * 8 + 4, 2 * 16},
+        {},
+        &bitmap_icon_delete,
+        Color::red(),
+        true};
 };
 
 } /* namespace ui */
