@@ -221,7 +221,7 @@ void FrequencyManagerView::on_del_category() {
         "Delete", "Delete " + current_category() + "\nAre you sure?", YESNO,
         [this](bool choice) {
             if (choice) {
-                db_.close(); // Ensure file is closed.
+                db_.close();  // Ensure file is closed.
                 auto path = get_freqman_path(current_category());
                 delete_file(path);
                 refresh_list();

@@ -145,7 +145,7 @@ class FrequencyManagerView : public FreqManBaseView {
         &bitmap_icon_new_file,
         Color::white(),
         true};
-    
+
     NewButton button_del_category{
         {26 * 8 + 4, 0 * 16, 7 * 4, 20},
         {},

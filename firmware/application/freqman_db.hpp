@@ -198,8 +198,8 @@ class FreqmanDB {
     void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
     void delete_entry(FileWrapper::Line line);
 
-    uint32_t entry_count() const { return wrapper_->line_count(); }
-    bool empty() const { return entry_count() == 0; }
+    uint32_t entry_count() const;
+    bool empty() const;
 
     iterator begin();
     iterator end();

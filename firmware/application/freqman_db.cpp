@@ -345,3 +345,14 @@ void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry
 void FreqmanDB::delete_entry(FileWrapper::Line line) {
     wrapper_->delete_line(line);
 }
+
+uint32_t FreqmanDB::entry_count() const {
+    // FileWrapper always presents a single line even for empty files.
+    return empty() ? 0u : wrapper_->line_count();
+}
+
+bool FreqmanDB::empty() const {
+    // FileWrapper always presents a single line even for empty files.
+    // A DB is only really empty if the file size is 0.
+    return !wrapper_ || wrapper_->size() == 0;
+}

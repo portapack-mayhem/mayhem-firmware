@@ -455,8 +455,7 @@ class NewButton : public Widget {
     NewButton(const NewButton&) = delete;
     NewButton& operator=(const NewButton&) = delete;
     NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
-    NewButton(Rect parent_rect, std::string text,
-              const Bitmap* bitmap, Color color, bool vertical_center = false);
+    NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color, bool vertical_center = false);
     NewButton()
         : NewButton{{}, {}, {}} {
     }
