@@ -4,7 +4,7 @@ import sys
 
 past_version = sys.argv[1]
 
-raw_git = os.popen('git log ' + past_version + '..next --pretty=format:"- %h - {USERNAME}*+%al-%an*: %s"').read()
+raw_git = os.popen('git log ' + past_version + '..next --pretty=format:"- %h - *+%al-%an*: %s"').read()
 raw_merge_log = os.popen('git log ' + past_version + '..next --merges --pretty=format:"%s"').read()
 
 
@@ -23,7 +23,6 @@ def compute_username(line):
 def compile_line(line):
     username = compute_username(line)
     line = re.sub(r'[*].*[*]', "", line)
-    line = line.replace("{USERNAME}", username)
     return line
 
 
