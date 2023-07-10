@@ -117,24 +117,26 @@ bool create_freqman_file(const std::string& file_stem) {
     return fs_error.ok();
 }
 
+// TODO: show ranges in string
 std::string freqman_item_string(const freqman_entry& entry, size_t max_length) {
     std::string item_string;
 
     switch (entry.type) {
         case freqman_type::Single:
-            item_string = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
+            item_string = to_string_short_freq(entry.frequency_a) + "M:" + entry.description;
             break;
         case freqman_type::Range:
-            item_string = "R: " + entry.description;
+            item_string = "R:" + entry.description;
             break;
         case freqman_type::HamRadio:
-            item_string = "H: " + entry.description;
+            item_string = "H:" + entry.description;
             break;
         default:
-            item_string = "UNK: " + entry.description;
+            item_string = "UNK:" + entry.description;
             break;
     }
 
+    // Indicate that the string has been truncated.
     if (item_string.size() > max_length)
         return item_string.substr(0, max_length - 1) + "+";
 

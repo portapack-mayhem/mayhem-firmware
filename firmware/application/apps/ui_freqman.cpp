@@ -27,8 +27,6 @@
 #include "portapack.hpp"
 #include "utility.hpp"
 
-#include "debug.hpp"
-
 #include <memory>
 
 using namespace portapack;
@@ -104,8 +102,9 @@ void FreqManBaseView::refresh_list() {
 
     // Preserve last selection; ensure in range.
     current_category_index = clip(current_category_index, 0u, new_categories.size());
+    auto saved_index = current_category_index;
     options_category.set_options(std::move(new_categories));
-    options_category.set_selected_index(current_category_index);
+    options_category.set_selected_index(saved_index);
 }
 
 /* FrequencySaveView *************************************/
@@ -116,7 +115,7 @@ void FrequencySaveView::save_current_file() {
 }
 
 void FrequencySaveView::on_save_name() {
-    text_prompt(nav_, desc_buffer, 28, [this](std::string&) {
+    text_prompt(nav_, temp_buffer_, 28, [this](std::string&) {
         // database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, buffer, freqman_type::Single}));
         save_current_file();
     });
@@ -132,7 +131,7 @@ FrequencySaveView::FrequencySaveView(
     const rf::Frequency value)
     : FreqManBaseView(nav),
       value_(value) {
-    desc_buffer.reserve(28);
+    temp_buffer_.reserve(28);
 
     add_children(
         {&labels,
@@ -185,34 +184,31 @@ FrequencyLoadView::FrequencyLoadView(
 }
 
 /* FrequencyManagerView **********************************/
-// TODO: Why are all saves immediate?
 
 void FrequencyManagerView::on_edit_freq() {
-
-        //     // TODO: Init, if empty.
-        // auto new_view = nav.push<FrequencyKeypadView>(current_entry().frequency_a);
-        // new_view->on_changed = [this](rf::Frequency f) {
-        //     on_edit_freq();
-        // };
-    // database[freqlist_view.get_index()]->frequency_a = f;
-    //  Save every time? Seems expensive.
-    // save_freqman_file(file_list[categories[current_category_index].second], database);
-    // change_category(current_category_index); ??? Refresh
+    // TODO: range edit support?
+    auto freq_edit_view = nav_.push<FrequencyKeypadView>(current_entry().frequency_a);
+    freq_edit_view->on_changed = [this](rf::Frequency f) {
+        auto entry = current_entry();
+        entry.frequency_a = f;
+        db_.replace_entry(current_index(), entry);
+        freqlist_view.set_dirty();
+    };
 }
 
 void FrequencyManagerView::on_edit_desc() {
-    desc_buffer = current_entry().description;
-    text_prompt(nav_, desc_buffer, 28, [this](std::string&) {
-        // database[freqlist_view.get_index()]->description = std::move(buffer);
-        //  Save every time? Seems expensive.
-        // save_freqman_file(file_list[categories[current_category_index].second], database);
-        // change_category(current_category_index);  ??? Refresh
+    temp_buffer_ = current_entry().description;
+    text_prompt(nav_, temp_buffer_, 28, [this](std::string& new_desc) {
+        auto entry = current_entry();
+        entry.description = std::move(new_desc);
+        db_.replace_entry(current_index(), entry);
+        freqlist_view.set_dirty();
     });
 }
 
 void FrequencyManagerView::on_add_category() {
-    desc_buffer.clear();
-    text_prompt(nav_, desc_buffer, 12, [this](std::string& new_name) {
+    temp_buffer_.clear();
+    text_prompt(nav_, temp_buffer_, 12, [this](std::string& new_name) {
         if (!new_name.empty()) {
             create_freqman_file(new_name);
             refresh_list();
@@ -221,37 +217,41 @@ void FrequencyManagerView::on_add_category() {
 }
 
 void FrequencyManagerView::on_del_category() {
-    // desc_buffer.clear();
-    // text_prompt(nav_, desc_buffer, 12, [this](std::string& new_name) {
-    //     if (!new_name.empty()) {
-    //         create_freqman_file(new_name);
-    //         refresh_list();
-    //     }
-    // });
+    nav_.push<ModalMessageView>(
+        "Delete", "Delete " + current_category() + "\nAre you sure?", YESNO,
+        [this](bool choice) {
+            if (choice) {
+                db_.close(); // Ensure file is closed.
+                auto path = get_freqman_path(current_category());
+                delete_file(path);
+                refresh_list();
+            }
+        });
 }
 
 void FrequencyManagerView::on_add_entry() {
-    // if (db_.empty()) {
-    //     delete_freqman_file(current_category());
-    //     refresh_list();
-    // } else {
-    //     // TODO: clear
-    //     // database.erase(database.begin() + freqlist_view.get_index());
-    //     // save_freqman_file(file_list[categories[current_category_id].second], database);
-    // }
-    // change_category(current_category_index);
+    freqman_entry entry{
+        .frequency_a = 100'000'000,
+        .description = std::string{"Entry "} + to_string_dec_uint(current_index() + 1),
+        .type = freqman_type::Single,
+    };
+
+    db_.append_entry(entry);
+    freqlist_view.set_dirty();
 }
 
 void FrequencyManagerView::on_del_entry() {
-    // if (db_.empty()) {
-    //     delete_freqman_file(current_category());
-    //     refresh_list();
-    // } else {
-    //     // TODO: clear
-    //     // database.erase(database.begin() + freqlist_view.get_index());
-    //     // save_freqman_file(file_list[categories[current_category_id].second], database);
-    // }
-    // change_category(current_category_index);
+    if (db_.empty())
+        return;
+
+    nav_.push<ModalMessageView>(
+        "Delete", "Delete entry?\nAre you sure?", YESNO,
+        [this](bool choice) {
+            if (choice) {
+                db_.delete_entry(current_index());
+                freqlist_view.set_dirty();
+            }
+        });
 }
 
 FrequencyManagerView::FrequencyManagerView(

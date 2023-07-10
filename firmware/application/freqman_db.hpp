@@ -166,12 +166,13 @@ struct freqman_load_options {
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
+std::string to_freqman_string(const freqman_entry& entry);
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
 bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqman_load_options options);
 
 /* The tricky part of using the file directly is that there can be comments
  * and empty lines in the file. This messes up the 'count' calculation.
- * Either have to live with 'size' being an upper bound have the callers
+ * Either have to live with 'count' being an upper bound have the callers
  * know to expect that entries may be empty. */
 // NB: This won't apply implicit mod/bandwidth.
 // TODO: Maybe just disallow empty lines and comments in freqman files?
@@ -191,15 +192,17 @@ class FreqmanDB {
     };
 
     bool open(const std::filesystem::path& path);
+    void close();
     freqman_entry operator[](FileWrapper::Line line) const;
+    void append_entry(const freqman_entry& entry);
+    void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
+    void delete_entry(FileWrapper::Line line);
 
     uint32_t entry_count() const { return wrapper_->line_count(); }
     bool empty() const { return entry_count() == 0; }
 
     iterator begin();
     iterator end();
-
-    // TODO: Save/Delete/Rename
 
    private:
     std::unique_ptr<FileWrapper> wrapper_{};

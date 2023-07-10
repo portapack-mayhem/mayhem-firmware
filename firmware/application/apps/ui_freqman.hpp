@@ -53,7 +53,8 @@ class FreqManBaseView : public View {
      * This avoids holding multiple copies of the file list. */
     const options_t& categories() const { return options_category.options(); }
     const auto& current_category() const { return options_category.selected_index_name(); }
-    freqman_entry current_entry() const { return db_[freqlist_view.get_index()]; }
+    auto current_index() const { return freqlist_view.get_index(); }
+    freqman_entry current_entry() const { return db_[current_index()]; }
     void refresh_list();
 
     FreqmanDB db_{};
@@ -82,10 +83,10 @@ class FreqManBaseView : public View {
 class FrequencySaveView : public FreqManBaseView {
    public:
     FrequencySaveView(NavigationView& nav, const rf::Frequency value);
-    std::string title() const override { return "Save freq."; };
+    std::string title() const override { return "Save freq"; };
 
    private:
-    std::string desc_buffer{};
+    std::string temp_buffer_{};
     rf::Frequency value_{};
 
     void on_save_name();
@@ -93,7 +94,7 @@ class FrequencySaveView : public FreqManBaseView {
     void save_current_file();
 
     BigFrequency big_display{
-        {0, 2 * 16, 28 * 8, 2 * 32},
+        {0, 2 * 16, 28 * 8, 4 * 16},
         0};
 
     Labels labels{
@@ -117,9 +118,7 @@ class FrequencyLoadView : public FreqManBaseView {
     std::function<void(rf::Frequency, rf::Frequency)> on_range_loaded{};
 
     FrequencyLoadView(NavigationView& nav);
-    std::string title() const override { return "Load freq."; };
-
-   private:
+    std::string title() const override { return "Load freq"; };
 };
 
 class FrequencyManagerView : public FreqManBaseView {
@@ -128,7 +127,7 @@ class FrequencyManagerView : public FreqManBaseView {
     std::string title() const override { return "Freqman"; };
 
    private:
-    std::string desc_buffer{};
+    std::string temp_buffer_{};
 
     void on_edit_freq();
     void on_edit_desc();

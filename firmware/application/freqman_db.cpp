@@ -154,6 +154,19 @@ uint8_t find_by_name(const options_t& options, std::string_view name) {
  *}
  */
 
+// TODO: Rewrite here.
+extern bool get_freq_string(const freqman_entry& entry, std::string& item_string);
+
+std::string to_freqman_string(const freqman_entry& entry) {
+    std::string serialized;
+    serialized.reserve(100);
+    get_freq_string(entry, serialized);
+    return serialized;
+}
+
+// TODO: How much format validation should this do?
+// It's very permissive right now, but entries can be invalid.
+// TODO: parse_int seems to hang on invalid input.
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     if (str.empty() || str[0] == '#')
         return false;
@@ -297,6 +310,10 @@ bool FreqmanDB::open(const std::filesystem::path& path) {
     return true;
 }
 
+void FreqmanDB::close() {
+    wrapper_.reset();
+}
+
 freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
     auto length = wrapper_->line_length(line);
     auto line_text = wrapper_->get_text(line, 0, length);
@@ -308,4 +325,23 @@ freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
     }
 
     return {};
+}
+
+void FreqmanDB::append_entry(const freqman_entry& entry) {
+    // TODO: Can be more efficient.
+    auto next_line = wrapper_->line_count();
+    wrapper_->insert_line(next_line);
+    replace_entry(next_line, entry);
+}
+
+void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry) {
+    auto range = wrapper_->line_range(line);
+    if (!range)
+        return;  // TODO: Message?
+
+    wrapper_->replace_range(*range, to_freqman_string(entry));
+}
+
+void FreqmanDB::delete_entry(FileWrapper::Line line) {
+    wrapper_->delete_line(line);
 }
