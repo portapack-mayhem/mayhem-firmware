@@ -2,7 +2,8 @@ import os
 import re
 import sys
 
-raw_git = os.popen('git log next --since="24 hours" --pretty=format:"- %h - {USERNAME}*+%al-%an*: %s"').read()
+raw_git = os.popen('git log next --since="24 hours" --pretty=format:"- %h - *+%al-%an*: %s"').read()
+raw_merge_log = os.popen('git log next --merges --since="2400 hours" --pretty=format:"%s"').read()
 
 
 def compute_username(line):
@@ -20,9 +21,33 @@ def compute_username(line):
 def compile_line(line):
     username = compute_username(line)
     line = re.sub(r'[*].*[*]', "", line)
-    line = line.replace("{USERNAME}", username)
     return line
+
+
+def merge_log_line_to_author_username(line):
+    if re.search(r'Merge pull request #\d+ from ([A-Za-z\d-]+)', line) is None:
+        return None
+    return "@" + re.search(r'Merge pull request #\d+ from ([A-Za-z\d-]+)/([A-Za-z\d-]+)', line).group(1)
+
+
+def rank_authors():
+    authors = {}
+    for name_item in raw_merge_log.splitlines():
+        author = merge_log_line_to_author_username(name_item)
+        if author is None:
+            continue
+        if author in authors:
+            authors[author] += 1
+        else:
+            authors[author] = 1
+    return authors
 
 
 for row in raw_git.splitlines():
     print(compile_line(row))
+
+print("\n\ncontributors:")
+
+authors = rank_authors()
+for author in authors:
+    print(author + " : " + str(authors[author]) + " PRs")
