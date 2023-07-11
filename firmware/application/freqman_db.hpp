@@ -1,7 +1,8 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * Copyright (C) 2023 gullradriel, Nilorea Studio Inc., Kyle Reed
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -25,6 +26,7 @@
 #define __FREQMAN_DB_H__
 
 #include "file.hpp"
+#include "file_wrapper.hpp"
 #include "utility.hpp"
 
 #include <array>
@@ -32,6 +34,10 @@
 #include <string>
 #include <string_view>
 #include <vector>
+
+/* Defined in freqman_db.cpp */
+extern const std::filesystem::path freqman_dir;
+extern const std::filesystem::path freqman_extension;
 
 using freqman_index_t = uint8_t;
 constexpr freqman_index_t freqman_invalid_index = static_cast<freqman_index_t>(-1);
@@ -45,6 +51,9 @@ constexpr bool is_valid(freqman_index_t index) {
 constexpr bool is_invalid(freqman_index_t index) {
     return index == freqman_invalid_index;
 }
+
+/* Gets the full path for a given file stem (no extension). */
+const std::filesystem::path get_freqman_path(const std::string& stem);
 
 enum class freqman_type : uint8_t {
     Single,    // f=
@@ -141,10 +150,16 @@ struct freqman_entry {
     freqman_index_t tone{freqman_invalid_index};
 };
 
+// TODO: These shouldn't be exported.
+std::string freqman_entry_get_modulation_string(freqman_index_t modulation);
+std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth);
+std::string freqman_entry_get_step_string(freqman_index_t step);
+std::string freqman_entry_get_step_string_short(freqman_index_t step);
+
 /* A reasonable maximum number of items to load from a freqman file.
  * Apps using freqman_db should be tested and this value tuned to
  * ensure app memory stability. */
-constexpr size_t freqman_default_max_entries = 90;
+constexpr size_t freqman_default_max_entries = 150;
 
 struct freqman_load_options {
     /* Loads all entries when set to 0. */
@@ -157,23 +172,63 @@ struct freqman_load_options {
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
+/* Gets a pretty string representation for an entry. */
+std::string pretty_string(const freqman_entry& item, size_t max_length = 30);
+
+/* Gets the freqman file representation for an entry. */
+std::string to_freqman_string(const freqman_entry& entry);
+
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
 bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqman_load_options options);
 
-/* Type for next round of changes.
- *class FreqmanDB {
- *   public:
- *    FreqmanDB();
- *    FreqmanDB(const FreqmanDB&) = delete;
- *    FreqmanDB(FreqmanDB&&) = delete;
- *    FreqmanDB& operator=(const FreqmanDB&) = delete;
- *    FreqmanDB& operator=(FreqmanDB&&) = delete;
- *
- *    size_t size() const { return 0; };
- *
- *   private:
- *    freqman_db entries_;
- *};
- */
+/* The tricky part of using the file directly is that there can be comments
+ * and empty lines in the file. This messes up the 'count' calculation.
+ * Either have to live with 'count' being an upper bound have the callers
+ * know to expect that entries may be empty. */
+// NB: This won't apply implicit mod/bandwidth.
+// TODO: Reuse for parse_freqman_file
+class FreqmanDB {
+   public:
+    class iterator {
+       public:
+        iterator(FreqmanDB& db, FileWrapper::Offset line)
+            : db_{db}, line_{line} {}
+        iterator& operator++() {
+            line_++;
+            return *this;
+        }
+        freqman_entry operator*() const {
+            return db_[line_];
+        }
+
+        bool operator!=(const iterator& other) {
+            return &db_ != &other.db_ || line_ != other.line_;
+        }
+
+       private:
+        FreqmanDB& db_;
+        FileWrapper::Line line_;
+    };
+
+    bool open(const std::filesystem::path& path);
+    void close();
+    freqman_entry operator[](FileWrapper::Line line) const;
+    void insert_entry(const freqman_entry& entry, FileWrapper::Line line);
+    void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
+    void delete_entry(FileWrapper::Line line);
+
+    uint32_t entry_count() const;
+    bool empty() const;
+
+    iterator begin() {
+        return {*this, 0};
+    }
+    iterator end() {
+        return {*this, entry_count()};
+    }
+
+   private:
+    std::unique_ptr<FileWrapper> wrapper_{};
+};
 
 #endif /* __FREQMAN_DB_H__ */

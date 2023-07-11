@@ -137,8 +137,8 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
     entry.bandwidth = last_entry.bandwidth;
     entry.type = freqman_type::Single;
 
-    std::string frequency_to_add;
-    get_freq_string(entry, frequency_to_add);
+    // TODO: Use FreqmanDB
+    auto frequency_to_add = to_freqman_string(entry);
 
     auto result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
     if (!result.is_valid()) {
@@ -607,6 +607,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_remove.on_select = [this](ButtonWithEncoder&) {
+        // TODO: Use FreqmanDB
         if (frequency_list.size() > 0) {
             if (!manual_mode) {
                 // scanner or recon (!scanner) mode
@@ -629,8 +630,7 @@ ReconView::ReconView(NavigationView& nav)
                     auto result = freqman_file.create(freq_file_path);
                     if (!result.is_valid()) {
                         for (size_t n = 0; n < frequency_list.size(); n++) {
-                            std::string line;
-                            get_freq_string(*frequency_list[n], line);
+                            auto line = to_freqman_string(*frequency_list[n]);
                             freqman_file.write_line(line);
                         }
                     }
@@ -640,7 +640,6 @@ ReconView::ReconView(NavigationView& nav)
                 File recon_file{};
                 File tmp_recon_file{};
                 std::string tmp_freq_file_path{freq_file_path + ".TMP"};
-                std::string frequency_to_add{};
 
                 freqman_entry entry = current_entry();
                 entry.frequency_a = freq;
@@ -649,7 +648,7 @@ ReconView::ReconView(NavigationView& nav)
                 entry.bandwidth = last_entry.bandwidth;
                 entry.type = freqman_type::Single;
 
-                get_freq_string(entry, frequency_to_add);
+                auto frequency_to_add = to_freqman_string(entry);
 
                 delete_file(tmp_freq_file_path);
                 auto result = tmp_recon_file.create(tmp_freq_file_path);  // First recon if freq is already in txt
@@ -833,7 +832,7 @@ ReconView::ReconView(NavigationView& nav)
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
             output_file = result[1];
-            freq_file_path = "/FREQMAN/" + output_file + ".TXT";
+            freq_file_path = get_freqman_path(output_file).string();
             recon_save_config_to_sd();
 
             autosave = persistent_memory::recon_autosave_freqs();
@@ -892,7 +891,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // Loading input and output file from settings
     recon_load_config_from_sd();
-    freq_file_path = "/FREQMAN/" + output_file + ".TXT";
+    freq_file_path = get_freqman_path(output_file).string();
 
     field_recon_match_mode.set_selected_index(recon_match_mode);
     field_squelch.set_value(squelch);

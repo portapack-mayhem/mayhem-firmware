@@ -59,6 +59,7 @@ class BufferWrapper {
     using Offset = uint32_t;
     using Line = uint32_t;
     using Column = uint32_t;
+    using Size = File::Size;
     using Range = struct {
         // Offset of the start, inclusive.
         Offset start;
@@ -108,7 +109,7 @@ class BufferWrapper {
     }
 
     /* Gets the size of the buffer in bytes. */
-    File::Size size() const { return wrapped_->size(); }
+    Size size() const { return wrapped_->size(); }
 
     /* Get the count of the lines in the buffer. */
     uint32_t line_count() const { return line_count_; }

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -20,15 +21,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "freqman.hpp"
+#include "freqman_db.hpp"
 #include "ui.hpp"
-#include "ui_widget.hpp"
-#include "ui_painter.hpp"
+#include "ui_freqlist.hpp"
 #include "ui_menu.hpp"
 #include "ui_navigation.hpp"
+#include "ui_painter.hpp"
 #include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
-#include "freqman.hpp"
-#include "ui_freqlist.hpp"
+#include "ui_widget.hpp"
 
 namespace ui {
 
@@ -40,74 +42,77 @@ class FreqManBaseView : public View {
     void focus() override;
 
    protected:
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
+    using options_t = OptionsField::options_t;
 
     NavigationView& nav_;
     freqman_error error_{NO_ERROR};
-    options_t categories{};
     std::function<void(void)> on_select_frequency{nullptr};
-    std::function<void(bool)> on_refresh_widgets{nullptr};
 
-    void get_freqman_files();
-    void change_category(int32_t category_id);
-    void refresh_list();
+    void change_category(size_t new_index);
+    /* Access the categories directly from the OptionsField.
+     * This avoids holding multiple copies of the file list. */
+    const options_t& categories() const { return options_category.options(); }
+    const auto& current_category() const { return options_category.selected_index_name(); }
+    auto current_index() const { return freqlist_view.get_index(); }
+    freqman_entry current_entry() const { return db_[current_index()]; }
+    void refresh_categories();
+    void refresh_list(int delta_selected = 0);
 
-    freqman_db database{};
-    std::vector<std::string> file_list{};
+    FreqmanDB db_{};
 
+    /* The top section (category) is 20px tall. */
     Labels label_category{
-        {{0, 4}, "Category:", Color::light_grey()}};
+        {{0, 2}, "Category:", Color::light_grey()}};
 
     OptionsField options_category{
-        {9 * 8, 4},
-        14,
+        {9 * 8, 2},
+        14 /* length */,
         {}};
 
     FreqManUIList freqlist_view{
-        {0, 3 * 8, 240, 23 * 8}};
-
-    Text text_empty{
-        {7 * 8, 12 * 8, 16 * 8, 16},
-        "Empty category !",
-    };
+        {0, 3 * 8, screen_width, 12 * 16 + 2 /* 2 Keeps text out of border. */}};
 
     Button button_exit{
-        {16 * 8, 34 * 8, 14 * 8, 4 * 8},
+        {15 * 8, 17 * 16, 15 * 8, 2 * 16},
         "Exit"};
 
-   private:
+   protected:
+    /* Static so selected category is persisted across UI instances. */
+    static size_t current_category_index;
 };
 
+// TODO: support for new category.
 class FrequencySaveView : public FreqManBaseView {
    public:
     FrequencySaveView(NavigationView& nav, const rf::Frequency value);
-
-    std::string title() const override { return "Save freq."; };
+    std::string title() const override { return "Save freq"; };
 
    private:
-    std::string desc_buffer{};
-    rf::Frequency value_{};
+    std::string temp_buffer_{};
+    freqman_entry entry_{};
 
-    void on_save_name();
-    void on_save_timestamp();
-    void save_current_file();
+    void refresh_ui();
 
     BigFrequency big_display{
-        {4, 2 * 16, 28 * 8, 32},
+        {0, 2 * 16, 28 * 8, 4 * 16},
         0};
 
     Labels labels{
-        {{1 * 8, 12 * 8}, "Save as:", Color::white()}};
+        {{0 * 8, 6 * 16}, "Description:", Color::white()}};
 
-    Button button_save_name{
-        {1 * 8, 17 * 8, 12 * 8, 48},
-        "Name (set)"};
-    Button button_save_timestamp{
-        {1 * 8, 25 * 8, 12 * 8, 48},
-        "Timestamp:"};
-    LiveDateTime live_timestamp{
-        {14 * 8, 27 * 8, 16 * 8, 16}};
+    Text text_description{{0 * 8, 7 * 16, 30 * 8, 1 * 16}};
+
+    Button button_clear{
+        {4 * 8, 10 * 16, 10 * 8, 2 * 16},
+        "Clear"};
+
+    Button button_edit{
+        {16 * 8, 10 * 16, 10 * 8, 2 * 16},
+        "Edit"};
+
+    Button button_save{
+        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
+        "Save"};
 };
 
 class FrequencyLoadView : public FreqManBaseView {
@@ -116,46 +121,62 @@ class FrequencyLoadView : public FreqManBaseView {
     std::function<void(rf::Frequency, rf::Frequency)> on_range_loaded{};
 
     FrequencyLoadView(NavigationView& nav);
-
-    std::string title() const override { return "Load freq."; };
-
-   private:
-    void refresh_widgets(const bool v);
+    std::string title() const override { return "Load freq"; };
 };
 
 class FrequencyManagerView : public FreqManBaseView {
    public:
     FrequencyManagerView(NavigationView& nav);
-    ~FrequencyManagerView();
-
     std::string title() const override { return "Freqman"; };
 
    private:
-    std::string desc_buffer{};
+    std::string temp_buffer_{};
 
-    void refresh_widgets(const bool v);
-    void on_edit_freq(rf::Frequency f);
-    void on_edit_desc(NavigationView& nav);
-    void on_new_category(NavigationView& nav);
-    void on_delete();
+    void on_edit_freq();
+    void on_edit_desc();
+    void on_add_category();
+    void on_del_category();
+    void on_add_entry();
+    void on_del_entry();
 
     Labels labels{
-        {{4 * 8 + 4, 26 * 8}, "Edit:", Color::light_grey()}};
+        {{5 * 8, 14 * 16 - 4}, "Edit:", Color::light_grey()}};
 
-    Button button_new_category{
-        {23 * 8, 2, 7 * 8, 20},
-        "New"};
+    NewButton button_add_category{
+        {23 * 8, 0 * 16, 7 * 4, 20},
+        {},
+        &bitmap_icon_new_file,
+        Color::white(),
+        true};
+
+    NewButton button_del_category{
+        {26 * 8 + 4, 0 * 16, 7 * 4, 20},
+        {},
+        &bitmap_icon_trash,
+        Color::red(),
+        true};
 
     Button button_edit_freq{
-        {0 * 8, 29 * 8, 14 * 8, 32},
+        {0 * 8, 15 * 16, 15 * 8, 2 * 16},
         "Frequency"};
+
     Button button_edit_desc{
-        {0 * 8, 34 * 8, 14 * 8, 32},
+        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
         "Description"};
 
-    Button button_delete{
-        {16 * 8, 29 * 8, 14 * 8, 32},
-        "Delete"};
+    NewButton button_add_entry{
+        {15 * 8, 15 * 16, 7 * 8 + 4, 2 * 16},
+        {},
+        &bitmap_icon_add,
+        Color::white(),
+        true};
+
+    NewButton button_del_entry{
+        {22 * 8 + 4, 15 * 16, 7 * 8 + 4, 2 * 16},
+        {},
+        &bitmap_icon_delete,
+        Color::red(),
+        true};
 };
 
 } /* namespace ui */

@@ -25,16 +25,15 @@
  * and fills it backwards towards the front.
  * The return value 'q' is a pointer to the start.
  * TODO: use std::array for all this. */
+template <typename Int>
 static char* to_string_dec_uint_internal(
     char* p,
-    uint32_t n) {
+    Int n) {
     *p = 0;
     auto q = p;
 
     do {
-        const uint32_t d = n % 10;
-        const char c = d + 48;
-        *(--q) = c;
+        *(--q) = n % 10 + '0';
         n /= 10;
     } while (n != 0);
 
@@ -60,11 +59,34 @@ static char* to_string_dec_uint_pad_internal(
     return q;
 }
 
-char* to_string_dec_uint(const uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+template <typename Int>
+char* to_string_dec_uint_internal(Int n, StringFormatBuffer& buffer, size_t& length) {
     auto end = &buffer.back();
     auto start = to_string_dec_uint_internal(end, n);
     length = end - start;
     return start;
+}
+
+char* to_string_dec_uint(uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+    return to_string_dec_uint_internal(n, buffer, length);
+}
+
+char* to_string_dec_uint64(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
+    return to_string_dec_uint_internal(n, buffer, length);
+}
+
+std::string to_string_dec_uint(uint32_t n) {
+    StringFormatBuffer b{};
+    size_t len{};
+    char* str = to_string_dec_uint(n, b, len);
+    return std::string(str, len);
+}
+
+std::string to_string_dec_uint64(uint64_t n) {
+    StringFormatBuffer b{};
+    size_t len{};
+    char* str = to_string_dec_uint(n, b, len);
+    return std::string(str, len);
 }
 
 std::string to_string_bin(
@@ -285,6 +307,9 @@ static const char* whitespace_str = " \t\r\n";
 
 std::string trim(std::string_view str) {
     auto first = str.find_first_not_of(whitespace_str);
+    if (first == std::string::npos)
+        return {};
+
     auto last = str.find_last_not_of(whitespace_str);
     return std::string{str.substr(first, last - first + 1)};
 }

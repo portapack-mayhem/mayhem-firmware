@@ -455,7 +455,7 @@ class NewButton : public Widget {
     NewButton(const NewButton&) = delete;
     NewButton& operator=(const NewButton&) = delete;
     NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
-    NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color);
+    NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color, bool vertical_center = false);
     NewButton()
         : NewButton{{}, {}, {}} {
     }
@@ -463,6 +463,7 @@ class NewButton : public Widget {
     void set_bitmap(const Bitmap* bitmap);
     void set_text(const std::string value);
     void set_color(Color value);
+    void set_vertical_center(bool value);
     std::string text() const;
     const Bitmap* bitmap();
     ui::Color color();
@@ -477,6 +478,7 @@ class NewButton : public Widget {
     std::string text_;
     const Bitmap* bitmap_;
     Color color_;
+    bool vertical_center_{false};
 };
 
 class Image : public Widget {
@@ -615,12 +617,14 @@ class OptionsField : public Widget {
     std::function<void(size_t, value_t)> on_change{};
     std::function<void(void)> on_show_options{};
 
-    OptionsField(Point parent_pos, int length, options_t options);
+    OptionsField(Point parent_pos, size_t length, options_t options);
 
+    const options_t& options() const { return options_; }
     void set_options(options_t new_options);
 
     size_t selected_index() const;
-    size_t selected_index_value() const;
+    const name_t& selected_index_name() const;
+    const value_t& selected_index_value() const;
     void set_selected_index(const size_t new_index, bool trigger_change = true);
 
     void set_by_value(value_t v);
@@ -633,8 +637,8 @@ class OptionsField : public Widget {
     bool on_touch(const TouchEvent event) override;
 
    private:
-    const int length_;
-    options_t options;
+    const size_t length_;
+    options_t options_;
     size_t selected_index_{0};
 };
 

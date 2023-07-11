@@ -252,12 +252,9 @@ std::filesystem::path next_filename_matching_pattern(const std::filesystem::path
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory,
                                                    const std::filesystem::path& extension) {
     std::vector<std::filesystem::path> file_list{};
-
-    for (const auto& entry : std::filesystem::directory_iterator(directory, extension)) {
-        if (std::filesystem::is_regular_file(entry.status())) {
-            file_list.push_back(entry.path());
-        }
-    }
+    scan_root_files(directory, extension, [&file_list](const std::filesystem::path& p) {
+        file_list.push_back(p);
+    });
 
     return file_list;
 }
@@ -287,7 +284,7 @@ std::filesystem::filesystem_error rename_file(
 std::filesystem::filesystem_error copy_file(
     const std::filesystem::path& file_path,
     const std::filesystem::path& dest_path) {
-    // Decent compromise between memory and speed.
+    // 512 seems to be the largest block size FatFS likes.
     constexpr size_t buffer_size = 512;
     uint8_t buffer[buffer_size];
     File src;
@@ -324,10 +321,11 @@ FATTimestamp file_created_date(const std::filesystem::path& file_path) {
 std::filesystem::filesystem_error make_new_file(
     const std::filesystem::path& file_path) {
     File f;
-    auto result = f.create(file_path);
-    return result.is_valid()
-               ? result.value()
-               : std::filesystem::filesystem_error{};
+    auto error = f.create(file_path);
+    if (error)
+        return *error;
+
+    return {};
 }
 
 std::filesystem::filesystem_error make_new_directory(
@@ -507,13 +505,12 @@ bool path_iequal(
 }
 
 directory_iterator::directory_iterator(
-    std::filesystem::path path,
-    std::filesystem::path wild)
-    : pattern{wild} {
+    const std::filesystem::path& path,
+    const std::filesystem::path& wild)
+    : path_{path}, wild_{wild} {
     impl = std::make_shared<Impl>();
-    const auto result = f_findfirst(&impl->dir, &impl->filinfo,
-                                    reinterpret_cast<const TCHAR*>(path.c_str()),
-                                    reinterpret_cast<const TCHAR*>(pattern.c_str()));
+    auto result = f_findfirst(&impl->dir, &impl->filinfo,
+                              path_.tchar(), wild_.tchar());
     if (result != FR_OK || impl->filinfo.fname[0] == (TCHAR)'\0') {
         impl.reset();
         // TODO: Throw exception if/when I enable exceptions...

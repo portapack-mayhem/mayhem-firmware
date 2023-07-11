@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -49,13 +50,11 @@ enum freqman_entry_modulation : uint8_t {
     SPEC_MODULATION
 };
 
+// TODO: Replace with FreqmanDB.
 bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
-bool get_freq_string(freqman_entry& entry, std::string& item_string);
 bool delete_freqman_file(const std::string& file_stem);
 bool save_freqman_file(const std::string& file_stem, freqman_db& db);
-bool create_freqman_file(const std::string& file_stem, File& freqman_file);
-
-std::string freqman_item_string(freqman_entry& item, size_t max_length);
+bool create_freqman_file(const std::string& file_stem);
 
 void freqman_set_bandwidth_option(freqman_index_t modulation, ui::OptionsField& option);
 void freqman_set_modulation_option(ui::OptionsField& option);
@@ -63,11 +62,7 @@ void freqman_set_step_option(ui::OptionsField& option);
 void freqman_set_step_option_short(ui::OptionsField& option);
 void freqman_set_tone_option(ui::OptionsField& option);
 
-std::string freqman_entry_get_modulation_string(freqman_index_t modulation);
-std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth);
-std::string freqman_entry_get_step_string(freqman_index_t step);
-std::string freqman_entry_get_step_string_short(freqman_index_t step);
-
+// TODO: Can these be removed after Recon is migrated to FreqmanDB?
 int32_t freqman_entry_get_modulation_value(freqman_index_t modulation);
 int32_t freqman_entry_get_bandwidth_value(freqman_index_t modulation, freqman_index_t bandwidth);
 int32_t freqman_entry_get_step_value(freqman_index_t step);

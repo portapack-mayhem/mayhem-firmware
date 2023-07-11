@@ -76,36 +76,30 @@ struct path {
         : _s{} {
     }
 
-    path(
-        const path& p)
+    path(const path& p)
         : _s{p._s} {
     }
 
-    path(
-        path&& p)
+    path(path&& p)
         : _s{std::move(p._s)} {
     }
 
     template <class Source>
-    path(
-        const Source& source)
+    path(const Source& source)
         : path{std::begin(source), std::end(source)} {
     }
 
     template <class InputIt>
-    path(
-        InputIt first,
-        InputIt last)
+    path(InputIt first,
+         InputIt last)
         : _s{first, last} {
     }
 
-    path(
-        const char16_t* const s)
+    path(const char16_t* const s)
         : _s{s} {
     }
 
-    path(
-        const TCHAR* const s)
+    path(const TCHAR* const s)
         : _s{reinterpret_cast<const std::filesystem::path::value_type*>(s)} {
     }
 
@@ -132,6 +126,10 @@ struct path {
         return native().c_str();
     }
 
+    const TCHAR* tchar() const {
+        return reinterpret_cast<const TCHAR*>(native().c_str());
+    }
+
     const string_type& native() const {
         return _s;
     }
@@ -149,7 +147,7 @@ struct path {
     }
 
     path& operator/=(const path& p) {
-        if (_s.back() != preferred_separator)
+        if (_s.back() != preferred_separator && p._s.front() != preferred_separator)
             _s += preferred_separator;
         _s += p._s;
         return *this;
@@ -207,7 +205,8 @@ class directory_iterator {
     };
 
     std::shared_ptr<Impl> impl{};
-    const path pattern{};
+    std::filesystem::path path_{};
+    std::filesystem::path wild_{};
 
     friend bool operator!=(const directory_iterator& lhs, const directory_iterator& rhs);
 
@@ -219,7 +218,8 @@ class directory_iterator {
     using iterator_category = std::input_iterator_tag;
 
     directory_iterator() noexcept {};
-    directory_iterator(std::filesystem::path path, std::filesystem::path wild);
+    directory_iterator(const std::filesystem::path& path,
+                       const std::filesystem::path& wild);
 
     ~directory_iterator() {}
 
@@ -266,6 +266,13 @@ std::filesystem::filesystem_error make_new_file(const std::filesystem::path& fil
 std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
 std::filesystem::filesystem_error ensure_directory(const std::filesystem::path& dir_path);
 
+template <typename TCallback>
+void scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension, const TCallback& fn) {
+    for (const auto& entry : std::filesystem::directory_iterator(directory, extension)) {
+        if (std::filesystem::is_regular_file(entry.status()))
+            fn(entry.path());
+    }
+}
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension);
 std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::path& directory);
 
