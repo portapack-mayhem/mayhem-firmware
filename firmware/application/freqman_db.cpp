@@ -285,9 +285,6 @@ freqman_index_t parse_tone_key(std::string_view value) {
     return static_cast<freqman_index_t>(tonekey::tone_key_index_by_value(tone_freq));
 }
 
-// TODO: How much format validation should this do?
-// It's very permissive right now, but entries can be invalid.
-// TODO: parse_int seems to hang on invalid input.
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     if (str.empty() || str[0] == '#')
         return false;
