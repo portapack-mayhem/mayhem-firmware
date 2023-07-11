@@ -63,6 +63,8 @@ jobs:
         run: |
           mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && zip -r sdcard.zip sdcard
       - name: Create changelog
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
           CHANGELOG=$(python3 .github/workflows/changelog.py)
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
