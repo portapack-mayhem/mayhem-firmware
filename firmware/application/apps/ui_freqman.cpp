@@ -25,6 +25,7 @@
 
 #include "event_m0.hpp"
 #include "portapack.hpp"
+#include "rtc_time.hpp"
 #include "utility.hpp"
 
 #include <memory>
@@ -115,49 +116,45 @@ void FreqManBaseView::refresh_list(int delta_selected) {
 
 /* FrequencySaveView *************************************/
 
-void FrequencySaveView::save_current_file() {
-    // save_freqman_file(current_category(), database);
-    nav_.pop();
-}
-
-void FrequencySaveView::on_save_name() {
-    text_prompt(nav_, temp_buffer_, 28, [this](std::string&) {
-        // database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, buffer, freqman_type::Single}));
-        save_current_file();
-    });
-}
-
-void FrequencySaveView::on_save_timestamp() {
-    // database.push_back(std::make_unique<freqman_entry>(freqman_entry{value_, 0, live_timestamp.string(), freqman_type::Single}));
-    save_current_file();
-}
-
 FrequencySaveView::FrequencySaveView(
     NavigationView& nav,
     const rf::Frequency value)
-    : FreqManBaseView(nav),
-      value_(value) {
-    temp_buffer_.reserve(28);
-
+    : FreqManBaseView(nav) {
     add_children(
         {&labels,
          &big_display,
-         &button_save_name,
-         &button_save_timestamp,
-         &live_timestamp});
+         &button_clear,
+         &button_edit,
+         &button_save,
+         &text_description});
 
-    big_display.set(value);
+    entry_.type = freqman_type::Single;
+    entry_.frequency_a = value;
+    entry_.description = to_string_timestamp(rtc_time::now());
+    refresh_ui();
 
-    button_save_name.on_select = [this, &nav](Button&) {
-        on_save_name();
+    button_clear.on_select = [this, &nav](Button&) {
+        entry_.description = "";
+        refresh_ui();
     };
-    button_save_timestamp.on_select = [this, &nav](Button&) {
-        on_save_timestamp();
+
+    button_edit.on_select = [this, &nav](Button&) {
+        temp_buffer_ = entry_.description;
+        text_prompt(nav_, temp_buffer_, 30, [this](std::string& new_desc) {
+            entry_.description = new_desc;
+            refresh_ui();
+        });
     };
-    options_category.on_change = [this, value](size_t category_id, int32_t) {
-        change_category(category_id);
-        big_display.set(value);  // ???
+
+    button_save.on_select = [this, &nav](Button&) {
+        db_.insert_entry(entry_, current_index() + 1);
+        nav_.pop();
     };
+}
+
+void FrequencySaveView::refresh_ui() {
+    big_display.set(entry_.frequency_a);
+    text_description.set(entry_.description);
 }
 
 /* FrequencyLoadView *************************************/
@@ -252,7 +249,7 @@ void FrequencyManagerView::on_del_entry() {
         return;
 
     nav_.push<ModalMessageView>(
-        "Delete", "Delete entry?\nAre you sure?", YESNO,
+        "Delete", "Delete" + pretty_string(current_entry(), 23) + "\nAre you sure?", YESNO,
         [this](bool choice) {
             if (choice) {
                 db_.delete_entry(current_index());

@@ -88,29 +88,30 @@ class FrequencySaveView : public FreqManBaseView {
 
    private:
     std::string temp_buffer_{};
-    rf::Frequency value_{};
+    freqman_entry entry_{};
 
-    void on_save_name();
-    void on_save_timestamp();
-    void save_current_file();
+    void refresh_ui();
 
     BigFrequency big_display{
         {0, 2 * 16, 28 * 8, 4 * 16},
         0};
 
     Labels labels{
-        {{1 * 8, 6 * 16}, "Save as:", Color::white()}};
+        {{0 * 8, 6 * 16}, "Description:", Color::white()}};
 
-    Button button_save_name{
-        {1 * 8, 8 * 16, 12 * 8, 2 * 16},
-        "Name (set)"};
+    Text text_description{{0 * 8, 7 * 16, 30 * 8, 1 * 16}};
 
-    Button button_save_timestamp{
-        {1 * 8, 13 * 16, 12 * 8, 2 * 16},
-        "Timestamp:"};
+    Button button_clear{
+        {5 * 8, 10 * 16, 10 * 8, 2 * 16},
+        "Clear"};
 
-    LiveDateTime live_timestamp{
-        {14 * 8, 14 * 16, 16 * 8, 1 * 16}};
+    Button button_edit{
+        {15 * 8, 10 * 16, 10 * 8, 2 * 16},
+        "Edit"};
+
+    Button button_save{
+        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
+        "Save"};
 };
 
 class FrequencyLoadView : public FreqManBaseView {

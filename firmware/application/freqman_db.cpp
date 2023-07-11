@@ -188,47 +188,75 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
     return {};
 }
 
-void append_field(std::string& str, std::string_view name, std::string_view value) {
-    if (!str.empty())
-        str += ",";
-    str += std::string{name} + "=" + std::string{value};
+std::string pretty_string(const freqman_entry& entry, size_t max_length) {
+    std::string str;
+
+    switch (entry.type) {
+        case freqman_type::Single:
+            str = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
+            break;
+        case freqman_type::Range:
+            str = to_string_dec_uint(entry.frequency_a / 1'000'000) + "M-" +
+                  to_string_dec_uint(entry.frequency_b / 1'000'000) + "M: " + entry.description;
+            break;
+        case freqman_type::HamRadio:
+            str = "" + to_string_dec_uint(entry.frequency_a / 1'000'000) + "M," +
+                  to_string_dec_uint(entry.frequency_b / 1'000'000) + "M: " + entry.description;
+            break;
+        default:
+            str = "UNK:" + entry.description;
+            break;
+    }
+
+    // Truncate. '+' indicates if string has been truncated.
+    if (str.size() > max_length)
+        return str.substr(0, max_length - 1) + "+";
+
+    return str;
 }
 
 std::string to_freqman_string(const freqman_entry& entry) {
     std::string serialized;
     serialized.reserve(0x80);
 
+    // Append a key=value to the string.
+    auto append_field = [&serialized](std::string_view name, std::string_view value) {
+        if (!serialized.empty())
+            serialized += ",";
+        serialized += std::string{name} + "=" + std::string{value};
+    };
+
     switch (entry.type) {
         case freqman_type::Single:
-            append_field(serialized, "f", to_string_dec_uint64(entry.frequency_a));
+            append_field("f", to_string_dec_uint64(entry.frequency_a));
             break;
         case freqman_type::Range:
-            append_field(serialized, "a", to_string_dec_uint64(entry.frequency_a));
-            append_field(serialized, "b", to_string_dec_uint64(entry.frequency_b));
+            append_field("a", to_string_dec_uint64(entry.frequency_a));
+            append_field("b", to_string_dec_uint64(entry.frequency_b));
 
             if (is_valid(entry.step))
-                append_field(serialized, "s", freqman_entry_get_step_string_short(entry.step));
+                append_field("s", freqman_entry_get_step_string_short(entry.step));
             break;
         case freqman_type::HamRadio:
-            append_field(serialized, "r", to_string_dec_uint64(entry.frequency_a));
-            append_field(serialized, "t", to_string_dec_uint64(entry.frequency_b));
+            append_field("r", to_string_dec_uint64(entry.frequency_a));
+            append_field("t", to_string_dec_uint64(entry.frequency_b));
 
             if (is_valid(entry.tone))
-                append_field(serialized, "c", tonekey::tone_key_value_string(entry.tone));
+                append_field("c", tonekey::tone_key_value_string(entry.tone));
             break;
         default:
-            return {};  // TODO: Comment with description?
+            return {};  // TODO: Comment type with description?
     };
 
     if (is_valid(entry.modulation) && entry.modulation < freqman_modulations.size()) {
-        append_field(serialized, "m", freqman_entry_get_modulation_string(entry.modulation));
+        append_field("m", freqman_entry_get_modulation_string(entry.modulation));
 
         if (is_valid(entry.bandwidth) && (unsigned)entry.bandwidth < freqman_bandwidths[entry.modulation].size())
-            append_field(serialized, "bw", freqman_entry_get_bandwidth_string(entry.modulation, entry.bandwidth));
+            append_field("bw", freqman_entry_get_bandwidth_string(entry.modulation, entry.bandwidth));
     }
 
     if (entry.description.size() > 0)
-        append_field(serialized, "d", entry.description);
+        append_field("d", entry.description);
 
     serialized.shrink_to_fit();
     return serialized;

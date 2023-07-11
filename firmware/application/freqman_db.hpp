@@ -172,7 +172,12 @@ struct freqman_load_options {
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
+/* Gets a pretty string representation for an entry. */
+std::string pretty_string(const freqman_entry& item, size_t max_length = 30);
+
+/* Gets the freqman file representation for an entry. */
 std::string to_freqman_string(const freqman_entry& entry);
+
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
 bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqman_load_options options);
 

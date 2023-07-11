@@ -56,9 +56,6 @@ bool delete_freqman_file(const std::string& file_stem);
 bool save_freqman_file(const std::string& file_stem, freqman_db& db);
 bool create_freqman_file(const std::string& file_stem);
 
-// TODO: Move to Freqman UI.
-std::string freqman_item_string(const freqman_entry& item, size_t max_length);
-
 void freqman_set_bandwidth_option(freqman_index_t modulation, ui::OptionsField& option);
 void freqman_set_modulation_option(ui::OptionsField& option);
 void freqman_set_step_option(ui::OptionsField& option);

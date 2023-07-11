@@ -65,7 +65,7 @@ void FreqManUIList::paint(Painter& painter) {
             // db_ is directly backed by a file, so invalid lines cannot be
             // pre-filtered. Just show an empty 'slot' in this case.
             if (entry.type != freqman_type::Unknown)
-                text = freqman_item_string(entry, line_max_length);
+                text = pretty_string(entry, line_max_length);
         }
 
         // Pad right with ' ' so trailing chars are cleaned up.
