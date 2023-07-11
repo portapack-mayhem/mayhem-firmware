@@ -147,7 +147,7 @@ FrequencySaveView::FrequencySaveView(
     };
 
     button_save.on_select = [this, &nav](Button&) {
-        db_.insert_entry(entry_, current_index() + 1);
+        db_.insert_entry(entry_, db_.entry_count());
         nav_.pop();
     };
 }

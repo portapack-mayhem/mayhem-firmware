@@ -81,6 +81,7 @@ class FreqManBaseView : public View {
     static size_t current_category_index;
 };
 
+// TODO: support for new category.
 class FrequencySaveView : public FreqManBaseView {
    public:
     FrequencySaveView(NavigationView& nav, const rf::Frequency value);
@@ -102,11 +103,11 @@ class FrequencySaveView : public FreqManBaseView {
     Text text_description{{0 * 8, 7 * 16, 30 * 8, 1 * 16}};
 
     Button button_clear{
-        {5 * 8, 10 * 16, 10 * 8, 2 * 16},
+        {4 * 8, 10 * 16, 10 * 8, 2 * 16},
         "Clear"};
 
     Button button_edit{
-        {15 * 8, 10 * 16, 10 * 8, 2 * 16},
+        {16 * 8, 10 * 16, 10 * 8, 2 * 16},
         "Edit"};
 
     Button button_save{
