@@ -28,6 +28,7 @@
 #include "freqman_db.hpp"
 #include "string_format.hpp"
 #include "tone_key.hpp"
+#include "utility.hpp"
 
 #include <array>
 #include <cctype>
@@ -142,6 +143,13 @@ uint8_t find_by_name(const options_t& options, std::string_view name) {
     return freqman_invalid_index;
 }
 
+const option_t* find_by_index(const options_t& options, freqman_index_t index) {
+    if (index < options.size())
+        return &options[index];
+    else
+        return nullptr;
+}
+
 /* Impl for next round of changes.
  *template <typename T, size_t N>
  *const T* find_by_name(const std::array<T, N>& info, std::string_view name) {
@@ -154,14 +162,99 @@ uint8_t find_by_name(const options_t& options, std::string_view name) {
  *}
  */
 
-// TODO: Rewrite here.
-extern bool get_freq_string(const freqman_entry& entry, std::string& item_string);
+std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
+    if (auto opt = find_by_index(freqman_modulations, modulation))
+        return opt->first;
+    return {};
+}
+
+std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth) {
+    if (modulation < freqman_modulations.size()) {
+        if (auto opt = find_by_index(freqman_bandwidths[modulation], bandwidth))
+            return opt->first;
+    }
+    return {};
+}
+
+std::string freqman_entry_get_step_string(freqman_index_t step) {
+    if (auto opt = find_by_index(freqman_steps, step))
+        return opt->first;
+    return {};
+}
+
+std::string freqman_entry_get_step_string_short(freqman_index_t step) {
+    if (auto opt = find_by_index(freqman_steps_short, step))
+        return opt->first;
+    return {};
+}
+
+void append_field(std::string& str, std::string_view name, std::string_view value) {
+    if (!str.empty())
+        str += ",";
+    str += std::string{name} + "=" + std::string{value};
+}
 
 std::string to_freqman_string(const freqman_entry& entry) {
     std::string serialized;
-    serialized.reserve(100);
-    get_freq_string(entry, serialized);
+    serialized.reserve(0x80);
+
+    switch (entry.type) {
+        case freqman_type::Single:
+            append_field(serialized, "f", to_string_dec_uint64(entry.frequency_a));
+            break;
+        case freqman_type::Range:
+            append_field(serialized, "a", to_string_dec_uint64(entry.frequency_a));
+            append_field(serialized, "b", to_string_dec_uint64(entry.frequency_b));
+
+            if (is_valid(entry.step))
+                append_field(serialized, "s", freqman_entry_get_step_string_short(entry.step));
+            break;
+        case freqman_type::HamRadio:
+            append_field(serialized, "r", to_string_dec_uint64(entry.frequency_a));
+            append_field(serialized, "t", to_string_dec_uint64(entry.frequency_b));
+
+            if (is_valid(entry.tone))
+                append_field(serialized, "c", tonekey::tone_key_value_string(entry.tone));
+            break;
+        default:
+            return {};  // TODO: Comment with description?
+    };
+
+    if (is_valid(entry.modulation) && entry.modulation < freqman_modulations.size()) {
+        append_field(serialized, "m", freqman_entry_get_modulation_string(entry.modulation));
+
+        if (is_valid(entry.bandwidth) && (unsigned)entry.bandwidth < freqman_bandwidths[entry.modulation].size())
+            append_field(serialized, "bw", freqman_entry_get_bandwidth_string(entry.modulation, entry.bandwidth));
+    }
+
+    if (entry.description.size() > 0)
+        append_field(serialized, "d", entry.description);
+
+    serialized.shrink_to_fit();
     return serialized;
+}
+
+freqman_index_t parse_tone_key(std::string_view value) {
+    // Split into whole and fractional parts.
+    auto parts = split_string(value, '.');
+    int32_t tone_freq = 0;
+    int32_t whole_part = 0;
+    parse_int(parts[0], whole_part);
+
+    // Tones are stored as frequency / 100 for some reason.
+    // E.g. 14572 would be 145.7 (NB: 1s place is dropped).
+    // TODO: Might be easier to just store the codes?
+    // Multiply the whole part by 100 to get the tone frequency.
+    tone_freq = whole_part * 100;
+
+    // Add the fractional part, if present.
+    if (parts.size() > 1) {
+        auto c = parts[1].front();
+        auto digit = std::isdigit(c) ? c - '0' : 0;
+        tone_freq += digit * 10;
+    }
+
+    return static_cast<freqman_index_t>(tonekey::tone_key_index_by_value(tone_freq));
 }
 
 // TODO: How much format validation should this do?
@@ -196,26 +289,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
                 entry.bandwidth = find_by_name(freqman_bandwidths[entry.modulation], value);
             }
         } else if (key == "c") {
-            // Split into whole and fractional parts.
-            auto parts = split_string(value, '.');
-            int32_t tone_freq = 0;
-            int32_t whole_part = 0;
-            parse_int(parts[0], whole_part);
-
-            // Tones are stored as frequency / 100 for some reason.
-            // E.g. 14572 would be 145.7 (NB: 1s place is dropped).
-            // TODO: Might be easier to just store the codes?
-            // Multiply the whole part by 100 to get the tone frequency.
-            tone_freq = whole_part * 100;
-
-            // Add the fractional part, if present.
-            if (parts.size() > 1) {
-                auto c = parts[1].front();
-                auto digit = std::isdigit(c) ? c - '0' : 0;
-                tone_freq += digit * 10;
-            }
-            entry.tone = static_cast<freqman_index_t>(
-                tonekey::tone_key_index_by_value(tone_freq));
+            entry.tone = parse_tone_key(value);
         } else if (key == "d") {
             entry.description = trim(value);
         } else if (key == "f") {
@@ -254,6 +328,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     return true;
 }
 
+// TODO: Use FreqmanDB iterator.
 bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_options options) {
     File f;
     auto error = f.open(path);
@@ -327,11 +402,11 @@ freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
     return {};
 }
 
-void FreqmanDB::append_entry(const freqman_entry& entry) {
+void FreqmanDB::insert_entry(const freqman_entry& entry, FileWrapper::Line line) {
     // TODO: Can be more efficient.
-    auto next_line = wrapper_->line_count();
-    wrapper_->insert_line(next_line);
-    replace_entry(next_line, entry);
+    line = clip<uint32_t>(line, 0u, entry_count());
+    wrapper_->insert_line(line);
+    replace_entry(line, entry);
 }
 
 void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry) {
@@ -339,6 +414,8 @@ void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry
     if (!range)
         return;  // TODO: Message?
 
+    // Don't overwrite the '\n'.
+    range->end--;
     wrapper_->replace_range(*range, to_freqman_string(entry));
 }
 

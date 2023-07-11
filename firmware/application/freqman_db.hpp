@@ -150,6 +150,12 @@ struct freqman_entry {
     freqman_index_t tone{freqman_invalid_index};
 };
 
+// TODO: These shouldn't be exported.
+std::string freqman_entry_get_modulation_string(freqman_index_t modulation);
+std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth);
+std::string freqman_entry_get_step_string(freqman_index_t step);
+std::string freqman_entry_get_step_string_short(freqman_index_t step);
+
 /* A reasonable maximum number of items to load from a freqman file.
  * Apps using freqman_db should be tested and this value tuned to
  * ensure app memory stability. */
@@ -175,34 +181,46 @@ bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqm
  * Either have to live with 'count' being an upper bound have the callers
  * know to expect that entries may be empty. */
 // NB: This won't apply implicit mod/bandwidth.
-// TODO: Maybe just disallow empty lines and comments in freqman files?
-// TODO: Reuse for parse_freqman_file?
+// TODO: Reuse for parse_freqman_file
 class FreqmanDB {
    public:
     class iterator {
        public:
         iterator(FreqmanDB& db, FileWrapper::Offset line)
             : db_{db}, line_{line} {}
-        iterator& operator++();
-        freqman_entry operator*();
+        iterator& operator++() {
+            line_++;
+            return *this;
+        }
+        freqman_entry operator*() const {
+            return db_[line_];
+        }
+
+        bool operator!=(const iterator& other) {
+            return &db_ != &other.db_ || line_ != other.line_;
+        }
 
        private:
         FreqmanDB& db_;
-        FileWrapper::Offset line_;
+        FileWrapper::Line line_;
     };
 
     bool open(const std::filesystem::path& path);
     void close();
     freqman_entry operator[](FileWrapper::Line line) const;
-    void append_entry(const freqman_entry& entry);
+    void insert_entry(const freqman_entry& entry, FileWrapper::Line line);
     void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
     void delete_entry(FileWrapper::Line line);
 
     uint32_t entry_count() const;
     bool empty() const;
 
-    iterator begin();
-    iterator end();
+    iterator begin() {
+        return {*this, 0};
+    }
+    iterator end() {
+        return {*this, entry_count()};
+    }
 
    private:
     std::unique_ptr<FileWrapper> wrapper_{};

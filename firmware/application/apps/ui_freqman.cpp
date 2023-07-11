@@ -54,7 +54,7 @@ FreqManBaseView::FreqManBaseView(
         nav.pop();
     };
 
-    refresh_list();
+    refresh_categories();
 };
 
 void FreqManBaseView::focus() {
@@ -82,7 +82,7 @@ void FreqManBaseView::change_category(size_t new_index) {
     freqlist_view.set_db(db_);
 }
 
-void FreqManBaseView::refresh_list() {
+void FreqManBaseView::refresh_categories() {
     OptionsField::options_t new_categories;
 
     scan_root_files(
@@ -105,6 +105,12 @@ void FreqManBaseView::refresh_list() {
     auto saved_index = current_category_index;
     options_category.set_options(std::move(new_categories));
     options_category.set_selected_index(saved_index);
+}
+
+void FreqManBaseView::refresh_list(int delta_selected) {
+    // Update the index and ensures in bounds.
+    freqlist_view.set_index(freqlist_view.get_index() + delta_selected);
+    freqlist_view.set_dirty();
 }
 
 /* FrequencySaveView *************************************/
@@ -211,7 +217,7 @@ void FrequencyManagerView::on_add_category() {
     text_prompt(nav_, temp_buffer_, 12, [this](std::string& new_name) {
         if (!new_name.empty()) {
             create_freqman_file(new_name);
-            refresh_list();
+            refresh_categories();
         }
     });
 }
@@ -224,7 +230,7 @@ void FrequencyManagerView::on_del_category() {
                 db_.close();  // Ensure file is closed.
                 auto path = get_freqman_path(current_category());
                 delete_file(path);
-                refresh_list();
+                refresh_categories();
             }
         });
 }
@@ -232,12 +238,13 @@ void FrequencyManagerView::on_del_category() {
 void FrequencyManagerView::on_add_entry() {
     freqman_entry entry{
         .frequency_a = 100'000'000,
-        .description = std::string{"Entry "} + to_string_dec_uint(current_index() + 1),
+        .description = std::string{"Entry "} + to_string_dec_uint(db_.entry_count()),
         .type = freqman_type::Single,
     };
 
-    db_.append_entry(entry);
-    freqlist_view.set_dirty();
+    // Add will insert below the currently selected item.
+    db_.insert_entry(entry, current_index() + 1);
+    refresh_list(1);
 }
 
 void FrequencyManagerView::on_del_entry() {
@@ -249,7 +256,7 @@ void FrequencyManagerView::on_del_entry() {
         [this](bool choice) {
             if (choice) {
                 db_.delete_entry(current_index());
-                freqlist_view.set_dirty();
+                refresh_list();
             }
         });
 }

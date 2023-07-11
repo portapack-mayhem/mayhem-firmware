@@ -127,6 +127,12 @@ void FreqManUIList::set_parent_rect(Rect new_parent_rect) {
     Widget::set_parent_rect(new_parent_rect);
 }
 
+void FreqManUIList::set_index(size_t index) {
+    start_index_ = 0;
+    selected_index_ = 0;
+    adjust_selected_index(index);
+}
+
 size_t FreqManUIList::get_index() const {
     return start_index_ + selected_index_;
 }

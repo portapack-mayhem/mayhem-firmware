@@ -55,7 +55,8 @@ class FreqManBaseView : public View {
     const auto& current_category() const { return options_category.selected_index_name(); }
     auto current_index() const { return freqlist_view.get_index(); }
     freqman_entry current_entry() const { return db_[current_index()]; }
-    void refresh_list();
+    void refresh_categories();
+    void refresh_list(int delta_selected = 0);
 
     FreqmanDB db_{};
 

@@ -166,14 +166,44 @@ TEST_CASE("It can parse tone freq") {
     CHECK_EQ(e.tone, 3);
 }
 
-#if 0  // New tables for a future PR.
+TEST_CASE("It can serialize basic Single entry") {
+    auto str = to_freqman_string(freqman_entry{
+        .frequency_a = 123'456'000,
+        .description = "Foobar",
+        .type = freqman_type::Single,
+    });
+    CHECK(str == "f=123456000,d=Foobar");
+}
+
+TEST_CASE("It can serialize basic Range entry") {
+    auto str = to_freqman_string(freqman_entry{
+        .frequency_a = 123'456'000,
+        .frequency_b = 423'456'000,
+        .description = "Foobar",
+        .type = freqman_type::Range,
+    });
+    CHECK(str == "a=123456000,b=423456000,d=Foobar");
+}
+
+TEST_CASE("It can serialize basic HamRadio entry") {
+    auto str = to_freqman_string(freqman_entry{
+        .frequency_a = 123'456'000,
+        .frequency_b = 423'456'000,
+        .description = "Foobar",
+        .type = freqman_type::HamRadio,
+    });
+    CHECK(str == "r=123456000,t=423456000,d=Foobar");
+}
+
+// New tables for a future PR.
+/*
 TEST_CASE("It can parse modulation") {
     freqman_entry e;
     REQUIRE(
         parse_freqman_entry(
             "f=123000000,d=This is the description.,m=AM", e));
     CHECK_EQ(e.modulation, freqman_modulation::AM);
-    
+
     REQUIRE(
         parse_freqman_entry(
             "f=123000000,d=This is the description.,m=NFM", e));
@@ -201,7 +231,7 @@ TEST_CASE("It can parse frequency step") {
         parse_freqman_entry(
             "f=123000000,d=This is the description.,s=0.1kHz", e));
     CHECK_EQ(e.step, freqman_step::_100Hz);
-    
+
     REQUIRE(
         parse_freqman_entry(
             "f=123000000,d=This is the description.,s=50kHz", e));
@@ -212,6 +242,6 @@ TEST_CASE("It can parse frequency step") {
             "f=123000000,d=This is the description.,s=FOO", e));
     CHECK_EQ(e.step, freqman_step::Unknown);
 }
-#endif
+*/
 
 TEST_SUITE_END();

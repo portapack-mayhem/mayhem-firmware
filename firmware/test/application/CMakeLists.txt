@@ -42,14 +42,15 @@ add_executable(application_test EXCLUDE_FROM_ALL
 	${PROJECT_SOURCE_DIR}/test_freqman_db.cpp
 	${PROJECT_SOURCE_DIR}/test_mock_file.cpp
 	${PROJECT_SOURCE_DIR}/test_optional.cpp
+	${PROJECT_SOURCE_DIR}/test_string_format.cpp
 	${PROJECT_SOURCE_DIR}/test_utility.cpp
 
 	${PROJECT_SOURCE_DIR}/../../application/file_reader.cpp
 	${PROJECT_SOURCE_DIR}/../../application/freqman_db.cpp
-	${PROJECT_SOURCE_DIR}/../../application/string_format.cpp
-
+	
 	# Dependencies
 	${PROJECT_SOURCE_DIR}/../../application/file.cpp
+	${PROJECT_SOURCE_DIR}/../../application/string_format.cpp
 	${PROJECT_SOURCE_DIR}/../../application/tone_key.cpp
 	${PROJECT_SOURCE_DIR}/linker_stubs.cpp
 )

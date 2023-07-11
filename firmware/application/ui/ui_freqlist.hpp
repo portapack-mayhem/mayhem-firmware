@@ -52,6 +52,7 @@ class FreqManUIList : public Widget {
     bool on_encoder(EncoderEvent delta) override;
     void set_parent_rect(Rect new_parent_rect) override;
 
+    void set_index(size_t index);
     size_t get_index() const;
     void set_db(FreqmanDB& db);
 
