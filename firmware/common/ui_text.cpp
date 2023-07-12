@@ -25,7 +25,7 @@ namespace ui {
 
 Glyph Font::glyph(const char c) const {
     size_t index;
-    
+
     if (c < c_start) {
         // Non-display C0 Control characters - map to blank (index 0)
         return {w, h, data};
