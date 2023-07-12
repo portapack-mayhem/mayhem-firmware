@@ -84,8 +84,8 @@ class GeoPos : public View {
 
     Labels labels_position{
         {{1 * 8, 0 * 16}, "Alt:", Color::light_grey()},
-        {{1 * 8, 1 * 16}, "Lat:    \x90  '  \"", Color::light_grey()},  // 0x90 is degree ° symbol in our 8x16 font
-        {{1 * 8, 2 * 16}, "Lon:    \x90  '  \"", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Color::light_grey()},  // 0xB0 is degree ° symbol in our 8x16 font
+        {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Color::light_grey()},
     };
 
     NumberField field_altitude{
