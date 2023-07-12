@@ -336,8 +336,8 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     if (entry.type == freqman_type::Unknown)
         return false;
 
-    // Ranges should have both frequencies set and A <= B.
-    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
+    // Range entries should have both frequencies set and A <= B.
+    if (entry.type == freqman_type::Range) {
         if (entry.frequency_a == 0 || entry.frequency_b == 0)
             return false;
 
@@ -345,6 +345,12 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
             return false;
     }
 
+    // HamRadio entries should have both frequencies set.
+    if (entry.type == freqman_type::Range) {
+        if (entry.frequency_a == 0 || entry.frequency_b == 0)
+            return false;
+    }
+    
     // TODO: Consider additional validation:
     // - Tone only on HamRadio.
     // - Fail on failed parse_int.
