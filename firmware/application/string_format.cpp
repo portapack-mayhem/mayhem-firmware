@@ -111,8 +111,8 @@ std::string to_string_dec_uint(
     auto term = p + sizeof(p) - 1;
     auto q = to_string_dec_uint_pad_internal(term, n, l, fill);
 
-    // TODO: is this needed, seems like pad already does this.
     // Right justify.
+    // (This code is redundant and won't do anything if a fill character was specified)
     while ((term - q) < l) {
         *(--q) = ' ';
     }
@@ -137,6 +137,7 @@ std::string to_string_dec_int(
     }
 
     // Right justify.
+    // (This code is redundant and won't do anything if a fill character was specified)
     while ((term - q) < l) {
         *(--q) = ' ';
     }
@@ -285,7 +286,7 @@ std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precisi
 
     string = to_string_dec_int(integer_part);
     if (precision)
-        string += '.' + to_string_dec_uint(fractional_part, precision);
+        string += '.' + to_string_dec_uint(fractional_part, precision, '0');
 
     if (prefix_index != 3)
         string += unit_prefix[prefix_index];
