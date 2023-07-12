@@ -341,7 +341,8 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         if (entry.frequency_a == 0 || entry.frequency_b == 0)
             return false;
 
-        if (entry.frequency_a > entry.frequency_b)
+        // Precedence is only needed in ranges
+        if (entry.type == freqman_type::Range && (entry.frequency_a > entry.frequency_b))
             return false;
     }
 
