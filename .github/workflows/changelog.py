@@ -10,7 +10,7 @@ main_repo_identifier = "eried/portapack-mayhem"
 
 os.system('gh repo set-default ' + main_repo_url)
 
-raw_git = os.popen('git log next --since="1200 hours" --pretty=format:"- ^%h^ - {USERNAME}*_%al_%an*: %s"').read()
+raw_git = os.popen('git log next --since="24 hours" --pretty=format:"- ^%h^ - {USERNAME}*_%al_%an*: %s"').read()
 
 
 # ^ as github's rule, a real username can contains "-" but not "_" and "*", so use these two to seperate things.
