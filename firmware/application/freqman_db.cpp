@@ -336,11 +336,18 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     if (entry.type == freqman_type::Unknown)
         return false;
 
-    // Ranges should have both frequencies set and A <= B.
-    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
-        if (entry.frequency_a == 0 || entry.frequency_b == 0)
-            return false;
+    // Frequency A must be set for all types
+    if (entry.frequency_a == 0)
+        return false;
 
+    // Frequency B must be set for type Range or Ham Radio
+    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
+        if (entry.frequency_b == 0)
+            return false;
+    }
+
+    // Ranges should have frequencies A <= B.
+    if (entry.type == freqman_type::Range) {
         if (entry.frequency_a > entry.frequency_b)
             return false;
     }
