@@ -188,8 +188,15 @@ FrequencyLoadView::FrequencyLoadView(
 
 /* FrequencyManagerView **********************************/
 
+void FrequencyManagerView::on_edit_entry() {
+    auto edit_view = nav_.push<FrequencyEditView>(current_entry());
+    edit_view->on_save = [this](const freqman_entry& entry) {
+        db_.replace_entry(current_index(), entry);
+        freqlist_view.set_dirty();
+    };
+}
+
 void FrequencyManagerView::on_edit_freq() {
-    // TODO: range edit support.
     auto freq_edit_view = nav_.push<FrequencyKeypadView>(current_entry().frequency_a);
     freq_edit_view->on_changed = [this](rf::Frequency f) {
         auto entry = current_entry();
@@ -263,20 +270,21 @@ FrequencyManagerView::FrequencyManagerView(
     : FreqManBaseView(nav) {
     add_children(
         {&freqlist_view,
-         &labels,
          &button_add_category,
          &button_del_category,
+         &button_edit_entry,
+         &rect_padding,
          &button_edit_freq,
          &button_edit_desc,
          &button_add_entry,
          &button_del_entry});
 
     freqlist_view.on_select = [this](size_t) {
-        button_edit_freq.focus();
+        button_edit_entry.focus();
     };
     // Allows for quickly exiting control.
     freqlist_view.on_leave = [this]() {
-        button_edit_freq.focus();
+        button_edit_entry.focus();
     };
 
     button_add_category.on_select = [this]() {
@@ -285,6 +293,10 @@ FrequencyManagerView::FrequencyManagerView(
 
     button_del_category.on_select = [this]() {
         on_del_category();
+    };
+
+    button_edit_entry.on_select = [this](Button&) {
+        on_edit_entry();
     };
 
     button_edit_freq.on_select = [this](Button&) {
@@ -302,6 +314,46 @@ FrequencyManagerView::FrequencyManagerView(
     button_del_entry.on_select = [this]() {
         on_del_entry();
     };
+}
+
+/* FrequencyEditView *************************************/
+
+FrequencyEditView::FrequencyEditView(
+    NavigationView& nav,
+    freqman_entry entry)
+    : nav_{nav},
+      entry_{std::move(entry)} {
+    add_children({&labels,
+                  &field_description,
+                  &button_save,
+                  &button_cancel});
+
+    // TODO: build a binder type that wraps this pattern.
+    field_description.set_text(entry_.description);
+    field_description.on_change = [this](TextField& tf) {
+        entry_.description = tf.get_text();
+    };
+    field_description.on_select = [this](TextField& tf) {
+        temp_buffer_ = tf.get_text();
+        text_prompt(nav_, temp_buffer_, FreqManBaseView::desc_edit_max,
+                    [this, &tf](std::string& new_desc) {
+                        tf.set_text(new_desc);
+                    });
+    };
+
+    button_save.on_select = [this](Button&) {
+        if (on_save)
+            on_save(std::move(entry_));
+        nav_.pop();
+    };
+
+    button_cancel.on_select = [this](Button&) {
+        nav_.pop();
+    };
+}
+
+void FrequencyEditView::focus() {
+    button_cancel.focus();
 }
 
 }  // namespace ui
