@@ -301,6 +301,38 @@ void TextEditorMenu::hide_children(bool hidden) {
 
 /* TextEditorView ***************************************************/
 
+static fs::path get_temp_path(const fs::path& path) {
+    if (!path.empty())
+        return path + "~";
+
+    return {};
+}
+
+static void delete_temp_file(const fs::path& path) {
+    auto temp_path = get_temp_path(path);
+    if (!temp_path.empty()) {
+        delete_file(temp_path);
+    }
+}
+
+static void save_temp_file(const fs::path& path) {
+    delete_file(path);
+    copy_file(get_temp_path(path), path);
+}
+
+static void show_save_prompt(
+    NavigationView& nav,
+    std::function<void()> on_save,
+    std::function<void()> continuation) {
+    nav.display_modal(
+        "Save?", "Save changes?", YESNO,
+        [on_save](bool choice) {
+            if (choice && on_save)
+                on_save();
+        });
+    nav.set_on_pop(continuation);
+}
+
 TextEditorView::TextEditorView(NavigationView& nav)
     : nav_{nav} {
     add_children(
@@ -381,9 +413,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.on_exit() = [this]() {
-        show_save_prompt([this]() {
-            nav_.pop();
-        });
+        nav_.pop();
     };
 
     button_menu.on_select = [this]() {
@@ -402,7 +432,12 @@ TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
 }
 
 TextEditorView::~TextEditorView() {
-    delete_temp_file();
+    if (file_dirty_) {
+        ui::show_save_prompt(
+            nav_,
+            [p = path_]() { ui::save_temp_file(p); },
+            [p = std::move(path_)]() { delete_temp_file(p); });
+    }
 }
 
 void TextEditorView::on_show() {
@@ -415,7 +450,7 @@ void TextEditorView::on_show() {
 void TextEditorView::open_file(const fs::path& path) {
     file_.reset();
     viewer.clear_file();
-    delete_temp_file();
+    delete_temp_file(path_);
 
     path_ = {};
     file_dirty_ = false;
@@ -516,13 +551,10 @@ void TextEditorView::show_save_prompt(std::function<void()> continuation) {
         return;
     }
 
-    nav_.display_modal(
-        "Save?", "Save changes?", YESNO,
-        [this](bool choice) {
-            if (choice)
-                save_temp_file();
-        });
-    nav_.set_on_pop(continuation);
+    ui::show_save_prompt(
+        nav_,
+        [this]() { save_temp_file(); },
+        continuation);
 }
 
 void TextEditorView::prepare_for_write() {
@@ -533,31 +565,16 @@ void TextEditorView::prepare_for_write() {
 
     // Copy to temp file on write.
     has_temp_file_ = true;
-    delete_temp_file();
-    copy_file(path_, get_temp_path());
-    file_->assume_file(get_temp_path());
-}
-
-void TextEditorView::delete_temp_file() const {
-    auto temp_path = get_temp_path();
-    if (!temp_path.empty()) {
-        delete_file(temp_path);
-    }
+    delete_temp_file(path_);
+    copy_file(path_, get_temp_path(path_));
+    file_->assume_file(get_temp_path(path_));
 }
 
 void TextEditorView::save_temp_file() {
     if (file_dirty_) {
-        delete_file(path_);
-        copy_file(get_temp_path(), path_);
+        ui::save_temp_file(path_);
         file_dirty_ = false;
     }
-}
-
-fs::path TextEditorView::get_temp_path() const {
-    if (!path_.empty())
-        return path_ + "~";
-
-    return {};
 }
 
 }  // namespace ui
