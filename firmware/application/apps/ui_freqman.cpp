@@ -249,7 +249,7 @@ void FrequencyManagerView::on_del_entry() {
         return;
 
     nav_.push<ModalMessageView>(
-        "Delete", "Delete '" + pretty_string(current_entry(), 23) + "'\nAre you sure?", YESNO,
+        "Delete", "Delete " + trim(pretty_string(current_entry(), 23)) + "\nAre you sure?", YESNO,
         [this](bool choice) {
             if (choice) {
                 db_.delete_entry(current_index());
