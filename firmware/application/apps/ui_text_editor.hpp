@@ -229,10 +229,7 @@ class TextEditorView : public View {
     void show_save_prompt(std::function<void()> continuation);
 
     void prepare_for_write();
-    void create_temp_file() const;
-    void delete_temp_file() const;
     void save_temp_file();
-    std::filesystem::path get_temp_path() const;
 
     NavigationView& nav_;
     std::unique_ptr<FileWrapper> file_{};
