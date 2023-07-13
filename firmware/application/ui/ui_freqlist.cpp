@@ -67,7 +67,7 @@ void FreqManUIList::paint(Painter& painter) {
                 text = pretty_string(entry, line_max_length);
 
             if (entry.type == freqman_type::Raw)
-                style = &Styles::grey;
+                style = &Styles::light_grey;
         }
 
         // Pad right with ' ' so trailing chars are cleaned up.
