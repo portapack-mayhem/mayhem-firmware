@@ -140,7 +140,7 @@ FrequencySaveView::FrequencySaveView(
 
     button_edit.on_select = [this, &nav](Button&) {
         temp_buffer_ = entry_.description;
-        text_prompt(nav_, temp_buffer_, 30, [this](std::string& new_desc) {
+        text_prompt(nav_, temp_buffer_, desc_edit_max, [this](std::string& new_desc) {
             entry_.description = new_desc;
             refresh_ui();
         });
@@ -189,7 +189,7 @@ FrequencyLoadView::FrequencyLoadView(
 /* FrequencyManagerView **********************************/
 
 void FrequencyManagerView::on_edit_freq() {
-    // TODO: range edit support?
+    // TODO: range edit support.
     auto freq_edit_view = nav_.push<FrequencyKeypadView>(current_entry().frequency_a);
     freq_edit_view->on_changed = [this](rf::Frequency f) {
         auto entry = current_entry();
@@ -201,7 +201,7 @@ void FrequencyManagerView::on_edit_freq() {
 
 void FrequencyManagerView::on_edit_desc() {
     temp_buffer_ = current_entry().description;
-    text_prompt(nav_, temp_buffer_, 28, [this](std::string& new_desc) {
+    text_prompt(nav_, temp_buffer_, desc_edit_max, [this](std::string& new_desc) {
         auto entry = current_entry();
         entry.description = std::move(new_desc);
         db_.replace_entry(current_index(), entry);
@@ -211,7 +211,7 @@ void FrequencyManagerView::on_edit_desc() {
 
 void FrequencyManagerView::on_add_category() {
     temp_buffer_.clear();
-    text_prompt(nav_, temp_buffer_, 12, [this](std::string& new_name) {
+    text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
         if (!new_name.empty()) {
             create_freqman_file(new_name);
             refresh_categories();

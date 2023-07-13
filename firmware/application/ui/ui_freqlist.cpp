@@ -56,9 +56,8 @@ void FreqManUIList::paint(Painter& painter) {
         auto text = std::string{};
         auto index = start_index_ + offset;
         auto line_position = rect.location() + Point{4, 1 + (int)offset * char_height};
-
-        // Highlight the selected item.
-        auto style = (offset == selected_index_) ? &Styles::bg_white : base_style;
+        auto is_selected = offset == selected_index_;
+        auto style = base_style;
 
         if (index < db_->entry_count()) {
             auto entry = (*db_)[index];
@@ -66,6 +65,9 @@ void FreqManUIList::paint(Painter& painter) {
             // pre-filtered. Just show an empty 'slot' in this case.
             if (entry.type != freqman_type::Unknown)
                 text = pretty_string(entry, line_max_length);
+
+            if (entry.type == freqman_type::Raw)
+                style = &Styles::grey;
         }
 
         // Pad right with ' ' so trailing chars are cleaned up.
@@ -73,7 +75,8 @@ void FreqManUIList::paint(Painter& painter) {
         if (text.length() < line_max_length)
             text.resize(line_max_length, ' ');
 
-        painter.draw_string(line_position, *style, text);
+        painter.draw_string(
+            line_position, (is_selected ? style->invert() : *style), text);
     }
 
     // Draw a bounding rectangle when focused.

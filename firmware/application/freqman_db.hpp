@@ -59,6 +59,7 @@ enum class freqman_type : uint8_t {
     Single,    // f=
     Range,     // a=,b=
     HamRadio,  // r=,t=
+    Raw,       // line content in description
     Unknown,
 };
 

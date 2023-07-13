@@ -79,6 +79,7 @@ class FreqManBaseView : public View {
    protected:
     /* Static so selected category is persisted across UI instances. */
     static size_t current_category_index;
+    static constexpr size_t desc_edit_max = 0x80;
 };
 
 // TODO: support for new category.
