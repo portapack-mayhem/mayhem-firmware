@@ -432,6 +432,9 @@ TextEditorView::TextEditorView(NavigationView& nav, const fs::path& path)
 }
 
 TextEditorView::~TextEditorView() {
+    // NB: Be careful here. The UI will render after this instance
+    // has been destroyed. Everything needed to render the UI
+    // and perform the save actions must be value captured.
     if (file_dirty_) {
         ui::show_save_prompt(
             nav_,
