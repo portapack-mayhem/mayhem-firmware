@@ -200,8 +200,11 @@ std::string pretty_string(const freqman_entry& entry, size_t max_length) {
                   to_string_dec_uint(entry.frequency_b / 1'000'000) + "M: " + entry.description;
             break;
         case freqman_type::HamRadio:
-            str = "" + to_string_dec_uint(entry.frequency_a / 1'000'000) + "M," +
+            str = "R:" + to_string_dec_uint(entry.frequency_a / 1'000'000) + "M,T:" +
                   to_string_dec_uint(entry.frequency_b / 1'000'000) + "M: " + entry.description;
+            break;
+        case freqman_type::Raw:
+            str = entry.description;
             break;
         default:
             str = "UNK:" + entry.description;
@@ -244,8 +247,10 @@ std::string to_freqman_string(const freqman_entry& entry) {
             if (is_valid(entry.tone))
                 append_field("c", tonekey::tone_key_value_string(entry.tone));
             break;
+        case freqman_type::Raw:
+            return entry.description;
         default:
-            return {};  // TODO: Comment type with description?
+            return {};
     };
 
     if (is_valid(entry.modulation) && entry.modulation < freqman_modulations.size()) {
@@ -429,6 +434,11 @@ freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
         freqman_entry entry;
         if (parse_freqman_entry(*line_text, entry))
             return entry;
+        else {
+            entry.type = freqman_type::Raw;
+            entry.description = trim(*line_text);
+            return entry;
+        }
     }
 
     return {};
@@ -444,7 +454,7 @@ void FreqmanDB::insert_entry(const freqman_entry& entry, FileWrapper::Line line)
 void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry) {
     auto range = wrapper_->line_range(line);
     if (!range)
-        return;  // TODO: Message?
+        return;
 
     // Don't overwrite the '\n'.
     range->end--;

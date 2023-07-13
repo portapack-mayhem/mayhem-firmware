@@ -47,3 +47,7 @@ TEST_CASE("trim removes whitespace.") {
 TEST_CASE("trim returns empty for only whitespace.") {
     CHECK(trim("  \n").empty());
 }
+
+TEST_CASE("trim empty returns empty.") {
+    CHECK(trim("").empty());
+}
