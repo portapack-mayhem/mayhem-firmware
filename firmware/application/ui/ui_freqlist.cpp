@@ -62,10 +62,11 @@ void FreqManUIList::paint(Painter& painter) {
         if (index < db_->entry_count()) {
             auto entry = (*db_)[index];
             // db_ is directly backed by a file, so invalid lines cannot be
-            // pre-filtered. Just show an empty 'slot' in this case.
+            // pre-filtered. Show an empty entry if 'Unknown'.
             if (entry.type != freqman_type::Unknown)
                 text = pretty_string(entry, line_max_length);
 
+            // Otherwise, if 'Raw' indicate an invalid entry by color.
             if (entry.type == freqman_type::Raw)
                 style = &Styles::light_grey;
         }
