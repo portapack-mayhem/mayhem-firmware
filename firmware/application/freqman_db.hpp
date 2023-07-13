@@ -141,9 +141,9 @@ enum class freqman_type : uint8_t {
 
 /* Freqman Entry *******************************/
 struct freqman_entry {
-    int64_t frequency_a{0};      // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
-    int64_t frequency_b{0};      // 'b=freq_end' or 't=tx_freq'
-    std::string description{0};  // 'd=desc'
+    int64_t frequency_a{0};     // 'f=freq' or 'a=freq_start' or 'r=recv_freq'
+    int64_t frequency_b{0};     // 'b=freq_end' or 't=tx_freq'
+    std::string description{};  // 'd=desc'
     freqman_type type{freqman_type::Unknown};
     freqman_index_t modulation{freqman_invalid_index};
     freqman_index_t bandwidth{freqman_invalid_index};
