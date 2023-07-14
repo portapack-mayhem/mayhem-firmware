@@ -365,7 +365,7 @@ void Text::set(std::string_view value) {
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
-    
+
     painter.fill_rectangle(rect, s.background);
 
     painter.draw_string(

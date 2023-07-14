@@ -37,6 +37,10 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
+// TODO: Clean up after moving to better lookup tables.
+extern ui::OptionsField::options_t freqman_bandwidths[4];
+extern ui::OptionsField::options_t freqman_steps;
+
 namespace ui {
 
 /* FreqManBaseView ***************************************/
@@ -342,7 +346,7 @@ FrequencyEditView::FrequencyEditView(
 
     freqman_set_modulation_option(field_modulation);
     populate_bandwidth_options();
-    freqman_set_step_option(field_step);
+    populate_step_options();
     populate_tone_options();
 
     // Add the "invalid/unset" option. Kind of hacky, but...
@@ -454,20 +458,42 @@ void FrequencyEditView::refresh_ui() {
     }
 }
 
+// TODO: The following functions shouldn't be needed once
+// freqman_db lookup tables are complete.
 void FrequencyEditView::populate_bandwidth_options() {
-    freqman_set_bandwidth_option(entry_.modulation, field_bandwidth);
-    field_bandwidth.options().insert(
-        field_bandwidth.options().begin(), {"None", -1});
+    OptionsField::options_t options;
+    options.push_back({"None", -1});
+
+    if (entry_.modulation < std::size(freqman_bandwidths)) {
+        auto& bandwidths = freqman_bandwidths[entry_.modulation];
+        for (auto i = 1u; i < bandwidths.size(); ++i) {
+            auto& item = bandwidths[i];
+            options.push_back({item.first, (OptionsField::value_t)i});
+        }
+    }
+
+    field_bandwidth.set_options(std::move(options));
+}
+
+void FrequencyEditView::populate_step_options() {
+    OptionsField::options_t options;
+    options.push_back({"None", -1});
+
+    for (auto i = 1u; i < freqman_steps.size(); ++i) {
+        auto& item = freqman_steps[i];
+        options.push_back({item.first, (OptionsField::value_t)i});
+    }
+
+    field_step.set_options(std::move(options));
 }
 
 void FrequencyEditView::populate_tone_options() {
     OptionsField::options_t options;
-
     options.push_back({"None", -1});
 
     for (auto i = 1u; i < tonekey::tone_keys.size(); ++i) {
-        auto item = tonekey::tone_keys[i];
-        options.push_back({item.first, (OptionsField::value_t)item.second});
+        auto& item = tonekey::tone_keys[i];
+        options.push_back({item.first, (OptionsField::value_t)i});
     }
 
     field_tone.set_options(std::move(options));

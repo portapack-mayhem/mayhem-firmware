@@ -204,6 +204,7 @@ class FrequencyEditView : public View {
 
     void refresh_ui();
     void populate_bandwidth_options();
+    void populate_step_options();
     void populate_tone_options();
 
     Labels labels{
