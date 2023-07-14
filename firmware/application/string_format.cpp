@@ -162,13 +162,39 @@ std::string to_string_decimal(float decimal, int8_t precision) {
     return result;
 }
 
+// right-justified frequency in Hz, always 10 characters
 std::string to_string_freq(const uint64_t f) {
-    auto final_str = to_string_dec_int(f / 1000000, 4) + to_string_dec_int(f % 1000000, 6, '0');
+    std::string final_str{""};
+
+    if (f < 1000000)
+        final_str = to_string_dec_int(f, 10, ' ');
+    else
+        final_str = to_string_dec_int(f / 1000000, 4) + to_string_dec_int(f % 1000000, 6, '0');
+
     return final_str;
 }
 
+// right-justified frequency in MHz, rounded to 4 decimal places, always 9 characters
 std::string to_string_short_freq(const uint64_t f) {
-    auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
+    auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int(((f + 50)/ 100) % 10000, 4, '0');
+    return final_str;
+}
+
+// non-justified non-padded frequency in MHz, rounded to specified number of decimal places
+std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
+    std::string final_str{""};
+    static uint32_t pow10[7] = { 1, 10, 100, 1000, 10000, 100000, 1000000 };
+
+    if (precision < 1) {
+        final_str = to_string_dec_uint64(f / 1000000);
+    } else {
+        if (precision > 6)
+            precision = 6;
+
+        uint32_t divisor = pow10[6 - precision];
+
+        final_str = to_string_dec_uint64(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
+    }
     return final_str;
 }
 
