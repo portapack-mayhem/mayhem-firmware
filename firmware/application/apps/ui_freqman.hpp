@@ -202,6 +202,8 @@ class FrequencyEditView : public View {
     freqman_entry entry_;
     std::string temp_buffer_{};
 
+    void refresh_ui();
+
     Labels labels{
         {{0 * 8, 2 * 16}, "Entry Type :", Color::light_grey()},
         {{0 * 8, 3 * 16}, "Frequency A:", Color::light_grey()},
@@ -212,6 +214,27 @@ class FrequencyEditView : public View {
         {{0 * 8, 8 * 16}, "Tone Freq  :", Color::light_grey()},
         {{0 * 8, 9 * 16}, "Description:", Color::light_grey()},
     };
+
+    OptionsField field_type {{13 * 8, 2 * 16}, 8,
+        {
+            {"Single", 0},
+            {"Range", 1},
+            {"HamRadio", 2},
+            {"Raw", 3},
+            {"Unknown", 4}
+        }};
+
+    FrequencyField field_freq_a {{13 * 8, 3 * 16}};
+
+    FrequencyField field_freq_b {{13 * 8, 4 * 16}};
+
+    OptionsField field_modulation {{13 * 8, 5 * 16}, 5, {}};
+
+    OptionsField field_bandwidth {{13 * 8, 6 * 16}, 7, {}};
+
+    OptionsField field_step {{13 * 8, 7 * 16}, 12, {}};
+
+    // TONE? Option or Freq?
 
     TextField field_description{
         {0 * 8, 10 * 16, 30 * 8, 1 * 16},

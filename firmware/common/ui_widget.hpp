@@ -620,6 +620,7 @@ class OptionsField : public Widget {
 
     OptionsField(Point parent_pos, size_t length, options_t options);
 
+    options_t& options() { return options_; }
     const options_t& options() const { return options_; }
     void set_options(options_t new_options);
 

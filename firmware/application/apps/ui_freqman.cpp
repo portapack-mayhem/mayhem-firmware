@@ -24,6 +24,7 @@
 #include "ui_freqman.hpp"
 
 #include "event_m0.hpp"
+#include "freqman.hpp"
 #include "portapack.hpp"
 #include "rtc_time.hpp"
 #include "utility.hpp"
@@ -323,13 +324,32 @@ FrequencyEditView::FrequencyEditView(
     freqman_entry entry)
     : nav_{nav},
       entry_{std::move(entry)} {
-    add_children({&labels,
-                  &field_description,
-                  &button_save,
-                  &button_cancel});
+    add_children({
+        &labels,
+        &field_type, 
+        &field_freq_a,
+        &field_freq_b,
+        &field_modulation,
+        &field_bandwidth,
+        &field_step,
+        &field_description,
+        &button_save,
+        &button_cancel});
 
-    // TODO: build a binder type that wraps this pattern.
-    field_description.set_text(entry_.description);
+    freqman_set_modulation_option(field_modulation);
+    freqman_set_step_option(field_step);
+
+    // Add the "invalid/unset" option. Kind of hacky, but...
+    field_modulation.options().insert(
+        field_modulation.options().begin(), {"None", -1});
+    field_bandwidth.options().insert(
+        field_bandwidth.options().begin(), {"None", -1});
+    field_step.options().insert(
+        field_step.options().begin(), {"None", -1});
+
+    refresh_ui();
+
+    // TODO: this pattern should be able to be wrapped up.
     field_description.on_change = [this](TextField& tf) {
         entry_.description = tf.get_text();
     };
@@ -354,6 +374,17 @@ FrequencyEditView::FrequencyEditView(
 
 void FrequencyEditView::focus() {
     button_cancel.focus();
+}
+
+void FrequencyEditView::refresh_ui() {
+    // TODO: Correctly enable values based on type/mod/etc.
+    field_type.set_by_value((int32_t)entry_.type);
+    field_freq_a.set_value(entry_.frequency_a);
+    field_freq_b.set_value(entry_.frequency_b);
+    field_modulation.set_by_value((int32_t)entry_.modulation);
+    field_bandwidth.set_by_value((int32_t)entry_.bandwidth);
+    field_step.set_by_value((int32_t)entry_.step);
+    field_description.set_text(entry_.description);
 }
 
 }  // namespace ui
