@@ -193,7 +193,7 @@ class FrequencyEditView : public View {
     FrequencyEditView(
         NavigationView& nav,
         freqman_entry entry);
-    std::string title() const override { return "Freqman"; }
+    std::string title() const override { return "Freqman Edit"; }
 
     void focus() override;
 
@@ -203,42 +203,47 @@ class FrequencyEditView : public View {
     std::string temp_buffer_{};
 
     void refresh_ui();
+    void populate_bandwidth_options();
+    void populate_tone_options();
 
     Labels labels{
-        {{0 * 8, 2 * 16}, "Entry Type :", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Frequency A:", Color::light_grey()},
-        {{0 * 8, 4 * 16}, "Frequency B:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "Modulation :", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Bandwidth  :", Color::light_grey()},
-        {{0 * 8, 7 * 16}, "Step       :", Color::light_grey()},
-        {{0 * 8, 8 * 16}, "Tone Freq  :", Color::light_grey()},
-        {{0 * 8, 9 * 16}, "Description:", Color::light_grey()},
+        {{5 * 8, 1 * 16}, "Edit Frequency Entry", Color::white()},
+        {{0 * 8, 3 * 16}, "Entry Type :", Color::light_grey()},
+        {{0 * 8, 4 * 16}, "Frequency A:", Color::light_grey()},
+        {{0 * 8, 5 * 16}, "Frequency B:", Color::light_grey()},
+        {{0 * 8, 6 * 16}, "Modulation :", Color::light_grey()},
+        {{0 * 8, 7 * 16}, "Bandwidth  :", Color::light_grey()},
+        {{0 * 8, 8 * 16}, "Step       :", Color::light_grey()},
+        {{0 * 8, 9 * 16}, "Tone Freq  :", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Description:", Color::light_grey()},
     };
 
-    OptionsField field_type {{13 * 8, 2 * 16}, 8,
-        {
-            {"Single", 0},
-            {"Range", 1},
-            {"HamRadio", 2},
-            {"Raw", 3},
-            {"Unknown", 4}
-        }};
+    OptionsField field_type{{13 * 8, 3 * 16}, 8, {
+                                                     {"Single", 0},
+                                                     {"Range", 1},
+                                                     {"HamRadio", 2},
+                                                     {"Raw", 3},
+                                                 }};
 
-    FrequencyField field_freq_a {{13 * 8, 3 * 16}};
+    FrequencyField field_freq_a{{13 * 8, 4 * 16}};
 
-    FrequencyField field_freq_b {{13 * 8, 4 * 16}};
+    FrequencyField field_freq_b{{13 * 8, 5 * 16}};
 
-    OptionsField field_modulation {{13 * 8, 5 * 16}, 5, {}};
+    OptionsField field_modulation{{13 * 8, 6 * 16}, 5, {}};
 
-    OptionsField field_bandwidth {{13 * 8, 6 * 16}, 7, {}};
+    OptionsField field_bandwidth{{13 * 8, 7 * 16}, 7, {}};
 
-    OptionsField field_step {{13 * 8, 7 * 16}, 12, {}};
+    OptionsField field_step{{13 * 8, 8 * 16}, 12, {}};
 
-    // TONE? Option or Freq?
+    OptionsField field_tone{{13 * 8, 9 * 16}, 13, {}};
 
     TextField field_description{
-        {0 * 8, 10 * 16, 30 * 8, 1 * 16},
-        ""};
+        {13 * 8, 10 * 16, 17 * 8, 1 * 16},
+        {}};
+
+    Text text_validation{
+        {12 * 8, 12 * 16, 5 * 8, 1 * 16},
+        {}};
 
     Button button_save{
         {0 * 8, 17 * 16, 15 * 8, 2 * 16},

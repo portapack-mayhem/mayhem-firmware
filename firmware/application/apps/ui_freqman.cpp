@@ -27,6 +27,9 @@
 #include "freqman.hpp"
 #include "portapack.hpp"
 #include "rtc_time.hpp"
+#include "tone_key.hpp"
+#include "ui_receiver.hpp"
+#include "ui_styles.hpp"
 #include "utility.hpp"
 
 #include <memory>
@@ -324,32 +327,83 @@ FrequencyEditView::FrequencyEditView(
     freqman_entry entry)
     : nav_{nav},
       entry_{std::move(entry)} {
-    add_children({
-        &labels,
-        &field_type, 
-        &field_freq_a,
-        &field_freq_b,
-        &field_modulation,
-        &field_bandwidth,
-        &field_step,
-        &field_description,
-        &button_save,
-        &button_cancel});
+    add_children({&labels,
+                  &field_type,
+                  &field_freq_a,
+                  &field_freq_b,
+                  &field_modulation,
+                  &field_bandwidth,
+                  &field_step,
+                  &field_tone,
+                  &field_description,
+                  &text_validation,
+                  &button_save,
+                  &button_cancel});
 
     freqman_set_modulation_option(field_modulation);
+    populate_bandwidth_options();
     freqman_set_step_option(field_step);
+    populate_tone_options();
 
     // Add the "invalid/unset" option. Kind of hacky, but...
     field_modulation.options().insert(
         field_modulation.options().begin(), {"None", -1});
-    field_bandwidth.options().insert(
-        field_bandwidth.options().begin(), {"None", -1});
     field_step.options().insert(
         field_step.options().begin(), {"None", -1});
 
-    refresh_ui();
+    field_type.set_by_value((int32_t)entry_.type);
+    field_type.on_change = [this](size_t, auto value) {
+        entry_.type = static_cast<freqman_type>(value);
+        refresh_ui();
+    };
 
     // TODO: this pattern should be able to be wrapped up.
+    field_freq_a.set_value(entry_.frequency_a);
+    field_freq_a.on_change = [this](rf::Frequency f) {
+        entry_.frequency_a = f;
+        refresh_ui();
+    };
+    field_freq_a.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_freq_a.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            field_freq_a.set_value(f);
+        };
+    };
+
+    field_freq_b.set_value(entry_.frequency_b);
+    field_freq_b.on_change = [this](rf::Frequency f) {
+        entry_.frequency_b = f;
+        refresh_ui();
+    };
+    field_freq_b.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_freq_b.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            field_freq_b.set_value(f);
+        };
+    };
+
+    field_modulation.set_by_value((int32_t)entry_.modulation);
+    field_modulation.on_change = [this](size_t, auto value) {
+        entry_.modulation = static_cast<freqman_index_t>(value);
+        populate_bandwidth_options();
+    };
+
+    field_bandwidth.set_by_value((int32_t)entry_.bandwidth);
+    field_bandwidth.on_change = [this](size_t, auto value) {
+        entry_.bandwidth = static_cast<freqman_index_t>(value);
+    };
+
+    field_step.set_by_value((int32_t)entry_.step);
+    field_step.on_change = [this](size_t, auto value) {
+        entry_.step = static_cast<freqman_index_t>(value);
+    };
+
+    field_tone.set_by_value((int32_t)entry_.tone);
+    field_tone.on_change = [this](size_t, auto value) {
+        entry_.tone = static_cast<freqman_index_t>(value);
+    };
+
+    field_description.set_text(entry_.description);
     field_description.on_change = [this](TextField& tf) {
         entry_.description = tf.get_text();
     };
@@ -370,6 +424,8 @@ FrequencyEditView::FrequencyEditView(
     button_cancel.on_select = [this](Button&) {
         nav_.pop();
     };
+
+    refresh_ui();
 }
 
 void FrequencyEditView::focus() {
@@ -377,14 +433,44 @@ void FrequencyEditView::focus() {
 }
 
 void FrequencyEditView::refresh_ui() {
-    // TODO: Correctly enable values based on type/mod/etc.
-    field_type.set_by_value((int32_t)entry_.type);
-    field_freq_a.set_value(entry_.frequency_a);
-    field_freq_b.set_value(entry_.frequency_b);
-    field_modulation.set_by_value((int32_t)entry_.modulation);
-    field_bandwidth.set_by_value((int32_t)entry_.bandwidth);
-    field_step.set_by_value((int32_t)entry_.step);
-    field_description.set_text(entry_.description);
+    // This needs to be called whenever a UI option is changed
+    // in a way that causes fields to be unused or would make the
+    // entry fail validation.
+
+    auto is_range = entry_.type == freqman_type::Range;
+    auto is_ham = entry_.type == freqman_type::HamRadio;
+    auto has_freq_b = is_range || is_ham;
+
+    field_freq_b.set_style(has_freq_b ? &Styles::white : &Styles::grey);
+    field_step.set_style(is_range ? &Styles::white : &Styles::grey);
+    field_tone.set_style(is_ham ? &Styles::white : &Styles::grey);
+
+    if (is_valid(entry_)) {
+        text_validation.set("Valid");
+        text_validation.set_style(&Styles::green);
+    } else {
+        text_validation.set("Error");
+        text_validation.set_style(&Styles::red);
+    }
+}
+
+void FrequencyEditView::populate_bandwidth_options() {
+    freqman_set_bandwidth_option(entry_.modulation, field_bandwidth);
+    field_bandwidth.options().insert(
+        field_bandwidth.options().begin(), {"None", -1});
+}
+
+void FrequencyEditView::populate_tone_options() {
+    OptionsField::options_t options;
+
+    options.push_back({"None", -1});
+
+    for (auto i = 1u; i < tonekey::tone_keys.size(); ++i) {
+        auto item = tonekey::tone_keys[i];
+        options.push_back({item.first, (OptionsField::value_t)item.second});
+    }
+
+    field_tone.set_options(std::move(options));
 }
 
 }  // namespace ui
