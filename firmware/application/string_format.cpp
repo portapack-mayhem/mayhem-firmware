@@ -183,7 +183,15 @@ std::string to_string_short_freq(const uint64_t f) {
 // non-justified non-padded frequency in MHz, rounded to specified number of decimal places
 std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
     std::string final_str{""};
-    static uint32_t pow10[7] = { 1, 10, 100, 1000, 10000, 100000, 1000000, };
+    static uint32_t pow10[7] = {
+        1,
+        10,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000,
+    };
 
     if (precision < 1) {
         final_str = to_string_dec_uint64(f / 1000000);
