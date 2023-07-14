@@ -71,6 +71,7 @@ target_include_directories(application_test PRIVATE
 )
 
 target_compile_options(application_test PRIVATE
+	-std=c++17
 	-DLPC43XX
 	-DLPC43XX_M0
 	-D__NEWLIB__
