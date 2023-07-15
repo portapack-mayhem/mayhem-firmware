@@ -25,10 +25,10 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "file.hpp"
-#include "freqman.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
+#include "ui_freqman.hpp"
 #include "utility.hpp"
 
 using namespace portapack;

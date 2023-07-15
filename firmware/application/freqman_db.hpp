@@ -52,9 +52,6 @@ constexpr bool is_invalid(freqman_index_t index) {
     return index == freqman_invalid_index;
 }
 
-/* Gets the full path for a given file stem (no extension). */
-const std::filesystem::path get_freqman_path(const std::string& stem);
-
 enum class freqman_type : uint8_t {
     Single,    // f=
     Range,     // a=,b=
@@ -173,6 +170,12 @@ struct freqman_load_options {
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
+/* Gets the full path for a given file stem (no extension). */
+const std::filesystem::path get_freqman_path(const std::string& stem);
+bool create_freqman_file(const std::string& file_stem);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
+void delete_freqman_file(const std::string& file_stem);
+
 /* Gets a pretty string representation for an entry. */
 std::string pretty_string(const freqman_entry& item, size_t max_length = 30);
 
@@ -216,6 +219,7 @@ class FreqmanDB {
 
     bool open(const std::filesystem::path& path);
     void close();
+
     freqman_entry operator[](FileWrapper::Line line) const;
     void insert_entry(const freqman_entry& entry, FileWrapper::Line line);
     void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
@@ -224,6 +228,8 @@ class FreqmanDB {
     uint32_t entry_count() const;
     bool empty() const;
 
+    /* When true, Raw entries are returned instead of Unknown. */
+    void set_read_raw(bool v) { read_raw_ = v; }
     iterator begin() {
         return {*this, 0};
     }
@@ -233,6 +239,7 @@ class FreqmanDB {
 
    private:
     std::unique_ptr<FileWrapper> wrapper_{};
+    bool read_raw_{true};
 };
 
 #endif /* __FREQMAN_DB_H__ */

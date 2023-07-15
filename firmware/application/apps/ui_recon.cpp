@@ -23,6 +23,7 @@
 
 #include "ui_recon.hpp"
 #include "ui_fileman.hpp"
+#include "ui_freqman.hpp"
 #include "capture_app.hpp"
 #include "file.hpp"
 #include "tone_key.hpp"

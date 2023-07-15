@@ -23,6 +23,7 @@
 
 #include "ui_level.hpp"
 #include "ui_fileman.hpp"
+#include "ui_freqman.hpp"
 #include "file.hpp"
 
 using namespace portapack;

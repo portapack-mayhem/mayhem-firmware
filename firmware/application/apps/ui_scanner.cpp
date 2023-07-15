@@ -22,6 +22,7 @@
 
 #include "ui_scanner.hpp"
 #include "ui_fileman.hpp"
+#include "ui_freqman.hpp"
 
 using namespace portapack;
 

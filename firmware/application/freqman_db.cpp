@@ -40,10 +40,6 @@ namespace fs = std::filesystem;
 const std::filesystem::path freqman_dir{u"/FREQMAN"};
 const std::filesystem::path freqman_extension{u".TXT"};
 
-const std::filesystem::path get_freqman_path(const std::string& stem) {
-    return freqman_dir / stem + freqman_extension;
-}
-
 // NB: Don't include UI headers to keep this code unit testable.
 using option_t = std::pair<std::string, int32_t>;
 using options_t = std::vector<option_t>;
@@ -188,6 +184,23 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
     if (auto opt = find_by_index(freqman_steps_short, step))
         return opt->first;
     return {};
+}
+
+const std::filesystem::path get_freqman_path(const std::string& stem) {
+    return freqman_dir / stem + freqman_extension;
+}
+
+bool create_freqman_file(const std::string& file_stem) {
+    auto fs_error = make_new_file(get_freqman_path(file_stem));
+    return fs_error.ok();
+}
+
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options) {
+    return parse_freqman_file(get_freqman_path(file_stem), db, options);
+}
+
+void delete_freqman_file(const std::string& file_stem) {
+    delete_file(get_freqman_path(file_stem));
 }
 
 std::string pretty_string(const freqman_entry& entry, size_t max_length) {
@@ -342,27 +355,20 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
     return is_valid(entry);
 }
 
-// TODO: Use FreqmanDB iterator.
 bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_options options) {
-    File f;
-    auto error = f.open(path);
-    if (error)
+    FreqmanDB freqman_db;
+    freqman_db.set_read_raw(false);  // Don't return malformed lines.
+    if (!freqman_db.open(path))
         return false;
-
-    auto reader = FileLineReader(f);
-    auto line_count = count_lines(reader);
 
     // Attempt to avoid a re-alloc if possible.
     db.clear();
-    db.reserve(line_count);
+    db.reserve(freqman_db.entry_count());
 
-    for (const auto& line : reader) {
-        freqman_entry entry{};
-        if (!parse_freqman_entry(line, entry))
-            continue;
-
+    for (auto entry : freqman_db) {
         // Filter by entry type.
-        if ((entry.type == freqman_type::Single && !options.load_freqs) ||
+        if (entry.type == freqman_type::Unknown ||
+            (entry.type == freqman_type::Single && !options.load_freqs) ||
             (entry.type == freqman_type::Range && !options.load_ranges) ||
             (entry.type == freqman_type::HamRadio && !options.load_hamradios)) {
             continue;
@@ -440,7 +446,7 @@ freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
         freqman_entry entry;
         if (parse_freqman_entry(*line_text, entry))
             return entry;
-        else {
+        else if (read_raw_) {
             entry.type = freqman_type::Raw;
             entry.description = trim(*line_text);
             return entry;
