@@ -349,7 +349,7 @@ Text::Text(
     Rect parent_rect,
     std::string text)
     : Widget{parent_rect},
-      text{text} {
+      text{std::move(text)} {
 }
 
 Text::Text(
@@ -357,14 +357,14 @@ Text::Text(
     : Text{parent_rect, {}} {
 }
 
-void Text::set(const std::string value) {
-    text = value;
+void Text::set(std::string_view value) {
+    text = std::string{value};
     set_dirty();
 }
 
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
-    const auto s = style();
+    auto s = has_focus() ? style().invert() : style();
 
     painter.fill_rectangle(rect, s.background);
 
@@ -1608,9 +1608,9 @@ bool OptionsField::on_touch(const TouchEvent event) {
     return true;
 }
 
-/* TextField ***********************************************************/
+/* TextEdit ***********************************************************/
 
-TextField::TextField(
+TextEdit::TextEdit(
     std::string& str,
     size_t max_length,
     Point position,
@@ -1624,24 +1624,24 @@ TextField::TextField(
     set_focusable(true);
 }
 
-const std::string& TextField::value() const {
+const std::string& TextEdit::value() const {
     return text_;
 }
 
-void TextField::set_cursor(uint32_t pos) {
+void TextEdit::set_cursor(uint32_t pos) {
     cursor_pos_ = std::min<size_t>(pos, text_.length());
     set_dirty();
 }
 
-void TextField::set_insert_mode() {
+void TextEdit::set_insert_mode() {
     insert_mode_ = true;
 }
 
-void TextField::set_overwrite_mode() {
+void TextEdit::set_overwrite_mode() {
     insert_mode_ = false;
 }
 
-void TextField::char_add(char c) {
+void TextEdit::char_add(char c) {
     // Don't add if inserting and at max_length and
     // don't overwrite if past the end of the text.
     if ((text_.length() >= max_length_ && insert_mode_) ||
@@ -1657,7 +1657,7 @@ void TextField::char_add(char c) {
     set_dirty();
 }
 
-void TextField::char_delete() {
+void TextEdit::char_delete() {
     if (cursor_pos_ == 0)
         return;
 
@@ -1666,7 +1666,7 @@ void TextField::char_delete() {
     set_dirty();
 }
 
-void TextField::paint(Painter& painter) {
+void TextEdit::paint(Painter& painter) {
     constexpr int char_width = 8;
 
     auto rect = screen_rect();
@@ -1702,7 +1702,7 @@ void TextField::paint(Painter& painter) {
     painter.draw_rectangle(cursor_box, cursor_style.background);
 }
 
-bool TextField::on_key(const KeyEvent key) {
+bool TextEdit::on_key(const KeyEvent key) {
     if (key == KeyEvent::Left && cursor_pos_ > 0)
         cursor_pos_--;
     else if (key == KeyEvent::Right && cursor_pos_ < text_.length())
@@ -1716,7 +1716,7 @@ bool TextField::on_key(const KeyEvent key) {
     return true;
 }
 
-bool TextField::on_encoder(const EncoderEvent delta) {
+bool TextEdit::on_encoder(const EncoderEvent delta) {
     int32_t new_pos = cursor_pos_ + delta;
 
     // Let the encoder wrap around the ends of the text.
@@ -1729,12 +1729,38 @@ bool TextField::on_encoder(const EncoderEvent delta) {
     return true;
 }
 
-bool TextField::on_touch(const TouchEvent event) {
+bool TextEdit::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start)
         focus();
 
     set_dirty();
     return true;
+}
+
+/* TextField *************************************************************/
+
+TextField::TextField(Rect parent_rect, std::string text)
+    : Text(parent_rect, std::move(text)) {
+    set_focusable(true);
+}
+
+const std::string& TextField::get_text() const {
+    return text;
+}
+
+void TextField::set_text(std::string_view value) {
+    set(value);
+    if (on_change)
+        on_change(*this);
+}
+
+bool TextField::on_key(KeyEvent key) {
+    if (key == KeyEvent::Select && on_select) {
+        on_select(*this);
+        return true;
+    }
+
+    return false;
 }
 
 /* NumberField ***********************************************************/

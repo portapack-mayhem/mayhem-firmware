@@ -97,6 +97,7 @@ options_t freqman_bandwidths[4] = {
     },
 };
 
+// TODO: these should be indexes.
 options_t freqman_steps = {
     {"0.1kHz      ", 100},
     {"1kHz        ", 1000},
@@ -116,6 +117,7 @@ options_t freqman_steps = {
     {"1MHz        ", 1000000},
 };
 
+// TODO: these should be indexes.
 options_t freqman_steps_short = {
     {"0.1kHz", 100},
     {"1kHz", 1000},
@@ -337,32 +339,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         }
     }
 
-    // No valid frequency combination was set.
-    if (entry.type == freqman_type::Unknown)
-        return false;
-
-    // Frequency A must be set for all types
-    if (entry.frequency_a == 0)
-        return false;
-
-    // Frequency B must be set for type Range or Ham Radio
-    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
-        if (entry.frequency_b == 0)
-            return false;
-    }
-
-    // Ranges should have frequencies A <= B.
-    if (entry.type == freqman_type::Range) {
-        if (entry.frequency_a > entry.frequency_b)
-            return false;
-    }
-
-    // TODO: Consider additional validation:
-    // - Tone only on HamRadio.
-    // - Fail on failed parse_int.
-    // - Fail if bandwidth set before modulation.
-
-    return true;
+    return is_valid(entry);
 }
 
 // TODO: Use FreqmanDB iterator.
@@ -408,6 +385,35 @@ bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_optio
     }
 
     db.shrink_to_fit();
+    return true;
+}
+
+bool is_valid(const freqman_entry& entry) {
+    // No valid frequency combination was set.
+    if (entry.type == freqman_type::Unknown)
+        return false;
+
+    // Frequency A must be set for all types
+    if (entry.frequency_a == 0)
+        return false;
+
+    // Frequency B must be set for type Range or Ham Radio
+    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
+        if (entry.frequency_b == 0)
+            return false;
+    }
+
+    // Ranges should have frequencies A <= B.
+    if (entry.type == freqman_type::Range) {
+        if (entry.frequency_a > entry.frequency_b)
+            return false;
+    }
+
+    // TODO: Consider additional validation:
+    // - Tone only on HamRadio.
+    // - Fail on failed parse_int.
+    // - Fail if bandwidth set before modulation.
+
     return true;
 }
 

@@ -48,7 +48,7 @@ class TextEntryView : public View {
     void char_add(const char c);
     void char_delete();
 
-    TextField text_input;
+    TextEdit text_input;
     Button button_ok{
         {22 * 8, 33 * 8, 7 * 8, 32},
         "OK"};

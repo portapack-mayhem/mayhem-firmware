@@ -182,6 +182,9 @@ std::string to_freqman_string(const freqman_entry& entry);
 bool parse_freqman_entry(std::string_view str, freqman_entry& entry);
 bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqman_load_options options);
 
+/* Returns true if the entry is well-formed. */
+bool is_valid(const freqman_entry& entry);
+
 /* The tricky part of using the file directly is that there can be comments
  * and empty lines in the file. This messes up the 'count' calculation.
  * Either have to live with 'count' being an upper bound have the callers

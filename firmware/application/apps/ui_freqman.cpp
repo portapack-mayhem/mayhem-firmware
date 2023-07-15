@@ -24,14 +24,22 @@
 #include "ui_freqman.hpp"
 
 #include "event_m0.hpp"
+#include "freqman.hpp"
 #include "portapack.hpp"
 #include "rtc_time.hpp"
+#include "tone_key.hpp"
+#include "ui_receiver.hpp"
+#include "ui_styles.hpp"
 #include "utility.hpp"
 
 #include <memory>
 
 using namespace portapack;
 namespace fs = std::filesystem;
+
+// TODO: Clean up after moving to better lookup tables.
+extern ui::OptionsField::options_t freqman_bandwidths[4];
+extern ui::OptionsField::options_t freqman_steps;
 
 namespace ui {
 
@@ -188,8 +196,15 @@ FrequencyLoadView::FrequencyLoadView(
 
 /* FrequencyManagerView **********************************/
 
+void FrequencyManagerView::on_edit_entry() {
+    auto edit_view = nav_.push<FrequencyEditView>(current_entry());
+    edit_view->on_save = [this](const freqman_entry& entry) {
+        db_.replace_entry(current_index(), entry);
+        freqlist_view.set_dirty();
+    };
+}
+
 void FrequencyManagerView::on_edit_freq() {
-    // TODO: range edit support.
     auto freq_edit_view = nav_.push<FrequencyKeypadView>(current_entry().frequency_a);
     freq_edit_view->on_changed = [this](rf::Frequency f) {
         auto entry = current_entry();
@@ -263,20 +278,21 @@ FrequencyManagerView::FrequencyManagerView(
     : FreqManBaseView(nav) {
     add_children(
         {&freqlist_view,
-         &labels,
          &button_add_category,
          &button_del_category,
+         &button_edit_entry,
+         &rect_padding,
          &button_edit_freq,
          &button_edit_desc,
          &button_add_entry,
          &button_del_entry});
 
     freqlist_view.on_select = [this](size_t) {
-        button_edit_freq.focus();
+        button_edit_entry.focus();
     };
     // Allows for quickly exiting control.
     freqlist_view.on_leave = [this]() {
-        button_edit_freq.focus();
+        button_edit_entry.focus();
     };
 
     button_add_category.on_select = [this]() {
@@ -285,6 +301,10 @@ FrequencyManagerView::FrequencyManagerView(
 
     button_del_category.on_select = [this]() {
         on_del_category();
+    };
+
+    button_edit_entry.on_select = [this](Button&) {
+        on_edit_entry();
     };
 
     button_edit_freq.on_select = [this](Button&) {
@@ -302,6 +322,181 @@ FrequencyManagerView::FrequencyManagerView(
     button_del_entry.on_select = [this]() {
         on_del_entry();
     };
+}
+
+/* FrequencyEditView *************************************/
+
+FrequencyEditView::FrequencyEditView(
+    NavigationView& nav,
+    freqman_entry entry)
+    : nav_{nav},
+      entry_{std::move(entry)} {
+    add_children({&labels,
+                  &field_type,
+                  &field_freq_a,
+                  &field_freq_b,
+                  &field_modulation,
+                  &field_bandwidth,
+                  &field_step,
+                  &field_tone,
+                  &field_description,
+                  &text_validation,
+                  &button_save,
+                  &button_cancel});
+
+    freqman_set_modulation_option(field_modulation);
+    populate_bandwidth_options();
+    populate_step_options();
+    populate_tone_options();
+
+    // Add the "invalid/unset" option. Kind of hacky, but...
+    field_modulation.options().insert(
+        field_modulation.options().begin(), {"None", -1});
+    field_step.options().insert(
+        field_step.options().begin(), {"None", -1});
+
+    field_type.set_by_value((int32_t)entry_.type);
+    field_type.on_change = [this](size_t, auto value) {
+        entry_.type = static_cast<freqman_type>(value);
+        refresh_ui();
+    };
+
+    // TODO: this pattern should be able to be wrapped up.
+    field_freq_a.set_value(entry_.frequency_a);
+    field_freq_a.on_change = [this](rf::Frequency f) {
+        entry_.frequency_a = f;
+        refresh_ui();
+    };
+    field_freq_a.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_freq_a.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            field_freq_a.set_value(f);
+        };
+    };
+
+    field_freq_b.set_value(entry_.frequency_b);
+    field_freq_b.on_change = [this](rf::Frequency f) {
+        entry_.frequency_b = f;
+        refresh_ui();
+    };
+    field_freq_b.on_edit = [this]() {
+        auto freq_view = nav_.push<FrequencyKeypadView>(field_freq_b.value());
+        freq_view->on_changed = [this](rf::Frequency f) {
+            field_freq_b.set_value(f);
+        };
+    };
+
+    field_modulation.set_by_value((int32_t)entry_.modulation);
+    field_modulation.on_change = [this](size_t, auto value) {
+        entry_.modulation = static_cast<freqman_index_t>(value);
+        populate_bandwidth_options();
+    };
+
+    field_bandwidth.set_by_value((int32_t)entry_.bandwidth);
+    field_bandwidth.on_change = [this](size_t, auto value) {
+        entry_.bandwidth = static_cast<freqman_index_t>(value);
+    };
+
+    field_step.set_by_value((int32_t)entry_.step);
+    field_step.on_change = [this](size_t, auto value) {
+        entry_.step = static_cast<freqman_index_t>(value);
+    };
+
+    field_tone.set_by_value((int32_t)entry_.tone);
+    field_tone.on_change = [this](size_t, auto value) {
+        entry_.tone = static_cast<freqman_index_t>(value);
+    };
+
+    field_description.set_text(entry_.description);
+    field_description.on_change = [this](TextField& tf) {
+        entry_.description = tf.get_text();
+    };
+    field_description.on_select = [this](TextField& tf) {
+        temp_buffer_ = tf.get_text();
+        text_prompt(nav_, temp_buffer_, FreqManBaseView::desc_edit_max,
+                    [this, &tf](std::string& new_desc) {
+                        tf.set_text(new_desc);
+                    });
+    };
+
+    button_save.on_select = [this](Button&) {
+        if (on_save)
+            on_save(std::move(entry_));
+        nav_.pop();
+    };
+
+    button_cancel.on_select = [this](Button&) {
+        nav_.pop();
+    };
+
+    refresh_ui();
+}
+
+void FrequencyEditView::focus() {
+    button_cancel.focus();
+}
+
+void FrequencyEditView::refresh_ui() {
+    // This needs to be called whenever a UI option is changed
+    // in a way that causes fields to be unused or would make the
+    // entry fail validation.
+
+    auto is_range = entry_.type == freqman_type::Range;
+    auto is_ham = entry_.type == freqman_type::HamRadio;
+    auto has_freq_b = is_range || is_ham;
+
+    field_freq_b.set_style(has_freq_b ? &Styles::white : &Styles::grey);
+    field_step.set_style(is_range ? &Styles::white : &Styles::grey);
+    field_tone.set_style(is_ham ? &Styles::white : &Styles::grey);
+
+    if (is_valid(entry_)) {
+        text_validation.set("Valid");
+        text_validation.set_style(&Styles::green);
+    } else {
+        text_validation.set("Error");
+        text_validation.set_style(&Styles::red);
+    }
+}
+
+// TODO: The following functions shouldn't be needed once
+// freqman_db lookup tables are complete.
+void FrequencyEditView::populate_bandwidth_options() {
+    OptionsField::options_t options;
+    options.push_back({"None", -1});
+
+    if (entry_.modulation < std::size(freqman_bandwidths)) {
+        auto& bandwidths = freqman_bandwidths[entry_.modulation];
+        for (auto i = 1u; i < bandwidths.size(); ++i) {
+            auto& item = bandwidths[i];
+            options.push_back({item.first, (OptionsField::value_t)i});
+        }
+    }
+
+    field_bandwidth.set_options(std::move(options));
+}
+
+void FrequencyEditView::populate_step_options() {
+    OptionsField::options_t options;
+    options.push_back({"None", -1});
+
+    for (auto i = 1u; i < freqman_steps.size(); ++i) {
+        auto& item = freqman_steps[i];
+        options.push_back({item.first, (OptionsField::value_t)i});
+    }
+
+    field_step.set_options(std::move(options));
+}
+
+void FrequencyEditView::populate_tone_options() {
+    OptionsField::options_t options;
+    options.push_back({"None", -1});
+
+    for (auto i = 1u; i < tonekey::tone_keys.size(); ++i) {
+        auto& item = tonekey::tone_keys[i];
+        options.push_back({item.first, (OptionsField::value_t)i});
+    }
+
+    field_tone.set_options(std::move(options));
 }
 
 }  // namespace ui

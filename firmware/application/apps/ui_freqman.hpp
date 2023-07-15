@@ -36,17 +36,18 @@ namespace ui {
 
 class FreqManBaseView : public View {
    public:
-    FreqManBaseView(
-        NavigationView& nav);
+    FreqManBaseView(NavigationView& nav);
 
     void focus() override;
+
+    static constexpr size_t desc_edit_max = 0x80;
 
    protected:
     using options_t = OptionsField::options_t;
 
     NavigationView& nav_;
     freqman_error error_{NO_ERROR};
-    std::function<void(void)> on_select_frequency{nullptr};
+    std::function<void(void)> on_select_frequency{};
 
     void change_category(size_t new_index);
     /* Access the categories directly from the OptionsField.
@@ -79,14 +80,13 @@ class FreqManBaseView : public View {
    protected:
     /* Static so selected category is persisted across UI instances. */
     static size_t current_category_index;
-    static constexpr size_t desc_edit_max = 0x80;
 };
 
 // TODO: support for new category.
 class FrequencySaveView : public FreqManBaseView {
    public:
     FrequencySaveView(NavigationView& nav, const rf::Frequency value);
-    std::string title() const override { return "Save freq"; };
+    std::string title() const override { return "Save freq"; }
 
    private:
     std::string temp_buffer_{};
@@ -122,26 +122,24 @@ class FrequencyLoadView : public FreqManBaseView {
     std::function<void(rf::Frequency, rf::Frequency)> on_range_loaded{};
 
     FrequencyLoadView(NavigationView& nav);
-    std::string title() const override { return "Load freq"; };
+    std::string title() const override { return "Load freq"; }
 };
 
 class FrequencyManagerView : public FreqManBaseView {
    public:
     FrequencyManagerView(NavigationView& nav);
-    std::string title() const override { return "Freqman"; };
+    std::string title() const override { return "Freqman"; }
 
    private:
     std::string temp_buffer_{};
 
+    void on_edit_entry();
     void on_edit_freq();
     void on_edit_desc();
     void on_add_category();
     void on_del_category();
     void on_add_entry();
     void on_del_entry();
-
-    Labels labels{
-        {{5 * 8, 14 * 16 - 4}, "Edit:", Color::light_grey()}};
 
     NewButton button_add_category{
         {23 * 8, 0 * 16, 7 * 4, 20},
@@ -156,6 +154,14 @@ class FrequencyManagerView : public FreqManBaseView {
         &bitmap_icon_trash,
         Color::red(),
         true};
+
+    Button button_edit_entry{
+        {0 * 8, 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
+        "Edit"};
+
+    Rectangle rect_padding{
+        {15 * 8, 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
+        Color::grey()};
 
     Button button_edit_freq{
         {0 * 8, 15 * 16, 15 * 8, 2 * 16},
@@ -178,6 +184,75 @@ class FrequencyManagerView : public FreqManBaseView {
         &bitmap_icon_delete,
         Color::red(),
         true};
+};
+
+class FrequencyEditView : public View {
+   public:
+    std::function<void(const freqman_entry&)> on_save{};
+
+    FrequencyEditView(
+        NavigationView& nav,
+        freqman_entry entry);
+    std::string title() const override { return "Freqman Edit"; }
+
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+    freqman_entry entry_;
+    std::string temp_buffer_{};
+
+    void refresh_ui();
+    void populate_bandwidth_options();
+    void populate_step_options();
+    void populate_tone_options();
+
+    Labels labels{
+        {{5 * 8, 1 * 16}, "Edit Frequency Entry", Color::white()},
+        {{0 * 8, 3 * 16}, "Entry Type :", Color::light_grey()},
+        {{0 * 8, 4 * 16}, "Frequency A:", Color::light_grey()},
+        {{0 * 8, 5 * 16}, "Frequency B:", Color::light_grey()},
+        {{0 * 8, 6 * 16}, "Modulation :", Color::light_grey()},
+        {{0 * 8, 7 * 16}, "Bandwidth  :", Color::light_grey()},
+        {{0 * 8, 8 * 16}, "Step       :", Color::light_grey()},
+        {{0 * 8, 9 * 16}, "Tone Freq  :", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Description:", Color::light_grey()},
+    };
+
+    OptionsField field_type{{13 * 8, 3 * 16}, 8, {
+                                                     {"Single", 0},
+                                                     {"Range", 1},
+                                                     {"HamRadio", 2},
+                                                     {"Raw", 3},
+                                                 }};
+
+    FrequencyField field_freq_a{{13 * 8, 4 * 16}};
+
+    FrequencyField field_freq_b{{13 * 8, 5 * 16}};
+
+    OptionsField field_modulation{{13 * 8, 6 * 16}, 5, {}};
+
+    OptionsField field_bandwidth{{13 * 8, 7 * 16}, 7, {}};
+
+    OptionsField field_step{{13 * 8, 8 * 16}, 12, {}};
+
+    OptionsField field_tone{{13 * 8, 9 * 16}, 13, {}};
+
+    TextField field_description{
+        {13 * 8, 10 * 16, 17 * 8, 1 * 16},
+        {}};
+
+    Text text_validation{
+        {12 * 8, 12 * 16, 5 * 8, 1 * 16},
+        {}};
+
+    Button button_save{
+        {0 * 8, 17 * 16, 15 * 8, 2 * 16},
+        "Save"};
+
+    Button button_cancel{
+        {15 * 8, 17 * 16, 15 * 8, 2 * 16},
+        "Cancel"};
 };
 
 } /* namespace ui */
