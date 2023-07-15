@@ -46,6 +46,12 @@ namespace ui {
 
 #define RECON_CFG_FILE "SETTINGS/recon.cfg"
 
+enum class recon_mode : uint8_t {
+    Recon,
+    Scanner,
+    Manual
+};
+
 class ReconView : public View {
    public:
     ReconView(NavigationView& nav);
@@ -82,9 +88,10 @@ class ReconView : public View {
     void recon_redraw();
     void handle_retune();
     void handle_coded_squelch(const uint32_t value);
+    void handle_remove_current_item();
     bool recon_load_config_from_sd();
     bool recon_save_config_to_sd();
-    bool recon_save_freq(const std::string& freq_file_path, size_t index, bool warn_if_exists);
+    bool recon_save_freq(const std::filesystem::path& path, size_t index, bool warn_if_exists);
     // placeholder for possible void recon_start_recording();
     void recon_stop_recording();
 
@@ -92,8 +99,15 @@ class ReconView : public View {
     bool current_is_valid();
     freqman_entry& current_entry();
 
+    // TODO: consolidate mode bools and use recon_mode.
+    recon_mode mode() const {
+        if (manual_mode) return recon_mode::Manual;
+        if (scanner_mode) return recon_mode::Scanner;
+        return recon_mode::Recon;
+    }
+
     jammer::jammer_range_t frequency_range{false, 0, MAX_UFREQ};  // perfect for manual recon task too...
-    int32_t squelch{0};
+    int32_t squelch{RECON_DEF_SQUELCH};
     int32_t db{0};
     int32_t timer{0};
     int32_t wait{RECON_DEF_WAIT_DURATION};  // in msec. if > 0 wait duration after a lock, if < 0 duration is set to 'wait' unless there is no more activity
@@ -117,7 +131,7 @@ class ReconView : public View {
     bool user_pause{false};
     bool auto_record_locked{false};
     bool is_recording{false};
-    uint32_t recon_lock_nb_match{3};
+    uint32_t recon_lock_nb_match{RECON_DEF_NB_MATCH};
     uint32_t recon_lock_duration{RECON_MIN_LOCK_DURATION};
     uint32_t recon_match_mode{RECON_MATCH_CONTINUOUS};
     bool scanner_mode{false};

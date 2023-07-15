@@ -162,15 +162,14 @@ const option_t* find_by_index(const options_t& options, freqman_index_t index) {
 
 bool operator==(const freqman_entry& lhs, const freqman_entry& rhs) {
     // TODO: "type" aware comparison?
-    return
-        lhs.frequency_a == rhs.frequency_a &&
-        lhs.frequency_b == rhs.frequency_b &&
-        lhs.description == rhs.description &&
-        lhs.type == rhs.type &&
-        lhs.modulation == rhs.modulation &&
-        lhs.bandwidth == rhs.bandwidth &&
-        lhs.step == rhs.step &&
-        lhs.tone == rhs.tone;
+    return lhs.frequency_a == rhs.frequency_a &&
+           lhs.frequency_b == rhs.frequency_b &&
+           lhs.description == rhs.description &&
+           lhs.type == rhs.type &&
+           lhs.modulation == rhs.modulation &&
+           lhs.bandwidth == rhs.bandwidth &&
+           lhs.step == rhs.step &&
+           lhs.tone == rhs.tone;
 }
 
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
@@ -439,8 +438,8 @@ bool is_valid(const freqman_entry& entry) {
 
 /* FreqmanDB ***********************************/
 
-bool FreqmanDB::open(const std::filesystem::path& path) {
-    auto result = FileWrapper::open(path);
+bool FreqmanDB::open(const std::filesystem::path& path, bool create) {
+    auto result = FileWrapper::open(path, create);
     if (!result)
         return false;
 
@@ -452,9 +451,9 @@ void FreqmanDB::close() {
     wrapper_.reset();
 }
 
-freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
-    auto length = wrapper_->line_length(line);
-    auto line_text = wrapper_->get_text(line, 0, length);
+freqman_entry FreqmanDB::operator[](Index index) const {
+    auto length = wrapper_->line_length(index);
+    auto line_text = wrapper_->get_text(index, 0, length);
 
     if (line_text) {
         freqman_entry entry;
@@ -470,18 +469,18 @@ freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
     return {};
 }
 
-void FreqmanDB::insert_entry(const freqman_entry& entry, FileWrapper::Line line) {
-    line = clip<uint32_t>(line, 0u, entry_count());
-    wrapper_->insert_line(line);
-    replace_entry(line, entry);
+void FreqmanDB::insert_entry(Index index, const freqman_entry& entry) {
+    index = clip<uint32_t>(index, 0u, entry_count());
+    wrapper_->insert_line(index);
+    replace_entry(index, entry);
 }
 
 void FreqmanDB::append_entry(const freqman_entry& entry) {
-    insert_entry(entry, entry_count());
+    insert_entry(entry_count(), entry);
 }
 
-void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry) {
-    auto range = wrapper_->line_range(line);
+void FreqmanDB::replace_entry(Index index, const freqman_entry& entry) {
+    auto range = wrapper_->line_range(index);
     if (!range)
         return;
 
@@ -490,8 +489,23 @@ void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry
     wrapper_->replace_range(*range, to_freqman_string(entry));
 }
 
-void FreqmanDB::delete_entry(FileWrapper::Line line) {
-    wrapper_->delete_line(line);
+void FreqmanDB::delete_entry(Index index) {
+    wrapper_->delete_line(index);
+}
+
+bool FreqmanDB::delete_entry(const freqman_entry& entry) {
+    auto it = find_entry(entry);
+    if (it == end())
+        return false;
+
+    delete_entry(it.index());
+    return true;
+}
+
+FreqmanDB::iterator FreqmanDB::find_entry(const freqman_entry& entry) {
+    return find_entry([&entry](const auto& other) {
+        return entry == other;
+    });
 }
 
 uint32_t FreqmanDB::entry_count() const {

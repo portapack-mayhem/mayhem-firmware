@@ -60,7 +60,7 @@ template <typename T>
 std::enable_if_t<std::is_integral_v<T>, bool> parse_int(std::string_view str, T& out_val, int base = 10) {
     // Always initialize the output.
     out_val = {};
-    
+
     if (str.size() > max_parse_int_length)
         return false;
 

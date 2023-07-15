@@ -45,8 +45,11 @@ Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BY
     }
 }
 
-Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only) {
+Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only, bool create) {
     BYTE mode = read_only ? FA_READ : FA_READ | FA_WRITE;
+    if (create)
+        mode |= FA_OPEN_ALWAYS;
+
     return open_fatfs(filename, mode);
 }
 

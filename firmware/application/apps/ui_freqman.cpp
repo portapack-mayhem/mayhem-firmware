@@ -176,7 +176,7 @@ FrequencySaveView::FrequencySaveView(
     };
 
     button_save.on_select = [this, &nav](Button&) {
-        db_.insert_entry(entry_, db_.entry_count());
+        db_.insert_entry(db_.entry_count(), entry_);
         nav_.pop();
     };
 }
@@ -276,7 +276,7 @@ void FrequencyManagerView::on_add_entry() {
     };
 
     // Add will insert below the currently selected item.
-    db_.insert_entry(entry, current_index() + 1);
+    db_.insert_entry(current_index() + 1, entry);
     refresh_list(1);
 }
 

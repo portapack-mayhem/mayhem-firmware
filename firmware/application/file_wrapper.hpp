@@ -463,9 +463,9 @@ class FileWrapper : public BufferWrapper<File, 64> {
     template <typename T>
     using Result = File::Result<T>;
     using Error = File::Error;
-    static Result<std::unique_ptr<FileWrapper>> open(const std::filesystem::path& path) {
+    static Result<std::unique_ptr<FileWrapper>> open(const std::filesystem::path& path, bool create = false) {
         auto fw = std::unique_ptr<FileWrapper>(new FileWrapper());
-        auto error = fw->file_.open(path, /*read_only*/ false);
+        auto error = fw->file_.open(path, /*read_only*/ false, create);
 
         if (error)
             return *error;
