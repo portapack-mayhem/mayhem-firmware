@@ -39,6 +39,8 @@
 // persistant memory from/to sdcard flag file
 #define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
 
+#define ENCODER_DIAL_SENSITIVITY_MAX 4
+
 using namespace modems;
 using namespace serializer;
 
