@@ -106,13 +106,6 @@ struct backlight_config_t {
     bool _timeout_enabled;
 };
 
-enum encoder_dial_sensitivity {
-    DIAL_SENSITIVITY_MEDIUM = 0,
-    DIAL_SENSITIVITY_LOW = 1,
-    DIAL_SENSITIVITY_HIGH = 2,
-    NUM_DIAL_SENSITIVITY
-};
-
 namespace cache {
 
 /* Set values in cache to sensible defaults. */
