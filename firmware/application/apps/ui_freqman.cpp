@@ -509,12 +509,13 @@ void FrequencyEditView::populate_step_options() {
 }
 
 void FrequencyEditView::populate_tone_options() {
+    using namespace tonekey;
     OptionsField::options_t options;
     options.push_back({"None", -1});
 
-    for (auto i = 1u; i < tonekey::tone_keys.size(); ++i) {
-        auto& item = tonekey::tone_keys[i];
-        options.push_back({item.first, (OptionsField::value_t)i});
+    for (auto i = 1u; i < tone_keys.size(); ++i) {
+        auto& item = tone_keys[i];
+        options.push_back({fx100_string(item.second), (OptionsField::value_t)i});
     }
 
     field_tone.set_options(std::move(options));

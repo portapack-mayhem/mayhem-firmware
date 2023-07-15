@@ -160,6 +160,19 @@ const option_t* find_by_index(const options_t& options, freqman_index_t index) {
  *}
  */
 
+bool operator==(const freqman_entry& lhs, const freqman_entry& rhs) {
+    // TODO: "type" aware comparison?
+    return
+        lhs.frequency_a == rhs.frequency_a &&
+        lhs.frequency_b == rhs.frequency_b &&
+        lhs.description == rhs.description &&
+        lhs.type == rhs.type &&
+        lhs.modulation == rhs.modulation &&
+        lhs.bandwidth == rhs.bandwidth &&
+        lhs.step == rhs.step &&
+        lhs.tone == rhs.tone;
+}
+
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
     if (auto opt = find_by_index(freqman_modulations, modulation))
         return opt->first;
@@ -457,10 +470,13 @@ freqman_entry FreqmanDB::operator[](FileWrapper::Line line) const {
 }
 
 void FreqmanDB::insert_entry(const freqman_entry& entry, FileWrapper::Line line) {
-    // TODO: Can be more efficient.
     line = clip<uint32_t>(line, 0u, entry_count());
     wrapper_->insert_line(line);
     replace_entry(line, entry);
+}
+
+void FreqmanDB::append_entry(const freqman_entry& entry) {
+    insert_entry(entry, entry_count());
 }
 
 void FreqmanDB::replace_entry(FileWrapper::Line line, const freqman_entry& entry) {

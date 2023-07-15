@@ -25,7 +25,9 @@
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "capture_app.hpp"
+#include "convert.hpp"
 #include "file.hpp"
+#include "file_reader.hpp"
 #include "tone_key.hpp"
 
 using namespace portapack;
@@ -126,8 +128,6 @@ void ReconView::colorize_waits() {
 }
 
 bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_index, bool warn_if_exists) {
-    File recon_file;
-
     if (frequency_list.size() == 0 || !current_is_valid())
         return false;
 
@@ -138,137 +138,73 @@ bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_i
     entry.bandwidth = last_entry.bandwidth;
     entry.type = freqman_type::Single;
 
-    // TODO: Use FreqmanDB
-    auto frequency_to_add = to_freqman_string(entry);
+    FreqmanDB freq_db;
+    if (!freq_db.open(freq_file_path))
+        return false;
 
-    auto result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
-    if (!result.is_valid()) {
-        char one_char[1]{};  // Read it char by char
-        std::string line{};  // and put read line in here
-        bool found{false};
-        for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
-            recon_file.seek(pointer);
-            recon_file.read(one_char, 1);
-            if ((int)one_char[0] > 31) {       // ascii space upwards
-                line += one_char[0];           // add it to the textline
-            } else if (one_char[0] == '\n') {  // New Line
-                if (line.compare(0, frequency_to_add.size(), frequency_to_add) == 0) {
-                    found = true;
-                    break;
-                }
-                line.clear();  // Ready for next textline
-            }
-        }
-        if (!found) {
-            result = recon_file.append(freq_file_path);  // Second: append if it is not there
-            if (!result.is_valid()) {
-                recon_file.write_line(frequency_to_add);
-            }
-        }
-        if (found && warn_if_exists) {
-            nav_.display_modal("Error", "Frequency already exists");
-        }
-    } else {
-        result = recon_file.create(freq_file_path);  // First freq if no output file
-        if (!result.is_valid()) {
-            recon_file.write_line(frequency_to_add);
+    bool found = false;
+    for (auto e : freq_db) {
+        if (e == entry) {
+            found = true;
+            break;
         }
     }
+
+    if (found && warn_if_exists)
+        nav_.display_modal("Error", "Frequency already exists");
+
+    if (!found)
+        freq_db.append_entry(entry);
+
     return true;
 }
 
 bool ReconView::recon_load_config_from_sd() {
-    File settings_file{};
-    size_t length{0};
-    size_t file_position{0};
-    char* pos{NULL};
-    char* line_start{NULL};
-    char* line_end{NULL};
-    char file_data[257]{};
-    uint32_t it{0};
-    uint32_t nb_params{RECON_SETTINGS_NB_PARAMS};
-    std::string params[RECON_SETTINGS_NB_PARAMS]{};
+    // Assign default values.
+    input_file = "RECON";
+    output_file = "RECON_RESULTS";
+    recon_lock_duration = RECON_MIN_LOCK_DURATION;
+    recon_lock_nb_match = RECON_DEF_NB_MATCH;
+    squelch = -14;
+    recon_match_mode = RECON_MATCH_CONTINUOUS;
+    wait = RECON_DEF_WAIT_DURATION;
 
     make_new_directory(u"SETTINGS");
 
-    auto result = settings_file.open(RECON_CFG_FILE);
-    if (!result.is_valid()) {
-        while (it < nb_params) {
-            // Read a 256 bytes block from file
-            settings_file.seek(file_position);
-            memset(file_data, 0, 257);
-            auto read_size = settings_file.read(file_data, 256);
-            if (read_size.is_error())
-                break;
-            file_position += 256;
-            // Reset line_start to beginning of buffer
-            line_start = file_data;
-            pos = line_start;
-            while ((line_end = strstr(line_start, "\x0A"))) {
-                length = line_end - line_start - 1;
-                params[it] = std::string(pos, length);
-                it++;
-                line_start = line_end + 1;
-                pos = line_start;
-                if (line_start - file_data >= 256)
-                    break;
-                if (it >= nb_params)
-                    break;
-            }
-            if (read_size.value() != 256)
-                break;  // End of file
-
-            // Restart at beginning of last incomplete line
-            file_position -= (file_data + 256 - line_start);
-        }
-    }
-
-    if (it < nb_params) {
-        /* bad number of params, signal defaults */
-        input_file = "RECON";
-        output_file = "RECON_RESULTS";
-        recon_lock_duration = RECON_MIN_LOCK_DURATION;
-        recon_lock_nb_match = RECON_DEF_NB_MATCH;
-        squelch = -14;
-        recon_match_mode = RECON_MATCH_CONTINUOUS;
-        wait = RECON_DEF_WAIT_DURATION;
+    File settings_file;
+    auto error = settings_file.open(RECON_CFG_FILE);
+    if (error)
         return false;
+
+    auto line_nb = 0;
+    auto reader = FileLineReader(settings_file);
+    for (const auto& line : reader) {
+        if (line_nb == 0)
+            input_file = line;
+
+        else if (line_nb == 1)
+            output_file = line;
+
+        else if (line_nb == 2)
+            parse_int(line, recon_lock_duration);
+
+        else if (line_nb == 3)
+            parse_int(line, recon_lock_nb_match);
+
+        else if (line_nb == 4)
+            parse_int(line, squelch);
+
+        else if (line_nb == 5)
+            parse_int(line, recon_match_mode);
+
+        else if (line_nb == 5)
+            parse_int(line, recon_match_mode);
+
+        else
+            break;
+
+        line_nb++;
     }
-
-    if (it > 0)
-        input_file = params[0];
-    else
-        input_file = "RECON";
-
-    if (it > 1)
-        output_file = params[1];
-    else
-        output_file = "RECON_RESULTS";
-
-    if (it > 2)
-        recon_lock_duration = strtoll(params[2].c_str(), nullptr, 10);
-    else
-        recon_lock_duration = RECON_MIN_LOCK_DURATION;
-
-    if (it > 3)
-        recon_lock_nb_match = strtoll(params[3].c_str(), nullptr, 10);
-    else
-        recon_lock_nb_match = RECON_DEF_NB_MATCH;
-
-    if (it > 4)
-        squelch = strtoll(params[4].c_str(), nullptr, 10);
-    else
-        squelch = -14;
-
-    if (it > 5)
-        recon_match_mode = strtoll(params[5].c_str(), nullptr, 10);
-    else
-        recon_match_mode = RECON_MATCH_CONTINUOUS;
-
-    if (it > 6)
-        wait = strtoll(params[6].c_str(), nullptr, 10);
-    else
-        wait = RECON_DEF_WAIT_DURATION;
 
     return true;
 }
@@ -497,17 +433,18 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_start.on_change = [this]() {
-        frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * freqman_entry_get_step_value(def_step);
+        auto step_val = freqman_entry_get_step_value(def_step);
+        frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * step_val;
         if (frequency_range.min < 0) {
             frequency_range.min = 0;
         }
-        if (frequency_range.min > (MAX_UFREQ - freqman_entry_get_step_value(def_step))) {
-            frequency_range.min = MAX_UFREQ - freqman_entry_get_step_value(def_step);
+        if (frequency_range.min > (MAX_UFREQ - step_val)) {
+            frequency_range.min = MAX_UFREQ - step_val;
         }
-        if (frequency_range.min > (frequency_range.max - freqman_entry_get_step_value(def_step))) {
-            frequency_range.max = frequency_range.min + freqman_entry_get_step_value(def_step);
+        if (frequency_range.min > (frequency_range.max - step_val)) {
+            frequency_range.max = frequency_range.min + step_val;
             if (frequency_range.max > MAX_UFREQ) {
-                frequency_range.min = MAX_UFREQ - freqman_entry_get_step_value(def_step);
+                frequency_range.min = MAX_UFREQ - step_val;
                 frequency_range.max = MAX_UFREQ;
             }
         }
@@ -517,18 +454,19 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_end.on_change = [this]() {
-        frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * freqman_entry_get_step_value(def_step);
-        if (frequency_range.max < (freqman_entry_get_step_value(def_step) + 1)) {
-            frequency_range.max = (freqman_entry_get_step_value(def_step) + 1);
+        auto step_val = freqman_entry_get_step_value(def_step);
+        frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * step_val;
+        if (frequency_range.max < (step_val + 1)) {
+            frequency_range.max = (step_val + 1);
         }
         if (frequency_range.max > MAX_UFREQ) {
             frequency_range.max = MAX_UFREQ;
         }
-        if (frequency_range.max < (frequency_range.min + freqman_entry_get_step_value(def_step))) {
-            frequency_range.min = frequency_range.max - freqman_entry_get_step_value(def_step);
-            if (frequency_range.max < (freqman_entry_get_step_value(def_step) + 1)) {
+        if (frequency_range.max < (frequency_range.min + step_val)) {
+            frequency_range.min = frequency_range.max - step_val;
+            if (frequency_range.max < (step_val + 1)) {
                 frequency_range.min = 1;
-                frequency_range.max = (freqman_entry_get_step_value(def_step) + 1);
+                frequency_range.max = (step_val + 1);
             }
         }
         button_manual_start.set_text(to_string_short_freq(frequency_range.min));
@@ -922,8 +860,7 @@ ReconView::ReconView(NavigationView& nav)
     recon_redraw();
 }
 
-void ReconView::frequency_file_load(bool stop_all_before) {
-    (void)(stop_all_before);
+void ReconView::frequency_file_load(bool) {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
 
@@ -941,6 +878,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         desc_cycle.set_style(&Styles::blue);
         button_scanner_mode.set_text("RECON");
     }
+
     freqman_load_options options{
         .load_freqs = load_freqs,
         .load_ranges = load_ranges,

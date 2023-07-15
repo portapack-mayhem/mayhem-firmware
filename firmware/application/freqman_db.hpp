@@ -148,6 +148,8 @@ struct freqman_entry {
     freqman_index_t tone{freqman_invalid_index};
 };
 
+bool operator==(const freqman_entry& lhs, const freqman_entry& rhs);
+
 // TODO: These shouldn't be exported.
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation);
 std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth);
@@ -222,6 +224,7 @@ class FreqmanDB {
 
     freqman_entry operator[](FileWrapper::Line line) const;
     void insert_entry(const freqman_entry& entry, FileWrapper::Line line);
+    void append_entry(const freqman_entry& entry);
     void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
     void delete_entry(FileWrapper::Line line);
 
