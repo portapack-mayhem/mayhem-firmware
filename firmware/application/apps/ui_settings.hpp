@@ -478,7 +478,7 @@ class SetEncoderDialView : public View {
         {{1 * 8, 3 * 16}, "Dial sensitivity (0-4):", Color::light_grey()},
     };
 
-     NumberField field_encoder_dial_sensitivity{
+    NumberField field_encoder_dial_sensitivity{
         {25 * 8, 3 * 16},
         1,
         {0, ENCODER_DIAL_SENSITIVITY_MAX},
