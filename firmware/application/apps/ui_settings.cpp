@@ -605,10 +605,10 @@ SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
                   &button_save,
                   &button_cancel});
 
-    field_encoder_dial_sensitivity.set_by_value(pmem::config_encoder_dial_sensitivity());
+    field_encoder_dial_sensitivity.set_value(ENCODER_DIAL_SENSITIVITY_MAX - pmem::config_encoder_dial_sensitivity());
 
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
+        pmem::set_encoder_dial_sensitivity(ENCODER_DIAL_SENSITIVITY_MAX - field_encoder_dial_sensitivity.value());
         nav.pop();
     };
 
