@@ -180,10 +180,10 @@ bool ReconView::recon_load_config_from_sd() {
     auto reader = FileLineReader(settings_file);
     for (const auto& line : reader) {
         if (line_nb == 0)
-            input_file = line;
+            input_file = trim(line);
 
         else if (line_nb == 1)
-            output_file = line;
+            output_file = trim(line);
 
         else if (line_nb == 2)
             parse_int(line, recon_lock_duration);
@@ -197,7 +197,7 @@ bool ReconView::recon_load_config_from_sd() {
         else if (line_nb == 5)
             parse_int(line, recon_match_mode);
 
-        else if (line_nb == 5)
+        else if (line_nb == 6)
             parse_int(line, recon_match_mode);
 
         else

@@ -430,6 +430,7 @@ bool is_valid(const freqman_entry& entry) {
 
     // TODO: Consider additional validation:
     // - Tone only on HamRadio.
+    // - Step only on Range
     // - Fail on failed parse_int.
     // - Fail if bandwidth set before modulation.
 
