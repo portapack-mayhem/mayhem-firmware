@@ -66,7 +66,7 @@ int_fast8_t Encoder::update(
     if (abs(transition_count) >= portapack::persistent_memory::config_encoder_dial_sensitivity())
         transition_count = 0;
     else
-        retval = 0;        
+        retval = 0;
 
     return retval;
 }
