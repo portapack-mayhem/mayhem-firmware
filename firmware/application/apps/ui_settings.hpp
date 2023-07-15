@@ -37,8 +37,6 @@ namespace ui {
 
 #define MAX_FREQ_CORRECTION INT32_MAX
 
-#define ENCODER_DIAL_SENSITIVITY_MAX 4
-
 struct SetDateTimeModel {
     uint16_t year;
     uint8_t month;
