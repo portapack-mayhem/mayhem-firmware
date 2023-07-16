@@ -355,9 +355,9 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
                 options_tone_key.hidden(0);  // we are in FM mode, we should have active the Key-tones & CTCSS option.
 
-                rxbw.emplace_back(" NFM1:8k5  ", 0);  // restore the original dynamic field_rxbw value.
-                rxbw.emplace_back(" NFM2:11k  ", 1);
-                rxbw.emplace_back(" FM  :16k  ", 2);
+                rxbw.emplace_back(" 8k5  ", 0);  // restore the original dynamic field_rxbw value.
+                rxbw.emplace_back(" 11k  ", 1);
+                rxbw.emplace_back(" 16k  ", 2);
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 
                 field_rxbw.hidden(0);  // we are in FM mode, we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K)
@@ -375,9 +375,9 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
                 options_tone_key.hidden(0);  // we are in WFM mode, we should have active the Key-tones & CTCSS option.
 
-                rxbw.emplace_back("  200k-WFM ", 0);  // We allow the user selection of the 3 x WFM BW filters, (0) WFM-200K, (1) WFM-180K, (2) WFM-40K.
-                rxbw.emplace_back("  180k-WFM ", 1);
-                rxbw.emplace_back("   40k-WFM ", 2);
+                rxbw.emplace_back(" 200k ", 0);  // We allow the user selection of the 3 x WFM BW filters, (0) WFM-200K, (1) WFM-180K, (2) WFM-40K.
+                rxbw.emplace_back(" 180k ", 1);
+                rxbw.emplace_back("  40k ", 2);
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 
                 field_rxbw.hidden(0);  // we are in WFM mode, we need to show to the user the selected BW WFM filter.
@@ -390,8 +390,8 @@ MicTXView::MicTXView(
                 set_dirty();                             // Refresh display
                 options_tone_key.hidden(1);              // we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
 
-                rxbw.emplace_back(" DSB1-9k   ", 0);  // we offer in AM DSB two audio BW 9k / 6k.
-                rxbw.emplace_back(" DSB2-6k   ", 1);
+                rxbw.emplace_back("DSB-9k", 0);  // we offer in AM DSB two audio BW 9k / 6k.
+                rxbw.emplace_back("DSB-6k", 1);
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 
                 field_rxbw.hidden(0);       // we show fixed RX AM BW 6Khz
@@ -404,7 +404,7 @@ MicTXView::MicTXView(
                 check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB, by now.
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
-                rxbw.emplace_back("  USB+3k   ", 0);  // locked a fixed option, to display it.
+                rxbw.emplace_back("USB+3k", 0);  // locked a fixed option, to display it.
                 field_rxbw.set_options(rxbw);         // store that aux GUI option to the field_rxbw.
 
                 set_dirty();  // Refresh display
@@ -415,7 +415,7 @@ MicTXView::MicTXView(
                 check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB, by now.
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
-                rxbw.emplace_back("  LSB-3k   ", 0);  // locked a fixed option, to display it.
+                rxbw.emplace_back("LSB-3k", 0);  // locked a fixed option, to display it.
                 field_rxbw.set_options(rxbw);         // store that aux GUI option to the field_rxbw.
 
                 set_dirty();  // Refresh display
@@ -425,8 +425,8 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);        // Update now if we have RX audio on
                 check_rogerbeep.hidden(0);  // make visible again the "rogerbeep" selection.
 
-                rxbw.emplace_back("SSB1:USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-C case to the field_rxbw value.
-                rxbw.emplace_back("SSB2:LSB-3k", 1);
+                rxbw.emplace_back("USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-C case to the field_rxbw value.
+                rxbw.emplace_back("LSB-3k", 1);
 
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 

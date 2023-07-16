@@ -298,11 +298,11 @@ class MicTXView : public View {
 
     OptionsField field_rxbw{
         {19 * 8, (23 * 8) + 2},
-        3,
+        7,
         {
-            {" NFM1:8k5  ", 0},
-            {" NFM2:11k  ", 1},
-            {" FM  :16k  ", 2},
+            {" 8k5  ", 0},
+            {" 11k  ", 1},
+            {" 16k  ", 2},
         }};
 
     NumberField field_squelch{
