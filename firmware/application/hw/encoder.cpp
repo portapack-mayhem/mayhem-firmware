@@ -40,10 +40,10 @@ static const int8_t transition_map[16] = {
     0,   // 0011: rate
     1,   // 0100: cw end
     0,   // 0101: noop
-    -1,  // 0110: (rate) worn encoder (missing 11 phase) workaround
+    0,   // 0110: rate
     -1,  // 0111: ccw end
     -1,  // 1000: ccw end
-    1,   // 1001: (rate) worn encoder (missing 11 phase) workaround
+    0,   // 1001: rate
     0,   // 1010: noop
     1,   // 1011: cw end
     0,   // 1100: rate
@@ -63,7 +63,7 @@ int_fast8_t Encoder::update(
     int_fast8_t retval = transition_map[state & 0xf];
 
     transition_count += retval;
-    if (abs(transition_count) >= portapack::persistent_memory::config_encoder_dial_sensitivity())
+    if (abs(transition_count) > portapack::persistent_memory::config_encoder_dial_sensitivity())
         transition_count = 0;
     else
         retval = 0;
