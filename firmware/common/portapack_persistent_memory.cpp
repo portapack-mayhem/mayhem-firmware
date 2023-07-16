@@ -363,6 +363,7 @@ void defaults() {
 
     set_config_backlight_timer(backlight_config_t{});
     set_config_splash(true);
+    set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
