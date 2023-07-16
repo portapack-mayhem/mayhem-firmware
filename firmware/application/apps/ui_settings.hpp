@@ -463,6 +463,8 @@ class SetQRCodeView : public View {
     };
 };
 
+using portapack::persistent_memory::encoder_dial_sensitivity;
+
 class SetEncoderDialView : public View {
    public:
     SetEncoderDialView(NavigationView& nav);
@@ -473,16 +475,17 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 3 * 16}, "Dial sensitivity (0-4):", Color::light_grey()},
+        {{2 * 8, 3 * 16}, "Dial sensitivity:", Color::light_grey()},
     };
 
-    NumberField field_encoder_dial_sensitivity{
-        {25 * 8, 3 * 16},
-        1,
-        {0, ENCODER_DIAL_SENSITIVITY_MAX},
-        1,
-        ' ',
-        true};
+    OptionsField field_encoder_dial_sensitivity{
+        {20 * 8, 3 * 16},
+        7,
+        {{"LOWEST", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOWEST},
+         {"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
+         {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
+         {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH},
+         {"HIGHEST", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGHEST}}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
