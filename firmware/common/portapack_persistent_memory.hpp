@@ -39,8 +39,6 @@
 // persistant memory from/to sdcard flag file
 #define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
 
-#define ENCODER_DIAL_SENSITIVITY_MAX 4
-
 using namespace modems;
 using namespace serializer;
 
@@ -106,6 +104,15 @@ struct backlight_config_t {
    private:
     backlight_timeout_t _timeout_enum;
     bool _timeout_enabled;
+};
+
+enum encoder_dial_sensitivity {
+    DIAL_SENSITIVITY_HIGHEST = 0,
+    DIAL_SENSITIVITY_HIGH = 1,
+    DIAL_SENSITIVITY_NORMAL = 2,
+    DIAL_SENSITIVITY_LOW = 3,
+    DIAL_SENSITIVITY_LOWEST = 4,
+    NUM_DIAL_SENSITIVITY
 };
 
 namespace cache {
