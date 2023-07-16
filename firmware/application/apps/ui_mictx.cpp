@@ -405,7 +405,7 @@ MicTXView::MicTXView(
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
                 rxbw.emplace_back("USB+3k", 0);  // locked a fixed option, to display it.
-                field_rxbw.set_options(rxbw);         // store that aux GUI option to the field_rxbw.
+                field_rxbw.set_options(rxbw);    // store that aux GUI option to the field_rxbw.
 
                 set_dirty();  // Refresh display
                 break;
@@ -416,7 +416,7 @@ MicTXView::MicTXView(
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
                 rxbw.emplace_back("LSB-3k", 0);  // locked a fixed option, to display it.
-                field_rxbw.set_options(rxbw);         // store that aux GUI option to the field_rxbw.
+                field_rxbw.set_options(rxbw);    // store that aux GUI option to the field_rxbw.
 
                 set_dirty();  // Refresh display
                 break;
