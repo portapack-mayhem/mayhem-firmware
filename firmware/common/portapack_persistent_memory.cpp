@@ -269,7 +269,7 @@ struct data_t {
           frequency_rx_correction(0),
           frequency_tx_correction(0),
 
-          encoder_dial_sensitivity(0),
+          encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
           UNUSED_8(0),
           headphone_volume_cb(-600),
           misc_config(),
