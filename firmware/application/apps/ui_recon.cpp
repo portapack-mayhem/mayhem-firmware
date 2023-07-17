@@ -627,7 +627,6 @@ ReconView::ReconView(NavigationView& nav)
         frequency_file_load(true);
         if (frequency_list.size() > 0) {
             def_step = step_mode.selected_index();  // Use def_step from manual selector
-            frequency_file_load(true);
             if (fwd) {
                 button_dir.set_text("FW>");
             } else {
