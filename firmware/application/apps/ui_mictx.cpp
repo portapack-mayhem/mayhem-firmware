@@ -25,7 +25,7 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "irq_controls.hpp"
-#include "freqman.hpp"
+#include "ui_freqman.hpp"
 #include "portapack_hal.hpp"
 #include "string_format.hpp"
 #include "tonesets.hpp"
