@@ -624,6 +624,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_restart.on_select = [this](Button&) {
+        frequency_file_load(true);
         if (frequency_list.size() > 0) {
             def_step = step_mode.selected_index();  // Use def_step from manual selector
             frequency_file_load(true);
@@ -1301,7 +1302,7 @@ void ReconView::handle_remove_current_item() {
         }
 
         if (frequency_list.size() > 0) {
-            current_index = clip<int32_t>(current_index, 0u, frequency_list.size());
+            current_index = clip<int32_t>(current_index, 0u, frequency_list.size() - 1);
             text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
             update_description();
         } else {
