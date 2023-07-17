@@ -137,19 +137,19 @@ bool ReconView::recon_save_freq(const fs::path& path, size_t freq_index, bool wa
         return false;
 
     freqman_entry entry = *frequency_list[freq_index];  // Makes a copy.
-    entry.frequency_a = freq;
-    entry.frequency_b = 0;
-    entry.modulation = last_entry.modulation;
-    entry.bandwidth = last_entry.bandwidth;
-    entry.type = freqman_type::Single;
 
-    bool found = false;
-    for (auto e : freq_db) {
-        if (e == entry) {
-            found = true;
-            break;
-        }
+    // For ranges, save the current frequency instead.
+    if (entry.type == freqman_type::Range) {
+        entry.frequency_a = freq;
+        entry.frequency_b = 0;
+        entry.type = freqman_type::Single;
+        entry.modulation = last_entry.modulation;
+        entry.bandwidth = last_entry.bandwidth;
+        entry.step = freqman_invalid_index;
     }
+
+    auto it = freq_db.find_entry(entry);
+    auto found = (it != freq_db.end());
 
     if (found && warn_if_exists)
         nav_.display_modal("Error", "Frequency already exists");
@@ -1303,7 +1303,7 @@ void ReconView::handle_coded_squelch(const uint32_t value) {
 }
 
 void ReconView::handle_remove_current_item() {
-    if (frequency_list.empty() || current_is_valid())
+    if (frequency_list.empty() || !current_is_valid())
         return;
 
     auto entry = current_entry();  // Copy the current entry.

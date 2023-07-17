@@ -161,15 +161,24 @@ const option_t* find_by_index(const options_t& options, freqman_index_t index) {
  */
 
 bool operator==(const freqman_entry& lhs, const freqman_entry& rhs) {
-    // TODO: "type" aware comparison?
-    return lhs.frequency_a == rhs.frequency_a &&
-           lhs.frequency_b == rhs.frequency_b &&
-           lhs.description == rhs.description &&
-           lhs.type == rhs.type &&
-           lhs.modulation == rhs.modulation &&
-           lhs.bandwidth == rhs.bandwidth &&
-           lhs.step == rhs.step &&
-           lhs.tone == rhs.tone;
+    auto equal = lhs.type == rhs.type &&
+                 lhs.frequency_a == rhs.frequency_a &&
+                 lhs.description == rhs.description &&
+                 lhs.modulation == rhs.modulation &&
+                 lhs.bandwidth == rhs.bandwidth;
+
+    if (!equal)
+        return false;
+
+    if (lhs.type == freqman_type::Range) {
+        equal = lhs.frequency_b == rhs.frequency_b &&
+                lhs.step == rhs.step;
+    } else if (lhs.type == freqman_type::HamRadio) {
+        equal = lhs.frequency_b == rhs.frequency_b &&
+                lhs.tone == rhs.tone;
+    }
+
+    return equal;
 }
 
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation) {
