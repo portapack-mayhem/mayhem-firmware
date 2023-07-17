@@ -161,18 +161,6 @@ bool ReconView::recon_save_freq(const fs::path& path, size_t freq_index, bool wa
 }
 
 bool ReconView::recon_load_config_from_sd() {
-    /* NB: This function is only called once and the defaults
-     * are already set in the class initializers. */
-    // TODO: remove?
-    // // Assign default values.
-    // input_file = "RECON";
-    // output_file = "RECON_RESULTS";
-    // recon_lock_duration = RECON_MIN_LOCK_DURATION;
-    // recon_lock_nb_match = RECON_DEF_NB_MATCH;
-    // squelch = RECON_DEF_SQUELCH;
-    // recon_match_mode = RECON_MATCH_CONTINUOUS;
-    // wait = RECON_DEF_WAIT_DURATION;
-
     make_new_directory(u"SETTINGS");
 
     File settings_file;
@@ -180,37 +168,41 @@ bool ReconView::recon_load_config_from_sd() {
     if (error)
         return false;
 
+    auto complete = false;
     auto line_nb = 0;
     auto reader = FileLineReader(settings_file);
     for (const auto& line : reader) {
-        if (line_nb == 0)
-            input_file = trim(line);
+        switch (line_nb) {
+            case 0:
+                input_file = trim(line);
+                break;
+            case 1:
+                output_file = trim(line);
+                break;
+            case 2:
+                parse_int(line, recon_lock_duration);
+                break;
+            case 3:
+                parse_int(line, recon_lock_nb_match);
+                break;
+            case 4:
+                parse_int(line, squelch);
+                break;
+            case 5:
+                parse_int(line, recon_match_mode);
+                break;
+            case 6:
+                parse_int(line, recon_match_mode);
+                complete = true;  // NB: Last entry.
+                break;
+        }
 
-        else if (line_nb == 1)
-            output_file = trim(line);
-
-        else if (line_nb == 2)
-            parse_int(line, recon_lock_duration);
-
-        else if (line_nb == 3)
-            parse_int(line, recon_lock_nb_match);
-
-        else if (line_nb == 4)
-            parse_int(line, squelch);
-
-        else if (line_nb == 5)
-            parse_int(line, recon_match_mode);
-
-        else if (line_nb == 6)
-            parse_int(line, recon_match_mode);
-
-        else
-            break;
+        if (complete) break;
 
         line_nb++;
     }
 
-    return true;
+    return complete;
 }
 
 bool ReconView::recon_save_config_to_sd() {
@@ -553,13 +545,7 @@ ReconView::ReconView(NavigationView& nav)
     button_remove.on_select = [this](ButtonWithEncoder&) {
         handle_remove_current_item();
 
-        // TODO: Why delete the file?
-        /*if (frequency_list.size() == 0) {
-            text_cycle.set_text(" ");
-            desc_cycle.set("no entries in list");  // Show new description
-            delete_file(freq_file_path);
-        }*/
-
+        // TODO: refresh UI.
         timer = 0;
         freq_lock = 0;
     };
