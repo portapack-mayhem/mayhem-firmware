@@ -198,12 +198,12 @@ std::string pretty_string(const freqman_entry& entry, size_t max_length) {
             str = to_string_short_freq(entry.frequency_a) + "M: " + entry.description;
             break;
         case freqman_type::Range:
-            str = to_string_dec_uint(entry.frequency_a / 1'000'000) + "M-" +
-                  to_string_dec_uint(entry.frequency_b / 1'000'000) + "M: " + entry.description;
+            str = to_string_rounded_freq(entry.frequency_a, 1) + "M-" +
+                  to_string_rounded_freq(entry.frequency_b, 1) + "M: " + entry.description;
             break;
         case freqman_type::HamRadio:
-            str = "R:" + to_string_dec_uint(entry.frequency_a / 1'000'000) + "M,T:" +
-                  to_string_dec_uint(entry.frequency_b / 1'000'000) + "M: " + entry.description;
+            str = "R:" + to_string_rounded_freq(entry.frequency_a, 1) + "M,T:" +
+                  to_string_rounded_freq(entry.frequency_b, 1) + "M: " + entry.description;
             break;
         case freqman_type::Raw:
             str = entry.description;
