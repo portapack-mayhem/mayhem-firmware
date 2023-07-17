@@ -180,7 +180,7 @@ class MicTXView : public View {
 
     OptionsField options_ak4951_alc_mode{
         {20 * 8, 1 * 8},
-        11,
+        10,  // Label has 10 chars
         {
             {" OFF-12kHz", 0},   // Nothing changed from ORIGINAL, keeping ALL programmable AK4951 Digital Block->OFF, sampling 24Khz)
             {"+12dB-6kHz", 1},   // ALC-> on, (+12dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
@@ -198,7 +198,7 @@ class MicTXView : public View {
 
     OptionsField options_wm8731_boost_mode{
         {22 * 8, 1 * 8},
-        5,
+        8,  // Label has 8 chars
         {
             {"ON +12dB", 0},  // WM8731 Mic Boost ON, original+12dBs condition, easy to saturate ADC sat in high voice, relative G = +12 dB's respect ref level
             {"ON +06dB", 1},  // WM8731 Mic Boost ON, original+6 dBs condition, easy to saturate ADC sat in high voice, relative G = +06 dB's respect ref level
@@ -300,7 +300,7 @@ class MicTXView : public View {
         {19 * 8, (23 * 8) + 2},
         7,
         {
-            {" 8k5  ", 0},
+            {" 8k5  ", 0},  // Initial dynamic values when we start Mic App.
             {" 11k  ", 1},
             {" 16k  ", 2},
         }};

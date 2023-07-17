@@ -25,6 +25,7 @@
 #include "audio.hpp"
 #include "baseband_api.hpp"
 #include "irq_controls.hpp"
+#include "freqman.hpp"
 #include "portapack_hal.hpp"
 #include "string_format.hpp"
 #include "tonesets.hpp"
@@ -355,13 +356,10 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
                 options_tone_key.hidden(0);  // we are in FM mode, we should have active the Key-tones & CTCSS option.
 
-                rxbw.emplace_back(" 8k5  ", 0);  // restore the original dynamic field_rxbw value.
-                rxbw.emplace_back(" 11k  ", 1);
-                rxbw.emplace_back(" 16k  ", 2);
-                field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
-
-                field_rxbw.hidden(0);  // we are in FM mode, we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K)
-                field_bw.hidden(0);    // we are in FM mode, we need to allow FM deviation parameter, in non FM mode.
+                freqman_set_bandwidth_option(NFM_MODULATION, field_rxbw);  // restore dynamic field_rxbw value with NFM options from freqman_db.cpp
+                field_rxbw.set_by_value(2);                                // // bw 16k (2) default
+                field_rxbw.hidden(0);                                      // we are in FM mode, we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K)
+                field_bw.hidden(0);                                        // we are in FM mode, we need to allow FM deviation parameter, in non FM mode.
                 break;
             case 1:  //{ "WFM", 1 }
                 enable_am = false;
@@ -375,13 +373,10 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
                 options_tone_key.hidden(0);  // we are in WFM mode, we should have active the Key-tones & CTCSS option.
 
-                rxbw.emplace_back(" 200k ", 0);  // We allow the user selection of the 3 x WFM BW filters, (0) WFM-200K, (1) WFM-180K, (2) WFM-40K.
-                rxbw.emplace_back(" 180k ", 1);
-                rxbw.emplace_back("  40k ", 2);
-                field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
-
-                field_rxbw.hidden(0);  // we are in WFM mode, we need to show to the user the selected BW WFM filter.
-                field_bw.hidden(0);    // we are in WFM mode, we need to allow WFM deviation parameter, in non FM mode.
+                freqman_set_bandwidth_option(WFM_MODULATION, field_rxbw);  // restore dynamic field_rxbw value with WFM options from freqman_db.cpp
+                field_rxbw.set_by_value(0);                                // bw 200k (0) default
+                field_rxbw.hidden(0);                                      // we are in WFM mode, we need to show to the user the selected BW WFM filter.
+                field_bw.hidden(0);                                        // we are in WFM mode, we need to allow WFM deviation parameter, in non FM mode.
                 break;
             case 2:  //{ "AM", 2 }
                 enable_am = true;
@@ -390,8 +385,8 @@ MicTXView::MicTXView(
                 set_dirty();                             // Refresh display
                 options_tone_key.hidden(1);              // we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
 
-                rxbw.emplace_back("DSB-9k", 0);  // we offer in AM DSB two audio BW 9k / 6k.
-                rxbw.emplace_back("DSB-6k", 1);
+                rxbw.emplace_back("DSB 9k", 0);  // we offer in AM DSB two audio BW 9k / 6k.
+                rxbw.emplace_back("DSB 6k", 1);
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 
                 field_rxbw.hidden(0);       // we show fixed RX AM BW 6Khz
@@ -425,7 +420,7 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);        // Update now if we have RX audio on
                 check_rogerbeep.hidden(0);  // make visible again the "rogerbeep" selection.
 
-                rxbw.emplace_back("USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-C case to the field_rxbw value.
+                rxbw.emplace_back("USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-SC case to the field_rxbw value.
                 rxbw.emplace_back("LSB-3k", 1);
 
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
