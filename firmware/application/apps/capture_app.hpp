@@ -31,7 +31,6 @@
 #include "ui_spectrum.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
-#include "freqman.hpp"
 
 namespace ui {
 

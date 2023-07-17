@@ -319,7 +319,7 @@ class File {
     File& operator=(const File&) = delete;
 
     // TODO: Return Result<>.
-    Optional<Error> open(const std::filesystem::path& filename, bool read_only = true);
+    Optional<Error> open(const std::filesystem::path& filename, bool read_only = true, bool create = false);
     Optional<Error> append(const std::filesystem::path& filename);
     Optional<Error> create(const std::filesystem::path& filename);
 

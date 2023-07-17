@@ -23,13 +23,17 @@
 
 #include "ui_recon.hpp"
 #include "ui_fileman.hpp"
+#include "ui_freqman.hpp"
 #include "capture_app.hpp"
+#include "convert.hpp"
 #include "file.hpp"
+#include "file_reader.hpp"
 #include "tone_key.hpp"
 
 using namespace portapack;
 using namespace tonekey;
 using portapack::memory::map::backup_ram;
+namespace fs = std::filesystem;
 
 namespace ui {
 
@@ -124,152 +128,81 @@ void ReconView::colorize_waits() {
     }
 }
 
-bool ReconView::recon_save_freq(const std::string& freq_file_path, size_t freq_index, bool warn_if_exists) {
-    File recon_file;
-
+bool ReconView::recon_save_freq(const fs::path& path, size_t freq_index, bool warn_if_exists) {
     if (frequency_list.size() == 0 || !current_is_valid())
         return false;
 
+    FreqmanDB freq_db;
+    if (!freq_db.open(path, /*create*/ true))
+        return false;
+
     freqman_entry entry = *frequency_list[freq_index];  // Makes a copy.
-    entry.frequency_a = freq;
-    entry.frequency_b = 0;
-    entry.modulation = last_entry.modulation;
-    entry.bandwidth = last_entry.bandwidth;
-    entry.type = freqman_type::Single;
 
-    // TODO: Use FreqmanDB
-    auto frequency_to_add = to_freqman_string(entry);
-
-    auto result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
-    if (!result.is_valid()) {
-        char one_char[1]{};  // Read it char by char
-        std::string line{};  // and put read line in here
-        bool found{false};
-        for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
-            recon_file.seek(pointer);
-            recon_file.read(one_char, 1);
-            if ((int)one_char[0] > 31) {       // ascii space upwards
-                line += one_char[0];           // add it to the textline
-            } else if (one_char[0] == '\n') {  // New Line
-                if (line.compare(0, frequency_to_add.size(), frequency_to_add) == 0) {
-                    found = true;
-                    break;
-                }
-                line.clear();  // Ready for next textline
-            }
-        }
-        if (!found) {
-            result = recon_file.append(freq_file_path);  // Second: append if it is not there
-            if (!result.is_valid()) {
-                recon_file.write_line(frequency_to_add);
-            }
-        }
-        if (found && warn_if_exists) {
-            nav_.display_modal("Error", "Frequency already exists");
-        }
-    } else {
-        result = recon_file.create(freq_file_path);  // First freq if no output file
-        if (!result.is_valid()) {
-            recon_file.write_line(frequency_to_add);
-        }
+    // For ranges, save the current frequency instead.
+    if (entry.type == freqman_type::Range) {
+        entry.frequency_a = freq;
+        entry.frequency_b = 0;
+        entry.type = freqman_type::Single;
+        entry.modulation = last_entry.modulation;
+        entry.bandwidth = last_entry.bandwidth;
+        entry.step = freqman_invalid_index;
     }
+
+    auto it = freq_db.find_entry(entry);
+    auto found = (it != freq_db.end());
+
+    if (found && warn_if_exists)
+        nav_.display_modal("Error", "Frequency already exists");
+
+    if (!found)
+        freq_db.append_entry(entry);
+
     return true;
 }
 
 bool ReconView::recon_load_config_from_sd() {
-    File settings_file{};
-    size_t length{0};
-    size_t file_position{0};
-    char* pos{NULL};
-    char* line_start{NULL};
-    char* line_end{NULL};
-    char file_data[257]{};
-    uint32_t it{0};
-    uint32_t nb_params{RECON_SETTINGS_NB_PARAMS};
-    std::string params[RECON_SETTINGS_NB_PARAMS]{};
-
     make_new_directory(u"SETTINGS");
 
-    auto result = settings_file.open(RECON_CFG_FILE);
-    if (!result.is_valid()) {
-        while (it < nb_params) {
-            // Read a 256 bytes block from file
-            settings_file.seek(file_position);
-            memset(file_data, 0, 257);
-            auto read_size = settings_file.read(file_data, 256);
-            if (read_size.is_error())
-                break;
-            file_position += 256;
-            // Reset line_start to beginning of buffer
-            line_start = file_data;
-            pos = line_start;
-            while ((line_end = strstr(line_start, "\x0A"))) {
-                length = line_end - line_start - 1;
-                params[it] = std::string(pos, length);
-                it++;
-                line_start = line_end + 1;
-                pos = line_start;
-                if (line_start - file_data >= 256)
-                    break;
-                if (it >= nb_params)
-                    break;
-            }
-            if (read_size.value() != 256)
-                break;  // End of file
-
-            // Restart at beginning of last incomplete line
-            file_position -= (file_data + 256 - line_start);
-        }
-    }
-
-    if (it < nb_params) {
-        /* bad number of params, signal defaults */
-        input_file = "RECON";
-        output_file = "RECON_RESULTS";
-        recon_lock_duration = RECON_MIN_LOCK_DURATION;
-        recon_lock_nb_match = RECON_DEF_NB_MATCH;
-        squelch = -14;
-        recon_match_mode = RECON_MATCH_CONTINUOUS;
-        wait = RECON_DEF_WAIT_DURATION;
+    File settings_file;
+    auto error = settings_file.open(RECON_CFG_FILE);
+    if (error)
         return false;
+
+    auto complete = false;
+    auto line_nb = 0;
+    auto reader = FileLineReader(settings_file);
+    for (const auto& line : reader) {
+        switch (line_nb) {
+            case 0:
+                input_file = trim(line);
+                break;
+            case 1:
+                output_file = trim(line);
+                break;
+            case 2:
+                parse_int(line, recon_lock_duration);
+                break;
+            case 3:
+                parse_int(line, recon_lock_nb_match);
+                break;
+            case 4:
+                parse_int(line, squelch);
+                break;
+            case 5:
+                parse_int(line, recon_match_mode);
+                break;
+            case 6:
+                parse_int(line, recon_match_mode);
+                complete = true;  // NB: Last entry.
+                break;
+        }
+
+        if (complete) break;
+
+        line_nb++;
     }
 
-    if (it > 0)
-        input_file = params[0];
-    else
-        input_file = "RECON";
-
-    if (it > 1)
-        output_file = params[1];
-    else
-        output_file = "RECON_RESULTS";
-
-    if (it > 2)
-        recon_lock_duration = strtoll(params[2].c_str(), nullptr, 10);
-    else
-        recon_lock_duration = RECON_MIN_LOCK_DURATION;
-
-    if (it > 3)
-        recon_lock_nb_match = strtoll(params[3].c_str(), nullptr, 10);
-    else
-        recon_lock_nb_match = RECON_DEF_NB_MATCH;
-
-    if (it > 4)
-        squelch = strtoll(params[4].c_str(), nullptr, 10);
-    else
-        squelch = -14;
-
-    if (it > 5)
-        recon_match_mode = strtoll(params[5].c_str(), nullptr, 10);
-    else
-        recon_match_mode = RECON_MATCH_CONTINUOUS;
-
-    if (it > 6)
-        wait = strtoll(params[6].c_str(), nullptr, 10);
-    else
-        wait = RECON_DEF_WAIT_DURATION;
-
-    return true;
+    return complete;
 }
 
 bool ReconView::recon_save_config_to_sd() {
@@ -486,6 +419,7 @@ ReconView::ReconView(NavigationView& nav)
         if (frequency_list.size() > 0) {
             auto new_view = nav_.push<FrequencyKeypadView>(current_index);
             new_view->on_changed = [this, &button](rf::Frequency f) {
+                // NB: This is using the freq keypad to select an index.
                 f = f / OneMHz;
                 if (f >= 1 && f <= frequency_list.size()) {
                     index_stepper = f - 1 - current_index;
@@ -496,17 +430,18 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_start.on_change = [this]() {
-        frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * freqman_entry_get_step_value(def_step);
+        auto step_val = freqman_entry_get_step_value(def_step);
+        frequency_range.min = frequency_range.min + button_manual_start.get_encoder_delta() * step_val;
         if (frequency_range.min < 0) {
             frequency_range.min = 0;
         }
-        if (frequency_range.min > (MAX_UFREQ - freqman_entry_get_step_value(def_step))) {
-            frequency_range.min = MAX_UFREQ - freqman_entry_get_step_value(def_step);
+        if (frequency_range.min > (MAX_UFREQ - step_val)) {
+            frequency_range.min = MAX_UFREQ - step_val;
         }
-        if (frequency_range.min > (frequency_range.max - freqman_entry_get_step_value(def_step))) {
-            frequency_range.max = frequency_range.min + freqman_entry_get_step_value(def_step);
+        if (frequency_range.min > (frequency_range.max - step_val)) {
+            frequency_range.max = frequency_range.min + step_val;
             if (frequency_range.max > MAX_UFREQ) {
-                frequency_range.min = MAX_UFREQ - freqman_entry_get_step_value(def_step);
+                frequency_range.min = MAX_UFREQ - step_val;
                 frequency_range.max = MAX_UFREQ;
             }
         }
@@ -516,18 +451,19 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_end.on_change = [this]() {
-        frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * freqman_entry_get_step_value(def_step);
-        if (frequency_range.max < (freqman_entry_get_step_value(def_step) + 1)) {
-            frequency_range.max = (freqman_entry_get_step_value(def_step) + 1);
+        auto step_val = freqman_entry_get_step_value(def_step);
+        frequency_range.max = frequency_range.max + button_manual_end.get_encoder_delta() * step_val;
+        if (frequency_range.max < (step_val + 1)) {
+            frequency_range.max = (step_val + 1);
         }
         if (frequency_range.max > MAX_UFREQ) {
             frequency_range.max = MAX_UFREQ;
         }
-        if (frequency_range.max < (frequency_range.min + freqman_entry_get_step_value(def_step))) {
-            frequency_range.min = frequency_range.max - freqman_entry_get_step_value(def_step);
-            if (frequency_range.max < (freqman_entry_get_step_value(def_step) + 1)) {
+        if (frequency_range.max < (frequency_range.min + step_val)) {
+            frequency_range.min = frequency_range.max - step_val;
+            if (frequency_range.max < (step_val + 1)) {
                 frequency_range.min = 1;
-                frequency_range.max = (freqman_entry_get_step_value(def_step) + 1);
+                frequency_range.max = (step_val + 1);
             }
         }
         button_manual_start.set_text(to_string_short_freq(frequency_range.min));
@@ -607,87 +543,9 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_remove.on_select = [this](ButtonWithEncoder&) {
-        // TODO: Use FreqmanDB
-        if (frequency_list.size() > 0) {
-            if (!manual_mode) {
-                // scanner or recon (!scanner) mode
-                // in both we delete index from live view, but only remove in output file in scanner_mode
-                if (current_index >= (int32_t)frequency_list.size()) {
-                    current_index = frequency_list.size() - 1;
-                }
-                frequency_list.erase(frequency_list.begin() + current_index);
-                if (current_index >= (int32_t)frequency_list.size()) {
-                    current_index = frequency_list.size() - 1;
-                }
-                if (frequency_list.size() > 0) {
-                    text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-                    update_description();
-                }
-                // also remove from output file if in scanner mode
-                if (scanner_mode) {
-                    File freqman_file{};
-                    delete_file(freq_file_path);
-                    auto result = freqman_file.create(freq_file_path);
-                    if (!result.is_valid()) {
-                        for (size_t n = 0; n < frequency_list.size(); n++) {
-                            auto line = to_freqman_string(*frequency_list[n]);
-                            freqman_file.write_line(line);
-                        }
-                    }
-                }
-            } else if (manual_mode)  // only remove from output
-            {
-                File recon_file{};
-                File tmp_recon_file{};
-                std::string tmp_freq_file_path{freq_file_path + ".TMP"};
+        handle_remove_current_item();
 
-                freqman_entry entry = current_entry();
-                entry.frequency_a = freq;
-                entry.frequency_b = 0;
-                entry.modulation = last_entry.modulation;
-                entry.bandwidth = last_entry.bandwidth;
-                entry.type = freqman_type::Single;
-
-                auto frequency_to_add = to_freqman_string(entry);
-
-                delete_file(tmp_freq_file_path);
-                auto result = tmp_recon_file.create(tmp_freq_file_path);  // First recon if freq is already in txt
-                if (!result.is_valid()) {
-                    bool found = false;
-                    result = recon_file.open(freq_file_path);  // First recon if freq is already in txt
-                    if (!result.is_valid()) {
-                        char one_char[1]{};  // Read it char by char
-                        std::string line{};  // and put read line in here
-                        for (size_t pointer = 0; pointer < recon_file.size(); pointer++) {
-                            recon_file.seek(pointer);
-                            recon_file.read(one_char, 1);
-                            if ((int)one_char[0] > 31) {       // ascii space upwards
-                                line += one_char[0];           // add it to the textline
-                            } else if (one_char[0] == '\n') {  // new Line
-                                if (line.compare(0, frequency_to_add.size(), frequency_to_add) == 0) {
-                                    found = true;
-                                } else {
-                                    tmp_recon_file.write_line(frequency_to_add);
-                                }
-                                line.clear();  // ready for next textline
-                            }
-                        }
-                        if (found) {
-                            delete_file(freq_file_path);
-                            rename_file(tmp_freq_file_path, freq_file_path);
-                        } else {
-                            delete_file(tmp_freq_file_path);
-                        }
-                    }
-                }
-            }
-            receiver_model.set_target_frequency(current_entry().frequency_a);  // retune
-        }
-        if (frequency_list.size() == 0) {
-            text_cycle.set_text(" ");
-            desc_cycle.set("no entries in list");  // Show new description
-            delete_file(freq_file_path);
-        }
+        // TODO: refresh UI.
         timer = 0;
         freq_lock = 0;
     };
@@ -921,8 +779,7 @@ ReconView::ReconView(NavigationView& nav)
     recon_redraw();
 }
 
-void ReconView::frequency_file_load(bool stop_all_before) {
-    (void)(stop_all_before);
+void ReconView::frequency_file_load(bool) {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
 
@@ -940,6 +797,7 @@ void ReconView::frequency_file_load(bool stop_all_before) {
         desc_cycle.set_style(&Styles::blue);
         button_scanner_mode.set_text("RECON");
     }
+
     freqman_load_options options{
         .load_freqs = load_freqs,
         .load_ranges = load_ranges,
@@ -1428,6 +1286,37 @@ void ReconView::handle_coded_squelch(const uint32_t value) {
         text_ctcss.set(tone_key_string_by_value(value, text_ctcss.parent_rect().width() / 8));
     else
         text_ctcss.set("        ");
+}
+
+void ReconView::handle_remove_current_item() {
+    if (frequency_list.empty() || !current_is_valid())
+        return;
+
+    auto entry = current_entry();  // Copy the current entry.
+
+    // In Scanner or Recon modes, remove from the in-memory list.
+    if (mode() != recon_mode::Manual) {
+        if (current_is_valid()) {
+            frequency_list.erase(frequency_list.begin() + current_index);
+        }
+
+        if (frequency_list.size() > 0) {
+            current_index = clip<int32_t>(current_index, 0u, frequency_list.size());
+            text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
+            update_description();
+        } else {
+            current_index = 0;
+        }
+    }
+
+    // In Scanner or Manual mode, remove the entry from the output file.
+    if (mode() != recon_mode::Recon) {
+        FreqmanDB freq_db;
+        if (!freq_db.open(freq_file_path))
+            return;
+
+        freq_db.delete_entry(entry);
+    }
 }
 
 } /* namespace ui */

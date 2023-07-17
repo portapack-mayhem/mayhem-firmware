@@ -52,9 +52,6 @@ constexpr bool is_invalid(freqman_index_t index) {
     return index == freqman_invalid_index;
 }
 
-/* Gets the full path for a given file stem (no extension). */
-const std::filesystem::path get_freqman_path(const std::string& stem);
-
 enum class freqman_type : uint8_t {
     Single,    // f=
     Range,     // a=,b=
@@ -151,6 +148,8 @@ struct freqman_entry {
     freqman_index_t tone{freqman_invalid_index};
 };
 
+bool operator==(const freqman_entry& lhs, const freqman_entry& rhs);
+
 // TODO: These shouldn't be exported.
 std::string freqman_entry_get_modulation_string(freqman_index_t modulation);
 std::string freqman_entry_get_bandwidth_string(freqman_index_t modulation, freqman_index_t bandwidth);
@@ -173,6 +172,12 @@ struct freqman_load_options {
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
+/* Gets the full path for a given file stem (no extension). */
+const std::filesystem::path get_freqman_path(const std::string& stem);
+bool create_freqman_file(const std::string& file_stem);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
+void delete_freqman_file(const std::string& file_stem);
+
 /* Gets a pretty string representation for an entry. */
 std::string pretty_string(const freqman_entry& item, size_t max_length = 30);
 
@@ -185,54 +190,91 @@ bool parse_freqman_file(const std::filesystem::path& path, freqman_db& db, freqm
 /* Returns true if the entry is well-formed. */
 bool is_valid(const freqman_entry& entry);
 
-/* The tricky part of using the file directly is that there can be comments
- * and empty lines in the file. This messes up the 'count' calculation.
- * Either have to live with 'count' being an upper bound have the callers
- * know to expect that entries may be empty. */
-// NB: This won't apply implicit mod/bandwidth.
-// TODO: Reuse for parse_freqman_file
+/* API wrapper over a Freqman file. Provides CRUD operations
+ * for freqman_entry instances that are read/written directly
+ * to the underlying file. */
 class FreqmanDB {
    public:
+    using Index = FileWrapper::Line;
+
+    /* NB: This iterator is very basic: forward only, read-only. */
     class iterator {
        public:
-        iterator(FreqmanDB& db, FileWrapper::Offset line)
-            : db_{db}, line_{line} {}
+        iterator(FreqmanDB& db, Index index)
+            : db_{db}, index_{index} {}
         iterator& operator++() {
-            line_++;
+            index_++;
+
+            if (index_ >= db_.entry_count())
+                index_ = end_index;
+
             return *this;
         }
         freqman_entry operator*() const {
-            return db_[line_];
+            return db_[index_];
+        }
+
+        bool operator==(const iterator& other) {
+            return &db_ == &other.db_ && index_ == other.index_;
         }
 
         bool operator!=(const iterator& other) {
-            return &db_ != &other.db_ || line_ != other.line_;
+            return !(*this == other);
         }
+
+        Index index() const {
+            return index_;
+        }
+
+        /* Value indicating the 'end' iterator. */
+        static constexpr Index end_index = (Index)-1;
 
        private:
         FreqmanDB& db_;
-        FileWrapper::Line line_;
+        Index index_;
     };
 
-    bool open(const std::filesystem::path& path);
+    bool open(const std::filesystem::path& path, bool create = false);
     void close();
-    freqman_entry operator[](FileWrapper::Line line) const;
-    void insert_entry(const freqman_entry& entry, FileWrapper::Line line);
-    void replace_entry(FileWrapper::Line line, const freqman_entry& entry);
-    void delete_entry(FileWrapper::Line line);
+
+    freqman_entry operator[](Index index) const;
+    void insert_entry(Index index, const freqman_entry& entry);
+    void append_entry(const freqman_entry& entry);
+    void replace_entry(Index index, const freqman_entry& entry);
+    void delete_entry(Index index);
+    bool delete_entry(const freqman_entry& entry);
+
+    template <typename Fn>
+    iterator find_entry(const Fn& predicate) {
+        // TODO: use std::find, but need to make the iterator compliant.
+        auto it = begin();
+        const auto it_end = end();
+
+        while (it != it_end) {
+            if (predicate(*it))
+                return it;
+            ++it;
+        }
+
+        return it_end;
+    }
+    iterator find_entry(const freqman_entry& entry);
 
     uint32_t entry_count() const;
     bool empty() const;
 
+    /* When true, Raw entries are returned instead of Unknown. */
+    void set_read_raw(bool v) { read_raw_ = v; }
     iterator begin() {
         return {*this, 0};
     }
     iterator end() {
-        return {*this, entry_count()};
+        return {*this, iterator::end_index};
     }
 
    private:
     std::unique_ptr<FileWrapper> wrapper_{};
+    bool read_raw_{true};
 };
 
 #endif /* __FREQMAN_DB_H__ */

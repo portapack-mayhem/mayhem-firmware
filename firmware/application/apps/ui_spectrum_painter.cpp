@@ -20,13 +20,14 @@
  */
 
 #include "ui_spectrum_painter.hpp"
+
 #include "bmp.hpp"
 #include "baseband_api.hpp"
-
-#include "ui_fileman.hpp"
-#include "io_file.hpp"
 #include "file.hpp"
+#include "io_file.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "ui_fileman.hpp"
+#include "ui_freqman.hpp"
 
 using namespace portapack;
 

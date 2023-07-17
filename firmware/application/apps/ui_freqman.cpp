@@ -24,7 +24,6 @@
 #include "ui_freqman.hpp"
 
 #include "event_m0.hpp"
-#include "freqman.hpp"
 #include "portapack.hpp"
 #include "rtc_time.hpp"
 #include "tone_key.hpp"
@@ -35,11 +34,33 @@
 #include <memory>
 
 using namespace portapack;
+using namespace ui;
 namespace fs = std::filesystem;
 
 // TODO: Clean up after moving to better lookup tables.
-extern ui::OptionsField::options_t freqman_bandwidths[4];
-extern ui::OptionsField::options_t freqman_steps;
+using options_t = OptionsField::options_t;
+extern options_t freqman_modulations;
+extern options_t freqman_bandwidths[4];
+extern options_t freqman_steps;
+extern options_t freqman_steps_short;
+
+/* Set options. */
+void freqman_set_modulation_option(OptionsField& option) {
+    option.set_options(freqman_modulations);
+}
+
+void freqman_set_bandwidth_option(freqman_index_t modulation, OptionsField& option) {
+    if (is_valid(modulation))
+        option.set_options(freqman_bandwidths[modulation]);
+}
+
+void freqman_set_step_option(OptionsField& option) {
+    option.set_options(freqman_steps);
+}
+
+void freqman_set_step_option_short(OptionsField& option) {
+    option.set_options(freqman_steps_short);
+}
 
 namespace ui {
 
@@ -155,7 +176,7 @@ FrequencySaveView::FrequencySaveView(
     };
 
     button_save.on_select = [this, &nav](Button&) {
-        db_.insert_entry(entry_, db_.entry_count());
+        db_.insert_entry(db_.entry_count(), entry_);
         nav_.pop();
     };
 }
@@ -255,7 +276,7 @@ void FrequencyManagerView::on_add_entry() {
     };
 
     // Add will insert below the currently selected item.
-    db_.insert_entry(entry, current_index() + 1);
+    db_.insert_entry(current_index() + 1, entry);
     refresh_list(1);
 }
 
@@ -488,12 +509,13 @@ void FrequencyEditView::populate_step_options() {
 }
 
 void FrequencyEditView::populate_tone_options() {
+    using namespace tonekey;
     OptionsField::options_t options;
     options.push_back({"None", -1});
 
-    for (auto i = 1u; i < tonekey::tone_keys.size(); ++i) {
-        auto& item = tonekey::tone_keys[i];
-        options.push_back({item.first, (OptionsField::value_t)i});
+    for (auto i = 1u; i < tone_keys.size(); ++i) {
+        auto& item = tone_keys[i];
+        options.push_back({fx100_string(item.second), (OptionsField::value_t)i});
     }
 
     field_tone.set_options(std::move(options));

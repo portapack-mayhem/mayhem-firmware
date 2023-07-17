@@ -23,6 +23,7 @@
 #include "capture_app.hpp"
 #include "baseband_api.hpp"
 #include "portapack.hpp"
+#include "ui_freqman.hpp"
 
 using namespace portapack;
 

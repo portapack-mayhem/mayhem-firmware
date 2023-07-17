@@ -256,3 +256,9 @@ class FrequencyEditView : public View {
 };
 
 } /* namespace ui */
+
+void freqman_set_bandwidth_option(freqman_index_t modulation, ui::OptionsField& option);
+void freqman_set_modulation_option(ui::OptionsField& option);
+void freqman_set_step_option(ui::OptionsField& option);
+void freqman_set_step_option_short(ui::OptionsField& option);
+void freqman_set_tone_option(ui::OptionsField& option);
