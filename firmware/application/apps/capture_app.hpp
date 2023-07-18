@@ -39,7 +39,6 @@ class CaptureAppView : public View {
     CaptureAppView(NavigationView& nav);
     ~CaptureAppView();
 
-    void on_hide() override;
     void focus() override;
     void set_parent_rect(const Rect new_parent_rect) override;
 
@@ -53,8 +52,6 @@ class CaptureAppView : public View {
     app_settings::SettingsManager settings_{
         "rx_capture", app_settings::Mode::RX,
         app_settings::Options::UseGlobalTargetFrequency};
-
-    uint32_t sampling_rate = 0;
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
