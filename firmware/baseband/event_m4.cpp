@@ -61,6 +61,10 @@ void EventDispatcher::run() {
 
     lpc43xx::creg::m0apptxevent::enable();
 
+    // Handle any baseband messages that may have been sent
+    // before the event was enabled.
+    handle_baseband_queue();
+
     while (is_running) {
         const auto events = wait();
         dispatch(events);
