@@ -61,9 +61,9 @@ void EventDispatcher::run() {
 
     lpc43xx::creg::m0apptxevent::enable();
 
-    // Handle any baseband messages that may have been sent
-    // before the event was enabled.
-    handle_baseband_queue();
+    // Hack to indicate to the M0 thread that
+    // M4 is ready to receive message events.
+    shared_memory.baseband_message = nullptr;
 
     while (is_running) {
         const auto events = wait();

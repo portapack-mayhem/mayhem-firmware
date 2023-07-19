@@ -40,8 +40,11 @@ static void send_message(const Message* const message) {
     // another message is present before setting new message.
     shared_memory.baseband_message = message;
     creg::m0apptxevent::assert_event();
-    while (shared_memory.baseband_message)
+    auto count = 100'000'000u;
+    while (shared_memory.baseband_message && --count)
         ;
+    if (!count)
+        chDbgPanic("Send Fail");
 }
 
 void AMConfig::apply() const {
@@ -285,6 +288,14 @@ void run_image(const portapack::spi_flash::image_tag_t image_tag) {
 
     m4_init(image_tag, portapack::memory::map::m4_code, false);
     baseband_image_running = true;
+
+    // Hack to wait for the baseband to finish setting up.
+    shared_memory.baseband_message = (Message*)1;
+    auto count = 100'000'000u;
+    while (shared_memory.baseband_message && --count)
+        ;
+    if (!count)
+        chDbgPanic("Sync Fail");
 
     creg::m4txevent::enable();
 }
