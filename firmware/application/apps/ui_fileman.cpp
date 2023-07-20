@@ -39,7 +39,9 @@ namespace fs = std::filesystem;
 namespace ui {
 static const fs::path txt_ext{u".TXT"};
 static const fs::path ppl_ext{u".PPL"};
+static const fs::path c8_ext{u".C8"};
 static const fs::path c16_ext{u".C16"};
+static const fs::path c8or16_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
 }  // namespace ui
@@ -78,14 +80,15 @@ fs::path get_partner_file(fs::path path) {
         return {};
     auto ext = path.extension();
 
-    if (path_iequal(ext, txt_ext))
-        ext = c16_ext;
-    else if (path_iequal(ext, c16_ext))
-        ext = txt_ext;
-    else
+    if (path_iequal(ext, c16_ext) || path_iequal(ext, c8_ext))
+        path.replace_extension(txt_ext);
+    else if (path_iequal(ext, txt_ext)) {
+        path.replace_extension(c16_ext);
+        if (!fs::file_exists(path))
+            path.replace_extension(c8_ext);
+    } else
         return {};
 
-    path.replace_extension(ext);
     return fs::file_exists(path) && !fs::is_directory(path) ? path : fs::path{};
 }
 
@@ -141,6 +144,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     current_path = dir_path;
     entry_list.clear();
     auto filtering = !extension_filter.empty();
+    bool c8_or_c16 = path_iequal(c8or16_ext, extension_filter);
 
     text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path, 24));
 
@@ -150,7 +154,8 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
             continue;
 
         if (fs::is_regular_file(entry.status())) {
-            if (!filtering || path_iequal(entry.path().extension(), extension_filter))
+            if (!filtering || path_iequal(entry.path().extension(), extension_filter) ||
+                (c8_or_c16 && (path_iequal(entry.path().extension(), c8_ext) || path_iequal(entry.path().extension(), c16_ext))))
                 insert_sorted(entry_list, {entry.path(), (uint32_t)entry.size(), false});
         } else if (fs::is_directory(entry.status())) {
             insert_sorted(entry_list, {entry.path(), 0, true});
@@ -497,7 +502,7 @@ bool FileManagerView::handle_file_open() {
     if (path_iequal(txt_ext, ext)) {
         nav_.push<TextEditorView>(path);
         return true;
-    } else if (path_iequal(c16_ext, ext) || path_iequal(ppl_ext, ext)) {
+    } else if (path_iequal(c8_ext, ext) || path_iequal(c16_ext, ext) || path_iequal(ppl_ext, ext)) {
         // TODO: Enough memory to push?
         nav_.push<PlaylistView>(path);
         return true;
