@@ -75,7 +75,8 @@ void ReplayAppView::on_file_changed(const fs::path& new_file_path) {
     progressbar.set_max(file_size);
     text_filename.set(truncate(file_path.filename().string(), 12));
 
-    auto duration = ms_duration(file_size, sample_rate, 4);
+    bool c8 = path_iequal(file_path.extension(), c8_ext);
+    auto duration = ms_duration(c8 ? file_size * 2 : file_size, sample_rate, 4);
     text_duration.set(to_string_time_ms(duration));
 
     button_play.focus();
@@ -191,7 +192,7 @@ ReplayAppView::ReplayAppView(
     };
 
     button_open.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".C16");
+        auto open_view = nav.push<FileLoadView>(".C*");
         open_view->on_changed = [this](fs::path new_file_path) {
             on_file_changed(new_file_path);
         };
