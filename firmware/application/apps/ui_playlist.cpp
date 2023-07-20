@@ -48,6 +48,7 @@ namespace fs = std::filesystem;
 namespace ui {
 
 // TODO: consolidate extesions into a shared header?
+static const fs::path c8_ext = u".C8";
 static const fs::path c16_ext = u".C16";
 static const fs::path ppl_ext = u".PPL";
 
@@ -325,7 +326,8 @@ void PlaylistView::update_ui() {
         text_filename.set(current()->path.filename().string());
         text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3, 0) + "Hz");
 
-        auto duration = ms_duration(current()->file_size, current()->metadata.sample_rate, 4);
+        bool c8 = path_iequal(current()->path.extension(), c8_ext);
+        auto duration = ms_duration(c8 ? current()->file_size * 2 : current()->file_size, current()->metadata.sample_rate, 4);
         text_duration.set(to_string_time_ms(duration));
         field_frequency.set_value(current()->metadata.center_frequency);
 
@@ -336,7 +338,7 @@ void PlaylistView::update_ui() {
 
         progressbar_track.set_max(playlist_db_.size() - 1);
         progressbar_track.set_value(current_index_);
-        progressbar_transmit.set_max(current()->file_size);
+        progressbar_transmit.set_max(c8 ? current()->file_size * 2 : current()->file_size);
     }
 
     button_play.set_bitmap(is_active() ? &bitmap_stop : &bitmap_play);
@@ -406,7 +408,7 @@ PlaylistView::PlaylistView(
     button_add.on_select = [this, &nav]() {
         if (is_active())
             return;
-        auto open_view = nav_.push<FileLoadView>(".C16");
+        auto open_view = nav_.push<FileLoadView>(".C*");
         open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
             add_entry(std::move(path));
@@ -459,7 +461,7 @@ PlaylistView::PlaylistView(
     auto ext = path.extension();
     if (path_iequal(ext, ppl_ext))
         on_file_changed(path);
-    else if (path_iequal(ext, c16_ext))
+    else if (path_iequal(ext, c8_ext) || path_iequal(ext, c16_ext))
         add_entry(fs::path{path});
 }
 
