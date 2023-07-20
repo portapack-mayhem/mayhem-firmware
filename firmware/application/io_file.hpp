@@ -43,7 +43,7 @@ class FileReader : public stream::Reader {
     File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
     const File& file() const& { return file_; }
 
-    void c8_to_c16(const void *buffer, File::Size bytes);
+    void c8_to_c16(const void* buffer, File::Size bytes);
     bool convert_c8{};
 
    protected:
@@ -65,7 +65,7 @@ class FileWriter : public stream::Writer {
     File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
     const File& file() const& { return file_; }
 
-    void c16_to_c8(const void *buffer, File::Size bytes);
+    void c16_to_c8(const void* buffer, File::Size bytes);
     bool convert_c8{};
 
    protected:
