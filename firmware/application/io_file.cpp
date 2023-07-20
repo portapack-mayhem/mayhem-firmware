@@ -66,7 +66,7 @@ File::Result<File::Size> FileReader::read(void* const buffer, const File::Size b
     auto read_result = file_.read(buffer, convert_c8 ? bytes / 2 : bytes);
     if (read_result.is_ok()) {
         bytes_read_ += read_result.value();
-    
+
         if (convert_c8) {
             c8_to_c16(buffer, read_result.value());
             bytes_read_ += read_result.value();
@@ -86,7 +86,7 @@ File::Result<File::Size> FileWriter::write(const void* const buffer, const File:
         c16_to_c8(buffer, bytes);
     }
 
-    auto write_result = file_.write(buffer, convert_c8 ? bytes / 2 : bytes );
+    auto write_result = file_.write(buffer, convert_c8 ? bytes / 2 : bytes);
     if (write_result.is_ok()) {
         bytes_written_ += convert_c8 ? write_result.value() * 2 : write_result.value();
     }
