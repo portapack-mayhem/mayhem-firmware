@@ -109,7 +109,7 @@ void GpsSimAppView::start() {
     std::unique_ptr<stream::Reader> reader;
 
     auto p = std::make_unique<FileReader>();
-    auto open_error = p->open(file_path);
+    auto open_error = p->open(file_path, false);
     if (open_error.is_valid()) {
         file_error();
     } else {
