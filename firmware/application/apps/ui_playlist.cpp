@@ -327,7 +327,7 @@ void PlaylistView::update_ui() {
         text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3, 0) + "Hz");
 
         bool c8 = path_iequal(current()->path.extension(), c8_ext);
-        auto duration = ms_duration(c8 ? current()->file_size * 2 : current()->file_size, current()->metadata.sample_rate, 4);
+        auto duration = ms_duration(current()->file_size, current()->metadata.sample_rate, c8 ? 2 : 4);
         text_duration.set(to_string_time_ms(duration));
         field_frequency.set_value(current()->metadata.center_frequency);
 
