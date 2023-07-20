@@ -49,11 +49,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         &waterfall,
     });
 
-
-// HANG WORKAROUND TEST
-receiver_model.set_sampling_rate(sampling_rate);
-
-
     field_frequency_step.set_by_value(receiver_model.frequency_step());
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
         receiver_model.set_frequency_step(v);
@@ -84,12 +79,6 @@ receiver_model.set_sampling_rate(sampling_rate);
     };
 
     option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
-
-
-// HANG WORKAROUND TEST
-// chThdSleepMilliseconds(2);
-
-
     receiver_model.enable();
 
     record_view.on_error = [&nav](std::string message) {
