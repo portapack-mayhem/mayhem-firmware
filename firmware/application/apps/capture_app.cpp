@@ -49,6 +49,14 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         &waterfall,
     });
 
+    /* THE ONE LINE BELOW IS A TEMPORARY KLUDGE WORKAROUND FOR A MYSTERY M4 BASEBAND HANG ISSUE WHEN THE CAPTURE
+       APP IS THE FIRST APP STARTED AFTER POWER-UP, OR THE CAPTURE APP IS RUN AFTER RUNNING REPLAY WITH A HIGH
+       SAMPLE RATE. IT SHOULD NOT BE NECESSARY SINCE sampling_rate IS ALREADY INITIALIZED BY RADIOSTATE BUT
+       APPARENTLY IS ADDING JUST THE RIGHT AMOUNT OF DELAY.  ISSUE DOES NOT AFFECT ALL PORTAPACK UNITS.
+       INVESTIGATION IS ONGOING, SEE ISSUE #1283. */
+    receiver_model.set_sampling_rate(3072000);
+    /* END MYSTERY HANG WORKAROUND. */
+
     field_frequency_step.set_by_value(receiver_model.frequency_step());
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
         receiver_model.set_frequency_step(v);
