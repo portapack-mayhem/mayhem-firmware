@@ -23,9 +23,7 @@
 #include "proc_capture.hpp"
 
 #include "dsp_fir_taps.hpp"
-
 #include "event_m4.hpp"
-
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {

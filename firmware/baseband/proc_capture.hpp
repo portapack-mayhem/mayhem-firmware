@@ -49,6 +49,12 @@ class CaptureProcessor : public BasebandProcessor {
     size_t baseband_fs = 0;
     static constexpr auto spectrum_rate_hz = 50.0f;
 
+    // NB: For some reason this initialization can cause the M4 to hang.
+    // Moving it to the first member spot seems to alleviate that. ???
+    SpectrumCollector channel_spectrum{};
+    size_t spectrum_interval_samples = 0;
+    size_t spectrum_samples = 0;
+
     BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
     RSSIThread rssi_thread{NORMALPRIO + 10};
 
@@ -64,10 +70,6 @@ class CaptureProcessor : public BasebandProcessor {
     int32_t channel_filter_transition = 0;
 
     std::unique_ptr<StreamInput> stream{};
-
-    SpectrumCollector channel_spectrum{};
-    size_t spectrum_interval_samples = 0;
-    size_t spectrum_samples = 0;
 
     void samplerate_config(const SamplerateConfigMessage& message);
     void capture_config(const CaptureConfigMessage& message);

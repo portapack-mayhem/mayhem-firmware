@@ -40,11 +40,12 @@ static void send_message(const Message* const message) {
     // another message is present before setting new message.
     shared_memory.baseband_message = message;
     creg::m0apptxevent::assert_event();
-    auto count = 100'000'000u;
+    auto count = UINT32_MAX;
     while (shared_memory.baseband_message && --count)
-        ;
+        /* spin */;
+
     if (!count)
-        chDbgPanic("Send Fail");
+        chDbgPanic("Baseband Send Fail");
 }
 
 void AMConfig::apply() const {
@@ -279,25 +280,26 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 
 static bool baseband_image_running = false;
 
-void run_image(const portapack::spi_flash::image_tag_t image_tag) {
+void run_image(const spi_flash::image_tag_t image_tag) {
     if (baseband_image_running) {
         chDbgPanic("BBRunning");
     }
 
     creg::m4txevent::clear();
+    shared_memory.clear_baseband_ready();
 
-    m4_init(image_tag, portapack::memory::map::m4_code, false);
+    m4_init(image_tag, memory::map::m4_code, false);
     baseband_image_running = true;
 
-    // Hack to wait for the baseband to finish setting up.
-    shared_memory.baseband_message = (Message*)1;
-    auto count = 100'000'000u;
-    while (shared_memory.baseband_message && --count)
-        ;
-    if (!count)
-        chDbgPanic("Sync Fail");
-
     creg::m4txevent::enable();
+
+    // Wait 3 seconds for baseband to start handling events.
+    auto count = 3'000u;
+    while (!shared_memory.baseband_ready && --count)
+        chThdSleepMilliseconds(1);
+
+    if (!count)
+        chDbgPanic("Baseband Sync Fail");
 }
 
 void shutdown() {

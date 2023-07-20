@@ -31,7 +31,6 @@ namespace ui {
 
 CaptureAppView::CaptureAppView(NavigationView& nav)
     : nav_{nav} {
-    freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     baseband::run_image(portapack::spi_flash::image_tag_capture);
 
     add_children({
@@ -67,6 +66,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         record_view.set_file_type((RecordView::FileType)file_type);
     };
 
+    freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     option_bandwidth.on_change = [this](size_t, uint32_t base_rate) {
         /* base_rate is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
         /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
@@ -76,12 +76,11 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         /* Set up proper anti aliasing BPF bandwith in MAX2837 before ADC sampling according to the new added BW Options. */
         auto anti_alias_baseband_bandwidth_filter = filter_bandwidth_for_sampling_rate(sampling_rate);
 
-        baseband::spectrum_streaming_stop();
+        waterfall.stop();
         record_view.set_sampling_rate(sampling_rate);
         receiver_model.set_sampling_rate(sampling_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
-        // TODO: baseband::set_spectrum too?
-        baseband::spectrum_streaming_start();
+        waterfall.start();
     };
 
     receiver_model.enable();
