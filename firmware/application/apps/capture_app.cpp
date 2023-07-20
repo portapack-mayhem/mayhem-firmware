@@ -57,7 +57,6 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
 
     option_format.set_selected_index(0);  // Default to C16
     option_format.on_change = [this](size_t, uint32_t file_type) {
-        // should only allow change when not recording, and also need to update record icon color
         record_view.set_file_type((RecordView::FileType)file_type);
     };
 
