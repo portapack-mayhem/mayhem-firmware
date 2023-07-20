@@ -44,14 +44,26 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         &field_lna,
         &field_vga,
         &option_bandwidth,
+        &option_format,
         &record_view,
         &waterfall,
     });
+
+
+// HANG WORKAROUND TEST
+receiver_model.set_sampling_rate(sampling_rate);
+
 
     field_frequency_step.set_by_value(receiver_model.frequency_step());
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
         receiver_model.set_frequency_step(v);
         this->field_frequency.set_step(v);
+    };
+
+    option_format.set_selected_index(0);  // Default to C16
+    option_format.on_change = [this](size_t, uint32_t file_type) {
+        // should only allow change when not recording, and also need to update record icon color
+        record_view.set_file_type((RecordView::FileType)file_type);
     };
 
     option_bandwidth.on_change = [this](size_t, uint32_t base_rate) {
@@ -72,6 +84,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
+
+
+// HANG WORKAROUND TEST
+// chThdSleepMilliseconds(2);
+
+
     receiver_model.enable();
 
     record_view.on_error = [&nav](std::string message) {
