@@ -76,7 +76,7 @@ void ReplayAppView::on_file_changed(const fs::path& new_file_path) {
     text_filename.set(truncate(file_path.filename().string(), 12));
 
     bool c8 = path_iequal(file_path.extension(), c8_ext);
-    auto duration = ms_duration(c8 ? file_size * 2 : file_size, sample_rate, 4);
+    auto duration = ms_duration(file_size, sample_rate, c8 ? 2 : 4);
     text_duration.set(to_string_time_ms(duration));
 
     button_play.focus();
