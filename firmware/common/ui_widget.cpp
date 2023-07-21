@@ -573,7 +573,7 @@ void ProgressBar::paint(Painter& painter) {
     const auto sr = screen_rect();
     const auto s = style();
 
-    v_scaled = (sr.size().width() * _value) / _max;
+    v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
 
     painter.fill_rectangle({sr.location(), {v_scaled, sr.size().height()}}, style().foreground);
     painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
