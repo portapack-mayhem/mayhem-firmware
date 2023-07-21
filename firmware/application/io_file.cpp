@@ -19,35 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "string.h"
 #include "io_file.hpp"
+#include "complex.hpp"
 
 namespace fs = std::filesystem;
 static const fs::path c8_ext = u".C8";
 
-// convert c16 buffer to c8 buffer
-// (output buffer size is bytes/2)
+// Convert buffer contents from c16 to c8.
+// Same buffer used for input & output; input size is bytes; output size is bytes/2.
 void FileWriter::c16_to_c8(const void* buffer, File::Size bytes) {
-    int16_t* src = (int16_t*)buffer;
-    uint16_t* dest = (uint16_t*)buffer;
+    complex16_t* src = (complex16_t*)buffer;
+    complex8_t* dest = (complex8_t*)buffer;
 
-    for (File::Size i = 0; i < bytes / 4; i++) {
-        uint8_t re = *src++ / 256;
-        uint8_t im = *src++ / 256;
-        *dest++ = ((uint16_t)im << 8) + re;
+    for (File::Size i = 0; i < bytes / sizeof(complex16_t); i++) {
+        auto re_out = src[i].real() >> 8;
+        auto im_out = src[i].imag() >> 8;
+        dest[i] = {(int8_t)re_out, (int8_t)im_out};
     }
 }
 
-// convert c8 buffer to c16 buffer
-// (output buffer size is 2*bytes)
+// Convert c8 buffer to c16 buffer.
+// Same buffer used for input & output; input size is bytes; output size is 2*bytes.
 void FileReader::c8_to_c16(const void* buffer, File::Size bytes) {
-    int8_t* src = (int8_t*)buffer + bytes - 1;
-    int32_t* dest = (int32_t*)((uint8_t*)buffer + 2 * bytes - 4);
+    complex8_t* src = (complex8_t*)buffer;
+    complex16_t* dest = (complex16_t*)buffer;
+    uint32_t i = bytes / sizeof(complex8_t);
 
-    for (File::Size i = 0; i < bytes / 2; i++) {
-        int16_t im = *src-- * 256;
-        int16_t re = *src-- * 256;
-        *dest-- = ((int32_t)im << 16) + re;
+    if (i != 0) {
+        do {
+            i--;
+            auto re_out = (int16_t)src[i].real() * 256;  // C8 to C16 conversion;
+            auto im_out = (int16_t)src[i].imag() * 256;  // Can't shift signed numbers left, so using multiply
+            dest[i] = {(int16_t)re_out, (int16_t)im_out};
+        } while (i != 0);
     }
 }
 
@@ -61,7 +65,7 @@ Optional<File::Error> FileReader::open(const std::filesystem::path& filename, bo
     return file_.open(filename);
 }
 
-// if C8 conversion enabled, half the number of bytes are read from the file & expanded to fill the whole buffer
+// If C8 conversion enabled, half the number of bytes are read from the file & expanded to fill the whole buffer
 File::Result<File::Size> FileReader::read(void* const buffer, const File::Size bytes) {
     auto read_result = file_.read(buffer, convert_c8 ? bytes / 2 : bytes);
     if (read_result.is_ok()) {
@@ -80,7 +84,7 @@ Optional<File::Error> FileWriter::create(const std::filesystem::path& filename) 
     return file_.create(filename);
 }
 
-// if C8 conversion is enabled, half the number of bytes are written to the file
+// If C8 conversion is enabled, half the number of bytes are written to the file
 File::Result<File::Size> FileWriter::write(const void* const buffer, const File::Size bytes) {
     if (convert_c8) {
         c16_to_c8(buffer, bytes);
