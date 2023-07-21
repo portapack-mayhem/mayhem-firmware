@@ -324,7 +324,7 @@ void PlaylistView::update_ui() {
         chDbgAssert(!at_end(), "update_ui #1", "current_index_ invalid");
 
         text_filename.set(current()->path.filename().string());
-        text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3, 0) + "Hz");
+        text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3, (current()->metadata.sample_rate > 1000000) ? 2 : 0) + "Hz");
 
         bool c8 = path_iequal(current()->path.extension(), c8_ext);
         auto duration = ms_duration(current()->file_size, current()->metadata.sample_rate, c8 ? 2 : 4);
