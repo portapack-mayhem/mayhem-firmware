@@ -49,19 +49,20 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     // File data is in C8 format, which is what we need
     // File samplerate is 2.6MHz, which is what we need
     // To fill up the 2048-sample C8 buffer @ 2 bytes per sample = 4096 bytes
-    const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count);
     if (stream) {
-        bytes_read += stream->read(iq_buffer.p, bytes_to_read);
-    }
+        const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count);
+        size_t bytes_read_this_iteration = stream->read(iq_buffer.p, bytes_to_read);
+        bytes_read += bytes_read_this_iteration;
 
-    // NB: Couldn't we have just read the data into buffer.p to start with, or some DMA/cache coherency concern?
-    //
-    // for (size_t i = 0; i < buffer.count; i++) {
-    //     auto re_out = iq_buffer.p[i].real();
-    //     auto im_out = iq_buffer.p[i].imag();
-    //     buffer.p[i] = {(int8_t)re_out, (int8_t)im_out};
-    // }
-    memcpy(buffer.p, iq_buffer.p, bytes_to_read);  // memcpy should be more efficient than 1 byte at a time
+        // NB: Couldn't we have just read the data into buffer.p to start with, or some DMA/cache coherency concern?
+        //
+        // for (size_t i = 0; i < buffer.count; i++) {
+        //     auto re_out = iq_buffer.p[i].real();
+        //     auto im_out = iq_buffer.p[i].imag();
+        //     buffer.p[i] = {(int8_t)re_out, (int8_t)im_out};
+        // }
+        memcpy(buffer.p, iq_buffer.p, bytes_read_this_iteration);  // memcpy should be more efficient than 1 byte at a time
+    }
 
     spectrum_samples += buffer.count;
     if (spectrum_samples >= spectrum_interval_samples) {
