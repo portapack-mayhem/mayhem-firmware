@@ -65,12 +65,12 @@ void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
         field_frequency.set_value(metadata->center_frequency);
         sample_rate = metadata->sample_rate;
     } else {
-        sample_rate = 500000;
+        sample_rate = 2600000;
     }
 
     // UI Fixup.
     text_sample_rate.set(unit_auto_scale(sample_rate, 3, 1) + "Hz");
-    progressbar.set_max(file_size / 1024);
+    progressbar.set_max(file_size);
     text_filename.set(truncate(file_path.filename().string(), 12));
 
     auto duration = ms_duration(file_size, sample_rate, 2);

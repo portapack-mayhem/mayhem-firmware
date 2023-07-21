@@ -59,7 +59,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 
     // Fill and "stretch"
     for (size_t i = 0; i < buffer.count; i++) {
-        if (i & 3) {
+        if (i & 7) {
             buffer.p[i] = buffer.p[i - 1];
         } else {
             auto re_out = iq_buffer.p[i >> 3].real() >> 8;
