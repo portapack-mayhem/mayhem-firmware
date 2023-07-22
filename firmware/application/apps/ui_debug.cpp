@@ -403,10 +403,10 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
-        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
-        {"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
+        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
+        {"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
