@@ -238,6 +238,7 @@ void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
 
 void set_baseband_rate(const uint32_t rate) {
     portapack::clock_manager.set_sampling_frequency(rate);
+    // TODO: actually set baseband too?
 }
 
 void set_antenna_bias(const bool on) {

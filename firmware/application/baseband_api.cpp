@@ -31,6 +31,16 @@
 
 #include "core_control.hpp"
 
+/* Set true to enable additional checks to ensure 
+ * M4 and M0 are synchronized before passing messages. */
+static constexpr bool enforce_core_sync = true;
+
+/* Set true to enable check for baseband messages getting stuck.
+ * This implies the baseband thread is not dequeuing and has probably stalled.
+ * NB: This check adds a small amout of overhead to the message sending code
+ * and may impact application perf if it is sending a lot of messages. */
+static constexpr bool check_for_message_hang = true;
+
 using namespace portapack;
 
 namespace baseband {
@@ -40,12 +50,18 @@ static void send_message(const Message* const message) {
     // another message is present before setting new message.
     shared_memory.baseband_message = message;
     creg::m0apptxevent::assert_event();
-    auto count = UINT32_MAX;
-    while (shared_memory.baseband_message && --count)
-        /* spin */;
 
-    if (!count)
-        chDbgPanic("Baseband Send Fail");
+    if constexpr (check_for_message_hang) {
+        auto count = UINT32_MAX;
+        while (shared_memory.baseband_message && --count)
+            /* spin */;
+
+        if (count == 0)
+            chDbgPanic("Baseband Send Fail");
+    } else {
+        while (shared_memory.baseband_message)
+            /* spin */;
+    }
 }
 
 void AMConfig::apply() const {
@@ -293,13 +309,15 @@ void run_image(const spi_flash::image_tag_t image_tag) {
 
     creg::m4txevent::enable();
 
-    // Wait 3 seconds for baseband to start handling events.
-    auto count = 3'000u;
-    while (!shared_memory.baseband_ready && --count)
-        chThdSleepMilliseconds(1);
+    if constexpr (enforce_core_sync) {
+        // Wait 3 seconds for baseband to start handling events.
+        auto count = 3'000u;
+        while (!shared_memory.baseband_ready && --count)
+            chThdSleepMilliseconds(1);
 
-    if (!count)
-        chDbgPanic("Baseband Sync Fail");
+        if (!count)
+            chDbgPanic("Baseband Sync Fail");
+    }
 }
 
 void shutdown() {
