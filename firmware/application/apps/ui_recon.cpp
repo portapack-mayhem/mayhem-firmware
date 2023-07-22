@@ -192,7 +192,7 @@ bool ReconView::recon_load_config_from_sd() {
                 parse_int(line, recon_match_mode);
                 break;
             case 6:
-                parse_int(line, recon_match_mode);
+                parse_int(line, wait);
                 complete = true;  // NB: Last entry.
                 break;
         }
@@ -890,7 +890,6 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     if (recon) {
         if (!timer) {
             status = 0;
-            continuous_lock = false;
             freq_lock = 0;
             timer = local_recon_lock_duration;
             big_display.set_style(&Styles::white);
@@ -907,22 +906,19 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             }
             if (db > squelch)  // MATCHING LEVEL
             {
-                continuous_lock = true;
                 freq_lock++;
+                timer += time_interval;  // give some more time for next lock
             } else {
                 // continuous, direct cut it if not consecutive match after 1 first match
                 if (recon_match_mode == RECON_MATCH_CONTINUOUS) {
-                    if (freq_lock > 0) {
-                        timer = 0;
-                        continuous_lock = false;
-                    }
+                    freq_lock = 0;
+                    timer = 0;
                 }
             }
         }
         if (freq_lock >= recon_lock_nb_match)  // LOCKED
         {
             if (status != 2) {
-                continuous_lock = false;
                 status = 2;
                 // FREQ IS STRONG: GREEN and recon will pause when on_statistics_update()
                 if ((!scanner_mode) && autosave && frequency_list.size() > 0) {
@@ -963,10 +959,9 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         last_timer = timer;
         text_timer.set("TIMER: " + to_string_dec_int(timer));
     }
-    if (timer) {
-        if (!continuous_lock || recon_match_mode == RECON_MATCH_SPARSE) {
-            timer -= time_interval;
-        }
+
+    if (timer != 0) {
+        timer -= time_interval;
         if (timer < 0) {
             timer = 0;
         }
@@ -1126,7 +1121,6 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
 void ReconView::recon_pause() {
     timer = 0;
     freq_lock = 0;
-    continuous_lock = false;
     recon = false;
 
     if (field_mode.selected_index_value() != SPEC_MODULATION)
@@ -1139,7 +1133,6 @@ void ReconView::recon_pause() {
 void ReconView::recon_resume() {
     timer = 0;
     freq_lock = 0;
-    continuous_lock = false;
     recon = true;
 
     if (field_mode.selected_index_value() != SPEC_MODULATION)
