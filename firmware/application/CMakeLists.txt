@@ -179,6 +179,7 @@ set(CPPSRC
 	file.cpp
 	freqman_db.cpp
 	freqman.cpp
+	io_convert.cpp
 	io_file.cpp
 	io_wave.cpp
 	irq_controls.cpp
