@@ -324,8 +324,7 @@ void PlaylistView::update_ui() {
         chDbgAssert(!at_end(), "update_ui #1", "current_index_ invalid");
 
         text_filename.set(current()->path.filename().string());
-        text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3,
-            (current()->metadata.sample_rate > 1000000) ? 2 : 0) + "Hz");
+        text_sample_rate.set(unit_auto_scale(current()->metadata.sample_rate, 3, (current()->metadata.sample_rate > 1000000) ? 2 : 0) + "Hz");
 
         uint8_t sample_size = capture_file_sample_size(current()->path);
         auto duration = ms_duration(current()->file_size, current()->metadata.sample_rate, sample_size);
@@ -339,7 +338,7 @@ void PlaylistView::update_ui() {
 
         progressbar_track.set_max(playlist_db_.size() - 1);
         progressbar_track.set_value(current_index_);
-        progressbar_transmit.set_max(current()->file_size * sizeof( complex16_t) / sample_size);
+        progressbar_transmit.set_max(current()->file_size * sizeof(complex16_t) / sample_size);
     }
 
     button_play.set_bitmap(is_active() ? &bitmap_stop : &bitmap_play);
