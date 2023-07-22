@@ -71,7 +71,7 @@ void c32_to_c16(const void* buffer, File::Size bytes) {
     }
 }
 
-}
+} /* namespace file_convert */
 
 Optional<File::Error> FileConvertReader::open(const std::filesystem::path& filename) {
     convert_c8_to_c16 = path_iequal(filename.extension(), c8_ext);  // automatically enable C8/C16 conversion based on file name
