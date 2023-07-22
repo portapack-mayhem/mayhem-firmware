@@ -31,7 +31,7 @@
 
 #include "core_control.hpp"
 
-/* Set true to enable additional checks to ensure 
+/* Set true to enable additional checks to ensure
  * M4 and M0 are synchronized before passing messages. */
 static constexpr bool enforce_core_sync = true;
 
