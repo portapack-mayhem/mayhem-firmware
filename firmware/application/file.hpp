@@ -168,6 +168,8 @@ path operator/(const path& lhs, const path& rhs);
 
 /* Case insensitive path equality on underlying "native" string. */
 bool path_iequal(const path& lhs, const path& rhs);
+bool is_cxx_capture_file(const path& filename);
+uint8_t capture_file_sample_size(const path& filename);
 
 using file_status = BYTE;
 
