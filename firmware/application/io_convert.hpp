@@ -35,7 +35,7 @@ void c8_to_c16(const void* buffer, File::Size bytes);
 void c32_to_c16(const void* buffer, File::Size bytes);
 void c16_to_c8(const void* buffer, File::Size bytes);
 
-}
+} /* namespace file_convert */
 
 class FileConvertReader : public stream::Reader {
    public:
