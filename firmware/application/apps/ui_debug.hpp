@@ -321,6 +321,22 @@ class DebugFontsView : public View {
     NavigationView& nav_;
 };
 
+class DebugScreenTest : public View {
+   public:
+    DebugScreenTest(NavigationView& nav);
+    bool on_key(KeyEvent key) override;
+    bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
+    uint16_t semirand();
+    void paint(Painter& painter) override;
+
+   private:
+    NavigationView& nav_;
+    Point pen_pos{};
+    Color pen_color{0};
+    int16_t pen_size{10};
+};
+
 /*class DebugLCRView : public View {
 public:
         DebugLCRView(NavigationView& nav, std::string lcrstring);
