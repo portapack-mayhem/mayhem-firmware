@@ -26,6 +26,7 @@
 #include "radio.hpp"
 #include "string_format.hpp"
 #include "crc.hpp"
+#include "random.hpp"
 
 #include "audio.hpp"
 
@@ -405,6 +406,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
         {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         {"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},
+        {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
     });
     set_max_rows(2);  // allow wider buttons
@@ -499,6 +501,49 @@ void DebugFontsView::paint(Painter& painter) {
 DebugFontsView::DebugFontsView(NavigationView& nav)
     : nav_{nav} {
     set_focusable(true);
+}
+
+/* DebugScreenTest ****************************************************/
+
+DebugScreenTest::DebugScreenTest(NavigationView& nav)
+    : nav_{nav} {
+    set_focusable(true);
+}
+
+bool DebugScreenTest::on_key(const KeyEvent key) {
+    Painter painter;
+    switch (key) {
+        case KeyEvent::Select: nav_.pop(); break;
+        case KeyEvent::Down: painter.fill_rectangle({0, 0, screen_width, screen_height}, semirand()); break;
+        case KeyEvent::Left: pen_color = semirand(); break;
+        default:  break;
+    }
+    return true;
+}
+
+bool DebugScreenTest::on_encoder(EncoderEvent delta) {
+    pen_size = clip<int32_t>(pen_size + delta, 1, screen_width);
+    return true;
+}
+
+bool DebugScreenTest::on_touch(const TouchEvent event) {
+    Painter painter;
+    pen_pos = event.point;
+    painter.fill_rectangle({pen_pos.x() - pen_size/2, pen_pos.y() - pen_size/2, pen_size, pen_size}, pen_color);
+    return true;
+}
+
+uint16_t DebugScreenTest::semirand() {
+    static uint64_t seed{0x31415926DEADBEEF};
+    seed = seed * 137;
+    seed = (seed >> 1) | ((seed & 0x01) << 63);
+    return (uint16_t)seed;
+}
+
+void DebugScreenTest::paint(Painter& painter) {
+    painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::white());
+    painter.draw_string({10*8, screen_height/2}, Styles::white, "Use Stylus");
+    pen_color = semirand();
 }
 
 /* DebugLCRView *******************************************************/
