@@ -76,6 +76,7 @@ class FileManBaseView : public View {
         {u".BMP", &bitmap_icon_file_image, ui::Color::green()},
         {u".C8", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
+        {u".C32", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta()},
         {u".PPL", &bitmap_icon_file_iq, ui::Color::white()},  // PPL is the file extension for playlist app
         {u"", &bitmap_icon_file, ui::Color::light_grey()}     // NB: Must be last.

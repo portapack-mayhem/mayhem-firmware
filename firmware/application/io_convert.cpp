@@ -34,9 +34,11 @@ void c16_to_c8(const void* buffer, File::Size bytes) {
     complex16_t* src = (complex16_t*)buffer;
     complex8_t* dest = (complex8_t*)buffer;
 
+    // Shift isn't used here because it would amplify noise at center freq since it's a signed number
+    // i.e. ((-1 >> 8) << 8) = -256, whereas (-1 / 256) * 256 = 0
     for (File::Size i = 0; i < bytes / sizeof(complex16_t); i++) {
-        auto re_out = src[i].real() >> 8;
-        auto im_out = src[i].imag() >> 8;
+        auto re_out = src[i].real() / 256;
+        auto im_out = src[i].imag() / 256;
         dest[i] = {(int8_t)re_out, (int8_t)im_out};
     }
 }
@@ -64,9 +66,11 @@ void c32_to_c16(const void* buffer, File::Size bytes) {
     complex32_t* src = (complex32_t*)buffer;
     complex16_t* dest = (complex16_t*)buffer;
 
+    // Shift isn't used here because it would amplify noise at center freq since it's a signed number
+    // i.e. ((-1 >> 16) << 16) = -65536, whereas (-1 / 65536) * 65536 = 0
     for (File::Size i = 0; i < bytes / sizeof(complex32_t); i++) {
-        auto re_out = src[i].real() >> 16;
-        auto im_out = src[i].imag() >> 16;
+        auto re_out = src[i].real() / 65536;
+        auto im_out = src[i].imag() / 65536;
         dest[i] = {(int8_t)re_out, (int8_t)im_out};
     }
 }
