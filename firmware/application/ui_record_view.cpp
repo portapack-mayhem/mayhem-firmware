@@ -26,6 +26,7 @@ using namespace portapack;
 
 #include "io_file.hpp"
 #include "io_wave.hpp"
+#include "io_convert.hpp"
 
 #include "baseband_api.hpp"
 #include "metadata_file.hpp"
@@ -194,6 +195,7 @@ void RecordView::start() {
             }
         } break;
 
+        case FileType::RawS8:
         case FileType::RawS16: {
             const auto metadata_file_error =
                 write_metadata_file(get_metadata_path(base_path),
@@ -204,8 +206,8 @@ void RecordView::start() {
                 return;
             }
 
-            auto p = std::make_unique<RawFileWriter>();
-            auto create_error = p->create(base_path.replace_extension(u".C16"));
+            auto p = std::make_unique<FileConvertWriter>();
+            auto create_error = p->create(base_path.replace_extension((file_type == FileType::RawS8) ? u".C8" : u".C16"));
             if (create_error.is_valid()) {
                 handle_error(create_error.value());
             } else {

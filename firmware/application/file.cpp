@@ -21,11 +21,17 @@
  */
 
 #include "file.hpp"
+#include "complex.hpp"
 
 #include <algorithm>
 #include <codecvt>
 #include <cstring>
 #include <locale>
+
+namespace fs = std::filesystem;
+static const fs::path c8_ext{u".C8"};
+static const fs::path c16_ext{u".C16"};
+static const fs::path c32_ext{u".C32"};
 
 Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BYTE mode) {
     auto result = f_open(&f, reinterpret_cast<const TCHAR*>(filename.c_str()), mode);
@@ -505,6 +511,21 @@ bool path_iequal(
     }
 
     return false;
+}
+
+bool is_cxx_capture_file(const path& filename) {
+    auto ext = filename.extension();
+    return path_iequal(c8_ext, ext) || path_iequal(c16_ext, ext) || path_iequal(c32_ext, ext);
+}
+
+uint8_t capture_file_sample_size(const path& filename) {
+    if (path_iequal(filename.extension(), c8_ext))
+        return sizeof(complex8_t);
+    if (path_iequal(filename.extension(), c16_ext))
+        return sizeof(complex16_t);
+    if (path_iequal(filename.extension(), c32_ext))
+        return sizeof(complex32_t);
+    return 0;
 }
 
 directory_iterator::directory_iterator(

@@ -26,6 +26,8 @@
 
 #include "ui_fileman.hpp"
 #include "io_file.hpp"
+#include "io_convert.hpp"
+
 #include "baseband_api.hpp"
 #include "metadata_file.hpp"
 #include "portapack.hpp"
@@ -75,7 +77,8 @@ void ReplayAppView::on_file_changed(const fs::path& new_file_path) {
     progressbar.set_max(file_size);
     text_filename.set(truncate(file_path.filename().string(), 12));
 
-    auto duration = ms_duration(file_size, sample_rate, 4);
+    uint8_t sample_size = capture_file_sample_size(current()->path);
+    auto duration = ms_duration(file_size, sample_rate, sample_size);
     text_duration.set(to_string_time_ms(duration));
 
     button_play.focus();
@@ -110,7 +113,7 @@ void ReplayAppView::start() {
 
     std::unique_ptr<stream::Reader> reader;
 
-    auto p = std::make_unique<FileReader>();
+    auto p = std::make_unique<FileConvertReader>();
     auto open_error = p->open(file_path);
     if (open_error.is_valid()) {
         file_error();
@@ -191,7 +194,7 @@ ReplayAppView::ReplayAppView(
     };
 
     button_open.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".C16");
+        auto open_view = nav.push<FileLoadView>(".C*");
         open_view->on_changed = [this](fs::path new_file_path) {
             on_file_changed(new_file_path);
         };

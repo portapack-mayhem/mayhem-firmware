@@ -44,27 +44,27 @@ ReplayProcessor::ReplayProcessor() {
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     /* 2.6MHz, 2048 samples */
 
-    if (!configured) return;
+    if (!configured || !stream) return;
 
     // File data is in C8 format, which is what we need
     // File samplerate is 2.6MHz, which is what we need
     // To fill up the 2048-sample C8 buffer @ 2 bytes per sample = 4096 bytes
-    if (stream) {
-        const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count);
-        size_t bytes_read_this_iteration = stream->read(iq_buffer.p, bytes_to_read);
-        bytes_read += bytes_read_this_iteration;
+    const size_t bytes_to_read = sizeof(*buffer.p) * 1 * (buffer.count);
+    size_t bytes_read_this_iteration = stream->read(iq_buffer.p, bytes_to_read);
+    size_t samples_read_this_iteration = bytes_read_this_iteration / sizeof(*buffer.p);
 
-        // NB: Couldn't we have just read the data into buffer.p to start with, or some DMA/cache coherency concern?
-        //
-        // for (size_t i = 0; i < buffer.count; i++) {
-        //     auto re_out = iq_buffer.p[i].real();
-        //     auto im_out = iq_buffer.p[i].imag();
-        //     buffer.p[i] = {(int8_t)re_out, (int8_t)im_out};
-        // }
-        memcpy(buffer.p, iq_buffer.p, bytes_read_this_iteration);  // memcpy should be more efficient than 1 byte at a time
-    }
+    bytes_read += bytes_read_this_iteration;
 
-    spectrum_samples += buffer.count;
+    // NB: Couldn't we have just read the data into buffer.p to start with, or some DMA/cache coherency concern?
+    //
+    // for (size_t i = 0; i < buffer.count; i++) {
+    //     auto re_out = iq_buffer.p[i].real();
+    //     auto im_out = iq_buffer.p[i].imag();
+    //     buffer.p[i] = {(int8_t)re_out, (int8_t)im_out};
+    // }
+    memcpy(buffer.p, iq_buffer.p, bytes_read_this_iteration);  // memcpy should be more efficient than 1 byte at a time
+
+    spectrum_samples += samples_read_this_iteration;
     if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
 

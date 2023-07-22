@@ -43,7 +43,7 @@ ReplayProcessor::ReplayProcessor() {
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     /* 4MHz, 2048 samples */
 
-    if (!configured) return;
+    if (!configured || !stream) return;
 
     // File data is in C16 format, we need C8
     // File samplerate is 500kHz, we're at 4MHz
@@ -52,13 +52,14 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     // 2048 samples * 2 bytes per sample = 4096 bytes
     // Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
     // So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
-    if (stream) {
-        const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);  // *2 (C16), /8 (oversampling) should be == 1024
-        bytes_read += stream->read(iq_buffer.p, bytes_to_read);
-    }
+    const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);  // *2 (C16), /8 (oversampling) should be == 1024
+    size_t bytes_read_this_iteration = stream->read(iq_buffer.p, bytes_to_read);
+    size_t oversamples_this_iteration = bytes_read_this_iteration * 8 / (sizeof(*buffer.p) * 2);
+
+    bytes_read += bytes_read_this_iteration;
 
     // Fill and "stretch"
-    for (size_t i = 0; i < buffer.count; i++) {
+    for (size_t i = 0; i < oversamples_this_iteration; i++) {
         if (i & 7) {
             buffer.p[i] = buffer.p[i - 1];
         } else {
@@ -68,7 +69,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
         }
     }
 
-    spectrum_samples += buffer.count;
+    spectrum_samples += oversamples_this_iteration;
     if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
         channel_spectrum.feed(iq_buffer, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);

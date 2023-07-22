@@ -40,8 +40,10 @@ class RecordView : public View {
     std::function<void(std::string)> on_error{};
 
     enum FileType {
+        RawS8 = 1,
         RawS16 = 2,
-        WAV = 3,
+        RawS32 = 3,
+        WAV = 4,
     };
 
     RecordView(
@@ -56,6 +58,8 @@ class RecordView : public View {
     void focus() override;
 
     void set_sampling_rate(const size_t new_sampling_rate);
+
+    void set_file_type(const FileType v) { file_type = v; }
 
     void start();
     void stop();
@@ -83,7 +87,7 @@ class RecordView : public View {
 
     const std::filesystem::path filename_stem_pattern;
     const std::filesystem::path folder;
-    const FileType file_type;
+    FileType file_type;
     const size_t write_size;
     const size_t buffer_count;
     size_t sampling_rate{0};

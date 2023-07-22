@@ -58,6 +58,7 @@ class CaptureAppView : public View {
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
+        {{11 * 8, 1 * 16}, "Format:", Color::light_grey()},
     };
 
     RSSI rssi{
@@ -86,6 +87,12 @@ class CaptureAppView : public View {
         {5 * 8, 1 * 16},
         5,
         {}};
+
+    OptionsField option_format{
+        {18 * 8, 1 * 16},
+        3,
+        {{"C16", RecordView::FileType::RawS16},
+         {"C8", RecordView::FileType::RawS8}}};
 
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
