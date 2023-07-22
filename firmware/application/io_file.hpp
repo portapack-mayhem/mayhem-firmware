@@ -37,14 +37,12 @@ class FileReader : public stream::Reader {
     FileReader(FileReader&& file) = delete;
     FileReader& operator=(FileReader&&) = delete;
 
-    Optional<File::Error> open(const std::filesystem::path& filename);
-    Optional<File::Error> open(const std::filesystem::path& filename, bool do_c8_conversion);
+    Optional<File::Error> open(const std::filesystem::path& filename) {
+        return file_.open(filename);
+    }
 
     File::Result<File::Size> read(void* const buffer, const File::Size bytes) override;
     const File& file() const& { return file_; }
-
-    void c8_to_c16(const void* buffer, File::Size bytes);
-    bool convert_c8{};
 
    protected:
     File file_{};
@@ -60,13 +58,12 @@ class FileWriter : public stream::Writer {
     FileWriter(FileWriter&& file) = delete;
     FileWriter& operator=(FileWriter&&) = delete;
 
-    Optional<File::Error> create(const std::filesystem::path& filename);
+    Optional<File::Error> create(const std::filesystem::path& filename) {
+        return file_.create(filename);
+    }
 
     File::Result<File::Size> write(const void* const buffer, const File::Size bytes) override;
     const File& file() const& { return file_; }
-
-    void c16_to_c8(const void* buffer, File::Size bytes);
-    bool convert_c8{};
 
    protected:
     File file_{};
