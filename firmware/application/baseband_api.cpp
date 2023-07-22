@@ -310,12 +310,12 @@ void run_image(const spi_flash::image_tag_t image_tag) {
     creg::m4txevent::enable();
 
     if constexpr (enforce_core_sync) {
-        // Wait 3 seconds for baseband to start handling events.
+        // Wait up to 3 seconds for baseband to start handling events.
         auto count = 3'000u;
         while (!shared_memory.baseband_ready && --count)
             chThdSleepMilliseconds(1);
 
-        if (!count)
+        if (count == 0)
             chDbgPanic("Baseband Sync Fail");
     }
 }
