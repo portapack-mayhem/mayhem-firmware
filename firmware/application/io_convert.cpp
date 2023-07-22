@@ -73,9 +73,10 @@ void c32_to_c16(const void* buffer, File::Size bytes) {
 
 } /* namespace file_convert */
 
+// Automatically enables C8/C16 or C32/C16 conversion based on file extension
 Optional<File::Error> FileConvertReader::open(const std::filesystem::path& filename) {
-    convert_c8_to_c16 = path_iequal(filename.extension(), c8_ext);  // automatically enable C8/C16 conversion based on file name
-    convert_c32_to_c16 = path_iequal(filename.extension(), c32_ext);  // automatically enable C16/C32 conversion based on file name
+    convert_c8_to_c16 = path_iequal(filename.extension(), c8_ext);
+    convert_c32_to_c16 = path_iequal(filename.extension(), c32_ext);
     return file_.open(filename);
 }
 
@@ -96,6 +97,7 @@ File::Result<File::Size> FileConvertReader::read(void* const buffer, const File:
     return read_result;
 }
 
+// Automatically enables C8/C16 conversion based on file extension
 Optional<File::Error> FileConvertWriter::create(const std::filesystem::path& filename) {
     convert_c16_to_c8 = path_iequal(filename.extension(), c8_ext);
     return file_.create(filename);
