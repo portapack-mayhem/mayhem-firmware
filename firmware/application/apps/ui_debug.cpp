@@ -26,7 +26,6 @@
 #include "radio.hpp"
 #include "string_format.hpp"
 #include "crc.hpp"
-#include "random.hpp"
 
 #include "audio.hpp"
 
