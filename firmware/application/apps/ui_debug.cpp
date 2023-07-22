@@ -512,10 +512,17 @@ DebugScreenTest::DebugScreenTest(NavigationView& nav)
 bool DebugScreenTest::on_key(const KeyEvent key) {
     Painter painter;
     switch (key) {
-        case KeyEvent::Select: nav_.pop(); break;
-        case KeyEvent::Down: painter.fill_rectangle({0, 0, screen_width, screen_height}, semirand()); break;
-        case KeyEvent::Left: pen_color = semirand(); break;
-        default:  break;
+        case KeyEvent::Select:
+            nav_.pop();
+            break;
+        case KeyEvent::Down:
+            painter.fill_rectangle({0, 0, screen_width, screen_height}, semirand());
+            break;
+        case KeyEvent::Left:
+            pen_color = semirand();
+            break;
+        default:
+            break;
     }
     return true;
 }
@@ -528,7 +535,7 @@ bool DebugScreenTest::on_encoder(EncoderEvent delta) {
 bool DebugScreenTest::on_touch(const TouchEvent event) {
     Painter painter;
     pen_pos = event.point;
-    painter.fill_rectangle({pen_pos.x() - pen_size/2, pen_pos.y() - pen_size/2, pen_size, pen_size}, pen_color);
+    painter.fill_rectangle({pen_pos.x() - pen_size / 2, pen_pos.y() - pen_size / 2, pen_size, pen_size}, pen_color);
     return true;
 }
 
@@ -541,7 +548,7 @@ uint16_t DebugScreenTest::semirand() {
 
 void DebugScreenTest::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::white());
-    painter.draw_string({10*8, screen_height/2}, Styles::white, "Use Stylus");
+    painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
     pen_color = semirand();
 }
 
