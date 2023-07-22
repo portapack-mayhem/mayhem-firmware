@@ -43,7 +43,7 @@ class ReplayProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    size_t baseband_fs = 0;
+    size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
 
     BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};

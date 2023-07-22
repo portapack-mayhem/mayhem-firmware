@@ -46,8 +46,12 @@ class CaptureProcessor : public BasebandProcessor {
 
    private:
     // TODO: Repeated value needs to be transmitted from application side.
-    size_t baseband_fs = 0;
+    size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
+
+    // HACK: BasebandThread starts immediately and starts sending data to members
+    // before they are initialized. This is a workaround to prevent uninit data problems.
+    bool ready = false;
 
     BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
     RSSIThread rssi_thread{NORMALPRIO + 10};

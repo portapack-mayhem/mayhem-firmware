@@ -497,13 +497,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
-        {
-            "ADS-B",
-            Color::green(),
-            &bitmap_icon_adsb,
-            [&nav]() { nav.push<ADSBRxView>(); },
-        },
-        //{ "ACARS",	Color::yellow(),	&bitmap_icon_adsb,			[&nav](){ nav.push<ACARSAppView>(); }, },
+        {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
+        //{ "ACARS",	Color::yellow(),	&bitmap_icon_adsb,			[&nav](){ nav.push<ACARSAppView>(); }},
         {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
         {"AFSK", Color::yellow(), &bitmap_icon_modem, [&nav]() { nav.push<AFSKRxView>(); }},
         {"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},

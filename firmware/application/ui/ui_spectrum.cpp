@@ -308,13 +308,25 @@ WaterfallView::WaterfallView(const bool cursor) {
 }
 
 void WaterfallView::on_show() {
-    // TODO: Assert that baseband is not shutdown.
-    baseband::spectrum_streaming_start();
+    start();
 }
 
 void WaterfallView::on_hide() {
-    // TODO: Assert that baseband is not shutdown.
-    baseband::spectrum_streaming_stop();
+    stop();
+}
+
+void WaterfallView::start() {
+    if (!running_) {
+        baseband::spectrum_streaming_start();
+        running_ = true;
+    }
+}
+
+void WaterfallView::stop() {
+    if (running_) {
+        baseband::spectrum_streaming_stop();
+        running_ = false;
+    }
 }
 
 void WaterfallView::show_audio_spectrum_view(const bool show) {

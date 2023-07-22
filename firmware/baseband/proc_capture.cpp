@@ -23,9 +23,7 @@
 #include "proc_capture.hpp"
 
 #include "dsp_fir_taps.hpp"
-
 #include "event_m4.hpp"
-
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
@@ -33,9 +31,13 @@ CaptureProcessor::CaptureProcessor() {
     decim_1.configure(taps_200k_decim_1.taps, 131072);
 
     channel_spectrum.set_decimation_factor(1);
+    ready = true;
 }
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
+    if (!ready)
+        return;
+
     /* 2.4576MHz, 2048 samples */
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
