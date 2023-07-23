@@ -67,9 +67,6 @@ class ERTProcessor : public BasebandProcessor {
     const size_t samples_per_symbol = channel_sampling_rate / symbol_rate;
     const float clock_recovery_rate = symbol_rate * 2;
 
-    BasebandThread baseband_thread{baseband_sampling_rate, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
-
     clock_recovery::ClockRecovery<clock_recovery::FixedErrorFilter> clock_recovery{
         clock_recovery_rate,
         symbol_rate,
@@ -115,6 +112,10 @@ class ERTProcessor : public BasebandProcessor {
     size_t average_count{0};
     float offset_i{0.0f};
     float offset_q{0.0f};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_sampling_rate, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 
     float abs(const complex8_t& v);
 };

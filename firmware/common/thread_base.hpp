@@ -28,6 +28,8 @@ class ThreadBase {
    public:
     virtual ~ThreadBase() = default;
 
+    virtual void start() = 0;
+
    protected:
     static msg_t fn(void* arg) {
         auto obj = static_cast<ThreadBase*>(arg);

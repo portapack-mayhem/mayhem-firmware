@@ -38,14 +38,11 @@ class ReplayProcessor : public BasebandProcessor {
     ReplayProcessor();
 
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
     size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     std::array<complex16_t, 256> iq{};
     const buffer_c16_t iq_buffer{
@@ -71,6 +68,10 @@ class ReplayProcessor : public BasebandProcessor {
 
     TXProgressMessage txprogress_message{};
     RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{
+        baseband_fs, this, baseband::Direction::Transmit, /*auto_start*/ false};
 };
 
 #endif /*__PROC_REPLAY_HPP__*/

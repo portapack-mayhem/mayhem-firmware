@@ -38,6 +38,7 @@ ReplayProcessor::ReplayProcessor() {
     channel_spectrum.set_decimation_factor(1);
 
     configured = false;
+    baseband_thread.start();
 }
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {

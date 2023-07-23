@@ -42,14 +42,10 @@
 class NarrowbandFMAudio : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
     static constexpr size_t baseband_fs = 3072000;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -97,12 +93,16 @@ class NarrowbandFMAudio : public BasebandProcessor {
     static constexpr float ki = 1.0f / k;
 
     bool configured{false};
+    // RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
+    CodedSquelchMessage ctcss_message{0};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
+
     void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
     void configure(const NBFMConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
-
-    // RequestSignalMessage sig_message { RequestSignalMessage::Signal::Squelched };
-    CodedSquelchMessage ctcss_message{0};
 };
 
 #endif /*__PROC_NFM_AUDIO_H__*/

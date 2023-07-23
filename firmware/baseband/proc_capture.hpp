@@ -28,9 +28,7 @@
 #include "rssi_thread.hpp"
 
 #include "dsp_decimate.hpp"
-
 #include "spectrum_collector.hpp"
-
 #include "stream_input.hpp"
 
 #include <array>
@@ -41,20 +39,11 @@ class CaptureProcessor : public BasebandProcessor {
     CaptureProcessor();
 
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
-    // TODO: Repeated value needs to be transmitted from application side.
     size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
-
-    // HACK: BasebandThread starts immediately and starts sending data to members
-    // before they are initialized. This is a workaround to prevent uninit data problems.
-    bool ready = false;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -72,6 +61,11 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{
+        baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
+    RSSIThread rssi_thread{};
 
     void samplerate_config(const SamplerateConfigMessage& message);
     void capture_config(const CaptureConfigMessage& message);

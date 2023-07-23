@@ -36,14 +36,10 @@ using namespace adsb;
 class ADSBRXProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
     static constexpr size_t baseband_fs = 2000000;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     ADSBFrame frame{};
     bool configured{false};
@@ -58,6 +54,10 @@ class ADSBRXProcessor : public BasebandProcessor {
     uint32_t sample{0};
     int32_t re{}, im{};
     int32_t amp{0};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 };
 
 #endif
