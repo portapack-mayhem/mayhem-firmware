@@ -540,14 +540,14 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
 }
 
 uint16_t DebugScreenTest::semirand() {
-    static uint64_t seed{0x31415926DEADBEEF};
+    static uint64_t seed{0x0102030405060708};
     seed = seed * 137;
     seed = (seed >> 1) | ((seed & 0x01) << 63);
     return (uint16_t)seed;
 }
 
 void DebugScreenTest::paint(Painter& painter) {
-    painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::white());
+    painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Color::white());
     painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
     pen_color = semirand();
 }

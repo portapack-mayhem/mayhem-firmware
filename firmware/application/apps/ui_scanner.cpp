@@ -564,7 +564,7 @@ ScannerView::ScannerView(
     field_lock_wait.set_value(2);
 
     field_squelch.on_change = [this](int32_t v) { squelch = v; };
-    field_squelch.set_value(-10);
+    field_squelch.set_value(-30);
 
     // LEARN FREQUENCIES
     std::string scanner_txt = "SCANNER";
