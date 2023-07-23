@@ -32,6 +32,7 @@ using namespace portapack;
 #include "string_format.hpp"
 #include "complex.hpp"
 #include "ui_styles.hpp"
+#include "ui_font_fixed_5x8.hpp"
 
 namespace ui {
 
@@ -243,6 +244,7 @@ void GeoMap::paint(Painter& painter) {
 
         // Draw the other markers
         draw_markers(painter);
+        draw_scale(painter);
         markerListUpdated = false;
         set_clean();
     }
@@ -283,6 +285,10 @@ void GeoMap::move(const float lon, const float lat) {
         x_pos = map_width - map_rect.width();
     if (y_pos > (map_height + map_rect.height()))
         y_pos = map_height - map_rect.height();
+
+    // Scale calculation
+    float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
+    pixels_per_km = (map_rect.width() / 2) / km_per_deg_lon;
 }
 
 bool GeoMap::init() {
@@ -316,6 +322,24 @@ void GeoMap::set_manual_panning(bool v) {
 
 bool GeoMap::manual_panning() {
     return manual_panning_;
+}
+
+void GeoMap::draw_scale(Painter& painter) {
+    uint16_t km = 100;
+    uint16_t scale_width = km * pixels_per_km * map_zoom;
+
+    while (scale_width > screen_width / 2) {
+        scale_width /= 2;
+        km /= 2;
+    }
+
+    std::string km_string = to_string_dec_uint(km) + " km";
+
+    display.fill_rectangle({{screen_width - 5 - scale_width, screen_height - 4}, {scale_width, 2}}, Color::black());
+    display.fill_rectangle({{screen_width - 5, screen_height - 8}, {2, 6}}, Color::black());
+    display.fill_rectangle({{screen_width - 5 - scale_width, screen_height - 8}, {2, 6}}, Color::black());
+
+    painter.draw_string({(uint16_t)(screen_width - 25 - scale_width - km_string.length() * 5 / 2), screen_height - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
 }
 
 void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
