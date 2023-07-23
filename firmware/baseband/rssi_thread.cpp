@@ -32,16 +32,25 @@ WORKING_AREA(rssi_thread_wa, 128);
 
 Thread* RSSIThread::thread = nullptr;
 
-RSSIThread::RSSIThread(const tprio_t priority) {
-    thread = chThdCreateStatic(rssi_thread_wa, sizeof(rssi_thread_wa),
-                               priority, ThreadBase::fn,
-                               this);
+RSSIThread::RSSIThread(bool auto_start, tprio_t priority)
+    : priority_{priority} {
+    if (auto_start) start();
 }
 
 RSSIThread::~RSSIThread() {
-    chThdTerminate(thread);
-    chThdWait(thread);
-    thread = nullptr;
+    if (thread) {
+        chThdTerminate(thread);
+        chThdWait(thread);
+        thread = nullptr;
+    }
+}
+
+void RSSIThread::start() {
+    if (!thread) {
+        thread = chThdCreateStatic(
+            rssi_thread_wa, sizeof(rssi_thread_wa),
+            priority_, ThreadBase::fn, this);
+    }
 }
 
 void RSSIThread::run() {

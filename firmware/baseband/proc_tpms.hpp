@@ -74,9 +74,6 @@ class TPMSProcessor : public BasebandProcessor {
    private:
     static constexpr size_t baseband_fs = 2457600;
 
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
-
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
@@ -141,6 +138,11 @@ class TPMSProcessor : public BasebandProcessor {
             const TPMSPacketMessage message{tpms::SignalType::OOK_8k4_Schrader, packet};
             shared_memory.application_queue.push(message);
         }};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{
+        baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
+    RSSIThread rssi_thread{};
 };
 
 #endif /*__PROC_TPMS_H__*/

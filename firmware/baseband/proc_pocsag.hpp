@@ -129,7 +129,6 @@ class SmoothVals {
 class POCSAGProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
     int OnDataFrame(int len, int baud);
@@ -137,9 +136,6 @@ class POCSAGProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 3072000;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -166,7 +162,6 @@ class POCSAGProcessor : public BasebandProcessor {
     // ----------------------------------------
     // Frame extractraction methods and members
     // ----------------------------------------
-   private:
     void initFrameExtraction();
     struct FIFOStruct {
         unsigned long codeword;
@@ -219,6 +214,10 @@ class POCSAGProcessor : public BasebandProcessor {
     bool m_gotSync{false};
     int m_numCode{0};
     bool m_inverted{false};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 };
 
 #endif /*__PROC_POCSAG_H__*/

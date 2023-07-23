@@ -30,6 +30,7 @@
 AISProcessor::AISProcessor() {
     decim_0.configure(taps_11k0_decim_0.taps, 33554432);
     decim_1.configure(taps_11k0_decim_1.taps, 131072);
+    baseband_thread.start();
 }
 
 void AISProcessor::execute(const buffer_c8_t& buffer) {

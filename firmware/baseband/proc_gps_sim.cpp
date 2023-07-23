@@ -29,7 +29,7 @@
 
 #include "utility.hpp"
 
-ReplayProcessor::ReplayProcessor() {
+GPSReplayProcessor::GPSReplayProcessor() {
     channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * 1000000;
     channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * 1000000;
     channel_filter_transition = taps_200k_decim_1.transition_normalized * 1000000;
@@ -39,9 +39,10 @@ ReplayProcessor::ReplayProcessor() {
     channel_spectrum.set_decimation_factor(1);
 
     configured = false;
+    baseband_thread.start();
 }
 
-void ReplayProcessor::execute(const buffer_c8_t& buffer) {
+void GPSReplayProcessor::execute(const buffer_c8_t& buffer) {
     /* 2.6MHz, 2048 samples */
 
     if (!configured || !stream) return;
@@ -75,7 +76,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
-void ReplayProcessor::on_message(const Message* const message) {
+void GPSReplayProcessor::on_message(const Message* const message) {
     switch (message->id) {
         case Message::ID::UpdateSpectrum:
         case Message::ID::SpectrumStreamingConfig:
@@ -102,13 +103,13 @@ void ReplayProcessor::on_message(const Message* const message) {
     }
 }
 
-void ReplayProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+void GPSReplayProcessor::samplerate_config(const SamplerateConfigMessage& message) {
     baseband_fs = message.sample_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
     spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
 }
 
-void ReplayProcessor::replay_config(const ReplayConfigMessage& message) {
+void GPSReplayProcessor::replay_config(const ReplayConfigMessage& message) {
     if (message.config) {
         stream = std::make_unique<StreamOutput>(message.config);
 
@@ -120,7 +121,7 @@ void ReplayProcessor::replay_config(const ReplayConfigMessage& message) {
 }
 
 int main() {
-    EventDispatcher event_dispatcher{std::make_unique<ReplayProcessor>()};
+    EventDispatcher event_dispatcher{std::make_unique<GPSReplayProcessor>()};
     event_dispatcher.run();
     return 0;
 }

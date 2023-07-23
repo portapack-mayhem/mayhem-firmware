@@ -33,13 +33,10 @@ using namespace jammer;
 class JammerProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const msg) override;
 
    private:
     bool configured{false};
-
-    BasebandThread baseband_thread{3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     JammerChannel* jammer_channels{};
 
@@ -54,6 +51,9 @@ class JammerProcessor : public BasebandProcessor {
     int8_t sample{0};
     int8_t re{0}, im{0};
     RetuneMessage message{};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{3072000, this, baseband::Direction::Transmit};
 };
 
 #endif

@@ -29,13 +29,10 @@
 class OOKProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const p) override;
 
    private:
     bool configured = false;
-
-    BasebandThread baseband_thread{2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     uint32_t samples_per_bit{0};
     uint8_t repeat{0};
@@ -66,6 +63,9 @@ class OOKProcessor : public BasebandProcessor {
     unsigned int duval_symbol{0};
     size_t scan_progress{0};
     uint8_t scan_done{true};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{2280000, this, baseband::Direction::Transmit};
 
     size_t duval_algo_step();
     void scan_process(const buffer_c8_t& buffer);

@@ -38,16 +38,12 @@
 class NarrowbandAMAudio : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
     static constexpr size_t baseband_fs = 3072000;
     static constexpr size_t decim_2_decimation_factor = 4;
     static constexpr size_t channel_filter_decimation_factor = 1;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -65,6 +61,7 @@ class NarrowbandAMAudio : public BasebandProcessor {
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
+    bool configured{false};
 
     bool modulation_ssb = false;
     dsp::demodulate::AM demod_am{};
@@ -74,7 +71,10 @@ class NarrowbandAMAudio : public BasebandProcessor {
 
     SpectrumCollector channel_spectrum{};
 
-    bool configured{false};
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
+
     void configure(const AMConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
