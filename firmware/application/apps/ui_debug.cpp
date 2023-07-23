@@ -547,7 +547,7 @@ uint16_t DebugScreenTest::semirand() {
 }
 
 void DebugScreenTest::paint(Painter& painter) {
-    painter.fill_rectangle({0, 16, screen_width, screen_height-16}, Color::white());
+    painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Color::white());
     painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
     pen_color = semirand();
 }
