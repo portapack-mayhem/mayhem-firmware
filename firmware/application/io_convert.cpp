@@ -24,7 +24,6 @@
 
 namespace fs = std::filesystem;
 static const fs::path c8_ext = u".C8";
-static const fs::path c32_ext = u".C32";
 
 namespace file_convert {
 
@@ -60,41 +59,21 @@ void c8_to_c16(const void* buffer, File::Size bytes) {
     }
 }
 
-// Convert c32 buffer to c16 buffer.
-// Same buffer used for input & output; input size is bytes; output size is bytes/2.
-void c32_to_c16(const void* buffer, File::Size bytes) {
-    complex32_t* src = (complex32_t*)buffer;
-    complex16_t* dest = (complex16_t*)buffer;
-
-    // Shift isn't used here because it would amplify noise at center freq since it's a signed number
-    // i.e. ((-1 >> 16) << 16) = -65536, whereas (-1 / 65536) * 65536 = 0
-    for (File::Size i = 0; i < bytes / sizeof(complex32_t); i++) {
-        auto re_out = src[i].real() / 65536;
-        auto im_out = src[i].imag() / 65536;
-        dest[i] = {(int8_t)re_out, (int8_t)im_out};
-    }
-}
-
 } /* namespace file_convert */
 
-// Automatically enables C8/C16 or C32/C16 conversion based on file extension
+// Automatically enables C8/C16 conversion based on file extension
 Optional<File::Error> FileConvertReader::open(const std::filesystem::path& filename) {
     convert_c8_to_c16 = path_iequal(filename.extension(), c8_ext);
-    convert_c32_to_c16 = path_iequal(filename.extension(), c32_ext);
     return file_.open(filename);
 }
 
 // If C8 conversion enabled, half the number of bytes are read from the file & expanded to fill the whole buffer.
-// If C32 conversion enabled, the full byte count is read from the file, and compressed to half the buffer size.
 File::Result<File::Size> FileConvertReader::read(void* const buffer, const File::Size bytes) {
     auto read_result = file_.read(buffer, convert_c8_to_c16 ? bytes / 2 : bytes);
     if (read_result.is_ok()) {
         if (convert_c8_to_c16) {
             file_convert::c8_to_c16(buffer, read_result.value());
             read_result = read_result.value() * 2;
-        } else if (convert_c32_to_c16) {
-            file_convert::c32_to_c16(buffer, read_result.value());
-            read_result = read_result.value() / 2;
         }
         bytes_read_ += read_result.value();
     }

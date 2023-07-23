@@ -41,7 +41,6 @@ static const fs::path txt_ext{u".TXT"};
 static const fs::path ppl_ext{u".PPL"};
 static const fs::path c8_ext{u".C8"};
 static const fs::path c16_ext{u".C16"};
-static const fs::path c32_ext{u".C32"};
 static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
@@ -87,8 +86,6 @@ fs::path get_partner_file(fs::path path) {
         path.replace_extension(c8_ext);
         if (!fs::file_exists(path))
             path.replace_extension(c16_ext);
-        if (!fs::file_exists(path))
-            path.replace_extension(c32_ext);
     } else
         return {};
 
