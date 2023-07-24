@@ -51,6 +51,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     field_frequency_step.set_by_value(receiver_model.frequency_step());
     field_frequency_step.on_change = [this](size_t, OptionsField::value_t v) {
         receiver_model.set_frequency_step(v);
+        this->field_frequency.set_step(v);
     };
 
     option_format.set_selected_index(0);  // Default to C16
