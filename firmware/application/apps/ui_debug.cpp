@@ -251,7 +251,7 @@ void ControlsSwitchesWidget::on_show() {
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
     key_event_mask = 1 << toUType(key);
-    long_press_key_event_mask = switch_long_press_occurred((size_t)key) ? key_event_mask : 0;
+    long_press_key_event_mask = key_is_long_pressed(key) ? key_event_mask : 0;
     return true;
 }
 
@@ -354,13 +354,13 @@ DebugControlsView::DebugControlsView(NavigationView& nav) {
     });
 
     button_done.on_select = [&nav](Button&) {
-        switches_long_press_enable(0);
+        set_switches_long_press_config(0);
         nav.pop();
     };
 
     options_switches_mode.on_change = [this](size_t, OptionsField::value_t v) {
         (void)v;
-        switches_long_press_enable(options_switches_mode.selected_index_value());
+        set_switches_long_press_config(options_switches_mode.selected_index_value());
     };
 }
 

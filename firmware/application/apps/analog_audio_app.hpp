@@ -48,9 +48,9 @@ class AMOptionsView : public View {
 
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        6,  // number of blanking characters
+        6,  // Max option length
         {
-            // using  common messages from freqman.cpp
+            // Using common messages from freqman_ui.cpp
         }};
 };
 
@@ -65,9 +65,9 @@ class NBFMOptionsView : public View {
     };
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        4,
+        3,  // Max option length
         {
-            // using  common messages from freqman.cpp
+            // Using common messages from freqman_ui.cpp
         }};
 
     Text text_squelch{
@@ -93,9 +93,9 @@ class WFMOptionsView : public View {
     };
     OptionsField options_config{
         {3 * 8, 0 * 16},
-        4,
+        4,  // Max option length
         {
-            // using  common messages from freqman.cpp
+            // Using common messages from freqman_ui.cpp
         }};
 };
 

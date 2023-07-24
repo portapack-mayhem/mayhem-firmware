@@ -27,6 +27,7 @@
 #include "ui_painter.hpp"
 #include "ui_widget.hpp"
 
+#include "irq_controls.hpp"
 #include "rf_path.hpp"
 
 #include <cstddef>
@@ -45,6 +46,7 @@ class FrequencyField : public Widget {
     using range_t = rf::FrequencyRange;
 
     FrequencyField(Point parent_pos);
+    ~FrequencyField();
 
     rf::Frequency value() const;
 
@@ -53,18 +55,26 @@ class FrequencyField : public Widget {
 
     void paint(Painter& painter) override;
 
-    bool on_key(ui::KeyEvent event) override;
+    bool on_key(KeyEvent event) override;
     bool on_encoder(EncoderEvent delta) override;
     bool on_touch(TouchEvent event) override;
     void on_focus() override;
+    void on_blur() override;
 
    private:
     const size_t length_;
-    const range_t range;
+    const range_t range_;
+
     rf::Frequency value_{0};
-    rf::Frequency step{25000};
+    rf::Frequency step_{25000};
     uint64_t last_ms_{0};
 
+    uint8_t digit_{3};
+    bool digit_mode_{false};
+    SwitchesState initial_switch_config_{};
+
+    /* Gets the step value for the given digit when in digit_mode. */
+    rf::Frequency digit_step() const;
     rf::Frequency clamp_value(rf::Frequency value);
 };
 

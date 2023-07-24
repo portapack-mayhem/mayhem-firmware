@@ -31,7 +31,7 @@
 // # of timer0 ticks before a held button starts being counted as repeated presses
 #define REPEAT_INITIAL_DELAY 250
 #define REPEAT_SUBSEQUENT_DELAY 92
-#define LONG_PRESS_DELAY 1000
+#define LONG_PRESS_DELAY 800
 
 class Debounce {
    public:
@@ -45,7 +45,11 @@ class Debounce {
         repeat_enabled_ = true;
     }
 
-    void set_long_press_support(bool v) {
+    bool get_long_press_enabled() const {
+        return long_press_enabled_;
+    }
+
+    void set_long_press_enabled(bool v) {
         long_press_enabled_ = v;
     }
 

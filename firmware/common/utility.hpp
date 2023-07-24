@@ -53,6 +53,12 @@ constexpr typename std::underlying_type<E>::type toUType(E enumerator) noexcept 
     return static_cast<typename std::underlying_type<E>::type>(enumerator);
 }
 
+/* Increments an enum value. Enumerator values are assumed to be serial. */
+template <typename E>
+void incr(E& e) {
+    e = static_cast<E>(toUType(e) + 1);
+}
+
 inline uint32_t flp2(uint32_t v) {
     v |= v >> 1;
     v |= v >> 2;

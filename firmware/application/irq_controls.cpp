@@ -22,32 +22,32 @@
 #include "irq_controls.hpp"
 
 #include "ch.h"
-#include "hal.h"
-
+#include "debounce.hpp"
+#include "encoder.hpp"
 #include "event_m0.hpp"
-
+#include "hal.h"
 #include "touch.hpp"
 #include "touch_adc.hpp"
-#include "encoder.hpp"
-#include "debounce.hpp"
 #include "utility.hpp"
 
 #include <cstdint>
 #include <array>
 
 #include "portapack_io.hpp"
-
 #include "hackrf_hal.hpp"
+
 using namespace hackrf::one;
 
 static Thread* thread_controls_event = NULL;
 
-static std::array<Debounce, 8> switch_debounce;
+// Index with the Switch enum.
+static std::array<Debounce, 6> switch_debounce;
+static std::array<Debounce, 2> encoder_debounce;
+
+static_assert(std::size(switch_debounce) == toUType(Switch::Dfu) + 1);
 
 static Encoder encoder;
-
 static volatile uint32_t encoder_position{0};
-
 static volatile uint32_t touch_phase{0};
 
 /* TODO: Change how touch scanning works. It produces a decent amount of noise
@@ -122,25 +122,56 @@ static bool touch_update() {
 
 static uint8_t switches_raw = 0;
 
+/* Type to access the bits in the raw switch data.
+ * The raw data is not packed in a way that makes looping over the
+ * data easy. One option is this reader, the other would be to swizzle
+ * the bits to make the order work. */
+struct RawSwitch {
+    const uint8_t raw_{0};
+
+    uint8_t right() const { return (raw_ >> 0) & 1; }
+    uint8_t left() const { return (raw_ >> 1) & 1; }
+    uint8_t down() const { return (raw_ >> 2) & 1; }
+    uint8_t up() const { return (raw_ >> 3) & 1; }
+    uint8_t select() const { return (raw_ >> 4) & 1; }
+    uint8_t rot_a() const { return (raw_ >> 5) & 1; }
+    uint8_t rot_b() const { return (raw_ >> 6) & 1; }
+    uint8_t dfu() const { return (raw_ >> 7) & 1; }
+};
+
 static bool switches_update(const uint8_t raw) {
     // TODO: Only fire event on press, not release?
     bool switch_changed = false;
-    for (size_t i = 0; i < switch_debounce.size(); i++) {
-        switch_changed |= switch_debounce[i].feed((raw >> i) & 1);
-    }
+    auto r = RawSwitch{raw};
+
+    switch_changed |= switch_debounce[toUType(Switch::Right)].feed(r.right());
+    switch_changed |= switch_debounce[toUType(Switch::Left)].feed(r.left());
+    switch_changed |= switch_debounce[toUType(Switch::Down)].feed(r.down());
+    switch_changed |= switch_debounce[toUType(Switch::Up)].feed(r.up());
+    switch_changed |= switch_debounce[toUType(Switch::Sel)].feed(r.select());
+    switch_changed |= switch_debounce[toUType(Switch::Dfu)].feed(r.dfu());
 
     return switch_changed;
 }
 
+static bool encoder_update(const uint8_t raw) {
+    bool encoder_changed = false;
+    auto r = RawSwitch{raw};
+
+    encoder_changed |= encoder_debounce[0].feed(r.rot_a());
+    encoder_changed |= encoder_debounce[1].feed(r.rot_b());
+
+    return encoder_changed;
+}
+
 static bool encoder_read() {
     const auto delta = encoder.update(
-        switch_debounce[5].state(),
-        switch_debounce[6].state());
+        encoder_debounce[0].state(),
+        encoder_debounce[1].state());
 
     if (delta != 0) {
         encoder_position += delta;
         return true;
-        ;
     } else {
         return false;
     }
@@ -149,11 +180,13 @@ static bool encoder_read() {
 void timer0_callback(GPTDriver* const) {
     eventmask_t event_mask = 0;
     if (touch_update()) event_mask |= EVT_MASK_TOUCH;
+
     switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
-    if (switches_update(switches_raw)) {
+    if (switches_update(switches_raw))
         event_mask |= EVT_MASK_SWITCHES;
-        if (encoder_read()) event_mask |= EVT_MASK_ENCODER;
-    }
+
+    if (encoder_update(switches_raw) && encoder_read())
+        event_mask |= EVT_MASK_ENCODER;
 
     /* Signal event loop */
     if (event_mask) {
@@ -189,37 +222,39 @@ void controls_init() {
     gptStartContinuous(&GPTD1, timer0_match_count);
 
     // Enable repeat for directional switches only
-    for (size_t i = 0; i < 4; i++)
-        switch_debounce[i].enable_repeat();
+    for (auto i = Switch::Right; i <= Switch::Up; incr(i))
+        switch_debounce[toUType(i)].enable_repeat();
 }
 
 SwitchesState get_switches_state() {
     SwitchesState result;
 
-    // Right, Left, Down, Up, & Select switches
-    for (size_t i = 0; i < result.size() - 1; i++) {
-        // TODO: Ignore multiple keys at the same time?
+    // TODO: Ignore multiple keys at the same time?
+    for (size_t i = 0; i < result.size(); i++)
         result[i] = switch_debounce[i].state();
-    }
 
-    // Grab Dfu switch from bit 7 and return in bit 5 so that all switches are grouped together in this 6-bit result
-    result[(size_t)Switch::Dfu] = switch_debounce[7].state();
     return result;
 }
 
-// Configure which switches support long press (note those switches will not support Repeat function)
-void switches_long_press_enable(SwitchesState switches_long_press_enabled) {
-    // Right, Left, Down, Up, & Select switches
-    for (size_t i = 0; i < switches_long_press_enabled.size() - 1; i++) {
-        switch_debounce[i].set_long_press_support(switches_long_press_enabled[i]);
-    }
+/* Gets the long press enabled state for all the switches. */
+SwitchesState get_switches_long_press_config() {
+    SwitchesState result;
 
-    // Dfu switch
-    switch_debounce[7].set_long_press_support(switches_long_press_enabled[(size_t)Switch::Dfu]);
+    for (size_t i = 0; i < result.size(); i++)
+        result[i] = switch_debounce[i].get_long_press_enabled();
+
+    return result;
 }
 
-bool switch_long_press_occurred(size_t v) {
-    return (v == (size_t)Switch::Dfu) ? switch_debounce[7].long_press_occurred() : switch_debounce[v].long_press_occurred();
+/* Configures which switches support long press.
+ * NB: those switches will not support Repeat function. */
+void set_switches_long_press_config(SwitchesState switch_config) {
+    for (size_t i = 0; i < switch_config.size(); i++)
+        switch_debounce[i].set_long_press_enabled(switch_config[i]);
+}
+
+bool switch_is_long_pressed(Switch s) {
+    return switch_debounce[toUType(s)].long_press_occurred();
 }
 
 EncoderPosition get_encoder_position() {
