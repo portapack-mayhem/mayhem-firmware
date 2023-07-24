@@ -20,8 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "debug.hpp"
-
 #include "irq_controls.hpp"
 #include "max283x.hpp"
 #include "portapack.hpp"

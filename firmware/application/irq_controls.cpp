@@ -37,6 +37,7 @@
 #include "hackrf_hal.hpp"
 
 using namespace hackrf::one;
+using namespace portapack;
 
 static Thread* thread_controls_event = NULL;
 
@@ -60,11 +61,11 @@ static volatile uint32_t touch_phase{0};
  * Noise will only occur when the panel is being touched. Not ideal, but
  * an acceptable improvement.
  */
-static std::array<portapack::IO::TouchPinsConfig, 3> touch_pins_configs{
+static std::array<IO::TouchPinsConfig, 3> touch_pins_configs{
     /* State machine will pause here until touch is detected. */
-    portapack::IO::TouchPinsConfig::SensePressure,
-    portapack::IO::TouchPinsConfig::SenseX,
-    portapack::IO::TouchPinsConfig::SenseY,
+    IO::TouchPinsConfig::SensePressure,
+    IO::TouchPinsConfig::SenseX,
+    IO::TouchPinsConfig::SenseY,
 };
 
 static touch::Frame temp_frame;
@@ -80,7 +81,7 @@ static bool touch_update() {
     const auto current_phase = touch_pins_configs[touch_phase];
 
     switch (current_phase) {
-        case portapack::IO::TouchPinsConfig::SensePressure: {
+        case IO::TouchPinsConfig::SensePressure: {
             const auto z1 = samples.xp - samples.xn;
             const auto z2 = samples.yp - samples.yn;
             const auto touch_raw = (z1 > touch::touch_threshold) || (z2 > touch::touch_threshold);
@@ -94,11 +95,11 @@ static bool touch_update() {
             }
         } break;
 
-        case portapack::IO::TouchPinsConfig::SenseX:
+        case IO::TouchPinsConfig::SenseX:
             temp_frame.x += samples;
             break;
 
-        case portapack::IO::TouchPinsConfig::SenseY:
+        case IO::TouchPinsConfig::SenseY:
             temp_frame.y += samples;
             break;
 
@@ -122,44 +123,45 @@ static bool touch_update() {
 
 static uint8_t switches_raw = 0;
 
-/* Type to access the bits in the raw switch data.
- * The raw data is not packed in a way that makes looping over the
- * data easy. One option is this reader, the other would be to swizzle
- * the bits to make the order work. */
-struct RawSwitch {
-    const uint8_t raw_{0};
+/* The raw data is not packed in a way that makes looping over it easy.
+ * One option would be an accessor helper (RawSwitch). Another option
+ * is to swizzle the bits into a friendlier order. */
+// /* Type to access the bits in the raw switch data. */
+// struct RawSwitch {
+//     const uint8_t raw_{0};
 
-    uint8_t right() const { return (raw_ >> 0) & 1; }
-    uint8_t left() const { return (raw_ >> 1) & 1; }
-    uint8_t down() const { return (raw_ >> 2) & 1; }
-    uint8_t up() const { return (raw_ >> 3) & 1; }
-    uint8_t select() const { return (raw_ >> 4) & 1; }
-    uint8_t rot_a() const { return (raw_ >> 5) & 1; }
-    uint8_t rot_b() const { return (raw_ >> 6) & 1; }
-    uint8_t dfu() const { return (raw_ >> 7) & 1; }
-};
+// uint8_t right() const { return (raw_ >> 0) & 1; }
+// uint8_t left() const { return (raw_ >> 1) & 1; }
+// uint8_t down() const { return (raw_ >> 2) & 1; }
+// uint8_t up() const { return (raw_ >> 3) & 1; }
+// uint8_t select() const { return (raw_ >> 4) & 1; }
+// uint8_t rot_a() const { return (raw_ >> 5) & 1; }
+// uint8_t rot_b() const { return (raw_ >> 6) & 1; }
+// uint8_t dfu() const { return (raw_ >> 7) & 1; }};
+
+static uint8_t swizzle_raw(uint8_t raw) {
+    return (raw & 0x1F) |         // Keep the bottom 5 bits the same.
+           ((raw >> 2) & 0x20) |  // Shift the DFU bit down to bit 6.
+           ((raw << 1) & 0xC0);   // Shift the encoder bits up to be 7 & 8.
+}
 
 static bool switches_update(const uint8_t raw) {
     // TODO: Only fire event on press, not release?
     bool switch_changed = false;
-    auto r = RawSwitch{raw};
 
-    switch_changed |= switch_debounce[toUType(Switch::Right)].feed(r.right());
-    switch_changed |= switch_debounce[toUType(Switch::Left)].feed(r.left());
-    switch_changed |= switch_debounce[toUType(Switch::Down)].feed(r.down());
-    switch_changed |= switch_debounce[toUType(Switch::Up)].feed(r.up());
-    switch_changed |= switch_debounce[toUType(Switch::Sel)].feed(r.select());
-    switch_changed |= switch_debounce[toUType(Switch::Dfu)].feed(r.dfu());
+    for (size_t i = 0; i < switch_debounce.size(); ++i) {
+        uint8_t bit = (raw >> i) & 0x01;
+        switch_changed |= switch_debounce[i].feed(bit);
+    }
 
     return switch_changed;
 }
 
 static bool encoder_update(const uint8_t raw) {
     bool encoder_changed = false;
-    auto r = RawSwitch{raw};
 
-    encoder_changed |= encoder_debounce[0].feed(r.rot_a());
-    encoder_changed |= encoder_debounce[1].feed(r.rot_b());
+    encoder_changed |= encoder_debounce[0].feed((raw >> 6) & 0x01);
+    encoder_changed |= encoder_debounce[1].feed((raw >> 7) & 0x01);
 
     return encoder_changed;
 }
@@ -181,7 +183,7 @@ void timer0_callback(GPTDriver* const) {
     eventmask_t event_mask = 0;
     if (touch_update()) event_mask |= EVT_MASK_TOUCH;
 
-    switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
+    switches_raw = swizzle_raw(io.io_update(touch_pins_configs[touch_phase]));
     if (switches_update(switches_raw))
         event_mask |= EVT_MASK_SWITCHES;
 
