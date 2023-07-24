@@ -251,7 +251,7 @@ void ControlsSwitchesWidget::on_show() {
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
     key_event_mask = 1 << toUType(key);
-    long_press_key_event_mask = switch_long_press_occurred((size_t)key) ? key_event_mask : 0;
+    long_press_key_event_mask = key_is_long_pressed(key) ? key_event_mask : 0;
     return true;
 }
 
@@ -264,9 +264,9 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {32, 64, 16, 16},  // Down
         {32, 0, 16, 16},   // Up
         {32, 32, 16, 16},  // Select
+        {96, 0, 16, 16},   // Dfu
         {16, 96, 16, 16},  // Encoder phase 0
         {48, 96, 16, 16},  // Encoder phase 1
-        {96, 0, 16, 16},   // Dfu
         {96, 64, 16, 16},  // Touch
     }};
 
@@ -283,9 +283,9 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {32 + 1, 64 + 1, 16 - 2, 16 - 2},  // Down
         {32 + 1, 0 + 1, 16 - 2, 16 - 2},   // Up
         {32 + 1, 32 + 1, 16 - 2, 16 - 2},  // Select
+        {96 + 1, 0 + 1, 16 - 2, 16 - 2},   // Dfu
         {16 + 1, 96 + 1, 16 - 2, 16 - 2},  // Encoder phase 0
         {48 + 1, 96 + 1, 16 - 2, 16 - 2},  // Encoder phase 1
-        {96 + 1, 0 + 1, 16 - 2, 16 - 2},   // Dfu
     }};
 
     auto switches_raw = control::debug::switches();
@@ -354,13 +354,13 @@ DebugControlsView::DebugControlsView(NavigationView& nav) {
     });
 
     button_done.on_select = [&nav](Button&) {
-        switches_long_press_enable(0);
+        set_switches_long_press_config(0);
         nav.pop();
     };
 
     options_switches_mode.on_change = [this](size_t, OptionsField::value_t v) {
         (void)v;
-        switches_long_press_enable(options_switches_mode.selected_index_value());
+        set_switches_long_press_config(options_switches_mode.selected_index_value());
     };
 }
 

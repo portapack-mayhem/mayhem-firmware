@@ -20,15 +20,14 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "irq_controls.hpp"
+#include "max283x.hpp"
+#include "portapack.hpp"
+#include "string_format.hpp"
 #include "ui_receiver.hpp"
 #include "ui_freqman.hpp"
 
-#include "portapack.hpp"
 using namespace portapack;
-
-#include "string_format.hpp"
-
-#include "max283x.hpp"
 
 namespace ui {
 
@@ -38,8 +37,13 @@ FrequencyField::FrequencyField(
     const Point parent_pos)
     : Widget{{parent_pos, {8 * 10, 16}}},
       length_{11},
-      range(rf::tuning_range) {
+      range_{rf::tuning_range} {
+    initial_switch_config_ = get_switches_long_press_config();
     set_focusable(true);
+}
+
+FrequencyField::~FrequencyField() {
+    set_switches_long_press_config(initial_switch_config_);
 }
 
 rf::Frequency FrequencyField::value() const {
@@ -59,48 +63,75 @@ void FrequencyField::set_value(rf::Frequency new_value) {
 }
 
 void FrequencyField::set_step(rf::Frequency new_value) {
-    step = new_value;
     // TODO: Quantize current frequency to a step of the new size?
+    step_ = new_value;
 }
 
 void FrequencyField::paint(Painter& painter) {
-    const std::string str_value = to_string_short_freq(value_);
-
+    const auto str_value = to_string_short_freq(value_);
     const auto paint_style = has_focus() ? style().invert() : style();
 
     painter.draw_string(
         screen_pos(),
         paint_style,
         str_value);
+
+    // Highlight current digit in digit_mode.
+    if (digit_mode_) {
+        auto p = screen_pos();
+        p += {digit_ * char_width, 0};
+        painter.draw_char(p, Styles::bg_blue, str_value[digit_]);
+    }
 }
 
-bool FrequencyField::on_key(const ui::KeyEvent event) {
-    if (event == ui::KeyEvent::Select) {
+bool FrequencyField::on_key(KeyEvent event) {
+    if (event == KeyEvent::Select) {
+        // Toggle 'digit' mode with long-press.
+        if (digit_mode_ || key_is_long_pressed(event)) {
+            digit_mode_ = !digit_mode_;
+            set_dirty();
+            return true;
+        }
+
         if (on_edit) {
             on_edit();
             return true;
         }
     }
+
+    if (digit_mode_) {
+        switch (event) {
+            case KeyEvent::Up:
+                set_value(value_ + digit_step());
+                break;
+            case KeyEvent::Down:
+                set_value(value_ - digit_step());
+                break;
+            case KeyEvent::Left:
+                digit_--;
+                break;
+            case KeyEvent::Right:
+                digit_++;
+                break;
+            default:
+                return false;
+        }
+
+        // Clip value to the bounds of 'to_string_short_freq' result.
+        digit_ = clip<uint8_t>(digit_, 0, 8);
+        set_dirty();
+        return true;
+    }
+
     return false;
 }
 
 bool FrequencyField::on_encoder(const EncoderEvent delta) {
-    if (step == 0) {  // 'Auto' mode.'
-        auto ms = RTT2MS(halGetCounterValue());
-        auto delta_ms = last_ms_ <= ms ? ms - last_ms_ : ms;
-        last_ms_ = ms;
+    if (digit_mode_)
+        set_value(value_ + (delta * digit_step()));
+    else
+        set_value(value_ + (delta * step_));
 
-        // The goal is to map 'scale' to a range of about 10 to 10M.
-        // The faster the encoder is rotated, the larger the step.
-        // Linear doesn't feel right. Hyperbolic felt better.
-        // To get these magic numbers, I graphed the function until the
-        // curve shape seemed about right then tested on device.
-        delta_ms = std::min(145ull, delta_ms) + 5;  // Prevent DIV/0
-        int64_t scale = 200'000'000 / (0.001'55 * std::pow(delta_ms, 5.45)) + 8;
-        set_value(value() + (delta * scale));
-    } else {
-        set_value(value() + (delta * step));
-    }
     return true;
 }
 
@@ -115,10 +146,35 @@ void FrequencyField::on_focus() {
     if (on_show_options) {
         on_show_options();
     }
+
+    // Enable long press on "Select".
+    SwitchesState config;
+    config[toUType(Switch::Sel)] = true;
+    set_switches_long_press_config(config);
+}
+
+void FrequencyField::on_blur() {
+    set_switches_long_press_config(initial_switch_config_);
+}
+
+rf::Frequency FrequencyField::digit_step() const {
+    constexpr rf::Frequency steps[] = {
+        1'000'000'000,
+        100'000'000,
+        10'000'000,
+        1'000'000,
+        0,  // Decimal point position.
+        100'000,
+        10'000,
+        1'000,
+        100,
+    };
+
+    return digit_ < std::size(steps) ? steps[digit_] : 0;
 }
 
 rf::Frequency FrequencyField::clamp_value(rf::Frequency value) {
-    return range.clip(value);
+    return range_.clip(value);
 }
 
 /* FrequencyKeypadView ***************************************************/

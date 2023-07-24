@@ -84,8 +84,8 @@ bool Debounce::feed(const uint8_t bit) {
                 // Button is being held down and long_press support is enabled for this key:
                 // if LONG_PRESS_DELAY is reached then finally report that switch is pressed and set flag
                 // indicating it was a LONG press
-                // (note that repease_support and long_press support are mutually exclusive)
-                if (held_time_ == LONG_PRESS_DELAY) {
+                // (note that repeat_support and long_press support are mutually exclusive)
+                if (held_time_ >= LONG_PRESS_DELAY) {
                     long_press_occurred_ = true;
                     pulse_upon_release_ = 0;
                     held_time_ = 0;
