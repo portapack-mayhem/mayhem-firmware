@@ -264,9 +264,9 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {32, 64, 16, 16},  // Down
         {32, 0, 16, 16},   // Up
         {32, 32, 16, 16},  // Select
+        {96, 0, 16, 16},   // Dfu
         {16, 96, 16, 16},  // Encoder phase 0
         {48, 96, 16, 16},  // Encoder phase 1
-        {96, 0, 16, 16},   // Dfu
         {96, 64, 16, 16},  // Touch
     }};
 
@@ -283,9 +283,9 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {32 + 1, 64 + 1, 16 - 2, 16 - 2},  // Down
         {32 + 1, 0 + 1, 16 - 2, 16 - 2},   // Up
         {32 + 1, 32 + 1, 16 - 2, 16 - 2},  // Select
+        {96 + 1, 0 + 1, 16 - 2, 16 - 2},   // Dfu
         {16 + 1, 96 + 1, 16 - 2, 16 - 2},  // Encoder phase 0
         {48 + 1, 96 + 1, 16 - 2, 16 - 2},  // Encoder phase 1
-        {96 + 1, 0 + 1, 16 - 2, 16 - 2},   // Dfu
     }};
 
     auto switches_raw = control::debug::switches();
