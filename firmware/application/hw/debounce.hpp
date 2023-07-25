@@ -36,38 +36,22 @@
 class Debounce {
    public:
     bool feed(const uint8_t bit);
-
-    uint8_t state() const {
-        return (pulse_upon_release_) ? 0 : state_;
-    }
-
-    void enable_repeat() {
-        repeat_enabled_ = true;
-    }
-
-    bool get_long_press_enabled() const {
-        return long_press_enabled_;
-    }
-
-    void set_long_press_enabled(bool v) {
-        long_press_enabled_ = v;
-    }
-
-    bool long_press_occurred() {
-        bool v = long_press_occurred_;
-        long_press_occurred_ = false;
-        return v;
-    }
+    uint8_t state();
+    void enable_repeat();
+    bool get_long_press_enabled() const;
+    void set_long_press_enabled(bool v);
+    bool long_press_occurred();
 
    private:
     uint8_t history_{0};
     uint8_t state_{0};
-    bool repeat_enabled_{0};
+    bool repeat_enabled_{false};
     uint16_t repeat_ctr_{0};
     uint16_t held_time_{0};
-    bool pulse_upon_release_{0};
-    bool long_press_enabled_{0};
-    bool long_press_occurred_{0};
+    bool pulse_upon_release_{false};
+    bool simulated_pulse_{false};
+    bool long_press_enabled_{false};
+    bool long_press_occurred_{false};
 };
 
 #endif /*__DEBOUNCE_H__*/
