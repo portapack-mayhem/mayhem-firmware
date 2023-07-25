@@ -476,3 +476,5 @@ add_custom_target(
 	${PROJECT_NAME}
 	DEPENDS ${PROJECT_NAME}.bin
 )
+
+add_subdirectory(external_apps)
