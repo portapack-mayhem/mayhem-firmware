@@ -43,7 +43,7 @@ FrequencyField::FrequencyField(
 }
 
 FrequencyField::~FrequencyField() {
-    set_switches_long_press_config(initial_switch_config_);
+    reset_switch_config();
 }
 
 rf::Frequency FrequencyField::value() const {
@@ -51,6 +51,12 @@ rf::Frequency FrequencyField::value() const {
 }
 
 void FrequencyField::set_value(rf::Frequency new_value) {
+    // While in digit mode, don't update if the value is
+    // out of range. That way going out of range doesn't
+    // cause all the other digits to reset.
+    if (digit_mode_ && !range_.contains_inc(new_value))
+        return;
+
     new_value = clamp_value(new_value);
 
     if (new_value != value_) {
@@ -65,6 +71,16 @@ void FrequencyField::set_value(rf::Frequency new_value) {
 void FrequencyField::set_step(rf::Frequency new_value) {
     // TODO: Quantize current frequency to a step of the new size?
     step_ = new_value;
+}
+
+void FrequencyField::set_allow_digit_mode(bool allowed) {
+    allow_digit_mode_ = allowed;
+
+    if (!allowed && digit_mode_) {
+        digit_mode_ = false;
+        reset_switch_config();
+        set_dirty();
+    }
 }
 
 void FrequencyField::paint(Painter& painter) {
@@ -100,6 +116,9 @@ bool FrequencyField::on_key(KeyEvent event) {
     }
 
     if (digit_mode_) {
+        constexpr uint8_t decimal_pos = 4;
+        int8_t delta = 0;
+
         switch (event) {
             case KeyEvent::Up:
                 set_value(value_ + digit_step());
@@ -108,18 +127,28 @@ bool FrequencyField::on_key(KeyEvent event) {
                 set_value(value_ - digit_step());
                 break;
             case KeyEvent::Left:
-                digit_--;
+                delta = -1;
                 break;
             case KeyEvent::Right:
-                digit_++;
+                delta = 1;
                 break;
             default:
                 return false;
         }
 
-        // Clip value to the bounds of 'to_string_short_freq' result.
-        digit_ = clip<uint8_t>(digit_, 0, 8);
-        set_dirty();
+        if (delta != 0) {
+            digit_ += delta;
+
+            // If on decimal, skip it.
+            if (digit_ == decimal_pos)
+                digit_ += delta;
+            // Otherwise ensure in bounds.
+            else
+                digit_ = clip<int8_t>(digit_, 0, 8);
+
+            set_dirty();
+        }
+
         return true;
     }
 
@@ -143,18 +172,14 @@ bool FrequencyField::on_touch(const TouchEvent event) {
 }
 
 void FrequencyField::on_focus() {
-    if (on_show_options) {
+    if (on_show_options)
         on_show_options();
-    }
 
-    // Enable long press on "Select".
-    SwitchesState config;
-    config[toUType(Switch::Sel)] = true;
-    set_switches_long_press_config(config);
+    enable_switch_config();
 }
 
 void FrequencyField::on_blur() {
-    set_switches_long_press_config(initial_switch_config_);
+    reset_switch_config();
 }
 
 rf::Frequency FrequencyField::digit_step() const {
@@ -175,6 +200,21 @@ rf::Frequency FrequencyField::digit_step() const {
 
 rf::Frequency FrequencyField::clamp_value(rf::Frequency value) {
     return range_.clip(value);
+}
+
+void FrequencyField::enable_switch_config() {
+    // Don't enable long press testing when not allowed.
+    if (!allow_digit_mode_)
+        return;
+
+    // Enable long press on "Select".
+    SwitchesState config;
+    config[toUType(Switch::Sel)] = true;
+    set_switches_long_press_config(config);
+}
+
+void FrequencyField::reset_switch_config() {
+    set_switches_long_press_config(initial_switch_config_);
 }
 
 /* FrequencyKeypadView ***************************************************/
