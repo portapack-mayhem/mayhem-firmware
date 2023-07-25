@@ -144,7 +144,7 @@ bool FrequencyField::on_key(KeyEvent event) {
                 digit_ += delta;
             // Otherwise ensure in bounds.
             else
-                digit_ = clip<uint8_t>(digit_, 0, 8);
+                digit_ = clip<int8_t>(digit_, 0, 8);
 
             set_dirty();
         }
