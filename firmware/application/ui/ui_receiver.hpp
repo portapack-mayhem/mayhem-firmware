@@ -52,6 +52,7 @@ class FrequencyField : public Widget {
 
     void set_value(rf::Frequency new_value);
     void set_step(rf::Frequency new_value);
+    void set_allow_digit_mode(bool allowed);
 
     void paint(Painter& painter) override;
 
@@ -71,11 +72,15 @@ class FrequencyField : public Widget {
 
     uint8_t digit_{3};
     bool digit_mode_{false};
+    bool allow_digit_mode_{true};
     SwitchesState initial_switch_config_{};
 
     /* Gets the step value for the given digit when in digit_mode. */
     rf::Frequency digit_step() const;
     rf::Frequency clamp_value(rf::Frequency value);
+
+    void enable_switch_config();
+    void reset_switch_config();
 };
 
 template <size_t N>
