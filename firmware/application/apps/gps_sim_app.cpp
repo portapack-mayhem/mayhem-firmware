@@ -64,8 +64,6 @@ void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
     if (metadata) {
         field_frequency.set_value(metadata->center_frequency);
         sample_rate = metadata->sample_rate;
-    } else {
-        sample_rate = 2600000;
     }
 
     // UI Fixup.
@@ -175,6 +173,11 @@ GpsSimAppView::GpsSimAppView(
         &button_play,
         &waterfall,
     });
+
+    if (!settings_.loaded()) {
+        field_frequency.set_value(initial_target_frequency);
+        sample_rate = 2600000;
+    }
 
     field_frequency.set_step(5000);
 
