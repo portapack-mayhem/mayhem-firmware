@@ -177,6 +177,8 @@ GpsSimAppView::GpsSimAppView(
     if (!settings_.loaded()) {
         field_frequency.set_value(initial_target_frequency);
         sample_rate = 2600000;
+    } else {
+        sample_rate = transmitter_model.sampling_rate();
     }
 
     field_frequency.set_step(5000);
