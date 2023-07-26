@@ -63,17 +63,15 @@ void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
 
     if (metadata) {
         field_frequency.set_value(metadata->center_frequency);
-        sample_rate = metadata->sample_rate;
-    } else {
-        sample_rate = 2600000;
+        transmitter_model.set_sampling_rate(metadata->sample_rate);
     }
 
     // UI Fixup.
-    text_sample_rate.set(unit_auto_scale(sample_rate, 3, 1) + "Hz");
+    text_sample_rate.set(unit_auto_scale(transmitter_model.sampling_rate(), 3, 1) + "Hz");
     progressbar.set_max(file_size);
     text_filename.set(truncate(file_path.filename().string(), 12));
 
-    auto duration = ms_duration(file_size, sample_rate, 2);
+    auto duration = ms_duration(file_size, transmitter_model.sampling_rate(), 2);
     text_duration.set(to_string_time_ms(duration));
 
     button_play.focus();
@@ -129,7 +127,6 @@ void GpsSimAppView::start() {
             });
     }
 
-    transmitter_model.set_sampling_rate(sample_rate);
     transmitter_model.enable();
 }
 
@@ -175,6 +172,11 @@ GpsSimAppView::GpsSimAppView(
         &button_play,
         &waterfall,
     });
+
+    if (!settings_.loaded()) {
+        field_frequency.set_value(initial_target_frequency);
+        transmitter_model.set_sampling_rate(2600000);
+    }
 
     field_frequency.set_step(5000);
 
