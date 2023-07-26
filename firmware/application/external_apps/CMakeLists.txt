@@ -39,6 +39,7 @@ project(ppa_framework)
 
 macro(DeclarePPA name)
     project(ppa_${name})
+
     add_library(${PROJECT_NAME} STATIC ${PPA_CPPSRC})
 
     # Give the output a nice name like "name.ppa"

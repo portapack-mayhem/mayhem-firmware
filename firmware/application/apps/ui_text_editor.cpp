@@ -29,14 +29,6 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
-namespace {
-/*void log(const std::string& msg) {
-    LogFile log{};
-    log.append("LOGS/Notepad.txt");
-    log.write_entry(msg);
-}*/
-}  // namespace
-
 namespace ui {
 
 /* TextViewer *******************************************************/

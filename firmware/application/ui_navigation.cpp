@@ -48,6 +48,7 @@
 #include "ui_freqman.hpp"
 #include "ui_jammer.hpp"
 // #include "ui_keyfob.hpp"
+#include "ui_launcher.hpp"
 #include "ui_lcr.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
@@ -511,7 +512,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
         {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},
         {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }}
+        {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
+        {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
         /*
                 { "DMR", 		Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
                 { "SIGFOX", 	Color::dark_grey(),	&bitmap_icon_fox,		[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
@@ -579,22 +581,26 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
-    nav.push<ModalMessageView>("HackRF mode", " This mode enables HackRF\n functionality. To return,\n  press the reset button.\n\n  Switch to HackRF mode?", YESNO,
-                               [this](bool choice) {
-                                   if (choice) {
-                                       EventDispatcher::request_stop();
-                                   }
-                               });
+    nav.push<ModalMessageView>(
+        "HackRF mode",
+        " This mode enables HackRF\n functionality. To return,\n  press the reset button.\n\n  Switch to HackRF mode?",
+        YESNO,
+        [this](bool choice) {
+            if (choice) {
+                EventDispatcher::request_stop();
+            }
+        });
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
     add_items({
-        //{ "Play dead",				Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
+        //{"Play dead", Color::red(), &bitmap_icon_playdead, [&nav](){ nav.push<PlayDeadView>(); }},
         {"Receive", Color::cyan(), &bitmap_icon_receivers, [&nav]() { nav.push<ReceiversMenuView>(); }},
         {"Transmit", Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); }},
         {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
         {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<PlaylistView>(); }},
-        {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
+        //{"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
+        {"Apps", Color::orange(), &bitmap_icon_fox, [&nav]() { nav.push<AppLauncherView>(); }},
         {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
         {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
         {"Looking Glass", Color::green(), &bitmap_icon_looking, [&nav]() { nav.push<GlassView>(); }},
@@ -602,7 +608,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
         {"Settings", Color::cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SettingsMenuView>(); }},
         {"Debug", Color::light_grey(), &bitmap_icon_debug, [&nav]() { nav.push<DebugMenuView>(); }},
         {"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }},
-        //{ "About", 		Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
+        //{ "About", Color::cyan(), nullptr, [&nav](){ nav.push<AboutView>(); } }
     });
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);
