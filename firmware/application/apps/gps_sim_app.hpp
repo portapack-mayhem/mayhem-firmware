@@ -54,6 +54,8 @@ class GpsSimAppView : public View {
     std::string title() const override { return "GPS Sim TX"; };
 
    private:
+    static constexpr uint32_t initial_target_frequency = 1575420000;
+
     NavigationView& nav_;
     RxRadioState radio_state_{
         3000000 /* bandwidth */,
