@@ -166,6 +166,7 @@ SetRadioView::SetRadioView(
                   &value_freq_step,
                   &labels_bias,
                   &check_bias,
+                  &force_tcxo,
                   &button_save,
                   &button_cancel});
 
@@ -221,10 +222,19 @@ SetRadioView::SetRadioView(
         send_system_refresh();
     };
 
+    force_tcxo.set_value(pmem::config_force_tcxo());
+    force_tcxo.on_select = [this](Checkbox&, bool v) {
+        // Check if R9
+        // If checked, set it to use External now
+
+        send_system_refresh();
+    };
+
     button_save.on_select = [this, &nav](Button&) {
         const auto model = this->form_collect();
         pmem::set_correction_ppb(model.ppm * 1000);
         pmem::set_clkout_freq(model.freq);
+        pmem::set_config_force_tcxo(force_tcxo.value());
         clock_manager.enable_clock_output(pmem::clkout_enabled());
         nav.pop();
     };
