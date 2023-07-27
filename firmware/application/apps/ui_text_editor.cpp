@@ -243,8 +243,8 @@ void TextViewer::paint_cursor(Painter& painter) {
         int y = screen_rect().top() + (line - paint_state_.first_line) * char_height;
 
         // Converting one row at a time to reduce buffer size
-        ColorRGB888* pbuf8 = cursor_.pixel_buffer8;
-        Color *pbuf = cursor_.pixel_buffer;
+        auto pbuf8 = cursor_.pixel_buffer8;
+        auto pbuf = cursor_.pixel_buffer;
         for (auto col = 0; col < char_height; col++) {
             // Annoyingly, read_pixels uses a 24-bit pixel format vs draw_pixels which uses 16-bit
             portapack::display.read_pixels({x, y + col, cursor_width, 1}, pbuf8, cursor_width);
