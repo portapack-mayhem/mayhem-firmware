@@ -228,6 +228,7 @@ void controls_init() {
         switch_debounce[toUType(i)].enable_repeat();
 }
 
+// Note: Called by event handler or apps, not in ISR, so some presses might be missed during high CPU utilization
 SwitchesState get_switches_state() {
     SwitchesState result;
 

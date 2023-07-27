@@ -23,6 +23,31 @@
 
 #include "utility.hpp"
 
+uint8_t Debounce::state() {
+    bool v = !pulse_upon_release_ && (state_ || simulated_pulse_);
+    if (simulated_pulse_)
+        simulated_pulse_ = false;
+    return v;
+}
+
+void Debounce::enable_repeat() {
+    repeat_enabled_ = true;
+}
+
+bool Debounce::get_long_press_enabled() const {
+    return long_press_enabled_;
+}
+
+void Debounce::set_long_press_enabled(bool v) {
+    long_press_enabled_ = v;
+}
+
+bool Debounce::long_press_occurred() {
+    bool v = long_press_occurred_;
+    long_press_occurred_ = false;
+    return v;
+}
+
 // Returns TRUE if button state changed (after debouncing)
 bool Debounce::feed(const uint8_t bit) {
     history_ = (history_ << 1) | (bit & 1);
@@ -63,11 +88,12 @@ bool Debounce::feed(const uint8_t bit) {
         // Has button been released for DEBOUNCE_COUNT ticks?
         if ((history_ & DEBOUNCE_MASK) == 0) {
             // Button has been released when long_press_enabled_ and before LONG_PRESS_DELAY was reached;
-            // allow state() function to finally return a single press indication
-            // (in long press mode, apps won't see button press until the button is released)
+            // allow state() function to finally return a single press indication (simulated pulse).
+            // Note: In long press mode, apps won't see button press until the button is released.
             if (pulse_upon_release_) {
-                // leaving state_==1 for one cycle
-                pulse_upon_release_ = 0;
+                // force state() function (called by EventDispatcher) to return simulated press for one cycle
+                simulated_pulse_ = true;
+                pulse_upon_release_ = false;
             } else {
                 state_ = 0;
             }
@@ -87,7 +113,8 @@ bool Debounce::feed(const uint8_t bit) {
                 // (note that repeat_support and long_press support are mutually exclusive)
                 if (held_time_ >= LONG_PRESS_DELAY) {
                     long_press_occurred_ = true;
-                    pulse_upon_release_ = 0;
+                    simulated_pulse_ = true;
+                    pulse_upon_release_ = false;
                     held_time_ = 0;
                     return true;
                 }
