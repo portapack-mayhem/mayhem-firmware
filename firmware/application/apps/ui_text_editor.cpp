@@ -72,6 +72,7 @@ void TextViewer::paint(Painter& painter) {
         paint_state_.first_line = first_line;
         paint_state_.first_col = first_col;
         paint_state_.redraw_text = true;
+        paint_state_.line = UINT32_MAX;  // forget old cursor position when overwritten
     }
 
     if (paint_state_.redraw_text) {
@@ -221,6 +222,10 @@ void TextViewer::paint_text(Painter& painter, uint32_t line, uint16_t col) {
                  r.top() + (int)i * char_height,
                  clear_width * char_width, char_height},
                 style().background);
+
+        // if cursor line got overwritten, disable XOR of old cursor when displaying new cursor
+        if (i == paint_state_.line)
+            paint_state_.line = UINT32_MAX;
     }
 }
 
@@ -228,21 +233,34 @@ void TextViewer::paint_cursor(Painter& painter) {
     if (!has_focus())
         return;
 
-    auto draw_cursor = [this, &painter](uint32_t line, uint16_t col, Color c) {
+    auto xor_cursor = [this, &painter](int32_t line, uint16_t col) {
         auto r = screen_rect();
-        line = line - paint_state_.first_line;
-        col = col - paint_state_.first_col;
+        int cursor_width = char_width + 1;
 
-        painter.draw_rectangle(
-            {(int)col * char_width - 1,
-             r.top() + (int)line * char_height,
-             char_width + 1, char_height},
-            c);
+        int x = (col - paint_state_.first_col) * char_width - 1;
+        if (x < 0) {  // cursor is one pixel narrower when in left column
+            cursor_width--;
+            x = 0;
+        }
+
+        int y = r.top() + (line - paint_state_.first_line) * char_height;
+
+        int cursor_pixels = cursor_width * char_height;
+        ColorRGB888 pbuf888[cursor_pixels];
+        Color pbuf[cursor_pixels];
+
+        // annoyingly, read_pixels uses a 24-bit pixel format vs draw_pixels which uses 16-bit
+        portapack::display.read_pixels({x, y, cursor_width, char_height}, pbuf888, cursor_pixels);
+        for (auto i = 0; i < cursor_pixels; i++)
+            pbuf[i] = Color(pbuf888[i].r, pbuf888[i].g, pbuf888[i].b).v ^ 0xFFFF;
+        portapack::display.draw_pixels({x, y, cursor_width, char_height}, pbuf, cursor_pixels);
     };
 
-    // Clear old cursor. CONSIDER: XOR cursor?
-    draw_cursor(paint_state_.line, paint_state_.col, style().background);
-    draw_cursor(cursor_.line, cursor_.col, style().foreground);
+    if (paint_state_.line != UINT32_MAX)  // only XOR old cursor if it still appears on the screen
+        xor_cursor(paint_state_.line, paint_state_.col);
+
+    xor_cursor(cursor_.line, cursor_.col);
+
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
 }
