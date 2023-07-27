@@ -226,6 +226,7 @@ SetRadioView::SetRadioView(
     force_tcxo.on_select = [this](Checkbox&, bool v) {
         // Check if R9
         // If checked, set it to use External now
+        // We want to enable it right away, so if the system freezes, we havent clicked save yet
 
         send_system_refresh();
     };
