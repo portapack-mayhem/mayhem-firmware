@@ -160,26 +160,16 @@ SetRadioView::SetRadioView(
         });
     }
 
-    if (hackrf_r9) {
-        add_children({&check_clkout,
-                      &field_clkout_freq,
-                      &labels_clkout_khz,
-                      &value_freq_step,
-                      &labels_bias,
-                      &check_bias,
-                      &force_tcxo,
-                      &button_save,
-                      &button_cancel});
-    } else {
-        add_children({&check_clkout,
-                      &field_clkout_freq,
-                      &labels_clkout_khz,
-                      &value_freq_step,
-                      &labels_bias,
-                      &check_bias,
-                      &button_save,
-                      &button_cancel});
-    }
+    add_children({&check_clkout,
+                  &field_clkout_freq,
+                  &labels_clkout_khz,
+                  &value_freq_step,
+                  &labels_bias,
+                  &check_bias,
+                  &button_save,
+                  &button_cancel});
+    if (hackrf_r9)
+        add_children({&force_tcxo});
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -235,11 +225,7 @@ SetRadioView::SetRadioView(
 
     force_tcxo.set_value(pmem::config_force_tcxo());
     force_tcxo.on_select = [this](Checkbox&, bool v) {
-        if (v) {
-            clock_manager.set_reference(clock_manager.choose_reference(true));
-        } else {
-            clock_manager.set_reference(clock_manager.choose_reference());
-        }
+        clock_manager.set_reference(clock_manager.choose_reference(v));
 
         send_system_refresh();
     };
