@@ -974,7 +974,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
     pmem_dump_file.write_line("ui_config config_force_tcxo: " + to_string_dec_uint(config_force_tcxo()));
-    
+
     // receiver_model
     pmem_dump_file.write_line("\n[Receiver Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(receiver_model.target_frequency()));

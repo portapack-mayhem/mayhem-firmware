@@ -227,6 +227,7 @@ SetRadioView::SetRadioView(
         // Check if R9
         // If checked, set it to use External now
         // We want to enable it right away, so if the system freezes, we havent clicked save yet
+        const auto reference = clock_manager.get_reference();
 
         send_system_refresh();
     };
