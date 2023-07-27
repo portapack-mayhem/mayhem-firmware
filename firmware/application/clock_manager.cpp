@@ -327,9 +327,9 @@ uint32_t ClockManager::measure_gp_clkin_frequency() {
     return get_frequency_monitor_measurement_in_hertz();
 }
 
-bool ClockManager::loss_of_signal(bool trueCheck) {
+bool ClockManager::loss_of_signal(bool useRealCheck) {
     if (hackrf_r9) {
-        if (trueCheck) {
+        if (useRealCheck) {
             const auto frequency = measure_gp_clkin_frequency();
             return (frequency < 9850000) || (frequency > 10150000);
         } else {
@@ -340,12 +340,12 @@ bool ClockManager::loss_of_signal(bool trueCheck) {
     }
 }
 
-ClockManager::ReferenceSource ClockManager::detect_reference_source(bool trueCheck) {
-    if (loss_of_signal(trueCheck)) {
+ClockManager::ReferenceSource ClockManager::detect_reference_source(bool useRealCheck) {
+    if (loss_of_signal(useRealCheck)) {
         // No external reference. Turn on PortaPack reference (if present).
         portapack_tcxo_enable();
 
-        if (loss_of_signal(trueCheck)) {
+        if (loss_of_signal(useRealCheck)) {
             // No PortaPack reference was detected. Choose the HackRF crystal as the reference.
             return ReferenceSource::Xtal;
         } else {
@@ -356,14 +356,14 @@ ClockManager::ReferenceSource ClockManager::detect_reference_source(bool trueChe
     }
 }
 
-ClockManager::Reference ClockManager::choose_reference(bool trueCheck) {
+ClockManager::Reference ClockManager::choose_reference(bool useRealCheck) {
     if (hackrf_r9) {
         gpio_r9_clkin_en.write(1);
         volatile uint32_t delay = 240000 + 24000;
         while (delay--)
             ;
     }
-    const auto detected_reference = detect_reference_source(trueCheck);
+    const auto detected_reference = detect_reference_source(useRealCheck);
 
     if ((detected_reference == ReferenceSource::External) ||
         (detected_reference == ReferenceSource::PortaPack)) {

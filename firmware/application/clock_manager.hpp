@@ -77,7 +77,7 @@ class ClockManager {
 
     void set_reference(Reference r);
 
-    Reference choose_reference(bool trueCheck = false);
+    Reference choose_reference(bool trueCuseRealCheckheck = false);
 
     void enable_clock_output(bool enable);
 
@@ -97,8 +97,8 @@ class ClockManager {
 
     uint32_t measure_gp_clkin_frequency();
 
-    ReferenceSource detect_reference_source(bool trueCheck = false);
-    bool loss_of_signal(bool trueCheck = false);
+    ReferenceSource detect_reference_source(bool useRealCheck = false);
+    bool loss_of_signal(bool useRealCheck = false);
 };
 
 #endif /*__CLOCK_MANAGER_H__*/
