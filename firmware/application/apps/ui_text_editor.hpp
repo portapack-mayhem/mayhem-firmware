@@ -117,6 +117,10 @@ class TextViewer : public Widget {
         uint32_t line{};
         uint16_t col{};
         ScrollDirection dir{ScrollDirection::Vertical};
+
+        // Pixel buffer used for cursor XOR'ing - Max cursor width = Max char width + 1
+        ColorRGB888 pixel_buffer8[ui::char_width + 1]{};
+        Color pixel_buffer[ui::char_width + 1]{};
     } cursor_{};
 };
 
