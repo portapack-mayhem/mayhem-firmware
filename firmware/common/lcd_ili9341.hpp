@@ -100,6 +100,9 @@ class ILI9341 {
     constexpr ui::Dim height() const { return 320; }
     constexpr ui::Rect screen_rect() const { return {0, 0, width(), height()}; }
 
+    void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
+    void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
+
    private:
     struct scroll_t {
         ui::Coord top_area;
@@ -109,9 +112,6 @@ class ILI9341 {
     };
 
     scroll_t scroll_state;
-
-    void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
-    void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
 };
 
 } /* namespace lcd */
