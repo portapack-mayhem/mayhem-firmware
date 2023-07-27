@@ -97,7 +97,6 @@ class TextViewer : public Widget {
 
     void paint_text(Painter& painter, uint32_t line, uint16_t col);
     void paint_cursor(Painter& painter);
-    void clear_cursor(Painter& painter);
 
     void reset_file(FileWrapper* file = nullptr);
 
