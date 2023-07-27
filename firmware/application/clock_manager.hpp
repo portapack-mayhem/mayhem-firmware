@@ -75,6 +75,10 @@ class ClockManager {
 
     Reference get_reference() const;
 
+    void set_reference(Reference r);
+
+    Reference choose_reference(bool trueCheck = false);
+
     void enable_clock_output(bool enable);
 
    private:
@@ -93,9 +97,8 @@ class ClockManager {
 
     uint32_t measure_gp_clkin_frequency();
 
-    ReferenceSource detect_reference_source();
-    Reference choose_reference();
-    bool loss_of_signal();
+    ReferenceSource detect_reference_source(bool trueCheck = false);
+    bool loss_of_signal(bool trueCheck = false);
 };
 
 #endif /*__CLOCK_MANAGER_H__*/

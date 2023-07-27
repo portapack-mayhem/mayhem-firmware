@@ -216,6 +216,9 @@ constexpr ClockControls si5351a_clock_control_common{{
 ClockManager::Reference ClockManager::get_reference() const {
     return reference;
 }
+void ClockManager::set_reference(Reference r) {
+    reference = r;
+}
 
 static void portapack_tcxo_enable() {
     portapack::io.reference_oscillator(true);
@@ -259,7 +262,7 @@ void ClockManager::init_clock_generator() {
             .clk_pdn(ClockControl::ClockPowerDown::Power_On));
     clock_generator.enable_output(clock_generator_output_mcu_clkin);
 
-    reference = choose_reference();
+    set_reference(choose_reference(portapack::persistent_memory::config_force_tcxo()));
 
     clock_generator.disable_output(clock_generator_output_mcu_clkin);
 
@@ -324,18 +327,25 @@ uint32_t ClockManager::measure_gp_clkin_frequency() {
     return get_frequency_monitor_measurement_in_hertz();
 }
 
-bool ClockManager::loss_of_signal() {
-    return hackrf_r9
-               ? clock_generator.plla_loss_of_signal()
-               : clock_generator.clkin_loss_of_signal();
+bool ClockManager::loss_of_signal(bool trueCheck) {
+    if (hackrf_r9) {
+        if (trueCheck) {
+            const auto frequency = measure_gp_clkin_frequency();
+            return (frequency < 9850000) || (frequency > 10150000);
+        } else {
+            return clock_generator.plla_loss_of_signal();
+        }
+    } else {
+        return clock_generator.clkin_loss_of_signal();
+    }
 }
 
-ClockManager::ReferenceSource ClockManager::detect_reference_source() {
-    if (loss_of_signal()) {
+ClockManager::ReferenceSource ClockManager::detect_reference_source(bool trueCheck) {
+    if (loss_of_signal(trueCheck)) {
         // No external reference. Turn on PortaPack reference (if present).
         portapack_tcxo_enable();
 
-        if (loss_of_signal()) {
+        if (loss_of_signal(trueCheck)) {
             // No PortaPack reference was detected. Choose the HackRF crystal as the reference.
             return ReferenceSource::Xtal;
         } else {
@@ -346,14 +356,14 @@ ClockManager::ReferenceSource ClockManager::detect_reference_source() {
     }
 }
 
-ClockManager::Reference ClockManager::choose_reference() {
+ClockManager::Reference ClockManager::choose_reference(bool trueCheck) {
     if (hackrf_r9) {
         gpio_r9_clkin_en.write(1);
         volatile uint32_t delay = 240000 + 24000;
         while (delay--)
             ;
     }
-    const auto detected_reference = detect_reference_source();
+    const auto detected_reference = detect_reference_source(trueCheck);
 
     if ((detected_reference == ReferenceSource::External) ||
         (detected_reference == ReferenceSource::PortaPack)) {

@@ -160,15 +160,26 @@ SetRadioView::SetRadioView(
         });
     }
 
-    add_children({&check_clkout,
-                  &field_clkout_freq,
-                  &labels_clkout_khz,
-                  &value_freq_step,
-                  &labels_bias,
-                  &check_bias,
-                  &force_tcxo,
-                  &button_save,
-                  &button_cancel});
+    if (hackrf_r9) {
+        add_children({&check_clkout,
+                      &field_clkout_freq,
+                      &labels_clkout_khz,
+                      &value_freq_step,
+                      &labels_bias,
+                      &check_bias,
+                      &force_tcxo,
+                      &button_save,
+                      &button_cancel});
+    } else {
+        add_children({&check_clkout,
+                      &field_clkout_freq,
+                      &labels_clkout_khz,
+                      &value_freq_step,
+                      &labels_bias,
+                      &check_bias,
+                      &button_save,
+                      &button_cancel});
+    }
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -224,10 +235,11 @@ SetRadioView::SetRadioView(
 
     force_tcxo.set_value(pmem::config_force_tcxo());
     force_tcxo.on_select = [this](Checkbox&, bool v) {
-        // Check if R9
-        // If checked, set it to use External now
-        // We want to enable it right away, so if the system freezes, we havent clicked save yet
-        const auto reference = clock_manager.get_reference();
+        if (v) {
+            clock_manager.set_reference(clock_manager.choose_reference(true));
+        } else {
+            clock_manager.set_reference(clock_manager.choose_reference());
+        }
 
         send_system_refresh();
     };
@@ -236,7 +248,8 @@ SetRadioView::SetRadioView(
         const auto model = this->form_collect();
         pmem::set_correction_ppb(model.ppm * 1000);
         pmem::set_clkout_freq(model.freq);
-        pmem::set_config_force_tcxo(force_tcxo.value());
+        if (hackrf_r9)
+            pmem::set_config_force_tcxo(force_tcxo.value());
         clock_manager.enable_clock_output(pmem::clkout_enabled());
         nav.pop();
     };
