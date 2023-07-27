@@ -225,7 +225,14 @@ SetRadioView::SetRadioView(
 
     force_tcxo.set_value(pmem::config_force_tcxo());
     force_tcxo.on_select = [this](Checkbox&, bool v) {
+        v ? clock_manager.set_reference({ClockManager::ReferenceSource::External, 10000000})
+          : clock_manager.set_reference({ClockManager::ReferenceSource::Xtal, 25000000});
+
+        /*
+        Sadly we cannot do:
         clock_manager.set_reference(clock_manager.choose_reference(v));
+        As it actaully causes the device to freeze/crash. I will fix this in the next PR (@jLynx)
+        */
 
         send_system_refresh();
     };
