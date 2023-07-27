@@ -40,6 +40,8 @@ class AppLoader {};
 
 class AppLauncherView : public View {
    public:
+    using app_start_fn = int(*)(void);
+
     AppLauncherView(NavigationView& nav);
     AppLauncherView(
         NavigationView& nav,
@@ -50,7 +52,15 @@ class AppLauncherView : public View {
     };
 
    private:
+    void run_application(const std::filesystem::path& path);
     NavigationView& nav_;
+
+    Button button_open{
+      {1 * 8, 2 * 16, 8 * 8, 2 * 16},
+      "Open"};
+
+    Text text_result{
+      {1 * 8, 5 * 15, 8 * 8, 1 * 16}, ""};
 };
 
 }  // namespace ui

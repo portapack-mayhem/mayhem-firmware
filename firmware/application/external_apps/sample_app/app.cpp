@@ -1,5 +1,7 @@
 /* Sample PPA */
 
+extern int square(int);
+
 int app_start() {
-    return 42;
+    return square(21);
 }
