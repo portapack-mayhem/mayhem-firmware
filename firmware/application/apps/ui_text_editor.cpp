@@ -234,26 +234,24 @@ void TextViewer::paint_cursor(Painter& painter) {
         return;
 
     auto xor_cursor = [this, &painter](int32_t line, uint16_t col) {
-        auto r = screen_rect();
         int cursor_width = char_width + 1;
-
         int x = (col - paint_state_.first_col) * char_width - 1;
         if (x < 0) {  // cursor is one pixel narrower when in left column
             cursor_width--;
             x = 0;
         }
+        int y = screen_rect().top() + (line - paint_state_.first_line) * char_height;
 
-        int y = r.top() + (line - paint_state_.first_line) * char_height;
-
-        int cursor_pixels = cursor_width * char_height;
-        ColorRGB888 pbuf888[cursor_pixels];
-        Color pbuf[cursor_pixels];
-
-        // annoyingly, read_pixels uses a 24-bit pixel format vs draw_pixels which uses 16-bit
-        portapack::display.read_pixels({x, y, cursor_width, char_height}, pbuf888, cursor_pixels);
-        for (auto i = 0; i < cursor_pixels; i++)
-            pbuf[i] = Color(pbuf888[i].r, pbuf888[i].g, pbuf888[i].b).v ^ 0xFFFF;
-        portapack::display.draw_pixels({x, y, cursor_width, char_height}, pbuf, cursor_pixels);
+        // Converting one row at a time to reduce buffer size
+        ColorRGB888* pbuf8 = cursor_.pixel_buffer8;
+        Color *pbuf = cursor_.pixel_buffer;
+        for (auto col = 0; col < char_height; col++) {
+            // Annoyingly, read_pixels uses a 24-bit pixel format vs draw_pixels which uses 16-bit
+            portapack::display.read_pixels({x, y + col, cursor_width, 1}, pbuf8, cursor_width);
+            for (auto i = 0; i < cursor_width; i++)
+                pbuf[i] = Color(pbuf8[i].r, pbuf8[i].g, pbuf8[i].b).v ^ 0xFFFF;
+            portapack::display.draw_pixels({x, y + col, cursor_width, 1}, pbuf, cursor_width);
+        }
     };
 
     if (paint_state_.line != UINT32_MAX)  // only XOR old cursor if it still appears on the screen
