@@ -262,7 +262,13 @@ void ClockManager::init_clock_generator() {
             .clk_pdn(ClockControl::ClockPowerDown::Power_On));
     clock_generator.enable_output(clock_generator_output_mcu_clkin);
 
-    set_reference(choose_reference(portapack::persistent_memory::config_force_tcxo()));
+    // ToDo: Remove this code below
+    //  set_reference(choose_reference(portapack::persistent_memory::config_force_tcxo()));
+    //  if (portapack::persistent_memory::config_force_tcxo())
+    //      set_reference({ClockManager::ReferenceSource::External, 10000000});
+    //  else
+    //      set_reference(choose_reference());
+    set_reference(choose_reference());
 
     clock_generator.disable_output(clock_generator_output_mcu_clkin);
 

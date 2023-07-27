@@ -473,6 +473,11 @@ bool init() {
     clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
     clock_manager.enable_if_clocks();
     clock_manager.enable_codec_clocks();
+
+    // ToDo: Fix this so we dont need to specify them like I have done
+    persistent_memory::config_force_tcxo() ? clock_manager.set_reference({ClockManager::ReferenceSource::External, 10000000})
+                                           : clock_manager.set_reference({ClockManager::ReferenceSource::Xtal, 25000000});
+
     radio::init();
 
     sdcStart(&SDCD1, nullptr);
