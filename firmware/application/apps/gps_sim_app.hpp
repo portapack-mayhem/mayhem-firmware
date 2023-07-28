@@ -54,6 +54,8 @@ class GpsSimAppView : public View {
     std::string title() const override { return "GPS Sim TX"; };
 
    private:
+    static constexpr uint32_t initial_target_frequency = 1575420000;
+
     NavigationView& nav_;
     RxRadioState radio_state_{
         3000000 /* bandwidth */,
@@ -64,7 +66,6 @@ class GpsSimAppView : public View {
 
     static constexpr ui::Dim header_height = 3 * 16;
 
-    uint32_t sample_rate = 0;
     int32_t tx_gain{47};
     bool rf_amp{true};                                       // aux private var to store temporal, same as Replay App rf_amp user selection.
     static constexpr uint32_t baseband_bandwidth = 3000000;  // filter bandwidth

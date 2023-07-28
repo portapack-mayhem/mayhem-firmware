@@ -29,7 +29,7 @@ def print_nightly_changelog():
 
 
 def handle_get_request(path, offset=None):
-    headers = {"Authorization": f"Bearer {token}"}
+    headers = {} if token == None else {"Authorization": f"Bearer {token}"}
     params = {"since": offset}
     url_base = f"https://api.github.com/repos/{repo_owner}/{repo_name}/"
     response = requests.get(url_base + path, headers=headers, params=params)

@@ -80,7 +80,7 @@ constexpr clkout_freq_range_t clkout_freq_range{10, 60000};
 constexpr uint16_t clkout_freq_reset_value{10000};
 
 enum data_structure_version_enum : uint32_t {
-    VERSION_CURRENT = 0x10000004,
+    VERSION_CURRENT = 0x10000005,
 };
 
 static const uint32_t TOUCH_CALIBRATION_MAGIC = 0x074af82f;
