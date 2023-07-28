@@ -1,7 +1,7 @@
 /* Sample PPA */
 
-extern int square(int);
+using fn = int(*)();
 
-int app_start() {
-    return square(21);
+int app_start(fn f) {
+    return f();
 }

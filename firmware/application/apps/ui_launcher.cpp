@@ -19,6 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// https://github.com/tinito/Bootloader/blob/master/loader/apploader.c
+
 #include "debug.hpp"
 
 #include "ui_fileman.hpp"
@@ -65,7 +67,7 @@ void AppLauncherView::run_application(const fs::path& path) {
   // TODO: need to build an app loader that knows how to find the ELF sections and load
   // each section into block. Then jump into the .text section.
   // Will need to remap addresses and such or figure out how a relocatable binary works.
-  DEBUG_LOG("Loading " + path.string());
+  //DEBUG_LOG("Loading " + path.string());
 
   uint32_t program = 539641712;
   auto entry = reinterpret_cast<app_start_fn>(
@@ -84,10 +86,10 @@ void AppLauncherView::run_application(const fs::path& path) {
     reinterpret_cast<void*>(&app[0xCA])); // What's the offset?
   */
 
-  DEBUG_LOG(to_string_dec_uint(*(uint32_t*)entry));
+  //DEBUG_LOG(to_string_dec_uint(*(uint32_t*)entry));
 
   auto exit_code = entry();
-  text_result.set(to_string_dec_int(exit_code));
+  //text_result.set(to_string_dec_int(exit_code));
 }
 
 }  // namespace ui
