@@ -207,7 +207,7 @@ class FileManagerView : public FileManBaseView {
     ClipboardMode clipboard_mode{ClipboardMode::None};
 
     void refresh_widgets(const bool v);
-    void on_rename();
+    void on_rename(std::string_view hint);
     void on_delete();
     void on_paste();
     void on_new_dir();
@@ -271,6 +271,12 @@ class FileManagerView : public FileManBaseView {
         {0 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_notepad,
+        Color::orange()};
+
+    NewButton button_rename_timestamp{
+        {4 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_options_datetime,
         Color::orange()};
 };
 

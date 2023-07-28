@@ -403,11 +403,17 @@ void FileManagerView::refresh_widgets(const bool v) {
     set_dirty();
 }
 
-void FileManagerView::on_rename() {
+void FileManagerView::on_rename(std::string_view hint) {
     auto& entry = get_selected_entry();
-    name_buffer = entry.path.filename().string();
-    uint32_t cursor_pos = (uint32_t)name_buffer.length();
 
+    // Append the hint to the filename stem as a rename suggestion.
+    name_buffer = entry.path.stem().string();
+    if (!hint.empty())
+        name_buffer += "_" + std::string{hint};
+    name_buffer += entry.path.extension().string();
+
+    // Set the rename cursor to before the extension to make renaming simpler.
+    uint32_t cursor_pos = (uint32_t)name_buffer.length();
     if (auto pos = name_buffer.find_last_of(".");
         pos != name_buffer.npos && !entry.is_directory)
         cursor_pos = pos;
@@ -545,6 +551,7 @@ FileManagerView::FileManagerView(
         &button_new_dir,
         &button_new_file,
         &button_open_notepad,
+        &button_rename_timestamp,
     });
 
     menu_view.on_highlight = [this]() {
@@ -568,7 +575,7 @@ FileManagerView::FileManagerView(
 
     button_rename.on_select = [this]() {
         if (selected_is_valid())
-            on_rename();
+            on_rename("");
     };
 
     button_delete.on_select = [this]() {
@@ -613,6 +620,13 @@ FileManagerView::FileManagerView(
             nav_.replace<TextEditorView>(path);
         } else
             nav_.display_modal("Open in Notepad", "Can't open that in Notepad.");
+    };
+
+    button_rename_timestamp.on_select = [this]() {
+        if (selected_is_valid() && !get_selected_entry().is_directory) {
+            on_rename(::truncate(to_string_timestamp(rtc_time::now()), 8));
+        } else
+            nav_.display_modal("Timestamp Rename", "Can't rename that.");
     };
 }
 
