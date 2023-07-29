@@ -571,7 +571,7 @@ bool is_directory(const path& file_path) {
 bool is_nonempty_directory(const path& file_path) {
     DIR dir;
     FILINFO filinfo;
-    
+
     if (!is_directory(file_path))
         return false;
 
