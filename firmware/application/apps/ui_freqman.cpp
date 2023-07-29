@@ -487,7 +487,7 @@ void FrequencyEditView::populate_bandwidth_options() {
 
     if (entry_.modulation < std::size(freqman_bandwidths)) {
         auto& bandwidths = freqman_bandwidths[entry_.modulation];
-        for (auto i = 1u; i < bandwidths.size(); ++i) {
+        for (auto i = 0u; i < bandwidths.size(); ++i) {
             auto& item = bandwidths[i];
             options.push_back({item.first, (OptionsField::value_t)i});
         }
@@ -500,7 +500,7 @@ void FrequencyEditView::populate_step_options() {
     OptionsField::options_t options;
     options.push_back({"None", -1});
 
-    for (auto i = 1u; i < freqman_steps.size(); ++i) {
+    for (auto i = 0u; i < freqman_steps.size(); ++i) {
         auto& item = freqman_steps[i];
         options.push_back({item.first, (OptionsField::value_t)i});
     }
@@ -513,7 +513,7 @@ void FrequencyEditView::populate_tone_options() {
     OptionsField::options_t options;
     options.push_back({"None", -1});
 
-    for (auto i = 1u; i < tone_keys.size(); ++i) {
+    for (auto i = 0u; i < tone_keys.size(); ++i) {
         auto& item = tone_keys[i];
         options.push_back({fx100_string(item.second), (OptionsField::value_t)i});
     }

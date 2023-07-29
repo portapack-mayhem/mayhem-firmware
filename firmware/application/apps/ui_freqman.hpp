@@ -219,12 +219,15 @@ class FrequencyEditView : public View {
         {{0 * 8, 10 * 16}, "Description:", Color::light_grey()},
     };
 
-    OptionsField field_type{{13 * 8, 3 * 16}, 8, {
-                                                     {"Single", 0},
-                                                     {"Range", 1},
-                                                     {"HamRadio", 2},
-                                                     {"Raw", 3},
-                                                 }};
+    OptionsField field_type{
+        {13 * 8, 3 * 16},
+        8,
+        {
+            {"Single", 0},
+            {"Range", 1},
+            {"HamRadio", 2},
+            {"Raw", 3},
+        }};
 
     FrequencyField field_freq_a{{13 * 8, 4 * 16}};
 
