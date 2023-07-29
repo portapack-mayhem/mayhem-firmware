@@ -69,10 +69,11 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
 
     button_save_freqs.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
+        open_view->push_dir(freqman_dir);
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
             if (new_file_path.native().find(freqman_dir.native()) == 0) {
                 _output_file = new_file_path.stem().string();
-                text_input_file.set(_output_file);
+                button_output_file.set_text(_output_file);
             } else {
                 nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
             }
