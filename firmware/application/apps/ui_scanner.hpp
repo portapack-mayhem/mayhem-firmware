@@ -20,19 +20,20 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui.hpp"
-#include "receiver_model.hpp"
+#include "audio.hpp"
+#include "analog_audio_app.hpp"
+#include "baseband_api.hpp"
+#include "file.hpp"
+#include "freqman.hpp"
+#include "freqman_db.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "radio_state.hpp"
+#include "receiver_model.hpp"
+#include "string_format.hpp"
+#include "ui.hpp"
+#include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
 #include "ui_styles.hpp"
-#include "freqman.hpp"
-#include "analog_audio_app.hpp"
-#include "audio.hpp"
-#include "ui_mictx.hpp"
-#include "portapack_persistent_memory.hpp"
-#include "baseband_api.hpp"
-#include "string_format.hpp"
-#include "file.hpp"
 
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
@@ -40,10 +41,28 @@
 
 namespace ui {
 
+// TODO: There is too much duplicated data in these classes.
+// ScannerThread should just use more from the View.
+// Or perhaps ScannerThread should just be in the View.
+
+// TODO: Too many functions mix work and UI update.
+// Consolidate UI fixup to a single function.
+
+// TODO: Just use freqman_entry.
+struct scanner_entry_t {
+    rf::Frequency freq;
+    std::string description;
+};
+
+struct scanner_range_t {
+    int64_t min;
+    int64_t max;
+};
+
 class ScannerThread {
    public:
     ScannerThread(std::vector<rf::Frequency> frequency_list);
-    ScannerThread(const jammer::jammer_range_t& frequency_range, size_t def_step_hz);
+    ScannerThread(const scanner_range_t& frequency_range, size_t def_step_hz);
     ~ScannerThread();
 
     void set_scanning(const bool v);
@@ -65,7 +84,7 @@ class ScannerThread {
 
    private:
     std::vector<rf::Frequency> frequency_list_{};
-    jammer::jammer_range_t frequency_range_{false, 0, 0};
+    scanner_range_t frequency_range_{0, 0};
     size_t def_step_hz_{0};
     Thread* thread{nullptr};
 
@@ -89,10 +108,6 @@ class ScannerView : public View {
     void focus() override;
 
     std::string title() const override { return "Scanner"; };
-    std::vector<rf::Frequency> frequency_list{};
-    std::vector<std::string> description_list{};
-
-    // void set_parent_rect(const Rect new_parent_rect) override;
 
    private:
     app_settings::SettingsManager settings_{
@@ -102,18 +117,21 @@ class ScannerView : public View {
     RxRadioState radio_state_{};
 
     void start_scan_thread();
+    void restart_scan();
     void change_mode(freqman_index_t mod_type);
     void show_max_index();
     void scan_pause();
     void scan_resume();
     void user_resume();
-    void frequency_file_load(std::string file_name, bool stop_all_before = false);
+    void frequency_file_load(const std::filesystem::path& path);
     void bigdisplay_update(int32_t);
     void update_squelch_while_paused(int32_t max_db);
     void on_statistics_update(const ChannelStatistics& statistics);
     void handle_retune(int64_t freq, uint32_t freq_idx);
 
-    jammer::jammer_range_t frequency_range{false, 0, 0};  // perfect for manual scan task too...
+    std::string loaded_filename() const;
+
+    scanner_range_t frequency_range{0, 0};
     int32_t squelch{0};
     uint32_t browse_timer{0};
     uint32_t lock_timer{0};
@@ -122,10 +140,12 @@ class ScannerView : public View {
     rf::Frequency bigdisplay_current_frequency{0};
     uint32_t browse_wait{0};
     uint32_t lock_wait{0};
-    freqman_db database{};
-    std::string loaded_file_name;
+
+    std::filesystem::path loaded_path{};
+    std::vector<scanner_entry_t> entries{};
     uint32_t current_index{0};
     rf::Frequency current_frequency{0};
+
     bool userpause{false};
     bool manual_search{false};
     bool fwd{true};  // to preserve direction setting even if scan_thread restarted
@@ -136,9 +156,6 @@ class ScannerView : public View {
         BDC_GREEN,
         BDC_RED
     };
-
-    std::string desc_freq_range_search = "SEARCHING...";
-    std::string desc_freq_list_scan = "";
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Color::light_grey()},
@@ -204,7 +221,7 @@ class ScannerView : public View {
         {4 * 8, 3 * 16, 18 * 8, 16},
     };
 
-    Text desc_current_index{
+    Text text_current_desc{
         {0, 4 * 16, 240 - 6 * 8, 16},
     };
 
