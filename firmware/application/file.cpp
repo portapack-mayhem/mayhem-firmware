@@ -568,6 +568,17 @@ bool is_directory(const path& file_path) {
     return fr == FR_OK && is_directory(static_cast<file_status>(filinfo.fattrib));
 }
 
+bool is_nonempty_directory(const path& file_path) {
+    DIR dir;
+    FILINFO filinfo;
+    
+    if (!is_directory(file_path))
+        return false;
+
+    auto result = f_findfirst(&dir, &filinfo, reinterpret_cast<const TCHAR*>(file_path.c_str()), (const TCHAR*)u"*");
+    return ((result == FR_OK) && (filinfo.fname[0] != (TCHAR)'\0'));
+}
+
 space_info space(const path& p) {
     DWORD free_clusters{0};
     FATFS* fs;
