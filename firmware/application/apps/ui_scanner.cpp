@@ -726,7 +726,9 @@ void ScannerView::change_mode(freqman_index_t new_mod) {
 
 void ScannerView::start_scan_thread() {
     receiver_model.enable();
-    receiver_model.set_squelch_level(0);  // ???
+    // Disable squelch on the model because RSSI handler is where the
+    // actual squelching is applied for this app.
+    receiver_model.set_squelch_level(0);
     show_max_index();
 
     // Start Scanner Thread
