@@ -111,6 +111,7 @@ class Message {
         APRSRxConfigure = 54,
         SpectrumPainterBufferRequestConfigure = 55,
         SpectrumPainterBufferResponseConfigure = 56,
+        OverSamplerateConfig = 57,
         MAX
     };
 
@@ -808,6 +809,18 @@ class SamplerateConfigMessage : public Message {
 
     const uint32_t sample_rate = 0;
 };
+
+class OverSamplerateConfigMessage : public Message {
+   public:
+    constexpr OverSamplerateConfigMessage(
+        const uint8_t over_sample_rate)
+        : Message{ID::OverSamplerateConfig},
+          over_sample_rate(over_sample_rate) {
+    }
+
+    const uint8_t over_sample_rate = 0;
+};
+
 
 class AudioLevelReportMessage : public Message {
    public:

@@ -352,6 +352,11 @@ void set_sample_rate(const uint32_t sample_rate) {
     send_message(&message);
 }
 
+void set_over_sample_rate(const uint8_t over_sample_rate) {
+    OverSamplerateConfigMessage message{over_sample_rate};
+    send_message(&message);
+}
+
 void capture_start(CaptureConfig* const config) {
     CaptureConfigMessage message{config};
     send_message(&message);

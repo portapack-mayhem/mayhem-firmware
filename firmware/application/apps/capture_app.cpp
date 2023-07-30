@@ -69,9 +69,11 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         if (base_rate >=25000) {
             // from bw >=25k onwards , we can apply same oversampling factor as original fw ,  x 8.
             sampling_rate = 8 * base_rate;  // We have to match with Decimation by 8 done on baseband side.
+            baseband::set_over_sample_rate(8); 
         } else {
             // Low bit rate , 12k5, 16k, 20k , we need to increase the oversampling factor x 16
             sampling_rate = 16 * base_rate;  // We have to match with Decimation by 16 done on baseband side.
+            baseband::set_over_sample_rate(16); 
         }    
 
         /* Set up proper anti aliasing BPF bandwith in MAX2837 before ADC sampling according to the new added BW Options. */
@@ -85,7 +87,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     receiver_model.enable();
-    option_bandwidth.set_selected_index(3);  // Preselected default option 500kHz.
+    option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);

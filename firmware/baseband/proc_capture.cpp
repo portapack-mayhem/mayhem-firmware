@@ -27,16 +27,18 @@
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
-    decim_0.configure(taps_200k_decim_0.taps, 33554432);
+    decim_0_8.configure(taps_200k_decim_0.taps, 33554432);
+    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);
     decim_1.configure(taps_200k_decim_1.taps, 131072);
 
     channel_spectrum.set_decimation_factor(1);
     baseband_thread.start();
 }
 
+// TODO  PENDING HOW TO CALL differernt execute functions based on over_sample_rate , with same name ???
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     /* 2.4576MHz, 2048 samples */
-    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    const auto decim_0_out = decim_0_8.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto& decimator_out = decim_1_out;
     const auto& channel = decimator_out;
@@ -58,6 +60,32 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
+// TODO  PENDING HOW TO CALL differernt execute functions based on over_sample_rate , with same name ???
+void CaptureProcessor::execute(const buffer_c8_t& buffer) {  
+    /* 2.4576MHz, 2048 samples */
+    const auto decim_0_out = decim_0_4.execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+    const auto& decimator_out = decim_1_out;
+    const auto& channel = decimator_out;
+
+    if (stream) {
+        const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
+        const size_t written = stream->write(decimator_out.p, bytes_to_write);
+        if (written != bytes_to_write) {
+            // TODO eventually report error somewhere
+        }
+    }
+
+    feed_channel_stats(channel);
+
+    spectrum_samples += channel.count;
+    if (spectrum_samples >= spectrum_interval_samples) {
+        spectrum_samples -= spectrum_interval_samples;
+        channel_spectrum.feed(channel, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+    }
+}
+
+
 void CaptureProcessor::on_message(const Message* const message) {
     switch (message->id) {
         case Message::ID::UpdateSpectrum:
@@ -67,6 +95,11 @@ void CaptureProcessor::on_message(const Message* const message) {
 
         case Message::ID::SamplerateConfig:
             samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
+            break;
+
+         case Message::ID::OverSamplerateConfig:
+            // TODO , not sure how to continue it ???
+            // samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
             break;
 
         case Message::ID::CaptureConfig:
