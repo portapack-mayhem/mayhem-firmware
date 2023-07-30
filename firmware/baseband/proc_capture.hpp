@@ -50,7 +50,8 @@ class CaptureProcessor : public BasebandProcessor {
         dst.data(),
         dst.size()};
 
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8{};       // used for total decim by 16
+    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0_4{};       // used for total decim by 8
     dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
