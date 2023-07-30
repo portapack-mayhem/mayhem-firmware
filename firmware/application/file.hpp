@@ -248,6 +248,7 @@ bool is_directory(const file_status s);
 bool is_regular_file(const file_status s);
 bool file_exists(const path& file_path);
 bool is_directory(const path& file_path);
+bool is_empty_directory(const path& file_path);
 
 space_info space(const path& p);
 

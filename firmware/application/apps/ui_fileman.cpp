@@ -440,6 +440,11 @@ void FileManagerView::on_rename(std::string_view hint) {
 }
 
 void FileManagerView::on_delete() {
+    if (is_directory(get_selected_full_path()) && !is_empty_directory(get_selected_full_path())) {
+        nav_.display_modal("Delete", "Directory not empty!");
+        return;
+    }
+
     auto name = get_selected_entry().path.filename().string();
     nav_.push<ModalMessageView>(
         "Delete", "Delete " + name + "\nAre you sure?", YESNO,
