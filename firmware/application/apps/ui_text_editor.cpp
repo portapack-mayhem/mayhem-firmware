@@ -341,7 +341,7 @@ static void show_save_prompt(
     std::function<void()> on_save,
     std::function<void()> continuation) {
     nav.display_modal(
-        "Save?", "Save changes?", YESNO,
+        "Save?", "       Save changes?", YESNO,
         [on_save](bool choice) {
             if (choice && on_save)
                 on_save();
@@ -474,7 +474,13 @@ void TextEditorView::open_file(const fs::path& path) {
     path_ = {};
     file_dirty_ = false;
     has_temp_file_ = false;
-    auto result = FileWrapper::open(path);
+    auto result = FileWrapper::open(
+        path, false, [](uint32_t value, uint32_t total) {
+            Painter p;
+            auto percent = (value * 100) / total;
+            auto width = (percent * screen_width) / 100;
+            p.draw_hline({0, 16}, width, Color::yellow());
+        });
 
     if (!result) {
         nav_.display_modal("Read Error", "Cannot open file:\n" + result.error().what());
@@ -581,6 +587,10 @@ void TextEditorView::prepare_for_write() {
 
     if (has_temp_file_)
         return;
+
+    // TODO: This would be nice to have but it causes a stack overflow in an ISR?
+    // Painter p;
+    // p.draw_string({2, 48}, Styles::yellow, "Creating temporary file...");
 
     // Copy to temp file on write.
     has_temp_file_ = true;
