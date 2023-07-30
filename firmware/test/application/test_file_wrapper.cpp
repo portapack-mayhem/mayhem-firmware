@@ -435,4 +435,29 @@ SCENARIO("Delete line.") {
     }
 }
 
+SCENARIO("It calls on_read_progress while reading.") {
+    GIVEN("A file larger than internal buffer_size (512)") {
+        std::string content = std::string(599, 'a');
+        content.push_back('x');
+        MockFile f{content};
+
+        auto w = wrap_buffer(f);
+        auto init_line_count = w.line_count();
+        auto init_size = w.size();
+        auto called = false;
+
+        w.on_read_progress = [&called](auto, auto) {
+            called = true;
+        };
+
+        WHEN("Replacing range with larger size") {
+            w.replace_range({0, 2}, "bbb");
+
+            THEN("callback should be called.") {
+                CHECK(called);
+            }
+        }
+    }
+}
+
 TEST_SUITE_END();
