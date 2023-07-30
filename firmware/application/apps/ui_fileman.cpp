@@ -440,8 +440,8 @@ void FileManagerView::on_rename(std::string_view hint) {
 }
 
 void FileManagerView::on_delete() {
-    if (is_nonempty_directory(get_selected_full_path())) {
-        nav_.display_modal("Delete", "Directory not empty");
+    if (!is_empty_directory(get_selected_full_path())) {
+        nav_.display_modal("Delete", "Directory not empty!");
         return;
     }
 
