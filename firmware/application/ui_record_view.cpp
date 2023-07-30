@@ -199,7 +199,7 @@ void RecordView::start() {
         case FileType::RawS16: {
             const auto metadata_file_error =
                 write_metadata_file(get_metadata_path(base_path),
-                                    {receiver_model.target_frequency(), sampling_rate / 8});
+                                    {receiver_model.target_frequency(), sampling_rate / 16});   //TODO , it should be dynamic , based on decimation x8 or x16  writing metadata (freq, and sample rate)
             // Not sure why sample_rate is div. 8, but stored value matches rate settings.
             if (metadata_file_error.is_valid()) {
                 handle_error(metadata_file_error.value());
