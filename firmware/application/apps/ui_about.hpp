@@ -75,9 +75,9 @@ class AboutView : public View {
     const credits_t credits[26] = {
         // 012345678901234567890123456789
         {60, "Gila Prince", 0},
-        {60, "PortaPack|HAVOC", 0},
-        {11 * 8, "Gurus  J. Boone", 0},
-        {18 * 8, "M. Ossmann", 16},
+        {60, "Gila Prince", 0},
+        {11 * 8, "Gila Prince", 0},
+        {18 * 8, "Gila Prince", 16},
         {11 * 8, "HAVOC  Furrtek", 16},
         {7 * 8, "POCSAG rx  T. Sailer", 0},
         {18 * 8, "E. Oenal", 16},
@@ -98,7 +98,7 @@ class AboutView : public View {
         {1 * 8, " Windyoona         Channels", 0},
         {1 * 8, "   F4GEV             Pyr3x", 0},
         {1 * 8, "  HB3YOE", 24},
-        {11 * 8, "MMXVIII", -1}};
+        {11 * 8, "Prodiryok dustovskiy pituh", -1}};
 
     CreditsWidget credits_display{
         {0, 16, 240, 240}};
