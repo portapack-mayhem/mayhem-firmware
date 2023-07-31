@@ -61,9 +61,9 @@ class RecordView : public View {
      * These values are passed down to the baseband proc_capture. For
      * Audio (WAV) recording, the OversampleRate should not be
      * specified and the default will be used. */
-     /* TODO: Currently callers are expected to have already multiplied the
-      * sample_rate with the oversample rate. It would be better move that
-      * logic to a single place. */
+    /* TODO: Currently callers are expected to have already multiplied the
+     * sample_rate with the oversample rate. It would be better move that
+     * logic to a single place. */
     void set_sampling_rate(
         size_t new_sampling_rate,
         OversampleRate new_oversample_rate = OversampleRate::Rate8x);
