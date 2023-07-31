@@ -111,7 +111,7 @@ class Message {
         APRSRxConfigure = 54,
         SpectrumPainterBufferRequestConfigure = 55,
         SpectrumPainterBufferResponseConfigure = 56,
-        OverSamplerateConfig = 57,
+        OversampleRateConfig = 57,
         MAX
     };
 
@@ -810,17 +810,22 @@ class SamplerateConfigMessage : public Message {
     const uint32_t sample_rate = 0;
 };
 
-class OverSamplerateConfigMessage : public Message {
-   public:
-    constexpr OverSamplerateConfigMessage(
-        const uint8_t over_sample_rate)
-        : Message{ID::OverSamplerateConfig},
-          over_sample_rate(over_sample_rate) {
-    }
-
-    const uint8_t over_sample_rate = 0;
+/* Controls decimation handling in proc_capture. */
+enum class OversampleRate : uint8_t {
+    Rate8x = 8,
+    Rate16x = 16,
 };
 
+class OversampleRateConfigMessage : public Message {
+   public:
+    constexpr OversampleRateConfigMessage(
+        OversampleRate oversample_rate)
+        : Message{ID::OversampleRateConfig},
+          oversample_rate(oversample_rate) {
+    }
+
+    const OversampleRate oversample_rate{OversampleRate::Rate8x};
+};
 
 class AudioLevelReportMessage : public Message {
    public:
