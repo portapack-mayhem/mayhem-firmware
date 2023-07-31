@@ -269,7 +269,12 @@ void RecordView::update_status_display() {
 
     if (sampling_rate) {
         const auto space_info = std::filesystem::space(u"");
-        const uint32_t bytes_per_second = file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate / 8 * 4);  // TODO: Why 8/4??
+        const uint32_t bytes_per_second =
+            // - Audio is 1 int16_t per sample or '2' bytes per sample.
+            // - C8 captures 2 (I,Q) int8_t per sample or '2' bytes per sample.
+            // - C16 captures 2 (I,Q) int16_t per sample or '4' bytes per sample.
+            //   Dividing to get actual sample rate because of decimation in proc_capture.
+            file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * ((file_type == FileType::RawS8) ? 2 : 4) / 8);
         const uint32_t available_seconds = space_info.free / bytes_per_second;
         const uint32_t seconds = available_seconds % 60;
         const uint32_t available_minutes = available_seconds / 60;

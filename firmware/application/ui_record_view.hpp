@@ -42,8 +42,7 @@ class RecordView : public View {
     enum FileType {
         RawS8 = 1,
         RawS16 = 2,
-        RawS32 = 3,
-        WAV = 4,
+        WAV = 3,
     };
 
     RecordView(
