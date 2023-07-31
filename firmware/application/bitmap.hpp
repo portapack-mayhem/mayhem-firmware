@@ -5607,6 +5607,44 @@ static constexpr Bitmap bitmap_icon_speaker_and_headphones_mute{
     {16, 16},
     bitmap_icon_speaker_and_headphones_mute_data};
 
+static constexpr uint8_t bitmap_icon_shift_data[] = {
+    0x00,
+    0x00,
+    0x80,
+    0x00,
+    0x40,
+    0x01,
+    0x20,
+    0x02,
+    0x10,
+    0x04,
+    0x08,
+    0x08,
+    0x04,
+    0x10,
+    0x3C,
+    0x1E,
+    0x20,
+    0x02,
+    0x20,
+    0x02,
+    0x20,
+    0x02,
+    0x20,
+    0x02,
+    0x20,
+    0x02,
+    0x20,
+    0x02,
+    0xE0,
+    0x03,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_shift{
+    {16, 16},
+    bitmap_icon_shift_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
