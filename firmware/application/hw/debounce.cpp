@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -52,7 +53,7 @@ bool Debounce::feed(const uint8_t bit) {
     history_ = (history_ << 1) | (bit & 1);
 
     // Has button been held for DEBOUNCE_COUNT ticks?
-    if ((history_ & DEBOUNCE_MASK) == DEBOUNCE_MASK) {        
+    if ((history_ & DEBOUNCE_MASK) == DEBOUNCE_MASK) {
         //
         // Button is currently pressed;
         // Was previous button state 0 (released)?
@@ -71,7 +72,7 @@ bool Debounce::feed(const uint8_t bit) {
                 pulse_upon_release_ = true;
                 state_to_report_ = false;
                 return false;
-            }           
+            }
             state_to_report_ = 1;
             return true;
         }
@@ -107,7 +108,7 @@ bool Debounce::feed(const uint8_t bit) {
                 held_time_ = 0;
             }
         }
-    
+
     // Has button been released for at least DEBOUNCE_COUNT ticks?
     } else if ((history_ & DEBOUNCE_MASK) == 0) {
         //
@@ -123,7 +124,7 @@ bool Debounce::feed(const uint8_t bit) {
 
             // If button released when long_press_enabled_ and before LONG_PRESS_DELAY was reached;
             // allow state() function to finally return a single press indication (simulated pulse).
-            // Note: In long press mode, apps won't see button press until the button is released.                
+            // Note: In long press mode, apps won't see button press until the button is released.
             if (pulse_upon_release_) {
                 pulse_upon_release_ = false;
                 simulated_pulse_ = true;
@@ -140,15 +141,14 @@ bool Debounce::feed(const uint8_t bit) {
             state_to_report_ = 0;
             return true;
         }
-
-    // Else button is in transition between states
     } else {
         //
+        // Button is in transition between states;
         // Reset counters until button inputs are stable.
         //
         held_time_ = 0;
         repeat_ctr_ = 0;
-    } 
+    }
 
     return false;
 }
