@@ -108,7 +108,6 @@ bool Debounce::feed(const uint8_t bit) {
                 held_time_ = 0;
             }
         }
-
     // Has button been released for at least DEBOUNCE_COUNT ticks?
     } else if ((history_ & DEBOUNCE_MASK) == 0) {
         //
