@@ -352,8 +352,8 @@ void set_sample_rate(const uint32_t sample_rate) {
     send_message(&message);
 }
 
-void set_over_sample_rate(const uint8_t over_sample_rate) {
-    OverSamplerateConfigMessage message{over_sample_rate};
+void set_oversample_rate(OversampleRate oversample_rate) {
+    OversampleRateConfigMessage message{oversample_rate};
     send_message(&message);
 }
 
