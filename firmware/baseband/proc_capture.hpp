@@ -50,7 +50,13 @@ class CaptureProcessor : public BasebandProcessor {
         dst.data(),
         dst.size()};
 
-    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
+    /* NB: There are two decimation passes: 0 and 1. In pass 0, one of
+     * the following will be selected based on the oversample rate.
+     * use decim_0_4 for an overall decimation factor of 8.
+     * use decim_0_8 for an overall decimation factor of 16. */
+    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0_4{};
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8{};
+
     dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
@@ -61,14 +67,19 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
+    OversampleRate oversample_rate{OversampleRate::Rate8x};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
 
-    void samplerate_config(const SamplerateConfigMessage& message);
+    /* Called to update members when the sample rate or oversample rate is changed. */
+    void update_for_rate_change();
     void capture_config(const CaptureConfigMessage& message);
+
+    /* Dispatch to the correct decim_0 based on oversample rate. */
+    buffer_c16_t decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst);
 };
 
 #endif /*__PROC_CAPTURE_HPP__*/

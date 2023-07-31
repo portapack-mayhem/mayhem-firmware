@@ -64,13 +64,19 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         /* base_rate is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
         /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
         /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card  */
-        auto sampling_rate = 8 * base_rate;  // Decimation by 8 done on baseband side.
 
-        /* Set up proper anti aliasing BPF bandwith in MAX2837 before ADC sampling according to the new added BW Options. */
+        // For lower bandwidths, (12k5, 16k, 20k), increase the oversample rate to get a higher sample rate.
+        OversampleRate oversample_rate = base_rate >= 25'000 ? OversampleRate::Rate8x : OversampleRate::Rate16x;
+
+        // HackRF suggests a minimum sample rate of 2M.
+        // Oversampling helps get to higher sample rates when recording lower bandwidths.
+        uint32_t sampling_rate = toUType(oversample_rate) * base_rate;
+
+        // Set up proper anti aliasing BPF bandwidth in MAX2837 before ADC sampling according to the new added BW Options.
         auto anti_alias_baseband_bandwidth_filter = filter_bandwidth_for_sampling_rate(sampling_rate);
 
         waterfall.stop();
-        record_view.set_sampling_rate(sampling_rate);
+        record_view.set_sampling_rate(sampling_rate, oversample_rate);  // NB: Actually updates the baseband.
         receiver_model.set_sampling_rate(sampling_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
         waterfall.start();

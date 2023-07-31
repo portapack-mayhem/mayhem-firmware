@@ -1251,8 +1251,9 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     }
     if (new_mod != SPEC_MODULATION) {
         button_audio_app.set_text("AUDIO");
+        // TODO: Oversampling.
         record_view->set_sampling_rate(recording_sampling_rate);
-        // reset receiver model to fix bug when going from SPEC to audio, the sound is distorded
+        // reset receiver model to fix bug when going from SPEC to audio, the sound is distorted
         receiver_model.set_sampling_rate(3072000);
         receiver_model.set_baseband_bandwidth(1750000);
     } else {

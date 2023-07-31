@@ -95,6 +95,7 @@ void spectrum_streaming_start();
 void spectrum_streaming_stop();
 
 void set_sample_rate(const uint32_t sample_rate);
+void set_oversample_rate(OversampleRate oversample_rate);
 void capture_start(CaptureConfig* const config);
 void capture_stop();
 void replay_start(ReplayConfig* const config);

@@ -101,24 +101,27 @@ void RecordView::focus() {
     button_record.focus();
 }
 
-void RecordView::set_sampling_rate(const size_t new_sampling_rate) {
-    /* We are changing "REC" icon background to yellow in  BW rec Options >600kHz
+void RecordView::set_sampling_rate(size_t new_sampling_rate, OversampleRate new_oversample_rate) {
+    /* We are changing "REC" icon background to yellow in BW rec Options >600kHz
         where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
-        Those decimated recorded files,has not the full IQ  samples .
-        are ok as recorded spectrum indication, but they  should not be used by Replay app.
+        Those decimated recorded files, has not the full IQ samples.
+        are ok as recorded spectrum indication, but they should not be used by Replay app.
 
-        We keep original black  background in all the correct IQ .C16 files BW's Options */
-    if (new_sampling_rate > 4800000) {  // > BW >600kHz  (fs=8*BW), (750kHz ...2750kHz)
+        We keep original black background in all the correct IQ .C16 files BW's Options */
+    if (new_sampling_rate > 4'800'000) {  // > BW >600kHz  (fs=8*BW), (750kHz...2750kHz)
         button_record.set_background(ui::Color::yellow());
     } else {
         button_record.set_background(ui::Color::black());
     }
 
-    if (new_sampling_rate != sampling_rate) {
+    if (new_sampling_rate != sampling_rate ||
+        new_oversample_rate != oversample_rate) {
         stop();
 
         sampling_rate = new_sampling_rate;
+        oversample_rate = new_oversample_rate;
         baseband::set_sample_rate(sampling_rate);
+        baseband::set_oversample_rate(oversample_rate);
 
         button_record.hidden(sampling_rate == 0);
         text_record_filename.hidden(sampling_rate == 0);
@@ -162,12 +165,13 @@ void RecordView::start() {
         rtcGetTime(&RTCD1, &datetime);
 
         // ISO 8601
-        std::string date_time = to_string_dec_uint(datetime.year(), 4, '0') +
-                                to_string_dec_uint(datetime.month(), 2, '0') +
-                                to_string_dec_uint(datetime.day(), 2, '0') + "T" +
-                                to_string_dec_uint(datetime.hour()) +
-                                to_string_dec_uint(datetime.minute()) +
-                                to_string_dec_uint(datetime.second());
+        std::string date_time =
+            to_string_dec_uint(datetime.year(), 4, '0') +
+            to_string_dec_uint(datetime.month(), 2, '0') +
+            to_string_dec_uint(datetime.day(), 2, '0') + "T" +
+            to_string_dec_uint(datetime.hour()) +
+            to_string_dec_uint(datetime.minute()) +
+            to_string_dec_uint(datetime.second());
 
         base_path = filename_stem_pattern.string() + "_" + date_time + "_" +
                     trim(to_string_freq(receiver_model.target_frequency())) + "Hz";
@@ -197,10 +201,9 @@ void RecordView::start() {
 
         case FileType::RawS8:
         case FileType::RawS16: {
-            const auto metadata_file_error =
-                write_metadata_file(get_metadata_path(base_path),
-                                    {receiver_model.target_frequency(), sampling_rate / 8});
-            // Not sure why sample_rate is div. 8, but stored value matches rate settings.
+            const auto metadata_file_error = write_metadata_file(
+                get_metadata_path(base_path),
+                {receiver_model.target_frequency(), sampling_rate / toUType(oversample_rate)});
             if (metadata_file_error.is_valid()) {
                 handle_error(metadata_file_error.value());
                 return;
@@ -263,18 +266,24 @@ void RecordView::update_status_display() {
         text_record_dropped.set(s);
     }
 
-    /*if (pitch_rssi_enabled) {
-                button_pitch_rssi.invert_colors();
-        }*/
+    /*
+    if (pitch_rssi_enabled) {
+        button_pitch_rssi.invert_colors();
+    }
+    */
 
-    if (sampling_rate) {
+    if (sampling_rate > 0) {
         const auto space_info = std::filesystem::space(u"");
-        const uint32_t bytes_per_second =
-            // - Audio is 1 int16_t per sample or '2' bytes per sample.
-            // - C8 captures 2 (I,Q) int8_t per sample or '2' bytes per sample.
-            // - C16 captures 2 (I,Q) int16_t per sample or '4' bytes per sample.
-            //   Dividing to get actual sample rate because of decimation in proc_capture.
-            file_type == FileType::WAV ? (sampling_rate * 2) : (sampling_rate * ((file_type == FileType::RawS8) ? 2 : 4) / 8);
+        // - Audio is 1 int16_t per sample or '2' bytes per sample.
+        // - C8 captures 2 (I,Q) int8_t per sample or '2' bytes per sample.
+        // - C16 captures 2 (I,Q) int16_t per sample or '4' bytes per sample.
+        const auto bytes_per_sample = file_type == FileType::RawS16 ? 4 : 2;
+        // WAV files are not oversampled, but C8 and C16 are. Divide by the
+        // oversample rate to get the effective sample rate.
+        const auto effective_sampling_rate = file_type == FileType::WAV
+                                                 ? sampling_rate
+                                                 : sampling_rate / toUType(oversample_rate);
+        const uint32_t bytes_per_second = effective_sampling_rate * bytes_per_sample;
         const uint32_t available_seconds = space_info.free / bytes_per_second;
         const uint32_t seconds = available_seconds % 60;
         const uint32_t available_minutes = available_seconds / 60;
