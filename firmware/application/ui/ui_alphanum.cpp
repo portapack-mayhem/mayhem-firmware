@@ -127,7 +127,7 @@ void AlphanumView::refresh_keys() {
             button_shift.set_color(Color::black());
             break;
         case ShiftMode::ShiftLock:
-            button_shift.set_color(Color::dark_green());
+            button_shift.set_color(Color::dark_blue());
             break;
     }
 }

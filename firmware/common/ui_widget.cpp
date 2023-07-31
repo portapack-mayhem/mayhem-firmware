@@ -1188,7 +1188,7 @@ void NewButton::paint(Painter& painter) {
         painter.draw_bitmap(
             bmp_pos,
             *bitmap_,
-            color_,  // Color::green(), //fg,
+            color_,
             bg);
     }
 
