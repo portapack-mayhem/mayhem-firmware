@@ -45,6 +45,7 @@ class Debounce {
    private:
     uint8_t history_{0};
     uint8_t state_{0};
+    uint8_t state_to_report_{0};
     bool repeat_enabled_{false};
     uint16_t repeat_ctr_{0};
     uint16_t held_time_{0};
