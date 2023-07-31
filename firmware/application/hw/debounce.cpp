@@ -63,8 +63,6 @@ bool Debounce::feed(const uint8_t bit) {
             // Button has been pressed (after filtering glitches), transition 0->1
             //
             state_ = 1;
-            held_time_ = 0;
-            repeat_ctr_ = 0;
 
             // If long_press_enabled_, state() function masks the button press until it's released
             // or until LONG_PRESS_DELAY is reached
