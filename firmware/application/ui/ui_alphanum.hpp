@@ -55,8 +55,8 @@ class AlphanumView : public TextEntryView {
 
     const char* const keys_lower = "abcdefghijklmnopqrstuvwxyz, .";
     const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ, .";
-    const char* const keys_digit = "1234567890-=[]\\;',./`...... .";
-    const char* const keys_symbl = "!@#$%^&*()_+{}|:\"<>?~...... .";
+    const char* const keys_digit = "1234567890()'`\"+-*/=<>_\\?, .";
+    const char* const keys_symbl = "!@#$%^&*()[]'`\"{}|:;<>-_~?, .";
 
     struct key_set_t {
         const char* name;
@@ -69,8 +69,8 @@ class AlphanumView : public TextEntryView {
         {"123", keys_digit, keys_symbl}};
 
     int16_t focused_button = 0;
-    uint32_t mode = 0;  // Lowercase
-    ShiftMode shift_mode = ShiftMode::None;
+    uint32_t mode = 0;                            // Letters.
+    ShiftMode shift_mode = ShiftMode::ShiftLock;  // Start Uppercase.
 
     void set_mode(uint32_t new_mode);
     void refresh_keys();
