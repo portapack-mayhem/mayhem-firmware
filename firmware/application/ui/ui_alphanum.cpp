@@ -73,7 +73,8 @@ AlphanumView::AlphanumView(
         n++;
     }
 
-    set_mode(mode);
+    // Start with shift locked for consistency with previous UX.
+    set_mode(mode, ShiftMode::ShiftLock);
 
     button_mode.on_select = [this](Button&) {
         set_mode(mode + 1);
@@ -93,13 +94,13 @@ AlphanumView::AlphanumView(
     };
 }
 
-void AlphanumView::set_mode(uint32_t new_mode) {
+void AlphanumView::set_mode(uint32_t new_mode, ShiftMode new_shift_mode) {
     if (new_mode < std::size(key_sets))
         mode = new_mode;
     else
         mode = 0;
 
-    shift_mode = ShiftMode::None;
+    shift_mode = new_shift_mode;
     refresh_keys();
 
     if (mode + 1 < std::size(key_sets))

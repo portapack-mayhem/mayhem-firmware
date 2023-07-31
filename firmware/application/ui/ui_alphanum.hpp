@@ -69,10 +69,10 @@ class AlphanumView : public TextEntryView {
         {"123", keys_digit, keys_symbl}};
 
     int16_t focused_button = 0;
-    uint32_t mode = 0;                            // Letters.
-    ShiftMode shift_mode = ShiftMode::ShiftLock;  // Start Uppercase.
+    uint32_t mode = 0;  // Letters.
+    ShiftMode shift_mode = ShiftMode::None;
 
-    void set_mode(uint32_t new_mode);
+    void set_mode(uint32_t new_mode, ShiftMode new_shift_mode = ShiftMode::None);
     void refresh_keys();
     void on_button(Button& button);
 
