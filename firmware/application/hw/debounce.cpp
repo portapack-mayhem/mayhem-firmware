@@ -68,7 +68,7 @@ bool Debounce::feed(const uint8_t bit) {
             // or until LONG_PRESS_DELAY is reached
             if (long_press_enabled_) {
                 pulse_upon_release_ = true;
-                state_to_report_ = false;
+                state_to_report_ = 0;
                 return false;
             }
             state_to_report_ = 1;
@@ -78,6 +78,7 @@ bool Debounce::feed(const uint8_t bit) {
         // "Repeat" handling - simulated button release
         if (repeat_ctr_ && !long_press_enabled_) {
             // Simulate button press every REPEAT_SUBSEQUENT_DELAY ticks
+            // (by toggling reported state every 1/2 of the delay time)
             if (--repeat_ctr_ == 0) {
                 state_to_report_ = !state_to_report_;
                 repeat_ctr_ = REPEAT_SUBSEQUENT_DELAY / 2;
