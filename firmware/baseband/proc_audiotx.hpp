@@ -53,7 +53,7 @@ class AudioTXProcessor : public BasebandProcessor {
     bool configured{false};
     uint32_t bytes_read{0};
 
-    void samplerate_config(const SamplerateConfigMessage& message);
+    void sample_rate_config(const SampleRateConfigMessage& message);
     void audio_config(const AudioTXConfigMessage& message);
     void replay_config(const ReplayConfigMessage& message);
 

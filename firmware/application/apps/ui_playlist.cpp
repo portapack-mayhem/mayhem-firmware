@@ -24,18 +24,18 @@
 
 #include "ui_playlist.hpp"
 
+#include "baseband_api.hpp"
 #include "convert.hpp"
 #include "file_reader.hpp"
 #include "io_file.hpp"
 #include "io_convert.hpp"
-
+#include "oversample.hpp"
+#include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 #include "ui_fileman.hpp"
 #include "utility.hpp"
 
-#include "baseband_api.hpp"
-#include "portapack.hpp"
-#include "portapack_persistent_memory.hpp"
 #include <unistd.h>
 #include <fstream>
 
@@ -266,16 +266,16 @@ void PlaylistView::send_current_track() {
         return;
     }
 
+    // Update the sample rate in proc_replay baseband.
+    baseband::set_sample_rate(current()->metadata.sample_rate,
+                              get_oversample_rate(current()->metadata.sample_rate));
+
     // ReplayThread starts immediately on construction so
     // these need to be set before creating the ReplayThread.
     transmitter_model.set_target_frequency(current()->metadata.center_frequency);
-    transmitter_model.set_sampling_rate(current()->metadata.sample_rate * 8);
+    transmitter_model.set_sampling_rate(get_actual_sample_rate(current()->metadata.sample_rate));
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
-
-    // Set baseband sample rate too for waterfall to be correct.
-    // TODO: Why doesn't the transmitter_model just handle this?
-    baseband::set_sample_rate(transmitter_model.sampling_rate());
 
     // Reset the transmit progress bar.
     progressbar_transmit.set_value(0);

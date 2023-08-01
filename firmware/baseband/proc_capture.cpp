@@ -66,19 +66,9 @@ void CaptureProcessor::on_message(const Message* const message) {
             channel_spectrum.on_message(message);
             break;
 
-        case Message::ID::SamplerateConfig: {
-            auto config = reinterpret_cast<const SamplerateConfigMessage*>(message);
-            baseband_fs = config->sample_rate;
-            update_for_rate_change();
+        case Message::ID::SampleRateConfig:
+            sample_rate_config(*reinterpret_cast<const SampleRateConfigMessage*>(message));
             break;
-        }
-
-        case Message::ID::OversampleRateConfig: {
-            auto config = reinterpret_cast<const OversampleRateConfigMessage*>(message);
-            oversample_rate = config->oversample_rate;
-            update_for_rate_change();
-            break;
-        }
 
         case Message::ID::CaptureConfig:
             capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
@@ -89,13 +79,15 @@ void CaptureProcessor::on_message(const Message* const message) {
     }
 }
 
-void CaptureProcessor::update_for_rate_change() {
+void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
+    baseband_fs = message.sample_rate;
+    oversample_rate = message.oversample_rate;
+
     baseband_thread.set_sampling_rate(baseband_fs);
 
-    auto decim_0_factor = oversample_rate == OversampleRate::Rate8x
+    auto decim_0_factor = oversample_rate == OversampleRate::x8
                               ? decim_0_4.decimation_factor
                               : decim_0_8.decimation_factor;
-
     size_t decim_0_output_fs = baseband_fs / decim_0_factor;
 
     size_t decim_1_input_fs = decim_0_output_fs;
@@ -119,10 +111,10 @@ void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 
 buffer_c16_t CaptureProcessor::decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
     switch (oversample_rate) {
-        case OversampleRate::Rate8x:
+        case OversampleRate::x8:
             return decim_0_4.execute(src, dst);
 
-        case OversampleRate::Rate16x:
+        case OversampleRate::x16:
             return decim_0_8.execute(src, dst);
 
         default:

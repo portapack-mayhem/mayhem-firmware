@@ -80,6 +80,8 @@ uint32_t ReplayThread::run() {
         chThdSleep(100);
     };
 
+    constexpr size_t block_size = 512;
+
     // While empty buffers fifo is not empty...
     while (!buffers.empty()) {
         prefill_buffer = buffers.get_prefill();
@@ -87,10 +89,10 @@ uint32_t ReplayThread::run() {
         if (prefill_buffer == nullptr) {
             buffers.put_app(prefill_buffer);
         } else {
-            size_t blocks = config.read_size / 512;
+            size_t blocks = config.read_size / block_size;
 
             for (size_t c = 0; c < blocks; c++) {
-                auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * 512], 512);
+                auto read_result = reader->read(&((uint8_t*)prefill_buffer->data())[c * block_size], block_size);
                 if (read_result.is_error()) {
                     return READ_ERROR;
                 }

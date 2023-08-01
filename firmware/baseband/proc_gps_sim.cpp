@@ -46,7 +46,7 @@ void GPSReplayProcessor::execute(const buffer_c8_t& buffer) {
     /* 2.6MHz, 2048 samples */
 
     if (!configured || !stream) return;
-
+    
     // File data is in C8 format, which is what we need
     // File samplerate is 2.6MHz, which is what we need
     // To fill up the 2048-sample C8 buffer @ 2 bytes per sample = 4096 bytes
@@ -83,8 +83,8 @@ void GPSReplayProcessor::on_message(const Message* const message) {
             channel_spectrum.on_message(message);
             break;
 
-        case Message::ID::SamplerateConfig:
-            samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
+        case Message::ID::SampleRateConfig:
+            sample_rate_config(*reinterpret_cast<const SampleRateConfigMessage*>(message));
             break;
 
         case Message::ID::ReplayConfig:
@@ -103,7 +103,7 @@ void GPSReplayProcessor::on_message(const Message* const message) {
     }
 }
 
-void GPSReplayProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+void GPSReplayProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     baseband_fs = message.sample_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
     spectrum_interval_samples = baseband_fs / spectrum_rate_hz;

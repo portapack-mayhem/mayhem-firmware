@@ -63,7 +63,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 
     // Fill and "stretch"
     for (size_t i = 0; i < oversamples_this_iteration; i++) {
-        if (i & 7) {
+        if (i > 0) {
             buffer.p[i] = buffer.p[i - 1];
         } else {
             auto re_out = iq_buffer.p[i >> 3].real() >> 8;
@@ -90,8 +90,8 @@ void ReplayProcessor::on_message(const Message* const message) {
             channel_spectrum.on_message(message);
             break;
 
-        case Message::ID::SamplerateConfig:
-            samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
+        case Message::ID::SampleRateConfig:
+            sample_rate_config(*reinterpret_cast<const SampleRateConfigMessage*>(message));
             break;
 
         case Message::ID::ReplayConfig:
@@ -110,7 +110,7 @@ void ReplayProcessor::on_message(const Message* const message) {
     }
 }
 
-void ReplayProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+void ReplayProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     baseband_fs = message.sample_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
     spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
