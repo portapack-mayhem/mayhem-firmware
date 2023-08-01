@@ -40,6 +40,7 @@ class RecordView : public View {
     std::function<void(std::string)> on_error{};
 
     enum FileType {
+        RawS8 = 1,
         RawS16 = 2,
         WAV = 3,
     };
@@ -55,7 +56,18 @@ class RecordView : public View {
 
     void focus() override;
 
-    void set_sampling_rate(const size_t new_sampling_rate);
+    /* Sets the sampling rate and the oversampling "decimation" rate.
+     * These values are passed down to the baseband proc_capture. For
+     * Audio (WAV) recording, the OversampleRate should not be
+     * specified and the default will be used. */
+    /* TODO: Currently callers are expected to have already multiplied the
+     * sample_rate with the oversample rate. It would be better move that
+     * logic to a single place. */
+    void set_sampling_rate(
+        size_t new_sampling_rate,
+        OversampleRate new_oversample_rate = OversampleRate::Rate8x);
+
+    void set_file_type(const FileType v) { file_type = v; }
 
     void start();
     void stop();
@@ -83,10 +95,11 @@ class RecordView : public View {
 
     const std::filesystem::path filename_stem_pattern;
     const std::filesystem::path folder;
-    const FileType file_type;
+    FileType file_type;
     const size_t write_size;
     const size_t buffer_count;
     size_t sampling_rate{0};
+    OversampleRate oversample_rate{OversampleRate::Rate8x};
     SignalToken signal_token_tick_second{};
 
     Rectangle rect_background{

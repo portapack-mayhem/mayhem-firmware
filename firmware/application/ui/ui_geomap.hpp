@@ -84,8 +84,8 @@ class GeoPos : public View {
 
     Labels labels_position{
         {{1 * 8, 0 * 16}, "Alt:", Color::light_grey()},
-        {{1 * 8, 1 * 16}, "Lat:    *  '  \"", Color::light_grey()},  // No ° symbol in 8x16 font
-        {{1 * 8, 2 * 16}, "Lon:    *  '  \"", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Color::light_grey()},  // 0xB0 is degree ° symbol in our 8x16 font
+        {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Color::light_grey()},
     };
 
     NumberField field_altitude{
@@ -179,6 +179,7 @@ class GeoMap : public Widget {
     MapMarkerStored store_marker(GeoMarker& marker);
 
    private:
+    void draw_scale(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
@@ -199,6 +200,7 @@ class GeoMap : public Widget {
     int32_t prev_x_pos{0xFFFF}, prev_y_pos{0xFFFF};
     float lat_{};
     float lon_{};
+    float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};
 

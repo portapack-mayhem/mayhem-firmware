@@ -76,7 +76,6 @@ BTLERxView::BTLERxView(NavigationView& nav)
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
 
-    receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
     receiver_model.enable();
 }
 

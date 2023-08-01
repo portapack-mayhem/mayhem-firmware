@@ -310,6 +310,33 @@ class DebugPmemView : public View {
     uint32_t registers_widget_feed(const size_t register_number);
 };
 
+class DebugFontsView : public View {
+   public:
+    DebugFontsView(NavigationView& nav);
+    void paint(Painter& painter) override;
+    std::string title() const override { return "Fonts"; };
+
+   private:
+    uint16_t display_font(Painter& painter, uint16_t y_offset, const Style* font_style, std::string_view font_name);
+    NavigationView& nav_;
+};
+
+class DebugScreenTest : public View {
+   public:
+    DebugScreenTest(NavigationView& nav);
+    bool on_key(KeyEvent key) override;
+    bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
+    uint16_t semirand();
+    void paint(Painter& painter) override;
+
+   private:
+    NavigationView& nav_;
+    Point pen_pos{};
+    Color pen_color{0};
+    int16_t pen_size{10};
+};
+
 /*class DebugLCRView : public View {
 public:
         DebugLCRView(NavigationView& nav, std::string lcrstring);

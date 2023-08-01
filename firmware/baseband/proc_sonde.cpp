@@ -35,6 +35,7 @@ SondeProcessor::SondeProcessor() {
     audio_output.configure(false);
 
     tone_gen.configure(BEEP_BASE_FREQ, 1.0, ToneGen::tone_type::sine, AUDIO_SAMPLE_RATE);
+    baseband_thread.start();
 }
 
 void SondeProcessor::execute(const buffer_c8_t& buffer) {

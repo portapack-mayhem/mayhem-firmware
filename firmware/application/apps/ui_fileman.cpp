@@ -39,8 +39,11 @@ namespace fs = std::filesystem;
 namespace ui {
 static const fs::path txt_ext{u".TXT"};
 static const fs::path ppl_ext{u".PPL"};
+static const fs::path c8_ext{u".C8"};
 static const fs::path c16_ext{u".C16"};
+static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
+static const fs::path bmp_ext{u".BMP"};
 }  // namespace ui
 
 namespace {
@@ -77,14 +80,15 @@ fs::path get_partner_file(fs::path path) {
         return {};
     auto ext = path.extension();
 
-    if (path_iequal(ext, txt_ext))
-        ext = c16_ext;
-    else if (path_iequal(ext, c16_ext))
-        ext = txt_ext;
-    else
+    if (is_cxx_capture_file(path))
+        path.replace_extension(txt_ext);
+    else if (path_iequal(ext, txt_ext)) {
+        path.replace_extension(c8_ext);
+        if (!fs::file_exists(path))
+            path.replace_extension(c16_ext);
+    } else
         return {};
 
-    path.replace_extension(ext);
     return fs::file_exists(path) && !fs::is_directory(path) ? path : fs::path{};
 }
 
@@ -140,6 +144,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     current_path = dir_path;
     entry_list.clear();
     auto filtering = !extension_filter.empty();
+    bool cxx_file = path_iequal(cxx_ext, extension_filter);
 
     text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path, 24));
 
@@ -149,7 +154,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
             continue;
 
         if (fs::is_regular_file(entry.status())) {
-            if (!filtering || path_iequal(entry.path().extension(), extension_filter))
+            if (!filtering || path_iequal(entry.path().extension(), extension_filter) || (cxx_file && is_cxx_capture_file(entry.path())))
                 insert_sorted(entry_list, {entry.path(), (uint32_t)entry.size(), false});
         } else if (fs::is_directory(entry.status())) {
             insert_sorted(entry_list, {entry.path(), 0, true});
@@ -398,11 +403,17 @@ void FileManagerView::refresh_widgets(const bool v) {
     set_dirty();
 }
 
-void FileManagerView::on_rename() {
+void FileManagerView::on_rename(std::string_view hint) {
     auto& entry = get_selected_entry();
-    name_buffer = entry.path.filename().string();
-    uint32_t cursor_pos = (uint32_t)name_buffer.length();
 
+    // Append the hint to the filename stem as a rename suggestion.
+    name_buffer = entry.path.stem().string();
+    if (!hint.empty())
+        name_buffer += "_" + std::string{hint};
+    name_buffer += entry.path.extension().string();
+
+    // Set the rename cursor to before the extension to make renaming simpler.
+    uint32_t cursor_pos = (uint32_t)name_buffer.length();
     if (auto pos = name_buffer.find_last_of(".");
         pos != name_buffer.npos && !entry.is_directory)
         cursor_pos = pos;
@@ -429,6 +440,11 @@ void FileManagerView::on_rename() {
 }
 
 void FileManagerView::on_delete() {
+    if (is_directory(get_selected_full_path()) && !is_empty_directory(get_selected_full_path())) {
+        nav_.display_modal("Delete", "Directory not empty!");
+        return;
+    }
+
     auto name = get_selected_entry().path.filename().string();
     nav_.push<ModalMessageView>(
         "Delete", "Delete " + name + "\nAre you sure?", YESNO,
@@ -496,12 +512,16 @@ bool FileManagerView::handle_file_open() {
     if (path_iequal(txt_ext, ext)) {
         nav_.push<TextEditorView>(path);
         return true;
-    } else if (path_iequal(c16_ext, ext) || path_iequal(ppl_ext, ext)) {
+    } else if (is_cxx_capture_file(path) || path_iequal(ppl_ext, ext)) {
         // TODO: Enough memory to push?
         nav_.push<PlaylistView>(path);
         return true;
     } else if (path_iequal(png_ext, ext)) {
         nav_.push<ScreenshotViewer>(path);
+        return true;
+    } else if (path_iequal(bmp_ext, ext)) {
+        nav_.push<SplashViewer>(path);
+        reload_current();
         return true;
     }
 
@@ -536,6 +556,7 @@ FileManagerView::FileManagerView(
         &button_new_dir,
         &button_new_file,
         &button_open_notepad,
+        &button_rename_timestamp,
     });
 
     menu_view.on_highlight = [this]() {
@@ -559,7 +580,7 @@ FileManagerView::FileManagerView(
 
     button_rename.on_select = [this]() {
         if (selected_is_valid())
-            on_rename();
+            on_rename("");
     };
 
     button_delete.on_select = [this]() {
@@ -604,6 +625,13 @@ FileManagerView::FileManagerView(
             nav_.replace<TextEditorView>(path);
         } else
             nav_.display_modal("Open in Notepad", "Can't open that in Notepad.");
+    };
+
+    button_rename_timestamp.on_select = [this]() {
+        if (selected_is_valid() && !get_selected_entry().is_directory) {
+            on_rename(::truncate(to_string_timestamp(rtc_time::now()), 8));
+        } else
+            nav_.display_modal("Timestamp Rename", "Can't rename that.");
     };
 }
 

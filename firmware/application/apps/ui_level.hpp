@@ -24,21 +24,21 @@
 #ifndef _UI_LEVEL
 #define _UI_LEVEL
 
-#include "ui.hpp"
-#include "receiver_model.hpp"
-#include "ui_receiver.hpp"
-#include "ui_styles.hpp"
-#include "freqman.hpp"
 #include "analog_audio_app.hpp"
-#include "audio.hpp"
-#include "ui_mictx.hpp"
-#include "portapack_persistent_memory.hpp"
-#include "baseband_api.hpp"
-#include "ui_spectrum.hpp"
-#include "string_format.hpp"
-#include "file.hpp"
 #include "app_settings.hpp"
+#include "audio.hpp"
+#include "baseband_api.hpp"
+#include "file.hpp"
+#include "freqman_db.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "radio_state.hpp"
+#include "receiver_model.hpp"
+#include "string_format.hpp"
+#include "ui.hpp"
+#include "ui_mictx.hpp"
+#include "ui_receiver.hpp"
+#include "ui_spectrum.hpp"
+#include "ui_styles.hpp"
 
 namespace ui {
 
@@ -114,7 +114,7 @@ class LevelView : public View {
         }};
 
     Text text_ctcss{
-        {22 * 8, 3 * 16 + 4, 14 * 8, 1 * 8},
+        {22 * 8, 3 * 16 + 4, 8 * 8, 1 * 8},
         ""};
 
     // RSSI: XX/XX/XXX,dt: XX

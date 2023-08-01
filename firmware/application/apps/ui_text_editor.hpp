@@ -117,6 +117,10 @@ class TextViewer : public Widget {
         uint32_t line{};
         uint16_t col{};
         ScrollDirection dir{ScrollDirection::Vertical};
+
+        // Pixel buffer used for cursor XOR'ing - Max cursor width = Max char width + 1
+        ColorRGB888 pixel_buffer8[ui::char_width + 1]{};
+        Color pixel_buffer[ui::char_width + 1]{};
     } cursor_{};
 };
 
@@ -229,10 +233,7 @@ class TextEditorView : public View {
     void show_save_prompt(std::function<void()> continuation);
 
     void prepare_for_write();
-    void create_temp_file() const;
-    void delete_temp_file() const;
     void save_temp_file();
-    std::filesystem::path get_temp_path() const;
 
     NavigationView& nav_;
     std::unique_ptr<FileWrapper> file_{};

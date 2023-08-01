@@ -92,8 +92,8 @@ class SearchView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{
         2500000 /* bandwidth */,
-        SEARCH_SLICE_WIDTH /* sampling rate */
-    };
+        SEARCH_SLICE_WIDTH /* sampling rate */,
+        ReceiverModel::Mode::SpectrumAnalysis};
 
     struct slice_t {
         rf::Frequency center_frequency;

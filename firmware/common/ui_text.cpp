@@ -24,11 +24,26 @@
 namespace ui {
 
 Glyph Font::glyph(const char c) const {
+    size_t index;
+
     if (c < c_start) {
+        // Non-display C0 Control characters - map to blank (index 0)
         return {w, h, data};
     }
-    const size_t index = c - c_start;
-    if (index >= c_count) {
+
+    // Handle gap in glyphs table for C1 Control characters 0x80-0x9F
+    if (c < C1_CONTROL_CHARS_START) {
+        // ASCII chars <0x80:
+        index = c - c_start;
+    } else if (c >= C1_CONTROL_CHARS_START + C1_CONTROL_CHARS_COUNT) {
+        // Latin 1 chars 0xA0-0xFF
+        index = c - c_start - C1_CONTROL_CHARS_COUNT;
+    } else {
+        // C1 Control characters - map to blank
+        return {w, h, data};
+    }
+
+    if (index >= c_count) {  // Latin Extended characters > 0xFF - not supported
         return {w, h, data};
     } else {
         return {w, h, &data[index * data_stride]};

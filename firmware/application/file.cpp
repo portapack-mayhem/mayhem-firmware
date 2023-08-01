@@ -21,11 +21,16 @@
  */
 
 #include "file.hpp"
+#include "complex.hpp"
 
 #include <algorithm>
 #include <codecvt>
 #include <cstring>
 #include <locale>
+
+namespace fs = std::filesystem;
+static const fs::path c8_ext{u".C8"};
+static const fs::path c16_ext{u".C16"};
 
 Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BYTE mode) {
     auto result = f_open(&f, reinterpret_cast<const TCHAR*>(filename.c_str()), mode);
@@ -45,8 +50,11 @@ Optional<File::Error> File::open_fatfs(const std::filesystem::path& filename, BY
     }
 }
 
-Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only) {
+Optional<File::Error> File::open(const std::filesystem::path& filename, bool read_only, bool create) {
     BYTE mode = read_only ? FA_READ : FA_READ | FA_WRITE;
+    if (create)
+        mode |= FA_OPEN_ALWAYS;
+
     return open_fatfs(filename, mode);
 }
 
@@ -252,12 +260,9 @@ std::filesystem::path next_filename_matching_pattern(const std::filesystem::path
 std::vector<std::filesystem::path> scan_root_files(const std::filesystem::path& directory,
                                                    const std::filesystem::path& extension) {
     std::vector<std::filesystem::path> file_list{};
-
-    for (const auto& entry : std::filesystem::directory_iterator(directory, extension)) {
-        if (std::filesystem::is_regular_file(entry.status())) {
-            file_list.push_back(entry.path());
-        }
-    }
+    scan_root_files(directory, extension, [&file_list](const std::filesystem::path& p) {
+        file_list.push_back(p);
+    });
 
     return file_list;
 }
@@ -287,7 +292,7 @@ std::filesystem::filesystem_error rename_file(
 std::filesystem::filesystem_error copy_file(
     const std::filesystem::path& file_path,
     const std::filesystem::path& dest_path) {
-    // Decent compromise between memory and speed.
+    // 512 seems to be the largest block size FatFS likes.
     constexpr size_t buffer_size = 512;
     uint8_t buffer[buffer_size];
     File src;
@@ -324,10 +329,11 @@ FATTimestamp file_created_date(const std::filesystem::path& file_path) {
 std::filesystem::filesystem_error make_new_file(
     const std::filesystem::path& file_path) {
     File f;
-    auto result = f.create(file_path);
-    return result.is_valid()
-               ? result.value()
-               : std::filesystem::filesystem_error{};
+    auto error = f.create(file_path);
+    if (error)
+        return *error;
+
+    return {};
 }
 
 std::filesystem::filesystem_error make_new_directory(
@@ -506,14 +512,26 @@ bool path_iequal(
     return false;
 }
 
+bool is_cxx_capture_file(const path& filename) {
+    auto ext = filename.extension();
+    return path_iequal(c8_ext, ext) || path_iequal(c16_ext, ext);
+}
+
+uint8_t capture_file_sample_size(const path& filename) {
+    if (path_iequal(filename.extension(), c8_ext))
+        return sizeof(complex8_t);
+    if (path_iequal(filename.extension(), c16_ext))
+        return sizeof(complex16_t);
+    return 0;
+}
+
 directory_iterator::directory_iterator(
-    std::filesystem::path path,
-    std::filesystem::path wild)
-    : pattern{wild} {
+    const std::filesystem::path& path,
+    const std::filesystem::path& wild)
+    : path_{path}, wild_{wild} {
     impl = std::make_shared<Impl>();
-    const auto result = f_findfirst(&impl->dir, &impl->filinfo,
-                                    reinterpret_cast<const TCHAR*>(path.c_str()),
-                                    reinterpret_cast<const TCHAR*>(pattern.c_str()));
+    auto result = f_findfirst(&impl->dir, &impl->filinfo,
+                              path_.tchar(), wild_.tchar());
     if (result != FR_OK || impl->filinfo.fname[0] == (TCHAR)'\0') {
         impl.reset();
         // TODO: Throw exception if/when I enable exceptions...
@@ -548,6 +566,17 @@ bool is_directory(const path& file_path) {
     auto fr = f_stat(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
 
     return fr == FR_OK && is_directory(static_cast<file_status>(filinfo.fattrib));
+}
+
+bool is_empty_directory(const path& file_path) {
+    DIR dir;
+    FILINFO filinfo;
+
+    if (!is_directory(file_path))
+        return false;
+
+    auto result = f_findfirst(&dir, &filinfo, reinterpret_cast<const TCHAR*>(file_path.c_str()), (const TCHAR*)u"*");
+    return !((result == FR_OK) && (filinfo.fname[0] != (TCHAR)'\0'));
 }
 
 space_info space(const path& p) {

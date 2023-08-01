@@ -25,20 +25,32 @@
 #include "thread_base.hpp"
 
 #include <ch.h>
-
 #include <cstdint>
+
+/* NB: Because ThreadBase threads start when then are initialized (by default),
+ * they should be the last members in a Processor class to ensure the rest of the
+ * members are fully initialized before data handling starts. If the Procressor
+ * needs to do additional initialization (in its ctor), set 'auto_start' to false
+ * and manually call 'start()' on the thread.
+ * This isn't as relevant for RSSIThread which is entirely self-contained, but
+ * it's good practice to keep all the thread-init together. */
 
 class RSSIThread : public ThreadBase {
    public:
-    RSSIThread(const tprio_t priority);
+    RSSIThread(
+        bool auto_start = true,
+        tprio_t priority = (NORMALPRIO + 10));
     ~RSSIThread();
+
+    void start() override;
 
    private:
     void run() override;
 
-    static Thread* thread;
+    const tprio_t priority_;
 
-    const uint32_t sampling_rate{400000};
+    static Thread* thread;
+    static constexpr uint32_t sampling_rate{400000};
 };
 
 #endif /*__RSSI_THREAD_H__*/

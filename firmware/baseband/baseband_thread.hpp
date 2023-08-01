@@ -28,13 +28,20 @@
 
 #include <ch.h>
 
+/* NB: Because ThreadBase threads start when then are initialized (by default),
+ * they should be the last members in a Processor class to ensure the rest of the
+ * members are fully initialized before data handling starts. If the Procressor
+ * needs to do additional initialization (in its ctor), set 'auto_start' to false
+ * and manually call 'start()' on the thread. */
+
 class BasebandThread : public ThreadBase {
    public:
     BasebandThread(
         uint32_t sampling_rate,
         BasebandProcessor* const baseband_processor,
-        const tprio_t priority,
-        const baseband::Direction direction = baseband::Direction::Receive);
+        baseband::Direction direction,
+        bool auto_start = true,
+        tprio_t priority = (NORMALPRIO + 20));
     ~BasebandThread();
 
     BasebandThread(const BasebandThread&) = delete;
@@ -42,10 +49,12 @@ class BasebandThread : public ThreadBase {
     BasebandThread& operator=(const BasebandThread&) = delete;
     BasebandThread& operator=(BasebandThread&&) = delete;
 
+    void start() override;
+
     // This getter should die, it's just here to leak information to code that
     // isn't in the right place to begin with.
     baseband::Direction direction() const {
-        return _direction;
+        return direction_;
     }
 
     void set_sampling_rate(uint32_t new_sampling_rate);
@@ -53,9 +62,10 @@ class BasebandThread : public ThreadBase {
    private:
     static Thread* thread;
 
-    BasebandProcessor* baseband_processor{nullptr};
-    baseband::Direction _direction{baseband::Direction::Receive};
-    uint32_t sampling_rate{0};
+    BasebandProcessor* baseband_processor_;
+    baseband::Direction direction_;
+    uint32_t sampling_rate_;
+    const tprio_t priority_;
 
     void run() override;
 };

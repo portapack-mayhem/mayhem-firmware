@@ -22,32 +22,33 @@
 #include "irq_controls.hpp"
 
 #include "ch.h"
-#include "hal.h"
-
+#include "debounce.hpp"
+#include "encoder.hpp"
 #include "event_m0.hpp"
-
+#include "hal.h"
 #include "touch.hpp"
 #include "touch_adc.hpp"
-#include "encoder.hpp"
-#include "debounce.hpp"
 #include "utility.hpp"
 
 #include <cstdint>
 #include <array>
 
 #include "portapack_io.hpp"
-
 #include "hackrf_hal.hpp"
+
 using namespace hackrf::one;
+using namespace portapack;
 
 static Thread* thread_controls_event = NULL;
 
-static std::array<Debounce, 8> switch_debounce;
+// Index with the Switch enum.
+static std::array<Debounce, 6> switch_debounce;
+static std::array<Debounce, 2> encoder_debounce;
+
+static_assert(std::size(switch_debounce) == toUType(Switch::Dfu) + 1);
 
 static Encoder encoder;
-
 static volatile uint32_t encoder_position{0};
-
 static volatile uint32_t touch_phase{0};
 
 /* TODO: Change how touch scanning works. It produces a decent amount of noise
@@ -60,11 +61,11 @@ static volatile uint32_t touch_phase{0};
  * Noise will only occur when the panel is being touched. Not ideal, but
  * an acceptable improvement.
  */
-static std::array<portapack::IO::TouchPinsConfig, 3> touch_pins_configs{
+static std::array<IO::TouchPinsConfig, 3> touch_pins_configs{
     /* State machine will pause here until touch is detected. */
-    portapack::IO::TouchPinsConfig::SensePressure,
-    portapack::IO::TouchPinsConfig::SenseX,
-    portapack::IO::TouchPinsConfig::SenseY,
+    IO::TouchPinsConfig::SensePressure,
+    IO::TouchPinsConfig::SenseX,
+    IO::TouchPinsConfig::SenseY,
 };
 
 static touch::Frame temp_frame;
@@ -80,7 +81,7 @@ static bool touch_update() {
     const auto current_phase = touch_pins_configs[touch_phase];
 
     switch (current_phase) {
-        case portapack::IO::TouchPinsConfig::SensePressure: {
+        case IO::TouchPinsConfig::SensePressure: {
             const auto z1 = samples.xp - samples.xn;
             const auto z2 = samples.yp - samples.yn;
             const auto touch_raw = (z1 > touch::touch_threshold) || (z2 > touch::touch_threshold);
@@ -94,11 +95,11 @@ static bool touch_update() {
             }
         } break;
 
-        case portapack::IO::TouchPinsConfig::SenseX:
+        case IO::TouchPinsConfig::SenseX:
             temp_frame.x += samples;
             break;
 
-        case portapack::IO::TouchPinsConfig::SenseY:
+        case IO::TouchPinsConfig::SenseY:
             temp_frame.y += samples;
             break;
 
@@ -122,25 +123,57 @@ static bool touch_update() {
 
 static uint8_t switches_raw = 0;
 
+/* The raw data is not packed in a way that makes looping over it easy.
+ * One option would be an accessor helper (RawSwitch). Another option
+ * is to swizzle the bits into a friendlier order. */
+// /* Type to access the bits in the raw switch data. */
+// struct RawSwitch {
+//     const uint8_t raw_{0};
+
+// uint8_t right() const { return (raw_ >> 0) & 1; }
+// uint8_t left() const { return (raw_ >> 1) & 1; }
+// uint8_t down() const { return (raw_ >> 2) & 1; }
+// uint8_t up() const { return (raw_ >> 3) & 1; }
+// uint8_t select() const { return (raw_ >> 4) & 1; }
+// uint8_t rot_a() const { return (raw_ >> 5) & 1; }
+// uint8_t rot_b() const { return (raw_ >> 6) & 1; }
+// uint8_t dfu() const { return (raw_ >> 7) & 1; }};
+
+static uint8_t swizzle_raw(uint8_t raw) {
+    return (raw & 0x1F) |         // Keep the bottom 5 bits the same.
+           ((raw >> 2) & 0x20) |  // Shift the DFU bit down to bit 6.
+           ((raw << 1) & 0xC0);   // Shift the encoder bits up to be 7 & 8.
+}
+
 static bool switches_update(const uint8_t raw) {
     // TODO: Only fire event on press, not release?
     bool switch_changed = false;
-    for (size_t i = 0; i < switch_debounce.size(); i++) {
-        switch_changed |= switch_debounce[i].feed((raw >> i) & 1);
+
+    for (size_t i = 0; i < switch_debounce.size(); ++i) {
+        uint8_t bit = (raw >> i) & 0x01;
+        switch_changed |= switch_debounce[i].feed(bit);
     }
 
     return switch_changed;
 }
 
+static bool encoder_update(const uint8_t raw) {
+    bool encoder_changed = false;
+
+    encoder_changed |= encoder_debounce[0].feed((raw >> 6) & 0x01);
+    encoder_changed |= encoder_debounce[1].feed((raw >> 7) & 0x01);
+
+    return encoder_changed;
+}
+
 static bool encoder_read() {
     const auto delta = encoder.update(
-        switch_debounce[5].state(),
-        switch_debounce[6].state());
+        encoder_debounce[0].state(),
+        encoder_debounce[1].state());
 
     if (delta != 0) {
         encoder_position += delta;
         return true;
-        ;
     } else {
         return false;
     }
@@ -149,11 +182,13 @@ static bool encoder_read() {
 void timer0_callback(GPTDriver* const) {
     eventmask_t event_mask = 0;
     if (touch_update()) event_mask |= EVT_MASK_TOUCH;
-    switches_raw = portapack::io.io_update(touch_pins_configs[touch_phase]);
-    if (switches_update(switches_raw)) {
+
+    switches_raw = swizzle_raw(io.io_update(touch_pins_configs[touch_phase]));
+    if (switches_update(switches_raw))
         event_mask |= EVT_MASK_SWITCHES;
-        if (encoder_read()) event_mask |= EVT_MASK_ENCODER;
-    }
+
+    if (encoder_update(switches_raw) && encoder_read())
+        event_mask |= EVT_MASK_ENCODER;
 
     /* Signal event loop */
     if (event_mask) {
@@ -189,37 +224,40 @@ void controls_init() {
     gptStartContinuous(&GPTD1, timer0_match_count);
 
     // Enable repeat for directional switches only
-    for (size_t i = 0; i < 4; i++)
-        switch_debounce[i].enable_repeat();
+    for (auto i = Switch::Right; i <= Switch::Up; incr(i))
+        switch_debounce[toUType(i)].enable_repeat();
 }
 
+// Note: Called by event handler or apps, not in ISR, so some presses might be missed during high CPU utilization
 SwitchesState get_switches_state() {
     SwitchesState result;
 
-    // Right, Left, Down, Up, & Select switches
-    for (size_t i = 0; i < result.size() - 1; i++) {
-        // TODO: Ignore multiple keys at the same time?
+    // TODO: Ignore multiple keys at the same time?
+    for (size_t i = 0; i < result.size(); i++)
         result[i] = switch_debounce[i].state();
-    }
 
-    // Grab Dfu switch from bit 7 and return in bit 5 so that all switches are grouped together in this 6-bit result
-    result[(size_t)Switch::Dfu] = switch_debounce[7].state();
     return result;
 }
 
-// Configure which switches support long press (note those switches will not support Repeat function)
-void switches_long_press_enable(SwitchesState switches_long_press_enabled) {
-    // Right, Left, Down, Up, & Select switches
-    for (size_t i = 0; i < switches_long_press_enabled.size() - 1; i++) {
-        switch_debounce[i].set_long_press_support(switches_long_press_enabled[i]);
-    }
+/* Gets the long press enabled state for all the switches. */
+SwitchesState get_switches_long_press_config() {
+    SwitchesState result;
 
-    // Dfu switch
-    switch_debounce[7].set_long_press_support(switches_long_press_enabled[(size_t)Switch::Dfu]);
+    for (size_t i = 0; i < result.size(); i++)
+        result[i] = switch_debounce[i].get_long_press_enabled();
+
+    return result;
 }
 
-bool switch_long_press_occurred(size_t v) {
-    return (v == (size_t)Switch::Dfu) ? switch_debounce[7].long_press_occurred() : switch_debounce[v].long_press_occurred();
+/* Configures which switches support long press.
+ * NB: those switches will not support Repeat function. */
+void set_switches_long_press_config(SwitchesState switch_config) {
+    for (size_t i = 0; i < switch_config.size(); i++)
+        switch_debounce[i].set_long_press_enabled(switch_config[i]);
+}
+
+bool switch_is_long_pressed(Switch s) {
+    return switch_debounce[toUType(s)].long_press_occurred();
 }
 
 EncoderPosition get_encoder_position() {

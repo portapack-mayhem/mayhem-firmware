@@ -37,8 +37,6 @@ class AudioTXProcessor : public BasebandProcessor {
    private:
     static constexpr size_t baseband_fs = 1536000;
 
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};
-
     std::unique_ptr<StreamOutput> stream{};
 
     ToneGen tone_gen{};
@@ -61,6 +59,9 @@ class AudioTXProcessor : public BasebandProcessor {
 
     TXProgressMessage txprogress_message{};
     RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Transmit};
 };
 
 #endif

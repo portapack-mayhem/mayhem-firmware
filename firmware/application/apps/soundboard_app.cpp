@@ -25,6 +25,7 @@
 #include "soundboard_app.hpp"
 #include "string_format.hpp"
 #include "tonesets.hpp"
+#include "ui_tone_key.hpp"
 
 using namespace tonekey;
 using namespace portapack;

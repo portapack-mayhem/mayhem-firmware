@@ -119,7 +119,6 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
 
-    receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
     receiver_model.enable();
 }
 

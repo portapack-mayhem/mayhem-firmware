@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// TODO: Consolidate Modulation/Bandwidth modes/settings with freqman/receiver_model.
+
 #ifndef __UI_MICTX_H__
 #define __UI_MICTX_H__
 
@@ -33,7 +35,6 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "transmitter_model.hpp"
-#include "tone_key.hpp"
 #include "message.hpp"
 #include "receiver_model.hpp"
 #include "ui_transmitter.hpp"
@@ -43,6 +44,7 @@ namespace ui {
 class MicTXView : public View {
    public:
     MicTXView(NavigationView& nav);
+    MicTXView(NavigationView& nav, ReceiverModel::settings_t override);
     ~MicTXView();
 
     MicTXView(const MicTXView&) = delete;
@@ -117,18 +119,19 @@ class MicTXView : public View {
     uint8_t shift_bits_s16{4};  // shift bits factor to the captured ADC S16 audio sample.
 
     // AM TX Stuff
+    // TODO: Some of this stuff is mutually exclusive. Need a better representation.
     bool enable_am{false};
     bool enable_dsb{false};
     bool enable_usb{false};
     bool enable_lsb{false};
-    bool enable_wfm{false};  // added to distinguish in the FM mode ,  RX BW : NFM (8K5, 11K), FM (16K), WFM(200K)
+    bool enable_wfm{false};  // added to distinguish in the FM mode, RX BW : NFM (8K5, 11K), FM (16K), WFM(200K)
 
     Labels labels_WM8731{
         {{3 * 8, 1 * 8}, "MIC-GAIN:", Color::light_grey()},
         {{17 * 8, 1 * 8}, "Boost", Color::light_grey()},
         {{3 * 8, 3 * 8}, "F:", Color::light_grey()},
         {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Color::light_grey()},  // to be more symetric and consistent to the below FM RXBW
-        {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},          // now , no need to handle GAIN , Amp here It is handled by ui_transmitter.cpp
+        {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},          // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
         {{3 * 8, 8 * 8}, "TX Activation:", Color::light_grey()},    // we delete  { { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
         {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},             // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
         {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
@@ -147,7 +150,7 @@ class MicTXView : public View {
         {{17 * 8, 1 * 8}, "ALC", Color::light_grey()},
         {{3 * 8, 3 * 8}, "F:", Color::light_grey()},
         {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Color::light_grey()},
-        {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},        // now , no need to handle GAIN , Amp here It is handled by ui_transmitter.cpp
+        {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},        // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
         {{3 * 8, 8 * 8}, "TX Activation:", Color::light_grey()},  // we delete  { { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
         {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},           // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
         {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
@@ -176,15 +179,15 @@ class MicTXView : public View {
          {"x2.0", 20}}};
 
     OptionsField options_ak4951_alc_mode{
-        {20 * 8, 1 * 8},  // Coordinates are: int:x (px), int:y (px)
-        11,
+        {20 * 8, 1 * 8},
+        10,  // Label has 10 chars
         {
-            {" OFF-12kHz", 0},   // Nothing changed from ORIGINAL,keeping ALL programmable  AK4951 Digital Block->OFF, sampling 24Khz)
+            {" OFF-12kHz", 0},   // Nothing changed from ORIGINAL, keeping ALL programmable AK4951 Digital Block->OFF, sampling 24Khz)
             {"+12dB-6kHz", 1},   // ALC-> on, (+12dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
             {"+09dB-6kHz", 2},   // ALC-> on, (+09dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
             {"+06dB-6kHz", 3},   // ALC-> on, (+06dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
-            {"+03dB-2kHz", 4},   // ALC-> on, (+03dB's) Auto Vol max + Wind Noise cancel + LPF 3,5k + Pre-amp Mic (+21dB=original)+ EQ boosting ~<2kHz (f0~1k1,fb:1,7K, k=1,8)
-            {"+03dB-4kHz", 5},   // ALC-> on, (+03dB's) Auto Vol max + Wind Noise cancel + LPF 4kHz + Pre-amp Mic (+21dB=original)+ EQ boosting ~<3kHz (f0~1k4,fb~2,4k, k=1,8)
+            {"+03dB-2kHz", 4},   // ALC-> on, (+03dB's) Auto Vol max + Wind Noise cancel + LPF 3,5k + Pre-amp Mic (+21dB=original)+ EQ boosting ~<2kHz (f0~1k1, fb:1,7K, k=1,8)
+            {"+03dB-4kHz", 5},   // ALC-> on, (+03dB's) Auto Vol max + Wind Noise cancel + LPF 4kHz + Pre-amp Mic (+21dB=original)+ EQ boosting ~<3kHz (f0~1k4, fb~2,4k, k=1,8)
             {"+03dB-6kHz", 6},   // ALC-> on, (+03dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
             {"+00dB-6kHz", 7},   // ALC-> on, (+00dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
             {"-03dB-6kHz", 8},   // ALC-> on, (-03dB's) Auto Vol max + Wind Noise cancel + LPF 6kHz + Pre-amp Mic (+21dB=original)
@@ -194,14 +197,14 @@ class MicTXView : public View {
         }};
 
     OptionsField options_wm8731_boost_mode{
-        {22 * 8, 1 * 8},  // Coordinates are: int:x (px), int:y (px)
-        5,
+        {22 * 8, 1 * 8},
+        8,  // Label has 8 chars
         {
-            {"ON +12dB", 0},  // WM8731 Mic Boost ON ,original+12dBs condition, easy to saturate ADC sat in high voice  ,relative G = +12 dB's respect ref level
-            {"ON +06dB", 1},  // WM8731 Mic Boost ON ,original+6 dBs condition, easy to saturate ADC sat in high voice  ,relative G = +06 dB's respect ref level
-            {"OFF+04dB", 2},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  +04 dB's (respect ref level) , always effective sampling 24khz
-            {"OFF-02dB", 3},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -02 dB's (respect ref level)
-            {"OFF-08dB", 4},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice  ,relative  G =  -12 dB's (respect ref level)
+            {"ON +12dB", 0},  // WM8731 Mic Boost ON, original+12dBs condition, easy to saturate ADC sat in high voice, relative G = +12 dB's respect ref level
+            {"ON +06dB", 1},  // WM8731 Mic Boost ON, original+6 dBs condition, easy to saturate ADC sat in high voice, relative G = +06 dB's respect ref level
+            {"OFF+04dB", 2},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice, relative G = +04 dB's (respect ref level), always effective sampling 24khz
+            {"OFF-02dB", 3},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice, relative G = -02 dB's (respect ref level)
+            {"OFF-08dB", 4},  // WM8731 Mic Boost OFF to avoid ADC sat in high voice, relative G = -12 dB's (respect ref level)
         }};
 
     // TODO: Use TxFrequencyField
@@ -227,7 +230,7 @@ class MicTXView : public View {
         {
             {"NFM/FM", 0},
             {" WFM  ", 1},
-            {"  AM  ", 2},  // in fact that TX mode = AM -DSB with carrier .
+            {"  AM  ", 2},  // in fact that TX mode = AM -DSB with carrier.
             {" USB  ", 3},
             {" LSB  ", 4},
             {"DSB-SC", 5}  // We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).
@@ -269,7 +272,7 @@ class MicTXView : public View {
 
     OptionsField options_tone_key{
         {12 * 8, (13 * 8) - 5},
-        23,
+        18,
         {}};
 
     Checkbox check_rogerbeep{
@@ -295,11 +298,11 @@ class MicTXView : public View {
 
     OptionsField field_rxbw{
         {19 * 8, (23 * 8) + 2},
-        3,
+        7,
         {
-            {" NFM1:8k5  ", 0},
-            {" NFM2:11k  ", 1},
-            {" FM  :16k  ", 2},
+            {" 8k5  ", 0},  // Initial dynamic values when we start Mic App.
+            {" 11k  ", 1},
+            {" 16k  ", 2},
         }};
 
     NumberField field_squelch{

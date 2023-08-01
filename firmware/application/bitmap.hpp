@@ -3819,6 +3819,44 @@ static constexpr Bitmap bitmap_icon_looking{
     {16, 16},
     bitmap_icon_looking_data};
 
+static constexpr uint8_t bitmap_icon_add_data[] = {
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0xF8,
+    0x1F,
+    0xF8,
+    0x1F,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_add{
+    {16, 16},
+    bitmap_icon_add_data};
+
 static constexpr uint8_t bitmap_icon_delete_data[] = {
     0x00,
     0x00,
@@ -5568,6 +5606,44 @@ static constexpr uint8_t bitmap_icon_speaker_and_headphones_mute_data[] = {
 static constexpr Bitmap bitmap_icon_speaker_and_headphones_mute{
     {16, 16},
     bitmap_icon_speaker_and_headphones_mute_data};
+
+static constexpr uint8_t bitmap_icon_shift_data[] = {
+    0x00,
+    0x00,
+    0x80,
+    0x00,
+    0xC0,
+    0x01,
+    0xE0,
+    0x03,
+    0xF0,
+    0x07,
+    0xF8,
+    0x0F,
+    0xFC,
+    0x1F,
+    0xE0,
+    0x03,
+    0xE0,
+    0x03,
+    0xE0,
+    0x03,
+    0x20,
+    0x02,
+    0xE0,
+    0x03,
+    0x20,
+    0x02,
+    0xE0,
+    0x03,
+    0x00,
+    0x00,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_shift{
+    {16, 16},
+    bitmap_icon_shift_data};
 
 } /* namespace ui */
 

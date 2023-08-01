@@ -349,7 +349,7 @@ Text::Text(
     Rect parent_rect,
     std::string text)
     : Widget{parent_rect},
-      text{text} {
+      text{std::move(text)} {
 }
 
 Text::Text(
@@ -357,14 +357,14 @@ Text::Text(
     : Text{parent_rect, {}} {
 }
 
-void Text::set(const std::string value) {
-    text = value;
+void Text::set(std::string_view value) {
+    text = std::string{value};
     set_dirty();
 }
 
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
-    const auto s = style();
+    auto s = has_focus() ? style().invert() : style();
 
     painter.fill_rectangle(rect, s.background);
 
@@ -573,7 +573,7 @@ void ProgressBar::paint(Painter& painter) {
     const auto sr = screen_rect();
     const auto s = style();
 
-    v_scaled = (sr.size().width() * _value) / _max;
+    v_scaled = (sr.size().width() * (uint64_t)_value) / _max;
 
     painter.fill_rectangle({sr.location(), {v_scaled, sr.size().height()}}, style().foreground);
     painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
@@ -1112,11 +1112,13 @@ NewButton::NewButton(
     Rect parent_rect,
     std::string text,
     const Bitmap* bitmap,
-    Color color)
+    Color color,
+    bool vertical_center)
     : Widget{parent_rect},
       text_{text},
       bitmap_{bitmap},
-      color_{color} {
+      color_{color},
+      vertical_center_{vertical_center} {
     set_focusable(true);
 }
 
@@ -1143,6 +1145,11 @@ void NewButton::set_color(Color color) {
     set_dirty();
 }
 
+void NewButton::set_vertical_center(bool value) {
+    vertical_center_ = value;
+    set_dirty();
+}
+
 ui::Color NewButton::color() {
     return color_;
 }
@@ -1164,28 +1171,34 @@ void NewButton::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
-    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
-    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
+    painter.draw_rectangle({r.location(), {r.width(), 1}}, Color::light_grey());
+    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Color::dark_grey());
+    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Color::dark_grey());
 
     painter.fill_rectangle(
-        {r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2},
+        {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
         paint_style.background);
 
-    int y = r.location().y();
+    int y = r.top();
     if (bitmap_) {
+        int offset_y = vertical_center_ ? (r.height() / 2) - (bitmap_->size.height() / 2) : 6;
+        Point bmp_pos = {r.left() + (r.width() / 2) - (bitmap_->size.width() / 2), r.top() + offset_y};
+        y += bitmap_->size.height() - offset_y;
+
         painter.draw_bitmap(
-            {r.location().x() + (r.size().width() / 2) - 8, r.location().y() + 6},
+            bmp_pos,
             *bitmap_,
-            color_,  // Color::green(), //fg,
+            color_,
             bg);
-        y += 10;
     }
-    const auto label_r = paint_style.font.size_of(text_);
-    painter.draw_string(
-        {r.location().x() + (r.size().width() - label_r.width()) / 2, y + (r.size().height() - label_r.height()) / 2},
-        paint_style,
-        text_);
+
+    if (!text_.empty()) {
+        const auto label_r = paint_style.font.size_of(text_);
+        painter.draw_string(
+            {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
+            paint_style,
+            text_);
+    }
 }
 
 void NewButton::on_focus() {
@@ -1390,12 +1403,12 @@ void ImageToggle::set_value(bool b) {
 /* ImageOptionsField *****************************************************/
 
 ImageOptionsField::ImageOptionsField(
-    const Rect parent_rect,
-    const Color foreground,
-    const Color background,
-    const options_t options)
+    Rect parent_rect,
+    Color foreground,
+    Color background,
+    options_t options)
     : Widget{parent_rect},
-      options{options},
+      options{std::move(options)},
       foreground_{foreground},
       background_{background} {
     set_focusable(true);
@@ -1437,7 +1450,7 @@ void ImageOptionsField::set_by_value(value_t v) {
 }
 
 void ImageOptionsField::set_options(options_t new_options) {
-    options = new_options;
+    options = std::move(new_options);
 
     // Set an invalid index to force on_change.
     selected_index_ = (size_t)-1;
@@ -1482,11 +1495,11 @@ bool ImageOptionsField::on_touch(const TouchEvent event) {
 
 OptionsField::OptionsField(
     Point parent_pos,
-    int length,
+    size_t length,
     options_t options)
-    : Widget{{parent_pos, {8 * length, 16}}},
+    : Widget{{parent_pos, {8 * (int)length, 16}}},
       length_{length},
-      options{options} {
+      options_{std::move(options)} {
     set_focusable(true);
 }
 
@@ -1494,16 +1507,20 @@ size_t OptionsField::selected_index() const {
     return selected_index_;
 }
 
-size_t OptionsField::selected_index_value() const {
-    return options[selected_index_].second;
+const OptionsField::name_t& OptionsField::selected_index_name() const {
+    return options_[selected_index_].first;
+}
+
+const OptionsField::value_t& OptionsField::selected_index_value() const {
+    return options_[selected_index_].second;
 }
 
 void OptionsField::set_selected_index(const size_t new_index, bool trigger_change) {
-    if (new_index < options.size()) {
+    if (new_index < options_.size()) {
         if (new_index != selected_index() || trigger_change) {
             selected_index_ = new_index;
             if (on_change) {
-                on_change(selected_index(), options[selected_index()].second);
+                on_change(selected_index(), options_[selected_index()].second);
             }
             set_dirty();
         }
@@ -1512,7 +1529,7 @@ void OptionsField::set_selected_index(const size_t new_index, bool trigger_chang
 
 void OptionsField::set_by_value(value_t v) {
     size_t new_index = 0;
-    for (const auto& option : options) {
+    for (const auto& option : options_) {
         if (option.second == v) {
             set_selected_index(new_index);
             return;
@@ -1524,8 +1541,26 @@ void OptionsField::set_by_value(value_t v) {
     set_selected_index(0);
 }
 
+void OptionsField::set_by_nearest_value(value_t v) {
+    size_t new_index = 0;
+    size_t curr_index = 0;
+    int32_t min_diff = INT32_MAX;
+
+    for (const auto& option : options_) {
+        auto diff = abs(v - option.second);
+        if (diff < min_diff) {
+            min_diff = diff;
+            new_index = curr_index;
+        }
+
+        curr_index++;
+    }
+
+    set_selected_index(new_index);
+}
+
 void OptionsField::set_options(options_t new_options) {
-    options = new_options;
+    options_ = std::move(new_options);
 
     // Set an invalid index to force on_change.
     selected_index_ = (size_t)-1;
@@ -1538,12 +1573,14 @@ void OptionsField::paint(Painter& painter) {
 
     painter.fill_rectangle({screen_rect().location(), {(int)length_ * 8, 16}}, ui::Color::black());
 
-    if (selected_index() < options.size()) {
-        const auto text = options[selected_index()].first;
+    if (selected_index() < options_.size()) {
+        std::string_view temp = selected_index_name();
+        if (temp.length() > length_)
+            temp = temp.substr(0, length_);
         painter.draw_string(
             screen_pos(),
             paint_style,
-            text);
+            temp);
     }
 }
 
@@ -1556,8 +1593,8 @@ void OptionsField::on_focus() {
 bool OptionsField::on_encoder(const EncoderEvent delta) {
     int32_t new_value = selected_index() + delta;
     if (new_value < 0)
-        new_value = options.size() - 1;
-    else if ((size_t)new_value >= options.size())
+        new_value = options_.size() - 1;
+    else if ((size_t)new_value >= options_.size())
         new_value = 0;
 
     set_selected_index(new_value);
@@ -1571,9 +1608,9 @@ bool OptionsField::on_touch(const TouchEvent event) {
     return true;
 }
 
-/* TextField ***********************************************************/
+/* TextEdit ***********************************************************/
 
-TextField::TextField(
+TextEdit::TextEdit(
     std::string& str,
     size_t max_length,
     Point position,
@@ -1587,24 +1624,24 @@ TextField::TextField(
     set_focusable(true);
 }
 
-const std::string& TextField::value() const {
+const std::string& TextEdit::value() const {
     return text_;
 }
 
-void TextField::set_cursor(uint32_t pos) {
+void TextEdit::set_cursor(uint32_t pos) {
     cursor_pos_ = std::min<size_t>(pos, text_.length());
     set_dirty();
 }
 
-void TextField::set_insert_mode() {
+void TextEdit::set_insert_mode() {
     insert_mode_ = true;
 }
 
-void TextField::set_overwrite_mode() {
+void TextEdit::set_overwrite_mode() {
     insert_mode_ = false;
 }
 
-void TextField::char_add(char c) {
+void TextEdit::char_add(char c) {
     // Don't add if inserting and at max_length and
     // don't overwrite if past the end of the text.
     if ((text_.length() >= max_length_ && insert_mode_) ||
@@ -1620,7 +1657,7 @@ void TextField::char_add(char c) {
     set_dirty();
 }
 
-void TextField::char_delete() {
+void TextEdit::char_delete() {
     if (cursor_pos_ == 0)
         return;
 
@@ -1629,9 +1666,7 @@ void TextField::char_delete() {
     set_dirty();
 }
 
-void TextField::paint(Painter& painter) {
-    constexpr int char_width = 8;
-
+void TextEdit::paint(Painter& painter) {
     auto rect = screen_rect();
     auto text_style = has_focus() ? style().invert() : style();
     auto offset = 0;
@@ -1640,15 +1675,14 @@ void TextField::paint(Painter& painter) {
     if (cursor_pos_ >= char_count_)
         offset = cursor_pos_ - char_count_ + 1;
 
-    // Clear the control.
-    painter.fill_rectangle(rect, text_style.background);
-
     // Draw the text starting at the offset.
-    for (uint32_t i = 0; i < char_count_ && i + offset < text_.length(); i++) {
+    for (uint32_t i = 0; i < char_count_; i++) {
+        // Using draw_char to blank the rest of the line with spaces produces less flicker.
+        auto c = (i + offset < text_.length()) ? text_[i + offset] : ' ';
+
         painter.draw_char(
             {rect.location().x() + (static_cast<int>(i) * char_width), rect.location().y()},
-            text_style,
-            text_[i + offset]);
+            text_style, c);
     }
 
     // Determine cursor position on screen (either the cursor position or the last char).
@@ -1661,11 +1695,11 @@ void TextField::paint(Painter& painter) {
         painter.draw_char(cursor_point, cursor_style, text_[cursor_pos_]);
 
     // Draw the cursor.
-    Rect cursor_box{cursor_point, {char_width, 16}};
+    Rect cursor_box{cursor_point, {char_width, char_height}};
     painter.draw_rectangle(cursor_box, cursor_style.background);
 }
 
-bool TextField::on_key(const KeyEvent key) {
+bool TextEdit::on_key(const KeyEvent key) {
     if (key == KeyEvent::Left && cursor_pos_ > 0)
         cursor_pos_--;
     else if (key == KeyEvent::Right && cursor_pos_ < text_.length())
@@ -1679,7 +1713,7 @@ bool TextField::on_key(const KeyEvent key) {
     return true;
 }
 
-bool TextField::on_encoder(const EncoderEvent delta) {
+bool TextEdit::on_encoder(const EncoderEvent delta) {
     int32_t new_pos = cursor_pos_ + delta;
 
     // Let the encoder wrap around the ends of the text.
@@ -1692,12 +1726,38 @@ bool TextField::on_encoder(const EncoderEvent delta) {
     return true;
 }
 
-bool TextField::on_touch(const TouchEvent event) {
+bool TextEdit::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start)
         focus();
 
     set_dirty();
     return true;
+}
+
+/* TextField *************************************************************/
+
+TextField::TextField(Rect parent_rect, std::string text)
+    : Text(parent_rect, std::move(text)) {
+    set_focusable(true);
+}
+
+const std::string& TextField::get_text() const {
+    return text;
+}
+
+void TextField::set_text(std::string_view value) {
+    set(value);
+    if (on_change)
+        on_change(*this);
+}
+
+bool TextField::on_key(KeyEvent key) {
+    if (key == KeyEvent::Select && on_select) {
+        on_select(*this);
+        return true;
+    }
+
+    return false;
 }
 
 /* NumberField ***********************************************************/

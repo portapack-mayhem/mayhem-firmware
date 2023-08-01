@@ -32,15 +32,12 @@
 class MicTXProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const msg) override;
 
    private:
     static constexpr size_t baseband_fs = 1536000U;
 
     bool configured{false};
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     int16_t audio_data[64];
     buffer_s16_t audio_buffer{
@@ -74,6 +71,9 @@ class MicTXProcessor : public BasebandProcessor {
 
     AudioLevelReportMessage level_message{};
     TXProgressMessage txprogress_message{};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Transmit};
 };
 
 #endif

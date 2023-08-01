@@ -34,9 +34,10 @@
 #include "volume.hpp"
 
 // persistant memory from/to sdcard flag file
-#define PMEM_FILEFLAG "/SETTINGS/PMEM_FILEFLAG"
+#define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
+
 // persistant memory from/to sdcard flag file
-#define PMEM_SETTING_FILE "/SETTINGS/pmem_settings"
+#define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
 
 using namespace modems;
 using namespace serializer;
@@ -106,7 +107,7 @@ struct backlight_config_t {
 };
 
 enum encoder_dial_sensitivity {
-    DIAL_SENSITIVITY_MEDIUM = 0,
+    DIAL_SENSITIVITY_NORMAL = 0,
     DIAL_SENSITIVITY_LOW = 1,
     DIAL_SENSITIVITY_HIGH = 2,
     NUM_DIAL_SENSITIVITY
@@ -225,8 +226,8 @@ void set_pocsag_ignore_address(uint32_t address);
 
 bool clkout_enabled();
 void set_clkout_enabled(bool v);
-uint32_t clkout_freq();
-void set_clkout_freq(uint32_t freq);
+uint16_t clkout_freq();
+void set_clkout_freq(uint16_t freq);
 
 /* Recon app */
 bool recon_autosave_freqs();

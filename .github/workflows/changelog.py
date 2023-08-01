@@ -1,28 +1,55 @@
 import os
-import re
 import sys
 
-raw_git = os.popen('git log next --since="24 hours" --pretty=format:"- %h - {USERNAME}*+%al-%an*: %s"').read()
+import requests
+from datetime import datetime, timedelta, timezone
+
+# Set up your personal access token and the repository details
+token = os.environ.get('GH_TOKEN')
+repo_owner = "eried"
+repo_name = "portapack-mayhem"
 
 
-def compute_username(line):
-    stripped = re.search(r'(?<=\*)(.*?)(?=\*)', line).group(0)
+def print_stable_changelog(previous_sha):
+    url = f"compare/{previous_sha}...next"
+    commits = handle_get_request(url)
+    for commit in commits["commits"]:
+        # Print the commit details
+        print(format_output(commit))
 
-    pattern = re.compile("[$@+&?].*[$@+&?]")
-    if pattern.match(stripped):
-        stripped = re.sub("[$@+&?].*[$@+&?]", "", stripped)
-        stripped = re.match(r'.+?(?=-)', stripped).group(0)
+
+def print_nightly_changelog():
+    # Calculate the date and time 24 hours ago
+    since_time = (datetime.now(timezone.utc) - timedelta(hours=24)).isoformat()  # Check that this is UTC
+    url = "commits"
+    commits = handle_get_request(url, since_time)
+    for commit in commits:
+        # Print the commit details
+        print(format_output(commit))
+
+
+def handle_get_request(path, offset=None):
+    headers = {} if token == None else {"Authorization": f"Bearer {token}"}
+    params = {"since": offset}
+    url_base = f"https://api.github.com/repos/{repo_owner}/{repo_name}/"
+    response = requests.get(url_base + path, headers=headers, params=params)
+
+    # Check if the request was successful (status code 200)
+    if response.status_code == 200:
+        return response.json()
     else:
-        stripped = re.sub(r'^.*?-', "", stripped)
-    return "@" + stripped
+        print(f"Request failed with status code: {response.status_code}")
+    return None
 
 
-def compile_line(line):
-    username = compute_username(line)
-    line = re.sub(r'[*].*[*]', "", line)
-    line = line.replace("{USERNAME}", username)
-    return line
+def format_output(commit):
+    message_lines = commit["commit"]["message"].split("\n")
+    author = commit["author"]["login"] if commit["author"] and "login" in commit["author"] else commit["commit"]["author"]["name"]
+    return '- ' + commit["sha"][:8] + ' - @' + author + ': ' + message_lines[0]
 
 
-for row in raw_git.splitlines():
-    print(compile_line(row))
+if len(sys.argv) < 2:
+    print_nightly_changelog()
+else:
+    past_version = sys.argv[1]
+    print_stable_changelog(past_version)

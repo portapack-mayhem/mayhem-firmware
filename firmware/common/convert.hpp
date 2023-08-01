@@ -22,26 +22,71 @@
 #ifndef __CONVERT_H__
 #define __CONVERT_H__
 
-#include <charconv>
 #include <cstdlib>
+#include <cstring>
+#include <limits>
 #include <string>
 #include <string_view>
 #include <type_traits>
 
-/* Zero-allocation conversion helper. */
-/* Notes:
- * - T must be an integer type.
- * - For base 16, input _must not_ contain a '0x' or '0X' prefix.
- * - For base 8 a leading 0 on the literal is allowed.
- * - Leading whitespce will cause the parse to fail.
- */
-// TODO: from_chars seems to cause code bloat.
-// Look into using strtol and friends instead.
+constexpr size_t max_parse_int_length = 64;
 
+/* This undefined type is used to see the size of the
+ * unhandled type and to create a compilation error. */
+template <size_t N>
+struct UnhandledSize;
+
+/* Returns true when errno is ERANGE. */
+inline bool range_error() {
+    return errno == ERANGE;
+}
+
+/* Assigns 'value' to 'out_val' and returns true if 'value' is
+ * in bounds for type TOut. */
+template <typename TVal, typename TOut>
+bool checked_assign(TVal value, TOut& out_val) {
+    // No chance for overflow, just return.
+    if constexpr (sizeof(TVal) <= sizeof(TOut)) {
+        out_val = value;
+        return true;
+    }
+    out_val = static_cast<TOut>(value);
+    return value >= static_cast<TVal>(std::numeric_limits<TOut>::min()) &&
+           value <= static_cast<TVal>(std::numeric_limits<TOut>::max());
+}
+
+/* Zero-allocation conversion helper. 'str' must be smaller than 'max_parse_int_length'. */
 template <typename T>
 std::enable_if_t<std::is_integral_v<T>, bool> parse_int(std::string_view str, T& out_val, int base = 10) {
-    auto result = std::from_chars(str.data(), str.data() + str.length(), out_val, base);
-    return static_cast<int>(result.ec) == 0;
+    // Always initialize the output.
+    out_val = {};
+
+    if (str.size() > max_parse_int_length)
+        return false;
+
+    // Copy onto the stack and null terminate.
+    char zstr[max_parse_int_length + 1];
+    std::memcpy(zstr, str.data(), str.size());
+    zstr[str.size()] = '\0';
+
+    // A little C++ type magic to select the correct conversion function.
+    if constexpr (sizeof(T) == sizeof(long long)) {
+        if constexpr (std::is_unsigned_v<T>)
+            return checked_assign(strtoull(zstr, nullptr, base), out_val) && !range_error();
+        else
+            return checked_assign(strtoll(zstr, nullptr, base), out_val) && !range_error();
+
+    } else if constexpr (sizeof(T) <= sizeof(long)) {
+        if constexpr (std::is_unsigned_v<T>)
+            return checked_assign(strtoul(zstr, nullptr, base), out_val) && !range_error();
+        else
+            return checked_assign(strtol(zstr, nullptr, base), out_val) && !range_error();
+    } else {
+        UnhandledSize<sizeof(T) * 8> unhandled_case;
+        return false;
+    }
+
+    return true;
 }
 
 #endif /*__CONVERT_H__*/

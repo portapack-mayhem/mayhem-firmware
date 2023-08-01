@@ -26,6 +26,7 @@
 #include "file.hpp"
 #include "optional.hpp"
 
+#include <functional>
 #include <memory>
 #include <string_view>
 
@@ -59,6 +60,7 @@ class BufferWrapper {
     using Offset = uint32_t;
     using Line = uint32_t;
     using Column = uint32_t;
+    using Size = File::Size;
     using Range = struct {
         // Offset of the start, inclusive.
         Offset start;
@@ -73,6 +75,8 @@ class BufferWrapper {
         initialize();
     }
     virtual ~BufferWrapper() {}
+
+    std::function<void(Size, Size)> on_read_progress{};
 
     /* Prevent copies */
     BufferWrapper(const BufferWrapper&) = delete;
@@ -108,7 +112,7 @@ class BufferWrapper {
     }
 
     /* Gets the size of the buffer in bytes. */
-    File::Size size() const { return wrapped_->size(); }
+    Size size() const { return wrapped_->size(); }
 
     /* Get the count of the lines in the buffer. */
     uint32_t line_count() const { return line_count_; }
@@ -233,13 +237,23 @@ class BufferWrapper {
 
         line_count_ = start_line_;
         Offset offset = start_offset_;
+
+        // Report progress every N lines.
+        constexpr auto report_interval = 100u;
         auto result = next_newline(offset);
+        auto next_report = report_interval;
 
         while (result) {
             ++line_count_;
             if (newlines_.size() < max_newlines)
                 newlines_.push_back(*result);
             offset = *result + 1;
+
+            if (on_read_progress && line_count_ > next_report) {
+                on_read_progress(offset, size());
+                next_report = line_count_ + report_interval;
+            }
+
             result = next_newline(offset);
         }
     }
@@ -396,6 +410,9 @@ class BufferWrapper {
         // Number of bytes left to shift.
         Offset remaining = size() - src;
         Offset offset = size();
+        Size report_total = remaining;
+        Size report_interval = report_total / 8;
+        Size next_report = remaining - report_interval;
 
         while (remaining > 0) {
             offset -= std::min(remaining, buffer_size);
@@ -412,6 +429,11 @@ class BufferWrapper {
                 break;
 
             remaining -= *result;
+
+            if (on_read_progress && remaining <= next_report) {
+                on_read_progress(report_total - remaining, report_total);
+                next_report = remaining > report_interval ? remaining - report_interval : 0;
+            }
         }
     }
 
@@ -423,6 +445,9 @@ class BufferWrapper {
 
         char buffer[buffer_size];
         auto offset = src;
+        Size report_total = size();
+        Size report_interval = report_total / 8;
+        Size next_report = offset + report_interval;
 
         while (true) {
             wrapped_->seek(offset);
@@ -437,6 +462,11 @@ class BufferWrapper {
                 break;
 
             offset += *result;
+
+            if (on_read_progress && offset >= next_report) {
+                on_read_progress(offset, report_total);
+                next_report = offset + report_interval;
+            }
         }
 
         // Delete the extra bytes at the end of the file.
@@ -462,12 +492,18 @@ class FileWrapper : public BufferWrapper<File, 64> {
     template <typename T>
     using Result = File::Result<T>;
     using Error = File::Error;
-    static Result<std::unique_ptr<FileWrapper>> open(const std::filesystem::path& path) {
+    static Result<std::unique_ptr<FileWrapper>> open(
+        const std::filesystem::path& path,
+        bool create = false,
+        std::function<void(Size, Size)> on_read_progress = nullptr) {
         auto fw = std::unique_ptr<FileWrapper>(new FileWrapper());
-        auto error = fw->file_.open(path, /*read_only*/ false);
+        auto error = fw->file_.open(path, /*read_only*/ false, create);
 
         if (error)
             return *error;
+
+        if (on_read_progress)
+            fw->on_read_progress = on_read_progress;
 
         fw->initialize();
         return fw;

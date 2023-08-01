@@ -131,11 +131,14 @@ class WaterfallView : public View {
     WaterfallView& operator=(const WaterfallView&) = delete;
     WaterfallView& operator=(WaterfallView&&) = delete;
 
+    // TODO: remove these, use start/stop directly instead.
     void on_show() override;
     void on_hide() override;
 
-    void set_parent_rect(const Rect new_parent_rect) override;
+    void start();
+    void stop();
 
+    void set_parent_rect(const Rect new_parent_rect) override;
     void show_audio_spectrum_view(const bool show);
 
    private:
@@ -147,6 +150,7 @@ class WaterfallView : public View {
 
     WaterfallWidget waterfall_widget{};
     FrequencyScale frequency_scale{};
+    bool running_{false};
 
     ChannelSpectrumFIFO* channel_fifo{nullptr};
     AudioSpectrum* audio_spectrum_data{nullptr};

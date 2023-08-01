@@ -31,7 +31,8 @@ class NOOPProcessor : public BasebandProcessor {
     void execute(const buffer_c8_t& buffer) override;
 
    private:
-    BasebandThread baseband_thread{1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{1536000, this, baseband::Direction::Transmit};
 };
 
 #endif

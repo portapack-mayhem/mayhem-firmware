@@ -30,6 +30,9 @@
 #include "audio.hpp"
 
 #include "ui_sd_card_debug.hpp"
+#include "ui_font_fixed_8x16.hpp"
+#include "ui_styles.hpp"
+#include "ui_painter.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -248,7 +251,7 @@ void ControlsSwitchesWidget::on_show() {
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
     key_event_mask = 1 << toUType(key);
-    long_press_key_event_mask = switch_long_press_occurred((size_t)key) ? key_event_mask : 0;
+    long_press_key_event_mask = key_is_long_pressed(key) ? key_event_mask : 0;
     return true;
 }
 
@@ -261,9 +264,9 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {32, 64, 16, 16},  // Down
         {32, 0, 16, 16},   // Up
         {32, 32, 16, 16},  // Select
+        {96, 0, 16, 16},   // Dfu
         {16, 96, 16, 16},  // Encoder phase 0
         {48, 96, 16, 16},  // Encoder phase 1
-        {96, 0, 16, 16},   // Dfu
         {96, 64, 16, 16},  // Touch
     }};
 
@@ -280,9 +283,9 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         {32 + 1, 64 + 1, 16 - 2, 16 - 2},  // Down
         {32 + 1, 0 + 1, 16 - 2, 16 - 2},   // Up
         {32 + 1, 32 + 1, 16 - 2, 16 - 2},  // Select
+        {96 + 1, 0 + 1, 16 - 2, 16 - 2},   // Dfu
         {16 + 1, 96 + 1, 16 - 2, 16 - 2},  // Encoder phase 0
         {48 + 1, 96 + 1, 16 - 2, 16 - 2},  // Encoder phase 1
-        {96 + 1, 0 + 1, 16 - 2, 16 - 2},   // Dfu
     }};
 
     auto switches_raw = control::debug::switches();
@@ -351,13 +354,13 @@ DebugControlsView::DebugControlsView(NavigationView& nav) {
     });
 
     button_done.on_select = [&nav](Button&) {
-        switches_long_press_enable(0);
+        set_switches_long_press_config(0);
         nav.pop();
     };
 
     options_switches_mode.on_change = [this](size_t, OptionsField::value_t v) {
         (void)v;
-        switches_long_press_enable(options_switches_mode.selected_index_value());
+        set_switches_long_press_config(options_switches_mode.selected_index_value());
     };
 }
 
@@ -400,8 +403,10 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
+        {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
         {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
+        {"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -461,6 +466,93 @@ uint32_t DebugPmemView::registers_widget_feed(const size_t register_number) {
     }
     return data.regfile[(page_size * page + register_number) / 4] >> (register_number % 4 * 8);
 }
+
+/* DebugFontsView *******************************************************/
+
+uint16_t DebugFontsView::display_font(Painter& painter, uint16_t y_offset, const Style* font_style, std::string_view font_name) {
+    auto char_width{font_style->font.char_width()};
+    auto char_height{font_style->font.line_height()};
+    auto cpl{((screen_width / char_width) - 6) & 0xF8};  // Display a multiple of 8 characters per line
+    uint16_t line_pos{y_offset};
+
+    painter.draw_string({0, y_offset}, *font_style, font_name);
+
+    // Displaying ASCII+extended characters from 0x20 to 0xFF
+    for (uint8_t c = 0; c <= 0xDF; c++) {
+        line_pos = y_offset + ((c / cpl) + 2) * char_height;
+
+        if ((c % cpl) == 0)
+            painter.draw_string({0, line_pos}, *font_style, "Ox" + to_string_hex(c + 0x20, 2));
+
+        painter.draw_char({((c % cpl) + 5) * char_width, line_pos}, *font_style, (char)(c + 0x20));
+    }
+
+    return line_pos + char_height;
+}
+
+void DebugFontsView::paint(Painter& painter) {
+    int16_t line_pos;
+
+    line_pos = display_font(painter, 32, &Styles::white, "Fixed 8x16");
+    display_font(painter, line_pos + 16, &Styles::white_small, "Fixed 5x8");
+}
+
+DebugFontsView::DebugFontsView(NavigationView& nav)
+    : nav_{nav} {
+    set_focusable(true);
+}
+
+/* DebugScreenTest ****************************************************/
+
+DebugScreenTest::DebugScreenTest(NavigationView& nav)
+    : nav_{nav} {
+    set_focusable(true);
+}
+
+bool DebugScreenTest::on_key(const KeyEvent key) {
+    Painter painter;
+    switch (key) {
+        case KeyEvent::Select:
+            nav_.pop();
+            break;
+        case KeyEvent::Down:
+            painter.fill_rectangle({0, 0, screen_width, screen_height}, semirand());
+            break;
+        case KeyEvent::Left:
+            pen_color = semirand();
+            break;
+        default:
+            break;
+    }
+    return true;
+}
+
+bool DebugScreenTest::on_encoder(EncoderEvent delta) {
+    pen_size = clip<int32_t>(pen_size + delta, 1, screen_width);
+    return true;
+}
+
+bool DebugScreenTest::on_touch(const TouchEvent event) {
+    Painter painter;
+    pen_pos = event.point;
+    painter.fill_rectangle({pen_pos.x() - pen_size / 2, pen_pos.y() - pen_size / 2, pen_size, pen_size}, pen_color);
+    return true;
+}
+
+uint16_t DebugScreenTest::semirand() {
+    static uint64_t seed{0x0102030405060708};
+    seed = seed * 137;
+    seed = (seed >> 1) | ((seed & 0x01) << 63);
+    return (uint16_t)seed;
+}
+
+void DebugScreenTest::paint(Painter& painter) {
+    painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Color::white());
+    painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
+    pen_color = semirand();
+}
+
+/* DebugLCRView *******************************************************/
 
 /*DebugLCRView::DebugLCRView(NavigationView& nav, std::string lcr_string) {
 

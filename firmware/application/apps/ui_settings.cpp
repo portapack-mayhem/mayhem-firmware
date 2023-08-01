@@ -35,6 +35,9 @@ using namespace lpc43xx;
 #include "portapack.hpp"
 using namespace portapack;
 
+#include "file.hpp"
+namespace fs = std::filesystem;
+
 #include "string_format.hpp"
 #include "ui_styles.hpp"
 #include "cpld_update.hpp"
@@ -489,35 +492,30 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     check_use_sdcard_for_pmem.set_value(pmem::should_use_sdcard_for_pmem());
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
-        std::string pmem_flag_file = PMEM_FILEFLAG;
         if (v) {
-            auto result = pmem_flag_file_handle.open(pmem_flag_file);
-            if (result.is_valid()) {
-                auto result = pmem_flag_file_handle.create(pmem_flag_file);  // third: create if it is not there
-                if (!result.is_valid()) {
-                    text_pmem_status.set("pmem flag file created");
-                } else {
-                    text_pmem_status.set("!err. creating pmem flagfile!");
-                }
-            } else {
+            if (fs::file_exists(PMEM_FILEFLAG)) {
                 text_pmem_status.set("pmem flag already present");
+            } else {
+                auto error = pmem_flag_file_handle.create(PMEM_FILEFLAG);
+                if (error)
+                    text_pmem_status.set("!err. creating pmem flagfile!");
+                else
+                    text_pmem_status.set("pmem flag file created");
             }
         } else {
-            auto result = delete_file(pmem_flag_file);
-            if (result.code() != FR_OK) {
+            auto result = delete_file(PMEM_FILEFLAG);
+            if (result.code() != FR_OK)
                 text_pmem_status.set("!err. deleting pmem flagfile!");
-            } else {
+            else
                 text_pmem_status.set("pmem flag file deleted");
-            }
         }
     };
 
     button_save_mem_to_file.on_select = [&nav, this](Button&) {
-        if (!pmem::save_persistent_settings_to_file()) {
+        if (!pmem::save_persistent_settings_to_file())
             text_pmem_status.set("!problem saving settings!");
-        } else {
+        else
             text_pmem_status.set("settings saved");
-        }
     };
 
     button_load_mem_from_file.on_select = [&nav, this](Button&) {

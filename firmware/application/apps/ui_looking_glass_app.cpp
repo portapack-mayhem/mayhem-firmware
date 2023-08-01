@@ -471,9 +471,9 @@ GlassView::GlassView(
 
     button_marker.on_select = [this](ButtonWithEncoder&) {
         receiver_model.set_target_frequency(marker);  // Center tune rx in marker freq.
-        receiver_model.set_frequency_step(MHZ_DIV);   // Preset a 1 MHz frequency step into RX -> AUDIO
-        nav_.pop();
-        nav_.push<AnalogAudioView>();  // Jump into audio view
+        auto settings = receiver_model.settings();
+        settings.frequency_step = MHZ_DIV;        // Preset a 1 MHz frequency step into RX -> AUDIO
+        nav_.replace<AnalogAudioView>(settings);  // Jump into audio view
     };
 
     field_trigger.on_change = [this](int32_t v) {
@@ -495,9 +495,9 @@ GlassView::GlassView(
 
     button_jump.on_select = [this](Button&) {
         receiver_model.set_target_frequency(max_freq_hold);  // Center tune rx in marker freq.
-        receiver_model.set_frequency_step(MHZ_DIV);          // Preset a 1 MHz frequency step into RX -> AUDIO
-        nav_.pop();
-        nav_.push<AnalogAudioView>();  // Jump into audio view
+        auto settings = receiver_model.settings();
+        settings.frequency_step = MHZ_DIV;        // Preset a 1 MHz frequency step into RX -> AUDIO
+        nav_.replace<AnalogAudioView>(settings);  // Jump into audio view
     };
 
     button_rst.on_select = [this](Button&) {
@@ -513,7 +513,6 @@ GlassView::GlassView(
     marker_pixel_index = 120;
     on_range_changed();
 
-    receiver_model.set_modulation(ReceiverModel::Mode::SpectrumAnalysis);
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);

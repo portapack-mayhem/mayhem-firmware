@@ -25,86 +25,71 @@
 
 namespace tonekey {
 
+// Keep list in ascending order by tone frequency
 const tone_key_t tone_keys = {
-    {"None", 0.0},
-    {"0 XZ", 67.000},
-    {"1 WZ", 69.400},
-    {"2 XA", 71.900},
-    {"3 WA", 74.400},
-    {"4 XB", 77.000},
-    {"5 WB", 79.700},
-    {"6 YZ", 82.500},
-    {"7 YA", 85.400},
-    {"8 YB", 88.500},
-    {"9 ZZ", 91.500},
-    {"10 ZA", 94.800},
-    {"11 ZB", 97.400},
-    {"12 1Z", 100.000},
-    {"13 1A", 103.500},
-    {"14 1B", 107.200},
-    {"15 2Z", 110.900},
-    {"16 2A", 114.800},
-    {"17 2B", 118.800},
-    {"18 3Z", 123.000},
-    {"19 3A", 127.300},
-    {"20 3B", 131.800},
-    {"21 4Z", 136.500},
-    {"22 4A", 141.300},
-    {"23 4B", 146.200},
-    {"24 5Z", 151.400},
-    {"25 5A", 156.700},
-    {"40 --", 159.800},
-    {"26 5B", 162.200},
-    {"41 --", 165.500},
-    {"27 6Z", 167.900},
-    {"42 --", 171.300},
-    {"28 6A", 173.800},
-    {"43 --", 177.300},
-    {"29 6B", 179.900},
-    {"44 --", 183.500},
-    {"30 7Z", 186.200},
-    {"45 --", 189.900},
-    {"31 7A", 192.800},
-    {"46 --", 196.600},
-    {"47 --", 199.500},
-    {"32 M1", 203.500},
-    {"48 8Z", 206.500},
-    {"33 M2", 210.700},
-    {"34 M3", 218.100},
-    {"35 M4", 225.700},
-    {"49 9Z", 229.100},
-    {"36 M5", 233.600},
-    {"37 M6", 241.800},
-    {"38 M7", 250.300},
-    {"50 0Z", 254.100},
-    {"Axient 28kHz", 28000.0},
-    {"Senn. 32.768k", 32768.0},
-    {"Senn. 32.000k", 32000.0},
-    {"Sony 32.382k", 32382.0},
-    {"Shure 19kHz", 19000.0}};
+    {"None", F2Ix100(0.0)},
+    {"1 XZ", F2Ix100(67.0)},
+    {"39 WZ", F2Ix100(69.3)},
+    {"2 XA", F2Ix100(71.9)},
+    {"3 WA", F2Ix100(74.4)},
+    {"4 XB", F2Ix100(77.0)},
+    {"5 WB", F2Ix100(79.7)},
+    {"6 YZ", F2Ix100(82.5)},
+    {"7 YA", F2Ix100(85.4)},
+    {"8 YB", F2Ix100(88.5)},
+    {"9 ZZ", F2Ix100(91.5)},
+    {"10 ZA", F2Ix100(94.8)},
+    {"11 ZB", F2Ix100(97.4)},
+    {"12 1Z", F2Ix100(100.0)},
+    {"13 1A", F2Ix100(103.5)},
+    {"14 1B", F2Ix100(107.2)},
+    {"15 2Z", F2Ix100(110.9)},
+    {"16 2A", F2Ix100(114.8)},
+    {"17 2B", F2Ix100(118.8)},
+    {"18 3Z", F2Ix100(123.0)},
+    {"19 3A", F2Ix100(127.3)},
+    {"20 3B", F2Ix100(131.8)},
+    {"21 4Z", F2Ix100(136.5)},
+    {"22 4A", F2Ix100(141.3)},
+    {"23 4B", F2Ix100(146.2)},
+    {"24 5Z", F2Ix100(151.4)},
+    {"25 5A", F2Ix100(156.7)},
+    {"40 --", F2Ix100(159.8)},
+    {"26 5B", F2Ix100(162.2)},
+    {"41 --", F2Ix100(165.5)},
+    {"27 6Z", F2Ix100(167.9)},
+    {"42 --", F2Ix100(171.3)},
+    {"28 6A", F2Ix100(173.8)},
+    {"43 --", F2Ix100(177.3)},
+    {"29 6B", F2Ix100(179.9)},
+    {"44 --", F2Ix100(183.5)},
+    {"30 7Z", F2Ix100(186.2)},
+    {"45 --", F2Ix100(189.9)},
+    {"31 7A", F2Ix100(192.8)},
+    {"46 --", F2Ix100(196.6)},
+    {"47 --", F2Ix100(199.5)},
+    {"32 M1", F2Ix100(203.5)},
+    {"48 8Z", F2Ix100(206.5)},
+    {"33 M2", F2Ix100(210.7)},
+    {"34 M3", F2Ix100(218.1)},
+    {"35 M4", F2Ix100(225.7)},
+    {"49 9Z", F2Ix100(229.1)},
+    {"36 M5", F2Ix100(233.6)},
+    {"37 M6", F2Ix100(241.8)},
+    {"38 M7", F2Ix100(250.3)},
+    {"50 0Z", F2Ix100(254.1)},
+    {"Shure 19kHz", F2Ix100(19000.0)},
+    {"Axient 28kHz", F2Ix100(28000.0)},
+    {"Senn. 32.000k", F2Ix100(32000.0)},
+    {"Sony 32.382k", F2Ix100(32382.0)},
+    {"Senn. 32.768k", F2Ix100(32768.0)}};
 
-void tone_keys_populate(OptionsField& field) {
-    using option_t = std::pair<std::string, int32_t>;
-    using options_t = std::vector<option_t>;
-    options_t tone_key_options;
-    std::string tone_name;
-
-    for (size_t c = 0; c < tone_keys.size(); c++) {
-        if (c && c < 51) {
-            auto f = tone_keys[c].second;
-            tone_name = "CTCSS " + tone_keys[c].first + " " + to_string_dec_uint(f) + "." + to_string_dec_uint((uint32_t)(f * 10) % 10);
-        } else {
-            tone_name = tone_keys[c].first;
-        }
-
-        tone_key_options.emplace_back(tone_name, c);
-    }
-
-    field.set_options(tone_key_options);
+std::string fx100_string(uint32_t f) {
+    return to_string_dec_uint(f / 100) + "." + to_string_dec_uint((f / 10) % 10);
 }
 
-float tone_key_frequency(const tone_index index) {
-    return tone_keys[index].second;
+float tone_key_frequency(tone_index index) {
+    return float(tone_keys[index].second) / 100.0;
 }
 
 std::string tone_key_string(tone_index index) {
@@ -113,20 +98,65 @@ std::string tone_key_string(tone_index index) {
     return tone_keys[index].first;
 }
 
-std::string tone_key_string_by_value(uint32_t value) {
-    return tone_key_string(tone_key_index_by_value(value));
+// Return string showing frequency only from specific table index
+std::string tone_key_value_string(tone_index index) {
+    if (index < 0 || (unsigned)index >= tone_keys.size())
+        return std::string("");
+    return fx100_string(tone_keys[index].second);
 }
 
+// Return variable-length string showing CTCSS tone from tone frequency
+// Value is in 0.01 Hz units
+std::string tone_key_string_by_value(uint32_t value, size_t max_length) {
+    static uint8_t tone_display_toggle{0};
+    static uint32_t last_value;
+    tone_index idx;
+    std::string freq_str;
+
+    // If >10Hz difference between consecutive samples, it's probably noise, so ignore
+    if (abs(value - last_value) > 10 * 100) {
+        last_value = value;
+        tone_display_toggle = 0;
+        return "        ";
+    }
+    last_value = value;
+
+    // Only display 1/10 Hz accuracy if <1000 Hz; max 5 characters
+    if (value < 1000 * 100)
+        freq_str = "T:" + fx100_string(value);
+    else
+        freq_str = "T:" + to_string_dec_uint(value / 100);
+
+    // Check field length is enough for character counts in the string below
+    if (max_length >= 7 + 2 + 5) {
+        idx = tone_key_index_by_value(value);
+        if (idx != -1)
+            return freq_str + " #" + tone_key_string(idx);
+    } else {
+        // Not enough space; toggle between display of tone received and tone code #
+        if (tone_display_toggle++ >= TONE_DISPLAY_TOGGLE_COUNTER) {
+            if (tone_display_toggle >= TONE_DISPLAY_TOGGLE_COUNTER * 2) tone_display_toggle = 0;
+
+            // Look for a match in the table (otherwise just display frequency)
+            idx = tone_key_index_by_value(value);
+            if (idx != -1)
+                return "T:" + tone_key_string(idx);
+        }
+    }
+    return freq_str;
+}
+
+// Search tone_key table for tone frequency value
+// Value is in 0.01 Hz units
 tone_index tone_key_index_by_value(uint32_t value) {
-    float diff;
-    float min_diff{(float)value};
-    float fvalue{(float)((min_diff + 50.0) / 100.0)};
+    uint32_t diff;
+    uint32_t min_diff{UINT32_MAX};
     tone_index min_idx{-1};
     tone_index idx;
 
     // Find nearest match
     for (idx = 0; idx < (tone_index)tone_keys.size(); idx++) {
-        diff = abs(fvalue - tone_keys[idx].second);
+        diff = abs(value - tone_keys[idx].second);
         if (diff < min_diff) {
             min_idx = idx;
             min_diff = diff;
@@ -137,7 +167,7 @@ tone_index tone_key_index_by_value(uint32_t value) {
     }
 
     // Arbitrary confidence threshold
-    if (min_diff < 40.0)
+    if (min_diff < TONE_FREQ_TOLERANCE_CENTIHZ)
         return min_idx;
     else
         return -1;
@@ -147,7 +177,7 @@ tone_index tone_key_index_by_string(char* str) {
     if (!str)
         return -1;
     for (tone_index index = 0; (unsigned)index < tone_keys.size(); index++) {
-        if (tone_keys[index].first.compare(str) >= 0)
+        if (tone_keys[index].first.compare(str) >= 0)  // TODO: why >=?
             return index;
     }
     return -1;

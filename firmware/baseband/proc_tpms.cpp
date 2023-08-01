@@ -28,6 +28,7 @@
 TPMSProcessor::TPMSProcessor() {
     decim_0.configure(taps_200k_decim_0.taps, 33554432);
     decim_1.configure(taps_200k_decim_1.taps, 131072);
+    baseband_thread.start();
 }
 
 void TPMSProcessor::execute(const buffer_c8_t& buffer) {

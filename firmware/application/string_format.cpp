@@ -25,16 +25,15 @@
  * and fills it backwards towards the front.
  * The return value 'q' is a pointer to the start.
  * TODO: use std::array for all this. */
+template <typename Int>
 static char* to_string_dec_uint_internal(
     char* p,
-    uint32_t n) {
+    Int n) {
     *p = 0;
     auto q = p;
 
     do {
-        const uint32_t d = n % 10;
-        const char c = d + 48;
-        *(--q) = c;
+        *(--q) = n % 10 + '0';
         n /= 10;
     } while (n != 0);
 
@@ -60,11 +59,34 @@ static char* to_string_dec_uint_pad_internal(
     return q;
 }
 
-char* to_string_dec_uint(const uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+template <typename Int>
+char* to_string_dec_uint_internal(Int n, StringFormatBuffer& buffer, size_t& length) {
     auto end = &buffer.back();
     auto start = to_string_dec_uint_internal(end, n);
     length = end - start;
     return start;
+}
+
+char* to_string_dec_uint(uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+    return to_string_dec_uint_internal(n, buffer, length);
+}
+
+char* to_string_dec_uint64(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
+    return to_string_dec_uint_internal(n, buffer, length);
+}
+
+std::string to_string_dec_uint(uint32_t n) {
+    StringFormatBuffer b{};
+    size_t len{};
+    char* str = to_string_dec_uint(n, b, len);
+    return std::string(str, len);
+}
+
+std::string to_string_dec_uint64(uint64_t n) {
+    StringFormatBuffer b{};
+    size_t len{};
+    char* str = to_string_dec_uint(n, b, len);
+    return std::string(str, len);
 }
 
 std::string to_string_bin(
@@ -89,8 +111,8 @@ std::string to_string_dec_uint(
     auto term = p + sizeof(p) - 1;
     auto q = to_string_dec_uint_pad_internal(term, n, l, fill);
 
-    // TODO: is this needed, seems like pad already does this.
     // Right justify.
+    // (This code is redundant and won't do anything if a fill character was specified)
     while ((term - q) < l) {
         *(--q) = ' ';
     }
@@ -115,6 +137,7 @@ std::string to_string_dec_int(
     }
 
     // Right justify.
+    // (This code is redundant and won't do anything if a fill character was specified)
     while ((term - q) < l) {
         *(--q) = ' ';
     }
@@ -139,13 +162,47 @@ std::string to_string_decimal(float decimal, int8_t precision) {
     return result;
 }
 
+// right-justified frequency in Hz, always 10 characters
 std::string to_string_freq(const uint64_t f) {
-    auto final_str = to_string_dec_int(f / 1000000, 4) + to_string_dec_int(f % 1000000, 6, '0');
+    std::string final_str{""};
+
+    if (f < 1000000)
+        final_str = to_string_dec_int(f, 10, ' ');
+    else
+        final_str = to_string_dec_int(f / 1000000, 4) + to_string_dec_int(f % 1000000, 6, '0');
+
     return final_str;
 }
 
+// right-justified frequency in MHz, rounded to 4 decimal places, always 9 characters
 std::string to_string_short_freq(const uint64_t f) {
-    auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int((f / 100) % 10000, 4, '0');
+    auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int(((f + 50) / 100) % 10000, 4, '0');
+    return final_str;
+}
+
+// non-justified non-padded frequency in MHz, rounded to specified number of decimal places
+std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
+    std::string final_str{""};
+    static constexpr uint32_t pow10[7] = {
+        1,
+        10,
+        100,
+        1000,
+        10000,
+        100000,
+        1000000,
+    };
+
+    if (precision < 1) {
+        final_str = to_string_dec_uint64(f / 1000000);
+    } else {
+        if (precision > 6)
+            precision = 6;
+
+        uint32_t divisor = pow10[6 - precision];
+
+        final_str = to_string_dec_uint64(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
+    }
     return final_str;
 }
 
@@ -177,7 +234,7 @@ static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
 std::string to_string_hex(const uint64_t n, int32_t l) {
     char p[32];
 
-    l = std::min(l, 31L);
+    l = std::min<int32_t>(l, 31);
     to_string_hex_internal(p, n, l - 1);
     p[l] = 0;
     return p;
@@ -263,7 +320,7 @@ std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precisi
 
     string = to_string_dec_int(integer_part);
     if (precision)
-        string += '.' + to_string_dec_uint(fractional_part, precision);
+        string += '.' + to_string_dec_uint(fractional_part, precision, '0');
 
     if (prefix_index != 3)
         string += unit_prefix[prefix_index];
@@ -285,6 +342,9 @@ static const char* whitespace_str = " \t\r\n";
 
 std::string trim(std::string_view str) {
     auto first = str.find_first_not_of(whitespace_str);
+    if (first == std::string::npos)
+        return {};
+
     auto last = str.find_last_not_of(whitespace_str);
     return std::string{str.substr(first, last - first + 1)};
 }

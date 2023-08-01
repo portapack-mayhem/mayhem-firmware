@@ -33,10 +33,11 @@
 #include "portapack.hpp"
 #include "utility.hpp"
 
-#include <memory>
-#include <vector>
-#include <string>
 #include <functional>
+#include <memory>
+#include <string>
+#include <string_view>
+#include <vector>
 
 namespace ui {
 
@@ -202,11 +203,11 @@ class Text : public Widget {
     Text(Rect parent_rect, std::string text);
     Text(Rect parent_rect);
 
-    void set(const std::string value);
+    void set(std::string_view value);
 
     void paint(Painter& painter) override;
 
-   private:
+   protected:
     std::string text;
 };
 
@@ -455,7 +456,7 @@ class NewButton : public Widget {
     NewButton(const NewButton&) = delete;
     NewButton& operator=(const NewButton&) = delete;
     NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap);
-    NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color);
+    NewButton(Rect parent_rect, std::string text, const Bitmap* bitmap, Color color, bool vertical_center = false);
     NewButton()
         : NewButton{{}, {}, {}} {
     }
@@ -463,6 +464,7 @@ class NewButton : public Widget {
     void set_bitmap(const Bitmap* bitmap);
     void set_text(const std::string value);
     void set_color(Color value);
+    void set_vertical_center(bool value);
     std::string text() const;
     const Bitmap* bitmap();
     ui::Color color();
@@ -477,6 +479,7 @@ class NewButton : public Widget {
     std::string text_;
     const Bitmap* bitmap_;
     Color color_;
+    bool vertical_center_{false};
 };
 
 class Image : public Widget {
@@ -575,10 +578,10 @@ class ImageOptionsField : public Widget {
     std::function<void(void)> on_show_options{};
 
     ImageOptionsField(
-        const Rect parent_rect,
-        const Color foreground,
-        const Color background,
-        const options_t options);
+        Rect parent_rect,
+        Color foreground,
+        Color background,
+        options_t options);
 
     ImageOptionsField()
         : ImageOptionsField{{}, Color::white(), Color::black(), {}} {
@@ -615,15 +618,19 @@ class OptionsField : public Widget {
     std::function<void(size_t, value_t)> on_change{};
     std::function<void(void)> on_show_options{};
 
-    OptionsField(Point parent_pos, int length, options_t options);
+    OptionsField(Point parent_pos, size_t length, options_t options);
 
+    options_t& options() { return options_; }
+    const options_t& options() const { return options_; }
     void set_options(options_t new_options);
 
     size_t selected_index() const;
-    size_t selected_index_value() const;
+    const name_t& selected_index_name() const;
+    const value_t& selected_index_value() const;
     void set_selected_index(const size_t new_index, bool trigger_change = true);
 
     void set_by_value(value_t v);
+    void set_by_nearest_value(value_t v);
 
     void paint(Painter& painter) override;
 
@@ -632,19 +639,19 @@ class OptionsField : public Widget {
     bool on_touch(const TouchEvent event) override;
 
    private:
-    const int length_;
-    options_t options;
+    const size_t length_;
+    options_t options_;
     size_t selected_index_{0};
 };
 
-// A TextField is bound to a string reference and allows the string
+// A TextEdit is bound to a string reference and allows the string
 // to be manipulated. The field itself does not provide the UI for
 // setting the value. It provides the UI of rendering the text,
 // a cursor, and an API to edit the string content.
-class TextField : public Widget {
+class TextEdit : public Widget {
    public:
-    TextField(std::string& str, Point position, uint32_t length = 30)
-        : TextField{str, 64, position, length} {}
+    TextEdit(std::string& str, Point position, uint32_t length = 30)
+        : TextEdit{str, 64, position, length} {}
 
     // Str: the string containing the content to edit.
     // Max_length: max length the string is allowed to use.
@@ -653,12 +660,12 @@ class TextField : public Widget {
     //   - Characters are 8 pixels wide.
     //   - The screen can show 30 characters max.
     //   - The control is 16 pixels tall.
-    TextField(std::string& str, size_t max_length, Point position, uint32_t length = 30);
+    TextEdit(std::string& str, size_t max_length, Point position, uint32_t length = 30);
 
-    TextField(const TextField&) = delete;
-    TextField(TextField&&) = delete;
-    TextField& operator=(const TextField&) = delete;
-    TextField& operator=(TextField&&) = delete;
+    TextEdit(const TextEdit&) = delete;
+    TextEdit(TextEdit&&) = delete;
+    TextEdit& operator=(const TextEdit&) = delete;
+    TextEdit& operator=(TextEdit&&) = delete;
 
     const std::string& value() const;
 
@@ -681,6 +688,22 @@ class TextField : public Widget {
     uint32_t char_count_;
     uint32_t cursor_pos_;
     bool insert_mode_;
+};
+
+class TextField : public Text {
+   public:
+    std::function<void(TextField&)> on_select{};
+    std::function<void(TextField&)> on_change{};
+
+    TextField(Rect parent_rect, std::string text);
+
+    const std::string& get_text() const;
+    void set_text(std::string_view value);
+
+    bool on_key(KeyEvent key) override;
+
+   private:
+    using Text::set;
 };
 
 class NumberField : public Widget {

@@ -33,13 +33,10 @@
 class RDSProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const msg) override;
 
    private:
     uint32_t* rdsdata{};
-
-    BasebandThread baseband_thread{2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     uint16_t message_length{0};
     int8_t re{0}, im{0};
@@ -132,6 +129,9 @@ class RDSProcessor : public BasebandProcessor {
         0, -14, -27, -41, -53, -66, -77, -88,
         -99, -109, -118, -126, -134, -141, -147, -152,
         -157, -160, -163, -166, -167, -168, -168, -167};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{2280000, this, baseband::Direction::Transmit};
 };
 
 #endif

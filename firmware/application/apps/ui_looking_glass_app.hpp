@@ -71,7 +71,7 @@ class GlassView : public View {
 
    private:
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
     app_settings::SettingsManager settings_{
         "rx_glass", app_settings::Mode::RX};
 

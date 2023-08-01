@@ -482,7 +482,7 @@ class SetEncoderDialView : public View {
         {20 * 8, 3 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
-         {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_MEDIUM},
+         {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
 
     Button button_save{

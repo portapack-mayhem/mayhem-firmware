@@ -31,6 +31,9 @@ jobs:
         run: mkdir ${{ github.workspace }}/build
       - name: Run the Docker image
         run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev
+      - name: Create Small SD Card ZIP - No World Map
+        run: |
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && zip -r sdcard-no-map.zip sdcard
       - name: Download world map
         run: |
           wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
@@ -44,8 +47,10 @@ jobs:
         run: |
           mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && zip -r sdcard.zip sdcard
       - name: Create changelog
+        env:
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
         run: |
-          CHANGELOG=$(python3 .github/workflows/stable_changelog.py ${{ steps.past_version.outputs.past_version }})
+          CHANGELOG=$(python3 .github/workflows/changelog.py ${{ steps.past_version.outputs.past_version }})
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
@@ -95,5 +100,15 @@ jobs:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./sdcard.zip
           asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD.zip
+          asset_content_type: application/zip
+      - name: Upload SD Card Assets - No Map
+        id: upload-sd-card-asset-no-map 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./sdcard-no-map.zip
+          asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD-no-world-map.zip
           asset_content_type: application/zip
      

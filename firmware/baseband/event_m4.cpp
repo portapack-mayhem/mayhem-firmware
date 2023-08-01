@@ -19,20 +19,17 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "event_m4.hpp"
-#include "debug.hpp"
-
-#include "portapack_shared_memory.hpp"
-
-#include "message_queue.hpp"
-
 #include "ch.h"
-
+#include "debug.hpp"
+#include "event_m4.hpp"
 #include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+#include "message_queue.hpp"
+#include "portapack_shared_memory.hpp"
 
 #include <cstdint>
 #include <array>
+
+using namespace lpc43xx;
 
 extern "C" {
 
@@ -60,6 +57,10 @@ void EventDispatcher::run() {
     thread_event_loop = chThdSelf();
 
     lpc43xx::creg::m0apptxevent::enable();
+
+    // Indicate to the M0 thread that
+    // M4 is ready to receive message events.
+    shared_memory.set_baseband_ready();
 
     while (is_running) {
         const auto events = wait();

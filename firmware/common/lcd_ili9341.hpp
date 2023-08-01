@@ -25,6 +25,7 @@
 
 #include "ui.hpp"
 #include "ui_text.hpp"
+#include "file.hpp"
 
 #include <cstdint>
 #include <array>
@@ -58,7 +59,7 @@ class ILI9341 {
 
     void draw_pixel(const ui::Point p, const ui::Color color);
     void drawBMP(const ui::Point p, const uint8_t* bitmap, const bool transparency);
-    bool drawBMP2(const ui::Point p, const std::string file);
+    bool drawBMP2(const ui::Point p, const std::filesystem::path& file);
     void render_line(const ui::Point p, const uint8_t count, const ui::Color* line_buffer);
     void render_box(const ui::Point p, const ui::Size s, const ui::Color* line_buffer);
 
@@ -99,6 +100,9 @@ class ILI9341 {
     constexpr ui::Dim height() const { return 320; }
     constexpr ui::Rect screen_rect() const { return {0, 0, width(), height()}; }
 
+    void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
+    void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
+
    private:
     struct scroll_t {
         ui::Coord top_area;
@@ -108,9 +112,6 @@ class ILI9341 {
     };
 
     scroll_t scroll_state;
-
-    void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);
-    void read_pixels(const ui::Rect r, ui::ColorRGB888* const colors, const size_t count);
 };
 
 } /* namespace lcd */

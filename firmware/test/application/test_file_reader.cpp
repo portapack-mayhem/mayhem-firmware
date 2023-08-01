@@ -38,6 +38,20 @@ TEST_CASE("It can iterate file lines.") {
     CHECK_EQ(line_count, 3);
 }
 
+TEST_CASE("It can iterate multiple times.") {
+    MockFile f{"abc\ndef\nhij"};
+    BufferLineReader<MockFile> reader{f};
+    int line_count = 0;
+    int line_count2 = 0;
+    for (const auto& line : reader)
+        ++line_count;
+    for (const auto& line : reader)
+        ++line_count2;
+
+    CHECK_EQ(line_count, 3);
+    CHECK_EQ(line_count2, 3);
+}
+
 TEST_CASE("It can iterate file ending with newline.") {
     MockFile f{"abc\ndef\nhij\n"};
     BufferLineReader<MockFile> reader{f};
@@ -132,6 +146,18 @@ TEST_CASE("It will split only empty columns.") {
 }
 
 TEST_SUITE_END();
+
+TEST_CASE("count_lines returns 1 for single line") {
+    MockFile f{"abs"};
+    BufferLineReader<MockFile> reader{f};
+    CHECK_EQ(count_lines(reader), 1);
+}
+
+TEST_CASE("count_lines returns 2 for 2 lines") {
+    MockFile f{"abs"};
+    BufferLineReader<MockFile> reader{f};
+    CHECK_EQ(count_lines(reader), 1);
+}
 
 /* Simple example of how to use this to read settings by lines. */
 TEST_CASE("It can parse a settings file.") {

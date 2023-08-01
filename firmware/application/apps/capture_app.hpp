@@ -31,7 +31,6 @@
 #include "ui_spectrum.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
-#include "freqman.hpp"
 
 namespace ui {
 
@@ -40,7 +39,6 @@ class CaptureAppView : public View {
     CaptureAppView(NavigationView& nav);
     ~CaptureAppView();
 
-    void on_hide() override;
     void focus() override;
     void set_parent_rect(const Rect new_parent_rect) override;
 
@@ -50,15 +48,14 @@ class CaptureAppView : public View {
     static constexpr ui::Dim header_height = 3 * 16;
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
         "rx_capture", app_settings::Mode::RX,
         app_settings::Options::UseGlobalTargetFrequency};
 
-    uint32_t sampling_rate = 0;
-
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
+        {{11 * 8, 1 * 16}, "Format:", Color::light_grey()},
     };
 
     RSSI rssi{
@@ -87,6 +84,12 @@ class CaptureAppView : public View {
         {5 * 8, 1 * 16},
         5,
         {}};
+
+    OptionsField option_format{
+        {18 * 8, 1 * 16},
+        3,
+        {{"C16", RecordView::FileType::RawS16},
+         {"C8", RecordView::FileType::RawS8}}};
 
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},

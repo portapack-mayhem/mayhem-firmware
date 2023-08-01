@@ -177,7 +177,9 @@ set(CPPSRC
 	event_m0.cpp
 	file_reader.cpp
 	file.cpp
+	freqman_db.cpp
 	freqman.cpp
+	io_convert.cpp
 	io_file.cpp
 	io_wave.cpp
 	irq_controls.cpp
@@ -234,6 +236,7 @@ set(CPPSRC
 	ui/ui_styles.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
+	ui/ui_tone_key.cpp
 	ui/ui_transmitter.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp

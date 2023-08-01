@@ -22,21 +22,21 @@
 
 #include "ui_mictx.hpp"
 
-#include "baseband_api.hpp"
 #include "audio.hpp"
-
-#include "wm8731.hpp"
-using wolfson::wm8731::WM8731;
-
-#include "tonesets.hpp"
+#include "baseband_api.hpp"
+#include "irq_controls.hpp"
+#include "ui_freqman.hpp"
 #include "portapack_hal.hpp"
 #include "string_format.hpp"
-#include "irq_controls.hpp"
+#include "tonesets.hpp"
+#include "ui_tone_key.hpp"
+#include "wm8731.hpp"
 
 #include <cstring>
 
 using namespace tonekey;
 using namespace portapack;
+using wolfson::wm8731::WM8731;
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 
@@ -145,25 +145,25 @@ void MicTXView::rxaudio(bool is_on) {
         audio::input::stop();
         baseband::shutdown();
 
-        if (enable_am || enable_usb || enable_lsb || enable_dsb) {  // "NFM/FM",0 ," WFM  ",1 ,  "  AM  ",2, " USB  ", 3, " LSB  ",4, " DSB-SC", 5
+        if (enable_am || enable_usb || enable_lsb || enable_dsb) {  // "NFM/FM", 0, " WFM  ", 1,  "  AM  ", 2, " USB  ", 3, " LSB  ", 4, " DSB-SC", 5
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);                 // that AM demodulation engine is common to all Amplitude mod : AM/USB/LSB/DSB (2,3,4,5)
-            if (options_mode.selected_index() < 5)                                       // We will be called here with 2,3,4,5 . We treat here demod. filter 2,3,4; (excluding DSB-C case (5) it is treated more down).
-                receiver_model.set_am_configuration(options_mode.selected_index() - 1);  // selecting proper filter(2,3,4). 2-1=1=>6k-AM(1) , 3-1=2=>+3k-USB(2), 4-1=3=>-3K-LSB(3),
-        } else {                                                                         // We are in NFM/FM or WFM    (NFM BW:8k5 or 11k / FM BW 16k  / WFM  BW:200k)
+            if (options_mode.selected_index() < 5)                                       // We will be called here with 2,3,4,5. We treat here demod. filter 2,3,4; (excluding DSB-C case (5) it is treated more down).
+                receiver_model.set_am_configuration(options_mode.selected_index() - 1);  // selecting proper filter(2,3,4). 2-1=1=>6k-AM(1), 3-1=2=>+3k-USB(2), 4-1=3=>-3K-LSB(3),
+        } else {                                                                         // We are in NFM/FM or WFM (NFM BW:8k5 or 11k / FM BW 16k / WFM BW:200k)
 
-            if (enable_wfm) {  // WFM , BW 200Khz aprox , or the two new addional BW filters (180k, 40k)
+            if (enable_wfm) {  // WFM, BW 200Khz aprox, or the two new addional BW filters (180k, 40k)
                 baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
-                // receiver_model.set_wfm_configuration(n);  // it is called above  , depending user's selection (200k, 180k,40k).
-            } else {  // NFM BW:8k5 or  11k / FM BW 16k
+                // receiver_model.set_wfm_configuration(n);  // it is called above, depending user's selection (200k, 180k, 0k).
+            } else {  // NFM BW:8k5 or 11k / FM BW 16k
                 baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);  //
-                                                                                        // receiver_model.set_nbfm_configuration(n); is called above  , depending user's selection (8k5, 11k, 16k).
+                                                                                        // receiver_model.set_nbfm_configuration(n); is called above, depending user's selection (8k5, 11k, 16k).
             }
         }
 
-        if (bool_same_F_tx_rx_enabled)                          // when stop TX ,define to which freq RX we return
+        if (bool_same_F_tx_rx_enabled)                          // when stop TX, define to which freq RX we return
             receiver_model.set_target_frequency(tx_frequency);  // Update freq also for RX = TX
         else
             receiver_model.set_target_frequency(rx_frequency);  // Now with separate freq controls!
@@ -196,7 +196,7 @@ MicTXView::MicTXView(
     baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 
     if (audio::debug::codec_name() == "WM8731") {
-        add_children({&labels_WM8731,  // we have audio codec WM8731, same MIC menu  as original.
+        add_children({&labels_WM8731,  // we have audio codec WM8731, same MIC menu as original.
                       &vumeter,
                       &options_gain,  // MIC GAIN float factor on the GUI.
                       &options_wm8731_boost_mode,
@@ -260,7 +260,7 @@ MicTXView::MicTXView(
         mic_gain = v / 10.0;
         configure_baseband();
     };
-    options_gain.set_selected_index(1);  // x1.0  preselected default.
+    options_gain.set_selected_index(1);  // x1.0 preselected default.
 
     if (audio::debug::codec_name() == "WM8731") {
         options_wm8731_boost_mode.on_change = [this](size_t, int8_t v) {
@@ -268,30 +268,30 @@ MicTXView::MicTXView(
                 case 0:                  // +12 dB’s respect reference level orig fw 1.5.x fw FM : when +20dB's boost ON) and shift bits (>>8),
                     shift_bits_s16 = 6;  // now mic-boost on (+20dBs) and shift bits (>>6), +20+12=32 dB’s (orig fw +20 dBs+ 0dBs)=> +12dB's respect ref.
                     break;
-                case 1:                  // +06 dB’s reference level , (when +20dB's boost ON)
+                case 1:                  // +06 dB’s reference level, (when +20dB's boost ON)
                     shift_bits_s16 = 7;  // now mic-boost on (+20dBs) and shift bits (>>7), +20+06=26 dB’s (orig fw +20 dBs+ 0dBs) => +06dB's respect ref.
                     break;
                 case 2:
-                    shift_bits_s16 = 4;  // +04 dB’s respect ref level , (when +20dB's boost OFF)
+                    shift_bits_s16 = 4;  // +04 dB’s respect ref level, (when +20dB's boost OFF)
                     break;               // now mic-boost off (+00dBs) shift bits (4) (+0+24dB's)=24 dBs => +04dB's respect ref.
                 case 3:
-                    shift_bits_s16 = 5;  // -02 dB’s respect ref level , (when +20dB's boost OFF)
+                    shift_bits_s16 = 5;  // -02 dB’s respect ref level, (when +20dB's boost OFF)
                     break;               // now mic-boost off (+00dBs) shift bits (5) (+0+18dB's)=18 dBs => -02dB's respect ref.
                 case 4:
-                    shift_bits_s16 = 6;  // -08 dB’s respect ref level , (when +20dB's boost OFF)
+                    shift_bits_s16 = 6;  // -08 dB’s respect ref level, (when +20dB's boost OFF)
                     break;               // now mic-boost off (+00dBs) shift bits (6) (+0+12dB's)=12 dBs => -08dB's respect ref.
             }
-            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0,..4 WM8731_boost dB's options, (combination boost on/off , and effective gain in captured data >>x)
-            audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731) , set up the proper wm_boost on/off , 0..4 (0,1) boost_on , (2,3,4) boost_0ff
-            configure_baseband();                                  // to update in real time, sending msg ,  var-parameters >>shift_bits FM msg ,to audio_tx from M0 to M4 Proc -
+            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0..4, WM8731_boost dB's options, (combination boost on/off, and effective gain in captured data >>x)
+            audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731), set up the proper wm_boost on/off, 0..4 (0,1) boost_on, (2,3,4) boost_off
+            configure_baseband();                                  // to update in real time, sending msg, var-parameters >>shift_bits FM msg, to audio_tx from M0 to M4 Proc -
         };
-        options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's .
+        options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's.
     } else {
-        shift_bits_s16 = 8;  // Initialized default fixed >>8_FM for FM tx mod , shift audio data for AK4951  ,using top 8 bits s16 data (>>8)
+        shift_bits_s16 = 8;  // Initialized default fixed >>8_FM for FM tx mod, shift audio data for AK4951, using top 8 bits s16 data (>>8)
         options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
-            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0,..11,  AK4951 Mic -Automatic volume Level Control  options,
+            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0..11, AK4951 Mic -Automatic volume Level Control options,
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (AK4951) ==> Set up proper ALC mode from 0..11 options
-            configure_baseband();                                  // sending fixed >>8_FM , var-parameters msg ,  to audiotx from this M0 to M4 process.
+            configure_baseband();                                  // sending fixed >>8_FM, var-parameters msg, to audiotx from this M0 to M4 process.
         };
     }
 
@@ -329,11 +329,11 @@ MicTXView::MicTXView(
     field_bw.on_change = [this](uint32_t v) {
         transmitter_model.set_channel_bandwidth(v * 1000);
     };
-    field_bw.set_value(10);  // pre-default first time, TX  deviation FM for NFM / FM
+    field_bw.set_value(10);  // pre-default first time, TX deviation FM for NFM / FM
 
-    // now , no need direct update , field_rfgain , field_rfamp (it is done in ui_transmitter.cpp)
+    // now, no need direct update, field_rfgain, field_rfamp (it is done in ui_transmitter.cpp)
 
-    options_mode.on_change = [this](size_t, int32_t v) {  //{ "NFM/FM", 0 }, { " WFM  ", 1 },{ "AM", 2 },{ "USB", 3 },{ "LSB", 4 },{ "DSB", 5 }
+    options_mode.on_change = [this](size_t, int32_t v) {  // { "NFM/FM", 0 }, { " WFM  ", 1 }, { "AM", 2 }, { "USB", 3 }, { "LSB", 4 }, { "DSB", 5 }
         enable_am = false;
         enable_usb = false;
         enable_lsb = false;
@@ -342,7 +342,7 @@ MicTXView::MicTXView(
 
         using option_t = std::pair<std::string, int32_t>;
         using options_t = std::vector<option_t>;
-        options_t rxbw;  // Aux structure to change dynamically  field_rxbw contents,
+        options_t rxbw;  // Aux structure to change dynamically field_rxbw contents,
 
         switch (v) {
             case 0:  //{ "FM", 0 }
@@ -354,15 +354,12 @@ MicTXView::MicTXView(
                 // field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
                 // if (rx_enabled)
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
-                options_tone_key.hidden(0);  // we are in FM mode , we should have active the Key-tones & CTCSS option.
+                options_tone_key.hidden(0);  // we are in FM mode, we should have active the Key-tones & CTCSS option.
 
-                rxbw.emplace_back(" NFM1:8k5  ", 0);  // restore the original dynamic field_rxbw value.
-                rxbw.emplace_back(" NFM2:11k  ", 1);
-                rxbw.emplace_back(" FM  :16k  ", 2);
-                field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
-
-                field_rxbw.hidden(0);  // we are in FM mode,  we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K)
-                field_bw.hidden(0);    // we are in FM mode, we need to allow FM deviation parameter , in non FM mode.
+                freqman_set_bandwidth_option(NFM_MODULATION, field_rxbw);  // restore dynamic field_rxbw value with NFM options from freqman_db.cpp
+                field_rxbw.set_by_value(2);                                // // bw 16k (2) default
+                field_rxbw.hidden(0);                                      // we are in FM mode, we need to allow the user set up of the RX NFM BW selection (8K5, 11K, 16K)
+                field_bw.hidden(0);                                        // we are in FM mode, we need to allow FM deviation parameter, in non FM mode.
                 break;
             case 1:  //{ "WFM", 1 }
                 enable_am = false;
@@ -374,50 +371,47 @@ MicTXView::MicTXView(
                 // field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
                 // if (rx_enabled)
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
-                options_tone_key.hidden(0);  // we are in WFM mode , we should have active the Key-tones & CTCSS option.
+                options_tone_key.hidden(0);  // we are in WFM mode, we should have active the Key-tones & CTCSS option.
 
-                rxbw.emplace_back("  200k-WFM ", 0);  // We allow the user selection of the 3 x WFM BW filters, (0) WFM-200K, (1) WFM-180K , (2) WFM-40K .
-                rxbw.emplace_back("  180k-WFM ", 1);
-                rxbw.emplace_back("   40k-WFM ", 2);
-                field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
-
-                field_rxbw.hidden(0);  // we are in WFM mode,  we need to show to the user the selected BW WFM filter .
-                field_bw.hidden(0);    // we are in WFM mode, we need to allow WFM deviation parameter , in non FM mode.
+                freqman_set_bandwidth_option(WFM_MODULATION, field_rxbw);  // restore dynamic field_rxbw value with WFM options from freqman_db.cpp
+                field_rxbw.set_by_value(0);                                // bw 200k (0) default
+                field_rxbw.hidden(0);                                      // we are in WFM mode, we need to show to the user the selected BW WFM filter.
+                field_bw.hidden(0);                                        // we are in WFM mode, we need to allow WFM deviation parameter, in non FM mode.
                 break;
             case 2:  //{ "AM", 2 }
                 enable_am = true;
                 rxaudio(rx_enabled);                     // Update now if we have RX audio on
-                options_tone_key.set_selected_index(0);  // we are NOT in FM mode ,  we reset the possible previous key-tones &CTCSS selection.
+                options_tone_key.set_selected_index(0);  // we are NOT in FM mode, we reset the possible previous key-tones &CTCSS selection.
                 set_dirty();                             // Refresh display
                 options_tone_key.hidden(1);              // we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).
 
-                rxbw.emplace_back(" DSB1-9k   ", 0);  // we offer in AM DSB two audio BW 9k / 6k  .
-                rxbw.emplace_back(" DSB2-6k   ", 1);
+                rxbw.emplace_back("DSB 9k", 0);  // we offer in AM DSB two audio BW 9k / 6k.
+                rxbw.emplace_back("DSB 6k", 1);
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 
-                field_rxbw.hidden(0);       // we show fixed RX  AM BW 6Khz
-                field_bw.hidden(1);         // we hide the FM TX deviation parameter , in non FM mode.
+                field_rxbw.hidden(0);       // we show fixed RX AM BW 6Khz
+                field_bw.hidden(1);         // we hide the FM TX deviation parameter, in non FM mode.
                 check_rogerbeep.hidden(0);  // make visible again the "rogerbeep" selection.
                 break;
             case 3:  //{ "USB", 3 }
                 enable_usb = true;
                 rxaudio(rx_enabled);               // Update now if we have RX audio on
-                check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB , by now.
+                check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB, by now.
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
-                rxbw.emplace_back("  USB+3k   ", 0);  // locked a fixed option , to display it .
-                field_rxbw.set_options(rxbw);         // store that aux GUI option to the field_rxbw.
+                rxbw.emplace_back("USB+3k", 0);  // locked a fixed option, to display it.
+                field_rxbw.set_options(rxbw);    // store that aux GUI option to the field_rxbw.
 
                 set_dirty();  // Refresh display
                 break;
             case 4:  //{ "LSB", 4 }
                 enable_lsb = true;
                 rxaudio(rx_enabled);               // Update now if we have RX audio on
-                check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB , by now.
+                check_rogerbeep.set_value(false);  // reset the possible activation of roger beep, because it is not compatible with SSB, by now.
                 check_rogerbeep.hidden(1);         // hide that roger beep selection.
 
-                rxbw.emplace_back("  LSB-3k   ", 0);  // locked a fixed option , to display it .
-                field_rxbw.set_options(rxbw);         // store that aux GUI option to the field_rxbw.
+                rxbw.emplace_back("LSB-3k", 0);  // locked a fixed option, to display it.
+                field_rxbw.set_options(rxbw);    // store that aux GUI option to the field_rxbw.
 
                 set_dirty();  // Refresh display
                 break;
@@ -426,8 +420,8 @@ MicTXView::MicTXView(
                 rxaudio(rx_enabled);        // Update now if we have RX audio on
                 check_rogerbeep.hidden(0);  // make visible again the "rogerbeep" selection.
 
-                rxbw.emplace_back("SSB1:USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-C case to the  field_rxbw value.
-                rxbw.emplace_back("SSB2:LSB-3k", 1);
+                rxbw.emplace_back("USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-SC case to the field_rxbw value.
+                rxbw.emplace_back("LSB-3k", 1);
 
                 field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
 
@@ -479,7 +473,7 @@ MicTXView::MicTXView(
 
     check_common_freq_tx_rx.on_select = [this](Checkbox&, bool v) {
         bool_same_F_tx_rx_enabled = v;
-        field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field . (When no hide user can enter down indep. freq for RX)
+        field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field. (When no hide user can enter down indep. freq for RX)
         set_dirty();                                                           // Refresh GUI interface
         receiver_model.set_target_frequency(v ? tx_frequency : rx_frequency);  // To go to the proper tuned freq. when toggling it
     };
@@ -510,17 +504,17 @@ MicTXView::MicTXView(
 
     field_rxbw.on_change = [this](size_t, int32_t v) {
         if (!(enable_am || enable_usb || enable_lsb || enable_dsb || enable_wfm)) {
-            // In Previous fw versions, that nbfm_configuration(n)  was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in (NFM/FM)
-            receiver_model.set_nbfm_configuration(v);    // we are in  NFM/FM case, we need to  select proper NFM/FM RX channel filter , NFM BW 8K5(0), NFM BW 11K(1) , FM BW 16K (2)
-        } else {                                         // we are not in  NFM/FM mode  .(we could be in any of the rest : AM /USB/LSB/DSB-SC)
-            if (enable_am) {                             // we are in AM TX mode , we will allow both independent RX audio BW :  AM 9K (9K00AE3 / AM 6K (6K00AE3). (In AM option v can be 0 (9k) , 1 (6k)
-                receiver_model.set_am_configuration(v);  // we are in AM TX mode , we need to  select proper AM full path config AM-9K filter. 0+0 =>AM-9K(0), 0+1=1 =>AM-6K(1),
+            // In Previous fw versions, that nbfm_configuration(n) was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in (NFM/FM)
+            receiver_model.set_nbfm_configuration(v);    // we are in NFM/FM case, we need to select proper NFM/FM RX channel filter, NFM BW 8K5(0), NFM BW 11K(1), FM BW 16K (2)
+        } else {                                         // we are not in NFM/FM mode. (we could be in any of the rest : AM /USB/LSB/DSB-SC)
+            if (enable_am) {                             // we are in AM TX mode, we will allow both independent RX audio BW : AM 9K (9K00AE3 / AM 6K (6K00AE3). (In AM option v can be 0 (9k), 1 (6k)
+                receiver_model.set_am_configuration(v);  // we are in AM TX mode, we need to select proper AM full path config AM-9K filter. 0+0 =>AM-9K(0), 0+1=1 =>AM-6K(1),
             }
-            if (enable_dsb) {                                // we are in DSB-SC in TX mode , we will allow both independent RX SSB demodulation (USB / LSB side band). in that submenu, v is 0 (SSB1 USB) or 1 (SSB2 LSB)
-                receiver_model.set_am_configuration(v + 2);  // we are in DSB-SC TX mode , we need to  select proper SSB filter. 0+2 =>usb(2), 1+2=3 =>lsb(3),
+            if (enable_dsb) {                                // we are in DSB-SC in TX mode, we will allow both independent RX SSB demodulation (USB / LSB side band). in that submenu, v is 0 (SSB1 USB) or 1 (SSB2 LSB)
+                receiver_model.set_am_configuration(v + 2);  // we are in DSB-SC TX mode, we need to select proper SSB filter. 0+2 =>usb(2), 1+2=3 =>lsb(3),
             }
             if (enable_wfm) {
-                receiver_model.set_wfm_configuration(v);  // we are in  WFM case, we need to  select proper WFB RX BW filter , WFM BW 200K(0), WFM BW 180K(1) , WFM BW 40K(2)
+                receiver_model.set_wfm_configuration(v);  // we are in WFM case, we need to select proper WFB RX BW filter, WFM BW 200K(0), WFM BW 180K(1), WFM BW 40K(2)
             }
         }
     };
@@ -605,6 +599,36 @@ MicTXView::MicTXView(
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.
+}
+
+MicTXView::MicTXView(
+    NavigationView& nav,
+    ReceiverModel::settings_t override)
+    : MicTXView(nav) {
+    // Try to use the modulation/bandwidth from RX settings.
+    // TODO: These concepts should be merged so there's only one.
+    // TODO: enums/constants for these indexes.
+    switch (override.mode) {
+        case ReceiverModel::Mode::AMAudio:
+            options_mode.set_selected_index(2);
+            break;
+        case ReceiverModel::Mode::NarrowbandFMAudio:
+            options_mode.set_selected_index(0);
+            break;
+        case ReceiverModel::Mode::WidebandFMAudio:
+            options_mode.set_selected_index(1);
+            break;
+
+        // Unsupported modulations.
+        case ReceiverModel::Mode::SpectrumAnalysis:
+        case ReceiverModel::Mode::Capture:
+        default:
+            break;
+    }
+
+    // TODO: bandwidth selection is tied too tightly to the UI
+    // controls. It's not possible to set the bandwidth here without
+    // refactoring. Also options_mode seems to have a category error.
 }
 
 MicTXView::~MicTXView() {

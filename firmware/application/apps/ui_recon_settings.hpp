@@ -50,6 +50,8 @@
 // maximum lock duration
 #define RECON_MAX_LOCK_DURATION 9900
 
+#define RECON_DEF_SQUELCH -14
+
 // default number of match to have a lock
 #define RECON_DEF_NB_MATCH 3
 #define RECON_MIN_LOCK_DURATION 100   // have to be >= and a multiple of STATS_UPDATE_INTERVAL
@@ -135,7 +137,7 @@ class ReconSetupViewMore : public View {
     Checkbox checkbox_auto_record_locked{
         {1 * 8, 132},
         3,
-        "auto record locked periods"};
+        "record locked periods"};
 };
 
 class ReconSetupView : public View {

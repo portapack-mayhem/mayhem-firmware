@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -23,53 +25,48 @@
 #define __UI_FREQLIST_H__
 
 #include "ui.hpp"
-#include "ui_widget.hpp"
 #include "ui_painter.hpp"
 #include "ui_styles.hpp"
+#include "ui_widget.hpp"
 #include "event_m0.hpp"
-#include "message.hpp"
 #include "freqman.hpp"
+#include "freqman_db.hpp"
+#include "message.hpp"
 #include <cstdint>
 
 namespace ui {
 
 class FreqManUIList : public Widget {
    public:
-    std::function<void(FreqManUIList&)> on_select{};
-    std::function<void(FreqManUIList&)> on_touch_release{};  // Executed when releasing touch, after on_select.
-    std::function<void(FreqManUIList&)> on_touch_press{};    // Executed when touching, before on_select.
-    std::function<bool(FreqManUIList&, KeyEvent)> on_dir{};
-    std::function<void(FreqManUIList&)> on_highlight{};
+    std::function<void(size_t)> on_select{};
+    std::function<void()> on_leave{};  // Called when Right is pressed.
 
-    FreqManUIList(Rect parent_rect, bool instant_exec);  // instant_exec: Execute on_select when you touching instead of releasing
-    FreqManUIList(
-        Rect parent_rect)
-        : FreqManUIList{parent_rect, false} {
-    }
-    FreqManUIList()
-        : FreqManUIList{{}, {}} {
-    }
+    FreqManUIList(Rect parent_rect);
     FreqManUIList(const FreqManUIList& other) = delete;
     FreqManUIList& operator=(const FreqManUIList& other) = delete;
 
     void paint(Painter& painter) override;
     void on_focus() override;
+    void on_blur() override;
     bool on_key(const KeyEvent key) override;
-    bool on_touch(const TouchEvent event) override;
     bool on_encoder(EncoderEvent delta) override;
+    void set_parent_rect(Rect new_parent_rect) override;
 
-    void set_highlighted_index(int index);  // internal set highlighted_index in list handler
-    uint8_t get_index();                    // return highlighed + index
-    uint8_t set_index(uint8_t index);       // try to set current_index + highlighed from index, return capped index
-    void set_db(freqman_db& db);
+    void set_index(size_t index);
+    size_t get_index() const;
+    void set_db(FreqmanDB& db);
 
    private:
+    void adjust_selected_index(int index);
+
     static constexpr int8_t char_height = 16;
-    bool instant_exec_{false};
-    freqman_db* freqlist_db{nullptr};
-    int current_index{0};
-    int highlighted_index{0};
-    int freqlist_nb_lines{0};
+    static constexpr int8_t char_width = 8;
+    static constexpr int8_t line_max_length = 29;
+    size_t visible_lines_{0};
+
+    FreqmanDB* db_{nullptr};
+    size_t start_index_{0};
+    size_t selected_index_{0};
 };
 
 }  // namespace ui

@@ -38,7 +38,6 @@
 class AFSKRxProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
@@ -52,9 +51,6 @@ class AFSKRxProcessor : public BasebandProcessor {
         WAIT_STOP,
         RECEIVE
     };
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -93,9 +89,13 @@ class AFSKRxProcessor : public BasebandProcessor {
     bool trigger_word{};
     bool triggered{};
 
-    void configure(const AFSKRxConfigureMessage& message);
-
     AFSKDataMessage data_message{false, 0};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
+
+    void configure(const AFSKRxConfigureMessage& message);
 };
 
 #endif /*__PROC_TPMS_H__*/

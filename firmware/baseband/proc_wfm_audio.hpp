@@ -38,15 +38,11 @@
 class WidebandFMAudio : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const message) override;
 
    private:
     static constexpr size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
-
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -93,6 +89,11 @@ class WidebandFMAudio : public BasebandProcessor {
     size_t spectrum_samples = 0;
 
     bool configured{false};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
+
     void configure(const WFMConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
     void post_message(const buffer_c16_t& data);

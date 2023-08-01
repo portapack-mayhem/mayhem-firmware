@@ -31,13 +31,10 @@
 class TonesProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const p) override;
 
    private:
     bool configured = false;
-
-    BasebandThread baseband_thread{1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     std::array<int16_t, 32> audio{};  // 2048/64
     const buffer_s16_t audio_buffer{
@@ -63,6 +60,9 @@ class TonesProcessor : public BasebandProcessor {
 
     TXProgressMessage txprogress_message{};
     AudioOutput audio_output{};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{1536000, this, baseband::Direction::Transmit};
 };
 
 #endif

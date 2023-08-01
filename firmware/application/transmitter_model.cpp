@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -22,15 +23,13 @@
 
 #include "transmitter_model.hpp"
 
+#include "audio.hpp"
 #include "baseband_api.hpp"
-
-#include "portapack_persistent_memory.hpp"
+#include "event_m0.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack.hpp"
-#include "rtc_time.hpp"
-#include "event_m0.hpp"
+#include "portapack_persistent_memory.hpp"
 #include "radio.hpp"
-#include "audio.hpp"
 
 using namespace hackrf::one;
 using namespace portapack;
@@ -44,75 +43,52 @@ void TransmitterModel::set_target_frequency(rf::Frequency f) {
     update_tuning_frequency();
 }
 
-void TransmitterModel::set_antenna_bias() {
-    update_antenna_bias();
-}
-
-bool TransmitterModel::rf_amp() const {
-    return rf_amp_;
-}
-
-void TransmitterModel::set_rf_amp(bool enabled) {
-    rf_amp_ = enabled;
-    update_rf_amp();
-}
-
-int32_t TransmitterModel::lna() const {
-    return lna_gain_db_;
-}
-
-void TransmitterModel::set_lna(int32_t v_db) {
-    lna_gain_db_ = v_db;
-    update_lna();
-}
-
 uint32_t TransmitterModel::baseband_bandwidth() const {
-    return baseband_bandwidth_;
+    return settings_.baseband_bandwidth;
 }
 
 void TransmitterModel::set_baseband_bandwidth(uint32_t v) {
-    baseband_bandwidth_ = v;
+    settings_.baseband_bandwidth = v;
     update_baseband_bandwidth();
 }
 
-int32_t TransmitterModel::vga() const {
-    return vga_gain_db_;
-}
-
-void TransmitterModel::set_vga(int32_t v_db) {
-    vga_gain_db_ = v_db;
-    update_vga();
-}
-
-uint32_t TransmitterModel::channel_bandwidth() const {
-    return channel_bandwidth_;
-}
-
-void TransmitterModel::set_channel_bandwidth(uint32_t v) {
-    channel_bandwidth_ = v;
-}
-
 uint32_t TransmitterModel::sampling_rate() const {
-    return sampling_rate_;
+    return settings_.sampling_rate;
 }
 
 void TransmitterModel::set_sampling_rate(uint32_t v) {
-    sampling_rate_ = v;
+    settings_.sampling_rate = v;
     update_sampling_rate();
 }
 
-int32_t TransmitterModel::tx_gain() const {
-    return tx_gain_db_;
+uint32_t TransmitterModel::channel_bandwidth() const {
+    return settings_.channel_bandwidth;
 }
 
-void TransmitterModel::set_tx_gain(int32_t v_db) {
-    tx_gain_db_ = v_db;
+void TransmitterModel::set_channel_bandwidth(uint32_t v) {
+    settings_.channel_bandwidth = v;
+}
+
+uint8_t TransmitterModel::tx_gain() const {
+    return settings_.tx_gain_db;
+}
+
+void TransmitterModel::set_tx_gain(uint8_t v_db) {
+    settings_.tx_gain_db = v_db;
     update_tx_gain();
 }
 
-void TransmitterModel::on_tick_second() {
-    if (portapack::persistent_memory::stealth_mode())
-        led_tx.toggle();
+bool TransmitterModel::rf_amp() const {
+    return settings_.rf_amp;
+}
+
+void TransmitterModel::set_rf_amp(bool enabled) {
+    settings_.rf_amp = enabled;
+    update_rf_amp();
+}
+
+void TransmitterModel::set_antenna_bias() {
+    update_antenna_bias();
 }
 
 void TransmitterModel::enable() {
@@ -121,8 +97,6 @@ void TransmitterModel::enable() {
     update_tuning_frequency();
     update_antenna_bias();
     update_rf_amp();
-    update_lna();
-    update_vga();
     update_baseband_bandwidth();
     update_sampling_rate();
     update_tx_gain();
@@ -147,53 +121,25 @@ void TransmitterModel::disable() {
     led_tx.off();
 }
 
-void TransmitterModel::set_configuration_without_update(
-    uint32_t baseband_bandwidth,
-    uint32_t sampling_rate) {
-    baseband_bandwidth_ = baseband_bandwidth;
-    sampling_rate_ = sampling_rate;
+void TransmitterModel::initialize() {
+    settings_ = settings_t{};
 }
 
 void TransmitterModel::configure_from_app_settings(
     const app_settings::AppSettings& settings) {
-    baseband_bandwidth_ = settings.baseband_bandwidth;
-    channel_bandwidth_ = settings.channel_bandwidth;
-    tx_gain_db_ = settings.tx_gain;
-    rf_amp_ = settings.tx_amp;
-
-    // TODO: Do these make sense for TX?
-    lna_gain_db_ = settings.lna;
-    vga_gain_db_ = settings.vga;
-    sampling_rate_ = settings.sampling_rate;
+    settings_.baseband_bandwidth = settings.baseband_bandwidth;
+    settings_.sampling_rate = settings.sampling_rate;
+    settings_.channel_bandwidth = settings.channel_bandwidth;
+    settings_.tx_gain_db = settings.tx_gain;
+    settings_.rf_amp = settings.tx_amp;
 }
 
 void TransmitterModel::update_tuning_frequency() {
     radio::set_tuning_frequency(target_frequency());
 }
 
-void TransmitterModel::update_antenna_bias() {
-    if (enabled_)
-        radio::set_antenna_bias(portapack::get_antenna_bias());
-}
-
-void TransmitterModel::update_rf_amp() {
-    radio::set_rf_amp(rf_amp_);
-}
-
-void TransmitterModel::update_lna() {
-    radio::set_lna_gain(lna_gain_db_);
-}
-
 void TransmitterModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth(baseband_bandwidth_);
-}
-
-void TransmitterModel::update_vga() {
-    radio::set_vga_gain(vga_gain_db_);
-}
-
-void TransmitterModel::update_tx_gain() {
-    radio::set_tx_gain(tx_gain_db_);
+    radio::set_baseband_filter_bandwidth(baseband_bandwidth());
 }
 
 void TransmitterModel::update_sampling_rate() {
@@ -205,4 +151,22 @@ void TransmitterModel::update_sampling_rate() {
 
     radio::set_baseband_rate(sampling_rate());
     update_tuning_frequency();
+}
+
+void TransmitterModel::update_tx_gain() {
+    radio::set_tx_gain(tx_gain());
+}
+
+void TransmitterModel::update_rf_amp() {
+    radio::set_rf_amp(rf_amp());
+}
+
+void TransmitterModel::update_antenna_bias() {
+    if (enabled_)
+        radio::set_antenna_bias(portapack::get_antenna_bias());
+}
+
+void TransmitterModel::on_tick_second() {
+    if (portapack::persistent_memory::stealth_mode())
+        led_tx.toggle();
 }

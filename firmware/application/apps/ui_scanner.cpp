@@ -21,11 +21,17 @@
  */
 
 #include "ui_scanner.hpp"
+
+#include "optional.hpp"
 #include "ui_fileman.hpp"
+#include "ui_freqman.hpp"
 
 using namespace portapack;
+namespace fs = std::filesystem;
 
 namespace ui {
+
+static const fs::path default_scan_file{u"FREQMAN/SCANNER.TXT"};
 
 ScannerThread::ScannerThread(std::vector<rf::Frequency> frequency_list)
     : frequency_list_{std::move(frequency_list)} {
@@ -33,7 +39,7 @@ ScannerThread::ScannerThread(std::vector<rf::Frequency> frequency_list)
     create_thread();
 }
 
-ScannerThread::ScannerThread(const jammer::jammer_range_t& frequency_range, size_t def_step_hz)
+ScannerThread::ScannerThread(const scanner_range_t& frequency_range, size_t def_step_hz)
     : frequency_range_(frequency_range), def_step_hz_(def_step_hz) {
     _manual_search = true;
     create_thread();
@@ -79,7 +85,7 @@ void ScannerThread::set_freq_del(const rf::Frequency v) {
 }
 
 // Force a one-time forward or reverse frequency index change; OK to do this without pausing scan thread
-//(used when rotary encoder is turned)
+// (used when rotary encoder is turned)
 void ScannerThread::set_index_stepper(const int32_t v) {
     _index_stepper = v;
 }
@@ -227,15 +233,24 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
     }
 
     if (!manual_search) {
-        if (frequency_list.size() > 0) {
+        if (entries.size() > 0)
             text_current_index.set(to_string_dec_uint(freq_idx + 1, 3));
-        }
 
-        if (freq_idx < description_list.size() && description_list[freq_idx].size() > 1)
-            desc_current_index.set(description_list[freq_idx]);  // Show description from file
+        if (freq_idx < entries.size() && entries[freq_idx].description.size() > 1)
+            text_current_desc.set(entries[freq_idx].description);  // Show description from file
         else
-            desc_current_index.set(desc_freq_list_scan);  // Show Scan file name (no description in file)
+            text_current_desc.set(loaded_filename());  // Show Scan file name (no description in file)
     }
+}
+
+std::string ScannerView::loaded_filename() const {
+    auto filename = loaded_path.filename().string();
+    if (filename.length() > 23) {  // Truncate and add ellipses if long file name
+        filename.resize(22);
+        filename = filename + "+";
+    }
+
+    return filename;
 }
 
 void ScannerView::focus() {
@@ -253,46 +268,46 @@ ScannerView::~ScannerView() {
 void ScannerView::show_max_index() {  // show total number of freqs to scan
     text_current_index.set("---");
 
-    if (frequency_list.size() == FREQMAN_MAX_PER_FILE) {
+    if (entries.size() == FREQMAN_MAX_PER_FILE) {
         text_max_index.set_style(&Styles::red);
         text_max_index.set("/ " + to_string_dec_uint(FREQMAN_MAX_PER_FILE) + " (DB MAX!)");
     } else {
         text_max_index.set_style(&Styles::grey);
-        text_max_index.set("/ " + to_string_dec_uint(frequency_list.size()));
+        text_max_index.set("/ " + to_string_dec_uint(entries.size()));
     }
 }
 
 ScannerView::ScannerView(
     NavigationView& nav)
-    : nav_{nav}, loaded_file_name{"SCANNER"} {
-    add_children({&labels,
-                  &field_lna,
-                  &field_vga,
-                  &field_rf_amp,
-                  &field_volume,
-                  &field_bw,
-                  &field_squelch,
-                  &field_browse_wait,
-                  &field_lock_wait,
-                  &button_load,
-                  &button_clear,
-                  &rssi,
-                  &text_current_index,
-                  &text_max_index,
-                  &desc_current_index,
-                  &big_display,
-                  &button_manual_start,
-                  &button_manual_end,
-                  &field_mode,
-                  &field_step,
-                  &button_manual_search,
-                  &button_pause,
-                  &button_dir,
-                  &button_audio_app,
-                  &button_mic_app,
-                  &button_add,
-                  &button_remove
-
+    : nav_{nav} {
+    add_children({
+        &labels,
+        &field_lna,
+        &field_vga,
+        &field_rf_amp,
+        &field_volume,
+        &field_bw,
+        &field_squelch,
+        &field_browse_wait,
+        &field_lock_wait,
+        &button_load,
+        &button_clear,
+        &rssi,
+        &text_current_index,
+        &text_max_index,
+        &text_current_desc,
+        &big_display,
+        &button_manual_start,
+        &button_manual_end,
+        &field_mode,
+        &field_step,
+        &button_manual_search,
+        &button_pause,
+        &button_dir,
+        &button_audio_app,
+        &button_mic_app,
+        &button_add,
+        &button_remove,
     });
 
     // Populate option text for these fields
@@ -311,34 +326,29 @@ ScannerView::ScannerView(
     frequency_range.max = stored_freq + 1000000;
     button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
-    // Button to load txt files from the FREQMAN folder
+    // Button to load a Freqman file.
     button_load.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
-            std::string dir_filter = "FREQMAN/";
-            std::string str_file_path = new_file_path.string();
-
-            if (str_file_path.find(dir_filter) != string::npos) {  // assert file from the FREQMAN folder
+        open_view->push_dir(freqman_dir);
+        open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
+            if (new_file_path.native().find(freqman_dir.native()) == 0) {
                 scan_pause();
-                // get the filename without txt extension so we can use load_freqman_file fcn
-                std::string str_file_name = new_file_path.stem().string();
-                frequency_file_load(str_file_name, true);
+                frequency_file_load(new_file_path);
             } else {
-                nav_.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
             }
         };
     };
 
     // Button to clear in-memory frequency list
     button_clear.on_select = [this, &nav](Button&) {
-        if (scan_thread && frequency_list.size()) {
+        if (scan_thread && entries.size()) {
             scan_thread->stop();  // STOP SCANNER THREAD
-            frequency_list.clear();
-            description_list.clear();
+            entries.clear();
 
             show_max_index();  // UPDATE new list size on screen
             text_current_index.set("");
-            desc_current_index.set(desc_freq_list_scan);
+            text_current_desc.set(loaded_filename());
             scan_thread->set_freq_lock(0);  // Reset the scanner lock
 
             // FUTURE: Consider switching to manual search mode automatically after clear (but would need to validate freq range)
@@ -392,30 +402,30 @@ ScannerView::ScannerView(
     button_audio_app.on_select = [this](Button&) {
         if (scan_thread)
             scan_thread->stop();
-        nav_.pop();
-        nav_.push<AnalogAudioView>();
+        auto settings = receiver_model.settings();
+        settings.frequency_step = field_step.selected_index_value();
+        nav_.replace<AnalogAudioView>(settings);
     };
 
     // Button to switch to Mic app
     button_mic_app.on_select = [this](Button&) {
         if (scan_thread)
             scan_thread->stop();
-        nav_.pop();
-        nav_.push<MicTXView>();
+        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        nav_.replace<MicTXView>(receiver_model.settings());
     };
 
     // Button to delete current frequency from scan Freq List
     button_remove.on_select = [this](Button&) {
-        if (scan_thread && (frequency_list.size() > current_index)) {
+        if (scan_thread && (entries.size() > current_index)) {
             scan_thread->set_scanning(false);  // PAUSE Scanning if necessary
 
-            // Remove frequency from the Freq List in memory (it is not removed from the file)
-            scan_thread->set_freq_del(frequency_list[current_index]);
-            description_list.erase(description_list.begin() + current_index);
-            frequency_list.erase(frequency_list.begin() + current_index);
+            // Remove frequency from the Freq List in memory (it is not removed from the file).
+            scan_thread->set_freq_del(entries[current_index].freq);
+            entries.erase(entries.begin() + current_index);
 
             show_max_index();               // UPDATE new list size on screen
-            desc_current_index.set("");     // Clean up description (cosmetic detail)
+            text_current_desc.set("");      // Clean up description (cosmetic detail)
             scan_thread->set_freq_lock(0);  // Reset the scanner lock
         }
     };
@@ -434,15 +444,7 @@ ScannerView::ScannerView(
             manual_search = false;  // Switch to List Scan mode
         }
 
-        audio::output::stop();
-
-        if (scan_thread)
-            scan_thread->stop();  // STOP SCANNER THREAD
-
-        if (userpause)  // If user-paused, resume
-            user_resume();
-
-        start_scan_thread();  // RESTART SCANNER THREAD in selected mode
+        restart_scan();
     };
 
     // Mode field was changed (AM/NFM/WFM)
@@ -469,17 +471,8 @@ ScannerView::ScannerView(
     field_step.on_change = [this](size_t, OptionsField::value_t v) {
         receiver_model.set_frequency_step(v);
 
-        if (manual_search && scan_thread) {
-            // Restart scan thread with new step value
-            scan_thread->stop();  // STOP SCANNER THREAD
-
-            // Resuming pause automatically
-            // FUTURE: Consider whether we should stay in Pause mode...
-            if (userpause)  // If user-paused, resume
-                user_resume();
-
-            start_scan_thread();  // RESTART SCANNER THREAD in Manual Search mode
-        }
+        if (manual_search && scan_thread)
+            restart_scan();
     };
 
     // Button to toggle Forward/Reverse
@@ -495,65 +488,35 @@ ScannerView::ScannerView(
 
     // Button to add current frequency (found during Search) to the Scan Frequency List
     button_add.on_select = [this](Button&) {
-        File scanner_file;
-        const std::string freq_file_path = "FREQMAN/" + loaded_file_name + ".TXT";
-        auto result = scanner_file.open(freq_file_path);  // First search if freq is already in txt
+        FreqmanDB db;
+        if (db.open(loaded_path, /*create*/ true)) {
+            freqman_entry entry{
+                .frequency_a = current_frequency,
+                .type = freqman_type::Single,
+            };
 
-        if (!result.is_valid()) {
-            const std::string frequency_to_add = "f=" + to_string_dec_uint(current_frequency / 1000) + to_string_dec_uint(current_frequency % 1000UL, 3, '0');
-
-            bool found = false;
-            constexpr size_t buffer_size = 1024;
-            char buffer[buffer_size];
-
-            for (size_t pointer = 0, freq_str_idx = 0; pointer < scanner_file.size(); pointer += buffer_size) {
-                size_t adjusted_buffer_size;
-                if (pointer + buffer_size >= scanner_file.size()) {
-                    memset(buffer, 0, sizeof(buffer));
-                    adjusted_buffer_size = scanner_file.size() - pointer;
-                } else {
-                    adjusted_buffer_size = buffer_size;
-                }
-
-                scanner_file.seek(pointer);
-                scanner_file.read(buffer, adjusted_buffer_size);
-
-                for (size_t i = 0; i < adjusted_buffer_size; ++i) {
-                    if (buffer[i] == frequency_to_add.data()[freq_str_idx]) {
-                        ++freq_str_idx;
-                        if (freq_str_idx >= frequency_to_add.size()) {
-                            found = true;
-                            break;
-                        }
-                    } else {
-                        freq_str_idx = 0;
-                    }
-                }
-
-                if (found) {
-                    break;
-                }
-            }
+            // Look for existing entry with same frequency.
+            auto it = db.find_entry([&entry](const auto& e) {
+                return e.frequency_a == entry.frequency_a;
+            });
+            auto found = (it != db.end());
 
             if (found) {
                 nav_.display_modal("Error", "Frequency already exists");
-                bigdisplay_update(-1);  // After showing an error
+                bigdisplay_update(-1);  // Need to poke this control after displaying modal?
             } else {
-                scanner_file.append(freq_file_path);  // Second: append if it is not there
-                scanner_file.write_line(frequency_to_add);
-
+                db.append_entry(entry);
                 // Add to frequency_list in memory too, since we can now switch back from manual mode
-                // Note that we are allowing freqs to be added to file (code above) that exceed the max count we can load into memory
-                if (frequency_list.size() < FREQMAN_MAX_PER_FILE) {
-                    frequency_list.push_back(current_frequency);
-                    description_list.push_back("");
-
+                // Note that we are allowing freqs to be added to file (code above) that exceed the
+                // max count we can load into memory.
+                if (entries.size() < FREQMAN_MAX_PER_FILE) {
+                    entries.push_back({current_frequency, ""});
                     show_max_index();  // Display updated frequency list size
                 }
             }
         } else {
-            nav_.display_modal("Error", "Cannot open " + loaded_file_name + ".TXT\nfor appending freq.");
-            bigdisplay_update(-1);  // After showing an error
+            nav_.display_modal("Error", "Cannot open " + loaded_path.filename().string() + "\nfor appending freq.");
+            bigdisplay_update(-1);  // Need to poke this control after displaying modal?
         }
     };
 
@@ -565,108 +528,78 @@ ScannerView::ScannerView(
     field_lock_wait.set_value(2);
 
     field_squelch.on_change = [this](int32_t v) { squelch = v; };
-    field_squelch.set_value(-10);
+    field_squelch.set_value(-30);
 
-    // LEARN FREQUENCIES
-    std::string scanner_txt = "SCANNER";
-    frequency_file_load(scanner_txt);
+    // LOAD FREQUENCIES
+    frequency_file_load(default_scan_file);
 }
 
-void ScannerView::frequency_file_load(std::string file_name, bool stop_all_before) {
-    bool found_range{false};
-    bool found_single{false};
-    freqman_index_t def_mod_index{-1};
-    freqman_index_t def_bw_index{-1};
-    freqman_index_t def_step_index{-1};
+void ScannerView::frequency_file_load(const fs::path& path) {
+    freqman_index_t def_mod_index{freqman_invalid_index};
+    freqman_index_t def_bw_index{freqman_invalid_index};
+    freqman_index_t def_step_index{freqman_invalid_index};
 
-    // stop everything running now if required
-    if (stop_all_before) {
-        scan_thread->stop();
-        frequency_list.clear();  // clear the existing frequency list (expected behavior)
-        description_list.clear();
+    FreqmanDB db;
+    if (!db.open(path)) {
+        text_current_desc.set("NO " + path.filename().string());
+        loaded_path = default_scan_file;
+        return;
     }
 
-    if (load_freqman_file(file_name, database)) {
-        loaded_file_name = file_name;                            // keep loaded filename in memory
-        for (auto& entry : database) {                           // READ LINE PER LINE
-            if (frequency_list.size() < FREQMAN_MAX_PER_FILE) {  // We got space!
-                //
-                // Get modulation & bw & step from file if specified
-                // Note these values could be different for each line in the file, but we only look at the first one
-                //
-                // Note that freqman requires a very specific string for these parameters,
-                // so check syntax in frequency file if specified value isn't being loaded
-                //
-                if (def_mod_index == -1)
-                    def_mod_index = entry.modulation;
+    entries.clear();
+    loaded_path = path;
+    Optional<scanner_range_t> range;
 
-                if (def_bw_index == -1)
-                    def_bw_index = entry.bandwidth;
+    for (auto entry : db) {
+        if (is_invalid(def_mod_index))
+            def_mod_index = entry.modulation;
 
-                if (def_step_index == -1)
-                    def_step_index = entry.step;
+        if (is_invalid(def_bw_index))
+            def_bw_index = entry.bandwidth;
 
-                // Get frequency
-                if (entry.type == RANGE) {
-                    if (!found_range) {
-                        // Set Start & End Search Range instead of populating the small in-memory frequency table
-                        // NOTE:  There may be multiple single frequencies in file, but only one search range is supported.
-                        found_range = true;
-                        frequency_range.min = entry.frequency_a;
-                        button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-                        frequency_range.max = entry.frequency_b;
-                        button_manual_end.set_text(to_string_short_freq(frequency_range.max));
-                    }
-                } else if (entry.type == SINGLE) {
-                    found_single = true;
-                    frequency_list.push_back(entry.frequency_a);
-                    description_list.push_back(entry.description);
-                } else if (entry.type == HAMRADIO) {
-                    // For HAM repeaters, add both receive & transmit frequencies to scan list and modify description
-                    // (FUTURE fw versions might handle these differently)
-                    found_single = true;
-                    frequency_list.push_back(entry.frequency_a);
-                    description_list.push_back("R:" + entry.description);
+        if (is_invalid(def_step_index))
+            def_step_index = entry.step;
 
-                    if ((entry.frequency_a != entry.frequency_b) &&
-                        (frequency_list.size() < FREQMAN_MAX_PER_FILE)) {
-                        frequency_list.push_back(entry.frequency_b);
-                        description_list.push_back("T:" + entry.description);
-                    }
-                }
-            } else {
-                break;  // No more space: Stop reading the txt file !
-            }
+        switch (entry.type) {
+            case freqman_type::Single:
+                entries.push_back({entry.frequency_a, entry.description});
+                break;
+            case freqman_type::HamRadio:
+                entries.push_back({entry.frequency_a, "R: " + entry.description});
+                entries.push_back({entry.frequency_b, "T: " + entry.description});
+                break;
+            case freqman_type::Range:
+                // NB: Only the first range will be loaded.
+                if (!range)
+                    range = {entry.frequency_a, entry.frequency_b};
+                break;
+            default:
+                break;
         }
-    } else {
-        loaded_file_name = "SCANNER";  // back to the default frequency file
-        desc_current_index.set(" NO " + file_name + ".TXT FILE ...");
+
+        if (entries.size() >= FREQMAN_MAX_PER_FILE)
+            break;
     }
 
-    desc_freq_list_scan = loaded_file_name + ".TXT";
-    if (desc_freq_list_scan.length() > 23) {  // Truncate description and add ellipses if long file name
-        desc_freq_list_scan.resize(20);
-        desc_freq_list_scan = desc_freq_list_scan + "...";
-    }
+    if (is_valid(def_mod_index) && def_mod_index != (freqman_index_t)field_mode.selected_index_value())
+        field_mode.set_by_value(def_mod_index);
 
-    if ((def_mod_index != -1) && (def_mod_index != (freqman_index_t)field_mode.selected_index_value()))
-        field_mode.set_by_value(def_mod_index);  // Update mode (also triggers a change callback that disables & reenables RF background)
-
-    if (def_bw_index != -1)  // Update BW if specified in file
+    if (is_valid(def_bw_index))
         field_bw.set_selected_index(def_bw_index);
 
-    if (def_step_index != -1)  // Update step if specified in file
+    if (is_valid(def_step_index))
         field_step.set_selected_index(def_step_index);
 
-    audio::output::stop();
+    // Found range, set it and update UI.
+    if (range) {
+        frequency_range = *range;
+        button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+        button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+    }
 
-    if (userpause)  // If user-paused, resume
-        user_resume();
-
-    // Scan list if we found one, otherwise do manual range search
-    manual_search = !found_single;
-
-    start_scan_thread();
+    // Scan entries if any, otherwise do manual range search.
+    manual_search = entries.empty();
+    restart_scan();
 }
 
 void ScannerView::update_squelch_while_paused(int32_t max_db) {
@@ -755,7 +688,8 @@ void ScannerView::user_resume() {
     userpause = false;                                            // Resume scanning
 }
 
-void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a scan_thread->stop();  After this do a start_scan_thread()
+// Before this, do a scan_thread->stop();  After this do a start_scan_thread()
+void ScannerView::change_mode(freqman_index_t new_mod) {
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t bw;
@@ -792,22 +726,41 @@ void ScannerView::change_mode(freqman_index_t new_mod) {  // Before this, do a s
 
 void ScannerView::start_scan_thread() {
     receiver_model.enable();
+    // Disable squelch on the model because RSSI handler is where the
+    // actual squelching is applied for this app.
     receiver_model.set_squelch_level(0);
     show_max_index();
 
     // Start Scanner Thread
-    // FUTURE: Consider passing additional control flags (fwd,userpause,etc) to scanner thread at start (perhaps in a data structure)
     if (manual_search) {
         button_manual_search.set_text("SCAN");  // Update meaning of Manual Scan button
-        desc_current_index.set(desc_freq_range_search);
+        text_current_desc.set("SEARCHING...");
         scan_thread = std::make_unique<ScannerThread>(frequency_range, field_step.selected_index_value());
     } else {
         button_manual_search.set_text("SRCH");  // Update meaning of Manual Scan button
-        desc_current_index.set(desc_freq_list_scan);
-        scan_thread = std::make_unique<ScannerThread>(frequency_list);
+        text_current_desc.set(loaded_filename());
+
+        // TODO: just pass ref to the thread?
+        std::vector<rf::Frequency> frequency_list;
+        frequency_list.reserve(entries.size());
+        for (const auto& entry : entries)
+            frequency_list.push_back(entry.freq);
+
+        scan_thread = std::make_unique<ScannerThread>(std::move(frequency_list));
     }
 
     scan_thread->set_scanning_direction(fwd);
+}
+
+void ScannerView::restart_scan() {
+    audio::output::stop();
+    if (scan_thread)  // STOP SCANNER THREAD
+        scan_thread->stop();
+
+    if (userpause)  // If user-paused, resume
+        user_resume();
+
+    start_scan_thread();  // RESTART SCANNER THREAD in selected mode
 }
 
 } /* namespace ui */

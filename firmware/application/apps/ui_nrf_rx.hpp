@@ -51,8 +51,8 @@ class NRFRxView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{
         4000000 /* bandwidth */,
-        4000000 /* sampling rate */
-    };
+        4000000 /* sampling rate */,
+        ReceiverModel::Mode::WidebandFMAudio};
     app_settings::SettingsManager settings_{
         "rx_nrf", app_settings::Mode::RX};
 

@@ -33,7 +33,6 @@ using namespace sstv;
 class SSTVTXProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const p) override;
 
    private:
@@ -56,8 +55,6 @@ class SSTVTXProcessor : public BasebandProcessor {
 
     bool configured{false};
 
-    BasebandThread baseband_thread{3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
-
     uint32_t vis_code_sequence[10]{};
     sstv_scanline scanline_buffer[2]{};
     uint8_t buffer_flip{0}, substep{0};
@@ -76,6 +73,9 @@ class SSTVTXProcessor : public BasebandProcessor {
     int8_t re{}, im{};
 
     RequestSignalMessage sig_message{RequestSignalMessage::Signal::FillRequest};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{3072000, this, baseband::Direction::Transmit};
 };
 
 #endif

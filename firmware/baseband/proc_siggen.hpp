@@ -30,13 +30,10 @@
 class SigGenProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const msg) override;
 
    private:
     bool configured{false};
-
-    BasebandThread baseband_thread{1536000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     uint32_t tone_delta{0}, fm_delta{}, tone_phase{0};
     uint8_t tone_shape{};
@@ -51,6 +48,9 @@ class SigGenProcessor : public BasebandProcessor {
     // uint8_t lfsr { }, bit { };  						// Finally not used lfsr of 8 bits , bit must be 8-bit to allow bit<<7 later in the code */
 
     TXProgressMessage txprogress_message{};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{1536000, this, baseband::Direction::Transmit};
 };
 
 #endif

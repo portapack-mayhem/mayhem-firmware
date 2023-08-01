@@ -29,7 +29,6 @@
 #include "baseband_api.hpp"
 #include "lfsr_random.hpp"
 #include "io_wave.hpp"
-#include "tone_key.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 

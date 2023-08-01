@@ -34,6 +34,10 @@ using Dim = int16_t;
 constexpr uint16_t screen_width = 240;
 constexpr uint16_t screen_height = 320;
 
+/* Dimensions for the default font character. */
+constexpr uint16_t char_width = 8;
+constexpr uint16_t char_height = 16;
+
 struct Color {
     uint16_t v;  // rrrrrGGGGGGbbbbb
 
@@ -328,7 +332,7 @@ struct Bitmap {
     const uint8_t* const data;
 };
 
-enum class KeyEvent {
+enum class KeyEvent : uint8_t {
     /* Ordinals map to bit positions reported by CPLD */
     Right = 0,
     Left = 1,
@@ -355,6 +359,11 @@ struct TouchEvent {
 Point polar_to_point(float angle, uint32_t distance);
 
 Point fast_polar_to_point(int32_t angle, uint32_t distance);
+
+/* Default font glyph size. */
+constexpr Size char_size{char_width, char_height};
+
+bool key_is_long_pressed(KeyEvent key);
 
 } /* namespace ui */
 

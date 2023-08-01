@@ -33,7 +33,9 @@ class SpectrumPainterProcessor : public BasebandProcessor {
 
    private:
     bool configured{false};
-    BasebandThread baseband_thread{3072000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{3072000, this, baseband::Direction::Transmit};
     Thread* thread{nullptr};
 
    protected:

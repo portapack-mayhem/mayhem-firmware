@@ -110,9 +110,6 @@ class ACARSProcessor : public BasebandProcessor {
    private:
     static constexpr size_t baseband_fs = 2457600;
 
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
-
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
@@ -137,6 +134,11 @@ class ACARSProcessor : public BasebandProcessor {
                 }
         };*/
     baseband::Packet packet{};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{
+        baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
+    RSSIThread rssi_thread{};
 
     void consume_symbol(const float symbol);
     void payload_handler(const baseband::Packet& packet);

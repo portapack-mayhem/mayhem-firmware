@@ -29,13 +29,10 @@
 class FSKProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
-
     void on_message(const Message* const p) override;
 
    private:
     bool configured = false;
-
-    BasebandThread baseband_thread{2280000, this, NORMALPRIO + 20, baseband::Direction::Transmit};
 
     uint32_t samples_per_bit{0};
     uint32_t length{0};
@@ -48,6 +45,9 @@ class FSKProcessor : public BasebandProcessor {
     uint32_t phase{0}, sphase{0};
 
     TXProgressMessage txprogress_message{};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{2280000, this, baseband::Direction::Transmit};
 };
 
 #endif

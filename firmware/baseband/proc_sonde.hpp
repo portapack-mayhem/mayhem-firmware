@@ -131,9 +131,6 @@ class SondeProcessor : public BasebandProcessor {
 
     ToneGen tone_gen{};
 
-    BasebandThread baseband_thread{baseband_fs, this, NORMALPRIO + 20, baseband::Direction::Receive};
-    RSSIThread rssi_thread{NORMALPRIO + 10};
-
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
@@ -178,6 +175,11 @@ class SondeProcessor : public BasebandProcessor {
             const SondePacketMessage message{sonde::Packet::Type::Vaisala_RS41_SG, packet};
             shared_memory.application_queue.push(message);
         }};
+
+    /* NB: Threads should be the last members in the class definition. */
+    BasebandThread baseband_thread{
+        baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
+    RSSIThread rssi_thread{};
 
     void play_beep();
     void stop_beep();

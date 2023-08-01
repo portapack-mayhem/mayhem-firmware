@@ -65,6 +65,11 @@ struct SharedMemory {
         uint8_t data[512];
     } bb_data{{{{0, 0}}, 0, {0}}};
 
+    // Set by the M4 to indicate that the baseband app is ready.
+    bool volatile baseband_ready{false};
+    void clear_baseband_ready() { baseband_ready = false; }
+    void set_baseband_ready() { baseband_ready = true; }
+
     uint8_t volatile request_m4_performance_counter{0};
     uint8_t volatile m4_cpu_usage{0};
     uint16_t volatile m4_stack_usage{0};
