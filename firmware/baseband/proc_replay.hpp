@@ -58,6 +58,7 @@ class ReplayProcessor : public BasebandProcessor {
 
     bool configured{false};
     uint32_t bytes_read{0};
+    OversampleRate oversample_rate = OversampleRate::x8;
 
     void sample_rate_config(const SampleRateConfigMessage& message);
     void replay_config(const ReplayConfigMessage& message);

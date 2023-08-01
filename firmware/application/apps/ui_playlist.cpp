@@ -270,8 +270,7 @@ void PlaylistView::send_current_track() {
     baseband::set_sample_rate(current()->metadata.sample_rate,
                               get_oversample_rate(current()->metadata.sample_rate));
 
-    // ReplayThread starts immediately on construction so
-    // these need to be set before creating the ReplayThread.
+    // ReplayThread starts immediately on construction; must be set before creating.
     transmitter_model.set_target_frequency(current()->metadata.center_frequency);
     transmitter_model.set_sampling_rate(get_actual_sample_rate(current()->metadata.sample_rate));
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);

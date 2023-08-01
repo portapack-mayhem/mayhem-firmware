@@ -55,6 +55,9 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     // 2048 samples * 2 bytes per sample = 4096 bytes
     // Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
     // So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
+
+    // Is it a requirement to hit 4M here? i.e. this only supports 500k?
+
     const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);  // *2 (C16), /8 (oversampling) should be == 1024
     size_t bytes_read_this_iteration = stream->read(iq_buffer.p, bytes_to_read);
     size_t oversamples_this_iteration = bytes_read_this_iteration * 8 / (sizeof(*buffer.p) * 2);
@@ -112,6 +115,7 @@ void ReplayProcessor::on_message(const Message* const message) {
 
 void ReplayProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     baseband_fs = message.sample_rate;
+    oversample_rate = message.oversample_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
     spectrum_interval_samples = baseband_fs / spectrum_rate_hz;
 }
