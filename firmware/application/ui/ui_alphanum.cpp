@@ -53,7 +53,10 @@ AlphanumView::AlphanumView(
     button_shift.on_select = [this]() {
         incr(shift_mode);
 
-        if (shift_mode > ShiftMode::ShiftLock)
+        // Disallow one-time shift in digits/symbols mode
+        if ((mode == 1) && (shift_mode == ShiftMode::Shift))
+            shift_mode = ShiftMode::ShiftLock;
+        else if (shift_mode > ShiftMode::ShiftLock)
             shift_mode = ShiftMode::None;
 
         refresh_keys();

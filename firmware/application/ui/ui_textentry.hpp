@@ -50,7 +50,7 @@ class TextEntryView : public View {
 
     TextEdit text_input;
     Button button_ok{
-        {21 * 8, 32 * 8 - 3, 9 * 8, 3 * 16 + 3},
+        {22 * 8, 32 * 8 - 3, 8 * 8, 3 * 16 + 3},
         "OK"};
 };
 
