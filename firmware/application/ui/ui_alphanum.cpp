@@ -22,11 +22,10 @@
 
 #include "ui_alphanum.hpp"
 
-#include "portapack.hpp"
 #include "hackrf_hal.hpp"
+#include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
-
-#include <algorithm>
+#include "utility.hpp"
 
 namespace ui {
 
@@ -38,6 +37,7 @@ AlphanumView::AlphanumView(
     size_t n;
 
     add_children({
+        &button_shift,
         &labels,
         &field_raw,
         &text_raw_to_char,
@@ -49,6 +49,16 @@ AlphanumView::AlphanumView(
         this->on_button(button);
     };
 
+    button_shift.set_vertical_center(true);
+    button_shift.on_select = [this]() {
+        incr(shift_mode);
+
+        if (shift_mode > ShiftMode::ShiftLock)
+            shift_mode = ShiftMode::None;
+
+        refresh_keys();
+    };
+
     n = 0;
     for (auto& button : buttons) {
         button.id = n;
@@ -56,9 +66,9 @@ AlphanumView::AlphanumView(
             focused_button = button.id;
         };
         button.on_select = button_fn;
-        button.set_parent_rect({static_cast<Coord>((n % 5) * (240 / 5)),
+        button.set_parent_rect({static_cast<Coord>((n % 5) * (screen_width / 5)),
                                 static_cast<Coord>((n / 5) * 38 + 24),
-                                240 / 5, 38});
+                                screen_width / 5, 38});
         add_child(&button);
         n++;
     }
@@ -78,38 +88,59 @@ AlphanumView::AlphanumView(
         char_add(field_raw.value());
     };
 
-    // make text_raw_to_char widget display the char value from field_raw
     field_raw.on_change = [this](auto) {
         text_raw_to_char.set(std::string{static_cast<char>(field_raw.value())});
     };
 }
 
-void AlphanumView::set_mode(const uint32_t new_mode) {
-    size_t n = 0;
-
-    if (new_mode < 3)
+void AlphanumView::set_mode(uint32_t new_mode, ShiftMode new_shift_mode) {
+    if (new_mode < std::size(key_sets))
         mode = new_mode;
     else
         mode = 0;
 
-    const char* key_list = key_sets[mode].second;
+    shift_mode = new_shift_mode;
+    refresh_keys();
 
+    if (mode + 1 < std::size(key_sets))
+        button_mode.set_text(key_sets[mode + 1].name);
+    else
+        button_mode.set_text(key_sets[0].name);
+}
+
+void AlphanumView::refresh_keys() {
+    auto key_list = shift_mode == ShiftMode::None
+                        ? key_sets[mode].normal
+                        : key_sets[mode].shifted;
+
+    size_t n = 0;
     for (auto& button : buttons) {
-        const std::string label{
-            key_list[n]};
-        button.set_text(label);
+        button.set_text(std::string{key_list[n]});
         n++;
     }
 
-    if (mode < 2)
-        button_mode.set_text(key_sets[mode + 1].first);
-    else
-        button_mode.set_text(key_sets[0].first);
+    switch (shift_mode) {
+        case ShiftMode::None:
+            button_shift.set_color(Color::dark_grey());
+            break;
+        case ShiftMode::Shift:
+            button_shift.set_color(Color::black());
+            break;
+        case ShiftMode::ShiftLock:
+            button_shift.set_color(Color::dark_blue());
+            break;
+    }
 }
 
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
     char_add(c);
+
+    // TODO: Consolidate shift handling.
+    if (shift_mode == ShiftMode::Shift) {
+        shift_mode = ShiftMode::None;
+        refresh_keys();
+    }
 }
 
 bool AlphanumView::on_encoder(const EncoderEvent delta) {

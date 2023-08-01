@@ -1188,7 +1188,7 @@ void NewButton::paint(Painter& painter) {
         painter.draw_bitmap(
             bmp_pos,
             *bitmap_,
-            color_,  // Color::green(), //fg,
+            color_,
             bg);
     }
 
@@ -1667,8 +1667,6 @@ void TextEdit::char_delete() {
 }
 
 void TextEdit::paint(Painter& painter) {
-    constexpr int char_width = 8;
-
     auto rect = screen_rect();
     auto text_style = has_focus() ? style().invert() : style();
     auto offset = 0;
@@ -1677,15 +1675,14 @@ void TextEdit::paint(Painter& painter) {
     if (cursor_pos_ >= char_count_)
         offset = cursor_pos_ - char_count_ + 1;
 
-    // Clear the control.
-    painter.fill_rectangle(rect, text_style.background);
-
     // Draw the text starting at the offset.
-    for (uint32_t i = 0; i < char_count_ && i + offset < text_.length(); i++) {
+    for (uint32_t i = 0; i < char_count_; i++) {
+        // Using draw_char to blank the rest of the line with spaces produces less flicker.
+        auto c = (i + offset < text_.length()) ? text_[i + offset] : ' ';
+
         painter.draw_char(
             {rect.location().x() + (static_cast<int>(i) * char_width), rect.location().y()},
-            text_style,
-            text_[i + offset]);
+            text_style, c);
     }
 
     // Determine cursor position on screen (either the cursor position or the last char).
@@ -1698,7 +1695,7 @@ void TextEdit::paint(Painter& painter) {
         painter.draw_char(cursor_point, cursor_style, text_[cursor_pos_]);
 
     // Draw the cursor.
-    Rect cursor_box{cursor_point, {char_width, 16}};
+    Rect cursor_box{cursor_point, {char_width, char_height}};
     painter.draw_rectangle(cursor_box, cursor_style.background);
 }
 

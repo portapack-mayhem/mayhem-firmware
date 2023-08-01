@@ -21,9 +21,7 @@
  */
 
 #include "ui_textentry.hpp"
-//#include "portapack_persistent_memory.hpp"
 #include "ui_alphanum.hpp"
-//#include "ui_handwrite.hpp"
 
 using namespace portapack;
 
