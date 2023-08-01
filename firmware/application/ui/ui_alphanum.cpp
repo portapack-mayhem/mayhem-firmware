@@ -73,8 +73,7 @@ AlphanumView::AlphanumView(
         n++;
     }
 
-    // Start with shift locked for consistency with previous UX.
-    set_mode(mode, ShiftMode::ShiftLock);
+    set_mode(mode);
 
     button_mode.on_select = [this](Button&) {
         set_mode(mode + 1);
