@@ -45,10 +45,6 @@ class ReplayProcessor : public BasebandProcessor {
     static constexpr auto spectrum_rate_hz = 50.0f;
 
     std::array<complex16_t, 256> iq{};
-    const buffer_c16_t iq_buffer{
-        iq.data(),
-        iq.size(),
-        baseband_fs / 8};
 
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
