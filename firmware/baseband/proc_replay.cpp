@@ -46,6 +46,8 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
 
     if (!configured || !stream) return;
 
+    buffer_c16_t iq_buffer{iq.data(), iq.size(), baseband_fs / 8};
+
     // File data is in C16 format, we need C8
     // File samplerate is 500kHz, we're at 4MHz
     // iq_buffer can only be 512 C16 samples (RAM limitation)
