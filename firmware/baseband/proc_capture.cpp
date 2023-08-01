@@ -80,7 +80,7 @@ void CaptureProcessor::on_message(const Message* const message) {
 }
 
 void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
-    baseband_fs = message.sample_rate;
+    baseband_fs = message.sample_rate * toUType(message.oversample_rate);
     oversample_rate = message.oversample_rate;
 
     baseband_thread.set_sampling_rate(baseband_fs);
