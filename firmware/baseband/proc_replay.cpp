@@ -41,6 +41,9 @@ ReplayProcessor::ReplayProcessor() {
     baseband_thread.start();
 }
 
+// Change to 1 to enable buffer assertions in replay.
+#define BUFFER_SIZE_ASSERT 0
+
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured || !stream) return;
 
@@ -57,29 +60,47 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     // are needed from the source stream in order to fill the buffer (count / oversample).
     // Together the C16->C8 conversion and the interpolation give the number of
     // bytes that need to be read from the source stream.
-    const size_t bytes_to_read =
-        sizeof(buffer_c8_t::Type) * (buffer.count / interpolation_factor) * 2;  // 16->8
+    const size_t samples_to_read = buffer.count / interpolation_factor;
+    const size_t bytes_to_read = samples_to_read * sizeof(buffer_c16_t::Type);
+
+#if BUFFER_SIZE_ASSERT
+    // Verify the output buffer size is divisible by the interpolation factor.
+    if (samples_to_read * interpolation_factor != buffer.count)
+        chDbgPanic("Output not div.");
+
+    // Is the input smaple buffer big enough?
+    if (samples_to_read > iq_buffer.size())
+        chDbgPanic("IQ buf ovf.");
+#endif
 
     // Read the C16 IQ data from the source stream.
     size_t current_bytes_read = stream->read(iq_buffer.p, bytes_to_read);
 
-    // Compute the number of samples were read from the source.
-    size_t sample_count = current_bytes_read / sizeof(buffer_c16_t::Type);
+    // Compute the number of samples were actuall read from the source.
+    size_t samples_read = current_bytes_read / sizeof(buffer_c16_t::Type);
 
     // Write converted source samples to the output buffer with interpolation.
-    for (auto i = 0u; i < sample_count; ++i) {
+    for (auto i = 0u; i < samples_read; ++i) {
         int8_t re_out = iq_buffer.p[i].real() >> 8;
         int8_t im_out = iq_buffer.p[i].imag() >> 8;
         auto out_value = buffer_c8_t::Type{re_out, im_out};
 
         // Interpolate sample.
-        for (auto j = 0u; j < interpolation_factor; ++j)
-            buffer.p[i * interpolation_factor + j] = out_value;
+        for (auto j = 0u; j < interpolation_factor; ++j) {
+            size_t index = i * interpolation_factor + j;
+            buffer.p[index] = out_value;
+
+#if BUFFER_SIZE_ASSERT
+            // Verify the index is within bounds.
+            if (index >= buffer.count)
+                chDbgPanic("Output bounds");
+#endif
+        }
     }
 
     // Update tracking stats.
     bytes_read += current_bytes_read;
-    spectrum_samples += sample_count * interpolation_factor;
+    spectrum_samples += samples_read * interpolation_factor;
 
     if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
