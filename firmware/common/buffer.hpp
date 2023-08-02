@@ -49,6 +49,7 @@ using Timestamp = lpc43xx::rtc::RTC;
 
 template <typename T>
 struct buffer_t {
+    using Type = T;
     T* const p;
     const size_t count;
     const uint32_t sampling_rate;

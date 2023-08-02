@@ -42,47 +42,52 @@ ReplayProcessor::ReplayProcessor() {
 }
 
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
-    /* 4MHz, 2048 samples */
-
     if (!configured || !stream) return;
 
-    buffer_c16_t iq_buffer{iq.data(), iq.size(), baseband_fs / 8};
-
-    // File data is in C16 format, we need C8
-    // File samplerate is 500kHz, we're at 4MHz
-    // iq_buffer can only be 512 C16 samples (RAM limitation)
-    // To fill up the 2048-sample C8 buffer, we need:
-    // 2048 samples * 2 bytes per sample = 4096 bytes
-    // Since we're oversampling by 4M/500k = 8, we only need 2048/8 = 256 samples from the file and duplicate them 8 times each
-    // So 256 * 4 bytes per sample (C16) = 1024 bytes from the file
+    // Because this is actuallyw adding samples, alias
+    // oversample_rate so the math below is more clear.
+    const size_t interpolation_factor = toUType(oversample_rate);
 
     // Wrap the IQ data array in a buffer with the correct sample_rate.
-    buffer_c16_t iq_buffer{iq.data(), iq.size(), baseband_fs / toUType(oversample_rate)};
+    buffer_c16_t iq_buffer{iq.data(), iq.size(), baseband_fs / interpolation_factor};
 
-    const size_t bytes_to_read = sizeof(*buffer.p) * 2 * (buffer.count / 8);  // *2 (C16), /8 (oversampling) should be == 1024
-    size_t bytes_read_this_iteration = stream->read(iq_buffer.p, bytes_to_read);
-    size_t oversamples_this_iteration = bytes_read_this_iteration * 8 / (sizeof(*buffer.p) * 2);
+    // The IQ data in stream is C16 format and needs to be converted to C8 (N * 2).
+    // The data also needs to be interpolated so the effective sample rate is closer
+    // to 4Mhz. Because interpolation repeats a sample multiple times, fewer bytes
+    // are needed from the source stream in order to fill the buffer (count / oversample).
+    // Together the C16->C8 conversion and the interpolation give the number of
+    // bytes that need to be read from the source stream.
+    const size_t bytes_to_read =
+        sizeof(buffer_c8_t::Type) * (buffer.count / interpolation_factor);
 
-    bytes_read += bytes_read_this_iteration;
+    // Read the C16 IQ data from the source stream.
+    size_t current_bytes_read = stream->read(iq_buffer.p, bytes_to_read);
 
-    // TODO: fix for oversample_rate
-    // Fill and "stretch"
-    for (size_t i = 0; i < oversamples_this_iteration; i++) {
-        if (i > 0) {
-            buffer.p[i] = buffer.p[i - 1];
-        } else {
-            auto re_out = iq_buffer.p[i >> 3].real() >> 8;
-            auto im_out = iq_buffer.p[i >> 3].imag() >> 8;
-            buffer.p[i] = {(int8_t)re_out, (int8_t)im_out};
-        }
+    // Compute the number of samples were read from the source.
+    size_t sample_count = current_bytes_read / sizeof(buffer_c16_t::Type);
+
+    // Write converted source samples to the output buffer with interpolation.
+    for (auto i = 0u; i < sample_count; ++i) {
+        int8_t re_out = iq_buffer.p[i].real() >> 8;
+        int8_t im_out = iq_buffer.p[i].imag() >> 8;
+
+        // Interpolate sample.
+        for (auto j = 0u; j < interpolation_factor; ++j)
+            buffer.p[i * interpolation_factor + j] = {re_out, im_out};
     }
 
-    spectrum_samples += oversamples_this_iteration;
+    // Update tracking stats.
+    bytes_read += current_bytes_read;
+    spectrum_samples += sample_count * interpolation_factor;
+
     if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.feed(iq_buffer, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+        channel_spectrum.feed(
+            iq_buffer, channel_filter_low_f,
+            channel_filter_high_f, channel_filter_transition);
 
-        txprogress_message.progress = bytes_read;  // Inform UI about progress
+        // Inform UI about progress.
+        txprogress_message.progress = bytes_read;
         txprogress_message.done = false;
         shared_memory.application_queue.push(txprogress_message);
     }

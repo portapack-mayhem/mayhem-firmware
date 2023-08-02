@@ -40,7 +40,6 @@
  * The baseband needs to know how to correctly decimate (or interpolate) so
  * the set of allowed scalars is fixed (See OversampleRate enum). */
 
-
 /* Gets the oversample rate for a given sample rate.
  * The oversample rate is used to increase the sample rate to improve SNR and quality.
  * This is also used as the interpolation rate when replaying captures. */

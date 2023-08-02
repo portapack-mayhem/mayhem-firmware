@@ -46,7 +46,7 @@ void GPSReplayProcessor::execute(const buffer_c8_t& buffer) {
     /* 2.6MHz, 2048 samples */
 
     if (!configured || !stream) return;
-    
+
     // File data is in C8 format, which is what we need
     // File samplerate is 2.6MHz, which is what we need
     // To fill up the 2048-sample C8 buffer @ 2 bytes per sample = 4096 bytes
