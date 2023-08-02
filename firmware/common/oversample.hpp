@@ -38,14 +38,18 @@
 /* HackRF suggests a minimum sample rate of 2M so a oversample rate is applied
  * to the sample rate (pre-scale) to get the sample rate closer to that target.
  * The baseband needs to know how to correctly decimate (or interpolate) so
- * the set of allowed scalars is fixed (See OversampleRate enum). */
+ * the set of allowed scalars is fixed (See OversampleRate enum).
+ * In testing, a minimum rate of 400kHz seems to the functional minimum.
+ */
 
 /* Gets the oversample rate for a given sample rate.
  * The oversample rate is used to increase the sample rate to improve SNR and quality.
  * This is also used as the interpolation rate when replaying captures. */
 inline OversampleRate get_oversample_rate(uint32_t sample_rate) {
-    // For lower bandwidths, (12k5, 16k, 20k, 25k), use the higher oversample rate.
-    return sample_rate <= 25'000 ? OversampleRate::x16 : OversampleRate::x8;
+    if (sample_rate < 25'000) return OversampleRate::x32;
+    if (sample_rate < 50'000) return OversampleRate::x16;
+
+    return OversampleRate::x8;
 }
 
 /* Gets the actual sample rate for a given sample rate.

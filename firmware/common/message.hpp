@@ -804,11 +804,17 @@ enum class OversampleRate : uint8_t {
     None = 1,
     x1 = None,
 
+    // 4x would make sense to have, but need to ensure it doesn't
+    // overrun the IQ read buffer in proc_replay.
+
     /* Oversample rate of 8 times the sample rate. */
     x8 = 8,
 
     /* Oversample rate of 16 times the sample rate. */
     x16 = 16,
+
+    /* Oversample rate of 32 times the sample rate. */
+    x32 = 32,
 };
 
 class SampleRateConfigMessage : public Message {

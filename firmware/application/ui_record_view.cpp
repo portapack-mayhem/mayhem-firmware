@@ -142,7 +142,15 @@ OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
     if (file_type == FileType::WAV)
         return OversampleRate::None;
 
-    return ::get_oversample_rate(sample_rate);
+    auto rate = ::get_oversample_rate(sample_rate);
+
+    // Currently proc_capture only supports x8 and x16 for decimation.
+    if (rate < OversampleRate::x8)
+        rate = OversampleRate::x8;
+    else if (rate > OversampleRate::x16)
+        rate = OversampleRate::x16;
+
+    return rate;
 }
 
 // Setter for datetime and frequency filename
