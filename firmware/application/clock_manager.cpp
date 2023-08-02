@@ -263,11 +263,11 @@ void ClockManager::init_clock_generator() {
     clock_generator.enable_output(clock_generator_output_mcu_clkin);
 
     // ToDo: Remove this code below
-    //  set_reference(choose_reference(portapack::persistent_memory::config_force_tcxo()));
-     if (portapack::persistent_memory::config_force_tcxo())
-         set_reference({ClockManager::ReferenceSource::External, 10000000});
-     else
-         set_reference(choose_reference());
+    set_reference(choose_reference(portapack::persistent_memory::config_force_tcxo()));
+    // if (portapack::persistent_memory::config_force_tcxo())
+    //     set_reference({ClockManager::ReferenceSource::External, 10000000});
+    // else
+    //     set_reference(choose_reference());
     // set_reference(choose_reference());
 
     clock_generator.disable_output(clock_generator_output_mcu_clkin);
@@ -333,6 +333,11 @@ uint32_t ClockManager::measure_gp_clkin_frequency() {
     return get_frequency_monitor_measurement_in_hertz();
 }
 
+/*
+With the new R9 devices, the detection method is actually incorrect. But the problem is there are a bunch of PortaPacks that have been built with their TCXO out of spec (It needs a 3.3Vpp, but they all seem to have a 1Vpp).
+This means when using the correct detection method, it will detect the TCXO but the device would sometime/always crash (Seems to be luck of the draw how stable your device is with an out of spec TCXO).
+So since we don't want everyone's devices crashing by fixing the detection method (Well everyone with an out of spec TCXO, which seems to be 90% of R9 users), we have hidden it behind this toggle.
+*/
 bool ClockManager::loss_of_signal(bool useRealCheck) {
     if (hackrf_r9) {
         if (useRealCheck) {

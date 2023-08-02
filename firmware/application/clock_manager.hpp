@@ -77,7 +77,7 @@ class ClockManager {
 
     void set_reference(Reference r);
 
-    Reference choose_reference(bool trueCuseRealCheckheck = false);
+    Reference choose_reference(bool useRealCheck = false);
 
     void enable_clock_output(bool enable);
 
