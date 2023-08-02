@@ -76,7 +76,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     // Read the C16 IQ data from the source stream.
     size_t current_bytes_read = stream->read(iq_buffer.p, bytes_to_read);
 
-    // Compute the number of samples were actuall read from the source.
+    // Compute the number of samples were actually read from the source.
     size_t samples_read = current_bytes_read / sizeof(buffer_c16_t::Type);
 
     // Write converted source samples to the output buffer with interpolation.
