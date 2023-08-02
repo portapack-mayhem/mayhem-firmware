@@ -44,7 +44,7 @@ ReplayProcessor::ReplayProcessor() {
 void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured || !stream) return;
 
-    // Because this is actuallyw adding samples, alias
+    // Because this is actually adding samples, alias
     // oversample_rate so the math below is more clear.
     const size_t interpolation_factor = toUType(oversample_rate);
 
@@ -58,7 +58,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     // Together the C16->C8 conversion and the interpolation give the number of
     // bytes that need to be read from the source stream.
     const size_t bytes_to_read =
-        sizeof(buffer_c8_t::Type) * (buffer.count / interpolation_factor);
+        sizeof(buffer_c8_t::Type) * (buffer.count / interpolation_factor) * 2;  // 16->8
 
     // Read the C16 IQ data from the source stream.
     size_t current_bytes_read = stream->read(iq_buffer.p, bytes_to_read);
@@ -70,10 +70,11 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
     for (auto i = 0u; i < sample_count; ++i) {
         int8_t re_out = iq_buffer.p[i].real() >> 8;
         int8_t im_out = iq_buffer.p[i].imag() >> 8;
+        auto out_value = buffer_c8_t::Type{re_out, im_out};
 
         // Interpolate sample.
         for (auto j = 0u; j < interpolation_factor; ++j)
-            buffer.p[i * interpolation_factor + j] = {re_out, im_out};
+            buffer.p[i * interpolation_factor + j] = out_value;
     }
 
     // Update tracking stats.
@@ -121,7 +122,7 @@ void ReplayProcessor::on_message(const Message* const message) {
 }
 
 void ReplayProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
-    baseband_fs = message.sample_rate * toUType(oversample_rate);
+    baseband_fs = message.sample_rate * toUType(message.oversample_rate);
     oversample_rate = message.oversample_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
 

@@ -42,7 +42,6 @@ class CaptureProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    /* Called to update members when the sample rate or oversample rate is changed. */
     size_t baseband_fs = 3072000;  // aka: sample_rate
     static constexpr auto spectrum_rate_hz = 50.0f;
 
