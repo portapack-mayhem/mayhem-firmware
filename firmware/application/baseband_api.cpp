@@ -347,13 +347,8 @@ void spectrum_streaming_stop() {
     send_message(&message);
 }
 
-void set_sample_rate(const uint32_t sample_rate) {
-    SamplerateConfigMessage message{sample_rate};
-    send_message(&message);
-}
-
-void set_oversample_rate(OversampleRate oversample_rate) {
-    OversampleRateConfigMessage message{oversample_rate};
+void set_sample_rate(uint32_t sample_rate, OversampleRate oversample_rate) {
+    SampleRateConfigMessage message{sample_rate, oversample_rate};
     send_message(&message);
 }
 

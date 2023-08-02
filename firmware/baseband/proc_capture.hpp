@@ -42,7 +42,7 @@ class CaptureProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    size_t baseband_fs = 3072000;
+    size_t baseband_fs = 3072000;  // aka: sample_rate
     static constexpr auto spectrum_rate_hz = 50.0f;
 
     std::array<complex16_t, 512> dst{};
@@ -67,15 +67,14 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
-    OversampleRate oversample_rate{OversampleRate::Rate8x};
+    OversampleRate oversample_rate{OversampleRate::x8};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
 
-    /* Called to update members when the sample rate or oversample rate is changed. */
-    void update_for_rate_change();
+    void sample_rate_config(const SampleRateConfigMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
     /* Dispatch to the correct decim_0 based on oversample rate. */

@@ -56,16 +56,11 @@ class RecordView : public View {
 
     void focus() override;
 
-    /* Sets the sampling rate and the oversampling "decimation" rate.
-     * These values are passed down to the baseband proc_capture. For
-     * Audio (WAV) recording, the OversampleRate should not be
-     * specified and the default will be used. */
-    /* TODO: Currently callers are expected to have already multiplied the
-     * sample_rate with the oversample rate. It would be better move that
-     * logic to a single place. */
-    void set_sampling_rate(
-        size_t new_sampling_rate,
-        OversampleRate new_oversample_rate = OversampleRate::Rate8x);
+    /* Sets the sampling rate for the baseband.
+     * NB: Do not pre-apply any oversampling. This function will determine
+     * the correct amount of oversampling and return the actual sample rate
+     * that can be used to configure the radio or other UI element. */
+    uint32_t set_sampling_rate(uint32_t new_sampling_rate);
 
     void set_file_type(const FileType v) { file_type = v; }
 
@@ -87,6 +82,8 @@ class RecordView : public View {
     void handle_capture_thread_done(const File::Error error);
     void handle_error(const File::Error error);
 
+    OversampleRate get_oversample_rate(uint32_t sample_rate);
+
     // bool pitch_rssi_enabled = false;
 
     // Time Stamp
@@ -98,8 +95,7 @@ class RecordView : public View {
     FileType file_type;
     const size_t write_size;
     const size_t buffer_count;
-    size_t sampling_rate{0};
-    OversampleRate oversample_rate{OversampleRate::Rate8x};
+    uint32_t sampling_rate{0};
     SignalToken signal_token_tick_second{};
 
     Rectangle rect_background{

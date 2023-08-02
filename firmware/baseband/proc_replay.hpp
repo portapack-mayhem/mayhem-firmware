@@ -44,6 +44,7 @@ class ReplayProcessor : public BasebandProcessor {
     size_t baseband_fs = 3072000;
     static constexpr auto spectrum_rate_hz = 50.0f;
 
+    // Holds the read IQ data chunk from the file to send.
     std::array<complex16_t, 256> iq{};
 
     int32_t channel_filter_low_f = 0;
@@ -58,8 +59,9 @@ class ReplayProcessor : public BasebandProcessor {
 
     bool configured{false};
     uint32_t bytes_read{0};
+    OversampleRate oversample_rate = OversampleRate::x8;
 
-    void samplerate_config(const SamplerateConfigMessage& message);
+    void sample_rate_config(const SampleRateConfigMessage& message);
     void replay_config(const ReplayConfigMessage& message);
 
     TXProgressMessage txprogress_message{};
