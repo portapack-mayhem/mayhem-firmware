@@ -61,13 +61,13 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
 
     freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     option_bandwidth.on_change = [this](size_t, uint32_t bandwidth) {
-        /* bandwidth is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
-        /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
-        /* ex. recording 500kHz BW to .C16 file, bandwidth clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card. */
-
         /* Nyquist would imply a sample rate of 2x bandwidth, but because the ADC
-         * provides 2 values (I,Q), the sample_rate can be equal to bandwidth here.*/
+         * provides 2 values (I,Q), the sample_rate is equal to bandwidth here. */
         auto sample_rate = bandwidth;
+
+        /* base_rate (bandwidth) is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
+        /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
+        /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card. */
 
         waterfall.stop();
 
@@ -75,12 +75,13 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         // NB: record_view is what actually updates proc_capture baseband settings.
         auto actual_sample_rate = record_view.set_sampling_rate(sample_rate);
 
-        // Need to tell that radio about the actual sampling rate.
+        // Update the radio model with the actual sampling rate.
         receiver_model.set_sampling_rate(actual_sample_rate);
 
         // Get suitable anti-aliasing BPF bandwidth for MAX2837 given the actual sample rate.
         auto anti_alias_filter_bandwidth = filter_bandwidth_for_sampling_rate(actual_sample_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_filter_bandwidth);
+
         waterfall.start();
     };
 

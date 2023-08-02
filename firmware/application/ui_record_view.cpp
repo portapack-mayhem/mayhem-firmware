@@ -103,26 +103,26 @@ void RecordView::focus() {
 }
 
 uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
-    /* We are changing "REC" icon background to yellow in BW rec Options >600kHz
-        where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
-        Those decimated recorded files, has not the full IQ samples.
-        are ok as recorded spectrum indication, but they should not be used by Replay app.
+    // Determine the oversampling needed (if any) and the actual sampling rate.
+    auto oversample_rate = get_oversample_rate(new_sampling_rate);
+    auto actual_sampling_rate = new_sampling_rate * toUType(oversample_rate);
 
-        We keep original black background in all the correct IQ .C16 files BW's Options */
-    if (new_sampling_rate > 4'800'000) {  // > BW >600kHz  (fs=8*BW), (750kHz...2750kHz)
+    /* We are changing "REC" icon background to yellow in BW rec Options >600kHz
+     * where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
+     * Those decimated recorded files, has not the full IQ samples.
+     * are ok as recorded spectrum indication, but they should not be used by Replay app.
+
+     * We keep original black background in all the correct IQ .C16 files BW's Options. */
+    if (actual_sampling_rate > 4'800'000) {  // > BW >600kHz  (fs=8*BW), (750kHz...2750kHz)
         button_record.set_background(ui::Color::yellow());
     } else {
         button_record.set_background(ui::Color::black());
     }
 
-    // Determine the oversampling needed (if any) and the actual sampling rate.
-    auto oversample_rate = get_oversample_rate(new_sampling_rate);
-    auto actual_sampling_rate = new_sampling_rate * toUType(oversample_rate);
-
-    if (sampling_rate != actual_sampling_rate) {
+    if (sampling_rate != new_sampling_rate) {
         stop();
 
-        sampling_rate = actual_sampling_rate;
+        sampling_rate = new_sampling_rate;
         baseband::set_sample_rate(sampling_rate, oversample_rate);
 
         button_record.hidden(sampling_rate == 0);

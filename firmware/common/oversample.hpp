@@ -44,8 +44,8 @@
  * The oversample rate is used to increase the sample rate to improve SNR and quality.
  * This is also used as the interpolation rate when replaying captures. */
 inline OversampleRate get_oversample_rate(uint32_t sample_rate) {
-    // For lower bandwidths, (12k5, 16k, 20k), use the higher oversample rate.
-    return sample_rate >= 25'000 ? OversampleRate::x8 : OversampleRate::x16;
+    // For lower bandwidths, (12k5, 16k, 20k, 25k), use the higher oversample rate.
+    return sample_rate <= 25'000 ? OversampleRate::x16 : OversampleRate::x8;
 }
 
 /* Gets the actual sample rate for a given sample rate.
