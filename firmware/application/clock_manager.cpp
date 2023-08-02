@@ -264,11 +264,11 @@ void ClockManager::init_clock_generator() {
 
     // ToDo: Remove this code below
     //  set_reference(choose_reference(portapack::persistent_memory::config_force_tcxo()));
-    //  if (portapack::persistent_memory::config_force_tcxo())
-    //      set_reference({ClockManager::ReferenceSource::External, 10000000});
-    //  else
-    //      set_reference(choose_reference());
-    set_reference(choose_reference());
+     if (portapack::persistent_memory::config_force_tcxo())
+         set_reference({ClockManager::ReferenceSource::External, 10000000});
+     else
+         set_reference(choose_reference());
+    // set_reference(choose_reference());
 
     clock_generator.disable_output(clock_generator_output_mcu_clkin);
 

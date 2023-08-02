@@ -408,6 +408,9 @@ bool init() {
 
     portapack::io.init();
 
+    /* Cache some configuration data from persistent memory. */
+    persistent_memory::cache::init();
+
     clock_manager.init_clock_generator();
 
     i2c0.stop();
@@ -467,16 +470,16 @@ bool init() {
     controls_init();
     chThdSleepMilliseconds(10);
 
-    /* Cache some configuration data from persistent memory. */
-    persistent_memory::cache::init();
+    // /* Cache some configuration data from persistent memory. */
+    // persistent_memory::cache::init();
 
     clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
     clock_manager.enable_if_clocks();
     clock_manager.enable_codec_clocks();
 
     // ToDo: Fix this so we dont need to specify them like I have done
-    persistent_memory::config_force_tcxo() ? clock_manager.set_reference({ClockManager::ReferenceSource::External, 10000000})
-                                           : clock_manager.set_reference({ClockManager::ReferenceSource::Xtal, 25000000});
+    // persistent_memory::config_force_tcxo() ? clock_manager.set_reference({ClockManager::ReferenceSource::External, 10000000})
+    //                                        : clock_manager.set_reference({ClockManager::ReferenceSource::Xtal, 25000000});
 
     radio::init();
 
