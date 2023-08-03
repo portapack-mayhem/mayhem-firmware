@@ -1197,38 +1197,39 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
         case AM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
             // bw DSB (0) default
+            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
             receiver_model.set_am_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
-            field_bw.set_by_value(0);
             text_ctcss.set("        ");
             recording_sampling_rate = 12000;
             break;
         case NFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
             // bw 16k (2) default
+            field_bw.set_by_value(2);
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
-            field_bw.set_by_value(2);
             recording_sampling_rate = 24000;
             break;
         case WFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
             // bw 200k (0) default
+            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             receiver_model.set_wfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
-            field_bw.set_by_value(0);
             text_ctcss.set("        ");
             recording_sampling_rate = 48000;
             break;
         case SPEC_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            // bw 200k (0) default
+            // bw 12k5 (0) default
+            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_capture);
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
             field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
@@ -1237,7 +1238,6 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
                 receiver_model.set_sampling_rate(sampling_rate);
                 receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
             };
-            field_bw.set_by_value(0);
             text_ctcss.set("        ");
             break;
         default:
