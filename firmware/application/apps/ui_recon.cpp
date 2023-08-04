@@ -859,18 +859,12 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     uint32_t local_recon_lock_duration = recon_lock_duration;
 
     chrono_end = chTimeNow();
-    if (field_mode.selected_index_value() == SPEC_MODULATION) {
-        time_interval = chrono_end - chrono_start;
-        // capping here to avoid double check a frequency because time_interval is more than exactly 100 by a few units
-        // this is because we are making a measurement and not using a fixed value
-        if (time_interval > 100)
-            time_interval = 100;
-        if (field_lock_wait.value() == 0) {
-            if (time_interval <= 1)             // capping here to avoid freeze because too quick
-                local_recon_lock_duration = 2;  // minimum working tested value
-            else
-                local_recon_lock_duration = time_interval;
-        }
+    time_interval = chrono_end - chrono_start;
+    if (field_lock_wait.value() == 0) {
+        if (time_interval <= 1)             // capping here to avoid freeze because too quick
+            local_recon_lock_duration = 2;  // minimum working tested value
+        else
+            local_recon_lock_duration = time_interval;
     }
     chrono_start = chrono_end;
 
@@ -907,7 +901,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (db > squelch)  // MATCHING LEVEL
             {
                 freq_lock++;
-                timer += time_interval;  // give some more time for next lock
+                timer += local_recon_lock_duration;  // give some more time for next lock
             } else {
                 // continuous, direct cut it if not consecutive match after 1 first match
                 if (recon_match_mode == RECON_MATCH_CONTINUOUS) {
@@ -961,7 +955,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 
     if (timer != 0) {
-        timer -= time_interval;
+        timer -= local_recon_lock_duration;
         if (timer < 0) {
             timer = 0;
         }
@@ -1234,10 +1228,10 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             break;
         case SPEC_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            // bw 200k (0) default
+            // bw 12k5 (0) default
+            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_capture);
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
-            field_bw.set_by_value(0);
             field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
                 auto anti_alias_baseband_bandwidth_filter = filter_bandwidth_for_sampling_rate(sampling_rate);
                 record_view->set_sampling_rate(sampling_rate);
