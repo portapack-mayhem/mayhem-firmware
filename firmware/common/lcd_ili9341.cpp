@@ -456,6 +456,9 @@ bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
     width = bmp_header.width;
     height = bmp_header.height;
 
+    if (width != 240)
+        return false;
+
     file_pos = bmp_header.image_data;
 
     py = height + 16;
