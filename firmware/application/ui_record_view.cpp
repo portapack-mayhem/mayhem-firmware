@@ -107,13 +107,13 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
     auto oversample_rate = get_oversample_rate(new_sampling_rate);
     auto actual_sampling_rate = new_sampling_rate * toUType(oversample_rate);
 
-    /* We are changing "REC" icon background to yellow in BW rec Options >600kHz
-     * where we are NOT recording full IQ .C16 files (recorded files are decimated ones).
-     * Those decimated recorded files, has not the full IQ samples.
-     * are ok as recorded spectrum indication, but they should not be used by Replay app.
+    /* We are changing "REC" icon background to yellow in BW rec Options >1Mhz
+     * > 1Mhz BW options , we are NOT recording full IQ .C16 files (those files has some periodical  missing dropped samples).
+     * Those recorded files, has not the full IQ samples information, looks like decimated in file size.
+     * They are ok as recorded spectrum indication, but they should not be used by Replay app. (the voice speed will be accelerated)
 
      * We keep original black background in all the correct IQ .C16 files BW's Options. */
-    if (actual_sampling_rate > 4'800'000) {  // > BW >600kHz  (fs=8*BW), (750kHz...2750kHz)
+    if (actual_sampling_rate > 8'000'000) {  // Till fw 1.7.4  BW limit yellow REC button  was >500khz, now  BW >1Mhz  (fs=8*BW), (>1Mhz ..2M75)
         button_record.set_background(ui::Color::yellow());
     } else {
         button_record.set_background(ui::Color::black());
