@@ -27,8 +27,10 @@
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
-    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);
-    decim_0_8.configure(taps_200k_decim_0.taps, 33554432);
+    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);           // to be used with decim1 (/2), then total two stages decim (/8)
+    decim_0_8.configure(taps_200k_decim_0.taps, 33554432);           // to be used with decim1 (/2), then total two stages decim (/16)
+    decim_0_8_180k.configure(taps_180k_wfm_decim_0.taps, 33554432);  // to be used alone - no additional decim1 (/2), then total single stage decim (/8)
+
     decim_1.configure(taps_200k_decim_1.taps, 131072);
 
     channel_spectrum.set_decimation_factor(1);
@@ -37,8 +39,12 @@ CaptureProcessor::CaptureProcessor() {
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     /* 2.4576MHz, 2048 samples */
-    const auto decim_0_out = decim_0_execute(buffer, dst_buffer);
-    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+    const auto decim_0_out = decim_0_execute(buffer, dst_buffer);  // selectable 3 possible decim_0, (/4.  /8 200k soft transition filter , /8 180k sharp )
+
+    const auto decim_1_out = baseband_fs < 4800'000
+                                 ? decim_1.execute(decim_0_out, dst_buffer)  // < 500khz double decim. stage
+                                 : decim_0_out;                              // > 500khz single decim. stage
+
     const auto& decimator_out = decim_1_out;
     const auto& channel = decimator_out;
 
@@ -111,8 +117,12 @@ void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 
 buffer_c16_t CaptureProcessor::decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
     switch (oversample_rate) {
-        case OversampleRate::x8:
-            return decim_0_4.execute(src, dst);
+        case OversampleRate::x8:                     // we can get /8 by two means , decim0 (:4) + decim1 (:2) .  or just decim0 (;8)
+            if (baseband_fs < 4800'000) {            // 600khz (600k x 8)
+                return decim_0_4.execute(src, dst);  // decim_0  /4 with double decim stage
+            } else {
+                return decim_0_8_180k.execute(src, dst);  // decim_0  /8 with single decim stage
+            }
 
         case OversampleRate::x16:
             return decim_0_8.execute(src, dst);

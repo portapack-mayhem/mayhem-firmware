@@ -56,8 +56,9 @@ class CaptureProcessor : public BasebandProcessor {
      * use decim_0_8 for an overall decimation factor of 16. */
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0_4{};
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8{};
-
+    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8_180k{};
     dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
+
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;

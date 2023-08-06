@@ -82,10 +82,11 @@ options_t freqman_bandwidths[4] = {
         {"100k", 100000},
         {"250k", 250000},
         {"500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/
-        {"600k", 600000}, /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec) */
+        {"600k", 600000}, /* We doubled x2 previous REC BW limit , now extended BW from 600k to 1M with fast enough SD card in C16 or C8 format .*/
         {"650k", 650000},
-        {"750k", 750000}, /* From this BW onwards, the LCD is ok, but the recorded file is decimated, (not real file size) */
-        {"1100k", 1100000},
+        {"750k", 750000},
+        {"1000k", 1000000}, /* New limit bandwith option for recording in C16 (in fast SD card) or in C8 */
+        {"1500k", 1500000}, /* From this BW onwards, the LCD is ok, but M4 CPU is having periodical sample rec dropps, (not real file size, accelerated replay) */
         {"1750k", 1750000},
         {"2000k", 2000000},
         {"2500k", 2500000},
