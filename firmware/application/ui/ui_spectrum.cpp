@@ -390,8 +390,8 @@ uint32_t filter_bandwidth_for_sampling_rate(int32_t sampling_rate) {
                                        // BW 500k...750kHz, ex. 500kHz (fs = 8 x BW = 4Mhz), BW 600kHz (fs = 4,8Mhz), BW 750 kHz (fs = 6Mhz).
             return 2'500'000;          // In some IC, MAX2837 appears as 2250000, but both work similarly.
 
-        case 8'000'000:  // BW capture 1Mhz fs = 8 x 11Mhz = 8Mhz. (1Mhz showed slightly higher noise background).
-            return 3'500'000;
+        case 8'000'000:  // BW capture 1Mhz fs = 8 x 1Mhz = 8Mhz. (1Mhz showed slightly higher noise background).
+            return 3'500'000;           // some low SD cards, if not showing avg. writting speed >4MB/sec, they will produce sammples drop at REC with 1MB and C16 format. 
 
         case 12'000'000:  // BW capture 1,5Mhz, fs = 8 x 1,5Mhz = 12Mhz
                           // Good BPF, good matching, we have some periodical M4 % samples drop.
