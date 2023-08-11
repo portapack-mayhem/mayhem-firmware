@@ -86,7 +86,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     receiver_model.enable();
-    option_bandwidth.set_selected_index(7);  // Preselected default option 500kHz.
+    option_bandwidth.set_selected_index(4);  // Preselected default option 500kHz.
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);

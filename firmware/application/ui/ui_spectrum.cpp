@@ -383,7 +383,7 @@ void WaterfallView::on_audio_spectrum() {
 // TODO: Comments below refer to a fixed oversample rate (8x), cleanup.
 uint32_t filter_bandwidth_for_sampling_rate(int32_t sampling_rate) {
     switch (sampling_rate) {   // Use the var fs (sampling_rate) to set up BPF aprox < fs_max / 2 by Nyquist theorem.
-        case 0 ... 2'000'000:  // BW Captured range (0 <= 250kHz max)  fs = 8 x 250 kHz.
+        case 0 ... 3'000'000:  // BW Captured range (0 <= 250kHz max)  fs = 8 x 250 kHz., 16 x 150 khz, 32 x 75 khz, , 64 x 40 khz
             return 1'750'000;  // Minimum BPF MAX2837 for all those lower BW options.
 
         case 4'000'000 ... 6'000'000:  // BW capture range (500k...750kHz max)  fs_max = 8 x 750kHz = 6Mhz
