@@ -46,12 +46,11 @@
  * The oversample rate is used to increase the sample rate to improve SNR and quality.
  * This is also used as the interpolation rate when replaying captures. */
 inline OversampleRate get_oversample_rate(uint32_t sample_rate) {
-    if (sample_rate < 50'000) return OversampleRate::x128;  // 25kk ,16k, 12k5
-    if (sample_rate < 100'000) return OversampleRate::x64;  // 50k
-    if (sample_rate < 150'000) return OversampleRate::x32;  // 100k
-    if (sample_rate < 250'000) return OversampleRate::x16;  // 150k only
+    if (sample_rate < 50'000) return OversampleRate::x128;  // 25kk..12k5, prepared for future, OVS ok, but decim. :128 still not implemented.
+    if (sample_rate < 100'000) return OversampleRate::x64;  // 50k, prepared for future, OVS ok, but decim. :64 still not implemented.
+    if (sample_rate < 250'000) return OversampleRate::x16;  // Now tentatively applied to 150k..100k - but as soon as we got decim :32, (150k x16, and 100k x32)
 
-    return OversampleRate::x8;  // 250k .. 1Mhz
+    return OversampleRate::x8;  // 250k .. 1Mhz, that decim :8 , is already applied.(OVS and decim OK)
 }
 
 /* Gets the actual sample rate for a given sample rate.
