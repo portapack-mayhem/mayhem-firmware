@@ -818,6 +818,9 @@ enum class OversampleRate : uint8_t {
 
     /* Oversample rate of 64 times the sample rate. */
     x64 = 64,
+
+    /* Oversample rate of 128 times the sample rate. */
+    x128 = 128,
 };
 
 class SampleRateConfigMessage : public Message {

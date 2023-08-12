@@ -74,8 +74,11 @@ options_t freqman_bandwidths[4] = {
     },
     {
         // SPEC -- TODO: these should be indexes.
-        {"40k", 40000},
-        {"80k", 80000},
+        {"12k5", 12500},
+        {"16k", 16000},
+        {"25k", 25000},
+        {"50k", 50000},
+        {"100k", 100000},
         {"150k", 150000},
         {"250k", 250000},
         {"500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/
