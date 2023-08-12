@@ -76,10 +76,10 @@ options_t freqman_bandwidths[4] = {
         // SPEC -- TODO: these should be indexes.
         {"12k5", 12500},
         {"16k", 16000},
-        {"20k", 20000},
         {"25k", 25000},
         {"50k", 50000},
         {"100k", 100000},
+        {"150k", 150000},
         {"250k", 250000},
         {"500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/
         {"600k", 600000}, /* We doubled x2 previous REC BW limit , now extended BW from 600k to 1M with fast enough SD card in C16 or C8 format .*/
