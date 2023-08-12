@@ -42,8 +42,8 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_0_out = decim_0_execute(buffer, dst_buffer);  // selectable 3 possible decim_0, (/4.  /8 200k soft transition filter , /8 180k sharp )
 
     const auto decim_1_out = baseband_fs < 4800'000
-                                 ? decim_1.execute(decim_0_out, dst_buffer)  // < 500khz double decim. stage
-                                 : decim_0_out;                              // > 500khz single decim. stage
+                                 ? decim_1.execute(decim_0_out, dst_buffer)  // < 600khz double decim. stage , means 500khz and lower bit rates.
+                                 : decim_0_out;                              // >= 600khz single decim. stage , means 600khz and upper bit rates.
 
     const auto& decimator_out = decim_1_out;
     const auto& channel = decimator_out;

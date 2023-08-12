@@ -816,7 +816,7 @@ enum class OversampleRate : uint8_t {
     /* Oversample rate of 32 times the sample rate. */
     x32 = 32,
 
-    /* Oversample rate of 32 times the sample rate. */
+    /* Oversample rate of 64 times the sample rate. */
     x64 = 64,
 };
 
