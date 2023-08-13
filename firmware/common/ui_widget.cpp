@@ -365,8 +365,12 @@ void Text::set(std::string_view value) {
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
+    auto max_len = (unsigned)rect.width() / s.font.char_width();
 
     painter.fill_rectangle(rect, s.background);
+
+    if (text.length() > max_len)
+        text.resize(max_len);
 
     painter.draw_string(
         rect.location(),
