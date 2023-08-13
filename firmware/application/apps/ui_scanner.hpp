@@ -110,11 +110,11 @@ class ScannerView : public View {
     std::string title() const override { return "Scanner"; };
 
    private:
+    RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_scanner", app_settings::Mode::RX};
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
 
     void start_scan_thread();
     void restart_scan();
