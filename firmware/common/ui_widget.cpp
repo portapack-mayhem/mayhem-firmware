@@ -359,7 +359,6 @@ Text::Text(
 
 void Text::set(std::string_view value) {
     text = std::string{value};
-
     set_dirty();
 }
 
