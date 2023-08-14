@@ -37,6 +37,22 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
+void ReconView::check_update_ranges_from_current() {
+    if (frequency_list.size() && current_is_valid()) {
+        if (update_ranges && !manual_mode) {
+            button_manual_start.set_text(to_string_short_freq(current_entry().frequency_a));
+            frequency_range.min = current_entry().frequency_a;
+            if (current_entry().frequency_b != 0) {
+                button_manual_end.set_text(to_string_short_freq(current_entry().frequency_b));
+                frequency_range.max = current_entry().frequency_b;
+            } else {
+                button_manual_end.set_text(to_string_short_freq(current_entry().frequency_a));
+                frequency_range.max = current_entry().frequency_a;
+            }
+        }
+    }
+}
+
 bool ReconView::current_is_valid() {
     return (unsigned)current_index < frequency_list.size();
 }
@@ -193,12 +209,24 @@ bool ReconView::recon_load_config_from_sd() {
                 break;
             case 6:
                 parse_int(line, wait);
-                complete = true;  // NB: Last entry.
+                break;
+            case 7:
+                if (!update_ranges) {
+                    parse_int(line, frequency_range.min);
+                    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+                }
+                break;
+            case 8:
+                if (!update_ranges) {
+                    parse_int(line, frequency_range.max);
+                    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+                }
+                complete = true;
+                break;
+            default:
                 break;
         }
-
         if (complete) break;
-
         line_nb++;
     }
 
@@ -220,6 +248,8 @@ bool ReconView::recon_save_config_to_sd() {
     settings_file.write_line(to_string_dec_int(squelch));
     settings_file.write_line(to_string_dec_uint(recon_match_mode));
     settings_file.write_line(to_string_dec_int(wait));
+    settings_file.write_line(to_string_dec_uint(frequency_range.min));
+    settings_file.write_line(to_string_dec_uint(frequency_range.max));
     return true;
 }
 
@@ -290,19 +320,7 @@ void ReconView::handle_retune() {
         }
         if (last_index != current_index) {
             last_index = current_index;
-            if (frequency_list.size() && current_is_valid() && current_entry().type == freqman_type::Range) {
-                if (update_ranges && !manual_mode) {
-                    button_manual_start.set_text(to_string_short_freq(current_entry().frequency_a));
-                    frequency_range.min = current_entry().frequency_a;
-                    if (current_entry().frequency_b != 0) {
-                        button_manual_end.set_text(to_string_short_freq(current_entry().frequency_b));
-                        frequency_range.max = current_entry().frequency_b;
-                    } else {
-                        button_manual_end.set_text(to_string_short_freq(current_entry().frequency_a));
-                        frequency_range.max = current_entry().frequency_a;
-                    }
-                }
-            }
+            check_update_ranges_from_current();
             text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
             update_description();
         }
@@ -562,9 +580,16 @@ ReconView::ReconView(NavigationView& nav)
         recon_pause();
         if (!frequency_range.min || !frequency_range.max) {
             nav_.display_modal("Error", "Both START and END freqs\nneed a value");
-        } else if (frequency_range.min > frequency_range.max) {
-            nav_.display_modal("Error", "END freq\nis lower than START");
         } else {
+            if (frequency_range.min > frequency_range.max) {                      // xor swap
+                frequency_range.min = frequency_range.min ^ frequency_range.max;  // addition
+                frequency_range.max = frequency_range.min ^ frequency_range.max;  // max will contain min
+                frequency_range.min = frequency_range.min ^ frequency_range.max;  // min will becom max
+                button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+                button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+            }
+
+            // no need to stop audio in SPEC
             if (field_mode.selected_index_value() != SPEC_MODULATION)
                 audio::output::stop();
 
@@ -839,17 +864,7 @@ void ReconView::frequency_file_load(bool) {
     receiver_model.enable();
     receiver_model.set_squelch_level(0);
     text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-    if (update_ranges && !manual_mode) {
-        button_manual_start.set_text(to_string_short_freq(current_entry().frequency_a));
-        frequency_range.min = current_entry().frequency_a;
-        if (current_entry().frequency_b != 0) {
-            button_manual_end.set_text(to_string_short_freq(current_entry().frequency_b));
-            frequency_range.max = current_entry().frequency_b;
-        } else {
-            button_manual_end.set_text(to_string_short_freq(current_entry().frequency_a));
-            frequency_range.max = current_entry().frequency_a;
-        }
-    }
+    check_update_ranges_from_current();
     update_description();
     handle_retune();
 }
