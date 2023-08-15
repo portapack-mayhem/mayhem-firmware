@@ -70,6 +70,7 @@ class ReconView : public View {
     app_settings::SettingsManager settings_{
         "rx_recon", app_settings::Mode::RX};
 
+    void check_update_ranges_from_current();
     void set_loop_config(bool v);
     void clear_freqlist_for_ui_action();
     void reset_indexes();
