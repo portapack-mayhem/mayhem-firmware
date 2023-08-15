@@ -249,7 +249,7 @@ void FileManBaseView::refresh_list() {
         auto entry_name = truncate(entry.path, 20);
 
         if (entry.is_directory) {
-            auto size_str = (entry.path == parent_dir_path)? "" : to_string_dec_uint(file_count(entry.path));
+            auto size_str = (entry.path == parent_dir_path) ? "" : to_string_dec_uint(file_count(entry.path));
 
             menu_view.add_item(
                 {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
@@ -564,7 +564,7 @@ FileManagerView::FileManagerView(
         } else {
             text_date.set_style(&Styles::grey);
             if (selected_is_valid())
-                text_date.set((is_directory(get_selected_full_path())? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
             else
                 text_date.set("");
         }
