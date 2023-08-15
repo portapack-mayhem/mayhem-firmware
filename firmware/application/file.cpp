@@ -579,6 +579,17 @@ bool is_empty_directory(const path& file_path) {
     return !((result == FR_OK) && (filinfo.fname[0] != (TCHAR)'\0'));
 }
 
+int file_count(const path& directory) {
+    int count{0};
+
+    for (auto& entry : std::filesystem::directory_iterator(directory, (const TCHAR*)u"*")) {
+        (void)entry;  // avoid unused warning
+        ++count;
+    }
+
+    return count;
+}
+
 space_info space(const path& p) {
     DWORD free_clusters{0};
     FATFS* fs;
