@@ -581,10 +581,8 @@ ReconView::ReconView(NavigationView& nav)
         if (!frequency_range.min || !frequency_range.max) {
             nav_.display_modal("Error", "Both START and END freqs\nneed a value");
         } else {
-            if (frequency_range.min > frequency_range.max) {                      // xor swap
-                frequency_range.min = frequency_range.min ^ frequency_range.max;  // addition
-                frequency_range.max = frequency_range.min ^ frequency_range.max;  // max will contain min
-                frequency_range.min = frequency_range.min ^ frequency_range.max;  // min will becom max
+            if (frequency_range.min > frequency_range.max) {
+                std::swap(frequency_range.min, frequency_range.max);
                 button_manual_start.set_text(to_string_short_freq(frequency_range.min));
                 button_manual_end.set_text(to_string_short_freq(frequency_range.max));
             }
