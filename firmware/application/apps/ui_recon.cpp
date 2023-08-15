@@ -898,6 +898,8 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         if (!timer) {
             status = 0;
             freq_lock = 0;
+            last_freq_lock = -1;  // need to reset these two as else the green coloration can not occur on consecutive matches
+            last_nb_match = -1;
             timer = local_recon_lock_duration;
             big_display.set_style(&Styles::white);
         }
