@@ -145,11 +145,11 @@ OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
 
     auto rate = ::get_oversample_rate(sample_rate);
 
-    // Currently proc_capture only supports x8 and x16 for decimation.
-    if (rate < OversampleRate::x8)
+    // Currently proc_capture only supports x8, x16, x32 for decimation.
+    if (rate < OversampleRate::x8)  // clipping while x4 is not implemented yet.
         rate = OversampleRate::x8;
-    else if (rate > OversampleRate::x16)
-        rate = OversampleRate::x16;
+    else if (rate > OversampleRate::x32)  // clipping while x64 is not implemented yet .
+        rate = OversampleRate::x32;
 
     return rate;
 }
