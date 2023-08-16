@@ -71,6 +71,8 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
     if (!settings_.loaded())
         field_frequency.set_value(initial_target_frequency);
 
+    check_log.set_value(logging_);
+
     receiver_model.enable();
 
     // TODO: app setting instead?
@@ -88,7 +90,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
         logger->append(LOG_ROOT_DIR "/POCSAG.TXT");
 
     audio::output::start();
-
     baseband::set_pocsag();
 }
 
@@ -99,8 +100,9 @@ void POCSAGAppView::focus() {
 POCSAGAppView::~POCSAGAppView() {
     audio::output::stop();
 
-    // Save ignored address
+    // Save settings.
     persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
+    logging_ = check_log.value();
 
     receiver_model.disable();
     baseband::shutdown();

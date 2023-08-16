@@ -27,7 +27,9 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 
 #include "file.hpp"
 #include "max283x.hpp"
@@ -80,8 +82,17 @@ struct AppSettings {
     uint8_t volume;
 };
 
-ResultCode load_settings(const std::string& app_name, AppSettings& settings);
-ResultCode save_settings(const std::string& app_name, AppSettings& settings);
+using SettingBinding = std::pair<std::string_view, std::variant<uint32_t*, uint8_t*, bool*>>;
+using SettingsList = std::vector<SettingBinding>;
+
+ResultCode load_settings(
+    const std::string& app_name,
+    AppSettings& settings,
+    const SettingsList& additional_settings);
+ResultCode save_settings(
+    const std::string& app_name,
+    AppSettings& settings,
+    const SettingsList& additional_settings);
 
 /* Copies common values to the receiver/transmitter models. */
 void copy_to_radio_model(const AppSettings& settings);
@@ -94,7 +105,20 @@ void copy_from_radio_model(AppSettings& settings);
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
    public:
-    SettingsManager(std::string app_name, Mode mode, Options options = Options::None);
+    SettingsManager(std::string app_name, Mode mode);
+    SettingsManager(
+        std::string app_name,
+        Mode mode,
+        SettingsList additional_settings);
+    SettingsManager(
+        std::string app_name,
+        Mode mode,
+        Options options);
+    SettingsManager(
+        std::string app_name,
+        Mode mode,
+        Options options,
+        SettingsList additional_settings);
     ~SettingsManager();
 
     SettingsManager(const SettingsManager&) = delete;
@@ -111,6 +135,7 @@ class SettingsManager {
    private:
     std::string app_name_;
     AppSettings settings_;
+    SettingsList additional_settings_;
     bool loaded_;
 };
 

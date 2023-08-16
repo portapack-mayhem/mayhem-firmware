@@ -94,8 +94,12 @@ constexpr std::string_view volume = "volume="sv;
 // TODO: Maybe just use a dictionary which would allow for custom settings.
 // TODO: Create a control value binding which will allow controls to
 //       be declaratively bound to a setting and persistence will be magic.
+// TODO: Use file line reader and split_string instead for faster startup.
 
-ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
+ResultCode load_settings(
+    const std::string& app_name,
+    AppSettings& settings,
+    const SettingsList& additional_settings) {
     if (!portapack::persistent_memory::load_app_settings())
         return ResultCode::SettingsDisabled;
 
@@ -129,10 +133,26 @@ ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     read_setting(*data, setting::step, settings.step);
     read_setting(*data, setting::volume, settings.volume);
 
+    for (auto& setting : additional_settings) {
+        auto read_variant = [&data, &setting](auto& value) {
+            read_setting(*data, setting.first, value);
+        };
+
+        if (std::holds_alternative<uint32_t*>(setting.second))
+            read_variant(*std::get<uint32_t*>(setting.second));
+        else if (std::holds_alternative<uint8_t*>(setting.second))
+            read_variant(*std::get<uint8_t*>(setting.second));
+        else if (std::holds_alternative<bool*>(setting.second))
+            read_variant(*std::get<bool*>(setting.second));
+    }
+
     return ResultCode::Ok;
 }
 
-ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
+ResultCode save_settings(
+    const std::string& app_name,
+    AppSettings& settings,
+    const SettingsList& additional_settings) {
     if (!portapack::persistent_memory::save_app_settings())
         return ResultCode::SettingsDisabled;
 
@@ -167,6 +187,19 @@ ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
     write_setting(settings_file, setting::sampling_rate, settings.sampling_rate);
     write_setting(settings_file, setting::step, settings.step);
     write_setting(settings_file, setting::volume, settings.volume);
+
+    for (auto& setting : additional_settings) {
+        auto write_variant = [&settings_file, &setting](auto value) {
+            write_setting(settings_file, setting.first, value);
+        };
+
+        if (std::holds_alternative<uint32_t*>(setting.second))
+            write_variant(*std::get<uint32_t*>(setting.second));
+        else if (std::holds_alternative<uint8_t*>(setting.second))
+            write_variant(*std::get<uint8_t*>(setting.second));
+        else if (std::holds_alternative<bool*>(setting.second))
+            write_variant(*std::get<bool*>(setting.second));
+    }
 
     return ResultCode::Ok;
 }
@@ -230,16 +263,27 @@ void copy_from_radio_model(AppSettings& settings) {
 }
 
 /* SettingsManager *************************************************/
+SettingsManager::SettingsManager(std::string app_name, Mode mode)
+    : SettingsManager(app_name, mode, Options::None, {}) {}
+
+SettingsManager::SettingsManager(std::string app_name, Mode mode, SettingsList additional_settings)
+    : SettingsManager(app_name, mode, Options::None, std::move(additional_settings)) {}
+
+SettingsManager::SettingsManager(std::string app_name, Mode mode, Options options)
+    : SettingsManager(app_name, mode, options, {}) {}
+
 SettingsManager::SettingsManager(
     std::string app_name,
     Mode mode,
-    Options options)
+    Options options,
+    SettingsList additional_settings)
     : app_name_{std::move(app_name)},
       settings_{},
+      additional_settings_{std::move(additional_settings)},
       loaded_{false} {
     settings_.mode = mode;
     settings_.options = options;
-    auto result = load_settings(app_name_, settings_);
+    auto result = load_settings(app_name_, settings_, additional_settings_);
 
     if (result == ResultCode::Ok) {
         loaded_ = true;
@@ -250,7 +294,7 @@ SettingsManager::SettingsManager(
 SettingsManager::~SettingsManager() {
     if (portapack::persistent_memory::save_app_settings()) {
         copy_from_radio_model(settings_);
-        save_settings(app_name_, settings_);
+        save_settings(app_name_, settings_, additional_settings_);
     }
 }
 
