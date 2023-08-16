@@ -115,11 +115,6 @@ class FileManBaseView : public View {
         {0, 2 * 8, 240, 26 * 8},
         true};
 
-    // HACK: for item count limit.
-    Text text_info{
-        {1 * 8, 35 * 8, 15 * 8, 16},
-        ""};
-
     Button button_exit{
         {22 * 8, 34 * 8, 8 * 8, 32},
         "Exit"};
@@ -218,11 +213,8 @@ class FileManagerView : public FileManBaseView {
     // True if the selected entry is a real file item.
     bool selected_is_valid() const;
 
-    Labels labels{
-        {{0, 26 * 8}, "Created ", Color::light_grey()}};
-
     Text text_date{
-        {8 * 8, 26 * 8, 19 * 8, 16},
+        {0 * 8, 26 * 8, 28 * 8, 16},
         ""};
 
     NewButton button_rename{

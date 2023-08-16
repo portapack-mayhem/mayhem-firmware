@@ -250,6 +250,8 @@ bool file_exists(const path& file_path);
 bool is_directory(const path& file_path);
 bool is_empty_directory(const path& file_path);
 
+int file_count(const path& dir_path);
+
 space_info space(const path& p);
 
 } /* namespace filesystem */

@@ -185,7 +185,6 @@ FileManBaseView::FileManBaseView(
       extension_filter{filter} {
     add_children({&labels,
                   &text_current,
-                  &text_info,
                   &button_exit});
 
     button_exit.on_select = [this, &nav](Button&) {
@@ -250,8 +249,10 @@ void FileManBaseView::refresh_list() {
         auto entry_name = truncate(entry.path, 20);
 
         if (entry.is_directory) {
+            auto size_str = (entry.path == parent_dir_path) ? "" : to_string_dec_uint(file_count(entry.path));
+
             menu_view.add_item(
-                {entry_name,
+                {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
                  ui::Color::yellow(),
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -278,7 +279,6 @@ void FileManBaseView::refresh_list() {
             break;
     }
 
-    text_info.set(menu_view.item_count() >= max_items_shown ? "Too many files!" : "");
     menu_view.set_highlighted(prev_highlight);
 }
 
@@ -342,7 +342,6 @@ FileSaveView::FileSaveView(
         file_{ file }
 {
         add_children({
-                &labels,
                 &text_path,
                 &button_edit_path,
                 &text_name,
@@ -546,7 +545,6 @@ FileManagerView::FileManagerView(
 
     add_children({
         &menu_view,
-        &labels,
         &text_date,
         &button_rename,
         &button_delete,
@@ -560,10 +558,16 @@ FileManagerView::FileManagerView(
     });
 
     menu_view.on_highlight = [this]() {
-        if (selected_is_valid())
-            text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
-        else
-            text_date.set("");
+        if (menu_view.highlighted_index() >= max_items_shown - 1) {
+            text_date.set_style(&Styles::red);
+            text_date.set("Too many files!");
+        } else {
+            text_date.set_style(&Styles::grey);
+            if (selected_is_valid())
+                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+            else
+                text_date.set("");
+        }
     };
 
     refresh_list();
