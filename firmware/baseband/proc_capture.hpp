@@ -82,7 +82,7 @@ class CaptureProcessor : public BasebandProcessor {
     /* Dispatch to the correct decim_0 based on oversample rate. */
     buffer_c16_t decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst);
 
-     /* Dispatch to the correct decim_1 based on oversample rate. */
+    /* Dispatch to the correct decim_1 based on oversample rate. */
     buffer_c16_t decim_1_execute(const buffer_c16_t& src, const buffer_c16_t& dst);
 };
 

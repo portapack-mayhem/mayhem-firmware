@@ -111,7 +111,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             if (baseband_fs < 4800'000) {
                 decim_1_factor = decim_1_2.decimation_factor;  // x8 = 4x2
             } else {
-                decim_1_factor = 2*1;  // 600khz and onwards, single decim x8 = 8x1 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+                decim_1_factor = 2 * 1;  // 600khz and onwards, single decim x8 = 8x1 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
             }
             break;
 
