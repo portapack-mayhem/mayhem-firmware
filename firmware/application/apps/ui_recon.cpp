@@ -221,12 +221,15 @@ bool ReconView::recon_load_config_from_sd() {
                     parse_int(line, frequency_range.max);
                     button_manual_end.set_text(to_string_short_freq(frequency_range.max));
                 }
-                complete = true;
+                complete = true;  // NB: Last entry.
                 break;
             default:
+                complete = false;
                 break;
         }
+
         if (complete) break;
+
         line_nb++;
     }
 
@@ -250,6 +253,7 @@ bool ReconView::recon_save_config_to_sd() {
     settings_file.write_line(to_string_dec_int(wait));
     settings_file.write_line(to_string_dec_uint(frequency_range.min));
     settings_file.write_line(to_string_dec_uint(frequency_range.max));
+
     return true;
 }
 
@@ -872,12 +876,14 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     uint32_t local_recon_lock_duration = recon_lock_duration;
 
     chrono_end = chTimeNow();
-    time_interval = chrono_end - chrono_start;
-    if (field_lock_wait.value() == 0) {
-        if (time_interval <= 1)             // capping here to avoid freeze because too quick
-            local_recon_lock_duration = 2;  // minimum working tested value
-        else
-            local_recon_lock_duration = time_interval;
+    if (field_mode.selected_index_value() == SPEC_MODULATION) {
+        time_interval = chrono_end - chrono_start;
+        if (field_lock_wait.value() == 0) {
+            if (time_interval <= 1)             // capping here to avoid freeze because too quick
+                local_recon_lock_duration = 2;  // minimum working tested value
+            else
+                local_recon_lock_duration = time_interval;
+        }
     }
     chrono_start = chrono_end;
 
@@ -898,10 +904,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         if (!timer) {
             status = 0;
             freq_lock = 0;
-            last_freq_lock = -1;  // need to reset these two as else the green coloration can not occur on consecutive matches
-            last_nb_match = -1;
             timer = local_recon_lock_duration;
-            big_display.set_style(&Styles::white);
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
         {
@@ -916,7 +919,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (db > squelch)  // MATCHING LEVEL
             {
                 freq_lock++;
-                timer += local_recon_lock_duration;  // give some more time for next lock
+                timer += time_interval;  // give some more time for next lock
             } else {
                 // continuous, direct cut it if not consecutive match after 1 first match
                 if (recon_match_mode == RECON_MATCH_CONTINUOUS) {
@@ -970,7 +973,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 
     if (timer != 0) {
-        timer -= local_recon_lock_duration;
+        timer -= time_interval;
         if (timer < 0) {
             timer = 0;
         }
