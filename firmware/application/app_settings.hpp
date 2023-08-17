@@ -86,16 +86,16 @@ class Settings {
 /* RAII wrapper for Settings that loads/saves to the SD card. */
 class SettingsStore {
    public:
-    SettingsStore(std::string_view store_name, Settings settings);
+    SettingsStore(std::string_view store_name, Settings& settings);
     ~SettingsStore();
 
    private:
     std::string_view store_name_;
-    Settings settings_;
+    Settings& settings_;
 };
 
-bool save_settings(std::string_view store_name, const Settings& settings);
 bool load_settings(std::string_view store_name, Settings& settings);
+bool save_settings(std::string_view store_name, const Settings& settings);
 
 namespace app_settings {
 

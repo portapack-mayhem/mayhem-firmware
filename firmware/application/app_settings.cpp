@@ -21,8 +21,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "debug.hpp"
-
 #include "app_settings.hpp"
 
 #include "convert.hpp"
@@ -48,7 +46,7 @@ fs::path get_settings_path(const std::string& app_name) {
 
 std::string Setting::to_string() const {
     auto result = std::string{name_} + "=";
-    
+
     if (std::holds_alternative<uint32_t>(value_))
         result += to_string_dec_uint(as_uint());
     else if (std::holds_alternative<std::string>(value_))
@@ -64,8 +62,7 @@ void Setting::parse(std::string_view value) {
         uint32_t parsed = 0;
         parse_int(value, parsed);
         value_ = parsed;
-    }
-    else if (std::holds_alternative<std::string>(value_))
+    } else if (std::holds_alternative<std::string>(value_))
         value_ = std::string{value};
     else if (std::holds_alternative<bool>(value_)) {
         uint8_t parsed = 0;
@@ -92,8 +89,8 @@ Setting* Settings::operator[](std::string_view name) {
     return it != settings_.end() ? &*it : nullptr;
 }
 
-SettingsStore::SettingsStore(std::string_view store_name, Settings settings)
-    : store_name_{store_name}, settings_{std::move(settings)} {
+SettingsStore::SettingsStore(std::string_view store_name, Settings& settings)
+    : store_name_{store_name}, settings_{settings} {
     load_settings(store_name_, settings_);
 }
 
@@ -111,7 +108,7 @@ bool load_settings(std::string_view store_name, Settings& settings) {
 
     auto reader = FileLineReader(f);
     for (const auto& line : reader) {
-        auto cols = split_string(trim(line), '=');
+        auto cols = split_string(line, '=');
 
         if (cols.size() != 2)
             continue;
