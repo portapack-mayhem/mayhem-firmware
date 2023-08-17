@@ -21,9 +21,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "debug.hpp"
+
 #include "app_settings.hpp"
 
+#include "convert.hpp"
 #include "file.hpp"
+#include "file_reader.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "utility.hpp"
@@ -35,6 +39,106 @@
 namespace fs = std::filesystem;
 using namespace portapack;
 using namespace std::literals;
+
+namespace {
+fs::path get_settings_path(const std::string& app_name) {
+    return fs::path{u"/SETTINGS"} / app_name + u".ini";
+}
+}  // namespace
+
+std::string Setting::to_string() const {
+    auto result = std::string{name_} + "=";
+    
+    if (std::holds_alternative<uint32_t>(value_))
+        result += to_string_dec_uint(as_uint());
+    else if (std::holds_alternative<std::string>(value_))
+        result += as_string();
+    else if (std::holds_alternative<bool>(value_))
+        result += (as_bool() ? "1" : "0");
+
+    return result;
+}
+
+void Setting::parse(std::string_view value) {
+    if (std::holds_alternative<uint32_t>(value_)) {
+        uint32_t parsed = 0;
+        parse_int(value, parsed);
+        value_ = parsed;
+    }
+    else if (std::holds_alternative<std::string>(value_))
+        value_ = std::string{value};
+    else if (std::holds_alternative<bool>(value_)) {
+        uint8_t parsed = 0;
+        parse_int(value, parsed);
+        value_ = parsed != 0;
+    }
+}
+
+SettingsList::const_iterator Settings::begin() const {
+    return settings_.cbegin();
+}
+
+SettingsList::const_iterator Settings::end() const {
+    return settings_.cend();
+}
+
+Setting* Settings::operator[](std::string_view name) {
+    auto it = std::find_if(
+        settings_.begin(), settings_.end(),
+        [name](const auto& item) {
+            return item.name() == name;
+        });
+
+    return it != settings_.end() ? &*it : nullptr;
+}
+
+SettingsStore::SettingsStore(std::string_view store_name, Settings settings)
+    : store_name_{store_name}, settings_{std::move(settings)} {
+    load_settings(store_name_, settings_);
+}
+
+SettingsStore::~SettingsStore() {
+    save_settings(store_name_, settings_);
+}
+
+bool load_settings(std::string_view store_name, Settings& settings) {
+    File f;
+    auto path = get_settings_path(std::string{store_name});
+
+    auto error = f.open(path);
+    if (error)
+        return false;
+
+    auto reader = FileLineReader(f);
+    for (const auto& line : reader) {
+        auto cols = split_string(trim(line), '=');
+
+        if (cols.size() != 2)
+            continue;
+
+        if (auto setting = settings[cols[0]])
+            setting->parse(cols[1]);
+    }
+
+    return true;
+}
+
+bool save_settings(std::string_view store_name, const Settings& settings) {
+    File f;
+    auto path = get_settings_path(std::string{store_name});
+
+    auto error = f.create(path);
+    if (error)
+        return false;
+
+    for (const auto& setting : settings) {
+        auto setting_string = setting.to_string();
+        f.write(setting_string.data(), setting_string.length());
+        f.write("\r\n", 2);
+    }
+
+    return true;
+}
 
 namespace app_settings {
 
@@ -62,10 +166,6 @@ static void write_setting(File& file, std::string_view setting_name, const T& va
     file.write(setting_name.data(), setting_name.length());
     file.write(value_str, length);
     file.write("\r\n", 2);
-}
-
-static fs::path get_settings_path(const std::string& app_name) {
-    return fs::path{u"/SETTINGS"} / app_name + u".ini";
 }
 
 namespace setting {
@@ -96,10 +196,7 @@ constexpr std::string_view volume = "volume="sv;
 //       be declaratively bound to a setting and persistence will be magic.
 // TODO: Use file line reader and split_string instead for faster startup.
 
-ResultCode load_settings(
-    const std::string& app_name,
-    AppSettings& settings,
-    const SettingsList& additional_settings) {
+ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())
         return ResultCode::SettingsDisabled;
 
@@ -133,26 +230,10 @@ ResultCode load_settings(
     read_setting(*data, setting::step, settings.step);
     read_setting(*data, setting::volume, settings.volume);
 
-    for (auto& setting : additional_settings) {
-        auto read_variant = [&data, &setting](auto& value) {
-            read_setting(*data, setting.first, value);
-        };
-
-        if (std::holds_alternative<uint32_t*>(setting.second))
-            read_variant(*std::get<uint32_t*>(setting.second));
-        else if (std::holds_alternative<uint8_t*>(setting.second))
-            read_variant(*std::get<uint8_t*>(setting.second));
-        else if (std::holds_alternative<bool*>(setting.second))
-            read_variant(*std::get<bool*>(setting.second));
-    }
-
     return ResultCode::Ok;
 }
 
-ResultCode save_settings(
-    const std::string& app_name,
-    AppSettings& settings,
-    const SettingsList& additional_settings) {
+ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::save_app_settings())
         return ResultCode::SettingsDisabled;
 
@@ -187,19 +268,6 @@ ResultCode save_settings(
     write_setting(settings_file, setting::sampling_rate, settings.sampling_rate);
     write_setting(settings_file, setting::step, settings.step);
     write_setting(settings_file, setting::volume, settings.volume);
-
-    for (auto& setting : additional_settings) {
-        auto write_variant = [&settings_file, &setting](auto value) {
-            write_setting(settings_file, setting.first, value);
-        };
-
-        if (std::holds_alternative<uint32_t*>(setting.second))
-            write_variant(*std::get<uint32_t*>(setting.second));
-        else if (std::holds_alternative<uint8_t*>(setting.second))
-            write_variant(*std::get<uint8_t*>(setting.second));
-        else if (std::holds_alternative<bool*>(setting.second))
-            write_variant(*std::get<bool*>(setting.second));
-    }
 
     return ResultCode::Ok;
 }
@@ -263,27 +331,16 @@ void copy_from_radio_model(AppSettings& settings) {
 }
 
 /* SettingsManager *************************************************/
-SettingsManager::SettingsManager(std::string app_name, Mode mode)
-    : SettingsManager(app_name, mode, Options::None, {}) {}
-
-SettingsManager::SettingsManager(std::string app_name, Mode mode, SettingsList additional_settings)
-    : SettingsManager(app_name, mode, Options::None, std::move(additional_settings)) {}
-
-SettingsManager::SettingsManager(std::string app_name, Mode mode, Options options)
-    : SettingsManager(app_name, mode, options, {}) {}
-
 SettingsManager::SettingsManager(
     std::string app_name,
     Mode mode,
-    Options options,
-    SettingsList additional_settings)
+    Options options)
     : app_name_{std::move(app_name)},
       settings_{},
-      additional_settings_{std::move(additional_settings)},
       loaded_{false} {
     settings_.mode = mode;
     settings_.options = options;
-    auto result = load_settings(app_name_, settings_, additional_settings_);
+    auto result = load_settings(app_name_, settings_);
 
     if (result == ResultCode::Ok) {
         loaded_ = true;
@@ -294,7 +351,7 @@ SettingsManager::SettingsManager(
 SettingsManager::~SettingsManager() {
     if (portapack::persistent_memory::save_app_settings()) {
         copy_from_radio_model(settings_);
-        save_settings(app_name_, settings_, additional_settings_);
+        save_settings(app_name_, settings_);
     }
 }
 

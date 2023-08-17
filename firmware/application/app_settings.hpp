@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2022 Arjan Onwezen
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -34,6 +35,67 @@
 #include "file.hpp"
 #include "max283x.hpp"
 #include "string_format.hpp"
+
+/* The variant types represent the supported setting datatypes. */
+using SettingVariant = std::variant<uint32_t, std::string, bool>;
+
+/* A named SettingVariant. */
+class Setting {
+   public:
+    Setting(std::string_view name, uint32_t default_value)
+        : name_{name}, value_{default_value} {}
+    Setting(std::string_view name, std::string default_value)
+        : name_{name}, value_{default_value} {}
+    Setting(std::string_view name, bool default_value)
+        : name_{name}, value_{default_value} {}
+
+    std::string_view name() const { return name_; }
+    std::string to_string() const;
+    void parse(std::string_view value);
+
+    void set(uint32_t value) { value_ = value; }
+    void set(std::string value) { value_ = std::move(value); }
+    void set(bool value) { value_ = value; }
+
+    uint32_t as_uint() const { return std::get<uint32_t>(value_); }
+    std::string as_string() const { return std::get<std::string>(value_); }
+    bool as_bool() const { return std::get<bool>(value_); }
+
+   private:
+    std::string_view name_;
+    SettingVariant value_;
+};
+
+using SettingsList = std::vector<Setting>;
+
+/* Wrapper for getting or setting a Setting value by name. */
+class Settings {
+   public:
+    Settings(SettingsList settings)
+        : settings_{std::move(settings)} {}
+
+    SettingsList::const_iterator begin() const;
+    SettingsList::const_iterator end() const;
+
+    Setting* operator[](std::string_view name);
+
+   private:
+    SettingsList settings_;
+};
+
+/* RAII wrapper for Settings that loads/saves to the SD card. */
+class SettingsStore {
+   public:
+    SettingsStore(std::string_view store_name, Settings settings);
+    ~SettingsStore();
+
+   private:
+    std::string_view store_name_;
+    Settings settings_;
+};
+
+bool save_settings(std::string_view store_name, const Settings& settings);
+bool load_settings(std::string_view store_name, Settings& settings);
 
 namespace app_settings {
 
@@ -82,17 +144,8 @@ struct AppSettings {
     uint8_t volume;
 };
 
-using SettingBinding = std::pair<std::string_view, std::variant<uint32_t*, uint8_t*, bool*>>;
-using SettingsList = std::vector<SettingBinding>;
-
-ResultCode load_settings(
-    const std::string& app_name,
-    AppSettings& settings,
-    const SettingsList& additional_settings);
-ResultCode save_settings(
-    const std::string& app_name,
-    AppSettings& settings,
-    const SettingsList& additional_settings);
+ResultCode load_settings(const std::string& app_name, AppSettings& settings);
+ResultCode save_settings(const std::string& app_name, AppSettings& settings);
 
 /* Copies common values to the receiver/transmitter models. */
 void copy_to_radio_model(const AppSettings& settings);
@@ -105,20 +158,7 @@ void copy_from_radio_model(AppSettings& settings);
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
    public:
-    SettingsManager(std::string app_name, Mode mode);
-    SettingsManager(
-        std::string app_name,
-        Mode mode,
-        SettingsList additional_settings);
-    SettingsManager(
-        std::string app_name,
-        Mode mode,
-        Options options);
-    SettingsManager(
-        std::string app_name,
-        Mode mode,
-        Options options,
-        SettingsList additional_settings);
+    SettingsManager(std::string app_name, Mode mode, Options options = Options::None);
     ~SettingsManager();
 
     SettingsManager(const SettingsManager&) = delete;
@@ -135,7 +175,6 @@ class SettingsManager {
    private:
     std::string app_name_;
     AppSettings settings_;
-    SettingsList additional_settings_;
     bool loaded_;
 };
 

@@ -62,14 +62,17 @@ class POCSAGAppView : public View {
     bool logging() const { return check_log.value(); };
     bool ignore() const { return check_ignore.value(); };
 
-    bool logging_{false};  // For app settings.
-
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
         "rx_pocsag",
-        app_settings::Mode::RX,
-        {{"logging=", &logging_}}};
+        app_settings::Mode::RX};
+
+    static constexpr std::string_view setting_logging = "enable_logging";
+    Settings ui_settings_{
+        {{ setting_logging, false }}
+    };
+    SettingsStore settings_store_{"rx_pocsag_ui", ui_settings_};
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
