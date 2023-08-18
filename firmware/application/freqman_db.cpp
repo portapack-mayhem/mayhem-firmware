@@ -76,7 +76,7 @@ options_t freqman_bandwidths[4] = {
         // SPEC -- TODO: these should be indexes.
         {"12k5", 12500},
         {"16k", 16000},
-        {"25k", 25000},
+        {"32k", 32000},
         {"50k", 50000},
         {"75k", 75000},
         {"100k", 100000},

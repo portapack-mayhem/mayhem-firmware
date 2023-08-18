@@ -120,7 +120,11 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             break;
 
         case OversampleRate::x32:
-            decim_1_factor = 2 * decim_1_8.decimation_factor;  // /x32 = /4x8 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+            decim_1_factor = 2 * decim_1_8.decimation_factor;  // /32 = /4x8 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+            break;
+
+        case OversampleRate::x64:
+            decim_1_factor = 8 * decim_1_8.decimation_factor;  // /64 = /8x8 (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
             break;
 
         default:
@@ -167,6 +171,9 @@ buffer_c16_t CaptureProcessor::decim_0_execute(const buffer_c8_t& src, const buf
         case OversampleRate::x32:
             return decim_0_4.execute(src, dst);  // decim_0 , /4 with double decim stage
 
+        case OversampleRate::x64:
+            return decim_0_8.execute(src, dst);  // decim_0 , /8 with double decim stage
+
         default:
             chDbgPanic("Unhandled OversampleRate");
             return {};
@@ -183,10 +190,13 @@ buffer_c16_t CaptureProcessor::decim_1_execute(const buffer_c16_t& src, const bu
             }
 
         case OversampleRate::x16:
-            return decim_1_2.execute(src, dst);  // total decim /16 = /8x2, applied to 150khz
+            return decim_1_2.execute(src, dst);  // total decim /16 = /8x2, applied to 100khz and 150khz
 
         case OversampleRate::x32:
-            return decim_1_8.execute(src, dst);  // total decim /32 = /4x8, appled to <= 100khz , 75k with margin ,(50k, 25k, 12k5 now also)  ...
+            return decim_1_8.execute(src, dst);  // total decim /32 = /4x8, appled to  75k , 50k, 32k
+
+        case OversampleRate::x64:
+            return decim_1_8.execute(src, dst);  // total decim /64 = /8x8, appled to 16k and 12k5
 
         default:
             chDbgPanic("Unhandled OversampleRate");
