@@ -127,7 +127,7 @@ TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t s
 }
 
 std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
-    return to_string_dec_int(temperature, temp_len - 1) + "C";
+    return to_string_dec_int(temperature, temp_len - 2) + "\xB0""C";  // 0xB0 is degree ° symbol in our 8x16 font
 }
 
 Coord TemperatureWidget::screen_y(
@@ -406,7 +406,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
         {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
-        {"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},
+        //{"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},  // temporarily disabled to conserve ROM space
     });
     set_max_rows(2);  // allow wider buttons
 }
