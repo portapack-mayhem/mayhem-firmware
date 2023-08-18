@@ -194,7 +194,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         if (temp_humid_info.temp != 0) {
             double decimals = abs(get_decimals(temp_humid_info.temp, 10, true));
-            text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + "\xB0" + "C");  // 0xB0 is degree ° symbol in our 8x16 font
+            text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + "\xB0\x43");  // 0xB0 is degree ° symbol in our 8x16 font, 0x43 is "C" (Clang workaround)
         }
 
         gps_info = packet.get_GPS_data();
