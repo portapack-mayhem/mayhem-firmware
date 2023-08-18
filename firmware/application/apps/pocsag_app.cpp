@@ -71,7 +71,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
     if (!settings_.loaded())
         field_frequency.set_value(initial_target_frequency);
 
-    check_log.set_value(ui_settings_[enable_logging]->as_bool());
+    check_log.set_value(enable_logging);
 
     receiver_model.enable();
 
@@ -102,7 +102,7 @@ POCSAGAppView::~POCSAGAppView() {
 
     // Save settings.
     persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
-    ui_settings_[enable_logging]->set(check_log.value());
+    enable_logging = check_log.value();
 
     receiver_model.disable();
     baseband::shutdown();

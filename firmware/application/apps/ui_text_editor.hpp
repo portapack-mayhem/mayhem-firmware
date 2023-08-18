@@ -224,9 +224,11 @@ class TextEditorView : public View {
     void on_show() override;
 
    private:
-    static constexpr std::string_view enable_zoom = "enable_zoom";
-    Settings ui_settings_{{{enable_zoom, false}}};
-    SettingsStore settings_store_{"notepad", ui_settings_};
+    // Settings
+    bool enable_zoom = false;
+    SettingsStore settings_store_{
+        "notepad",
+        {{"enable_zoom", &enable_zoom}}};
 
     static constexpr size_t max_edit_length = 1024;
     std::string edit_line_buffer_{};

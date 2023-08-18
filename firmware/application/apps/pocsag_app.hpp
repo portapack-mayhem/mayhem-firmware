@@ -68,9 +68,11 @@ class POCSAGAppView : public View {
         "rx_pocsag",
         app_settings::Mode::RX};
 
-    static constexpr std::string_view enable_logging = "enable_logging";
-    Settings ui_settings_{{{enable_logging, false}}};
-    SettingsStore settings_store_{"rx_pocsag_ui", ui_settings_};
+    // Settings
+    bool enable_logging = false;
+    SettingsStore settings_store_{
+        "rx_pocsag_ui",
+        {{"enable_logging", &enable_logging}}};
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};

@@ -99,4 +99,10 @@ TEST_CASE("It should convert 8-bit.") {
     CHECK_EQ(val, 123);
 }
 
+TEST_CASE("It should convert negative.") {
+    int8_t val = 0;
+    REQUIRE(parse_int("-64", val));
+    CHECK_EQ(val, -64);
+}
+
 TEST_SUITE_END();

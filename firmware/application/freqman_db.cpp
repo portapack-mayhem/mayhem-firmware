@@ -268,18 +268,18 @@ std::string to_freqman_string(const freqman_entry& entry) {
 
     switch (entry.type) {
         case freqman_type::Single:
-            append_field("f", to_string_dec_uint64(entry.frequency_a));
+            append_field("f", to_string_dec_uint(entry.frequency_a));
             break;
         case freqman_type::Range:
-            append_field("a", to_string_dec_uint64(entry.frequency_a));
-            append_field("b", to_string_dec_uint64(entry.frequency_b));
+            append_field("a", to_string_dec_uint(entry.frequency_a));
+            append_field("b", to_string_dec_uint(entry.frequency_b));
 
             if (is_valid(entry.step))
                 append_field("s", freqman_entry_get_step_string_short(entry.step));
             break;
         case freqman_type::HamRadio:
-            append_field("r", to_string_dec_uint64(entry.frequency_a));
-            append_field("t", to_string_dec_uint64(entry.frequency_b));
+            append_field("r", to_string_dec_uint(entry.frequency_a));
+            append_field("t", to_string_dec_uint(entry.frequency_b));
 
             if (is_valid(entry.tone))
                 append_field("c", tonekey::tone_key_value_string(entry.tone));

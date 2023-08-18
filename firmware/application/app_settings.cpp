@@ -44,61 +44,77 @@ fs::path get_settings_path(const std::string& app_name) {
 }
 }  // namespace
 
-std::string Setting::to_string() const {
-    auto result = std::string{name_} + "=";
-
-    if (std::holds_alternative<uint32_t>(value_))
-        result += to_string_dec_uint(as_uint());
-    else if (std::holds_alternative<std::string>(value_))
-        result += as_string();
-    else if (std::holds_alternative<bool>(value_))
-        result += (as_bool() ? "1" : "0");
-
-    return result;
+void BoundSetting::parse(std::string_view value) {
+    switch (type_) {
+        case SettingType::I64:
+            parse_int(value, as<int64_t>());
+            break;
+        case SettingType::I32:
+            parse_int(value, as<int32_t>());
+            break;
+        case SettingType::U32:
+            parse_int(value, as<uint32_t>());
+            break;
+        case SettingType::U8:
+            parse_int(value, as<uint8_t>());
+            break;
+        case SettingType::String:
+            as<std::string>() = std::string{value};
+            break;
+        case SettingType::Bool: {
+            int parsed = 0;
+            parse_int(value, parsed);
+            as<bool>() = (parsed != 0);
+            break;
+        }
+    };
 }
 
-void Setting::parse(std::string_view value) {
-    if (std::holds_alternative<uint32_t>(value_)) {
-        uint32_t parsed = 0;
-        parse_int(value, parsed);
-        value_ = parsed;
-    } else if (std::holds_alternative<std::string>(value_))
-        value_ = std::string{value};
-    else if (std::holds_alternative<bool>(value_)) {
-        uint8_t parsed = 0;
-        parse_int(value, parsed);
-        value_ = parsed != 0;
+void BoundSetting::write(File& file) const {
+    // NB: Write directly without allocations. This happens on every
+    // app exit when enabled so should be fast to keep the UX responsive.
+    StringFormatBuffer buffer;
+    size_t length = 0;
+
+    file.write(name_.data(), name_.length());
+    file.write("=", 1);
+
+    switch (type_) {
+        case SettingType::I64:
+            file.write(to_string_dec_int(as<int64_t>(), buffer, length), length);
+            break;
+        case SettingType::I32:
+            file.write(to_string_dec_int(as<int32_t>(), buffer, length), length);
+            break;
+        case SettingType::U32:
+            file.write(to_string_dec_uint(as<uint32_t>(), buffer, length), length);
+            break;
+        case SettingType::U8:
+            file.write(to_string_dec_uint(as<uint8_t>(), buffer, length), length);
+            break;
+        case SettingType::String: {
+            const auto& str = as<std::string>();
+            file.write(str.data(), str.length());
+            break;
+        }
+        case SettingType::Bool:
+            file.write(as<bool>() ? "1" : "0", 1);
+            break;
     }
+
+    file.write("\r\n", 2);
 }
 
-SettingsList::const_iterator Settings::begin() const {
-    return settings_.cbegin();
-}
-
-SettingsList::const_iterator Settings::end() const {
-    return settings_.cend();
-}
-
-Setting* Settings::operator[](std::string_view name) {
-    auto it = std::find_if(
-        settings_.begin(), settings_.end(),
-        [name](const auto& item) {
-            return item.name() == name;
-        });
-
-    return it != settings_.end() ? &*it : nullptr;
-}
-
-SettingsStore::SettingsStore(std::string_view store_name, Settings& settings)
-    : store_name_{store_name}, settings_{settings} {
-    load_settings(store_name_, settings_);
+SettingsStore::SettingsStore(std::string_view store_name, SettingBindings bindings)
+    : store_name_{store_name}, bindings_{bindings} {
+    load_settings(store_name_, bindings_);
 }
 
 SettingsStore::~SettingsStore() {
-    save_settings(store_name_, settings_);
+    save_settings(store_name_, bindings_);
 }
 
-bool load_settings(std::string_view store_name, Settings& settings) {
+bool load_settings(std::string_view store_name, SettingBindings& bindings) {
     File f;
     auto path = get_settings_path(std::string{store_name});
 
@@ -113,14 +129,22 @@ bool load_settings(std::string_view store_name, Settings& settings) {
         if (cols.size() != 2)
             continue;
 
-        if (auto setting = settings[cols[0]])
-            setting->parse(cols[1]);
+        // Find a binding with the name.
+        auto it = std::find_if(
+            bindings.begin(), bindings.end(),
+            [name = cols[0]](auto& bound_setting) {
+                return name == bound_setting.name();
+            });
+
+        // If found, parse the value.
+        if (it != bindings.end())
+            it->parse(cols[1]);
     }
 
     return true;
 }
 
-bool save_settings(std::string_view store_name, const Settings& settings) {
+bool save_settings(std::string_view store_name, const SettingBindings& bindings) {
     File f;
     auto path = get_settings_path(std::string{store_name});
 
@@ -128,11 +152,8 @@ bool save_settings(std::string_view store_name, const Settings& settings) {
     if (error)
         return false;
 
-    for (const auto& setting : settings) {
-        auto setting_string = setting.to_string();
-        f.write(setting_string.data(), setting_string.length());
-        f.write("\r\n", 2);
-    }
+    for (const auto& bound_setting : bindings)
+        bound_setting.write(f);
 
     return true;
 }
@@ -184,14 +205,6 @@ constexpr std::string_view wfm_config_index = "wfm_config_index="sv;
 constexpr std::string_view squelch = "squelch="sv;
 constexpr std::string_view volume = "volume="sv;
 }  // namespace setting
-
-// TODO: Only load/save values that are declared used.
-// This will prevent switching apps from changing setting unnecessarily.
-// TODO: Track which values are actually read.
-// TODO: Maybe just use a dictionary which would allow for custom settings.
-// TODO: Create a control value binding which will allow controls to
-//       be declaratively bound to a setting and persistence will be magic.
-// TODO: Use file line reader and split_string instead for faster startup.
 
 ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
     if (!portapack::persistent_memory::load_app_settings())

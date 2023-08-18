@@ -36,66 +36,68 @@
 #include "max283x.hpp"
 #include "string_format.hpp"
 
-/* The variant types represent the supported setting datatypes. */
-using SettingVariant = std::variant<uint32_t, std::string, bool>;
+/* Represents a named setting bound to a variable instance. */
+/* Using void* instead of std::variant, because variant is a pain to dispatch over. */
+class BoundSetting {
+    /* The type of bound setting. */
+    enum class SettingType : uint8_t {
+        I64,
+        I32,
+        U32,
+        U8,
+        String,
+        Bool,
+    };
 
-/* A named SettingVariant. */
-class Setting {
    public:
-    Setting(std::string_view name, uint32_t default_value)
-        : name_{name}, value_{default_value} {}
-    Setting(std::string_view name, std::string default_value)
-        : name_{name}, value_{default_value} {}
-    Setting(std::string_view name, bool default_value)
-        : name_{name}, value_{default_value} {}
+    BoundSetting(std::string_view name, int64_t* target)
+        : name_{name}, target_{target}, type_{SettingType::I64} {}
+
+    BoundSetting(std::string_view name, int32_t* target)
+        : name_{name}, target_{target}, type_{SettingType::I32} {}
+
+    BoundSetting(std::string_view name, uint32_t* target)
+        : name_{name}, target_{target}, type_{SettingType::U32} {}
+
+    BoundSetting(std::string_view name, uint8_t* target)
+        : name_{name}, target_{target}, type_{SettingType::U8} {}
+
+    BoundSetting(std::string_view name, std::string* target)
+        : name_{name}, target_{target}, type_{SettingType::String} {}
+
+    BoundSetting(std::string_view name, bool* target)
+        : name_{name}, target_{target}, type_{SettingType::Bool} {}
 
     std::string_view name() const { return name_; }
-    std::string to_string() const;
     void parse(std::string_view value);
-
-    void set(uint32_t value) { value_ = value; }
-    void set(std::string value) { value_ = std::move(value); }
-    void set(bool value) { value_ = value; }
-
-    uint32_t as_uint() const { return std::get<uint32_t>(value_); }
-    std::string as_string() const { return std::get<std::string>(value_); }
-    bool as_bool() const { return std::get<bool>(value_); }
+    void write(File& file) const;
 
    private:
+    template <typename T>
+    constexpr auto& as() const {
+        return *reinterpret_cast<T*>(target_);
+    }
+
     std::string_view name_;
-    SettingVariant value_;
+    void* target_;
+    SettingType type_;
 };
 
-using SettingsList = std::vector<Setting>;
-
-/* Wrapper for getting or setting a Setting value by name. */
-class Settings {
-   public:
-    Settings(SettingsList settings)
-        : settings_{std::move(settings)} {}
-
-    SettingsList::const_iterator begin() const;
-    SettingsList::const_iterator end() const;
-
-    Setting* operator[](std::string_view name);
-
-   private:
-    SettingsList settings_;
-};
+using SettingBindings = std::vector<BoundSetting>;
 
 /* RAII wrapper for Settings that loads/saves to the SD card. */
 class SettingsStore {
    public:
-    SettingsStore(std::string_view store_name, Settings& settings);
+    SettingsStore(std::string_view store_name, SettingBindings bindings);
     ~SettingsStore();
 
    private:
     std::string_view store_name_;
-    Settings& settings_;
+    SettingBindings bindings_;
 };
 
-bool load_settings(std::string_view store_name, Settings& settings);
-bool save_settings(std::string_view store_name, const Settings& settings);
+bool load_settings(std::string_view store_name, SettingBindings& bindings);
+bool save_settings(std::string_view store_name, const SettingBindings& bindings);
 
 namespace app_settings {
 
