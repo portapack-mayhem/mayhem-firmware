@@ -127,7 +127,7 @@ TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t s
 }
 
 std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
-    return to_string_dec_int(temperature, temp_len - 2) + "\xB0""C";  // 0xB0 is degree ° symbol in our 8x16 font
+    return to_string_dec_int(temperature, temp_len - 2) + "\xB0\x43";  // 0xB0 is degree ° symbol in our 8x16 font, 0x43 is "C" (Clang workaround)
 }
 
 Coord TemperatureWidget::screen_y(
