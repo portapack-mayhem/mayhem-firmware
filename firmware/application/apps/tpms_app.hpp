@@ -147,8 +147,8 @@ class TPMSAppView : public View {
     OptionsField options_temperature{
         {9 * 8, 0 * 16},
         2,
-        {{"\xB0\x43", 0},  // 0xB0 is degree ° symbol in our 8x16 font, 0x43 is "C" (Clang workaround)
-         {"\xB0\x46", 1}}};
+        {{STR_DEGREES_C, 0},
+         {STR_DEGREES_F, 1}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
