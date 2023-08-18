@@ -65,7 +65,14 @@ class POCSAGAppView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
-        "rx_pocsag", app_settings::Mode::RX};
+        "rx_pocsag",
+        app_settings::Mode::RX};
+
+    // Settings
+    bool enable_logging = false;
+    SettingsStore settings_store_{
+        "rx_pocsag_ui",
+        {{"enable_logging", &enable_logging}}};
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};

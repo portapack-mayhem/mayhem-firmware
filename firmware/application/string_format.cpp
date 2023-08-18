@@ -59,30 +59,37 @@ static char* to_string_dec_uint_pad_internal(
     return q;
 }
 
-template <typename Int>
-char* to_string_dec_uint_internal(Int n, StringFormatBuffer& buffer, size_t& length) {
+static char* to_string_dec_uint_internal(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
     auto end = &buffer.back();
     auto start = to_string_dec_uint_internal(end, n);
     length = end - start;
     return start;
 }
 
-char* to_string_dec_uint(uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+char* to_string_dec_uint(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
     return to_string_dec_uint_internal(n, buffer, length);
 }
 
-char* to_string_dec_uint64(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
-    return to_string_dec_uint_internal(n, buffer, length);
+char* to_string_dec_int(int64_t n, StringFormatBuffer& buffer, size_t& length) {
+    bool negative = n < 0;
+    auto start = to_string_dec_uint(negative ? -n : n, buffer, length);
+
+    if (negative) {
+        *(--start) = '-';
+        ++length;
+    }
+
+    return start;
 }
 
-std::string to_string_dec_uint(uint32_t n) {
+std::string to_string_dec_int(int64_t n) {
     StringFormatBuffer b{};
     size_t len{};
-    char* str = to_string_dec_uint(n, b, len);
+    char* str = to_string_dec_int(n, b, len);
     return std::string(str, len);
 }
 
-std::string to_string_dec_uint64(uint64_t n) {
+std::string to_string_dec_uint(uint64_t n) {
     StringFormatBuffer b{};
     size_t len{};
     char* str = to_string_dec_uint(n, b, len);
@@ -194,14 +201,14 @@ std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
     };
 
     if (precision < 1) {
-        final_str = to_string_dec_uint64(f / 1000000);
+        final_str = to_string_dec_uint(f / 1000000);
     } else {
         if (precision > 6)
             precision = 6;
 
         uint32_t divisor = pow10[6 - precision];
 
-        final_str = to_string_dec_uint64(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
+        final_str = to_string_dec_uint(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
     }
     return final_str;
 }

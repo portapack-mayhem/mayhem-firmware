@@ -24,12 +24,27 @@
 
 /* TODO: Tests for all string_format functions. */
 
-TEST_CASE("to_string_dec_uint64 returns correct value.") {
-    CHECK_EQ(to_string_dec_uint64(0), "0");
-    CHECK_EQ(to_string_dec_uint64(1), "1");
-    CHECK_EQ(to_string_dec_uint64(1'000'000), "1000000");
-    CHECK_EQ(to_string_dec_uint64(1'234'567'890), "1234567890");
-    CHECK_EQ(to_string_dec_uint64(1'234'567'891), "1234567891");
+TEST_CASE("to_string_dec_int returns correct value.") {
+    CHECK_EQ(to_string_dec_int(0), "0");
+    CHECK_EQ(to_string_dec_int(1), "1");
+    CHECK_EQ(to_string_dec_int(-1), "-1");
+    CHECK_EQ(to_string_dec_int(1'000'000), "1000000");
+    CHECK_EQ(to_string_dec_int(-1'000'000), "-1000000");
+    CHECK_EQ(to_string_dec_int(1'234'567'890), "1234567890");
+    CHECK_EQ(to_string_dec_int(-1'234'567'890), "-1234567890");
+    CHECK_EQ(to_string_dec_int(1'234'567'891), "1234567891");
+    CHECK_EQ(to_string_dec_int(-1'234'567'891), "-1234567891");
+    CHECK_EQ(to_string_dec_int(9'876'543'210), "9876543210");
+    CHECK_EQ(to_string_dec_int(-9'876'543'210), "-9876543210");
+}
+
+TEST_CASE("to_string_dec_uint returns correct value.") {
+    CHECK_EQ(to_string_dec_uint(0), "0");
+    CHECK_EQ(to_string_dec_uint(1), "1");
+    CHECK_EQ(to_string_dec_uint(1'000'000), "1000000");
+    CHECK_EQ(to_string_dec_uint(1'234'567'890), "1234567890");
+    CHECK_EQ(to_string_dec_uint(1'234'567'891), "1234567891");
+    CHECK_EQ(to_string_dec_uint(9'876'543'210), "9876543210");
 }
 
 TEST_CASE("to_string_freq returns correct value.") {
