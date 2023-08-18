@@ -38,7 +38,7 @@ namespace fs = std::filesystem;
 namespace ui {
 
 void ReconView::check_update_ranges_from_current() {
-    if (frequency_list.size() && current_is_valid()) {
+    if (frequency_list.size() && current_is_valid() && current_entry().type == freqman_type::Range) {
         if (update_ranges && !manual_mode) {
             button_manual_start.set_text(to_string_short_freq(current_entry().frequency_a));
             frequency_range.min = current_entry().frequency_a;
