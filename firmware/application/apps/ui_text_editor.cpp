@@ -360,6 +360,8 @@ TextEditorView::TextEditorView(NavigationView& nav)
             &text_size,
         });
 
+    viewer.set_font_zoom(enable_zoom);
+
     viewer.on_select = [this]() {
         // Treat as if menu button was pressed.
         if (button_menu.on_select)
@@ -382,7 +384,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.on_zoom() = [this]() {
-        viewer.toggle_font_zoom();
+        enable_zoom = viewer.toggle_font_zoom();
         refresh_ui();
         hide_menu(true);
     };

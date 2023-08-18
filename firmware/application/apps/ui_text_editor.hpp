@@ -32,6 +32,7 @@
 #include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
+#include "app_settings.hpp"
 #include "file_wrapper.hpp"
 #include "optional.hpp"
 
@@ -80,7 +81,10 @@ class TextViewer : public Widget {
 
     const Style& style() { return *font_style; }
     void set_font_zoom(bool zoom);
-    void toggle_font_zoom() { set_font_zoom(!font_zoom); };
+    bool toggle_font_zoom() {
+        set_font_zoom(!font_zoom);
+        return font_zoom;
+    };
 
    private:
     bool font_zoom{};
@@ -220,6 +224,12 @@ class TextEditorView : public View {
     void on_show() override;
 
    private:
+    // Settings
+    bool enable_zoom = false;
+    SettingsStore settings_store_{
+        "notepad",
+        {{"enable_zoom", &enable_zoom}}};
+
     static constexpr size_t max_edit_length = 1024;
     std::string edit_line_buffer_{};
 

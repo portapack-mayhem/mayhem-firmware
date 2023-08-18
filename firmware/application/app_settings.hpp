@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2022 Arjan Onwezen
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -27,11 +28,76 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
+#include <string_view>
 #include <utility>
+#include <variant>
 
 #include "file.hpp"
 #include "max283x.hpp"
 #include "string_format.hpp"
+
+/* Represents a named setting bound to a variable instance. */
+/* Using void* instead of std::variant, because variant is a pain to dispatch over. */
+class BoundSetting {
+    /* The type of bound setting. */
+    enum class SettingType : uint8_t {
+        I64,
+        I32,
+        U32,
+        U8,
+        String,
+        Bool,
+    };
+
+   public:
+    BoundSetting(std::string_view name, int64_t* target)
+        : name_{name}, target_{target}, type_{SettingType::I64} {}
+
+    BoundSetting(std::string_view name, int32_t* target)
+        : name_{name}, target_{target}, type_{SettingType::I32} {}
+
+    BoundSetting(std::string_view name, uint32_t* target)
+        : name_{name}, target_{target}, type_{SettingType::U32} {}
+
+    BoundSetting(std::string_view name, uint8_t* target)
+        : name_{name}, target_{target}, type_{SettingType::U8} {}
+
+    BoundSetting(std::string_view name, std::string* target)
+        : name_{name}, target_{target}, type_{SettingType::String} {}
+
+    BoundSetting(std::string_view name, bool* target)
+        : name_{name}, target_{target}, type_{SettingType::Bool} {}
+
+    std::string_view name() const { return name_; }
+    void parse(std::string_view value);
+    void write(File& file) const;
+
+   private:
+    template <typename T>
+    constexpr auto& as() const {
+        return *reinterpret_cast<T*>(target_);
+    }
+
+    std::string_view name_;
+    void* target_;
+    SettingType type_;
+};
+
+using SettingBindings = std::vector<BoundSetting>;
+
+/* RAII wrapper for Settings that loads/saves to the SD card. */
+class SettingsStore {
+   public:
+    SettingsStore(std::string_view store_name, SettingBindings bindings);
+    ~SettingsStore();
+
+   private:
+    std::string_view store_name_;
+    SettingBindings bindings_;
+};
+
+bool load_settings(std::string_view store_name, SettingBindings& bindings);
+bool save_settings(std::string_view store_name, const SettingBindings& bindings);
 
 namespace app_settings {
 
