@@ -105,7 +105,7 @@ class TemperatureWidget : public Widget {
     static constexpr temperature_t display_temp_min = -10;  // Accomodate negative values, present in cold startup cases
     static constexpr temperature_t display_temp_scale = 3;
     static constexpr int bar_width = 1;
-    static constexpr int temp_len = 4;  // Now scale shows up to 4 chars ("-10C")
+    static constexpr int temp_len = 5;  // Now scale shows up to 5 chars ("-10ºC")
 };
 
 class TemperatureView : public View {
