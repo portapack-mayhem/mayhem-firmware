@@ -174,7 +174,6 @@ class ReconView : public View {
             {"squelch_level"sv, &squelch},
             {"match_mode"sv, &recon_match_mode},
             {"match_wait"sv, &wait},
-            {"match_wait"sv, &wait},
             {"range_min"sv, &frequency_range.min},
             {"range_max"sv, &frequency_range.max},
         }};

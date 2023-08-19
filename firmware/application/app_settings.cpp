@@ -58,7 +58,7 @@ void BoundSetting::parse(std::string_view value) {
             parse_int(value, as<uint8_t>());
             break;
         case SettingType::String:
-            as<std::string>() = std::string{value};
+            as<std::string>() = trim(value);
             break;
         case SettingType::Bool: {
             int parsed = 0;
