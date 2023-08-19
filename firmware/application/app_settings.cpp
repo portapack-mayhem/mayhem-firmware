@@ -36,7 +36,6 @@
 
 namespace fs = std::filesystem;
 using namespace portapack;
-using namespace std::literals;
 
 namespace {
 fs::path get_settings_path(const std::string& app_name) {
@@ -160,130 +159,8 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
 
 namespace app_settings {
 
-template <typename T>
-static void read_setting(
-    std::string_view file_content,
-    std::string_view setting_name,
-    T& value) {
-    auto pos = file_content.find(setting_name);
-
-    if (pos != file_content.npos) {
-        pos += setting_name.length();
-        value = strtoll(&file_content[pos], nullptr, 10);
-    }
-}
-
-template <typename T>
-static void write_setting(File& file, std::string_view setting_name, const T& value) {
-    // NB: Not using file.write_line speed this up. This happens on every
-    // app exit when enabled so should be fast to keep the UX responsive.
-    StringFormatBuffer buffer;
-    size_t length = 0;
-    auto value_str = to_string_dec_uint(value, buffer, length);
-
-    file.write(setting_name.data(), setting_name.length());
-    file.write(value_str, length);
-    file.write("\r\n", 2);
-}
-
-namespace setting {
-constexpr std::string_view baseband_bandwidth = "baseband_bandwidth="sv;
-constexpr std::string_view sampling_rate = "sampling_rate="sv;
-constexpr std::string_view lna = "lna="sv;
-constexpr std::string_view vga = "vga="sv;
-constexpr std::string_view rx_amp = "rx_amp="sv;
-constexpr std::string_view tx_amp = "tx_amp="sv;
-constexpr std::string_view tx_gain = "tx_gain="sv;
-constexpr std::string_view channel_bandwidth = "channel_bandwidth="sv;
-constexpr std::string_view rx_frequency = "rx_frequency="sv;
-constexpr std::string_view tx_frequency = "tx_frequency="sv;
-constexpr std::string_view step = "step="sv;
-constexpr std::string_view modulation = "modulation="sv;
-constexpr std::string_view am_config_index = "am_config_index="sv;
-constexpr std::string_view nbfm_config_index = "nbfm_config_index="sv;
-constexpr std::string_view wfm_config_index = "wfm_config_index="sv;
-constexpr std::string_view squelch = "squelch="sv;
-constexpr std::string_view volume = "volume="sv;
-}  // namespace setting
-
-ResultCode load_settings(const std::string& app_name, AppSettings& settings) {
-    if (!portapack::persistent_memory::load_app_settings())
-        return ResultCode::SettingsDisabled;
-
-    auto file_path = get_settings_path(app_name);
-    auto data = File::read_file(file_path);
-
-    if (!data)
-        return ResultCode::LoadFailed;
-
-    if (flags_enabled(settings.mode, Mode::TX)) {
-        read_setting(*data, setting::tx_frequency, settings.tx_frequency);
-        read_setting(*data, setting::tx_amp, settings.tx_amp);
-        read_setting(*data, setting::tx_gain, settings.tx_gain);
-        read_setting(*data, setting::channel_bandwidth, settings.channel_bandwidth);
-    }
-
-    if (flags_enabled(settings.mode, Mode::RX)) {
-        read_setting(*data, setting::rx_frequency, settings.rx_frequency);
-        read_setting(*data, setting::lna, settings.lna);
-        read_setting(*data, setting::vga, settings.vga);
-        read_setting(*data, setting::rx_amp, settings.rx_amp);
-        read_setting(*data, setting::modulation, settings.modulation);
-        read_setting(*data, setting::am_config_index, settings.am_config_index);
-        read_setting(*data, setting::nbfm_config_index, settings.nbfm_config_index);
-        read_setting(*data, setting::wfm_config_index, settings.wfm_config_index);
-        read_setting(*data, setting::squelch, settings.squelch);
-    }
-
-    read_setting(*data, setting::baseband_bandwidth, settings.baseband_bandwidth);
-    read_setting(*data, setting::sampling_rate, settings.sampling_rate);
-    read_setting(*data, setting::step, settings.step);
-    read_setting(*data, setting::volume, settings.volume);
-
-    return ResultCode::Ok;
-}
-
-ResultCode save_settings(const std::string& app_name, AppSettings& settings) {
-    if (!portapack::persistent_memory::save_app_settings())
-        return ResultCode::SettingsDisabled;
-
-    File settings_file;
-    auto file_path = get_settings_path(app_name);
-    ensure_directory(file_path.parent_path());
-
-    auto error = settings_file.create(file_path);
-    if (error)
-        return ResultCode::SaveFailed;
-
-    if (flags_enabled(settings.mode, Mode::TX)) {
-        write_setting(settings_file, setting::tx_frequency, settings.tx_frequency);
-        write_setting(settings_file, setting::tx_amp, settings.tx_amp);
-        write_setting(settings_file, setting::tx_gain, settings.tx_gain);
-        write_setting(settings_file, setting::channel_bandwidth, settings.channel_bandwidth);
-    }
-
-    if (flags_enabled(settings.mode, Mode::RX)) {
-        write_setting(settings_file, setting::rx_frequency, settings.rx_frequency);
-        write_setting(settings_file, setting::lna, settings.lna);
-        write_setting(settings_file, setting::vga, settings.vga);
-        write_setting(settings_file, setting::rx_amp, settings.rx_amp);
-        write_setting(settings_file, setting::modulation, settings.modulation);
-        write_setting(settings_file, setting::am_config_index, settings.am_config_index);
-        write_setting(settings_file, setting::nbfm_config_index, settings.nbfm_config_index);
-        write_setting(settings_file, setting::wfm_config_index, settings.wfm_config_index);
-        write_setting(settings_file, setting::squelch, settings.squelch);
-    }
-
-    write_setting(settings_file, setting::baseband_bandwidth, settings.baseband_bandwidth);
-    write_setting(settings_file, setting::sampling_rate, settings.sampling_rate);
-    write_setting(settings_file, setting::step, settings.step);
-    write_setting(settings_file, setting::volume, settings.volume);
-
-    return ResultCode::Ok;
-}
-
 void copy_to_radio_model(const AppSettings& settings) {
-    // NB: Don't actually adjust the radio here or it will hang.
+    // NB: Don't actually adjust the radio here or it may hang.
     // Specifically 'modulation' which requires a running baseband.
 
     if (flags_enabled(settings.mode, Mode::TX)) {
@@ -341,27 +218,74 @@ void copy_from_radio_model(AppSettings& settings) {
 }
 
 /* SettingsManager *************************************************/
+SettingsManager::SettingsManager(std::string_view app_name, Mode mode)
+    : SettingsManager{app_name, mode, {}} {}
+
+SettingsManager::SettingsManager(std::string_view app_name, Mode mode, Options options)
+    : SettingsManager{app_name, mode, options, {}} {}
+
 SettingsManager::SettingsManager(
-    std::string app_name,
+    std::string_view app_name,
     Mode mode,
-    Options options)
-    : app_name_{std::move(app_name)},
+    SettingBindings additional_settings)
+    : SettingsManager{app_name, mode, Options::None, std::move(additional_settings)} {}
+
+SettingsManager::SettingsManager(
+    std::string_view app_name,
+    Mode mode,
+    Options options,
+    SettingBindings additional_settings)
+    : app_name_{app_name},
       settings_{},
+      bindings_{},
       loaded_{false} {
     settings_.mode = mode;
     settings_.options = options;
-    auto result = load_settings(app_name_, settings_);
 
-    if (result == ResultCode::Ok) {
-        loaded_ = true;
-        copy_to_radio_model(settings_);
+    if (!portapack::persistent_memory::load_app_settings())
+        return;
+
+    // Pre-alloc enough for app settings and additional settings.
+    additional_settings.reserve(17 + additional_settings.size());
+    bindings_ = std::move(additional_settings);
+
+    // Transmitter model settings.
+    if (flags_enabled(mode, Mode::TX)) {
+        bindings_.emplace_back("tx_frequency"sv, &settings_.tx_frequency);
+        bindings_.emplace_back("tx_amp"sv, &settings_.tx_amp);
+        bindings_.emplace_back("tx_gain"sv, &settings_.tx_gain);
+        bindings_.emplace_back("channel_bandwidth"sv, &settings_.channel_bandwidth);
     }
+
+    // Receiver model settings.
+    if (flags_enabled(mode, Mode::RX)) {
+        bindings_.emplace_back("rx_frequency"sv, &settings_.rx_frequency);
+        bindings_.emplace_back("lna"sv, &settings_.lna);
+        bindings_.emplace_back("vga"sv, &settings_.vga);
+        bindings_.emplace_back("rx_amp"sv, &settings_.rx_amp);
+        bindings_.emplace_back("modulation"sv, &settings_.modulation);
+        bindings_.emplace_back("am_config_index"sv, &settings_.am_config_index);
+        bindings_.emplace_back("nbfm_config_index"sv, &settings_.nbfm_config_index);
+        bindings_.emplace_back("wfm_config_index"sv, &settings_.wfm_config_index);
+        bindings_.emplace_back("squelch"sv, &settings_.squelch);
+    }
+
+    // Common model settings.
+    bindings_.emplace_back("baseband_bandwidth"sv, &settings_.baseband_bandwidth);
+    bindings_.emplace_back("sampling_rate"sv, &settings_.sampling_rate);
+    bindings_.emplace_back("step"sv, &settings_.step);
+    bindings_.emplace_back("volume"sv, &settings_.volume);
+
+    loaded_ = load_settings(app_name_, bindings_);
+
+    if (loaded_)
+        copy_to_radio_model(settings_);
 }
 
 SettingsManager::~SettingsManager() {
     if (portapack::persistent_memory::save_app_settings()) {
         copy_from_radio_model(settings_);
-        save_settings(app_name_, settings_);
+        save_settings(app_name_, bindings_);
     }
 }
 
