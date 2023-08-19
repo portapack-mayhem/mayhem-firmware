@@ -94,6 +94,9 @@ class SettingsStore {
     SettingsStore(std::string_view store_name, SettingBindings bindings);
     ~SettingsStore();
 
+    void reload();
+    void save() const;
+
    private:
     std::string_view store_name_;
     SettingBindings bindings_;

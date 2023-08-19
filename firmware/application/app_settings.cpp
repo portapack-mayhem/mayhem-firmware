@@ -106,10 +106,18 @@ void BoundSetting::write(File& file) const {
 
 SettingsStore::SettingsStore(std::string_view store_name, SettingBindings bindings)
     : store_name_{store_name}, bindings_{bindings} {
-    load_settings(store_name_, bindings_);
+    reload();
 }
 
 SettingsStore::~SettingsStore() {
+    save();
+}
+
+void SettingsStore::reload() {
+    load_settings(store_name_, bindings_);
+}
+
+void SettingsStore::save() const {
     save_settings(store_name_, bindings_);
 }
 
