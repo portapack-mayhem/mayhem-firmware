@@ -36,6 +36,9 @@
 #include "max283x.hpp"
 #include "string_format.hpp"
 
+// Bring in the string_view literal.
+using std::literals::operator""sv;
+
 /* Represents a named setting bound to a variable instance. */
 /* Using void* instead of std::variant, because variant is a pain to dispatch over. */
 class BoundSetting {
@@ -101,13 +104,6 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
 
 namespace app_settings {
 
-enum class ResultCode : uint8_t {
-    Ok,                // settings found
-    LoadFailed,        // settings (file) not found
-    SaveFailed,        // unable to save settings
-    SettingsDisabled,  // load/save disabled in settings
-};
-
 enum class Mode : uint8_t {
     RX = 0x01,
     TX = 0x02,
@@ -121,7 +117,6 @@ enum class Options {
     UseGlobalTargetFrequency = 0x0001,
 };
 
-// TODO: separate types for TX/RX or union?
 /* NB: See RX/TX model headers for default values. */
 struct AppSettings {
     Mode mode = Mode::RX;
@@ -146,21 +141,20 @@ struct AppSettings {
     uint8_t volume;
 };
 
-ResultCode load_settings(const std::string& app_name, AppSettings& settings);
-ResultCode save_settings(const std::string& app_name, AppSettings& settings);
-
 /* Copies common values to the receiver/transmitter models. */
 void copy_to_radio_model(const AppSettings& settings);
 
 /* Copies common values from the receiver/transmitter models. */
 void copy_from_radio_model(AppSettings& settings);
 
-/* RAII wrapper for automatically loading and saving settings for an app.
+/* RAII wrapper for automatically loading and saving radio settings for an app.
  * NB: This should be added to a class before any LNA/VGA controls so that
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
    public:
-    SettingsManager(std::string app_name, Mode mode, Options options = Options::None);
+    SettingsManager(std::string_view app_name, Mode mode, Options options = Options::None);
+    SettingsManager(std::string_view app_name, Mode mode, SettingBindings additional_settings);
+    SettingsManager(std::string_view app_name, Mode mode, Options options, SettingBindings additional_settings);
     ~SettingsManager();
 
     SettingsManager(const SettingsManager&) = delete;
@@ -175,8 +169,9 @@ class SettingsManager {
     AppSettings& raw() { return settings_; }
 
    private:
-    std::string app_name_;
+    std::string_view app_name_;
     AppSettings settings_;
+    SettingBindings bindings_;
     bool loaded_;
 };
 
