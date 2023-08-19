@@ -152,8 +152,7 @@ void copy_from_radio_model(AppSettings& settings);
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
    public:
-    SettingsManager(std::string_view app_name, Mode mode);
-    SettingsManager(std::string_view app_name, Mode mode, Options options);
+    SettingsManager(std::string_view app_name, Mode mode, Options options = Options::None);
     SettingsManager(std::string_view app_name, Mode mode, SettingBindings additional_settings);
     SettingsManager(std::string_view app_name, Mode mode, Options options, SettingBindings additional_settings);
     ~SettingsManager();

@@ -218,9 +218,6 @@ void copy_from_radio_model(AppSettings& settings) {
 }
 
 /* SettingsManager *************************************************/
-SettingsManager::SettingsManager(std::string_view app_name, Mode mode)
-    : SettingsManager{app_name, mode, {}} {}
-
 SettingsManager::SettingsManager(std::string_view app_name, Mode mode, Options options)
     : SettingsManager{app_name, mode, options, {}} {}
 
