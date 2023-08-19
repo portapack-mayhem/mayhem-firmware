@@ -227,8 +227,8 @@ class TextEditorView : public View {
     // Settings
     bool enable_zoom = false;
     SettingsStore settings_store_{
-        "notepad",
-        {{"enable_zoom", &enable_zoom}}};
+        "notepad"sv,
+        {{"enable_zoom"sv, &enable_zoom}}};
 
     static constexpr size_t max_edit_length = 1024;
     std::string edit_line_buffer_{};
