@@ -188,21 +188,6 @@ void ReconView::load_persisted_settings() {
     auto_record_locked = persistent_memory::recon_auto_record_locked();
 }
 
-/*  ???
-            case 7:
-                if (!update_ranges) {
-                    parse_int(line, frequency_range.min);
-                    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-                }
-                break;
-            case 8:
-                if (!update_ranges) {
-                    parse_int(line, frequency_range.max);
-                    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
-                }
-                complete = true;  // NB: Last entry.
-*/
-
 void ReconView::audio_output_start() {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::start();
@@ -340,20 +325,17 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     def_step = 0;
-    // HELPER: Pre-setting a manual range, based on stored frequency
-    rf::Frequency stored_freq = receiver_model.target_frequency();
-    if (stored_freq - OneMHz > 0)
-        frequency_range.min = stored_freq - OneMHz;
-    else
-        frequency_range.min = 0;
-    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-    if (stored_freq + OneMHz < MAX_UFREQ)
-        frequency_range.max = stored_freq + OneMHz;
-    else
-        frequency_range.max = MAX_UFREQ;
-    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
-
     load_persisted_settings();
+
+    // When update_ranges is set or range invalid, use the rx model frequency instead of the saved values.
+    if (update_ranges || frequency_range.max == 0) {
+        rf::Frequency stored_freq = receiver_model.target_frequency();
+        frequency_range.min = clip<rf::Frequency>(stored_freq - OneMHz, 0, MAX_UFREQ);
+        frequency_range.max = clip<rf::Frequency>(stored_freq + OneMHz, 0, MAX_UFREQ);
+    }
+
+    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
     button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
         clear_freqlist_for_ui_action();
