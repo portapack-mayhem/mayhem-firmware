@@ -125,7 +125,7 @@ class ScannerView : public View {
             {"lock_wait"sv, &lock_wait},
             {"scanner_squelch"sv, &squelch},
             {"range_min"sv, &frequency_range.min},
-            {"range_max"sv, &frequency_range.max},            
+            {"range_max"sv, &frequency_range.max},
         }};
 
     NavigationView& nav_;
