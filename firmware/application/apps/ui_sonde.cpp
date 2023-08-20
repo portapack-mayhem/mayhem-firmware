@@ -194,7 +194,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
 
         if (temp_humid_info.temp != 0) {
             double decimals = abs(get_decimals(temp_humid_info.temp, 10, true));
-            text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + "C");
+            text_temp.set(to_string_dec_int((int)temp_humid_info.temp) + "." + to_string_dec_uint(decimals, 1) + STR_DEGREES_C);
         }
 
         gps_info = packet.get_GPS_data();

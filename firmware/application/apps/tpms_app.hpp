@@ -146,9 +146,9 @@ class TPMSAppView : public View {
 
     OptionsField options_temperature{
         {9 * 8, 0 * 16},
-        1,
-        {{"C", 0},
-         {"F", 1}}};
+        2,
+        {{STR_DEGREES_C, 0},
+         {STR_DEGREES_F, 1}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
