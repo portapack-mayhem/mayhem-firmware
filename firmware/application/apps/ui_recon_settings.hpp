@@ -31,9 +31,6 @@
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
 
-// maximum usable freq
-#define MAX_UFREQ 7200000000
-
 // 1Mhz helper
 #ifdef OneMHz
 #undef OneMHz
