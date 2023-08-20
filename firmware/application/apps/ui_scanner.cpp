@@ -319,7 +319,6 @@ ScannerView::ScannerView(
     field_step.set_by_value(receiver_model.frequency_step());                     // Default step interval (Hz)
     change_mode((freqman_index_t)field_mode.selected_index_value());
 
-    // FUTURE: perhaps additional settings should be stored in persistent memory vs using defaults
     rf::Frequency stored_freq = receiver_model.target_frequency();
     frequency_range.min = stored_freq - 1000000;
     button_manual_start.set_text(to_string_short_freq(frequency_range.min));
@@ -522,13 +521,17 @@ ScannerView::ScannerView(
 
     // PRE-CONFIGURATION:
     field_browse_wait.on_change = [this](int32_t v) { browse_wait = v; };
-    field_browse_wait.set_value(5);
+    field_browse_wait.set_value(browse_wait);
 
     field_lock_wait.on_change = [this](int32_t v) { lock_wait = v; };
-    field_lock_wait.set_value(2);
+    field_lock_wait.set_value(lock_wait);
 
     field_squelch.on_change = [this](int32_t v) { squelch = v; };
-    field_squelch.set_value(-30);
+    field_squelch.set_value(squelch);
+
+    // Disable squelch on the model because RSSI handler is where the
+    // actual squelching is applied for this app.
+    receiver_model.set_squelch_level(0);
 
     // LOAD FREQUENCIES
     frequency_file_load(default_scan_file);
@@ -726,9 +729,6 @@ void ScannerView::change_mode(freqman_index_t new_mod) {
 
 void ScannerView::start_scan_thread() {
     receiver_model.enable();
-    // Disable squelch on the model because RSSI handler is where the
-    // actual squelching is applied for this app.
-    receiver_model.set_squelch_level(0);
     show_max_index();
 
     // Start Scanner Thread

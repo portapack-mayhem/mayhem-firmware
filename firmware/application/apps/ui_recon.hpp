@@ -68,7 +68,7 @@ class ReconView : public View {
 
     RxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
-        "rx_recon", app_settings::Mode::RX};
+        "rx_recon"sv, app_settings::Mode::RX};
 
     void check_update_ranges_from_current();
     void set_loop_config(bool v);
@@ -90,8 +90,7 @@ class ReconView : public View {
     void handle_retune();
     void handle_coded_squelch(const uint32_t value);
     void handle_remove_current_item();
-    bool recon_load_config_from_sd();
-    bool recon_save_config_to_sd();
+    void load_persisted_settings();
     bool recon_save_freq(const std::filesystem::path& path, size_t index, bool warn_if_exists);
     // placeholder for possible void recon_start_recording();
     void recon_stop_recording();
@@ -163,6 +162,21 @@ class ReconView : public View {
     std::string freq_file_path{};
     systime_t chrono_start{};
     systime_t chrono_end{};
+
+    // Persisted settings.
+    SettingsStore ui_settings{
+        "recon"sv,
+        {
+            {"input_file"sv, &input_file},
+            {"output_file"sv, &output_file},
+            {"lock_duration"sv, &recon_lock_duration},
+            {"lock_nb_match"sv, &recon_lock_nb_match},
+            {"squelch_level"sv, &squelch},
+            {"match_mode"sv, &recon_match_mode},
+            {"match_wait"sv, &wait},
+            {"range_min"sv, &frequency_range.min},
+            {"range_max"sv, &frequency_range.max},
+        }};
 
     std::unique_ptr<RecordView> record_view{};
 

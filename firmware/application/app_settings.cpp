@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2022 Arjan Onwezen
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -58,7 +59,7 @@ void BoundSetting::parse(std::string_view value) {
             parse_int(value, as<uint8_t>());
             break;
         case SettingType::String:
-            as<std::string>() = std::string{value};
+            as<std::string>() = trim(value);
             break;
         case SettingType::Bool: {
             int parsed = 0;
@@ -106,10 +107,18 @@ void BoundSetting::write(File& file) const {
 
 SettingsStore::SettingsStore(std::string_view store_name, SettingBindings bindings)
     : store_name_{store_name}, bindings_{bindings} {
-    load_settings(store_name_, bindings_);
+    reload();
 }
 
 SettingsStore::~SettingsStore() {
+    save();
+}
+
+void SettingsStore::reload() {
+    load_settings(store_name_, bindings_);
+}
+
+void SettingsStore::save() const {
     save_settings(store_name_, bindings_);
 }
 

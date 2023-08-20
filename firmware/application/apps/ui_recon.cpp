@@ -176,85 +176,16 @@ bool ReconView::recon_save_freq(const fs::path& path, size_t freq_index, bool wa
     return true;
 }
 
-bool ReconView::recon_load_config_from_sd() {
-    make_new_directory(u"SETTINGS");
-
-    File settings_file;
-    auto error = settings_file.open(RECON_CFG_FILE);
-    if (error)
-        return false;
-
-    auto complete = false;
-    auto line_nb = 0;
-    auto reader = FileLineReader(settings_file);
-    for (const auto& line : reader) {
-        switch (line_nb) {
-            case 0:
-                input_file = trim(line);
-                break;
-            case 1:
-                output_file = trim(line);
-                break;
-            case 2:
-                parse_int(line, recon_lock_duration);
-                break;
-            case 3:
-                parse_int(line, recon_lock_nb_match);
-                break;
-            case 4:
-                parse_int(line, squelch);
-                break;
-            case 5:
-                parse_int(line, recon_match_mode);
-                break;
-            case 6:
-                parse_int(line, wait);
-                break;
-            case 7:
-                if (!update_ranges) {
-                    parse_int(line, frequency_range.min);
-                    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-                }
-                break;
-            case 8:
-                if (!update_ranges) {
-                    parse_int(line, frequency_range.max);
-                    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
-                }
-                complete = true;  // NB: Last entry.
-                break;
-            default:
-                complete = false;
-                break;
-        }
-
-        if (complete) break;
-
-        line_nb++;
-    }
-
-    return complete;
-}
-
-bool ReconView::recon_save_config_to_sd() {
-    File settings_file;
-
-    make_new_directory(u"SETTINGS");
-
-    auto error = settings_file.create(RECON_CFG_FILE);
-    if (error)
-        return false;
-    settings_file.write_line(input_file);
-    settings_file.write_line(output_file);
-    settings_file.write_line(to_string_dec_uint(recon_lock_duration));
-    settings_file.write_line(to_string_dec_uint(recon_lock_nb_match));
-    settings_file.write_line(to_string_dec_int(squelch));
-    settings_file.write_line(to_string_dec_uint(recon_match_mode));
-    settings_file.write_line(to_string_dec_int(wait));
-    settings_file.write_line(to_string_dec_uint(frequency_range.min));
-    settings_file.write_line(to_string_dec_uint(frequency_range.max));
-
-    return true;
+void ReconView::load_persisted_settings() {
+    autostart = persistent_memory::recon_autostart_recon();
+    autosave = persistent_memory::recon_autosave_freqs();
+    continuous = persistent_memory::recon_continuous();
+    filedelete = persistent_memory::recon_clear_output();
+    load_freqs = persistent_memory::recon_load_freqs();
+    load_ranges = persistent_memory::recon_load_ranges();
+    load_hamradios = persistent_memory::recon_load_hamradios();
+    update_ranges = persistent_memory::recon_update_ranges_when_recon();
+    auto_record_locked = persistent_memory::recon_auto_record_locked();
 }
 
 void ReconView::audio_output_start() {
@@ -337,7 +268,6 @@ void ReconView::focus() {
 
 ReconView::~ReconView() {
     recon_stop_recording();
-    recon_save_config_to_sd();
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
     receiver_model.disable();
@@ -395,29 +325,17 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     def_step = 0;
-    // HELPER: Pre-setting a manual range, based on stored frequency
-    rf::Frequency stored_freq = receiver_model.target_frequency();
-    if (stored_freq - OneMHz > 0)
-        frequency_range.min = stored_freq - OneMHz;
-    else
-        frequency_range.min = 0;
-    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-    if (stored_freq + OneMHz < MAX_UFREQ)
-        frequency_range.max = stored_freq + OneMHz;
-    else
-        frequency_range.max = MAX_UFREQ;
-    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
+    load_persisted_settings();
 
-    // Loading settings
-    autostart = persistent_memory::recon_autostart_recon();
-    autosave = persistent_memory::recon_autosave_freqs();
-    continuous = persistent_memory::recon_continuous();
-    filedelete = persistent_memory::recon_clear_output();
-    load_freqs = persistent_memory::recon_load_freqs();
-    load_ranges = persistent_memory::recon_load_ranges();
-    load_hamradios = persistent_memory::recon_load_hamradios();
-    update_ranges = persistent_memory::recon_update_ranges_when_recon();
-    auto_record_locked = persistent_memory::recon_auto_record_locked();
+    // When update_ranges is set or range invalid, use the rx model frequency instead of the saved values.
+    if (update_ranges || frequency_range.max == 0) {
+        rf::Frequency stored_freq = receiver_model.target_frequency();
+        frequency_range.min = clip<rf::Frequency>(stored_freq - OneMHz, 0, MAX_UFREQ);
+        frequency_range.max = clip<rf::Frequency>(stored_freq + OneMHz, 0, MAX_UFREQ);
+    }
+
+    button_manual_start.set_text(to_string_short_freq(frequency_range.min));
+    button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
     button_manual_start.on_select = [this, &nav](ButtonWithEncoder& button) {
         clear_freqlist_for_ui_action();
@@ -717,16 +635,9 @@ ReconView::ReconView(NavigationView& nav)
             input_file = result[0];
             output_file = result[1];
             freq_file_path = get_freqman_path(output_file).string();
-            recon_save_config_to_sd();
 
-            autosave = persistent_memory::recon_autosave_freqs();
-            autostart = persistent_memory::recon_autostart_recon();
-            filedelete = persistent_memory::recon_clear_output();
-            load_freqs = persistent_memory::recon_load_freqs();
-            load_ranges = persistent_memory::recon_load_ranges();
-            load_hamradios = persistent_memory::recon_load_hamradios();
-            update_ranges = persistent_memory::recon_update_ranges_when_recon();
-            auto_record_locked = persistent_memory::recon_auto_record_locked();
+            load_persisted_settings();
+            ui_settings.save();
 
             frequency_file_load(false);
             freqlist_cleared_for_ui_action = false;
@@ -774,7 +685,6 @@ ReconView::ReconView(NavigationView& nav)
     file_name.set("=>");
 
     // Loading input and output file from settings
-    recon_load_config_from_sd();
     freq_file_path = get_freqman_path(output_file).string();
 
     field_recon_match_mode.set_selected_index(recon_match_mode);

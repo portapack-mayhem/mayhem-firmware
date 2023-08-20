@@ -111,8 +111,19 @@ class ScannerView : public View {
 
    private:
     RxRadioState radio_state_{};
+
+    // Settings
+    uint32_t browse_wait{5};
+    uint32_t lock_wait{2};
+    int32_t squelch{-30};
     app_settings::SettingsManager settings_{
-        "rx_scanner", app_settings::Mode::RX};
+        "rx_scanner"sv,
+        app_settings::Mode::RX,
+        {
+            {"browse_wait"sv, &browse_wait},
+            {"lock_wait"sv, &lock_wait},
+            {"scanner_squelch"sv, &squelch},
+        }};
 
     NavigationView& nav_;
 
@@ -132,14 +143,11 @@ class ScannerView : public View {
     std::string loaded_filename() const;
 
     scanner_range_t frequency_range{0, 0};
-    int32_t squelch{0};
     uint32_t browse_timer{0};
     uint32_t lock_timer{0};
     uint32_t color_timer{0};
     int32_t bigdisplay_current_color{-2};
     rf::Frequency bigdisplay_current_frequency{0};
-    uint32_t browse_wait{0};
-    uint32_t lock_wait{0};
 
     std::filesystem::path loaded_path{};
     std::vector<scanner_entry_t> entries{};
