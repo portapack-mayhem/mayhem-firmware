@@ -35,6 +35,8 @@
 #include <algorithm>
 #include <functional>
 
+#define MAX_UFREQ 7200000000  // maximum usable frequency
+
 namespace ui {
 
 class FrequencyField : public Widget {
