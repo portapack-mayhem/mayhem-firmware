@@ -219,6 +219,7 @@ SystemStatusView::SystemStatusView(
     toggle_mute.set_value(pmem::config_audio_mute());
     toggle_stealth.set_value(pmem::stealth_mode());
 
+    audio::output::stop();
     audio::output::update_audio_mute();
     refresh();
 }
