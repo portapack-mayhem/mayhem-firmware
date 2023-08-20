@@ -364,6 +364,7 @@ void defaults() {
     set_config_backlight_timer(backlight_config_t{});
     set_config_splash(true);
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
+    set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
