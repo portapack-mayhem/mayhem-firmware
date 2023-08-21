@@ -319,10 +319,7 @@ ScannerView::ScannerView(
     field_step.set_by_value(receiver_model.frequency_step());                     // Default step interval (Hz)
     change_mode((freqman_index_t)field_mode.selected_index_value());
 
-    rf::Frequency stored_freq = receiver_model.target_frequency();
-    frequency_range.min = stored_freq - 1000000;
     button_manual_start.set_text(to_string_short_freq(frequency_range.min));
-    frequency_range.max = stored_freq + 1000000;
     button_manual_end.set_text(to_string_short_freq(frequency_range.max));
 
     // Button to load a Freqman file.

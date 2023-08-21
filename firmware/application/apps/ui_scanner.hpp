@@ -37,7 +37,7 @@
 
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
-#define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
+#define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
 
 namespace ui {
 
@@ -116,6 +116,7 @@ class ScannerView : public View {
     uint32_t browse_wait{5};
     uint32_t lock_wait{2};
     int32_t squelch{-30};
+    scanner_range_t frequency_range{0, MAX_UFREQ};
     app_settings::SettingsManager settings_{
         "rx_scanner"sv,
         app_settings::Mode::RX,
@@ -123,6 +124,8 @@ class ScannerView : public View {
             {"browse_wait"sv, &browse_wait},
             {"lock_wait"sv, &lock_wait},
             {"scanner_squelch"sv, &squelch},
+            {"range_min"sv, &frequency_range.min},
+            {"range_max"sv, &frequency_range.max},
         }};
 
     NavigationView& nav_;
@@ -142,7 +145,6 @@ class ScannerView : public View {
 
     std::string loaded_filename() const;
 
-    scanner_range_t frequency_range{0, 0};
     uint32_t browse_timer{0};
     uint32_t lock_timer{0};
     uint32_t color_timer{0};

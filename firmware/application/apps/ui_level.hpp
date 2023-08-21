@@ -64,7 +64,6 @@ class LevelView : public View {
 
     // TODO: needed?
     int32_t db{0};
-    long long int MAX_UFREQ = {7200000000};  // maximum usable freq
     rf::Frequency freq_ = {0};
 
     Labels labels{
