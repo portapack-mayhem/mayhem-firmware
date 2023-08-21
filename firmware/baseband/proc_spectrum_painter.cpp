@@ -25,10 +25,12 @@
 #include "random.hpp"
 
 #include <cstdint>
+#include <memory>
+#include <utility>
 
 // TODO move to class members SpectrumPainterProcessor
-complex16_t* current_line_data = nullptr;
-complex16_t* volatile next_line_data = nullptr;
+std::unique_ptr<complex16_t[]> current_line_data;
+std::unique_ptr<complex16_t[]> next_line_data;
 uint32_t current_line_index = 0;
 uint32_t current_line_width = 0;
 int32_t current_bw = 0;
@@ -41,20 +43,17 @@ int max_val = 127;
 // This is called at 3072000/2048 = 1500Hz
 void SpectrumPainterProcessor::execute(const buffer_c8_t& buffer) {
     for (uint32_t i = 0; i < buffer.count; i++) {
-        if (current_line_data != nullptr) {
+        if (current_line_data) {
             auto data = current_line_data[(current_line_index++ * current_bw / 3072) % current_line_width];
             buffer.p[i] = {(int8_t)data.real(), (int8_t)data.imag()};
         } else
             buffer.p[i] = {0, 0};
     }
 
-    // collect new data
-    if (next_line_data != nullptr) {
-        if (current_line_data != nullptr)
-            delete current_line_data;
-
-        current_line_data = next_line_data;
-        next_line_data = nullptr;
+    // Move "next line" into "current line" if set.
+    if (next_line_data) {
+        current_line_data = std::move(next_line_data);
+        next_line_data.reset();
     }
 }
 
@@ -65,7 +64,7 @@ void SpectrumPainterProcessor::run() {
     init_genrand(22267);
 
     while (true) {
-        if (fifo.is_empty() == false && next_line_data == nullptr) {
+        if (fifo.is_empty() == false && !next_line_data) {
             std::vector<uint8_t> data;
             fifo.out(data);
 
@@ -74,8 +73,9 @@ void SpectrumPainterProcessor::run() {
             auto fft_width = picture_width * 2;
             auto qu = fft_width / 4;
 
-            complex16_t* v = new complex16_t[fft_width];
-            complex16_t* tmp = new complex16_t[fft_width];
+            // TODO: can these be statically allocated?
+            auto v = std::make_unique<complex16_t[]>(fft_width);
+            auto tmp = std::make_unique<complex16_t[]>(fft_width);
 
             for (uint32_t fft_index = 0; fft_index < fft_width; fft_index++) {
                 if (fft_index < qu) {
@@ -103,10 +103,10 @@ void SpectrumPainterProcessor::run() {
                 }
             }
 
-            ifft<complex16_t>(v, fft_width, tmp);
+            ifft<complex16_t>(v.get(), fft_width, tmp.get());
 
             // normalize
-            volatile int32_t maximum = 1;
+            int32_t maximum = 1;
             for (uint32_t i = 0; i < fft_width; i++) {
                 if (v[i].real() > maximum)
                     maximum = v[i].real();
@@ -127,8 +127,7 @@ void SpectrumPainterProcessor::run() {
                 }
             }
 
-            delete tmp;
-            next_line_data = v;
+            next_line_data = std::move(v);
             ui++;
         } else {
             chThdSleepMilliseconds(1);

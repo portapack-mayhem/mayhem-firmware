@@ -30,8 +30,10 @@
 #include "signal.hpp"
 
 #include <cstddef>
-#include <string>
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
 
 namespace ui {
 
@@ -75,7 +77,8 @@ class MenuView : public View {
     std::function<void(void)> on_left{};
     std::function<void(void)> on_highlight{nullptr};
 
-    MenuView(Rect new_parent_rect = {0, 0, 240, 304}, bool keep_highlight = false);
+    MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
+             bool keep_highlight = false);
 
     ~MenuView();
 
@@ -103,10 +106,10 @@ class MenuView : public View {
 
     SignalToken signal_token_tick_second{};
     std::vector<MenuItem> menu_items{};
-    std::vector<MenuItemView*> menu_item_views{};
+    std::vector<std::unique_ptr<MenuItemView>> menu_item_views{};
 
     Image arrow_more{
-        {228, 320 - 8, 8, 8},
+        {228, screen_height - 8, 8, 8},
         &bitmap_more,
         Color::white(),
         Color::black()};
