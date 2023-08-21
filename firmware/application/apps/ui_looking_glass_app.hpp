@@ -72,8 +72,18 @@ class GlassView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
+    // Settings
+    rf::Frequency f_min = 0;
+    rf::Frequency f_max = 0;
+    uint8_t preset_index = 0;
     app_settings::SettingsManager settings_{
-        "rx_glass", app_settings::Mode::RX};
+        "rx_glass"sv,
+        app_settings::Mode::RX,
+        {
+            {"min"sv, &f_min},
+            {"max"sv, &f_max},
+            {"preset"sv, &preset_index},
+        }};
 
     struct preset_entry {
         rf::Frequency min{};
@@ -82,8 +92,8 @@ class GlassView : public View {
     };
 
     std::vector<preset_entry> presets_db{};
-    void clip_min(int32_t v);
-    void clip_max(int32_t v);
+    void clip_min(int32_t v, bool trigger_update = true);
+    void clip_max(int32_t v, bool trigger_update = true);
     void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
     rf::Frequency get_freq_from_bin_pos(uint8_t pos);
     void on_marker_change();
@@ -94,17 +104,13 @@ class GlassView : public View {
     int64_t next_mult_of(int64_t num, int64_t multiplier);
     void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
     void on_range_changed();
-    void on_lna_changed(int32_t v_db);
-    void on_vga_changed(int32_t v_db);
     void reset_live_view(bool clear_screen);
     void add_spectrum_pixel(uint8_t power);
-    void PlotMarker(uint8_t pos);
-    void load_Presets();
+    void plot_marker(uint8_t pos);
+    void load_presets();
     void txtline_process(std::string& line);
-    void populate_Presets();
-    void presets_Default();
+    void populate_presets();
 
-    rf::Frequency f_min{0}, f_max{0};
     rf::Frequency search_span{0};
     rf::Frequency f_center{0};
     rf::Frequency f_center_ini{0};
@@ -142,7 +148,7 @@ class GlassView : public View {
 
     Labels labels{
         {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
-        {{0, 1 * 16}, "RANGE:       FILTER:      AMP:", Color::light_grey()},
+        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
         {{0, 2 * 16}, "PRESET:", Color::light_grey()},
         {{0, 3 * 16}, "MARKER:            MHz", Color::light_grey()},
         {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}};
@@ -176,12 +182,12 @@ class GlassView : public View {
         4,
         {
             {"OFF ", 0},
-            {"MID ", 118},  // 85 +25 (110) + a bit more to kill all blue
+            {"MID ", 118},  // 85 + 25 (110) + a bit more to kill all blue
             {"HIGH", 202},  // 168 + 25 (193)
         }};
 
     RFAmpField field_rf_amp{
-        {29 * 8, 1 * 16}};
+        {28 * 8, 1 * 16}};
 
     OptionsField range_presets{
         {7 * 8, 2 * 16},

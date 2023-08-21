@@ -75,7 +75,7 @@ rf::Frequency GlassView::get_freq_from_bin_pos(uint8_t pos) {
 void GlassView::on_marker_change() {
     marker = get_freq_from_bin_pos(marker_pixel_index);
     button_marker.set_text(to_string_short_freq(marker));
-    PlotMarker(marker_pixel_index);  // Refresh marker on screen
+    plot_marker(marker_pixel_index);  // Refresh marker on screen
 }
 
 void GlassView::retune() {
@@ -85,14 +85,6 @@ void GlassView::retune() {
     radio::set_tuning_frequency(f_center);
     chThdSleepMilliseconds(5);             // stabilize freq
     baseband::spectrum_streaming_start();  // Do the RX
-}
-
-void GlassView::on_lna_changed(int32_t v_db) {
-    receiver_model.set_lna(v_db);
-}
-
-void GlassView::on_vga_changed(int32_t v_db) {
-    receiver_model.set_vga(v_db);
 }
 
 void GlassView::reset_live_view(bool clear_screen) {
@@ -142,7 +134,7 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                 last_max_freq = max_freq_hold;
                 freq_stats.set("MAX HOLD: " + to_string_short_freq(max_freq_hold));
             }
-            PlotMarker(marker_pixel_index);
+            plot_marker(marker_pixel_index);
         } else {
             display.draw_pixels({{0, display.scroll(1)}, {SCREEN_W, 1}}, spectrum_row);  // new line at top, one less var, speedier
         }
@@ -176,7 +168,7 @@ bool GlassView::process_bins(uint8_t* powerlevel) {
 }
 
 // Apparently, the spectrum object returns an array of SPEC_NB_BINS (256) bins
-// Each having the radio signal power for it's corresponding frequency slot
+// Each having the radio signal power for its corresponding frequency slot
 void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     baseband::spectrum_streaming_stop();
     // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
@@ -277,7 +269,7 @@ void GlassView::on_range_changed() {
     receiver_model.set_target_frequency(f_center);  // tune rx for this slice
 }
 
-void GlassView::PlotMarker(uint8_t pos) {
+void GlassView::plot_marker(uint8_t pos) {
     uint8_t shift_y = 0;
     if (live_frequency_view > 0)  // plot one line down when in live view
     {
@@ -289,7 +281,7 @@ void GlassView::PlotMarker(uint8_t pos) {
     portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Color::red());         // Red marker bottom
 }
 
-void GlassView::clip_min(int32_t v) {
+void GlassView::clip_min(int32_t v, bool trigger_update) {
     int32_t min_size = steps;
     if (locked_range)
         min_size = search_span;
@@ -299,15 +291,17 @@ void GlassView::clip_min(int32_t v) {
         v = 7200 - min_size;
     }
     if (v > (field_frequency_max.value() - min_size))
-        field_frequency_max.set_value(v + min_size);
+        field_frequency_max.set_value(v + min_size, trigger_update);
     if (locked_range)
-        field_frequency_max.set_value(v + min_size);
+        field_frequency_max.set_value(v + min_size, trigger_update);
     else
-        field_frequency_min.set_value(v);
-    on_range_changed();
+        field_frequency_min.set_value(v, trigger_update);
+
+    if (trigger_update)
+        on_range_changed();
 }
 
-void GlassView::clip_max(int32_t v) {
+void GlassView::clip_max(int32_t v, bool trigger_update) {
     int32_t min_size = steps;
     if (locked_range)
         min_size = search_span;
@@ -317,12 +311,14 @@ void GlassView::clip_max(int32_t v) {
         v = min_size;
     }
     if (v < (field_frequency_min.value() + min_size))
-        field_frequency_min.set_value(v - min_size);
+        field_frequency_min.set_value(v - min_size, trigger_update);
     if (locked_range)
-        field_frequency_min.set_value(v - min_size);
+        field_frequency_min.set_value(v - min_size, trigger_update);
     else
-        field_frequency_max.set_value(v);
-    on_range_changed();
+        field_frequency_max.set_value(v, trigger_update);
+
+    if (trigger_update)
+        on_range_changed();
 }
 
 GlassView::GlassView(
@@ -349,63 +345,60 @@ GlassView::GlassView(
                   &button_rst,
                   &freq_stats});
 
-    load_Presets();  // Load available presets from TXT files (or default)
+    load_presets();  // Load available presets from TXT files (or default).
+    preset_index = clip<uint8_t>(preset_index, 0, presets_db.size());
 
-    field_frequency_min.on_change = [this](int32_t v) {
-        clip_min(v);
-    };
-    field_frequency_min.set_value(presets_db[0].min);  // Defaults to first preset
-    field_frequency_min.set_step(steps);
+    if ((f_min | f_max) == 0) {
+        f_min = presets_db[preset_index].min;
+        f_max = presets_db[preset_index].max;
+    }
 
     field_frequency_min.on_select = [this, &nav](NumberField& field) {
         auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_min.value() * MHZ_DIV);
         new_view->on_changed = [this, &field](rf::Frequency f) {
             clip_min(f / MHZ_DIV);
+            preset_index = 0;
+            range_presets.set_selected_index(preset_index);
         };
     };
-
-    field_frequency_max.on_change = [this](int32_t v) {
-        clip_max(v);
-    };
-    field_frequency_max.set_value(presets_db[0].max);  // Defaults to first preset
-    field_frequency_max.set_step(steps);
+    clip_min(f_min, false);
 
     field_frequency_max.on_select = [this, &nav](NumberField& field) {
         auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value() * MHZ_DIV);
         new_view->on_changed = [this, &field](rf::Frequency f) {
             clip_max(f / MHZ_DIV);
+            preset_index = 0;
+            range_presets.set_selected_index(preset_index);
         };
     };
+    clip_min(f_max, false);
 
-    field_lna.on_change = [this](int32_t v) {
+    field_lna.on_change = [this](int32_t v_db) {
         reset_live_view(true);
-        this->on_lna_changed(v);
+        receiver_model.set_lna(v_db);
     };
     field_lna.set_value(receiver_model.lna());
 
     field_vga.on_change = [this](int32_t v_db) {
         reset_live_view(true);
-        this->on_vga_changed(v_db);
+        receiver_model.set_vga(v_db);
     };
     field_vga.set_value(receiver_model.vga());
 
-    steps_config.on_change = [this](size_t n, OptionsField::value_t v) {
-        (void)n;
+    steps_config.on_change = [this](size_t, OptionsField::value_t v) {
         field_frequency_min.set_step(v);
         field_frequency_max.set_step(v);
         steps = v;
     };
     steps_config.set_selected_index(0);  // default of 1 Mhz steps
 
-    scan_type.on_change = [this](size_t n, OptionsField::value_t v) {
-        (void)n;
+    scan_type.on_change = [this](size_t, OptionsField::value_t v) {
         mode = v;
         on_range_changed();
     };
     scan_type.set_selected_index(0);  // default legacy fast scan
 
-    view_config.on_change = [this](size_t n, OptionsField::value_t v) {
-        (void)n;
+    view_config.on_change = [this](size_t, OptionsField::value_t v) {
         // clear between changes
         reset_live_view(true);
         if (v == 0) {
@@ -436,26 +429,26 @@ GlassView::GlassView(
     };
     view_config.set_selected_index(0);  // default spectrum
 
-    level_integration.on_change = [this](size_t n, OptionsField::value_t v) {
-        (void)n;
+    level_integration.on_change = [this](size_t, OptionsField::value_t v) {
         reset_live_view(true);
         live_frequency_integrate = v;
     };
     level_integration.set_selected_index(3);  // default integration of ( 3 * old value + new_value ) / 4
 
-    filter_config.on_change = [this](size_t n, OptionsField::value_t v) {
-        (void)n;
+    filter_config.on_change = [this](size_t, OptionsField::value_t v) {
         reset_live_view(true);
         min_color_power = v;
     };
     filter_config.set_selected_index(0);
 
-    range_presets.on_change = [this](size_t n, OptionsField::value_t v) {
-        (void)n;
+    range_presets.on_change = [this](size_t ix, OptionsField::value_t v) {
+        if (ix == 0) return;  // Don't update range for "Manual".
+
         field_frequency_min.set_value(presets_db[v].min, false);
         field_frequency_max.set_value(presets_db[v].max, false);
         on_range_changed();
     };
+    range_presets.set_selected_index(preset_index);
 
     button_marker.on_change = [this]() {
         if (((int)marker_pixel_index + button_marker.get_encoder_delta()) < 0) {
@@ -506,11 +499,11 @@ GlassView::GlassView(
 
     display.scroll_set_area(109, 319);
     baseband::set_spectrum(looking_glass_bandwidth, field_trigger.value());  // trigger:
-                                                                             // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute ,
+                                                                             // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute,
                                                                              // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made,
                                                                              // at which time it pushes the buffer up with channel_spectrum.feed
 
-    marker_pixel_index = 120;
+    marker_pixel_index = SCREEN_W / 2;
     on_range_changed();
 
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
@@ -519,10 +512,13 @@ GlassView::GlassView(
     receiver_model.enable();
 }
 
-void GlassView::load_Presets() {
+void GlassView::load_presets() {
     File presets_file;
     auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
     presets_db.clear();
+
+    // Add the "Manual" entry.
+    presets_db.push_back({0, 0, "Manual"});
 
     if (!error) {
         auto reader = FileLineReader(presets_file);
@@ -546,14 +542,14 @@ void GlassView::load_Presets() {
         }
     }
 
-    // Couldn't load any from the file, load a default instead.
-    if (presets_db.empty())
-        presets_Default();
+    // Didn't load any from the file, add a default.
+    if (presets_db.size() == 1)
+        presets_db.push_back({2320, 2560, "DEFAULT WIFI 2.4GHz"});
 
-    populate_Presets();
+    populate_presets();
 }
 
-void GlassView::populate_Presets() {
+void GlassView::populate_presets() {
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t entries;
@@ -561,12 +557,7 @@ void GlassView::populate_Presets() {
     for (const auto& preset : presets_db)
         entries.emplace_back(preset.label, entries.size());
 
-    range_presets.set_options(entries);
-}
-
-void GlassView::presets_Default() {
-    presets_db.clear();
-    presets_db.push_back({2320, 2560, "DEFAULT WIFI 2.4GHz"});
+    range_presets.set_options(std::move(entries));
 }
 
 }  // namespace ui
