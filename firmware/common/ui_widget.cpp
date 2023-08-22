@@ -1764,6 +1764,15 @@ bool TextField::on_key(KeyEvent key) {
     return false;
 }
 
+bool TextField::on_encoder(EncoderEvent delta) {
+    if (on_encoder_change) {
+        on_encoder_change(*this, delta);
+        return true;
+    }
+
+    return false;
+}
+
 /* NumberField ***********************************************************/
 
 NumberField::NumberField(

@@ -694,6 +694,7 @@ class TextField : public Text {
    public:
     std::function<void(TextField&)> on_select{};
     std::function<void(TextField&)> on_change{};
+    std::function<void(TextField&, EncoderEvent)> on_encoder_change{};
 
     TextField(Rect parent_rect, std::string text);
 
@@ -701,6 +702,7 @@ class TextField : public Text {
     void set_text(std::string_view value);
 
     bool on_key(KeyEvent key) override;
+    bool on_encoder(EncoderEvent delta) override;
 
    private:
     using Text::set;
