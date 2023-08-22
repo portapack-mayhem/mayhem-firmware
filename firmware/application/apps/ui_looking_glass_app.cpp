@@ -93,7 +93,7 @@ void GlassView::reset_live_view(bool clear_screen) {
     if (clear_screen) {
         // only clear screen in peak mode
         if (live_frequency_view == 2) {
-            display.fill_rectangle({{0, 108 + 16}, {SCREEN_W, 320 - (108 + 16)}}, {0, 0, 0});
+            display.fill_rectangle({{0, 108 + 16}, {SCREEN_W, SCREEN_H - (108 + 16)}}, {0, 0, 0});
         }
     }
 }
@@ -126,9 +126,9 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
                 uint8_t color_gradient = (point * 255) / 212;
                 // clear if not in peak view
                 if (live_frequency_view != 2) {
-                    display.fill_rectangle({{xpos, 108 + 16}, {1, 320 - point}}, {0, 0, 0});
+                    display.fill_rectangle({{xpos, 108 + 16}, {1, SCREEN_H - point}}, {0, 0, 0});
                 }
-                display.fill_rectangle({{xpos, 320 - point}, {1, point}}, {color_gradient, 0, uint8_t(255 - color_gradient)});
+                display.fill_rectangle({{xpos, SCREEN_H - point}, {1, point}}, {color_gradient, 0, uint8_t(255 - color_gradient)});
             }
             if (last_max_freq != max_freq_hold) {
                 last_max_freq = max_freq_hold;
@@ -223,8 +223,7 @@ void GlassView::on_range_changed() {
         looking_glass_sampling_rate = looking_glass_bandwidth;
         each_bin_size = looking_glass_bandwidth / SCREEN_W;
         looking_glass_step = looking_glass_bandwidth;
-        f_center_ini = f_min + (looking_glass_bandwidth / 2);                            // Initial center frequency for sweep
-        portapack::display.fill_rectangle({17 * 8, 4 * 16, 2 * 8, 16}, Color::black());  // Clear old marker and whole marker rectangle btw
+        f_center_ini = f_min + (looking_glass_bandwidth / 2);  // Initial center frequency for sweep
     } else {
         // view is made in multiple pass, use original bin picking
         mode = scan_type.selected_index_value();
