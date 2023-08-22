@@ -74,7 +74,7 @@ rf::Frequency GlassView::get_freq_from_bin_pos(uint8_t pos) {
 
 void GlassView::on_marker_change() {
     marker = get_freq_from_bin_pos(marker_pixel_index);
-    button_marker.set_text(to_string_short_freq(marker));
+    field_marker.set_text(to_string_short_freq(marker));
     plot_marker(marker_pixel_index);  // Refresh marker on screen
 }
 
@@ -245,19 +245,13 @@ void GlassView::on_range_changed() {
     }
     search_span = looking_glass_range / MHZ_DIV;
     marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
-                                                         //
-    button_range.set_text("      ");                     // clear up to 6 chars
-    if (locked_range) {
-        button_range.set_text(">" + to_string_dec_uint(search_span) + "<");
-    } else {
-        button_range.set_text(" " + to_string_dec_uint(search_span) + " ");
-    }
 
     pixel_index = 0;   // reset pixel counter
     max_power = 0;     // reset save max power level
     bins_Hz_size = 0;  // reset amount of Hz filled up by pixels
-                       //
+
     on_marker_change();
+    update_range_field();
 
     // set the sample rate and bandwidth
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);
@@ -281,7 +275,7 @@ void GlassView::plot_marker(uint8_t pos) {
     portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Color::red());         // Red marker bottom
 }
 
-void GlassView::clip_min(int32_t v, bool trigger_update) {
+void GlassView::update_min(int32_t v) {
     int32_t min_size = steps;
     if (locked_range)
         min_size = search_span;
@@ -291,17 +285,14 @@ void GlassView::clip_min(int32_t v, bool trigger_update) {
         v = 7200 - min_size;
     }
     if (v > (field_frequency_max.value() - min_size))
-        field_frequency_max.set_value(v + min_size, trigger_update);
+        field_frequency_max.set_value(v + min_size, false);
     if (locked_range)
-        field_frequency_max.set_value(v + min_size, trigger_update);
+        field_frequency_max.set_value(v + min_size, false);
     else
-        field_frequency_min.set_value(v, trigger_update);
-
-    if (trigger_update)
-        on_range_changed();
+        field_frequency_min.set_value(v, false);
 }
 
-void GlassView::clip_max(int32_t v, bool trigger_update) {
+void GlassView::update_max(int32_t v) {
     int32_t min_size = steps;
     if (locked_range)
         min_size = search_span;
@@ -311,14 +302,21 @@ void GlassView::clip_max(int32_t v, bool trigger_update) {
         v = min_size;
     }
     if (v < (field_frequency_min.value() + min_size))
-        field_frequency_min.set_value(v - min_size, trigger_update);
+        field_frequency_min.set_value(v - min_size, false);
     if (locked_range)
-        field_frequency_min.set_value(v - min_size, trigger_update);
+        field_frequency_min.set_value(v - min_size, false);
     else
-        field_frequency_max.set_value(v, trigger_update);
+        field_frequency_max.set_value(v, false);
+}
 
-    if (trigger_update)
-        on_range_changed();
+void GlassView::update_range_field() {
+    if (!locked_range) {
+        field_range.set_style(&Styles::white);
+        field_range.set_text(" " + to_string_dec_uint(search_span) + " ");
+    } else {
+        field_range.set_style(&Styles::red);
+        field_range.set_text(">" + to_string_dec_uint(search_span) + "<");
+    }
 }
 
 GlassView::GlassView(
@@ -331,7 +329,7 @@ GlassView::GlassView(
                   &field_frequency_max,
                   &field_lna,
                   &field_vga,
-                  &button_range,
+                  &field_range,
                   &steps_config,
                   &scan_type,
                   &view_config,
@@ -339,7 +337,7 @@ GlassView::GlassView(
                   &filter_config,
                   &field_rf_amp,
                   &range_presets,
-                  &button_marker,
+                  &field_marker,
                   &field_trigger,
                   &button_jump,
                   &button_rst,
@@ -348,30 +346,31 @@ GlassView::GlassView(
     load_presets();  // Load available presets from TXT files (or default).
     preset_index = clip<uint8_t>(preset_index, 0, presets_db.size());
 
-    if ((f_min | f_max) == 0) {
-        f_min = presets_db[preset_index].min;
-        f_max = presets_db[preset_index].max;
-    }
-
+    field_frequency_min.set_value(f_min / MHZ_DIV);
+    field_frequency_min.on_change = [this](int32_t v) {
+        range_presets.set_selected_index(0);  // Manual
+        update_min(v);
+        on_range_changed();
+    };
     field_frequency_min.on_select = [this, &nav](NumberField& field) {
         auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_min.value() * MHZ_DIV);
         new_view->on_changed = [this, &field](rf::Frequency f) {
-            clip_min(f / MHZ_DIV);
-            preset_index = 0;
-            range_presets.set_selected_index(preset_index);
+            field_frequency_min.set_value(f / MHZ_DIV);
         };
     };
-    clip_min(f_min, false);
 
+    field_frequency_max.set_value(f_max / MHZ_DIV);
+    field_frequency_max.on_change = [this](int32_t v) {
+        range_presets.set_selected_index(0);  // Manual
+        update_max(v);
+        on_range_changed();
+    };
     field_frequency_max.on_select = [this, &nav](NumberField& field) {
         auto new_view = nav_.push<FrequencyKeypadView>(field_frequency_max.value() * MHZ_DIV);
         new_view->on_changed = [this, &field](rf::Frequency f) {
-            clip_max(f / MHZ_DIV);
-            preset_index = 0;
-            range_presets.set_selected_index(preset_index);
+            field_frequency_max.set_value(f / MHZ_DIV);
         };
     };
-    clip_min(f_max, false);
 
     field_lna.on_change = [this](int32_t v_db) {
         reset_live_view(true);
@@ -442,28 +441,24 @@ GlassView::GlassView(
     filter_config.set_selected_index(0);
 
     range_presets.on_change = [this](size_t ix, OptionsField::value_t v) {
+        preset_index = ix;
         if (ix == 0) return;  // Don't update range for "Manual".
 
+        // NB: Don't trigger updates, presets directly set the range
+        // values without applying step or range lock.
         field_frequency_min.set_value(presets_db[v].min, false);
         field_frequency_max.set_value(presets_db[v].max, false);
         on_range_changed();
     };
     range_presets.set_selected_index(preset_index);
 
-    button_marker.on_change = [this]() {
-        if (((int)marker_pixel_index + button_marker.get_encoder_delta()) < 0) {
-            marker_pixel_index = 0;
-        } else if (((int)marker_pixel_index + button_marker.get_encoder_delta()) > SCREEN_W) {
-            marker_pixel_index = SCREEN_W;
-        } else {
-            marker_pixel_index = marker_pixel_index + button_marker.get_encoder_delta();
-        }
+    field_marker.on_encoder_change = [this](TextField&, EncoderEvent delta) {
+        marker_pixel_index = clip<uint8_t>(marker_pixel_index + delta, 0, SCREEN_W);
         on_marker_change();
-        button_marker.set_encoder_delta(0);
     };
 
-    button_marker.on_select = [this](ButtonWithEncoder&) {
-        receiver_model.set_target_frequency(marker);  // Center tune rx in marker freq.
+    field_marker.on_select = [this](TextField&) {
+        receiver_model.set_target_frequency(marker);  // Center tune rx to marker freq.
         auto settings = receiver_model.settings();
         settings.frequency_step = MHZ_DIV;        // Preset a 1 MHz frequency step into RX -> AUDIO
         nav_.replace<AnalogAudioView>(settings);  // Jump into audio view
@@ -474,16 +469,9 @@ GlassView::GlassView(
     };
     field_trigger.set_value(32);  // Defaults to 32, as normal triggering resolution
 
-    button_range.on_select = [this](Button&) {
-        if (locked_range) {
-            locked_range = false;
-            button_range.set_style(&Styles::white);
-            button_range.set_text(" " + to_string_dec_uint(search_span) + " ");
-        } else {
-            locked_range = true;
-            button_range.set_style(&Styles::red);
-            button_range.set_text(">" + to_string_dec_uint(search_span) + "<");
-        }
+    field_range.on_select = [this](TextField&) {
+        locked_range = !locked_range;
+        update_range_field();
     };
 
     button_jump.on_select = [this](Button&) {
@@ -504,7 +492,7 @@ GlassView::GlassView(
                                                                              // at which time it pushes the buffer up with channel_spectrum.feed
 
     marker_pixel_index = SCREEN_W / 2;
-    on_range_changed();
+    on_range_changed();  // Force an update.
 
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
@@ -542,9 +530,11 @@ void GlassView::load_presets() {
         }
     }
 
+    /*
     // Didn't load any from the file, add a default.
     if (presets_db.size() == 1)
         presets_db.push_back({2320, 2560, "DEFAULT WIFI 2.4GHz"});
+    */
 
     populate_presets();
 }

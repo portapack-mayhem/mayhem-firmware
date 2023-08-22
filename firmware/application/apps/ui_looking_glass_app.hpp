@@ -73,8 +73,8 @@ class GlassView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
     // Settings
-    rf::Frequency f_min = 0;
-    rf::Frequency f_max = 0;
+    rf::Frequency f_min = 260 * MHZ_DIV;  // Default to 315/433 remote range.
+    rf::Frequency f_max = 500 * MHZ_DIV;
     uint8_t preset_index = 0;
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
@@ -92,8 +92,9 @@ class GlassView : public View {
     };
 
     std::vector<preset_entry> presets_db{};
-    void clip_min(int32_t v, bool trigger_update = true);
-    void clip_max(int32_t v, bool trigger_update = true);
+    void update_min(int32_t v);
+    void update_max(int32_t v);
+    void update_range_field();
     void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
     rf::Frequency get_freq_from_bin_pos(uint8_t pos);
     void on_marker_change();
@@ -119,7 +120,7 @@ class GlassView : public View {
     rf::Frequency marker_pixel_step{0};
     // size of one spectrum bin in Hz
     rf::Frequency each_bin_size{0};
-    // consumed number of Hz, used to know if we have filled a 'bag' , a corresponding pixel length on screen
+    // consumed number of Hz, used to know if we have filled a 'bag', a corresponding pixel length on screen
     rf::Frequency bins_Hz_size{0};
     rf::Frequency looking_glass_sampling_rate{0};
     rf::Frequency looking_glass_bandwidth{0};
@@ -147,10 +148,10 @@ class GlassView : public View {
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
+        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
         {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-        {{0, 3 * 16}, "MARKER:            MHz", Color::light_grey()},
+        {{0, 3 * 16}, "MARKER:          MHz", Color::light_grey()},
         {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}};
 
     NumberField field_frequency_min{
@@ -173,8 +174,8 @@ class GlassView : public View {
     VGAGainField field_vga{
         {27 * 8, 0 * 16}};
 
-    Button button_range{
-        {7 * 8, 1 * 16, 4 * 8, 16},
+    TextField field_range{
+        {6 * 8, 1 * 16, 6 * 8, 16},
         ""};
 
     OptionsField filter_config{
@@ -192,13 +193,11 @@ class GlassView : public View {
     OptionsField range_presets{
         {7 * 8, 2 * 16},
         20,
-        {
-            {" NONE (WIFI 2.4GHz)", 0},
-        }};
+        {}};
 
-    ButtonWithEncoder button_marker{
-        {7 * 8, 3 * 16, 10 * 8, 16},
-        " "};
+    TextField field_marker{
+        {7 * 8, 3 * 16, 9 * 8, 16},
+        ""};
 
     NumberField field_trigger{
         {4 * 8, 4 * 16},
