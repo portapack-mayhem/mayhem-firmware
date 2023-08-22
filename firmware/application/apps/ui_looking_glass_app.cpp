@@ -87,15 +87,13 @@ void GlassView::retune() {
     baseband::spectrum_streaming_start();  // Do the RX
 }
 
-void GlassView::reset_live_view(bool clear_screen) {
+void GlassView::reset_live_view() {
     max_freq_hold = 0;
     max_freq_power = -1000;
-    if (clear_screen) {
-        // only clear screen in peak mode
-        if (live_frequency_view == 2) {
-            display.fill_rectangle({{0, 108 + 16}, {SCREEN_W, SCREEN_H - (108 + 16)}}, {0, 0, 0});
-        }
-    }
+
+    // Clear screen in peak mode.
+    if (live_frequency_view == 2)
+        display.fill_rectangle({{0, 108 + 16}, {SCREEN_W, SCREEN_H - (108 + 16)}}, {0, 0, 0});
 }
 
 void GlassView::add_spectrum_pixel(uint8_t power) {
@@ -143,8 +141,8 @@ void GlassView::add_spectrum_pixel(uint8_t power) {
 }
 
 bool GlassView::process_bins(uint8_t* powerlevel) {
-    bins_Hz_size += each_bin_size;          // add pixel to fulfilled bag of Hz
-    if (bins_Hz_size >= marker_pixel_step)  // new pixel fullfilled
+    bins_hz_size += each_bin_size;          // add pixel to fulfilled bag of Hz
+    if (bins_hz_size >= marker_pixel_step)  // new pixel fullfilled
     {
         if (*powerlevel > min_color_power)
             add_spectrum_pixel(*powerlevel);  // Pixel will represent max_power
@@ -154,7 +152,7 @@ bool GlassView::process_bins(uint8_t* powerlevel) {
 
         if (!pixel_index)  // Received indication that a waterfall line has been completed
         {
-            bins_Hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
+            bins_hz_size = 0;  // Since this is an entire pixel line, we don't carry "Pixels into next bin"
             if (mode != LOOKING_GLASS_SINGLEPASS) {
                 f_center = f_center_ini;
                 retune();
@@ -162,7 +160,7 @@ bool GlassView::process_bins(uint8_t* powerlevel) {
                 baseband::spectrum_streaming_start();
             return true;  // signal a new line
         }
-        bins_Hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
+        bins_hz_size -= marker_pixel_step;  // reset bins size, but carrying the eventual excess Hz into next pixel
     }
     return false;
 }
@@ -173,7 +171,7 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     baseband::spectrum_streaming_stop();
     // Convert bins of this spectrum slice into a representative max_power and when enough, into pixels
     // we actually need SCREEN_W (240) of those bins
-    for (bin = 0; bin < bin_length; bin++) {
+    for (uint8_t bin = 0; bin < bin_length; bin++) {
         get_max_power(spectrum, bin, max_power);
         // process dc spike if enable
         if (bin == 119) {
@@ -207,7 +205,7 @@ void GlassView::on_show() {
 }
 
 void GlassView::on_range_changed() {
-    reset_live_view(true);
+    reset_live_view();
     f_min = field_frequency_min.value();
     f_max = field_frequency_max.value();
     f_min = f_min * MHZ_DIV;  // Transpose into full frequency realm
@@ -245,9 +243,9 @@ void GlassView::on_range_changed() {
     search_span = looking_glass_range / MHZ_DIV;
     marker_pixel_step = looking_glass_range / SCREEN_W;  // Each pixel value in Hz
 
-    pixel_index = 0;   // reset pixel counter
-    max_power = 0;     // reset save max power level
-    bins_Hz_size = 0;  // reset amount of Hz filled up by pixels
+    pixel_index = 0;
+    max_power = 0;
+    bins_hz_size = 0;
 
     on_marker_change();
     update_range_field();
@@ -258,7 +256,7 @@ void GlassView::on_range_changed() {
 
     receiver_model.set_squelch_level(0);
     f_center = f_center_ini;  // Reset sweep into first slice
-    baseband::set_spectrum(looking_glass_bandwidth, field_trigger.value());
+    baseband::set_spectrum(looking_glass_bandwidth, trigger);
     receiver_model.set_target_frequency(f_center);  // tune rx for this slice
 }
 
@@ -371,73 +369,68 @@ GlassView::GlassView(
         };
     };
 
-    field_lna.on_change = [this](int32_t v_db) {
-        reset_live_view(true);
-        receiver_model.set_lna(v_db);
-    };
-    field_lna.set_value(receiver_model.lna());
-
-    field_vga.on_change = [this](int32_t v_db) {
-        reset_live_view(true);
-        receiver_model.set_vga(v_db);
-    };
-    field_vga.set_value(receiver_model.vga());
-
     steps_config.on_change = [this](size_t, OptionsField::value_t v) {
         field_frequency_min.set_step(v);
         field_frequency_max.set_step(v);
         steps = v;
     };
-    steps_config.set_selected_index(0);  // default of 1 Mhz steps
+    steps_config.set_selected_index(0);  // 1 Mhz step.
 
     scan_type.on_change = [this](size_t, OptionsField::value_t v) {
         mode = v;
         on_range_changed();
     };
-    scan_type.set_selected_index(0);  // default legacy fast scan
+    scan_type.set_selected_index(mode);
 
     view_config.on_change = [this](size_t, OptionsField::value_t v) {
-        // clear between changes
-        reset_live_view(true);
-        if (v == 0) {
-            live_frequency_view = 0;
-            level_integration.hidden(true);
-            freq_stats.hidden(true);
-            button_jump.hidden(true);
-            button_rst.hidden(true);
-            display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates
-        } else if (v == 1) {
-            display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
-            live_frequency_view = 1;
-            display.scroll_disable();
-            level_integration.hidden(false);
-            freq_stats.hidden(false);
-            button_jump.hidden(false);
-            button_rst.hidden(false);
-        } else if (v == 2) {
-            display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
-            live_frequency_view = 2;
-            display.scroll_disable();
-            level_integration.hidden(false);
-            freq_stats.hidden(false);
-            button_jump.hidden(false);
-            button_rst.hidden(false);
+        reset_live_view();  // Clear between changes.
+        live_frequency_view = v;
+
+        switch (v) {
+            case 0:  // SPEC
+                level_integration.hidden(true);
+                freq_stats.hidden(true);
+                button_jump.hidden(true);
+                button_rst.hidden(true);
+                display.scroll_set_area(109, 319);  // Restart scroll on the correct coordinates.
+                break;
+
+            case 1:  // LEVEL
+                display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
+                display.scroll_disable();
+                level_integration.hidden(false);
+                freq_stats.hidden(false);
+                button_jump.hidden(false);
+                button_rst.hidden(false);
+                break;
+
+            case 2:  // PEAK
+            default:
+                display.fill_rectangle({{0, 108}, {SCREEN_W, 24}}, {0, 0, 0});
+                display.scroll_disable();
+                level_integration.hidden(false);
+                freq_stats.hidden(false);
+                button_jump.hidden(false);
+                button_rst.hidden(false);
+                break;
         }
+
         set_dirty();
     };
-    view_config.set_selected_index(0);  // default spectrum
+    view_config.set_selected_index(live_frequency_view);
 
     level_integration.on_change = [this](size_t, OptionsField::value_t v) {
-        reset_live_view(true);
+        reset_live_view();
         live_frequency_integrate = v;
     };
-    level_integration.set_selected_index(3);  // default integration of ( 3 * old value + new_value ) / 4
+    level_integration.set_selected_index(live_frequency_integrate);
 
-    filter_config.on_change = [this](size_t, OptionsField::value_t v) {
-        reset_live_view(true);
+    filter_config.on_change = [this](size_t ix, OptionsField::value_t v) {
+        reset_live_view();
         min_color_power = v;
+        filter_index = ix;
     };
-    filter_config.set_selected_index(0);
+    filter_config.set_selected_index(filter_index);
 
     range_presets.on_change = [this](size_t ix, OptionsField::value_t v) {
         preset_index = ix;
@@ -457,16 +450,15 @@ GlassView::GlassView(
     };
 
     field_marker.on_select = [this](TextField&) {
-        receiver_model.set_target_frequency(marker);  // Center tune rx to marker freq.
-        auto settings = receiver_model.settings();
-        settings.frequency_step = MHZ_DIV;        // Preset a 1 MHz frequency step into RX -> AUDIO
-        nav_.replace<AnalogAudioView>(settings);  // Jump into audio view
+        // Launch Audio with marker frequency.
+        launch_audio(marker);
     };
 
     field_trigger.on_change = [this](int32_t v) {
-        baseband::set_spectrum(looking_glass_bandwidth, v);
+        trigger = v;
+        baseband::set_spectrum(looking_glass_bandwidth, trigger);
     };
-    field_trigger.set_value(32);  // Defaults to 32, as normal triggering resolution
+    field_trigger.set_value(trigger);
 
     field_range.on_select = [this](TextField&) {
         locked_range = !locked_range;
@@ -474,24 +466,24 @@ GlassView::GlassView(
     };
 
     button_jump.on_select = [this](Button&) {
-        receiver_model.set_target_frequency(max_freq_hold);  // Center tune rx in marker freq.
-        auto settings = receiver_model.settings();
-        settings.frequency_step = MHZ_DIV;        // Preset a 1 MHz frequency step into RX -> AUDIO
-        nav_.replace<AnalogAudioView>(settings);  // Jump into audio view
+        // Launch Audio with peak frequency.
+        launch_audio(max_freq_hold);
     };
 
     button_rst.on_select = [this](Button&) {
-        reset_live_view(true);
+        reset_live_view();
     };
 
     display.scroll_set_area(109, 319);
-    baseband::set_spectrum(looking_glass_bandwidth, field_trigger.value());  // trigger:
-                                                                             // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute,
-                                                                             // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made,
-                                                                             // at which time it pushes the buffer up with channel_spectrum.feed
+
+    // trigger:
+    // Discord User jteich:  WidebandSpectrum::on_message to set the trigger value. In WidebandSpectrum::execute,
+    // it keeps adding the output of the fft to the buffer until "trigger" number of calls are made,
+    // at which time it pushes the buffer up with channel_spectrum.feed
+    baseband::set_spectrum(looking_glass_bandwidth, trigger);
 
     marker_pixel_index = SCREEN_W / 2;
-    on_range_changed();  // Force an update.
+    on_range_changed();  // Force a UI update.
 
     receiver_model.set_sampling_rate(looking_glass_sampling_rate);   // 20mhz
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
@@ -529,12 +521,6 @@ void GlassView::load_presets() {
         }
     }
 
-    /*
-    // Didn't load any from the file, add a default.
-    if (presets_db.size() == 1)
-        presets_db.push_back({2320, 2560, "DEFAULT WIFI 2.4GHz"});
-    */
-
     populate_presets();
 }
 
@@ -547,6 +533,13 @@ void GlassView::populate_presets() {
         entries.emplace_back(preset.label, entries.size());
 
     range_presets.set_options(std::move(entries));
+}
+
+void GlassView::launch_audio(rf::Frequency center_freq) {
+    receiver_model.set_target_frequency(center_freq);
+    auto settings = receiver_model.settings();
+    settings.frequency_step = MHZ_DIV;        // Preset a 1 MHz frequency step into RX -> AUDIO
+    nav_.replace<AnalogAudioView>(settings);  // Jump into audio view
 }
 
 }  // namespace ui
