@@ -707,6 +707,7 @@ class TextField : public Text {
 
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
 
    private:
     using Text::set;

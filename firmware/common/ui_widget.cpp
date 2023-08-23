@@ -1774,6 +1774,15 @@ bool TextField::on_encoder(EncoderEvent delta) {
     return false;
 }
 
+bool TextField::on_touch(TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
+        return true;
+    }
+
+    return false;
+}
+
 /* NumberField ***********************************************************/
 
 NumberField::NumberField(
