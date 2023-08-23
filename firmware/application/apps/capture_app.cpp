@@ -82,6 +82,12 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         auto anti_alias_filter_bandwidth = filter_bandwidth_for_sampling_rate(actual_sample_rate);
         receiver_model.set_baseband_bandwidth(anti_alias_filter_bandwidth);
 
+        // Automatically switch default capture format to C8 when bandwidth setting is increased to >=1.5MHz
+        if ((bandwidth >= 1500000) && (previous_bandwidth < 1500000)) {
+            option_format.set_selected_index(1);
+        }
+        previous_bandwidth = bandwidth;
+
         waterfall.start();
     };
 
