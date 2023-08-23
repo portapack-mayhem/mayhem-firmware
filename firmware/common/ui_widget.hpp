@@ -208,6 +208,10 @@ class Text : public Widget {
     void paint(Painter& painter) override;
 
    protected:
+    // NB: Don't truncate this string. The UI will only render
+    // as many characters as will fit in its rectange.
+    // Apps expect to be able to retrieve this string to avoid
+    // needing to hold additional copies in memory.
     std::string text;
 };
 
@@ -703,6 +707,7 @@ class TextField : public Text {
 
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
 
    private:
     using Text::set;
