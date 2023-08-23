@@ -366,16 +366,17 @@ void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
     auto max_len = (unsigned)rect.width() / s.font.char_width();
+    auto text_view = std::string_view{text};
 
     painter.fill_rectangle(rect, s.background);
 
-    if (text.length() > max_len)
-        text.resize(max_len);
+    if (text_view.length() > max_len)
+        text_view = text_view.substr(0, max_len);
 
     painter.draw_string(
         rect.location(),
         s,
-        text);
+        text_view);
 }
 
 /* Labels ****************************************************************/
