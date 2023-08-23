@@ -31,8 +31,6 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
-static const fs::path default_scan_file{u"FREQMAN/SCANNER.TXT"};
-
 ScannerThread::ScannerThread(std::vector<rf::Frequency> frequency_list)
     : frequency_list_{std::move(frequency_list)} {
     _manual_search = false;
@@ -234,7 +232,7 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
 
     if (!manual_search) {
         if (entries.size() > 0)
-            text_current_index.set(to_string_dec_uint(freq_idx + 1, 3));
+            field_current_index.set_text(to_string_dec_uint(freq_idx + 1, 3));
 
         if (freq_idx < entries.size() && entries[freq_idx].description.size() > 1)
             text_current_desc.set(entries[freq_idx].description);  // Show description from file
@@ -243,9 +241,20 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
     }
 }
 
+void ScannerView::handle_encoder(EncoderEvent delta) {
+    auto index_step = delta > 0 ? 1 : -1;
+
+    if (scan_thread)
+        scan_thread->set_index_stepper(index_step);
+
+    // Restart browse timer when frequency changes.
+    if (browse_timer != 0)
+        browse_timer = 1;
+}
+
 std::string ScannerView::loaded_filename() const {
-    auto filename = loaded_path.filename().string();
-    if (filename.length() > 23) {  // Truncate and add ellipses if long file name
+    auto filename = freqman_file;
+    if (filename.length() > 23) {  // Truncate long file name.
         filename.resize(22);
         filename = filename + "+";
     }
@@ -266,7 +275,7 @@ ScannerView::~ScannerView() {
 }
 
 void ScannerView::show_max_index() {  // show total number of freqs to scan
-    text_current_index.set("---");
+    field_current_index.set_text("---");
 
     if (entries.size() == FREQMAN_MAX_PER_FILE) {
         text_max_index.set_style(&Styles::red);
@@ -293,7 +302,7 @@ ScannerView::ScannerView(
         &button_load,
         &button_clear,
         &rssi,
-        &text_current_index,
+        &field_current_index,
         &text_max_index,
         &text_current_desc,
         &big_display,
@@ -336,14 +345,14 @@ ScannerView::ScannerView(
         };
     };
 
-    // Button to clear in-memory frequency list
+    // Button to clear in-memory frequency list.
     button_clear.on_select = [this, &nav](Button&) {
         if (scan_thread && entries.size()) {
             scan_thread->stop();  // STOP SCANNER THREAD
             entries.clear();
 
             show_max_index();  // UPDATE new list size on screen
-            text_current_index.set("");
+            field_current_index.set_text("");
             text_current_desc.set(loaded_filename());
             scan_thread->set_freq_lock(0);  // Reset the scanner lock
 
@@ -351,7 +360,7 @@ ScannerView::ScannerView(
         }
     };
 
-    // Button to configure starting frequency for a manual range search
+    // Button to configure starting frequency for a manual range search.
     button_manual_start.on_select = [this, &nav](Button& button) {
         auto new_view = nav_.push<FrequencyKeypadView>(frequency_range.min);
         new_view->on_changed = [this, &button](rf::Frequency f) {
@@ -360,7 +369,7 @@ ScannerView::ScannerView(
         };
     };
 
-    // Button to configure ending frequency for a manual range search
+    // Button to configure ending frequency for a manual range search.
     button_manual_end.on_select = [this, &nav](Button& button) {
         auto new_view = nav.push<FrequencyKeypadView>(frequency_range.max);
         new_view->on_changed = [this, &button](rf::Frequency f) {
@@ -369,7 +378,7 @@ ScannerView::ScannerView(
         };
     };
 
-    // Button to pause/resume scan (note that some other buttons will trigger resume also)
+    // Button to pause/resume scan (note that some other buttons will trigger resume also).
     button_pause.on_select = [this](ButtonWithEncoder&) {
         if (userpause)
             user_resume();
@@ -380,18 +389,13 @@ ScannerView::ScannerView(
         }
     };
 
-    // Encoder dial causes frequency change when focus is on pause button
+    // Encoder dial causes frequency change when focus is on pause button or current index.
     button_pause.on_change = [this]() {
-        int32_t encoder_delta{(button_pause.get_encoder_delta() > 0) ? 1 : -1};
-
-        if (scan_thread)
-            scan_thread->set_index_stepper(encoder_delta);
-
-        // Restart browse timer when frequency changes
-        if (browse_timer != 0)
-            browse_timer = 1;
-
+        handle_encoder(button_pause.get_encoder_delta());
         button_pause.set_encoder_delta(0);
+    };
+    field_current_index.on_encoder_change = [this](TextField&, EncoderEvent delta) {
+        handle_encoder(delta);
     };
 
     // Button to switch to Audio app
@@ -485,7 +489,7 @@ ScannerView::ScannerView(
     // Button to add current frequency (found during Search) to the Scan Frequency List
     button_add.on_select = [this](Button&) {
         FreqmanDB db;
-        if (db.open(loaded_path, /*create*/ true)) {
+        if (db.open(get_freqman_path(freqman_file), /*create*/ true)) {
             freqman_entry entry{
                 .frequency_a = current_frequency,
                 .type = freqman_type::Single,
@@ -511,7 +515,7 @@ ScannerView::ScannerView(
                 }
             }
         } else {
-            nav_.display_modal("Error", "Cannot open " + loaded_path.filename().string() + "\nfor appending freq.");
+            nav_.display_modal("Error", "Cannot open " + freqman_file + ".TXT\nfor appending freq.");
             bigdisplay_update(-1);  // Need to poke this control after displaying modal?
         }
     };
@@ -531,7 +535,7 @@ ScannerView::ScannerView(
     receiver_model.set_squelch_level(0);
 
     // LOAD FREQUENCIES
-    frequency_file_load(default_scan_file);
+    frequency_file_load(get_freqman_path(freqman_file));
 }
 
 void ScannerView::frequency_file_load(const fs::path& path) {
@@ -542,12 +546,11 @@ void ScannerView::frequency_file_load(const fs::path& path) {
     FreqmanDB db;
     if (!db.open(path)) {
         text_current_desc.set("NO " + path.filename().string());
-        loaded_path = default_scan_file;
         return;
     }
 
     entries.clear();
-    loaded_path = path;
+    freqman_file = path.stem().string();
     Optional<scanner_range_t> range;
 
     for (auto entry : db) {
