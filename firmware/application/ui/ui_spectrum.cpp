@@ -391,13 +391,13 @@ uint32_t filter_bandwidth_for_sampling_rate(int32_t sampling_rate) {
             return 2'500'000;          // In some IC, MAX2837 appears as 2250000, but both work similarly.
 
         case 7'000'001 ... 10'000'000:  // OVS x8 and x4 , BW capture 1Mhz fs = 8 x 1Mhz = 8Mhz. (1Mhz showed slightly higher noise background).
-            return 3'500'000;  // some low SD cards, if not showing avg. writting speed >4MB/sec, they will produce sammples drop at REC with 1MB and C16 format.
+            return 3'500'000;           // some low SD cards, if not showing avg. writting speed >4MB/sec, they will produce sammples drop at REC with 1MB and C16 format.
 
         case 12'000'000 ... 14'000'000:  // OVS x4, BW capture 3Mhz, fs = 4 x 3Mhz = 12Mhz
-                          // Good BPF, good matching, we have some periodical M4 % samples drop.
+                                         // Good BPF, good matching, we have some periodical M4 % samples drop.
             return 5'000'000;
 
-         case 16'000'000:  // OVS x4, BW capture 4Mhz, fs = 4 x 4Mhz = 16Mhz
+        case 16'000'000:  // OVS x4, BW capture 4Mhz, fs = 4 x 4Mhz = 16Mhz
                           // Good BPF, good matching, we have some periodical M4 % samples drop.
             return 5'500'000;
 

@@ -114,9 +114,9 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
 
      * We keep original black background in all the correct IQ .C16 files BW's Options. */
     if ((actual_sampling_rate > 8'000'000) && (oversample_rate == OversampleRate::x4)) {  // yellow REC button means not ok for REC, BW >1Mhz  (BW from 12k5 till 1Mhz OK for REC and Replay)
-        button_record.set_background(ui::Color::yellow());  // From >2M onwards.
+        button_record.set_background(ui::Color::yellow());                                // From >2M onwards.
     } else {
-        button_record.set_background(ui::Color::black());   // From 12k5 till 2M     
+        button_record.set_background(ui::Color::black());  // From 12k5 till 2M
     }
 
     if (sampling_rate != new_sampling_rate) {
@@ -144,10 +144,10 @@ OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
 
     auto rate = ::get_oversample_rate(sample_rate);
 
-    // Currently proc_capture only supports /4 , /8, /16, /32, /64 for decimation, just  clipping protection.
-    if (rate < OversampleRate::x4)  // clipping while /4 is not implemented yet  (it will be used >1Mhz onwards when available)
+    // Currently proc_capture only supports /4 , /8, /16, /32, /64 for decimation, just  clipping protection (but now not necessary).
+    if (rate < OversampleRate::x4)  // clipping  protection <=4 , TODO ,  but we can delete it when refactoring
         rate = OversampleRate::x4;
-    else if (rate > OversampleRate::x64)  // clipping while /128 is not implemented yet , (but it is not necessary for 12k5)
+    else if (rate > OversampleRate::x64)  // clipping protection <=x64, (but /128  it is not necessary for 12k5),we can delete it when refactoring
         rate = OversampleRate::x64;
 
     return rate;

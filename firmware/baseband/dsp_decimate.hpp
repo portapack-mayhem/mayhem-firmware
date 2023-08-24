@@ -113,7 +113,7 @@ class FIRC8xR16x24FS4Decim4 {
     int32_t output_scale = 0;
 };
 
-class FIRC8xR16x24FS4Decim4_256 {       // Cloned from FIRC8xR16x24FS4Decim4 + limiting output buffer C16 x 256 samples.
+class FIRC8xR16x24FS4Decim4_256 {  // Cloned from FIRC8xR16x24FS4Decim4 + limiting output buffer C16 x 256 samples.
    public:
     static constexpr size_t taps_count = 24;
     static constexpr size_t decimation_factor = 4;
