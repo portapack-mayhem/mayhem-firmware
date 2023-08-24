@@ -203,7 +203,7 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
 
     const auto k = output_scale;
 
-    size_t count = src.count / decimation_factor;   // 2048 buffer_c8 input src samples / 4 = 512 buffer c16 output samples.
+    size_t count = src.count / decimation_factor;  // 2048 buffer_c8 input src samples / 4 = 512 buffer c16 output samples.
     /*
     if (count > 256) {                  // Just investigation test .
             count =256;
@@ -242,11 +242,9 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
         src.sampling_rate / decimation_factor};
 }
 
-
-
 // FIRC8xR16x24FS4Decim4_256 //////////////////////////////////////////////////
 // Cloned from previous FIRC8xR16x24FS4Decim4 limiting the output buffer C16 samples to 256
-// Waterfall fft function was designed to handle as a max. 256 Complex samples , (2048 /8 = 256), 
+// Waterfall fft function was designed to handle as a max. 256 Complex samples , (2048 /8 = 256),
 // if we just use Decimation /4 , we got 2048 c8 src input  / 4 = 512 C16 Complex output  samples and Waterfall crashes.
 
 void FIRC8xR16x24FS4Decim4_256::configure(
@@ -268,7 +266,7 @@ buffer_c16_t FIRC8xR16x24FS4Decim4_256::execute(
     const auto k = output_scale;
 
     // const size_t count = src.count / decimation_factor;  // Original code of the cloned FIRC8xR16x24FS4Decim4
-    const size_t count = 256; // We limit the buffer output of decim0 /4 to 256 C16 Complex samples.
+    const size_t count = 256;  // We limit the buffer output of decim0 /4 to 256 C16 Complex samples.
 
     for (size_t i = 0; i < count; i++) {
         const vec4_s8* const in = static_cast<const vec4_s8*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));

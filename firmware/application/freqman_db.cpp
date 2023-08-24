@@ -88,11 +88,11 @@ options_t freqman_bandwidths[4] = {
         {"750k", 750000},
         {"1000k", 1000000}, /* Limit bandwith option for recording in C16 (in fast SD card) or in C8 */
         {"1250k", 1250000}, /* We doubled x 2 again previous REC BW limit */
-        {"1500k", 1500000}, 
+        {"1500k", 1500000},
         {"1750k", 1750000},
         {"2000k", 2000000},
-        {"2250k", 2250000},/*  Limit bandwith option for recording in C8 (in fast SD card) */
-        {"2500k", 2500000},/* From this BW onwards, the LCD is ok, but M4 CPU is having periodical sample rec dropps, (not real file size, accelerated replay) */
+        {"2250k", 2250000}, /*  Limit bandwith option for recording in C8 (in fast SD card) */
+        {"2500k", 2500000}, /* From this BW onwards, the LCD is ok, but M4 CPU is having periodical sample rec dropps, (not real file size, accelerated replay) */
         {"3000k", 3000000},
         {"3500k", 3500000},
         {"4000k", 4000000},

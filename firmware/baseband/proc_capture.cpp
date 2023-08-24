@@ -27,14 +27,14 @@
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
-    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);           // to be used with decim1 (/2), then total two decim stages decim (/8)
-    decim_0_8.configure(taps_200k_decim_0.taps, 33554432);           // to be used with decim1 (/2), then total two decim stages decim (/16)
+    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);  // to be used with decim1 (/2), then total two decim stages decim (/8)
+    decim_0_8.configure(taps_200k_decim_0.taps, 33554432);  // to be used with decim1 (/2), then total two decim stages decim (/16)
 
     decim_0_8_180k.configure(taps_180k_wfm_decim_0.taps, 33554432);  // to be used alone - no additional decim1 (/2), then total single decim stage (/8)
     decim_0_4_256.configure(taps_200k_decim_0.taps, 33554432);       // to be used alone - no additional decim1 (/2), then total single decim stage (/4)
 
-    decim_1_2.configure(taps_200k_decim_1.taps, 131072);                
-    decim_1_8.configure(taps_16k0_decim_1.taps, 131072);             // tentative decim1 /8  and taps, pending to be optimized.
+    decim_1_2.configure(taps_200k_decim_1.taps, 131072);
+    decim_1_8.configure(taps_16k0_decim_1.taps, 131072);  // tentative decim1 /8  and taps, pending to be optimized.
 
     channel_spectrum.set_decimation_factor(1);
     baseband_thread.start();
@@ -110,13 +110,13 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     size_t decim_1_factor;
     switch (oversample_rate) {  // we are using 3 decim_1 modes,  /1 , /2 ,  /8
         case OversampleRate::x4:
-            if (baseband_fs < 14'000'000) {    // < 3.5 Mhz , M4 is not overrun 100% when fs < 3M5 X 4 = 15M
-                decim_1_factor = 2 *1;  // decim1 is /1 ,     (but just increased to adjust waterfall speed , it seems no effect to the write process or fft scale)
+            if (baseband_fs < 14'000'000) {  // we are in ovs x4 ,  < 3.5 Mhz , M4 is not overrun 100% when fs < 3M5 x 4 = 15M
+                decim_1_factor = 2 * 1;      // decim1 is /1 because bypassed, (but just increased to adjust waterfall speed , it seems no effect to the write process or fft scale)
             } else {
-                decim_1_factor = 4 *1;  // decim1 is /1 ,     (but just increased to adjust waterfall speed  when M4 has buffer drops ) 
+                decim_1_factor = 4 * 1;  // decim1 is /1 because bypassed ,(but just increased to adjust waterfall speed  when M4 has buffer drops )
             }
             break;
-              
+
         case OversampleRate::x8:
             if (baseband_fs < 4800'000) {
                 decim_1_factor = decim_1_2.decimation_factor;  // /8 = /4x2
@@ -143,7 +143,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     }
 
     /*    // that was ok,  when we had only 2 oversampling x8 , x16
-    auto decim_1_factor = oversample_rate == OversampleRate::x32   
+    auto decim_1_factor = oversample_rate == OversampleRate::x32
                               ? decim_1_8.decimation_factor
                               : decim_1_2.decimation_factor;
     */
@@ -195,13 +195,13 @@ buffer_c16_t CaptureProcessor::decim_0_execute(const buffer_c8_t& src, const buf
 buffer_c16_t CaptureProcessor::decim_1_execute(const buffer_c16_t& src, const buffer_c16_t& dst) {
     switch (oversample_rate) {
         case OversampleRate::x4:
-            return src;                    // just decim0_4 (/4)                
+            return src;  // just decim0_4 (/4)
 
         case OversampleRate::x8:           // we can get /8 by two means , decim0 (/4) + decim1 (/2) .  or just decim0 (/8)
             if (baseband_fs < 4800'000) {  // 600khz (600k x 8)
                 return decim_1_2.execute(src, dst);
             } else {
-                return src;                 // just decim0_8 (/8)
+                return src;  // just decim0_8 (/8)
             }
 
         case OversampleRate::x16:
