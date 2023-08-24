@@ -46,6 +46,7 @@ class CaptureAppView : public View {
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;
+    uint32_t previous_bandwidth{500000};
 
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
