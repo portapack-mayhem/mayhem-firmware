@@ -113,6 +113,33 @@ class FIRC8xR16x24FS4Decim4 {
     int32_t output_scale = 0;
 };
 
+class FIRC8xR16x24FS4Decim4_256 {       // Cloned from FIRC8xR16x24FS4Decim4 + limiting output buffer C16 x 256 samples.
+   public:
+    static constexpr size_t taps_count = 24;
+    static constexpr size_t decimation_factor = 4;
+
+    using sample_t = complex8_t;
+    using tap_t = int16_t;
+
+    enum class Shift : bool {
+        Down = true,
+        Up = false
+    };
+
+    void configure(
+        const std::array<tap_t, taps_count>& taps,
+        const int32_t scale,
+        const Shift shift = Shift::Down);
+
+    buffer_c16_t execute(
+        const buffer_c8_t& src,
+        const buffer_c16_t& dst);
+
+   private:
+    std::array<vec2_s16, taps_count - decimation_factor> z_{};
+    std::array<tap_t, taps_count> taps_{};
+    int32_t output_scale = 0;
+};
 class FIRC8xR16x24FS4Decim8 {
    public:
     static constexpr size_t taps_count = 24;

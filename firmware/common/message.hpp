@@ -820,6 +820,9 @@ enum class OversampleRate : uint8_t {
     // overrun the IQ read buffer in proc_replay.
 
     /* Oversample rate of 8 times the sample rate. */
+    x4 = 4,
+
+    /* Oversample rate of 8 times the sample rate. */
     x8 = 8,
 
     /* Oversample rate of 16 times the sample rate. */
