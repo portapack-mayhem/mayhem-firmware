@@ -55,6 +55,7 @@ namespace ui {
 struct POCSAGSettings {
     bool enable_small_font = false;
     bool enable_logging = false;
+    bool enable_raw_log = false;
     bool enable_ignore = false;
     uint32_t address_to_ignore = 0;
 };
@@ -70,27 +71,34 @@ class POCSAGSettingsView : public View {
 
     Checkbox check_log{
         {2 * 8, 2 * 16},
-        15,
+        10,
         "Enable Log",
         false};
 
-    Checkbox check_small_font{
+    Checkbox check_log_raw{
         {2 * 8, 4 * 16},
-        15,
+        12,
+        "Log Raw Data",
+        false};
+
+    Checkbox check_small_font{
+        {2 * 8, 6 * 16},
+        4,
         "Use Small Font",
         false};
 
     Checkbox check_ignore{
-        {2 * 8, 6 * 16},
-        8,
+        {2 * 8, 8 * 16},
+        22,
         "Enable Ignored Address",
         false};
 
-    // TODO: Numfield instead
-    SymField sym_ignore{
-        {2 * 8, 8 * 16},
+    NumberField field_ignore{
+        {7 * 8, 9 * 16 + 8},
         7,
-        SymField::SYMFIELD_DEC};
+        {0, 9999999},
+        1,
+        '0'};
 
     Button button_save{
         {12 * 8, 16 * 16, 10 * 8, 2 * 16},
@@ -108,6 +116,7 @@ class POCSAGAppView : public View {
    private:
     static constexpr uint32_t initial_target_frequency = 466'175'000;
     bool logging() const { return settings_.enable_logging; };
+    bool logging_raw() const { return settings_.enable_raw_log; };
     bool ignore() const { return settings_.enable_ignore; };
 
     NavigationView& nav_;
@@ -115,6 +124,7 @@ class POCSAGAppView : public View {
         12'500,     // POCSAG is FSK +/- 4.5MHz, 12k5 is a good filter.
         3'072'000,  // Match baseband_fs in proc_pocsag.
     };
+
     // Settings
     POCSAGSettings settings_{};
     app_settings::SettingsManager app_settings_{
@@ -132,6 +142,8 @@ class POCSAGAppView : public View {
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
+    POCSAGLogger logger{};
+    bool packet_toggle = false;
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -150,14 +162,22 @@ class POCSAGAppView : public View {
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
 
+    Image image_status{
+        {7 * 8, 1 * 16 + 2, 16, 16},
+        &bitmap_icon_pocsag,
+        Color::white(),
+        Color::black()};
+
+    Button button_ignore_last{
+        {10 * 8, 1 * 16, 12 * 8, 20},
+        "Ignore Last"};
+
     Button button_config{
         {22 * 8, 1 * 16, 8 * 8, 20},
         "Config"};
 
     Console console{
-        {0, 2 * 16, screen_width, 272}};
-
-    std::unique_ptr<POCSAGLogger> logger{};
+        {0, 2 * 16 + 6, screen_width, screen_height - 56}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::POCSAGPacket,
