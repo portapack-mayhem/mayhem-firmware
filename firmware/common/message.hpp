@@ -111,6 +111,7 @@ class Message {
         APRSRxConfigure = 54,
         SpectrumPainterBufferRequestConfigure = 55,
         SpectrumPainterBufferResponseConfigure = 56,
+        POCSAGStats = 57,
         MAX
     };
 
@@ -338,6 +339,17 @@ class POCSAGPacketMessage : public Message {
     }
 
     pocsag::POCSAGPacket packet;
+};
+
+class POCSAGStatsMessage : public Message {
+   public:
+    constexpr POCSAGStatsMessage(
+        uint16_t baud_rate)
+        : Message{ID::POCSAGStats},
+          baud_rate_{baud_rate} {
+    }
+
+    uint16_t baud_rate_;
 };
 
 class ACARSPacketMessage : public Message {

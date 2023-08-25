@@ -27,12 +27,15 @@
 #include "ui_freq_field.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
+#include "ui_styles.hpp"
 
-#include "log_file.hpp"
 #include "app_settings.hpp"
-#include "radio_state.hpp"
+#include "log_file.hpp"
 #include "pocsag.hpp"
 #include "pocsag_packet.hpp"
+#include "radio_state.hpp"
+
+#include <functional>
 
 class POCSAGLogger {
    public:
@@ -49,6 +52,51 @@ class POCSAGLogger {
 
 namespace ui {
 
+struct POCSAGSettings {
+    bool enable_small_font = false;
+    bool enable_logging = false;
+    bool enable_ignore = false;
+    uint32_t address_to_ignore = 0;
+};
+
+class POCSAGSettingsView : public View {
+   public:
+    POCSAGSettingsView(NavigationView& nav, POCSAGSettings& settings);
+
+    std::string title() const override { return "POCSAG Config"; };
+
+   private:
+    POCSAGSettings& settings_;
+
+    Checkbox check_log{
+        {2 * 8, 2 * 16},
+        15,
+        "Enable Log",
+        false};
+
+    Checkbox check_small_font{
+        {2 * 8, 4 * 16},
+        15,
+        "Use Small Font",
+        false};
+
+    Checkbox check_ignore{
+        {2 * 8, 6 * 16},
+        8,
+        "Enable Ignored Address",
+        false};
+
+    // TODO: Numfield instead
+    SymField sym_ignore{
+        {2 * 8, 8 * 16},
+        7,
+        SymField::SYMFIELD_DEC};
+
+    Button button_save{
+        {12 * 8, 16 * 16, 10 * 8, 2 * 16},
+        "Save"};
+};
+
 class POCSAGAppView : public View {
    public:
     POCSAGAppView(NavigationView& nav);
@@ -58,9 +106,9 @@ class POCSAGAppView : public View {
     void focus() override;
 
    private:
-    static constexpr uint32_t initial_target_frequency = 466175000;
-    bool logging() const { return check_log.value(); };
-    bool ignore() const { return check_ignore.value(); };
+    static constexpr uint32_t initial_target_frequency = 466'175'000;
+    bool logging() const { return settings_.enable_logging; };
+    bool ignore() const { return settings_.enable_ignore; };
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -68,11 +116,19 @@ class POCSAGAppView : public View {
         3'072'000,  // Match baseband_fs in proc_pocsag.
     };
     // Settings
-    bool enable_logging = false;
-    app_settings::SettingsManager settings_{
+    POCSAGSettings settings_{};
+    app_settings::SettingsManager app_settings_{
         "rx_pocsag"sv,
         app_settings::Mode::RX,
-        {{"enable_logging"sv, &enable_logging}}};
+        {
+            {"small_font"sv, &settings_.enable_small_font},
+            {"enable_logging"sv, &settings_.enable_logging},
+            {"enable_ignore"sv, &settings_.enable_ignore},
+        }};
+
+    void refresh_ui();
+    void on_packet(const POCSAGPacketMessage* message);
+    void on_stats(const POCSAGStatsMessage* stats);
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
@@ -84,47 +140,37 @@ class POCSAGAppView : public View {
     VGAGainField field_vga{
         {18 * 8, 0 * 16}};
     RSSI rssi{
-        {21 * 8, 0, 6 * 8, 4}};
-    Channel channel{
-        {21 * 8, 5, 6 * 8, 4}};
+        {21 * 8, 3, 6 * 8, 4}};
     Audio audio{
-        {21 * 8, 10, 6 * 8, 4}};
+        {21 * 8, 8, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
         nav_};
-
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
 
-    Checkbox check_ignore{
-        {0 * 8, 21},
-        8,
-        "Ign addr",
-        false};
-    SymField sym_ignore{
-        {13 * 8, 25},
-        7,
-        SymField::SYMFIELD_DEC};
-
-    Checkbox check_log{
-        {240 - 8 * 8, 21},
-        3,
-        "Log",
-        false};
+    Button button_config{
+        {22 * 8, 1 * 16, 8 * 8, 20},
+        "Config"};
 
     Console console{
-        {0, 3 * 16, 240, 256}};
+        {0, 2 * 16, screen_width, 272}};
 
     std::unique_ptr<POCSAGLogger> logger{};
-
-    void on_packet(const POCSAGPacketMessage* message);
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::POCSAGPacket,
         [this](Message* const p) {
             const auto message = static_cast<const POCSAGPacketMessage*>(p);
             this->on_packet(message);
+        }};
+
+    MessageHandlerRegistration message_handler_stats{
+        Message::ID::POCSAGStats,
+        [this](Message* const p) {
+            const auto stats = static_cast<const POCSAGStatsMessage*>(p);
+            this->on_stats(stats);
         }};
 };
 

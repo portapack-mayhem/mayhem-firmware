@@ -41,7 +41,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
-    smooth.Process(audio.p, audio.count);  // Smooth the data to  make decoding more accurate
+    smooth.Process(audio.p, audio.count);  // Smooth the data to make decoding more accurate
     audio_output.write(audio);
 
     processDemodulatedSamples(audio.p, 16);
@@ -94,6 +94,9 @@ void POCSAGProcessor::configure() {
     // Smoothing should be roughly sample rate over max baud
     // 24k / 3.2k is 7.5
     smooth.SetSize(8);
+
+    // TODO: support squelch?
+    // audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, (float)message.squelch_level / 100.0);
     audio_output.configure(false);
 
     // Set up the frame extraction, limits of baud

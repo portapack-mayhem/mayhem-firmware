@@ -22,15 +22,14 @@
 
 #include "pocsag_app.hpp"
 
+#include "audio.hpp"
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "string_format.hpp"
+#include "utility.hpp"
 
 using namespace portapack;
 using namespace pocsag;
-
-#include "string_format.hpp"
-#include "utility.hpp"
-#include "audio.hpp"
 
 void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency) {
     std::string entry = "Raw: F:" + to_string_dec_uint(frequency) + "Hz " +
@@ -51,44 +50,63 @@ void POCSAGLogger::log_decoded(
 
 namespace ui {
 
+POCSAGSettingsView::POCSAGSettingsView(
+    NavigationView& nav,
+    POCSAGSettings& settings)
+    : settings_{settings} {
+    add_children(
+        {
+            &check_log,
+            &check_small_font,
+            &check_ignore,
+            &sym_ignore,
+            &button_save,
+        });
+
+    check_log.set_value(settings_.enable_logging);
+    check_small_font.set_value(settings_.enable_small_font);
+    check_ignore.set_value(settings_.enable_ignore);
+
+    button_save.on_select = [this, &nav](Button&) {
+        settings_.enable_logging = check_log.value();
+        settings_.enable_small_font = check_small_font.value();
+        settings_.enable_ignore = check_ignore.value();
+
+        nav.pop();
+    };
+}
+
 POCSAGAppView::POCSAGAppView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_pocsag);
 
-    add_children({&rssi,
-                  &channel,
-                  &audio,
-                  &field_rf_amp,
-                  &field_lna,
-                  &field_vga,
-                  &field_frequency,
-                  &check_log,
-                  &field_volume,
-                  &check_ignore,
-                  &sym_ignore,
-                  &console});
+    add_children(
+        {&rssi,
+         //&channel,
+         &audio,
+         &field_rf_amp,
+         &field_lna,
+         &field_vga,
+         &field_frequency,
+         &field_volume,
+         &button_config,
+         &console});
 
-    if (!settings_.loaded())
+    if (!app_settings_.loaded())
         field_frequency.set_value(initial_target_frequency);
 
-    check_log.set_value(enable_logging);
-
-    receiver_model.enable();
-
-    // TODO: app setting instead?
-    uint32_t ignore_address;
-    ignore_address = persistent_memory::pocsag_ignore_address();
-
-    // TODO: is this common enough for a helper?
-    for (size_t c = 0; c < 7; c++) {
-        sym_ignore.set_sym(6 - c, ignore_address % 10);
-        ignore_address /= 10;
-    }
-
+    // TODO: why allocated?
     logger = std::make_unique<POCSAGLogger>();
     if (logger)
         logger->append(LOG_ROOT_DIR "/POCSAG.TXT");
 
+    button_config.on_select = [this](Button&) {
+        nav_.push<POCSAGSettingsView>(settings_);
+        nav_.set_on_pop([this]() { refresh_ui(); });
+    };
+
+    refresh_ui();
+    receiver_model.enable();
     audio::output::start();
     baseband::set_pocsag();
 }
@@ -101,11 +119,18 @@ POCSAGAppView::~POCSAGAppView() {
     audio::output::stop();
 
     // Save settings.
-    persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
-    enable_logging = check_log.value();
+    // persistent_memory::set_pocsag_ignore_address(sym_ignore.value_dec_u32());
+    // enable_logging = check_log.value();
 
     receiver_model.disable();
     baseband::shutdown();
+}
+
+void POCSAGAppView::refresh_ui() {
+    console.set_style(
+        settings_.enable_small_font
+            ? &Styles::white_small
+            : &Styles::white);
 }
 
 void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
@@ -116,16 +141,16 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     else {
         pocsag_decode_batch(message->packet, &pocsag_state);
 
-        if ((ignore()) && (pocsag_state.address == sym_ignore.value_dec_u32())) {
-            // Ignore (inform, but no log)
-            // console.write("\n\x1B\x03" + to_string_time(message->packet.timestamp()) +
-            //			" Ignored address " + to_string_dec_uint(pocsag_state.address));
-            return;
-        }
-        // Too many errors for reliable decode
-        if ((ignore()) && (pocsag_state.errors >= 3)) {
-            return;
-        }
+        // if ((ignore()) && (pocsag_state.address == sym_ignore.value_dec_u32())) {
+        //     // Ignore (inform, but no log)
+        //     // console.write("\n\x1B\x03" + to_string_time(message->packet.timestamp()) +
+        //     //			" Ignored address " + to_string_dec_uint(pocsag_state.address));
+        //     return;
+        // }
+        // // Too many errors for reliable decode
+        // if ((ignore()) && (pocsag_state.errors >= 3)) {
+        //     return;
+        // }
 
         std::string console_info;
         const uint32_t roundVal = 50;
@@ -175,6 +200,9 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     // Log raw data whatever it contains
     /*if (logger && logging())
         logger->log_raw_data(message->packet, receiver_model.target_frequency());*/
+}
+
+void POCSAGAppView::on_stats(const POCSAGStatsMessage* stats) {
 }
 
 } /* namespace ui */
