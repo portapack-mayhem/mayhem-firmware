@@ -28,7 +28,7 @@
 
 #include <cstdint>
 #include <cstddef>
-#include <algorithm>  // std::max
+#include <algorithm>
 #include <cmath>
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
@@ -41,7 +41,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
-    smooth.Process(audio.p, audio.count);  // Smooth the data to  make decoding more accurate
+    smooth.Process(audio.p, audio.count);  // Smooth the data to make decoding more accurate
     audio_output.write(audio);
 
     processDemodulatedSamples(audio.p, 16);
@@ -90,10 +90,13 @@ void POCSAGProcessor::configure() {
     decim_0.configure(taps_11k0_decim_0.taps, 33554432);
     decim_1.configure(taps_11k0_decim_1.taps, 131072);
     channel_filter.configure(taps_11k0_channel.taps, 2);
-    demod.configure(demod_input_fs, 4500);
+    demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
     // Smoothing should be roughly sample rate over max baud
     // 24k / 3.2k is 7.5
     smooth.SetSize(8);
+
+    // TODO: support squelch?
+    // audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, (float)message.squelch_level / 100.0);
     audio_output.configure(false);
 
     // Set up the frame extraction, limits of baud
