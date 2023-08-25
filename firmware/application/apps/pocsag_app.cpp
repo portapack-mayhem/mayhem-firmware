@@ -158,20 +158,24 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     if (logging_raw())
         logger.log_raw_data(message->packet, receiver_model.target_frequency());
 
-    if (message->packet.flag() != NORMAL)
+    if (message->packet.flag() != NORMAL) {
         console.writeln("\n\x1B\x04" + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
-    else {
+        last_address = 0;
+        return;
+    } else {
         pocsag_decode_batch(message->packet, &pocsag_state);
 
         // Too many errors for reliable decode.
         if (pocsag_state.errors >= 3) {
             console.write("\n\x1B\x0D" + prefix + " Too many decode errors.");
+            last_address = 0;
             return;
         }
 
         // Ignored address.
         if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
             console.write("\n\x1B\x03" + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
+            last_address = pocsag_state.address;
             return;
         }
 
