@@ -99,17 +99,18 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
 
     baseband_thread.set_sampling_rate(baseband_fs);
 
-    // Current fw , we are using only  2 decim_0 modes,  /4 , /8
-    auto decim_0_factor = (oversample_rate == OversampleRate::x8) || (oversample_rate == OversampleRate::x4)
-                              ? decim_0_4.decimation_factor
-                              : decim_0_8.decimation_factor;
+    /*
+      // when we had only 2 decim_0 modes,  /4 , /8
+      auto decim_0_factor = (oversample_rate == OversampleRate::x8) || (oversample_rate == OversampleRate::x4)
+                                ? decim_0_4.decimation_factor
+                                : decim_0_8.decimation_factor;
+    */
 
-    size_t decim_0_output_fs = baseband_fs / decim_0_factor;
-    size_t decim_1_input_fs = decim_0_output_fs;
-
-    size_t decim_1_factor;
+    size_t decim_0_factor, decim_1_factor;
     switch (oversample_rate) {  // we are using 3 decim_1 modes,  /1 , /2 ,  /8
         case OversampleRate::x4:
+            decim_0_factor = decim_0_4.decimation_factor;  // /4 = /(4x1)
+
             if (baseband_fs < 14'000'000) {  // we are in ovs x4 ,  < 3.5 Mhz , M4 is not overrun 100% when fs < 3M5 x 4 = 15M
                 decim_1_factor = 2 * 1;      // decim1 is /1 because bypassed, (but just increased to adjust waterfall speed , it seems no effect to the write process or fft scale)
             } else {
@@ -119,21 +120,26 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
 
         case OversampleRate::x8:
             if (baseband_fs < 4800'000) {
-                decim_1_factor = decim_1_2.decimation_factor;  // /8 = /4x2
+                decim_0_factor = decim_0_4.decimation_factor;  // /8 = /(4x2)
+                decim_1_factor = decim_1_2.decimation_factor;  // /8 = /4x2,    factor 2 *  , it is just to speed up waterfall.
             } else {
-                decim_1_factor = 2 * 1;  // 600khz and onwards, single decim /8 = /8x1 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+                decim_0_factor = decim_0_8.decimation_factor;  // /8 = /(8x1),   600khz and onwards, single decim /8 = /8x1 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+                decim_1_factor = 1;                            // 600khz and onwards, single decim /8 = /8x1 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
             }
             break;
 
         case OversampleRate::x16:
+            decim_0_factor = decim_0_8.decimation_factor;      // /16 = /(8x2)
             decim_1_factor = 2 * decim_1_2.decimation_factor;  // /16 = /8x2 (we applied additional *2 correction to increase waterfall spped >=600k and smooth & avoid abnormal motion >1M5 )
             break;
 
         case OversampleRate::x32:
-            decim_1_factor = 2 * decim_1_8.decimation_factor;  // /32 = /4x8 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+            decim_0_factor = decim_0_4.decimation_factor;      // /32 = /(4x8) (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+            decim_1_factor = 4 * decim_1_8.decimation_factor;  // /32 = /4x8 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
             break;
 
         case OversampleRate::x64:
+            decim_0_factor = decim_0_8.decimation_factor;      // /64 = /(8x8) (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
             decim_1_factor = 8 * decim_1_8.decimation_factor;  // /64 = /8x8 (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
             break;
 
@@ -147,6 +153,18 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
                               ? decim_1_8.decimation_factor
                               : decim_1_2.decimation_factor;
     */
+
+    /*
+    // Test To limit to buffer dst 512 -> 256 samples to waterfall but it also changes wrongly the fft horiz. spectrum scale .
+    if (oversample_rate == OversampleRate::x4) {
+        channel_spectrum.set_decimation_factor(2);
+    } else {
+        channel_spectrum.set_decimation_factor(1);
+    }
+    */
+
+    size_t decim_0_output_fs = baseband_fs / decim_0_factor;
+    size_t decim_1_input_fs = decim_0_output_fs;
     size_t decim_1_output_fs = decim_1_input_fs / decim_1_factor;
 
     channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * decim_1_input_fs;
