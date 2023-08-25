@@ -63,7 +63,10 @@ class POCSAGAppView : public View {
     bool ignore() const { return check_ignore.value(); };
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{
+        12'500,     // POCSAG is FSK +/- 4.5MHz, 12k5 is a good filter.
+        3'072'000,  // Match baseband_fs in proc_pocsag.
+    };
     // Settings
     bool enable_logging = false;
     app_settings::SettingsManager settings_{

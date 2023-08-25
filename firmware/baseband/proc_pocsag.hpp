@@ -48,7 +48,7 @@ using namespace std;
 template <class ValType, class CalcType>
 class SmoothVals {
    protected:
-    ValType* m_lastVals;  // Previoius N values
+    ValType* m_lastVals;  // Previous N values
     int m_size;           // The size N
     CalcType m_sumVal;    // Running sum of lastVals
     int m_pos;            // Current position in last vals ring buffer
