@@ -97,7 +97,7 @@ options_t freqman_bandwidths[4] = {
         {"3500k", 3500000},
         {"4000k", 4000000},
         {"4500k", 4500000},
-        {"5000k", 5000000},
+        {"5100k", 5100000},  // we skip exact 5Mhz because it is another periodic M4 99-100% in Capture App with abnormal waterfall motion.
         {"5500k", 5500000},  // That is our max Capture option, to keep using later / 4 decimation (22Mhz sampling  ADC)
     },
 };
