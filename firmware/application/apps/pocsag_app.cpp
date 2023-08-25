@@ -165,12 +165,14 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     } else {
         pocsag_decode_batch(message->packet, &pocsag_state);
 
+        /*
         // Too many errors for reliable decode.
         if (pocsag_state.errors >= 3) {
             console.write("\n\x1B\x0D" + prefix + " Too many decode errors.");
             last_address = 0;
             return;
         }
+        */
 
         // Ignored address.
         if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
@@ -179,7 +181,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
             return;
         }
 
-        std::string console_info = "\n" + prefix;
+        // Indicate if the message has lots of decoding errors.
+        std::string color = pocsag_state.errors >= 3 ? "\x1B\x0D" : "";
+
+        std::string console_info = "\n" + color + prefix;
         console_info += " #" + to_string_dec_uint(pocsag_state.address);
         console_info += " F" + to_string_dec_uint(pocsag_state.function);
 
@@ -200,10 +205,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
                 // New message
                 last_address = pocsag_state.address;
                 console.writeln(console_info);
-                console.write(pocsag_state.output);
+                console.write(color + pocsag_state.output);
             } else {
                 // Message continues...
-                console.write(pocsag_state.output);
+                console.write(color + pocsag_state.output);
             }
 
             if (logging()) {
