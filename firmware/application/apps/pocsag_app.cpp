@@ -149,33 +149,33 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
                                     ? Color::dark_grey()
                                     : Color::white());
 
+    const uint32_t roundVal = 50;
+    const uint32_t bitrate_rounded = roundVal * ((message->packet.bitrate() + (roundVal / 2)) / roundVal);
+    auto bitrate = to_string_dec_uint(bitrate_rounded);
     auto timestamp = to_string_datetime(message->packet.timestamp(), HM);
+    auto prefix = timestamp + " " + bitrate;
 
     if (logging_raw())
         logger.log_raw_data(message->packet, receiver_model.target_frequency());
 
     if (message->packet.flag() != NORMAL)
-        console.writeln("\n\x1B\x04" + timestamp + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
+        console.writeln("\n\x1B\x04" + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
     else {
         pocsag_decode_batch(message->packet, &pocsag_state);
 
         // Too many errors for reliable decode.
         if (pocsag_state.errors >= 3) {
-            console.write("\n\x1B\x0D" + timestamp + " Too many decode errors.");
+            console.write("\n\x1B\x0D" + prefix + " Too many decode errors.");
             return;
         }
 
         // Ignored address.
         if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
-            console.write("\n\x1B\x03" + timestamp + " Ignored: " + to_string_dec_uint(pocsag_state.address));
+            console.write("\n\x1B\x03" + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
             return;
         }
 
-        std::string console_info;
-        const uint32_t roundVal = 50;
-        const uint32_t bitrate = roundVal * ((message->packet.bitrate() + (roundVal / 2)) / roundVal);
-        console_info = "\n" + timestamp;
-        console_info += " " + to_string_dec_uint(bitrate);
+        std::string console_info = "\n" + prefix;
         console_info += " #" + to_string_dec_uint(pocsag_state.address);
         console_info += " F" + to_string_dec_uint(pocsag_state.function);
 
