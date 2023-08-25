@@ -112,7 +112,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             decim_0_factor = decim_0_4.decimation_factor;  // /4 = /(4x1)
 
             if (baseband_fs < 7'000'000) {  // we are in ovs x4 ,  < 1.5 Mhz , M4 is not overrun 100% when fs < 1M5 x 4 = 6000
-                decim_1_factor = 2 * 1;      // decim1 is /1 because bypassed, (but just increased to adjust waterfall speed, it seems no effect to the write process or fft scale)
+                decim_1_factor = 2 * 1;     // decim1 is /1 because bypassed, (but just increased to adjust waterfall speed, it seems no effect to the write process or fft scale)
             } else {
                 decim_1_factor = 4 * 1;  // decim1 is /1 because bypassed ,(but just increased to adjust waterfall speed  when M4 has buffer drops )
             }
