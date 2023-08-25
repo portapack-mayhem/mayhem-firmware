@@ -182,7 +182,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         }
 
         // Color indicates the message has lots of decoding errors.
-        std::string color = pocsag_state.errors >= 3 ? STR_COLOR_MAGENTA : "";
+        std::string color = pocsag_state.errors >= 3 ? STR_COLOR_MAGENTA : STR_COLOR_WHITE;
 
         std::string console_info = "\n" + color + prefix;
         console_info += " #" + to_string_dec_uint(pocsag_state.address);
