@@ -146,7 +146,7 @@ void POCSAGAppView::refresh_ui() {
 void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     packet_toggle = !packet_toggle;
     image_status.set_foreground(packet_toggle
-                                    ? Color::dark_grey()
+                                    ? Color::grey()
                                     : Color::white());
 
     const uint32_t roundVal = 50;
