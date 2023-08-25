@@ -107,12 +107,12 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     */
 
     size_t decim_0_factor, decim_1_factor;
-    switch (oversample_rate) {  // we are using 3 decim_1 modes,  /1 , /2 ,  /8
+    switch (oversample_rate) {  // we are using 3 decim_0 modes (/4,  /8-200k, /8-180k) , and   3 decim_1 modes : (/1 bypassed, /2,  /8)
         case OversampleRate::x4:
             decim_0_factor = decim_0_4.decimation_factor;  // /4 = /(4x1)
 
-            if (baseband_fs < 14'000'000) {  // we are in ovs x4 ,  < 3.5 Mhz , M4 is not overrun 100% when fs < 3M5 x 4 = 15M
-                decim_1_factor = 2 * 1;      // decim1 is /1 because bypassed, (but just increased to adjust waterfall speed , it seems no effect to the write process or fft scale)
+            if (baseband_fs < 7'000'000) {  // we are in ovs x4 ,  < 1.5 Mhz , M4 is not overrun 100% when fs < 1M5 x 4 = 6000
+                decim_1_factor = 2 * 1;      // decim1 is /1 because bypassed, (but just increased to adjust waterfall speed, it seems no effect to the write process or fft scale)
             } else {
                 decim_1_factor = 4 * 1;  // decim1 is /1 because bypassed ,(but just increased to adjust waterfall speed  when M4 has buffer drops )
             }
@@ -130,20 +130,21 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
 
         case OversampleRate::x16:
             decim_0_factor = decim_0_8.decimation_factor;      // /16 = /(8x2)
-            decim_1_factor = 2 * decim_1_2.decimation_factor;  // /16 = /8x2 (we applied additional *2 correction to increase waterfall spped >=600k and smooth & avoid abnormal motion >1M5 )
+            decim_1_factor = 2 * decim_1_2.decimation_factor;  // /16 = /(8x2) (we applied additional *2 correction to increase waterfall spped and smooth & avoid abnormal motion )
             break;
 
         case OversampleRate::x32:
             decim_0_factor = decim_0_4.decimation_factor;      // /32 = /(4x8) (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
-            decim_1_factor = 4 * decim_1_8.decimation_factor;  // /32 = /4x8 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+            decim_1_factor = 4 * decim_1_8.decimation_factor;  // /32 = /(4x8) (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
             break;
 
         case OversampleRate::x64:
             decim_0_factor = decim_0_8.decimation_factor;      // /64 = /(8x8) (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
-            decim_1_factor = 8 * decim_1_8.decimation_factor;  // /64 = /8x8 (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
+            decim_1_factor = 8 * decim_1_8.decimation_factor;  // /64 = /(8x8) (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
             break;
 
         default:
+            decim_0_factor = 4;  // just default initial value to remove compile warning.
             decim_1_factor = 2;  // just default initial value to remove compile warning.
             break;
     }

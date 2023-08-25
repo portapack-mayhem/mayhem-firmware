@@ -265,8 +265,8 @@ buffer_c16_t FIRC8xR16x24FS4Decim4_256::execute(
 
     const auto k = output_scale;
 
-    // const size_t count = src.count / decimation_factor;  // Original code of the cloned FIRC8xR16x24FS4Decim4
-    const size_t count = 256;  // We limit the buffer output of decim0 /4 to 256 C16 Complex samples.
+    const size_t count = src.count / decimation_factor;  // Original code of the cloned FIRC8xR16x24FS4Decim4
+    // const size_t count = 256;  // We limit the buffer output of decim0 /4 to 256 C16 Complex samples.
 
     for (size_t i = 0; i < count; i++) {
         const vec4_s8* const in = static_cast<const vec4_s8*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));
@@ -296,7 +296,7 @@ buffer_c16_t FIRC8xR16x24FS4Decim4_256::execute(
 
     return {
         dst.p,
-        count,
+        count / 2,  // we decimated all 2048 input_buffer to our dst 512_output, but we just indicate 256 to avoid Waterfall crash.
         src.sampling_rate / decimation_factor};
 }
 

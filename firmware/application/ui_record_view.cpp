@@ -113,10 +113,10 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
      * They are ok as recorded spectrum indication, but they should not be used by Replay app. (the voice speed will be accelerated)
 
      * We keep original black background in all the correct IQ .C16 files BW's Options. */
-    if ((actual_sampling_rate > 8'000'000) && (oversample_rate == OversampleRate::x4)) {  // yellow REC button means not ok for REC, BW >1Mhz  (BW from 12k5 till 1Mhz OK for REC and Replay)
-        button_record.set_background(ui::Color::yellow());                                // From >2M onwards.
+    if ((actual_sampling_rate >= 6'000'000) && (oversample_rate == OversampleRate::x4)) {  // yellow REC button means not ok for REC, BW >1.25Mhz  (BW from 12k5 till 1.25Mhz OK for REC and Replay)
+        button_record.set_background(ui::Color::yellow());                                 // From >1.25M onwards yellow, because we will have missed half of the buffer samples or  M4 samples drops or mi .
     } else {
-        button_record.set_background(ui::Color::black());  // From 12k5 till 2M
+        button_record.set_background(ui::Color::black());  // From 12k5 till 1.25M  OK , 
     }
 
     if (sampling_rate != new_sampling_rate) {
