@@ -58,6 +58,7 @@ struct POCSAGSettings {
     bool enable_raw_log = false;
     bool enable_ignore = false;
     bool hide_bad_data = false;
+    bool hide_addr_only = false;
     uint32_t address_to_ignore = 0;
 };
 
@@ -88,20 +89,26 @@ class POCSAGSettingsView : public View {
         "Use Small Font",
         false};
 
-    Checkbox check_show_bad{
+    Checkbox check_hide_bad{
         {2 * 8, 8 * 16},
         22,
         "Hide Bad Data",
         false};
 
-    Checkbox check_ignore{
+    Checkbox check_hide_addr_only{
         {2 * 8, 10 * 16},
+        22,
+        "Hide Addr Only",
+        false};
+
+    Checkbox check_ignore{
+        {2 * 8, 12 * 16},
         22,
         "Enable Ignored Address",
         false};
 
     NumberField field_ignore{
-        {7 * 8, 11 * 16 + 8},
+        {7 * 8, 13 * 16 + 8},
         7,
         {0, 9999999},
         1,
@@ -126,6 +133,7 @@ class POCSAGAppView : public View {
     bool logging_raw() const { return settings_.enable_raw_log; };
     bool ignore() const { return settings_.enable_ignore; };
     bool hide_bad_data() const { return settings_.hide_bad_data; };
+    bool hide_addr_only() const { return settings_.hide_addr_only; };
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -144,6 +152,7 @@ class POCSAGAppView : public View {
             {"enable_ignore"sv, &settings_.enable_ignore},
             {"address_to_ignore"sv, &settings_.address_to_ignore},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
+            {"hide_addr_only"sv, &settings_.hide_addr_only},
         }};
 
     void refresh_ui();

@@ -57,7 +57,8 @@ POCSAGSettingsView::POCSAGSettingsView(
         {&check_log,
          &check_log_raw,
          &check_small_font,
-         &check_show_bad,
+         &check_hide_bad,
+         &check_hide_addr_only,
          &check_ignore,
          &field_ignore,
          &button_save});
@@ -65,7 +66,8 @@ POCSAGSettingsView::POCSAGSettingsView(
     check_log.set_value(settings_.enable_logging);
     check_log_raw.set_value(settings_.enable_raw_log);
     check_small_font.set_value(settings_.enable_small_font);
-    check_show_bad.set_value(settings_.hide_bad_data);
+    check_hide_bad.set_value(settings_.hide_bad_data);
+    check_hide_addr_only.set_value(settings_.hide_addr_only);
     check_ignore.set_value(settings_.enable_ignore);
     field_ignore.set_value(settings_.address_to_ignore);
 
@@ -73,7 +75,8 @@ POCSAGSettingsView::POCSAGSettingsView(
         settings_.enable_logging = check_log.value();
         settings_.enable_raw_log = check_log_raw.value();
         settings_.enable_small_font = check_small_font.value();
-        settings_.hide_bad_data = check_show_bad.value();
+        settings_.hide_bad_data = check_hide_bad.value();
+        settings_.hide_addr_only = check_hide_addr_only.value();
         settings_.enable_ignore = check_ignore.value();
         settings_.address_to_ignore = field_ignore.value();
 
@@ -171,14 +174,16 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
 
     if (pocsag_state.out_type == ADDRESS) {
         last_address = pocsag_state.address;
-        console.write(console_info);
 
-        if (logging()) {
-            logger.log_decoded(
-                timestamp,
-                to_string_dec_uint(pocsag_state.address) +
-                    " F" + to_string_dec_uint(pocsag_state.function) +
-                    " Address only");
+        if (!hide_addr_only()) {
+            console.write(console_info);
+
+            if (logging()) {
+                logger.log_decoded(
+                    timestamp,
+                    to_string_dec_uint(pocsag_state.address) +
+                        " F" + to_string_dec_uint(pocsag_state.function));
+            }
         }
 
     } else if (pocsag_state.out_type == MESSAGE) {
@@ -197,7 +202,7 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
                 timestamp,
                 to_string_dec_uint(pocsag_state.address) +
                     " F" + to_string_dec_uint(pocsag_state.function) +
-                    " > " + pocsag_state.output);
+                    " " + pocsag_state.output);
         }
     }
 }
