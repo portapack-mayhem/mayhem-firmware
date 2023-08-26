@@ -386,12 +386,12 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
 
     while (state.codeword_index < codeword_max) {
         auto codeword = batch[state.codeword_index];
-        bool is_message = (codeword & 0x80000000U) > 1;
+        bool is_address = (codeword & 0x80000000U) == 0;
         auto error_count = errorCorrection(codeword);
 
         switch (state.mode) {
             case STATE_CLEAR:
-                if (!is_message && codeword != POCSAG_IDLEWORD) {
+                if (is_address && codeword != POCSAG_IDLEWORD) {
                     state.function = (codeword >> 11) & 3;
                     state.address = (codeword >> 10) & 0x1FFFF8U;  // 18 MSBs are transmitted
                     state.mode = STATE_HAVE_ADDRESS;
@@ -404,7 +404,7 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                 break;
 
             case STATE_HAVE_ADDRESS:
-                if (!is_message) {
+                if (is_address) {
                     // Got another address, return the current state.
                     state.mode = STATE_CLEAR;
                     return true;
@@ -416,7 +416,7 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                 [[fallthrough]];
 
             case STATE_GETTING_MSG:
-                if (!is_message) {
+                if (is_address) {
                     // Codeword isn't a message, return the current state.
                     state.mode = STATE_CLEAR;
                     return true;
@@ -429,7 +429,7 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
 
                 // Raw 20 bits to 7 bit reversed ASCII.
                 // NB: This is processed MSB first, any remaining bits are shifted
-                // up so a whole 7 bits are processed from the next codeword.
+                // up so a whole 7 bits are processed with the next codeword.
                 while (state.ascii_idx >= 7) {
                     state.ascii_idx -= 7;
                     char ascii_char = (state.ascii_data >> state.ascii_idx) & 0x7F;
