@@ -8,8 +8,7 @@ AboutView::AboutView(NavigationView& nav) {
         nav.pop();
     };
 
-    console.writeln(STR_COLOR_LIGHT_GREY
-                    "List of contributors:");
+    console.writeln(STR_COLOR_LIGHT_GREY "List of contributors:");
     console.writeln("");
 }
 
@@ -21,8 +20,7 @@ void AboutView::update() {
             case 1:
                 // TODO: Generate this automatically from github
                 // https://github.com/eried/portapack-mayhem/graphs/contributors?to=2022-01-01&from=2020-04-12&type=c
-                console.writeln(STR_COLOR_DARK_YELLOW
-                                "Mayhem:");
+                console.writeln(STR_COLOR_DARK_YELLOW "Mayhem:");
                 console.writeln("eried,euquiq,gregoryfenton");
                 console.writeln("johnelder,jwetzell,nnemanjan00");
                 console.writeln("N0vaPixel,klockee,GullCode");
@@ -44,8 +42,7 @@ void AboutView::update() {
 
             case 3:
                 // https://github.com/eried/portapack-mayhem/graphs/contributors?to=2020-04-12&from=2015-07-31&type=c
-                console.writeln(STR_COLOR_DARK_YELLOW
-                                "Havoc:");
+                console.writeln(STR_COLOR_DARK_YELLOW "Havoc:");
                 console.writeln("furrtek,mrmookie,NotPike");
                 console.writeln("mjwaxios,ImDroided,Giorgiofox");
                 console.writeln("F4GEV,z4ziggy,xmycroftx");
@@ -58,16 +55,14 @@ void AboutView::update() {
 
             case 4:
                 // https://github.com/eried/portapack-mayhem/graphs/contributors?from=2014-07-05&to=2015-07-31&type=c
-                console.writeln(STR_COLOR_DARK_YELLOW
-                                "PortaPack:");
+                console.writeln(STR_COLOR_DARK_YELLOW "PortaPack:");
                 console.writeln("jboone,argilo");
                 console.writeln("");
                 break;
 
             case 5:
                 // https://github.com/mossmann/hackrf/graphs/contributors
-                console.writeln(STR_COLOR_DARK_YELLOW
-                                "HackRF:");
+                console.writeln(STR_COLOR_DARK_YELLOW "HackRF:");
                 console.writeln("mossmann,dominicgs,bvernoux");
                 console.writeln("bgamari,schneider42,miek");
                 console.writeln("willcode,hessu,Sec42");
