@@ -62,7 +62,7 @@ inline OversampleRate get_oversample_rate(uint32_t sample_rate) {
     if (sample_rate < 250'000) return OversampleRate::x16;   // 100k and 150k.
     if (sample_rate < 1'250'000) return OversampleRate::x8;  // 250k,500k,600k,650k.750k.1Mhz.
 
-    return OversampleRate::x4;  // 1.25Mhz ... 5.5Mhz, that decim x4  , it will allow us to REC 1M5,2M in C8 , from 2M onwards YELLOW icon.
+    return OversampleRate::x4;  // top range (1.25Mhz ... 5.5Mhz),  we can REC (12k5 ... 1.25Mhz) c16/c8, and from (1.5Mhz ... 5.5Mhz) YELLOW icon.
 }
 
 /* Gets the actual sample rate for a given sample rate.
