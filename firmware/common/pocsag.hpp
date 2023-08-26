@@ -45,6 +45,7 @@ enum Mode : uint32_t {
 
 enum OutputType : uint32_t {
     EMPTY,
+    IDLE,
     ADDRESS,
     MESSAGE
 };

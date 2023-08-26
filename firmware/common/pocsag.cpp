@@ -387,6 +387,10 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
     while (state.codeword_index < codeword_max) {
         auto codeword = batch[state.codeword_index];
         bool is_address = (codeword & 0x80000000U) == 0;
+
+        // Error correct twice. First time to fix any errors it can,
+        // second time to count number of errors that couldn't be fixed.
+        errorCorrection(codeword);
         auto error_count = errorCorrection(codeword);
 
         switch (state.mode) {
@@ -400,6 +404,8 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
 
                     state.ascii_idx = 0;
                     state.ascii_data = 0;
+                } else if (codeword == POCSAG_IDLEWORD) {
+                    state.out_type = IDLE;
                 }
                 break;
 

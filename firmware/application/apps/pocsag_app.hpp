@@ -154,7 +154,7 @@ class POCSAGAppView : public View {
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
     POCSAGLogger logger{};
-    bool packet_toggle = false;
+    uint16_t packet_count = 0;
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -174,10 +174,14 @@ class POCSAGAppView : public View {
         {28 * 8, 0 * 16}};
 
     Image image_status{
-        {7 * 8, 1 * 16 + 2, 16, 16},
+        {0 * 8, 1 * 16 + 2, 16, 16},
         &bitmap_icon_pocsag,
         Color::white(),
         Color::black()};
+
+    Text text_packet_count{
+        {3 * 8, 1 * 16 + 2, 5 * 8, 16},
+        "0"};
 
     Button button_ignore_last{
         {10 * 8, 1 * 16, 12 * 8, 20},

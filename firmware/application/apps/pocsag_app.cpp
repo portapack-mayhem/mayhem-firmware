@@ -94,6 +94,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
          &field_frequency,
          &field_volume,
          &image_status,
+         &text_packet_count,
          &button_ignore_last,
          &button_config,
          &console});
@@ -201,17 +202,33 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
     }
 }
 
-void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
-    packet_toggle = !packet_toggle;
-    image_status.set_foreground(packet_toggle
-                                    ? Color::grey()
-                                    : Color::white());
+static Color get_status_color(const POCSAGState& state) {
+    if (state.out_type == IDLE)
+        return Color::white();
 
+    switch (state.mode) {
+        case STATE_CLEAR:
+            return Color::cyan();
+        case STATE_HAVE_ADDRESS:
+            return Color::yellow();
+        case STATE_GETTING_MSG:
+            return Color::green();
+    }
+
+    // Shouldn't get here...
+    return Color::red();
+}
+
+void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     const uint32_t roundVal = 50;
     const uint32_t bitrate_rounded = roundVal * ((message->packet.bitrate() + (roundVal / 2)) / roundVal);
     auto bitrate = to_string_dec_uint(bitrate_rounded);
     auto timestamp = to_string_datetime(message->packet.timestamp(), HM);
     auto prefix = timestamp + " " + bitrate;
+
+    // Display packet count to be able to tell whether baseband sent a packet for a tone.
+    ++packet_count;
+    text_packet_count.set(to_string_dec_uint(packet_count));
 
     if (logging_raw())
         logger.log_raw_data(message->packet, receiver_model.target_frequency());
@@ -220,6 +237,8 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         console.writeln("\n" STR_COLOR_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
         last_address = 0;
     } else {
+        // Set color before to be able to see if decode gets stuck.
+        image_status.set_foreground(Color::magenta());
         pocsag_state.codeword_index = 0;
         pocsag_state.errors = 0;
 
@@ -230,6 +249,9 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         // Handle the remainder.
         handle_decoded(message->packet.timestamp(), prefix);
     }
+
+    // Set status icon color to indicate state machine state.
+    image_status.set_foreground(get_status_color(pocsag_state));
 }
 
 void POCSAGAppView::on_stats(const POCSAGStatsMessage*) {
