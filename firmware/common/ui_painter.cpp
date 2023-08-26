@@ -57,7 +57,7 @@ int Painter::draw_string(
 
     for (auto c : text) {
         if (escape) {
-            if (c <= 15)
+            if (c < std::size(term_colors))
                 pen = term_colors[(uint8_t)c];
             else
                 pen = foreground;
