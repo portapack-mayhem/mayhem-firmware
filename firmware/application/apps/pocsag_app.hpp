@@ -44,7 +44,7 @@ class POCSAGLogger {
     }
 
     void log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
-    void log_decoded(const pocsag::POCSAGPacket& packet, const std::string text);
+    void log_decoded(Timestamp timestamp, const std::string& text);
 
    private:
     LogFile log_file{};
@@ -57,6 +57,7 @@ struct POCSAGSettings {
     bool enable_logging = false;
     bool enable_raw_log = false;
     bool enable_ignore = false;
+    bool hide_bad_data = false;
     uint32_t address_to_ignore = 0;
 };
 
@@ -87,14 +88,20 @@ class POCSAGSettingsView : public View {
         "Use Small Font",
         false};
 
-    Checkbox check_ignore{
+    Checkbox check_show_bad{
         {2 * 8, 8 * 16},
+        22,
+        "Hide Bad Data",
+        false};
+
+    Checkbox check_ignore{
+        {2 * 8, 10 * 16},
         22,
         "Enable Ignored Address",
         false};
 
     NumberField field_ignore{
-        {7 * 8, 9 * 16 + 8},
+        {7 * 8, 11 * 16 + 8},
         7,
         {0, 9999999},
         1,
@@ -118,6 +125,7 @@ class POCSAGAppView : public View {
     bool logging() const { return settings_.enable_logging; };
     bool logging_raw() const { return settings_.enable_raw_log; };
     bool ignore() const { return settings_.enable_ignore; };
+    bool hide_bad_data() const { return settings_.hide_bad_data; };
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -134,16 +142,19 @@ class POCSAGAppView : public View {
             {"small_font"sv, &settings_.enable_small_font},
             {"enable_logging"sv, &settings_.enable_logging},
             {"enable_ignore"sv, &settings_.enable_ignore},
+            {"address_to_ignore"sv, &settings_.address_to_ignore},
+            {"hide_bad_data"sv, &settings_.hide_bad_data},
         }};
 
     void refresh_ui();
+    void handle_decoded(Timestamp timestamp, const std::string& prefix);
     void on_packet(const POCSAGPacketMessage* message);
     void on_stats(const POCSAGStatsMessage* stats);
 
     uint32_t last_address = 0xFFFFFFFF;
     pocsag::POCSAGState pocsag_state{};
     POCSAGLogger logger{};
-    bool packet_toggle = false;
+    uint16_t packet_count = 0;
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
@@ -163,10 +174,14 @@ class POCSAGAppView : public View {
         {28 * 8, 0 * 16}};
 
     Image image_status{
-        {7 * 8, 1 * 16 + 2, 16, 16},
+        {0 * 8 + 4, 1 * 16 + 2, 16, 16},
         &bitmap_icon_pocsag,
         Color::white(),
         Color::black()};
+
+    Text text_packet_count{
+        {3 * 8, 1 * 16 + 2, 5 * 8, 16},
+        "0"};
 
     Button button_ignore_last{
         {10 * 8, 1 * 16, 12 * 8, 20},

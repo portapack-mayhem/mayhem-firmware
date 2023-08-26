@@ -226,14 +226,17 @@ void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t fun
 }
 
 // -------------------------------------------------------------------------------
+// Get the number of bits that differ between the two values.
 // -------------------------------------------------------------------------------
-inline int bitsDiff(unsigned long left, unsigned long right) {
+inline uint8_t bitsDiff(unsigned long left, unsigned long right) {
     unsigned long xord = left ^ right;
-    int count = 0;
+    uint8_t count = 0;
+
     for (int i = 0; i < 32; i++) {
-        if ((xord & 0x01) != 0) ++count;
+        if ((xord & 0x01) == 1) ++count;
         xord = xord >> 1;
     }
+
     return (count);
 }
 
@@ -310,7 +313,7 @@ void setupecc() {
 
 // -------------------------------------------------------------------------------
 // -------------------------------------------------------------------------------
-inline int errorCorrection(uint32_t* val) {
+inline int errorCorrection(uint32_t& val) {
     // Set up the tables the first time
     if (eccSetup == 0) {
         setupecc();
@@ -327,7 +330,7 @@ inline int errorCorrection(uint32_t* val) {
     // for (i=0; i<=20; i++)
     ecc = 0;
     for (i = 31; i >= 11; --i) {
-        if ((*val & (1 << i))) {
+        if (val & (1 << i)) {
             ecc = ecc ^ ecs[31 - i];
             pari = pari ^ 0x01;
         }
@@ -337,7 +340,7 @@ inline int errorCorrection(uint32_t* val) {
     acc = 0;
     for (i = 10; i >= 1; --i) {
         acc = acc << 1;
-        if ((*val & (1 << i))) {
+        if (val & (1 << i)) {
             acc = acc ^ 0x01;
         }
     }
@@ -355,12 +358,12 @@ inline int errorCorrection(uint32_t* val) {
             b2 = b2 & 0x1f;
 
             if (b2 != 0x1f) {
-                *val ^= 0x01 << (31 - b2);
+                val ^= 0x01 << (31 - b2);
                 ecc = ecc ^ ecs[b2];
             }
 
             if (b1 != 0x1f) {
-                *val ^= 0x01 << (31 - b1);
+                val ^= 0x01 << (31 - b1);
                 ecc = ecc ^ ecs[b1];
             }
 
@@ -377,78 +380,86 @@ inline int errorCorrection(uint32_t* val) {
     return errl;
 }
 
-void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState* const state) {
-    int errors = 0;
-    uint32_t codeword;
-    char ascii_char;
-    std::string output_text = "";
+bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
+    constexpr uint8_t codeword_max = 16;
+    state.output.clear();
 
-    state->out_type = EMPTY;
+    while (state.codeword_index < codeword_max) {
+        auto codeword = batch[state.codeword_index];
+        bool is_address = (codeword & 0x80000000U) == 0;
 
-    // For each codeword...
-    for (size_t i = 0; i < 16; i++) {
-        codeword = batch[i];
+        // Error correct twice. First time to fix any errors it can,
+        // second time to count number of errors that couldn't be fixed.
+        errorCorrection(codeword);
+        auto error_count = errorCorrection(codeword);
 
-        errorCorrection(&codeword);
-        errors = errorCorrection(&codeword);
+        switch (state.mode) {
+            case STATE_CLEAR:
+                if (is_address && codeword != POCSAG_IDLEWORD) {
+                    state.function = (codeword >> 11) & 3;
+                    state.address = (codeword >> 10) & 0x1FFFF8U;  // 18 MSBs are transmitted
+                    state.mode = STATE_HAVE_ADDRESS;
+                    state.out_type = ADDRESS;
+                    state.errors = error_count;
 
-        if (!(codeword & 0x80000000U)) {
-            // Address codeword
-            if (state->mode == STATE_CLEAR) {
-                // if (codeword != POCSAG_IDLEWORD) {
-                if (!(bitsDiff(codeword, POCSAG_IDLEWORD) < 1)) {
-                    state->function = (codeword >> 11) & 3;
-                    state->address = (codeword >> 10) & 0x1FFFF8U;  // 18 MSBs are transmitted
-                    state->mode = STATE_HAVE_ADDRESS;
-                    state->out_type = ADDRESS;
-                    state->errors = errors;
-
-                    state->ascii_idx = 0;
-                    state->ascii_data = 0;
+                    state.ascii_idx = 0;
+                    state.ascii_data = 0;
+                } else if (codeword == POCSAG_IDLEWORD) {
+                    state.out_type = IDLE;
                 }
-            } else {
-                state->mode = STATE_CLEAR;  // New address = new message
-            }
-        } else {
-            state->errors += errors;
-            // Message codeword
-            if (state->mode == STATE_HAVE_ADDRESS) {
-                // First message codeword: complete address
-                state->address |= (i >> 1);  // Add in the 3 LSBs (frame #)
-                state->mode = STATE_GETTING_MSG;
-            }
+                break;
 
-            state->out_type = MESSAGE;
+            case STATE_HAVE_ADDRESS:
+                if (is_address) {
+                    // Got another address, return the current state.
+                    state.mode = STATE_CLEAR;
+                    return true;
+                }
 
-            state->ascii_data |= ((codeword >> 11) & 0xFFFFF);  // Get 20 message bits
-            state->ascii_idx += 20;
+                // First message codeword, complete the address.
+                state.address |= (state.codeword_index >> 1);  // Add in the 3 LSBs (frame #).
+                state.mode = STATE_GETTING_MSG;
+                [[fallthrough]];
 
-            // Raw 20 bits to 7 bit reversed ASCII
-            while (state->ascii_idx >= 7) {
-                state->ascii_idx -= 7;
-                ascii_char = ((state->ascii_data) >> (state->ascii_idx)) & 0x7F;
+            case STATE_GETTING_MSG:
+                if (is_address) {
+                    // Codeword isn't a message, return the current state.
+                    state.mode = STATE_CLEAR;
+                    return true;
+                }
 
-                // Bottom's up
-                ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;  // 01234567 -> 45670123
-                ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;  // 45670123 -> 67452301
-                ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);       // 67452301 -> *7654321
+                state.out_type = MESSAGE;
+                state.errors += error_count;
+                state.ascii_data |= (codeword >> 11) & 0xFFFFF;  // Get 20 message bits.
+                state.ascii_idx += 20;
 
-                // Translate non-printable chars
-                if ((ascii_char < 32) || (ascii_char > 126)) {
-                    // output_text += "[" + to_string_dec_uint(ascii_char) + "]";
-                    output_text += ".";
-                } else
-                    output_text += ascii_char;
-            }
+                // Raw 20 bits to 7 bit reversed ASCII.
+                // NB: This is processed MSB first, any remaining bits are shifted
+                // up so a whole 7 bits are processed with the next codeword.
+                while (state.ascii_idx >= 7) {
+                    state.ascii_idx -= 7;
+                    char ascii_char = (state.ascii_data >> state.ascii_idx) & 0x7F;
 
-            state->ascii_data <<= 20;  // Remaining bits are for next time...
+                    // Bottom's up (reverse the bits).
+                    ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;  // 01234567 -> 45670123
+                    ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;  // 45670123 -> 67452301
+                    ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);       // 67452301 -> 76543210
+
+                    // Translate non-printable chars. TODO: Leave CRLF?
+                    if (ascii_char < 32 || ascii_char > 126)
+                        state.output += ".";
+                    else
+                        state.output += ascii_char;
+                }
+
+                state.ascii_data <<= 20;  // Remaining bits are for next iteration...
+                break;
         }
+
+        state.codeword_index++;
     }
 
-    state->output = output_text;
-
-    if (state->mode == STATE_HAVE_ADDRESS)
-        state->mode = STATE_CLEAR;
+    return false;
 }
 
 } /* namespace pocsag */
