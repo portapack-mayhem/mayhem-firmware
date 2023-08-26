@@ -69,7 +69,7 @@ void LGEView::generate_frame_touche() {
     // 0D 96 02 12 0E 00 46 28 01 45 27 01 44 23 66 30
     std::vector<uint8_t> data{0x46, 0x28, 0x01, 0x45, 0x27, 0x01, 0x44, 0x23};
 
-    console.write(std::string("\n") + STR_COLOR_LIGHT_GREY + "Touche:");
+    console.write("\n" STR_COLOR_LIGHT_GREY "Touche:");
     generate_lge_frame(0x96, (field_player.value() << 8) | field_room.value(), 0x0001, data);
 }
 
