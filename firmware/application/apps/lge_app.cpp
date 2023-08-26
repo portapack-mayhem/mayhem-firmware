@@ -69,9 +69,10 @@ void LGEView::generate_frame_touche() {
     // 0D 96 02 12 0E 00 46 28 01 45 27 01 44 23 66 30
     std::vector<uint8_t> data{0x46, 0x28, 0x01, 0x45, 0x27, 0x01, 0x44, 0x23};
 
-    console.write("\n"
-                  STR_COLOR_LIGHT_GREY
-                  "Touche:");
+    console.write(
+        "\n"
+        STR_COLOR_LIGHT_GREY
+        "Touche:");
     generate_lge_frame(0x96, (field_player.value() << 8) | field_room.value(), 0x0001, data);
 }
 
@@ -113,9 +114,10 @@ void LGEView::generate_frame_nickname() {
 
     data.insert(data.end(), data_footer.begin(), data_footer.end());
 
-    console.write("\n"
-                  STR_COLOR_YELLOW
-                  "Set nickname:");
+    console.write(
+        "\n"
+        STR_COLOR_YELLOW
+        "Set nickname:");
 
     generate_lge_frame(0x02, 0x001A, field_player.value(), data);
 }
@@ -145,9 +147,10 @@ void LGEView::generate_frame_team() {
 
     data.push_back(field_team.value() - 1);  // Color ?
 
-    console.write("\n"
-                  STR_COLOR_GREEN
-                  "Set team:");
+    console.write(
+        "\n"
+        STR_COLOR_GREEN
+        "Set team:");
 
     generate_lge_frame(0x03, data);
 }
@@ -179,9 +182,10 @@ void LGEView::generate_frame_broadcast_nickname() {
 
     data.push_back(field_team.value());
 
-    console.write("\n"
-                  STR_COLOR_BLUE
-                  "Broadcast nickname:");
+    console.write(
+        "\n"
+        STR_COLOR_BLUE
+        "Broadcast nickname:");
 
     generate_lge_frame(0x04, data);
 }
@@ -193,18 +197,20 @@ void LGEView::generate_frame_start() {
 
     // data[0] = field_room.value();	// ?
 
-    console.write("\n"
-                  STR_COLOR_MAGENTA
-                  "Start:");
+    console.write(
+        "\n"
+        STR_COLOR_MAGENTA
+        "Start:");
     generate_lge_frame(0x05, data);
 }
 
 void LGEView::generate_frame_gameover() {
     std::vector<uint8_t> data{(uint8_t)field_room.value()};
 
-    console.write("\n"
-                  STR_COLOR_RED
-                  "Gameover:");
+    console.write(
+        "\n"
+        STR_COLOR_RED
+        "Gameover:");
     generate_lge_frame(0x0D, data);
 }
 
@@ -239,9 +245,10 @@ void LGEView::generate_frame_collier() {
 
     data.push_back(checksum - id);
 
-    console.write("\n"
-                  STR_COLOR_DARK_YELLOW
-                  "Config:");
+    console.write(
+        "\n"
+        STR_COLOR_DARK_YELLOW
+        "Config:");
     generate_lge_frame(0x00, 0x3713, 0x3713, data);
 }
 
