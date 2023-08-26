@@ -40,24 +40,22 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    char aged_color;
     Color target_color;
     auto entry_age = entry.age;
+    std::string entry_string;
 
     // Color decay for flights not being updated anymore
     if (entry_age < ADSB_CURRENT) {
-        aged_color = 0x10;
+        entry_string = "";
         target_color = Color::green();
     } else if (entry_age < ADSB_RECENT) {
-        aged_color = 0x07;
+        entry_string = STR_COLOR_LIGHT_GREY;
         target_color = Color::light_grey();
     } else {
-        aged_color = 0x08;
+        entry_string = STR_COLOR_DARK_GREY;
         target_color = Color::grey();
     }
 
-    std::string entry_string = "\x1B";
-    entry_string += aged_color;
     entry_string +=
         (entry.callsign[0] != ' ' ? entry.callsign + " " : entry.icaoStr + "   ") +
         to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +

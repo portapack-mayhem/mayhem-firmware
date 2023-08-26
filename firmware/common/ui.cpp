@@ -29,6 +29,7 @@
 namespace ui {
 
 // CGA palette
+// Index into this table should match STR_COLOR_ escape string in ui.hpp
 Color term_colors[16] = {
     Color::black(),
     Color::dark_blue(),
