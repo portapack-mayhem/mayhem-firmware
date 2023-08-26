@@ -44,7 +44,7 @@ class POCSAGLogger {
     }
 
     void log_raw_data(const pocsag::POCSAGPacket& packet, const uint32_t frequency);
-    void log_decoded(Timestamp timestamp, const std::string text);
+    void log_decoded(Timestamp timestamp, const std::string& text);
 
    private:
     LogFile log_file{};

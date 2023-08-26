@@ -43,7 +43,7 @@ void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32
     log_file.write_entry(packet.timestamp(), entry);
 }
 
-void POCSAGLogger::log_decoded(Timestamp timestamp, const std::string text) {
+void POCSAGLogger::log_decoded(Timestamp timestamp, const std::string& text) {
     log_file.write_entry(timestamp, text);
 }
 
@@ -149,20 +149,20 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
 
     // Too many errors for reliable decode.
     if (bad_data && hide_bad_data()) {
-        console.write("\n\x1B\x0D" + prefix + " Too many decode errors.");
+        console.write("\n" STR_COLOR_MAGENTA + prefix + " Too many decode errors.");
         last_address = 0;
         return;
     }
 
     // Ignored address.
     if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
-        console.write("\n\x1B\x0B" + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
+        console.write("\n" STR_COLOR_CYAN + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
         last_address = pocsag_state.address;
         return;
     }
 
     // Color indicates the message has a lot of decoding errors.
-    std::string color = !bad_data ? "\x1B\x0F" /*white*/ : "\x1B\x0D" /*magenta*/;
+    std::string color = bad_data ? STR_COLOR_MAGENTA : STR_COLOR_WHITE;
 
     std::string console_info = "\n" + color + prefix;
     console_info += " #" + to_string_dec_uint(pocsag_state.address);
@@ -217,7 +217,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         logger.log_raw_data(message->packet, receiver_model.target_frequency());
 
     if (message->packet.flag() != NORMAL) {
-        console.writeln("\n" STR_COLOR_DARK_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
+        console.writeln("\n" STR_COLOR_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
         last_address = 0;
     } else {
         pocsag_state.codeword_index = 0;

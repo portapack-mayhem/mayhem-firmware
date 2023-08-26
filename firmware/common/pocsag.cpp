@@ -437,7 +437,7 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                     // Bottom's up (reverse the bits).
                     ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;  // 01234567 -> 45670123
                     ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;  // 45670123 -> 67452301
-                    ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);       // 67452301 -> *7654321
+                    ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);       // 67452301 -> 76543210
 
                     // Translate non-printable chars. TODO: Leave CRLF?
                     if (ascii_char < 32 || ascii_char > 126)
