@@ -159,7 +159,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         logger.log_raw_data(message->packet, receiver_model.target_frequency());
 
     if (message->packet.flag() != NORMAL) {
-        console.writeln(std::string("\n") + STR_COLOR_DARK_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
+        console.writeln("\n" STR_COLOR_DARK_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
         last_address = 0;
         return;
     } else {
@@ -168,7 +168,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         /*
         // Too many errors for reliable decode.
         if (pocsag_state.errors >= 3) {
-            console.write("\n" + STR_COLOR_MAGENTA + prefix + " Too many decode errors.");
+            console.write("\n" STR_COLOR_MAGENTA + prefix + " Too many decode errors.");
             last_address = 0;
             return;
         }
@@ -176,7 +176,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
 
         // Ignored address.
         if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
-            console.write(std::string("\n") + STR_COLOR_DARK_CYAN + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
+            console.write("\n" STR_COLOR_DARK_CYAN + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
             last_address = pocsag_state.address;
             return;
         }
