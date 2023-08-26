@@ -43,10 +43,8 @@ void POCSAGLogger::log_raw_data(const pocsag::POCSAGPacket& packet, const uint32
     log_file.write_entry(packet.timestamp(), entry);
 }
 
-void POCSAGLogger::log_decoded(
-    const pocsag::POCSAGPacket& packet,
-    const std::string text) {
-    log_file.write_entry(packet.timestamp(), text);
+void POCSAGLogger::log_decoded(Timestamp timestamp, const std::string text) {
+    log_file.write_entry(timestamp, text);
 }
 
 namespace ui {
@@ -59,6 +57,7 @@ POCSAGSettingsView::POCSAGSettingsView(
         {&check_log,
          &check_log_raw,
          &check_small_font,
+         &check_show_bad,
          &check_ignore,
          &field_ignore,
          &button_save});
@@ -66,6 +65,7 @@ POCSAGSettingsView::POCSAGSettingsView(
     check_log.set_value(settings_.enable_logging);
     check_log_raw.set_value(settings_.enable_raw_log);
     check_small_font.set_value(settings_.enable_small_font);
+    check_show_bad.set_value(settings_.hide_bad_data);
     check_ignore.set_value(settings_.enable_ignore);
     field_ignore.set_value(settings_.address_to_ignore);
 
@@ -73,6 +73,7 @@ POCSAGSettingsView::POCSAGSettingsView(
         settings_.enable_logging = check_log.value();
         settings_.enable_raw_log = check_log_raw.value();
         settings_.enable_small_font = check_small_font.value();
+        settings_.hide_bad_data = check_show_bad.value();
         settings_.enable_ignore = check_ignore.value();
         settings_.address_to_ignore = field_ignore.value();
 
@@ -143,6 +144,63 @@ void POCSAGAppView::refresh_ui() {
             : &Styles::white);
 }
 
+void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefix) {
+    bool bad_data = pocsag_state.errors >= 3;
+
+    // Too many errors for reliable decode.
+    if (bad_data && hide_bad_data()) {
+        console.write("\n\x1B\x0D" + prefix + " Too many decode errors.");
+        last_address = 0;
+        return;
+    }
+
+    // Ignored address.
+    if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
+        console.write("\n\x1B\x0B" + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
+        last_address = pocsag_state.address;
+        return;
+    }
+
+    // Color indicates the message has a lot of decoding errors.
+    std::string color = !bad_data ? "\x1B\x0F" /*white*/ : "\x1B\x0D" /*magenta*/;
+
+    std::string console_info = "\n" + color + prefix;
+    console_info += " #" + to_string_dec_uint(pocsag_state.address);
+    console_info += " F" + to_string_dec_uint(pocsag_state.function);
+
+    if (pocsag_state.out_type == ADDRESS) {
+        last_address = pocsag_state.address;
+        console.write(console_info);
+
+        if (logging()) {
+            logger.log_decoded(
+                timestamp,
+                to_string_dec_uint(pocsag_state.address) +
+                    " F" + to_string_dec_uint(pocsag_state.function) +
+                    " Address only");
+        }
+
+    } else if (pocsag_state.out_type == MESSAGE) {
+        if (pocsag_state.address != last_address) {
+            // New message
+            last_address = pocsag_state.address;
+            console.writeln(console_info);
+            console.write(color + pocsag_state.output);
+        } else {
+            // Message continues...
+            console.write(color + pocsag_state.output);
+        }
+
+        if (logging()) {
+            logger.log_decoded(
+                timestamp,
+                to_string_dec_uint(pocsag_state.address) +
+                    " F" + to_string_dec_uint(pocsag_state.function) +
+                    " > " + pocsag_state.output);
+        }
+    }
+}
+
 void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     packet_toggle = !packet_toggle;
     image_status.set_foreground(packet_toggle
@@ -161,64 +219,16 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     if (message->packet.flag() != NORMAL) {
         console.writeln("\n" STR_COLOR_DARK_RED + prefix + " CRC ERROR: " + pocsag::flag_str(message->packet.flag()));
         last_address = 0;
-        return;
     } else {
-        pocsag_decode_batch(message->packet, &pocsag_state);
+        pocsag_state.codeword_index = 0;
+        pocsag_state.errors = 0;
 
-        /*
-        // Too many errors for reliable decode.
-        if (pocsag_state.errors >= 3) {
-            console.write("\n" STR_COLOR_MAGENTA + prefix + " Too many decode errors.");
-            last_address = 0;
-            return;
-        }
-        */
+        // Handle multiple messages (if any).
+        while (pocsag_decode_batch(message->packet, pocsag_state))
+            handle_decoded(message->packet.timestamp(), prefix);
 
-        // Ignored address.
-        if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
-            console.write("\n" STR_COLOR_DARK_CYAN + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
-            last_address = pocsag_state.address;
-            return;
-        }
-
-        // Color indicates the message has lots of decoding errors.
-        std::string color = pocsag_state.errors >= 3 ? STR_COLOR_MAGENTA : STR_COLOR_WHITE;
-
-        std::string console_info = "\n" + color + prefix;
-        console_info += " #" + to_string_dec_uint(pocsag_state.address);
-        console_info += " F" + to_string_dec_uint(pocsag_state.function);
-
-        if (pocsag_state.out_type == ADDRESS) {
-            last_address = pocsag_state.address;
-            console.write(console_info);
-
-            if (logging()) {
-                logger.log_decoded(
-                    message->packet,
-                    to_string_dec_uint(pocsag_state.address) +
-                        " F" + to_string_dec_uint(pocsag_state.function) +
-                        " Address only");
-            }
-
-        } else if (pocsag_state.out_type == MESSAGE) {
-            if (pocsag_state.address != last_address) {
-                // New message
-                last_address = pocsag_state.address;
-                console.writeln(console_info);
-                console.write(color + pocsag_state.output);
-            } else {
-                // Message continues...
-                console.write(color + pocsag_state.output);
-            }
-
-            if (logging()) {
-                logger.log_decoded(
-                    message->packet,
-                    to_string_dec_uint(pocsag_state.address) +
-                        " F" + to_string_dec_uint(pocsag_state.function) +
-                        " > " + pocsag_state.output);
-            }
-        }
+        // Handle the remainder.
+        handle_decoded(message->packet.timestamp(), prefix);
     }
 }
 

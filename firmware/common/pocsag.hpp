@@ -35,7 +35,7 @@
 
 namespace pocsag {
 
-// Todo: these enums suck, make a better decode_batch
+// TODO: these enums suck, make a better decode_batch
 
 enum Mode : uint32_t {
     STATE_CLEAR,
@@ -56,6 +56,7 @@ enum MessageType : uint32_t {
 };
 
 struct POCSAGState {
+    uint8_t codeword_index;
     uint32_t function;
     uint32_t address;
     Mode mode = STATE_CLEAR;
@@ -78,7 +79,9 @@ std::string flag_str(PacketFlag packetflag);
 void insert_BCH(BCHCode& BCH_code, uint32_t* codeword);
 uint32_t get_digit_code(char code);
 void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message, const uint32_t address, std::vector<uint32_t>& codewords);
-void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState* const state);
+
+// Returns true if the batch has more to process.
+bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state);
 
 } /* namespace pocsag */
 
