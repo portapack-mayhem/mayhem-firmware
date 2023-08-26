@@ -174,7 +174,7 @@ class POCSAGAppView : public View {
         {28 * 8, 0 * 16}};
 
     Image image_status{
-        {0 * 8, 1 * 16 + 2, 16, 16},
+        {0 * 8 + 4, 1 * 16 + 2, 16, 16},
         &bitmap_icon_pocsag,
         Color::white(),
         Color::black()};
