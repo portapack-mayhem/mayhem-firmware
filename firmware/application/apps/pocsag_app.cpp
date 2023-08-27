@@ -95,6 +95,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
          &field_lna,
          &field_vga,
          &field_frequency,
+         &field_squelch,
          &field_volume,
          &image_status,
          &text_packet_count,
@@ -111,6 +112,11 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
 
     logger.append(LOG_ROOT_DIR "/POCSAG.TXT");
 
+    field_squelch.set_value(receiver_model.squelch_level());
+    field_squelch.on_change = [this](int32_t v) {
+        receiver_model.set_squelch_level(v);
+    };
+
     button_ignore_last.on_select = [this](Button&) {
         settings_.enable_ignore = true;
         settings_.address_to_ignore = last_address;
@@ -122,8 +128,8 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
     };
 
     refresh_ui();
-    receiver_model.enable();
     audio::output::start();
+    receiver_model.enable();
     baseband::set_pocsag();
 }
 

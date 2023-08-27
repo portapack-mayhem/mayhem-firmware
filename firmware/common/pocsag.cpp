@@ -225,30 +225,14 @@ void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t fun
     } while (char_idx < message_size);
 }
 
-// -------------------------------------------------------------------------------
-// Get the number of bits that differ between the two values.
-// -------------------------------------------------------------------------------
-inline uint8_t bitsDiff(unsigned long left, unsigned long right) {
-    unsigned long xord = left ^ right;
-    uint8_t count = 0;
-
-    for (int i = 0; i < 32; i++) {
-        if ((xord & 0x01) == 1) ++count;
-        xord = xord >> 1;
-    }
-
-    return (count);
+// ----------------------------------------------------------------------------
+// EccContainer
+// ----------------------------------------------------------------------------
+EccContainer::EccContainer() {
+    setup_ecc();
 }
 
-// -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-static uint32_t ecs[32]; /* error correction sequence */
-static uint32_t bch[1025];
-static int eccSetup = 0;
-
-// -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-void setupecc() {
+void EccContainer::setup_ecc() {
     unsigned int srr = 0x3b4;
     unsigned int i, n, j, k;
 
@@ -311,23 +295,12 @@ void setupecc() {
     }
 }
 
-// -------------------------------------------------------------------------------
-// -------------------------------------------------------------------------------
-inline int errorCorrection(uint32_t& val) {
-    // Set up the tables the first time
-    if (eccSetup == 0) {
-        setupecc();
-        eccSetup = 1;
-    }
-
+int EccContainer::error_correct(uint32_t& val) {
     int i, synd, errl, acc, pari, ecc, b1, b2;
 
     errl = 0;
     pari = 0;
 
-    /* run through error detection and correction routine */
-
-    // for (i=0; i<=20; i++)
     ecc = 0;
     for (i = 31; i >= 11; --i) {
         if (val & (1 << i)) {
@@ -336,7 +309,6 @@ inline int errorCorrection(uint32_t& val) {
         }
     }
 
-    // for (i=21; i<=30; i++)
     acc = 0;
     for (i = 10; i >= 1; --i) {
         acc = acc << 1;
@@ -390,8 +362,8 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
 
         // Error correct twice. First time to fix any errors it can,
         // second time to count number of errors that couldn't be fixed.
-        errorCorrection(codeword);
-        auto error_count = errorCorrection(codeword);
+        state.ecc->error_correct(codeword);
+        auto error_count = state.ecc->error_correct(codeword);
 
         switch (state.mode) {
             case STATE_CLEAR:
