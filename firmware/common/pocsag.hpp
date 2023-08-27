@@ -56,23 +56,46 @@ enum MessageType : uint32_t {
     ALPHANUMERIC
 };
 
+/* Holds error correction arrays. This allows the arrays to
+ * be freed when POCSAG is not running, saving ~4kb of RAM. */
+class EccContainer {
+   public:
+    EccContainer();
+
+    EccContainer(const EccContainer&) = delete;
+    EccContainer(EccContainer&&) = delete;
+    EccContainer& operator=(const EccContainer&) = delete;
+    EccContainer& operator=(EccContainer&&) = delete;
+
+    int error_correct(uint32_t& val);
+
+   private:
+    void setup_ecc();
+
+    /* error correction sequence */
+    uint32_t ecs[32];
+    uint32_t bch[1025];
+};
+
 struct POCSAGState {
-    uint8_t codeword_index;
-    uint32_t function;
-    uint32_t address;
+    EccContainer* ecc = nullptr;
+    uint8_t codeword_index = 0;
+    uint32_t function = 0;
+    uint32_t address = 0;
     Mode mode = STATE_CLEAR;
     OutputType out_type = EMPTY;
-    uint32_t ascii_data;
-    uint32_t ascii_idx;
-    uint32_t errors;
-    std::string output;
+    uint32_t ascii_data = 0;
+    uint32_t ascii_idx = 0;
+    uint32_t errors = 0;
+    std::string output{};
 };
 
 const pocsag::BitRate pocsag_bitrates[4] = {
     pocsag::BitRate::FSK512,
     pocsag::BitRate::FSK1200,
     pocsag::BitRate::FSK2400,
-    pocsag::BitRate::FSK3200};
+    pocsag::BitRate::FSK3200,
+};
 
 std::string bitrate_str(BitRate bitrate);
 std::string flag_str(PacketFlag packetflag);

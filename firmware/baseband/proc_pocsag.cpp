@@ -24,12 +24,13 @@
 
 #include "proc_pocsag.hpp"
 
+#include "dsp_iir_config.hpp"
 #include "event_m4.hpp"
 
-#include <cstdint>
-#include <cstddef>
 #include <algorithm>
 #include <cmath>
+#include <cstdint>
+#include <cstddef>
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     // This is called at 1500Hz
@@ -41,9 +42,13 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
-    smooth.Process(audio.p, audio.count);  // Smooth the data to make decoding more accurate
+
+    // Output audio pre-smoothing so squelch actually works.
+    // NB: It's useful to output *after* when debugging the smoothing filter.
     audio_output.write(audio);
 
+    // Smooth the data to make decoding more accurate.
+    smooth.Process(audio.p, audio.count);
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
 }
@@ -71,8 +76,23 @@ int POCSAGProcessor::OnDataFrame(int len, int baud) {
 }
 
 void POCSAGProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::POCSAGConfigure)
-        configure();
+    switch (message->id) {
+        case Message::ID::POCSAGConfigure:
+            configure();
+            break;
+
+        case Message::ID::NBFMConfigure: {
+            auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
+            audio_output.configure(
+                audio_24k_hpf_300hz_config,
+                audio_8k_deemph_300_6_config,
+                config->squelch_level / 100.0);
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 void POCSAGProcessor::configure() {
@@ -91,13 +111,10 @@ void POCSAGProcessor::configure() {
     decim_1.configure(taps_11k0_decim_1.taps, 131072);
     channel_filter.configure(taps_11k0_channel.taps, 2);
     demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
-    // Smoothing should be roughly sample rate over max baud
-    // 24k / 3.2k is 7.5
-    smooth.SetSize(8);
 
-    // TODO: support squelch?
-    // audio_output.configure(message.audio_hpf_config, message.audio_deemph_config, (float)message.squelch_level / 100.0);
-    audio_output.configure(false);
+    // Smoothing should be roughly sample rate over max baud
+    // 24k / 3.2k = 7.5
+    smooth.SetSize(8);
 
     // Set up the frame extraction, limits of baud
     setFrameExtractParams(demod_input_fs, 4000, 300, 32);

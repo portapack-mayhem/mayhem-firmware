@@ -106,10 +106,10 @@ class SmoothVals {
 
         // Use a rolling smoothed value while processing the buffer
         for (int buffPos = 0; buffPos < numVals; ++buffPos) {
-            m_pos = (m_pos + 1);  // Increment the position in the stored values
+            m_pos++;
             if (m_pos >= m_size) {
                 m_pos = 0;
-            }  // loop if reached the end of the stored values
+            }
 
             m_sumVal -= (CalcType)m_lastVals[m_pos];  // Subtract the oldest value
             m_lastVals[m_pos] = valBuff[buffPos];     // Store the new value

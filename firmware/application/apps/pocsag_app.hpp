@@ -136,10 +136,7 @@ class POCSAGAppView : public View {
     bool hide_addr_only() const { return settings_.hide_addr_only; };
 
     NavigationView& nav_;
-    RxRadioState radio_state_{
-        12'500,     // POCSAG is FSK +/- 4.5MHz, 12k5 is a good filter.
-        3'072'000,  // Match baseband_fs in proc_pocsag.
-    };
+    RxRadioState radio_state_{};
 
     // Settings
     POCSAGSettings settings_{};
@@ -161,24 +158,33 @@ class POCSAGAppView : public View {
     void on_stats(const POCSAGStatsMessage* stats);
 
     uint32_t last_address = 0xFFFFFFFF;
-    pocsag::POCSAGState pocsag_state{};
+    pocsag::EccContainer ecc{};
+    pocsag::POCSAGState pocsag_state{&ecc};
     POCSAGLogger logger{};
     uint16_t packet_count = 0;
-
-    RFAmpField field_rf_amp{
-        {13 * 8, 0 * 16}};
-    LNAGainField field_lna{
-        {15 * 8, 0 * 16}};
-    VGAGainField field_vga{
-        {18 * 8, 0 * 16}};
-    RSSI rssi{
-        {21 * 8, 3, 6 * 8, 4}};
-    Audio audio{
-        {21 * 8, 8, 6 * 8, 4}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},
         nav_};
+
+    RFAmpField field_rf_amp{
+        {11 * 8, 0 * 16}};
+    LNAGainField field_lna{
+        {13 * 8, 0 * 16}};
+    VGAGainField field_vga{
+        {16 * 8, 0 * 16}};
+
+    RSSI rssi{
+        {19 * 8 - 4, 3, 6 * 8, 4}};
+    Audio audio{
+        {19 * 8 - 4, 8, 6 * 8, 4}};
+
+    NumberField field_squelch{
+        {25 * 8, 0 * 16},
+        2,
+        {0, 99},
+        1,
+        ' '};
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
 
