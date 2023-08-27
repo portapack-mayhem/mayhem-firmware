@@ -175,7 +175,7 @@ bool stack_dump() {
         str = to_string_hex(*p, 8) + " ";
         stack_dump_file.write(str.data(), 9);
 
-        if (n==4) {
+        if (n == 4) {
             stack_dump_file.write("\r\n", 2);
             n = 0;
         }
