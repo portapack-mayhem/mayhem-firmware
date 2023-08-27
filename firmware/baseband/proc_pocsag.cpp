@@ -113,8 +113,8 @@ void POCSAGProcessor::configure() {
     demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
 
     // Smoothing should be roughly sample rate over max baud
-    // 24k / 3.2k = 7.5. Testing suggests a slightly lower value.
-    smooth.SetSize(5);
+    // 24k / 3.2k = 7.5
+    smooth.SetSize(8);
 
     // Set up the frame extraction, limits of baud
     setFrameExtractParams(demod_input_fs, 4000, 300, 32);
