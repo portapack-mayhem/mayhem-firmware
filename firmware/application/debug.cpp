@@ -146,6 +146,8 @@ void runtime_error(uint8_t source) {
     }
 }
 
+// TODO:  Fix this function to work after a fault; might need to write to screen instead or to Flash memory.
+// Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
 bool stack_dump() {
     ui::Painter painter{};
     std::string debug_dir = "DEBUG";
@@ -155,6 +157,7 @@ bool stack_dump() {
     std::string str;
     uint32_t* p;
     int n;
+    bool data_found;
 
     make_new_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/STACK_DUMP_????.TXT");
@@ -166,7 +169,20 @@ bool stack_dump() {
         return false;
     }
 
-    for (p = &__process_stack_base__, n = 0; p < &__process_stack_end__; p++) {
+    for (p = &__process_stack_base__, n = 0, data_found = false; p < &__process_stack_end__; p++) {
+        if (!data_found) {
+            if (*p == CRT0_STACKS_FILL_PATTERN)
+                continue;
+            else {
+                data_found = true;
+                auto stack_space_left = p - &__process_stack_base__;
+                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused bytes " + to_string_dec_uint(stack_space_left * sizeof(uint32_t)));
+
+                // align subsequent lines to start on 16-byte boundaries
+                p -= (stack_space_left & 3);
+            }
+        }
+
         if (n++ == 0) {
             str = to_string_hex((uint32_t)p, 8) + ":";
             stack_dump_file.write(str.data(), 9);
