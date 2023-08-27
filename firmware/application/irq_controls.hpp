@@ -43,6 +43,7 @@ using SwitchesState = std::bitset<6>;
 using EncoderPosition = uint32_t;
 
 void controls_init();
+uint8_t swizzled_switches();
 SwitchesState get_switches_state();
 EncoderPosition get_encoder_position();
 touch::Frame get_touch_frame();

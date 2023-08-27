@@ -20,6 +20,7 @@
  */
 
 #include "ui_debug.hpp"
+#include "debug.hpp"
 
 #include "ch.h"
 
@@ -406,6 +407,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
         {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
+        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
         //{"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},  // temporarily disabled to conserve ROM space
     });
     set_max_rows(2);  // allow wider buttons

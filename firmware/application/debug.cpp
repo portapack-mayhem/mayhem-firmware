@@ -30,6 +30,7 @@
 #include "portapack.hpp"
 #include "string_format.hpp"
 #include "ui_styles.hpp"
+#include "irq_controls.hpp"
 
 using namespace ui;
 
@@ -46,7 +47,7 @@ void __debug_log(const std::string& msg) {
     pg_debug_log->write_entry(msg);
 }
 
-void runtime_error(LED);
+void runtime_error(uint8_t source);
 std::string number_to_hex_string(uint32_t);
 void draw_line(int32_t, const char*, regarm_t);
 static bool error_shown = false;
@@ -67,8 +68,10 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
     painter.draw_string({48, 24}, Styles::white, "M? Guru");
     painter.draw_string({48 + 8 * 8, 24}, Styles::white, "Meditation");
 
-    if (source == CORTEX_M0)
+    if (source == CORTEX_M0) {
         painter.draw_string({48 + 8, 24}, Styles::white, "0");
+        painter.draw_string({12, 320 - 32}, Styles::white, "Press DFU to try Stack Dump");
+    }
 
     if (source == CORTEX_M4)
         painter.draw_string({48 + 8, 24}, Styles::white, "4");
@@ -83,11 +86,7 @@ void draw_guru_meditation(uint8_t source, const char* hint) {
         draw_guru_meditation_header(source, hint);
     }
 
-    if (source == CORTEX_M0)
-        runtime_error(hackrf::one::led_rx);
-
-    if (source == CORTEX_M4)
-        runtime_error(hackrf::one::led_tx);
+    runtime_error(source);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp, uint32_t cfsr = 0) {
@@ -117,11 +116,7 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
         }
     }
 
-    if (source == CORTEX_M0)
-        runtime_error(hackrf::one::led_rx);
-
-    if (source == CORTEX_M4)
-        runtime_error(hackrf::one::led_tx);
+    runtime_error(source);
 }
 
 void draw_line(int32_t y_offset, const char* label, regarm_t value) {
@@ -131,7 +126,10 @@ void draw_line(int32_t y_offset, const char* label, regarm_t value) {
     painter.draw_string({15 + 8 * 8, y_offset}, Styles::white, to_string_hex((uint32_t)value, 8));
 }
 
-void runtime_error(LED led) {
+void runtime_error(uint8_t source) {
+    bool dumped{false};
+    LED led = (source == CORTEX_M0) ? hackrf::one::led_rx : hackrf::one::led_tx;
+
     led.off();
 
     while (true) {
@@ -139,7 +137,68 @@ void runtime_error(LED led) {
         while (n--)
             ;
         led.toggle();
+
+        // Stack dump is not guaranteed to work in this state, so wait for DFU button press to attempt it
+        if (!dumped && (swizzled_switches() & (1 << (int)Switch::Dfu))) {
+            dumped = true;
+            stack_dump();
+        }
     }
+}
+
+// TODO:  Fix this function to work after a fault; might need to write to screen instead or to Flash memory.
+// Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
+bool stack_dump() {
+    ui::Painter painter{};
+    std::string debug_dir = "DEBUG";
+    std::filesystem::path filename{};
+    File stack_dump_file{};
+    bool error;
+    std::string str;
+    uint32_t* p;
+    int n;
+    bool data_found;
+
+    make_new_directory(debug_dir);
+    filename = next_filename_matching_pattern(debug_dir + "/STACK_DUMP_????.TXT");
+    error = filename.empty();
+    if (!error)
+        error = stack_dump_file.create(filename) != 0;
+    if (error) {
+        painter.draw_string({16, 320 - 32}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + "!");
+        return false;
+    }
+
+    for (p = &__process_stack_base__, n = 0, data_found = false; p < &__process_stack_end__; p++) {
+        if (!data_found) {
+            if (*p == CRT0_STACKS_FILL_PATTERN)
+                continue;
+            else {
+                data_found = true;
+                auto stack_space_left = p - &__process_stack_base__;
+                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused bytes " + to_string_dec_uint(stack_space_left * sizeof(uint32_t)));
+
+                // align subsequent lines to start on 16-byte boundaries
+                p -= (stack_space_left & 3);
+            }
+        }
+
+        if (n++ == 0) {
+            str = to_string_hex((uint32_t)p, 8) + ":";
+            stack_dump_file.write(str.data(), 9);
+        }
+
+        str = " " + to_string_hex(*p, 8);
+        stack_dump_file.write(str.data(), 9);
+
+        if (n == 4) {
+            stack_dump_file.write("\r\n", 2);
+            n = 0;
+        }
+    }
+
+    painter.draw_string({16, 320 - 32}, ui::Styles::green, filename.filename().string() + " dumped!");
+    return true;
 }
 
 extern "C" {
