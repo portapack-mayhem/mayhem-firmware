@@ -33,6 +33,8 @@
 
 #include <array>
 #include <memory>
+#include <tuple>
+#include <variant>
 
 
 // Need to be able to configure "path" for each rate
@@ -43,7 +45,7 @@ template <typename T>
 class D {
 };
 
-// A decimator that just copies the source.
+// A decimator that just copies the source to the destination.
 class NoopDecim {
     template <typename Buffer>
     Buffer execute(const Buffer& src, const Buffer& dst) {
@@ -54,6 +56,34 @@ class NoopDecim {
         return {dst.p, src.count, src.sampling_rate};
     }
 };
+
+// All decimators must use same types.
+template <typename... Args>
+class MultiDecimator {
+
+    static constexpr size_t taps_count = 16;
+    static constexpr size_t decimation_factor = 2;
+
+    using sample_t = complex16_t;
+    using tap_t = int16_t;
+
+    void configure(
+        const std::array<tap_t, taps_count>& taps,
+        const int32_t scale);
+
+    buffer_c16_t execute(
+        const buffer_c16_t& src,
+        const buffer_c16_t& dst);
+
+   private:
+    std::variant<Args...> decimators_;
+};
+
+template <typename Decim0, typename Decim1>
+class DecimatorPath {
+};
+
+
 
 
 class CaptureProcessor : public BasebandProcessor {
