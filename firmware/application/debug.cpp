@@ -168,11 +168,11 @@ bool stack_dump() {
 
     for (p = &__process_stack_base__, n = 0; p < &__process_stack_end__; p++) {
         if (n++ == 0) {
-            str = to_string_hex((uint32_t)p, 8) + ": ";
-            stack_dump_file.write(str.data(), 10);
+            str = to_string_hex((uint32_t)p, 8) + ":";
+            stack_dump_file.write(str.data(), 9);
         }
 
-        str = to_string_hex(*p, 8) + " ";
+        str = " " + to_string_hex(*p, 8);
         stack_dump_file.write(str.data(), 9);
 
         if (n == 4) {
