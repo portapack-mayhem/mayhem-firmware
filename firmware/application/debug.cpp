@@ -127,7 +127,7 @@ void draw_line(int32_t y_offset, const char* label, regarm_t value) {
 }
 
 void runtime_error(uint8_t source) {
-    bool dumped{0};
+    bool dumped{false};
     LED led = (source == CORTEX_M0) ? hackrf::one::led_rx : hackrf::one::led_tx;
 
     led.off();
@@ -138,6 +138,7 @@ void runtime_error(uint8_t source) {
             ;
         led.toggle();
 
+        // Stack dump is not guaranteed to work in this state, so wait for DFU button press to attempt it
         if (!dumped && (swizzled_switches() & (1 << (int)Switch::Dfu))) {
             dumped = true;
             stack_dump();
