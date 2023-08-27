@@ -27,32 +27,28 @@
 #include "utility.hpp"
 
 CaptureProcessor::CaptureProcessor() {
-    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);  // to be used with decim1 (/2), then total two decim stages decim (/8)
+    // What are these scale factors? Where did they come from?
+    decim_0_4.configure(taps_200k_decim_0.taps, 33'554'432);  // to be used with decim1 (/2), then total two decim stages decim (/8)
     decim_0_8.configure(taps_200k_decim_0.taps, 33554432);  // to be used with decim1 (/2), then total two decim stages decim (/16)
 
+    // Why using 180k taps?
     decim_0_8_180k.configure(taps_180k_wfm_decim_0.taps, 33554432);  // to be used alone - no additional decim1 (/2), then total single decim stage (/8)
     decim_0_4_256.configure(taps_200k_decim_0.taps, 33554432);       // to be used alone - no additional decim1 (/2), then total single decim stage (/4)
 
+    // Why using 16k taps?
     decim_1_2.configure(taps_200k_decim_1.taps, 131072);
-    decim_1_8.configure(taps_16k0_decim_1.taps, 131072);  // tentative decim1 /8  and taps, pending to be optimized.
+    decim_1_8.configure(taps_16k0_decim_1.taps, 131072);  // tentative decim1 /8 and taps, pending to be optimized.
 
-    channel_spectrum.set_decimation_factor(1);
+    channel_spectrum.set_decimation_factor(1);  // What does this do?
     baseband_thread.start();
 }
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
-    /* 2.4576MHz, 2048 samples */
-    const auto decim_0_out = decim_0_execute(buffer, dst_buffer);       // selectable 3 possible decim_0, (/4.  /8 200k soft filter , /8 180k sharp )
-    const auto decim_1_out = decim_1_execute(decim_0_out, dst_buffer);  // selectable 3 possible decim_1, (/8.  /2 200k or bypassed /1  )
+    // 2.4576MHz, 2048 samples -- ??? Where did these come from?
+    const auto decim_0_out = decim_0_execute(buffer, dst_buffer);
+    const auto decim_1_out = decim_1_execute(decim_0_out, dst_buffer);
 
-    /* this code was valid when we had only 2 decim1 cases.
-    const auto decim_1_out = baseband_fs < 4800'000
-                                  ? decim_1_2.execute(decim_0_out, dst_buffer)  // < 600khz double decim. stage , means 500khz and lower bit rates.
-                                 // ? decim_1_8.execute(decim_0_out, dst_buffer)  // < 600khz double decim. stage , means 500khz and lower bit rates.
-                                  : decim_0_out;                              // >= 600khz single decim. stage , means 600khz and upper bit rates.
-
-     } */
-
+    // ??? Why?
     const auto& decimator_out = decim_1_out;
     const auto& channel = decimator_out;
 
@@ -60,7 +56,7 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
         const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
         const size_t written = stream->write(decimator_out.p, bytes_to_write);
         if (written != bytes_to_write) {
-            // TODO eventually report error somewhere
+            // TODO: Report error somewhere?
         }
     }
 
@@ -99,12 +95,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
 
     baseband_thread.set_sampling_rate(baseband_fs);
 
-    /*
-      // when we had only 2 decim_0 modes,  /4 , /8
-      auto decim_0_factor = (oversample_rate == OversampleRate::x8) || (oversample_rate == OversampleRate::x4)
-                                ? decim_0_4.decimation_factor
-                                : decim_0_8.decimation_factor;
-    */
+    // TODO: We should not need to be futzing around with the values to make the waterfall happy.
 
     size_t decim_0_factor, decim_1_factor;
     switch (oversample_rate) {  // we are using 3 decim_0 modes (/4,  /8-200k, /8-180k) , and   3 decim_1 modes : (/1 bypassed, /2,  /8)
@@ -149,7 +140,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             break;
     }
 
-    /*    // that was ok,  when we had only 2 oversampling x8 , x16
+    /*    // that was ok,  when we had only 2 oversampling x8, x16
     auto decim_1_factor = oversample_rate == OversampleRate::x32
                               ? decim_1_8.decimation_factor
                               : decim_1_2.decimation_factor;
@@ -187,23 +178,23 @@ void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 buffer_c16_t CaptureProcessor::decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
     switch (oversample_rate) {
         case OversampleRate::x4:
-            return decim_0_4_256.execute(src, dst);  // decim_0 , /4 with single  decim0 stage with limited output buffer c16 to 256 samples.
+            return decim_0_4_256.execute(src, dst);  // decim_0, /4 with single  decim0 stage with limited output buffer c16 to 256 samples.
 
         case OversampleRate::x8:                     // we can get /8 by two means , decim0 (/4) + decim1 (/2) .  or just decim0 (/8)
-            if (baseband_fs < 4800'000) {            // 600khz (600k x 8)
-                return decim_0_4.execute(src, dst);  // decim_0 , /4 with double decim stage
+            if (baseband_fs < 4'800'000) {            // 600khz (600k x 8)
+                return decim_0_4.execute(src, dst);  // decim_0, /4 with double decim stage
             } else {
-                return decim_0_8_180k.execute(src, dst);  // decim_0  /8 with single decim stage
+                return decim_0_8_180k.execute(src, dst);  // decim_0 /8 with single decim stage
             }
 
         case OversampleRate::x16:
-            return decim_0_8.execute(src, dst);  // decim_0 , /8 with double decim stage
+            return decim_0_8.execute(src, dst);  // decim_0, /8 with double decim stage
 
         case OversampleRate::x32:
-            return decim_0_4.execute(src, dst);  // decim_0 , /4 with double decim stage
+            return decim_0_4.execute(src, dst);  // decim_0, /4 with double decim stage
 
         case OversampleRate::x64:
-            return decim_0_8.execute(src, dst);  // decim_0 , /8 with double decim stage
+            return decim_0_8.execute(src, dst);  // decim_0, /8 with double decim stage
 
         default:
             chDbgPanic("Unhandled OversampleRate");

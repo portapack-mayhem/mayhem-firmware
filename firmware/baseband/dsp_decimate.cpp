@@ -202,13 +202,7 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
     uint32_t* const d = static_cast<uint32_t*>(__builtin_assume_aligned(dst.p, 4));
 
     const auto k = output_scale;
-
-    size_t count = src.count / decimation_factor;  // 2048 buffer_c8 input src samples / 4 = 512 buffer c16 output samples.
-    /*
-    if (count > 256) {                  // Just investigation test .
-            count =256;
-    }
-    */
+    const size_t count = src.count / decimation_factor;
 
     for (size_t i = 0; i < count; i++) {
         const vec4_s8* const in = static_cast<const vec4_s8*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));
@@ -239,64 +233,6 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
     return {
         dst.p,
         count,
-        src.sampling_rate / decimation_factor};
-}
-
-// FIRC8xR16x24FS4Decim4_256 //////////////////////////////////////////////////
-// Cloned from previous FIRC8xR16x24FS4Decim4 limiting the output buffer C16 samples to 256
-// Waterfall fft function was designed to handle as a max. 256 Complex samples , (2048 /8 = 256),
-// if we just use Decimation /4 , we got 2048 c8 src input  / 4 = 512 C16 Complex output  samples and Waterfall crashes.
-
-void FIRC8xR16x24FS4Decim4_256::configure(
-    const std::array<tap_t, taps_count>& taps,
-    const int32_t scale,
-    const Shift shift) {
-    taps_copy(taps.data(), taps_.data(), taps_.size(), shift == Shift::Up);
-    output_scale = scale;
-    z_.fill({});
-}
-
-buffer_c16_t FIRC8xR16x24FS4Decim4_256::execute(
-    const buffer_c8_t& src,
-    const buffer_c16_t& dst) {
-    vec2_s16* const z = static_cast<vec2_s16*>(__builtin_assume_aligned(z_.data(), 4));
-    const vec2_s16* const t = static_cast<vec2_s16*>(__builtin_assume_aligned(taps_.data(), 4));
-    uint32_t* const d = static_cast<uint32_t*>(__builtin_assume_aligned(dst.p, 4));
-
-    const auto k = output_scale;
-
-    const size_t count = src.count / decimation_factor;  // Original code of the cloned FIRC8xR16x24FS4Decim4
-    // const size_t count = 256;  // We limit the buffer output of decim0 /4 to 256 C16 Complex samples.
-
-    for (size_t i = 0; i < count; i++) {
-        const vec4_s8* const in = static_cast<const vec4_s8*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));
-
-        complex32_t accum;
-
-        // Oldest samples are discarded.
-        accum = mac_fs4_shift(z, t, 0, accum);
-        accum = mac_fs4_shift(z, t, 1, accum);
-
-        // Middle samples are shifted earlier in the "z" delay buffer.
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 0, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 1, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 2, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 3, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 4, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 5, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 6, accum);
-        accum = mac_fs4_shift_and_store(z, t, decimation_factor, 7, accum);
-
-        // Newest samples come from "in" buffer, are copied to "z" delay buffer.
-        accum = mac_fs4_shift_and_store_new_c8_samples(z, t, in, decimation_factor, 0, taps_count, accum);
-        accum = mac_fs4_shift_and_store_new_c8_samples(z, t, in, decimation_factor, 1, taps_count, accum);
-
-        d[i] = scale_round_and_pack(accum, k);
-    }
-
-    return {
-        dst.p,
-        count / 2,  // we decimated all 2048 input_buffer to our dst 512_output, but we just indicate 256 to avoid Waterfall crash.
         src.sampling_rate / decimation_factor};
 }
 

@@ -34,6 +34,28 @@
 #include <array>
 #include <memory>
 
+
+// Need to be able to configure "path" for each rate
+// Need to be able to get decimation factor
+// What about single layer decimation
+
+template <typename T>
+class D {
+};
+
+// A decimator that just copies the source.
+class NoopDecim {
+    template <typename Buffer>
+    Buffer execute(const Buffer& src, const Buffer& dst) {
+        // TODO: memcpy?
+        for (size_t i = 0; i < src.count; ++i)
+            dst.p[i] = src.p[i];
+
+        return {dst.p, src.count, src.sampling_rate};
+    }
+};
+
+
 class CaptureProcessor : public BasebandProcessor {
    public:
     CaptureProcessor();
@@ -55,7 +77,7 @@ class CaptureProcessor : public BasebandProcessor {
      * use decim_0_4 for an overall decimation factor of 8.
      * use decim_0_8 for an overall decimation factor of 16. */
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0_4{};
-    dsp::decimate::FIRC8xR16x24FS4Decim4_256 decim_0_4_256{};
+    //dsp::decimate::FIRC8xR16x24FS4Decim4_256 decim_0_4_256{};
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8{};
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8_180k{};
     dsp::decimate::FIRC16xR16x16Decim2 decim_1_2{};
