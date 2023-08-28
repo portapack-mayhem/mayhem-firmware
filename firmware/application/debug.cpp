@@ -152,8 +152,8 @@ void draw_stack_dump() {
     constexpr int border = 8;
     int x, y;
     int n{0};
-    bool data_found{false};
     bool clear_rect{true};
+    bool data_found{false};
 
     for (p = &__process_stack_base__; p < &__process_stack_end__; p++) {
         if (clear_rect) {
@@ -164,14 +164,15 @@ void draw_stack_dump() {
             clear_rect = false;
         }
 
+        // skip past unused stack words
         if (!data_found) {
-            // count unused stack words and do not display
             if (*p == CRT0_STACKS_FILL_PATTERN)
                 continue;
             else {
                 data_found = true;
                 auto stack_space_left = p - &__process_stack_base__;
 
+                // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
                 painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
                 x += 8 * 5;
                 painter.draw_string({x, y}, Styles::white_small, ": M0 STACK");
@@ -183,12 +184,15 @@ void draw_stack_dump() {
             }
         }
 
+        // show address
         if (n++ == 0) {
             painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)p, 8) + ":");
             x += 9 * 5;
         }
 
-        painter.draw_string({x, y}, Styles::white_small, " " + to_string_hex(*p, 8));
+        // show stack word -- highlight if a possible code address (low bit will be set too for !thumb)
+        bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM
+        painter.draw_string({x, y}, code_addr ? Styles::bg_white_small : Styles::white_small, " " + to_string_hex(*p, 8));
         x += 9 * 5;
 
         // new line?
@@ -199,11 +203,20 @@ void draw_stack_dump() {
 
             // out of room on the screen - prompt for more
             if ((y >= portapack::display.height() - border - 8) && (p + 1 < &__process_stack_end__)) {
-                while (swizzled_switches() & (1 << (int)Switch::Down))
+                while (swizzled_switches() & ((1 << (int)Switch::Up) | (1 << (int)Switch::Down)))
                     ;
-                painter.draw_string({x, y}, Styles::white_small, "DOWN for more");
-                while (!(swizzled_switches() & (1 << (int)Switch::Down)))
-                    ;
+                painter.draw_string({x, y}, Styles::white_small, "Use UP/DOWN key");
+                while (1) {
+                    if (swizzled_switches() & (1 << (int)Switch::Up)) {
+                        // back up pointer by 2 screens of 8 pixels per line & 4 words per line
+                        p -= 2 * (y - border) / (8 / 4);
+                        if (p <= &__process_stack_base__)
+                            p = &__process_stack_base__ - 1;  // -1 for p++ in for loop
+                        break;
+                    }
+                    if (swizzled_switches() & (1 << (int)Switch::Down))
+                        break;
+                }
                 clear_rect = true;
             }
         }
@@ -222,8 +235,8 @@ bool stack_dump() {
     bool error;
     std::string str;
     uint32_t* p;
-    int n;
-    bool data_found;
+    int n{0};
+    bool data_found{false};
 
     make_new_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/STACK_DUMP_????.TXT");
@@ -235,7 +248,8 @@ bool stack_dump() {
         return false;
     }
 
-    for (p = &__process_stack_base__, n = 0, data_found = false; p < &__process_stack_end__; p++) {
+    for (p = &__process_stack_base__; p < &__process_stack_end__; p++) {
+        // skip past unused stack words
         if (!data_found) {
             if (*p == CRT0_STACKS_FILL_PATTERN)
                 continue;
@@ -249,11 +263,13 @@ bool stack_dump() {
             }
         }
 
+        // write address
         if (n++ == 0) {
             str = to_string_hex((uint32_t)p, 8) + ":";
             stack_dump_file.write(str.data(), 9);
         }
 
+        // write stack dword
         str = " " + to_string_hex(*p, 8);
         stack_dump_file.write(str.data(), 9);
 
