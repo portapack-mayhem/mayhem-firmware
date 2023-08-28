@@ -36,7 +36,6 @@
 #include <tuple>
 #include <variant>
 
-
 // Need to be able to configure "path" for each rate
 // Need to be able to get decimation factor
 // What about single layer decimation
@@ -45,46 +44,41 @@ template <typename T>
 class D {
 };
 
-// A decimator that just copies the source to the destination.
+// A decimator that just returns the source buffer.
 class NoopDecim {
+   public:
     template <typename Buffer>
     Buffer execute(const Buffer& src, const Buffer& dst) {
+        return {src.p, src.count, src.sampling_rate};
         // TODO: memcpy?
-        for (size_t i = 0; i < src.count; ++i)
-            dst.p[i] = src.p[i];
-
-        return {dst.p, src.count, src.sampling_rate};
+        // TODO: is it even important to copy?
+        // for (size_t i = 0; i < src.count; ++i)
+        //     dst.p[i] = src.p[i];
+        // return {dst.p, src.count, src.sampling_rate};
     }
 };
+
+// Ugh, need some kind of dynamic dispatch :(
 
 // All decimators must use same types.
 template <typename... Args>
 class MultiDecimator {
+   public:
+    template <typename Source, typename Destination>
+    Destination execute(
+        const Source& src,
+        const Destination& dst) {
+        return dst;
+    }
 
-    static constexpr size_t taps_count = 16;
-    static constexpr size_t decimation_factor = 2;
-
-    using sample_t = complex16_t;
-    using tap_t = int16_t;
-
-    void configure(
-        const std::array<tap_t, taps_count>& taps,
-        const int32_t scale);
-
-    buffer_c16_t execute(
-        const buffer_c16_t& src,
-        const buffer_c16_t& dst);
+    template <typename Decimator>
+    void set(const Decimator& decimator) {
+        decimator_ = decimator;
+    }
 
    private:
-    std::variant<Args...> decimators_;
+    std::variant<Args...> decimator_{};
 };
-
-template <typename Decim0, typename Decim1>
-class DecimatorPath {
-};
-
-
-
 
 class CaptureProcessor : public BasebandProcessor {
    public:
@@ -102,16 +96,16 @@ class CaptureProcessor : public BasebandProcessor {
         dst.data(),
         dst.size()};
 
-    /* NB: There are two decimation passes: 0 and 1. In pass 0, one of
-     * the following will be selected based on the oversample rate.
-     * use decim_0_4 for an overall decimation factor of 8.
-     * use decim_0_8 for an overall decimation factor of 16. */
-    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0_4{};
-    //dsp::decimate::FIRC8xR16x24FS4Decim4_256 decim_0_4_256{};
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8{};
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8_180k{};
-    dsp::decimate::FIRC16xR16x16Decim2 decim_1_2{};
-    dsp::decimate::FIRC16xR16x32Decim8 decim_1_8{};
+    // The actual type will be configured.
+    MultiDecimator<
+        dsp::decimate::FIRC8xR16x24FS4Decim4,
+        dsp::decimate::FIRC8xR16x24FS4Decim8>
+        decim_0{};
+    MultiDecimator<
+        dsp::decimate::FIRC16xR16x16Decim2,
+        dsp::decimate::FIRC16xR16x32Decim8,
+        NoopDecim>
+        decim_1{};
 
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
@@ -122,7 +116,7 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
-    OversampleRate oversample_rate{OversampleRate::x8};
+    OversampleRate oversample_rate{OversampleRate::None};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
@@ -132,11 +126,11 @@ class CaptureProcessor : public BasebandProcessor {
     void sample_rate_config(const SampleRateConfigMessage& message);
     void capture_config(const CaptureConfigMessage& message);
 
-    /* Dispatch to the correct decim_0 based on oversample rate. */
-    buffer_c16_t decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst);
+    // /* Dispatch to the correct decim_0 based on oversample rate. */
+    // buffer_c16_t decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst);
 
-    /* Dispatch to the correct decim_1 based on oversample rate. */
-    buffer_c16_t decim_1_execute(const buffer_c16_t& src, const buffer_c16_t& dst);
+    // /* Dispatch to the correct decim_1 based on oversample rate. */
+    // buffer_c16_t decim_1_execute(const buffer_c16_t& src, const buffer_c16_t& dst);
 };
 
 #endif /*__PROC_CAPTURE_HPP__*/
