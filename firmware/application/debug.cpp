@@ -52,6 +52,7 @@ std::string number_to_hex_string(uint32_t);
 void draw_line(int32_t, const char*, regarm_t);
 void draw_stack_dump();
 static bool error_shown = false;
+uint32_t fault_address{0};
 
 void draw_guru_meditation_header(uint8_t source, const char* hint) {
     Painter painter;
@@ -110,6 +111,7 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
             // to see whats causing the fault.
             draw_line(80 + i++ * 20, "lr:", ctxp->lr_thd);
             draw_line(80 + i++ * 20, "pc:", ctxp->pc);
+            fault_address = (uint32_t)ctxp->pc;
 
             // see SCB_CFSR_* in libopencm3/cm3/scb.h for details
             if (cfsr != 0)
@@ -195,9 +197,10 @@ void draw_stack_dump() {
                 x += 9 * 5 - 2;  // note: saving 2 pixels here to prevent reaching right border
             }
 
-            // show stack word -- highlight if a possible code address (low bit will be set too for !thumb)
-            bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM
-            painter.draw_string({x, y}, code_addr ? Styles::bg_white_small : Styles::white_small, " " + to_string_hex(*p, 8));
+            // show stack word -- highlight if a possible code address (low bit will be set too for !thumb) or actual fault address
+            bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM           
+            Style style = (fault_address && *p == fault_address) ? Styles::bg_yellow_small : (code_addr ? Styles::bg_white_small : Styles::white_small);
+            painter.draw_string({x, y}, style, " " + to_string_hex(*p, 8));
             x += 9 * 5;
 
             // new line?
