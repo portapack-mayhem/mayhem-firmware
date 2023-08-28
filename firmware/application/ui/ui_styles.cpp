@@ -44,6 +44,12 @@ const Style Styles::white_small{
     .foreground = Color::white(),
 };
 
+const Style Styles::bg_white_small{
+    .font = ui::font::fixed_5x8,
+    .background = ui::Color::white(),
+    .foreground = ui::Color::black(),
+};
+
 const Style Styles::yellow{
     .font = font::fixed_8x16,
     .background = Color::black(),
