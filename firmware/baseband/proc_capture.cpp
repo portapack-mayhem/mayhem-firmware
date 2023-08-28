@@ -128,13 +128,14 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             break;
     }
 
-    size_t decim_0_output_fs = baseband_fs / decim_0_factor;
-    size_t decim_1_output_fs = decim_0_output_fs / decim_1_factor;
+    size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor();
+    size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor();
 
     // TODO: Use the right taps give the decimator?
-    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * decim_1_input_fs;
-    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * decim_1_input_fs;
-    channel_filter_transition = taps_200k_decim_1.transition_normalized * decim_1_input_fs;
+    // TODO: Why was this using decim_0's output fs?
+    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * decim_1_output_fs;
+    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * decim_1_output_fs;
+    channel_filter_transition = taps_200k_decim_1.transition_normalized * decim_1_output_fs;
 
     spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
     spectrum_samples = 0;

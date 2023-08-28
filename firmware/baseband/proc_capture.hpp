@@ -58,7 +58,7 @@ class MultiDecimator {
         const Source& src,
         const Destination& dst) {
         return std::visit(
-            [&src, &dst](auto&& arg) {
+            [&src, &dst](auto&& arg) -> Destination {
                 return arg.execute(src, dst);
             },
             decimator_);
@@ -66,7 +66,7 @@ class MultiDecimator {
 
     size_t decimation_factor() const {
         return std::visit(
-            [](auto&& arg) {
+            [](auto&& arg) -> size_t {
                 return arg.decimation_factor;
             },
             decimator_);
