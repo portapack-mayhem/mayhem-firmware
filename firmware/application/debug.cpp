@@ -198,7 +198,7 @@ void draw_stack_dump() {
             }
 
             // show stack word -- highlight if a possible code address (low bit will be set too for !thumb) or actual fault address
-            bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM           
+            bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM
             Style style = (fault_address && *p == fault_address) ? Styles::bg_yellow_small : (code_addr ? Styles::bg_white_small : Styles::white_small);
             painter.draw_string({x, y}, style, " " + to_string_hex(*p, 8));
             x += 9 * 5;
