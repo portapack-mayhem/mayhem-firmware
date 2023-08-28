@@ -50,6 +50,12 @@ const Style Styles::bg_white_small{
     .foreground = ui::Color::black(),
 };
 
+const Style Styles::bg_yellow_small{
+    .font = ui::font::fixed_5x8,
+    .background = ui::Color::yellow(),
+    .foreground = ui::Color::black(),
+};
+
 const Style Styles::yellow{
     .font = font::fixed_8x16,
     .background = Color::black(),
