@@ -50,6 +50,7 @@ void __debug_log(const std::string& msg) {
 void runtime_error(uint8_t source);
 std::string number_to_hex_string(uint32_t);
 void draw_line(int32_t, const char*, regarm_t);
+void draw_stack_dump();
 static bool error_shown = false;
 
 void draw_guru_meditation_header(uint8_t source, const char* hint) {
@@ -70,7 +71,7 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
 
     if (source == CORTEX_M0) {
         painter.draw_string({48 + 8, 24}, Styles::white, "0");
-        painter.draw_string({12, 320 - 32}, Styles::white, "Press DFU to try Stack Dump");
+        painter.draw_string({24, 320 - 32}, Styles::white, "Press DFU for Stack Dump");
     }
 
     if (source == CORTEX_M4)
@@ -127,7 +128,6 @@ void draw_line(int32_t y_offset, const char* label, regarm_t value) {
 }
 
 void runtime_error(uint8_t source) {
-    bool dumped{false};
     LED led = (source == CORTEX_M0) ? hackrf::one::led_rx : hackrf::one::led_tx;
 
     led.off();
@@ -138,18 +138,84 @@ void runtime_error(uint8_t source) {
             ;
         led.toggle();
 
-        // Stack dump is not guaranteed to work in this state, so wait for DFU button press to attempt it
-        if (!dumped && (swizzled_switches() & (1 << (int)Switch::Dfu))) {
-            dumped = true;
-            stack_dump();
+        // Stack dump will cover entire screen, so wait for DFU button press to attempt it
+        if (swizzled_switches() & (1 << (int)Switch::Dfu)) {
+            draw_stack_dump();
         }
     }
 }
 
-// TODO:  Fix this function to work after a fault; might need to write to screen instead or to Flash memory.
+// Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
+void draw_stack_dump() {
+    Painter painter;
+    uint32_t* p;
+    constexpr int border = 8;
+    int x, y;
+    int n{0};
+    bool data_found{false};
+    bool clear_rect{true};
+
+    for (p = &__process_stack_base__; p < &__process_stack_end__; p++) {
+        if (clear_rect) {
+            painter.fill_rectangle(
+                {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
+                Color::black());
+            x = y = border;
+            clear_rect = false;
+        }
+
+        if (!data_found) {
+            // count unused stack words and do not display
+            if (*p == CRT0_STACKS_FILL_PATTERN)
+                continue;
+            else {
+                data_found = true;
+                auto stack_space_left = p - &__process_stack_base__;
+
+                painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
+                x += 8 * 5;
+                painter.draw_string({x, y}, Styles::white_small, ": M0 STACK");
+                x = border;
+                y += 8;
+
+                // align subsequent lines to start on 16-byte boundaries
+                p -= (stack_space_left & 3);
+            }
+        }
+
+        if (n++ == 0) {
+            painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)p, 8) + ":");
+            x += 9 * 5;
+        }
+
+        painter.draw_string({x, y}, Styles::white_small, " " + to_string_hex(*p, 8));
+        x += 9 * 5;
+
+        // new line?
+        if (n == 4) {
+            n = 0;
+            x = border;
+            y += 8;
+
+            // out of room on the screen - prompt for more
+            if ((y >= portapack::display.height() - border - 8) && (p + 1 < &__process_stack_end__)) {
+                while (swizzled_switches())
+                    ;
+                painter.draw_string({x, y}, Styles::white_small, "DOWN for more");
+                while (!(swizzled_switches() & (1 << (int)Switch::Down)))
+                    ;
+                clear_rect = true;
+            }
+        }
+    }
+
+    painter.draw_string({border, portapack::display.height() - border - 8}, Styles::white_small, "End! DFU=repeat");
+}
+
+// Disk I/O in this function doesn't work after a fault
 // Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
 bool stack_dump() {
-    ui::Painter painter{};
+    Painter painter;
     std::string debug_dir = "DEBUG";
     std::filesystem::path filename{};
     File stack_dump_file{};
@@ -176,7 +242,7 @@ bool stack_dump() {
             else {
                 data_found = true;
                 auto stack_space_left = p - &__process_stack_base__;
-                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused bytes " + to_string_dec_uint(stack_space_left * sizeof(uint32_t)));
+                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused words " + to_string_dec_uint(stack_space_left));
 
                 // align subsequent lines to start on 16-byte boundaries
                 p -= (stack_space_left & 3);
