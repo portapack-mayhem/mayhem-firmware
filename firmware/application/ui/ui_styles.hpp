@@ -40,6 +40,9 @@ class Styles {
     /* White background, small font. */
     static const Style bg_white_small;
 
+    /* Red background, small font. */
+    static const Style bg_yellow_small;
+
     /* Yellow foreground. */
     static const Style yellow;
 
