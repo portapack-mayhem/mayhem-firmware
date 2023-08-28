@@ -199,7 +199,7 @@ void draw_stack_dump() {
 
             // out of room on the screen - prompt for more
             if ((y >= portapack::display.height() - border - 8) && (p + 1 < &__process_stack_end__)) {
-                while (swizzled_switches())
+                while (swizzled_switches() & (1 << (int)Switch::Down))
                     ;
                 painter.draw_string({x, y}, Styles::white_small, "DOWN for more");
                 while (!(swizzled_switches() & (1 << (int)Switch::Down)))
