@@ -36,44 +36,46 @@
 #include <tuple>
 #include <variant>
 
-// Need to be able to configure "path" for each rate
-// Need to be able to get decimation factor
-// What about single layer decimation
-
-template <typename T>
-class D {
-};
-
 // A decimator that just returns the source buffer.
 class NoopDecim {
    public:
     template <typename Buffer>
-    Buffer execute(const Buffer& src, const Buffer& dst) {
+    Buffer execute(const Buffer& src, const Buffer&) {
+        // TODO: should this copy to 'dst'?
         return {src.p, src.count, src.sampling_rate};
-        // TODO: memcpy?
-        // TODO: is it even important to copy?
-        // for (size_t i = 0; i < src.count; ++i)
-        //     dst.p[i] = src.p[i];
-        // return {dst.p, src.count, src.sampling_rate};
     }
 };
 
-// Ugh, need some kind of dynamic dispatch :(
-
-// All decimators must use same types.
+// TODO: Does std::visit still add a lot of code bloat?
 template <typename... Args>
 class MultiDecimator {
    public:
+    /* Dispatches to the underlying type's execute. */
     template <typename Source, typename Destination>
     Destination execute(
         const Source& src,
         const Destination& dst) {
-        return dst;
+        return std::visit(
+            [&src, &dst](auto&& arg) {
+                return arg.execute(src, dst);
+            },
+            decimator_);
     }
 
+    size_t decimation_factor() const {
+        return std::visit(
+            [](auto&& arg) {
+                return arg.decimation_factor;
+            },
+            decimator_);
+    }
+
+    /* Sets this decimator to a new instance of the specified decimator type.
+     * NB: The instance is returned by-ref so configure can easily be called. */
     template <typename Decimator>
-    void set(const Decimator& decimator) {
-        decimator_ = decimator;
+    Decimator& set() {
+        decimator_ = Decimator{};
+        return std::get<Decimator>(decimator_);
     }
 
    private:
@@ -96,7 +98,7 @@ class CaptureProcessor : public BasebandProcessor {
         dst.data(),
         dst.size()};
 
-    // The actual type will be configured.
+    // The actual type will be configured depending on the sample rate.
     MultiDecimator<
         dsp::decimate::FIRC8xR16x24FS4Decim4,
         dsp::decimate::FIRC8xR16x24FS4Decim8>

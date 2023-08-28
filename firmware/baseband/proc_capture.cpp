@@ -47,7 +47,7 @@ CaptureProcessor::CaptureProcessor() {
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-    // auto decim_1_out = decim_1_execute(decim_0_out, dst_buffer);
+    auto out_buffer = decim_1.execute(decim_0_out, dst_buffer);
 
     // // 2.4576MHz, 2048 samples -- ??? Where did these come from?
     // const auto decim_0_out = decim_0_execute(buffer, dst_buffer);
@@ -106,76 +106,45 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     constexpr int decim_0_scale = 33'554'432;
     constexpr int decim_1_scale = 131'072;
 
-    // TODO: separate waterfall scalar to make it look nice.
+    // TODO: separate waterfall scalar to make it look nice?
 
     switch (message.oversample_rate) {
-        case OversampleRate::None:
-            chDbgPanic("Unhandled OversampleRate");
+        case OversampleRate::x4:
+            // M4 can't handle 2 decimation passes for sample rates needing x4.
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<NoopDecim>();
             break;
 
-        case OversampleRate::x4: {
-            FIRC8xR16x24FS4Decim4 d0;
-            d0.configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_0.set(d0);
-
-            decim_1.set(NoopDecim{});
-            break;
-        }
-
-        case OversampleRate::x8: {
+        case OversampleRate::x8:
             // M4 can't handle 2 decimation passes for sample rates at or above 600k.
             if (message.sample_rate < 600'00) {
-                FIRC8xR16x24FS4Decim4 d0;
-                d0.configure(taps_200k_decim_0.taps, decim_0_scale);
-                decim_0.set(d0);
-
-                FIRC16xR16x16Decim2 d1;
-                d1.configure(taps_200k_decim_1.taps, decim_1_scale);
-                decim_1.set(d1);
-
+                decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+                decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
             } else {
-                // Using the 180k taps to provide better filtering with a single pass.
-                FIRC8xR16x24FS4Decim8 d0;
-                d0.configure(taps_180k_wfm_decim_0.taps, decim_0_scale);
-                decim_0.set(d0);
-
-                decim_1.set(NoopDecim{});
+                // Using 180k taps to provide better filtering with a single pass.
+                decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_180k_wfm_decim_0.taps, decim_0_scale);
+                decim_1.set<NoopDecim>();
             }
             break;
-        }
 
-        case OversampleRate::x16: {
-            FIRC8xR16x24FS4Decim8 d0;
-            d0.configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_0.set(d0);
-
-            FIRC16xR16x16Decim2 d1;
-            d1.configure(taps_200k_decim_1.taps, decim_1_scale);
-            decim_1.set(d1);
+        case OversampleRate::x16:
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
             break;
-        }
 
-        case OversampleRate::x32: {
-            FIRC8xR16x24FS4Decim4 d0;
-            d0.configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_0.set(d0);
-
-            FIRC16xR16x32Decim8 d1;
-            d1.configure(taps_16k0_decim_1.taps, decim_1_scale);
-            decim_1.set(d1);
+        case OversampleRate::x32:
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps, decim_1_scale);
             break;
-        }
 
-        case OversampleRate::x64: {
-            FIRC8xR16x24FS4Decim8 d0;
-            d0.configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_0.set(d0);
-
-            FIRC16xR16x32Decim8 d1;
-            d1.configure(taps_16k0_decim_1.taps, decim_1_scale);
-            decim_1.set(d1);
+        case OversampleRate::x64:
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps, decim_1_scale);
             break;
-        }
+
+        default:
+            chDbgPanic("Unhandled OversampleRate");
+            break;
     }
 
     // // TODO: We should not need to be futzing around with the values to make the waterfall happy.
