@@ -101,7 +101,7 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     // For high sample rates, the M4 is busy collecting samples so the
     // waterfall runs slower. Reduce the update interval so it runs faster.
     // NB: Trade off: looks nicer, but more frequent updates == more CPU.
-    if (sample_rate > 1'500'000)
+    if (sample_rate >= 1'500'000)
         spectrum_interval_samples /= (sample_rate / 500'000);
 
     // Mystery scalars for decimator configuration.
