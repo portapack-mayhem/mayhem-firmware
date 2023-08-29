@@ -88,17 +88,24 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * sample_rate;
     channel_filter_transition = taps_200k_decim_1.transition_normalized * sample_rate;
 
-    // 0.16 is simply a scalar to make the waterfall run at a nice speed.
-    // Decrease == faster, Increase == slower.
-    spectrum_interval_samples = 0.16 * sample_rate / toUType(message.oversample_rate);
+    // Compute the scalar that corrects the oversample_rate to be x8 when computing
+    // the spectrum update interval. The original implementation only supported x8.
+    // TODO: Why is this needed here but not in proc_replay? There must be some other
+    // assumption about x8 oversampling in some component that makes this necessary.
+    const auto oversample_correction = toUType(message.oversample_rate) / 8.0;
+
+    // The spectrum update interval controls how often the waterfall is fed new samples.
+    spectrum_interval_samples = sample_rate / (spectrum_rate_hz * oversample_correction);
     spectrum_samples = 0;
 
     // For high sample rates, the M4 is busy collecting samples so the
     // waterfall runs slower. Reduce the update interval so it runs faster.
-    // NB: Trade off: looks nicer but uses even _more_ CPU.
+    // NB: Trade off: looks nicer, but more frequent updates == more CPU.
     if (sample_rate > 1'500'000)
-        spectrum_interval_samples /= 2;
+        spectrum_interval_samples /= (sample_rate / 500'000);
 
+    // Mystery scalars for decimator configuration.
+    // TODO: figure these out and add a real comment.
     constexpr int decim_0_scale = 0x2000000;
     constexpr int decim_1_scale = 0x20000;
 

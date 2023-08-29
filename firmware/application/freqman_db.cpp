@@ -97,7 +97,7 @@ options_t freqman_bandwidths[4] = {
         {"3500k", 3500000},
         {"4000k", 4000000},
         {"4500k", 4500000},
-        {"5100k", 5100000},  // Skip exactly 5Mhz, M4 sample drops and abnormal spectrum.
+        {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
     },
 };
