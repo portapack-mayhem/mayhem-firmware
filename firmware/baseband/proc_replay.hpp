@@ -45,7 +45,7 @@ class ReplayProcessor : public BasebandProcessor {
     static constexpr auto spectrum_rate_hz = 50.0f;
 
     // Holds the read IQ data chunk from the file to send.
-    std::array<complex16_t, 256> iq{};
+    std::array<complex16_t, 512> iq{};
 
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
