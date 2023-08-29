@@ -69,29 +69,22 @@ class BlockDecimator {
 
         set_input_sampling_rate(src.sampling_rate);
 
-        while (src_i < src.count) {
+        for (size_t src_i = 0; src_i < src.count; src_i += factor()) {
             buffer[dst_i++] = src.p[src_i];
             if (dst_i == buffer.size()) {
                 callback({buffer.data(), buffer.size(), output_sampling_rate()});
                 reset_state();
-                dst_i = 0;
             }
-
-            src_i += factor();
         }
-
-        src_i -= src.count;
     }
 
    private:
     std::array<T, N> buffer{};
     uint32_t input_sampling_rate_{0};
     size_t factor_{1};
-    size_t src_i{0};
     size_t dst_i{0};
 
     void reset_state() {
-        src_i = 0;
         dst_i = 0;
     }
 };
