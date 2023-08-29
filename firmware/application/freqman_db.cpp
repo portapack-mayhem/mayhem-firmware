@@ -83,16 +83,22 @@ options_t freqman_bandwidths[4] = {
         {"100k", 100000},
         {"150k", 150000},
         {"250k", 250000},
-        {"500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/
-        {"600k", 600000}, /* We doubled x2 previous REC BW limit , now extended BW from 600k to 1M with fast enough SD card in C16 or C8 format .*/
-        {"650k", 650000},
+        {"500k", 500000},
+        {"600k", 600000},
         {"750k", 750000},
-        {"1000k", 1000000}, /* New limit bandwith option for recording in C16 (in fast SD card) or in C8 */
-        {"1500k", 1500000}, /* From this BW onwards, the LCD is ok, but M4 CPU is having periodical sample rec dropps, (not real file size, accelerated replay) */
+        {"1000k", 1000000},  // Max bandwith for recording in C16 (with fast SD card).
+        {"1250k", 1250000},
+        {"1500k", 1500000},
         {"1750k", 1750000},
         {"2000k", 2000000},
-        {"2500k", 2500000},
-        {"2750k", 2750000},  // That is our max Capture option, to keep using later / 8 decimation (22Mhz sampling  ADC)
+        {"2250k", 2250000},  // Max bandwith for recording in C8 (with fast SD card).
+        {"2500k", 2500000},  // Here and up, LCD is ok, but M4 CPU drops samples.
+        {"3000k", 3000000},
+        {"3500k", 3500000},
+        {"4000k", 4000000},
+        {"4500k", 4500000},
+        {"5000k", 5500000},
+        {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
     },
 };
 

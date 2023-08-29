@@ -69,7 +69,7 @@ void ReplayProcessor::execute(const buffer_c8_t& buffer) {
         chDbgPanic("Output not div.");
 
     // Is the input smaple buffer big enough?
-    if (samples_to_read > iq_buffer.size())
+    if (samples_to_read > iq_buffer.count)
         chDbgPanic("IQ buf ovf.");
 #endif
 

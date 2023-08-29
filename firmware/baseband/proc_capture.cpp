@@ -26,48 +26,32 @@
 #include "event_m4.hpp"
 #include "utility.hpp"
 
+using namespace dsp::decimate;
+
 CaptureProcessor::CaptureProcessor() {
-    decim_0_4.configure(taps_200k_decim_0.taps, 33554432);           // to be used with decim1 (/2), then total two stages decim (/8)
-    decim_0_8.configure(taps_200k_decim_0.taps, 33554432);           // to be used with decim1 (/2), then total two stages decim (/16)
-    decim_0_8_180k.configure(taps_180k_wfm_decim_0.taps, 33554432);  // to be used alone - no additional decim1 (/2), then total single stage decim (/8)
-
-    decim_1_2.configure(taps_200k_decim_1.taps, 131072);
-    decim_1_8.configure(taps_16k0_decim_1.taps, 131072);  // tentative decim1 /8  and taps, pending to be optimized.
-
     channel_spectrum.set_decimation_factor(1);
     baseband_thread.start();
 }
 
 void CaptureProcessor::execute(const buffer_c8_t& buffer) {
-    /* 2.4576MHz, 2048 samples */
-    const auto decim_0_out = decim_0_execute(buffer, dst_buffer);       // selectable 3 possible decim_0, (/4.  /8 200k soft filter , /8 180k sharp )
-    const auto decim_1_out = decim_1_execute(decim_0_out, dst_buffer);  // selectable 3 possible decim_1, (/8.  /2 200k or bypassed /1  )
-
-    /* this code was valid when we had only 2 decim1 cases.
-    const auto decim_1_out = baseband_fs < 4800'000
-                                  ? decim_1_2.execute(decim_0_out, dst_buffer)  // < 600khz double decim. stage , means 500khz and lower bit rates.
-                                 // ? decim_1_8.execute(decim_0_out, dst_buffer)  // < 600khz double decim. stage , means 500khz and lower bit rates.
-                                  : decim_0_out;                              // >= 600khz single decim. stage , means 600khz and upper bit rates.
-
-     } */
-
-    const auto& decimator_out = decim_1_out;
-    const auto& channel = decimator_out;
+    auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+    auto out_buffer = decim_1.execute(decim_0_out, dst_buffer);
 
     if (stream) {
-        const size_t bytes_to_write = sizeof(*decimator_out.p) * decimator_out.count;
-        const size_t written = stream->write(decimator_out.p, bytes_to_write);
+        const size_t bytes_to_write = sizeof(*out_buffer.p) * out_buffer.count;
+        const size_t written = stream->write(out_buffer.p, bytes_to_write);
         if (written != bytes_to_write) {
-            // TODO eventually report error somewhere
+            // TODO: Send an error message to the app?
         }
     }
 
-    feed_channel_stats(channel);
+    feed_channel_stats(out_buffer);
 
-    spectrum_samples += channel.count;
+    spectrum_samples += out_buffer.count;
     if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.feed(channel, channel_filter_low_f, channel_filter_high_f, channel_filter_transition);
+        channel_spectrum.feed(out_buffer, channel_filter_low_f,
+                              channel_filter_high_f, channel_filter_transition);
     }
 }
 
@@ -92,116 +76,84 @@ void CaptureProcessor::on_message(const Message* const message) {
 }
 
 void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
-    baseband_fs = message.sample_rate * toUType(message.oversample_rate);
-    oversample_rate = message.oversample_rate;
+    const auto sample_rate = message.sample_rate;
 
+    // The actual sample rate is the requested rate * the oversample rate.
+    // See oversample.hpp for more details on oversampling.
+    baseband_fs = sample_rate * toUType(message.oversample_rate);
     baseband_thread.set_sampling_rate(baseband_fs);
 
-    // Current fw , we are using only  2 decim_0 modes,  /4 , /8
-    auto decim_0_factor = oversample_rate == OversampleRate::x8
-                              ? decim_0_4.decimation_factor
-                              : decim_0_8.decimation_factor;
+    // TODO: Do we need to use the taps that the decimators get configured with?
+    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * sample_rate;
+    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * sample_rate;
+    channel_filter_transition = taps_200k_decim_1.transition_normalized * sample_rate;
 
-    size_t decim_0_output_fs = baseband_fs / decim_0_factor;
-    size_t decim_1_input_fs = decim_0_output_fs;
+    // Compute the scalar that corrects the oversample_rate to be x8 when computing
+    // the spectrum update interval. The original implementation only supported x8.
+    // TODO: Why is this needed here but not in proc_replay? There must be some other
+    // assumption about x8 oversampling in some component that makes this necessary.
+    const auto oversample_correction = toUType(message.oversample_rate) / 8.0;
 
-    size_t decim_1_factor;
-    switch (oversample_rate) {  // we are using 3 decim_1 modes,  /1 , /2 ,  /8
+    // The spectrum update interval controls how often the waterfall is fed new samples.
+    spectrum_interval_samples = sample_rate / (spectrum_rate_hz * oversample_correction);
+    spectrum_samples = 0;
+
+    // For high sample rates, the M4 is busy collecting samples so the
+    // waterfall runs slower. Reduce the update interval so it runs faster.
+    // NB: Trade off: looks nicer, but more frequent updates == more CPU.
+    if (sample_rate >= 1'500'000)
+        spectrum_interval_samples /= (sample_rate / 500'000);
+
+    // Mystery scalars for decimator configuration.
+    // TODO: figure these out and add a real comment.
+    constexpr int decim_0_scale = 0x2000000;
+    constexpr int decim_1_scale = 0x20000;
+
+    switch (message.oversample_rate) {
+        case OversampleRate::x4:
+            // M4 can't handle 2 decimation passes for sample rates needing x4.
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<NoopDecim>();
+            break;
+
         case OversampleRate::x8:
-            if (baseband_fs < 4800'000) {
-                decim_1_factor = decim_1_2.decimation_factor;  // /8 = /4x2
+            // M4 can't handle 2 decimation passes for sample rates <= 600k.
+            if (message.sample_rate < 600'000) {
+                decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+                decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
             } else {
-                decim_1_factor = 2 * 1;  // 600khz and onwards, single decim /8 = /8x1 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+                // Using 180k taps to provide better filtering with a single pass.
+                decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_180k_wfm_decim_0.taps, decim_0_scale);
+                decim_1.set<NoopDecim>();
             }
             break;
 
         case OversampleRate::x16:
-            decim_1_factor = 2 * decim_1_2.decimation_factor;  // /16 = /8x2 (we applied additional *2 correction to increase waterfall spped >=600k and smooth & avoid abnormal motion >1M5 )
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
             break;
 
         case OversampleRate::x32:
-            decim_1_factor = 2 * decim_1_8.decimation_factor;  // /32 = /4x8 (we applied additional *2 correction to speed up waterfall, no effect to scale spectrum)
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps, decim_1_scale);
             break;
 
         case OversampleRate::x64:
-            decim_1_factor = 8 * decim_1_8.decimation_factor;  // /64 = /8x8 (we applied additional *8 correction to speed up waterfall, no effect to scale spectrum)
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps, decim_1_scale);
             break;
 
         default:
-            decim_1_factor = 2;  // just default initial value to remove compile warning.
+            chDbgPanic("Unhandled OversampleRate");
             break;
     }
-
-    /*
-    auto decim_1_factor = oversample_rate == OversampleRate::x32    // that was ok,  when we had only 2 oversampling x8 , x16
-                              ? decim_1_8.decimation_factor
-                              : decim_1_2.decimation_factor;
-
-    */
-    size_t decim_1_output_fs = decim_1_input_fs / decim_1_factor;
-
-    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * decim_1_input_fs;
-    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * decim_1_input_fs;
-    channel_filter_transition = taps_200k_decim_1.transition_normalized * decim_1_input_fs;
-
-    spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
-    spectrum_samples = 0;
 }
 
 void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
-    if (message.config) {
+    if (message.config)
         stream = std::make_unique<StreamInput>(message.config);
-    } else {
+    else
         stream.reset();
-    }
-}
-
-buffer_c16_t CaptureProcessor::decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst) {
-    switch (oversample_rate) {
-        case OversampleRate::x8:                     // we can get /8 by two means , decim0 (/4) + decim1 (/2) .  or just decim0 (/8)
-            if (baseband_fs < 4800'000) {            // 600khz (600k x 8)
-                return decim_0_4.execute(src, dst);  // decim_0 , /4 with double decim stage
-            } else {
-                return decim_0_8_180k.execute(src, dst);  // decim_0  /8 with single decim stage
-            }
-
-        case OversampleRate::x16:
-            return decim_0_8.execute(src, dst);  // decim_0 , /8 with double decim stage
-
-        case OversampleRate::x32:
-            return decim_0_4.execute(src, dst);  // decim_0 , /4 with double decim stage
-
-        case OversampleRate::x64:
-            return decim_0_8.execute(src, dst);  // decim_0 , /8 with double decim stage
-
-        default:
-            chDbgPanic("Unhandled OversampleRate");
-            return {};
-    }
-}
-
-buffer_c16_t CaptureProcessor::decim_1_execute(const buffer_c16_t& src, const buffer_c16_t& dst) {
-    switch (oversample_rate) {
-        case OversampleRate::x8:           // we can get /8 by two means , decim0 (/4) + decim1 (/2) .  or just decim0 (/8)
-            if (baseband_fs < 4800'000) {  // 600khz (600k x 8)
-                return decim_1_2.execute(src, dst);
-            } else {
-                return src;
-            }
-
-        case OversampleRate::x16:
-            return decim_1_2.execute(src, dst);  // total decim /16 = /8x2, applied to 100khz and 150khz
-
-        case OversampleRate::x32:
-            return decim_1_8.execute(src, dst);  // total decim /32 = /4x8, appled to  75k , 50k, 32k
-
-        case OversampleRate::x64:
-            return decim_1_8.execute(src, dst);  // total decim /64 = /8x8, appled to 16k and 12k5
-
-        default:
-            chDbgPanic("Unhandled OversampleRate");
-            return {};
-    }
 }
 
 int main() {

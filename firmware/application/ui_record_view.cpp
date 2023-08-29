@@ -107,13 +107,9 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
     auto oversample_rate = get_oversample_rate(new_sampling_rate);
     auto actual_sampling_rate = new_sampling_rate * toUType(oversample_rate);
 
-    /* We are changing "REC" icon background to yellow in BW rec Options >1Mhz
-     * > 1Mhz BW options , we are NOT recording full IQ .C16 files (those files has some periodical  missing dropped samples).
-     * Those recorded files, has not the full IQ samples information, looks like decimated in file size.
-     * They are ok as recorded spectrum indication, but they should not be used by Replay app. (the voice speed will be accelerated)
-
-     * We keep original black background in all the correct IQ .C16 files BW's Options. */
-    if (actual_sampling_rate > 8'000'000) {  // yellow REC button means not ok for REC, BW >1Mhz  (BW from 12k5 till 1Mhz OK for REC and Replay)
+    // Change the "REC" icon background to yellow when the selected rate exceeds hardware limits.
+    // Above this threshold, samples will be dropped resulting incomplete capture files.
+    if (new_sampling_rate > 1'250'000) {
         button_record.set_background(ui::Color::yellow());
     } else {
         button_record.set_background(ui::Color::black());
@@ -142,15 +138,7 @@ OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
     if (file_type == FileType::WAV)
         return OversampleRate::None;
 
-    auto rate = ::get_oversample_rate(sample_rate);
-
-    // Currently proc_capture only supports /8, /16, /32 for decimation.
-    if (rate < OversampleRate::x8)  // clipping while /4 is not implemented yet  (it will be used >1Mhz onwards when available)
-        rate = OversampleRate::x8;
-    else if (rate > OversampleRate::x64)  // clipping while /128 is not implemented yet , (but it is not necessary for 12k5)
-        rate = OversampleRate::x64;
-
-    return rate;
+    return ::get_oversample_rate(sample_rate);
 }
 
 // Setter for datetime and frequency filename

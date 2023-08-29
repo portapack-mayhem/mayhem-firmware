@@ -42,26 +42,27 @@
  * In testing, a minimum rate of 400kHz seems to the functional minimum.
  *
  * There are several different concepts or terms related to Capture and Replay,
- * (1) oversampling (x8, x16 ,...) / decimation (/8, /16...)
- * In Capture App , when ADC can not handle directly a requiered low sample rates ,
- * we need to apply oversampling (x8. x16 ex) , getting more real samples than needed) by "x_number" ,
- * and later to write it to SD card with the proper needed real sample rate , we apply Decimation  , "/ number" .
+ * (1) Oversampling (x8, x16, ...) and Decimation (/8, /16...)
+ * In Capture App, the ADC can not directly handle low sample rates.
+ * We need to apply oversampling (x8, x16, ...), collecting more "x number" additional real samples.
+ * To write it to SD card with the desired sample rate, we apply Decimation ("/ number").
  *
- * (2) up-sampling or re-escale or interpolation. (x8, x16, ...)
- * In Replay-list App, when we got too low bit rate data for Hackrf ,
- * we need to upsampling or interpolate or resampling to increase those low bit rates
- * to a proper sample rate higher than the min. to be able to be transmitted by Hackrf.
+ * (2) Up-sampling or re-scale or interpolation. (x8, x16, ...).
+ * In Replay-list App, when the bit rate data is too low for HackRF.
+ * We need to upsample or interpolate to increase those low bit rates
+ * to a rate higher than the hardware nminimum to be transmitted by Hackrf.
  */
 
 /* Gets the oversample rate for a given sample rate.
  * The oversample rate is used to increase the sample rate to improve SNR and quality.
  * This is also used as the interpolation rate when replaying captures. */
 inline OversampleRate get_oversample_rate(uint32_t sample_rate) {
-    if (sample_rate < 30'000) return OversampleRate::x64;   // 25k, 16k, 12k5.
-    if (sample_rate < 80'000) return OversampleRate::x32;   // 75k, 50k, 32k.
-    if (sample_rate < 250'000) return OversampleRate::x16;  // 100k and 150k.
+    if (sample_rate < 30'000) return OversampleRate::x64;    // 25k, 16k, 12k5.
+    if (sample_rate < 80'000) return OversampleRate::x32;    // 75k, 50k, 32k.
+    if (sample_rate < 250'000) return OversampleRate::x16;   // 100k, 150k.
+    if (sample_rate < 1'250'000) return OversampleRate::x8;  // 250k, 500k, 600k, 650k, 750k, 1Mhz.
 
-    return OversampleRate::x8;  // 250k .. 1Mhz, that decim x8 , is already applied.(OVerSampling and decim OK)
+    return OversampleRate::x4;  // Top range (1.25Mhz ... 5.5Mhz).
 }
 
 /* Gets the actual sample rate for a given sample rate.
