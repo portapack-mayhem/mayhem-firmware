@@ -47,16 +47,11 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
 
     feed_channel_stats(out_buffer);
 
-    // TODO: per Brumi spectrum seems to only want 256 samples?
-    // Just call twice in that case?
     spectrum_samples += out_buffer.count;
     if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
-        channel_spectrum.feed(
-            out_buffer,
-            channel_filter_low_f,
-            channel_filter_high_f,
-            channel_filter_transition);
+        channel_spectrum.feed(out_buffer, channel_filter_low_f,
+                              channel_filter_high_f, channel_filter_transition);
     }
 }
 
@@ -81,10 +76,28 @@ void CaptureProcessor::on_message(const Message* const message) {
 }
 
 void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
+    const auto sample_rate = message.sample_rate;
+
     // The actual sample rate is the requested rate * the oversample rate.
     // See oversample.hpp for more details on oversampling.
-    baseband_fs = message.sample_rate * toUType(message.oversample_rate);
+    baseband_fs = sample_rate * toUType(message.oversample_rate);
     baseband_thread.set_sampling_rate(baseband_fs);
+
+    // TODO: Do we need to use the taps that the decimators get configured with?
+    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * sample_rate;
+    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * sample_rate;
+    channel_filter_transition = taps_200k_decim_1.transition_normalized * sample_rate;
+
+    // 0.16 is simply a scalar to make the waterfall run at a nice speed.
+    // Decrease == faster, Increase == slower.
+    spectrum_interval_samples = 0.16 * sample_rate / toUType(message.oversample_rate);
+    spectrum_samples = 0;
+
+    // For high sample rates, the M4 is busy collecting samples so the
+    // waterfall runs slower. Reduce the update interval so it runs faster.
+    // NB: Trade off: looks nicer but uses even _more_ CPU.
+    if (sample_rate > 1'500'000)
+        spectrum_interval_samples /= 2;
 
     constexpr int decim_0_scale = 0x2000000;
     constexpr int decim_1_scale = 0x20000;
@@ -97,8 +110,8 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             break;
 
         case OversampleRate::x8:
-            // M4 can't handle 2 decimation passes for sample rates at or above 600k.
-            if (message.sample_rate < 600'00) {
+            // M4 can't handle 2 decimation passes for sample rates <= 600k.
+            if (message.sample_rate < 600'000) {
                 decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
                 decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
             } else {
@@ -127,18 +140,6 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
             chDbgPanic("Unhandled OversampleRate");
             break;
     }
-
-    size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor();
-    size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor();
-
-    // TODO: Use the right taps give the decimator?
-    // TODO: Why was this using decim_0's output fs?
-    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * decim_1_output_fs;
-    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * decim_1_output_fs;
-    channel_filter_transition = taps_200k_decim_1.transition_normalized * decim_1_output_fs;
-
-    spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
-    spectrum_samples = 0;
 }
 
 void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
