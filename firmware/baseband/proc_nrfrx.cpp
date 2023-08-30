@@ -243,8 +243,8 @@ void NRFRxProcessor::on_message(const Message* const message) {
 
 void NRFRxProcessor::configure(const NRFRxConfigureMessage& message) {
     (void)message;  // avoir unused warning
-    decim_0.configure(taps_200k_wfm_decim_0.taps, 33554432);
-    decim_1.configure(taps_200k_wfm_decim_1.taps, 131072);
+    decim_0.configure(taps_200k_wfm_decim_0.taps);
+    decim_1.configure(taps_200k_wfm_decim_1.taps);
     demod.configure(audio_fs, 5000);
 
     configured = true;
