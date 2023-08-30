@@ -215,6 +215,8 @@ class POCSAGProcessor : public BasebandProcessor {
     int m_numCode{0};
     bool m_inverted{false};
 
+    bool use_squelch_ = false;
+
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};

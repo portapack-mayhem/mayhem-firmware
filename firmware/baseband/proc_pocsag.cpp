@@ -33,8 +33,6 @@
 #include <cstddef>
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
-    // This is called at 1500Hz
-
     if (!configured) return;
 
     // Get 24kHz audio
@@ -43,12 +41,14 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
 
-    // Output audio pre-smoothing so squelch actually works.
-    // NB: It's useful to output *after* when debugging the smoothing filter.
+    // When use_squelch_ is true, AudioOutput applies filters
+    // which should eliminate the need to do this smoothing.
+    if (use_squelch_ == false)
+        smooth.Process(audio.p, audio.count);
+
+    // NB: This applies audio filters in-place when use_squelch_ is true.
     audio_output.write(audio);
 
-    // Smooth the data to make decoding more accurate.
-    smooth.Process(audio.p, audio.count);
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
 }
@@ -83,10 +83,13 @@ void POCSAGProcessor::on_message(const Message* const message) {
 
         case Message::ID::NBFMConfigure: {
             auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
+
+            use_squelch_ = config->squelch_level > 0;
             audio_output.configure(
                 audio_24k_hpf_300hz_config,
-                audio_8k_deemph_300_6_config,
+                audio_24k_lpf_2400hz_config,
                 config->squelch_level / 100.0);
+            audio_output.configure(use_squelch_);
             break;
         }
 
