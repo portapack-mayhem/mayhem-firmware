@@ -249,7 +249,10 @@ void FileManBaseView::refresh_list() {
         auto entry_name = truncate(entry.path, 20);
 
         if (entry.is_directory) {
-            auto size_str = (entry.path == parent_dir_path) ? "" : to_string_dec_uint(file_count(entry.path));
+            auto size_str =
+                (entry.path == parent_dir_path)
+                    ? ""
+                    : to_string_dec_uint(file_count(current_path / entry.path));
 
             menu_view.add_item(
                 {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
