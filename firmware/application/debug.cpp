@@ -50,7 +50,9 @@ void __debug_log(const std::string& msg) {
 void runtime_error(uint8_t source);
 std::string number_to_hex_string(uint32_t);
 void draw_line(int32_t, const char*, regarm_t);
+void draw_stack_dump();
 static bool error_shown = false;
+uint32_t fault_address{0};
 
 void draw_guru_meditation_header(uint8_t source, const char* hint) {
     Painter painter;
@@ -70,7 +72,7 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
 
     if (source == CORTEX_M0) {
         painter.draw_string({48 + 8, 24}, Styles::white, "0");
-        painter.draw_string({12, 320 - 32}, Styles::white, "Press DFU to try Stack Dump");
+        painter.draw_string({24, 320 - 32}, Styles::white, "Press DFU for Stack Dump");
     }
 
     if (source == CORTEX_M4)
@@ -109,6 +111,7 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
             // to see whats causing the fault.
             draw_line(80 + i++ * 20, "lr:", ctxp->lr_thd);
             draw_line(80 + i++ * 20, "pc:", ctxp->pc);
+            fault_address = (uint32_t)ctxp->pc;
 
             // see SCB_CFSR_* in libopencm3/cm3/scb.h for details
             if (cfsr != 0)
@@ -127,7 +130,6 @@ void draw_line(int32_t y_offset, const char* label, regarm_t value) {
 }
 
 void runtime_error(uint8_t source) {
-    bool dumped{false};
     LED led = (source == CORTEX_M0) ? hackrf::one::led_rx : hackrf::one::led_tx;
 
     led.off();
@@ -138,26 +140,133 @@ void runtime_error(uint8_t source) {
             ;
         led.toggle();
 
-        // Stack dump is not guaranteed to work in this state, so wait for DFU button press to attempt it
-        if (!dumped && (swizzled_switches() & (1 << (int)Switch::Dfu))) {
-            dumped = true;
-            stack_dump();
+        // Stack dump will cover entire screen, so wait for DFU button press to attempt it
+        if (swizzled_switches() & (1 << (int)Switch::Dfu)) {
+            draw_stack_dump();
         }
     }
 }
 
-// TODO:  Fix this function to work after a fault; might need to write to screen instead or to Flash memory.
+// This function should only be called with interrupts disabled due to reading swizzled_switches()
+// Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
+void draw_stack_dump() {
+    Painter painter;
+    uint32_t* p{&__process_stack_base__};
+    constexpr int border{8};
+    int x, y;
+    int n{0};
+    bool clear_rect{true};
+    bool first_pass{true};
+
+    // NOTE: Stays in this loop forever unless LEFT button pressed
+    while (1) {
+        if (clear_rect) {
+            painter.fill_rectangle(
+                {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
+                Color::black());
+            x = y = border;
+            clear_rect = false;
+        }
+
+        // skip past unused stack words on 1st pass
+        if (first_pass) {
+            first_pass = false;
+            while ((*p == CRT0_STACKS_FILL_PATTERN) && (p < &__process_stack_end__))
+                p++;
+
+            auto stack_space_left = p - &__process_stack_base__;
+
+            // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
+            painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
+            x += 8 * 5;
+            painter.draw_string({x, y}, Styles::white_small, " M0 STACK free=");
+            x += 15 * 5;
+            painter.draw_string({x, y}, Styles::white_small, to_string_dec_uint(stack_space_left));
+            x = border;
+            y += 8;
+
+            // align subsequent lines to start on 16-byte boundaries
+            p -= (stack_space_left & 3);
+        }
+
+        // print one page of stack dump
+        while ((p < &__process_stack_end__) && (y < portapack::display.height() - border - 8)) {
+            // show address if start of line
+            if (n++ == 0) {
+                painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)p, 8) + ":");
+                x += 9 * 5 - 2;  // note: saving 2 pixels here to prevent reaching right border
+            }
+
+            // show stack word -- highlight if a possible code address (low bit will be set too for !thumb) or actual fault address
+            bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM
+            Style style = (fault_address && *p == fault_address) ? Styles::bg_yellow_small : (code_addr ? Styles::bg_white_small : Styles::white_small);
+            painter.draw_string({x, y}, style, " " + to_string_hex(*p, 8));
+            x += 9 * 5;
+
+            // new line?
+            if (n == 4) {
+                n = 0;
+                x = border;
+                y += 8;
+            }
+
+            // point to next stack word
+            p++;
+        }
+
+        // Out of room on the screen or end of stack - allow Up/Down paging.
+        // First wait for button release from previous press.
+        // NOTE: can't call swizzle_switches() with interrupted enabled!
+        while (swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu)))
+            ;
+
+        painter.draw_string({border, portapack::display.height() - border - 8}, Styles::white_small, "Use UP/DOWN key");
+
+        // Wait for button press.
+        while (1) {
+            auto switches = swizzled_switches();
+
+            // If LEFT button pressed, exit
+            if (switches & (1 << (int)Switch::Left))
+                return;
+
+            // If DOWN pressed; continue to show next page
+            if (switches & (1 << (int)Switch::Down))
+                break;
+
+            // If UP pressed, scroll back by one page
+            if (switches & (1 << (int)Switch::Up)) {
+                // Back up pointer by offset on this screen plus one full screen of 8 pixels per line & 4 words per line
+                // (underflow can't happen here due to stack address range in RAM)
+                p -= ((y - border) + (portapack::display.height() - (border * 2 + 1 * 8))) / (8 / 4);
+                if (p < &__process_stack_base__)
+                    p = &__process_stack_base__;
+                break;
+            }
+
+            // If SEL button pressed, try writing to file (likely to hang in fault condition but heh)
+            if (switches & (1 << (int)Switch::Sel))
+                stack_dump();
+        }
+
+        // clear screen to allow new range to be displayed, if we're not at the end
+        if (p < &__process_stack_end__)
+            clear_rect = true;
+    }
+}
+
+// Disk I/O in this function doesn't work after a fault
 // Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
 bool stack_dump() {
-    ui::Painter painter{};
+    Painter painter;
     std::string debug_dir = "DEBUG";
     std::filesystem::path filename{};
     File stack_dump_file{};
     bool error;
     std::string str;
     uint32_t* p;
-    int n;
-    bool data_found;
+    int n{0};
+    bool data_found{false};
 
     make_new_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/STACK_DUMP_????.TXT");
@@ -169,25 +278,28 @@ bool stack_dump() {
         return false;
     }
 
-    for (p = &__process_stack_base__, n = 0, data_found = false; p < &__process_stack_end__; p++) {
+    for (p = &__process_stack_base__; p < &__process_stack_end__; p++) {
+        // skip past unused stack words
         if (!data_found) {
             if (*p == CRT0_STACKS_FILL_PATTERN)
                 continue;
             else {
                 data_found = true;
                 auto stack_space_left = p - &__process_stack_base__;
-                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused bytes " + to_string_dec_uint(stack_space_left * sizeof(uint32_t)));
+                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused words " + to_string_dec_uint(stack_space_left));
 
                 // align subsequent lines to start on 16-byte boundaries
                 p -= (stack_space_left & 3);
             }
         }
 
+        // write address
         if (n++ == 0) {
             str = to_string_hex((uint32_t)p, 8) + ":";
             stack_dump_file.write(str.data(), 9);
         }
 
+        // write stack dword
         str = " " + to_string_hex(*p, 8);
         stack_dump_file.write(str.data(), 9);
 
