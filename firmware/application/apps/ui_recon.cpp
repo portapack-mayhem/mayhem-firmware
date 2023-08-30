@@ -1124,48 +1124,50 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     switch (new_mod) {
         case AM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            // bw DSB (0) default
-            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
             receiver_model.set_am_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
+            // bw DSB (0) default
+            field_bw.set_by_value(0);
             text_ctcss.set("        ");
             recording_sampling_rate = 12000;
             break;
         case NFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            // bw 16k (2) default
-            field_bw.set_by_value(2);
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
+            // bw 16k (2) default
+            field_bw.set_by_value(2);
             recording_sampling_rate = 24000;
             break;
         case WFM_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            // bw 200k (0) default
-            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             receiver_model.set_wfm_configuration(field_bw.selected_index_value());
             field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
+            // bw 200k (0) default
+            field_bw.set_by_value(0);
             text_ctcss.set("        ");
             recording_sampling_rate = 48000;
             break;
         case SPEC_MODULATION:
             freqman_set_bandwidth_option(new_mod, field_bw);
-            // bw 12k5 (0) default
-            field_bw.set_by_value(0);
             baseband::run_image(portapack::spi_flash::image_tag_capture);
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
             field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
-                auto anti_alias_baseband_bandwidth_filter = filter_bandwidth_for_sampling_rate(sampling_rate);
-                record_view->set_sampling_rate(sampling_rate);
-                receiver_model.set_sampling_rate(sampling_rate);
-                receiver_model.set_baseband_bandwidth(anti_alias_baseband_bandwidth_filter);
+                // record_view determines the correct oversampling to apply and returns the actual sample rate.
+                auto actual_sampling_rate = record_view->set_sampling_rate(sampling_rate);
+
+                // The radio needs to know the effective sampling rate.
+                receiver_model.set_sampling_rate(actual_sampling_rate);
+                receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(actual_sampling_rate));
             };
+            // bw 12k5 (0) default
+            field_bw.set_by_value(0);
             text_ctcss.set("        ");
             break;
         default:
@@ -1173,7 +1175,6 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     }
     if (new_mod != SPEC_MODULATION) {
         button_audio_app.set_text("AUDIO");
-        // TODO: Oversampling.
         record_view->set_sampling_rate(recording_sampling_rate);
         // reset receiver model to fix bug when going from SPEC to audio, the sound is distorted
         receiver_model.set_sampling_rate(3072000);
