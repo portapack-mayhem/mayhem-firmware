@@ -154,8 +154,8 @@ void AFSKRxProcessor::configure(const AFSKRxConfigureMessage& message) {
 
         const size_t demod_input_fs = channel_filter_output_fs;*/
 
-    decim_0.configure(taps_11k0_decim_0.taps, 33554432);
-    decim_1.configure(taps_11k0_decim_1.taps, 131072);
+    decim_0.configure(taps_11k0_decim_0.taps);
+    decim_1.configure(taps_11k0_decim_1.taps);
     channel_filter.configure(taps_11k0_channel.taps, 2);
     demod.configure(audio_fs, 5000);
 

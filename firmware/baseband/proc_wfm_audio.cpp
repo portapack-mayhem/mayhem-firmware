@@ -165,8 +165,8 @@ void WidebandFMAudio::configure(const WFMConfigureMessage& message) {
     spectrum_interval_samples = decim_1_output_fs / spectrum_rate_hz;
     spectrum_samples = 0;
 
-    decim_0.configure(message.decim_0_filter.taps, 33554432);
-    decim_1.configure(message.decim_1_filter.taps, 131072);
+    decim_0.configure(message.decim_0_filter.taps);
+    decim_1.configure(message.decim_1_filter.taps);
     channel_filter_low_f = message.decim_1_filter.low_frequency_normalized * decim_1_input_fs;
     channel_filter_high_f = message.decim_1_filter.high_frequency_normalized * decim_1_input_fs;
     channel_filter_transition = message.decim_1_filter.transition_normalized * decim_1_input_fs;

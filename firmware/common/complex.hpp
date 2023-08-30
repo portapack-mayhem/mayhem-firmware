@@ -36,23 +36,11 @@ struct complex<int8_t> {
     typedef int8_t value_type;
     typedef uint16_t rep_type;
 
-    // constexpr complex(
-    // 	rep_type r
-    // ) : _rep { r }
-    // {
-    // }
-
     constexpr complex(
         int8_t re = 0,
         int8_t im = 0)
         : _v{re, im} {
     }
-
-    // constexpr complex(
-    // 	const complex& o
-    // ) : _rep { o._rep }
-    // {
-    // }
 
     constexpr int8_t real() const { return _v[0]; }
     constexpr int8_t imag() const { return _v[1]; }
@@ -77,23 +65,11 @@ struct complex<int16_t> {
     typedef int16_t value_type;
     typedef uint32_t rep_type;
 
-    // constexpr complex(
-    // 	rep_type r
-    // ) : _rep { r }
-    // {
-    // }
-
     constexpr complex(
         int16_t re = 0,
         int16_t im = 0)
         : _v{re, im} {
     }
-
-    // constexpr complex(
-    // 	const complex& o
-    // ) : _rep { o._rep }
-    // {
-    // }
 
     constexpr int16_t real() const { return _v[0]; }
     constexpr int16_t imag() const { return _v[1]; }

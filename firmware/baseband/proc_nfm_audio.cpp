@@ -144,8 +144,8 @@ void NarrowbandFMAudio::configure(const NBFMConfigureMessage& message) {
 
     const size_t demod_input_fs = channel_filter_output_fs;
 
-    decim_0.configure(message.decim_0_filter.taps, 33554432);
-    decim_1.configure(message.decim_1_filter.taps, 131072);
+    decim_0.configure(message.decim_0_filter.taps);
+    decim_1.configure(message.decim_1_filter.taps);
     channel_filter.configure(message.channel_filter.taps, message.channel_decimation);
     demod.configure(demod_input_fs, message.deviation);
     channel_filter_low_f = message.channel_filter.low_frequency_normalized * channel_filter_input_fs;

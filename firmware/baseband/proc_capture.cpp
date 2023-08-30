@@ -104,43 +104,38 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     if (sample_rate >= 1'500'000)
         spectrum_interval_samples /= (sample_rate / 500'000);
 
-    // Mystery scalars for decimator configuration.
-    // TODO: figure these out and add a real comment.
-    constexpr int decim_0_scale = 0x2000000;
-    constexpr int decim_1_scale = 0x20000;
-
     switch (message.oversample_rate) {
         case OversampleRate::x4:
             // M4 can't handle 2 decimation passes for sample rates needing x4.
-            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
             decim_1.set<NoopDecim>();
             break;
 
         case OversampleRate::x8:
             // M4 can't handle 2 decimation passes for sample rates <= 600k.
             if (message.sample_rate < 600'000) {
-                decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
-                decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
+                decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+                decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
             } else {
                 // Using 180k taps to provide better filtering with a single pass.
-                decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_180k_wfm_decim_0.taps, decim_0_scale);
+                decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_180k_wfm_decim_0.taps);
                 decim_1.set<NoopDecim>();
             }
             break;
 
         case OversampleRate::x16:
-            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps, decim_1_scale);
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps);
+            decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
             break;
 
         case OversampleRate::x32:
-            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps, decim_1_scale);
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
             break;
 
         case OversampleRate::x64:
-            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps, decim_0_scale);
-            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps, decim_1_scale);
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
             break;
 
         default:
