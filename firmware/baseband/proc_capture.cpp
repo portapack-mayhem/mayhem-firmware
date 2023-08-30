@@ -104,10 +104,8 @@ void CaptureProcessor::sample_rate_config(const SampleRateConfigMessage& message
     if (sample_rate >= 1'500'000)
         spectrum_interval_samples /= (sample_rate / 750'000);
 
-    // Those two below "mystery" scalars are widely used in many App's, for decimator (decim0, decim1)  configuration.
-    // 0x2000000 = 335554432 dec = 2 exp 25 . Used in decim0,  to scale and shift the filtered with gain and decimated samples, using  int 64 that was using the bottom 38 bits.
-    // With that scale , we are shifting up  25 bits, and then ,  we can pick up the top 2 bytes with sign in the signed c16 conversion
-    // 0x20000   = 131072 dec = 2 exp 18 , same explanation , used in decim 1 ,to scale and shift the ,filtered + gain and decimated samples using int 32, in the signed c16 convertion.
+    // Mystery scalars for decimator configuration.
+    // TODO: figure these out and add a real comment.
     constexpr int decim_0_scale = 0x2000000;
     constexpr int decim_1_scale = 0x20000;
 
