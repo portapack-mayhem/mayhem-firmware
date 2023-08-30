@@ -87,7 +87,7 @@ void POCSAGProcessor::on_message(const Message* const message) {
             use_squelch_ = config->squelch_level > 0;
             audio_output.configure(
                 audio_24k_hpf_300hz_config,
-                audio_8k_deemph_300_6_config,
+                audio_24k_lpf_2400hz_config,
                 config->squelch_level / 100.0);
             audio_output.configure(use_squelch_);
             break;

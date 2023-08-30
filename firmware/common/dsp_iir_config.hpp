@@ -77,6 +77,12 @@ constexpr iir_biquad_config_t audio_24k_deemph_300_6_config{
     {0.03780475f, 0.03780475f, 0.00000000f},
     {1.00000000f, -0.92439049f, 0.00000000f}};
 
+// scipy.signal.butter(1, 2400 / 12000.0, 'lowpass', analog=False)
+// NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
+constexpr iir_biquad_config_t audio_24k_lpf_2400hz_config{
+    {0.03780475f, 0.03780475f, 0.00000000f},
+    {1.00000000f, -0.92439049f, 0.00000000f}};
+
 // scipy.signal.butter(1, 300 / 8000.0, 'lowpass', analog=False)
 // NOTE: Technically, order-1 filter, b[2] = a[2] = 0.
 constexpr iir_biquad_config_t audio_16k_deemph_300_6_config{
