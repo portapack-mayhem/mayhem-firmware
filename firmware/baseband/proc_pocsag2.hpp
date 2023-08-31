@@ -23,8 +23,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_POCSAG_H__
-#define __PROC_POCSAG_H__
+#ifndef __PROC_POCSAG2_H__
+#define __PROC_POCSAG2_H__
 
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
@@ -224,4 +224,4 @@ class POCSAGProcessor : public BasebandProcessor {
     RSSIThread rssi_thread{};
 };
 
-#endif /*__PROC_POCSAG_H__*/
+#endif /*__PROC_POCSAG2_H__*/

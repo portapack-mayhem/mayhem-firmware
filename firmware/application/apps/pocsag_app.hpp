@@ -60,6 +60,7 @@ struct POCSAGSettings {
     bool hide_bad_data = false;
     bool hide_addr_only = false;
     uint32_t address_to_ignore = 0;
+    bool use_new_proc = false;
 };
 
 class POCSAGSettingsView : public View {
@@ -67,45 +68,46 @@ class POCSAGSettingsView : public View {
     POCSAGSettingsView(NavigationView& nav, POCSAGSettings& settings);
 
     std::string title() const override { return "POCSAG Config"; };
+    void focus() override { button_save.focus(); }
 
    private:
     POCSAGSettings& settings_;
 
+    Checkbox check_beta{
+        {0 * 8 + 2, 18 * 16 - 4},
+        6,
+        "Beta",
+        true /*small*/};
+
     Checkbox check_log{
         {2 * 8, 2 * 16},
         10,
-        "Enable Log",
-        false};
+        "Enable Log"};
 
     Checkbox check_log_raw{
         {2 * 8, 4 * 16},
         12,
-        "Log Raw Data",
-        false};
+        "Log Raw Data"};
 
     Checkbox check_small_font{
         {2 * 8, 6 * 16},
         4,
-        "Use Small Font",
-        false};
+        "Use Small Font"};
 
     Checkbox check_hide_bad{
         {2 * 8, 8 * 16},
         22,
-        "Hide Bad Data",
-        false};
+        "Hide Bad Data"};
 
     Checkbox check_hide_addr_only{
         {2 * 8, 10 * 16},
         22,
-        "Hide Addr Only",
-        false};
+        "Hide Addr Only"};
 
     Checkbox check_ignore{
         {2 * 8, 12 * 16},
         22,
-        "Enable Ignored Address",
-        false};
+        "Enable Ignored Address"};
 
     NumberField field_ignore{
         {7 * 8, 13 * 16 + 8},
@@ -115,7 +117,7 @@ class POCSAGSettingsView : public View {
         '0'};
 
     Button button_save{
-        {12 * 8, 16 * 16, 10 * 8, 2 * 16},
+        {11 * 8, 16 * 16, 10 * 8, 2 * 16},
         "Save"};
 };
 
@@ -150,6 +152,7 @@ class POCSAGAppView : public View {
             {"address_to_ignore"sv, &settings_.address_to_ignore},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
+            {"use_new_proc"sv, &settings_.use_new_proc},
         }};
 
     void refresh_ui();
