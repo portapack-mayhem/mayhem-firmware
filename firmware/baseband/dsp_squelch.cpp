@@ -36,6 +36,7 @@ bool FMSquelch::execute(const buffer_f32_t& audio) {
         squelch_energy_buffer.size()};
     non_audio_hpf.execute(audio, squelch_energy);
 
+    // "Non-audio" implies "noise" here. Find the loudest noise sample.
     float non_audio_max_squared = 0;
     for (const auto sample : squelch_energy_buffer) {
         const float sample_squared = sample * sample;
@@ -44,9 +45,14 @@ bool FMSquelch::execute(const buffer_f32_t& audio) {
         }
     }
 
+    // Is the noise less than the threshold?
     return (non_audio_max_squared < threshold_squared);
 }
 
 void FMSquelch::set_threshold(const float new_value) {
     threshold_squared = new_value * new_value;
+}
+
+bool FMSquelch::enabled() const {
+    return threshold_squared > 0.0;
 }

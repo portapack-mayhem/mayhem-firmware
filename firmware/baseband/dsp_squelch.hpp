@@ -31,9 +31,12 @@
 
 class FMSquelch {
    public:
+    /* Check if noise level is lower than threshold.
+     * Returns true if noise is below threshold. */
     bool execute(const buffer_f32_t& audio);
 
     void set_threshold(const float new_value);
+    bool enabled() const;
 
    private:
     static constexpr size_t N = 32;

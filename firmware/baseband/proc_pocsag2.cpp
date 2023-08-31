@@ -23,7 +23,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_pocsag.hpp"
+#include "proc_pocsag2.hpp"
 
 #include "dsp_iir_config.hpp"
 #include "event_m4.hpp"
@@ -57,7 +57,6 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     extractFrames();
 
     // Clear the output before sending to audio chip.
-    // Only clear the audio buffer when there hasn't been any audio for a while.
     if (squelch_.enabled() && squelch_history == 0) {
         for (size_t i = 0; i < audio.count; ++i) {
             audio.p[i] = 0.0;
