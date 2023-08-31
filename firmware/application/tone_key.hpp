@@ -31,7 +31,7 @@ namespace tonekey {
 
 #define TONE_FREQ_TOLERANCE_CENTIHZ (4 * 100)
 #define TONE_DISPLAY_TOGGLE_COUNTER 3
-#define F2Ix100(x) (int32_t)(x * 100.0)
+#define F2Ix100(x) (int32_t)(x * 100.0 + 0.5)  // add 0.5f to round vs truncate during FP->int conversion
 
 using tone_index = int32_t;
 using tone_key_t = std::vector<std::pair<std::string, uint32_t>>;
