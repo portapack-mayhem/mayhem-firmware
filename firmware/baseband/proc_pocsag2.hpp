@@ -83,8 +83,10 @@ class POCSAGProcessor : public BasebandProcessor {
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
 
-    // LPF to reduce noise to ~1200kHz.
-    IIRBiquadFilter lpf{audio_24k_lpf_1200hz_config};
+    // BPF to reduce noise.
+    // scipy.signal.butter(2, 3600, "lowpass", fs=24000, analog=False)
+    IIRBiquadFilter lpf{{{0.13110644f,  0.26221288f, 0.13110644f},
+                         {1.00000000f, -0.74778918f, 0.27221494f}}};
 
     // Squelch to ignore noise.
     FMSquelch squelch{};

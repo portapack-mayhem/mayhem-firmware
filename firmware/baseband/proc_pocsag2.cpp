@@ -37,6 +37,11 @@ using namespace std;
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
+    // buffer has 2048 samples
+    // decim0 out: 2048/8 = 256 samples
+    // decim1 out: 256/8 = 32 samples
+    // channel out: 32/2 = 16 samples
+
     // Get 24kHz audio
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
@@ -63,7 +68,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
         return;
     }
 
-    // Filter out high-frequency noise.
+    // Filter out high-frequency noise. TODO: compensate gain?
     lpf.execute_in_place(audio);
     audio_output.write(audio);
 
