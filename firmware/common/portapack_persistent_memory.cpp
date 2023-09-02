@@ -277,7 +277,7 @@ struct data_t {
           headphone_volume_cb(-600),
           misc_config(),
           ui_config2(),
-          recovery_mode_storage(0) {
+          recovery_mode_storage(RECOVERY_MODE_NORMAL_VALUE) {
     }
 };
 
@@ -384,6 +384,10 @@ void defaults() {
 
 void init() {
     const auto switches_state = get_switches_state();
+    
+    // ignore for valid check
+    auto recovery_mode_backup = recovery_mode_storage();
+    set_recovery_mode_storage(RECOVERY_MODE_NORMAL_VALUE);
     if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
@@ -399,6 +403,7 @@ void init() {
         // Copy defaults into cache.
         defaults();
     }
+    set_recovery_mode_storage(recovery_mode_backup);
 }
 
 void persist() {

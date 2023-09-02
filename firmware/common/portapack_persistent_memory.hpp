@@ -217,6 +217,9 @@ void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
+
+#define RECOVERY_MODE_GUARD_VALUE 2001
+#define RECOVERY_MODE_NORMAL_VALUE 1999
 uint32_t recovery_mode_storage();
 void set_recovery_mode_storage(uint32_t v);
 
