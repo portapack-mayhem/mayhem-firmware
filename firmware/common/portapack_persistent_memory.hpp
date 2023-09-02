@@ -217,6 +217,8 @@ void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
+uint32_t recovery_mode_storage();
+void set_recovery_mode_storage(uint32_t v);
 
 uint32_t pocsag_last_address();
 void set_pocsag_last_address(uint32_t address);

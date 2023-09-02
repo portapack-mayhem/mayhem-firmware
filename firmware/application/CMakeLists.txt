@@ -316,6 +316,7 @@ set(CPPSRC
 	# ui_replay_view.cpp
 	# ui_script.cpp
 	ui_sd_card_debug.cpp
+	recovery_mode.cpp
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}

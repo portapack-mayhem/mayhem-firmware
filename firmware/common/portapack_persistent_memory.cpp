@@ -226,6 +226,9 @@ struct data_t {
     // Additional UI settings.
     ui_config2_t ui_config2;
 
+    // recovery mode magic value storage
+    uint32_t recovery_mode_storage;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           target_frequency(target_frequency_reset_value),
@@ -273,7 +276,8 @@ struct data_t {
           UNUSED_8(0),
           headphone_volume_cb(-600),
           misc_config(),
-          ui_config2() {
+          ui_config2(),
+          recovery_mode_storage(0) {
     }
 };
 
@@ -838,6 +842,16 @@ uint8_t config_encoder_dial_sensitivity() {
 }
 void set_encoder_dial_sensitivity(uint8_t v) {
     data->encoder_dial_sensitivity = v;
+}
+
+// Recovery mode magic value storage
+static data_t* data_direct_access = reinterpret_cast<data_t*>(memory::map::backup_ram.base());
+
+uint32_t recovery_mode_storage() {
+    return data_direct_access->recovery_mode_storage;
+}
+void set_recovery_mode_storage(uint32_t v) {
+    data_direct_access->recovery_mode_storage = v;
 }
 
 // PMem to sdcard settings
