@@ -21,6 +21,8 @@
 
 #include "recovery_mode.hpp"
 #include "core_control.hpp"
+#include "hackrf_gpio.hpp"
+#include "portapack_hal.hpp"
 
 #define RECOVERY_MODE_GUARD_VALUE 2001
 #define RECOVERY_MODE_NORMAL_VALUE 1999
@@ -38,5 +40,24 @@ void recovery_mode_clear() {
 }
 
 void recovery_mode_run() {
+
+    configure_pins_portapack();
+    portapack::gpio_dfu.input();
+
+    while (true) {
+        chThdSleepMilliseconds(100);
+        hackrf::one::led_tx.on();
+        hackrf::one::led_rx.on();
+
+        auto dfu_btn = portapack::gpio_dfu.read();
+        if (dfu_btn)
+            hackrf::one::led_usb.on();
+
+        chThdSleepMilliseconds(100);
+        hackrf::one::led_tx.off();
+        hackrf::one::led_rx.off();
+        hackrf::one::led_usb.off();
+    }
+
     m0_halt();
 }
