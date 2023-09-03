@@ -142,7 +142,7 @@ static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
 struct misc_config_t {
     bool mute_audio : 1;
     bool disable_speaker : 1;
-    bool UNUSED_2 : 1;
+    bool config_force_tcxo : 1;
     bool UNUSED_3 : 1;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
@@ -367,6 +367,7 @@ void defaults() {
 
     set_config_backlight_timer(backlight_config_t{});
     set_config_splash(true);
+    set_config_force_tcxo(false);
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
 
@@ -559,6 +560,10 @@ bool config_speaker_disable() {
     return data->misc_config.disable_speaker;
 }
 
+bool config_force_tcxo() {
+    return data->misc_config.config_force_tcxo;
+}
+
 bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
@@ -618,6 +623,10 @@ void set_config_audio_mute(bool v) {
 
 void set_config_speaker_disable(bool v) {
     data->misc_config.disable_speaker = v;
+}
+
+void set_config_force_tcxo(bool v) {
+    data->misc_config.config_force_tcxo = v;
 }
 
 void set_stealth_mode(bool v) {
@@ -984,6 +993,8 @@ bool debug_dump() {
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
+    pmem_dump_file.write_line("ui_config config_force_tcxo: " + to_string_dec_uint(config_force_tcxo()));
+
     // receiver_model
     pmem_dump_file.write_line("\n[Receiver Model]");
     pmem_dump_file.write_line("target_frequency: " + to_string_dec_uint(receiver_model.target_frequency()));
