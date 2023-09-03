@@ -61,8 +61,12 @@ class POCSAGProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 3072000;
+    static constexpr uint8_t stat_update_interval = 10;
+    static constexpr uint32_t stat_update_threshold =
+        baseband_fs / stat_update_interval;
 
     void configure();
+    void send_stats() const;
 
     // Set once app is ready to receive messages.
     bool configured = false;
@@ -85,7 +89,7 @@ class POCSAGProcessor : public BasebandProcessor {
 
     // LPF to reduce noise - NB: can be BAUD/2.
     // scipy.signal.butter(2, 1200, "lowpass", fs=24000, analog=False)
-    IIRBiquadFilter lpf{{{0.02008337f,  0.04016673f, 0.02008337f},
+    IIRBiquadFilter lpf{{{0.02008337f, 0.04016673f, 0.02008337f},
                          {1.00000000f, -1.56101808f, 0.64135154f}}};
 
     // Squelch to ignore noise.
@@ -99,6 +103,7 @@ class POCSAGProcessor : public BasebandProcessor {
     pocsag::POCSAGPacket packet{};
 
     bool has_been_reset = true;
+    uint32_t samples_processed = 0;
 
     //--------------------------------------------------
 

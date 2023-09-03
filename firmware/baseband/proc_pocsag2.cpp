@@ -58,6 +58,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
         if (!has_been_reset) {
             OnDataFrame(m_numCode, getRate());
             resetVals();
+            send_stats();
         }
 
         // Clear the audio stream before sending.
@@ -70,10 +71,18 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 
     // Filter out high-frequency noise. TODO: compensate gain?
     lpf.execute_in_place(audio);
+    for (size_t i = 0; i < audio.count; ++i)
+        audio.p[i] *= 2;
     audio_output.write(audio);
 
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
+
+    samples_processed += buffer.count;
+    if (samples_processed >= stat_update_threshold) {
+        send_stats();
+        samples_processed = 0;
+    }
 }
 
 void POCSAGProcessor::on_message(const Message* const message) {
@@ -112,6 +121,11 @@ void POCSAGProcessor::configure() {
 
     // Set ready to process data.
     configured = true;
+}
+
+void POCSAGProcessor::send_stats() const {
+    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync);
+    shared_memory.application_queue.push(message);
 }
 
 int POCSAGProcessor::OnDataWord(uint32_t word, int pos) {
@@ -182,10 +196,12 @@ void POCSAGProcessor::resetVals() {
 
     // Extraction
     m_fifo.numBits = 0;
+    m_fifo.codeword = 0;
     m_gotSync = false;
     m_numCode = 0;
 
     has_been_reset = true;
+    samples_processed = 0;
 }
 
 void POCSAGProcessor::setFrameExtractParams(long a_samplesPerSec, long a_maxBaud, long a_minBaud, long maxRunOfSameValue) {
@@ -420,12 +436,12 @@ int POCSAGProcessor::extractFrames() {
             // Not got sync
             // ------------
             if (!m_gotSync) {
-                if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2) {
+                if (bitsDiff(m_fifo.codeword, M_SYNC) <= 3) {
                     m_inverted = false;
                     m_gotSync = true;
                     m_numCode = -1;
                     m_fifo.numBits = 0;
-                } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2) {
+                } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 3) {
                     m_inverted = true;
                     m_gotSync = true;
                     m_numCode = -1;

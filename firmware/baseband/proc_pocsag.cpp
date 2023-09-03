@@ -56,6 +56,12 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
 
+    samples_processed += buffer.count;
+    if (samples_processed >= stat_update_threshold) {
+        send_stats();
+        samples_processed = 0;
+    }
+
     // Clear the output before sending to audio chip.
     // Only clear the audio buffer when there hasn't been any audio for a while.
     if (squelch_.enabled() && squelch_history == 0) {
@@ -135,6 +141,11 @@ void POCSAGProcessor::configure() {
 
     // Mark the class as ready to accept data
     configured = true;
+}
+
+void POCSAGProcessor::send_stats() const {
+    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync);
+    shared_memory.application_queue.push(message);
 }
 
 // -----------------------------
