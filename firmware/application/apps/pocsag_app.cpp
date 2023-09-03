@@ -105,6 +105,8 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
          &field_volume,
          &image_status,
          &text_packet_count,
+         &widget_bits,
+         &widget_frames,
          &button_ignore_last,
          &button_config,
          &console});
@@ -271,7 +273,31 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
     image_status.set_foreground(get_status_color(pocsag_state));
 }
 
-void POCSAGAppView::on_stats(const POCSAGStatsMessage*) {
+void POCSAGAppView::on_stats(const POCSAGStatsMessage* stats) {
+    widget_bits.set_bits(stats->current_bits);
+    widget_frames.set_frames(stats->current_frames);
+    widget_frames.set_sync(stats->has_sync);
+}
+
+void BitsIndicator::paint(Painter&) {
+    auto p = screen_pos();
+    for (size_t i = 0; i < sizeof(bits_) * 8; ++i) {
+        auto is_set = ((bits_ >> i) & 0x1) == 1;
+
+        int x = p.x() + (i / height);
+        int y = p.y() + (i % height);
+        display.draw_pixel({x, y}, is_set ? Color::white() : Color::black());
+    }
+}
+
+void FrameIndicator::paint(Painter& painter) {
+    auto p = screen_pos();
+    painter.draw_rectangle({p, {2, height}}, has_sync_ ? Color::green() : Color::grey());
+
+    for (size_t i = 0; i < height; ++i) {
+        auto p2 = p + Point{2, (int)i};
+        painter.draw_hline(p2, 2, i < frame_count_ ? Color::white() : Color::black());
+    }
 }
 
 } /* namespace ui */
