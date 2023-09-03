@@ -54,8 +54,10 @@ void config_mode_run() {
 
     auto last_dfu_btn = portapack::gpio_dfu.read();
     portapack::persistent_memory::cache::init();
-    int8_t cpld_blink_pattern_value = portapack::persistent_memory::config_cpld(); /* 0 .. 4*/
+
     int32_t counter = 0;
+    int8_t blink_pattern_value = portapack::persistent_memory::config_cpld() +
+                                 (portapack::persistent_memory::config_disable_external_tcxo() ? 5 : 0);
 
     while (true) {
         auto dfu_btn = portapack::gpio_dfu.read();
@@ -63,20 +65,32 @@ void config_mode_run() {
         last_dfu_btn = dfu_btn;
 
         if (dfu_clicked) {
-            int8_t value = portapack::persistent_memory::config_cpld(); /* 0 .. 4*/
-            cpld_blink_pattern_value = value = (value + 1) % 5;
+            int8_t value = portapack::persistent_memory::config_cpld() +
+                           (portapack::persistent_memory::config_disable_external_tcxo() ? 5 : 0);
 
-            portapack::persistent_memory::set_config_cpld(value);
+            blink_pattern_value = value = (value + 1) % 10;
+
+            portapack::persistent_memory::set_config_cpld(value % 5);
+            portapack::persistent_memory::set_config_disable_external_tcxo((value / 5) == 1);
+
             portapack::persistent_memory::cache::persist();
         }
 
-        auto cpld_blink_pattern = blink_patterns[cpld_blink_pattern_value];
+        auto tx_blink_pattern = blink_patterns[blink_pattern_value % 5];
+        auto rx_blink_pattern = blink_patterns[blink_pattern_value / 5];
 
-        auto led_value = ((cpld_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
-        if (led_value) {
+        auto tx_value = ((tx_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
+        if (tx_value) {
             hackrf::one::led_tx.on();
         } else {
             hackrf::one::led_tx.off();
+        }
+
+        auto rx_value = ((rx_blink_pattern >> ((counter >> 0) & 31)) & 0x1) == 0x1;
+        if (rx_value) {
+            hackrf::one::led_rx.on();
+        } else {
+            hackrf::one::led_rx.off();
         }
 
         chThdSleepMilliseconds(100);
