@@ -227,7 +227,7 @@ struct data_t {
     ui_config2_t ui_config2;
 
     // recovery mode magic value storage
-    uint32_t recovery_mode_storage;
+    uint32_t config_mode_storage;
 
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -277,7 +277,7 @@ struct data_t {
           headphone_volume_cb(-600),
           misc_config(),
           ui_config2(),
-          recovery_mode_storage(RECOVERY_MODE_NORMAL_VALUE) {
+          config_mode_storage(CONFIG_MODE_NORMAL_VALUE) {
     }
 };
 
@@ -386,8 +386,8 @@ void init() {
     const auto switches_state = get_switches_state();
 
     // ignore for valid check
-    auto recovery_mode_backup = recovery_mode_storage();
-    set_recovery_mode_storage(RECOVERY_MODE_NORMAL_VALUE);
+    auto config_mode_backup = config_mode_storage();
+    set_config_mode_storage(CONFIG_MODE_NORMAL_VALUE);
     if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
@@ -403,7 +403,7 @@ void init() {
         // Copy defaults into cache.
         defaults();
     }
-    set_recovery_mode_storage(recovery_mode_backup);
+    set_config_mode_storage(config_mode_backup);
 }
 
 void persist() {
@@ -852,11 +852,11 @@ void set_encoder_dial_sensitivity(uint8_t v) {
 // Recovery mode magic value storage
 static data_t* data_direct_access = reinterpret_cast<data_t*>(memory::map::backup_ram.base());
 
-uint32_t recovery_mode_storage() {
-    return data_direct_access->recovery_mode_storage;
+uint32_t config_mode_storage() {
+    return data_direct_access->config_mode_storage;
 }
-void set_recovery_mode_storage(uint32_t v) {
-    data_direct_access->recovery_mode_storage = v;
+void set_config_mode_storage(uint32_t v) {
+    data_direct_access->config_mode_storage = v;
 }
 
 // PMem to sdcard settings

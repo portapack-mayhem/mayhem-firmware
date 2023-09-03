@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __RECOVERY_MODE_H__
-#define __RECOVERY_MODE_H__
+#ifndef __CONFIG_MODE_H__
+#define __CONFIG_MODE_H__
 
 #include "ch.h"
 
@@ -28,10 +28,10 @@
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
-void recovery_mode_set();
-bool recovery_mode_should_enter();
-void recovery_mode_clear();
+void config_mode_set();
+bool config_mode_should_enter();
+void config_mode_clear();
 
-void recovery_mode_run();
+void config_mode_run();
 
-#endif /* __RECOVERY_MODE_H__ */
+#endif /* __CONFIG_MODE_H__ */

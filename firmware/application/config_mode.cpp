@@ -19,23 +19,23 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "recovery_mode.hpp"
+#include "config_mode.hpp"
 #include "core_control.hpp"
 #include "hackrf_gpio.hpp"
 #include "portapack_hal.hpp"
 
-void recovery_mode_blink_until_dfu();
+void config_mode_blink_until_dfu();
 
-void recovery_mode_set() {
-    portapack::persistent_memory::set_recovery_mode_storage(RECOVERY_MODE_GUARD_VALUE);
+void config_mode_set() {
+    portapack::persistent_memory::set_config_mode_storage(CONFIG_MODE_GUARD_VALUE);
 }
 
-bool recovery_mode_should_enter() {
-    return portapack::persistent_memory::recovery_mode_storage() == RECOVERY_MODE_GUARD_VALUE;
+bool config_mode_should_enter() {
+    return portapack::persistent_memory::config_mode_storage() == CONFIG_MODE_GUARD_VALUE;
 }
 
-void recovery_mode_clear() {
-    portapack::persistent_memory::set_recovery_mode_storage(RECOVERY_MODE_NORMAL_VALUE);
+void config_mode_clear() {
+    portapack::persistent_memory::set_config_mode_storage(CONFIG_MODE_NORMAL_VALUE);
 }
 
 uint32_t blink_patterns[] = {
@@ -46,11 +46,11 @@ uint32_t blink_patterns[] = {
     0xFFF3FFF3   // 4 inverse blink slow
 };
 
-void recovery_mode_run() {
+void config_mode_run() {
     configure_pins_portapack();
     portapack::gpio_dfu.input();
 
-    recovery_mode_blink_until_dfu();
+    config_mode_blink_until_dfu();
 
     auto last_dfu_btn = portapack::gpio_dfu.read();
     portapack::persistent_memory::cache::init();
@@ -84,7 +84,7 @@ void recovery_mode_run() {
     }
 }
 
-void recovery_mode_blink_until_dfu() {
+void config_mode_blink_until_dfu() {
     while (true) {
         hackrf::one::led_tx.on();
         hackrf::one::led_rx.on();
