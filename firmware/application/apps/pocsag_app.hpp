@@ -55,10 +55,10 @@ namespace ui {
 class BitsIndicator : public Widget {
    public:
     BitsIndicator(Point position)
-        : Widget{{position, {width, height}}} {}
+        : Widget{{position, {2, height}}} {}
 
     void paint(Painter& painter) override;
-    void set_bits(uint64_t bits) {
+    void set_bits(uint32_t bits) {
         if (bits != bits_) {
             bits_ = bits;
             set_dirty();
@@ -66,16 +66,14 @@ class BitsIndicator : public Widget {
     }
 
    private:
-    uint64_t bits_ = 0;
-
     static constexpr uint8_t height = 16;
-    static constexpr uint8_t width = sizeof(bits_) / height;
+    uint32_t bits_ = 0;
 };
 
 class FrameIndicator : public Widget {
    public:
     FrameIndicator(Point position)
-        : Widget{{position, {width, height}}} {}
+        : Widget{{position, {4, height}}} {}
 
     void paint(Painter& painter) override;
     void set_frames(uint8_t frame_count) {
@@ -94,7 +92,6 @@ class FrameIndicator : public Widget {
 
    private:
     static constexpr uint8_t height = 16;
-    static constexpr uint8_t width = 2;
     uint8_t frame_count_ = 0;
     bool has_sync_ = false;
 };
@@ -249,7 +246,7 @@ class POCSAGAppView : public View {
         "0"};
 
     BitsIndicator widget_bits{
-        {9 * 7 + 4, 1 * 16 + 2}};
+        {9 * 7 + 6, 1 * 16 + 2}};
 
     FrameIndicator widget_frames{
         {9 * 8, 1 * 16 + 2}};

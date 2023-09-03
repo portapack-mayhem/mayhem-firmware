@@ -344,7 +344,7 @@ class POCSAGPacketMessage : public Message {
 class POCSAGStatsMessage : public Message {
    public:
     constexpr POCSAGStatsMessage(
-        uint64_t current_bits,
+        uint32_t current_bits,
         uint8_t current_frames,
         bool has_sync)
         : Message{ID::POCSAGStats},
@@ -353,7 +353,7 @@ class POCSAGStatsMessage : public Message {
           has_sync{has_sync} {
     }
 
-    uint64_t current_bits = 0;
+    uint32_t current_bits = 0;
     uint8_t current_frames = 0;
     bool has_sync = false;
 };
