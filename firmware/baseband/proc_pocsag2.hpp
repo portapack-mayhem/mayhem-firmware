@@ -83,10 +83,10 @@ class POCSAGProcessor : public BasebandProcessor {
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
 
-    // BPF to reduce noise.
-    // scipy.signal.butter(2, 3600, "lowpass", fs=24000, analog=False)
-    IIRBiquadFilter lpf{{{0.13110644f,  0.26221288f, 0.13110644f},
-                         {1.00000000f, -0.74778918f, 0.27221494f}}};
+    // LPF to reduce noise - NB: can be BAUD/2.
+    // scipy.signal.butter(2, 1200, "lowpass", fs=24000, analog=False)
+    IIRBiquadFilter lpf{{{0.02008337f,  0.04016673f, 0.02008337f},
+                         {1.00000000f, -1.56101808f, 0.64135154f}}};
 
     // Squelch to ignore noise.
     FMSquelch squelch{};
