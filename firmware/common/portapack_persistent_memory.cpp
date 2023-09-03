@@ -384,7 +384,7 @@ void defaults() {
 
 void init() {
     const auto switches_state = get_switches_state();
-    
+
     // ignore for valid check
     auto recovery_mode_backup = recovery_mode_storage();
     set_recovery_mode_storage(RECOVERY_MODE_NORMAL_VALUE);
