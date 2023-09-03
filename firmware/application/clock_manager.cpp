@@ -329,11 +329,14 @@ bool ClockManager::loss_of_signal() {
         const auto frequency = measure_gp_clkin_frequency();
         return (frequency < 9850000) || (frequency > 10150000);
     } else {
-        clock_generator.clkin_loss_of_signal();
+        return clock_generator.clkin_loss_of_signal();
     }
 }
 
 ClockManager::ReferenceSource ClockManager::detect_reference_source() {
+    if (portapack::persistent_memory::config_disable_external_tcxo())
+        return ReferenceSource::Xtal;
+
     if (loss_of_signal()) {
         // No external reference. Turn on PortaPack reference (if present).
         portapack_tcxo_enable();
