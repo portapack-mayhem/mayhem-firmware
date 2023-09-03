@@ -169,7 +169,7 @@ SetRadioView::SetRadioView(
                   &button_save,
                   &button_cancel});
     if (hackrf_r9)
-        add_children({&force_tcxo});
+        add_children({&disable_external_tcxo});
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -223,26 +223,14 @@ SetRadioView::SetRadioView(
         send_system_refresh();
     };
 
-    force_tcxo.set_value(pmem::config_force_tcxo());
-    force_tcxo.on_select = [this](Checkbox&, bool checked) {
-        // checked ? clock_manager.set_reference({ClockManager::ReferenceSource::External, 10000000})
-        //   : clock_manager.set_reference({ClockManager::ReferenceSource::Xtal, 25000000});
-
-        /*
-        Sadly we cannot do:
-        clock_manager.set_reference(clock_manager.choose_reference(checked));
-        As it actaully causes the device to freeze/crash. I will fix this in the next PR (@jLynx)
-        */
-
-        send_system_refresh();
-    };
+    disable_external_tcxo.set_value(pmem::config_disable_external_tcxo());
 
     button_save.on_select = [this, &nav](Button&) {
         const auto model = this->form_collect();
         pmem::set_correction_ppb(model.ppm * 1000);
         pmem::set_clkout_freq(model.freq);
         if (hackrf_r9)
-            pmem::set_config_force_tcxo(force_tcxo.value());
+            pmem::set_config_disable_external_tcxo(disable_external_tcxo.value());
         clock_manager.enable_clock_output(pmem::clkout_enabled());
         nav.pop();
     };

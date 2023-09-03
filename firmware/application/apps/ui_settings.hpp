@@ -185,10 +185,10 @@ class SetRadioView : public View {
         5,
         "Turn on bias voltage"};
 
-    Checkbox force_tcxo{
+    Checkbox disable_external_tcxo{
         {18, 14 * 16},
         5,
-        "Force external TCXO"};
+        "Disable external TCXO"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
