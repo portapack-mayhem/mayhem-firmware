@@ -29,20 +29,19 @@ bool FMSquelch::execute(const buffer_f32_t& audio) {
         return true;
     }
 
-    // TODO: No hard-coded array size.
-    std::array<float, N> squelch_energy_buffer;
-    const buffer_f32_t squelch_energy{
-        squelch_energy_buffer.data(),
-        squelch_energy_buffer.size()};
+    // TODO: alloca temp buffer, assert audio.count
+    std::array<float, 32> squelch_energy_buffer;
+    const buffer_f32_t squelch_energy{squelch_energy_buffer.data(), audio.count};
     non_audio_hpf.execute(audio, squelch_energy);
 
     // "Non-audio" implies "noise" here. Find the loudest noise sample.
     float non_audio_max_squared = 0;
-    for (const auto sample : squelch_energy_buffer) {
-        const float sample_squared = sample * sample;
-        if (sample_squared > non_audio_max_squared) {
+    for (size_t i = 0; i < squelch_energy.count; ++i) {
+        auto sample = squelch_energy.p[i];
+        float sample_squared = sample * sample;
+
+        if (sample_squared > non_audio_max_squared)
             non_audio_max_squared = sample_squared;
-        }
     }
 
     // Is the noise less than the threshold?

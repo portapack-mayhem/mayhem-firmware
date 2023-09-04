@@ -39,7 +39,6 @@ class FMSquelch {
     bool enabled() const;
 
    private:
-    static constexpr size_t N = 32;
     float threshold_squared{0.0f};
 
     IIRBiquadFilter non_audio_hpf{non_audio_hpf_config};

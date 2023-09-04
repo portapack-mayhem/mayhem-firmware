@@ -100,7 +100,7 @@ class AudioNormalizer {
     float t_lo_ = 1.0;
 };
 
-/* FIFO wrapper over a uin32_t's bits. */
+/* FIFO wrapper over a uint32_t's bits. */
 class BitQueue {
    public:
     void push(bool bit) {
@@ -285,8 +285,6 @@ class POCSAGProcessor : public BasebandProcessor {
     //--------------------------------------------------
     // Transitional code
 
-    bool has_been_reset = true;
-
     // ----------------------------------------
     // Frame extractraction methods and members
     // ----------------------------------------
@@ -294,7 +292,6 @@ class POCSAGProcessor : public BasebandProcessor {
     void resetVals();
     void setFrameExtractParams(long a_samplesPerSec, long a_maxBaud = 8000, long a_minBaud = 200, long maxRunOfSameValue = 32);
     int processDemodulatedSamples(float* sampleBuff, int noOfSamples);
-    int extractFrames();
 
     uint32_t getRate();
 
@@ -321,11 +318,6 @@ class POCSAGProcessor : public BasebandProcessor {
     uint32_t m_minSymSamples_1024{0};
     uint32_t m_maxSymSamples_1024{0};
     uint32_t m_maxRunOfSameValue{0};
-
-    // FIFOStruct m_fifo{0, 0};
-    // bool m_gotSync{false};
-    // int m_numCode{0};
-    // bool m_inverted{false};
 
     //--------------------------------------------------
 

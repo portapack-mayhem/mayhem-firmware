@@ -35,7 +35,7 @@
 using namespace std;
 
 namespace {
-/* Gets the count of bits that differ between the two values. */
+/* Count of bits that differ between the two values. */
 uint8_t differ_bit_count(uint32_t left, uint32_t right) {
     uint32_t diff = left ^ right;
     uint8_t count = 0;
@@ -68,14 +68,14 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     bool has_audio = squelch.execute(audio);
     squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
 
-    // Has there been any signal?
+    // Has there been any signal recently?
     if (squelch_history == 0) {
-        // // No signal for a while, flush and reset.
-        // if (!has_been_reset) {
-        //     OnDataFrame(m_numCode, getRate());
-        //     resetVals();
-        //     send_stats();
-        // }
+        // No recent signal, flush and rprepare for next message.
+        if (word_extractor.current() > 0) {
+            flush();
+            reset();
+            send_stats();
+        }
 
         // Clear the audio stream before sending.
         for (size_t i = 0; i < audio.count; ++i)
@@ -141,9 +141,13 @@ void POCSAGProcessor::configure() {
 }
 
 void POCSAGProcessor::flush() {
+    word_extractor.flush();
 }
 
 void POCSAGProcessor::reset() {
+    bits.reset();
+    word_extractor.reset();
+    samples_processed = 0;
 }
 
 void POCSAGProcessor::send_stats() const {
@@ -210,13 +214,10 @@ void POCSAGProcessor::initFrameExtraction() {
     // m_inverted = false;
 
     bits.reset();
-
     resetVals();
 }
 
 void POCSAGProcessor::resetVals() {
-    if (has_been_reset) return;
-
     // Reset the parameters
     m_goodTransitions = 0;
     m_badTransitions = 0;
@@ -238,7 +239,6 @@ void POCSAGProcessor::resetVals() {
     m_gotSync = false;
     m_numCode = 0;*/
 
-    has_been_reset = true;
     samples_processed = 0;
 }
 
@@ -262,8 +262,6 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
     bool transition = false;
     uint32_t samplePos_1024 = 0;
     uint32_t len_1024 = 0;
-
-    has_been_reset = false;
 
     // Loop through the block of data
     // ------------------------------
@@ -437,52 +435,6 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
     return bits.size();
 }
 
-// int POCSAGProcessor::extractFrames() {
-//     int msgCnt = 0;
-//     // While there is unread data in the bits buffer
-//     //----------------------------------------------
-//     while (bits.size() > 0) {
-//         m_fifo.codeword = (m_fifo.codeword << 1) | (bits.pop() ? 1 : 0);
-//         m_fifo.numBits++;
-
-// // If number of bits in fifo equals 32
-// //------------------------------------
-// if (m_fifo.numBits >= 32) {
-//     // Not got sync
-//     // ------------
-//     if (!m_gotSync) {
-//         if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2) {
-//             m_inverted = false;
-//             m_gotSync = true;
-//             m_numCode = -1;
-//             m_fifo.numBits = 0;
-//         } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2) {
-//             m_inverted = true;
-//             m_gotSync = true;
-//             m_numCode = -1;
-//             m_fifo.numBits = 0;
-//         } else {
-//             // Cause it to load one more bit
-//             m_fifo.numBits = 31;
-//         }
-//     }  // Not got sync
-//     else {
-//         // Increment the word count
-//         // ------------------------
-//         ++m_numCode;  // It got set to -1 when a sync was found, now count the 16 words
-//         uint32_t val = m_inverted ? ~m_fifo.codeword : m_fifo.codeword;
-//         OnDataWord(val, m_numCode);
-
-// // If at the end of a 16 word block
-// // --------------------------------
-// if (m_numCode >= 15) {
-//     msgCnt += OnDataFrame(m_numCode + 1, getRate());
-//     m_gotSync = false;
-//     m_numCode = -1;
-// }
-// m_fifo.numBits = 0;
-//          }  // If number of bits in fifo e}      // While there is unread data in the bitre}  // extractFrames
-
 uint32_t POCSAGProcessor::getRate() {
     return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
 }
@@ -526,7 +478,7 @@ void CodewordExtractor::reset() {
     clear_data_bits();
     has_sync_ = false;
     inverted_ = false;
-    word_count_ = false;
+    word_count_ = 0;
 }
 
 void CodewordExtractor::clear_data_bits() {
