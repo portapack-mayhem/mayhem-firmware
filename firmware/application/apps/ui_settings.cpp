@@ -169,6 +169,8 @@ SetRadioView::SetRadioView(
                   &button_save,
                   &button_cancel});
 
+    add_children({&disable_external_tcxo});
+
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
 
@@ -221,10 +223,13 @@ SetRadioView::SetRadioView(
         send_system_refresh();
     };
 
+    disable_external_tcxo.set_value(pmem::config_disable_external_tcxo());
+
     button_save.on_select = [this, &nav](Button&) {
         const auto model = this->form_collect();
         pmem::set_correction_ppb(model.ppm * 1000);
         pmem::set_clkout_freq(model.freq);
+        pmem::set_config_disable_external_tcxo(disable_external_tcxo.value());
         clock_manager.enable_clock_output(pmem::clkout_enabled());
         nav.pop();
     };

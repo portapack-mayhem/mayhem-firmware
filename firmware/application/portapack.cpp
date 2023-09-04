@@ -408,6 +408,10 @@ bool init() {
 
     portapack::io.init();
 
+    /* Cache some configuration data from persistent memory. */
+    persistent_memory::cache::init();
+    chThdSleepMilliseconds(10);
+
     clock_manager.init_clock_generator();
 
     i2c0.stop();
@@ -466,9 +470,6 @@ bool init() {
     touch::adc::init();
     controls_init();
     chThdSleepMilliseconds(10);
-
-    /* Cache some configuration data from persistent memory. */
-    persistent_memory::cache::init();
 
     clock_manager.set_reference_ppb(persistent_memory::correction_ppb());
     clock_manager.enable_if_clocks();
