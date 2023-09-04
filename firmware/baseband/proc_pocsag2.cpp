@@ -48,6 +48,160 @@ uint8_t differ_bit_count(uint32_t left, uint32_t right) {
 }
 }  // namespace
 
+/* AudioNormalizer ***************************************/
+
+void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) {
+    // Decay min/max every second (@24kHz).
+    if (counter_ >= 24'000) {
+        // 90% decay factor seems to work well.
+        // This keeps large transients from wrecking the filter.
+        max_ *= 0.9f;
+        min_ *= 0.9f;
+        counter_ = 0;
+        calculate_thresholds();
+    }
+
+    counter_ += audio.count;
+
+    for (size_t i = 0; i < audio.count; ++i) {
+        auto& val = audio.p[i];
+
+        if (val > max_) {
+            max_ = val;
+            calculate_thresholds();
+        }
+        if (val < min_) {
+            min_ = val;
+            calculate_thresholds();
+        }
+
+        if (val >= t_hi_)
+            val = 1.0f;
+        else if (val <= t_lo_)
+            val = -1.0f;
+        else
+            val = 0.0;
+    }
+}
+
+void AudioNormalizer::calculate_thresholds() {
+    auto center = (max_ + min_) / 2.0f;
+    auto range = (max_ - min_) / 2.0f;
+
+    // 10% off center force either +/-1.0f.
+    // Higher == larger dead zone.
+    // Lower == more false positives.
+    auto threshold = range * 0.1;
+    t_hi_ = center + threshold;
+    t_lo_ = center - threshold;
+}
+
+/* BitQueue **********************************************/
+
+void BitQueue::push(bool bit) {
+    data_ = (data_ << 1) | (bit ? 1 : 0);
+    if (count_ < max_size_) ++count_;
+}
+
+bool BitQueue::pop() {
+    if (count_ == 0) return false;
+
+    --count_;
+    return (data_ & (1 << count_)) != 0;
+}
+
+void BitQueue::reset() {
+    data_ = 0;
+    count_ = 0;
+}
+
+uint8_t BitQueue::size() const {
+    return count_;
+}
+
+uint32_t BitQueue::data() const {
+    return data_;
+}
+
+/* BitExtractor ******************************************/
+
+
+/* CodewordExtractor *************************************/
+
+void CodewordExtractor::process_bits() {
+    // Process all of the bits in the bits queue.
+    while (bits_.size() > 0) {
+        take_one_bit();
+
+        // Wait until data_ is full.
+        if (bit_count_ < data_bit_count)
+            continue;
+
+        // Wait for the sync frame.
+        if (!has_sync_) {
+            if (differ_bit_count(data_, sync_codeword) <= 2)
+                handle_sync(false);
+            else if (differ_bit_count(data_, ~sync_codeword) <= 2)
+                handle_sync(true);
+            continue;
+        }
+
+        save_current_codeword();
+
+        if (word_count_ == pocsag::batch_size)
+            handle_batch_complete();
+    }
+}
+
+void CodewordExtractor::flush() {
+    // Don't bother flushing if there's no pending data.
+    if (word_count_ == 0) return;
+
+    pad_idle();
+    handle_batch_complete();
+}
+
+void CodewordExtractor::reset() {
+    clear_data_bits();
+    has_sync_ = false;
+    inverted_ = false;
+    word_count_ = 0;
+}
+
+void CodewordExtractor::clear_data_bits() {
+    data_ = 0;
+    bit_count_ = 0;
+}
+
+void CodewordExtractor::take_one_bit() {
+    data_ = (data_ << 1) | bits_.pop();
+    if (bit_count_ < data_bit_count)
+        ++bit_count_;
+}
+
+void CodewordExtractor::handle_sync(bool inverted) {
+    clear_data_bits();
+    has_sync_ = true;
+    inverted_ = inverted;
+    word_count_ = 0;
+}
+
+void CodewordExtractor::save_current_codeword() {
+    batch_[word_count_++] = inverted_ ? ~data_ : data_;
+    clear_data_bits();
+}
+
+void CodewordExtractor::handle_batch_complete() {
+    on_batch_(*this);
+    has_sync_ = false;
+    word_count_ = 0;
+}
+
+void CodewordExtractor::pad_idle() {
+    while (word_count_ < pocsag::batch_size)
+        batch_[word_count_++] = idle_codeword;
+}
+
 /* POCSAGProcessor ***************************************/
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
@@ -437,82 +591,6 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
 
 uint32_t POCSAGProcessor::getRate() {
     return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
-}
-
-/* CodewordExtractor *************************************/
-
-void CodewordExtractor::process_bits() {
-    // Process all of the bits in the bits queue.
-    while (bits_.size() > 0) {
-        take_one_bit();
-
-        // Wait until data_ is full.
-        if (bit_count_ < data_bit_count)
-            continue;
-
-        // Wait for the sync frame.
-        if (!has_sync_) {
-            if (differ_bit_count(data_, sync_codeword) <= 2)
-                handle_sync(false);
-            else if (differ_bit_count(data_, ~sync_codeword) <= 2)
-                handle_sync(true);
-            continue;
-        }
-
-        save_current_codeword();
-
-        if (word_count_ == pocsag::batch_size)
-            handle_batch_complete();
-    }
-}
-
-void CodewordExtractor::flush() {
-    // Don't bother flushing if there's no pending data.
-    if (word_count_ == 0) return;
-
-    pad_idle();
-    handle_batch_complete();
-}
-
-void CodewordExtractor::reset() {
-    clear_data_bits();
-    has_sync_ = false;
-    inverted_ = false;
-    word_count_ = 0;
-}
-
-void CodewordExtractor::clear_data_bits() {
-    data_ = 0;
-    bit_count_ = 0;
-}
-
-void CodewordExtractor::take_one_bit() {
-    data_ = (data_ << 1) | bits_.pop();
-    if (bit_count_ < data_bit_count)
-        ++bit_count_;
-}
-
-void CodewordExtractor::handle_sync(bool inverted) {
-    clear_data_bits();
-    has_sync_ = true;
-    inverted_ = inverted;
-    word_count_ = 0;
-}
-
-void CodewordExtractor::save_current_codeword() {
-    batch_[word_count_++] = inverted_ ? ~data_ : data_;
-    clear_data_bits();
-}
-
-void CodewordExtractor::handle_batch_complete() {
-    on_batch_(*this);
-    has_sync_ = false;
-    word_count_ = 0;
-}
-
-void CodewordExtractor::pad_idle() {
-    while (word_count_ < pocsag::batch_size)
-        batch_[word_count_++] = idle_codeword;
 }
 
 /* main **************************************************/

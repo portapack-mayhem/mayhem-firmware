@@ -46,52 +46,10 @@
 /* Processes audio stream to normalizes it to +/-1.0f */
 class AudioNormalizer {
    public:
-    void execute_in_place(const buffer_f32_t& audio) {
-        // Decay min/max every second (@24kHz).
-        if (counter_ >= 24'000) {
-            // 90% decay factor seems to work well.
-            // This keeps large transients from wrecking the filter.
-            max_ *= 0.9f;
-            min_ *= 0.9f;
-            counter_ = 0;
-            calculate_thresholds();
-        }
-
-        counter_ += audio.count;
-
-        for (size_t i = 0; i < audio.count; ++i) {
-            auto& val = audio.p[i];
-
-            if (val > max_) {
-                max_ = val;
-                calculate_thresholds();
-            }
-            if (val < min_) {
-                min_ = val;
-                calculate_thresholds();
-            }
-
-            if (val >= t_hi_)
-                val = 1.0f;
-            else if (val <= t_lo_)
-                val = -1.0f;
-            else
-                val = 0.0;
-        }
-    }
+    void execute_in_place(const buffer_f32_t& audio);
 
    private:
-    void calculate_thresholds() {
-        auto center = (max_ + min_) / 2.0f;
-        auto range = (max_ - min_) / 2.0f;
-
-        // 10% off center force either +/-1.0f.
-        // Higher == larger dead zone.
-        // Lower == more false positives.
-        auto threshold = range * 0.1;
-        t_hi_ = center + threshold;
-        t_lo_ = center - threshold;
-    }
+    void calculate_thresholds();
 
     uint32_t counter_ = 0;
     float min_ = 99.0f;
@@ -103,30 +61,11 @@ class AudioNormalizer {
 /* FIFO wrapper over a uint32_t's bits. */
 class BitQueue {
    public:
-    void push(bool bit) {
-        data_ = (data_ << 1) | (bit ? 1 : 0);
-        if (count_ < max_size_) ++count_;
-    }
-
-    bool pop() {
-        if (count_ == 0) return false;
-
-        --count_;
-        return (data_ & (1 << count_)) != 0;
-    }
-
-    void reset() {
-        data_ = 0;
-        count_ = 0;
-    }
-
-    uint8_t size() const {
-        return count_;
-    }
-
-    uint32_t data() const {
-        return data_;
-    }
+    void push(bool bit);
+    bool pop();
+    void reset();
+    uint8_t size() const;
+    uint32_t data() const;
 
    private:
     uint32_t data_ = 0;
