@@ -449,7 +449,7 @@ DeclareTargets(PPOC pocsag)
 set(MODE_CPPSRC
 	proc_pocsag2.cpp
 )
-DeclareTargets(PPOC pocsag2)
+DeclareTargets(PPO2 pocsag2)
 
 ### RDS
 

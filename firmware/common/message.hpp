@@ -344,12 +344,18 @@ class POCSAGPacketMessage : public Message {
 class POCSAGStatsMessage : public Message {
    public:
     constexpr POCSAGStatsMessage(
-        uint16_t baud_rate)
+        uint32_t current_bits,
+        uint8_t current_frames,
+        bool has_sync)
         : Message{ID::POCSAGStats},
-          baud_rate_{baud_rate} {
+          current_bits{current_bits},
+          current_frames{current_frames},
+          has_sync{has_sync} {
     }
 
-    uint16_t baud_rate_;
+    uint32_t current_bits = 0;
+    uint8_t current_frames = 0;
+    bool has_sync = false;
 };
 
 class ACARSPacketMessage : public Message {

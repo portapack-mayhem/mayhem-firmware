@@ -25,7 +25,6 @@
 
 #include "proc_pocsag2.hpp"
 
-#include "dsp_iir_config.hpp"
 #include "event_m4.hpp"
 
 #include <algorithm>
@@ -33,8 +32,15 @@
 #include <cstdint>
 #include <cstddef>
 
+using namespace std;
+
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
+
+    // buffer has 2048 samples
+    // decim0 out: 2048/8 = 256 samples
+    // decim1 out: 256/8 = 32 samples
+    // channel out: 32/2 = 16 samples
 
     // Get 24kHz audio
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
@@ -42,41 +48,90 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
 
-    // If squelching, check for audio before smoothing because smoothing
-    // causes the squelch noise detection to fail. Likely because squelch
-    // looks for HF noise and smoothing is basically a lowpass filter.
-    // NB: Squelch in this processor is only for the the audio output.
-    // Squelching will likely drop data "noise" and break processing.
-    if (squelch_.enabled()) {
-        bool has_audio = squelch_.execute(audio);
-        squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
+    // Check if there's any signal in the audio buffer.
+    bool has_audio = squelch.execute(audio);
+    squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
+
+    // Has there been any signal?
+    if (squelch_history == 0) {
+        // No signal for a while, flush and reset.
+        if (!has_been_reset) {
+            OnDataFrame(m_numCode, getRate());
+            resetVals();
+            send_stats();
+        }
+
+        // Clear the audio stream before sending.
+        for (size_t i = 0; i < audio.count; ++i)
+            audio.p[i] = 0.0;
+
+        audio_output.write(audio);
+        return;
     }
 
-    smooth.Process(audio.p, audio.count);
+    // Filter out high-frequency noise. TODO: compensate gain?
+    lpf.execute_in_place(audio);
+    normalizer.execute_in_place(audio);
+    audio_output.write(audio);
+
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
 
-    // Clear the output before sending to audio chip.
-    if (squelch_.enabled() && squelch_history == 0) {
-        for (size_t i = 0; i < audio.count; ++i) {
-            audio.p[i] = 0.0;
-        }
+    samples_processed += buffer.count;
+    if (samples_processed >= stat_update_threshold) {
+        send_stats();
+        samples_processed = 0;
     }
-
-    audio_output.write(audio);
 }
 
-// ====================================================================
-//
-// ====================================================================
+void POCSAGProcessor::on_message(const Message* const message) {
+    switch (message->id) {
+        case Message::ID::POCSAGConfigure:
+            configure();
+            break;
+
+        case Message::ID::NBFMConfigure: {
+            auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
+            squelch.set_threshold(config->squelch_level / 99.0);
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
+void POCSAGProcessor::configure() {
+    constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
+    constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
+    const size_t channel_filter_output_fs = decim_1_output_fs / 2;
+    const size_t demod_input_fs = channel_filter_output_fs;
+
+    decim_0.configure(taps_11k0_decim_0.taps);
+    decim_1.configure(taps_11k0_decim_1.taps);
+    channel_filter.configure(taps_11k0_channel.taps, 2);
+    demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
+
+    // Don't process the audio stream.
+    audio_output.configure(false);
+
+    // Set up the frame extraction, limits of baud.
+    setFrameExtractParams(demod_input_fs, 4000, 300, 32);
+
+    // Set ready to process data.
+    configured = true;
+}
+
+void POCSAGProcessor::send_stats() const {
+    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync);
+    shared_memory.application_queue.push(message);
+}
+
 int POCSAGProcessor::OnDataWord(uint32_t word, int pos) {
     packet.set(pos, word);
     return 0;
 }
 
-// ====================================================================
-//
-// ====================================================================
 int POCSAGProcessor::OnDataFrame(int len, int baud) {
     if (len > 0) {
         packet.set_bitrate(baud);
@@ -88,57 +143,6 @@ int POCSAGProcessor::OnDataFrame(int len, int baud) {
     return 0;
 }
 
-void POCSAGProcessor::on_message(const Message* const message) {
-    switch (message->id) {
-        case Message::ID::POCSAGConfigure:
-            configure();
-            break;
-
-        case Message::ID::NBFMConfigure: {
-            auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
-            squelch_.set_threshold(config->squelch_level / 100.0);
-            break;
-        }
-
-        default:
-            break;
-    }
-}
-
-void POCSAGProcessor::configure() {
-    constexpr size_t decim_0_input_fs = baseband_fs;
-    constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
-
-    constexpr size_t decim_1_input_fs = decim_0_output_fs;
-    constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
-
-    constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-    const size_t channel_filter_output_fs = channel_filter_input_fs / 2;
-
-    const size_t demod_input_fs = channel_filter_output_fs;
-
-    decim_0.configure(taps_11k0_decim_0.taps);
-    decim_1.configure(taps_11k0_decim_1.taps);
-    channel_filter.configure(taps_11k0_channel.taps, 2);
-    demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
-
-    // Smoothing should be roughly sample rate over max baud
-    // 24k / 3.2k = 7.5
-    smooth.SetSize(8);
-
-    // Don't have audio process the stream.
-    audio_output.configure(false);
-
-    // Set up the frame extraction, limits of baud
-    setFrameExtractParams(demod_input_fs, 4000, 300, 32);
-
-    // Mark the class as ready to accept data
-    configured = true;
-}
-
-// -----------------------------
-// Frame extractraction methods
-// -----------------------------
 #define BAUD_STABLE (104)
 #define MAX_CONSEC_SAME (32)
 #define MAX_WITHOUT_SINGLE (64)
@@ -149,9 +153,6 @@ void POCSAGProcessor::configure() {
 
 #define M_IDLE (0x7a89c197)
 
-// ====================================================================
-//
-// ====================================================================
 inline int bitsDiff(unsigned long left, unsigned long right) {
     unsigned long xord = left ^ right;
     int count = 0;
@@ -162,9 +163,6 @@ inline int bitsDiff(unsigned long left, unsigned long right) {
     return (count);
 }
 
-// ====================================================================
-//
-// ====================================================================
 void POCSAGProcessor::initFrameExtraction() {
     m_averageSymbolLen_1024 = m_maxSymSamples_1024;
     m_lastStableSymbolLen_1024 = m_minSymSamples_1024;
@@ -177,12 +175,10 @@ void POCSAGProcessor::initFrameExtraction() {
     resetVals();
 }
 
-// ====================================================================
-//
-// ====================================================================
 void POCSAGProcessor::resetVals() {
+    if (has_been_reset) return;
+
     // Reset the parameters
-    // --------------------
     m_goodTransitions = 0;
     m_badTransitions = 0;
     m_averageSymbolLen_1024 = m_maxSymSamples_1024;
@@ -190,7 +186,6 @@ void POCSAGProcessor::resetVals() {
     m_valMid = 0;
 
     // And reset the counts
-    // --------------------
     m_lastTransPos_1024 = 0;
     m_lastBitPos_1024 = 0;
     m_lastSample = 0;
@@ -200,13 +195,14 @@ void POCSAGProcessor::resetVals() {
 
     // Extraction
     m_fifo.numBits = 0;
+    m_fifo.codeword = 0;
     m_gotSync = false;
     m_numCode = 0;
+
+    has_been_reset = true;
+    samples_processed = 0;
 }
 
-// ====================================================================
-//
-// ====================================================================
 void POCSAGProcessor::setFrameExtractParams(long a_samplesPerSec, long a_maxBaud, long a_minBaud, long maxRunOfSameValue) {
     m_samplesPerSec = a_samplesPerSec;
     m_minSymSamples_1024 = (uint32_t)(1024.0f * (float)a_samplesPerSec / (float)a_maxBaud);
@@ -223,13 +219,12 @@ void POCSAGProcessor::setFrameExtractParams(long a_samplesPerSec, long a_maxBaud
     initFrameExtraction();
 }
 
-// ====================================================================
-//
-// ====================================================================
 int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSamples) {
     bool transition = false;
     uint32_t samplePos_1024 = 0;
     uint32_t len_1024 = 0;
+
+    has_been_reset = false;
 
     // Loop through the block of data
     // ------------------------------
@@ -399,9 +394,6 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
     return getNoOfBits();
 }
 
-// ====================================================================
-//
-// ====================================================================
 void POCSAGProcessor::storeBit() {
     if (++m_bitsStart >= BIT_BUF_SIZE) {
         m_bitsStart = 0;
@@ -429,9 +421,6 @@ void POCSAGProcessor::storeBit() {
     }
 }
 
-// ====================================================================
-//
-// ====================================================================
 int POCSAGProcessor::extractFrames() {
     int msgCnt = 0;
     // While there is unread data in the bits buffer
@@ -471,7 +460,7 @@ int POCSAGProcessor::extractFrames() {
                 // If at the end of a 16 word block
                 // --------------------------------
                 if (m_numCode >= 15) {
-                    msgCnt += OnDataFrame(m_numCode + 1, (m_samplesPerSec << 10) / m_lastStableSymbolLen_1024);
+                    msgCnt += OnDataFrame(m_numCode + 1, getRate());
                     m_gotSync = false;
                     m_numCode = -1;
                 }
@@ -482,9 +471,6 @@ int POCSAGProcessor::extractFrames() {
     return msgCnt;
 }  // extractFrames
 
-// ====================================================================
-//
-// ====================================================================
 short POCSAGProcessor::getBit() {
     if (m_bitsEnd != m_bitsStart) {
         if (++m_bitsEnd >= BIT_BUF_SIZE) {
@@ -496,9 +482,6 @@ short POCSAGProcessor::getBit() {
     }
 }
 
-// ====================================================================
-//
-// ====================================================================
 int POCSAGProcessor::getNoOfBits() {
     int bits = m_bitsEnd - m_bitsStart;
     if (bits < 0) {
@@ -507,16 +490,10 @@ int POCSAGProcessor::getNoOfBits() {
     return bits;
 }
 
-// ====================================================================
-//
-// ====================================================================
 uint32_t POCSAGProcessor::getRate() {
     return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
 }
 
-// ====================================================================
-//
-// ====================================================================
 int main() {
     EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
     event_dispatcher.run();
