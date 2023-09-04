@@ -45,6 +45,10 @@ enum PacketFlag : uint32_t {
     TOO_LONG
 };
 
+/* Number of codewords in a batch. */
+constexpr uint8_t batch_size = 16;
+using batch_t = std::array<uint32_t, batch_size>;
+
 class POCSAGPacket {
    public:
     void set_timestamp(const Timestamp& value) {
@@ -55,16 +59,20 @@ class POCSAGPacket {
         return timestamp_;
     }
 
-    void set(const size_t index, const uint32_t data) {
-        if (index < 16)
+    void set(size_t index, uint32_t data) {
+        if (index < batch_size)
             codewords[index] = data;
     }
 
-    uint32_t operator[](const size_t index) const {
-        return (index < 16) ? codewords[index] : 0;
+    void set(const batch_t& batch) {
+        codewords = batch;
     }
 
-    void set_bitrate(const uint16_t bitrate) {
+    uint32_t operator[](size_t index) const {
+        return (index < batch_size) ? codewords[index] : 0;
+    }
+
+    void set_bitrate(uint16_t bitrate) {
         bitrate_ = bitrate;
     }
 
@@ -72,7 +80,7 @@ class POCSAGPacket {
         return bitrate_;
     }
 
-    void set_flag(const PacketFlag flag) {
+    void set_flag(PacketFlag flag) {
         flag_ = flag;
     }
 
@@ -89,7 +97,7 @@ class POCSAGPacket {
    private:
     uint16_t bitrate_{0};
     PacketFlag flag_{NORMAL};
-    std::array<uint32_t, 16> codewords{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    batch_t codewords{};
     Timestamp timestamp_{};
 };
 

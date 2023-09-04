@@ -142,21 +142,29 @@ class BitExtractor {
    private:
 };
 
+/* Extracts codeword batches from the BitQueue. */
 class CodewordExtractor {
    public:
-    /* Number of codewords in a batch. */
-    static constexpr uint8_t batch_size = 16;
-    using batch_t = std::array<uint32_t, batch_size>;
+    using batch_t = pocsag::batch_t;
+    using batch_handler_t = std::function<void(CodewordExtractor&)>;
 
-    CodewordExtractor(BitExtractor& bits)
-        : bits_{bits}, code {}
-    
+    CodewordExtractor(BitQueue& bits, batch_handler_t on_batch)
+        : bits_{bits}, on_batch_{on_batch} {}
+
+    /* Process the BitQueue to extract codeword batches. */
     void process_bits();
+
+    /* Pad then send any pending frames. */
     void flush();
+
+    /* Completely reset to prepare for a new message. */
     void reset();
 
     const batch_t& batch() const { return batch_; }
+
+    uint32_t current() const { return data_; }
     uint8_t count() const { return word_count_; }
+    bool has_sync() const { return has_sync_; }
 
    private:
     /* Sync frame codeword. */
@@ -168,27 +176,37 @@ class CodewordExtractor {
     /* Number of bits in 'data_' member. */
     static constexpr uint8_t data_bit_count = sizeof(uint32_t) * 8;
 
+    /* Clears data_ and bit_count_ to prepare for next codeword. */
     void clear_data_bits();
 
-    /* Pop a bit off the queue and add it to data. */
+    /* Pop a bit off the queue and add it to data_. */
     void take_one_bit();
+
+    /* Handles receiving the sync frame codeword, start of batch. */
     void handle_sync(bool inverted);
+
+    /* Saves the current codeword in data_ to the batch. */
     void save_current_codeword();
+
+    /* Sends the batch to the handler, resets for next batch. */
     void handle_batch_complete();
 
     /* Fill the rest of the batch with 'idle' codewords. */
     void pad_idle();
 
     BitQueue& bits_;
+    batch_handler_t on_batch_{};
 
+    /* When true, sync frame has been received. */
     bool has_sync_ = false;
-    /* When true, bit meanings are flipped in the words. */
+
+    /* When true, bit vales are flipped in the codewords. */
     bool inverted_ = false;
+
     uint32_t data_ = 0;
     uint8_t bit_count_ = 0;
     uint8_t word_count_ = 0;
-
-    batch_t batch_{}:
+    batch_t batch_{};
 };
 
 class POCSAGProcessor : public BasebandProcessor {
@@ -209,7 +227,7 @@ class POCSAGProcessor : public BasebandProcessor {
     void flush();
     void reset();
     void send_stats() const;
-    void send_packet() const;
+    void send_packet();
 
     // Set once app is ready to receive messages.
     bool configured = false;
@@ -254,13 +272,15 @@ class POCSAGProcessor : public BasebandProcessor {
     uint32_t samples_processed = 0;
 
     BitQueue bits{};
-    CodewordContainer words{};
 
     // Processes bits into codewords.
     BitExtractor bit_extractor{};
 
     // Processes bits into codewords.
-    CodewordExtractor word_extractor{bits, words};
+    CodewordExtractor word_extractor{
+        bits, [this](CodewordExtractor&) {
+            send_packet();
+        }};
 
     //--------------------------------------------------
     // Transitional code
@@ -302,10 +322,10 @@ class POCSAGProcessor : public BasebandProcessor {
     uint32_t m_maxSymSamples_1024{0};
     uint32_t m_maxRunOfSameValue{0};
 
-    FIFOStruct m_fifo{0, 0};
-    bool m_gotSync{false};
-    int m_numCode{0};
-    bool m_inverted{false};
+    // FIFOStruct m_fifo{0, 0};
+    // bool m_gotSync{false};
+    // int m_numCode{0};
+    // bool m_inverted{false};
 
     //--------------------------------------------------
 

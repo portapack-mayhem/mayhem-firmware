@@ -35,18 +35,20 @@
 using namespace std;
 
 namespace {
-    /* Gets the count of bits that differ between the two values. */
-    uint8_t differ_bit_count(uint32_t left, uint32_t right) {
-        uint32_t diff = left ^ right;
-        uint8_t count = 0;
-        for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
-            if (((diff >> i) & 0x1) == 1)
-                ++count;
-        }
-
-        return count;
+/* Gets the count of bits that differ between the two values. */
+uint8_t differ_bit_count(uint32_t left, uint32_t right) {
+    uint32_t diff = left ^ right;
+    uint8_t count = 0;
+    for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
+        if (((diff >> i) & 0x1) == 1)
+            ++count;
     }
+
+    return count;
 }
+}  // namespace
+
+/* POCSAGProcessor ***************************************/
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
@@ -68,12 +70,12 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 
     // Has there been any signal?
     if (squelch_history == 0) {
-        // No signal for a while, flush and reset.
-        if (!has_been_reset) {
-            OnDataFrame(m_numCode, getRate());
-            resetVals();
-            send_stats();
-        }
+        // // No signal for a while, flush and reset.
+        // if (!has_been_reset) {
+        //     OnDataFrame(m_numCode, getRate());
+        //     resetVals();
+        //     send_stats();
+        // }
 
         // Clear the audio stream before sending.
         for (size_t i = 0; i < audio.count; ++i)
@@ -90,7 +92,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 
     // Decode the messages from the audio.
     processDemodulatedSamples(audio.p, 16);
-    extractFrames();
+    word_extractor.process_bits();
 
     // Update the status.
     samples_processed += buffer.count;
@@ -145,11 +147,19 @@ void POCSAGProcessor::reset() {
 }
 
 void POCSAGProcessor::send_stats() const {
-    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync);
+    const auto& ex = word_extractor;
+    POCSAGStatsMessage message(ex.current(), ex.count(), ex.has_sync());
     shared_memory.application_queue.push(message);
 }
 
-void POCSAGProcessor::send_packet() const {
+void POCSAGProcessor::send_packet() {
+    // TODO: Assert on batch size here?
+
+    packet.set_flag(pocsag::PacketFlag::NORMAL);
+    packet.set_timestamp(Timestamp::now());
+    packet.set_bitrate(getRate());  // TODO
+    packet.set(word_extractor.batch());
+
     POCSAGPacketMessage message(packet);
     shared_memory.application_queue.push(message);
 }
@@ -197,7 +207,7 @@ void POCSAGProcessor::initFrameExtraction() {
     m_lastStableSymbolLen_1024 = m_minSymSamples_1024;
 
     m_badTransitions = 0;
-    m_inverted = false;
+    // m_inverted = false;
 
     bits.reset();
 
@@ -222,11 +232,11 @@ void POCSAGProcessor::resetVals() {
     m_nextBitPos_1024 = m_maxSymSamples_1024;
     m_nextBitPosInt = (long)m_nextBitPos_1024;
 
-    // Extraction
+    /*// Extraction
     m_fifo.numBits = 0;
     m_fifo.codeword = 0;
     m_gotSync = false;
-    m_numCode = 0;
+    m_numCode = 0;*/
 
     has_been_reset = true;
     samples_processed = 0;
@@ -427,6 +437,56 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
     return bits.size();
 }
 
+// int POCSAGProcessor::extractFrames() {
+//     int msgCnt = 0;
+//     // While there is unread data in the bits buffer
+//     //----------------------------------------------
+//     while (bits.size() > 0) {
+//         m_fifo.codeword = (m_fifo.codeword << 1) | (bits.pop() ? 1 : 0);
+//         m_fifo.numBits++;
+
+// // If number of bits in fifo equals 32
+// //------------------------------------
+// if (m_fifo.numBits >= 32) {
+//     // Not got sync
+//     // ------------
+//     if (!m_gotSync) {
+//         if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2) {
+//             m_inverted = false;
+//             m_gotSync = true;
+//             m_numCode = -1;
+//             m_fifo.numBits = 0;
+//         } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2) {
+//             m_inverted = true;
+//             m_gotSync = true;
+//             m_numCode = -1;
+//             m_fifo.numBits = 0;
+//         } else {
+//             // Cause it to load one more bit
+//             m_fifo.numBits = 31;
+//         }
+//     }  // Not got sync
+//     else {
+//         // Increment the word count
+//         // ------------------------
+//         ++m_numCode;  // It got set to -1 when a sync was found, now count the 16 words
+//         uint32_t val = m_inverted ? ~m_fifo.codeword : m_fifo.codeword;
+//         OnDataWord(val, m_numCode);
+
+// // If at the end of a 16 word block
+// // --------------------------------
+// if (m_numCode >= 15) {
+//     msgCnt += OnDataFrame(m_numCode + 1, getRate());
+//     m_gotSync = false;
+//     m_numCode = -1;
+// }
+// m_fifo.numBits = 0;
+//          }  // If number of bits in fifo e}      // While there is unread data in the bitre}  // extractFrames
+
+uint32_t POCSAGProcessor::getRate() {
+    return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
+}
+
 /* CodewordExtractor *************************************/
 
 void CodewordExtractor::process_bits() {
@@ -439,7 +499,7 @@ void CodewordExtractor::process_bits() {
             continue;
 
         // Wait for the sync frame.
-        if (!has_sync) {
+        if (!has_sync_) {
             if (differ_bit_count(data_, sync_codeword) <= 2)
                 handle_sync(false);
             else if (differ_bit_count(data_, ~sync_codeword) <= 2)
@@ -449,7 +509,7 @@ void CodewordExtractor::process_bits() {
 
         save_current_codeword();
 
-        if (word_count_ == batch_size)
+        if (word_count_ == pocsag::batch_size)
             handle_batch_complete();
     }
 }
@@ -488,78 +548,22 @@ void CodewordExtractor::handle_sync(bool inverted) {
 }
 
 void CodewordExtractor::save_current_codeword() {
-    batch_[word_count_] = inverted_ ? data_ : data_;
-    ++word_count;
+    batch_[word_count_++] = inverted_ ? ~data_ : data_;
     clear_data_bits();
 }
 
 void CodewordExtractor::handle_batch_complete() {
-    on_batch(*this);
+    on_batch_(*this);
     has_sync_ = false;
     word_count_ = 0;
 }
 
 void CodewordExtractor::pad_idle() {
-    while (word_count_ < batch_size)
+    while (word_count_ < pocsag::batch_size)
         batch_[word_count_++] = idle_codeword;
 }
 
-
-
-
-int POCSAGProcessor::extractFrames() {
-    int msgCnt = 0;
-    // While there is unread data in the bits buffer
-    //----------------------------------------------
-    while (bits.size() > 0) {
-        m_fifo.codeword = (m_fifo.codeword << 1) | (bits.pop() ? 1 : 0);
-        m_fifo.numBits++;
-
-        // If number of bits in fifo equals 32
-        //------------------------------------
-        if (m_fifo.numBits >= 32) {
-            // Not got sync
-            // ------------
-            if (!m_gotSync) {
-                if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2) {
-                    m_inverted = false;
-                    m_gotSync = true;
-                    m_numCode = -1;
-                    m_fifo.numBits = 0;
-                } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2) {
-                    m_inverted = true;
-                    m_gotSync = true;
-                    m_numCode = -1;
-                    m_fifo.numBits = 0;
-                } else {
-                    // Cause it to load one more bit
-                    m_fifo.numBits = 31;
-                }
-            }  // Not got sync
-            else {
-                // Increment the word count
-                // ------------------------
-                ++m_numCode;  // It got set to -1 when a sync was found, now count the 16 words
-                uint32_t val = m_inverted ? ~m_fifo.codeword : m_fifo.codeword;
-                OnDataWord(val, m_numCode);
-
-                // If at the end of a 16 word block
-                // --------------------------------
-                if (m_numCode >= 15) {
-                    msgCnt += OnDataFrame(m_numCode + 1, getRate());
-                    m_gotSync = false;
-                    m_numCode = -1;
-                }
-                m_fifo.numBits = 0;
-            }
-        }  // If number of bits in fifo equals 32
-    }      // While there is unread data in the bits buffer
-    return msgCnt;
-}  // extractFrames
-
-uint32_t POCSAGProcessor::getRate() {
-    return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
-}
+/* main **************************************************/
 
 int main() {
     EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
