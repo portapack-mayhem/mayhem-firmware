@@ -34,6 +34,20 @@
 
 using namespace std;
 
+namespace {
+    /* Gets the count of bits that differ between the two values. */
+    uint8_t differ_bit_count(uint32_t left, uint32_t right) {
+        uint32_t diff = left ^ right;
+        uint8_t count = 0;
+        for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
+            if (((diff >> i) & 0x1) == 1)
+                ++count;
+        }
+
+        return count;
+    }
+}
+
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
@@ -69,18 +83,20 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
         return;
     }
 
-    // Filter out high-frequency noise. TODO: compensate gain?
+    // Filter out high-frequency noise then normalize.
     lpf.execute_in_place(audio);
     normalizer.execute_in_place(audio);
     audio_output.write(audio);
 
+    // Decode the messages from the audio.
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
 
+    // Update the status.
     samples_processed += buffer.count;
     if (samples_processed >= stat_update_threshold) {
         send_stats();
-        samples_processed = 0;
+        samples_processed -= stat_update_threshold;
     }
 }
 
@@ -104,8 +120,8 @@ void POCSAGProcessor::on_message(const Message* const message) {
 void POCSAGProcessor::configure() {
     constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
     constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
-    const size_t channel_filter_output_fs = decim_1_output_fs / 2;
-    const size_t demod_input_fs = channel_filter_output_fs;
+    constexpr size_t channel_filter_output_fs = decim_1_output_fs / 2;
+    constexpr size_t demod_input_fs = channel_filter_output_fs;
 
     decim_0.configure(taps_11k0_decim_0.taps);
     decim_1.configure(taps_11k0_decim_1.taps);
@@ -122,10 +138,24 @@ void POCSAGProcessor::configure() {
     configured = true;
 }
 
+void POCSAGProcessor::flush() {
+}
+
+void POCSAGProcessor::reset() {
+}
+
 void POCSAGProcessor::send_stats() const {
     POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync);
     shared_memory.application_queue.push(message);
 }
+
+void POCSAGProcessor::send_packet() const {
+    POCSAGPacketMessage message(packet);
+    shared_memory.application_queue.push(message);
+}
+
+//--------------------------------------------------
+// Transitional code
 
 int POCSAGProcessor::OnDataWord(uint32_t word, int pos) {
     packet.set(pos, word);
@@ -137,8 +167,7 @@ int POCSAGProcessor::OnDataFrame(int len, int baud) {
         packet.set_bitrate(baud);
         packet.set_flag(pocsag::PacketFlag::NORMAL);
         packet.set_timestamp(Timestamp::now());
-        const POCSAGPacketMessage message(packet);
-        shared_memory.application_queue.push(message);
+        send_packet();
     }
     return 0;
 }
@@ -168,9 +197,9 @@ void POCSAGProcessor::initFrameExtraction() {
     m_lastStableSymbolLen_1024 = m_minSymSamples_1024;
 
     m_badTransitions = 0;
-    m_bitsStart = 0;
-    m_bitsEnd = 0;
     m_inverted = false;
+
+    bits.reset();
 
     resetVals();
 }
@@ -364,7 +393,11 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
             if (m_goodTransitions > 20) {
                 // Store value at the center of bit
                 // --------------------------------
-                storeBit();
+                // Calculate the bit value
+                float sample = (m_sample + m_lastSample) / 2;
+                // int32_t sample_1024 = m_sample_1024;
+                // NB: "negative" indicates 1.
+                bits.push(sample < m_valMid);
             }
             // Check for long 1 or zero
             // ------------------------
@@ -391,42 +424,95 @@ int POCSAGProcessor::processDemodulatedSamples(float* sampleBuff, int noOfSample
 
     }  // Loop through the block of data
 
-    return getNoOfBits();
+    return bits.size();
 }
 
-void POCSAGProcessor::storeBit() {
-    if (++m_bitsStart >= BIT_BUF_SIZE) {
-        m_bitsStart = 0;
-    }
+/* CodewordExtractor *************************************/
 
-    // Calculate the bit value
-    float sample = (m_sample + m_lastSample) / 2;
-    // int32_t sample_1024 = m_sample_1024;
-    bool bit = sample > m_valMid;
+void CodewordExtractor::process_bits() {
+    // Process all of the bits in the bits queue.
+    while (bits_.size() > 0) {
+        take_one_bit();
 
-    // If buffer not full
-    if (m_bitsStart != m_bitsEnd) {
-        // Decide on output val
-        if (bit) {
-            m_bits[m_bitsStart] = 0;
-        } else {
-            m_bits[m_bitsStart] = 1;
+        // Wait until data_ is full.
+        if (bit_count_ < data_bit_count)
+            continue;
+
+        // Wait for the sync frame.
+        if (!has_sync) {
+            if (differ_bit_count(data_, sync_codeword) <= 2)
+                handle_sync(false);
+            else if (differ_bit_count(data_, ~sync_codeword) <= 2)
+                handle_sync(true);
+            continue;
         }
-    }
-    // Throw away bits if the buffer is full
-    else {
-        if (--m_bitsStart <= -1) {
-            m_bitsStart = BIT_BUF_SIZE - 1;
-        }
+
+        save_current_codeword();
+
+        if (word_count_ == batch_size)
+            handle_batch_complete();
     }
 }
+
+void CodewordExtractor::flush() {
+    // Don't bother flushing if there's no pending data.
+    if (word_count_ == 0) return;
+
+    pad_idle();
+    handle_batch_complete();
+}
+
+void CodewordExtractor::reset() {
+    clear_data_bits();
+    has_sync_ = false;
+    inverted_ = false;
+    word_count_ = false;
+}
+
+void CodewordExtractor::clear_data_bits() {
+    data_ = 0;
+    bit_count_ = 0;
+}
+
+void CodewordExtractor::take_one_bit() {
+    data_ = (data_ << 1) | bits_.pop();
+    if (bit_count_ < data_bit_count)
+        ++bit_count_;
+}
+
+void CodewordExtractor::handle_sync(bool inverted) {
+    clear_data_bits();
+    has_sync_ = true;
+    inverted_ = inverted;
+    word_count_ = 0;
+}
+
+void CodewordExtractor::save_current_codeword() {
+    batch_[word_count_] = inverted_ ? data_ : data_;
+    ++word_count;
+    clear_data_bits();
+}
+
+void CodewordExtractor::handle_batch_complete() {
+    on_batch(*this);
+    has_sync_ = false;
+    word_count_ = 0;
+}
+
+void CodewordExtractor::pad_idle() {
+    while (word_count_ < batch_size)
+        batch_[word_count_++] = idle_codeword;
+}
+
+
+
 
 int POCSAGProcessor::extractFrames() {
     int msgCnt = 0;
     // While there is unread data in the bits buffer
     //----------------------------------------------
-    while (getNoOfBits() > 0) {
-        m_fifo.codeword = (m_fifo.codeword << 1) + getBit();
+    while (bits.size() > 0) {
+        m_fifo.codeword = (m_fifo.codeword << 1) | (bits.pop() ? 1 : 0);
         m_fifo.numBits++;
 
         // If number of bits in fifo equals 32
@@ -470,25 +556,6 @@ int POCSAGProcessor::extractFrames() {
     }      // While there is unread data in the bits buffer
     return msgCnt;
 }  // extractFrames
-
-short POCSAGProcessor::getBit() {
-    if (m_bitsEnd != m_bitsStart) {
-        if (++m_bitsEnd >= BIT_BUF_SIZE) {
-            m_bitsEnd = 0;
-        }
-        return m_bits[m_bitsEnd];
-    } else {
-        return -1;
-    }
-}
-
-int POCSAGProcessor::getNoOfBits() {
-    int bits = m_bitsEnd - m_bitsStart;
-    if (bits < 0) {
-        bits += BIT_BUF_SIZE;
-    }
-    return bits;
-}
 
 uint32_t POCSAGProcessor::getRate() {
     return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
