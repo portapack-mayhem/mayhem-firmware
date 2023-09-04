@@ -125,6 +125,14 @@ uint32_t BitQueue::data() const {
 
 /* BitExtractor ******************************************/
 
+void BitExtractor::extract_bits(const buffer_f32_t& audio) {
+    // only look for clocks, but how can you find a clock when you don't
+    // know the bitrate...
+    // The long preamble is meant to provide syncronization...
+    // Maybe a state machine that can detect noise to reset and external reset (for squelch).
+    // Maybe a set of baud rates to clamp to a known rate.
+}
+
 
 /* CodewordExtractor *************************************/
 
@@ -246,6 +254,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 
     // Decode the messages from the audio.
     processDemodulatedSamples(audio.p, 16);
+    bit_extractor.extract_bits(audio);
     word_extractor.process_bits();
 
     // Update the status.
@@ -305,8 +314,9 @@ void POCSAGProcessor::reset() {
 }
 
 void POCSAGProcessor::send_stats() const {
-    const auto& ex = word_extractor;
-    POCSAGStatsMessage message(ex.current(), ex.count(), ex.has_sync());
+    POCSAGStatsMessage message(
+        word_extractor.current(), word_extractor.count(),
+        word_extractor.has_sync(), bit_extractor.baud_rate());
     shared_memory.application_queue.push(message);
 }
 
@@ -325,40 +335,10 @@ void POCSAGProcessor::send_packet() {
 //--------------------------------------------------
 // Transitional code
 
-int POCSAGProcessor::OnDataWord(uint32_t word, int pos) {
-    packet.set(pos, word);
-    return 0;
-}
-
-int POCSAGProcessor::OnDataFrame(int len, int baud) {
-    if (len > 0) {
-        packet.set_bitrate(baud);
-        packet.set_flag(pocsag::PacketFlag::NORMAL);
-        packet.set_timestamp(Timestamp::now());
-        send_packet();
-    }
-    return 0;
-}
-
 #define BAUD_STABLE (104)
 #define MAX_CONSEC_SAME (32)
 #define MAX_WITHOUT_SINGLE (64)
 #define MAX_BAD_TRANS (10)
-
-#define M_SYNC (0x7cd215d8)
-#define M_NOTSYNC (0x832dea27)
-
-#define M_IDLE (0x7a89c197)
-
-inline int bitsDiff(unsigned long left, unsigned long right) {
-    unsigned long xord = left ^ right;
-    int count = 0;
-    for (int i = 0; i < 32; i++) {
-        if ((xord & 0x01) != 0) ++count;
-        xord = xord >> 1;
-    }
-    return (count);
-}
 
 void POCSAGProcessor::initFrameExtraction() {
     m_averageSymbolLen_1024 = m_maxSymSamples_1024;
@@ -386,12 +366,6 @@ void POCSAGProcessor::resetVals() {
     m_sampleNo = 0;
     m_nextBitPos_1024 = m_maxSymSamples_1024;
     m_nextBitPosInt = (long)m_nextBitPos_1024;
-
-    /*// Extraction
-    m_fifo.numBits = 0;
-    m_fifo.codeword = 0;
-    m_gotSync = false;
-    m_numCode = 0;*/
 
     samples_processed = 0;
 }

@@ -105,6 +105,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
          &field_volume,
          &image_status,
          &text_packet_count,
+         &widget_baud,
          &widget_bits,
          &widget_frames,
          &button_ignore_last,
@@ -274,9 +275,25 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
 }
 
 void POCSAGAppView::on_stats(const POCSAGStatsMessage* stats) {
+    widget_baud.set_rate(stats->baud_rate);
     widget_bits.set_bits(stats->current_bits);
     widget_frames.set_frames(stats->current_frames);
     widget_frames.set_sync(stats->has_sync);
+}
+
+void BaudIndicator::paint(Painter& painter) {
+    auto p = screen_pos();
+    char top = '-';
+    char bot = '-';
+
+    if (rate_ > 0) {
+        auto r = rate_ / 100;
+        top = (r / 10) + '0';
+        bot = (r % 10) + '0';
+    }
+
+    painter.draw_char(p, Styles::white_small, top);
+    painter.draw_char({p.x(), p.y() + 8}, Styles::white_small, bot);
 }
 
 void BitsIndicator::paint(Painter&) {
@@ -295,7 +312,7 @@ void FrameIndicator::paint(Painter& painter) {
     painter.draw_rectangle({p, {2, height}}, has_sync_ ? Color::green() : Color::grey());
 
     for (size_t i = 0; i < height; ++i) {
-        auto p2 = p + Point{2, 16 - (int)i};
+        auto p2 = p + Point{2, 15 - (int)i};
         painter.draw_hline(p2, 2, i < frame_count_ ? Color::white() : Color::black());
     }
 }

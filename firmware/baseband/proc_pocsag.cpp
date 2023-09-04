@@ -144,7 +144,7 @@ void POCSAGProcessor::configure() {
 }
 
 void POCSAGProcessor::send_stats() const {
-    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync);
+    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync, getRate());
     shared_memory.application_queue.push(message);
 }
 
@@ -522,7 +522,7 @@ int POCSAGProcessor::getNoOfBits() {
 // ====================================================================
 //
 // ====================================================================
-uint32_t POCSAGProcessor::getRate() {
+uint32_t POCSAGProcessor::getRate() const {
     return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
 }
 

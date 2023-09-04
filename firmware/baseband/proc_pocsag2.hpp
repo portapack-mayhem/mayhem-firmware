@@ -78,7 +78,18 @@ class BitQueue {
 /* Extracts bits and bitrate from audio stream. */
 class BitExtractor {
    public:
+    BitExtractor(BitQueue& bits)
+        : bits_{bits} { }
+
+    void set_sample_rate(uint32_t sample_rate);
+
+    void extract_bits(const buffer_f32_t& audio);
+    uint16_t baud_rate() const { return 0; }
+
    private:
+    BitQueue& bits_;
+
+    uint32_t sample_rate_ = 0;
 };
 
 /* Extracts codeword batches from the BitQueue. */
@@ -99,10 +110,16 @@ class CodewordExtractor {
     /* Completely reset to prepare for a new message. */
     void reset();
 
+    /* Gets the underlying batch array. */
     const batch_t& batch() const { return batch_; }
 
+    /* Gets in-progress codeword. */
     uint32_t current() const { return data_; }
+
+    /* Gets the count of completed codewords. */
     uint8_t count() const { return word_count_; }
+
+    /* Returns true if the batch has as sync frame. */
     bool has_sync() const { return has_sync_; }
 
    private:
@@ -152,9 +169,6 @@ class POCSAGProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
-
-    int OnDataFrame(int len, int baud);
-    int OnDataWord(uint32_t word, int pos);
 
    private:
     static constexpr size_t baseband_fs = 3072000;
@@ -213,7 +227,7 @@ class POCSAGProcessor : public BasebandProcessor {
     BitQueue bits{};
 
     // Processes bits into codewords.
-    BitExtractor bit_extractor{};
+    BitExtractor bit_extractor{bits};
 
     // Processes bits into codewords.
     CodewordExtractor word_extractor{
