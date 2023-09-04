@@ -295,7 +295,7 @@ void FrameIndicator::paint(Painter& painter) {
     painter.draw_rectangle({p, {2, height}}, has_sync_ ? Color::green() : Color::grey());
 
     for (size_t i = 0; i < height; ++i) {
-        auto p2 = p + Point{2, (int)i};
+        auto p2 = p + Point{2, 16 - (int)i};
         painter.draw_hline(p2, 2, i < frame_count_ ? Color::white() : Color::black());
     }
 }

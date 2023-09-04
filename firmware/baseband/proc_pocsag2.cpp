@@ -71,8 +71,7 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
 
     // Filter out high-frequency noise. TODO: compensate gain?
     lpf.execute_in_place(audio);
-    for (size_t i = 0; i < audio.count; ++i)
-        audio.p[i] *= 2;
+    normalizer.execute_in_place(audio);
     audio_output.write(audio);
 
     processDemodulatedSamples(audio.p, 16);
@@ -436,12 +435,12 @@ int POCSAGProcessor::extractFrames() {
             // Not got sync
             // ------------
             if (!m_gotSync) {
-                if (bitsDiff(m_fifo.codeword, M_SYNC) <= 3) {
+                if (bitsDiff(m_fifo.codeword, M_SYNC) <= 2) {
                     m_inverted = false;
                     m_gotSync = true;
                     m_numCode = -1;
                     m_fifo.numBits = 0;
-                } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 3) {
+                } else if (bitsDiff(m_fifo.codeword, M_NOTSYNC) <= 2) {
                     m_inverted = true;
                     m_gotSync = true;
                     m_numCode = -1;

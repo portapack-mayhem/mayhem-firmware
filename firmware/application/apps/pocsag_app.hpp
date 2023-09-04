@@ -231,7 +231,8 @@ class POCSAGAppView : public View {
         2,
         {0, 99},
         1,
-        ' '};
+        ' ',
+        true /*wrap*/};
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
 

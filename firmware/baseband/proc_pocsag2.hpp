@@ -40,12 +40,68 @@
 
 #include <cstdint>
 
-/*
-Can't we just send codewords as we get them? Why wait for 16?
-Is there some kind of cross-word CRC or something?
-I think there's a sync frame and then a series of codewords per message.
-But there's no good reason to buffer them, is there?
-*/
+/* Takes audio stream and automatically normalizes it to +/-1.0f */
+class AudioNormalizer {
+   public:
+    void execute_in_place(const buffer_f32_t& audio) {
+        // Decay min/max every second (@24kHz).
+        if (counter_ >= 24'000) {
+            // 90% decay factor seems to work well.
+            // This keeps large transients from wrecking the filter.
+            max_ *= 0.9f;
+            min_ *= 0.9f;
+            counter_ = 0;
+            calculate_thresholds();
+        }
+
+        counter_ += audio.count;
+
+        for (size_t i = 0; i < audio.count; ++i) {
+            auto& val = audio.p[i];
+
+            if (val > max_) {
+                max_ = val;
+                calculate_thresholds();
+            }
+            if (val < min_) {
+                min_ = val;
+                calculate_thresholds();
+            }
+
+            if (val >= t_hi_)
+                val = 1.0f;
+            else if (val <= t_lo_)
+                val = -1.0f;
+            else
+                val = 0.0;
+        }
+    }
+
+   private:
+    void calculate_thresholds() {
+        auto center = (max_ + min_) / 2.0f;
+        auto range = (max_ - min_) / 2.0f;
+
+        // 10% off center force either +/-1.0f.
+        // Higher == larger dead zone.
+        // Lower == more false positives.
+        auto threshold = range * 0.1;
+        t_hi_ = center + threshold;
+        t_lo_ = center - threshold;
+    }
+
+    uint32_t counter_ = 0;
+    float min_ = 99.0f;
+    float max_ = -99.0f;
+    float t_hi_ = 1.0;
+    float t_lo_ = 1.0;
+};
+
+// How to detect clock signal across baud rates?
+// Maybe have a bit extraction state machine that reset
+// then watches for the clocks, but there are multiple
+// clock and the last one is the right one.
+// So keep updating clock until a sync?
 
 class BitExtractor {};
 
@@ -87,14 +143,17 @@ class POCSAGProcessor : public BasebandProcessor {
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
 
-    // LPF to reduce noise - NB: can be BAUD/2.
-    // scipy.signal.butter(2, 1200, "lowpass", fs=24000, analog=False)
-    IIRBiquadFilter lpf{{{0.02008337f, 0.04016673f, 0.02008337f},
-                         {1.00000000f, -1.56101808f, 0.64135154f}}};
+    // LPF to reduce noise.
+    // scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False)
+    IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
+                         {1.00000000f, -1.34896775f, 0.51398189f}}};
 
     // Squelch to ignore noise.
     FMSquelch squelch{};
     uint64_t squelch_history = 0;
+
+    // Attempts to de-noise signal and normalize to +/- 1.0f.
+    AudioNormalizer normalizer{};
 
     // Handles writing audio stream to hardware.
     AudioOutput audio_output{};
