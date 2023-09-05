@@ -137,6 +137,9 @@ class POCSAGProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 3072000;
+    static constexpr uint8_t stat_update_interval = 10;
+    static constexpr uint32_t stat_update_threshold =
+        baseband_fs / stat_update_interval;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -158,7 +161,10 @@ class POCSAGProcessor : public BasebandProcessor {
     bool configured = false;
     pocsag::POCSAGPacket packet{};
 
+    uint32_t samples_processed = 0;
+
     void configure();
+    void send_stats() const;
 
     // ----------------------------------------
     // Frame extractraction methods and members
