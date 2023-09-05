@@ -49,11 +49,25 @@ uint32_t blink_patterns[] = {
 void config_mode_run() {
     configure_pins_portapack();
     portapack::gpio_dfu.input();
+    portapack::persistent_memory::cache::init();
 
-    config_mode_blink_until_dfu();
+    if (hackrf_r9) {
+        // When this runs on the hackrf r9 there likely was a crash during the last boot
+        // caused by the external tcxo. So we disable it unless the user is intentially
+        // running the config mode by pressing reset twice followed by pressing DFU.
+        auto old_disable_external_tcxo = portapack::persistent_memory::config_disable_external_tcxo();
+        portapack::persistent_memory::set_config_disable_external_tcxo(true);
+        portapack::persistent_memory::cache::persist();
+
+        config_mode_blink_until_dfu();
+
+        portapack::persistent_memory::set_config_disable_external_tcxo(old_disable_external_tcxo);
+        portapack::persistent_memory::cache::persist();
+    } else {
+        config_mode_blink_until_dfu();
+    }
 
     auto last_dfu_btn = portapack::gpio_dfu.read();
-    portapack::persistent_memory::cache::init();
 
     int32_t counter = 0;
     int8_t blink_pattern_value = portapack::persistent_memory::config_cpld() +
