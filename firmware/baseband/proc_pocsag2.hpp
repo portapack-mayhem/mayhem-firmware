@@ -40,6 +40,7 @@
 #include "portapack_shared_memory.hpp"
 #include "rssi_thread.hpp"
 
+#include <array>
 #include <cstdint>
 #include <functional>
 
@@ -74,22 +75,63 @@ class BitQueue {
     static constexpr uint8_t max_size_ = sizeof(data_) * 8;
 };
 
-// TODO: better clock sync.
 /* Extracts bits and bitrate from audio stream. */
 class BitExtractor {
    public:
     BitExtractor(BitQueue& bits)
-        : bits_{bits} { }
-
-    void set_sample_rate(uint32_t sample_rate);
+        : bits_{bits} {}
 
     void extract_bits(const buffer_f32_t& audio);
-    uint16_t baud_rate() const { return 0; }
+    void configure(uint32_t sample_rate);
+    void reset();
+
+    uint16_t baud_rate() const;
 
    private:
+    struct BaudInfo {
+        uint16_t baud_rate = 0;
+        float bit_length = 0.0;
+        float min_bit_length = 0.0;
+        float max_bit_length = 0.0;
+    };
+
+    /* Handle a transition, returns true if valid. */
+    bool handle_transition();
+
+    /* Count the number of bits the length represents.
+     * Returns true if valid given the current baud rate. */
+    bool count_bits(uint32_t length, uint16_t& bit_count);
+
+    /* Gets the baud info associated with the specified bit length. */
+    const BaudInfo* get_baud_info(float bit_length) const;
+
+    bool is_stable() const {
+        return good_transitions_ > 20;
+    }
+
+    bool is_failed() const {
+        return bad_transitions_ > 10;
+    }
+
+    std::array<BaudInfo, 3> known_rates_{
+        BaudInfo{512},
+        BaudInfo{1200},
+        BaudInfo{2400}};
+
     BitQueue& bits_;
 
     uint32_t sample_rate_ = 0;
+    const BaudInfo* current_rate_ = nullptr;
+
+    float sample_ = 0.0;
+    float last_sample_ = 0.0;
+
+    uint32_t sample_index_ = 0;
+    uint32_t last_transition_index_ = 0;
+    uint32_t last_send_index_ = 0;
+
+    uint32_t good_transitions_ = 0;
+    uint32_t bad_transitions_ = 0;
 };
 
 /* Extracts codeword batches from the BitQueue. */
@@ -234,45 +276,6 @@ class POCSAGProcessor : public BasebandProcessor {
         bits, [this](CodewordExtractor&) {
             send_packet();
         }};
-
-    //--------------------------------------------------
-    // Transitional code
-
-    // ----------------------------------------
-    // Frame extractraction methods and members
-    // ----------------------------------------
-    void initFrameExtraction();
-    void resetVals();
-    void setFrameExtractParams(long a_samplesPerSec, long a_maxBaud = 8000, long a_minBaud = 200, long maxRunOfSameValue = 32);
-    int processDemodulatedSamples(float* sampleBuff, int noOfSamples);
-
-    uint32_t getRate();
-
-    uint32_t m_averageSymbolLen_1024{0};
-    uint32_t m_lastStableSymbolLen_1024{0};
-
-    uint32_t m_samplesPerSec{0};
-    uint32_t m_goodTransitions{0};
-    uint32_t m_badTransitions{0};
-
-    uint32_t m_sampleNo{0};
-    float m_sample{0};
-    float m_valMid{0.0f};
-    float m_lastSample{0.0f};
-
-    uint32_t m_lastTransPos_1024{0};
-    uint32_t m_lastSingleBitPos_1024{0};
-
-    uint32_t m_nextBitPosInt{0};  // Integer rounded up version to save on ops
-    uint32_t m_nextBitPos_1024{0};
-    uint32_t m_lastBitPos_1024{0};
-
-    uint32_t m_shortestGoodTrans_1024{0};
-    uint32_t m_minSymSamples_1024{0};
-    uint32_t m_maxSymSamples_1024{0};
-    uint32_t m_maxRunOfSameValue{0};
-
-    //--------------------------------------------------
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
