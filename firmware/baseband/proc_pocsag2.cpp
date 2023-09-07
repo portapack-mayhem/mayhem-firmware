@@ -169,8 +169,8 @@ void BitExtractor::configure(uint32_t sample_rate) {
         info.bit_length = sample_rate / info.baud_rate;
 
         // Allow for 20% deviation.
-        info.min_bit_length = 0.8 * info.bit_length;
-        info.max_bit_length = 1.2 * info.bit_length;
+        info.min_bit_length -= 0.20 * info.bit_length;
+        info.max_bit_length += 0.20 * info.bit_length;
 
         if (info.min_bit_length < min_valid_length_)
             min_valid_length_ = info.min_bit_length;
@@ -283,9 +283,9 @@ void CodewordExtractor::process_bits() {
         // Wait for the sync frame.
         if (!has_sync_) {
             if (differ_bit_count(data_, sync_codeword) <= 2)
-                handle_sync(false);
+                handle_sync(/*inverted=*/false);
             else if (differ_bit_count(data_, ~sync_codeword) <= 2)
-                handle_sync(true);
+                handle_sync(/*inverted=*/true);
             continue;
         }
 

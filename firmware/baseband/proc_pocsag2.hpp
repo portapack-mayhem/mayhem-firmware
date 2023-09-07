@@ -44,7 +44,7 @@
 #include <cstdint>
 #include <functional>
 
-/* Processes audio stream to normalizes it to +/-1.0f */
+/* Normalizes audio stream to +/-1.0f */
 class AudioNormalizer {
    public:
     void execute_in_place(const buffer_f32_t& audio);
