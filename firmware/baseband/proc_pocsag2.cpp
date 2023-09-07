@@ -148,7 +148,7 @@ void BitExtractor::extract_bits(const buffer_f32_t& audio) {
 
         // Time to push the next bit?
         if (sample_index_ >= next_bit_center_) {
-            // Use the two more recent samples for the bit value.
+            // Use the two most recent samples for the bit value.
             auto val = (sample_ + last_sample_) / 2.0;
             bits_.push(val < 0);  // NB: '1' is negative.
 
@@ -254,11 +254,11 @@ bool BitExtractor::count_bits(uint32_t length, uint16_t& bit_count) {
     // Round to the nearest # of bits and determine how
     // well the current rate fits the data.
     float round_bits = std::round(exact_bits);
-    float error = std::abs(exact_bits - round_bits);
+    float error = std::abs(exact_bits - round_bits) / exact_bits;
 
-    // Good transition are w/in 20% of current rate estimate.
+    // Good transition are w/in 15% of current rate estimate.
     bit_count = round_bits;
-    return error <= 0.20;
+    return error < 0.15;
 }
 
 const BitExtractor::BaudInfo* BitExtractor::get_baud_info(float bit_length) const {
