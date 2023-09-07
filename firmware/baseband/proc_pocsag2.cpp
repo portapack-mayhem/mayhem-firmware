@@ -213,6 +213,10 @@ bool BitExtractor::handle_transition() {
     auto rate = get_baud_info(bit_length);
     if (!rate) return false;
 
+    // Set current rate if it hasn't been set yet.
+    if (!current_rate_)
+        current_rate_ = rate;
+
     // Maybe current rate isn't the best rate?
     auto rate_miss = rate != current_rate_;
     if (rate_miss) {

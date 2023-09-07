@@ -89,7 +89,7 @@ class BitExtractor {
 
    private:
     /* Number of rate misses that would cause a rate update. */
-    static constexpr uint8_t rate_miss_reset_threshold = 10;
+    static constexpr uint8_t rate_miss_reset_threshold = 5;
 
     /* Number of rate misses that would cause a rate update. */
     static constexpr uint8_t bad_transition_reset_threshold = 10;
