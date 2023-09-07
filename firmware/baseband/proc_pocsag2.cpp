@@ -169,8 +169,8 @@ void BitExtractor::configure(uint32_t sample_rate) {
         info.bit_length = sample_rate / info.baud_rate;
 
         // Allow for 20% deviation.
-        info.min_bit_length -= 0.20 * info.bit_length;
-        info.max_bit_length += 0.20 * info.bit_length;
+        info.min_bit_length = 0.80 * info.bit_length;
+        info.max_bit_length = 1.20 * info.bit_length;
 
         if (info.min_bit_length < min_valid_length_)
             min_valid_length_ = info.min_bit_length;
