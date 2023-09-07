@@ -370,7 +370,7 @@ class SetConverterSettingsView : public View {
 
     Button button_return{
         {16 * 8, 16 * 16, 12 * 8, 32},
-        "return",
+        "Return",
     };
 };
 
