@@ -412,7 +412,7 @@ bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state) {
                     state.ascii_idx -= 7;
                     char ascii_char = (state.ascii_data >> state.ascii_idx) & 0x7F;
 
-                    // Reverse the bits.
+                    // Reverse the bits. (TODO: __RBIT?)
                     ascii_char = (ascii_char & 0xF0) >> 4 | (ascii_char & 0x0F) << 4;  // 01234567 -> 45670123
                     ascii_char = (ascii_char & 0xCC) >> 2 | (ascii_char & 0x33) << 2;  // 45670123 -> 67452301
                     ascii_char = (ascii_char & 0xAA) >> 2 | (ascii_char & 0x55);       // 67452301 -> 76543210
