@@ -89,7 +89,7 @@ class BitExtractor {
 
    private:
     /* Number of rate misses that would cause a rate update. */
-    static constexpr uint8_t rate_miss_reset_threshold = 5;
+    static constexpr uint8_t rate_miss_reset_threshold = 10;
 
     /* Number of rate misses that would cause a rate update. */
     static constexpr uint8_t bad_transition_reset_threshold = 10;
@@ -101,7 +101,7 @@ class BitExtractor {
         float max_bit_length = 0.0;
     };
 
-    /* Handle a transition, returns true if valid. */
+    /* Handle a transition, returns true if "good". */
     bool handle_transition();
 
     /* Count the number of bits the length represents.
@@ -205,6 +205,7 @@ class CodewordExtractor {
     batch_t batch_{};
 };
 
+/* Processes POCSAG signal into codeword batches. */
 class POCSAGProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
@@ -222,54 +223,54 @@ class POCSAGProcessor : public BasebandProcessor {
     void send_stats() const;
     void send_packet();
 
-    // Set once app is ready to receive messages.
+    /* Set once app is ready to receive messages. */
     bool configured = false;
 
-    // Buffer for decimated IQ data.
+    /* Buffer for decimated IQ data. */
     std::array<complex16_t, 256> dst{};
     const buffer_c16_t dst_buffer{dst.data(), dst.size()};
 
-    // Buffer for demodulated audio.
+    /* Buffer for demodulated audio. */
     std::array<float, 16> audio{};
     const buffer_f32_t audio_buffer{audio.data(), audio.size()};
 
-    // Decimate to 48kHz.
+    /* Decimate to 48kHz. */
     dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
     dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
 
-    // Filter to 24kHz and demodulate.
+    /* Filter to 24kHz and demodulate. */
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
 
-    // Squelch to ignore noise.
+    /* Squelch to ignore noise. */
     FMSquelch squelch{};
     uint64_t squelch_history = 0;
 
-    // LPF to reduce noise. POCSAG supports 2400 baud, but that falls
-    // nicely into the transition band of this 1800Hz filter.
-    // scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False)
+    /* LPF to reduce noise. POCSAG supports 2400 baud, but that falls
+     * nicely into the transition band of this 1800Hz filter.
+     * scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False) */
     IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
                          {1.00000000f, -1.34896775f, 0.51398189f}}};
 
-    // Attempts to de-noise and normalize signal.
+    /* Attempts to de-noise and normalize signal. */
     AudioNormalizer normalizer{};
 
-    // Handles writing audio stream to hardware.
+    /* Handles writing audio stream to hardware. */
     AudioOutput audio_output{};
 
-    // Holds the data sent to the app.
+    /* Holds the data sent to the app. */
     pocsag::POCSAGPacket packet{};
 
-    // Used to keep track of how many samples were processed
-    // between status update messages.
+    /* Used to keep track of how many samples were processed
+     * between status update messages. */
     uint32_t samples_processed = 0;
 
     BitQueue bits{};
 
-    // Processes bits into codewords.
+    /* Processes audio into bits. */
     BitExtractor bit_extractor{bits};
 
-    // Processes bits into codewords.
+    /* Processes bits into codewords. */
     CodewordExtractor word_extractor{
         bits, [this](CodewordExtractor&) {
             send_packet();

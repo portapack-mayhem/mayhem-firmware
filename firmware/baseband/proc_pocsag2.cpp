@@ -258,6 +258,7 @@ bool BitExtractor::count_bits(uint32_t length, uint16_t& bit_count) {
 }
 
 const BitExtractor::BaudInfo* BitExtractor::get_baud_info(float bit_length) const {
+    // NB: This assumes known_rates_ are ordered slowest first.
     for (const auto& info : known_rates_) {
         if (bit_length >= info.min_bit_length &&
             bit_length <= info.max_bit_length) {
