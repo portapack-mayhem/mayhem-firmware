@@ -127,150 +127,58 @@ uint32_t BitQueue::data() const {
 
 void BitExtractor::extract_bits(const buffer_f32_t& audio) {
     // Assumes input has been normalized +/- 1.0f.
-
     for (size_t i = 0; i < audio.count; ++i) {
-        sample_ = audio.p[i];
+        auto sample = audio.p[i];
         ++sample_index_;
 
-        // There's a transition when both sides of the XOR are the
-        // same which will result in a the overall value being 0.
-        bool is_transition = ((last_sample_ < 0) ^ (sample_ >= 0)) == 0;
-        if (is_transition) {
-            if (handle_transition())
-                bad_transitions_ = 0;
-            else
-                ++bad_transitions_;
+        // Feed the known rate queues.
+        for (auto& rate : known_rates_) {
 
-            // Too many bad transitions? Reset.
-            if (bad_transitions_ > bad_transition_reset_threshold)
-                reset();
-        }
+          // Ready for next sample?
+          if (sample_index_ < rate.next_sample_index)
+            continue;
 
-        // Time to push the next bit?
-        if (sample_index_ >= next_bit_center_) {
-            // Use the two most recent samples for the bit value.
-            auto val = (sample_ + last_sample_) / 2.0;
-            bits_.push(val < 0);  // NB: '1' is negative.
+          auto pattern = rate.handle_sample(sample);
 
+          if (pattern == clock_magic_number && &rate != current_rate_) {
+            // Reset to ensure old data doesn't keep triggering rate change.
             if (current_rate_)
-                next_bit_center_ += current_rate_->bit_length;
+              current_rate_->reset(sample_index_);
+
+            // Immediately handle this sample below.
+            next_sample_index_ = sample_index_;
+            current_rate_ = &rate;
+          }
         }
 
-        last_sample_ = sample_;
+        // Time to take the next sample?
+        if (current_rate_ && sample_index_ >= next_sample_index_) {
+            bits_.push(sample < 0);  // Negative is '1'.
+            next_sample_index_ += current_rate_->bit_length;
+        }
     }
 }
 
 void BitExtractor::configure(uint32_t sample_rate) {
     sample_rate_ = sample_rate;
-    min_valid_length_ = UINT16_MAX;
 
     // Build the baud rate info table based on the sample rate.
-    for (auto& info : known_rates_) {
-        info.bit_length = sample_rate / info.baud_rate;
-
-        // Allow for 20% deviation.
-        info.min_bit_length = 0.80 * info.bit_length;
-        info.max_bit_length = 1.20 * info.bit_length;
-
-        if (info.min_bit_length < min_valid_length_)
-            min_valid_length_ = info.min_bit_length;
-    }
+    for (auto& rate : known_rates_)
+        rate.bit_length = sample_rate / static_cast<float>(rate.baud_rate);
 
     reset();
 }
 
 void BitExtractor::reset() {
     current_rate_ = nullptr;
-    rate_misses_ = 0;
-
-    sample_ = 0.0;
-    last_sample_ = 0.0;
-    next_bit_center_ = 0.0;
-
     sample_index_ = 0;
-    last_transition_index_ = 0;
-    bad_transitions_ = 0;
+    
+    for (auto& rate : known_rates_)
+        rate.reset(sample_index_);
 }
 
 uint16_t BitExtractor::baud_rate() const {
-    return current_rate_ ? current_rate_->baud_rate : 0;
-}
-
-bool BitExtractor::handle_transition() {
-    auto length = sample_index_ - last_transition_index_;
-    last_transition_index_ = sample_index_;
-
-    // Length is too short, ignore this.
-    if (length <= min_valid_length_) return false;
-
-    // TODO: should the following be "bad" or "rate misses"?
-    // Is length a multiple of the current rate's bit length?
-    uint16_t bit_count = 0;
-    if (!count_bits(length, bit_count)) return false;
-
-    // Does the bit length correspond to a known rate?
-    auto bit_length = length / static_cast<float>(bit_count);
-    auto rate = get_baud_info(bit_length);
-    if (!rate) return false;
-
-    // Set current rate if it hasn't been set yet.
-    if (!current_rate_)
-        current_rate_ = rate;
-
-    // Maybe current rate isn't the best rate?
-    auto rate_miss = rate != current_rate_;
-    if (rate_miss) {
-        ++rate_misses_;
-
-        // Lots of rate misses, try another rate.
-        if (rate_misses_ > rate_miss_reset_threshold) {
-            current_rate_ = rate;
-            rate_misses_ = 0;
-        }
-    } else {
-        // Transition is aligned with the current rate, predict next bit.
-        auto half_bit = current_rate_->bit_length / 2.0;
-        next_bit_center_ = sample_index_ + half_bit;
-    }
-
-    return true;
-}
-
-bool BitExtractor::count_bits(uint32_t length, uint16_t& bit_count) {
-    bit_count = 0;
-
-    // No rate yet, assume one valid bit. Downstream will deal with it.
-    if (!current_rate_) {
-        bit_count = 1;
-        return true;
-    }
-
-    // How many bits span the specified length?
-    float exact_bits = length / current_rate_->bit_length;
-
-    // < 1 bit, current rate is probably too low.
-    if (exact_bits < 0.80) return false;
-
-    // Round to the nearest # of bits and determine how
-    // well the current rate fits the data.
-    float round_bits = std::round(exact_bits);
-    float error = std::abs(exact_bits - round_bits) / exact_bits;
-
-    // Good transition are w/in 15% of current rate estimate.
-    bit_count = round_bits;
-    return error < 0.15;
-}
-
-const BitExtractor::BaudInfo* BitExtractor::get_baud_info(float bit_length) const {
-    // NB: This assumes known_rates_ are ordered slowest first.
-    for (const auto& info : known_rates_) {
-        if (bit_length >= info.min_bit_length &&
-            bit_length <= info.max_bit_length) {
-            return &info;
-        }
-    }
-
-    return nullptr;
+  return current_rate_ ? current_rate_->baud_rate : 0;
 }
 
 /* CodewordExtractor *************************************/
