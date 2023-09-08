@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2018 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -21,42 +20,52 @@
  */
 
 #include "ui.hpp"
-#include "ui_transmitter.hpp"
-#include "transmitter_model.hpp"
+#include "ui_navigation.hpp"
+
+#include "app_settings.hpp"
+#include "radio_state.hpp"
+
+#include <string>
+#include <vector>
 
 namespace ui {
+
+/* Data model for a remote entry. */
+class RemoteEntryModel {
+};
+
+/* Data model for a remote. */
+class RemoteModel {
+   public:
+   private:
+    std::string name_;
+    std::vector<RemoteEntryModel> entries_;
+};
+
+/* Settings container for remote. */
+struct RemoteSettings {
+    std::string remote_path{};
+};
 
 class RemoteView : public View {
    public:
     RemoteView(NavigationView& nav);
-    ~RemoteView();
 
+    std::string title() const override { return "Remote"; };
     void focus() override;
 
-    std::string title() const override { return "Custom remote"; };
-
    private:
-    /*enum tx_modes {
-                IDLE = 0,
-                SINGLE,
-                SCAN
-        };
+    NavigationView& nav_;
+    RxRadioState radio_state_{};
 
-        tx_modes tx_mode = IDLE;
-
-        struct remote_layout_t {
-                Point position;
-                std::string text;
-        };
-
-        const std::array<remote_layout_t, 32> remote_layout { };*/
-
-    Labels labels{
-        {{1 * 8, 0}, "Work in progress...", Color::light_grey()}};
-
-    Button button{
-        {60, 64, 120, 32},
-        "Exit"};
+    // Settings
+    RemoteSettings settings_{};
+    app_settings::SettingsManager app_settings_{
+        "tx_remote"sv,
+        app_settings::Mode::TX,
+        {
+            {"remote_path"sv, &settings_.remote_path},
+        }};
 };
 
 } /* namespace ui */

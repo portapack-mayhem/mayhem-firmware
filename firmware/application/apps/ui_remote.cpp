@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2018 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -22,30 +21,16 @@
 
 #include "ui_remote.hpp"
 
-#include "baseband_api.hpp"
-#include "string_format.hpp"
-
 using namespace portapack;
 
 namespace ui {
 
-void RemoteView::focus() {
-    button.focus();
-}
-
-RemoteView::~RemoteView() {
-    // transmitter_model.disable();
-    // baseband::shutdown();
-}
-
 RemoteView::RemoteView(
-    NavigationView& nav) {
-    add_children({&labels,
-                  &button});
+    NavigationView& nav)
+    : nav_{nav} {
+}
 
-    button.on_select = [this, &nav](Button&) {
-        nav.pop();
-    };
+void RemoteView::focus() {
 }
 
 } /* namespace ui */
