@@ -52,6 +52,24 @@ class POCSAGLogger {
 
 namespace ui {
 
+class BaudIndicator : public Widget {
+   public:
+    BaudIndicator(Point position)
+        : Widget{{position, {5, height}}} {}
+
+    void paint(Painter& painter) override;
+    void set_rate(uint16_t rate) {
+        if (rate != rate_) {
+            rate_ = rate;
+            set_dirty();
+        }
+    }
+
+   private:
+    static constexpr uint8_t height = 16;
+    uint16_t rate_ = 0;
+};
+
 class BitsIndicator : public Widget {
    public:
     BitsIndicator(Point position)
@@ -247,10 +265,13 @@ class POCSAGAppView : public View {
         "0"};
 
     BitsIndicator widget_bits{
-        {9 * 7 + 6, 1 * 16 + 2}};
+        {8 * 8 + 1, 1 * 16 + 2}};
 
     FrameIndicator widget_frames{
-        {9 * 8, 1 * 16 + 2}};
+        {8 * 8 + 4, 1 * 16 + 2}};
+
+    BaudIndicator widget_baud{
+        {8 * 9 + 1, 1 * 16 + 2}};
 
     Button button_ignore_last{
         {10 * 8, 1 * 16, 12 * 8, 20},

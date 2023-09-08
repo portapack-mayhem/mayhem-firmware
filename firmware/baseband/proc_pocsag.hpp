@@ -187,7 +187,7 @@ class POCSAGProcessor : public BasebandProcessor {
     short getBit();
 
     int getNoOfBits();
-    uint32_t getRate();
+    uint32_t getRate() const;
 
     uint32_t m_averageSymbolLen_1024{0};
     uint32_t m_lastStableSymbolLen_1024{0};

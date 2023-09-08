@@ -50,8 +50,46 @@ TEST_CASE("ifft successfully calculates dc on zero frequency") {
     for (uint32_t i = 0; i < fft_width; i++)
         CHECK(v[i].imag() == 0);
 
-    free(v);
-    free(tmp);
+    delete[] v;
+    delete[] tmp;
+}
+
+TEST_CASE("ifft successfully calculates sine of quarter the sample rate") {
+    uint32_t fft_width = 8;
+    complex16_t* v = new complex16_t[fft_width];
+    complex16_t* tmp = new complex16_t[fft_width];
+
+    v[0] = {0, 0};
+    v[1] = {0, 0};
+    v[2] = {1024, 0};  // sample rate /4 bin
+    v[3] = {0, 0};
+    v[4] = {0, 0};
+    v[5] = {0, 0};
+    v[6] = {0, 0};
+    v[7] = {0, 0};
+
+    ifft<complex16_t>(v, fft_width, tmp);
+
+    CHECK(v[0].real() == 1024);
+    CHECK(v[1].real() == 0);
+    CHECK(v[2].real() == -1024);
+    CHECK(v[3].real() == 0);
+    CHECK(v[4].real() == 1024);
+    CHECK(v[5].real() == 0);
+    CHECK(v[6].real() == -1024);
+    CHECK(v[7].real() == 0);
+
+    CHECK(v[0].imag() == 0);
+    CHECK(v[1].imag() == 1024);
+    CHECK(v[2].imag() == 0);
+    CHECK(v[3].imag() == -1024);
+    CHECK(v[4].imag() == 0);
+    CHECK(v[5].imag() == 1024);
+    CHECK(v[6].imag() == 0);
+    CHECK(v[7].imag() == -1024);
+
+    delete[] v;
+    delete[] tmp;
 }
 
 TEST_CASE("ifft successfully calculates pure sine of half the sample rate") {
@@ -82,6 +120,6 @@ TEST_CASE("ifft successfully calculates pure sine of half the sample rate") {
     for (uint32_t i = 0; i < fft_width; i++)
         CHECK(v[i].imag() == 0);
 
-    free(v);
-    free(tmp);
+    delete[] v;
+    delete[] tmp;
 }
