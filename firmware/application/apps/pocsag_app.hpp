@@ -210,6 +210,7 @@ class POCSAGAppView : public View {
         {
             {"small_font"sv, &settings_.enable_small_font},
             {"enable_logging"sv, &settings_.enable_logging},
+            {"enable_raw_log"sv, &settings_.enable_raw_log},
             {"enable_ignore"sv, &settings_.enable_ignore},
             {"address_to_ignore"sv, &settings_.address_to_ignore},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
