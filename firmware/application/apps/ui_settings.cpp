@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -125,7 +126,29 @@ SetRadioView::SetRadioView(
         nav.pop();
     };
 
+    add_children({
+        &label_source,
+        &value_source,
+        &value_source_frequency,
+        &check_clkout,
+        &field_clkout_freq,
+        &labels_clkout_khz,
+        &value_freq_step,
+        &labels_bias,
+        &check_bias,
+        &disable_external_tcxo,  // TODO: always show?
+        &button_save,
+        &button_cancel,
+    });
+
     const auto reference = clock_manager.get_reference();
+
+    if (reference.source == ClockManager::ReferenceSource::Xtal) {
+        add_children({
+            &labels_correction,
+            &field_ppm,
+        });
+    }
 
     std::string source_name("---");
     switch (reference.source) {
@@ -141,35 +164,14 @@ SetRadioView::SetRadioView(
     }
 
     value_source.set(source_name);
-    value_source_frequency.set(to_string_dec_uint(reference.frequency / 1000000, 2) + "." + to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+    value_source_frequency.set(
+        to_string_dec_uint(reference.frequency / 1000000, 2) + "." +
+        to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
 
+    // Make these Text controls look like Labels.
     label_source.set_style(&Styles::light_grey);
     value_source.set_style(&Styles::light_grey);
     value_source_frequency.set_style(&Styles::light_grey);
-
-    add_children({
-        &label_source,
-        &value_source,
-        &value_source_frequency,
-    });
-
-    if (reference.source == ClockManager::ReferenceSource::Xtal) {
-        add_children({
-            &labels_correction,
-            &field_ppm,
-        });
-    }
-
-    add_children({&check_clkout,
-                  &field_clkout_freq,
-                  &labels_clkout_khz,
-                  &value_freq_step,
-                  &labels_bias,
-                  &check_bias,
-                  &button_save,
-                  &button_cancel});
-
-    add_children({&disable_external_tcxo});
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -344,10 +346,13 @@ void SetUIView::focus() {
 /* SetAppSettingsView ************************************/
 
 SetAppSettingsView::SetAppSettingsView(NavigationView& nav) {
-    add_children({&checkbox_load_app_settings,
-                  &checkbox_save_app_settings,
-                  &button_save,
-                  &button_cancel});
+    add_children({
+        &labels,
+        &checkbox_load_app_settings,
+        &checkbox_save_app_settings,
+        &button_save,
+        &button_cancel,
+    });
 
     checkbox_load_app_settings.set_value(pmem::load_app_settings());
     checkbox_save_app_settings.set_value(pmem::save_app_settings());
@@ -369,11 +374,14 @@ void SetAppSettingsView::focus() {
 /* SetConverterSettingsView ******************************/
 
 SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
-    add_children({&check_show_converter,
-                  &check_converter,
-                  &converter_mode,
-                  &button_converter_freq,
-                  &button_return});
+    add_children({
+        &labels,
+        &check_show_converter,
+        &check_converter,
+        &opt_converter_mode,
+        &field_converter_freq,
+        &button_return,
+    });
 
     check_show_converter.set_value(!pmem::ui_hide_converter());
     check_show_converter.on_select = [this](Checkbox&, bool v) {
@@ -383,7 +391,7 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
         }
         // Retune to take converter change in account.
         receiver_model.set_target_frequency(receiver_model.target_frequency());
-        // Refresh status bar with/out converter
+        // Refresh status bar converter icon.
         send_system_refresh();
     };
 
@@ -394,27 +402,30 @@ SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
             pmem::set_ui_hide_converter(false);
         }
         pmem::set_config_converter(v);
-        // Retune to take converter change in account
+        // Retune to take converter change in account.
         receiver_model.set_target_frequency(receiver_model.target_frequency());
-        // Refresh status bar with/out converter
+        // Refresh status bar converter icon.
         send_system_refresh();
     };
 
-    converter_mode.set_by_value(pmem::config_updown_converter());
-    converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
+    opt_converter_mode.set_by_value(pmem::config_updown_converter());
+    opt_converter_mode.on_change = [this](size_t, OptionsField::value_t v) {
         pmem::set_config_updown_converter(v);
-        // Refresh status bar with icon up or down
+        // Refresh status bar with up or down icon.
         send_system_refresh();
     };
 
-    button_converter_freq.set_text(to_string_short_freq(pmem::config_converter_freq()) + "MHz");
-    button_converter_freq.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(pmem::config_converter_freq());
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            pmem::set_config_converter_freq(f);
-            // Retune to take converter change in account
-            receiver_model.set_target_frequency(receiver_model.target_frequency());
-            button_converter_freq.set_text("<" + to_string_short_freq(f) + " MHz>");
+    field_converter_freq.set_step(1'000'000);
+    field_converter_freq.set_value(pmem::config_converter_freq());
+    field_converter_freq.on_change = [this](rf::Frequency f) {
+        pmem::set_config_converter_freq(f);
+        // Retune to take converter change in account.
+        receiver_model.set_target_frequency(receiver_model.target_frequency());
+    };
+    field_converter_freq.on_edit = [this, &nav]() {
+        auto new_view = nav.push<FrequencyKeypadView>(field_converter_freq.value());
+        new_view->on_changed = [this](rf::Frequency f) {
+            field_converter_freq.set_value(f);
         };
     };
 
@@ -430,46 +441,50 @@ void SetConverterSettingsView::focus() {
 /* SetFrequencyCorrectionView ****************************/
 
 SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
-    add_children({&text_freqCorrection_about,
-                  &frequency_rx_correction_mode,
-                  &frequency_tx_correction_mode,
-                  &button_freq_rx_correction,
-                  &button_freq_tx_correction,
-                  &button_return});
+    add_children({
+        &labels,
+        &opt_rx_correction_mode,
+        &field_rx_correction,
+        &opt_tx_correction_mode,
+        &field_tx_correction,
+        &button_return,
+    });
 
-    frequency_rx_correction_mode.set_by_value(pmem::config_freq_rx_correction_updown());
-    frequency_rx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
+    opt_rx_correction_mode.set_by_value(pmem::config_freq_rx_correction_updown());
+    opt_rx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
         pmem::set_freq_rx_correction_updown(v);
     };
 
-    frequency_tx_correction_mode.set_by_value(pmem::config_freq_rx_correction_updown());
-    frequency_tx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
+    opt_tx_correction_mode.set_by_value(pmem::config_freq_rx_correction_updown());
+    opt_tx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
         pmem::set_freq_tx_correction_updown(v);
     };
 
-    button_freq_rx_correction.set_text(to_string_short_freq(pmem::config_freq_rx_correction()) + "MHz (Rx)");
-    button_freq_rx_correction.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(pmem::config_converter_freq());
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            if (f >= MAX_FREQ_CORRECTION)
-                f = MAX_FREQ_CORRECTION;
-            pmem::set_config_freq_rx_correction(f);
-            // Retune to take converter change in account
-            receiver_model.set_target_frequency(receiver_model.target_frequency());
-            button_freq_rx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
+    field_rx_correction.set_step(100'000);
+    field_rx_correction.set_value(pmem::config_freq_rx_correction());
+    field_rx_correction.on_change = [this](rf::Frequency f) {
+        pmem::set_config_freq_rx_correction(f);
+        // Retune to take converter change in account.
+        receiver_model.set_target_frequency(receiver_model.target_frequency());
+    };
+    field_rx_correction.on_edit = [this, &nav]() {
+        auto new_view = nav.push<FrequencyKeypadView>(field_rx_correction.value());
+        new_view->on_changed = [this](rf::Frequency f) {
+            field_rx_correction.set_value(f);
         };
     };
 
-    button_freq_tx_correction.set_text(to_string_short_freq(pmem::config_freq_tx_correction()) + "MHz (Tx)");
-    button_freq_tx_correction.on_select = [this, &nav](Button& button) {
-        auto new_view = nav.push<FrequencyKeypadView>(pmem::config_converter_freq());
-        new_view->on_changed = [this, &button](rf::Frequency f) {
-            if (f >= MAX_FREQ_CORRECTION)
-                f = MAX_FREQ_CORRECTION;
-            pmem::set_config_freq_tx_correction(f);
-            // Retune to take converter change in account
-            receiver_model.set_target_frequency(receiver_model.target_frequency());
-            button_freq_tx_correction.set_text("<" + to_string_short_freq(f) + " MHz>");
+    field_tx_correction.set_step(100'000);
+    field_tx_correction.set_value(pmem::config_freq_tx_correction());
+    field_tx_correction.on_change = [this](rf::Frequency f) {
+        pmem::set_config_freq_tx_correction(f);
+        // Retune to take converter change in account. NB: receiver_model.
+        receiver_model.set_target_frequency(receiver_model.target_frequency());
+    };
+    field_tx_correction.on_edit = [this, &nav]() {
+        auto new_view = nav.push<FrequencyKeypadView>(field_tx_correction.value());
+        new_view->on_changed = [this](rf::Frequency f) {
+            field_tx_correction.set_value(f);
         };
     };
 
@@ -485,49 +500,52 @@ void SetFrequencyCorrectionView::focus() {
 /* SetPersistentMemoryView *******************************/
 
 SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
-    add_children({&text_pmem_about,
-                  &text_pmem_informations,
-                  &text_pmem_status,
-                  &check_use_sdcard_for_pmem,
-                  &button_save_mem_to_file,
-                  &button_load_mem_from_file,
-                  &button_load_mem_defaults,
-                  &button_return});
+    add_children({
+        &labels,
+        &text_pmem_status,
+        &check_use_sdcard_for_pmem,
+        &button_save_mem_to_file,
+        &button_load_mem_from_file,
+        &button_load_mem_defaults,
+        &button_return,
+    });
+
+    text_pmem_status.set_style(&Styles::yellow);
 
     check_use_sdcard_for_pmem.set_value(pmem::should_use_sdcard_for_pmem());
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         if (v) {
             if (fs::file_exists(PMEM_FILEFLAG)) {
-                text_pmem_status.set("pmem flag already present");
+                text_pmem_status.set("P.Mem flag file present.");
             } else {
                 auto error = pmem_flag_file_handle.create(PMEM_FILEFLAG);
                 if (error)
-                    text_pmem_status.set("!err. creating pmem flagfile!");
+                    text_pmem_status.set("Error creating P.Mem File!");
                 else
-                    text_pmem_status.set("pmem flag file created");
+                    text_pmem_status.set("P.Mem flag file created.");
             }
         } else {
             auto result = delete_file(PMEM_FILEFLAG);
             if (result.code() != FR_OK)
-                text_pmem_status.set("!err. deleting pmem flagfile!");
+                text_pmem_status.set("Error deleting P.Mem flag!");
             else
-                text_pmem_status.set("pmem flag file deleted");
+                text_pmem_status.set("P.Mem flag file deleted.");
         }
     };
 
     button_save_mem_to_file.on_select = [&nav, this](Button&) {
         if (!pmem::save_persistent_settings_to_file())
-            text_pmem_status.set("!problem saving settings!");
+            text_pmem_status.set("Error saving settings!");
         else
-            text_pmem_status.set("settings saved");
+            text_pmem_status.set("Settings saved.");
     };
 
     button_load_mem_from_file.on_select = [&nav, this](Button&) {
         if (!pmem::load_persistent_settings_from_file()) {
-            text_pmem_status.set("!problem loading settings!");
+            text_pmem_status.set("Error loading settings!");
         } else {
-            text_pmem_status.set("settings loaded");
+            text_pmem_status.set("Settings loaded.");
             // Refresh status bar with icon up or down
             send_system_refresh();
         }
@@ -536,7 +554,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     button_load_mem_defaults.on_select = [&nav, this](Button&) {
         nav.push<ModalMessageView>(
             "Warning!",
-            "This will reset the p.mem\nand set the default settings",
+            "This will reset the P.Mem\nto default settings.",
             YESNO,
             [this](bool choice) {
                 if (choice) {
@@ -582,9 +600,12 @@ void SetAudioView::focus() {
 /* SetQRCodeView *****************************************/
 
 SetQRCodeView::SetQRCodeView(NavigationView& nav) {
-    add_children({&checkbox_bigger_qr,
-                  &button_save,
-                  &button_cancel});
+    add_children({
+        &labels,
+        &checkbox_bigger_qr,
+        &button_save,
+        &button_cancel,
+    });
 
     checkbox_bigger_qr.set_value(pmem::show_bigger_qr_code());
 
@@ -640,7 +661,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetAppSettingsView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
-        {"FreqCorrection", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
+        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
         {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},

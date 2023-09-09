@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -26,6 +27,7 @@
 
 #include "ui_widget.hpp"
 #include "ui_menu.hpp"
+#include "ui_receiver.hpp"
 #include "ui_navigation.hpp"
 #include "bitmap.hpp"
 #include "ff.h"
@@ -34,8 +36,6 @@
 #include <cstdint>
 
 namespace ui {
-
-#define MAX_FREQ_CORRECTION INT32_MAX
 
 struct SetDateTimeModel {
     uint16_t year;
@@ -56,25 +56,28 @@ class SetDateTimeView : public View {
 
    private:
     Labels labels{
-        {{6 * 8, 7 * 16}, "YYYY-MM-DD HH:MM:SS", Color::grey()},
-        {{10 * 8, 9 * 16}, "-  -     :  :", Color::light_grey()}};
+        {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "time. If clock resets after", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Color::light_grey()},
+        {{5 * 8, 8 * 16 - 2}, "YYYY-MM-DD HH:MM:SS", Color::grey()},
+        {{9 * 8, 9 * 16}, "-  -     :  :", Color::light_grey()}};
 
     NumberField field_year{
-        {6 * 8, 9 * 16},
+        {5 * 8, 9 * 16},
         4,
         {2015, 2099},
         1,
         '0',
     };
     NumberField field_month{
-        {11 * 8, 9 * 16},
+        {10 * 8, 9 * 16},
         2,
         {1, 12},
         1,
         '0',
     };
     NumberField field_day{
-        {14 * 8, 9 * 16},
+        {13 * 8, 9 * 16},
         2,
         {1, 31},
         1,
@@ -82,21 +85,21 @@ class SetDateTimeView : public View {
     };
 
     NumberField field_hour{
-        {17 * 8, 9 * 16},
+        {16 * 8, 9 * 16},
         2,
         {0, 23},
         1,
         '0',
     };
     NumberField field_minute{
-        {20 * 8, 9 * 16},
+        {19 * 8, 9 * 16},
         2,
         {0, 59},
         1,
         '0',
     };
     NumberField field_second{
-        {23 * 8, 9 * 16},
+        {22 * 8, 9 * 16},
         2,
         {0, 59},
         1,
@@ -131,20 +134,28 @@ class SetRadioView : public View {
     uint8_t freq_step_khz = 3;
 
     Text label_source{
-        {0, 1 * 16, 17 * 8, 16},
+        {1 * 8, 1 * 16, 17 * 8, 16},
         "Reference Source:"};
 
     Text value_source{
-        {(240 - 11 * 8), 1 * 16, 11 * 8, 16},
-        "---"};
+        {18 * 8, 1 * 16, 11 * 8, 16},
+        ""};
 
     Text value_source_frequency{
-        {(240 - 11 * 8), 2 * 16, 11 * 8, 16},
-        "---"};
+        {18 * 8, 2 * 16, 11 * 8, 16},
+        ""};
 
     Labels labels_correction{
         {{2 * 8, 3 * 16}, "Frequency correction:", Color::light_grey()},
         {{6 * 8, 4 * 16}, "PPM", Color::light_grey()},
+    };
+
+    NumberField field_ppm{
+        {2 * 8, 4 * 16},
+        3,
+        {-50, 50},
+        1,
+        '0',
     };
 
     Checkbox check_clkout{
@@ -167,23 +178,15 @@ class SetRadioView : public View {
         "|   "};
 
     Labels labels_bias{
-        {{24, 8 * 16}, "CAUTION: Ensure that all", Color::red()},
-        {{28, 9 * 16}, "devices attached to the", Color::red()},
-        {{8, 10 * 16}, "antenna connector can accept", Color::red()},
-        {{68, 11 * 16}, "a DC voltage!", Color::red()}};
-
-    NumberField field_ppm{
-        {2 * 8, 4 * 16},
-        3,
-        {-50, 50},
-        1,
-        '0',
-    };
+        {{4 * 8 + 4, 8 * 16}, "CAUTION: Ensure that all", Color::red()},
+        {{5 * 8 + 0, 9 * 16}, "devices attached to the", Color::red()},
+        {{6 * 8 + 0, 10 * 16}, "antenna connector can", Color::red()},
+        {{6 * 8 + 4, 11 * 16}, "accept a DC voltage!", Color::red()}};
 
     Checkbox check_bias{
         {18, 12 * 16},
         5,
-        "Turn on bias voltage"};
+        "Enable DC bias voltage"};
 
     Checkbox disable_external_tcxo{
         {18, 14 * 16},
@@ -312,19 +315,25 @@ class SetAppSettingsView : public View {
     SetAppSettingsView(NavigationView& nav);
 
     void focus() override;
-
-    std::string title() const override { return "AppSettings"; };
+    std::string title() const override { return "App Settings"; };
 
    private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "App settings are saved to", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "the SD card in /SETTINGS.", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "Radio settings may also be", Color::light_grey()},
+        {{1 * 8, 4 * 16}, "loaded or saved per app.", Color::light_grey()},
+    };
+
     Checkbox checkbox_load_app_settings{
-        {3 * 8, 2 * 16},
+        {3 * 8, 6 * 16},
         25,
-        "Load app settings"};
+        "Load radio settings"};
 
     Checkbox checkbox_save_app_settings{
-        {3 * 8, 4 * 16},
+        {3 * 8, 8 * 16},
         25,
-        "Save app settings"};
+        "Save radio settings"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -345,28 +354,34 @@ class SetConverterSettingsView : public View {
     std::string title() const override { return "Converter"; };
 
    private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Options for working with", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "up/down converter hardware", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "like a Ham It Up.", Color::light_grey()},
+        {{2 * 8, 9 * 16 - 2}, "Conversion frequency:", Color::light_grey()},
+        {{18 * 8, 10 * 16}, "MHz", Color::light_grey()},
+    };
+
     Checkbox check_show_converter{
-        {18, 4 * 16},
+        {2 * 8, 5 * 16},
         19,
-        "show/hide converter"};
+        "Show converter icon"};
 
     Checkbox check_converter{
-        {18, 6 * 16},
-        7,
-        "enable/disable converter"};
+        {2 * 8, 7 * 16},
+        16,
+        "Enable converter"};
 
-    OptionsField converter_mode{
-        {18, 8 * 16 + 4},
-        0,
+    OptionsField opt_converter_mode{
+        {5 * 8, 10 * 16},
+        3,
         {
             {" + ", 0},  // up converter
-            {" - ", 1}   // down converter
+            {" - ", 1},  // down converter
         }};
 
-    Button button_converter_freq{
-        {18 + 4 * 8, 8 * 16, 16 * 8, 24},
-        "",
-    };
+    FrequencyField field_converter_freq{
+        {8 * 8, 10 * 16}};
 
     Button button_return{
         {16 * 8, 16 * 16, 12 * 8, 32},
@@ -380,33 +395,36 @@ class SetFrequencyCorrectionView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "FreqCorrect"; };
+    std::string title() const override { return "Freq Correct"; };
 
    private:
-    Text text_freqCorrection_about{
-        {0, 2 * 16, 240, 16},
-        "Set Frequency correction:"};
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Frequency correction allows", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "RX and TX frequencies to be", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "adjusted for all apps.", Color::light_grey()},
+        {{2 * 8, 6 * 16}, "RX Adjustment Frequency", Color::light_grey()},
+        {{18 * 8, 7 * 16}, "MHz", Color::light_grey()},
+        {{2 * 8, 9 * 16}, "TX Adjustment Frequency", Color::light_grey()},
+        {{18 * 8, 10 * 16}, "MHz", Color::light_grey()},
+    };
 
-    OptionsField frequency_rx_correction_mode{
-        {18, 5 * 16 + 4},
-        0,
+    OptionsField opt_rx_correction_mode{
+        {5 * 8, 7 * 16},
+        3,
         {{" + ", 0},
          {" - ", 1}}};
 
-    OptionsField frequency_tx_correction_mode{
-        {18, 9 * 16 + 4},
-        0,
+    FrequencyField field_rx_correction{
+        {8 * 8, 7 * 16}};
+
+    OptionsField opt_tx_correction_mode{
+        {5 * 8, 10 * 16},
+        3,
         {{" + ", 0},
          {" - ", 1}}};
 
-    Button button_freq_rx_correction{
-        {18 + 4 * 8, 5 * 16, 20 * 8, 24},
-        "",
-    };
-    Button button_freq_tx_correction{
-        {18 + 4 * 8, 9 * 16, 20 * 8, 24},
-        "",
-    };
+    FrequencyField field_tx_correction{
+        {8 * 8, 10 * 16}};
 
     Button button_return{
         {16 * 8, 16 * 16, 12 * 8, 32},
@@ -424,11 +442,14 @@ class SetAudioView : public View {
 
    private:
     Labels labels{
-        {{2 * 8, 3 * 16}, "Tone key mix:   %", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Controls the volume of the", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "tone when transmitting in", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "Soundboard or Mic apps.", Color::light_grey()},
+        {{2 * 8, 5 * 16}, "Tone key mix:   %", Color::light_grey()},
     };
 
     NumberField field_tone_mix{
-        {16 * 8, 3 * 16},
+        {16 * 8, 5 * 16},
         2,
         {10, 99},
         1,
@@ -453,8 +474,13 @@ class SetQRCodeView : public View {
     std::string title() const override { return "QR Code"; };
 
    private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Change the size of the QR", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Color::light_grey()},
+    };
+
     Checkbox checkbox_bigger_qr{
-        {3 * 8, 9 * 16},
+        {3 * 8, 4 * 16},
         20,
         "Show large QR code"};
 
@@ -480,11 +506,13 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{2 * 8, 3 * 16}, "Dial sensitivity:", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Adjusts how many steps to", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "change the encoder value.", Color::light_grey()},
+        {{2 * 8, 4 * 16}, "Dial sensitivity:", Color::light_grey()},
     };
 
     OptionsField field_encoder_dial_sensitivity{
-        {20 * 8, 3 * 16},
+        {20 * 8, 4 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
@@ -509,34 +537,32 @@ class SetPersistentMemoryView : public View {
     std::string title() const override { return "P.Mem Mgmt"; };
 
    private:
-    Text text_pmem_about{
-        {0, 1 * 16, 240, 16},
-        "Persistent Memory from/to SD"};
-
-    Text text_pmem_informations{
-        {0, 2 * 16, 240, 16},
-        "use: when no/dead coin bat."};
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Save persistent memory on SD", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "card. Needed when device has", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "dead/missing coin battery.", Color::light_grey()},
+    };
 
     Text text_pmem_status{
-        {0, 3 * 16, 240, 16},
+        {1 * 8, 4 * 16 + 8, 28 * 8, 16},
         ""};
 
     Checkbox check_use_sdcard_for_pmem{
-        {18, 6 * 16},
-        19,
-        "use sdcard for p.mem"};
+        {2 * 8, 6 * 16},
+        21,
+        "Use SD card for P.Mem"};
 
     Button button_save_mem_to_file{
-        {0, 8 * 16, 240, 32},
-        "save p.mem to sdcard"};
+        {1 * 8, 8 * 16, 28 * 8, 2 * 16},
+        "Save P.Mem to SD card"};
 
     Button button_load_mem_from_file{
-        {0, 10 * 16 + 4, 240, 32},
-        "load p.mem from sdcard"};
+        {1 * 8, 10 * 16 + 2, 28 * 8, 2 * 16},
+        "Load P.Mem from SD Card"};
 
     Button button_load_mem_defaults{
-        {0, 12 * 16 + 8, 240, 32},
-        "! reset p.mem, load defaults !"};
+        {1 * 8, 12 * 16 + 4, 28 * 8, 2 * 16},
+        "Reset P.Mem to defaults"};
 
     Button button_return{
         {16 * 8, 16 * 16, 12 * 8, 32},
