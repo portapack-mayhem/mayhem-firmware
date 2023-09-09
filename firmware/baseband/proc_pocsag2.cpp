@@ -142,6 +142,7 @@ void BitExtractor::extract_bits(const buffer_f32_t& audio) {
                 if (rate.handle_sample(sample) &&
                     diff_bit_count(rate.bits.data(), clock_magic_number) <= 3) {
                     // Clock detected, continue with this rate.
+                    rate.is_stable = true;
                     current_rate_ = &rate;
                 }
             }
@@ -180,34 +181,25 @@ bool BitExtractor::RateInfo::handle_sample(float sample) {
     bool value = signbit(sample);  // NB: negative == '1'
     bool bit_pushed = false;
 
-    /* Maybe look for transition 1 sample at a time, then
-       continue looking at edge plus sr/4 to make sure
-       samples are good? */
-
     switch (state) {
-        case State::WaitForFirst:
-            // Just need an initial sample to continue.
-            state = State::WaitForTransition;
-            break;
-
-        case State::WaitForTransition:
-            // Need a transition to get sampling sync'd.
-            if (prev_value != value)
-                state = State::ReadyToSend;
-            break;
-
         case State::WaitForSample:
             // Just need to wait for the first sample of the bit.
             state = State::ReadyToSend;
             break;
 
         case State::ReadyToSend:
-            // TODO: What if these don't match?
-            // if (prev_value == value) {
-            state = State::WaitForSample;
-            bit_pushed = true;
-            bits.push(value);
-            //}
+            if (!is_stable && prev_value != value) {
+                // Still looking for the clock signal but found a transition.
+                // Nudge the next sample a bit to try avoiding pulse edges.
+                samples_until_next += (sample_interval / 8.0);
+            } else {
+                // Either the clock has been found or both samples were
+                // (probably) in the same pulse. Send the bit.
+                // TODO: Wider/more samples for noise reduction?
+                state = State::WaitForSample;
+                bit_pushed = true;
+                bits.push(value);
+            }
             break;
     }
 
@@ -219,9 +211,10 @@ bool BitExtractor::RateInfo::handle_sample(float sample) {
 }
 
 void BitExtractor::RateInfo::reset() {
-    state = State::WaitForFirst;
+    state = State::WaitForSample;
     samples_until_next = 0.0;
     prev_value = false;
+    is_stable = false;
     bits.reset();
 }
 
