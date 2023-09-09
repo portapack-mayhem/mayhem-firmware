@@ -148,6 +148,9 @@ void BitExtractor::extract_bits(const buffer_f32_t& audio) {
 
         // Have a clock rate and it's time to process the next sample.
         if (current_rate_ && samples_until_next_ <= 0) {
+            // TODO: It seems like it would be possible to combine this
+            // code with handle_sample. Nearly the same work.
+
             // Only send on the second sample of a bit.
             // Sampling twice helps mitigate noisy audio data.
             if (ready_to_send_) {
@@ -177,6 +180,12 @@ void BitExtractor::reset() {
     samples_until_next_ = 0.0;
     prev_sample_ = 0.0;
     ready_to_send_ = false;
+
+    for (auto& rate : known_rates_) {
+        rate.samples_until_next = 0.0;
+        rate.last_sample = 0.0;
+        rate.bits.reset();
+    }
 }
 
 uint16_t BitExtractor::baud_rate() const {
@@ -184,6 +193,7 @@ uint16_t BitExtractor::baud_rate() const {
 }
 
 bool BitExtractor::handle_sample(RateInfo& rate, float sample) {
+    // TODO: Still getting some clock misses at the start of messages.
     rate.samples_until_next -= 1;
 
     // Not time to process a sample yet.
