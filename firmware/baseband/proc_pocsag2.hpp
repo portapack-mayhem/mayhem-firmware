@@ -84,52 +84,38 @@ class BitExtractor {
     void extract_bits(const buffer_f32_t& audio);
     void configure(uint32_t sample_rate);
     void reset();
-
     uint16_t baud_rate() const;
 
    private:
-    /* Number of rate misses that would cause a rate update. */
-    static constexpr uint8_t rate_miss_reset_threshold = 5;
+    /* Clock signal detection magic number. */
+    static constexpr uint32_t clock_magic_number = 0xAAAAAAAA;
 
-    /* Number of rate misses that would cause a rate update. */
-    static constexpr uint8_t bad_transition_reset_threshold = 10;
+    struct RateInfo {
+        const int16_t baud_rate = 0;
+        float sample_interval = 0.0;
 
-    struct BaudInfo {
-        uint16_t baud_rate = 0;
-        float bit_length = 0.0;
-        float min_bit_length = 0.0;
-        float max_bit_length = 0.0;
+        float samples_until_next = 0.0;
+        float last_sample = 0.0;
+        BitQueue bits{};
     };
 
-    /* Handle a transition, returns true if "good". */
-    bool handle_transition();
+    /* Updates a rate info with the given sample.
+     * Returns true if the rate info has a new bit in its queue. */
+    bool handle_sample(RateInfo& rate, float sample);
 
-    /* Count the number of bits the length represents.
-     * Returns true if valid given the current baud rate. */
-    bool count_bits(uint32_t length, uint16_t& bit_count);
-
-    /* Gets the best baud info associated with the specified bit length. */
-    const BaudInfo* get_baud_info(float bit_length) const;
-
-    std::array<BaudInfo, 3> known_rates_{
-        BaudInfo{512},
-        BaudInfo{1200},
-        BaudInfo{2400}};
+    std::array<RateInfo, 3> known_rates_{
+        RateInfo{512},
+        RateInfo{1200},
+        RateInfo{2400}};
 
     BitQueue& bits_;
 
     uint32_t sample_rate_ = 0;
-    uint16_t min_valid_length_ = 0;
-    const BaudInfo* current_rate_ = nullptr;
-    uint8_t rate_misses_ = 0;
+    RateInfo* current_rate_ = nullptr;
 
-    float sample_ = 0.0;
-    float last_sample_ = 0.0;
-    float next_bit_center_ = 0.0;
-
-    uint32_t sample_index_ = 0;
-    uint32_t last_transition_index_ = 0;
-    uint32_t bad_transitions_ = 0;
+    float samples_until_next_ = 0.0;
+    float prev_sample_ = 0.0;
+    bool ready_to_send_ = false;
 };
 
 /* Extracts codeword batches from the BitQueue. */
