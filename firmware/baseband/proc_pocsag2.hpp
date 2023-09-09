@@ -91,17 +91,25 @@ class BitExtractor {
     static constexpr uint32_t clock_magic_number = 0xAAAAAAAA;
 
     struct RateInfo {
+        enum class State : uint8_t {
+            WaitForSample,
+            ReadyToSend
+        };
+
         const int16_t baud_rate = 0;
         float sample_interval = 0.0;
 
+        State state = State::WaitForSample;
         float samples_until_next = 0.0;
-        float last_sample = 0.0;
+        bool prev_value = false;
+        bool is_stable = false;
         BitQueue bits{};
-    };
 
-    /* Updates a rate info with the given sample.
-     * Returns true if the rate info has a new bit in its queue. */
-    bool handle_sample(RateInfo& rate, float sample);
+        /* Updates a rate info with the given sample.
+         * Returns true if the rate info has a new bit in its queue. */
+        bool handle_sample(float sample);
+        void reset();
+    };
 
     std::array<RateInfo, 3> known_rates_{
         RateInfo{512},
@@ -112,10 +120,6 @@ class BitExtractor {
 
     uint32_t sample_rate_ = 0;
     RateInfo* current_rate_ = nullptr;
-
-    float samples_until_next_ = 0.0;
-    float prev_sample_ = 0.0;
-    bool ready_to_send_ = false;
 };
 
 /* Extracts codeword batches from the BitQueue. */
