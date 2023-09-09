@@ -84,52 +84,38 @@ class BitExtractor {
     void extract_bits(const buffer_f32_t& audio);
     void configure(uint32_t sample_rate);
     void reset();
-
     uint16_t baud_rate() const;
 
    private:
     /* Clock signal detection magic number. */
     static constexpr uint32_t clock_magic_number = 0xAAAAAAAA;
 
-    struct BaudInfo {
+    struct RateInfo {
         const int16_t baud_rate = 0;
-        float bit_length = 0.0;
-        float next_sample_index = 0.0;
+        float sample_interval = 0.0;
 
-        bool last_sample = false;
+        float samples_until_next = 0.0;
+        float last_sample = 0.0;
         BitQueue bits{};
-
-        uint32_t handle_sample(float sample) {
-          bool current_sample = sample < 0;  // Negative is '1';
-          if (current_sample == last_sample) {
-            bits.push(current_sample);
-          }
-
-          last_sample = current_sample;
-
-          // Sample at 2x rate so alignment doesn't matter.
-          next_sample_index += bit_length / 2.0;
-          return bits.data();
-        }
-
-        void reset(uint32_t sample_index) {
-          next_sample_index = sample_index;
-          bits.reset();
-        }
     };
 
-    std::array<BaudInfo, 3> known_rates_{
-        BaudInfo{512},
-        BaudInfo{1200},
-        BaudInfo{2400}};
+    /* Updates a rate info with the given sample.
+     * Returns true if the rate info has a new bit in its queue. */
+    bool handle_sample(RateInfo& rate, float sample);
+
+    std::array<RateInfo, 3> known_rates_{
+        RateInfo{512},
+        RateInfo{1200},
+        RateInfo{2400}};
 
     BitQueue& bits_;
 
     uint32_t sample_rate_ = 0;
-    BaudInfo* current_rate_ = nullptr;
+    RateInfo* current_rate_ = nullptr;
 
-    uint32_t sample_index_ = 0;
-    float next_sample_index_ = 0.0;
+    float samples_until_next_ = 0.0;
+    float prev_sample_ = 0.0;
+    bool ready_to_send_ = false;
 };
 
 /* Extracts codeword batches from the BitQueue. */

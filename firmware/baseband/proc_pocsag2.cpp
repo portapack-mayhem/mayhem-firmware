@@ -129,32 +129,34 @@ void BitExtractor::extract_bits(const buffer_f32_t& audio) {
     // Assumes input has been normalized +/- 1.0f.
     for (size_t i = 0; i < audio.count; ++i) {
         auto sample = audio.p[i];
-        ++sample_index_;
+        samples_until_next_ -= 1;
 
-        // Feed the known rate queues.
-        for (auto& rate : known_rates_) {
-
-          // Ready for next sample?
-          if (sample_index_ < rate.next_sample_index)
-            continue;
-
-          auto pattern = rate.handle_sample(sample);
-
-          if (pattern == clock_magic_number && &rate != current_rate_) {
-            // Reset to ensure old data doesn't keep triggering rate change.
-            if (current_rate_)
-              current_rate_->reset(sample_index_);
-
-            // Immediately handle this sample below.
-            next_sample_index_ = sample_index_;
-            current_rate_ = &rate;
-          }
+        if (!current_rate_) {
+            // Feed the known rate queues for clock detection.
+            for (auto& rate : known_rates_) {
+                if (handle_sample(rate, sample) && rate.bits.data() == clock_magic_number) {
+                    // Clock detected.
+                    // NB: This block should only happen on the second sample of a pulse.
+                    // samples_until_next_ to start sampling the *next* pulse.
+                    current_rate_ = &rate;
+                    samples_until_next_ = rate.sample_interval;
+                    ready_to_send_ = false;
+                }
+            }
         }
 
-        // Time to take the next sample?
-        if (current_rate_ && sample_index_ >= next_sample_index_) {
-            bits_.push(sample < 0);  // Negative is '1'.
-            next_sample_index_ += current_rate_->bit_length;
+        // Have a clock rate and it's time to process the next sample.
+        if (current_rate_ && samples_until_next_ <= 0) {
+            // Only send on the second sample of a bit.
+            // Sampling twice helps mitigate noisy audio data.
+            if (ready_to_send_) {
+                auto value = (prev_sample_ + sample) / 2;
+                bits_.push(signbit(value));  // NB: negative == '1'
+            }
+
+            ready_to_send_ = !ready_to_send_;
+            prev_sample_ = sample;
+            samples_until_next_ += current_rate_->sample_interval;
         }
     }
 }
@@ -163,22 +165,40 @@ void BitExtractor::configure(uint32_t sample_rate) {
     sample_rate_ = sample_rate;
 
     // Build the baud rate info table based on the sample rate.
+    // Sampling at 2x the baud rate to synchronize to bit transitions
+    // without needing to know exact transition boundaries.
     for (auto& rate : known_rates_)
-        rate.bit_length = sample_rate / static_cast<float>(rate.baud_rate);
-
-    reset();
+        rate.sample_interval = sample_rate / (2.0 * rate.baud_rate);
 }
 
 void BitExtractor::reset() {
     current_rate_ = nullptr;
-    sample_index_ = 0;
-    
-    for (auto& rate : known_rates_)
-        rate.reset(sample_index_);
+    samples_until_next_ = 0.0;
+    prev_sample_ = 0.0;
+    ready_to_send_ = false;
 }
 
 uint16_t BitExtractor::baud_rate() const {
-  return current_rate_ ? current_rate_->baud_rate : 0;
+    return current_rate_ ? current_rate_->baud_rate : 0;
+}
+
+bool BitExtractor::handle_sample(RateInfo& rate, float sample) {
+    rate.samples_until_next -= 1;
+
+    // Not time to process a sample yet.
+    if (rate.samples_until_next > 0)
+        return false;
+
+    // Sample signs are the same, both samples are in the same bit pulse.
+    auto has_new_bit = signbit(sample) == signbit(rate.last_sample);
+    if (has_new_bit)
+        rate.bits.push(signbit(sample));  // NB: negative == '1'
+
+    // How long until the next sample?
+    rate.samples_until_next += rate.sample_interval;
+    rate.last_sample = sample;
+
+    return has_new_bit;
 }
 
 /* CodewordExtractor *************************************/
