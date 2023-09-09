@@ -127,40 +127,24 @@ uint32_t BitQueue::data() const {
 
 void BitExtractor::extract_bits(const buffer_f32_t& audio) {
     // Assumes input has been normalized +/- 1.0f.
+    // Positive == 0, Negative == 1.
     for (size_t i = 0; i < audio.count; ++i) {
         auto sample = audio.p[i];
-        samples_until_next_ -= 1;
 
-        if (!current_rate_) {
-            // Feed the known rate queues for clock detection.
+        if (current_rate_) {
+            if (current_rate_->handle_sample(sample)) {
+                auto value = (current_rate_->bits.data() & 1) == 1;
+                bits_.push(value);
+            }
+        } else {
+            // Feed sample to all known rates for clock detection.
             for (auto& rate : known_rates_) {
-                if (handle_sample(rate, sample) &&
-                    diff_bit_count(rate.bits.data(), clock_magic_number) <= 2) {
-                    // Clock detected.
-                    // NB: This block should only happen on the second sample of a pulse.
-                    // samples_until_next_ to start sampling the *next* pulse.
+                if (rate.handle_sample(sample) &&
+                    diff_bit_count(rate.bits.data(), clock_magic_number) <= 3) {
+                    // Clock detected, continue with this rate.
                     current_rate_ = &rate;
-                    samples_until_next_ = rate.sample_interval;
-                    ready_to_send_ = false;
                 }
             }
-        }
-
-        // Have a clock rate and it's time to process the next sample.
-        if (current_rate_ && samples_until_next_ <= 0) {
-            // TODO: It seems like it would be possible to combine this
-            // code with handle_sample. Nearly the same work.
-
-            // Only send on the second sample of a bit.
-            // Sampling twice helps mitigate noisy audio data.
-            if (ready_to_send_) {
-                auto value = (prev_sample_ + sample) / 2;
-                bits_.push(signbit(value));  // NB: negative == '1'
-            }
-
-            ready_to_send_ = !ready_to_send_;
-            prev_sample_ = sample;
-            samples_until_next_ += current_rate_->sample_interval;
         }
     }
 }
@@ -177,39 +161,68 @@ void BitExtractor::configure(uint32_t sample_rate) {
 
 void BitExtractor::reset() {
     current_rate_ = nullptr;
-    samples_until_next_ = 0.0;
-    prev_sample_ = 0.0;
-    ready_to_send_ = false;
 
-    for (auto& rate : known_rates_) {
-        rate.samples_until_next = 0.0;
-        rate.last_sample = 0.0;
-        rate.bits.reset();
-    }
+    for (auto& rate : known_rates_)
+        rate.reset();
 }
 
 uint16_t BitExtractor::baud_rate() const {
     return current_rate_ ? current_rate_->baud_rate : 0;
 }
 
-bool BitExtractor::handle_sample(RateInfo& rate, float sample) {
-    // TODO: Still getting some clock misses at the start of messages.
-    rate.samples_until_next -= 1;
+bool BitExtractor::RateInfo::handle_sample(float sample) {
+    samples_until_next -= 1;
 
-    // Not time to process a sample yet.
-    if (rate.samples_until_next > 0)
+    // Time to process a sample?
+    if (samples_until_next > 0)
         return false;
 
-    // Sample signs are the same, both samples are in the same bit pulse.
-    auto has_new_bit = signbit(sample) == signbit(rate.last_sample);
-    if (has_new_bit)
-        rate.bits.push(signbit(sample));  // NB: negative == '1'
+    bool value = signbit(sample);  // NB: negative == '1'
+    bool bit_pushed = false;
+
+    /* Maybe look for transition 1 sample at a time, then
+       continue looking at edge plus sr/4 to make sure
+       samples are good? */
+
+    switch (state) {
+        case State::WaitForFirst:
+            // Just need an initial sample to continue.
+            state = State::WaitForTransition;
+            break;
+
+        case State::WaitForTransition:
+            // Need a transition to get sampling sync'd.
+            if (prev_value != value)
+                state = State::ReadyToSend;
+            break;
+
+        case State::WaitForSample:
+            // Just need to wait for the first sample of the bit.
+            state = State::ReadyToSend;
+            break;
+
+        case State::ReadyToSend:
+            // TODO: What if these don't match?
+            // if (prev_value == value) {
+            state = State::WaitForSample;
+            bit_pushed = true;
+            bits.push(value);
+            //}
+            break;
+    }
 
     // How long until the next sample?
-    rate.samples_until_next += rate.sample_interval;
-    rate.last_sample = sample;
+    samples_until_next += sample_interval;
+    prev_value = value;
 
-    return has_new_bit;
+    return bit_pushed;
+}
+
+void BitExtractor::RateInfo::reset() {
+    state = State::WaitForFirst;
+    samples_until_next = 0.0;
+    prev_value = false;
+    bits.reset();
 }
 
 /* CodewordExtractor *************************************/
