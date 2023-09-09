@@ -36,7 +36,7 @@ using namespace std;
 
 namespace {
 /* Count of bits that differ between the two values. */
-uint8_t differ_bit_count(uint32_t left, uint32_t right) {
+uint8_t diff_bit_count(uint32_t left, uint32_t right) {
     uint32_t diff = left ^ right;
     uint8_t count = 0;
     for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
@@ -134,7 +134,8 @@ void BitExtractor::extract_bits(const buffer_f32_t& audio) {
         if (!current_rate_) {
             // Feed the known rate queues for clock detection.
             for (auto& rate : known_rates_) {
-                if (handle_sample(rate, sample) && rate.bits.data() == clock_magic_number) {
+                if (handle_sample(rate, sample) &&
+                    diff_bit_count(rate.bits.data(), clock_magic_number) <= 2) {
                     // Clock detected.
                     // NB: This block should only happen on the second sample of a pulse.
                     // samples_until_next_ to start sampling the *next* pulse.
@@ -214,9 +215,9 @@ void CodewordExtractor::process_bits() {
 
         // Wait for the sync frame.
         if (!has_sync_) {
-            if (differ_bit_count(data_, sync_codeword) <= 2)
+            if (diff_bit_count(data_, sync_codeword) <= 2)
                 handle_sync(/*inverted=*/false);
-            else if (differ_bit_count(data_, ~sync_codeword) <= 2)
+            else if (diff_bit_count(data_, ~sync_codeword) <= 2)
                 handle_sync(/*inverted=*/true);
             continue;
         }
