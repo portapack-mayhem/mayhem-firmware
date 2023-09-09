@@ -173,7 +173,7 @@ GpsSimAppView::GpsSimAppView(
         &waterfall,
     });
 
-    if (!settings_.loaded()) {
+    if (!settings_.radio_loaded()) {
         field_frequency.set_value(initial_target_frequency);
         transmitter_model.set_sampling_rate(2600000);
     }

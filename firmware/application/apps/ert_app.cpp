@@ -110,7 +110,7 @@ ERTAppView::ERTAppView(NavigationView&) {
         &recent_entries_view,
     });
 
-    if (!settings_.loaded())
+    if (!settings_.radio_loaded())
         receiver_model.set_target_frequency(initial_target_frequency);
 
     receiver_model.enable();

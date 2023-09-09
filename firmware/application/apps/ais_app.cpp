@@ -382,7 +382,7 @@ AISAppView::AISAppView(NavigationView& nav)
 
     recent_entry_detail_view.hidden(true);
 
-    if (!settings_.loaded())
+    if (!settings_.radio_loaded())
         receiver_model.set_target_frequency(initial_target_frequency);
 
     receiver_model.enable();
