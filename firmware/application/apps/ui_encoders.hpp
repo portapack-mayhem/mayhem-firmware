@@ -116,7 +116,7 @@ class EncodersConfigView : public View {
     SymField symfield_word{
         {2 * 8, 9 * 8},
         20,
-        SymField::SYMFIELD_DEF};
+        SymField::Type::Custom};
 
     Text text_format{
         {2 * 8, 11 * 8, 24 * 8, 16},

@@ -99,28 +99,28 @@ void EncodersConfigView::focus() {
 
 void EncodersConfigView::on_type_change(size_t index) {
     std::string format_string = "";
-    size_t word_length;
-    char symbol_type;
+    // size_t word_length;
+    // char symbol_type;
 
     encoder_def = &encoder_defs[index];
 
     field_clk.set_value(encoder_def->default_speed / 1000);
     field_repeat_min.set_value(encoder_def->repeat_min);
 
-    // SymField setup
-    word_length = encoder_def->word_length;
-    symfield_word.set_length(word_length);
-    size_t n = 0, i = 0;
-    while (n < word_length) {
-        symbol_type = encoder_def->word_format[i++];
-        if (symbol_type == 'A') {
-            symfield_word.set_symbol_list(n++, encoder_def->address_symbols);
-            format_string += 'A';
-        } else if (symbol_type == 'D') {
-            symfield_word.set_symbol_list(n++, encoder_def->data_symbols);
-            format_string += 'D';
-        }
-    }
+    // // SymField setup TODO: just make a new one.
+    // word_length = encoder_def->word_length;
+    // symfield_word.set_length(word_length);
+    // size_t n = 0, i = 0;
+    // while (n < word_length) {
+    //     symbol_type = encoder_def->word_format[i++];
+    //     if (symbol_type == 'A') {
+    //         symfield_word.set_symbol_list(n++, encoder_def->address_symbols);
+    //         format_string += 'A';
+    //     } else if (symbol_type == 'D') {
+    //         symfield_word.set_symbol_list(n++, encoder_def->data_symbols);
+    //         format_string += 'D';
+    //     }
+    // }
 
     // Ugly :( Pad to erase
     format_string.append(24 - format_string.size(), ' ');
@@ -156,7 +156,7 @@ void EncodersConfigView::generate_frame() {
         else if (!c)
             break;
         else
-            frame_fragments += encoder_def->bit_format[symfield_word.get_sym(i++)];
+            frame_fragments += '4'; //encoder_def->bit_format[symfield_word.get_sym(i++)];
     }
 
     draw_waveform();

@@ -59,7 +59,7 @@ ModemSetupView::ModemSetupView(
     options_modem.set_options(modem_options);
     options_modem.set_selected_index(0);
 
-    sym_format.set_symbol_list(0, "6789");  // Data bits
+    /*sym_format.set_symbol_list(0, "6789");  // Data bits
     sym_format.set_symbol_list(1, "NEo");   // Parity
     sym_format.set_symbol_list(2, "012");   // Stop bits
     sym_format.set_symbol_list(3, "ML");    // MSB/LSB first
@@ -67,7 +67,7 @@ ModemSetupView::ModemSetupView(
     sym_format.set_sym(0, persistent_memory::serial_format().data_bits - 6);
     sym_format.set_sym(1, persistent_memory::serial_format().parity);
     sym_format.set_sym(2, persistent_memory::serial_format().stop_bits);
-    sym_format.set_sym(3, persistent_memory::serial_format().bit_order);
+    sym_format.set_sym(3, persistent_memory::serial_format().bit_order);*/
 
     field_mark.set_value(persistent_memory::afsk_mark_freq());
     field_space.set_value(persistent_memory::afsk_space_freq());
@@ -92,10 +92,10 @@ ModemSetupView::ModemSetupView(
         persistent_memory::set_modem_baudrate(field_baudrate.value());
         persistent_memory::set_modem_repeat(field_repeat.value());
 
-        serial_format.data_bits = sym_format.get_sym(0) + 6;
+        /*serial_format.data_bits = sym_format.get_sym(0) + 6;
         serial_format.parity = (parity_enum)sym_format.get_sym(1);
         serial_format.stop_bits = sym_format.get_sym(2);
-        serial_format.bit_order = (order_enum)sym_format.get_sym(3);
+        serial_format.bit_order = (order_enum)sym_format.get_sym(3);*/
 
         persistent_memory::set_serial_format(serial_format);
 

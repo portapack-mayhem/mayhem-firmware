@@ -68,8 +68,8 @@ class CoasterPagerView : public View {
 
     SymField sym_data{
         {7 * 8, 8 * 8},
-        16,  // 14 ? 12 ?
-        SymField::SYMFIELD_HEX};
+        16,
+        SymField::Type::Hex};
 
     Checkbox checkbox_scan{
         {10 * 8, 14 * 8},

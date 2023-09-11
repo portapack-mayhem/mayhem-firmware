@@ -82,7 +82,7 @@ class ModemSetupView : public View {
     SymField sym_format{
         {16 * 8, 22 * 8},
         4,
-        SymField::SYMFIELD_DEF};
+        SymField::Type::Custom};
 
     Button button_set_modem{
         {23 * 8, 6 * 8 - 4, 6 * 8, 24},

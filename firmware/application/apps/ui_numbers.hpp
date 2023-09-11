@@ -142,7 +142,7 @@ class NumbersStationView : public View {
     SymField symfield_code{
         {1 * 8, 10 * 8},
         25,
-        SymField::SYMFIELD_DEF};
+        SymField::Type::Custom};
 
     Checkbox check_armed{
         {2 * 8, 13 * 16},

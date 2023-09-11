@@ -78,4 +78,12 @@ std::string trim(std::string_view str);   // Remove whitespace at ends.
 std::string trimr(std::string_view str);  // Remove trailing spaces
 std::string truncate(std::string_view, size_t length);
 
+/* Gets the int value for a character given the radix.
+ * e.g. '5' => 5, 'D' => 13. Out of bounds => 0. */
+uint8_t char_to_uint(char c, uint8_t radix = 10);
+
+/* Gets the int value for a character given the radix.
+ * e.g. 5 => '5', 13 => 'D'. Out of bounds => '\0'. */
+char uint_to_char(uint8_t val, uint8_t radix = 10);
+
 #endif /*__STRING_FORMAT_H__*/

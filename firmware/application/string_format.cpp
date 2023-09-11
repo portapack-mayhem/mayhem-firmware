@@ -21,6 +21,8 @@
 
 #include "string_format.hpp"
 
+using namespace std::literals;
+
 /* This takes a pointer to the end of a buffer
  * and fills it backwards towards the front.
  * The return value 'q' is a pointer to the start.
@@ -363,4 +365,27 @@ std::string trimr(std::string_view str) {
 
 std::string truncate(std::string_view str, size_t length) {
     return std::string{str.length() <= length ? str : str.substr(0, length)};
+}
+
+uint8_t char_to_uint(char c, uint8_t radix) {
+    uint8_t v = 0;
+
+    if (c >= '0' && c <= '9')
+        v = c - '0';
+    else if (c >= 'A' && c <= 'F')
+        v = c - 'A' + 10;  // A is dec: 10
+    else if (c >= 'a' && c <= 'f')
+        v = c - 'a' + 10;  // A is dec: 10
+
+    return v < radix ? v : 0;
+}
+
+char uint_to_char(uint8_t val, uint8_t radix) {
+    if (val > radix)
+        return 0;
+
+    if (val < 10)
+        return '0' + val;
+    else
+        return 'A' + val - 10;  // A is dec: 10
 }

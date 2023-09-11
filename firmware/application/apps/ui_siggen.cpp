@@ -50,7 +50,7 @@ void SigGenView::update_config() {
 }
 
 void SigGenView::update_tone() {
-    baseband::set_siggen_tone(symfield_tone.value_dec_u32());
+    baseband::set_siggen_tone(symfield_tone.to_integer());
 }
 
 void SigGenView::start_tx() {
@@ -97,7 +97,7 @@ SigGenView::SigGenView(
 
     field_stop.set_value(1);
 
-    symfield_tone.set_sym(1, 1);  // Default: 1000 Hz
+    symfield_tone.set_value(1000);  // Default: 1000 Hz
     symfield_tone.on_change = [this]() {
         if (auto_update)
             update_tone();

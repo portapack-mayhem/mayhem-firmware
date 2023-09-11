@@ -135,7 +135,7 @@ class ADSBSquawkView : public OptionTabView {
     SymField field_squawk{
         {10 * 8, 2 * 16},
         4,
-        SymField::SYMFIELD_OCT};
+        SymField::Type::Oct};
 };
 
 class ADSBTXThread {
@@ -235,7 +235,7 @@ class ADSBTxView : public View {
     SymField sym_icao{
         {10 * 8, 4 * 8},
         6,
-        SymField::SYMFIELD_HEX};
+        SymField::Type::Hex};
 
     Text text_frame{
         {1 * 8, 29 * 8, 14 * 8, 16},
