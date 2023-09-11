@@ -98,7 +98,7 @@ SigGenView::SigGenView(
     field_stop.set_value(1);
 
     symfield_tone.set_value(1000);  // Default: 1000 Hz
-    symfield_tone.on_change = [this]() {
+    symfield_tone.on_change = [this](SymField&) {
         if (auto_update)
             update_tone();
     };

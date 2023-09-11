@@ -213,7 +213,7 @@ RDSView::RDSView(
     check_TP.set_value(true);
 
     sym_pi_code.set_value(0xF3E0);
-    sym_pi_code.on_change = [this]() {
+    sym_pi_code.on_change = [this](SymField&) {
         rds_flags.PI_code = sym_pi_code.to_integer();
     };
 

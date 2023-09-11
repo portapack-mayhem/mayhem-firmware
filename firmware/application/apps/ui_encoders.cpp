@@ -64,7 +64,7 @@ EncodersConfigView::EncodersConfigView(
     options_enctype.set_options(enc_options);
     options_enctype.set_selected_index(0);
 
-    symfield_word.on_change = [this]() {
+    symfield_word.on_change = [this](SymField&) {
         generate_frame();
     };
 
