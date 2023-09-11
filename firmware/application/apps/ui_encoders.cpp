@@ -156,7 +156,7 @@ void EncodersConfigView::generate_frame() {
         else if (!c)
             break;
         else
-            frame_fragments += '4'; //encoder_def->bit_format[symfield_word.get_sym(i++)];
+            frame_fragments += '4';  // encoder_def->bit_format[symfield_word.get_sym(i++)];
     }
 
     draw_waveform();

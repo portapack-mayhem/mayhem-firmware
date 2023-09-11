@@ -89,13 +89,13 @@ void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) 
 
             for (c = 0; c < 4; c++) {
                 address <<= 4;
-                //TODOaddress |= sym_data.get_sym(12 + c);
+                // TODOaddress |= sym_data.get_sym(12 + c);
             }
 
             address++;
 
             for (c = 0; c < 4; c++) {
-                //TODOsym_data.set_sym(15 - c, address & 0x0F);
+                // TODOsym_data.set_sym(15 - c, address & 0x0F);
                 address >>= 4;
             }
 
