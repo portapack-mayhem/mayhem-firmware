@@ -92,7 +92,7 @@ class SigGenView : public View {
         ""};
 
     SymField symfield_tone{
-        {13 * 8, 7 * 8},
+        {12 * 8, 7 * 8},
         5};
 
     Button button_update{

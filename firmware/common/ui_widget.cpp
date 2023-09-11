@@ -1813,7 +1813,7 @@ void NumberField::set_value(int32_t new_value, bool trigger_change) {
             new_value = range.second + new_value + 1;
     }
 
-    new_value = range.clip(new_value);
+    new_value = clip(new_value, range.first, range.second);
 
     if (new_value != value()) {
         value_ = new_value;
@@ -1985,7 +1985,7 @@ uint64_t SymField::to_integer() const {
 
     for (int i = value_.length() - 1; i >= 0; --i) {
         auto temp = char_to_uint(value_[i], radix);
-        v += temp * radix;
+        v += temp * mul;
         mul *= radix;
     }
 
