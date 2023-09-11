@@ -45,8 +45,8 @@ struct MutableStyle {
 
     MutableStyle(const Style& s)
         : font{&s.font},
-        background{s.background},
-        foreground{s.foreground} { }
+          background{s.background},
+          foreground{s.foreground} {}
 
     void invert() {
         std::swap(background, foreground);

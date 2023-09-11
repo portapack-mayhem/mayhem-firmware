@@ -1813,7 +1813,7 @@ void NumberField::set_value(int32_t new_value, bool trigger_change) {
             new_value = range.second + new_value + 1;
     }
 
-    new_value = clip_value(new_value);
+    new_value = range.clip(new_value);
 
     if (new_value != value()) {
         value_ = new_value;
@@ -1868,16 +1868,6 @@ bool NumberField::on_touch(const TouchEvent event) {
     return true;
 }
 
-int32_t NumberField::clip_value(int32_t value) {
-    if (value > range.second) {
-        value = range.second;
-    }
-    if (value < range.first) {
-        value = range.first;
-    }
-    return value;
-}
-
 /* SymField **************************************************************/
 
 SymField::SymField(
@@ -1888,7 +1878,6 @@ SymField::SymField(
     : Widget{{parent_pos, {char_width * (int)length, 16}}},
       type_{type},
       explicit_edits_{explicit_edits} {
-
     if (length == 0)
         length = 1;
 
@@ -1897,24 +1886,24 @@ SymField::SymField(
 
     switch (type) {
         case Type::Oct:
-        set_symbol_list("01234567");
-        break;
-        
+            set_symbol_list("01234567");
+            break;
+
         case Type::Dec:
-        set_symbol_list("0123456789");
-        break;
+            set_symbol_list("0123456789");
+            break;
 
         case Type::Hex:
-        set_symbol_list("0123456789ABCDEF");
-        break;
+            set_symbol_list("0123456789ABCDEF");
+            break;
 
         case Type::Alpha:
-        set_symbol_list(" 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-        break;
+            set_symbol_list(" 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            break;
 
         default:
-        set_symbol_list("01");
-        break;
+            set_symbol_list("01");
+            break;
     }
 
     set_focusable(true);
@@ -1926,7 +1915,6 @@ SymField::SymField(
     std::string symbol_list,
     bool explicit_edits)
     : SymField{parent_pos, length, Type::Custom, explicit_edits} {
-
     set_symbol_list(std::move(symbol_list));
 }
 
@@ -1980,6 +1968,7 @@ void SymField::set_value(uint64_t value) {
 
 void SymField::set_value(std::string_view value) {
     // Is new value too long?
+    // TODO: Truncate instead? Which end?
     if (value.length() > value_.length())
         return;
 
@@ -2017,15 +2006,15 @@ void SymField::paint(Painter& painter) {
         // Only highlight while focused.
         if (has_focus()) {
             if (explicit_edits_) {
-                // Invert the whole field on focus.
+                // Invert the whole field on focus if explicit edits is enabled.
                 paint_style.invert();
             } else if (n == selected_) {
-                // Highlight the selected symbol.
+                // Otherwise only highlight the selected symbol.
                 paint_style.invert();
             }
 
             if (editing_ && n == selected_) {
-                // Use 'bg_blue' to indicate in editing mode.
+                // Use 'bg_blue' style to indicate in editing mode.
                 paint_style.foreground = Color::white();
                 paint_style.background = Color::blue();
             }
@@ -2099,7 +2088,7 @@ bool SymField::on_encoder(EncoderEvent delta) {
 
     // TODO: Wrapping or carrying might be nice.
     int offset = get_offset(selected_) + delta;
-    
+
     offset = clip<int>(offset, 0, symbols_.length() - 1);
     set_offset(selected_, offset);
 
@@ -2144,10 +2133,14 @@ void SymField::set_symbol_internal(size_t index, char symbol) {
 
 uint8_t SymField::get_radix() const {
     switch (type_) {
-        case Type::Oct: return 8;
-        case Type::Dec: return 10;
-        case Type::Hex: return 16;
-        default: return 0;
+        case Type::Oct:
+            return 8;
+        case Type::Dec:
+            return 10;
+        case Type::Hex:
+            return 16;
+        default:
+            return 0;
     }
 }
 

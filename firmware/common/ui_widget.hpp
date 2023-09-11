@@ -751,8 +751,6 @@ class NumberField : public Widget {
     const char fill_char;
     int32_t value_{0};
     bool can_loop{};
-
-    int32_t clip_value(int32_t value);
 };
 
 /* A widget that allows for character-by-character editing of its value. */
@@ -840,7 +838,6 @@ class SymField : public Widget {
     size_t selected_ = 0;
     bool editing_ = false;
     bool explicit_edits_ = true;
-
 };
 
 class Waveform : public Widget {
