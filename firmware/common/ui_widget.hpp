@@ -756,7 +756,7 @@ class NumberField : public Widget {
 /* A widget that allows for character-by-character editing of its value. */
 class SymField : public Widget {
    public:
-    std::function<void()> on_change{};
+    std::function<void(SymField&)> on_change{};
 
     enum class Type {
         Custom,

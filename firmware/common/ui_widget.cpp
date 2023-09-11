@@ -2116,7 +2116,7 @@ void SymField::ensure_all_symbols() {
 
     if (temp != value_) {
         if (on_change)
-            on_change();
+            on_change(*this);
         set_dirty();
     }
 }
@@ -2127,7 +2127,7 @@ void SymField::set_symbol_internal(size_t index, char symbol) {
 
     value_[index] = symbol;
     if (on_change)
-        on_change();
+        on_change(*this);
     set_dirty();
 }
 
