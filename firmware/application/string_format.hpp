@@ -50,14 +50,19 @@ char* to_string_dec_uint(uint64_t n, StringFormatBuffer& buffer, size_t& length)
 std::string to_string_dec_int(int64_t n);
 std::string to_string_dec_uint(uint64_t n);
 
-// TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...
 std::string to_string_bin(const uint32_t n, const uint8_t l = 0);
 std::string to_string_dec_uint(const uint32_t n, const int32_t l, const char fill = ' ');
 std::string to_string_dec_int(const int32_t n, const int32_t l, const char fill = 0);
 std::string to_string_decimal(float decimal, int8_t precision);
 
-std::string to_string_hex(const uint64_t n, const int32_t l = 0);
-std::string to_string_hex_array(uint8_t* const array, const int32_t l = 0);
+std::string to_string_hex(uint64_t n, int32_t length);
+std::string to_string_hex_array(uint8_t* array, int32_t length);
+
+/* Helper to select length based on type size. */
+template <typename T>
+std::string to_string_hex(T n) {
+    return to_string_hex(n, sizeof(T) * 2);  // Two digits/byte.
+}
 
 std::string to_string_freq(const uint64_t f);
 std::string to_string_short_freq(const uint64_t f);
