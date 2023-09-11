@@ -186,12 +186,11 @@ ADSBSquawkView::ADSBSquawkView(
                   &field_squawk});
 }
 
-void ADSBSquawkView::collect_frames(const uint32_t ICAO_address, std::vector<ADSBFrame>& frame_list) {
+void ADSBSquawkView::collect_frames(const uint32_t /*ICAO_address*/, std::vector<ADSBFrame>& frame_list) {
     if (!enabled) return;
 
     ADSBFrame temp_frame;
-    (void)ICAO_address;
-
+    
     encode_frame_squawk(temp_frame, field_squawk.to_integer());
 
     frame_list.emplace_back(temp_frame);

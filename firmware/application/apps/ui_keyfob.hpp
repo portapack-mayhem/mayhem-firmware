@@ -48,7 +48,7 @@ class KeyfobView : public View {
         OOK_SAMPLERATE /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "tx_keyfob", , app_settings::Mode::TX};
+        "tx_keyfob", app_settings::Mode::TX};
 
     // 1013210ns / bit
     static constexpr uint32_t subaru_samples_per_bit = (OOK_SAMPLERATE * 0.00101321);
