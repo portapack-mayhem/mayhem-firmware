@@ -150,7 +150,9 @@ void copy_to_radio_model(const AppSettings& settings);
 /* Copies common values from the receiver/transmitter models. */
 void copy_from_radio_model(AppSettings& settings);
 
-/* RAII wrapper for automatically loading and saving radio settings for an app.
+/* RAII wrapper for automatically loading and saving settings for an app.
+ * "Additional" settings are always loaded, but radio settings are conditionally
+ * saved/loaded if the global app settings options are enabled.
  * NB: This should be added to a class before any LNA/VGA controls so that
  * the receiver/transmitter models are set before the control ctors run. */
 class SettingsManager {
@@ -167,6 +169,9 @@ class SettingsManager {
 
     /* True if settings were successfully loaded from file. */
     bool loaded() const { return loaded_; }
+
+    /* True if radio settings were successfully loaded from file. */
+    bool radio_loaded() const { return radio_loaded_; }
     Mode mode() const { return settings_.mode; }
 
     AppSettings& raw() { return settings_; }
@@ -176,6 +181,7 @@ class SettingsManager {
     AppSettings settings_;
     SettingBindings bindings_;
     bool loaded_;
+    bool radio_loaded_;
 };
 
 }  // namespace app_settings

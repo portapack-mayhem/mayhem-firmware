@@ -112,11 +112,13 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
          &button_config,
          &console});
 
-    // No app settings, use fallbacks.
+    // No app settings, use fallbacks from pmem.
     if (!app_settings_.loaded()) {
-        field_frequency.set_value(initial_target_frequency);
         settings_.address_to_ignore = pmem::pocsag_ignore_address();
         settings_.enable_ignore = settings_.address_to_ignore > 0;
+    }
+    if (!app_settings_.radio_loaded()) {
+        field_frequency.set_value(initial_target_frequency);
     }
 
     logger.append(LOG_ROOT_DIR "/POCSAG.TXT");
@@ -151,7 +153,7 @@ POCSAGAppView::~POCSAGAppView() {
     receiver_model.disable();
     baseband::shutdown();
 
-    // Save pmem settings. TODO: Even needed anymore?
+    // Save pmem settings.
     pmem::set_pocsag_ignore_address(settings_.address_to_ignore);
     pmem::set_pocsag_last_address(pocsag_state.address);  // For POCSAG TX.
 }
