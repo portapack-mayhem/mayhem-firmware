@@ -49,7 +49,6 @@ EncodersConfigView::EncodersConfigView(
                   &field_clk_step,
                   &field_frameduration,
                   &field_frameduration_step,
-                  &symfield_word,
                   &text_format,
                   &waveform});
 
@@ -63,10 +62,6 @@ EncodersConfigView::EncodersConfigView(
 
     options_enctype.set_options(enc_options);
     options_enctype.set_selected_index(0);
-
-    symfield_word.on_change = [this](SymField&) {
-        generate_frame();
-    };
 
     // Selecting input clock changes symbol and word duration
     field_clk.on_change = [this](int32_t value) {
@@ -98,33 +93,47 @@ void EncodersConfigView::focus() {
 }
 
 void EncodersConfigView::on_type_change(size_t index) {
-    std::string format_string = "";
-    // size_t word_length;
-    // char symbol_type;
+
+    // Remove existing SymField controls.
+    for (auto& symfield : symfields_word)
+        remove_child(symfield.get());
+    symfields_word.clear();
 
     encoder_def = &encoder_defs[index];
-
     field_clk.set_value(encoder_def->default_speed / 1000);
     field_repeat_min.set_value(encoder_def->repeat_min);
 
-    // // SymField setup TODO: just make a new one.
-    // word_length = encoder_def->word_length;
-    // symfield_word.set_length(word_length);
-    // size_t n = 0, i = 0;
-    // while (n < word_length) {
-    //     symbol_type = encoder_def->word_format[i++];
-    //     if (symbol_type == 'A') {
-    //         symfield_word.set_symbol_list(n++, encoder_def->address_symbols);
-    //         format_string += 'A';
-    //     } else if (symbol_type == 'D') {
-    //         symfield_word.set_symbol_list(n++, encoder_def->data_symbols);
-    //         format_string += 'D';
-    //     }
-    // }
+    // Add new SymFields.
+    Point pos{2 * 8, 9 * 8};
+    std::string format_string;
+    uint8_t word_length = encoder_def->word_length;
+    auto on_change_handler = [this](SymField&) {
+        generate_frame();
+    };
+
+    for (uint8_t i = 0; i < word_length; i++) {
+        auto symbol_type = encoder_def->word_format[i];
+        symfields_word.push_back(std::make_unique<SymField>(pos, 1));
+        auto& symfield = symfields_word.back();
+        symfield->on_change = on_change_handler;
+
+        switch (symbol_type) {
+            case 'A':
+            symfield->set_symbol_list(encoder_def->address_symbols);
+            format_string += 'A';
+            break;
+            case 'D':
+            symfield->set_symbol_list(encoder_def->data_symbols);
+            format_string += 'D';
+            break;
+        }
+
+        add_child(symfield.get());
+        pos += Point{8, 0};
+    }
 
     // Ugly :( Pad to erase
     format_string.append(24 - format_string.size(), ' ');
-
     text_format.set(format_string);
 
     generate_frame();
@@ -146,17 +155,18 @@ void EncodersConfigView::draw_waveform() {
 }
 
 void EncodersConfigView::generate_frame() {
-    size_t i = 0;
-
     frame_fragments.clear();
 
+    size_t i = 0;
     for (auto c : encoder_def->word_format) {
         if (c == 'S')
             frame_fragments += encoder_def->sync;
-        else if (!c)
+        else if (c == '\0')
             break;
-        else
-            frame_fragments += '4';  // encoder_def->bit_format[symfield_word.get_sym(i++)];
+        else {
+            auto offset = symfields_word[i++]->get_offset(0);
+            frame_fragments += encoder_def->bit_format[offset];
+        }
     }
 
     draw_waveform();

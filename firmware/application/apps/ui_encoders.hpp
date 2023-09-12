@@ -29,6 +29,9 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
+#include <memory>
+#include <vector>
+
 using namespace encoders;
 
 namespace ui {
@@ -113,10 +116,7 @@ class EncodersConfigView : public View {
          {"100", 100},
          {"1000", 1000}}};
 
-    SymField symfield_word{
-        {2 * 8, 9 * 8},
-        20,
-        SymField::Type::Custom};
+    std::vector<std::unique_ptr<SymField>> symfields_word{};
 
     Text text_format{
         {2 * 8, 11 * 8, 24 * 8, 16},
