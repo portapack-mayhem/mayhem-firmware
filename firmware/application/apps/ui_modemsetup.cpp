@@ -20,10 +20,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "debug.hpp"
+
 #include "ui_modemsetup.hpp"
 
 #include "portapack.hpp"
-
 #include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
@@ -41,15 +42,21 @@ ModemSetupView::ModemSetupView(
     using options_t = std::vector<option_t>;
     options_t modem_options;
 
-    add_children({&labels,
-                  &field_baudrate,
-                  &field_mark,
-                  &field_space,
-                  &field_repeat,
-                  &options_modem,
-                  &button_set_modem,
-                  &sym_format,
-                  &button_save});
+    add_children(
+        {
+            &labels,
+            &field_baudrate,
+            &field_mark,
+            &field_space,
+            &field_repeat,
+            &options_modem,
+            &button_set_modem,
+            &sym_format_data,
+            &sym_format_parity,
+            &sym_format_stop,
+            &sym_format_msb,
+            &button_save,
+        });
 
     // Only list AFSK modems for now
     for (size_t i = 0; i < MODEM_DEF_COUNT; i++) {
@@ -59,15 +66,10 @@ ModemSetupView::ModemSetupView(
     options_modem.set_options(modem_options);
     options_modem.set_selected_index(0);
 
-    /*sym_format.set_symbol_list(0, "6789");  // Data bits
-    sym_format.set_symbol_list(1, "NEo");   // Parity
-    sym_format.set_symbol_list(2, "012");   // Stop bits
-    sym_format.set_symbol_list(3, "ML");    // MSB/LSB first
-
-    sym_format.set_sym(0, persistent_memory::serial_format().data_bits - 6);
-    sym_format.set_sym(1, persistent_memory::serial_format().parity);
-    sym_format.set_sym(2, persistent_memory::serial_format().stop_bits);
-    sym_format.set_sym(3, persistent_memory::serial_format().bit_order);*/
+    sym_format_data.set_offset(0, persistent_memory::serial_format().data_bits - 6);
+    sym_format_parity.set_offset(0, persistent_memory::serial_format().parity);
+    sym_format_stop.set_offset(0, persistent_memory::serial_format().stop_bits);
+    sym_format_msb.set_offset(0, persistent_memory::serial_format().bit_order);
 
     field_mark.set_value(persistent_memory::afsk_mark_freq());
     field_space.set_value(persistent_memory::afsk_space_freq());
@@ -84,18 +86,17 @@ ModemSetupView::ModemSetupView(
     };
 
     button_save.on_select = [this, &nav](Button&) {
-        serial_format_t serial_format;
-
         persistent_memory::set_afsk_mark(field_mark.value());
         persistent_memory::set_afsk_space(field_space.value());
 
         persistent_memory::set_modem_baudrate(field_baudrate.value());
         persistent_memory::set_modem_repeat(field_repeat.value());
 
-        /*serial_format.data_bits = sym_format.get_sym(0) + 6;
-        serial_format.parity = (parity_enum)sym_format.get_sym(1);
-        serial_format.stop_bits = sym_format.get_sym(2);
-        serial_format.bit_order = (order_enum)sym_format.get_sym(3);*/
+        serial_format_t serial_format{};
+        serial_format.data_bits = sym_format_data.get_offset(0) + 6;
+        serial_format.parity = (parity_enum)sym_format_parity.get_offset(0);
+        serial_format.stop_bits = sym_format_stop.get_offset(0);
+        serial_format.bit_order = (order_enum)sym_format_msb.get_offset(0);
 
         persistent_memory::set_serial_format(serial_format);
 
