@@ -93,7 +93,6 @@ void EncodersConfigView::focus() {
 }
 
 void EncodersConfigView::on_type_change(size_t index) {
-
     // Remove existing SymField controls.
     for (auto& symfield : symfields_word)
         remove_child(symfield.get());
@@ -119,13 +118,13 @@ void EncodersConfigView::on_type_change(size_t index) {
 
         switch (symbol_type) {
             case 'A':
-            symfield->set_symbol_list(encoder_def->address_symbols);
-            format_string += 'A';
-            break;
+                symfield->set_symbol_list(encoder_def->address_symbols);
+                format_string += 'A';
+                break;
             case 'D':
-            symfield->set_symbol_list(encoder_def->data_symbols);
-            format_string += 'D';
-            break;
+                symfield->set_symbol_list(encoder_def->data_symbols);
+                format_string += 'D';
+                break;
         }
 
         add_child(symfield.get());

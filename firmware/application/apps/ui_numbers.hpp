@@ -154,7 +154,7 @@ class NumbersStationView : public View {
         { 18 * 8, 13 * 16, 10 * 8, 32 },
         "TX now"};
     */
-    
+
     Button button_exit{
         {21 * 8, 16 * 16, 64, 32},
         "Exit"};
