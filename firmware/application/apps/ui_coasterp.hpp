@@ -76,9 +76,11 @@ class CoasterPagerView : public View {
         4,
         "Scan"};
 
-    /*ProgressBar progressbar {
-                { 5 * 8, 12 * 16, 20 * 8, 16 },
-        };*/
+    /*
+    ProgressBar progressbar {
+        { 5 * 8, 12 * 16, 20 * 8, 16 }};
+    */
+
     Text text_message{
         {5 * 8, 13 * 16, 20 * 8, 16},
         ""};

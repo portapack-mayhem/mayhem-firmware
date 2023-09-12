@@ -42,12 +42,12 @@ CoasterPagerView::~CoasterPagerView() {
 }
 
 void CoasterPagerView::generate_frame() {
-    uint8_t frame[19];
-    uint32_t c;
+    constexpr uint8_t frame_bytes = 19;
+    uint8_t frame[frame_bytes];
 
     // Preamble (8 bytes)
-    for (c = 0; c < 8; c++)
-        frame[c] = 0x55;  // Isn't this 0xAA ?
+    for (uint8_t c = 0; c < 8; c++)
+        frame[c] = 0x55;
 
     // Sync word
     frame[8] = 0x2D;
@@ -56,13 +56,12 @@ void CoasterPagerView::generate_frame() {
     // Data length
     frame[10] = 8;
 
-    // TODO: fix
-    // // Data
-    // for (c = 0; c < 8; c++)
-    //     frame[c + 11] = (sym_data.get_sym(c * 2) << 4) | sym_data.get_sym(c * 2 + 1);
+    // Data
+    auto data_bytes = to_byte_array(sym_data.to_integer());
+    memcpy(&frame[11], data_bytes.data(), data_bytes.size());
 
     // Copy for baseband
-    memcpy(shared_memory.bb_data.data, frame, 19);
+    memcpy(shared_memory.bb_data.data, frame, frame_bytes);
 }
 
 void CoasterPagerView::start_tx() {
@@ -73,12 +72,7 @@ void CoasterPagerView::start_tx() {
     baseband::set_fsk_data(19 * 8, 2280000 / 1000, 5000, 32);
 }
 
-void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) {
-    (void)progress;
-
-    uint16_t address = 0;
-    uint32_t c;
-
+void CoasterPagerView::on_tx_progress(const uint32_t /*progress*/, const bool done) {
     if (done) {
         if (tx_mode == SINGLE) {
             transmitter_model.disable();
@@ -86,18 +80,12 @@ void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) 
             tx_view.set_transmitting(false);
         } else if (tx_mode == SCAN) {
             // Increment address
-
-            for (c = 0; c < 4; c++) {
-                address <<= 4;
-                // TODOaddress |= sym_data.get_sym(12 + c);
-            }
+            uint64_t data = sym_data.to_integer();
+            uint16_t address = data & 0xFFFF;
 
             address++;
-
-            for (c = 0; c < 4; c++) {
-                // TODOsym_data.set_sym(15 - c, address & 0x0F);
-                address >>= 4;
-            }
+            data = (data & 0xFFFFFFFFFFFF0000) + address;
+            sym_data.set_value(data);
 
             start_tx();
         }
@@ -105,9 +93,6 @@ void CoasterPagerView::on_tx_progress(const uint32_t progress, const bool done) 
 }
 
 CoasterPagerView::CoasterPagerView(NavigationView& nav) {
-    const uint8_t data_init[8] = {0x44, 0x01, 0x3B, 0x30, 0x30, 0x30, 0x34, 0xBC};
-    uint32_t c;
-
     baseband::run_image(portapack::spi_flash::image_tag_fsktx);
 
     add_children({&labels,
@@ -116,10 +101,7 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
                   &text_message,
                   &tx_view});
 
-    // TODO:
-    // // Bytes to nibbles
-    // for (c = 0; c < 16; c++)
-    //     sym_data.set_sym(c, (data_init[c >> 1] >> ((c & 1) ? 0 : 4)) & 0x0F);
+    sym_data.set_value(0x44013B30303034BC);
 
     checkbox_scan.set_value(false);
 

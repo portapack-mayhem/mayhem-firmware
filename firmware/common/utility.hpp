@@ -22,12 +22,13 @@
 #ifndef __UTILITY_H__
 #define __UTILITY_H__
 
-#include <type_traits>
+#include <algorithm>
+#include <array>
+#include <complex>
 #include <cstdint>
 #include <cstddef>
-#include <algorithm>
-#include <complex>
 #include <memory>
+#include <type_traits>
 
 #define LOCATE_IN_RAM __attribute__((section(".ramtext")))
 
@@ -139,6 +140,16 @@ constexpr std::enable_if_t<is_flags_type_v<TEnum>, bool> flags_enabled(TEnum val
     auto i_flags = static_cast<std::underlying_type_t<TEnum>>(flags);
 
     return (i_value & i_flags) == i_flags;
+}
+
+// TODO: Constrain to integrals?
+/* Converts an integer into a byte array. */
+template <typename T, size_t N = sizeof(T)>
+constexpr std::array<uint8_t, N> to_byte_array(T value) {
+    std::array<uint8_t, N> bytes{};
+    for (size_t i = 0; i < N; ++i)
+        bytes[i] = (value >> ((N - i - 1) * 8)) & 0xFF;
+    return bytes;
 }
 
 /* Returns value constrained to min and max. */

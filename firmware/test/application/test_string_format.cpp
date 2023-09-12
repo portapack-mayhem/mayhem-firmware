@@ -114,9 +114,9 @@ TEST_CASE("char_to_uint returns correct value.") {
     CHECK_EQ(char_to_uint('8', 16), 8);
     CHECK_EQ(char_to_uint('A', 10), 0);  // Bad value given radix.
     CHECK_EQ(char_to_uint('A', 16), 0xA);
-    CHECK_EQ(char_to_uint('a', 16), 0xA); // Lowercase.
-    CHECK_EQ(char_to_uint('f', 16), 0xF); // Lowercase.
-    CHECK_EQ(char_to_uint('G', 16), 0);  // Bad value given radix.
+    CHECK_EQ(char_to_uint('a', 16), 0xA);  // Lowercase.
+    CHECK_EQ(char_to_uint('f', 16), 0xF);  // Lowercase.
+    CHECK_EQ(char_to_uint('G', 16), 0);    // Bad value given radix.
 }
 
 TEST_CASE("uint_to_char returns correct value.") {
