@@ -20,8 +20,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "debug.hpp"
-
 #include "ui_modemsetup.hpp"
 
 #include "portapack.hpp"
