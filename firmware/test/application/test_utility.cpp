@@ -72,3 +72,21 @@ TEST_CASE("ms_duration should return duration.") {
 TEST_CASE("ms_duration not fault when passed zero.") {
     CHECK_EQ(ms_duration(0, 0, 0), 0);
 }
+
+TEST_CASE("to_byte_array returns correct size and values.") {
+    auto arr1 = to_byte_array<uint8_t>(0xAB);
+    REQUIRE_EQ(std::size(arr1), 1);
+    CHECK_EQ(arr1[0], 0xAB);
+
+    auto arr2 = to_byte_array<uint16_t>(0xABCD);
+    REQUIRE_EQ(std::size(arr2), 2);
+    CHECK_EQ(arr2[0], 0xAB);
+    CHECK_EQ(arr2[1], 0xCD);
+
+    auto arr4 = to_byte_array<uint32_t>(0xABCD1234);
+    REQUIRE_EQ(std::size(arr4), 4);
+    CHECK_EQ(arr4[0], 0xAB);
+    CHECK_EQ(arr4[1], 0xCD);
+    CHECK_EQ(arr4[2], 0x12);
+    CHECK_EQ(arr4[3], 0x34);
+}
