@@ -40,21 +40,20 @@ ModemSetupView::ModemSetupView(
     using options_t = std::vector<option_t>;
     options_t modem_options;
 
-    add_children(
-        {
-            &labels,
-            &field_baudrate,
-            &field_mark,
-            &field_space,
-            &field_repeat,
-            &options_modem,
-            &button_set_modem,
-            &sym_format_data,
-            &sym_format_parity,
-            &sym_format_stop,
-            &sym_format_msb,
-            &button_save,
-        });
+    add_children({
+        &labels,
+        &field_baudrate,
+        &field_mark,
+        &field_space,
+        &field_repeat,
+        &options_modem,
+        &button_set_modem,
+        &sym_format_data,
+        &sym_format_parity,
+        &sym_format_stop,
+        &sym_format_msb,
+        &button_save,
+    });
 
     // Only list AFSK modems for now
     for (size_t i = 0; i < MODEM_DEF_COUNT; i++) {
