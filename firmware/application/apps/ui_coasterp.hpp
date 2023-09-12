@@ -68,17 +68,19 @@ class CoasterPagerView : public View {
 
     SymField sym_data{
         {7 * 8, 8 * 8},
-        16,  // 14 ? 12 ?
-        SymField::SYMFIELD_HEX};
+        16,
+        SymField::Type::Hex};
 
     Checkbox checkbox_scan{
         {10 * 8, 14 * 8},
         4,
         "Scan"};
 
-    /*ProgressBar progressbar {
-                { 5 * 8, 12 * 16, 20 * 8, 16 },
-        };*/
+    /*
+    ProgressBar progressbar {
+        { 5 * 8, 12 * 16, 20 * 8, 16 }};
+    */
+
     Text text_message{
         {5 * 8, 13 * 16, 20 * 8, 16},
         ""};

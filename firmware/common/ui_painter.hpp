@@ -37,6 +37,29 @@ struct Style {
     Style invert() const;
 };
 
+/* Sometimes mutation is just the more readable thing... */
+struct MutableStyle {
+    const Font* font;
+    Color background;
+    Color foreground;
+
+    MutableStyle(const Style& s)
+        : font{&s.font},
+          background{s.background},
+          foreground{s.foreground} {}
+
+    void invert() {
+        std::swap(background, foreground);
+    }
+
+    operator Style() const {
+        return {
+            .font = *font,
+            .background = background,
+            .foreground = foreground};
+    }
+};
+
 class Widget;
 
 class Painter {

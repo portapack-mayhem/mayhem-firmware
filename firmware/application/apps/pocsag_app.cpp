@@ -71,6 +71,7 @@ POCSAGSettingsView::POCSAGSettingsView(
     check_hide_bad.set_value(settings_.hide_bad_data);
     check_hide_addr_only.set_value(settings_.hide_addr_only);
     check_ignore.set_value(settings_.enable_ignore);
+
     field_ignore.set_value(settings_.address_to_ignore);
 
     button_save.on_select = [this, &nav](Button&) {
@@ -81,7 +82,7 @@ POCSAGSettingsView::POCSAGSettingsView(
         settings_.hide_bad_data = check_hide_bad.value();
         settings_.hide_addr_only = check_hide_addr_only.value();
         settings_.enable_ignore = check_ignore.value();
-        settings_.address_to_ignore = field_ignore.value();
+        settings_.address_to_ignore = field_ignore.to_integer();
 
         nav.pop();
     };
@@ -155,7 +156,7 @@ POCSAGAppView::~POCSAGAppView() {
 
     // Save pmem settings.
     pmem::set_pocsag_ignore_address(settings_.address_to_ignore);
-    pmem::set_pocsag_last_address(pocsag_state.address);  // For POCSAG TX.
+    pmem::set_pocsag_last_address(last_address);  // For POCSAG TX.
 }
 
 void POCSAGAppView::refresh_ui() {

@@ -97,12 +97,12 @@ size_t KeyfobView::generate_frame() {
     uint64_t payload;
 
     // Symfield word to frame
-    payload = field_payload_a.value_hex_u64();
+    payload = field_payload_a.to_integer();
     for (size_t i = 0; i < 5; i++) {
         frame[4 - i] = payload & 0xFF;
         payload >>= 8;
     }
-    payload = field_payload_b.value_hex_u64();
+    payload = field_payload_b.to_integer();
     for (size_t i = 0; i < 5; i++) {
         frame[9 - i] = payload & 0xFF;
         payload >>= 8;
@@ -136,9 +136,6 @@ void KeyfobView::focus() {
 }
 
 KeyfobView::~KeyfobView() {
-    // save app settings
-    settings.save("tx_keyfob", &app_settings);
-
     transmitter_model.disable();
     baseband::shutdown();
 }
@@ -167,12 +164,12 @@ void KeyfobView::on_make_change(size_t index) {
 // DEBUG
 void KeyfobView::update_symfields() {
     for (size_t i = 0; i < 5; i++) {
-        field_payload_a.set_sym(i << 1, frame[i] >> 4);
-        field_payload_a.set_sym((i << 1) + 1, frame[i] & 0x0F);
+        field_payload_a.set_offset(i << 1, frame[i] >> 4);
+        field_payload_a.set_offset((i << 1) + 1, frame[i] & 0x0F);
     }
     for (size_t i = 0; i < 5; i++) {
-        field_payload_b.set_sym(i << 1, frame[5 + i] >> 4);
-        field_payload_b.set_sym((i << 1) + 1, frame[5 + i] & 0x0F);
+        field_payload_b.set_offset(i << 1, frame[5 + i] >> 4);
+        field_payload_b.set_offset((i << 1) + 1, frame[5 + i] & 0x0F);
     }
 }
 
@@ -211,13 +208,6 @@ KeyfobView::KeyfobView(
                   &text_status,
                   &progressbar,
                   &tx_view});
-
-    // load app settings
-    auto rc = settings.load("tx_keyfob", &app_settings);
-    if (rc == SETTINGS_OK) {
-        transmitter_model.set_rf_amp(app_settings.tx_amp);
-        transmitter_model.set_tx_gain(app_settings.tx_gain);
-    }
 
     frame[0] = 0x55;
     update_symfields();

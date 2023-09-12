@@ -48,9 +48,10 @@ APRSTXView::~APRSTXView() {
 }
 
 void APRSTXView::start_tx() {
+    // TODO: Clean up this API to take string_views to avoid allocations.
     make_aprs_frame(
-        sym_source.value_string().c_str(), num_ssid_source.value(),
-        sym_dest.value_string().c_str(), num_ssid_dest.value(),
+        sym_source.to_string().c_str(), num_ssid_source.value(),
+        sym_dest.to_string().c_str(), num_ssid_dest.value(),
         payload);
 
     // uint8_t * bb_data_ptr = shared_memory.bb_data.data;

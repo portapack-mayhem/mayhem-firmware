@@ -56,7 +56,7 @@ bool POCSAGTXView::start_tx() {
     pocsag::BitRate bitrate;
     std::vector<uint32_t> codewords;
 
-    address = field_address.value_dec_u32();
+    address = field_address.to_integer();
     if (address > 0x1FFFFFU) {
         nav_.display_modal("Bad address", "Address must be less\nthan 2097152.");
         return false;
@@ -137,12 +137,7 @@ POCSAGTXView::POCSAGTXView(
     options_bitrate.set_selected_index(1);  // 1200bps
     options_type.set_selected_index(0);     // Address only
 
-    // TODO: set_value for whole symfield
-    uint32_t reload_address = persistent_memory::pocsag_last_address();
-    for (uint32_t c = 0; c < 7; c++) {
-        field_address.set_sym(6 - c, reload_address % 10);
-        reload_address /= 10;
-    }
+    field_address.set_value(persistent_memory::pocsag_last_address());
 
     options_type.on_change = [this](size_t, int32_t i) {
         if (i == 2)

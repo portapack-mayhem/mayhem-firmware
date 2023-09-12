@@ -21,6 +21,8 @@
 
 #include "string_format.hpp"
 
+using namespace std::literals;
+
 /* This takes a pointer to the end of a buffer
  * and fills it backwards towards the front.
  * The return value 'q' is a pointer to the start.
@@ -230,29 +232,31 @@ std::string to_string_time_ms(const uint32_t ms) {
     return final_str;
 }
 
-static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
-    const uint32_t d = n & 0xf;
-    p[l] = (d > 9) ? (d + 55) : (d + 48);
-    if (l > 0) {
-        to_string_hex_internal(p, n >> 4, l - 1);
-    }
+static char* to_string_hex_internal(char* ptr, uint64_t value, uint8_t length) {
+    if (length == 0)
+        return ptr;
+
+    *(--ptr) = uint_to_char(value & 0xF, 16);
+    return to_string_hex_internal(ptr, value >> 4, length - 1);
 }
 
-std::string to_string_hex(const uint64_t n, int32_t l) {
-    char p[32];
+std::string to_string_hex(uint64_t value, int32_t length) {
+    constexpr uint8_t buffer_length = 33;
+    char buffer[buffer_length];
 
-    l = std::min<int32_t>(l, 31);
-    to_string_hex_internal(p, n, l - 1);
-    p[l] = 0;
-    return p;
+    char* ptr = &buffer[buffer_length - 1];
+    *ptr = '\0';
+
+    length = std::min<uint8_t>(buffer_length - 1, length);
+    return to_string_hex_internal(ptr, value, length);
 }
 
-std::string to_string_hex_array(uint8_t* const array, const int32_t l) {
-    std::string str_return = "";
-    uint8_t bytes;
+std::string to_string_hex_array(uint8_t* array, int32_t length) {
+    std::string str_return;
+    str_return.reserve(length);
 
-    for (bytes = 0; bytes < l; bytes++)
-        str_return += to_string_hex(array[bytes], 2);
+    for (uint8_t i = 0; i < length; i++)
+        str_return += to_string_hex(array[i], 2);
 
     return str_return;
 }
@@ -363,4 +367,27 @@ std::string trimr(std::string_view str) {
 
 std::string truncate(std::string_view str, size_t length) {
     return std::string{str.length() <= length ? str : str.substr(0, length)};
+}
+
+uint8_t char_to_uint(char c, uint8_t radix) {
+    uint8_t v = 0;
+
+    if (c >= '0' && c <= '9')
+        v = c - '0';
+    else if (c >= 'A' && c <= 'F')
+        v = c - 'A' + 10;  // A is dec: 10
+    else if (c >= 'a' && c <= 'f')
+        v = c - 'a' + 10;  // A is dec: 10
+
+    return v < radix ? v : 0;
+}
+
+char uint_to_char(uint8_t val, uint8_t radix) {
+    if (val >= radix)
+        return 0;
+
+    if (val < 10)
+        return '0' + val;
+    else
+        return 'A' + val - 10;  // A is dec: 10
 }

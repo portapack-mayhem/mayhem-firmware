@@ -68,7 +68,8 @@ class APRSTXView : public View {
     SymField sym_source{
         {7 * 8, 1 * 16},
         6,
-        SymField::SYMFIELD_ALPHANUM};
+        SymField::Type::Alpha};
+
     NumberField num_ssid_source{
         {19 * 8, 1 * 16},
         2,
@@ -79,7 +80,7 @@ class APRSTXView : public View {
     SymField sym_dest{
         {7 * 8, 2 * 16},
         6,
-        SymField::SYMFIELD_ALPHANUM};
+        SymField::Type::Alpha};
 
     NumberField num_ssid_dest{
         {19 * 8, 2 * 16},

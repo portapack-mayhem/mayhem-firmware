@@ -171,12 +171,11 @@ class POCSAGSettingsView : public View {
         22,
         "Enable Ignored Address"};
 
-    NumberField field_ignore{
+    SymField field_ignore{
         {7 * 8, 13 * 16 + 8},
         7,
-        {0, 9999999},
-        1,
-        '0'};
+        SymField::Type::Dec,
+        true /*explicit_edit*/};
 
     Button button_save{
         {11 * 8, 16 * 16, 10 * 8, 2 * 16},
@@ -223,7 +222,7 @@ class POCSAGAppView : public View {
     void on_packet(const POCSAGPacketMessage* message);
     void on_stats(const POCSAGStatsMessage* stats);
 
-    uint32_t last_address = 0xFFFFFFFF;
+    uint32_t last_address = 0;
     pocsag::EccContainer ecc{};
     pocsag::POCSAGState pocsag_state{&ecc};
     POCSAGLogger logger{};
