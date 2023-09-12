@@ -21,6 +21,7 @@
  */
 
 #include "ui_numbers.hpp"
+#include "ui_styles.hpp"
 #include "string_format.hpp"
 
 #include "portapack.hpp"
@@ -75,7 +76,7 @@ void NumbersStationView::prepare_audio() {
                 return;
             }
 
-            code = symfield_code.get_sym(code_index);
+            code = symfield_code.get_offset(code_index);
 
             if (code >= 10) {
                 memset(audio_buffer, 0, 1024);
@@ -144,7 +145,7 @@ void NumbersStationView::on_tick_second() {
     armed_blink = not armed_blink;
 
     if (armed_blink)
-        check_armed.set_style(&style_red);
+        check_armed.set_style(&Styles::red);
     else
         check_armed.set_style(&style());
 
@@ -152,14 +153,12 @@ void NumbersStationView::on_tick_second() {
 }
 
 void NumbersStationView::on_voice_changed(size_t index) {
-    std::string code_list = "";
+    std::string code_list;
 
     for (const auto& wavs : voices[index].available_wavs)
         code_list += wavs.code;
 
-    for (uint32_t c = 0; c < 25; c++)
-        symfield_code.set_symbol_list(c, code_list);
-
+    symfield_code.set_symbol_list(code_list);
     current_voice = &voices[index];
 }
 
@@ -265,17 +264,17 @@ NumbersStationView::NumbersStationView(
     };
 
     // DEBUG
-    symfield_code.set_sym(0, 10);
-    symfield_code.set_sym(1, 3);
-    symfield_code.set_sym(2, 4);
-    symfield_code.set_sym(3, 11);
-    symfield_code.set_sym(4, 6);
-    symfield_code.set_sym(5, 1);
-    symfield_code.set_sym(6, 9);
-    symfield_code.set_sym(7, 7);
-    symfield_code.set_sym(8, 8);
-    symfield_code.set_sym(9, 0);
-    symfield_code.set_sym(10, 12);  // End
+    symfield_code.set_offset(0, 10);
+    symfield_code.set_offset(1, 3);
+    symfield_code.set_offset(2, 4);
+    symfield_code.set_offset(3, 11);
+    symfield_code.set_offset(4, 6);
+    symfield_code.set_offset(5, 1);
+    symfield_code.set_offset(6, 9);
+    symfield_code.set_offset(7, 7);
+    symfield_code.set_offset(8, 8);
+    symfield_code.set_offset(9, 0);
+    symfield_code.set_offset(10, 12);  // End
 
     /*
         rtc::RTC datetime;

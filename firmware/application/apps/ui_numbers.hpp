@@ -148,10 +148,13 @@ class NumbersStationView : public View {
         {2 * 8, 13 * 16},
         5,
         "Armed"};
-    /*Button button_tx_now {
-                { 18 * 8, 13 * 16, 10 * 8, 32 },
-                "TX now"
-        };*/
+
+    /*
+    Button button_tx_now {
+        { 18 * 8, 13 * 16, 10 * 8, 32 },
+        "TX now"};
+    */
+    
     Button button_exit{
         {21 * 8, 16 * 16, 64, 32},
         "Exit"};
