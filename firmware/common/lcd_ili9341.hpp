@@ -94,11 +94,13 @@ class ILI9341 {
      * Scrolling support is implemented in the ILI9341 driver. Basically a region
      * of the screen is set up to act as a circular buffer. The VSA (vertical scroll
      * address) is the line that defines the "start" of the circular buffer. In our
-     * case, the driver is set up for "bottom up" scrolling. In this mode, the line
-     * *above* VSA (VSA - 1) will be drawn at the bottom of the scroll region.
-     * VSA will be decremented (wrapping to stay in the region bounds), to get the
-     * next line which will be drawn *above* the previous, and so on until the line
-     * pointed to by VSA is drawn at the top.
+     * case, the driver is set up for "bottom-up" scrolling. In this mode, drawing
+     * starts at the bottom of the scroll region and draws the buffer upward.
+     * However, the whole display's address space is inverted (the screen is actually
+     * upside down in the PortaPack) so this bottom-up drawing appears to be top-down.
+     *
+     * What this means is that the line pointed to by VSA will be drawn at the top
+     * of the scroll region and the line at VSA - 1 (wrapped) will be the bottom.
      * Consider the following screen buffers and VSA pointers.
      *
      * Buffer:  Display:    Buffer:  Display:
@@ -127,8 +129,8 @@ class ILI9341 {
      *
      * VSA > A = +0          A = +2
      *       B = +1          B = +3   NB: As before, VSA is always the "top"
-     *       C = +2    VSA > C = +0       and line above VSA will be the
-     *       D = +3          D = +1       "bottom" (or max 'y' offset).
+     *       C = +2    VSA > C = +0       and line at VSA - 1 will be the
+     *       D = +3          D = +1       "bottom" or the max 'y' offset.
      */
     ui::Coord scroll_area_y(const ui::Coord y) const;
 
