@@ -670,7 +670,7 @@ void Console::enable_scrolling(bool enable) {
         auto sr = screen_rect();
         auto line_height = style().font.line_height();
 
-        // Count full lines can fit in console's rectangle.
+        // Count full lines that can fit in console's rectangle.
         auto max_lines = sr.height() / line_height;  // NB: int division to floor.
 
         // The scroll area must be a multiple of the line_height
