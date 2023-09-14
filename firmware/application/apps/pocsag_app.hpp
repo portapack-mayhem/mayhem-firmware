@@ -281,8 +281,9 @@ class POCSAGAppView : public View {
         {22 * 8, 1 * 16, 8 * 8, 20},
         "Config"};
 
+    // 54 == status bar (16) + top controls (2 * 16 + 6).
     Console console{
-        {0, 2 * 16 + 6, screen_width, screen_height - 56}};
+        {0, 2 * 16 + 6, screen_width, screen_height - 54}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::POCSAGPacket,

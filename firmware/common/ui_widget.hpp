@@ -332,8 +332,8 @@ class Console : public Widget {
     void on_hide() override;
 
    private:
-    // bool visible = false;
     Point pos{0, 0};
+    Dim scroll_height = 0;
     std::string buffer{};
     static bool scrolling_enabled;
 

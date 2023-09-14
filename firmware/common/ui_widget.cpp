@@ -494,7 +494,9 @@ void BigFrequency::paint(Painter& painter) {
     const auto rect = screen_rect();
 
     // Erase
-    painter.fill_rectangle({{0, rect.location().y()}, {240, 52}}, ui::Color::black());
+    painter.fill_rectangle(
+        {{0, rect.location().y()}, {screen_width, 52}},
+        ui::Color::black());
 
     // Prepare digits
     if (!_frequency) {
@@ -612,10 +614,10 @@ void Console::write(std::string message) {
     if (!hidden() && visible()) {
         const Style& s = style();
         const Font& font = s.font;
-        const auto rect = screen_rect();
+        auto rect = screen_rect();
         ui::Color pen_color = s.foreground;
 
-        for (const auto c : message) {
+        for (auto c : message) {
             if (escape) {
                 if (c < std::size(term_colors))
                     pen_color = term_colors[(uint8_t)c];
@@ -628,12 +630,13 @@ void Console::write(std::string message) {
                 } else if (c == '\x1B') {
                     escape = true;
                 } else {
-                    const auto glyph = font.glyph(c);
-                    const auto advance = glyph.advance();
-                    if ((pos.x() + advance.x()) > rect.width()) {
+                    auto glyph = font.glyph(c);
+                    auto advance = glyph.advance();
+                    // Would drawing next character be off the end? Newline.
+                    if ((pos.x() + advance.x()) > rect.width())
                         crlf();
-                    }
-                    const Point pos_glyph{
+
+                    Point pos_glyph{
                         rect.left() + pos.x(),
                         display.scroll_area_y(pos.y())};
                     display.draw_glyph(pos_glyph, glyph, pen_color, s.background);
@@ -649,7 +652,6 @@ void Console::write(std::string message) {
 
 void Console::writeln(std::string message) {
     write(message + "\n");
-    // crlf();
 }
 
 void Console::paint(Painter&) {
@@ -659,15 +661,23 @@ void Console::paint(Painter&) {
 void Console::on_show() {
     enable_scrolling(true);
     clear();
-    // visible = true;
 }
 
 bool Console::scrolling_enabled = false;
 
 void Console::enable_scrolling(bool enable) {
     if (enable) {
-        const auto screen_r = screen_rect();
-        display.scroll_set_area(screen_r.top(), screen_r.bottom());
+        auto sr = screen_rect();
+        auto line_height = style().font.line_height();
+
+        // Count full lines that can fit in console's rectangle.
+        auto max_lines = sr.height() / line_height;  // NB: int division to floor.
+
+        // The scroll area must be a multiple of the line_height
+        // or some lines will end up vertically truncated.
+        scroll_height = max_lines * line_height;
+
+        display.scroll_set_area(sr.top(), sr.top() + scroll_height);
         display.scroll_set_position(0);
         scrolling_enabled = true;
     } else {
@@ -678,28 +688,37 @@ void Console::enable_scrolling(bool enable) {
 
 void Console::on_hide() {
     /* TODO: Clear region to eliminate brief flash of content at un-shifted
-     * position?
-     */
+     * position? */
     enable_scrolling(false);
-    // visible = false;
 }
 
 void Console::crlf() {
     if (hidden() || !visible()) return;
 
-    const Style& s = style();
-    const auto sr = screen_rect();
-    const auto line_height = s.font.line_height();
-    pos = {0, pos.y() + line_height};
-    const int32_t y_excess = pos.y() + line_height - sr.height();
-    if (y_excess > 0) {
-        if (!scrolling_enabled) {
-            enable_scrolling(true);
-        }
-        display.scroll(-y_excess);
-        pos = {pos.x(), pos.y() - y_excess};
+    const auto& s = style();
+    auto sr = screen_rect();
+    auto line_height = s.font.line_height();
 
-        const Rect dirty{sr.left(), display.scroll_area_y(pos.y()), sr.width(), line_height};
+    // Advance to the next line (\n) position and "carriage return" x to 0.
+    pos = {0, pos.y() + line_height};
+
+    if (pos.y() >= scroll_height) {
+        // Line is past off the "bottom", need to scroll.
+        if (!scrolling_enabled)
+            enable_scrolling(true);
+
+        // See the notes in lcd_ili9341.hpp about how scrolling works.
+        // The gist is that VSA will be moved to scroll the "top" off the
+        // screen. The drawing code uses 'scroll_area_y' to get the actual
+        // screen coordinate based on VSA. The "bottom" line is *always*
+        // at 'VSA + ((max_lines - 1) * line_height)' and so is constant.
+        pos = {0, scroll_height - line_height};
+
+        // Scroll off the "top" line.
+        display.scroll(-line_height);
+
+        // Clear the new line at the "bottom".
+        Rect dirty{sr.left(), display.scroll_area_y(pos.y()), sr.width(), line_height};
         display.fill_rectangle(dirty, s.background);
     }
 }
