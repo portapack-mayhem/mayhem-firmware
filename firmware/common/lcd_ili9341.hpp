@@ -90,14 +90,50 @@ class ILI9341 {
         const ui::Color foreground,
         const ui::Color background);
 
+    /*** Scrolling ***
+     * Scrolling support is implemented in the ILI9341 driver. Basically a region
+     * of the screen is set up to act as a circular buffer. The VSA (vertical scroll
+     * address) is the line that defines the "start" of the circular buffer. In our
+     * case, the driver is set up for "bottom up" scrolling. In this mode, the line
+     * *above* VSA (VSA - 1) will be drawn at the bottom of the scroll region.
+     * VSA will be decremented (wrapping to stay in the region bounds), to get the
+     * next line which will be drawn *above* the previous, and so on until the line
+     * pointed to by VSA is drawn at the top.
+     * Consider the following screen buffers and VSA pointers.
+     *
+     * Buffer:  Display:    Buffer:  Display:
+     * VSA > A      A           A       C       NB: VSA points to the "Top"
+     *       B      B           B       D           of the rendered output.
+     *       C      C     VSA > C       A
+     *       D      D           D       B
+     */
+
+    /* Sets the top and bottom lines of the scrolling region. */
     void scroll_set_area(const ui::Coord top_y, const ui::Coord bottom_y);
-    ui::Coord scroll_set_position(const ui::Coord position);
-    ui::Coord scroll(const int32_t delta);
-    ui::Coord scroll_area_y(const ui::Coord y) const;
     void scroll_disable();
 
-    constexpr ui::Dim width() const { return 240; }
-    constexpr ui::Dim height() const { return 320; }
+    /* Sets VSA. This an offset from top_y not a screen coordinate. */
+    ui::Coord scroll_set_position(const ui::Coord position);
+
+    /* Relative adjustment to VSA. Positive value will cause output
+     * to scoll "down", negative values will cause the output to scroll "up". */
+    ui::Coord scroll(const int32_t delta);
+
+    /* Gets a screen coordinate from a scroll region offset. Values are wrapped
+     * so the offset is wrapped within the bounds of the scroll region. The
+     * specified offset is applied to VSA and then offset by the scroll region
+     * top to produce a screen coordinate.
+     * Consider the following screen buffers and VSA pointer. Note the offsets.
+     *
+     * VSA > A = +0          A = +2
+     *       B = +1          B = +3   NB: As before, VSA is always the "top"
+     *       C = +2    VSA > C = +0       and line above VSA will be the
+     *       D = +3          D = +1       "bottom" (or max 'y' offset).
+     */
+    ui::Coord scroll_area_y(const ui::Coord y) const;
+
+    constexpr ui::Dim width() const { return ui::screen_width; }
+    constexpr ui::Dim height() const { return ui::screen_height; }
     constexpr ui::Rect screen_rect() const { return {0, 0, width(), height()}; }
 
     void draw_pixels(const ui::Rect r, const ui::Color* const colors, const size_t count);

@@ -405,13 +405,12 @@ void ILI9341::drawBMP(const ui::Point p, const uint8_t* bitmap, const bool trans
     }
 }
 
-/*
-        Draw BMP from SD card.
-        Currently supported formats:
-                16bpp ARGB, RGB565
-                24bpp RGB
-                32bpp ARGB
-*/
+/* Draw BMP from SD card.
+ * Currently supported formats:
+ *     16bpp ARGB, RGB565
+ *     24bpp RGB
+ *     32bpp ARGB
+ */
 bool ILI9341::drawBMP2(const ui::Point p, const std::filesystem::path& file) {
     File bmpimage;
     size_t file_pos = 0;

@@ -94,15 +94,15 @@ class AFSKRxView : public View {
         false};
 
     Text text_debug{
-        {0 * 8, 12 + 2 * 16, 240, 16},
+        {0 * 8, 12 + 2 * 16, screen_width, 16},
         "DEBUG"};
 
     Button button_modem_setup{
-        {240 - 12 * 8, 1 * 16, 96, 24},
+        {screen_width - 12 * 8, 1 * 16, 96, 24},
         "Modem setup"};
 
     Console console{
-        {0, 4 * 16, 240, 240}};
+        {0, 4 * 16, 240, screen_width}};
 
     void on_data_afsk(const AFSKDataMessage& message);
 
