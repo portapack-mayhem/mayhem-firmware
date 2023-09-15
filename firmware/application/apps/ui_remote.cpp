@@ -28,9 +28,28 @@ namespace ui {
 RemoteView::RemoteView(
     NavigationView& nav)
     : nav_{nav} {
+    add_children({
+        &button_edit,
+        &button_add,
+        &button_delete,
+        &button_open,
+        &button_save,
+    });
+}
+
+RemoteView::~RemoteView() {
 }
 
 void RemoteView::focus() {
+}
+
+void RemoteView::load_test() {
+    model_.name = "Cool Remote!";
+    model_.entries = {
+        RemoteEntryModel{{}, "Lamp On", 3, 6, 2},
+        RemoteEntryModel{{}, "Lamp On", 8, 9, 1},
+        RemoteEntryModel{{}, "Fan Hi", 10, 0, 12},
+    };
 }
 
 } /* namespace ui */
