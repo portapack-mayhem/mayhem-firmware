@@ -28,6 +28,7 @@
 #include "metadata_file.hpp"
 #include "radio_state.hpp"
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -124,8 +125,8 @@ struct RemoteModel {
 /* Button for the remote UI. */
 class RemoteButton : public NewButton {
    public:
-    public std::function<void(RemoteButton&)> on_select;
-    public std::function<void(RemoteButton&)> on_long_select;
+    std::function<void(RemoteButton&)> on_select2{};
+    std::function<void(RemoteButton&)> on_long_select{};
 
     RemoteButton(Rect parent_rect, RemoteEntryModel& model);
 
@@ -134,7 +135,7 @@ class RemoteButton : public NewButton {
     bool on_key(KeyEvent key) override;
 
    private:
-    NewButton::on_select;
+    using NewButton::on_select;
     RemoteEntryModel& model_;
 };
 
@@ -170,7 +171,7 @@ class RemoteView : public View {
 
     RemoteModel model_{};
 
-    std::vector<std::unique_ptr<RemoteButton>> buttons_
+    std::vector<std::unique_ptr<RemoteButton>> buttons_{};
 
     NewButton button_edit{
         {7 * 8, 4 * 16, 4 * 8, 2 * 16},

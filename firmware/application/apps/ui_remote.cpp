@@ -27,20 +27,21 @@ namespace ui {
 
 /* RemoteButton *******************************************/
 
-RemoteButton(Rect parent_rect, RemoteEntryModel& model)
-    : NewButton{rect, model.name, RemoteIcons::get(icon), RemoteColors::get(fg_color)},
+RemoteButton::RemoteButton(Rect parent_rect, RemoteEntryModel& model)
+    : NewButton{parent_rect, model.name, RemoteIcons::get(model.icon), RemoteColors::get(model.fg_color)},
     model_{model} {
 }
 
 void RemoteButton::on_focus() {
-    // Set long press
+    // Setup long press
 }
 
-void RemoteButton::on_focus() {
-    // Set long press
+void RemoteButton::on_blur() {
+    // Reset long press
 }
 
 bool RemoteButton::on_key(KeyEvent key) {
+  return NewButton::on_key(key);
 }
 
 /* RemoteView *********************************************/
