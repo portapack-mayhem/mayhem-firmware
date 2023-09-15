@@ -71,6 +71,7 @@ class RemoteIcons {
     };
 };
 
+/* Maps color index to color. */
 class RemoteColors {
    public:
     static Color get(uint8_t index) {
@@ -120,6 +121,23 @@ struct RemoteModel {
     std::vector<RemoteEntryModel> entries{};
 };
 
+/* Button for the remote UI. */
+class RemoteButton : public NewButton {
+   public:
+    public std::function<void(RemoteButton&)> on_select;
+    public std::function<void(RemoteButton&)> on_long_select;
+
+    RemoteButton(Rect parent_rect, RemoteEntryModel& model);
+
+    void on_focus() override;
+    void on_blur() override;
+    bool on_key(KeyEvent key) override;
+
+   private:
+    NewButton::on_select;
+    RemoteEntryModel& model_;
+};
+
 /* Settings container for remote. */
 struct RemoteSettings {
     std::string remote_path{};
@@ -135,6 +153,7 @@ class RemoteView : public View {
     void focus() override;
 
    private:
+    void refresh_ui();
     void load_test();
 
     NavigationView& nav_;
@@ -150,6 +169,8 @@ class RemoteView : public View {
         }};
 
     RemoteModel model_{};
+
+    std::vector<std::unique_ptr<RemoteButton>> buttons_
 
     NewButton button_edit{
         {7 * 8, 4 * 16, 4 * 8, 2 * 16},

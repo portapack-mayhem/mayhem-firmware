@@ -25,6 +25,26 @@ using namespace portapack;
 
 namespace ui {
 
+/* RemoteButton *******************************************/
+
+RemoteButton(Rect parent_rect, RemoteEntryModel& model)
+    : NewButton{rect, model.name, RemoteIcons::get(icon), RemoteColors::get(fg_color)},
+    model_{model} {
+}
+
+void RemoteButton::on_focus() {
+    // Set long press
+}
+
+void RemoteButton::on_focus() {
+    // Set long press
+}
+
+bool RemoteButton::on_key(KeyEvent key) {
+}
+
+/* RemoteView *********************************************/
+
 RemoteView::RemoteView(
     NavigationView& nav)
     : nav_{nav} {
@@ -35,6 +55,8 @@ RemoteView::RemoteView(
         &button_open,
         &button_save,
     });
+
+    
 }
 
 RemoteView::~RemoteView() {
