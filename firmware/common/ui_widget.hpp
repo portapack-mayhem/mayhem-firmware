@@ -479,10 +479,13 @@ class NewButton : public Widget {
 
     void paint(Painter& painter) override;
 
+   protected:
+    virtual Style paint_style();
+    Color color_;
+
    private:
     std::string text_;
     const Bitmap* bitmap_;
-    Color color_;
     bool vertical_center_{false};
 };
 

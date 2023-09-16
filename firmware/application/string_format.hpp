@@ -76,7 +76,9 @@ std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 // Gets a human readable file size string.
 std::string to_string_file_size(uint32_t file_size);
 
-std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision);
+/* Scales 'n' to be a value less than 1000. 'base_unit' is the index of the unit from
+ * 'unit_prefix' that 'n' is in initially. 3 is the index of the '1s' unit. */
+std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision);
 double get_decimals(double num, int16_t mult, bool round = false);
 
 std::string trim(std::string_view str);   // Remove whitespace at ends.
