@@ -157,6 +157,7 @@ class RemoteButton : public NewButton {
     void on_focus() override;
     void on_blur() override;
     bool on_key(KeyEvent key) override;
+    void paint(Painter& painter) override;
 
     RemoteEntryModel& entry();
 

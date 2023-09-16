@@ -69,6 +69,20 @@ bool RemoteButton::on_key(KeyEvent key) {
     return false;
 }
 
+void RemoteButton::paint(Painter& painter) {
+    NewButton::paint(painter);
+    
+    // Add a border on the highlighted button.
+    if (has_focus() || highlighted()) {
+        auto r = screen_rect();
+        painter.draw_rectangle(r, Color::white());
+
+        auto p = r.location() + Point{1, 1};
+        auto s = Size{r.size().width() - 2, r.size().height() - 2};
+        painter.draw_rectangle({p, s}, Color::light_grey());
+    }
+};
+
 RemoteEntryModel& RemoteButton::entry() {
     return entry_;
 }
