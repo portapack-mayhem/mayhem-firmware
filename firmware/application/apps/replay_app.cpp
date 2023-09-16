@@ -203,9 +203,6 @@ ReplayAppView::ReplayAppView(
 
 ReplayAppView::~ReplayAppView() {
     transmitter_model.disable();
-
-    display.fill_rectangle({0, 0, 240, 320}, Color::black());  // Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
-    chThdSleepMilliseconds(40);                                // (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )
     baseband::shutdown();
 }
 

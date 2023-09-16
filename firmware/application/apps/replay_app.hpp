@@ -23,9 +23,6 @@
 #ifndef __REPLAY_APP_HPP__
 #define __REPLAY_APP_HPP__
 
-#define SHORT_UI true
-#define NORMAL_UI false
-
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui_widget.hpp"
@@ -99,16 +96,13 @@ class ReplayAppView : public View {
     ProgressBar progressbar{
         {18 * 8, 1 * 16, 12 * 8, 16}};
 
-    // TODO: Does this need to be a frequency field at all?
     TxFrequencyField field_frequency{
         {0 * 8, 2 * 16},
         nav_};
 
     TransmitterView2 tx_view{
-        // new handling of NumberField field_rfgain, NumberField field_rfamp
-        74, 1 * 8, SHORT_UI  // x(columns), y (line) position. (Uused in Repay / GPS Simul / Playlist App)
-                             //		10*8, 2*8, NORMAL_UI				// x(columns), y (line) position. (Used in Mic App)
-    };
+        {11 * 8, 2 * 16},
+        /*short_ui*/ true};
 
     Checkbox check_loop{
         {21 * 8, 2 * 16},
