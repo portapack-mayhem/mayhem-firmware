@@ -21,6 +21,7 @@
 
 #include "ui_remote.hpp"
 
+#include "baseband_api.hpp"
 #include "irq_controls.hpp"
 #include "string_format.hpp"
 #include "ui_textentry.hpp"
@@ -71,7 +72,7 @@ bool RemoteButton::on_key(KeyEvent key) {
 
 void RemoteButton::paint(Painter& painter) {
     NewButton::paint(painter);
-    
+
     // Add a border on the highlighted button.
     if (has_focus() || highlighted()) {
         auto r = screen_rect();
@@ -159,7 +160,7 @@ RemoteEntryEditView::RemoteEntryEditView(
     };
     field_bg_color_index.set_value(entry_.bg_color);
 
-    button_delete.on_select = [this, &nav](Button&) {
+    button_delete.on_select = [this, &nav]() {
         nav.display_modal(
             "Delete?", "    Delete this button?", YESNO,
             [this, &nav](bool choice) {
@@ -187,19 +188,26 @@ void RemoteEntryEditView::focus() {
 RemoteView::RemoteView(
     NavigationView& nav)
     : nav_{nav} {
-    add_children({
-        &button_edit,
-        &button_add,
-        &button_delete,
-        &button_open,
-        &button_save,
-    });
+    baseband::run_image(portapack::spi_flash::image_tag_replay);
+
+    add_children({&field_title,
+                  &tx_view,
+                  &check_loop,
+                  &button_add,
+                  &button_new,
+                  &button_open});
+
+    button_add.on_select = [this]() { add_button(); };
 
     load_test();
     refresh_ui();
 }
 
 RemoteView::~RemoteView() {
+    // TODO: Save (or always save?)
+
+    transmitter_model.disable();
+    baseband::shutdown();
 }
 
 void RemoteView::focus() {
@@ -210,48 +218,78 @@ void RemoteView::focus() {
 }
 
 void RemoteView::refresh_ui() {
+    field_title.set_text(model_.name);
+
     // Delete exising buttons.
     for (auto& btn : buttons_)
         remove_child(btn.get());
 
     buttons_.clear();
 
-    auto handle_send = [this](RemoteButton&) {
-        nav_.display_modal("Send", "Sending");
+    // Create the handler callbacks.
+    auto handle_send = [this](RemoteButton& btn) {
+        // No path set? Go to edit mode instead.
+        if (btn.entry().path.empty())
+            edit_button(btn);
+        else
+            send_button(btn);
     };
 
     auto handle_edit = [this](RemoteButton& btn) {
-        auto edit_view = nav_.push<RemoteEntryEditView>(btn.entry());
-        nav_.set_on_pop([this]() { refresh_ui(); });
-
-        edit_view->on_delete = [this](RemoteEntryModel& to_delete) {
-            model_.delete_entry(&to_delete);
-        };
+        edit_button(btn);
     };
 
-    // Add new buttons from model.
+    // Add buttons from the model.
     for (auto& entry : model_.entries) {
         Coord x = buttons_.size() % button_cols;
         Coord y = buttons_.size() / button_cols;
+        Point pos = Point{x * button_width, y * button_height} + buttons_top_;
 
         auto btn = std::make_unique<RemoteButton>(
-            Rect{x * button_width, y * button_height, button_width, button_height},
+            Rect{pos, {button_width, button_height}},
             entry);
         btn->on_select2 = handle_send;
         btn->on_long_select = handle_edit;
 
         add_child(btn.get());
         buttons_.push_back(std::move(btn));
+
+        // Only use the first N buttons.
+        if (buttons_.size() >= max_buttons)
+            break;
     }
 }
 
 void RemoteView::load_test() {
     model_.name = "Cool Remote!";
     model_.entries = {
-        RemoteEntryModel{{}, "Lamp On", 3, 1, 2},
-        RemoteEntryModel{{}, "Lamp Off", 8, 9, 1},
-        RemoteEntryModel{{}, "Fan Hi", 10, 2, 12},
+        RemoteEntryModel{{}, "Lamp On", 24, 4, 1},
+        RemoteEntryModel{{}, "Lamp Off", 25, 4, 1},
+        RemoteEntryModel{{}, "Fan Hi", 23, 20, 1},
     };
+}
+
+void RemoteView::add_button() {
+    if (buttons_.size() >= max_buttons)
+        return;
+
+    uint8_t icon = buttons_.size();
+    uint8_t bg_color = buttons_.size() + 2;
+
+    model_.entries.push_back({{}, "???", icon, bg_color, 1});
+    refresh_ui();
+}
+
+void RemoteView::edit_button(RemoteButton& btn) {
+    auto edit_view = nav_.push<RemoteEntryEditView>(btn.entry());
+    nav_.set_on_pop([this]() { refresh_ui(); });
+
+    edit_view->on_delete = [this](RemoteEntryModel& to_delete) {
+        model_.delete_entry(&to_delete);
+    };
+}
+void RemoteView::send_button(RemoteButton&) {
+    nav_.display_modal("Send", "Sending");
 }
 
 } /* namespace ui */

@@ -22,6 +22,8 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_spectrum.hpp"
+#include "ui_transmitter.hpp"
 
 #include "app_settings.hpp"
 #include "bitmap.hpp"
@@ -52,7 +54,9 @@ class RemoteIcons {
     }
 
    private:
+    // NB: Icons need to be 16x16 or they won't fit corrently.
     static constexpr std::array<const Bitmap*, 24> bitmaps_{
+        &bitmap_icon_fox,
         &bitmap_icon_adsb,
         &bitmap_icon_ais,
         &bitmap_icon_aprs,
@@ -62,7 +66,6 @@ class RemoteIcons {
         &bitmap_icon_cwgen,
         &bitmap_icon_dmr,
         &bitmap_icon_file_image,
-        &bitmap_icon_fox,
         &bitmap_icon_lge,
         &bitmap_icon_looking,
         &bitmap_icon_memory,
@@ -79,6 +82,7 @@ class RemoteIcons {
         &bitmap_icon_temperature};
 };
 
+// TODO: Use RGB colors instead?
 /* Maps color index to color. */
 class RemoteColors {
    public:
@@ -94,25 +98,28 @@ class RemoteColors {
     }
 
    private:
-    static constexpr std::array<Color, 18> colors_{
-        Color::black(),
-        Color::white(),
-        Color::red(),
-        Color::orange(),
-        Color::yellow(),
-        Color::green(),
-        Color::blue(),
-        Color::cyan(),
-        Color::magenta(),
-        Color::grey(),
-        Color::dark_red(),
-        Color::dark_orange(),
-        Color::dark_yellow(),
-        Color::dark_green(),
-        Color::dark_blue(),
-        Color::dark_cyan(),
-        Color::dark_magenta(),
-        Color::dark_grey()};
+    static constexpr std::array<Color, 21> colors_{
+        Color::black(),         // 0
+        Color::white(),         // 1
+        Color::darker_grey(),   // 2
+        Color::dark_grey(),     // 3
+        Color::grey(),          // 4
+        Color::light_grey(),    // 5
+        Color::red(),           // 6
+        Color::orange(),        // 7
+        Color::yellow(),        // 8
+        Color::green(),         // 9
+        Color::blue(),          // 10
+        Color::cyan(),          // 11
+        Color::magenta(),       // 12
+        Color::dark_red(),      // 13
+        Color::dark_orange(),   // 14
+        Color::dark_yellow(),   // 15
+        Color::dark_green(),    // 16
+        Color::dark_blue(),     // 17
+        Color::dark_cyan(),     // 18
+        Color::dark_magenta(),  // 19
+        Color::purple()};       // 20
 };
 
 /* Data model for a remote entry. */
@@ -175,13 +182,14 @@ struct RemoteSettings {
     std::string remote_path{};
 };
 
+/* View for editing a remote entry button. */
 class RemoteEntryEditView : public View {
    public:
     std::function<void(RemoteEntryModel&)> on_delete{};
 
     RemoteEntryEditView(NavigationView& nav, RemoteEntryModel& entry);
 
-    std::string title() const override { return "Edit Item"; };
+    std::string title() const override { return "Edit Button"; };
     void focus() override;
 
    private:
@@ -190,26 +198,26 @@ class RemoteEntryEditView : public View {
     static constexpr uint8_t text_edit_max = 30;
 
     Labels labels{
-        {{1 * 8, 1 * 16}, "Name:", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "Path:", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "Freq:", Color::light_grey()},
-        {{1 * 8, 4 * 16}, "Rate:", Color::light_grey()},
-        {{1 * 8, 5 * 16}, "Icon:", Color::light_grey()},
-        {{1 * 8, 6 * 16}, "FG Color:", Color::light_grey()},
-        {{1 * 8, 7 * 16}, "BG Color:", Color::light_grey()},
+        {{2 * 8, 1 * 16}, "Name:", Color::light_grey()},
+        {{2 * 8, 2 * 16}, "Path:", Color::light_grey()},
+        {{2 * 8, 3 * 16}, "Freq:", Color::light_grey()},
+        {{2 * 8, 4 * 16}, "Rate:", Color::light_grey()},
+        {{2 * 8, 5 * 16}, "Icon:", Color::light_grey()},
+        {{2 * 8, 6 * 16}, "FG Color:", Color::light_grey()},
+        {{2 * 8, 7 * 16}, "BG Color:", Color::light_grey()},
         {{8 * 8, 9 * 16}, "Button preview", Color::light_grey()},
     };
 
-    TextField field_name{{7 * 8, 1 * 16, 20 * 8, 1 * 16}, {}};
+    TextField field_name{{8 * 8, 1 * 16, 20 * 8, 1 * 16}, {}};
 
-    TextField field_path{{7 * 8, 2 * 16, 20 * 8, 1 * 16}, {}};
+    TextField field_path{{8 * 8, 2 * 16, 20 * 8, 1 * 16}, {}};
 
-    FrequencyField field_freq{{7 * 8, 3 * 16}};
+    FrequencyField field_freq{{8 * 8, 3 * 16}};
 
-    Text text_rate{{7 * 8, 4 * 16, 20 * 8, 1 * 16}, {}};
+    Text text_rate{{8 * 8, 4 * 16, 20 * 8, 1 * 16}, {}};
 
     NumberField field_icon_index{
-        {7 * 8, 5 * 16},
+        {8 * 8, 5 * 16},
         2,
         {0, RemoteIcons::size() - 1},
         /*step*/ 1,
@@ -233,13 +241,19 @@ class RemoteEntryEditView : public View {
         /*loop*/ true};
 
     RemoteButton button_preview{
-        {10 * 8, 11 * 16, 10 * 8, 50},
+        {10 * 8, 11 * 16 - 8, 10 * 8, 50},
         entry_};
 
-    Button button_delete{{5 * 8, 16 * 16, 10 * 8, 2 * 16}, "Delete"};
-    Button button_done{{16 * 8, 16 * 16, 8 * 8, 2 * 16}, "Done"};
+    NewButton button_delete{
+        {2 * 8, 16 * 16, 4 * 8, 2 * 16},
+        {},
+        &bitmap_icon_trash,
+        Color::red()};
+
+    Button button_done{{11 * 8, 16 * 16, 8 * 8, 2 * 16}, "Done"};
 };
 
+/* App that allows for buttons to be bound to captures for playback. */
 class RemoteView : public View {
    public:
     RemoteView(NavigationView& nav);
@@ -252,6 +266,10 @@ class RemoteView : public View {
    private:
     void refresh_ui();
     void load_test();
+
+    void add_button();
+    void edit_button(RemoteButton& btn);
+    void send_button(RemoteButton& btn);
 
     static constexpr Dim button_rows = 4;
     static constexpr Dim button_cols = 3;
@@ -273,38 +291,44 @@ class RemoteView : public View {
 
     RemoteModel model_{};
     std::vector<std::unique_ptr<RemoteButton>> buttons_{};
+    Point buttons_top_{0, 20};
 
-    NewButton button_edit{
-        {7 * 8, 4 * 16, 4 * 8, 2 * 16},
-        "",
-        &bitmap_icon_notepad,
-        Color::orange()};
+    TextField field_title{
+        {0 * 8, 0 * 16, 30 * 8, 1 * 16},
+        {}};
+
+    TransmitterView2 tx_view{
+        {0 * 8, 17 * 16 + 8},
+        /*short_ui*/ true};
+
+    Checkbox check_loop{
+        {10 * 8, 17 * 16 + 8},
+        4,
+        "Loop",
+        /*small*/ true};
 
     NewButton button_add{
-        {11 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {17 * 8 + 4, 17 * 16, 4 * 8, 2 * 16},
+        "",
+        &bitmap_icon_add,
+        Color::orange(),
+        /*vcenter*/ true};
+
+    NewButton button_new{
+        {22 * 8, 17 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_new_file,
-        Color::orange()};
-
-    NewButton button_delete{
-        {15 * 8, 4 * 16, 4 * 8, 2 * 16},
-        "",
-        &bitmap_icon_delete,
-        Color::orange()};
+        Color::dark_blue(),
+        /*vcenter*/ true};
 
     NewButton button_open{
-        {20 * 8, 4 * 16, 4 * 8, 2 * 16},
+        {26 * 8, 17 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_load,
-        Color::dark_blue()};
+        Color::dark_blue(),
+        /*vcenter*/ true};
 
-    NewButton button_save{
-        {24 * 8, 4 * 16, 4 * 8, 2 * 16},
-        "",
-        &bitmap_icon_save,
-        Color::dark_blue()};
-
-    // Waterfall?
+    spectrum::WaterfallView waterfall{};
 };
 
 } /* namespace ui */
