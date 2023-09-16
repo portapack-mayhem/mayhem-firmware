@@ -269,7 +269,8 @@ class FileManagerView : public FileManBaseView {
         {4 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_options_datetime,
-        Color::orange()};
+        Color::orange(),
+        /*vcenter*/ true};
 };
 
 } /* namespace ui */
