@@ -634,7 +634,7 @@ FileManagerView::FileManagerView(
     button_open_notepad.on_select = [this]() {
         if (selected_is_valid() && !get_selected_entry().is_directory) {
             auto path = get_selected_full_path();
-            nav_.replace<TextEditorView>(path);
+            nav_.push<TextEditorView>(path);
         } else
             nav_.display_modal("Open in Notepad", "Can't open that in Notepad.");
     };

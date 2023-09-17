@@ -37,6 +37,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <string_view>
 #include <vector>
 
 namespace ui {
@@ -134,6 +135,9 @@ struct RemoteEntryModel {
     uint8_t fg_color = 0;
     capture_metadata metadata{};
     // TODO: start/end position for trimming.
+
+    std::string to_string() const;
+    static RemoteEntryModel parse(std::string_view line);
 };
 
 /* Data model for a remote. */
@@ -141,18 +145,9 @@ struct RemoteModel {
     std::string name{};
     std::vector<RemoteEntryModel> entries{};
 
-    bool delete_entry(const RemoteEntryModel* entry) {
-        // NB: expecting 'entry' to be a pointer to an entry in vector.
-        // I hate implementing operator==, so using this hack instead.
-        auto it = std::find_if(
-            entries.begin(), entries.end(),
-            [entry](auto& item) { return entry == &item; });
-        if (it == entries.end())
-            return false;
-
-        entries.erase(it);
-        return true;
-    }
+    bool delete_entry(const RemoteEntryModel* entry);
+    bool load(const std::filesystem::path& path);
+    bool save(const std::filesystem::path& path);
 };
 
 /* Button for the remote UI. */
@@ -297,8 +292,9 @@ class RemoteView : public View {
         }};
 
     RemoteModel model_{};
-    std::vector<std::unique_ptr<RemoteButton>> buttons_{};
     Point buttons_top_{0, 20};
+    std::string temp_buffer_{};
+    std::vector<std::unique_ptr<RemoteButton>> buttons_{};
 
     std::unique_ptr<ReplayThread> replay_thread_{};
     bool ready_signal_{};  // Used to signal the ReplayThread.

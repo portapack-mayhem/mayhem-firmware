@@ -21,18 +21,104 @@
 
 #include "ui_remote.hpp"
 
+#include "convert.hpp"
+#include "file_reader.hpp"
 #include "io_convert.hpp"
 #include "irq_controls.hpp"
 #include "oversample.hpp"
 #include "string_format.hpp"
 #include "ui_textentry.hpp"
+#include "utility.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
 
 namespace ui {
 
-/* RemoteButton *******************************************/
+/* RemoteEntryModel **************************************/
+
+std::string RemoteEntryModel::to_string() const {
+    return join(',',
+                {path.string(),
+                 name,
+                 to_string_dec_uint(icon),
+                 to_string_dec_uint(bg_color),
+                 to_string_dec_uint(fg_color),
+                 to_string_dec_uint(metadata.center_frequency),
+                 to_string_dec_uint(metadata.sample_rate)});
+}
+
+RemoteEntryModel RemoteEntryModel::parse(std::string_view line) {
+    // TODO: harden.
+
+    RemoteEntryModel entry{};
+    auto cols = split_string(line, ',');
+
+    entry.path = cols[0];
+    entry.name = std::string{cols[1]};
+    parse_int(cols[2], entry.icon);
+    parse_int(cols[3], entry.bg_color);
+    parse_int(cols[4], entry.fg_color);
+    parse_int(cols[5], entry.metadata.center_frequency);
+    parse_int(cols[6], entry.metadata.sample_rate);
+
+    return entry;
+}
+
+/* RemoteModel *******************************************/
+
+bool RemoteModel::delete_entry(const RemoteEntryModel* entry) {
+    // NB: expecting 'entry' to be a pointer to an entry in vector.
+    auto it = std::find_if(
+        entries.begin(), entries.end(),
+        [entry](auto& item) { return entry == &item; });
+    if (it == entries.end())
+        return false;
+
+    entries.erase(it);
+    return true;
+}
+
+bool RemoteModel::load(const std::filesystem::path& path) {
+    File f;
+    auto error = f.open(path);
+    if (error)
+        return false;
+
+    entries.clear();
+
+    bool first = true;
+    auto reader = FileLineReader(f);
+    for (const auto& line : reader) {
+        if (line.length() == 0 || line[0] == '#')
+            continue;  // Empty or comment line.
+
+        if (first) {
+            name = std::string{line};
+            first = false;
+            continue;
+        }
+
+        entries.push_back(RemoteEntryModel::parse(line));
+    }
+
+    return true;
+}
+
+bool RemoteModel::save(const std::filesystem::path& path) {
+    File f;
+    auto error = f.create(path);
+    if (error)
+        return false;
+
+    f.write_line(name);
+    for (auto& entry : entries)
+        f.write_line(entry.to_string());
+
+    return true;
+}
+
+/* RemoteButton ******************************************/
 
 RemoteButton::RemoteButton(Rect parent_rect, RemoteEntryModel& entry)
     : NewButton{
@@ -41,7 +127,6 @@ RemoteButton::RemoteButton(Rect parent_rect, RemoteEntryModel& entry)
           RemoteIcons::get(entry.icon),
           RemoteColors::get(entry.fg_color)},
       entry_{entry} {
-
     // Forward to on_select2 -- this isn't ideal, but works for now.
     on_select = [this]() {
         if (on_select2)
@@ -112,7 +197,7 @@ Style RemoteButton::paint_style() {
     return s;
 }
 
-/* RemoteEntryEditView ************************************/
+/* RemoteEntryEditView ***********************************/
 
 RemoteEntryEditView::RemoteEntryEditView(
     NavigationView& nav,
@@ -192,7 +277,7 @@ void RemoteEntryEditView::focus() {
     button_done.focus();
 }
 
-/* RemoteView *********************************************/
+/* RemoteView ********************************************/
 
 RemoteView::RemoteView(
     NavigationView& nav)
@@ -211,7 +296,8 @@ RemoteView::RemoteView(
 
     button_add.on_select = [this]() { add_button(); };
 
-    load_test();
+    model_.load(u"/REMOTES/test.rem");
+
     refresh_ui();
 
     // Fill in the area between the remote buttons and bottom UI with waterfall.
@@ -229,7 +315,8 @@ RemoteView::RemoteView(
 }
 
 RemoteView::~RemoteView() {
-    // TODO: Save (or always save?)
+    // TODO: Don't save empty?
+    model_.save(u"/REMOTES/test.rem");
 
     transmitter_model.disable();
     baseband::shutdown();
@@ -245,9 +332,16 @@ void RemoteView::focus() {
 void RemoteView::refresh_ui() {
     field_title.set_text(model_.name);
 
+    // TODO: avoid delete to be more efficient.
     // Delete exising buttons.
-    for (auto& btn : buttons_)
+    for (auto& btn : buttons_) {
         remove_child(btn.get());
+
+        // Hack to avoid FocusManager dangling ptr.
+        // Avoiding the delete would be a better option.
+        //if (btn->has_focus())
+        //    btn->blur();
+    }
 
     buttons_.clear();
 
@@ -285,21 +379,11 @@ void RemoteView::refresh_ui() {
     }
 }
 
-void RemoteView::load_test() {
-    model_.name = "Cool Remote!";
-    model_.entries = {
-        RemoteEntryModel{{u"/CAPTURES/Lou_Lite_On.C16"}, "Lamp On", 24, 4, 1, {433'920'000, 100'000}},
-        RemoteEntryModel{{u"/CAPTURES/Lou_Lite_Off.C16"}, "Lamp Off", 23, 4, 1, {433'920'000, 100'000}},
-        RemoteEntryModel{{}, "Fan Hi", 23, 20, 1},
-    };
-}
-
 void RemoteView::add_button() {
     if (buttons_.size() >= max_buttons)
         return;
 
-    uint8_t bg_color = buttons_.size() + 2;
-    model_.entries.push_back({{}, "<EMPTY>", 0, bg_color, 1});
+    model_.entries.push_back({{}, "<EMPTY>", 0, 3, 1});
     refresh_ui();
 }
 
