@@ -21,12 +21,14 @@
 
 #include "ui_remote.hpp"
 
-#include "baseband_api.hpp"
+#include "io_convert.hpp"
 #include "irq_controls.hpp"
+#include "oversample.hpp"
 #include "string_format.hpp"
 #include "ui_textentry.hpp"
 
 using namespace portapack;
+namespace fs = std::filesystem;
 
 namespace ui {
 
@@ -39,6 +41,12 @@ RemoteButton::RemoteButton(Rect parent_rect, RemoteEntryModel& entry)
           RemoteIcons::get(entry.icon),
           RemoteColors::get(entry.fg_color)},
       entry_{entry} {
+
+    // Forward to on_select2 -- this isn't ideal, but works for now.
+    on_select = [this]() {
+        if (on_select2)
+            on_select2(*this);
+    };
 }
 
 void RemoteButton::on_focus() {
@@ -139,6 +147,7 @@ RemoteEntryEditView::RemoteEntryEditView(
     field_name.set_text(entry_.name);
 
     field_path.set_text(entry_.path.string());
+
     field_freq.set_value(entry_.metadata.center_frequency);
     text_rate.set(unit_auto_scale(entry_.metadata.sample_rate, 3, 0) + "Hz");
 
@@ -190,17 +199,33 @@ RemoteView::RemoteView(
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_replay);
 
-    add_children({&field_title,
-                  &tx_view,
-                  &check_loop,
-                  &button_add,
-                  &button_new,
-                  &button_open});
+    add_children({
+        &field_title,
+        &tx_view,
+        &check_loop,
+        &button_add,
+        &button_new,
+        &button_open,
+        &waterfall,
+    });
 
     button_add.on_select = [this]() { add_button(); };
 
     load_test();
     refresh_ui();
+
+    // Fill in the area between the remote buttons and bottom UI with waterfall.
+    Dim waterfall_top = buttons_top_.y() + button_area_height;
+    Dim waterfall_bottom = button_add.parent_rect().top();
+    Dim waterfall_height = waterfall_bottom - waterfall_top;
+    waterfall.set_parent_rect({0, waterfall_top, screen_width, waterfall_height});
+}
+
+RemoteView::RemoteView(
+    NavigationView& nav,
+    const fs::path& path)
+    : RemoteView(nav) {
+    (void)path;  // TODO: wire up.
 }
 
 RemoteView::~RemoteView() {
@@ -263,8 +288,8 @@ void RemoteView::refresh_ui() {
 void RemoteView::load_test() {
     model_.name = "Cool Remote!";
     model_.entries = {
-        RemoteEntryModel{{}, "Lamp On", 24, 4, 1},
-        RemoteEntryModel{{}, "Lamp Off", 25, 4, 1},
+        RemoteEntryModel{{u"/CAPTURES/Lou_Lite_On.C16"}, "Lamp On", 24, 4, 1, {433'920'000, 100'000}},
+        RemoteEntryModel{{u"/CAPTURES/Lou_Lite_Off.C16"}, "Lamp Off", 23, 4, 1, {433'920'000, 100'000}},
         RemoteEntryModel{{}, "Fan Hi", 23, 20, 1},
     };
 }
@@ -273,10 +298,8 @@ void RemoteView::add_button() {
     if (buttons_.size() >= max_buttons)
         return;
 
-    uint8_t icon = buttons_.size();
     uint8_t bg_color = buttons_.size() + 2;
-
-    model_.entries.push_back({{}, "???", icon, bg_color, 1});
+    model_.entries.push_back({{}, "<EMPTY>", 0, bg_color, 1});
     refresh_ui();
 }
 
@@ -288,8 +311,42 @@ void RemoteView::edit_button(RemoteButton& btn) {
         model_.delete_entry(&to_delete);
     };
 }
-void RemoteView::send_button(RemoteButton&) {
-    nav_.display_modal("Send", "Sending");
+
+void RemoteView::send_button(RemoteButton& btn) {
+    // Prepare to send a file.
+    replay_thread_.reset();
+    transmitter_model.disable();
+    ready_signal_ = false;
+
+    // Open the sample file to send.
+    auto reader = std::make_unique<FileConvertReader>();
+    auto error = reader->open(btn.entry().path);
+    if (error) {
+        // TODO: Error text control.
+        return;
+    }
+
+    // Update the sample rate in proc_replay baseband.
+    baseband::set_sample_rate(
+        btn.entry().metadata.sample_rate,
+        get_oversample_rate(btn.entry().metadata.sample_rate));
+
+    // ReplayThread starts immediately on construction; must be set before creating.
+    transmitter_model.set_target_frequency(btn.entry().metadata.center_frequency);
+    transmitter_model.set_sampling_rate(get_actual_sample_rate(btn.entry().metadata.sample_rate));
+    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
+    transmitter_model.enable();
+
+    // ReplayThread reads the file and sends to the baseband.
+    replay_thread_ = std::make_unique<ReplayThread>(
+        std::move(reader),
+        /* read_size */ 0x4000,
+        /* buffer_count */ 3,
+        &ready_signal_,
+        [](uint32_t return_code) {
+            ReplayThreadDoneMessage message{return_code};
+            EventDispatcher::send_message(message);
+        });
 }
 
 } /* namespace ui */

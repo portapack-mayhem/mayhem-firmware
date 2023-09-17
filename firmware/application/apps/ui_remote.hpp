@@ -26,10 +26,12 @@
 #include "ui_transmitter.hpp"
 
 #include "app_settings.hpp"
+#include "baseband_api.hpp"
 #include "bitmap.hpp"
 #include "file.hpp"
 #include "metadata_file.hpp"
 #include "radio_state.hpp"
+#include "replay_thread.hpp"
 
 #include <algorithm>
 #include <functional>
@@ -55,7 +57,8 @@ class RemoteIcons {
 
    private:
     // NB: Icons need to be 16x16 or they won't fit corrently.
-    static constexpr std::array<const Bitmap*, 24> bitmaps_{
+    static constexpr std::array<const Bitmap*, 25> bitmaps_{
+        nullptr,
         &bitmap_icon_fox,
         &bitmap_icon_adsb,
         &bitmap_icon_ais,
@@ -130,7 +133,6 @@ struct RemoteEntryModel {
     uint8_t bg_color = 0;
     uint8_t fg_color = 0;
     capture_metadata metadata{};
-    File::Size file_size = 0;
     // TODO: start/end position for trimming.
 };
 
@@ -201,6 +203,7 @@ class RemoteEntryEditView : public View {
         {{2 * 8, 1 * 16}, "Name:", Color::light_grey()},
         {{2 * 8, 2 * 16}, "Path:", Color::light_grey()},
         {{2 * 8, 3 * 16}, "Freq:", Color::light_grey()},
+        {{17 * 8, 3 * 16}, "MHz", Color::light_grey()},
         {{2 * 8, 4 * 16}, "Rate:", Color::light_grey()},
         {{2 * 8, 5 * 16}, "Icon:", Color::light_grey()},
         {{2 * 8, 6 * 16}, "FG Color:", Color::light_grey()},
@@ -257,7 +260,7 @@ class RemoteEntryEditView : public View {
 class RemoteView : public View {
    public:
     RemoteView(NavigationView& nav);
-    // RemoteView(NavigationView& nav, const std::filesystem::path& path);
+    RemoteView(NavigationView& nav, const std::filesystem::path& path);
     ~RemoteView();
 
     std::string title() const override { return "Remote"; };
@@ -274,8 +277,12 @@ class RemoteView : public View {
     static constexpr Dim button_rows = 4;
     static constexpr Dim button_cols = 3;
     static constexpr uint8_t max_buttons = button_rows * button_cols;
-    static constexpr Dim button_width = 240 / button_cols;
-    static constexpr Dim button_height = 200 / button_rows;
+    static constexpr Dim button_area_height = 200;
+    static constexpr Dim button_width = screen_width / button_cols;
+    static constexpr Dim button_height = button_area_height / button_rows;
+
+    // This value is slightly mysterious... why?
+    static constexpr uint32_t baseband_bandwidth = 2'500'000;
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
@@ -293,8 +300,11 @@ class RemoteView : public View {
     std::vector<std::unique_ptr<RemoteButton>> buttons_{};
     Point buttons_top_{0, 20};
 
+    std::unique_ptr<ReplayThread> replay_thread_{};
+    bool ready_signal_{};  // Used to signal the ReplayThread.
+
     TextField field_title{
-        {0 * 8, 0 * 16, 30 * 8, 1 * 16},
+        {0 * 8, 0 * 16 + 2, 30 * 8, 1 * 16},
         {}};
 
     TransmitterView2 tx_view{
@@ -329,6 +339,29 @@ class RemoteView : public View {
         /*vcenter*/ true};
 
     spectrum::WaterfallView waterfall{};
+
+    // MessageHandlerRegistration message_handler_replay_thread_error{
+    //     Message::ID::ReplayThreadDone,
+    //     [this](const Message* p) {
+    //         auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+    //         handle_replay_thread_done(message.return_code);
+    //     }};
+
+    MessageHandlerRegistration message_handler_fifo_signal{
+        Message::ID::RequestSignal,
+        [this](const Message* p) {
+            auto message = static_cast<const RequestSignalMessage*>(p);
+            if (message->signal == RequestSignalMessage::Signal::FillRequest) {
+                ready_signal_ = true;
+            }
+        }};
+
+    // MessageHandlerRegistration message_handler_tx_progress{
+    //     Message::ID::TXProgress,
+    //     [this](const Message* p) {
+    //         auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+    //         on_tx_progress(message.progress);
+    //     }};
 };
 
 } /* namespace ui */

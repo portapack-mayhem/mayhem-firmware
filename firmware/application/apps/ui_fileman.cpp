@@ -27,6 +27,7 @@
 #include <algorithm>
 #include "ui_fileman.hpp"
 #include "ui_playlist.hpp"
+#include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_text_editor.hpp"
 #include "string_format.hpp"
@@ -44,6 +45,7 @@ static const fs::path c16_ext{u".C16"};
 static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
+static const fs::path rem_ext{u".REM"};
 }  // namespace ui
 
 namespace {
@@ -524,6 +526,9 @@ bool FileManagerView::handle_file_open() {
     } else if (path_iequal(bmp_ext, ext)) {
         nav_.push<SplashViewer>(path);
         reload_current();
+        return true;
+    } else if (path_iequal(rem_ext, ext)) {
+        nav_.push<RemoteView>(path);
         return true;
     }
 

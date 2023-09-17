@@ -60,7 +60,7 @@ class PlaylistView : public View {
 
     // More header == less spectrum view.
     static constexpr ui::Dim header_height = 6 * 16;
-    static constexpr uint32_t baseband_bandwidth = 2500000;
+    static constexpr uint32_t baseband_bandwidth = 2'500'000;
 
     struct playlist_entry {
         std::filesystem::path path{};
@@ -115,14 +115,11 @@ class PlaylistView : public View {
     Text text_sample_rate{
         {10 * 8, 1 * 16, 7 * 8, 16}};
 
-    /*v making there's 1px line (instead of two) between two progress bars,
-     * by letting 1px overlapped.
-     * So, since they overlapped 1px, they are visually same, and looks better.
-     */
-
     ProgressBar progressbar_track{
         {18 * 8, 1 * 16, 12 * 8, 8 + 1}};
 
+    // (-1) to overlap with progressbar_track so there's
+    // only 1 pixel between them instead of 2.
     ProgressBar progressbar_transmit{
         {18 * 8, 3 * 8 - 1, 12 * 8, 8}};
 
