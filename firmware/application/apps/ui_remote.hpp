@@ -156,14 +156,17 @@ class RemoteButton : public NewButton {
     std::function<void(RemoteButton&)> on_select2{};
     std::function<void(RemoteButton&)> on_long_select{};
 
-    RemoteButton(Rect parent_rect, RemoteEntryModel& entry);
+    RemoteButton(Rect parent_rect, RemoteEntryModel* entry);
+    RemoteButton(const RemoteButton&) = default;
+    RemoteButton& operator=(const RemoteButton&) = default;
 
     void on_focus() override;
     void on_blur() override;
     bool on_key(KeyEvent key) override;
     void paint(Painter& painter) override;
 
-    RemoteEntryModel& entry();
+    RemoteEntryModel* entry();
+    void set_entry(RemoteEntryModel* entry);
 
    protected:
     Style paint_style() override;
@@ -171,7 +174,7 @@ class RemoteButton : public NewButton {
    private:
     // Hide because it's not used.
     using NewButton::on_select;
-    RemoteEntryModel& entry_;
+    RemoteEntryModel* entry_;
 };
 
 /* Settings container for remote. */
@@ -192,7 +195,6 @@ class RemoteEntryEditView : public View {
    private:
     RemoteEntryModel& entry_;
     std::string temp_buffer_{};
-    static constexpr uint8_t text_edit_max = 30;
 
     Labels labels{
         {{2 * 8, 1 * 16}, "Name:", Color::light_grey()},
@@ -240,7 +242,7 @@ class RemoteEntryEditView : public View {
 
     RemoteButton button_preview{
         {10 * 8, 11 * 16 - 8, 10 * 8, 50},
-        entry_};
+        &entry_};
 
     NewButton button_delete{
         {2 * 8, 16 * 16, 4 * 8, 2 * 16},
@@ -262,8 +264,9 @@ class RemoteView : public View {
     void focus() override;
 
    private:
+    /* Creates the dynamic buttons. */
+    void create_buttons();
     void refresh_ui();
-    void load_test();
 
     void add_button();
     void edit_button(RemoteButton& btn);
@@ -351,13 +354,6 @@ class RemoteView : public View {
                 ready_signal_ = true;
             }
         }};
-
-    // MessageHandlerRegistration message_handler_tx_progress{
-    //     Message::ID::TXProgress,
-    //     [this](const Message* p) {
-    //         auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-    //         on_tx_progress(message.progress);
-    //     }};
 };
 
 } /* namespace ui */

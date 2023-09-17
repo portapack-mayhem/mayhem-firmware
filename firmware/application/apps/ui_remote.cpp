@@ -35,6 +35,8 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
+static constexpr uint8_t text_edit_max = 30;
+
 /* RemoteEntryModel **************************************/
 
 std::string RemoteEntryModel::to_string() const {
@@ -93,12 +95,14 @@ bool RemoteModel::load(const std::filesystem::path& path) {
         if (line.length() == 0 || line[0] == '#')
             continue;  // Empty or comment line.
 
+        // First line is the "name" field.
         if (first) {
-            name = std::string{line};
+            name = trim(line);
             first = false;
             continue;
         }
 
+        // All the other lines are button entries.
         entries.push_back(RemoteEntryModel::parse(line));
     }
 
@@ -120,13 +124,10 @@ bool RemoteModel::save(const std::filesystem::path& path) {
 
 /* RemoteButton ******************************************/
 
-RemoteButton::RemoteButton(Rect parent_rect, RemoteEntryModel& entry)
-    : NewButton{
-          parent_rect,
-          entry.name,
-          RemoteIcons::get(entry.icon),
-          RemoteColors::get(entry.fg_color)},
-      entry_{entry} {
+RemoteButton::RemoteButton(Rect parent_rect, RemoteEntryModel* entry)
+    : NewButton{parent_rect, {}, nullptr},
+      entry_{nullptr} {
+    set_entry(entry);
     // Forward to on_select2 -- this isn't ideal, but works for now.
     on_select = [this]() {
         if (on_select2)
@@ -142,7 +143,7 @@ void RemoteButton::on_focus() {
 }
 
 void RemoteButton::on_blur() {
-    // Reset long press
+    // Reset long press.
     SwitchesState config{};
     set_switches_long_press_config(config);
 }
@@ -177,14 +178,30 @@ void RemoteButton::paint(Painter& painter) {
     }
 };
 
-RemoteEntryModel& RemoteButton::entry() {
+RemoteEntryModel* RemoteButton::entry() {
     return entry_;
 }
 
+void RemoteButton::set_entry(RemoteEntryModel* entry) {
+    entry_ = entry;
+    set_focusable(entry_ != nullptr);
+    hidden(entry_ == nullptr);
+
+    if (entry_) {
+        set_text(entry_->name);
+        set_bitmap(RemoteIcons::get(entry_->icon));
+    }
+
+    set_dirty();
+}
+
 Style RemoteButton::paint_style() {
+    if (!entry_)
+        return style();
+
     MutableStyle s{style()};
-    s.foreground = RemoteColors::get(entry_.fg_color);
-    s.background = RemoteColors::get(entry_.bg_color);
+    s.foreground = RemoteColors::get(entry_->fg_color);
+    s.background = RemoteColors::get(entry_->bg_color);
 
     if (has_focus() || highlighted())
         s.invert();
@@ -294,17 +311,26 @@ RemoteView::RemoteView(
         &waterfall,
     });
 
+    create_buttons();
+
+    field_title.on_select = [this, &nav](TextField&) {
+        temp_buffer_ = model_.name;
+        text_prompt(nav_, temp_buffer_, text_edit_max, [this](std::string& new_name) {
+            model_.name = new_name;
+            refresh_ui();
+        });
+    };
+
     button_add.on_select = [this]() { add_button(); };
-
-    model_.load(u"/REMOTES/test.rem");
-
-    refresh_ui();
 
     // Fill in the area between the remote buttons and bottom UI with waterfall.
     Dim waterfall_top = buttons_top_.y() + button_area_height;
     Dim waterfall_bottom = button_add.parent_rect().top();
     Dim waterfall_height = waterfall_bottom - waterfall_top;
     waterfall.set_parent_rect({0, waterfall_top, screen_width, waterfall_height});
+
+    model_.load(u"/REMOTES/test.rem");
+    refresh_ui();
 }
 
 RemoteView::RemoteView(
@@ -323,32 +349,17 @@ RemoteView::~RemoteView() {
 }
 
 void RemoteView::focus() {
-    if (buttons_.empty())
+    if (model_.entries.empty())
         button_add.focus();
     else
         buttons_[0]->focus();
 }
 
-void RemoteView::refresh_ui() {
-    field_title.set_text(model_.name);
-
-    // TODO: avoid delete to be more efficient.
-    // Delete exising buttons.
-    for (auto& btn : buttons_) {
-        remove_child(btn.get());
-
-        // Hack to avoid FocusManager dangling ptr.
-        // Avoiding the delete would be a better option.
-        //if (btn->has_focus())
-        //    btn->blur();
-    }
-
-    buttons_.clear();
-
-    // Create the handler callbacks.
+void RemoteView::create_buttons() {
+    // Handler callbacks.
     auto handle_send = [this](RemoteButton& btn) {
         // No path set? Go to edit mode instead.
-        if (btn.entry().path.empty())
+        if (btn.entry()->path.empty())
             edit_button(btn);
         else
             send_button(btn);
@@ -358,29 +369,37 @@ void RemoteView::refresh_ui() {
         edit_button(btn);
     };
 
-    // Add buttons from the model.
-    for (auto& entry : model_.entries) {
-        Coord x = buttons_.size() % button_cols;
-        Coord y = buttons_.size() / button_cols;
+    // Create and add RemoteButtons for the whole grid.
+    for (size_t i = 0; i < max_buttons; ++i) {
+        Coord x = i % button_cols;
+        Coord y = i / button_cols;
         Point pos = Point{x * button_width, y * button_height} + buttons_top_;
 
         auto btn = std::make_unique<RemoteButton>(
             Rect{pos, {button_width, button_height}},
-            entry);
+            nullptr);
         btn->on_select2 = handle_send;
         btn->on_long_select = handle_edit;
 
         add_child(btn.get());
         buttons_.push_back(std::move(btn));
+    }
+}
 
-        // Only use the first N buttons.
-        if (buttons_.size() >= max_buttons)
-            break;
+void RemoteView::refresh_ui() {
+    field_title.set_text(model_.name);
+
+    // Update buttons from the model.
+    for (size_t i = 0; i < buttons_.size(); ++i) {
+        if (i < model_.entries.size())
+            buttons_[i]->set_entry(&model_.entries[i]);
+        else
+            buttons_[i]->set_entry(nullptr);
     }
 }
 
 void RemoteView::add_button() {
-    if (buttons_.size() >= max_buttons)
+    if (model_.entries.size() >= max_buttons)
         return;
 
     model_.entries.push_back({{}, "<EMPTY>", 0, 3, 1});
@@ -388,7 +407,7 @@ void RemoteView::add_button() {
 }
 
 void RemoteView::edit_button(RemoteButton& btn) {
-    auto edit_view = nav_.push<RemoteEntryEditView>(btn.entry());
+    auto edit_view = nav_.push<RemoteEntryEditView>(*btn.entry());
     nav_.set_on_pop([this]() { refresh_ui(); });
 
     edit_view->on_delete = [this](RemoteEntryModel& to_delete) {
@@ -404,7 +423,7 @@ void RemoteView::send_button(RemoteButton& btn) {
 
     // Open the sample file to send.
     auto reader = std::make_unique<FileConvertReader>();
-    auto error = reader->open(btn.entry().path);
+    auto error = reader->open(btn.entry()->path);
     if (error) {
         // TODO: Error text control.
         return;
@@ -412,12 +431,12 @@ void RemoteView::send_button(RemoteButton& btn) {
 
     // Update the sample rate in proc_replay baseband.
     baseband::set_sample_rate(
-        btn.entry().metadata.sample_rate,
-        get_oversample_rate(btn.entry().metadata.sample_rate));
+        btn.entry()->metadata.sample_rate,
+        get_oversample_rate(btn.entry()->metadata.sample_rate));
 
     // ReplayThread starts immediately on construction; must be set before creating.
-    transmitter_model.set_target_frequency(btn.entry().metadata.center_frequency);
-    transmitter_model.set_sampling_rate(get_actual_sample_rate(btn.entry().metadata.sample_rate));
+    transmitter_model.set_target_frequency(btn.entry()->metadata.center_frequency);
+    transmitter_model.set_sampling_rate(get_actual_sample_rate(btn.entry()->metadata.sample_rate));
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 
