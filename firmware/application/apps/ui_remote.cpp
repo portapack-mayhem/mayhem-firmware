@@ -27,6 +27,8 @@
 #include "irq_controls.hpp"
 #include "oversample.hpp"
 #include "string_format.hpp"
+#include "ui_fileman.hpp"
+#include "ui_receiver.hpp"
 #include "ui_textentry.hpp"
 #include "utility.hpp"
 
@@ -248,10 +250,22 @@ RemoteEntryEditView::RemoteEntryEditView(
     };
     field_name.set_text(entry_.name);
 
-    field_path.set_text(entry_.path.string());
+    field_path.on_select = [this, &nav](TextField&) {
+        auto open_view = nav.push<FileLoadView>(".C*");
+        open_view->push_dir(u"CAPTURES");
+        open_view->on_changed = [this](fs::path path) {
+            load_path(std::move(path));
+            refresh_ui();
+        };
+    };
 
-    field_freq.set_value(entry_.metadata.center_frequency);
-    text_rate.set(unit_auto_scale(entry_.metadata.sample_rate, 3, 0) + "Hz");
+    field_freq.on_edit = [this, &nav]() {
+        auto freq_view = nav.push<FrequencyKeypadView>(entry_.metadata.center_frequency);
+        freq_view->on_changed = [this](rf::Frequency f) {
+            entry_.metadata.center_frequency = f;
+            field_freq.set_value(f);
+        };
+    };
 
     field_icon_index.on_change = [this](int32_t v) {
         entry_.icon = v;
@@ -288,10 +302,31 @@ RemoteEntryEditView::RemoteEntryEditView(
     button_done.on_select = [&nav](Button&) {
         nav.pop();
     };
+
+    refresh_ui();
 }
 
 void RemoteEntryEditView::focus() {
     button_done.focus();
+}
+
+void RemoteEntryEditView::refresh_ui() {
+    field_path.set_text(entry_.path.filename().string());
+    field_freq.set_value(entry_.metadata.center_frequency);
+    text_rate.set(unit_auto_scale(entry_.metadata.sample_rate, 3, 0) + "Hz");
+}
+
+void RemoteEntryEditView::load_path(std::filesystem::path&& path) {
+    // Read metafile if it exists.
+    auto metadata_path = get_metadata_path(path);
+    auto metadata = read_metadata_file(metadata_path);
+    entry_.path = std::move(path);
+
+    // Use metadata if found, otherwise fallback to the TX frequency.
+    if (metadata)
+        entry_.metadata = *metadata;
+    else
+        entry_.metadata = {transmitter_model.target_frequency(), 500'000};
 }
 
 /* RemoteView ********************************************/

@@ -196,6 +196,9 @@ class RemoteEntryEditView : public View {
     RemoteEntryModel& entry_;
     std::string temp_buffer_{};
 
+    void refresh_ui();
+    void load_path(std::filesystem::path&& path);
+
     Labels labels{
         {{2 * 8, 1 * 16}, "Name:", Color::light_grey()},
         {{2 * 8, 2 * 16}, "Path:", Color::light_grey()},
