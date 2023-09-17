@@ -27,7 +27,9 @@
 #include <complex>
 #include <cstdint>
 #include <cstddef>
+#include <initializer_list>
 #include <memory>
+#include <string_view>
 #include <type_traits>
 
 #define LOCATE_IN_RAM __attribute__((section(".ramtext")))
@@ -212,5 +214,7 @@ struct range_t {
         return !contains(value);
     }
 };
+
+std::string join(char c, std::initializer_list<std::string_view> strings);
 
 #endif /*__UTILITY_H__*/
