@@ -27,6 +27,7 @@
 #include <algorithm>
 #include "ui_fileman.hpp"
 #include "ui_playlist.hpp"
+#include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_text_editor.hpp"
 #include "string_format.hpp"
@@ -44,6 +45,7 @@ static const fs::path c16_ext{u".C16"};
 static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
+static const fs::path rem_ext{u".REM"};
 }  // namespace ui
 
 namespace {
@@ -525,6 +527,9 @@ bool FileManagerView::handle_file_open() {
         nav_.push<SplashViewer>(path);
         reload_current();
         return true;
+    } else if (path_iequal(rem_ext, ext)) {
+        nav_.push<RemoteView>(path);
+        return true;
     }
 
     return false;
@@ -629,7 +634,7 @@ FileManagerView::FileManagerView(
     button_open_notepad.on_select = [this]() {
         if (selected_is_valid() && !get_selected_entry().is_directory) {
             auto path = get_selected_full_path();
-            nav_.replace<TextEditorView>(path);
+            nav_.push<TextEditorView>(path);
         } else
             nav_.display_modal("Open in Notepad", "Can't open that in Notepad.");
     };

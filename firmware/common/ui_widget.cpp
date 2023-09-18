@@ -1139,9 +1139,9 @@ NewButton::NewButton(
     Color color,
     bool vertical_center)
     : Widget{parent_rect},
+      color_{color},
       text_{text},
       bitmap_{bitmap},
-      color_{color},
       vertical_center_{vertical_center} {
     set_focusable(true);
 }
@@ -1182,18 +1182,8 @@ void NewButton::paint(Painter& painter) {
     if (!bitmap_ && text_.empty())
         return;
 
-    Color bg, fg;
     const auto r = screen_rect();
-
-    if (has_focus() || highlighted()) {
-        bg = style().foreground;
-        fg = Color::black();
-    } else {
-        bg = Color::grey();
-        fg = style().foreground;
-    }
-
-    const Style paint_style = {style().font, bg, fg};
+    const Style style = paint_style();
 
     painter.draw_rectangle({r.location(), {r.width(), 1}}, Color::light_grey());
     painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Color::dark_grey());
@@ -1201,7 +1191,7 @@ void NewButton::paint(Painter& painter) {
 
     painter.fill_rectangle(
         {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
-        paint_style.background);
+        style.background);
 
     int y = r.top();
     if (bitmap_) {
@@ -1213,16 +1203,30 @@ void NewButton::paint(Painter& painter) {
             bmp_pos,
             *bitmap_,
             color_,
-            bg);
+            style.background);
     }
 
     if (!text_.empty()) {
-        const auto label_r = paint_style.font.size_of(text_);
+        const auto label_r = style.font.size_of(text_);
         painter.draw_string(
             {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-            paint_style,
+            style,
             text_);
     }
+}
+
+Style NewButton::paint_style() {
+    MutableStyle s{style()};
+
+    if (has_focus() || highlighted()) {
+        s.background = style().foreground;
+        s.foreground = Color::black();
+    } else {
+        s.background = Color::grey();
+        s.foreground = style().foreground;
+    }
+
+    return s;
 }
 
 void NewButton::on_focus() {

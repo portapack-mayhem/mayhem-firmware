@@ -633,7 +633,7 @@ MicTXView::MicTXView(
 
 MicTXView::~MicTXView() {
     audio::input::stop();
-    transmitter_model.set_target_frequency(tx_frequency);  // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
+    transmitter_model.set_target_frequency(tx_frequency);
     transmitter_model.disable();
     if (rx_enabled)  // Also turn off audio rx if enabled
         rxaudio(false);

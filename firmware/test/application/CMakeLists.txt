@@ -47,6 +47,7 @@ add_executable(application_test EXCLUDE_FROM_ALL
 
 	${PROJECT_SOURCE_DIR}/../../application/file_reader.cpp
 	${PROJECT_SOURCE_DIR}/../../application/freqman_db.cpp
+	${PROJECT_SOURCE_DIR}/../../common/utility.cpp
 	
 	# Dependencies
 	${PROJECT_SOURCE_DIR}/../../application/file.cpp

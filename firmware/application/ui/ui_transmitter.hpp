@@ -26,9 +26,9 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
+#include "ui_receiver.hpp"
 #include "ui_styles.hpp"
 #include "ui_widget.hpp"
-#include "ui_receiver.hpp"
 
 #include "rf_path.hpp"
 
@@ -36,10 +36,6 @@
 #include <cstdint>
 #include <algorithm>
 #include <functional>
-
-#define POWER_THRESHOLD_HIGH 47
-#define POWER_THRESHOLD_MED 38
-#define POWER_THRESHOLD_LOW 17
 
 namespace ui {
 
@@ -74,11 +70,8 @@ class TransmitterView : public View {
 
    private:
     const Style& style_start = Styles::green;
-    const Style style_stop = Styles::red;
-    const Style style_locked = Styles::dark_grey;
-    const Style style_power_low = Styles::yellow;
-    const Style style_power_med = Styles::orange;
-    const Style style_power_high = Styles::red;
+    const Style& style_stop = Styles::red;
+    const Style& style_locked = Styles::dark_grey;
 
     bool lock_{false};
     bool transmitting_{false};
@@ -134,60 +127,32 @@ class TransmitterView : public View {
     void update_gainlevel_styles(void);
 };
 
+/* Simpler transmitter view that only renders TX Gain and Amp.
+ * When short_UI is set it abbreviates control labels. */
 class TransmitterView2 : public View {
    public:
-    TransmitterView2(const Coord x, const Coord y, bool short_UI);
-
-    ~TransmitterView2();
-
-    void on_show() override;
-    void paint(Painter& painter) override;
+    TransmitterView2(Point pos, bool short_ui);
 
    private:
-    const Style& style_power_low = Styles::yellow;
-    const Style& style_power_med = Styles::orange;
-    const Style& style_power_high = Styles::red;
-
-    Text text_gain_amp{
-        {0, 3 * 8, 5 * 8, 1 * 16},
-        "Gain:   Amp:"};
+    Text text_labels{
+        {},  // Set in ctor.
+        {}};
 
     NumberField field_gain{
-        {5 * 8, 3 * 8},
+        {},  // Set in ctor.
         2,
         {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
         max2837::tx::gain_db_step,
         ' '};
 
     NumberField field_amp{
-        {12 * 8, 3 * 8},
+        {},  // Set in ctor.
         2,
         {0, 14},
         14,
         ' '};
 
-    Text text_gain_amp_short_UI{
-        {0, (3 * 8), 5 * 8, 1 * 16},
-        "Gain   A:"};
-
-    NumberField field_gain_short_UI{
-        {(4 * 8) + 2, 3 * 8},
-        2,
-        {max2837::tx::gain_db_range.minimum, max2837::tx::gain_db_range.maximum},
-        max2837::tx::gain_db_step,
-        ' '};
-
-    NumberField field_amp_short_UI{
-        {(9 * 8) - 2, 3 * 8},
-        2,
-        {0, 14},
-        14,
-        ' '};
-
-    void on_tx_gain_changed(int32_t tx_gain);
-    void on_tx_amp_changed(bool rf_amp);
-
-    void update_gainlevel_styles(void);
+    void update_gainlevel_styles();
 };
 
 } /* namespace ui */

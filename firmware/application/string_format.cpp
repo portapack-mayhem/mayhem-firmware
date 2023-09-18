@@ -311,10 +311,10 @@ std::string to_string_file_size(uint32_t file_size) {
     return to_string_dec_uint(file_size) + suffix[suffix_index];
 }
 
-std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision) {
+std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision) {
     const uint32_t powers_of_ten[5] = {1, 10, 100, 1000, 10000};
     std::string string{""};
-    uint32_t prefix_index = base_nano;
+    uint32_t prefix_index = base_unit;
     double integer_part;
     double fractional_part;
 

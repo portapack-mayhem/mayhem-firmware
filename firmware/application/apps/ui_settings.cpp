@@ -654,17 +654,17 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
+        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetAppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [&nav]() { nav.push<SetAudioView>(); }},
+        {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
+        {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
+        {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetDateTimeView>(); }},
+        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
+        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
+        {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
+        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetRadioView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
-        {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetDateTimeView>(); }},
-        {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
-        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetAppSettingsView>(); }},
-        {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
-        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
-        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
-        {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
-        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

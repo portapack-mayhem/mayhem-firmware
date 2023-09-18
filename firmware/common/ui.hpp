@@ -97,6 +97,14 @@ struct Color {
         return (v ^ 0xffff);
     }
 
+    /* Converts a 32-bit color into a 16-bit color.
+     * High byte is ignored. */
+    static constexpr Color RGB(uint32_t rgb) {
+        return {static_cast<uint8_t>((rgb >> 16) & 0xff),
+                static_cast<uint8_t>((rgb >> 8) & 0xff),
+                static_cast<uint8_t>(rgb & 0xff)};
+    }
+
     static constexpr Color black() {
         return {0, 0, 0};
     }

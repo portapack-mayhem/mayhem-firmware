@@ -24,9 +24,6 @@
 #ifndef __GPS_SIM_APP_HPP__
 #define __GPS_SIM_APP_HPP__
 
-#define SHORT_UI true
-#define NORMAL_UI false
-
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui_widget.hpp"
@@ -109,10 +106,8 @@ class GpsSimAppView : public View {
         nav_};
 
     TransmitterView2 tx_view{
-        // new handling of NumberField field_rfgain, NumberField field_rfamp
-        74, 1 * 8, SHORT_UI  // x(columns), y (line) position. (Used in Replay / GPS Simul / Playlist App)
-                             //		10*8, 2*8, NORMAL_UI				// x(columns), y (line) position. (Used in Mic App)
-    };
+        {11 * 8, 2 * 16},
+        /*short_ui*/ true};
 
     Checkbox check_loop{
         {21 * 8, 2 * 16},

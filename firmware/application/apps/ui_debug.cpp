@@ -398,17 +398,17 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
+        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
+        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
+        //{"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},  // temporarily disabled to conserve ROM space
+        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
         {"Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
+        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
+        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
-        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
-        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
-        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
-        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
-        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
-        //{"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},  // temporarily disabled to conserve ROM space
     });
     set_max_rows(2);  // allow wider buttons
 }

@@ -77,7 +77,8 @@ class FileManBaseView : public View {
         {u".C8", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta()},
-        {u".PPL", &bitmap_icon_file_iq, ui::Color::white()},  // PPL is the file extension for playlist app
+        {u".PPL", &bitmap_icon_file_iq, ui::Color::white()},  // Playlist/Replay
+        {u".REM", &bitmap_icon_remote, ui::Color::orange()},  // Remote
         {u"", &bitmap_icon_file, ui::Color::light_grey()}     // NB: Must be last.
     };
 
@@ -269,7 +270,8 @@ class FileManagerView : public FileManBaseView {
         {4 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_options_datetime,
-        Color::orange()};
+        Color::orange(),
+        /*vcenter*/ true};
 };
 
 } /* namespace ui */

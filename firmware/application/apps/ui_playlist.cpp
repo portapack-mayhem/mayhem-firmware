@@ -386,6 +386,7 @@ PlaylistView::PlaylistView(
         &waterfall,
     });
 
+    ensure_directory(u"PLAYLIST");
     waterfall.show_audio_spectrum_view(false);
 
     field_frequency.set_value(100'000'000);

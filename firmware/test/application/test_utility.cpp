@@ -90,3 +90,10 @@ TEST_CASE("to_byte_array returns correct size and values.") {
     CHECK_EQ(arr4[2], 0x12);
     CHECK_EQ(arr4[3], 0x34);
 }
+
+TEST_CASE("join will join strings") {
+    CHECK_EQ(join(',', {}), "");
+    CHECK_EQ(join(',', {"a"}), "a");
+    CHECK_EQ(join('-', {"a", "b"}), "a-b");
+    CHECK_EQ(join(',', {"a", "b", "c"}), "a,b,c");
+}
