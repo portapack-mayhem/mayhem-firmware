@@ -398,7 +398,7 @@ RemoteView::~RemoteView() {
     stop();
     baseband::shutdown();
 
-    save_remote();
+    save_remote(/*show_error*/ false);
 }
 
 void RemoteView::focus() {
@@ -411,12 +411,14 @@ void RemoteView::focus() {
 void RemoteView::create_buttons() {
     // Handler callbacks.
     auto handle_send = [this](RemoteButton& btn) {
-        // No path set? Go to edit mode instead.
         if (btn.entry()->path.empty())
+            // No path set? Go to edit mode instead.
             edit_button(btn);
-        else if (is_sending())
+        else if (is_sending() && &btn == current_btn_)
+            // Pressed the same button again? Stop.
             stop();
         else
+            // Start sending.
             send_button(btn);
     };
 
@@ -444,7 +446,7 @@ void RemoteView::create_buttons() {
 void RemoteView::reset_buttons() {
     // Whever the model's entries instance is invalidated,
     // all the pointers in the buttons will end up dangling.
-    // TODO: This is pretty lame.
+    // TODO: This is pretty lame. Could maybe static alloc?
     for (auto& btn : buttons_)
         btn->set_entry(nullptr);
 }
@@ -466,6 +468,9 @@ void RemoteView::add_button() {
     if (model_.entries.size() >= max_buttons)
         return;
 
+    // Don't let replay thread read the model while editing.
+    stop();
+
     model_.entries.push_back({{}, "<EMPTY>", 0, 3, 1});
     reset_buttons();
     refresh_ui();
@@ -483,12 +488,15 @@ void RemoteView::edit_button(RemoteButton& btn) {
     });
 
     edit_view->on_delete = [this](RemoteEntryModel& to_delete) {
-        // NB: This shouldn't invalidate entry pointers.
         model_.delete_entry(&to_delete);
+        reset_buttons();
     };
 }
 
 void RemoteView::send_button(RemoteButton& btn) {
+    // TODO: If this is called while is_sending() == true,
+    // it just stops and doesn't start the new button?
+
     // Reset everything to prepare to send a file.
     stop();
     current_btn_ = &btn;  // Stash for looping.
@@ -497,7 +505,7 @@ void RemoteView::send_button(RemoteButton& btn) {
     auto reader = std::make_unique<FileConvertReader>();
     auto error = reader->open(btn.entry()->path);
     if (error) {
-        // TODO: Errors.
+        show_error("Can't open file:\n" + btn.entry()->path.stem().string());
         return;
     }
 
@@ -557,9 +565,8 @@ void RemoteView::init_remote() {
     set_remote_path(next_filename_matching_pattern(u"/REMOTES/REMOTE_????.REM"));
     set_needs_save(false);
 
-    if (remote_path_.empty()) {
-        // TODO: Errors.
-    }
+    if (remote_path_.empty())
+        show_error("Couldn't make new remote file.");
 }
 
 bool RemoteView::load_remote(fs::path&& path) {
@@ -569,11 +576,14 @@ bool RemoteView::load_remote(fs::path&& path) {
     return model_.load(remote_path_);
 }
 
-void RemoteView::save_remote() {
+void RemoteView::save_remote(bool show_errors) {
     if (!needs_save_)
         return;
 
-    model_.save(remote_path_);  // TODO: indicate when save fails?
+    bool ok = model_.save(remote_path_);
+    if (!ok && show_errors)
+        show_error("Save failed for:\n" + remote_path_.stem().string());
+
     set_needs_save(false);
 }
 
@@ -583,8 +593,7 @@ void RemoteView::rename_remote(const std::string& new_name) {
     auto new_path = folder / new_name + ext;
 
     if (file_exists(new_path)) {
-        // TODO: Errors/Make unique name?
-        // Don't want to overwrite the existing file.
+        show_error("Remote " + new_name + " already exists");
         return;
     }
 
@@ -603,9 +612,11 @@ void RemoteView::handle_replay_thread_done(uint32_t return_code) {
         }
     }
 
-    // TODO: Errors.
-    // if (return_code == ReplayThread::READ_ERROR)
-    //    show_file_error(current()->path, "Replay read failed.");
+    /*
+    // TODO: This can happen when stopping an in-progress Tx.
+    if (return_code == ReplayThread::READ_ERROR)
+        show_error("Bad capture file.");
+    */
 
     stop();
 }
@@ -615,6 +626,10 @@ void RemoteView::set_remote_path(fs::path&& path) {
     // settings doesn't know about fs::path.
     remote_path_ = std::move(path);
     settings_.remote_path = remote_path_.string();
+}
+
+void RemoteView::show_error(const std::string& msg) const {
+    nav_.display_modal("Error", msg);
 }
 
 } /* namespace ui */

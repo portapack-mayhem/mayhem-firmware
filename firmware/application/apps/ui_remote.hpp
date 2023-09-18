@@ -285,12 +285,13 @@ class RemoteView : public View {
     void open_remote();
     void init_remote();
     bool load_remote(std::filesystem::path&& path);
-    void save_remote();
+    void save_remote(bool show_errors = true);
     void rename_remote(const std::string& new_name);
     void handle_replay_thread_done(uint32_t return_code);
     void set_needs_save(bool v = true) { needs_save_ = v; }
     void set_remote_path(std::filesystem::path&& path);
     bool is_sending() const { return replay_thread_ != nullptr; }
+    void show_error(const std::string& msg) const;
 
     static constexpr Dim button_rows = 4;
     static constexpr Dim button_cols = 3;
@@ -325,7 +326,7 @@ class RemoteView : public View {
     std::vector<std::unique_ptr<RemoteButton>> buttons_{};
 
     std::unique_ptr<ReplayThread> replay_thread_{};
-    bool ready_signal_{};  // Used to signal the ReplayThread.
+    bool ready_signal_{};  // Used to signal ReplayThread ready.
 
     TextField field_title{
         {0 * 8, 0 * 16 + 2, 30 * 8, 1 * 16},
