@@ -30,6 +30,7 @@
 #include "bitmap.hpp"
 #include "file.hpp"
 #include "metadata_file.hpp"
+#include "optional.hpp"
 #include "radio_state.hpp"
 #include "replay_thread.hpp"
 
@@ -137,7 +138,7 @@ struct RemoteEntryModel {
     // TODO: start/end position for trimming.
 
     std::string to_string() const;
-    static RemoteEntryModel parse(std::string_view line);
+    static Optional<RemoteEntryModel> parse(std::string_view line);
 };
 
 /* Data model for a remote. */
@@ -157,8 +158,8 @@ class RemoteButton : public NewButton {
     std::function<void(RemoteButton&)> on_long_select{};
 
     RemoteButton(Rect parent_rect, RemoteEntryModel* entry);
-    RemoteButton(const RemoteButton&) = default;
-    RemoteButton& operator=(const RemoteButton&) = default;
+    RemoteButton(const RemoteButton&) = delete;
+    RemoteButton& operator=(const RemoteButton&) = delete;
 
     void on_focus() override;
     void on_blur() override;
@@ -260,8 +261,11 @@ class RemoteEntryEditView : public View {
 class RemoteView : public View {
    public:
     RemoteView(NavigationView& nav);
-    RemoteView(NavigationView& nav, const std::filesystem::path& path);
+    RemoteView(NavigationView& nav, std::filesystem::path path);
     ~RemoteView();
+
+    RemoteView(const RemoteView&) = delete;
+    RemoteView& operator=(const RemoteView&) = delete;
 
     std::string title() const override { return "Remote"; };
     void focus() override;
@@ -269,11 +273,24 @@ class RemoteView : public View {
    private:
     /* Creates the dynamic buttons. */
     void create_buttons();
+    /* Resets all the pointers to null entries. */
+    void reset_buttons();
     void refresh_ui();
 
     void add_button();
     void edit_button(RemoteButton& btn);
     void send_button(RemoteButton& btn);
+    void stop();
+    void new_remote();
+    void open_remote();
+    void init_remote();
+    bool load_remote(std::filesystem::path&& path);
+    void save_remote();
+    void rename_remote(const std::string& new_name);
+    void handle_replay_thread_done(uint32_t return_code);
+    void set_needs_save(bool v = true) { needs_save_ = v; }
+    void set_remote_path(std::filesystem::path&& path);
+    bool is_sending() const { return replay_thread_ != nullptr; }
 
     static constexpr Dim button_rows = 4;
     static constexpr Dim button_cols = 3;
@@ -282,7 +299,7 @@ class RemoteView : public View {
     static constexpr Dim button_width = screen_width / button_cols;
     static constexpr Dim button_height = button_area_height / button_rows;
 
-    // This value is slightly mysterious... why?
+    // This value is mysterious... why?
     static constexpr uint32_t baseband_bandwidth = 2'500'000;
 
     NavigationView& nav_;
@@ -298,8 +315,13 @@ class RemoteView : public View {
         }};
 
     RemoteModel model_{};
-    Point buttons_top_{0, 20};
+
+    bool needs_save_ = false;
     std::string temp_buffer_{};
+    std::filesystem::path remote_path_{};
+    RemoteButton* current_btn_{};
+
+    const Point buttons_top_{0, 20};
     std::vector<std::unique_ptr<RemoteButton>> buttons_{};
 
     std::unique_ptr<ReplayThread> replay_thread_{};
@@ -310,14 +332,18 @@ class RemoteView : public View {
         {}};
 
     TransmitterView2 tx_view{
-        {0 * 8, 17 * 16 + 8},
+        {0 * 8, 17 * 16},
         /*short_ui*/ true};
 
     Checkbox check_loop{
-        {10 * 8, 17 * 16 + 8},
+        {10 * 8, 17 * 16},
         4,
         "Loop",
         /*small*/ true};
+
+    TextField field_filename{
+        {0 * 8, 18 * 16, 17 * 8, 1 * 16},
+        {}};
 
     NewButton button_add{
         {17 * 8 + 4, 17 * 16, 4 * 8, 2 * 16},
@@ -342,12 +368,12 @@ class RemoteView : public View {
 
     spectrum::WaterfallView waterfall{};
 
-    // MessageHandlerRegistration message_handler_replay_thread_error{
-    //     Message::ID::ReplayThreadDone,
-    //     [this](const Message* p) {
-    //         auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-    //         handle_replay_thread_done(message.return_code);
-    //     }};
+    MessageHandlerRegistration message_handler_replay_thread_error{
+        Message::ID::ReplayThreadDone,
+        [this](const Message* p) {
+            auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            handle_replay_thread_done(message.return_code);
+        }};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,

@@ -42,21 +42,22 @@ static constexpr uint8_t text_edit_max = 30;
 /* RemoteEntryModel **************************************/
 
 std::string RemoteEntryModel::to_string() const {
-    return join(',',
-                {path.string(),
-                 name,
-                 to_string_dec_uint(icon),
-                 to_string_dec_uint(bg_color),
-                 to_string_dec_uint(fg_color),
-                 to_string_dec_uint(metadata.center_frequency),
-                 to_string_dec_uint(metadata.sample_rate)});
+    return join(',', {path.string(),
+                      name,
+                      to_string_dec_uint(icon),
+                      to_string_dec_uint(bg_color),
+                      to_string_dec_uint(fg_color),
+                      to_string_dec_uint(metadata.center_frequency),
+                      to_string_dec_uint(metadata.sample_rate)});
 }
 
-RemoteEntryModel RemoteEntryModel::parse(std::string_view line) {
-    // TODO: harden.
+Optional<RemoteEntryModel> RemoteEntryModel::parse(std::string_view line) {
+    auto cols = split_string(line, ',');
+
+    if (cols.size() < 7)
+        return {};
 
     RemoteEntryModel entry{};
-    auto cols = split_string(line, ',');
 
     entry.path = cols[0];
     entry.name = std::string{cols[1]};
@@ -105,7 +106,9 @@ bool RemoteModel::load(const std::filesystem::path& path) {
         }
 
         // All the other lines are button entries.
-        entries.push_back(RemoteEntryModel::parse(line));
+        auto entry = RemoteEntryModel::parse(line);
+        if (entry)
+            entries.push_back(*std::move(entry));
     }
 
     return true;
@@ -340,6 +343,7 @@ RemoteView::RemoteView(
         &field_title,
         &tx_view,
         &check_loop,
+        &field_filename,
         &button_add,
         &button_new,
         &button_open,
@@ -353,10 +357,21 @@ RemoteView::RemoteView(
         text_prompt(nav_, temp_buffer_, text_edit_max, [this](std::string& new_name) {
             model_.name = new_name;
             refresh_ui();
+            set_needs_save();
+        });
+    };
+
+    field_filename.on_select = [this, &nav](TextField&) {
+        temp_buffer_ = remote_path_.stem().string();
+        text_prompt(nav_, temp_buffer_, text_edit_max, [this](std::string& new_name) {
+            rename_remote(new_name);
+            refresh_ui();
         });
     };
 
     button_add.on_select = [this]() { add_button(); };
+    button_new.on_select = [this]() { new_remote(); };
+    button_open.on_select = [this]() { open_remote(); };
 
     // Fill in the area between the remote buttons and bottom UI with waterfall.
     Dim waterfall_top = buttons_top_.y() + button_area_height;
@@ -364,23 +379,26 @@ RemoteView::RemoteView(
     Dim waterfall_height = waterfall_bottom - waterfall_top;
     waterfall.set_parent_rect({0, waterfall_top, screen_width, waterfall_height});
 
-    model_.load(u"/REMOTES/test.rem");
+    ensure_directory(u"REMOTES");
+
+    // Load the previously loaded remote if exists.
+    if (!load_remote(settings_.remote_path))
+        init_remote();
+
     refresh_ui();
 }
 
-RemoteView::RemoteView(
-    NavigationView& nav,
-    const fs::path& path)
+RemoteView::RemoteView(NavigationView& nav, fs::path path)
     : RemoteView(nav) {
-    (void)path;  // TODO: wire up.
+    load_remote(std::move(path));
+    refresh_ui();
 }
 
 RemoteView::~RemoteView() {
-    // TODO: Don't save empty?
-    model_.save(u"/REMOTES/test.rem");
-
-    transmitter_model.disable();
+    stop();
     baseband::shutdown();
+
+    save_remote();
 }
 
 void RemoteView::focus() {
@@ -396,6 +414,8 @@ void RemoteView::create_buttons() {
         // No path set? Go to edit mode instead.
         if (btn.entry()->path.empty())
             edit_button(btn);
+        else if (is_sending())
+            stop();
         else
             send_button(btn);
     };
@@ -421,8 +441,17 @@ void RemoteView::create_buttons() {
     }
 }
 
+void RemoteView::reset_buttons() {
+    // Whever the model's entries instance is invalidated,
+    // all the pointers in the buttons will end up dangling.
+    // TODO: This is pretty lame.
+    for (auto& btn : buttons_)
+        btn->set_entry(nullptr);
+}
+
 void RemoteView::refresh_ui() {
     field_title.set_text(model_.name);
+    field_filename.set_text(remote_path_.stem().string());
 
     // Update buttons from the model.
     for (size_t i = 0; i < buttons_.size(); ++i) {
@@ -438,29 +467,37 @@ void RemoteView::add_button() {
         return;
 
     model_.entries.push_back({{}, "<EMPTY>", 0, 3, 1});
+    reset_buttons();
     refresh_ui();
+    set_needs_save();
 }
 
 void RemoteView::edit_button(RemoteButton& btn) {
+    // Don't let replay thread read the model while editing.
+    stop();
+
     auto edit_view = nav_.push<RemoteEntryEditView>(*btn.entry());
-    nav_.set_on_pop([this]() { refresh_ui(); });
+    nav_.set_on_pop([this]() {
+        refresh_ui();
+        set_needs_save();
+    });
 
     edit_view->on_delete = [this](RemoteEntryModel& to_delete) {
+        // NB: This shouldn't invalidate entry pointers.
         model_.delete_entry(&to_delete);
     };
 }
 
 void RemoteView::send_button(RemoteButton& btn) {
-    // Prepare to send a file.
-    replay_thread_.reset();
-    transmitter_model.disable();
-    ready_signal_ = false;
+    // Reset everything to prepare to send a file.
+    stop();
+    current_btn_ = &btn;  // Stash for looping.
 
     // Open the sample file to send.
     auto reader = std::make_unique<FileConvertReader>();
     auto error = reader->open(btn.entry()->path);
     if (error) {
-        // TODO: Error text control.
+        // TODO: Errors.
         return;
     }
 
@@ -485,6 +522,98 @@ void RemoteView::send_button(RemoteButton& btn) {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
+}
+
+void RemoteView::stop() {
+    // This terminates the underlying chThread.
+    replay_thread_.reset();
+    transmitter_model.disable();
+    ready_signal_ = false;
+}
+
+void RemoteView::new_remote() {
+    save_remote();
+    init_remote();
+    refresh_ui();
+
+    // View needs to redraw to hide old buttons.
+    set_dirty();
+}
+
+void RemoteView::open_remote() {
+    auto open_view = nav_.push<FileLoadView>(".REM");
+    open_view->push_dir(u"REMOTES");
+    open_view->on_changed = [this](fs::path path) {
+        save_remote();
+        load_remote(std::move(path));
+        refresh_ui();;
+    };
+}
+
+void RemoteView::init_remote() {
+    model_ = {"<Unnamed Remote>", {}};
+    reset_buttons();
+    set_remote_path(next_filename_matching_pattern(u"/REMOTE/REMOTE_????.REM"));
+    set_needs_save(false);
+
+    if (remote_path_.empty()) {
+        // TODO: Errors.
+    }
+}
+
+bool RemoteView::load_remote(fs::path&& path) {
+    set_remote_path(std::move(path));
+    set_needs_save(false);
+    reset_buttons();
+    return model_.load(remote_path_);
+}
+
+void RemoteView::save_remote() {
+    if (!needs_save_)
+        return;
+
+    model_.save(remote_path_);
+    set_needs_save(false);
+}
+
+void RemoteView::rename_remote(const std::string& new_name) {
+    auto folder = remote_path_.parent_path();
+    auto ext = remote_path_.extension();
+    auto new_path = folder / new_name + ext;
+
+    if (file_exists(new_path)) {
+        // TODO: Errors/Make unique name?
+        // Don't want to overwrite the existing file.
+        return;
+    }
+
+    // Rename file if there is one.
+    if (fs::file_exists(remote_path_))
+        rename_file(remote_path_, new_path);
+
+    set_remote_path(std::move(new_path));
+}
+
+void RemoteView::handle_replay_thread_done(uint32_t return_code) {
+    if (return_code == ReplayThread::END_OF_FILE) {
+        if (check_loop.value() && current_btn_) {
+            send_button(*current_btn_);
+            return;
+        }
+    }
+
+    // TODO: Errors.
+    // if (return_code == ReplayThread::READ_ERROR)
+    //    show_file_error(current()->path, "Replay read failed.");
+
+    stop();
+}
+
+void RemoteView::set_remote_path(fs::path&& path) {
+    // Unfortunately, have to keep these two in sync because
+    // settings doesn't know about fs::path.
+    remote_path_ = std::move(path);
+    settings_.remote_path = remote_path_.string();
 }
 
 } /* namespace ui */
