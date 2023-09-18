@@ -546,14 +546,15 @@ void RemoteView::open_remote() {
     open_view->on_changed = [this](fs::path path) {
         save_remote();
         load_remote(std::move(path));
-        refresh_ui();;
+        refresh_ui();
+        ;
     };
 }
 
 void RemoteView::init_remote() {
     model_ = {"<Unnamed Remote>", {}};
     reset_buttons();
-    set_remote_path(next_filename_matching_pattern(u"/REMOTE/REMOTE_????.REM"));
+    set_remote_path(next_filename_matching_pattern(u"/REMOTES/REMOTE_????.REM"));
     set_needs_save(false);
 
     if (remote_path_.empty()) {
@@ -572,7 +573,7 @@ void RemoteView::save_remote() {
     if (!needs_save_)
         return;
 
-    model_.save(remote_path_);
+    model_.save(remote_path_);  // TODO: indicate when save fails?
     set_needs_save(false);
 }
 
