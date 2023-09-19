@@ -24,60 +24,62 @@
 
 // #include "modules.h"
 
-#include "portapack.hpp"
-#include "event_m0.hpp"
-#include "bmp_splash.hpp"
 #include "bmp_modal_warning.hpp"
+#include "bmp_splash.hpp"
+#include "event_m0.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "portapack_shared_memory.hpp"
+#include "portapack.hpp"
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
 #include "ui_adsb_tx.hpp"
 #include "ui_afsk_rx.hpp"
 #include "ui_aprs_rx.hpp"
-#include "ui_btle_rx.hpp"
-#include "ui_nrf_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
+#include "ui_btle_rx.hpp"
 #include "ui_coasterp.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
+#include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
+#include "ui_iq_trim.hpp"
 #include "ui_jammer.hpp"
 // #include "ui_keyfob.hpp"
 #include "ui_lcr.hpp"
+#include "ui_level.hpp"
+#include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
+#include "ui_nrf_rx.hpp"
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
 // #include "ui_playdead.hpp"
+#include "ui_playlist.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
+#include "ui_recon.hpp"
 #include "ui_remote.hpp"
 #include "ui_scanner.hpp"
-#include "ui_search.hpp"
-#include "ui_recon.hpp"
-#include "ui_level.hpp"
+#include "ui_sd_over_usb.hpp"
 #include "ui_sd_wipe.hpp"
+#include "ui_search.hpp"
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
+#include "ui_spectrum_painter.hpp"
+#include "ui_ss_viewer.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_styles.hpp"
-// #include "ui_test.hpp"
+// #include "ui_test.hpp" //
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
-#include "ui_playlist.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
-#include "ui_flash_utility.hpp"
-#include "ui_sd_over_usb.hpp"
-#include "ui_spectrum_painter.hpp"
-#include "ui_ss_viewer.hpp"
 
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
@@ -85,15 +87,14 @@
 #include "analog_tv_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
+#include "gps_sim_app.hpp"
 #include "lge_app.hpp"
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
-#include "gps_sim_app.hpp"
 #include "soundboard_app.hpp"
 #include "tpms_app.hpp"
 
 #include "core_control.hpp"
-#include "ui_looking_glass_app.hpp"
 #include "file.hpp"
 #include "png_writer.hpp"
 
@@ -562,6 +563,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         {"File Manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
         {"Freq. Manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
         {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
+        {"IQ Trim", Color::orange(), &bitmap_icon_cut, [&nav]() { nav.push<IQTrimView>(); }},
         {"SD Over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
         {"Signal Gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
         // {"Test App", Color::dark_grey(), nullptr, [&nav](){ nav.push<TestView>(); }},
@@ -597,7 +599,6 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
         {"Transmit", Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); }},
         {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
         {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<PlaylistView>(); }},
-        // {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
         {"Remote", ui::Color::green(), &bitmap_icon_remote, [&nav]() { nav.push<RemoteView>(); }},
         {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
         {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
