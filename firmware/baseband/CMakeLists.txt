@@ -437,12 +437,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(POOK ook)
 
-### POCSAG RX
-
-set(MODE_CPPSRC
-	proc_pocsag.cpp
-)
-DeclareTargets(PPOC pocsag)
+#### POCSAG RX
+#
+#set(MODE_CPPSRC
+#	proc_pocsag.cpp
+#)
+#DeclareTargets(PPOC pocsag)
 
 ### POCSAG2 RX
 

@@ -54,35 +54,32 @@ POCSAGSettingsView::POCSAGSettingsView(
     POCSAGSettings& settings)
     : settings_{settings} {
     add_children(
-        {&check_beta,
+        {&labels,
          &check_log,
          &check_log_raw,
          &check_small_font,
          &check_hide_bad,
          &check_hide_addr_only,
-         &check_ignore,
-         &field_ignore,
+         &opt_filter_mode,
+         &field_filter_address,
          &button_save});
 
-    check_beta.set_value(settings_.use_new_proc);
     check_log.set_value(settings_.enable_logging);
     check_log_raw.set_value(settings_.enable_raw_log);
     check_small_font.set_value(settings_.enable_small_font);
     check_hide_bad.set_value(settings_.hide_bad_data);
     check_hide_addr_only.set_value(settings_.hide_addr_only);
-    check_ignore.set_value(settings_.enable_ignore);
-
-    field_ignore.set_value(settings_.address_to_ignore);
+    opt_filter_mode.set_by_value(settings_.filter_mode);
+    field_filter_address.set_value(settings_.filter_address);
 
     button_save.on_select = [this, &nav](Button&) {
-        settings_.use_new_proc = check_beta.value();
         settings_.enable_logging = check_log.value();
         settings_.enable_raw_log = check_log_raw.value();
         settings_.enable_small_font = check_small_font.value();
         settings_.hide_bad_data = check_hide_bad.value();
         settings_.hide_addr_only = check_hide_addr_only.value();
-        settings_.enable_ignore = check_ignore.value();
-        settings_.address_to_ignore = field_ignore.to_integer();
+        settings_.filter_mode = opt_filter_mode.selected_index_value();
+        settings_.filter_address = field_filter_address.to_integer();
 
         nav.pop();
     };
@@ -90,10 +87,7 @@ POCSAGSettingsView::POCSAGSettingsView(
 
 POCSAGAppView::POCSAGAppView(NavigationView& nav)
     : nav_{nav} {
-    if (settings_.use_new_proc)
-        baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
-    else
-        baseband::run_image(portapack::spi_flash::image_tag_pocsag);
+    baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
     add_children(
         {&rssi,
@@ -109,14 +103,16 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
          &widget_baud,
          &widget_bits,
          &widget_frames,
-         &button_ignore_last,
+         &button_filter_last,
          &button_config,
          &console});
 
     // No app settings, use fallbacks from pmem.
     if (!app_settings_.loaded()) {
-        settings_.address_to_ignore = pmem::pocsag_ignore_address();
-        settings_.enable_ignore = settings_.address_to_ignore > 0;
+        settings_.filter_address = pmem::pocsag_ignore_address();
+        settings_.filter_mode = (settings_.filter_address == 0)
+                                    ? FILTER_NONE
+                                    : FILTER_DROP;
     }
     if (!app_settings_.radio_loaded()) {
         field_frequency.set_value(initial_target_frequency);
@@ -129,9 +125,11 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
         receiver_model.set_squelch_level(v);
     };
 
-    button_ignore_last.on_select = [this](Button&) {
-        settings_.enable_ignore = true;
-        settings_.address_to_ignore = last_address;
+    button_filter_last.on_select = [this](Button&) {
+        if (settings_.filter_mode == FILTER_NONE)
+            settings_.filter_mode = FILTER_DROP;
+        settings_.filter_address = last_address;
+        refresh_ui();
     };
 
     button_config.on_select = [this](Button&) {
@@ -155,15 +153,48 @@ POCSAGAppView::~POCSAGAppView() {
     baseband::shutdown();
 
     // Save pmem settings.
-    pmem::set_pocsag_ignore_address(settings_.address_to_ignore);
+    pmem::set_pocsag_ignore_address(settings_.filter_address);
     pmem::set_pocsag_last_address(last_address);  // For POCSAG TX.
 }
 
 void POCSAGAppView::refresh_ui() {
+    // Set console font style.
     console.set_style(
         settings_.enable_small_font
             ? &Styles::white_small
             : &Styles::white);
+
+    // Update filter button text.
+    std::string btn_text = "Filter Last";
+    switch (settings_.filter_mode) {
+        case FILTER_DROP:
+            btn_text = "Ignore Last";
+            break;
+
+        case FILTER_KEEP:
+            btn_text = "Keep Last";
+            break;
+
+        case FILTER_NONE:
+        default:
+            btn_text = "Filter Last";
+            break;
+    }
+    button_filter_last.set_text(btn_text);
+}
+
+bool POCSAGAppView::ignore_address(uint32_t address) const {
+    switch (settings_.filter_mode) {
+        case FILTER_DROP:
+            return address == settings_.filter_address;
+
+        case FILTER_KEEP:
+            return address != settings_.filter_address;
+
+        case FILTER_NONE:
+        default:
+            return false;
+    }
 }
 
 void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefix) {
@@ -176,8 +207,8 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
         return;
     }
 
-    // Ignored address.
-    if (ignore() && pocsag_state.address == settings_.address_to_ignore) {
+    // Ignore address? TODO: could filter earlier.
+    if (ignore_address(pocsag_state.address)) {
         console.write("\n" STR_COLOR_CYAN + prefix + " Ignored: " + to_string_dec_uint(pocsag_state.address));
         last_address = pocsag_state.address;
         return;

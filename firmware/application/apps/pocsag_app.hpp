@@ -114,15 +114,20 @@ class FrameIndicator : public Widget {
     bool has_sync_ = false;
 };
 
+enum POCSAGFilter : uint8_t {
+    FILTER_NONE,
+    FILTER_DROP,
+    FILTER_KEEP
+};
+
 struct POCSAGSettings {
     bool enable_small_font = false;
     bool enable_logging = false;
     bool enable_raw_log = false;
-    bool enable_ignore = false;
     bool hide_bad_data = false;
     bool hide_addr_only = false;
-    uint32_t address_to_ignore = 0;
-    bool use_new_proc = false;
+    uint8_t filter_mode = false;
+    uint32_t filter_address = 0;
 };
 
 class POCSAGSettingsView : public View {
@@ -135,11 +140,10 @@ class POCSAGSettingsView : public View {
    private:
     POCSAGSettings& settings_;
 
-    Checkbox check_beta{
-        {0 * 8 + 2, 18 * 16 - 4},
-        6,
-        "Beta",
-        true /*small*/};
+    Labels labels{
+        {{2 * 8, 12 * 16}, "Filter Mode:", Color::light_grey()},
+        {{2 * 8, 13 * 16}, "Filter Addr:", Color::light_grey()},
+    };
 
     Checkbox check_log{
         {2 * 8, 2 * 16},
@@ -166,13 +170,15 @@ class POCSAGSettingsView : public View {
         22,
         "Hide Addr Only"};
 
-    Checkbox check_ignore{
-        {2 * 8, 12 * 16},
-        22,
-        "Enable Ignored Address"};
+    OptionsField opt_filter_mode{
+        {15 * 8, 12 * 16},
+        4,
+        {{"None", FILTER_NONE},
+         {"Drop", FILTER_DROP},
+         {"Keep", FILTER_KEEP}}};
 
-    SymField field_ignore{
-        {7 * 8, 13 * 16 + 8},
+    SymField field_filter_address{
+        {15 * 8, 13 * 16},
         7,
         SymField::Type::Dec,
         true /*explicit_edit*/};
@@ -194,7 +200,6 @@ class POCSAGAppView : public View {
     static constexpr uint32_t initial_target_frequency = 466'175'000;
     bool logging() const { return settings_.enable_logging; };
     bool logging_raw() const { return settings_.enable_raw_log; };
-    bool ignore() const { return settings_.enable_ignore; };
     bool hide_bad_data() const { return settings_.hide_bad_data; };
     bool hide_addr_only() const { return settings_.hide_addr_only; };
 
@@ -210,14 +215,14 @@ class POCSAGAppView : public View {
             {"small_font"sv, &settings_.enable_small_font},
             {"enable_logging"sv, &settings_.enable_logging},
             {"enable_raw_log"sv, &settings_.enable_raw_log},
-            {"enable_ignore"sv, &settings_.enable_ignore},
-            {"address_to_ignore"sv, &settings_.address_to_ignore},
+            {"filter_mode"sv, &settings_.filter_mode},
+            {"filter_address"sv, &settings_.filter_address},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
-            {"use_new_proc"sv, &settings_.use_new_proc},
         }};
 
     void refresh_ui();
+    bool ignore_address(uint32_t address) const;
     void handle_decoded(Timestamp timestamp, const std::string& prefix);
     void on_packet(const POCSAGPacketMessage* message);
     void on_stats(const POCSAGStatsMessage* stats);
@@ -273,9 +278,9 @@ class POCSAGAppView : public View {
     BaudIndicator widget_baud{
         {8 * 9 + 1, 1 * 16 + 2}};
 
-    Button button_ignore_last{
+    Button button_filter_last{
         {10 * 8, 1 * 16, 12 * 8, 20},
-        "Ignore Last"};
+        "Filter Last"};
 
     Button button_config{
         {22 * 8, 1 * 16, 8 * 8, 20},
