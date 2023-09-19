@@ -122,7 +122,6 @@ struct POCSAGSettings {
     bool hide_bad_data = false;
     bool hide_addr_only = false;
     uint32_t address_to_ignore = 0;
-    bool use_new_proc = false;
 };
 
 class POCSAGSettingsView : public View {
@@ -134,12 +133,6 @@ class POCSAGSettingsView : public View {
 
    private:
     POCSAGSettings& settings_;
-
-    Checkbox check_beta{
-        {0 * 8 + 2, 18 * 16 - 4},
-        6,
-        "Beta",
-        true /*small*/};
 
     Checkbox check_log{
         {2 * 8, 2 * 16},
@@ -214,7 +207,6 @@ class POCSAGAppView : public View {
             {"address_to_ignore"sv, &settings_.address_to_ignore},
             {"hide_bad_data"sv, &settings_.hide_bad_data},
             {"hide_addr_only"sv, &settings_.hide_addr_only},
-            {"use_new_proc"sv, &settings_.use_new_proc},
         }};
 
     void refresh_ui();

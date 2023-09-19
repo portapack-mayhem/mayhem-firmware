@@ -54,8 +54,7 @@ POCSAGSettingsView::POCSAGSettingsView(
     POCSAGSettings& settings)
     : settings_{settings} {
     add_children(
-        {&check_beta,
-         &check_log,
+        {&check_log,
          &check_log_raw,
          &check_small_font,
          &check_hide_bad,
@@ -64,7 +63,6 @@ POCSAGSettingsView::POCSAGSettingsView(
          &field_ignore,
          &button_save});
 
-    check_beta.set_value(settings_.use_new_proc);
     check_log.set_value(settings_.enable_logging);
     check_log_raw.set_value(settings_.enable_raw_log);
     check_small_font.set_value(settings_.enable_small_font);
@@ -75,7 +73,6 @@ POCSAGSettingsView::POCSAGSettingsView(
     field_ignore.set_value(settings_.address_to_ignore);
 
     button_save.on_select = [this, &nav](Button&) {
-        settings_.use_new_proc = check_beta.value();
         settings_.enable_logging = check_log.value();
         settings_.enable_raw_log = check_log_raw.value();
         settings_.enable_small_font = check_small_font.value();
@@ -90,10 +87,7 @@ POCSAGSettingsView::POCSAGSettingsView(
 
 POCSAGAppView::POCSAGAppView(NavigationView& nav)
     : nav_{nav} {
-    if (settings_.use_new_proc)
-        baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
-    else
-        baseband::run_image(portapack::spi_flash::image_tag_pocsag);
+    baseband::run_image(portapack::spi_flash::image_tag_pocsag2);
 
     add_children(
         {&rssi,
