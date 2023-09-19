@@ -44,6 +44,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         &field_vga,
         &option_bandwidth,
         &option_format,
+        &check_trim,
         &record_view,
         &waterfall,
     });

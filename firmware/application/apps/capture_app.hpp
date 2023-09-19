@@ -92,6 +92,12 @@ class CaptureAppView : public View {
         {{"C16", RecordView::FileType::RawS16},
          {"C8", RecordView::FileType::RawS8}}};
 
+    Checkbox check_trim{
+        {23 * 8, 1 * 16},
+        4,
+        "Trim",
+        /*small*/ true};
+
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
         u"BBD_????.*",
