@@ -32,8 +32,29 @@
 struct TrimRange {
     uint64_t start;
     uint64_t end;
+    uint64_t sample_count;
     uint64_t file_size;
     uint8_t sample_size;
+};
+
+struct PowerBuckets {
+    struct Bucket {
+        uint8_t power;
+    };
+
+    Bucket* p = nullptr;
+    size_t size = 0;
+
+    void add(size_t index) {
+        // This originally was meant to be an average power for the bucket,
+        // but it was a lot of extra math just for a little bit of UI and
+        // the math really slowed down processing. Instead, just count the
+        // number of samples above the threshold.
+        if (index < size) {
+            if (p[index].power < 255)
+                p[index].power++;
+        }
+    }
 };
 
 inline bool TrimFile(const std::filesystem::path& path, TrimRange range) {
@@ -51,7 +72,8 @@ class IQTrimmer {
    public:
     static Optional<TrimRange> ComputeTrimRange(
         const std::filesystem::path& path,
-        uint8_t amp_threshold,
+        uint8_t amp_threshold,  // 0 - 255
+        PowerBuckets* buckets,
         std::function<void(uint8_t)> on_progress) {
         TrimRange range{};
 
@@ -62,13 +84,22 @@ class IQTrimmer {
 
         constexpr size_t buffer_size = std::filesystem::max_file_block_size;
         uint8_t buffer[buffer_size];
+
         bool has_start = false;
+        size_t sample_index = 0;
         File::Offset offset = 0;
         uint8_t last_progress = 0;
+        size_t samples_per_bucket = 1;
+        // Scale from 0-255 to 0-max_mag_squared.
+        uint32_t threshold = (max_mag_squared * amp_threshold) / max_amp;
         T value{};
 
         range.file_size = f.size();
         range.sample_size = sizeof(T);
+        range.sample_count = range.file_size / range.sample_size;
+
+        if (buckets)
+            samples_per_bucket = std::max(1ULL, range.sample_count / buckets->size);
 
         while (true) {
             auto result = f.read(buffer, buffer_size);
@@ -76,23 +107,28 @@ class IQTrimmer {
             if (!result)
                 return {};
 
-            // TODO: Should be possible to compute amp array in same pass.
-
             for (size_t i = 0; i < *result; i += sizeof(T)) {
+                ++sample_index;
+
                 value = *reinterpret_cast<T*>(&buffer[i]);
                 auto real = value.real();
                 auto imag = value.imag();
-                auto mag_squared = (real * real) + (imag * imag);
+                uint32_t mag_squared = (real * real) + (imag * imag);
 
-                auto amp = (max_amp * mag_squared) / max_mag_squared;
-
-                if (amp >= amp_threshold) {
+                // Update range if above threshold.
+                if (mag_squared >= threshold) {
                     if (has_start) {
                         range.end = offset + i;
                     } else {
                         range.start = offset + i;
                         range.end = range.start;
                         has_start = true;
+                    }
+
+                    // Update the optional power bucket.
+                    if (buckets) {
+                        auto bucket_index = sample_index / samples_per_bucket;
+                        buckets->add(bucket_index);
                     }
                 }
             }
@@ -118,16 +154,17 @@ class IQTrimmer {
 inline Optional<TrimRange> ComputeTrimRange(
     const std::filesystem::path& path,
     uint8_t amp_threshold = 5,
+    PowerBuckets* buckets = nullptr,
     std::function<void(uint8_t)> on_progress = nullptr) {
     Optional<TrimRange> range;
     auto sample_size = std::filesystem::capture_file_sample_size(path);
 
     switch (sample_size) {
         case sizeof(complex16_t):
-            return IQTrimmer<complex16_t>::ComputeTrimRange(path, amp_threshold, on_progress);
+            return IQTrimmer<complex16_t>::ComputeTrimRange(path, amp_threshold, buckets, on_progress);
 
         case sizeof(complex8_t):
-            return IQTrimmer<complex8_t>::ComputeTrimRange(path, amp_threshold, on_progress);
+            return IQTrimmer<complex8_t>::ComputeTrimRange(path, amp_threshold, buckets, on_progress);
 
         default:
             return {};

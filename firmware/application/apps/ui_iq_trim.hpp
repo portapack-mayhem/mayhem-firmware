@@ -26,9 +26,43 @@
 #include "iq_trim.hpp"
 #include "ui.hpp"
 #include "ui_navigation.hpp"
+#include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
+#include <array>
+
 namespace ui {
+
+/* Helper for drawing progress related to IQ trimming. */
+/* TODO: Ideally this would all be done on second thread. */
+class TrimProgressUI {
+   public:
+    void show_reading() {
+        clear();
+        p.draw_string({6 * 8, 5 * 16}, Styles::yellow, "Reading Capture...");
+    }
+
+    void show_trimming() {
+        clear();
+        p.draw_string({5 * 8, 5 * 16}, Styles::yellow, "Trimming Capture...");
+    }
+
+    void show_progress(uint8_t percent) {
+        auto width = percent * screen_width / 100;
+        p.draw_hline({0, 6 * 16}, width, Color::yellow());
+    }
+
+    void clear() {
+        p.fill_rectangle({0 * 8, 4 * 16, screen_width, 3 * 16}, Color::black());
+    }
+
+    auto get_callback() {
+        return [this](uint8_t percent) { show_progress(percent); };
+    }
+
+   private:
+    Painter p{};
+};
 
 class IQTrimView : public View {
    public:
@@ -44,8 +78,9 @@ class IQTrimView : public View {
 
     std::filesystem::path path_{};
     TrimRange trim_range_{};
-    std::array<uint8_t, screen_width> amp_data_{};
+    std::array<PowerBuckets::Bucket, screen_width> power_buckets_{};
     uint8_t amp_threshold = 5;
+    TrimProgressUI progress_ui{};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Capture File:", Color::light_grey()},

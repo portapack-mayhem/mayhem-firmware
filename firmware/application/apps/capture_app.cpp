@@ -60,6 +60,10 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         record_view.set_file_type((RecordView::FileType)file_type);
     };
 
+    check_trim.on_select = [this](Checkbox&, bool v) {
+        record_view.set_auto_trim(v);
+    };
+
     freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
     option_bandwidth.on_change = [this](size_t, uint32_t bandwidth) {
         /* Nyquist would imply a sample rate of 2x bandwidth, but because the ADC
@@ -93,7 +97,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     receiver_model.enable();
-    option_bandwidth.set_by_value(500000);  // better by_value than by option_bandwidth.set_selected_index(4), Preselected default option 500kHz.
+    option_bandwidth.set_by_value(500000);
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);

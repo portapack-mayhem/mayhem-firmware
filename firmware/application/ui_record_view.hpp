@@ -22,12 +22,13 @@
 #ifndef __UI_RECORD_VIEW_H__
 #define __UI_RECORD_VIEW_H__
 
+#include "ui_iq_trim.hpp"
 #include "ui_widget.hpp"
 
-#include "capture_thread.hpp"
-#include "signal.hpp"
-
 #include "bitmap.hpp"
+#include "capture_thread.hpp"
+#include "iq_trim.hpp"
+#include "signal.hpp"
 
 #include <cstddef>
 #include <string>
@@ -63,6 +64,7 @@ class RecordView : public View {
     uint32_t set_sampling_rate(uint32_t new_sampling_rate);
 
     void set_file_type(const FileType v) { file_type = v; }
+    void set_auto_trim(bool v) { auto_trim = v; }
 
     void start();
     void stop();
@@ -78,6 +80,7 @@ class RecordView : public View {
 
     void on_tick_second();
     void update_status_display();
+    void trim_capture();
 
     void handle_capture_thread_done(const File::Error error);
     void handle_error(const File::Error error);
@@ -97,6 +100,10 @@ class RecordView : public View {
     const size_t buffer_count;
     uint32_t sampling_rate{0};
     SignalToken signal_token_tick_second{};
+
+    bool auto_trim = false;
+    std::filesystem::path trim_path{};
+    TrimProgressUI trim_ui{};
 
     Rectangle rect_background{
         Color::black()};

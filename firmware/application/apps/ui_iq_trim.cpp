@@ -24,7 +24,6 @@
 #include "complex.hpp"
 #include "portapack.hpp"
 #include "ui_fileman.hpp"
-#include "ui_styles.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -49,27 +48,30 @@ IQTrimView::IQTrimView(NavigationView& nav) {
         };
     };
 
-    button_trim.on_select = [this](Button&) {
+    button_trim.on_select = [this, &nav](Button&) {
         if (!path_.empty() && trim_range_.file_size > 0) {
+            progress_ui.show_trimming();
             TrimFile(path_, trim_range_);
             read_capture(path_);
             refresh_ui();
+        } else {
+            nav.display_modal("Error", "Select a file first.");
         }
     };
 }
 
 void IQTrimView::paint(Painter& painter) {
-    painter.fill_rectangle({pos_lines, {screen_width, height_lines}}, Color::dark_grey());
-
     if (!path_.empty()) {
-        for (size_t i = 0; i < amp_data_.size(); ++i) {
-            auto amp = amp_data_[i];
+        // Draw power buckets.
+        for (size_t i = 0; i < power_buckets_.size(); ++i) {
+            auto amp = power_buckets_[i].power;
             painter.draw_vline(
                 pos_lines + Point{(int)i, 0},
                 height_lines,
                 Color(amp, amp, amp));
         }
 
+        // Draw trim range edges.
         int start_x = screen_width * trim_range_.start / trim_range_.file_size;
         int end_x = screen_width * trim_range_.end / trim_range_.file_size;
 
@@ -95,15 +97,14 @@ void IQTrimView::refresh_ui() {
 }
 
 bool IQTrimView::read_capture(const fs::path& path) {
-    auto on_progress = [](uint8_t p) {
-        Painter painter;
-        auto width = p * screen_width / 100;
-        painter.fill_rectangle({0, 4 * 16, screen_width, 3 * 16}, Color::black());
-        painter.draw_string({6 * 8, 5 * 16}, Styles::yellow, "Reading Capture...");
-        painter.draw_hline({0, 6 * 16}, width, Color::yellow());
-    };
+    power_buckets_ = {};
+    PowerBuckets buckets{
+        .p = power_buckets_.data(),
+        .size = power_buckets_.size()};
 
-    auto range = ComputeTrimRange(path, amp_threshold, on_progress);
+    progress_ui.show_reading();
+    auto range = ComputeTrimRange(path, amp_threshold, &buckets, progress_ui.get_callback());
+    progress_ui.clear();
 
     if (range) {
         trim_range_ = *range;
