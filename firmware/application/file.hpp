@@ -173,6 +173,9 @@ uint8_t capture_file_sample_size(const path& filename);
 
 using file_status = BYTE;
 
+/* The largest block that can be read/written to a file. */
+constexpr uint16_t max_file_block_size = 512;
+
 static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
 static_assert(sizeof(path::value_type) == sizeof(TCHAR), "FatFs TCHAR size != std::filesystem::path::value_type");
 
@@ -262,6 +265,7 @@ struct FATTimestamp {
     uint16_t FAT_time;
 };
 
+std::filesystem::filesystem_error trim_file(const std::filesystem::path& file_path, uint64_t start, uint64_t length);
 std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);

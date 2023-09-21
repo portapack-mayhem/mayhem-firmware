@@ -163,6 +163,7 @@ void RecordView::start() {
 
     text_record_filename.set("");
     text_record_dropped.set("");
+    trim_path = {};
 
     if (sampling_rate == 0) {
         return;
@@ -217,7 +218,8 @@ void RecordView::start() {
             }
 
             auto p = std::make_unique<FileConvertWriter>();
-            auto create_error = p->create(base_path.replace_extension((file_type == FileType::RawS8) ? u".C8" : u".C16"));
+            trim_path = base_path.replace_extension((file_type == FileType::RawS8) ? u".C8" : u".C16");
+            auto create_error = p->create(trim_path);
             if (create_error.is_valid()) {
                 handle_error(create_error.value());
             } else {
@@ -257,6 +259,7 @@ void RecordView::stop() {
     if (is_active()) {
         capture_thread.reset();
         button_record.set_bitmap(&bitmap_record);
+        trim_capture();
     }
 
     update_status_display();
@@ -297,6 +300,26 @@ void RecordView::update_status_display() {
             to_string_dec_uint(seconds, 2, '0');
         text_time_available.set(available_time);
     }
+}
+
+void RecordView::trim_capture() {
+    if (file_type != FileType::WAV && auto_trim && !trim_path.empty()) {
+        trim_ui.show_reading();
+        auto range = ComputeTrimRange(
+            trim_path,
+            /*threshold*/ 5,
+            /*power array*/ nullptr,
+            trim_ui.get_callback());
+
+        if (range) {
+            trim_ui.show_trimming();
+            TrimFile(trim_path, *range);
+        }
+
+        trim_ui.clear();
+    }
+
+    trim_path = {};
 }
 
 void RecordView::handle_capture_thread_done(const File::Error error) {

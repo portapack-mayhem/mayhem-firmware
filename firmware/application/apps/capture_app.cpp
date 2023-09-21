@@ -44,6 +44,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
         &field_vga,
         &option_bandwidth,
         &option_format,
+        &check_trim,
         &record_view,
         &waterfall,
     });
@@ -57,6 +58,10 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     option_format.set_selected_index(0);  // Default to C16
     option_format.on_change = [this](size_t, uint32_t file_type) {
         record_view.set_file_type((RecordView::FileType)file_type);
+    };
+
+    check_trim.on_select = [this](Checkbox&, bool v) {
+        record_view.set_auto_trim(v);
     };
 
     freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
@@ -92,7 +97,7 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 
     receiver_model.enable();
-    option_bandwidth.set_by_value(500000);  // better by_value than by option_bandwidth.set_selected_index(4), Preselected default option 500kHz.
+    option_bandwidth.set_by_value(500000);
 
     record_view.on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
