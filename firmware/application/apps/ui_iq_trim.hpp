@@ -79,12 +79,13 @@ class IQTrimView : public View {
     std::filesystem::path path_{};
     TrimRange trim_range_{};
     std::array<PowerBuckets::Bucket, screen_width> power_buckets_{};
-    uint8_t amp_threshold = 5;
+    uint32_t amp_threshold = 512;
     TrimProgressUI progress_ui{};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Capture File:", Color::light_grey()},
         {{0 * 8, 6 * 16}, "Range:", Color::light_grey()},
+        {{0 * 8, 7 * 16}, "Threshold:", Color::light_grey()},
     };
 
     TextField field_path{
@@ -98,8 +99,15 @@ class IQTrimView : public View {
         {7 * 8, 6 * 16, 20 * 8, 1 * 16},
         {}};
 
+    NumberField field_threshold{
+        {11 * 8, 7 * 16},
+        3,
+        {1, 256 * 256},
+        1,
+        ' '};
+
     Button button_trim{
-        {11 * 8, 9 * 16, 8 * 8, 3 * 16},
+        {11 * 8, 10 * 16, 8 * 8, 3 * 16},
         "Trim"};
 };
 

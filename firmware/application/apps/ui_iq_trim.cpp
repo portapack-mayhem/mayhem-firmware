@@ -35,6 +35,7 @@ IQTrimView::IQTrimView(NavigationView& nav) {
         &labels,
         &field_path,
         &text_range,
+        &field_threshold,
         &button_trim,
     });
 
@@ -46,6 +47,11 @@ IQTrimView::IQTrimView(NavigationView& nav) {
             path_ = std::move(path);
             refresh_ui();
         };
+    };
+
+    field_threshold.set_value(amp_threshold);
+    field_threshold.on_change = [this](uint32_t v) {
+        amp_threshold = v;
     };
 
     button_trim.on_select = [this, &nav](Button&) {
@@ -92,7 +98,7 @@ void IQTrimView::focus() {
 
 void IQTrimView::refresh_ui() {
     field_path.set_text(path_.filename().string());
-    text_range.set(to_string_dec_uint(trim_range_.start) + "-" + to_string_dec_uint(trim_range_.end));
+    text_range.set(to_string_dec_uint(trim_range_.start) + "-" + to_string_dec_uint(trim_range_.end) + "  " + to_string_dec_uint(trim_range_.max_value));
     set_dirty();
 }
 

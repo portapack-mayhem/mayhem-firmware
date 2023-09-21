@@ -34,6 +34,7 @@ struct TrimRange {
     uint64_t end;
     uint64_t sample_count;
     uint64_t file_size;
+    uint32_t max_value;
     uint8_t sample_size;
 };
 
@@ -72,7 +73,7 @@ class IQTrimmer {
    public:
     static Optional<TrimRange> ComputeTrimRange(
         const std::filesystem::path& path,
-        uint8_t amp_threshold,  // 0 - 255
+        uint32_t amp_threshold,
         PowerBuckets* buckets,
         std::function<void(uint8_t)> on_progress) {
         TrimRange range{};
@@ -91,7 +92,7 @@ class IQTrimmer {
         uint8_t last_progress = 0;
         size_t samples_per_bucket = 1;
         // Scale from 0-255 to 0-max_mag_squared.
-        uint32_t threshold = (max_mag_squared * amp_threshold) / max_amp;
+        uint32_t threshold = (static_cast<uint64_t>(max_mag_squared) * amp_threshold) / max_amp;
         T value{};
 
         range.file_size = f.size();
@@ -114,6 +115,9 @@ class IQTrimmer {
                 auto real = value.real();
                 auto imag = value.imag();
                 uint32_t mag_squared = (real * real) + (imag * imag);
+
+                if (mag_squared > range.max_value)
+                    range.max_value = mag_squared;
 
                 // Update range if above threshold.
                 if (mag_squared >= threshold) {
@@ -153,7 +157,7 @@ class IQTrimmer {
 
 inline Optional<TrimRange> ComputeTrimRange(
     const std::filesystem::path& path,
-    uint8_t amp_threshold = 5,
+    uint32_t amp_threshold,
     PowerBuckets* buckets = nullptr,
     std::function<void(uint8_t)> on_progress = nullptr) {
     Optional<TrimRange> range;
