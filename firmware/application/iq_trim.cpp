@@ -22,6 +22,8 @@
 #include "iq_trim.hpp"
 
 #include <memory>
+#include "debug.hpp"
+#include "string_format.hpp"
 
 namespace fs = std::filesystem;
 
@@ -93,7 +95,7 @@ bool trim_capture(
     uint32_t cutoff,
     const std::function<void(uint8_t)>& on_progress) {
     constexpr size_t buffer_size = std::filesystem::max_file_block_size;
-    uint8_t buffer[buffer_size];
+    uint8_t buffer[buffer_size]{};
     auto temp_path = file_path + u"-tmp";
 
     // These need to be heap allocated to avoid overflowing the stack.
@@ -127,6 +129,9 @@ bool trim_capture(
             if (mag_squared >= cutoff) {
                 start_offset = offset + i;
                 found_start = true;
+                DEBUG_LOG("FOUND START AT " + to_string_dec_uint(start_offset));
+                DEBUG_LOG("START == " + to_string_dec_uint(mag_squared));
+                DEBUG_LOG("CUTOFF = " + to_string_dec_uint(cutoff));
                 break;
             }
         }
@@ -179,6 +184,9 @@ bool trim_capture(
     // Now trim off the end of the output file.
     // NB: end_offset should be included in trimmed file, so add sizeof(T).
     auto length = (end_offset - start_offset) + sizeof(T);
+    DEBUG_LOG("FOUND END AT " + to_string_dec_uint(end_offset));
+    DEBUG_LOG("LENGTH " + to_string_dec_uint(length));
+
     dst->seek(length);
     dst->truncate();
 

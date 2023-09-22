@@ -49,8 +49,8 @@ struct CaptureInfo {
 /* Holds sample average power by bucket. */
 struct PowerBuckets {
     struct Bucket {
-        uint32_t power;
-        uint8_t count;
+        uint32_t power = 0;
+        uint8_t count = 0;
     };
 
     Bucket* p = nullptr;

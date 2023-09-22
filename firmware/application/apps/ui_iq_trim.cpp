@@ -198,7 +198,7 @@ bool IQTrimView::trim_capture() {
         }
 
         progress_ui.show_trimming();
-        trimmed = iq::trim_capture_with_cutoff(path_, power_cutoff_, nullptr);
+        trimmed = iq::trim_capture_with_cutoff(path_, power_cutoff_, progress_ui.get_callback());
         progress_ui.clear();
 
     } else {
