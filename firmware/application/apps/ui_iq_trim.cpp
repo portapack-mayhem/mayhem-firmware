@@ -34,8 +34,10 @@ IQTrimView::IQTrimView(NavigationView& nav) {
     add_children({
         &labels,
         &field_path,
-        &text_range,
-        &field_threshold,
+        &text_start,
+        &text_end,
+        &text_max,
+        &field_cutoff,
         &button_trim,
     });
 
@@ -49,9 +51,11 @@ IQTrimView::IQTrimView(NavigationView& nav) {
         };
     };
 
-    field_threshold.set_value(amp_threshold);
-    field_threshold.on_change = [this](uint32_t v) {
-        amp_threshold = v;
+    field_cutoff.set_value(power_cutoff);
+    field_cutoff.on_change = [this](SymField& f) {
+        power_cutoff = f.to_integer();
+        compute_range();
+        refresh_ui(); 
     };
 
     button_trim.on_select = [this, &nav](Button&) {
@@ -67,10 +71,15 @@ IQTrimView::IQTrimView(NavigationView& nav) {
 }
 
 void IQTrimView::paint(Painter& painter) {
-    if (!path_.empty()) {
+    if (info_) {
         // Draw power buckets.
         for (size_t i = 0; i < power_buckets_.size(); ++i) {
-            auto amp = power_buckets_[i].power;
+            auto power = power_buckets_[i].power;
+            uint8_t amp = 0;
+
+            if (power > power_cutoff && info_->max_power > 0)
+                amp = (255ULL * power) / info_->max_power;
+
             painter.draw_vline(
                 pos_lines + Point{(int)i, 0},
                 height_lines,
@@ -78,8 +87,8 @@ void IQTrimView::paint(Painter& painter) {
         }
 
         // Draw trim range edges.
-        int start_x = screen_width * trim_range_.start / trim_range_.file_size;
-        int end_x = screen_width * trim_range_.end / trim_range_.file_size;
+        int start_x = screen_width * trim_range_.start / info_->file_size;
+        int end_x = screen_width * trim_range_.end / info_->file_size;
 
         painter.draw_vline(
             pos_lines + Point{start_x, 0},
@@ -96,28 +105,51 @@ void IQTrimView::focus() {
     field_path.focus();
 }
 
+void IQTrimView::compute_range() {
+    bool has_start = false;
+    uint8_t start = 0;
+    uint8_t end = 0;
+
+    for (size_t i = 0; i < power_buckets_.size(); ++i) {
+        auto power = power_buckets_[i].power;
+
+        if (power > power_cutoff) {
+            if (has_start)
+                end = i;
+            else {
+                start = i;
+                end = i;
+                has_start = true;
+            }
+        }
+    }
+
+    auto bytes_per_bucket = info_->sample_size * info_->sample_count / power_buckets_.size();
+    trim_range_.start = start * bytes_per_bucket;
+    trim_range_.end = end * bytes_per_bucket;
+}
+
 void IQTrimView::refresh_ui() {
     field_path.set_text(path_.filename().string());
-    text_range.set(to_string_dec_uint(trim_range_.start) + "-" + to_string_dec_uint(trim_range_.end) + "  " + to_string_dec_uint(trim_range_.max_value));
+    text_start.set(to_string_dec_uint(trim_range_.start));
+    text_end.set(to_string_dec_uint(trim_range_.end));
+    text_max.set(to_string_dec_uint(info_->max_power));
     set_dirty();
 }
 
-bool IQTrimView::read_capture(const fs::path& path) {
+void IQTrimView::read_capture(const fs::path& path) {
     power_buckets_ = {};
     PowerBuckets buckets{
         .p = power_buckets_.data(),
         .size = power_buckets_.size()};
 
-    progress_ui.show_reading();
-    auto range = ComputeTrimRange(path, amp_threshold, &buckets, progress_ui.get_callback());
+    progress_ui.show_profiling();
+    info_ = ProfileCapture(path, buckets.size * 10, &buckets);
     progress_ui.clear();
 
-    if (range) {
-        trim_range_ = *range;
-        return true;
-    } else {
-        trim_range_ = {};
-        return false;
+    if (info_) {
+        auto _5pct = info_->max_power / 20;
+        field_cutoff.set_value(_5pct);
     }
 }
 
