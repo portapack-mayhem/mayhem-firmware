@@ -38,11 +38,6 @@ namespace ui {
 /* TODO: Ideally this would all be done on second thread. */
 class TrimProgressUI {
    public:
-    void show_profiling() {
-        clear();
-        p.draw_string({5 * 8, 5 * 16}, Styles::yellow, "Profiling Capture...");
-    }
-
     void show_reading() {
         clear();
         p.draw_string({6 * 8, 5 * 16}, Styles::yellow, "Reading Capture...");
@@ -79,23 +74,41 @@ class IQTrimView : public View {
     void focus() override;
 
    private:
+    /* Update controls with latest values. */
     void refresh_ui();
+
+    /* Update the start/end controls with capture info. */
+    void update_range_controls();
+
+    /* Determine the start and end buckets based on the cutoff. */
     void compute_range();
-    void read_capture(const std::filesystem::path& path);
+
+    /* Collect capture info and samples to draw the UI. */
+    void profile_capture();
+
+    /* Trims the capture file based on the settings. */
+    bool trim_capture();
+
+    enum class TrimMode : uint8_t {
+        Cutoff,
+        Range,
+    };
+
+    NavigationView& nav_;
 
     std::filesystem::path path_{};
-    TrimRange trim_range_{};
     Optional<CaptureInfo> info_{};
     std::array<PowerBuckets::Bucket, screen_width> power_buckets_{};
     uint32_t power_cutoff = 0;
     TrimProgressUI progress_ui{};
+    TrimMode mode_ = TrimMode::Cutoff;
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Capture File:", Color::light_grey()},
         {{0 * 8, 6 * 16}, "Start  :", Color::light_grey()},
         {{0 * 8, 7 * 16}, "End    :", Color::light_grey()},
         {{0 * 8, 8 * 16}, "Max Pwr:", Color::light_grey()},
-        {{0 * 8, 9 * 16}, "Cutoff :", Color::light_grey()},
+        {{0 * 8, 9 * 16}, "Cutoff%:", Color::light_grey()},
     };
 
     TextField field_path{
@@ -105,24 +118,33 @@ class IQTrimView : public View {
     Point pos_lines{0 * 8, 4 * 16};
     Dim height_lines{2 * 16};
 
-    Text text_start{
-        {9 * 8, 6 * 16, 20 * 8, 1 * 16},
-        {}};
+    NumberField field_start{
+        {9 * 8, 6 * 16},
+        10,
+        {0, 0},
+        1,
+        ' '};
 
-    Text text_end{
-        {9 * 8, 7 * 16, 20 * 8, 1 * 16},
-        {}};
-    
+    NumberField field_end{
+        {9 * 8, 7 * 16},
+        10,
+        {0, 0},
+        1,
+        ' '};
+
     Text text_max{
         {9 * 8, 8 * 16, 20 * 8, 1 * 16},
-        {}};
+        "0"};
 
-    SymField field_cutoff{
+    NumberField field_cutoff{
         {9 * 8, 9 * 16},
-        8};
+        3,
+        {1, 100},
+        1,
+        ' '};
 
     Button button_trim{
-        {11 * 8, 12 * 16, 8 * 8, 3 * 16},
+        {20 * 8, 16 * 16, 8 * 8, 2 * 16},
         "Trim"};
 };
 

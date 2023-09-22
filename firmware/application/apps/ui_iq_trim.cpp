@@ -30,12 +30,13 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
-IQTrimView::IQTrimView(NavigationView& nav) {
+IQTrimView::IQTrimView(NavigationView& nav)
+    : nav_{nav} {
     add_children({
         &labels,
         &field_path,
-        &text_start,
-        &text_end,
+        &field_start,
+        &field_end,
         &text_max,
         &field_cutoff,
         &button_trim,
@@ -45,27 +46,39 @@ IQTrimView::IQTrimView(NavigationView& nav) {
         auto open_view = nav.push<FileLoadView>(".C*");
         open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
-            read_capture(path);
             path_ = std::move(path);
+            profile_capture();
             refresh_ui();
         };
     };
 
-    field_cutoff.set_value(power_cutoff);
-    field_cutoff.on_change = [this](SymField& f) {
-        power_cutoff = f.to_integer();
+    text_max.set_style(&Styles::light_grey);
+
+    field_start.on_change = [this](int32_t v) {
+        mode_ = TrimMode::Range;
+        if (field_end.value() < v)
+            field_end.set_value(v, false);
+        set_dirty();
+    };
+
+    field_end.on_change = [this](int32_t v) {
+        mode_ = TrimMode::Range;
+        if (field_start.value() > v)
+            field_start.set_value(v, false);
+        set_dirty();
+    };
+
+    field_cutoff.set_value(7);  // 7% of max is a good default.
+    field_cutoff.on_change = [this](int32_t) {
+        mode_ = TrimMode::Cutoff;
         compute_range();
-        refresh_ui(); 
+        refresh_ui();
     };
 
     button_trim.on_select = [this, &nav](Button&) {
-        if (!path_.empty() && trim_range_.file_size > 0) {
-            progress_ui.show_trimming();
-            TrimFile(path_, trim_range_);
-            read_capture(path_);
+        if (trim_capture()) {
+            profile_capture();
             refresh_ui();
-        } else {
-            nav.display_modal("Error", "Select a file first.");
         }
     };
 }
@@ -87,8 +100,8 @@ void IQTrimView::paint(Painter& painter) {
         }
 
         // Draw trim range edges.
-        int start_x = screen_width * trim_range_.start / info_->file_size;
-        int end_x = screen_width * trim_range_.end / info_->file_size;
+        int start_x = screen_width * field_start.value() / info_->sample_count;
+        int end_x = screen_width * field_end.value() / info_->sample_count;
 
         painter.draw_vline(
             pos_lines + Point{start_x, 0},
@@ -105,10 +118,32 @@ void IQTrimView::focus() {
     field_path.focus();
 }
 
+void IQTrimView::refresh_ui() {
+    field_path.set_text(path_.filename().string());
+    text_max.set(to_string_dec_uint(info_->max_power));
+    update_range_controls();
+    set_dirty();
+}
+
+void IQTrimView::update_range_controls() {
+    auto max_range = info_ ? info_->sample_count : 0;
+    auto step = info_ ? info_->sample_count / screen_width : 0;
+
+    field_start.set_range(0, max_range);
+    field_start.set_step(step);
+    field_end.set_range(0, max_range);
+    field_end.set_step(step);
+}
+
 void IQTrimView::compute_range() {
+    if (!info_)
+        return;
+
     bool has_start = false;
     uint8_t start = 0;
     uint8_t end = 0;
+
+    power_cutoff = (static_cast<uint64_t>(field_cutoff.value()) * info_->max_power) / 100;
 
     for (size_t i = 0; i < power_buckets_.size(); ++i) {
         auto power = power_buckets_[i].power;
@@ -124,33 +159,65 @@ void IQTrimView::compute_range() {
         }
     }
 
-    auto bytes_per_bucket = info_->sample_size * info_->sample_count / power_buckets_.size();
-    trim_range_.start = start * bytes_per_bucket;
-    trim_range_.end = end * bytes_per_bucket;
+    // NB: update_range_controls must have been called first.
+    auto samples_per_bucket = info_->sample_count / power_buckets_.size();
+    field_start.set_value(start * samples_per_bucket, false);
+    field_end.set_value(end * samples_per_bucket, false);
 }
 
-void IQTrimView::refresh_ui() {
-    field_path.set_text(path_.filename().string());
-    text_start.set(to_string_dec_uint(trim_range_.start));
-    text_end.set(to_string_dec_uint(trim_range_.end));
-    text_max.set(to_string_dec_uint(info_->max_power));
-    set_dirty();
-}
-
-void IQTrimView::read_capture(const fs::path& path) {
+void IQTrimView::profile_capture() {
     power_buckets_ = {};
     PowerBuckets buckets{
         .p = power_buckets_.data(),
         .size = power_buckets_.size()};
 
-    progress_ui.show_profiling();
-    info_ = ProfileCapture(path, buckets.size * 10, &buckets);
+    progress_ui.show_reading();
+    info_ = ProfileCapture(path_, buckets.size * 10, &buckets);
     progress_ui.clear();
 
-    if (info_) {
-        auto _5pct = info_->max_power / 20;
-        field_cutoff.set_value(_5pct);
+    mode_ = TrimMode::Cutoff;
+    update_range_controls();
+    compute_range();
+}
+
+bool IQTrimView::trim_capture() {
+    if (!info_) {
+        nav_.display_modal("Error", "Open a file first.");
+        return false;
     }
+
+    bool trimmed = false;
+
+    if (mode_ == TrimMode::Cutoff) {
+        if (power_cutoff == 0 || power_cutoff > info_->max_power) {
+            nav_.display_modal("Error", "Invalid power cutoff.");
+            return false;
+        }
+
+        progress_ui.show_trimming();
+        trimmed = TrimCapture(path_, power_cutoff, progress_ui.get_callback());
+        progress_ui.clear();
+
+    } else {
+        TrimRange trim_range{
+            static_cast<uint32_t>(field_start.value()),
+            static_cast<uint32_t>(field_end.value()),
+            info_->sample_size};
+
+        if (trim_range.start_sample >= trim_range.end_sample) {
+            nav_.display_modal("Error", "Invalid trimming range.");
+            return false;
+        }
+
+        progress_ui.show_trimming();
+        trimmed = TrimCapture(path_, trim_range);
+        progress_ui.clear();
+    }
+
+    if (!trimmed)
+        nav_.display_modal("Error", "Trimming failed.");
+
+    return trimmed;
 }
 
 }  // namespace ui
