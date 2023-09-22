@@ -97,9 +97,9 @@ class IQTrimView : public View {
     NavigationView& nav_;
 
     std::filesystem::path path_{};
-    Optional<CaptureInfo> info_{};
-    std::array<PowerBuckets::Bucket, screen_width> power_buckets_{};
-    uint32_t power_cutoff = 0;
+    Optional<iq::CaptureInfo> info_{};
+    std::array<iq::PowerBuckets::Bucket, screen_width> power_buckets_{};
+    uint32_t power_cutoff_ = 0;
     TrimProgressUI progress_ui{};
     TrimMode mode_ = TrimMode::Cutoff;
 
@@ -107,8 +107,10 @@ class IQTrimView : public View {
         {{0 * 8, 0 * 16}, "Capture File:", Color::light_grey()},
         {{0 * 8, 6 * 16}, "Start  :", Color::light_grey()},
         {{0 * 8, 7 * 16}, "End    :", Color::light_grey()},
-        {{0 * 8, 8 * 16}, "Max Pwr:", Color::light_grey()},
-        {{0 * 8, 9 * 16}, "Cutoff%:", Color::light_grey()},
+        {{0 * 8, 8 * 16}, "Samples:", Color::light_grey()},
+        {{0 * 8, 9 * 16}, "Max Pwr:", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Cutoff :", Color::light_grey()},
+        {{12 * 8, 10 * 16}, "%", Color::light_grey()},
     };
 
     TextField field_path{
@@ -132,12 +134,16 @@ class IQTrimView : public View {
         1,
         ' '};
 
+    Text text_samples{
+        {9 * 8, 8 * 16, 10 * 8, 1 * 16},
+        "0"};
+
     Text text_max{
-        {9 * 8, 8 * 16, 20 * 8, 1 * 16},
+        {9 * 8, 9 * 16, 10 * 8, 1 * 16},
         "0"};
 
     NumberField field_cutoff{
-        {9 * 8, 9 * 16},
+        {9 * 8, 10 * 16},
         3,
         {1, 100},
         1,

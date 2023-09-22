@@ -302,6 +302,7 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 #define FR_BAD_SEEK (0x102)
 #define FR_UNEXPECTED (0x103)
 
+/* NOTE: sizeof(File) == 556 bytes because of the FIL's buf member. */
 class File {
    public:
     using Size = uint64_t;

@@ -37,13 +37,14 @@ IQTrimView::IQTrimView(NavigationView& nav)
         &field_path,
         &field_start,
         &field_end,
+        &text_samples,
         &text_max,
         &field_cutoff,
         &button_trim,
     });
 
-    field_path.on_select = [this, &nav](TextField&) {
-        auto open_view = nav.push<FileLoadView>(".C*");
+    field_path.on_select = [this](TextField&) {
+        auto open_view = nav_.push<FileLoadView>(".C*");
         open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
             path_ = std::move(path);
@@ -52,6 +53,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
         };
     };
 
+    text_samples.set_style(&Styles::light_grey);
     text_max.set_style(&Styles::light_grey);
 
     field_start.on_change = [this](int32_t v) {
@@ -75,7 +77,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
         refresh_ui();
     };
 
-    button_trim.on_select = [this, &nav](Button&) {
+    button_trim.on_select = [this](Button&) {
         if (trim_capture()) {
             profile_capture();
             refresh_ui();
@@ -90,7 +92,7 @@ void IQTrimView::paint(Painter& painter) {
             auto power = power_buckets_[i].power;
             uint8_t amp = 0;
 
-            if (power > power_cutoff && info_->max_power > 0)
+            if (power > power_cutoff_ && info_->max_power > 0)
                 amp = (255ULL * power) / info_->max_power;
 
             painter.draw_vline(
@@ -120,6 +122,7 @@ void IQTrimView::focus() {
 
 void IQTrimView::refresh_ui() {
     field_path.set_text(path_.filename().string());
+    text_samples.set(to_string_dec_uint(info_->sample_count));
     text_max.set(to_string_dec_uint(info_->max_power));
     update_range_controls();
     set_dirty();
@@ -143,12 +146,12 @@ void IQTrimView::compute_range() {
     uint8_t start = 0;
     uint8_t end = 0;
 
-    power_cutoff = (static_cast<uint64_t>(field_cutoff.value()) * info_->max_power) / 100;
+    power_cutoff_ = (static_cast<uint64_t>(field_cutoff.value()) * info_->max_power) / 100;
 
     for (size_t i = 0; i < power_buckets_.size(); ++i) {
         auto power = power_buckets_[i].power;
 
-        if (power > power_cutoff) {
+        if (power > power_cutoff_) {
             if (has_start)
                 end = i;
             else {
@@ -167,12 +170,12 @@ void IQTrimView::compute_range() {
 
 void IQTrimView::profile_capture() {
     power_buckets_ = {};
-    PowerBuckets buckets{
+    iq::PowerBuckets buckets{
         .p = power_buckets_.data(),
         .size = power_buckets_.size()};
 
     progress_ui.show_reading();
-    info_ = ProfileCapture(path_, buckets.size * 10, &buckets);
+    info_ = iq::profile_capture(path_, buckets.size * 10, &buckets);
     progress_ui.clear();
 
     mode_ = TrimMode::Cutoff;
@@ -189,17 +192,17 @@ bool IQTrimView::trim_capture() {
     bool trimmed = false;
 
     if (mode_ == TrimMode::Cutoff) {
-        if (power_cutoff == 0 || power_cutoff > info_->max_power) {
+        if (power_cutoff_ == 0 || power_cutoff_ > info_->max_power) {
             nav_.display_modal("Error", "Invalid power cutoff.");
             return false;
         }
 
         progress_ui.show_trimming();
-        trimmed = TrimCapture(path_, power_cutoff, progress_ui.get_callback());
+        trimmed = iq::trim_capture_with_cutoff(path_, power_cutoff_, nullptr);
         progress_ui.clear();
 
     } else {
-        TrimRange trim_range{
+        iq::TrimRange trim_range{
             static_cast<uint32_t>(field_start.value()),
             static_cast<uint32_t>(field_end.value()),
             info_->sample_size};
@@ -210,7 +213,7 @@ bool IQTrimView::trim_capture() {
         }
 
         progress_ui.show_trimming();
-        trimmed = TrimCapture(path_, trim_range);
+        trimmed = iq::trim_capture_with_range(path_, trim_range);
         progress_ui.clear();
     }
 

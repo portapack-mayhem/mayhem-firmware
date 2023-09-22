@@ -305,12 +305,12 @@ void RecordView::update_status_display() {
 void RecordView::trim_capture() {
     if (file_type != FileType::WAV && auto_trim && !trim_path.empty()) {
         trim_ui.show_reading();
-        auto info = ProfileCapture(trim_path);
+        auto info = iq::profile_capture(trim_path);
 
         if (info) {
             auto cutoff = info->max_power / 16ULL;  // ~6.25% max.
             trim_ui.show_trimming();
-            TrimCapture(trim_path, cutoff, trim_ui.get_callback());
+            iq::trim_capture_with_cutoff(trim_path, cutoff, trim_ui.get_callback());
         }
 
         trim_ui.clear();

@@ -280,6 +280,7 @@ std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::
 }
 
 std::filesystem::filesystem_error trim_file(const std::filesystem::path& file_path, uint64_t start, uint64_t length) {
+    // NB: between this buffer and the two Files, this needs ~1.5kb RAM.
     constexpr size_t buffer_size = std::filesystem::max_file_block_size;
     uint8_t buffer[buffer_size];
     auto temp_path = file_path + u"-tmp";
