@@ -80,28 +80,21 @@ class IQTrimView : public View {
     /* Update the start/end controls with capture info. */
     void update_range_controls();
 
-    /* Determine the start and end buckets based on the cutoff. */
-    void compute_range();
-
     /* Collect capture info and samples to draw the UI. */
     void profile_capture();
 
+    /* Determine the start and end buckets based on the cutoff. */
+    void compute_range();
+
     /* Trims the capture file based on the settings. */
     bool trim_capture();
-
-    enum class TrimMode : uint8_t {
-        Cutoff,
-        Range,
-    };
 
     NavigationView& nav_;
 
     std::filesystem::path path_{};
     Optional<iq::CaptureInfo> info_{};
     std::array<iq::PowerBuckets::Bucket, screen_width> power_buckets_{};
-    uint32_t power_cutoff_ = 0;
     TrimProgressUI progress_ui{};
-    TrimMode mode_ = TrimMode::Cutoff;
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Capture File:", Color::light_grey()},

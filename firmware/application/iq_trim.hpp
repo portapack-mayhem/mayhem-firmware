@@ -31,13 +31,6 @@
 
 namespace iq {
 
-/* Data needed to trim a capture by sample range. */
-struct TrimRange {
-    uint64_t start_sample;
-    uint64_t end_sample;
-    uint8_t sample_size;
-};
-
 /* Information about a capture. */
 struct CaptureInfo {
     uint64_t file_size;
@@ -54,9 +47,9 @@ struct PowerBuckets {
     };
 
     Bucket* p = nullptr;
-    size_t size = 0;
+    const size_t size = 0;
 
-    /* Add the power to the bucket at index. */
+    /* Add the power to the bucket average at index. */
     void add(size_t index, uint32_t power) {
         if (index < size) {
             auto& b = p[index];
@@ -68,19 +61,30 @@ struct PowerBuckets {
     }
 };
 
+/* Data needed to trim a capture by sample range. */
+struct TrimRange {
+    uint64_t start_sample;
+    uint64_t end_sample;
+    uint8_t sample_size;
+};
+
 /* Collects capture file metadata and samples power buckets. */
 Optional<CaptureInfo> profile_capture(
     const std::filesystem::path& path,
-    uint16_t profile_samples = 2'400,
-    PowerBuckets* buckets = nullptr);
+    PowerBuckets& buckets,
+    uint8_t samples_per_bucket = 10);
+
+/* Computes the trimming range given profiling info.
+ * Cutoff percent is a number 1-100. */
+TrimRange compute_trim_range(
+    CaptureInfo info,
+    const PowerBuckets& buckets,
+    uint8_t cutoff_percent);
 
 /* Trims the capture file with the specified range. */
-bool trim_capture_with_range(const std::filesystem::path& path, TrimRange range);
-
-/* Trims the capture file with the specified power cutoff. */
-bool trim_capture_with_cutoff(
+bool trim_capture_with_range(
     const std::filesystem::path& path,
-    uint32_t cutoff,
+    TrimRange range,
     const std::function<void(uint8_t)>& on_progress);
 
 }  // namespace iq

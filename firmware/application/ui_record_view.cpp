@@ -36,6 +36,7 @@ using namespace portapack;
 #include "utility.hpp"
 
 #include <cstdint>
+#include <vector>
 
 namespace ui {
 
@@ -304,13 +305,20 @@ void RecordView::update_status_display() {
 
 void RecordView::trim_capture() {
     if (file_type != FileType::WAV && auto_trim && !trim_path.empty()) {
+        std::vector<iq::PowerBuckets::Bucket> buckets(size_t(255), iq::PowerBuckets::Bucket{});;
+        iq::PowerBuckets power_buckets{
+            .p = &buckets[0],
+            .size = buckets.size()};
+
         trim_ui.show_reading();
-        auto info = iq::profile_capture(trim_path);
+        auto info = iq::profile_capture(trim_path, power_buckets);
 
         if (info) {
-            auto cutoff = info->max_power / 16ULL;  // ~6.25% max.
+            // 7% - decent trimming without being too aggressive.
+            auto trim_range = iq::compute_trim_range(*info, power_buckets, 7);
+
             trim_ui.show_trimming();
-            iq::trim_capture_with_cutoff(trim_path, cutoff, trim_ui.get_callback());
+            iq::trim_capture_with_range(trim_path, trim_range, trim_ui.get_callback());
         }
 
         trim_ui.clear();

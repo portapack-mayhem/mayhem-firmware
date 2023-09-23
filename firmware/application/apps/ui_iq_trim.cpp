@@ -57,14 +57,12 @@ IQTrimView::IQTrimView(NavigationView& nav)
     text_max.set_style(&Styles::light_grey);
 
     field_start.on_change = [this](int32_t v) {
-        mode_ = TrimMode::Range;
         if (field_end.value() < v)
             field_end.set_value(v, false);
         set_dirty();
     };
 
     field_end.on_change = [this](int32_t v) {
-        mode_ = TrimMode::Range;
         if (field_start.value() > v)
             field_start.set_value(v, false);
         set_dirty();
@@ -72,7 +70,6 @@ IQTrimView::IQTrimView(NavigationView& nav)
 
     field_cutoff.set_value(7);  // 7% of max is a good default.
     field_cutoff.on_change = [this](int32_t) {
-        mode_ = TrimMode::Cutoff;
         compute_range();
         refresh_ui();
     };
@@ -87,12 +84,14 @@ IQTrimView::IQTrimView(NavigationView& nav)
 
 void IQTrimView::paint(Painter& painter) {
     if (info_) {
+        uint32_t power_cutoff = field_cutoff.value() * static_cast<uint64_t>(info_->max_power) / 100;
+
         // Draw power buckets.
         for (size_t i = 0; i < power_buckets_.size(); ++i) {
             auto power = power_buckets_[i].power;
             uint8_t amp = 0;
 
-            if (power > power_cutoff_ && info_->max_power > 0)
+            if (power > power_cutoff && info_->max_power > 0)
                 amp = (255ULL * power) / info_->max_power;
 
             painter.draw_vline(
@@ -138,36 +137,6 @@ void IQTrimView::update_range_controls() {
     field_end.set_step(step);
 }
 
-void IQTrimView::compute_range() {
-    if (!info_)
-        return;
-
-    bool has_start = false;
-    uint8_t start = 0;
-    uint8_t end = 0;
-
-    power_cutoff_ = (static_cast<uint64_t>(field_cutoff.value()) * info_->max_power) / 100;
-
-    for (size_t i = 0; i < power_buckets_.size(); ++i) {
-        auto power = power_buckets_[i].power;
-
-        if (power > power_cutoff_) {
-            if (has_start)
-                end = i;
-            else {
-                start = i;
-                end = i;
-                has_start = true;
-            }
-        }
-    }
-
-    // NB: update_range_controls must have been called first.
-    auto samples_per_bucket = info_->sample_count / power_buckets_.size();
-    field_start.set_value(start * samples_per_bucket, false);
-    field_end.set_value(end * samples_per_bucket, false);
-}
-
 void IQTrimView::profile_capture() {
     power_buckets_ = {};
     iq::PowerBuckets buckets{
@@ -175,12 +144,25 @@ void IQTrimView::profile_capture() {
         .size = power_buckets_.size()};
 
     progress_ui.show_reading();
-    info_ = iq::profile_capture(path_, buckets.size * 10, &buckets);
+    info_ = iq::profile_capture(path_, buckets);
     progress_ui.clear();
 
-    mode_ = TrimMode::Cutoff;
     update_range_controls();
     compute_range();
+}
+
+void IQTrimView::compute_range() {
+    if (!info_)
+        return;
+
+    iq::PowerBuckets buckets{
+        .p = power_buckets_.data(),
+        .size = power_buckets_.size()};
+    auto trim_range = iq::compute_trim_range(*info_, buckets, field_cutoff.value());
+
+    // NB: update_range_controls must have been called first.
+    field_start.set_value(trim_range.start_sample, false);
+    field_end.set_value(trim_range.end_sample, false);
 }
 
 bool IQTrimView::trim_capture() {
@@ -190,32 +172,19 @@ bool IQTrimView::trim_capture() {
     }
 
     bool trimmed = false;
+    iq::TrimRange trim_range{
+        static_cast<uint32_t>(field_start.value()),
+        static_cast<uint32_t>(field_end.value()),
+        info_->sample_size};
 
-    if (mode_ == TrimMode::Cutoff) {
-        if (power_cutoff_ == 0 || power_cutoff_ > info_->max_power) {
-            nav_.display_modal("Error", "Invalid power cutoff.");
-            return false;
-        }
-
-        progress_ui.show_trimming();
-        trimmed = iq::trim_capture_with_cutoff(path_, power_cutoff_, progress_ui.get_callback());
-        progress_ui.clear();
-
-    } else {
-        iq::TrimRange trim_range{
-            static_cast<uint32_t>(field_start.value()),
-            static_cast<uint32_t>(field_end.value()),
-            info_->sample_size};
-
-        if (trim_range.start_sample >= trim_range.end_sample) {
-            nav_.display_modal("Error", "Invalid trimming range.");
-            return false;
-        }
-
-        progress_ui.show_trimming();
-        trimmed = iq::trim_capture_with_range(path_, trim_range);
-        progress_ui.clear();
+    if (trim_range.start_sample >= trim_range.end_sample) {
+        nav_.display_modal("Error", "Invalid trimming range.");
+        return false;
     }
+
+    progress_ui.show_trimming();
+    trimmed = iq::trim_capture_with_range(path_, trim_range, progress_ui.get_callback());
+    progress_ui.clear();
 
     if (!trimmed)
         nav_.display_modal("Error", "Trimming failed.");

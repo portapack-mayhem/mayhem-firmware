@@ -279,47 +279,6 @@ std::vector<std::filesystem::path> scan_root_directories(const std::filesystem::
     return directory_list;
 }
 
-std::filesystem::filesystem_error trim_file(const std::filesystem::path& file_path, uint64_t start, uint64_t length) {
-    // NB: between this buffer and the two Files, this needs ~1.5kb RAM.
-    constexpr size_t buffer_size = std::filesystem::max_file_block_size;
-    uint8_t buffer[buffer_size];
-    auto temp_path = file_path + u"-tmp";
-
-    /* Scope for File instances. */
-    {
-        File src;
-        File dst;
-
-        auto error = src.open(file_path);
-        if (error) return error.value();
-
-        error = dst.create(temp_path);
-        if (error) return error.value();
-
-        src.seek(start);
-        auto remaining = length;
-
-        while (true) {
-            auto result = src.read(buffer, buffer_size);
-            if (result.is_error()) return result.error();
-
-            auto to_write = std::min(remaining, *result);
-
-            result = dst.write(buffer, to_write);
-            if (result.is_error()) return result.error();
-
-            remaining -= *result;
-
-            if (*result < buffer_size || remaining == 0)
-                break;
-        }
-    }
-
-    // Delete original and overwrite with temp file.
-    delete_file(file_path);
-    return rename_file(temp_path, file_path);
-}
-
 std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path) {
     return {f_unlink(reinterpret_cast<const TCHAR*>(file_path.c_str()))};
 }
