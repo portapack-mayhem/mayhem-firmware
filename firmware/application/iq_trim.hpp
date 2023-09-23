@@ -61,7 +61,8 @@ struct PowerBuckets {
     }
 };
 
-/* Data needed to trim a capture by sample range. */
+/* Data needed to trim a capture by sample range.
+ * end_sample is the sample *after* the last to keep. */
 struct TrimRange {
     uint64_t start_sample;
     uint64_t end_sample;

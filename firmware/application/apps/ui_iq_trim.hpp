@@ -77,8 +77,8 @@ class IQTrimView : public View {
     /* Update controls with latest values. */
     void refresh_ui();
 
-    /* Update the start/end controls with capture info. */
-    void update_range_controls();
+    /* Update the start/end controls with trim range info. */
+    void update_range_controls(iq::TrimRange trim_range);
 
     /* Collect capture info and samples to draw the UI. */
     void profile_capture();

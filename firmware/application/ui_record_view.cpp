@@ -304,8 +304,12 @@ void RecordView::update_status_display() {
 }
 
 void RecordView::trim_capture() {
+    using bucket_t = iq::PowerBuckets::Bucket;
+
     if (file_type != FileType::WAV && auto_trim && !trim_path.empty()) {
-        std::vector<iq::PowerBuckets::Bucket> buckets(size_t(255), iq::PowerBuckets::Bucket{});;
+        // Need to heap alloc the buckets in this case. The large static buffer overflows the stack.
+        std::vector<bucket_t> buckets(size_t(255), bucket_t{});
+        ;
         iq::PowerBuckets power_buckets{
             .p = &buckets[0],
             .size = buckets.size()};

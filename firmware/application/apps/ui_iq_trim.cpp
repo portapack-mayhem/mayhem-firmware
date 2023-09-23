@@ -49,6 +49,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
         open_view->on_changed = [this](fs::path path) {
             path_ = std::move(path);
             profile_capture();
+            compute_range();
             refresh_ui();
         };
     };
@@ -77,6 +78,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
     button_trim.on_select = [this](Button&) {
         if (trim_capture()) {
             profile_capture();
+            compute_range();
             refresh_ui();
         }
     };
@@ -123,11 +125,10 @@ void IQTrimView::refresh_ui() {
     field_path.set_text(path_.filename().string());
     text_samples.set(to_string_dec_uint(info_->sample_count));
     text_max.set(to_string_dec_uint(info_->max_power));
-    update_range_controls();
     set_dirty();
 }
 
-void IQTrimView::update_range_controls() {
+void IQTrimView::update_range_controls(iq::TrimRange trim_range) {
     auto max_range = info_ ? info_->sample_count : 0;
     auto step = info_ ? info_->sample_count / screen_width : 0;
 
@@ -135,6 +136,9 @@ void IQTrimView::update_range_controls() {
     field_start.set_step(step);
     field_end.set_range(0, max_range);
     field_end.set_step(step);
+
+    field_start.set_value(trim_range.start_sample, false);
+    field_end.set_value(trim_range.end_sample, false);
 }
 
 void IQTrimView::profile_capture() {
@@ -146,9 +150,6 @@ void IQTrimView::profile_capture() {
     progress_ui.show_reading();
     info_ = iq::profile_capture(path_, buckets);
     progress_ui.clear();
-
-    update_range_controls();
-    compute_range();
 }
 
 void IQTrimView::compute_range() {
@@ -160,9 +161,7 @@ void IQTrimView::compute_range() {
         .size = power_buckets_.size()};
     auto trim_range = iq::compute_trim_range(*info_, buckets, field_cutoff.value());
 
-    // NB: update_range_controls must have been called first.
-    field_start.set_value(trim_range.start_sample, false);
-    field_end.set_value(trim_range.end_sample, false);
+    update_range_controls(trim_range);
 }
 
 bool IQTrimView::trim_capture() {

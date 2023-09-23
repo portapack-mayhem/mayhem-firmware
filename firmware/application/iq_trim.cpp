@@ -102,7 +102,6 @@ TrimRange compute_trim_range(
     CaptureInfo info,
     const PowerBuckets& buckets,
     uint8_t cutoff_percent) {
-
     bool has_start = false;
     uint8_t start_bucket = 0;
     uint8_t end_bucket = 0;
@@ -123,12 +122,15 @@ TrimRange compute_trim_range(
         }
     }
 
+    // End should be the first bucket after the last with signal.
+    // This makes the math downstream simpler. NB: may be > buckets.size.
+    end_bucket++;
+
     auto samples_per_bucket = info.sample_count / buckets.size;
     return {
         start_bucket * samples_per_bucket,
         end_bucket * samples_per_bucket,
-        info.sample_size
-    };
+        info.sample_size};
 }
 
 bool trim_capture_with_range(
@@ -139,8 +141,9 @@ bool trim_capture_with_range(
     uint8_t buffer[buffer_size];
     auto temp_path = path + u"-tmp";
 
+    // end_sample is the first sample to _not_ include.
     auto start_byte = range.start_sample * range.sample_size;
-    auto end_byte = (range.end_sample + 1) * range.sample_size;
+    auto end_byte = (range.end_sample * range.sample_size);
     auto length = end_byte - start_byte;
 
     // 'File' is 556 bytes! Heap alloc to avoid overflowing the stack.
@@ -154,23 +157,29 @@ bool trim_capture_with_range(
     if (error) return false;
 
     src->seek(start_byte);
-    auto remaining = length;
+    auto processed = 0UL;
+    auto next_report = 0UL;
+    auto report_interval = length / 20UL;
 
     while (true) {
         auto result = src->read(buffer, buffer_size);
         if (result.is_error()) return false;
 
+        auto remaining = length - processed;
         auto to_write = std::min(remaining, *result);
 
         result = dst->write(buffer, to_write);
         if (result.is_error()) return false;
 
-        remaining -= *result;
+        processed += *result;
 
-        if (*result < buffer_size || remaining == 0)
+        if (*result < buffer_size || processed >= length)
             break;
 
-        on_progress(100 * (length - remaining) / length);
+        if (processed >= next_report) {
+            on_progress(100 * processed / length);
+            next_report += report_interval;
+        }
     }
 
     // Close files before renaming/deleting.
