@@ -1987,6 +1987,9 @@ void SymField::set_value(uint64_t value) {
         value_[i] = uint_to_char(temp, radix);
         v /= radix;
     }
+
+    if (on_change)
+        on_change(*this);
 }
 
 void SymField::set_value(std::string_view value) {
