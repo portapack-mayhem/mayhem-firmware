@@ -23,6 +23,8 @@
 #define __UI_CALCULATOR_H__
 
 #include "ui_navigation.hpp"
+#include "event_m0.hpp"
+#include "message.hpp"
 
 namespace ui::external_app::calculator {
 
@@ -35,6 +37,7 @@ class CalculatorView : public View {
     std::string title() const override { return "Calculator"; };
 
     void paint(Painter& painter) override;
+    void frame_sync();
 
    private:
     NavigationView& nav_;
@@ -47,6 +50,12 @@ class CalculatorView : public View {
     // Button button_run{
     //     {9 * 8, 15 * 16, 12 * 8, 3 * 16},
     //     "Run"};
+
+    MessageHandlerRegistration message_handler_sample{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->frame_sync();
+        }};
 };
 
 }  // namespace ui::external_app::calculator
