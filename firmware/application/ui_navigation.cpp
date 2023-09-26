@@ -96,6 +96,7 @@
 
 #include "core_control.hpp"
 #include "file.hpp"
+#include "file_reader.hpp"
 #include "png_writer.hpp"
 
 using portapack::receiver_model;
@@ -407,14 +408,17 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 }
 
 void NavigationView::pop() {
-    pop(true);
-}
+    // Don't pop of the NavView.
+    if (view_stack.size() <= 1)
+        return;
 
-void NavigationView::pop_modal() {
-    // Pop modal view + underlying app view.
-    // TODO: this shouldn't be necessary.
-    pop(false);
-    pop(true);
+    auto& on_pop = view_stack.back().on_pop;
+
+    free_view();
+    view_stack.pop_back();
+    update_view();
+
+    if (on_pop) on_pop();
 }
 
 void NavigationView::display_modal(
@@ -428,29 +432,7 @@ void NavigationView::display_modal(
     const std::string& message,
     const modal_t type,
     const std::function<void(bool)> on_choice) {
-    /* If a modal view is already visible, don't display another */
-    if (!modal_view) {
-        modal_view = push<ModalMessageView>(title, message, type, on_choice);
-    }
-}
-
-void NavigationView::pop(bool update) {
-    if (view() == modal_view) {
-        modal_view = nullptr;
-    }
-
-    // Can't pop last item from stack.
-    if (view_stack.size() > 1) {
-        auto on_pop = view_stack.back().on_pop;
-
-        free_view();
-        view_stack.pop_back();
-
-        if (update)
-            update_view();
-
-        if (on_pop) on_pop();
-    }
+    push<ModalMessageView>(title, message, type, on_choice);
 }
 
 void NavigationView::free_view() {
@@ -458,17 +440,17 @@ void NavigationView::free_view() {
 }
 
 void NavigationView::update_view() {
-    const auto new_view = view_stack.back().view.get();
+    const auto& top = view_stack.back();
+    auto top_view = top.view.get();
 
-    add_child(new_view);
-    new_view->set_parent_rect({{0, 0}, size()});
+    add_child(top_view);
+    top_view->set_parent_rect({{0, 0}, size()});
 
     focus();
     set_dirty();
 
-    if (on_view_changed) {
-        on_view_changed(*new_view);
-    }
+    if (on_view_changed)
+        on_view_changed(*top_view);
 }
 
 Widget* NavigationView::view() const {
@@ -476,9 +458,8 @@ Widget* NavigationView::view() const {
 }
 
 void NavigationView::focus() {
-    if (view()) {
+    if (view())
         view()->focus();
-    }
 }
 
 bool NavigationView::set_on_pop(std::function<void()> on_pop) {
@@ -761,13 +742,11 @@ ModalMessageView::ModalMessageView(
       on_choice_{on_choice} {
     if (type == INFO) {
         add_child(&button_ok);
-
         button_ok.on_select = [this, &nav](Button&) {
-            if (on_choice_)
-                on_choice_(true);  // Assumes handler will pop.
-            else
-                nav.pop();
+            if (on_choice_) on_choice_(true);
+            nav.pop();
         };
+
     } else if (type == YESNO) {
         add_children({&button_yes,
                       &button_no});
@@ -780,6 +759,7 @@ ModalMessageView::ModalMessageView(
             if (on_choice_) on_choice_(false);
             nav.pop();
         };
+
     } else if (type == YESCANCEL) {
         add_children({&button_yes,
                       &button_no});
@@ -789,37 +769,32 @@ ModalMessageView::ModalMessageView(
             nav.pop();
         };
         button_no.on_select = [this, &nav](Button&) {
-            // if (on_choice_) on_choice_(false);
-            nav.pop_modal();
+            if (on_choice_) on_choice_(false);
+            nav.pop();
         };
+
     } else {  // ABORT
         add_child(&button_ok);
 
         button_ok.on_select = [this, &nav](Button&) {
             if (on_choice_) on_choice_(true);
-            nav.pop_modal();
+            nav.pop();  // Pop the modal.
+            nav.pop();  // Pop the underlying view.
         };
     }
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    size_t pos, i = 0, start = 0;
-
     portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
 
-    // Break on lines.
-    while ((pos = message_.find("\n", start)) != std::string::npos) {
+    // Break lines.
+    auto lines = split_string(message_, '\n');
+    for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
             {1 * 8, (Coord)(120 + (i * 16))},
             style(),
-            message_.substr(start, pos - start));
-        i++;
-        start = pos + 1;
+            lines[i]);
     }
-    painter.draw_string(
-        {1 * 8, (Coord)(120 + (i * 16))},
-        style(),
-        message_.substr(start, pos));
 }
 
 void ModalMessageView::focus() {

@@ -413,16 +413,9 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.on_open() = [this]() {
-        /*show_save_prompt([this]() {
+        show_save_prompt([this]() {
             show_file_picker();
-        });*/
-        // HACK: above should work but it's faulting.
-        if (!file_dirty_) {
-            show_file_picker();
-        } else {
-            show_save_prompt(nullptr);
-            show_file_picker(false);
-        }
+        });
     };
 
     menu.on_save() = [this]() {
@@ -530,16 +523,12 @@ void TextEditorView::hide_menu(bool hidden) {
     set_dirty();
 }
 
-void TextEditorView::show_file_picker(bool immediate) {
-    // TODO: immediate is a hack until nav_.on_pop is fixed.
-    auto open_view = immediate ? nav_.push<FileLoadView>("") : nav_.push_under_current<FileLoadView>("");
-
-    if (open_view) {
-        open_view->on_changed = [this](std::filesystem::path path) {
-            open_file(path);
-            hide_menu();
-        };
-    }
+void TextEditorView::show_file_picker() {
+    auto open_view = nav_.push<FileLoadView>("");
+    open_view->on_changed = [this](std::filesystem::path path) {
+        open_file(path);
+        hide_menu();
+    };
 }
 
 void TextEditorView::show_edit_line() {

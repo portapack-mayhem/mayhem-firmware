@@ -108,14 +108,17 @@ bool partner_file_prompt(
     if (partner.empty())
         return false;
 
-    nav.push_under_current<ModalMessageView>(
-        "Partner File",
-        partner.filename().string() + "\n" + action_name + " this file too?",
-        YESNO,
-        [&nav, partner, on_partner_action](bool choice) {
-            if (on_partner_action)
-                on_partner_action(partner, choice);
-        });
+    // Display the continuation UI once the current has been popped.
+    nav.set_on_pop([&nav, partner, action_name, on_partner_action] {
+        nav.display_modal(
+            "Partner File",
+            partner.filename().string() + "\n" + action_name + " this file too?",
+            YESNO,
+            [&nav, partner, on_partner_action](bool choice) {
+                if (on_partner_action)
+                    on_partner_action(partner, choice);
+            });
+    });
 
     return true;
 }

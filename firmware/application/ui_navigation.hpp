@@ -73,15 +73,6 @@ class NavigationView : public View {
         return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
     }
 
-    // Pushes a new view under the current on the stack so the current view returns into this new one.
-    template <class T, class... Args>
-    T* push_under_current(Args&&... args) {
-        auto new_view = std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...));
-        auto new_view_ptr = new_view.get();
-        view_stack.insert(view_stack.end() - 1, ViewState{std::move(new_view), {}});
-        return reinterpret_cast<T*>(new_view_ptr);
-    }
-
     template <class T, class... Args>
     T* replace(Args&&... args) {
         pop();
@@ -90,9 +81,7 @@ class NavigationView : public View {
 
     void push(View* v);
     void replace(View* v);
-
     void pop();
-    void pop_modal();
 
     void display_modal(const std::string& title, const std::string& message);
     void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
@@ -110,11 +99,9 @@ class NavigationView : public View {
     };
 
     std::vector<ViewState> view_stack{};
-    Widget* modal_view{nullptr};
 
     Widget* view() const;
 
-    void pop(bool update);
     void free_view();
     void update_view();
     View* push_view(std::unique_ptr<View> new_view);
