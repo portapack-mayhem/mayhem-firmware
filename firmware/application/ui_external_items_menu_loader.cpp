@@ -23,7 +23,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-                 if ((uint32_t)application_information->memory_location != 0x10088000)
+                 if ((uint32_t)application_information->memory_location != 0x10080000)
                      chDbgPanic("memory_location");
 
                  if (application_information->location != app_location)
@@ -67,7 +67,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-                 if ((uint32_t)application_information->memory_location != 0x10088000)
+                 if ((uint32_t)application_information->memory_location != 0x10080000)
                      chDbgPanic("memory_location");
 
                  if (application_information->location != app_location)

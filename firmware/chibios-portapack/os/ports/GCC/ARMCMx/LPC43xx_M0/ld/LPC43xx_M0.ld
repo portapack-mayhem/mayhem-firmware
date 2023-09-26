@@ -28,7 +28,7 @@ MEMORY
 
     /* external apps: regions can't overlap so adresses are corrected after build */
     ram_external_app_pacman     (rwx) : org = 0xEEE90000, len = 40k
-    ram_external_app_calculator (rwx) : org = 0xEEE91000, len = 40k
+    ram_external_app_calculator (rwx) : org = 0xEEEA0000, len = 40k
 }
 
 __ram_start__           = ORIGIN(ram);

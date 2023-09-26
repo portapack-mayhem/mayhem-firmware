@@ -32,7 +32,7 @@ include(CheckCXXCompilerFlag)
 project(application)
 
 # Compiler options here.
-set(USE_OPT "-Os -g --specs=nano.specs")
+set(USE_OPT "-Os -g --specs=nano.specs -specs=nosys.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -321,7 +321,7 @@ set(CPPSRC
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
-	
+
 	ui_external_items_menu_loader.cpp
 
 	ext/pacman/entry.c
@@ -482,9 +482,9 @@ add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
-	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_pacman.bin ${PROJECT_NAME}_ext_pacman_patched.bin 0xEEE90000 0x10088000
+	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_pacman.bin ${PROJECT_NAME}_ext_pacman_patched.bin 0xEEE90000 0x10080000
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_calculator.bin --only-section=.external_app_calculator
-	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_calculator.bin ${PROJECT_NAME}_ext_calculator_patched.bin 0xEEE91000 0x10088000
+	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_calculator.bin ${PROJECT_NAME}_ext_calculator_patched.bin 0xEEEA0000 0x10080000
 	DEPENDS ${PROJECT_NAME}.elf
 )
 

@@ -2,6 +2,10 @@
 
 namespace ui::external_app::pacman {
 
+#include "playfield.hpp"
+
+Playfield _game;
+
 PacmanView::PacmanView(NavigationView& nav)
     : nav_(nav) {
     add_children({&labels,
@@ -31,7 +35,11 @@ void PacmanView::focus() {
 }
 
 void PacmanView::paint(Painter& painter) {
-    View::paint(painter);
+    // View::paint(painter);
+}
+
+void PacmanView::frame_sync() {
+    _game.Step();
 }
 
 }  // namespace ui::external_app::pacman

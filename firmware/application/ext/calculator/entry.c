@@ -31,4 +31,4 @@ __attribute__((section(".external_app.app_calculator.ExternalAppEntry_calculator
 __attribute__((section(".external_app.app_calculator.application_information"))) application_information_t _application_information_calculator = {
     0,
     ExternalAppEntry_calculator,
-    /*&__flash_start__ */ (void*)0x10088000};
+    /*&__flash_start__ */ (void*)0x10080000};

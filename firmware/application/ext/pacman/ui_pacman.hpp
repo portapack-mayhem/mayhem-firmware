@@ -23,6 +23,8 @@
 #define __UI_PACMAN_H__
 
 #include "ui_navigation.hpp"
+#include "event_m0.hpp"
+#include "message.hpp"
 
 namespace ui::external_app::pacman {
 
@@ -35,9 +37,11 @@ class PacmanView : public View {
     std::string title() const override { return "Pacman"; };
 
     void paint(Painter& painter) override;
+    void frame_sync();
 
    private:
     NavigationView& nav_;
+
     bool is_blue = false;
     Labels labels{
         {{3 * 8, 2 * 16}, "Click Run to start the", Color::white()},
@@ -47,6 +51,12 @@ class PacmanView : public View {
     Button button_run{
         {9 * 8, 15 * 16, 12 * 8, 3 * 16},
         "Run"};
+
+    MessageHandlerRegistration message_handler_sample{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->frame_sync();
+        }};
 };
 
 }  // namespace ui::external_app::pacman

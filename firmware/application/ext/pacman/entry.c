@@ -31,4 +31,4 @@ __attribute__((section(".external_app.app_pacman.ExternalAppEntry_pacman"))) voi
 __attribute__((section(".external_app.app_pacman.application_information"))) application_information_t _application_information_pacman = {
     0,
     ExternalAppEntry_pacman,
-    /*&__flash_start__ */ (void*)0x10088000};
+    /*&__flash_start__ */ (void*)0x10080000};
