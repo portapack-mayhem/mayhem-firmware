@@ -273,9 +273,8 @@ FrequencyKeypadView::FrequencyKeypadView(
     };
 
     button_close.on_select = [this, &nav](Button&) {
-        if (on_changed) {
+        if (on_changed)
             on_changed(this->value());
-        }
         nav.pop();
     };
 

@@ -189,8 +189,8 @@ FileManBaseView::FileManBaseView(
                   &text_current,
                   &button_exit});
 
-    button_exit.on_select = [this, &nav](Button&) {
-        nav.pop();
+    button_exit.on_select = [this](Button&) {
+        nav_.pop();
     };
 
     if (!sdcIsCardInserted(&SDCD1)) {
@@ -325,9 +325,9 @@ FileLoadView::FileLoadView(
         if (get_selected_entry().is_directory) {
             push_dir(get_selected_entry().path);
         } else {
-            nav_.pop();
             if (on_changed)
                 on_changed(get_selected_full_path());
+            nav_.pop();
         }
     };
 }
