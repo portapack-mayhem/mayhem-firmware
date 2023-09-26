@@ -252,8 +252,8 @@ class TextEditorView : public View {
     bool has_temp_file_{false};
 
     TextViewer viewer{
-        /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */
-        {0, 0, 240, 272}};
+        /* 272 = screen_height - 16 (top bar) - 32 (bottom controls) */
+        {0, 0, screen_width, 272}};
 
     TextEditorMenu menu{};
 

@@ -35,7 +35,7 @@ namespace ui {
 
 void SSTVTXView::focus() {
     if (file_error)
-        nav_.display_modal("No files", "No valid bitmaps\nin /sstv directory.", ABORT, nullptr);
+        nav_.display_modal("No files", "No valid bitmaps\nin /sstv directory.", ABORT);
     else
         options_bitmaps.focus();
 }

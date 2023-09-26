@@ -430,8 +430,8 @@ void NavigationView::display_modal(
 void NavigationView::display_modal(
     const std::string& title,
     const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice) {
+    modal_t type,
+    std::function<void(bool)> on_choice) {
     push<ModalMessageView>(title, message, type, on_choice);
 }
 

@@ -84,7 +84,11 @@ class NavigationView : public View {
     void pop();
 
     void display_modal(const std::string& title, const std::string& message);
-    void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
+    void display_modal(
+        const std::string& title,
+        const std::string& message,
+        modal_t type,
+        std::function<void(bool)> on_choice = nullptr);
 
     void focus() override;
 

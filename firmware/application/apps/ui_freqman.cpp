@@ -92,9 +92,9 @@ void FreqManBaseView::focus() {
 
     // TODO: Shouldn't be on focus.
     if (error_ == ERROR_ACCESS) {
-        nav_.display_modal("Error", "File access error", ABORT, nullptr);
+        nav_.display_modal("Error", "File access error", ABORT);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT, nullptr);
+        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT);
     } else {
         options_category.focus();
     }

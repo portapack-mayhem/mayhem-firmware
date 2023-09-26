@@ -29,14 +29,6 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
-namespace {
-/*void log(const std::string& msg) {
-    LogFile log{};
-    log.append("LOGS/Notepad.txt");
-    log.write_entry(msg);
-}*/
-}  // namespace
-
 namespace ui {
 
 /* TextViewer *******************************************************/
@@ -526,8 +518,12 @@ void TextEditorView::hide_menu(bool hidden) {
 void TextEditorView::show_file_picker() {
     auto open_view = nav_.push<FileLoadView>("");
     open_view->on_changed = [this](std::filesystem::path path) {
-        open_file(path);
-        hide_menu();
+        // Can't update the UI focus while the FileLoadView is still up.
+        // Do this on a continuation instead of in on_changed.
+        nav_.set_on_pop([this, p = std::move(path)]() {
+            open_file(p);
+            hide_menu();
+        });
     };
 }
 
