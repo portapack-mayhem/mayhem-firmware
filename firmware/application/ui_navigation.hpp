@@ -90,6 +90,7 @@ class NavigationView : public View {
 
     void push(View* v);
     void replace(View* v);
+    View* push_view(std::unique_ptr<View> new_view);
 
     void pop();
     void pop_modal();
@@ -117,7 +118,6 @@ class NavigationView : public View {
     void pop(bool update);
     void free_view();
     void update_view();
-    View* push_view(std::unique_ptr<View> new_view);
 };
 
 /* Holds widgets and grows dynamically toward the left.

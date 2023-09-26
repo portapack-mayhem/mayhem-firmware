@@ -321,6 +321,16 @@ set(CPPSRC
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
+	
+	ui_external_items_menu_loader.cpp
+
+	ext/pacman/entry.c
+	ext/pacman/main.cpp
+	ext/pacman/ui_pacman.cpp
+	
+	ext/calculator/entry.c
+	ext/calculator/main.cpp
+	ext/calculator/ui_calculator.cpp
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -470,7 +480,11 @@ target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
-	COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
+	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
+	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
+	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_pacman.bin ${PROJECT_NAME}_ext_pacman_patched.bin 0xEEE90000 0x10088000
+	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_calculator.bin --only-section=.external_app_calculator
+	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_calculator.bin ${PROJECT_NAME}_ext_calculator_patched.bin 0xEEE91000 0x10088000
 	DEPENDS ${PROJECT_NAME}.elf
 )
 

@@ -80,6 +80,7 @@
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
@@ -574,6 +575,10 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
         {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav)) {
+        add_item(gridItem);
+    };
 
     set_max_rows(2);  // allow wider buttons
 }

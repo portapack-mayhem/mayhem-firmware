@@ -25,6 +25,10 @@ MEMORY
 {
     flash (rx)  : org = 0x00000000, len = 1024k /* SPIFI flash @ 0x140????? */
     ram   (rwx) : org = 0x20000000, len = 64k   /* AHB SRAM @ 0x20000000 */
+
+    /* external apps: regions can't overlap so adresses are corrected after build */
+    ram_external_app_pacman     (rwx) : org = 0xEEE90000, len = 40k
+    ram_external_app_calculator (rwx) : org = 0xEEE91000, len = 40k
 }
 
 __ram_start__           = ORIGIN(ram);
@@ -32,6 +36,29 @@ __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;
 
 ENTRY(ResetHandler)
+
+
+SECTIONS /* external apps */
+{
+    .external_app_pacman : ALIGN(16) SUBALIGN(16)
+    {
+        KEEP(*(.external_app.app_pacman.application_information));
+        KEEP(*(.text.external_app.app_pacman));
+        *(*external_app*app_pacman);
+        *(*external_app*app_pacman*);
+        *(*ui*external_app*pacman*);
+    } > ram_external_app_pacman
+
+    .external_app_calculator : ALIGN(16) SUBALIGN(16)
+    {
+        KEEP(*(.external_app.app_calculator.application_information));
+        KEEP(*(.text.external_app.app_calculator));
+        *(*external_app*app_calculator);
+        *(*external_app*app_calculator*);
+        *(*ui*external_app*calculator*);
+    } > ram_external_app_calculator
+}
+
 
 SECTIONS
 {
@@ -142,7 +169,8 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         PROVIDE(_bss_end = .);
-    } > ram    
+    } > ram
+
 }
 
 PROVIDE(end = .);
