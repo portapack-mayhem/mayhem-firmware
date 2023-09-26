@@ -407,7 +407,7 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     return p;
 }
 
-void NavigationView::pop() {
+void NavigationView::pop(bool trigger_update) {
     // Don't pop of the NavView.
     if (view_stack.size() <= 1)
         return;
@@ -416,7 +416,8 @@ void NavigationView::pop() {
 
     free_view();
     view_stack.pop_back();
-    update_view();
+
+    if (trigger_update) update_view();
 
     if (on_pop) on_pop();
 }
@@ -734,8 +735,8 @@ ModalMessageView::ModalMessageView(
     NavigationView& nav,
     const std::string& title,
     const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice)
+    modal_t type,
+    std::function<void(bool)> on_choice)
     : title_{title},
       message_{message},
       type_{type},
@@ -760,25 +761,12 @@ ModalMessageView::ModalMessageView(
             nav.pop();
         };
 
-    } else if (type == YESCANCEL) {
-        add_children({&button_yes,
-                      &button_no});
-
-        button_yes.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(true);
-            nav.pop();
-        };
-        button_no.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(false);
-            nav.pop();
-        };
-
     } else {  // ABORT
         add_child(&button_ok);
 
         button_ok.on_select = [this, &nav](Button&) {
             if (on_choice_) on_choice_(true);
-            nav.pop();  // Pop the modal.
+            nav.pop(false);  // Pop the modal.
             nav.pop();  // Pop the underlying view.
         };
     }
@@ -798,7 +786,7 @@ void ModalMessageView::paint(Painter& painter) {
 }
 
 void ModalMessageView::focus() {
-    if ((type_ == YESNO) || (type_ == YESCANCEL)) {
+    if ((type_ == YESNO)) {
         button_yes.focus();
     } else {
         button_ok.focus();

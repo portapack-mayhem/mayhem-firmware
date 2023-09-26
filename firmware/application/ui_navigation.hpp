@@ -51,7 +51,6 @@ namespace ui {
 enum modal_t {
     INFO = 0,
     YESNO,
-    YESCANCEL,
     ABORT
 };
 
@@ -81,7 +80,7 @@ class NavigationView : public View {
 
     void push(View* v);
     void replace(View* v);
-    void pop();
+    void pop(bool trigger_update = true);
 
     void display_modal(const std::string& title, const std::string& message);
     void display_modal(
@@ -353,8 +352,8 @@ class ModalMessageView : public View {
         NavigationView& nav,
         const std::string& title,
         const std::string& message,
-        const modal_t type,
-        const std::function<void(bool)> on_choice);
+        modal_t type,
+        std::function<void(bool)> on_choice);
 
     void paint(Painter& painter) override;
     void focus() override;
