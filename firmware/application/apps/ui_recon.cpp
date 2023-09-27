@@ -459,8 +459,7 @@ ReconView::ReconView(NavigationView& nav)
     rssi.set_focusable(true);
     rssi.set_peak(true, 500);
     rssi.on_select = [this](RSSI&) {
-        nav_.pop();
-        nav_.push<LevelView>();
+        nav_.replace<LevelView>();
     };
 
     // TODO: *BUG* Both transmitter_model and receiver_model share the same pmem setting for target_frequency.

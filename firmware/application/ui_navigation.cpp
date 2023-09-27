@@ -96,6 +96,7 @@
 
 #include "core_control.hpp"
 #include "file.hpp"
+#include "file_reader.hpp"
 #include "png_writer.hpp"
 
 using portapack::receiver_model;
@@ -406,15 +407,21 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     return p;
 }
 
-void NavigationView::pop() {
-    pop(true);
-}
+void NavigationView::pop(bool trigger_update) {
+    // Don't pop off the NavView.
+    if (view_stack.size() <= 1)
+        return;
 
-void NavigationView::pop_modal() {
-    // Pop modal view + underlying app view.
-    // TODO: this shouldn't be necessary.
-    pop(false);
-    pop(true);
+    auto on_pop = view_stack.back().on_pop;
+
+    free_view();
+    view_stack.pop_back();
+
+    // NB: These are executed _after_ the view has been
+    // destroyed. The old view MUST NOT be referenced in
+    // these callbacks or it will cause crashes.
+    if (trigger_update) update_view();
+    if (on_pop) on_pop();
 }
 
 void NavigationView::display_modal(
@@ -426,49 +433,33 @@ void NavigationView::display_modal(
 void NavigationView::display_modal(
     const std::string& title,
     const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice) {
-    /* If a modal view is already visible, don't display another */
-    if (!modal_view) {
-        modal_view = push<ModalMessageView>(title, message, type, on_choice);
-    }
-}
-
-void NavigationView::pop(bool update) {
-    if (view() == modal_view) {
-        modal_view = nullptr;
-    }
-
-    // Can't pop last item from stack.
-    if (view_stack.size() > 1) {
-        auto on_pop = view_stack.back().on_pop;
-
-        free_view();
-        view_stack.pop_back();
-
-        if (update)
-            update_view();
-
-        if (on_pop) on_pop();
-    }
+    modal_t type,
+    std::function<void(bool)> on_choice) {
+    push<ModalMessageView>(title, message, type, on_choice);
 }
 
 void NavigationView::free_view() {
+    // The focus_manager holds a raw pointer to the currently focused Widget.
+    // It then tries to call blur() on that instance when the focus is changed.
+    // This causes crashes if focused_widget has been deleted (as is the case
+    // when a view is popped). Calling blur() here resets the focus_manager's
+    // focus_widget pointer so focus can be called safely.
+    this->blur();
     remove_child(view());
 }
 
 void NavigationView::update_view() {
-    const auto new_view = view_stack.back().view.get();
+    const auto& top = view_stack.back();
+    auto top_view = top.view.get();
 
-    add_child(new_view);
-    new_view->set_parent_rect({{0, 0}, size()});
+    add_child(top_view);
+    top_view->set_parent_rect({{0, 0}, size()});
 
     focus();
     set_dirty();
 
-    if (on_view_changed) {
-        on_view_changed(*new_view);
-    }
+    if (on_view_changed)
+        on_view_changed(*top_view);
 }
 
 Widget* NavigationView::view() const {
@@ -476,9 +467,8 @@ Widget* NavigationView::view() const {
 }
 
 void NavigationView::focus() {
-    if (view()) {
+    if (view())
         view()->focus();
-    }
 }
 
 bool NavigationView::set_on_pop(std::function<void()> on_pop) {
@@ -753,21 +743,19 @@ ModalMessageView::ModalMessageView(
     NavigationView& nav,
     const std::string& title,
     const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice)
+    modal_t type,
+    std::function<void(bool)> on_choice)
     : title_{title},
       message_{message},
       type_{type},
       on_choice_{on_choice} {
     if (type == INFO) {
         add_child(&button_ok);
-
         button_ok.on_select = [this, &nav](Button&) {
-            if (on_choice_)
-                on_choice_(true);  // Assumes handler will pop.
-            else
-                nav.pop();
+            if (on_choice_) on_choice_(true);
+            nav.pop();
         };
+
     } else if (type == YESNO) {
         add_children({&button_yes,
                       &button_no});
@@ -780,50 +768,33 @@ ModalMessageView::ModalMessageView(
             if (on_choice_) on_choice_(false);
             nav.pop();
         };
-    } else if (type == YESCANCEL) {
-        add_children({&button_yes,
-                      &button_no});
 
-        button_yes.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(true);
-            nav.pop();
-        };
-        button_no.on_select = [this, &nav](Button&) {
-            // if (on_choice_) on_choice_(false);
-            nav.pop_modal();
-        };
     } else {  // ABORT
         add_child(&button_ok);
 
         button_ok.on_select = [this, &nav](Button&) {
             if (on_choice_) on_choice_(true);
-            nav.pop_modal();
+            nav.pop(false);  // Pop the modal.
+            nav.pop();       // Pop the underlying view.
         };
     }
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    size_t pos, i = 0, start = 0;
-
     portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
 
-    // Break on lines.
-    while ((pos = message_.find("\n", start)) != std::string::npos) {
+    // Break lines.
+    auto lines = split_string(message_, '\n');
+    for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
             {1 * 8, (Coord)(120 + (i * 16))},
             style(),
-            message_.substr(start, pos - start));
-        i++;
-        start = pos + 1;
+            lines[i]);
     }
-    painter.draw_string(
-        {1 * 8, (Coord)(120 + (i * 16))},
-        style(),
-        message_.substr(start, pos));
 }
 
 void ModalMessageView::focus() {
-    if ((type_ == YESNO) || (type_ == YESCANCEL)) {
+    if ((type_ == YESNO)) {
         button_yes.focus();
     } else {
         button_ok.focus();

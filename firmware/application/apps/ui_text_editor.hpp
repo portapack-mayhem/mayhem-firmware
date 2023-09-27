@@ -19,10 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* TODO:
- * - Busy indicator while reading files.
- */
-
 #ifndef __UI_TEXT_EDITOR_H__
 #define __UI_TEXT_EDITOR_H__
 
@@ -238,7 +234,7 @@ class TextEditorView : public View {
     void refresh_ui();
     void update_position();
     void hide_menu(bool hidden = true);
-    void show_file_picker(bool immediate = true);
+    void show_file_picker();
     void show_edit_line();
     void show_save_prompt(std::function<void()> continuation);
 
@@ -252,8 +248,8 @@ class TextEditorView : public View {
     bool has_temp_file_{false};
 
     TextViewer viewer{
-        /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */
-        {0, 0, 240, 272}};
+        /* 272 = screen_height - 16 (top bar) - 32 (bottom controls) */
+        {0, 0, screen_width, 272}};
 
     TextEditorMenu menu{};
 

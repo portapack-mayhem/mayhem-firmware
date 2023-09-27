@@ -555,7 +555,6 @@ void RemoteView::open_remote() {
         save_remote();
         load_remote(std::move(path));
         refresh_ui();
-        ;
     };
 }
 

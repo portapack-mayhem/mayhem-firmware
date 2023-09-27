@@ -39,7 +39,7 @@ namespace ui {
 
 void NumbersStationView::focus() {
     if (file_error)
-        nav_.display_modal("No voices", "No valid voices found in\nthe /numbers directory.", ABORT, nullptr);
+        nav_.display_modal("No voices", "No valid voices found in\nthe /numbers directory.", ABORT);
     else
         button_exit.focus();
 }

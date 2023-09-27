@@ -108,14 +108,17 @@ bool partner_file_prompt(
     if (partner.empty())
         return false;
 
-    nav.push_under_current<ModalMessageView>(
-        "Partner File",
-        partner.filename().string() + "\n" + action_name + " this file too?",
-        YESNO,
-        [&nav, partner, on_partner_action](bool choice) {
-            if (on_partner_action)
-                on_partner_action(partner, choice);
-        });
+    // Display the continuation UI once the current has been popped.
+    nav.set_on_pop([&nav, partner, action_name, on_partner_action] {
+        nav.display_modal(
+            "Partner File",
+            partner.filename().string() + "\n" + action_name + " this file too?",
+            YESNO,
+            [&nav, partner, on_partner_action](bool choice) {
+                if (on_partner_action)
+                    on_partner_action(partner, choice);
+            });
+    });
 
     return true;
 }
@@ -189,8 +192,8 @@ FileManBaseView::FileManBaseView(
                   &text_current,
                   &button_exit});
 
-    button_exit.on_select = [this, &nav](Button&) {
-        nav.pop();
+    button_exit.on_select = [this](Button&) {
+        nav_.pop();
     };
 
     if (!sdcIsCardInserted(&SDCD1)) {
@@ -325,9 +328,9 @@ FileLoadView::FileLoadView(
         if (get_selected_entry().is_directory) {
             push_dir(get_selected_entry().path);
         } else {
-            nav_.pop();
             if (on_changed)
                 on_changed(get_selected_full_path());
+            nav_.pop();
         }
     };
 }

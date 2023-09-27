@@ -43,18 +43,12 @@ void FocusManager::set_focus_widget(Widget* const new_focus_widget) {
     }
 
     if (new_focus_widget) {
-        // if( !new_focus_widget->visible() ) {
-        // if( new_focus_widget->hidden() ) {
-        // 	// New widget is not visible. Do nothing.
-        // 	// TODO: Should this be a debug assertion?
-        // 	return;
-        // }
-        if (!new_focus_widget->focusable()) {
+        if (!new_focus_widget->focusable())
             return;
-        }
     }
 
     // Blur old widget.
+    // NB: This will crash if the focus_widget is a destroyed instance.
     if (focus_widget()) {
         focus_widget()->on_blur();
         focus_widget()->set_dirty();

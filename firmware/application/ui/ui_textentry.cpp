@@ -41,20 +41,12 @@ void text_prompt(
     uint32_t cursor_pos,
     size_t max_length,
     std::function<void(std::string&)> on_done) {
-    // if (persistent_memory::ui_config_textentry() == 0) {
     auto te_view = nav.push<AlphanumView>(str, max_length);
     te_view->set_cursor(cursor_pos);
     te_view->on_changed = [on_done](std::string& value) {
         if (on_done)
             on_done(value);
     };
-    /*} else {
-                auto te_view = nav.push<HandWriteView>(str, max_length);
-                te_view->on_changed = [on_done](std::string * value) {
-                        if (on_done)
-                                on_done(value);
-                };
-        }*/
 }
 
 /* TextEntryView ***********************************************************/

@@ -134,7 +134,6 @@ void Widget::focus() {
 }
 
 void Widget::on_focus() {
-    // set_dirty();
 }
 
 void Widget::blur() {
@@ -142,7 +141,6 @@ void Widget::blur() {
 }
 
 void Widget::on_blur() {
-    // set_dirty();
 }
 
 bool Widget::focusable() const {
