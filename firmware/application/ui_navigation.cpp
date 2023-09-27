@@ -775,7 +775,7 @@ ModalMessageView::ModalMessageView(
         button_ok.on_select = [this, &nav](Button&) {
             if (on_choice_) on_choice_(true);
             nav.pop(false);  // Pop the modal.
-            nav.pop();  // Pop the underlying view.
+            nav.pop();       // Pop the underlying view.
         };
     }
 }
