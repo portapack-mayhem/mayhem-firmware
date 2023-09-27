@@ -408,17 +408,19 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
 }
 
 void NavigationView::pop(bool trigger_update) {
-    // Don't pop of the NavView.
+    // Don't pop off the NavView.
     if (view_stack.size() <= 1)
         return;
 
-    auto& on_pop = view_stack.back().on_pop;
+    auto on_pop = view_stack.back().on_pop;
 
     free_view();
     view_stack.pop_back();
 
+    // NB: These are executed _after_ the view has been
+    // destroyed. The old view MUST NOT be referenced in
+    // these callbacks or it will cause crashes.
     if (trigger_update) update_view();
-
     if (on_pop) on_pop();
 }
 
@@ -437,6 +439,12 @@ void NavigationView::display_modal(
 }
 
 void NavigationView::free_view() {
+    // The focus_manager holds a raw pointer to the currently focused Widget.
+    // It then tries to call blur() on that instance when the focus is changed.
+    // This causes crashes if focused_widget has been deleted (as is the case
+    // when a view is popped). Calling blur() here resets the focus_manager's
+    // focus_widget pointer so focus can be called safely.
+    this->blur();
     remove_child(view());
 }
 

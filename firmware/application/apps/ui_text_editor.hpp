@@ -19,10 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* TODO:
- * - Busy indicator while reading files.
- */
-
 #ifndef __UI_TEXT_EDITOR_H__
 #define __UI_TEXT_EDITOR_H__
 
