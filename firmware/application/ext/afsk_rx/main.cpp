@@ -19,16 +19,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui_calculator.hpp"
+#include "ui_afsk_rx.hpp"
 #include "ui_navigation.hpp"
 
-namespace ui::external_app::calculator {
+namespace ui::external_app::afsk_rx {
 __attribute__((noinline)) void initialize_app(ui::NavigationView& nav, void** p) {
-    auto obj = (void*)new CalculatorView(nav);
+    auto obj = (void*)new AFSKRxView(nav);
     *p = obj;
 }
-}  // namespace ui::external_app::calculator
+}  // namespace ui::external_app::afsk_rx
 
-extern "C" __attribute__((section(".external_app.app_calculator"), used)) void app_calculator(void* nav, void** p) {
-    ui::external_app::calculator::initialize_app(reinterpret_cast<ui::NavigationView&>(nav), p);
+extern "C" __attribute__((section(".external_app.app_afsk_rx"), used)) void app_afsk_rx(void* nav, void** p) {
+    ui::external_app::afsk_rx::initialize_app(reinterpret_cast<ui::NavigationView&>(nav), p);
 }

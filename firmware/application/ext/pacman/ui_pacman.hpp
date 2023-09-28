@@ -34,7 +34,7 @@ class PacmanView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "Pacman"; };
+    std::string title() const override { return "Pac-Man"; };
 
     void paint(Painter& painter) override;
     void frame_sync();

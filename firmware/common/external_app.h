@@ -24,9 +24,7 @@
 
 #include "ch.h"
 
-#define ADDRESS_MEMORY_SPACE 0x10088000
-
-typedef void (*externalAppEntry_t)(void* /*(NavigationView&)*/, void**);
+typedef void (*externalAppEntry_t)(NavigationView& nav, void**);
 
 typedef struct {
     uint32_t location;

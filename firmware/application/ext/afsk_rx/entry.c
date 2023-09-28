@@ -21,14 +21,14 @@
 
 #include "external_app.h"
 
-__attribute__((section(".external_app.app_calculator"), used)) extern void app_calculator(void*, void** p);
+__attribute__((section(".external_app.app_afsk_rx"), used)) extern void app_afsk_rx(void*, void** p);
 // extern uint32_t __flash_start__;
 
-__attribute__((section(".external_app.app_calculator.ExternalAppEntry_calculator"))) void ExternalAppEntry_calculator(void* nav, void** p) {
-    app_calculator(nav, p);
+__attribute__((section(".external_app.app_afsk_rx.ExternalAppEntry_afsk_rx"))) void ExternalAppEntry_afsk_rx(void* nav, void** p) {
+    app_afsk_rx(nav, p);
 }
 
-__attribute__((section(".external_app.app_calculator.application_information"))) application_information_t _application_information_calculator = {
+__attribute__((section(".external_app.app_afsk_rx.application_information"))) application_information_t _application_information_afsk_rx = {
     0,
-    ExternalAppEntry_calculator,
-    /*&__flash_start__ */ (void*)0x10080000};
+    ExternalAppEntry_afsk_rx,
+    /*&__flash_start__ */ (void*)0x10086000};

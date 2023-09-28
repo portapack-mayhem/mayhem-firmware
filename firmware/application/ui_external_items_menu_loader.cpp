@@ -9,11 +9,11 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
     if (app_location == app_location_t::UTILITIES) {
         return {
-            {"Calculator", Color::dark_blue(), &bitmap_icon_morse, [&nav, app_location]() {
+            {"AFSK", Color::dark_blue(), &bitmap_icon_morse, [&nav, app_location]() {
                  FIL firmware_file;
                  size_t bytes_read;
 
-                 if (f_open(&firmware_file, reinterpret_cast<const TCHAR*>(u"/application_ext_calculator_patched.bin"), FA_READ) != FR_OK)
+                 if (f_open(&firmware_file, reinterpret_cast<const TCHAR*>(u"/application_ext_afsk_rx_patched.bin"), FA_READ) != FR_OK)
                      chDbgPanic("no file");
 
                  if (f_read(&firmware_file, &shared_memory.bb_data.data[0], sizeof(application_information_t), &bytes_read) != FR_OK)
@@ -23,7 +23,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-                 if ((uint32_t)application_information->memory_location != 0x10080000)
+                 if ((uint32_t)application_information->memory_location != 0x10086000)
                      chDbgPanic("memory_location");
 
                  if (application_information->location != app_location)
