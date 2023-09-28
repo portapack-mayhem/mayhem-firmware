@@ -57,10 +57,7 @@ void drawIndexedmap(uint8_t* indexmap, int16_t x, uint16_t y) {
             if ((color != next_color && width >= 1) || tmpX == 7) {
                 // tft->drawFastHLine1(x + tmpX - width + 1, y + tmpY, width - 1, color);
 
-                painter.draw_hline({x + tmpX - width + 1, y + tmpY}, width - 1, ui::Color(color));
-                // painter.fill_rectangle(
-                //     {0, 0, portapack::display.width(), portapack::display.height()},
-                //     ui::Color::blue());
+                painter.draw_hline({x + tmpX - width + 1, y + tmpY}, width, ui::Color(color));
 
                 color = next_color;
                 width = 0;
