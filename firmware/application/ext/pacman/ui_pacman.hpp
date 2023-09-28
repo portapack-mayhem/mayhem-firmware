@@ -40,17 +40,12 @@ class PacmanView : public View {
     void frame_sync();
 
    private:
+    bool initialized = false;
     NavigationView& nav_;
 
-    bool is_blue = false;
-    Labels labels{
-        {{3 * 8, 2 * 16}, "Click Run to start the", Color::white()},
-        {{3 * 8, 3 * 16}, "Example.", Color::white()},
-    };
-
-    Button button_run{
-        {9 * 8, 15 * 16, 12 * 8, 3 * 16},
-        "Run"};
+    Button dummy{
+        {240, 0, 0, 0},
+        ""};
 
     MessageHandlerRegistration message_handler_sample{
         Message::ID::DisplayFrameSync,
