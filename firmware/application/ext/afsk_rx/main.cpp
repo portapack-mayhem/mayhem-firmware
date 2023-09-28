@@ -21,6 +21,7 @@
 
 #include "ui_afsk_rx.hpp"
 #include "ui_navigation.hpp"
+#include "external_app.hpp"
 
 namespace ui::external_app::afsk_rx {
 __attribute__((noinline)) void initialize_app(ui::NavigationView& nav, void** p) {
@@ -29,6 +30,18 @@ __attribute__((noinline)) void initialize_app(ui::NavigationView& nav, void** p)
 }
 }  // namespace ui::external_app::afsk_rx
 
-extern "C" __attribute__((section(".external_app.app_afsk_rx"), used)) void app_afsk_rx(void* nav, void** p) {
-    ui::external_app::afsk_rx::initialize_app(reinterpret_cast<ui::NavigationView&>(nav), p);
+extern "C" {
+
+__attribute__((section(".external_app.app_afsk_rx"), used, noinline)) void app_afsk_rx(ui::NavigationView& nav, void** p) {
+    ui::external_app::afsk_rx::initialize_app(nav, p);
+}
+
+__attribute__((section(".external_app.app_afsk_rx.ExternalAppEntry_afsk_rx"), used, noinline)) void ExternalAppEntry_afsk_rx(ui::NavigationView& nav, void** p) {
+    app_afsk_rx(nav, p);
+}
+
+__attribute__((section(".external_app.app_afsk_rx.application_information"), used, noinline)) application_information_t _application_information_afsk_rx = {
+    0,
+    ExternalAppEntry_afsk_rx,
+    /*&__flash_start__ */ (void*)0x10086000};
 }

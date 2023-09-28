@@ -21,6 +21,7 @@
 
 #include "ui_pacman.hpp"
 #include "ui_navigation.hpp"
+#include "external_app.hpp"
 
 namespace ui::external_app::pacman {
 __attribute__((noinline)) void initialize_app(ui::NavigationView& nav, void** p) {
@@ -29,6 +30,18 @@ __attribute__((noinline)) void initialize_app(ui::NavigationView& nav, void** p)
 }
 }  // namespace ui::external_app::pacman
 
-extern "C" __attribute__((section(".external_app.app_pacman"), used)) void app_pacman(void* nav, void** p) {
-    ui::external_app::pacman::initialize_app(reinterpret_cast<ui::NavigationView&>(nav), p);
+extern "C" {
+
+__attribute__((section(".external_app.app_pacman"), used, noinline)) void app_pacman(ui::NavigationView& nav, void** p) {
+    ui::external_app::pacman::initialize_app(nav, p);
+}
+
+__attribute__((section(".external_app.app_pacman.ExternalAppEntry_pacman"), used, noinline)) void ExternalAppEntry_pacman(ui::NavigationView& nav, void** p) {
+    app_pacman(nav, p);
+}
+
+__attribute__((section(".external_app.app_pacman.application_information"), used, noinline)) application_information_t _application_information_pacman = {
+    0,
+    ExternalAppEntry_pacman,
+    /*&__flash_start__ */ (void*)0x10080000};
 }

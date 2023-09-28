@@ -323,11 +323,9 @@ set(CPPSRC
 
 	ui_external_items_menu_loader.cpp
 
-	ext/pacman/entry.c
 	ext/pacman/main.cpp
 	ext/pacman/ui_pacman.cpp
 	
-	ext/afsk_rx/entry.c
 	ext/afsk_rx/main.cpp
 	ext/afsk_rx/ui_afsk_rx.cpp
 )

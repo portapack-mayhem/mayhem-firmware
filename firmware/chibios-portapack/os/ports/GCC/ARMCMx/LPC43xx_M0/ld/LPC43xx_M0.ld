@@ -37,8 +37,8 @@ __ram_end__             = __ram_start__ + __ram_size__;
 
 ENTRY(ResetHandler)
 
-
-SECTIONS /* external apps */
+ /* external apps */
+SECTIONS
 {
     .external_app_pacman : ALIGN(16) SUBALIGN(16)
     {

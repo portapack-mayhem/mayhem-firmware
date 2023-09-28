@@ -23,8 +23,9 @@
 #define __EXTERNAL_APPS_H__
 
 #include "ch.h"
+#include "ui_navigation.hpp"
 
-typedef void (*externalAppEntry_t)(NavigationView& nav, void**);
+typedef void (*externalAppEntry_t)(ui::NavigationView& nav, void**);
 
 typedef struct {
     uint32_t location;

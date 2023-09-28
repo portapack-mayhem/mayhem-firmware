@@ -1,6 +1,6 @@
 #include "ui_external_items_menu_loader.hpp"
 
-#include "external_app.h"
+#include "external_app.hpp"
 
 namespace ui {
 
@@ -39,7 +39,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  // void (*f)(void*) = (void (*)(void*))( | 0x01 /*Thumb mode*/);
                  void* p = nullptr;
-                 application_information->externalAppEntry((void*)&nav, &p);
+                 application_information->externalAppEntry(nav, &p);
 
                  if (p == nullptr)
                      chDbgPanic("memory_location");
@@ -83,7 +83,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  // void (*f)(void*) = (void (*)(void*))( | 0x01 /*Thumb mode*/);
                  void* p = nullptr;
-                 application_information->externalAppEntry((void*)&nav, &p);
+                 application_information->externalAppEntry(nav, &p);
 
                  if (p == nullptr)
                      chDbgPanic("memory_location");
