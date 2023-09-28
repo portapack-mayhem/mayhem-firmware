@@ -412,6 +412,23 @@ bool init() {
     persistent_memory::cache::init();
     chThdSleepMilliseconds(10);
 
+    portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+    if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+        chThdSleepMilliseconds(10);
+        // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+        // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+        if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
+            shutdown_base();
+            return false;
+        }
+    }
+
+    if (!hackrf::cpld::load_sram()) {
+        chSysHalt();
+    }
+
+    chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
+
     clock_manager.init_clock_generator();
 
     i2c0.stop();
@@ -480,23 +497,6 @@ bool init() {
     sd_card::poll_inserted();
 
     chThdSleepMilliseconds(10);
-
-    portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
-    if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
-        chThdSleepMilliseconds(10);
-        // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-        // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
-        if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
-            shutdown_base();
-            return false;
-        }
-    }
-
-    if (!hackrf::cpld::load_sram()) {
-        chSysHalt();
-    }
-
-    chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
 
     LPC_CREG->DMAMUX = portapack::gpdma_mux;
     gpdma::controller.enable();
