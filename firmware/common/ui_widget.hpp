@@ -689,6 +689,9 @@ class TextEdit : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
 
+    void on_focus() override;
+    void on_blur() override;
+
    protected:
     std::string& text_;
     size_t max_length_;

@@ -87,9 +87,9 @@ class FrequencySaveView : public FreqManBaseView {
    public:
     FrequencySaveView(NavigationView& nav, const rf::Frequency value);
     std::string title() const override { return "Save freq"; }
+    void focus() override;
 
    private:
-    std::string temp_buffer_{};
     freqman_entry entry_{};
 
     void refresh_ui();
@@ -101,15 +101,9 @@ class FrequencySaveView : public FreqManBaseView {
     Labels labels{
         {{0 * 8, 6 * 16}, "Description:", Color::white()}};
 
-    Text text_description{{0 * 8, 7 * 16, 30 * 8, 1 * 16}};
-
-    Button button_clear{
-        {4 * 8, 10 * 16, 10 * 8, 2 * 16},
-        "Clear"};
-
-    Button button_edit{
-        {16 * 8, 10 * 16, 10 * 8, 2 * 16},
-        "Edit"};
+    TextField field_description{
+        {0 * 8, 7 * 16, 30 * 8, 1 * 16},
+        ""};
 
     Button button_save{
         {0 * 8, 17 * 16, 15 * 8, 2 * 16},
