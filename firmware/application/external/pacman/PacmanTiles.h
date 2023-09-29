@@ -2459,5 +2459,4 @@ const byte pacman16x16[] = {
     0x00,
     0x00,
     0x00,
-
 };

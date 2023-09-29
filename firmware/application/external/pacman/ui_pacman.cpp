@@ -3,8 +3,8 @@
 
 namespace ui::external_app::pacman {
 
-// TODO: remove warnings
 #pragma GCC diagnostic push
+// external code, so ignore warnings
 #pragma GCC diagnostic ignored "-Wunused-variable"
 #pragma GCC diagnostic ignored "-Wunused-parameter"
 #pragma GCC diagnostic ignored "-Wunused-but-set-variable"
