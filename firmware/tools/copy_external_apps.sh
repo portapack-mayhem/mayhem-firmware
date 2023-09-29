@@ -31,7 +31,8 @@ do
         if [[ ! -z "$mountpoint" ]]; then
 
             echo "Copying external applications to" $mountpoint
-            cp application/*.ppma $mountpoint
+            mkdir -p $mountpoint/APPS
+            cp application/*.ppma $mountpoint/APPS
 
             echo "Unmounting" $mountpoint
             umount $mountpoint

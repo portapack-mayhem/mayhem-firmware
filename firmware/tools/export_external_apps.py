@@ -90,6 +90,4 @@ for external_image_prefix in sys.argv[4:]:
 	patched_external_application_image += m4_image
 
 	# .ppma portapack mayhem application
-	write_image(patched_external_application_image, "{}/external_app_{}.ppma".format(binary_dir, external_image_prefix))
-
-
+	write_image(patched_external_application_image, "{}/{}.ppma".format(binary_dir, external_image_prefix))

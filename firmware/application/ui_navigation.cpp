@@ -521,6 +521,10 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         // {"SSTV", Color::dark_grey(), &bitmap_icon_sstv, [&nav](){ nav.push<NotImplementedView>(); }},
         // {"TETRA", Color::dark_grey(), &bitmap_icon_tetra, [&nav](){ nav.push<NotImplementedView>(); }},
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav)) {
+        add_item(gridItem);
+    };
 }
 
 /* TransmittersMenuView **************************************************/
@@ -549,6 +553,10 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
         {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav)) {
+        add_item(gridItem);
+    };
 }
 
 /* UtilitiesMenuView *****************************************************/
