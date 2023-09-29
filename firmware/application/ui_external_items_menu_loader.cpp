@@ -33,7 +33,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
         GridItem gridItem = {};
         gridItem.text = reinterpret_cast<char*>(&application_information.app_name[0]);
-        gridItem.color = Color::dark_blue();
+        gridItem.color = Color((uint16_t)application_information.icon_color);
 
         auto bitmapData = new uint8_t[32];
         Bitmap* bitmap = new Bitmap{

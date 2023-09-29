@@ -84,9 +84,9 @@ for external_image_prefix in sys.argv[4:]:
 	patched_external_application_image[8:12] = 0x12341234.to_bytes(4, byteorder='little')
 
 	#m4 image @ 0x44
-	chunk_tag = patched_external_application_image[64:68].decode("utf-8") 
+	chunk_tag = patched_external_application_image[68:72].decode("utf-8") 
 	m4_image = read_image("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
-	patched_external_application_image[68:72] = len(external_application_image).to_bytes(4, byteorder='little')
+	patched_external_application_image[72:76] = len(external_application_image).to_bytes(4, byteorder='little')
 	patched_external_application_image += m4_image
 
 	# .ppma portapack mayhem application

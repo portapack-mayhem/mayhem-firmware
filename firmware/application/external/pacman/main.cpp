@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ui.hpp"
 #include "ui_pacman.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
@@ -36,7 +37,7 @@ __attribute__((section(".external_app.app_pacman.application_information"), used
     /*.externalAppEntry = */ ui::external_app::pacman::initialize_app,
     /*.app_version = */ 0x00000000,
 
-    /*.app_name = */ "PacMan",
+    /*.app_name = */ "Pac-Man",
     /*.bitmap_data = */ {
         0x00,
         0x00,
@@ -71,6 +72,7 @@ __attribute__((section(".external_app.app_pacman.application_information"), used
         0x00,
         0x00,
     },
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::UTILITIES,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_noop */ {'P', 'N', 'O', 'P'},

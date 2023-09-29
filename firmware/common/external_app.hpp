@@ -41,6 +41,7 @@ typedef struct {
 
     uint8_t app_name[16];
     uint8_t bitmap_data[32];
+    uint32_t icon_color;
     app_location_t menu_location;
 
     portapack::spi_flash::image_tag_t m4_app_tag;

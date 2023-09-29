@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ui.hpp"
 #include "ui_afsk_rx.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
@@ -71,6 +72,7 @@ __attribute__((section(".external_app.app_afsk_rx.application_information"), use
         0x00,
         0x00,
     },
+    /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::RX,
 
     /*.m4_app_tag = portapack::spi_flash::image_tag_afsk_rx */ {'P', 'A', 'F', 'R'},
