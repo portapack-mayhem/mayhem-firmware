@@ -11,7 +11,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
                  FIL firmware_file;
                  size_t bytes_read;
 
-                 if (f_open(&firmware_file, reinterpret_cast<const TCHAR*>(u"/application_ext_afsk_rx_patched.bin"), FA_READ) != FR_OK)
+                 if (f_open(&firmware_file, reinterpret_cast<const TCHAR*>(u"/external_app_afsk_rx.ppma"), FA_READ) != FR_OK)
                      chDbgPanic("no file");
 
                  if (f_read(&firmware_file, &shared_memory.bb_data.data[0], sizeof(application_information_t), &bytes_read) != FR_OK)
@@ -21,8 +21,15 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-                 for (size_t page_index = 0; page_index < 64 * 512; page_index += 512) {
-                     if (f_read(&firmware_file, application_information->memory_location + page_index, 512, &bytes_read) != FR_OK)
+                 for (size_t page_index = 0; page_index < application_information->m4_app_offset; page_index += 512) {
+                     auto bytes_to_read = 512;
+                     if (page_index + 512 > application_information->m4_app_offset)
+                         bytes_to_read = application_information->m4_app_offset - page_index;
+
+                     if (bytes_to_read == 0)
+                         break;
+
+                     if (f_read(&firmware_file, &application_information->memory_location[page_index], bytes_to_read, &bytes_read) != FR_OK)
                          chDbgPanic("no data #2");
 
                      if (bytes_read < 512)
@@ -35,7 +42,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
                  FIL firmware_file;
                  size_t bytes_read;
 
-                 if (f_open(&firmware_file, reinterpret_cast<const TCHAR*>(u"/application_ext_pacman_patched.bin"), FA_READ) != FR_OK)
+                 if (f_open(&firmware_file, reinterpret_cast<const TCHAR*>(u"/external_app_pacman.ppma"), FA_READ) != FR_OK)
                      chDbgPanic("no file");
 
                  if (f_read(&firmware_file, &shared_memory.bb_data.data[0], sizeof(application_information_t), &bytes_read) != FR_OK)
@@ -46,7 +53,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
                  for (size_t page_index = 0; page_index < 64 * 512; page_index += 512) {
-                     if (f_read(&firmware_file, application_information->memory_location + page_index, 512, &bytes_read) != FR_OK)
+                     if (f_read(&firmware_file, &application_information->memory_location[page_index], 512, &bytes_read) != FR_OK)
                          chDbgPanic("no data #2");
 
                      if (bytes_read < 512)
@@ -59,7 +66,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
     } else {
         return {
 
-                };
+        };
     }
 }
 }  // namespace ui

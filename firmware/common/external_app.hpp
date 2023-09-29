@@ -28,14 +28,14 @@
 
 typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
 
-enum app_location_t {
+enum app_location_t : uint32_t {
     UTILITIES = 0,
     RX,
     TX
 };
 
 typedef struct {
-    void* memory_location;
+    uint8_t* memory_location;
     externalAppEntry_t externalAppEntry;
     uint32_t app_version;
 

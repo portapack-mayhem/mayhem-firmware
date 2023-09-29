@@ -26,7 +26,7 @@ set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 
 set(EXTRACT_CPLD_DATA ${PROJECT_SOURCE_DIR}/tools/extract_cpld_data.py)
-set(PATCH_EXTERNAL_APP_IMAGE ${PROJECT_SOURCE_DIR}/tools/patch_external_app.py)
+set(EXPORT_EXTERNAL_APP_IMAGES ${PROJECT_SOURCE_DIR}/tools/export_external_apps.py)
 set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 set(LZ4 lz4)

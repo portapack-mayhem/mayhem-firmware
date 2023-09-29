@@ -32,11 +32,11 @@ __attribute__((noinline)) void initialize_app(ui::NavigationView& nav) {
 extern "C" {
 
 __attribute__((section(".external_app.app_pacman.application_information"), used)) application_information_t _application_information_pacman = {
-    /*.memory_location = */ (void*)0x10080000,
+    /*.memory_location = */ (uint8_t*)0x10080000,
     /*.externalAppEntry = */ ui::external_app::pacman::initialize_app,
-    /*.app_version = */ 0x42,
+    /*.app_version = */ 0x00000000,
 
-    /*.app_name = */ "PacMan",  // {'P', 'a', 'c', 'M', '\0'},
+    /*.app_name = */ "PacMan",
     /*.bitmap_data = */ {
         0x00,
         0x00,
@@ -73,7 +73,7 @@ __attribute__((section(".external_app.app_pacman.application_information"), used
     },
     /*.menu_location = */ app_location_t::UTILITIES,
 
-    /*.m4_app_tag = */ portapack::spi_flash::image_tag_noop,
-    /*.m4_app_offset = */ 0,  // will be filled at compile time
+    /*.m4_app_tag = portapack::spi_flash::image_tag_noop */ {'P', 'N', 'O', 'P'},
+    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

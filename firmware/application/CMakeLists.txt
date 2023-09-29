@@ -468,20 +468,13 @@ set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
-target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
+target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_LIST_DIR}/external")
 target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
-	
-	#place into script
-	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
-	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_pacman.bin ${PROJECT_NAME}_ext_pacman_patched.bin 0xEEE90000 0x10080000
-
-	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_afsk_rx.bin --only-section=.external_app_afsk_rx
-	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_afsk_rx.bin ${PROJECT_NAME}_ext_afsk_rx_patched.bin 0xEEEA0000 0x10086000
-
+	COMMAND ${EXPORT_EXTERNAL_APP_IMAGES} ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_OBJCOPY} ${EXTAPPLIST}
 	DEPENDS ${PROJECT_NAME}.elf
 )
 

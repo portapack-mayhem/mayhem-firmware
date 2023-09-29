@@ -3,6 +3,7 @@
 
 namespace ui::external_app::pacman {
 
+// TODO: remove warnings
 #include "playfield.hpp"
 
 Playfield _game;
@@ -18,6 +19,7 @@ void PacmanView::focus() {
 
 void PacmanView::paint(Painter& painter) {
     // View::paint(painter);
+    (void)painter;
 
     if (!initialized) {
         initialized = true;

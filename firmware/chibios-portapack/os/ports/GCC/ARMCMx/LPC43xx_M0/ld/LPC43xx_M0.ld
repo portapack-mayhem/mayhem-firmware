@@ -25,10 +25,6 @@ MEMORY
 {
     flash (rx)  : org = 0x00000000, len = 1024k /* SPIFI flash @ 0x140????? */
     ram   (rwx) : org = 0x20000000, len = 64k   /* AHB SRAM @ 0x20000000 */
-
-    /* external apps: regions can't overlap so addresses are corrected after build */
-    ram_external_app_pacman     (rwx) : org = 0xEEE90000, len = 40k
-    ram_external_app_afsk_rx (rwx) : org = 0xEEEA0000, len = 40k
 }
 
 __ram_start__           = ORIGIN(ram);
@@ -38,21 +34,7 @@ __ram_end__             = __ram_start__ + __ram_size__;
 ENTRY(ResetHandler)
 
  /* external apps */
-SECTIONS
-{
-    .external_app_pacman : ALIGN(16) SUBALIGN(16)
-    {
-        KEEP(*(.external_app.app_pacman.application_information));
-        *(*ui*external_app*pacman*);
-    } > ram_external_app_pacman
-
-    .external_app_afsk_rx : ALIGN(16) SUBALIGN(16)
-    {
-        KEEP(*(.external_app.app_afsk_rx.application_information));
-        *(*ui*external_app*afsk_rx*);
-    } > ram_external_app_afsk_rx
-}
-
+INCLUDE external.ld
 
 SECTIONS
 {
