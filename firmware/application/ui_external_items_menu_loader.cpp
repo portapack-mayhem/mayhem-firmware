@@ -21,18 +21,38 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-                 for (size_t page_index = 0; page_index < application_information->m4_app_offset; page_index += 512) {
+                 // copy application image
+                 for (size_t file_read_index = 0; file_read_index < application_information->m4_app_offset; file_read_index += 512) {
                      auto bytes_to_read = 512;
-                     if (page_index + 512 > application_information->m4_app_offset)
-                         bytes_to_read = application_information->m4_app_offset - page_index;
+                     if (file_read_index + 512 > application_information->m4_app_offset)
+                         bytes_to_read = application_information->m4_app_offset - file_read_index;
 
                      if (bytes_to_read == 0)
                          break;
 
-                     if (f_read(&firmware_file, &application_information->memory_location[page_index], bytes_to_read, &bytes_read) != FR_OK)
+                     if (f_read(&firmware_file, &application_information->memory_location[file_read_index], bytes_to_read, &bytes_read) != FR_OK)
                          chDbgPanic("no data #2");
 
                      if (bytes_read < 512)
+                         break;
+                 }
+
+                 // copy baseband image
+                 for (size_t file_read_index = application_information->m4_app_offset;; file_read_index += bytes_read) {
+                     size_t bytes_to_read = 512;
+
+                     // not aligned
+                     if ((file_read_index % 512) != 0)
+                         bytes_to_read = 512 - (file_read_index % 512);
+
+                     if (bytes_to_read == 0)
+                         break;
+
+                     auto target_memory = reinterpret_cast<void*>(portapack::memory::map::m4_code.base() + file_read_index - application_information->m4_app_offset);
+                     if (f_read(&firmware_file, target_memory, bytes_to_read, &bytes_read) != FR_OK)
+                         chDbgPanic("no data #2");
+
+                     if (bytes_read != bytes_to_read)
                          break;
                  }
 
@@ -52,8 +72,8 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
 
                  application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-                 for (size_t page_index = 0; page_index < 64 * 512; page_index += 512) {
-                     if (f_read(&firmware_file, &application_information->memory_location[page_index], 512, &bytes_read) != FR_OK)
+                 for (size_t file_read_index = 0; file_read_index < 64 * 512; file_read_index += 512) {
+                     if (f_read(&firmware_file, &application_information->memory_location[file_read_index], 512, &bytes_read) != FR_OK)
                          chDbgPanic("no data #2");
 
                      if (bytes_read < 512)
