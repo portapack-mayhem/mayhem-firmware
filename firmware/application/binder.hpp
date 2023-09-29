@@ -54,28 +54,40 @@ struct NoOp {
 
 template <typename T, typename Fn = NoOp>
 void bind(NumberField& field, T& value, Fn fn = Fn{}) {
+    field.set_value(value);
     field.on_change = [&value, fn](int32_t v) {
         value = v;
         fn(value);
     };
-    field.set_value(value);
+}
+
+template <typename T, typename Fn = NoOp>
+void bind(OptionsField& field, T& value, Fn fn = Fn{}) {
+    field.set_by_value(static_cast<int32_t>(value));
+    field.on_change = [&value, fn](size_t, auto v) {
+        value = static_cast<T>(v);
+        fn(value);
+    };
 }
 
 template <typename T, typename Fn = NoOp>
 void bind(FrequencyField& field, T& value, NavigationView& nav, Fn fn = Fn{}) {
-    field.on_edit = [&field, &value, &nav, fn]() {
+    field.set_value(value);
+    field.on_change = [&value, fn](rf::Frequency f) {
+        value = f;
+        fn(value);
+    };
+    field.on_edit = [&field, &value, &nav]() {
         auto freq_view = nav.push<FrequencyKeypadView>(value);
-        freq_view->on_changed = [&field, &value, fn](rf::Frequency f) {
+        freq_view->on_changed = [&field](rf::Frequency f) {
             field.set_value(f);
-            value = f;
-            fn(f);
         };
     };
-    field.set_value(value);
 }
 
 template <typename T, typename Fn = NoOp>
 void bind(TextField& field, T& value, NavigationView& nav, Fn fn = Fn{}) {
+    field.set_text(value);
     field.on_change = [&value, fn](TextField& tf) {
         value = tf.get_text();
         fn(value);
@@ -89,7 +101,6 @@ void bind(TextField& field, T& value, NavigationView& nav, Fn fn = Fn{}) {
                         tf.set_text(str);
                     });
     };
-    field.set_text(value);
 }
 
 }  // namespace ui
