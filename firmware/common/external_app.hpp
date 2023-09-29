@@ -24,15 +24,28 @@
 
 #include "ch.h"
 #include "ui_navigation.hpp"
+#include "spi_image.hpp"
 
-typedef void (*externalAppEntry_t)(ui::NavigationView& nav, void**);
+typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
+
+enum app_location_t {
+    UTILITIES = 0,
+    RX,
+    TX
+};
 
 typedef struct {
-    uint32_t location;
-    externalAppEntry_t externalAppEntry;
     void* memory_location;
-    // TODO: add version check (md5 of .ld)
-    // TODO: add icon and text
+    externalAppEntry_t externalAppEntry;
+    uint32_t app_version;
+
+    uint8_t app_name[16];
+    uint8_t bitmap_data[32];
+    app_location_t menu_location;
+
+    portapack::spi_flash::image_tag_t m4_app_tag;
+    uint32_t m4_app_offset;
+
 } application_information_t;
 
 #endif /*__EXTERNAL_APPS_H__*/

@@ -43,18 +43,12 @@ SECTIONS
     .external_app_pacman : ALIGN(16) SUBALIGN(16)
     {
         KEEP(*(.external_app.app_pacman.application_information));
-        KEEP(*(.text.external_app.app_pacman));
-        *(*external_app*app_pacman);
-        *(*external_app*app_pacman*);
         *(*ui*external_app*pacman*);
     } > ram_external_app_pacman
 
     .external_app_afsk_rx : ALIGN(16) SUBALIGN(16)
     {
         KEEP(*(.external_app.app_afsk_rx.application_information));
-        KEEP(*(.text.external_app.app_afsk_rx));
-        *(*external_app*app_afsk_rx);
-        *(*external_app*app_afsk_rx*);
         *(*ui*external_app*afsk_rx*);
     } > ram_external_app_afsk_rx
 }

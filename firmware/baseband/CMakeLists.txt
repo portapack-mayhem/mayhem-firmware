@@ -288,8 +288,12 @@ macro(DeclareTargets chunk_tag name)
 		VERBATIM
 	)
 
-	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
+	if(add_to_firmware)
+		set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
+	endif()
 endmacro()
+
+set(add_to_firmware TRUE)
 
 ### ACARS RX
 
@@ -312,19 +316,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADT adsbtx)
 
-### AFSK
+### AFSK TX
 
 set(MODE_CPPSRC
 	proc_afsk.cpp
 )
 DeclareTargets(PAFT afsktx)
-
-### AFSK RX
-
-set(MODE_CPPSRC
-	proc_afskrx.cpp
-)
-DeclareTargets(PAFR afskrx)
 
 ### APRS RX
 
@@ -493,13 +490,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSTX sstvtx)
 
-### Test
-
-set(MODE_CPPSRC
-	proc_test.cpp
-)
-DeclareTargets(PTST test)
-
 ### Tones
 
 set(MODE_CPPSRC
@@ -585,6 +575,24 @@ set(MODE_CPPSRC
 	${HACKRF_PATH}/firmware/libopencm3/lib/lpc43xx/i2c.c
 )
 DeclareTargets(PUSB sd_over_usb)
+
+### Place external app and disabled images below so they don't get added to the firmware
+set(add_to_firmware FALSE)
+
+### AFSK RX
+
+set(MODE_CPPSRC
+	proc_afskrx.cpp
+)
+DeclareTargets(PAFR afskrx)
+
+### Test
+
+set(MODE_CPPSRC
+	proc_test.cpp
+)
+DeclareTargets(PTST test)
+
 
 ### HackRF "factory" firmware
 

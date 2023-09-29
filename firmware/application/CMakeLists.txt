@@ -97,6 +97,7 @@ include(${CHIBIOS_PORTAPACK}/os/ports/GCC/ARMCMx/LPC43xx_M0/port.cmake)
 include(${CHIBIOS}/os/kernel/kernel.cmake)
 include(${CHIBIOS_PORTAPACK}/os/various/fatfs_bindings/fatfs.cmake)
 include(${CHIBIOS}/test/test.cmake)
+include(external/external.cmake)
 
 # Define linker script file here
 set(LDSCRIPT ${PORTLD}/LPC43xx_M0.ld)
@@ -320,14 +321,9 @@ set(CPPSRC
 	${CPLD_20150901_DATA_CPP}
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
-
 	ui_external_items_menu_loader.cpp
 
-	ext/pacman/main.cpp
-	ext/pacman/ui_pacman.cpp
-	
-	ext/afsk_rx/main.cpp
-	ext/afsk_rx/ui_afsk_rx.cpp
+	${EXTCPPSRC}
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -478,10 +474,14 @@ target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
+	
+	#place into script
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
 	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_pacman.bin ${PROJECT_NAME}_ext_pacman_patched.bin 0xEEE90000 0x10080000
+
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_afsk_rx.bin --only-section=.external_app_afsk_rx
 	COMMAND ${PATCH_EXTERNAL_APP_IMAGE} ${PROJECT_NAME}_ext_afsk_rx.bin ${PROJECT_NAME}_ext_afsk_rx_patched.bin 0xEEEA0000 0x10086000
+
 	DEPENDS ${PROJECT_NAME}.elf
 )
 

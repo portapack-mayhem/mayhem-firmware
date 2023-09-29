@@ -25,14 +25,9 @@
 
 #include "ui.hpp"
 #include "ui_navigation.hpp"
+#include "external_app.hpp"
 
 namespace ui {
-
-enum app_location_t {
-    UTILITIES = 0,
-    RX,
-    TX
-};
 
 class ExternalItemsMenuLoader {
    public:
