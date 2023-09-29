@@ -4,7 +4,14 @@
 namespace ui::external_app::pacman {
 
 // TODO: remove warnings
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-variable"
+#pragma GCC diagnostic ignored "-Wunused-parameter"
+#pragma GCC diagnostic ignored "-Wunused-but-set-variable"
+#pragma GCC diagnostic ignored "-Wreturn-type"
+#pragma GCC diagnostic ignored "-Weffc++"
 #include "playfield.hpp"
+#pragma GCC diagnostic pop
 
 Playfield _game;
 

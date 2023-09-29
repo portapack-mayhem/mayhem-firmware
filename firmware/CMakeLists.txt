@@ -57,13 +57,14 @@ add_custom_target(
 	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_DFU_IMAGE} || (exit 0) # We need to add it for dfu-utils v.011 , (in v.09 it is not necessary)
 	COMMAND sleep 3s
 	COMMAND hackrf_spiflash -i -R -w ${FIRMWARE_FILENAME}
-	DEPENDS ${FIRMWARE_FILENAME}
+	DEPENDS firmware ${FIRMWARE_FILENAME}
 )
 
 add_custom_target(
 	program-external-apps
-	COMMAND echo tbd
-	DEPENDS ${FIRMWARE_FILENAME}
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMAND ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
+	DEPENDS program
 )
 
 # TODO: Bad hack to fix location of LICENSE file for tar.

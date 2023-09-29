@@ -547,7 +547,7 @@ class Playfield {
 #endif
 
         x += (240 - 224) / 2;
-        y += (320 - 288) / 2 + 4;
+        y += (320 - 288) / 2 + 8;
 
         // Should be a direct Graphics call
 
