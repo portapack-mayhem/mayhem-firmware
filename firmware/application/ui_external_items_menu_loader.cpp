@@ -35,7 +35,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
         if (application_information.menu_location != app_location)
             continue;
 
-        if (application_information.header_version != CURRENT_HEADER_VERISON)
+        if (application_information.header_version != CURRENT_HEADER_VERSION)
             continue;
 
         bool versionMatches = VERSION_MD5 == application_information.app_version;
