@@ -24,6 +24,7 @@
 
 #include "file.hpp"
 #include "iq_trim.hpp"
+#include "optional.hpp"
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_styles.hpp"
@@ -49,7 +50,7 @@ class TrimProgressUI {
 
     void show_progress(uint8_t percent) {
         auto width = percent * screen_width / 100;
-        p.draw_hline({0, 6 * 16}, width, Color::yellow());
+        p.draw_hline({0, 6 * 16 + 2}, width, Color::yellow());
     }
 
     void clear() {
@@ -73,18 +74,36 @@ class IQTrimView : public View {
     void focus() override;
 
    private:
+    /* Update controls with latest values. */
     void refresh_ui();
-    bool read_capture(const std::filesystem::path& path);
+
+    /* Update the start/end controls with trim range info. */
+    void update_range_controls(iq::TrimRange trim_range);
+
+    /* Collect capture info and samples to draw the UI. */
+    void profile_capture();
+
+    /* Determine the start and end buckets based on the cutoff. */
+    void compute_range();
+
+    /* Trims the capture file based on the settings. */
+    bool trim_capture();
+
+    NavigationView& nav_;
 
     std::filesystem::path path_{};
-    TrimRange trim_range_{};
-    std::array<PowerBuckets::Bucket, screen_width> power_buckets_{};
-    uint8_t amp_threshold = 5;
+    Optional<iq::CaptureInfo> info_{};
+    std::array<iq::PowerBuckets::Bucket, screen_width> power_buckets_{};
     TrimProgressUI progress_ui{};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Capture File:", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Range:", Color::light_grey()},
+        {{0 * 8, 6 * 16}, "Start  :", Color::light_grey()},
+        {{0 * 8, 7 * 16}, "End    :", Color::light_grey()},
+        {{0 * 8, 8 * 16}, "Samples:", Color::light_grey()},
+        {{0 * 8, 9 * 16}, "Max Pwr:", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Cutoff :", Color::light_grey()},
+        {{12 * 8, 10 * 16}, "%", Color::light_grey()},
     };
 
     TextField field_path{
@@ -94,12 +113,37 @@ class IQTrimView : public View {
     Point pos_lines{0 * 8, 4 * 16};
     Dim height_lines{2 * 16};
 
-    Text text_range{
-        {7 * 8, 6 * 16, 20 * 8, 1 * 16},
-        {}};
+    NumberField field_start{
+        {9 * 8, 6 * 16},
+        10,
+        {0, 0},
+        1,
+        ' '};
+
+    NumberField field_end{
+        {9 * 8, 7 * 16},
+        10,
+        {0, 0},
+        1,
+        ' '};
+
+    Text text_samples{
+        {9 * 8, 8 * 16, 10 * 8, 1 * 16},
+        "0"};
+
+    Text text_max{
+        {9 * 8, 9 * 16, 10 * 8, 1 * 16},
+        "0"};
+
+    NumberField field_cutoff{
+        {9 * 8, 10 * 16},
+        3,
+        {1, 100},
+        1,
+        ' '};
 
     Button button_trim{
-        {11 * 8, 9 * 16, 8 * 8, 3 * 16},
+        {20 * 8, 16 * 16, 8 * 8, 2 * 16},
         "Trim"};
 };
 

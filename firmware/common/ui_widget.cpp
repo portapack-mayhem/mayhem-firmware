@@ -134,7 +134,6 @@ void Widget::focus() {
 }
 
 void Widget::on_focus() {
-    // set_dirty();
 }
 
 void Widget::blur() {
@@ -142,7 +141,6 @@ void Widget::blur() {
 }
 
 void Widget::on_blur() {
-    // set_dirty();
 }
 
 bool Widget::focusable() const {
@@ -1987,6 +1985,9 @@ void SymField::set_value(uint64_t value) {
         value_[i] = uint_to_char(temp, radix);
         v /= radix;
     }
+
+    if (on_change)
+        on_change(*this);
 }
 
 void SymField::set_value(std::string_view value) {

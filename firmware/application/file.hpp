@@ -265,7 +265,6 @@ struct FATTimestamp {
     uint16_t FAT_time;
 };
 
-std::filesystem::filesystem_error trim_file(const std::filesystem::path& file_path, uint64_t start, uint64_t length);
 std::filesystem::filesystem_error delete_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_path, const std::filesystem::path& new_name);
 std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);
@@ -302,6 +301,7 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 #define FR_BAD_SEEK (0x102)
 #define FR_UNEXPECTED (0x103)
 
+/* NOTE: sizeof(File) == 556 bytes because of the FIL's buf member. */
 class File {
    public:
     using Size = uint64_t;

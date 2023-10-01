@@ -29,146 +29,65 @@
 #include <functional>
 #include <limits>
 
-struct TrimRange {
-    uint64_t start;
-    uint64_t end;
-    uint64_t sample_count;
+namespace iq {
+
+/* Information about a capture. */
+struct CaptureInfo {
     uint64_t file_size;
+    uint64_t sample_count;
     uint8_t sample_size;
+    uint32_t max_power;
 };
 
+/* Holds sample average power by bucket. */
 struct PowerBuckets {
     struct Bucket {
-        uint8_t power;
+        uint32_t power = 0;
+        uint8_t count = 0;
     };
 
     Bucket* p = nullptr;
-    size_t size = 0;
+    const size_t size = 0;
 
-    void add(size_t index) {
-        // This originally was meant to be an average power for the bucket,
-        // but it was a lot of extra math just for a little bit of UI and
-        // the math really slowed down processing. Instead, just count the
-        // number of samples above the threshold.
+    /* Add the power to the bucket average at index. */
+    void add(size_t index, uint32_t power) {
         if (index < size) {
-            if (p[index].power < 255)
-                p[index].power++;
+            auto& b = p[index];
+            auto avg = static_cast<uint64_t>(b.power) * b.count;
+
+            b.count++;
+            b.power = (power + avg) / b.count;
         }
     }
 };
 
-inline bool TrimFile(const std::filesystem::path& path, TrimRange range) {
-    // NB: range.end should be included in the trimmed result, so '+ sample_size'.
-    auto result = trim_file(path, range.start, (range.end - range.start) + range.sample_size);
-    return result.ok();
-}
-
-template <typename T>
-class IQTrimmer {
-    static constexpr uint8_t max_amp = 0xFF;
-    static constexpr typename T::value_type max_value = std::numeric_limits<typename T::value_type>::max();
-    static constexpr uint32_t max_mag_squared{2 * (max_value * max_value)};  // NB: Braces to detect narrowing.
-
-   public:
-    static Optional<TrimRange> ComputeTrimRange(
-        const std::filesystem::path& path,
-        uint8_t amp_threshold,  // 0 - 255
-        PowerBuckets* buckets,
-        std::function<void(uint8_t)> on_progress) {
-        TrimRange range{};
-
-        File f;
-        auto error = f.open(path);
-        if (error)
-            return {};
-
-        constexpr size_t buffer_size = std::filesystem::max_file_block_size;
-        uint8_t buffer[buffer_size];
-
-        bool has_start = false;
-        size_t sample_index = 0;
-        File::Offset offset = 0;
-        uint8_t last_progress = 0;
-        size_t samples_per_bucket = 1;
-        // Scale from 0-255 to 0-max_mag_squared.
-        uint32_t threshold = (max_mag_squared * amp_threshold) / max_amp;
-        T value{};
-
-        range.file_size = f.size();
-        range.sample_size = sizeof(T);
-        range.sample_count = range.file_size / range.sample_size;
-
-        if (buckets)
-            samples_per_bucket = std::max(1ULL, range.sample_count / buckets->size);
-
-        while (true) {
-            auto result = f.read(buffer, buffer_size);
-
-            if (!result)
-                return {};
-
-            for (size_t i = 0; i < *result; i += sizeof(T)) {
-                ++sample_index;
-
-                value = *reinterpret_cast<T*>(&buffer[i]);
-                auto real = value.real();
-                auto imag = value.imag();
-                uint32_t mag_squared = (real * real) + (imag * imag);
-
-                // Update range if above threshold.
-                if (mag_squared >= threshold) {
-                    if (has_start) {
-                        range.end = offset + i;
-                    } else {
-                        range.start = offset + i;
-                        range.end = range.start;
-                        has_start = true;
-                    }
-
-                    // Update the optional power bucket.
-                    if (buckets) {
-                        auto bucket_index = sample_index / samples_per_bucket;
-                        buckets->add(bucket_index);
-                    }
-                }
-            }
-
-            if (*result < buffer_size)
-                break;
-
-            offset += *result;
-
-            if (on_progress) {
-                uint8_t current_progress = 100 * offset / range.file_size;
-                if (last_progress != current_progress) {
-                    on_progress(current_progress);
-                    last_progress = current_progress;
-                }
-            }
-        }
-
-        return range;
-    }
+/* Data needed to trim a capture by sample range.
+ * end_sample is the sample *after* the last to keep. */
+struct TrimRange {
+    uint64_t start_sample;
+    uint64_t end_sample;
+    uint8_t sample_size;
 };
 
-inline Optional<TrimRange> ComputeTrimRange(
+/* Collects capture file metadata and samples power buckets. */
+Optional<CaptureInfo> profile_capture(
     const std::filesystem::path& path,
-    uint8_t amp_threshold = 5,
-    PowerBuckets* buckets = nullptr,
-    std::function<void(uint8_t)> on_progress = nullptr) {
-    Optional<TrimRange> range;
-    auto sample_size = std::filesystem::capture_file_sample_size(path);
+    PowerBuckets& buckets,
+    uint8_t samples_per_bucket = 10);
 
-    switch (sample_size) {
-        case sizeof(complex16_t):
-            return IQTrimmer<complex16_t>::ComputeTrimRange(path, amp_threshold, buckets, on_progress);
+/* Computes the trimming range given profiling info.
+ * Cutoff percent is a number 1-100. */
+TrimRange compute_trim_range(
+    CaptureInfo info,
+    const PowerBuckets& buckets,
+    uint8_t cutoff_percent);
 
-        case sizeof(complex8_t):
-            return IQTrimmer<complex8_t>::ComputeTrimRange(path, amp_threshold, buckets, on_progress);
+/* Trims the capture file with the specified range. */
+bool trim_capture_with_range(
+    const std::filesystem::path& path,
+    TrimRange range,
+    const std::function<void(uint8_t)>& on_progress);
 
-        default:
-            return {};
-    };
-}
+}  // namespace iq
 
 #endif /*__IQ_TRIM_H__*/

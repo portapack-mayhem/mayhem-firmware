@@ -23,6 +23,7 @@
 
 #include "ui_freqman.hpp"
 
+#include "binder.hpp"
 #include "event_m0.hpp"
 #include "portapack.hpp"
 #include "rtc_time.hpp"
@@ -92,9 +93,9 @@ void FreqManBaseView::focus() {
 
     // TODO: Shouldn't be on focus.
     if (error_ == ERROR_ACCESS) {
-        nav_.display_modal("Error", "File access error", ABORT, nullptr);
+        nav_.display_modal("Error", "File access error", ABORT);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT, nullptr);
+        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT);
     } else {
         options_category.focus();
     }
@@ -376,69 +377,26 @@ FrequencyEditView::FrequencyEditView(
     field_step.options().insert(
         field_step.options().begin(), {"None", -1});
 
-    field_type.set_by_value((int32_t)entry_.type);
-    field_type.on_change = [this](size_t, auto value) {
-        entry_.type = static_cast<freqman_type>(value);
+    bind(field_type, entry_.type, [this](auto) {
         refresh_ui();
-    };
+    });
 
-    // TODO: this pattern should be able to be wrapped up.
-    field_freq_a.set_value(entry_.frequency_a);
-    field_freq_a.on_change = [this](rf::Frequency f) {
-        entry_.frequency_a = f;
+    bind(field_freq_a, entry_.frequency_a, nav, [this](auto) {
         refresh_ui();
-    };
-    field_freq_a.on_edit = [this]() {
-        auto freq_view = nav_.push<FrequencyKeypadView>(field_freq_a.value());
-        freq_view->on_changed = [this](rf::Frequency f) {
-            field_freq_a.set_value(f);
-        };
-    };
+    });
 
-    field_freq_b.set_value(entry_.frequency_b);
-    field_freq_b.on_change = [this](rf::Frequency f) {
-        entry_.frequency_b = f;
+    bind(field_freq_b, entry_.frequency_b, nav, [this](auto) {
         refresh_ui();
-    };
-    field_freq_b.on_edit = [this]() {
-        auto freq_view = nav_.push<FrequencyKeypadView>(field_freq_b.value());
-        freq_view->on_changed = [this](rf::Frequency f) {
-            field_freq_b.set_value(f);
-        };
-    };
+    });
 
-    field_modulation.set_by_value((int32_t)entry_.modulation);
-    field_modulation.on_change = [this](size_t, auto value) {
-        entry_.modulation = static_cast<freqman_index_t>(value);
+    bind(field_modulation, entry_.modulation, [this](auto) {
         populate_bandwidth_options();
-    };
+    });
 
-    field_bandwidth.set_by_value((int32_t)entry_.bandwidth);
-    field_bandwidth.on_change = [this](size_t, auto value) {
-        entry_.bandwidth = static_cast<freqman_index_t>(value);
-    };
-
-    field_step.set_by_value((int32_t)entry_.step);
-    field_step.on_change = [this](size_t, auto value) {
-        entry_.step = static_cast<freqman_index_t>(value);
-    };
-
-    field_tone.set_by_value((int32_t)entry_.tone);
-    field_tone.on_change = [this](size_t, auto value) {
-        entry_.tone = static_cast<freqman_index_t>(value);
-    };
-
-    field_description.set_text(entry_.description);
-    field_description.on_change = [this](TextField& tf) {
-        entry_.description = tf.get_text();
-    };
-    field_description.on_select = [this](TextField& tf) {
-        temp_buffer_ = tf.get_text();
-        text_prompt(nav_, temp_buffer_, FreqManBaseView::desc_edit_max,
-                    [this, &tf](std::string& new_desc) {
-                        tf.set_text(new_desc);
-                    });
-    };
+    bind(field_bandwidth, entry_.bandwidth);
+    bind(field_step, entry_.step);
+    bind(field_tone, entry_.tone);
+    bind(field_description, entry_.description, nav_);
 
     button_save.on_select = [this](Button&) {
         if (on_save)

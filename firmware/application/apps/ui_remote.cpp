@@ -21,6 +21,7 @@
 
 #include "ui_remote.hpp"
 
+#include "binder.hpp"
 #include "convert.hpp"
 #include "file_reader.hpp"
 #include "io_convert.hpp"
@@ -239,19 +240,9 @@ RemoteEntryEditView::RemoteEntryEditView(
         &button_done,
     });
 
-    // TODO: It's time to make field bindings and clean this mess up.
-    field_name.on_change = [this](TextField& tf) {
-        entry_.name = tf.get_text();
-        button_preview.set_text(entry_.name);
-    };
-    field_name.on_select = [this, &nav](TextField& tf) {
-        temp_buffer_ = tf.get_text();
-        text_prompt(nav, temp_buffer_, text_edit_max,
-                    [this, &tf](std::string& str) {
-                        tf.set_text(str);
-                    });
-    };
-    field_name.set_text(entry_.name);
+    bind(field_name, entry_.name, nav, [this](auto& v) {
+        button_preview.set_text(v);
+    });
 
     field_path.on_select = [this, &nav](TextField&) {
         auto open_view = nav.push<FileLoadView>(".C*");
@@ -262,31 +253,16 @@ RemoteEntryEditView::RemoteEntryEditView(
         };
     };
 
-    field_freq.on_edit = [this, &nav]() {
-        auto freq_view = nav.push<FrequencyKeypadView>(entry_.metadata.center_frequency);
-        freq_view->on_changed = [this](rf::Frequency f) {
-            entry_.metadata.center_frequency = f;
-            field_freq.set_value(f);
-        };
-    };
-
-    field_icon_index.on_change = [this](int32_t v) {
-        entry_.icon = v;
+    bind(field_freq, entry_.metadata.center_frequency, nav);
+    bind(field_icon_index, entry_.icon, [this](auto v) {
         button_preview.set_bitmap(RemoteIcons::get(v));
-    };
-    field_icon_index.set_value(entry.icon);
-
-    field_fg_color_index.on_change = [this](int32_t v) {
-        entry_.fg_color = v;
+    });
+    bind(field_fg_color_index, entry_.fg_color, [this](auto v) {
         button_preview.set_color(RemoteColors::get(v));
-    };
-    field_fg_color_index.set_value(entry_.fg_color);
-
-    field_bg_color_index.on_change = [this](int32_t v) {
-        entry_.bg_color = v;
+    });
+    bind(field_bg_color_index, entry_.bg_color, [this](auto) {
         button_preview.set_dirty();
-    };
-    field_bg_color_index.set_value(entry_.bg_color);
+    });
 
     button_delete.on_select = [this, &nav]() {
         nav.display_modal(
@@ -485,6 +461,7 @@ void RemoteView::edit_button(RemoteButton& btn) {
     nav_.set_on_pop([this]() {
         refresh_ui();
         set_needs_save();
+        focus();  // Need to refocus after refreshing the buttons.
     });
 
     edit_view->on_delete = [this](RemoteEntryModel& to_delete) {
@@ -555,7 +532,6 @@ void RemoteView::open_remote() {
         save_remote();
         load_remote(std::move(path));
         refresh_ui();
-        ;
     };
 }
 

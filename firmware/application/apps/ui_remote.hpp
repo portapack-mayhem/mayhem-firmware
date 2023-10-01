@@ -195,7 +195,6 @@ class RemoteEntryEditView : public View {
 
    private:
     RemoteEntryModel& entry_;
-    std::string temp_buffer_{};
 
     void refresh_ui();
     void load_path(std::filesystem::path&& path);

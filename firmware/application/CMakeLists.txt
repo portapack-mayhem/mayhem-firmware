@@ -183,6 +183,7 @@ set(CPPSRC
 	io_convert.cpp
 	io_file.cpp
 	io_wave.cpp
+	iq_trim.cpp
 	irq_controls.cpp
 	irq_lcd_frame.cpp
 	irq_rtc.cpp
