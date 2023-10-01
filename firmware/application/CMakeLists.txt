@@ -243,6 +243,7 @@ set(CPPSRC
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
 	apps/analog_tv_app.cpp
+	apps/ble_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/gps_sim_app.cpp
