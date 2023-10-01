@@ -8,7 +8,7 @@ std::vector<Bitmap*> ExternalItemsMenuLoader::bitmaps;
 
 std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     for (const auto& bitmap : bitmaps) {
-        delete bitmap->data;
+        delete[] bitmap->data;
         delete bitmap;
     }
     bitmaps.clear();

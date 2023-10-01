@@ -26,7 +26,7 @@
 #include "ui_navigation.hpp"
 #include "spi_image.hpp"
 
-#define CURRENT_HEADER_VERISON 0x00000001
+#define CURRENT_HEADER_VERSION 0x00000001
 
 typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
 
