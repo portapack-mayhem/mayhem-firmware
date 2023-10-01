@@ -278,10 +278,32 @@ void MAX2839::set_vga_gain(const int_fast8_t db) {
     configure_rx_gain();
 }
 
-void MAX2839::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
+void MAX2839::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
+    _map.r.lpf_vga_1.ModeCtrl = 0b01; /* Adress reg 5, D9-D8, Set mode lowpass filter block to Rx LPF . Active when Address 8 D<2> = 1 */
+    flush_one(Register::LPF_VGA_1);
+
+    _map.r.rx_top_1.LPF_MODE_SEL = 1; /* Address 8 reg, D2 bit:LPF mode mux, LPF_MODE_SEL 0 = Normal operation, 1 = Operating mode is programmed Address 5 D<9:8> */
+    flush_one(Register::RX_TOP_1);
+
     _map.r.lpf.FT = filter::bandwidth_ordinal(bandwidth_minimum);
-    _dirty[Register::LPF] = 1;
-    flush();
+    flush_one(Register::LPF);
+
+    _map.r.rx_top_1.LPF_MODE_SEL = 0; /* Address 8 reg, D2 bit:LPF mode mux, LPF_MODE_SEL 0 = Normal operation, 1 = Operating mode is programmed Address 5 D<9:8> */
+    flush_one(Register::RX_TOP_1);    /* Leave LPF_MODE_SEL 0 = Normal operation */
+}
+
+void MAX2839::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {
+    _map.r.lpf_vga_1.ModeCtrl = 0b10; /* Adress reg 5, D9-D8, Set mode lowpass filter block to Tx LPF . Active when Address 8 D<2> = 1 */
+    flush_one(Register::LPF_VGA_1);
+
+    _map.r.rx_top_1.LPF_MODE_SEL = 1; /* Address 8 reg, D2 bit:LPF mode mux, LPF_MODE_SEL 0 = Normal operation, 1 = Operating mode is programmed Address 5 D<9:8> */
+    flush_one(Register::RX_TOP_1);
+
+    _map.r.lpf.FT = filter::bandwidth_ordinal(bandwidth_minimum);
+    flush_one(Register::LPF);
+
+    _map.r.rx_top_1.LPF_MODE_SEL = 0; /* Address 8 reg, D2 bit:LPF mode mux, LPF_MODE_SEL 0 = Normal operation, 1 = Operating mode is programmed Address 5 D<9:8> */
+    flush_one(Register::RX_TOP_1);    /* Leave LPF_MODE_SEL 0 = Normal operation */
 }
 
 bool MAX2839::set_frequency(const rf::Frequency lo_frequency) {

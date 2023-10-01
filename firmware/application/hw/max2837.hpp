@@ -783,7 +783,8 @@ class MAX2837 : public MAX283x {
     void set_tx_vga_gain(const int_fast8_t db) override;
     void set_lna_gain(const int_fast8_t db) override;
     void set_vga_gain(const int_fast8_t db) override;
-    void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) override;
+    void set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) override;
+    void set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) override;
 #if 0
 	void rx_cal() {
 		_map.r.spi_en.EN_SPI = 1;

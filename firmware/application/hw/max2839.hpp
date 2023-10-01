@@ -686,7 +686,8 @@ class MAX2839 : public MAX283x {
     void set_tx_vga_gain(const int_fast8_t db) override;
     void set_lna_gain(const int_fast8_t db) override;
     void set_vga_gain(const int_fast8_t db) override;
-    void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) override;
+    void set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) override;
+    void set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) override;
     bool set_frequency(const rf::Frequency lo_frequency) override;
     void set_rx_lo_iq_calibration(const size_t v) override;
     void set_rx_buff_vcm(const size_t v) override;

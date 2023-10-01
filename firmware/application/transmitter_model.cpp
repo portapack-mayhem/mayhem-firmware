@@ -139,7 +139,7 @@ void TransmitterModel::update_tuning_frequency() {
 }
 
 void TransmitterModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth(baseband_bandwidth());
+    radio::set_baseband_filter_bandwidth_tx(baseband_bandwidth());
 }
 
 void TransmitterModel::update_sampling_rate() {

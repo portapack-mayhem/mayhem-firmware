@@ -122,7 +122,7 @@ void MAX2837::init() {
 
     _map.r.lpf_1.LPF_EN = 1;      /* Enable low-pass filter */
     _map.r.lpf_1.ModeCtrl = 0b01; /* Rx LPF */
-    _map.r.lpf_1.FT = 0b0000;     /* 5MHz LPF */
+    _map.r.lpf_1.FT = 0b0000;     /* 1,75MHz LPF */
 
     _map.r.spi_en.EN_SPI = 1; /* enable chip functions when ENABLE pin set */
 
@@ -233,10 +233,28 @@ void MAX2837::set_vga_gain(const int_fast8_t db) {
     flush();
 }
 
-void MAX2837::set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum) {
+void MAX2837::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
+    _map.r.lpf_1.ModeCtrl = 0b01; /* Adress reg 2, D3-D2, Set mode lowpass filter block to Rx LPF . Active when Address 6 D<9> = 1 */
     _map.r.lpf_1.FT = filter::bandwidth_ordinal(bandwidth_minimum);
-    _dirty[Register::LPF_1] = 1;
-    flush();
+    flush_one(Register::LPF_1);
+
+    _map.r.vga_3_rx_top.LPF_MODE_SEL = 1; /* Address 6 reg, D9 bit:LPF mode mux, LPF_MODE_SEL 0 = Normal operation, 1 = Operating mode is programmed Address 2 D3:D2*/
+    flush_one(Register::VGA_3_RX_TOP);
+
+    _map.r.vga_3_rx_top.LPF_MODE_SEL = 0; /* Leave LPF_MODE_SEL 0 = Normal operation */
+    flush_one(Register::VGA_3_RX_TOP);
+}
+
+void MAX2837::set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) {
+    _map.r.lpf_1.ModeCtrl = 0b10; /* Address 2 reg, D3-D2, Set mode lowpass filter block to Tx LPF . Active when Address 6 D<9> = 1 */
+    _map.r.lpf_1.FT = filter::bandwidth_ordinal(bandwidth_minimum);
+    flush_one(Register::LPF_1);
+
+    _map.r.vga_3_rx_top.LPF_MODE_SEL = 1; /* Address 6 reg, D9 bit:LPF mode mux, LPF_MODE_SEL 0 = Normal operation, 1 = Operating mode is programmed Address 2 D3:D2*/
+    flush_one(Register::VGA_3_RX_TOP);
+
+    _map.r.vga_3_rx_top.LPF_MODE_SEL = 0; /* Leave LPF_MODE_SEL 0 = Normal operation */
+    flush_one(Register::VGA_3_RX_TOP);
 }
 
 bool MAX2837::set_frequency(const rf::Frequency lo_frequency) {

@@ -296,6 +296,8 @@ void ADSBTxView::generate_frames() {
 void ADSBTxView::start_tx() {
     generate_frames();
 
+    /* Already tested , It is better to keep original condition, not activating  "transmitter_model.set_baseband_bandwidth(28'000'000)"
+     * then TX max2837/9 channel LPF is disabled (by-passed), and the decoding is slightly  better than TX_LPF=28M max. */
     transmitter_model.enable();
 
     baseband::set_adsb();

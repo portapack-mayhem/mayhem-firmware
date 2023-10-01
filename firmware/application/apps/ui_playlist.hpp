@@ -60,7 +60,7 @@ class PlaylistView : public View {
 
     // More header == less spectrum view.
     static constexpr ui::Dim header_height = 6 * 16;
-    static constexpr uint32_t baseband_bandwidth = 2'500'000;
+    // static constexpr uint32_t baseband_bandwidth = 2'500'000;
 
     struct playlist_entry {
         std::filesystem::path path{};
