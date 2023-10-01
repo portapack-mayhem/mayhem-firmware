@@ -21,8 +21,10 @@
 # Boston, MA 02110-1301, USA.
 #
 
+# This script will copy compiled external apps to the Portapack.
+
 try=1
-while [ $try -le 60 ]
+while [ $try -le 180 ]
 do
     if ls /dev/disk/by-id/*Portapack*part1 1> /dev/null 2>&1; then
         disk=$(ls /dev/disk/by-id/*Portapack*part1)
@@ -42,7 +44,7 @@ do
     fi
 
     if [ "$(( $try %5 ))" -eq "1" ]; then
-        echo "Please put the portapack into usb mode..."
+        echo "Please start SD over USB app ..."
     fi
 
     sleep 1

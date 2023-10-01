@@ -27,6 +27,8 @@
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
+#include "file.hpp"
+
 namespace ui {
 
 class ExternalItemsMenuLoader {
@@ -37,7 +39,7 @@ class ExternalItemsMenuLoader {
    private:
     static std::vector<Bitmap*> bitmaps;
 
-    static void run_external_app(ui::NavigationView&, const TCHAR*);
+    static void run_external_app(ui::NavigationView&, std::filesystem::path);
 };
 
 }  // namespace ui

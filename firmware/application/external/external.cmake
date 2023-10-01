@@ -1,4 +1,3 @@
-# List of all the board related files.
 set(EXTCPPSRC
 
 	#pacman

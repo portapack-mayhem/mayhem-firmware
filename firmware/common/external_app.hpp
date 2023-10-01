@@ -26,6 +26,8 @@
 #include "ui_navigation.hpp"
 #include "spi_image.hpp"
 
+#define CURRENT_HEADER_VERISON 0x00000001
+
 typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
 
 enum app_location_t : uint32_t {
@@ -34,9 +36,10 @@ enum app_location_t : uint32_t {
     TX
 };
 
-typedef struct {
+struct application_information_t {
     uint8_t* memory_location;
     externalAppEntry_t externalAppEntry;
+    uint32_t header_version;
     uint32_t app_version;
 
     uint8_t app_name[16];
@@ -46,7 +49,6 @@ typedef struct {
 
     portapack::spi_flash::image_tag_t m4_app_tag;
     uint32_t m4_app_offset;
-
-} application_information_t;
+};
 
 #endif /*__EXTERNAL_APPS_H__*/
