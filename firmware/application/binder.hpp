@@ -53,6 +53,15 @@ struct NoOp {
  */
 
 template <typename T, typename Fn = NoOp>
+void bind(Checkbox& check, T& value, Fn fn = Fn{}) {
+    check.set_value(value);
+    check.on_select = [&value, fn](Checkbox&, bool b) {
+        value = b;
+        fn(value);
+    };
+}
+
+template <typename T, typename Fn = NoOp>
 void bind(NumberField& field, T& value, Fn fn = Fn{}) {
     field.set_value(value);
     field.on_change = [&value, fn](int32_t v) {
