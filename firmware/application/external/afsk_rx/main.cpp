@@ -33,9 +33,9 @@ __attribute__((noinline)) void initialize_app(ui::NavigationView& nav) {
 extern "C" {
 
 __attribute__((section(".external_app.app_afsk_rx.application_information"), used)) application_information_t _application_information_afsk_rx = {
-    /*.memory_location = */ (uint8_t*)0x10086000,
+    /*.memory_location = */ (uint8_t*)0x00000000,
     /*.externalAppEntry = */ ui::external_app::afsk_rx::initialize_app,
-    /*.app_version = */ 0x00000000,
+    /*.app_version = */ VERSION_MD5,
 
     /*.app_name = */ "AFSK",
     /*.bitmap_data = */ {

@@ -31,23 +31,37 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
         if (application_information.menu_location != app_location)
             continue;
 
+        bool versionMatches = VERSION_MD5 == application_information.app_version;
+
         GridItem gridItem = {};
         gridItem.text = reinterpret_cast<char*>(&application_information.app_name[0]);
-        gridItem.color = Color((uint16_t)application_information.icon_color);
 
-        auto bitmapData = new uint8_t[32];
-        Bitmap* bitmap = new Bitmap{
-            {16, 16},
-            bitmapData};
+        if (versionMatches) {
+            gridItem.color = Color((uint16_t)application_information.icon_color);
 
-        memcpy(bitmapData, &application_information.bitmap_data[0], 32);
-        bitmaps.push_back(bitmap);
+            auto bitmapData = new uint8_t[32];
+            Bitmap* bitmap = new Bitmap{
+                {16, 16},
+                bitmapData};
 
-        gridItem.bitmap = bitmap;
-        gridItem.on_select = [&nav, app_location, filePath]() {
-            auto filename = reinterpret_cast<const TCHAR*>(filePath.c_str());
-            run_external_app(nav, filename);
-        };
+            memcpy(bitmapData, &application_information.bitmap_data[0], 32);
+            bitmaps.push_back(bitmap);
+
+            gridItem.bitmap = bitmap;
+
+            gridItem.on_select = [&nav, app_location, filePath]() {
+                auto filename = reinterpret_cast<const TCHAR*>(filePath.c_str());
+                run_external_app(nav, filename);
+            };
+        } else {
+            gridItem.color = Color::light_grey();
+
+            gridItem.bitmap = &bitmap_sd_card_error;
+
+            gridItem.on_select = [&nav, app_location, filePath]() {
+                nav.display_modal("Error", "The .ppma file in your APPS\nfolder is outdated. Please\nupdate your SD Card content.");
+            };
+        }
 
         exteral_apps.push_back(gridItem);
     }
@@ -69,39 +83,52 @@ void ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, const TC
 
     application_information_t* application_information = (application_information_t*)&shared_memory.bb_data.data[0];
 
-    // copy application image
-    for (size_t file_read_index = 0; file_read_index < application_information->m4_app_offset; file_read_index += 512) {
-        auto bytes_to_read = 512;
-        if (file_read_index + 512 > application_information->m4_app_offset)
-            bytes_to_read = application_information->m4_app_offset - file_read_index;
+    if (application_information->m4_app_offset != 0) {
+        // copy application image
+        for (size_t file_read_index = 0; file_read_index < application_information->m4_app_offset; file_read_index += 512) {
+            auto bytes_to_read = 512;
+            if (file_read_index + 512 > application_information->m4_app_offset)
+                bytes_to_read = application_information->m4_app_offset - file_read_index;
 
-        if (bytes_to_read == 0)
-            break;
+            if (bytes_to_read == 0)
+                break;
 
-        if (f_read(&firmware_file, &application_information->memory_location[file_read_index], bytes_to_read, &bytes_read) != FR_OK)
-            chDbgPanic("no data #2");
+            if (f_read(&firmware_file, &application_information->memory_location[file_read_index], bytes_to_read, &bytes_read) != FR_OK)
+                chDbgPanic("no data #2");
 
-        if (bytes_read < 512)
-            break;
-    }
+            if (bytes_read < 512)
+                break;
+        }
 
-    // copy baseband image
-    for (size_t file_read_index = application_information->m4_app_offset;; file_read_index += bytes_read) {
-        size_t bytes_to_read = 512;
+        // copy baseband image
+        for (size_t file_read_index = application_information->m4_app_offset;; file_read_index += bytes_read) {
+            size_t bytes_to_read = 512;
 
-        // not aligned
-        if ((file_read_index % 512) != 0)
-            bytes_to_read = 512 - (file_read_index % 512);
+            // not aligned
+            if ((file_read_index % 512) != 0)
+                bytes_to_read = 512 - (file_read_index % 512);
 
-        if (bytes_to_read == 0)
-            break;
+            if (bytes_to_read == 0)
+                break;
 
-        auto target_memory = reinterpret_cast<void*>(portapack::memory::map::m4_code.base() + file_read_index - application_information->m4_app_offset);
-        if (f_read(&firmware_file, target_memory, bytes_to_read, &bytes_read) != FR_OK)
-            chDbgPanic("no data #2");
+            auto target_memory = reinterpret_cast<void*>(portapack::memory::map::m4_code.base() + file_read_index - application_information->m4_app_offset);
+            if (f_read(&firmware_file, target_memory, bytes_to_read, &bytes_read) != FR_OK)
+                chDbgPanic("no data #2");
 
-        if (bytes_read != bytes_to_read)
-            break;
+            if (bytes_read != bytes_to_read)
+                break;
+        }
+    } else {
+        // copy application image
+        for (size_t file_read_index = 0; file_read_index < 64 * 512; file_read_index += 512) {
+            auto bytes_to_read = 512;
+
+            if (f_read(&firmware_file, &application_information->memory_location[file_read_index], bytes_to_read, &bytes_read) != FR_OK)
+                chDbgPanic("no data #2");
+
+            if (bytes_read < 512)
+                break;
+        }
     }
 
     application_information->externalAppEntry(nav);

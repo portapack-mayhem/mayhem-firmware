@@ -26,6 +26,7 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex
 project(portapack-h1)
 
 set(VERSION "$ENV{VERSION_STRING}")
+
 if ("$ENV{VERSION_STRING}" STREQUAL "")
 	execute_process(
 		COMMAND git log -n 1 --format=%h
@@ -41,6 +42,12 @@ if ("$ENV{VERSION_STRING}" STREQUAL "")
 		set(VERSION "${GIT_VERSION}")
 	endif (GIT_VERSION_FOUND)
 endif()
+
+execute_process(
+	COMMAND bash "-c" "echo ${VERSION} | md5sum | head -c 8"
+	OUTPUT_VARIABLE VERSION_MD5
+)
+set(VERSION_MD5 "0x${VERSION_MD5}")
 
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
 set(HARDWARE_PATH ${CMAKE_CURRENT_LIST_DIR}/hardware)

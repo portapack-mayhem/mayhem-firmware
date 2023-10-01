@@ -47,6 +47,28 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
+def patch_image(image_data, search_address, replace_address):
+	if (len(image_data) % 4) != 0:
+		print("file size not divideable by 4")
+		sys.exit(-1)
+
+	external_application_image = bytearray()
+
+	for x in range(int(len(image_data)/4)):
+		snippet = image_data[x*4:4*(x+1)]
+		val = int.from_bytes(snippet, byteorder='little')
+
+		if val > search_address and (val - search_address) < (40*1024):
+			relative_address = val - search_address
+			new_address = replace_address + relative_address
+
+			new_snippet = new_address.to_bytes(4, byteorder='little')
+			external_application_image += new_snippet
+		else:
+			external_application_image += snippet
+			
+	return external_application_image
+
 project_source_dir = sys.argv[1]   #/portapack-mayhem/firmware/application
 binary_dir = sys.argv[2]           #/portapack-mayhem/build/firmware/application
 cmake_objcopy = sys.argv[3]
@@ -58,36 +80,39 @@ for external_image_prefix in sys.argv[4:]:
 	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)]) 
 
 	external_application_image = read_image(himg)
-	replace_address = int.from_bytes(external_application_image[0:4], byteorder='little')
-	search_address = int.from_bytes(external_application_image[4:8], byteorder='little') & 0xFFFF0000
-
-	if (len(external_application_image) % 4) != 0:
-		print("file size not divideable by 4")
-		sys.exit(-1)
-
-	patched_external_application_image = bytearray()
-
-	for x in range(int(len(external_application_image)/4)):
-		snippet = external_application_image[x*4:4*(x+1)]
-		val = int.from_bytes(snippet, byteorder='little')
-
-		if val > search_address and (val - search_address) < (40*1024):
-			relative_address = val - search_address
-			new_address = replace_address + relative_address
-
-			new_snippet = new_address.to_bytes(4, byteorder='little')
-			patched_external_application_image += new_snippet
-		else:
-			patched_external_application_image += snippet
-
-	#set version
-	patched_external_application_image[8:12] = 0x12341234.to_bytes(4, byteorder='little')
 
 	#m4 image @ 0x44
-	chunk_tag = patched_external_application_image[68:72].decode("utf-8") 
-	m4_image = read_image("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
-	patched_external_application_image[72:76] = len(external_application_image).to_bytes(4, byteorder='little')
-	patched_external_application_image += m4_image
+	chunk_data = external_application_image[68:72]
 
-	# .ppma portapack mayhem application
-	write_image(patched_external_application_image, "{}/{}.ppma".format(binary_dir, external_image_prefix))
+	# skip m4 if not set
+	if (chunk_data[0] == 0 and chunk_data[1] == 0 and chunk_data[2] == 0 and chunk_data[3] == 0):
+		replace_address = 0x10080000
+		search_address = int.from_bytes(external_application_image[4:8], byteorder='little') & 0xFFFF0000
+		external_application_image = patch_image(external_application_image, search_address, replace_address)
+		external_application_image[0:4] = replace_address.to_bytes(4, byteorder='little')
+
+		write_image(external_application_image, "{}/{}.ppma".format(binary_dir, external_image_prefix))
+		continue
+
+	chunk_tag = chunk_data.decode("utf-8")
+	m4_image = read_image("{}/../baseband/{}.bin".format(binary_dir, chunk_tag))
+	app_image_len = len(external_application_image)
+	external_application_image += m4_image
+
+	if (len(m4_image) % 4) != 0:
+		print("m4 file size not divideable by 4")
+		sys.exit(-1)
+
+	replace_address = 0x10080000 + len(m4_image)
+	search_address = int.from_bytes(external_application_image[4:8], byteorder='little') & 0xFFFF0000
+	external_application_image = patch_image(external_application_image, search_address, replace_address)
+
+	external_application_image[0:4] = replace_address.to_bytes(4, byteorder='little')
+	external_application_image[72:76] = app_image_len.to_bytes(4, byteorder='little')
+
+	if (len(external_application_image) > 1024 * 32) != 0:
+		print("application {} can not exceed 32kb: {} bytes used".format(external_image_prefix, len(external_application_image)))
+		sys.exit(-1)
+
+	# write .ppma (portapack mayhem application)
+	write_image(external_application_image, "{}/{}.ppma".format(binary_dir, external_image_prefix))
