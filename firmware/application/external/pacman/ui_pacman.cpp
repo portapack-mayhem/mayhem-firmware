@@ -25,7 +25,6 @@ void PacmanView::focus() {
 }
 
 void PacmanView::paint(Painter& painter) {
-    // View::paint(painter);
     (void)painter;
 
     if (!initialized) {

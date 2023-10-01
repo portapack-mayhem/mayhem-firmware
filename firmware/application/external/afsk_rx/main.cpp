@@ -25,7 +25,7 @@
 #include "external_app.hpp"
 
 namespace ui::external_app::afsk_rx {
-__attribute__((noinline)) void initialize_app(ui::NavigationView& nav) {
+void initialize_app(ui::NavigationView& nav) {
     nav.push<AFSKRxView>();
 }
 }  // namespace ui::external_app::afsk_rx

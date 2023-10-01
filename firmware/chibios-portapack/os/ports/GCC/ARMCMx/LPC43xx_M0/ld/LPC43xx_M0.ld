@@ -146,7 +146,6 @@ SECTIONS
         . = ALIGN(4);
         PROVIDE(_bss_end = .);
     } > ram
-
 }
 
 PROVIDE(end = .);
