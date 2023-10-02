@@ -4,13 +4,9 @@
 
 namespace ui {
 
-std::vector<Bitmap*> ExternalItemsMenuLoader::bitmaps;
+/* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
 
-std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
-    for (const auto& bitmap : bitmaps) {
-        delete[] bitmap->data;
-        delete bitmap;
-    }
+/* static */ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
 
     std::vector<GridItem> external_apps;
@@ -46,15 +42,9 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
         if (versionMatches) {
             gridItem.color = Color((uint16_t)application_information.icon_color);
 
-            auto bitmapData = new uint8_t[32];
-            Bitmap* bitmap = new Bitmap{
-                {16, 16},
-                bitmapData};
-
-            memcpy(bitmapData, &application_information.bitmap_data[0], 32);
-            bitmaps.push_back(bitmap);
-
-            gridItem.bitmap = bitmap;
+            auto dyn_bmp = DynamicBitmap<16, 16>{application_information.bitmap_data};
+            gridItem.bitmap = dyn_bmp.bitmap();
+            bitmaps.push_back(std::move(dyn_bmp));
 
             gridItem.on_select = [&nav, app_location, filePath]() {
                 run_external_app(nav, filePath);
@@ -75,7 +65,7 @@ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_
     return external_apps;
 }
 
-void ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
+/* static */ void ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
     File app;
 
     auto openError = app.open(filePath);

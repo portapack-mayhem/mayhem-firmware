@@ -31,13 +31,32 @@
 
 namespace ui {
 
+template <size_t Width, size_t Height>
+class DynamicBitmap {
+   public:
+    static constexpr size_t buffer_size = Width * Height / (sizeof(uint8_t) * 8);  // one bit per pixel
+
+    DynamicBitmap(const uint8_t data[buffer_size])
+        : _buffer(buffer_size, 0),
+          _bitmap{new Bitmap{{Width, Height}, &_buffer[0]}} {
+        memcpy(&_buffer[0], data, buffer_size);
+    }
+
+    const Bitmap* bitmap() { return _bitmap.get(); }
+
+   private:
+    // Allocating both members so the class is movable without invalidation.
+    std::vector<uint8_t> _buffer;
+    std::unique_ptr<Bitmap> _bitmap;
+};
+
 class ExternalItemsMenuLoader {
    public:
     static std::vector<GridItem> load_external_items(app_location_t, NavigationView&);
     ExternalItemsMenuLoader() = delete;
 
    private:
-    static std::vector<Bitmap*> bitmaps;
+    static std::vector<DynamicBitmap<16, 16>> bitmaps;
 
     static void run_external_app(ui::NavigationView&, std::filesystem::path);
 };
