@@ -234,7 +234,7 @@ void MAX2837::set_vga_gain(const int_fast8_t db) {
 }
 
 void MAX2837::set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) {
-    _map.r.lpf_1.ModeCtrl = 0b01; /* Adress reg 2, D3-D2, Set mode lowpass filter block to Rx LPF . Active when Address 6 D<9> = 1 */
+    _map.r.lpf_1.ModeCtrl = 0b01; /* Address reg 2, D3-D2, Set mode lowpass filter block to Rx LPF . Active when Address 6 D<9> = 1 */
     _map.r.lpf_1.FT = filter::bandwidth_ordinal(bandwidth_minimum);
     flush_one(Register::LPF_1);
 
