@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Bernd Herzog
  *
  * This file is part of PortaPack.
  *
@@ -19,18 +19,36 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __CORE_CONTROL_H__
-#define __CORE_CONTROL_H__
+#ifndef __EXTERNAL_APPS_H__
+#define __EXTERNAL_APPS_H__
 
-#include <cstddef>
-
-#include "memory_map.hpp"
+#include "ch.h"
+#include "ui_navigation.hpp"
 #include "spi_image.hpp"
 
-void m4_init(const portapack::spi_flash::image_tag_t image_tag, const portapack::memory::region_t to, const bool full_reset);
-void m4_init_prepared(const uint32_t m4_code, const bool full_reset);
-void m4_request_shutdown();
+#define CURRENT_HEADER_VERSION 0x00000001
 
-void m0_halt();
+typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
 
-#endif /*__CORE_CONTROL_H__*/
+enum app_location_t : uint32_t {
+    UTILITIES = 0,
+    RX,
+    TX
+};
+
+struct application_information_t {
+    uint8_t* memory_location;
+    externalAppEntry_t externalAppEntry;
+    uint32_t header_version;
+    uint32_t app_version;
+
+    uint8_t app_name[16];
+    uint8_t bitmap_data[32];
+    uint32_t icon_color;
+    app_location_t menu_location;
+
+    portapack::spi_flash::image_tag_t m4_app_tag;
+    uint32_t m4_app_offset;
+};
+
+#endif /*__EXTERNAL_APPS_H__*/
