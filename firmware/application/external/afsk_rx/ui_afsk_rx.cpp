@@ -32,12 +32,13 @@
 
 using namespace portapack;
 using namespace modems;
+using namespace ui;
+
+namespace ui::external_app::afsk_rx {
 
 void AFSKLogger::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
 }
-
-namespace ui {
 
 void AFSKRxView::focus() {
     field_frequency.focus();
@@ -45,7 +46,7 @@ void AFSKRxView::focus() {
 
 AFSKRxView::AFSKRxView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_image(portapack::spi_flash::image_tag_afsk_rx);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
                   &channel,
@@ -147,4 +148,4 @@ AFSKRxView::~AFSKRxView() {
     baseband::shutdown();
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::afsk_rx

@@ -33,6 +33,9 @@ __ram_end__             = __ram_start__ + __ram_size__;
 
 ENTRY(ResetHandler)
 
+ /* external apps */
+INCLUDE external.ld
+
 SECTIONS
 {
     . = 0;
@@ -142,7 +145,7 @@ SECTIONS
         *(COMMON)
         . = ALIGN(4);
         PROVIDE(_bss_end = .);
-    } > ram    
+    } > ram
 }
 
 PROVIDE(end = .);

@@ -33,6 +33,10 @@
 #include "log_file.hpp"
 #include "utility.hpp"
 
+using namespace ui;
+
+namespace ui::external_app::afsk_rx {
+
 class AFSKLogger {
    public:
     Optional<File::Error> append(const std::string& filename) {
@@ -44,8 +48,6 @@ class AFSKLogger {
    private:
     LogFile log_file{};
 };
-
-namespace ui {
 
 class AFSKRxView : public View {
    public:
@@ -116,6 +118,6 @@ class AFSKRxView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::afsk_rx
 
 #endif /*__UI_AFSK_RX_H__*/

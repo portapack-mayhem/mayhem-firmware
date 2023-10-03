@@ -116,6 +116,12 @@ void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
     update_items();
 }
 
+void BtnGridView::add_item(GridItem new_item) {
+    menu_items.push_back(new_item);
+
+    update_items();
+}
+
 void BtnGridView::update_items() {
     size_t i = 0;
 
