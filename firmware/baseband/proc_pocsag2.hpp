@@ -189,9 +189,6 @@ class CodewordExtractor {
     /* When true, bit vales are flipped in the codewords. */
     bool inverted_ = false;
 
-    /* Returns true if the batch has as sync frame. */
-    bool has_sync() const { return has_sync_; }
-
     uint32_t data_ = 0;
     uint8_t bit_count_ = 0;
     uint8_t word_count_ = 0;

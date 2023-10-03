@@ -240,88 +240,85 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
                 if (packet_addr_l == 0x8E89BED6)
                 // if (packet_crc==calced_crc) // NOTE: restore when CRC is passing
                 {
-                    std::string bleOutputBuffer;
+                //     std::string bleOutputBuffer;
                     
-                    uint8_t adv_tx_add, adv_rx_add, adv_pdu_type, payload_len;
+                //     uint8_t adv_tx_add, adv_rx_add, adv_pdu_type, payload_len;
 
-                    adv_pdu_type = (ADV_PDU_TYPE)(packet_data[0]&0x0F);
+                //     adv_pdu_type = (ADV_PDU_TYPE)(packet_data[0]&0x0F);
 
-                    adv_tx_add = ( (packet_data[0]&0x40) != 0 );
+                //     adv_tx_add = ( (packet_data[0]&0x40) != 0 );
 
-                    adv_rx_add = ( (packet_data[0]&0x80) != 0 );
+                //     adv_rx_add = ( (packet_data[0]&0x80) != 0 );
 
-                    payload_len = (packet_data[1]&0x3F);
+                //     payload_len = (packet_data[1]&0x3F);
 
-                    bleOutputBuffer += "ADV_PDU_t" + ADV_PDU_TYPE_STR[adv_pdu_type] + adv_tx_add + adv_rx_add + payload_len;
+                //     bleOutputBuffer += "ADV_PDU_t" + ADV_PDU_TYPE_STR[adv_pdu_type] + adv_tx_add + adv_rx_add + payload_len;
 
-                   for (int i = 0; i < bleOutputBuffer.length(); i++)
-                   {
-                        data_message.is_data = true;
-                        data_message.value = bleOutputBuffer[i];
-                        shared_memory.application_queue.push(data_message);
-                   }
+                //    for (int i = 0; i < bleOutputBuffer.length(); i++)
+                //    {
+                //         data_message.is_data = true;
+                //         data_message.value = bleOutputBuffer[i];
+                //         shared_memory.application_queue.push(data_message);
+                //    }
 
-                    // uint8_t mac_data[6];
-                    // int counter = 0;
+                    uint8_t mac_data[6];
+                    int counter = 0;
 
-                    // for (int i = 7; i >= 2; i--) 
-                    // {
-                    //     uint8_t byte_temp6 = (uint8_t)(((packet_data[i] * 0x0802LU & 0x22110LU) | (packet_data[i] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                    //     // result = byte_temp6; // NOTE: restore when CRC is passing
-                    //     mac_data[counter] = byte_temp6;
+                    for (int i = 7; i >= 2; i--) 
+                    {
+                        uint8_t byte_temp6 = (uint8_t)(((packet_data[i] * 0x0802LU & 0x22110LU) | (packet_data[i] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
+                        // result = byte_temp6; // NOTE: restore when CRC is passing
+                        mac_data[counter] = byte_temp6;
 
                         
-                    //     data_message.is_data = true;
-                    //     data_message.value = mac_data[counter];
-                    //     shared_memory.application_queue.push(data_message);
+                        data_message.is_data = true;
+                        data_message.value = mac_data[counter];
+                        shared_memory.application_queue.push(data_message);
 
+                        counter++;
 
-                    //     counter++;
+                    }
 
-                    // }
+                    for(int i = 0; i < packet_length; i++)
+                    {
+                        data_message.is_data = true;
+                        data_message.value = packet_data[i];
+                        shared_memory.application_queue.push(data_message);
+                    }
 
+                    data_message.is_data = false;
+                    data_message.value = 'A';
+                    shared_memory.application_queue.push(data_message);
 
+                    data_message.is_data = true;
+                    data_message.value = mac_data[0];
+                    shared_memory.application_queue.push(data_message);
 
-                    // for(int i = 0; i < packet_length; i++)
-                    // {
-                    //     data_message.is_data = true;
-                    //     data_message.value = packet_data[i];
-                    //     shared_memory.application_queue.push(data_message);
-                    // }
+                    data_message.is_data = true;
+                    data_message.value = mac_data[1];
+                    shared_memory.application_queue.push(data_message);
 
-                    // data_message.is_data = false;
-                    // data_message.value = 'A';
-                    // shared_memory.application_queue.push(data_message);
+                    data_message.is_data = true;
+                    data_message.value = mac_data[2];
+                    shared_memory.application_queue.push(data_message);
 
-                    // data_message.is_data = true;
-                    // data_message.value = mac_data[0];
-                    // shared_memory.application_queue.push(data_message);
+                    data_message.is_data = true;
+                    data_message.value = mac_data[3];
+                    shared_memory.application_queue.push(data_message);
 
-                    // data_message.is_data = true;
-                    // data_message.value = mac_data[1];
-                    // shared_memory.application_queue.push(data_message);
+                    data_message.is_data = true;
+                    data_message.value = mac_data[4];
+                    shared_memory.application_queue.push(data_message);
 
-                    // data_message.is_data = true;
-                    // data_message.value = mac_data[2];
-                    // shared_memory.application_queue.push(data_message);
+                    data_message.is_data = true;
+                    data_message.value = mac_data[5];
+                    shared_memory.application_queue.push(data_message);
 
-                    // data_message.is_data = true;
-                    // data_message.value = mac_data[3];
-                    // shared_memory.application_queue.push(data_message);
+                    data_message.is_data = false;
+                    data_message.value = 'B';
+                    shared_memory.application_queue.push(data_message);
 
-                    // data_message.is_data = true;
-                    // data_message.value = mac_data[4];
-                    // shared_memory.application_queue.push(data_message);
-
-                    // data_message.is_data = true;
-                    // data_message.value = mac_data[5];
-                    // shared_memory.application_queue.push(data_message);
-
-                    // data_message.is_data = false;
-                    // data_message.value = 'B';
-                    // shared_memory.application_queue.push(data_message);
-
-                    // packet_detected = true;
+                    packet_detected = true;
                 } 
                 else
                     packet_detected = false;
