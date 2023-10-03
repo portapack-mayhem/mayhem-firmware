@@ -1,9 +1,6 @@
 /*
- * Copyright (C) 1996 Thomas Sailer (sailer@ife.ee.ethz.ch, hb9jnx@hb9w.che.eu)
- * Copyright (C) 2012-2014 Elias Oenal (multimon-ng@eliasoenal.com)
- * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -23,26 +20,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __PROC_POCSAG2_H__
-#define __PROC_POCSAG2_H__
+#ifndef __PROC_FSK_RX_H__
+#define __PROC_FSK_RX_H__
 
-/* https://www.aaroncake.net/schoolpage/pocsag.htm */
-
-#include "audio_output.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
-#include "dsp_decimate.hpp"
-#include "dsp_demodulate.hpp"
-#include "dsp_iir_config.hpp"
-#include "message.hpp"
-#include "pocsag.hpp"
-#include "pocsag_packet.hpp"
-#include "portapack_shared_memory.hpp"
-#include "rssi_thread.hpp"
-
-#include <array>
-#include <cstdint>
-#include <functional>
 
 /* Normalizes audio stream to +/-1.0f */
 class AudioNormalizer {
@@ -122,84 +104,8 @@ class BitExtractor {
     RateInfo* current_rate_ = nullptr;
 };
 
-/* Extracts codeword batches from the BitQueue. */
-class CodewordExtractor {
-   public:
-    using batch_t = pocsag::batch_t;
-    using batch_handler_t = std::function<void(CodewordExtractor&)>;
-
-    CodewordExtractor(BitQueue& bits, batch_handler_t on_batch)
-        : bits_{bits}, on_batch_{on_batch} {}
-
-    /* Process the BitQueue to extract codeword batches. */
-    void process_bits();
-
-    /* Pad then send any pending frames. */
-    void flush();
-
-    /* Completely reset to prepare for a new message. */
-    void reset();
-
-    /* Gets the underlying batch array. */
-    const batch_t& batch() const { return batch_; }
-
-    /* Gets in-progress codeword. */
-    uint32_t current() const { return data_; }
-
-    /* Gets the count of completed codewords. */
-    uint8_t count() const { return word_count_; }
-
-    /* Returns true if the batch has as sync frame. */
-    bool has_sync() const { return has_sync_; }
-
-   private:
-    /* Sync frame codeword. */
-    static constexpr uint32_t sync_codeword = 0x7cd215d8;
-
-    /* Idle codeword used to pad a 16 codeword "batch". */
-    static constexpr uint32_t idle_codeword = 0x7a89c197;
-
-    /* Number of bits in 'data_' member. */
-    static constexpr uint8_t data_bit_count = sizeof(uint32_t) * 8;
-
-    /* Clears data_ and bit_count_ to prepare for next codeword. */
-    void clear_data_bits();
-
-    /* Pop a bit off the queue and add it to data_. */
-    void take_one_bit();
-
-    /* Handles receiving the sync frame codeword, start of batch. */
-    void handle_sync(bool inverted);
-
-    /* Saves the current codeword in data_ to the batch. */
-    void save_current_codeword();
-
-    /* Sends the batch to the handler, resets for next batch. */
-    void handle_batch_complete();
-
-    /* Fill the rest of the batch with 'idle' codewords. */
-    void pad_idle();
-
-    BitQueue& bits_;
-    batch_handler_t on_batch_{};
-
-    /* When true, sync frame has been received. */
-    bool has_sync_ = false;
-
-    /* When true, bit vales are flipped in the codewords. */
-    bool inverted_ = false;
-
-    /* Returns true if the batch has as sync frame. */
-    bool has_sync() const { return has_sync_; }
-
-    uint32_t data_ = 0;
-    uint8_t bit_count_ = 0;
-    uint8_t word_count_ = 0;
-    batch_t batch_{};
-};
-
-/* Processes POCSAG signal into codeword batches. */
-class POCSAGProcessor : public BasebandProcessor {
+class FSKRxProcessor : public BasebandProcessor 
+{
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
@@ -215,6 +121,7 @@ class POCSAGProcessor : public BasebandProcessor {
     void reset();
     void send_stats() const;
     void send_packet();
+    void process_bits();
 
     /* Set once app is ready to receive messages. */
     bool configured = false;
@@ -239,11 +146,11 @@ class POCSAGProcessor : public BasebandProcessor {
     FMSquelch squelch{};
     uint64_t squelch_history = 0;
 
-    /* LPF to reduce noise. POCSAG supports 2400 baud, but that falls
-     * nicely into the transition band of this 1800Hz filter.
-     * scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False) */
-    IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
-                         {1.00000000f, -1.34896775f, 0.51398189f}}};
+    // /* LPF to reduce noise. POCSAG supports 2400 baud, but that falls
+    //  * nicely into the transition band of this 1800Hz filter.
+    //  * scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False) */
+    // IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
+    //                      {1.00000000f, -1.34896775f, 0.51398189f}}};
 
     /* Attempts to de-noise and normalize signal. */
     AudioNormalizer normalizer{};
@@ -252,7 +159,7 @@ class POCSAGProcessor : public BasebandProcessor {
     AudioOutput audio_output{};
 
     /* Holds the data sent to the app. */
-    pocsag::POCSAGPacket packet{};
+    AFSKDataMessage data_message{false, 0};
 
     /* Used to keep track of how many samples were processed
      * between status update messages. */
@@ -263,15 +170,27 @@ class POCSAGProcessor : public BasebandProcessor {
     /* Processes audio into bits. */
     BitExtractor bit_extractor{bits};
 
-    /* Processes bits into codewords. */
-    CodewordExtractor word_extractor{
-        bits, [this](CodewordExtractor&) {
-            send_packet();
-        }};
+    /* Number of bits in 'data_' member. */
+    static constexpr uint8_t data_bit_count = sizeof(uint32_t) * 8;
+
+    /* Sync frame codeword. */
+    static constexpr uint32_t sync_codeword = 0x12345678;
+
+    /* When true, sync frame has been received. */
+    bool has_sync_ = false;
+
+    /* When true, bit vales are flipped in the codewords. */
+    bool inverted_ = false;
+
+    /* Returns true if the batch has as sync frame. */
+    bool has_sync() const { return has_sync_; }
+
+    uint32_t data_ = 0;
+    uint8_t bit_count_ = 0;
+    uint8_t word_count_ = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
-    RSSIThread rssi_thread{};
 };
 
-#endif /*__PROC_POCSAG2_H__*/
+#endif

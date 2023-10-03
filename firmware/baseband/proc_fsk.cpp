@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_fsk.hpp"
+#include "proc_fsk_rx.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"
