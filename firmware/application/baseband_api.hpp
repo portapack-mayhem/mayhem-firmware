@@ -89,6 +89,7 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 void request_beep();
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
+void run_prepared_image(const uint32_t m4_code);
 void shutdown();
 
 void spectrum_streaming_start();

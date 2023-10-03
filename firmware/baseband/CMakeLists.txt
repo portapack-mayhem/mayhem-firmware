@@ -265,6 +265,7 @@ include_directories(. ${INCDIR})
 #######################################################################
 
 set(BASEBAND_IMAGES)
+set(BASEBAND_EXTERNAL_IMAGES)
 
 macro(DeclareTargets chunk_tag name)
 	project("baseband_${name}")
@@ -279,17 +280,37 @@ macro(DeclareTargets chunk_tag name)
 	target_link_libraries(${PROJECT_NAME}.elf ${LIBS})
 	target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 
-	add_custom_command(
-		OUTPUT ${PROJECT_NAME}.bin ${PROJECT_NAME}.img
-		COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
-		COMMAND ${LZ4} -f -9 ${PROJECT_NAME}.bin ${PROJECT_NAME}.lz4
-		COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.lz4 ${chunk_tag} ${PROJECT_NAME}.img
-		DEPENDS ${PROJECT_NAME}.elf ${MAKE_IMAGE_CHUNK}
-		VERBATIM
-	)
+	if(add_to_firmware)
 
-	set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
+		add_custom_command(
+			OUTPUT ${chunk_tag}.bin ${PROJECT_NAME}.img
+			COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${chunk_tag}.bin
+			COMMAND ${LZ4} -f -9 ${chunk_tag}.bin ${PROJECT_NAME}.lz4
+			COMMAND ${MAKE_IMAGE_CHUNK} ${PROJECT_NAME}.lz4 ${chunk_tag} ${PROJECT_NAME}.img
+			DEPENDS ${PROJECT_NAME}.elf ${MAKE_IMAGE_CHUNK}
+			VERBATIM
+		)
+		
+		set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
+
+	else()
+
+		add_custom_command(
+			OUTPUT ${chunk_tag}.bin
+			COMMAND ${CMAKE_OBJCOPY} -O binary ${PROJECT_NAME}.elf ${chunk_tag}.bin
+			DEPENDS ${PROJECT_NAME}.elf
+			VERBATIM
+		)
+
+		set(BASEBAND_EXTERNAL_IMAGES ${BASEBAND_EXTERNAL_IMAGES} ${chunk_tag}.bin)
+
+	endif()
+
+
+
 endmacro()
+
+set(add_to_firmware TRUE)
 
 ### ACARS RX
 
@@ -312,19 +333,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PADT adsbtx)
 
-### AFSK
+### AFSK TX
 
 set(MODE_CPPSRC
 	proc_afsk.cpp
 )
 DeclareTargets(PAFT afsktx)
-
-### AFSK RX
-
-set(MODE_CPPSRC
-	proc_afskrx.cpp
-)
-DeclareTargets(PAFR afskrx)
 
 ### APRS RX
 
@@ -493,13 +507,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSTX sstvtx)
 
-### Test
-
-set(MODE_CPPSRC
-	proc_test.cpp
-)
-DeclareTargets(PTST test)
-
 ### Tones
 
 set(MODE_CPPSRC
@@ -586,6 +593,24 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PUSB sd_over_usb)
 
+### Place external app and disabled images below so they don't get added to the firmware
+set(add_to_firmware FALSE)
+
+### AFSK RX
+
+set(MODE_CPPSRC
+	proc_afskrx.cpp
+)
+DeclareTargets(PAFR afskrx)
+
+### Test
+
+set(MODE_CPPSRC
+	proc_test.cpp
+)
+DeclareTargets(PTST test)
+
+
 ### HackRF "factory" firmware
 
 add_custom_command(
@@ -616,7 +641,7 @@ project(baseband)
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.img
 	COMMAND cat ${BASEBAND_IMAGES} > ${PROJECT_NAME}.img
-	DEPENDS ${BASEBAND_IMAGES}
+	DEPENDS ${BASEBAND_IMAGES} ${BASEBAND_EXTERNAL_IMAGES}
 	DEPENDS hackrf.img terminator.img
 	VERBATIM
 )

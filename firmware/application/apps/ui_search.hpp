@@ -20,14 +20,13 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "app_settings.hpp"
 #include "receiver_model.hpp"
+#include "recent_entries.hpp"
 #include "radio_state.hpp"
-
 #include "spectrum_color_lut.hpp"
-
 #include "ui_receiver.hpp"
 #include "ui_styles.hpp"
-#include "recent_entries.hpp"
 
 namespace ui {
 
@@ -95,6 +94,26 @@ class SearchView : public View {
         SEARCH_SLICE_WIDTH /* sampling rate */,
         ReceiverModel::Mode::SpectrumAnalysis};
 
+    // Settings
+    struct SearchSettings {
+        uint32_t power_threshold = 80;
+        rf::Frequency freq_min = 100'000'000;
+        rf::Frequency freq_max = 400'000'000;
+        bool snap_search = true;
+        uint32_t snap_step = 12'500;
+    };
+    SearchSettings settings_{};
+    app_settings::SettingsManager app_settings_{
+        "rx_search"sv,
+        app_settings::Mode::RX,
+        {
+            {"power_threshold"sv, &settings_.power_threshold},
+            {"freq_min"sv, &settings_.freq_min},
+            {"freq_max"sv, &settings_.freq_max},
+            {"snap_search"sv, &settings_.snap_search},
+            {"snap_step"sv, &settings_.snap_step},
+        }};
+
     struct slice_t {
         rf::Frequency center_frequency;
         uint8_t max_power;
@@ -103,33 +122,36 @@ class SearchView : public View {
         int16_t index;
     } slices[32];
 
-    uint32_t bin_skip_acc{0}, bin_skip_frac{};
-    uint32_t pixel_index{0};
-    std::array<Color, 240> spectrum_row = {0};
-    ChannelSpectrumFIFO* fifo{nullptr};
-    rf::Frequency f_min{0}, f_max{0};
-    uint8_t detect_timer{0}, release_timer{0}, timing_div{0};
-    uint8_t overall_power_max{0};
-    uint32_t mean_power{0}, mean_acc{0};
-    uint32_t duration{0};
-    uint32_t power_threshold{80};  // Todo: Put this in persistent / settings
-    rf::Frequency slice_start{0};
-    uint8_t slices_nb{0};
-    uint8_t slice_counter{0};
-    int16_t last_bin{0};
-    uint32_t last_slice{0};
-    Coord last_tick_pos{0};
-    rf::Frequency search_span{0}, resolved_frequency{0};
-    uint16_t locked_bin{0};
-    uint8_t search_counter{0};
-    bool locked{false};
+    uint32_t bin_skip_acc = 0;
+    uint32_t bin_skip_frac = 0;
+    uint32_t pixel_index = 0;
+    std::array<Color, 240> spectrum_row{};
+    ChannelSpectrumFIFO* fifo = nullptr;
 
+    uint8_t detect_timer = 0;
+    uint8_t release_timer = 0;
+    uint8_t timing_div = 0;
+    uint8_t overall_power_max{0};
+    uint32_t mean_power = 0;
+    uint32_t mean_acc = 0;
+    uint32_t duration = 0;
+
+    rf::Frequency slice_start = 0;
+    uint8_t slices_nb = 0;
+    uint8_t slice_counter = 0;
+    int16_t last_bin = 0;
+    uint32_t last_slice = 0;
+    Coord last_tick_pos = 0;
+    rf::Frequency search_span = 0;
+    rf::Frequency resolved_frequency = 0;
+    uint16_t locked_bin = 0;
+    uint8_t search_counter = 0;
+    bool locked = false;
+
+    void do_detection();
+    void do_timers();
     void on_channel_spectrum(const ChannelSpectrum& spectrum);
     void on_range_changed();
-    void do_detection();
-    void on_lna_changed(int32_t v_db);
-    void on_vga_changed(int32_t v_db);
-    void do_timers();
     void add_spectrum_pixel(Color color);
 
     const RecentEntriesColumns columns{{{"Frequency", 9},
@@ -150,6 +172,7 @@ class SearchView : public View {
         {1 * 8, 1 * 16}};
     FrequencyField field_frequency_max{
         {11 * 8, 1 * 16}};
+
     LNAGainField field_lna{
         {22 * 8, 1 * 16}};
     VGAGainField field_vga{
@@ -191,10 +214,10 @@ class SearchView : public View {
         {17 * 8, 15 * 8},  // Position
         7,                 // Length
         {                  // Options
-         {"25kHz  ", 25000},
-         {"12.5kHz", 12500},
-         {"8.33kHz", 8333},
-         {"2.5kHz", 2500},
+         {"25kHz  ", 25'000},
+         {"12.5kHz", 12'500},
+         {"8.33kHz", 8'333},
+         {"2.5kHz", 2'500},
          {"500Hz", 500}}};
 
     BigFrequency big_display{
@@ -207,6 +230,7 @@ class SearchView : public View {
             const auto message = *reinterpret_cast<const ChannelSpectrumConfigMessage*>(p);
             this->fifo = message.fifo;
         }};
+
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {

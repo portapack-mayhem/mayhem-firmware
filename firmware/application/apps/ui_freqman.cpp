@@ -153,28 +153,14 @@ FrequencySaveView::FrequencySaveView(
     add_children(
         {&labels,
          &big_display,
-         &button_clear,
-         &button_edit,
          &button_save,
-         &text_description});
+         &field_description});
 
     entry_.type = freqman_type::Single;
     entry_.frequency_a = value;
     entry_.description = to_string_timestamp(rtc_time::now());
-    refresh_ui();
 
-    button_clear.on_select = [this, &nav](Button&) {
-        entry_.description = "";
-        refresh_ui();
-    };
-
-    button_edit.on_select = [this, &nav](Button&) {
-        temp_buffer_ = entry_.description;
-        text_prompt(nav_, temp_buffer_, desc_edit_max, [this](std::string& new_desc) {
-            entry_.description = new_desc;
-            refresh_ui();
-        });
-    };
+    bind(field_description, entry_.description, nav);
 
     button_save.on_select = [this, &nav](Button&) {
         db_.insert_entry(db_.entry_count(), entry_);
@@ -182,9 +168,13 @@ FrequencySaveView::FrequencySaveView(
     };
 }
 
+void FrequencySaveView::focus() {
+    refresh_ui();
+    FreqManBaseView::focus();
+}
+
 void FrequencySaveView::refresh_ui() {
     big_display.set(entry_.frequency_a);
-    text_description.set(entry_.description);
 }
 
 /* FrequencyLoadView *************************************/

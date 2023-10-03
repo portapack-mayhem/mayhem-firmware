@@ -49,7 +49,7 @@ jobs:
         run: docker run -e VERSION_STRING=${{ steps.version_date.outputs.date }} -i -v ${{ github.workspace }}:/havoc portapack-dev
       - name: Create Small SD Card ZIP - No World Map
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && zip -r sdcard-no-map.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && zip -r sdcard-no-map.zip sdcard
       - name: Download world map
         run: |
           wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
@@ -61,7 +61,7 @@ jobs:
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && zip -r sdcard.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && zip -r sdcard.zip sdcard
       - name: Create changelog
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

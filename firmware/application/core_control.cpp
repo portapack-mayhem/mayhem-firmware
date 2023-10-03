@@ -59,6 +59,19 @@ void m4_init(const spi_flash::image_tag_t image_tag, const memory::region_t to, 
     chDbgPanic("NoImg");
 }
 
+void m4_init_prepared(const uint32_t m4_code, const bool full_reset) {
+    /* M4 core is assumed to be sleeping with interrupts off, so we can mess
+     * with its address space and RAM without concern.
+     */
+    LPC_CREG->M4MEMMAP = m4_code;
+
+    /* Reset M4 core and optionally all peripherals */
+    LPC_RGU->RESET_CTRL[0] = (full_reset) ? (1 << 1)    // PERIPH_RST
+                                          : (1 << 13);  // M4_RST
+
+    return;
+}
+
 void m4_request_shutdown() {
     baseband::shutdown();
 }

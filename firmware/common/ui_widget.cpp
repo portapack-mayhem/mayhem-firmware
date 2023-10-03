@@ -28,6 +28,7 @@
 #include <cstddef>
 #include <algorithm>
 
+#include "irq_controls.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -1730,9 +1731,15 @@ bool TextEdit::on_key(const KeyEvent key) {
         cursor_pos_--;
     else if (key == KeyEvent::Right && cursor_pos_ < text_.length())
         cursor_pos_++;
-    else if (key == KeyEvent::Select)
-        insert_mode_ = !insert_mode_;
-    else
+    else if (key == KeyEvent::Select) {
+        if (key_is_long_pressed(key)) {
+            // Delete text to the cursor.
+            text_ = text_.substr(cursor_pos_);
+            set_cursor(0);
+        } else {
+            insert_mode_ = !insert_mode_;
+        }
+    } else
         return false;
 
     set_dirty();
@@ -1758,6 +1765,19 @@ bool TextEdit::on_touch(const TouchEvent event) {
 
     set_dirty();
     return true;
+}
+
+void TextEdit::on_focus() {
+    // Enable long press on "Select".
+    SwitchesState config;
+    config[toUType(Switch::Sel)] = true;
+    set_switches_long_press_config(config);
+}
+
+void TextEdit::on_blur() {
+    // Reset long press.
+    SwitchesState config{};
+    set_switches_long_press_config(config);
 }
 
 /* TextField *************************************************************/
