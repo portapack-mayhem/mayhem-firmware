@@ -34,25 +34,29 @@
 
 using namespace std;
 
-namespace {
-/* Count of bits that differ between the two values. */
-uint8_t diff_bit_count(uint32_t left, uint32_t right) {
-    uint32_t diff = left ^ right;
-    uint8_t count = 0;
-    for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
-        if (((diff >> i) & 0x1) == 1)
-            ++count;
-    }
+namespace 
+{
+    /* Count of bits that differ between the two values. */
+    uint8_t diff_bit_count(uint32_t left, uint32_t right) 
+    {
+        uint32_t diff = left ^ right;
+        uint8_t count = 0;
+        for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
+            if (((diff >> i) & 0x1) == 1)
+                ++count;
+        }
 
-    return count;
-}
+        return count;
+    }
 }  // namespace
 
 /* AudioNormalizer ***************************************/
 
-void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) {
+void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) 
+{
     // Decay min/max every second (@24kHz).
-    if (counter_ >= 24'000) {
+    if (counter_ >= 24'000) 
+    {
         // 90% decay factor seems to work well.
         // This keeps large transients from wrecking the filter.
         max_ *= 0.9f;
@@ -63,14 +67,17 @@ void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) {
 
     counter_ += audio.count;
 
-    for (size_t i = 0; i < audio.count; ++i) {
+    for (size_t i = 0; i < audio.count; ++i) 
+    {
         auto& val = audio.p[i];
 
-        if (val > max_) {
+        if (val > max_) 
+        {
             max_ = val;
             calculate_thresholds();
         }
-        if (val < min_) {
+        if (val < min_) 
+        {
             min_ = val;
             calculate_thresholds();
         }
@@ -84,7 +91,8 @@ void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) {
     }
 }
 
-void AudioNormalizer::calculate_thresholds() {
+void AudioNormalizer::calculate_thresholds() 
+{
     auto center = (max_ + min_) / 2.0f;
     auto range = (max_ - min_) / 2.0f;
 
@@ -98,45 +106,56 @@ void AudioNormalizer::calculate_thresholds() {
 
 /* BitQueue **********************************************/
 
-void BitQueue::push(bool bit) {
+void BitQueue::push(bool bit) 
+{
     data_ = (data_ << 1) | (bit ? 1 : 0);
     if (count_ < max_size_) ++count_;
 }
 
-bool BitQueue::pop() {
+bool BitQueue::pop() 
+{
     if (count_ == 0) return false;
 
     --count_;
     return (data_ & (1 << count_)) != 0;
 }
 
-void BitQueue::reset() {
+void BitQueue::reset() 
+{
     data_ = 0;
     count_ = 0;
 }
 
-uint8_t BitQueue::size() const {
+uint8_t BitQueue::size() const 
+{
     return count_;
 }
 
-uint32_t BitQueue::data() const {
+uint32_t BitQueue::data() const 
+{
     return data_;
 }
 
 /* BitExtractor ******************************************/
 
-void BitExtractor::extract_bits(const buffer_f32_t& audio) {
+void BitExtractor::extract_bits(const buffer_f32_t& audio) 
+{
     // Assumes input has been normalized +/- 1.0f.
     // Positive == 0, Negative == 1.
-    for (size_t i = 0; i < audio.count; ++i) {
+    for (size_t i = 0; i < audio.count; ++i) 
+    {
         auto sample = audio.p[i];
 
-        if (current_rate_) {
-            if (current_rate_->handle_sample(sample)) {
+        if (current_rate_) 
+        {
+            if (current_rate_->handle_sample(sample)) 
+            {
                 auto value = (current_rate_->bits.data() & 1) == 1;
                 bits_.push(value);
             }
-        } else {
+        } 
+        else 
+        {
             // Feed sample to all known rates for clock detection.
             for (auto& rate : known_rates_) {
                 if (rate.handle_sample(sample) &&
@@ -150,7 +169,8 @@ void BitExtractor::extract_bits(const buffer_f32_t& audio) {
     }
 }
 
-void BitExtractor::configure(uint32_t sample_rate) {
+void BitExtractor::configure(uint32_t sample_rate) 
+{
     sample_rate_ = sample_rate;
 
     // Build the baud rate info table based on the sample rate.
@@ -160,18 +180,21 @@ void BitExtractor::configure(uint32_t sample_rate) {
         rate.sample_interval = sample_rate / (2.0 * rate.baud_rate);
 }
 
-void BitExtractor::reset() {
+void BitExtractor::reset() 
+{
     current_rate_ = nullptr;
 
     for (auto& rate : known_rates_)
         rate.reset();
 }
 
-uint16_t BitExtractor::baud_rate() const {
+uint16_t BitExtractor::baud_rate() const 
+{
     return current_rate_ ? current_rate_->baud_rate : 0;
 }
 
-bool BitExtractor::RateInfo::handle_sample(float sample) {
+bool BitExtractor::RateInfo::handle_sample(float sample) 
+{
     samples_until_next -= 1;
 
     // Time to process a sample?
@@ -181,18 +204,21 @@ bool BitExtractor::RateInfo::handle_sample(float sample) {
     bool value = signbit(sample);  // NB: negative == '1'
     bool bit_pushed = false;
 
-    switch (state) {
+    switch (state) 
+    {
         case State::WaitForSample:
             // Just need to wait for the first sample of the bit.
             state = State::ReadyToSend;
             break;
 
         case State::ReadyToSend:
-            if (!is_stable && prev_value != value) {
+            if (!is_stable && prev_value != value) 
+            {
                 // Still looking for the clock signal but found a transition.
                 // Nudge the next sample a bit to try avoiding pulse edges.
                 samples_until_next += (sample_interval / 8.0);
-            } else {
+            } else 
+            {
                 // Either the clock has been found or both samples were
                 // (probably) in the same pulse. Send the bit.
                 // TODO: Wider/more samples for noise reduction?
@@ -200,6 +226,7 @@ bool BitExtractor::RateInfo::handle_sample(float sample) {
                 bit_pushed = true;
                 bits.push(value);
             }
+
             break;
     }
 
@@ -210,7 +237,8 @@ bool BitExtractor::RateInfo::handle_sample(float sample) {
     return bit_pushed;
 }
 
-void BitExtractor::RateInfo::reset() {
+void BitExtractor::RateInfo::reset() 
+{
     state = State::WaitForSample;
     samples_until_next = 0.0;
     prev_value = false;
@@ -218,20 +246,41 @@ void BitExtractor::RateInfo::reset() {
     bits.reset();
 }
 
-void FSKRxProcessor::process_bits() {
+void FSKRxProcessor::clear_data_bits() {
+    data = 0;
+    bit_count = 0;
+}
+
+void FSKRxProcessor::take_one_bit() {
+    data = (data << 1) | bits.pop();
+    if (bit_count < data_bit_count)
+        ++bit_count;
+}
+
+void FSKRxProcessor::handle_sync(bool inverted) {
+    clear_data_bits();
+    has_sync_ = true;
+    inverted = inverted;
+    word_count = 0;
+}
+
+void FSKRxProcessor::process_bits() 
+{
     // Process all of the bits in the bits queue.
-    while (bits_.size() > 0) {
+    while (bits.size() > 0) 
+    {
         take_one_bit();
 
         // Wait until data_ is full.
-        if (bit_count_ < data_bit_count)
+        if (bit_count < data_bit_count)
             continue;
 
         // Wait for the sync frame.
-        if (!has_sync_) {
-            if (diff_bit_count(data_, sync_codeword) <= 2)
+        if (!has_sync_) 
+        {
+            if (diff_bit_count(data, sync_codeword) <= 2)
                 handle_sync(/*inverted=*/false);
-            else if (diff_bit_count(data_, ~sync_codeword) <= 2)
+            else if (diff_bit_count(data, ~sync_codeword) <= 2)
                 handle_sync(/*inverted=*/true);
             continue;
         }
@@ -259,7 +308,8 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
     squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
 
     // Has there been any signal recently?
-    if (squelch_history == 0) {
+    if (squelch_history == 0) 
+    {
         // No recent signal, flush and prepare for next message.
         // if (word_extractor.current() > 0) {
         //     flush();
@@ -282,22 +332,27 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
 
     // Decode the messages from the audio.
     bit_extractor.extract_bits(audio);
+    process_bits();
 
     // Update the status.
     samples_processed += buffer.count;
-    if (samples_processed >= stat_update_threshold) {
-        send_stats();
+    if (samples_processed >= stat_update_threshold) 
+    {
+        send_packet();
         samples_processed -= stat_update_threshold;
     }
 }
 
-void FSKRxProcessor::on_message(const Message* const message) {
-    switch (message->id) {
-        case Message::ID::POCSAGConfigure:
+void FSKRxProcessor::on_message(const Message* const message) 
+{
+    switch (message->id) 
+    {
+        case Message::ID::FSKRxConfigure:
             configure();
             break;
 
-        case Message::ID::NBFMConfigure: {
+        case Message::ID::NBFMConfigure: 
+        {
             auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
             squelch.set_threshold(config->squelch_level / 99.0);
             break;
@@ -308,7 +363,8 @@ void FSKRxProcessor::on_message(const Message* const message) {
     }
 }
 
-void FSKRxProcessor::configure() {
+void FSKRxProcessor::configure() 
+{
     constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
     constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
     constexpr size_t channel_filter_output_fs = decim_1_output_fs / 2;
@@ -328,27 +384,35 @@ void FSKRxProcessor::configure() {
     configured = true;
 }
 
-void FSKRxProcessor::flush() {
+void FSKRxProcessor::flush() 
+{
     //word_extractor.flush();
 }
 
-void FSKRxProcessor::reset() {
+void FSKRxProcessor::reset() 
+{
+    clear_data_bits();
+    has_sync_ = false;
+    inverted = false;
+    word_count = 0;
+
     bits.reset();
     bit_extractor.reset();
     samples_processed = 0;
 }
 
-void FSKRxProcessor::send_stats() const 
+void FSKRxProcessor::send_packet()
 {
     data_message.is_data = true;
-    data_message.value = data_;
+    data_message.value = data;
     shared_memory.application_queue.push(data_message);
 }
 
 /* main **************************************************/
 
-int main() {
-    EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
+int main() 
+{
+    EventDispatcher event_dispatcher{std::make_unique<FSKRxProcessor>()};
     event_dispatcher.run();
     return 0;
 }

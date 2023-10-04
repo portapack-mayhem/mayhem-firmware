@@ -45,6 +45,7 @@
 #include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
+#include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
 #include "ui_jammer.hpp"
 // #include "ui_keyfob.hpp"
@@ -497,8 +498,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
         {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
         {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
-        //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
-        {"BLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
+        {"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
+        //{"BLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
         {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
         {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
         {"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
@@ -507,6 +508,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},
         {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
         {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
+        {"FSK RX", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<FskRxAppView>(); }},
         // {"DMR", Color::dark_grey(), &bitmap_icon_dmr, [&nav](){ nav.push<NotImplementedView>(); }},
         // {"SIGFOX", Color::dark_grey(), &bitmap_icon_fox, [&nav](){ nav.push<NotImplementedView>(); }},
         // {"LoRa", Color::dark_grey(), &bitmap_icon_lora, [&nav](){ nav.push<NotImplementedView>(); }},

@@ -269,6 +269,7 @@ set(CPPSRC
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp
+	apps/ui_fsk_rx.cpp
 	apps/ui_iq_trim.cpp
 	apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp

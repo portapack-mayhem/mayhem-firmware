@@ -23,8 +23,19 @@
 #ifndef __PROC_FSK_RX_H__
 #define __PROC_FSK_RX_H__
 
+#include "audio_output.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "dsp_decimate.hpp"
+#include "dsp_demodulate.hpp"
+#include "dsp_iir_config.hpp"
+#include "message.hpp"
+#include "portapack_shared_memory.hpp"
+#include "rssi_thread.hpp"
+
+#include <array>
+#include <cstdint>
+#include <functional>
 
 /* Normalizes audio stream to +/-1.0f */
 class AudioNormalizer {
@@ -119,9 +130,15 @@ class FSKRxProcessor : public BasebandProcessor
     void configure();
     void flush();
     void reset();
-    void send_stats() const;
     void send_packet();
     void process_bits();
+
+    void clear_data_bits();
+    void take_one_bit();
+    void handle_sync(bool inverted);
+
+    /* Returns true if the batch has as sync frame. */
+    bool has_sync() const { return has_sync_; }
 
     /* Set once app is ready to receive messages. */
     bool configured = false;
@@ -180,14 +197,17 @@ class FSKRxProcessor : public BasebandProcessor
     bool has_sync_ = false;
 
     /* When true, bit vales are flipped in the codewords. */
-    bool inverted_ = false;
+    bool inverted = false;
 
-    /* Returns true if the batch has as sync frame. */
-    bool has_sync() const { return has_sync_; }
+    uint32_t data = 0;
+    uint8_t bit_count = 0;
+    uint8_t word_count = 0;
 
-    uint32_t data_ = 0;
-    uint8_t bit_count_ = 0;
-    uint8_t word_count_ = 0;
+    /* LPF to reduce noise. POCSAG supports 2400 baud, but that falls
+     * nicely into the transition band of this 1800Hz filter.
+     * scipy.signal.butter(2, 1800, "lowpass", fs=24000, analog=False) */
+    IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
+                         {1.00000000f, -1.34896775f, 0.51398189f}}};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

@@ -112,6 +112,7 @@ class Message {
         SpectrumPainterBufferRequestConfigure = 55,
         SpectrumPainterBufferResponseConfigure = 56,
         POCSAGStats = 57,
+        FSKRxConfigure = 58,
         MAX
     };
 
@@ -1011,6 +1012,13 @@ class FSKConfigureMessage : public Message {
     const uint32_t samples_per_bit;
     const uint32_t shift;
     const uint32_t progress_notice;
+};
+
+class FSKRxConfigureMessage : public Message {
+   public:
+    constexpr FSKRxConfigureMessage()
+        : Message{ID::FSKRxConfigure} {
+    }
 };
 
 class POCSAGConfigureMessage : public Message {
