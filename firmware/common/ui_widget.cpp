@@ -626,6 +626,8 @@ void Console::write(std::string message) {
             } else {
                 if (c == '\n') {
                     crlf();
+                } else if (c == '\r') {
+                    pos = {0, pos.y()};
                 } else if (c == '\x1B') {
                     escape = true;
                 } else {
