@@ -26,10 +26,10 @@ using namespace ui;
 namespace ui::external_app::calculator {
 
 uint8_t current_key = 255;
-char display_string[10];  // = "          ";
+char display_string[10];
 uint8_t fgm = 0;
 
-// interface
+// interface to external code
 unsigned int mp;
 
 char CHARMAP[] = {
@@ -87,9 +87,8 @@ char CHARMAP[] = {
 void printcat(uint8_t c, uint8_t x) {  // Print char c at position x
     display_string[x] = CHARMAP[c];
 }
-uint8_t getkey(void) {  // Read keypad (TTP229-BSF)
+uint8_t getkey(void) {  // Read keypad
     return current_key;
-    // return (ENDKEY);
 }
 
 #include "ivt.hpp"
@@ -159,7 +158,6 @@ void CalculatorView::on_button_press(uint8_t button) {
     std::string d(&display_string[0], 10);
 
     if (pre_fgm && button != 0) {
-        // console.write("\r");
         console.write("      ");
         switch (button) {
             case 1:
