@@ -68,12 +68,15 @@ class TrimProgressUI {
 class IQTrimView : public View {
    public:
     IQTrimView(NavigationView& nav);
+    IQTrimView(NavigationView& nav, const std::filesystem::path& path);
 
     std::string title() const override { return "IQ Trim"; }
     void paint(Painter& painter) override;
     void focus() override;
 
    private:
+    void open_file(const std::filesystem::path& path);
+
     /* Update controls with latest values. */
     void refresh_ui();
 
