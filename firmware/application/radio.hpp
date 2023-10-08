@@ -50,7 +50,8 @@ void set_rf_amp(const bool rf_amp);
 void set_lna_gain(const int_fast8_t db);
 void set_vga_gain(const int_fast8_t db);
 void set_tx_gain(const int_fast8_t db);
-void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum);
+void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum);
+void set_baseband_filter_bandwidth_tx(const uint32_t bandwidth_minimum);
 void set_baseband_rate(const uint32_t rate);
 void set_antenna_bias(const bool on);
 

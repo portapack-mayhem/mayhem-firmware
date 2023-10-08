@@ -273,7 +273,7 @@ void PlaylistView::send_current_track() {
     // ReplayThread starts immediately on construction; must be set before creating.
     transmitter_model.set_target_frequency(current()->metadata.center_frequency);
     transmitter_model.set_sampling_rate(get_actual_sample_rate(current()->metadata.sample_rate));
-    transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
+    transmitter_model.set_baseband_bandwidth(current()->metadata.sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
     transmitter_model.enable();
 
     // Reset the transmit progress bar.

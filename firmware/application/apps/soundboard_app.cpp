@@ -120,6 +120,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
     );
     baseband::set_sample_rate(sample_rate);
 
+    transmitter_model.set_baseband_bandwidth(1'750'000);  // the Minimum TX LPF  1M75 is fine.
     transmitter_model.enable();
 
     tx_view.set_transmitting(true);
