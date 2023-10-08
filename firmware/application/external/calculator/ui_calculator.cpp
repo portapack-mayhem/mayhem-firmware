@@ -158,13 +158,65 @@ void CalculatorView::on_button_press(uint8_t button) {
 
     std::string d(&display_string[0], 10);
 
-    console.write("\r");
     if (pre_fgm && button != 0) {
-        console.writeln("");
+        // console.write("\r");
+        console.write("      ");
+        switch (button) {
+            case 1:
+                console.write("SUM+");
+                break;
+            case 2:
+                console.write("PRG");
+                break;
+            case 3:
+                console.write("/");
+                break;
+
+            case 4:
+                console.write("SWAP");
+                break;
+            case 5:
+                console.write("DICT");
+                break;
+            case 6:
+                console.write("USR");
+                break;
+            case 7:
+                console.write("*");
+                break;
+
+            case 8:
+                console.write("ROT");
+                break;
+            case 9:
+                console.write("RCL");
+                break;
+            case 10:
+                console.write("STO");
+                break;
+            case 11:
+                console.write("-");
+                break;
+
+            case 12:
+                console.write("CA");
+                break;
+            case 13:
+                console.write("PI");
+                break;
+            case 14:
+                console.write("INT");
+                break;
+            case 15:
+                console.write("+");
+                break;
+        }
         console.writeln(d);
     } else if (button == 15) {
+        console.write("\r");
         console.writeln(d);
     } else {
+        console.write("\r");
         console.write(d);
     }
 
