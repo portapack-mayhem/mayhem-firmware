@@ -560,7 +560,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         {"File Manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
         {"Freq. Manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
         {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
-        {"IQ Trim", Color::orange(), &bitmap_icon_cut, [&nav]() { nav.push<IQTrimView>(); }},
+        {"IQ Trim", Color::orange(), &bitmap_icon_trim, [&nav]() { nav.push<IQTrimView>(); }},
         {"SD Over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
         {"Signal Gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
         // {"Test App", Color::dark_grey(), nullptr, [&nav](){ nav.push<TestView>(); }},
