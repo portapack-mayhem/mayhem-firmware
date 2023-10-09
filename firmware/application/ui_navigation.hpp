@@ -44,6 +44,9 @@
 #include <vector>
 #include <utility>
 
+// for incrementing fake date when RTC battery is dead
+#define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
+
 using namespace sd_card;
 
 namespace ui {
@@ -235,6 +238,7 @@ class SystemStatusView : public View {
     void on_title();
     void refresh();
     void on_clk();
+    void rtc_battery_workaround();
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,

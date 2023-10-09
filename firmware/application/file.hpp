@@ -270,6 +270,7 @@ std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_
 std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);
 
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
+std::filesystem::filesystem_error file_update_date(const std::filesystem::path& file_path, FATTimestamp timestamp);
 std::filesystem::filesystem_error make_new_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
 std::filesystem::filesystem_error ensure_directory(const std::filesystem::path& dir_path);
