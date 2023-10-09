@@ -159,6 +159,8 @@ SystemStatusView::SystemStatusView(
         &status_icons,
     });
 
+    rtc_battery_workaround();
+
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
     }
@@ -360,6 +362,56 @@ void SystemStatusView::on_title() {
         nav_.pop();
 }
 
+void SystemStatusView::rtc_battery_workaround() {
+    if (sd_card::status() != sd_card::Status::Mounted)
+        return;
+
+    FATTimestamp timestamp;
+
+    rtc::RTC datetime;
+    rtcGetTime(&RTCD1, &datetime);
+
+    uint16_t year = datetime.year();
+    uint8_t month = datetime.month();
+    uint8_t day = datetime.day();
+
+    // if year is 0000, assume RTC battery is dead
+    if (year == 0) {
+        // if timestamp file is present, use it's date and add 1 day
+        if (std::filesystem::file_exists(DATE_FILEFLAG)) {
+            timestamp = file_created_date(DATE_FILEFLAG);
+
+            year = (timestamp.FAT_date >> 9) + 1980;
+            month = (timestamp.FAT_date >> 5) & 0xF;
+            day = timestamp.FAT_date & 0x1F;
+
+            // bump to next month at 28 days for simplicity
+            if (++day > 28) {
+                day = 1;
+                if (++month > 12) {
+                    month = 1;
+                    ++year;
+                }
+            }
+        } else {
+            make_new_file(DATE_FILEFLAG);
+
+            year = 1980;
+            month = 1;
+            day = 1;
+        }
+
+        // update RTC (keeps ticking while powered on regardless of RTC battery condition)
+        rtc::RTC new_datetime{year, month, day, datetime.hour(), datetime.minute(), datetime.second()};
+        rtcSetTime(&RTCD1, &new_datetime);
+
+        // update file date
+        timestamp.FAT_date = (uint16_t)(((new_datetime.year() - 1980) << 9) | ((uint16_t)new_datetime.month() << 5) | new_datetime.day());
+        timestamp.FAT_time = 0;
+        file_update_date(DATE_FILEFLAG, timestamp);
+    }
+}
+
 /* Information View *****************************************************/
 
 InformationView::InformationView(
@@ -376,11 +428,8 @@ InformationView::InformationView(
                   &ltime});
 
     version.set_style(&style_infobar);
-
-    ltime.set_hide_clock(pmem::hide_clock());
     ltime.set_style(&style_infobar);
-    ltime.set_seconds_enabled(true);
-    ltime.set_date_enabled(pmem::clock_with_date());
+    refresh();
     set_dirty();
 }
 
