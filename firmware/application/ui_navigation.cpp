@@ -405,7 +405,7 @@ void SystemStatusView::rtc_battery_workaround() {
         rtcSetTime(&RTCD1, &new_datetime);
 
         // update file date
-        timestamp.FAT_date = (uint16_t)(((year - 1980) << 9) | ((uint16_t)month << 5) | day);
+        timestamp.FAT_date = ((year - 1980) << 9) | ((uint16_t)month << 5) | day;
         timestamp.FAT_time = 0;
         file_update_date(DATE_FILEFLAG, timestamp);
     }
