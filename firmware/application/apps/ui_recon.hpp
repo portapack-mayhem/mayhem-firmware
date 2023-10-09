@@ -303,7 +303,7 @@ class ReconView : public View {
     NumberField field_lock_wait{
         {25 * 8, 24 * 8 + 4},
         4,
-        {0, RECON_MAX_LOCK_DURATION},
+        {STATS_UPDATE_INTERVAL, RECON_MAX_LOCK_DURATION},
         STATS_UPDATE_INTERVAL,
         ' ',
     };

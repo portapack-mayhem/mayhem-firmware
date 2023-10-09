@@ -494,6 +494,7 @@ ReconView::ReconView(NavigationView& nav)
 
     button_manual_recon.on_select = [this](Button&) {
         button_remove.set_text("DELETE");
+        button_add.hidden(false);
         scanner_mode = false;
         manual_mode = true;
         recon_pause();
@@ -620,7 +621,8 @@ ReconView::ReconView(NavigationView& nav)
             recon_pause();
         }
         button_add.hidden(scanner_mode);
-        set_dirty();
+        if (scanner_mode)  // only needed when hiding, UI mayhem
+            set_dirty();
     };
 
     button_config.on_select = [this, &nav](Button&) {
@@ -775,19 +777,8 @@ void ReconView::frequency_file_load(bool) {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
-    systime_t time_interval = 100;
-    uint32_t local_recon_lock_duration = recon_lock_duration;
-
     chrono_end = chTimeNow();
-    if (field_mode.selected_index_value() == SPEC_MODULATION) {
-        time_interval = chrono_end - chrono_start;
-        if (field_lock_wait.value() == 0) {
-            if (time_interval <= 1)             // capping here to avoid freeze because too quick
-                local_recon_lock_duration = 2;  // minimum working tested value
-            else
-                local_recon_lock_duration = time_interval;
-        }
-    }
+    systime_t time_interval = chrono_end - chrono_start;
     chrono_start = chrono_end;
 
     // hack to reload the list if it was cleared by going into CONFIG
@@ -807,7 +798,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         if (!timer) {
             status = 0;
             freq_lock = 0;
-            timer = local_recon_lock_duration;
+            timer = recon_lock_duration;
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
         {
