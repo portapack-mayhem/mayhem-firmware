@@ -366,17 +366,16 @@ void SystemStatusView::rtc_battery_workaround() {
     if (sd_card::status() != sd_card::Status::Mounted)
         return;
 
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
     FATTimestamp timestamp;
-
     rtc::RTC datetime;
+
     rtcGetTime(&RTCD1, &datetime);
 
-    uint16_t year = datetime.year();
-    uint8_t month = datetime.month();
-    uint8_t day = datetime.day();
-
     // if year is 0000, assume RTC battery is dead
-    if (year == 0) {
+    if (datetime.year() == 0) {
         // if timestamp file is present, use it's date and add 1 day
         if (std::filesystem::file_exists(DATE_FILEFLAG)) {
             timestamp = file_created_date(DATE_FILEFLAG);
@@ -406,7 +405,7 @@ void SystemStatusView::rtc_battery_workaround() {
         rtcSetTime(&RTCD1, &new_datetime);
 
         // update file date
-        timestamp.FAT_date = (uint16_t)(((new_datetime.year() - 1980) << 9) | ((uint16_t)new_datetime.month() << 5) | new_datetime.day());
+        timestamp.FAT_date = (uint16_t)(((year - 1980) << 9) | ((uint16_t)month << 5) | day);
         timestamp.FAT_time = 0;
         file_update_date(DATE_FILEFLAG, timestamp);
     }
