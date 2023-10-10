@@ -57,6 +57,9 @@ uint32_t fault_address{0};
 void draw_guru_meditation_header(uint8_t source, const char* hint) {
     Painter painter;
 
+    // disable scroll in case a waterfall/spectrum display was active (scroll would mess up the fault display)
+    portapack::display.scroll_disable();
+
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
         Color::red());
@@ -133,6 +136,10 @@ void runtime_error(uint8_t source) {
     LED led = (source == CORTEX_M0) ? hackrf::one::led_rx : hackrf::one::led_tx;
 
     led.off();
+
+    // wait for DFU button release if pressed, so we don't immediately jump into stack dump
+    while (swizzled_switches() & (1 << (int)Switch::Dfu))
+        ;
 
     while (true) {
         volatile size_t n = 1000000U;
@@ -243,10 +250,6 @@ void draw_stack_dump() {
                     p = &__process_stack_base__;
                 break;
             }
-
-            // If SEL button pressed, try writing to file (likely to hang in fault condition but heh)
-            if (switches & (1 << (int)Switch::Sel))
-                stack_dump();
         }
 
         // clear screen to allow new range to be displayed, if we're not at the end
