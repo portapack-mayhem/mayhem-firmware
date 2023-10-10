@@ -1016,9 +1016,25 @@ class FSKConfigureMessage : public Message {
 
 class FSKRxConfigureMessage : public Message {
    public:
-    constexpr FSKRxConfigureMessage()
-        : Message{ID::FSKRxConfigure} {
+    constexpr FSKRxConfigureMessage(
+        const fir_taps_real<24> decim_0_filter,
+        const fir_taps_real<32> decim_1_filter,
+        const fir_taps_real<32> channel_filter,
+        const size_t channel_decimation,
+        const size_t deviation)
+        : Message{ID::FSKRxConfigure},
+            decim_0_filter(decim_0_filter),
+            decim_1_filter(decim_1_filter),
+            channel_filter(channel_filter),
+            channel_decimation{channel_decimation},
+            deviation{deviation}{
     }
+
+    const fir_taps_real<24> decim_0_filter;
+    const fir_taps_real<32> decim_1_filter;
+    const fir_taps_real<32> channel_filter;
+    const size_t channel_decimation;
+    const size_t deviation;
 };
 
 class POCSAGConfigureMessage : public Message {

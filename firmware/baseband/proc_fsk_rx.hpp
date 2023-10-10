@@ -104,10 +104,11 @@ class BitExtractor {
         void reset();
     };
 
-    std::array<RateInfo, 3> known_rates_{
+    std::array<RateInfo, 4> known_rates_{
         RateInfo{512},
         RateInfo{1200},
-        RateInfo{2400}};
+        RateInfo{2400},
+        RateInfo{7500}};
 
     BitQueue& bits_;
 
@@ -127,10 +128,10 @@ class FSKRxProcessor : public BasebandProcessor
     static constexpr uint32_t stat_update_threshold =
         baseband_fs / stat_update_interval;
 
-    void configure();
+    void configure(const FSKRxConfigureMessage& message);
     void flush();
     void reset();
-    void send_packet();
+    void send_packet(uint32_t data);
     void process_bits();
 
     void clear_data_bits();

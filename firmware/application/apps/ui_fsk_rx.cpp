@@ -63,11 +63,6 @@ namespace ui
             &field_frequency,
             &field_squelch,
             &field_volume,
-            &image_status,
-            &text_packet_count,
-            &widget_baud,
-            &widget_bits,
-            &widget_frames,
             &console});
 
         // No app settings, use fallbacks from pmem.
@@ -90,7 +85,8 @@ namespace ui
         refresh_ui();
         audio::output::start();
         receiver_model.enable();
-        baseband::set_fsk();
+
+        baseband::set_fsk(4500, receiver_model.squelch_level());
     }
 
     void FskRxAppView::focus() 
@@ -122,46 +118,8 @@ namespace ui
     {
         if(is_data)
         {
-            console.write("[0x" + to_string_hex(value, 4) + "] ");
+            console.write("[0x" + to_string_hex(value, 2) + "] ");
         }
     }
 
-    // void BaudIndicator::paint(Painter& painter) 
-    // {
-    //     auto p = screen_pos();
-    //     char top = '-';
-    //     char bot = '-';
-
-    //     if (rate_ > 0) {
-    //         auto r = rate_ / 100;
-    //         top = (r / 10) + '0';
-    //         bot = (r % 10) + '0';
-    //     }
-
-    //     painter.draw_char(p, Styles::white_small, top);
-    //     painter.draw_char({p.x(), p.y() + 8}, Styles::white_small, bot);
-    // }
-
-    // void BitsIndicator::paint(Painter&) 
-    // {
-    //     auto p = screen_pos();
-    //     for (size_t i = 0; i < sizeof(bits_) * 8; ++i) {
-    //         auto is_set = ((bits_ >> i) & 0x1) == 1;
-
-    //         int x = p.x() + (i / height);
-    //         int y = p.y() + (i % height);
-    //         display.draw_pixel({x, y}, is_set ? Color::white() : Color::black());
-    //     }
-    // }
-
-    // void FrameIndicator::paint(Painter& painter) 
-    // {
-    //     auto p = screen_pos();
-    //     painter.draw_rectangle({p, {2, height}}, has_sync_ ? Color::green() : Color::grey());
-
-    //     for (size_t i = 0; i < height; ++i) {
-    //         auto p2 = p + Point{2, 15 - (int)i};
-    //         painter.draw_hline(p2, 2, i < frame_count_ ? Color::white() : Color::black());
-    //     }
-    // }
 } /* namespace ui */

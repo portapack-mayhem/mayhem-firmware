@@ -202,35 +202,6 @@ namespace ui
             {28 * 8, 0 * 16}
         };
 
-        Image image_status
-        {
-            {0 * 8 + 4, 1 * 16 + 2, 16, 16},
-            &bitmap_icon_pocsag,
-            Color::white(),
-            Color::black()
-        };
-
-        Text text_packet_count
-        {
-            {3 * 8, 1 * 16 + 2, 5 * 8, 16},
-            "0"
-        };
-
-        BitsIndicator widget_bits
-        {
-            {8 * 8 + 1, 1 * 16 + 2}
-        };
-
-        FrameIndicator widget_frames
-        {
-            {8 * 8 + 4, 1 * 16 + 2}
-        };
-
-        BaudIndicator widget_baud
-        {
-            {8 * 9 + 1, 1 * 16 + 2}
-        };
-
         // 54 == status bar (16) + top controls (2 * 16 + 6).
         Console console
         {

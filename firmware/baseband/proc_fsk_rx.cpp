@@ -217,7 +217,8 @@ bool BitExtractor::RateInfo::handle_sample(float sample)
                 // Still looking for the clock signal but found a transition.
                 // Nudge the next sample a bit to try avoiding pulse edges.
                 samples_until_next += (sample_interval / 8.0);
-            } else 
+            } 
+            else 
             {
                 // Either the clock has been found or both samples were
                 // (probably) in the same pulse. Send the bit.
@@ -333,12 +334,12 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
     // Decode the messages from the audio.
     bit_extractor.extract_bits(audio);
     process_bits();
-
+    
     // Update the status.
     samples_processed += buffer.count;
     if (samples_processed >= stat_update_threshold) 
     {
-        send_packet();
+        //send_packet();
         samples_processed -= stat_update_threshold;
     }
 }
@@ -348,32 +349,31 @@ void FSKRxProcessor::on_message(const Message* const message)
     switch (message->id) 
     {
         case Message::ID::FSKRxConfigure:
-            configure();
+            configure(*reinterpret_cast<const FSKRxConfigureMessage*>(message));
             break;
-
-        case Message::ID::NBFMConfigure: 
-        {
-            auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
-            squelch.set_threshold(config->squelch_level / 99.0);
-            break;
-        }
 
         default:
             break;
     }
 }
 
-void FSKRxProcessor::configure() 
+void FSKRxProcessor::configure(const FSKRxConfigureMessage& message) 
 {
-    constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
-    constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
-    constexpr size_t channel_filter_output_fs = decim_1_output_fs / 2;
-    constexpr size_t demod_input_fs = channel_filter_output_fs;
+    constexpr size_t decim_0_input_fs = baseband_fs;
+    constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
 
-    decim_0.configure(taps_11k0_decim_0.taps);
-    decim_1.configure(taps_11k0_decim_1.taps);
-    channel_filter.configure(taps_11k0_channel.taps, 2);
-    demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
+    constexpr size_t decim_1_input_fs = decim_0_output_fs;
+    constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+
+    constexpr size_t channel_filter_input_fs = decim_1_output_fs;
+    const size_t channel_filter_output_fs = channel_filter_input_fs / message.channel_decimation;
+
+    const size_t demod_input_fs = channel_filter_output_fs;
+
+    decim_0.configure(message.decim_0_filter.taps);
+    decim_1.configure(message.decim_1_filter.taps);
+    channel_filter.configure(message.channel_filter.taps, message.channel_decimation);
+    demod.configure(demod_input_fs, message.deviation);
 
     // Don't process the audio stream.
     audio_output.configure(false);
@@ -401,7 +401,7 @@ void FSKRxProcessor::reset()
     samples_processed = 0;
 }
 
-void FSKRxProcessor::send_packet()
+void FSKRxProcessor::send_packet(uint32_t data)
 {
     data_message.is_data = true;
     data_message.value = data;
