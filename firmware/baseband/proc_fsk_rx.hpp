@@ -129,6 +129,7 @@ class FSKRxProcessor : public BasebandProcessor
         baseband_fs / stat_update_interval;
 
     void configure(const FSKRxConfigureMessage& message);
+    void capture_config(const CaptureConfigMessage& message);
     void flush();
     void reset();
     void send_packet(uint32_t data);

@@ -27,7 +27,9 @@
 #include "ui_widget.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_receiver.hpp"
+#include "ui_record_view.hpp"
 #include "ui_rssi.hpp"
+#include "ui_spectrum.hpp"
 #include "ui_styles.hpp"
 
 #include "app_settings.hpp"
@@ -54,82 +56,6 @@ class FskRxLogger
 
 namespace ui 
 {
-    // class BaudIndicator : public Widget 
-    // {
-    // public:
-    //     BaudIndicator(Point position)
-    //         : Widget{{position, {5, height}}} {}
-
-    //     void paint(Painter& painter) override;
-    //     void set_rate(uint16_t rate) 
-    //     {
-    //         if (rate != rate_) 
-    //         {
-    //             rate_ = rate;
-    //             set_dirty();
-    //         }
-    //     }
-
-    // private:
-    //     static constexpr uint8_t height = 16;
-    //     uint16_t rate_ = 0;
-    // };
-
-    // class BitsIndicator : public Widget 
-    // {
-    // public:
-    //     BitsIndicator(Point position)
-    //         : Widget{{position, {2, height}}
-    //         } {}
-
-    //     void paint(Painter& painter) override;
-
-    //     void set_bits(uint32_t bits) 
-    //     {
-    //         if (bits != bits_) 
-    //         {
-    //             bits_ = bits;
-    //             set_dirty();
-    //         }
-    //     }
-
-    // private:
-    //     static constexpr uint8_t height = 16;
-    //     uint32_t bits_ = 0;
-    // };
-
-    // class FrameIndicator : public Widget 
-    // {
-    // public:
-    //     FrameIndicator(Point position)
-    //         : Widget{{position, {4, height}}} {}
-
-    //     void paint(Painter& painter) override;
-
-    //     void set_frames(uint8_t frame_count)
-    //     {
-    //         if (frame_count != frame_count_) 
-    //         {
-    //             frame_count_ = frame_count;
-    //             set_dirty();
-    //         }
-    //     }
-
-    //     void set_sync(bool has_sync) 
-    //     {
-    //         if (has_sync != has_sync_) 
-    //         {
-    //             has_sync_ = has_sync;
-    //             set_dirty();
-    //         }
-    //     }
-
-    // private:
-    //     static constexpr uint8_t height = 16;
-    //     uint8_t frame_count_ = 0;
-    //     bool has_sync_ = false;
-    // };
-
     class FskRxAppView : public View 
     {
         public:
@@ -138,9 +64,11 @@ namespace ui
 
         std::string title() const override { return "FSK RX"; };
         void focus() override;
+        void set_parent_rect(const Rect new_parent_rect) override;
 
         private:
         static constexpr uint32_t initial_target_frequency = 902'075'000;
+        static constexpr ui::Dim header_height = 3 * 16;
         bool logging() const { return false; };
         bool logging_raw() const { return false; };
 
@@ -186,7 +114,6 @@ namespace ui
             {19 * 8 - 4, 8, 6 * 8, 4}
         };
         
-
         NumberField field_squelch
         {
             {25 * 8, 0 * 16},
@@ -202,11 +129,23 @@ namespace ui
             {28 * 8, 0 * 16}
         };
 
-        // 54 == status bar (16) + top controls (2 * 16 + 6).
+        // DEBUG
+        RecordView record_view
+        {
+            {0 * 8, 1 * 16, 30 * 8, 1 * 16},
+            u"FSKRX_????.C16",
+            u"FSKRX",
+            RecordView::FileType::RawS16,
+            16384,
+            3
+        };
+
         Console console
         {
-            {0, 2 * 16 + 6, screen_width, screen_height - 54}
+            {0, 2 * 16, 240, 240}
         };
+
+        spectrum::WaterfallView waterfall{};
 
         MessageHandlerRegistration message_handler_packet
         {

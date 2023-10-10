@@ -63,18 +63,19 @@ namespace ui
             &field_frequency,
             &field_squelch,
             &field_volume,
-            &console});
+            &record_view,
+            &waterfall});
 
-        // No app settings, use fallbacks from pmem.
-        // if (!app_settings_.loaded()) 
-        // {
-        // }
+        // DEBUG
+        record_view.on_error = [&nav](std::string message) 
+        {
+            nav.display_modal("Error", message);
+        };
 
-        // if (!app_settings_.radio_loaded())
-        // {
-            field_frequency.set_value(initial_target_frequency);
-        //}
+        record_view.set_sampling_rate(24000);
 
+        field_frequency.set_value(initial_target_frequency);
+ 
         logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
 
         field_squelch.set_value(receiver_model.squelch_level());
@@ -89,21 +90,10 @@ namespace ui
         baseband::set_fsk(4500, receiver_model.squelch_level());
     }
 
-    void FskRxAppView::focus() 
-    {
-        field_frequency.focus();
-    }
-
-    FskRxAppView::~FskRxAppView() 
-    {
-        audio::output::stop();
-        receiver_model.disable();
-        baseband::shutdown();
-    }
-
     void FskRxAppView::refresh_ui()
     {
-
+        waterfall.stop();
+        waterfall.start();
     }
 
     void FskRxAppView::handle_decoded(Timestamp timestamp, const std::string& prefix) 
@@ -118,8 +108,27 @@ namespace ui
     {
         if(is_data)
         {
-            console.write("[0x" + to_string_hex(value, 2) + "] ");
+            //console.write("[0x" + to_string_hex(value, 2) + "] ");
         }
     }
 
+    FskRxAppView::~FskRxAppView() 
+    {
+        audio::output::stop();
+        receiver_model.disable();
+        baseband::shutdown();
+    }
+
+    void FskRxAppView::focus() 
+    {
+        field_frequency.focus();
+    }
+
+    void FskRxAppView::set_parent_rect(const Rect new_parent_rect) 
+    {
+        View::set_parent_rect(new_parent_rect);
+
+        ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+        waterfall.set_parent_rect(waterfall_rect);
+    }
 } /* namespace ui */

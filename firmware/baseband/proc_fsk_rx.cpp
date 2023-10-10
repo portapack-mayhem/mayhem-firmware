@@ -346,15 +346,11 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
 
 void FSKRxProcessor::on_message(const Message* const message) 
 {
-    switch (message->id) 
-    {
-        case Message::ID::FSKRxConfigure:
-            configure(*reinterpret_cast<const FSKRxConfigureMessage*>(message));
-            break;
+    if (message->id == Message::ID::FSKRxConfigure)
+         configure(*reinterpret_cast<const FSKRxConfigureMessage*>(message));
 
-        default:
-            break;
-    }
+    if (message->id == Message::ID::CaptureConfig)
+    capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
 }
 
 void FSKRxProcessor::configure(const FSKRxConfigureMessage& message) 
@@ -382,6 +378,20 @@ void FSKRxProcessor::configure(const FSKRxConfigureMessage& message)
 
     // Set ready to process data.
     configured = true;
+}
+
+void FSKRxProcessor::capture_config(const CaptureConfigMessage& message) 
+{
+    if (message.config) 
+    {
+        // stream = std::make_unique<StreamInput>(message.config);
+        audio_output.set_stream(std::make_unique<StreamInput>(message.config));
+    } 
+    else 
+    {
+        // stream.reset();
+        audio_output.set_stream(nullptr);
+    }
 }
 
 void FSKRxProcessor::flush() 
