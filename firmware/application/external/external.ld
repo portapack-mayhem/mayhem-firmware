@@ -20,6 +20,7 @@ MEMORY
     ram_external_app_pacman     (rwx) : org = 0xEEE90000, len = 32k
     ram_external_app_afsk_rx    (rwx) : org = 0xEEEA0000, len = 32k
     ram_external_app_calculator (rwx) : org = 0xEEEB0000, len = 32k
+    ram_external_app_font_viewer(rwx) : org = 0xEEEC0000, len = 32k
 }
 
 SECTIONS
@@ -41,4 +42,10 @@ SECTIONS
         KEEP(*(.external_app.app_calculator.application_information));
         *(*ui*external_app*calculator*);
     } > ram_external_app_calculator
+
+    .external_app_font_viewer : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_font_viewer.application_information));
+        *(*ui*external_app*font_viewer*);
+    } > ram_external_app_font_viewer
 }
