@@ -8,11 +8,11 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 *[PortaPack H2+HackRF+battery](https://s.click.aliexpress.com/e/_DmU7GQX) (clone) with a custom [3d printed case](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure)*
 
-# Quick overview
+# What is this?
 
-If you are new to *HackRF+PortaPack+Mayhem*, there is an awesome introductory video by [Tech Minds](https://www.youtube.com/channel/UC9a8Z6Sp6eb2s3O79pX5Zvg) available:
+If you are new to *HackRF+PortaPack+Mayhem*, check this video:
 
-[![Setup and overview](https://img.youtube.com/vi/kjFB58Y1TAo/0.jpg)](https://www.youtube.com/watch?v=kjFB58Y1TAo)
+[![What is?](https://img.youtube.com/vi/alrFbY5vxt4/0.jpg)](https://www.youtube.com/watch?v=alrFbY5vxt4)
 
 # Frequently Asked Questions
 
