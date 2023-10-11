@@ -392,7 +392,7 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     double lat_rad = sin(marker.lat * pi / 180);
     int x = (map_width * (marker.lon + 180) / 360) - x_pos;
     int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
-    if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height)))                              // Dont draw within symbol size of top
+    if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height)))              // Dont draw within symbol size of top
     {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
