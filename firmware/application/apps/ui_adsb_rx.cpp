@@ -438,13 +438,14 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
 
-    // NB: Pausing AircraftRecentEntries list updates when viewing AC Details screen (otherwise Guru fault occurs)
-    if (!ac_details_view_active) {
-        // Sort and truncate the entries, grouped, newest group first
-        sort_entries_by_state();
-        truncate_entries(recent);
-        remove_old_entries();
-    }
+    // NB: Pausing updates when viewing AC Details screen (otherwise Guru fault occurs)
+    if (ac_details_view_active)
+        return;
+
+    // Sort and truncate the entries, grouped, newest group first
+    sort_entries_by_state();
+    truncate_entries(recent);
+    remove_old_entries();
 
     // Calculate if it is time to update markers
     if (send_updates && details_view && details_view->geomap_view) {
@@ -479,7 +480,7 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
                 marker.lon = entry.pos.longitude;
                 marker.lat = entry.pos.latitude;
                 marker.angle = entry.velo.heading;
-                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);
+                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);            
                 markerStored = details_view->geomap_view->store_marker(marker);
             }
         }
