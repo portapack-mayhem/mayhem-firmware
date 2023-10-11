@@ -479,7 +479,7 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
                 marker.lon = entry.pos.longitude;
                 marker.lat = entry.pos.latitude;
                 marker.angle = entry.velo.heading;
-                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);            
+                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);
                 markerStored = details_view->geomap_view->store_marker(marker);
             }
         }
