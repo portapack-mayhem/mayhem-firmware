@@ -124,6 +124,7 @@ void SettingsStore::save() const {
 
 bool load_settings(std::string_view store_name, SettingBindings& bindings) {
     File f;
+    bool settings_loaded{false};
     auto path = get_settings_path(std::string{store_name});
 
     auto error = f.open(path);
@@ -145,15 +146,21 @@ bool load_settings(std::string_view store_name, SettingBindings& bindings) {
             });
 
         // If found, parse the value.
-        if (it != bindings.end())
+        if (it != bindings.end()) {
             it->parse(cols[1]);
+            settings_loaded = true;
+        }
     }
 
-    return true;
+    return settings_loaded;
 }
 
 bool save_settings(std::string_view store_name, const SettingBindings& bindings) {
     File f;
+
+    if (!portapack::persistent_memory::save_app_settings())
+        return false;
+
     auto path = get_settings_path(std::string{store_name});
 
     auto error = f.create(path);
