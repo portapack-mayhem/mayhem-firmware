@@ -34,6 +34,8 @@ using namespace portapack;
 
 namespace ui {
 
+bool ac_details_view_active{false};
+
 template <>
 void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Entry& entry,
@@ -182,6 +184,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
             break;
     }
     button_close.on_select = [&nav](Button&) {
+        ac_details_view_active = false;
         nav.pop();
     };
 };
@@ -217,6 +220,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
+    ac_details_view_active = false;
     on_close_();
 }
 
@@ -260,6 +264,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
+        ac_details_view_active = true;
         aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(entry_copy, [this]() { send_updates = false; });
         send_updates = false;
     };
@@ -432,6 +437,11 @@ void ADSBRxView::on_tick_second() {
 void ADSBRxView::updateDetailsAndMap(int ageStep) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
+
+    // NB: Temporarily pausing updates in rtc_timer_tick context when viewing AC Details screen (kludge for some Guru faults)
+    // TODO: More targeted blocking of updates in rtc_timer_tick when ADSB processes are running
+    if (ac_details_view_active)
+        return;
 
     // Sort and truncate the entries, grouped, newest group first
     sort_entries_by_state();
