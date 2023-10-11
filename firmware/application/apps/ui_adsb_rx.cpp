@@ -438,7 +438,8 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
 
-    // NB: Pausing updates when viewing AC Details screen (otherwise Guru fault occurs)
+    // NB: Temporarily pausing updates in rtc_timer_tick context when viewing AC Details screen (kludge for some Guru faults)
+    // TODO: More targeted blocking of updates in rtc_timer_tick when ADSB processes are running
     if (ac_details_view_active)
         return;
 
@@ -480,7 +481,7 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
                 marker.lon = entry.pos.longitude;
                 marker.lat = entry.pos.latitude;
                 marker.angle = entry.velo.heading;
-                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);            
+                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);
                 markerStored = details_view->geomap_view->store_marker(marker);
             }
         }
