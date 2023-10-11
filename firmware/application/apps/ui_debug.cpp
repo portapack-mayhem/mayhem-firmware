@@ -34,6 +34,7 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_styles.hpp"
 #include "ui_painter.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -409,6 +410,11 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav)) {
+        add_item(gridItem);
+    };
+
     set_max_rows(2);  // allow wider buttons
 }
 
