@@ -521,7 +521,9 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 
     baseband::set_adsb();
 
-    receiver_model.set_target_frequency(1'090'000'000);
+    if (!settings_.radio_loaded())
+        receiver_model.set_target_frequency(1'090'000'000);
+    
     receiver_model.enable();
 }
 
