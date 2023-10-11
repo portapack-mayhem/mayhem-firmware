@@ -123,7 +123,8 @@ class MAX283x {
     virtual void set_tx_vga_gain(const int_fast8_t db);
     virtual void set_lna_gain(const int_fast8_t db);
     virtual void set_vga_gain(const int_fast8_t db);
-    virtual void set_lpf_rf_bandwidth(const uint32_t bandwidth_minimum);
+    virtual void set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum);
+    virtual void set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum);
 
     virtual bool set_frequency(const rf::Frequency lo_frequency);
 

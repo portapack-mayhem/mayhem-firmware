@@ -178,6 +178,10 @@ class GeoMap : public Widget {
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
+    static const Dim banner_height = 3 * 16;
+    static const Dim geomap_rect_width = 240;
+    static const Dim geomap_rect_height = 320 - 16 - banner_height;
+
    private:
     void draw_scale(Painter& painter);
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
@@ -250,8 +254,6 @@ class GeoMapView : public View {
     void setup();
 
     const std::function<void(int32_t, float, float)> on_done{};
-
-    const Dim banner_height = 3 * 16;
     GeoMapMode mode_{};
     int32_t altitude_{};
     GeoPos::alt_unit altitude_unit_{};
@@ -267,7 +269,7 @@ class GeoMapView : public View {
         altitude_unit_};
 
     GeoMap geomap{
-        {0, banner_height, 240, 320 - 16 - banner_height}};
+        {0, GeoMap::banner_height, GeoMap::geomap_rect_width, GeoMap::geomap_rect_height}};
 
     Button button_ok{
         {20 * 8, 8, 8 * 8, 2 * 16},

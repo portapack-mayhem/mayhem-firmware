@@ -161,6 +161,8 @@ SystemStatusView::SystemStatusView(
         &status_icons,
     });
 
+    rtc_battery_workaround();
+
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
     }
@@ -362,6 +364,55 @@ void SystemStatusView::on_title() {
         nav_.pop();
 }
 
+void SystemStatusView::rtc_battery_workaround() {
+    if (sd_card::status() != sd_card::Status::Mounted)
+        return;
+
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    FATTimestamp timestamp;
+    rtc::RTC datetime;
+
+    rtcGetTime(&RTCD1, &datetime);
+
+    // if year is 0000, assume RTC battery is dead
+    if (datetime.year() == 0) {
+        // if timestamp file is present, use it's date and add 1 day
+        if (std::filesystem::file_exists(DATE_FILEFLAG)) {
+            timestamp = file_created_date(DATE_FILEFLAG);
+
+            year = (timestamp.FAT_date >> 9) + 1980;
+            month = (timestamp.FAT_date >> 5) & 0xF;
+            day = timestamp.FAT_date & 0x1F;
+
+            // bump to next month at 28 days for simplicity
+            if (++day > 28) {
+                day = 1;
+                if (++month > 12) {
+                    month = 1;
+                    ++year;
+                }
+            }
+        } else {
+            make_new_file(DATE_FILEFLAG);
+
+            year = 1980;
+            month = 1;
+            day = 1;
+        }
+
+        // update RTC (keeps ticking while powered on regardless of RTC battery condition)
+        rtc::RTC new_datetime{year, month, day, datetime.hour(), datetime.minute(), datetime.second()};
+        rtcSetTime(&RTCD1, &new_datetime);
+
+        // update file date
+        timestamp.FAT_date = ((year - 1980) << 9) | ((uint16_t)month << 5) | day;
+        timestamp.FAT_time = 0;
+        file_update_date(DATE_FILEFLAG, timestamp);
+    }
+}
+
 /* Information View *****************************************************/
 
 InformationView::InformationView(
@@ -378,11 +429,8 @@ InformationView::InformationView(
                   &ltime});
 
     version.set_style(&style_infobar);
-
-    ltime.set_hide_clock(pmem::hide_clock());
     ltime.set_style(&style_infobar);
-    ltime.set_seconds_enabled(true);
-    ltime.set_date_enabled(pmem::clock_with_date());
+    refresh();
     set_dirty();
 }
 
@@ -564,7 +612,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         {"File Manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
         {"Freq. Manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
         {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
-        {"IQ Trim", Color::orange(), &bitmap_icon_cut, [&nav]() { nav.push<IQTrimView>(); }},
+        {"IQ Trim", Color::orange(), &bitmap_icon_trim, [&nav]() { nav.push<IQTrimView>(); }},
         {"SD Over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
         {"Signal Gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
         // {"Test App", Color::dark_grey(), nullptr, [&nav](){ nav.push<TestView>(); }},

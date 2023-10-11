@@ -272,6 +272,12 @@ class FileManagerView : public FileManBaseView {
         &bitmap_icon_options_datetime,
         Color::orange(),
         /*vcenter*/ true};
+
+    NewButton button_open_iq_trim{
+        {9 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_trim,
+        Color::orange()};
 };
 
 } /* namespace ui */

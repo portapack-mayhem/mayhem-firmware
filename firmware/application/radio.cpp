@@ -232,8 +232,12 @@ void set_tx_gain(const int_fast8_t db) {
     second_if->set_tx_vga_gain(db);
 }
 
-void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
-    second_if->set_lpf_rf_bandwidth(bandwidth_minimum);
+void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum) {
+    second_if->set_lpf_rf_bandwidth_rx(bandwidth_minimum);
+}
+
+void set_baseband_filter_bandwidth_tx(const uint32_t bandwidth_minimum) {
+    second_if->set_lpf_rf_bandwidth_tx(bandwidth_minimum);
 }
 
 void set_baseband_rate(const uint32_t rate) {

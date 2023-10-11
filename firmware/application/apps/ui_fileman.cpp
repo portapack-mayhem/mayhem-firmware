@@ -30,6 +30,7 @@
 #include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_iq_trim.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
@@ -566,6 +567,7 @@ FileManagerView::FileManagerView(
         &button_new_file,
         &button_open_notepad,
         &button_rename_timestamp,
+        &button_open_iq_trim,
     });
 
     menu_view.on_highlight = [this]() {
@@ -647,6 +649,14 @@ FileManagerView::FileManagerView(
             on_rename(::truncate(to_string_timestamp(rtc_time::now()), 8));
         } else
             nav_.display_modal("Timestamp Rename", "Can't rename that.");
+    };
+
+    button_open_iq_trim.on_select = [this]() {
+        auto path = get_selected_full_path();
+        if (selected_is_valid() && !get_selected_entry().is_directory && is_cxx_capture_file(path)) {
+            nav_.push<IQTrimView>(path);
+        } else
+            nav_.display_modal("IQ Trim", "Not a capture file.");
     };
 }
 

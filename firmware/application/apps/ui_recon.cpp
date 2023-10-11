@@ -103,7 +103,6 @@ void ReconView::reset_indexes() {
 void ReconView::update_description() {
     if (frequency_list.empty() || current_entry().description.empty()) {
         description = "...no description...";
-        return;
     } else {
         switch (current_entry().type) {
             case freqman_type::Range:
@@ -117,7 +116,6 @@ void ReconView::update_description() {
         }
         description += current_entry().description;
     }
-
     desc_cycle.set(description);
 }
 
@@ -496,6 +494,7 @@ ReconView::ReconView(NavigationView& nav)
 
     button_manual_recon.on_select = [this](Button&) {
         button_remove.set_text("DELETE");
+        button_add.hidden(false);
         scanner_mode = false;
         manual_mode = true;
         recon_pause();
@@ -539,7 +538,7 @@ ReconView::ReconView(NavigationView& nav)
             button_scanner_mode.set_style(&Styles::white);
             button_scanner_mode.set_text("MANUAL");
             file_name.set_style(&Styles::white);
-            file_name.set("MANUAL RANGE RECON");
+            file_name.set("MANUAL => " + output_file);
             desc_cycle.set_style(&Styles::white);
 
             last_entry.modulation = freqman_invalid_index;
@@ -608,12 +607,12 @@ ReconView::ReconView(NavigationView& nav)
             scanner_mode = false;
             button_scanner_mode.set_style(&Styles::blue);
             button_scanner_mode.set_text("RECON");
-            button_remove.set_text("DELETE");
+            button_remove.set_text("REMOVE");
         } else {
             scanner_mode = true;
             button_scanner_mode.set_style(&Styles::red);
             button_scanner_mode.set_text("SCAN");
-            button_scanner_mode.set_text("REMOVE");
+            button_remove.set_text("DELETE");
         }
         frequency_file_load(true);
         if (autostart) {
@@ -621,12 +620,17 @@ ReconView::ReconView(NavigationView& nav)
         } else {
             recon_pause();
         }
+        button_add.hidden(scanner_mode);
+        if (scanner_mode)  // only needed when hiding, UI mayhem
+            set_dirty();
     };
 
     button_config.on_select = [this, &nav](Button&) {
         if (is_recording)  // disabling config while recording
             return;
+
         clear_freqlist_for_ui_action();
+
         freq_lock = 0;
         timer = 0;
         auto open_view = nav.push<ReconSetupView>(input_file, output_file);
@@ -733,30 +737,22 @@ void ReconView::frequency_file_load(bool) {
         button_scanner_mode.set_text("RECON");
     }
 
+    file_name.set(file_input + "=>" + output_file);
+
     freqman_load_options options{
         .load_freqs = load_freqs,
         .load_ranges = load_ranges,
         .load_hamradios = load_hamradios};
-    if (!load_freqman_file(file_input, frequency_list, options)) {
+    if (!load_freqman_file(file_input, frequency_list, options) || frequency_list.empty()) {
         file_name.set_style(&Styles::red);
-        desc_cycle.set(" NO " + file_input + ".TXT FILE ...");
-        file_name.set("=> NO DATA");
-    } else {
-        file_name.set(file_input + "=>" + output_file);
-        if (frequency_list.size() == 0) {
-            file_name.set_style(&Styles::red);
-            desc_cycle.set("/0 no entries in list");
-            file_name.set("BadOrEmpty " + file_input);
-        } else {
-            if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
-                file_name.set_style(&Styles::yellow);
-            }
-        }
+        desc_cycle.set("...empty file...");
+        frequency_list.clear();
+        text_cycle.set_text(" ");
+        return;
     }
 
-    if (frequency_list.empty()) {
-        text_cycle.set_text(" ");
-        return;  // Can't really do much.
+    if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
+        file_name.set_style(&Styles::yellow);
     }
 
     reset_indexes();
@@ -781,19 +777,8 @@ void ReconView::frequency_file_load(bool) {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
-    systime_t time_interval = 100;
-    uint32_t local_recon_lock_duration = recon_lock_duration;
-
     chrono_end = chTimeNow();
-    if (field_mode.selected_index_value() == SPEC_MODULATION) {
-        time_interval = chrono_end - chrono_start;
-        if (field_lock_wait.value() == 0) {
-            if (time_interval <= 1)             // capping here to avoid freeze because too quick
-                local_recon_lock_duration = 2;  // minimum working tested value
-            else
-                local_recon_lock_duration = time_interval;
-        }
-    }
+    systime_t time_interval = chrono_end - chrono_start;
     chrono_start = chrono_end;
 
     // hack to reload the list if it was cleared by going into CONFIG
@@ -813,7 +798,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
         if (!timer) {
             status = 0;
             freq_lock = 0;
-            timer = local_recon_lock_duration;
+            timer = recon_lock_duration;
         }
         if (freq_lock < recon_lock_nb_match)  // LOCKING
         {
@@ -1214,14 +1199,6 @@ void ReconView::handle_remove_current_item() {
         if (current_is_valid()) {
             frequency_list.erase(frequency_list.begin() + current_index);
         }
-
-        if (frequency_list.size() > 0) {
-            current_index = clip<int32_t>(current_index, 0u, frequency_list.size() - 1);
-            text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
-            update_description();
-        } else {
-            current_index = 0;
-        }
     }
 
     // In Scanner or Manual mode, remove the entry from the output file.
@@ -1232,6 +1209,17 @@ void ReconView::handle_remove_current_item() {
 
         freq_db.delete_entry(entry);
     }
+
+    // Clip
+    if (frequency_list.size() > 0) {
+        current_index = clip<int32_t>(current_index, 0u, frequency_list.size() - 1);
+        text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
+    } else {
+        current_index = 0;
+        text_cycle.set_text(" ");
+    }
+
+    update_description();
 }
 
 } /* namespace ui */

@@ -325,6 +325,14 @@ FATTimestamp file_created_date(const std::filesystem::path& file_path) {
     return {filinfo.fdate, filinfo.ftime};
 }
 
+std::filesystem::filesystem_error file_update_date(const std::filesystem::path& file_path, FATTimestamp timestamp) {
+    FILINFO filinfo{};
+
+    filinfo.fdate = timestamp.FAT_date;
+    filinfo.ftime = timestamp.FAT_time;
+    return f_utime(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
+}
+
 std::filesystem::filesystem_error make_new_file(
     const std::filesystem::path& file_path) {
     File f;

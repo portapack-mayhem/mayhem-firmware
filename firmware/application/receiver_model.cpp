@@ -270,7 +270,7 @@ void ReceiverModel::update_tuning_frequency() {
 }
 
 void ReceiverModel::update_baseband_bandwidth() {
-    radio::set_baseband_filter_bandwidth(baseband_bandwidth());
+    radio::set_baseband_filter_bandwidth_rx(baseband_bandwidth());
 }
 
 void ReceiverModel::update_sampling_rate() {

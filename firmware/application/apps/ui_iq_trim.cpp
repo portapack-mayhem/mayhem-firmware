@@ -47,10 +47,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
         auto open_view = nav_.push<FileLoadView>(".C*");
         open_view->push_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
-            path_ = std::move(path);
-            profile_capture();
-            compute_range();
-            refresh_ui();
+            open_file(path);
         };
     };
 
@@ -82,6 +79,18 @@ IQTrimView::IQTrimView(NavigationView& nav)
             refresh_ui();
         }
     };
+}
+
+IQTrimView::IQTrimView(NavigationView& nav, const fs::path& path)
+    : IQTrimView(nav) {
+    open_file(path);
+}
+
+void IQTrimView::open_file(const std::filesystem::path& path) {
+    path_ = std::move(path);
+    profile_capture();
+    compute_range();
+    refresh_ui();
 }
 
 void IQTrimView::paint(Painter& painter) {

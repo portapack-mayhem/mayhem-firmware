@@ -187,6 +187,7 @@ void RDSView::start_tx() {
     else
         frame_datetime.clear();
 
+    transmitter_model.set_baseband_bandwidth(1'750'000);  // Big Spectrum harmonics reduction, and now quicker decoding time.
     transmitter_model.enable();
 
     tx_thread = std::make_unique<RDSThread>(frames);

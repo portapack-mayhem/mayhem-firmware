@@ -74,7 +74,10 @@ void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
     auto duration = ms_duration(file_size, transmitter_model.sampling_rate(), 2);
     text_duration.set(to_string_time_ms(duration));
 
-    button_play.focus();
+    // TODO: fix in UI framework with 'try_focus()'?
+    // Hack around focus getting called by ctor before parent is set.
+    if (parent())
+        button_play.focus();
 }
 
 void GpsSimAppView::on_tx_progress(const uint32_t progress) {
@@ -172,6 +175,8 @@ GpsSimAppView::GpsSimAppView(
         &button_play,
         &waterfall,
     });
+
+    transmitter_model.set_baseband_bandwidth(15'000'000);  // GPS L1 signal use to have wide band spectrum, still with lobule energy -30dB's at + - 15 Mhz
 
     if (!settings_.radio_loaded()) {
         field_frequency.set_value(initial_target_frequency);
