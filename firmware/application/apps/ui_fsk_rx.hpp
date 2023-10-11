@@ -68,20 +68,26 @@ namespace ui
 
         private:
         static constexpr uint32_t initial_target_frequency = 902'075'000;
-        static constexpr ui::Dim header_height = 3 * 16;
+        static constexpr ui::Dim header_height = (3 * 16) + 120;
+        uint32_t previous_bandwidth{24000};
         bool logging() const { return false; };
         bool logging_raw() const { return false; };
 
         NavigationView& nav_;
         RxRadioState radio_state_{};
 
-        void refresh_ui();
+        void refresh_ui(uint32_t bandwidth);
         void on_packet(uint32_t value, bool is_data);
         void handle_decoded(Timestamp timestamp, const std::string& prefix);
 
         uint32_t last_address = 0;
         FskRxLogger logger{};
         uint16_t packet_count = 0;
+
+        Labels labels
+        {
+            {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
+        };
 
         RxFrequencyField field_frequency
         {
@@ -109,11 +115,11 @@ namespace ui
             {19 * 8 - 4, 3, 6 * 8, 4}
         };
 
-        Audio audio
+        Channel channel
         {
             {19 * 8 - 4, 8, 6 * 8, 4}
         };
-        
+
         NumberField field_squelch
         {
             {25 * 8, 0 * 16},
@@ -129,10 +135,17 @@ namespace ui
             {28 * 8, 0 * 16}
         };
 
+        OptionsField option_bandwidth
+        {
+            {5 * 8, 1 * 16},
+            5,
+            {}
+        };
+
         // DEBUG
         RecordView record_view
         {
-            {0 * 8, 1 * 16, 30 * 8, 1 * 16},
+            {0 * 8, 2 * 16, 30 * 8, 1 * 16},
             u"FSKRX_????.C16",
             u"FSKRX",
             RecordView::FileType::RawS16,
@@ -142,7 +155,7 @@ namespace ui
 
         Console console
         {
-            {0, 2 * 16, 240, 240}
+            {0, 2 * 16, 240, 120}
         };
 
         spectrum::WaterfallView waterfall{};

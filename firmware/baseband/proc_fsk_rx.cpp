@@ -339,7 +339,7 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
     samples_processed += buffer.count;
     if (samples_processed >= stat_update_threshold) 
     {
-        //send_packet();
+        send_packet(bits.data());
         samples_processed -= stat_update_threshold;
     }
 }

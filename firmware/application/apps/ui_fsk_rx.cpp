@@ -28,6 +28,8 @@
 #include "string_format.hpp"
 #include "utility.hpp"
 
+#include "ui_freqman.hpp"
+
 using namespace portapack;
 namespace pmem = portapack::persistent_memory;
 
@@ -55,16 +57,23 @@ namespace ui
         baseband::run_image(portapack::spi_flash::image_tag_fskrx);
 
         add_children(
-            {&rssi,
-            &audio,
+            {&labels,
+            &rssi,
+            &channel,
             &field_rf_amp,
             &field_lna,
             &field_vga,
             &field_frequency,
             &field_squelch,
             &field_volume,
+            &option_bandwidth,
             &record_view,
+            &console,
             &waterfall});
+
+        //Set initial sampling rate
+        record_view.set_sampling_rate(24000);
+        option_bandwidth.set_by_value(24000);
 
         // DEBUG
         record_view.on_error = [&nav](std::string message) 
@@ -72,27 +81,53 @@ namespace ui
             nav.display_modal("Error", message);
         };
 
-        record_view.set_sampling_rate(24000);
+        freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
+        
+        option_bandwidth.on_change = [this](size_t, uint32_t bandwidth) 
+        {
+            refresh_ui(bandwidth);
+        };
 
         field_frequency.set_value(initial_target_frequency);
- 
-        logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
 
         field_squelch.set_value(receiver_model.squelch_level());
         field_squelch.on_change = [this](int32_t v) {
             receiver_model.set_squelch_level(v);
         };
 
-        refresh_ui();
+        logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
+
         audio::output::start();
         receiver_model.enable();
 
         baseband::set_fsk(4500, receiver_model.squelch_level());
     }
 
-    void FskRxAppView::refresh_ui()
+    void FskRxAppView::refresh_ui(uint32_t bandwidth)
     {
+        /* Nyquist would imply a sample rate of 2x bandwidth, but because the ADC
+        * provides 2 values (I,Q), the sample_rate is equal to bandwidth here. */
+        auto sample_rate = bandwidth;
+
+        /* base_rate (bandwidth) is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
+        /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */
+        /* ex. recording 500kHz BW to .C16 file, base_rate clock 500kHz x2(I,Q) x 2 bytes (int signed) =2MB/sec rate SD Card. */
+
         waterfall.stop();
+
+        // record_view determines the correct oversampling to apply and returns the actual sample rate.
+        // NB: record_view is what actually updates proc_capture baseband settings.
+        auto actual_sample_rate = record_view.set_sampling_rate(sample_rate);
+
+        // Update the radio model with the actual sampling rate.
+        receiver_model.set_sampling_rate(actual_sample_rate);
+
+        // Get suitable anti-aliasing BPF bandwidth for MAX2837 given the actual sample rate.
+        auto anti_alias_filter_bandwidth = filter_bandwidth_for_sampling_rate(actual_sample_rate);
+        receiver_model.set_baseband_bandwidth(anti_alias_filter_bandwidth);
+
+        previous_bandwidth = bandwidth;
+
         waterfall.start();
     }
 
@@ -108,7 +143,7 @@ namespace ui
     {
         if(is_data)
         {
-            //console.write("[0x" + to_string_hex(value, 2) + "] ");
+            console.write("[0x" + to_string_hex(value, 2) + "] ");
         }
     }
 
