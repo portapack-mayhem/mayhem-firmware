@@ -85,7 +85,11 @@ SpectrumPainterView::SpectrumPainterView(
 
             if (tx_mode == 0 && image_input_avaliable == false)
                 return;
-
+            /* By experimental test measurement, we got a good painted spectrum quality when selecting
+            a BW GUI App range from 100k ... 2M aprox. In that range , the best TX LPF filter = 1M75 (the min)
+            With this min TX LPF filter , we minimized the harmonics aliasing multipicture overlapped.
+            So original fw 1.7.4., was already selecting the best setting (1M75)  */
+            transmitter_model.set_baseband_bandwidth(1'750'000);  // Already tested, is the best setting for this App.
             transmitter_model.enable();
 
             if (persistent_memory::stealth_mode()) {

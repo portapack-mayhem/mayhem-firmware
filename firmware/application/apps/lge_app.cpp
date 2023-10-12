@@ -238,6 +238,10 @@ void LGEView::start_tx() {
         tx_view.set_dirty();
     }
 
+    /* By experimental test, previous fw 1.7.4 seems to have setting , tx LPF = 5Mhz
+    This LGE - seems to be for controlling a "laser tag equipment" (Havoc app) , modulated  FSK , low bauds,
+    and using max GUI fm dev 150k , we are still in NBFM, let's reduce slightly original TX LPF 5M ->2M5*/
+    transmitter_model.set_baseband_bandwidth(2'500'000);
     transmitter_model.enable();
 
     chThdSleep(100);
