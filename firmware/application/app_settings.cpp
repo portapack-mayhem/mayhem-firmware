@@ -158,7 +158,7 @@ bool load_settings(std::string_view store_name, SettingBindings& bindings) {
 bool save_settings(std::string_view store_name, const SettingBindings& bindings) {
     File f;
 
-    if (!portapack::persistent_memory::save_app_settings())
+    if (!portapack::persistent_memory::save_app_settings() || bindings.empty())
         return false;
 
     auto path = get_settings_path(std::string{store_name});
