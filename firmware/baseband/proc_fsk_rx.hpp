@@ -31,6 +31,7 @@
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "dsp_iir_config.hpp"
+#include "dsp_fir_taps.hpp"
 
 #include "spectrum_collector.hpp"
 #include "stream_input.hpp"
@@ -58,70 +59,6 @@ class AudioNormalizer {
     float max_ = -99.0f;
     float t_hi_ = 1.0;
     float t_lo_ = 1.0;
-};
-
-/* FIFO wrapper over a uint32_t's bits. */
-class BitQueue {
-   public:
-    void push(bool bit);
-    bool pop();
-    void reset();
-    uint8_t size() const;
-    uint32_t data() const;
-
-   private:
-    uint32_t data_ = 0;
-    uint8_t count_ = 0;
-
-    static constexpr uint8_t max_size_ = sizeof(data_) * 8;
-};
-
-/* Extracts bits and bitrate from audio stream. */
-class BitExtractor {
-   public:
-    BitExtractor(BitQueue& bits)
-        : bits_{bits} {}
-
-    void extract_bits(const buffer_f32_t& audio);
-    void configure(uint32_t sample_rate);
-    void reset();
-    uint16_t baud_rate() const;
-
-   private:
-    /* Clock signal detection magic number. */
-    static constexpr uint32_t clock_magic_number = 0xAAAAAAAA;
-
-    struct RateInfo {
-        enum class State : uint8_t {
-            WaitForSample,
-            ReadyToSend
-        };
-
-        const int16_t baud_rate = 0;
-        float sample_interval = 0.0;
-
-        State state = State::WaitForSample;
-        float samples_until_next = 0.0;
-        bool prev_value = false;
-        bool is_stable = false;
-        BitQueue bits{};
-
-        /* Updates a rate info with the given sample.
-         * Returns true if the rate info has a new bit in its queue. */
-        bool handle_sample(float sample);
-        void reset();
-    };
-
-    std::array<RateInfo, 4> known_rates_{
-        RateInfo{512},
-        RateInfo{1200},
-        RateInfo{2400},
-        RateInfo{7500}};
-
-    BitQueue& bits_;
-
-    uint32_t sample_rate_ = 0;
-    RateInfo* current_rate_ = nullptr;
 };
 
 /* A decimator that just returns the source buffer. */
@@ -175,6 +112,7 @@ class MultiDecimator {
 class FSKRxProcessor : public BasebandProcessor 
 {
    public:
+    FSKRxProcessor();
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
 
@@ -190,10 +128,9 @@ class FSKRxProcessor : public BasebandProcessor
     void flush();
     void reset();
     void send_packet(uint32_t data);
-    void process_bits();
+    void process_bits(const buffer_c8_t& buffer);
 
     void clear_data_bits();
-    void take_one_bit();
     void handle_sync(bool inverted);
 
     /* Returns true if the batch has as sync frame. */
@@ -227,6 +164,7 @@ class FSKRxProcessor : public BasebandProcessor
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
     size_t deviation = 3750;
+    fir_taps_real<32> channel_filter_taps;
     size_t channel_decimation = 2;
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
@@ -254,11 +192,6 @@ class FSKRxProcessor : public BasebandProcessor
     /* Used to keep track of how many samples were processed
      * between status update messages. */
     uint32_t samples_processed = 0;
-
-    BitQueue bits{};
-
-    /* Processes audio into bits. */
-    BitExtractor bit_extractor{bits};
 
     /* Number of bits in 'data_' member. */
     static constexpr uint8_t data_bit_count = sizeof(uint32_t) * 8;

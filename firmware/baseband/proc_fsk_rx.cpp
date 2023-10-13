@@ -105,160 +105,11 @@ void AudioNormalizer::calculate_thresholds()
     t_lo_ = center - threshold;
 }
 
-/* BitQueue **********************************************/
-
-void BitQueue::push(bool bit) 
-{
-    data_ = (data_ << 1) | (bit ? 1 : 0);
-    if (count_ < max_size_) ++count_;
-}
-
-bool BitQueue::pop() 
-{
-    if (count_ == 0) return false;
-
-    --count_;
-    return (data_ & (1 << count_)) != 0;
-}
-
-void BitQueue::reset() 
-{
-    data_ = 0;
-    count_ = 0;
-}
-
-uint8_t BitQueue::size() const 
-{
-    return count_;
-}
-
-uint32_t BitQueue::data() const 
-{
-    return data_;
-}
-
-/* BitExtractor ******************************************/
-
-void BitExtractor::extract_bits(const buffer_f32_t& audio) 
-{
-    // Assumes input has been normalized +/- 1.0f.
-    // Positive == 0, Negative == 1.
-    for (size_t i = 0; i < audio.count; ++i) 
-    {
-        auto sample = audio.p[i];
-
-        if (current_rate_) 
-        {
-            if (current_rate_->handle_sample(sample)) 
-            {
-                auto value = (current_rate_->bits.data() & 1) == 1;
-                bits_.push(value);
-            }
-        } 
-        else 
-        {
-            // Feed sample to all known rates for clock detection.
-            for (auto& rate : known_rates_) {
-                if (rate.handle_sample(sample) &&
-                    diff_bit_count(rate.bits.data(), clock_magic_number) <= 3) {
-                    // Clock detected, continue with this rate.
-                    rate.is_stable = true;
-                    current_rate_ = &rate;
-                }
-            }
-        }
-    }
-}
-
-void BitExtractor::configure(uint32_t sample_rate) 
-{
-    sample_rate_ = sample_rate;
-
-    // Build the baud rate info table based on the sample rate.
-    // Sampling at 2x the baud rate to synchronize to bit transitions
-    // without needing to know exact transition boundaries.
-    for (auto& rate : known_rates_)
-        rate.sample_interval = sample_rate / (2.0 * rate.baud_rate);
-}
-
-void BitExtractor::reset() 
-{
-    current_rate_ = nullptr;
-
-    for (auto& rate : known_rates_)
-        rate.reset();
-}
-
-uint16_t BitExtractor::baud_rate() const 
-{
-    return current_rate_ ? current_rate_->baud_rate : 0;
-}
-
-bool BitExtractor::RateInfo::handle_sample(float sample) 
-{
-    samples_until_next -= 1;
-
-    // Time to process a sample?
-    if (samples_until_next > 0)
-        return false;
-
-    bool value = signbit(sample);  // NB: negative == '1'
-    bool bit_pushed = false;
-
-    switch (state) 
-    {
-        case State::WaitForSample:
-            // Just need to wait for the first sample of the bit.
-            state = State::ReadyToSend;
-            break;
-
-        case State::ReadyToSend:
-            if (!is_stable && prev_value != value) 
-            {
-                // Still looking for the clock signal but found a transition.
-                // Nudge the next sample a bit to try avoiding pulse edges.
-                samples_until_next += (sample_interval / 8.0);
-            } 
-            else 
-            {
-                // Either the clock has been found or both samples were
-                // (probably) in the same pulse. Send the bit.
-                // TODO: Wider/more samples for noise reduction?
-                state = State::WaitForSample;
-                bit_pushed = true;
-                bits.push(value);
-            }
-
-            break;
-    }
-
-    // How long until the next sample?
-    samples_until_next += sample_interval;
-    prev_value = value;
-
-    return bit_pushed;
-}
-
-void BitExtractor::RateInfo::reset() 
-{
-    state = State::WaitForSample;
-    samples_until_next = 0.0;
-    prev_value = false;
-    is_stable = false;
-    bits.reset();
-}
-
 /* FSKRxProcessor ******************************************/
 
 void FSKRxProcessor::clear_data_bits() {
     data = 0;
     bit_count = 0;
-}
-
-void FSKRxProcessor::take_one_bit() {
-    data = (data << 1) | bits.pop();
-    if (bit_count < data_bit_count)
-        ++bit_count;
 }
 
 void FSKRxProcessor::handle_sync(bool inverted) {
@@ -268,13 +119,11 @@ void FSKRxProcessor::handle_sync(bool inverted) {
     word_count = 0;
 }
 
-void FSKRxProcessor::process_bits() 
+void FSKRxProcessor::process_bits(const buffer_c8_t& buffer)  
 {
     // Process all of the bits in the bits queue.
-    while (bits.size() > 0) 
+    while (buffer.count > 0) 
     {
-        take_one_bit();
-
         // Wait until data_ is full.
         if (bit_count < data_bit_count)
             continue;
@@ -291,7 +140,11 @@ void FSKRxProcessor::process_bits()
     }
 }
 
-/* POCSAGProcessor ***************************************/
+/* FSKRxProcessor ***************************************/
+
+FSKRxProcessor::FSKRxProcessor() 
+{
+}
 
 void FSKRxProcessor::execute(const buffer_c8_t& buffer) 
 {
@@ -300,9 +153,11 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
         return;
     }
     
-    // Get 24kHz audio
+    // Decimate by current decim 0 and decim 1.
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
+
+    //Decimate by channel decimation. //TODO: Should this be here?
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     //auto audio = demod.execute(channel_out, audio_buffer);
 
@@ -344,15 +199,13 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
     // normalizer.execute_in_place(audio);
     // audio_output.write(audio);
 
-    // // Decode the messages from the audio.
-    // bit_extractor.extract_bits(audio);
     // process_bits();
     
     // Update the status.
     samples_processed += buffer.count;
     if (samples_processed >= stat_update_threshold) 
     {
-        send_packet(bits.data());
+        //send_packet(data);
         samples_processed -= stat_update_threshold;
     }
 }
@@ -387,6 +240,7 @@ void FSKRxProcessor::configure(const FSKRxConfigureMessage& message)
     //Extract message variables.
     deviation = message.deviation;
     channel_decimation = message.channel_decimation;
+    channel_filter_taps = message.channel_filter;
 
     //Setup decimation and demodulation.
     //Default taps are 200k for decim 0 and 16k decim 1 for now. 32K Sample rate.
@@ -407,18 +261,18 @@ void FSKRxProcessor::configure(const FSKRxConfigureMessage& message)
     demod.configure(demod_input_fs, deviation);
 
     //Initial channel decimation is always 2. Todo: Make this variable. Currently this won't effect spectrum but will effect demodulation.
-    channel_filter.configure(message.channel_filter.taps, channel_decimation);
+    channel_filter.configure(channel_filter_taps.taps, channel_decimation);
 
     uint32_t starting_sample_rate = 32000;
 
-    channel_filter_low_f = message.channel_filter.low_frequency_normalized * starting_sample_rate;
-    channel_filter_high_f = message.channel_filter.high_frequency_normalized * starting_sample_rate;
+    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * starting_sample_rate;
+    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * starting_sample_rate;
+    channel_filter_transition = taps_200k_decim_1.transition_normalized * starting_sample_rate;
+
     channel_spectrum.set_decimation_factor(1.0f);
 
     // Don't process the audio stream.
     audio_output.configure(false);
-
-    bit_extractor.configure(demod_input_fs);
 
     // Set ready to process data.
     configured = true;
@@ -506,19 +360,21 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
             break;
     }
 
-    // //Update demodulator based on new decimation. Todo: Confirm this works.
-    // size_t decim_0_input_fs = baseband_fs;
-    // size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor();
+    //Update demodulator based on new decimation. Todo: Confirm this works.
+    size_t decim_0_input_fs = baseband_fs;
+    size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor();
 
-    // size_t decim_1_input_fs = decim_0_output_fs;
-    // size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();
+    size_t decim_1_input_fs = decim_0_output_fs;
+    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();
 
-    // size_t channel_filter_input_fs = decim_1_output_fs;
-    // size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
+    size_t channel_filter_input_fs = decim_1_output_fs;
+    size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
 
-    // size_t demod_input_fs = channel_filter_output_fs;
+    size_t demod_input_fs = channel_filter_output_fs;
 
-    // demod.configure(demod_input_fs, deviation);
+    demod.configure(demod_input_fs, deviation);
+
+    channel_filter.configure(channel_filter_taps.taps, channel_decimation);
 }
 
 void FSKRxProcessor::flush() 
@@ -533,8 +389,6 @@ void FSKRxProcessor::reset()
     inverted = false;
     word_count = 0;
 
-    bits.reset();
-    bit_extractor.reset();
     samples_processed = 0;
 }
 
