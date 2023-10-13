@@ -375,6 +375,8 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
     demod.configure(demod_input_fs, deviation);
 
     channel_filter.configure(channel_filter_taps.taps, channel_decimation);
+
+    send_packet((uint32_t)demod_input_fs);
 }
 
 void FSKRxProcessor::flush() 

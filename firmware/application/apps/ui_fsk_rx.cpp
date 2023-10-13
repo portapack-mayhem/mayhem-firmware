@@ -143,7 +143,7 @@ namespace ui
     {
         if(is_data)
         {
-            console.write("[0x" + to_string_hex(value, 2) + "] ");
+            console.write(to_string_dec_uint(value) + " ");
         }
     }
 
