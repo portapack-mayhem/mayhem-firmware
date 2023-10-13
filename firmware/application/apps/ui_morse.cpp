@@ -117,6 +117,8 @@ bool MorseView::start_tx() {
     }
 
     progressbar.set_max(symbol_count);
+    // By experimental spectrum measurment, we left exactly same TX LPF settings as previous fw 1.7.4,  TX LPF= 1M75 (min).
+    transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF .already tested in FM morse max tone 9,999k , max dev 150khz
     transmitter_model.enable();
 
     if (modulation == CW) {

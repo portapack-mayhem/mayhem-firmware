@@ -33,7 +33,8 @@ typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
 enum app_location_t : uint32_t {
     UTILITIES = 0,
     RX,
-    TX
+    TX,
+    DEBUG
 };
 
 struct application_information_t {
