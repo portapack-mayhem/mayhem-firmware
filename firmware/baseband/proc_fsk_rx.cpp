@@ -33,6 +33,7 @@
 #include <cstddef>
 
 using namespace std;
+using namespace dsp::decimate;
 
 namespace 
 {
@@ -247,6 +248,8 @@ void BitExtractor::RateInfo::reset()
     bits.reset();
 }
 
+/* FSKRxProcessor ******************************************/
+
 void FSKRxProcessor::clear_data_bits() {
     data = 0;
     bit_count = 0;
@@ -290,50 +293,60 @@ void FSKRxProcessor::process_bits()
 
 /* POCSAGProcessor ***************************************/
 
-void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
-    if (!configured) return;
-
-    // buffer has 2048 samples
-    // decim0 out: 2048/8 = 256 samples
-    // decim1 out: 256/8 = 32 samples
-    // channel out: 32/2 = 16 samples
-
+void FSKRxProcessor::execute(const buffer_c8_t& buffer) 
+{
+    if (!configured)
+    {
+        return;
+    }
+    
     // Get 24kHz audio
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
-    auto audio = demod.execute(channel_out, audio_buffer);
+    //auto audio = demod.execute(channel_out, audio_buffer);
 
-    // Check if there's any signal in the audio buffer.
-    bool has_audio = squelch.execute(audio);
-    squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
+    feed_channel_stats(decim_1_out);
 
-    // Has there been any signal recently?
-    if (squelch_history == 0) 
+    spectrum_samples += decim_1_out.count;
+
+    if (spectrum_samples >= spectrum_interval_samples) 
     {
-        // No recent signal, flush and prepare for next message.
-        // if (word_extractor.current() > 0) {
-        //     flush();
-        //     reset();
-        //     send_stats();
-        // }
-
-        // Clear the audio stream before sending.
-        for (size_t i = 0; i < audio.count; ++i)
-            audio.p[i] = 0.0;
-
-        audio_output.write(audio);
-        return;
+        spectrum_samples -= spectrum_interval_samples;
+        channel_spectrum.feed(decim_1_out, channel_filter_low_f,
+                              channel_filter_high_f, channel_filter_transition);
     }
 
-    // Filter out high-frequency noise then normalize.
-    lpf.execute_in_place(audio);
-    normalizer.execute_in_place(audio);
-    audio_output.write(audio);
+    // // Check if there's any signal in the audio buffer.
+    // bool has_audio = squelch.execute(audio);
+    // squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
 
-    // Decode the messages from the audio.
-    bit_extractor.extract_bits(audio);
-    process_bits();
+    // // Has there been any signal recently?
+    // if (squelch_history == 0) 
+    // {
+    //     // No recent signal, flush and prepare for next message.
+    //     // if (word_extractor.current() > 0) {
+    //     //     flush();
+    //     //     reset();
+    //     //     send_stats();
+    //     // }
+
+    //     // Clear the audio stream before sending.
+    //     for (size_t i = 0; i < audio.count; ++i)
+    //         audio.p[i] = 0.0;
+
+    //     audio_output.write(audio);
+    //     return;
+    // }
+
+    // // Filter out high-frequency noise then normalize.
+    // lpf.execute_in_place(audio);
+    // normalizer.execute_in_place(audio);
+    // audio_output.write(audio);
+
+    // // Decode the messages from the audio.
+    // bit_extractor.extract_bits(audio);
+    // process_bits();
     
     // Update the status.
     samples_processed += buffer.count;
@@ -346,30 +359,61 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
 
 void FSKRxProcessor::on_message(const Message* const message) 
 {
-    if (message->id == Message::ID::FSKRxConfigure)
-         configure(*reinterpret_cast<const FSKRxConfigureMessage*>(message));
+    switch (message->id) 
+    {
+        case Message::ID::FSKRxConfigure:
+            configure(*reinterpret_cast<const FSKRxConfigureMessage*>(message));
+            break;
+        case Message::ID::UpdateSpectrum:
+        case Message::ID::SpectrumStreamingConfig:
+            channel_spectrum.on_message(message);
+            break;
 
-    if (message->id == Message::ID::CaptureConfig)
-    capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+        case Message::ID::SampleRateConfig:
+            sample_rate_config(*reinterpret_cast<const SampleRateConfigMessage*>(message));
+            break;
+
+        case Message::ID::CaptureConfig:
+            capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+            break;
+
+        default:
+            break;
+    }
 }
 
 void FSKRxProcessor::configure(const FSKRxConfigureMessage& message) 
 {
-    constexpr size_t decim_0_input_fs = baseband_fs;
-    constexpr size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor;
+    //Extract message variables.
+    deviation = message.deviation;
+    channel_decimation = message.channel_decimation;
 
-    constexpr size_t decim_1_input_fs = decim_0_output_fs;
-    constexpr size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor;
+    //Setup decimation and demodulation.
+    //Default taps are 200k for decim 0 and 16k decim 1 for now. 32K Sample rate.
+    decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+    decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
 
-    constexpr size_t channel_filter_input_fs = decim_1_output_fs;
-    const size_t channel_filter_output_fs = channel_filter_input_fs / message.channel_decimation;
+    size_t decim_0_input_fs = baseband_fs;
+    size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor();
 
-    const size_t demod_input_fs = channel_filter_output_fs;
+    size_t decim_1_input_fs = decim_0_output_fs;
+    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();
 
-    decim_0.configure(message.decim_0_filter.taps);
-    decim_1.configure(message.decim_1_filter.taps);
-    channel_filter.configure(message.channel_filter.taps, message.channel_decimation);
-    demod.configure(demod_input_fs, message.deviation);
+    size_t channel_filter_input_fs = decim_1_output_fs;
+    size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
+
+    size_t demod_input_fs = channel_filter_output_fs;
+
+    demod.configure(demod_input_fs, deviation);
+
+    //Initial channel decimation is always 2. Todo: Make this variable. Currently this won't effect spectrum but will effect demodulation.
+    channel_filter.configure(message.channel_filter.taps, channel_decimation);
+
+    uint32_t starting_sample_rate = 32000;
+
+    channel_filter_low_f = message.channel_filter.low_frequency_normalized * starting_sample_rate;
+    channel_filter_high_f = message.channel_filter.high_frequency_normalized * starting_sample_rate;
+    channel_spectrum.set_decimation_factor(1.0f);
 
     // Don't process the audio stream.
     audio_output.configure(false);
@@ -384,14 +428,97 @@ void FSKRxProcessor::capture_config(const CaptureConfigMessage& message)
 {
     if (message.config) 
     {
-        // stream = std::make_unique<StreamInput>(message.config);
         audio_output.set_stream(std::make_unique<StreamInput>(message.config));
     } 
     else 
     {
-        // stream.reset();
         audio_output.set_stream(nullptr);
     }
+}
+
+void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message) 
+{
+    const auto sample_rate = message.sample_rate;
+
+    // The actual sample rate is the requested rate * the oversample rate.
+    // See oversample.hpp for more details on oversampling.
+    baseband_fs = sample_rate * toUType(message.oversample_rate);
+    baseband_thread.set_sampling_rate(baseband_fs);
+
+    // TODO: Do we need to use the taps that the decimators get configured with?
+    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * sample_rate;
+    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * sample_rate;
+    channel_filter_transition = taps_200k_decim_1.transition_normalized * sample_rate;
+
+    // Compute the scalar that corrects the oversample_rate to be x8 when computing
+    // the spectrum update interval. The original implementation only supported x8.
+    // TODO: Why is this needed here but not in proc_replay? There must be some other
+    // assumption about x8 oversampling in some component that makes this necessary.
+    const auto oversample_correction = toUType(message.oversample_rate) / 8.0;
+
+    // The spectrum update interval controls how often the waterfall is fed new samples.
+    spectrum_interval_samples = sample_rate / (spectrum_rate_hz * oversample_correction);
+    spectrum_samples = 0;
+
+    // For high sample rates, the M4 is busy collecting samples so the
+    // waterfall runs slower. Reduce the update interval so it runs faster.
+    // NB: Trade off: looks nicer, but more frequent updates == more CPU.
+    if (sample_rate >= 1'500'000)
+        spectrum_interval_samples /= (sample_rate / 750'000);
+
+    switch (message.oversample_rate) 
+    {
+        case OversampleRate::x4:
+            // M4 can't handle 2 decimation passes for sample rates needing x4.
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+            decim_1.set<NoopDecim>();
+            break;
+
+        case OversampleRate::x8:
+            // M4 can't handle 2 decimation passes for sample rates <= 600k.
+            if (message.sample_rate < 600'000) {
+                decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+                decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
+            } else {
+                // Using 180k taps to provide better filtering with a single pass.
+                decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_180k_wfm_decim_0.taps);
+                decim_1.set<NoopDecim>();
+            }
+            break;
+
+        case OversampleRate::x16:
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps);
+            decim_1.set<FIRC16xR16x16Decim2>().configure(taps_200k_decim_1.taps);
+            break;
+
+        case OversampleRate::x32:
+            decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
+            break;
+
+        case OversampleRate::x64:
+            decim_0.set<FIRC8xR16x24FS4Decim8>().configure(taps_200k_decim_0.taps);
+            decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
+            break;
+
+        default:
+            chDbgPanic("Unhandled OversampleRate");
+            break;
+    }
+
+    // //Update demodulator based on new decimation. Todo: Confirm this works.
+    // size_t decim_0_input_fs = baseband_fs;
+    // size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor();
+
+    // size_t decim_1_input_fs = decim_0_output_fs;
+    // size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();
+
+    // size_t channel_filter_input_fs = decim_1_output_fs;
+    // size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
+
+    // size_t demod_input_fs = channel_filter_output_fs;
+
+    // demod.configure(demod_input_fs, deviation);
 }
 
 void FSKRxProcessor::flush() 

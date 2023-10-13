@@ -72,8 +72,8 @@ namespace ui
             &waterfall});
 
         //Set initial sampling rate
-        record_view.set_sampling_rate(24000);
-        option_bandwidth.set_by_value(24000);
+        record_view.set_sampling_rate(previous_bandwidth);
+        option_bandwidth.set_by_value(previous_bandwidth);
 
         // DEBUG
         record_view.on_error = [&nav](std::string message) 

@@ -26,14 +26,22 @@
 #include "audio_output.hpp"
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
+#include "rssi_thread.hpp"
+
 #include "dsp_decimate.hpp"
 #include "dsp_demodulate.hpp"
 #include "dsp_iir_config.hpp"
+
+#include "spectrum_collector.hpp"
+#include "stream_input.hpp"
+
 #include "message.hpp"
 #include "portapack_shared_memory.hpp"
-#include "rssi_thread.hpp"
 
 #include <array>
+#include <memory>
+#include <tuple>
+#include <variant>
 #include <cstdint>
 #include <functional>
 
@@ -116,6 +124,54 @@ class BitExtractor {
     RateInfo* current_rate_ = nullptr;
 };
 
+/* A decimator that just returns the source buffer. */
+class NoopDecim {
+   public:
+    static constexpr int decimation_factor = 1;
+
+    template <typename Buffer>
+    Buffer execute(const Buffer& src, const Buffer&) {
+        // TODO: should this copy to 'dst'?
+        return {src.p, src.count, src.sampling_rate};
+    }
+};
+
+/* Decimator wrapper that can hold one of a set of decimators and dispatch at runtime. */
+template <typename... Args>
+class MultiDecimator {
+   public:
+    /* Dispatches to the underlying type's execute. */
+    template <typename Source, typename Destination>
+    Destination execute(
+        const Source& src,
+        const Destination& dst) {
+        return std::visit(
+            [&src, &dst](auto&& arg) -> Destination {
+                return arg.execute(src, dst);
+            },
+            decimator_);
+    }
+
+    size_t decimation_factor() const {
+        return std::visit(
+            [](auto&& arg) -> size_t {
+                return arg.decimation_factor;
+            },
+            decimator_);
+    }
+
+    /* Sets this decimator to a new instance of the specified decimator type.
+     * NB: The instance is returned by-ref so 'configure' can easily be called. */
+    template <typename Decimator>
+    Decimator& set() {
+        decimator_ = Decimator{};
+        return std::get<Decimator>(decimator_);
+    }
+
+   private:
+    std::variant<Args...> decimator_{};
+};
+
 class FSKRxProcessor : public BasebandProcessor 
 {
    public:
@@ -123,13 +179,14 @@ class FSKRxProcessor : public BasebandProcessor
     void on_message(const Message* const message) override;
 
    private:
-    static constexpr size_t baseband_fs = 3072000;
-    static constexpr uint8_t stat_update_interval = 10;
-    static constexpr uint32_t stat_update_threshold =
-        baseband_fs / stat_update_interval;
+    size_t baseband_fs = 1024000;  // aka: sample_rate
+    uint8_t stat_update_interval = 10;
+    uint32_t stat_update_threshold = baseband_fs / stat_update_interval;
+    static constexpr auto spectrum_rate_hz = 50.0f;
 
     void configure(const FSKRxConfigureMessage& message);
     void capture_config(const CaptureConfigMessage& message);
+    void sample_rate_config(const SampleRateConfigMessage& message);
     void flush();
     void reset();
     void send_packet(uint32_t data);
@@ -146,20 +203,34 @@ class FSKRxProcessor : public BasebandProcessor
     bool configured = false;
 
     /* Buffer for decimated IQ data. */
-    std::array<complex16_t, 256> dst{};
-    const buffer_c16_t dst_buffer{dst.data(), dst.size()};
+    std::array<complex16_t, 512> dst{};
+    const buffer_c16_t dst_buffer{
+        dst.data(),
+        dst.size()};
 
     /* Buffer for demodulated audio. */
     std::array<float, 16> audio{};
     const buffer_f32_t audio_buffer{audio.data(), audio.size()};
 
-    /* Decimate to 48kHz. */
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0{};
-    dsp::decimate::FIRC16xR16x32Decim8 decim_1{};
+    /* The actual type will be configured depending on the sample rate. */
+    MultiDecimator<
+        dsp::decimate::FIRC8xR16x24FS4Decim4,
+        dsp::decimate::FIRC8xR16x24FS4Decim8>
+        decim_0{};
+    MultiDecimator<
+        dsp::decimate::FIRC16xR16x16Decim2,
+        dsp::decimate::FIRC16xR16x32Decim8,
+        NoopDecim>
+        decim_1{};
 
     /* Filter to 24kHz and demodulate. */
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
     dsp::demodulate::FM demod{};
+    size_t deviation = 3750;
+    size_t channel_decimation = 2;
+    int32_t channel_filter_low_f = 0;
+    int32_t channel_filter_high_f = 0;
+    int32_t channel_filter_transition = 0;
 
     /* Squelch to ignore noise. */
     FMSquelch squelch{};
@@ -211,8 +282,13 @@ class FSKRxProcessor : public BasebandProcessor
     IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
                          {1.00000000f, -1.34896775f, 0.51398189f}}};
 
+    SpectrumCollector channel_spectrum{};    
+    size_t spectrum_interval_samples = 0;
+    size_t spectrum_samples = 0;                 
+
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
+    RSSIThread rssi_thread{};
 };
 
 #endif

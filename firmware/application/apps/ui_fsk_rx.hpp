@@ -68,8 +68,8 @@ namespace ui
 
         private:
         static constexpr uint32_t initial_target_frequency = 902'075'000;
-        static constexpr ui::Dim header_height = (3 * 16) + 120;
-        uint32_t previous_bandwidth{24000};
+        static constexpr ui::Dim header_height = (4 * 16) + 120;
+        uint32_t previous_bandwidth{32000};
         bool logging() const { return false; };
         bool logging_raw() const { return false; };
 
@@ -155,7 +155,7 @@ namespace ui
 
         Console console
         {
-            {0, 2 * 16, 240, 120}
+            {0, 3 * 16, 240, 120}
         };
 
         spectrum::WaterfallView waterfall{};
