@@ -66,6 +66,7 @@ namespace ui
             std::string title() const override { return "FSK RX Data"; };
 
             void on_packet(uint32_t value, bool is_data);
+    
             void on_show() override;
             void on_hide() override;
 
@@ -74,7 +75,7 @@ namespace ui
 
             Console console
             {
-                {0, 0 * 16, 240, 224}
+                {0, 0, 240, 224}
             };
     };
 
@@ -87,98 +88,14 @@ namespace ui
         void focus() override;
         void on_show() override;
         void on_hide() override;
-        void set_parent_rect(const Rect new_parent_rect) override;
+
+        spectrum::WaterfallView waterfall{};
 
         std::string title() const override { return "FSK RX Stream"; };
 
         private:
-        static constexpr uint32_t initial_target_frequency = 902'075'000;
-        static constexpr ui::Dim header_height = (3 * 16) + (3 * 8);
-        uint32_t previous_bandwidth{32000};
-        bool logging() const { return false; };
-        bool logging_raw() const { return false; };
-
         NavigationView& nav_;
         RxRadioState radio_state_{};
-
-        void refresh_ui(uint32_t bandwidth);
-        void on_packet(uint32_t value, bool is_data);
-        void handle_decoded(Timestamp timestamp, const std::string& prefix);
-
-        uint32_t last_address = 0;
-        FskRxLogger logger{};
-        uint16_t packet_count = 0;
-
-        RxFrequencyField field_frequency
-        {
-            {0 * 8, 0 * 8},
-            nav_
-        };
-
-        RFAmpField field_rf_amp
-        {
-            {11 * 8, 0 * 16}
-        };
-
-        LNAGainField field_lna
-        {
-            {13 * 8, 0 * 16}
-        };
-
-        VGAGainField field_vga
-        {
-            {16 * 8, 0 * 16}
-        };
-
-        NumberField field_squelch
-        {
-            {25 * 8, 0 * 16},
-            2,
-            {0, 99},
-            1,
-            ' ',
-            true /*wrap*/
-        };
-
-        AudioVolumeField field_volume
-        {
-            {28 * 8, 0 * 16}
-        };
-
-        RSSI rssi
-        {
-            {19 * 8 - 4, 3, 6 * 8, 4}
-        };
-
-        Channel channel
-        {
-            {19 * 8 - 4, 8, 6 * 8, 4}
-        };
-
-        Labels labels
-        {
-            {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
-        };
-
-        OptionsField option_bandwidth
-        {
-            {5 * 8, 1 * 16},
-            5,
-            {}
-        };
-
-        // DEBUG
-        RecordView record_view
-        {
-            {0 * 8, 2 * 16, 30 * 8, 1 * 16},
-            u"FSKRX_????.C16",
-            u"FSKRX",
-            RecordView::FileType::RawS16,
-            16384,
-            3
-        };
-
-        spectrum::WaterfallView waterfall{};
     };
 
     class FskxRxMainView : public View 
@@ -188,20 +105,104 @@ namespace ui
             ~FskxRxMainView();
 
             void focus() override;
+            void set_parent_rect(const Rect new_parent_rect) override;
 
             std::string title() const override { return "FSK RX"; };
 
         private:
+            static constexpr uint32_t initial_target_frequency = 902'075'000;
+            static constexpr ui::Dim header_height = (5 * 16);
+            uint32_t initial_bandwidth{32000};
+            bool logging() const { return false; };
+            bool logging_raw() const { return false; };
+
             NavigationView& nav_;
-            Rect view_rect = {0, 3 * 8, 240, 280};
+            Rect view_rect = {0, header_height, 240, 224};
 
             FskRxAppView view_stream{nav_, view_rect};
             FskRxAppConsoleView view_data{nav_, view_rect};
 
             TabView tab_view
             {
-                {"Stream", Color::cyan(), &view_stream},
-                {"Data", Color::yellow(), &view_data}
+                {"Data", Color::yellow(), &view_data},
+                {"Stream", Color::cyan(), &view_stream}
+            };
+
+            void refresh_ui(uint32_t bandwidth);
+            void on_packet(uint32_t value, bool is_data);
+            void handle_decoded(Timestamp timestamp, const std::string& prefix);
+
+            uint32_t last_address = 0;
+            FskRxLogger logger{};
+            uint16_t packet_count = 0;
+
+            RxFrequencyField field_frequency
+            {
+                {0 * 8, 4 * 8},
+                nav_
+            };
+
+            RFAmpField field_rf_amp
+            {
+                {11 * 8, 2 * 16}
+            };
+
+            LNAGainField field_lna
+            {
+                {13 * 8, 2 * 16}
+            };
+
+            VGAGainField field_vga
+            {
+                {16 * 8, 2 * 16}
+            };
+
+            NumberField field_squelch
+            {
+                {25 * 8, 2 * 16},
+                2,
+                {0, 99},
+                1,
+                ' ',
+                true /*wrap*/
+            };
+
+            AudioVolumeField field_volume
+            {
+                {28 * 8, 2 * 16}
+            };
+
+            RSSI rssi
+            {
+                {19 * 8 - 4, 35, 6 * 8, 4}
+            };
+
+            Channel channel
+            {
+                {19 * 8 - 4, 40, 6 * 8, 4}
+            };
+
+            Labels labels
+            {
+                {{0 * 8, 3 * 16}, "Rate:", Color::light_grey()},
+            };
+
+            OptionsField option_bandwidth
+            {
+                {5 * 8, 3 * 16},
+                5,
+                {}
+            };
+
+            // DEBUG
+            RecordView record_view
+            {
+                {0 * 8, 4 * 16, 30 * 8, 1 * 16},
+                u"FSKRX_????.C16",
+                u"FSKRX",
+                RecordView::FileType::RawS16,
+                16384,
+                3
             };
 
             MessageHandlerRegistration message_handler_packet
