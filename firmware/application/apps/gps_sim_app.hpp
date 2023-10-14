@@ -52,7 +52,7 @@ class GpsSimAppView : public View {
 
    private:
     NavigationView& nav_;
-    RxRadioState radio_state_{
+    TxRadioState radio_state_{
         1575420000 /* frequency */,
         15000000 /* bandwidth */,
         2600000 /* sampling rate */
@@ -64,7 +64,6 @@ class GpsSimAppView : public View {
 
     int32_t tx_gain{47};
     bool rf_amp{true};                                       // aux private var to store temporal, same as Replay App rf_amp user selection.
-    static constexpr uint32_t baseband_bandwidth = 3000000;  // filter bandwidth
     const size_t read_size{16384};
     const size_t buffer_count{3};
 

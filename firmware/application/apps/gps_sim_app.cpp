@@ -176,7 +176,6 @@ GpsSimAppView::GpsSimAppView(
         &waterfall,
     });
 
-//    field_frequency.set_value(initial_target_frequency);
     field_frequency.set_step(5000);
 
     button_play.on_select = [this](ImageButton&) {
