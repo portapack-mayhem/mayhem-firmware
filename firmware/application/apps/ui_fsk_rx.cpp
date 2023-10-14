@@ -51,8 +51,43 @@ void FskRxLogger::log_decoded(Timestamp timestamp, const std::string& text)
 
 namespace ui 
 {
-    FskRxAppView::FskRxAppView(NavigationView& nav)
-        : nav_{nav} 
+    //---------------------------------------------------------------------------------------------------------------
+    //  Console View
+    //---------------------------------------------------------------------------------------------------------------
+    FskRxAppConsoleView::FskRxAppConsoleView(NavigationView& nav, Rect parent_rect)
+        : View(parent_rect), nav_{nav} 
+    {
+        add_child(&console);
+        hidden(true);
+    };
+
+    void FskRxAppConsoleView::on_packet(uint32_t value, bool is_data)
+    {
+        if(is_data)
+        {
+            console.write(to_string_dec_uint(value) + " ");
+        }
+    }
+
+    void FskRxAppConsoleView::on_show() 
+    {
+        hidden(false);
+    }
+
+    void FskRxAppConsoleView::on_hide() 
+    {
+        hidden(true);
+    }
+
+    FskRxAppConsoleView::~FskRxAppConsoleView() 
+    {
+    }
+
+    //---------------------------------------------------------------------------------------------------------------
+    //  Spectrum View
+    //---------------------------------------------------------------------------------------------------------------
+    FskRxAppView::FskRxAppView(NavigationView& nav, Rect parent_rect)
+        : View(parent_rect), nav_{nav} 
     {
         baseband::run_image(portapack::spi_flash::image_tag_fskrx);
 
@@ -68,12 +103,7 @@ namespace ui
             &field_volume,
             &option_bandwidth,
             &record_view,
-            &console,
             &waterfall});
-
-        //Set initial sampling rate
-        record_view.set_sampling_rate(previous_bandwidth);
-        option_bandwidth.set_by_value(previous_bandwidth);
 
         // DEBUG
         record_view.on_error = [&nav](std::string message) 
@@ -88,6 +118,10 @@ namespace ui
             refresh_ui(bandwidth);
         };
 
+        //Set initial sampling rate
+        record_view.set_sampling_rate(previous_bandwidth);
+        option_bandwidth.set_by_value(previous_bandwidth);
+
         field_frequency.set_value(initial_target_frequency);
 
         field_squelch.set_value(receiver_model.squelch_level());
@@ -97,10 +131,12 @@ namespace ui
 
         logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
 
-        audio::output::start();
-        receiver_model.enable();
-
         baseband::set_fsk(4500, receiver_model.squelch_level());
+
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+
+        receiver_model.enable();
     }
 
     void FskRxAppView::refresh_ui(uint32_t bandwidth)
@@ -139,14 +175,6 @@ namespace ui
         }
     }
 
-    void FskRxAppView::on_packet(uint32_t value, bool is_data)
-    {
-        if(is_data)
-        {
-            console.write(to_string_dec_uint(value) + " ");
-        }
-    }
-
     FskRxAppView::~FskRxAppView() 
     {
         audio::output::stop();
@@ -159,11 +187,41 @@ namespace ui
         field_frequency.focus();
     }
 
+    void FskRxAppView::on_show() 
+    {
+        hidden(false);
+    }
+
+    void FskRxAppView::on_hide() 
+    {
+        hidden(true);
+    }
+
     void FskRxAppView::set_parent_rect(const Rect new_parent_rect) 
     {
         View::set_parent_rect(new_parent_rect);
 
-        ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+        ui::Rect waterfall_rect{0, header_height, new_parent_rect.width(), (new_parent_rect.height() - header_height)};
         waterfall.set_parent_rect(waterfall_rect);
+    }
+
+    //---------------------------------------------------------------------------------------------------------------
+    //  Base View
+    //---------------------------------------------------------------------------------------------------------------
+    FskxRxMainView::FskxRxMainView(NavigationView& nav)
+        : nav_{nav} 
+    {
+        add_children({&tab_view,
+                    &view_stream,
+                    &view_data});
+    }
+
+    void FskxRxMainView::focus() 
+    {
+        tab_view.focus();
+    }
+
+    FskxRxMainView::~FskxRxMainView() 
+    {
     }
 } /* namespace ui */

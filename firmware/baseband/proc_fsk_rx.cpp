@@ -169,7 +169,7 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
     {
         spectrum_samples -= spectrum_interval_samples;
         channel_spectrum.feed(decim_1_out, channel_filter_low_f,
-                              channel_filter_high_f, channel_filter_transition);
+                            channel_filter_high_f, channel_filter_transition);
     }
 
     // // Check if there's any signal in the audio buffer.
@@ -269,7 +269,7 @@ void FSKRxProcessor::configure(const FSKRxConfigureMessage& message)
     channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * starting_sample_rate;
     channel_filter_transition = taps_200k_decim_1.transition_normalized * starting_sample_rate;
 
-    channel_spectrum.set_decimation_factor(1.0f);
+    channel_spectrum.set_decimation_factor(1);
 
     // Don't process the audio stream.
     audio_output.configure(false);

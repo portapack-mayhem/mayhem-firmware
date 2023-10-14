@@ -31,6 +31,7 @@
 #include "ui_rssi.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_styles.hpp"
+#include "ui_tabview.hpp"
 
 #include "app_settings.hpp"
 #include "log_file.hpp"
@@ -56,19 +57,43 @@ class FskRxLogger
 
 namespace ui 
 {
+    class FskRxAppConsoleView : public View 
+    {
+        public:
+            FskRxAppConsoleView(NavigationView& nav, Rect parent_rec);
+            ~FskRxAppConsoleView();
+
+            std::string title() const override { return "FSK RX Data"; };
+
+            void on_packet(uint32_t value, bool is_data);
+            void on_show() override;
+            void on_hide() override;
+
+        private:
+            NavigationView& nav_;
+
+            Console console
+            {
+                {0, 0 * 16, 240, 224}
+            };
+    };
+
     class FskRxAppView : public View 
     {
         public:
-        FskRxAppView(NavigationView& nav);
+        FskRxAppView(NavigationView& nav, Rect parent_rect);
         ~FskRxAppView();
 
-        std::string title() const override { return "FSK RX"; };
         void focus() override;
+        void on_show() override;
+        void on_hide() override;
         void set_parent_rect(const Rect new_parent_rect) override;
+
+        std::string title() const override { return "FSK RX Stream"; };
 
         private:
         static constexpr uint32_t initial_target_frequency = 902'075'000;
-        static constexpr ui::Dim header_height = (4 * 16) + 120;
+        static constexpr ui::Dim header_height = (3 * 16) + (3 * 8);
         uint32_t previous_bandwidth{32000};
         bool logging() const { return false; };
         bool logging_raw() const { return false; };
@@ -83,11 +108,6 @@ namespace ui
         uint32_t last_address = 0;
         FskRxLogger logger{};
         uint16_t packet_count = 0;
-
-        Labels labels
-        {
-            {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
-        };
 
         RxFrequencyField field_frequency
         {
@@ -110,16 +130,6 @@ namespace ui
             {16 * 8, 0 * 16}
         };
 
-        RSSI rssi
-        {
-            {19 * 8 - 4, 3, 6 * 8, 4}
-        };
-
-        Channel channel
-        {
-            {19 * 8 - 4, 8, 6 * 8, 4}
-        };
-
         NumberField field_squelch
         {
             {25 * 8, 0 * 16},
@@ -133,6 +143,21 @@ namespace ui
         AudioVolumeField field_volume
         {
             {28 * 8, 0 * 16}
+        };
+
+        RSSI rssi
+        {
+            {19 * 8 - 4, 3, 6 * 8, 4}
+        };
+
+        Channel channel
+        {
+            {19 * 8 - 4, 8, 6 * 8, 4}
+        };
+
+        Labels labels
+        {
+            {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
         };
 
         OptionsField option_bandwidth
@@ -153,22 +178,41 @@ namespace ui
             3
         };
 
-        Console console
-        {
-            {0, 3 * 16, 240, 120}
-        };
-
         spectrum::WaterfallView waterfall{};
+    };
 
-        MessageHandlerRegistration message_handler_packet
-        {
-            Message::ID::AFSKData,
-            [this](Message* const p) 
+    class FskxRxMainView : public View 
+    {
+        public:
+            FskxRxMainView(NavigationView& nav);
+            ~FskxRxMainView();
+
+            void focus() override;
+
+            std::string title() const override { return "FSK RX"; };
+
+        private:
+            NavigationView& nav_;
+            Rect view_rect = {0, 3 * 8, 240, 280};
+
+            FskRxAppView view_stream{nav_, view_rect};
+            FskRxAppConsoleView view_data{nav_, view_rect};
+
+            TabView tab_view
             {
-                const auto message = static_cast<const AFSKDataMessage*>(p);
-                this->on_packet(message->value, message->is_data);
-            }
-        };
+                {"Stream", Color::cyan(), &view_stream},
+                {"Data", Color::yellow(), &view_data}
+            };
+
+            MessageHandlerRegistration message_handler_packet
+            {
+                Message::ID::AFSKData,
+                [this](Message* const p) 
+                {
+                    const auto message = static_cast<const AFSKDataMessage*>(p);
+                    this->view_data.on_packet(message->value, message->is_data);
+                }
+            };
     };
 
 } /* namespace ui */
