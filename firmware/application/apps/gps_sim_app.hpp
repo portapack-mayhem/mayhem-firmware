@@ -62,8 +62,6 @@ class GpsSimAppView : public View {
 
     static constexpr ui::Dim header_height = 3 * 16;
 
-    int32_t tx_gain{47};
-    bool rf_amp{true};                                       // aux private var to store temporal, same as Replay App rf_amp user selection.
     const size_t read_size{16384};
     const size_t buffer_count{3};
 
