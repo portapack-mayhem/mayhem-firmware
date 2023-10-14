@@ -57,7 +57,7 @@ class CoasterPagerView : public View {
         2280000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "tx_coaster", app_settings::Mode::TX};
+        "tx_burger", app_settings::Mode::TX};
 
     void start_tx();
     void generate_frame();
