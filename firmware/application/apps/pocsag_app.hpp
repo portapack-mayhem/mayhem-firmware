@@ -197,14 +197,17 @@ class POCSAGAppView : public View {
     void focus() override;
 
    private:
-    static constexpr uint32_t initial_target_frequency = 466'175'000;
     bool logging() const { return settings_.enable_logging; };
     bool logging_raw() const { return settings_.enable_raw_log; };
     bool hide_bad_data() const { return settings_.hide_bad_data; };
     bool hide_addr_only() const { return settings_.hide_addr_only; };
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{
+        466175000 /* frequency*/,
+        max283x::filter::bandwidth_minimum /* bandwidth */,
+        3072000 /* sampling rate */
+    };
 
     // Settings
     POCSAGSettings settings_{};

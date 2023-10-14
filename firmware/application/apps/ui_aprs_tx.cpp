@@ -57,7 +57,6 @@ void APRSTXView::start_tx() {
     // uint8_t * bb_data_ptr = shared_memory.bb_data.data;
     // text_payload.set(to_string_hex_array(bb_data_ptr + 56, 15));
 
-    transmitter_model.set_baseband_bandwidth(1'750'000);  // APRS Automatic Packet Reporting System (APRS).AFSK with NBFM , max BW= 12k5 , then TX LPF min 1M75
     transmitter_model.enable();
 
     baseband::set_afsk_data(

@@ -82,6 +82,7 @@ class MicTXView : public View {
 
     RxRadioState rx_radio_state_{};
     TxRadioState tx_radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         sampling_rate /* sampling rate */
     };

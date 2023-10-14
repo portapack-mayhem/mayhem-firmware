@@ -176,13 +176,7 @@ GpsSimAppView::GpsSimAppView(
         &waterfall,
     });
 
-    transmitter_model.set_baseband_bandwidth(15'000'000);  // GPS L1 signal use to have wide band spectrum, still with lobule energy -30dB's at + - 15 Mhz
-
-    if (!settings_.radio_loaded()) {
-        field_frequency.set_value(initial_target_frequency);
-        transmitter_model.set_sampling_rate(2600000);
-    }
-
+//    field_frequency.set_value(initial_target_frequency);
     field_frequency.set_step(5000);
 
     button_play.on_select = [this](ImageButton&) {

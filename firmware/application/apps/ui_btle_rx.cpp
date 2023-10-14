@@ -54,7 +54,6 @@ BTLERxView::BTLERxView(NavigationView& nav)
                   &console});
 
     // Auto-configure modem for LCR RX (TODO: remove later)
-    field_frequency.set_value(2426000000);
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;

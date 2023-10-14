@@ -272,7 +272,6 @@ void EncodersView::start_tx(const bool scan) {
     /* Setting TX LPF 1M75 in this TX OOK App  , We got same results as fw 1.7.4
      * Looking max BW of this app, we tested , Selecting OOK type 145026 with CLK 455K and max DEV. 150k,
      * and we got BW +-2Mhz , with that TX LPF 1M75, it is fine.*/
-    transmitter_model.set_baseband_bandwidth(1'750'000);  // Min. TX LPF value.
     transmitter_model.enable();
 
     baseband::set_ook_data(

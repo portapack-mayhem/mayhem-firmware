@@ -67,7 +67,6 @@ void CoasterPagerView::generate_frame() {
 void CoasterPagerView::start_tx() {
     generate_frame();
 
-    transmitter_model.set_baseband_bandwidth(1'750'000);  // AFSK narrowband ,low baud,  max FM dev 150khz , std 10khz. TX LPF=1M75 the min.
     transmitter_model.enable();
 
     baseband::set_fsk_data(19 * 8, 2280000 / 1000, 5000, 32);

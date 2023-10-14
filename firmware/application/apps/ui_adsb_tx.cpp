@@ -299,7 +299,6 @@ void ADSBTxView::start_tx() {
     /* Already tested , with SDR Angel + another Hackrf RX  and dump1090 + SDR RLT. Final conclusion is TX LPF 6 Mhz is
      * the best settings to fulfill ADSB transponder spectrum mask requirements (<=-20 dB's at +-7Mhz , <=-40 dB's at +-23Mhz )
      * and not showing any ADSB data decoding degradation.*/
-    transmitter_model.set_baseband_bandwidth(6'000'000);  // best settings for ADSB TX.
     transmitter_model.enable();
 
     baseband::set_adsb();
