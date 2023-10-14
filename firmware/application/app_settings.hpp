@@ -170,8 +170,6 @@ class SettingsManager {
     /* True if settings were successfully loaded from file. */
     bool loaded() const { return loaded_; }
 
-    /* True if radio settings were successfully loaded from file. */
-    bool radio_loaded() const { return radio_loaded_; }
     Mode mode() const { return settings_.mode; }
 
     AppSettings& raw() { return settings_; }
@@ -181,7 +179,6 @@ class SettingsManager {
     AppSettings settings_;
     SettingBindings bindings_;
     bool loaded_;
-    bool radio_loaded_;
 };
 
 }  // namespace app_settings

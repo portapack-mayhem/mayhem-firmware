@@ -244,8 +244,7 @@ SettingsManager::SettingsManager(
     : app_name_{app_name},
       settings_{},
       bindings_{},
-      loaded_{false},
-      radio_loaded_{false} {
+      loaded_{false} {
     settings_.mode = mode;
     settings_.options = options;
 
@@ -253,53 +252,50 @@ SettingsManager::SettingsManager(
     additional_settings.reserve(17 + additional_settings.size());
     bindings_ = std::move(additional_settings);
 
-    // Additional settings should always be loaded because apps now rely
-    // on being able to store UI settings, config, etc. The radio settings
-    // are only loaded if the global option has been enabled.
-    // Add the radio setting bindings if either load or save are enabled.
-    if (portapack::persistent_memory::load_app_settings() ||
-        portapack::persistent_memory::save_app_settings()) {
-        // Transmitter model settings.
-        if (flags_enabled(mode, Mode::TX)) {
-            bindings_.emplace_back("tx_frequency"sv, &settings_.tx_frequency);
-            bindings_.emplace_back("tx_amp"sv, &settings_.tx_amp);
-            bindings_.emplace_back("tx_gain"sv, &settings_.tx_gain);
-            bindings_.emplace_back("channel_bandwidth"sv, &settings_.channel_bandwidth);
-        }
+    // Settings should always be loaded because apps now rely
+    // on being able to store UI settings, config, etc.
 
-        // Receiver model settings.
-        if (flags_enabled(mode, Mode::RX)) {
-            bindings_.emplace_back("rx_frequency"sv, &settings_.rx_frequency);
-            bindings_.emplace_back("lna"sv, &settings_.lna);
-            bindings_.emplace_back("vga"sv, &settings_.vga);
-            bindings_.emplace_back("rx_amp"sv, &settings_.rx_amp);
-            bindings_.emplace_back("modulation"sv, &settings_.modulation);
-            bindings_.emplace_back("am_config_index"sv, &settings_.am_config_index);
-            bindings_.emplace_back("nbfm_config_index"sv, &settings_.nbfm_config_index);
-            bindings_.emplace_back("wfm_config_index"sv, &settings_.wfm_config_index);
-            bindings_.emplace_back("squelch"sv, &settings_.squelch);
-        }
-
-        // Common model settings.
-        bindings_.emplace_back("baseband_bandwidth"sv, &settings_.baseband_bandwidth);
-        bindings_.emplace_back("sampling_rate"sv, &settings_.sampling_rate);
-        bindings_.emplace_back("step"sv, &settings_.step);
-        bindings_.emplace_back("volume"sv, &settings_.volume);
+    // Transmitter model settings.
+    if (flags_enabled(mode, Mode::TX)) {
+        bindings_.emplace_back("tx_frequency"sv, &settings_.tx_frequency);
+        bindings_.emplace_back("tx_amp"sv, &settings_.tx_amp);
+        bindings_.emplace_back("tx_gain"sv, &settings_.tx_gain);
+        bindings_.emplace_back("channel_bandwidth"sv, &settings_.channel_bandwidth);
     }
+
+    // Receiver model settings.
+    if (flags_enabled(mode, Mode::RX)) {
+        bindings_.emplace_back("rx_frequency"sv, &settings_.rx_frequency);
+        bindings_.emplace_back("lna"sv, &settings_.lna);
+        bindings_.emplace_back("vga"sv, &settings_.vga);
+        bindings_.emplace_back("rx_amp"sv, &settings_.rx_amp);
+        bindings_.emplace_back("modulation"sv, &settings_.modulation);
+        bindings_.emplace_back("am_config_index"sv, &settings_.am_config_index);
+        bindings_.emplace_back("nbfm_config_index"sv, &settings_.nbfm_config_index);
+        bindings_.emplace_back("wfm_config_index"sv, &settings_.wfm_config_index);
+        bindings_.emplace_back("squelch"sv, &settings_.squelch);
+    }
+
+    // Common model settings.
+    bindings_.emplace_back("baseband_bandwidth"sv, &settings_.baseband_bandwidth);
+    bindings_.emplace_back("sampling_rate"sv, &settings_.sampling_rate);
+    bindings_.emplace_back("step"sv, &settings_.step);
+    bindings_.emplace_back("volume"sv, &settings_.volume);
+
+    // RadioState should have initialized default radio parameters before this function;
+    // copy them to settings_ before checking settings .ini file (in case the file doesn't exist
+    // or doesn't include all parameters). Settings in the file can overwrite all, or a subset of parameters.
+    copy_from_radio_model(settings_);
 
     loaded_ = load_settings(app_name_, bindings_);
 
     // Only copy to the radio if load was successful.
-    if (loaded_ && portapack::persistent_memory::load_app_settings()) {
-        radio_loaded_ = true;
+    if (loaded_)
         copy_to_radio_model(settings_);
-    }
 }
 
 SettingsManager::~SettingsManager() {
-    // Only save radio settings when the option is enabled.
-    if (portapack::persistent_memory::save_app_settings())
-        copy_from_radio_model(settings_);
+    copy_from_radio_model(settings_);
 
     save_settings(app_name_, bindings_);
 }
