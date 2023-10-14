@@ -52,7 +52,7 @@ class CoasterPagerView : public View {
     tx_modes tx_mode = IDLE;
 
     TxRadioState radio_state_{
-        911600000, /* frequency */
+        0, /* frequency */
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
