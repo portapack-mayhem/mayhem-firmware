@@ -179,8 +179,6 @@ bool config_converter();
 bool config_updown_converter();
 int64_t config_converter_freq();
 bool show_gui_return_icon();
-bool load_app_settings();
-bool save_app_settings();
 bool show_bigger_qr_code();
 bool hide_clock();
 bool clock_with_date();

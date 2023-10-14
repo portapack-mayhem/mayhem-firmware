@@ -51,6 +51,7 @@ class SigGenView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     TxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         1536000 /* sampling rate */
     };

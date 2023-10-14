@@ -60,11 +60,12 @@ class ACARSAppView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{
+        131550000 /* frequency */,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "rx_acars.hpp", app_settings::Mode::RX};
+        "rx_acars", app_settings::Mode::RX};
 
     bool logging{false};
     uint32_t packet_counter{0};

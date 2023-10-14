@@ -524,14 +524,6 @@ bool show_gui_return_icon() {  // add return icon in touchscreen menu
     return data->ui_config.show_gui_return_icon != 0;
 }
 
-bool load_app_settings() {  // load (last saved) app settings on startup of app
-    return data->ui_config.load_app_settings != 0;
-}
-
-bool save_app_settings() {  // save app settings when closing app
-    return data->ui_config.save_app_settings != 0;
-}
-
 bool show_bigger_qr_code() {  // show bigger QR code
     return data->ui_config.show_large_qr_code != 0;
 }

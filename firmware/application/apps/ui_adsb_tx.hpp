@@ -203,7 +203,8 @@ class ADSBTxView : public View {
         };*/
 
     TxRadioState radio_state_{
-        10000000 /* bandwidth */,
+        1090000000 /* frequency */,
+        6000000 /* bandwidth */,
         4000000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{

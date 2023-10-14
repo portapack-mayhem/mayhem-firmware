@@ -54,7 +54,6 @@ NRFRxView::NRFRxView(NavigationView& nav)
                   &console});
 
     // Auto-configure modem for LCR RX (will be removed later)
-    field_frequency.set_value(2480000000);
     auto def_bell202 = &modem_defs[0];
     persistent_memory::set_modem_baudrate(def_bell202->baudrate);
     serial_format_t serial_format;

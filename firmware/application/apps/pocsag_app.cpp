@@ -114,9 +114,6 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
                                     ? FILTER_NONE
                                     : FILTER_DROP;
     }
-    if (!app_settings_.radio_loaded()) {
-        field_frequency.set_value(initial_target_frequency);
-    }
 
     logger.append(LOG_ROOT_DIR "/POCSAG.TXT");
 

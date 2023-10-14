@@ -41,8 +41,10 @@ class RadioState {
         model->initialize();
     }
 
-    RadioState(uint32_t new_bandwidth, uint32_t new_sampling_rate) {
+    RadioState(uint32_t new_frequency, uint32_t new_bandwidth, uint32_t new_sampling_rate) {
         model->initialize();
+        if (new_frequency != 0)
+            model->set_target_frequency(new_frequency);
         model->set_sampling_rate(new_sampling_rate);
         model->set_baseband_bandwidth(new_bandwidth);
     }
@@ -61,10 +63,13 @@ class RadioState {
         typename U = TModel,
         typename Mode = std::enable_if_t<sizeof(typename U::Mode), typename U::Mode> >
     RadioState(
+        uint32_t new_frequency,
         uint32_t new_bandwidth,
         uint32_t new_sampling_rate,
         Mode new_mode) {
         model->initialize();
+        if (new_frequency != 0)
+            model->set_target_frequency(new_frequency);
         model->set_sampling_rate(new_sampling_rate);
         model->set_baseband_bandwidth(new_bandwidth);
         model->settings().mode = new_mode;

@@ -56,6 +56,7 @@ class NuoptixView : public View {
     };
 
     TxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         1536000 /* sampling rate */
     };
