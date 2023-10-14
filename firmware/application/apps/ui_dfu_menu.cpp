@@ -92,7 +92,9 @@ DfuMenu2::DfuMenu2(NavigationView& nav)
                   &text_info_line_5,
                   &text_info_line_6,
                   &text_info_line_7,
-                  &text_info_line_8});
+                  &text_info_line_8,
+                  &text_info_line_9,
+                  &text_info_line_10});
 }
 
 void DfuMenu2::paint(Painter& painter) {
@@ -103,10 +105,12 @@ void DfuMenu2::paint(Painter& painter) {
     text_info_line_5.set(to_string_dec_uint(portapack::receiver_model.am_configuration(), 10));
     text_info_line_6.set(to_string_dec_uint(portapack::receiver_model.nbfm_configuration(), 10));
     text_info_line_7.set(to_string_dec_uint(portapack::receiver_model.wfm_configuration(), 10));
-    text_info_line_8.set("");
+    text_info_line_8.set(to_string_dec_uint(portapack::transmitter_model.target_frequency(), 10));
+    text_info_line_9.set(to_string_dec_uint(portapack::transmitter_model.baseband_bandwidth(), 10));
+    text_info_line_10.set(to_string_dec_uint(portapack::transmitter_model.sampling_rate(), 10));
 
     constexpr auto margin = 5;
-    constexpr auto lines = 8 + 2;
+    constexpr auto lines = 10 + 2;
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
