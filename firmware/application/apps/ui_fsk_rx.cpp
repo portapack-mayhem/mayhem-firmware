@@ -128,9 +128,7 @@ namespace ui
                     &field_lna,
                     &field_vga,
                     &field_frequency,
-                    &field_squelch,
-                    &field_volume,
-                    &option_bandwidth,
+                    &deviation_frequency,
                     &record_view});
 
         baseband::run_image(portapack::spi_flash::image_tag_fskrx);
@@ -140,32 +138,24 @@ namespace ui
         {
             nav.display_modal("Error", message);
         };
-
-        freqman_set_bandwidth_option(DEMOD_MODULATION, option_bandwidth);
-        
-        option_bandwidth.on_change = [this](size_t, uint32_t bandwidth) 
+     
+        deviation_frequency.on_change = [this](rf::Frequency f) 
         {
-            refresh_ui(bandwidth);
+            refresh_ui(f);
         };
 
         //Set initial sampling rate
-        record_view.set_sampling_rate(initial_bandwidth);
-        option_bandwidth.set_by_value(initial_bandwidth);
+        /* Bandwidth of 2FSK is 2 * Deviation */
+        record_view.set_sampling_rate(initial_deviation * 2);
 
         field_frequency.set_value(initial_target_frequency);
-
-        field_squelch.set_value(receiver_model.squelch_level());
-        field_squelch.on_change = [this](int32_t v) {
-            receiver_model.set_squelch_level(v);
-        };
+        deviation_frequency.set_value(initial_deviation);
 
         logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
 
-        baseband::set_fsk(4500, receiver_model.squelch_level());
+        baseband::set_fsk(initial_deviation, 90);
 
-        audio::set_rate(audio::Rate::Hz_24000);
         audio::output::start();
-
         receiver_model.enable();
     }
 
@@ -177,11 +167,12 @@ namespace ui
         }
     }
 
-    void FskxRxMainView::refresh_ui(uint32_t bandwidth)
+    void FskxRxMainView::refresh_ui(rf::Frequency deviationHz) 
     {
         /* Nyquist would imply a sample rate of 2x bandwidth, but because the ADC
         * provides 2 values (I,Q), the sample_rate is equal to bandwidth here. */
-        auto sample_rate = bandwidth;
+        /* Bandwidth of 2FSK is 2 * Deviation */
+        auto sample_rate = deviationHz * 2;
 
         /* base_rate (bandwidth) is used for FFT calculation and display LCD, and also in recording writing SD Card rate. */
         /* ex. sampling_rate values, 4Mhz, when recording 500 kHz (BW) and fs 8 Mhz, when selected 1 Mhz BW ... */

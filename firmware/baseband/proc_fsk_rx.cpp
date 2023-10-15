@@ -157,10 +157,6 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
 
-    //Decimate by channel decimation. //TODO: Should this be here?
-    const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
-    //auto audio = fmDemod.execute(channel_out, audio_buffer);
-
     feed_channel_stats(decim_1_out);
 
     spectrum_samples += decim_1_out.count;
@@ -172,37 +168,11 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
                             channel_filter_high_f, channel_filter_transition);
     }
 
-    // // Check if there's any signal in the audio buffer.
-    // bool has_audio = squelch.execute(audio);
-    // squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
-
-    // // Has there been any signal recently?
-    // if (squelch_history == 0) 
-    // {
-    //     // No recent signal, flush and prepare for next message.
-    //     // if (word_extractor.current() > 0) {
-    //     //     flush();
-    //     //     reset();
-    //     //     send_stats();
-    //     // }
-
-    //     // Clear the audio stream before sending.
-    //     for (size_t i = 0; i < audio.count; ++i)
-    //         audio.p[i] = 0.0;
-
-    //     audio_output.write(audio);
-    //     return;
-    // }
-
-    // // Filter out high-frequency noise then normalize.
-    // lpf.execute_in_place(audio);
-    // normalizer.execute_in_place(audio);
-    // audio_output.write(audio);
-
     // process_bits();
     
     // Update the status.
     samples_processed += buffer.count;
+
     if (samples_processed >= stat_update_threshold) 
     {
         //send_packet(data);
@@ -240,42 +210,9 @@ void FSKRxProcessor::configure(const FSKRxConfigureMessage& message)
     //Extract message variables.
     deviation = message.deviation;
     channel_decimation = message.channel_decimation;
-    channel_filter_taps = message.channel_filter;
-
-    //Setup decimation and demodulation.
-    //Default taps are 200k for decim 0 and 16k decim 1 for now. 32K Sample rate.
-    decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
-    decim_1.set<FIRC16xR16x32Decim8>().configure(taps_16k0_decim_1.taps);
-
-    size_t decim_0_input_fs = baseband_fs;
-    size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor();
-
-    size_t decim_1_input_fs = decim_0_output_fs;
-    size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();
-
-    size_t channel_filter_input_fs = decim_1_output_fs;
-    size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
-
-    size_t demod_input_fs = channel_filter_output_fs;
-
-    fmDemod.configure(demod_input_fs, deviation);
-
-    //Initial channel decimation is always 2. Todo: Make this variable. Currently this won't effect spectrum but will effect demodulation.
-    channel_filter.configure(channel_filter_taps.taps, channel_decimation);
-
-    uint32_t starting_sample_rate = 32000;
-
-    channel_filter_low_f = taps_200k_decim_1.low_frequency_normalized * starting_sample_rate;
-    channel_filter_high_f = taps_200k_decim_1.high_frequency_normalized * starting_sample_rate;
-    channel_filter_transition = taps_200k_decim_1.transition_normalized * starting_sample_rate;
+    //channel_filter_taps = message.channel_filter;
 
     channel_spectrum.set_decimation_factor(1);
-
-    // Don't process the audio stream.
-    audio_output.configure(false);
-
-    // Set ready to process data.
-    configured = true;
 }
 
 void FSKRxProcessor::capture_config(const CaptureConfigMessage& message) 
@@ -367,16 +304,15 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
     size_t decim_1_input_fs = decim_0_output_fs;
     size_t decim_1_output_fs = decim_1_input_fs / decim_1.decimation_factor();
 
-    size_t channel_filter_input_fs = decim_1_output_fs;
-    size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
+    // size_t channel_filter_input_fs = decim_1_output_fs;
+    // size_t channel_filter_output_fs = channel_filter_input_fs / channel_decimation;
 
-    size_t demod_input_fs = channel_filter_output_fs;
-
-    fmDemod.configure(demod_input_fs, deviation);
-
-    channel_filter.configure(channel_filter_taps.taps, channel_decimation);
+    size_t demod_input_fs = decim_1_output_fs;
 
     send_packet((uint32_t)demod_input_fs);
+
+    // Set ready to process data.
+    configured = true;
 }
 
 void FSKRxProcessor::flush() 

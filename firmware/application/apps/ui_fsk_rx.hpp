@@ -112,7 +112,9 @@ namespace ui
         private:
             static constexpr uint32_t initial_target_frequency = 902'075'000;
             static constexpr ui::Dim header_height = (5 * 16);
-            uint32_t initial_bandwidth{32000};
+
+            uint32_t initial_deviation{3750};
+            
             bool logging() const { return false; };
             bool logging_raw() const { return false; };
 
@@ -128,7 +130,7 @@ namespace ui
                 {"Stream", Color::cyan(), &view_stream}
             };
 
-            void refresh_ui(uint32_t bandwidth);
+            void refresh_ui(rf::Frequency f);
             void on_packet(uint32_t value, bool is_data);
             void handle_decoded(Timestamp timestamp, const std::string& prefix);
 
@@ -157,21 +159,6 @@ namespace ui
                 {16 * 8, 2 * 16}
             };
 
-            NumberField field_squelch
-            {
-                {25 * 8, 2 * 16},
-                2,
-                {0, 99},
-                1,
-                ' ',
-                true /*wrap*/
-            };
-
-            AudioVolumeField field_volume
-            {
-                {28 * 8, 2 * 16}
-            };
-
             RSSI rssi
             {
                 {19 * 8 - 4, 35, 6 * 8, 4}
@@ -184,14 +171,13 @@ namespace ui
 
             Labels labels
             {
-                {{0 * 8, 3 * 16}, "Rate:", Color::light_grey()},
+                {{0 * 8, 3 * 16}, "Deviation:", Color::light_grey()},
             };
 
-            OptionsField option_bandwidth
+            FrequencyField deviation_frequency
             {
-                {5 * 8, 3 * 16},
-                5,
-                {}
+                {10 * 8, 3 * 16},
+                {3750, 500000},
             };
 
             // DEBUG
