@@ -161,6 +161,8 @@ SystemStatusView::SystemStatusView(
 
     rtc_battery_workaround();
 
+    ui::load_blacklist();
+
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
     }
@@ -535,7 +537,7 @@ bool NavigationView::set_on_pop(std::function<void()> on_pop) {
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }});
     }
     add_items({
         // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
@@ -569,7 +571,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }});
     }
     add_items({
         {"ADS-B", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
@@ -601,7 +603,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }});
     }
     add_items({
         {"Antenna Length", Color::green(), &bitmap_icon_tools_antenna, [&nav]() { nav.push<WhipCalcView>(); }},
