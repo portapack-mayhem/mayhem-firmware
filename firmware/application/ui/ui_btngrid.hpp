@@ -51,7 +51,6 @@ struct GridItem {
 };
 
 void load_blacklist();
-bool blacklisted_app(GridItem new_item);
 
 class BtnGridView : public View {
    public:
@@ -76,6 +75,7 @@ class BtnGridView : public View {
     void on_blur() override;
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
+    bool blacklisted_app(GridItem new_item);
 
    private:
     int rows_{3};

@@ -251,7 +251,7 @@ void load_blacklist() {
         blacklist_len = f.size();
 }
 
-bool blacklisted_app(GridItem new_item) {
+bool BtnGridView::blacklisted_app(GridItem new_item) {
     std::string app_name = new_item.text;
 
     if (blacklist_len < app_name.size())
