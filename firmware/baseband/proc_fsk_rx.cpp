@@ -159,7 +159,7 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
 
     //Decimate by channel decimation. //TODO: Should this be here?
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
-    //auto audio = demod.execute(channel_out, audio_buffer);
+    //auto audio = fmDemod.execute(channel_out, audio_buffer);
 
     feed_channel_stats(decim_1_out);
 
@@ -258,7 +258,7 @@ void FSKRxProcessor::configure(const FSKRxConfigureMessage& message)
 
     size_t demod_input_fs = channel_filter_output_fs;
 
-    demod.configure(demod_input_fs, deviation);
+    fmDemod.configure(demod_input_fs, deviation);
 
     //Initial channel decimation is always 2. Todo: Make this variable. Currently this won't effect spectrum but will effect demodulation.
     channel_filter.configure(channel_filter_taps.taps, channel_decimation);
@@ -372,7 +372,7 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
 
     size_t demod_input_fs = channel_filter_output_fs;
 
-    demod.configure(demod_input_fs, deviation);
+    fmDemod.configure(demod_input_fs, deviation);
 
     channel_filter.configure(channel_filter_taps.taps, channel_decimation);
 

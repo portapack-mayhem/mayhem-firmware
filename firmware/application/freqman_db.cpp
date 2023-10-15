@@ -49,9 +49,10 @@ options_t freqman_modulations = {
     {"NFM", 1},
     {"WFM", 2},
     {"SPEC", 3},
+    {"DEMOD", 4},
 };
 
-options_t freqman_bandwidths[4] = {
+options_t freqman_bandwidths[5] = {
     {
         // AM
         {"DSB 9k", 0},
@@ -100,6 +101,34 @@ options_t freqman_bandwidths[4] = {
         {"5000k", 5500000},
         {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
     },
+    {
+        // Sampling rates for demodulation -- TODO: these should be indexes.
+        {"12k", 12000},
+        {"24k", 24000},
+        {"36k", 36000},
+        {"48k", 48000},
+        {"60k", 60000},
+        {"72k", 72000},
+        {"84k", 84000},
+        {"96k", 96000},
+        {"108k", 108000},
+        {"120k", 120000},
+        {"240k", 240000},
+        {"360k", 360000},
+        {"480k", 480000},
+        {"600k", 600000},
+        {"720k", 720000},
+        {"840k", 840000},
+        {"960k", 960000},
+        {"1080k", 1080000},
+        {"1200k", 1200000},
+        {"2400k", 2400000},
+        {"3600k", 3600000},
+        {"4800k", 4800000},
+        {"5000k", 5000000},
+        {"5200k", 5200000},
+        {"5400k", 5400000}
+    }
 };
 
 // TODO: these should be indexes.

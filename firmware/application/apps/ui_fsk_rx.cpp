@@ -141,7 +141,7 @@ namespace ui
             nav.display_modal("Error", message);
         };
 
-        freqman_set_bandwidth_option(SPEC_MODULATION, option_bandwidth);
+        freqman_set_bandwidth_option(DEMOD_MODULATION, option_bandwidth);
         
         option_bandwidth.on_change = [this](size_t, uint32_t bandwidth) 
         {

@@ -162,7 +162,8 @@ class FSKRxProcessor : public BasebandProcessor
 
     /* Filter to 24kHz and demodulate. */
     dsp::decimate::FIRAndDecimateComplex channel_filter{};
-    dsp::demodulate::FM demod{};
+    dsp::demodulate::FM fmDemod{};
+    dsp::demodulate::AM amDemod{};
     size_t deviation = 3750;
     fir_taps_real<32> channel_filter_taps;
     size_t channel_decimation = 2;
