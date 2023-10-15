@@ -110,16 +110,18 @@ void BtnGridView::clear() {
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
     for (auto item : new_items) {
-        menu_items.push_back(item);
+        if (!blacklisted_app(item))
+            menu_items.push_back(item);
     }
 
     update_items();
 }
 
 void BtnGridView::add_item(GridItem new_item) {
-    menu_items.push_back(new_item);
-
-    update_items();
+    if (!blacklisted_app(new_item)) {
+        menu_items.push_back(new_item);
+        update_items();
+    }
 }
 
 void BtnGridView::update_items() {
@@ -230,6 +232,32 @@ bool BtnGridView::on_key(const KeyEvent key) {
 
 bool BtnGridView::on_encoder(const EncoderEvent event) {
     return set_highlighted(highlighted_item + event);
+}
+
+/* BlackList ******************************************************/
+
+std::unique_ptr<char> blacklist_ptr{};
+size_t blacklist_len{};
+
+void load_blacklist() {
+    File f;
+
+    auto error = f.open(BLACKLIST);
+    if (error)
+        return;
+
+    blacklist_ptr = std::unique_ptr<char>(new char[f.size()]);
+    if (f.read(blacklist_ptr.get(), f.size()))
+        blacklist_len = f.size();
+}
+
+bool BtnGridView::blacklisted_app(GridItem new_item) {
+    std::string app_name = new_item.text;
+
+    if (blacklist_len < app_name.size())
+        return false;
+
+    return std::search(blacklist_ptr.get(), blacklist_ptr.get() + blacklist_len, app_name.begin(), app_name.end()) < blacklist_ptr.get() + blacklist_len;
 }
 
 } /* namespace ui */
