@@ -73,6 +73,15 @@ namespace ui
         uint8_t console_color{0};
         uint32_t prev_value{0};
 
+        typedef enum
+        {
+            ParsingAccessAddress = 0,
+            ParsingType,
+            ParsingSize,
+        } ParseState;
+
+        ParseState parsestate = ParsingAccessAddress;
+
         RFAmpField field_rf_amp
         {
             {13 * 8, 0 * 16}
@@ -104,12 +113,6 @@ namespace ui
             nav_
         };
 
-        Button button_modem_setup
-        {
-            {240 - 12 * 8, 1 * 16, 96, 24},
-            "Modem setup"
-        };
-
         Console console
         {
             {0, 4 * 16, 240, 240}
@@ -128,6 +131,26 @@ namespace ui
             {0 * 8, 12 + 2 * 16, screen_width, 16},
             "BLE OUTPUT"
         };
+
+        typedef enum
+        {
+            ADV_IND = 0,
+            ADV_DIRECT_IND= 1,
+            ADV_NONCONN_IND= 2,
+            SCAN_REQ= 3,
+            SCAN_RSP= 4,
+            CONNECT_REQ= 5,
+            ADV_SCAN_IND= 6,
+            RESERVED0= 7,
+            RESERVED1= 8,
+            RESERVED2= 9,
+            RESERVED3= 10,
+            RESERVED4= 11,
+            RESERVED5= 12,
+            RESERVED6= 13,
+            RESERVED7= 14,
+            RESERVED8= 15
+        } ADV_PDU_TYPE;
 
         std::string str_log{""};
         bool logging{false};

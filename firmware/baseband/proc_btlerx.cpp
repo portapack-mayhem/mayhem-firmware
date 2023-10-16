@@ -30,306 +30,177 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 {
     if (!configured) return;
 
+    //4Mhz 2048 samples
+
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
+
     feed_channel_stats(decim_0_out);
 
-    auto audio_oversampled = demod.execute(decim_0_out, work_audio_buffer);
+    static const uint8_t SAMPLE_PER_SYMBOL = 4;
+    static const uint8_t LEN_DEMOD_BUF_ACCESS = 32;
+    static const uint32_t DEFAULT_ACCESS_ADDR = 0x8E89BED6;
+    static const uint32_t NUM_ACCESS_ADDR_BYTE = 4;
 
-    for (size_t c = 0; c < audio_oversampled.count; c++) 
+    int i, sp, j = 0;
+    int I0, Q0, I1, Q1 = 0;
+    int k, p, phase_idx = 0;
+    int num_demod_byte = 0;
+
+    bool unequal_flag;
+
+    const int demod_buf_len = LEN_DEMOD_BUF_ACCESS; //For AA
+    int demod_buf_offset = 0;
+    int num_symbol_left = buffer.count / SAMPLE_PER_SYMBOL; //One buffer sample consist of I and Q.
+    int symbols_eaten = 0;
+    int hit_idx = (-1);
+
+    static uint8_t demod_buf_access[SAMPLE_PER_SYMBOL][LEN_DEMOD_BUF_ACCESS];
+
+    uint32_t uint32_tmp = DEFAULT_ACCESS_ADDR;
+    uint8_t accessAddrBits[LEN_DEMOD_BUF_ACCESS];
+
+    uint32_t accesssAddress = 0;
+
+    for(i = 0; i < 32; i++) 
     {
-        int32_t current_sample = audio_oversampled.p[c];  // if I directly use this, some results can pass crc but not correct.
-        rb_head++;
-        rb_head = (rb_head) % RB_SIZE;
+        accessAddrBits[i] = 0x01 & uint32_tmp;
+        uint32_tmp = (uint32_tmp >> 1);
+    }
+    
+    memset(demod_buf_access, 0, SAMPLE_PER_SYMBOL * demod_buf_len);
 
-        rb_buf[rb_head] = current_sample;
-
-        skipSamples = skipSamples - 1;
-
-        if (skipSamples < 1) 
+    for (i = 0; i < num_symbol_left * SAMPLE_PER_SYMBOL; i += SAMPLE_PER_SYMBOL) 
+    {
+        sp = ((demod_buf_offset - demod_buf_len + 1) & (demod_buf_len - 1));
+    
+        for (j = 0; j < SAMPLE_PER_SYMBOL; j++) 
         {
-            int32_t threshold_tmp = 0;
-            for (int c = 0; c < 8; c++) 
+            //Sample and compare with the adjascent next sample.
+            I0 = buffer.p[i+j].real();
+            Q0 = buffer.p[i+j].imag();
+            I1 = buffer.p[i+j + 1].real();
+            Q1 = buffer.p[i+j + 1].imag();
+            
+            phase_idx = j;
+
+            demod_buf_access[phase_idx][demod_buf_offset] = (I0 * Q1 - I1 * Q0) > 0 ? 1: 0;
+            
+            k = sp;
+            unequal_flag = false;
+
+            accesssAddress = 0;
+            
+            for (p = 0; p < demod_buf_len; p++) 
             {
-                threshold_tmp = threshold_tmp + (int32_t)rb_buf[(rb_head + c) % RB_SIZE];
+                if (demod_buf_access[phase_idx][k] != accessAddrBits[p]) 
+                {
+                    unequal_flag = true;
+                    hit_idx = (-1);
+                    break;
+                }
+
+                accesssAddress = (accesssAddress & (~(1 << p))) | (demod_buf_access[phase_idx][k] << p);
+
+                k = ((k + 1) & (demod_buf_len - 1));
             }
-
-            g_threshold = (int32_t)threshold_tmp / 8;
-
-            int transitions = 0;
-            if (rb_buf[(rb_head + 9) % RB_SIZE] > g_threshold) 
+            
+            if(unequal_flag == false) 
             {
-                for (int c = 0; c < 8; c++) 
-                {
-                    if (rb_buf[(rb_head + c) % RB_SIZE] > rb_buf[(rb_head + c + 1) % RB_SIZE])
-                        transitions = transitions + 1;
-                }
-            } 
-            else 
-            {
-                for (int c = 0; c < 8; c++) 
-                {
-                    if (rb_buf[(rb_head + c) % RB_SIZE] < rb_buf[(rb_head + c + 1) % RB_SIZE])
-                        transitions = transitions + 1;
-                }
-            }
-
-            bool packet_detected = false;
-            // if ( transitions==4 && abs(g_threshold)<15500)
-            if (transitions == 4) 
-            {
-                uint8_t packet_data[500];
-                int packet_length;
-                uint32_t packet_crc;
-                // uint32_t calced_crc; // NOTE: restore when CRC is passing
-                uint64_t packet_addr_l;
-                // uint32_t result; // NOTE: restore when CRC is passing
-                uint8_t crc[3];
-                uint8_t packet_header_arr[2];
-
-                packet_addr_l = 0;
-
-                for (int i = 0; i < 4; i++) 
-                {
-                    bool current_bit;
-                    uint8_t byte = 0;
-                    for (int c = 0; c < 8; c++) 
-                    {
-                        if (rb_buf[(rb_head + (i + 1) * 8 + c) % RB_SIZE] > g_threshold)
-                            current_bit = true;
-                        else
-                            current_bit = false;
-                        byte |= current_bit << (7 - c);
-                    }
-                    uint8_t byte_temp = (uint8_t)(((byte * 0x0802LU & 0x22110LU) | (byte * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                    packet_addr_l |= ((uint64_t)byte_temp) << (8 * i);
-                }
-
-                channel_number = 37;
-
-                for (int t = 0; t < 2; t++) 
-                {
-                    bool current_bit;
-                    uint8_t byte = 0;
-                    for (int c = 0; c < 8; c++) 
-                    {
-                        if (rb_buf[(rb_head + 5 * 8 + t * 8 + c) % RB_SIZE] > g_threshold)
-                            current_bit = true;
-                        else
-                            current_bit = false;
-                        byte |= current_bit << (7 - c);
-                    }
-
-                    packet_header_arr[t] = byte;
-                }
-
-                uint8_t byte_temp2 = (uint8_t)(((channel_number * 0x0802LU & 0x22110LU) | (channel_number * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                uint8_t lfsr_1 = byte_temp2 | 2;
-                int header_length = 2;
-                int header_counter = 0;
-
-                while (header_length--) 
-                {
-                    for (uint8_t i = 0x80; i; i >>= 1) 
-                    {
-                        if (lfsr_1 & 0x80) 
-                        {
-                            lfsr_1 ^= 0x11;
-                            (packet_header_arr[header_counter]) ^= i;
-                        }
-                        lfsr_1 <<= 1;
-                    }
-
-                    header_counter = header_counter + 1;
-                }
-
-                if (packet_addr_l == 0x8E89BED6) 
-                {
-                    uint8_t byte_temp3 = (uint8_t)(((packet_header_arr[1] * 0x0802LU & 0x22110LU) | (packet_header_arr[1] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                    packet_length = byte_temp3 & 0x3F;
-
-                } 
-                else 
-                {
-                    packet_length = 0;
-                }
-
-                for (int t = 0; t < packet_length + 2 + 3; t++) 
-                {
-                    bool current_bit;
-                    uint8_t byte = 0;
-                    for (int c = 0; c < 8; c++) {
-                        if (rb_buf[(rb_head + 5 * 8 + t * 8 + c) % RB_SIZE] > g_threshold)
-                            current_bit = true;
-                        else
-                            current_bit = false;
-                        byte |= current_bit << (7 - c);
-                    }
-
-                    packet_data[t] = byte;
-                }
-
-                uint8_t byte_temp4 = (uint8_t)(((channel_number * 0x0802LU & 0x22110LU) | (channel_number * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-
-                uint8_t lfsr_2 = byte_temp4 | 2;
-                int pdu_crc_length = packet_length + 2 + 3;
-                int pdu_crc_counter = 0;
-
-                while (pdu_crc_length--) 
-                {
-                    for (uint8_t i = 0x80; i; i >>= 1) 
-                    {
-                        if (lfsr_2 & 0x80) 
-                        {
-                            lfsr_2 ^= 0x11;
-                            (packet_data[pdu_crc_counter]) ^= i;
-                        }
-
-                        lfsr_2 <<= 1;
-                    }
-
-                    pdu_crc_counter = pdu_crc_counter + 1;
-                }
-
-                if (packet_addr_l == 0x8E89BED6) 
-                {
-                    crc[0] = crc[1] = crc[2] = 0x55;
-                } 
-                else 
-                {
-                    crc[0] = crc[1] = crc[2] = 0;
-                }
-
-                uint8_t v, t, d, crc_length;
-                uint32_t crc_result = 0;
-
-                crc_length = packet_length + 2;
-
-                int counter = 0;
-
-                while (crc_length--) 
-                {
-                    uint8_t byte_temp5 = (uint8_t)(((packet_data[counter] * 0x0802LU & 0x22110LU) | (packet_data[counter] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                    d = byte_temp5;
-                    for (v = 0; v < 8; v++, d >>= 1) 
-                    {
-                        t = crc[0] >> 7;
-                        crc[0] <<= 1;
-
-                        if (crc[1] & 0x80) crc[0] |= 1;
-                            crc[1] <<= 1;
-
-                        if (crc[2] & 0x80) crc[1] |= 1;
-                            crc[2] <<= 1;
-
-                        if (t != (d & 1)) 
-                        {
-                            crc[2] ^= 0x5B;
-                            crc[1] ^= 0x06;
-                        }
-                    }
-
-                    counter = counter + 1;
-                }
-
-                for (v = 0; v < 3; v++) crc_result = (crc_result << 8) | crc[v];
-                // calced_crc = crc_result; // NOTE: restore when CRC is passing
-
-                packet_crc = 0;
-                for (int c = 0; c < 3; c++) packet_crc = (packet_crc << 8) | packet_data[packet_length + 2 + c];
-
-                if (packet_addr_l == 0x8E89BED6)
-                // if (packet_crc==calced_crc) // NOTE: restore when CRC is passing
-                {
-                //     std::string bleOutputBuffer;
-                    
-                //     uint8_t adv_tx_add, adv_rx_add, adv_pdu_type, payload_len;
-
-                //     adv_pdu_type = (ADV_PDU_TYPE)(packet_data[0]&0x0F);
-
-                //     adv_tx_add = ( (packet_data[0]&0x40) != 0 );
-
-                //     adv_rx_add = ( (packet_data[0]&0x80) != 0 );
-
-                //     payload_len = (packet_data[1]&0x3F);
-
-                //     bleOutputBuffer += "ADV_PDU_t" + ADV_PDU_TYPE_STR[adv_pdu_type] + adv_tx_add + adv_rx_add + payload_len;
-
-                //    for (int i = 0; i < bleOutputBuffer.length(); i++)
-                //    {
-                //         data_message.is_data = true;
-                //         data_message.value = bleOutputBuffer[i];
-                //         shared_memory.application_queue.push(data_message);
-                //    }
-
-                    uint8_t mac_data[6];
-                    int counter = 0;
-
-                    for (int i = 7; i >= 2; i--) 
-                    {
-                        uint8_t byte_temp6 = (uint8_t)(((packet_data[i] * 0x0802LU & 0x22110LU) | (packet_data[i] * 0x8020LU & 0x88440LU)) * 0x10101LU >> 16);
-                        // result = byte_temp6; // NOTE: restore when CRC is passing
-                        mac_data[counter] = byte_temp6;
-
-                        
-                        data_message.is_data = true;
-                        data_message.value = mac_data[counter];
-                        shared_memory.application_queue.push(data_message);
-
-                        counter++;
-
-                    }
-
-                    for(int i = 0; i < packet_length; i++)
-                    {
-                        data_message.is_data = true;
-                        data_message.value = packet_data[i];
-                        shared_memory.application_queue.push(data_message);
-                    }
-
-                    data_message.is_data = false;
-                    data_message.value = 'A';
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = true;
-                    data_message.value = mac_data[0];
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = true;
-                    data_message.value = mac_data[1];
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = true;
-                    data_message.value = mac_data[2];
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = true;
-                    data_message.value = mac_data[3];
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = true;
-                    data_message.value = mac_data[4];
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = true;
-                    data_message.value = mac_data[5];
-                    shared_memory.application_queue.push(data_message);
-
-                    data_message.is_data = false;
-                    data_message.value = 'B';
-                    shared_memory.application_queue.push(data_message);
-
-                    packet_detected = true;
-                } 
-                else
-                    packet_detected = false;
-            }
-
-            if (packet_detected) 
-            {
-                skipSamples = 20;
+                hit_idx = (i + j - (demod_buf_len - 1) * SAMPLE_PER_SYMBOL);
+                break;
             }
         }
+
+        if (unequal_flag == false)
+        {
+            break;
+        }
+
+        demod_buf_offset = ((demod_buf_offset + 1) & (demod_buf_len - 1));
     }
+
+    if (hit_idx == -1)
+    {
+        //Process more samples.
+        return;
+    }
+
+    if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+    {
+        //Send AA as test.
+        data_message.is_data = false;
+        data_message.value = 'A';
+        shared_memory.application_queue.push(data_message);
+
+        data_message.is_data = true;
+        data_message.value = accesssAddress;
+        shared_memory.application_queue.push(data_message);    
+    }
+
+    symbols_eaten += hit_idx;
+
+    symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL); // move to beginning of PDU header
+    
+    num_symbol_left = num_symbol_left - symbols_eaten;
+
+    num_demod_byte = 2; // PDU header has 2 octets
+      
+    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+
+    if (symbols_eaten > (int)buffer.count) 
+    {
+        return;
+    }
+
+    //Demod the PDU Header
+    uint8_t bit_decision;
+    int sample_idx = symbols_eaten - num_demod_byte;
+
+     for (i = 0; i < num_demod_byte ; i++) 
+     {
+        rb_buf[i] = 0;
+
+        for (j = 0; j < 8; j++) 
+        {
+            I0 = buffer.p[sample_idx].real();
+            Q0 = buffer.p[sample_idx].imag();
+            I1 = buffer.p[sample_idx + 1].real();
+            Q1 = buffer.p[sample_idx + 1].imag();
+
+            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            rb_buf[i] = rb_buf[i] | (bit_decision << j);
+
+            sample_idx += SAMPLE_PER_SYMBOL;;
+        }
+     }
+
+    //Scramble Bytes
+    for (i = 0; i < num_demod_byte; i++)
+    {
+        rb_buf[i] = rb_buf[i] ^ scramble_table[channel_number][i];
+    }
+
+    uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
+    uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
+    uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
+    uint8_t payload_len = (rb_buf[1] & 0x3F);
+
+    //Send PDU Header as test.
+    data_message.is_data = false;
+    data_message.value = 'T';
+    shared_memory.application_queue.push(data_message);
+
+    data_message.is_data = true;
+    data_message.value = pdu_type;
+    shared_memory.application_queue.push(data_message);   
+    
+    data_message.is_data = false;
+    data_message.value = 'S';
+    shared_memory.application_queue.push(data_message);
+
+    data_message.is_data = true;
+    data_message.value = payload_len;
+    shared_memory.application_queue.push(data_message);    
 }
 
 void BTLERxProcessor::on_message(const Message* const message) 
@@ -341,9 +212,9 @@ void BTLERxProcessor::on_message(const Message* const message)
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) 
 {
     (void)message;  // avoid warning
-    decim_0.configure(taps_200k_wfm_decim_0.taps);
-    decim_1.configure(taps_200k_wfm_decim_1.taps);
-    demod.configure(audio_fs, 5000);
+    decim_0.configure(taps_200k_decim_0.taps);
+    decim_1.configure(taps_200k_decim_1.taps);
+    demod.configure(48000, 5000);
 
     configured = true;
 }

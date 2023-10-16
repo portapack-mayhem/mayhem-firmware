@@ -86,20 +86,9 @@ namespace ui
                     &field_frequency,
                     &check_log,
                     &text_debug,
-                    &button_modem_setup,
                     &console});
 
         field_frequency.set_value(get_freq_by_channel_number(37));
-
-        auto def_bell202 = &modem_defs[0];
-        persistent_memory::set_modem_baudrate(def_bell202->baudrate);
-        serial_format_t serial_format;
-        serial_format.data_bits = 7;
-        serial_format.parity = EVEN;
-        serial_format.stop_bits = 1;
-        serial_format.bit_order = LSB_FIRST;
-        persistent_memory::set_serial_format(serial_format);
-
         field_frequency.set_step(100);
 
         check_log.set_value(logging);
@@ -109,25 +98,13 @@ namespace ui
             logging = v;
         };
 
-        button_modem_setup.on_select = [&nav](Button&) 
-        {
-            nav.push<ModemSetupView>();
-        };
-
         logger = std::make_unique<BLELogger>();
 
         if (logger)
             logger->append(LOG_ROOT_DIR "/BLELOG.TXT");
 
-        button_modem_setup.on_select = [&nav](Button&) {
-            nav.push<ModemSetupView>();
-        };
-
         // Auto-configure modem for LCR RX (will be removed later)
-        baseband::set_btle(persistent_memory::modem_baudrate(), 8, 0, false);
-
-        audio::set_rate(audio::Rate::Hz_24000);
-        audio::output::start();
+        baseband::set_btle(0, 0, 0, 0);
 
         receiver_model.enable();
     }
@@ -137,7 +114,22 @@ namespace ui
         std::string str_console = "";
         if (is_data) 
         {
-            str_console += (char)value;
+            switch (parsestate)
+            {
+            case ParsingAccessAddress:
+                str_console += ":" + to_string_hex(value, 8);
+                break;
+            
+            case ParsingType:
+                str_console += ":" + to_string_hex(value, 2);
+                break;
+
+            case ParsingSize:
+                str_console += ":" + to_string_hex(value, 2);
+                break;
+            }
+
+           // str_console += (char)value;
             //str_console += "[" + to_string_hex(value, 2) + "] ";  // Not printable
             console.write(str_console);
         } 
@@ -145,11 +137,21 @@ namespace ui
         {
             if (value == 'A') 
             {
-                console.write("mac");
+                console.writeln("");
+                console.write("Access Address");
+                parsestate = ParsingAccessAddress;
             } 
-            else if (value == 'B') 
+            else if (value == 'T') 
             {
                 console.writeln("");
+                console.write("Type:");
+                parsestate = ParsingType;
+            }
+            else if (value == 'S') 
+            {
+                console.writeln("");
+                console.write("Size:");
+                parsestate = ParsingSize;
             }
         }
     }
