@@ -193,7 +193,7 @@ namespace ui
 
                 case 'T':
                 {
-                    console.write("PDU:");
+                    console.write(":PDU:");
                     parsestate = ParsingType;
 
                     break;
