@@ -182,18 +182,19 @@ namespace ui
         {
             switch (value)
             {
-                case 'A':
-                {
-                    console.writeln("");
-                    console.write("AA:");
-                    parsestate = ParsingAccessAddress;
+                // case 'A':
+                // {
+                //     console.writeln("");
+                //     console.write("AA:");
+                //     parsestate = ParsingAccessAddress;
 
-                    break;
-                } 
+                //     break;
+                // } 
 
                 case 'T':
                 {
-                    console.write(":PDU:");
+                    console.writeln("");
+                    console.write("Type:");
                     parsestate = ParsingType;
 
                     break;
