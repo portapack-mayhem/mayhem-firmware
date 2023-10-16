@@ -78,6 +78,7 @@ namespace ui
             ParsingAccessAddress = 0,
             ParsingType,
             ParsingSize,
+            ParsingChecksum,
         } ParseState;
 
         ParseState parsestate = ParsingAccessAddress;

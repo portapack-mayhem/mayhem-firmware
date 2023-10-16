@@ -26,6 +26,83 @@
 
 #include "event_m4.hpp"
 
+
+uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) 
+{
+    int i;
+    uint32_t crc_init_tmp, crc_init_input, crc_init_input_tmp;
+
+    crc_init_input_tmp = crc_init;
+    crc_init_input = 0;
+
+    crc_init_input = ( (crc_init_input)|(crc_init_input_tmp&0xFF) );
+
+    crc_init_input_tmp = (crc_init_input_tmp>>8);
+    crc_init_input = ( (crc_init_input<<8)|(crc_init_input_tmp&0xFF) );
+
+    crc_init_input_tmp = (crc_init_input_tmp>>8);
+    crc_init_input = ( (crc_init_input<<8)|(crc_init_input_tmp&0xFF) );
+
+    crc_init_input = (crc_init_input<<1);
+    crc_init_tmp = 0;
+
+    for(i=0; i<24; i++) 
+    {
+    crc_init_input = (crc_init_input>>1);
+    crc_init_tmp = ( (crc_init_tmp<<1)|( crc_init_input&0x01 ) );
+    }
+
+    return(crc_init_tmp);
+}
+
+uint_fast32_t BTLERxProcessor::crc_update(uint_fast32_t crc, const void *data, size_t data_len) 
+{
+    const unsigned char *d = (const unsigned char *)data;
+    unsigned int tbl_idx;
+
+    while (data_len--) 
+    {
+            tbl_idx = (crc ^ *d) & 0xff;
+            crc = (crc_table[tbl_idx] ^ (crc >> 8)) & 0xffffff;
+
+        d++;
+    }
+
+    return crc & 0xffffff;
+}
+
+uint_fast32_t BTLERxProcessor::crc24_byte(uint8_t *byte_in, int num_byte, uint32_t init_hex) 
+{
+    uint_fast32_t crc = init_hex;
+
+    crc = crc_update(crc, byte_in, num_byte);
+
+    return(crc);
+}
+
+bool BTLERxProcessor::crc_check(uint8_t *tmp_byte, int body_len, uint32_t crc_init) 
+{
+    int crc24_checksum, crc24_received;
+
+    crc24_checksum = crc24_byte(tmp_byte, body_len, crc_init); // 0x555555 --> 0xaaaaaa. maybe because byte order
+    crc24_received = 0;
+    crc24_received = ( (crc24_received << 8) | tmp_byte[body_len+2] );
+    crc24_received = ( (crc24_received << 8) | tmp_byte[body_len+1] );
+    crc24_received = ( (crc24_received << 8) | tmp_byte[body_len+0] );
+
+    return(crc24_checksum != crc24_received);
+}
+
+void BTLERxProcessor::scramble_byte(uint8_t *byte_in, int num_byte, const uint8_t *scramble_table_byte, uint8_t *byte_out) 
+{
+    int i;
+
+    for(i=0; i<num_byte; i++)
+    {
+        byte_out[i] = byte_in[i]^scramble_table_byte[i];
+    }
+}
+
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) 
 {
     if (!configured) return;
@@ -35,6 +112,8 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
 
     feed_channel_stats(decim_0_out);
+
+//--------------Variable Defines---------------------------------//
 
     static const uint8_t SAMPLE_PER_SYMBOL = 4;
     static const uint8_t LEN_DEMOD_BUF_ACCESS = 32;
@@ -53,6 +132,9 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     int num_symbol_left = buffer.count / SAMPLE_PER_SYMBOL; //One buffer sample consist of I and Q.
     int symbols_eaten = 0;
     int hit_idx = (-1);
+
+
+//--------------Start Parsing For Access Address---------------//
 
     static uint8_t demod_buf_access[SAMPLE_PER_SYMBOL][LEN_DEMOD_BUF_ACCESS];
 
@@ -125,6 +207,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         return;
     }
 
+    // Not sending AA from header.
     if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
     {
         //Send AA as test.
@@ -143,6 +226,8 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     
     num_symbol_left = num_symbol_left - symbols_eaten;
 
+//--------------Start PDU Header Parsing-----------------------//
+
     num_demod_byte = 2; // PDU header has 2 octets
       
     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
@@ -156,9 +241,11 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     uint8_t bit_decision;
     int sample_idx = symbols_eaten - num_demod_byte;
 
+    uint16_t packet_index = 0;
+
      for (i = 0; i < num_demod_byte ; i++) 
      {
-        rb_buf[i] = 0;
+        rb_buf[packet_index] = 0;
 
         for (j = 0; j < 8; j++) 
         {
@@ -168,17 +255,15 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
             Q1 = buffer.p[sample_idx + 1].imag();
 
             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-            rb_buf[i] = rb_buf[i] | (bit_decision << j);
+            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
 
             sample_idx += SAMPLE_PER_SYMBOL;;
         }
+
+        packet_index++;
      }
 
-    //Scramble Bytes
-    for (i = 0; i < num_demod_byte; i++)
-    {
-        rb_buf[i] = rb_buf[i] ^ scramble_table[channel_number][i];
-    }
+    scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
 
     uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
     uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
@@ -200,7 +285,57 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
     data_message.is_data = true;
     data_message.value = payload_len;
-    shared_memory.application_queue.push(data_message);    
+    shared_memory.application_queue.push(data_message);   
+
+//--------------Start Payload Parsing--------------------------//
+
+    num_demod_byte = (payload_len+3);
+    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+
+    if (symbols_eaten > (int)buffer.count) 
+    {
+        return;
+    }
+
+    sample_idx = symbols_eaten - num_demod_byte;
+
+    for (i = 0; i < num_demod_byte ; i++) 
+    {
+        rb_buf[packet_index] = 0;
+
+        for (j = 0; j < 8; j++) 
+        {
+            I0 = buffer.p[sample_idx].real();
+            Q0 = buffer.p[sample_idx].imag();
+            I1 = buffer.p[sample_idx + 1].real();
+            Q1 = buffer.p[sample_idx + 1].imag();
+
+            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+
+            sample_idx += SAMPLE_PER_SYMBOL;;
+        }
+
+        packet_index++;
+    }
+
+    scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
+
+//--------------Start CRC Checking-----------------------------//
+
+    //Check CRC
+    bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
+    // pkt_count++;
+    // receiver_status.pkt_avaliable = 1;
+    // receiver_status.crc_ok = (crc_flag==0);
+
+    data_message.is_data = false;
+    data_message.value = 'C';
+    shared_memory.application_queue.push(data_message);
+
+    data_message.is_data = true;
+    data_message.value = crc_flag;
+    shared_memory.application_queue.push(data_message);   
 }
 
 void BTLERxProcessor::on_message(const Message* const message) 
@@ -217,6 +352,8 @@ void BTLERxProcessor::configure(const BTLERxConfigureMessage& message)
     demod.configure(48000, 5000);
 
     configured = true;
+
+    crc_init_internal = crc_init_reorder(crc_initalVale);
 }
 
 int main() 

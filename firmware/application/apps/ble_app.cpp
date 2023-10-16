@@ -112,47 +112,110 @@ namespace ui
     void BLERxView::on_data(uint32_t value, bool is_data) 
     {
         std::string str_console = "";
+        
         if (is_data) 
         {
             switch (parsestate)
             {
-            case ParsingAccessAddress:
-                str_console += ":" + to_string_hex(value, 8);
-                break;
-            
-            case ParsingType:
-                str_console += ":" + to_string_hex(value, 2);
-                break;
+                case ParsingAccessAddress:
+                    str_console += to_string_hex(value, 8);
+                    break;
+                
+                case ParsingType:
+                {
+                    // switch (value) 
+                    // {
+                    //     case ADV_IND:
+                    //         str_console += "ADV_IND";
+                    //         break;
+                    //     case ADV_DIRECT_IND:
+                    //         str_console += "ADV_DIRECT_IND";
+                    //         break;
+                    //     case ADV_NONCONN_IND:
+                    //         str_console += "ADV_NONCONN_IND";
+                    //         break;
+                    //     case SCAN_REQ:
+                    //         str_console += "SCAN_REQ";
+                    //         break;
+                    //     case SCAN_RSP:
+                    //         str_console += "SCAN_RSP";
+                    //         break;
+                    //     case CONNECT_REQ:
+                    //         str_console += "CONNECT_REQ";
+                    //         break;
+                    //     case ADV_SCAN_IND:
+                    //         str_console += "ADV_SCAN_IND";
+                    //         break;
+                    //     case RESERVED0:
+                    //     case RESERVED1:
+                    //     case RESERVED2:
+                    //     case RESERVED3:
+                    //     case RESERVED4:
+                    //     case RESERVED5:
+                    //     case RESERVED6:
+                    //     case RESERVED7:
+                    //     case RESERVED8:
+                    //         str_console += "RESERVED";
+                    //         break;
+                    //     default:
+                    //         str_console += "Unknown value";
+                    //         break;
+                    // }
 
-            case ParsingSize:
-                str_console += ":" + to_string_hex(value, 2);
-                break;
+                     str_console += to_string_dec_uint(value);
+
+                    break;
+                }
+
+                case ParsingSize:
+                    str_console += to_string_dec_uint(value);
+                    break;
+
+                case ParsingChecksum:
+                    str_console += to_string_dec_uint(value);
+                    break;
             }
 
-           // str_console += (char)value;
-            //str_console += "[" + to_string_hex(value, 2) + "] ";  // Not printable
             console.write(str_console);
         } 
         else 
         {
-            if (value == 'A') 
+            switch (value)
             {
-                console.writeln("");
-                console.write("Access Address");
-                parsestate = ParsingAccessAddress;
-            } 
-            else if (value == 'T') 
-            {
-                console.writeln("");
-                console.write("Type:");
-                parsestate = ParsingType;
+                case 'A':
+                {
+                    console.writeln("");
+                    console.write("AA:");
+                    parsestate = ParsingAccessAddress;
+
+                    break;
+                } 
+
+                case 'T':
+                {
+                    console.write("PDU:");
+                    parsestate = ParsingType;
+
+                    break;
+                }
+
+                case 'S':
+                {
+                    console.write(":Len:");
+                    parsestate = ParsingSize;
+
+                    break;
+                }  
+
+                case 'C':
+                {
+                    console.write(":CRC:");
+                    parsestate = ParsingChecksum;
+
+                    break;
+                }      
             }
-            else if (value == 'S') 
-            {
-                console.writeln("");
-                console.write("Size:");
-                parsestate = ParsingSize;
-            }
+
         }
     }
 
