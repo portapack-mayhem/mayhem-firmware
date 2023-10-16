@@ -585,7 +585,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"Morse", ui::Color::green(), &bitmap_icon_morse, [&nav]() { nav.push<MorseView>(); }},
         // { "Nuoptix DTMF", ui::Color::green(), &bitmap_icon_nuoptix, [&nav](){ nav.push<NuoptixView>(); }},
         {"OOK", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<EncodersView>(); }},
-        {"POCSAG", ui::Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGTXView>(); }},
+        {"POCSAG TX", ui::Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGTXView>(); }},
         {"RDS", ui::Color::green(), &bitmap_icon_rds, [&nav]() { nav.push<RDSView>(); }},
         {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
         {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
