@@ -88,7 +88,7 @@ namespace ui
                     &text_debug,
                     &console});
 
-        field_frequency.set_value(get_freq_by_channel_number(37));
+        //field_frequency.set_value(get_freq_by_channel_number(37));
         field_frequency.set_step(100);
 
         check_log.set_value(logging);
@@ -182,14 +182,14 @@ namespace ui
         {
             switch (value)
             {
-                // case 'A':
-                // {
-                //     console.writeln("");
-                //     console.write("AA:");
-                //     parsestate = ParsingAccessAddress;
+                case 'A':
+                {
+                    console.writeln("");
+                    console.write("AA:");
+                    parsestate = ParsingAccessAddress;
 
-                //     break;
-                // } 
+                    break;
+                } 
 
                 case 'T':
                 {

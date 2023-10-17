@@ -208,17 +208,17 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     }
 
     // Not sending AA from header.
-    // if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
-    // {
-    //     //Send AA as test.
-    //     data_message.is_data = false;
-    //     data_message.value = 'A';
-    //     shared_memory.application_queue.push(data_message);
+    if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+    {
+        //Send AA as test.
+        data_message.is_data = false;
+        data_message.value = 'A';
+        shared_memory.application_queue.push(data_message);
 
-    //     data_message.is_data = true;
-    //     data_message.value = accesssAddress;
-    //     shared_memory.application_queue.push(data_message);    
-    // }
+        data_message.is_data = true;
+        data_message.value = accesssAddress;
+        shared_memory.application_queue.push(data_message);    
+    }
 
     symbols_eaten += hit_idx;
 

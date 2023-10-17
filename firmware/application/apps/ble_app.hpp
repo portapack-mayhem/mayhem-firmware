@@ -63,7 +63,9 @@ namespace ui
         void on_data(uint32_t value, bool is_data);
 
         NavigationView& nav_;
-        RxRadioState radio_state_{
+        RxRadioState radio_state_
+        {
+            2402000000 /* frequency */,
             4000000 /* bandwidth */,
             4000000 /* sampling rate */,
             ReceiverModel::Mode::WidebandFMAudio};
