@@ -40,7 +40,7 @@ template <typename T>
 uint32_t iq_max(T value) {
     auto real = abs(value.real());
     auto imag = abs(value.imag());
-    return (real > imag)? real : imag;
+    return (real > imag) ? real : imag;
 }
 
 /* Collects capture file metadata and sample power buckets. */
@@ -148,31 +148,31 @@ void amplify_iq_buffer(uint8_t* buffer, uint32_t length, uint32_t amplification,
     uint32_t mult_count = length / sample_size / 2;
 
     switch (sample_size) {
-        case sizeof(complex16_t):
-            {
-                int16_t* buf_ptr = (int16_t*)buffer;
-                for (uint32_t i = 0; i < mult_count; i++) {
-                    // signed multiply with overflow check
-                    int32_t val = *buf_ptr * amplification;
-                    if (val > 0x7FFF) val = 0x7FFF;
-                    else if (val < -0x7FFF) val = -0x7FFF;
-                    *buf_ptr++ = val;
-                }
+        case sizeof(complex16_t): {
+            int16_t* buf_ptr = (int16_t*)buffer;
+            for (uint32_t i = 0; i < mult_count; i++) {
+                int32_t val = *buf_ptr * amplification;
+                if (val > 0x7FFF)
+                    val = 0x7FFF;
+                else if (val < -0x7FFF)
+                    val = -0x7FFF;
+                *buf_ptr++ = val;
             }
             break;
+        }
 
-        case sizeof(complex8_t):
-            {
-                int8_t* buf_ptr = (int8_t*)buffer;
-                for (uint32_t i = 0; i < mult_count; i++) {
-                    // signed multiply with overflow check
-                    int32_t val = *buf_ptr * amplification;
-                    if (val > 0x7F) val = 0x7F;
-                    else if (val < -0x7F) val = -0x7F;
-                    *buf_ptr++ = val;
-                }
+        case sizeof(complex8_t): {
+            int8_t* buf_ptr = (int8_t*)buffer;
+            for (uint32_t i = 0; i < mult_count; i++) {
+                int32_t val = *buf_ptr * amplification;
+                if (val > 0x7F)
+                    val = 0x7F;
+                else if (val < -0x7F)
+                    val = -0x7F;
+                *buf_ptr++ = val;
             }
             break;
+        }
 
         default:
             break;
