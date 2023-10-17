@@ -66,9 +66,6 @@ SondeView::SondeView(NavigationView& nav)
                   &button_see_qr,
                   &button_see_map});
 
-    if (!settings_.radio_loaded())
-        field_frequency.set_value(initial_target_frequency);
-
     field_frequency.set_step(500);  // euquiq: was 10000, but we are using this for fine-tunning
 
     geopos.set_read_only(true);

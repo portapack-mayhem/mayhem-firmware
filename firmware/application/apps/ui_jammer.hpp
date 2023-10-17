@@ -101,6 +101,7 @@ class JammerView : public View {
    private:
     NavigationView& nav_;
     TxRadioState radio_state_{
+        0 /* frequency */,
         3500000 /* bandwidth */,
         3072000 /* sampling rate */
     };

@@ -102,9 +102,8 @@ class TPMSAppView : public View {
     std::string title() const override { return "TPMS RX"; };
 
    private:
-    static constexpr uint32_t initial_target_frequency = 315000000;
-
     RxRadioState radio_state_{
+        315000000 /* frequency*/,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */};
     app_settings::SettingsManager settings_{
@@ -135,7 +134,7 @@ class TPMSAppView : public View {
         3,
         {
             {"315", 315000000},
-            {"433", 433920000},
+            {"434", 433920000},
         }};
 
     OptionsField options_pressure{

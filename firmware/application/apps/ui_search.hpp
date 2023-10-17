@@ -90,6 +90,7 @@ class SearchView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{
+        100'000'000 /* frequency */,
         2500000 /* bandwidth */,
         SEARCH_SLICE_WIDTH /* sampling rate */,
         ReceiverModel::Mode::SpectrumAnalysis};

@@ -343,34 +343,6 @@ void SetUIView::focus() {
     button_save.focus();
 }
 
-/* SetAppSettingsView ************************************/
-
-SetAppSettingsView::SetAppSettingsView(NavigationView& nav) {
-    add_children({
-        &labels,
-        &checkbox_load_app_settings,
-        &checkbox_save_app_settings,
-        &button_save,
-        &button_cancel,
-    });
-
-    checkbox_load_app_settings.set_value(pmem::load_app_settings());
-    checkbox_save_app_settings.set_value(pmem::save_app_settings());
-
-    button_save.on_select = [&nav, this](Button&) {
-        pmem::set_load_app_settings(checkbox_load_app_settings.value());
-        pmem::set_save_app_settings(checkbox_save_app_settings.value());
-        nav.pop();
-    };
-    button_cancel.on_select = [&nav, this](Button&) {
-        nav.pop();
-    };
-}
-
-void SetAppSettingsView::focus() {
-    button_save.focus();
-}
-
 /* SetConverterSettingsView ******************************/
 
 SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
@@ -654,7 +626,6 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
-        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetAppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [&nav]() { nav.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},

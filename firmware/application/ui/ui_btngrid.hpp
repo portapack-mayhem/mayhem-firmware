@@ -36,6 +36,9 @@
 #include <string>
 #include <vector>
 
+// file used for listing apps to hide from menu
+#define BLACKLIST u"/SETTINGS/blacklist"
+
 namespace ui {
 
 struct GridItem {
@@ -46,6 +49,8 @@ struct GridItem {
 
     // TODO: Prevent default-constructed GridItems.
 };
+
+void load_blacklist();
 
 class BtnGridView : public View {
    public:
@@ -70,6 +75,7 @@ class BtnGridView : public View {
     void on_blur() override;
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
+    bool blacklisted_app(GridItem new_item);
 
    private:
     int rows_{3};

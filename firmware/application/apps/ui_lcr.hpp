@@ -82,6 +82,7 @@ class LCRView : public View {
     };
 
     TxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         AFSK_TX_SAMPLERATE /* sampling rate */
     };

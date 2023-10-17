@@ -60,6 +60,7 @@ class POCSAGTXView : public View {
     NavigationView& nav_;
 
     TxRadioState radio_state_{
+        466175000 /* frequency */,
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };

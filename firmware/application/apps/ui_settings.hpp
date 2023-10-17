@@ -310,41 +310,6 @@ class SetUIView : public View {
     };
 };
 
-class SetAppSettingsView : public View {
-   public:
-    SetAppSettingsView(NavigationView& nav);
-
-    void focus() override;
-    std::string title() const override { return "App Settings"; };
-
-   private:
-    Labels labels{
-        {{1 * 8, 1 * 16}, "App settings are saved to", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "the SD card in /SETTINGS.", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "Radio settings may also be", Color::light_grey()},
-        {{1 * 8, 4 * 16}, "loaded or saved per app.", Color::light_grey()},
-    };
-
-    Checkbox checkbox_load_app_settings{
-        {3 * 8, 6 * 16},
-        25,
-        "Load radio settings"};
-
-    Checkbox checkbox_save_app_settings{
-        {3 * 8, 8 * 16},
-        25,
-        "Save radio settings"};
-
-    Button button_save{
-        {2 * 8, 16 * 16, 12 * 8, 32},
-        "Save"};
-
-    Button button_cancel{
-        {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
-};
-
 class SetConverterSettingsView : public View {
    public:
     SetConverterSettingsView(NavigationView& nav);
