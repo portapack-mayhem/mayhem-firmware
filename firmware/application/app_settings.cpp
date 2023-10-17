@@ -157,7 +157,6 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
     auto path = get_settings_path(std::string{store_name});
 
     make_new_directory(SETTINGS_DIR);
-
     auto error = f.create(path);
     if (error)
         return false;
