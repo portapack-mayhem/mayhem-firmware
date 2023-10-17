@@ -89,6 +89,8 @@ class BTLERxProcessor : public BasebandProcessor
     int skipSamples{1000};
     int RB_SIZE{2048};
 
+    uint16_t process = 0;
+
     bool configured{false};
     AFSKDataMessage data_message{false, 0};
 

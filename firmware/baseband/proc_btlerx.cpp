@@ -107,11 +107,14 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 {
     if (!configured) return;
 
-    //4Mhz 2048 samples
-
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-
     feed_channel_stats(decim_0_out);
+
+    process++;
+
+    if ((process % 100) != 0) return;
+
+    //4Mhz 2048 samples
 
 //--------------Variable Defines---------------------------------//
 
@@ -204,21 +207,43 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     if (hit_idx == -1)
     {
         //Process more samples.
-        return;
+        //return;
+    }
+
+    uint32_t number = 0x8E89BED6; // Replace with your uint32_t value
+    uint8_t target_byte = 0x89BE; // Replace with the byte you want to search for
+
+    // Check each byte in the uint32_t
+    for (int i = 0; i < 3; i++) 
+    {
+        uint8_t current_byte = (number >> (i * 8)) & 0xFFFF;
+        
+        if (current_byte == target_byte) 
+        {
+            //Send AA as test.
+            data_message.is_data = false;
+            data_message.value = 'A';
+            shared_memory.application_queue.push(data_message);
+
+            data_message.is_data = true;
+            data_message.value = accesssAddress;
+            shared_memory.application_queue.push(data_message);  
+            break; // If found, you can exit the loop
+        }
     }
 
     // Not sending AA from header.
-    if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
-    {
+    // if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+    // {
         //Send AA as test.
-        data_message.is_data = false;
-        data_message.value = 'A';
-        shared_memory.application_queue.push(data_message);
+        // data_message.is_data = false;
+        // data_message.value = 'A';
+        // shared_memory.application_queue.push(data_message);
 
-        data_message.is_data = true;
-        data_message.value = accesssAddress;
-        shared_memory.application_queue.push(data_message);    
-    }
+        // data_message.is_data = true;
+        // data_message.value = accesssAddress;
+        // shared_memory.application_queue.push(data_message);    
+    // }
 
     symbols_eaten += hit_idx;
 
@@ -271,21 +296,21 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     uint8_t payload_len = (rb_buf[1] & 0x3F);
 
     //Send PDU Header as test.
-    data_message.is_data = false;
-    data_message.value = 'T';
-    shared_memory.application_queue.push(data_message);
+    // data_message.is_data = false;
+    // data_message.value = 'T';
+    // shared_memory.application_queue.push(data_message);
 
-    data_message.is_data = true;
-    data_message.value = pdu_type;
-    shared_memory.application_queue.push(data_message);   
+    // data_message.is_data = true;
+    // data_message.value = pdu_type;
+    // shared_memory.application_queue.push(data_message);   
     
-    data_message.is_data = false;
-    data_message.value = 'S';
-    shared_memory.application_queue.push(data_message);
+    // data_message.is_data = false;
+    // data_message.value = 'S';
+    // shared_memory.application_queue.push(data_message);
 
-    data_message.is_data = true;
-    data_message.value = payload_len;
-    shared_memory.application_queue.push(data_message);   
+    // data_message.is_data = true;
+    // data_message.value = payload_len;
+    // shared_memory.application_queue.push(data_message);   
 
 //--------------Start Payload Parsing--------------------------//
 
@@ -329,13 +354,13 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     // receiver_status.pkt_avaliable = 1;
     // receiver_status.crc_ok = (crc_flag==0);
 
-    data_message.is_data = false;
-    data_message.value = 'C';
-    shared_memory.application_queue.push(data_message);
+    // data_message.is_data = false;
+    // data_message.value = 'C';
+    // shared_memory.application_queue.push(data_message);
 
-    data_message.is_data = true;
-    data_message.value = crc_flag;
-    shared_memory.application_queue.push(data_message);   
+    // data_message.is_data = true;
+    // data_message.value = crc_flag;
+    // shared_memory.application_queue.push(data_message);   
 }
 
 void BTLERxProcessor::on_message(const Message* const message) 
