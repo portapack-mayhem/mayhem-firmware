@@ -83,6 +83,13 @@ TrimRange compute_trim_range(
     const PowerBuckets& buckets,
     uint8_t cutoff_percent);
 
+/* Multiplies samples in an IQ buffer by amplification value */
+void amplify_iq_buffer(
+    uint8_t* buffer,
+    uint32_t length,
+    uint32_t amplification,
+    uint8_t sample_size);
+
 /* Trims the capture file with the specified range. */
 bool trim_capture_with_range(
     const std::filesystem::path& path,
