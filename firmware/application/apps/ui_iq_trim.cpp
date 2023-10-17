@@ -145,7 +145,7 @@ void IQTrimView::refresh_ui() {
     text_max.set(to_string_dec_uint(info_->max_power * power_amp));
 
     // show max power in red if amplification is too high, causing clipping
-    uint32_t clipping_limit = (fs::capture_file_sample_size(path_) == sizeof(complex8_t))? 0x80 : 0x8000;
+    uint32_t clipping_limit = (fs::capture_file_sample_size(path_) == sizeof(complex8_t)) ? 0x80 : 0x8000;
     if ((field_amplify.value() * info_->max_iq) > clipping_limit)
         text_max.set_style(&Styles::red);
     else
