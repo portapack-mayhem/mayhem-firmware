@@ -173,6 +173,9 @@ uint8_t capture_file_sample_size(const path& filename);
 
 using file_status = BYTE;
 
+/* The largest block that can be read/written to a file. */
+constexpr uint16_t max_file_block_size = 512;
+
 static_assert(sizeof(path::value_type) == 2, "sizeof(std::filesystem::path::value_type) != 2");
 static_assert(sizeof(path::value_type) == sizeof(TCHAR), "FatFs TCHAR size != std::filesystem::path::value_type");
 
@@ -250,6 +253,8 @@ bool file_exists(const path& file_path);
 bool is_directory(const path& file_path);
 bool is_empty_directory(const path& file_path);
 
+int file_count(const path& dir_path);
+
 space_info space(const path& p);
 
 } /* namespace filesystem */
@@ -265,6 +270,7 @@ std::filesystem::filesystem_error rename_file(const std::filesystem::path& file_
 std::filesystem::filesystem_error copy_file(const std::filesystem::path& file_path, const std::filesystem::path& dest_path);
 
 FATTimestamp file_created_date(const std::filesystem::path& file_path);
+std::filesystem::filesystem_error file_update_date(const std::filesystem::path& file_path, FATTimestamp timestamp);
 std::filesystem::filesystem_error make_new_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
 std::filesystem::filesystem_error ensure_directory(const std::filesystem::path& dir_path);
@@ -296,6 +302,7 @@ static_assert(sizeof(FIL::err) == 1, "FatFs FIL::err size not expected.");
 #define FR_BAD_SEEK (0x102)
 #define FR_UNEXPECTED (0x103)
 
+/* NOTE: sizeof(File) == 556 bytes because of the FIL's buf member. */
 class File {
    public:
     using Size = uint64_t;

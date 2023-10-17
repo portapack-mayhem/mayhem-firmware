@@ -44,6 +44,9 @@
 #include <vector>
 #include <utility>
 
+// for incrementing fake date when RTC battery is dead
+#define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
+
 using namespace sd_card;
 
 namespace ui {
@@ -51,7 +54,6 @@ namespace ui {
 enum modal_t {
     INFO = 0,
     YESNO,
-    YESCANCEL,
     ABORT
 };
 
@@ -73,15 +75,6 @@ class NavigationView : public View {
         return reinterpret_cast<T*>(push_view(std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...))));
     }
 
-    // Pushes a new view under the current on the stack so the current view returns into this new one.
-    template <class T, class... Args>
-    T* push_under_current(Args&&... args) {
-        auto new_view = std::unique_ptr<View>(new T(*this, std::forward<Args>(args)...));
-        auto new_view_ptr = new_view.get();
-        view_stack.insert(view_stack.end() - 1, ViewState{std::move(new_view), {}});
-        return reinterpret_cast<T*>(new_view_ptr);
-    }
-
     template <class T, class... Args>
     T* replace(Args&&... args) {
         pop();
@@ -89,13 +82,16 @@ class NavigationView : public View {
     }
 
     void push(View* v);
+    View* push_view(std::unique_ptr<View> new_view);
     void replace(View* v);
-
-    void pop();
-    void pop_modal();
+    void pop(bool trigger_update = true);
 
     void display_modal(const std::string& title, const std::string& message);
-    void display_modal(const std::string& title, const std::string& message, const modal_t type, const std::function<void(bool)> on_choice = nullptr);
+    void display_modal(
+        const std::string& title,
+        const std::string& message,
+        modal_t type,
+        std::function<void(bool)> on_choice = nullptr);
 
     void focus() override;
 
@@ -110,14 +106,11 @@ class NavigationView : public View {
     };
 
     std::vector<ViewState> view_stack{};
-    Widget* modal_view{nullptr};
 
     Widget* view() const;
 
-    void pop(bool update);
     void free_view();
     void update_view();
-    View* push_view(std::unique_ptr<View> new_view);
 };
 
 /* Holds widgets and grows dynamically toward the left.
@@ -245,6 +238,7 @@ class SystemStatusView : public View {
     void on_title();
     void refresh();
     void on_clk();
+    void rtc_battery_workaround();
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,
@@ -362,8 +356,8 @@ class ModalMessageView : public View {
         NavigationView& nav,
         const std::string& title,
         const std::string& message,
-        const modal_t type,
-        const std::function<void(bool)> on_choice);
+        modal_t type,
+        std::function<void(bool)> on_choice);
 
     void paint(Painter& painter) override;
     void focus() override;

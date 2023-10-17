@@ -115,6 +115,7 @@ Continuous (Fox-oring)
 
 #include "portapack.hpp"
 #include "portapack_shared_memory.hpp"
+#include "config_mode.hpp"
 
 #include "message_queue.hpp"
 
@@ -161,9 +162,17 @@ static void event_loop() {
 }
 
 int main(void) {
+    if (config_mode_should_enter()) {
+        config_mode_clear();
+        config_mode_run();
+    }
+
+    config_mode_set();
+
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
     if (portapack::init()) {
         portapack::display.init();
+        config_mode_clear();
 
         // sdcStart(&SDCD1, nullptr); // Commented out as now happens in portapack.cpp
 

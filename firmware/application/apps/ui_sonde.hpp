@@ -68,6 +68,7 @@ class SondeView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{
+        402700000 /* frequency */,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };
@@ -75,7 +76,6 @@ class SondeView : public View {
         "rx_sonde", app_settings::Mode::RX};
 
     std::unique_ptr<SondeLogger> logger{};
-    uint32_t target_frequency_{402700000};
     bool logging{false};
     bool use_crc{false};
     bool beep{false};

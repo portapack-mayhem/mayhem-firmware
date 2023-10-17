@@ -162,9 +162,8 @@ class AISAppView : public View {
     std::string title() const override { return "AIS RX"; };
 
    private:
-    static constexpr uint32_t initial_target_frequency = 162025000;
-
     RxRadioState radio_state_{
+        162025000 /* frequency*/,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };

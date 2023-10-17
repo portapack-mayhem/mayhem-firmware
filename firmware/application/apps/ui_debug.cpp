@@ -20,6 +20,7 @@
  */
 
 #include "ui_debug.hpp"
+#include "debug.hpp"
 
 #include "ch.h"
 
@@ -33,6 +34,7 @@
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_styles.hpp"
 #include "ui_painter.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
@@ -127,7 +129,7 @@ TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t s
 }
 
 std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
-    return to_string_dec_int(temperature, temp_len - 1) + "C";
+    return to_string_dec_int(temperature, temp_len - 2) + STR_DEGREES_C;
 }
 
 Coord TemperatureWidget::screen_y(
@@ -397,17 +399,22 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
+        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
+        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
+        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
         {"Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
+        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
+        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
-        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
-        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
-        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
-        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
-        {"Fonts Viewer", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugFontsView>(); }},
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav)) {
+        add_item(gridItem);
+    };
+
     set_max_rows(2);  // allow wider buttons
 }
 
@@ -465,41 +472,6 @@ uint32_t DebugPmemView::registers_widget_feed(const size_t register_number) {
         return 0xff;
     }
     return data.regfile[(page_size * page + register_number) / 4] >> (register_number % 4 * 8);
-}
-
-/* DebugFontsView *******************************************************/
-
-uint16_t DebugFontsView::display_font(Painter& painter, uint16_t y_offset, const Style* font_style, std::string_view font_name) {
-    auto char_width{font_style->font.char_width()};
-    auto char_height{font_style->font.line_height()};
-    auto cpl{((screen_width / char_width) - 6) & 0xF8};  // Display a multiple of 8 characters per line
-    uint16_t line_pos{y_offset};
-
-    painter.draw_string({0, y_offset}, *font_style, font_name);
-
-    // Displaying ASCII+extended characters from 0x20 to 0xFF
-    for (uint8_t c = 0; c <= 0xDF; c++) {
-        line_pos = y_offset + ((c / cpl) + 2) * char_height;
-
-        if ((c % cpl) == 0)
-            painter.draw_string({0, line_pos}, *font_style, "Ox" + to_string_hex(c + 0x20, 2));
-
-        painter.draw_char({((c % cpl) + 5) * char_width, line_pos}, *font_style, (char)(c + 0x20));
-    }
-
-    return line_pos + char_height;
-}
-
-void DebugFontsView::paint(Painter& painter) {
-    int16_t line_pos;
-
-    line_pos = display_font(painter, 32, &Styles::white, "Fixed 8x16");
-    display_font(painter, line_pos + 16, &Styles::white_small, "Fixed 5x8");
-}
-
-DebugFontsView::DebugFontsView(NavigationView& nav)
-    : nav_{nav} {
-    set_focusable(true);
 }
 
 /* DebugScreenTest ****************************************************/

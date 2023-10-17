@@ -21,9 +21,10 @@
 
 #include "rssi_dma.hpp"
 
+#include <array>
 #include <cstdint>
 #include <cstddef>
-#include <array>
+#include <memory>
 
 #include "hal.h"
 #include "gpdma.hpp"
@@ -98,8 +99,8 @@ struct buffers_config_t {
 
 static buffers_config_t buffers_config;
 
-static sample_t* samples{nullptr};
-static gpdma::channel::LLI* lli{nullptr};
+static std::unique_ptr<sample_t[]> samples;
+static std::unique_ptr<gpdma::channel::LLI[]> lli;
 
 static ThreadWait thread_wait;
 
@@ -128,8 +129,8 @@ void allocate(size_t buffer_count, size_t items_per_buffer) {
     const auto peripheral = reinterpret_cast<uint32_t>(&LPC_ADC1->DR[portapack::adc1_rssi_input]) + 1;
     const auto control_value = control(gpdma::buffer_words(buffers_config.items_per_buffer, 1));
 
-    samples = new sample_t[buffers_config.count * buffers_config.items_per_buffer];
-    lli = new gpdma::channel::LLI[buffers_config.count];
+    samples = std::make_unique<sample_t[]>(buffers_config.count * buffers_config.items_per_buffer);
+    lli = std::make_unique<gpdma::channel::LLI[]>(buffers_config.count);
 
     for (size_t i = 0; i < buffers_config.count; i++) {
         const auto memory = reinterpret_cast<uint32_t>(&samples[i * buffers_config.items_per_buffer]);
@@ -141,8 +142,8 @@ void allocate(size_t buffer_count, size_t items_per_buffer) {
 }
 
 void free() {
-    delete samples;
-    delete lli;
+    samples.reset();
+    lli.reset();
 }
 
 void enable() {

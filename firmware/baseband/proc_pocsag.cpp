@@ -3,6 +3,7 @@
  * Copyright (C) 2012-2014 Elias Oenal (multimon-ng@eliasoenal.com)
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2016 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -24,16 +25,15 @@
 
 #include "proc_pocsag.hpp"
 
+#include "dsp_iir_config.hpp"
 #include "event_m4.hpp"
 
+#include <algorithm>
+#include <cmath>
 #include <cstdint>
 #include <cstddef>
-#include <algorithm>  // std::max
-#include <cmath>
 
 void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
-    // This is called at 1500Hz
-
     if (!configured) return;
 
     // Get 24kHz audio
@@ -41,11 +41,36 @@ void POCSAGProcessor::execute(const buffer_c8_t& buffer) {
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
     const auto channel_out = channel_filter.execute(decim_1_out, dst_buffer);
     auto audio = demod.execute(channel_out, audio_buffer);
-    smooth.Process(audio.p, audio.count);  // Smooth the data to  make decoding more accurate
-    audio_output.write(audio);
 
+    // If squelching, check for audio before smoothing because smoothing
+    // causes the squelch noise detection to fail. Likely because squelch
+    // looks for HF noise and smoothing is basically a lowpass filter.
+    // NB: Squelch in this processor is only for the the audio output.
+    // Squelching will likely drop data "noise" and break processing.
+    if (squelch_.enabled()) {
+        bool has_audio = squelch_.execute(audio);
+        squelch_history = (squelch_history << 1) | (has_audio ? 1 : 0);
+    }
+
+    smooth.Process(audio.p, audio.count);
     processDemodulatedSamples(audio.p, 16);
     extractFrames();
+
+    samples_processed += buffer.count;
+    if (samples_processed >= stat_update_threshold) {
+        send_stats();
+        samples_processed = 0;
+    }
+
+    // Clear the output before sending to audio chip.
+    // Only clear the audio buffer when there hasn't been any audio for a while.
+    if (squelch_.enabled() && squelch_history == 0) {
+        for (size_t i = 0; i < audio.count; ++i) {
+            audio.p[i] = 0.0;
+        }
+    }
+
+    audio_output.write(audio);
 }
 
 // ====================================================================
@@ -71,8 +96,20 @@ int POCSAGProcessor::OnDataFrame(int len, int baud) {
 }
 
 void POCSAGProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::POCSAGConfigure)
-        configure();
+    switch (message->id) {
+        case Message::ID::POCSAGConfigure:
+            configure();
+            break;
+
+        case Message::ID::NBFMConfigure: {
+            auto config = reinterpret_cast<const NBFMConfigureMessage*>(message);
+            squelch_.set_threshold(config->squelch_level / 100.0);
+            break;
+        }
+
+        default:
+            break;
+    }
 }
 
 void POCSAGProcessor::configure() {
@@ -87,13 +124,16 @@ void POCSAGProcessor::configure() {
 
     const size_t demod_input_fs = channel_filter_output_fs;
 
-    decim_0.configure(taps_11k0_decim_0.taps, 33554432);
-    decim_1.configure(taps_11k0_decim_1.taps, 131072);
+    decim_0.configure(taps_11k0_decim_0.taps);
+    decim_1.configure(taps_11k0_decim_1.taps);
     channel_filter.configure(taps_11k0_channel.taps, 2);
-    demod.configure(demod_input_fs, 4500);
+    demod.configure(demod_input_fs, 4'500);  // FSK +/- 4k5Hz.
+
     // Smoothing should be roughly sample rate over max baud
-    // 24k / 3.2k is 7.5
+    // 24k / 3.2k = 7.5
     smooth.SetSize(8);
+
+    // Don't have audio process the stream.
     audio_output.configure(false);
 
     // Set up the frame extraction, limits of baud
@@ -101,6 +141,11 @@ void POCSAGProcessor::configure() {
 
     // Mark the class as ready to accept data
     configured = true;
+}
+
+void POCSAGProcessor::send_stats() const {
+    POCSAGStatsMessage message(m_fifo.codeword, m_numCode, m_gotSync, getRate());
+    shared_memory.application_queue.push(message);
 }
 
 // -----------------------------
@@ -477,7 +522,7 @@ int POCSAGProcessor::getNoOfBits() {
 // ====================================================================
 //
 // ====================================================================
-uint32_t POCSAGProcessor::getRate() {
+uint32_t POCSAGProcessor::getRate() const {
     return ((m_samplesPerSec << 10) + 512) / m_lastStableSymbolLen_1024;
 }
 

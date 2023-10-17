@@ -124,7 +124,7 @@ void ReplayAppView::start() {
 
     if (reader) {
         button_play.set_bitmap(&bitmap_stop);
-        baseband::set_sample_rate(sample_rate * 8);
+        baseband::set_sample_rate(sample_rate, OversampleRate::x8);
 
         replay_thread = std::make_unique<ReplayThread>(
             std::move(reader),
@@ -136,7 +136,7 @@ void ReplayAppView::start() {
             });
     }
 
-    transmitter_model.set_sampling_rate(sample_rate * 8);
+    transmitter_model.set_sampling_rate(sample_rate * toUType(OversampleRate::x8));
     transmitter_model.set_baseband_bandwidth(baseband_bandwidth);
     transmitter_model.enable();
 
@@ -203,9 +203,6 @@ ReplayAppView::ReplayAppView(
 
 ReplayAppView::~ReplayAppView() {
     transmitter_model.disable();
-
-    display.fill_rectangle({0, 0, 240, 320}, Color::black());  // Solving sometimes visible bottom waterfall artifacts, clearing all LCD  pixels.
-    chThdSleepMilliseconds(40);                                // (that happened sometimes if we interrupt the waterfall play at the beggining of the play  around 25% and exit )
     baseband::shutdown();
 }
 

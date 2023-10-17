@@ -25,9 +25,6 @@
 #ifndef __UI_MICTX_H__
 #define __UI_MICTX_H__
 
-#define SHORT_UI true
-#define NORMAL_UI false
-
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui.hpp"
@@ -85,6 +82,7 @@ class MicTXView : public View {
 
     RxRadioState rx_radio_state_{};
     TxRadioState tx_radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         sampling_rate /* sampling rate */
     };
@@ -219,10 +217,8 @@ class MicTXView : public View {
         ' '};
 
     TransmitterView2 tx_view{
-        // new handling of NumberField field_rfgain, NumberField field_rfamp
-        //	3*8, 2*8, SHORT_UI					// x(columns), y (line) position. (used in Replay / GPS Simul / Playlist App's)
-        3 * 8, 2 * 8, NORMAL_UI  // x(columns), y (line) position. (used in Mic App)
-    };
+        {3 * 8, 5 * 8},
+        /*short_ui*/ false};
 
     OptionsField options_mode{
         {24 * 8, 5 * 8},

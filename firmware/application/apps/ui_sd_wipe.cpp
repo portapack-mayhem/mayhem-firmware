@@ -44,15 +44,21 @@ void WipeSDView::focus() {
     dummy.focus();
 
     if (!confirmed) {
-        nav_.push<ModalMessageView>("Warning !", "Wipe FAT of SD card?", YESCANCEL, [this](bool choice) {
-            if (choice)
-                confirmed = true;
-        });
+        nav_.push<ModalMessageView>(
+            "Warning !",
+            "Wipe FAT of SD card?",
+            YESNO,
+            [this](bool choice) {
+                if (choice)
+                    confirmed = true;
+                else
+                    nav_.pop(false);  // Pop w/o update so the modal will pop off the app.
+            });
     } else {
         if (sdcGetInfo(&SDCD1, &block_device_info) == CH_SUCCESS) {
             thread = chThdCreateFromHeap(NULL, 2048, NORMALPRIO, WipeSDView::static_fn, this);
         } else {
-            nav_.pop();  // Just silently abort for now
+            nav_.pop();  // Just silently abort for now.
         }
     }
 }

@@ -72,8 +72,28 @@ class GlassView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
+    // Settings
+    rf::Frequency f_min = 260 * MHZ_DIV;  // Default to 315/433 remote range.
+    rf::Frequency f_max = 500 * MHZ_DIV;
+    uint8_t preset_index = 0;  // Manual
+    uint8_t filter_index = 0;  // OFF
+    uint8_t trigger = 32;
+    uint8_t mode = LOOKING_GLASS_FASTSCAN;
+    uint8_t live_frequency_view = 0;       // Spectrum
+    uint8_t live_frequency_integrate = 3;  // Default (3 * old value + new_value) / 4
     app_settings::SettingsManager settings_{
-        "rx_glass", app_settings::Mode::RX};
+        "rx_glass"sv,
+        app_settings::Mode::RX,
+        {
+            {"min"sv, &f_min},
+            {"max"sv, &f_max},
+            {"preset"sv, &preset_index},
+            {"filter"sv, &filter_index},
+            {"trigger"sv, &trigger},
+            {"scan_mode"sv, &mode},
+            {"freq_view"sv, &live_frequency_view},
+            {"freq_integrate"sv, &live_frequency_integrate},
+        }};
 
     struct preset_entry {
         rf::Frequency min{};
@@ -82,8 +102,9 @@ class GlassView : public View {
     };
 
     std::vector<preset_entry> presets_db{};
-    void clip_min(int32_t v);
-    void clip_max(int32_t v);
+    void update_min(int32_t v);
+    void update_max(int32_t v);
+    void update_range_field();
     void get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power);
     rf::Frequency get_freq_from_bin_pos(uint8_t pos);
     void on_marker_change();
@@ -94,57 +115,52 @@ class GlassView : public View {
     int64_t next_mult_of(int64_t num, int64_t multiplier);
     void adjust_range(int64_t* f_min, int64_t* f_max, int64_t width);
     void on_range_changed();
-    void on_lna_changed(int32_t v_db);
-    void on_vga_changed(int32_t v_db);
-    void reset_live_view(bool clear_screen);
+    void reset_live_view();
     void add_spectrum_pixel(uint8_t power);
-    void PlotMarker(uint8_t pos);
-    void load_Presets();
-    void txtline_process(std::string& line);
-    void populate_Presets();
-    void presets_Default();
+    void plot_marker(uint8_t pos);
+    void load_presets();
+    void populate_presets();
+    void launch_audio(rf::Frequency center_freq);
 
-    rf::Frequency f_min{0}, f_max{0};
     rf::Frequency search_span{0};
     rf::Frequency f_center{0};
     rf::Frequency f_center_ini{0};
+
     rf::Frequency marker{0};
     uint8_t marker_pixel_index{0};
     rf::Frequency marker_pixel_step{0};
-    // size of one spectrum bin in Hz
+
+    // Size of one spectrum bin in Hz.
     rf::Frequency each_bin_size{0};
-    // consumed number of Hz, used to know if we have filled a 'bag' , a corresponding pixel length on screen
-    rf::Frequency bins_Hz_size{0};
+    // Bandwidth of a single spectrum bin.
+    rf::Frequency bins_hz_size{0};
     rf::Frequency looking_glass_sampling_rate{0};
     rf::Frequency looking_glass_bandwidth{0};
     rf::Frequency looking_glass_range{0};
     rf::Frequency looking_glass_step{0};
-    uint8_t min_color_power{0};
+    uint8_t min_color_power{0};  // Filter cutoff level.
     uint32_t pixel_index{0};
-    std::array<Color, SCREEN_W> spectrum_row = {0};
-    std::array<uint8_t, SCREEN_W> spectrum_data = {0};
-    ChannelSpectrumFIFO* fifo{nullptr};
-    uint8_t max_power = 0;
-    int32_t steps = 0;
-    uint8_t live_frequency_view = 0;
-    int16_t live_frequency_integrate = 3;
-    int64_t max_freq_hold = 0;
-    int16_t max_freq_power = -1000;
+
+    std::array<Color, SCREEN_W> spectrum_row{};
+    std::array<uint8_t, SCREEN_W> spectrum_data{};
+    ChannelSpectrumFIFO* fifo{};
+
+    int32_t steps = 1;
     bool locked_range = false;
+
+    uint8_t max_power = 0;
+    rf::Frequency max_freq_hold = 0;
+    rf::Frequency last_max_freq = 0;
+    int16_t max_freq_power = -1000;
     uint8_t bin_length = SCREEN_W;
-    uint8_t real_bin_length = SCREEN_W;
     uint8_t offset = 0;
-    uint8_t tune_offset = 0;
-    uint8_t bin = 0;
-    int64_t last_max_freq = 0;
-    uint8_t mode = LOOKING_GLASS_FASTSCAN;
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
-        {{0, 1 * 16}, "RANGE:       FILTER:      AMP:", Color::light_grey()},
+        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
+        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
         {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-        {{0, 3 * 16}, "MARKER:            MHz", Color::light_grey()},
+        {{0, 3 * 16}, "MARKER:          MHz", Color::light_grey()},
         {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}};
 
     NumberField field_frequency_min{
@@ -167,8 +183,8 @@ class GlassView : public View {
     VGAGainField field_vga{
         {27 * 8, 0 * 16}};
 
-    Button button_range{
-        {7 * 8, 1 * 16, 4 * 8, 16},
+    TextField field_range{
+        {6 * 8, 1 * 16, 6 * 8, 16},
         ""};
 
     OptionsField filter_config{
@@ -176,23 +192,21 @@ class GlassView : public View {
         4,
         {
             {"OFF ", 0},
-            {"MID ", 118},  // 85 +25 (110) + a bit more to kill all blue
+            {"MID ", 118},  // 85 + 25 (110) + a bit more to kill all blue
             {"HIGH", 202},  // 168 + 25 (193)
         }};
 
     RFAmpField field_rf_amp{
-        {29 * 8, 1 * 16}};
+        {28 * 8, 1 * 16}};
 
     OptionsField range_presets{
         {7 * 8, 2 * 16},
         20,
-        {
-            {" NONE (WIFI 2.4GHz)", 0},
-        }};
+        {}};
 
-    ButtonWithEncoder button_marker{
-        {7 * 8, 3 * 16, 10 * 8, 16},
-        " "};
+    TextField field_marker{
+        {7 * 8, 3 * 16, 9 * 8, 16},
+        ""};
 
     NumberField field_trigger{
         {4 * 8, 4 * 16},

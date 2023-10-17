@@ -87,6 +87,10 @@ void MicTXView::set_tx(bool enable) {
         transmitting = true;
         configure_baseband();
         transmitter_model.set_target_frequency(tx_frequency);  // Now, no need: transmitter_model.set_tx_gain(tx_gain), nor (rf_amp);
+
+        /* The max. Power Spectrum Densitiy in WFM with High tone mod level (80%) and high 32kHZ subtone as fmod.  with max fdeviation 150k ,
+         BW aprox = 2 *(150K + 32K) = 364khz, then we just select the minimum TX  LPF 1M75. */
+        transmitter_model.set_baseband_bandwidth(1'750'000);
         transmitter_model.enable();
         portapack::pin_i2s0_rx_sda.mode(3);  // This is already done in audio::init but gets changed by the CPLD overlay reprogramming
     } else {
@@ -633,7 +637,7 @@ MicTXView::MicTXView(
 
 MicTXView::~MicTXView() {
     audio::input::stop();
-    transmitter_model.set_target_frequency(tx_frequency);  // Save Tx frequency instead of Rx. Or maybe we need some "System Wide" changes to seperate Tx and Rx frequency.
+    transmitter_model.set_target_frequency(tx_frequency);
     transmitter_model.disable();
     if (rx_enabled)  // Also turn off audio rx if enabled
         rxaudio(false);

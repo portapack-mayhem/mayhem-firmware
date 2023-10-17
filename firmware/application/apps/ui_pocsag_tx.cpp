@@ -56,7 +56,7 @@ bool POCSAGTXView::start_tx() {
     pocsag::BitRate bitrate;
     std::vector<uint32_t> codewords;
 
-    address = field_address.value_dec_u32();
+    address = field_address.to_integer();
     if (address > 0x1FFFFFU) {
         nav_.display_modal("Bad address", "Address must be less\nthan 2097152.");
         return false;
@@ -81,6 +81,8 @@ bool POCSAGTXView::start_tx() {
 
     transmitter_model.set_rf_amp(true);
     transmitter_model.set_tx_gain(40);
+    // We left exactly same TX LPF settings as previous fw 1.7.4,  TX LPF= 1M75 (min). It is fine even in max FM dev. 150khz and 2400 bauds.
+    transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF . Pocsag is NBFM , using BW channel 25khz or 12khz
     transmitter_model.enable();
 
     uint8_t* data_ptr = shared_memory.bb_data.data;
@@ -137,12 +139,7 @@ POCSAGTXView::POCSAGTXView(
     options_bitrate.set_selected_index(1);  // 1200bps
     options_type.set_selected_index(0);     // Address only
 
-    // TODO: set_value for whole symfield
-    uint32_t reload_address = persistent_memory::pocsag_last_address();
-    for (uint32_t c = 0; c < 7; c++) {
-        field_address.set_sym(6 - c, reload_address % 10);
-        reload_address /= 10;
-    }
+    field_address.set_value(persistent_memory::pocsag_last_address());
 
     options_type.on_change = [this](size_t, int32_t i) {
         if (i == 2)

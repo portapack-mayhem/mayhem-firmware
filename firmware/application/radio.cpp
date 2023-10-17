@@ -92,8 +92,8 @@ max2839::MAX2839 second_if_max2839{ssp1_target_max283x};
 static max5864::MAX5864 baseband_codec{ssp1_target_max5864};
 static baseband::CPLD baseband_cpld;
 
-// Set invalid to force the set_direction CPLD workaround to run.
-static rf::Direction direction{-1};
+// load_sram() is called at boot in portapack.cpp, including verify CPLD part, so default direction is Receive
+static rf::Direction direction{rf::Direction::Receive};
 static bool baseband_invert = false;
 static bool mixer_invert = false;
 
@@ -232,8 +232,12 @@ void set_tx_gain(const int_fast8_t db) {
     second_if->set_tx_vga_gain(db);
 }
 
-void set_baseband_filter_bandwidth(const uint32_t bandwidth_minimum) {
-    second_if->set_lpf_rf_bandwidth(bandwidth_minimum);
+void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum) {
+    second_if->set_lpf_rf_bandwidth_rx(bandwidth_minimum);
+}
+
+void set_baseband_filter_bandwidth_tx(const uint32_t bandwidth_minimum) {
+    second_if->set_lpf_rf_bandwidth_tx(bandwidth_minimum);
 }
 
 void set_baseband_rate(const uint32_t rate) {

@@ -34,30 +34,30 @@ using namespace portapack;
 
 namespace ui {
 
+bool ac_details_view_active{false};
+
 template <>
 void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    char aged_color;
     Color target_color;
     auto entry_age = entry.age;
+    std::string entry_string;
 
     // Color decay for flights not being updated anymore
     if (entry_age < ADSB_CURRENT) {
-        aged_color = 0x10;
+        entry_string = "";
         target_color = Color::green();
     } else if (entry_age < ADSB_RECENT) {
-        aged_color = 0x07;
+        entry_string = STR_COLOR_LIGHT_GREY;
         target_color = Color::light_grey();
     } else {
-        aged_color = 0x08;
+        entry_string = STR_COLOR_DARK_GREY;
         target_color = Color::grey();
     }
 
-    std::string entry_string = "\x1B";
-    entry_string += aged_color;
     entry_string +=
         (entry.callsign[0] != ' ' ? entry.callsign + " " : entry.icaoStr + "   ") +
         to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +
@@ -184,6 +184,7 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
             break;
     }
     button_close.on_select = [&nav](Button&) {
+        ac_details_view_active = false;
         nav.pop();
     };
 };
@@ -219,6 +220,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
 }
 
 ADSBRxDetailsView::~ADSBRxDetailsView() {
+    ac_details_view_active = false;
     on_close_();
 }
 
@@ -262,6 +264,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
+        ac_details_view_active = true;
         aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(entry_copy, [this]() { send_updates = false; });
         send_updates = false;
     };
@@ -435,6 +438,11 @@ void ADSBRxView::updateDetailsAndMap(int ageStep) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
 
+    // NB: Temporarily pausing updates in rtc_timer_tick context when viewing AC Details screen (kludge for some Guru faults)
+    // TODO: More targeted blocking of updates in rtc_timer_tick when ADSB processes are running
+    if (ac_details_view_active)
+        return;
+
     // Sort and truncate the entries, grouped, newest group first
     sort_entries_by_state();
     truncate_entries(recent);
@@ -513,7 +521,6 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 
     baseband::set_adsb();
 
-    receiver_model.set_target_frequency(1'090'000'000);
     receiver_model.enable();
 }
 

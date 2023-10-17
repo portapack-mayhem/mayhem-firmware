@@ -51,6 +51,7 @@ class SigGenView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     TxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         1536000 /* sampling rate */
     };
@@ -92,9 +93,8 @@ class SigGenView : public View {
         ""};
 
     SymField symfield_tone{
-        {13 * 8, 7 * 8},
-        5,
-        SymField::SYMFIELD_DEC};
+        {12 * 8, 7 * 8},
+        5};
 
     Button button_update{
         {5 * 8, 10 * 8, 8 * 8, 3 * 8},

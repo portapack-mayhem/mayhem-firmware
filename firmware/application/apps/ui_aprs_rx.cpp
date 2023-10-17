@@ -42,15 +42,12 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    char aged_color;
     Color target_color;
     // auto entry_age = entry.age;
 
     target_color = Color::green();
 
-    aged_color = 0x10;
-    std::string entry_string = "\x1B";
-    entry_string += aged_color;
+    std::string entry_string = "";
 
     entry_string += entry.source_formatted;
     entry_string.append(10 - entry.source_formatted.size(), ' ');

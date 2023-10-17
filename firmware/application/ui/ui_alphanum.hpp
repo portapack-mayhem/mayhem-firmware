@@ -82,7 +82,8 @@ class AlphanumView : public TextEntryView {
         {192, 214, screen_width / 5, 38},
         {},
         &bitmap_icon_shift,
-        Color::dark_grey()};
+        Color::dark_grey(),
+        /*vcenter*/ true};
 
     Labels labels{
         {{1 * 8, 33 * 8}, "Raw:", Color::light_grey()},

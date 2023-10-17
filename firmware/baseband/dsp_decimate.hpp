@@ -23,18 +23,25 @@
 #define __DSP_DECIMATE_H__
 
 #include <cstdint>
+#include <algorithm>
 #include <array>
 #include <memory>
-#include <algorithm>
-
-#include "utility.hpp"
 
 #include "dsp_types.hpp"
-
 #include "simd.hpp"
+#include "utility.hpp"
 
 namespace dsp {
 namespace decimate {
+
+/* "Saturating" scalars used by decimators to scale either
+ * 8 or 16 bit complex values into 32 bit complex values.
+ * Some of the decimators accept a scale factor as part of
+ * configuration, which is then passed to scale_round_and_pack. */
+// c8_to_c32_sat_scalar == 2^25. 2^25 * 2^7 (signed C8 Max) == 2^32.
+constexpr int32_t c8_to_c32_sat_scalar = 0x2000000;
+// c16_to_c32_sat_scalar == 2^17. 2^17 * 2^15 (signed C16 Max) == 2^32.
+constexpr int32_t c16_to_c32_sat_scalar = 0x20000;
 
 class Complex8DecimateBy2CIC3 {
    public:
@@ -100,7 +107,7 @@ class FIRC8xR16x24FS4Decim4 {
 
     void configure(
         const std::array<tap_t, taps_count>& taps,
-        const int32_t scale,
+        const int32_t scale = c8_to_c32_sat_scalar,
         const Shift shift = Shift::Down);
 
     buffer_c16_t execute(
@@ -128,7 +135,7 @@ class FIRC8xR16x24FS4Decim8 {
 
     void configure(
         const std::array<tap_t, taps_count>& taps,
-        const int32_t scale,
+        const int32_t scale = c8_to_c32_sat_scalar,
         const Shift shift = Shift::Down);
 
     buffer_c16_t execute(
@@ -151,7 +158,7 @@ class FIRC16xR16x16Decim2 {
 
     void configure(
         const std::array<tap_t, taps_count>& taps,
-        const int32_t scale);
+        const int32_t scale = c16_to_c32_sat_scalar);
 
     buffer_c16_t execute(
         const buffer_c16_t& src,
@@ -173,7 +180,7 @@ class FIRC16xR16x32Decim8 {
 
     void configure(
         const std::array<tap_t, taps_count>& taps,
-        const int32_t scale);
+        const int32_t scale = c16_to_c32_sat_scalar);
 
     buffer_c16_t execute(
         const buffer_c16_t& src,

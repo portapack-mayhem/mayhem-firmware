@@ -142,6 +142,7 @@ class RDSView : public View {
     RDS_flags rds_flags{};
 
     TxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
@@ -287,7 +288,7 @@ class RDSView : public View {
     SymField sym_pi_code{
         {13 * 8, 28 + 16},
         4,
-        SymField::SYMFIELD_HEX};
+        SymField::Type::Hex};
 
     /*OptionsField options_coverage {
                 { 17 * 8, 32 + 8 },

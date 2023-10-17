@@ -33,7 +33,6 @@ BtnGridView::BtnGridView(
     bool keep_highlight)
     : keep_highlight{keep_highlight} {
     set_parent_rect(new_parent_rect);
-
     set_focusable(true);
 
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
@@ -47,10 +46,6 @@ BtnGridView::BtnGridView(
 
 BtnGridView::~BtnGridView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
-
-    for (auto item : menu_item_views) {
-        delete item;
-    }
 }
 
 void BtnGridView::set_max_rows(int rows) {
@@ -68,31 +63,30 @@ void BtnGridView::set_parent_rect(const Rect new_parent_rect) {
     arrow_more.set_parent_rect({228, (Coord)(displayed_max * button_h), 8, 8});
     displayed_max *= rows_;
 
-    // TODO: Clean this up :(
-    if (menu_item_views.size()) {
-        for (auto item : menu_item_views) {
-            remove_child(item);
-            delete item;
-        }
+    // Delete any existing buttons.
+    if (!menu_item_views.empty()) {
+        for (auto& item : menu_item_views)
+            remove_child(item.get());
+
         menu_item_views.clear();
     }
 
-    button_w = 240 / rows_;
+    button_w = screen_width / rows_;
     for (size_t c = 0; c < displayed_max; c++) {
-        auto item = new NewButton{};
-        menu_item_views.push_back(item);
-        add_child(item);
-
+        auto item = std::make_unique<NewButton>();
+        add_child(item.get());
         item->set_parent_rect({(int)(c % rows_) * button_w,
                                (int)(c / rows_) * button_h,
                                button_w, button_h});
+
+        menu_item_views.push_back(std::move(item));
     }
 
     update_items();
 }
 
-void BtnGridView::set_arrow_enabled(bool new_value) {
-    if (new_value) {
+void BtnGridView::set_arrow_enabled(bool enabled) {
+    if (enabled) {
         add_child(&arrow_more);
     } else {
         remove_child(&arrow_more);
@@ -116,9 +110,18 @@ void BtnGridView::clear() {
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
     for (auto item : new_items) {
-        menu_items.push_back(item);
+        if (!blacklisted_app(item))
+            menu_items.push_back(item);
     }
+
     update_items();
+}
+
+void BtnGridView::add_item(GridItem new_item) {
+    if (!blacklisted_app(new_item)) {
+        menu_items.push_back(new_item);
+        update_items();
+    }
 }
 
 void BtnGridView::update_items() {
@@ -130,7 +133,7 @@ void BtnGridView::update_items() {
     } else
         more = false;
 
-    for (NewButton* item : menu_item_views) {
+    for (auto& item : menu_item_views) {
         if ((i + offset) >= menu_items.size()) {
             item->hidden(true);
             item->set_text(" ");
@@ -152,7 +155,7 @@ void BtnGridView::update_items() {
 }
 
 NewButton* BtnGridView::item_view(size_t index) const {
-    return menu_item_views[index];
+    return menu_item_views[index].get();
 }
 
 bool BtnGridView::set_highlighted(int32_t new_value) {
@@ -229,6 +232,32 @@ bool BtnGridView::on_key(const KeyEvent key) {
 
 bool BtnGridView::on_encoder(const EncoderEvent event) {
     return set_highlighted(highlighted_item + event);
+}
+
+/* BlackList ******************************************************/
+
+std::unique_ptr<char> blacklist_ptr{};
+size_t blacklist_len{};
+
+void load_blacklist() {
+    File f;
+
+    auto error = f.open(BLACKLIST);
+    if (error)
+        return;
+
+    blacklist_ptr = std::unique_ptr<char>(new char[f.size()]);
+    if (f.read(blacklist_ptr.get(), f.size()))
+        blacklist_len = f.size();
+}
+
+bool BtnGridView::blacklisted_app(GridItem new_item) {
+    std::string app_name = new_item.text;
+
+    if (blacklist_len < app_name.size())
+        return false;
+
+    return std::search(blacklist_ptr.get(), blacklist_ptr.get() + blacklist_len, app_name.begin(), app_name.end()) < blacklist_ptr.get() + blacklist_len;
 }
 
 } /* namespace ui */

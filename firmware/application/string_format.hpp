@@ -43,21 +43,26 @@ const char unit_prefix[7]{'n', 'u', 'm', 0, 'k', 'M', 'G'};
 
 using StringFormatBuffer = std::array<char, 24>;
 
-/* uint conversion without memory allocations. */
-char* to_string_dec_uint(uint32_t n, StringFormatBuffer& buffer, size_t& length);
-char* to_string_dec_uint64(uint64_t n, StringFormatBuffer& buffer, size_t& length);
+/* Integer conversion without memory allocations. */
+char* to_string_dec_int(int64_t n, StringFormatBuffer& buffer, size_t& length);
+char* to_string_dec_uint(uint64_t n, StringFormatBuffer& buffer, size_t& length);
 
-std::string to_string_dec_uint(uint32_t n);
-std::string to_string_dec_uint64(uint64_t n);
+std::string to_string_dec_int(int64_t n);
+std::string to_string_dec_uint(uint64_t n);
 
-// TODO: Allow l=0 to not fill/justify? Already using this way in ui_spectrum.hpp...
 std::string to_string_bin(const uint32_t n, const uint8_t l = 0);
 std::string to_string_dec_uint(const uint32_t n, const int32_t l, const char fill = ' ');
-std::string to_string_dec_int(const int32_t n, const int32_t l = 0, const char fill = 0);
+std::string to_string_dec_int(const int32_t n, const int32_t l, const char fill = 0);
 std::string to_string_decimal(float decimal, int8_t precision);
 
-std::string to_string_hex(const uint64_t n, const int32_t l = 0);
-std::string to_string_hex_array(uint8_t* const array, const int32_t l = 0);
+std::string to_string_hex(uint64_t n, int32_t length);
+std::string to_string_hex_array(uint8_t* array, int32_t length);
+
+/* Helper to select length based on type size. */
+template <typename T>
+std::string to_string_hex(T n) {
+    return to_string_hex(n, sizeof(T) * 2);  // Two digits/byte.
+}
 
 std::string to_string_freq(const uint64_t f);
 std::string to_string_short_freq(const uint64_t f);
@@ -71,11 +76,21 @@ std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 // Gets a human readable file size string.
 std::string to_string_file_size(uint32_t file_size);
 
-std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision);
+/* Scales 'n' to be a value less than 1000. 'base_unit' is the index of the unit from
+ * 'unit_prefix' that 'n' is in initially. 3 is the index of the '1s' unit. */
+std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision);
 double get_decimals(double num, int16_t mult, bool round = false);
 
 std::string trim(std::string_view str);   // Remove whitespace at ends.
 std::string trimr(std::string_view str);  // Remove trailing spaces
 std::string truncate(std::string_view, size_t length);
+
+/* Gets the int value for a character given the radix.
+ * e.g. '5' => 5, 'D' => 13. Out of bounds => 0. */
+uint8_t char_to_uint(char c, uint8_t radix = 10);
+
+/* Gets the int value for a character given the radix.
+ * e.g. 5 => '5', 13 => 'D'. Out of bounds => '\0'. */
+char uint_to_char(uint8_t val, uint8_t radix = 10);
 
 #endif /*__STRING_FORMAT_H__*/

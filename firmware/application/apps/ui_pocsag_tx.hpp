@@ -60,6 +60,7 @@ class POCSAGTXView : public View {
     NavigationView& nav_;
 
     TxRadioState radio_state_{
+        466175000 /* frequency */,
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
@@ -94,8 +95,7 @@ class POCSAGTXView : public View {
 
     SymField field_address{
         {11 * 8, 6 * 8},
-        7,
-        SymField::SYMFIELD_DEC};
+        7};
 
     OptionsField options_type{
         {11 * 8, 8 * 8},

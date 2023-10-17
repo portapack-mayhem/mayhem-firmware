@@ -123,12 +123,11 @@ class ERTAppView : public View {
     std::string title() const override { return "ERT RX"; };
 
    private:
-    static constexpr uint32_t initial_target_frequency = 911600000;
-
     ERTRecentEntries recent{};
     std::unique_ptr<ERTLogger> logger{};
 
     RxRadioState radio_state_{
+        911600000 /* frequency */,
         2500000 /* bandwidth */,
         4194304 /* sampling rate */};
     app_settings::SettingsManager settings_{

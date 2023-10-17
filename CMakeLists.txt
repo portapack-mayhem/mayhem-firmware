@@ -42,6 +42,12 @@ if ("$ENV{VERSION_STRING}" STREQUAL "")
 	endif (GIT_VERSION_FOUND)
 endif()
 
+execute_process(
+	COMMAND bash "-c" "echo ${VERSION} | md5sum | head -c 8"
+	OUTPUT_VARIABLE VERSION_MD5
+)
+set(VERSION_MD5 "0x${VERSION_MD5}")
+
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
 set(HARDWARE_PATH ${CMAKE_CURRENT_LIST_DIR}/hardware)
 

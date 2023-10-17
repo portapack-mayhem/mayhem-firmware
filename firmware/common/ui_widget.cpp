@@ -28,6 +28,7 @@
 #include <cstddef>
 #include <algorithm>
 
+#include "irq_controls.hpp"
 #include "string_format.hpp"
 
 using namespace portapack;
@@ -134,7 +135,6 @@ void Widget::focus() {
 }
 
 void Widget::on_focus() {
-    // set_dirty();
 }
 
 void Widget::blur() {
@@ -142,7 +142,6 @@ void Widget::blur() {
 }
 
 void Widget::on_blur() {
-    // set_dirty();
 }
 
 bool Widget::focusable() const {
@@ -365,13 +364,18 @@ void Text::set(std::string_view value) {
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
+    auto max_len = (unsigned)rect.width() / s.font.char_width();
+    auto text_view = std::string_view{text};
 
     painter.fill_rectangle(rect, s.background);
+
+    if (text_view.length() > max_len)
+        text_view = text_view.substr(0, max_len);
 
     painter.draw_string(
         rect.location(),
         s,
-        text);
+        text_view);
 }
 
 /* Labels ****************************************************************/
@@ -489,7 +493,9 @@ void BigFrequency::paint(Painter& painter) {
     const auto rect = screen_rect();
 
     // Erase
-    painter.fill_rectangle({{0, rect.location().y()}, {240, 52}}, ui::Color::black());
+    painter.fill_rectangle(
+        {{0, rect.location().y()}, {screen_width, 52}},
+        ui::Color::black());
 
     // Prepare digits
     if (!_frequency) {
@@ -607,12 +613,12 @@ void Console::write(std::string message) {
     if (!hidden() && visible()) {
         const Style& s = style();
         const Font& font = s.font;
-        const auto rect = screen_rect();
+        auto rect = screen_rect();
         ui::Color pen_color = s.foreground;
 
-        for (const auto c : message) {
+        for (auto c : message) {
             if (escape) {
-                if (c <= 15)
+                if (c < std::size(term_colors))
                     pen_color = term_colors[(uint8_t)c];
                 else
                     pen_color = s.foreground;
@@ -620,15 +626,18 @@ void Console::write(std::string message) {
             } else {
                 if (c == '\n') {
                     crlf();
+                } else if (c == '\r') {
+                    pos = {0, pos.y()};
                 } else if (c == '\x1B') {
                     escape = true;
                 } else {
-                    const auto glyph = font.glyph(c);
-                    const auto advance = glyph.advance();
-                    if ((pos.x() + advance.x()) > rect.width()) {
+                    auto glyph = font.glyph(c);
+                    auto advance = glyph.advance();
+                    // Would drawing next character be off the end? Newline.
+                    if ((pos.x() + advance.x()) > rect.width())
                         crlf();
-                    }
-                    const Point pos_glyph{
+
+                    Point pos_glyph{
                         rect.left() + pos.x(),
                         display.scroll_area_y(pos.y())};
                     display.draw_glyph(pos_glyph, glyph, pen_color, s.background);
@@ -644,7 +653,6 @@ void Console::write(std::string message) {
 
 void Console::writeln(std::string message) {
     write(message + "\n");
-    // crlf();
 }
 
 void Console::paint(Painter&) {
@@ -654,15 +662,23 @@ void Console::paint(Painter&) {
 void Console::on_show() {
     enable_scrolling(true);
     clear();
-    // visible = true;
 }
 
 bool Console::scrolling_enabled = false;
 
 void Console::enable_scrolling(bool enable) {
     if (enable) {
-        const auto screen_r = screen_rect();
-        display.scroll_set_area(screen_r.top(), screen_r.bottom());
+        auto sr = screen_rect();
+        auto line_height = style().font.line_height();
+
+        // Count full lines that can fit in console's rectangle.
+        auto max_lines = sr.height() / line_height;  // NB: int division to floor.
+
+        // The scroll area must be a multiple of the line_height
+        // or some lines will end up vertically truncated.
+        scroll_height = max_lines * line_height;
+
+        display.scroll_set_area(sr.top(), sr.top() + scroll_height);
         display.scroll_set_position(0);
         scrolling_enabled = true;
     } else {
@@ -673,28 +689,37 @@ void Console::enable_scrolling(bool enable) {
 
 void Console::on_hide() {
     /* TODO: Clear region to eliminate brief flash of content at un-shifted
-     * position?
-     */
+     * position? */
     enable_scrolling(false);
-    // visible = false;
 }
 
 void Console::crlf() {
     if (hidden() || !visible()) return;
 
-    const Style& s = style();
-    const auto sr = screen_rect();
-    const auto line_height = s.font.line_height();
-    pos = {0, pos.y() + line_height};
-    const int32_t y_excess = pos.y() + line_height - sr.height();
-    if (y_excess > 0) {
-        if (!scrolling_enabled) {
-            enable_scrolling(true);
-        }
-        display.scroll(-y_excess);
-        pos = {pos.x(), pos.y() - y_excess};
+    const auto& s = style();
+    auto sr = screen_rect();
+    auto line_height = s.font.line_height();
 
-        const Rect dirty{sr.left(), display.scroll_area_y(pos.y()), sr.width(), line_height};
+    // Advance to the next line (\n) position and "carriage return" x to 0.
+    pos = {0, pos.y() + line_height};
+
+    if (pos.y() >= scroll_height) {
+        // Line is past off the "bottom", need to scroll.
+        if (!scrolling_enabled)
+            enable_scrolling(true);
+
+        // See the notes in lcd_ili9341.hpp about how scrolling works.
+        // The gist is that VSA will be moved to scroll the "top" off the
+        // screen. The drawing code uses 'scroll_area_y' to get the actual
+        // screen coordinate based on VSA. The "bottom" line is *always*
+        // at 'VSA + ((max_lines - 1) * line_height)' and so is constant.
+        pos = {0, scroll_height - line_height};
+
+        // Scroll off the "top" line.
+        display.scroll(-line_height);
+
+        // Clear the new line at the "bottom".
+        Rect dirty{sr.left(), display.scroll_area_y(pos.y()), sr.width(), line_height};
         display.fill_rectangle(dirty, s.background);
     }
 }
@@ -1115,9 +1140,9 @@ NewButton::NewButton(
     Color color,
     bool vertical_center)
     : Widget{parent_rect},
+      color_{color},
       text_{text},
       bitmap_{bitmap},
-      color_{color},
       vertical_center_{vertical_center} {
     set_focusable(true);
 }
@@ -1158,18 +1183,8 @@ void NewButton::paint(Painter& painter) {
     if (!bitmap_ && text_.empty())
         return;
 
-    Color bg, fg;
     const auto r = screen_rect();
-
-    if (has_focus() || highlighted()) {
-        bg = style().foreground;
-        fg = Color::black();
-    } else {
-        bg = Color::grey();
-        fg = style().foreground;
-    }
-
-    const Style paint_style = {style().font, bg, fg};
+    const Style style = paint_style();
 
     painter.draw_rectangle({r.location(), {r.width(), 1}}, Color::light_grey());
     painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Color::dark_grey());
@@ -1177,7 +1192,7 @@ void NewButton::paint(Painter& painter) {
 
     painter.fill_rectangle(
         {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
-        paint_style.background);
+        style.background);
 
     int y = r.top();
     if (bitmap_) {
@@ -1189,16 +1204,30 @@ void NewButton::paint(Painter& painter) {
             bmp_pos,
             *bitmap_,
             color_,
-            bg);
+            style.background);
     }
 
     if (!text_.empty()) {
-        const auto label_r = paint_style.font.size_of(text_);
+        const auto label_r = style.font.size_of(text_);
         painter.draw_string(
             {r.left() + (r.width() - label_r.width()) / 2, y + (r.height() - label_r.height()) / 2},
-            paint_style,
+            style,
             text_);
     }
+}
+
+Style NewButton::paint_style() {
+    MutableStyle s{style()};
+
+    if (has_focus() || highlighted()) {
+        s.background = style().foreground;
+        s.foreground = Color::black();
+    } else {
+        s.background = Color::grey();
+        s.foreground = style().foreground;
+    }
+
+    return s;
 }
 
 void NewButton::on_focus() {
@@ -1704,9 +1733,15 @@ bool TextEdit::on_key(const KeyEvent key) {
         cursor_pos_--;
     else if (key == KeyEvent::Right && cursor_pos_ < text_.length())
         cursor_pos_++;
-    else if (key == KeyEvent::Select)
-        insert_mode_ = !insert_mode_;
-    else
+    else if (key == KeyEvent::Select) {
+        if (key_is_long_pressed(key)) {
+            // Delete text to the cursor.
+            text_ = text_.substr(cursor_pos_);
+            set_cursor(0);
+        } else {
+            insert_mode_ = !insert_mode_;
+        }
+    } else
         return false;
 
     set_dirty();
@@ -1734,6 +1769,19 @@ bool TextEdit::on_touch(const TouchEvent event) {
     return true;
 }
 
+void TextEdit::on_focus() {
+    // Enable long press on "Select".
+    SwitchesState config;
+    config[toUType(Switch::Sel)] = true;
+    set_switches_long_press_config(config);
+}
+
+void TextEdit::on_blur() {
+    // Reset long press.
+    SwitchesState config{};
+    set_switches_long_press_config(config);
+}
+
 /* TextField *************************************************************/
 
 TextField::TextField(Rect parent_rect, std::string text)
@@ -1754,6 +1802,24 @@ void TextField::set_text(std::string_view value) {
 bool TextField::on_key(KeyEvent key) {
     if (key == KeyEvent::Select && on_select) {
         on_select(*this);
+        return true;
+    }
+
+    return false;
+}
+
+bool TextField::on_encoder(EncoderEvent delta) {
+    if (on_encoder_change) {
+        on_encoder_change(*this, delta);
+        return true;
+    }
+
+    return false;
+}
+
+bool TextField::on_touch(TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
         return true;
     }
 
@@ -1790,7 +1856,7 @@ void NumberField::set_value(int32_t new_value, bool trigger_change) {
             new_value = range.second + new_value + 1;
     }
 
-    new_value = clip_value(new_value);
+    new_value = clip(new_value, range.first, range.second);
 
     if (new_value != value()) {
         value_ = new_value;
@@ -1845,169 +1911,185 @@ bool NumberField::on_touch(const TouchEvent event) {
     return true;
 }
 
-int32_t NumberField::clip_value(int32_t value) {
-    if (value > range.second) {
-        value = range.second;
-    }
-    if (value < range.first) {
-        value = range.first;
-    }
-    return value;
-}
-
 /* SymField **************************************************************/
 
 SymField::SymField(
     Point parent_pos,
     size_t length,
-    symfield_type type)
-    : Widget{{parent_pos, {static_cast<ui::Dim>(8 * length), 16}}},
-      length_{length},
-      type_{type} {
-    uint32_t c;
+    Type type,
+    bool explicit_edits)
+    : Widget{{parent_pos, {char_width * (int)length, 16}}},
+      type_{type},
+      explicit_edits_{explicit_edits} {
+    if (length == 0)
+        length = 1;
 
-    // Auto-init
-    if (type == SYMFIELD_OCT) {
-        for (c = 0; c < length; c++)
-            set_symbol_list(c, "01234567");
-    } else if (type == SYMFIELD_DEC) {
-        for (c = 0; c < length; c++)
-            set_symbol_list(c, "0123456789");
-    } else if (type == SYMFIELD_HEX) {
-        for (c = 0; c < length; c++)
-            set_symbol_list(c, "0123456789ABCDEF");
-    } else if (type == SYMFIELD_ALPHANUM) {
-        for (c = 0; c < length; c++)
-            set_symbol_list(c, " 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+    selected_ = length - 1;
+    value_.resize(length);
+
+    switch (type) {
+        case Type::Oct:
+            set_symbol_list("01234567");
+            break;
+
+        case Type::Dec:
+            set_symbol_list("0123456789");
+            break;
+
+        case Type::Hex:
+            set_symbol_list("0123456789ABCDEF");
+            break;
+
+        case Type::Alpha:
+            set_symbol_list(" 0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+            break;
+
+        default:
+            set_symbol_list("01");
+            break;
     }
 
     set_focusable(true);
 }
 
-uint16_t SymField::concatenate_4_octal_u16() {
-    // input array 4  octal digits , return 12 bits, same order,  trippled A4-A2-A1|B4-B2-B1|C4-C2-C1|D4-D2-D1
-    uint32_t mul = 1;
-    uint16_t v = 0;
-
-    if (type_ == SYMFIELD_OCT) {
-        for (uint32_t c = 0; c < length_; c++) {
-            v += values_[(length_ - 1 - c)] * mul;
-            mul *= 8;  // shift 3 bits to the right every new octal squawk digit
-        }
-        return v;
-    } else
-        return 0;
+SymField::SymField(
+    Point parent_pos,
+    size_t length,
+    std::string symbol_list,
+    bool explicit_edits)
+    : SymField{parent_pos, length, Type::Custom, explicit_edits} {
+    set_symbol_list(std::move(symbol_list));
 }
 
-uint32_t SymField::value_dec_u32() {
-    uint32_t mul = 1, v = 0;
-
-    if (type_ == SYMFIELD_DEC) {
-        for (uint32_t c = 0; c < length_; c++) {
-            v += values_[(length_ - 1 - c)] * mul;
-            mul *= 10;
-        }
-        return v;
-    } else
+char SymField::get_symbol(size_t index) const {
+    if (index >= value_.length())
         return 0;
+
+    return value_[index];
 }
 
-uint64_t SymField::value_hex_u64() {
+void SymField::set_symbol(size_t index, char symbol) {
+    if (index >= value_.length())
+        return;
+
+    set_symbol_internal(index, ensure_valid(symbol));
+}
+
+size_t SymField::get_offset(size_t index) const {
+    if (index >= value_.length())
+        return 0;
+
+    // NB: Linear search - symbol lists are small.
+    return symbols_.find(value_[index]);
+}
+
+void SymField::set_offset(size_t index, size_t offset) {
+    if (index >= value_.length() || offset >= symbols_.length())
+        return;
+
+    set_symbol_internal(index, symbols_[offset]);
+}
+
+void SymField::set_symbol_list(std::string symbol_list) {
+    if (symbol_list.length() == 0)
+        return;
+
+    symbols_ = std::move(symbol_list);
+    ensure_all_symbols();
+}
+
+void SymField::set_value(uint64_t value) {
+    auto v = value;
+    uint8_t radix = get_radix();
+
+    for (int i = value_.length() - 1; i >= 0; --i) {
+        uint8_t temp = v % radix;
+        value_[i] = uint_to_char(temp, radix);
+        v /= radix;
+    }
+
+    if (on_change)
+        on_change(*this);
+}
+
+void SymField::set_value(std::string_view value) {
+    // Is new value too long?
+    // TODO: Truncate instead? Which end?
+    if (value.length() > value_.length())
+        return;
+
+    // Right-align string in field.
+    auto left_padding = value_.length() - value.length();
+    value_ = std::string(static_cast<size_t>(left_padding), '\0') + std::string{value};
+    ensure_all_symbols();
+}
+
+uint64_t SymField::to_integer() const {
     uint64_t v = 0;
+    uint64_t mul = 1;
+    uint8_t radix = get_radix();
 
-    if (type_ != SYMFIELD_DEF) {
-        for (uint32_t c = 0; c < length_; c++)
-            v += (uint64_t)(values_[c]) << (4 * (length_ - 1 - c));
-        return v;
-    } else
-        return 0;
-}
-
-std::string SymField::value_string() {
-    std::string return_string{""};
-
-    if (type_ == SYMFIELD_ALPHANUM) {
-        for (uint32_t c = 0; c < length_; c++) {
-            return_string += symbol_list_[0][values_[c]];
-        }
+    for (int i = value_.length() - 1; i >= 0; --i) {
+        auto temp = char_to_uint(value_[i], radix);
+        v += temp * mul;
+        mul *= radix;
     }
 
-    return return_string;
+    return v;
 }
 
-uint32_t SymField::get_sym(const uint32_t index) {
-    if (index >= length_) return 0;
-
-    return values_[index];
-}
-
-void SymField::set_sym(const uint32_t index, const uint32_t new_value) {
-    if (index >= length_) return;
-
-    uint32_t clipped_value = clip_value(index, new_value);
-
-    if (clipped_value != values_[index]) {
-        values_[index] = clipped_value;
-        if (on_change) {
-            on_change();
-        }
-        set_dirty();
-    }
-}
-
-void SymField::set_length(const uint32_t new_length) {
-    if ((new_length <= 32) && (new_length != length_)) {
-        prev_length_ = length_;
-        length_ = new_length;
-
-        // Clip eventual garbage from previous shorter word
-        for (size_t n = 0; n < length_; n++)
-            set_sym(n, values_[n]);
-
-        erase_prev_ = true;
-        set_dirty();
-    }
-}
-
-void SymField::set_symbol_list(const uint32_t index, const std::string symbol_list) {
-    if (index >= length_) return;
-
-    symbol_list_[index] = symbol_list;
-
-    // Re-clip symbol's value
-    set_sym(index, values_[index]);
+const std::string& SymField::to_string() const {
+    return value_;
 }
 
 void SymField::paint(Painter& painter) {
-    Point pt_draw = screen_pos();
+    Point p = screen_pos();
 
-    if (erase_prev_) {
-        painter.fill_rectangle({pt_draw, {(int)prev_length_ * 8, 16}}, Color::black());
-        erase_prev_ = false;
-    }
+    for (size_t n = 0; n < value_.length(); n++) {
+        auto c = value_[n];
+        MutableStyle paint_style{style()};
 
-    for (size_t n = 0; n < length_; n++) {
-        const auto text = symbol_list_[n].substr(values_[n], 1);
+        // Only highlight while focused.
+        if (has_focus()) {
+            if (explicit_edits_) {
+                // Invert the whole field on focus if explicit edits is enabled.
+                paint_style.invert();
+            } else if (n == selected_) {
+                // Otherwise only highlight the selected symbol.
+                paint_style.invert();
+            }
 
-        const auto paint_style = (has_focus() && (n == selected_)) ? style().invert() : style();
+            if (editing_ && n == selected_) {
+                // Use 'bg_blue' style to indicate in editing mode.
+                paint_style.foreground = Color::white();
+                paint_style.background = Color::blue();
+            }
+        }
 
-        painter.draw_string(
-            pt_draw,
-            paint_style,
-            text);
-
-        pt_draw += {8, 0};
+        painter.draw_char(p, paint_style, c);
+        p += {8, 0};
     }
 }
 
-bool SymField::on_key(const KeyEvent key) {
+bool SymField::on_key(KeyEvent key) {
+    // If explicit edits are enabled, only Select is handled when not in edit mode.
+    if (explicit_edits_ && !editing_) {
+        switch (key) {
+            case KeyEvent::Select:
+                editing_ = true;
+                set_dirty();
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
     switch (key) {
         case KeyEvent::Select:
-            if (on_select) {
-                on_select(*this);
-                return true;
-            }
-            break;
+            editing_ = !editing_;
+            set_dirty();
+            return true;
 
         case KeyEvent::Left:
             if (selected_ > 0) {
@@ -2018,9 +2100,23 @@ bool SymField::on_key(const KeyEvent key) {
             break;
 
         case KeyEvent::Right:
-            if (selected_ < (length_ - 1)) {
+            if (selected_ < (value_.length() - 1)) {
                 selected_++;
                 set_dirty();
+                return true;
+            }
+            break;
+
+        case KeyEvent::Up:
+            if (editing_) {
+                on_encoder(1);
+                return true;
+            }
+            break;
+
+        case KeyEvent::Down:
+            if (editing_) {
+                on_encoder(-1);
                 return true;
             }
             break;
@@ -2032,29 +2128,66 @@ bool SymField::on_key(const KeyEvent key) {
     return false;
 }
 
-bool SymField::on_encoder(const EncoderEvent delta) {
-    int32_t new_value = (int)values_[selected_] + delta;
+bool SymField::on_encoder(EncoderEvent delta) {
+    if (explicit_edits_ && !editing_)
+        return false;
 
-    if (new_value >= 0)
-        set_sym(selected_, values_[selected_] + delta);
+    // TODO: Wrapping or carrying might be nice.
+    int offset = get_offset(selected_) + delta;
+
+    offset = clip<int>(offset, 0, symbols_.length() - 1);
+    set_offset(selected_, offset);
 
     return true;
 }
 
-bool SymField::on_touch(const TouchEvent event) {
-    if (event.type == TouchEvent::Type::Start) {
+bool SymField::on_touch(TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start)
         focus();
-    }
+
     return true;
 }
 
-int32_t SymField::clip_value(const uint32_t index, const uint32_t value) {
-    size_t symbol_count = symbol_list_[index].length() - 1;
+char SymField::ensure_valid(char symbol) const {
+    // NB: Linear search - symbol lists are small.
+    auto pos = symbols_.find(symbol);
+    return pos != std::string::npos ? symbol : symbols_[0];
+}
 
-    if (value > symbol_count)
-        return symbol_count;
-    else
-        return value;
+void SymField::ensure_all_symbols() {
+    auto temp = value_;
+
+    for (auto& c : value_)
+        c = ensure_valid(c);
+
+    if (temp != value_) {
+        if (on_change)
+            on_change(*this);
+        set_dirty();
+    }
+}
+
+void SymField::set_symbol_internal(size_t index, char symbol) {
+    if (value_[index] == symbol)
+        return;
+
+    value_[index] = symbol;
+    if (on_change)
+        on_change(*this);
+    set_dirty();
+}
+
+uint8_t SymField::get_radix() const {
+    switch (type_) {
+        case Type::Oct:
+            return 8;
+        case Type::Dec:
+            return 10;
+        case Type::Hex:
+            return 16;
+        default:
+            return 0;
+    }
 }
 
 /* Waveform **************************************************************/

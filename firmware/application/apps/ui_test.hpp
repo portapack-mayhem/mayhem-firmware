@@ -62,6 +62,7 @@ class TestView : public View {
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         2457600 * 2 /* sampling rate */
     };

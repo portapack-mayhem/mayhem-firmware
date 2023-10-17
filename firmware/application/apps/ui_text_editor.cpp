@@ -29,14 +29,6 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
-namespace {
-/*void log(const std::string& msg) {
-    LogFile log{};
-    log.append("LOGS/Notepad.txt");
-    log.write_entry(msg);
-}*/
-}  // namespace
-
 namespace ui {
 
 /* TextViewer *******************************************************/
@@ -360,6 +352,8 @@ TextEditorView::TextEditorView(NavigationView& nav)
             &text_size,
         });
 
+    viewer.set_font_zoom(enable_zoom);
+
     viewer.on_select = [this]() {
         // Treat as if menu button was pressed.
         if (button_menu.on_select)
@@ -382,7 +376,7 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.on_zoom() = [this]() {
-        viewer.toggle_font_zoom();
+        enable_zoom = viewer.toggle_font_zoom();
         refresh_ui();
         hide_menu(true);
     };
@@ -411,16 +405,9 @@ TextEditorView::TextEditorView(NavigationView& nav)
     };
 
     menu.on_open() = [this]() {
-        /*show_save_prompt([this]() {
+        show_save_prompt([this]() {
             show_file_picker();
-        });*/
-        // HACK: above should work but it's faulting.
-        if (!file_dirty_) {
-            show_file_picker();
-        } else {
-            show_save_prompt(nullptr);
-            show_file_picker(false);
-        }
+        });
     };
 
     menu.on_save() = [this]() {
@@ -528,16 +515,16 @@ void TextEditorView::hide_menu(bool hidden) {
     set_dirty();
 }
 
-void TextEditorView::show_file_picker(bool immediate) {
-    // TODO: immediate is a hack until nav_.on_pop is fixed.
-    auto open_view = immediate ? nav_.push<FileLoadView>("") : nav_.push_under_current<FileLoadView>("");
-
-    if (open_view) {
-        open_view->on_changed = [this](std::filesystem::path path) {
-            open_file(path);
+void TextEditorView::show_file_picker() {
+    auto open_view = nav_.push<FileLoadView>("");
+    open_view->on_changed = [this](std::filesystem::path path) {
+        // Can't update the UI focus while the FileLoadView is still up.
+        // Do this on a continuation instead of in on_changed.
+        nav_.set_on_pop([this, p = std::move(path)]() {
+            open_file(p);
             hide_menu();
-        };
-    }
+        });
+    };
 }
 
 void TextEditorView::show_edit_line() {

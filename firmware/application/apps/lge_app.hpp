@@ -51,6 +51,7 @@ class LGEView : public View {
     };
 
     TxRadioState radio_state_{
+        868067000 /* frequency */,
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };

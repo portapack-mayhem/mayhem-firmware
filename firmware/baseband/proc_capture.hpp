@@ -33,6 +33,56 @@
 
 #include <array>
 #include <memory>
+#include <tuple>
+#include <variant>
+
+/* A decimator that just returns the source buffer. */
+class NoopDecim {
+   public:
+    static constexpr int decimation_factor = 1;
+
+    template <typename Buffer>
+    Buffer execute(const Buffer& src, const Buffer&) {
+        // TODO: should this copy to 'dst'?
+        return {src.p, src.count, src.sampling_rate};
+    }
+};
+
+/* Decimator wrapper that can hold one of a set of decimators and dispatch at runtime. */
+template <typename... Args>
+class MultiDecimator {
+   public:
+    /* Dispatches to the underlying type's execute. */
+    template <typename Source, typename Destination>
+    Destination execute(
+        const Source& src,
+        const Destination& dst) {
+        return std::visit(
+            [&src, &dst](auto&& arg) -> Destination {
+                return arg.execute(src, dst);
+            },
+            decimator_);
+    }
+
+    size_t decimation_factor() const {
+        return std::visit(
+            [](auto&& arg) -> size_t {
+                return arg.decimation_factor;
+            },
+            decimator_);
+    }
+
+    /* Sets this decimator to a new instance of the specified decimator type.
+     * NB: The instance is returned by-ref so 'configure' can easily be called. */
+    template <typename Decimator>
+    Decimator& set() {
+        decimator_ = Decimator{};
+        return std::get<Decimator>(decimator_);
+    }
+
+   private:
+    std::variant<Args...> decimator_{};
+};
 
 class CaptureProcessor : public BasebandProcessor {
    public:
@@ -42,7 +92,7 @@ class CaptureProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    size_t baseband_fs = 3072000;
+    size_t baseband_fs = 3072000;  // aka: sample_rate
     static constexpr auto spectrum_rate_hz = 50.0f;
 
     std::array<complex16_t, 512> dst{};
@@ -50,14 +100,17 @@ class CaptureProcessor : public BasebandProcessor {
         dst.data(),
         dst.size()};
 
-    /* NB: There are two decimation passes: 0 and 1. In pass 0, one of
-     * the following will be selected based on the oversample rate.
-     * use decim_0_4 for an overall decimation factor of 8.
-     * use decim_0_8 for an overall decimation factor of 16. */
-    dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0_4{};
-    dsp::decimate::FIRC8xR16x24FS4Decim8 decim_0_8{};
+    /* The actual type will be configured depending on the sample rate. */
+    MultiDecimator<
+        dsp::decimate::FIRC8xR16x24FS4Decim4,
+        dsp::decimate::FIRC8xR16x24FS4Decim8>
+        decim_0{};
+    MultiDecimator<
+        dsp::decimate::FIRC16xR16x16Decim2,
+        dsp::decimate::FIRC16xR16x32Decim8,
+        NoopDecim>
+        decim_1{};
 
-    dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
     int32_t channel_filter_low_f = 0;
     int32_t channel_filter_high_f = 0;
     int32_t channel_filter_transition = 0;
@@ -67,19 +120,14 @@ class CaptureProcessor : public BasebandProcessor {
     SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
     size_t spectrum_samples = 0;
-    OversampleRate oversample_rate{OversampleRate::Rate8x};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
 
-    /* Called to update members when the sample rate or oversample rate is changed. */
-    void update_for_rate_change();
+    void sample_rate_config(const SampleRateConfigMessage& message);
     void capture_config(const CaptureConfigMessage& message);
-
-    /* Dispatch to the correct decim_0 based on oversample rate. */
-    buffer_c16_t decim_0_execute(const buffer_c8_t& src, const buffer_c16_t& dst);
 };
 
 #endif /*__PROC_CAPTURE_HPP__*/

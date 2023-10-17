@@ -342,6 +342,7 @@ class ADSBRxView : public View {
 
    private:
     RxRadioState radio_state_{
+        1090000000 /* frequency */,
         2500000 /* bandwidth */,
         2000000 /* sampling rate */,
         ReceiverModel::Mode::SpectrumAnalysis};

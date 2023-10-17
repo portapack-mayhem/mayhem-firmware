@@ -37,7 +37,7 @@
 
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
-#define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spureous
+#define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
 
 namespace ui {
 
@@ -110,11 +110,29 @@ class ScannerView : public View {
     std::string title() const override { return "Scanner"; };
 
    private:
+    static constexpr const char* default_freqman_file = "SCANNER";
+
+    RxRadioState radio_state_{};
+
+    // Settings
+    uint32_t browse_wait{5};
+    uint32_t lock_wait{2};
+    int32_t squelch{-30};
+    scanner_range_t frequency_range{0, MAX_UFREQ};
+    std::string freqman_file{default_freqman_file};
     app_settings::SettingsManager settings_{
-        "rx_scanner", app_settings::Mode::RX};
+        "rx_scanner"sv,
+        app_settings::Mode::RX,
+        {
+            {"browse_wait"sv, &browse_wait},
+            {"lock_wait"sv, &lock_wait},
+            {"scanner_squelch"sv, &squelch},
+            {"range_min"sv, &frequency_range.min},
+            {"range_max"sv, &frequency_range.max},
+            {"file"sv, &freqman_file},
+        }};
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
 
     void start_scan_thread();
     void restart_scan();
@@ -128,20 +146,15 @@ class ScannerView : public View {
     void update_squelch_while_paused(int32_t max_db);
     void on_statistics_update(const ChannelStatistics& statistics);
     void handle_retune(int64_t freq, uint32_t freq_idx);
-
+    void handle_encoder(EncoderEvent delta);
     std::string loaded_filename() const;
 
-    scanner_range_t frequency_range{0, 0};
-    int32_t squelch{0};
     uint32_t browse_timer{0};
     uint32_t lock_timer{0};
     uint32_t color_timer{0};
     int32_t bigdisplay_current_color{-2};
     rf::Frequency bigdisplay_current_frequency{0};
-    uint32_t browse_wait{0};
-    uint32_t lock_wait{0};
 
-    std::filesystem::path loaded_path{};
     std::vector<scanner_entry_t> entries{};
     uint32_t current_index{0};
     rf::Frequency current_frequency{0};
@@ -213,8 +226,9 @@ class ScannerView : public View {
         {0 * 16, 2 * 16, 15 * 16, 8},
     };
 
-    Text text_current_index{
+    TextField field_current_index{
         {0, 3 * 16, 3 * 8, 16},
+        {},
     };
 
     Text text_max_index{
@@ -225,9 +239,9 @@ class ScannerView : public View {
         {0, 4 * 16, 240 - 6 * 8, 16},
     };
 
-    BigFrequency big_display{// Show frequency in glamour
-                             {4, 6 * 16, 28 * 8, 52},
-                             0};
+    BigFrequency big_display{
+        {4, 6 * 16, 28 * 8, 52},
+        0};
 
     Button button_manual_start{
         {0 * 8, 11 * 16, 11 * 8, 28},

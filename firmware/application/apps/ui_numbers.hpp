@@ -56,6 +56,7 @@ class NumbersStationView : public View {
     NavigationView& nav_;
 
     TxRadioState radio_state_{
+        0 /* frequency */,
         1750000 /* bandwidth */,
         1536000 /* sampling rate */
     };
@@ -142,16 +143,19 @@ class NumbersStationView : public View {
     SymField symfield_code{
         {1 * 8, 10 * 8},
         25,
-        SymField::SYMFIELD_DEF};
+        SymField::Type::Custom};
 
     Checkbox check_armed{
         {2 * 8, 13 * 16},
         5,
         "Armed"};
-    /*Button button_tx_now {
-                { 18 * 8, 13 * 16, 10 * 8, 32 },
-                "TX now"
-        };*/
+
+    /*
+    Button button_tx_now {
+        { 18 * 8, 13 * 16, 10 * 8, 32 },
+        "TX now"};
+    */
+
     Button button_exit{
         {21 * 8, 16 * 16, 64, 32},
         "Exit"};

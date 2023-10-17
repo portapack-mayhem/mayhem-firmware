@@ -190,7 +190,11 @@ class APRSRxView : public View {
     bool reset_console = false;
 
     NavigationView& nav_;
-    RxRadioState radio_state_{};
+    RxRadioState radio_state_{
+        144390000 /* frequency */,
+        1750000 /* bandwidth */,
+        3072000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
         "rx_aprs", app_settings::Mode::RX};
 

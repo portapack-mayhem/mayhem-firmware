@@ -26,8 +26,8 @@
 #include "event_m4.hpp"
 
 TPMSProcessor::TPMSProcessor() {
-    decim_0.configure(taps_200k_decim_0.taps, 33554432);
-    decim_1.configure(taps_200k_decim_1.taps, 131072);
+    decim_0.configure(taps_200k_decim_0.taps);
+    decim_1.configure(taps_200k_decim_1.taps);
     baseband_thread.start();
 }
 

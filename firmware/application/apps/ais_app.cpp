@@ -382,9 +382,6 @@ AISAppView::AISAppView(NavigationView& nav)
 
     recent_entry_detail_view.hidden(true);
 
-    if (!settings_.loaded())
-        receiver_model.set_target_frequency(initial_target_frequency);
-
     receiver_model.enable();
 
     options_channel.on_change = [this](size_t, OptionsField::value_t v) {

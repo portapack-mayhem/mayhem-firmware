@@ -173,13 +173,12 @@ void set_stealth_mode(const bool v);
 uint8_t config_cpld();
 void set_config_cpld(uint8_t i);
 
+bool config_disable_external_tcxo();
 bool config_splash();
 bool config_converter();
 bool config_updown_converter();
 int64_t config_converter_freq();
 bool show_gui_return_icon();
-bool load_app_settings();
-bool save_app_settings();
 bool show_bigger_qr_code();
 bool hide_clock();
 bool clock_with_date();
@@ -193,6 +192,7 @@ void set_gui_return_icon(bool v);
 void set_load_app_settings(bool v);
 void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
+void set_config_disable_external_tcxo(bool v);
 void set_config_splash(bool v);
 bool config_converter();
 bool config_updown_converter();
@@ -217,6 +217,11 @@ void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
+
+#define CONFIG_MODE_GUARD_VALUE 2001
+#define CONFIG_MODE_NORMAL_VALUE 1999
+uint32_t config_mode_storage();
+void set_config_mode_storage(uint32_t v);
 
 uint32_t pocsag_last_address();
 void set_pocsag_last_address(uint32_t address);

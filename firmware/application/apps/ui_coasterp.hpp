@@ -52,11 +52,12 @@ class CoasterPagerView : public View {
     tx_modes tx_mode = IDLE;
 
     TxRadioState radio_state_{
+        433920000, /* frequency */
         1750000 /* bandwidth */,
         2280000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "tx_coaster", app_settings::Mode::TX};
+        "tx_burger", app_settings::Mode::TX};
 
     void start_tx();
     void generate_frame();
@@ -68,17 +69,19 @@ class CoasterPagerView : public View {
 
     SymField sym_data{
         {7 * 8, 8 * 8},
-        16,  // 14 ? 12 ?
-        SymField::SYMFIELD_HEX};
+        16,
+        SymField::Type::Hex};
 
     Checkbox checkbox_scan{
         {10 * 8, 14 * 8},
         4,
         "Scan"};
 
-    /*ProgressBar progressbar {
-                { 5 * 8, 12 * 16, 20 * 8, 16 },
-        };*/
+    /*
+    ProgressBar progressbar {
+        { 5 * 8, 12 * 16, 20 * 8, 16 }};
+    */
+
     Text text_message{
         {5 * 8, 13 * 16, 20 * 8, 16},
         ""};

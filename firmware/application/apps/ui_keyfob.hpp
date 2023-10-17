@@ -44,11 +44,12 @@ class KeyfobView : public View {
     NavigationView& nav_;
 
     TxRadioState radio_state_{
+        433920000 /* frequency */,
         1750000 /* bandwidth */,
         OOK_SAMPLERATE /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "tx_keyfob", , app_settings::Mode::TX};
+        "tx_keyfob", app_settings::Mode::TX};
 
     // 1013210ns / bit
     static constexpr uint32_t subaru_samples_per_bit = (OOK_SAMPLERATE * 0.00101321);
@@ -98,11 +99,11 @@ class KeyfobView : public View {
     SymField field_payload_a{
         {2 * 8, 5 * 16},
         10,
-        SymField::SYMFIELD_HEX};
+        SymField::Type::Hex};
     SymField field_payload_b{
         {13 * 8, 5 * 16},
         10,
-        SymField::SYMFIELD_HEX};
+        SymField::Type::Hex};
 
     Text text_status{
         {2 * 8, 13 * 16, 128, 16},

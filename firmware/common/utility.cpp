@@ -213,3 +213,25 @@ static constexpr uint32_t gcd_top(const uint32_t u, const uint32_t v) {
 uint32_t gcd(const uint32_t u, const uint32_t v) {
     return gcd_top(u, v);
 }
+
+std::string join(char c, std::initializer_list<std::string_view> strings) {
+    std::string result;
+    size_t total_size = strings.size();
+
+    for (auto s : strings)
+        total_size += s.size();
+
+    result.reserve(total_size);
+    bool first = true;
+
+    for (auto s : strings) {
+        if (!first)
+            result += c;
+        else
+            first = false;
+
+        result += s;
+    }
+
+    return result;
+}

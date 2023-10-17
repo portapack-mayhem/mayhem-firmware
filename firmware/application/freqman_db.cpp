@@ -76,20 +76,29 @@ options_t freqman_bandwidths[4] = {
         // SPEC -- TODO: these should be indexes.
         {"12k5", 12500},
         {"16k", 16000},
-        {"20k", 20000},
         {"25k", 25000},
+        {"32k", 32000},
         {"50k", 50000},
+        {"75k", 75000},
         {"100k", 100000},
+        {"150k", 150000},
         {"250k", 250000},
-        {"500k", 500000}, /* Previous Limit bandwith Option with perfect micro SD write .C16 format operaton.*/
-        {"600k", 600000}, /* That extended option is still possible to record with FW version Mayhem v1.41 (< 2,5MB/sec) */
-        {"650k", 650000},
-        {"750k", 750000}, /* From this BW onwards, the LCD is ok, but the recorded file is decimated, (not real file size) */
-        {"1100k", 1100000},
+        {"500k", 500000},
+        {"600k", 600000},
+        {"750k", 750000},
+        {"1000k", 1000000},  // Max bandwith for recording in C16 (with fast SD card).
+        {"1250k", 1250000},
+        {"1500k", 1500000},
         {"1750k", 1750000},
         {"2000k", 2000000},
-        {"2500k", 2500000},
-        {"2750k", 2750000},  // That is our max Capture option, to keep using later / 8 decimation (22Mhz sampling  ADC)
+        {"2250k", 2250000},  // Max bandwith for recording in C8 (with fast SD card).
+        {"2500k", 2500000},  // Here and up, LCD is ok, but M4 CPU drops samples.
+        {"3000k", 3000000},
+        {"3500k", 3500000},
+        {"4000k", 4000000},
+        {"4500k", 4500000},
+        {"5000k", 5500000},
+        {"5500k", 5500000},  // Max capture, needs /4 decimation, (22Mhz sampling ADC).
     },
 };
 
@@ -267,18 +276,18 @@ std::string to_freqman_string(const freqman_entry& entry) {
 
     switch (entry.type) {
         case freqman_type::Single:
-            append_field("f", to_string_dec_uint64(entry.frequency_a));
+            append_field("f", to_string_dec_uint(entry.frequency_a));
             break;
         case freqman_type::Range:
-            append_field("a", to_string_dec_uint64(entry.frequency_a));
-            append_field("b", to_string_dec_uint64(entry.frequency_b));
+            append_field("a", to_string_dec_uint(entry.frequency_a));
+            append_field("b", to_string_dec_uint(entry.frequency_b));
 
             if (is_valid(entry.step))
                 append_field("s", freqman_entry_get_step_string_short(entry.step));
             break;
         case freqman_type::HamRadio:
-            append_field("r", to_string_dec_uint64(entry.frequency_a));
-            append_field("t", to_string_dec_uint64(entry.frequency_b));
+            append_field("r", to_string_dec_uint(entry.frequency_a));
+            append_field("t", to_string_dec_uint(entry.frequency_b));
 
             if (is_valid(entry.tone))
                 append_field("c", tonekey::tone_key_value_string(entry.tone));

@@ -5645,6 +5645,44 @@ static constexpr Bitmap bitmap_icon_shift{
     {16, 16},
     bitmap_icon_shift_data};
 
+static constexpr uint8_t bitmap_icon_trim_data[] = {
+    0x10,
+    0x10,
+    0x30,
+    0x12,
+    0x50,
+    0x15,
+    0x50,
+    0x15,
+    0x50,
+    0x15,
+    0x52,
+    0x95,
+    0x56,
+    0xD5,
+    0x5F,
+    0xF5,
+    0x56,
+    0xD5,
+    0x52,
+    0x95,
+    0x50,
+    0x15,
+    0x50,
+    0x15,
+    0x50,
+    0x15,
+    0x90,
+    0x18,
+    0x10,
+    0x10,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_trim{
+    {16, 16},
+    bitmap_icon_trim_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/

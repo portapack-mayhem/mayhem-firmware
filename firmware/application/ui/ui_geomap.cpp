@@ -149,7 +149,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
         map_zoom++;
 
         // Ensure that MOD(240,map_zoom)==0 for the map_zoom_line() function
-        if (240 % map_zoom != 0) {
+        if (geomap_rect_width % map_zoom != 0) {
             map_zoom--;
         }
     } else if ((delta < 0) && (map_zoom > 1)) {
@@ -171,7 +171,7 @@ void GeoMap::map_zoom_line(ui::Color* buffer) {
 
     // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
     // For 240 width, than means no check is needed for map_zoom values up to 6
-    for (int i = (240 / map_zoom) - 1; i >= 0; i--) {
+    for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
         for (int j = 0; j < map_zoom; j++) {
             buffer[(i * map_zoom) + j] = buffer[i];
         }
@@ -271,24 +271,22 @@ void GeoMap::move(const float lon, const float lat) {
     lon_ = lon;
     lat_ = lat;
 
-    Rect map_rect = screen_rect();
-
     // Using WGS 84/Pseudo-Mercator projection
-    x_pos = map_width * (lon_ + 180) / 360 - (map_rect.width() / 2);
+    x_pos = map_width * (lon_ + 180) / 360 - (geomap_rect_width / 2);
 
     // Latitude calculation based on https://stackoverflow.com/a/10401734/2278659
     double lat_rad = sin(lat * pi / 180);
     y_pos = map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset) - 128;  // Offset added for the GUI
 
     // Cap position
-    if (x_pos > (map_width - map_rect.width()))
-        x_pos = map_width - map_rect.width();
-    if (y_pos > (map_height + map_rect.height()))
-        y_pos = map_height - map_rect.height();
+    if (x_pos > (map_width - geomap_rect_width))
+        x_pos = map_width - geomap_rect_width;
+    if (y_pos > (map_height + geomap_rect_height))
+        y_pos = map_height - geomap_rect_height;
 
     // Scale calculation
     float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
-    pixels_per_km = (map_rect.width() / 2) / km_per_deg_lon;
+    pixels_per_km = (geomap_rect_width / 2) / km_per_deg_lon;
 }
 
 bool GeoMap::init() {
@@ -391,11 +389,10 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
 
     // Check if it could be on screen
     // Only checking one direction to reduce CPU
-    const auto r = screen_rect();
     double lat_rad = sin(marker.lat * pi / 180);
     int x = (map_width * (marker.lon + 180) / 360) - x_pos;
     int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
-    if (false == ((x >= 0) && (x < r.width()) && (y > 10) && (y < r.height())))                              // Dont draw within symbol size of top
+    if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height)))              // Dont draw within symbol size of top
     {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
@@ -413,7 +410,7 @@ void GeoMapView::focus() {
     geopos.focus();
 
     if (!map_opened)
-        nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT, nullptr);
+        nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT);
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude) {

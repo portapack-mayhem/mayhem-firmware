@@ -79,10 +79,25 @@ class ModemSetupView : public View {
         7,
         {}};
 
-    SymField sym_format{
+    SymField sym_format_data{
         {16 * 8, 22 * 8},
-        4,
-        SymField::SYMFIELD_DEF};
+        1,
+        "6789"};
+
+    SymField sym_format_parity{
+        {17 * 8, 22 * 8},
+        1,
+        "NEo"};
+
+    SymField sym_format_stop{
+        {18 * 8, 22 * 8},
+        1,
+        "012"};
+
+    SymField sym_format_msb{
+        {19 * 8, 22 * 8},
+        1,
+        "ML"};
 
     Button button_set_modem{
         {23 * 8, 6 * 8 - 4, 6 * 8, 24},

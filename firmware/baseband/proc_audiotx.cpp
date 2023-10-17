@@ -77,8 +77,8 @@ void AudioTXProcessor::on_message(const Message* const message) {
             replay_config(*reinterpret_cast<const ReplayConfigMessage*>(message));
             break;
 
-        case Message::ID::SamplerateConfig:
-            samplerate_config(*reinterpret_cast<const SamplerateConfigMessage*>(message));
+        case Message::ID::SampleRateConfig:
+            sample_rate_config(*reinterpret_cast<const SampleRateConfigMessage*>(message));
             break;
 
         case Message::ID::FIFOData:
@@ -108,7 +108,7 @@ void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
     }
 }
 
-void AudioTXProcessor::samplerate_config(const SamplerateConfigMessage& message) {
+void AudioTXProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     resample_inc = (((uint64_t)message.sample_rate) << 16) / baseband_fs;  // 16.16 fixed point message.sample_rate
 }
 

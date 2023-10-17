@@ -103,10 +103,6 @@ MenuView::MenuView(
 
 MenuView::~MenuView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
-
-    for (auto item : menu_item_views) {
-        delete item;
-    }
 }
 
 void MenuView::set_parent_rect(const Rect new_parent_rect) {
@@ -116,23 +112,22 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
     arrow_more.set_parent_rect({228, (Coord)(displayed_max * item_height), 8, 8});
 
     // TODO: Clean this up :(
-    if (menu_item_views.size()) {
-        for (auto item : menu_item_views) {
-            remove_child(item);
-            delete item;
-        }
+    if (!menu_item_views.empty()) {
+        for (auto& item : menu_item_views)
+            remove_child(item.get());
 
         menu_item_views.clear();
     }
 
     for (size_t c = 0; c < displayed_max; c++) {
-        auto item = new MenuItemView{keep_highlight};
-        menu_item_views.push_back(item);
-        add_child(item);
+        auto item = std::make_unique<MenuItemView>(keep_highlight);
+        add_child(item.get());
 
         Coord y_pos = c * item_height;
         item->set_parent_rect({{0, y_pos},
                                {size().width(), (Coord)item_height}});
+
+        menu_item_views.push_back(std::move(item));
     }
 
     update_items();
@@ -150,9 +145,8 @@ void MenuView::on_tick_second() {
 }
 
 void MenuView::clear() {
-    for (auto item : menu_item_views) {
+    for (auto& item : menu_item_views)
         item->set_item(nullptr);
-    }
 
     menu_items.clear();
     highlighted_item = 0;
@@ -184,7 +178,7 @@ void MenuView::update_items() {
     } else
         more = false;
 
-    for (auto item : menu_item_views) {
+    for (auto& item : menu_item_views) {
         if (i >= menu_items.size()) break;
 
         // Assign item data to MenuItemViews according to offset
@@ -201,7 +195,7 @@ void MenuView::update_items() {
 }
 
 MenuItemView* MenuView::item_view(size_t index) const {
-    return menu_item_views[index];
+    return menu_item_views[index].get();
 }
 
 bool MenuView::set_highlighted(int32_t new_value) {

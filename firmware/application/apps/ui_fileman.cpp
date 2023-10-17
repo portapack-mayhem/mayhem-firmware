@@ -27,8 +27,10 @@
 #include <algorithm>
 #include "ui_fileman.hpp"
 #include "ui_playlist.hpp"
+#include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_iq_trim.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
@@ -44,6 +46,7 @@ static const fs::path c16_ext{u".C16"};
 static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
+static const fs::path rem_ext{u".REM"};
 }  // namespace ui
 
 namespace {
@@ -106,14 +109,17 @@ bool partner_file_prompt(
     if (partner.empty())
         return false;
 
-    nav.push_under_current<ModalMessageView>(
-        "Partner File",
-        partner.filename().string() + "\n" + action_name + " this file too?",
-        YESNO,
-        [&nav, partner, on_partner_action](bool choice) {
-            if (on_partner_action)
-                on_partner_action(partner, choice);
-        });
+    // Display the continuation UI once the current has been popped.
+    nav.set_on_pop([&nav, partner, action_name, on_partner_action] {
+        nav.display_modal(
+            "Partner File",
+            partner.filename().string() + "\n" + action_name + " this file too?",
+            YESNO,
+            [&nav, partner, on_partner_action](bool choice) {
+                if (on_partner_action)
+                    on_partner_action(partner, choice);
+            });
+    });
 
     return true;
 }
@@ -185,11 +191,10 @@ FileManBaseView::FileManBaseView(
       extension_filter{filter} {
     add_children({&labels,
                   &text_current,
-                  &text_info,
                   &button_exit});
 
-    button_exit.on_select = [this, &nav](Button&) {
-        nav.pop();
+    button_exit.on_select = [this](Button&) {
+        nav_.pop();
     };
 
     if (!sdcIsCardInserted(&SDCD1)) {
@@ -250,8 +255,13 @@ void FileManBaseView::refresh_list() {
         auto entry_name = truncate(entry.path, 20);
 
         if (entry.is_directory) {
+            auto size_str =
+                (entry.path == parent_dir_path)
+                    ? ""
+                    : to_string_dec_uint(file_count(current_path / entry.path));
+
             menu_view.add_item(
-                {entry_name,
+                {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
                  ui::Color::yellow(),
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -278,7 +288,6 @@ void FileManBaseView::refresh_list() {
             break;
     }
 
-    text_info.set(menu_view.item_count() >= max_items_shown ? "Too many files!" : "");
     menu_view.set_highlighted(prev_highlight);
 }
 
@@ -320,9 +329,9 @@ FileLoadView::FileLoadView(
         if (get_selected_entry().is_directory) {
             push_dir(get_selected_entry().path);
         } else {
-            nav_.pop();
             if (on_changed)
                 on_changed(get_selected_full_path());
+            nav_.pop();
         }
     };
 }
@@ -342,7 +351,6 @@ FileSaveView::FileSaveView(
         file_{ file }
 {
         add_children({
-                &labels,
                 &text_path,
                 &button_edit_path,
                 &text_name,
@@ -523,6 +531,9 @@ bool FileManagerView::handle_file_open() {
         nav_.push<SplashViewer>(path);
         reload_current();
         return true;
+    } else if (path_iequal(rem_ext, ext)) {
+        nav_.push<RemoteView>(path);
+        return true;
     }
 
     return false;
@@ -546,7 +557,6 @@ FileManagerView::FileManagerView(
 
     add_children({
         &menu_view,
-        &labels,
         &text_date,
         &button_rename,
         &button_delete,
@@ -557,13 +567,20 @@ FileManagerView::FileManagerView(
         &button_new_file,
         &button_open_notepad,
         &button_rename_timestamp,
+        &button_open_iq_trim,
     });
 
     menu_view.on_highlight = [this]() {
-        if (selected_is_valid())
-            text_date.set(to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
-        else
-            text_date.set("");
+        if (menu_view.highlighted_index() >= max_items_shown - 1) {
+            text_date.set_style(&Styles::red);
+            text_date.set("Too many files!");
+        } else {
+            text_date.set_style(&Styles::grey);
+            if (selected_is_valid())
+                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+            else
+                text_date.set("");
+        }
     };
 
     refresh_list();
@@ -622,7 +639,7 @@ FileManagerView::FileManagerView(
     button_open_notepad.on_select = [this]() {
         if (selected_is_valid() && !get_selected_entry().is_directory) {
             auto path = get_selected_full_path();
-            nav_.replace<TextEditorView>(path);
+            nav_.push<TextEditorView>(path);
         } else
             nav_.display_modal("Open in Notepad", "Can't open that in Notepad.");
     };
@@ -632,6 +649,14 @@ FileManagerView::FileManagerView(
             on_rename(::truncate(to_string_timestamp(rtc_time::now()), 8));
         } else
             nav_.display_modal("Timestamp Rename", "Can't rename that.");
+    };
+
+    button_open_iq_trim.on_select = [this]() {
+        auto path = get_selected_full_path();
+        if (selected_is_valid() && !get_selected_entry().is_directory && is_cxx_capture_file(path)) {
+            nav_.push<IQTrimView>(path);
+        } else
+            nav_.display_modal("IQ Trim", "Not a capture file.");
     };
 }
 

@@ -24,60 +24,62 @@
 
 // #include "modules.h"
 
-#include "portapack.hpp"
-#include "event_m0.hpp"
-#include "bmp_splash.hpp"
 #include "bmp_modal_warning.hpp"
+#include "bmp_splash.hpp"
+#include "event_m0.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "portapack_shared_memory.hpp"
+#include "portapack.hpp"
 
 #include "ui_about_simple.hpp"
 #include "ui_adsb_rx.hpp"
 #include "ui_adsb_tx.hpp"
-#include "ui_afsk_rx.hpp"
 #include "ui_aprs_rx.hpp"
-#include "ui_btle_rx.hpp"
-#include "ui_nrf_rx.hpp"
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
+#include "ui_btle_rx.hpp"
 #include "ui_coasterp.hpp"
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
+#include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
+#include "ui_iq_trim.hpp"
 #include "ui_jammer.hpp"
 // #include "ui_keyfob.hpp"
 #include "ui_lcr.hpp"
+#include "ui_level.hpp"
+#include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
+#include "ui_nrf_rx.hpp"
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
 // #include "ui_playdead.hpp"
+#include "ui_playlist.hpp"
 #include "ui_pocsag_tx.hpp"
 #include "ui_rds.hpp"
+#include "ui_recon.hpp"
 #include "ui_remote.hpp"
 #include "ui_scanner.hpp"
-#include "ui_search.hpp"
-#include "ui_recon.hpp"
-#include "ui_level.hpp"
+#include "ui_sd_over_usb.hpp"
 #include "ui_sd_wipe.hpp"
+#include "ui_search.hpp"
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
+#include "ui_spectrum_painter.hpp"
+#include "ui_ss_viewer.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_styles.hpp"
 // #include "ui_test.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
-#include "ui_playlist.hpp"
 #include "ui_view_wav.hpp"
 #include "ui_whipcalc.hpp"
-#include "ui_flash_utility.hpp"
-#include "ui_sd_over_usb.hpp"
-#include "ui_spectrum_painter.hpp"
-#include "ui_ss_viewer.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
@@ -85,16 +87,16 @@
 #include "analog_tv_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
+#include "gps_sim_app.hpp"
 #include "lge_app.hpp"
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
-#include "gps_sim_app.hpp"
 #include "soundboard_app.hpp"
 #include "tpms_app.hpp"
 
 #include "core_control.hpp"
-#include "ui_looking_glass_app.hpp"
 #include "file.hpp"
+#include "file_reader.hpp"
 #include "png_writer.hpp"
 
 using portapack::receiver_model;
@@ -156,6 +158,10 @@ SystemStatusView::SystemStatusView(
         &button_title,
         &status_icons,
     });
+
+    rtc_battery_workaround();
+
+    ui::load_blacklist();
 
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
@@ -219,6 +225,7 @@ SystemStatusView::SystemStatusView(
     toggle_mute.set_value(pmem::config_audio_mute());
     toggle_stealth.set_value(pmem::stealth_mode());
 
+    audio::output::stop();
     audio::output::update_audio_mute();
     refresh();
 }
@@ -301,17 +308,18 @@ void SystemStatusView::on_converter() {
 
 void SystemStatusView::on_bias_tee() {
     if (!portapack::get_antenna_bias()) {
-        nav_.display_modal("Bias voltage",
-                           "Enable DC voltage on\nantenna connector?",
-                           YESNO,
-                           [this](bool v) {
-                               if (v) {
-                                   portapack::set_antenna_bias(true);
-                                   receiver_model.set_antenna_bias();
-                                   transmitter_model.set_antenna_bias();
-                                   refresh();
-                               }
-                           });
+        nav_.display_modal(
+            "Bias voltage",
+            "Enable DC voltage on\nantenna connector?",
+            YESNO,
+            [this](bool v) {
+                if (v) {
+                    portapack::set_antenna_bias(true);
+                    receiver_model.set_antenna_bias();
+                    transmitter_model.set_antenna_bias();
+                    refresh();
+                }
+            });
     } else {
         portapack::set_antenna_bias(false);
         receiver_model.set_antenna_bias();
@@ -356,6 +364,55 @@ void SystemStatusView::on_title() {
         nav_.pop();
 }
 
+void SystemStatusView::rtc_battery_workaround() {
+    if (sd_card::status() != sd_card::Status::Mounted)
+        return;
+
+    uint16_t year;
+    uint8_t month;
+    uint8_t day;
+    FATTimestamp timestamp;
+    rtc::RTC datetime;
+
+    rtcGetTime(&RTCD1, &datetime);
+
+    // if year is 0000, assume RTC battery is dead
+    if (datetime.year() == 0) {
+        // if timestamp file is present, use it's date and add 1 day
+        if (std::filesystem::file_exists(DATE_FILEFLAG)) {
+            timestamp = file_created_date(DATE_FILEFLAG);
+
+            year = (timestamp.FAT_date >> 9) + 1980;
+            month = (timestamp.FAT_date >> 5) & 0xF;
+            day = timestamp.FAT_date & 0x1F;
+
+            // bump to next month at 28 days for simplicity
+            if (++day > 28) {
+                day = 1;
+                if (++month > 12) {
+                    month = 1;
+                    ++year;
+                }
+            }
+        } else {
+            make_new_file(DATE_FILEFLAG);
+
+            year = 1980;
+            month = 1;
+            day = 1;
+        }
+
+        // update RTC (keeps ticking while powered on regardless of RTC battery condition)
+        rtc::RTC new_datetime{year, month, day, datetime.hour(), datetime.minute(), datetime.second()};
+        rtcSetTime(&RTCD1, &new_datetime);
+
+        // update file date
+        timestamp.FAT_date = ((year - 1980) << 9) | ((uint16_t)month << 5) | day;
+        timestamp.FAT_time = 0;
+        file_update_date(DATE_FILEFLAG, timestamp);
+    }
+}
+
 /* Information View *****************************************************/
 
 InformationView::InformationView(
@@ -372,11 +429,8 @@ InformationView::InformationView(
                   &ltime});
 
     version.set_style(&style_infobar);
-
-    ltime.set_hide_clock(pmem::hide_clock());
     ltime.set_style(&style_infobar);
-    ltime.set_seconds_enabled(true);
-    ltime.set_date_enabled(pmem::clock_with_date());
+    refresh();
     set_dirty();
 }
 
@@ -403,15 +457,21 @@ View* NavigationView::push_view(std::unique_ptr<View> new_view) {
     return p;
 }
 
-void NavigationView::pop() {
-    pop(true);
-}
+void NavigationView::pop(bool trigger_update) {
+    // Don't pop off the NavView.
+    if (view_stack.size() <= 1)
+        return;
 
-void NavigationView::pop_modal() {
-    // Pop modal view + underlying app view.
-    // TODO: this shouldn't be necessary.
-    pop(false);
-    pop(true);
+    auto on_pop = view_stack.back().on_pop;
+
+    free_view();
+    view_stack.pop_back();
+
+    // NB: These are executed _after_ the view has been
+    // destroyed. The old view MUST NOT be referenced in
+    // these callbacks or it will cause crashes.
+    if (trigger_update) update_view();
+    if (on_pop) on_pop();
 }
 
 void NavigationView::display_modal(
@@ -423,49 +483,33 @@ void NavigationView::display_modal(
 void NavigationView::display_modal(
     const std::string& title,
     const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice) {
-    /* If a modal view is already visible, don't display another */
-    if (!modal_view) {
-        modal_view = push<ModalMessageView>(title, message, type, on_choice);
-    }
-}
-
-void NavigationView::pop(bool update) {
-    if (view() == modal_view) {
-        modal_view = nullptr;
-    }
-
-    // Can't pop last item from stack.
-    if (view_stack.size() > 1) {
-        auto on_pop = view_stack.back().on_pop;
-
-        free_view();
-        view_stack.pop_back();
-
-        if (update)
-            update_view();
-
-        if (on_pop) on_pop();
-    }
+    modal_t type,
+    std::function<void(bool)> on_choice) {
+    push<ModalMessageView>(title, message, type, on_choice);
 }
 
 void NavigationView::free_view() {
+    // The focus_manager holds a raw pointer to the currently focused Widget.
+    // It then tries to call blur() on that instance when the focus is changed.
+    // This causes crashes if focused_widget has been deleted (as is the case
+    // when a view is popped). Calling blur() here resets the focus_manager's
+    // focus_widget pointer so focus can be called safely.
+    this->blur();
     remove_child(view());
 }
 
 void NavigationView::update_view() {
-    const auto new_view = view_stack.back().view.get();
+    const auto& top = view_stack.back();
+    auto top_view = top.view.get();
 
-    add_child(new_view);
-    new_view->set_parent_rect({{0, 0}, size()});
+    add_child(top_view);
+    top_view->set_parent_rect({{0, 0}, size()});
 
     focus();
     set_dirty();
 
-    if (on_view_changed) {
-        on_view_changed(*new_view);
-    }
+    if (on_view_changed)
+        on_view_changed(*top_view);
 }
 
 Widget* NavigationView::view() const {
@@ -473,9 +517,8 @@ Widget* NavigationView::view() const {
 }
 
 void NavigationView::focus() {
-    if (view()) {
+    if (view())
         view()->focus();
-    }
 }
 
 bool NavigationView::set_on_pop(std::function<void()> on_pop) {
@@ -497,30 +540,31 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
+        // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
         {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
-        //{ "ACARS",	Color::yellow(),	&bitmap_icon_adsb,			[&nav](){ nav.push<ACARSAppView>(); }},
         {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
-        {"AFSK", Color::yellow(), &bitmap_icon_modem, [&nav]() { nav.push<AFSKRxView>(); }},
-        {"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
-        {"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
-        {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
         {"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
+        {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
+        {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
+        {"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
         {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
+        {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
+        {"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
         {"POCSAG", Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGAppView>(); }},
         {"Radiosnde", Color::green(), &bitmap_icon_sonde, [&nav]() { nav.push<SondeView>(); }},
-        {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
         {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},
-        {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }}
-        /*
-                { "DMR", 		Color::dark_grey(),	&bitmap_icon_dmr,		[&nav](){ nav.push<NotImplementedView>(); } },
-                { "SIGFOX", 	Color::dark_grey(),	&bitmap_icon_fox,		[&nav](){ nav.push<NotImplementedView>(); } }, // SIGFRXView
-                { "LoRa", 		Color::dark_grey(),	&bitmap_icon_lora,		[&nav](){ nav.push<NotImplementedView>(); } },
-                { "SSTV", 		Color::dark_grey(), &bitmap_icon_sstv,		[&nav](){ nav.push<NotImplementedView>(); } },
-                { "TETRA", 		Color::dark_grey(),	&bitmap_icon_tetra,		[&nav](){ nav.push<NotImplementedView>(); } },*/
+        {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
+        {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
+        // {"DMR", Color::dark_grey(), &bitmap_icon_dmr, [&nav](){ nav.push<NotImplementedView>(); }},
+        // {"SIGFOX", Color::dark_grey(), &bitmap_icon_fox, [&nav](){ nav.push<NotImplementedView>(); }},
+        // {"LoRa", Color::dark_grey(), &bitmap_icon_lora, [&nav](){ nav.push<NotImplementedView>(); }},
+        // {"SSTV", Color::dark_grey(), &bitmap_icon_sstv, [&nav](){ nav.push<NotImplementedView>(); }},
+        // {"TETRA", Color::dark_grey(), &bitmap_icon_tetra, [&nav](){ nav.push<NotImplementedView>(); }},
     });
 
-    // set_highlighted(0);		// Default selection is "Audio"
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav)) {
+        add_item(gridItem);
+    };
 }
 
 /* TransmittersMenuView **************************************************/
@@ -530,27 +574,29 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
-        {"ADS-B [S]", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
-        {"APRS", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
+        {"ADS-B TX", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
+        {"APRS TX", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
         {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
+        {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }},
         {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
         {"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }},
-        //{ "Key fob",		ui::Color::orange(),	&bitmap_icon_keyfob,	[&nav](){ nav.push<KeyfobView>(); } },
-        {"LGE tool", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }},
+        // { "Key fob", ui::Color::orange(), &bitmap_icon_keyfob, [&nav](){ nav.push<KeyfobView>(); }},
+        {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }},
         {"Morse", ui::Color::green(), &bitmap_icon_morse, [&nav]() { nav.push<MorseView>(); }},
-        {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }},
-        //{ "Nuoptix DTMF", 	ui::Color::green(),		&bitmap_icon_nuoptix,	[&nav](){ nav.push<NuoptixView>(); } },
+        // { "Nuoptix DTMF", ui::Color::green(), &bitmap_icon_nuoptix, [&nav](){ nav.push<NuoptixView>(); }},
         {"OOK", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<EncodersView>(); }},
-        {"POCSAG", ui::Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGTXView>(); }},
+        {"POCSAG TX", ui::Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGTXView>(); }},
         {"RDS", ui::Color::green(), &bitmap_icon_rds, [&nav]() { nav.push<RDSView>(); }},
         {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
+        {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
         {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
         {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
         {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
-        //{"Playlist", ui::Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<PlaylistView>(); }},
-        {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
-        //{ "Remote",			ui::Color::dark_grey(),	&bitmap_icon_remote,	[&nav](){ nav.push<RemoteView>(); } },
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav)) {
+        add_item(gridItem);
+    };
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -560,41 +606,51 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
-        //{ "Test app", 		Color::dark_grey(),	nullptr,				[&nav](){ nav.push<TestView>(); } },
-        {"Freq. manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
-        {"File manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
+        {"Antenna Length", Color::green(), &bitmap_icon_tools_antenna, [&nav]() { nav.push<WhipCalcView>(); }},
+        {"File Manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
+        {"Freq. Manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
         {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
-        {"Signal gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
-        //{ "Tone search",	Color::dark_grey(), nullptr,					[&nav](){ nav.push<ToneSearchView>(); } },
-        {"Wav viewer", Color::yellow(), &bitmap_icon_soundboard, [&nav]() { nav.push<ViewWavView>(); }},
-        {"Antenna length", Color::green(), &bitmap_icon_tools_antenna, [&nav]() { nav.push<WhipCalcView>(); }},
+        {"IQ Trim", Color::orange(), &bitmap_icon_trim, [&nav]() { nav.push<IQTrimView>(); }},
+        {"SD Over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
+        {"Signal Gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
+        // {"Test App", Color::dark_grey(), nullptr, [&nav](){ nav.push<TestView>(); }},
+        // {"Tone Search", Color::dark_grey(), nullptr, [&nav](){ nav.push<ToneSearchView>(); }},
+        {"Wav View", Color::yellow(), &bitmap_icon_soundboard, [&nav]() { nav.push<ViewWavView>(); }},
 
-        {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
+        // Dangerous apps.
         {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
-        {"SD over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
+        {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
     });
+
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav)) {
+        add_item(gridItem);
+    };
+
     set_max_rows(2);  // allow wider buttons
 }
 
 /* SystemMenuView ********************************************************/
 
 void SystemMenuView::hackrf_mode(NavigationView& nav) {
-    nav.push<ModalMessageView>("HackRF mode", " This mode enables HackRF\n functionality. To return,\n  press the reset button.\n\n  Switch to HackRF mode?", YESNO,
-                               [this](bool choice) {
-                                   if (choice) {
-                                       EventDispatcher::request_stop();
-                                   }
-                               });
+    nav.push<ModalMessageView>(
+        "HackRF mode",
+        " This mode enables HackRF\n functionality. To return,\n  press the reset button.\n\n  Switch to HackRF mode?",
+        YESNO,
+        [this](bool choice) {
+            if (choice) {
+                EventDispatcher::request_stop();
+            }
+        });
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
     add_items({
-        //{ "Play dead",				Color::red(),		&bitmap_icon_playdead,	[&nav](){ nav.push<PlayDeadView>(); } },
+        // {"Play dead", Color::red(), &bitmap_icon_playdead, [&nav]() { nav.push<PlayDeadView>(); }},
         {"Receive", Color::cyan(), &bitmap_icon_receivers, [&nav]() { nav.push<ReceiversMenuView>(); }},
         {"Transmit", Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); }},
         {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
         {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<PlaylistView>(); }},
-        {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
+        {"Remote", ui::Color::green(), &bitmap_icon_remote, [&nav]() { nav.push<RemoteView>(); }},
         {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
         {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
         {"Looking Glass", Color::green(), &bitmap_icon_looking, [&nav]() { nav.push<GlassView>(); }},
@@ -602,11 +658,11 @@ SystemMenuView::SystemMenuView(NavigationView& nav) {
         {"Settings", Color::cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SettingsMenuView>(); }},
         {"Debug", Color::light_grey(), &bitmap_icon_debug, [&nav]() { nav.push<DebugMenuView>(); }},
         {"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }},
-        //{ "About", 		Color::cyan(),			nullptr,				[&nav](){ nav.push<AboutView>(); } }
+        // {"About", Color::cyan(), nullptr, [&nav]() { nav.push<AboutView>(); }},
     });
+
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);
-    // set_highlighted(1);		// Startup selection
 }
 
 /* SystemView ************************************************************/
@@ -622,19 +678,22 @@ SystemView::SystemView(
     constexpr Dim info_view_height = 16;
 
     add_child(&status_view);
-    status_view.set_parent_rect({{0, 0},
-                                 {parent_rect.width(), status_view_height}});
+    status_view.set_parent_rect(
+        {{0, 0},
+         {parent_rect.width(), status_view_height}});
     status_view.on_back = [this]() {
         this->navigation_view.pop();
     };
 
     add_child(&navigation_view);
-    navigation_view.set_parent_rect({{0, status_view_height},
-                                     {parent_rect.width(), static_cast<Dim>(parent_rect.height() - status_view_height)}});
+    navigation_view.set_parent_rect(
+        {{0, status_view_height},
+         {parent_rect.width(), static_cast<Dim>(parent_rect.height() - status_view_height)}});
 
     add_child(&info_view);
-    info_view.set_parent_rect({{0, 19 * 16},
-                               {parent_rect.width(), info_view_height}});
+    info_view.set_parent_rect(
+        {{0, 19 * 16},
+         {parent_rect.width(), info_view_height}});
 
     navigation_view.on_view_changed = [this](const View& new_view) {
         if (!this->navigation_view.is_top()) {
@@ -650,14 +709,6 @@ SystemView::SystemView(
         this->status_view.set_dirty();
     };
 
-    // pmem::set_playdead_sequence(0x8D1);
-
-    // Initial view
-    /*if ((pmem::playing_dead() == 0x5920C1DF) ||		// Enable code
-                (pmem::ui_config() & 16)) {					// Login option
-                navigation_view.push<PlayDeadView>();
-        } else {*/
-
     navigation_view.push<SystemMenuView>();
 
     if (pmem::config_splash()) {
@@ -666,10 +717,6 @@ SystemView::SystemView(
     status_view.set_back_enabled(false);
     status_view.set_title_image_enabled(true);
     status_view.set_dirty();
-    // else
-    //	navigation_view.push<SystemMenuView>();
-
-    //}
 }
 
 Context& SystemView::context() const {
@@ -757,21 +804,19 @@ ModalMessageView::ModalMessageView(
     NavigationView& nav,
     const std::string& title,
     const std::string& message,
-    const modal_t type,
-    const std::function<void(bool)> on_choice)
+    modal_t type,
+    std::function<void(bool)> on_choice)
     : title_{title},
       message_{message},
       type_{type},
       on_choice_{on_choice} {
     if (type == INFO) {
         add_child(&button_ok);
-
         button_ok.on_select = [this, &nav](Button&) {
-            if (on_choice_)
-                on_choice_(true);  // Assumes handler will pop.
-            else
-                nav.pop();
+            if (on_choice_) on_choice_(true);
+            nav.pop();
         };
+
     } else if (type == YESNO) {
         add_children({&button_yes,
                       &button_no});
@@ -784,50 +829,33 @@ ModalMessageView::ModalMessageView(
             if (on_choice_) on_choice_(false);
             nav.pop();
         };
-    } else if (type == YESCANCEL) {
-        add_children({&button_yes,
-                      &button_no});
 
-        button_yes.on_select = [this, &nav](Button&) {
-            if (on_choice_) on_choice_(true);
-            nav.pop();
-        };
-        button_no.on_select = [this, &nav](Button&) {
-            // if (on_choice_) on_choice_(false);
-            nav.pop_modal();
-        };
     } else {  // ABORT
         add_child(&button_ok);
 
         button_ok.on_select = [this, &nav](Button&) {
             if (on_choice_) on_choice_(true);
-            nav.pop_modal();
+            nav.pop(false);  // Pop the modal.
+            nav.pop();       // Pop the underlying view.
         };
     }
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    size_t pos, i = 0, start = 0;
-
     portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
 
-    // Terrible...
-    while ((pos = message_.find("\n", start)) != std::string::npos) {
+    // Break lines.
+    auto lines = split_string(message_, '\n');
+    for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
             {1 * 8, (Coord)(120 + (i * 16))},
             style(),
-            message_.substr(start, pos - start));
-        i++;
-        start = pos + 1;
+            lines[i]);
     }
-    painter.draw_string(
-        {1 * 8, (Coord)(120 + (i * 16))},
-        style(),
-        message_.substr(start, pos));
 }
 
 void ModalMessageView::focus() {
-    if ((type_ == YESNO) || (type_ == YESCANCEL)) {
+    if ((type_ == YESNO)) {
         button_yes.focus();
     } else {
         button_ok.focus();

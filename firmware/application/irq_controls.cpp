@@ -139,7 +139,9 @@ static uint8_t switches_raw = 0;
 // uint8_t rot_b() const { return (raw_ >> 6) & 1; }
 // uint8_t dfu() const { return (raw_ >> 7) & 1; }};
 
-static uint8_t swizzle_raw(uint8_t raw) {
+uint8_t swizzled_switches() {
+    uint8_t raw = io.io_update(touch_pins_configs[touch_phase]);
+
     return (raw & 0x1F) |         // Keep the bottom 5 bits the same.
            ((raw >> 2) & 0x20) |  // Shift the DFU bit down to bit 6.
            ((raw << 1) & 0xC0);   // Shift the encoder bits up to be 7 & 8.
@@ -183,7 +185,7 @@ void timer0_callback(GPTDriver* const) {
     eventmask_t event_mask = 0;
     if (touch_update()) event_mask |= EVT_MASK_TOUCH;
 
-    switches_raw = swizzle_raw(io.io_update(touch_pins_configs[touch_phase]));
+    switches_raw = swizzled_switches();
     if (switches_update(switches_raw))
         event_mask |= EVT_MASK_SWITCHES;
 

@@ -24,6 +24,9 @@
 
 #include <cstdint>
 
+#define STR_DEGREES_C "\xB0\x43"  // ºC - 0xB0 is degree ° symbol in our 8x16 font, 0x43 is "C"
+#define STR_DEGREES_F "\xB0\x46"  // ºF - 0xB0 is degree ° symbol in our 8x16 font, 0x46 is "F"
+
 namespace units {
 
 class Pressure {

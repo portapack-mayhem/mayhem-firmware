@@ -19,10 +19,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-/* TODO:
- * - Busy indicator while reading files.
- */
-
 #ifndef __UI_TEXT_EDITOR_H__
 #define __UI_TEXT_EDITOR_H__
 
@@ -32,6 +28,7 @@
 #include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
+#include "app_settings.hpp"
 #include "file_wrapper.hpp"
 #include "optional.hpp"
 
@@ -80,7 +77,10 @@ class TextViewer : public Widget {
 
     const Style& style() { return *font_style; }
     void set_font_zoom(bool zoom);
-    void toggle_font_zoom() { set_font_zoom(!font_zoom); };
+    bool toggle_font_zoom() {
+        set_font_zoom(!font_zoom);
+        return font_zoom;
+    };
 
    private:
     bool font_zoom{};
@@ -220,6 +220,12 @@ class TextEditorView : public View {
     void on_show() override;
 
    private:
+    // Settings
+    bool enable_zoom = false;
+    SettingsStore settings_store_{
+        "notepad"sv,
+        {{"enable_zoom"sv, &enable_zoom}}};
+
     static constexpr size_t max_edit_length = 1024;
     std::string edit_line_buffer_{};
 
@@ -228,7 +234,7 @@ class TextEditorView : public View {
     void refresh_ui();
     void update_position();
     void hide_menu(bool hidden = true);
-    void show_file_picker(bool immediate = true);
+    void show_file_picker();
     void show_edit_line();
     void show_save_prompt(std::function<void()> continuation);
 
@@ -242,8 +248,8 @@ class TextEditorView : public View {
     bool has_temp_file_{false};
 
     TextViewer viewer{
-        /* 272 = 320 - 16 (top bar) - 32 (bottom controls) */
-        {0, 0, 240, 272}};
+        /* 272 = screen_height - 16 (top bar) - 32 (bottom controls) */
+        {0, 0, screen_width, 272}};
 
     TextEditorMenu menu{};
 
@@ -251,7 +257,8 @@ class TextEditorView : public View {
         {26 * 8, 34 * 8, 4 * 8, 4 * 8},
         {},
         &bitmap_icon_controls,
-        Color::dark_grey()};
+        Color::dark_grey(),
+        /*vcenter*/ true};
 
     Text text_position{
         {0 * 8, 34 * 8, 26 * 8, 2 * 8},

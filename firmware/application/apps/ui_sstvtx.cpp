@@ -35,7 +35,7 @@ namespace ui {
 
 void SSTVTXView::focus() {
     if (file_error)
-        nav_.display_modal("No files", "No valid bitmaps\nin /sstv directory.", ABORT, nullptr);
+        nav_.display_modal("No files", "No valid bitmaps\nin /sstv directory.", ABORT);
     else
         options_bitmaps.focus();
 }
@@ -160,6 +160,7 @@ void SSTVTXView::start_tx() {
     scanline_counter = 0;
     prepare_scanline();  // Preload one scanline
 
+    transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF 1M75, same spectrum as previous fw 1.7.4
     transmitter_model.enable();
 
     baseband::set_sstv_data(

@@ -57,14 +57,14 @@ class DfuMenu : public View {
         {{6 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "M4 miss:", Color::dark_cyan()},
         {{6 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "uptime:", Color::dark_cyan()}};
 
-    Text text_info_line_1{{15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_2{{15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_3{{15 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_4{{15 * CHARACTER_WIDTH, 8 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_5{{15 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_6{{15 * CHARACTER_WIDTH, 10 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_7{{15 * CHARACTER_WIDTH, 11 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
-    Text text_info_line_8{{15 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 5 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_1{{15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_2{{15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_3{{15 * CHARACTER_WIDTH, 7 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_4{{15 * CHARACTER_WIDTH, 8 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_5{{15 * CHARACTER_WIDTH, 9 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_6{{15 * CHARACTER_WIDTH, 10 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_7{{15 * CHARACTER_WIDTH, 11 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_8{{15 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
 class DfuMenu2 : public View {
@@ -77,17 +77,19 @@ class DfuMenu2 : public View {
    private:
     NavigationView& nav_;
 
-    Text text_head{{6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 8 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, "Receiver"};
+    Text text_head{{6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 14 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, "Radio Settings"};
 
     Labels labels{
-        {{5 * CHARACTER_WIDTH, 5 * LINE_HEIGHT}, "Tgt freq:", Color::dark_cyan()},
-        {{5 * CHARACTER_WIDTH, 6 * LINE_HEIGHT}, "Bandwidt:", Color::dark_cyan()},
-        {{5 * CHARACTER_WIDTH, 7 * LINE_HEIGHT}, "Sampl Rt:", Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 5 * LINE_HEIGHT}, "RX Freq:", Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 6 * LINE_HEIGHT}, "RX BW:", Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 7 * LINE_HEIGHT}, "RX SampR:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 8 * LINE_HEIGHT}, "Modulatn:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "AM cfg:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 10 * LINE_HEIGHT}, "NBFM cfg:", Color::dark_cyan()},
         {{5 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "WFM cfg:", Color::dark_cyan()},
-        {{5 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "", Color::dark_cyan()}};
+        {{5 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "TX Freq:", Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 13 * LINE_HEIGHT}, "TX BW:", Color::dark_cyan()},
+        {{5 * CHARACTER_WIDTH, 14 * LINE_HEIGHT}, "TX SampR:", Color::dark_cyan()}};
 
     Text text_info_line_1{{14 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_2{{14 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
@@ -97,6 +99,8 @@ class DfuMenu2 : public View {
     Text text_info_line_6{{14 * CHARACTER_WIDTH, 10 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_7{{14 * CHARACTER_WIDTH, 11 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_8{{14 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_9{{14 * CHARACTER_WIDTH, 13 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_10{{14 * CHARACTER_WIDTH, 14 * LINE_HEIGHT, 10 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
 } /* namespace ui */

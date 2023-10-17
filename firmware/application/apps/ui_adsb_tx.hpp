@@ -135,7 +135,7 @@ class ADSBSquawkView : public OptionTabView {
     SymField field_squawk{
         {10 * 8, 2 * 16},
         4,
-        SymField::SYMFIELD_OCT};
+        SymField::Type::Oct};
 };
 
 class ADSBTXThread {
@@ -203,7 +203,8 @@ class ADSBTxView : public View {
         };*/
 
     TxRadioState radio_state_{
-        10000000 /* bandwidth */,
+        1090000000 /* frequency */,
+        6000000 /* bandwidth */,
         4000000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
@@ -235,7 +236,7 @@ class ADSBTxView : public View {
     SymField sym_icao{
         {10 * 8, 4 * 8},
         6,
-        SymField::SYMFIELD_HEX};
+        SymField::Type::Hex};
 
     Text text_frame{
         {1 * 8, 29 * 8, 14 * 8, 16},

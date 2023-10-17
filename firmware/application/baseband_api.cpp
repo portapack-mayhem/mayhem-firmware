@@ -189,7 +189,16 @@ void kill_afsk() {
     send_message(&message);
 }
 
-void set_audiotx_config(const uint32_t divider, const float deviation_hz, const float audio_gain, uint8_t audio_shift_bits_s16, const uint32_t tone_key_delta, const bool am_enabled, const bool dsb_enabled, const bool usb_enabled, const bool lsb_enabled) {
+void set_audiotx_config(
+    const uint32_t divider,
+    const float deviation_hz,
+    const float audio_gain,
+    uint8_t audio_shift_bits_s16,
+    const uint32_t tone_key_delta,
+    const bool am_enabled,
+    const bool dsb_enabled,
+    const bool usb_enabled,
+    const bool lsb_enabled) {
     const AudioTXConfigMessage message{
         divider,
         deviation_hz,
@@ -320,6 +329,30 @@ void run_image(const spi_flash::image_tag_t image_tag) {
     }
 }
 
+void run_prepared_image(const uint32_t m4_code) {
+    if (baseband_image_running) {
+        chDbgPanic("BBRunning");
+    }
+
+    creg::m4txevent::clear();
+    shared_memory.clear_baseband_ready();
+
+    m4_init_prepared(m4_code, false);
+    baseband_image_running = true;
+
+    creg::m4txevent::enable();
+
+    if constexpr (enforce_core_sync) {
+        // Wait up to 3 seconds for baseband to start handling events.
+        auto count = 3'000u;
+        while (!shared_memory.baseband_ready && --count)
+            chThdSleepMilliseconds(1);
+
+        if (count == 0)
+            chDbgPanic("Baseband Sync Fail");
+    }
+}
+
 void shutdown() {
     if (!baseband_image_running) {
         return;
@@ -347,13 +380,8 @@ void spectrum_streaming_stop() {
     send_message(&message);
 }
 
-void set_sample_rate(const uint32_t sample_rate) {
-    SamplerateConfigMessage message{sample_rate};
-    send_message(&message);
-}
-
-void set_oversample_rate(OversampleRate oversample_rate) {
-    OversampleRateConfigMessage message{oversample_rate};
+void set_sample_rate(uint32_t sample_rate, OversampleRate oversample_rate) {
+    SampleRateConfigMessage message{sample_rate, oversample_rate};
     send_message(&message);
 }
 

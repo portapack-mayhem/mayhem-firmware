@@ -26,6 +26,25 @@
 
 namespace ui {
 
+// Escape sequences for colored text; second character is index into term_colors[]
+#define STR_COLOR_BLACK "\x1B\x00"
+#define STR_COLOR_DARK_BLUE "\x1B\x01"
+#define STR_COLOR_DARK_GREEN "\x1B\x02"
+#define STR_COLOR_DARK_CYAN "\x1B\x03"
+#define STR_COLOR_DARK_RED "\x1B\x04"
+#define STR_COLOR_DARK_MAGENTA "\x1B\x05"
+#define STR_COLOR_DARK_YELLOW "\x1B\x06"
+#define STR_COLOR_LIGHT_GREY "\x1B\x07"
+#define STR_COLOR_DARK_GREY "\x1B\x08"
+#define STR_COLOR_BLUE "\x1B\x09"
+#define STR_COLOR_GREEN "\x1B\x0A"
+#define STR_COLOR_CYAN "\x1B\x0B"
+#define STR_COLOR_RED "\x1B\x0C"
+#define STR_COLOR_MAGENTA "\x1B\x0D"
+#define STR_COLOR_YELLOW "\x1B\x0E"
+#define STR_COLOR_WHITE "\x1B\x0F"
+#define STR_COLOR_FOREGROUND "\x1B\x10"
+
 #define DEG_TO_RAD(d) (d * (2 * pi) / 360.0)
 
 using Coord = int16_t;
@@ -76,6 +95,14 @@ struct Color {
 
     Color operator-() const {
         return (v ^ 0xffff);
+    }
+
+    /* Converts a 32-bit color into a 16-bit color.
+     * High byte is ignored. */
+    static constexpr Color RGB(uint32_t rgb) {
+        return {static_cast<uint8_t>((rgb >> 16) & 0xff),
+                static_cast<uint8_t>((rgb >> 8) & 0xff),
+                static_cast<uint8_t>(rgb & 0xff)};
     }
 
     static constexpr Color black() {

@@ -46,6 +46,7 @@ class CaptureAppView : public View {
 
    private:
     static constexpr ui::Dim header_height = 3 * 16;
+    uint32_t previous_bandwidth{500000};
 
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
@@ -90,6 +91,12 @@ class CaptureAppView : public View {
         3,
         {{"C16", RecordView::FileType::RawS16},
          {"C8", RecordView::FileType::RawS8}}};
+
+    Checkbox check_trim{
+        {23 * 8, 1 * 16},
+        4,
+        "Trim",
+        /*small*/ true};
 
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},

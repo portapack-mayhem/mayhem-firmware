@@ -292,8 +292,7 @@ std::filesystem::filesystem_error rename_file(
 std::filesystem::filesystem_error copy_file(
     const std::filesystem::path& file_path,
     const std::filesystem::path& dest_path) {
-    // 512 seems to be the largest block size FatFS likes.
-    constexpr size_t buffer_size = 512;
+    constexpr size_t buffer_size = std::filesystem::max_file_block_size;
     uint8_t buffer[buffer_size];
     File src;
     File dst;
@@ -324,6 +323,14 @@ FATTimestamp file_created_date(const std::filesystem::path& file_path) {
     f_stat(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
 
     return {filinfo.fdate, filinfo.ftime};
+}
+
+std::filesystem::filesystem_error file_update_date(const std::filesystem::path& file_path, FATTimestamp timestamp) {
+    FILINFO filinfo{};
+
+    filinfo.fdate = timestamp.FAT_date;
+    filinfo.ftime = timestamp.FAT_time;
+    return f_utime(reinterpret_cast<const TCHAR*>(file_path.c_str()), &filinfo);
 }
 
 std::filesystem::filesystem_error make_new_file(
@@ -577,6 +584,17 @@ bool is_empty_directory(const path& file_path) {
 
     auto result = f_findfirst(&dir, &filinfo, reinterpret_cast<const TCHAR*>(file_path.c_str()), (const TCHAR*)u"*");
     return !((result == FR_OK) && (filinfo.fname[0] != (TCHAR)'\0'));
+}
+
+int file_count(const path& directory) {
+    int count{0};
+
+    for (auto& entry : std::filesystem::directory_iterator(directory, (const TCHAR*)u"*")) {
+        (void)entry;  // avoid unused warning
+        ++count;
+    }
+
+    return count;
 }
 
 space_info space(const path& p) {

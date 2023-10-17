@@ -64,7 +64,7 @@ class GPSReplayProcessor : public BasebandProcessor {
     bool configured{false};
     uint32_t bytes_read{0};
 
-    void samplerate_config(const SamplerateConfigMessage& message);
+    void sample_rate_config(const SampleRateConfigMessage& message);
     void replay_config(const ReplayConfigMessage& message);
 
     TXProgressMessage txprogress_message{};

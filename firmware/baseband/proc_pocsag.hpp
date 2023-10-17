@@ -3,6 +3,7 @@
  * Copyright (C) 2012-2014 Elias Oenal (multimon-ng@eliasoenal.com)
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -48,7 +49,7 @@ using namespace std;
 template <class ValType, class CalcType>
 class SmoothVals {
    protected:
-    ValType* m_lastVals;  // Previoius N values
+    ValType* m_lastVals;  // Previous N values
     int m_size;           // The size N
     CalcType m_sumVal;    // Running sum of lastVals
     int m_pos;            // Current position in last vals ring buffer
@@ -106,10 +107,10 @@ class SmoothVals {
 
         // Use a rolling smoothed value while processing the buffer
         for (int buffPos = 0; buffPos < numVals; ++buffPos) {
-            m_pos = (m_pos + 1);  // Increment the position in the stored values
+            m_pos++;
             if (m_pos >= m_size) {
                 m_pos = 0;
-            }  // loop if reached the end of the stored values
+            }
 
             m_sumVal -= (CalcType)m_lastVals[m_pos];  // Subtract the oldest value
             m_lastVals[m_pos] = valBuff[buffPos];     // Store the new value
@@ -136,6 +137,9 @@ class POCSAGProcessor : public BasebandProcessor {
 
    private:
     static constexpr size_t baseband_fs = 3072000;
+    static constexpr uint8_t stat_update_interval = 10;
+    static constexpr uint32_t stat_update_threshold =
+        baseband_fs / stat_update_interval;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -157,7 +161,10 @@ class POCSAGProcessor : public BasebandProcessor {
     bool configured = false;
     pocsag::POCSAGPacket packet{};
 
+    uint32_t samples_processed = 0;
+
     void configure();
+    void send_stats() const;
 
     // ----------------------------------------
     // Frame extractraction methods and members
@@ -180,7 +187,7 @@ class POCSAGProcessor : public BasebandProcessor {
     short getBit();
 
     int getNoOfBits();
-    uint32_t getRate();
+    uint32_t getRate() const;
 
     uint32_t m_averageSymbolLen_1024{0};
     uint32_t m_lastStableSymbolLen_1024{0};
@@ -214,6 +221,9 @@ class POCSAGProcessor : public BasebandProcessor {
     bool m_gotSync{false};
     int m_numCode{0};
     bool m_inverted{false};
+
+    FMSquelch squelch_{};
+    uint64_t squelch_history = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

@@ -21,6 +21,8 @@
 
 #include "string_format.hpp"
 
+using namespace std::literals;
+
 /* This takes a pointer to the end of a buffer
  * and fills it backwards towards the front.
  * The return value 'q' is a pointer to the start.
@@ -59,30 +61,37 @@ static char* to_string_dec_uint_pad_internal(
     return q;
 }
 
-template <typename Int>
-char* to_string_dec_uint_internal(Int n, StringFormatBuffer& buffer, size_t& length) {
+static char* to_string_dec_uint_internal(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
     auto end = &buffer.back();
     auto start = to_string_dec_uint_internal(end, n);
     length = end - start;
     return start;
 }
 
-char* to_string_dec_uint(uint32_t n, StringFormatBuffer& buffer, size_t& length) {
+char* to_string_dec_uint(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
     return to_string_dec_uint_internal(n, buffer, length);
 }
 
-char* to_string_dec_uint64(uint64_t n, StringFormatBuffer& buffer, size_t& length) {
-    return to_string_dec_uint_internal(n, buffer, length);
+char* to_string_dec_int(int64_t n, StringFormatBuffer& buffer, size_t& length) {
+    bool negative = n < 0;
+    auto start = to_string_dec_uint(negative ? -n : n, buffer, length);
+
+    if (negative) {
+        *(--start) = '-';
+        ++length;
+    }
+
+    return start;
 }
 
-std::string to_string_dec_uint(uint32_t n) {
+std::string to_string_dec_int(int64_t n) {
     StringFormatBuffer b{};
     size_t len{};
-    char* str = to_string_dec_uint(n, b, len);
+    char* str = to_string_dec_int(n, b, len);
     return std::string(str, len);
 }
 
-std::string to_string_dec_uint64(uint64_t n) {
+std::string to_string_dec_uint(uint64_t n) {
     StringFormatBuffer b{};
     size_t len{};
     char* str = to_string_dec_uint(n, b, len);
@@ -194,14 +203,14 @@ std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
     };
 
     if (precision < 1) {
-        final_str = to_string_dec_uint64(f / 1000000);
+        final_str = to_string_dec_uint(f / 1000000);
     } else {
         if (precision > 6)
             precision = 6;
 
         uint32_t divisor = pow10[6 - precision];
 
-        final_str = to_string_dec_uint64(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
+        final_str = to_string_dec_uint(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
     }
     return final_str;
 }
@@ -223,29 +232,31 @@ std::string to_string_time_ms(const uint32_t ms) {
     return final_str;
 }
 
-static void to_string_hex_internal(char* p, const uint64_t n, const int32_t l) {
-    const uint32_t d = n & 0xf;
-    p[l] = (d > 9) ? (d + 55) : (d + 48);
-    if (l > 0) {
-        to_string_hex_internal(p, n >> 4, l - 1);
-    }
+static char* to_string_hex_internal(char* ptr, uint64_t value, uint8_t length) {
+    if (length == 0)
+        return ptr;
+
+    *(--ptr) = uint_to_char(value & 0xF, 16);
+    return to_string_hex_internal(ptr, value >> 4, length - 1);
 }
 
-std::string to_string_hex(const uint64_t n, int32_t l) {
-    char p[32];
+std::string to_string_hex(uint64_t value, int32_t length) {
+    constexpr uint8_t buffer_length = 33;
+    char buffer[buffer_length];
 
-    l = std::min<int32_t>(l, 31);
-    to_string_hex_internal(p, n, l - 1);
-    p[l] = 0;
-    return p;
+    char* ptr = &buffer[buffer_length - 1];
+    *ptr = '\0';
+
+    length = std::min<uint8_t>(buffer_length - 1, length);
+    return to_string_hex_internal(ptr, value, length);
 }
 
-std::string to_string_hex_array(uint8_t* const array, const int32_t l) {
-    std::string str_return = "";
-    uint8_t bytes;
+std::string to_string_hex_array(uint8_t* array, int32_t length) {
+    std::string str_return;
+    str_return.reserve(length);
 
-    for (bytes = 0; bytes < l; bytes++)
-        str_return += to_string_hex(array[bytes], 2);
+    for (uint8_t i = 0; i < length; i++)
+        str_return += to_string_hex(array[i], 2);
 
     return str_return;
 }
@@ -300,10 +311,10 @@ std::string to_string_file_size(uint32_t file_size) {
     return to_string_dec_uint(file_size) + suffix[suffix_index];
 }
 
-std::string unit_auto_scale(double n, const uint32_t base_nano, uint32_t precision) {
+std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision) {
     const uint32_t powers_of_ten[5] = {1, 10, 100, 1000, 10000};
     std::string string{""};
-    uint32_t prefix_index = base_nano;
+    uint32_t prefix_index = base_unit;
     double integer_part;
     double fractional_part;
 
@@ -356,4 +367,27 @@ std::string trimr(std::string_view str) {
 
 std::string truncate(std::string_view str, size_t length) {
     return std::string{str.length() <= length ? str : str.substr(0, length)};
+}
+
+uint8_t char_to_uint(char c, uint8_t radix) {
+    uint8_t v = 0;
+
+    if (c >= '0' && c <= '9')
+        v = c - '0';
+    else if (c >= 'A' && c <= 'F')
+        v = c - 'A' + 10;  // A is dec: 10
+    else if (c >= 'a' && c <= 'f')
+        v = c - 'a' + 10;  // A is dec: 10
+
+    return v < radix ? v : 0;
+}
+
+char uint_to_char(uint8_t val, uint8_t radix) {
+    if (val >= radix)
+        return 0;
+
+    if (val < 10)
+        return '0' + val;
+    else
+        return 'A' + val - 10;  // A is dec: 10
 }

@@ -32,7 +32,24 @@
 
 using namespace portapack;
 
+#define POWER_THRESHOLD_HIGH 47
+#define POWER_THRESHOLD_MED 38
+#define POWER_THRESHOLD_LOW 17
+
 namespace ui {
+
+/* Gets a style indicating total TX gain level. */
+static const Style* get_style_for_gain(uint8_t tot_gain) {
+    if (tot_gain > POWER_THRESHOLD_HIGH) return &Styles::red;
+
+    if (tot_gain > POWER_THRESHOLD_MED)
+        return &Styles::orange;
+
+    if (tot_gain > POWER_THRESHOLD_LOW)
+        return &Styles::yellow;
+
+    return nullptr;  // Uses default.
+}
 
 /* TransmitterView *******************************************************/
 
@@ -73,21 +90,13 @@ void TransmitterView::on_tx_amp_changed(bool rf_amp) {
 }
 
 void TransmitterView::update_gainlevel_styles() {
-    const Style* new_style_ptr = NULL;
     int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
+    auto style = get_style_for_gain(tot_gain);
 
-    if (tot_gain > POWER_THRESHOLD_HIGH) {
-        new_style_ptr = &style_power_high;
-    } else if (tot_gain > POWER_THRESHOLD_MED) {
-        new_style_ptr = &style_power_med;
-    } else if (tot_gain > POWER_THRESHOLD_LOW) {
-        new_style_ptr = &style_power_low;
-    }
-
-    field_gain.set_style(new_style_ptr);
-    text_gain.set_style(new_style_ptr);
-    field_amp.set_style(new_style_ptr);
-    text_amp.set_style(new_style_ptr);
+    field_gain.set_style(style);
+    text_gain.set_style(style);
+    field_amp.set_style(style);
+    text_amp.set_style(style);
 }
 
 void TransmitterView::set_transmitting(const bool transmitting) {
@@ -186,89 +195,66 @@ TransmitterView::TransmitterView(
 }
 
 TransmitterView::~TransmitterView() {
+    // TODO: Does this make sense? Seems wrong to have
+    // what's basically a widget control the radio.
     audio::output::stop();
     transmitter_model.disable();
     baseband::shutdown();
 }
 
 /* TransmitterView2 *******************************************************/
-/* Simpler transmitter view that only renders TX Gain and Amp.
- * There are two modes, NORMAL_UI and SHORT_UI. SHORT_UI abbreviates control labels. */
-void TransmitterView2::paint(Painter&) {
-    // All widgets paint themselves. Don't let base paint.
-}
 
-void TransmitterView2::on_tx_gain_changed(int32_t tx_gain) {
-    transmitter_model.set_tx_gain(tx_gain);
-    update_gainlevel_styles();
-}
+TransmitterView2::TransmitterView2(Point pos, bool short_ui) {
+    // There are two modes, short and !short
+    // Short:  "G:XX A:YY"
+    // !Short: "Gain:XX Amp:YY"
 
-void TransmitterView2::on_tx_amp_changed(bool rf_amp) {
-    transmitter_model.set_rf_amp(rf_amp);
+    Dim width = short_ui ? (9 * 8) : (14 * 8);
+    set_parent_rect({pos, {width, 16}});
+
+    add_children({
+        &text_labels,
+        &field_gain,
+        &field_amp,
+    });
+
+    // Set up controls depending UI mode.
+    text_labels.set(short_ui ? "G:   A:" : "Gain:   Amp:");
+    text_labels.set_parent_rect(
+        short_ui
+            ? Rect{0 * 8, 0 * 16, 7 * 8, 1 * 16}
+            : Rect{0 * 8, 0 * 16, 12 * 8, 1 * 16});
+    field_gain.set_parent_rect(
+        short_ui
+            ? Rect{2 * 8, 0 * 16, 2 * 8, 1 * 16}
+            : Rect{5 * 8, 0 * 16, 2 * 8, 1 * 16});
+    field_amp.set_parent_rect(
+        short_ui
+            ? Rect{7 * 8, 0 * 16, 2 * 8, 1 * 16}
+            : Rect{12 * 8, 0 * 16, 2 * 8, 1 * 16});
+
+    field_gain.set_value(transmitter_model.tx_gain());
+    field_gain.on_change = [this](uint32_t tx_gain) {
+        transmitter_model.set_tx_gain(tx_gain);
+        update_gainlevel_styles();
+    };
+
+    field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
+    field_amp.on_change = [this](uint32_t rf_amp) {
+        transmitter_model.set_rf_amp(rf_amp > 0);
+        update_gainlevel_styles();
+    };
+
     update_gainlevel_styles();
 }
 
 void TransmitterView2::update_gainlevel_styles() {
-    const Style* new_style_ptr = NULL;
     int8_t tot_gain = transmitter_model.tx_gain() + (transmitter_model.rf_amp() ? 14 : 0);
+    auto style = get_style_for_gain(tot_gain);
 
-    if (tot_gain > POWER_THRESHOLD_HIGH) {
-        new_style_ptr = &style_power_high;
-    } else if (tot_gain > POWER_THRESHOLD_MED) {
-        new_style_ptr = &style_power_med;
-    } else if (tot_gain > POWER_THRESHOLD_LOW) {
-        new_style_ptr = &style_power_low;
-    }
-
-    field_gain.set_style(new_style_ptr);
-    text_gain_amp.set_style(new_style_ptr);
-    field_amp.set_style(new_style_ptr);
-
-    field_gain_short_UI.set_style(new_style_ptr);
-    text_gain_amp_short_UI.set_style(new_style_ptr);
-    field_amp_short_UI.set_style(new_style_ptr);
-}
-
-void TransmitterView2::on_show() {
-    field_gain.set_value(transmitter_model.tx_gain());
-    field_amp.set_value(transmitter_model.rf_amp() ? 14 : 0);
-
-    field_gain_short_UI.set_value(transmitter_model.tx_gain());
-    field_amp_short_UI.set_value(transmitter_model.rf_amp() ? 14 : 0);
-
-    update_gainlevel_styles();
-}
-
-TransmitterView2::TransmitterView2(const Coord x, const Coord y, bool short_UI) {
-    set_parent_rect({x, y, 20 * 8, 1 * 8});
-
-    add_children({
-        &(short_UI ? text_gain_amp_short_UI : text_gain_amp),
-        &(short_UI ? field_gain_short_UI : field_gain),
-        &(short_UI ? field_amp_short_UI : field_amp),
-    });
-
-    if (short_UI) {
-        field_gain_short_UI.on_change = [this](uint32_t tx_gain) {
-            on_tx_gain_changed(tx_gain);
-        };
-        field_amp_short_UI.on_change = [this](uint32_t rf_amp) {
-            on_tx_amp_changed((bool)rf_amp);
-        };
-    } else {
-        field_gain.on_change = [this](uint32_t tx_gain) {
-            on_tx_gain_changed(tx_gain);
-        };
-        field_amp.on_change = [this](uint32_t rf_amp) {
-            on_tx_amp_changed((bool)rf_amp);
-        };
-    }
-}
-
-TransmitterView2::~TransmitterView2() {
-    audio::output::stop();
-    transmitter_model.disable();
-    baseband::shutdown();
+    text_labels.set_style(style);
+    field_gain.set_style(style);
+    field_amp.set_style(style);
 }
 
 } /* namespace ui */

@@ -31,8 +31,13 @@
 #include "signal.hpp"
 
 #include <cstddef>
-#include <string>
 #include <functional>
+#include <memory>
+#include <string>
+#include <vector>
+
+// file used for listing apps to hide from menu
+#define BLACKLIST u"/SETTINGS/blacklist"
 
 namespace ui {
 
@@ -45,6 +50,8 @@ struct GridItem {
     // TODO: Prevent default-constructed GridItems.
 };
 
+void load_blacklist();
+
 class BtnGridView : public View {
    public:
     BtnGridView(Rect new_parent_rect = {0, 0, 240, 304}, bool keep_highlight = false);
@@ -52,6 +59,7 @@ class BtnGridView : public View {
     ~BtnGridView();
 
     void add_items(std::initializer_list<GridItem> new_items);
+    void add_item(GridItem new_item);
     void set_max_rows(int rows);
     int rows();
     void clear();
@@ -62,11 +70,12 @@ class BtnGridView : public View {
     uint32_t highlighted_index();
 
     void set_parent_rect(const Rect new_parent_rect) override;
-    void set_arrow_enabled(bool new_value);
+    void set_arrow_enabled(bool enabled);
     void on_focus() override;
     void on_blur() override;
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
+    bool blacklisted_app(GridItem new_item);
 
    private:
     int rows_{3};
@@ -77,7 +86,7 @@ class BtnGridView : public View {
 
     SignalToken signal_token_tick_second{};
     std::vector<GridItem> menu_items{};
-    std::vector<NewButton*> menu_item_views{};
+    std::vector<std::unique_ptr<NewButton>> menu_item_views{};
 
     Image arrow_more{
         {228, 320 - 8, 8, 8},

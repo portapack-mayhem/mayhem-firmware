@@ -35,7 +35,7 @@
 
 namespace pocsag {
 
-// Todo: these enums suck, make a better decode_batch
+// TODO: these enums suck, make a better decode_batch
 
 enum Mode : uint32_t {
     STATE_CLEAR,
@@ -45,6 +45,7 @@ enum Mode : uint32_t {
 
 enum OutputType : uint32_t {
     EMPTY,
+    IDLE,
     ADDRESS,
     MESSAGE
 };
@@ -55,22 +56,46 @@ enum MessageType : uint32_t {
     ALPHANUMERIC
 };
 
+/* Holds error correction arrays. This allows the arrays to
+ * be freed when POCSAG is not running, saving ~4kb of RAM. */
+class EccContainer {
+   public:
+    EccContainer();
+
+    EccContainer(const EccContainer&) = delete;
+    EccContainer(EccContainer&&) = delete;
+    EccContainer& operator=(const EccContainer&) = delete;
+    EccContainer& operator=(EccContainer&&) = delete;
+
+    int error_correct(uint32_t& val);
+
+   private:
+    void setup_ecc();
+
+    /* error correction sequence */
+    uint32_t ecs[32];
+    uint32_t bch[1025];
+};
+
 struct POCSAGState {
-    uint32_t function;
-    uint32_t address;
+    EccContainer* ecc = nullptr;
+    uint8_t codeword_index = 0;
+    uint32_t function = 0;
+    uint32_t address = 0;
     Mode mode = STATE_CLEAR;
     OutputType out_type = EMPTY;
-    uint32_t ascii_data;
-    uint32_t ascii_idx;
-    uint32_t errors;
-    std::string output;
+    uint32_t ascii_data = 0;
+    uint32_t ascii_idx = 0;
+    uint32_t errors = 0;
+    std::string output{};
 };
 
 const pocsag::BitRate pocsag_bitrates[4] = {
     pocsag::BitRate::FSK512,
     pocsag::BitRate::FSK1200,
     pocsag::BitRate::FSK2400,
-    pocsag::BitRate::FSK3200};
+    pocsag::BitRate::FSK3200,
+};
 
 std::string bitrate_str(BitRate bitrate);
 std::string flag_str(PacketFlag packetflag);
@@ -78,7 +103,9 @@ std::string flag_str(PacketFlag packetflag);
 void insert_BCH(BCHCode& BCH_code, uint32_t* codeword);
 uint32_t get_digit_code(char code);
 void pocsag_encode(const MessageType type, BCHCode& BCH_code, const uint32_t function, const std::string message, const uint32_t address, std::vector<uint32_t>& codewords);
-void pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState* const state);
+
+// Returns true if the batch has more to process.
+bool pocsag_decode_batch(const POCSAGPacket& batch, POCSAGState& state);
 
 } /* namespace pocsag */
 

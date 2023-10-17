@@ -261,6 +261,7 @@ void JammerView::start_tx() {
 
         transmitter_model.set_rf_amp(field_amp.value());
         transmitter_model.set_tx_gain(field_gain.value());
+        transmitter_model.set_baseband_bandwidth(28'000'000);  // Although tx is narrowband , let's use Max TX LPF .
         transmitter_model.enable();
 
         baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());
@@ -288,7 +289,8 @@ void JammerView::on_timer() {
         mscounter = 0;
         if (jamming) {
             if (cooling) {
-                if (++seconds >= field_timepause.value()) {  // Re-start TX
+                if (++seconds >= field_timepause.value()) {                // Re-start TX
+                    transmitter_model.set_baseband_bandwidth(28'000'000);  // Although tx is narrowband , let's use Max TX LPF .
                     transmitter_model.enable();
                     button_transmit.set_text("STOP");
                     baseband::set_jammer(true, (JammerType)options_type.selected_index(), options_speed.selected_index_value());

@@ -202,8 +202,8 @@ buffer_c16_t FIRC8xR16x24FS4Decim4::execute(
     uint32_t* const d = static_cast<uint32_t*>(__builtin_assume_aligned(dst.p, 4));
 
     const auto k = output_scale;
-
     const size_t count = src.count / decimation_factor;
+
     for (size_t i = 0; i < count; i++) {
         const vec4_s8* const in = static_cast<const vec4_s8*>(__builtin_assume_aligned(&src.p[i * decimation_factor], 4));
 

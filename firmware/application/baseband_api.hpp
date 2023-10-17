@@ -89,13 +89,14 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 void request_beep();
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
+void run_prepared_image(const uint32_t m4_code);
 void shutdown();
 
 void spectrum_streaming_start();
 void spectrum_streaming_stop();
 
-void set_sample_rate(const uint32_t sample_rate);
-void set_oversample_rate(OversampleRate oversample_rate);
+/* NB: sample_rate should be desired rate. Don't pre-scale. */
+void set_sample_rate(uint32_t sample_rate, OversampleRate oversample_rate = OversampleRate::None);
 void capture_start(CaptureConfig* const config);
 void capture_stop();
 void replay_start(ReplayConfig* const config);

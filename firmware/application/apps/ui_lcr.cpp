@@ -127,6 +127,8 @@ void LCRView::start_tx(const bool scan) {
 
     modems::generate_data(lcr::generate_message(rgsb, litterals_list, options_ec.selected_index()), lcr_message_data);
 
+    /* It is AFSK modulation , measuring original fw 1.7.4 spectrum BW is just around 30khz , NBFM */
+    transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF 1M75, same spectrum as previous fw 1.7.4
     transmitter_model.enable();
 
     memcpy(shared_memory.bb_data.data, lcr_message_data, sizeof(lcr_message_data));

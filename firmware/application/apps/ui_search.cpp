@@ -23,7 +23,9 @@
 #include "ui_search.hpp"
 
 #include "baseband_api.hpp"
+#include "binder.hpp"
 #include "string_format.hpp"
+#include "ui_freqman.hpp"
 
 using namespace portapack;
 
@@ -47,13 +49,78 @@ void RecentEntriesTable<SearchRecentEntries>::draw(
     painter.draw_string(target_rect.location(), style, to_string_short_freq(entry.frequency) + " " + entry.time + " " + str_duration);
 }
 
-void SearchView::focus() {
-    field_frequency_min.focus();
+/* SearchView ********************************************/
+
+SearchView::SearchView(
+    NavigationView& nav)
+    : nav_(nav) {
+    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
+
+    add_children({&labels,
+                  &field_frequency_min,
+                  &field_frequency_max,
+                  &field_lna,
+                  &field_vga,
+                  &field_threshold,
+                  &text_mean,
+                  &text_slices,
+                  &text_rate,
+                  &text_infos,
+                  &vu_max,
+                  &progress_timers,
+                  &check_snap,
+                  &options_snap,
+                  &big_display,
+                  &recent_entries_view});
+
+    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
+
+    recent_entries_view.set_parent_rect({0, 28 * 8, screen_width, 12 * 8});
+    recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
+        nav.push<FrequencySaveView>(entry.frequency);
+    };
+
+    text_mean.set_style(&Styles::grey);
+    text_slices.set_style(&Styles::grey);
+    text_rate.set_style(&Styles::grey);
+    progress_timers.set_style(&Styles::grey);
+    big_display.set_style(&Styles::grey);
+
+    field_frequency_min.set_step(100'000);
+    bind(field_frequency_min, settings_.freq_min, nav, [this](auto) {
+        on_range_changed();
+    });
+
+    field_frequency_max.set_step(100'000);
+    bind(field_frequency_max, settings_.freq_max, nav, [this](auto) {
+        on_range_changed();
+    });
+
+    bind(field_threshold, settings_.power_threshold);
+    bind(check_snap, settings_.snap_search);
+    bind(options_snap, settings_.snap_step);
+
+    progress_timers.set_max(DETECT_DELAY);
+
+    on_range_changed();
+    receiver_model.enable();
 }
 
 SearchView::~SearchView() {
     receiver_model.disable();
     baseband::shutdown();
+}
+
+void SearchView::on_show() {
+    baseband::spectrum_streaming_start();
+}
+
+void SearchView::on_hide() {
+    baseband::spectrum_streaming_stop();
+}
+
+void SearchView::focus() {
+    field_frequency_min.focus();
 }
 
 void SearchView::do_detection() {
@@ -83,7 +150,7 @@ void SearchView::do_detection() {
         if (power > overall_power_max)
             overall_power_max = power;
 
-        if ((power >= mean_power + power_threshold) && (power > power_max)) {
+        if ((power >= mean_power + settings_.power_threshold) && (power > power_max)) {
             power_max = power;
             bin_max = slices[slice].max_index;
             slice_max = slice;
@@ -104,7 +171,7 @@ void SearchView::do_detection() {
                     }
 
                     // Check range
-                    if ((resolved_frequency >= f_min) && (resolved_frequency <= f_max)) {
+                    if ((resolved_frequency >= settings_.freq_min) && (resolved_frequency <= settings_.freq_max)) {
                         duration = 0;
 
                         auto& entry = ::on_packet(recent, resolved_frequency);
@@ -159,16 +226,47 @@ void SearchView::do_detection() {
     }
 }
 
-void SearchView::add_spectrum_pixel(Color color) {
-    // Is avoiding floats really necessary ?
-    bin_skip_acc += bin_skip_frac;
-    if (bin_skip_acc < 0x10000)
-        return;
+void SearchView::do_timers() {
+    if (timing_div >= 60) {
+        // ~1Hz
 
-    bin_skip_acc -= 0x10000;
+        timing_div = 0;
 
-    if (pixel_index < 240)
-        spectrum_row[pixel_index++] = color;
+        // Update scan rate
+        text_rate.set(to_string_dec_uint(search_counter, 3));
+        search_counter = 0;
+    }
+
+    if (timing_div % 12 == 0) {
+        // ~5Hz
+
+        // Update power levels
+        text_mean.set(to_string_dec_uint(mean_power, 3));
+
+        vu_max.set_value(overall_power_max);
+        vu_max.set_mark(mean_power + settings_.power_threshold);
+    }
+
+    if (timing_div % 6 == 0) {
+        // ~10Hz
+
+        // Update timing indicator
+        if (locked) {
+            progress_timers.set_max(RELEASE_DELAY);
+            progress_timers.set_value(RELEASE_DELAY - release_timer);
+        } else {
+            progress_timers.set_max(DETECT_DELAY);
+            progress_timers.set_value(detect_timer);
+        }
+
+        // Increment timers
+        if (detect_timer < DETECT_DELAY) detect_timer++;
+        if (release_timer < RELEASE_DELAY) release_timer++;
+
+        if (locked) duration++;
+    }
+
+    timing_div++;
 }
 
 void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
@@ -221,22 +319,14 @@ void SearchView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     baseband::spectrum_streaming_start();
 }
 
-void SearchView::on_show() {
-    baseband::spectrum_streaming_start();
-}
-
-void SearchView::on_hide() {
-    baseband::spectrum_streaming_stop();
-}
-
 void SearchView::on_range_changed() {
-    rf::Frequency slices_span, center_frequency;
+    rf::Frequency slices_span;
+    rf::Frequency center_frequency;
     int64_t offset;
     size_t slice;
 
-    f_min = field_frequency_min.value();
-    f_max = field_frequency_max.value();
-    search_span = abs(f_max - f_min);
+    // TODO: enforce min < max?
+    search_span = abs(settings_.freq_max - settings_.freq_min);
 
     if (search_span > SEARCH_SLICE_WIDTH) {
         // ex: 100M~115M (15M span):
@@ -253,14 +343,14 @@ void SearchView::on_range_changed() {
         // offset = 0 + 2.5/2 = 1.25M
         offset = ((search_span - slices_span) / 2) + (SEARCH_SLICE_WIDTH / 2);
         // slice_start = 100M + 1.25M = 101.25M
-        center_frequency = std::min(f_min, f_max) + offset;
+        center_frequency = std::min(settings_.freq_min, settings_.freq_max) + offset;
 
         for (slice = 0; slice < slices_nb; slice++) {
             slices[slice].center_frequency = center_frequency;
             center_frequency += SEARCH_SLICE_WIDTH;
         }
     } else {
-        slices[0].center_frequency = (f_max + f_min) / 2;
+        slices[0].center_frequency = (settings_.freq_max + settings_.freq_min) / 2;
         receiver_model.set_target_frequency(slices[0].center_frequency);
 
         slices_nb = 1;
@@ -272,139 +362,16 @@ void SearchView::on_range_changed() {
     slice_counter = 0;
 }
 
-void SearchView::on_lna_changed(int32_t v_db) {
-    receiver_model.set_lna(v_db);
-}
+void SearchView::add_spectrum_pixel(Color color) {
+    // Is avoiding floats really necessary?
+    bin_skip_acc += bin_skip_frac;
+    if (bin_skip_acc < 0x10000)
+        return;
 
-void SearchView::on_vga_changed(int32_t v_db) {
-    receiver_model.set_vga(v_db);
-}
+    bin_skip_acc -= 0x10000;
 
-void SearchView::do_timers() {
-    if (timing_div >= 60) {
-        // ~1Hz
-
-        timing_div = 0;
-
-        // Update scan rate
-        text_rate.set(to_string_dec_uint(search_counter, 3));
-        search_counter = 0;
-    }
-
-    if (timing_div % 12 == 0) {
-        // ~5Hz
-
-        // Update power levels
-        text_mean.set(to_string_dec_uint(mean_power, 3));
-
-        vu_max.set_value(overall_power_max);
-        vu_max.set_mark(mean_power + power_threshold);
-    }
-
-    if (timing_div % 6 == 0) {
-        // ~10Hz
-
-        // Update timing indicator
-        if (locked) {
-            progress_timers.set_max(RELEASE_DELAY);
-            progress_timers.set_value(RELEASE_DELAY - release_timer);
-        } else {
-            progress_timers.set_max(DETECT_DELAY);
-            progress_timers.set_value(detect_timer);
-        }
-
-        // Increment timers
-        if (detect_timer < DETECT_DELAY) detect_timer++;
-        if (release_timer < RELEASE_DELAY) release_timer++;
-
-        if (locked) duration++;
-    }
-
-    timing_div++;
-}
-
-SearchView::SearchView(
-    NavigationView& nav)
-    : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
-
-    add_children({&labels,
-                  &field_frequency_min,
-                  &field_frequency_max,
-                  &field_lna,
-                  &field_vga,
-                  &field_threshold,
-                  &text_mean,
-                  &text_slices,
-                  &text_rate,
-                  &text_infos,
-                  &vu_max,
-                  &progress_timers,
-                  &check_snap,
-                  &options_snap,
-                  &big_display,
-                  &recent_entries_view});
-
-    baseband::set_spectrum(SEARCH_SLICE_WIDTH, 31);
-
-    recent_entries_view.set_parent_rect({0, 28 * 8, 240, 12 * 8});
-    recent_entries_view.on_select = [this, &nav](const SearchRecentEntry& entry) {
-        nav.push<FrequencyKeypadView>(entry.frequency);
-    };
-
-    text_mean.set_style(&Styles::grey);
-    text_slices.set_style(&Styles::grey);
-    text_rate.set_style(&Styles::grey);
-    progress_timers.set_style(&Styles::grey);
-    big_display.set_style(&Styles::grey);
-
-    check_snap.set_value(true);
-    options_snap.set_selected_index(1);  // 12.5kHz
-
-    field_threshold.set_value(80);
-    field_threshold.on_change = [this](int32_t value) {
-        power_threshold = value;
-    };
-
-    field_frequency_min.set_value(receiver_model.target_frequency() - 1000000);
-    field_frequency_min.set_step(100000);
-    field_frequency_min.on_change = [this](rf::Frequency) {
-        this->on_range_changed();
-    };
-    field_frequency_min.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency() - 1000000);
-        new_view->on_changed = [this](rf::Frequency f) {
-            this->field_frequency_min.set_value(f);
-        };
-    };
-
-    field_frequency_max.set_value(receiver_model.target_frequency() + 1000000);
-    field_frequency_max.set_step(100000);
-    field_frequency_max.on_change = [this](rf::Frequency) {
-        this->on_range_changed();
-    };
-    field_frequency_max.on_edit = [this, &nav]() {
-        auto new_view = nav.push<FrequencyKeypadView>(receiver_model.target_frequency() + 1000000);
-        new_view->on_changed = [this](rf::Frequency f) {
-            this->field_frequency_max.set_value(f);
-        };
-    };
-
-    field_lna.set_value(receiver_model.lna());
-    field_lna.on_change = [this](int32_t v) {
-        this->on_lna_changed(v);
-    };
-
-    field_vga.set_value(receiver_model.vga());
-    field_vga.on_change = [this](int32_t v_db) {
-        this->on_vga_changed(v_db);
-    };
-
-    progress_timers.set_max(DETECT_DELAY);
-
-    on_range_changed();
-
-    receiver_model.enable();
+    if (pixel_index < screen_width)
+        spectrum_row[pixel_index++] = color;
 }
 
 } /* namespace ui */

@@ -26,6 +26,7 @@ set(CHIBIOS ${PROJECT_SOURCE_DIR}/chibios)
 set(CHIBIOS_PORTAPACK ${PROJECT_SOURCE_DIR}/chibios-portapack)
 
 set(EXTRACT_CPLD_DATA ${PROJECT_SOURCE_DIR}/tools/extract_cpld_data.py)
+set(EXPORT_EXTERNAL_APP_IMAGES ${PROJECT_SOURCE_DIR}/tools/export_external_apps.py)
 set(MAKE_SPI_IMAGE ${PROJECT_SOURCE_DIR}/tools/make_spi_image.py)
 set(MAKE_IMAGE_CHUNK ${PROJECT_SOURCE_DIR}/tools/make_image_chunk.py)
 set(LZ4 lz4)
@@ -55,8 +56,15 @@ add_custom_target(
 	program
 	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_DFU_IMAGE} || (exit 0) # We need to add it for dfu-utils v.011 , (in v.09 it is not necessary)
 	COMMAND sleep 3s
-	COMMAND hackrf_spiflash -w ${FIRMWARE_FILENAME}
-	DEPENDS ${FIRMWARE_FILENAME}
+	COMMAND hackrf_spiflash -i -R -w ${FIRMWARE_FILENAME}
+	DEPENDS firmware ${FIRMWARE_FILENAME}
+)
+
+add_custom_target(
+	program-external-apps
+	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMAND ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
+	DEPENDS program
 )
 
 # TODO: Bad hack to fix location of LICENSE file for tar.

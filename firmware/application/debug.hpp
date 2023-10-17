@@ -47,4 +47,6 @@ inline uint32_t get_free_stack_space() {
     return stack_space_left;
 }
 
+bool stack_dump();
+
 #endif /*__DEBUG_H__*/

@@ -208,6 +208,10 @@ class Text : public Widget {
     void paint(Painter& painter) override;
 
    protected:
+    // NB: Don't truncate this string. The UI will only render
+    // as many characters as will fit in its rectange.
+    // Apps expect to be able to retrieve this string to avoid
+    // needing to hold additional copies in memory.
     std::string text;
 };
 
@@ -328,8 +332,8 @@ class Console : public Widget {
     void on_hide() override;
 
    private:
-    // bool visible = false;
     Point pos{0, 0};
+    Dim scroll_height = 0;
     std::string buffer{};
     static bool scrolling_enabled;
 
@@ -475,10 +479,13 @@ class NewButton : public Widget {
 
     void paint(Painter& painter) override;
 
+   protected:
+    virtual Style paint_style();
+    Color color_;
+
    private:
     std::string text_;
     const Bitmap* bitmap_;
-    Color color_;
     bool vertical_center_{false};
 };
 
@@ -682,6 +689,9 @@ class TextEdit : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
 
+    void on_focus() override;
+    void on_blur() override;
+
    protected:
     std::string& text_;
     size_t max_length_;
@@ -694,6 +704,7 @@ class TextField : public Text {
    public:
     std::function<void(TextField&)> on_select{};
     std::function<void(TextField&)> on_change{};
+    std::function<void(TextField&, EncoderEvent)> on_encoder_change{};
 
     TextField(Rect parent_rect, std::string text);
 
@@ -701,6 +712,8 @@ class TextField : public Text {
     void set_text(std::string_view value);
 
     bool on_key(KeyEvent key) override;
+    bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
 
    private:
     using Text::set;
@@ -744,52 +757,93 @@ class NumberField : public Widget {
     const char fill_char;
     int32_t value_{0};
     bool can_loop{};
-
-    int32_t clip_value(int32_t value);
 };
 
+/* A widget that allows for character-by-character editing of its value. */
 class SymField : public Widget {
    public:
-    std::function<void(SymField&)> on_select{};
-    std::function<void()> on_change{};
+    std::function<void(SymField&)> on_change{};
 
-    enum symfield_type {
-        SYMFIELD_OCT,
-        SYMFIELD_DEC,
-        SYMFIELD_HEX,
-        SYMFIELD_ALPHANUM,
-        SYMFIELD_DEF  // User DEFined
+    enum class Type {
+        Custom,
+        Oct,
+        Dec,
+        Hex,
+        Alpha,
     };
 
-    SymField(Point parent_pos, size_t length, symfield_type type);
+    /* When "explicit_edits" is true, the field must be selected before it can
+     * be modified. This means that "slots" are not individually highlighted.
+     * This makes navigation on Views with SymFields easier because the
+     * whole control can be skipped over instead of one "slot" at a time. */
+
+    SymField(
+        Point parent_pos,
+        size_t length,
+        Type type = Type::Dec,
+        bool explicit_edits = false);
+
+    SymField(
+        Point parent_pos,
+        size_t length,
+        std::string symbol_list,
+        bool explicit_edits = false);
 
     SymField(const SymField&) = delete;
     SymField(SymField&&) = delete;
 
-    uint32_t get_sym(const uint32_t index);
-    void set_sym(const uint32_t index, const uint32_t new_value);
-    void set_length(const uint32_t new_length);
-    void set_symbol_list(const uint32_t index, const std::string symbol_list);
-    uint16_t concatenate_4_octal_u16();
-    uint32_t value_dec_u32();
-    uint64_t value_hex_u64();
-    std::string value_string();
+    /* Gets the symbol (character) at the specified index. */
+    char get_symbol(size_t index) const;
+
+    /* Sets the symbol (character) at the specified index. */
+    void set_symbol(size_t index, char symbol);
+
+    /* Gets the symbol's offset in the symbol list at the specified index. */
+    size_t get_offset(size_t index) const;
+
+    /* Sets the symbol's offset in the symbol list at the specified index. */
+    void set_offset(size_t index, size_t offset);
+
+    /* Sets the list of allowable symbols for the field. */
+    void set_symbol_list(std::string symbol_list);
+
+    /* Sets the integer value of the field. Only works for OCT/DEC/HEX. */
+    void set_value(uint64_t value);
+
+    /* Sets the string value of the field. Characters that are not in
+     * the symbol list will be set to the first symbol in the symbol list. */
+    void set_value(std::string_view value);
+
+    /* Gets the integer value of the field for OCT/DEC/HEX. */
+    uint64_t to_integer() const;
+
+    /* Gets the string value of the field. */
+    const std::string& to_string() const;
 
     void paint(Painter& painter) override;
-
-    bool on_key(const KeyEvent key) override;
-    bool on_encoder(const EncoderEvent delta) override;
-    bool on_touch(const TouchEvent event) override;
+    bool on_key(KeyEvent key) override;
+    bool on_encoder(EncoderEvent delta) override;
+    bool on_touch(TouchEvent event) override;
 
    private:
-    std::string symbol_list_[32] = {"01"};  // Failsafe init
-    uint32_t values_[32] = {0};
-    uint32_t selected_ = 0;
-    size_t length_, prev_length_ = 0;
-    bool erase_prev_ = false;
-    symfield_type type_{};
+    /* Ensure the specified symbol is in the symbol list. */
+    char ensure_valid(char symbol) const;
 
-    int32_t clip_value(const uint32_t index, const uint32_t value);
+    /* Ensures all the symbols are valid. */
+    void ensure_all_symbols();
+
+    /* Sets without validation and fires on_change if necessary. */
+    void set_symbol_internal(size_t index, char symbol);
+
+    /* Gets the radix for the current Type. */
+    uint8_t get_radix() const;
+
+    std::string symbols_{};
+    std::string value_{};
+    Type type_ = Type::Custom;
+    size_t selected_ = 0;
+    bool editing_ = false;
+    bool explicit_edits_ = true;
 };
 
 class Waveform : public Widget {

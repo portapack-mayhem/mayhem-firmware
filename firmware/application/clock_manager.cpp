@@ -325,12 +325,18 @@ uint32_t ClockManager::measure_gp_clkin_frequency() {
 }
 
 bool ClockManager::loss_of_signal() {
-    return hackrf_r9
-               ? clock_generator.plla_loss_of_signal()
-               : clock_generator.clkin_loss_of_signal();
+    if (hackrf_r9) {
+        const auto frequency = measure_gp_clkin_frequency();
+        return (frequency < 9850000) || (frequency > 10150000);
+    } else {
+        return clock_generator.clkin_loss_of_signal();
+    }
 }
 
 ClockManager::ReferenceSource ClockManager::detect_reference_source() {
+    if (portapack::persistent_memory::config_disable_external_tcxo())
+        return ReferenceSource::Xtal;
+
     if (loss_of_signal()) {
         // No external reference. Turn on PortaPack reference (if present).
         portapack_tcxo_enable();
