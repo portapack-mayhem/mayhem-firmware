@@ -123,46 +123,46 @@ namespace ui
                 
                 case ParsingType:
                 {
-                    // switch (value) 
-                    // {
-                    //     case ADV_IND:
-                    //         str_console += "ADV_IND";
-                    //         break;
-                    //     case ADV_DIRECT_IND:
-                    //         str_console += "ADV_DIRECT_IND";
-                    //         break;
-                    //     case ADV_NONCONN_IND:
-                    //         str_console += "ADV_NONCONN_IND";
-                    //         break;
-                    //     case SCAN_REQ:
-                    //         str_console += "SCAN_REQ";
-                    //         break;
-                    //     case SCAN_RSP:
-                    //         str_console += "SCAN_RSP";
-                    //         break;
-                    //     case CONNECT_REQ:
-                    //         str_console += "CONNECT_REQ";
-                    //         break;
-                    //     case ADV_SCAN_IND:
-                    //         str_console += "ADV_SCAN_IND";
-                    //         break;
-                    //     case RESERVED0:
-                    //     case RESERVED1:
-                    //     case RESERVED2:
-                    //     case RESERVED3:
-                    //     case RESERVED4:
-                    //     case RESERVED5:
-                    //     case RESERVED6:
-                    //     case RESERVED7:
-                    //     case RESERVED8:
-                    //         str_console += "RESERVED";
-                    //         break;
-                    //     default:
-                    //         str_console += "Unknown value";
-                    //         break;
-                    // }
+                    switch ((ADV_PDU_TYPE)value) 
+                    {
+                        case ADV_IND:
+                            str_console += "ADV_IND";
+                            break;
+                        case ADV_DIRECT_IND:
+                            str_console += "ADV_DIRECT_IND";
+                            break;
+                        case ADV_NONCONN_IND:
+                            str_console += "ADV_NONCONN_IND";
+                            break;
+                        case SCAN_REQ:
+                            str_console += "SCAN_REQ";
+                            break;
+                        case SCAN_RSP:
+                            str_console += "SCAN_RSP";
+                            break;
+                        case CONNECT_REQ:
+                            str_console += "CONNECT_REQ";
+                            break;
+                        case ADV_SCAN_IND:
+                            str_console += "ADV_SCAN_IND";
+                            break;
+                        case RESERVED0:
+                        case RESERVED1:
+                        case RESERVED2:
+                        case RESERVED3:
+                        case RESERVED4:
+                        case RESERVED5:
+                        case RESERVED6:
+                        case RESERVED7:
+                        case RESERVED8:
+                            str_console += "RESERVED";
+                            break;
+                        default:
+                            str_console += "UNKNOWN";
+                            break;
+                    }
 
-                     str_console += to_string_dec_uint(value);
+                  //   str_console += to_string_dec_uint(value);
 
                     break;
                 }

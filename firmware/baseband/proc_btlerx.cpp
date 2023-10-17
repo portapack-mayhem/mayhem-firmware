@@ -110,9 +110,9 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(decim_0_out);
 
-    process++;
+     process++;
 
-    if ((process % 100) != 0) return;
+     if ((process % 10) != 0) return;
 
     //4Mhz 2048 samples
 
@@ -210,157 +210,161 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         //return;
     }
 
-    uint32_t number = 0x8E89BED6; // Replace with your uint32_t value
-    uint8_t target_byte = 0x89BE; // Replace with the byte you want to search for
+    // uint32_t number = 0x8E89BED6; // Replace with your uint32_t value
+    // uint8_t target_byte = 0x89; // Replace with the byte you want to search for
 
-    // Check each byte in the uint32_t
-    for (int i = 0; i < 3; i++) 
-    {
-        uint8_t current_byte = (number >> (i * 8)) & 0xFFFF;
-        
-        if (current_byte == target_byte) 
-        {
-            //Send AA as test.
-            data_message.is_data = false;
-            data_message.value = 'A';
-            shared_memory.application_queue.push(data_message);
-
-            data_message.is_data = true;
-            data_message.value = accesssAddress;
-            shared_memory.application_queue.push(data_message);  
-            break; // If found, you can exit the loop
-        }
-    }
-
-    // Not sending AA from header.
-    // if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+    // // Check each byte in the uint32_t
+    // for (int i = 0; i < 4; i++) 
     // {
-        //Send AA as test.
-        // data_message.is_data = false;
-        // data_message.value = 'A';
-        // shared_memory.application_queue.push(data_message);
+    //     uint8_t current_byte = (number >> (i * 8)) & 0xFF;
+        
+    //     if (current_byte == target_byte) 
+    //     {
+    //         //Send AA as test.
+    //         data_message.is_data = false;
+    //         data_message.value = 'A';
+    //         shared_memory.application_queue.push(data_message);
 
-        // data_message.is_data = true;
-        // data_message.value = accesssAddress;
-        // shared_memory.application_queue.push(data_message);    
+    //         data_message.is_data = true;
+    //         data_message.value = accesssAddress;
+    //         shared_memory.application_queue.push(data_message);  
+    //         break; // If found, you can exit the loop
+    //     }
     // }
 
-    symbols_eaten += hit_idx;
+    // Not sending AA from header.
+   // if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+   // {
+    //    Send AA as test.
+        data_message.is_data = false;
+        data_message.value = 'A';
+        shared_memory.application_queue.push(data_message);
 
-    symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL); // move to beginning of PDU header
+        data_message.is_data = true;
+        data_message.value = accesssAddress;
+        shared_memory.application_queue.push(data_message);    
+   // }
+
+//     symbols_eaten += hit_idx;
+
+//     symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL); // move to beginning of PDU header
     
-    num_symbol_left = num_symbol_left - symbols_eaten;
+//     num_symbol_left = num_symbol_left - symbols_eaten;
 
-//--------------Start PDU Header Parsing-----------------------//
+// //--------------Start PDU Header Parsing-----------------------//
 
-    num_demod_byte = 2; // PDU header has 2 octets
+//     num_demod_byte = 2; // PDU header has 2 octets
       
-    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+//     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
 
-    if (symbols_eaten > (int)buffer.count) 
-    {
-        return;
-    }
+//     if (symbols_eaten > (int)buffer.count) 
+//     {
+//         return;
+//     }
 
-    //Demod the PDU Header
-    uint8_t bit_decision;
-    int sample_idx = symbols_eaten - num_demod_byte;
+//     //Demod the PDU Header
+//     uint8_t bit_decision;
+//     int sample_idx = symbols_eaten - num_demod_byte;
 
-    uint16_t packet_index = 0;
+//     uint16_t packet_index = 0;
 
-     for (i = 0; i < num_demod_byte ; i++) 
-     {
-        rb_buf[packet_index] = 0;
+//      for (i = 0; i < num_demod_byte ; i++) 
+//      {
+//         rb_buf[packet_index] = 0;
 
-        for (j = 0; j < 8; j++) 
-        {
-            I0 = buffer.p[sample_idx].real();
-            Q0 = buffer.p[sample_idx].imag();
-            I1 = buffer.p[sample_idx + 1].real();
-            Q1 = buffer.p[sample_idx + 1].imag();
+//         for (j = 0; j < 8; j++) 
+//         {
+//             I0 = buffer.p[sample_idx].real();
+//             Q0 = buffer.p[sample_idx].imag();
+//             I1 = buffer.p[sample_idx + 1].real();
+//             Q1 = buffer.p[sample_idx + 1].imag();
 
-            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+//             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+//             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
 
-            sample_idx += SAMPLE_PER_SYMBOL;;
-        }
+//             sample_idx += SAMPLE_PER_SYMBOL;;
+//         }
 
-        packet_index++;
-     }
+//         packet_index++;
+//      }
 
-    scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
+//     scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
 
-    uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
-    uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
-    uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
-    uint8_t payload_len = (rb_buf[1] & 0x3F);
+//     uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
+//     uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
+//     uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
+//     uint8_t payload_len = (rb_buf[1] & 0x3F);
 
-    //Send PDU Header as test.
-    // data_message.is_data = false;
-    // data_message.value = 'T';
-    // shared_memory.application_queue.push(data_message);
+   
 
-    // data_message.is_data = true;
-    // data_message.value = pdu_type;
-    // shared_memory.application_queue.push(data_message);   
-    
-    // data_message.is_data = false;
-    // data_message.value = 'S';
-    // shared_memory.application_queue.push(data_message);
+// //--------------Start Payload Parsing--------------------------//
 
-    // data_message.is_data = true;
-    // data_message.value = payload_len;
-    // shared_memory.application_queue.push(data_message);   
+//     num_demod_byte = (payload_len+3);
+//     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
 
-//--------------Start Payload Parsing--------------------------//
+//     if (symbols_eaten > (int)buffer.count) 
+//     {
+//         return;
+//     }
 
-    num_demod_byte = (payload_len+3);
-    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+//     sample_idx = symbols_eaten - num_demod_byte;
 
-    if (symbols_eaten > (int)buffer.count) 
-    {
-        return;
-    }
+//     for (i = 0; i < num_demod_byte ; i++) 
+//     {
+//         rb_buf[packet_index] = 0;
 
-    sample_idx = symbols_eaten - num_demod_byte;
+//         for (j = 0; j < 8; j++) 
+//         {
+//             I0 = buffer.p[sample_idx].real();
+//             Q0 = buffer.p[sample_idx].imag();
+//             I1 = buffer.p[sample_idx + 1].real();
+//             Q1 = buffer.p[sample_idx + 1].imag();
 
-    for (i = 0; i < num_demod_byte ; i++) 
-    {
-        rb_buf[packet_index] = 0;
+//             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+//             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
 
-        for (j = 0; j < 8; j++) 
-        {
-            I0 = buffer.p[sample_idx].real();
-            Q0 = buffer.p[sample_idx].imag();
-            I1 = buffer.p[sample_idx + 1].real();
-            Q1 = buffer.p[sample_idx + 1].imag();
+//             sample_idx += SAMPLE_PER_SYMBOL;;
+//         }
 
-            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+//         packet_index++;
+//     }
 
-            sample_idx += SAMPLE_PER_SYMBOL;;
-        }
+//     scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
 
-        packet_index++;
-    }
+// //--------------Start CRC Checking-----------------------------//
 
-    scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
+//     //Check CRC
+//     bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
+//     // pkt_count++;
+//     // receiver_status.pkt_avaliable = 1;
+//     // receiver_status.crc_ok = (crc_flag==0);
 
-//--------------Start CRC Checking-----------------------------//
+//     if (0)
+//     {
+//         data_message.is_data = false;
+//         data_message.value = 'T';
+//         shared_memory.application_queue.push(data_message);
 
-    //Check CRC
-    bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
-    // pkt_count++;
-    // receiver_status.pkt_avaliable = 1;
-    // receiver_status.crc_ok = (crc_flag==0);
+//         data_message.is_data = true;
+//         data_message.value = pdu_type;
+//         shared_memory.application_queue.push(data_message);   
+        
+//         data_message.is_data = false;
+//         data_message.value = 'S';
+//         shared_memory.application_queue.push(data_message);
 
-    // data_message.is_data = false;
-    // data_message.value = 'C';
-    // shared_memory.application_queue.push(data_message);
+//         data_message.is_data = true;
+//         data_message.value = payload_len;
+//         shared_memory.application_queue.push(data_message);
 
-    // data_message.is_data = true;
-    // data_message.value = crc_flag;
-    // shared_memory.application_queue.push(data_message);   
+//         data_message.is_data = false;
+//         data_message.value = 'C';
+//         shared_memory.application_queue.push(data_message);
+
+//         data_message.is_data = true;
+//         data_message.value = crc_flag;
+//         shared_memory.application_queue.push(data_message);
+//     }
 }
 
 void BTLERxProcessor::on_message(const Message* const message) 
