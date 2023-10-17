@@ -73,7 +73,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
         refresh_ui();
     };
 
-    field_amplify.set_value(0);
+    field_amplify.set_value(1);  // 1X is default (no amplification)
     field_amplify.on_change = [this](int32_t) {
         refresh_ui();
     };
