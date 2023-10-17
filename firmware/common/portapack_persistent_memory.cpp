@@ -870,7 +870,6 @@ int save_persistent_settings_to_file() {
     File outfile;
 
     make_new_directory(SETTINGS_DIR);
-
     auto error = outfile.create(PMEM_SETTING_FILE);
     if (error)
         return false;
