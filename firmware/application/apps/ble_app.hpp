@@ -81,6 +81,7 @@ namespace ui
             ParsingType,
             ParsingSize,
             ParsingMacAddress,
+            ParsingData,
             ParsingChecksum,
         } ParseState;
 

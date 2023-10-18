@@ -95,13 +95,14 @@ namespace ui
 
         check_log.on_select = [this](Checkbox&, bool v) 
         {
+            str_log = "";
             logging = v;
         };
 
         logger = std::make_unique<BLELogger>();
 
         if (logger)
-            logger->append(LOG_ROOT_DIR "/BLELOG.TXT");
+            logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 
         // Auto-configure modem for LCR RX (will be removed later)
         baseband::set_btle(0, 0, 0, 0);
@@ -112,6 +113,11 @@ namespace ui
     void BLERxView::on_data(uint32_t value, bool is_data) 
     {
         std::string str_console = "";
+
+        if (!logging)
+        {
+            str_log = "";
+        }
         
         if (is_data) 
         {
@@ -119,6 +125,7 @@ namespace ui
             {
                 case ParsingAccessAddress:
                     str_console += to_string_hex(value, 8);
+                    str_log += to_string_hex(value, 8);
                     break;
                 
                 case ParsingType:
@@ -127,24 +134,31 @@ namespace ui
                     {
                         case ADV_IND:
                             str_console += "ADV_IND";
+                            str_log += "ADV_IND";
                             break;
                         case ADV_DIRECT_IND:
                             str_console += "ADV_DIRECT_IND";
+                            str_log += "ADV_DIRECT_IND";
                             break;
                         case ADV_NONCONN_IND:
                             str_console += "ADV_NONCONN_IND";
+                            str_log += "ADV_NONCONN_IND";
                             break;
                         case SCAN_REQ:
                             str_console += "SCAN_REQ";
+                            str_log += "SCAN_REQ";
                             break;
                         case SCAN_RSP:
                             str_console += "SCAN_RSP";
+                            str_log += "SCAN_RSP";
                             break;
                         case CONNECT_REQ:
                             str_console += "CONNECT_REQ";
+                            str_log += "CONNECT_REQ";
                             break;
                         case ADV_SCAN_IND:
                             str_console += "ADV_SCAN_IND";
+                            str_log += "ADV_SCAN_IND";
                             break;
                         case RESERVED0:
                         case RESERVED1:
@@ -156,27 +170,47 @@ namespace ui
                         case RESERVED7:
                         case RESERVED8:
                             str_console += "RESERVED";
+                            str_log += "RESERVED";
                             break;
                         default:
                             str_console += "UNKNOWN";
+                            str_log += "UNKNOWN";
                             break;
                     }
 
-                  //   str_console += to_string_dec_uint(value);
+                    //str_console += to_string_dec_uint(value);
 
                     break;
                 }
 
                 case ParsingSize:
                     str_console += to_string_dec_uint(value);
+                    str_log += to_string_dec_uint(value);
                     break;
 
                 case ParsingMacAddress:
                     str_console += ":" + to_string_hex(value, 2);
+                    str_log += ":" + to_string_hex(value, 2);
+                    break;
+                    
+                case ParsingData:
+                    str_console += " " + to_string_hex(value, 2);
+                    str_log += " " + to_string_hex(value, 2);
                     break;
 
                 case ParsingChecksum:
-                    str_console += to_string_hex(value, 8);
+                    str_console += to_string_hex(value, 2);
+                    str_console += "\r\n";
+                    str_log += to_string_hex(value, 2);
+  
+                    //Log at end of CRC.
+                    if (logger && logging) 
+                    {
+                        str_log += "\n";
+                        logger->log_raw_data(str_log);
+                        str_log = "";
+                    }
+
                     break;
             }
 
@@ -186,20 +220,30 @@ namespace ui
         {
             switch (value)
             {
-                // case 'A':
-                // {
-                //     console.writeln("");
-                //     console.write("AA:");
-                //     parsestate = ParsingAccessAddress;
+                case 'A':
+                {
+                    console.write("AA:");
+                    parsestate = ParsingAccessAddress;
+                    str_log += "AA:";
 
-                //     break;
-                // } 
+                    break;
+                } 
+
+                case 'S':
+                {
+                    console.write(" Len:");
+                    parsestate = ParsingSize;
+                    str_log += " Len:";
+
+                    break;
+                }  
 
                 case 'T':
                 {
                     console.writeln("");
-                    console.write("Type:");
+                    console.write("PDU:");
                     parsestate = ParsingType;
+                    str_log += " PDU:";
 
                     break;
                 }
@@ -209,24 +253,27 @@ namespace ui
                     console.writeln("");
                     console.write("Mac");
                     parsestate = ParsingMacAddress;
+                    str_log += " Mac";
 
                     break;
                 }
 
-                // case 'S':
-                // {
-                //     console.write(":Len:");
-                //     parsestate = ParsingSize;
+                case 'D':
+                {
+                    console.writeln("");
+                    console.write("Data");
+                    parsestate = ParsingData;
+                    str_log += " Data:";
 
-                //     break;
-                // }  
+                    break;
+                }
 
                 case 'C':
                 {
                     console.writeln("");
                     console.write("CRC:");
                     parsestate = ParsingChecksum;
-
+                    str_log += " CRC:";
                     break;
                 }      
             }

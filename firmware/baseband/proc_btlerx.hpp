@@ -43,6 +43,11 @@ class BTLERxProcessor : public BasebandProcessor
     void on_message(const Message* const message) override;
 
    private:
+    #define SAMPLE_PER_SYMBOL 1
+    #define LEN_DEMOD_BUF_ACCESS 32
+    #define DEFAULT_ACCESS_ADDR 0x8E89BED6
+    #define NUM_ACCESS_ADDR_BYTE 4
+
     std::array<std::string, 16> ADV_PDU_TYPE_STR
     {
         "ADV_IND",
@@ -128,27 +133,21 @@ class BTLERxProcessor : public BasebandProcessor
     uint32_t crc_init_internal = 0x00;
 
     void scramble_byte(uint8_t *byte_in, int num_byte, const uint8_t *scramble_table_byte, uint8_t *byte_out);
+    void demod_byte(int num_byte, uint8_t *out_byte);
     int parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) ;
 
-    std::array<complex16_t, 512> dst{};
+    std::array<complex16_t, 1024> dst{};
     const buffer_c16_t dst_buffer
     {
         dst.data(),
         dst.size()
     };
 
-    std::array<complex16_t, 512> spectrum{};
-    const buffer_c16_t spectrum_buffer
-    {
-        spectrum.data(),
-        spectrum.size()
-    };
-
-    const buffer_s16_t work_audio_buffer
-    {
-        (int16_t*)dst.data(),
-        sizeof(dst) / sizeof(int16_t)
-    };
+    // std::array<complex8_t, 2048> iq{};
+    //     const buffer_c8_t iq_buffer{
+    //         iq.data(),
+    //         iq.size(),
+    //         baseband_fs};
 
     //std::array<uint8_t, 2048> rb_buf{0};
     uint8_t rb_buf[2048];

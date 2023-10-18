@@ -103,6 +103,33 @@ void BTLERxProcessor::scramble_byte(uint8_t *byte_in, int num_byte, const uint8_
     }
 }
 
+void BTLERxProcessor::demod_byte(int num_byte, uint8_t *out_byte) 
+{
+//   int i, j;
+//   int I0, Q0, I1, Q1;
+//   uint8_t bit_decision;
+//   int sample_idx = 0;
+  
+//   for (i = 0; i < num_byte; i++) 
+//   {
+//     out_byte[i] = 0;
+
+//     for (j = 0; j < 8; j++) 
+//     {
+//         I0 = dst_buffer.p[sample_idx].real();
+//         Q0 = dst_buffer.p[sample_idx].imag();
+//         I1 = dst_buffer.p[sample_idx + 1].real();
+//         Q1 = dst_buffer.p[sample_idx + 1].imag();
+
+//         bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+        
+//         out_byte[i] = out_byte[i] | (bit_decision << j);
+
+//         sample_idx += SAMPLE_PER_SYMBOL;;
+//     }
+//   }
+}
+
 int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) 
 {
     if (num_payload_byte < 6) 
@@ -126,7 +153,7 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_p
     } 
     else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) 
     {
-        if (num_payload_byte!=12) 
+        if (num_payload_byte != 12) 
         {
             //printf("Error: Payload length %d bytes. Need to be 12 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
             return(-1);
@@ -154,7 +181,7 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_p
     } 
     else if (pdu_type == CONNECT_REQ) 
     {
-        if (num_payload_byte!=34) 
+        if (num_payload_byte != 34) 
         {
             //printf("Error: Payload length %d bytes. Need to be 34 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
             return(-1);
@@ -236,21 +263,23 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 {
     if (!configured) return;
 
-    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
-    feed_channel_stats(decim_0_out);
+    decim_0.execute(buffer, dst_buffer);
+    feed_channel_stats(dst_buffer);
+
+    const buffer_c8_t iq_buffer
+    {
+        buffer.p,
+        buffer.count,
+        baseband_fs
+    };
 
      //process++;
 
-     //if ((process % 10) != 0) return;
+     //if ((process % 50) != 0) return;
 
     //4Mhz 2048 samples
 
 //--------------Variable Defines---------------------------------//
-
-    static const uint8_t SAMPLE_PER_SYMBOL = 1;
-    static const uint8_t LEN_DEMOD_BUF_ACCESS = 32;
-    static const uint32_t DEFAULT_ACCESS_ADDR = 0x8E89BED6;
-    static const uint32_t NUM_ACCESS_ADDR_BYTE = 4;
 
     int i, sp, j = 0;
     int I0, Q0, I1, Q1 = 0;
@@ -261,7 +290,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
     const int demod_buf_len = LEN_DEMOD_BUF_ACCESS; //For AA
     int demod_buf_offset = 0;
-    int num_symbol_left = decim_0_out.count / SAMPLE_PER_SYMBOL; //One buffer sample consist of I and Q.
+    int num_symbol_left = dst_buffer.count / SAMPLE_PER_SYMBOL; //One buffer sample consist of I and Q.
     int symbols_eaten = 0;
     int hit_idx = (-1);
 
@@ -290,10 +319,10 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         for (j = 0; j < SAMPLE_PER_SYMBOL; j++) 
         {
             //Sample and compare with the adjascent next sample.
-            I0 = decim_0_out.p[i+j].real();
-            Q0 = decim_0_out.p[i+j].imag();
-            I1 = decim_0_out.p[i+j + 1].real();
-            Q1 = decim_0_out.p[i+j + 1].imag();
+            I0 = dst_buffer.p[i+j].real();
+            Q0 = dst_buffer.p[i+j].imag();
+            I1 = dst_buffer.p[i+j + 1].real();
+            Q1 = dst_buffer.p[i+j + 1].imag();
             
             phase_idx = j;
 
@@ -339,41 +368,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         return;
     }
 
-    // uint32_t number = 0x8E89BED6; // Replace with your uint32_t value
-    // uint8_t target_byte = 0x89; // Replace with the byte you want to search for
-
-    // // Check each byte in the uint32_t
-    // for (int i = 0; i < 4; i++) 
-    // {
-    //     uint8_t current_byte = (number >> (i * 8)) & 0xFF;
-        
-    //     if (current_byte == target_byte) 
-    //     {
-    //         //Send AA as test.
-    //         data_message.is_data = false;
-    //         data_message.value = 'A';
-    //         shared_memory.application_queue.push(data_message);
-
-    //         data_message.is_data = true;
-    //         data_message.value = accesssAddress;
-    //         shared_memory.application_queue.push(data_message);  
-    //         break; // If found, you can exit the loop
-    //     }
-    // }
-
-    // Not sending AA from header.
-//    if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
-//    {
-//     //    Send AA as test.
-//         data_message.is_data = false;
-//         data_message.value = 'A';
-//         shared_memory.application_queue.push(data_message);
-
-//         data_message.is_data = true;
-//         data_message.value = accesssAddress;
-//         shared_memory.application_queue.push(data_message);    
-//      }
-
     symbols_eaten += hit_idx;
 
     symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL); // move to beginning of PDU header
@@ -386,12 +380,12 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
       
     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
 
-    if (symbols_eaten > (int)decim_0_out.count) 
+    if (symbols_eaten > (int)dst_buffer.count) 
     {
         return;
     }
 
-    //Demod the PDU Header
+    // //Demod the PDU Header
     uint8_t bit_decision;
     int sample_idx = symbols_eaten - num_demod_byte;
 
@@ -403,10 +397,10 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
         for (j = 0; j < 8; j++) 
         {
-            I0 = decim_0_out.p[sample_idx].real();
-            Q0 = decim_0_out.p[sample_idx].imag();
-            I1 = decim_0_out.p[sample_idx + 1].real();
-            Q1 = decim_0_out.p[sample_idx + 1].imag();
+            I0 = dst_buffer.p[sample_idx].real();
+            Q0 = dst_buffer.p[sample_idx].imag();
+            I1 = dst_buffer.p[sample_idx + 1].real();
+            Q1 = dst_buffer.p[sample_idx + 1].imag();
 
             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
@@ -416,6 +410,9 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
         packet_index++;
      }
+
+
+    //demod_byte(num_demod_byte, rb_buf);
 
     scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
 
@@ -431,12 +428,12 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     num_demod_byte = (payload_len + 3 );
     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
 
-    if (symbols_eaten > (int)decim_0_out.count) 
+    if (symbols_eaten > (int)dst_buffer.count) 
     {
         return;
     }
 
-    sample_idx = symbols_eaten - num_demod_byte;
+    // sample_idx = symbols_eaten - num_demod_byte;
 
     for (i = 0; i < num_demod_byte ; i++) 
     {
@@ -444,10 +441,10 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
         for (j = 0; j < 8; j++) 
         {
-            I0 = decim_0_out.p[sample_idx].real();
-            Q0 = decim_0_out.p[sample_idx].imag();
-            I1 = decim_0_out.p[sample_idx + 1].real();
-            Q1 = decim_0_out.p[sample_idx + 1].imag();
+            I0 = dst_buffer.p[sample_idx].real();
+            Q0 = dst_buffer.p[sample_idx].imag();
+            I1 = dst_buffer.p[sample_idx + 1].real();
+            Q1 = dst_buffer.p[sample_idx + 1].imag();
 
             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
@@ -457,6 +454,8 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
         packet_index++;
     }
+
+    //demod_byte(num_demod_byte, rb_buf + 2);
 
     scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
 
@@ -470,17 +469,39 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     bool sendPacket = false;
 
     //Checking CRC and excluding Reserved PDU types.
-    if (crc_flag && (pdu_type < RESERVED0))
+    if (pdu_type < RESERVED0)
     {
         if (parse_adv_pdu_payload_byte(rb_buf + 2, payload_len, (ADV_PDU_TYPE)pdu_type, (void *)(&adv_pdu_payload) ) == 0 ) 
         {
-           sendPacket = true;
+            sendPacket = true;
         }
 
         // TODO: Make this a packet builder function?
         if (sendPacket)
         {
-            // Type Message.
+            // Not sending AA from header.
+            if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+            {
+                //    Send AA as test.
+                    data_message.is_data = false;
+                    data_message.value = 'A';
+                    shared_memory.application_queue.push(data_message);
+
+                    data_message.is_data = true;
+                    data_message.value = accesssAddress;
+                    shared_memory.application_queue.push(data_message);    
+            }
+
+            //Payload Length Message.
+            data_message.is_data = false;
+            data_message.value = 'S';
+            shared_memory.application_queue.push(data_message);
+
+            data_message.is_data = true;
+            data_message.value = payload_len;
+            shared_memory.application_queue.push(data_message);
+
+            //Type Message.
             data_message.is_data = false;
             data_message.value = 'T';
             shared_memory.application_queue.push(data_message);
@@ -519,21 +540,30 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
             shared_memory.application_queue.push(data_message);  
             data_message.is_data = true;
 
-            // data_message.is_data = false;
-            // data_message.value = 'S';
-            // shared_memory.application_queue.push(data_message);
+            //Type Payload Data.
+            data_message.is_data = false;
+            data_message.value = 'D';
+            shared_memory.application_queue.push(data_message);
 
-            // data_message.is_data = true;
-            // data_message.value = payload_len;
-            // shared_memory.application_queue.push(data_message);
+            //Skip Header Byte and MAC Address
+            uint8_t startIndex = 8;
 
-            // data_message.is_data = false;
-            // data_message.value = 'C';
-            // shared_memory.application_queue.push(data_message);
+            for (i = 0; i < payload_len; i++)
+            {
+                data_message.is_data = true;
+                //Plus 2 to bypass 
+                data_message.value = rb_buf[startIndex++];
+                shared_memory.application_queue.push(data_message);   
+            }
 
-            // data_message.is_data = true;
-            // data_message.value = checksumReceived;
-            // shared_memory.application_queue.push(data_message);
+            // Checksum Message.
+            data_message.is_data = false;
+            data_message.value = 'C';
+            shared_memory.application_queue.push(data_message);
+
+            data_message.is_data = true;
+            data_message.value = crc_flag;
+            shared_memory.application_queue.push(data_message);
         }
     }
 }
