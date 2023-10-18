@@ -171,8 +171,12 @@ namespace ui
                     str_console += to_string_dec_uint(value);
                     break;
 
+                case ParsingMacAddress:
+                    str_console += ":" + to_string_hex(value, 2);
+                    break;
+
                 case ParsingChecksum:
-                    str_console += to_string_dec_uint(value);
+                    str_console += to_string_hex(value, 8);
                     break;
             }
 
@@ -200,17 +204,27 @@ namespace ui
                     break;
                 }
 
-                case 'S':
+                case 'M':
                 {
-                    console.write(":Len:");
-                    parsestate = ParsingSize;
+                    console.writeln("");
+                    console.write("Mac");
+                    parsestate = ParsingMacAddress;
 
                     break;
-                }  
+                }
+
+                // case 'S':
+                // {
+                //     console.write(":Len:");
+                //     parsestate = ParsingSize;
+
+                //     break;
+                // }  
 
                 case 'C':
                 {
-                    console.write(":CRC:");
+                    console.writeln("");
+                    console.write("CRC:");
                     parsestate = ParsingChecksum;
 
                     break;

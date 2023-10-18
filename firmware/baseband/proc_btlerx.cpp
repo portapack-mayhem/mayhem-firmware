@@ -48,8 +48,8 @@ uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init)
 
     for(i=0; i<24; i++) 
     {
-    crc_init_input = (crc_init_input>>1);
-    crc_init_tmp = ( (crc_init_tmp<<1)|( crc_init_input&0x01 ) );
+        crc_init_input = (crc_init_input>>1);
+        crc_init_tmp = ( (crc_init_tmp<<1)|( crc_init_input&0x01 ) );
     }
 
     return(crc_init_tmp);
@@ -82,15 +82,15 @@ uint_fast32_t BTLERxProcessor::crc24_byte(uint8_t *byte_in, int num_byte, uint32
 
 bool BTLERxProcessor::crc_check(uint8_t *tmp_byte, int body_len, uint32_t crc_init) 
 {
-    int crc24_checksum, crc24_received;
+    int crc24_checksum;
 
     crc24_checksum = crc24_byte(tmp_byte, body_len, crc_init); // 0x555555 --> 0xaaaaaa. maybe because byte order
-    crc24_received = 0;
-    crc24_received = ( (crc24_received << 8) | tmp_byte[body_len+2] );
-    crc24_received = ( (crc24_received << 8) | tmp_byte[body_len+1] );
-    crc24_received = ( (crc24_received << 8) | tmp_byte[body_len+0] );
+    checksumReceived = 0;
+    checksumReceived = ( (checksumReceived << 8) | tmp_byte[body_len+2] );
+    checksumReceived = ( (checksumReceived << 8) | tmp_byte[body_len+1] );
+    checksumReceived = ( (checksumReceived << 8) | tmp_byte[body_len+0] );
 
-    return(crc24_checksum != crc24_received);
+    return(crc24_checksum != checksumReceived);
 }
 
 void BTLERxProcessor::scramble_byte(uint8_t *byte_in, int num_byte, const uint8_t *scramble_table_byte, uint8_t *byte_out) 
@@ -101,6 +101,135 @@ void BTLERxProcessor::scramble_byte(uint8_t *byte_in, int num_byte, const uint8_
     {
         byte_out[i] = byte_in[i]^scramble_table_byte[i];
     }
+}
+
+int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) 
+{
+    if (num_payload_byte < 6) 
+    {
+        //printf("Error: Payload Too Short (only %d bytes)!\n", num_payload_byte);
+        return(-1);
+    }
+
+    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) 
+    {
+        payload_type_0_2_4_6 = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6 *)adv_pdu_payload;
+
+        macAddress[0] = payload_byte[5];
+        macAddress[1] = payload_byte[4];
+        macAddress[2] = payload_byte[3];
+        macAddress[3] = payload_byte[2];
+        macAddress[4] = payload_byte[1];
+        macAddress[5] = payload_byte[0];
+        
+        memcpy(payload_type_0_2_4_6->Data, payload_byte+6, num_payload_byte-6);
+    } 
+    else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) 
+    {
+        if (num_payload_byte!=12) 
+        {
+            //printf("Error: Payload length %d bytes. Need to be 12 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
+            return(-1);
+        }
+
+        payload_type_1_3 = (ADV_PDU_PAYLOAD_TYPE_1_3 *)adv_pdu_payload;
+        
+        //AdvA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
+        macAddress[0] = payload_byte[5];
+        macAddress[1] = payload_byte[4];
+        macAddress[2] = payload_byte[3];
+        macAddress[3] = payload_byte[2];
+        macAddress[4] = payload_byte[1];
+        macAddress[5] = payload_byte[0];
+        
+        //InitA = reorder_bytes_str( payload_bytes((2*6+1):end) );
+        payload_type_1_3->A1[0] = payload_byte[11];
+        payload_type_1_3->A1[1] = payload_byte[10];
+        payload_type_1_3->A1[2] = payload_byte[9];
+        payload_type_1_3->A1[3] = payload_byte[8];
+        payload_type_1_3->A1[4] = payload_byte[7];
+        payload_type_1_3->A1[5] = payload_byte[6];
+        
+        //payload_parse_result_str = ['AdvA:' AdvA ' InitA:' InitA];
+    } 
+    else if (pdu_type == CONNECT_REQ) 
+    {
+        if (num_payload_byte!=34) 
+        {
+            //printf("Error: Payload length %d bytes. Need to be 34 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
+            return(-1);
+        }
+
+        payload_type_5 = (ADV_PDU_PAYLOAD_TYPE_5 *)adv_pdu_payload;
+        
+        //InitA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
+        macAddress[0] = payload_byte[5];
+        macAddress[1] = payload_byte[4];
+        macAddress[2] = payload_byte[3];
+        macAddress[3] = payload_byte[2];
+        macAddress[4] = payload_byte[1];
+        macAddress[5] = payload_byte[0];
+        
+        //AdvA = reorder_bytes_str( payload_bytes((2*6+1):(2*6+2*6)) );
+        payload_type_5->AdvA[0] = payload_byte[11];
+        payload_type_5->AdvA[1] = payload_byte[10];
+        payload_type_5->AdvA[2] = payload_byte[9];
+        payload_type_5->AdvA[3] = payload_byte[8];
+        payload_type_5->AdvA[4] = payload_byte[7];
+        payload_type_5->AdvA[5] = payload_byte[6];
+        
+        //AA = reorder_bytes_str( payload_bytes((2*6+2*6+1):(2*6+2*6+2*4)) );
+        payload_type_5->AA[0] = payload_byte[15];
+        payload_type_5->AA[1] = payload_byte[14];
+        payload_type_5->AA[2] = payload_byte[13];
+        payload_type_5->AA[3] = payload_byte[12];
+        
+        //CRCInit = payload_bytes((2*6+2*6+2*4+1):(2*6+2*6+2*4+2*3));
+        payload_type_5->CRCInit = ( payload_byte[16] );
+        payload_type_5->CRCInit = ( (payload_type_5->CRCInit << 8) | payload_byte[17] );
+        payload_type_5->CRCInit = ( (payload_type_5->CRCInit << 8) | payload_byte[18] );
+        
+        //WinSize = payload_bytes((2*6+2*6+2*4+2*3+1):(2*6+2*6+2*4+2*3+2*1));
+        payload_type_5->WinSize = payload_byte[19];
+        
+        //WinOffset = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+1):(2*6+2*6+2*4+2*3+2*1+2*2)) );
+        payload_type_5->WinOffset = ( payload_byte[21] );
+        payload_type_5->WinOffset = ( (payload_type_5->WinOffset << 8) | payload_byte[20] );
+        
+        //Interval = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2)) );
+        payload_type_5->Interval = ( payload_byte[23] );
+        payload_type_5->Interval = ( (payload_type_5->Interval << 8) | payload_byte[22] );
+        
+        //Latency = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2)) );
+        payload_type_5->Latency = ( payload_byte[25] );
+        payload_type_5->Latency = ( (payload_type_5->Latency << 8) | payload_byte[24] );
+        
+        //Timeout = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2)) );
+        payload_type_5->Timeout = ( payload_byte[27] );
+        payload_type_5->Timeout = ( (payload_type_5->Timeout << 8) | payload_byte[26] );
+        
+        //ChM = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+2*5)) );
+        payload_type_5->ChM[0] = payload_byte[32];
+        payload_type_5->ChM[1] = payload_byte[31];
+        payload_type_5->ChM[2] = payload_byte[30];
+        payload_type_5->ChM[3] = payload_byte[29];
+        payload_type_5->ChM[4] = payload_byte[28];
+        
+        //tmp_bits = payload_bits((end-7) : end);
+        //Hop = num2str( bi2de(tmp_bits(1:5), 'right-msb') );
+        //SCA = num2str( bi2de(tmp_bits(6:end), 'right-msb') );
+        payload_type_5->Hop = (payload_byte[33]&0x1F);
+        payload_type_5->SCA = ((payload_byte[33]>>5)&0x07);
+    } 
+    else 
+    {
+    // TODO: Handle Unknown PDU.
+    //   payload_type_R = (ADV_PDU_PAYLOAD_TYPE_R *)adv_pdu_payload;
+    //   memcpy(payload_type_R->payload_byte, payload_byte, num_payload_byte);
+        return(-1);
+    }
+
+    return(0);
 }
 
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) 
@@ -299,7 +428,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
 //--------------Start Payload Parsing--------------------------//
 
-    num_demod_byte = (payload_len+3);
+    num_demod_byte = (payload_len + 3 );
     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
 
     if (symbols_eaten > (int)decim_0_out.count) 
@@ -336,35 +465,76 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     //Check CRC
     bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
     // pkt_count++;
-    // receiver_status.pkt_avaliable = 1;
-    // receiver_status.crc_ok = (crc_flag==0);
+
+    //This should be the flag that determines if the data should be sent to the application layer.
+    bool sendPacket = false;
 
     //Checking CRC and excluding Reserved PDU types.
-    if (crc_flag && pdu_type < 0x07)
+    if (crc_flag && (pdu_type < RESERVED0))
     {
-        data_message.is_data = false;
-        data_message.value = 'T';
-        shared_memory.application_queue.push(data_message);
+        if (parse_adv_pdu_payload_byte(rb_buf + 2, payload_len, (ADV_PDU_TYPE)pdu_type, (void *)(&adv_pdu_payload) ) == 0 ) 
+        {
+           sendPacket = true;
+        }
 
-        data_message.is_data = true;
-        data_message.value = pdu_type;
-        shared_memory.application_queue.push(data_message);   
-        
-        data_message.is_data = false;
-        data_message.value = 'S';
-        shared_memory.application_queue.push(data_message);
+        // TODO: Make this a packet builder function?
+        if (sendPacket)
+        {
+            // Type Message.
+            data_message.is_data = false;
+            data_message.value = 'T';
+            shared_memory.application_queue.push(data_message);
 
-        data_message.is_data = true;
-        data_message.value = payload_len;
-        shared_memory.application_queue.push(data_message);
+            data_message.is_data = true;
+            data_message.value = pdu_type;
+            shared_memory.application_queue.push(data_message);   
 
-        data_message.is_data = false;
-        data_message.value = 'C';
-        shared_memory.application_queue.push(data_message);
+            // Mac Address Message.
+            data_message.is_data = false;
+            data_message.value = 'M';
+            shared_memory.application_queue.push(data_message);
 
-        data_message.is_data = true;
-        data_message.value = crc_flag;
-        shared_memory.application_queue.push(data_message);
+            data_message.is_data = true;
+            data_message.value = macAddress[0];
+            shared_memory.application_queue.push(data_message);  
+            data_message.is_data = true;
+
+            data_message.value = macAddress[1];
+            shared_memory.application_queue.push(data_message);  
+            data_message.is_data = true;
+
+            data_message.value = macAddress[2];
+            shared_memory.application_queue.push(data_message);  
+            data_message.is_data = true;
+
+            data_message.value = macAddress[3];
+            shared_memory.application_queue.push(data_message);  
+            data_message.is_data = true;
+
+            data_message.value = macAddress[4];
+            shared_memory.application_queue.push(data_message);  
+            data_message.is_data = true;
+
+            data_message.value = macAddress[5];
+            shared_memory.application_queue.push(data_message);  
+            data_message.is_data = true;
+
+            // data_message.is_data = false;
+            // data_message.value = 'S';
+            // shared_memory.application_queue.push(data_message);
+
+            // data_message.is_data = true;
+            // data_message.value = payload_len;
+            // shared_memory.application_queue.push(data_message);
+
+            // data_message.is_data = false;
+            // data_message.value = 'C';
+            // shared_memory.application_queue.push(data_message);
+
+            // data_message.is_data = true;
+            // data_message.value = checksumReceived;
+            // shared_memory.application_queue.push(data_message);
+        }
     }
 }
 
@@ -377,7 +547,7 @@ void BTLERxProcessor::on_message(const Message* const message)
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) 
 {
     (void)message;  // avoid warning
-    decim_0.configure(taps_200k_decim_0.taps);
+    decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_decim_1.taps);
     demod.configure(48000, 5000);
 

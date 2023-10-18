@@ -80,6 +80,7 @@ namespace ui
             ParsingAccessAddress = 0,
             ParsingType,
             ParsingSize,
+            ParsingMacAddress,
             ParsingChecksum,
         } ParseState;
 

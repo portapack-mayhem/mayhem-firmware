@@ -43,6 +43,79 @@ class BTLERxProcessor : public BasebandProcessor
     void on_message(const Message* const message) override;
 
    private:
+    std::array<std::string, 16> ADV_PDU_TYPE_STR
+    {
+        "ADV_IND",
+        "ADV_DIRECT_IND",
+        "ADV_NONCONN_IND",
+        "SCAN_REQ",
+        "SCAN_RSP",
+        "CONNECT_REQ",
+        "ADV_SCAN_IND",
+        "RESERVED0",
+        "RESERVED1",
+        "RESERVED2",
+        "RESERVED3",
+        "RESERVED4",
+        "RESERVED5",
+        "RESERVED6",
+        "RESERVED7",
+        "RESERVED8"
+    };
+
+    typedef enum
+    {
+        ADV_IND = 0,
+        ADV_DIRECT_IND= 1,
+        ADV_NONCONN_IND= 2,
+        SCAN_REQ= 3,
+        SCAN_RSP= 4,
+        CONNECT_REQ= 5,
+        ADV_SCAN_IND= 6,
+        RESERVED0= 7,
+        RESERVED1= 8,
+        RESERVED2= 9,
+        RESERVED3= 10,
+        RESERVED4= 11,
+        RESERVED5= 12,
+        RESERVED6= 13,
+        RESERVED7= 14,
+        RESERVED8= 15
+    } ADV_PDU_TYPE;
+
+    uint8_t macAddress[6];
+    int checksumReceived = 0;
+
+    typedef struct 
+    {
+        uint8_t Data[31];
+    } ADV_PDU_PAYLOAD_TYPE_0_2_4_6;
+
+    typedef struct 
+    {
+        uint8_t A1[6];
+    } ADV_PDU_PAYLOAD_TYPE_1_3;
+
+    typedef struct 
+    {
+        uint8_t AdvA[6];
+        uint8_t AA[4];
+        uint32_t CRCInit;
+        uint8_t WinSize;
+        uint16_t WinOffset;
+        uint16_t Interval;
+        uint16_t Latency;
+        uint16_t Timeout;
+        uint8_t ChM[5];
+        uint8_t Hop;
+        uint8_t SCA;
+    } ADV_PDU_PAYLOAD_TYPE_5;
+
+    typedef struct 
+    {
+        uint8_t payload_byte[40];
+    } ADV_PDU_PAYLOAD_TYPE_R;
+
     static constexpr size_t baseband_fs = 4000000;
     static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
 
@@ -55,6 +128,7 @@ class BTLERxProcessor : public BasebandProcessor
     uint32_t crc_init_internal = 0x00;
 
     void scramble_byte(uint8_t *byte_in, int num_byte, const uint8_t *scramble_table_byte, uint8_t *byte_out);
+    int parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) ;
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer
@@ -100,45 +174,11 @@ class BTLERxProcessor : public BasebandProcessor
 
     void configure(const BTLERxConfigureMessage& message);
 
-    std::array<std::string, 16> ADV_PDU_TYPE_STR
-    {
-        "ADV_IND",
-        "ADV_DIRECT_IND",
-        "ADV_NONCONN_IND",
-        "SCAN_REQ",
-        "SCAN_RSP",
-        "CONNECT_REQ",
-        "ADV_SCAN_IND",
-        "RESERVED0",
-        "RESERVED1",
-        "RESERVED2",
-        "RESERVED3",
-        "RESERVED4",
-        "RESERVED5",
-        "RESERVED6",
-        "RESERVED7",
-        "RESERVED8"
-    };
-
-    typedef enum
-    {
-        ADV_IND = 0,
-        ADV_DIRECT_IND= 1,
-        ADV_NONCONN_IND= 2,
-        SCAN_REQ= 3,
-        SCAN_RSP= 4,
-        CONNECT_REQ= 5,
-        ADV_SCAN_IND= 6,
-        RESERVED0= 7,
-        RESERVED1= 8,
-        RESERVED2= 9,
-        RESERVED3= 10,
-        RESERVED4= 11,
-        RESERVED5= 12,
-        RESERVED6= 13,
-        RESERVED7= 14,
-        RESERVED8= 15
-    } ADV_PDU_TYPE;
+    ADV_PDU_PAYLOAD_TYPE_0_2_4_6 * payload_type_0_2_4_6 = NULL;
+    ADV_PDU_PAYLOAD_TYPE_1_3 * payload_type_1_3 = NULL;
+    ADV_PDU_PAYLOAD_TYPE_5 * payload_type_5 = NULL;
+    ADV_PDU_PAYLOAD_TYPE_R * payload_type_R = NULL;
+    ADV_PDU_PAYLOAD_TYPE_R adv_pdu_payload = {0};
 
     // Scramble table definition
     // Xianjun Jiao (putaoshu@msn.com)
