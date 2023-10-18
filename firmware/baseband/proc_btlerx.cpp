@@ -110,15 +110,15 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(decim_0_out);
 
-     process++;
+     //process++;
 
-     if ((process % 10) != 0) return;
+     //if ((process % 10) != 0) return;
 
     //4Mhz 2048 samples
 
 //--------------Variable Defines---------------------------------//
 
-    static const uint8_t SAMPLE_PER_SYMBOL = 4;
+    static const uint8_t SAMPLE_PER_SYMBOL = 1;
     static const uint8_t LEN_DEMOD_BUF_ACCESS = 32;
     static const uint32_t DEFAULT_ACCESS_ADDR = 0x8E89BED6;
     static const uint32_t NUM_ACCESS_ADDR_BYTE = 4;
@@ -132,7 +132,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
     const int demod_buf_len = LEN_DEMOD_BUF_ACCESS; //For AA
     int demod_buf_offset = 0;
-    int num_symbol_left = buffer.count / SAMPLE_PER_SYMBOL; //One buffer sample consist of I and Q.
+    int num_symbol_left = decim_0_out.count / SAMPLE_PER_SYMBOL; //One buffer sample consist of I and Q.
     int symbols_eaten = 0;
     int hit_idx = (-1);
 
@@ -161,10 +161,10 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         for (j = 0; j < SAMPLE_PER_SYMBOL; j++) 
         {
             //Sample and compare with the adjascent next sample.
-            I0 = buffer.p[i+j].real();
-            Q0 = buffer.p[i+j].imag();
-            I1 = buffer.p[i+j + 1].real();
-            Q1 = buffer.p[i+j + 1].imag();
+            I0 = decim_0_out.p[i+j].real();
+            Q0 = decim_0_out.p[i+j].imag();
+            I1 = decim_0_out.p[i+j + 1].real();
+            Q1 = decim_0_out.p[i+j + 1].imag();
             
             phase_idx = j;
 
@@ -207,7 +207,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     if (hit_idx == -1)
     {
         //Process more samples.
-        //return;
+        return;
     }
 
     // uint32_t number = 0x8E89BED6; // Replace with your uint32_t value
@@ -233,138 +233,139 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     // }
 
     // Not sending AA from header.
-   // if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
-   // {
-    //    Send AA as test.
-        data_message.is_data = false;
-        data_message.value = 'A';
-        shared_memory.application_queue.push(data_message);
+//    if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
+//    {
+//     //    Send AA as test.
+//         data_message.is_data = false;
+//         data_message.value = 'A';
+//         shared_memory.application_queue.push(data_message);
 
-        data_message.is_data = true;
-        data_message.value = accesssAddress;
-        shared_memory.application_queue.push(data_message);    
-   // }
-
-//     symbols_eaten += hit_idx;
-
-//     symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL); // move to beginning of PDU header
-    
-//     num_symbol_left = num_symbol_left - symbols_eaten;
-
-// //--------------Start PDU Header Parsing-----------------------//
-
-//     num_demod_byte = 2; // PDU header has 2 octets
-      
-//     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
-
-//     if (symbols_eaten > (int)buffer.count) 
-//     {
-//         return;
-//     }
-
-//     //Demod the PDU Header
-//     uint8_t bit_decision;
-//     int sample_idx = symbols_eaten - num_demod_byte;
-
-//     uint16_t packet_index = 0;
-
-//      for (i = 0; i < num_demod_byte ; i++) 
-//      {
-//         rb_buf[packet_index] = 0;
-
-//         for (j = 0; j < 8; j++) 
-//         {
-//             I0 = buffer.p[sample_idx].real();
-//             Q0 = buffer.p[sample_idx].imag();
-//             I1 = buffer.p[sample_idx + 1].real();
-//             Q1 = buffer.p[sample_idx + 1].imag();
-
-//             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-//             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
-
-//             sample_idx += SAMPLE_PER_SYMBOL;;
-//         }
-
-//         packet_index++;
+//         data_message.is_data = true;
+//         data_message.value = accesssAddress;
+//         shared_memory.application_queue.push(data_message);    
 //      }
 
-//     scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
+    symbols_eaten += hit_idx;
 
-//     uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
-//     uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
-//     uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
-//     uint8_t payload_len = (rb_buf[1] & 0x3F);
+    symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL); // move to beginning of PDU header
+    
+    num_symbol_left = num_symbol_left - symbols_eaten;
+
+//--------------Start PDU Header Parsing-----------------------//
+
+    num_demod_byte = 2; // PDU header has 2 octets
+      
+    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+
+    if (symbols_eaten > (int)decim_0_out.count) 
+    {
+        return;
+    }
+
+    //Demod the PDU Header
+    uint8_t bit_decision;
+    int sample_idx = symbols_eaten - num_demod_byte;
+
+    uint16_t packet_index = 0;
+
+     for (i = 0; i < num_demod_byte ; i++) 
+     {
+        rb_buf[packet_index] = 0;
+
+        for (j = 0; j < 8; j++) 
+        {
+            I0 = decim_0_out.p[sample_idx].real();
+            Q0 = decim_0_out.p[sample_idx].imag();
+            I1 = decim_0_out.p[sample_idx + 1].real();
+            Q1 = decim_0_out.p[sample_idx + 1].imag();
+
+            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+
+            sample_idx += SAMPLE_PER_SYMBOL;;
+        }
+
+        packet_index++;
+     }
+
+    scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
+
+    uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
+    uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
+    uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
+    uint8_t payload_len = (rb_buf[1] & 0x3F);
 
    
 
-// //--------------Start Payload Parsing--------------------------//
+//--------------Start Payload Parsing--------------------------//
 
-//     num_demod_byte = (payload_len+3);
-//     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+    num_demod_byte = (payload_len+3);
+    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
 
-//     if (symbols_eaten > (int)buffer.count) 
-//     {
-//         return;
-//     }
+    if (symbols_eaten > (int)decim_0_out.count) 
+    {
+        return;
+    }
 
-//     sample_idx = symbols_eaten - num_demod_byte;
+    sample_idx = symbols_eaten - num_demod_byte;
 
-//     for (i = 0; i < num_demod_byte ; i++) 
-//     {
-//         rb_buf[packet_index] = 0;
+    for (i = 0; i < num_demod_byte ; i++) 
+    {
+        rb_buf[packet_index] = 0;
 
-//         for (j = 0; j < 8; j++) 
-//         {
-//             I0 = buffer.p[sample_idx].real();
-//             Q0 = buffer.p[sample_idx].imag();
-//             I1 = buffer.p[sample_idx + 1].real();
-//             Q1 = buffer.p[sample_idx + 1].imag();
+        for (j = 0; j < 8; j++) 
+        {
+            I0 = decim_0_out.p[sample_idx].real();
+            Q0 = decim_0_out.p[sample_idx].imag();
+            I1 = decim_0_out.p[sample_idx + 1].real();
+            Q1 = decim_0_out.p[sample_idx + 1].imag();
 
-//             bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-//             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
 
-//             sample_idx += SAMPLE_PER_SYMBOL;;
-//         }
+            sample_idx += SAMPLE_PER_SYMBOL;;
+        }
 
-//         packet_index++;
-//     }
+        packet_index++;
+    }
 
-//     scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
+    scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
 
-// //--------------Start CRC Checking-----------------------------//
+//--------------Start CRC Checking-----------------------------//
 
-//     //Check CRC
-//     bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
-//     // pkt_count++;
-//     // receiver_status.pkt_avaliable = 1;
-//     // receiver_status.crc_ok = (crc_flag==0);
+    //Check CRC
+    bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
+    // pkt_count++;
+    // receiver_status.pkt_avaliable = 1;
+    // receiver_status.crc_ok = (crc_flag==0);
 
-//     if (0)
-//     {
-//         data_message.is_data = false;
-//         data_message.value = 'T';
-//         shared_memory.application_queue.push(data_message);
+    //Checking CRC and excluding Reserved PDU types.
+    if (crc_flag && pdu_type < 0x07)
+    {
+        data_message.is_data = false;
+        data_message.value = 'T';
+        shared_memory.application_queue.push(data_message);
 
-//         data_message.is_data = true;
-//         data_message.value = pdu_type;
-//         shared_memory.application_queue.push(data_message);   
+        data_message.is_data = true;
+        data_message.value = pdu_type;
+        shared_memory.application_queue.push(data_message);   
         
-//         data_message.is_data = false;
-//         data_message.value = 'S';
-//         shared_memory.application_queue.push(data_message);
+        data_message.is_data = false;
+        data_message.value = 'S';
+        shared_memory.application_queue.push(data_message);
 
-//         data_message.is_data = true;
-//         data_message.value = payload_len;
-//         shared_memory.application_queue.push(data_message);
+        data_message.is_data = true;
+        data_message.value = payload_len;
+        shared_memory.application_queue.push(data_message);
 
-//         data_message.is_data = false;
-//         data_message.value = 'C';
-//         shared_memory.application_queue.push(data_message);
+        data_message.is_data = false;
+        data_message.value = 'C';
+        shared_memory.application_queue.push(data_message);
 
-//         data_message.is_data = true;
-//         data_message.value = crc_flag;
-//         shared_memory.application_queue.push(data_message);
-//     }
+        data_message.is_data = true;
+        data_message.value = crc_flag;
+        shared_memory.application_queue.push(data_message);
+    }
 }
 
 void BTLERxProcessor::on_message(const Message* const message) 
