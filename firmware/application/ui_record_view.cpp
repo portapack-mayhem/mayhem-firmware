@@ -322,7 +322,7 @@ void RecordView::trim_capture() {
             auto trim_range = iq::compute_trim_range(*info, power_buckets, 7);
 
             trim_ui.show_trimming();
-            iq::trim_capture_with_range(trim_path, trim_range, trim_ui.get_callback());
+            iq::trim_capture_with_range(trim_path, trim_range, trim_ui.get_callback(), 1);
         }
 
         trim_ui.clear();

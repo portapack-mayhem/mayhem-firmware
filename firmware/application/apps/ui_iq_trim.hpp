@@ -107,6 +107,8 @@ class IQTrimView : public View {
         {{0 * 8, 9 * 16}, "Max Pwr:", Color::light_grey()},
         {{0 * 8, 10 * 16}, "Cutoff :", Color::light_grey()},
         {{12 * 8, 10 * 16}, "%", Color::light_grey()},
+        {{0 * 8, 12 * 16}, "Amplify:", Color::light_grey()},
+        {{10 * 8, 12 * 16}, "x", Color::light_grey()},
     };
 
     TextField field_path{
@@ -135,13 +137,20 @@ class IQTrimView : public View {
         "0"};
 
     Text text_max{
-        {9 * 8, 9 * 16, 10 * 8, 1 * 16},
+        {9 * 8, 9 * 16, 20 * 8, 1 * 16},
         "0"};
 
     NumberField field_cutoff{
         {9 * 8, 10 * 16},
         3,
         {1, 100},
+        1,
+        ' '};
+
+    NumberField field_amplify{
+        {9 * 8, 12 * 16},
+        1,
+        {1, 9},
         1,
         ' '};
 

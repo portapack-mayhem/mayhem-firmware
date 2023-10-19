@@ -40,6 +40,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
         &text_samples,
         &text_max,
         &field_cutoff,
+        &field_amplify,
         &button_trim,
     });
 
@@ -69,6 +70,11 @@ IQTrimView::IQTrimView(NavigationView& nav)
     field_cutoff.set_value(7);  // 7% of max is a good default.
     field_cutoff.on_change = [this](int32_t) {
         compute_range();
+        refresh_ui();
+    };
+
+    field_amplify.set_value(1);  // 1X is default (no amplification)
+    field_amplify.on_change = [this](int32_t) {
         refresh_ui();
     };
 
@@ -133,7 +139,18 @@ void IQTrimView::focus() {
 void IQTrimView::refresh_ui() {
     field_path.set_text(path_.filename().string());
     text_samples.set(to_string_dec_uint(info_->sample_count));
-    text_max.set(to_string_dec_uint(info_->max_power));
+
+    // show max power after amplification applied
+    uint64_t power_amp = field_amplify.value() * field_amplify.value() * field_amplify.value() * field_amplify.value();
+    text_max.set(to_string_dec_uint(info_->max_power * power_amp));
+
+    // show max power in red if amplification is too high, causing clipping
+    uint32_t clipping_limit = (fs::capture_file_sample_size(path_) == sizeof(complex8_t)) ? 0x80 : 0x8000;
+    if ((field_amplify.value() * info_->max_iq) > clipping_limit)
+        text_max.set_style(&Styles::red);
+    else
+        text_max.set_style(&Styles::light_grey);
+
     set_dirty();
 }
 
@@ -191,7 +208,7 @@ bool IQTrimView::trim_capture() {
     }
 
     progress_ui.show_trimming();
-    trimmed = iq::trim_capture_with_range(path_, trim_range, progress_ui.get_callback());
+    trimmed = iq::trim_capture_with_range(path_, trim_range, progress_ui.get_callback(), field_amplify.value());
     progress_ui.clear();
 
     if (!trimmed)
