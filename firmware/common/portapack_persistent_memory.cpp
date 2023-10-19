@@ -914,7 +914,9 @@ bool debug_dump() {
         painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
         return false;
     }
-    pmem_dump_file.write_line("FW version " VERSION_STRING);
+    pmem_dump_file.write_line("FW version: " VERSION_STRING);
+    pmem_dump_file.write_line("Ext APPS version req'd: 0x" + to_string_hex(VERSION_MD5));
+    pmem_dump_file.write_line("GCC version: " + to_string_dec_int(__GNUC__) + "." + to_string_dec_int(__GNUC_MINOR__) + "." + to_string_dec_int(__GNUC_PATCHLEVEL__));
 
     // write persistent memory
     pmem_dump_file.write_line("\n[Persistent Memory]");
