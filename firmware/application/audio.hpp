@@ -53,6 +53,9 @@ class Codec {
     virtual void microphone_enable(int8_t alc_mode) = 0;  // added user-GUI  AK4951 ,selected ALC mode.
     virtual void microphone_disable() = 0;
 
+    virtual void microphone_to_HP_enable() = 0;
+    virtual void microphone_to_HP_disable() = 0;
+
     virtual size_t reg_count() const = 0;
     virtual size_t reg_bits() const = 0;
     virtual uint32_t reg_read(const size_t register_number) = 0;
@@ -78,6 +81,9 @@ namespace input {
 
 void start(int8_t alc_mode);  // added parameter user-GUI select AK4951-ALC mode for config mic path,(recording mode in datasheet),
 void stop();
+
+void loopback_mic_to_hp_enable();
+void loopback_mic_to_hp_disable();
 
 } /* namespace input */
 

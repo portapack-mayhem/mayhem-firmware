@@ -847,6 +847,9 @@ class AK4951 : public audio::Codec {
     void microphone_enable(int8_t alc_mode);  // added user GUI parameter , to set up AK4951 ALC mode.
     void microphone_disable();
 
+    void microphone_to_HP_enable();
+    void microphone_to_HP_disable();
+
     size_t reg_count() const override {
         return asahi_kasei::ak4951::reg_count;
     }

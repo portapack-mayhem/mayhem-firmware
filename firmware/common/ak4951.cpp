@@ -279,7 +279,7 @@ void AK4951::microphone_enable(int8_t alc_mode) {
         update(Register::DigitalFilterMode);     // Writing the Audio Path :  NO DIGITAL BLOCK or DIG BLOCK FOR  MIC ,   Audio mode path : Playback mode /-Recording mode.
 
         map.r.power_management_1.PMADL = 1;   // ADC Lch = Lch input signal. Mic Amp Lch and ADC Lch Power Management
-        map.r.power_management_1.PMADR = 1;   // ADC Rch = Rch input signal. Mic Amp Rch and ADC Rch Power Management
+        map.r.power_management_1.PMADR = 0;   // ADC Rch = Rch input signal. Mic Amp Rch and ADC Rch Power Management. (PMADL=1, PMADR=0) means MONO MIC input connected to Left pin.
         map.r.power_management_1.PMPFIL = 0;  // Pre-loading , Programmable Dig. filter OFF ,filter unused, routed around.(original value = 0 )
         update(Register::PowerManagement1);   // Activating the Power management of the used blocks . (Mic ADC always + Dig Block filter , when used )
 
@@ -461,7 +461,7 @@ void AK4951::microphone_enable(int8_t alc_mode) {
         // When changing those modes, PMPFIL bit must be “0”, it is OK (*1)
         map.r.digital_filter_mode.ADCPF = 1;     // ADCPF bit swith ("0" Mic  after ADC Output connected (recording mode) to the DIGITAL FILTER  BLOCK. ("1" Playback mode)
         map.r.digital_filter_mode.PFSDO = 1;     // ADC (+ 1st order HPF) Output
-        map.r.digital_filter_mode.PFDAC = 0b00;  // (Input selector for DAC (not used in MIC), SDTI= Audio Serial Data Input Pin)
+        map.r.digital_filter_mode.PFDAC = 0b00;  // (Input selector for DAC (initially not used in MIC), SDTI= Audio Serial Data Input Pin)
         update(Register::DigitalFilterMode);     // Writing the Audio Path :  NO DIGITAL BLOCK or DIG BLOCK FOR  MIC ,   Audio mode path : Playback mode /-Recording mode.
 
         // The EQn (n=1, 2, 3, 4 or 5) coefficient must be set when EQn bit = “0” or PMPFIL bit = “0”., but we are already (*1)
@@ -501,7 +501,7 @@ void AK4951::microphone_enable(int8_t alc_mode) {
 
         // Acitivating digital block , power supply
         map.r.power_management_1.PMADL = 1;   // ADC Lch = Lch input signal. Mic Amp Lch and ADC Lch Power Management
-        map.r.power_management_1.PMADR = 1;   // ADC Rch = Rch input signal. Mic Amp Rch and ADC Rch Power Management
+        map.r.power_management_1.PMADR = 0;   // ADC Rch = Rch input signal. Mic Amp Rch and ADC Rch Power Management. (PMADL=1, PMADR=0) means MONO MIC input connected to Left pin.
         map.r.power_management_1.PMPFIL = 1;  // Pre-loaded in top part.  Orig value=0, Programmable Digital filter unused (not power up), routed around.
         update(Register::PowerManagement1);   // Activating the Power management of the used blocks . (Mic ADC always + Dig Block filter , when used )
 
@@ -522,7 +522,12 @@ void AK4951::microphone_disable() {
     map.r.power_management_1.PMADL = 0;   // original code  , disable Power managem.Mic  ADC L
     map.r.power_management_1.PMADR = 0;   // original code  , disable Power managem.Mic  ADC R
     map.r.power_management_1.PMPFIL = 0;  // original code  , disable Power managem. all Programmable Dig. block
+    map.r.power_management_1.PMDAC = 0;   // Pre-loaded power management DAC block OFF
     update(Register::PowerManagement1);
+
+    map.r.power_management_2.PMHPL = 0;  // Pre-loaded power management HP LEFT block OFF
+    map.r.power_management_2.PMHPR = 0;  // Pre-loaded power management HP RIGHT block OFF
+    update(Register::PowerManagement2);  // Deactivating the Power management of the HP L&R blocks.
 
     map.r.alc_mode_control_1.ALC = 0;  // original code  , Restore , disable ALC block.
     update(Register::ALCModeControl1);
@@ -558,6 +563,30 @@ void AK4951::microphone_disable() {
     map.r.digital_filter_select_3.EQ4 = 0;  // EQ4 Coeffic Setting , (0: Disable-default, audio data passes  EQ4 block by 0dB gain). When EQ4="1”, the settings of E4A15-0, E4B15-0 and E4C15-0 bits are enabled
     map.r.digital_filter_select_3.EQ5 = 0;  // EQ5 Coeffic Setting , (0: Disable-default, audio data passes  EQ5 block by 0dB gain). When EQ5="1”, the settings of E5A15-0, E5B15-0 and E5C15-0 bits are enabled
     update(Register::DigitalFilterSelect3);
+}
+
+void AK4951::microphone_to_HP_enable() {
+    map.r.digital_filter_mode.PFDAC = 0b01;  // (Input selector for DAC, audio Loopback Mode .
+    update(Register::DigitalFilterMode);     // Writing the Audio Path ,   Audio mode path : Loopback Mode .
+
+    map.r.power_management_1.PMDAC = 1;  // Pre-loaded power management DAC block ON
+    update(Register::PowerManagement1);  // Activating the Power management of the DAC block for the loopback mode
+
+    map.r.power_management_2.PMHPL = 1;  // Pre-loaded power management HP LEFT block ON
+    map.r.power_management_2.PMHPR = 1;  // Pre-loaded power management HP RIGHT block ON
+    update(Register::PowerManagement2);  // Activating the Power management of the HP L&R blocks.
+}
+
+void AK4951::microphone_to_HP_disable() {
+    map.r.digital_filter_mode.PFDAC = 0b00;  // (Input selector for DAC (not used in MIC), SDTI= Audio Serial Data Input Pin)
+    update(Register::DigitalFilterMode);     // Writing the Audio Path ,   Audio mode path : Loopback Mode .
+
+    map.r.power_management_1.PMDAC = 0;  // Pre-loaded power management DAC block OFF
+    update(Register::PowerManagement1);  // Deactivating the Power management of the DAC block for the loopback mode
+
+    map.r.power_management_2.PMHPL = 0;  // Pre-loaded power management HP LEFT block OFF
+    map.r.power_management_2.PMHPR = 0;  // Pre-loaded power management HP RIGHT block OFF
+    update(Register::PowerManagement2);  // Deactivating the Power management of the HP L&R blocks.
 }
 
 reg_t AK4951::read(const address_t reg_address) {
