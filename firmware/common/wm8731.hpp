@@ -359,7 +359,21 @@ class WM8731 : public audio::Codec {
     }
 
     void microphone_disable() override {
-        // TODO: Implement
+        microphone_mute(true);
+        microphone_to_HP_disable();
+    }
+
+    void microphone_to_HP_enable() override {
+        map.r.analog_audio_path_control.sidetone = 1;    // Side Tone Switch (Analogue) 1 = Enable Side Tone
+        map.r.analog_audio_path_control.sideatt = 0b00;  // Side Tone Attenuation 00 = -6dB
+        write(Register::AnalogAudioPathControl);
+        headphone_enable();
+    }
+
+    void microphone_to_HP_disable() override {
+        map.r.analog_audio_path_control.sidetone = 0;    // Side Tone Switch (Analogue) 0 = Disable Side Tone
+        map.r.analog_audio_path_control.sideatt = 0b11;  // Side Tone Attenuation 11 = -15dB
+        write(Register::AnalogAudioPathControl);
     }
 
     void microphone_boost(const bool boost) {

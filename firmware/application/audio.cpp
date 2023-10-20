@@ -208,6 +208,14 @@ void stop() {
     audio_codec->microphone_disable();
 }
 
+void loopback_mic_to_hp_enable() {
+    audio_codec->microphone_to_HP_enable();
+}
+
+void loopback_mic_to_hp_disable() {
+    audio_codec->microphone_to_HP_disable();
+}
+
 } /* namespace input */
 
 namespace headphone {
