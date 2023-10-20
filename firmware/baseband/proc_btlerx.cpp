@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2020 Shao
+ * Copyright (C) 2023 TJ
  *
  * This file is part of PortaPack.
  *
@@ -387,7 +388,9 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
 
     // //Demod the PDU Header
     uint8_t bit_decision;
-    int sample_idx = symbols_eaten - num_demod_byte;
+
+    //Jump back down to beginning of PDU header.
+    int sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
 
     uint16_t packet_index = 0;
 
@@ -421,7 +424,11 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
     uint8_t payload_len = (rb_buf[1] & 0x3F);
 
-   
+    // Not valid Advertise Payload.
+    if ((payload_len < 6) || (payload_len > 37)) 
+    {
+        return;
+    }
 
 //--------------Start Payload Parsing--------------------------//
 
@@ -433,7 +440,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         return;
     }
 
-    // sample_idx = symbols_eaten - num_demod_byte;
+    //sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
 
     for (i = 0; i < num_demod_byte ; i++) 
     {
