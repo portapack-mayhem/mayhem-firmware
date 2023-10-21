@@ -184,7 +184,10 @@ void MicTXView::rxaudio(bool is_on) {
         baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
         audio::output::stop();
         audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.
-        (mic_to_HP_enabled ? audio::input::loopback_mic_to_hp_enable() : audio::input::loopback_mic_to_hp_disable());
+        if (mic_to_HP_enabled)
+            audio::input::loopback_mic_to_hp_enable();
+        else
+            audio::input::loopback_mic_to_hp_disable();
         portapack::pin_i2s0_rx_sda.mode(3);
         configure_baseband();
     }
@@ -290,7 +293,10 @@ MicTXView::MicTXView(
             }
             ak4951_alc_and_wm8731_boost_GUI = v;                   // 0..4, WM8731_boost dB's options, (combination boost on/off, and effective gain in captured data >>x)
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731), set up the proper wm_boost on/off, 0..4 (0,1) boost_on, (2,3,4) boost_off
-            (mic_to_HP_enabled ? audio::input::loopback_mic_to_hp_enable() : audio::input::loopback_mic_to_hp_disable());
+            if (mic_to_HP_enabled)
+                audio::input::loopback_mic_to_hp_enable();
+            else
+                audio::input::loopback_mic_to_hp_disable();
             configure_baseband();  // to update in real time, sending msg, var-parameters >>shift_bits FM msg, to audio_tx from M0 to M4 Proc -
         };
         options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's.
@@ -299,7 +305,10 @@ MicTXView::MicTXView(
         options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
             ak4951_alc_and_wm8731_boost_GUI = v;                   // 0..11, AK4951 Mic -Automatic volume Level Control options,
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (AK4951) ==> Set up proper ALC mode from 0..11 options
-            (mic_to_HP_enabled ? audio::input::loopback_mic_to_hp_enable() : audio::input::loopback_mic_to_hp_disable());
+            if (mic_to_HP_enabled)
+                audio::input::loopback_mic_to_hp_enable();
+            else
+                audio::input::loopback_mic_to_hp_disable();
             configure_baseband();  // sending fixed >>8_FM, var-parameters msg, to audiotx from this M0 to M4 process.
         };
     }
@@ -482,7 +491,10 @@ MicTXView::MicTXView(
 
     check_mic_to_HP.on_select = [this](Checkbox&, bool v) {
         mic_to_HP_enabled = v;
-        (mic_to_HP_enabled ? audio::input::loopback_mic_to_hp_enable() : audio::input::loopback_mic_to_hp_disable());
+        if (mic_to_HP_enabled)
+            audio::input::loopback_mic_to_hp_enable();
+        else
+            audio::input::loopback_mic_to_hp_disable();
         if (mic_to_HP_enabled) {  // When user click to "hear mic to HP", we will select the higher acoustic sound Option MODE  ALC or BOOST-
             if (audio::debug::codec_name() == "WM8731") {
                 options_wm8731_boost_mode.set_selected_index(0);  // In WM we always go to Boost +12 dB’s respect reference level
@@ -621,7 +633,10 @@ MicTXView::MicTXView(
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.
-    (mic_to_HP_enabled ? audio::input::loopback_mic_to_hp_enable() : audio::input::loopback_mic_to_hp_disable());
+    if (mic_to_HP_enabled)
+        audio::input::loopback_mic_to_hp_enable();
+    else
+        audio::input::loopback_mic_to_hp_disable();
 }
 
 MicTXView::MicTXView(
