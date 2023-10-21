@@ -104,8 +104,8 @@ void BTLERxProcessor::scramble_byte(uint8_t *byte_in, int num_byte, const uint8_
     }
 }
 
-void BTLERxProcessor::demod_byte(int num_byte, uint8_t *out_byte) 
-{
+//void BTLERxProcessor::demod_byte(int num_byte, uint8_t *out_byte) 
+//{
 //   int i, j;
 //   int I0, Q0, I1, Q1;
 //   uint8_t bit_decision;
@@ -129,7 +129,7 @@ void BTLERxProcessor::demod_byte(int num_byte, uint8_t *out_byte)
 //         sample_idx += SAMPLE_PER_SYMBOL;;
 //     }
 //   }
-}
+//}
 
 int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) 
 {
@@ -263,6 +263,22 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_p
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) 
 {
     if (!configured) return;
+
+    // Pulled this implementation from channel_stats_collector.c to time slice a specific packet's dB.
+    uint32_t max_squared = 0;
+
+    void* src_p = buffer.p;
+    
+    while (src_p < &buffer.p[buffer.count]) {
+        const uint32_t sample = *__SIMD32(src_p)++;
+        const uint32_t mag_sq = __SMUAD(sample, sample);
+        if (mag_sq > max_squared) {
+            max_squared = mag_sq;
+        }
+    }
+
+    const float max_squared_f = max_squared;
+    const int32_t max_dB = mag2_to_dbv_norm(max_squared_f * (1.0f / (32768.0f * 32768.0f)));
 
     decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(dst_buffer);
@@ -420,8 +436,8 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
 
     uint8_t pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
-    uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
-    uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
+    //uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
+    //uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
     uint8_t payload_len = (rb_buf[1] & 0x3F);
 
     // Not valid Advertise Payload.
@@ -486,6 +502,8 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         // TODO: Make this a packet builder function?
         if (sendPacket)
         {
+            blePacketData.max_dB = max_dB;
+
             blePacketData.type = pdu_type;
             blePacketData.size = payload_len;
 

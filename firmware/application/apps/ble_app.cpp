@@ -57,7 +57,7 @@ namespace ui
         line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
         line += ":" + to_string_hex((entry.macAddress >> 40), 2);
 
-        line += "        " + to_string_dec_int(entry.rssiValue);
+        line += "        " + to_string_dec_int(entry.dbValue);
 
         line.resize(target_rect.width() / 8, ' ');
         painter.draw_string(target_rect.location(), style, line);
@@ -253,7 +253,7 @@ namespace ui
         #else
         // Masking off the top 2 bytes to avoid invalid keys.
         auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
-        entry.rssiValue = rssi.get_max();
+        entry.dbValue = packet->max_dB;
         //entry.update(packet);
         recent_entries_view.set_dirty();
         #endif
@@ -280,9 +280,9 @@ namespace ui
     }
 
     // BleRecentEntry
-    void BleRecentEntry::update(const BlePacketData * packet) 
-    {
+    // void BleRecentEntry::update(const BlePacketData * packet) 
+    // {
        
-    }
+    // }
 
 } /* namespace ui */

@@ -133,7 +133,7 @@ class BTLERxProcessor : public BasebandProcessor
     uint32_t crc_init_internal = 0x00;
 
     void scramble_byte(uint8_t *byte_in, int num_byte, const uint8_t *scramble_table_byte, uint8_t *byte_out);
-    void demod_byte(int num_byte, uint8_t *out_byte);
+    //void demod_byte(int num_byte, uint8_t *out_byte);
     int parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) ;
 
     std::array<complex16_t, 1024> dst{};

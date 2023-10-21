@@ -57,7 +57,7 @@ namespace ui
         static constexpr Key invalid_key = 0xffffffff;
 
         uint64_t macAddress;
-        uint8_t rssiValue;
+        int dbValue;
         BlePacketData packetData;
 
         BleRecentEntry()
@@ -67,7 +67,7 @@ namespace ui
         BleRecentEntry(
             const uint64_t macAddress)
             : macAddress{macAddress},
-              rssiValue{},
+              dbValue{},
               packetData{} {
         }
 
@@ -75,7 +75,7 @@ namespace ui
             return macAddress;
         }
 
-        void update(const BlePacketData * packet);
+        //void update(const BlePacketData * packet);
     };
 
     using BleRecentEntries = RecentEntries<BleRecentEntry>;
@@ -198,7 +198,7 @@ namespace ui
 
         const RecentEntriesColumns columns{{
             {"Mac Address", 20},
-            {"RSSI", 20},
+            {"dB", 20},
         }};
         
         BleRecentEntriesView recent_entries_view{columns, recent};

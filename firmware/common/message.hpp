@@ -403,6 +403,7 @@ class AFSKDataMessage : public Message {
 };
 
 struct BlePacketData {
+    int max_dB;
     uint8_t type;
     uint8_t size;
     uint8_t macAddress[6];
