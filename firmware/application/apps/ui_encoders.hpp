@@ -185,6 +185,7 @@ class EncodersView : public View {
     };
 
     TxRadioState radio_state_{
+        433920000 /* frequency */,
         1750000 /* bandwidth */,
         OOK_SAMPLERATE /* sampling rate */
     };

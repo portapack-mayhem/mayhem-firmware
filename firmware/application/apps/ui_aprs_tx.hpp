@@ -46,6 +46,7 @@ class APRSTXView : public View {
 
    private:
     TxRadioState radio_state_{
+        144390000 /* frequency */,
         1750000 /* bandwidth */,
         AFSK_TX_SAMPLERATE /* sampling rate */
     };
