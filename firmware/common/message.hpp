@@ -113,6 +113,7 @@ class Message {
         SpectrumPainterBufferResponseConfigure = 56,
         POCSAGStats = 57,
         FSKRxConfigure = 58,
+        BlePacket = 58,
         MAX
     };
 
@@ -399,6 +400,26 @@ class AFSKDataMessage : public Message {
 
     bool is_data;
     uint32_t value;
+};
+
+struct BlePacketData {
+    int max_dB;
+    uint8_t type;
+    uint8_t size;
+    uint8_t macAddress[6];
+    uint8_t data[40];
+    uint8_t dataLen;
+};
+
+class BLEPacketMessage : public Message {
+   public:
+    constexpr BLEPacketMessage(
+        BlePacketData * packet)
+        : Message{ID::BlePacket},
+          packet{packet} {
+    }
+
+    BlePacketData* packet{nullptr};
 };
 
 class CodedSquelchMessage : public Message {
@@ -727,20 +748,11 @@ class APRSRxConfigureMessage : public Message {
 class BTLERxConfigureMessage : public Message {
    public:
     constexpr BTLERxConfigureMessage(
-        const uint32_t baudrate,
-        const uint32_t word_length,
-        const uint32_t trigger_value,
-        const bool trigger_word)
+        const uint8_t channel_number)
         : Message{ID::BTLERxConfigure},
-          baudrate(baudrate),
-          word_length(word_length),
-          trigger_value(trigger_value),
-          trigger_word(trigger_word) {
+          channel_number(channel_number){
     }
-    const uint32_t baudrate;
-    const uint32_t word_length;
-    const uint32_t trigger_value;
-    const bool trigger_word;
+    const uint8_t channel_number;
 };
 
 class NRFRxConfigureMessage : public Message {

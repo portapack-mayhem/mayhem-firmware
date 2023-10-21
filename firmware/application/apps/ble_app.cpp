@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2023 TJ
  *
  * This file is part of PortaPack.
  *
@@ -30,6 +31,8 @@
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 
+#define USE_CONSOLE 0
+
 using namespace portapack;
 using namespace modems;
 
@@ -40,6 +43,26 @@ void BLELogger::log_raw_data(const std::string& data)
 
 namespace ui 
 {
+    template <>
+    void RecentEntriesTable<BleRecentEntries>::draw(
+        const Entry& entry,
+        const Rect& target_rect,
+        Painter& painter,
+        const Style& style) {
+        std::string line = to_string_hex(entry.macAddress & 0xFF, 2);
+
+        line += ":" + to_string_hex((entry.macAddress >> 8) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 16) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 24) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 40), 2);
+
+        line += "        " + to_string_dec_int(entry.dbValue);
+
+        line.resize(target_rect.width() / 8, ' ');
+        painter.draw_string(target_rect.location(), style, line);
+    }
+
     static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) 
     {
         uint64_t freq_hz;
@@ -83,75 +106,170 @@ namespace ui
                     &field_rf_amp,
                     &field_lna,
                     &field_vga,
+                    &options_region,
                     &field_frequency,
                     &check_log,
-                    &text_debug,
-                    &button_modem_setup,
+                    #if USE_CONSOLE
                     &console});
+                    #else
+                    &recent_entries_view});
+                    #endif
 
-        field_frequency.set_value(get_freq_by_channel_number(37));
-
-        auto def_bell202 = &modem_defs[0];
-        persistent_memory::set_modem_baudrate(def_bell202->baudrate);
-        serial_format_t serial_format;
-        serial_format.data_bits = 7;
-        serial_format.parity = EVEN;
-        serial_format.stop_bits = 1;
-        serial_format.bit_order = LSB_FIRST;
-        persistent_memory::set_serial_format(serial_format);
-
-        field_frequency.set_step(100);
+        //field_frequency.set_value(get_freq_by_channel_number(37));
+        field_frequency.set_step(2000000);
 
         check_log.set_value(logging);
 
         check_log.on_select = [this](Checkbox&, bool v) 
         {
+            str_log = "";
             logging = v;
         };
 
-        button_modem_setup.on_select = [&nav](Button&) 
+        options_region.on_change = [this](size_t, int32_t i) 
         {
-            nav.push<ModemSetupView>();
+            if (i == 0) 
+            {
+                field_frequency.set_value(get_freq_by_channel_number(37));
+                channel_number = 37;
+            } 
+            else if (i == 1) 
+            {
+                field_frequency.set_value(get_freq_by_channel_number(38));
+                channel_number = 38;
+            } 
+            else if (i == 2) 
+            {
+                field_frequency.set_value(get_freq_by_channel_number(39));
+                channel_number = 39;
+            }
+
+            baseband::set_btle(channel_number);
         };
+
+        options_region.set_selected_index(0, true);
+
+        // recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
+        //     on_show_detail(entry);
+        // };
+
+        // recent_entry_detail_view.on_close = [this]() {
+        //     on_show_list();
+        // };
 
         logger = std::make_unique<BLELogger>();
 
         if (logger)
-            logger->append(LOG_ROOT_DIR "/BLELOG.TXT");
-
-        button_modem_setup.on_select = [&nav](Button&) {
-            nav.push<ModemSetupView>();
-        };
+            logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 
         // Auto-configure modem for LCR RX (will be removed later)
-        baseband::set_btle(persistent_memory::modem_baudrate(), 8, 0, false);
-
-        audio::set_rate(audio::Rate::Hz_24000);
-        audio::output::start();
+        baseband::set_btle(channel_number);
 
         receiver_model.enable();
     }
 
-    void BLERxView::on_data(uint32_t value, bool is_data) 
+    void BLERxView::on_data(BlePacketData * packet)
     {
         std::string str_console = "";
-        if (is_data) 
+
+        if (!logging)
         {
-            str_console += (char)value;
-            //str_console += "[" + to_string_hex(value, 2) + "] ";  // Not printable
-            console.write(str_console);
-        } 
-        else 
-        {
-            if (value == 'A') 
-            {
-                console.write("mac");
-            } 
-            else if (value == 'B') 
-            {
-                console.writeln("");
-            }
+            str_log = "";
         }
+        
+        switch ((ADV_PDU_TYPE)packet->type) 
+        {
+            case ADV_IND:
+                str_console += "ADV_IND";
+                break;
+            case ADV_DIRECT_IND:
+                str_console += "ADV_DIRECT_IND";
+                break;
+            case ADV_NONCONN_IND:
+                str_console += "ADV_NONCONN_IND";
+                break;
+            case SCAN_REQ:
+                str_console += "SCAN_REQ";
+                break;
+            case SCAN_RSP:
+                str_console += "SCAN_RSP";
+                break;
+            case CONNECT_REQ:
+                str_console += "CONNECT_REQ";
+                break;
+            case ADV_SCAN_IND:
+                str_console += "ADV_SCAN_IND";
+                break;
+            case RESERVED0:
+            case RESERVED1:
+            case RESERVED2:
+            case RESERVED3:
+            case RESERVED4:
+            case RESERVED5:
+            case RESERVED6:
+            case RESERVED7:
+            case RESERVED8:
+                str_console += "RESERVED";
+                break;
+            default:
+                str_console += "UNKNOWN";
+                break;
+        }
+
+        //str_console += to_string_dec_uint(value);
+
+        str_console += " Len: ";
+        str_console += to_string_dec_uint(packet->size);
+
+        str_console += "\n";
+
+        str_console += "Mac";
+        str_console += ":" + to_string_hex(packet->macAddress[0], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[1], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[2], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[3], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[4], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[5], 2);
+
+        str_console += "\n";
+        str_console += "Data:";
+
+        int i;
+
+        for (i = 0; i < packet->dataLen; i++)
+        {
+            str_console += " " + to_string_hex(packet->data[i], 2);
+        }
+
+        str_console += "\n";
+
+        uint64_t macAddressEncoded = 0;
+
+        memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
+
+        #if USE_CONSOLE
+        str_console += "\n" + to_string_dec_uint(macAddressEncoded) + "\n";
+        console.write(str_console); 
+        #else
+        // Masking off the top 2 bytes to avoid invalid keys.
+        auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+        entry.dbValue = packet->max_dB;
+        //entry.update(packet);
+        recent_entries_view.set_dirty();
+        #endif
+
+        //Log at End of Packet.
+        if (logger && logging) 
+        {
+            logger->log_raw_data(str_console);
+        }
+    }
+
+    void BLERxView::set_parent_rect(const Rect new_parent_rect) 
+    {
+        View::set_parent_rect(new_parent_rect);
+        const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+        recent_entries_view.set_parent_rect(content_rect);
     }
 
     BLERxView::~BLERxView() 
@@ -160,5 +278,11 @@ namespace ui
         receiver_model.disable();
         baseband::shutdown();
     }
+
+    // BleRecentEntry
+    // void BleRecentEntry::update(const BlePacketData * packet) 
+    // {
+       
+    // }
 
 } /* namespace ui */
