@@ -72,7 +72,7 @@ void set_afsk(const uint32_t baudrate, const uint32_t word_length, const uint32_
 void set_fsk(const size_t deviation, const uint8_t squelch_level);
 void set_aprs(const uint32_t baudrate);
 
-void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word);
+void set_btle(uint8_t channel_number);
 
 void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word);
 

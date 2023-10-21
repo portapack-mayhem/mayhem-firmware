@@ -57,6 +57,7 @@ namespace ui
         static constexpr Key invalid_key = 0xffffffff;
 
         uint64_t macAddress;
+        uint8_t rssiValue;
         BlePacketData packetData;
 
         BleRecentEntry()
@@ -66,6 +67,7 @@ namespace ui
         BleRecentEntry(
             const uint64_t macAddress)
             : macAddress{macAddress},
+              rssiValue{},
               packetData{} {
         }
 
@@ -107,39 +109,47 @@ namespace ui
 
         uint8_t console_color{0};
         uint32_t prev_value{0};
+        uint8_t channel_number = 37;
 
         static constexpr auto header_height = 12 + 2 * 16;
 
         RFAmpField field_rf_amp
         {
-            {13 * 8, 0 * 16}
+            {16 * 8, 0 * 16}
         };
 
         LNAGainField field_lna
         {
-            {15 * 8, 0 * 16}
+            {18 * 8, 0 * 16}
         };
 
         VGAGainField field_vga
         {
-            {18 * 8, 0 * 16}
+            {21 * 8, 0 * 16}
         };
 
         RSSI rssi
         {
-            {21 * 8, 0, 6 * 8, 4}
+            {24 * 8, 0, 6 * 8, 4}
         };
 
         Channel channel
         {
-            {21 * 8, 5, 6 * 8, 4}
+            {24 * 8, 5, 6 * 8, 4}
         };
 
         RxFrequencyField field_frequency
         {
-            {0 * 8, 0 * 16},
+            {6 * 8, 0 * 16},
             nav_
         };
+
+        OptionsField options_region{
+        {0 * 8, 0 * 8},
+        5,
+        {{"Ch.37 ", 0},
+         {"Ch.38", 1},
+         {"Ch.39", 2}}};
 
         Console console
         {
@@ -187,8 +197,8 @@ namespace ui
         BleRecentEntries recent{};
 
         const RecentEntriesColumns columns{{
-            {"Mac Address", 9},
-            // {"Name/Call", 20},
+            {"Mac Address", 20},
+            {"RSSI", 20},
         }};
         
         BleRecentEntriesView recent_entries_view{columns, recent};

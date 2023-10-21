@@ -57,6 +57,8 @@ namespace ui
         line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
         line += ":" + to_string_hex((entry.macAddress >> 40), 2);
 
+        line += "        " + to_string_dec_int(entry.rssiValue);
+
         line.resize(target_rect.width() / 8, ' ');
         painter.draw_string(target_rect.location(), style, line);
     }
@@ -104,6 +106,7 @@ namespace ui
                     &field_rf_amp,
                     &field_lna,
                     &field_vga,
+                    &options_region,
                     &field_frequency,
                     &check_log,
                     #if USE_CONSOLE
@@ -113,7 +116,7 @@ namespace ui
                     #endif
 
         //field_frequency.set_value(get_freq_by_channel_number(37));
-        field_frequency.set_step(100);
+        field_frequency.set_step(2000000);
 
         check_log.set_value(logging);
 
@@ -122,6 +125,29 @@ namespace ui
             str_log = "";
             logging = v;
         };
+
+        options_region.on_change = [this](size_t, int32_t i) 
+        {
+            if (i == 0) 
+            {
+                field_frequency.set_value(get_freq_by_channel_number(37));
+                channel_number = 37;
+            } 
+            else if (i == 1) 
+            {
+                field_frequency.set_value(get_freq_by_channel_number(38));
+                channel_number = 38;
+            } 
+            else if (i == 2) 
+            {
+                field_frequency.set_value(get_freq_by_channel_number(39));
+                channel_number = 39;
+            }
+
+            baseband::set_btle(channel_number);
+        };
+
+        options_region.set_selected_index(0, true);
 
         // recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
         //     on_show_detail(entry);
@@ -137,7 +163,7 @@ namespace ui
             logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 
         // Auto-configure modem for LCR RX (will be removed later)
-        baseband::set_btle(0, 0, 0, 0);
+        baseband::set_btle(channel_number);
 
         receiver_model.enable();
     }
@@ -227,7 +253,8 @@ namespace ui
         #else
         // Masking off the top 2 bytes to avoid invalid keys.
         auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
-        entry.update(packet);
+        entry.rssiValue = rssi.get_max();
+        //entry.update(packet);
         recent_entries_view.set_dirty();
         #endif
 
