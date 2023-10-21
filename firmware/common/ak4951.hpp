@@ -844,7 +844,7 @@ class AK4951 : public audio::Codec {
     void set_headphone_volume(const volume_t volume) override;
     void headphone_mute();
 
-    void microphone_enable(int8_t alc_mode);  // added user GUI parameter , to set up AK4951 ALC mode.
+    void microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled);  // added user GUI parameter , to set up AK4951 ALC mode, and mic_to_HP_enabled to control "Hear to Mic"
     void microphone_disable();
 
     void microphone_to_HP_enable();

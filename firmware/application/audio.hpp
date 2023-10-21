@@ -50,7 +50,7 @@ class Codec {
     virtual volume_range_t headphone_gain_range() const = 0;
     virtual void set_headphone_volume(const volume_t volume) = 0;
 
-    virtual void microphone_enable(int8_t alc_mode) = 0;  // added user-GUI  AK4951 ,selected ALC mode.
+    virtual void microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled) = 0;  // added user-GUI  AK4951 ,selected ALC mode.
     virtual void microphone_disable() = 0;
 
     virtual void microphone_to_HP_enable() = 0;
@@ -79,7 +79,7 @@ void update_audio_mute();
 
 namespace input {
 
-void start(int8_t alc_mode);  // added parameter user-GUI select AK4951-ALC mode for config mic path,(recording mode in datasheet),
+void start(int8_t alc_mode, bool mic_to_HP_enabled);  // added parameters -GUI select AK4951-ALC mode for config mic path,(recording mode),and the check box "Hear Mic"
 void stop();
 
 void loopback_mic_to_hp_enable();

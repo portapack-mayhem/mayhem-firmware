@@ -198,8 +198,8 @@ void update_audio_mute() {
 
 namespace input {
 
-void start(int8_t alc_mode) {
-    audio_codec->microphone_enable(alc_mode);  // added user-GUI selection for AK4951, ALC mode parameter.
+void start(int8_t alc_mode, bool mic_to_HP_enabled) {
+    audio_codec->microphone_enable(alc_mode, mic_to_HP_enabled);  // added user-GUI selection for AK4951, ALC mode parameter. and the check box "Hear Mic"
     i2s::i2s0::rx_start();
 }
 
