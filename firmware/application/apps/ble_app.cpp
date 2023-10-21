@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2023 TJ
  *
  * This file is part of PortaPack.
  *
@@ -30,6 +31,8 @@
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 
+#define USE_CONSOLE 0
+
 using namespace portapack;
 using namespace modems;
 
@@ -40,6 +43,24 @@ void BLELogger::log_raw_data(const std::string& data)
 
 namespace ui 
 {
+    template <>
+    void RecentEntriesTable<BleRecentEntries>::draw(
+        const Entry& entry,
+        const Rect& target_rect,
+        Painter& painter,
+        const Style& style) {
+        std::string line = to_string_hex(entry.macAddress & 0xFF, 2);
+
+        line += ":" + to_string_hex((entry.macAddress >> 8) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 16) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 24) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
+        line += ":" + to_string_hex((entry.macAddress >> 40), 2);
+
+        line.resize(target_rect.width() / 8, ' ');
+        painter.draw_string(target_rect.location(), style, line);
+    }
+
     static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) 
     {
         uint64_t freq_hz;
@@ -85,8 +106,11 @@ namespace ui
                     &field_vga,
                     &field_frequency,
                     &check_log,
-                    &text_debug,
+                    #if USE_CONSOLE
                     &console});
+                    #else
+                    &recent_entries_view});
+                    #endif
 
         //field_frequency.set_value(get_freq_by_channel_number(37));
         field_frequency.set_step(100);
@@ -99,6 +123,14 @@ namespace ui
             logging = v;
         };
 
+        // recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
+        //     on_show_detail(entry);
+        // };
+
+        // recent_entry_detail_view.on_close = [this]() {
+        //     on_show_list();
+        // };
+
         logger = std::make_unique<BLELogger>();
 
         if (logger)
@@ -110,7 +142,7 @@ namespace ui
         receiver_model.enable();
     }
 
-    void BLERxView::on_data(uint32_t value, bool is_data) 
+    void BLERxView::on_data(BlePacketData * packet)
     {
         std::string str_console = "";
 
@@ -119,166 +151,98 @@ namespace ui
             str_log = "";
         }
         
-        if (is_data) 
+        switch ((ADV_PDU_TYPE)packet->type) 
         {
-            switch (parsestate)
-            {
-                case ParsingAccessAddress:
-                    str_console += to_string_hex(value, 8);
-                    str_log += to_string_hex(value, 8);
-                    break;
-                
-                case ParsingType:
-                {
-                    switch ((ADV_PDU_TYPE)value) 
-                    {
-                        case ADV_IND:
-                            str_console += "ADV_IND";
-                            str_log += "ADV_IND";
-                            break;
-                        case ADV_DIRECT_IND:
-                            str_console += "ADV_DIRECT_IND";
-                            str_log += "ADV_DIRECT_IND";
-                            break;
-                        case ADV_NONCONN_IND:
-                            str_console += "ADV_NONCONN_IND";
-                            str_log += "ADV_NONCONN_IND";
-                            break;
-                        case SCAN_REQ:
-                            str_console += "SCAN_REQ";
-                            str_log += "SCAN_REQ";
-                            break;
-                        case SCAN_RSP:
-                            str_console += "SCAN_RSP";
-                            str_log += "SCAN_RSP";
-                            break;
-                        case CONNECT_REQ:
-                            str_console += "CONNECT_REQ";
-                            str_log += "CONNECT_REQ";
-                            break;
-                        case ADV_SCAN_IND:
-                            str_console += "ADV_SCAN_IND";
-                            str_log += "ADV_SCAN_IND";
-                            break;
-                        case RESERVED0:
-                        case RESERVED1:
-                        case RESERVED2:
-                        case RESERVED3:
-                        case RESERVED4:
-                        case RESERVED5:
-                        case RESERVED6:
-                        case RESERVED7:
-                        case RESERVED8:
-                            str_console += "RESERVED";
-                            str_log += "RESERVED";
-                            break;
-                        default:
-                            str_console += "UNKNOWN";
-                            str_log += "UNKNOWN";
-                            break;
-                    }
-
-                    //str_console += to_string_dec_uint(value);
-
-                    break;
-                }
-
-                case ParsingSize:
-                    str_console += to_string_dec_uint(value);
-                    str_log += to_string_dec_uint(value);
-                    break;
-
-                case ParsingMacAddress:
-                    str_console += ":" + to_string_hex(value, 2);
-                    str_log += ":" + to_string_hex(value, 2);
-                    break;
-                    
-                case ParsingData:
-                    str_console += " " + to_string_hex(value, 2);
-                    str_log += " " + to_string_hex(value, 2);
-                    break;
-
-                case ParsingChecksum:
-                    str_console += to_string_hex(value, 2);
-                    str_console += "\r\n";
-                    str_log += to_string_hex(value, 2);
-  
-                    //Log at end of CRC.
-                    if (logger && logging) 
-                    {
-                        str_log += "\n";
-                        logger->log_raw_data(str_log);
-                        str_log = "";
-                    }
-
-                    break;
-            }
-
-            console.write(str_console);
-        } 
-        else 
-        {
-            switch (value)
-            {
-                case 'A':
-                {
-                    console.write("AA:");
-                    parsestate = ParsingAccessAddress;
-                    str_log += "AA:";
-
-                    break;
-                } 
-
-                case 'S':
-                {
-                    console.write(" Len:");
-                    parsestate = ParsingSize;
-                    str_log += " Len:";
-
-                    break;
-                }  
-
-                case 'T':
-                {
-                    console.writeln("");
-                    console.write("PDU:");
-                    parsestate = ParsingType;
-                    str_log += " PDU:";
-
-                    break;
-                }
-
-                case 'M':
-                {
-                    console.writeln("");
-                    console.write("Mac");
-                    parsestate = ParsingMacAddress;
-                    str_log += " Mac";
-
-                    break;
-                }
-
-                case 'D':
-                {
-                    console.writeln("");
-                    console.write("Data");
-                    parsestate = ParsingData;
-                    str_log += " Data:";
-
-                    break;
-                }
-
-                case 'C':
-                {
-                    console.writeln("");
-                    console.write("CRC:");
-                    parsestate = ParsingChecksum;
-                    str_log += " CRC:";
-                    break;
-                }      
-            }
-
+            case ADV_IND:
+                str_console += "ADV_IND";
+                break;
+            case ADV_DIRECT_IND:
+                str_console += "ADV_DIRECT_IND";
+                break;
+            case ADV_NONCONN_IND:
+                str_console += "ADV_NONCONN_IND";
+                break;
+            case SCAN_REQ:
+                str_console += "SCAN_REQ";
+                break;
+            case SCAN_RSP:
+                str_console += "SCAN_RSP";
+                break;
+            case CONNECT_REQ:
+                str_console += "CONNECT_REQ";
+                break;
+            case ADV_SCAN_IND:
+                str_console += "ADV_SCAN_IND";
+                break;
+            case RESERVED0:
+            case RESERVED1:
+            case RESERVED2:
+            case RESERVED3:
+            case RESERVED4:
+            case RESERVED5:
+            case RESERVED6:
+            case RESERVED7:
+            case RESERVED8:
+                str_console += "RESERVED";
+                break;
+            default:
+                str_console += "UNKNOWN";
+                break;
         }
+
+        //str_console += to_string_dec_uint(value);
+
+        str_console += " Len: ";
+        str_console += to_string_dec_uint(packet->size);
+
+        str_console += "\n";
+
+        str_console += "Mac";
+        str_console += ":" + to_string_hex(packet->macAddress[0], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[1], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[2], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[3], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[4], 2);
+        str_console += ":" + to_string_hex(packet->macAddress[5], 2);
+
+        str_console += "\n";
+        str_console += "Data:";
+
+        int i;
+
+        for (i = 0; i < packet->dataLen; i++)
+        {
+            str_console += " " + to_string_hex(packet->data[i], 2);
+        }
+
+        str_console += "\n";
+
+        uint64_t macAddressEncoded = 0;
+
+        memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
+
+        #if USE_CONSOLE
+        str_console += "\n" + to_string_dec_uint(macAddressEncoded) + "\n";
+        console.write(str_console); 
+        #else
+        // Masking off the top 2 bytes to avoid invalid keys.
+        auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+        entry.update(packet);
+        recent_entries_view.set_dirty();
+        #endif
+
+        //Log at End of Packet.
+        if (logger && logging) 
+        {
+            logger->log_raw_data(str_console);
+        }
+    }
+
+    void BLERxView::set_parent_rect(const Rect new_parent_rect) 
+    {
+        View::set_parent_rect(new_parent_rect);
+        const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+        recent_entries_view.set_parent_rect(content_rect);
     }
 
     BLERxView::~BLERxView() 
@@ -286,6 +250,12 @@ namespace ui
         audio::output::stop();
         receiver_model.disable();
         baseband::shutdown();
+    }
+
+    // BleRecentEntry
+    void BleRecentEntry::update(const BlePacketData * packet) 
+    {
+       
     }
 
 } /* namespace ui */

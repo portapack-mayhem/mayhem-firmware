@@ -33,6 +33,8 @@
 #include "log_file.hpp"
 #include "utility.hpp"
 
+#include "recent_entries.hpp"
+
 class BLELogger 
 {
    public:
@@ -49,19 +51,50 @@ class BLELogger
 
 namespace ui 
 {
+    struct BleRecentEntry {
+        using Key = uint64_t;
+
+        static constexpr Key invalid_key = 0xffffffff;
+
+        uint64_t macAddress;
+        BlePacketData packetData;
+
+        BleRecentEntry()
+            : BleRecentEntry{0} {
+        }
+
+        BleRecentEntry(
+            const uint64_t macAddress)
+            : macAddress{macAddress},
+              packetData{} {
+        }
+
+        Key key() const {
+            return macAddress;
+        }
+
+        void update(const BlePacketData * packet);
+    };
+
+    using BleRecentEntries = RecentEntries<BleRecentEntry>;
+    using BleRecentEntriesView = RecentEntriesView<BleRecentEntries>;
+
     class BLERxView : public View 
     {
         public:
         BLERxView(NavigationView& nav);
         ~BLERxView();
 
+        void set_parent_rect(const Rect new_parent_rect) override;
+        void paint(Painter&) override{};
+
         void focus() override;
 
         std::string title() const override { return "BLE RX"; };
 
         private:
-        void on_data(uint32_t value, bool is_data);
-
+        void on_data(BlePacketData * packetData);
+        
         NavigationView& nav_;
         RxRadioState radio_state_
         {
@@ -75,17 +108,7 @@ namespace ui
         uint8_t console_color{0};
         uint32_t prev_value{0};
 
-        typedef enum
-        {
-            ParsingAccessAddress = 0,
-            ParsingType,
-            ParsingSize,
-            ParsingMacAddress,
-            ParsingData,
-            ParsingChecksum,
-        } ParseState;
-
-        ParseState parsestate = ParsingAccessAddress;
+        static constexpr auto header_height = 12 + 2 * 16;
 
         RFAmpField field_rf_amp
         {
@@ -131,12 +154,6 @@ namespace ui
             false
         };
 
-        Text text_debug
-        {
-            {0 * 8, 12 + 2 * 16, screen_width, 16},
-            "BLE OUTPUT"
-        };
-
         typedef enum
         {
             ADV_IND = 0,
@@ -162,13 +179,32 @@ namespace ui
 
         std::unique_ptr<BLELogger> logger{};
 
+        // const RecentEntriesColumns columns{{{"Source", 9},
+        //                             {"Loc", 6},
+        //                             {"Hits", 4},
+        //                             {"Time", 8}}};
+
+        BleRecentEntries recent{};
+
+        const RecentEntriesColumns columns{{
+            {"Mac Address", 9},
+            // {"Name/Call", 20},
+        }};
+        
+        BleRecentEntriesView recent_entries_view{columns, recent};
+
+        //RecentEntriesView<RecentEntries<APRSRecentEntry>> recent_entries_view{columns, recent};
+        //APRSDetailsView details_view{nav_};
+        //uint32_t detailed_entry_key{0};
+        //bool send_updates{false};
+
         MessageHandlerRegistration message_handler_packet
         {
-            Message::ID::AFSKData,
+            Message::ID::BlePacket,
             [this](Message* const p) 
             {
-                const auto message = static_cast<const AFSKDataMessage*>(p);
-                this->on_data(message->value, message->is_data);
+                const auto message = static_cast<const BLEPacketMessage*>(p);
+                this->on_data(message->packet);
             }
         };
     };

@@ -143,13 +143,6 @@ class BTLERxProcessor : public BasebandProcessor
         dst.size()
     };
 
-    // std::array<complex8_t, 2048> iq{};
-    //     const buffer_c8_t iq_buffer{
-    //         iq.data(),
-    //         iq.size(),
-    //         baseband_fs};
-
-    //std::array<uint8_t, 2048> rb_buf{0};
     uint8_t rb_buf[2048];
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
@@ -165,7 +158,7 @@ class BTLERxProcessor : public BasebandProcessor
     uint16_t process = 0;
 
     bool configured{false};
-    AFSKDataMessage data_message{false, 0};
+    BlePacketData blePacketData{};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

@@ -476,7 +476,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
     bool sendPacket = false;
 
     //Checking CRC and excluding Reserved PDU types.
-    if (pdu_type < RESERVED0)
+    if (pdu_type < RESERVED0 && !crc_flag)
     {
         if (parse_adv_pdu_payload_byte(rb_buf + 2, payload_len, (ADV_PDU_TYPE)pdu_type, (void *)(&adv_pdu_payload) ) == 0 ) 
         {
@@ -486,90 +486,28 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer)
         // TODO: Make this a packet builder function?
         if (sendPacket)
         {
-            // Not sending AA from header.
-            if ((accesssAddress & DEFAULT_ACCESS_ADDR) == DEFAULT_ACCESS_ADDR)
-            {
-                //    Send AA as test.
-                    data_message.is_data = false;
-                    data_message.value = 'A';
-                    shared_memory.application_queue.push(data_message);
+            blePacketData.type = pdu_type;
+            blePacketData.size = payload_len;
 
-                    data_message.is_data = true;
-                    data_message.value = accesssAddress;
-                    shared_memory.application_queue.push(data_message);    
-            }
-
-            //Payload Length Message.
-            data_message.is_data = false;
-            data_message.value = 'S';
-            shared_memory.application_queue.push(data_message);
-
-            data_message.is_data = true;
-            data_message.value = payload_len;
-            shared_memory.application_queue.push(data_message);
-
-            //Type Message.
-            data_message.is_data = false;
-            data_message.value = 'T';
-            shared_memory.application_queue.push(data_message);
-
-            data_message.is_data = true;
-            data_message.value = pdu_type;
-            shared_memory.application_queue.push(data_message);   
-
-            // Mac Address Message.
-            data_message.is_data = false;
-            data_message.value = 'M';
-            shared_memory.application_queue.push(data_message);
-
-            data_message.is_data = true;
-            data_message.value = macAddress[0];
-            shared_memory.application_queue.push(data_message);  
-            data_message.is_data = true;
-
-            data_message.value = macAddress[1];
-            shared_memory.application_queue.push(data_message);  
-            data_message.is_data = true;
-
-            data_message.value = macAddress[2];
-            shared_memory.application_queue.push(data_message);  
-            data_message.is_data = true;
-
-            data_message.value = macAddress[3];
-            shared_memory.application_queue.push(data_message);  
-            data_message.is_data = true;
-
-            data_message.value = macAddress[4];
-            shared_memory.application_queue.push(data_message);  
-            data_message.is_data = true;
-
-            data_message.value = macAddress[5];
-            shared_memory.application_queue.push(data_message);  
-            data_message.is_data = true;
-
-            //Type Payload Data.
-            data_message.is_data = false;
-            data_message.value = 'D';
-            shared_memory.application_queue.push(data_message);
+            blePacketData.macAddress[0] = macAddress[0];
+            blePacketData.macAddress[1] = macAddress[1];
+            blePacketData.macAddress[2] = macAddress[2];
+            blePacketData.macAddress[3] = macAddress[3];
+            blePacketData.macAddress[4] = macAddress[4];
+            blePacketData.macAddress[5] = macAddress[5];
 
             //Skip Header Byte and MAC Address
             uint8_t startIndex = 8;
 
             for (i = 0; i < payload_len; i++)
             {
-                data_message.is_data = true;
-                //Plus 2 to bypass 
-                data_message.value = rb_buf[startIndex++];
-                shared_memory.application_queue.push(data_message);   
+                blePacketData.data[i] = rb_buf[startIndex++];
             }
 
-            // Checksum Message.
-            data_message.is_data = false;
-            data_message.value = 'C';
-            shared_memory.application_queue.push(data_message);
+            blePacketData.dataLen = i;
+          
+            BLEPacketMessage data_message{&blePacketData};
 
-            data_message.is_data = true;
-            data_message.value = crc_flag;
             shared_memory.application_queue.push(data_message);
         }
     }

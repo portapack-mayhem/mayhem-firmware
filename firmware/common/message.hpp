@@ -113,6 +113,7 @@ class Message {
         SpectrumPainterBufferResponseConfigure = 56,
         POCSAGStats = 57,
         FSKRxConfigure = 58,
+        BlePacket = 58,
         MAX
     };
 
@@ -399,6 +400,25 @@ class AFSKDataMessage : public Message {
 
     bool is_data;
     uint32_t value;
+};
+
+struct BlePacketData {
+    uint8_t type;
+    uint8_t size;
+    uint8_t macAddress[6];
+    uint8_t data[40];
+    uint8_t dataLen;
+};
+
+class BLEPacketMessage : public Message {
+   public:
+    constexpr BLEPacketMessage(
+        BlePacketData * packet)
+        : Message{ID::BlePacket},
+          packet{packet} {
+    }
+
+    BlePacketData* packet{nullptr};
 };
 
 class CodedSquelchMessage : public Message {
