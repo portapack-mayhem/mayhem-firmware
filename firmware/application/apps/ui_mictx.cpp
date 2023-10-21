@@ -101,8 +101,11 @@ void MicTXView::set_tx(bool enable) {
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();
-            if (rx_enabled)     // If audio RX is enabled and we've been transmitting
-                rxaudio(true);  // Turn back on audio RX
+            if (rx_enabled) {          // If audio RX is enabled and we've been transmitting
+                rxaudio(true);         // Turn back on audio RX
+                vumeter.set_value(0);  // Reset  vumeter
+                vumeter.dirty();       // Force to refresh vumeter.
+            }
         }
     }
 }
@@ -517,8 +520,10 @@ MicTXView::MicTXView(
     check_rxactive.on_select = [this](Checkbox&, bool v) {
         //		vumeter.set_value(0);	//Start with a clean vumeter
         rx_enabled = v;
-        check_mic_to_HP.hidden(rx_enabled);  // Hide or show "Hear Mic" checkbox depending if we activate the receiver (we should better not activate both things)
-        check_mic_to_HP.set_value(false);    // If activate receiver sound , reset the possible activation of "Hear to Mic" .
+        check_mic_to_HP.hidden(rx_enabled);  // Togle Hide / show "Hear Mic" checkbox depending if we activate or not the receiver. (if RX on => no visible "Mic Hear" option)
+        if ((rx_enabled) && (transmitting))
+            check_mic_to_HP.set_value(transmitting);  // Once we activate the "Rx audio" in reception time we disable "Hear Mic", but we allow it again in TX time.
+
         //		check_va.hidden(v); 	//Hide or show voice activation
         rxaudio(v);   // Activate-Deactivate audio RX (receiver) accordingly
         set_dirty();  // Refresh interface
