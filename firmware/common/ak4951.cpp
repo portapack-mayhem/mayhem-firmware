@@ -224,7 +224,7 @@ void AK4951::speaker_disable() {
     set_speaker_power(false);
 }
 
-void AK4951::microphone_enable(int8_t alc_mode) {
+void AK4951::microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled) {
     // alc_mode =0 = (OFF =same as original code = NOT using AK4951 Programmable digital filter block),
     // alc_mode >1 (with  DIGITAL FILTER BLOCK , example :  1:(+12dB) , 2:(+9dB)", 3:(+6dB), ...)
 
@@ -504,6 +504,11 @@ void AK4951::microphone_enable(int8_t alc_mode) {
         map.r.power_management_1.PMADR = 0;   // ADC Rch = Rch input signal. Mic Amp Rch and ADC Rch Power Management. (PMADL=1, PMADR=0) means MONO MIC input connected to Left pin.
         map.r.power_management_1.PMPFIL = 1;  // Pre-loaded in top part.  Orig value=0, Programmable Digital filter unused (not power up), routed around.
         update(Register::PowerManagement1);   // Activating the Power management of the used blocks . (Mic ADC always + Dig Block filter , when used )
+
+        if (mic_to_HP_enabled)
+            microphone_to_HP_enable();
+        else
+            microphone_to_HP_disable();
 
         // 1059/fs, 22ms @ 48kHz
         chThdSleepMilliseconds(22);

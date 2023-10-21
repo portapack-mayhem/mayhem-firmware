@@ -349,13 +349,18 @@ class WM8731 : public audio::Codec {
         return false;
     }
 
-    void microphone_enable(int8_t wm8731_boost_GUI) override {
+    void microphone_enable(int8_t wm8731_boost_GUI, bool mic_to_HP_enabled) override {
         microphone_mute(true);  // c/m to reduce "plop noise" when changing wm8731_boost_GUI.
         // chThdSleepMilliseconds(20);  					// does not help to reduce the "plop noise"
         microphone_boost((wm8731_boost_GUI < 2) ? 1 : 0);  // 1 = Enable Boost (+20 dBs) .  0 = Disable Boost (0dBs).
         chThdSleepMilliseconds(120);                       // >50 msegs, very effective , >100 msegs minor improvement ,120 msegs trade off speed .
         microphone_mute(false);
         //	(void)alc_mode; 		In prev. fw version ,  when we did not use at all param., to avoid "unused warning" when compiling.)
+
+        if (mic_to_HP_enabled)
+            microphone_to_HP_enable();
+        else
+            microphone_to_HP_disable();
     }
 
     void microphone_disable() override {
