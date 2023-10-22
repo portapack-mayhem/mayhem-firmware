@@ -144,110 +144,110 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_p
     else {
         return -1;
     }
-//     else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ)
-//     {
-//         if (num_payload_byte != 12)
-//         {
-//             //printf("Error: Payload length %d bytes. Need to be 12 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
-//             return(-1);
-//         }
+    // else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ)
+    // {
+    //     if (num_payload_byte != 12)
+    //     {
+    //         //printf("Error: Payload length %d bytes. Need to be 12 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
+    //         return(-1);
+    //     }
 
-//     payload_type_1_3 = (ADV_PDU_PAYLOAD_TYPE_1_3 *)adv_pdu_payload;
+    // payload_type_1_3 = (ADV_PDU_PAYLOAD_TYPE_1_3 *)adv_pdu_payload;
 
-//     //AdvA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
-//     macAddress[0] = payload_byte[5];
-//     macAddress[1] = payload_byte[4];
-//     macAddress[2] = payload_byte[3];
-//     macAddress[3] = payload_byte[2];
-//     macAddress[4] = payload_byte[1];
-//     macAddress[5] = payload_byte[0];
+    // //AdvA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
+    // macAddress[0] = payload_byte[5];
+    // macAddress[1] = payload_byte[4];
+    // macAddress[2] = payload_byte[3];
+    // macAddress[3] = payload_byte[2];
+    // macAddress[4] = payload_byte[1];
+    // macAddress[5] = payload_byte[0];
 
-//     //InitA = reorder_bytes_str( payload_bytes((2*6+1):end) );
-//     payload_type_1_3->A1[0] = payload_byte[11];
-//     payload_type_1_3->A1[1] = payload_byte[10];
-//     payload_type_1_3->A1[2] = payload_byte[9];
-//     payload_type_1_3->A1[3] = payload_byte[8];
-//     payload_type_1_3->A1[4] = payload_byte[7];
-//     payload_type_1_3->A1[5] = payload_byte[6];
+    // //InitA = reorder_bytes_str( payload_bytes((2*6+1):end) );
+    // payload_type_1_3->A1[0] = payload_byte[11];
+    // payload_type_1_3->A1[1] = payload_byte[10];
+    // payload_type_1_3->A1[2] = payload_byte[9];
+    // payload_type_1_3->A1[3] = payload_byte[8];
+    // payload_type_1_3->A1[4] = payload_byte[7];
+    // payload_type_1_3->A1[5] = payload_byte[6];
 
-//     //payload_parse_result_str = ['AdvA:' AdvA ' InitA:' InitA];
-//     }
-//     else if (pdu_type == CONNECT_REQ)
-//     {
-//     if (num_payload_byte != 34)
-//     {
-//         //printf("Error: Payload length %d bytes. Need to be 34 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
-//         return(-1);
-//     }
+    // //payload_parse_result_str = ['AdvA:' AdvA ' InitA:' InitA];
+    // }
+    // else if (pdu_type == CONNECT_REQ)
+    // {
+    // if (num_payload_byte != 34)
+    // {
+    //     //printf("Error: Payload length %d bytes. Need to be 34 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
+    //     return(-1);
+    // }
 
-//     payload_type_5 = (ADV_PDU_PAYLOAD_TYPE_5 *)adv_pdu_payload;
+    // payload_type_5 = (ADV_PDU_PAYLOAD_TYPE_5 *)adv_pdu_payload;
 
-//     //InitA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
-//     macAddress[0] = payload_byte[5];
-//     macAddress[1] = payload_byte[4];
-//     macAddress[2] = payload_byte[3];
-//     macAddress[3] = payload_byte[2];
-//     macAddress[4] = payload_byte[1];
-//     macAddress[5] = payload_byte[0];
+    // //InitA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
+    // macAddress[0] = payload_byte[5];
+    // macAddress[1] = payload_byte[4];
+    // macAddress[2] = payload_byte[3];
+    // macAddress[3] = payload_byte[2];
+    // macAddress[4] = payload_byte[1];
+    // macAddress[5] = payload_byte[0];
 
-//     //AdvA = reorder_bytes_str( payload_bytes((2*6+1):(2*6+2*6)) );
-//     payload_type_5->AdvA[0] = payload_byte[11];
-//     payload_type_5->AdvA[1] = payload_byte[10];
-//     payload_type_5->AdvA[2] = payload_byte[9];
-//     payload_type_5->AdvA[3] = payload_byte[8];
-//     payload_type_5->AdvA[4] = payload_byte[7];
-//     payload_type_5->AdvA[5] = payload_byte[6];
+    // //AdvA = reorder_bytes_str( payload_bytes((2*6+1):(2*6+2*6)) );
+    // payload_type_5->AdvA[0] = payload_byte[11];
+    // payload_type_5->AdvA[1] = payload_byte[10];
+    // payload_type_5->AdvA[2] = payload_byte[9];
+    // payload_type_5->AdvA[3] = payload_byte[8];
+    // payload_type_5->AdvA[4] = payload_byte[7];
+    // payload_type_5->AdvA[5] = payload_byte[6];
 
-//     //AA = reorder_bytes_str( payload_bytes((2*6+2*6+1):(2*6+2*6+2*4)) );
-//     payload_type_5->AA[0] = payload_byte[15];
-//     payload_type_5->AA[1] = payload_byte[14];
-//     payload_type_5->AA[2] = payload_byte[13];
-//     payload_type_5->AA[3] = payload_byte[12];
+    // //AA = reorder_bytes_str( payload_bytes((2*6+2*6+1):(2*6+2*6+2*4)) );
+    // payload_type_5->AA[0] = payload_byte[15];
+    // payload_type_5->AA[1] = payload_byte[14];
+    // payload_type_5->AA[2] = payload_byte[13];
+    // payload_type_5->AA[3] = payload_byte[12];
 
-//     //CRCInit = payload_bytes((2*6+2*6+2*4+1):(2*6+2*6+2*4+2*3));
-//     payload_type_5->CRCInit = ( payload_byte[16] );
-//     payload_type_5->CRCInit = ( (payload_type_5->CRCInit << 8) | payload_byte[17] );
-//     payload_type_5->CRCInit = ( (payload_type_5->CRCInit << 8) | payload_byte[18] );
+    // //CRCInit = payload_bytes((2*6+2*6+2*4+1):(2*6+2*6+2*4+2*3));
+    // payload_type_5->CRCInit = ( payload_byte[16] );
+    // payload_type_5->CRCInit = ( (payload_type_5->CRCInit << 8) | payload_byte[17] );
+    // payload_type_5->CRCInit = ( (payload_type_5->CRCInit << 8) | payload_byte[18] );
 
-//     //WinSize = payload_bytes((2*6+2*6+2*4+2*3+1):(2*6+2*6+2*4+2*3+2*1));
-//     payload_type_5->WinSize = payload_byte[19];
+    // //WinSize = payload_bytes((2*6+2*6+2*4+2*3+1):(2*6+2*6+2*4+2*3+2*1));
+    // payload_type_5->WinSize = payload_byte[19];
 
-//     //WinOffset = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+1):(2*6+2*6+2*4+2*3+2*1+2*2)) );
-//     payload_type_5->WinOffset = ( payload_byte[21] );
-//     payload_type_5->WinOffset = ( (payload_type_5->WinOffset << 8) | payload_byte[20] );
+    // //WinOffset = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+1):(2*6+2*6+2*4+2*3+2*1+2*2)) );
+    // payload_type_5->WinOffset = ( payload_byte[21] );
+    // payload_type_5->WinOffset = ( (payload_type_5->WinOffset << 8) | payload_byte[20] );
 
-//     //Interval = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2)) );
-//     payload_type_5->Interval = ( payload_byte[23] );
-//     payload_type_5->Interval = ( (payload_type_5->Interval << 8) | payload_byte[22] );
+    // //Interval = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2)) );
+    // payload_type_5->Interval = ( payload_byte[23] );
+    // payload_type_5->Interval = ( (payload_type_5->Interval << 8) | payload_byte[22] );
 
-//     //Latency = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2)) );
-//     payload_type_5->Latency = ( payload_byte[25] );
-//     payload_type_5->Latency = ( (payload_type_5->Latency << 8) | payload_byte[24] );
+    // //Latency = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2)) );
+    // payload_type_5->Latency = ( payload_byte[25] );
+    // payload_type_5->Latency = ( (payload_type_5->Latency << 8) | payload_byte[24] );
 
-//     //Timeout = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2)) );
-//     payload_type_5->Timeout = ( payload_byte[27] );
-//     payload_type_5->Timeout = ( (payload_type_5->Timeout << 8) | payload_byte[26] );
+    // //Timeout = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2)) );
+    // payload_type_5->Timeout = ( payload_byte[27] );
+    // payload_type_5->Timeout = ( (payload_type_5->Timeout << 8) | payload_byte[26] );
 
-//     //ChM = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+2*5)) );
-//     payload_type_5->ChM[0] = payload_byte[32];
-//     payload_type_5->ChM[1] = payload_byte[31];
-//     payload_type_5->ChM[2] = payload_byte[30];
-//     payload_type_5->ChM[3] = payload_byte[29];
-//     payload_type_5->ChM[4] = payload_byte[28];
+    // //ChM = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+2*5)) );
+    // payload_type_5->ChM[0] = payload_byte[32];
+    // payload_type_5->ChM[1] = payload_byte[31];
+    // payload_type_5->ChM[2] = payload_byte[30];
+    // payload_type_5->ChM[3] = payload_byte[29];
+    // payload_type_5->ChM[4] = payload_byte[28];
 
-//     //tmp_bits = payload_bits((end-7) : end);
-//     //Hop = num2str( bi2de(tmp_bits(1:5), 'right-msb') );
-//     //SCA = num2str( bi2de(tmp_bits(6:end), 'right-msb') );
-//     payload_type_5->Hop = (payload_byte[33]&0x1F);
-//     payload_type_5->SCA = ((payload_byte[33]>>5)&0x07);
-//    }
-//     else
-//     {
-//    //TODO: Handle Unknown PDU.
-//      payload_type_R = (ADV_PDU_PAYLOAD_TYPE_R *)adv_pdu_payload;
-//      memcpy(payload_type_R->payload_byte, payload_byte, num_payload_byte);
-//     return(-1);
-//    }
+    // //tmp_bits = payload_bits((end-7) : end);
+    // //Hop = num2str( bi2de(tmp_bits(1:5), 'right-msb') );
+    // //SCA = num2str( bi2de(tmp_bits(6:end), 'right-msb') );
+    // payload_type_5->Hop = (payload_byte[33]&0x1F);
+    // payload_type_5->SCA = ((payload_byte[33]>>5)&0x07);
+    // }
+    // else
+    // {
+    // //TODO: Handle Unknown PDU.
+    //  payload_type_R = (ADV_PDU_PAYLOAD_TYPE_R *)adv_pdu_payload;
+    //  memcpy(payload_type_R->payload_byte, payload_byte, num_payload_byte);
+    // return(-1);
+    // }
 
     return 0;
 }
@@ -309,6 +309,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
 
     uint32_t accesssAddress = 0;
 
+    // Filling up addressBits with the access address we are looking to find.
     for (i = 0; i < 32; i++) {
         accessAddrBits[i] = 0x01 & uint32_tmp;
         uint32_tmp = (uint32_tmp >> 1);
@@ -320,7 +321,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
         sp = ((demod_buf_offset - demod_buf_len + 1) & (demod_buf_len - 1));
 
         for (j = 0; j < SAMPLE_PER_SYMBOL; j++) {
-            // Sample and compare with the adjascent next sample.
+            // Sample and compare with the adjacent next sample.
             I0 = dst_buffer.p[i + j].real();
             Q0 = dst_buffer.p[i + j].imag();
             I1 = dst_buffer.p[i + j + 1].real();
@@ -507,9 +508,8 @@ void BTLERxProcessor::on_message(const Message* const message) {
 }
 
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
-    channel_number = message.channel_number;  // avoid warning
+    channel_number = message.channel_number;
     decim_0.configure(taps_200k_wfm_decim_0.taps);
-    decim_1.configure(taps_200k_decim_1.taps);
     demod.configure(48000, 5000);
 
     configured = true;

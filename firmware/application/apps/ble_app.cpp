@@ -31,8 +31,6 @@
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 
-#define USE_CONSOLE 0
-
 using namespace portapack;
 using namespace modems;
 
@@ -114,9 +112,9 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
 
     auto field_rect = Rect{rect.left(), rect.top() + 16, rect.width(), 16};
 
-    uint8_t type[5];
-    uint8_t length[5];
-    uint8_t data[5][40];
+    uint8_t type[total_data_lines];
+    uint8_t length[total_data_lines];
+    uint8_t data[total_data_lines][40];
 
     int currentByte = 0;
     int currentPacket = 0;
@@ -124,7 +122,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     int j = 0;
     int k = 0;
 
-    for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < 5);) {
+    for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < total_data_lines);) {
         length[currentPacket] = entry_.packetData.data[currentByte++];
         type[currentPacket] = entry_.packetData.data[currentByte++];
 
@@ -146,7 +144,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     for (i = 0; i < currentPacket; i++) {
         uint8_t number_data_lines = ceil((float)(length[i] - 1) / 10.0);
         uint8_t current_line = 0;
-        std::array<std::string, 5> data_strings{{""}};
+        std::array<std::string, total_data_lines> data_strings{};
 
         for (j = 0; (j < (number_data_lines * 10)) && (j < length[i] - 1); j++) {
             if ((j / 10) != current_line) {
@@ -156,12 +154,12 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
             data_strings[current_line] += to_string_hex(data[i][j], 2);
         }
 
-        // Readd the type back to the total length.
+        // Read the type back to the total length.
         field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + pad_string_with_spaces(3) + data_strings[0]);
 
         if (number_data_lines > 1) {
             for (k = 1; k < number_data_lines; k++) {
-                if (data_strings[k] != "") {
+                if (data_strings[k].empty()) {
                     field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
                 }
             }
@@ -179,22 +177,22 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
 
     switch (channel_number) {
         case 37:
-            freq_hz = 2402000000ull;
+            freq_hz = 2'402'000'000ull;
             break;
         case 38:
-            freq_hz = 2426000000ull;
+            freq_hz = 2'426'000'000ull;
             break;
         case 39:
-            freq_hz = 2480000000ull;
+            freq_hz = 2'480'000'000ull;
             break;
         case 0 ... 10:
-            freq_hz = 2404000000ull + channel_number * 2000000ull;
+            freq_hz = 2'404'000'000ull + channel_number * 2'000'000ull;
             break;
         case 11 ... 36:
-            freq_hz = 2428000000ull + (channel_number - 11) * 2000000ull;
+            freq_hz = 2'428'000'000ull + (channel_number - 11) * 2'000'000ull;
             break;
         default:
-            freq_hz = 0xffffffffffffffff;
+            freq_hz = UINT64_MAX;
     }
 
     return freq_hz;
@@ -208,20 +206,16 @@ BLERxView::BLERxView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_btle_rx);
 
-    add_children({ &rssi,
-                       &channel,
-                       &field_rf_amp,
-                       &field_lna,
-                       &field_vga,
-                       &options_region,
-                       &field_frequency,
-                       &check_log,
-#if USE_CONSOLE
-                       &console });
-#else
-                       &recent_entries_view,
-                       &recent_entry_detail_view });
-#endif
+    add_children({&rssi,
+                  &channel,
+                  &field_rf_amp,
+                  &field_lna,
+                  &field_vga,
+                  &options_region,
+                  &field_frequency,
+                  &check_log,
+                  &recent_entries_view,
+                  &recent_entry_detail_view});
 
     recent_entry_detail_view.hidden(true);
 
@@ -240,16 +234,8 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     options_region.on_change = [this](size_t, int32_t i) {
-        if (i == 0) {
-            field_frequency.set_value(get_freq_by_channel_number(37));
-            channel_number = 37;
-        } else if (i == 1) {
-            field_frequency.set_value(get_freq_by_channel_number(38));
-            channel_number = 38;
-        } else if (i == 2) {
-            field_frequency.set_value(get_freq_by_channel_number(39));
-            channel_number = 39;
-        }
+        field_frequency.set_value(get_freq_by_channel_number(i));
+        channel_number = i;
 
         baseband::set_btle(channel_number);
     };
@@ -343,10 +329,6 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
 
-#if USE_CONSOLE
-    str_console += "\n" + to_string_dec_uint(macAddressEncoded) + "\n";
-    console.write(str_console);
-#else
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
 
@@ -389,7 +371,6 @@ void BLERxView::set_parent_rect(const Rect new_parent_rect) {
 }
 
 BLERxView::~BLERxView() {
-    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }

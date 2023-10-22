@@ -43,10 +43,10 @@ class BTLERxProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    static constexpr int SAMPLE_PER_SYMBOL {1};
-    static constexpr int LEN_DEMOD_BUF_ACCESS {32};
-    static constexpr uint32_t DEFAULT_ACCESS_ADDR {0x8E89BED6};
-    static constexpr int NUM_ACCESS_ADDR_BYTE {4};
+    static constexpr int SAMPLE_PER_SYMBOL{1};
+    static constexpr int LEN_DEMOD_BUF_ACCESS{32};
+    static constexpr uint32_t DEFAULT_ACCESS_ADDR{0x8E89BED6};
+    static constexpr int NUM_ACCESS_ADDR_BYTE{4};
 
     enum ADV_PDU_TYPE {
         ADV_IND = 0,
@@ -70,18 +70,15 @@ class BTLERxProcessor : public BasebandProcessor {
     uint8_t macAddress[6];
     int checksumReceived = 0;
 
-    struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6
-    {
+    struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6 {
         uint8_t Data[31];
     };
 
-    struct ADV_PDU_PAYLOAD_TYPE_1_3
-    {
+    struct ADV_PDU_PAYLOAD_TYPE_1_3 {
         uint8_t A1[6];
     };
 
-    struct ADV_PDU_PAYLOAD_TYPE_5
-    {
+    struct ADV_PDU_PAYLOAD_TYPE_5 {
         uint8_t AdvA[6];
         uint8_t AA[4];
         uint32_t CRCInit;
@@ -95,8 +92,7 @@ class BTLERxProcessor : public BasebandProcessor {
         uint8_t SCA;
     };
 
-    struct ADV_PDU_PAYLOAD_TYPE_R
-    {
+    struct ADV_PDU_PAYLOAD_TYPE_R {
         uint8_t payload_byte[40];
     };
 
@@ -124,7 +120,6 @@ class BTLERxProcessor : public BasebandProcessor {
     uint8_t rb_buf[2048];
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
-    dsp::decimate::FIRC16xR16x16Decim2 decim_1{};
 
     dsp::demodulate::FM demod{};
     int rb_head{-1};

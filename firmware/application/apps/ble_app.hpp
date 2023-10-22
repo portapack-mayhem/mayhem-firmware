@@ -160,6 +160,7 @@ class BLERxView : public View {
     uint8_t console_color{0};
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
+    static constexpr uint8_t total_data_lines{5};
 
     static constexpr auto header_height = 12 + 2 * 16;
 
@@ -185,9 +186,9 @@ class BLERxView : public View {
     OptionsField options_region{
         {0 * 8, 0 * 8},
         5,
-        {{"Ch.37 ", 0},
-         {"Ch.38", 1},
-         {"Ch.39", 2}}};
+        {{"Ch.37 ", 37},
+         {"Ch.38", 38},
+         {"Ch.39", 39}}};
 
     Console console{
         {0, 4 * 16, 240, 240}};
