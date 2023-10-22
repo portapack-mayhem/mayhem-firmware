@@ -41,6 +41,13 @@ void BLELogger::log_raw_data(const std::string& data)
     log_file.write_entry(data);
 }
 
+
+std::string padStringWithSpaces(int n) 
+{
+    std::string paddedStr(n, ' ');
+    return paddedStr;
+}
+
 namespace ui 
 {
     template <>
@@ -57,10 +64,147 @@ namespace ui
         line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
         line += ":" + to_string_hex((entry.macAddress >> 40), 2);
 
-        line += "        " + to_string_dec_int(entry.dbValue);
+        // Handle spacing for negitive sign.
+        uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
+
+        // Pushing single digit values down right justified.
+        if (entry.dbValue > 9 || entry.dbValue < -9)
+        {
+            db_spacing--;
+        }
+
+        line += padStringWithSpaces(db_spacing) + to_string_dec_int(entry.dbValue);
 
         line.resize(target_rect.width() / 8, ' ');
         painter.draw_string(target_rect.location(), style, line);
+    }
+
+    BleRecentEntryDetailView::BleRecentEntryDetailView() {
+        add_children({
+            &button_done,
+            &labels
+        });
+
+        button_done.on_select = [this](const ui::Button&) {
+            if (on_close) {
+                on_close();
+            }
+        };
+    }
+
+    BleRecentEntryDetailView::BleRecentEntryDetailView(const BleRecentEntryDetailView& Entry)
+        : View() 
+    {
+        (void)Entry;
+    }
+
+    BleRecentEntryDetailView& BleRecentEntryDetailView::operator=(const BleRecentEntryDetailView& Entry) 
+    {
+        (void)Entry;
+        return *this;
+    }
+
+    void BleRecentEntryDetailView::update_data() 
+    {
+
+    }
+
+    void BleRecentEntryDetailView::focus() 
+    {
+        button_done.focus();
+    }
+
+    Rect BleRecentEntryDetailView::draw_field(
+        Painter& painter,
+        const Rect& draw_rect,
+        const Style& style,
+        const std::string& label,
+        const std::string& value) 
+    {
+        const int label_length_max = 4;
+
+        painter.draw_string(Point{draw_rect.left(), draw_rect.top()}, style, label);
+        painter.draw_string(Point{draw_rect.left() + (label_length_max + 1) * 8, draw_rect.top()}, style, value);
+
+        return {draw_rect.left(), draw_rect.top() + draw_rect.height(), draw_rect.width(), draw_rect.height()};
+    }
+
+    void BleRecentEntryDetailView::paint(Painter& painter) 
+    {
+        View::paint(painter);
+
+        const auto s = style();
+        const auto rect = screen_rect();
+
+        auto field_rect = Rect{rect.left(), rect.top() + 16, rect.width(), 16};
+
+        uint8_t type[5];
+        uint8_t length[5];
+        uint8_t data[5][40];
+
+        int currentByte = 0;
+        int currentPacket = 0;
+        int i = 0;
+        int j = 0;
+        int k = 0;
+        
+        for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < 5);)
+        {
+            length[currentPacket] = entry_.packetData.data[currentByte++];
+            type[currentPacket] = entry_.packetData.data[currentByte++];
+
+            // This should never happen, but in here just in case. 
+            // Break because we can't trust rest of data.
+            // if (length[currentPacket] > entry_.packetData.dataLen)
+            // {
+            //     break;
+            // }
+
+            // Subtract 1 because type is part of the length.
+            for (i = 0; i < length[currentPacket] - 1; i++)
+            {
+                data[currentPacket][i] = entry_.packetData.data[currentByte++];
+            }
+
+            currentPacket++;
+        }
+
+        for (i = 0; i < currentPacket; i++)
+        { 
+            uint8_t number_data_lines = ceil((float)(length[i] - 1) / 10.0);
+            uint8_t current_line = 0;
+            std::array<std::string, 5> data_strings{{""}};
+
+            for (j = 0; (j < (number_data_lines * 10)) && (j < length[i] - 1); j++)
+            {
+                if ((j / 10) != current_line)
+                {
+                    current_line++;
+                }
+
+                data_strings[current_line] += to_string_hex(data[i][j], 2);
+            }
+
+            // Readd the type back to the total length.
+            field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + padStringWithSpaces(3) + data_strings[0]);
+
+            if(number_data_lines > 1)
+            {
+                for (k = 1; k < number_data_lines; k++)
+                {
+                    if (data_strings[k] != "")
+                    {
+                        field_rect = draw_field(painter, field_rect, s, "", padStringWithSpaces(5) + data_strings[k]);
+                    }
+                }           
+            }
+        }
+    }
+
+    void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) 
+    {
+        entry_ = entry;
+        set_dirty();
     }
 
     static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) 
@@ -112,8 +256,21 @@ namespace ui
                     #if USE_CONSOLE
                     &console});
                     #else
-                    &recent_entries_view});
+                    &recent_entries_view,
+                    &recent_entry_detail_view});
                     #endif
+
+        recent_entry_detail_view.hidden(true);
+
+        recent_entries_view.on_select = [this](const BleRecentEntry& entry) 
+        {
+            on_show_detail(entry);
+        };
+
+        recent_entry_detail_view.on_close = [this]() 
+        {
+            on_show_list();
+        };
 
         //field_frequency.set_value(get_freq_by_channel_number(37));
         field_frequency.set_step(2000000);
@@ -148,14 +305,6 @@ namespace ui
         };
 
         options_region.set_selected_index(0, true);
-
-        // recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
-        //     on_show_detail(entry);
-        // };
-
-        // recent_entry_detail_view.on_close = [this]() {
-        //     on_show_list();
-        // };
 
         logger = std::make_unique<BLELogger>();
 
@@ -243,6 +392,8 @@ namespace ui
 
         str_console += "\n";
 
+
+        //Start of Packet stuffing.
         uint64_t macAddressEncoded = 0;
 
         memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
@@ -253,10 +404,33 @@ namespace ui
         #else
         // Masking off the top 2 bytes to avoid invalid keys.
         auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+
         entry.dbValue = packet->max_dB;
+        entry.packetData.type = packet->type;
+        entry.packetData.size = packet->size;
+        entry.packetData.dataLen = packet->dataLen;
+
+        entry.packetData.macAddress[0] = packet->macAddress[0];
+        entry.packetData.macAddress[1] = packet->macAddress[1];
+        entry.packetData.macAddress[2] = packet->macAddress[2];
+        entry.packetData.macAddress[3] = packet->macAddress[3];
+        entry.packetData.macAddress[4] = packet->macAddress[4];
+        entry.packetData.macAddress[5] = packet->macAddress[5];
+
+        for (int i = 0; i < packet->dataLen; i++)
+        {
+            entry.packetData.data[i] = packet->data[i];
+        }
+   
         //entry.update(packet);
         recent_entries_view.set_dirty();
         #endif
+
+        // TODO: Crude hack, should be a more formal listener arrangement...
+        if (entry.key() == recent_entry_detail_view.entry().key()) 
+        {
+            recent_entry_detail_view.set_entry(entry);
+        }
 
         //Log at End of Packet.
         if (logger && logging) 
@@ -270,6 +444,7 @@ namespace ui
         View::set_parent_rect(new_parent_rect);
         const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
         recent_entries_view.set_parent_rect(content_rect);
+        recent_entry_detail_view.set_parent_rect(content_rect);
     }
 
     BLERxView::~BLERxView() 
@@ -277,6 +452,21 @@ namespace ui
         audio::output::stop();
         receiver_model.disable();
         baseband::shutdown();
+    }
+
+    void BLERxView::on_show_list() 
+    {
+        recent_entries_view.hidden(false);
+        recent_entry_detail_view.hidden(true);
+        recent_entries_view.focus();
+    }
+
+    void BLERxView::on_show_detail(const BleRecentEntry& entry) 
+    {
+        recent_entries_view.hidden(true);
+        recent_entry_detail_view.hidden(false);
+        recent_entry_detail_view.set_entry(entry);
+        recent_entry_detail_view.focus();
     }
 
     // BleRecentEntry

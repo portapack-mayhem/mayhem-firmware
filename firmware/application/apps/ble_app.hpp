@@ -51,6 +51,26 @@ class BLELogger
 
 namespace ui 
 {
+    typedef enum
+    {
+        ADV_IND = 0,
+        ADV_DIRECT_IND= 1,
+        ADV_NONCONN_IND= 2,
+        SCAN_REQ= 3,
+        SCAN_RSP= 4,
+        CONNECT_REQ= 5,
+        ADV_SCAN_IND= 6,
+        RESERVED0= 7,
+        RESERVED1= 8,
+        RESERVED2= 9,
+        RESERVED3= 10,
+        RESERVED4= 11,
+        RESERVED5= 12,
+        RESERVED6= 13,
+        RESERVED7= 14,
+        RESERVED8= 15
+    } ADV_PDU_TYPE;
+
     struct BleRecentEntry {
         using Key = uint64_t;
 
@@ -81,6 +101,47 @@ namespace ui
     using BleRecentEntries = RecentEntries<BleRecentEntry>;
     using BleRecentEntriesView = RecentEntriesView<BleRecentEntries>;
 
+    class BleRecentEntryDetailView : public View 
+    {
+        public:
+            std::function<void(void)> on_close{};
+
+            BleRecentEntryDetailView();
+
+            void set_entry(const BleRecentEntry& new_entry);
+            const BleRecentEntry& entry() const { return entry_; };
+
+            void update_data();
+            void focus() override;
+            void paint(Painter&) override;
+
+            BleRecentEntryDetailView(const BleRecentEntryDetailView& Entry);
+            BleRecentEntryDetailView& operator=(const BleRecentEntryDetailView& Entry);
+
+        private:
+            BleRecentEntry entry_{};
+
+            Labels labels
+            {
+                {{0 * 8, 0 * 16}, "Len", Color::light_grey()},
+                {{5 * 8, 0 * 16}, "Type", Color::light_grey()},
+                {{10 * 8, 0 * 16}, "Value", Color::light_grey()},
+            };
+
+            Button button_done{
+                {125, 224, 96, 24},
+                "Done"};
+
+            bool send_updates{false};
+
+            Rect draw_field(
+                Painter& painter,
+                const Rect& draw_rect,
+                const Style& style,
+                const std::string& label,
+                const std::string& value);
+    };
+
     class BLERxView : public View 
     {
         public:
@@ -96,6 +157,8 @@ namespace ui
 
         private:
         void on_data(BlePacketData * packetData);
+        void on_show_list();
+        void on_show_detail(const BleRecentEntry& entry);
         
         NavigationView& nav_;
         RxRadioState radio_state_
@@ -164,26 +227,6 @@ namespace ui
             false
         };
 
-        typedef enum
-        {
-            ADV_IND = 0,
-            ADV_DIRECT_IND= 1,
-            ADV_NONCONN_IND= 2,
-            SCAN_REQ= 3,
-            SCAN_RSP= 4,
-            CONNECT_REQ= 5,
-            ADV_SCAN_IND= 6,
-            RESERVED0= 7,
-            RESERVED1= 8,
-            RESERVED2= 9,
-            RESERVED3= 10,
-            RESERVED4= 11,
-            RESERVED5= 12,
-            RESERVED6= 13,
-            RESERVED7= 14,
-            RESERVED8= 15
-        } ADV_PDU_TYPE;
-
         std::string str_log{""};
         bool logging{false};
 
@@ -202,11 +245,7 @@ namespace ui
         }};
         
         BleRecentEntriesView recent_entries_view{columns, recent};
-
-        //RecentEntriesView<RecentEntries<APRSRecentEntry>> recent_entries_view{columns, recent};
-        //APRSDetailsView details_view{nav_};
-        //uint32_t detailed_entry_key{0};
-        //bool send_updates{false};
+        BleRecentEntryDetailView recent_entry_detail_view{};
 
         MessageHandlerRegistration message_handler_packet
         {
