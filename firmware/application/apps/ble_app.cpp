@@ -74,25 +74,15 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     painter.draw_string(target_rect.location(), style, line);
 }
 
-BleRecentEntryDetailView::BleRecentEntryDetailView() {
+BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const BleRecentEntry& entry)
+    : nav_{nav},
+      entry_{entry} {
     add_children({&button_done,
                   &labels});
 
     button_done.on_select = [this](const ui::Button&) {
-        if (on_close) {
-            on_close();
-        }
+        nav_.pop();
     };
-}
-
-BleRecentEntryDetailView::BleRecentEntryDetailView(const BleRecentEntryDetailView& Entry)
-    : View() {
-    (void)Entry;
-}
-
-BleRecentEntryDetailView& BleRecentEntryDetailView::operator=(const BleRecentEntryDetailView& Entry) {
-    (void)Entry;
-    return *this;
 }
 
 void BleRecentEntryDetailView::update_data() {
@@ -236,11 +226,7 @@ BLERxView::BLERxView(NavigationView& nav)
     recent_entry_detail_view.hidden(true);
 
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
-        on_show_detail(entry);
-    };
-
-    recent_entry_detail_view.on_close = [this]() {
-        on_show_list();
+        nav_.push<BleRecentEntryDetailView>(entry);
     };
 
     // field_frequency.set_value(get_freq_by_channel_number(37));
@@ -406,19 +392,6 @@ BLERxView::~BLERxView() {
     audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
-}
-
-void BLERxView::on_show_list() {
-    recent_entries_view.hidden(false);
-    recent_entry_detail_view.hidden(true);
-    recent_entries_view.focus();
-}
-
-void BLERxView::on_show_detail(const BleRecentEntry& entry) {
-    recent_entries_view.hidden(true);
-    recent_entry_detail_view.hidden(false);
-    recent_entry_detail_view.set_entry(entry);
-    recent_entry_detail_view.focus();
 }
 
 // BleRecentEntry

@@ -100,9 +100,7 @@ using BleRecentEntriesView = RecentEntriesView<BleRecentEntries>;
 
 class BleRecentEntryDetailView : public View {
    public:
-    std::function<void(void)> on_close{};
-
-    BleRecentEntryDetailView();
+    BleRecentEntryDetailView(NavigationView& nav, const BleRecentEntry& entry);
 
     void set_entry(const BleRecentEntry& new_entry);
     const BleRecentEntry& entry() const { return entry_; };
@@ -111,10 +109,8 @@ class BleRecentEntryDetailView : public View {
     void focus() override;
     void paint(Painter&) override;
 
-    BleRecentEntryDetailView(const BleRecentEntryDetailView& Entry);
-    BleRecentEntryDetailView& operator=(const BleRecentEntryDetailView& Entry);
-
    private:
+    NavigationView& nav_;
     BleRecentEntry entry_{};
 
     Labels labels{
@@ -151,8 +147,6 @@ class BLERxView : public View {
 
    private:
     void on_data(BlePacketData* packetData);
-    void on_show_list();
-    void on_show_detail(const BleRecentEntry& entry);
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -221,8 +215,9 @@ class BLERxView : public View {
         {"dB", 20},
     }};
 
+    BleRecentEntry entry_{};
     BleRecentEntriesView recent_entries_view{columns, recent};
-    BleRecentEntryDetailView recent_entry_detail_view{};
+    BleRecentEntryDetailView recent_entry_detail_view{nav_, entry_};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::BlePacket,
