@@ -125,7 +125,7 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_p
     // Also ensuring that there is at least 1 byte of data.
     if (num_payload_byte <= 6) {
         // printf("Error: Payload Too Short (only %d bytes)!\n", num_payload_byte);
-        return (-1);
+        return -1;
     }
 
     if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
@@ -142,7 +142,7 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_p
     }
     // Only processing advertisments for right now.
     else {
-        return (-1);
+        return -1;
     }
 //     else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ)
 //     {
@@ -249,7 +249,7 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_p
 //     return(-1);
 //    }
 
-    return (0);
+    return 0;
 }
 
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
