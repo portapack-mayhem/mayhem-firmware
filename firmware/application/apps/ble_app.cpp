@@ -40,7 +40,7 @@ void BLELogger::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
 }
 
-std::string padStringWithSpaces(int n) {
+std::string pad_string_with_spaces(int snakes) {
     std::string paddedStr(n, ' ');
     return paddedStr;
 }
@@ -60,7 +60,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
     line += ":" + to_string_hex((entry.macAddress >> 40), 2);
 
-    // Handle spacing for negitive sign.
+    // Handle spacing for negative sign.
     uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
 
     // Pushing single digit values down right justified.
@@ -68,7 +68,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
         db_spacing--;
     }
 
-    line += padStringWithSpaces(db_spacing) + to_string_dec_int(entry.dbValue);
+    line += pad_string_with_spaces(db_spacing) + to_string_dec_int(entry.dbValue);
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
@@ -167,12 +167,12 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
         }
 
         // Readd the type back to the total length.
-        field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + padStringWithSpaces(3) + data_strings[0]);
+        field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + pad_string_with_spaces(3) + data_strings[0]);
 
         if (number_data_lines > 1) {
             for (k = 1; k < number_data_lines; k++) {
                 if (data_strings[k] != "") {
-                    field_rect = draw_field(painter, field_rect, s, "", padStringWithSpaces(5) + data_strings[k]);
+                    field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
                 }
             }
         }
