@@ -41,7 +41,7 @@ void BLELogger::log_raw_data(const std::string& data) {
 }
 
 std::string pad_string_with_spaces(int snakes) {
-    std::string paddedStr(n, ' ');
+    std::string paddedStr(snakes, ' ');
     return paddedStr;
 }
 
