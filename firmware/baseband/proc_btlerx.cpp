@@ -133,7 +133,9 @@ void BTLERxProcessor::scramble_byte(uint8_t *byte_in, int num_byte, const uint8_
 
 int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t *payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void *adv_pdu_payload) 
 {
-    if (num_payload_byte < 6) 
+    // Should at least have 6 bytes for the MAC Address.
+    // Also ensuring that there is at least 1 byte of data.
+    if (num_payload_byte <= 6) 
     {
         //printf("Error: Payload Too Short (only %d bytes)!\n", num_payload_byte);
         return(-1);

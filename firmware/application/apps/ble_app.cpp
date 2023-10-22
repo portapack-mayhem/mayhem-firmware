@@ -41,6 +41,13 @@ void BLELogger::log_raw_data(const std::string& data)
     log_file.write_entry(data);
 }
 
+
+std::string padStringWithSpaces(int n) 
+{
+    std::string paddedStr(n, ' ');
+    return paddedStr;
+}
+
 namespace ui 
 {
     template <>
@@ -57,7 +64,16 @@ namespace ui
         line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
         line += ":" + to_string_hex((entry.macAddress >> 40), 2);
 
-        line += "        " + to_string_dec_int(entry.dbValue);
+        // Handle spacing for negitive sign.
+        uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
+
+        // Pushing single digit values down right justified.
+        if (entry.dbValue > 9 || entry.dbValue < -9)
+        {
+            db_spacing--;
+        }
+
+        line += padStringWithSpaces(db_spacing) + to_string_dec_int(entry.dbValue);
 
         line.resize(target_rect.width() / 8, ' ');
         painter.draw_string(target_rect.location(), style, line);
@@ -130,6 +146,7 @@ namespace ui
         int currentPacket = 0;
         int i = 0;
         int j = 0;
+        int k = 0;
         
         for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < 5);)
         {
@@ -152,21 +169,35 @@ namespace ui
             currentPacket++;
         }
 
-        // std::string str_console = "";
+        for (i = 0; i < currentPacket; i++)
+        { 
+            uint8_t number_data_lines = ceil((float)(length[i] - 1) / 10.0);
+            uint8_t current_line = 0;
+            std::array<std::string, 5> data_strings{{""}};
 
-        // int i;
+            for (j = 0; (j < (number_data_lines * 10)) && (j < length[i] - 1); j++)
+            {
+                if ((j / 10) != current_line)
+                {
+                    current_line++;
+                }
 
-        // for (i = 0; i < 2; i++)
-        // {
-        //     str_console += " " + to_string_hex(entry_.packetData.data[i], 2);
-        // }
+                data_strings[current_line] += to_string_hex(data[i][j], 2);
+            }
 
-        field_rect = draw_field(painter, field_rect, s, "LenA:", to_string_hex(entry_.packetData.dataLen));
+            // Readd the type back to the total length.
+            field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + padStringWithSpaces(3) + data_strings[0]);
 
-        for (j = 0; j < currentPacket; j++)
-        {
-
-            field_rect = draw_field(painter, field_rect, s, to_string_hex(length[j]), to_string_hex(type[j]));
+            if(number_data_lines > 1)
+            {
+                for (k = 1; k < number_data_lines; k++)
+                {
+                    if (data_strings[k] != "")
+                    {
+                        field_rect = draw_field(painter, field_rect, s, "", padStringWithSpaces(5) + data_strings[k]);
+                    }
+                }           
+            }
         }
     }
 
@@ -395,11 +426,11 @@ namespace ui
         recent_entries_view.set_dirty();
         #endif
 
-        // // TODO: Crude hack, should be a more formal listener arrangement...
-        // if (entry.key() == recent_entry_detail_view.entry().key()) 
-        // {
-        //     recent_entry_detail_view.set_entry(entry);
-        // }
+        // TODO: Crude hack, should be a more formal listener arrangement...
+        if (entry.key() == recent_entry_detail_view.entry().key()) 
+        {
+            recent_entry_detail_view.set_entry(entry);
+        }
 
         //Log at End of Packet.
         if (logger && logging) 

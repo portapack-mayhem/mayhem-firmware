@@ -124,8 +124,8 @@ namespace ui
             Labels labels
             {
                 {{0 * 8, 0 * 16}, "Len", Color::light_grey()},
-                {{6 * 8, 0 * 16}, "Type", Color::light_grey()},
-                {{12 * 8, 0 * 16}, "Value", Color::light_grey()},
+                {{5 * 8, 0 * 16}, "Type", Color::light_grey()},
+                {{10 * 8, 0 * 16}, "Value", Color::light_grey()},
             };
 
             Button button_done{
