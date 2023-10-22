@@ -350,7 +350,6 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     // entry.update(packet);
     recent_entries_view.set_dirty();
-#endif
 
     // TODO: Crude hack, should be a more formal listener arrangement...
     if (entry.key() == recent_entry_detail_view.entry().key()) {

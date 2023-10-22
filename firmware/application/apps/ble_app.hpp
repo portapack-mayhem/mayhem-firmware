@@ -113,6 +113,8 @@ class BleRecentEntryDetailView : public View {
     NavigationView& nav_;
     BleRecentEntry entry_{};
 
+    static constexpr uint8_t total_data_lines{5};
+
     Labels labels{
         {{0 * 8, 0 * 16}, "Len", Color::light_grey()},
         {{5 * 8, 0 * 16}, "Type", Color::light_grey()},
@@ -160,7 +162,6 @@ class BLERxView : public View {
     uint8_t console_color{0};
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
-    static constexpr uint8_t total_data_lines{5};
 
     static constexpr auto header_height = 12 + 2 * 16;
 
