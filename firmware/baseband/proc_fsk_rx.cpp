@@ -35,29 +35,25 @@
 using namespace std;
 using namespace dsp::decimate;
 
-namespace 
-{
-    /* Count of bits that differ between the two values. */
-    uint8_t diff_bit_count(uint32_t left, uint32_t right) 
-    {
-        uint32_t diff = left ^ right;
-        uint8_t count = 0;
-        for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
-            if (((diff >> i) & 0x1) == 1)
-                ++count;
-        }
-
-        return count;
+namespace {
+/* Count of bits that differ between the two values. */
+uint8_t diff_bit_count(uint32_t left, uint32_t right) {
+    uint32_t diff = left ^ right;
+    uint8_t count = 0;
+    for (size_t i = 0; i < sizeof(diff) * 8; ++i) {
+        if (((diff >> i) & 0x1) == 1)
+            ++count;
     }
+
+    return count;
+}
 }  // namespace
 
 /* AudioNormalizer ***************************************/
 
-void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) 
-{
+void AudioNormalizer::execute_in_place(const buffer_f32_t& audio) {
     // Decay min/max every second (@24kHz).
-    if (counter_ >= 24'000) 
-    {
+    if (counter_ >= 24'000) {
         // 90% decay factor seems to work well.
         // This keeps large transients from wrecking the filter.
         max_ *= 0.9f;
@@ -68,17 +64,14 @@ void AudioNormalizer::execute_in_place(const buffer_f32_t& audio)
 
     counter_ += audio.count;
 
-    for (size_t i = 0; i < audio.count; ++i) 
-    {
+    for (size_t i = 0; i < audio.count; ++i) {
         auto& val = audio.p[i];
 
-        if (val > max_) 
-        {
+        if (val > max_) {
             max_ = val;
             calculate_thresholds();
         }
-        if (val < min_) 
-        {
+        if (val < min_) {
             min_ = val;
             calculate_thresholds();
         }
@@ -92,8 +85,7 @@ void AudioNormalizer::execute_in_place(const buffer_f32_t& audio)
     }
 }
 
-void AudioNormalizer::calculate_thresholds() 
-{
+void AudioNormalizer::calculate_thresholds() {
     auto center = (max_ + min_) / 2.0f;
     auto range = (max_ - min_) / 2.0f;
 
@@ -119,18 +111,15 @@ void FSKRxProcessor::handle_sync(bool inverted) {
     word_count = 0;
 }
 
-void FSKRxProcessor::process_bits(const buffer_c8_t& buffer)  
-{
+void FSKRxProcessor::process_bits(const buffer_c8_t& buffer) {
     // Process all of the bits in the bits queue.
-    while (buffer.count > 0) 
-    {
+    while (buffer.count > 0) {
         // Wait until data_ is full.
         if (bit_count < data_bit_count)
             continue;
 
         // Wait for the sync frame.
-        if (!has_sync_) 
-        {
+        if (!has_sync_) {
             if (diff_bit_count(data, sync_codeword) <= 2)
                 handle_sync(/*inverted=*/false);
             else if (diff_bit_count(data, ~sync_codeword) <= 2)
@@ -142,17 +131,14 @@ void FSKRxProcessor::process_bits(const buffer_c8_t& buffer)
 
 /* FSKRxProcessor ***************************************/
 
-FSKRxProcessor::FSKRxProcessor() 
-{
+FSKRxProcessor::FSKRxProcessor() {
 }
 
-void FSKRxProcessor::execute(const buffer_c8_t& buffer) 
-{
-    if (!configured)
-    {
+void FSKRxProcessor::execute(const buffer_c8_t& buffer) {
+    if (!configured) {
         return;
     }
-    
+
     // Decimate by current decim 0 and decim 1.
     const auto decim_0_out = decim_0.execute(buffer, dst_buffer);
     const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);
@@ -161,29 +147,25 @@ void FSKRxProcessor::execute(const buffer_c8_t& buffer)
 
     spectrum_samples += decim_1_out.count;
 
-    if (spectrum_samples >= spectrum_interval_samples) 
-    {
+    if (spectrum_samples >= spectrum_interval_samples) {
         spectrum_samples -= spectrum_interval_samples;
         channel_spectrum.feed(decim_1_out, channel_filter_low_f,
-                            channel_filter_high_f, channel_filter_transition);
+                              channel_filter_high_f, channel_filter_transition);
     }
 
     // process_bits();
-    
+
     // Update the status.
     samples_processed += buffer.count;
 
-    if (samples_processed >= stat_update_threshold) 
-    {
-        //send_packet(data);
+    if (samples_processed >= stat_update_threshold) {
+        // send_packet(data);
         samples_processed -= stat_update_threshold;
     }
 }
 
-void FSKRxProcessor::on_message(const Message* const message) 
-{
-    switch (message->id) 
-    {
+void FSKRxProcessor::on_message(const Message* const message) {
+    switch (message->id) {
         case Message::ID::FSKRxConfigure:
             configure(*reinterpret_cast<const FSKRxConfigureMessage*>(message));
             break;
@@ -205,30 +187,24 @@ void FSKRxProcessor::on_message(const Message* const message)
     }
 }
 
-void FSKRxProcessor::configure(const FSKRxConfigureMessage& message) 
-{
-    //Extract message variables.
+void FSKRxProcessor::configure(const FSKRxConfigureMessage& message) {
+    // Extract message variables.
     deviation = message.deviation;
     channel_decimation = message.channel_decimation;
-    //channel_filter_taps = message.channel_filter;
+    // channel_filter_taps = message.channel_filter;
 
     channel_spectrum.set_decimation_factor(1);
 }
 
-void FSKRxProcessor::capture_config(const CaptureConfigMessage& message) 
-{
-    if (message.config) 
-    {
+void FSKRxProcessor::capture_config(const CaptureConfigMessage& message) {
+    if (message.config) {
         audio_output.set_stream(std::make_unique<StreamInput>(message.config));
-    } 
-    else 
-    {
+    } else {
         audio_output.set_stream(nullptr);
     }
 }
 
-void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message) 
-{
+void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     const auto sample_rate = message.sample_rate;
 
     // The actual sample rate is the requested rate * the oversample rate.
@@ -257,8 +233,7 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
     if (sample_rate >= 1'500'000)
         spectrum_interval_samples /= (sample_rate / 750'000);
 
-    switch (message.oversample_rate) 
-    {
+    switch (message.oversample_rate) {
         case OversampleRate::x4:
             // M4 can't handle 2 decimation passes for sample rates needing x4.
             decim_0.set<FIRC8xR16x24FS4Decim4>().configure(taps_200k_decim_0.taps);
@@ -297,7 +272,7 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
             break;
     }
 
-    //Update demodulator based on new decimation. Todo: Confirm this works.
+    // Update demodulator based on new decimation. Todo: Confirm this works.
     size_t decim_0_input_fs = baseband_fs;
     size_t decim_0_output_fs = decim_0_input_fs / decim_0.decimation_factor();
 
@@ -315,13 +290,11 @@ void FSKRxProcessor::sample_rate_config(const SampleRateConfigMessage& message)
     configured = true;
 }
 
-void FSKRxProcessor::flush() 
-{
-    //word_extractor.flush();
+void FSKRxProcessor::flush() {
+    // word_extractor.flush();
 }
 
-void FSKRxProcessor::reset() 
-{
+void FSKRxProcessor::reset() {
     clear_data_bits();
     has_sync_ = false;
     inverted = false;
@@ -330,8 +303,7 @@ void FSKRxProcessor::reset()
     samples_processed = 0;
 }
 
-void FSKRxProcessor::send_packet(uint32_t data)
-{
+void FSKRxProcessor::send_packet(uint32_t data) {
     data_message.is_data = true;
     data_message.value = data;
     shared_memory.application_queue.push(data_message);
@@ -339,8 +311,7 @@ void FSKRxProcessor::send_packet(uint32_t data)
 
 /* main **************************************************/
 
-int main() 
-{
+int main() {
     EventDispatcher event_dispatcher{std::make_unique<FSKRxProcessor>()};
     event_dispatcher.run();
     return 0;

@@ -414,7 +414,7 @@ struct BlePacketData {
 class BLEPacketMessage : public Message {
    public:
     constexpr BLEPacketMessage(
-        BlePacketData * packet)
+        BlePacketData* packet)
         : Message{ID::BlePacket},
           packet{packet} {
     }
@@ -750,7 +750,7 @@ class BTLERxConfigureMessage : public Message {
     constexpr BTLERxConfigureMessage(
         const uint8_t channel_number)
         : Message{ID::BTLERxConfigure},
-          channel_number(channel_number){
+          channel_number(channel_number) {
     }
     const uint8_t channel_number;
 };
@@ -1035,11 +1035,11 @@ class FSKRxConfigureMessage : public Message {
         const size_t channel_decimation,
         const size_t deviation)
         : Message{ID::FSKRxConfigure},
-            decim_0_filter(decim_0_filter),
-            decim_1_filter(decim_1_filter),
-            channel_filter(channel_filter),
-            channel_decimation{channel_decimation},
-            deviation{deviation}{
+          decim_0_filter(decim_0_filter),
+          decim_1_filter(decim_1_filter),
+          channel_filter(channel_filter),
+          channel_decimation{channel_decimation},
+          deviation{deviation} {
     }
 
     const fir_taps_real<24> decim_0_filter;

@@ -109,8 +109,7 @@ class MultiDecimator {
     std::variant<Args...> decimator_{};
 };
 
-class FSKRxProcessor : public BasebandProcessor 
-{
+class FSKRxProcessor : public BasebandProcessor {
    public:
     FSKRxProcessor();
     void execute(const buffer_c8_t& buffer) override;
@@ -214,9 +213,9 @@ class FSKRxProcessor : public BasebandProcessor
     IIRBiquadFilter lpf{{{0.04125354f, 0.082507070f, 0.04125354f},
                          {1.00000000f, -1.34896775f, 0.51398189f}}};
 
-    SpectrumCollector channel_spectrum{};    
+    SpectrumCollector channel_spectrum{};
     size_t spectrum_interval_samples = 0;
-    size_t spectrum_samples = 0;                 
+    size_t spectrum_samples = 0;
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

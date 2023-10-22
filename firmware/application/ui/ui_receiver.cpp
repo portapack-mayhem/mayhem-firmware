@@ -43,7 +43,8 @@ FrequencyField::FrequencyField(
 }
 
 FrequencyField::FrequencyField(
-    const Point parent_pos, const rf::FrequencyRange range)
+    const Point parent_pos,
+    const rf::FrequencyRange range)
     : Widget{{parent_pos, {8 * 10, 16}}},
       length_{11},
       range_{range} {
