@@ -136,7 +136,7 @@ FskxRxMainView::FskxRxMainView(NavigationView& nav)
 
     logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
 
-    baseband::set_fsk(initial_deviation, 90);
+    baseband::set_fsk(initial_deviation);
 
     audio::output::start();
     receiver_model.enable();
