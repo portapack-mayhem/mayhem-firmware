@@ -662,8 +662,10 @@ MicTXView::~MicTXView() {
     audio::input::stop();
     transmitter_model.set_target_frequency(tx_frequency);
     transmitter_model.disable();
-    if (rx_enabled)  // Also turn off audio rx if enabled
+    if (rx_enabled) {  // Also turn off both (audio rx if enabled, and disable  mic_loop to HP)
         rxaudio(false);
+        audio::input::loopback_mic_to_hp_disable();  // Leave Mic audio off in the main menu (as original audio path, otherwise we had No audio in next "Audio App")
+    }
     baseband::shutdown();
 }
 
