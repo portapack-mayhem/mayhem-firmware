@@ -34,7 +34,7 @@ uint32_t BTLERxProcessor::crc_init_reorder(uint32_t crc_init) {
     crc_init_input_tmp = crc_init;
     crc_init_input = 0;
 
-    crc_init_input = ((crc_init_input) | (crc_init_input_tmp & 0xFF));
+    crc_init_input = crc_init_input_tmp & 0xFF;
 
     crc_init_input_tmp = (crc_init_input_tmp >> 8);
     crc_init_input = ((crc_init_input << 8) | (crc_init_input_tmp & 0xFF));
