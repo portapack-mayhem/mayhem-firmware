@@ -403,7 +403,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
 
             sample_idx += SAMPLE_PER_SYMBOL;
-            ;
         }
 
         packet_index++;
@@ -447,7 +446,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
 
             sample_idx += SAMPLE_PER_SYMBOL;
-            ;
         }
 
         packet_index++;
