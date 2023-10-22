@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
- * Copyright (C) 2023 TJ
+ * Copyright (C) 2023 TJ Baginski
  *
  * This file is part of PortaPack.
  *

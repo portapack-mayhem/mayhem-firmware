@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2020 Shao
+ * Copyright (C) 2023 Netro
  *
  * This file is part of PortaPack.
  *
@@ -173,7 +174,6 @@ class BTLERxProcessor : public BasebandProcessor
     ADV_PDU_PAYLOAD_TYPE_R adv_pdu_payload = {0};
 
     // Scramble table definition
-    // Xianjun Jiao (putaoshu@msn.com)
     const uint8_t scramble_table[40][42] = {
     {64, 178, 188, 195, 31, 55, 74, 95, 133, 246, 156, 154, 193, 214, 197, 68, 32, 89, 222, 225, 143, 27, 165, 175, 66, 123, 78, 205, 96, 235, 98, 34, 144, 44, 239, 240, 199, 141, 210, 87, 161, 61, },
     {137, 64, 178, 188, 195, 31, 55, 74, 95, 133, 246, 156, 154, 193, 214, 197, 68, 32, 89, 222, 225, 143, 27, 165, 175, 66, 123, 78, 205, 96, 235, 98, 34, 144, 44, 239, 240, 199, 141, 210, 87, 161, },
