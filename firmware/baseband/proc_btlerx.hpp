@@ -43,30 +43,12 @@ class BTLERxProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-#define SAMPLE_PER_SYMBOL 1
-#define LEN_DEMOD_BUF_ACCESS 32
-#define DEFAULT_ACCESS_ADDR 0x8E89BED6
-#define NUM_ACCESS_ADDR_BYTE 4
+    static constexpr int SAMPLE_PER_SYMBOL {1};
+    static constexpr int LEN_DEMOD_BUF_ACCESS {32};
+    static constexpr uint32_t DEFAULT_ACCESS_ADDR {0x8E89BED6};
+    static constexpr int NUM_ACCESS_ADDR_BYTE {4};
 
-    std::array<std::string, 16> ADV_PDU_TYPE_STR{
-        "ADV_IND",
-        "ADV_DIRECT_IND",
-        "ADV_NONCONN_IND",
-        "SCAN_REQ",
-        "SCAN_RSP",
-        "CONNECT_REQ",
-        "ADV_SCAN_IND",
-        "RESERVED0",
-        "RESERVED1",
-        "RESERVED2",
-        "RESERVED3",
-        "RESERVED4",
-        "RESERVED5",
-        "RESERVED6",
-        "RESERVED7",
-        "RESERVED8"};
-
-    typedef enum {
+    enum ADV_PDU_TYPE {
         ADV_IND = 0,
         ADV_DIRECT_IND = 1,
         ADV_NONCONN_IND = 2,
@@ -83,22 +65,22 @@ class BTLERxProcessor : public BasebandProcessor {
         RESERVED6 = 13,
         RESERVED7 = 14,
         RESERVED8 = 15
-    } ADV_PDU_TYPE;
+    };
 
     uint8_t macAddress[6];
     int checksumReceived = 0;
 
-    typedef struct
+    struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6
     {
         uint8_t Data[31];
-    } ADV_PDU_PAYLOAD_TYPE_0_2_4_6;
+    };
 
-    typedef struct
+    struct ADV_PDU_PAYLOAD_TYPE_1_3
     {
         uint8_t A1[6];
-    } ADV_PDU_PAYLOAD_TYPE_1_3;
+    };
 
-    typedef struct
+    struct ADV_PDU_PAYLOAD_TYPE_5
     {
         uint8_t AdvA[6];
         uint8_t AA[4];
@@ -111,12 +93,12 @@ class BTLERxProcessor : public BasebandProcessor {
         uint8_t ChM[5];
         uint8_t Hop;
         uint8_t SCA;
-    } ADV_PDU_PAYLOAD_TYPE_5;
+    };
 
-    typedef struct
+    struct ADV_PDU_PAYLOAD_TYPE_R
     {
         uint8_t payload_byte[40];
-    } ADV_PDU_PAYLOAD_TYPE_R;
+    };
 
     static constexpr size_t baseband_fs = 4000000;
     static constexpr size_t audio_fs = baseband_fs / 8 / 8 / 2;
@@ -138,6 +120,7 @@ class BTLERxProcessor : public BasebandProcessor {
         dst.data(),
         dst.size()};
 
+    static constexpr int RB_SIZE = 2048;
     uint8_t rb_buf[2048];
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
@@ -147,8 +130,6 @@ class BTLERxProcessor : public BasebandProcessor {
     int rb_head{-1};
     int32_t g_threshold{0};
     uint8_t channel_number{37};
-    int skipSamples{1000};
-    int RB_SIZE{2048};
 
     uint16_t process = 0;
 
@@ -161,10 +142,10 @@ class BTLERxProcessor : public BasebandProcessor {
 
     void configure(const BTLERxConfigureMessage& message);
 
-    ADV_PDU_PAYLOAD_TYPE_0_2_4_6* payload_type_0_2_4_6 = NULL;
-    ADV_PDU_PAYLOAD_TYPE_1_3* payload_type_1_3 = NULL;
-    ADV_PDU_PAYLOAD_TYPE_5* payload_type_5 = NULL;
-    ADV_PDU_PAYLOAD_TYPE_R* payload_type_R = NULL;
+    ADV_PDU_PAYLOAD_TYPE_0_2_4_6* payload_type_0_2_4_6 = nullptr;
+    ADV_PDU_PAYLOAD_TYPE_1_3* payload_type_1_3 = nullptr;
+    ADV_PDU_PAYLOAD_TYPE_5* payload_type_5 = nullptr;
+    ADV_PDU_PAYLOAD_TYPE_R* payload_type_R = nullptr;
     ADV_PDU_PAYLOAD_TYPE_R adv_pdu_payload = {0};
 
     // Scramble table definition

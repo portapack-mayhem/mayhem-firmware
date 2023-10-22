@@ -38,6 +38,7 @@ void AboutView::update() {
             case 2:
                 console.writeln("NotherNgineer,zxkmm,u-foka");
                 console.writeln("iNetro");
+                console.writeln("");
                 break;
 
             case 3:
