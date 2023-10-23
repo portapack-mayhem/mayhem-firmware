@@ -184,10 +184,6 @@ class BLERxView : public View {
         {6 * 8, 0 * 16},
         nav_};
     
-    Labels label_frequency{
-        {{6 * 8, 0 * 16}, to_string_short_freq(2402000000), Color::light_grey()}
-    };
-
     OptionsField options_region{
         {0 * 8, 0 * 8},
         5,
