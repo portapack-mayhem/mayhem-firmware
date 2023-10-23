@@ -42,6 +42,16 @@ FrequencyField::FrequencyField(
     set_focusable(true);
 }
 
+FrequencyField::FrequencyField(
+    const Point parent_pos,
+    const rf::FrequencyRange range)
+    : Widget{{parent_pos, {8 * 10, 16}}},
+      length_{11},
+      range_{range} {
+    initial_switch_config_ = get_switches_long_press_config();
+    set_focusable(true);
+}
+
 FrequencyField::~FrequencyField() {
     reset_switch_config();
 }

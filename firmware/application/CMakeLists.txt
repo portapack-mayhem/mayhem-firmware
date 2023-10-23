@@ -244,6 +244,7 @@ set(CPPSRC
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
 	apps/analog_tv_app.cpp
+	apps/ble_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/gps_sim_app.cpp
@@ -268,6 +269,7 @@ set(CPPSRC
 	apps/ui_fileman.cpp
 	apps/ui_flash_utility.cpp
 	apps/ui_freqman.cpp
+	apps/ui_fsk_rx.cpp
 	apps/ui_iq_trim.cpp
 	apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
