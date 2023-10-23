@@ -211,9 +211,11 @@ BLERxView::BLERxView(NavigationView& nav)
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
-                  &options_region,
+                  &options_channel,
                   &field_frequency,
                   &check_log,
+                  &label_sort,
+                  &options_sort,
                   &recent_entries_view,
                   &recent_entry_detail_view});
 
@@ -232,14 +234,14 @@ BLERxView::BLERxView(NavigationView& nav)
         logging = v;
     };
 
-    options_region.on_change = [this](size_t, int32_t i) {
+    options_channel.on_change = [this](size_t, int32_t i) {
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
 
         baseband::set_btle(channel_number);
     };
 
-    options_region.set_selected_index(0, true);
+    options_channel.set_selected_index(0, true);
 
     logger = std::make_unique<BLELogger>();
 
