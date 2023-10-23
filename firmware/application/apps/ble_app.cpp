@@ -223,7 +223,8 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
-    field_frequency.set_step(0);
+    // field_frequency.set_value(get_freq_by_channel_number(37));
+    field_frequency.set_step(2000000);
 
     check_log.set_value(logging);
 

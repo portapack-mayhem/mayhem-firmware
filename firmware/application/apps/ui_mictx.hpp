@@ -94,6 +94,7 @@ class MicTXView : public View {
     bool va_enabled{false};
     bool ptt_enabled{true};
     bool rogerbeep_enabled{false};
+    bool mic_to_HP_enabled{false};
     bool bool_same_F_tx_rx_enabled{false};
     bool rx_enabled{false};
     uint32_t tone_key_index{};
@@ -275,6 +276,12 @@ class MicTXView : public View {
         {3 * 8, (14 * 8) + 4},
         10,
         "Roger beep",
+        false};
+
+    Checkbox check_mic_to_HP{
+        {18 * 8, (14 * 8) + 4},
+        10,
+        "Hear Mic",
         false};
 
     Checkbox check_rxactive{

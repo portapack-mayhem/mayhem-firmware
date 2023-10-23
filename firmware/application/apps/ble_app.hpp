@@ -183,7 +183,7 @@ class BLERxView : public View {
     RxFrequencyField field_frequency{
         {6 * 8, 0 * 16},
         nav_};
-    
+
     OptionsField options_region{
         {0 * 8, 0 * 8},
         5,

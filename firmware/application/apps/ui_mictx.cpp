@@ -101,8 +101,11 @@ void MicTXView::set_tx(bool enable) {
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();
-            if (rx_enabled)     // If audio RX is enabled and we've been transmitting
-                rxaudio(true);  // Turn back on audio RX
+            if (rx_enabled) {          // If audio RX is enabled and we've been transmitting
+                rxaudio(true);         // Turn back on audio RX
+                vumeter.set_value(0);  // Reset  vumeter
+                vumeter.dirty();       // Force to refresh vumeter.
+            }
         }
     }
 }
@@ -183,7 +186,7 @@ void MicTXView::rxaudio(bool is_on) {
 
         baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
         audio::output::stop();
-        audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.
+        audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // set up ALC mode (AK4951) or set up mic_boost ON/OFF (WM8731). and the check box "Hear Mic"
         portapack::pin_i2s0_rx_sda.mode(3);
         configure_baseband();
     }
@@ -215,6 +218,7 @@ MicTXView::MicTXView(
                       &field_frequency,
                       &options_tone_key,
                       &check_rogerbeep,
+                      &check_mic_to_HP,          // check box to activate "hear mic"
                       &check_common_freq_tx_rx,  // added to handle common or separate freq- TX/RX
                       &check_rxactive,
                       &field_volume,
@@ -242,6 +246,7 @@ MicTXView::MicTXView(
                       &field_frequency,
                       &options_tone_key,
                       &check_rogerbeep,
+                      &check_mic_to_HP,          // check box to activate "hear mic"
                       &check_common_freq_tx_rx,  // added to handle common or separate freq- TX/RX
                       &check_rxactive,
                       &field_volume,
@@ -285,17 +290,17 @@ MicTXView::MicTXView(
                     shift_bits_s16 = 6;  // -08 dB’s respect ref level, (when +20dB's boost OFF)
                     break;               // now mic-boost off (+00dBs) shift bits (6) (+0+12dB's)=12 dBs => -08dB's respect ref.
             }
-            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0..4, WM8731_boost dB's options, (combination boost on/off, and effective gain in captured data >>x)
-            audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (WM8731), set up the proper wm_boost on/off, 0..4 (0,1) boost_on, (2,3,4) boost_off
-            configure_baseband();                                  // to update in real time, sending msg, var-parameters >>shift_bits FM msg, to audio_tx from M0 to M4 Proc -
+            ak4951_alc_and_wm8731_boost_GUI = v;                                      // 0..4, WM8731_boost dB's options, (combination boost on/off, and effective gain in captured data >>x)
+            audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // Detected (WM8731), set up the proper wm_boost on/off, 0..4 (0,1) boost_on, (2,3,4) boost_off,and the check box "Hear Mic"
+            configure_baseband();                                                     // to update in real time, sending msg, var-parameters >>shift_bits FM msg, to audio_tx from M0 to M4 Proc -
         };
         options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's.
     } else {
         shift_bits_s16 = 8;  // Initialized default fixed >>8_FM for FM tx mod, shift audio data for AK4951, using top 8 bits s16 data (>>8)
         options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
-            ak4951_alc_and_wm8731_boost_GUI = v;                   // 0..11, AK4951 Mic -Automatic volume Level Control options,
-            audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // Detected (AK4951) ==> Set up proper ALC mode from 0..11 options
-            configure_baseband();                                  // sending fixed >>8_FM, var-parameters msg, to audiotx from this M0 to M4 process.
+            ak4951_alc_and_wm8731_boost_GUI = v;                                      // 0..11, AK4951 Mic -Automatic volume Level Control options,
+            audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // Detected (AK4951) ==> Set up proper ALC mode from 0..11 options, and the check box "Hear Mic"
+            configure_baseband();                                                     // sending fixed >>8_FM, var-parameters msg, to audiotx from this M0 to M4 process.
         };
     }
 
@@ -475,6 +480,20 @@ MicTXView::MicTXView(
         rogerbeep_enabled = v;
     };
 
+    check_mic_to_HP.on_select = [this](Checkbox&, bool v) {
+        mic_to_HP_enabled = v;
+        if (mic_to_HP_enabled)
+            audio::input::loopback_mic_to_hp_enable();
+        else
+            audio::input::loopback_mic_to_hp_disable();
+        if (mic_to_HP_enabled) {  // When user click to "hear mic to HP", we will select the higher acoustic sound Option MODE  ALC or BOOST-
+            if (audio::debug::codec_name() == "WM8731") {
+                options_wm8731_boost_mode.set_selected_index(0);  // In WM we always go to Boost +12 dB’s respect reference level
+            } else if (ak4951_alc_and_wm8731_boost_GUI == 0)      // In AK we are changing only that ALC index =0, because in that option, there is no sound.
+                options_ak4951_alc_mode.set_selected_index(1);    // alc_mode =0 , means no ALC,no DIGITAL filter block (by passed), and that mode has no loopback mode.
+        }
+    };
+
     check_common_freq_tx_rx.on_select = [this](Checkbox&, bool v) {
         bool_same_F_tx_rx_enabled = v;
         field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field. (When no hide user can enter down indep. freq for RX)
@@ -501,8 +520,12 @@ MicTXView::MicTXView(
     check_rxactive.on_select = [this](Checkbox&, bool v) {
         //		vumeter.set_value(0);	//Start with a clean vumeter
         rx_enabled = v;
+        check_mic_to_HP.hidden(rx_enabled);  // Togle Hide / show "Hear Mic" checkbox depending if we activate or not the receiver. (if RX on => no visible "Mic Hear" option)
+        if ((rx_enabled) && (transmitting))
+            check_mic_to_HP.set_value(transmitting);  // Once we activate the "Rx audio" in reception time we disable "Hear Mic", but we allow it again in TX time.
+
         //		check_va.hidden(v); 	//Hide or show voice activation
-        rxaudio(v);   // Activate-Deactivate audio rx accordingly
+        rxaudio(v);   // Activate-Deactivate audio RX (receiver) accordingly
         set_dirty();  // Refresh interface
     };
 
@@ -602,7 +625,7 @@ MicTXView::MicTXView(
     set_tx(false);
 
     audio::set_rate(audio::Rate::Hz_24000);
-    audio::input::start(ak4951_alc_and_wm8731_boost_GUI);  // When detected AK4951 => set up ALC mode; when detected WM8731 => set up mic_boost ON/OFF.
+    audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // set up ALC mode (AK4951) or set up mic_boost ON/OFF (WM8731). and the check box "Hear Mic"
 }
 
 MicTXView::MicTXView(
@@ -639,8 +662,10 @@ MicTXView::~MicTXView() {
     audio::input::stop();
     transmitter_model.set_target_frequency(tx_frequency);
     transmitter_model.disable();
-    if (rx_enabled)  // Also turn off audio rx if enabled
+    if (rx_enabled) {  // Also turn off both (audio rx if enabled, and disable  mic_loop to HP)
         rxaudio(false);
+        audio::input::loopback_mic_to_hp_disable();  // Leave Mic audio off in the main menu (as original audio path, otherwise we had No audio in next "Audio App")
+    }
     baseband::shutdown();
 }
 

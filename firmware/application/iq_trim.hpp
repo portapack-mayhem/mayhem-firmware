@@ -37,6 +37,7 @@ struct CaptureInfo {
     uint64_t sample_count;
     uint8_t sample_size;
     uint32_t max_power;
+    uint32_t max_iq;
 };
 
 /* Holds sample average power by bucket. */
@@ -82,11 +83,19 @@ TrimRange compute_trim_range(
     const PowerBuckets& buckets,
     uint8_t cutoff_percent);
 
+/* Multiplies samples in an IQ buffer by amplification value */
+void amplify_iq_buffer(
+    uint8_t* buffer,
+    uint32_t length,
+    uint32_t amplification,
+    uint8_t sample_size);
+
 /* Trims the capture file with the specified range. */
 bool trim_capture_with_range(
     const std::filesystem::path& path,
     TrimRange range,
-    const std::function<void(uint8_t)>& on_progress);
+    const std::function<void(uint8_t)>& on_progress,
+    const uint32_t amplification);
 
 }  // namespace iq
 

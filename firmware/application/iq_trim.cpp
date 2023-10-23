@@ -36,6 +36,13 @@ uint32_t power(T value) {
     return (real * real) + (imag * imag);
 }
 
+template <typename T>
+uint32_t iq_max(T value) {
+    auto real = abs(value.real());
+    auto imag = abs(value.imag());
+    return (real > imag) ? real : imag;
+}
+
 /* Collects capture file metadata and sample power buckets. */
 template <typename T>
 Optional<CaptureInfo> profile_capture(
@@ -51,7 +58,8 @@ Optional<CaptureInfo> profile_capture(
         .file_size = f.size(),
         .sample_count = f.size() / sizeof(T),
         .sample_size = sizeof(T),
-        .max_power = 0};
+        .max_power = 0,
+        .max_iq = 0};
 
     auto profile_samples = buckets.size * samples_per_bucket;
     auto sample_interval = info.sample_count / profile_samples;
@@ -67,8 +75,11 @@ Optional<CaptureInfo> profile_capture(
         if (*result != info.sample_size)
             break;  // EOF
 
-        auto mag_squared = power(value);
+        auto max_iq = iq_max(value);
+        if (max_iq > info.max_iq)
+            info.max_iq = max_iq;
 
+        auto mag_squared = power(value);
         if (mag_squared > info.max_power)
             info.max_power = mag_squared;
 
@@ -133,13 +144,50 @@ TrimRange compute_trim_range(
         info.sample_size};
 }
 
+void amplify_iq_buffer(uint8_t* buffer, uint32_t length, uint32_t amplification, uint8_t sample_size) {
+    uint32_t mult_count = length / sample_size / 2;
+
+    switch (sample_size) {
+        case sizeof(complex16_t): {
+            int16_t* buf_ptr = (int16_t*)buffer;
+            for (uint32_t i = 0; i < mult_count; i++) {
+                int32_t val = *buf_ptr * amplification;
+                if (val > 0x7FFF)
+                    val = 0x7FFF;
+                else if (val < -0x7FFF)
+                    val = -0x7FFF;
+                *buf_ptr++ = val;
+            }
+            break;
+        }
+
+        case sizeof(complex8_t): {
+            int8_t* buf_ptr = (int8_t*)buffer;
+            for (uint32_t i = 0; i < mult_count; i++) {
+                int32_t val = *buf_ptr * amplification;
+                if (val > 0x7F)
+                    val = 0x7F;
+                else if (val < -0x7F)
+                    val = -0x7F;
+                *buf_ptr++ = val;
+            }
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
 bool trim_capture_with_range(
     const fs::path& path,
     TrimRange range,
-    const std::function<void(uint8_t)>& on_progress) {
+    const std::function<void(uint8_t)>& on_progress,
+    const uint32_t amplification) {
     constexpr size_t buffer_size = std::filesystem::max_file_block_size;
     uint8_t buffer[buffer_size];
     auto temp_path = path + u"-tmp";
+    auto sample_size = fs::capture_file_sample_size(path);
 
     // end_sample is the first sample to _not_ include.
     auto start_byte = range.start_sample * range.sample_size;
@@ -167,6 +215,9 @@ bool trim_capture_with_range(
 
         auto remaining = length - processed;
         auto to_write = std::min(remaining, *result);
+
+        if (amplification > 1)
+            amplify_iq_buffer(buffer, to_write, amplification, sample_size);
 
         result = dst->write(buffer, to_write);
         if (result.is_error()) return false;

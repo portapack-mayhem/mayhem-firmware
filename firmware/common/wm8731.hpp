@@ -349,17 +349,36 @@ class WM8731 : public audio::Codec {
         return false;
     }
 
-    void microphone_enable(int8_t wm8731_boost_GUI) override {
+    void microphone_enable(int8_t wm8731_boost_GUI, bool mic_to_HP_enabled) override {
         microphone_mute(true);  // c/m to reduce "plop noise" when changing wm8731_boost_GUI.
         // chThdSleepMilliseconds(20);  					// does not help to reduce the "plop noise"
         microphone_boost((wm8731_boost_GUI < 2) ? 1 : 0);  // 1 = Enable Boost (+20 dBs) .  0 = Disable Boost (0dBs).
         chThdSleepMilliseconds(120);                       // >50 msegs, very effective , >100 msegs minor improvement ,120 msegs trade off speed .
         microphone_mute(false);
         //	(void)alc_mode; 		In prev. fw version ,  when we did not use at all param., to avoid "unused warning" when compiling.)
+
+        if (mic_to_HP_enabled)
+            microphone_to_HP_enable();
+        else
+            microphone_to_HP_disable();
     }
 
     void microphone_disable() override {
-        // TODO: Implement
+        microphone_mute(true);
+        microphone_to_HP_disable();
+    }
+
+    void microphone_to_HP_enable() override {
+        map.r.analog_audio_path_control.sidetone = 1;    // Side Tone Switch (Analogue) 1 = Enable Side Tone
+        map.r.analog_audio_path_control.sideatt = 0b00;  // Side Tone Attenuation 00 = -6dB
+        write(Register::AnalogAudioPathControl);
+        headphone_enable();
+    }
+
+    void microphone_to_HP_disable() override {
+        map.r.analog_audio_path_control.sidetone = 0;    // Side Tone Switch (Analogue) 0 = Disable Side Tone
+        map.r.analog_audio_path_control.sideatt = 0b11;  // Side Tone Attenuation 11 = -15dB
+        write(Register::AnalogAudioPathControl);
     }
 
     void microphone_boost(const bool boost) {
