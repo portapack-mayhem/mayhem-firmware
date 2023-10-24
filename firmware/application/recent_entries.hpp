@@ -88,6 +88,13 @@ static std::pair<typename ContainerType::const_iterator, typename ContainerType:
     return {start, end};
 }
 
+template <typename ContainerType, typename KeySelector, typename SortOrder>
+void sortEntriesBy(ContainerType& entries, KeySelector keySelector, SortOrder ascending) {
+    entries.sort([keySelector, ascending](const auto& a, const auto& b) {
+        return ascending ? keySelector(a) < keySelector(b) : keySelector(a) > keySelector(b);
+    });
+}
+
 namespace ui {
 
 using RecentEntriesColumn = std::pair<std::string, size_t>;
