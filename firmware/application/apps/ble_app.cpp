@@ -343,10 +343,6 @@ void BLERxView::on_data(BlePacketData* packet) {
     uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
     // Start of Packet stuffing.
-    // uint64_t macAddressEncoded = 0;
-
-    // memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
-
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
 
