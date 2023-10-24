@@ -43,6 +43,17 @@ std::string pad_string_with_spaces(int snakes) {
     return paddedStr;
 }
 
+uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
+    uint64_t result = 0;
+
+    // Copy each byte of the MAC address to the corresponding byte in the uint64_t.
+    for (int i = 0; i < 6; ++i) {
+        result |= static_cast<uint64_t>(macAddress[i]) << ((5 - i) * 8);
+    }
+
+    return result;
+}
+
 namespace ui {
 template <>
 void RecentEntriesTable<BleRecentEntries>::draw(
@@ -50,13 +61,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    std::string line = to_string_hex(entry.macAddress & 0xFF, 2);
-
-    line += ":" + to_string_hex((entry.macAddress >> 8) & 0xFF, 2);
-    line += ":" + to_string_hex((entry.macAddress >> 16) & 0xFF, 2);
-    line += ":" + to_string_hex((entry.macAddress >> 24) & 0xFF, 2);
-    line += ":" + to_string_hex((entry.macAddress >> 32) & 0xFF, 2);
-    line += ":" + to_string_hex((entry.macAddress >> 40), 2);
+    std::string line = to_string_mac_address(entry.packetData.macAddress, 6);
 
     // Handle spacing for negative sign.
     uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
@@ -125,13 +130,6 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < total_data_lines);) {
         length[currentPacket] = entry_.packetData.data[currentByte++];
         type[currentPacket] = entry_.packetData.data[currentByte++];
-
-        // This should never happen, but in here just in case.
-        // Break because we can't trust rest of data.
-        // if (length[currentPacket] > entry_.packetData.dataLen)
-        // {
-        //     break;
-        // }
 
         // Subtract 1 because type is part of the length.
         for (i = 0; i < length[currentPacket] - 1; i++) {
@@ -241,7 +239,29 @@ BLERxView::BLERxView(NavigationView& nav)
         baseband::set_btle(channel_number);
     };
 
+    options_sort.on_change = [this](size_t, int32_t i) {
+        switch (i) {
+            case 0:
+                sortEntriesBy(
+                    recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+                break;
+            case 1:
+                sortEntriesBy(
+                    recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+                break;
+            case 2:
+                sortEntriesBy(
+                    recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+                break;
+            default:
+                break;
+        }
+
+        recent_entries_view.set_dirty();
+    };
+
     options_channel.set_selected_index(0, true);
+    options_sort.set_selected_index(0, true);
 
     logger = std::make_unique<BLELogger>();
 
@@ -301,18 +321,13 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     // str_console += to_string_dec_uint(value);
 
-    str_console += " Len: ";
+    str_console += " Len:";
     str_console += to_string_dec_uint(packet->size);
 
     str_console += "\n";
 
-    str_console += "Mac";
-    str_console += ":" + to_string_hex(packet->macAddress[0], 2);
-    str_console += ":" + to_string_hex(packet->macAddress[1], 2);
-    str_console += ":" + to_string_hex(packet->macAddress[2], 2);
-    str_console += ":" + to_string_hex(packet->macAddress[3], 2);
-    str_console += ":" + to_string_hex(packet->macAddress[4], 2);
-    str_console += ":" + to_string_hex(packet->macAddress[5], 2);
+    str_console += "Mac:";
+    str_console += to_string_mac_address(packet->macAddress, 6);
 
     str_console += "\n";
     str_console += "Data:";
@@ -325,15 +340,19 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     str_console += "\n";
 
-    // Start of Packet stuffing.
-    uint64_t macAddressEncoded = 0;
+    uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
-    memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
+    // Start of Packet stuffing.
+    // uint64_t macAddressEncoded = 0;
+
+    // memcpy(&macAddressEncoded, packet->macAddress, sizeof(uint64_t));
 
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
 
     entry.dbValue = packet->max_dB;
+    entry.timestamp = to_string_timestamp(rtc_time::now());
+
     entry.packetData.type = packet->type;
     entry.packetData.size = packet->size;
     entry.packetData.dataLen = packet->dataLen;
@@ -350,6 +369,24 @@ void BLERxView::on_data(BlePacketData* packet) {
     }
 
     // entry.update(packet);
+
+    switch (options_sort.selected_index()) {
+        case 0:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+            break;
+        case 1:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+            break;
+        case 2:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            break;
+        default:
+            break;
+    }
+
     recent_entries_view.set_dirty();
 
     // TODO: Crude hack, should be a more formal listener arrangement...

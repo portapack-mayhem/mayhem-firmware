@@ -76,6 +76,7 @@ struct BleRecentEntry {
     uint64_t macAddress;
     int dbValue;
     BlePacketData packetData;
+    std::string timestamp;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -85,7 +86,8 @@ struct BleRecentEntry {
         const uint64_t macAddress)
         : macAddress{macAddress},
           dbValue{},
-          packetData{} {
+          packetData{},
+          timestamp{} {
     }
 
     Key key() const {
@@ -166,15 +168,15 @@ class BLERxView : public View {
     static constexpr auto header_height = 12 + 2 * 16;
 
     OptionsField options_channel{
-    {0 * 8, 0 * 8},
-    5,
-    {{"Ch.37 ", 37},
-    {"Ch.38", 38},
-    {"Ch.39", 39}}};
+        {0 * 8, 0 * 8},
+        5,
+        {{"Ch.37 ", 37},
+         {"Ch.38", 38},
+         {"Ch.39", 39}}};
 
     RxFrequencyField field_frequency{
-    {6 * 8, 0 * 16},
-    nav_};
+        {6 * 8, 0 * 16},
+        nav_};
 
     RFAmpField field_rf_amp{
         {16 * 8, 0 * 16}};
@@ -192,21 +194,20 @@ class BLERxView : public View {
         {24 * 8, 5, 6 * 8, 4}};
 
     Checkbox check_log{
-    {0 * 8, 3 * 8},
-    3,
-    "Log",
-    true};
+        {0 * 8, 3 * 8},
+        3,
+        "Log",
+        true};
 
     Labels label_sort{
-    {{6 * 8, 3 * 8}, "Sort:", Color::light_grey()}
-    };
+        {{6 * 8, 3 * 8}, "Sort:", Color::light_grey()}};
 
     OptionsField options_sort{
-    {11 * 8, 3 * 8},
-    6,
-    {{"MAC", 0},
-    {"Hits", 1},
-    {"Recent", 2}}};
+        {12 * 8, 3 * 8},
+        6,
+        {{"MAC", 0},
+         {"dB", 1},
+         {"Recent", 2}}};
 
     Console console{
         {0, 4 * 16, 240, 240}};
