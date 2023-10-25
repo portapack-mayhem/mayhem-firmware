@@ -155,6 +155,12 @@ void set_btle(uint8_t channel_number) {
     send_message(&message);
 }
 
+void set_btletx(uint8_t channel_number) {
+    const BTLETxConfigureMessage message{
+        channel_number};
+    send_message(&message);
+}
+
 void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
     const NRFRxConfigureMessage message{
         baudrate,

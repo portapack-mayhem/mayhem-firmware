@@ -75,9 +75,9 @@ class BLETxView : public View {
 
     NavigationView& nav_;
     TxRadioState radio_state_{
-        2402000000 /* frequency */,
-        4000000 /* bandwidth */,
-        4000000 /* sampling rate */
+        2'402'000'000 /* frequency */,
+        4'000'000 /* bandwidth */,
+        4'000'000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
         "ble_tx_app", app_settings::Mode::TX};
@@ -87,7 +87,7 @@ class BLETxView : public View {
     uint8_t channel_number = 37;
     bool is_running = false;
 
-    static constexpr auto header_height = 12 + 2 * 16;
+    static constexpr auto header_height = 12 + 3 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -124,6 +124,9 @@ class BLETxView : public View {
         &bitmap_play,
         Color::green(),
         Color::black()};
+
+    Console console{
+    {0, 3 * 16, 240, 240}};
 
     std::string str_log{""};
     bool logging{false};

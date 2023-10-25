@@ -30,7 +30,7 @@ class BTLETxProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
-    void configure(const BTLERxConfigureMessage& message);
+    void configure(const BTLETxConfigureMessage& message);
 
    private:
     static constexpr int max_char {256};
@@ -120,9 +120,7 @@ class BTLETxProcessor : public BasebandProcessor {
 
     uint32_t length{0};
     uint32_t shift_zero{}, shift_one{};
-    uint32_t bit_pos{0};
     uint32_t progress_notice{}, progress_count{0};
-    uint8_t cur_bit{0};
     uint32_t sample_count{0};
     uint32_t phase{0}, sphase{0};
 

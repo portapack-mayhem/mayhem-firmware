@@ -58,11 +58,11 @@ void BLETxView::toggle() {
 
 void BLETxView::start() {
     stop(false);
-
-    progressbar.set_max(45);
+    progressbar.set_max(20);
     button_play.set_bitmap(&bitmap_stop);
-    baseband::set_btle(channel_number);
+    baseband::set_btletx(channel_number);
     transmitter_model.enable();
+    //console.clear(true);
 
     is_running = true;
 }
@@ -81,6 +81,7 @@ void BLETxView::stop(const bool do_loop) {
 
 void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
+        console.writeln("Sent Packet :)");
         stop(check_loop.value());
     } else
         progressbar.set_value(progress);
@@ -99,7 +100,8 @@ BLETxView::BLETxView(NavigationView& nav)
             &field_frequency,
             &tx_view,  // now it handles previous rfgain, rfamp.
             &check_loop,
-            &button_play});
+            &button_play,
+            &console});
 
     field_frequency.set_step(0);
 
@@ -118,7 +120,11 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
 
     if (is_data)
     {
-        str_console += to_string_hex(value, 2);
+        str_console += to_string_dec_uint(value) + " ";
+    }
+    else
+    {
+        str_console += to_string_dec_uint(value) + "\r\n";
     }
 
     if (!logging) {
@@ -130,13 +136,13 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
         logger->log_raw_data(str_console);
     }
 
-    //console.write(str_console);
+    console.write(str_console);
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
-    //console.set_parent_rect(content_rect);
+    console.set_parent_rect(content_rect);
 }
 
 BLETxView::~BLETxView() {

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) TJ Baginski
  *
  * This file is part of PortaPack.
  *
@@ -206,13 +207,13 @@ void BTLETxProcessor::disp_bit_in_hex(char *bit, int num_bit)
 void BTLETxProcessor::crc24_and_scramble_to_gen_phy_bit(char *crc_init_hex, PKT_INFO *pkt) {
   crc24(pkt->info_bit+5*8, pkt->num_info_bit-5*8, crc_init_hex, pkt->info_bit+pkt->num_info_bit);
 
-  disp_bit_in_hex(pkt->info_bit, pkt->num_info_bit + 3*8);
+  //disp_bit_in_hex(pkt->info_bit, pkt->num_info_bit + 3*8);
 
   scramble(pkt->info_bit+5*8, pkt->num_info_bit-5*8+24, pkt->channel_number, pkt->phy_bit+5*8);
   memcpy(pkt->phy_bit, pkt->info_bit, 5*8);
   pkt->num_phy_bit = pkt->num_info_bit + 24;
 
-  disp_bit_in_hex(pkt->phy_bit, pkt->num_phy_bit);
+  //disp_bit_in_hex(pkt->phy_bit, pkt->num_phy_bit);
 }
 
 void BTLETxProcessor::fill_adv_pdu_header(PKT_INFO *pkt, int txadd, int rxadd, int payload_len, char *bit_out) {
@@ -308,105 +309,94 @@ int BTLETxProcessor::calculate_pkt_info( PKT_INFO *pkt ) {
 }
 
 void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
-       int8_t re, im;
+    int8_t re, im;
 
-    // This is called at 2.28M/2048 = 1113Hz
+    // // This is called at 4M/2048 = 1953Hz
+    for (size_t i = 0; i < buffer.count; i++) 
+    {
+        if (configured) 
+        {
+          // This is going to loop through each sample bit and push it to the output buffer.
+          if (sample_count > length) 
+          {
+              configured = false;
+              txprogress_message.done = true;
+              shared_memory.application_queue.push(txprogress_message);
+              
+              sample_count = 0;
+          } 
+          else 
+          {
+            // Real and imaginary was already calculated in gen_sample_from_phy_bit.
+            // It was processed from each data bit, run through a Gaussian Filter, and then ran through sin and cos table to get each IQ bit.
+            re = (int8_t)packets.phy_sample[i];
+            im = (int8_t)packets.phy_sample[i + 1];
 
-    for (size_t i = 0; i < buffer.count; i++) {
-        if (configured) {
-            if (sample_count >= samples_per_bit) {
-                if (bit_pos > length) {
-                    // End of data
-                    cur_bit = 0;
-                    txprogress_message.done = true;
-                    shared_memory.application_queue.push(txprogress_message);
-                    configured = false;
-                } else {
-                    cur_bit = (shared_memory.bb_data.data[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
-                    bit_pos++;
-                    if (progress_count >= progress_notice) {
-                        progress_count = 0;
-                        txprogress_message.progress++;
-                        txprogress_message.done = false;
-                        shared_memory.application_queue.push(txprogress_message);
-                    } else {
-                        progress_count++;
-                    }
-                }
-                sample_count = 0;
-            } else {
-                sample_count++;
+            buffer.p[i] = {re, im};
+
+              sample_count++;
+
+            if (progress_count >= progress_notice) 
+            {
+                progress_count = 0;
+                txprogress_message.progress++;
+                txprogress_message.done = false;
+                shared_memory.application_queue.push(txprogress_message);
+            } 
+            else 
+            {
+                progress_count++;
             }
-
-            if (cur_bit)
-                phase += shift_one;
-            else
-                phase += shift_zero;
-
-            sphase = phase + (64 << 24);
-
-            re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
-            im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
-        } else {
-            re = 0;
-            im = 0;
-        }
-
-        buffer.p[i] = {re, im};
+        }   
+      } 
+      else 
+      {
+          re = 0;
+          im = 0;
+      }
     }
 }
 
 void BTLETxProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::FSKConfigure) {
-
-        const auto messageFsk = *reinterpret_cast<const FSKConfigureMessage*>(message);
-  
-        samples_per_bit = messageFsk.samples_per_bit;
-        //length = message.stream_length + 32;  // Why ?!
-
-        progress_notice = 1;
-
-        progress_count = 0;
-        bit_pos = 0;
-        cur_bit = 0;
-
-        txprogress_message.progress = 0;
-        txprogress_message.done = false;
-        configured = true;
-    }
-    else if (message->id == Message::ID::BTLERxConfigure)
+    if (message->id == Message::ID::BTLETxConfigure)
     {
-       configure(*reinterpret_cast<const BTLERxConfigureMessage*>(message));
+       configure(*reinterpret_cast<const BTLETxConfigureMessage*>(message));
     }
 }
 
-void BTLETxProcessor::configure(const BTLERxConfigureMessage& message) {
+void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
 
     channel_number = message.channel_number;
 
     packets.channel_number = channel_number;
     packets.pkt_type = packetType;
 
-    // Calculate and build packet from info.
+    // Calculates the samples based on the BLE packet data and generates IQ values into an array to be sent out.
     calculate_pkt_info(&packets);
 
-    memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_bit, packets.num_phy_bit);
+    // Todo: determine if we need to copy these values to shared_memory.bb_data.data. I suspect that we might.
+    // I think once we add the UI level, only the generated BLE payload will be sent down. This layer will take care of PHY sample generation
+    // using the bits sent in by the UI level. In short, we will seperate this implementation to the UI level.
+    //memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_sample, packets.num_phy_sample);
 
-    //Cop and send packet out
-
+    // Used to display to the console, if enabled on the UI side.
     //disp_bit_in_hex(packets.phy_bit, packets.num_phy_bit);
 
     samples_per_bit = SAMPLE_PER_SYMBOL;
-    length = packets.num_phy_bit + 32;  // Why ?!
+    length = (uint32_t)packets.num_phy_sample;
 
     // 200kHz shift frequency of BLE
     shift_one = 200000 * (0xFFFFFFFFULL / 4000000);
     shift_zero = -shift_one;
 
-    sample_count = samples_per_bit;
+    // Starting at sample_count 0 since packets.num_phy_sample contains every sample needed to be sent out.
+    sample_count = 0;
     progress_count = 0;
-    bit_pos = 0;
-    cur_bit = 0;
+    progress_notice = 64;
+
+    // data_message.is_data = false;
+    // data_message.value = (uint32_t)packets.num_phy_sample;
+    // shared_memory.application_queue.push(data_message);
 
     txprogress_message.progress = 0;
     txprogress_message.done = false;

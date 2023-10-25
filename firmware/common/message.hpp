@@ -114,6 +114,7 @@ class Message {
         POCSAGStats = 57,
         FSKRxConfigure = 58,
         BlePacket = 58,
+        BTLETxConfigure = 59,
         MAX
     };
 
@@ -750,6 +751,16 @@ class BTLERxConfigureMessage : public Message {
     constexpr BTLERxConfigureMessage(
         const uint8_t channel_number)
         : Message{ID::BTLERxConfigure},
+          channel_number(channel_number) {
+    }
+    const uint8_t channel_number;
+};
+
+class BTLETxConfigureMessage : public Message {
+   public:
+    constexpr BTLETxConfigureMessage(
+        const uint8_t channel_number)
+        : Message{ID::BTLETxConfigure},
           channel_number(channel_number) {
     }
     const uint8_t channel_number;
