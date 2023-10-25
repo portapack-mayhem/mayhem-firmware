@@ -360,6 +360,14 @@ set(MODE_CPPSRC
 	proc_btlerx.cpp
 )
 DeclareTargets(PBTR btlerx)
+
+### BTLE TX
+
+set(MODE_CPPSRC
+	proc_ble_tx.cpp
+)
+DeclareTargets(PBTT btletx)
+
 ### AIS
 
 set(MODE_CPPSRC
