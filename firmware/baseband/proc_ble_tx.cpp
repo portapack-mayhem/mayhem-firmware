@@ -193,13 +193,14 @@ void BTLETxProcessor::scramble(char *bit_in, int num_bit, int channel_number, ch
 
 void BTLETxProcessor::disp_bit_in_hex(char *bit, int num_bit)
 {
-  
   int i, a;
-  for(i=0; i<num_bit; i=i+8) {
+
+  for(i=0; i<num_bit; i=i+8) 
+  {
     a= bit[i] + bit[i+1]*2 + bit[i+2]*4 + bit[i+3]*8 + bit[i+4]*16 + bit[i+5]*32 + bit[i+6]*64 + bit[i+7]*128;
 
     data_message.is_data = true;
-    data_message.value = a;
+    data_message.value = (uint8_t)a;
     shared_memory.application_queue.push(data_message);
   }
 }
@@ -283,6 +284,8 @@ int BTLETxProcessor::calculate_sample_for_ADV_IND(PKT_INFO *pkt) {
   crc24_and_scramble_to_gen_phy_bit((char *)checksumInit, pkt);
   pkt->num_phy_sample = gen_sample_from_phy_bit(pkt->phy_bit, pkt->phy_sample, pkt->num_phy_bit);
 
+  //disp_bit_in_hex(pkt->phy_sample, pkt->num_phy_sample);
+
   return(0);
 }
 
@@ -329,12 +332,10 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
           {
             // Real and imaginary was already calculated in gen_sample_from_phy_bit.
             // It was processed from each data bit, run through a Gaussian Filter, and then ran through sin and cos table to get each IQ bit.
-            re = (int8_t)packets.phy_sample[i];
-            im = (int8_t)packets.phy_sample[i + 1];
+            re = (int8_t)packets.phy_sample[sample_count++];
+            im = (int8_t)packets.phy_sample[sample_count++];
 
             buffer.p[i] = {re, im};
-
-              sample_count++;
 
             if (progress_count >= progress_notice) 
             {
@@ -379,12 +380,10 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     // using the bits sent in by the UI level. In short, we will seperate this implementation to the UI level.
     //memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_sample, packets.num_phy_sample);
 
-    // Used to display to the console, if enabled on the UI side.
-    //disp_bit_in_hex(packets.phy_bit, packets.num_phy_bit);
-
     samples_per_bit = SAMPLE_PER_SYMBOL;
     length = (uint32_t)packets.num_phy_sample;
 
+    // Maybe this is needed. Need to determine how this is different from the 1023 byte sin/cos table.
     // 200kHz shift frequency of BLE
     shift_one = 200000 * (0xFFFFFFFFULL / 4000000);
     shift_zero = -shift_one;
@@ -397,6 +396,13 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     // data_message.is_data = false;
     // data_message.value = (uint32_t)packets.num_phy_sample;
     // shared_memory.application_queue.push(data_message);
+
+    //disp_bit_in_hex(packets.phy_sample,320);
+    //disp_bit_in_hex(packets.phy_bit, packets.num_phy_bit);
+
+    data_message.is_data = false;
+    data_message.value = 1;
+    shared_memory.application_queue.push(data_message);
 
     txprogress_message.progress = 0;
     txprogress_message.done = false;

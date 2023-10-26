@@ -81,7 +81,7 @@ void BLETxView::stop(const bool do_loop) {
 
 void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
-        console.writeln("Sent Packet :)");
+        //console.writeln("Sent Packet :)");
         stop(check_loop.value());
     } else
         progressbar.set_value(progress);
@@ -111,8 +111,8 @@ BLETxView::BLETxView(NavigationView& nav)
 
     logger = std::make_unique<BLELoggerTx>();
 
-    if (logger)
-        logger->append(LOG_ROOT_DIR "/BLELOGTX_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+   // if (logger && logging)
+        //logger->append(LOG_ROOT_DIR "/BLELOGTX_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 }
 
 void BLETxView::on_data(uint32_t value, bool is_data) {
@@ -120,11 +120,12 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
 
     if (is_data)
     {
-        str_console += to_string_dec_uint(value) + " ";
+        str_log += to_string_hex(value, 2);
+        str_console += to_string_hex(value, 2) + " ";
     }
     else
     {
-        str_console += to_string_dec_uint(value) + "\r\n";
+        logging_done = true;
     }
 
     if (!logging) {
@@ -132,8 +133,10 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     }
 
     // Log at End of Packet.
-    if (logger && logging) {
-        logger->log_raw_data(str_console);
+    if (0) {
+        logger->log_raw_data(str_log);
+        logging_done = false;
+        str_log = "";
     }
 
     console.write(str_console);

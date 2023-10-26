@@ -129,7 +129,8 @@ class BLETxView : public View {
     {0, 3 * 16, 240, 240}};
 
     std::string str_log{""};
-    bool logging{false};
+    bool logging{true};
+    bool logging_done{false};
 
     std::unique_ptr<BLELoggerTx> logger{};
 
