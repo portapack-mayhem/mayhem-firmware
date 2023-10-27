@@ -61,7 +61,7 @@ void MicTXView::update_vumeter() {
 }
 
 void MicTXView::update_tx_icon() {
-    tx_icon.set_foreground(transmitting? Color::red() : Color::black());
+    tx_icon.set_foreground(transmitting ? Color::red() : Color::black());
 }
 
 void MicTXView::on_tx_progress(const bool done) {
@@ -210,10 +210,10 @@ MicTXView::MicTXView(
 
     bool wm = (audio::debug::codec_name() == "WM8731");
     add_children({&labels_both,
-                  wm? &labels_WM8731 : &labels_AK4951,  // enable ALC if AK4951
+                  wm ? &labels_WM8731 : &labels_AK4951,  // enable ALC if AK4951
                   &vumeter,
                   &options_gain,  // MIC GAIN float factor on the GUI.
-                  wm? &options_wm8731_boost_mode : &options_ak4951_alc_mode,
+                  wm ? &options_wm8731_boost_mode : &options_ak4951_alc_mode,
                   &check_va,
                   &field_va_level,
                   &field_va_attack,
@@ -420,7 +420,7 @@ MicTXView::MicTXView(
     check_va.on_select = [this](Checkbox&, bool v) {
         va_enabled = v;
         if (va_enabled)
-            check_rxactive.set_value(false);  // Disallow RX-audio in VOX mode (for now) - Future TODO: Should allow voice activation during RX
+            check_rxactive.set_value(false);  // Disallow RX-audio in VOX mode (for now) - Future TODO: Should allow VOX during RX audio
     };
 
     check_rogerbeep.on_select = [this](Checkbox&, bool v) {
@@ -467,12 +467,12 @@ MicTXView::MicTXView(
     check_rxactive.on_select = [this](Checkbox&, bool v) {
         //		vumeter.set_value(0);	//Start with a clean vumeter
         rx_enabled = v;
-        check_mic_to_HP.hidden(rx_enabled);  // Togle Hide / show "Hear Mic" checkbox depending if we activate or not the receiver. (if RX on => no visible "Mic Hear" option)
+        check_mic_to_HP.hidden(rx_enabled);  // Toggle Hide / show "Hear Mic" checkbox depending if we activate or not the receiver. (if RX on => no visible "Mic Hear" option)
         if ((rx_enabled) && (transmitting))
             check_mic_to_HP.set_value(transmitting);  // Once we activate the "Rx audio" in reception time we disable "Hear Mic", but we allow it again in TX time.
 
         if (rx_enabled)
-            check_va.set_value(false); 	//Disable voice activation during RX audio (for now) - Future TODO: Should allow voice activation during RX
+            check_va.set_value(false); 	// Disallow voice activation during RX audio (for now) - Future TODO: Should allow VOX during RX audio
 
         rxaudio(v);   // Activate-Deactivate audio RX (receiver) accordingly
         set_dirty();  // Refresh interface

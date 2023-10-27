@@ -219,7 +219,7 @@ class MicTXView : public View {
         {3 * 8, 8 * 7},
         10,
         "VOX enable",
-        false};        
+        false};
 
     NumberField field_va_level{
         {8 * 8, 10 * 8},
