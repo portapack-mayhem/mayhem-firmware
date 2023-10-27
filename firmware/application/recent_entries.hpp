@@ -279,6 +279,11 @@ class RecentEntriesView : public View {
         _table.focus();
     }
 
+    void set_table(Entries& new_table)
+    {
+        _table = new_table;
+    }
+
    private:
     RecentEntriesHeader _header;
     RecentEntriesTable<Entries> _table;

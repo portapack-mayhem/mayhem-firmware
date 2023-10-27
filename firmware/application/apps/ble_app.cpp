@@ -30,6 +30,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "ui_textentry.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -214,13 +215,26 @@ BLERxView::BLERxView(NavigationView& nav)
                   &check_log,
                   &label_sort,
                   &options_sort,
+                  &button_message,
                   &recent_entries_view,
+                  &recent_entries_filter_view,
                   &recent_entry_detail_view});
 
     recent_entry_detail_view.hidden(true);
+    recent_entries_filter_view.hidden(true);
 
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
         nav_.push<BleRecentEntryDetailView>(entry);
+    };
+
+    button_message.on_select = [this, &nav](Button&) {
+        text_prompt(
+                nav,
+                filterBuffer,
+                64,
+                [this](std::string& buffer) {
+                    on_switch_table(buffer);
+                });
     };
 
     field_frequency.set_step(0);
@@ -396,11 +410,28 @@ void BLERxView::on_data(BlePacketData* packet) {
     }
 }
 
+void BLERxView::on_switch_table(const std::string value) {
+
+    filter = value;
+
+    if (filter == "1")
+    {
+        recent_entries_filter_view.hidden(false);
+        recent_entries_view.hidden(true);
+    }
+    else
+    {
+        recent_entries_view.hidden(false);
+        recent_entries_filter_view.hidden(true);
+    }
+}
+
 void BLERxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
     recent_entries_view.set_parent_rect(content_rect);
     recent_entry_detail_view.set_parent_rect(content_rect);
+    recent_entries_filter_view.set_parent_rect(content_rect);
 }
 
 BLERxView::~BLERxView() {
