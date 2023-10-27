@@ -248,16 +248,17 @@ void load_blacklist() {
 
     // allocating one extra byte for trailing comma
     blacklist_ptr = std::unique_ptr<char>(new char[f.size() + 2]);
-    if (f.read(blacklist_ptr.get() + 1, f.size()))
+    if (f.read(blacklist_ptr.get() + 1, f.size())) {
         blacklist_len = f.size() + 2;
 
-    // replace any CR/LF characters with comma delineator, and add comma prefix/suffix, to simplify searching
-    char* ptr = (char *)blacklist_ptr.get();
-    *ptr = ',';
-    *(ptr + blacklist_len - 1) = ',';
-    for (size_t i = 0; i < blacklist_len; i++, ptr++) {
-        if (*ptr == 0x0D || *ptr == 0x0A)
-            *ptr = ',';
+        // replace any CR/LF characters with comma delineator, and add comma prefix/suffix, to simplify searching
+        char* ptr = (char *)blacklist_ptr.get();
+        *ptr = ',';
+        *(ptr + blacklist_len - 1) = ',';
+        for (size_t i = 0; i < blacklist_len; i++, ptr++) {
+            if (*ptr == 0x0D || *ptr == 0x0A)
+                *ptr = ',';
+        }
     }
 }
 
