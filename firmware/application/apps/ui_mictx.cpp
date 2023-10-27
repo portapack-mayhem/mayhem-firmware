@@ -75,7 +75,7 @@ void MicTXView::configure_baseband() {
     baseband::set_audiotx_config(
         sampling_rate / 20,  // Update vu-meter at 20Hz
         transmitting ? transmitter_model.channel_bandwidth() : 0,
-        mic_gain,
+        mic_gain_x10 / 10.0,
         shift_bits_s16,  // to be used in dsp_modulate
         TONES_F2D(tone_key_frequency(tone_key_index), sampling_rate),
         enable_am,
@@ -238,16 +238,16 @@ MicTXView::MicTXView(
                   &tx_icon});
 
     tone_keys_populate(options_tone_key);
+    options_tone_key.set_selected_index(tone_key_index);
     options_tone_key.on_change = [this](size_t i, int32_t) {
         tone_key_index = i;
     };
-    options_tone_key.set_selected_index(0);
 
+    options_gain.set_by_value(mic_gain_x10);  // x1.0 preselected default.
     options_gain.on_change = [this](size_t, int32_t v) {
-        mic_gain = v / 10.0;
+        mic_gain_x10 = v;
         configure_baseband();
     };
-    options_gain.set_selected_index(1);  // x1.0 preselected default.
 
     if (audio::debug::codec_name() == "WM8731") {
         options_wm8731_boost_mode.on_change = [this](size_t, int8_t v) {
@@ -272,7 +272,10 @@ MicTXView::MicTXView(
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // Detected (WM8731), set up the proper wm_boost on/off, 0..4 (0,1) boost_on, (2,3,4) boost_off,and the check box "Hear Mic"
             configure_baseband();                                                     // to update in real time, sending msg, var-parameters >>shift_bits FM msg, to audio_tx from M0 to M4 Proc -
         };
-        options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's.
+        if (settings_.loaded())
+            options_wm8731_boost_mode.set_selected_index(ak4951_alc_and_wm8731_boost_GUI);
+        else
+            options_wm8731_boost_mode.set_selected_index(3);  // preset GUI index 3 as default WM -> -02 dB's.
     } else {
         shift_bits_s16 = 8;  // Initialized default fixed >>8_FM for FM tx mod, shift audio data for AK4951, using top 8 bits s16 data (>>8)
         options_ak4951_alc_mode.on_change = [this](size_t, int8_t v) {
@@ -280,9 +283,11 @@ MicTXView::MicTXView(
             audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // Detected (AK4951) ==> Set up proper ALC mode from 0..11 options, and the check box "Hear Mic"
             configure_baseband();                                                     // sending fixed >>8_FM, var-parameters msg, to audiotx from this M0 to M4 process.
         };
+        if (settings_.loaded())
+            options_ak4951_alc_mode.set_selected_index(ak4951_alc_and_wm8731_boost_GUI);
+        else
+            options_ak4951_alc_mode.set_selected_index(0);
     }
-
-    // options_ak4951_alc_mode.set_selected_index(0);
 
     tx_frequency = transmitter_model.target_frequency();
     field_frequency.set_value(transmitter_model.target_frequency());
@@ -313,10 +318,10 @@ MicTXView::MicTXView(
         };
     };
 
+    field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);  // pre-default first time, TX deviation FM for NFM / FM
     field_bw.on_change = [this](uint32_t v) {
         transmitter_model.set_channel_bandwidth(v * 1000);
     };
-    field_bw.set_value(10);  // pre-default first time, TX deviation FM for NFM / FM
 
     // now, no need direct update, field_rfgain, field_rfamp (it is done in ui_transmitter.cpp)
 
@@ -417,16 +422,19 @@ MicTXView::MicTXView(
         // configure_baseband();
     };
 
+    check_va.set_value(va_enabled);
     check_va.on_select = [this](Checkbox&, bool v) {
         va_enabled = v;
         if (va_enabled)
             check_rxactive.set_value(false);  // Disallow RX-audio in VOX mode (for now) - Future TODO: Should allow VOX during RX audio
     };
 
+    check_rogerbeep.set_value(rogerbeep_enabled);
     check_rogerbeep.on_select = [this](Checkbox&, bool v) {
         rogerbeep_enabled = v;
     };
 
+    check_mic_to_HP.set_value(mic_to_HP_enabled);
     check_mic_to_HP.on_select = [this](Checkbox&, bool v) {
         mic_to_HP_enabled = v;
         if (mic_to_HP_enabled)
@@ -441,6 +449,7 @@ MicTXView::MicTXView(
         }
     };
 
+    check_common_freq_tx_rx.set_value(bool_same_F_tx_rx_enabled);
     check_common_freq_tx_rx.on_select = [this](Checkbox&, bool v) {
         bool_same_F_tx_rx_enabled = v;
         field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field. (When no hide user can enter down indep. freq for RX)
@@ -448,22 +457,23 @@ MicTXView::MicTXView(
         receiver_model.set_target_frequency(v ? tx_frequency : rx_frequency);  // To go to the proper tuned freq. when toggling it
     };
 
+    field_va_level.set_value(va_level);
     field_va_level.on_change = [this](int32_t v) {
         va_level = v;
         vumeter.set_mark(v);
     };
-    field_va_level.set_value(40);
 
+    field_va_attack.set_value(attack_ms);
     field_va_attack.on_change = [this](int32_t v) {
         attack_ms = v;
     };
-    field_va_attack.set_value(500);
 
+    field_va_decay.set_value(decay_ms);
     field_va_decay.on_change = [this](int32_t v) {
         decay_ms = v;
     };
-    field_va_decay.set_value(1000);
 
+    check_rxactive.set_value(rx_enabled);
     check_rxactive.on_select = [this](Checkbox&, bool v) {
         //		vumeter.set_value(0);	//Start with a clean vumeter
         rx_enabled = v;
@@ -495,11 +505,10 @@ MicTXView::MicTXView(
         }
     };
 
+    field_squelch.set_value(receiver_model.squelch_level());
     field_squelch.on_change = [this](int32_t v) {
-        receiver_model.set_squelch_level(100 - v);
+        receiver_model.set_squelch_level(v);
     };
-    field_squelch.set_value(0);
-    receiver_model.set_squelch_level(0);
 
     rx_frequency = receiver_model.target_frequency();
     field_rxfrequency.set_value(rx_frequency);

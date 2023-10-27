@@ -86,23 +86,39 @@ class MicTXView : public View {
         1750000 /* bandwidth */,
         sampling_rate /* sampling rate */
     };
-    app_settings::SettingsManager settings_{
-        "tx_mic", app_settings::Mode::RX_TX,
-        app_settings::Options::UseGlobalTargetFrequency};
 
-    bool transmitting{false};
+    // Settings
     bool va_enabled{false};
     bool rogerbeep_enabled{false};
     bool mic_to_HP_enabled{false};
     bool bool_same_F_tx_rx_enabled{false};
     bool rx_enabled{false};
-    uint32_t tone_key_index{};
-    float mic_gain{1.0};
+    uint32_t tone_key_index{0};
+    uint32_t mic_gain_x10{1};
     uint8_t ak4951_alc_and_wm8731_boost_GUI{0};
+    uint32_t va_level{40};
+    uint32_t attack_ms{500};
+    uint32_t decay_ms{1000};
+    app_settings::SettingsManager settings_{
+        "tx_mic",
+        app_settings::Mode::RX_TX,
+        app_settings::Options::UseGlobalTargetFrequency,
+        {
+            {"va_enabled"sv, &va_enabled},
+            {"rogerbeep_enabled"sv, &rogerbeep_enabled},
+            {"mic_to_HP_enabled"sv, &mic_to_HP_enabled},
+            {"bool_same_F_tx_rx_enabled"sv, &bool_same_F_tx_rx_enabled},
+            {"rx_enabled"sv, &rx_enabled},
+            {"tone_key_index"sv, &tone_key_index},
+            {"mic_gain_x10"sv, &mic_gain_x10},
+            {"ak4951_alc_and_wm8731_boost_GUI"sv, &ak4951_alc_and_wm8731_boost_GUI},
+            {"va_level"sv, &va_level},
+            {"attack_ms"sv, &attack_ms},
+            {"decay_ms"sv, &decay_ms},
+        }};
+
+    bool transmitting{false};
     uint32_t audio_level{0};
-    uint32_t va_level{};
-    uint32_t attack_ms{};
-    uint32_t decay_ms{};
     uint32_t attack_timer{0};
     uint32_t decay_timer{0};
     int32_t tx_gain{47};
