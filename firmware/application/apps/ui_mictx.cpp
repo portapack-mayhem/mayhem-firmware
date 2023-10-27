@@ -472,7 +472,7 @@ MicTXView::MicTXView(
             check_mic_to_HP.set_value(transmitting);  // Once we activate the "Rx audio" in reception time we disable "Hear Mic", but we allow it again in TX time.
 
         if (rx_enabled)
-            check_va.set_value(false); 	// Disallow voice activation during RX audio (for now) - Future TODO: Should allow VOX during RX audio
+            check_va.set_value(false);  // Disallow voice activation during RX audio (for now) - Future TODO: Should allow VOX during RX audio
 
         rxaudio(v);   // Activate-Deactivate audio RX (receiver) accordingly
         set_dirty();  // Refresh interface
