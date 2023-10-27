@@ -70,15 +70,15 @@ class MicTXView : public View {
     static constexpr uint32_t lcd_frame_duration = (256 * 1000UL) / 60;  // 1 frame @ 60fps in ms .8 fixed point  /60
 
     void update_vumeter();
+    bool tx_button_held();
     void do_timing();
     void set_tx(bool enable);
     //	void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const bool done);
+    void update_tx_icon();
     void configure_baseband();
 
     void rxaudio(bool is_on);
-
-    void set_ptt_visibility(bool v);
 
     RxRadioState rx_radio_state_{};
     TxRadioState tx_radio_state_{
@@ -92,7 +92,6 @@ class MicTXView : public View {
 
     bool transmitting{false};
     bool va_enabled{false};
-    bool ptt_enabled{true};
     bool rogerbeep_enabled{false};
     bool mic_to_HP_enabled{false};
     bool bool_same_F_tx_rx_enabled{false};
@@ -125,13 +124,11 @@ class MicTXView : public View {
     bool enable_lsb{false};
     bool enable_wfm{false};  // added to distinguish in the FM mode, RX BW : NFM (8K5, 11K), FM (16K), WFM(200K)
 
-    Labels labels_WM8731{
+    Labels labels_both{
         {{3 * 8, 1 * 8}, "MIC-GAIN:", Color::light_grey()},
-        {{17 * 8, 1 * 8}, "Boost", Color::light_grey()},
         {{3 * 8, 3 * 8}, "F:", Color::light_grey()},
         {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Color::light_grey()},  // to be more symetric and consistent to the below FM RXBW
         {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},          // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
-        {{3 * 8, 8 * 8}, "TX Activation:", Color::light_grey()},    // we delete  { { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
         {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},             // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
         {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
         {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
@@ -144,25 +141,10 @@ class MicTXView : public View {
         {{5 * 8, (27 * 8) + 2}, "LNA:", Color::light_grey()},
         {{12 * 8, (27 * 8) + 2}, "VGA:", Color::light_grey()},
         {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()}};
+    Labels labels_WM8731{
+        {{17 * 8, 1 * 8}, "Boost", Color::light_grey()}};
     Labels labels_AK4951{
-        {{3 * 8, 1 * 8}, "MIC-GAIN:", Color::light_grey()},
-        {{17 * 8, 1 * 8}, "ALC", Color::light_grey()},
-        {{3 * 8, 3 * 8}, "F:", Color::light_grey()},
-        {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Color::light_grey()},
-        {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},        // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
-        {{3 * 8, 8 * 8}, "TX Activation:", Color::light_grey()},  // we delete  { { 3 * 8, 5 * 8 }, "GAIN:", Color::light_grey() },
-        {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},           // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
-        {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
-        {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
-        {{3 * 8, (13 * 8) - 5}, "TONE KEY:", Color::light_grey()},
-        {{3 * 8, (18 * 8) - 1}, "======== Receiver ========", Color::green()},
-        {{(5 * 8), (23 * 8) + 2}, "VOL:", Color::light_grey()},
-        {{14 * 8, (23 * 8) + 2}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
-        {{20 * 8, (25 * 8) + 2}, "SQ:", Color::light_grey()},
-        {{5 * 8, (25 * 8) + 2}, "F_RX:", Color::light_grey()},
-        {{5 * 8, (27 * 8) + 2}, "LNA:", Color::light_grey()},
-        {{12 * 8, (27 * 8) + 2}, "VGA:", Color::light_grey()},
-        {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()}};
+        {{17 * 8, 1 * 8}, "ALC", Color::light_grey()}};
 
     VuMeter vumeter{
         {0 * 8, 1 * 8, 2 * 8, 33 * 8},
@@ -232,21 +214,12 @@ class MicTXView : public View {
             {" LSB  ", 4},
             {"DSB-SC", 5}  // We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).
         }};
-    /*
-        Checkbox check_va {
-                { 3 * 8, (10 * 8) - 4 },
-                7,
-                "Voice activation",
-                false
-        };
-        */
 
-    OptionsField field_va{
-        {17 * 8, 8 * 8},
-        4,
-        {{" OFF", 0},
-         {" PTT", 1},
-         {"AUTO", 2}}};
+    Checkbox check_va{
+        {3 * 8, 8 * 7},
+        10,
+        "VOX enable",
+        false};        
 
     NumberField field_va_level{
         {8 * 8, 10 * 8},
@@ -347,8 +320,14 @@ class MicTXView : public View {
 
     Button tx_button{
         {10 * 8, 30 * 8, 10 * 8, 5 * 8},
-        "TX",
+        "PTT TX",
         true};
+
+    Image tx_icon{
+        {6 * 8, 31 * 8, 16, 16},
+        &bitmap_icon_microphone,
+        Color::black(),
+        Color::black()};
 
     MessageHandlerRegistration message_handler_lcd_sync{
         Message::ID::DisplayFrameSync,

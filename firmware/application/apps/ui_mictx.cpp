@@ -51,13 +51,17 @@ void MicTXView::focus() {
             field_rxfrequency.focus();
             break;
         default:
-            field_va.focus();
+            check_va.focus();
             break;
     }
 }
 
 void MicTXView::update_vumeter() {
     vumeter.set_value(audio_level);
+}
+
+void MicTXView::update_tx_icon() {
+    tx_icon.set_foreground(transmitting? Color::red() : Color::black());
 }
 
 void MicTXView::on_tx_progress(const bool done) {
@@ -108,7 +112,13 @@ void MicTXView::set_tx(bool enable) {
             }
         }
     }
+    update_tx_icon();
 }
+
+bool MicTXView::tx_button_held() {
+    const auto switches_state = get_switches_state();
+    return switches_state[(size_t)ui::KeyEvent::Select];
+};
 
 void MicTXView::do_timing() {
     if (va_enabled) {
@@ -131,7 +141,8 @@ void MicTXView::do_timing() {
                 if ((decay_timer >> 8) >= decay_ms) {
                     decay_timer = 0;
                     attack_timer = 0;
-                    set_tx(false);
+                    if (!button_touch && !tx_button_held())
+                        set_tx(false);
                 } else {
                     decay_timer += lcd_frame_duration;
                 }
@@ -141,8 +152,7 @@ void MicTXView::do_timing() {
         }
     } else {
         // Check for PTT release
-        const auto switches_state = get_switches_state();
-        if (!switches_state[4] && transmitting && !button_touch)  // Select button
+        if (transmitting && !button_touch && !tx_button_held())
             set_tx(false);
     }
 }
@@ -192,72 +202,40 @@ void MicTXView::rxaudio(bool is_on) {
     }
 }
 
-void MicTXView::set_ptt_visibility(bool v) {
-    tx_button.hidden(!v);
-}
-
 MicTXView::MicTXView(
     NavigationView& nav) {
     portapack::pin_i2s0_rx_sda.mode(3);  // This is already done in audio::init but gets changed by the CPLD overlay reprogramming
 
     baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 
-    if (audio::debug::codec_name() == "WM8731") {
-        add_children({&labels_WM8731,  // we have audio codec WM8731, same MIC menu as original.
-                      &vumeter,
-                      &options_gain,  // MIC GAIN float factor on the GUI.
-                      &options_wm8731_boost_mode,
-                      //		&check_va,
-                      &field_va,
-                      &field_va_level,
-                      &field_va_attack,
-                      &field_va_decay,
-                      &field_bw,
-                      &tx_view,  // it already integrates previous rfgain, rfamp.
-                      &options_mode,
-                      &field_frequency,
-                      &options_tone_key,
-                      &check_rogerbeep,
-                      &check_mic_to_HP,          // check box to activate "hear mic"
-                      &check_common_freq_tx_rx,  // added to handle common or separate freq- TX/RX
-                      &check_rxactive,
-                      &field_volume,
-                      &field_rxbw,
-                      &field_squelch,
-                      &field_rxfrequency,
-                      &field_rxlna,
-                      &field_rxvga,
-                      &field_rxamp,
-                      &tx_button});
-
-    } else {
-        add_children({&labels_AK4951,  // we have audio codec AK4951, enable Automatic Level Control
-                      &vumeter,
-                      &options_gain,
-                      &options_ak4951_alc_mode,
-                      //		&check_va,
-                      &field_va,
-                      &field_va_level,
-                      &field_va_attack,
-                      &field_va_decay,
-                      &field_bw,
-                      &tx_view,  // it already integrates previous rfgain, rfamp.
-                      &options_mode,
-                      &field_frequency,
-                      &options_tone_key,
-                      &check_rogerbeep,
-                      &check_mic_to_HP,          // check box to activate "hear mic"
-                      &check_common_freq_tx_rx,  // added to handle common or separate freq- TX/RX
-                      &check_rxactive,
-                      &field_volume,
-                      &field_rxbw,
-                      &field_squelch,
-                      &field_rxfrequency,
-                      &field_rxlna,
-                      &field_rxvga,
-                      &field_rxamp,
-                      &tx_button});
-    }
+    bool wm = (audio::debug::codec_name() == "WM8731");
+    add_children({&labels_both,
+                  wm? &labels_WM8731 : &labels_AK4951,  // enable ALC if AK4951
+                  &vumeter,
+                  &options_gain,  // MIC GAIN float factor on the GUI.
+                  wm? &options_wm8731_boost_mode : &options_ak4951_alc_mode,
+                  &check_va,
+                  &field_va_level,
+                  &field_va_attack,
+                  &field_va_decay,
+                  &field_bw,
+                  &tx_view,  // it already integrates previous rfgain, rfamp.
+                  &options_mode,
+                  &field_frequency,
+                  &options_tone_key,
+                  &check_rogerbeep,
+                  &check_mic_to_HP,          // check box to activate "hear mic"
+                  &check_common_freq_tx_rx,  // added to handle common or separate freq- TX/RX
+                  &check_rxactive,
+                  &field_volume,
+                  &field_rxbw,
+                  &field_squelch,
+                  &field_rxfrequency,
+                  &field_rxlna,
+                  &field_rxvga,
+                  &field_rxamp,
+                  &tx_button,
+                  &tx_icon});
 
     tone_keys_populate(options_tone_key);
     options_tone_key.on_change = [this](size_t i, int32_t) {
@@ -439,41 +417,10 @@ MicTXView::MicTXView(
         // configure_baseband();
     };
 
-    /*
-        check_va.on_select = [this](Checkbox&, bool v) {
-                va_enabled = v;
-                text_ptt.hidden(v);			//hide / show PTT text
-                check_rxactive.hidden(v); 	//hide / show the RX AUDIO
-                set_dirty();				//Refresh display
-        };
-        */
-    field_va.set_selected_index(1);
-    field_va.on_change = [this](size_t, int32_t v) {
-        switch (v) {
-            case 0:
-                va_enabled = 0;
-                this->set_ptt_visibility(0);
-                check_rxactive.hidden(0);
-                ptt_enabled = 0;
-                break;
-            case 1:
-                va_enabled = 0;
-                this->set_ptt_visibility(1);
-                check_rxactive.hidden(0);
-                ptt_enabled = 1;
-                break;
-            case 2:
-                if (!rx_enabled) {
-                    va_enabled = 1;
-                    this->set_ptt_visibility(0);
-                    check_rxactive.hidden(1);
-                    ptt_enabled = 0;
-                } else {
-                    field_va.set_selected_index(1);
-                }
-                break;
-        }
-        set_dirty();
+    check_va.on_select = [this](Checkbox&, bool v) {
+        va_enabled = v;
+        if (va_enabled)
+            check_rxactive.set_value(false);  // Disallow RX-audio in VOX mode (for now) - Future TODO: Should allow voice activation during RX
     };
 
     check_rogerbeep.on_select = [this](Checkbox&, bool v) {
@@ -524,7 +471,9 @@ MicTXView::MicTXView(
         if ((rx_enabled) && (transmitting))
             check_mic_to_HP.set_value(transmitting);  // Once we activate the "Rx audio" in reception time we disable "Hear Mic", but we allow it again in TX time.
 
-        //		check_va.hidden(v); 	//Hide or show voice activation
+        if (rx_enabled)
+            check_va.set_value(false); 	//Disable voice activation during RX audio (for now) - Future TODO: Should allow voice activation during RX
+
         rxaudio(v);   // Activate-Deactivate audio RX (receiver) accordingly
         set_dirty();  // Refresh interface
     };
@@ -598,22 +547,17 @@ MicTXView::MicTXView(
     field_rxamp.set_value(rx_amp);
 
     tx_button.on_select = [this](Button&) {
-        if (ptt_enabled && !transmitting) {
+        if (!transmitting) {
             set_tx(true);
         }
     };
 
     tx_button.on_touch_release = [this](Button&) {
-        if (button_touch) {
-            button_touch = false;
-            set_tx(false);
-        }
+        button_touch = false;
     };
 
     tx_button.on_touch_press = [this](Button&) {
-        if (!transmitting) {
-            button_touch = true;
-        }
+        button_touch = true;
     };
 
     // These shouldn't be necessary, but because
