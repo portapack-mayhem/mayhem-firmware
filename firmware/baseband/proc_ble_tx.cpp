@@ -28,7 +28,7 @@
 
 #include <cstdint>
 
-//#define new_way
+#define new_way
 
 int BTLETxProcessor::gen_sample_from_phy_bit(char *bit, char *sample, int num_bit) {
   int num_sample = (num_bit*SAMPLE_PER_SYMBOL)+(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL);
@@ -325,6 +325,11 @@ int BTLETxProcessor::calculate_pkt_info( PKT_INFO *pkt ) {
 
 void BTLETxProcessor::execute(const buffer_c8_t& buffer) 
 {
+
+  process++;
+
+  if ((process % 256) != 0) return;
+
   #ifdef new_way
     int8_t re, im;
 
@@ -456,7 +461,7 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     // using the bits sent in by the UI level. In short, we will seperate this implementation to the UI level.
     //memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_sample, packets.num_phy_sample);
 
-    samples_per_bit = SAMPLE_PER_SYMBOL;
+    samples_per_bit = 4;
 
 #ifdef new_way
     length = (uint32_t)packets.num_phy_sample;
