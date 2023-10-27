@@ -252,7 +252,7 @@ void load_blacklist() {
         blacklist_len = f.size() + 2;
 
         // replace any CR/LF characters with comma delineator, and add comma prefix/suffix, to simplify searching
-        char* ptr = (char*)blacklist_ptr.get();
+        char* ptr = blacklist_ptr.get();
         *ptr = ',';
         *(ptr + blacklist_len - 1) = ',';
         for (size_t i = 0; i < blacklist_len; i++, ptr++) {
