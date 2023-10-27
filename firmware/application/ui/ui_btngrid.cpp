@@ -246,13 +246,22 @@ void load_blacklist() {
     if (error)
         return;
 
-    blacklist_ptr = std::unique_ptr<char>(new char[f.size()]);
+    // allocating one extra byte for trailing comma
+    blacklist_ptr = std::unique_ptr<char>(new char[f.size() + 1]);
     if (f.read(blacklist_ptr.get(), f.size()))
-        blacklist_len = f.size();
+        blacklist_len = f.size() + 1;
+
+    // replace any CR/LF characters with commas to simplify searching
+    char* ptr = (char *)blacklist_ptr.get();
+    for (size_t i = 0; i < f.size(); i++, ptr++) {
+        if (*ptr == 0x0D || *ptr == 0x0A)
+            *ptr = ',';
+    }
+    *ptr = ',';
 }
 
 bool BtnGridView::blacklisted_app(GridItem new_item) {
-    std::string app_name = new_item.text;
+    std::string app_name = new_item.text + ",";
 
     if (blacklist_len < app_name.size())
         return false;
