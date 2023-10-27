@@ -246,7 +246,7 @@ void load_blacklist() {
     if (error)
         return;
 
-    // allocating one extra byte for trailing comma
+    // allocating two extra bytes for leading & trailing commas
     blacklist_ptr = std::unique_ptr<char>(new char[f.size() + 2]);
     if (f.read(blacklist_ptr.get() + 1, f.size())) {
         blacklist_len = f.size() + 2;
