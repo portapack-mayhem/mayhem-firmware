@@ -124,6 +124,9 @@ class BTLETxProcessor : public BasebandProcessor {
     uint32_t sample_count{0};
     uint32_t phase{0}, sphase{0};
 
+    uint8_t cur_bit{0};
+    uint16_t bit_pos{0};
+
     // clang-format off
     const int8_t gauss_coef_int8[16] = {
     0, 0, 0, 0, 2, 11, 32, 53, 60, 53, 32, 11, 2, 0, 0, 0, };

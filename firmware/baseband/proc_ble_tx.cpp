@@ -28,6 +28,8 @@
 
 #include <cstdint>
 
+//#define new_way
+
 int BTLETxProcessor::gen_sample_from_phy_bit(char *bit, char *sample, int num_bit) {
   int num_sample = (num_bit*SAMPLE_PER_SYMBOL)+(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL);
 
@@ -35,16 +37,21 @@ int BTLETxProcessor::gen_sample_from_phy_bit(char *bit, char *sample, int num_bi
  
   int i, j;
 
-  for (i=0; i<(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-1); i++) {
+  for (i=0; i<(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-1); i++)
+  {
     tmp_phy_bit_over_sampling_int8[i] = 0;
   }
-  for (i=(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-1+num_bit*SAMPLE_PER_SYMBOL); i<(2*LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-2+num_bit*SAMPLE_PER_SYMBOL); i++) {
+  for (i=(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-1+num_bit*SAMPLE_PER_SYMBOL); i<(2*LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-2+num_bit*SAMPLE_PER_SYMBOL); i++) 
+  {
     tmp_phy_bit_over_sampling_int8[i] = 0;
   }
-  for (i=0; i<(num_bit*SAMPLE_PER_SYMBOL); i++) {
-    if (i%SAMPLE_PER_SYMBOL == 0) {
+  for (i=0; i<(num_bit*SAMPLE_PER_SYMBOL); i++) 
+  {
+    if (i%SAMPLE_PER_SYMBOL == 0) 
+    {
       tmp_phy_bit_over_sampling_int8[i+(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-1)] = ( bit[i/SAMPLE_PER_SYMBOL] ) * 2 - 1;
-    } else {
+    } else 
+    {
       tmp_phy_bit_over_sampling_int8[i+(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-1)] = 0;
     }
   }
@@ -54,9 +61,11 @@ int BTLETxProcessor::gen_sample_from_phy_bit(char *bit, char *sample, int num_bi
   sample[1] = sin_table_int8[tmp];
 
   int len_conv_result = num_sample - 1;
-  for (i=0; i<len_conv_result; i++) {
+  for (i=0; i<len_conv_result; i++) 
+  {
     int16_t acc = 0;
-    for (j=3; j<(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-4); j++) {
+    for (j=3; j<(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL-4); j++) 
+    {
       acc = acc + gauss_coef_int8[(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL)-j-1]*tmp_phy_bit_over_sampling_int8[i+j];
     }
 
@@ -282,7 +291,10 @@ int BTLETxProcessor::calculate_sample_for_ADV_IND(PKT_INFO *pkt) {
   fill_adv_pdu_header(pkt, txadd, rxadd, payload_len, pkt->info_bit+5*8);
   const char *checksumInit = "555555";
   crc24_and_scramble_to_gen_phy_bit((char *)checksumInit, pkt);
+
+  #ifdef new_way
   pkt->num_phy_sample = gen_sample_from_phy_bit(pkt->phy_bit, pkt->phy_sample, pkt->num_phy_bit);
+  #endif
 
   //disp_bit_in_hex(pkt->phy_sample, pkt->num_phy_sample);
 
@@ -311,7 +323,9 @@ int BTLETxProcessor::calculate_pkt_info( PKT_INFO *pkt ) {
   return(0);
 }
 
-void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
+void BTLETxProcessor::execute(const buffer_c8_t& buffer) 
+{
+  #ifdef new_way
     int8_t re, im;
 
     // // This is called at 4M/2048 = 1953Hz
@@ -356,6 +370,68 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
           im = 0;
       }
     }
+#else
+
+    int8_t re, im;
+
+    // This is called at 4M/2048
+
+    for (size_t i = 0; i < buffer.count; i++) 
+    {
+        if (configured) 
+        {
+            if (sample_count >= samples_per_bit) 
+            {
+                if (bit_pos > length) 
+                {
+                    // End of data
+                    cur_bit = 0;
+                    txprogress_message.done = true;
+                    shared_memory.application_queue.push(txprogress_message);
+                    configured = false;
+                } 
+                else 
+                {
+                    cur_bit = (packets.phy_bit[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
+                    bit_pos++;
+                    if (progress_count >= progress_notice) 
+                    {
+                        progress_count = 0;
+                        txprogress_message.progress++;
+                        txprogress_message.done = false;
+                        shared_memory.application_queue.push(txprogress_message);
+                    }
+                    else 
+                    {
+                        progress_count++;
+                    }
+                }
+                sample_count = 0;
+            } 
+            else 
+            {
+                sample_count++;
+            }
+
+            if (cur_bit)
+                phase += shift_one;
+            else
+                phase += shift_zero;
+
+            sphase = phase + (64 << 24);
+
+            re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
+            im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
+        } 
+        else 
+        {
+            re = 0;
+            im = 0;
+        }
+
+        buffer.p[i] = {re, im};
+    }
+#endif
 }
 
 void BTLETxProcessor::on_message(const Message* const message) {
@@ -381,9 +457,13 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     //memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_sample, packets.num_phy_sample);
 
     samples_per_bit = SAMPLE_PER_SYMBOL;
-    length = (uint32_t)packets.num_phy_sample;
 
-    // Maybe this is needed. Need to determine how this is different from the 1023 byte sin/cos table.
+#ifdef new_way
+    length = (uint32_t)packets.num_phy_sample;
+#else
+    length = (uint32_t)packets.num_phy_bit;
+#endif
+
     // 200kHz shift frequency of BLE
     shift_one = 200000 * (0xFFFFFFFFULL / 4000000);
     shift_zero = -shift_one;
@@ -392,17 +472,6 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     sample_count = 0;
     progress_count = 0;
     progress_notice = 64;
-
-    // data_message.is_data = false;
-    // data_message.value = (uint32_t)packets.num_phy_sample;
-    // shared_memory.application_queue.push(data_message);
-
-    //disp_bit_in_hex(packets.phy_sample,320);
-    //disp_bit_in_hex(packets.phy_bit, packets.num_phy_bit);
-
-    data_message.is_data = false;
-    data_message.value = 1;
-    shared_memory.application_queue.push(data_message);
 
     txprogress_message.progress = 0;
     txprogress_message.done = false;
