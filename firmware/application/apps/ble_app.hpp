@@ -151,6 +151,7 @@ class BLERxView : public View {
 
    private:
     void on_data(BlePacketData* packetData);
+    void on_switch_table(const std::string value);
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -164,6 +165,9 @@ class BLERxView : public View {
     uint8_t console_color{0};
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
+
+    std::string filterBuffer{};
+    std::string filter{};
 
     static constexpr auto header_height = 12 + 2 * 16;
 
@@ -209,6 +213,10 @@ class BLERxView : public View {
          {"dB", 1},
          {"Recent", 2}}};
 
+    Button button_message{
+        {22 * 8, 3 * 8, 4 * 8, 16},
+        "Filter"};
+
     Console console{
         {0, 4 * 16, 240, 240}};
 
@@ -223,6 +231,7 @@ class BLERxView : public View {
     //                             {"Time", 8}}};
 
     BleRecentEntries recent{};
+    BleRecentEntries filterEntries{};
 
     const RecentEntriesColumns columns{{
         {"Mac Address", 20},
@@ -231,6 +240,7 @@ class BLERxView : public View {
 
     BleRecentEntry entry_{};
     BleRecentEntriesView recent_entries_view{columns, recent};
+    BleRecentEntriesView recent_entries_filter_view{columns, filterEntries};
     BleRecentEntryDetailView recent_entry_detail_view{nav_, entry_};
 
     MessageHandlerRegistration message_handler_packet{
