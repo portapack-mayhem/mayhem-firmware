@@ -121,7 +121,7 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     if (is_data)
     {
         str_log += to_string_hex(value, 2);
-        str_console += to_string_hex(value, 2) + " ";
+        str_console += to_string_dec_uint(value) + " ";
     }
     else
     {
