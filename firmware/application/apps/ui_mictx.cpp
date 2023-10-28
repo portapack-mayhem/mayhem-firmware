@@ -208,6 +208,8 @@ MicTXView::MicTXView(
 
     baseband::run_image(portapack::spi_flash::image_tag_mic_tx);
 
+    use_app_settings = settings_.loaded();
+
     bool wm = (audio::debug::codec_name() == "WM8731");
     add_children({&labels_both,
                   wm ? &labels_WM8731 : &labels_AK4951,  // enable ALC if AK4951
@@ -243,11 +245,11 @@ MicTXView::MicTXView(
         tone_key_index = i;
     };
 
-    options_gain.set_by_value(mic_gain_x10);  // x1.0 preselected default.
     options_gain.on_change = [this](size_t, int32_t v) {
         mic_gain_x10 = v;
         configure_baseband();
     };
+    options_gain.set_by_value(mic_gain_x10);  // x1.0 preselected default.
 
     if (audio::debug::codec_name() == "WM8731") {
         options_wm8731_boost_mode.on_change = [this](size_t, int8_t v) {
@@ -290,7 +292,7 @@ MicTXView::MicTXView(
     }
 
     tx_frequency = transmitter_model.target_frequency();
-    field_frequency.set_value(transmitter_model.target_frequency());
+    field_frequency.set_value(tx_frequency);
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_change = [this](rf::Frequency f) {
         tx_frequency = f;
@@ -298,7 +300,7 @@ MicTXView::MicTXView(
             transmitter_model.set_target_frequency(f);
         } else {                                         // activated receiver.
             if (bool_same_F_tx_rx_enabled)               // user selected common freq- TX = RX
-                receiver_model.set_target_frequency(f);  // Update common freq also for RX
+                this->field_rxfrequency.set_value(f);
         }
     };
     field_frequency.on_edit = [this, &nav]() {
@@ -306,15 +308,7 @@ MicTXView::MicTXView(
         // TODO: Provide separate modal method/scheme?
         auto new_view = nav.push<FrequencyKeypadView>(tx_frequency);
         new_view->on_changed = [this](rf::Frequency f) {
-            tx_frequency = f;
-            if (!rx_enabled) {
-                transmitter_model.set_target_frequency(f);
-            } else {
-                if (bool_same_F_tx_rx_enabled)
-                    receiver_model.set_target_frequency(f);  // Update freq also for RX
-            }
             this->field_frequency.set_value(f);
-            set_dirty();
         };
     };
 
@@ -326,6 +320,8 @@ MicTXView::MicTXView(
     // now, no need direct update, field_rfgain, field_rfamp (it is done in ui_transmitter.cpp)
 
     options_mode.on_change = [this](size_t, int32_t v) {  // { "NFM/FM", 0 }, { " WFM  ", 1 }, { "AM", 2 }, { "USB", 3 }, { "LSB", 4 }, { "DSB", 5 }
+        mic_mode_index = v;
+    
         enable_am = false;
         enable_usb = false;
         enable_lsb = false;
@@ -342,7 +338,9 @@ MicTXView::MicTXView(
                 enable_usb = false;
                 enable_lsb = false;
                 enable_dsb = false;
-                field_bw.set_value(10);  // pre-default deviation FM for WFM
+
+                if (!use_app_settings)
+                    field_bw.set_value(10);  // pre-default deviation FM for WFM
                 // field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
                 // if (rx_enabled)
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
@@ -359,7 +357,9 @@ MicTXView::MicTXView(
                 enable_lsb = false;
                 enable_dsb = false;
                 enable_wfm = true;
-                field_bw.set_value(75);  // pre-default deviation FM for WFM
+
+                if (!use_app_settings)
+                    field_bw.set_value(75);  // pre-default deviation FM for WFM
                 // field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
                 // if (rx_enabled)
                 rxaudio(rx_enabled);         // Update now if we have RX audio on
@@ -421,20 +421,20 @@ MicTXView::MicTXView(
         }
         // configure_baseband();
     };
+    options_mode.set_selected_index(mic_mode_index);
 
-    check_va.set_value(va_enabled);
     check_va.on_select = [this](Checkbox&, bool v) {
         va_enabled = v;
         if (va_enabled)
             check_rxactive.set_value(false);  // Disallow RX-audio in VOX mode (for now) - Future TODO: Should allow VOX during RX audio
     };
+    check_va.set_value(va_enabled);
 
     check_rogerbeep.set_value(rogerbeep_enabled);
     check_rogerbeep.on_select = [this](Checkbox&, bool v) {
         rogerbeep_enabled = v;
     };
 
-    check_mic_to_HP.set_value(mic_to_HP_enabled);
     check_mic_to_HP.on_select = [this](Checkbox&, bool v) {
         mic_to_HP_enabled = v;
         if (mic_to_HP_enabled)
@@ -448,20 +448,19 @@ MicTXView::MicTXView(
                 options_ak4951_alc_mode.set_selected_index(1);    // alc_mode =0 , means no ALC,no DIGITAL filter block (by passed), and that mode has no loopback mode.
         }
     };
+    check_mic_to_HP.set_value(mic_to_HP_enabled);
 
-    check_common_freq_tx_rx.set_value(bool_same_F_tx_rx_enabled);
     check_common_freq_tx_rx.on_select = [this](Checkbox&, bool v) {
         bool_same_F_tx_rx_enabled = v;
-        field_rxfrequency.hidden(v);                                           // Hide or show separated freq RX field. (When no hide user can enter down indep. freq for RX)
-        set_dirty();                                                           // Refresh GUI interface
         receiver_model.set_target_frequency(v ? tx_frequency : rx_frequency);  // To go to the proper tuned freq. when toggling it
     };
+    check_common_freq_tx_rx.set_value(bool_same_F_tx_rx_enabled);
 
-    field_va_level.set_value(va_level);
     field_va_level.on_change = [this](int32_t v) {
         va_level = v;
         vumeter.set_mark(v);
     };
+    field_va_level.set_value(va_level);
 
     field_va_attack.set_value(attack_ms);
     field_va_attack.on_change = [this](int32_t v) {
@@ -473,7 +472,6 @@ MicTXView::MicTXView(
         decay_ms = v;
     };
 
-    check_rxactive.set_value(rx_enabled);
     check_rxactive.on_select = [this](Checkbox&, bool v) {
         //		vumeter.set_value(0);	//Start with a clean vumeter
         rx_enabled = v;
@@ -487,8 +485,10 @@ MicTXView::MicTXView(
         rxaudio(v);   // Activate-Deactivate audio RX (receiver) accordingly
         set_dirty();  // Refresh interface
     };
+    check_rxactive.set_value(rx_enabled);
 
     field_rxbw.on_change = [this](size_t, int32_t v) {
+        rxbw_index = v;
         if (!(enable_am || enable_usb || enable_lsb || enable_dsb || enable_wfm)) {
             // In Previous fw versions, that nbfm_configuration(n) was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in (NFM/FM)
             receiver_model.set_nbfm_configuration(v);    // we are in NFM/FM case, we need to select proper NFM/FM RX channel filter, NFM BW 8K5(0), NFM BW 11K(1), FM BW 16K (2)
@@ -504,6 +504,7 @@ MicTXView::MicTXView(
             }
         }
     };
+    field_rxbw.set_by_value(rxbw_index);
 
     field_squelch.set_value(receiver_model.squelch_level());
     field_squelch.on_change = [this](int32_t v) {
@@ -517,17 +518,15 @@ MicTXView::MicTXView(
         rx_frequency = f;
         if (rx_enabled)
             receiver_model.set_target_frequency(f);
+        if (bool_same_F_tx_rx_enabled)
+            field_frequency.set_value(f);
     };
     field_rxfrequency.on_edit = [this, &nav]() {  // available when field rxfrequency not hidden => user selected separated freq RX/TX-
         focused_ui = 1;
         // TODO: Provide separate modal method/scheme?
         auto new_view = nav.push<FrequencyKeypadView>(rx_frequency);
         new_view->on_changed = [this](rf::Frequency f) {
-            rx_frequency = f;
-            if (rx_enabled)
-                receiver_model.set_target_frequency(f);
             this->field_rxfrequency.set_value(f);
-            set_dirty();
         };
     };
 
@@ -579,6 +578,9 @@ MicTXView::MicTXView(
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::input::start(ak4951_alc_and_wm8731_boost_GUI, mic_to_HP_enabled);  // set up ALC mode (AK4951) or set up mic_boost ON/OFF (WM8731). and the check box "Hear Mic"
+
+    // done with startup app settings; revert to defaults now if mode subsequently changes
+    use_app_settings = false;
 }
 
 MicTXView::MicTXView(
