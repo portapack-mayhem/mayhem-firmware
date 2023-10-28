@@ -296,12 +296,10 @@ MicTXView::MicTXView(
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_change = [this](rf::Frequency f) {
         tx_frequency = f;
-        if (!rx_enabled) {                               // not activated receiver. just update freq TX
+        if (!rx_enabled)
             transmitter_model.set_target_frequency(f);
-        } else {                                         // activated receiver.
-            if (bool_same_F_tx_rx_enabled)               // user selected common freq- TX = RX
-                this->field_rxfrequency.set_value(f);
-        }
+        if (bool_same_F_tx_rx_enabled)
+            this->field_rxfrequency.set_value(f);
     };
     field_frequency.on_edit = [this, &nav]() {
         focused_ui = 0;
