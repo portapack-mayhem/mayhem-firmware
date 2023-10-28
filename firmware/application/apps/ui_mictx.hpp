@@ -88,7 +88,7 @@ class MicTXView : public View {
     };
 
     // Settings
-    uint32_t mic_mode_index{0};
+    uint32_t mode_index{0};
     uint32_t rxbw_index{0};
     bool va_enabled{false};
     bool rogerbeep_enabled{false};
@@ -106,7 +106,7 @@ class MicTXView : public View {
         app_settings::Mode::RX_TX,
         app_settings::Options::UseGlobalTargetFrequency,
         {
-            {"mic_mode_index"sv, &mic_mode_index},
+            {"mode_index"sv, &mode_index},
             {"rxbw_index"sv, &rxbw_index},
             {"va_enabled"sv, &va_enabled},
             {"rogerbeep_enabled"sv, &rogerbeep_enabled},

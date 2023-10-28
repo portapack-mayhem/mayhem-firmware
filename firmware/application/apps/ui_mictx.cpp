@@ -296,7 +296,7 @@ MicTXView::MicTXView(
     field_frequency.set_step(receiver_model.frequency_step());
     field_frequency.on_change = [this](rf::Frequency f) {
         tx_frequency = f;
-        if (!rx_enabled) {  // not activated receiver. just update freq TX
+        if (!rx_enabled) {                               // not activated receiver. just update freq TX
             transmitter_model.set_target_frequency(f);
         } else {                                         // activated receiver.
             if (bool_same_F_tx_rx_enabled)               // user selected common freq- TX = RX
@@ -320,8 +320,8 @@ MicTXView::MicTXView(
     // now, no need direct update, field_rfgain, field_rfamp (it is done in ui_transmitter.cpp)
 
     options_mode.on_change = [this](size_t, int32_t v) {  // { "NFM/FM", 0 }, { " WFM  ", 1 }, { "AM", 2 }, { "USB", 3 }, { "LSB", 4 }, { "DSB", 5 }
-        mic_mode_index = v;
-    
+        mode_index = v;
+
         enable_am = false;
         enable_usb = false;
         enable_lsb = false;
@@ -421,7 +421,7 @@ MicTXView::MicTXView(
         }
         // configure_baseband();
     };
-    options_mode.set_selected_index(mic_mode_index);
+    options_mode.set_selected_index(mode_index);
 
     check_va.on_select = [this](Checkbox&, bool v) {
         va_enabled = v;
