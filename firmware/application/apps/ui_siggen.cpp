@@ -87,10 +87,19 @@ SigGenView::SigGenView(
                   &field_stop,
                   &tx_view});
 
+    symfield_tone.hidden(1);        // At first launch , by default we are in CW Shape has NO MOD , we are not using Tone modulation.
+    symfield_tone.set_value(1000);  // Default: 1000 Hz
     options_shape.on_change = [this](size_t, OptionsField::value_t v) {
         text_shape.set(shape_strings[v]);
         if (auto_update)
             update_config();
+        if ((v == 0) || (v == 6)) {  // In Shapes Options (CW & Pseudo Random Noise) we are not using Tone modulation freq.
+            symfield_tone.hidden(1);
+            set_dirty();
+        } else {
+            symfield_tone.hidden(0);
+            set_dirty();
+        }
     };
     options_shape.set_selected_index(0);
     text_shape.set(shape_strings[0]);
