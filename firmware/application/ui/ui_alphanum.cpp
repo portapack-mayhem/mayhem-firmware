@@ -118,7 +118,15 @@ void AlphanumView::refresh_keys() {
 
     size_t n = 0;
     for (auto& button : buttons) {
-        button.set_text(std::string{key_list[n]});
+        if (n > strlen(key_list))
+        {
+            button.set_text(std::string{'\0'});
+        }
+        else
+        {
+            button.set_text(std::string{key_list[n]});
+        }
+
         n++;
     }
 
@@ -137,7 +145,10 @@ void AlphanumView::refresh_keys() {
 
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
-    char_add(c);
+    if (c != '\0')
+    {
+        char_add(c);
+    }
 
     // TODO: Consolidate shift handling.
     if (shift_mode == ShiftMode::Shift) {
