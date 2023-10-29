@@ -95,11 +95,10 @@ SigGenView::SigGenView(
             update_config();
         if ((v == 0) || (v == 6)) {  // In Shapes Options (CW & Pseudo Random Noise) we are not using Tone modulation freq.
             symfield_tone.hidden(1);
-            set_dirty();
         } else {
             symfield_tone.hidden(0);
-            set_dirty();
         }
+        set_dirty();
     };
     options_shape.set_selected_index(0);
     text_shape.set(shape_strings[0]);
