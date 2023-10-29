@@ -48,42 +48,63 @@ bool BLETxView::is_active() const {
     return (bool)is_running;
 }
 
-void BLETxView::toggle() {
+void BLETxView::toggle() 
+{
     if (is_active()) {
-        stop(false);
+        stop();
     } else {
         start();
     }
 }
 
 void BLETxView::start() {
-    stop(false);
+    if ((packet_count % 10) == 0)
+    {
+        console.clear(true);
+        console.write("Transmitting Packet:" + to_string_dec_uint(packet_count));
+    }
+
+    packet_count++;
+
     progressbar.set_max(20);
     button_play.set_bitmap(&bitmap_stop);
-    baseband::set_btletx(channel_number);
+    baseband::set_btletx(channel_number); 
     transmitter_model.enable();
-    //console.clear(true);
-
     is_running = true;
 }
 
-void BLETxView::stop(const bool do_loop) {
+void BLETxView::stop() {
 
-    if (do_loop) {
-        start();
-    } else {
-        transmitter_model.disable();
-        progressbar.set_value(0);
-        button_play.set_bitmap(&bitmap_play);
-        is_running = false;
-    }
+    transmitter_model.disable();
+    progressbar.set_value(0);
+    button_play.set_bitmap(&bitmap_play);
+
+    is_running = false;
 }
 
 void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
-    if (done) {
-        //console.writeln("Sent Packet :)");
-        stop(check_loop.value());
-    } else
+    
+    repeatLoop = check_loop.value();
+
+    if (done) 
+    {
+        if (repeatLoop)
+        {
+            if ((timer_count % timer_period) == 0)
+            {
+                stop();
+                start();
+            }
+        }
+        else
+        {
+            packet_count = 0;
+            stop();
+        }
+
+        timer_count++;
+    } 
+    else
         progressbar.set_value(progress);
 }
 
@@ -101,6 +122,8 @@ BLETxView::BLETxView(NavigationView& nav)
             &tx_view,  // now it handles previous rfgain, rfamp.
             &check_loop,
             &button_play,
+            &label_speed,
+            &options_speed,
             &console});
 
     field_frequency.set_step(0);
@@ -108,6 +131,12 @@ BLETxView::BLETxView(NavigationView& nav)
     button_play.on_select = [this](ImageButton&) {
         this->toggle();
     };
+
+    options_speed.on_change = [this](size_t, int32_t i) {
+        timer_period = i;
+    };
+
+    options_speed.set_selected_index(0);
 
     logger = std::make_unique<BLELoggerTx>();
 

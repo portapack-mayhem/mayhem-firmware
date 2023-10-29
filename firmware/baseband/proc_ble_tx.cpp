@@ -333,15 +333,13 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer)
     // // This is called at 4M/2048 = 1953Hz
     for (size_t i = 0; i < buffer.count; i++) 
     {
-      if (configured && ((process % 8) == 0)) 
+      if (configured) 
       {
         // This is going to loop through each sample bit and push it to the output buffer.
         if (sample_count > length) 
         {
             configured = false;
             sample_count = 0;
-            txprogress_message.done = true;
-            shared_memory.application_queue.push(txprogress_message);
         } 
         else 
         {
@@ -373,6 +371,9 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer)
         buffer.p[i] = {re, im};
     }
   }
+
+  txprogress_message.done = true;
+  shared_memory.application_queue.push(txprogress_message);
 
 #else
 
@@ -460,7 +461,8 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     // using the bits sent in by the UI level. In short, we will seperate this implementation to the UI level.
     //memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_sample, packets.num_phy_sample);
 
-    samples_per_bit = 4;
+    // 2 Sample buffers for each IQ data.
+    samples_per_bit = 8;
 
 #ifdef new_way
     // This is because each sample contains I and Q, but packet.num_phy_samples just returns the total samples.

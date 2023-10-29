@@ -64,7 +64,7 @@ class BLETxView : public View {
     bool is_active() const;
     void toggle();
     void start();
-    void stop(const bool do_loop);
+    void stop();
     void handle_replay_thread_done(const uint32_t return_code);
 
     std::string title() const override { return "BLE TX"; };
@@ -86,8 +86,12 @@ class BLETxView : public View {
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
     bool is_running = false;
+    uint64_t timer_count{0};
+    uint64_t timer_period{256};
+    bool repeatLoop = false;
+    uint64_t packet_count{0};
 
-    static constexpr auto header_height = 12 + 3 * 16;
+    static constexpr auto header_height = 12 + 4 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -124,9 +128,21 @@ class BLETxView : public View {
         &bitmap_play,
         Color::green(),
         Color::black()};
+     
+    Labels label_speed{
+    {{0 * 8, 6 * 8}, "Speed:", Color::light_grey()}};
+
+    OptionsField options_speed{
+        {7 * 8, 6 * 8},
+        3,
+        {{"1 ", 256},
+        {"2 ", 128},
+        {"3 ", 64},
+        {"4 ", 32},
+        {"5 ", 16}}};
 
     Console console{
-    {0, 3 * 16, 240, 240}};
+    {0, 5 * 16, 240, 240}};
 
     std::string str_log{""};
     bool logging{true};
