@@ -77,6 +77,7 @@ struct BleRecentEntry {
     int dbValue;
     BlePacketData packetData;
     std::string timestamp;
+    std::string dataString;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -87,14 +88,13 @@ struct BleRecentEntry {
         : macAddress{macAddress},
           dbValue{},
           packetData{},
-          timestamp{} {
+          timestamp{},
+          dataString{} {
     }
 
     Key key() const {
         return macAddress;
     }
-
-    // void update(const BlePacketData * packet);
 };
 
 using BleRecentEntries = RecentEntries<BleRecentEntry>;
@@ -152,6 +152,7 @@ class BLERxView : public View {
    private:
     void on_data(BlePacketData* packetData);
     void on_switch_table(const std::string value);
+    void updateEntry(const BlePacketData * packet, BleRecentEntry& entry);
 
     NavigationView& nav_;
     RxRadioState radio_state_{

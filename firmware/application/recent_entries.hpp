@@ -95,6 +95,20 @@ void sortEntriesBy(ContainerType& entries, KeySelector keySelector, SortOrder as
     });
 }
 
+template <typename ContainerType, typename KeySelector>
+void removeEntriesWithoutKey(ContainerType& entries, ContainerType& filteredEntries, KeySelector keySelector) {
+    // Clear the filteredEntries container
+    filteredEntries.clear();
+    
+    auto it = entries.begin();
+    while (it != entries.end()) {
+        if (!keySelector(*it)) {
+            filteredEntries.emplace_front(*it); // Add a new entry to filteredEntries
+        }
+        ++it; // Move to the next element, outside of the if block
+    }
+}
+
 namespace ui {
 
 using RecentEntriesColumn = std::pair<std::string, size_t>;

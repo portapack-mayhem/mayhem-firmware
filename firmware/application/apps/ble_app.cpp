@@ -227,6 +227,10 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
+    recent_entries_filter_view.on_select = [this](const BleRecentEntry& entry) {
+        nav_.push<BleRecentEntryDetailView>(entry);
+    };
+
     button_message.on_select = [this, &nav](Button&) {
         text_prompt(
                 nav,
@@ -258,14 +262,20 @@ BLERxView::BLERxView(NavigationView& nav)
             case 0:
                 sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+                sortEntriesBy(
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
                 break;
             case 1:
                 sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+                sortEntriesBy(
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
                 break;
             case 2:
                 sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+                sortEntriesBy(
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
                 break;
             default:
                 break;
@@ -333,8 +343,6 @@ void BLERxView::on_data(BlePacketData* packet) {
             break;
     }
 
-    // str_console += to_string_dec_uint(value);
-
     str_console += " Len:";
     str_console += to_string_dec_uint(packet->size);
 
@@ -349,7 +357,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     int i;
 
     for (i = 0; i < packet->dataLen; i++) {
-        str_console += " " + to_string_hex(packet->data[i], 2);
+        str_console += to_string_hex(packet->data[i], 2);
     }
 
     str_console += "\n";
@@ -359,9 +367,65 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+    updateEntry(packet, entry);
+
+    // Log at End of Packet.
+    if (logger && logging) {
+        logger->log_raw_data(str_console);
+    }
+}
+
+void BLERxView::on_switch_table(const std::string value) {
+
+    filter = value;
+
+    if (!value.empty())
+    {
+        removeEntriesWithoutKey(recent, filterEntries, [&value](const BleRecentEntry& entry) {
+            return entry.dataString.find(value) == std::string::npos;
+        });
+
+        recent_entries_view.set_dirty();
+
+        recent_entries_filter_view.hidden(false);
+        recent_entries_view.hidden(true);
+    }
+    else
+    {
+        recent_entries_view.hidden(false);
+        recent_entries_filter_view.hidden(true);
+    }
+
+    recent_entries_view.set_dirty();
+    recent_entries_filter_view.set_dirty();
+}
+
+void BLERxView::set_parent_rect(const Rect new_parent_rect) {
+    View::set_parent_rect(new_parent_rect);
+    const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    recent_entries_view.set_parent_rect(content_rect);
+    recent_entry_detail_view.set_parent_rect(content_rect);
+    recent_entries_filter_view.set_parent_rect(content_rect);
+}
+
+BLERxView::~BLERxView() {
+    receiver_model.disable();
+    baseband::shutdown();
+}
+
+void BLERxView::updateEntry(const BlePacketData * packet, BleRecentEntry& entry)
+{
+    std::string data_string;
+
+    int i;
+
+    for (i = 0; i < packet->dataLen; i++) {
+        data_string += to_string_hex(packet->data[i], 2);
+    }
 
     entry.dbValue = packet->max_dB;
     entry.timestamp = to_string_timestamp(rtc_time::now());
+    entry.dataString = data_string;
 
     entry.packetData.type = packet->type;
     entry.packetData.size = packet->size;
@@ -384,65 +448,31 @@ void BLERxView::on_data(BlePacketData* packet) {
         case 0:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
             break;
         case 1:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             break;
         case 2:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             break;
         default:
             break;
     }
 
-    recent_entries_view.set_dirty();
+    on_switch_table(filter);
 
     // TODO: Crude hack, should be a more formal listener arrangement...
     if (entry.key() == recent_entry_detail_view.entry().key()) {
         recent_entry_detail_view.set_entry(entry);
     }
-
-    // Log at End of Packet.
-    if (logger && logging) {
-        logger->log_raw_data(str_console);
-    }
 }
-
-void BLERxView::on_switch_table(const std::string value) {
-
-    filter = value;
-
-    if (filter == "1")
-    {
-        recent_entries_filter_view.hidden(false);
-        recent_entries_view.hidden(true);
-    }
-    else
-    {
-        recent_entries_view.hidden(false);
-        recent_entries_filter_view.hidden(true);
-    }
-}
-
-void BLERxView::set_parent_rect(const Rect new_parent_rect) {
-    View::set_parent_rect(new_parent_rect);
-    const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
-    recent_entries_view.set_parent_rect(content_rect);
-    recent_entry_detail_view.set_parent_rect(content_rect);
-    recent_entries_filter_view.set_parent_rect(content_rect);
-}
-
-BLERxView::~BLERxView() {
-    receiver_model.disable();
-    baseband::shutdown();
-}
-
-// BleRecentEntry
-// void BleRecentEntry::update(const BlePacketData * packet)
-// {
-
-// }
 
 } /* namespace ui */
