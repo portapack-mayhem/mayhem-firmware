@@ -294,11 +294,9 @@ int BTLETxProcessor::calculate_sample_for_ADV_IND(PKT_INFO* pkt) {
     pkt->num_info_bit = pkt->num_info_bit + 16;  // 16 is header length
 
     // get AdvA and AdvData
-    const char* AdvA = "010203040506";
-    const char* AdvData = "0201060EFF5208027349E976000001005E0B06085242333030";
-    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit((char*)AdvA, pkt->info_bit + pkt->num_info_bit, 1, 6);
+    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit(macAddress, pkt->info_bit + pkt->num_info_bit, 1, 6);
 
-    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit((char*)AdvData, pkt->info_bit + pkt->num_info_bit, 0, 31);
+    pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit(advertisementData, pkt->info_bit + pkt->num_info_bit, 0, 31);
 
     int payload_len = (pkt->num_info_bit / 8) - 7;
 
@@ -434,6 +432,9 @@ void BTLETxProcessor::on_message(const Message* const message) {
 
 void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     channel_number = message.channel_number;
+
+    memcpy(macAddress, message.macAddress, sizeof(macAddress));
+    memcpy(advertisementData, message.advertisementData, sizeof(advertisementData));
 
     packets.channel_number = channel_number;
     packets.pkt_type = packetType;

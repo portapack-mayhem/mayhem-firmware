@@ -115,6 +115,8 @@ class BTLETxProcessor : public BasebandProcessor {
 
     uint32_t samples_per_bit{4};
     uint32_t channel_number{37};
+    char macAddress[13] = "FFFFFFFFFF";
+    char advertisementData[63] = {0};
 
     uint32_t length{0};
     uint32_t shift_zero{}, shift_one{};

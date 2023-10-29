@@ -22,17 +22,21 @@
  */
 
 #include "ble_tx_app.hpp"
+
+#include "ui_fileman.hpp"
 #include "ui_modemsetup.hpp"
 
-#include "modems.hpp"
 #include "audio.hpp"
-#include "rtc_time.hpp"
 #include "baseband_api.hpp"
-#include "string_format.hpp"
+#include "io_file.hpp"
+#include "modems.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "rtc_time.hpp"
+#include "string_format.hpp"
 
 using namespace portapack;
 using namespace modems;
+namespace fs = std::filesystem;
 
 void BLELoggerTx::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
@@ -48,6 +52,10 @@ bool BLETxView::is_active() const {
     return (bool)is_running;
 }
 
+void BLETxView::file_error() {
+    nav_.display_modal("Error", "File read error.");
+}
+
 void BLETxView::toggle() {
     if (is_active()) {
         stop();
@@ -57,25 +65,71 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
-    if ((packet_count % 10) == 0) {
-        console.clear(true);
-        console.write("Transmitting Packet:" + to_string_dec_uint(packet_count));
+
+    if (!is_running)
+    {
+        File::Size file_size{};
+        File data_file;
+
+        auto error = data_file.open(file_path);
+        if (error) {
+            file_error();
+            check_loop.set_value(false);
+            return;
+        }
+
+        file_size = data_file.size();
+
+        // Read Mac Address.
+        data_file.read(macAddress, 12);
+        
+        uint8_t spaceChar;
+        // Skip space.
+        data_file.read(&spaceChar, 1);
+
+        // Read Advertisement Data.
+        data_file.read(advertisementData, 62);
+
+        if ((strlen(advertisementData) > 62) || (strlen(macAddress) != 12))
+        {
+            console.clear(true);
+            console.writeln(to_string_dec_uint(strlen(macAddress)));
+            console.writeln(to_string_dec_uint(strlen(advertisementData)));
+            console.writeln(macAddress);
+            console.writeln(advertisementData);
+            check_loop.set_value(false);
+            return;
+       }
+        else
+        {
+            console.clear(true);
+            console.writeln(macAddress);
+            console.writeln(advertisementData);
+
+            progressbar.set_max(20);
+            button_play.set_bitmap(&bitmap_stop);
+            transmitter_model.enable();
+
+            is_running = true;
+        }
     }
 
-    packet_count++;
+    if (is_running)
+    {
+        baseband::set_btletx(channel_number, macAddress, advertisementData);
 
-    progressbar.set_max(20);
-    button_play.set_bitmap(&bitmap_stop);
-    baseband::set_btletx(channel_number);
-    transmitter_model.enable();
-    is_running = true;
+        if ((packet_count % 10) == 0) {
+            text_packets_sent.set(to_string_dec_uint(packet_count));
+        }
+
+        packet_count++;
+    }
 }
 
 void BLETxView::stop() {
     transmitter_model.disable();
     progressbar.set_value(0);
     button_play.set_bitmap(&bitmap_play);
-
     is_running = false;
 }
 
@@ -85,7 +139,7 @@ void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
         if (repeatLoop) {
             if ((timer_count % timer_period) == 0) {
-                stop();
+                progressbar.set_value(0);
                 start();
             }
         } else {
@@ -113,6 +167,8 @@ BLETxView::BLETxView(NavigationView& nav)
                   &button_play,
                   &label_speed,
                   &options_speed,
+                  &label_packets_sent,
+                  &text_packets_sent,
                   &console});
 
     field_frequency.set_step(0);
@@ -127,32 +183,35 @@ BLETxView::BLETxView(NavigationView& nav)
 
     options_speed.set_selected_index(0);
 
-    logger = std::make_unique<BLELoggerTx>();
+    button_open.on_select = [this, &nav](Button&) {
+        auto open_view = nav.push<FileLoadView>(".TXT");
+        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            on_file_changed(new_file_path);
+        };
+    };
+}
 
-    // if (logger && logging)
-    // logger->append(LOG_ROOT_DIR "/BLELOGTX_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+void BLETxView::on_file_changed(const fs::path& new_file_path) {
+    file_path = fs::path(u"/") + new_file_path;
+
+    {  // Get the size of the data file.
+        File data_file;
+        auto error = data_file.open(file_path);
+        if (error) {
+            file_error();
+            return;
+        }
+
+        text_filename.set(truncate(file_path.filename().string(), 12));
+    }
 }
 
 void BLETxView::on_data(uint32_t value, bool is_data) {
     std::string str_console = "";
 
     if (is_data) {
-        str_log += to_string_hex(value, 2);
-        str_console += to_string_dec_uint(value) + " ";
-    } else {
-        logging_done = true;
-    }
-
-    if (!logging) {
-        str_log = "";
-    }
-
-    // Log at End of Packet.
-    if (0) {
-        logger->log_raw_data(str_log);
-        logging_done = false;
-        str_log = "";
-    }
+        str_console += (char)(value);
+    } 
 
     console.write(str_console);
 }

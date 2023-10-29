@@ -444,14 +444,20 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
         case 0:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
             break;
         case 1:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             break;
         case 2:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             break;
         default:
             break;

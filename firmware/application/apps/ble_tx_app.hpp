@@ -32,10 +32,14 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "replay_thread.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
 
 #include "recent_entries.hpp"
+
+#include <string>
+#include <memory>
 
 class BLELoggerTx {
    public:
@@ -66,12 +70,14 @@ class BLETxView : public View {
     void start();
     void stop();
     void handle_replay_thread_done(const uint32_t return_code);
+    void file_error();
 
     std::string title() const override { return "BLE TX"; };
 
    private:
     void on_data(uint32_t value, bool is_data);
     void on_tx_progress(const uint32_t progress, const bool done);
+    void on_file_changed(const std::filesystem::path& new_file_path);
 
     NavigationView& nav_;
     TxRadioState radio_state_{
@@ -84,14 +90,19 @@ class BLETxView : public View {
 
     uint8_t console_color{0};
     uint32_t prev_value{0};
+
+    std::filesystem::path file_path{};
     uint8_t channel_number = 37;
+    char macAddress[13] = "010203040506";
+    char advertisementData[63] = "0201060EFF5208027349E976000001005E0B06085242333030";
+
     bool is_running = false;
     uint64_t timer_count{0};
     uint64_t timer_period{256};
     bool repeatLoop = false;
     uint64_t packet_count{0};
 
-    static constexpr auto header_height = 12 + 4 * 16;
+    static constexpr auto header_height = 12 + 5 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -140,6 +151,13 @@ class BLETxView : public View {
          {"3 ", 64},
          {"4 ", 32},
          {"5 ", 16}}};
+
+    Labels label_packets_sent{
+        {{0 * 8, 8 * 8}, "Packets Sent:", Color::light_grey()}};
+
+    Text text_packets_sent{
+        {14 * 8, 4 * 16, 6 * 8, 16},
+        "-"};
 
     Console console{
         {0, 5 * 16, 240, 240}};
