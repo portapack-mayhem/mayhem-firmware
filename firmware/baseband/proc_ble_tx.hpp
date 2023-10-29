@@ -33,17 +33,16 @@ class BTLETxProcessor : public BasebandProcessor {
     void configure(const BTLETxConfigureMessage& message);
 
    private:
-    static constexpr int max_char {256};
-    static constexpr int SAMPLE_PER_SYMBOL {4};
-    static constexpr float AMPLITUDE {127.0};
-    static constexpr float MOD_IDX {0.5};
-    static constexpr int LEN_GAUSS_FILTER {4};
-    static constexpr int MAX_NUM_INFO_BYTE {43};
-    static constexpr int MAX_NUM_PHY_BYTE {47};
-    static constexpr int MAX_NUM_PHY_SAMPLE {(MAX_NUM_PHY_BYTE*8*SAMPLE_PER_SYMBOL)+(LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL)};
+    static constexpr int max_char{256};
+    static constexpr int SAMPLE_PER_SYMBOL{4};
+    static constexpr float AMPLITUDE{127.0};
+    static constexpr float MOD_IDX{0.5};
+    static constexpr int LEN_GAUSS_FILTER{4};
+    static constexpr int MAX_NUM_INFO_BYTE{43};
+    static constexpr int MAX_NUM_PHY_BYTE{47};
+    static constexpr int MAX_NUM_PHY_SAMPLE{(MAX_NUM_PHY_BYTE * 8 * SAMPLE_PER_SYMBOL) + (LEN_GAUSS_FILTER * SAMPLE_PER_SYMBOL)};
 
-    enum PKT_TYPE
-    {
+    enum PKT_TYPE {
         INVALID_TYPE,
         RAW,
         DISCOVERY,
@@ -73,47 +72,46 @@ class BTLETxProcessor : public BasebandProcessor {
         NUM_PKT_TYPE
     };
 
-    struct PKT_INFO
-    {
+    struct PKT_INFO {
         int channel_number;
         PKT_TYPE pkt_type;
 
         int num_info_bit;
-        char info_bit[MAX_NUM_PHY_BYTE*8]; // without CRC and whitening
+        char info_bit[MAX_NUM_PHY_BYTE * 8];  // without CRC and whitening
 
         int num_info_byte;
         uint8_t info_byte[MAX_NUM_PHY_BYTE];
 
         int num_phy_bit;
-        char phy_bit[MAX_NUM_PHY_BYTE*8]; // all bits which will be fed to GFSK modulator
+        char phy_bit[MAX_NUM_PHY_BYTE * 8];  // all bits which will be fed to GFSK modulator
 
         int num_phy_byte;
         uint8_t phy_byte[MAX_NUM_PHY_BYTE];
 
         int num_phy_sample;
-        char phy_sample[2*MAX_NUM_PHY_SAMPLE]; // GFSK output to D/A (hackrf board)
-        int8_t phy_sample1[2*MAX_NUM_PHY_SAMPLE]; // GFSK output to D/A (hackrf board)
+        char phy_sample[2 * MAX_NUM_PHY_SAMPLE];     // GFSK output to D/A (hackrf board)
+        int8_t phy_sample1[2 * MAX_NUM_PHY_SAMPLE];  // GFSK output to D/A (hackrf board)
 
-        int space; // how many millisecond null signal shouwl be padded after this packet
+        int space;  // how many millisecond null signal shouwl be padded after this packet
     };
 
-    PKT_INFO packets {};
+    PKT_INFO packets{};
 
-    int calculate_pkt_info( PKT_INFO *pkt );
-    int calculate_sample_from_pkt_type(PKT_INFO *pkt);
-    int calculate_sample_for_ADV_IND(PKT_INFO *pkt);
-    void fill_adv_pdu_header(PKT_INFO *pkt, int txadd, int rxadd, int payload_len, char *bit_out);
-    void crc24_and_scramble_to_gen_phy_bit(char *crc_init_hex, PKT_INFO *pkt);
-    void disp_bit_in_hex(char *bit, int num_bit);
-    void scramble(char *bit_in, int num_bit, int channel_number, char *bit_out);
-    void crc24(char *bit_in, int num_bit, char *init_hex, char *crc_result);
-    int convert_hex_to_bit(char *hex, char *bit, int stream_flip, int octet_limit);
-    void octet_hex_to_bit(char *hex, char *bit);
-    int gen_sample_from_phy_bit(char *bit, char *sample, int num_bit);
+    int calculate_pkt_info(PKT_INFO* pkt);
+    int calculate_sample_from_pkt_type(PKT_INFO* pkt);
+    int calculate_sample_for_ADV_IND(PKT_INFO* pkt);
+    void fill_adv_pdu_header(PKT_INFO* pkt, int txadd, int rxadd, int payload_len, char* bit_out);
+    void crc24_and_scramble_to_gen_phy_bit(char* crc_init_hex, PKT_INFO* pkt);
+    void disp_bit_in_hex(char* bit, int num_bit);
+    void scramble(char* bit_in, int num_bit, int channel_number, char* bit_out);
+    void crc24(char* bit_in, int num_bit, char* init_hex, char* crc_result);
+    int convert_hex_to_bit(char* hex, char* bit, int stream_flip, int octet_limit);
+    void octet_hex_to_bit(char* hex, char* bit);
+    int gen_sample_from_phy_bit(char* bit, char* sample, int num_bit);
     bool configured = false;
 
-    float tmp_phy_bit_over_sampling[MAX_NUM_PHY_SAMPLE + 2*LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL];
-    float gauss_coef[LEN_GAUSS_FILTER*SAMPLE_PER_SYMBOL] = {7.561773e-09, 1.197935e-06, 8.050684e-05, 2.326833e-03, 2.959908e-02, 1.727474e-01, 4.999195e-01, 8.249246e-01, 9.408018e-01, 8.249246e-01, 4.999195e-01, 1.727474e-01, 2.959908e-02, 2.326833e-03, 8.050684e-05, 1.197935e-06};
+    float tmp_phy_bit_over_sampling[MAX_NUM_PHY_SAMPLE + 2 * LEN_GAUSS_FILTER * SAMPLE_PER_SYMBOL];
+    float gauss_coef[LEN_GAUSS_FILTER * SAMPLE_PER_SYMBOL] = {7.561773e-09, 1.197935e-06, 8.050684e-05, 2.326833e-03, 2.959908e-02, 1.727474e-01, 4.999195e-01, 8.249246e-01, 9.408018e-01, 8.249246e-01, 4.999195e-01, 1.727474e-01, 2.959908e-02, 2.326833e-03, 8.050684e-05, 1.197935e-06};
 
     uint32_t samples_per_bit{4};
     uint32_t channel_number{37};
@@ -223,18 +221,17 @@ class BTLETxProcessor : public BasebandProcessor {
     -31, -30, -29, -29, -28, -27, -26, -26, -25, -24, -23, -22, -22, -21, -20, -19, -19, -18, -17, -16, -16, -15, -14, -13, 
     -12, -12, -11, -10, -9, -9, -8, -7, -6, -5, -5, -4, -3, -2, -2, -1, };
     // clang-format on
-    
+
     PKT_TYPE packetType = ADV_IND;
 
     TXProgressMessage txprogress_message{};
 
     /* NB: Threads should be the last members in the class definition. */
-    
-    //BasebandThread baseband_thread{4000000, this, baseband::Direction::Transmit};
-    //Rx for now because trying to test formulation of packet.
+
+    // BasebandThread baseband_thread{4000000, this, baseband::Direction::Transmit};
+    // Rx for now because trying to test formulation of packet.
     AFSKDataMessage data_message{false, 0};
     BasebandThread baseband_thread{4000000, this, baseband::Direction::Transmit};
-    
 };
 
 #endif

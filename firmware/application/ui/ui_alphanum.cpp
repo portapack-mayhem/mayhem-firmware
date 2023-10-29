@@ -118,12 +118,9 @@ void AlphanumView::refresh_keys() {
 
     size_t n = 0;
     for (auto& button : buttons) {
-        if (n > strlen(key_list))
-        {
+        if (n > strlen(key_list)) {
             button.set_text(std::string{'\0'});
-        }
-        else
-        {
+        } else {
             button.set_text(std::string{key_list[n]});
         }
 
@@ -145,8 +142,7 @@ void AlphanumView::refresh_keys() {
 
 void AlphanumView::on_button(Button& button) {
     const auto c = button.text()[0];
-    if (c != '\0')
-    {
+    if (c != '\0') {
         char_add(c);
     }
 

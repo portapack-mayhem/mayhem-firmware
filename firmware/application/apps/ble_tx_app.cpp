@@ -48,8 +48,7 @@ bool BLETxView::is_active() const {
     return (bool)is_running;
 }
 
-void BLETxView::toggle() 
-{
+void BLETxView::toggle() {
     if (is_active()) {
         stop();
     } else {
@@ -58,8 +57,7 @@ void BLETxView::toggle()
 }
 
 void BLETxView::start() {
-    if ((packet_count % 10) == 0)
-    {
+    if ((packet_count % 10) == 0) {
         console.clear(true);
         console.write("Transmitting Packet:" + to_string_dec_uint(packet_count));
     }
@@ -68,13 +66,12 @@ void BLETxView::start() {
 
     progressbar.set_max(20);
     button_play.set_bitmap(&bitmap_stop);
-    baseband::set_btletx(channel_number); 
+    baseband::set_btletx(channel_number);
     transmitter_model.enable();
     is_running = true;
 }
 
 void BLETxView::stop() {
-
     transmitter_model.disable();
     progressbar.set_value(0);
     button_play.set_bitmap(&bitmap_play);
@@ -83,28 +80,21 @@ void BLETxView::stop() {
 }
 
 void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
-    
     repeatLoop = check_loop.value();
 
-    if (done) 
-    {
-        if (repeatLoop)
-        {
-            if ((timer_count % timer_period) == 0)
-            {
+    if (done) {
+        if (repeatLoop) {
+            if ((timer_count % timer_period) == 0) {
                 stop();
                 start();
             }
-        }
-        else
-        {
+        } else {
             packet_count = 0;
             stop();
         }
 
         timer_count++;
-    } 
-    else
+    } else
         progressbar.set_value(progress);
 }
 
@@ -112,19 +102,18 @@ BLETxView::BLETxView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
 
-    add_children({
-            &button_open,
-            &text_filename,
-            &text_sample_rate,
-            &text_duration,
-            &progressbar,
-            &field_frequency,
-            &tx_view,  // now it handles previous rfgain, rfamp.
-            &check_loop,
-            &button_play,
-            &label_speed,
-            &options_speed,
-            &console});
+    add_children({&button_open,
+                  &text_filename,
+                  &text_sample_rate,
+                  &text_duration,
+                  &progressbar,
+                  &field_frequency,
+                  &tx_view,  // now it handles previous rfgain, rfamp.
+                  &check_loop,
+                  &button_play,
+                  &label_speed,
+                  &options_speed,
+                  &console});
 
     field_frequency.set_step(0);
 
@@ -140,20 +129,17 @@ BLETxView::BLETxView(NavigationView& nav)
 
     logger = std::make_unique<BLELoggerTx>();
 
-   // if (logger && logging)
-        //logger->append(LOG_ROOT_DIR "/BLELOGTX_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+    // if (logger && logging)
+    // logger->append(LOG_ROOT_DIR "/BLELOGTX_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 }
 
 void BLETxView::on_data(uint32_t value, bool is_data) {
     std::string str_console = "";
 
-    if (is_data)
-    {
+    if (is_data) {
         str_log += to_string_hex(value, 2);
         str_console += to_string_dec_uint(value) + " ";
-    }
-    else
-    {
+    } else {
         logging_done = true;
     }
 

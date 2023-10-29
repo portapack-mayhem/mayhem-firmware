@@ -99,13 +99,13 @@ template <typename ContainerType, typename KeySelector>
 void removeEntriesWithoutKey(ContainerType& entries, ContainerType& filteredEntries, KeySelector keySelector) {
     // Clear the filteredEntries container
     filteredEntries.clear();
-    
+
     auto it = entries.begin();
     while (it != entries.end()) {
         if (!keySelector(*it)) {
-            filteredEntries.emplace_front(*it); // Add a new entry to filteredEntries
+            filteredEntries.emplace_back(*it);  // Add a new entry to filteredEntries
         }
-        ++it; // Move to the next element, outside of the if block
+        ++it;  // Move to the next element, outside of the if block
     }
 }
 
@@ -293,8 +293,7 @@ class RecentEntriesView : public View {
         _table.focus();
     }
 
-    void set_table(Entries& new_table)
-    {
+    void set_table(Entries& new_table) {
         _table = new_table;
     }
 

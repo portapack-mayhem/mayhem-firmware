@@ -233,12 +233,12 @@ BLERxView::BLERxView(NavigationView& nav)
 
     button_message.on_select = [this, &nav](Button&) {
         text_prompt(
-                nav,
-                filterBuffer,
-                64,
-                [this](std::string& buffer) {
-                    on_switch_table(buffer);
-                });
+            nav,
+            filterBuffer,
+            64,
+            [this](std::string& buffer) {
+                on_switch_table(buffer);
+            });
     };
 
     field_frequency.set_step(0);
@@ -282,6 +282,7 @@ BLERxView::BLERxView(NavigationView& nav)
         }
 
         recent_entries_view.set_dirty();
+        recent_entries_filter_view.set_dirty();
     };
 
     options_channel.set_selected_index(0, true);
@@ -376,11 +377,9 @@ void BLERxView::on_data(BlePacketData* packet) {
 }
 
 void BLERxView::on_switch_table(const std::string value) {
-
     filter = value;
 
-    if (!value.empty())
-    {
+    if (!value.empty()) {
         removeEntriesWithoutKey(recent, filterEntries, [&value](const BleRecentEntry& entry) {
             return entry.dataString.find(value) == std::string::npos;
         });
@@ -389,9 +388,7 @@ void BLERxView::on_switch_table(const std::string value) {
 
         recent_entries_filter_view.hidden(false);
         recent_entries_view.hidden(true);
-    }
-    else
-    {
+    } else {
         recent_entries_view.hidden(false);
         recent_entries_filter_view.hidden(true);
     }
@@ -413,8 +410,7 @@ BLERxView::~BLERxView() {
     baseband::shutdown();
 }
 
-void BLERxView::updateEntry(const BlePacketData * packet, BleRecentEntry& entry)
-{
+void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) {
     std::string data_string;
 
     int i;
@@ -448,20 +444,14 @@ void BLERxView::updateEntry(const BlePacketData * packet, BleRecentEntry& entry)
         case 0:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
             break;
         case 1:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             break;
         case 2:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             break;
         default:
             break;

@@ -128,21 +128,21 @@ class BLETxView : public View {
         &bitmap_play,
         Color::green(),
         Color::black()};
-     
+
     Labels label_speed{
-    {{0 * 8, 6 * 8}, "Speed:", Color::light_grey()}};
+        {{0 * 8, 6 * 8}, "Speed:", Color::light_grey()}};
 
     OptionsField options_speed{
         {7 * 8, 6 * 8},
         3,
         {{"1 ", 256},
-        {"2 ", 128},
-        {"3 ", 64},
-        {"4 ", 32},
-        {"5 ", 16}}};
+         {"2 ", 128},
+         {"3 ", 64},
+         {"4 ", 32},
+         {"5 ", 16}}};
 
     Console console{
-    {0, 5 * 16, 240, 240}};
+        {0, 5 * 16, 240, 240}};
 
     std::string str_log{""};
     bool logging{true};
@@ -158,11 +158,11 @@ class BLETxView : public View {
         }};
 
     MessageHandlerRegistration message_handler_tx_progress{
-    Message::ID::TXProgress,
-    [this](const Message* const p) {
-        const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-        this->on_tx_progress(message.progress, message.done);
-    }};
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            this->on_tx_progress(message.progress, message.done);
+        }};
 };
 
 } /* namespace ui */

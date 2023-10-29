@@ -152,7 +152,7 @@ class BLERxView : public View {
    private:
     void on_data(BlePacketData* packetData);
     void on_switch_table(const std::string value);
-    void updateEntry(const BlePacketData * packet, BleRecentEntry& entry);
+    void updateEntry(const BlePacketData* packet, BleRecentEntry& entry);
 
     NavigationView& nav_;
     RxRadioState radio_state_{
