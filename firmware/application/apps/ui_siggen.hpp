@@ -89,7 +89,7 @@ class SigGenView : public View {
          {&bitmap_sig_noise, 6}}};
 
     Text text_shape{
-        {15 * 8, 4 + 10, 8 * 8, 16},
+        {15 * 8, 4 + 10, 15 * 8, 16},
         ""};
 
     SymField symfield_tone{
