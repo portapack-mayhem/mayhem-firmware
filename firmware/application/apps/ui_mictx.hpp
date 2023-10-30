@@ -89,7 +89,7 @@ class MicTXView : public View {
         sampling_rate /* sampling rate */
     };
 
-    enum Mic_Modulation:uint32_t {
+    enum Mic_Modulation : uint32_t {
         MIC_MOD_NFM = 0,
         MIC_MOD_WFM,
         MIC_MOD_AM,

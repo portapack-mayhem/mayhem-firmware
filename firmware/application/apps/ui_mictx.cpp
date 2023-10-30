@@ -133,8 +133,8 @@ void MicTXView::set_tx(bool enable) {
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();
-            if (rx_enabled) {          // If audio RX is enabled and we've been transmitting
-                rxaudio(true);         // Turn back on audio RX
+            if (rx_enabled) { 
+                rxaudio(true);  // Turn back on audio RX
 
                 // TODO FIXME: this isn't working: vu meter isn't going to 0:
                 vumeter.set_value(0);  // Reset  vumeter
@@ -195,16 +195,14 @@ void MicTXView::rxaudio(bool enable) {
         switch (mic_mod_index) {
             case MIC_MOD_NFM:  // NFM BW:8k5 or 11k / FM BW 16k
                 baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
-                receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio); 
+                receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
                 // receiver_model.set_nbfm_configuration(n); is called above, depending user's selection (8k5, 11k, 16k).
                 break;
-
              case MIC_MOD_WFM:  // WFM, BW 200Khz aprox, or the two new addional BW filters (180k, 40k)
                 baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
                 // receiver_model.set_wfm_configuration(n); is called above, depending user's selection (200k, 180k, 0k).
                 break;
-               
             case MIC_MOD_AM:
             case MIC_MOD_DSB:
             case MIC_MOD_USB:
@@ -247,22 +245,22 @@ void MicTXView::set_rxbw_options(void) {
             field_rxbw.set_by_value(receiver_model.wfm_configuration());
             break;
         case MIC_MOD_AM:
-            rxbw.emplace_back("DSB 9k", 0);    // we offer in AM DSB two audio BW 9k / 6k.
+            rxbw.emplace_back("DSB 9k", 0);  // we offer in AM DSB two audio BW 9k / 6k.
             rxbw.emplace_back("DSB 6k", 1);
-            field_rxbw.set_options(rxbw);      // store that aux GUI option to the field_rxbw.
+            field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
             break;
         case MIC_MOD_DSB:
-            rxbw.emplace_back("USB+3k", 0);    // added dynamically two options (index 0,1) to that DSB-SC case to the field_rxbw value.
+            rxbw.emplace_back("USB+3k", 0);  // added dynamically two options (index 0,1) to that DSB-SC case to the field_rxbw value.
             rxbw.emplace_back("LSB-3k", 1);
-            field_rxbw.set_options(rxbw);      // store that aux GUI option to the field_rxbw.
+            field_rxbw.set_options(rxbw);  // store that aux GUI option to the field_rxbw.
             break;
         case MIC_MOD_USB:
-            rxbw.emplace_back("USB+3k", 0);    // locked a fixed option, to display it.
-            field_rxbw.set_options(rxbw);      // store that aux GUI option to the field_rxbw.
+            rxbw.emplace_back("USB+3k", 0);  // locked a fixed option, to display it.
+            field_rxbw.set_options(rxbw);    // store that aux GUI option to the field_rxbw.
             break;
         case MIC_MOD_LSB:
-            rxbw.emplace_back("LSB-3k", 0);    // locked a fixed option, to display it.
-            field_rxbw.set_options(rxbw);      // store that aux GUI option to the field_rxbw.
+            rxbw.emplace_back("LSB-3k", 0);  // locked a fixed option, to display it.
+            field_rxbw.set_options(rxbw);    // store that aux GUI option to the field_rxbw.
             break;
     }
 }
@@ -272,35 +270,35 @@ void MicTXView::set_rxbw_defaults(bool use_app_settings) {
         field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
         field_rxbw.set_by_value(rxbw_index);
     } else if (mic_mod_index == MIC_MOD_NFM) {
-        field_bw.set_value(10);  // pre-default deviation FM for WFM
-        field_rxbw.set_by_value(2);  // bw 16k (2) default
+        field_bw.set_value(10);  // NFM TX bw 10k, RX bw 16k (2) default
+        field_rxbw.set_by_value(2);
     } else if (mic_mod_index == MIC_MOD_WFM) {
-        field_bw.set_value(75);  // pre-default deviation FM for WFM
-        field_rxbw.set_by_value(0);  // bw 200k (0) default
+        field_bw.set_value(75);  // WFM TX bw 75K, RX bw 200k (0) default
+        field_rxbw.set_by_value(0);
     }
     // field_bw is hidden in other modulation cases
 }
 
 void MicTXView::update_receiver_rxbw(void) {
+    // In Previous fw versions, that nbfm_configuration(n) was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in (NFM/FM)
+    // In AM TX mode, we will allow both independent RX audio BW : AM 9K (9K00AE3 / AM 6K (6K00AE3). (In AM option v can be 0 (9k), 1 (6k)
+    // In DSB-SC TX mode, we will allow both independent RX SSB demodulation (USB / LSB side band). in that submenu, v is 0 (SSB1 USB) or 1 (SSB2 LSB)
     switch (mic_mod_index) {
-    case MIC_MOD_NFM:
-        // In Previous fw versions, that nbfm_configuration(n) was done in any mode (FM/AM/SSB/DSB)...strictly speaking only need it in (NFM/FM)
-        receiver_model.set_nbfm_configuration(rxbw_index);  // we are in NFM/FM case, we need to select proper NFM/FM RX channel filter, NFM BW 8K5(0), NFM BW 11K(1), FM BW 16K (2)
-        break;
-    case MIC_MOD_WFM:
-        receiver_model.set_wfm_configuration(rxbw_index);  // we are in WFM case, we need to select proper WFB RX BW filter, WFM BW 200K(0), WFM BW 180K(1), WFM BW 40K(2)
-        break;
-    case MIC_MOD_AM:
-        // we are in AM TX mode, we will allow both independent RX audio BW : AM 9K (9K00AE3 / AM 6K (6K00AE3). (In AM option v can be 0 (9k), 1 (6k)
-        receiver_model.set_am_configuration(rxbw_index);  // we are in AM TX mode, we need to select proper AM full path config AM-9K filter. 0+0 =>AM-9K(0), 0+1=1 =>AM-6K(1),
-        break;
-    case MIC_MOD_USB:
-    case MIC_MOD_LSB:
-        break;  // change can't happen in these modes because there's only one BW choice
-    case MIC_MOD_DSB:
-        // we are in DSB-SC in TX mode, we will allow both independent RX SSB demodulation (USB / LSB side band). in that submenu, v is 0 (SSB1 USB) or 1 (SSB2 LSB)
-        receiver_model.set_am_configuration(rxbw_index + 2);  // we are in DSB-SC TX mode, we need to select proper SSB filter. 0+2 =>usb(2), 1+2=3 =>lsb(3),
-        break;
+        case MIC_MOD_NFM:
+            receiver_model.set_nbfm_configuration(rxbw_index);  // we are in NFM/FM case, we need to select proper NFM/FM RX channel filter, NFM BW 8K5(0), NFM BW 11K(1), FM BW 16K (2)
+            break;
+        case MIC_MOD_WFM:
+            receiver_model.set_wfm_configuration(rxbw_index);  // we are in WFM case, we need to select proper WFB RX BW filter, WFM BW 200K(0), WFM BW 180K(1), WFM BW 40K(2)
+            break;
+        case MIC_MOD_AM:
+            receiver_model.set_am_configuration(rxbw_index);  // we are in AM TX mode, we need to select proper AM full path config AM-9K filter. 0+0 =>AM-9K(0), 0+1=1 =>AM-6K(1),
+            break;
+        case MIC_MOD_USB:
+        case MIC_MOD_LSB:
+            break;  // change can't happen in these modes because there's only one BW choice
+        case MIC_MOD_DSB:
+            receiver_model.set_am_configuration(rxbw_index + 2);  // we are in DSB-SC TX mode, we need to select proper SSB filter. 0+2 =>usb(2), 1+2=3 =>lsb(3),
+            break;
     }
 }
 
@@ -468,20 +466,20 @@ MicTXView::MicTXView(
 
         // update bw & tone key visibility - only visible in NFM/WFM modes
         if ((mic_mod_index == MIC_MOD_NFM) || (mic_mod_index == MIC_MOD_WFM)) {
-            field_bw.hidden(false);                  // we are in FM mode, we need to allow FM deviation parameter, in non FM mode.
-            options_tone_key.hidden(false);          // we are in FM mode, we should have active the Key-tones & CTCSS option.
+            field_bw.hidden(false); 
+            options_tone_key.hidden(false);
         } else {
-            field_bw.hidden(true);                   // we hide the FM TX deviation parameter, in non FM mode.
-            options_tone_key.set_selected_index(0);  // we are NOT in FM mode, we reset the possible previous key-tones &CTCSS selection.
-            options_tone_key.hidden(true);           // we hide that Key-tones & CTCSS input selecction, (no meaning in AM/DSB/SSB).            
+            field_bw.hidden(true);
+            options_tone_key.set_selected_index(0);
+            options_tone_key.hidden(true);       
         }
 
         // update rogerbeep visibility - disable in USB/LSB modes
         if ((mic_mod_index == MIC_MOD_USB) || (mic_mod_index == MIC_MOD_LSB)) {
-            check_rogerbeep.set_value(false);        // reset the possible activation of roger beep, because it is not compatible with SSB, by now.
-            check_rogerbeep.hidden(true);            // hide that roger beep selection.
+            check_rogerbeep.set_value(false);
+            check_rogerbeep.hidden(true);
         } else {
-            check_rogerbeep.hidden(false);           // make visible again the "rogerbeep" selection.
+            check_rogerbeep.hidden(false);
         }
 
         // update squelch visibility - only visible in NFM mode
