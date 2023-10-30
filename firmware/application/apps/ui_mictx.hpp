@@ -286,7 +286,7 @@ class MicTXView : public View {
     Checkbox check_common_freq_tx_rx{
         {18 * 8, (21 * 8) - 7},
         8,
-        "F  TX=RX",
+        "F  RX=TX",
         false};
 
     AudioVolumeField field_volume{
