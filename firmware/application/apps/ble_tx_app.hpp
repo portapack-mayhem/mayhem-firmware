@@ -102,7 +102,7 @@ class BLETxView : public View {
     bool repeatLoop = false;
     uint64_t packet_count{0};
 
-    static constexpr auto header_height = 12 + 5 * 16;
+    static constexpr auto header_height = 12 + 6 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -157,6 +157,13 @@ class BLETxView : public View {
 
     Text text_packets_sent{
         {14 * 8, 4 * 16, 6 * 8, 16},
+        "-"};
+
+    Labels label_mac_address{
+        {{0 * 8, 10 * 8}, "Mac Address:", Color::light_grey()}};
+
+    Text text_mac_address{
+        {13 * 8, 5 * 16, 6 * 8, 16},
         "-"};
 
     Console console{

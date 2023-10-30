@@ -68,7 +68,6 @@ void BLETxView::start() {
 
     if (!is_running)
     {
-        File::Size file_size{};
         File data_file;
 
         auto error = data_file.open(file_path);
@@ -78,34 +77,14 @@ void BLETxView::start() {
             return;
         }
 
-        file_size = data_file.size();
-
-        // Read Mac Address.
-        data_file.read(macAddress, 12);
-        
-        uint8_t spaceChar;
-        // Skip space.
-        data_file.read(&spaceChar, 1);
-
-        // Read Advertisement Data.
-        data_file.read(advertisementData, 62);
-
         if ((strlen(advertisementData) > 62) || (strlen(macAddress) != 12))
         {
-            console.clear(true);
-            console.writeln(to_string_dec_uint(strlen(macAddress)));
-            console.writeln(to_string_dec_uint(strlen(advertisementData)));
-            console.writeln(macAddress);
-            console.writeln(advertisementData);
+            file_error();
             check_loop.set_value(false);
             return;
-       }
+        }
         else
         {
-            console.clear(true);
-            console.writeln(macAddress);
-            console.writeln(advertisementData);
-
             progressbar.set_max(20);
             button_play.set_bitmap(&bitmap_stop);
             transmitter_model.enable();
@@ -169,6 +148,8 @@ BLETxView::BLETxView(NavigationView& nav)
                   &options_speed,
                   &label_packets_sent,
                   &text_packets_sent,
+                  &label_mac_address,
+                  &text_mac_address,
                   &console});
 
     field_frequency.set_step(0);
@@ -202,7 +183,37 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             return;
         }
 
-        text_filename.set(truncate(file_path.filename().string(), 12));
+        // Read Mac Address.
+        data_file.read(macAddress, 12);
+        
+        uint8_t spaceChar;
+        // Skip space.
+        data_file.read(&spaceChar, 1);
+
+        // Read Advertisement Data.
+        data_file.read(advertisementData, 62);
+
+        if ((strlen(advertisementData) < 62) && (strlen(macAddress) == 12))
+        {
+            char macAddressFormated[18] = {
+                macAddress[0], macAddress[1], ':',
+                macAddress[2], macAddress[3], ':',
+                macAddress[4], macAddress[5], ':',
+                macAddress[6], macAddress[7], ':',
+                macAddress[8], macAddress[9], ':',
+                macAddress[10], macAddress[11]
+            };
+
+            text_mac_address.set(macAddressFormated);
+            console.clear(true);
+            console.writeln(macAddress);
+            console.writeln(advertisementData);
+            text_filename.set(truncate(file_path.filename().string(), 12));
+        }
+        else
+        {
+            file_error();
+        }
     }
 }
 
