@@ -472,7 +472,7 @@ MicTXView::MicTXView(
         } else {
             field_bw.hidden(true);
             options_tone_key.set_selected_index(0);
-            options_tone_key.hidden(true);       
+            options_tone_key.hidden(true);
         }
 
         // update rogerbeep visibility - disable in USB/LSB modes
