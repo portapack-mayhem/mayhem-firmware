@@ -344,7 +344,7 @@ class MicTXView : public View {
         true};
 
     Image tx_icon{
-        {6 * 8, 31 * 8, 16, 16},
+        {6 * 8, (31 * 8) + 4, 16, 16},
         &bitmap_icon_microphone,
         Color::black(),
         Color::black()};
