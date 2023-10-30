@@ -73,11 +73,13 @@ class MicTXView : public View {
     bool tx_button_held();
     void do_timing();
     void set_tx(bool enable);
-    //	void on_target_frequency_changed(rf::Frequency f);
     void on_tx_progress(const bool done);
     void update_tx_icon();
+    uint8_t shift_bits(void);
     void configure_baseband();
-
+    void set_rxbw_options(void);
+    void set_rxbw_defaults(bool use_app_settings);
+    void update_receiver_rxbw(void);
     void rxaudio(bool is_on);
 
     RxRadioState rx_radio_state_{};
@@ -87,13 +89,23 @@ class MicTXView : public View {
         sampling_rate /* sampling rate */
     };
 
+    enum Mic_Modulation:uint32_t {
+        MIC_MOD_NFM = 0,
+        MIC_MOD_WFM,
+        MIC_MOD_AM,
+        MIC_MOD_DSB,
+        MIC_MOD_USB,
+        MIC_MOD_LSB
+    };
+
     // Settings
-    uint32_t mode_index{0};
+    uint32_t mic_mod_index{0};
     uint32_t rxbw_index{0};
     bool va_enabled{false};
     bool rogerbeep_enabled{false};
     bool mic_to_HP_enabled{false};
     bool bool_same_F_tx_rx_enabled{false};
+    rf::Frequency rx_frequency{0};
     bool rx_enabled{false};
     uint32_t tone_key_index{0};
     uint32_t mic_gain_x10{1};
@@ -106,44 +118,31 @@ class MicTXView : public View {
         app_settings::Mode::RX_TX,
         app_settings::Options::UseGlobalTargetFrequency,
         {
-            {"mode_index"sv, &mode_index},
+            {"mic_mod_index"sv, &mic_mod_index},
             {"rxbw_index"sv, &rxbw_index},
-            {"va_enabled"sv, &va_enabled},
-            {"rogerbeep_enabled"sv, &rogerbeep_enabled},
-            {"mic_to_HP_enabled"sv, &mic_to_HP_enabled},
-            {"bool_same_F_tx_rx_enabled"sv, &bool_same_F_tx_rx_enabled},
+            {"same_F_tx_rx"sv, &bool_same_F_tx_rx_enabled},
+            {"mic_rx_frequency"sv, &rx_frequency},
             {"rx_enabled"sv, &rx_enabled},
-            {"tone_key_index"sv, &tone_key_index},
             {"mic_gain_x10"sv, &mic_gain_x10},
-            {"ak4951_alc_and_wm8731_boost_GUI"sv, &ak4951_alc_and_wm8731_boost_GUI},
+            {"mic_to_HP"sv, &mic_to_HP_enabled},
+            {"alc_and_boost"sv, &ak4951_alc_and_wm8731_boost_GUI},
             {"va_level"sv, &va_level},
             {"attack_ms"sv, &attack_ms},
             {"decay_ms"sv, &decay_ms},
+            {"vox"sv, &va_enabled},
+            {"rogerbeep"sv, &rogerbeep_enabled},
+            {"tone_key_index"sv, &tone_key_index},
         }};
 
-    bool use_app_settings{false};
+    rf::Frequency tx_frequency{0};
     bool transmitting{false};
     uint32_t audio_level{0};
     uint32_t attack_timer{0};
     uint32_t decay_timer{0};
     int32_t tx_gain{47};
     bool rf_amp{false};
-    int32_t rx_lna{32};
-    int32_t rx_vga{32};
-    bool rx_amp{false};
-    rf::Frequency tx_frequency{0};
-    rf::Frequency rx_frequency{0};
     int32_t focused_ui{2};
     bool button_touch{false};
-    uint8_t shift_bits_s16{4};  // shift bits factor to the captured ADC S16 audio sample.
-
-    // AM TX Stuff
-    // TODO: Some of this stuff is mutually exclusive. Need a better representation.
-    bool enable_am{false};
-    bool enable_dsb{false};
-    bool enable_usb{false};
-    bool enable_lsb{false};
-    bool enable_wfm{false};  // added to distinguish in the FM mode, RX BW : NFM (8K5, 11K), FM (16K), WFM(200K)
 
     Labels labels_both{
         {{3 * 8, 1 * 8}, "MIC-GAIN:", Color::light_grey()},
