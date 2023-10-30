@@ -133,7 +133,8 @@ void MicTXView::set_tx(bool enable) {
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();
-            if (rx_enabled) { 
+
+            if (rx_enabled) {
                 rxaudio(true);  // Turn back on audio RX
 
                 // TODO FIXME: this isn't working: vu meter isn't going to 0:
@@ -198,7 +199,7 @@ void MicTXView::rxaudio(bool enable) {
                 receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
                 // receiver_model.set_nbfm_configuration(n); is called above, depending user's selection (8k5, 11k, 16k).
                 break;
-             case MIC_MOD_WFM:  // WFM, BW 200Khz aprox, or the two new addional BW filters (180k, 40k)
+            case MIC_MOD_WFM:  // WFM, BW 200Khz aprox, or the two new addional BW filters (180k, 40k)
                 baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
                 receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
                 // receiver_model.set_wfm_configuration(n); is called above, depending user's selection (200k, 180k, 0k).
@@ -466,7 +467,7 @@ MicTXView::MicTXView(
 
         // update bw & tone key visibility - only visible in NFM/WFM modes
         if ((mic_mod_index == MIC_MOD_NFM) || (mic_mod_index == MIC_MOD_WFM)) {
-            field_bw.hidden(false); 
+            field_bw.hidden(false);
             options_tone_key.hidden(false);
         } else {
             field_bw.hidden(true);
@@ -489,9 +490,9 @@ MicTXView::MicTXView(
         set_rxbw_options();
         set_rxbw_defaults(false);
         field_rxbw.hidden(false);
-        set_dirty();                // Refresh display
+        set_dirty();  // Refresh display
 
-        rxaudio(rx_enabled);        // Update now if we have RX audio on
+        rxaudio(rx_enabled);  // Update now if we have RX audio on
         // configure_baseband();
     };
     options_mode.set_selected_index(mic_mod_index);
