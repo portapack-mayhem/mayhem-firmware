@@ -82,9 +82,9 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
 
     button_choose_output_name.on_select = [this, &nav](Button&) {
         text_prompt(nav, _output_file, 28, [this](std::string& buffer) {
-                        _output_file = buffer ;
-                        button_choose_output_name.set_text(_output_file);
-                    });
+            _output_file = buffer;
+            button_choose_output_name.set_text(_output_file);
+        });
     };
 };
 
