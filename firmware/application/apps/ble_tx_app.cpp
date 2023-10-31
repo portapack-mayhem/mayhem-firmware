@@ -301,15 +301,6 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         packet_count = stringToUint32(packetCount);
         packet_counter = packet_count;
 
-        console.writeln(macAddress);
-        console.writeln(advertisementData);
-        console.writeln(packetCount);
-
-        console.writeln(to_string_dec_uint(macAddressSize));
-        console.writeln(to_string_dec_uint(advertisementDataSize));
-        console.writeln(to_string_dec_uint(packetCountSize));
-        console.writeln(to_string_dec_uint(packet_count));
-
         // Verify Data.
         if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_count_str) &&
             hasValidHexPairs(macAddress, macAddressSize / 2) && hasValidHexPairs(advertisementData, advertisementDataSize / 2) && (packet_count > 0) && (packet_count < UINT32_MAX)) {

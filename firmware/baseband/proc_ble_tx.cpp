@@ -332,7 +332,7 @@ int BTLETxProcessor::calculate_pkt_info(PKT_INFO* pkt) {
 void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
     int8_t re, im;
 
-    // // This is called at 4M/2048 = 1953Hz
+    // This is called at 4M/2048 = 1953Hz
     for (size_t i = 0; i < buffer.count; i++) {
         if (configured) {
             // This is going to loop through each sample bit and push it to the output buffer.
