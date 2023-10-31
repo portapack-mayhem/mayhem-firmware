@@ -163,7 +163,7 @@ void BLETxView::start() {
         else
         {
             // Send first or single packet.
-            progressbar.set_max(20);
+            progressbar.set_max(packet_count);
             button_play.set_bitmap(&bitmap_stop);
             baseband::set_btletx(channel_number, macAddress, advertisementData);
             transmitter_model.enable();
@@ -182,6 +182,8 @@ void BLETxView::start() {
     }
 
     packet_counter--;
+
+    progressbar.set_value(packet_count - packet_counter);
 }
 
 void BLETxView::stop() {
@@ -198,7 +200,6 @@ void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
         if (check_loop.value() && (packet_counter != 0) && is_active()) {
             if ((timer_count % timer_period) == 0) {
-                progressbar.set_value(0);
                 start();
             }
         } else {
@@ -209,8 +210,7 @@ void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
         }
 
         timer_count++;
-    } else
-        progressbar.set_value(progress);
+    }
 }
 
 BLETxView::BLETxView(NavigationView& nav)
