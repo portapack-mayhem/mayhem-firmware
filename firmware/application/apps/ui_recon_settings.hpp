@@ -73,17 +73,18 @@ class ReconSetupViewMain : public View {
     std::string _input_file{"RECON"};
     std::string _output_file{"RECON_RESULTS"};
 
-    Button button_load_freqs{
+    Button button_input_file{
         {1 * 8, 12, 18 * 8, 22},
         "select input file"};
     Text text_input_file{
         {1 * 8, 4 + 2 * 16, 18 * 8, 22},
         "RECON"};
 
-    Button button_save_freqs{
+    Button button_choose_output_file{
         {1 * 8, 4 * 16 - 8, 18 * 8, 22},
         "select output file"};
-    Button button_output_file{
+
+    Button button_choose_output_name{
         {1 * 8, 5 * 16 - 2, 18 * 8, 22},
         "RECON_RESULTS"};
 
