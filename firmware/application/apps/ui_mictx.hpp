@@ -91,11 +91,11 @@ class MicTXView : public View {
 
     enum Mic_Modulation : uint32_t {
         MIC_MOD_NFM = 0,
-        MIC_MOD_WFM,
-        MIC_MOD_AM,
-        MIC_MOD_DSB,
-        MIC_MOD_USB,
-        MIC_MOD_LSB
+        MIC_MOD_WFM = 1,
+        MIC_MOD_AM = 2,
+        MIC_MOD_USB = 3,
+        MIC_MOD_LSB = 4,
+        MIC_MOD_DSB = 5,
     };
 
     // Settings
@@ -227,12 +227,12 @@ class MicTXView : public View {
         {24 * 8, 5 * 8},
         6,
         {
-            {"NFM/FM", 0},
-            {" WFM  ", 1},
-            {"  AM  ", 2},  // in fact that TX mode = AM -DSB with carrier.
-            {" USB  ", 3},
-            {" LSB  ", 4},
-            {"DSB-SC", 5}  // We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).
+            {"NFM/FM", MIC_MOD_NFM},
+            {" WFM  ", MIC_MOD_WFM},
+            {"  AM  ", MIC_MOD_AM},  // in fact that TX mode = AM -DSB with carrier.
+            {" USB  ", MIC_MOD_USB},
+            {" LSB  ", MIC_MOD_LSB},
+            {"DSB-SC", MIC_MOD_DSB}  // We are TX Double Side AM Band with suppressed carrier, and allowing in RX both indep SSB lateral band (USB/LSB).
         }};
 
     Checkbox check_va{
@@ -344,7 +344,7 @@ class MicTXView : public View {
         true};
 
     Image tx_icon{
-        {6 * 8, (31 * 8) + 4, 16, 16},
+        {6 * 8, 31 * 8 + 4, 16, 16},
         &bitmap_icon_microphone,
         Color::black(),
         Color::black()};
