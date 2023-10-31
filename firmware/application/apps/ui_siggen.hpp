@@ -58,15 +58,16 @@ class SigGenView : public View {
     app_settings::SettingsManager settings_{
         "tx_siggen", app_settings::Mode::TX};
 
-    const std::string shape_strings[7] = {
-        "CW-just carrier",
-        "Sine signal    ",
-        "Triangle signal",
-        "Saw up signal  ",
-        "Saw down signal",
-        "Square signal  ",
-        "Noise signal   "  // using 16 bits LFSR register, 16 order polynomial feedback.
-    };
+    const std::string shape_strings[9] = {
+        "CW  (No mod.) ",
+        "Sine mod. FM",
+        "Triangle mod.FM",  // max 15 character text space.
+        "Saw up mod. FM",
+        "Saw down mod.FM",
+        "Square mod. FM",
+        "Pseudo Noise FM",  // using 16 bits LFSR register, 16 order polynomial feedback.
+        "BPSK 0,1,0,1...",
+        "QPSK 00-01-10.."};
 
     bool auto_update{false};
 
@@ -86,7 +87,9 @@ class SigGenView : public View {
          {&bitmap_sig_saw_up, 3},
          {&bitmap_sig_saw_down, 4},
          {&bitmap_sig_square, 5},
-         {&bitmap_sig_noise, 6}}};
+         {&bitmap_sig_noise, 6},
+         {&bitmap_sig_noise, 7},    // Pending to add a correct BPSK icon.
+         {&bitmap_sig_noise, 8}}};  // Pending to add a correct QPSK icon.
 
     Text text_shape{
         {15 * 8, 4 + 10, 15 * 8, 16},
