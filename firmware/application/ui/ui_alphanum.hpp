@@ -57,6 +57,7 @@ class AlphanumView : public TextEntryView {
     const char* const keys_upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ, .";
     const char* const keys_digit = "1234567890()'`\"+-*/=<>_\\!?, .";
     const char* const keys_symbl = "!@#$%^&*()[]'`\"{}|:;<>-_~?, .";
+    const char* const keys_hex = "1234567890ABCDEF ";
 
     struct key_set_t {
         const char* name;
@@ -64,9 +65,10 @@ class AlphanumView : public TextEntryView {
         const char* shifted;
     };
 
-    const key_set_t key_sets[2] = {
+    const key_set_t key_sets[3] = {
         {"abc", keys_lower, keys_upper},
-        {"123", keys_digit, keys_symbl}};
+        {"123", keys_digit, keys_symbl},
+        {"hex", keys_hex, keys_hex}};
 
     int16_t focused_button = 0;
     uint32_t mode = 0;  // Letters.

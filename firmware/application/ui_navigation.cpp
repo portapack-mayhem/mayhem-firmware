@@ -87,6 +87,7 @@
 #include "analog_audio_app.hpp"
 #include "analog_tv_app.hpp"
 #include "ble_app.hpp"
+#include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
 #include "gps_sim_app.hpp"
@@ -582,6 +583,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"ADS-B TX", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
         {"APRS TX", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
         {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
+        {"BLE Tx", ui::Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLETxView>(); }},
         {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }},
         {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
         {"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }},

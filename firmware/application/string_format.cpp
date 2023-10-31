@@ -323,6 +323,20 @@ std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length) {
     return string;
 }
 
+std::string to_string_formatted_mac_address(const char* macAddress) {
+    std::string formattedAddress;
+
+    for (int i = 0; i < 12; i += 2) {
+        if (i > 0) {
+            formattedAddress += ':';
+        }
+        formattedAddress += macAddress[i];
+        formattedAddress += macAddress[i + 1];
+    }
+
+    return formattedAddress;
+}
+
 std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision) {
     const uint32_t powers_of_ten[5] = {1, 10, 100, 1000, 10000};
     std::string string{""};
