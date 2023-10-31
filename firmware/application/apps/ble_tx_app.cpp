@@ -222,7 +222,7 @@ void BLETxView::stop() {
     is_running = false;
 }
 
-void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
+void BLETxView::on_tx_progress(const bool done) {
     if (done) {
         if (check_loop.value() && (packet_counter != 0) && is_active()) {
             if ((timer_count % timer_period) == 0) {

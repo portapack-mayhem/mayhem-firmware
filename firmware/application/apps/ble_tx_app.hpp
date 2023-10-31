@@ -76,7 +76,7 @@ class BLETxView : public View {
 
    private:
     void on_data(uint32_t value, bool is_data);
-    void on_tx_progress(const uint32_t progress, const bool done);
+    void on_tx_progress(const bool done);
     void on_file_changed(const std::filesystem::path& new_file_path);
 
     NavigationView& nav_;
@@ -94,7 +94,7 @@ class BLETxView : public View {
     std::filesystem::path file_path{};
     uint8_t channel_number = 37;
     char macAddress[13] = "010203040506";
-    char advertisementData[63] = "0201060EFF5208027349E976000001005E0B06085242333030";
+    char advertisementData[63] = "00112233445566778899AABBCCDDEEFF";
     char packetCount[11] = "0";
 
     bool is_running = false;
@@ -198,7 +198,7 @@ class BLETxView : public View {
         Message::ID::TXProgress,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-            this->on_tx_progress(message.progress, message.done);
+            this->on_tx_progress(message.done);
         }};
 };
 

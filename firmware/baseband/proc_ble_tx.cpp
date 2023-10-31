@@ -277,9 +277,6 @@ void BTLETxProcessor::fill_adv_pdu_header(PKT_INFO* pkt, int txadd, int rxadd, i
 }
 
 int BTLETxProcessor::calculate_sample_for_ADV_IND(PKT_INFO* pkt) {
-    // example
-    // ./btle_tx 37-ADV_IND-TxAdd-1-RxAdd-0-AdvA-010203040506-AdvData-00112233445566778899AABBCCDDEEFF
-
     pkt->num_info_bit = 0;
 
     // gen preamble and access address
