@@ -332,10 +332,7 @@ int BTLETxProcessor::calculate_pkt_info(PKT_INFO* pkt) {
     return (0);
 }
 
-void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
-    process++;
-
-#ifdef new_way
+void BTLETxProcessor::execute(const buffer_c8_t& buffer) {  
     int8_t re, im;
 
     // // This is called at 4M/2048 = 1953Hz
@@ -372,56 +369,6 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
 
     txprogress_message.done = true;
     shared_memory.application_queue.push(txprogress_message);
-
-#else
-
-    int8_t re, im;
-
-    // This is called at 4M/2048
-
-    for (size_t i = 0; i < buffer.count; i++) {
-        if (configured && ((process % 325) == 0)) {
-            if (sample_count >= samples_per_bit) {
-                if (bit_pos > length) {
-                    // End of data
-                    cur_bit = 0;
-                    txprogress_message.done = true;
-                    shared_memory.application_queue.push(txprogress_message);
-                    configured = false;
-                } else {
-                    cur_bit = (packets.phy_bit[bit_pos >> 3] << (bit_pos & 7)) & 0x80;
-                    bit_pos++;
-                    if (progress_count >= progress_notice) {
-                        progress_count = 0;
-                        txprogress_message.progress++;
-                        txprogress_message.done = false;
-                        shared_memory.application_queue.push(txprogress_message);
-                    } else {
-                        progress_count++;
-                    }
-                }
-                sample_count = 0;
-            } else {
-                sample_count++;
-            }
-
-            if (cur_bit)
-                phase += shift_one;
-            else
-                phase += shift_zero;
-
-            sphase = phase + (64 << 24);
-
-            re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
-            im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
-        } else {
-            re = 0;
-            im = 0;
-        }
-
-        buffer.p[i] = {re, im};
-    }
-#endif
 }
 
 void BTLETxProcessor::on_message(const Message* const message) {

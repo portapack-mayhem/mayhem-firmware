@@ -95,14 +95,21 @@ class BLETxView : public View {
     uint8_t channel_number = 37;
     char macAddress[13] = "010203040506";
     char advertisementData[63] = "0201060EFF5208027349E976000001005E0B06085242333030";
+    char packetCount[11] = "0";
 
     bool is_running = false;
     uint64_t timer_count{0};
     uint64_t timer_period{256};
     bool repeatLoop = false;
-    uint64_t packet_count{0};
+    uint32_t packet_count{0};
+    uint32_t packet_counter{0};
 
-    static constexpr auto header_height = 12 + 6 * 16;
+    static constexpr uint8_t mac_address_size_str {12};
+    static constexpr uint8_t max_packet_size_str {62};
+    static constexpr uint8_t max_packet_count_str {10};
+    static constexpr uint32_t max_packet_count {UINT32_MAX};
+
+    static constexpr auto header_height = 8 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -111,15 +118,9 @@ class BLETxView : public View {
     Text text_filename{
         {11 * 8, 0 * 16, 12 * 8, 16},
         "-"};
-    Text text_sample_rate{
-        {24 * 8, 0 * 16, 6 * 8, 16},
-        "-"};
 
-    Text text_duration{
-        {11 * 8, 1 * 16, 6 * 8, 16},
-        "-"};
     ProgressBar progressbar{
-        {18 * 8, 1 * 16, 12 * 8, 16}};
+        {11 * 8, 1 * 16, 12 * 8, 16}};
 
     TxFrequencyField field_frequency{
         {0 * 8, 2 * 16},
@@ -134,6 +135,7 @@ class BLETxView : public View {
         4,
         "Loop",
         true};
+
     ImageButton button_play{
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
@@ -152,22 +154,32 @@ class BLETxView : public View {
          {"4 ", 32},
          {"5 ", 16}}};
 
+    OptionsField options_channel{
+        {11 * 8, 6 * 8},
+        5,
+        {{"Ch.37 ", 37},
+        {"Ch.38", 38},
+        {"Ch.39", 39}}};
+
     Labels label_packets_sent{
-        {{0 * 8, 8 * 8}, "Packets Sent:", Color::light_grey()}};
+        {{0 * 8, 10 * 8}, "Packets Left:", Color::light_grey()}};
 
     Text text_packets_sent{
-        {14 * 8, 4 * 16, 6 * 8, 16},
+        {13 * 8, 5 * 16, 10 * 8, 16},
         "-"};
 
     Labels label_mac_address{
-        {{0 * 8, 10 * 8}, "Mac Address:", Color::light_grey()}};
+        {{0 * 8, 12 * 8}, "Mac Address:", Color::light_grey()}};
 
     Text text_mac_address{
-        {13 * 8, 5 * 16, 6 * 8, 16},
+        {12 * 8, 6 * 16, 20 * 8, 16},
         "-"};
 
+    Labels label_data_packet{
+        {{0 * 8, 14 * 8}, "Packet Data:", Color::light_grey()}};
+
     Console console{
-        {0, 5 * 16, 240, 240}};
+        {0, 7 * 16, 240, 240}};
 
     std::string str_log{""};
     bool logging{true};

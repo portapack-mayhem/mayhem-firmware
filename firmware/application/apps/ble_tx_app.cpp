@@ -42,6 +42,89 @@ void BLELoggerTx::log_raw_data(const std::string& data) {
     log_file.write_entry(data);
 }
 
+bool hasValidHexPairs(const std::string& str, int totalPairs) {
+    int validPairs = 0;
+
+    for (int i = 0; i < totalPairs * 2; i += 2) {
+        char c1 = str[i];
+        char c2 = str[i + 1];
+
+        if (!(std::isxdigit(c1) && std::isxdigit(c2))) {
+            return false; // Return false if any pair is invalid.
+        }
+        
+        validPairs++;
+    }
+
+    return (validPairs == totalPairs);
+}
+
+std::vector<std::string> splitIntoStrings(const char* input) {
+    std::vector<std::string> result;
+    int length = std::strlen(input);
+    int start = 0;
+
+    while (start < length) {
+        int remaining = length - start;
+        int chunkSize = (remaining > 30) ? 30 : remaining;
+        result.push_back(std::string(input + start, chunkSize));
+        start += chunkSize;
+    }
+
+    return result;
+}
+
+uint32_t stringToUint32(const std::string& str) {
+    size_t pos = 0;
+    uint32_t result = 0;
+    
+    while (pos < str.size() && std::isdigit(str[pos])) {
+        int digit = str[pos] - '0';
+
+        // Check for overflow before adding the next digit
+        if (result > (UINT32_MAX - digit) / 10) {
+            return 0;
+        }
+
+        result = result * 10 + digit;
+        pos++;
+    }
+
+    // Check if there are any non-digit characters left
+    if (pos < str.size()) {
+        return 0;
+    }
+
+    return result;
+}
+
+void readUntilSpace(File& file, char* result, std::size_t maxBufferSize) {
+    std::size_t bytesRead = 0;
+
+    while (true) {
+        char ch;
+        File::Result<File::Size> readResult = file.read(&ch, 1);
+
+        if (readResult.is_ok() && readResult.value() > 0) {
+            if (ch == ' ') {
+                // Found a space character, stop reading
+                break;
+            } else if (bytesRead < maxBufferSize) {
+                // Append the character to the result if there's space
+                result[bytesRead++] = ch;
+            } else {
+                // Buffer is full, break to prevent overflow
+                break;
+            }
+        } else {
+            break; // End of file or error
+        }
+    }
+
+    // Null-terminate the result string
+    result[bytesRead] = '\0';
+}
+
 namespace ui {
 
 void BLETxView::focus() {
@@ -66,8 +149,9 @@ void BLETxView::toggle() {
 
 void BLETxView::start() {
 
-    if (!is_running)
+    if (!is_active())
     {
+        // Check if file is present before continuing.
         File data_file;
 
         auto error = data_file.open(file_path);
@@ -76,54 +160,52 @@ void BLETxView::start() {
             check_loop.set_value(false);
             return;
         }
-
-        if ((strlen(advertisementData) > 62) || (strlen(macAddress) != 12))
-        {
-            file_error();
-            check_loop.set_value(false);
-            return;
-        }
         else
         {
+            // Send first or single packet.
             progressbar.set_max(20);
             button_play.set_bitmap(&bitmap_stop);
+            baseband::set_btletx(channel_number, macAddress, advertisementData);
             transmitter_model.enable();
 
             is_running = true;
         }
     }
-
-    if (is_running)
+    else
     {
+        // Send next packet.
         baseband::set_btletx(channel_number, macAddress, advertisementData);
-
-        if ((packet_count % 10) == 0) {
-            text_packets_sent.set(to_string_dec_uint(packet_count));
-        }
-
-        packet_count++;
     }
+    
+    if ((packet_counter % 10) == 0) {
+        text_packets_sent.set(to_string_dec_uint(packet_counter));
+    }
+
+    packet_counter--;
 }
 
 void BLETxView::stop() {
     transmitter_model.disable();
     progressbar.set_value(0);
     button_play.set_bitmap(&bitmap_play);
+    check_loop.set_value(false);
+    text_packets_sent.set(to_string_dec_uint(packet_count));
+    packet_counter = packet_count;
     is_running = false;
 }
 
 void BLETxView::on_tx_progress(const uint32_t progress, const bool done) {
-    repeatLoop = check_loop.value();
-
     if (done) {
-        if (repeatLoop) {
+        if (check_loop.value() && (packet_counter != 0) && is_active()) {
             if ((timer_count % timer_period) == 0) {
                 progressbar.set_value(0);
                 start();
             }
         } else {
-            packet_count = 0;
-            stop();
+            if (is_active())
+            {
+                stop();
+            }
         }
 
         timer_count++;
@@ -137,8 +219,6 @@ BLETxView::BLETxView(NavigationView& nav)
 
     add_children({&button_open,
                   &text_filename,
-                  &text_sample_rate,
-                  &text_duration,
                   &progressbar,
                   &field_frequency,
                   &tx_view,  // now it handles previous rfgain, rfamp.
@@ -146,16 +226,22 @@ BLETxView::BLETxView(NavigationView& nav)
                   &button_play,
                   &label_speed,
                   &options_speed,
+                  &options_channel,
                   &label_packets_sent,
                   &text_packets_sent,
                   &label_mac_address,
                   &text_mac_address,
+                  &label_data_packet,
                   &console});
 
     field_frequency.set_step(0);
 
     button_play.on_select = [this](ImageButton&) {
         this->toggle();
+    };
+
+    options_channel.on_change = [this](size_t, int32_t i) {
+        channel_number = i;
     };
 
     options_speed.on_change = [this](size_t, int32_t i) {
@@ -180,39 +266,55 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         auto error = data_file.open(file_path);
         if (error) {
             file_error();
+            file_path = "";
             return;
         }
 
-        // Read Mac Address.
-        data_file.read(macAddress, 12);
-        
-        uint8_t spaceChar;
-        // Skip space.
-        data_file.read(&spaceChar, 1);
+        readUntilSpace(data_file, macAddress, mac_address_size_str);
+        readUntilSpace(data_file, advertisementData, max_packet_size_str);
+        readUntilSpace(data_file, packetCount, max_packet_count_str);
 
-        // Read Advertisement Data.
-        data_file.read(advertisementData, 62);
+        uint64_t macAddressSize = strlen(macAddress);
+        uint64_t advertisementDataSize = strlen(advertisementData);
+        uint64_t packetCountSize = strlen(packetCount);
 
-        if ((strlen(advertisementData) < 62) && (strlen(macAddress) == 12))
+        packet_count = stringToUint32(packetCount);
+        packet_counter = packet_count;
+
+         console.writeln(macAddress);
+         console.writeln(advertisementData);
+         console.writeln(packetCount);
+
+         console.writeln(to_string_dec_uint(macAddressSize));
+         console.writeln(to_string_dec_uint(advertisementDataSize));
+         console.writeln(to_string_dec_uint(packetCountSize));
+         console.writeln(to_string_dec_uint(packet_count));
+
+        // Verify Data.
+        if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_count_str) &&
+            hasValidHexPairs(macAddress, macAddressSize / 2) && hasValidHexPairs(advertisementData, advertisementDataSize / 2) && (packet_count > 0) && (packet_count < UINT32_MAX))
         {
-            char macAddressFormated[18] = {
-                macAddress[0], macAddress[1], ':',
-                macAddress[2], macAddress[3], ':',
-                macAddress[4], macAddress[5], ':',
-                macAddress[6], macAddress[7], ':',
-                macAddress[8], macAddress[9], ':',
-                macAddress[10], macAddress[11]
-            };
+            text_packets_sent.set(to_string_dec_uint(packet_count));
 
-            text_mac_address.set(macAddressFormated);
+            std::string formattedMacAddress = to_string_formatted_mac_address(macAddress);
+
+            text_mac_address.set(formattedMacAddress);
+
+            std::vector<std::string> strings = splitIntoStrings(advertisementData);
+
             console.clear(true);
-            console.writeln(macAddress);
-            console.writeln(advertisementData);
+
+            for (const std::string& str : strings) {
+                console.writeln(str);
+            }
+
             text_filename.set(truncate(file_path.filename().string(), 12));
         }
         else
         {
-            file_error();
+          //  file_error();
+            file_path = "";
+            return;
         }
     }
 }
