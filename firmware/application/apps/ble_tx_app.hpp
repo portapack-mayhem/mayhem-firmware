@@ -104,10 +104,10 @@ class BLETxView : public View {
     uint32_t packet_count{0};
     uint32_t packet_counter{0};
 
-    static constexpr uint8_t mac_address_size_str {12};
-    static constexpr uint8_t max_packet_size_str {62};
-    static constexpr uint8_t max_packet_count_str {10};
-    static constexpr uint32_t max_packet_count {UINT32_MAX};
+    static constexpr uint8_t mac_address_size_str{12};
+    static constexpr uint8_t max_packet_size_str{62};
+    static constexpr uint8_t max_packet_count_str{10};
+    static constexpr uint32_t max_packet_count{UINT32_MAX};
 
     static constexpr auto header_height = 8 * 16;
 
@@ -158,8 +158,8 @@ class BLETxView : public View {
         {11 * 8, 6 * 8},
         5,
         {{"Ch.37 ", 37},
-        {"Ch.38", 38},
-        {"Ch.39", 39}}};
+         {"Ch.38", 38},
+         {"Ch.39", 39}}};
 
     Labels label_packets_sent{
         {{0 * 8, 10 * 8}, "Packets Left:", Color::light_grey()}};

@@ -329,7 +329,7 @@ int BTLETxProcessor::calculate_pkt_info(PKT_INFO* pkt) {
     return (0);
 }
 
-void BTLETxProcessor::execute(const buffer_c8_t& buffer) {  
+void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
     int8_t re, im;
 
     // // This is called at 4M/2048 = 1953Hz

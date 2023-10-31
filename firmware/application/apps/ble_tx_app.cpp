@@ -50,9 +50,9 @@ bool hasValidHexPairs(const std::string& str, int totalPairs) {
         char c2 = str[i + 1];
 
         if (!(std::isxdigit(c1) && std::isxdigit(c2))) {
-            return false; // Return false if any pair is invalid.
+            return false;  // Return false if any pair is invalid.
         }
-        
+
         validPairs++;
     }
 
@@ -77,7 +77,7 @@ std::vector<std::string> splitIntoStrings(const char* input) {
 uint32_t stringToUint32(const std::string& str) {
     size_t pos = 0;
     uint32_t result = 0;
-    
+
     while (pos < str.size() && std::isdigit(str[pos])) {
         int digit = str[pos] - '0';
 
@@ -117,7 +117,7 @@ void readUntilSpace(File& file, char* result, std::size_t maxBufferSize) {
                 break;
             }
         } else {
-            break; // End of file or error
+            break;  // End of file or error
         }
     }
 
@@ -174,9 +174,7 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
-
-    if (!is_active())
-    {
+    if (!is_active()) {
         // Check if file is present before continuing.
         File data_file;
 
@@ -185,9 +183,7 @@ void BLETxView::start() {
             file_error();
             check_loop.set_value(false);
             return;
-        }
-        else
-        {
+        } else {
             // Send first or single packet.
             progressbar.set_max(packet_count);
             button_play.set_bitmap(&bitmap_stop);
@@ -196,13 +192,11 @@ void BLETxView::start() {
 
             is_running = true;
         }
-    }
-    else
-    {
+    } else {
         // Send next packet.
         baseband::set_btletx(channel_number, macAddress, advertisementData);
     }
-    
+
     if ((packet_counter % 10) == 0) {
         text_packets_sent.set(to_string_dec_uint(packet_counter));
     }
@@ -229,8 +223,7 @@ void BLETxView::on_tx_progress(const bool done) {
                 start();
             }
         } else {
-            if (is_active())
-            {
+            if (is_active()) {
                 stop();
             }
         }
@@ -308,19 +301,18 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
         packet_count = stringToUint32(packetCount);
         packet_counter = packet_count;
 
-         console.writeln(macAddress);
-         console.writeln(advertisementData);
-         console.writeln(packetCount);
+        console.writeln(macAddress);
+        console.writeln(advertisementData);
+        console.writeln(packetCount);
 
-         console.writeln(to_string_dec_uint(macAddressSize));
-         console.writeln(to_string_dec_uint(advertisementDataSize));
-         console.writeln(to_string_dec_uint(packetCountSize));
-         console.writeln(to_string_dec_uint(packet_count));
+        console.writeln(to_string_dec_uint(macAddressSize));
+        console.writeln(to_string_dec_uint(advertisementDataSize));
+        console.writeln(to_string_dec_uint(packetCountSize));
+        console.writeln(to_string_dec_uint(packet_count));
 
         // Verify Data.
         if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_count_str) &&
-            hasValidHexPairs(macAddress, macAddressSize / 2) && hasValidHexPairs(advertisementData, advertisementDataSize / 2) && (packet_count > 0) && (packet_count < UINT32_MAX))
-        {
+            hasValidHexPairs(macAddress, macAddressSize / 2) && hasValidHexPairs(advertisementData, advertisementDataSize / 2) && (packet_count > 0) && (packet_count < UINT32_MAX)) {
             text_packets_sent.set(to_string_dec_uint(packet_count));
 
             std::string formattedMacAddress = to_string_formatted_mac_address(macAddress);
@@ -336,10 +328,8 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             }
 
             text_filename.set(truncate(file_path.filename().string(), 12));
-        }
-        else
-        {
-          //  file_error();
+        } else {
+            // file_error();
             file_path = "";
             return;
         }
@@ -351,7 +341,7 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
 
     if (is_data) {
         str_console += (char)(value);
-    } 
+    }
 
     console.write(str_console);
 }
