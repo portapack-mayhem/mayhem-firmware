@@ -125,6 +125,32 @@ void readUntilSpace(File& file, char* result, std::size_t maxBufferSize) {
     result[bytesRead] = '\0';
 }
 
+static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
+    uint64_t freq_hz;
+
+    switch (channel_number) {
+        case 37:
+            freq_hz = 2'402'000'000ull;
+            break;
+        case 38:
+            freq_hz = 2'426'000'000ull;
+            break;
+        case 39:
+            freq_hz = 2'480'000'000ull;
+            break;
+        case 0 ... 10:
+            freq_hz = 2'404'000'000ull + channel_number * 2'000'000ull;
+            break;
+        case 11 ... 36:
+            freq_hz = 2'428'000'000ull + (channel_number - 11) * 2'000'000ull;
+            break;
+        default:
+            freq_hz = UINT64_MAX;
+    }
+
+    return freq_hz;
+}
+
 namespace ui {
 
 void BLETxView::focus() {
@@ -241,6 +267,7 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
+        field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
     };
 
