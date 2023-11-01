@@ -761,15 +761,18 @@ class BTLETxConfigureMessage : public Message {
     constexpr BTLETxConfigureMessage(
         const uint8_t channel_number,
         char* macAddress,
-        char* advertisementData)
+        char* advertisementData,
+        const uint8_t pduType)
         : Message{ID::BTLETxConfigure},
           channel_number(channel_number),
           macAddress(macAddress),
-          advertisementData(advertisementData) {
+          advertisementData(advertisementData),
+          pduType(pduType) {
     }
     const uint8_t channel_number;
     char* macAddress;
     char* advertisementData;
+    const uint8_t pduType;
 };
 
 class NRFRxConfigureMessage : public Message {

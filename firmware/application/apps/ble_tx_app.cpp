@@ -187,14 +187,14 @@ void BLETxView::start() {
             // Send first or single packet.
             progressbar.set_max(packet_count);
             button_play.set_bitmap(&bitmap_stop);
-            baseband::set_btletx(channel_number, macAddress, advertisementData);
+            baseband::set_btletx(channel_number, macAddress, advertisementData, pduType);
             transmitter_model.enable();
 
             is_running = true;
         }
     } else {
         // Send next packet.
-        baseband::set_btletx(channel_number, macAddress, advertisementData);
+        baseband::set_btletx(channel_number, macAddress, advertisementData, pduType);
     }
 
     if ((packet_counter % 10) == 0) {
@@ -246,6 +246,7 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_speed,
                   &options_speed,
                   &options_channel,
+                  &options_adv_type,
                   &label_packets_sent,
                   &text_packets_sent,
                   &label_mac_address,
@@ -266,6 +267,10 @@ BLETxView::BLETxView(NavigationView& nav)
 
     options_speed.on_change = [this](size_t, int32_t i) {
         timer_period = i;
+    };
+
+    options_adv_type.on_change = [this](size_t, int32_t i) {
+        pduType = (PKT_TYPE)i;
     };
 
     options_speed.set_selected_index(0);
