@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2023 TJ Baginski
  *
  * This file is part of PortaPack.
  *
@@ -99,7 +100,7 @@ class BTLETxProcessor : public BasebandProcessor {
 
     int calculate_pkt_info(PKT_INFO* pkt);
     int calculate_sample_from_pkt_type(PKT_INFO* pkt);
-    int calculate_sample_for_ADV_IND(PKT_INFO* pkt);
+    int calculate_sample_for_ADV(PKT_INFO* pkt);
     void fill_adv_pdu_header(PKT_INFO* pkt, int txadd, int rxadd, int payload_len, char* bit_out);
     void crc24_and_scramble_to_gen_phy_bit(char* crc_init_hex, PKT_INFO* pkt);
     void disp_bit_in_hex(char* bit, int num_bit);

@@ -104,10 +104,42 @@ class BLETxView : public View {
     uint32_t packet_count{0};
     uint32_t packet_counter{0};
 
+    enum PKT_TYPE {
+        INVALID_TYPE,
+        RAW,
+        DISCOVERY,
+        IBEACON,
+        ADV_IND,
+        ADV_DIRECT_IND,
+        ADV_NONCONN_IND,
+        ADV_SCAN_IND,
+        SCAN_REQ,
+        SCAN_RSP,
+        CONNECT_REQ,
+        LL_DATA,
+        LL_CONNECTION_UPDATE_REQ,
+        LL_CHANNEL_MAP_REQ,
+        LL_TERMINATE_IND,
+        LL_ENC_REQ,
+        LL_ENC_RSP,
+        LL_START_ENC_REQ,
+        LL_START_ENC_RSP,
+        LL_UNKNOWN_RSP,
+        LL_FEATURE_REQ,
+        LL_FEATURE_RSP,
+        LL_PAUSE_ENC_REQ,
+        LL_PAUSE_ENC_RSP,
+        LL_VERSION_IND,
+        LL_REJECT_IND,
+        NUM_PKT_TYPE
+    };
+
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
     static constexpr uint8_t max_packet_count_str{10};
     static constexpr uint32_t max_packet_count{UINT32_MAX};
+
+    PKT_TYPE pduType = {RAW};
 
     static constexpr auto header_height = 8 * 16;
 
@@ -160,6 +192,17 @@ class BLETxView : public View {
         {{"Ch.37 ", 37},
          {"Ch.38", 38},
          {"Ch.39", 39}}};
+
+    OptionsField options_adv_type{
+        {17 * 8, 6 * 8},
+        14,
+        {{"DISCOVERY ", DISCOVERY},
+         {"ADV_IND", ADV_IND},
+         {"ADV_DIRECT", ADV_DIRECT_IND},
+         {"ADV_NONCONN", ADV_NONCONN_IND},
+         {"SCAN_REQ", SCAN_REQ},
+         {"SCAN_RSP", SCAN_RSP},
+         {"CONNECT_REQ", CONNECT_REQ}}};
 
     Labels label_packets_sent{
         {{0 * 8, 10 * 8}, "Packets Left:", Color::light_grey()}};

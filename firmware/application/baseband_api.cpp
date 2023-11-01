@@ -155,11 +155,12 @@ void set_btle(uint8_t channel_number) {
     send_message(&message);
 }
 
-void set_btletx(uint8_t channel_number, char* macAddress, char* advertisementData) {
+void set_btletx(uint8_t channel_number, char* macAddress, char* advertisementData, uint8_t pduType) {
     const BTLETxConfigureMessage message{
         channel_number,
         macAddress,
-        advertisementData};
+        advertisementData,
+        pduType};
     send_message(&message);
 }
 
