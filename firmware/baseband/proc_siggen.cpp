@@ -90,7 +90,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
                     case 0 ... 63:  // equivalent to 1/4 of total 360º degrees.
                         /* "00" */
                         re = (sine_table_i8[32]);       // we are sending symbol-phasor 45º during  1/4 of the total periode
-                        im = (sine_table_i8[32 + 64]);  // 32 index  = rounded (45º/360º * 255 total sin table steps)
+                        im = (sine_table_i8[32 + 64]);  // 32 index  = rounded (45º/360º * 255 total sin table steps) = 31,875
                         break;
 
                     case 64 ... 127:
@@ -102,14 +102,14 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 
                     case 128 ... 191:
                         /* "10" */
-                        re = (sine_table_i8[160]);       // symbol-phasor 225º
-                        im = (sine_table_i8[160 + 64]);  // 160 index   = 96 + 256/4
+                        re = (sine_table_i8[159]);       // symbol-phasor 225º
+                        im = (sine_table_i8[159 + 64]);  // 159 rounded index = 96 + 256/4 = 159.3
                         break;
 
                     case 192 ... 255:
                         /* "11" */
-                        re = (sine_table_i8[224]);  // symbol-phasor 315º , (315/360) * 255
-                        im = (sine_table_i8[224 + 64]);
+                        re = (sine_table_i8[223]);                  // symbol-phasor 315º ; 223 rounded index = (315/360) * 255 =223.125
+                        im = (sine_table_i8[((223 + 64) & 0xFF)]);  // Max index 255, circular periodic conversion.
                         break;
 
                     default:
