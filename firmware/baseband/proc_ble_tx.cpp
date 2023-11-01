@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
- * Copyright (C) TJ Baginski
+ * Copyright (C) 2023 TJ Baginski
  *
  * This file is part of PortaPack.
  *
@@ -276,7 +276,7 @@ void BTLETxProcessor::fill_adv_pdu_header(PKT_INFO* pkt, int txadd, int rxadd, i
     bit_out[15] = 0;
 }
 
-int BTLETxProcessor::calculate_sample_for_ADV_IND(PKT_INFO* pkt) {
+int BTLETxProcessor::calculate_sample_for_ADV(PKT_INFO* pkt) {
     pkt->num_info_bit = 0;
 
     // gen preamble and access address
@@ -286,7 +286,7 @@ int BTLETxProcessor::calculate_sample_for_ADV_IND(PKT_INFO* pkt) {
     pkt->num_info_bit = pkt->num_info_bit + convert_hex_to_bit((char*)AAValue, pkt->info_bit + pkt->num_info_bit, 0, 4);
 
     // get txadd and rxadd
-    int txadd = 1, rxadd = 0;
+    int txadd = 0, rxadd = 0;
 
     pkt->num_info_bit = pkt->num_info_bit + 16;  // 16 is header length
 
@@ -314,7 +314,7 @@ int BTLETxProcessor::calculate_sample_from_pkt_type(PKT_INFO* pkt) {
     // Todo: Handle other Enum values.
     // if (packetType == ADV_IND);
 
-    if (calculate_sample_for_ADV_IND(pkt) == -1) {
+    if (calculate_sample_for_ADV(pkt) == -1) {
         return (-1);
     }
 
@@ -376,6 +376,7 @@ void BTLETxProcessor::on_message(const Message* const message) {
 
 void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     channel_number = message.channel_number;
+    packetType = (PKT_TYPE)message.pduType;
 
     memcpy(macAddress, message.macAddress, sizeof(macAddress));
     memcpy(advertisementData, message.advertisementData, sizeof(advertisementData));
@@ -386,24 +387,12 @@ void BTLETxProcessor::configure(const BTLETxConfigureMessage& message) {
     // Calculates the samples based on the BLE packet data and generates IQ values into an array to be sent out.
     calculate_pkt_info(&packets);
 
-    // Todo: determine if we need to copy these values to shared_memory.bb_data.data. I suspect that we might.
-    // I think once we add the UI level, only the generated BLE payload will be sent down. This layer will take care of PHY sample generation
-    // using the bits sent in by the UI level. In short, we will seperate this implementation to the UI level.
-    // memcpy(shared_memory.bb_data.data, (uint8_t *)packets.phy_sample, packets.num_phy_sample);
-
-    // 2 Sample buffers for each IQ data.
-    samples_per_bit = 8;
-
 #ifdef new_way
     // This is because each sample contains I and Q, but packet.num_phy_samples just returns the total samples.
     length = (uint32_t)(packets.num_phy_sample * 2);
 #else
     length = (uint32_t)packets.num_phy_bit;
 #endif
-
-    // 200kHz shift frequency of BLE
-    shift_one = 200000 * (0xFFFFFFFFULL / 4000000);
-    shift_zero = -shift_one;
 
     // Starting at sample_count 0 since packets.num_phy_sample contains every sample needed to be sent out.
     sample_count = 0;
