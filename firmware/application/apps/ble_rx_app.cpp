@@ -200,7 +200,7 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
 }
 
 void BLERxView::focus() {
-    channel.focus();
+    options_channel.focus();
 }
 
 BLERxView::BLERxView(NavigationView& nav)
