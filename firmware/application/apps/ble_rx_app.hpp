@@ -21,8 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __BLE_APP_H__
-#define __BLE_APP_H__
+#ifndef __BLE_RX_APP_H__
+#define __BLE_RX_APP_H__
 
 #include "ui.hpp"
 #include "ui_navigation.hpp"
@@ -170,7 +170,8 @@ class BLERxView : public View {
     std::string filterBuffer{};
     std::string filter{};
 
-    static constexpr auto header_height = 12 + 2 * 16;
+    static constexpr auto header_height = 3 * 16;
+    static constexpr auto switch_button_height = 3 * 16;
 
     OptionsField options_channel{
         {0 * 8, 0 * 8},
@@ -220,6 +221,10 @@ class BLERxView : public View {
 
     Console console{
         {0, 4 * 16, 240, 240}};
+
+    Button button_switch{
+        {8 * 8, 16 * 16, 14 * 8, 2 * 16},
+        "Switch to Tx"};
 
     std::string str_log{""};
     bool logging{false};

@@ -21,7 +21,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ble_app.hpp"
+#include "ble_rx_app.hpp"
+#include "ble_tx_app.hpp"
+
 #include "ui_modemsetup.hpp"
 
 #include "modems.hpp"
@@ -198,7 +200,7 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
 }
 
 void BLERxView::focus() {
-    field_frequency.focus();
+    channel.focus();
 }
 
 BLERxView::BLERxView(NavigationView& nav)
@@ -216,6 +218,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &label_sort,
                   &options_sort,
                   &button_message,
+                  &button_switch,
                   &recent_entries_view,
                   &recent_entries_filter_view,
                   &recent_entry_detail_view});
@@ -241,6 +244,11 @@ BLERxView::BLERxView(NavigationView& nav)
             });
     };
 
+    button_switch.on_select = [this, &nav](Button&) {
+        nav.pop();
+        nav.push<BLETxView>();
+    };
+
     field_frequency.set_step(0);
 
     check_log.set_value(logging);
@@ -254,7 +262,7 @@ BLERxView::BLERxView(NavigationView& nav)
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
 
-        baseband::set_btle(channel_number);
+        baseband::set_btlerx(channel_number);
     };
 
     options_sort.on_change = [this](size_t, int32_t i) {
@@ -294,7 +302,7 @@ BLERxView::BLERxView(NavigationView& nav)
         logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 
     // Auto-configure modem for LCR RX (will be removed later)
-    baseband::set_btle(channel_number);
+    baseband::set_btlerx(channel_number);
 
     receiver_model.enable();
 }
@@ -399,7 +407,7 @@ void BLERxView::on_switch_table(const std::string value) {
 
 void BLERxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
-    const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
     recent_entries_view.set_parent_rect(content_rect);
     recent_entry_detail_view.set_parent_rect(content_rect);
     recent_entries_filter_view.set_parent_rect(content_rect);
