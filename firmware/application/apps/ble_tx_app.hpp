@@ -152,7 +152,7 @@ class BLETxView : public View {
 
     BLETxPacket packets[max_num_packets];
 
-    PKT_TYPE pduType = {RAW};
+    PKT_TYPE pduType = {DISCOVERY};
 
     static constexpr auto header_height = 9 * 16;
 
