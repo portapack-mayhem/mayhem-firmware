@@ -102,9 +102,7 @@ class BLETxView : public View {
     std::filesystem::path file_path{};
     uint8_t channel_number = 37;
 
-    // char macAddress[13] = "010203040506";
-    // char advertisementData[63] = "00112233445566778899AABBCCDDEEFF";
-    // char packetCount[11] = "0";
+    char randomMac[13] = "010203040506";
 
     bool is_running = false;
     uint64_t timer_count{0};
@@ -113,6 +111,7 @@ class BLETxView : public View {
     uint32_t packet_counter{0};
     uint32_t num_packets{0};
     uint32_t current_packet{0};
+    bool random_mac = false;
 
     enum PKT_TYPE {
         INVALID_TYPE,
@@ -165,7 +164,13 @@ class BLETxView : public View {
         "-"};
 
     ProgressBar progressbar{
-        {11 * 8, 1 * 16, 12 * 8, 16}};
+        {11 * 8, 1 * 16, 9 * 8, 16}};
+
+    Checkbox check_rand_mac{
+        {21 * 8, 1 * 16},
+        6,
+        "Random",
+        true};
 
     TxFrequencyField field_frequency{
         {0 * 8, 2 * 16},

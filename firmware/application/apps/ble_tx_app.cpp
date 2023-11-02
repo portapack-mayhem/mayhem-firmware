@@ -120,6 +120,17 @@ void readUntil(File& file, char* result, std::size_t maxBufferSize, char delimit
     result[bytesRead] = '\0';
 }
 
+void generateRandomMacAddress(char* macAddress) {
+    const char hexDigits[] = "0123456789ABCDEF";
+
+    // Generate 12 random hexadecimal characters
+    for (int i = 0; i < 12; i++) {
+        int randomIndex = rand() % 16;
+        macAddress[i] = hexDigits[randomIndex];
+    }
+    macAddress[12] = '\0';  // Null-terminate the string
+}
+
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
     uint64_t freq_hz;
 
@@ -169,6 +180,9 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
+    // Generate new random Mac Address.
+    generateRandomMacAddress(randomMac);
+
     if (!is_active()) {
         // Check if file is present before continuing.
         File data_file;
@@ -183,14 +197,15 @@ void BLETxView::start() {
             packet_counter = packets[current_packet].packet_count;
             progressbar.set_max(packets[current_packet].packet_count);
             button_play.set_bitmap(&bitmap_stop);
-            baseband::set_btletx(channel_number, packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+
+            baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
             transmitter_model.enable();
 
             is_running = true;
         }
     } else {
         // Send next packet.
-        baseband::set_btletx(channel_number, packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+        baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
     }
 
     if ((packet_counter % 10) == 0) {
@@ -251,6 +266,7 @@ BLETxView::BLETxView(NavigationView& nav)
     add_children({&button_open,
                   &text_filename,
                   &progressbar,
+                  &check_rand_mac,
                   &field_frequency,
                   &tx_view,  // now it handles previous rfgain, rfamp.
                   &check_loop,
@@ -288,6 +304,11 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_speed.set_selected_index(0);
+
+    check_rand_mac.set_value(false);
+    check_rand_mac.on_select = [this](Checkbox&, bool v) {
+        random_mac = v;
+    };
 
     button_open.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
