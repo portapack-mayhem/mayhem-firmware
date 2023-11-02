@@ -160,7 +160,7 @@ static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
 namespace ui {
 
 void BLETxView::focus() {
-    field_frequency.focus();
+    button_open.focus();
 }
 
 bool BLETxView::is_active() const {
@@ -233,12 +233,19 @@ void BLETxView::stop() {
 
 void BLETxView::on_tx_progress(const bool done) {
     if (done) {
-        if (check_loop.value() && is_active()) {
+        if (is_active()) {
             // Reached end of current packet repeats.
             if (packet_counter == 0) {
                 // Done sending all packets.
                 if (current_packet == (num_packets - 1)) {
-                    stop();
+                    // If looping, restart from beginning.
+                    if (check_loop.value()) {
+                        current_packet = 0;
+                        packet_counter = packets[current_packet].packet_count;
+                        update_packet_display(packets[current_packet]);
+                    } else {
+                        stop();
+                    }
                 } else {
                     current_packet++;
                     packet_counter = packets[current_packet].packet_count;
@@ -249,13 +256,9 @@ void BLETxView::on_tx_progress(const bool done) {
                     start();
                 }
             }
-        } else {
-            if (is_active()) {
-                stop();
-            }
-        }
 
-        timer_count++;
+            timer_count++;
+        }
     }
 }
 
