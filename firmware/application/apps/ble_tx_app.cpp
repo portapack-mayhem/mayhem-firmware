@@ -90,15 +90,10 @@ uint32_t stringToUint32(const std::string& str) {
         pos++;
     }
 
-    // Check if there are any non-digit characters left
-    if (pos < str.size()) {
-        return 0;
-    }
-
     return result;
 }
 
-void readUntilSpace(File& file, char* result, std::size_t maxBufferSize) {
+void readUntil(File& file, char* result, std::size_t maxBufferSize, char delimiter) {
     std::size_t bytesRead = 0;
 
     while (true) {
@@ -106,7 +101,7 @@ void readUntilSpace(File& file, char* result, std::size_t maxBufferSize) {
         File::Result<File::Size> readResult = file.read(&ch, 1);
 
         if (readResult.is_ok() && readResult.value() > 0) {
-            if (ch == ' ') {
+            if (ch == delimiter) {
                 // Found a space character, stop reading
                 break;
             } else if (bytesRead < maxBufferSize) {
@@ -123,6 +118,17 @@ void readUntilSpace(File& file, char* result, std::size_t maxBufferSize) {
 
     // Null-terminate the result string
     result[bytesRead] = '\0';
+}
+
+void generateRandomMacAddress(char* macAddress) {
+    const char hexDigits[] = "0123456789ABCDEF";
+
+    // Generate 12 random hexadecimal characters
+    for (int i = 0; i < 12; i++) {
+        int randomIndex = rand() % 16;
+        macAddress[i] = hexDigits[randomIndex];
+    }
+    macAddress[12] = '\0';  // Null-terminate the string
 }
 
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
@@ -174,6 +180,9 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
+    // Generate new random Mac Address.
+    generateRandomMacAddress(randomMac);
+
     if (!is_active()) {
         // Check if file is present before continuing.
         File data_file;
@@ -185,16 +194,18 @@ void BLETxView::start() {
             return;
         } else {
             // Send first or single packet.
-            progressbar.set_max(packet_count);
+            packet_counter = packets[current_packet].packet_count;
+            progressbar.set_max(packets[current_packet].packet_count);
             button_play.set_bitmap(&bitmap_stop);
-            baseband::set_btletx(channel_number, macAddress, advertisementData, pduType);
+
+            baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
             transmitter_model.enable();
 
             is_running = true;
         }
     } else {
         // Send next packet.
-        baseband::set_btletx(channel_number, macAddress, advertisementData, pduType);
+        baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
     }
 
     if ((packet_counter % 10) == 0) {
@@ -203,7 +214,7 @@ void BLETxView::start() {
 
     packet_counter--;
 
-    progressbar.set_value(packet_count - packet_counter);
+    progressbar.set_value(packets[current_packet].packet_count - packet_counter);
 }
 
 void BLETxView::stop() {
@@ -211,16 +222,32 @@ void BLETxView::stop() {
     progressbar.set_value(0);
     button_play.set_bitmap(&bitmap_play);
     check_loop.set_value(false);
-    text_packets_sent.set(to_string_dec_uint(packet_count));
-    packet_counter = packet_count;
+
+    current_packet = 0;
+    text_packets_sent.set(to_string_dec_uint(packets[0].packet_count));
+    packet_counter = packets[0].packet_count;
+    update_packet_display(packets[0]);
+
     is_running = false;
 }
 
 void BLETxView::on_tx_progress(const bool done) {
     if (done) {
-        if (check_loop.value() && (packet_counter != 0) && is_active()) {
-            if ((timer_count % timer_period) == 0) {
-                start();
+        if (check_loop.value() && is_active()) {
+            // Reached end of current packet repeats.
+            if (packet_counter == 0) {
+                // Done sending all packets.
+                if (current_packet == (num_packets - 1)) {
+                    stop();
+                } else {
+                    current_packet++;
+                    packet_counter = packets[current_packet].packet_count;
+                    update_packet_display(packets[current_packet]);
+                }
+            } else {
+                if ((timer_count % timer_period) == 0) {
+                    start();
+                }
             }
         } else {
             if (is_active()) {
@@ -239,6 +266,7 @@ BLETxView::BLETxView(NavigationView& nav)
     add_children({&button_open,
                   &text_filename,
                   &progressbar,
+                  &check_rand_mac,
                   &field_frequency,
                   &tx_view,  // now it handles previous rfgain, rfamp.
                   &check_loop,
@@ -247,6 +275,8 @@ BLETxView::BLETxView(NavigationView& nav)
                   &options_speed,
                   &options_channel,
                   &options_adv_type,
+                  &label_packet_index,
+                  &text_packet_index,
                   &label_packets_sent,
                   &text_packets_sent,
                   &label_mac_address,
@@ -275,6 +305,11 @@ BLETxView::BLETxView(NavigationView& nav)
 
     options_speed.set_selected_index(0);
 
+    check_rand_mac.set_value(false);
+    check_rand_mac.on_select = [this](Checkbox&, bool v) {
+        random_mac = v;
+    };
+
     button_open.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
@@ -295,40 +330,38 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             return;
         }
 
-        readUntilSpace(data_file, macAddress, mac_address_size_str);
-        readUntilSpace(data_file, advertisementData, max_packet_size_str);
-        readUntilSpace(data_file, packetCount, max_packet_count_str);
+        do {
+            readUntil(data_file, packets[num_packets].macAddress, mac_address_size_str, ' ');
+            readUntil(data_file, packets[num_packets].advertisementData, max_packet_size_str, ' ');
+            readUntil(data_file, packets[num_packets].packetCount, max_packet_repeat_str, '\n');
 
-        uint64_t macAddressSize = strlen(macAddress);
-        uint64_t advertisementDataSize = strlen(advertisementData);
-        uint64_t packetCountSize = strlen(packetCount);
+            uint64_t macAddressSize = strlen(packets[num_packets].macAddress);
+            uint64_t advertisementDataSize = strlen(packets[num_packets].advertisementData);
+            uint64_t packetCountSize = strlen(packets[num_packets].packetCount);
 
-        packet_count = stringToUint32(packetCount);
-        packet_counter = packet_count;
+            packets[num_packets].packet_count = stringToUint32(packets[num_packets].packetCount);
+            packet_counter = packets[num_packets].packet_count;
 
-        // Verify Data.
-        if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_count_str) &&
-            hasValidHexPairs(macAddress, macAddressSize / 2) && hasValidHexPairs(advertisementData, advertisementDataSize / 2) && (packet_count > 0) && (packet_count < UINT32_MAX)) {
-            text_packets_sent.set(to_string_dec_uint(packet_count));
+            // Verify Data.
+            if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_repeat_str) &&
+                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count > 0) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
+                text_filename.set(truncate(file_path.filename().string(), 12));
 
-            std::string formattedMacAddress = to_string_formatted_mac_address(macAddress);
+            } else {
+                // Did not find any packets.
+                if (num_packets == 0) {
+                    file_path = "";
+                    return;
+                }
 
-            text_mac_address.set(formattedMacAddress);
-
-            std::vector<std::string> strings = splitIntoStrings(advertisementData);
-
-            console.clear(true);
-
-            for (const std::string& str : strings) {
-                console.writeln(str);
+                break;
             }
 
-            text_filename.set(truncate(file_path.filename().string(), 12));
-        } else {
-            // file_error();
-            file_path = "";
-            return;
-        }
+            num_packets++;
+
+        } while (num_packets < max_num_packets);
+
+        update_packet_display(packets[0]);
     }
 }
 
@@ -340,6 +373,24 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     }
 
     console.write(str_console);
+}
+
+void BLETxView::update_packet_display(BLETxPacket packet) {
+    std::string formattedMacAddress = to_string_formatted_mac_address(packet.macAddress);
+
+    std::vector<std::string> strings = splitIntoStrings(packet.advertisementData);
+
+    text_packet_index.set(to_string_dec_uint(current_packet));
+
+    text_packets_sent.set(to_string_dec_uint(packet.packet_count));
+
+    text_mac_address.set(formattedMacAddress);
+
+    console.clear(true);
+
+    for (const std::string& str : strings) {
+        console.writeln(str);
+    }
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {

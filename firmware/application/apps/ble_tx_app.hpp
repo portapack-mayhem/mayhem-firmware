@@ -74,10 +74,18 @@ class BLETxView : public View {
 
     std::string title() const override { return "BLE TX"; };
 
+    struct BLETxPacket {
+        char macAddress[13];
+        char advertisementData[63];
+        char packetCount[11];
+        uint32_t packet_count;
+    };
+
    private:
     void on_data(uint32_t value, bool is_data);
     void on_tx_progress(const bool done);
     void on_file_changed(const std::filesystem::path& new_file_path);
+    void update_packet_display(BLETxPacket packet);
 
     NavigationView& nav_;
     TxRadioState radio_state_{
@@ -93,16 +101,17 @@ class BLETxView : public View {
 
     std::filesystem::path file_path{};
     uint8_t channel_number = 37;
-    char macAddress[13] = "010203040506";
-    char advertisementData[63] = "00112233445566778899AABBCCDDEEFF";
-    char packetCount[11] = "0";
+
+    char randomMac[13] = "010203040506";
 
     bool is_running = false;
     uint64_t timer_count{0};
     uint64_t timer_period{256};
     bool repeatLoop = false;
-    uint32_t packet_count{0};
     uint32_t packet_counter{0};
+    uint32_t num_packets{0};
+    uint32_t current_packet{0};
+    bool random_mac = false;
 
     enum PKT_TYPE {
         INVALID_TYPE,
@@ -136,12 +145,15 @@ class BLETxView : public View {
 
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
-    static constexpr uint8_t max_packet_count_str{10};
-    static constexpr uint32_t max_packet_count{UINT32_MAX};
+    static constexpr uint8_t max_packet_repeat_str{10};
+    static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
+    static constexpr uint32_t max_num_packets{256};
 
-    PKT_TYPE pduType = {RAW};
+    BLETxPacket packets[max_num_packets];
 
-    static constexpr auto header_height = 8 * 16;
+    PKT_TYPE pduType = {DISCOVERY};
+
+    static constexpr auto header_height = 9 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -152,7 +164,13 @@ class BLETxView : public View {
         "-"};
 
     ProgressBar progressbar{
-        {11 * 8, 1 * 16, 12 * 8, 16}};
+        {11 * 8, 1 * 16, 9 * 8, 16}};
+
+    Checkbox check_rand_mac{
+        {21 * 8, 1 * 16},
+        6,
+        "Random",
+        true};
 
     TxFrequencyField field_frequency{
         {0 * 8, 2 * 16},
@@ -204,25 +222,32 @@ class BLETxView : public View {
          {"SCAN_RSP", SCAN_RSP},
          {"CONNECT_REQ", CONNECT_REQ}}};
 
+    Labels label_packet_index{
+        {{0 * 8, 10 * 8}, "Packet Index:", Color::light_grey()}};
+
+    Text text_packet_index{
+        {13 * 8, 5 * 16, 12 * 8, 16},
+        "-"};
+
     Labels label_packets_sent{
-        {{0 * 8, 10 * 8}, "Packets Left:", Color::light_grey()}};
+        {{0 * 8, 12 * 8}, "Packets Left:", Color::light_grey()}};
 
     Text text_packets_sent{
-        {13 * 8, 5 * 16, 10 * 8, 16},
+        {13 * 8, 6 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_mac_address{
-        {{0 * 8, 12 * 8}, "Mac Address:", Color::light_grey()}};
+        {{0 * 8, 14 * 8}, "Mac Address:", Color::light_grey()}};
 
     Text text_mac_address{
-        {12 * 8, 6 * 16, 20 * 8, 16},
+        {12 * 8, 7 * 16, 20 * 8, 16},
         "-"};
 
     Labels label_data_packet{
-        {{0 * 8, 14 * 8}, "Packet Data:", Color::light_grey()}};
+        {{0 * 8, 16 * 8}, "Packet Data:", Color::light_grey()}};
 
     Console console{
-        {0, 7 * 16, 240, 240}};
+        {0, 8 * 16, 240, 240}};
 
     std::string str_log{""};
     bool logging{true};
