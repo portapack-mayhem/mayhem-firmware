@@ -75,10 +75,10 @@ class BLETxView : public View {
     std::string title() const override { return "BLE TX"; };
 
     struct BLETxPacket {
-    char macAddress[13];
-    char advertisementData[63];
-    char packetCount[11];
-    uint32_t packet_count;
+        char macAddress[13];
+        char advertisementData[63];
+        char packetCount[11];
+        uint32_t packet_count;
     };
 
    private:

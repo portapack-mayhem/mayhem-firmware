@@ -218,27 +218,20 @@ void BLETxView::stop() {
 
 void BLETxView::on_tx_progress(const bool done) {
     if (done) {
-        if (check_loop.value() && is_active()) 
-        {
+        if (check_loop.value() && is_active()) {
             // Reached end of current packet repeats.
-            if (packet_counter == 0)
-            {
+            if (packet_counter == 0) {
                 // Done sending all packets.
-                if (current_packet == (num_packets - 1))
-                {
+                if (current_packet == (num_packets - 1)) {
                     stop();
-                }
-                else
-                {
+                } else {
                     current_packet++;
                     packet_counter = packets[current_packet].packet_count;
                     update_packet_display(packets[current_packet]);
                 }
-            }
-            else
-            {
+            } else {
                 if ((timer_count % timer_period) == 0) {
-                start();
+                    start();
                 }
             }
         } else {
@@ -316,8 +309,7 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             return;
         }
 
-        do
-        {
+        do {
             readUntil(data_file, packets[num_packets].macAddress, mac_address_size_str, ' ');
             readUntil(data_file, packets[num_packets].advertisementData, max_packet_size_str, ' ');
             readUntil(data_file, packets[num_packets].packetCount, max_packet_repeat_str, '\n');
@@ -332,13 +324,11 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             // Verify Data.
             if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_repeat_str) &&
                 hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count > 0) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
-
                 text_filename.set(truncate(file_path.filename().string(), 12));
 
             } else {
                 // Did not find any packets.
-                if (num_packets == 0)
-                {
+                if (num_packets == 0) {
                     file_path = "";
                     return;
                 }
@@ -364,8 +354,7 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     console.write(str_console);
 }
 
-void BLETxView::update_packet_display(BLETxPacket packet)
-{
+void BLETxView::update_packet_display(BLETxPacket packet) {
     std::string formattedMacAddress = to_string_formatted_mac_address(packet.macAddress);
 
     std::vector<std::string> strings = splitIntoStrings(packet.advertisementData);
