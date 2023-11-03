@@ -223,7 +223,8 @@ class BLERxView : public View {
         6,
         {{"MAC", 0},
          {"dB", 1},
-         {"Recent", 2}}};
+         {"Recent", 2},
+         {"Name", 3}}};
 
     Button button_message{
         {22 * 8, 3 * 8, 4 * 8, 16},
