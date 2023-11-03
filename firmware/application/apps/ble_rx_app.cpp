@@ -303,9 +303,9 @@ BLERxView::BLERxView(NavigationView& nav)
                 break;
             case 3:
                 sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.nameString; }, false);
+                    recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
                 sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, false);
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
                 break;
             default:
                 break;
@@ -515,9 +515,9 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
             break;
         case 3:
             sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, false);
+                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
             sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, false);
+                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
             break;
         default:
             break;
