@@ -261,8 +261,8 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav.pop();
-        nav.push<BLETxView>();
+        nav_.set_on_pop([this]() { nav_.push<BLETxView>(); });
+        nav_.pop();
     };
 
     field_frequency.set_step(0);

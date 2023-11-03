@@ -325,8 +325,8 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav.pop();
-        nav.push<BLERxView>();
+        nav_.set_on_pop([this]() { nav_.push<BLERxView>(); });
+        nav_.pop();
     };
 }
 
