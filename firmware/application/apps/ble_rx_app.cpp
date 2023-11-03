@@ -134,7 +134,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     const auto s = style();
     const auto rect = screen_rect();
 
-    auto field_rect = Rect{rect.left(), rect.top() + 32, rect.width(), 16};
+    auto field_rect = Rect{rect.left(), rect.top() + 48, rect.width(), 16};
 
     uint8_t type[total_data_lines];
     uint8_t length[total_data_lines];
