@@ -64,7 +64,26 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    std::string line = to_string_mac_address(entry.packetData.macAddress, 6);
+
+    std::string line{};
+
+    if (!entry.nameString.empty())
+    {
+        line = entry.nameString;
+
+        if (line.length() < 17)
+        {
+            line += pad_string_with_spaces(17 - line.length());
+        }
+        else
+        {
+            line = truncate(line, 17);
+        }
+    }
+    else
+    {
+        line = to_string_mac_address(entry.packetData.macAddress, 6);
+    }
 
     // Handle spacing for negative sign.
     uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
@@ -84,7 +103,11 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     : nav_{nav},
       entry_{entry} {
     add_children({&button_done,
+                  &label_mac_address,
+                  &text_mac_address,
                   &labels});
+
+    text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6));
 
     button_done.on_select = [this](const ui::Button&) {
         nav_.pop();
@@ -118,7 +141,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     const auto s = style();
     const auto rect = screen_rect();
 
-    auto field_rect = Rect{rect.left(), rect.top() + 16, rect.width(), 16};
+    auto field_rect = Rect{rect.left(), rect.top() + 32, rect.width(), 16};
 
     uint8_t type[total_data_lines];
     uint8_t length[total_data_lines];
@@ -446,7 +469,35 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
         entry.packetData.data[i] = packet->data[i];
     }
 
-    // entry.update(packet);
+    entry.nameString = "";
+
+    uint8_t currentByte = 0;
+    uint8_t length = 0;
+    uint8_t type = 0;
+
+    bool stringFound = false;
+
+    for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
+
+        length = entry.packetData.data[currentByte++];
+        type = entry.packetData.data[currentByte++];
+
+        // Subtract 1 because type is part of the length.
+        for (int i = 0; i < length - 1; i++) {
+
+            if (((type == 0x08) || (type == 0x09)) && !stringFound)
+            {
+                entry.nameString += (char)entry.packetData.data[currentByte];
+            }
+
+            currentByte++;
+        }
+
+        if (!entry.nameString.empty())
+        {
+            stringFound = true;
+        }
+    }
 
     switch (options_sort.selected_index()) {
         case 0:

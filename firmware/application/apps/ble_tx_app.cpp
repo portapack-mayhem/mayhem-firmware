@@ -319,6 +319,9 @@ BLETxView::BLETxView(NavigationView& nav)
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
+
+            nav_.set_on_pop([this]() {
+            button_play.focus();});
         };
     };
 

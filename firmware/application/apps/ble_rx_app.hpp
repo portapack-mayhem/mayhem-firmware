@@ -78,6 +78,7 @@ struct BleRecentEntry {
     BlePacketData packetData;
     std::string timestamp;
     std::string dataString;
+    std::string nameString;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -89,7 +90,8 @@ struct BleRecentEntry {
           dbValue{},
           packetData{},
           timestamp{},
-          dataString{} {
+          dataString{}, 
+          nameString{} {
     }
 
     Key key() const {
@@ -117,10 +119,18 @@ class BleRecentEntryDetailView : public View {
 
     static constexpr uint8_t total_data_lines{5};
 
+    Labels label_mac_address{
+        {{0 * 8, 0 * 16}, "Mac Address:", Color::light_grey()}
+    };
+
+    Text text_mac_address{
+        {12 * 8, 0 * 16, 17 * 8, 16},
+        "-"};
+
     Labels labels{
-        {{0 * 8, 0 * 16}, "Len", Color::light_grey()},
-        {{5 * 8, 0 * 16}, "Type", Color::light_grey()},
-        {{10 * 8, 0 * 16}, "Value", Color::light_grey()},
+        {{0 * 8, 2 * 16}, "Len", Color::light_grey()},
+        {{5 * 8, 2 * 16}, "Type", Color::light_grey()},
+        {{10 * 8, 2 * 16}, "Value", Color::light_grey()},
     };
 
     Button button_done{
