@@ -320,8 +320,7 @@ BLETxView::BLETxView(NavigationView& nav)
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
 
-            nav_.set_on_pop([this]() {
-            button_play.focus();});
+            nav_.set_on_pop([this]() { button_play.focus(); });
         };
     };
 

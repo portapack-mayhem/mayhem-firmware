@@ -64,24 +64,17 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-
     std::string line{};
 
-    if (!entry.nameString.empty())
-    {
+    if (!entry.nameString.empty()) {
         line = entry.nameString;
 
-        if (line.length() < 17)
-        {
+        if (line.length() < 17) {
             line += pad_string_with_spaces(17 - line.length());
-        }
-        else
-        {
+        } else {
             line = truncate(line, 17);
         }
-    }
-    else
-    {
+    } else {
         line = to_string_mac_address(entry.packetData.macAddress, 6);
     }
 
@@ -484,23 +477,19 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     bool stringFound = false;
 
     for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
-
         length = entry.packetData.data[currentByte++];
         type = entry.packetData.data[currentByte++];
 
         // Subtract 1 because type is part of the length.
         for (int i = 0; i < length - 1; i++) {
-
-            if (((type == 0x08) || (type == 0x09)) && !stringFound)
-            {
+            if (((type == 0x08) || (type == 0x09)) && !stringFound) {
                 entry.nameString += (char)entry.packetData.data[currentByte];
             }
 
             currentByte++;
         }
 
-        if (!entry.nameString.empty())
-        {
+        if (!entry.nameString.empty()) {
             stringFound = true;
         }
     }

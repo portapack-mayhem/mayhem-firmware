@@ -90,7 +90,7 @@ struct BleRecentEntry {
           dbValue{},
           packetData{},
           timestamp{},
-          dataString{}, 
+          dataString{},
           nameString{} {
     }
 
@@ -120,8 +120,7 @@ class BleRecentEntryDetailView : public View {
     static constexpr uint8_t total_data_lines{5};
 
     Labels label_mac_address{
-        {{0 * 8, 0 * 16}, "Mac Address:", Color::light_grey()}
-    };
+        {{0 * 8, 0 * 16}, "Mac Address:", Color::light_grey()}};
 
     Text text_mac_address{
         {12 * 8, 0 * 16, 17 * 8, 16},
