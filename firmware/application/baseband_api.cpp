@@ -149,7 +149,7 @@ void set_aprs(const uint32_t baudrate) {
     send_message(&message);
 }
 
-void set_btle(uint8_t channel_number) {
+void set_btlerx(uint8_t channel_number) {
     const BTLERxConfigureMessage message{
         channel_number};
     send_message(&message);

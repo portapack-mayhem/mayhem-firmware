@@ -154,6 +154,7 @@ class BLETxView : public View {
     PKT_TYPE pduType = {DISCOVERY};
 
     static constexpr auto header_height = 9 * 16;
+    static constexpr auto switch_button_height = 3 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -248,6 +249,10 @@ class BLETxView : public View {
 
     Console console{
         {0, 8 * 16, 240, 240}};
+
+    Button button_switch{
+        {8 * 8, 16 * 16, 14 * 8, 2 * 16},
+        "Switch to Rx"};
 
     std::string str_log{""};
     bool logging{true};

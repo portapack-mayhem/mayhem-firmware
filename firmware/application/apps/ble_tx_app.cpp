@@ -22,6 +22,7 @@
  */
 
 #include "ble_tx_app.hpp"
+#include "ble_rx_app.hpp"
 
 #include "ui_fileman.hpp"
 #include "ui_modemsetup.hpp"
@@ -285,6 +286,7 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_mac_address,
                   &text_mac_address,
                   &label_data_packet,
+                  &button_switch,
                   &console});
 
     field_frequency.set_step(0);
@@ -319,10 +321,16 @@ BLETxView::BLETxView(NavigationView& nav)
             on_file_changed(new_file_path);
         };
     };
+
+    button_switch.on_select = [this, &nav](Button&) {
+        nav.pop();
+        nav.push<BLERxView>();
+    };
 }
 
 void BLETxView::on_file_changed(const fs::path& new_file_path) {
     file_path = fs::path(u"/") + new_file_path;
+    num_packets = 0;
 
     {  // Get the size of the data file.
         File data_file;
@@ -398,7 +406,7 @@ void BLETxView::update_packet_display(BLETxPacket packet) {
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
-    const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height};
+    const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
     console.set_parent_rect(content_rect);
 }
 

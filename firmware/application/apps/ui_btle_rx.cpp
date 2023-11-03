@@ -70,7 +70,7 @@ BTLERxView::BTLERxView(NavigationView& nav)
     };
 
     // Auto-configure modem for LCR RX (will be removed later)
-    baseband::set_btle(channel_number);
+    baseband::set_btlerx(channel_number);
 
     audio::set_rate(audio::Rate::Hz_24000);
     audio::output::start();
