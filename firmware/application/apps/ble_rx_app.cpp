@@ -276,6 +276,9 @@ BLERxView::BLERxView(NavigationView& nav)
     check_log.on_select = [this](Checkbox&, bool v) {
         str_log = "";
         logging = v;
+
+        if (logger && logging)
+            logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
@@ -329,9 +332,6 @@ BLERxView::BLERxView(NavigationView& nav)
     options_sort.set_selected_index(0, true);
 
     logger = std::make_unique<BLELogger>();
-
-    if (logger)
-        logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_btlerx(channel_number);
