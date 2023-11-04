@@ -64,17 +64,33 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    std::string line = to_string_mac_address(entry.packetData.macAddress, 6);
+    std::string line{};
 
-    // Handle spacing for negative sign.
-    uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
+    if (!entry.nameString.empty()) {
+        line = entry.nameString;
 
-    // Pushing single digit values down right justified.
-    if (entry.dbValue > 9 || entry.dbValue < -9) {
-        db_spacing--;
+        if (line.length() < 17) {
+            line += pad_string_with_spaces(17 - line.length());
+        } else {
+            line = truncate(line, 17);
+        }
+    } else {
+        line = to_string_mac_address(entry.packetData.macAddress, 6);
     }
 
-    line += pad_string_with_spaces(db_spacing) + to_string_dec_int(entry.dbValue);
+    // Pushing single digit values down right justified.
+    std::string hitsStr = to_string_dec_int(entry.numHits);
+    int hitsDigits = hitsStr.length();
+    uint8_t hits_spacing = 8 - hitsDigits;
+
+    // Pushing single digit values down right justified.
+    std::string dbStr = to_string_dec_int(entry.dbValue);
+    int dbDigits = dbStr.length();
+    uint8_t db_spacing = 5 - dbDigits;
+
+    line += pad_string_with_spaces(hits_spacing) + hitsStr;
+
+    line += pad_string_with_spaces(db_spacing) + dbStr;
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
@@ -84,7 +100,11 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     : nav_{nav},
       entry_{entry} {
     add_children({&button_done,
+                  &label_mac_address,
+                  &text_mac_address,
                   &labels});
+
+    text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6));
 
     button_done.on_select = [this](const ui::Button&) {
         nav_.pop();
@@ -118,7 +138,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     const auto s = style();
     const auto rect = screen_rect();
 
-    auto field_rect = Rect{rect.left(), rect.top() + 16, rect.width(), 16};
+    auto field_rect = Rect{rect.left(), rect.top() + 48, rect.width(), 16};
 
     uint8_t type[total_data_lines];
     uint8_t length[total_data_lines];
@@ -217,7 +237,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &check_log,
                   &label_sort,
                   &options_sort,
-                  &button_message,
+                  &button_filter,
                   &button_switch,
                   &recent_entries_view,
                   &recent_entries_filter_view,
@@ -234,7 +254,7 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
-    button_message.on_select = [this, &nav](Button&) {
+    button_filter.on_select = [this, &nav](Button&) {
         text_prompt(
             nav,
             filterBuffer,
@@ -245,8 +265,8 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav.pop();
-        nav.push<BLETxView>();
+        nav_.set_on_pop([this]() { nav_.push<BLETxView>(); });
+        nav_.pop();
     };
 
     field_frequency.set_step(0);
@@ -256,6 +276,9 @@ BLERxView::BLERxView(NavigationView& nav)
     check_log.on_select = [this](Checkbox&, bool v) {
         str_log = "";
         logging = v;
+
+        if (logger && logging)
+            logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
@@ -275,15 +298,27 @@ BLERxView::BLERxView(NavigationView& nav)
                 break;
             case 1:
                 sortEntriesBy(
+                    recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+                sortEntriesBy(
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+                break;
+            case 2:
+                sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
                 sortEntriesBy(
                     filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
                 break;
-            case 2:
+            case 3:
                 sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
                 sortEntriesBy(
                     filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+                break;
+            case 4:
+                sortEntriesBy(
+                    recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
+                sortEntriesBy(
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
                 break;
             default:
                 break;
@@ -297,9 +332,6 @@ BLERxView::BLERxView(NavigationView& nav)
     options_sort.set_selected_index(0, true);
 
     logger = std::make_unique<BLELogger>();
-
-    if (logger)
-        logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_btlerx(channel_number);
@@ -376,6 +408,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
+    truncate_entries(recent, 32);
     updateEntry(packet, entry);
 
     // Log at End of Packet.
@@ -442,11 +475,37 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     entry.packetData.macAddress[4] = packet->macAddress[4];
     entry.packetData.macAddress[5] = packet->macAddress[5];
 
+    entry.numHits++;
+
     for (int i = 0; i < packet->dataLen; i++) {
         entry.packetData.data[i] = packet->data[i];
     }
 
-    // entry.update(packet);
+    entry.nameString = "";
+
+    uint8_t currentByte = 0;
+    uint8_t length = 0;
+    uint8_t type = 0;
+
+    bool stringFound = false;
+
+    for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
+        length = entry.packetData.data[currentByte++];
+        type = entry.packetData.data[currentByte++];
+
+        // Subtract 1 because type is part of the length.
+        for (int i = 0; i < length - 1; i++) {
+            if (((type == 0x08) || (type == 0x09)) && !stringFound) {
+                entry.nameString += (char)entry.packetData.data[currentByte];
+            }
+
+            currentByte++;
+        }
+
+        if (!entry.nameString.empty()) {
+            stringFound = true;
+        }
+    }
 
     switch (options_sort.selected_index()) {
         case 0:
@@ -457,15 +516,27 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
             break;
         case 1:
             sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            break;
+        case 2:
+            sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             sortEntriesBy(
                 filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             break;
-        case 2:
+        case 3:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             sortEntriesBy(
                 filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            break;
+        case 4:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
             break;
         default:
             break;

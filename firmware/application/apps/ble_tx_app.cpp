@@ -319,12 +319,14 @@ BLETxView::BLETxView(NavigationView& nav)
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
+
+            nav_.set_on_pop([this]() { button_play.focus(); });
         };
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav.pop();
-        nav.push<BLERxView>();
+        nav_.set_on_pop([this]() { nav_.push<BLERxView>(); });
+        nav_.pop();
     };
 }
 
