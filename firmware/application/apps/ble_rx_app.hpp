@@ -79,7 +79,7 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
-    uint64_t numHits;
+    uint16_t numHits;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
