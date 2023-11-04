@@ -78,15 +78,19 @@ void RecentEntriesTable<BleRecentEntries>::draw(
         line = to_string_mac_address(entry.packetData.macAddress, 6);
     }
 
-    // Handle spacing for negative sign.
-    uint8_t db_spacing = entry.dbValue > 0 ? 7 : 6;
+    // Pushing single digit values down right justified.
+    std::string hitsStr = to_string_dec_int(entry.numHits);
+    int hitsDigits = hitsStr.length();
+    uint8_t hits_spacing = 8 - hitsDigits;
 
     // Pushing single digit values down right justified.
-    if (entry.dbValue > 9 || entry.dbValue < -9) {
-        db_spacing--;
-    }
+    std::string dbStr = to_string_dec_int(entry.dbValue);
+    int dbDigits = dbStr.length();
+    uint8_t db_spacing = 5 - dbDigits;
 
-    line += pad_string_with_spaces(db_spacing) + to_string_dec_int(entry.dbValue);
+    line += pad_string_with_spaces(hits_spacing) + hitsStr;
+
+    line += pad_string_with_spaces(db_spacing) + dbStr;
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
@@ -233,7 +237,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &check_log,
                   &label_sort,
                   &options_sort,
-                  &button_message,
+                  &button_filter,
                   &button_switch,
                   &recent_entries_view,
                   &recent_entries_filter_view,
@@ -250,7 +254,7 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
-    button_message.on_select = [this, &nav](Button&) {
+    button_filter.on_select = [this, &nav](Button&) {
         text_prompt(
             nav,
             filterBuffer,
@@ -291,17 +295,23 @@ BLERxView::BLERxView(NavigationView& nav)
                 break;
             case 1:
                 sortEntriesBy(
+                    recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+                sortEntriesBy(
+                    filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+                break;
+            case 2:
+                sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
                 sortEntriesBy(
                     filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
                 break;
-            case 2:
+            case 3:
                 sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
                 sortEntriesBy(
                     filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
                 break;
-            case 3:
+            case 4:
                 sortEntriesBy(
                     recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
                 sortEntriesBy(
@@ -465,6 +475,8 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     entry.packetData.macAddress[4] = packet->macAddress[4];
     entry.packetData.macAddress[5] = packet->macAddress[5];
 
+    entry.numHits++;
+
     for (int i = 0; i < packet->dataLen; i++) {
         entry.packetData.data[i] = packet->data[i];
     }
@@ -504,17 +516,23 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
             break;
         case 1:
             sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            break;
+        case 2:
+            sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             sortEntriesBy(
                 filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
             break;
-        case 2:
+        case 3:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             sortEntriesBy(
                 filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             break;
-        case 3:
+        case 4:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
             sortEntriesBy(

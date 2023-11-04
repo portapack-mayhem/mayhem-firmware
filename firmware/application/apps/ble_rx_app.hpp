@@ -79,6 +79,7 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
+    uint64_t numHits;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -91,7 +92,8 @@ struct BleRecentEntry {
           packetData{},
           timestamp{},
           dataString{},
-          nameString{} {
+          nameString{},
+          numHits{} {
     }
 
     Key key() const {
@@ -208,26 +210,27 @@ class BLERxView : public View {
     Channel channel{
         {24 * 8, 5, 6 * 8, 4}};
 
+    Labels label_sort{
+        {{0 * 8, 3 * 8}, "Sort:", Color::light_grey()}};
+
+    OptionsField options_sort{
+        {5 * 8, 3 * 8},
+        4,
+        {{"MAC", 0},
+         {"Hits", 1},
+         {"dB", 2},
+         {"Time", 3},
+         {"Name", 4}}};
+
+    Button button_filter{
+        {12 * 8, 3 * 8, 4 * 8, 16},
+        "Filter"};
+
     Checkbox check_log{
-        {0 * 8, 3 * 8},
+        {20 * 8, 3 * 8},
         3,
         "Log",
         true};
-
-    Labels label_sort{
-        {{6 * 8, 3 * 8}, "Sort:", Color::light_grey()}};
-
-    OptionsField options_sort{
-        {12 * 8, 3 * 8},
-        6,
-        {{"MAC", 0},
-         {"dB", 1},
-         {"Recent", 2},
-         {"Name", 3}}};
-
-    Button button_message{
-        {22 * 8, 3 * 8, 4 * 8, 16},
-        "Filter"};
 
     Console console{
         {0, 4 * 16, 240, 240}};
@@ -241,17 +244,13 @@ class BLERxView : public View {
 
     std::unique_ptr<BLELogger> logger{};
 
-    // const RecentEntriesColumns columns{{{"Source", 9},
-    //                             {"Loc", 6},
-    //                             {"Hits", 4},
-    //                             {"Time", 8}}};
-
     BleRecentEntries recent{};
     BleRecentEntries filterEntries{};
 
     const RecentEntriesColumns columns{{
-        {"Mac Address", 20},
-        {"dB", 20},
+        {"Mac Address", 17},
+        {"Hits", 7},
+        {"dB", 4},
     }};
 
     BleRecentEntry entry_{};
