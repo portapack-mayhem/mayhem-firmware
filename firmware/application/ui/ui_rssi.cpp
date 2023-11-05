@@ -233,8 +233,9 @@ void RSSIGraph::paint(Painter& painter) {
 
     int xpos = 0, prev_xpos = r.width();
     RSSIGraph_entry& prev_entry = graph_list[0];
-    graph_min_ = prev_entry.rssi_min;
-    graph_max_ = prev_entry.rssi_max;
+
+    graph_min_ = 666;  // if it stays at that value the whole graphlist min are zero
+    graph_max_ = 0;
     int avg_sum = 0;
     for (int n = 1; (unsigned)n <= graph_list.size(); n++) {
         xpos = (r.width() * (graph_list.size() - n)) / graph_list.size();
@@ -242,7 +243,7 @@ void RSSIGraph::paint(Painter& painter) {
         RSSIGraph_entry& entry = graph_list[n - 1];
 
         // stats
-        if (entry.rssi_min < graph_min_) {
+        if (entry.rssi_min != 0 && entry.rssi_min < graph_min_) {
             graph_min_ = entry.rssi_min;
         }
         if (entry.rssi_max > graph_max_) {
@@ -324,6 +325,9 @@ void RSSIGraph::paint(Painter& painter) {
         prev_xpos = xpos;
     }
     graph_avg_ = (avg_sum / graph_list.size());
+    // hack to only set to 0 if all graphlist min values are 0
+    if (graph_min_ == 666)
+        graph_min_ = 0;
 }
 
 /*void RSSIGraph::paintOld(Painter& painter) {
