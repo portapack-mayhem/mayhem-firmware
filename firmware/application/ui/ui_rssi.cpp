@@ -209,16 +209,44 @@ void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
     set_dirty();
 }
 
+int16_t RSSIGraph::get_graph_min() {
+    return graph_min_;
+}
+
+int16_t RSSIGraph::get_graph_avg() {
+    return graph_avg_;
+}
+
+int16_t RSSIGraph::get_graph_max() {
+    return graph_max_;
+}
+
+int16_t RSSIGraph::get_graph_delta() {
+    return graph_max_ - graph_min_;
+}
+
 void RSSIGraph::paint(Painter& painter) {
     const auto r = screen_rect();
 
     RSSIGraph_entry& prev_entry = graph_list[0];
     int xpos = 0, prev_xpos = r.width();
 
+    graph_min_ = 250;
+    graph_max_ = -250;
+    int avg_sum = 0;
     for (int n = 1; (unsigned)n <= graph_list.size(); n++) {
         xpos = (r.width() * (graph_list.size() - n)) / graph_list.size();
         int size = abs(xpos - prev_xpos);
         RSSIGraph_entry& entry = graph_list[n - 1];
+
+        // stats
+        if (entry.rssi_min < graph_min_) {
+            graph_min_ = entry.rssi_min;
+        }
+        if (entry.rssi_max > graph_max_) {
+            graph_max_ = entry.rssi_max;
+        }
+        avg_sum += entry.rssi_avg;
 
         // black
         const Rect r0{r.right() - prev_xpos, r.top(), size, r.height()};
@@ -293,6 +321,7 @@ void RSSIGraph::paint(Painter& painter) {
         prev_entry = entry;
         prev_xpos = xpos;
     }
+    graph_avg_ = (avg_sum / graph_list.size());
 }
 
 /*void RSSIGraph::paintOld(Painter& painter) {
