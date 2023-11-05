@@ -228,11 +228,13 @@ int16_t RSSIGraph::get_graph_delta() {
 void RSSIGraph::paint(Painter& painter) {
     const auto r = screen_rect();
 
-    RSSIGraph_entry& prev_entry = graph_list[0];
-    int xpos = 0, prev_xpos = r.width();
+    if (graph_list.size() == 0)
+        return;
 
-    graph_min_ = 250;
-    graph_max_ = -250;
+    int xpos = 0, prev_xpos = r.width();
+    RSSIGraph_entry& prev_entry = graph_list[0];
+    graph_min_ = prev_entry.rssi_min;
+    graph_max_ = prev_entry.rssi_max;
     int avg_sum = 0;
     for (int n = 1; (unsigned)n <= graph_list.size(); n++) {
         xpos = (r.width() * (graph_list.size() - n)) / graph_list.size();
