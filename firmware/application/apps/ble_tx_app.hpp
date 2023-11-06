@@ -79,6 +79,7 @@ class BLETxView : public View {
     void stop();
     void handle_replay_thread_done(const uint32_t return_code);
     void file_error();
+    bool saveFile(const std::filesystem::path& path);
 
     std::string title() const override { return "BLE TX"; };
 
@@ -87,6 +88,7 @@ class BLETxView : public View {
     void on_tx_progress(const bool done);
     void on_file_changed(const std::filesystem::path& new_file_path);
     void update_packet_display(BLETxPacket packet);
+    void on_save_file(const std::string value);
 
     NavigationView& nav_;
     TxRadioState radio_state_{
@@ -101,6 +103,7 @@ class BLETxView : public View {
     uint32_t prev_value{0};
 
     std::filesystem::path file_path{};
+    std::filesystem::path packet_save_path{u"BLETX/BLETX_????.TXT"};
     uint8_t channel_number = 37;
 
     char randomMac[13] = "010203040506";
@@ -252,13 +255,18 @@ class BLETxView : public View {
     Console console{
         {0, 8 * 16, 240, 240}};
 
+    Button button_save_packet{
+        {1 * 8, 16 * 16, 13 * 8, 2 * 16},
+        "Save Packet"};
+
     Button button_switch{
-        {8 * 8, 16 * 16, 14 * 8, 2 * 16},
+        {16 * 8, 16 * 16, 13 * 8, 2 * 16},
         "Switch to Rx"};
 
     std::string str_log{""};
     bool logging{true};
     bool logging_done{false};
+    std::string packetFileBuffer{};
 
     std::unique_ptr<BLELoggerTx> logger{};
 
