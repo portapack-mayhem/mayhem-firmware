@@ -30,6 +30,10 @@
 #define max(a, b) ((a) > (b) ? (a) : (b))
 #define abs(x) ((x) > 0 ? (x) : -(x))
 
+// flag value for graph min
+// If it does not change, then all graph min values are is zero
+#define GRAPH_MIN_ALL_ZERO_FLAG 666
+
 namespace ui {
 
 RSSI::RSSI(
@@ -234,7 +238,7 @@ void RSSIGraph::paint(Painter& painter) {
     int xpos = 0, prev_xpos = r.width();
     RSSIGraph_entry& prev_entry = graph_list[0];
 
-    graph_min_ = 666;  // if it stays at that value the whole graphlist min are zero
+    graph_min_ = GRAPH_MIN_ALL_ZERO_FLAG;  // if it stays at that value the whole graphlist min are zero
     graph_max_ = 0;
     int avg_sum = 0;
     for (int n = 1; (unsigned)n <= graph_list.size(); n++) {
@@ -326,7 +330,7 @@ void RSSIGraph::paint(Painter& painter) {
     }
     graph_avg_ = (avg_sum / graph_list.size());
     // hack to only set to 0 if all graphlist min values are 0
-    if (graph_min_ == 666)
+    if (graph_min_ == GRAPH_MIN_ALL_ZERO_FLAG)
         graph_min_ = 0;
 }
 
