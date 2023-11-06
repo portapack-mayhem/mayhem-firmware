@@ -104,6 +104,8 @@ class FileManBaseView : public View {
     std::vector<fileman_entry> entry_list{};
     std::vector<uint32_t> saved_index_stack{};
 
+    bool show_hidden_files{false};
+
     Labels labels{
         {{0, 0}, "Path:", Color::light_grey()}};
 
@@ -278,6 +280,12 @@ class FileManagerView : public FileManBaseView {
         {},
         &bitmap_icon_trim,
         Color::orange()};
+
+    NewButton button_show_hidden_files{
+        {13 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_hide,
+        Color::dark_grey()};
 };
 
 } /* namespace ui */
