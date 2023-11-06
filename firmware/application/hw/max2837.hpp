@@ -833,7 +833,7 @@ class MAX2837 : public MAX283x {
     void set_vco_bias(const size_t v);
     void set_rx_buff_vcm(const size_t v) override;
 
-    reg_t temp_sense() override;
+    int8_t temp_sense() override;
 
     reg_t read(const address_t reg_num) override;
 

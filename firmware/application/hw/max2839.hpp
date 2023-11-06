@@ -692,7 +692,7 @@ class MAX2839 : public MAX283x {
     void set_rx_lo_iq_calibration(const size_t v) override;
     void set_rx_buff_vcm(const size_t v) override;
 
-    reg_t temp_sense() override;
+    int8_t temp_sense() override;
 
     reg_t read(const address_t reg_num) override;
 

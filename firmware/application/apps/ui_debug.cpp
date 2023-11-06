@@ -124,8 +124,8 @@ void TemperatureWidget::paint(Painter& painter) {
 }
 
 TemperatureWidget::temperature_t TemperatureWidget::temperature(const sample_t sensor_value) const {
-    /*It seems to be a temperature difference of 25C*/
-    return -40 + (sensor_value * 4.31) + 25;  // max2837 datasheet temp 25ºC has sensor value: 15
+    // Scaling is different for MAX2837 vs MAX2839 so it's now done in the respective chip-specific module
+    return sensor_value;
 }
 
 std::string TemperatureWidget::temperature_str(const temperature_t temperature) const {
