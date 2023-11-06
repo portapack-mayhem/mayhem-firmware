@@ -481,10 +481,9 @@ ReconView::ReconView(NavigationView& nav)
 
     button_remove.on_select = [this](ButtonWithEncoder&) {
         handle_remove_current_item();
-
-        // TODO: refresh UI.
         timer = 0;
         freq_lock = 0;
+        recon_redraw();
     };
 
     button_remove.on_change = [this]() {
@@ -567,7 +566,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_restart.on_select = [this](Button&) {
-        frequency_file_load(true);
+        frequency_file_load();
         if (frequency_list.size() > 0) {
             if (fwd) {
                 button_dir.set_text("FW>");
@@ -614,7 +613,7 @@ ReconView::ReconView(NavigationView& nav)
             button_scanner_mode.set_text("SCAN");
             button_remove.set_text("DELETE");
         }
-        frequency_file_load(true);
+        frequency_file_load();
         if (autostart) {
             recon_resume();
         } else {
@@ -642,7 +641,7 @@ ReconView::ReconView(NavigationView& nav)
             load_persisted_settings();
             ui_settings.save();
 
-            frequency_file_load(false);
+            frequency_file_load();
             freqlist_cleared_for_ui_action = false;
 
             if (autostart) {
@@ -709,7 +708,7 @@ ReconView::ReconView(NavigationView& nav)
         delete_file(freq_file_path);
     }
 
-    frequency_file_load(false); /* do not stop all at start */
+    frequency_file_load(); /* do not stop all at start */
     if (autostart) {
         recon_resume();
     } else {
@@ -718,7 +717,7 @@ ReconView::ReconView(NavigationView& nav)
     recon_redraw();
 }
 
-void ReconView::frequency_file_load(bool) {
+void ReconView::frequency_file_load() {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
 
@@ -784,7 +783,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
     // hack to reload the list if it was cleared by going into CONFIG
     if (freqlist_cleared_for_ui_action) {
         if (!manual_mode) {
-            frequency_file_load(false);
+            frequency_file_load();
         }
         if (autostart && !user_pause) {
             recon_resume();
@@ -1214,11 +1213,12 @@ void ReconView::handle_remove_current_item() {
     if (frequency_list.size() > 0) {
         current_index = clip<int32_t>(current_index, 0u, frequency_list.size() - 1);
         text_cycle.set_text(to_string_dec_uint(current_index + 1, 3));
+        entry = current_entry();
+        freq = entry.frequency_a;
     } else {
         current_index = 0;
         text_cycle.set_text(" ");
     }
-
     update_description();
 }
 
