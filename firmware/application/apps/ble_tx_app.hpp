@@ -81,7 +81,6 @@ class BLETxView : public View {
     void file_error();
     bool saveFile(const std::filesystem::path& path);
 
-
     std::string title() const override { return "BLE TX"; };
 
    private:

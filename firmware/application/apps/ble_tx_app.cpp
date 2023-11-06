@@ -173,14 +173,12 @@ void BLETxView::file_error() {
 }
 
 bool BLETxView::saveFile(const std::filesystem::path& path) {
-
     File f;
     auto error = f.create(path);
     if (error)
         return false;
 
-    for (uint32_t i = 0; i < num_packets; i++)
-    {
+    for (uint32_t i = 0; i < num_packets; i++) {
         std::string macAddressStr = packets[i].macAddress;
         std::string advertisementDataStr = packets[i].advertisementData;
         std::string packetCountStr = packets[i].packetCount;
@@ -188,8 +186,7 @@ bool BLETxView::saveFile(const std::filesystem::path& path) {
         std::string packetString = macAddressStr + ' ' + advertisementDataStr + ' ' + packetCountStr;
 
         // Are we on the last line?
-        if (i != num_packets - 1)
-        {
+        if (i != num_packets - 1) {
             packetString += '\n';
         }
 
@@ -359,12 +356,12 @@ BLETxView::BLETxView(NavigationView& nav)
     button_save_packet.on_select = [this, &nav](Button&) {
         packetFileBuffer = "";
         text_prompt(
-        nav,
-        packetFileBuffer,
-        64,
-        [this](std::string& buffer) {
-            on_save_file(buffer);
-        });
+            nav,
+            packetFileBuffer,
+            64,
+            [this](std::string& buffer) {
+                on_save_file(buffer);
+            });
     };
 
     button_switch.on_select = [this, &nav](Button&) {
@@ -433,7 +430,6 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
 }
 
 void BLETxView::on_save_file(const std::string value) {
-
     auto folder = packet_save_path.parent_path();
     auto ext = packet_save_path.extension();
     auto new_path = folder / value + ext;
