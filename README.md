@@ -20,7 +20,9 @@ This repository expands upon the previous work by many people and aims to consta
 
 ## What to buy?
 
-:heavy_check_mark: A recommended one is this [PortaPack H2](https://s.click.aliexpress.com/e/_DmU7GQX) pack, that includes everything you need. Sadly, the people making the H2 never made the updated schematics available (against the terms of the license). 
+:heavy_check_mark: A recommended one is this [PortaPack H2](https://s.click.aliexpress.com/e/_DmU7GQX), that includes everything you need with the plastic case "inspired" on [this](https://github.com/eried/portapack-mayhem/wiki/H2-Enclosure).
+
+:heavy_check_mark: Our friends at OpenSourceSDRLab give away five units every three months in [our discord](https://discord.com/channels/719669764804444213/1165624357129834547) of this [PortaPack H2](https://www.aliexpress.com/item/4000247041639.html?gatewayAdapt=4itemAdapt), you can support them too.
 
 :heavy_check_mark: Another popular option is the clone of the [PortaPack H1](https://s.click.aliexpress.com/e/_Dkbqs2X).
 
