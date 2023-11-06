@@ -142,31 +142,24 @@ LevelView::LevelView(NavigationView& nav)
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
-    static int last_max_db = -1000;
-    static int last_min_rssi = -1000;
-    static int last_avg_rssi = -1000;
-    static int last_max_rssi = -1000;
+    static int16_t last_max_db = -1000;
+    static int16_t last_min_rssi = -1000;
+    static int16_t last_avg_rssi = -1000;
+    static int16_t last_max_rssi = -1000;
 
     rssi_graph.add_values(rssi.get_min(), rssi.get_avg(), rssi.get_max(), statistics.max_db);
 
-    bool refresh_db = false;
-    bool refresh_rssi = false;
-
+    // refresh db
     if (last_max_db != statistics.max_db) {
-        refresh_db = true;
-    }
-    if (last_min_rssi != rssi.get_min() || last_avg_rssi != rssi.get_avg() || last_max_rssi != rssi.get_max()) {
-        refresh_rssi = true;
-    }
-    if (refresh_db) {
         last_max_db = statistics.max_db;
         freq_stats_db.set("Power: " + to_string_dec_int(statistics.max_db) + " db");
     }
-    if (refresh_rssi) {
-        last_min_rssi = rssi.get_min();
-        last_avg_rssi = rssi.get_avg();
-        last_max_rssi = rssi.get_max();
-        freq_stats_rssi.set("RSSI: " + to_string_dec_int(rssi.get_min()) + "/" + to_string_dec_int(rssi.get_avg()) + "/" + to_string_dec_int(rssi.get_max()) + ",dt: " + to_string_dec_int(rssi.get_delta()));
+    // refresh rssi
+    if (last_min_rssi != rssi_graph.get_graph_min() || last_avg_rssi != rssi_graph.get_graph_avg() || last_max_rssi != rssi_graph.get_graph_max()) {
+        last_min_rssi = rssi_graph.get_graph_min();
+        last_avg_rssi = rssi_graph.get_graph_avg();
+        last_max_rssi = rssi_graph.get_graph_max();
+        freq_stats_rssi.set("RSSI: " + to_string_dec_int(last_min_rssi) + "/" + to_string_dec_int(last_avg_rssi) + "/" + to_string_dec_int(last_max_rssi) + ",dt: " + to_string_dec_int(rssi_graph.get_graph_delta()));
     }
 } /* on_statistic_updates */
 
