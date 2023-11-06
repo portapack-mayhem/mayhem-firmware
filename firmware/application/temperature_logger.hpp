@@ -29,7 +29,7 @@
 
 class TemperatureLogger {
    public:
-    using sample_t = uint8_t;
+    using sample_t = int8_t;
 
     void second_tick();
 
