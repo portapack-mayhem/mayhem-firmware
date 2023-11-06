@@ -77,7 +77,7 @@ std::string to_string_FAT_timestamp(const FATTimestamp& timestamp);
 std::string to_string_file_size(uint32_t file_size);
 
 // Converts Mac Address to string.
-std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length);
+std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length, bool noColon);
 std::string to_string_formatted_mac_address(const char* macAddress);
 
 /* Scales 'n' to be a value less than 1000. 'base_unit' is the index of the unit from

@@ -55,9 +55,17 @@ class BLELoggerTx {
 
 namespace ui {
 
+struct BLETxPacket {
+    char macAddress[13];
+    char advertisementData[63];
+    char packetCount[11];
+    uint32_t packet_count;
+};
+
 class BLETxView : public View {
    public:
     BLETxView(NavigationView& nav);
+    BLETxView(NavigationView& nav, BLETxPacket packet);
     ~BLETxView();
 
     void set_parent_rect(const Rect new_parent_rect) override;
@@ -73,13 +81,6 @@ class BLETxView : public View {
     void file_error();
 
     std::string title() const override { return "BLE TX"; };
-
-    struct BLETxPacket {
-        char macAddress[13];
-        char advertisementData[63];
-        char packetCount[11];
-        uint32_t packet_count;
-    };
 
    private:
     void on_data(uint32_t value, bool is_data);
@@ -112,6 +113,7 @@ class BLETxView : public View {
     uint32_t num_packets{0};
     uint32_t current_packet{0};
     bool random_mac = false;
+    bool file_override = false;
 
     enum PKT_TYPE {
         INVALID_TYPE,

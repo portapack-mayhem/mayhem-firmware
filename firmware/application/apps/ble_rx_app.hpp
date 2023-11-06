@@ -118,6 +118,7 @@ class BleRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     BleRecentEntry entry_{};
+    void launch_bletx(BleRecentEntry packetEntry);
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -133,6 +134,10 @@ class BleRecentEntryDetailView : public View {
         {{5 * 8, 2 * 16}, "Type", Color::light_grey()},
         {{10 * 8, 2 * 16}, "Value", Color::light_grey()},
     };
+
+    Button button_send{
+        {19, 224, 96, 24},
+        "Send"};
 
     Button button_done{
         {125, 224, 96, 24},

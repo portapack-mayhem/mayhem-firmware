@@ -189,7 +189,7 @@ void BLETxView::start() {
         File data_file;
 
         auto error = data_file.open(file_path);
-        if (error) {
+        if (error && !file_override) {
             file_error();
             check_loop.set_value(false);
             return;
@@ -309,6 +309,8 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_speed.set_selected_index(0);
+    options_channel.set_selected_index(0);
+    options_adv_type.set_selected_index(0);
 
     check_rand_mac.set_value(false);
     check_rand_mac.on_select = [this](Checkbox&, bool v) {
@@ -328,6 +330,17 @@ BLETxView::BLETxView(NavigationView& nav)
         nav_.set_on_pop([this]() { nav_.push<BLERxView>(); });
         nav_.pop();
     };
+}
+
+BLETxView::BLETxView(
+    NavigationView& nav,
+    BLETxPacket packet)
+    : BLETxView(nav) {
+    packets[0] = packet;
+    update_packet_display(packets[0]);
+
+    num_packets = 1;
+    file_override = true;
 }
 
 void BLETxView::on_file_changed(const fs::path& new_file_path) {
@@ -357,7 +370,7 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
 
             // Verify Data.
             if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_repeat_str) &&
-                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count > 0) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
+                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count >= 50) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
                 text_filename.set(truncate(file_path.filename().string(), 12));
 
             } else {

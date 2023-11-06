@@ -75,7 +75,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
             line = truncate(line, 17);
         }
     } else {
-        line = to_string_mac_address(entry.packetData.macAddress, 6);
+        line = to_string_mac_address(entry.packetData.macAddress, 6, false);
     }
 
     // Pushing single digit values down right justified.
@@ -100,13 +100,19 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     : nav_{nav},
       entry_{entry} {
     add_children({&button_done,
+                  &button_send,
                   &label_mac_address,
                   &text_mac_address,
                   &labels});
 
-    text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6));
+    text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
 
     button_done.on_select = [this](const ui::Button&) {
+        nav_.pop();
+    };
+
+    button_send.on_select = [this](const ui::Button&) {
+        nav_.set_on_pop([this]() { launch_bletx(entry_); });
         nav_.pop();
     };
 }
@@ -180,7 +186,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
 
         if (number_data_lines > 1) {
             for (k = 1; k < number_data_lines; k++) {
-                if (data_strings[k].empty()) {
+                if (!data_strings[k].empty()) {
                     field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
                 }
             }
@@ -191,6 +197,18 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
 void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     entry_ = entry;
     set_dirty();
+}
+
+void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
+    BLETxPacket bleTxPacket;
+
+    std::string macAddressStr = to_string_mac_address(packetEntry.packetData.macAddress, 6, true);
+
+    strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 13);
+    strncpy(bleTxPacket.advertisementData, packetEntry.dataString.c_str(), (packetEntry.packetData.dataLen * 2) + 1);
+    bleTxPacket.packet_count = 50;
+
+    nav_.replace<BLETxView>(bleTxPacket);
 }
 
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
@@ -390,7 +408,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     str_console += "\n";
 
     str_console += "Mac:";
-    str_console += to_string_mac_address(packet->macAddress, 6);
+    str_console += to_string_mac_address(packet->macAddress, 6, false);
 
     str_console += "\n";
     str_console += "Data:";
