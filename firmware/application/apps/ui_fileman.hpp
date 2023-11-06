@@ -285,7 +285,7 @@ class FileManagerView : public FileManBaseView {
         {13 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_hide,
-        Color::dark_grey()};        
+        Color::dark_grey()};
 };
 
 } /* namespace ui */
