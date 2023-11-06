@@ -368,7 +368,7 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
 
             // Verify Data.
             if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_repeat_str) &&
-                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count > 0) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
+                hasValidHexPairs(packets[num_packets].macAddress, macAddressSize / 2) && hasValidHexPairs(packets[num_packets].advertisementData, advertisementDataSize / 2) && (packets[num_packets].packet_count >= 50) && (packets[num_packets].packet_count < max_packet_repeat_count)) {
                 text_filename.set(truncate(file_path.filename().string(), 12));
 
             } else {

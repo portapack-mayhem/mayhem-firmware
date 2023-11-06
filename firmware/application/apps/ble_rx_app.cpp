@@ -206,7 +206,7 @@ void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
 
     strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 13);
     strncpy(bleTxPacket.advertisementData, packetEntry.dataString.c_str(), (packetEntry.packetData.dataLen * 2) + 1);
-    bleTxPacket.packet_count = 100;
+    bleTxPacket.packet_count = 50;
 
     nav_.replace<BLETxView>(bleTxPacket);
 }
