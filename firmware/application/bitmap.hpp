@@ -5683,6 +5683,44 @@ static constexpr Bitmap bitmap_icon_trim{
     {16, 16},
     bitmap_icon_trim_data};
 
+static constexpr uint8_t bitmap_icon_hide_data[] = {
+    0x00,
+    0x00,
+    0x00,
+    0x40,
+    0x00,
+    0x20,
+    0xE0,
+    0x17,
+    0x18,
+    0x18,
+    0xC4,
+    0x27,
+    0x62,
+    0x42,
+    0x21,
+    0x85,
+    0xA1,
+    0x84,
+    0x62,
+    0x46,
+    0xA4,
+    0x23,
+    0x18,
+    0x18,
+    0xE8,
+    0x07,
+    0x04,
+    0x00,
+    0x02,
+    0x00,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_hide{
+    {16, 16},
+    bitmap_icon_hide_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
