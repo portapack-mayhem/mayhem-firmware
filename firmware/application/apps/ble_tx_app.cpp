@@ -334,7 +334,6 @@ BLETxView::BLETxView(
     NavigationView& nav,
     BLETxPacket packet)
     : BLETxView(nav) {
-
     packets[0] = packet;
     update_packet_display(packets[0]);
 

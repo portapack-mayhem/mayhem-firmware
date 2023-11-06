@@ -200,10 +200,7 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
 }
 
 void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
-    
     BLETxPacket bleTxPacket;
-
-
 
     std::string macAddressStr = to_string_mac_address(packetEntry.packetData.macAddress, 6, true);
 

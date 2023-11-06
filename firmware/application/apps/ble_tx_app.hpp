@@ -55,7 +55,7 @@ class BLELoggerTx {
 
 namespace ui {
 
-    struct BLETxPacket {
+struct BLETxPacket {
     char macAddress[13];
     char advertisementData[63];
     char packetCount[11];
