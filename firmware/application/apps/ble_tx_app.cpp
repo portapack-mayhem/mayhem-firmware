@@ -309,6 +309,8 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_speed.set_selected_index(0);
+    options_channel.set_selected_index(0);
+    options_adv_type.set_selected_index(0);
 
     check_rand_mac.set_value(false);
     check_rand_mac.on_select = [this](Checkbox&, bool v) {
