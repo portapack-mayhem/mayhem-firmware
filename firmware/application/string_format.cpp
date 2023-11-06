@@ -311,13 +311,13 @@ std::string to_string_file_size(uint32_t file_size) {
     return to_string_dec_uint(file_size) + suffix[suffix_index];
 }
 
-std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length) {
+std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length, bool noColon) {
     std::string string;
 
     string += to_string_hex(macAddress[0], 2);
 
     for (int i = 1; i < length; i++) {
-        string += ":" + to_string_hex(macAddress[i], 2);
+        string += noColon ? to_string_hex(macAddress[i], 2) : ":" + to_string_hex(macAddress[i], 2);
     }
 
     return string;

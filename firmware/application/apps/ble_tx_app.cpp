@@ -189,7 +189,7 @@ void BLETxView::start() {
         File data_file;
 
         auto error = data_file.open(file_path);
-        if (error) {
+        if (error && !file_override) {
             file_error();
             check_loop.set_value(false);
             return;
@@ -328,6 +328,18 @@ BLETxView::BLETxView(NavigationView& nav)
         nav_.set_on_pop([this]() { nav_.push<BLERxView>(); });
         nav_.pop();
     };
+}
+
+BLETxView::BLETxView(
+    NavigationView& nav,
+    BLETxPacket packet)
+    : BLETxView(nav) {
+
+    packets[0] = packet;
+    update_packet_display(packets[0]);
+
+    num_packets = 1;
+    file_override = true;
 }
 
 void BLETxView::on_file_changed(const fs::path& new_file_path) {
