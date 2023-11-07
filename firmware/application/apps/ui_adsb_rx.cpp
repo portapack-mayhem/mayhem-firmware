@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -20,21 +21,19 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include <strings.h>
-
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
 
-#include "rtc_time.hpp"
-#include "string_format.hpp"
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "rtc_time.hpp"
+#include "string_format.hpp"
 
 using namespace portapack;
 
 namespace ui {
 
-bool ac_details_view_active{false};
+bool ac_details_view_active{false};  // WTF?
 
 template <>
 void RecentEntriesTable<AircraftRecentEntries>::draw(
@@ -75,18 +74,13 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0), bitmap_target, target_color, style.background);
 }
 
-void ADSBLogger::log_str(std::string& logline) {
+/* ADSBLogger ********************************************/
+
+void ADSBLogger::log_str(const std::string& logline) {
     log_file.write_entry(logline);
 }
 
-// Aircraft Details
-void ADSBRxAircraftDetailsView::focus() {
-    button_close.focus();
-}
-
-ADSBRxAircraftDetailsView::~ADSBRxAircraftDetailsView() {
-    on_close_();
-}
+/* ADSBRxAircraftDetailsView *****************************/
 
 ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
     NavigationView& nav,
@@ -187,12 +181,14 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
         ac_details_view_active = false;
         nav.pop();
     };
-};
+}
 
-// End of Aicraft details
+ADSBRxAircraftDetailsView::~ADSBRxAircraftDetailsView() {
+    on_close_();
+}
 
-void ADSBRxDetailsView::focus() {
-    button_see_map.focus();
+void ADSBRxAircraftDetailsView::focus() {
+    button_close.focus();
 }
 
 void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
@@ -219,10 +215,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
     }
 }
 
-ADSBRxDetailsView::~ADSBRxDetailsView() {
-    ac_details_view_active = false;
-    on_close_();
-}
+/* ADSBRxDetailsView *************************************/
 
 ADSBRxDetailsView::ADSBRxDetailsView(
     NavigationView& nav,
@@ -286,8 +279,43 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     };
 };
 
-void ADSBRxView::focus() {
-    field_vga.focus();
+ADSBRxDetailsView::~ADSBRxDetailsView() {
+    ac_details_view_active = false;
+    on_close_();
+}
+
+void ADSBRxDetailsView::focus() {
+    button_see_map.focus();
+}
+
+/* ADSBRxView ********************************************/
+
+ADSBRxView::ADSBRxView(NavigationView& nav) {
+    baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
+    add_children({&labels,
+                  &field_lna,
+                  &field_vga,
+                  &field_rf_amp,
+                  &rssi,
+                  &recent_entries_view});
+
+    recent_entries_view.set_parent_rect({0, 16, 240, 272});
+    recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
+        detailed_entry_key = entry.key();
+        details_view = nav.push<ADSBRxDetailsView>(
+            entry,
+            [this]() {
+                send_updates = false;
+            });
+        send_updates = true;
+    };
+
+    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+        on_tick_second();
+    };
+
+    receiver_model.enable();
+    baseband::set_adsb();
 }
 
 ADSBRxView::~ADSBRxView() {
@@ -296,14 +324,17 @@ ADSBRxView::~ADSBRxView() {
     baseband::shutdown();
 }
 
+void ADSBRxView::focus() {
+    field_vga.focus();
+}
+
+
 AircraftRecentEntry ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
     auto it = find(recent, ICAO_address);
 
-    // If not found
-    if (it == std::end(recent)) {
-        recent.emplace_front(ICAO_address);  // Add it
-        it = find(recent, ICAO_address);     // Find it again
-    }
+    if (it == std::end(recent))
+        it = recent.emplace_front(ICAO_address);
+
     return *it;
 }
 
@@ -330,12 +361,15 @@ void ADSBRxView::remove_old_entries() {
 }
 
 void ADSBRxView::sort_entries_by_state() {
-    // Sorting List pn age_state using lambda function as comparator
-    recent.sort([](const AircraftRecentEntry& left, const AircraftRecentEntry& right) { return (left.age_state < right.age_state); });
+    recent.sort([](const auto& left, const auto& right) {
+        return (left.age_state < right.age_state);
+    });
 }
 
 void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
-    logger = std::make_unique<ADSBLogger>();
+    if (!logger)
+        logger = std::make_unique<ADSBLogger>();
+
     rtc::RTC datetime;
     std::string callsign;
     std::string str_info;
@@ -422,19 +456,20 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
 }
 
 void ADSBRxView::on_tick_second() {
-    if (recent.size() <= 16) {  // Not many entries update everything (16 is one screen full)
-        updateDetailsAndMap(1);
+      // Not many entries update everything (16 is one screen full).
+    if (recent.size() <= 16) {
+        update_recent_entries(1);
         updateRecentEntries();
     } else if (updateState == 0) {  // Even second
         updateState = 1;
-        updateDetailsAndMap(2);
+        update_recent_entries(2);
     } else {  // Odd second only performed when there are many entries
         updateState = 0;
         updateRecentEntries();
     }
 }
 
-void ADSBRxView::updateDetailsAndMap(int ageStep) {
+void ADSBRxView::update_recent_entries(int ageStep) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
 
@@ -495,33 +530,6 @@ void ADSBRxView::updateRecentEntries() {
     }
 }
 
-ADSBRxView::ADSBRxView(NavigationView& nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
-    add_children({&labels,
-                  &field_lna,
-                  &field_vga,
-                  &field_rf_amp,
-                  &rssi,
-                  &recent_entries_view});
 
-    recent_entries_view.set_parent_rect({0, 16, 240, 272});
-    recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
-        detailed_entry_key = entry.key();
-        details_view = nav.push<ADSBRxDetailsView>(
-            entry,
-            [this]() {
-                send_updates = false;
-            });
-        send_updates = true;
-    };
-
-    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
-        on_tick_second();
-    };
-
-    baseband::set_adsb();
-
-    receiver_model.enable();
-}
 
 } /* namespace ui */

@@ -1089,13 +1089,9 @@ class APRSPacketMessage : public Message {
 
 class ADSBConfigureMessage : public Message {
    public:
-    constexpr ADSBConfigureMessage(
-        const uint32_t test)
-        : Message{ID::ADSBConfigure},
-          test(test) {
+    constexpr ADSBConfigureMessage()
+        : Message{ID::ADSBConfigure} {
     }
-
-    const uint32_t test;
 };
 
 class JammerConfigureMessage : public Message {

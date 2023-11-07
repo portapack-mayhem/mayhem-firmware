@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+* Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -21,20 +22,19 @@
  */
 
 #include "ui.hpp"
-
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
-#include "string_format.hpp"
 
-#include "file.hpp"
-#include "database.hpp"
-#include "recent_entries.hpp"
-#include "log_file.hpp"
 #include "adsb.hpp"
-#include "message.hpp"
 #include "app_settings.hpp"
-#include "radio_state.hpp"
 #include "crc.hpp"
+#include "database.hpp"
+#include "file.hpp"
+#include "log_file.hpp"
+#include "message.hpp"
+#include "radio_state.hpp"
+#include "recent_entries.hpp"
+#include "string_format.hpp"
 
 using namespace adsb;
 
@@ -67,6 +67,7 @@ namespace ui {
 #define VEL_AIR_SUPERSONIC 4
 
 #define O_E_FRAME_TIMEOUT 20  // timeout between odd and even frames
+#define MARKER_UPDATE_SECONDS 5
 
 struct AircraftRecentEntry {
     using Key = uint32_t;
@@ -76,7 +77,7 @@ struct AircraftRecentEntry {
     uint32_t ICAO_address{};
     uint16_t hits{0};
 
-    uint16_t age_state{1};
+    uint16_t age_state{1};  // Is this an enum? Cleanup defines.
     uint32_t age{0};
     uint32_t amp{0};
     adsb_pos pos{false, 0, 0, 0};
@@ -88,8 +89,7 @@ struct AircraftRecentEntry {
     std::string callsign{"        "};
     std::string info_string{""};
 
-    AircraftRecentEntry(
-        const uint32_t ICAO_address)
+    AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {
         this->icaoStr = to_string_hex(ICAO_address, 6);
     }
@@ -98,8 +98,8 @@ struct AircraftRecentEntry {
         return ICAO_address;
     }
 
-    void set_callsign(std::string& new_callsign) {
-        callsign = new_callsign;
+    void set_callsign(std::string new_callsign) {
+        callsign = std::move(new_callsign);
     }
 
     void inc_hit() {
@@ -151,7 +151,7 @@ class ADSBLogger {
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
-    void log_str(std::string& logline);
+    void log_str(const std::string& logline);
 
    private:
     LogFile log_file{};
@@ -159,7 +159,10 @@ class ADSBLogger {
 
 class ADSBRxAircraftDetailsView : public View {
    public:
-    ADSBRxAircraftDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
+    ADSBRxAircraftDetailsView(
+        NavigationView&,
+        const AircraftRecentEntry& entry,
+        std::function<void(void)> on_close);
     ~ADSBRxAircraftDetailsView();
 
     ADSBRxAircraftDetailsView(const ADSBRxAircraftDetailsView&) = delete;
@@ -178,7 +181,7 @@ class ADSBRxAircraftDetailsView : public View {
     std::database::AircraftDBRecord aircraft_record = {};
 
    private:
-    AircraftRecentEntry entry_copy{0};
+    AircraftRecentEntry entry_copy{0};  // Why value?
     std::function<void(void)> on_close_{};
     bool send_updates{false};
     std::database db = {};
@@ -335,30 +338,35 @@ class ADSBRxView : public View {
 
     std::string title() const override { return "ADS-B RX"; };
 
-    void replace_entry(AircraftRecentEntry& entry);
-    void remove_old_entries();
-    AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
-    void sort_entries_by_state();
-
    private:
     RxRadioState radio_state_{
-        1090000000 /* frequency */,
-        2500000 /* bandwidth */,
-        2000000 /* sampling rate */,
-        ReceiverModel::Mode::SpectrumAnalysis};
+        1'090'000'000 /* frequency */,
+        2'500'000 /* bandwidth */,
+        2'000'000 /* sampling rate */,
+        ReceiverModel::Mode::SpectrumAnalysis}; // Why spectrum?
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 
     std::unique_ptr<ADSBLogger> logger{};
+
+    /* Entry Management */
+    AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
+    void replace_entry(AircraftRecentEntry& entry);
+    void remove_old_entries();
+    void sort_entries_by_state();
+
+    /* Event Handlers */
     void on_frame(const ADSBFrameMessage* message);
     void on_tick_second();
-    int updateState = {0};
-    void updateRecentEntries();
-    void updateDetailsAndMap(int ageStep);
+    int updateState = 0;  // ?
 
-#define MARKER_UPDATE_SECONDS (5)
+    void update_recent_entries();
+    void update_details_and_map(int ageStep);
+
+    SignalToken signal_token_tick_second{};
     int ticksSinceMarkerRefresh{MARKER_UPDATE_SECONDS - 1};
 
+    /* Recent Entries */
     const RecentEntriesColumns columns{{{"ICAO/Call", 9},
                                         {"Lvl", 3},
                                         {"Spd", 3},
@@ -366,12 +374,11 @@ class ADSBRxView : public View {
                                         {"Hit", 3},
                                         {"Age", 4}}};
     AircraftRecentEntries recent{};
-    RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view{columns, recent};
+    RecentEntriesView<AircraftRecentEntries> recent_entries_view{columns, recent};
 
-    SignalToken signal_token_tick_second{};
-    ADSBRxDetailsView* details_view{nullptr};
-    uint32_t detailed_entry_key{0};
-    bool send_updates{false};
+    ADSBRxDetailsView* details_view{nullptr}; // Why is this here?
+    uint32_t detailed_entry_key{0};  // Key?
+    bool send_updates{false};  // Why is this here?
 
     Labels labels{
         {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
