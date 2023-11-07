@@ -21,6 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <algorithm>
+
 #include "ui_adsb_rx.hpp"
 #include "ui_alphanum.hpp"
 
@@ -42,23 +44,25 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     Painter& painter,
     const Style& style) {
     Color target_color;
-    auto entry_age = entry.age;
     std::string entry_string;
 
-    // Color decay for flights not being updated anymore
-    if (entry_age < ADSB_CURRENT) {
-        entry_string = "";
-        target_color = Color::green();
-    } else if (entry_age < ADSB_RECENT) {
-        entry_string = STR_COLOR_LIGHT_GREY;
-        target_color = Color::light_grey();
-    } else {
-        entry_string = STR_COLOR_DARK_GREY;
-        target_color = Color::grey();
-    }
+    switch (entry.state) {
+        case ADSBAgeState::Invalid:
+        case ADSBAgeState::Current:
+            entry_string = "";
+            target_color = Color::green();
+            break;
+        case ADSBAgeState::Recent:
+            entry_string = STR_COLOR_LIGHT_GREY;
+            target_color = Color::light_grey();
+            break;
+        default:
+            entry_string = STR_COLOR_DARK_GREY;
+            target_color = Color::grey();
+    };
 
     entry_string +=
-        (entry.callsign[0] != ' ' ? entry.callsign + " " : entry.icaoStr + "   ") +
+        (entry.callsign[0] != ' ' ? entry.callsign + " " : entry.icao_str + "   ") +
         to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +
         to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
         to_string_dec_uint((unsigned int)(entry.amp >> 9), 4) + " " +
@@ -76,8 +80,27 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
 
 /* ADSBLogger ********************************************/
 
-void ADSBLogger::log_str(const std::string& logline) {
-    log_file.write_entry(logline);
+void ADSBLogger::log(const ADSBLogEntry& log_entry) {
+    std::string log_line;
+    log_line.reserve(100);
+
+    log_line = log_entry.raw_data;
+    log_line += "ICAO:" + log_entry.icao;
+
+    if (!log_entry.callsign.empty())
+        log_line += " " + log_entry.callsign;
+
+    if (log_entry.pos.valid)
+        log_line += " Alt:" + to_string_dec_int(log_entry.pos.altitude) +
+                    " Lat:" + to_string_decimal(log_entry.pos.latitude, 7) +
+                    " Lon:" + to_string_decimal(log_entry.pos.longitude, 7);
+
+    if (log_entry.vel.valid)
+        log_line += " Type:" + to_string_dec_uint(log_entry.vel_type) +
+                    " Hdg:" + to_string_dec_uint(log_entry.vel.heading) +
+                    " Spd: " + to_string_dec_int(log_entry.vel.speed);
+
+    log_file.write_entry(log_line);
 }
 
 /* ADSBRxAircraftDetailsView *****************************/
@@ -265,7 +288,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     button_see_map.on_select = [this, &nav](Button&) {
         if (!send_updates) {  // Prevent recursively launching the map
             geomap_view = nav.push<GeoMapView>(
-                trimr(entry_copy.callsign[0] != ' ' ? entry_copy.callsign : entry_copy.icaoStr),
+                trimr(entry_copy.callsign[0] != ' ' ? entry_copy.callsign : entry_copy.icao_str),
                 entry_copy.pos.altitude,
                 GeoPos::alt_unit::FEET,
                 entry_copy.pos.latitude,
@@ -292,12 +315,15 @@ void ADSBRxDetailsView::focus() {
 
 ADSBRxView::ADSBRxView(NavigationView& nav) {
     baseband::run_image(portapack::spi_flash::image_tag_adsb_rx);
-    add_children({&labels,
-                  &field_lna,
-                  &field_vga,
-                  &field_rf_amp,
-                  &rssi,
-                  &recent_entries_view});
+    add_children(
+        {&labels,
+         &field_lna,
+         &field_vga,
+         &field_rf_amp,
+         &rssi,
+         &recent_entries_view,
+         &status_frame,
+         &status_good_frame});
 
     recent_entries_view.set_parent_rect({0, 16, 240, 272});
     recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
@@ -314,6 +340,9 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
         on_tick_second();
     };
 
+    logger = std::make_unique<ADSBLogger>();
+    logger->append(LOG_ROOT_DIR "/ADSB.TXT");
+
     receiver_model.enable();
     baseband::set_adsb();
 }
@@ -328,148 +357,94 @@ void ADSBRxView::focus() {
     field_vga.focus();
 }
 
-
-AircraftRecentEntry ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
-    auto it = find(recent, ICAO_address);
-
-    if (it == std::end(recent))
-        it = recent.emplace_front(ICAO_address);
-
-    return *it;
-}
-
-void ADSBRxView::replace_entry(AircraftRecentEntry& entry) {
-    uint32_t ICAO_address = entry.ICAO_address;
-
-    std::replace_if(
-        recent.begin(), recent.end(),
-        [ICAO_address](const AircraftRecentEntry& compEntry) { return ICAO_address == compEntry.ICAO_address; },
-        entry);
-}
-
-void ADSBRxView::remove_old_entries() {
-    auto it = recent.rbegin();
-    auto end = recent.rend();
-    while (it != end) {
-        if (it->age_state >= 4) {
-            std::advance(it, 1);
-            recent.erase(it.base());
-        } else {
-            break;  // stop looking because the list is sorted
-        }
-    }
-}
-
-void ADSBRxView::sort_entries_by_state() {
-    recent.sort([](const auto& left, const auto& right) {
-        return (left.age_state < right.age_state);
-    });
-}
-
 void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
-    if (!logger)
-        logger = std::make_unique<ADSBLogger>();
-
-    rtc::RTC datetime;
-    std::string callsign;
-    std::string str_info;
-    std::string logentry;
-
     auto frame = message->frame;
     uint32_t ICAO_address = frame.get_ICAO_address();
+    status_frame.toggle();
 
-    if (frame.check_CRC() && ICAO_address) {
-        rtcGetTime(&RTCD1, &datetime);
-        auto entry = find_or_create_entry(ICAO_address);
-        frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
-        entry.reset_age();
-        if (entry.hits == 0) {
-            entry.amp = message->amp;  // Store amplitude on first hit
-        } else {
-            entry.amp = ((entry.amp * 15) + message->amp) >> 4;  // Update smoothed amplitude on updates
+    // Bad frame, skip it.
+    if (!frame.check_CRC() || ICAO_address == 0)
+        return;
+
+    ADSBLogEntry log_entry;
+    status_good_frame.toggle();
+
+    rtc::RTC datetime;
+    rtcGetTime(&RTCD1, &datetime);
+    frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
+
+    // NB: Ref to update entry in-place.
+    auto& entry = find_or_create_entry(ICAO_address);
+    entry.inc_hit();
+    entry.reset_age();
+
+    // Store smoothed amplitude on updates.
+    entry.amp = entry.hits == 0
+                    ? message->amp
+                    : ((entry.amp * 15) + message->amp) >> 4;
+
+    log_entry.raw_data = to_string_hex_array(frame.get_raw_data(), 14);
+    log_entry.icao = entry.icao_str;
+
+    if (frame.get_DF() == DF_ADSB) {
+        uint8_t msg_type = frame.get_msg_type();
+        uint8_t msg_sub = frame.get_msg_sub();
+        uint8_t* raw_data = frame.get_raw_data();
+
+        // 4: // surveillance, altitude reply
+        if ((msg_type >= AIRCRAFT_ID_L) && (msg_type <= AIRCRAFT_ID_H)) {
+            entry.set_callsign(decode_frame_id(frame));
+            log_entry.callsign = entry.callsign;
         }
 
-        entry.inc_hit();
-        if (logger) {
-            logentry += to_string_hex_array(frame.get_raw_data(), 14) + " ";
-            logentry += "ICAO:" + entry.icaoStr + " ";
-        }
+        // 9:
+        // 18: // Extended squitter/non-transponder
+        // 21: // Comm-B, identity reply
+        // 20: // Comm-B, altitude reply
+        else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) ||
+                 ((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
+            entry.set_frame_pos(frame, raw_data[6] & 4);
+            log_entry.pos = entry.pos;
 
-        if (frame.get_DF() == DF_ADSB) {
-            uint8_t msg_type = frame.get_msg_type();
-            uint8_t msg_sub = frame.get_msg_sub();
-            uint8_t* raw_data = frame.get_raw_data();
+            if (entry.pos.valid) {
+                std::string str_info =
+                    "Alt:" + to_string_dec_int(entry.pos.altitude) +
+                    " Lat:" + to_string_decimal(entry.pos.latitude, 2) +
+                    " Lon:" + to_string_decimal(entry.pos.longitude, 2);
 
-            // 4: // surveillance, altitude reply
-            if ((msg_type >= AIRCRAFT_ID_L) && (msg_type <= AIRCRAFT_ID_H)) {
-                callsign = decode_frame_id(frame);
-                entry.set_callsign(callsign);
-                if (logger) {
-                    logentry += callsign + " ";
-                }
+                entry.set_info_string(std::move(str_info));
             }
-            // 9:
-            // 18: { // Extended squitter/non-transponder
-            // 21: // Comm-B, identity reply
-            // 20: // Comm-B, altitude reply
-            else if (((msg_type >= AIRBORNE_POS_BARO_L) && (msg_type <= AIRBORNE_POS_BARO_H)) ||
-                     ((msg_type >= AIRBORNE_POS_GPS_L) && (msg_type <= AIRBORNE_POS_GPS_H))) {
-                entry.set_frame_pos(frame, raw_data[6] & 4);
 
-                if (entry.pos.valid) {
-                    str_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
-                               " Lat:" + to_string_decimal(entry.pos.latitude, 2) +
-                               " Lon:" + to_string_decimal(entry.pos.longitude, 2);
-
-                    entry.set_info_string(str_info);
-
-                    if (logger) {
-                        // printing the coordinates in the log file with more
-                        // resolution, as we are not constrained by screen
-                        // real estate there:
-
-                        std::string log_info = "Alt:" + to_string_dec_int(entry.pos.altitude) +
-                                               " Lat:" + to_string_decimal(entry.pos.latitude, 7) +
-                                               " Lon:" + to_string_decimal(entry.pos.longitude, 7);
-                        logentry += log_info + " ";
-                    }
-                }
-            } else if (msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC) {
-                entry.set_frame_velo(frame);
-                if (logger) {
-                    logger->append(LOG_ROOT_DIR "/ADSB.TXT");
-                    logentry += "Type:" + to_string_dec_uint(msg_sub) +
-                                " Hdg:" + to_string_dec_uint(entry.velo.heading) +
-                                " Spd: " + to_string_dec_int(entry.velo.speed);
-                }
-            }
-            replace_entry(entry);
-        }  // frame.get_DF() == DF_ADSB
-
-        if (logger) {
-            logger->append(LOG_ROOT_DIR "/ADSB.TXT");
-            // will log each frame in format:
-            // 20171103100227 8DADBEEFDEADBEEFDEADBEEFDEADBEEF ICAO:nnnnnn callsign Alt:nnnnnn Latnnn.nn Lonnnn.nn
-            logger->log_str(logentry);
+        } else if (msg_type == AIRBORNE_VEL && msg_sub >= VEL_GND_SUBSONIC && msg_sub <= VEL_AIR_SUPERSONIC) {
+            entry.set_frame_velo(frame);
+            log_entry.vel = entry.velo;
+            log_entry.vel_type = msg_sub;
         }
     }
+
+    logger->log(log_entry);
 }
 
 void ADSBRxView::on_tick_second() {
-      // Not many entries update everything (16 is one screen full).
-    if (recent.size() <= 16) {
-        update_recent_entries(1);
-        updateRecentEntries();
-    } else if (updateState == 0) {  // Even second
-        updateState = 1;
-        update_recent_entries(2);
-    } else {  // Odd second only performed when there are many entries
-        updateState = 0;
-        updateRecentEntries();
+    status_frame.reset();
+    status_good_frame.reset();
+
+    // Update in single pass.
+    if (recent.size() <= max_update_entries) {
+        update_details_and_map(/*age_delta*/ 1);
+        update_recent_entries();
+        return;
     }
+
+    // Too many, split update into two passes.
+    ++tick_count;
+    if ((tick_count & 1) == 1)
+        update_details_and_map(/*age_delta*/ 2);
+    else
+        update_recent_entries();
 }
 
-void ADSBRxView::update_recent_entries(int ageStep) {
+void ADSBRxView::update_details_and_map(int ageStep) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
 
@@ -478,10 +453,10 @@ void ADSBRxView::update_recent_entries(int ageStep) {
     if (ac_details_view_active)
         return;
 
-    // Sort and truncate the entries, grouped, newest group first
+    // Sort and truncate the entries, grouped by state, newest first.
     sort_entries_by_state();
     truncate_entries(recent);
-    remove_old_entries();
+    remove_expired_entries();
 
     // Calculate if it is time to update markers
     if (send_updates && details_view && details_view->geomap_view) {
@@ -512,24 +487,55 @@ void ADSBRxView::update_recent_entries(int ageStep) {
             }
             // Store if the view is present and the list isn't full
             // Note -- Storing the selected entry too, in case map panning occurs
-            if (otherMarkersCanBeSent && (markerStored != MARKER_LIST_FULL) && entry.pos.valid && (entry.age_state <= 2)) {
+            if (otherMarkersCanBeSent && (markerStored != MARKER_LIST_FULL) && entry.pos.valid && (toUType(entry.state) <= 2)) {
                 marker.lon = entry.pos.longitude;
                 marker.lat = entry.pos.latitude;
                 marker.angle = entry.velo.heading;
-                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icaoStr);
+                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icao_str);
                 markerStored = details_view->geomap_view->store_marker(marker);
             }
         }
     }  // Loop through all entries, if only to update the age
 }
 
-void ADSBRxView::updateRecentEntries() {
+void ADSBRxView::update_recent_entries() {
     // Redraw the list of aircraft
     if (!send_updates) {
         recent_entries_view.set_dirty();
     }
 }
 
+AircraftRecentEntry& ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
+    // Find ...
+    auto it = find(recent, ICAO_address);
+    if (it != recent.end())
+        return *it;
 
+    // ... or Create.
+    return recent.emplace_front(ICAO_address);
+}
+
+void ADSBRxView::sort_entries_by_state() {
+    recent.sort([](const auto& left, const auto& right) {
+        return (left.state < right.state);
+    });
+}
+
+void ADSBRxView::remove_expired_entries() {
+    // NB: Assumes entried are sorted with oldest last.
+    auto it = recent.rbegin();
+    auto end = recent.rend();
+
+    // Find the first !expired entry from the back.
+    while (it != end) {
+        if (it->state != ADSBAgeState::Expired)
+            break;
+
+        std::advance(it, 1);
+    }
+
+    // Remove the range of expired items.
+    recent.erase(it.base(), recent.end());
+}
 
 } /* namespace ui */

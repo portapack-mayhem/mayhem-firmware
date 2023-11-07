@@ -24,19 +24,26 @@
 
 #include "ui_widget.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <list>
-#include <utility>
 #include <functional>
 #include <iterator>
-#include <algorithm>
+#include <list>
+#include <utility>
 
 template <class Entry>
 using RecentEntries = std::list<Entry>;
 
 template <typename ContainerType, typename Key>
 typename ContainerType::const_iterator find(const ContainerType& entries, const Key key) {
+    return std::find_if(
+        std::begin(entries), std::end(entries),
+        [key](typename ContainerType::const_reference e) { return e.key() == key; });
+}
+
+template <typename ContainerType, typename Key>
+typename ContainerType::iterator find(ContainerType& entries, const Key key) {
     return std::find_if(
         std::begin(entries), std::end(entries),
         [key](typename ContainerType::const_reference e) { return e.key() == key; });

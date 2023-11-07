@@ -1,7 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
-* Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -39,11 +39,6 @@
 using namespace adsb;
 
 namespace ui {
-
-#define ADSB_CURRENT 10  // Seconds
-#define ADSB_RECENT 30   // Seconds
-#define ADSB_REMOVE 300  // Used for removing old entries
-
 #define AIRCRAFT_ID_L 1  // aircraft ID message type (lowest type id)
 #define AIRCRAFT_ID_H 4  // aircraft ID message type (highest type id)
 
@@ -69,6 +64,22 @@ namespace ui {
 #define O_E_FRAME_TIMEOUT 20  // timeout between odd and even frames
 #define MARKER_UPDATE_SECONDS 5
 
+/* Thresholds (in seconds) that define the transition between ages. */
+struct ADSBAgeLimit {
+    static constexpr int Current = 10;
+    static constexpr int Recent = 30;
+    static constexpr int Expired = 300;
+};
+
+/* Age states used for sorting and drawing recent entries. */
+enum class ADSBAgeState : uint8_t {
+    Invalid,
+    Current,
+    Recent,
+    Old,
+    Expired,
+};
+
 struct AircraftRecentEntry {
     using Key = uint32_t;
 
@@ -77,23 +88,24 @@ struct AircraftRecentEntry {
     uint32_t ICAO_address{};
     uint16_t hits{0};
 
-    uint16_t age_state{1};  // Is this an enum? Cleanup defines.
-    uint32_t age{0};
+    ADSBAgeState state{ADSBAgeState::Invalid};
+    uint32_t age{0};  // In seconds
     uint32_t amp{0};
     adsb_pos pos{false, 0, 0, 0};
     adsb_vel velo{false, 0, 999, 0};
     ADSBFrame frame_pos_even{};
     ADSBFrame frame_pos_odd{};
 
-    std::string icaoStr{"      "};
+    std::string icao_str{"      "};
     std::string callsign{"        "};
     std::string info_string{""};
 
     AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {
-        this->icaoStr = to_string_hex(ICAO_address, 6);
+        this->icao_str = to_string_hex(ICAO_address, 6);
     }
 
+    /* RecentEntries helpers expect a "key" on every item. */
     Key key() const {
         return ICAO_address;
     }
@@ -122,8 +134,8 @@ struct AircraftRecentEntry {
         velo = decode_frame_velo(frame);
     }
 
-    void set_info_string(std::string& new_info_string) {
-        info_string = new_info_string;
+    void set_info_string(std::string new_info_string) {
+        info_string = std::move(new_info_string);
     }
 
     void reset_age() {
@@ -132,26 +144,40 @@ struct AircraftRecentEntry {
 
     void inc_age(int delta) {
         age += delta;
-        if (age < ADSB_CURRENT) {
-            age_state = pos.valid ? 0 : 1;
-        } else if (age < ADSB_RECENT) {
-            age_state = 2;
-        } else if (age < ADSB_REMOVE) {
-            age_state = 3;
-        } else {
-            age_state = 4;
-        }
+
+        if (age < ADSBAgeLimit::Current)
+            state = pos.valid ? ADSBAgeState::Invalid
+                              : ADSBAgeState::Current;
+
+        else if (age < ADSBAgeLimit::Recent)
+            state = ADSBAgeState::Recent;
+
+        else if (age < ADSBAgeLimit::Expired)
+            state = ADSBAgeState::Old;
+
+        else
+            state = ADSBAgeState::Expired;
     }
 };
 
+// NB: uses std::list underneath so assuming refs are NOT invalidated.
 using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
+
+struct ADSBLogEntry {
+    std::string raw_data{};
+    std::string icao{};
+    std::string callsign{};
+    adsb_pos pos{};
+    adsb_vel vel{};
+    uint8_t vel_type{};
+};
 
 class ADSBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
-    void log_str(const std::string& logline);
+    void log(const ADSBLogEntry& log_entry);
 
    private:
     LogFile log_file{};
@@ -324,6 +350,7 @@ class ADSBRxDetailsView : public View {
         "See on map"};
 };
 
+/* Main ADSB application view and message dispatch. */
 class ADSBRxView : public View {
    public:
     ADSBRxView(NavigationView& nav);
@@ -335,7 +362,6 @@ class ADSBRxView : public View {
     ADSBRxView& operator=(ADSBRxView&&) = delete;
 
     void focus() override;
-
     std::string title() const override { return "ADS-B RX"; };
 
    private:
@@ -343,25 +369,22 @@ class ADSBRxView : public View {
         1'090'000'000 /* frequency */,
         2'500'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
-        ReceiverModel::Mode::SpectrumAnalysis}; // Why spectrum?
+        ReceiverModel::Mode::SpectrumAnalysis};  // Why spectrum?
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 
     std::unique_ptr<ADSBLogger> logger{};
 
-    /* Entry Management */
-    AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
-    void replace_entry(AircraftRecentEntry& entry);
-    void remove_old_entries();
-    void sort_entries_by_state();
-
     /* Event Handlers */
     void on_frame(const ADSBFrameMessage* message);
     void on_tick_second();
-    int updateState = 0;  // ?
-
     void update_recent_entries();
-    void update_details_and_map(int ageStep);
+    void update_details_and_map(int age_delta);
+    uint8_t tick_count = 0;
+
+    /* Max number of entries that can be updated in a single pass.
+     * 16 is one screen of recent entries. */
+    static constexpr uint8_t max_update_entries = 16;
 
     SignalToken signal_token_tick_second{};
     int ticksSinceMarkerRefresh{MARKER_UPDATE_SECONDS - 1};
@@ -376,9 +399,14 @@ class ADSBRxView : public View {
     AircraftRecentEntries recent{};
     RecentEntriesView<AircraftRecentEntries> recent_entries_view{columns, recent};
 
-    ADSBRxDetailsView* details_view{nullptr}; // Why is this here?
-    uint32_t detailed_entry_key{0};  // Key?
-    bool send_updates{false};  // Why is this here?
+    /* Entry Management */
+    AircraftRecentEntry& find_or_create_entry(uint32_t ICAO_address);
+    void sort_entries_by_state();
+    void remove_expired_entries();
+
+    ADSBRxDetailsView* details_view{nullptr};  // Why is this here?
+    uint32_t detailed_entry_key{0};            // Key?
+    bool send_updates{false};                  // Why is this here?
 
     Labels labels{
         {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
@@ -393,7 +421,17 @@ class ADSBRxView : public View {
         {18 * 8, 0 * 16}};
 
     RSSI rssi{
-        {20 * 8, 4, 10 * 8, 8},
+        {20 * 8, 4, 10 * 7, 8},
+    };
+
+    ActivityDot status_frame{
+        {screen_width - 3, 5, 2, 2},
+        Color::light_grey(),
+    };
+
+    ActivityDot status_good_frame{
+        {screen_width - 3, 9, 2, 2},
+        Color::white(),
     };
 
     MessageHandlerRegistration message_handler_frame{
