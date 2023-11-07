@@ -444,7 +444,7 @@ void ADSBRxView::on_tick_second() {
         update_recent_entries();
 }
 
-void ADSBRxView::update_details_and_map(int ageStep) {
+void ADSBRxView::update_details_and_map(int age_delta) {
     ui::GeoMarker marker;
     bool storeNewMarkers = false;
 
@@ -460,7 +460,7 @@ void ADSBRxView::update_details_and_map(int ageStep) {
 
     // Calculate if it is time to update markers
     if (send_updates && details_view && details_view->geomap_view) {
-        ticksSinceMarkerRefresh += ageStep;
+        ticksSinceMarkerRefresh += age_delta;
         if (ticksSinceMarkerRefresh >= MARKER_UPDATE_SECONDS) {  // Update other aircraft every few seconds
             storeNewMarkers = true;
             ticksSinceMarkerRefresh = 0;
@@ -475,9 +475,10 @@ void ADSBRxView::update_details_and_map(int ageStep) {
     if (otherMarkersCanBeSent) {
         details_view->geomap_view->clear_markers();
     }
+    
     // Loop through all entries
     for (auto& entry : recent) {
-        entry.inc_age(ageStep);
+        entry.inc_age(age_delta);
 
         // Only if there is a details view
         if (send_updates && details_view) {
