@@ -73,7 +73,7 @@ namespace second_if {
 uint32_t register_read(const size_t register_number);
 
 // TODO: This belongs somewhere else.
-uint8_t temp_sense();
+int8_t temp_sense();
 
 } /* namespace second_if */
 
