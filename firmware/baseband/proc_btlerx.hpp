@@ -48,6 +48,12 @@ class BTLERxProcessor : public BasebandProcessor {
     static constexpr uint32_t DEFAULT_ACCESS_ADDR{0x8E89BED6};
     static constexpr int NUM_ACCESS_ADDR_BYTE{4};
 
+        enum Parse_State {
+        Parse_State_Begin = 0,
+        Parse_State_PDU_Header,
+        Parse_State_PDU_Payload
+    };
+
     enum ADV_PDU_TYPE {
         ADV_IND = 0,
         ADV_DIRECT_IND = 1,
@@ -111,13 +117,13 @@ class BTLERxProcessor : public BasebandProcessor {
     // void demod_byte(int num_byte, uint8_t *out_byte);
     int parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void* adv_pdu_payload);
 
-    std::array<complex16_t, 1024> dst{};
+    std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
         dst.data(),
         dst.size()};
 
-    static constexpr int RB_SIZE = 2048;
-    uint8_t rb_buf[2048];
+    static constexpr int RB_SIZE = 512;
+    uint8_t rb_buf[RB_SIZE];
 
     dsp::decimate::FIRC8xR16x24FS4Decim4 decim_0{};
 
@@ -130,6 +136,13 @@ class BTLERxProcessor : public BasebandProcessor {
 
     bool configured{false};
     BlePacketData blePacketData{};
+
+    Parse_State parseState {};
+    uint16_t packet_index {0};
+    int sample_idx {0};
+    uint8_t bit_decision {0};
+    uint8_t payload_len {0};
+    uint8_t pdu_type {0};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
