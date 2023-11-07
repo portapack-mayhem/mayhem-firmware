@@ -200,12 +200,14 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
 }
 
 void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
+
     BLETxPacket bleTxPacket;
+    memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
     std::string macAddressStr = to_string_mac_address(packetEntry.packetData.macAddress, 6, true);
 
-    strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 13);
-    strncpy(bleTxPacket.advertisementData, packetEntry.dataString.c_str(), (packetEntry.packetData.dataLen * 2) + 1);
+    strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 12);
+    strncpy(bleTxPacket.advertisementData, packetEntry.dataString.c_str(), packetEntry.packetData.dataLen * 2);
     strncpy(bleTxPacket.packetCount, "50", 3);
     bleTxPacket.packet_count = 50;
 
