@@ -302,8 +302,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
 
     //--------------Start Parsing For Access Address---------------//
 
-    if (parseState == Parse_State_Begin)
-    {
+    if (parseState == Parse_State_Begin) {
         static uint8_t demod_buf_access[SAMPLE_PER_SYMBOL][LEN_DEMOD_BUF_ACCESS];
 
         uint32_t uint32_tmp = DEFAULT_ACCESS_ADDR;
@@ -367,7 +366,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             // Process more samples.
             return;
         }
-  
+
         symbols_eaten += hit_idx;
 
         symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL);  // move to beginning of PDU header
@@ -383,8 +382,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
         parseState = Parse_State_PDU_Header;
     }
 
-    if (parseState == Parse_State_PDU_Header)
-    {
+    if (parseState == Parse_State_PDU_Header) {
         if (symbols_eaten > (int)dst_buffer.count) {
             return;
         }
@@ -428,7 +426,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             return;
         }
 
-    //--------------Start Payload Parsing--------------------------//
+        //--------------Start Payload Parsing--------------------------//
 
         num_demod_byte = (payload_len + 3);
         symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
@@ -436,8 +434,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
         parseState = Parse_State_PDU_Payload;
     }
 
-    if (parseState == Parse_State_PDU_Payload)
-    {
+    if (parseState == Parse_State_PDU_Payload) {
         if (symbols_eaten > (int)dst_buffer.count) {
             return;
         }
