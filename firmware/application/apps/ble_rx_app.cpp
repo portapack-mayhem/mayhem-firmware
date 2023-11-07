@@ -200,7 +200,6 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
 }
 
 void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
-
     BLETxPacket bleTxPacket;
     memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
