@@ -21,6 +21,7 @@
  */
 
 #include <string>
+#include <cstdint>
 
 #ifndef __DE_BRUIJN_H__
 #define __DE_BRUIJN_H__
