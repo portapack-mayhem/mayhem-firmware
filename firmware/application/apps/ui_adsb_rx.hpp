@@ -62,7 +62,7 @@ namespace ui {
 #define VEL_AIR_SUPERSONIC 4
 
 #define O_E_FRAME_TIMEOUT 20     // timeout between odd and even frames
-#define MARKER_UPDATE_SECONDS 5  // map marker redraw interval
+#define MARKER_UPDATE_SECONDS 5  // "other" map marker redraw interval
 
 /* Thresholds (in seconds) that define the transition between ages. */
 struct ADSBAgeLimit {
@@ -247,25 +247,31 @@ class ADSBRxAircraftDetailsView : public View {
 
 class ADSBRxDetailsView : public View {
    public:
-    ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
+    ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry);
+
+    ADSBRxDetailsView(const ADSBRxDetailsView&) = delete;
+    ADSBRxDetailsView& operator=(const ADSBRxDetailsView&) = delete;
 
     void focus() override;
     void update(const AircraftRecentEntry& entry);
 
-    std::string title() const override { return "Details"; };
+    /* Calls forwarded to map view if shown. */
+    void clear_map_markers();
+
+    /* Adds a marker for the entry to the map. Returns true on success. */
+    bool add_map_marker(const AircraftRecentEntry& entry);
+
+    std::string title() const override { return "Details"; }
 
    private:
-    AircraftRecentEntry get_current_entry() { return entry_copy; }
+    void refresh_ui();
 
-    std::database::AirlinesDBRecord airline_record = {};
+    GeoMapView* geomap_view_{nullptr};
+    ADSBRxAircraftDetailsView* aircraft_details_view_{nullptr};
 
-    GeoMapView* geomap_view{nullptr};
-
-
-    AircraftRecentEntry entry_copy{0};
-    std::function<void(void)> on_close_{};
-    ADSBRxAircraftDetailsView* aircraft_details_view{nullptr};
-
+    // NB: Keeping a copy so that it doesn't end up dangling
+    // if removed from the recent entries list.
+    AircraftRecentEntry entry_{AircraftRecentEntry::invalid_key};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
@@ -339,7 +345,7 @@ class ADSBRxView : public View {
         1'090'000'000 /* frequency */,
         2'500'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
-        ReceiverModel::Mode::SpectrumAnalysis};  // Why spectrum?
+        ReceiverModel::Mode::SpectrumAnalysis};
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 
@@ -348,12 +354,11 @@ class ADSBRxView : public View {
     /* Event Handlers */
     void on_frame(const ADSBFrameMessage* message);
     void on_tick_second();
-    void update_recent_entries();
-    void update_details_and_map(int age_delta);
+    void refresh_ui();
 
     SignalToken signal_token_tick_second{};
     uint8_t tick_count = 0;
-    int ticks_since_marker_refresh{MARKER_UPDATE_SECONDS - 1};
+    uint16_t ticks_since_marker_refresh{MARKER_UPDATE_SECONDS};
 
     /* Max number of entries that can be updated in a single pass.
      * 16 is one screen of recent entries. */
@@ -371,10 +376,13 @@ class ADSBRxView : public View {
     RecentEntriesView<AircraftRecentEntries> recent_entries_view{columns, recent};
 
     /* Entry Management */
+    void update_recent_entries(int age_delta);
     AircraftRecentEntry& find_or_create_entry(uint32_t ICAO_address);
     void sort_entries_by_state();
     void remove_expired_entries();
 
+    /* The key of the entry in the details view if shown. */
+    AircraftRecentEntry::Key detail_key{AircraftRecentEntry::invalid_key};
     ADSBRxDetailsView* details_view{nullptr};
 
     Labels labels{
@@ -395,12 +403,12 @@ class ADSBRxView : public View {
 
     ActivityDot status_frame{
         {screen_width - 3, 5, 2, 2},
-        Color::light_grey(),
+        Color::white(),
     };
 
     ActivityDot status_good_frame{
         {screen_width - 3, 9, 2, 2},
-        Color::white(),
+        Color::green(),
     };
 
     MessageHandlerRegistration message_handler_frame{

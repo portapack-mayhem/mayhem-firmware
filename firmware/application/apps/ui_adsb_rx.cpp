@@ -35,6 +35,10 @@ using namespace portapack;
 
 namespace ui {
 
+static std::string get_map_tag(const AircraftRecentEntry& entry) {
+    return trimr(entry.callsign.empty() ? entry.icao_str : entry.callsign);
+}
+
 template <>
 void RecentEntriesTable<AircraftRecentEntries>::draw(
     const Entry& entry,
@@ -214,10 +218,8 @@ void ADSBRxAircraftDetailsView::focus() {
 
 ADSBRxDetailsView::ADSBRxDetailsView(
     NavigationView& nav,
-    const AircraftRecentEntry& entry,
-    const std::function<void(void)> on_close)
-    : entry_copy(entry),
-      on_close_(on_close) {
+    const AircraftRecentEntry& entry)
+    : entry_(entry) {
     add_children(
         {&labels,
          &text_icao_address,
@@ -232,15 +234,13 @@ ADSBRxDetailsView::ADSBRxDetailsView(
          &button_aircraft_details,
          &button_see_map});
 
-    update(entry_copy);
+    // The following won't change for a given airborne aircraft.
+    // Try getting the airline's name from airlines.db.
+    std::database db;
+    std::database::AirlinesDBRecord airline_record;
+    std::string airline_code = entry_.callsign.substr(0, 3);
+    auto return_code = db.retrieve_airline_record(&airline_record, airline_code);
 
-    // The following won't (shouldn't) change for a given airborne aircraft
-    // Try getting the airline's name from airlines.db
-        std::database db = {};
-    std::string airline_code = "";
-    int return_code = 0;
-    airline_code = entry_copy.callsign.substr(0, 3);
-    return_code = db.retrieve_airline_record(&airline_record, airline_code);
     switch (return_code) {
         case DATABASE_RECORD_FOUND:
             text_airline.set(airline_record.airline);
@@ -251,28 +251,32 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             break;
     }
 
-    text_callsign.set(entry_copy.callsign);
-    text_icao_address.set(to_string_hex(entry_copy.ICAO_address, 6));
+    text_callsign.set(entry_.callsign);
+    text_icao_address.set(to_string_hex(entry_.ICAO_address, 6));
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
-        aircraft_details_view = nav.push<ADSBRxAircraftDetailsView>(entry_copy);
-        nav.set_on_pop = [this]() {
-            aircraft_details_view = nullptr;
-        }
+        aircraft_details_view_ = nav.push<ADSBRxAircraftDetailsView>(entry_);
+        nav.set_on_pop([this]() {
+            aircraft_details_view_ = nullptr;
+            refresh_ui();
+        });
     };
 
     button_see_map.on_select = [this, &nav](Button&) {
-        geomap_view = nav.push<GeoMapView>(
-            trimr(entry_copy.callsign.empty() ? entry_copy.icao_str : entry_copy.callsign),
-            entry_copy.pos.altitude,
+        geomap_view_ = nav.push<GeoMapView>(
+            get_map_tag(entry_),
+            entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
-            entry_copy.pos.latitude,
-            entry_copy.pos.longitude,
-            entry_copy.velo.heading);
-        nav.set_on_pop = [this]() {
-            geomap_view = nullptr;
-        }
+            entry_.pos.latitude,
+            entry_.pos.longitude,
+            entry_.velo.heading);
+        nav.set_on_pop([this]() {
+            geomap_view_ = nullptr;
+            refresh_ui();
+        });
     };
+
+    refresh_ui();
 };
 
 void ADSBRxDetailsView::focus() {
@@ -280,27 +284,56 @@ void ADSBRxDetailsView::focus() {
 }
 
 void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
-    entry_copy = entry;
-    uint32_t age = entry_copy.age;
+    entry_ = entry;
 
+    if (aircraft_details_view_) {
+        // AC Details view is showing, nothing to update.
+    } else if (geomap_view_) {
+        // Map is showing, update the current item.
+        geomap_view_->update_tag(get_map_tag(entry_));
+        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude);
+    } else {
+        // Details is showing, update details.
+        refresh_ui();
+    }
+}
+
+void ADSBRxDetailsView::clear_map_markers() {
+    if (geomap_view_)
+        geomap_view_->clear_markers();
+}
+
+bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
+    // Map not shown, can't add markers.
+    if (!geomap_view_)
+        return false;
+
+    GeoMarker marker{};
+    marker.lon = entry.pos.longitude;
+    marker.lat = entry.pos.latitude;
+    marker.angle = entry.velo.heading;
+    marker.tag = get_map_tag(entry);
+
+    auto markerStored = geomap_view_->store_marker(marker);
+    return markerStored == MARKER_STORED;
+}
+
+void ADSBRxDetailsView::refresh_ui() {
+    auto age = entry_.age;
     if (age < 60)
         text_last_seen.set(to_string_dec_uint(age) + " seconds ago");
     else
         text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
 
-    text_infos.set(entry_copy.info_string);
-    if (entry_copy.velo.heading < 360 && entry_copy.velo.speed >= 0) {  // I don't like this but...
-        text_info2.set("Hdg:" + to_string_dec_uint(entry_copy.velo.heading) + " Spd:" + to_string_dec_int(entry_copy.velo.speed));
-    } else {
+    text_infos.set(entry_.info_string);
+    if (entry_.velo.heading < 360 && entry_.velo.speed >= 0)
+        text_info2.set("Hdg:" + to_string_dec_uint(entry_.velo.heading) +
+                       " Spd:" + to_string_dec_int(entry_.velo.speed));
+    else
         text_info2.set("");
-    }
-    text_frame_pos_even.set(to_string_hex_array(entry_copy.frame_pos_even.get_raw_data(), 14));
-    text_frame_pos_odd.set(to_string_hex_array(entry_copy.frame_pos_odd.get_raw_data(), 14));
 
-    if (send_updates) {
-        geomap_view->update_tag(trimr(entry.callsign[0] != ' ' ? entry.callsign : to_string_hex(entry.ICAO_address, 6)));
-        geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, entry_copy.velo.heading, entry_copy.pos.altitude);
-    }
+    text_frame_pos_even.set(to_string_hex_array(entry_.frame_pos_even.get_raw_data(), 14));
+    text_frame_pos_odd.set(to_string_hex_array(entry_.frame_pos_odd.get_raw_data(), 14));
 }
 
 /* ADSBRxView ********************************************/
@@ -319,10 +352,13 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
 
     recent_entries_view.set_parent_rect({0, 16, 240, 272});
     recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
+        detail_key = entry.key();
         details_view = nav.push<ADSBRxDetailsView>(entry);
-        nav.set_on_pop = [this]() {
+
+        nav.set_on_pop([this]() {
+            detail_key = AircraftRecentEntry::invalid_key;
             details_view = nullptr;
-        };
+        });
     };
 
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
@@ -418,82 +454,70 @@ void ADSBRxView::on_tick_second() {
     status_frame.reset();
     status_good_frame.reset();
 
-    // Update in single pass.
+    ++tick_count;
+    ++ticks_since_marker_refresh;
+
+    // Small list, update all at once.
     if (recent.size() <= max_update_entries) {
-        update_details_and_map(/*age_delta*/ 1);
-        update_recent_entries();
+        update_recent_entries(/*age_delta*/ 1);
+        refresh_ui();
         return;
     }
 
-    // Too many items, split update into two passes.
-    // ?? This doesn't make sense, only one thing should
-    // be shown at a time anyway?
-    ++tick_count;
-    if ((tick_count & 1) == 1)
-        update_details_and_map(/*age_delta*/ 2);
+    // Too many items, split update work into two phases:
+    // Entry maintenance and UI update.
+    if ((tick_count & 1) == 0)
+        update_recent_entries(/*age_delta*/ 2);
     else
-        update_recent_entries();
+        refresh_ui();
 }
 
-void ADSBRxView::update_details_and_map(int age_delta) {
-    ui::GeoMarker marker;
-    bool storeNewMarkers = false;
+void ADSBRxView::refresh_ui() {
+    // There's only one ticks handler, but 3 UIs that need to be updated.
+    // This code will dispatch updates to the currently active view.
 
-    // // NB: Temporarily pausing updates in rtc_timer_tick context when viewing AC Details screen (kludge for some Guru faults)
-    // // TODO: More targeted blocking of updates in rtc_timer_tick when ADSB processes are running
-    // if (ac_details_view_active)
-    //     return;
+    if (details_view) {
+        // The details view is showing, forward updates to that UI.
+        bool current_updated = false;
+        bool map_needs_update = true; // Always attempt to update the map so there no delay.
+
+        // Is it time to clear and refresh the map's markers?
+        if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {
+            ticks_since_marker_refresh = 0;
+            details_view->clear_map_markers();
+        }
+
+        // Process the entries list.
+        for (const auto& entry : recent) {
+            // Found the entry being shown in details view. Update it.
+            if (entry.key() == detail_key) {
+                details_view->update(entry);
+                current_updated = true;
+            }
+
+            // NB: current entry also gets a marker so it shows up if map is panned.
+            if (map_needs_update && entry.pos.valid && entry.state <= ADSBAgeState::Recent) {
+                map_needs_update = details_view->add_map_marker(entry);
+            }
+
+            // Any work left to do?
+            if (current_updated && !map_needs_update)
+                break;
+        }
+    } else {
+        // Main page is the top view. Redraw the entries view.
+        recent_entries_view.set_dirty();
+    }
+}
+
+void ADSBRxView::update_recent_entries(int age_delta) {
+    for (auto& entry : recent)
+        entry.inc_age(age_delta);
 
     // Sort and truncate the entries, grouped by state, newest first.
     sort_entries_by_state();
     truncate_entries(recent);
     remove_expired_entries();
-
-    // Calculate if it is time to update markers
-    if (send_updates && details_view && details_view->geomap_view) {
-        ticks_since_marker_refresh += age_delta;
-        if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {  // Update other aircraft every few seconds
-            storeNewMarkers = true;
-            ticks_since_marker_refresh = 0;
-        }
-    } else {
-        ticks_since_marker_refresh = MARKER_UPDATE_SECONDS;  // Send the markers as soon as the geoview exists
-    }
-
-    // Increment age, and pass updates to the details and map
-    const bool otherMarkersCanBeSent = send_updates && storeNewMarkers && details_view && details_view->geomap_view;  // Save retesting all of this
-    MapMarkerStored markerStored = MARKER_NOT_STORED;
-    if (otherMarkersCanBeSent) {
-        details_view->geomap_view->clear_markers();
-    }
-
-    // Loop through all entries
-    for (auto& entry : recent) {
-        entry.inc_age(age_delta);
-
-        // Only if there is a details view
-        if (send_updates && details_view) {
-            if (entry.key() == detailed_entry_key)  // Check if the ICAO address match
-            {
-                details_view->update(entry);
-            }
-
-            // Store if the view is present and the list isn't full
-            // Note -- Storing the selected entry too, in case map panning occurs
-            if (otherMarkersCanBeSent && (markerStored != MARKER_LIST_FULL) && entry.pos.valid && (toUType(entry.state) <= 2)) {
-                marker.lon = entry.pos.longitude;
-                marker.lat = entry.pos.latitude;
-                marker.angle = entry.velo.heading;
-                marker.tag = trimr(entry.callsign[0] != ' ' ? entry.callsign : entry.icao_str);
-                markerStored = details_view->geomap_view->store_marker(marker);
-            }
-        }
-    }  // Loop through all entries, if only to update the age
-}
-
-void ADSBRxView::update_recent_entries() {
-    // TODO: Only redraw if this is the top view.
-    recent_entries_view.set_dirty();
 }
 
 AircraftRecentEntry& ADSBRxView::find_or_create_entry(uint32_t ICAO_address) {
