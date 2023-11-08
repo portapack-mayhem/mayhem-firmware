@@ -96,9 +96,9 @@ struct AircraftRecentEntry {
     ADSBFrame frame_pos_even{};
     ADSBFrame frame_pos_odd{};
 
-    std::string icao_str{"      "};
-    std::string callsign{"        "};
-    std::string info_string{""};
+    std::string icao_str{};
+    std::string callsign{};
+    std::string info_string{};
 
     AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {
