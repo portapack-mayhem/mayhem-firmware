@@ -61,8 +61,8 @@ namespace ui {
 #define VEL_AIR_SUBSONIC 3
 #define VEL_AIR_SUPERSONIC 4
 
-#define O_E_FRAME_TIMEOUT 20  // timeout between odd and even frames
-#define MARKER_UPDATE_SECONDS 5
+#define O_E_FRAME_TIMEOUT 20     // timeout between odd and even frames
+#define MARKER_UPDATE_SECONDS 5  // map marker redraw interval
 
 /* Thresholds (in seconds) that define the transition between ages. */
 struct ADSBAgeLimit {
@@ -187,33 +187,12 @@ class ADSBRxAircraftDetailsView : public View {
    public:
     ADSBRxAircraftDetailsView(
         NavigationView&,
-        const AircraftRecentEntry& entry,
-        std::function<void(void)> on_close);
-    ~ADSBRxAircraftDetailsView();
-
-    ADSBRxAircraftDetailsView(const ADSBRxAircraftDetailsView&) = delete;
-    ADSBRxAircraftDetailsView(ADSBRxAircraftDetailsView&&) = delete;
-    ADSBRxAircraftDetailsView& operator=(const ADSBRxAircraftDetailsView&) = delete;
-    ADSBRxAircraftDetailsView& operator=(ADSBRxAircraftDetailsView&&) = delete;
+        const AircraftRecentEntry& entry);
 
     void focus() override;
-
-    void update(const AircraftRecentEntry& entry);
-
-    std::string title() const override { return "AC Details"; };
-
-    AircraftRecentEntry get_current_entry() { return entry_copy; }
-
-    std::database::AircraftDBRecord aircraft_record = {};
+    std::string title() const override { return "AC Details"; }
 
    private:
-    AircraftRecentEntry entry_copy{0};  // Why value?
-    std::function<void(void)> on_close_{};
-    bool send_updates{false};
-    std::database db = {};
-    std::string icao_code = "";
-    int return_code = 0;
-
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
         {{0 * 8, 2 * 16}, "Registration:", Color::light_grey()},
@@ -269,33 +248,24 @@ class ADSBRxAircraftDetailsView : public View {
 class ADSBRxDetailsView : public View {
    public:
     ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
-    ~ADSBRxDetailsView();
-
-    ADSBRxDetailsView(const ADSBRxDetailsView&) = delete;
-    ADSBRxDetailsView(ADSBRxDetailsView&&) = delete;
-    ADSBRxDetailsView& operator=(const ADSBRxDetailsView&) = delete;
-    ADSBRxDetailsView& operator=(ADSBRxDetailsView&&) = delete;
 
     void focus() override;
-
     void update(const AircraftRecentEntry& entry);
 
     std::string title() const override { return "Details"; };
 
+   private:
     AircraftRecentEntry get_current_entry() { return entry_copy; }
 
     std::database::AirlinesDBRecord airline_record = {};
 
     GeoMapView* geomap_view{nullptr};
 
-   private:
+
     AircraftRecentEntry entry_copy{0};
     std::function<void(void)> on_close_{};
     ADSBRxAircraftDetailsView* aircraft_details_view{nullptr};
-    bool send_updates{false};
-    std::database db = {};
-    std::string airline_code = "";
-    int return_code = 0;
+
 
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
@@ -380,22 +350,23 @@ class ADSBRxView : public View {
     void on_tick_second();
     void update_recent_entries();
     void update_details_and_map(int age_delta);
+
+    SignalToken signal_token_tick_second{};
     uint8_t tick_count = 0;
+    int ticks_since_marker_refresh{MARKER_UPDATE_SECONDS - 1};
 
     /* Max number of entries that can be updated in a single pass.
      * 16 is one screen of recent entries. */
     static constexpr uint8_t max_update_entries = 16;
 
-    SignalToken signal_token_tick_second{};
-    int ticksSinceMarkerRefresh{MARKER_UPDATE_SECONDS - 1};
-
     /* Recent Entries */
-    const RecentEntriesColumns columns{{{"ICAO/Call", 9},
-                                        {"Lvl", 3},
-                                        {"Spd", 3},
-                                        {"Amp", 3},
-                                        {"Hit", 3},
-                                        {"Age", 4}}};
+    const RecentEntriesColumns columns{
+        {{"ICAO/Call", 9},
+         {"Lvl", 3},
+         {"Spd", 3},
+         {"Amp", 3},
+         {"Hit", 3},
+         {"Age", 4}}};
     AircraftRecentEntries recent{};
     RecentEntriesView<AircraftRecentEntries> recent_entries_view{columns, recent};
 
@@ -404,9 +375,7 @@ class ADSBRxView : public View {
     void sort_entries_by_state();
     void remove_expired_entries();
 
-    ADSBRxDetailsView* details_view{nullptr};  // Why is this here?
-    uint32_t detailed_entry_key{0};            // Key?
-    bool send_updates{false};                  // Why is this here?
+    ADSBRxDetailsView* details_view{nullptr};
 
     Labels labels{
         {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
