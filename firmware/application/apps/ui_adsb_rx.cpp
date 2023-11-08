@@ -48,19 +48,6 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
     Color target_color;
     std::string entry_string;
 
-    entry_string +=
-        (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
-        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +
-        to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
-        to_string_dec_uint((unsigned int)(entry.amp >> 9), 4) + " " +
-        (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
-        to_string_dec_uint(entry.age, 4);
-
-    painter.draw_string(
-        target_rect.location(),
-        style,
-        entry_string);
-
     switch (entry.state) {
         case ADSBAgeState::Invalid:
         case ADSBAgeState::Current:
@@ -75,6 +62,19 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
             entry_string = STR_COLOR_DARK_GREY;
             target_color = Color::grey();
     };
+
+    entry_string +=
+        (entry.callsign.empty() ? entry.icao_str + "   " : entry.callsign + " ") +
+        to_string_dec_uint((unsigned int)(entry.pos.altitude / 100), 4) +
+        to_string_dec_uint((unsigned int)entry.velo.speed, 4) +
+        to_string_dec_uint((unsigned int)(entry.amp >> 9), 4) + " " +
+        (entry.hits <= 999 ? to_string_dec_uint(entry.hits, 3) + " " : "1k+ ") +
+        to_string_dec_uint(entry.age, 4);
+
+    painter.draw_string(
+        target_rect.location(),
+        style,
+        entry_string);
 
     if (entry.pos.valid)
         painter.draw_bitmap(target_rect.location() + Point(8 * 8, 0),
