@@ -518,7 +518,7 @@ void BTLERxProcessor::on_message(const Message* const message) {
 
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
     channel_number = message.channel_number;
-    decim_0.configure(taps_200k_wfm_decim_0.taps);
+    decim_0.configure(taps_200k_decim_0.taps);
     demod.configure(48000, 5000);
 
     configured = true;
