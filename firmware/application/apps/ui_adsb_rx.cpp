@@ -124,13 +124,12 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
          &text_operator,
          &button_close});
 
-    auto icao_code = to_string_hex(entry.ICAO_address, 6);
-    text_icao_address.set(icao_code);
+    text_icao_address.set(entry.icao_str);
 
     // Try getting the aircraft information from icao24.db
     std::database db{};
     std::database::AircraftDBRecord aircraft_record;
-    auto return_code = db.retrieve_aircraft_record(&aircraft_record, icao_code);
+    auto return_code = db.retrieve_aircraft_record(&aircraft_record, entry.icao_str);
     switch (return_code) {
         case DATABASE_RECORD_FOUND:
             text_registration.set(aircraft_record.aircraft_registration);
@@ -251,8 +250,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             break;
     }
 
-    text_callsign.set(entry_.callsign);
-    text_icao_address.set(to_string_hex(entry_.ICAO_address, 6));
+    text_icao_address.set(entry_.icao_str);
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
         aircraft_details_view_ = nav.push<ADSBRxAircraftDetailsView>(entry_);
@@ -325,6 +323,7 @@ void ADSBRxDetailsView::refresh_ui() {
     else
         text_last_seen.set(to_string_dec_uint(age / 60) + " minutes ago");
 
+    text_callsign.set(entry_.callsign);
     text_infos.set(entry_.info_string);
     if (entry_.velo.heading < 360 && entry_.velo.speed >= 0)
         text_info2.set("Hdg:" + to_string_dec_uint(entry_.velo.heading) +
@@ -479,12 +478,18 @@ void ADSBRxView::refresh_ui() {
     if (details_view) {
         // The details view is showing, forward updates to that UI.
         bool current_updated = false;
-        bool map_needs_update = true; // Always attempt to update the map so there no delay.
+        bool map_needs_update = false;
 
-        // Is it time to clear and refresh the map's markers?
-        if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {
-            ticks_since_marker_refresh = 0;
-            details_view->clear_map_markers();
+        if (details_view->map_active()) {
+            // Is it time to clear and refresh the map's markers?
+            if (ticks_since_marker_refresh >= MARKER_UPDATE_SECONDS) {
+                map_needs_update = true;
+                ticks_since_marker_refresh = 0;
+                details_view->clear_map_markers();
+            }
+        } else {
+            // Refresh map immediately once active.
+            ticks_since_marker_refresh = MARKER_UPDATE_SECONDS;
         }
 
         // Process the entries list.

@@ -256,8 +256,8 @@ class ADSBRxDetailsView : public View {
     void update(const AircraftRecentEntry& entry);
 
     /* Calls forwarded to map view if shown. */
+    bool map_active() const { return geomap_view_; }
     void clear_map_markers();
-
     /* Adds a marker for the entry to the map. Returns true on success. */
     bool add_map_marker(const AircraftRecentEntry& entry);
 
