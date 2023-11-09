@@ -542,9 +542,9 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
             break;
         case 2:
             sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
             sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
+                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
             break;
         case 3:
             sortEntriesBy(
