@@ -442,7 +442,7 @@ void BLERxView::on_switch_table(const std::string value) {
 
     if (!value.empty()) {
         removeEntriesWithoutKey(recent, filterEntries, [&value](const BleRecentEntry& entry) {
-            return entry.dataString.find(value) == std::string::npos;
+            return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
         });
 
         recent_entries_view.set_dirty();
