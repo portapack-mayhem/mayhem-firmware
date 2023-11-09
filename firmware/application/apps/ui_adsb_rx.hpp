@@ -80,6 +80,7 @@ enum class ADSBAgeState : uint8_t {
     Expired,
 };
 
+/* Data extracted from ADSB frames. */
 struct AircraftRecentEntry {
     using Key = uint32_t;
 
@@ -163,6 +164,7 @@ struct AircraftRecentEntry {
 // NB: uses std::list underneath so assuming refs are NOT invalidated.
 using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
 
+/* Holds data for logging. */
 struct ADSBLogEntry {
     std::string raw_data{};
     std::string icao{};
@@ -172,6 +174,8 @@ struct ADSBLogEntry {
     uint8_t vel_type{};
 };
 
+// TODO: Make logging optional.
+/* Logs entries to a log file. */
 class ADSBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
@@ -183,6 +187,7 @@ class ADSBLogger {
     LogFile log_file{};
 };
 
+/* Shows detailed information about an aircraft. */
 class ADSBRxAircraftDetailsView : public View {
    public:
     ADSBRxAircraftDetailsView(
@@ -245,6 +250,7 @@ class ADSBRxAircraftDetailsView : public View {
         "Back"};
 };
 
+/* Shows detailed information about an aircraft's flight. */
 class ADSBRxDetailsView : public View {
    public:
     ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry);

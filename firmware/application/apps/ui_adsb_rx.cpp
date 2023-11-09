@@ -235,6 +235,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
 
     // The following won't change for a given airborne aircraft.
     // Try getting the airline's name from airlines.db.
+    // NB: Only works once callsign has been read and won't be updated.
     std::database db;
     std::database::AirlinesDBRecord airline_record;
     std::string airline_code = entry_.callsign.substr(0, 3);
@@ -397,7 +398,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     rtcGetTime(&RTCD1, &datetime);
     frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
 
-    // NB: Ref to update entry in-place.
+    // NB: Reference to update entry in-place.
     auto& entry = find_or_create_entry(ICAO_address);
     entry.inc_hit();
     entry.reset_age();
