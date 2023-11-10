@@ -96,7 +96,7 @@ void sortEntriesBy(ContainerType& entries, KeySelector keySelector, SortOrder as
 }
 
 template <typename ContainerType, typename KeySelector>
-void removeEntriesWithoutKey(ContainerType& entries, ContainerType& filteredEntries, KeySelector keySelector) {
+void resetFilteredEntries(ContainerType& entries, ContainerType& filteredEntries, KeySelector keySelector) {
     // Clear the filteredEntries container
     filteredEntries.clear();
 

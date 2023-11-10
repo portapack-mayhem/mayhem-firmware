@@ -308,44 +308,8 @@ BLERxView::BLERxView(NavigationView& nav)
         baseband::set_btlerx(channel_number);
     };
 
-    options_sort.on_change = [this](size_t, int32_t i) {
-        switch (i) {
-            case 0:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-                break;
-            case 1:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-                break;
-            case 2:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-                break;
-            case 3:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-                break;
-            case 4:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-                break;
-            default:
-                break;
-        }
-
-        recent_entries_view.set_dirty();
-        recent_entries_filter_view.set_dirty();
+    options_sort.on_change = [this](size_t, int32_t index) {
+        handle_entries_sort(index);
     };
 
     options_channel.set_selected_index(0, true);
@@ -430,6 +394,15 @@ void BLERxView::on_data(BlePacketData* packet) {
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
     updateEntry(packet, entry);
 
+    //Add entries if they meet the criteria.
+    if ((entry.dataString.find(filter) != std::string::npos) || (entry.nameString.find(filter) != std::string::npos))
+    {
+        auto& filteredEntry = ::on_packet(filterEntries, macAddressEncoded & 0xFFFFFFFFFFFF);
+        updateEntry(packet, filteredEntry);
+    }
+
+    handle_entries_sort(options_sort.selected_index());
+
     // Log at End of Packet.
     if (logger && logging) {
         logger->log_raw_data(str_console);
@@ -437,20 +410,62 @@ void BLERxView::on_data(BlePacketData* packet) {
 }
 
 void BLERxView::on_switch_table(const std::string value) {
+
+    //New filter? Reset list from recent entries.
+    if (filter != value)
+    {
+        filterEntries = BleRecentEntries {};
+        resetFilteredEntries(recent, filterEntries, [&value](const BleRecentEntry& entry) {
+            return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+        });
+    }
+
     filter = value;
 
     if (!value.empty()) {
-        removeEntriesWithoutKey(recent, filterEntries, [&value](const BleRecentEntry& entry) {
-            return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
-        });
-
-        recent_entries_view.set_dirty();
-
         recent_entries_filter_view.hidden(false);
         recent_entries_view.hidden(true);
     } else {
         recent_entries_view.hidden(false);
         recent_entries_filter_view.hidden(true);
+    }
+}
+
+void BLERxView::handle_entries_sort(uint8_t index)
+{
+    switch (index) {
+        case 0:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+            break;
+        case 1:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            break;
+        case 2:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
+            break;
+        case 3:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            break;
+        case 4:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
+            sortEntriesBy(
+                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
+            break;
+        default:
+            break;
     }
 
     recent_entries_view.set_dirty();
@@ -525,43 +540,6 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
             stringFound = true;
         }
     }
-
-    switch (options_sort.selected_index()) {
-        case 0:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-            break;
-        case 1:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-            break;
-        case 2:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
-            break;
-        case 3:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            break;
-        case 4:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-            break;
-        default:
-            break;
-    }
-
-    on_switch_table(filter);
 
     // TODO: Crude hack, should be a more formal listener arrangement...
     if (entry.key() == recent_entry_detail_view.entry().key()) {
