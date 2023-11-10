@@ -394,9 +394,8 @@ void BLERxView::on_data(BlePacketData* packet) {
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
     updateEntry(packet, entry);
 
-    //Add entries if they meet the criteria.
-    if ((entry.dataString.find(filter) != std::string::npos) || (entry.nameString.find(filter) != std::string::npos))
-    {
+    // Add entries if they meet the criteria.
+    if ((entry.dataString.find(filter) != std::string::npos) || (entry.nameString.find(filter) != std::string::npos)) {
         auto& filteredEntry = ::on_packet(filterEntries, macAddressEncoded & 0xFFFFFFFFFFFF);
         updateEntry(packet, filteredEntry);
     }
@@ -410,11 +409,9 @@ void BLERxView::on_data(BlePacketData* packet) {
 }
 
 void BLERxView::on_switch_table(const std::string value) {
-
-    //New filter? Reset list from recent entries.
-    if (filter != value)
-    {
-        filterEntries = BleRecentEntries {};
+    // New filter? Reset list from recent entries.
+    if (filter != value) {
+        filterEntries = BleRecentEntries{};
         resetFilteredEntries(recent, filterEntries, [&value](const BleRecentEntry& entry) {
             return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
         });
@@ -431,8 +428,7 @@ void BLERxView::on_switch_table(const std::string value) {
     }
 }
 
-void BLERxView::handle_entries_sort(uint8_t index)
-{
+void BLERxView::handle_entries_sort(uint8_t index) {
     switch (index) {
         case 0:
             sortEntriesBy(
