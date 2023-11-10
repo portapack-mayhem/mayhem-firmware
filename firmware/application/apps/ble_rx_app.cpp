@@ -269,9 +269,9 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
-    button_filter.on_select = [this, &nav](Button&) {
+    button_filter.on_select = [this](Button&) {
         text_prompt(
-            nav,
+            nav_,
             filterBuffer,
             64,
             [this](std::string& buffer) {
