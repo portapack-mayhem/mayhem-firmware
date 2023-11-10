@@ -112,8 +112,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     };
 
     button_send.on_select = [this](const ui::Button&) {
-        nav_.set_on_pop([this]() { launch_bletx(entry_); });
-        nav_.pop();
+        launch_bletx(entry_);
     };
 }
 
@@ -285,8 +284,7 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav_.set_on_pop([this]() { nav_.replace<BLETxView>(); });
-        nav_.pop();
+        nav_.replace<BLETxView>();
     };
 
     field_frequency.set_step(0);
