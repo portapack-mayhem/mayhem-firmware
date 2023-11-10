@@ -262,7 +262,6 @@ class BLERxView : public View {
     }};
 
     BleRecentEntriesView recent_entries_view{columns, recent};
-    BleRecentEntriesView recent_entries_filter_view{columns, filterEntries};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::BlePacket,

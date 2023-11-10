@@ -262,16 +262,9 @@ BLERxView::BLERxView(NavigationView& nav)
                   &options_sort,
                   &button_filter,
                   &button_switch,
-                  &recent_entries_view,
-                  &recent_entries_filter_view});
-
-    recent_entries_filter_view.hidden(true);
+                  &recent_entries_view});
 
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
-        nav_.push<BleRecentEntryDetailView>(entry);
-    };
-
-    recent_entries_filter_view.on_select = [this](const BleRecentEntry& entry) {
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
@@ -395,10 +388,10 @@ void BLERxView::on_data(BlePacketData* packet) {
     updateEntry(packet, entry);
 
     // Add entries if they meet the criteria.
-    if ((entry.dataString.find(filter) != std::string::npos) || (entry.nameString.find(filter) != std::string::npos)) {
-        auto& filteredEntry = ::on_packet(filterEntries, macAddressEncoded & 0xFFFFFFFFFFFF);
-        updateEntry(packet, filteredEntry);
-    }
+    auto value = filter;
+    resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+        return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+    });
 
     handle_entries_sort(options_sort.selected_index());
 
@@ -411,21 +404,12 @@ void BLERxView::on_data(BlePacketData* packet) {
 void BLERxView::on_switch_table(const std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
-        filterEntries = BleRecentEntries{};
-        resetFilteredEntries(recent, filterEntries, [&value](const BleRecentEntry& entry) {
+        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
             return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
         });
     }
 
     filter = value;
-
-    if (!value.empty()) {
-        recent_entries_filter_view.hidden(false);
-        recent_entries_view.hidden(true);
-    } else {
-        recent_entries_view.hidden(false);
-        recent_entries_filter_view.hidden(true);
-    }
 }
 
 void BLERxView::handle_entries_sort(uint8_t index) {
@@ -433,46 +417,34 @@ void BLERxView::handle_entries_sort(uint8_t index) {
         case 0:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
             break;
         case 1:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
             break;
         case 2:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
             break;
         case 3:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
             break;
         case 4:
             sortEntriesBy(
                 recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
             break;
         default:
             break;
     }
 
     recent_entries_view.set_dirty();
-    recent_entries_filter_view.set_dirty();
 }
 
 void BLERxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
     recent_entries_view.set_parent_rect(content_rect);
-    recent_entries_filter_view.set_parent_rect(content_rect);
 }
 
 BLERxView::~BLERxView() {
