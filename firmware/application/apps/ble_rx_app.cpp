@@ -112,7 +112,8 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     };
 
     button_send.on_select = [this](const ui::Button&) {
-        launch_bletx(entry_);
+        nav_.set_on_pop([this]() { launch_bletx(entry_); });
+        nav_.pop();
     };
 }
 
