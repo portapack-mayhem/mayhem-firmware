@@ -22,7 +22,6 @@
  */
 
 #include "ble_rx_app.hpp"
-#include "ble_tx_app.hpp"
 
 #include "ui_modemsetup.hpp"
 
@@ -65,6 +64,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     Painter& painter,
     const Style& style) {
     std::string line{};
+    line.reserve(30);
 
     if (!entry.nameString.empty()) {
         line = entry.nameString;
@@ -112,7 +112,10 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
     };
 
     button_send.on_select = [this](const ui::Button&) {
-        nav_.set_on_pop([this]() { launch_bletx(entry_); });
+        auto packetToSend = build_packet();
+        nav_.set_on_pop([packetToSend, this]() {
+            nav_.replace<BLETxView>(packetToSend);
+        });
         nav_.pop();
     };
 }
@@ -199,18 +202,18 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     set_dirty();
 }
 
-void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
+BLETxPacket BleRecentEntryDetailView::build_packet() {
     BLETxPacket bleTxPacket;
     memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
-    std::string macAddressStr = to_string_mac_address(packetEntry.packetData.macAddress, 6, true);
+    std::string macAddressStr = to_string_mac_address(entry_.packetData.macAddress, 6, true);
 
     strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 12);
-    strncpy(bleTxPacket.advertisementData, packetEntry.dataString.c_str(), packetEntry.packetData.dataLen * 2);
+    strncpy(bleTxPacket.advertisementData, entry_.dataString.c_str(), entry_.packetData.dataLen * 2);
     strncpy(bleTxPacket.packetCount, "50", 3);
     bleTxPacket.packet_count = 50;
 
-    nav_.replace<BLETxView>(bleTxPacket);
+    return bleTxPacket;
 }
 
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
@@ -260,10 +263,8 @@ BLERxView::BLERxView(NavigationView& nav)
                   &button_filter,
                   &button_switch,
                   &recent_entries_view,
-                  &recent_entries_filter_view,
-                  &recent_entry_detail_view});
+                  &recent_entries_filter_view});
 
-    recent_entry_detail_view.hidden(true);
     recent_entries_filter_view.hidden(true);
 
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
@@ -471,7 +472,6 @@ void BLERxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
     recent_entries_view.set_parent_rect(content_rect);
-    recent_entry_detail_view.set_parent_rect(content_rect);
     recent_entries_filter_view.set_parent_rect(content_rect);
 }
 
@@ -534,11 +534,6 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
         if (!entry.nameString.empty()) {
             stringFound = true;
         }
-    }
-
-    // TODO: Crude hack, should be a more formal listener arrangement...
-    if (entry.key() == recent_entry_detail_view.entry().key()) {
-        recent_entry_detail_view.set_entry(entry);
     }
 }
 

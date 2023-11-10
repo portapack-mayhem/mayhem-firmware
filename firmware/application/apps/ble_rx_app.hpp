@@ -24,6 +24,8 @@
 #ifndef __BLE_RX_APP_H__
 #define __BLE_RX_APP_H__
 
+#include "ble_tx_app.hpp"
+
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -118,7 +120,7 @@ class BleRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     BleRecentEntry entry_{};
-    void launch_bletx(BleRecentEntry packetEntry);
+    BLETxPacket build_packet();
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -259,10 +261,8 @@ class BLERxView : public View {
         {"dB", 4},
     }};
 
-    BleRecentEntry entry_{};
     BleRecentEntriesView recent_entries_view{columns, recent};
     BleRecentEntriesView recent_entries_filter_view{columns, filterEntries};
-    BleRecentEntryDetailView recent_entry_detail_view{nav_, entry_};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::BlePacket,
