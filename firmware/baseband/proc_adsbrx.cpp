@@ -117,7 +117,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
             // the high levels as signals can be out of phase so part of the
             // energy can be in the near samples.
             int32_t this_amp = (shifter[1] + shifter[3] + shifter[8] + shifter[10]);
-            uint32_t high = this_amp / 9; // TBD: Why 9?
+            uint32_t high = this_amp / 9;  // TBD: Why 9?
             if (shifter[5] < high &&
                 shifter[6] < high &&
                 // Similarly samples in the range 11-13 must be low, as it is the
