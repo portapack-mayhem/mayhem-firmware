@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// https://www.icao.int/SAM/Documents/2015-SEMAUTOM/Ses4%20Presentation%20CUBA_ADSB.pdf
+
 #include "proc_adsbrx.hpp"
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
@@ -31,10 +33,9 @@
 using namespace adsb;
 
 void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
-    int8_t re, im;
-    uint32_t mag;
-    uint32_t c;
-    uint8_t bit, byte{};
+    // TBD: The math isn't quite right here. Protocol docs
+    // talk about MICRO seconds, but the sample rate here
+    // is in MILLI seconds?
 
     // This is called at 2M/2048 = 977Hz
     // One pulse = 500ns = 2 samples
@@ -42,18 +43,19 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 
     if (!configured) return;
 
+    uint8_t bit = 0;
+    uint8_t byte = 0;
+
     for (size_t i = 0; i < buffer.count; i++) {
-        // Compute sample's magnitude
-        re = (int32_t)buffer.p[i].real();
-        im = (int32_t)buffer.p[i].imag();
-        mag = ((uint32_t)(re * re) + (uint32_t)(im * im));
+        // Compute sample's magnitude.
+        int8_t re = buffer.p[i].real();
+        int8_t im = buffer.p[i].imag();
+        uint16_t mag = (re * re) + (im * im);
 
         if (decoding) {
-            // Decode
-
-            // 1 bit lasts 2 samples
-            if (sample_count & 1) {
-                if (bit_count >= msgLen) {
+            // 1 bit lasts 2 samples, process every other sample.
+            if ((sample_count & 1) == 1) {
+                if (bit_count >= msg_len) {
                     const ADSBFrameMessage message(frame, amp);
                     shared_memory.application_queue.push(message);
                     decoding = false;
@@ -65,40 +67,42 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
                 byte = bit | (byte << 1);
                 bit_count++;
 
-                // Perform checks at the end of the first byte
-                if (!(bit_count & 7)) {
-                    // Store the byte
+                // Every 8th bit...
+                if ((bit_count & 0x7) == 0) {
+                    // Store the byte.
                     frame.push_byte(byte);
 
-                    // Check at the end of the first byte of the message
-                    uint8_t df = (byte >> 3);
-                    if ((bit_count == 8) && !(df & 0x10)) {
-                        msgLen = 56;  // DFs 16 or greater are long 112. DFs 15 or less are short 56.
+                    // Perform additional check on the first byte.
+                    if (bit_count == 8) {
+                        // Abandon all frames that aren't DF17 or DF18 extended squitters.
+                        uint8_t df = (byte >> 3);
+                        if (df != 17 && df != 18) {
+                            decoding = false;
+                            bit = (prev_mag > mag) ? 1 : 0;
+                            frame.clear();
+                        }
                     }
+                }
+            }
 
-                    // Abondon all frames that arent DF17 or DF18 extended squitters
-                    if ((bit_count == 8) && !((df == 17) || (df == 18))) {
-                        decoding = false;
-                        bit = (prev_mag > mag) ? 1 : 0;
-                        frame.clear();
-                    }
-                }  // last bit of a byte
-            }      // Second sample of each bit
             sample_count++;
         }
 
-        // Continue looking for preamble even if in a packet
-        // switch if new preamble is higher magnitude
+        // Continue looking for preamble, even if in a packet.
+        // Switch if new preamble is higher magnitude.
 
-        // Shift the preamble
-        for (c = 0; c < (ADSB_PREAMBLE_LENGTH); c++) {
+        // Shift the preamble.
+        for (uint8_t c = 0; c < ADSB_PREAMBLE_LENGTH; c++) {
             shifter[c] = shifter[c + 1];
         }
         shifter[ADSB_PREAMBLE_LENGTH] = mag;
 
-        // First check of relations between the first 10 samples
-        // representing a valid preamble. We don't even investigate further
-        // if this simple test is not passed
+        // First check of relations between the first 12 samples
+        // representing a valid preamble. We don't even investigate
+        // further if this simple test is not passed.
+        // Preamble is 8us or 
+        // 0123456789AB
+        // _-_-____-_-_
         if (shifter[0] < shifter[1] &&
             shifter[1] > shifter[2] &&
             shifter[2] < shifter[3] &&
@@ -113,32 +117,30 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
             // The samples between the two spikes must be < than the average
             // of the high spikes level. We don't test bits too near to
             // the high levels as signals can be out of phase so part of the
-            // energy can be in the near samples
-            int32_t thisAmp = (shifter[1] + shifter[3] + shifter[8] + shifter[10]);
-            uint32_t high = thisAmp / 9;
-            if (
-                shifter[5] < high &&
+            // energy can be in the near samples.
+            int32_t this_amp = (shifter[1] + shifter[3] + shifter[8] + shifter[10]);
+            uint32_t high = this_amp / 9; // TBD: Why 9?
+            if (shifter[5] < high &&
                 shifter[6] < high &&
                 // Similarly samples in the range 11-13 must be low, as it is the
                 // space between the preamble and real data. Again we don't test
-                // bits too near to high levels, see above
+                // bits too near to high levels, see above.
                 shifter[12] < high &&
                 shifter[13] < high &&
                 shifter[14] < high) {
-                if ((decoding == false) ||                    // New preamble
-                    ((decoding == true) && (thisAmp > amp)))  // Higher power than existing packet
+                if ((decoding == false) ||                     // New preamble
+                    ((decoding == true) && (this_amp > amp)))  // Higher power than existing packet
                 {
                     decoding = true;
-                    msgLen = 112;
-                    amp = thisAmp;
+                    amp = this_amp;
                     sample_count = 0;
                     bit_count = 0;
                     frame.clear();
                 }
-            }  // 4 & 5 low and 11-14 low
-        }      // Check for preamble pattern
+            }
+        }
 
-        // Store mag for next time
+        // Store mag for next time.
         prev_mag = mag;
     }
 }
