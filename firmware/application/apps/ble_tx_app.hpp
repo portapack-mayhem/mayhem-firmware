@@ -85,10 +85,10 @@ class BLETxView : public View {
 
    private:
     void on_data(uint32_t value, bool is_data);
-    void on_tx_progress(const bool done);
     void on_file_changed(const std::filesystem::path& new_file_path);
-    void update_packet_display(BLETxPacket packet);
     void on_save_file(const std::string value);
+    void on_tx_progress(const bool done);
+    void update_current_packet(BLETxPacket packet, uint32_t currentIndex);
 
     NavigationView& nav_;
     TxRadioState radio_state_{
