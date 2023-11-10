@@ -338,10 +338,10 @@ BLETxView::BLETxView(NavigationView& nav)
 
     button_open.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+        open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
 
-            nav_.set_on_pop([this]() { button_play.focus(); });
+            nav.set_on_pop([this]() { button_play.focus(); });
         };
     };
 
@@ -357,7 +357,7 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav_.replace<BLERxView>();
+        nav.replace<BLERxView>();
     };
 }
 

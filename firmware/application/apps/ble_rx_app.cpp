@@ -107,16 +107,16 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
 
-    button_done.on_select = [this](const ui::Button&) {
-        nav_.pop();
+    button_done.on_select = [&nav](const ui::Button&) {
+        nav.pop();
     };
 
-    button_send.on_select = [this](const ui::Button&) {
+    button_send.on_select = [this, &nav](const ui::Button&) {
         auto packetToSend = build_packet();
-        nav_.set_on_pop([packetToSend, this]() {
-            nav_.replace<BLETxView>(packetToSend);
+        nav.set_on_pop([packetToSend, &nav]() {
+            nav.replace<BLETxView>(packetToSend);
         });
-        nav_.pop();
+        nav.pop();
     };
 }
 
@@ -279,8 +279,8 @@ BLERxView::BLERxView(NavigationView& nav)
             });
     };
 
-    button_switch.on_select = [this, &nav](Button&) {
-        nav_.replace<BLETxView>();
+    button_switch.on_select = [&nav](Button&) {
+        nav.replace<BLETxView>();
     };
 
     field_frequency.set_step(0);
