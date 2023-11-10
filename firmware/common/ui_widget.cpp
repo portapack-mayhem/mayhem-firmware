@@ -587,6 +587,28 @@ void ProgressBar::paint(Painter& painter) {
     painter.draw_rectangle(sr, s.foreground);
 }
 
+/* ActivityDot ***********************************************************/
+
+ActivityDot::ActivityDot(
+    Rect parent_rect,
+    Color color)
+    : Widget{parent_rect},
+      _color{color} {}
+
+void ActivityDot::paint(Painter& painter) {
+    painter.fill_rectangle(screen_rect(), _on ? _color : Color::grey());
+}
+
+void ActivityDot::toggle() {
+    _on = !_on;
+    set_dirty();
+}
+
+void ActivityDot::reset() {
+    _on = false;
+    set_dirty();
+}
+
 /* Console ***************************************************************/
 
 Console::Console(

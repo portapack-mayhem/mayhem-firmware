@@ -278,8 +278,7 @@ void set_pocsag() {
 }
 
 void set_adsb() {
-    const ADSBConfigureMessage message{
-        1};
+    const ADSBConfigureMessage message{};
     send_message(&message);
 }
 
