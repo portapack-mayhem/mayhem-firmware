@@ -285,7 +285,7 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     button_switch.on_select = [this, &nav](Button&) {
-        nav_.set_on_pop([this]() { nav_.push<BLETxView>(); });
+        nav_.set_on_pop([this]() { nav_.replace<BLETxView>(); });
         nav_.pop();
     };
 
@@ -428,7 +428,6 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
-    truncate_entries(recent, 32);
     updateEntry(packet, entry);
 
     // Log at End of Packet.
