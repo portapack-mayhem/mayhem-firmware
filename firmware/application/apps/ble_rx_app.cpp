@@ -409,7 +409,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     }
 }
 
-void BLERxView::on_switch_table(const std::string value) {
+void BLERxView::on_switch_table(std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
         resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
