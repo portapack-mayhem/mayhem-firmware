@@ -298,7 +298,6 @@ BLERxView::BLERxView(NavigationView& nav)
     check_name.set_value(true);
 
     check_name.on_select = [this](Checkbox&, bool v) {
-
         setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
         recent_entries_view.set_dirty();
     };
