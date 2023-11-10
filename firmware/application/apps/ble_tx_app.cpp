@@ -356,7 +356,7 @@ BLETxView::BLETxView(NavigationView& nav)
             });
     };
 
-    button_switch.on_select = [this, &nav](Button&) {
+    button_switch.on_select = [&nav](Button&) {
         nav.replace<BLERxView>();
     };
 }
