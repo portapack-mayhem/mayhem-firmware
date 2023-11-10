@@ -66,7 +66,7 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     std::string line{};
     line.reserve(30);
 
-    if (!entry.nameString.empty()) {
+    if (!entry.nameString.empty() && entry.include_name) {
         line = entry.nameString;
 
         if (line.length() < 17) {
@@ -258,6 +258,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &options_channel,
                   &field_frequency,
                   &check_log,
+                  &check_name,
                   &label_sort,
                   &options_sort,
                   &button_filter,
@@ -292,6 +293,14 @@ BLERxView::BLERxView(NavigationView& nav)
 
         if (logger && logging)
             logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+    };
+
+    check_name.set_value(true);
+
+    check_name.on_select = [this](Checkbox&, bool v) {
+
+        setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
+        recent_entries_view.set_dirty();
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
@@ -483,6 +492,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     }
 
     entry.nameString = "";
+    entry.include_name = check_name.value();
 
     uint8_t currentByte = 0;
     uint8_t length = 0;

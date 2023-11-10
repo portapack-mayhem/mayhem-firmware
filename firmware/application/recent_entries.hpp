@@ -107,6 +107,17 @@ void resetFilteredEntries(ContainerType& entries, KeySelector keySelector) {
     }
 }
 
+template <typename ContainerType, typename MemberPtr, typename KeyValue>
+void setAllMembersToValue(ContainerType& entries, MemberPtr memberPtr, const KeyValue& keyValue) {
+    for (auto& entry : entries) {
+        // Check if the member specified by memberPtr is equal to keyValue
+        if (entry.*memberPtr != keyValue) {
+            // Update the member with keyValue
+            entry.*memberPtr = keyValue;
+        }
+    }
+}
+
 namespace ui {
 
 using RecentEntriesColumn = std::pair<std::string, size_t>;

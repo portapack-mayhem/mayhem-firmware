@@ -81,6 +81,7 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
+    bool include_name;
     uint16_t numHits;
 
     BleRecentEntry()
@@ -95,6 +96,7 @@ struct BleRecentEntry {
           timestamp{},
           dataString{},
           nameString{},
+          include_name{},
           numHits{} {
     }
 
@@ -231,13 +233,19 @@ class BLERxView : public View {
          {"Name", 4}}};
 
     Button button_filter{
-        {12 * 8, 3 * 8, 4 * 8, 16},
+        {11 * 8, 3 * 8, 4 * 8, 16},
         "Filter"};
 
     Checkbox check_log{
-        {20 * 8, 3 * 8},
+        {17 * 8, 3 * 8},
         3,
         "Log",
+        true};
+
+    Checkbox check_name{
+        {23 * 8, 3 * 8},
+        3,
+        "Name",
         true};
 
     Console console{
