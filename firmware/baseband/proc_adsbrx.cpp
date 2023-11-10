@@ -33,13 +33,11 @@
 using namespace adsb;
 
 void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
-    // TBD: The math isn't quite right here. Protocol docs
-    // talk about MICRO seconds, but the sample rate here
-    // is in MILLI seconds?
-
     // This is called at 2M/2048 = 977Hz
-    // One pulse = 500ns = 2 samples
-    // One bit = 2 pulses = 1us = 4 samples
+    // Each sample is 500ns.
+    // One bit is 2 samples == 1us.
+    // Bit value is the transition between samples.
+    // i.e. lo->hi == 0, hi->lo == 1
 
     if (!configured) return;
 
@@ -53,7 +51,7 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
         uint16_t mag = (re * re) + (im * im);
 
         if (decoding) {
-            // 1 bit lasts 2 samples, process every other sample.
+            // 1 bit == 2 samples, transition defines bit value.
             if ((sample_count & 1) == 1) {
                 if (bit_count >= msg_len) {
                     const ADSBFrameMessage message(frame, amp);
@@ -100,9 +98,9 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
         // First check of relations between the first 12 samples
         // representing a valid preamble. We don't even investigate
         // further if this simple test is not passed.
-        // Preamble is 8us or 
-        // 0123456789AB
-        // _-_-____-_-_
+        // Preamble is 8us - or 16 samples.
+        //    0123456789ABCDEF
+        //    _-_-____-_-_____
         if (shifter[0] < shifter[1] &&
             shifter[1] > shifter[2] &&
             shifter[2] < shifter[3] &&
