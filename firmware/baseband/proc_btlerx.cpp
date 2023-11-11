@@ -411,8 +411,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             packet_index++;
         }
 
-        // demod_byte(num_demod_byte, rb_buf);
-
         scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
 
         pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
@@ -439,7 +437,7 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             return;
         }
 
-        // sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
+        sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
 
         for (i = 0; i < num_demod_byte; i++) {
             rb_buf[packet_index] = 0;
@@ -460,8 +458,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
         }
 
         parseState = Parse_State_Begin;
-
-        // demod_byte(num_demod_byte, rb_buf + 2);
 
         scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
 
@@ -519,7 +515,6 @@ void BTLERxProcessor::on_message(const Message* const message) {
 void BTLERxProcessor::configure(const BTLERxConfigureMessage& message) {
     channel_number = message.channel_number;
     decim_0.configure(taps_200k_decim_0.taps);
-    demod.configure(48000, 5000);
 
     configured = true;
 
