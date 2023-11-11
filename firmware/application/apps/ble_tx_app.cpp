@@ -229,6 +229,7 @@ void BLETxView::start() {
         }
     } else {
         // Send next packet.
+        progressbar.set_max(packets[current_packet].packet_count);
         baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
     }
 
