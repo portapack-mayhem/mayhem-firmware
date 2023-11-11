@@ -152,7 +152,7 @@ class BLETxView : public View {
     static constexpr uint8_t max_packet_size_str{62};
     static constexpr uint8_t max_packet_repeat_str{10};
     static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
-    static constexpr uint32_t max_num_packets{256};
+    static constexpr uint32_t max_num_packets{32};
 
     BLETxPacket packets[max_num_packets];
 
