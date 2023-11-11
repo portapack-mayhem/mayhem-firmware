@@ -24,6 +24,8 @@
 #ifndef __BLE_RX_APP_H__
 #define __BLE_RX_APP_H__
 
+#include "ble_tx_app.hpp"
+
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
@@ -79,6 +81,7 @@ struct BleRecentEntry {
     std::string timestamp;
     std::string dataString;
     std::string nameString;
+    bool include_name;
     uint16_t numHits;
 
     BleRecentEntry()
@@ -93,6 +96,7 @@ struct BleRecentEntry {
           timestamp{},
           dataString{},
           nameString{},
+          include_name{},
           numHits{} {
     }
 
@@ -118,7 +122,7 @@ class BleRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     BleRecentEntry entry_{};
-    void launch_bletx(BleRecentEntry packetEntry);
+    BLETxPacket build_packet();
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -167,7 +171,8 @@ class BLERxView : public View {
 
    private:
     void on_data(BlePacketData* packetData);
-    void on_switch_table(const std::string value);
+    void on_switch_table(std::string value);
+    void handle_entries_sort(uint8_t index);
     void updateEntry(const BlePacketData* packet, BleRecentEntry& entry);
 
     NavigationView& nav_;
@@ -228,13 +233,19 @@ class BLERxView : public View {
          {"Name", 4}}};
 
     Button button_filter{
-        {12 * 8, 3 * 8, 4 * 8, 16},
+        {11 * 8, 3 * 8, 4 * 8, 16},
         "Filter"};
 
     Checkbox check_log{
-        {20 * 8, 3 * 8},
+        {17 * 8, 3 * 8},
         3,
         "Log",
+        true};
+
+    Checkbox check_name{
+        {23 * 8, 3 * 8},
+        3,
+        "Name",
         true};
 
     Console console{
@@ -258,10 +269,7 @@ class BLERxView : public View {
         {"dB", 4},
     }};
 
-    BleRecentEntry entry_{};
     BleRecentEntriesView recent_entries_view{columns, recent};
-    BleRecentEntriesView recent_entries_filter_view{columns, filterEntries};
-    BleRecentEntryDetailView recent_entry_detail_view{nav_, entry_};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::BlePacket,

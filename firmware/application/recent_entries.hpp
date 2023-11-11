@@ -103,16 +103,25 @@ void sortEntriesBy(ContainerType& entries, KeySelector keySelector, SortOrder as
 }
 
 template <typename ContainerType, typename KeySelector>
-void removeEntriesWithoutKey(ContainerType& entries, ContainerType& filteredEntries, KeySelector keySelector) {
+void resetFilteredEntries(ContainerType& entries, KeySelector keySelector) {
     // Clear the filteredEntries container
-    filteredEntries.clear();
-
     auto it = entries.begin();
     while (it != entries.end()) {
-        if (!keySelector(*it)) {
-            filteredEntries.emplace_back(*it);  // Add a new entry to filteredEntries
+        if (keySelector(*it)) {
+            entries.erase(it);  // Add a new entry to filteredEntries
         }
         ++it;  // Move to the next element, outside of the if block
+    }
+}
+
+template <typename ContainerType, typename MemberPtr, typename KeyValue>
+void setAllMembersToValue(ContainerType& entries, MemberPtr memberPtr, const KeyValue& keyValue) {
+    for (auto& entry : entries) {
+        // Check if the member specified by memberPtr is equal to keyValue
+        if (entry.*memberPtr != keyValue) {
+            // Update the member with keyValue
+            entry.*memberPtr = keyValue;
+        }
     }
 }
 

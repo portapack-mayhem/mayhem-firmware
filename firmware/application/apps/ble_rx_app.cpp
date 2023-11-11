@@ -22,7 +22,6 @@
  */
 
 #include "ble_rx_app.hpp"
-#include "ble_tx_app.hpp"
 
 #include "ui_modemsetup.hpp"
 
@@ -65,8 +64,9 @@ void RecentEntriesTable<BleRecentEntries>::draw(
     Painter& painter,
     const Style& style) {
     std::string line{};
+    line.reserve(30);
 
-    if (!entry.nameString.empty()) {
+    if (!entry.nameString.empty() && entry.include_name) {
         line = entry.nameString;
 
         if (line.length() < 17) {
@@ -107,13 +107,16 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
 
-    button_done.on_select = [this](const ui::Button&) {
-        nav_.pop();
+    button_done.on_select = [&nav](const ui::Button&) {
+        nav.pop();
     };
 
-    button_send.on_select = [this](const ui::Button&) {
-        nav_.set_on_pop([this]() { launch_bletx(entry_); });
-        nav_.pop();
+    button_send.on_select = [this, &nav](const ui::Button&) {
+        auto packetToSend = build_packet();
+        nav.set_on_pop([packetToSend, &nav]() {
+            nav.replace<BLETxView>(packetToSend);
+        });
+        nav.pop();
     };
 }
 
@@ -199,18 +202,18 @@ void BleRecentEntryDetailView::set_entry(const BleRecentEntry& entry) {
     set_dirty();
 }
 
-void BleRecentEntryDetailView::launch_bletx(BleRecentEntry packetEntry) {
+BLETxPacket BleRecentEntryDetailView::build_packet() {
     BLETxPacket bleTxPacket;
     memset(&bleTxPacket, 0, sizeof(BLETxPacket));
 
-    std::string macAddressStr = to_string_mac_address(packetEntry.packetData.macAddress, 6, true);
+    std::string macAddressStr = to_string_mac_address(entry_.packetData.macAddress, 6, true);
 
     strncpy(bleTxPacket.macAddress, macAddressStr.c_str(), 12);
-    strncpy(bleTxPacket.advertisementData, packetEntry.dataString.c_str(), packetEntry.packetData.dataLen * 2);
+    strncpy(bleTxPacket.advertisementData, entry_.dataString.c_str(), entry_.packetData.dataLen * 2);
     strncpy(bleTxPacket.packetCount, "50", 3);
     bleTxPacket.packet_count = 50;
 
-    nav_.replace<BLETxView>(bleTxPacket);
+    return bleTxPacket;
 }
 
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
@@ -255,28 +258,20 @@ BLERxView::BLERxView(NavigationView& nav)
                   &options_channel,
                   &field_frequency,
                   &check_log,
+                  &check_name,
                   &label_sort,
                   &options_sort,
                   &button_filter,
                   &button_switch,
-                  &recent_entries_view,
-                  &recent_entries_filter_view,
-                  &recent_entry_detail_view});
-
-    recent_entry_detail_view.hidden(true);
-    recent_entries_filter_view.hidden(true);
+                  &recent_entries_view});
 
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
-    recent_entries_filter_view.on_select = [this](const BleRecentEntry& entry) {
-        nav_.push<BleRecentEntryDetailView>(entry);
-    };
-
-    button_filter.on_select = [this, &nav](Button&) {
+    button_filter.on_select = [this](Button&) {
         text_prompt(
-            nav,
+            nav_,
             filterBuffer,
             64,
             [this](std::string& buffer) {
@@ -284,9 +279,8 @@ BLERxView::BLERxView(NavigationView& nav)
             });
     };
 
-    button_switch.on_select = [this, &nav](Button&) {
-        nav_.set_on_pop([this]() { nav_.push<BLETxView>(); });
-        nav_.pop();
+    button_switch.on_select = [&nav](Button&) {
+        nav.replace<BLETxView>();
     };
 
     field_frequency.set_step(0);
@@ -301,6 +295,13 @@ BLERxView::BLERxView(NavigationView& nav)
             logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
+    check_name.set_value(true);
+
+    check_name.on_select = [this](Checkbox&, bool v) {
+        setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
+        recent_entries_view.set_dirty();
+    };
+
     options_channel.on_change = [this](size_t, int32_t i) {
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
@@ -308,44 +309,8 @@ BLERxView::BLERxView(NavigationView& nav)
         baseband::set_btlerx(channel_number);
     };
 
-    options_sort.on_change = [this](size_t, int32_t i) {
-        switch (i) {
-            case 0:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-                break;
-            case 1:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-                break;
-            case 2:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-                break;
-            case 3:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-                break;
-            case 4:
-                sortEntriesBy(
-                    recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-                sortEntriesBy(
-                    filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-                break;
-            default:
-                break;
-        }
-
-        recent_entries_view.set_dirty();
-        recent_entries_filter_view.set_dirty();
+    options_sort.on_change = [this](size_t, int32_t index) {
+        handle_entries_sort(index);
     };
 
     options_channel.set_selected_index(0, true);
@@ -428,8 +393,15 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
-    truncate_entries(recent, 32);
     updateEntry(packet, entry);
+
+    // Add entries if they meet the criteria.
+    auto value = filter;
+    resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+        return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+    });
+
+    handle_entries_sort(options_sort.selected_index());
 
     // Log at End of Packet.
     if (logger && logging) {
@@ -437,33 +409,50 @@ void BLERxView::on_data(BlePacketData* packet) {
     }
 }
 
-void BLERxView::on_switch_table(const std::string value) {
-    filter = value;
-
-    if (!value.empty()) {
-        removeEntriesWithoutKey(recent, filterEntries, [&value](const BleRecentEntry& entry) {
-            return entry.dataString.find(value) == std::string::npos;
+void BLERxView::on_switch_table(std::string value) {
+    // New filter? Reset list from recent entries.
+    if (filter != value) {
+        resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
+            return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
         });
+    }
 
-        recent_entries_view.set_dirty();
+    filter = value;
+}
 
-        recent_entries_filter_view.hidden(false);
-        recent_entries_view.hidden(true);
-    } else {
-        recent_entries_view.hidden(false);
-        recent_entries_filter_view.hidden(true);
+void BLERxView::handle_entries_sort(uint8_t index) {
+    switch (index) {
+        case 0:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
+            break;
+        case 1:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
+            break;
+        case 2:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, false);
+            break;
+        case 3:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
+            break;
+        case 4:
+            sortEntriesBy(
+                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
+            break;
+        default:
+            break;
     }
 
     recent_entries_view.set_dirty();
-    recent_entries_filter_view.set_dirty();
 }
 
 void BLERxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
     recent_entries_view.set_parent_rect(content_rect);
-    recent_entry_detail_view.set_parent_rect(content_rect);
-    recent_entries_filter_view.set_parent_rect(content_rect);
 }
 
 BLERxView::~BLERxView() {
@@ -502,6 +491,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     }
 
     entry.nameString = "";
+    entry.include_name = check_name.value();
 
     uint8_t currentByte = 0;
     uint8_t length = 0;
@@ -525,48 +515,6 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
         if (!entry.nameString.empty()) {
             stringFound = true;
         }
-    }
-
-    switch (options_sort.selected_index()) {
-        case 0:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.macAddress; }, true);
-            break;
-        case 1:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.numHits; }, false);
-            break;
-        case 2:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.dbValue; }, true);
-            break;
-        case 3:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.timestamp; }, false);
-            break;
-        case 4:
-            sortEntriesBy(
-                recent, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-            sortEntriesBy(
-                filterEntries, [](const BleRecentEntry& entry) { return entry.nameString; }, true);
-            break;
-        default:
-            break;
-    }
-
-    on_switch_table(filter);
-
-    // TODO: Crude hack, should be a more formal listener arrangement...
-    if (entry.key() == recent_entry_detail_view.entry().key()) {
-        recent_entry_detail_view.set_entry(entry);
     }
 }
 

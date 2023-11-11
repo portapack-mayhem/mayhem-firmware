@@ -219,17 +219,17 @@ void BLETxView::start() {
             return;
         } else {
             // Send first or single packet.
-            packet_counter = packets[current_packet].packet_count;
-            progressbar.set_max(packets[current_packet].packet_count);
+            progressbar.set_max(packets[0].packet_count);
             button_play.set_bitmap(&bitmap_stop);
 
-            baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+            baseband::set_btletx(channel_number, random_mac ? randomMac : packets[0].macAddress, packets[0].advertisementData, pduType);
             transmitter_model.enable();
 
             is_running = true;
         }
     } else {
         // Send next packet.
+        progressbar.set_max(packets[current_packet].packet_count);
         baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
     }
 
@@ -238,7 +238,6 @@ void BLETxView::start() {
     }
 
     packet_counter--;
-
     progressbar.set_value(packets[current_packet].packet_count - packet_counter);
 }
 
@@ -248,10 +247,7 @@ void BLETxView::stop() {
     button_play.set_bitmap(&bitmap_play);
     check_loop.set_value(false);
 
-    current_packet = 0;
-    text_packets_sent.set(to_string_dec_uint(packets[0].packet_count));
-    packet_counter = packets[0].packet_count;
-    update_packet_display(packets[0]);
+    update_current_packet(packets[0], 0);
 
     is_running = false;
 }
@@ -265,16 +261,13 @@ void BLETxView::on_tx_progress(const bool done) {
                 if (current_packet == (num_packets - 1)) {
                     // If looping, restart from beginning.
                     if (check_loop.value()) {
-                        current_packet = 0;
-                        packet_counter = packets[current_packet].packet_count;
-                        update_packet_display(packets[current_packet]);
+                        update_current_packet(packets[current_packet], 0);
                     } else {
                         stop();
                     }
                 } else {
                     current_packet++;
-                    packet_counter = packets[current_packet].packet_count;
-                    update_packet_display(packets[current_packet]);
+                    update_current_packet(packets[current_packet], current_packet);
                 }
             } else {
                 if ((timer_count % timer_period) == 0) {
@@ -344,8 +337,8 @@ BLETxView::BLETxView(NavigationView& nav)
         random_mac = v;
     };
 
-    button_open.on_select = [this, &nav](Button&) {
-        auto open_view = nav.push<FileLoadView>(".TXT");
+    button_open.on_select = [this](Button&) {
+        auto open_view = nav_.push<FileLoadView>(".TXT");
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
 
@@ -364,9 +357,8 @@ BLETxView::BLETxView(NavigationView& nav)
             });
     };
 
-    button_switch.on_select = [this, &nav](Button&) {
-        nav_.set_on_pop([this]() { nav_.push<BLERxView>(); });
-        nav_.pop();
+    button_switch.on_select = [&nav](Button&) {
+        nav.replace<BLERxView>();
     };
 }
 
@@ -375,7 +367,8 @@ BLETxView::BLETxView(
     BLETxPacket packet)
     : BLETxView(nav) {
     packets[0] = packet;
-    update_packet_display(packets[0]);
+
+    update_current_packet(packets[0], 0);
 
     num_packets = 1;
     file_override = true;
@@ -404,7 +397,6 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
             uint64_t packetCountSize = strlen(packets[num_packets].packetCount);
 
             packets[num_packets].packet_count = stringToUint32(packets[num_packets].packetCount);
-            packet_counter = packets[num_packets].packet_count;
 
             // Verify Data.
             if ((macAddressSize == mac_address_size_str) && (advertisementDataSize < max_packet_size_str) && (packetCountSize < max_packet_repeat_str) &&
@@ -425,7 +417,7 @@ void BLETxView::on_file_changed(const fs::path& new_file_path) {
 
         } while (num_packets < max_num_packets);
 
-        update_packet_display(packets[0]);
+        update_current_packet(packets[0], 0);
     }
 }
 
@@ -447,7 +439,7 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     console.write(str_console);
 }
 
-void BLETxView::update_packet_display(BLETxPacket packet) {
+void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex) {
     std::string formattedMacAddress = to_string_formatted_mac_address(packet.macAddress);
 
     std::vector<std::string> strings = splitIntoStrings(packet.advertisementData);
@@ -463,6 +455,9 @@ void BLETxView::update_packet_display(BLETxPacket packet) {
     for (const std::string& str : strings) {
         console.writeln(str);
     }
+
+    packet_counter = packet.packet_count;
+    current_packet = currentIndex;
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {
