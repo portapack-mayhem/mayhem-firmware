@@ -104,7 +104,7 @@ int BTLERxProcessor::verify_payload_byte(int num_payload_byte, ADV_PDU_TYPE pdu_
     }
 
     if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
-            return 0;
+        return 0;
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         if (num_payload_byte != 12) {
             // printf("Error: Payload length %d bytes. Need to be 12 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
@@ -204,7 +204,6 @@ void BTLERxProcessor::handleBeginState() {
 }
 
 void BTLERxProcessor::handlePDUHeaderState() {
-
     int num_demod_byte = 2;  // PDU header has 2 octets
 
     symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
@@ -247,9 +246,7 @@ void BTLERxProcessor::handlePDUHeaderState() {
     if ((payload_len < 6) || (payload_len > 37)) {
         parseState = Parse_State_Begin;
         return;
-    }
-    else
-    {
+    } else {
         parseState = Parse_State_PDU_Payload;
     }
 }
@@ -357,12 +354,12 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     // Handle parsing based on parseState
     if (parseState == Parse_State_Begin) {
         handleBeginState();
-    } 
-    
+    }
+
     if (parseState == Parse_State_PDU_Header) {
         handlePDUHeaderState();
-    } 
-    
+    }
+
     if (parseState == Parse_State_PDU_Payload) {
         handlePDUPayloadState();
     }

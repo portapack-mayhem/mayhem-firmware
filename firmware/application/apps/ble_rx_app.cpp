@@ -212,8 +212,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
         case ADV_NONCONN_IND:
         case SCAN_RSP:
         case ADV_SCAN_IND: {
-
-            ADV_PDU_PAYLOAD_TYPE_0_2_4_6 * advertiseData = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6 *)entry_.packetData.data;
+            ADV_PDU_PAYLOAD_TYPE_0_2_4_6* advertiseData = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6*)entry_.packetData.data;
 
             for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < total_data_lines);) {
                 length[currentPacket] = advertiseData->Data[currentByte++];
@@ -254,21 +253,19 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
         } break;
 
         case ADV_DIRECT_IND:
-        case SCAN_REQ:
-        {
-            ADV_PDU_PAYLOAD_TYPE_1_3 * directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3 *)entry_.packetData.data;
+        case SCAN_REQ: {
+            ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry_.packetData.data;
             uint8_t type = 0xFF;
             field_rect = draw_field(painter, field_rect, s, to_string_hex(entry_.packetData.dataLen), to_string_hex(type) + pad_string_with_spaces(3) + to_string_mac_address(directed_mac_data->A1, 6, false));
-        }
-        break;
+        } break;
 
         case CONNECT_REQ:
         default: {
             uint8_t type = 0xFF;
-            
-            //TODO: Display Connect Request Information. For right now just printing full hex data.
-            //This struct will eventually be used to break apart containing data of Connect Request.
-            //ADV_PDU_PAYLOAD_TYPE_5 * connect_req = (ADV_PDU_PAYLOAD_TYPE_5 *)entry_.packetData.data;
+
+            // TODO: Display Connect Request Information. For right now just printing full hex data.
+            // This struct will eventually be used to break apart containing data of Connect Request.
+            // ADV_PDU_PAYLOAD_TYPE_5 * connect_req = (ADV_PDU_PAYLOAD_TYPE_5 *)entry_.packetData.data;
 
             for (currentByte = 0; (currentByte < entry_.packetData.dataLen); currentByte++) {
                 data[0][currentByte] = entry_.packetData.data[currentByte];
@@ -563,8 +560,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
 
     // Only parse name for advertisment packets and empty name entries
     if ((pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) && entry.nameString.empty()) {
-
-        ADV_PDU_PAYLOAD_TYPE_0_2_4_6 * advertiseData = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6 *)entry.packetData.data;
+        ADV_PDU_PAYLOAD_TYPE_0_2_4_6* advertiseData = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6*)entry.packetData.data;
 
         uint8_t currentByte = 0;
         uint8_t length = 0;
