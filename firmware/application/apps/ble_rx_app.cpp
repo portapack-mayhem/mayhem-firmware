@@ -58,8 +58,7 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
 
 namespace ui {
 
-std::string pdu_type_to_string(ADV_PDU_TYPE type)
-{
+std::string pdu_type_to_string(ADV_PDU_TYPE type) {
     std::string pduTypeStr = "";
 
     switch (type) {
@@ -208,13 +207,11 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     int j = 0;
     int k = 0;
 
-    switch (entry_.pduType)
-    {
+    switch (entry_.pduType) {
         case ADV_IND:
         case ADV_NONCONN_IND:
         case SCAN_RSP:
-        case ADV_SCAN_IND:
-        {
+        case ADV_SCAN_IND: {
             for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < total_data_lines);) {
                 length[currentPacket] = entry_.packetData.data[currentByte++];
                 type[currentPacket] = entry_.packetData.data[currentByte++];
@@ -251,18 +248,16 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
                     }
                 }
             }
-        }
-        break;
+        } break;
 
         case ADV_DIRECT_IND:
         case SCAN_REQ:
         case CONNECT_REQ:
-        default:
-        {
+        default: {
             uint8_t type = 0xFF;
 
             for (currentByte = 0; (currentByte < entry_.packetData.dataLen); currentByte++) {
-                    data[0][currentByte] = entry_.packetData.data[currentByte];
+                data[0][currentByte] = entry_.packetData.data[currentByte];
             }
 
             uint8_t number_data_lines = ceil((float)entry_.packetData.dataLen / 10.0);
@@ -286,8 +281,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
                     }
                 }
             }
-        }
-        break;
+        } break;
     }
 }
 
@@ -535,7 +529,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.packetData.size = packet->size;
     entry.packetData.dataLen = packet->dataLen;
 
-    //Mac Address of sender.
+    // Mac Address of sender.
     entry.packetData.macAddress[0] = packet->macAddress[0];
     entry.packetData.macAddress[1] = packet->macAddress[1];
     entry.packetData.macAddress[2] = packet->macAddress[2];
@@ -546,7 +540,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.numHits++;
     entry.pduType = pdu_type;
 
-    //Data section of packet.
+    // Data section of packet.
     for (int i = 0; i < packet->dataLen; i++) {
         entry.packetData.data[i] = packet->data[i];
     }
@@ -554,9 +548,8 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
     entry.nameString = "";
     entry.include_name = check_name.value();
 
-    //Only parse name for advertisment packets
-    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND)
-    {
+    // Only parse name for advertisment packets
+    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
         uint8_t currentByte = 0;
         uint8_t length = 0;
         uint8_t type = 0;
