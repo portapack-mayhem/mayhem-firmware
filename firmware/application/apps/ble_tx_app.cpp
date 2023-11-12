@@ -121,17 +121,6 @@ void readUntil(File& file, char* result, std::size_t maxBufferSize, char delimit
     result[bytesRead] = '\0';
 }
 
-void generateRandomMacAddress(char* macAddress) {
-    const char hexDigits[] = "0123456789ABCDEF";
-
-    // Generate 12 random hexadecimal characters
-    for (int i = 0; i < 12; i++) {
-        int randomIndex = rand() % 16;
-        macAddress[i] = hexDigits[randomIndex];
-    }
-    macAddress[12] = '\0';  // Null-terminate the string
-}
-
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
     uint64_t freq_hz;
 

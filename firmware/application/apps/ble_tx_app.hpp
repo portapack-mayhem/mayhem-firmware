@@ -62,6 +62,36 @@ struct BLETxPacket {
     uint32_t packet_count;
 };
 
+enum PKT_TYPE {
+    PKT_TYPE_INVALID_TYPE,
+    PKT_TYPE_RAW,
+    PKT_TYPE_DISCOVERY,
+    PKT_TYPE_IBEACON,
+    PKT_TYPE_ADV_IND,
+    PKT_TYPE_ADV_DIRECT_IND,
+    PKT_TYPE_ADV_NONCONN_IND,
+    PKT_TYPE_ADV_SCAN_IND,
+    PKT_TYPE_SCAN_REQ,
+    PKT_TYPE_SCAN_RSP,
+    PKT_TYPE_CONNECT_REQ,
+    PKT_TYPE_LL_DATA,
+    PKT_TYPE_LL_CONNECTION_UPDATE_REQ,
+    PKT_TYPE_LL_CHANNEL_MAP_REQ,
+    PKT_TYPE_LL_TERMINATE_IND,
+    PKT_TYPE_LL_ENC_REQ,
+    PKT_TYPE_LL_ENC_RSP,
+    PKT_TYPE_LL_START_ENC_REQ,
+    PKT_TYPE_LL_START_ENC_RSP,
+    PKT_TYPE_LL_UNKNOWN_RSP,
+    PKT_TYPE_LL_FEATURE_REQ,
+    PKT_TYPE_LL_FEATURE_RSP,
+    PKT_TYPE_LL_PAUSE_ENC_REQ,
+    PKT_TYPE_LL_PAUSE_ENC_RSP,
+    PKT_TYPE_LL_VERSION_IND,
+    PKT_TYPE_LL_REJECT_IND,
+    PKT_TYPE_NUM_PKT_TYPE
+};
+
 class BLETxView : public View {
    public:
     BLETxView(NavigationView& nav);
@@ -118,36 +148,6 @@ class BLETxView : public View {
     bool random_mac = false;
     bool file_override = false;
 
-    enum PKT_TYPE {
-        INVALID_TYPE,
-        RAW,
-        DISCOVERY,
-        IBEACON,
-        ADV_IND,
-        ADV_DIRECT_IND,
-        ADV_NONCONN_IND,
-        ADV_SCAN_IND,
-        SCAN_REQ,
-        SCAN_RSP,
-        CONNECT_REQ,
-        LL_DATA,
-        LL_CONNECTION_UPDATE_REQ,
-        LL_CHANNEL_MAP_REQ,
-        LL_TERMINATE_IND,
-        LL_ENC_REQ,
-        LL_ENC_RSP,
-        LL_START_ENC_REQ,
-        LL_START_ENC_RSP,
-        LL_UNKNOWN_RSP,
-        LL_FEATURE_REQ,
-        LL_FEATURE_RSP,
-        LL_PAUSE_ENC_REQ,
-        LL_PAUSE_ENC_RSP,
-        LL_VERSION_IND,
-        LL_REJECT_IND,
-        NUM_PKT_TYPE
-    };
-
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
     static constexpr uint8_t max_packet_repeat_str{10};
@@ -156,7 +156,7 @@ class BLETxView : public View {
 
     BLETxPacket packets[max_num_packets];
 
-    PKT_TYPE pduType = {DISCOVERY};
+    PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
     static constexpr auto header_height = 9 * 16;
     static constexpr auto switch_button_height = 3 * 16;
@@ -220,14 +220,14 @@ class BLETxView : public View {
     OptionsField options_adv_type{
         {17 * 8, 6 * 8},
         14,
-        {{"DISCOVERY ", DISCOVERY},
-         {"ADV_IND", ADV_IND},
-         {"ADV_DIRECT", ADV_DIRECT_IND},
-         {"ADV_NONCONN", ADV_NONCONN_IND},
-         {"ADV_SCAN_IND", ADV_SCAN_IND},
-         {"SCAN_REQ", SCAN_REQ},
-         {"SCAN_RSP", SCAN_RSP},
-         {"CONNECT_REQ", CONNECT_REQ}}};
+        {{"DISCOVERY ", PKT_TYPE_DISCOVERY},
+         {"ADV_IND", PKT_TYPE_ADV_IND},
+         {"ADV_DIRECT", PKT_TYPE_ADV_DIRECT_IND},
+         {"ADV_NONCONN", PKT_TYPE_ADV_NONCONN_IND},
+         {"ADV_SCAN_IND", PKT_TYPE_ADV_SCAN_IND},
+         {"SCAN_REQ", PKT_TYPE_SCAN_REQ},
+         {"SCAN_RSP", PKT_TYPE_SCAN_RSP},
+         {"CONNECT_REQ", PKT_TYPE_CONNECT_REQ}}};
 
     Labels label_packet_index{
         {{0 * 8, 10 * 8}, "Packet Index:", Color::light_grey()}};
