@@ -545,11 +545,10 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         entry.packetData.data[i] = packet->data[i];
     }
 
-    entry.nameString = "";
     entry.include_name = check_name.value();
 
     // Only parse name for advertisment packets
-    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
+    if ((pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) && entry.nameString.empty()) {
         uint8_t currentByte = 0;
         uint8_t length = 0;
         uint8_t type = 0;
