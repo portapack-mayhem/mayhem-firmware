@@ -56,6 +56,22 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     return result;
 }
 
+void reverse_byte_array(uint8_t* arr, int length) {
+    int start = 0;
+    int end = length - 1;
+
+    while (start < end) {
+        // Swap elements at start and end
+        uint8_t temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move the indices towards the center
+        start++;
+        end--;
+    }
+}
+
 namespace ui {
 
 std::string pdu_type_to_string(ADV_PDU_TYPE type) {
@@ -583,6 +599,11 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
                 break;
             }
         }
+    }
+    else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ)
+    {
+        ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
+        reverse_byte_array(directed_mac_data->A1, 6);
     }
 }
 
