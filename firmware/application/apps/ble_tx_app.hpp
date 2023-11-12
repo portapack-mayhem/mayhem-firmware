@@ -224,6 +224,7 @@ class BLETxView : public View {
          {"ADV_IND", ADV_IND},
          {"ADV_DIRECT", ADV_DIRECT_IND},
          {"ADV_NONCONN", ADV_NONCONN_IND},
+         {"ADV_SCAN_IND", ADV_SCAN_IND},
          {"SCAN_REQ", SCAN_REQ},
          {"SCAN_RSP", SCAN_RSP},
          {"CONNECT_REQ", CONNECT_REQ}}};
