@@ -1264,4 +1264,82 @@ static constexpr fir_taps_real<16> taps_200k_decim_1 = {
     }},
 };
 
+// BTLE RX decimation filters ////////////////////////////////////////////////
+// Default BTLE filter, it is supporting 1M PHY.
+// IFIR image-reject filter: fs=4000000, pass=430000, stop=825000, decim=4, fout=1000000
+// 1M PHY,  This one it is for the classic bluetooth , (BW = 1Mhz : +-500k, channel space is 2Mhz)
+// The traditional transmission of 1 Mbit in the Bluetooth Basic Rate was renamed 1M PHY
+static constexpr fir_taps_real<24> taps_BTLE_1M_PHY_decim_0 = {
+    .low_frequency_normalized = -430000.0f / 4000000.0f,
+    .high_frequency_normalized = 430000.0f / 4000000.0f,
+    .transition_normalized = 395000.0f / 4000000.0f,
+    .taps = {{
+
+        12,
+        57,
+        112,
+        83,
+        -139,
+        -531,
+        -813,
+        -507,
+        766,
+        2916,
+        5255,
+        6788,
+        6788,
+        5255,
+        2916,
+        766,
+        -507,
+        -813,
+        -531,
+        -139,
+        83,
+        112,
+        57,
+        12,
+
+    }},
+};
+
+// IFIR image-reject filter: fs=4000000, pass=920000, stop=1350000, decim=4, fout=1000000
+// Alternative filter, Note : in local test, it improves slightly the sensitivity compared to above filter, but it should have aliasing if co-adjacent channels.
+// Then , we leave that filter in the code ,as experimental , but it should not be set up as default one.
+// It may work well, in areas where we just receive few signals,  without adjacent channels and weak far away signals.
+// 2M PHY , Bluetooth 5 has introduced a new transmission mode with a doubled symbol rate.
+// Bluetooth LE has been traditionally transmitting 1 bit per symbol so that theoretically the data rate doubles as well. (BW 2Mhz : +-1Mhz, channel space 2Mhz)
+static constexpr fir_taps_real<24> taps_BTLE_2M_PHY_decim_0 = {
+    .low_frequency_normalized = -920000.0f / 4000000.0f,
+    .high_frequency_normalized = 920000.0f / 4000000.0f,
+    .transition_normalized = 430000.0f / 4000000.0f,
+    .taps = {{
+
+        -8,
+        -20,
+        42,
+        81,
+        -142,
+        -234,
+        371,
+        573,
+        -884,
+        -1414,
+        2573,
+        8062,
+        8062,
+        2573,
+        -1414,
+        -884,
+        573,
+        371,
+        -234,
+        -142,
+        81,
+        42,
+        -20,
+        -8,
+
+    }},
+};
 #endif /*__DSP_FIR_TAPS_H__*/
