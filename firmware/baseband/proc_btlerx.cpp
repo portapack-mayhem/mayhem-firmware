@@ -437,8 +437,6 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
             return;
         }
 
-        sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
-
         for (i = 0; i < num_demod_byte; i++) {
             rb_buf[packet_index] = 0;
 
