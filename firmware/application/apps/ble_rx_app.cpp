@@ -57,6 +57,52 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
 }
 
 namespace ui {
+
+std::string pdu_type_to_string(ADV_PDU_TYPE type)
+{
+    std::string pduTypeStr = "";
+
+    switch (type) {
+        case ADV_IND:
+            pduTypeStr += "ADV_IND";
+            break;
+        case ADV_DIRECT_IND:
+            pduTypeStr += "ADV_DIRECT_IND";
+            break;
+        case ADV_NONCONN_IND:
+            pduTypeStr += "ADV_NONCONN_IND";
+            break;
+        case SCAN_REQ:
+            pduTypeStr += "SCAN_REQ";
+            break;
+        case SCAN_RSP:
+            pduTypeStr += "SCAN_RSP";
+            break;
+        case CONNECT_REQ:
+            pduTypeStr += "CONNECT_REQ";
+            break;
+        case ADV_SCAN_IND:
+            pduTypeStr += "ADV_SCAN_IND";
+            break;
+        case RESERVED0:
+        case RESERVED1:
+        case RESERVED2:
+        case RESERVED3:
+        case RESERVED4:
+        case RESERVED5:
+        case RESERVED6:
+        case RESERVED7:
+        case RESERVED8:
+            pduTypeStr += "RESERVED";
+            break;
+        default:
+            pduTypeStr += "UNKNOWN";
+            break;
+    }
+
+    return pduTypeStr;
+}
+
 template <>
 void RecentEntriesTable<BleRecentEntries>::draw(
     const Entry& entry,
@@ -103,9 +149,12 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
                   &button_send,
                   &label_mac_address,
                   &text_mac_address,
+                  &label_pdu_type,
+                  &text_pdu_type,
                   &labels});
 
     text_mac_address.set(to_string_mac_address(entry.packetData.macAddress, 6, false));
+    text_pdu_type.set(pdu_type_to_string(entry.pduType));
 
     button_done.on_select = [&nav](const ui::Button&) {
         nav.pop();
@@ -147,7 +196,7 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     const auto s = style();
     const auto rect = screen_rect();
 
-    auto field_rect = Rect{rect.left(), rect.top() + 48, rect.width(), 16};
+    auto field_rect = Rect{rect.left(), rect.top() + 64, rect.width(), 16};
 
     uint8_t type[total_data_lines];
     uint8_t length[total_data_lines];
@@ -159,41 +208,86 @@ void BleRecentEntryDetailView::paint(Painter& painter) {
     int j = 0;
     int k = 0;
 
-    for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < total_data_lines);) {
-        length[currentPacket] = entry_.packetData.data[currentByte++];
-        type[currentPacket] = entry_.packetData.data[currentByte++];
+    switch (entry_.pduType)
+    {
+        case ADV_IND:
+        case ADV_NONCONN_IND:
+        case SCAN_RSP:
+        case ADV_SCAN_IND:
+        {
+            for (currentByte = 0; (currentByte < entry_.packetData.dataLen) && (currentPacket < total_data_lines);) {
+                length[currentPacket] = entry_.packetData.data[currentByte++];
+                type[currentPacket] = entry_.packetData.data[currentByte++];
 
-        // Subtract 1 because type is part of the length.
-        for (i = 0; i < length[currentPacket] - 1; i++) {
-            data[currentPacket][i] = entry_.packetData.data[currentByte++];
-        }
+                // Subtract 1 because type is part of the length.
+                for (i = 0; i < length[currentPacket] - 1; i++) {
+                    data[currentPacket][i] = entry_.packetData.data[currentByte++];
+                }
 
-        currentPacket++;
-    }
-
-    for (i = 0; i < currentPacket; i++) {
-        uint8_t number_data_lines = ceil((float)(length[i] - 1) / 10.0);
-        uint8_t current_line = 0;
-        std::array<std::string, total_data_lines> data_strings{};
-
-        for (j = 0; (j < (number_data_lines * 10)) && (j < length[i] - 1); j++) {
-            if ((j / 10) != current_line) {
-                current_line++;
+                currentPacket++;
             }
 
-            data_strings[current_line] += to_string_hex(data[i][j], 2);
-        }
+            for (i = 0; i < currentPacket; i++) {
+                uint8_t number_data_lines = ceil((float)(length[i] - 1) / 10.0);
+                uint8_t current_line = 0;
+                std::array<std::string, total_data_lines> data_strings{};
 
-        // Read the type back to the total length.
-        field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + pad_string_with_spaces(3) + data_strings[0]);
+                for (j = 0; (j < (number_data_lines * 10)) && (j < length[i] - 1); j++) {
+                    if ((j / 10) != current_line) {
+                        current_line++;
+                    }
 
-        if (number_data_lines > 1) {
-            for (k = 1; k < number_data_lines; k++) {
-                if (!data_strings[k].empty()) {
-                    field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
+                    data_strings[current_line] += to_string_hex(data[i][j], 2);
+                }
+
+                // Read the type back to the total length.
+                field_rect = draw_field(painter, field_rect, s, to_string_hex(length[i]), to_string_hex(type[i]) + pad_string_with_spaces(3) + data_strings[0]);
+
+                if (number_data_lines > 1) {
+                    for (k = 1; k < number_data_lines; k++) {
+                        if (!data_strings[k].empty()) {
+                            field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
+                        }
+                    }
                 }
             }
         }
+        break;
+
+        case ADV_DIRECT_IND:
+        case SCAN_REQ:
+        case CONNECT_REQ:
+        default:
+        {
+            uint8_t type = 0xFF;
+
+            for (currentByte = 0; (currentByte < entry_.packetData.dataLen); currentByte++) {
+                    data[0][currentByte] = entry_.packetData.data[currentByte];
+            }
+
+            uint8_t number_data_lines = ceil((float)entry_.packetData.dataLen / 10.0);
+            uint8_t current_line = 0;
+            std::array<std::string, total_data_lines> data_strings{};
+
+            for (j = 0; (j < (number_data_lines * 10)) && (j < entry_.packetData.dataLen); j++) {
+                if ((j / 10) != current_line) {
+                    current_line++;
+                }
+
+                data_strings[current_line] += to_string_hex(data[0][j], 2);
+            }
+
+            field_rect = draw_field(painter, field_rect, s, to_string_hex(entry_.packetData.dataLen), to_string_hex(type) + pad_string_with_spaces(3) + data_strings[0]);
+
+            if (number_data_lines > 1) {
+                for (k = 1; k < number_data_lines; k++) {
+                    if (!data_strings[k].empty()) {
+                        field_rect = draw_field(painter, field_rect, s, "", pad_string_with_spaces(5) + data_strings[k]);
+                    }
+                }
+            }
+        }
+        break;
     }
 }
 
@@ -275,7 +369,7 @@ BLERxView::BLERxView(NavigationView& nav)
             filterBuffer,
             64,
             [this](std::string& buffer) {
-                on_switch_table(buffer);
+                on_filter_change(buffer);
             });
     };
 
@@ -331,43 +425,7 @@ void BLERxView::on_data(BlePacketData* packet) {
         str_log = "";
     }
 
-    switch ((ADV_PDU_TYPE)packet->type) {
-        case ADV_IND:
-            str_console += "ADV_IND";
-            break;
-        case ADV_DIRECT_IND:
-            str_console += "ADV_DIRECT_IND";
-            break;
-        case ADV_NONCONN_IND:
-            str_console += "ADV_NONCONN_IND";
-            break;
-        case SCAN_REQ:
-            str_console += "SCAN_REQ";
-            break;
-        case SCAN_RSP:
-            str_console += "SCAN_RSP";
-            break;
-        case CONNECT_REQ:
-            str_console += "CONNECT_REQ";
-            break;
-        case ADV_SCAN_IND:
-            str_console += "ADV_SCAN_IND";
-            break;
-        case RESERVED0:
-        case RESERVED1:
-        case RESERVED2:
-        case RESERVED3:
-        case RESERVED4:
-        case RESERVED5:
-        case RESERVED6:
-        case RESERVED7:
-        case RESERVED8:
-            str_console += "RESERVED";
-            break;
-        default:
-            str_console += "UNKNOWN";
-            break;
-    }
+    str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
 
     str_console += " Len:";
     str_console += to_string_dec_uint(packet->size);
@@ -393,7 +451,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Start of Packet stuffing.
     // Masking off the top 2 bytes to avoid invalid keys.
     auto& entry = ::on_packet(recent, macAddressEncoded & 0xFFFFFFFFFFFF);
-    updateEntry(packet, entry);
+    updateEntry(packet, entry, (ADV_PDU_TYPE)packet->type);
 
     // Add entries if they meet the criteria.
     auto value = filter;
@@ -409,7 +467,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     }
 }
 
-void BLERxView::on_switch_table(std::string value) {
+void BLERxView::on_filter_change(std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
         resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
@@ -460,7 +518,7 @@ BLERxView::~BLERxView() {
     baseband::shutdown();
 }
 
-void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) {
+void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type) {
     std::string data_string;
 
     int i;
@@ -477,6 +535,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     entry.packetData.size = packet->size;
     entry.packetData.dataLen = packet->dataLen;
 
+    //Mac Address of sender.
     entry.packetData.macAddress[0] = packet->macAddress[0];
     entry.packetData.macAddress[1] = packet->macAddress[1];
     entry.packetData.macAddress[2] = packet->macAddress[2];
@@ -485,7 +544,9 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     entry.packetData.macAddress[5] = packet->macAddress[5];
 
     entry.numHits++;
+    entry.pduType = pdu_type;
 
+    //Data section of packet.
     for (int i = 0; i < packet->dataLen; i++) {
         entry.packetData.data[i] = packet->data[i];
     }
@@ -493,27 +554,31 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry) 
     entry.nameString = "";
     entry.include_name = check_name.value();
 
-    uint8_t currentByte = 0;
-    uint8_t length = 0;
-    uint8_t type = 0;
+    //Only parse name for advertisment packets
+    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND)
+    {
+        uint8_t currentByte = 0;
+        uint8_t length = 0;
+        uint8_t type = 0;
 
-    bool stringFound = false;
+        bool stringFound = false;
 
-    for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
-        length = entry.packetData.data[currentByte++];
-        type = entry.packetData.data[currentByte++];
+        for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
+            length = entry.packetData.data[currentByte++];
+            type = entry.packetData.data[currentByte++];
 
-        // Subtract 1 because type is part of the length.
-        for (int i = 0; i < length - 1; i++) {
-            if (((type == 0x08) || (type == 0x09)) && !stringFound) {
-                entry.nameString += (char)entry.packetData.data[currentByte];
+            // Subtract 1 because type is part of the length.
+            for (int i = 0; i < length - 1; i++) {
+                if (((type == 0x08) || (type == 0x09)) && !stringFound) {
+                    entry.nameString += (char)entry.packetData.data[currentByte];
+                }
+
+                currentByte++;
             }
 
-            currentByte++;
-        }
-
-        if (!entry.nameString.empty()) {
-            stringFound = true;
+            if (!entry.nameString.empty()) {
+                stringFound = true;
+            }
         }
     }
 }

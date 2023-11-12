@@ -83,6 +83,7 @@ struct BleRecentEntry {
     std::string nameString;
     bool include_name;
     uint16_t numHits;
+    ADV_PDU_TYPE pduType;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -97,7 +98,8 @@ struct BleRecentEntry {
           dataString{},
           nameString{},
           include_name{},
-          numHits{} {
+          numHits{},
+          pduType{} {
     }
 
     Key key() const {
@@ -133,10 +135,17 @@ class BleRecentEntryDetailView : public View {
         {12 * 8, 0 * 16, 17 * 8, 16},
         "-"};
 
+    Labels label_pdu_type{
+        {{0 * 8, 1 * 16}, "PDU Type:", Color::light_grey()}};
+
+    Text text_pdu_type{
+        {9 * 8, 1 * 16, 17 * 8, 16},
+        "-"};
+
     Labels labels{
-        {{0 * 8, 2 * 16}, "Len", Color::light_grey()},
-        {{5 * 8, 2 * 16}, "Type", Color::light_grey()},
-        {{10 * 8, 2 * 16}, "Value", Color::light_grey()},
+        {{0 * 8, 3 * 16}, "Len", Color::light_grey()},
+        {{5 * 8, 3 * 16}, "Type", Color::light_grey()},
+        {{10 * 8, 3 * 16}, "Value", Color::light_grey()},
     };
 
     Button button_send{
@@ -171,9 +180,9 @@ class BLERxView : public View {
 
    private:
     void on_data(BlePacketData* packetData);
-    void on_switch_table(std::string value);
+    void on_filter_change(std::string value);
     void handle_entries_sort(uint8_t index);
-    void updateEntry(const BlePacketData* packet, BleRecentEntry& entry);
+    void updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
 
     NavigationView& nav_;
     RxRadioState radio_state_{
