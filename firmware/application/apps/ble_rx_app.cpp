@@ -545,32 +545,29 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
         entry.packetData.data[i] = packet->data[i];
     }
 
-    entry.nameString = "";
     entry.include_name = check_name.value();
 
-    // Only parse name for advertisment packets
-    if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
+    // Only parse name for advertisment packets and empty name entries
+    if ((pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) && entry.nameString.empty()) {
         uint8_t currentByte = 0;
         uint8_t length = 0;
         uint8_t type = 0;
 
-        bool stringFound = false;
-
+        std::string decoded_data;
         for (currentByte = 0; (currentByte < entry.packetData.dataLen);) {
             length = entry.packetData.data[currentByte++];
             type = entry.packetData.data[currentByte++];
 
             // Subtract 1 because type is part of the length.
             for (int i = 0; i < length - 1; i++) {
-                if (((type == 0x08) || (type == 0x09)) && !stringFound) {
-                    entry.nameString += (char)entry.packetData.data[currentByte];
+                if (type == 0x08 || type == 0x09) {
+                    decoded_data += (char)entry.packetData.data[currentByte];
                 }
-
                 currentByte++;
             }
-
-            if (!entry.nameString.empty()) {
-                stringFound = true;
+            if (!decoded_data.empty()) {
+                entry.nameString = std::move(decoded_data);
+                break;
             }
         }
     }
