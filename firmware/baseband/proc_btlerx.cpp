@@ -95,7 +95,7 @@ void BTLERxProcessor::scramble_byte(uint8_t* byte_in, int num_byte, const uint8_
     }
 }
 
-int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void* adv_pdu_payload) {
+int BTLERxProcessor::verify_payload_byte(int num_payload_byte, ADV_PDU_TYPE pdu_type) {
     // Should at least have 6 bytes for the MAC Address.
     // Also ensuring that there is at least 1 byte of data.
     if (num_payload_byte <= 6) {
@@ -104,114 +104,228 @@ int BTLERxProcessor::parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_p
     }
 
     if (pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) {
-        payload_type_0_2_4_6 = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6*)adv_pdu_payload;
-
-        macAddress[0] = payload_byte[5];
-        macAddress[1] = payload_byte[4];
-        macAddress[2] = payload_byte[3];
-        macAddress[3] = payload_byte[2];
-        macAddress[4] = payload_byte[1];
-        macAddress[5] = payload_byte[0];
-
-        memcpy(payload_type_0_2_4_6->Data, payload_byte + 6, num_payload_byte - 6);
+            return 0;
     } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         if (num_payload_byte != 12) {
             // printf("Error: Payload length %d bytes. Need to be 12 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
             return -1;
         }
-
-        payload_type_1_3 = (ADV_PDU_PAYLOAD_TYPE_1_3*)adv_pdu_payload;
-
-        // AdvA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
-        macAddress[0] = payload_byte[5];
-        macAddress[1] = payload_byte[4];
-        macAddress[2] = payload_byte[3];
-        macAddress[3] = payload_byte[2];
-        macAddress[4] = payload_byte[1];
-        macAddress[5] = payload_byte[0];
-
-        // //InitA = reorder_bytes_str( payload_bytes((2*6+1):end) );
-        payload_type_1_3->A1[0] = payload_byte[11];
-        payload_type_1_3->A1[1] = payload_byte[10];
-        payload_type_1_3->A1[2] = payload_byte[9];
-        payload_type_1_3->A1[3] = payload_byte[8];
-        payload_type_1_3->A1[4] = payload_byte[7];
-        payload_type_1_3->A1[5] = payload_byte[6];
-
-        // //payload_parse_result_str = ['AdvA:' AdvA ' InitA:' InitA];
     } else if (pdu_type == CONNECT_REQ) {
         if (num_payload_byte != 34) {
             // printf("Error: Payload length %d bytes. Need to be 34 for PDU Type %s!\n", num_payload_byte, ADV_PDU_TYPE_STR[pdu_type]);
             return -1;
         }
-
-        // payload_type_5 = (ADV_PDU_PAYLOAD_TYPE_5 *)adv_pdu_payload;
-
-        // InitA = reorder_bytes_str( payload_bytes(1 : (2*6)) );
-        macAddress[0] = payload_byte[5];
-        macAddress[1] = payload_byte[4];
-        macAddress[2] = payload_byte[3];
-        macAddress[3] = payload_byte[2];
-        macAddress[4] = payload_byte[1];
-        macAddress[5] = payload_byte[0];
-
-        // AdvA = reorder_bytes_str( payload_bytes((2*6+1):(2*6+2*6)) );
-        payload_type_5->AdvA[0] = payload_byte[11];
-        payload_type_5->AdvA[1] = payload_byte[10];
-        payload_type_5->AdvA[2] = payload_byte[9];
-        payload_type_5->AdvA[3] = payload_byte[8];
-        payload_type_5->AdvA[4] = payload_byte[7];
-        payload_type_5->AdvA[5] = payload_byte[6];
-
-        // AA = reorder_bytes_str( payload_bytes((2*6+2*6+1):(2*6+2*6+2*4)) );
-        payload_type_5->AA[0] = payload_byte[15];
-        payload_type_5->AA[1] = payload_byte[14];
-        payload_type_5->AA[2] = payload_byte[13];
-        payload_type_5->AA[3] = payload_byte[12];
-
-        // CRCInit = payload_bytes((2*6+2*6+2*4+1):(2*6+2*6+2*4+2*3));
-        payload_type_5->CRCInit = (payload_byte[16]);
-        payload_type_5->CRCInit = ((payload_type_5->CRCInit << 8) | payload_byte[17]);
-        payload_type_5->CRCInit = ((payload_type_5->CRCInit << 8) | payload_byte[18]);
-
-        // WinSize = payload_bytes((2*6+2*6+2*4+2*3+1):(2*6+2*6+2*4+2*3+2*1));
-        payload_type_5->WinSize = payload_byte[19];
-
-        // WinOffset = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+1):(2*6+2*6+2*4+2*3+2*1+2*2)) );
-        payload_type_5->WinOffset = (payload_byte[21]);
-        payload_type_5->WinOffset = ((payload_type_5->WinOffset << 8) | payload_byte[20]);
-
-        // Interval = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2)) );
-        payload_type_5->Interval = (payload_byte[23]);
-        payload_type_5->Interval = ((payload_type_5->Interval << 8) | payload_byte[22]);
-
-        // Latency = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2)) );
-        payload_type_5->Latency = (payload_byte[25]);
-        payload_type_5->Latency = ((payload_type_5->Latency << 8) | payload_byte[24]);
-
-        // Timeout = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2)) );
-        payload_type_5->Timeout = (payload_byte[27]);
-        payload_type_5->Timeout = ((payload_type_5->Timeout << 8) | payload_byte[26]);
-
-        // ChM = reorder_bytes_str( payload_bytes((2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+1):(2*6+2*6+2*4+2*3+2*1+2*2+2*2+2*2+2*2+2*5)) );
-        payload_type_5->ChM[0] = payload_byte[32];
-        payload_type_5->ChM[1] = payload_byte[31];
-        payload_type_5->ChM[2] = payload_byte[30];
-        payload_type_5->ChM[3] = payload_byte[29];
-        payload_type_5->ChM[4] = payload_byte[28];
-
-        // tmp_bits = payload_bits((end-7) : end);
-        // Hop = num2str( bi2de(tmp_bits(1:5), 'right-msb') );
-        // SCA = num2str( bi2de(tmp_bits(6:end), 'right-msb') );
-        payload_type_5->Hop = (payload_byte[33] & 0x1F);
-        payload_type_5->SCA = ((payload_byte[33] >> 5) & 0x07);
     } else {
-        // TODO: Handle Unknown PDU.
-        //  payload_type_R = (ADV_PDU_PAYLOAD_TYPE_R *)adv_pdu_payload;
-        //  memcpy(payload_type_R->payload_byte, payload_byte, num_payload_byte);
         return -1;
     }
+
     return 0;
+}
+
+void BTLERxProcessor::handleBeginState() {
+    int num_symbol_left = dst_buffer.count / SAMPLE_PER_SYMBOL;  // One buffer sample consist of I and Q.
+
+    static uint8_t demod_buf_access[SAMPLE_PER_SYMBOL][LEN_DEMOD_BUF_ACCESS];
+
+    uint32_t uint32_tmp = DEFAULT_ACCESS_ADDR;
+    uint8_t accessAddrBits[LEN_DEMOD_BUF_ACCESS];
+
+    uint32_t accesssAddress = 0;
+
+    // Filling up addressBits with the access address we are looking to find.
+    for (int i = 0; i < 32; i++) {
+        accessAddrBits[i] = 0x01 & uint32_tmp;
+        uint32_tmp = (uint32_tmp >> 1);
+    }
+
+    const int demod_buf_len = LEN_DEMOD_BUF_ACCESS;  // For AA
+    int demod_buf_offset = 0;
+    int hit_idx = (-1);
+    bool unequal_flag = false;
+
+    memset(demod_buf_access, 0, SAMPLE_PER_SYMBOL * demod_buf_len);
+
+    for (int i = 0; i < num_symbol_left * SAMPLE_PER_SYMBOL; i += SAMPLE_PER_SYMBOL) {
+        int sp = ((demod_buf_offset - demod_buf_len + 1) & (demod_buf_len - 1));
+
+        for (int j = 0; j < SAMPLE_PER_SYMBOL; j++) {
+            // Sample and compare with the adjacent next sample.
+            int I0 = dst_buffer.p[i + j].real();
+            int Q0 = dst_buffer.p[i + j].imag();
+            int I1 = dst_buffer.p[i + j + 1].real();
+            int Q1 = dst_buffer.p[i + j + 1].imag();
+
+            int phase_idx = j;
+
+            demod_buf_access[phase_idx][demod_buf_offset] = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+
+            int k = sp;
+            unequal_flag = false;
+
+            accesssAddress = 0;
+
+            for (int p = 0; p < demod_buf_len; p++) {
+                if (demod_buf_access[phase_idx][k] != accessAddrBits[p]) {
+                    unequal_flag = true;
+                    hit_idx = (-1);
+                    break;
+                }
+
+                accesssAddress = (accesssAddress & (~(1 << p))) | (demod_buf_access[phase_idx][k] << p);
+
+                k = ((k + 1) & (demod_buf_len - 1));
+            }
+
+            if (unequal_flag == false) {
+                hit_idx = (i + j - (demod_buf_len - 1) * SAMPLE_PER_SYMBOL);
+                break;
+            }
+        }
+
+        if (unequal_flag == false) {
+            break;
+        }
+
+        demod_buf_offset = ((demod_buf_offset + 1) & (demod_buf_len - 1));
+    }
+
+    if (hit_idx == -1) {
+        // Process more samples.
+        return;
+    }
+
+    symbols_eaten += hit_idx;
+
+    symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL);  // move to the beginning of PDU header
+
+    num_symbol_left = num_symbol_left - symbols_eaten;
+
+    parseState = Parse_State_PDU_Header;
+}
+
+void BTLERxProcessor::handlePDUHeaderState() {
+
+    int num_demod_byte = 2;  // PDU header has 2 octets
+
+    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+
+    if (symbols_eaten > (int)dst_buffer.count) {
+        return;
+    }
+
+    // Jump back down to the beginning of PDU header.
+    sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
+
+    packet_index = 0;
+
+    for (int i = 0; i < num_demod_byte; i++) {
+        rb_buf[packet_index] = 0;
+
+        for (int j = 0; j < 8; j++) {
+            int I0 = dst_buffer.p[sample_idx].real();
+            int Q0 = dst_buffer.p[sample_idx].imag();
+            int I1 = dst_buffer.p[sample_idx + 1].real();
+            int Q1 = dst_buffer.p[sample_idx + 1].imag();
+
+            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+
+            sample_idx += SAMPLE_PER_SYMBOL;
+        }
+
+        packet_index++;
+    }
+
+    scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
+
+    pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
+    // uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
+    // uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
+    payload_len = (rb_buf[1] & 0x3F);
+
+    // Not a valid Advertise Payload.
+    if ((payload_len < 6) || (payload_len > 37)) {
+        parseState = Parse_State_Begin;
+        return;
+    }
+    else
+    {
+        parseState = Parse_State_PDU_Payload;
+    }
+}
+
+void BTLERxProcessor::handlePDUPayloadState() {
+    int i;
+    int num_demod_byte = (payload_len + 3);
+    symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
+
+    if (symbols_eaten > (int)dst_buffer.count) {
+        return;
+    }
+
+    for (i = 0; i < num_demod_byte; i++) {
+        rb_buf[packet_index] = 0;
+
+        for (int j = 0; j < 8; j++) {
+            int I0 = dst_buffer.p[sample_idx].real();
+            int Q0 = dst_buffer.p[sample_idx].imag();
+            int I1 = dst_buffer.p[sample_idx + 1].real();
+            int Q1 = dst_buffer.p[sample_idx + 1].imag();
+
+            bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
+            rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
+
+            sample_idx += SAMPLE_PER_SYMBOL;
+        }
+
+        packet_index++;
+    }
+
+    scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
+
+    // Check CRC
+    bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
+    // pkt_count++;
+
+    // This should be the flag that determines if the data should be sent to the application layer.
+    bool sendPacket = false;
+
+    // Checking CRC and excluding Reserved PDU types.
+    if (pdu_type < RESERVED0 && !crc_flag) {
+        if (verify_payload_byte(payload_len, (ADV_PDU_TYPE)pdu_type) == 0) {
+            sendPacket = true;
+        }
+
+        // TODO: Make this a packet builder function?
+        if (sendPacket) {
+            blePacketData.max_dB = max_dB;
+
+            blePacketData.type = pdu_type;
+            blePacketData.size = payload_len;
+
+            blePacketData.macAddress[0] = rb_buf[7];
+            blePacketData.macAddress[1] = rb_buf[6];
+            blePacketData.macAddress[2] = rb_buf[5];
+            blePacketData.macAddress[3] = rb_buf[4];
+            blePacketData.macAddress[4] = rb_buf[3];
+            blePacketData.macAddress[5] = rb_buf[2];
+
+            // Skip Header Byte and MAC Address
+            uint8_t startIndex = 8;
+
+            for (i = 0; i < payload_len - 6; i++) {
+                blePacketData.data[i] = rb_buf[startIndex++];
+            }
+
+            blePacketData.dataLen = i;
+
+            BLEPacketMessage data_message{&blePacketData};
+
+            shared_memory.application_queue.push(data_message);
+        }
+    }
+
+    parseState = Parse_State_Begin;
 }
 
 void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
@@ -231,239 +345,26 @@ void BTLERxProcessor::execute(const buffer_c8_t& buffer) {
     }
 
     const float max_squared_f = max_squared;
-    const int32_t max_dB = mag2_to_dbv_norm(max_squared_f * (1.0f / (32768.0f * 32768.0f)));
+    max_dB = mag2_to_dbv_norm(max_squared_f * (1.0f / (32768.0f * 32768.0f)));
 
+    // 4Mhz 2048 samples
+    // Decimated by 4 to achieve 2048/4 = 512 samples at 1 sample per symbol.
     decim_0.execute(buffer, dst_buffer);
     feed_channel_stats(dst_buffer);
 
-    const buffer_c8_t iq_buffer{
-        buffer.p,
-        buffer.count,
-        baseband_fs};
+    symbols_eaten = 0;
 
-    // process++;
-
-    // if ((process % 50) != 0) return;
-
-    // 4Mhz 2048 samples
-
-    //--------------Variable Defines---------------------------------//
-
-    int i, sp, j = 0;
-    int I0, Q0, I1, Q1 = 0;
-    int k, p, phase_idx = 0;
-    int num_demod_byte = 0;
-
-    bool unequal_flag;
-
-    const int demod_buf_len = LEN_DEMOD_BUF_ACCESS;  // For AA
-    int demod_buf_offset = 0;
-    int num_symbol_left = dst_buffer.count / SAMPLE_PER_SYMBOL;  // One buffer sample consist of I and Q.
-    int symbols_eaten = 0;
-    int hit_idx = (-1);
-
-    //--------------Start Parsing For Access Address---------------//
-
+    // Handle parsing based on parseState
     if (parseState == Parse_State_Begin) {
-        static uint8_t demod_buf_access[SAMPLE_PER_SYMBOL][LEN_DEMOD_BUF_ACCESS];
-
-        uint32_t uint32_tmp = DEFAULT_ACCESS_ADDR;
-        uint8_t accessAddrBits[LEN_DEMOD_BUF_ACCESS];
-
-        uint32_t accesssAddress = 0;
-
-        // Filling up addressBits with the access address we are looking to find.
-        for (i = 0; i < 32; i++) {
-            accessAddrBits[i] = 0x01 & uint32_tmp;
-            uint32_tmp = (uint32_tmp >> 1);
-        }
-
-        memset(demod_buf_access, 0, SAMPLE_PER_SYMBOL * demod_buf_len);
-
-        for (i = 0; i < num_symbol_left * SAMPLE_PER_SYMBOL; i += SAMPLE_PER_SYMBOL) {
-            sp = ((demod_buf_offset - demod_buf_len + 1) & (demod_buf_len - 1));
-
-            for (j = 0; j < SAMPLE_PER_SYMBOL; j++) {
-                // Sample and compare with the adjacent next sample.
-                I0 = dst_buffer.p[i + j].real();
-                Q0 = dst_buffer.p[i + j].imag();
-                I1 = dst_buffer.p[i + j + 1].real();
-                Q1 = dst_buffer.p[i + j + 1].imag();
-
-                phase_idx = j;
-
-                demod_buf_access[phase_idx][demod_buf_offset] = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-
-                k = sp;
-                unequal_flag = false;
-
-                accesssAddress = 0;
-
-                for (p = 0; p < demod_buf_len; p++) {
-                    if (demod_buf_access[phase_idx][k] != accessAddrBits[p]) {
-                        unequal_flag = true;
-                        hit_idx = (-1);
-                        break;
-                    }
-
-                    accesssAddress = (accesssAddress & (~(1 << p))) | (demod_buf_access[phase_idx][k] << p);
-
-                    k = ((k + 1) & (demod_buf_len - 1));
-                }
-
-                if (unequal_flag == false) {
-                    hit_idx = (i + j - (demod_buf_len - 1) * SAMPLE_PER_SYMBOL);
-                    break;
-                }
-            }
-
-            if (unequal_flag == false) {
-                break;
-            }
-
-            demod_buf_offset = ((demod_buf_offset + 1) & (demod_buf_len - 1));
-        }
-
-        if (hit_idx == -1) {
-            // Process more samples.
-            return;
-        }
-
-        symbols_eaten += hit_idx;
-
-        symbols_eaten += (8 * NUM_ACCESS_ADDR_BYTE * SAMPLE_PER_SYMBOL);  // move to beginning of PDU header
-
-        num_symbol_left = num_symbol_left - symbols_eaten;
-
-        //--------------Start PDU Header Parsing-----------------------//
-
-        num_demod_byte = 2;  // PDU header has 2 octets
-
-        symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
-
-        parseState = Parse_State_PDU_Header;
-    }
-
+        handleBeginState();
+    } 
+    
     if (parseState == Parse_State_PDU_Header) {
-        if (symbols_eaten > (int)dst_buffer.count) {
-            return;
-        }
-
-        // //Demod the PDU Header
-        // Jump back down to beginning of PDU header.
-        sample_idx = symbols_eaten - (8 * num_demod_byte * SAMPLE_PER_SYMBOL);
-
-        packet_index = 0;
-
-        for (i = 0; i < num_demod_byte; i++) {
-            rb_buf[packet_index] = 0;
-
-            for (j = 0; j < 8; j++) {
-                I0 = dst_buffer.p[sample_idx].real();
-                Q0 = dst_buffer.p[sample_idx].imag();
-                I1 = dst_buffer.p[sample_idx + 1].real();
-                Q1 = dst_buffer.p[sample_idx + 1].imag();
-
-                bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-                rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
-
-                sample_idx += SAMPLE_PER_SYMBOL;
-            }
-
-            packet_index++;
-        }
-
-        scramble_byte(rb_buf, num_demod_byte, scramble_table[channel_number], rb_buf);
-
-        pdu_type = (ADV_PDU_TYPE)(rb_buf[0] & 0x0F);
-        // uint8_t tx_add = ((rb_buf[0] & 0x40) != 0);
-        // uint8_t rx_add = ((rb_buf[0] & 0x80) != 0);
-        payload_len = (rb_buf[1] & 0x3F);
-
-        // Not valid Advertise Payload.
-        if ((payload_len < 6) || (payload_len > 37)) {
-            parseState = Parse_State_Begin;
-            return;
-        }
-
-        //--------------Start Payload Parsing--------------------------//
-
-        num_demod_byte = (payload_len + 3);
-        symbols_eaten += 8 * num_demod_byte * SAMPLE_PER_SYMBOL;
-
-        parseState = Parse_State_PDU_Payload;
-    }
-
+        handlePDUHeaderState();
+    } 
+    
     if (parseState == Parse_State_PDU_Payload) {
-        if (symbols_eaten > (int)dst_buffer.count) {
-            return;
-        }
-
-        for (i = 0; i < num_demod_byte; i++) {
-            rb_buf[packet_index] = 0;
-
-            for (j = 0; j < 8; j++) {
-                I0 = dst_buffer.p[sample_idx].real();
-                Q0 = dst_buffer.p[sample_idx].imag();
-                I1 = dst_buffer.p[sample_idx + 1].real();
-                Q1 = dst_buffer.p[sample_idx + 1].imag();
-
-                bit_decision = (I0 * Q1 - I1 * Q0) > 0 ? 1 : 0;
-                rb_buf[packet_index] = rb_buf[packet_index] | (bit_decision << j);
-
-                sample_idx += SAMPLE_PER_SYMBOL;
-            }
-
-            packet_index++;
-        }
-
-        parseState = Parse_State_Begin;
-
-        scramble_byte(rb_buf + 2, num_demod_byte, scramble_table[channel_number] + 2, rb_buf + 2);
-
-        //--------------Start CRC Checking-----------------------------//
-
-        // Check CRC
-        bool crc_flag = crc_check(rb_buf, payload_len + 2, crc_init_internal);
-        // pkt_count++;
-
-        // This should be the flag that determines if the data should be sent to the application layer.
-        bool sendPacket = false;
-
-        // Checking CRC and excluding Reserved PDU types.
-        if (pdu_type < RESERVED0 && !crc_flag) {
-            if (parse_adv_pdu_payload_byte(rb_buf + 2, payload_len, (ADV_PDU_TYPE)pdu_type, (void*)(&adv_pdu_payload)) == 0) {
-                sendPacket = true;
-            }
-
-            // TODO: Make this a packet builder function?
-            if (sendPacket) {
-                blePacketData.max_dB = max_dB;
-
-                blePacketData.type = pdu_type;
-                blePacketData.size = payload_len;
-
-                blePacketData.macAddress[0] = macAddress[0];
-                blePacketData.macAddress[1] = macAddress[1];
-                blePacketData.macAddress[2] = macAddress[2];
-                blePacketData.macAddress[3] = macAddress[3];
-                blePacketData.macAddress[4] = macAddress[4];
-                blePacketData.macAddress[5] = macAddress[5];
-
-                // Skip Header Byte and MAC Address
-                uint8_t startIndex = 8;
-
-                for (i = 0; i < payload_len - 6; i++) {
-                    blePacketData.data[i] = rb_buf[startIndex++];
-                }
-
-                blePacketData.dataLen = i;
-
-                BLEPacketMessage data_message{&blePacketData};
-
-                shared_memory.application_queue.push(data_message);
-            }
-        }
+        handlePDUPayloadState();
     }
 }
 

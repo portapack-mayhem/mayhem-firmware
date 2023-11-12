@@ -76,28 +76,6 @@ class BTLERxProcessor : public BasebandProcessor {
     uint8_t macAddress[6];
     int checksumReceived = 0;
 
-    struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6 {
-        uint8_t Data[31];
-    };
-
-    struct ADV_PDU_PAYLOAD_TYPE_1_3 {
-        uint8_t A1[6];
-    };
-
-    struct ADV_PDU_PAYLOAD_TYPE_5 {
-        uint8_t AdvA[6];
-        uint8_t AA[4];
-        uint32_t CRCInit;
-        uint8_t WinSize;
-        uint16_t WinOffset;
-        uint16_t Interval;
-        uint16_t Latency;
-        uint16_t Timeout;
-        uint8_t ChM[5];
-        uint8_t Hop;
-        uint8_t SCA;
-    };
-
     struct ADV_PDU_PAYLOAD_TYPE_R {
         uint8_t payload_byte[40];
     };
@@ -115,7 +93,11 @@ class BTLERxProcessor : public BasebandProcessor {
 
     void scramble_byte(uint8_t* byte_in, int num_byte, const uint8_t* scramble_table_byte, uint8_t* byte_out);
     // void demod_byte(int num_byte, uint8_t *out_byte);
-    int parse_adv_pdu_payload_byte(uint8_t* payload_byte, int num_payload_byte, ADV_PDU_TYPE pdu_type, void* adv_pdu_payload);
+    int verify_payload_byte(int num_payload_byte, ADV_PDU_TYPE pdu_type);
+
+    void handleBeginState();
+    void handlePDUHeaderState();
+    void handlePDUPayloadState();
 
     std::array<complex16_t, 512> dst{};
     const buffer_c16_t dst_buffer{
@@ -137,24 +119,20 @@ class BTLERxProcessor : public BasebandProcessor {
     bool configured{false};
     BlePacketData blePacketData{};
 
-    Parse_State parseState{};
+    Parse_State parseState{Parse_State_Begin};
     uint16_t packet_index{0};
     int sample_idx{0};
+    int symbols_eaten{0};
     uint8_t bit_decision{0};
     uint8_t payload_len{0};
     uint8_t pdu_type{0};
+    int32_t max_dB{0};
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
 
     void configure(const BTLERxConfigureMessage& message);
-
-    ADV_PDU_PAYLOAD_TYPE_0_2_4_6* payload_type_0_2_4_6 = nullptr;
-    ADV_PDU_PAYLOAD_TYPE_1_3* payload_type_1_3 = nullptr;
-    ADV_PDU_PAYLOAD_TYPE_5* payload_type_5 = nullptr;
-    ADV_PDU_PAYLOAD_TYPE_R* payload_type_R = nullptr;
-    ADV_PDU_PAYLOAD_TYPE_R adv_pdu_payload = {0};
 
     // clang-format off
     // Scramble table definition
