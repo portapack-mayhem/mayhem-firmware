@@ -403,6 +403,28 @@ class AFSKDataMessage : public Message {
     uint32_t value;
 };
 
+struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6 {
+    uint8_t Data[31];
+};
+
+struct ADV_PDU_PAYLOAD_TYPE_1_3 {
+    uint8_t A1[6];
+};
+
+struct ADV_PDU_PAYLOAD_TYPE_5 {
+    uint8_t AdvA[6];
+    uint8_t AA[4];
+    uint32_t CRCInit;
+    uint8_t WinSize;
+    uint16_t WinOffset;
+    uint16_t Interval;
+    uint16_t Latency;
+    uint16_t Timeout;
+    uint8_t ChM[5];
+    uint8_t Hop;
+    uint8_t SCA;
+};
+
 struct BlePacketData {
     int max_dB;
     uint8_t type;
