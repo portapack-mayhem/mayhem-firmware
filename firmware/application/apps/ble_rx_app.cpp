@@ -418,6 +418,14 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
+        // If we selected Auto don't do anything and Auto will handle changing.
+        if (i == 40) {
+            auto_channel = true;
+            return;
+        } else {
+            auto_channel = false;
+        }
+
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
 
@@ -440,6 +448,16 @@ BLERxView::BLERxView(NavigationView& nav)
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
+    if (auto_channel) {
+        int min = 37;
+        int max = 39;
+
+        int randomChannel = min + std::rand() % (max - min + 1);
+
+        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+        baseband::set_btlerx(randomChannel);
+    }
+
     std::string str_console = "";
 
     if (!logging) {

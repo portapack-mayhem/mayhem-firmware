@@ -194,6 +194,17 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
+    int randomChannel = channel_number;
+
+    if (auto_channel) {
+        int min = 37;
+        int max = 39;
+
+        randomChannel = min + std::rand() % (max - min + 1);
+
+        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+    }
+
     // Generate new random Mac Address.
     generateRandomMacAddress(randomMac);
 
@@ -211,7 +222,7 @@ void BLETxView::start() {
             progressbar.set_max(packets[0].packet_count);
             button_play.set_bitmap(&bitmap_stop);
 
-            baseband::set_btletx(channel_number, random_mac ? randomMac : packets[0].macAddress, packets[0].advertisementData, pduType);
+            baseband::set_btletx(randomChannel, random_mac ? randomMac : packets[0].macAddress, packets[0].advertisementData, pduType);
             transmitter_model.enable();
 
             is_running = true;
@@ -219,7 +230,7 @@ void BLETxView::start() {
     } else {
         // Send next packet.
         progressbar.set_max(packets[current_packet].packet_count);
-        baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+        baseband::set_btletx(randomChannel, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
     }
 
     if ((packet_counter % 10) == 0) {
@@ -305,6 +316,14 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
+        // If we selected Auto don't do anything and Auto will handle changing.
+        if (i == 40) {
+            auto_channel = true;
+            return;
+        } else {
+            auto_channel = false;
+        }
+
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
     };

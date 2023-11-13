@@ -135,6 +135,7 @@ class BLETxView : public View {
     std::filesystem::path file_path{};
     std::filesystem::path packet_save_path{u"BLETX/BLETX_????.TXT"};
     uint8_t channel_number = 37;
+    bool auto_channel = false;
 
     char randomMac[13] = "010203040506";
 
@@ -215,7 +216,8 @@ class BLETxView : public View {
         5,
         {{"Ch.37 ", 37},
          {"Ch.38", 38},
-         {"Ch.39", 39}}};
+         {"Ch.39", 39},
+         {"Auto", 40}}};
 
     OptionsField options_adv_type{
         {17 * 8, 6 * 8},
