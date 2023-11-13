@@ -599,9 +599,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
                 break;
             }
         }
-    }
-    else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ)
-    {
+    } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
         reverse_byte_array(directed_mac_data->A1, 6);
     }

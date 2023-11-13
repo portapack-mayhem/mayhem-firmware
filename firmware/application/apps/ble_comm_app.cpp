@@ -149,7 +149,7 @@ BLETxPacket BLECommView::build_adv_packet() {
     strncpy(bleTxPacket.macAddress, randomMac, 12);
     strncpy(bleTxPacket.advertisementData, dataString.c_str(), dataString.length());
 
-    //Little note that, at 64 timer, 40 packets is around 1 second. So this should advertise for 5 seconds for 200 packets.
+    // Little note that, at 64 timer, 40 packets is around 1 second. So this should advertise for 5 seconds for 200 packets.
     strncpy(bleTxPacket.packetCount, "200", 4);
     bleTxPacket.packet_count = 200;
 
@@ -157,9 +157,7 @@ BLETxPacket BLECommView::build_adv_packet() {
 }
 
 void BLECommView::startTx(BLETxPacket packetToSend, PKT_TYPE pduType) {
-
-    if (!is_sending_tx()) 
-    {
+    if (!is_sending_tx()) {
         switch_rx_tx(false);
 
         packet_counter = packetToSend.packet_count;
@@ -169,8 +167,7 @@ void BLECommView::startTx(BLETxPacket packetToSend, PKT_TYPE pduType) {
         transmitter_model.enable();
 
         is_running_tx = true;
-    }
-    else {
+    } else {
         baseband::set_btletx(channel_number_tx, packetToSend.macAddress, packetToSend.advertisementData, pduType);
     }
 
@@ -193,18 +190,14 @@ void BLECommView::stopTx() {
     is_running_tx = false;
 }
 
-void BLECommView::switch_rx_tx(bool inRxMode)
-{
-    if (inRxMode)
-    {
-        //Start Rx
+void BLECommView::switch_rx_tx(bool inRxMode) {
+    if (inRxMode) {
+        // Start Rx
         transmitter_model.disable();
         baseband::shutdown();
         baseband::run_image(portapack::spi_flash::image_tag_btle_rx);
-    }
-    else
-    {
-        //Start Tx
+    } else {
+        // Start Tx
         receiver_model.disable();
         baseband::shutdown();
         baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
@@ -277,7 +270,7 @@ void BLECommView::on_data(BlePacketData* packet) {
 
     console.write(str_console);
 
-    //uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
+    // uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
     parse_received_packet(packet, (ADV_PDU_TYPE)packet->type);
 
@@ -293,8 +286,7 @@ void BLECommView::on_tx_progress(const bool done) {
             // Reached end of current packet repeats.
             if (packet_counter == 0) {
                 stopTx();
-            } 
-            else {
+            } else {
                 if ((timer_count % timer_period) == 0) {
                     startTx(build_adv_packet(), PKT_TYPE_DISCOVERY);
                 }

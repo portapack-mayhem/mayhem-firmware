@@ -134,7 +134,7 @@ class BLECommView : public View {
         {24 * 8, 5, 6 * 8, 4}};
 
     Labels label_send_adv{
-        {{0 * 8, 2 * 8}, "Send Advertisement:", Color::light_grey()}};    
+        {{0 * 8, 2 * 8}, "Send Advertisement:", Color::light_grey()}};
 
     ImageButton button_send_adv{
         {21 * 8, 1 * 16, 10 * 8, 2 * 16},
