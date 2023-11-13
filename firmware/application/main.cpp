@@ -186,6 +186,8 @@ int main(void) {
         sdcStop(&SDCD1);
 
         portapack::shutdown();
+    } else {
+        config_mode_clear();
     }
 
     m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf, true);
