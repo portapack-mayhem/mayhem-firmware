@@ -114,6 +114,7 @@ class BLETxView : public View {
     std::string title() const override { return "BLE TX"; };
 
    private:
+    void on_timer();
     void on_data(uint32_t value, bool is_data);
     void on_file_changed(const std::filesystem::path& new_file_path);
     void on_save_file(const std::string value);
@@ -140,8 +141,9 @@ class BLETxView : public View {
     char randomMac[13] = "010203040506";
 
     bool is_running = false;
+    bool is_sending = false;
     uint64_t timer_count{0};
-    uint64_t timer_period{256};
+    int16_t timer_period{30};
     bool repeatLoop = false;
     uint32_t packet_counter{0};
     uint32_t num_packets{0};
@@ -154,6 +156,7 @@ class BLETxView : public View {
     static constexpr uint8_t max_packet_repeat_str{10};
     static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
     static constexpr uint32_t max_num_packets{32};
+    int16_t mscounter = 0;
 
     BLETxPacket packets[max_num_packets];
 
@@ -205,11 +208,11 @@ class BLETxView : public View {
     OptionsField options_speed{
         {7 * 8, 6 * 8},
         3,
-        {{"1 ", 256},
-         {"2 ", 128},
-         {"3 ", 64},
-         {"4 ", 32},
-         {"5 ", 16}}};
+        {{"1 ", 1}, //16ms
+         {"2 ", 2}, //32ms
+         {"3 ", 3}, //48ms
+         {"4 ", 6}, //100ms
+         {"5 ", 12}}}; //200ms
 
     OptionsField options_channel{
         {11 * 8, 6 * 8},
@@ -285,6 +288,12 @@ class BLETxView : public View {
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.done);
+        }};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_timer();
         }};
 };
 

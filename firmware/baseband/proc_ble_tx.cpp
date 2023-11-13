@@ -339,6 +339,9 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
             if (sample_count > length) {
                 configured = false;
                 sample_count = 0;
+                
+                txprogress_message.done = true;
+                shared_memory.application_queue.push(txprogress_message);
             } else {
                 // Real and imaginary was already calculated in gen_sample_from_phy_bit.
                 // It was processed from each data bit, run through a Gaussian Filter, and then ran through sin and cos table to get each IQ bit.
@@ -363,9 +366,6 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
             buffer.p[i] = {re, im};
         }
     }
-
-    txprogress_message.done = true;
-    shared_memory.application_queue.push(txprogress_message);
 }
 
 void BTLETxProcessor::on_message(const Message* const message) {
