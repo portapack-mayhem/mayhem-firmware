@@ -143,7 +143,7 @@ class BLETxView : public View {
     bool is_running = false;
     bool is_sending = false;
     uint64_t timer_count{0};
-    int16_t timer_period{30};
+    int16_t timer_period{1};
     bool repeatLoop = false;
     uint32_t packet_counter{0};
     uint32_t num_packets{0};
