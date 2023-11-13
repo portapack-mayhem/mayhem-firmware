@@ -468,7 +468,7 @@ bool init() {
     chThdSleepMilliseconds(10);
 
     /* Check if portapack is attached by checking if any of the two audio chips is present. */
-    systime_t timeout = 5000;
+    systime_t timeout = 50;
     uint8_t wm8731_reset_command[] = {0x0f, 0x00};
     if (i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
         audio_codec_ak4951.reset();
