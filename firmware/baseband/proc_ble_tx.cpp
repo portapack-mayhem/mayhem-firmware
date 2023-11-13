@@ -339,7 +339,7 @@ void BTLETxProcessor::execute(const buffer_c8_t& buffer) {
             if (sample_count > length) {
                 configured = false;
                 sample_count = 0;
-                
+
                 txprogress_message.done = true;
                 shared_memory.application_queue.push(txprogress_message);
             } else {

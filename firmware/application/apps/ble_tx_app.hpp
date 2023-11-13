@@ -208,11 +208,11 @@ class BLETxView : public View {
     OptionsField options_speed{
         {7 * 8, 6 * 8},
         3,
-        {{"1 ", 1}, //16ms
-         {"2 ", 2}, //32ms
-         {"3 ", 3}, //48ms
-         {"4 ", 6}, //100ms
-         {"5 ", 12}}}; //200ms
+        {{"1 ", 1},     // 16ms
+         {"2 ", 2},     // 32ms
+         {"3 ", 3},     // 48ms
+         {"4 ", 6},     // 100ms
+         {"5 ", 12}}};  // 200ms
 
     OptionsField options_channel{
         {11 * 8, 6 * 8},

@@ -271,11 +271,9 @@ void BLETxView::on_timer() {
                     update_current_packet(packets[current_packet], current_packet);
                     start();
                 }
-            }
-            else
-            {
+            } else {
                 start();
-            } 
+            }
         }
     }
 }
