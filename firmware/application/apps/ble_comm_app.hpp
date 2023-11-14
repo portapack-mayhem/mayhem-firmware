@@ -108,10 +108,10 @@ class BLECommView : public View {
     bool is_sending = false;
     bool is_looping = false;
 
-    int16_t timer_period{1}; //Delay each packet by 16ms.
+    int16_t timer_period{1};  // Delay each packet by 16ms.
     int16_t timer_counter = 0;
     int16_t timer_rx_counter = 0;
-    int16_t timer_rx_period{12}; //Poll Rx for at least 200ms. (TBD)
+    int16_t timer_rx_period{12};  // Poll Rx for at least 200ms. (TBD)
 
     uint32_t packet_counter{0};
     BLETxPacket advertisePacket{};
@@ -195,7 +195,7 @@ class BLECommView : public View {
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
             this->on_timer();
-    }};
+        }};
 };
 
 } /* namespace ui */
