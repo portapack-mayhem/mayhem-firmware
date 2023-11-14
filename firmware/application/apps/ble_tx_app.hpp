@@ -55,13 +55,6 @@ class BLELoggerTx {
 
 namespace ui {
 
-struct BLETxPacket {
-    char macAddress[13];
-    char advertisementData[63];
-    char packetCount[11];
-    uint32_t packet_count;
-};
-
 enum PKT_TYPE {
     PKT_TYPE_INVALID_TYPE,
     PKT_TYPE_RAW,
@@ -90,6 +83,14 @@ enum PKT_TYPE {
     PKT_TYPE_LL_VERSION_IND,
     PKT_TYPE_LL_REJECT_IND,
     PKT_TYPE_NUM_PKT_TYPE
+};
+
+struct BLETxPacket {
+    char macAddress[13];
+    char advertisementData[63];
+    char packetCount[11];
+    uint32_t packet_count;
+    PKT_TYPE packetType;
 };
 
 class BLETxView : public View {

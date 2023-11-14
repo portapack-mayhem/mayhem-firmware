@@ -104,16 +104,28 @@ BLECommView::BLECommView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
+        // If we selected Auto don't do anything and Auto will handle changing.
+        if (i == 40) {
+            auto_channel = true;
+            return;
+        } else {
+            auto_channel = false;
+        }
+
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number_rx = i;
+        channel_number_tx = i;
     };
 
-    options_channel.set_selected_index(0, true);
+    options_channel.set_selected_index(3, true);
 
     logger = std::make_unique<BLECommLogger>();
 
     // Generate new random Mac Address upon each new startup.
     generateRandomMacAddress(randomMac);
+
+    // Setup Initial Advertise Packet.
+    advertisePacket = build_adv_packet();
 }
 
 void BLECommView::set_parent_rect(const Rect new_parent_rect) {
@@ -128,15 +140,15 @@ BLECommView::~BLECommView() {
     baseband::shutdown();
 }
 
-bool BLECommView::is_sending_tx() const {
+bool BLECommView::in_tx_mode() const {
     return (bool)is_running_tx;
 }
 
 void BLECommView::toggle() {
-    if (is_sending_tx()) {
-        stopTx();
+    if (in_tx_mode()) {
+        sendAdvertisement(false);
     } else {
-        startTx(build_adv_packet(), PKT_TYPE_DISCOVERY);
+        sendAdvertisement(true);
     }
 }
 
@@ -149,31 +161,60 @@ BLETxPacket BLECommView::build_adv_packet() {
     strncpy(bleTxPacket.macAddress, randomMac, 12);
     strncpy(bleTxPacket.advertisementData, dataString.c_str(), dataString.length());
 
-    // Little note that, at 64 timer, 40 packets is around 1 second. So this should advertise for 5 seconds for 200 packets.
-    strncpy(bleTxPacket.packetCount, "200", 4);
-    bleTxPacket.packet_count = 200;
+    // Little note that 120 packets is around 2 seconds at timer rate of 16ms per tick.
+    strncpy(bleTxPacket.packetCount, "120", 4);
+    bleTxPacket.packet_count = 120;
+
+    bleTxPacket.packetType = PKT_TYPE_DISCOVERY;
 
     return bleTxPacket;
 }
 
-void BLECommView::startTx(BLETxPacket packetToSend, PKT_TYPE pduType) {
-    if (!is_sending_tx()) {
+void BLECommView::sendAdvertisement(bool enable)
+{
+    if (enable)
+    {
+        startTx(advertisePacket);
+    }
+    else
+    {
+        stopTx();
+    }
+}
+
+void BLECommView::startTx(BLETxPacket packetToSend) {
+
+    int randomChannel = channel_number_tx;
+
+    if (auto_channel) {
+        int min = 37;
+        int max = 39;
+
+        randomChannel = min + std::rand() % (max - min + 1);
+
+        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+    }
+
+    if (!in_tx_mode()) {
         switch_rx_tx(false);
 
-        packet_counter = packetToSend.packet_count;
+        currentPacket = packetToSend;
+        packet_counter = currentPacket.packet_count;
 
         button_send_adv.set_bitmap(&bitmap_stop);
-        baseband::set_btletx(channel_number_tx, packetToSend.macAddress, packetToSend.advertisementData, pduType);
+        baseband::set_btletx(randomChannel, currentPacket.macAddress, currentPacket.advertisementData, currentPacket.packetType);
         transmitter_model.enable();
 
         is_running_tx = true;
     } else {
-        baseband::set_btletx(channel_number_tx, packetToSend.macAddress, packetToSend.advertisementData, pduType);
+        baseband::set_btletx(randomChannel, currentPacket.macAddress, currentPacket.advertisementData, currentPacket.packetType);
     }
 
     if ((packet_counter % 10) == 0) {
         text_packets_sent.set(to_string_dec_uint(packet_counter));
     }
+
+    is_sending = true;
 
     packet_counter--;
 }
@@ -205,94 +246,39 @@ void BLECommView::switch_rx_tx(bool inRxMode) {
 }
 
 void BLECommView::on_data(BlePacketData* packet) {
-    std::string str_console = "";
-
-    if (!logging) {
-        str_log = "";
-    }
-
-    switch ((ADV_PDU_TYPE)packet->type) {
-        case ADV_IND:
-            str_console += "ADV_IND";
-            break;
-        case ADV_DIRECT_IND:
-            str_console += "ADV_DIRECT_IND";
-            break;
-        case ADV_NONCONN_IND:
-            str_console += "ADV_NONCONN_IND";
-            break;
-        case SCAN_REQ:
-            str_console += "SCAN_REQ";
-            break;
-        case SCAN_RSP:
-            str_console += "SCAN_RSP";
-            break;
-        case CONNECT_REQ:
-            str_console += "CONNECT_REQ";
-            break;
-        case ADV_SCAN_IND:
-            str_console += "ADV_SCAN_IND";
-            break;
-        case RESERVED0:
-        case RESERVED1:
-        case RESERVED2:
-        case RESERVED3:
-        case RESERVED4:
-        case RESERVED5:
-        case RESERVED6:
-        case RESERVED7:
-        case RESERVED8:
-            str_console += "RESERVED";
-            break;
-        default:
-            str_console += "UNKNOWN";
-            break;
-    }
-
-    str_console += " Len:";
-    str_console += to_string_dec_uint(packet->size);
-
-    str_console += "\n";
-
-    str_console += "Mac:";
-    str_console += to_string_mac_address(packet->macAddress, 6, false);
-
-    str_console += "\n";
-    str_console += "Data:";
-
-    int i;
-
-    for (i = 0; i < packet->dataLen; i++) {
-        str_console += to_string_hex(packet->data[i], 2);
-    }
-
-    str_console += "\n";
-
-    console.write(str_console);
-
-    // uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
-
     parse_received_packet(packet, (ADV_PDU_TYPE)packet->type);
+}
 
-    // Log at End of Packet.
-    if (logger && logging) {
-        logger->log_raw_data(str_console);
+// called each 1/60th of second, so 6 = 100ms
+void BLECommView::on_timer() {
+    if (in_tx_mode()) {
+        if(!is_sending)
+        {
+            // Reached end of current packet repeats.
+            if (packet_counter == 0) {
+                stopTx();
+            } else {
+                startTx(currentPacket);
+            }
+        }
+    }
+    else
+    {
+        // If timer expired and we need to send something.
+        if (is_looping && (++timer_rx_counter == timer_rx_period))
+        {
+            timer_rx_counter = 0;
+
+            //Handle what we need to send.
+            startTx(currentPacket);
+        }
     }
 }
 
 void BLECommView::on_tx_progress(const bool done) {
     if (done) {
-        if (is_sending_tx()) {
-            // Reached end of current packet repeats.
-            if (packet_counter == 0) {
-                stopTx();
-            } else {
-                if ((timer_count % timer_period) == 0) {
-                    startTx(build_adv_packet(), PKT_TYPE_DISCOVERY);
-                }
-            }
-
-            timer_count++;
+        if (in_tx_mode()) {
+            is_sending = false;
         }
     }
 }
@@ -306,54 +292,40 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
         data_string += to_string_hex(packet->data[i], 2);
     }
 
-    currentPacket.dbValue = packet->max_dB;
-    currentPacket.timestamp = to_string_timestamp(rtc_time::now());
-    currentPacket.dataString = data_string;
+    receivedPacket.dbValue = packet->max_dB;
+    receivedPacket.timestamp = to_string_timestamp(rtc_time::now());
+    receivedPacket.dataString = data_string;
 
-    currentPacket.packetData.type = packet->type;
-    currentPacket.packetData.size = packet->size;
-    currentPacket.packetData.dataLen = packet->dataLen;
+    receivedPacket.packetData.type = packet->type;
+    receivedPacket.packetData.size = packet->size;
+    receivedPacket.packetData.dataLen = packet->dataLen;
 
-    currentPacket.packetData.macAddress[0] = packet->macAddress[0];
-    currentPacket.packetData.macAddress[1] = packet->macAddress[1];
-    currentPacket.packetData.macAddress[2] = packet->macAddress[2];
-    currentPacket.packetData.macAddress[3] = packet->macAddress[3];
-    currentPacket.packetData.macAddress[4] = packet->macAddress[4];
-    currentPacket.packetData.macAddress[5] = packet->macAddress[5];
+    receivedPacket.packetData.macAddress[0] = packet->macAddress[0];
+    receivedPacket.packetData.macAddress[1] = packet->macAddress[1];
+    receivedPacket.packetData.macAddress[2] = packet->macAddress[2];
+    receivedPacket.packetData.macAddress[3] = packet->macAddress[3];
+    receivedPacket.packetData.macAddress[4] = packet->macAddress[4];
+    receivedPacket.packetData.macAddress[5] = packet->macAddress[5];
 
-    currentPacket.numHits++;
+    receivedPacket.numHits++;
 
     for (int i = 0; i < packet->dataLen; i++) {
-        currentPacket.packetData.data[i] = packet->data[i];
+        receivedPacket.packetData.data[i] = packet->data[i];
     }
 
     std::string nameString;
 
     // Only parse name for advertisment packets and empty name entries
     if ((pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) && nameString.empty()) {
-        ADV_PDU_PAYLOAD_TYPE_0_2_4_6* advertiseData = (ADV_PDU_PAYLOAD_TYPE_0_2_4_6*)packet->data;
+        ADV_PDU_PAYLOAD_TYPE_1_3 * directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
 
-        uint8_t currentByte = 0;
-        uint8_t length = 0;
-        uint8_t type = 0;
+        std::reverse(directed_mac_data->A1, directed_mac_data->A1 + 6);
+        console.clear(true);
+        std::string str_console = "";
 
-        std::string decoded_data;
-        for (currentByte = 0; (currentByte < packet->dataLen);) {
-            length = advertiseData->Data[currentByte++];
-            type = advertiseData->Data[currentByte++];
-
-            // Subtract 1 because type is part of the length.
-            for (int i = 0; i < length - 1; i++) {
-                if (type == 0x08 || type == 0x09) {
-                    decoded_data += (char)advertiseData->Data[currentByte];
-                }
-                currentByte++;
-            }
-            if (!decoded_data.empty()) {
-                nameString = std::move(decoded_data);
-                break;
-            }
-        }
+        str_console += "MY MAC:" + to_string_formatted_mac_address(randomMac) + "\n";
+        str_console += "SCAN MAC:" + to_string_mac_address(directed_mac_data->A1, 6, false) + "\n";
+        console.write(str_console);
     }
 }
 

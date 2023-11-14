@@ -68,13 +68,15 @@ class BLECommView : public View {
    private:
     BLETxPacket build_adv_packet();
     void switch_rx_tx(bool inRxMode);
-    void startTx(BLETxPacket packetToSend, PKT_TYPE pduType);
+    void startTx(BLETxPacket packetToSend);
     void stopTx();
     void toggle();
-    bool is_sending_tx() const;
+    bool in_tx_mode() const;
+    void on_timer();
     void on_data(BlePacketData* packetData);
     void on_tx_progress(const bool done);
     void parse_received_packet(const BlePacketData* packet, ADV_PDU_TYPE pdu_type);
+    void sendAdvertisement(bool enable);
 
     NavigationView& nav_;
 
@@ -98,12 +100,23 @@ class BLECommView : public View {
 
     uint8_t channel_number_tx = 37;
     uint8_t channel_number_rx = 37;
+    bool auto_channel = false;
 
     char randomMac[13] = "010203040506";
+
     bool is_running_tx = false;
-    uint64_t timer_count{0};
-    uint64_t timer_period{64};
+    bool is_sending = false;
+    bool is_looping = false;
+
+    int16_t timer_period{1}; //Delay each packet by 16ms.
+    int16_t timer_counter = 0;
+    int16_t timer_rx_counter = 0;
+    int16_t timer_rx_period{12}; //Poll Rx for at least 200ms. (TBD)
+
     uint32_t packet_counter{0};
+    BLETxPacket advertisePacket{};
+    BLETxPacket currentPacket{};
+    BleRecentEntry receivedPacket{};
 
     static constexpr auto header_height = 5 * 16;
 
@@ -112,7 +125,8 @@ class BLECommView : public View {
         5,
         {{"Ch.37 ", 37},
          {"Ch.38", 38},
-         {"Ch.39", 39}}};
+         {"Ch.39", 39},
+         {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
         {6 * 8, 0 * 16},
@@ -161,8 +175,6 @@ class BLECommView : public View {
     std::string str_log{""};
     bool logging{false};
 
-    BleRecentEntry currentPacket = {};
-
     std::unique_ptr<BLECommLogger> logger{};
 
     MessageHandlerRegistration message_handler_packet{
@@ -178,6 +190,12 @@ class BLECommView : public View {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.done);
         }};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_timer();
+    }};
 };
 
 } /* namespace ui */
