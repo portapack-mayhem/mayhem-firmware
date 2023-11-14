@@ -473,9 +473,10 @@ bool init() {
     if (i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
         audio_codec_ak4951.reset();
         uint8_t ak4951_init_command[] = {0x00, 0x00};
+        i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout);
+        chThdSleepMilliseconds(10);
         if (i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout) == false) {
             shutdown_base();
-
             return false;
         }
     }
