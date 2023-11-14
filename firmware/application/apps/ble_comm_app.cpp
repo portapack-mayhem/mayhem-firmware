@@ -162,8 +162,8 @@ BLETxPacket BLECommView::build_adv_packet() {
     strncpy(bleTxPacket.advertisementData, dataString.c_str(), dataString.length());
 
     // Little note that 120 packets is around 2 seconds at timer rate of 16ms per tick.
-    strncpy(bleTxPacket.packetCount, "120", 4);
-    bleTxPacket.packet_count = 120;
+    strncpy(bleTxPacket.packetCount, "32", 4);
+    bleTxPacket.packet_count = 32;
 
     bleTxPacket.packetType = PKT_TYPE_DISCOVERY;
 
@@ -173,6 +173,7 @@ BLETxPacket BLECommView::build_adv_packet() {
 void BLECommView::sendAdvertisement(bool enable) {
     if (enable) {
         startTx(advertisePacket);
+        is_looping = true;
     } else {
         stopTx();
     }
