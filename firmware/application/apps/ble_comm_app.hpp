@@ -106,9 +106,9 @@ class BLECommView : public View {
 
     bool is_running_tx = false;
     bool is_sending = false;
-    bool is_looping = false;
+    bool is_adv = false;
 
-    int16_t timer_period{1};  // Delay each packet by 16ms.
+    int16_t timer_period{6};  // Delay each packet by 16ms.
     int16_t timer_counter = 0;
     int16_t timer_rx_counter = 0;
     int16_t timer_rx_period{12};  // Poll Rx for at least 200ms. (TBD)

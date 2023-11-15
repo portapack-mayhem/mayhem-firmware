@@ -162,8 +162,8 @@ BLETxPacket BLECommView::build_adv_packet() {
     strncpy(bleTxPacket.advertisementData, dataString.c_str(), dataString.length());
 
     // Little note that 120 packets is around 2 seconds at timer rate of 16ms per tick.
-    strncpy(bleTxPacket.packetCount, "32", 4);
-    bleTxPacket.packet_count = 32;
+    strncpy(bleTxPacket.packetCount, "50", 3);
+    bleTxPacket.packet_count = 50;
 
     bleTxPacket.packetType = PKT_TYPE_DISCOVERY;
 
@@ -173,8 +173,9 @@ BLETxPacket BLECommView::build_adv_packet() {
 void BLECommView::sendAdvertisement(bool enable) {
     if (enable) {
         startTx(advertisePacket);
-        is_looping = true;
+        is_adv = true;
     } else {
+        is_adv = false;
         stopTx();
     }
 }
@@ -246,23 +247,16 @@ void BLECommView::on_data(BlePacketData* packet) {
 }
 
 // called each 1/60th of second, so 6 = 100ms
-void BLECommView::on_timer() {
-    if (in_tx_mode()) {
-        if (!is_sending) {
-            // Reached end of current packet repeats.
-            if (packet_counter == 0) {
-                stopTx();
-            } else {
-                startTx(currentPacket);
-            }
-        }
-    } else {
-        // If timer expired and we need to send something.
-        if (is_looping && (++timer_rx_counter == timer_rx_period)) {
-            timer_rx_counter = 0;
+void BLECommView::on_timer() 
+{
+    // Send advertise burst only once every 100ms
+    if (++timer_counter == timer_period)
+    {
+        timer_counter = 0;
 
-            // Handle what we need to send.
-            startTx(currentPacket);
+        if (!is_adv)
+        {
+            sendAdvertisement(true);
         }
     }
 }
@@ -270,7 +264,24 @@ void BLECommView::on_timer() {
 void BLECommView::on_tx_progress(const bool done) {
     if (done) {
         if (in_tx_mode()) {
+            
             is_sending = false;
+
+            if (packet_counter == 0) 
+            {
+                if (is_adv)
+                {
+                    sendAdvertisement(false);
+                }
+                else
+                {
+                    stopTx();
+                }
+            } 
+            else 
+            {
+                startTx(currentPacket);
+            }
         }
     }
 }
@@ -305,10 +316,7 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
         receivedPacket.packetData.data[i] = packet->data[i];
     }
 
-    std::string nameString;
-
-    // Only parse name for advertisment packets and empty name entries
-    if ((pdu_type == ADV_IND || pdu_type == ADV_NONCONN_IND || pdu_type == SCAN_RSP || pdu_type == ADV_SCAN_IND) && nameString.empty()) {
+    if (pdu_type == SCAN_REQ) {
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
 
         std::reverse(directed_mac_data->A1, directed_mac_data->A1 + 6);
