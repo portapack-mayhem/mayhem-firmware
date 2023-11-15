@@ -247,15 +247,12 @@ void BLECommView::on_data(BlePacketData* packet) {
 }
 
 // called each 1/60th of second, so 6 = 100ms
-void BLECommView::on_timer() 
-{
+void BLECommView::on_timer() {
     // Send advertise burst only once every 100ms
-    if (++timer_counter == timer_period)
-    {
+    if (++timer_counter == timer_period) {
         timer_counter = 0;
 
-        if (!is_adv)
-        {
+        if (!is_adv) {
             sendAdvertisement(true);
         }
     }
@@ -264,22 +261,15 @@ void BLECommView::on_timer()
 void BLECommView::on_tx_progress(const bool done) {
     if (done) {
         if (in_tx_mode()) {
-            
             is_sending = false;
 
-            if (packet_counter == 0) 
-            {
-                if (is_adv)
-                {
+            if (packet_counter == 0) {
+                if (is_adv) {
                     sendAdvertisement(false);
-                }
-                else
-                {
+                } else {
                     stopTx();
                 }
-            } 
-            else 
-            {
+            } else {
                 startTx(currentPacket);
             }
         }
