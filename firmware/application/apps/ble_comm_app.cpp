@@ -161,9 +161,9 @@ BLETxPacket BLECommView::build_adv_packet() {
     strncpy(bleTxPacket.macAddress, randomMac, 12);
     strncpy(bleTxPacket.advertisementData, dataString.c_str(), dataString.length());
 
-    // Little note that 120 packets is around 2 seconds at timer rate of 16ms per tick.
-    strncpy(bleTxPacket.packetCount, "50", 3);
-    bleTxPacket.packet_count = 50;
+    // Duty cycle of 40% per 100ms advertisment periods.
+    strncpy(bleTxPacket.packetCount, "80", 3);
+    bleTxPacket.packet_count = 80;
 
     bleTxPacket.packetType = PKT_TYPE_DISCOVERY;
 
@@ -200,6 +200,7 @@ void BLECommView::startTx(BLETxPacket packetToSend) {
 
         button_send_adv.set_bitmap(&bitmap_stop);
         baseband::set_btletx(randomChannel, currentPacket.macAddress, currentPacket.advertisementData, currentPacket.packetType);
+        transmitter_model.set_tx_gain(47);
         transmitter_model.enable();
 
         is_running_tx = true;
@@ -306,13 +307,24 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
         receivedPacket.packetData.data[i] = packet->data[i];
     }
 
-    if (pdu_type == SCAN_REQ) {
+    if (pdu_type == SCAN_REQ || pdu_type == CONNECT_REQ) {
         ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)packet->data;
 
         std::reverse(directed_mac_data->A1, directed_mac_data->A1 + 6);
         console.clear(true);
         std::string str_console = "";
+        std::string pduTypeStr = "";
 
+        if (pdu_type == SCAN_REQ)
+        {
+           pduTypeStr += "SCAN_REQ";
+        }
+        else if (pdu_type == CONNECT_REQ)
+        {
+            pduTypeStr += "CONNECT_REQ";
+        }
+
+        str_console += "PACKET TYPE:" + pduTypeStr + "\n";
         str_console += "MY MAC:" + to_string_formatted_mac_address(randomMac) + "\n";
         str_console += "SCAN MAC:" + to_string_mac_address(directed_mac_data->A1, 6, false) + "\n";
         console.write(str_console);
