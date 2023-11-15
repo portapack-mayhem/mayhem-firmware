@@ -315,12 +315,9 @@ void BLECommView::parse_received_packet(const BlePacketData* packet, ADV_PDU_TYP
         std::string str_console = "";
         std::string pduTypeStr = "";
 
-        if (pdu_type == SCAN_REQ)
-        {
-           pduTypeStr += "SCAN_REQ";
-        }
-        else if (pdu_type == CONNECT_REQ)
-        {
+        if (pdu_type == SCAN_REQ) {
+            pduTypeStr += "SCAN_REQ";
+        } else if (pdu_type == CONNECT_REQ) {
             pduTypeStr += "CONNECT_REQ";
         }
 
