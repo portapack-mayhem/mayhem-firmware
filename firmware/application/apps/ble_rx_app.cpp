@@ -162,6 +162,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
       entry_{entry} {
     add_children({&button_done,
                   &button_send,
+                  &button_save,
                   &label_mac_address,
                   &text_mac_address,
                   &label_pdu_type,
@@ -182,6 +183,48 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
         });
         nav.pop();
     };
+
+    button_save.on_select = [this, &nav](const ui::Button&) {
+        auto packetToSave = build_packet();
+
+        packetFileBuffer = "";
+        text_prompt(
+            nav,
+            packetFileBuffer,
+            64,
+            [this, packetToSave](std::string& buffer) {
+                on_save_file(buffer, packetToSave);
+            });
+    };
+}
+
+void BleRecentEntryDetailView::on_save_file(const std::string value, BLETxPacket packetToSave) {
+
+    std::filesystem::path packet_save_path{u"BLERX/Packets/Packet_????.TXT"};
+
+    ensure_directory(packet_save_path);
+    auto folder = packet_save_path.parent_path();
+    auto ext = packet_save_path.extension();
+    auto new_path = folder / value + ext;
+
+    saveFile(new_path, packetToSave);
+}
+
+bool BleRecentEntryDetailView::saveFile(const std::filesystem::path& path, BLETxPacket packetToSave) {
+    File f;
+    auto error = f.create(path);
+    if (error)
+        return false;
+
+    std::string macAddressStr = packetToSave.macAddress;
+    std::string advertisementDataStr = packetToSave.advertisementData;
+    std::string packetCountStr = packetToSave.packetCount;
+
+    std::string packetString = macAddressStr + ' ' + advertisementDataStr + ' ' + packetCountStr;
+
+    f.write(packetString.c_str(), packetString.length());
+    
+    return true;
 }
 
 void BleRecentEntryDetailView::update_data() {

@@ -125,6 +125,9 @@ class BleRecentEntryDetailView : public View {
     NavigationView& nav_;
     BleRecentEntry entry_{};
     BLETxPacket build_packet();
+    void on_save_file(const std::string value, BLETxPacket packetToSave);
+    bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
+    std::string packetFileBuffer{};
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -155,6 +158,10 @@ class BleRecentEntryDetailView : public View {
     Button button_done{
         {125, 224, 96, 24},
         "Done"};
+
+    Button button_save{
+        {72, 264, 96, 24},
+        "Save"};
 
     bool send_updates{false};
 
