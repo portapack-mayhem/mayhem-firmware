@@ -84,6 +84,7 @@ struct BleRecentEntry {
     bool include_name;
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
+    uint8_t channelNumber;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -99,7 +100,8 @@ struct BleRecentEntry {
           nameString{},
           include_name{},
           numHits{},
-          pduType{} {
+          pduType{},
+          channelNumber{} {
     }
 
     Key key() const {
@@ -125,6 +127,9 @@ class BleRecentEntryDetailView : public View {
     NavigationView& nav_;
     BleRecentEntry entry_{};
     BLETxPacket build_packet();
+    void on_save_file(const std::string value, BLETxPacket packetToSave);
+    bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
+    std::string packetFileBuffer{};
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -156,6 +161,10 @@ class BleRecentEntryDetailView : public View {
         {125, 224, 96, 24},
         "Done"};
 
+    Button button_save{
+        {72, 264, 96, 24},
+        "Save"};
+
     bool send_updates{false};
 
     Rect draw_field(
@@ -179,6 +188,8 @@ class BLERxView : public View {
     std::string title() const override { return "BLE RX"; };
 
    private:
+    void on_save_file(const std::string value);
+    bool saveFile(const std::filesystem::path& path);
     void on_data(BlePacketData* packetData);
     void on_filter_change(std::string value);
     void handle_entries_sort(uint8_t index);
@@ -200,6 +211,7 @@ class BLERxView : public View {
 
     std::string filterBuffer{};
     std::string filter{};
+    std::string listFileBuffer{};
 
     static constexpr auto header_height = 3 * 16;
     static constexpr auto switch_button_height = 3 * 16;
@@ -262,9 +274,13 @@ class BLERxView : public View {
     Console console{
         {0, 4 * 16, 240, 240}};
 
+    Button button_save_list{
+        {1 * 8, 16 * 16, 13 * 8, 2 * 16},
+        "Save List"};
+
     Button button_switch{
-        {8 * 8, 16 * 16, 14 * 8, 2 * 16},
-        "Switch to Tx"};
+        {16 * 8, 16 * 16, 13 * 8, 2 * 16},
+        "Switch to Rx"};
 
     std::string str_log{""};
     bool logging{false};
@@ -272,7 +288,6 @@ class BLERxView : public View {
     std::unique_ptr<BLELogger> logger{};
 
     BleRecentEntries recent{};
-    BleRecentEntries filterEntries{};
 
     const RecentEntriesColumns columns{{
         {"Mac Address", 17},
