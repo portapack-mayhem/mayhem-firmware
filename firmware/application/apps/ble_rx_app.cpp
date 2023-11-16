@@ -199,7 +199,6 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 }
 
 void BleRecentEntryDetailView::on_save_file(const std::string value, BLETxPacket packetToSave) {
-
     std::filesystem::path packet_save_path{u"BLERX/Packets/Packet_????.TXT"};
 
     ensure_directory(packet_save_path);
@@ -223,7 +222,7 @@ bool BleRecentEntryDetailView::saveFile(const std::filesystem::path& path, BLETx
     std::string packetString = macAddressStr + ' ' + advertisementDataStr + ' ' + packetCountStr;
 
     f.write(packetString.c_str(), packetString.length());
-    
+
     return true;
 }
 
