@@ -419,6 +419,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &label_sort,
                   &options_sort,
                   &button_filter,
+                  &button_save_list,
                   &button_switch,
                   &recent_entries_view});
 
@@ -433,6 +434,17 @@ BLERxView::BLERxView(NavigationView& nav)
             64,
             [this](std::string& buffer) {
                 on_filter_change(buffer);
+            });
+    };
+
+    button_save_list.on_select = [this, &nav](const ui::Button&) {
+        listFileBuffer = "";
+        text_prompt(
+            nav,
+            listFileBuffer,
+            64,
+            [this](std::string& buffer) {
+                on_save_file(buffer);
             });
     };
 
@@ -487,6 +499,55 @@ BLERxView::BLERxView(NavigationView& nav)
     baseband::set_btlerx(channel_number);
 
     receiver_model.enable();
+}
+
+void BLERxView::on_save_file(const std::string value) {
+    std::filesystem::path packet_save_path{u"BLERX/Lists/List_????.csv"};
+
+    ensure_directory(packet_save_path);
+    auto folder = packet_save_path.parent_path();
+    auto ext = packet_save_path.extension();
+    auto new_path = folder / value + ext;
+
+    saveFile(new_path);
+}
+
+bool BLERxView::saveFile(const std::filesystem::path& path) {
+    File f;
+    auto error = f.create(path);
+    if (error)
+        return false;
+
+    auto it = recent.begin();
+
+    std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel \n";
+    f.write(headerStr.c_str(), headerStr.length());
+
+    while (it != recent.end()) {
+        BleRecentEntry entry = (BleRecentEntry)*it;
+
+        std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ", ";
+        std::string timestameStr = entry.timestamp + ", ";
+        std::string nameStr = entry.nameString + ", ";
+        std::string pduStr = pdu_type_to_string(entry.pduType) + ", ";
+        std::string dataStr = "0x" + entry.dataString + ", ";
+        std::string hitsStr = to_string_dec_int(entry.numHits) + ", ";
+        std::string dbStr = to_string_dec_int(entry.dbValue) + ", ";
+        std::string channelStr = to_string_dec_int(entry.channelNumber) + "\n";
+
+        f.write(timestameStr.c_str(), timestameStr.length());
+        f.write(macAddressStr.c_str(), macAddressStr.length());
+        f.write(nameStr.c_str(), nameStr.length());
+        f.write(pduStr.c_str(), pduStr.length());
+        f.write(dataStr.c_str(), dataStr.length());
+        f.write(hitsStr.c_str(), hitsStr.length());
+        f.write(dbStr.c_str(), dbStr.length());
+        f.write(channelStr.c_str(), channelStr.length());
+
+        it++;
+    }
+
+    return true;
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
@@ -626,6 +687,7 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
 
     entry.numHits++;
     entry.pduType = pdu_type;
+    entry.channelNumber = channel_number;
 
     // Parse Data Section into buffer to be interpretted later.
     for (int i = 0; i < packet->dataLen; i++) {
