@@ -56,6 +56,22 @@ uint64_t copy_mac_address_to_uint64(const uint8_t* macAddress) {
     return result;
 }
 
+void reverse_byte_array(uint8_t* arr, int length) {
+    int start = 0;
+    int end = length - 1;
+
+    while (start < end) {
+        // Swap elements at start and end
+        uint8_t temp = arr[start];
+        arr[start] = arr[end];
+        arr[end] = temp;
+
+        // Move the indices towards the center
+        start++;
+        end--;
+    }
+}
+
 namespace ui {
 
 std::string pdu_type_to_string(ADV_PDU_TYPE type) {
@@ -402,6 +418,14 @@ BLERxView::BLERxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
+        // If we selected Auto don't do anything and Auto will handle changing.
+        if (i == 40) {
+            auto_channel = true;
+            return;
+        } else {
+            auto_channel = false;
+        }
+
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
 
@@ -424,6 +448,16 @@ BLERxView::BLERxView(NavigationView& nav)
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
+    if (auto_channel) {
+        int min = 37;
+        int max = 39;
+
+        int randomChannel = min + std::rand() % (max - min + 1);
+
+        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+        baseband::set_btlerx(randomChannel);
+    }
+
     std::string str_console = "";
 
     if (!logging) {
@@ -583,6 +617,9 @@ void BLERxView::updateEntry(const BlePacketData* packet, BleRecentEntry& entry, 
                 break;
             }
         }
+    } else if (pdu_type == ADV_DIRECT_IND || pdu_type == SCAN_REQ) {
+        ADV_PDU_PAYLOAD_TYPE_1_3* directed_mac_data = (ADV_PDU_PAYLOAD_TYPE_1_3*)entry.packetData.data;
+        reverse_byte_array(directed_mac_data->A1, 6);
     }
 }
 

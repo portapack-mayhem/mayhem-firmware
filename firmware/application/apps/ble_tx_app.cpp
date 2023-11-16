@@ -121,17 +121,6 @@ void readUntil(File& file, char* result, std::size_t maxBufferSize, char delimit
     result[bytesRead] = '\0';
 }
 
-void generateRandomMacAddress(char* macAddress) {
-    const char hexDigits[] = "0123456789ABCDEF";
-
-    // Generate 12 random hexadecimal characters
-    for (int i = 0; i < 12; i++) {
-        int randomIndex = rand() % 16;
-        macAddress[i] = hexDigits[randomIndex];
-    }
-    macAddress[12] = '\0';  // Null-terminate the string
-}
-
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
     uint64_t freq_hz;
 
@@ -205,11 +194,22 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
+    int randomChannel = channel_number;
+
+    if (auto_channel) {
+        int min = 37;
+        int max = 39;
+
+        randomChannel = min + std::rand() % (max - min + 1);
+
+        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+    }
+
     // Generate new random Mac Address.
     generateRandomMacAddress(randomMac);
 
+    // If this is our first run, check file.
     if (!is_active()) {
-        // Check if file is present before continuing.
         File data_file;
 
         auto error = data_file.open(file_path);
@@ -217,21 +217,18 @@ void BLETxView::start() {
             file_error();
             check_loop.set_value(false);
             return;
-        } else {
-            // Send first or single packet.
-            progressbar.set_max(packets[0].packet_count);
-            button_play.set_bitmap(&bitmap_stop);
-
-            baseband::set_btletx(channel_number, random_mac ? randomMac : packets[0].macAddress, packets[0].advertisementData, pduType);
-            transmitter_model.enable();
-
-            is_running = true;
         }
-    } else {
-        // Send next packet.
-        progressbar.set_max(packets[current_packet].packet_count);
-        baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+
+        transmitter_model.enable();
+        button_play.set_bitmap(&bitmap_stop);
+        is_running = true;
     }
+
+    // Send next packet.
+    progressbar.set_max(packets[current_packet].packet_count);
+    baseband::set_btletx(randomChannel, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+
+    is_sending = true;
 
     if ((packet_counter % 10) == 0) {
         text_packets_sent.set(to_string_dec_uint(packet_counter));
@@ -252,9 +249,12 @@ void BLETxView::stop() {
     is_running = false;
 }
 
-void BLETxView::on_tx_progress(const bool done) {
-    if (done) {
-        if (is_active()) {
+// called each 1/60th of second, so 6 = 100ms
+void BLETxView::on_timer() {
+    if (++mscounter == timer_period) {
+        mscounter = 0;
+
+        if (is_active() && !is_sending) {
             // Reached end of current packet repeats.
             if (packet_counter == 0) {
                 // Done sending all packets.
@@ -262,20 +262,26 @@ void BLETxView::on_tx_progress(const bool done) {
                     // If looping, restart from beginning.
                     if (check_loop.value()) {
                         update_current_packet(packets[current_packet], 0);
+                        start();
                     } else {
                         stop();
                     }
                 } else {
                     current_packet++;
                     update_current_packet(packets[current_packet], current_packet);
-                }
-            } else {
-                if ((timer_count % timer_period) == 0) {
                     start();
                 }
+            } else {
+                start();
             }
+        }
+    }
+}
 
-            timer_count++;
+void BLETxView::on_tx_progress(const bool done) {
+    if (done) {
+        if (is_active()) {
+            is_sending = false;
         }
     }
 }
@@ -316,12 +322,21 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {
+        // If we selected Auto don't do anything and Auto will handle changing.
+        if (i == 40) {
+            auto_channel = true;
+            return;
+        } else {
+            auto_channel = false;
+        }
+
         field_frequency.set_value(get_freq_by_channel_number(i));
         channel_number = i;
     };
 
     options_speed.on_change = [this](size_t, int32_t i) {
         timer_period = i;
+        mscounter = 0;
     };
 
     options_adv_type.on_change = [this](size_t, int32_t i) {

@@ -196,6 +196,7 @@ class BLERxView : public View {
     uint8_t console_color{0};
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
+    bool auto_channel = false;
 
     std::string filterBuffer{};
     std::string filter{};
@@ -208,7 +209,8 @@ class BLERxView : public View {
         5,
         {{"Ch.37 ", 37},
          {"Ch.38", 38},
-         {"Ch.39", 39}}};
+         {"Ch.39", 39},
+         {"Auto", 40}}};
 
     RxFrequencyField field_frequency{
         {6 * 8, 0 * 16},

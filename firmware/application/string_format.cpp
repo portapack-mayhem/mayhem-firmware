@@ -337,6 +337,17 @@ std::string to_string_formatted_mac_address(const char* macAddress) {
     return formattedAddress;
 }
 
+void generateRandomMacAddress(char* macAddress) {
+    const char hexDigits[] = "0123456789ABCDEF";
+
+    // Generate 12 random hexadecimal characters
+    for (int i = 0; i < 12; i++) {
+        int randomIndex = rand() % 16;
+        macAddress[i] = hexDigits[randomIndex];
+    }
+    macAddress[12] = '\0';  // Null-terminate the string
+}
+
 std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision) {
     const uint32_t powers_of_ten[5] = {1, 10, 100, 1000, 10000};
     std::string string{""};

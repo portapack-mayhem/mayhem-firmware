@@ -86,6 +86,7 @@
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
 #include "analog_tv_app.hpp"
+#include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
@@ -551,6 +552,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
         {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
         //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
+        //{"BLE Comm", ui::Color::orange(), &bitmap_icon_btle, [&nav]() { nav.push<BLECommView>(); }},
         {"BLE Rx", Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
         {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
         {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
