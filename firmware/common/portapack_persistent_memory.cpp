@@ -348,7 +348,7 @@ struct backup_ram_t {
 
     /* Access functions for DebugPmemView */
     uint32_t pmem_data_word(uint32_t index) {
-        return (index > sizeof(regfile)/sizeof(uint32_t)) ? 0xFFFFFFFF : regfile[index];
+        return (index > sizeof(regfile) / sizeof(uint32_t)) ? 0xFFFFFFFF : regfile[index];
     }
 
     uint32_t pmem_stored_checksum(void) {
