@@ -287,12 +287,20 @@ uint32_t register_read(const size_t register_number) {
     return radio::first_if.read(register_number);
 }
 
+void register_write(const size_t register_number, uint32_t value) {
+    radio::first_if.write(register_number, value);
+}
+
 } /* namespace first_if */
 
 namespace second_if {
 
 uint32_t register_read(const size_t register_number) {
     return radio::second_if->read(register_number);
+}
+
+void register_write(const size_t register_number, uint32_t value) {
+    radio::second_if->write(register_number, value);
 }
 
 int8_t temp_sense() {

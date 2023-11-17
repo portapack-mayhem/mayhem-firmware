@@ -59,6 +59,7 @@ class Codec {
     virtual size_t reg_count() const = 0;
     virtual size_t reg_bits() const = 0;
     virtual uint32_t reg_read(const size_t register_number) = 0;
+    virtual void reg_write(const size_t register_number, const uint32_t value) = 0;
 };
 
 namespace output {
@@ -107,6 +108,7 @@ namespace debug {
 
 size_t reg_count();
 uint32_t reg_read(const size_t register_number);
+void reg_write(const size_t register_number, uint32_t value);
 std::string codec_name();
 size_t reg_bits();
 
