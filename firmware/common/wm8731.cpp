@@ -116,6 +116,8 @@ bool WM8731::write(const Register reg) {
 }
 
 bool WM8731::write(const address_t reg_address, const reg_t value) {
+    map.w[reg_address] = value;  // Save data written in case this fn is called from Debug->Peripherals app
+
     const uint16_t word = (reg_address << 9) | value;
     const std::array<uint8_t, 2> values{
         static_cast<uint8_t>(word >> 8),
@@ -124,8 +126,13 @@ bool WM8731::write(const address_t reg_address, const reg_t value) {
     return bus.transmit(bus_address, values.data(), values.size());
 }
 
+/* WM8731 is a write-only device; the read function only returns the value we last wrote */
 uint32_t WM8731::reg_read(const size_t reg_address) {
     return map.w[reg_address];
+}
+
+void WM8731::reg_write(const size_t reg_address, uint32_t value) {
+    write(reg_address, value);
 }
 
 void WM8731::write(const LeftLineIn value) {

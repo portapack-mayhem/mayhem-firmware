@@ -405,6 +405,7 @@ class WM8731 : public audio::Codec {
     }
 
     uint32_t reg_read(const size_t reg_address) override;
+    void reg_write(const size_t reg_address, uint32_t value) override;
 
    private:
     I2C& bus;
