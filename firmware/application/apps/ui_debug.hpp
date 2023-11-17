@@ -235,12 +235,12 @@ class RegistersView : public View {
     SymField field_write_reg_num{
         {5 * 8, 248},
         2,
-        SymField::Type::Hex};   
+        SymField::Type::Hex};
 
     SymField field_write_data_val{
         {13 * 8, 247},
         4,
-        SymField::Type::Hex};        
+        SymField::Type::Hex};
 };
 
 class ControlsSwitchesWidget : public Widget {
