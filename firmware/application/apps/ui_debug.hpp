@@ -226,7 +226,7 @@ class RegistersView : public View {
 
     Button button_write{
         {144, 248, 80, 20},
-        "Write 1"};
+        "Write"};
 
     Labels labels{
         {{1 * 8, 248}, "Reg:", Color::light_grey()},
