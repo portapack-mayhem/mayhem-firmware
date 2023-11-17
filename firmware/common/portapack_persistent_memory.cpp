@@ -345,6 +345,19 @@ struct backup_ram_t {
         check_value = compute_check_value();
         copy(*this, dst);
     }
+
+    /* Access functions for DebugPmemView */
+    uint32_t pmem_data_word(uint32_t index) {
+        return (index > sizeof(regfile) / sizeof(uint32_t)) ? 0xFFFFFFFF : regfile[index];
+    }
+
+    uint32_t pmem_stored_checksum(void) {
+        return check_value;
+    }
+
+    uint32_t pmem_calculated_checksum(void) {
+        return compute_check_value();
+    }
 };
 
 static_assert(sizeof(backup_ram_t) == memory::map::backup_ram.size());
@@ -412,6 +425,18 @@ void persist() {
 }
 
 } /* namespace cache */
+
+uint32_t pmem_data_word(uint32_t index) {
+    return backup_ram->pmem_data_word(index);
+}
+
+uint32_t pmem_stored_checksum(void) {
+    return backup_ram->pmem_stored_checksum();
+}
+
+uint32_t pmem_calculated_checksum(void) {
+    return backup_ram->pmem_calculated_checksum();
+}
 
 rf::Frequency target_frequency() {
     rf::tuning_range.reset_if_outside(data->target_frequency, target_frequency_reset_value);

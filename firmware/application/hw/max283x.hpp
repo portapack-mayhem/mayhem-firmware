@@ -134,6 +134,7 @@ class MAX283x {
     virtual int8_t temp_sense();
 
     virtual reg_t read(const address_t reg_num);
+    virtual void write(const address_t reg_num, const reg_t value);
 };
 
 }  // namespace max283x

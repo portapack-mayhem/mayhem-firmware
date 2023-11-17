@@ -240,6 +240,10 @@ uint32_t reg_read(const size_t register_number) {
     return audio_codec->reg_read(register_number);
 }
 
+void reg_write(const size_t register_number, uint32_t value) {
+    audio_codec->reg_write(register_number, value);
+}
+
 std::string codec_name() {
     return audio_codec->name();
 }

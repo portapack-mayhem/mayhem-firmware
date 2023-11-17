@@ -281,6 +281,10 @@ bool should_use_sdcard_for_pmem();
 int save_persistent_settings_to_file();
 int load_persistent_settings_from_file();
 
+uint32_t pmem_data_word(uint32_t index);
+uint32_t pmem_stored_checksum(void);
+uint32_t pmem_calculated_checksum(void);
+
 size_t data_size();
 
 bool debug_dump();

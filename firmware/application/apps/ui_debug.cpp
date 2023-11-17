@@ -159,11 +159,8 @@ void TemperatureView::focus() {
 /* RegistersWidget *******************************************************/
 
 RegistersWidget::RegistersWidget(
-    RegistersWidgetConfig&& config,
-    std::function<uint32_t(const size_t register_number)>&& reader)
-    : Widget{},
-      config(std::move(config)),
-      reader(std::move(reader)) {
+    RegistersWidgetConfig&& config)
+    : Widget{}, config(std::move(config)), page_number(0) {
 }
 
 void RegistersWidget::update() {
@@ -180,7 +177,7 @@ void RegistersWidget::paint(Painter& painter) {
 void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
     const auto pos = screen_pos();
 
-    for (size_t i = 0; i < config.registers_count; i += config.registers_per_row()) {
+    for (uint32_t i = 0; i < config.registers_count; i += config.registers_per_row()) {
         const Point offset{
             left, static_cast<int>((i / config.registers_per_row()) * row_height)};
 
@@ -197,12 +194,12 @@ void RegistersWidget::draw_values(
     Painter& painter) {
     const auto pos = screen_pos();
 
-    for (size_t i = 0; i < config.registers_count; i++) {
+    for (uint32_t i = 0; i < config.registers_count; i++) {
         const Point offset = {
             static_cast<int>(left + config.legend_width() + 8 + (i % config.registers_per_row()) * (config.value_width() + 8)),
             static_cast<int>((i / config.registers_per_row()) * row_height)};
 
-        const auto value = reader(i);
+        const auto value = reg_read(i);
 
         const auto text = to_string_hex(value, config.value_length());
         painter.draw_string(
@@ -212,19 +209,61 @@ void RegistersWidget::draw_values(
     }
 }
 
+uint32_t RegistersWidget::reg_read(const uint32_t register_number) {
+    if (register_number < config.registers_count) {
+        switch (config.chip_type) {
+            case CT_PMEM:
+                return portapack::persistent_memory::pmem_data_word((page_number * config.registers_count + register_number) / 4) >> (register_number % 4 * 8);
+            case CT_RFFC5072:
+                return radio::debug::first_if::register_read(register_number);
+            case CT_MAX283X:
+                return radio::debug::second_if::register_read(register_number);
+            case CT_SI5351:
+                return portapack::clock_generator.read_register(register_number);
+            case CT_AUDIO:
+                return audio::debug::reg_read(register_number);
+        }
+    }
+    return 0xFFFF;
+}
+
+void RegistersWidget::reg_write(const uint32_t register_number, const uint32_t value) {
+    if (register_number < config.registers_count) {
+        switch (config.chip_type) {
+            case CT_PMEM:
+                break;
+            case CT_RFFC5072:
+                radio::debug::first_if::register_write(register_number, value);
+                break;
+            case CT_MAX283X:
+                radio::debug::second_if::register_write(register_number, value);
+                break;
+            case CT_SI5351:
+                portapack::clock_generator.write_register(register_number, value);
+                break;
+            case CT_AUDIO:
+                audio::debug::reg_write(register_number, value);
+                break;
+        }
+    }
+}
+
 /* RegistersView *********************************************************/
 
 RegistersView::RegistersView(
     NavigationView& nav,
     const std::string& title,
-    RegistersWidgetConfig&& config,
-    std::function<uint32_t(const size_t register_number)>&& reader)
-    : registers_widget{std::move(config), std::move(reader)} {
+    RegistersWidgetConfig&& config)
+    : registers_widget{std::move(config)} {
     add_children({
         &text_title,
         &registers_widget,
         &button_update,
         &button_done,
+        &labels,
+        &field_write_reg_num,
+        &field_write_data_val,
+        &button_write,
     });
 
     button_update.on_select = [this](Button&) {
@@ -237,6 +276,23 @@ RegistersView::RegistersView(
     text_title.set_parent_rect({(240 - static_cast<int>(title.size()) * 8) / 2, 16,
                                 static_cast<int>(title.size()) * 8, 16});
     text_title.set(title);
+
+    field_write_reg_num.set_value(0);
+    field_write_reg_num.on_change = [this](SymField&) {
+        field_write_data_val.set_value(this->registers_widget.reg_read(field_write_reg_num.to_integer()));
+        field_write_data_val.set_dirty();
+    };
+
+    field_write_data_val.on_change = [this](SymField&) {};
+
+    const auto value = registers_widget.reg_read(0);
+    field_write_data_val.set_value(value);
+
+    button_write.set_style(&Styles::red);
+    button_write.on_select = [this](Button&) {
+        this->registers_widget.reg_write(field_write_reg_num.to_integer(), field_write_data_val.to_integer());
+        this->registers_widget.update();
+    };
 }
 
 void RegistersView::focus() {
@@ -376,18 +432,10 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
     const char* max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
     const char* si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
     add_items({
-        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(
-                                                                                              "RFFC5072", RegistersWidgetConfig{31, 16},
-                                                                                              [](const size_t register_number) { return radio::debug::first_if::register_read(register_number); }); }},
-        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(
-                                                                                                    max283x, RegistersWidgetConfig{32, 10},
-                                                                                                    [](const size_t register_number) { return radio::debug::second_if::register_read(register_number); }); }},
-        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(
-                                                                                                    si5351x, RegistersWidgetConfig{96, 8},
-                                                                                                    [](const size_t register_number) { return portapack::clock_generator.read_register(register_number); }); }},
-        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(
-                                                                                                              audio::debug::codec_name(), RegistersWidgetConfig{audio::debug::reg_count(), audio::debug::reg_bits()},
-                                                                                                              [](const size_t register_number) { return audio::debug::reg_read(register_number); }); }},
+        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 16}); }},
+        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 10}); }},
+        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 96, 8}); }},
+        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -420,28 +468,14 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
 
 /* DebugPmemView *********************************************************/
 
-uint32_t pmem_checksum(volatile const uint32_t data[63]) {
-    CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
-    for (size_t i = 0; i < 63; i++) {
-        const auto word = data[i];
-        crc.process_byte((word >> 0) & 0xff);
-        crc.process_byte((word >> 8) & 0xff);
-        crc.process_byte((word >> 16) & 0xff);
-        crc.process_byte((word >> 24) & 0xff);
-    }
-    return crc.checksum();
-}
-
 DebugPmemView::DebugPmemView(NavigationView& nav)
-    : data{*reinterpret_cast<pmem_data*>(memory::map::backup_ram.base())}, registers_widget(RegistersWidgetConfig{page_size, 8}, std::bind(&DebugPmemView::registers_widget_feed, this, std::placeholders::_1)) {
-    static_assert(sizeof(pmem_data) == memory::map::backup_ram.size());
-
+    : registers_widget(RegistersWidgetConfig{CT_PMEM, page_size, 8}) {
     add_children({&text_page, &registers_widget, &text_checksum, &text_checksum2, &button_ok});
 
     registers_widget.set_parent_rect({0, 32, 240, 192});
 
-    text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size(), 3) + "  CRC: " + to_string_hex(data.check_value, 8));
-    text_checksum2.set("Calculated CRC: " + to_string_hex(pmem_checksum(data.regfile), 8));
+    text_checksum.set("Size: " + to_string_dec_uint(portapack::persistent_memory::data_size(), 3) + "  CRC: " + to_string_hex(portapack::persistent_memory::pmem_stored_checksum(), 8));
+    text_checksum2.set("Calculated CRC: " + to_string_hex(portapack::persistent_memory::pmem_calculated_checksum(), 8));
 
     button_ok.on_select = [&nav](Button&) {
         nav.pop();
@@ -451,7 +485,7 @@ DebugPmemView::DebugPmemView(NavigationView& nav)
 }
 
 bool DebugPmemView::on_encoder(const EncoderEvent delta) {
-    page = std::max(0l, std::min((int32_t)page_max, page + delta));
+    registers_widget.set_page(std::max(0ul, std::min((uint32_t)page_count - 1, registers_widget.page() + delta)));
 
     update();
 
@@ -463,15 +497,8 @@ void DebugPmemView::focus() {
 }
 
 void DebugPmemView::update() {
-    text_page.set(to_string_hex(page_size * page, 2) + "+");
+    text_page.set(to_string_hex(registers_widget.page() * page_size, 2) + "+");
     registers_widget.update();
-}
-
-uint32_t DebugPmemView::registers_widget_feed(const size_t register_number) {
-    if (page_size * page + register_number >= memory::map::backup_ram.size()) {
-        return 0xff;
-    }
-    return data.regfile[(page_size * page + register_number) / 4] >> (register_number % 4 * 8);
 }
 
 /* DebugScreenTest ****************************************************/

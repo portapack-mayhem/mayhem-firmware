@@ -862,6 +862,10 @@ class AK4951 : public audio::Codec {
         return read(reg_address);
     }
 
+    void reg_write(const size_t reg_address, const uint32_t value) override {
+        write(reg_address, value);
+    }
+
    private:
     I2C& bus;
     const I2C::address_t bus_address;
