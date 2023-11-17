@@ -226,11 +226,11 @@ class RegistersView : public View {
 
     Button button_write{
         {144, 248, 80, 20},
-        "Write"};
+        "Write 1"};
 
     Labels labels{
         {{1 * 8, 248}, "Reg:", Color::light_grey()},
-        {{8 * 8, 247}, "Data:", Color::light_grey()}};
+        {{8 * 8, 248}, "Data:", Color::light_grey()}};
 
     SymField field_write_reg_num{
         {5 * 8, 248},
@@ -238,7 +238,7 @@ class RegistersView : public View {
         SymField::Type::Hex};
 
     SymField field_write_data_val{
-        {13 * 8, 247},
+        {13 * 8, 248},
         4,
         SymField::Type::Hex};
 };
