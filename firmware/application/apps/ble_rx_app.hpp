@@ -276,15 +276,15 @@ class BLERxView : public View {
 
     Button button_clear_list{
         {2 * 8, 320 - (16 + 32), 7 * 8, 32},
-        "CLEAR"};
+        "Clear"};
 
     Button button_save_list{
         {11 * 8, 320 - (16 + 32), 11 * 8, 32},
-        "EXPORT CSV"};
+        "Export CSV"};
 
     Button button_switch{
-        {240 - 6 * 8, 320 - (16 + 32), 5 * 8, 32},
-        "TX"};
+        {240 - 6 * 8, 320 - (16 + 32), 4 * 8, 32},
+        "Tx"};
 
     std::string str_log{""};
     bool logging{false};
