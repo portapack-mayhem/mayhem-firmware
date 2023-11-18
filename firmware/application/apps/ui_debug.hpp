@@ -301,6 +301,36 @@ class DebugControlsView : public View {
         "Done"};
 };
 
+class DebugMemoryDumpView : public View {
+   public:
+    DebugMemoryDumpView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Memory Dump"; };
+
+   private:
+    Button button_dump{
+        {16, 240, 96, 24},
+        "Dump"};
+
+    Button button_done{
+        {128, 240, 96, 24},
+        "Done"};
+
+    Labels labels{
+        {{0 * 8, 5 * 16}, "Starting Address: 0x", Color::light_grey()},
+        {{0 * 8, 6 * 16}, "Byte Count:       0x", Color::light_grey()}};
+
+    SymField field_starting_address{
+        {20 * 8, 5 * 16},
+        8,
+        SymField::Type::Hex};
+
+    SymField field_byte_count{
+        {20 * 8, 6 * 16},
+        8,
+        SymField::Type::Hex};
+};
+
 class DebugPmemView : public View {
    public:
     DebugPmemView(NavigationView& nav);

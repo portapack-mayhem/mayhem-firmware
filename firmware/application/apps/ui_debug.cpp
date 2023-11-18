@@ -450,9 +450,10 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
         {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
-        {"Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
-        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
+        {"Memory Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryDumpView>(); }},
+        {"Memory Usage", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
+        {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
@@ -464,6 +465,29 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
     };
 
     set_max_rows(2);  // allow wider buttons
+}
+
+/* DebugMemoryDumpView *********************************************************/
+
+DebugMemoryDumpView::DebugMemoryDumpView(NavigationView& nav) {
+    add_children({
+        &button_dump,
+        &button_done,
+        &labels,
+        &field_starting_address,
+        &field_byte_count,
+    });
+
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    button_dump.on_select = [this](Button&) {
+        if (field_byte_count.to_integer() != 0)
+            memory_dump((uint32_t*)field_starting_address.to_integer(), ((uint32_t)field_byte_count.to_integer() + 3) / 4, false);
+    };
+}
+
+void DebugMemoryDumpView::focus() {
+    button_done.focus();
 }
 
 /* DebugPmemView *********************************************************/
