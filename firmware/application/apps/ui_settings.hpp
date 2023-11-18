@@ -306,8 +306,35 @@ class SetUIView : public View {
 
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
-        "Cancel",
-    };
+        "Cancel"};
+};
+
+class SetSDCardView : public View {
+   public:
+    SetSDCardView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "SD Card"; };
+
+   private:
+    Labels labels{
+        // 01234567890123456789012345678
+        {{1 * 8, 120 - 48}, "    HIGH SPEED SDCARD IO     ", Color::light_grey()},
+        {{1 * 8, 120 - 32}, "   May or may not work !!    ", Color::light_grey()}};
+
+    Checkbox checkbox_sdcard_speed{
+        {2 * 8, 120},
+        20,
+        "enable high speed io"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel"};
 };
 
 class SetConverterSettingsView : public View {

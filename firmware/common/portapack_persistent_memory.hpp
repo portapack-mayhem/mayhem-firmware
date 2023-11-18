@@ -174,6 +174,7 @@ uint8_t config_cpld();
 void set_config_cpld(uint8_t i);
 
 bool config_disable_external_tcxo();
+bool config_sdcard_high_speed_io();
 bool config_splash();
 bool config_converter();
 bool config_updown_converter();
@@ -193,6 +194,7 @@ void set_load_app_settings(bool v);
 void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
 void set_config_disable_external_tcxo(bool v);
+void set_config_sdcard_high_speed_io(bool v);
 void set_config_splash(bool v);
 bool config_converter();
 bool config_updown_converter();

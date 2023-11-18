@@ -165,6 +165,9 @@ SystemStatusView::SystemStatusView(
 
     rtc_battery_workaround();
 
+    // force apply of selected sdcard speed override at UI startup
+    pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io());
+
     ui::load_blacklist();
 
     if (pmem::should_use_sdcard_for_pmem()) {
