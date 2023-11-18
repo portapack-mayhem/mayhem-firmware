@@ -438,10 +438,6 @@ BLERxView::BLERxView(NavigationView& nav)
             });
     };
 
-    /*button_save_list.set_style(&Styles::white_small);
-    button_clear_list.set_style(&Styles::white_small);
-    button_switch.set_style(&Styles::white_small);*/
-
     button_save_list.on_select = [this, &nav](const ui::Button&) {
         listFileBuffer = "";
         text_prompt(
