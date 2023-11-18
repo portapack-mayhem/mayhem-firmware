@@ -48,8 +48,8 @@ class DebugMemoryView : public View {
 
    private:
     Text text_title{
-        {96, 96, 48, 16},
-        "Memory",
+        {72, 96, 96, 16},
+        "Memory Usage",
     };
 
     Text text_label_m0_core_free{
