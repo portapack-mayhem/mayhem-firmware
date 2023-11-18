@@ -420,6 +420,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &options_sort,
                   &button_filter,
                   &button_save_list,
+                  &button_clear_list,
                   &button_switch,
                   &recent_entries_view});
 
@@ -446,6 +447,10 @@ BLERxView::BLERxView(NavigationView& nav)
             [this](std::string& buffer) {
                 on_save_file(buffer);
             });
+    };
+
+    button_clear_list.on_select = [this](Button&) {
+        recent.clear();
     };
 
     button_switch.on_select = [&nav](Button&) {
