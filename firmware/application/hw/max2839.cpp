@@ -372,7 +372,7 @@ int8_t MAX2839::temp_sense() {
     _map.r.rx_top_2.ts_adc_trigger = 0;
     flush_one(Register::RX_TOP_2);
 
-    return value * 4.31 - 75;  // reg value is 0 to 31; possible return range is -75 C to 58 C
+    return std::min(127, (int)(value * 4.31 - 40));  // reg value is 0 to 31; possible return range is -40 C to 127 C
 }
 
 }  // namespace max2839
