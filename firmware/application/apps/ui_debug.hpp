@@ -309,24 +309,46 @@ class DebugMemoryDumpView : public View {
 
    private:
     Button button_dump{
-        {16, 240, 96, 24},
+        {72, 4 * 16, 96, 24},
         "Dump"};
+
+    Button button_read{
+        {16, 11 * 16, 96, 24},
+        "Read"};
+
+    Button button_write{
+        {128, 11 * 16, 96, 24},
+        "Write"};
 
     Button button_done{
         {128, 240, 96, 24},
         "Done"};
 
     Labels labels{
-        {{0 * 8, 5 * 16}, "Starting Address: 0x", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Byte Count:       0x", Color::light_grey()}};
+        {{5 * 8, 1 * 16}, "Dump Range to File", Color::yellow()},
+        {{0 * 8, 2 * 16}, "Starting Address: 0x", Color::light_grey()},
+        {{0 * 8, 3 * 16}, "Byte Count:       0x", Color::light_grey()},
+        {{3 * 8, 8 * 16}, "Read/Write Single Word", Color::yellow()},
+        {{0 * 8, 9 * 16}, "Memory Address:   0x", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Data Value:       0x", Color::light_grey()}};
 
     SymField field_starting_address{
-        {20 * 8, 5 * 16},
+        {20 * 8, 2 * 16},
         8,
         SymField::Type::Hex};
 
     SymField field_byte_count{
-        {20 * 8, 6 * 16},
+        {20 * 8, 3 * 16},
+        8,
+        SymField::Type::Hex};
+
+    SymField field_rw_address{
+        {20 * 8, 9 * 16},
+        8,
+        SymField::Type::Hex};
+
+    SymField field_data_value{
+        {20 * 8, 10 * 16},
         8,
         SymField::Type::Hex};
 };
