@@ -513,17 +513,27 @@ void BLERxView::on_save_file(const std::string value) {
 }
 
 bool BLERxView::saveFile(const std::filesystem::path& path) {
+
+    bool file_existed = file_exists(path);
+
+    // Attempt to open, if it can't be opened. Create new.
     File f;
-    auto error = f.create(path);
-    if (error)
+    auto error = f.open(path, false, true);
+
+    if (error) {
         return false;
+    }
+
+    if (!file_existed)
+    {
+        std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel \n";
+        f.write(headerStr.c_str(), headerStr.length());
+    }
 
     auto it = recent.begin();
 
-    std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel \n";
-    f.write(headerStr.c_str(), headerStr.length());
-
     while (it != recent.end()) {
+
         BleRecentEntry entry = (BleRecentEntry)*it;
 
         std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ", ";
@@ -535,14 +545,48 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         std::string dbStr = to_string_dec_int(entry.dbValue) + ", ";
         std::string channelStr = to_string_dec_int(entry.channelNumber) + "\n";
 
-        f.write(timestameStr.c_str(), timestameStr.length());
-        f.write(macAddressStr.c_str(), macAddressStr.length());
-        f.write(nameStr.c_str(), nameStr.length());
-        f.write(pduStr.c_str(), pduStr.length());
-        f.write(dataStr.c_str(), dataStr.length());
-        f.write(hitsStr.c_str(), hitsStr.length());
-        f.write(dbStr.c_str(), dbStr.length());
-        f.write(channelStr.c_str(), channelStr.length());
+        // Check file for macAddressStr before adding.
+        std::string currentLine;
+        uint64_t bytesRead = 0;
+        uint64_t currentBytes = 0;
+        bool foundEntry = false;
+
+        // Start at beginning.
+        f.seek(0);
+
+        do
+        {
+            bytesRead = readUntil(f, (char *)currentLine.c_str(), f.size(), '\n');
+            currentBytes += bytesRead;
+
+            if (currentLine.find(macAddressStr) != std::string::npos)
+            {
+                foundEntry = true;
+                break;
+            }
+
+            currentLine.clear();
+
+        } while (currentBytes <= f.size() && bytesRead != 0);
+        
+        // Go to end.
+        f.seek(f.size() + 1);
+
+        if (!foundEntry)
+        {
+            f.write(timestameStr.c_str(), timestameStr.length());
+            f.write(macAddressStr.c_str(), macAddressStr.length());
+            f.write(nameStr.c_str(), nameStr.length());
+            f.write(pduStr.c_str(), pduStr.length());
+            f.write(dataStr.c_str(), dataStr.length());
+            f.write(hitsStr.c_str(), hitsStr.length());
+            f.write(dbStr.c_str(), dbStr.length());
+            f.write(channelStr.c_str(), channelStr.length());
+        }
+        else
+        {
+            f.write("FOUND MATCH\n", 14);
+        }
 
         it++;
     }

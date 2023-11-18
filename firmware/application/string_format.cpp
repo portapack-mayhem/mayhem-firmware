@@ -348,6 +348,35 @@ void generateRandomMacAddress(char* macAddress) {
     macAddress[12] = '\0';  // Null-terminate the string
 }
 
+uint64_t readUntil(File& file, char* result, std::size_t maxBufferSize, char delimiter) {
+    std::size_t bytesRead = 0;
+
+    while (true) {
+        char ch;
+        File::Result<File::Size> readResult = file.read(&ch, 1);
+
+        if (readResult.is_ok() && readResult.value() > 0) {
+            if (ch == delimiter) {
+                // Found a space character, stop reading
+                break;
+            } else if (bytesRead < maxBufferSize) {
+                // Append the character to the result if there's space
+                result[bytesRead++] = ch;
+            } else {
+                // Buffer is full, break to prevent overflow
+                break;
+            }
+        } else {
+            break;  // End of file or error
+        }
+    }
+
+    // Null-terminate the result string
+    result[bytesRead] = '\0';
+
+    return bytesRead;
+}
+
 std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision) {
     const uint32_t powers_of_ten[5] = {1, 10, 100, 1000, 10000};
     std::string string{""};
