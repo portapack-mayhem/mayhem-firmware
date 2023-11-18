@@ -30,7 +30,7 @@
 #include <utility>
 #include <vector>
 
-#define pow2(x) ((x)*(x))
+#define pow2(x) ((x) * (x))
 
 namespace ui {
 
