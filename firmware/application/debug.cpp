@@ -258,38 +258,43 @@ void draw_stack_dump() {
     }
 }
 
-// Disk I/O in this function doesn't work after a fault
-// Using the stack while dumping the stack isn't ideal, but hopefully anything imporant is still on the call stack.
 bool stack_dump() {
+    uint32_t num_words = &__process_stack_end__ - &__process_stack_base__;
+    return memory_dump(&__process_stack_base__, num_words, true);
+}
+
+bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
     Painter painter;
     std::string debug_dir = "DEBUG";
     std::filesystem::path filename{};
-    File stack_dump_file{};
+    File dump_file{};
     bool error;
     std::string str;
+    uint32_t* addr_end;
     uint32_t* p;
     int n{0};
     bool data_found{false};
 
     make_new_directory(debug_dir);
-    filename = next_filename_matching_pattern(debug_dir + "/STACK_DUMP_????.TXT");
+    filename = next_filename_matching_pattern(debug_dir + "/" + (stack_flag ? "STACK" : "MEMORY") + "_DUMP_????.TXT");
     error = filename.empty();
     if (!error)
-        error = stack_dump_file.create(filename) != 0;
+        error = dump_file.create(filename) != 0;
     if (error) {
         painter.draw_string({16, 320 - 32}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + "!");
         return false;
     }
 
-    for (p = &__process_stack_base__; p < &__process_stack_end__; p++) {
+    addr_end = addr_start + num_words;
+    for (p = addr_start; p < addr_end; p++) {
         // skip past unused stack words
-        if (!data_found) {
+        if (stack_flag && !data_found) {
             if (*p == CRT0_STACKS_FILL_PATTERN)
                 continue;
             else {
                 data_found = true;
-                auto stack_space_left = p - &__process_stack_base__;
-                stack_dump_file.write_line(to_string_hex((uint32_t)&__process_stack_base__, 8) + ": Unused words " + to_string_dec_uint(stack_space_left));
+                auto stack_space_left = p - addr_start;
+                dump_file.write_line(to_string_hex((uint32_t)addr_start, 8) + ": Unused words " + to_string_dec_uint(stack_space_left));
 
                 // align subsequent lines to start on 16-byte boundaries
                 p -= (stack_space_left & 3);
@@ -299,20 +304,20 @@ bool stack_dump() {
         // write address
         if (n++ == 0) {
             str = to_string_hex((uint32_t)p, 8) + ":";
-            stack_dump_file.write(str.data(), 9);
+            dump_file.write(str.data(), 9);
         }
 
         // write stack dword
         str = " " + to_string_hex(*p, 8);
-        stack_dump_file.write(str.data(), 9);
+        dump_file.write(str.data(), 9);
 
         if (n == 4) {
-            stack_dump_file.write("\r\n", 2);
+            dump_file.write("\r\n", 2);
             n = 0;
         }
     }
 
-    painter.draw_string({16, 320 - 32}, ui::Styles::green, filename.filename().string() + " dumped!");
+    painter.draw_string({0, 320 - 16}, ui::Styles::green, filename.filename().string() + " dumped!");
     return true;
 }
 

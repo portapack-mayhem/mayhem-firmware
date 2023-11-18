@@ -277,13 +277,10 @@ RegistersView::RegistersView(
                                 static_cast<int>(title.size()) * 8, 16});
     text_title.set(title);
 
-    field_write_reg_num.set_value(0);
     field_write_reg_num.on_change = [this](SymField&) {
         field_write_data_val.set_value(this->registers_widget.reg_read(field_write_reg_num.to_integer()));
         field_write_data_val.set_dirty();
     };
-
-    field_write_data_val.on_change = [this](SymField&) {};
 
     const auto value = registers_widget.reg_read(0);
     field_write_data_val.set_value(value);
@@ -450,9 +447,10 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
         {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
         {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
-        {"Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
-        {"P.Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
+        {"Memory Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryDumpView>(); }},
+        {"Memory Usage", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
+        {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
@@ -464,6 +462,43 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
     };
 
     set_max_rows(2);  // allow wider buttons
+}
+
+/* DebugMemoryDumpView *********************************************************/
+
+DebugMemoryDumpView::DebugMemoryDumpView(NavigationView& nav) {
+    add_children({
+        &button_dump,
+        &button_read,
+        &button_write,
+        &button_done,
+        &labels,
+        &field_starting_address,
+        &field_byte_count,
+        &field_rw_address,
+        &field_data_value,
+    });
+
+    button_done.on_select = [&nav](Button&) { nav.pop(); };
+
+    button_dump.on_select = [this](Button&) {
+        if (field_byte_count.to_integer() != 0)
+            memory_dump((uint32_t*)field_starting_address.to_integer(), ((uint32_t)field_byte_count.to_integer() + 3) / 4, false);
+    };
+
+    button_read.on_select = [this](Button&) {
+        field_data_value.set_value(*(uint32_t*)field_rw_address.to_integer());
+        field_data_value.set_dirty();
+    };
+
+    button_write.set_style(&Styles::red);
+    button_write.on_select = [this](Button&) {
+        *(uint32_t*)field_rw_address.to_integer() = (uint32_t)field_data_value.to_integer();
+    };
+}
+
+void DebugMemoryDumpView::focus() {
+    button_done.focus();
 }
 
 /* DebugPmemView *********************************************************/
