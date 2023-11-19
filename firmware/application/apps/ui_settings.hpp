@@ -326,7 +326,7 @@ class SetSDCardView : public View {
     Checkbox checkbox_sdcard_speed{
         {2 * 8, 120},
         20,
-        "enable high speed io"};
+        "enable high speed IO"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
