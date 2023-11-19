@@ -194,7 +194,7 @@ void set_load_app_settings(bool v);
 void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
 void set_config_disable_external_tcxo(bool v);
-void set_config_sdcard_high_speed_io(bool v);
+void set_config_sdcard_high_speed_io(bool v, bool save);
 void set_config_splash(bool v);
 bool config_converter();
 bool config_updown_converter();

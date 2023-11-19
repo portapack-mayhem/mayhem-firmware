@@ -328,6 +328,14 @@ class SetSDCardView : public View {
         20,
         "enable high speed IO"};
 
+    Button button_test_sdcard_high_speed{
+        {2 * 8, 152, 27 * 8, 32},
+        "TEST BUTTON (NO PMEM SAVE)"};
+
+    Text text_sdcard_test_status{
+        {2 * 8, 198, 28 * 8, 16},
+        ""};
+
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};

@@ -348,13 +348,20 @@ void SetUIView::focus() {
 SetSDCardView::SetSDCardView(NavigationView& nav) {
     add_children({&labels,
                   &checkbox_sdcard_speed,
+                  &button_test_sdcard_high_speed,
+                  &text_sdcard_test_status,
                   &button_save,
                   &button_cancel});
 
     checkbox_sdcard_speed.set_value(pmem::config_sdcard_high_speed_io());
 
+    button_test_sdcard_high_speed.on_select = [&nav, this](Button&) {
+        pmem::set_config_sdcard_high_speed_io(checkbox_sdcard_speed.value(), false);
+        text_sdcard_test_status.set("!! HIGH SPEED MODE ON !!");
+    };
+
     button_save.on_select = [&nav, this](Button&) {
-        pmem::set_config_sdcard_high_speed_io(checkbox_sdcard_speed.value());
+        pmem::set_config_sdcard_high_speed_io(checkbox_sdcard_speed.value(), true);
         send_system_refresh();
         nav.pop();
     };

@@ -172,7 +172,7 @@ SystemStatusView::SystemStatusView(
     }
 
     // force apply of selected sdcard speed override at UI startup
-    pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io());
+    pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io(), false);
 
     button_back.id = -1;  // Special ID used by FocusManager
     title.set_style(&Styles::bg_dark_grey);

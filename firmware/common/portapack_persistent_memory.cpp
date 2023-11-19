@@ -396,7 +396,7 @@ void defaults() {
     set_recon_load_hamradios(true);
     set_recon_match_mode(0);
 
-    set_config_sdcard_high_speed_io(false);
+    set_config_sdcard_high_speed_io(false, true);
 }
 
 void init() {
@@ -653,8 +653,7 @@ void set_config_disable_external_tcxo(bool v) {
     data->misc_config.config_disable_external_tcxo = v;
 }
 
-void set_config_sdcard_high_speed_io(bool v) {
-    data->misc_config.config_sdcard_high_speed_io = v;
+void set_config_sdcard_high_speed_io(bool v, bool save) {
     if (v) {
         /* 200MHz / (2 * 2) = 50MHz */
         /* TODO: Adjust SCU pin configurations: pull-up/down, slew, glitch filter? */
@@ -665,6 +664,8 @@ void set_config_sdcard_high_speed_io(bool v) {
         // DISABLED as I can not access sdio_cclk_set from here
         sdio_cclk_set(4);
     }
+    if (save)
+        data->misc_config.config_sdcard_high_speed_io = v;
 }
 
 void set_stealth_mode(bool v) {
