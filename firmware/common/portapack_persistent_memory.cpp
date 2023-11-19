@@ -40,6 +40,7 @@
 #include <utility>
 
 #include <ch.h>
+#include <hal.h>
 
 using namespace std;
 
@@ -143,7 +144,7 @@ struct misc_config_t {
     bool mute_audio : 1;
     bool disable_speaker : 1;
     bool config_disable_external_tcxo : 1;
-    bool UNUSED_3 : 1;
+    bool config_sdcard_high_speed_io : 1;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
@@ -394,6 +395,8 @@ void defaults() {
     set_recon_update_ranges_when_recon(true);
     set_recon_load_hamradios(true);
     set_recon_match_mode(0);
+
+    set_config_sdcard_high_speed_io(false, true);
 }
 
 void init() {
@@ -581,6 +584,10 @@ bool config_disable_external_tcxo() {
     return data->misc_config.config_disable_external_tcxo;
 }
 
+bool config_sdcard_high_speed_io() {
+    return data->misc_config.config_sdcard_high_speed_io;
+}
+
 bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
@@ -644,6 +651,19 @@ void set_config_speaker_disable(bool v) {
 
 void set_config_disable_external_tcxo(bool v) {
     data->misc_config.config_disable_external_tcxo = v;
+}
+
+void set_config_sdcard_high_speed_io(bool v, bool save) {
+    if (v) {
+        /* 200MHz / (2 * 2) = 50MHz */
+        /* TODO: Adjust SCU pin configurations: pull-up/down, slew, glitch filter? */
+        sdio_cclk_set(2);
+    } else {
+        /* 200MHz / (2 * 4) = 25MHz */
+        sdio_cclk_set(4);
+    }
+    if (save)
+        data->misc_config.config_sdcard_high_speed_io = v;
 }
 
 void set_stealth_mode(bool v) {
@@ -1015,6 +1035,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
     pmem_dump_file.write_line("misc_config config_speaker_disable: " + to_string_dec_int(config_speaker_disable()));
     pmem_dump_file.write_line("ui_config config_disable_external_tcxo: " + to_string_dec_uint(config_disable_external_tcxo()));
+    pmem_dump_file.write_line("ui_config config_sdcard_high_speed_io: " + to_string_dec_uint(config_sdcard_high_speed_io()));
 
     // receiver_model
     pmem_dump_file.write_line("\n[Receiver Model]");
