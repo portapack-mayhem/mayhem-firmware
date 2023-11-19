@@ -85,6 +85,7 @@ struct BleRecentEntry {
     uint16_t numHits;
     ADV_PDU_TYPE pduType;
     uint8_t channelNumber;
+    bool entryFound;
 
     BleRecentEntry()
         : BleRecentEntry{0} {
@@ -101,7 +102,8 @@ struct BleRecentEntry {
           include_name{},
           numHits{},
           pduType{},
-          channelNumber{} {
+          channelNumber{},
+          entryFound{} {
     }
 
     Key key() const {
@@ -188,6 +190,7 @@ class BLERxView : public View {
     std::string title() const override { return "BLE RX"; };
 
    private:
+    std::string build_line_str(BleRecentEntry entry);
     void on_save_file(const std::string value);
     bool saveFile(const std::filesystem::path& path);
     void on_data(BlePacketData* packetData);
@@ -212,7 +215,7 @@ class BLERxView : public View {
     std::string filterBuffer{};
     std::string filter{};
     std::string listFileBuffer{};
-    std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel \n";
+    std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel";
     uint16_t maxLineLength = 140;
 
     static constexpr auto header_height = 3 * 16;

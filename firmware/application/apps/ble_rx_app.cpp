@@ -506,6 +506,22 @@ BLERxView::BLERxView(NavigationView& nav)
     receiver_model.enable();
 }
 
+std::string BLERxView::build_line_str(BleRecentEntry entry) {
+    std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ",";
+    std::string timestameStr = entry.timestamp + ",";
+    std::string nameStr = entry.nameString + ",";
+    std::string pduStr = pdu_type_to_string(entry.pduType) + ",";
+    std::string dataStr = "0x" + entry.dataString + ",";
+    std::string hitsStr = to_string_dec_int(entry.numHits) + ",";
+    std::string dbStr = to_string_dec_int(entry.dbValue) + ",";
+    std::string channelStr = to_string_dec_int(entry.channelNumber) + ",";
+
+    std::string lineStr = timestameStr + macAddressStr + nameStr + pduStr + dataStr + hitsStr + dbStr + channelStr;
+    lineStr += pad_string_with_spaces(maxLineLength - lineStr.length());
+
+    return lineStr;
+}
+
 void BLERxView::on_save_file(const std::string value) {
     std::filesystem::path packet_save_path{u"BLERX/Lists/List_????.csv"};
 
@@ -529,68 +545,104 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         return false;
     }
 
-    if (!file_existed) {
-        f.write(headerStr.c_str(), headerStr.length());
-    }
-
     for (const auto& entry : recent) {
         tempList.emplace_back(entry);
     }
 
-    auto it = tempList.begin();
+    if (!file_existed) {
+        f.write_line(headerStr.c_str());
 
-    while (it != tempList.end()) {
-        BleRecentEntry entry = (BleRecentEntry)*it;
+        auto it = tempList.begin();
 
-        std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ",";
-        std::string timestameStr = entry.timestamp + ",";
-        std::string nameStr = entry.nameString + ",";
-        std::string pduStr = pdu_type_to_string(entry.pduType) + ",";
-        std::string dataStr = "0x" + entry.dataString + ",";
-        std::string hitsStr = to_string_dec_int(entry.numHits) + ",";
-        std::string dbStr = to_string_dec_int(entry.dbValue) + ",";
-        std::string channelStr = to_string_dec_int(entry.channelNumber) + ",";
-
-        std::string lineStr = timestameStr + macAddressStr + nameStr + pduStr + dataStr + hitsStr + dbStr + channelStr;
-        lineStr += pad_string_with_spaces(maxLineLength - lineStr.length());
-
+        while (it != tempList.end()) {
+            BleRecentEntry entry = (BleRecentEntry)*it;
+            f.write_line(build_line_str(entry).c_str());
+            it++;
+        }
+    } else {
         // Check file for macAddressStr before adding.
         char currentLine[maxLineLength];
         uint64_t startPos = headerStr.length();
         uint64_t bytesRead = 0;
-        uint64_t linePos = 0;
         uint64_t bytePos = 0;
-        bool foundEntry = false;
 
-        // Only bother searching if we had an exisiting file. (Saves computational time when not needed).
-        if (file_existed) {
-            f.seek(startPos);
+        File::Size currentSize = f.size();
 
-            do {
-                // Keep track of where beginning of line is.
-                linePos = f.tell();
-                bytesRead = readUntil(f, currentLine, f.size(), '\n');
-                bytePos += bytesRead;
+        File tempFile;
+        const std::filesystem::path tempFilePath = path + "~";
+        auto error = tempFile.open(tempFilePath, false, true);
 
-                if (strstr(currentLine, macAddressStr.c_str()) != NULL) {
-                    foundEntry = true;
+        if (error) {
+            return false;
+        }
+
+        tempFile.write_line(headerStr.c_str());
+
+        f.seek(startPos);
+
+        // Look for ones found and rewrite.
+        do {
+            memset(currentLine, 0, maxLineLength);
+
+            bytesRead = readUntil(f, currentLine, currentSize, '\n');
+
+            if (!bytesRead) {
+                break;
+            }
+
+            bytePos += bytesRead;
+
+            std::string lineStr = "";
+            std::string macAddressStr = "";
+            BleRecentEntry foundEntry;
+
+            char* token;
+            token = strtok(currentLine, ",");
+
+            while (token != NULL) {
+                auto it = tempList.begin();
+
+                while (it != tempList.end()) {
+                    BleRecentEntry& entry = reinterpret_cast<BleRecentEntry&>(*it);
+
+                    macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false);
+
+                    if (strstr(token, macAddressStr.c_str()) != NULL) {
+                        entry.entryFound = true;
+                        foundEntry = entry;
+                        break;
+                    }
+
+                    it++;
+                }
+
+                if (foundEntry.entryFound) {
                     break;
                 }
 
-                memset(currentLine, 0, maxLineLength);
+                token = strtok(NULL, ",");
+            }
 
-            } while ((bytesRead != 0) && (bytePos <= f.size()));
+            if (foundEntry.entryFound) {
+                tempFile.write_line(build_line_str(foundEntry).c_str());
+            }
+
+        } while (bytePos <= currentSize);
+
+        // Write the ones not found.
+        auto it = tempList.begin();
+
+        while (it != tempList.end()) {
+            BleRecentEntry entry = (BleRecentEntry)*it;
+
+            if (!entry.entryFound) {
+                tempFile.write_line(build_line_str(entry).c_str());
+            }
+
+            it++;
         }
 
-        if (!foundEntry) {
-            f.seek(f.size());
-        } else {
-            f.seek(linePos);
-        }
-
-        f.write_line(lineStr.c_str());
-
-        it++;
+        // rename_file(tempFilePath, path);
     }
 
     tempList.clear();
