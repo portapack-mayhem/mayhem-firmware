@@ -518,7 +518,6 @@ void BLERxView::on_save_file(const std::string value) {
 }
 
 bool BLERxView::saveFile(const std::filesystem::path& path) {
-
     // Check to see if file was previously saved.
     bool file_existed = file_exists(path);
 
@@ -530,15 +529,13 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         return false;
     }
 
-    if (!file_existed)
-    {
+    if (!file_existed) {
         f.write(headerStr.c_str(), headerStr.length());
     }
 
     auto it = recent.begin();
 
     while (it != recent.end()) {
-
         BleRecentEntry entry = (BleRecentEntry)*it;
 
         std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ",";
@@ -552,9 +549,9 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 
         std::string lineStr = timestameStr + macAddressStr + nameStr + pduStr + dataStr + hitsStr + dbStr + channelStr;
         lineStr += pad_string_with_spaces(maxLineLength - lineStr.length());
- 
+
         // Check file for macAddressStr before adding.
-        char currentLine [maxLineLength];
+        char currentLine[maxLineLength];
         uint64_t startPos = headerStr.length();
         uint64_t bytesRead = 0;
         uint64_t linePos = 0;
@@ -563,29 +560,24 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 
         f.seek(startPos);
 
-        do
-        {
+        do {
             // Keep track of where beginning of line is.
             linePos = f.tell();
             bytesRead = readUntil(f, currentLine, f.size(), '\n');
             bytePos += bytesRead;
-            
-            if (strstr(currentLine, macAddressStr.c_str()) != NULL)
-            {
+
+            if (strstr(currentLine, macAddressStr.c_str()) != NULL) {
                 foundEntry = true;
                 break;
             }
 
             memset(currentLine, 0, maxLineLength);
 
-         } while ((bytesRead != 0) && (bytePos <= f.size()));
+        } while ((bytesRead != 0) && (bytePos <= f.size()));
 
-        if (!foundEntry)
-        {
+        if (!foundEntry) {
             f.seek(f.size());
-        }
-        else
-        {
+        } else {
             f.seek(linePos);
         }
 
