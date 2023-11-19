@@ -205,11 +205,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void halInit(void);
+void halInit(void);
 #if HAL_IMPLEMENTS_COUNTERS
-  bool_t halIsCounterWithin(halrtcnt_t start, halrtcnt_t end);
-  void halPolledDelay(halrtcnt_t ticks);
+bool_t halIsCounterWithin(halrtcnt_t start, halrtcnt_t end);
+void halPolledDelay(halrtcnt_t ticks);
 #endif /* HAL_IMPLEMENTS_COUNTERS */
+void sdio_cclk_set(const size_t divider_value);
 #ifdef __cplusplus
 }
 #endif

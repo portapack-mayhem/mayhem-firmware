@@ -39,6 +39,9 @@
 #include <fstream>
 #include <utility>
 
+#include <ch.h>
+#include <hal.h>
+
 using namespace std;
 
 namespace portapack {
@@ -656,11 +659,11 @@ void set_config_sdcard_high_speed_io(bool v) {
         /* 200MHz / (2 * 2) = 50MHz */
         /* TODO: Adjust SCU pin configurations: pull-up/down, slew, glitch filter? */
         // DISABLED as I can not access sdio_cclk_set from here
-        // sdio_cclk_set(2);
+        sdio_cclk_set(2);
     } else {
         /* 200MHz / (2 * 4) = 25MHz */
         // DISABLED as I can not access sdio_cclk_set from here
-        // sdio_cclk_set(4);
+        sdio_cclk_set(4);
     }
 }
 
