@@ -657,11 +657,9 @@ void set_config_sdcard_high_speed_io(bool v, bool save) {
     if (v) {
         /* 200MHz / (2 * 2) = 50MHz */
         /* TODO: Adjust SCU pin configurations: pull-up/down, slew, glitch filter? */
-        // DISABLED as I can not access sdio_cclk_set from here
         sdio_cclk_set(2);
     } else {
         /* 200MHz / (2 * 4) = 25MHz */
-        // DISABLED as I can not access sdio_cclk_set from here
         sdio_cclk_set(4);
     }
     if (save)
