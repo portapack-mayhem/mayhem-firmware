@@ -356,7 +356,7 @@ SetSDCardView::SetSDCardView(NavigationView& nav) {
     checkbox_sdcard_speed.set_value(pmem::config_sdcard_high_speed_io());
 
     button_test_sdcard_high_speed.on_select = [&nav, this](Button&) {
-        pmem::set_config_sdcard_high_speed_io(checkbox_sdcard_speed.value(), false);
+        pmem::set_config_sdcard_high_speed_io(true, false);
         text_sdcard_test_status.set("!! HIGH SPEED MODE ON !!");
     };
 
