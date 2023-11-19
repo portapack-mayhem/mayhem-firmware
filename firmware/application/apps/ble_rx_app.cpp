@@ -558,22 +558,26 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         uint64_t bytePos = 0;
         bool foundEntry = false;
 
-        f.seek(startPos);
+        // Only bother searching if we had an exisiting file. (Saves computational time when not needed).
+        if (file_existed)
+        {
+            f.seek(startPos);
 
-        do {
-            // Keep track of where beginning of line is.
-            linePos = f.tell();
-            bytesRead = readUntil(f, currentLine, f.size(), '\n');
-            bytePos += bytesRead;
+            do {
+                // Keep track of where beginning of line is.
+                linePos = f.tell();
+                bytesRead = readUntil(f, currentLine, f.size(), '\n');
+                bytePos += bytesRead;
 
-            if (strstr(currentLine, macAddressStr.c_str()) != NULL) {
-                foundEntry = true;
-                break;
-            }
+                if (strstr(currentLine, macAddressStr.c_str()) != NULL) {
+                    foundEntry = true;
+                    break;
+                }
 
-            memset(currentLine, 0, maxLineLength);
+                memset(currentLine, 0, maxLineLength);
 
-        } while ((bytesRead != 0) && (bytePos <= f.size()));
+            } while ((bytesRead != 0) && (bytePos <= f.size()));
+        }
 
         if (!foundEntry) {
             f.seek(f.size());
