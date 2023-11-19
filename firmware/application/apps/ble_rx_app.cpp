@@ -519,6 +519,7 @@ void BLERxView::on_save_file(const std::string value) {
 
 bool BLERxView::saveFile(const std::filesystem::path& path) {
 
+    // Check to see if file was previously saved.
     bool file_existed = file_exists(path);
 
     // Attempt to open, if it can't be opened. Create new.
@@ -531,7 +532,6 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 
     if (!file_existed)
     {
-        std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel \n";
         f.write(headerStr.c_str(), headerStr.length());
     }
 
@@ -541,57 +541,55 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 
         BleRecentEntry entry = (BleRecentEntry)*it;
 
-        std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ", ";
-        std::string timestameStr = entry.timestamp + ", ";
-        std::string nameStr = entry.nameString + ", ";
-        std::string pduStr = pdu_type_to_string(entry.pduType) + ", ";
-        std::string dataStr = "0x" + entry.dataString + ", ";
-        std::string hitsStr = to_string_dec_int(entry.numHits) + ", ";
-        std::string dbStr = to_string_dec_int(entry.dbValue) + ", ";
-        std::string channelStr = to_string_dec_int(entry.channelNumber) + "\n";
+        std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ",";
+        std::string timestameStr = entry.timestamp + ",";
+        std::string nameStr = entry.nameString + ",";
+        std::string pduStr = pdu_type_to_string(entry.pduType) + ",";
+        std::string dataStr = "0x" + entry.dataString + ",";
+        std::string hitsStr = to_string_dec_int(entry.numHits) + ",";
+        std::string dbStr = to_string_dec_int(entry.dbValue) + ",";
+        std::string channelStr = to_string_dec_int(entry.channelNumber) + ",";
 
+        std::string lineStr = timestameStr + macAddressStr + nameStr + pduStr + dataStr + hitsStr + dbStr + channelStr;
+        lineStr += pad_string_with_spaces(maxLineLength - lineStr.length());
+ 
         // Check file for macAddressStr before adding.
-        std::string currentLine;
+        char currentLine [maxLineLength];
+        uint64_t startPos = headerStr.length();
         uint64_t bytesRead = 0;
-        uint64_t currentBytes = 0;
+        uint64_t linePos = 0;
+        uint64_t bytePos = 0;
         bool foundEntry = false;
 
-        // Start at beginning.
-        f.seek(0);
+        f.seek(startPos);
 
         do
         {
-            bytesRead = readUntil(f, (char *)currentLine.c_str(), f.size(), '\n');
-            currentBytes += bytesRead;
-
-            if (currentLine.find(macAddressStr) != std::string::npos)
+            // Keep track of where beginning of line is.
+            linePos = f.tell();
+            bytesRead = readUntil(f, currentLine, f.size(), '\n');
+            bytePos += bytesRead;
+            
+            if (strstr(currentLine, macAddressStr.c_str()) != NULL)
             {
                 foundEntry = true;
                 break;
             }
 
-            currentLine.clear();
+            memset(currentLine, 0, maxLineLength);
 
-        } while (currentBytes <= f.size() && bytesRead != 0);
-        
-        // Go to end.
-        f.seek(f.size() + 1);
+         } while ((bytesRead != 0) && (bytePos <= f.size()));
 
         if (!foundEntry)
         {
-            f.write(timestameStr.c_str(), timestameStr.length());
-            f.write(macAddressStr.c_str(), macAddressStr.length());
-            f.write(nameStr.c_str(), nameStr.length());
-            f.write(pduStr.c_str(), pduStr.length());
-            f.write(dataStr.c_str(), dataStr.length());
-            f.write(hitsStr.c_str(), hitsStr.length());
-            f.write(dbStr.c_str(), dbStr.length());
-            f.write(channelStr.c_str(), channelStr.length());
+            f.seek(f.size());
         }
         else
         {
-            f.write("FOUND MATCH\n", 14);
+            f.seek(linePos);
         }
+
+        f.write_line(lineStr.c_str());
 
         it++;
     }

@@ -212,6 +212,8 @@ class BLERxView : public View {
     std::string filterBuffer{};
     std::string filter{};
     std::string listFileBuffer{};
+    std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel \n";
+    uint16_t maxLineLength = 140;
 
     static constexpr auto header_height = 3 * 16;
     static constexpr auto switch_button_height = 3 * 16;
