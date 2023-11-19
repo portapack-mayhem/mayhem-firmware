@@ -534,7 +534,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
     }
 
     for (const auto& entry : recent) {
-        tempList.emplace_front(entry);
+        tempList.emplace_back(entry);
     }
 
     auto it = tempList.begin();
