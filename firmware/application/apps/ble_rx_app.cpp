@@ -533,8 +533,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         f.write(headerStr.c_str(), headerStr.length());
     }
 
-    for (const auto& entry : recent)
-    {
+    for (const auto& entry : recent) {
         tempList.emplace_front(entry);
     }
 
@@ -564,8 +563,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         bool foundEntry = false;
 
         // Only bother searching if we had an exisiting file. (Saves computational time when not needed).
-        if (file_existed)
-        {
+        if (file_existed) {
             f.seek(startPos);
 
             do {
