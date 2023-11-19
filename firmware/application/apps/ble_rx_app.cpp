@@ -533,9 +533,14 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         f.write(headerStr.c_str(), headerStr.length());
     }
 
-    auto it = recent.begin();
+    for (const auto& entry : recent)
+    {
+        tempList.emplace_front(entry);
+    }
 
-    while (it != recent.end()) {
+    auto it = tempList.begin();
+
+    while (it != tempList.end()) {
         BleRecentEntry entry = (BleRecentEntry)*it;
 
         std::string macAddressStr = to_string_mac_address(entry.packetData.macAddress, 6, false) + ",";
@@ -589,6 +594,8 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 
         it++;
     }
+
+    tempList.clear();
 
     return true;
 }

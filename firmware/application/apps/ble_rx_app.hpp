@@ -294,6 +294,7 @@ class BLERxView : public View {
     std::unique_ptr<BLELogger> logger{};
 
     BleRecentEntries recent{};
+    BleRecentEntries tempList{};
 
     const RecentEntriesColumns columns{{
         {"Mac Address", 17},
