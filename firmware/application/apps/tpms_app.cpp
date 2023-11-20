@@ -34,9 +34,6 @@ namespace tpms {
 
 namespace format {
 
-static bool use_kpa = true;
-static bool use_celsius = true;
-
 std::string type(Reading::Type type) {
     return to_string_dec_uint(toUType(type), 2);
 }
@@ -46,11 +43,11 @@ std::string id(TransponderID id) {
 }
 
 std::string pressure(Pressure pressure) {
-    return to_string_dec_int(use_kpa ? pressure.kilopascal() : pressure.psi(), 3);
+    return to_string_dec_int(units_psi ? pressure.psi() : pressure.kilopascal(), 3);
 }
 
 std::string temperature(Temperature temperature) {
-    return to_string_dec_int(use_celsius ? temperature.celsius() : temperature.fahrenheit(), 3);
+    return to_string_dec_int(units_fahr ? temperature.fahrenheit() : temperature.celsius(), 3);
 }
 
 std::string flags(Flags flags) {
@@ -165,18 +162,16 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     options_band.set_by_value(receiver_model.target_frequency());
 
     options_pressure.on_change = [this](size_t, int32_t i) {
-        tpms::format::use_kpa = !i;
+        tpms::format::units_psi = (bool)i;
         update_view();
     };
-
-    options_pressure.set_selected_index(0, true);
+    options_pressure.set_selected_index(tpms::format::units_psi, true);
 
     options_temperature.on_change = [this](size_t, int32_t i) {
-        tpms::format::use_celsius = !i;
+        tpms::format::units_fahr = (bool)i;
         update_view();
     };
-
-    options_temperature.set_selected_index(0, true);
+    options_temperature.set_selected_index(tpms::format::units_fahr, true);
 
     logger = std::make_unique<TPMSLogger>();
     if (logger) {
