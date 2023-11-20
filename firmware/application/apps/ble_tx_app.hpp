@@ -268,7 +268,7 @@ class BLETxView : public View {
 
     Button button_switch{
         {16 * 8, 16 * 16, 13 * 8, 2 * 16},
-        "Switch to Tx"};
+        "Switch to Rx"};
 
     std::string str_log{""};
     bool logging{true};
