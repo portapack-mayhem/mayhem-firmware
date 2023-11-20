@@ -199,7 +199,7 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 }
 
 void BleRecentEntryDetailView::on_save_file(const std::string value, BLETxPacket packetToSave) {
-    std::filesystem::path packet_save_path{u"BLERX/Packets/Packet_????.TXT"};
+    std::filesystem::path packet_save_path{u"BLERX/Packets/????.TXT"};
 
     ensure_directory(packet_save_path);
     auto folder = packet_save_path.parent_path();
@@ -523,7 +523,7 @@ std::string BLERxView::build_line_str(BleRecentEntry entry) {
 }
 
 void BLERxView::on_save_file(const std::string value) {
-    std::filesystem::path packet_save_path{u"BLERX/Lists/List_????.csv"};
+    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
 
     ensure_directory(packet_save_path);
     auto folder = packet_save_path.parent_path();
@@ -538,8 +538,8 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
     bool file_existed = file_exists(path);
 
     // Attempt to open, if it can't be opened. Create new.
-    File f;
-    auto error = f.open(path, false, true);
+    auto src = std::make_unique<File>();
+    auto error = src->open(path, false, true);
 
     if (error) {
         return false;
@@ -550,13 +550,13 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
     }
 
     if (!file_existed) {
-        f.write_line(headerStr.c_str());
+        src->write_line(headerStr.c_str());
 
         auto it = tempList.begin();
 
         while (it != tempList.end()) {
             BleRecentEntry entry = (BleRecentEntry)*it;
-            f.write_line(build_line_str(entry).c_str());
+            src->write_line(build_line_str(entry).c_str());
             it++;
         }
     } else {
@@ -566,25 +566,25 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
         uint64_t bytesRead = 0;
         uint64_t bytePos = 0;
 
-        File::Size currentSize = f.size();
+        File::Size currentSize = src->size();
 
-        File tempFile;
+        auto dst = std::make_unique<File>();
         const std::filesystem::path tempFilePath = path + "~";
-        auto error = tempFile.open(tempFilePath, false, true);
+        auto error = dst->open(tempFilePath, false, true);
 
         if (error) {
             return false;
         }
 
-        tempFile.write_line(headerStr.c_str());
+        dst->write_line(headerStr.c_str());
 
-        f.seek(startPos);
+        src->seek(startPos);
 
         // Look for ones found and rewrite.
         do {
             memset(currentLine, 0, maxLineLength);
 
-            bytesRead = readUntil(f, currentLine, currentSize, '\n');
+            bytesRead = readUntil(*src, currentLine, currentSize, '\n');
 
             if (!bytesRead) {
                 break;
@@ -624,7 +624,7 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
             }
 
             if (foundEntry.entryFound) {
-                tempFile.write_line(build_line_str(foundEntry).c_str());
+                dst->write_line(build_line_str(foundEntry).c_str());
             }
 
         } while (bytePos <= currentSize);
@@ -636,13 +636,19 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
             BleRecentEntry entry = (BleRecentEntry)*it;
 
             if (!entry.entryFound) {
-                tempFile.write_line(build_line_str(entry).c_str());
+                dst->write_line(build_line_str(entry).c_str());
             }
 
             it++;
         }
 
-        // rename_file(tempFilePath, path);
+        // Close files before renaming/deleting.
+        src.reset();
+        dst.reset();
+
+        // Delete original and overwrite with temp file.
+        delete_file(path);
+        rename_file(tempFilePath, path);
     }
 
     tempList.clear();
