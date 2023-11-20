@@ -81,6 +81,8 @@ std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length, boo
 std::string to_string_formatted_mac_address(const char* macAddress);
 void generateRandomMacAddress(char* macAddress);
 
+uint64_t readUntil(File& file, char* result, std::size_t maxBufferSize, char delimiter);
+
 /* Scales 'n' to be a value less than 1000. 'base_unit' is the index of the unit from
  * 'unit_prefix' that 'n' is in initially. 3 is the index of the '1s' unit. */
 std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision);

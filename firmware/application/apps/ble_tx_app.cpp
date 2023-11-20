@@ -94,33 +94,6 @@ uint32_t stringToUint32(const std::string& str) {
     return result;
 }
 
-void readUntil(File& file, char* result, std::size_t maxBufferSize, char delimiter) {
-    std::size_t bytesRead = 0;
-
-    while (true) {
-        char ch;
-        File::Result<File::Size> readResult = file.read(&ch, 1);
-
-        if (readResult.is_ok() && readResult.value() > 0) {
-            if (ch == delimiter) {
-                // Found a space character, stop reading
-                break;
-            } else if (bytesRead < maxBufferSize) {
-                // Append the character to the result if there's space
-                result[bytesRead++] = ch;
-            } else {
-                // Buffer is full, break to prevent overflow
-                break;
-            }
-        } else {
-            break;  // End of file or error
-        }
-    }
-
-    // Null-terminate the result string
-    result[bytesRead] = '\0';
-}
-
 static std::uint64_t get_freq_by_channel_number(uint8_t channel_number) {
     uint64_t freq_hz;
 
