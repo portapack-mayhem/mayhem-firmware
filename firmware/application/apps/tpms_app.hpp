@@ -114,7 +114,7 @@ class TPMSAppView : public View {
 
    private:
     RxRadioState radio_state_{
-        315000000 /* frequency*/,
+        314950000 /* frequency*/,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */};
 
@@ -146,11 +146,12 @@ class TPMSAppView : public View {
         {21 * 8, 5, 6 * 8, 4},
     };
 
+    // "315 MHz" TPMS sensors transmit at either 314.9 or 315 MHz but we should pick up either
     OptionsField options_band{
         {0 * 8, 0 * 16},
         3,
         {
-            {"315", 314900000},
+            {"315", 314950000},
             {"434", 433920000},
         }};
 
