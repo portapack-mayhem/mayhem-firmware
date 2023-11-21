@@ -37,6 +37,17 @@
 
 #include "tpms_packet.hpp"
 
+namespace tpms {
+
+namespace format {
+
+static bool units_psi{false};
+static bool units_fahr{false};
+
+} /* namespace format */
+
+} /* namespace tpms */
+
 namespace std {
 
 } /* namespace std */
@@ -103,11 +114,17 @@ class TPMSAppView : public View {
 
    private:
     RxRadioState radio_state_{
-        315000000 /* frequency*/,
+        314950000 /* frequency*/,
         1750000 /* bandwidth */,
         2457600 /* sampling rate */};
+
     app_settings::SettingsManager settings_{
-        "rx_tpms", app_settings::Mode::RX};
+        "rx_tpms",
+        app_settings::Mode::RX,
+        {
+            {"units_psi"sv, &tpms::format::units_psi},
+            {"units_fahr"sv, &tpms::format::units_fahr},
+        }};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::TPMSPacket,
@@ -129,11 +146,12 @@ class TPMSAppView : public View {
         {21 * 8, 5, 6 * 8, 4},
     };
 
+    // "315 MHz" TPMS sensors transmit at either 314.9 or 315 MHz but we should pick up either
     OptionsField options_band{
         {0 * 8, 0 * 16},
         3,
         {
-            {"315", 315000000},
+            {"315", 314950000},
             {"434", 433920000},
         }};
 
