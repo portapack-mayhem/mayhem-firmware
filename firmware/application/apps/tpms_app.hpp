@@ -44,9 +44,9 @@ namespace format {
 static bool units_psi{false};
 static bool units_fahr{false};
 
-}
+} /* namespace format */
 
-}
+} /* namespace tpms */
 
 namespace std {
 
