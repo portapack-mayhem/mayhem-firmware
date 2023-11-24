@@ -24,6 +24,7 @@
 
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
+#include "ui_freq_field.hpp"
 #include "ui_rssi.hpp"
 #include "ui_channel.hpp"
 
@@ -95,7 +96,7 @@ class ERTLogger {
         return log_file.append(filename);
     }
 
-    void on_packet(const ert::Packet& packet);
+    void on_packet(const ert::Packet& packet, const uint32_t target_frequency);
 
    private:
     LogFile log_file{};
@@ -126,6 +127,7 @@ class ERTAppView : public View {
     ERTRecentEntries recent{};
     std::unique_ptr<ERTLogger> logger{};
 
+    NavigationView& nav_;
     RxRadioState radio_state_{
         911600000 /* frequency */,
         2500000 /* bandwidth */,
@@ -142,6 +144,10 @@ class ERTAppView : public View {
     ERTRecentEntriesView recent_entries_view{columns, recent};
 
     static constexpr auto header_height = 1 * 16;
+
+    RxFrequencyField field_frequency{
+        {5 * 8, 0 * 16},
+        nav_};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
