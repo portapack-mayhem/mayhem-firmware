@@ -116,7 +116,7 @@ class MorseView : public View {
     NumberField field_foxhunt{
         {17 * 8, 16 + 4},
         2,
-        {1,11},
+        {1, 11},
         1,
         ' '};
 
