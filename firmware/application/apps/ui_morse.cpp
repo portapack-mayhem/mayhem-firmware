@@ -56,13 +56,23 @@ static msg_t ookthread_fn(void* arg) {
         v = (symbol < 2) ? 1 : 0;  // TX on for dot or dash, off for pause
         delay = morse_symbols[symbol];
 
-        gpio_og_tx.write(v);
+        if (hackrf_r9) {           // r9 has a common PIN 54 for MODE CONTROL TX / RX,  <=r6 has two independent MODE CONTROL pins (TX and RX)
+            gpio_r9_rx.write(!v);  // in hackrf r9 opposite logic "0" means tx , "1" rx = no tx)
+        } else {
+            gpio_og_tx.write(v);  // in hackrf <=r6, "1" means tx , "0" no tx.
+        }
+
         arg_c->on_tx_progress(i, false);
 
         chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
     }
 
-    gpio_og_tx.write(0);  // Ensure TX is off
+    if (hackrf_r9) {          // r9 has a common PIN 54 for MODE CONTROL TX / RX,  <=r6 has two independent MODE CONTROL pins (TX and RX)
+        gpio_r9_rx.write(1);  // Hackrf_r9 , common pin,  rx="1" (we ensure TX is off)  / tx="0"
+    } else {
+        gpio_og_tx.write(0);  // Hackrf <=r6 independent TX / RX  pins ,now touching the tx pin ==> Ensure TX is off
+    }
+
     arg_c->on_tx_progress(0, true);
     chThdExit(0);
 
