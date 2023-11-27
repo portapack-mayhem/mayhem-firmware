@@ -167,6 +167,9 @@ void BLETxView::toggle() {
 }
 
 void BLETxView::start() {
+    baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
+    transmitter_model.enable();
+
     int randomChannel = channel_number;
 
     if (auto_channel) {
@@ -192,27 +195,19 @@ void BLETxView::start() {
             return;
         }
 
-        transmitter_model.enable();
         button_play.set_bitmap(&bitmap_stop);
         is_running = true;
     }
 
-    // Send next packet.
+    // Setup next packet configuration.
     progressbar.set_max(packets[current_packet].packet_count);
     baseband::set_btletx(randomChannel, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
-
-    is_sending = true;
-
-    if ((packet_counter % 10) == 0) {
-        text_packets_sent.set(to_string_dec_uint(packet_counter));
-    }
-
-    packet_counter--;
-    progressbar.set_value(packets[current_packet].packet_count - packet_counter);
 }
 
 void BLETxView::stop() {
     transmitter_model.disable();
+    baseband::shutdown();
+
     progressbar.set_value(0);
     button_play.set_bitmap(&bitmap_play);
     check_loop.set_value(false);
@@ -222,30 +217,39 @@ void BLETxView::stop() {
     is_running = false;
 }
 
+void BLETxView::reset() {
+    transmitter_model.disable();
+    baseband::shutdown();
+
+    start();
+}
+
 // called each 1/60th of second, so 6 = 100ms
 void BLETxView::on_timer() {
     if (++mscounter == timer_period) {
         mscounter = 0;
 
-        if (is_active() && !is_sending) {
+        if (is_active()) {
             // Reached end of current packet repeats.
             if (packet_counter == 0) {
                 // Done sending all packets.
                 if (current_packet == (num_packets - 1)) {
+                    current_packet = 0;
+
                     // If looping, restart from beginning.
                     if (check_loop.value()) {
-                        update_current_packet(packets[current_packet], 0);
-                        start();
+                        update_current_packet(packets[current_packet], current_packet);
+                        reset();
                     } else {
                         stop();
                     }
                 } else {
                     current_packet++;
                     update_current_packet(packets[current_packet], current_packet);
-                    start();
+                    reset();
                 }
             } else {
-                start();
+                reset();
             }
         }
     }
@@ -254,15 +258,18 @@ void BLETxView::on_timer() {
 void BLETxView::on_tx_progress(const bool done) {
     if (done) {
         if (is_active()) {
-            is_sending = false;
+            if ((packet_counter % 10) == 0) {
+                text_packets_sent.set(to_string_dec_uint(packet_counter));
+            }
+
+            packet_counter--;
+            progressbar.set_value(packets[current_packet].packet_count - packet_counter);
         }
     }
 }
 
 BLETxView::BLETxView(NavigationView& nav)
     : nav_{nav} {
-    baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
-
     add_children({&button_open,
                   &text_filename,
                   &progressbar,

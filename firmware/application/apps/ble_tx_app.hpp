@@ -108,6 +108,7 @@ class BLETxView : public View {
     void toggle();
     void start();
     void stop();
+    void reset();
     void handle_replay_thread_done(const uint32_t return_code);
     void file_error();
     bool saveFile(const std::filesystem::path& path);
@@ -142,7 +143,6 @@ class BLETxView : public View {
     char randomMac[13] = "010203040506";
 
     bool is_running = false;
-    bool is_sending = false;
     uint64_t timer_count{0};
     int16_t timer_period{1};
     bool repeatLoop = false;
