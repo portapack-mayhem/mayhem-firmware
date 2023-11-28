@@ -97,9 +97,9 @@ WeatherView::WeatherView(NavigationView& nav)
     recent_entries_view.on_select = [this](const WeatherRecentEntry& entry) {
         nav_.push<WeatherRecentEntryDetailView>(entry);
     };
-    receiver_model.set_target_frequency(433920000);
-    receiver_model.set_sampling_rate(2000000);
-    receiver_model.set_baseband_bandwidth(2000000);
+    receiver_model.set_target_frequency(433'920'000);
+    receiver_model.set_sampling_rate(2'000'000);
+    receiver_model.set_baseband_bandwidth(1'750'000);
     receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
     baseband::set_weather();
     receiver_model.enable();

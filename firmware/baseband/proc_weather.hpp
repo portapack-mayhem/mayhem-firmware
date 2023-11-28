@@ -29,9 +29,6 @@
 #include "baseband_processor.hpp"
 #include "baseband_thread.hpp"
 #include "rssi_thread.hpp"
-// #include "dsp_types.hpp"
-// #include "dsp_decimate.hpp"
-// #include "fifo.hpp"
 #include "message.hpp"
 
 #include "fprotos/weatherprotos.hpp"
@@ -42,8 +39,8 @@ class WeatherProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    static constexpr uint32_t msperTick = 1;  // in reality it is 0.5, so will divide by 2..
-    static constexpr size_t baseband_fs = 2'000'000;
+    static constexpr uint32_t usperTick = 500;  // we nees ms to has to divide by 1000
+    static constexpr size_t baseband_fs = 1'750'000;
     uint32_t currentDuration = 0;
     uint32_t threshold = 0x0630;  // will overwrite after the first iteration
     bool currentHiLow = false;

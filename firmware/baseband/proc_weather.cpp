@@ -33,12 +33,12 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
         bool meashl = (mag > threshold);
         tm += mag;
-        if (meashl == currentHiLow && currentDuration < 20'000'000)  // allow pass 'end' signal
+        if (meashl == currentHiLow && currentDuration < 10'000'000)  // allow pass 'end' signal
         {
-            if (currentDuration < UINT32_MAX) currentDuration += msperTick;
+            if (currentDuration < UINT32_MAX) currentDuration += usperTick;
         } else {  // called on change, so send the last duration and dir.
-            protoList.feed(currentHiLow, currentDuration / 2);
-            currentDuration = msperTick;
+            protoList.feed(currentHiLow, currentDuration / 1000);
+            currentDuration = usperTick;
             currentHiLow = meashl;
         }
     }
