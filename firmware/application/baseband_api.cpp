@@ -319,6 +319,11 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
     send_message(&message);
 }
 
+void set_weather() {
+    const WeatherRxConfigureMessage message{};
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {

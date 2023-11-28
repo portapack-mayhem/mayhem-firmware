@@ -550,6 +550,14 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
+### Weather Stations
+
+set(MODE_CPPSRC
+	proc_weather.cpp
+)
+DeclareTargets(PWTH weather)
+
+
 ### Flash Utility
 
 include(${CHIBIOS_PORTAPACK}/os/various/fatfs_bindings/fatfs.cmake)
