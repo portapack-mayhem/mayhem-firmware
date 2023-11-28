@@ -116,7 +116,7 @@ class FProtoWeatherTX8300 : public FProtoWeatherBase {
             y += (package_1 >> i) & 0x05;
         }
         uint8_t crc = (~x & 0xF) << 4 | (~y & 0xF);
-        return (crc == ((decode_data) & 0xFF));
+        return (crc == (decode_data & 0xFF));
     }
     void ws_protocol_tx_8300_remote_controller() {
         humidity = (((data >> 28) & 0x0F) * 10) + ((data >> 24) & 0x0F);

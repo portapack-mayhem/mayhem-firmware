@@ -163,7 +163,7 @@ class WeatherRecentEntryDetailView : public View {
     };
 
     Button button_done{
-        {screen_width - 96 - 4, screen_height - 32 - 4, 96, 32},
+        {screen_width - 96 - 4, screen_height - 32 - 12, 96, 32},
         "Done"};
 };
 

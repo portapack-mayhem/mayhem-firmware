@@ -319,10 +319,8 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
     send_message(&message);
 }
 
-
 void set_weather() {
-    const WeatherRxConfigureMessage message{
-        };
+    const WeatherRxConfigureMessage message{};
     send_message(&message);
 }
 
