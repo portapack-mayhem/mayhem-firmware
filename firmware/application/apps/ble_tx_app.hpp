@@ -121,6 +121,7 @@ class BLETxView : public View {
     void on_file_changed(const std::filesystem::path& new_file_path);
     void on_save_file(const std::string value);
     void on_tx_progress(const bool done);
+    void on_random_data_change(std::string value);
     void update_current_packet(BLETxPacket packet, uint32_t currentIndex);
 
     NavigationView& nav_;
@@ -162,11 +163,14 @@ class BLETxView : public View {
     static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
     static constexpr uint32_t max_num_packets{32};
 
+    std::string randomBuffer{};
+    std::string randomString{};
+
     BLETxPacket packets[max_num_packets];
 
     PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
-    static constexpr auto header_height = 9 * 16;
+    static constexpr auto header_height = 10 * 16;
     static constexpr auto switch_button_height = 3 * 16;
 
     Button button_open{
@@ -238,32 +242,36 @@ class BLETxView : public View {
          {"SCAN_RSP", PKT_TYPE_SCAN_RSP},
          {"CONNECT_REQ", PKT_TYPE_CONNECT_REQ}}};
 
+    Button button_random{
+        {0 * 8, 8 * 8, 11 * 8, 16},
+        "Random Data"};
+
     Labels label_packet_index{
-        {{0 * 8, 10 * 8}, "Packet Index:", Color::light_grey()}};
+        {{0 * 8, 12 * 8}, "Packet Index:", Color::light_grey()}};
 
     Text text_packet_index{
-        {13 * 8, 5 * 16, 12 * 8, 16},
-        "-"};
-
-    Labels label_packets_sent{
-        {{0 * 8, 12 * 8}, "Packets Left:", Color::light_grey()}};
-
-    Text text_packets_sent{
         {13 * 8, 6 * 16, 12 * 8, 16},
         "-"};
 
+    Labels label_packets_sent{
+        {{0 * 8, 14 * 8}, "Packets Left:", Color::light_grey()}};
+
+    Text text_packets_sent{
+        {13 * 8, 6 * 16, 14 * 8, 16},
+        "-"};
+
     Labels label_mac_address{
-        {{0 * 8, 14 * 8}, "Mac Address:", Color::light_grey()}};
+        {{0 * 8, 16 * 8}, "Mac Address:", Color::light_grey()}};
 
     Text text_mac_address{
-        {12 * 8, 7 * 16, 20 * 8, 16},
+        {12 * 8, 8 * 16, 20 * 8, 16},
         "-"};
 
     Labels label_data_packet{
-        {{0 * 8, 16 * 8}, "Packet Data:", Color::light_grey()}};
+        {{0 * 8, 16 * 9}, "Packet Data:", Color::light_grey()}};
 
     Console console{
-        {0, 8 * 16, 240, 240}};
+        {0, 9 * 16, 240, 240}};
 
     Button button_save_packet{
         {1 * 8, 16 * 16, 13 * 8, 2 * 16},

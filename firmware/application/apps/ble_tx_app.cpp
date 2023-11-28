@@ -188,9 +188,35 @@ void BLETxView::start() {
         is_running = true;
     }
 
+    char advertisementData[63] = {0};
+
+    strcpy(advertisementData, packets[current_packet].advertisementData);
+
+    if (!randomString.empty()) {
+        // Check if the substring exists within the larger string
+        const char* result = strstr(advertisementData, randomString.c_str());
+
+        if (result != NULL) {
+            // Calculate the start and end positions of the substring
+            int startPos = result - advertisementData;
+            int endPos = startPos + randomString.length();
+
+            for (int i = startPos; i < endPos; i++) {
+                int min = 0;
+                int max = 15;
+
+                int hexDigit = min + std::rand() % (max - min + 1);
+
+                // Map the random number to a hexadecimal digit
+                char randomHexChar = (hexDigit < 10) ? ('0' + hexDigit) : ('A' + hexDigit - 10);
+                advertisementData[i] = randomHexChar;
+            }
+        }
+    }
+
     // Setup next packet configuration.
     progressbar.set_max(packets[current_packet].packet_count);
-    baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+    baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, advertisementData, pduType);
 }
 
 void BLETxView::stop() {
@@ -284,6 +310,7 @@ BLETxView::BLETxView(NavigationView& nav)
                   &options_speed,
                   &options_channel,
                   &options_adv_type,
+                  &button_random,
                   &label_packet_index,
                   &text_packet_index,
                   &label_packets_sent,
@@ -356,6 +383,16 @@ BLETxView::BLETxView(NavigationView& nav)
 
     button_switch.on_select = [&nav](Button&) {
         nav.replace<BLERxView>();
+    };
+
+    button_random.on_select = [this](Button&) {
+        text_prompt(
+            nav_,
+            randomBuffer,
+            64,
+            [this](std::string& buffer) {
+                on_random_data_change(buffer);
+            });
     };
 }
 
@@ -434,6 +471,10 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     }
 
     console.write(str_console);
+}
+
+void BLETxView::on_random_data_change(std::string value) {
+    randomString = value;
 }
 
 void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex) {
