@@ -170,17 +170,6 @@ void BLETxView::start() {
     baseband::run_image(portapack::spi_flash::image_tag_btle_tx);
     transmitter_model.enable();
 
-    int randomChannel = channel_number;
-
-    if (auto_channel) {
-        int min = 37;
-        int max = 39;
-
-        randomChannel = min + std::rand() % (max - min + 1);
-
-        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
-    }
-
     // Generate new random Mac Address.
     generateRandomMacAddress(randomMac);
 
@@ -201,7 +190,7 @@ void BLETxView::start() {
 
     // Setup next packet configuration.
     progressbar.set_max(packets[current_packet].packet_count);
-    baseband::set_btletx(randomChannel, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
+    baseband::set_btletx(channel_number, random_mac ? randomMac : packets[current_packet].macAddress, packets[current_packet].advertisementData, pduType);
 }
 
 void BLETxView::stop() {
@@ -226,8 +215,8 @@ void BLETxView::reset() {
 
 // called each 1/60th of second, so 6 = 100ms
 void BLETxView::on_timer() {
-    if (++mscounter == timer_period) {
-        mscounter = 0;
+    if (++timer_count == timer_period) {
+        timer_count = 0;
 
         if (is_active()) {
             // Reached end of current packet repeats.
@@ -251,6 +240,19 @@ void BLETxView::on_timer() {
             } else {
                 reset();
             }
+        }
+    }
+
+    if (++auto_channel_counter == auto_channel_period) {
+        auto_channel_counter = 0;
+
+        if (auto_channel) {
+            int min = 37;
+            int max = 39;
+
+            channel_number = min + std::rand() % (max - min + 1);
+
+            field_frequency.set_value(get_freq_by_channel_number(channel_number));
         }
     }
 }
@@ -316,7 +318,7 @@ BLETxView::BLETxView(NavigationView& nav)
 
     options_speed.on_change = [this](size_t, int32_t i) {
         timer_period = i;
-        mscounter = 0;
+        timer_count = 0;
     };
 
     options_adv_type.on_change = [this](size_t, int32_t i) {

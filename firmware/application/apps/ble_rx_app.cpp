@@ -657,16 +657,6 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
-    if (auto_channel) {
-        int min = 37;
-        int max = 39;
-
-        int randomChannel = min + std::rand() % (max - min + 1);
-
-        field_frequency.set_value(get_freq_by_channel_number(randomChannel));
-        baseband::set_btlerx(randomChannel);
-    }
-
     std::string str_console = "";
 
     if (!logging) {
@@ -724,6 +714,23 @@ void BLERxView::on_filter_change(std::string value) {
     }
 
     filter = value;
+}
+
+// called each 1/60th of second, so 6 = 100ms
+void BLERxView::on_timer() {
+    if (++timer_count == timer_period) {
+        timer_count = 0;
+
+        if (auto_channel) {
+            int min = 37;
+            int max = 39;
+
+            int randomChannel = min + std::rand() % (max - min + 1);
+
+            field_frequency.set_value(get_freq_by_channel_number(randomChannel));
+            baseband::set_btlerx(randomChannel);
+        }
+    }
 }
 
 void BLERxView::handle_entries_sort(uint8_t index) {
