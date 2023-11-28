@@ -195,6 +195,7 @@ class BLERxView : public View {
     bool saveFile(const std::filesystem::path& path);
     void on_data(BlePacketData* packetData);
     void on_filter_change(std::string value);
+    void on_timer();
     void handle_entries_sort(uint8_t index);
     void updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
 
@@ -211,6 +212,9 @@ class BLERxView : public View {
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
     bool auto_channel = false;
+
+    int16_t timer_count{0};
+    int16_t timer_period{6};  // 100ms
 
     std::string filterBuffer{};
     std::string filter{};
@@ -312,6 +316,12 @@ class BLERxView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const BLEPacketMessage*>(p);
             this->on_data(message->packet);
+        }};
+
+    MessageHandlerRegistration message_handler_frame_sync{
+        Message::ID::DisplayFrameSync,
+        [this](const Message* const) {
+            this->on_timer();
         }};
 };
 

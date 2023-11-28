@@ -143,8 +143,12 @@ class BLETxView : public View {
     char randomMac[13] = "010203040506";
 
     bool is_running = false;
-    uint64_t timer_count{0};
+
+    int16_t timer_count{0};
     int16_t timer_period{1};
+    int16_t auto_channel_counter = 0;
+    int16_t auto_channel_period{6};
+
     bool repeatLoop = false;
     uint32_t packet_counter{0};
     uint32_t num_packets{0};
@@ -157,7 +161,6 @@ class BLETxView : public View {
     static constexpr uint8_t max_packet_repeat_str{10};
     static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
     static constexpr uint32_t max_num_packets{32};
-    int16_t mscounter = 0;
 
     BLETxPacket packets[max_num_packets];
 
