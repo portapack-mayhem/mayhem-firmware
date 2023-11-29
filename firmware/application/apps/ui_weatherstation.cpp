@@ -36,7 +36,7 @@ void WeatherRecentEntryDetailView::update_data() {
     // set text elements
     text_type.set(WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry_.sensorType));
     text_id.set("0x" + to_string_hex(entry_.id));
-    text_temp.set(to_string_decimal(entry_.temp, 2));
+    text_temp.set(weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) : to_string_decimal(entry_.temp, 2));
     text_hum.set(to_string_dec_uint(entry_.humidity) + "%");
     text_ch.set(to_string_dec_uint(entry_.channel));
     text_batt.set(to_string_dec_uint(entry_.battery_low) + " " + ((entry_.battery_low == 0) ? "OK" : "LOW"));
@@ -81,6 +81,7 @@ WeatherView::WeatherView(NavigationView& nav)
                   &field_lna,
                   &field_vga,
                   &field_frequency,
+                  &options_temperature,
                   &button_clear_list,
                   &recent_entries_view});
 
@@ -91,6 +92,13 @@ WeatherView::WeatherView(NavigationView& nav)
         recent_entries_view.set_dirty();
     };
     field_frequency.set_step(100000);
+
+    options_temperature.on_change = [this](size_t, int32_t i) {
+        weather_units_fahr = (bool)i;
+        recent_entries_view.set_dirty();
+    };
+    options_temperature.set_selected_index(weather_units_fahr, false);
+
     const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
     recent_entries_view.set_parent_rect(content_rect);
     recent_entries_view.on_select = [this](const WeatherRecentEntry& entry) {
