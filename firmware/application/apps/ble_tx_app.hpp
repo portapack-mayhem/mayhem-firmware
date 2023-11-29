@@ -28,6 +28,7 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_transmitter.hpp"
+#include "ui_text_editor.hpp"
 #include "ui_freq_field.hpp"
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
@@ -157,6 +158,13 @@ class BLETxView : public View {
     bool random_mac = false;
     bool file_override = false;
 
+    TextViewer dataEditView{
+        {0, 9 * 16, 240, 240}};
+
+    std::unique_ptr<FileWrapper> dataFileWrapper{};
+    File dataFile{};
+    std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
+
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
     static constexpr uint8_t max_packet_repeat_str{10};
@@ -170,7 +178,7 @@ class BLETxView : public View {
 
     PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
-    static constexpr auto header_height = 10 * 16;
+    static constexpr auto header_height = 9 * 16;
     static constexpr auto switch_button_height = 3 * 16;
 
     Button button_open{
@@ -242,33 +250,29 @@ class BLETxView : public View {
          {"SCAN_RSP", PKT_TYPE_SCAN_RSP},
          {"CONNECT_REQ", PKT_TYPE_CONNECT_REQ}}};
 
-    Button button_random{
-        {0 * 8, 8 * 8, 11 * 8, 16},
-        "Random Data"};
-
     Labels label_packet_index{
-        {{0 * 8, 12 * 8}, "Packet Index:", Color::light_grey()}};
+        {{0 * 8, 10 * 8}, "Packet Index:", Color::light_grey()}};
 
     Text text_packet_index{
-        {13 * 8, 6 * 16, 12 * 8, 16},
+        {13 * 8, 5 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_packets_sent{
-        {{0 * 8, 14 * 8}, "Packets Left:", Color::light_grey()}};
+        {{0 * 8, 12 * 8}, "Packets Left:", Color::light_grey()}};
 
     Text text_packets_sent{
         {13 * 8, 6 * 16, 14 * 8, 16},
         "-"};
 
     Labels label_mac_address{
-        {{0 * 8, 16 * 8}, "Mac Address:", Color::light_grey()}};
+        {{0 * 8, 14 * 8}, "Mac Address:", Color::light_grey()}};
 
     Text text_mac_address{
-        {12 * 8, 8 * 16, 20 * 8, 16},
+        {12 * 8, 7 * 16, 20 * 8, 16},
         "-"};
 
     Labels label_data_packet{
-        {{0 * 8, 16 * 9}, "Packet Data:", Color::light_grey()}};
+        {{0 * 8, 8 * 16}, "Packet Data:", Color::light_grey()}};
 
     Console console{
         {0, 9 * 16, 240, 240}};
