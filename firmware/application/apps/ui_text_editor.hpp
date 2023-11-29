@@ -71,6 +71,7 @@ class TextViewer : public Widget {
 
     void cursor_home();
     void cursor_end();
+    void cursor_set(uint16_t line, uint16_t col);
 
     // Gets the length of the current line.
     uint16_t line_length();

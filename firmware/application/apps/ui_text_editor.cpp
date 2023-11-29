@@ -140,6 +140,11 @@ void TextViewer::cursor_end() {
     redraw();
 }
 
+void TextViewer::cursor_set(uint16_t line, uint16_t col) {
+    cursor_.line = line;
+    cursor_.col = col;
+}
+
 uint16_t TextViewer::line_length() {
     return file_->line_length(cursor_.line);
 }

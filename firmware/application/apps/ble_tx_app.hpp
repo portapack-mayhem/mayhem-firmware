@@ -158,12 +158,16 @@ class BLETxView : public View {
     bool random_mac = false;
     bool file_override = false;
 
-    TextViewer dataEditView{
-        {0, 9 * 16, 240, 240}};
+    typedef struct {
+        uint16_t line;
+        uint16_t col;
+    } cursor_pos;
 
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
     std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
+    uint16_t dataBytePos = 0;
+    cursor_pos cursorStart {};
 
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
@@ -171,15 +175,12 @@ class BLETxView : public View {
     static constexpr uint32_t max_packet_repeat_count{UINT32_MAX};
     static constexpr uint32_t max_num_packets{32};
 
-    std::string randomBuffer{};
-    std::string randomString{};
-
     BLETxPacket packets[max_num_packets];
 
     PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
     static constexpr auto header_height = 9 * 16;
-    static constexpr auto switch_button_height = 3 * 16;
+    static constexpr auto switch_button_height = 5 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -258,10 +259,10 @@ class BLETxView : public View {
         "-"};
 
     Labels label_packets_sent{
-        {{0 * 8, 12 * 8}, "Packets Left:", Color::light_grey()}};
+        {{0 * 8, 12 * 8}, "Repeat Count:", Color::light_grey()}};
 
     Text text_packets_sent{
-        {13 * 8, 6 * 16, 14 * 8, 16},
+        {13 * 8, 6 * 16, 12 * 8, 16},
         "-"};
 
     Labels label_mac_address{
@@ -276,6 +277,16 @@ class BLETxView : public View {
 
     Console console{
         {0, 9 * 16, 240, 240}};
+
+    TextViewer dataEditView{
+        {0, 9 * 16, 240, 240}};
+
+    Labels label_data_index{
+        {{0 * 8, 28 * 8}, "Data Index:", Color::light_grey()}};
+
+    Text text_data_index{
+        {11 * 8, 14 * 16, 8 * 8, 16},
+        "-"};
 
     Button button_save_packet{
         {1 * 8, 16 * 16, 13 * 8, 2 * 16},

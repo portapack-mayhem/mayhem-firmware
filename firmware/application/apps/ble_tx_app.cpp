@@ -189,28 +189,20 @@ void BLETxView::start() {
     }
 
     char advertisementData[63] = {0};
-
     strcpy(advertisementData, packets[current_packet].advertisementData);
 
-    if (!randomString.empty()) {
-        // Check if the substring exists within the larger string
-        const char* result = strstr(advertisementData, randomString.c_str());
+    // TODO: Make this a checkbox.
+    if (dataBytePos != 0) {
 
-        if (result != NULL) {
-            // Calculate the start and end positions of the substring
-            int startPos = result - advertisementData;
-            int endPos = startPos + randomString.length();
+        for (int i = 0; i < dataBytePos; i++) {
+            int min = 0;
+            int max = 15;
 
-            for (int i = startPos; i < endPos; i++) {
-                int min = 0;
-                int max = 15;
+            int hexDigit = min + std::rand() % (max - min + 1);
 
-                int hexDigit = min + std::rand() % (max - min + 1);
-
-                // Map the random number to a hexadecimal digit
-                char randomHexChar = (hexDigit < 10) ? ('0' + hexDigit) : ('A' + hexDigit - 10);
-                advertisementData[i] = randomHexChar;
-            }
+            // Map the random number to a hexadecimal digit
+            char randomHexChar = (hexDigit < 10) ? ('0' + hexDigit) : ('A' + hexDigit - 10);
+            advertisementData[i] = randomHexChar;
         }
     }
 
@@ -317,9 +309,11 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_mac_address,
                   &text_mac_address,
                   &label_data_packet,
+                  &label_data_index,
+                  &text_data_index,
+                  &dataEditView,
                   &button_save_packet,
-                  &button_switch,
-                  &dataEditView});
+                  &button_switch});
 
     field_frequency.set_step(0);
 
@@ -382,6 +376,15 @@ BLETxView::BLETxView(NavigationView& nav)
 
     button_switch.on_select = [&nav](Button&) {
         nav.replace<BLERxView>();
+    };
+
+    dataEditView.on_cursor_moved = [this] {
+        dataBytePos = ((dataEditView.line()) * 30) + dataEditView.col();
+
+        cursorStart.line = dataEditView.line();
+        cursorStart.col = dataEditView.col();
+        
+        text_data_index.set(to_string_dec_uint(dataBytePos));
     };
 }
 
@@ -460,10 +463,6 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     }
 }
 
-void BLETxView::on_random_data_change(std::string value) {
-    randomString = value;
-}
-
 void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex) {
     std::string formattedMacAddress = to_string_formatted_mac_address(packet.macAddress);
 
@@ -495,8 +494,11 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     dataFileWrapper = *std::move(result);
 
-    dataEditView.set_font_zoom(true);
     dataEditView.set_file(*dataFileWrapper);
+    
+    dataEditView.set_font_zoom(true);
+    dataEditView.cursor_set(cursorStart.line, cursorStart.col);
+    dataEditView.redraw(true);
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {
