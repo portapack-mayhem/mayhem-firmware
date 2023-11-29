@@ -36,7 +36,7 @@ void WeatherRecentEntryDetailView::update_data() {
     // set text elements
     text_type.set(WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry_.sensorType));
     text_id.set("0x" + to_string_hex(entry_.id));
-    text_temp.set(weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) : to_string_decimal(entry_.temp, 2));
+    text_temp.set(weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) + STR_DEGREES_F : to_string_decimal(entry_.temp, 2) + STR_DEGREES_C);
     text_hum.set(to_string_dec_uint(entry_.humidity) + "%");
     text_ch.set(to_string_dec_uint(entry_.channel));
     text_batt.set(to_string_dec_uint(entry_.battery_low) + " " + ((entry_.battery_low == 0) ? "OK" : "LOW"));
@@ -193,7 +193,7 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
         line = truncate(line, 13);
     }
 
-    std::string temp = to_string_decimal(entry.temp, 2);
+    std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 2));
     std::string humStr = to_string_dec_uint(entry.humidity) + "%";
     std::string chStr = to_string_dec_uint(entry.channel);
 
