@@ -310,7 +310,6 @@ BLETxView::BLETxView(NavigationView& nav)
                   &options_speed,
                   &options_channel,
                   &options_adv_type,
-                  &button_random,
                   &label_packet_index,
                   &text_packet_index,
                   &label_packets_sent,
@@ -320,7 +319,7 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_data_packet,
                   &button_save_packet,
                   &button_switch,
-                  &console});
+                  &dataEditView});
 
     field_frequency.set_step(0);
 
@@ -383,16 +382,6 @@ BLETxView::BLETxView(NavigationView& nav)
 
     button_switch.on_select = [&nav](Button&) {
         nav.replace<BLERxView>();
-    };
-
-    button_random.on_select = [this](Button&) {
-        text_prompt(
-            nav_,
-            randomBuffer,
-            64,
-            [this](std::string& buffer) {
-                on_random_data_change(buffer);
-            });
     };
 }
 
@@ -469,8 +458,6 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     if (is_data) {
         str_console += (char)(value);
     }
-
-    console.write(str_console);
 }
 
 void BLETxView::on_random_data_change(std::string value) {
@@ -488,23 +475,38 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     text_mac_address.set(formattedMacAddress);
 
-    console.clear(true);
-
-    for (const std::string& str : strings) {
-        console.writeln(str);
-    }
-
     packet_counter = packet.packet_count;
     current_packet = currentIndex;
+
+    dataFile.create(dataTempFilePath);
+
+    for (const std::string& str : strings) {
+        dataFile.write(str.c_str(), str.size());
+        dataFile.write("\n", 1);
+        ;
+    }
+
+    dataFile.~File();
+
+    auto result = FileWrapper::open(dataTempFilePath);
+
+    if (!result)
+        return;
+
+    dataFileWrapper = *std::move(result);
+
+    dataEditView.set_font_zoom(true);
+    dataEditView.set_file(*dataFileWrapper);
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {
     View::set_parent_rect(new_parent_rect);
     const Rect content_rect{0, header_height, new_parent_rect.width(), new_parent_rect.height() - header_height - switch_button_height};
-    console.set_parent_rect(content_rect);
+    dataEditView.set_parent_rect(content_rect);
 }
 
 BLETxView::~BLETxView() {
+    delete_file(dataTempFilePath);
     transmitter_model.disable();
     baseband::shutdown();
 }
