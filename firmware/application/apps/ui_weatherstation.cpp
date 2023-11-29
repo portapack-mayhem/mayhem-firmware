@@ -90,17 +90,12 @@ WeatherView::WeatherView(NavigationView& nav)
         recent.clear();
         recent_entries_view.set_dirty();
     };
-    field_frequency.set_value(433920000);
-    field_frequency.set_step(1000);
+    field_frequency.set_step(100000);
     const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
     recent_entries_view.set_parent_rect(content_rect);
     recent_entries_view.on_select = [this](const WeatherRecentEntry& entry) {
         nav_.push<WeatherRecentEntryDetailView>(entry);
     };
-    receiver_model.set_target_frequency(433'920'000);
-    receiver_model.set_sampling_rate(2'000'000);
-    receiver_model.set_baseband_bandwidth(1'750'000);
-    receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
     baseband::set_weather();
     receiver_model.enable();
 }

@@ -92,7 +92,7 @@ class WeatherView : public View {
         433'920'000 /* frequency */,
         1'750'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
-        ReceiverModel::Mode::SpectrumAnalysis};
+        ReceiverModel::Mode::AMAudio};
     app_settings::SettingsManager settings_{
         "rx_weather", app_settings::Mode::RX};
 
