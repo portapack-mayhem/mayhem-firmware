@@ -37,6 +37,8 @@ using namespace ui;
 
 namespace ui {
 
+static bool weather_units_fahr{false};
+
 struct WeatherRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
@@ -92,11 +94,21 @@ class WeatherView : public View {
         433'920'000 /* frequency */,
         1'750'000 /* bandwidth */,
         2'000'000 /* sampling rate */,
-        ReceiverModel::Mode::SpectrumAnalysis};
+        ReceiverModel::Mode::AMAudio};
     app_settings::SettingsManager settings_{
-        "rx_weather", app_settings::Mode::RX};
+        "rx_weather",
+        app_settings::Mode::RX,
+        {
+            {"units_fahr"sv, &weather_units_fahr},
+        }};
 
     WeatherRecentEntries recent{};
+
+    OptionsField options_temperature{
+        {10 * 8, 0 * 16},
+        2,
+        {{STR_DEGREES_C, 0},
+         {STR_DEGREES_F, 1}}};
 
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
