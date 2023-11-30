@@ -75,7 +75,7 @@ class TextViewer : public Widget {
     void cursor_mark_selected();
 
     typedef std::pair<uint16_t, uint16_t> LineColPair;
-    std::vector<LineColPair> pairedVector {};
+    std::vector<LineColPair> pairedVector{};
 
     // Gets the length of the current line.
     uint16_t line_length();

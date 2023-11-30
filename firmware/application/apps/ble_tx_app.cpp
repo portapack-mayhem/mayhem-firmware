@@ -193,19 +193,16 @@ void BLETxView::start() {
 
     // TODO: Make this a checkbox.
     if (!markedBytes.empty()) {
-
         for (size_t i = 0; i < strlen(advertisementData); i++) {
-
             bool found = false;
-            
+
             auto it = std::find(markedBytes.begin(), markedBytes.end(), i);
 
             if (it != markedBytes.end()) {
                 found = true;
             }
 
-            if (found)
-            {
+            if (found) {
                 int min = 0;
                 int max = 15;
 
@@ -391,8 +388,7 @@ BLETxView::BLETxView(NavigationView& nav)
     };
 
     dataEditView.on_select = [this] {
-
-        //Save last selected cursor.
+        // Save last selected cursor.
         cursor_pos.line = dataEditView.line();
         cursor_pos.col = dataEditView.col();
 

@@ -151,8 +151,7 @@ void TextViewer::cursor_set(uint16_t line, uint16_t col) {
     cursor_.col = col;
 }
 
-void TextViewer::cursor_mark_selected()
-{
+void TextViewer::cursor_mark_selected() {
     LineColPair newMarker = std::make_pair(cursor_.line, cursor_.col);
     auto it = std::find(pairedVector.begin(), pairedVector.end(), newMarker);
 
@@ -277,8 +276,7 @@ void TextViewer::paint_cursor(Painter& painter) {
     if (paint_state_.line != UINT32_MAX)  // only XOR old cursor if it still appears on the screen
     {
         // Only reset previous cursor if we aren't marking.
-        if (paint_state_.mark_change)
-        {
+        if (paint_state_.mark_change) {
             xor_cursor(paint_state_.line, paint_state_.col);
         }
     }
@@ -289,13 +287,12 @@ void TextViewer::paint_cursor(Painter& painter) {
     paint_state_.col = cursor_.col;
     paint_state_.mark_change = cursor_.mark_change;
 
-    //Reset marking and wait for new change.
+    // Reset marking and wait for new change.
     cursor_.mark_change = true;
 }
 
 void TextViewer::paint_marked(Painter& painter) {
-
-        auto xor_cursor = [this, &painter](int32_t line, uint16_t col) {
+    auto xor_cursor = [this, &painter](int32_t line, uint16_t col) {
         int cursor_width = char_width + 1;
         int x = (col - paint_state_.first_col) * char_width - 1;
         if (x < 0) {  // cursor is one pixel narrower when in left column
@@ -315,7 +312,7 @@ void TextViewer::paint_marked(Painter& painter) {
             portapack::display.draw_pixels({x, y + col, cursor_width, 1}, pbuf, cursor_width);
         }
     };
-    
+
     auto it = pairedVector.begin();
 
     while (it != pairedVector.end()) {

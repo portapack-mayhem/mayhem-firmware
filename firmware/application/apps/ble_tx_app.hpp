@@ -166,8 +166,8 @@ class BLETxView : public View {
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
     std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
-    std::vector<uint16_t> markedBytes {};
-    CursorPos cursor_pos {};
+    std::vector<uint16_t> markedBytes{};
+    CursorPos cursor_pos{};
 
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
