@@ -48,6 +48,7 @@ struct WeatherRecentEntry {
     uint8_t humidity = 0xFF;
     uint8_t battery_low = 0xFF;
     uint8_t channel = 0xFF;
+    uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
 
     WeatherRecentEntry() {}
     WeatherRecentEntry(
@@ -71,6 +72,12 @@ struct WeatherRecentEntry {
                (static_cast<uint64_t>(battery_low) & 0xF) << 4 |
                (static_cast<uint64_t>(channel) & 0xF);
     }
+    void inc_age(int delta) {
+        if (UINT16_MAX - delta > age) age += delta;
+    }
+    void reset_age() {
+        age = 0;
+    }
 };
 using WeatherRecentEntries = RecentEntries<WeatherRecentEntry>;
 using WeatherRecentEntriesView = RecentEntriesView<WeatherRecentEntries>;
@@ -87,6 +94,7 @@ class WeatherView : public View {
     static std::string pad_string_with_spaces(int snakes);
 
    private:
+    void on_tick_second();
     void on_data(const WeatherDataMessage* data);
 
     NavigationView& nav_;
@@ -122,6 +130,8 @@ class WeatherView : public View {
         {0 * 8, 0 * 16},
         nav_};
 
+    SignalToken signal_token_tick_second{};
+
     Button button_clear_list{
         {0, 16, 7 * 8, 32},
         "Clear"};
@@ -129,11 +139,11 @@ class WeatherView : public View {
     static constexpr auto header_height = 3 * 16;
 
     const RecentEntriesColumns columns{{
-        {"Type", 13},
-        {"Temp", 6},
+        {"Type", 10},
+        {"Temp", 5},
         {"Hum", 4},
         {"Ch", 3},
-
+        {"Age", 3},
     }};
     WeatherRecentEntriesView recent_entries_view{columns, recent};
 
@@ -149,9 +159,6 @@ class WeatherRecentEntryDetailView : public View {
    public:
     WeatherRecentEntryDetailView(NavigationView& nav, const WeatherRecentEntry& entry);
 
-    void set_entry(const WeatherRecentEntry& new_entry);
-    const WeatherRecentEntry& entry() const { return entry_; };
-
     void update_data();
     void focus() override;
 
@@ -164,6 +171,7 @@ class WeatherRecentEntryDetailView : public View {
     Text text_hum{{11 * 8, 4 * 16, 6 * 8, 16}, "?"};
     Text text_ch{{11 * 8, 5 * 16, 6 * 8, 16}, "?"};
     Text text_batt{{11 * 8, 6 * 16, 6 * 8, 16}, "?"};
+    Text text_age{{11 * 8, 7 * 16, 6 * 8, 16}, "?"};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "Weather station type:", Color::light_grey()},
@@ -172,6 +180,7 @@ class WeatherRecentEntryDetailView : public View {
         {{0 * 8, 4 * 16}, "Humidity:", Color::light_grey()},
         {{0 * 8, 5 * 16}, "Channel:", Color::light_grey()},
         {{0 * 8, 6 * 16}, "Battery:", Color::light_grey()},
+        {{0 * 8, 7 * 16}, "Age:", Color::light_grey()},
     };
 
     Button button_done{

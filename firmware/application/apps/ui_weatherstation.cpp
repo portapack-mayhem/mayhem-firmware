@@ -40,12 +40,7 @@ void WeatherRecentEntryDetailView::update_data() {
     text_hum.set(to_string_dec_uint(entry_.humidity) + "%");
     text_ch.set(to_string_dec_uint(entry_.channel));
     text_batt.set(to_string_dec_uint(entry_.battery_low) + " " + ((entry_.battery_low == 0) ? "OK" : "LOW"));
-}
-
-void WeatherRecentEntryDetailView::set_entry(const WeatherRecentEntry& entry) {
-    entry_ = entry;
-    update_data();
-    set_dirty();
+    text_age.set(to_string_dec_uint(entry_.age) + " sec");
 }
 
 WeatherRecentEntryDetailView::WeatherRecentEntryDetailView(NavigationView& nav, const WeatherRecentEntry& entry)
@@ -58,6 +53,7 @@ WeatherRecentEntryDetailView::WeatherRecentEntryDetailView(NavigationView& nav, 
                   &text_hum,
                   &text_ch,
                   &text_batt,
+                  &text_age,
                   &labels});
 
     button_done.on_select = [&nav](const ui::Button&) {
@@ -106,6 +102,16 @@ WeatherView::WeatherView(NavigationView& nav)
     };
     baseband::set_weather();
     receiver_model.enable();
+    signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
+        on_tick_second();
+    };
+}
+
+void WeatherView::on_tick_second() {
+    for (auto& entry : recent) {
+        entry.inc_age(1);
+    }
+    recent_entries_view.set_dirty();
 }
 
 void WeatherView::on_data(const WeatherDataMessage* data) {
@@ -113,6 +119,7 @@ void WeatherView::on_data(const WeatherDataMessage* data) {
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
+        (*matching_recent).reset_age();
         recent.push_front(*matching_recent);
         recent.erase(matching_recent);
     } else {
@@ -123,6 +130,7 @@ void WeatherView::on_data(const WeatherDataMessage* data) {
 }
 
 WeatherView::~WeatherView() {
+    rtc_time::signal_tick_second -= signal_token_tick_second;
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -189,19 +197,21 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     line.reserve(30);
 
     line = WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry.sensorType);
-    if (line.length() < 13) {
-        line += WeatherView::pad_string_with_spaces(13 - line.length());
+    if (line.length() < 10) {
+        line += WeatherView::pad_string_with_spaces(10 - line.length());
     } else {
-        line = truncate(line, 13);
+        line = truncate(line, 10);
     }
 
-    std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 2));
+    std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
     std::string humStr = to_string_dec_uint(entry.humidity) + "%";
     std::string chStr = to_string_dec_uint(entry.channel);
+    std::string ageStr = to_string_dec_uint(entry.age);
 
-    line += WeatherView::pad_string_with_spaces(7 - temp.length()) + temp;
+    line += WeatherView::pad_string_with_spaces(6 - temp.length()) + temp;
     line += WeatherView::pad_string_with_spaces(5 - humStr.length()) + humStr;
     line += WeatherView::pad_string_with_spaces(4 - chStr.length()) + chStr;
+    line += WeatherView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
