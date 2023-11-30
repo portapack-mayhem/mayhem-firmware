@@ -165,6 +165,8 @@ const char* WeatherView::getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type) {
             return "TX 8300";
         case FPW_WENDOX_W6726:
             return "Wendox W6726";
+        case FPW_Acurite986:
+            return "Acurite986";
 
         case FPW_Invalid:
         default:

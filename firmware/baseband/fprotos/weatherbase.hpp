@@ -183,6 +183,26 @@ class FProtoWeatherBase {
         }
         return reverse_key;
     }
+    uint8_t subghz_protocol_blocks_crc8(
+        uint8_t const message[],
+        size_t size,
+        uint8_t polynomial,
+        uint8_t init) {
+        uint8_t remainder = init;
+
+        for (size_t byte = 0; byte < size; ++byte) {
+            remainder ^= message[byte];
+            for (uint8_t bit = 0; bit < 8; ++bit) {
+                if (remainder & 0x80) {
+                    remainder = (remainder << 1) ^ polynomial;
+                } else {
+                    remainder = (remainder << 1);
+                }
+            }
+        }
+        return remainder;
+    }
+
     // General weather data holder
     uint8_t sensorType = FPW_Invalid;
     uint32_t id = WS_NO_ID;
