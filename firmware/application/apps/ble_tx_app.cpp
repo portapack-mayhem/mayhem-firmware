@@ -189,19 +189,20 @@ void BLETxView::start() {
     }
 
     char advertisementData[63] = {0};
-
     strcpy(advertisementData, packets[current_packet].advertisementData);
 
-    if (!randomString.empty()) {
-        // Check if the substring exists within the larger string
-        const char* result = strstr(advertisementData, randomString.c_str());
+    // TODO: Make this a checkbox.
+    if (!markedBytes.empty()) {
+        for (size_t i = 0; i < strlen(advertisementData); i++) {
+            bool found = false;
 
-        if (result != NULL) {
-            // Calculate the start and end positions of the substring
-            int startPos = result - advertisementData;
-            int endPos = startPos + randomString.length();
+            auto it = std::find(markedBytes.begin(), markedBytes.end(), i);
 
-            for (int i = startPos; i < endPos; i++) {
+            if (it != markedBytes.end()) {
+                found = true;
+            }
+
+            if (found) {
                 int min = 0;
                 int max = 15;
 
@@ -317,9 +318,11 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_mac_address,
                   &text_mac_address,
                   &label_data_packet,
+                  &label_data_index,
+                  &text_data_index,
+                  &dataEditView,
                   &button_save_packet,
-                  &button_switch,
-                  &dataEditView});
+                  &button_switch});
 
     field_frequency.set_step(0);
 
@@ -382,6 +385,26 @@ BLETxView::BLETxView(NavigationView& nav)
 
     button_switch.on_select = [&nav](Button&) {
         nav.replace<BLERxView>();
+    };
+
+    dataEditView.on_select = [this] {
+        // Save last selected cursor.
+        cursor_pos.line = dataEditView.line();
+        cursor_pos.col = dataEditView.col();
+
+        uint16_t dataBytePos = ((dataEditView.line()) * 30) + dataEditView.col();
+
+        auto it = std::find(markedBytes.begin(), markedBytes.end(), dataBytePos);
+
+        if (it != markedBytes.end()) {
+            markedBytes.erase(it);
+        } else {
+            markedBytes.push_back(dataBytePos);
+        }
+
+        dataEditView.cursor_mark_selected();
+
+        text_data_index.set(to_string_dec_uint(dataBytePos));
     };
 }
 
@@ -460,10 +483,6 @@ void BLETxView::on_data(uint32_t value, bool is_data) {
     }
 }
 
-void BLETxView::on_random_data_change(std::string value) {
-    randomString = value;
-}
-
 void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex) {
     std::string formattedMacAddress = to_string_formatted_mac_address(packet.macAddress);
 
@@ -497,6 +516,7 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     dataEditView.set_font_zoom(true);
     dataEditView.set_file(*dataFileWrapper);
+    dataEditView.redraw(true, true);
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {

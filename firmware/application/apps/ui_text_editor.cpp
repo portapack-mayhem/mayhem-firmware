@@ -72,6 +72,11 @@ void TextViewer::paint(Painter& painter) {
         paint_state_.redraw_text = false;
     }
 
+    if (paint_state_.redraw_marked) {
+        paint_marked(painter);
+        paint_state_.redraw_marked = false;
+    }
+
     paint_cursor(painter);
 }
 
@@ -118,8 +123,9 @@ bool TextViewer::on_encoder(EncoderEvent delta) {
     return updated;
 }
 
-void TextViewer::redraw(bool redraw_text) {
+void TextViewer::redraw(bool redraw_text, bool redraw_marked) {
     paint_state_.redraw_text = redraw_text;
+    paint_state_.redraw_marked = redraw_marked;
     set_dirty();
 }
 
@@ -137,6 +143,27 @@ void TextViewer::cursor_home() {
 
 void TextViewer::cursor_end() {
     cursor_.col = line_length() - 1;
+    redraw();
+}
+
+void TextViewer::cursor_set(uint16_t line, uint16_t col) {
+    cursor_.line = line;
+    cursor_.col = col;
+}
+
+void TextViewer::cursor_mark_selected() {
+    LineColPair newMarker = std::make_pair(cursor_.line, cursor_.col);
+    auto it = std::find(pairedVector.begin(), pairedVector.end(), newMarker);
+
+    if (it != pairedVector.end()) {
+        pairedVector.erase(it);
+    } else {
+        pairedVector.push_back(newMarker);
+    }
+
+    // Mark pending change.
+    cursor_.mark_change = false;
+
     redraw();
 }
 
@@ -247,12 +274,52 @@ void TextViewer::paint_cursor(Painter& painter) {
     };
 
     if (paint_state_.line != UINT32_MAX)  // only XOR old cursor if it still appears on the screen
-        xor_cursor(paint_state_.line, paint_state_.col);
+    {
+        // Only reset previous cursor if we aren't marking.
+        if (paint_state_.mark_change) {
+            xor_cursor(paint_state_.line, paint_state_.col);
+        }
+    }
 
     xor_cursor(cursor_.line, cursor_.col);
 
     paint_state_.line = cursor_.line;
     paint_state_.col = cursor_.col;
+    paint_state_.mark_change = cursor_.mark_change;
+
+    // Reset marking and wait for new change.
+    cursor_.mark_change = true;
+}
+
+void TextViewer::paint_marked(Painter& painter) {
+    auto xor_cursor = [this, &painter](int32_t line, uint16_t col) {
+        int cursor_width = char_width + 1;
+        int x = (col - paint_state_.first_col) * char_width - 1;
+        if (x < 0) {  // cursor is one pixel narrower when in left column
+            cursor_width--;
+            x = 0;
+        }
+        int y = screen_rect().top() + (line - paint_state_.first_line) * char_height;
+
+        // Converting one row at a time to reduce buffer size
+        auto pbuf8 = cursor_.pixel_buffer8;
+        auto pbuf = cursor_.pixel_buffer;
+        for (auto col = 0; col < char_height; col++) {
+            // Annoyingly, read_pixels uses a 24-bit pixel format vs draw_pixels which uses 16-bit
+            portapack::display.read_pixels({x, y + col, cursor_width, 1}, pbuf8, cursor_width);
+            for (auto i = 0; i < cursor_width; i++)
+                pbuf[i] = Color(pbuf8[i].r, pbuf8[i].g, pbuf8[i].b).v ^ 0xFFFF;
+            portapack::display.draw_pixels({x, y + col, cursor_width, 1}, pbuf, cursor_width);
+        }
+    };
+
+    auto it = pairedVector.begin();
+
+    while (it != pairedVector.end()) {
+        LineColPair entry = (LineColPair)*it;
+        xor_cursor(entry.first, entry.second);
+        it++;
+    }
 }
 
 void TextViewer::reset_file(FileWrapper* file) {
