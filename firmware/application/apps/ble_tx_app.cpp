@@ -192,17 +192,29 @@ void BLETxView::start() {
     strcpy(advertisementData, packets[current_packet].advertisementData);
 
     // TODO: Make this a checkbox.
-    if (dataBytePos != 0) {
+    if (!markedBytes.empty()) {
 
-        for (int i = 0; i < dataBytePos; i++) {
-            int min = 0;
-            int max = 15;
+        for (size_t i = 0; i < strlen(advertisementData); i++) {
 
-            int hexDigit = min + std::rand() % (max - min + 1);
+            bool found = false;
+            
+            auto it = std::find(markedBytes.begin(), markedBytes.end(), i);
 
-            // Map the random number to a hexadecimal digit
-            char randomHexChar = (hexDigit < 10) ? ('0' + hexDigit) : ('A' + hexDigit - 10);
-            advertisementData[i] = randomHexChar;
+            if (it != markedBytes.end()) {
+                found = true;
+            }
+
+            if (found)
+            {
+                int min = 0;
+                int max = 15;
+
+                int hexDigit = min + std::rand() % (max - min + 1);
+
+                // Map the random number to a hexadecimal digit
+                char randomHexChar = (hexDigit < 10) ? ('0' + hexDigit) : ('A' + hexDigit - 10);
+                advertisementData[i] = randomHexChar;
+            }
         }
     }
 
@@ -378,12 +390,24 @@ BLETxView::BLETxView(NavigationView& nav)
         nav.replace<BLERxView>();
     };
 
-    dataEditView.on_cursor_moved = [this] {
-        dataBytePos = ((dataEditView.line()) * 30) + dataEditView.col();
+    dataEditView.on_select = [this] {
 
-        cursorStart.line = dataEditView.line();
-        cursorStart.col = dataEditView.col();
-        
+        //Save last selected cursor.
+        cursor_pos.line = dataEditView.line();
+        cursor_pos.col = dataEditView.col();
+
+        uint16_t dataBytePos = ((dataEditView.line()) * 30) + dataEditView.col();
+
+        auto it = std::find(markedBytes.begin(), markedBytes.end(), dataBytePos);
+
+        if (it != markedBytes.end()) {
+            markedBytes.erase(it);
+        } else {
+            markedBytes.push_back(dataBytePos);
+        }
+
+        dataEditView.cursor_mark_selected();
+
         text_data_index.set(to_string_dec_uint(dataBytePos));
     };
 }
@@ -494,11 +518,9 @@ void BLETxView::update_current_packet(BLETxPacket packet, uint32_t currentIndex)
 
     dataFileWrapper = *std::move(result);
 
-    dataEditView.set_file(*dataFileWrapper);
-    
     dataEditView.set_font_zoom(true);
-    dataEditView.cursor_set(cursorStart.line, cursorStart.col);
-    dataEditView.redraw(true);
+    dataEditView.set_file(*dataFileWrapper);
+    dataEditView.redraw(true, true);
 }
 
 void BLETxView::set_parent_rect(const Rect new_parent_rect) {

@@ -161,13 +161,13 @@ class BLETxView : public View {
     typedef struct {
         uint16_t line;
         uint16_t col;
-    } cursor_pos;
+    } CursorPos;
 
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
     std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
-    uint16_t dataBytePos = 0;
-    cursor_pos cursorStart {};
+    std::vector<uint16_t> markedBytes {};
+    CursorPos cursor_pos {};
 
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
