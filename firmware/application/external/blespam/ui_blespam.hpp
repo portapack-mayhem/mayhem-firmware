@@ -38,6 +38,7 @@ using namespace ui;
 namespace ui::external_app::blespam {
 
 #include "fastpair.hpp"
+#include "continuity.hpp"
 
 enum PKT_TYPE {
     PKT_TYPE_INVALID_TYPE,
@@ -69,6 +70,14 @@ enum PKT_TYPE {
     PKT_TYPE_NUM_PKT_TYPE
 };
 
+enum ATK_TYPE {
+    ATK_ANDROID,
+    ATK_IOS,
+    ATK_IOS_CRAASH,
+    ATK_WINDOWS,
+    ATK_SAMSUNG
+};
+
 class BLESpamView : public View {
    public:
     BLESpamView(NavigationView& nav);
@@ -97,12 +106,23 @@ class BLESpamView : public View {
         "tx_blespam", app_settings::Mode::TX};
 
     Button button_startstop{
-        {0 * 8, 1 * 16, 96, 24},
+        {0, 2 * 16, 96, 24},
         "Start"};
     Checkbox chk_randdev{{100, 16}, 10, "Rnd device", true};
 
     Console console{
-        {0, 3 * 16, 240, 240}};
+        {0, 4 * 16, 240, 224}};
+
+    OptionsField options_atkmode{
+        {0 * 8, 2 * 8},
+        10,
+        {
+            {"Android", 0},
+            {"iOs", 1},
+            //{"iOs crash", 2},
+            //{"Windows", 3},
+            //{"Samsung", 4}
+        }};
 
     void on_tx_progress(const bool done);
     bool is_running{false};
@@ -111,6 +131,8 @@ class BLESpamView : public View {
 
     int16_t timer_count{0};
     int16_t timer_period{2};
+    ATK_TYPE attackType = ATK_ANDROID;
+
     bool randomMac{true};
     bool randomDev{true};
 
@@ -123,19 +145,23 @@ class BLESpamView : public View {
     void stop();
     void reset();
     void createFastPairPacket();
-    void changePacket();
+    void createIosPacket();
+    void changePacket(bool forced);
     void on_timer();
     uint64_t get_freq_by_channel_number(uint8_t channel_number);
     void randomizeMac();
     void randomChn();
 
+    void furi_hal_random_fill_buf(uint8_t* buf, uint32_t len);
+
+    /*
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.done);
         }};
-
+    */
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
         [this](const Message* const) {
