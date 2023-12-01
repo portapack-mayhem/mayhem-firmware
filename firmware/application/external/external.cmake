@@ -15,6 +15,11 @@ set(EXTCPPSRC
 	#font_viewer
 	external/font_viewer/main.cpp
 	external/font_viewer/ui_font_viewer.cpp
+
+	#blespam
+	external/blespam/main.cpp
+	external/blespam/ui_blespam.cpp
+
 )
 
 set(EXTAPPLIST
@@ -22,4 +27,5 @@ set(EXTAPPLIST
 	afsk_rx
 	calculator
 	font_viewer
+	blespam
 )
