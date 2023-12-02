@@ -1,6 +1,10 @@
 #ifndef __UI_BLESPAM_CT_H__
 #define __UI_BLESPAM_CT_H__
 
+// Port of this:
+// https://github.com/Flipper-XFW/Xtreme-Apps/blob/16f4acbea335ad6cb784ced9787e2db09f815abd/ble_spam/protocols/continuity.c
+// Saying thanks in the main view!
+
 #include <cstdint>
 
 #ifndef COUNT_OF
