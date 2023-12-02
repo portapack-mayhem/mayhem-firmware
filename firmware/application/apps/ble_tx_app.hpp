@@ -168,6 +168,7 @@ class BLETxView : public View {
     std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
     std::vector<uint16_t> markedBytes{};
     CursorPos cursor_pos{};
+    uint8_t marked_counter = 0;
 
     static constexpr uint8_t mac_address_size_str{12};
     static constexpr uint8_t max_packet_size_str{62};
@@ -179,8 +180,8 @@ class BLETxView : public View {
 
     PKT_TYPE pduType = {PKT_TYPE_DISCOVERY};
 
-    static constexpr auto header_height = 9 * 16;
-    static constexpr auto switch_button_height = 5 * 16;
+    static constexpr auto header_height = 10 * 16;
+    static constexpr auto switch_button_height = 6 * 16;
 
     Button button_open{
         {0 * 8, 0 * 16, 10 * 8, 2 * 16},
@@ -196,7 +197,7 @@ class BLETxView : public View {
     Checkbox check_rand_mac{
         {21 * 8, 1 * 16},
         6,
-        "Random",
+        "?? Mac",
         true};
 
     TxFrequencyField field_frequency{
@@ -251,42 +252,49 @@ class BLETxView : public View {
          {"SCAN_RSP", PKT_TYPE_SCAN_RSP},
          {"CONNECT_REQ", PKT_TYPE_CONNECT_REQ}}};
 
+    Labels label_marked_data{
+        {{0 * 8, 4 * 16}, "Marked Data:", Color::light_grey()}};
+
+    OptionsField marked_data_sequence{
+        {12 * 8, 8 * 8},
+        8,
+        {{"Ascend", 0},
+         {"Descend", 1},
+         {"Random", 2}}};
+
     Labels label_packet_index{
-        {{0 * 8, 10 * 8}, "Packet Index:", Color::light_grey()}};
+        {{0 * 8, 12 * 8}, "Packet Index:", Color::light_grey()}};
 
     Text text_packet_index{
-        {13 * 8, 5 * 16, 12 * 8, 16},
-        "-"};
-
-    Labels label_packets_sent{
-        {{0 * 8, 12 * 8}, "Repeat Count:", Color::light_grey()}};
-
-    Text text_packets_sent{
         {13 * 8, 6 * 16, 12 * 8, 16},
         "-"};
 
+    Labels label_packets_sent{
+        {{0 * 8, 14 * 8}, "Repeat Count:", Color::light_grey()}};
+
+    Text text_packets_sent{
+        {13 * 8, 7 * 16, 12 * 8, 16},
+        "-"};
+
     Labels label_mac_address{
-        {{0 * 8, 14 * 8}, "Mac Address:", Color::light_grey()}};
+        {{0 * 8, 16 * 8}, "Mac Address:", Color::light_grey()}};
 
     Text text_mac_address{
-        {12 * 8, 7 * 16, 20 * 8, 16},
+        {12 * 8, 8 * 16, 20 * 8, 16},
         "-"};
 
     Labels label_data_packet{
-        {{0 * 8, 8 * 16}, "Packet Data:", Color::light_grey()}};
+        {{0 * 8, 9 * 16}, "Packet Data:", Color::light_grey()}};
 
     Console console{
-        {0, 9 * 16, 240, 240}};
+        {0, 9 * 18, 240, 240}};
 
     TextViewer dataEditView{
-        {0, 9 * 16, 240, 240}};
+        {0, 9 * 18, 240, 240}};
 
-    Labels label_data_index{
-        {{0 * 8, 28 * 8}, "Data Index:", Color::light_grey()}};
-
-    Text text_data_index{
-        {11 * 8, 14 * 16, 8 * 8, 16},
-        "-"};
+    Button button_clear_marked{
+        {1 * 8, 14 * 16, 13 * 8, 3 * 8},
+        "Clear Marked"};
 
     Button button_save_packet{
         {1 * 8, 16 * 16, 13 * 8, 2 * 16},

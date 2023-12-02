@@ -67,7 +67,7 @@ std::vector<std::string> splitIntoStrings(const char* input) {
 
     while (start < length) {
         int remaining = length - start;
-        int chunkSize = (remaining > 30) ? 30 : remaining;
+        int chunkSize = (remaining > 29) ? 29 : remaining;
         result.push_back(std::string(input + start, chunkSize));
         start += chunkSize;
     }
@@ -203,14 +203,32 @@ void BLETxView::start() {
             }
 
             if (found) {
-                int min = 0;
-                int max = 15;
+                uint8_t hexDigit;
+                switch (marked_data_sequence.selected_index_value()) {
+                    case 0:
+                        hexDigit = marked_counter++;
+                        break;
+                    case 1:
+                        hexDigit = marked_counter--;
+                        break;
+                    case 2: {
+                        uint8_t min = 0x00;
+                        uint8_t max = 0x0F;
 
-                int hexDigit = min + std::rand() % (max - min + 1);
+                        hexDigit = min + std::rand() % (max - min + 1);
+                    } break;
+                    default:
+                        break;
+                }
 
-                // Map the random number to a hexadecimal digit
-                char randomHexChar = (hexDigit < 10) ? ('0' + hexDigit) : ('A' + hexDigit - 10);
-                advertisementData[i] = randomHexChar;
+                advertisementData[i] = uint_to_char(hexDigit, 16);
+
+                // Bounding to Hex.
+                if (marked_counter == 16) {
+                    marked_counter = 0;
+                } else if (marked_counter == 255) {
+                    marked_counter = 15;
+                }
             }
         }
     }
@@ -311,6 +329,8 @@ BLETxView::BLETxView(NavigationView& nav)
                   &options_speed,
                   &options_channel,
                   &options_adv_type,
+                  &label_marked_data,
+                  &marked_data_sequence,
                   &label_packet_index,
                   &text_packet_index,
                   &label_packets_sent,
@@ -318,9 +338,8 @@ BLETxView::BLETxView(NavigationView& nav)
                   &label_mac_address,
                   &text_mac_address,
                   &label_data_packet,
-                  &label_data_index,
-                  &text_data_index,
                   &dataEditView,
+                  &button_clear_marked,
                   &button_save_packet,
                   &button_switch});
 
@@ -392,19 +411,26 @@ BLETxView::BLETxView(NavigationView& nav)
         cursor_pos.line = dataEditView.line();
         cursor_pos.col = dataEditView.col();
 
-        uint16_t dataBytePos = ((dataEditView.line()) * 30) + dataEditView.col();
+        // Reject setting newline at index 29.
+        if (cursor_pos.col != 29) {
+            uint16_t dataBytePos = (cursor_pos.line * 29) + cursor_pos.col;
 
-        auto it = std::find(markedBytes.begin(), markedBytes.end(), dataBytePos);
+            auto it = std::find(markedBytes.begin(), markedBytes.end(), dataBytePos);
 
-        if (it != markedBytes.end()) {
-            markedBytes.erase(it);
-        } else {
-            markedBytes.push_back(dataBytePos);
+            if (it != markedBytes.end()) {
+                markedBytes.erase(it);
+            } else {
+                markedBytes.push_back(dataBytePos);
+            }
+
+            dataEditView.cursor_mark_selected();
         }
+    };
 
-        dataEditView.cursor_mark_selected();
-
-        text_data_index.set(to_string_dec_uint(dataBytePos));
+    button_clear_marked.on_select = [this](Button&) {
+        marked_counter = 0;
+        markedBytes.clear();
+        dataEditView.cursor_clear_marked();
     };
 }
 
