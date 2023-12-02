@@ -236,30 +236,30 @@ static const struct {
 };
 static const uint8_t na_actions_count = COUNT_OF(na_actions);
 
-static const char* type_names[ContinuityTypeCOUNT] = {
-    [ContinuityTypeAirDrop] = "AirDrop",
-    [ContinuityTypeProximityPair] = "Continuity Pair",
-    [ContinuityTypeAirplayTarget] = "Airplay Target",
-    [ContinuityTypeHandoff] = "Handoff",
-    [ContinuityTypeTetheringSource] = "Tethering Source",
-    [ContinuityTypeNearbyAction] = "Continuity Action",
-    [ContinuityTypeNearbyInfo] = "Nearby Info",
-    [ContinuityTypeCustomCrash] = "Continuity Custom",
+/*
+static const char* type_names[18] = {
+    [0x05] = "AirDrop",
+    [0x07] = "Continuity Pair",
+    [0x09] = "Airplay Target",
+    [0x0c] = "Handoff",
+    [0x0e] = "Tethering Source",
+    [0x0f] = "Continuity Action",
+    [0x10] = "Nearby Info",
+    [17] = "Continuity Custom",
 };
 
-#define HEADER_LEN (6)  // 1 Size + 1 AD Type + 2 Company ID + 1 Continuity Type + 1 Continuity Size
-static uint8_t packet_sizes[ContinuityTypeCOUNT] = {
-    [ContinuityTypeAirDrop] = HEADER_LEN + 18,
-    [ContinuityTypeProximityPair] = HEADER_LEN + 25,
-    [ContinuityTypeAirplayTarget] = HEADER_LEN + 6,
-    [ContinuityTypeHandoff] = HEADER_LEN + 14,
-    [ContinuityTypeTetheringSource] = HEADER_LEN + 6,
-    [ContinuityTypeNearbyAction] = HEADER_LEN + 5,
-    [ContinuityTypeNearbyInfo] = HEADER_LEN + 5,
-    [ContinuityTypeCustomCrash] = HEADER_LEN + 11,
-};
 
-static void make_packet(uint8_t* _size, uint8_t** _packet) {
-}
+ static uint8_t packet_sizes[18] = {
+    [0x05] = HEADER_LEN + 18,
+    [0x07] = HEADER_LEN + 25,
+    [0x09] = HEADER_LEN + 6,
+    [0x0c] = HEADER_LEN + 14,
+    [0x0e] = HEADER_LEN + 6,
+    [0x0f] = HEADER_LEN + 5,
+    [0x10] = HEADER_LEN + 5,
+    [17] = HEADER_LEN + 11,
+};*/
+// #define HEADER_LEN (6)  // 1 Size + 1 AD Type + 2 Company ID + 1 Continuity Type + 1 Continuity Size
+static const uint8_t ios_packet_sizes[18] = {0, 0, 0, 0, 0, 24, 0, 31, 0, 12, 0, 0, 20, 0, 12, 11, 11, 17};
 
 #endif

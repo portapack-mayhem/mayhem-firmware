@@ -156,7 +156,7 @@ void BLESpamView::createIosPacket(bool crash = false) {
     }
     if (crash) type = ContinuityTypeCustomCrash;
 
-    uint8_t size = packet_sizes[type];
+    uint8_t size = ios_packet_sizes[type];
     uint8_t* packet = (uint8_t*)malloc(size);
     uint8_t i = 0;
 
