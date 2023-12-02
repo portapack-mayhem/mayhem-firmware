@@ -96,7 +96,7 @@ BLESpamView::BLESpamView(NavigationView& nav)
     };
     console.writeln("Based on work of:");
     console.writeln("@Willy-JL, @ECTO-1A,");
-    console.writeln("@Spooks4576");
+    console.writeln("@Spooks4576, @iNetro");
 
     changePacket(true);  // init
 }
