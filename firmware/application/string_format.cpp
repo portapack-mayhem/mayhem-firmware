@@ -253,7 +253,7 @@ std::string to_string_hex(uint64_t value, int32_t length) {
 
 std::string to_string_hex_array(uint8_t* array, int32_t length) {
     std::string str_return;
-    str_return.reserve(length);
+    str_return.reserve(length * 2);
 
     for (uint8_t i = 0; i < length; i++)
         str_return += to_string_hex(array[i], 2);
