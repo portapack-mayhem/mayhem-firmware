@@ -73,7 +73,7 @@ enum PKT_TYPE {
 enum ATK_TYPE {
     ATK_ANDROID,
     ATK_IOS,
-    ATK_IOS_CRAASH,
+    ATK_IOS_CRASH,
     ATK_WINDOWS,
     ATK_SAMSUNG
 };
@@ -119,7 +119,7 @@ class BLESpamView : public View {
         {
             {"Android", 0},
             {"iOs", 1},
-            //{"iOs crash", 2},
+            {"iOs crash", 2},
             //{"Windows", 3},
             //{"Samsung", 4}
         }};
@@ -145,7 +145,7 @@ class BLESpamView : public View {
     void stop();
     void reset();
     void createFastPairPacket();
-    void createIosPacket();
+    void createIosPacket(bool crash);
     void changePacket(bool forced);
     void on_timer();
     uint64_t get_freq_by_channel_number(uint8_t channel_number);
