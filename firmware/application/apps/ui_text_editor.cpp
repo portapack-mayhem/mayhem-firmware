@@ -153,18 +153,23 @@ void TextViewer::cursor_set(uint16_t line, uint16_t col) {
 
 void TextViewer::cursor_mark_selected() {
     LineColPair newMarker = std::make_pair(cursor_.line, cursor_.col);
-    auto it = std::find(pairedVector.begin(), pairedVector.end(), newMarker);
+    auto it = std::find(lineColPair.begin(), lineColPair.end(), newMarker);
 
-    if (it != pairedVector.end()) {
-        pairedVector.erase(it);
+    if (it != lineColPair.end()) {
+        lineColPair.erase(it);
     } else {
-        pairedVector.push_back(newMarker);
+        lineColPair.push_back(newMarker);
     }
 
     // Mark pending change.
     cursor_.mark_change = false;
 
     redraw();
+}
+
+void TextViewer::cursor_clear_marked() {
+    lineColPair.clear();
+    redraw(true, true);
 }
 
 uint16_t TextViewer::line_length() {
@@ -313,9 +318,9 @@ void TextViewer::paint_marked(Painter& painter) {
         }
     };
 
-    auto it = pairedVector.begin();
+    auto it = lineColPair.begin();
 
-    while (it != pairedVector.end()) {
+    while (it != lineColPair.end()) {
         LineColPair entry = (LineColPair)*it;
         xor_cursor(entry.first, entry.second);
         it++;
