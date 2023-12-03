@@ -218,6 +218,7 @@ void BLETxView::start() {
                         hexDigit = min + std::rand() % (max - min + 1);
                     } break;
                     default:
+                        hexDigit = 0;
                         break;
                 }
 
