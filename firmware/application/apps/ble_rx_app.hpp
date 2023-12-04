@@ -222,10 +222,10 @@ class BLERxView : public View {
             {"name"sv, &name_enable},
         }};
 
-    uint8_t channel_number{37};
-    bool auto_channel{false};
     uint8_t console_color{0};
     uint32_t prev_value{0};
+    uint8_t channel_number = 37;
+    bool auto_channel = false;
 
     int16_t timer_count{0};
     int16_t timer_period{6};  // 100ms
