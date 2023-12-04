@@ -212,7 +212,7 @@ class BLERxView : public View {
     bool logging{false};
     bool name_enable{true};
     app_settings::SettingsManager settings_{
-        "BLE Rx",
+        "rx_ble",
         app_settings::Mode::RX,
         {
             {"channel_index"sv, &channel_index},

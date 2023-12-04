@@ -132,7 +132,7 @@ class BLETxView : public View {
         4'000'000 /* sampling rate */
     };
     app_settings::SettingsManager settings_{
-        "ble_tx_app", app_settings::Mode::TX};
+        "tx_ble", app_settings::Mode::TX};
 
     uint8_t console_color{0};
     uint32_t prev_value{0};
