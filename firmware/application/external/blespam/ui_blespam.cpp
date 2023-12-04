@@ -257,10 +257,10 @@ void BLESpamView::createWindowsPacket() {
           "WorkMate",
           "👉👌",
           "🔵🦷",
-      };*/
+      }; //not worky using fix, for testing.
+      */
     const char* name = "PortaPack";
     // name = names[rand() % 6];
-
     uint8_t name_len = strlen(name);
 
     uint8_t size = 7 + name_len;
@@ -276,7 +276,6 @@ void BLESpamView::createWindowsPacket() {
     packet[i++] = 0x80;                  // Reserved RSSI Byte
     memcpy(&packet[i], name, name_len);  // Device Name
     i += name_len;
-
     // size, packet
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
@@ -502,9 +501,9 @@ void BLESpamView::createFastPairPacket() {
 }
 
 void BLESpamView::changePacket(bool forced = false) {
-    counter++;
+    counter++;  // need to send it multiple times to be accepted
     if (counter >= 5 || forced) {
-        // really change packet and mac
+        // really change packet and mac.
         counter = 0;
         randomizeMac();
         randomChn();
@@ -541,15 +540,6 @@ void BLESpamView::on_timer() {
         }
     }
 }
-
-/*
-void BLESpamView::on_tx_progress(const bool done) {
-    if (done) {
-        if (is_running) {
-        }
-    }
-}
-*/
 
 BLESpamView::~BLESpamView() {
     stop();
