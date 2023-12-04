@@ -39,6 +39,7 @@ namespace ui::external_app::blespam {
 
 #include "fastpair.hpp"
 #include "continuity.hpp"
+#include "easysetup.hpp"
 
 enum ATK_TYPE {
     ATK_ANDROID,
@@ -86,13 +87,11 @@ class BLESpamView : public View {
     OptionsField options_atkmode{
         {0 * 8, 2 * 8},
         10,
-        {
-            {"Android", 0},
-            {"iOs", 1},
-            {"iOs crash", 2},
-            //{"Windows", 3},
-            //{"Samsung", 4}
-        }};
+        {{"Android", 0},
+         {"iOs", 1},
+         {"iOs crash", 2},
+         {"Windows", 3},
+         {"Samsung", 4}}};
 
     void on_tx_progress(const bool done);
     bool is_running{false};
@@ -116,6 +115,8 @@ class BLESpamView : public View {
     void reset();
     void createFastPairPacket();
     void createIosPacket(bool crash);
+    void createSamsungPacket();
+    void createWindowsPacket();
     void changePacket(bool forced);
     void on_timer();
     uint64_t get_freq_by_channel_number(uint8_t channel_number);

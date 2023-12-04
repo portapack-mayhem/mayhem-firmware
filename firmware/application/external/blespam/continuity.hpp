@@ -260,6 +260,5 @@ static const char* type_names[18] = {
     [17] = HEADER_LEN + 11,
 };*/
 // #define HEADER_LEN (6)  // 1 Size + 1 AD Type + 2 Company ID + 1 Continuity Type + 1 Continuity Size
-static const uint8_t ios_packet_sizes[18] = {0, 0, 0, 0, 0, 24, 0, 31, 0, 12, 0, 0, 20, 0, 12, 11, 11, 17};
 
 #endif

