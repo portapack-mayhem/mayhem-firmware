@@ -428,6 +428,8 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
+    filterBuffer = filter;
+
     button_filter.on_select = [this](Button&) {
         text_prompt(
             nav_,
@@ -469,34 +471,38 @@ BLERxView::BLERxView(NavigationView& nav)
             logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
-    check_name.set_value(true);
+    check_name.set_value(name_enable);
 
     check_name.on_select = [this](Checkbox&, bool v) {
+        name_enable = v;
         setAllMembersToValue(recent, &BleRecentEntry::include_name, v);
         recent_entries_view.set_dirty();
     };
 
-    options_channel.on_change = [this](size_t, int32_t i) {
+    options_channel.on_change = [this](size_t index, int32_t v) {
+        channel_index = (uint8_t)index;
+
         // If we selected Auto don't do anything and Auto will handle changing.
-        if (i == 40) {
+        if (v == 40) {
             auto_channel = true;
             return;
         } else {
             auto_channel = false;
         }
 
-        field_frequency.set_value(get_freq_by_channel_number(i));
-        channel_number = i;
+        field_frequency.set_value(get_freq_by_channel_number(v));
+        channel_number = v;
 
         baseband::set_btlerx(channel_number);
     };
 
-    options_sort.on_change = [this](size_t, int32_t index) {
-        handle_entries_sort(index);
+    options_sort.on_change = [this](size_t index, int32_t v) {
+        sort_index = (uint8_t)index;
+        handle_entries_sort(v);
     };
 
-    options_channel.set_selected_index(0, true);
-    options_sort.set_selected_index(0, true);
+    options_channel.set_selected_index(channel_index, true);
+    options_sort.set_selected_index(sort_index, true);
 
     logger = std::make_unique<BLELogger>();
 

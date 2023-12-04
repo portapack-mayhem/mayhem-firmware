@@ -205,8 +205,22 @@ class BLERxView : public View {
         4000000 /* bandwidth */,
         4000000 /* sampling rate */,
         ReceiverModel::Mode::WidebandFMAudio};
+
+    uint8_t channel_index{0};
+    uint8_t sort_index{0};
+    std::string filter{};
+    bool logging{false};
+    bool name_enable{true};
     app_settings::SettingsManager settings_{
-        "BLE Rx", app_settings::Mode::RX};
+        "rx_ble",
+        app_settings::Mode::RX,
+        {
+            {"channel_index"sv, &channel_index},
+            {"sort_index"sv, &sort_index},
+            {"filter"sv, &filter},
+            {"log"sv, &logging},
+            {"name"sv, &name_enable},
+        }};
 
     uint8_t console_color{0};
     uint32_t prev_value{0};
@@ -217,7 +231,6 @@ class BLERxView : public View {
     int16_t timer_period{6};  // 100ms
 
     std::string filterBuffer{};
-    std::string filter{};
     std::string listFileBuffer{};
     std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel";
     uint16_t maxLineLength = 140;
@@ -296,7 +309,6 @@ class BLERxView : public View {
         "Tx"};
 
     std::string str_log{""};
-    bool logging{false};
 
     std::unique_ptr<BLELogger> logger{};
 
