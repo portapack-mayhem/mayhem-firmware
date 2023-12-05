@@ -108,7 +108,7 @@ class BLESpamView : public View {
     Button button_startstop{
         {0, 3 * 16, 96, 24},
         "Start"};
-    Checkbox chk_randdev{{100, 16}, 10, "Rnd device", false};
+    Checkbox chk_randdev{{100, 16}, 10, "Rnd device", true};
 
     Console console{
         {0, 70, 240, 220}};
