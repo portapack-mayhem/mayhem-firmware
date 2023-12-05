@@ -77,12 +77,12 @@ class BLESpamView : public View {
         "tx_blespam", app_settings::Mode::TX};
 
     Button button_startstop{
-        {0, 2 * 16, 96, 24},
+        {0, 3 * 16, 96, 24},
         "Start"};
-    Checkbox chk_randdev{{100, 16}, 10, "Rnd device", true};
+    Checkbox chk_randdev{{100, 16}, 10, "Rnd device", false};
 
     Console console{
-        {0, 4 * 16, 240, 224}};
+        {0, 70, 240, 220}};
 
     OptionsField options_atkmode{
         {0 * 8, 2 * 8},
@@ -93,13 +93,11 @@ class BLESpamView : public View {
          {"Windows", 3},
          {"Samsung", 4}}};
 
-    void on_tx_progress(const bool done);
     bool is_running{false};
 
-    uint8_t counter = 0;  // for packet
+    uint8_t counter = 0;         // for packet change
+    uint8_t displayCounter = 0;  // for packet display
 
-    int16_t timer_count{0};
-    int16_t timer_period{2};
     ATK_TYPE attackType = ATK_ANDROID;
 
     bool randomMac{true};
