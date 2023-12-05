@@ -20,6 +20,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
+// Code from https://github.com/Flipper-XFW/Xtreme-Apps/tree/04c3a60093e2c2378e79498b4505aa8072980a42/ble_spam/protocols
+// Thanks for the work of the original creators!
+// Saying thanks in the main view!
+
 #ifndef __UI_BLESPAM_H__
 #define __UI_BLESPAM_H__
 
@@ -38,7 +42,6 @@ using namespace ui;
 namespace ui::external_app::blespam {
 
 #include "fastpair.hpp"
-#include "continuity.hpp"
 #include "easysetup.hpp"
 
 enum ATK_TYPE {
@@ -128,8 +131,66 @@ class BLESpamView : public View {
         [this](const Message* const) {
             this->on_timer();
         }};
-};
 
-}  // namespace ui::external_app::blespam
+    typedef enum {
+        PayloadModeRandom,
+        PayloadModeValue,
+        PayloadModeBruteforce,
+    } PayloadMode;
+
+    typedef enum {
+        ContinuityTypeAirDrop = 0x05,
+        ContinuityTypeProximityPair = 0x07,
+        ContinuityTypeAirplayTarget = 0x09,
+        ContinuityTypeHandoff = 0x0C,
+        ContinuityTypeTetheringSource = 0x0E,
+        ContinuityTypeNearbyAction = 0x0F,
+        ContinuityTypeNearbyInfo = 0x10,
+
+        ContinuityTypeCustomCrash,
+        ContinuityTypeCOUNT
+    } ContinuityType;
+
+    typedef enum {
+        ContinuityPpBruteforceModel,
+        ContinuityPpBruteforceColor,
+    } ContinuityPpBruteforce;
+
+    typedef struct {
+        uint8_t value;
+        // const char* name;
+    } ContinuityColor;
+
+    static const uint8_t pp_prefixes_count;
+
+    static const uint8_t na_actions_count;
+    static const uint8_t pp_models_count;
+    static const ContinuityColor colors_beats_studio_buds_[];
+    static const ContinuityColor colors_beats_fit_pro[];
+    static const ContinuityColor colors_beats_studio_pro[];
+    static const ContinuityColor colors_beats_studio_3[];
+    static const ContinuityColor colors_beats_x[];
+    static const ContinuityColor colors_beats_studio_buds[];
+    static const ContinuityColor colors_beats_solo_pro[];
+    static const ContinuityColor colors_powerbeats_pro[];
+    static const ContinuityColor colors_powerbeats_3[];
+    static const ContinuityColor colors_beats_solo_3[];
+    static const ContinuityColor colors_beats_flex[];
+    static const ContinuityColor colors_airpods_max[];
+    static const ContinuityColor colors_white[];
+    typedef struct {
+        uint16_t value;
+        // const char* name;
+        const ContinuityColor* colors;
+        const uint8_t colors_count;
+    } contiModels;
+    static const contiModels pp_models[];
+    typedef struct {
+        uint8_t value;
+    } contiU8;
+    static const contiU8 pp_prefixes[];
+    static const contiU8 na_actions[];
+};
+};  // namespace ui::external_app::blespam
 
 #endif /*__UI_BLESPAM_H__*/
