@@ -41,15 +41,41 @@ using namespace ui;
 
 namespace ui::external_app::blespam {
 
-#include "fastpair.hpp"
-#include "easysetup.hpp"
-
 enum ATK_TYPE {
     ATK_ANDROID,
     ATK_IOS,
     ATK_IOS_CRASH,
     ATK_WINDOWS,
     ATK_SAMSUNG
+};
+enum PKT_TYPE {
+    PKT_TYPE_INVALID_TYPE,
+    PKT_TYPE_RAW,
+    PKT_TYPE_DISCOVERY,
+    PKT_TYPE_IBEACON,
+    PKT_TYPE_ADV_IND,
+    PKT_TYPE_ADV_DIRECT_IND,
+    PKT_TYPE_ADV_NONCONN_IND,
+    PKT_TYPE_ADV_SCAN_IND,
+    PKT_TYPE_SCAN_REQ,
+    PKT_TYPE_SCAN_RSP,
+    PKT_TYPE_CONNECT_REQ,
+    PKT_TYPE_LL_DATA,
+    PKT_TYPE_LL_CONNECTION_UPDATE_REQ,
+    PKT_TYPE_LL_CHANNEL_MAP_REQ,
+    PKT_TYPE_LL_TERMINATE_IND,
+    PKT_TYPE_LL_ENC_REQ,
+    PKT_TYPE_LL_ENC_RSP,
+    PKT_TYPE_LL_START_ENC_REQ,
+    PKT_TYPE_LL_START_ENC_RSP,
+    PKT_TYPE_LL_UNKNOWN_RSP,
+    PKT_TYPE_LL_FEATURE_REQ,
+    PKT_TYPE_LL_FEATURE_RSP,
+    PKT_TYPE_LL_PAUSE_ENC_REQ,
+    PKT_TYPE_LL_PAUSE_ENC_RSP,
+    PKT_TYPE_LL_VERSION_IND,
+    PKT_TYPE_LL_REJECT_IND,
+    PKT_TYPE_NUM_PKT_TYPE
 };
 
 class BLESpamView : public View {
@@ -132,6 +158,8 @@ class BLESpamView : public View {
             this->on_timer();
         }};
 
+    // continuity
+
     typedef enum {
         PayloadModeRandom,
         PayloadModeValue,
@@ -190,6 +218,32 @@ class BLESpamView : public View {
     } contiU8;
     static const contiU8 pp_prefixes[];
     static const contiU8 na_actions[];
+
+    // fastpair:
+
+    static const uint16_t fastpairModels_count;
+    typedef struct {
+        uint32_t value;
+        const char* name;  // could be moved too
+    } fpUi32;
+    static const fpUi32 fastpairModels[];
+
+    // easysetup:
+    static const uint8_t watch_models_count;
+    typedef struct {
+        uint8_t value;
+    } easyU8;
+    typedef struct {
+        uint32_t value;
+    } easyU32;
+    typedef enum {
+        EasysetupTypeBuds = 0x01,  // Skip 0 as it means unset
+        EasysetupTypeWatch,
+        EasysetupTypeCOUNT,
+    } EasysetupType;
+    static const easyU8 watch_models[];
+    static const uint8_t buds_models_count;
+    static const easyU32 buds_models[];
 };
 };  // namespace ui::external_app::blespam
 
