@@ -700,7 +700,7 @@ void BLERxView::on_data(BlePacketData* packet) {
     // Add entries if they meet the criteria.
     auto value = filter;
     resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-        return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+        return (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
     });
 
     handle_entries_sort(options_sort.selected_index());
@@ -715,7 +715,7 @@ void BLERxView::on_filter_change(std::string value) {
     // New filter? Reset list from recent entries.
     if (filter != value) {
         resetFilteredEntries(recent, [&value](const BleRecentEntry& entry) {
-            return (entry.dataString.find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
+            return (to_string_mac_address(entry.packetData.macAddress, 6, false).find(value) == std::string::npos) && (entry.nameString.find(value) == std::string::npos);
         });
     }
 
