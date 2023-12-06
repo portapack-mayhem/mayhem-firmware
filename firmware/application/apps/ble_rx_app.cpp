@@ -713,6 +713,7 @@ void BLERxView::on_data(BlePacketData* packet) {
             std::string searchStr = (std::string)*it;
 
             if (entry.dataString.find(searchStr) != std::string::npos) {
+                searchList.erase(it);
                 found_count++;
                 break;
             }
@@ -720,7 +721,7 @@ void BLERxView::on_data(BlePacketData* packet) {
             it++;
         }
 
-        text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(searchList.size()));
+        text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(total_count));
     }
 }
 
@@ -738,6 +739,7 @@ void BLERxView::on_filter_change(std::string value) {
 void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
     file_path = fs::path(u"/") + new_file_path;
     found_count = 0;
+    total_count = 0;
     searchList.clear();
 
     {  // Get the size of the data file.
@@ -768,6 +770,7 @@ void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
             }
 
             searchList.push_back(currentLine);
+            total_count++;
 
             bytePos += bytesRead;
 

@@ -227,6 +227,7 @@ class BLERxView : public View {
 
     std::filesystem::path file_path{};
     uint64_t found_count = 0;
+    uint64_t total_count = 0;
     std::vector<std::string> searchList{};
 
     static constexpr auto header_height = 4 * 16;
