@@ -22,23 +22,22 @@
  */
 
 #include "ble_rx_app.hpp"
-
+#include "ble_rx_app.hpp"
 #include "ui_modemsetup.hpp"
 
 #include "modems.hpp"
 #include "audio.hpp"
+#include "io_file.hpp"
 #include "rtc_time.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "ui_fileman.hpp"
 #include "ui_textentry.hpp"
 
 using namespace portapack;
 using namespace modems;
-
-void BLELogger::log_raw_data(const std::string& data) {
-    log_file.write_entry(data);
-}
+namespace fs = std::filesystem;
 
 std::string pad_string_with_spaces(int snakes) {
     std::string paddedStr(snakes, ' ');
@@ -403,6 +402,10 @@ void BLERxView::focus() {
     options_channel.focus();
 }
 
+void BLERxView::file_error() {
+    nav_.display_modal("Error", "File read error.");
+}
+
 BLERxView::BLERxView(NavigationView& nav)
     : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_btle_rx);
@@ -414,10 +417,12 @@ BLERxView::BLERxView(NavigationView& nav)
                   &field_vga,
                   &options_channel,
                   &field_frequency,
-                  &check_log,
+                  &button_find,
                   &check_name,
                   &label_sort,
                   &options_sort,
+                  &label_found,
+                  &text_found_count,
                   &button_filter,
                   &button_save_list,
                   &button_clear_list,
@@ -427,6 +432,9 @@ BLERxView::BLERxView(NavigationView& nav)
     recent_entries_view.on_select = [this](const BleRecentEntry& entry) {
         nav_.push<BleRecentEntryDetailView>(entry);
     };
+
+    std::filesystem::path find_packet_path{u"BLERX/Find/????.TXT"};
+    ensure_directory(find_packet_path);
 
     filterBuffer = filter;
 
@@ -461,16 +469,6 @@ BLERxView::BLERxView(NavigationView& nav)
 
     field_frequency.set_step(0);
 
-    check_log.set_value(logging);
-
-    check_log.on_select = [this](Checkbox&, bool v) {
-        str_log = "";
-        logging = v;
-
-        if (logger && logging)
-            logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
-    };
-
     check_name.set_value(name_enable);
 
     check_name.on_select = [this](Checkbox&, bool v) {
@@ -504,7 +502,14 @@ BLERxView::BLERxView(NavigationView& nav)
     options_channel.set_selected_index(channel_index, true);
     options_sort.set_selected_index(sort_index, true);
 
-    logger = std::make_unique<BLELogger>();
+    button_find.on_select = [this](Button&) {
+        auto open_view = nav_.push<FileLoadView>(".TXT");
+        open_view->on_changed = [this](std::filesystem::path new_file_path) {
+            on_file_changed(new_file_path);
+
+            // nav_.set_on_pop([this]() { button_play.focus(); });
+        };
+    };
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_btlerx(channel_number);
@@ -665,10 +670,6 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 void BLERxView::on_data(BlePacketData* packet) {
     std::string str_console = "";
 
-    if (!logging) {
-        str_log = "";
-    }
-
     str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
 
     str_console += " Len:";
@@ -705,9 +706,21 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     handle_entries_sort(options_sort.selected_index());
 
-    // Log at End of Packet.
-    if (logger && logging) {
-        logger->log_raw_data(str_console);
+    if (!searchList.empty()) {
+        auto it = searchList.begin();
+
+        while (it != searchList.end()) {
+            std::string searchStr = (std::string)*it;
+
+            if (entry.dataString.find(searchStr) != std::string::npos) {
+                found_count++;
+                break;
+            }
+
+            it++;
+        }
+
+        text_found_count.set(to_string_dec_uint(found_count) + "/" + to_string_dec_uint(searchList.size()));
     }
 }
 
@@ -720,6 +733,46 @@ void BLERxView::on_filter_change(std::string value) {
     }
 
     filter = value;
+}
+
+void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
+    file_path = fs::path(u"/") + new_file_path;
+    found_count = 0;
+    searchList.clear();
+
+    {  // Get the size of the data file.
+        File data_file;
+        auto error = data_file.open(file_path, true, false);
+        if (error) {
+            file_error();
+            file_path = "";
+            return;
+        }
+
+        uint64_t bytesRead = 0;
+        uint64_t bytePos = 0;
+        char currentLine[maxLineLength];
+
+        do {
+            memset(currentLine, 0, maxLineLength);
+
+            bytesRead = readUntil(data_file, currentLine, maxLineLength, '\n');
+
+            // Remove return if found.
+            if (currentLine[strlen(currentLine)] == '\r') {
+                currentLine[strlen(currentLine)] = '\0';
+            }
+
+            if (!bytesRead) {
+                break;
+            }
+
+            searchList.push_back(currentLine);
+
+            bytePos += bytesRead;
+
+        } while (bytePos <= data_file.size());
+    }
 }
 
 // called each 1/60th of second, so 6 = 100ms
