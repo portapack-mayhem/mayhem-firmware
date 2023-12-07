@@ -145,17 +145,19 @@ class BLESpamView : public View {
     void createSamsungPacket();
     void createWindowsPacket();
     void changePacket(bool forced);
-    void on_timer();
+    void on_tx_progress(const bool done);
+
     uint64_t get_freq_by_channel_number(uint8_t channel_number);
     void randomizeMac();
     void randomChn();
 
     void furi_hal_random_fill_buf(uint8_t* buf, uint32_t len);
 
-    MessageHandlerRegistration message_handler_frame_sync{
-        Message::ID::DisplayFrameSync,
-        [this](const Message* const) {
-            this->on_timer();
+    MessageHandlerRegistration message_handler_tx_progress{
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            this->on_tx_progress(message.done);
         }};
 
     // continuity

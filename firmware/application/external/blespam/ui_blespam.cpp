@@ -104,7 +104,7 @@ BLESpamView::BLESpamView(NavigationView& nav)
     console.writeln("Based on work of:");
     console.writeln("@Willy-JL, @ECTO-1A,");
     console.writeln("@Spooks4576, @iNetro");
-
+    console.writeln("");
     changePacket(true);  // init
 }
 
@@ -138,6 +138,15 @@ void BLESpamView::randomizeMac() {
         mac[i] = hexDigits[randomIndex];
     }
     mac[12] = '\0';  // Null-terminate the string
+}
+
+void BLESpamView::on_tx_progress(const bool done) {
+    if (done) {
+        if (is_running) {
+            changePacket(false);
+            baseband::set_btletx(channel_number, mac, advertisementData, pduType);
+        }
+    }
 }
 
 void BLESpamView::furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
@@ -489,7 +498,7 @@ void BLESpamView::createFastPairPacket() {
 
 void BLESpamView::changePacket(bool forced = false) {
     counter++;  // need to send it multiple times to be accepted
-    if (counter >= 3 || forced) {
+    if (counter >= 4 || forced) {
         // really change packet and mac.
         counter = 0;
         randomizeMac();
@@ -516,21 +525,15 @@ void BLESpamView::changePacket(bool forced = false) {
         }
         // rate limit console display
         displayCounter++;
-        if (displayCounter > 5) {
+        if (displayCounter > 25) {
             displayCounter = 0;
             console.writeln(advertisementData);
         }
     }
 }
-// called each 1/60th of second, so 6 = 100ms
-void BLESpamView::on_timer() {
-    if (is_running) {
-        changePacket();
-        reset();
-    }
-}
 
 BLESpamView::~BLESpamView() {
+    is_running = false;
     stop();
 }
 
