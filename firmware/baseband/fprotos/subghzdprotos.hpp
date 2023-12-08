@@ -34,7 +34,7 @@ class SubGhzDProtos : public FProtoListGeneral {
 
     void feed(bool level, uint32_t duration) {
         for (const auto& obj : protos) {
-            obj->feed(level, duration);
+            if (obj->modulation == modulation_) obj->feed(level, duration);
         }
     }
 

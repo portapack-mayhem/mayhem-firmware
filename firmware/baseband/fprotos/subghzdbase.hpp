@@ -26,7 +26,7 @@ class FProtoSubGhzDBase {
 
     uint8_t getSensorType() { return sensorType; }
     uint32_t getSensorId() { return id; }
-
+    FPROTO_SUBGHZD_MODULATION modulation = FPM_AM;  // override this, if FM
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.
     void subghz_protocol_blocks_add_bit(uint8_t bit) {
@@ -37,7 +37,6 @@ class FProtoSubGhzDBase {
     // General weather data holder
     uint8_t sensorType = FPS_Invalid;
     uint32_t id = SD_NO_ID;
-    FPROTO_SUBGHZD_MODULATION modulation = FPM_AM;  // override this, if FM
 
     // inner logic stuff, also for flipper compatibility.
     SubGhzDProtocolDecoderBaseRxCallback callback = NULL;

@@ -59,9 +59,6 @@ void WeatherProcessor::on_message(const Message* const message) {
 
 void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     (void)message;
-
-    modulation = message.modulation;  // NIY
-
     if (protoMode != message.protoMode) {
         // change it.
         FProtoListGeneral* tmp = protoList;
@@ -71,6 +68,13 @@ void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
         if (protoMode == 0) protoList = new WeatherProtos();
         if (protoMode == 1) protoList = new SubGhzDProtos();
     }
+
+    modulation = message.modulation;  // NIY
+
+    if (protoList != NULL) {
+        protoList->setModulation(modulation);
+    }
+
     configured = true;
 }
 

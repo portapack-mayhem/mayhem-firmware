@@ -92,7 +92,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
     recent_entries_view.on_select = [this](const SubGhzDRecentEntry& entry) {
         nav_.push<SubGhzDRecentEntryDetailView>(entry);
     };
-    baseband::set_weather();
+    baseband::set_subghzd(0);
     receiver_model.enable();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();

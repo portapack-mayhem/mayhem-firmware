@@ -324,6 +324,11 @@ void set_weather() {
     send_message(&message);
 }
 
+void set_subghzd(uint8_t modulation = 0) {
+    const SubGhzFPRxConfigureMessage message{modulation, 1};
+    send_message(&message);
+}
+
 static bool baseband_image_running = false;
 
 void run_image(const spi_flash::image_tag_t image_tag) {

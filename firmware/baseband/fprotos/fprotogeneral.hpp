@@ -1,6 +1,8 @@
 #ifndef __FPROTO_GENERAL_H__
 #define __FPROTO_GENERAL_H__
 
+// useful methods for both weather and subghzd
+
 #include <stdint.h>
 #include <stddef.h>
 
