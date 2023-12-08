@@ -131,10 +131,10 @@ bool MorseView::start_tx() {
     transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF .already tested in FM morse max tone 9,999k , max dev 150khz
     transmitter_model.enable();
 
+    baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
+
     if (mode_cw) {
         ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
-    } else {
-        baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
     }
 
     return true;
