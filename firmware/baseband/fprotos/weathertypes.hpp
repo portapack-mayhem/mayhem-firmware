@@ -7,6 +7,12 @@ Define known protocols.
 These values must be present on the protocol's constructor, like FProtoWeatherAcurite592TXR()  {   sensorType = FPW_Acurite592TXR;     }
 Also it must have a switch-case element in the getWeatherSensorTypeName() function, to display it's name.
 */
+#define WS_NO_ID 0xFFFFFFFF
+#define WS_NO_BATT 0xFF
+#define WS_NO_HUMIDITY 0xFF
+#define WS_NO_CHANNEL 0xFF
+#define WS_NO_BTN 0xFF
+#define WS_NO_TEMPERATURE -273.0f
 
 enum FPROTO_WEATHER_SENSOR {
     FPW_Invalid = 0,

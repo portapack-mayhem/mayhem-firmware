@@ -11,6 +11,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "fprotolistgeneral.hpp"
 #include "subghzdbase.hpp"
 #include "s-ansonic.hpp"
+#include "s-princeton.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -19,7 +20,8 @@ class SubGhzDProtos : public FProtoListGeneral {
    public:
     SubGhzDProtos() {
         // add protos
-        protos.push_back(std::make_unique<FProtoSubGhzDAnsonic>());  // 1
+        protos.push_back(std::make_unique<FProtoSubGhzDAnsonic>());    // 1
+        protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());  // 2
 
         // set callback for them
         for (const auto& obj : protos) {

@@ -43,33 +43,19 @@ struct SubGhzDRecentEntry {
     static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
     uint8_t sensorType = FPS_Invalid;
     uint32_t id = 0xFFFFFFFF;
-    float temp = -273.0f;
-    uint8_t humidity = 0xFF;
-    uint8_t battery_low = 0xFF;
-    uint8_t channel = 0xFF;
+
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
 
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
-        uint32_t id,
-        float temp,
-        uint8_t humidity,
-        uint8_t channel,
-        uint8_t battery_low = 0xff)
+        uint32_t id)
         : sensorType{sensorType},
-          id{id},
-          temp{temp},
-          humidity{humidity},
-          battery_low{battery_low},
-          channel{channel} {
+          id{id} {
     }
     Key key() const {
-        return (((static_cast<uint64_t>(temp * 10) & 0xFFFF) << 48) ^ static_cast<uint64_t>(id) << 24) |
-               (static_cast<uint64_t>(sensorType) & 0xFF) << 16 |
-               (static_cast<uint64_t>(humidity) & 0xFF) << 8 |
-               (static_cast<uint64_t>(battery_low) & 0xF) << 4 |
-               (static_cast<uint64_t>(channel) & 0xF);
+        return (static_cast<uint64_t>(id) << 32) |
+               (static_cast<uint64_t>(sensorType) & 0xFF) << 0;
     }
     void inc_age(int delta) {
         if (UINT16_MAX - delta > age) age += delta;
@@ -156,20 +142,12 @@ class SubGhzDRecentEntryDetailView : public View {
     SubGhzDRecentEntry entry_{};
     Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
-    Text text_temp{{6 * 8, 3 * 16, 8 * 8, 16}, "?"};
-    Text text_hum{{11 * 8, 4 * 16, 6 * 8, 16}, "?"};
-    Text text_ch{{11 * 8, 5 * 16, 6 * 8, 16}, "?"};
-    Text text_batt{{11 * 8, 6 * 16, 6 * 8, 16}, "?"};
-    Text text_age{{11 * 8, 7 * 16, 6 * 8, 16}, "?"};
+    Text text_temp{{6 * 8, 3 * 16, 8 * 8, 7 * 16}, "?"};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Station type:", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Tpe:", Color::light_grey()},
         {{0 * 8, 2 * 16}, "Id: ", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Temp:", Color::light_grey()},
-        {{0 * 8, 4 * 16}, "Humidity:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "Channel:", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Battery:", Color::light_grey()},
-        {{0 * 8, 7 * 16}, "Age:", Color::light_grey()},
+        {{0 * 8, 3 * 16}, "Data:", Color::light_grey()},
     };
 
     Button button_done{

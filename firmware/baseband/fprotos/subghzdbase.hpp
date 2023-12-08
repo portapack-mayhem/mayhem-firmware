@@ -11,7 +11,7 @@ For comments in a protocol implementation check w-nexus-th.hpp
 #include "subghztypes.hpp"
 
 #include <string>
-// default walues to indicate 'no value'
+// default values to indicate 'no value'
 #define SD_NO_ID 0xFFFFFFFF
 
 class FProtoSubGhzDBase;
@@ -23,10 +23,10 @@ class FProtoSubGhzDBase {
     virtual ~FProtoSubGhzDBase() {}
     virtual void feed(bool level, uint32_t duration) = 0;                         // need to be implemented on each protocol handler.
     void setCallback(SubGhzDProtocolDecoderBaseRxCallback cb) { callback = cb; }  // this is called when there is a hit.
-
+    virtual void get_string(std::string& output) = 0;
     uint8_t getSensorType() { return sensorType; }
     uint32_t getSensorId() { return id; }
-    FPROTO_SUBGHZD_MODULATION modulation = FPM_AM;  // override this, if FM
+    uint8_t modulation = FPM_AM;  // override this, if FM
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.
     void subghz_protocol_blocks_add_bit(uint8_t bit) {

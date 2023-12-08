@@ -100,18 +100,13 @@ class FProtoSubGhzDAnsonic : public FProtoSubGhzDBase {
         cnt = data & 0xFFF;
         btn = ((data >> 1) & 0x3);
     }
-    void get_string(char* output, size_t outSize) {
+    void get_string(std::string& output) {
         subghz_protocol_ansonic_check_remote_controller();
-        snprintf(
-            output, outSize,
-            "%dbit\r\n"
-            "Key:%03lX\r\n"
-            "Btn:%X\r\n"
-            "DIP:" ANSONICDIP_PATTERN "\r\n",
-            data_count_bit,
-            (uint32_t)(data & 0xFFFFFFFF),
-            btn,
-            ANSONICCNT_TO_DIP(cnt));
+
+        /* output = to_string_dec_uint(data_count_bit) + " bit\r\n";
+         output += "Key: " + to_string_hex((uint32_t)(data & 0xFFFFFFFF)) + "\r\n";
+         output += "BTN: " + to_string_dec_uint(btn) + "\r\n";
+         output += "DIP: " + ANSONICCNT_TO_DIP(cnt) + "\r\n";*/
     }
 
    protected:

@@ -35,11 +35,7 @@ void SubGhzDRecentEntryDetailView::update_data() {
     // set text elements
     text_type.set(SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry_.sensorType));
     text_id.set("0x" + to_string_hex(entry_.id));
-    text_temp.set(to_string_decimal(entry_.temp, 2));
-    text_hum.set(to_string_dec_uint(entry_.humidity) + "%");
-    text_ch.set(to_string_dec_uint(entry_.channel));
-    text_batt.set(to_string_dec_uint(entry_.battery_low) + " " + ((entry_.battery_low == 0) ? "OK" : "LOW"));
-    text_age.set(to_string_dec_uint(entry_.age) + " sec");
+    // text_temp.set(to_string_decimal(entry_.temp, 2));
 }
 
 SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, const SubGhzDRecentEntry& entry)
@@ -49,10 +45,6 @@ SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, 
                   &text_type,
                   &text_id,
                   &text_temp,
-                  &text_hum,
-                  &text_ch,
-                  &text_batt,
-                  &text_age,
                   &labels});
 
     button_done.on_select = [&nav](const ui::Button&) {
@@ -92,7 +84,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
     recent_entries_view.on_select = [this](const SubGhzDRecentEntry& entry) {
         nav_.push<SubGhzDRecentEntryDetailView>(entry);
     };
-    baseband::set_subghzd(0);
+    baseband::set_subghzd(0);  // am
     receiver_model.enable();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();
@@ -107,7 +99,7 @@ void SubGhzDView::on_tick_second() {
 }
 
 void SubGhzDView::on_data(const WeatherDataMessage* data) {
-    SubGhzDRecentEntry key{data->sensorType, data->id, data->temp, data->humidity, data->channel, data->battery_low};
+    SubGhzDRecentEntry key{data->sensorType, data->id};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
@@ -129,6 +121,10 @@ SubGhzDView::~SubGhzDView() {
 
 const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
     switch (type) {
+        case FPS_ANSONIC:
+            return "Ansonic";
+        case FPS_PRINCETON:
+            return "Princeton";
         case FPS_Invalid:
         default:
             return "Unknown";
@@ -150,20 +146,19 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    if (line.length() < 10) {
-        line += SubGhzDView::pad_string_with_spaces(10 - line.length());
+    if (line.length() < 14) {
+        line += SubGhzDView::pad_string_with_spaces(14 - line.length());
     } else {
-        line = truncate(line, 10);
+        line = truncate(line, 14);
     }
+    // TODO
 
-    std::string temp = to_string_decimal(entry.temp, 1);
-    std::string humStr = to_string_dec_uint(entry.humidity) + "%";
-    std::string chStr = to_string_dec_uint(entry.channel);
+    // std::string idStr = to_string_hex(entry.id);
     std::string ageStr = to_string_dec_uint(entry.age);
 
-    line += SubGhzDView::pad_string_with_spaces(6 - temp.length()) + temp;
-    line += SubGhzDView::pad_string_with_spaces(5 - humStr.length()) + humStr;
-    line += SubGhzDView::pad_string_with_spaces(4 - chStr.length()) + chStr;
+    // line += SubGhzDView::pad_string_with_spaces(6 - id.length()) + temp;
+    // line += SubGhzDView::pad_string_with_spaces(5 - humStr.length()) + humStr;
+    // line += SubGhzDView::pad_string_with_spaces(4 - chStr.length()) + chStr;
     line += SubGhzDView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
 
     line.resize(target_rect.width() / 8, ' ');

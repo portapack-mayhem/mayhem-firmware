@@ -43,11 +43,11 @@ struct WeatherRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
     uint8_t sensorType = FPW_Invalid;
-    uint32_t id = 0xFFFFFFFF;
-    float temp = -273.0f;
-    uint8_t humidity = 0xFF;
-    uint8_t battery_low = 0xFF;
-    uint8_t channel = 0xFF;
+    uint32_t id = WS_NO_ID;
+    float temp = WS_NO_TEMPERATURE;
+    uint8_t humidity = WS_NO_HUMIDITY;
+    uint8_t battery_low = WS_NO_BATT;
+    uint8_t channel = WS_NO_CHANNEL;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
 
     WeatherRecentEntry() {}
@@ -57,7 +57,7 @@ struct WeatherRecentEntry {
         float temp,
         uint8_t humidity,
         uint8_t channel,
-        uint8_t battery_low = 0xff)
+        uint8_t battery_low = WS_NO_BATT)
         : sensorType{sensorType},
           id{id},
           temp{temp},
