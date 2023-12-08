@@ -27,10 +27,22 @@
 void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    for (size_t i = 0; i < buffer.count; i++) {
-        int8_t re = buffer.p[i].real();
-        int8_t im = buffer.p[i].imag();
+    // SR = 4Mhz ,  and we are decimating by /8 in total , decim1_out clock 4Mhz /8= 500khz samples/sec.
+    // buffer has   2048 complex i8 I,Q signed samples
+    // decim0 out:  2048/4 = 512 complex i16 I,Q signed samples
+    // decim1 out:  512/2 =  256 complex i16 I,Q signed samples
+    // Regarding Filters, we are re-using existing FIR filters, @4Mhz, FIR decim1 ilter, BW =+-220Khz (at -3dB's). BW = 440kHZ.
+
+    const auto decim_0_out = decim_0.execute(buffer, dst_buffer);       // Input:2048 complex/4 (decim factor) = 512_output complex (1024 I/Q samples)
+    const auto decim_1_out = decim_1.execute(decim_0_out, dst_buffer);  // Input:512  complex/2 (decim factor) = 256_output complex ( 512 I/Q samples)
+
+    for (size_t i = 0; i < decim_1_out.count; i++) {
+        int16_t re = decim_1_out.p[i].real();
+        int16_t im = decim_1_out.p[i].imag();
         uint32_t mag = ((uint32_t)re * (uint32_t)re) + ((uint32_t)im * (uint32_t)im);
+
+        mag = (mag >> 12);  // Decim samples are calculated with saturated gain . (we could also reduce that sat. param at configure time)
+
         bool meashl = (mag > threshold);
         tm += mag;
         if (meashl == currentHiLow && currentDuration < 10'000'000)  // allow pass 'end' signal
@@ -42,7 +54,8 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
             currentHiLow = meashl;
         }
     }
-    cnt += buffer.count;
+
+    cnt += decim_1_out.count;  // TODO , check if it is necessary that xdecim factor.
     if (cnt > 30'000) {
         threshold = (tm / cnt) / 2;
         cnt = 0;
@@ -58,6 +71,12 @@ void WeatherProcessor::on_message(const Message* const message) {
 }
 
 void WeatherProcessor::configure(const WeatherRxConfigureMessage& message) {
+    constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
+    constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
+
+    decim_0.configure(taps_200k_wfm_decim_0.taps);
+    decim_1.configure(taps_200k_wfm_decim_1.taps);
+
     (void)message;
     configured = true;
 }
