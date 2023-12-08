@@ -5721,6 +5721,44 @@ static constexpr Bitmap bitmap_icon_hide{
     {16, 16},
     bitmap_icon_hide_data};
 
+static constexpr uint8_t bitmap_icon_thermometer_data[] = {
+    0xC0,
+    0x00,
+    0x20,
+    0x01,
+    0x10,
+    0x02,
+    0x10,
+    0x3A,
+    0x10,
+    0x02,
+    0x10,
+    0x1A,
+    0x10,
+    0x02,
+    0xD0,
+    0x3A,
+    0xD0,
+    0x02,
+    0xD0,
+    0x1A,
+    0xD0,
+    0x02,
+    0xE8,
+    0x05,
+    0xE8,
+    0x05,
+    0xC8,
+    0x04,
+    0x10,
+    0x02,
+    0xE0,
+    0x01,
+};
+static constexpr Bitmap bitmap_icon_thermometer{
+    {16, 16},
+    bitmap_icon_thermometer_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
