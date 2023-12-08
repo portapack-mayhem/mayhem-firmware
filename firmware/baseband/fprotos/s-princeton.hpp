@@ -13,7 +13,7 @@ typedef enum {
 class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDPrinceton() {
-        sensorType = FPS_ANSONIC;
+        sensorType = FPS_PRINCETON;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -47,7 +47,6 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
 
                                 data = decode_data;
                                 data_count_bit = decode_count_bit;
-
                                 if (callback) callback(this);
                             }
                             last_data = decode_data;

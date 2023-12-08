@@ -117,7 +117,7 @@ class SubGhzDView : public View {
 
     const RecentEntriesColumns columns{{
         {"Type", 19},
-        {"Bits", 3},
+        {"Bits", 4},
         {"Age", 3},
     }};
     SubGhzDRecentEntriesView recent_entries_view{columns, recent};

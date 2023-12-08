@@ -77,7 +77,6 @@ void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_wfm_decim_1.taps);
 
-    (void)message;
     if (protoMode != message.protoMode) {
         // change it.
         FProtoListGeneral* tmp = protoList;

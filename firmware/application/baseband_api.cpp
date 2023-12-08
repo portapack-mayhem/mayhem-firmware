@@ -325,7 +325,7 @@ void set_weather() {
 }
 
 void set_subghzd(uint8_t modulation = 0) {
-    const SubGhzFPRxConfigureMessage message{modulation, 1};
+    const SubGhzFPRxConfigureMessage message{1, modulation};
     send_message(&message);
 }
 
