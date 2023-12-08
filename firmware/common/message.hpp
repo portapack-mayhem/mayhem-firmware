@@ -117,6 +117,7 @@ class Message {
         BTLETxConfigure = 59,
         WeatherRxConfigure = 60,
         WeatherData = 61,
+        SubGhzDData = 62,
         MAX
     };
 
@@ -1238,12 +1239,14 @@ class SpectrumPainterBufferConfigureResponseMessage : public Message {
     SpectrumPainterFIFO* fifo{nullptr};
 };
 
-class WeatherRxConfigureMessage : public Message {
+class SubGhzFPRxConfigureMessage : public Message {
    public:
-    constexpr WeatherRxConfigureMessage()
-        : Message{ID::WeatherRxConfigure} {
+    constexpr SubGhzFPRxConfigureMessage(uint8_t protoMode = 0, uint8_t modulation = 0)
+        : Message{ID::WeatherRxConfigure}, protoMode{protoMode}, modulation{modulation} {
         // todoh give some more info
     }
+    uint8_t protoMode = 0;   // 0 weather, 1 subhgzd
+    uint8_t modulation = 0;  // 0 am, 1 fm
 };
 
 class WeatherDataMessage : public Message {
@@ -1272,6 +1275,19 @@ class WeatherDataMessage : public Message {
     uint8_t battery_low = 0xFF;
     uint8_t channel = 0xFF;
     uint8_t btn = 0xFF;
+};
+
+class SubGhzDDataMessage : public Message {
+   public:
+    constexpr SubGhzDDataMessage(
+        uint8_t sensorType = 0,
+        uint32_t id = 0xFFFFFFFF)
+        : Message{ID::SubGhzDData},
+          sensorType{sensorType},
+          id{id} {
+    }
+    uint8_t sensorType = 0;
+    uint32_t id = 0xFFFFFFFF;  // todo add results too!
 };
 
 #endif /*__MESSAGE_H__*/

@@ -37,7 +37,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         {
             if (currentDuration < UINT32_MAX) currentDuration += usperTick;
         } else {  // called on change, so send the last duration and dir.
-            protoList.feed(currentHiLow, currentDuration / 1000);
+            if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = usperTick;
             currentHiLow = meashl;
         }
@@ -54,11 +54,23 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
 
 void WeatherProcessor::on_message(const Message* const message) {
     if (message->id == Message::ID::WeatherRxConfigure)
-        configure(*reinterpret_cast<const WeatherRxConfigureMessage*>(message));
+        configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
 }
 
-void WeatherProcessor::configure(const WeatherRxConfigureMessage& message) {
+void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     (void)message;
+
+    modulation = message.modulation;  // NIY
+
+    if (protoMode != message.protoMode) {
+        // change it.
+        FProtoListGeneral* tmp = protoList;
+        protoList = NULL;
+        protoMode = message.protoMode;
+        if (tmp) free(tmp);  // takes some time
+        if (protoMode == 0) protoList = new WeatherProtos();
+        if (protoMode == 1) protoList = new SubGhzDProtos();
+    }
     configured = true;
 }
 

@@ -104,7 +104,7 @@ class FProtoWeatherLaCrosseTx141thbv2 : public FProtoWeatherBase {
         }
         uint8_t msg[] = {static_cast<uint8_t>(data >> 32), static_cast<uint8_t>(data >> 24), static_cast<uint8_t>(data >> 16), static_cast<uint8_t>(data >> 8)};
 
-        uint8_t crc = subghz_protocol_blocks_lfsr_digest8_reflect(msg, 4, 0x31, 0xF4);
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_lfsr_digest8_reflect(msg, 4, 0x31, 0xF4);
         return (crc == (data & 0xFF));
     }
     void ws_protocol_lacrosse_tx141thbv2_remote_controller() {

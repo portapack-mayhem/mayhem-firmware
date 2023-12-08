@@ -320,7 +320,7 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 }
 
 void set_weather() {
-    const WeatherRxConfigureMessage message{};
+    const SubGhzFPRxConfigureMessage message{0, 0};
     send_message(&message);
 }
 
