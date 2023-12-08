@@ -85,6 +85,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
         nav_.push<SubGhzDRecentEntryDetailView>(entry);
     };
     baseband::set_subghzd(0);  // am
+    receiver_model.set_sampling_rate(4'000'000);
     receiver_model.enable();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();
@@ -98,7 +99,7 @@ void SubGhzDView::on_tick_second() {
     recent_entries_view.set_dirty();
 }
 
-void SubGhzDView::on_data(const WeatherDataMessage* data) {
+void SubGhzDView::on_data(const SubGhzDDataMessage* data) {
     SubGhzDRecentEntry key{data->sensorType, data->id};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {

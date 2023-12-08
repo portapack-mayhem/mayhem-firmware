@@ -80,7 +80,7 @@ class SubGhzDView : public View {
 
    private:
     void on_tick_second();
-    void on_data(const WeatherDataMessage* data);  // TODO
+    void on_data(const SubGhzDDataMessage* data);  // TODO
 
     NavigationView& nav_;
     RxRadioState radio_state_{
@@ -123,9 +123,9 @@ class SubGhzDView : public View {
     SubGhzDRecentEntriesView recent_entries_view{columns, recent};
 
     MessageHandlerRegistration message_handler_packet{
-        Message::ID::WeatherData,
+        Message::ID::SubGhzDData,
         [this](Message* const p) {
-            const auto message = static_cast<const WeatherDataMessage*>(p);
+            const auto message = static_cast<const SubGhzDDataMessage*>(p);
             this->on_data(message);
         }};
 };
