@@ -41,8 +41,8 @@ class WeatherProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    static constexpr size_t baseband_fs = 4'000'000;   // it works, I think we need to write that master clock in the baseband_threat , even later we decimate it.
-    static constexpr uint32_t nsPerDecSamp = 250 * 8;  // 10 exp9/baseband_fs * 8
+    static constexpr size_t baseband_fs = 4'000'000;                           // it works, I think we need to write that master clock in the baseband_threat , even later we decimate it.
+    static constexpr uint32_t nsPerDecSamp = 1'000'000'000 / baseband_fs * 8;  // 10 exp9/baseband_fs * 8
 
     /* Array Buffer aux. used in decim0 and decim1 IQ c16 signed  data ; (decim0 defines the max length of the array) */
     std::array<complex16_t, 512> dst{};  // decim0 /4 ,  2048/4 = 512 complex I,Q

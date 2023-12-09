@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_weather.hpp"
+#include "proc_subghzd.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
 

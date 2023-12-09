@@ -72,7 +72,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
                   &button_clear_list,
                   &recent_entries_view});
 
-    baseband::run_image(portapack::spi_flash::image_tag_weather);
+    baseband::run_image(portapack::spi_flash::image_tag_subghzd);
 
     button_clear_list.on_select = [this](Button&) {
         recent.clear();
