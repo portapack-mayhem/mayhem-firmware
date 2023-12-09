@@ -119,10 +119,10 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
          */
 
         uint8_t cnt_parcel = (uint8_t)(data & 0xF);
-        uint32_t data = (uint32_t)(data & 0x0FFFFFFFF);
+        uint32_t dataa = (uint32_t)(data & 0x0FFFFFFFF);
 
         data = (data ^ came_twee_magic_numbers_xor[cnt_parcel]);
-        serial = data;
+        serial = dataa;
         data /= 4;
         btn = (data >> 4) & 0x0F;
         data >>= 16;
