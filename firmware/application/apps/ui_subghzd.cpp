@@ -132,6 +132,12 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Princeton";
         case FPS_BETT:
             return "Bett";
+        case FPS_CAME:
+            return "Came";
+        case FPS_PRASTEL:
+            return "Prastel";
+        case FPS_AIRFORCE:
+            return "Airforce";
         case FPS_Invalid:
         default:
             return "Unknown";

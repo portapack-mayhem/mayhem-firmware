@@ -13,6 +13,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-ansonic.hpp"
 #include "s-princeton.hpp"
 #include "s-bett.hpp"
+#include "s-came.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -24,6 +25,7 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDAnsonic>());    // 1
         protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());  // 2
         protos.push_back(std::make_unique<FProtoSubGhzDBett>());       // 3
+        protos.push_back(std::make_unique<FProtoSubGhzDCame>());       // 4, 5, 6
 
         // set callback for them
         for (const auto& obj : protos) {

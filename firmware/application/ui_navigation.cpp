@@ -568,7 +568,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
         {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
         {"Weather", Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<WeatherView>(); }},
-        {"SubGhzD", Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<SubGhzDView>(); }},
+        {"SubGhzD", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<SubGhzDView>(); }},
         // {"FSK RX", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<FskxRxMainView>(); }},
         // {"DMR", Color::dark_grey(), &bitmap_icon_dmr, [&nav](){ nav.push<NotImplementedView>(); }},
         // {"SIGFOX", Color::dark_grey(), &bitmap_icon_fox, [&nav](){ nav.push<NotImplementedView>(); }},
