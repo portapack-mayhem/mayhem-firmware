@@ -267,7 +267,7 @@ void BLESpamView::createWindowsPacket() {
           "🔵🦷",
       }; //not worky using fix, for testing.
       */
-    const char* name = "PortaPack";
+    const char* name = "Hi :)";
     // name = names[rand() % 6];
     uint8_t name_len = strlen(name);
 
@@ -466,7 +466,7 @@ void BLESpamView::createIosPacket(bool crash = false) {
             packet[i++] = 0x00;  // ...
 
             packet[i++] = ContinuityTypeNearbyInfo;   // Continuity Type (?)
-            furi_hal_random_fill_buf(&packet[i], 3);  // Continuity Size (?) + Shenanigans (???)
+            furi_hal_random_fill_buf(&packet[i], 3);  // Continuity Size (?) + 3 random bytes to crash IOS17 (?)
             i += 3;
             break;
         }
