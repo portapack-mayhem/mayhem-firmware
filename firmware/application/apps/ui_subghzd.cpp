@@ -148,6 +148,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Clemsa";
         case FPS_DOITRAND:
             return "Doitrand";
+        case FPS_DOOYA:
+            return "Dooya";
         case FPS_Invalid:
         default:
             return "Unknown";

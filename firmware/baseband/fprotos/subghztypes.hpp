@@ -30,6 +30,7 @@ enum FPROTO_SUBGHZD_SENSOR {
     FPS_CHAMBCODE = 9,
     FPS_CLEMSA = 10,
     FPS_DOITRAND = 11,
+    FPS_DOOYA = 12,
 };
 
 #endif
