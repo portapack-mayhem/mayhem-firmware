@@ -61,7 +61,7 @@ static constexpr SPIConfig ssp_config_max283x = {
     .ssport = gpio_max283x_select.port(),
     .sspad = gpio_max283x_select.pad(),
     .cr0 =
-        CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 1) | CR0_FRFSPI | CR0_DSS16BIT,
+        CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS16BIT,
     .cpsr = ssp1_cpsr,
 };
 
