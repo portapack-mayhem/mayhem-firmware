@@ -14,6 +14,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-princeton.hpp"
 #include "s-bett.hpp"
 #include "s-came.hpp"
+#include "s-came_atomo.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -26,6 +27,7 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());  // 2
         protos.push_back(std::make_unique<FProtoSubGhzDBett>());       // 3
         protos.push_back(std::make_unique<FProtoSubGhzDCame>());       // 4, 5, 6
+        protos.push_back(std::make_unique<FProtoSubGhzDCameAtomo>());  // 7
 
         // set callback for them
         for (const auto& obj : protos) {
@@ -35,6 +37,7 @@ class SubGhzDProtos : public FProtoListGeneral {
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
         SubGhzDDataMessage packet_message{instance->getSensorType(), instance->getSensorSerial(), instance->getBits(), instance->getData(), instance->getData2(), instance->getBtn()};
+        // todo add cnt, cnt2
         shared_memory.application_queue.push(packet_message);
     }
 
