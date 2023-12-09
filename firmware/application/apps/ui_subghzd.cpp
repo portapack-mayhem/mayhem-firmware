@@ -38,8 +38,8 @@ void SubGhzDRecentEntryDetailView::update_data() {
     if (entry_.bits > 0) console.writeln("Bits: " + to_string_dec_uint(entry_.bits));
     if (entry_.btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(entry_.btn));
 
-    if (entry_.data != 0) console.writeln("Data: " + to_string_dec_uint(entry_.data));
-    if (entry_.data_2 != 0) console.writeln("Data2: " + to_string_dec_uint(entry_.data_2));
+    if (entry_.data != 0) console.writeln("Data: " + to_string_hex(entry_.data));
+    if (entry_.data_2 != 0) console.writeln("Data2: " + to_string_hex(entry_.data_2));
 }
 
 SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, const SubGhzDRecentEntry& entry)
