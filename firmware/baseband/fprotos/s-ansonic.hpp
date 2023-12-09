@@ -56,6 +56,7 @@ class FProtoSubGhzDAnsonic : public FProtoSubGhzDBase {
                             btn = 0x0;
                             data = decode_data;
                             data_count_bit = decode_count_bit;
+                            subghz_protocol_ansonic_check_remote_controller();
                             if (callback) callback(this);
                         }
                         break;
@@ -96,17 +97,11 @@ class FProtoSubGhzDAnsonic : public FProtoSubGhzDBase {
          *
          * 1...10 - DIP
          * k- KEY
+         * "DIP: " + ANSONICCNT_TO_DIP(cnt) + "\r\n";
          */
         cnt = data & 0xFFF;
         btn = ((data >> 1) & 0x3);
-    }
-    void get_string(std::string& output) {
-        subghz_protocol_ansonic_check_remote_controller();
-
-        /* output = to_string_dec_uint(data_count_bit) + " bit\r\n";
-         output += "Key: " + to_string_hex((uint32_t)(data & 0xFFFFFFFF)) + "\r\n";
-         output += "BTN: " + to_string_dec_uint(btn) + "\r\n";
-         output += "DIP: " + ANSONICCNT_TO_DIP(cnt) + "\r\n";*/
+        serial = (uint32_t)(data & 0xFFFFFFFF);
     }
 
    protected:

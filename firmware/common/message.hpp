@@ -1281,13 +1281,19 @@ class SubGhzDDataMessage : public Message {
    public:
     constexpr SubGhzDDataMessage(
         uint8_t sensorType = 0,
-        uint32_t id = 0xFFFFFFFF)
+        uint32_t serial = 0xFFFFFFFF,
+        uint16_t bits = 0,
+        uint8_t btn = 0xFF)
         : Message{ID::SubGhzDData},
           sensorType{sensorType},
-          id{id} {
+          serial{serial},
+          bits{bits},
+          btn{btn} {
     }
     uint8_t sensorType = 0;
-    uint32_t id = 0xFFFFFFFF;  // todo add results too!
+    uint32_t serial = 0xFFFFFFFF;
+    uint16_t bits;
+    uint8_t btn = 0xFF;
 };
 
 #endif /*__MESSAGE_H__*/

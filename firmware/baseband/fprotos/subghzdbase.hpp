@@ -12,7 +12,6 @@ For comments in a protocol implementation check w-nexus-th.hpp
 
 #include <string>
 // default values to indicate 'no value'
-#define SD_NO_ID 0xFFFFFFFF
 
 class FProtoSubGhzDBase;
 typedef void (*SubGhzDProtocolDecoderBaseRxCallback)(FProtoSubGhzDBase* instance);
@@ -23,9 +22,10 @@ class FProtoSubGhzDBase {
     virtual ~FProtoSubGhzDBase() {}
     virtual void feed(bool level, uint32_t duration) = 0;                         // need to be implemented on each protocol handler.
     void setCallback(SubGhzDProtocolDecoderBaseRxCallback cb) { callback = cb; }  // this is called when there is a hit.
-    virtual void get_string(std::string& output) = 0;
     uint8_t getSensorType() { return sensorType; }
-    uint32_t getSensorId() { return id; }
+    uint32_t getSensorSerial() { return serial; }
+    uint16_t getBits() { return data_count_bit; }
+    uint8_t getBtn() { return btn; }
     uint8_t modulation = FPM_AM;  // override this, if FM
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.
@@ -34,9 +34,15 @@ class FProtoSubGhzDBase {
         decode_count_bit++;
     }
 
-    // General weather data holder
+    // General data holder, these will be passed
     uint8_t sensorType = FPS_Invalid;
-    uint32_t id = SD_NO_ID;
+    uint32_t key = SD_NO_KEY;
+    uint8_t btn = SD_NO_BTN;
+    uint32_t cnt = SD_NO_CNT;
+    uint32_t serial = SD_NO_SERIAL;
+    uint16_t data_count_bit = 0;
+    uint32_t seed = SD_NO_SEED;
+    // princeton TE
 
     // inner logic stuff, also for flipper compatibility.
     SubGhzDProtocolDecoderBaseRxCallback callback = NULL;
@@ -45,14 +51,9 @@ class FProtoSubGhzDBase {
     uint32_t te_last = 0;
     uint64_t data = 0;
     uint64_t data_2 = 0;
-    uint32_t serial = 0;
-    uint16_t data_count_bit = 0;
     uint64_t decode_data = 0;
     uint32_t decode_count_bit = 0;
-    uint8_t btn = 0;
-    uint32_t cnt = 0;
     uint8_t cnt_2 = 0;
-    uint32_t seed = 0;
 
     ManchesterState manchester_saved_state = ManchesterStateMid1;
 };

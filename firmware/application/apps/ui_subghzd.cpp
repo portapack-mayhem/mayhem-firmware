@@ -34,8 +34,9 @@ namespace ui {
 void SubGhzDRecentEntryDetailView::update_data() {
     // set text elements
     text_type.set(SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry_.sensorType));
-    text_id.set("0x" + to_string_hex(entry_.id));
-    // text_temp.set(to_string_decimal(entry_.temp, 2));
+    text_id.set("0x" + to_string_hex(entry_.serial));
+    if (entry_.bits > 0) console.writeln("Bits: " + to_string_dec_uint(entry_.bits));
+    if (entry_.btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(entry_.btn));
 }
 
 SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, const SubGhzDRecentEntry& entry)
@@ -44,7 +45,7 @@ SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, 
     add_children({&button_done,
                   &text_type,
                   &text_id,
-                  &text_temp,
+                  &console,
                   &labels});
 
     button_done.on_select = [&nav](const ui::Button&) {
@@ -100,7 +101,7 @@ void SubGhzDView::on_tick_second() {
 }
 
 void SubGhzDView::on_data(const SubGhzDDataMessage* data) {
-    SubGhzDRecentEntry key{data->sensorType, data->id};
+    SubGhzDRecentEntry key{data->sensorType, data->serial, data->bits, data->btn};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
@@ -147,19 +148,15 @@ void RecentEntriesTable<ui::SubGhzDRecentEntries>::draw(
     line.reserve(30);
 
     line = SubGhzDView::getSensorTypeName((FPROTO_SUBGHZD_SENSOR)entry.sensorType);
-    if (line.length() < 14) {
-        line += SubGhzDView::pad_string_with_spaces(14 - line.length());
+    line = line + " " + to_string_hex(entry.serial);
+    if (line.length() < 19) {
+        line += SubGhzDView::pad_string_with_spaces(19 - line.length());
     } else {
-        line = truncate(line, 14);
+        line = truncate(line, 19);
     }
-    // TODO
-
-    // std::string idStr = to_string_hex(entry.id);
     std::string ageStr = to_string_dec_uint(entry.age);
-
-    // line += SubGhzDView::pad_string_with_spaces(6 - id.length()) + temp;
-    // line += SubGhzDView::pad_string_with_spaces(5 - humStr.length()) + humStr;
-    // line += SubGhzDView::pad_string_with_spaces(4 - chStr.length()) + chStr;
+    std::string bitsStr = to_string_dec_uint(entry.bits);
+    line += SubGhzDView::pad_string_with_spaces(5 - bitsStr.length()) + bitsStr;
     line += SubGhzDView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
 
     line.resize(target_rect.width() / 8, ' ');

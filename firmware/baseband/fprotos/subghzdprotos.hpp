@@ -30,7 +30,7 @@ class SubGhzDProtos : public FProtoListGeneral {
     }
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
-        SubGhzDDataMessage packet_message{instance->getSensorType(), instance->getSensorId()};  // TODO add get_string data too
+        SubGhzDDataMessage packet_message{instance->getSensorType(), instance->getSensorSerial(), instance->getBits(), instance->getBtn()};
         shared_memory.application_queue.push(packet_message);
     }
 

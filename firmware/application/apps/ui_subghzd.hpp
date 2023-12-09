@@ -42,19 +42,24 @@ struct SubGhzDRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
     uint8_t sensorType = FPS_Invalid;
-    uint32_t id = 0xFFFFFFFF;
-
+    uint32_t serial = SD_NO_SERIAL;
+    uint16_t bits = 0;
+    uint8_t btn = SD_NO_BTN;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
 
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
-        uint32_t id)
+        uint32_t serial,
+        uint16_t bits = 0,
+        uint8_t btn = SD_NO_BTN)
         : sensorType{sensorType},
-          id{id} {
+          serial{serial},
+          bits{bits},
+          btn{btn} {
     }
     Key key() const {
-        return (static_cast<uint64_t>(id) << 32) |
+        return (static_cast<uint64_t>(serial) << 32) |
                (static_cast<uint64_t>(sensorType) & 0xFF) << 0;
     }
     void inc_age(int delta) {
@@ -142,11 +147,13 @@ class SubGhzDRecentEntryDetailView : public View {
     SubGhzDRecentEntry entry_{};
     Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
     Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
-    Text text_temp{{6 * 8, 3 * 16, 8 * 8, 7 * 16}, "?"};
+
+    Console console{
+        {0, 4 * 16, 240, screen_height - (4 * 16) - 36}};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Tpe:", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Id: ", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Type:", Color::light_grey()},
+        {{0 * 8, 2 * 16}, "Serial: ", Color::light_grey()},
         {{0 * 8, 3 * 16}, "Data:", Color::light_grey()},
     };
 

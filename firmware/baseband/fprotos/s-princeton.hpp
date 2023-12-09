@@ -47,6 +47,7 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
 
                                 data = decode_data;
                                 data_count_bit = decode_count_bit;
+                                subghz_protocol_princeton_check_remote_controller();
                                 if (callback) callback(this);
                             }
                             last_data = decode_data;
@@ -84,17 +85,8 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
     void subghz_protocol_princeton_check_remote_controller() {
         serial = data >> 4;
         btn = data & 0xF;
-    }
-    void get_string(std::string& output) {
-        subghz_protocol_princeton_check_remote_controller();
-        uint32_t data_rev = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, data_count_bit);
-
-        /* output = to_string_dec_uint(data_count_bit) + " bit\r\n";
-         output += "Key: " + to_string_hex((uint32_t)(data & 0xFFFFFF)) + "\r\n";
-         output += "Yek: " + to_string_hex(data_rev) + "\r\n";
-         output += "SN: " + to_string_dec_uint(serial) + "\r\n";
-         output += "BTN: " + to_string_dec_uint(btn) + "\r\n";
-         output += "TE: " + to_string_dec_uint(te) + "\r\n"; */
+        // te = te
+        // key = (uint32_t)(data & 0xFFFFFF) --the whole packet.
     }
 
    protected:
