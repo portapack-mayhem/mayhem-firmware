@@ -32,9 +32,9 @@
 #include "message.hpp"
 #include "dsp_decimate.hpp"
 
-#include "fprotos/subghzdprotos.hpp"
+#include "fprotos/weatherprotos.hpp"
 
-class SubGhzDProcessor : public BasebandProcessor {
+class WeatherProcessor : public BasebandProcessor {
    public:
     void execute(const buffer_c8_t& buffer) override;
     void on_message(const Message* const message) override;
@@ -64,7 +64,7 @@ class SubGhzDProcessor : public BasebandProcessor {
     uint32_t cnt = 0;
     uint32_t tm = 0;
 
-    FProtoListGeneral* protoList = new SubGhzDProtos();  // holds all the protocols we can parse
+    FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);
 
     /* NB: Threads should be the last members in the class definition. */

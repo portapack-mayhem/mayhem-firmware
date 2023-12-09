@@ -1241,11 +1241,9 @@ class SpectrumPainterBufferConfigureResponseMessage : public Message {
 
 class SubGhzFPRxConfigureMessage : public Message {
    public:
-    constexpr SubGhzFPRxConfigureMessage(uint8_t protoMode = 0, uint8_t modulation = 0)
-        : Message{ID::WeatherRxConfigure}, protoMode{protoMode}, modulation{modulation} {
-        // todoh give some more info
+    constexpr SubGhzFPRxConfigureMessage(uint8_t modulation = 0)
+        : Message{ID::WeatherRxConfigure}, modulation{modulation} {
     }
-    uint8_t protoMode = 0;   // 0 weather, 1 subhgzd
     uint8_t modulation = 0;  // 0 am, 1 fm
 };
 

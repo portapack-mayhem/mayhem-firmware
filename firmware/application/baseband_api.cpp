@@ -320,12 +320,12 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
 }
 
 void set_weather() {
-    const SubGhzFPRxConfigureMessage message{0, 0};
+    const SubGhzFPRxConfigureMessage message{0};
     send_message(&message);
 }
 
 void set_subghzd(uint8_t modulation = 0) {
-    const SubGhzFPRxConfigureMessage message{1, modulation};
+    const SubGhzFPRxConfigureMessage message{modulation};
     send_message(&message);
 }
 

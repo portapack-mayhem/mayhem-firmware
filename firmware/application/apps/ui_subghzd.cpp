@@ -140,6 +140,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Airforce";
         case FPS_CAMEATOMO:
             return "Came Atomo";
+        case FPS_CAMETWEE:
+            return "Came Twee";
         case FPS_Invalid:
         default:
             return "Unknown";

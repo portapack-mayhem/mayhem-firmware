@@ -26,6 +26,7 @@ enum FPROTO_SUBGHZD_SENSOR {
     FPS_PRASTEL = 5,
     FPS_AIRFORCE = 6,
     FPS_CAMEATOMO = 7,
+    FPS_CAMETWEE = 8,
 };
 
 #endif

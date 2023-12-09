@@ -20,11 +20,11 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "proc_subghzd.hpp"
+#include "proc_weather.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
 
-void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
+void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
     // SR = 4Mhz ,  and we are decimating by /8 in total , decim1_out clock 4Mhz /8= 500khz samples/sec.
@@ -65,29 +65,24 @@ void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
-void SubGhzDProcessor::on_message(const Message* const message) {
+void WeatherProcessor::on_message(const Message* const message) {
     if (message->id == Message::ID::WeatherRxConfigure)
         configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
 }
 
-void SubGhzDProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
+void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
     // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
+    (void)message;  // unused
 
     decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_wfm_decim_1.taps);
-
-    modulation = message.modulation;  // NIY
-
-    if (protoList != NULL) {
-        protoList->setModulation(modulation);
-    }
 
     configured = true;
 }
 
 int main() {
-    EventDispatcher event_dispatcher{std::make_unique<SubGhzDProcessor>()};
+    EventDispatcher event_dispatcher{std::make_unique<WeatherProcessor>()};
     event_dispatcher.run();
     return 0;
 }
