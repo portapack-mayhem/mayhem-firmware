@@ -10,7 +10,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 
 #include "fprotolistgeneral.hpp"
 #include "subghzdbase.hpp"
-#include "s-ansonic.hpp"
+// #include "s-ansonic.hpp" //skip, since fm
 #include "s-princeton.hpp"
 #include "s-bett.hpp"
 #include "s-came.hpp"
@@ -24,7 +24,7 @@ class SubGhzDProtos : public FProtoListGeneral {
    public:
     SubGhzDProtos() {
         // add protos
-        protos.push_back(std::make_unique<FProtoSubGhzDAnsonic>());    // 1
+        // protos.push_back(std::make_unique<FProtoSubGhzDAnsonic>());    // 1 //skip since fm
         protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());  // 2
         protos.push_back(std::make_unique<FProtoSubGhzDBett>());       // 3
         protos.push_back(std::make_unique<FProtoSubGhzDCame>());       // 4, 5, 6
