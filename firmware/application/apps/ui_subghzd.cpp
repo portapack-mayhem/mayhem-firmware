@@ -37,6 +37,9 @@ void SubGhzDRecentEntryDetailView::update_data() {
     text_id.set("0x" + to_string_hex(entry_.serial));
     if (entry_.bits > 0) console.writeln("Bits: " + to_string_dec_uint(entry_.bits));
     if (entry_.btn != SD_NO_BTN) console.writeln("Btn: " + to_string_dec_uint(entry_.btn));
+
+    if (entry_.data != 0) console.writeln("Data: " + to_string_dec_uint(entry_.data));
+    if (entry_.data_2 != 0) console.writeln("Data2: " + to_string_dec_uint(entry_.data_2));
 }
 
 SubGhzDRecentEntryDetailView::SubGhzDRecentEntryDetailView(NavigationView& nav, const SubGhzDRecentEntry& entry)
@@ -101,7 +104,7 @@ void SubGhzDView::on_tick_second() {
 }
 
 void SubGhzDView::on_data(const SubGhzDDataMessage* data) {
-    SubGhzDRecentEntry key{data->sensorType, data->serial, data->bits, data->btn};
+    SubGhzDRecentEntry key{data->sensorType, data->serial, data->bits, data->data, data->data_2, data->btn};
     auto matching_recent = find(recent, key.key());
     if (matching_recent != std::end(recent)) {
         // Found within. Move to front of list, increment counter.
@@ -127,6 +130,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Ansonic";
         case FPS_PRINCETON:
             return "Princeton";
+        case FPS_BETT:
+            return "Bett";
         case FPS_Invalid:
         default:
             return "Unknown";

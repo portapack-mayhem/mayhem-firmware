@@ -26,6 +26,8 @@ class FProtoSubGhzDBase {
     uint32_t getSensorSerial() { return serial; }
     uint16_t getBits() { return data_count_bit; }
     uint8_t getBtn() { return btn; }
+    uint32_t getData() { return data; }
+    uint32_t getData2() { return data_2; }
     uint8_t modulation = FPM_AM;  // override this, if FM
    protected:
     // Helper functions to keep it as compatible with flipper as we can, so adding new protos will be easy.
@@ -42,15 +44,16 @@ class FProtoSubGhzDBase {
     uint32_t serial = SD_NO_SERIAL;
     uint16_t data_count_bit = 0;
     uint32_t seed = SD_NO_SEED;
-    // princeton TE
+    uint64_t data = 0;
+    uint64_t data_2 = 0;
+    // princeton TE?! //todo
 
     // inner logic stuff, also for flipper compatibility.
     SubGhzDProtocolDecoderBaseRxCallback callback = NULL;
     uint16_t header_count = 0;
     uint8_t parser_step = 0;
     uint32_t te_last = 0;
-    uint64_t data = 0;
-    uint64_t data_2 = 0;
+
     uint64_t decode_data = 0;
     uint32_t decode_count_bit = 0;
     uint8_t cnt_2 = 0;

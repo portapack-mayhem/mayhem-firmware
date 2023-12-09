@@ -1283,17 +1283,23 @@ class SubGhzDDataMessage : public Message {
         uint8_t sensorType = 0,
         uint32_t serial = 0xFFFFFFFF,
         uint16_t bits = 0,
+        uint32_t data = 0,
+        uint32_t data_2 = 0,
         uint8_t btn = 0xFF)
         : Message{ID::SubGhzDData},
           sensorType{sensorType},
           serial{serial},
           bits{bits},
-          btn{btn} {
+          btn{btn},
+          data{data},
+          data_2{data_2} {
     }
     uint8_t sensorType = 0;
     uint32_t serial = 0xFFFFFFFF;
     uint16_t bits;
     uint8_t btn = 0xFF;
+    uint32_t data = 0;
+    uint32_t data_2 = 0;
 };
 
 #endif /*__MESSAGE_H__*/

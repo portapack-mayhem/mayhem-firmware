@@ -21,7 +21,7 @@ enum FPROTO_SUBGHZD_SENSOR {
     FPS_Invalid = 0,
     FPS_ANSONIC = 1,
     FPS_PRINCETON = 2,
-
+    FPS_BETT = 3,
 };
 
 #endif

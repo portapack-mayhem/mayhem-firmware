@@ -46,17 +46,22 @@ struct SubGhzDRecentEntry {
     uint16_t bits = 0;
     uint8_t btn = SD_NO_BTN;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
-
+    uint32_t data = 0;
+    uint32_t data_2 = 0;
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
         uint32_t serial,
         uint16_t bits = 0,
+        uint32_t data = 0,
+        uint32_t data_2 = 0,
         uint8_t btn = SD_NO_BTN)
         : sensorType{sensorType},
           serial{serial},
           bits{bits},
-          btn{btn} {
+          btn{btn},
+          data{data},
+          data_2{data_2} {
     }
     Key key() const {
         return (static_cast<uint64_t>(serial) << 32) |
