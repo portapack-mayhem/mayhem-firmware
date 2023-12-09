@@ -38,6 +38,18 @@
 
 #include "recent_entries.hpp"
 
+class BLELogger {
+   public:
+    Optional<File::Error> append(const std::string& filename) {
+        return log_file.append(filename);
+    }
+
+    void log_raw_data(const std::string& data);
+
+   private:
+    LogFile log_file{};
+};
+
 namespace ui {
 typedef enum {
     ADV_IND = 0,
@@ -120,6 +132,7 @@ class BleRecentEntryDetailView : public View {
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
+    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -230,6 +243,10 @@ class BLERxView : public View {
     uint64_t total_count = 0;
     std::vector<std::string> searchList{};
 
+    std::filesystem::path find_packet_path{u"BLERX/Find/????.TXT"};
+    std::filesystem::path log_packets_path{u"BLERX/Logs/????.TXT"};
+    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
+
     static constexpr auto header_height = 4 * 16;
     static constexpr auto switch_button_height = 3 * 16;
 
@@ -276,10 +293,6 @@ class BLERxView : public View {
         {11 * 8, 3 * 8, 4 * 8, 16},
         "Filter"};
 
-    Button button_find{
-        {17 * 8, 3 * 8, 4 * 8, 16},
-        "Find"};
-
     Checkbox check_log{
         {17 * 8, 3 * 8},
         3,
@@ -292,11 +305,15 @@ class BLERxView : public View {
         "Name",
         true};
 
+    Button button_find{
+        {0 * 8, 6 * 8, 4 * 8, 16},
+        "Find"};
+
     Labels label_found{
-        {{0 * 8, 6 * 8}, "Found:", Color::light_grey()}};
+        {{5 * 8, 6 * 8}, "Found:", Color::light_grey()}};
 
     Text text_found_count{
-        {6 * 8, 3 * 16, 20 * 8, 16},
+        {11 * 8, 3 * 16, 20 * 8, 16},
         "0/0"};
 
     Console console{
@@ -313,6 +330,9 @@ class BLERxView : public View {
     Button button_switch{
         {240 - 6 * 8, 320 - (16 + 32), 4 * 8, 32},
         "Tx"};
+
+    std::string str_log{""};
+    std::unique_ptr<BLELogger> logger{};
 
     BleRecentEntries recent{};
     BleRecentEntries tempList{};

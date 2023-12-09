@@ -39,6 +39,10 @@ using namespace portapack;
 using namespace modems;
 namespace fs = std::filesystem;
 
+void BLELogger::log_raw_data(const std::string& data) {
+    log_file.write_entry(data);
+}
+
 std::string pad_string_with_spaces(int snakes) {
     std::string paddedStr(snakes, ' ');
     return paddedStr;
@@ -198,8 +202,6 @@ BleRecentEntryDetailView::BleRecentEntryDetailView(NavigationView& nav, const Bl
 }
 
 void BleRecentEntryDetailView::on_save_file(const std::string value, BLETxPacket packetToSave) {
-    std::filesystem::path packet_save_path{u"BLERX/Packets/????.TXT"};
-
     ensure_directory(packet_save_path);
     auto folder = packet_save_path.parent_path();
     auto ext = packet_save_path.extension();
@@ -417,6 +419,7 @@ BLERxView::BLERxView(NavigationView& nav)
                   &field_vga,
                   &options_channel,
                   &field_frequency,
+                  &check_log,
                   &button_find,
                   &check_name,
                   &label_sort,
@@ -433,8 +436,9 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
-    std::filesystem::path find_packet_path{u"BLERX/Find/????.TXT"};
     ensure_directory(find_packet_path);
+    ensure_directory(log_packets_path);
+    ensure_directory(packet_save_path);
 
     filterBuffer = filter;
 
@@ -446,6 +450,21 @@ BLERxView::BLERxView(NavigationView& nav)
             [this](std::string& buffer) {
                 on_filter_change(buffer);
             });
+    };
+
+    logger = std::make_unique<BLELogger>();
+
+    check_log.set_value(logging);
+
+    check_log.on_select = [this](Checkbox&, bool v) {
+        str_log = "";
+        logging = v;
+
+        if (logger && logging)
+            logger->append(
+                "BLERX/Logs"
+                "/BLELOG_" +
+                to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
     button_save_list.on_select = [this, &nav](const ui::Button&) {
@@ -534,9 +553,6 @@ std::string BLERxView::build_line_str(BleRecentEntry entry) {
 }
 
 void BLERxView::on_save_file(const std::string value) {
-    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
-
-    ensure_directory(packet_save_path);
     auto folder = packet_save_path.parent_path();
     auto ext = packet_save_path.extension();
     auto new_path = folder / value + ext;
@@ -670,6 +686,10 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 void BLERxView::on_data(BlePacketData* packet) {
     std::string str_console = "";
 
+    if (!logging) {
+        str_log = "";
+    }
+
     str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
 
     str_console += " Len:";
@@ -705,6 +725,11 @@ void BLERxView::on_data(BlePacketData* packet) {
     });
 
     handle_entries_sort(options_sort.selected_index());
+
+    // Log at End of Packet.
+    if (logger && logging) {
+        logger->log_raw_data(str_console);
+    }
 
     if (!searchList.empty()) {
         auto it = searchList.begin();
