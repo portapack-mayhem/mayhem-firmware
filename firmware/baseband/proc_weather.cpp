@@ -47,10 +47,10 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         tm += mag;
         if (meashl == currentHiLow && currentDuration < 10'000'000)  // allow pass 'end' signal
         {
-            if (currentDuration < UINT32_MAX) currentDuration += usperTick;
+            if (currentDuration < UINT32_MAX) currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
             protoList.feed(currentHiLow, currentDuration / 1000);
-            currentDuration = usperTick;
+            currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
     }
