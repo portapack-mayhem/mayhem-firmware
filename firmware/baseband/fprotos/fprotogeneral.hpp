@@ -65,6 +65,13 @@ class FProtoGeneral {
         *next_state = new_state;
         return result;
     }
+    static uint8_t subghz_protocol_blocks_get_parity(uint64_t key, uint8_t bit_count) {
+        uint8_t parity = 0;
+        for (uint8_t i = 0; i < bit_count; i++) {
+            parity += bit_read(key, i);
+        }
+        return parity & 0x01;
+    }
     static uint8_t subghz_protocol_blocks_add_bytes(uint8_t const message[], size_t size) {
         uint32_t result = 0;
         for (size_t i = 0; i < size; ++i) {
