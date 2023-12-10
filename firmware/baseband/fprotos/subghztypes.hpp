@@ -31,6 +31,9 @@ enum FPROTO_SUBGHZD_SENSOR {
     FPS_CLEMSA = 10,
     FPS_DOITRAND = 11,
     FPS_DOOYA = 12,
+    FPS_FAAC = 13,
+    FPS_GATETX = 14,
+    FPS_HOLTEK = 15,
 };
 
 #endif

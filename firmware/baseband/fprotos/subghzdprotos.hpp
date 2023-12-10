@@ -20,6 +20,9 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-clemsa.hpp"
 #include "s-doitrand.hpp"
 #include "s-dooya.hpp"
+#include "s-faac.hpp"
+#include "s-gate_tx.hpp"
+#include "s-holtek.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -37,7 +40,10 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDChambCode>());  // 9
         protos.push_back(std::make_unique<FProtoSubGhzDClemsa>());     // 10
         protos.push_back(std::make_unique<FProtoSubGhzDDoitrand>());   // 11
-        protos.push_back(std::make_unique<FProtoSubGhzDDooya>());      // 11
+        protos.push_back(std::make_unique<FProtoSubGhzDDooya>());      // 12
+        protos.push_back(std::make_unique<FProtoSubGhzDCFaac>());      // 13
+        protos.push_back(std::make_unique<FProtoSubGhzDCGateTx>());    // 14
+        protos.push_back(std::make_unique<FProtoSubGhzDCHoltek>());    // 15
 
         // set callback for them
         for (const auto& obj : protos) {
