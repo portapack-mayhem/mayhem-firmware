@@ -35,9 +35,7 @@
 #include "../baseband/fprotos/weathertypes.hpp"
 using namespace ui;
 
-namespace ui {
-
-static bool weather_units_fahr{false};
+namespace ui::external_app::weatherstation {
 
 struct WeatherRecentEntry {
     using Key = uint64_t;
@@ -92,6 +90,7 @@ class WeatherView : public View {
     std::string title() const override { return "Weather"; };
     static const char* getWeatherSensorTypeName(FPROTO_WEATHER_SENSOR type);
     static std::string pad_string_with_spaces(int snakes);
+    inline static bool weather_units_fahr{false};
 
    private:
     void on_tick_second();
@@ -135,8 +134,6 @@ class WeatherView : public View {
     Button button_clear_list{
         {0, 16, 7 * 8, 32},
         "Clear"};
-
-    static constexpr auto header_height = 3 * 16;
 
     const RecentEntriesColumns columns{{
         {"Type", 10},
@@ -188,6 +185,6 @@ class WeatherRecentEntryDetailView : public View {
         "Done"};
 };
 
-}  // namespace ui
+}  // namespace ui::external_app::weatherstation
 
 #endif /*__UI_WEATHER_H__*/

@@ -20,6 +20,10 @@ set(EXTCPPSRC
 	external/blespam/main.cpp
 	external/blespam/ui_blespam.cpp
 
+	#weatherstation
+	external/weatherstation/main.cpp
+	external/weatherstation/ui_weatherstation.cpp
+	
 )
 
 set(EXTAPPLIST
@@ -28,4 +32,5 @@ set(EXTAPPLIST
 	calculator
 	font_viewer
 	blespam
+	weatherstation
 )

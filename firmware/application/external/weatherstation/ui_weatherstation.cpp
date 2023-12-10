@@ -30,7 +30,7 @@
 using namespace portapack;
 using namespace ui;
 
-namespace ui {
+namespace ui::external_app::weatherstation {
 
 void WeatherRecentEntryDetailView::update_data() {
     // set text elements
@@ -40,7 +40,7 @@ void WeatherRecentEntryDetailView::update_data() {
     else
         text_id.set("-");
     if (entry_.temp != WS_NO_TEMPERATURE)
-        text_temp.set(weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) + STR_DEGREES_F : to_string_decimal(entry_.temp, 2) + STR_DEGREES_C);
+        text_temp.set(ui::external_app::weatherstation::WeatherView::weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) + STR_DEGREES_F : to_string_decimal(entry_.temp, 2) + STR_DEGREES_C);
     else
         text_temp.set("-");
     if (entry_.humidity != WS_NO_HUMIDITY)
@@ -110,7 +110,7 @@ WeatherView::WeatherView(NavigationView& nav)
     };
     options_temperature.set_selected_index(weather_units_fahr, false);
 
-    const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
+    const Rect content_rect{0, 3 * 16, screen_width, screen_height - (3 * 16)};
     recent_entries_view.set_parent_rect(content_rect);
     recent_entries_view.on_select = [this](const WeatherRecentEntry& entry) {
         nav_.push<WeatherRecentEntryDetailView>(entry);
@@ -203,8 +203,11 @@ std::string WeatherView::pad_string_with_spaces(int snakes) {
     return paddedStr;
 }
 
+}  // namespace ui::external_app::weatherstation
+namespace ui {
+
 template <>
-void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
+void RecentEntriesTable<ui::external_app::weatherstation::WeatherRecentEntries>::draw(
     const Entry& entry,
     const Rect& target_rect,
     Painter& painter,
@@ -212,22 +215,22 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     std::string line{};
     line.reserve(30);
 
-    line = WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry.sensorType);
+    line = ui::external_app::weatherstation::WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry.sensorType);
     if (line.length() < 10) {
-        line += WeatherView::pad_string_with_spaces(10 - line.length());
+        line += ui::external_app::weatherstation::WeatherView::pad_string_with_spaces(10 - line.length());
     } else {
         line = truncate(line, 10);
     }
 
-    std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
+    std::string temp = (ui::external_app::weatherstation::WeatherView::weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
     std::string humStr = (entry.humidity != WS_NO_HUMIDITY) ? to_string_dec_uint(entry.humidity) + "%" : "-";
     std::string chStr = (entry.channel != WS_NO_CHANNEL) ? to_string_dec_uint(entry.channel) : "-";
     std::string ageStr = to_string_dec_uint(entry.age);
 
-    line += WeatherView::pad_string_with_spaces(6 - temp.length()) + temp;
-    line += WeatherView::pad_string_with_spaces(5 - humStr.length()) + humStr;
-    line += WeatherView::pad_string_with_spaces(4 - chStr.length()) + chStr;
-    line += WeatherView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
+    line += ui::external_app::weatherstation::WeatherView::pad_string_with_spaces(6 - temp.length()) + temp;
+    line += ui::external_app::weatherstation::WeatherView::pad_string_with_spaces(5 - humStr.length()) + humStr;
+    line += ui::external_app::weatherstation::WeatherView::pad_string_with_spaces(4 - chStr.length()) + chStr;
+    line += ui::external_app::weatherstation::WeatherView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
