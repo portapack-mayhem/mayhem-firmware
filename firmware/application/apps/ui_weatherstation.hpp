@@ -143,7 +143,7 @@ class WeatherView : public View {
         {"Temp", 5},
         {"Hum", 4},
         {"Ch", 3},
-        {"Age", 3},
+        {"Age", 4},
     }};
     WeatherRecentEntriesView recent_entries_view{columns, recent};
 
@@ -165,16 +165,17 @@ class WeatherRecentEntryDetailView : public View {
    private:
     NavigationView& nav_;
     WeatherRecentEntry entry_{};
-    Text text_type{{0 * 8, 1 * 16, 15 * 8, 16}, "?"};
-    Text text_id{{6 * 8, 2 * 16, 10 * 8, 16}, "?"};
-    Text text_temp{{6 * 8, 3 * 16, 8 * 8, 16}, "?"};
-    Text text_hum{{11 * 8, 4 * 16, 6 * 8, 16}, "?"};
-    Text text_ch{{11 * 8, 5 * 16, 6 * 8, 16}, "?"};
-    Text text_batt{{11 * 8, 6 * 16, 6 * 8, 16}, "?"};
-    Text text_age{{11 * 8, 7 * 16, 6 * 8, 16}, "?"};
+    Text text_type{{10 * 8, 1 * 16, 15 * 8, 16}, "?"};
+    Text text_id{{10 * 8, 2 * 16, 10 * 8, 16}, "?"};
+    Text text_temp{{10 * 8, 3 * 16, 8 * 8, 16}, "?"};
+    Text text_hum{{10 * 8, 4 * 16, 6 * 8, 16}, "?"};
+    Text text_ch{{10 * 8, 5 * 16, 6 * 8, 16}, "?"};
+    Text text_batt{{10 * 8, 6 * 16, 6 * 8, 16}, "?"};
+    Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Weather station type:", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Weather Station", Color::light_grey()},
+        {{0 * 8, 1 * 16}, "Type:", Color::light_grey()},
         {{0 * 8, 2 * 16}, "Id: ", Color::light_grey()},
         {{0 * 8, 3 * 16}, "Temp:", Color::light_grey()},
         {{0 * 8, 4 * 16}, "Humidity:", Color::light_grey()},

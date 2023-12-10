@@ -227,7 +227,7 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     line += WeatherView::pad_string_with_spaces(6 - temp.length()) + temp;
     line += WeatherView::pad_string_with_spaces(5 - humStr.length()) + humStr;
     line += WeatherView::pad_string_with_spaces(4 - chStr.length()) + chStr;
-    line += WeatherView::pad_string_with_spaces(4 - ageStr.length()) + ageStr;
+    line += WeatherView::pad_string_with_spaces(5 - ageStr.length()) + ageStr;
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);
