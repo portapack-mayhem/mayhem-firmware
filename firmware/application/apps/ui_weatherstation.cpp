@@ -101,6 +101,7 @@ WeatherView::WeatherView(NavigationView& nav)
         nav_.push<WeatherRecentEntryDetailView>(entry);
     };
     baseband::set_weather();
+    receiver_model.set_sampling_rate(4'000'000);  // needed too
     receiver_model.enable();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();
