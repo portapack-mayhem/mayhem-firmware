@@ -86,7 +86,7 @@
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-#include "analog_tv_app.hpp"
+// #include "analog_tv_app.hpp"
 #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
@@ -552,7 +552,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
         {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
         {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
-        {"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
+        //{"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
         {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
         {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
         //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},

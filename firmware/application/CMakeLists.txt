@@ -243,7 +243,7 @@ set(CPPSRC
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
-	apps/analog_tv_app.cpp
+	# apps/analog_tv_app.cpp
 	apps/ble_comm_app.cpp
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
