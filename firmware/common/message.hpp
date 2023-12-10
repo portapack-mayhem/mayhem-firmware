@@ -1242,7 +1242,6 @@ class WeatherRxConfigureMessage : public Message {
    public:
     constexpr WeatherRxConfigureMessage()
         : Message{ID::WeatherRxConfigure} {
-        // todoh give some more info
     }
 };
 
