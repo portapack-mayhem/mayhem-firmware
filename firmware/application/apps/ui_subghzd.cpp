@@ -154,6 +154,12 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Faac";
         case FPS_GATETX:
             return "Gate TX";
+        case FPS_HOLTEK:
+            return "Holtek";
+        case FPS_HOLTEKHT12X:
+            return "Holtek HT12X";
+        case FPS_HONEYWELL:
+            return "Honeywell";
         case FPS_Invalid:
         default:
             return "Unknown";

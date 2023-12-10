@@ -23,6 +23,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-faac.hpp"
 #include "s-gate_tx.hpp"
 #include "s-holtek.hpp"
+#include "s-holtek_ht12x.hpp"
+#include "s-honeywell.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -32,18 +34,20 @@ class SubGhzDProtos : public FProtoListGeneral {
     SubGhzDProtos() {
         // add protos
         // protos.push_back(std::make_unique<FProtoSubGhzDAnsonic>());    // 1 //skip since fm
-        protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());  // 2
-        protos.push_back(std::make_unique<FProtoSubGhzDBett>());       // 3
-        protos.push_back(std::make_unique<FProtoSubGhzDCame>());       // 4, 5, 6
-        protos.push_back(std::make_unique<FProtoSubGhzDCameAtomo>());  // 7
-        protos.push_back(std::make_unique<FProtoSubGhzDCameTwee>());   // 8
-        protos.push_back(std::make_unique<FProtoSubGhzDChambCode>());  // 9
-        protos.push_back(std::make_unique<FProtoSubGhzDClemsa>());     // 10
-        protos.push_back(std::make_unique<FProtoSubGhzDDoitrand>());   // 11
-        protos.push_back(std::make_unique<FProtoSubGhzDDooya>());      // 12
-        protos.push_back(std::make_unique<FProtoSubGhzDCFaac>());      // 13
-        protos.push_back(std::make_unique<FProtoSubGhzDCGateTx>());    // 14
-        protos.push_back(std::make_unique<FProtoSubGhzDCHoltek>());    // 15
+        protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());     // 2
+        protos.push_back(std::make_unique<FProtoSubGhzDBett>());          // 3
+        protos.push_back(std::make_unique<FProtoSubGhzDCame>());          // 4, 5, 6
+        protos.push_back(std::make_unique<FProtoSubGhzDCameAtomo>());     // 7
+        protos.push_back(std::make_unique<FProtoSubGhzDCameTwee>());      // 8
+        protos.push_back(std::make_unique<FProtoSubGhzDChambCode>());     // 9
+        protos.push_back(std::make_unique<FProtoSubGhzDClemsa>());        // 10
+        protos.push_back(std::make_unique<FProtoSubGhzDDoitrand>());      // 11
+        protos.push_back(std::make_unique<FProtoSubGhzDDooya>());         // 12
+        protos.push_back(std::make_unique<FProtoSubGhzDCFaac>());         // 13
+        protos.push_back(std::make_unique<FProtoSubGhzDCGateTx>());       // 14
+        protos.push_back(std::make_unique<FProtoSubGhzDCHoltek>());       // 15
+        protos.push_back(std::make_unique<FProtoSubGhzDCHoltekHt12x>());  // 16
+        protos.push_back(std::make_unique<FProtoSubGhzDCHoneywell>());    // 17
 
         // set callback for them
         for (const auto& obj : protos) {

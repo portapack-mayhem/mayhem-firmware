@@ -34,6 +34,8 @@ enum FPROTO_SUBGHZD_SENSOR {
     FPS_FAAC = 13,
     FPS_GATETX = 14,
     FPS_HOLTEK = 15,
+    FPS_HOLTEKHT12X = 16,
+    FPS_HONEYWELL = 17,
 };
 
 #endif
