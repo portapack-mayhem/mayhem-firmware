@@ -22,7 +22,10 @@ MEMORY
     ram_external_app_calculator (rwx) : org = 0xEEEB0000, len = 32k
     ram_external_app_font_viewer(rwx) : org = 0xEEEC0000, len = 32k
     ram_external_app_blespam(rwx) : org = 0xEEED0000, len = 32k
+<<<<<<< HEAD
     ram_external_app_weatherstation(rwx) : org = 0xEEEE0000, len = 32k
+=======
+>>>>>>> parent of 8a84aac2 (Move weather to ext app)
 }
 
 SECTIONS
@@ -57,12 +60,4 @@ SECTIONS
         KEEP(*(.external_app.app_blespam.application_information));
         *(*ui*external_app*blespam*);
     } > ram_external_app_blespam
-
-    .external_app_weatherstation : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_weatherstation.application_information));
-        *(*ui*external_app*weatherstation*);
-    } > ram_external_app_weatherstation
-
-
 }
