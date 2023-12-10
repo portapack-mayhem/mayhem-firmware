@@ -22,7 +22,7 @@ MEMORY
     ram_external_app_calculator (rwx) : org = 0xEEEB0000, len = 32k
     ram_external_app_font_viewer(rwx) : org = 0xEEEC0000, len = 32k
     ram_external_app_blespam(rwx) : org = 0xEEED0000, len = 32k
-    ram_external_app_weatherstation(rwx) : org = 0xEEEE0000, len = 36k
+    ram_external_app_weatherstation(rwx) : org = 0xEEEE0000, len = 32k
 }
 
 SECTIONS
