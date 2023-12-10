@@ -368,7 +368,7 @@ static void shutdown_base() {
  *
  * XTAL_OSC = powered down
  *
- * PLL0USB = powered down
+ * PLL0USB = XTAL, 480 MHz
  * PLL0AUDIO = GP_CLKIN, Fcco=491.52 MHz, Fout=12.288 MHz
  * PLL1 =
  * 	OG: GP_CLKIN * 10 = 200 MHz
@@ -387,6 +387,38 @@ static void shutdown_base() {
  *
  * everything else = IRC
  */
+
+void setup_usb() {
+    LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;  // Yep, zero is enabled
+    LPC_CGU->XTAL_OSC_CTRL.HF = 0;
+
+    /* use XTAL_OSC as clock source for PLL0USB */
+    LPC_CGU->PLL0USB_CTRL.PD = 1;  // PLL0 powered down
+    LPC_CGU->PLL0USB_CTRL.AUTOBLOCK = 1;
+    LPC_CGU->PLL0USB_CTRL.CLK_SEL = 0x06;  // 12MHz internal XTAL
+
+    while (LPC_CGU->PLL0USB_STAT.LOCK) {
+    }
+
+    // /* configure PLL0USB to produce 480 MHz clock from 12 MHz XTAL_OSC */
+    // /* Values from User Manual v1.4 Table 94, for 12MHz oscillator. */
+    LPC_CGU->PLL0USB_MDIV = 0x06167FFA;
+    LPC_CGU->PLL0USB_NP_DIV = 0x00302062;
+    LPC_CGU->PLL0USB_CTRL.PD = 1;  // PLL0 still powered down
+    LPC_CGU->PLL0USB_CTRL.DIRECTI = 1;
+    LPC_CGU->PLL0USB_CTRL.DIRECTO = 1;
+    LPC_CGU->PLL0USB_CTRL.CLKEN = 1;
+
+    // /* power on PLL0USB and wait until stable */
+    LPC_CGU->PLL0USB_CTRL.PD = 0;
+
+    while (!LPC_CGU->PLL0USB_STAT.LOCK) {
+    }
+
+    // // /* use PLL0USB as clock source for USB0 */
+    // LPC_CGU->BASE_USB0_CLK.AUTOBLOCK = 1;
+    // LPC_CGU->BASE_USB0_CLK.CLK_SEL = 0x07;
+}
 
 bool init() {
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
@@ -463,6 +495,8 @@ bool init() {
 
     /* Remove /2P divider from PLL1 output to achieve full speed */
     cgu::pll1::direct();
+
+    setup_usb();
 
     i2c0.start(i2c_config_fast_clock);
     chThdSleepMilliseconds(10);
