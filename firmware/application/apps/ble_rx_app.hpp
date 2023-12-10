@@ -132,6 +132,7 @@ class BleRecentEntryDetailView : public View {
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
+    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -195,6 +196,8 @@ class BLERxView : public View {
     bool saveFile(const std::filesystem::path& path);
     void on_data(BlePacketData* packetData);
     void on_filter_change(std::string value);
+    void on_file_changed(const std::filesystem::path& new_file_path);
+    void file_error();
     void on_timer();
     void handle_entries_sort(uint8_t index);
     void updateEntry(const BlePacketData* packet, BleRecentEntry& entry, ADV_PDU_TYPE pdu_type);
@@ -235,7 +238,16 @@ class BLERxView : public View {
     std::string headerStr = "Timestamp, MAC Address, Name, Packet Type, Data, Hits, dB, Channel";
     uint16_t maxLineLength = 140;
 
-    static constexpr auto header_height = 3 * 16;
+    std::filesystem::path file_path{};
+    uint64_t found_count = 0;
+    uint64_t total_count = 0;
+    std::vector<std::string> searchList{};
+
+    std::filesystem::path find_packet_path{u"BLERX/Find/????.TXT"};
+    std::filesystem::path log_packets_path{u"BLERX/Logs/????.TXT"};
+    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
+
+    static constexpr auto header_height = 4 * 16;
     static constexpr auto switch_button_height = 3 * 16;
 
     OptionsField options_channel{
@@ -293,6 +305,17 @@ class BLERxView : public View {
         "Name",
         true};
 
+    Button button_find{
+        {0 * 8, 6 * 8, 4 * 8, 16},
+        "Find"};
+
+    Labels label_found{
+        {{5 * 8, 6 * 8}, "Found:", Color::light_grey()}};
+
+    Text text_found_count{
+        {11 * 8, 3 * 16, 20 * 8, 16},
+        "0/0"};
+
     Console console{
         {0, 4 * 16, 240, 240}};
 
@@ -309,7 +332,6 @@ class BLERxView : public View {
         "Tx"};
 
     std::string str_log{""};
-
     std::unique_ptr<BLELogger> logger{};
 
     BleRecentEntries recent{};
