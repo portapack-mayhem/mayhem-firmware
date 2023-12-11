@@ -347,12 +347,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAPR aprsrx)
 
-### NRF RX
-
-set(MODE_CPPSRC
-	proc_nrfrx.cpp
-)
-DeclareTargets(PNRR nrfrx)
 
 ### BTLE RX
 
@@ -619,6 +613,14 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+
+### NRF RX
+
+set(MODE_CPPSRC
+	proc_nrfrx.cpp
+)
+DeclareTargets(PNRR nrfrx)
+
 
 ### AM TV
 

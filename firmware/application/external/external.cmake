@@ -24,6 +24,10 @@ set(EXTCPPSRC
 	external/analogtv/main.cpp
 	external/analogtv/analog_tv_app.cpp
 
+	#nrf_rx
+	external/nrf_rx/main.cpp
+	external/nrf_rx/ui_nrf_rx.cpp
+
 )
 
 set(EXTAPPLIST
@@ -32,5 +36,6 @@ set(EXTAPPLIST
 	calculator
 	font_viewer
 	blespam
+	nrf_rx
 	analogtv
 )
