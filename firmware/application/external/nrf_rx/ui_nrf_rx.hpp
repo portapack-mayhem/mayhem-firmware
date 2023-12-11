@@ -90,6 +90,6 @@ class NRFRxView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::nrf_rx */
 
 #endif /*__UI_NRF_RX_H__*/
