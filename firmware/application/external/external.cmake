@@ -38,7 +38,7 @@ set(EXTCPPSRC
 	
 	#lcr
 	external/lcr/main.cpp
-	external/lge/ui_lcr.cpp
+	external/lcr/ui_lcr.cpp
 	
 )
 
