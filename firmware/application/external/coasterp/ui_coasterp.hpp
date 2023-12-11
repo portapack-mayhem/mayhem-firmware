@@ -31,7 +31,7 @@
 #include "radio_state.hpp"
 #include "portapack.hpp"
 
-namespace ui {
+namespace ui::external_app::coasterp {
 
 class CoasterPagerView : public View {
    public:
@@ -99,4 +99,4 @@ class CoasterPagerView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::coasterp

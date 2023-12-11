@@ -30,7 +30,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::coasterp {
 
 void CoasterPagerView::focus() {
     sym_data.focus();
@@ -131,4 +131,4 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::coasterp

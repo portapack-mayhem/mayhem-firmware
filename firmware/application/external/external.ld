@@ -24,6 +24,7 @@ MEMORY
     ram_external_app_blespam(rwx) : org = 0xEEED0000, len = 32k
     ram_external_app_analogtv(rwx) : org = 0xEEEE0000, len = 32k
     ram_external_app_nrf_rx(rwx) : org = 0xEEEF0000, len = 32k
+    ram_external_app_coasterp(rwx) : org = 0xEEF00000, len = 32k
 }
 
 SECTIONS
@@ -70,5 +71,11 @@ SECTIONS
         KEEP(*(.external_app.app_nrf_rx.application_information));
         *(*ui*external_app*nrf_rx*);
     } > ram_external_app_nrf_rx
+ 
+     .external_app_coasterp : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_coasterp.application_information));
+        *(*ui*external_app*coasterp*);
+    } > ram_external_app_coasterp
  
 }
