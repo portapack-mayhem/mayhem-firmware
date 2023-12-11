@@ -32,7 +32,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
-namespace ui {
+namespace ui::external_app::lge {
 
 class LGEView : public View {
    public:
@@ -185,4 +185,4 @@ class LGEView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::lge */

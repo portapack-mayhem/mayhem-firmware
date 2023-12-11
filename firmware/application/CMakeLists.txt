@@ -250,8 +250,7 @@ set(CPPSRC
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/gps_sim_app.cpp
-	apps/lge_app.cpp
-	apps/lge_app.cpp
+	# apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
