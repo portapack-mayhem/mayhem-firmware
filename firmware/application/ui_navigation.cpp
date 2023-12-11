@@ -54,7 +54,7 @@
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
-#include "ui_nrf_rx.hpp"
+// #include "ui_nrf_rx.hpp"
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
 // #include "ui_playdead.hpp"
@@ -560,7 +560,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"BLE Rx", Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
         {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
         {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        {"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
+        //{"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
         {"POCSAG", Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGAppView>(); }},
         {"Radiosnde", Color::green(), &bitmap_icon_sonde, [&nav]() { nav.push<SondeView>(); }},
         {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},

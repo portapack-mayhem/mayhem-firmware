@@ -20,6 +20,11 @@ set(EXTCPPSRC
 	external/blespam/main.cpp
 	external/blespam/ui_blespam.cpp
 
+
+	#nrf_rx
+	external/nrf_rx/main.cpp
+	external/nrf_rx/ui_nrf_rx.cpp
+
 )
 
 set(EXTAPPLIST
@@ -28,4 +33,5 @@ set(EXTAPPLIST
 	calculator
 	font_viewer
 	blespam
+	nrf_rx
 )

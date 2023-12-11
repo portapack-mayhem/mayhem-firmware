@@ -34,7 +34,7 @@
 
 #include "utility.hpp"
 
-namespace ui {
+namespace ui::external_app::nrf_rx {
 
 class NRFRxView : public View {
    public:
