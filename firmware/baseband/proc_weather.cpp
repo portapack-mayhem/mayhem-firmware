@@ -47,10 +47,10 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
         tm += mag;
         if (meashl == currentHiLow && currentDuration < 10'000'000)  // allow pass 'end' signal
         {
-            if (currentDuration < UINT32_MAX) currentDuration += usperTick;
+            if (currentDuration < UINT32_MAX) currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
             protoList.feed(currentHiLow, currentDuration / 1000);
-            currentDuration = usperTick;
+            currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
     }
@@ -71,8 +71,9 @@ void WeatherProcessor::on_message(const Message* const message) {
 }
 
 void WeatherProcessor::configure(const WeatherRxConfigureMessage& message) {
-    constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
-    constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
+    // unused:
+    // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
+    // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
 
     decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_wfm_decim_1.taps);

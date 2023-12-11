@@ -22,6 +22,7 @@ MEMORY
     ram_external_app_calculator (rwx) : org = 0xEEEB0000, len = 32k
     ram_external_app_font_viewer(rwx) : org = 0xEEEC0000, len = 32k
     ram_external_app_blespam(rwx) : org = 0xEEED0000, len = 32k
+    ram_external_app_analogtv(rwx) : org = 0xEEEE0000, len = 32k
     ram_external_app_nrf_rx(rwx) : org = 0xEEEF0000, len = 32k
 }
 
@@ -58,9 +59,16 @@ SECTIONS
         *(*ui*external_app*blespam*);
     } > ram_external_app_blespam
 
+    .external_app_analogtv : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_analogtv.application_information));
+        *(*ui*external_app*analogtv*);
+    } > ram_external_app_analogtv
+
     .external_app_nrf_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_nrf_rx.application_information));
         *(*ui*external_app*nrf_rx*);
     } > ram_external_app_nrf_rx
+ 
 }

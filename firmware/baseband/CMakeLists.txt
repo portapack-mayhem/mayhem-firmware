@@ -376,12 +376,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAMA am_audio)
 
-### AM TV
-
-set(MODE_CPPSRC
-	proc_am_tv.cpp
-)
-DeclareTargets(PAMT am_tv)
 
 ### Audio transmit
 
@@ -627,6 +621,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNRR nrfrx)
 
+
+### AM TV
+
+set(MODE_CPPSRC
+	proc_am_tv.cpp
+)
+DeclareTargets(PAMT am_tv)
 
 ### Test
 

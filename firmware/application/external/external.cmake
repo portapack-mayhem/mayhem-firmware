@@ -19,7 +19,10 @@ set(EXTCPPSRC
 	#blespam
 	external/blespam/main.cpp
 	external/blespam/ui_blespam.cpp
-
+	
+	#analogtv
+	external/analogtv/main.cpp
+	external/analogtv/analog_tv_app.cpp
 
 	#nrf_rx
 	external/nrf_rx/main.cpp
@@ -34,4 +37,5 @@ set(EXTAPPLIST
 	font_viewer
 	blespam
 	nrf_rx
+	analogtv
 )
