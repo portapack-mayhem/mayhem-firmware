@@ -36,6 +36,10 @@ set(EXTCPPSRC
 	external/lge/main.cpp
 	external/lge/lge_app.cpp
 	
+	#lcr
+	external/lcr/main.cpp
+	external/lge/ui_lcr.cpp
+	
 )
 
 set(EXTAPPLIST
@@ -48,4 +52,5 @@ set(EXTAPPLIST
 	analogtv
 	coasterp
 	lge
+
 )

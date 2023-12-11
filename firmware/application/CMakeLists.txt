@@ -274,7 +274,7 @@ set(CPPSRC
 	apps/ui_iq_trim.cpp
 	apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
-	apps/ui_lcr.cpp
+	# apps/ui_lcr.cpp
 	apps/ui_level.cpp  
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
