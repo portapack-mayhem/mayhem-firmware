@@ -74,9 +74,9 @@ __attribute__((section(".external_app.app_lge.application_information"), used)) 
         0x00,
     },
     /*.icon_color = */ ui::Color::yellow().v,
-    /*.menu_location = */ app_location_t::RX,
+    /*.menu_location = */ app_location_t::TX,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_am_tv */ {'P', 'A', 'M', 'T'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_am_tv */ {'P', 'F', 'S', 'K'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }

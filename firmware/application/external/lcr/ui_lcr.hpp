@@ -31,7 +31,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
-namespace ui {
+namespace ui::external_app::lcr {
 
 #define LCR_MAX_AM 5
 
@@ -158,4 +158,4 @@ class LCRView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::lcr */

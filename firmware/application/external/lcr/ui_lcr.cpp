@@ -31,7 +31,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::lcr {
 
 void LCRView::focus() {
     button_set_rgsb.focus();
@@ -269,4 +269,4 @@ LCRView::LCRView(NavigationView& nav) {
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::lcr */

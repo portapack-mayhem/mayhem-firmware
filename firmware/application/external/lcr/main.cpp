@@ -20,64 +20,63 @@
  */
 
 #include "ui.hpp"
-#include "ui_coasterp.hpp"
+#include "ui_lcr.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
-namespace ui::external_app::coasterp {
+namespace ui::external_app::lcr {
 void initialize_app(ui::NavigationView& nav) {
-    nav.push<CoasterPagerView>();
+    nav.push<LCRView>();
 }
-}  // namespace ui::external_app::coasterp
+}  // namespace ui::external_app::lcr
 
 extern "C" {
 
-__attribute__((section(".external_app.app_coasterp.application_information"), used)) application_information_t _application_information_coasterp = {
+__attribute__((section(".external_app.app_lcr.application_information"), used)) application_information_t _application_information_lcr = {
     /*.memory_location = */ (uint8_t*)0x00000000,
-    /*.externalAppEntry = */ ui::external_app::coasterp::initialize_app,
+    /*.externalAppEntry = */ ui::external_app::lcr::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
     /*.app_version = */ VERSION_MD5,
 
-    /*.app_name = */ "BurgerPgr",
+    /*.app_name = */ "TEDI/LCR",
     /*.bitmap_data = */ {
-
+        0x0C,
         0x00,
-        0x00,
-        0xE0,
-        0x07,
-        0xF8,
-        0x1F,
-        0xFC,
-        0x3F,
-        0xFE,
+        0xFF,
         0x7F,
+        0x01,
+        0x80,
+        0xC1,
+        0x9B,
         0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0x00,
-        0x00,
-        0x55,
-        0x55,
-        0xAA,
-        0xAA,
-        0x55,
-        0x55,
-        0x00,
-        0x00,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFF,
-        0xFE,
         0x7F,
+        0x0C,
         0x00,
+        0xFF,
+        0x7F,
+        0x01,
+        0x80,
+        0xC1,
+        0x9D,
+        0xFF,
+        0x7F,
+        0x0C,
+        0x00,
+        0x0C,
+        0x00,
+        0x0C,
+        0x00,
+        0x0C,
+        0x00,
+        0x0C,
+        0x00,
+        0x0C,
         0x00,
     },
     /*.icon_color = */ ui::Color::yellow().v,
     /*.menu_location = */ app_location_t::TX,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_am_tv */ {'P', 'F', 'S', 'K'},
+    /*.m4_app_tag = portapack::spi_flash::image_tag_am_tv */ {'P', 'A', 'F', 'T'},
     /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
 };
 }
