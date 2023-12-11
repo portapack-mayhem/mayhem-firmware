@@ -85,11 +85,11 @@ BLESpamView::BLESpamView(NavigationView& nav)
         if (is_running) {
             is_running = false;
             stop();
-            button_startstop.set_text("Start");
+            button_startstop.set_text(LanguageHelper::currentMessages[LANG_START]);
         } else {
             is_running = true;
             start();
-            button_startstop.set_text("Stop");
+            button_startstop.set_text(LanguageHelper::currentMessages[LANG_STOP]);
         }
     };
     chk_randdev.set_value(true);

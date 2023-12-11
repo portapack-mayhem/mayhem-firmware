@@ -21,6 +21,7 @@
  */
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
@@ -65,7 +66,7 @@ class CoasterPagerView : public View {
 
     Labels labels{
         {{1 * 8, 3 * 8}, "Syscall pager TX beta", Color::light_grey()},
-        {{1 * 8, 8 * 8}, "Data:", Color::light_grey()}};
+        {{1 * 8, 8 * 8}, LanguageHelper::currentMessages[LANG_DATADP], Color::light_grey()}};
 
     SymField sym_data{
         {7 * 8, 8 * 8},
@@ -75,7 +76,7 @@ class CoasterPagerView : public View {
     Checkbox checkbox_scan{
         {10 * 8, 14 * 8},
         4,
-        "Scan"};
+        LanguageHelper::currentMessages[LANG_SCAN]};
 
     /*
     ProgressBar progressbar {

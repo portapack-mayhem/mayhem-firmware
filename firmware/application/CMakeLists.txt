@@ -162,6 +162,7 @@ set(CPPSRC
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_text.cpp
 	${COMMON}/ui_widget.cpp
+	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
 	${COMMON}/performance_counter.cpp

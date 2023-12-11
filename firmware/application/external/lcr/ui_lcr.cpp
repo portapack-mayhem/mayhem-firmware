@@ -95,7 +95,7 @@ text_recap.set(final_str);*/
 
 void LCRView::update_progress() {
     if (tx_mode == IDLE) {
-        text_status.set("Ready");
+        text_status.set(LanguageHelper::currentMessages[LANG_READY]);
         progress.set_value(0);
     } else {
         std::string progress_str = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(persistent_memory::modem_repeat()) +

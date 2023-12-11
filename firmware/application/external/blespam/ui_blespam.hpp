@@ -28,6 +28,7 @@
 #define __UI_BLESPAM_H__
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
 #include "ui_freq_field.hpp"
@@ -107,7 +108,7 @@ class BLESpamView : public View {
 
     Button button_startstop{
         {0, 3 * 16, 96, 24},
-        "Start"};
+        LanguageHelper::currentMessages[LANG_START]};
     Checkbox chk_randdev{{100, 16}, 10, "Rnd device", true};
 
     Console console{

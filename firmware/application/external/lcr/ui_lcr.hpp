@@ -21,6 +21,7 @@
  */
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 #include "ui_textentry.hpp"
 #include "ui_transmitter.hpp"
@@ -126,11 +127,11 @@ class LCRView : public View {
     Checkbox check_scan{
         {22 * 8, 4},
         4,
-        "Scan"};
+        LanguageHelper::currentMessages[LANG_SCAN]};
 
     Button button_modem_setup{
         {1 * 8, 4 * 8 + 2, 14 * 8, 24},
-        "Modem setup"};
+        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
     OptionsField options_scanlist{
         {22 * 8, 4 * 8},
         6,
@@ -138,11 +139,11 @@ class LCRView : public View {
 
     Button button_clear{
         {22 * 8, 8 * 8, 7 * 8, 19 * 8},
-        "CLEAR"};
+        LanguageHelper::currentMessages[LANG_CLEAR]};
 
     Text text_status{
         {2 * 8, 27 * 8 + 4, 26 * 8, 16},
-        "Ready"};
+        LanguageHelper::currentMessages[LANG_READY]};
     ProgressBar progress{
         {2 * 8, 29 * 8 + 4, 26 * 8, 16}};
 

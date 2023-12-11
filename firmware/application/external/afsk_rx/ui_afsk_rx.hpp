@@ -24,6 +24,7 @@
 #define __UI_AFSK_RX_H__
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_freq_field.hpp"
@@ -92,16 +93,16 @@ class AFSKRxView : public View {
     Checkbox check_log{
         {0 * 8, 1 * 16},
         3,
-        "LOG",
+        LanguageHelper::currentMessages[LANG_LOG],
         false};
 
     Text text_debug{
         {0 * 8, 12 + 2 * 16, screen_width, 16},
-        "DEBUG"};
+        LanguageHelper::currentMessages[LANG_DEBUG]};
 
     Button button_modem_setup{
         {screen_width - 12 * 8, 1 * 16, 96, 24},
-        "Modem setup"};
+        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Console console{
         {0, 4 * 16, 240, screen_width}};
