@@ -313,7 +313,7 @@ set(CPPSRC
 	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/encoders.cpp
-	protocols/lcr.cpp
+	# protocols/lcr.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
 	# ui_handwrite.cpp

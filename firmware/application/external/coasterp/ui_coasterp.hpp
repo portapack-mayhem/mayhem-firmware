@@ -99,4 +99,4 @@ class CoasterPagerView : public View {
         }};
 };
 
-}  // namespace ui::external_app::coasterp
+} /* namespace ui::external_app::coasterp */

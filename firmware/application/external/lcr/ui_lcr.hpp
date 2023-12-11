@@ -101,6 +101,7 @@ class LCRView : public View {
     void start_tx(const bool scan);
     void on_tx_progress(const uint32_t progress, const bool done);
     void on_button_set_am(NavigationView& nav, int16_t button_id);
+    std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
 
     Labels labels{
         {{0, 8}, "EC:     RGSB:", Color::light_grey()},

@@ -131,4 +131,4 @@ CoasterPagerView::CoasterPagerView(NavigationView& nav) {
     };
 }
 
-}  // namespace ui::external_app::coasterp
+} /* namespace ui::external_app::coasterp */

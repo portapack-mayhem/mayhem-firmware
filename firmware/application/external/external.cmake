@@ -52,5 +52,5 @@ set(EXTAPPLIST
 	analogtv
 	coasterp
 	lge
-
+	lcr
 )
