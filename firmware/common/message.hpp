@@ -115,7 +115,7 @@ class Message {
         FSKRxConfigure = 58,
         BlePacket = 58,
         BTLETxConfigure = 59,
-        WeatherRxConfigure = 60,
+        SubGhzFPRxConfigure = 60,
         WeatherData = 61,
         SubGhzDData = 62,
         MAX
@@ -1242,7 +1242,7 @@ class SpectrumPainterBufferConfigureResponseMessage : public Message {
 class SubGhzFPRxConfigureMessage : public Message {
    public:
     constexpr SubGhzFPRxConfigureMessage(uint8_t modulation = 0)
-        : Message{ID::WeatherRxConfigure}, modulation{modulation} {
+        : Message{ID::SubGhzFPRxConfigure}, modulation{modulation} {
     }
     uint8_t modulation = 0;  // 0 am, 1 fm
 };

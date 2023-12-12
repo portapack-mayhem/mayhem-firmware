@@ -66,7 +66,7 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void WeatherProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::WeatherRxConfigure)
+    if (message->id == Message::ID::SubGhzFPRxConfigure)
         configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
 }
 
