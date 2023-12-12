@@ -116,9 +116,9 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
 
     bool subghz_protocol_magellan_check_crc() {
         uint8_t data[3] = {
-            decode_data >> 24,
-            decode_data >> 16,
-            decode_data >> 8};
+            (uint8_t)(decode_data >> 24),
+            (uint8_t)(decode_data >> 16),
+            (uint8_t)(decode_data >> 8)};
         return (decode_data & 0xFF) == subghz_protocol_magellan_crc8(data, sizeof(data));
     }
     uint8_t subghz_protocol_magellan_crc8(uint8_t* data, size_t len) {
