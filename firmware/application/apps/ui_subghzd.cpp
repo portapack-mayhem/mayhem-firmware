@@ -186,6 +186,8 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Mastercode";
         case FPS_MEGACODE:
             return "Megacode";
+        case FPS_NERORADIO:
+            return "Nero Radio";
         case FPS_Invalid:
         default:
             return "Unknown";

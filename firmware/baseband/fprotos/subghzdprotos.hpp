@@ -38,6 +38,7 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-marantec.hpp"
 #include "s-mastercode.hpp"
 #include "s-megacode.hpp"
+#include "s-neroradio.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -74,6 +75,7 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDMarantec>());          // 28
         protos.push_back(std::make_unique<FProtoSubGhzDMastercode>());        // 29
         protos.push_back(std::make_unique<FProtoSubGhzDMegacode>());          // 30
+        protos.push_back(std::make_unique<FProtoSubGhzDNeroRadio>());         // 31
 
         // set callback for them
         for (const auto& obj : protos) {
