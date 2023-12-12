@@ -178,6 +178,14 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Linear";
         case FPS_LINEARDELTA3:
             return "Linear Delta3";
+        case FPS_MAGELLAN:
+            return "Magellan";
+        case FPS_MARANTEC:
+            return "Marantec";
+        case FPS_MASTERCODE:
+            return "Mastercode";
+        case FPS_MEGACODE:
+            return "Megacode";
         case FPS_Invalid:
         default:
             return "Unknown";

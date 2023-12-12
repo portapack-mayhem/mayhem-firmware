@@ -34,6 +34,10 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-kinggates_stylo_4k.hpp"
 #include "s-linear.hpp"
 #include "s-linear_delta3.hpp"
+#include "s-magellan.hpp"
+#include "s-marantec.hpp"
+#include "s-mastercode.hpp"
+#include "s-megacode.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -66,6 +70,10 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDKinggatesStylo4K>());  // 24
         protos.push_back(std::make_unique<FProtoSubGhzDLinear>());            // 25
         protos.push_back(std::make_unique<FProtoSubGhzDLinearDelta3>());      // 26
+        protos.push_back(std::make_unique<FProtoSubGhzDMagellan>());          // 27
+        protos.push_back(std::make_unique<FProtoSubGhzDMarantec>());          // 28
+        protos.push_back(std::make_unique<FProtoSubGhzDMastercode>());        // 29
+        protos.push_back(std::make_unique<FProtoSubGhzDMegacode>());          // 30
 
         // set callback for them
         for (const auto& obj : protos) {
