@@ -54,7 +54,7 @@
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
-#include "ui_nrf_rx.hpp"
+// #include "ui_nrf_rx.hpp"
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
 // #include "ui_playdead.hpp"
@@ -87,7 +87,7 @@
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-#include "analog_tv_app.hpp"
+// #include "analog_tv_app.hpp"
 #include "ble_comm_app.hpp"
 #include "ble_rx_app.hpp"
 #include "ble_tx_app.hpp"
@@ -553,7 +553,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
         {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
         {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
-        {"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
+        //{"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
         {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
         {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
         //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
@@ -561,7 +561,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         {"BLE Rx", Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
         {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
         {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        {"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
+        //{"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
         {"POCSAG", Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGAppView>(); }},
         {"Radiosnde", Color::green(), &bitmap_icon_sonde, [&nav]() { nav.push<SondeView>(); }},
         {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},

@@ -68,7 +68,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
     void feed(bool level, uint32_t duration) override {
         // oregon v2.1 signal is inverted
         ManchesterEvent event = level_and_duration_to_event(!level, duration);
-        bool data;
+        bool bit_value = false;
 
         // low-level bit sequence decoding
         if (event == ManchesterEventReset) {
@@ -79,16 +79,16 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
         }
         if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data)) {
             if (have_bit) {
-                if (!prev_bit && data) {
+                if (!prev_bit && bit_value) {
                     subghz_protocol_blocks_add_bit(1);
-                } else if (prev_bit && !data) {
+                } else if (prev_bit && !bit_value) {
                     subghz_protocol_blocks_add_bit(0);
                 } else {
                     ws_protocol_decoder_oregon2_reset();
                 }
                 have_bit = false;
             } else {
-                prev_bit = data;
+                prev_bit = bit_value;
                 have_bit = true;
             }
         }
@@ -118,8 +118,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
                            (data & 0xCCCCCCCC) >> 2;
 
                     ws_oregon2_decode_const_data();
-                    var_bits =
-                        oregon2_sensor_id_var_bits(OREGON2_SENSOR_ID(data));
+                    var_bits = oregon2_sensor_id_var_bits(OREGON2_SENSOR_ID(data));
 
                     if (!var_bits) {
                         // sensor is not supported, stop decoding, but showing the decoded fixed part

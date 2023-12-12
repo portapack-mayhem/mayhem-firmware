@@ -37,7 +37,7 @@ using namespace tonekey;
 
 #include "string_format.hpp"
 
-namespace ui {
+namespace ui::external_app::analogtv {
 
 /* AnalogTvView *******************************************************/
 
@@ -192,10 +192,11 @@ void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {
 
     baseband::shutdown();
 
-    portapack::spi_flash::image_tag_t image_tag;
-    image_tag = portapack::spi_flash::image_tag_am_tv;
+    // portapack::spi_flash::image_tag_t image_tag; //moved to ext app, disabled
+    // image_tag = portapack::spi_flash::image_tag_am_tv;
 
-    baseband::run_image(image_tag);
+    // baseband::run_image(image_tag);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // moved the baseband too
 
     receiver_model.set_modulation(modulation);
     receiver_model.set_sampling_rate(2000000);
@@ -203,4 +204,4 @@ void AnalogTvView::update_modulation(const ReceiverModel::Mode modulation) {
     receiver_model.enable();
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::analogtv

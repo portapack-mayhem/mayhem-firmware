@@ -36,7 +36,7 @@
 
 #include "tone_key.hpp"
 
-namespace ui {
+namespace ui::external_app::analogtv {
 
 class AnalogTvView : public View {
    public:
@@ -111,6 +111,6 @@ class AnalogTvView : public View {
     void update_modulation(const ReceiverModel::Mode modulation);
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::analogtv
 
 #endif /*__ANALOG_TV_APP_H__*/
