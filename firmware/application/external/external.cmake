@@ -28,6 +28,18 @@ set(EXTCPPSRC
 	external/nrf_rx/main.cpp
 	external/nrf_rx/ui_nrf_rx.cpp
 
+	#coasterp
+	external/coasterp/main.cpp
+	external/coasterp/ui_coasterp.cpp
+
+	#lge
+	external/lge/main.cpp
+	external/lge/lge_app.cpp
+	
+	#lcr
+	external/lcr/main.cpp
+	external/lcr/ui_lcr.cpp
+	
 )
 
 set(EXTAPPLIST
@@ -38,4 +50,7 @@ set(EXTAPPLIST
 	blespam
 	nrf_rx
 	analogtv
+	coasterp
+	lge
+	lcr
 )

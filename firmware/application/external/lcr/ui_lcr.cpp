@@ -23,7 +23,6 @@
 #include "ui_lcr.hpp"
 #include "ui_modemsetup.hpp"
 
-#include "lcr.hpp"
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 
@@ -31,7 +30,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::lcr {
 
 void LCRView::focus() {
     button_set_rgsb.focus();
@@ -40,6 +39,49 @@ void LCRView::focus() {
 LCRView::~LCRView() {
     transmitter_model.disable();
     baseband::shutdown();
+}
+
+std::string LCRView::generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec) {
+    const std::string ec_lut[4] = {"A", "J", "N", "S"};  // Eclairage (Auto, Jour, Nuit)
+    char eom[3] = {3, 0, 0};                             // EOM and space for checksum
+    uint8_t i;
+    std::string lcr_message{127, 127, 127, 127, 127, 127, 127, 5};  // 5/15 ? Modem sync and SOM
+    char checksum = 0;
+
+    // Pad litterals to 7 chars (not required ?)
+    for (auto& litteral : litterals)
+        while (litteral.length() < 7)
+            litteral += ' ';
+
+    // Compose LCR message
+    lcr_message += rgsb;
+    lcr_message += "PA ";
+
+    i = 1;
+    for (auto& litteral : litterals) {
+        lcr_message += "AM=";
+        lcr_message += to_string_dec_uint(i, 1);
+        lcr_message += " AF=\"";
+        lcr_message += litteral;
+        lcr_message += "\" CL=0 ";
+        i++;
+    }
+
+    lcr_message += "EC=";
+    lcr_message += ec_lut[option_ec];
+    lcr_message += " SAB=0";
+
+    // Checksum
+    i = 7;  // Skip modem sync
+    while (lcr_message[i])
+        checksum ^= lcr_message[i++];
+    checksum ^= eom[0];  // EOM char
+    checksum &= 0x7F;    // Trim
+    eom[1] = checksum;
+
+    lcr_message += eom;
+
+    return lcr_message;
 }
 
 /*
@@ -53,7 +95,7 @@ text_recap.set(final_str);*/
 
 void LCRView::update_progress() {
     if (tx_mode == IDLE) {
-        text_status.set("Ready");
+        text_status.set(LanguageHelper::currentMessages[LANG_READY]);
         progress.set_value(0);
     } else {
         std::string progress_str = to_string_dec_uint(repeat_index) + "/" + to_string_dec_uint(persistent_memory::modem_repeat()) +
@@ -125,7 +167,7 @@ void LCRView::start_tx(const bool scan) {
             litterals_list.push_back(litteral[i]);
     }
 
-    modems::generate_data(lcr::generate_message(rgsb, litterals_list, options_ec.selected_index()), lcr_message_data);
+    modems::generate_data(generate_message(rgsb, litterals_list, options_ec.selected_index()), lcr_message_data);
 
     /* It is AFSK modulation , measuring original fw 1.7.4 spectrum BW is just around 30khz , NBFM */
     transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF 1M75, same spectrum as previous fw 1.7.4
@@ -269,4 +311,4 @@ LCRView::LCRView(NavigationView& nav) {
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::lcr */

@@ -21,6 +21,7 @@
  */
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_transmitter.hpp"
@@ -32,7 +33,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
-namespace ui {
+namespace ui::external_app::lge {
 
 class LGEView : public View {
    public:
@@ -105,7 +106,7 @@ class LGEView : public View {
          {"Set nickname", 1},
          {"Set team", 2},
          {"Brdcst nick", 3},
-         {"Start", 4},
+         {LanguageHelper::currentMessages[LANG_START], 4},
          {"Game over", 5},
          {"Set vest", 6}}};
 
@@ -185,4 +186,4 @@ class LGEView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::lge */
