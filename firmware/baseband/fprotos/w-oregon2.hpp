@@ -68,7 +68,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
     void feed(bool level, uint32_t duration) override {
         // oregon v2.1 signal is inverted
         ManchesterEvent event = level_and_duration_to_event(!level, duration);
-        bool dataa;
+        bool bit_value = false;
 
         // low-level bit sequence decoding
         if (event == ManchesterEventReset) {
@@ -77,18 +77,18 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
             decode_data = 0UL;
             decode_count_bit = 0;
         }
-        if (manchester_advance(manchester_saved_state, event, &manchester_saved_state, &dataa)) {
+        if (manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit_value)) {
             if (have_bit) {
-                if (!prev_bit && dataa) {
+                if (!prev_bit && bit_value) {
                     subghz_protocol_blocks_add_bit(1);
-                } else if (prev_bit && !dataa) {
+                } else if (prev_bit && !bit_value) {
                     subghz_protocol_blocks_add_bit(0);
                 } else {
                     ws_protocol_decoder_oregon2_reset();
                 }
                 have_bit = false;
             } else {
-                prev_bit = dataa;
+                prev_bit = bit_value;
                 have_bit = true;
             }
         }
