@@ -162,6 +162,7 @@ set(CPPSRC
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_text.cpp
 	${COMMON}/ui_widget.cpp
+	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
 	${COMMON}/performance_counter.cpp
@@ -250,8 +251,7 @@ set(CPPSRC
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/gps_sim_app.cpp
-	apps/lge_app.cpp
-	apps/lge_app.cpp
+	# apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
@@ -264,7 +264,7 @@ set(CPPSRC
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_btle_rx.cpp
-	apps/ui_coasterp.cpp
+	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
@@ -275,7 +275,7 @@ set(CPPSRC
 	apps/ui_iq_trim.cpp
 	apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
-	apps/ui_lcr.cpp
+	# apps/ui_lcr.cpp
 	apps/ui_level.cpp  
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
@@ -314,7 +314,7 @@ set(CPPSRC
 	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/encoders.cpp
-	protocols/lcr.cpp
+	# protocols/lcr.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
 	# ui_handwrite.cpp

@@ -21,6 +21,7 @@
  */
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 #include "ui_textentry.hpp"
 #include "ui_transmitter.hpp"
@@ -31,7 +32,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 
-namespace ui {
+namespace ui::external_app::lcr {
 
 #define LCR_MAX_AM 5
 
@@ -101,6 +102,7 @@ class LCRView : public View {
     void start_tx(const bool scan);
     void on_tx_progress(const uint32_t progress, const bool done);
     void on_button_set_am(NavigationView& nav, int16_t button_id);
+    std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
 
     Labels labels{
         {{0, 8}, "EC:     RGSB:", Color::light_grey()},
@@ -125,11 +127,11 @@ class LCRView : public View {
     Checkbox check_scan{
         {22 * 8, 4},
         4,
-        "Scan"};
+        LanguageHelper::currentMessages[LANG_SCAN]};
 
     Button button_modem_setup{
         {1 * 8, 4 * 8 + 2, 14 * 8, 24},
-        "Modem setup"};
+        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
     OptionsField options_scanlist{
         {22 * 8, 4 * 8},
         6,
@@ -137,11 +139,11 @@ class LCRView : public View {
 
     Button button_clear{
         {22 * 8, 8 * 8, 7 * 8, 19 * 8},
-        "CLEAR"};
+        LanguageHelper::currentMessages[LANG_CLEAR]};
 
     Text text_status{
         {2 * 8, 27 * 8 + 4, 26 * 8, 16},
-        "Ready"};
+        LanguageHelper::currentMessages[LANG_READY]};
     ProgressBar progress{
         {2 * 8, 29 * 8 + 4, 26 * 8, 16}};
 
@@ -158,4 +160,4 @@ class LCRView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::lcr */
