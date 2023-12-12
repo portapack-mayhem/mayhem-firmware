@@ -164,6 +164,12 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Honeywell Wdb";
         case FPS_HORMANN:
             return "Hormann";
+        case FPS_IDO:
+            return "Ido 11x";
+        case FPS_INTERTECHNOV3:
+            return "InterTehcno v3";
+        case FPS_KEELOQ:
+            return "KeeLoq";
         case FPS_Invalid:
         default:
             return "Unknown";

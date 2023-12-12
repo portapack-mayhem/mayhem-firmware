@@ -27,6 +27,9 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-honeywell.hpp"
 #include "s-honeywellwdb.hpp"
 #include "s-hormann.hpp"
+#include "s-ido.hpp"
+#include "s-intertechnov3.hpp"
+#include "s-keeloq.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -45,13 +48,16 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDClemsa>());         // 10
         protos.push_back(std::make_unique<FProtoSubGhzDDoitrand>());       // 11
         protos.push_back(std::make_unique<FProtoSubGhzDDooya>());          // 12
-        protos.push_back(std::make_unique<FProtoSubGhzDCFaac>());          // 13
+        protos.push_back(std::make_unique<FProtoSubGhzDFaac>());           // 13
         protos.push_back(std::make_unique<FProtoSubGhzDCGateTx>());        // 14
         protos.push_back(std::make_unique<FProtoSubGhzDCHoltek>());        // 15
         protos.push_back(std::make_unique<FProtoSubGhzDCHoltekHt12x>());   // 16
         protos.push_back(std::make_unique<FProtoSubGhzDCHoneywell>());     // 17
         protos.push_back(std::make_unique<FProtoSubGhzDCHoneywellWdb>());  // 18
         protos.push_back(std::make_unique<FProtoSubGhzDCHormann>());       // 19
+        protos.push_back(std::make_unique<FProtoSubGhzDIdo>());            // 20
+        protos.push_back(std::make_unique<FProtoSubGhzDIntertechnoV3>());  // 21
+        protos.push_back(std::make_unique<FProtoSubGhzDKeeLoq>());         // 22
 
         // set callback for them
         for (const auto& obj : protos) {
@@ -61,7 +67,7 @@ class SubGhzDProtos : public FProtoListGeneral {
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
         SubGhzDDataMessage packet_message{instance->getSensorType(), instance->getSensorSerial(), instance->getBits(), instance->getData(), instance->getData2(), instance->getBtn()};
-        // todo add cnt, cnt2
+        // todo add cnt, cnt2, maybe hop
         shared_memory.application_queue.push(packet_message);
     }
 

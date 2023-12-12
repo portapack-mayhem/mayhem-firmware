@@ -11,9 +11,9 @@ typedef enum {
     FaacSLHDecoderStepCheckDuration,
 } FaacSLHDecoderStep;
 
-class FProtoSubGhzDCFaac : public FProtoSubGhzDBase {
+class FProtoSubGhzDFaac : public FProtoSubGhzDBase {
    public:
-    FProtoSubGhzDCFaac() {
+    FProtoSubGhzDFaac() {
         sensorType = FPS_FAAC;
     }
 
