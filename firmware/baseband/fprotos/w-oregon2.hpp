@@ -77,7 +77,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
             decode_data = 0UL;
             decode_count_bit = 0;
         }
-        if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data)) {
+        if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit_value)) {
             if (have_bit) {
                 if (!prev_bit && bit_value) {
                     subghz_protocol_blocks_add_bit(1);
