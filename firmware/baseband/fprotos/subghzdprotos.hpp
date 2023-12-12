@@ -30,6 +30,10 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-ido.hpp"
 #include "s-intertechnov3.hpp"
 #include "s-keeloq.hpp"
+// #include "s-kia.hpp"
+#include "s-kinggates_stylo_4k.hpp"
+#include "s-linear.hpp"
+#include "s-linear_delta3.hpp"
 
 #ifndef __FPROTO_PROTOLISTSGZ_H__
 #define __FPROTO_PROTOLISTSGZ_H__
@@ -58,6 +62,10 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDIdo>());            // 20
         protos.push_back(std::make_unique<FProtoSubGhzDIntertechnoV3>());  // 21
         protos.push_back(std::make_unique<FProtoSubGhzDKeeLoq>());         // 22
+        // protos.push_back(std::make_unique<FProtoSubGhzDKia>());            // 23
+        protos.push_back(std::make_unique<FProtoSubGhzDKinggatesStylo4K>());  // 24
+        protos.push_back(std::make_unique<FProtoSubGhzDLinear>());            // 25
+        protos.push_back(std::make_unique<FProtoSubGhzDLinearDelta3>());      // 26
 
         // set callback for them
         for (const auto& obj : protos) {

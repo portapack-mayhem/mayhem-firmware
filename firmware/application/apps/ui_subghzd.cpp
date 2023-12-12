@@ -170,6 +170,14 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "InterTehcno v3";
         case FPS_KEELOQ:
             return "KeeLoq";
+        case FPS_KIA:
+            return "Kia";
+        case FPS_KINGGATESSTYLO4K:
+            return "Kinggate Stylo4K";
+        case FPS_LINEAR:
+            return "Linear";
+        case FPS_LINEARDELTA3:
+            return "Linear Delta3";
         case FPS_Invalid:
         default:
             return "Unknown";
