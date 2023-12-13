@@ -162,6 +162,7 @@ set(CPPSRC
 	${COMMON}/ui_painter.cpp
 	${COMMON}/ui_text.cpp
 	${COMMON}/ui_widget.cpp
+	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
 	${COMMON}/performance_counter.cpp
@@ -243,15 +244,14 @@ set(CPPSRC
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
-	apps/analog_tv_app.cpp
+	# apps/analog_tv_app.cpp
 	apps/ble_comm_app.cpp
 	apps/ble_rx_app.cpp
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
 	apps/gps_sim_app.cpp
-	apps/lge_app.cpp
-	apps/lge_app.cpp
+	# apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
@@ -264,7 +264,7 @@ set(CPPSRC
 	apps/ui_aprs_tx.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_btle_rx.cpp
-	apps/ui_coasterp.cpp
+	# apps/ui_coasterp.cpp
 	apps/ui_debug.cpp
 	apps/ui_dfu_menu.cpp
 	apps/ui_encoders.cpp
@@ -275,13 +275,13 @@ set(CPPSRC
 	apps/ui_iq_trim.cpp
 	apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
-	apps/ui_lcr.cpp
+	# apps/ui_lcr.cpp
 	apps/ui_level.cpp  
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
 	apps/ui_morse.cpp
-	apps/ui_nrf_rx.cpp
+	# apps/ui_nrf_rx.cpp
 	# apps/ui_nuoptix.cpp
 	apps/ui_playlist.cpp
 	apps/ui_pocsag_tx.cpp
@@ -314,7 +314,7 @@ set(CPPSRC
 	protocols/bht.cpp
 	protocols/dcs.cpp
 	protocols/encoders.cpp
-	protocols/lcr.cpp
+	# protocols/lcr.cpp
 	protocols/modems.cpp
 	protocols/rds.cpp
 	# ui_handwrite.cpp

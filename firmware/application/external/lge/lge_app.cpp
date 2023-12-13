@@ -36,7 +36,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::lge {
 
 void LGEView::focus() {
     options_frame.focus();
@@ -354,4 +354,4 @@ LGEView::LGEView(NavigationView& nav) {
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::lge */

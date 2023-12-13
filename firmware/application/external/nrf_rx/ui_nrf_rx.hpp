@@ -25,6 +25,7 @@
 #define __UI_NRF_RX_H__
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_freq_field.hpp"
@@ -34,7 +35,7 @@
 
 #include "utility.hpp"
 
-namespace ui {
+namespace ui::external_app::nrf_rx {
 
 class NRFRxView : public View {
    public:
@@ -77,7 +78,7 @@ class NRFRxView : public View {
 
     Button button_modem_setup{
         {240 - 12 * 8, 1 * 16, 96, 24},
-        "Modem setup"};
+        LanguageHelper::currentMessages[LANG_MODEM_SETUP]};
 
     Console console{
         {0, 4 * 16, 240, 240}};
@@ -90,6 +91,6 @@ class NRFRxView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::nrf_rx */
 
 #endif /*__UI_NRF_RX_H__*/
