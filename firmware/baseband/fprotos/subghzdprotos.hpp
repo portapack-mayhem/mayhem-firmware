@@ -41,6 +41,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-neroradio.hpp"
 #include "s-nero_sketch.hpp"
 #include "s-nice_flo.hpp"
+#include "s-nice_flors.hpp"
+#include "s-phoenix_v2.hpp"
 
 // GENIE FROM PR
 
@@ -83,6 +85,8 @@ class SubGhzDProtos : public FProtoListGeneral {
 
         protos.push_back(std::make_unique<FProtoSubGhzDNeroSketch>());  // 32
         protos.push_back(std::make_unique<FProtoSubGhzDNiceflo>());     // 33
+        protos.push_back(std::make_unique<FProtoSubGhzDNiceflors>());   // 34
+        protos.push_back(std::make_unique<FProtoSubGhzDPhoenixV2>());   // 35
 
         // set callback for them
         for (const auto& obj : protos) {

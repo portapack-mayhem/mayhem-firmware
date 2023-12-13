@@ -192,6 +192,10 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Nero Sketch";
         case FPS_NICEFLO:
             return "Nice Flo";
+        case FPS_NICEFLORS:
+            return "Nice Flor S";
+        case FPS_PHOENIXV2:
+            return "Phoenix V2";
         case FPS_Invalid:
         default:
             return "Unknown";
