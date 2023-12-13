@@ -4,9 +4,9 @@
 
 #include "subghzdbase.hpp"
 
-class FProtoSubGhzDCHoneywell : public FProtoSubGhzDBase {
+class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
    public:
-    FProtoSubGhzDCHoneywell() {
+    FProtoSubGhzDHoneywell() {
         sensorType = FPS_HONEYWELL;
     }
 

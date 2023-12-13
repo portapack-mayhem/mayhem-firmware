@@ -11,9 +11,9 @@ typedef enum {
     Honeywell_WDBDecoderStepCheckDuration,
 } Honeywell_WDBDecoderStep;
 
-class FProtoSubGhzDCHoneywellWdb : public FProtoSubGhzDBase {
+class FProtoSubGhzDHoneywellWdb : public FProtoSubGhzDBase {
    public:
-    FProtoSubGhzDCHoneywellWdb() {
+    FProtoSubGhzDHoneywellWdb() {
         sensorType = FPS_HONEYWELLWDB;
     }
 

@@ -15,9 +15,9 @@ typedef enum {
 
 #define HORMANN_HSM_PATTERN 0xFF000000003
 
-class FProtoSubGhzDCHormann : public FProtoSubGhzDBase {
+class FProtoSubGhzDHormann : public FProtoSubGhzDBase {
    public:
-    FProtoSubGhzDCHormann() {
+    FProtoSubGhzDHormann() {
         sensorType = FPS_HORMANN;
     }
 

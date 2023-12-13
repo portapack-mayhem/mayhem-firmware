@@ -50,7 +50,8 @@ enum FPROTO_SUBGHZD_SENSOR {
     FPS_MASTERCODE = 29,
     FPS_MEGACODE = 30,
     FPS_NERORADIO = 31,
-
+    FPS_NERO_SKETCH = 32,
+    FPS_NICEFLO = 33,
 };
 
 #endif

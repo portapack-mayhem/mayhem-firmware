@@ -11,9 +11,9 @@ typedef enum {
     GateTXDecoderStepCheckDuration,
 } GateTXDecoderStep;
 
-class FProtoSubGhzDCGateTx : public FProtoSubGhzDBase {
+class FProtoSubGhzDGateTx : public FProtoSubGhzDBase {
    public:
-    FProtoSubGhzDCGateTx() {
+    FProtoSubGhzDGateTx() {
         sensorType = FPS_GATETX;
     }
 

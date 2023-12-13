@@ -11,9 +11,9 @@ typedef enum {
     Holtek_HT12XDecoderStepCheckDuration,
 } Holtek_HT12XDecoderStep;
 
-class FProtoSubGhzDCHoltekHt12x : public FProtoSubGhzDBase {
+class FProtoSubGhzDHoltekHt12x : public FProtoSubGhzDBase {
    public:
-    FProtoSubGhzDCHoltekHt12x() {
+    FProtoSubGhzDHoltekHt12x() {
         sensorType = FPS_HOLTEKHT12X;
     }
 
