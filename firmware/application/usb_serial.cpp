@@ -14,7 +14,14 @@ extern "C" {
 #define NVIC_USB0_IRQ 8
 #define SCS_SHPR(ipr_id) MMIO8(SCS_BASE + 0xD18 + ipr_id)
 
+extern "C" {
+void nvic_enable_irq(uint8_t irqn) {
+    NVIC_ISER(irqn / 32) = (1 << (irqn % 32));
+}
+}
 namespace portapack {
+
+// #define MMIO32(addr) (*(volatile uint32_t*)(addr))
 
 void USBSerial::initialize() {
     enable_xtal();
@@ -25,11 +32,28 @@ void USBSerial::initialize() {
 
     setup_usb_clock();
 
+    // LPC_CGU->BASE_OUT_CLK.PD = 1;
+    // LPC_CGU->BASE_OUT_CLK.AUTOBLOCK = 0;
+    // LPC_CGU->BASE_OUT_CLK.CLK_SEL = 0x07;
+    // LPC_CGU->BASE_OUT_CLK.PD = 0;
+
+    // LPC_SCU->SFSCLK0 = (LPC_SCU->SFSCLK0 & ~0xff) | (1 |
+    //                                                  1 << 4 |
+    //                                                  1 << 5 |
+    //                                                  1 << 7);
+
+    // palSetPadMode(24, 0, PAL_MODE_OUTPUT_PUSHPULL);
+    // MMIO32(PIN_GROUP24 + PIN0) = (SCU_GPIO_FAST | SCU_CONF_FUNCTION1);
+
+    // CLK0 = (SCU_BASE + 0xC00),    MMIO32(group_pin) = scu_conf;(CLK0, SCU_CLK_IN | SCU_CONF_FUNCTION7);
+
     setup_usb_serial_controller();
 
-    SCS_SHPR((NVIC_USB0_IRQ & 0xF) - 4) = 255;
+    // nvicEnableVector(RITIMER_OR_WWDT_IRQn, CORTEX_PRIORITY_MASK(CORTEX_PRIORITY_SYSTICK));
+    // SCS_SHPR((NVIC_USB0_IRQ & 0xF) - 4) = 255;
+    // NVIC_ISER(NVIC_USB0_IRQ / 32) = (1 << (NVIC_USB0_IRQ % 32));
 
-    usb_controller_run();
+    // usb_controller_run();
 }
 
 // void USBSerial::irq_usb() {
@@ -105,14 +129,20 @@ void USBSerial::disable_pll0() {
     LPC_CGU->PLL0USB_CTRL.PD = 1;  // PLL0 powered down
     LPC_CGU->PLL0USB_CTRL.AUTOBLOCK = 1;
 
-    /* use XTAL_OSC as clock source for PLL0USB */
+    LPC_CGU->PLL0USB_CTRL.BYPASS = 0;
+    LPC_CGU->PLL0USB_CTRL.DIRECTI = 0;
+    LPC_CGU->PLL0USB_CTRL.DIRECTO = 0;
+    LPC_CGU->PLL0USB_CTRL.CLKEN = 0;
+    LPC_CGU->PLL0USB_CTRL.FRM = 0;
     LPC_CGU->PLL0USB_CTRL.CLK_SEL = 0x06;  // 12MHz internal XTAL
-
-    while (LPC_CGU->PLL0USB_STAT.LOCK) {
-    }
 }
 
 void USBSerial::setup_pll0() {
+    /* use XTAL_OSC as clock source for PLL0USB */
+
+    while (LPC_CGU->PLL0USB_STAT.LOCK) {
+    }
+
     // /* configure PLL0USB to produce 480 MHz clock from 12 MHz XTAL_OSC */
     // /* Values from User Manual v1.4 Table 94, for 12MHz oscillator. */
     LPC_CGU->PLL0USB_MDIV = 0x06167FFA;
@@ -133,8 +163,10 @@ void USBSerial::enable_pll0() {
 
 void USBSerial::setup_usb_clock() {
     /* use PLL0USB as clock source for USB0 */
+    // LPC_CGU->BASE_USB0_CLK.PD = 1;
     LPC_CGU->BASE_USB0_CLK.AUTOBLOCK = 1;
     LPC_CGU->BASE_USB0_CLK.CLK_SEL = 0x07;
+    LPC_CGU->BASE_USB0_CLK.PD = 0;
 }
 
 void USBSerial::reset_usb() {

@@ -1,8 +1,5 @@
 #include "usb_serial.h"
 
-// #include "usb_standard_request.h"
-// #include "usb_queue.h"
-
 #pragma GCC diagnostic push
 // external code, so ignore warnings
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
@@ -15,19 +12,12 @@
 
 #pragma GCC diagnostic pop
 
-////////////
-// #include <stddef.h>
-
-// #include <libopencm3/lpc43xx/m4/nvic.h>
-// #include <libopencm3/lpc43xx/cgu.h>
-// #include "platform_detect.h"
-// #include "hackrf_core.h"
-// #include "usb_bulk_buffer.h"
-
 extern void usb0_isr(void);
 
-CH_IRQ_HANDLER(Vector60) {
+CH_IRQ_HANDLER(USB0_IRQHandler) {
+    // CH_IRQ_PROLOGUE();
     usb0_isr();
+    // CH_IRQ_EPILOGUE();
 }
 
 void usb_configuration_changed(usb_device_t* const device) {
@@ -37,28 +27,30 @@ void usb_configuration_changed(usb_device_t* const device) {
     usb_endpoint_init(&usb_endpoint_bulk_out);
 }
 
+// void usb_transfer(void) {
+//     if (scsi_running) {
+//         transfer_complete = false;
+//         usb_transfer_schedule_block(
+//             &usb_endpoint_bulk_out,
+//             &usb_bulk_buffer[0x4000],
+//             USB_TRANSFER_SIZE,
+//             scsi_bulk_transfer_complete,
+//             NULL);
+
+// while (!transfer_complete)
+//     ;
+
+// msd_cbw_t* msd_cbw_data = (msd_cbw_t*)&usb_bulk_buffer[0x4000];
+
+// if (msd_cbw_data->signature == MSD_CBW_SIGNATURE) {
+//     scsi_command(msd_cbw_data);
+// }
+// }
+// }
+
 void setup_usb_serial_controller(void) {
     usb_set_configuration_changed_cb(usb_configuration_changed);
     usb_peripheral_reset();
-
-    // usb_phy_enable();
-    // usb_controller_reset();
-    // usb_controller_set_device_mode();
-
-    // // Set interrupt threshold interval to 0
-    // USB0_USBCMD_D &= ~USB0_USBCMD_D_ITC_MASK;
-
-    // // Configure endpoint list address
-    // USB0_ENDPOINTLISTADDR = (uint32_t)usb_qh;
-
-    // // Enable interrupts
-    // USB0_USBINTR_D = USB0_USBINTR_D_UE | USB0_USBINTR_D_UEE |
-    //                  USB0_USBINTR_D_PCE |
-    //                  USB0_USBINTR_D_URE
-    //                  //| USB0_USBINTR_D_SRE
-    //                  | USB0_USBINTR_D_SLE
-    //     //| USB0_USBINTR_D_NAKE
-    //     ;
 
     usb_device_init(0, &usb_device);
 
@@ -69,6 +61,12 @@ void setup_usb_serial_controller(void) {
 
     usb_endpoint_init(&usb_endpoint_control_out);
     usb_endpoint_init(&usb_endpoint_control_in);
+
+    usb_run(&usb_device);
+
+    // while (true) {
+    //     usb_transfer();
+    // }
 }
 
 usb_request_status_t usb_class_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
@@ -104,6 +102,246 @@ uint32_t __strex(uint32_t val, volatile uint32_t* addr) {
     // return res;
     return 0;
 }
+
+// // // #define USB_VENDOR_ID (0x1a86)   /* Nanjing Qinheng Microelectronics Co., Ltd. */
+// // // #define USB_PRODUCT_ID (0x7523)  /* CH340 serial converter */
+// // // #define USB_API_VERSION (0x0264) /* hardware revision */
+
+// // // #define USB_WORD(x) (x & 0xFF), ((x >> 8) & 0xFF)
+
+// // // #define USB_MAX_PACKET0 (8)
+// // // #define USB_MAX_PACKET_BULK_FS (32)
+// // // #define USB_MAX_PACKET_BULK_HS (32)
+
+// // // #define USB_BULK_IN_EP_ADDR (0x81)
+// // // #define USB_BULK_OUT_EP_ADDR (0x02)
+
+// // // #define USB_STRING_LANGID (0x0409)
+
+// // // uint8_t usb_descriptor_device[] = {
+// // //     18,                          // bLength
+// // //     USB_DESCRIPTOR_TYPE_DEVICE,  // bDescriptorType
+// // //     USB_WORD(0x0110),            // bcdUSB
+// // //     0xff,                        // bDeviceClass
+// // //     0x00,                        // bDeviceSubClass
+// // //     0x00,                        // bDeviceProtocol
+// // //     USB_MAX_PACKET0,             // bMaxPacketSize0
+// // //     USB_WORD(USB_VENDOR_ID),     // idVendor
+// // //     USB_WORD(USB_PRODUCT_ID),    // idProduct
+// // //     USB_WORD(USB_API_VERSION),   // bcdDevice
+// // //     0x00,                        // iManufacturer
+// // //     0x02,                        // iProduct
+// // //     0x00,                        // iSerialNumber
+// // //     0x01                         // bNumConfigurations
+// // // };
+
+// // // uint8_t usb_descriptor_device_qualifier[] = {
+// // //     10,                                    // bLength
+// // //     USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER,  // bDescriptorType
+// // //     USB_WORD(0x0110),                      // bcdUSB
+// // //     0xff,                                  // bDeviceClass
+// // //     0x00,                                  // bDeviceSubClass
+// // //     0x00,                                  // bDeviceProtocol
+// // //     USB_MAX_PACKET0,                       // bMaxPacketSize0
+// // //     0x01,                                  // bNumOtherSpeedConfigurations
+// // //     0x00                                   // bReserved
+// // // };
+
+// // // uint8_t usb_descriptor_configuration_full_speed[] = {
+// // //     9,                                  // bLength
+// // //     USB_DESCRIPTOR_TYPE_CONFIGURATION,  // bDescriptorType
+// // //     USB_WORD(39),                       // wTotalLength
+// // //     0x01,                               // bNumInterfaces
+// // //     0x01,                               // bConfigurationValue
+// // //     0x00,                               // iConfiguration
+// // //     0x80,                               // bmAttributes: USB-powered
+// // //     250,                                // bMaxPower: 500mA
+
+// // //     9,                              // bLength
+// // //     USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
+// // //     0x00,                           // bInterfaceNumber
+// // //     0x00,                           // bAlternateSetting
+// // //     0x03,                           // bNumEndpoints
+// // //     0xff,                           // bInterfaceClass: vendor-specific
+// // //     0x01,                           // bInterfaceSubClass
+// // //     0x02,                           // bInterfaceProtocol: vendor-specific
+// // //     0x00,                           // iInterface
+
+// // //     7,                                 // bLength
+// // //     USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
+// // //     0x82,                              // bEndpointAddress
+// // //     0x02,                              // bmAttributes: BULK
+// // //     USB_WORD(USB_MAX_PACKET_BULK_FS),  // wMaxPacketSize
+// // //     0x00,                              // bInterval: no NAK
+
+// // //     7,                                 // bLength
+// // //     USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
+// // //     USB_BULK_OUT_EP_ADDR,              // bEndpointAddress
+// // //     0x02,                              // bmAttributes: BULK
+// // //     USB_WORD(USB_MAX_PACKET_BULK_FS),  // wMaxPacketSize
+// // //     0x00,                              // bInterval: no NAK
+
+// // //     7,                             // bLength
+// // //     USB_DESCRIPTOR_TYPE_ENDPOINT,  // bDescriptorType
+// // //     USB_BULK_IN_EP_ADDR,           // bEndpointAddress
+// // //     0x03,                          // bmAttributes: BULK
+// // //     USB_WORD(8),                   // wMaxPacketSize
+// // //     0x01,                          // bInterval: NAK
+
+// // //     0,  // TERMINATOR
+// // // };
+
+// // // uint8_t usb_descriptor_configuration_high_speed[] = {
+// // //     9,                                  // bLength
+// // //     USB_DESCRIPTOR_TYPE_CONFIGURATION,  // bDescriptorType
+// // //     USB_WORD(39),                       // wTotalLength
+// // //     0x01,                               // bNumInterfaces
+// // //     0x01,                               // bConfigurationValue
+// // //     0x00,                               // iConfiguration
+// // //     0x80,                               // bmAttributes: USB-powered
+// // //     250,                                // bMaxPower: 500mA
+
+// // //     9,                              // bLength
+// // //     USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
+// // //     0x00,                           // bInterfaceNumber
+// // //     0x00,                           // bAlternateSetting
+// // //     0x03,                           // bNumEndpoints
+// // //     0xff,                           // bInterfaceClass: vendor-specific
+// // //     0x01,                           // bInterfaceSubClass
+// // //     0x02,                           // bInterfaceProtocol: vendor-specific
+// // //     0x00,                           // iInterface
+
+// // //     7,                                 // bLength
+// // //     USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
+// // //     0x82,                              // bEndpointAddress
+// // //     0x02,                              // bmAttributes: BULK
+// // //     USB_WORD(USB_MAX_PACKET_BULK_HS),  // wMaxPacketSize
+// // //     0x00,                              // bInterval: no NAK
+
+// // //     7,                                 // bLength
+// // //     USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
+// // //     USB_BULK_OUT_EP_ADDR,              // bEndpointAddress
+// // //     0x02,                              // bmAttributes: BULK
+// // //     USB_WORD(USB_MAX_PACKET_BULK_HS),  // wMaxPacketSize
+// // //     0x00,                              // bInterval: no NAK
+
+// // //     7,                             // bLength
+// // //     USB_DESCRIPTOR_TYPE_ENDPOINT,  // bDescriptorType
+// // //     USB_BULK_IN_EP_ADDR,           // bEndpointAddress
+// // //     0x03,                          // bmAttributes: BULK
+// // //     USB_WORD(8),                   // wMaxPacketSize
+// // //     0x01,                          // bInterval: NAK
+
+// // //     0,  // TERMINATOR
+// // // };
+
+// // // uint8_t usb_descriptor_string_languages[] = {
+// // //     0x04,                         // bLength
+// // //     USB_DESCRIPTOR_TYPE_STRING,   // bDescriptorType
+// // //     USB_WORD(USB_STRING_LANGID),  // wLANGID
+// // // };
+
+// // // // clang-format off
+// // // uint8_t usb_descriptor_string_manufacturer[] = {
+// // // 	40,                         // bLength
+// // // 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
+// // // 	'G', 0x00,
+// // // 	'r', 0x00,
+// // // 	'e', 0x00,
+// // // 	'a', 0x00,
+// // // 	't', 0x00,
+// // // 	' ', 0x00,
+// // // 	'S', 0x00,
+// // // 	'c', 0x00,
+// // // 	'o', 0x00,
+// // // 	't', 0x00,
+// // // 	't', 0x00,
+// // // 	' ', 0x00,
+// // // 	'G', 0x00,
+// // // 	'a', 0x00,
+// // // 	'd', 0x00,
+// // // 	'g', 0x00,
+// // // 	'e', 0x00,
+// // // 	't', 0x00,
+// // // 	's', 0x00,
+// // // };
+
+// // // uint8_t usb_descriptor_string_product[] = {
+
+// // // 	43,                         // bLength
+// // // 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
+// // // 	'P', 0x00,
+// // // 	'o', 0x00,
+// // // 	'r', 0x00,
+// // // 	't', 0x00,
+// // // 	'a', 0x00,
+// // // 	'P', 0x00,
+// // // 	'a', 0x00,
+// // // 	'c', 0x00,
+// // // 	'k', 0x00,
+// // // 	' ', 0x00,
+
+// // // 	'M', 0x00,
+// // // 	'a', 0x00,
+// // // 	'y', 0x00,
+// // // 	'h', 0x00,
+// // // 	'e', 0x00,
+// // // 	'm', 0x00,
+// // // };
+
+// // // uint8_t usb_descriptor_string_config_description[] = {
+// // // 	24,                         // bLength
+// // // 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
+// // // 	'T', 0x00,
+// // // 	'r', 0x00,
+// // // 	'a', 0x00,
+// // // 	'n', 0x00,
+// // // 	's', 0x00,
+// // // 	'c', 0x00,
+// // // 	'e', 0x00,
+// // // 	'i', 0x00,
+// // // 	'v', 0x00,
+// // // 	'e', 0x00,
+// // // 	'r', 0x00,
+// // // };
+
+// // // uint8_t usb_descriptor_string_serial_number[USB_DESCRIPTOR_STRING_SERIAL_BUF_LEN];
+
+// // // uint8_t* usb_descriptor_strings[] = {
+// // // 	usb_descriptor_string_languages,
+// // // 	usb_descriptor_string_manufacturer,
+// // // 	usb_descriptor_string_product,
+// // // 	usb_descriptor_string_config_description,
+// // // 	usb_descriptor_string_serial_number,
+// // // 	0, // TERMINATOR
+// // // };
+
+// // // uint8_t wcid_string_descriptor[] = {
+// // // 	18,                          // bLength
+// // // 	USB_DESCRIPTOR_TYPE_STRING,  // bDescriptorType
+// // // 	'M', 0x00,
+// // // 	'S', 0x00,
+// // // 	'F', 0x00,
+// // // 	'T', 0x00,
+// // // 	'1', 0x00,
+// // // 	'0', 0x00,
+// // // 	'0', 0x00,
+// // // 	USB_WCID_VENDOR_REQ, // vendor request code for further descriptor
+// // // 	0x00
+// // // };
+
+// // // uint8_t wcid_feature_descriptor[] = {
+// // // 	0x28, 0x00, 0x00, 0x00,                  // bLength
+// // // 	USB_WORD(0x0100),                        // WCID version
+// // // 	USB_WORD(0x0004),                        // WICD descriptor index
+// // // 	0x01,                                    // bNumSections
+// // // 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,      // Reserved
+// // // 	0x00,                                    // bInterfaceNumber
+// // // 	0x01,                                    // Reserved
+// // // 	'W', 'I', 'N', 'U', 'S', 'B', 0x00,0x00, // Compatible ID, padded with zeros
+// // // 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, // Sub-compatible ID
+// // // 	0x00,0x00,0x00,0x00,0x00,0x00            // Reserved
+// // // };
 
 #define USB_VENDOR_ID (0x0781) /* SanDisk Corp. */
 

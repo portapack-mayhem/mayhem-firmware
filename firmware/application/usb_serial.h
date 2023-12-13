@@ -24,9 +24,6 @@
 #include "ch.h"
 #include "hal.h"
 
-// #include <libopencm3/lpc43xx/usb.h>
-// #include "usb_type.h"
-
 void setup_usb_serial_controller(void);
 
 extern uint8_t usb_descriptor_device[];
