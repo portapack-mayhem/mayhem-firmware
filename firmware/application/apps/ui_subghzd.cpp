@@ -196,6 +196,10 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "Nice Flor S";
         case FPS_PHOENIXV2:
             return "Phoenix V2";
+        case FPS_POWERSMART:
+            return "PowerSmart";
+        case FPS_SECPLUSV1:
+            return "SecPlus V1";
         case FPS_Invalid:
         default:
             return "Unknown";

@@ -43,6 +43,8 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-nice_flo.hpp"
 #include "s-nice_flors.hpp"
 #include "s-phoenix_v2.hpp"
+#include "s-power_smart.hpp"
+#include "s-secplus_v1.hpp"
 
 // GENIE FROM PR
 
@@ -87,6 +89,8 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos.push_back(std::make_unique<FProtoSubGhzDNiceflo>());     // 33
         protos.push_back(std::make_unique<FProtoSubGhzDNiceflors>());   // 34
         protos.push_back(std::make_unique<FProtoSubGhzDPhoenixV2>());   // 35
+        protos.push_back(std::make_unique<FProtoSubGhzDPowerSmart>());  // 36
+        protos.push_back(std::make_unique<FProtoSubGhzDSecPlusV1>());   // 37
 
         // set callback for them
         for (const auto& obj : protos) {
