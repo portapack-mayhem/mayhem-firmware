@@ -42,28 +42,28 @@ struct SubGhzDRecentEntry {
     using Key = uint64_t;
     static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
     uint8_t sensorType = FPS_Invalid;
+    uint8_t btn = SD_NO_BTN;
     uint32_t serial = SD_NO_SERIAL;
     uint16_t bits = 0;
-    uint8_t btn = SD_NO_BTN;
     uint16_t age = 0;  // updated on each seconds, show how long the signal was last seen
-    uint32_t data = 0;
-    uint32_t data_2 = 0;
+    uint32_t cnt = SD_NO_CNT;
+    uint64_t data = 0;
     SubGhzDRecentEntry() {}
     SubGhzDRecentEntry(
         uint8_t sensorType,
         uint32_t serial,
         uint16_t bits = 0,
-        uint32_t data = 0,
-        uint32_t data_2 = 0,
-        uint8_t btn = SD_NO_BTN)
+        uint64_t data = 0,
+        uint8_t btn = SD_NO_BTN,
+        uint32_t cnt = SD_NO_CNT)
         : sensorType{sensorType},
+          btn{btn},
           serial{serial},
           bits{bits},
-          btn{btn},
-          data{data},
-          data_2{data_2} {
+          cnt{cnt},
+          data{data} {
     }
-    Key key() const {
+    Key key() const {  // todo
         return (static_cast<uint64_t>(serial) << 32) |
                (static_cast<uint64_t>(sensorType) & 0xFF) << 0;
     }

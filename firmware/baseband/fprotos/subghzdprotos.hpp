@@ -51,47 +51,10 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 
 class SubGhzDProtos : public FProtoListGeneral {
    public:
-    SubGhzDProtos(const SubGhzDProtos&){};                           // wont use, but makes compiler happy
-    SubGhzDProtos* operator=(const SubGhzDProtos&) { return NULL; }  // wont use, but makes compiler happy
+    SubGhzDProtos(const SubGhzDProtos&) { SubGhzDProtos(); };         // won't use, but makes compiler happy
+    SubGhzDProtos& operator=(const SubGhzDProtos&) { return *this; }  // won't use, but makes compiler happy
     SubGhzDProtos() {
         // add protos
-        // 1 //skip since fm
-        /*  protos.push_back(std::make_unique<FProtoSubGhzDPrinceton>());         // 2
-          protos.push_back(std::make_unique<FProtoSubGhzDBett>());              // 3
-          protos.push_back(std::make_unique<FProtoSubGhzDCame>());              // 4, 5, 6
-          protos.push_back(std::make_unique<FProtoSubGhzDCameAtomo>());         // 7
-          protos.push_back(std::make_unique<FProtoSubGhzDCameTwee>());          // 8
-          protos.push_back(std::make_unique<FProtoSubGhzDChambCode>());         // 9
-          protos.push_back(std::make_unique<FProtoSubGhzDClemsa>());            // 10
-          protos.push_back(std::make_unique<FProtoSubGhzDDoitrand>());          // 11
-          protos.push_back(std::make_unique<FProtoSubGhzDDooya>());             // 12
-          protos.push_back(std::make_unique<FProtoSubGhzDFaac>());              // 13
-          protos.push_back(std::make_unique<FProtoSubGhzDGateTx>());            // 14
-          protos.push_back(std::make_unique<FProtoSubGhzDHoltek>());            // 15
-          protos.push_back(std::make_unique<FProtoSubGhzDHoltekHt12x>());       // 16
-          protos.push_back(std::make_unique<FProtoSubGhzDHoneywell>());         // 17
-          protos.push_back(std::make_unique<FProtoSubGhzDHoneywellWdb>());      // 18
-          protos.push_back(std::make_unique<FProtoSubGhzDHormann>());           // 19
-          protos.push_back(std::make_unique<FProtoSubGhzDIdo>());               // 20
-          protos.push_back(std::make_unique<FProtoSubGhzDIntertechnoV3>());     // 21
-          protos.push_back(std::make_unique<FProtoSubGhzDKeeLoq>());            // 22
-                                                                                // 23
-          protos.push_back(std::make_unique<FProtoSubGhzDKinggatesStylo4K>());  // 24
-          protos.push_back(std::make_unique<FProtoSubGhzDLinear>());            // 25
-          protos.push_back(std::make_unique<FProtoSubGhzDLinearDelta3>());      // 26
-          protos.push_back(std::make_unique<FProtoSubGhzDMagellan>());          // 27
-          protos.push_back(std::make_unique<FProtoSubGhzDMarantec>());          // 28
-          protos.push_back(std::make_unique<FProtoSubGhzDMastercode>());        // 29
-          protos.push_back(std::make_unique<FProtoSubGhzDMegacode>());          // 30
-          protos.push_back(std::make_unique<FProtoSubGhzDNeroRadio>());         // 31
-
-          protos.push_back(std::make_unique<FProtoSubGhzDNeroSketch>());  // 32
-          protos.push_back(std::make_unique<FProtoSubGhzDNiceflo>());     // 33
-          protos.push_back(std::make_unique<FProtoSubGhzDNiceflors>());   // 34
-          protos.push_back(std::make_unique<FProtoSubGhzDPhoenixV2>());   // 35
-          protos.push_back(std::make_unique<FProtoSubGhzDPowerSmart>());  // 36
-          protos.push_back(std::make_unique<FProtoSubGhzDSecPlusV1>());   // 37
-  */
         protos[FPS_PRINCETON] = new FProtoSubGhzDPrinceton();
         protos[FPS_BETT] = new FProtoSubGhzDBett();
         protos[FPS_CAME] = new FProtoSubGhzDCame();
@@ -126,15 +89,19 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_POWERSMART] = new FProtoSubGhzDPowerSmart();
         protos[FPS_SECPLUSV1] = new FProtoSubGhzDSecPlusV1();
 
-        // set callback for them
-        /*
-        for (const auto& obj : protos) {
-            obj->setCallback(callbackTarget);
-        }*/
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);
         }
     }
+
+    ~SubGhzDProtos() {  // not needed for current operation logic, but a bit more elegant :)
+        for (uint8_t i = 0; i < FPS_COUNT; ++i) {
+            if (protos[i] != NULL) {
+                free(protos[i]);
+                protos[i] = NULL;
+            }
+        }
+    };
 
     static void callbackTarget(FProtoSubGhzDBase* instance) {
         SubGhzDDataMessage packet_message{instance->sensorType, instance->btn, instance->data_count_bit, instance->serial, instance->data, instance->cnt};
@@ -143,12 +110,12 @@ class SubGhzDProtos : public FProtoListGeneral {
 
     void feed(bool level, uint32_t duration) {
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
-            if (protos[i] != NULL) feed(level, duration);
+            if (protos[i] != NULL) protos[i]->feed(level, duration);
         }
     }
 
    protected:
-    FProtoSubGhzDBase* protos[FPS_COUNT];
+    FProtoSubGhzDBase* protos[FPS_COUNT] = {NULL};
 };
 
 #endif
