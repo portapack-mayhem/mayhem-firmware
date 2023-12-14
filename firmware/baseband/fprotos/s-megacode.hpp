@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     MegaCodeDecoderStepReset = 0,
     MegaCodeDecoderStepFoundStartBit,
     MegaCodeDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDMegacode : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDMegacode() {
         sensorType = FPS_MEGACODE;
+        te_short = 1000;
+        te_long = 1000;
+        te_delta = 200;
+        min_count_bit_for_found = 24;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -94,11 +98,6 @@ class FProtoSubGhzDMegacode : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 1000;
-    uint32_t te_long = 1000;
-    uint32_t te_delta = 200;
-    uint32_t min_count_bit_for_found = 24;
-
     uint8_t last_bit = false;
 };
 

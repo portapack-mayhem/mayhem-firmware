@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     GateTXDecoderStepReset = 0,
     GateTXDecoderStepFoundStartBit,
     GateTXDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDGateTx : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDGateTx() {
         sensorType = FPS_GATETX;
+        te_short = 350;
+        te_long = 700;
+        te_delta = 100;
+        min_count_bit_for_found = 24;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -79,12 +83,6 @@ class FProtoSubGhzDGateTx : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 350;
-    uint32_t te_long = 700;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 24;
 };
 
 #endif

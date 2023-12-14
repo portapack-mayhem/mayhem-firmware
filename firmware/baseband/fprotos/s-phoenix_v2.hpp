@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     Phoenix_V2DecoderStepReset = 0,
     Phoenix_V2DecoderStepFoundStartBit,
     Phoenix_V2DecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDPhoenixV2 : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDPhoenixV2() {
         sensorType = FPS_PHOENIXV2;
+        te_short = 427;
+        te_long = 853;
+        te_delta = 100;
+        min_count_bit_for_found = 52;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -80,12 +84,6 @@ class FProtoSubGhzDPhoenixV2 : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 427;
-    uint32_t te_long = 853;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 52;
 };
 
 #endif

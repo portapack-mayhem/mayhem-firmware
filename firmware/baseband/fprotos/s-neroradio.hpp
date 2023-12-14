@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     NeroRadioDecoderStepReset = 0,
     NeroRadioDecoderStepCheckPreambula,
     NeroRadioDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDNeroRadio : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDNeroRadio() {
         sensorType = FPS_NERORADIO;
+        te_short = 200;
+        te_long = 400;
+        te_delta = 80;
+        min_count_bit_for_found = 56;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -106,14 +110,6 @@ class FProtoSubGhzDNeroRadio : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 200;
-    uint32_t te_long = 400;
-    uint32_t te_delta = 80;
-    uint32_t min_count_bit_for_found = 56;
-
-    uint8_t last_bit = false;
 };
 
 #endif

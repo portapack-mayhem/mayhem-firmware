@@ -72,6 +72,7 @@ class FProtoGeneral {
         }
         return parity & 0x01;
     }
+
     static uint8_t subghz_protocol_blocks_add_bytes(uint8_t const message[], size_t size) {
         uint32_t result = 0;
         for (size_t i = 0; i < size; ++i) {
@@ -79,11 +80,13 @@ class FProtoGeneral {
         }
         return (uint8_t)result;
     }
+
     static uint8_t subghz_protocol_blocks_parity8(uint8_t byte) {
         byte ^= byte >> 4;
         byte &= 0xf;
         return (0x6996 >> byte) & 1;
     }
+
     static uint8_t subghz_protocol_blocks_parity_bytes(uint8_t const message[], size_t size) {
         uint8_t result = 0;
         for (size_t i = 0; i < size; ++i) {
@@ -91,6 +94,7 @@ class FProtoGeneral {
         }
         return result;
     }
+
     static uint8_t subghz_protocol_blocks_lfsr_digest8(
         uint8_t const message[],
         size_t size,

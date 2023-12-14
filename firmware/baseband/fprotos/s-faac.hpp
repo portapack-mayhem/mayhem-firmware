@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     FaacSLHDecoderStepReset = 0,
     FaacSLHDecoderStepFoundPreambula,
     FaacSLHDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDFaac : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDFaac() {
         sensorType = FPS_FAAC;
+        te_short = 255;
+        te_long = 595;
+        te_delta = 100;
+        min_count_bit_for_found = 64;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -76,12 +80,6 @@ class FProtoSubGhzDFaac : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 255;
-    uint32_t te_long = 595;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 64;
 };
 
 #endif

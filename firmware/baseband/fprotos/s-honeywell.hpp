@@ -8,6 +8,10 @@ class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDHoneywell() {
         sensorType = FPS_HONEYWELL;
+        te_short = 280;
+        te_long = 143;
+        te_delta = 51;
+        min_count_bit_for_found = 62;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -41,10 +45,7 @@ class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 280;
-    uint32_t te_long = 143;
-    uint32_t te_delta = 51;
-    uint32_t min_count_bit_for_found = 62;
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
 
     void subghz_protocol_decoder_honeywell_addbit(bool data) {
         decode_data = (decode_data << 1) | data;

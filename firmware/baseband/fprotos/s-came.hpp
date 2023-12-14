@@ -9,7 +9,7 @@
 #define PRASTEL_COUNT_BIT 25
 #define AIRFORCE_COUNT_BIT 18
 
-typedef enum {
+typedef enum : uint8_t {
     CameDecoderStepReset = 0,
     CameDecoderStepFoundStartBit,
     CameDecoderStepSaveDuration,
@@ -20,6 +20,10 @@ class FProtoSubGhzDCame : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDCame() {
         sensorType = FPS_CAME;
+        te_short = 320;
+        te_long = 640;
+        te_delta = 150;
+        min_count_bit_for_found = 12;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -70,17 +74,13 @@ class FProtoSubGhzDCame : public FProtoSubGhzDBase {
                 break;
             case CameDecoderStepCheckDuration:
                 if (level) {
-                    if ((DURATION_DIFF(te_last, te_short) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_long) <
-                         te_delta)) {
+                    if ((DURATION_DIFF(te_last, te_short) < te_delta) &&
+                        (DURATION_DIFF(duration, te_long) < te_delta)) {
                         subghz_protocol_blocks_add_bit(0);
                         parser_step = CameDecoderStepSaveDuration;
                     } else if (
-                        (DURATION_DIFF(te_last, te_long) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_short) <
-                         te_delta)) {
+                        (DURATION_DIFF(te_last, te_long) < te_delta) &&
+                        (DURATION_DIFF(duration, te_short) < te_delta)) {
                         subghz_protocol_blocks_add_bit(1);
                         parser_step = CameDecoderStepSaveDuration;
                     } else
@@ -91,12 +91,6 @@ class FProtoSubGhzDCame : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 320;
-    uint32_t te_long = 640;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 12;
 };
 
 #endif

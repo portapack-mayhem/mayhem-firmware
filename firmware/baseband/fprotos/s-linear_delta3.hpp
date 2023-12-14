@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     LinearD3DecoderStepReset = 0,
     LinearD3DecoderStepSaveDuration,
     LinearD3DecoderStepCheckDuration,
@@ -14,6 +14,10 @@ class FProtoSubGhzDLinearDelta3 : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDLinearDelta3() {
         sensorType = FPS_LINEARDELTA3;
+        te_short = 500;
+        te_long = 2000;
+        te_delta = 150;
+        min_count_bit_for_found = 8;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -59,19 +63,13 @@ class FProtoSubGhzDLinearDelta3 : public FProtoSubGhzDBase {
                         break;
                     }
 
-                    if ((DURATION_DIFF(
-                             te_last, te_short) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_short * 7) <
-                         te_delta)) {
+                    if ((DURATION_DIFF(te_last, te_short) < te_delta) &&
+                        (DURATION_DIFF(duration, te_short * 7) < te_delta)) {
                         subghz_protocol_blocks_add_bit(1);
                         parser_step = LinearD3DecoderStepSaveDuration;
                     } else if (
-                        (DURATION_DIFF(
-                             te_last, te_long) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_long) <
-                         te_delta)) {
+                        (DURATION_DIFF(te_last, te_long) < te_delta) &&
+                        (DURATION_DIFF(duration, te_long) < te_delta)) {
                         subghz_protocol_blocks_add_bit(0);
                         parser_step = LinearD3DecoderStepSaveDuration;
                     } else {
@@ -84,12 +82,6 @@ class FProtoSubGhzDLinearDelta3 : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 500;
-    uint32_t te_long = 2000;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 8;
 };
 
 #endif

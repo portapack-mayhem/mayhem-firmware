@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     MagellanDecoderStepReset = 0,
     MagellanDecoderStepCheckPreambula,
     MagellanDecoderStepFoundPreambula,
@@ -16,6 +16,10 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDMagellan() {
         sensorType = FPS_MAGELLAN;
+        te_short = 200;
+        te_long = 400;
+        te_delta = 100;
+        min_count_bit_for_found = 32;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -109,11 +113,6 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 200;
-    uint32_t te_long = 400;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 32;
-
     bool subghz_protocol_magellan_check_crc() {
         uint8_t data[3] = {
             (uint8_t)(decode_data >> 24),
@@ -123,7 +122,7 @@ class FProtoSubGhzDMagellan : public FProtoSubGhzDBase {
     }
     uint8_t subghz_protocol_magellan_crc8(uint8_t* data, size_t len) {
         uint8_t crc = 0x00;
-        size_t i, j;
+        uint8_t i, j;
         for (i = 0; i < len; i++) {
             crc ^= data[i];
             for (j = 0; j < 8; j++) {

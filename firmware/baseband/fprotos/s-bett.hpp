@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     BETTDecoderStepReset = 0,
     BETTDecoderStepSaveDuration,
     BETTDecoderStepCheckDuration,
@@ -14,6 +14,10 @@ class FProtoSubGhzDBett : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDBett() {
         sensorType = FPS_BETT;
+        te_short = 340;
+        te_long = 2000;
+        te_delta = 150;
+        min_count_bit_for_found = 18;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -74,12 +78,6 @@ class FProtoSubGhzDBett : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 340;
-    uint32_t te_long = 2000;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 18;
 };
 
 #endif

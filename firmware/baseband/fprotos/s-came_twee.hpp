@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     CameTweeDecoderStepReset = 0,
     CameTweeDecoderStepDecoderData,
 } CameTweeDecoderStep;
@@ -13,6 +13,10 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDCameTwee() {
         sensorType = FPS_CAMETWEE;
+        te_short = 500;
+        te_long = 1000;
+        te_delta = 250;
+        min_count_bit_for_found = 54;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -53,12 +57,10 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
                         parser_step = CameTweeDecoderStepReset;
                     }
                 } else {
-                    if (DURATION_DIFF(duration, te_short) <
-                        te_delta) {
+                    if (DURATION_DIFF(duration, te_short) < te_delta) {
                         event = ManchesterEventShortHigh;
                     } else if (
-                        DURATION_DIFF(duration, te_long) <
-                        te_delta) {
+                        DURATION_DIFF(duration, te_long) < te_delta) {
                         event = ManchesterEventLongHigh;
                     } else {
                         parser_step = CameTweeDecoderStepReset;
@@ -66,8 +68,7 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
                 }
                 if (event != ManchesterEventReset) {
                     bool data;
-                    bool data_ok = FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data);
-                    if (data_ok) {
+                    if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data)) {
                         decode_data = (decode_data << 1) | !data;
                         decode_count_bit++;
                     }
@@ -77,10 +78,7 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 500;
-    uint32_t te_long = 1000;
-    uint32_t te_delta = 250;
-    uint32_t min_count_bit_for_found = 54;
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
 
     void subghz_protocol_came_twee_remote_controller() {
         /*      Came Twee 54 bit, rolling code 15 parcels with
@@ -119,10 +117,8 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
          */
 
         uint8_t cnt_parcel = (uint8_t)(data & 0xF);
-        uint32_t dataa = (uint32_t)(data & 0x0FFFFFFFF);
-
+        serial = (uint32_t)(data & 0x0FFFFFFFF);
         data = (data ^ came_twee_magic_numbers_xor[cnt_parcel]);
-        serial = dataa;
         data /= 4;
         btn = (data >> 4) & 0x0F;
         data >>= 16;

@@ -16,7 +16,8 @@
 #define SECPLUS_V1_PACKET_2_INDEX_BASE 21
 #define SECPLUS_V1_PACKET_1_ACCEPTED (1 << 0)
 #define SECPLUS_V1_PACKET_2_ACCEPTED (1 << 1)
-typedef enum {
+
+typedef enum : uint8_t{
     SecPlus_v1DecoderStepReset = 0,
     SecPlus_v1DecoderStepSearchStartBit,
     SecPlus_v1DecoderStepSaveDuration,
@@ -27,6 +28,10 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDSecPlusV1() {
         sensorType = FPS_SECPLUSV1;
+        te_short = 500;
+        te_long = 1500;
+        te_delta = 100;
+        min_count_bit_for_found = 21;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -71,7 +76,7 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
                                 packet_accepted |= SECPLUS_V1_PACKET_2_ACCEPTED;
 
                             if (packet_accepted == (SECPLUS_V1_PACKET_1_ACCEPTED | SECPLUS_V1_PACKET_2_ACCEPTED)) {
-                                subghz_protocol_secplus_v1_decode();
+                                subghz_protocol_secplus_v1_decode();  // disabled doe to lack of flash
                                 // controller
                                 uint32_t fixed = (data >> 32) & 0xFFFFFFFF;
                                 cnt = data & 0xFFFFFFFF;
@@ -122,13 +127,8 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 500;
-    uint32_t te_long = 1500;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 21;
-
-    uint8_t packet_accepted;
-    uint8_t base_packet_index;
+    uint8_t packet_accepted = 0;
+    uint8_t base_packet_index = 0;
     uint8_t data_array[44];
 
     void subghz_protocol_secplus_v1_decode() {

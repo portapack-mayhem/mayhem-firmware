@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     KingGates_stylo_4kDecoderStepReset = 0,
     KingGates_stylo_4kDecoderStepCheckPreambula,
     KingGates_stylo_4kDecoderStepCheckStartBit,
@@ -16,6 +16,10 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDKinggatesStylo4K() {
         sensorType = FPS_KINGGATESSTYLO4K;
+        te_short = 400;
+        te_long = 1100;
+        te_delta = 140;
+        min_count_bit_for_found = 89;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -114,10 +118,7 @@ class FProtoSubGhzDKinggatesStylo4K : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 400;
-    uint32_t te_long = 1100;
-    uint32_t te_delta = 140;
-    uint32_t min_count_bit_for_found = 89;
+    uint64_t data_2 = 0;
 };
 
 #endif

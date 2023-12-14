@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     NiceFloDecoderStepReset = 0,
     NiceFloDecoderStepFoundStartBit,
     NiceFloDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDNiceflo : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDNiceflo() {
         sensorType = FPS_NICEFLO;
+        te_short = 700;
+        te_long = 1400;
+        te_delta = 200;
+        min_count_bit_for_found = 12;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -77,12 +81,6 @@ class FProtoSubGhzDNiceflo : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 700;
-    uint32_t te_long = 1400;
-    uint32_t te_delta = 200;
-    uint32_t min_count_bit_for_found = 12;
 };
 
 #endif

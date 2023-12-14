@@ -6,7 +6,7 @@
 
 #define INTERTECHNO_V3_DIMMING_COUNT_BIT 36
 
-typedef enum {
+typedef enum : uint8_t {
     IntertechnoV3DecoderStepReset = 0,
     IntertechnoV3DecoderStepStartSync,
     IntertechnoV3DecoderStepFoundSync,
@@ -20,6 +20,10 @@ class FProtoSubGhzDIntertechnoV3 : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDIntertechnoV3() {
         sensorType = FPS_INTERTECHNOV3;
+        te_short = 275;
+        te_long = 1375;
+        te_delta = 150;
+        min_count_bit_for_found = 32;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -116,11 +120,6 @@ class FProtoSubGhzDIntertechnoV3 : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 275;
-    uint32_t te_long = 1375;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 32;
-
     void remote_controller() {
         if (data_count_bit == min_count_bit_for_found) {
             serial = (data >> 6) & 0x3FFFFFF;

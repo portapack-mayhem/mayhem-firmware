@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     KeeloqDecoderStepReset = 0,
     KeeloqDecoderStepCheckPreambula,
     KeeloqDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDKeeLoq : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDKeeLoq() {
         sensorType = FPS_KEELOQ;
+        te_short = 400;
+        te_long = 800;
+        te_delta = 140;
+        min_count_bit_for_found = 64;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -98,12 +102,6 @@ class FProtoSubGhzDKeeLoq : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 400;
-    uint32_t te_long = 800;
-    uint32_t te_delta = 140;
-    uint32_t min_count_bit_for_found = 64;
 };
 
 #endif

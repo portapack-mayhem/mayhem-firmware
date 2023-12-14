@@ -7,7 +7,7 @@
 #define POWER_SMART_PACKET_HEADER 0xFD000000AA000000
 #define POWER_SMART_PACKET_HEADER_MASK 0xFF000000FF000000
 
-typedef enum {
+typedef enum : uint8_t {
     PowerSmartDecoderStepReset = 0,
     PowerSmartDecoderFoundHeader,
     PowerSmartDecoderStepDecoderData,
@@ -17,6 +17,10 @@ class FProtoSubGhzDPowerSmart : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDPowerSmart() {
         sensorType = FPS_POWERSMART;
+        te_short = 225;
+        te_long = 450;
+        te_delta = 100;
+        min_count_bit_for_found = 64;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -66,10 +70,7 @@ class FProtoSubGhzDPowerSmart : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 225;
-    uint32_t te_long = 450;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 64;
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
 
     bool subghz_protocol_power_smart_chek_valid(uint64_t packet) {
         uint32_t data_1 = (uint32_t)((packet >> 40) & 0xFFFF);

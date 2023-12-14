@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     CameAtomoDecoderStepReset = 0,
     CameAtomoDecoderStepDecoderData,
 } CameAtomoDecoderStep;
@@ -13,14 +13,17 @@ class FProtoSubGhzDCameAtomo : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDCameAtomo() {
         sensorType = FPS_CAMEATOMO;
+        te_short = 600;
+        te_long = 1200;
+        te_delta = 250;
+        min_count_bit_for_found = 62;
     }
 
     void feed(bool level, uint32_t duration) {
         ManchesterEvent event = ManchesterEventReset;
         switch (parser_step) {
             case CameAtomoDecoderStepReset:
-                if ((!level) && (DURATION_DIFF(duration, te_long * 60) <
-                                 te_delta * 40)) {
+                if ((!level) && (DURATION_DIFF(duration, te_long * 60) < te_delta * 40)) {
                     // Found header CAME
                     parser_step = CameAtomoDecoderStepDecoderData;
                     decode_data = 0;
@@ -42,7 +45,36 @@ class FProtoSubGhzDCameAtomo : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            subghz_protocol_came_atomo_remote_controller();
+                            // controller
+                            data ^= 0xFFFFFFFFFFFFFFFF;
+                            data <<= 4;
+
+                            uint8_t pack[8] = {};
+                            pack[0] = (data >> 56);
+                            pack[1] = ((data >> 48) & 0xFF);
+                            pack[2] = ((data >> 40) & 0xFF);
+                            pack[3] = ((data >> 32) & 0xFF);
+                            pack[4] = ((data >> 24) & 0xFF);
+                            pack[5] = ((data >> 16) & 0xFF);
+                            pack[6] = ((data >> 8) & 0xFF);
+                            pack[7] = (data & 0xFF);
+
+                            atomo_decrypt(pack);
+
+                            cnt = (uint16_t)pack[1] << 8 | pack[2];
+                            serial = (uint32_t)(pack[3]) << 24 | pack[4] << 16 | pack[5] << 8 | pack[6];
+
+                            uint8_t btn_decode = (pack[7] >> 4);
+                            if (btn_decode == 0x0) {
+                                btn = 0x1;
+                            } else if (btn_decode == 0x2) {
+                                btn = 0x2;
+                            } else if (btn_decode == 0x4) {
+                                btn = 0x3;
+                            } else if (btn_decode == 0x6) {
+                                btn = 0x4;
+                            }
+
                             if (callback) callback(this);
                         }
                         decode_data = 0;
@@ -76,10 +108,7 @@ class FProtoSubGhzDCameAtomo : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 600;
-    uint32_t te_long = 1200;
-    uint32_t te_delta = 250;
-    uint32_t min_count_bit_for_found = 62;
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
 
     void atomo_decrypt(uint8_t* buff) {
         buff[0] = (buff[0] ^ 5) & 0x7F;
@@ -98,41 +127,6 @@ class FProtoSubGhzDCameAtomo : public FProtoSubGhzDBase {
             }
             bitCnt++;
         }
-    }
-    void subghz_protocol_came_atomo_remote_controller() {
-        data ^= 0xFFFFFFFFFFFFFFFF;
-        data <<= 4;
-
-        uint8_t pack[8] = {};
-        pack[0] = (data >> 56);
-        pack[1] = ((data >> 48) & 0xFF);
-        pack[2] = ((data >> 40) & 0xFF);
-        pack[3] = ((data >> 32) & 0xFF);
-        pack[4] = ((data >> 24) & 0xFF);
-        pack[5] = ((data >> 16) & 0xFF);
-        pack[6] = ((data >> 8) & 0xFF);
-        pack[7] = (data & 0xFF);
-
-        atomo_decrypt(pack);
-
-        cnt_2 = pack[0];
-        cnt = (uint16_t)pack[1] << 8 | pack[2];
-        serial = (uint32_t)(pack[3]) << 24 | pack[4] << 16 | pack[5] << 8 | pack[6];
-
-        uint8_t btn_decode = (pack[7] >> 4);
-        if (btn_decode == 0x0) {
-            btn = 0x1;
-        } else if (btn_decode == 0x2) {
-            btn = 0x2;
-        } else if (btn_decode == 0x4) {
-            btn = 0x3;
-        } else if (btn_decode == 0x6) {
-            btn = 0x4;
-        }
-
-        uint32_t hi = pack[0] << 24 | pack[1] << 16 | pack[2] << 8 | pack[3];
-        uint32_t lo = pack[4] << 24 | pack[5] << 16 | pack[6] << 8 | pack[7];
-        data_2 = (uint64_t)hi << 32 | lo;
     }
 };
 

@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     ClemsaDecoderStepReset = 0,
     ClemsaDecoderStepSaveDuration,
     ClemsaDecoderStepCheckDuration,
@@ -14,6 +14,10 @@ class FProtoSubGhzDClemsa : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDClemsa() {
         sensorType = FPS_CLEMSA;
+        te_short = 385;
+        te_long = 2695;
+        te_delta = 150;
+        min_count_bit_for_found = 18;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -60,7 +64,11 @@ class FProtoSubGhzDClemsa : public FProtoSubGhzDBase {
                             min_count_bit_for_found) {
                             data = decode_data;
                             data_count_bit = decode_count_bit;
-                            subghz_protocol_clemsa_check_remote_controller();
+
+                            // controller
+                            serial = (data >> 2) & 0xFFFF;
+                            btn = (data & 0x03);
+
                             if (callback) callback(this);
                         }
                         parser_step = ClemsaDecoderStepSaveDuration;
@@ -75,17 +83,6 @@ class FProtoSubGhzDClemsa : public FProtoSubGhzDBase {
                 }
                 break;
         }
-    }
-
-   protected:
-    uint32_t te_short = 385;
-    uint32_t te_long = 2695;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 18;
-
-    void subghz_protocol_clemsa_check_remote_controller() {
-        serial = (data >> 2) & 0xFFFF;
-        btn = (data & 0x03);
     }
 };
 

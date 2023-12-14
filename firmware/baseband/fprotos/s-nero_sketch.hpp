@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     NeroSketchDecoderStepReset = 0,
     NeroSketchDecoderStepCheckPreambula,
     NeroSketchDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDNeroSketch : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDNeroSketch() {
         sensorType = FPS_NERO_SKETCH;
+        te_short = 330;
+        te_long = 660;
+        te_delta = 150;
+        min_count_bit_for_found = 40;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -99,12 +103,6 @@ class FProtoSubGhzDNeroSketch : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 330;
-    uint32_t te_long = 660;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 40;
 };
 
 #endif

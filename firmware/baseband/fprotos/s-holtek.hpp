@@ -7,7 +7,7 @@
 #define HOLTEK_HEADER_MASK 0xF000000000
 #define HOLTEK_HEADER 0x5000000000
 
-typedef enum {
+typedef enum : uint8_t {
     HoltekDecoderStepReset = 0,
     HoltekDecoderStepFoundStartBit,
     HoltekDecoderStepSaveDuration,
@@ -18,6 +18,10 @@ class FProtoSubGhzDHoltek : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDHoltek() {
         sensorType = FPS_HOLTEK;
+        te_short = 430;
+        te_long = 870;
+        te_delta = 100;
+        min_count_bit_for_found = 40;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -98,12 +102,6 @@ class FProtoSubGhzDHoltek : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 430;
-    uint32_t te_long = 870;
-    uint32_t te_delta = 100;
-    uint32_t min_count_bit_for_found = 40;
 };
 
 #endif

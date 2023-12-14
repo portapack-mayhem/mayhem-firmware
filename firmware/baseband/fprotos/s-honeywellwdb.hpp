@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     Honeywell_WDBDecoderStepReset = 0,
     Honeywell_WDBDecoderStepFoundStartBit,
     Honeywell_WDBDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDHoneywellWdb : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDHoneywellWdb() {
         sensorType = FPS_HONEYWELLWDB;
+        te_short = 160;
+        te_long = 320;
+        te_delta = 61;
+        min_count_bit_for_found = 48;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -65,12 +69,6 @@ class FProtoSubGhzDHoneywellWdb : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 160;
-    uint32_t te_long = 320;
-    uint32_t te_delta = 61;
-    uint32_t min_count_bit_for_found = 48;
 };
 
 #endif

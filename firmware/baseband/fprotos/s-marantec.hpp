@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     MarantecDecoderStepReset = 0,
     MarantecDecoderFoundHeader,
     MarantecDecoderStepDecoderData,
@@ -14,6 +14,10 @@ class FProtoSubGhzDMarantec : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDMarantec() {
         sensorType = FPS_MARANTEC;
+        te_short = 1000;
+        te_long = 2000;
+        te_delta = 200;
+        min_count_bit_for_found = 49;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -76,10 +80,7 @@ class FProtoSubGhzDMarantec : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 1000;
-    uint32_t te_long = 2000;
-    uint32_t te_delta = 200;
-    uint32_t min_count_bit_for_found = 49;
+    ManchesterState manchester_saved_state = ManchesterStateMid1;
 };
 
 #endif

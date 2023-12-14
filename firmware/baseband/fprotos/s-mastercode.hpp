@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     MastercodeDecoderStepReset = 0,
     MastercodeDecoderStepSaveDuration,
     MastercodeDecoderStepCheckDuration,
@@ -14,6 +14,10 @@ class FProtoSubGhzDMastercode : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDMastercode() {
         sensorType = FPS_MASTERCODE;
+        te_short = 1072;
+        te_long = 2145;
+        te_delta = 150;
+        min_count_bit_for_found = 36;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -77,12 +81,6 @@ class FProtoSubGhzDMastercode : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 1072;
-    uint32_t te_long = 2145;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 36;
 };
 
 #endif

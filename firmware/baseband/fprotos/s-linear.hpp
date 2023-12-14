@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     LinearDecoderStepReset = 0,
     LinearDecoderStepSaveDuration,
     LinearDecoderStepCheckDuration,
@@ -14,6 +14,10 @@ class FProtoSubGhzDLinear : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDLinear() {
         sensorType = FPS_LINEAR;
+        te_short = 500;
+        te_long = 1500;
+        te_delta = 150;
+        min_count_bit_for_found = 10;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -79,12 +83,6 @@ class FProtoSubGhzDLinear : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 500;
-    uint32_t te_long = 1500;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 10;
 };
 
 #endif

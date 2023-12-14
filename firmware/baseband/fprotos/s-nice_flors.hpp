@@ -6,7 +6,7 @@
 
 #define NICE_ONE_COUNT_BIT 72
 
-typedef enum {
+typedef enum : uint8_t {
     NiceFlorSDecoderStepReset = 0,
     NiceFlorSDecoderStepCheckHeader,
     NiceFlorSDecoderStepFoundHeader,
@@ -18,6 +18,10 @@ class FProtoSubGhzDNiceflors : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDNiceflors() {
         sensorType = FPS_NICEFLORS;
+        te_short = 500;
+        te_long = 1000;
+        te_delta = 300;
+        min_count_bit_for_found = 52;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -91,12 +95,6 @@ class FProtoSubGhzDNiceflors : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 500;
-    uint32_t te_long = 1000;
-    uint32_t te_delta = 300;
-    uint32_t min_count_bit_for_found = 52;
 };
 
 #endif

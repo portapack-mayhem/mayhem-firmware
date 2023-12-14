@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     DoitrandDecoderStepReset = 0,
     DoitrandDecoderStepFoundStartBit,
     DoitrandDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDDoitrand : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDDoitrand() {
         sensorType = FPS_DOITRAND;
+        te_short = 400;
+        te_long = 1100;
+        te_delta = 150;
+        min_count_bit_for_found = 37;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -77,12 +81,6 @@ class FProtoSubGhzDDoitrand : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 400;
-    uint32_t te_long = 1100;
-    uint32_t te_delta = 150;
-    uint32_t min_count_bit_for_found = 37;
 };
 
 #endif

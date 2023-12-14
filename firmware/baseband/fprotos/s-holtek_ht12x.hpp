@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     Holtek_HT12XDecoderStepReset = 0,
     Holtek_HT12XDecoderStepFoundStartBit,
     Holtek_HT12XDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDHoltekHt12x : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDHoltekHt12x() {
         sensorType = FPS_HOLTEKHT12X;
+        te_short = 320;
+        te_long = 640;
+        te_delta = 200;
+        min_count_bit_for_found = 12;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -81,12 +85,6 @@ class FProtoSubGhzDHoltekHt12x : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 320;
-    uint32_t te_long = 640;
-    uint32_t te_delta = 200;
-    uint32_t min_count_bit_for_found = 12;
 };
 
 #endif

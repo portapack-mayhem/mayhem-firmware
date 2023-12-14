@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     DooyaDecoderStepReset = 0,
     DooyaDecoderStepFoundStartBit,
     DooyaDecoderStepSaveDuration,
@@ -15,6 +15,10 @@ class FProtoSubGhzDDooya : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDDooya() {
         sensorType = FPS_DOOYA;
+        te_short = 366;
+        te_long = 733;
+        te_delta = 120;
+        min_count_bit_for_found = 40;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -102,12 +106,6 @@ class FProtoSubGhzDDooya : public FProtoSubGhzDBase {
                 break;
         }
     }
-
-   protected:
-    uint32_t te_short = 366;
-    uint32_t te_long = 733;
-    uint32_t te_delta = 120;
-    uint32_t min_count_bit_for_found = 40;
 };
 
 #endif

@@ -1279,25 +1279,25 @@ class SubGhzDDataMessage : public Message {
    public:
     constexpr SubGhzDDataMessage(
         uint8_t sensorType = 0,
-        uint32_t serial = 0xFFFFFFFF,
+        uint8_t btn = 0xFF,
         uint16_t bits = 0,
-        uint32_t data = 0,
-        uint32_t data_2 = 0,
-        uint8_t btn = 0xFF)
+        uint32_t serial = 0xFFFFFFFF,
+        uint64_t data = 0,
+        uint32_t cnt = 0xFF)
         : Message{ID::SubGhzDData},
           sensorType{sensorType},
-          serial{serial},
-          bits{bits},
           btn{btn},
-          data{data},
-          data_2{data_2} {
+          bits{bits},
+          serial{serial},
+          cnt{cnt},
+          data{data} {
     }
     uint8_t sensorType = 0;
-    uint32_t serial = 0xFFFFFFFF;
-    uint16_t bits;
     uint8_t btn = 0xFF;
-    uint32_t data = 0;
-    uint32_t data_2 = 0;
+    uint16_t bits = 0;
+    uint32_t serial = 0xFFFFFFFF;
+    uint32_t cnt = 0xFF;
+    uint64_t data = 0;
 };
 
 #endif /*__MESSAGE_H__*/

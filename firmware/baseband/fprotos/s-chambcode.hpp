@@ -16,7 +16,7 @@
 #define CHAMBERLAIN_8_CODE_MASK_CHECK 0x1000001001
 #define CHAMBERLAIN_9_CODE_MASK_CHECK 0x10000000001
 
-typedef enum {
+typedef enum : uint8_t{
     Chamb_CodeDecoderStepReset = 0,
     Chamb_CodeDecoderStepFoundStartBit,
     Chamb_CodeDecoderStepSaveDuration,
@@ -27,6 +27,10 @@ class FProtoSubGhzDChambCode : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDChambCode() {
         sensorType = FPS_CHAMBCODE;
+        te_short = 1000;
+        te_long = 3000;
+        te_delta = 200;
+        min_count_bit_for_found = 10;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -52,8 +56,7 @@ class FProtoSubGhzDChambCode : public FProtoSubGhzDBase {
             case Chamb_CodeDecoderStepSaveDuration:
                 if (!level) {  // save interval
                     if (duration > te_short * 5) {
-                        if (decode_count_bit >=
-                            min_count_bit_for_found) {
+                        if (decode_count_bit >= min_count_bit_for_found) {
                             serial = SD_NO_SERIAL;
                             btn = SD_NO_BTN;
                             if (subghz_protocol_decoder_chamb_code_check_mask_and_parse()) {
@@ -72,35 +75,23 @@ class FProtoSubGhzDChambCode : public FProtoSubGhzDBase {
                 }
                 break;
             case Chamb_CodeDecoderStepCheckDuration:
-                if (level) {
-                    if ((DURATION_DIFF(  // Found stop bit Chamb_Code
-                             te_last,
-                             te_short * 3) <
+                if (level) {  // Found stop bit Chamb_Code
+                    if ((DURATION_DIFF(te_last, te_short * 3) <
                          te_delta) &&
-                        (DURATION_DIFF(duration, te_short) <
-                         te_delta)) {
-                        decode_data = decode_data << 4 |
-                                      CHAMBERLAIN_CODE_BIT_STOP;
+                        (DURATION_DIFF(duration, te_short) < te_delta)) {
+                        decode_data = decode_data << 4 | CHAMBERLAIN_CODE_BIT_STOP;
                         decode_count_bit++;
                         parser_step = Chamb_CodeDecoderStepSaveDuration;
                     } else if (
-                        (DURATION_DIFF(
-                             te_last, te_short * 2) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_short * 2) <
-                         te_delta)) {
-                        decode_data = decode_data << 4 |
-                                      CHAMBERLAIN_CODE_BIT_1;
+                        (DURATION_DIFF(te_last, te_short * 2) < te_delta) &&
+                        (DURATION_DIFF(duration, te_short * 2) < te_delta)) {
+                        decode_data = decode_data << 4 | CHAMBERLAIN_CODE_BIT_1;
                         decode_count_bit++;
                         parser_step = Chamb_CodeDecoderStepSaveDuration;
                     } else if (
-                        (DURATION_DIFF(
-                             te_last, te_short) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_short * 3) <
-                         te_delta)) {
-                        decode_data = decode_data << 4 |
-                                      CHAMBERLAIN_CODE_BIT_0;
+                        (DURATION_DIFF(te_last, te_short) < te_delta) &&
+                        (DURATION_DIFF(duration, te_short * 3) < te_delta)) {
+                        decode_data = decode_data << 4 | CHAMBERLAIN_CODE_BIT_0;
                         decode_count_bit++;
                         parser_step = Chamb_CodeDecoderStepSaveDuration;
                     } else {
@@ -115,11 +106,6 @@ class FProtoSubGhzDChambCode : public FProtoSubGhzDBase {
     }
 
    protected:
-    uint32_t te_short = 1000;
-    uint32_t te_long = 3000;
-    uint32_t te_delta = 200;
-    uint32_t min_count_bit_for_found = 10;
-
     bool subghz_protocol_decoder_chamb_code_check_mask_and_parse() {
         if (decode_count_bit > min_count_bit_for_found + 1)
             return false;

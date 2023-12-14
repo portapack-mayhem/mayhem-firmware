@@ -4,7 +4,7 @@
 
 #include "subghzdbase.hpp"
 
-typedef enum {
+typedef enum : uint8_t {
     PrincetonDecoderStepReset = 0,
     PrincetonDecoderStepSaveDuration,
     PrincetonDecoderStepCheckDuration,
@@ -14,6 +14,10 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
    public:
     FProtoSubGhzDPrinceton() {
         sensorType = FPS_PRINCETON;
+        te_short = 390;
+        te_long = 1170;
+        te_delta = 300;
+        min_count_bit_for_found = 24;
     }
 
     void feed(bool level, uint32_t duration) {
@@ -24,14 +28,12 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
                     parser_step = PrincetonDecoderStepSaveDuration;
                     decode_data = 0;
                     decode_count_bit = 0;
-                    te = 0;
                 }
                 break;
             case PrincetonDecoderStepSaveDuration:
                 // save duration
                 if (level) {
                     te_last = duration;
-                    te += duration;
                     parser_step = PrincetonDecoderStepCheckDuration;
                 }
                 break;
@@ -39,38 +41,26 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
                 if (!level) {
                     if (duration >= ((uint32_t)te_long * 2)) {
                         parser_step = PrincetonDecoderStepSaveDuration;
-                        if (decode_count_bit ==
-                            min_count_bit_for_found) {
-                            if ((last_data == decode_data) &&
-                                last_data) {
-                                te /= (decode_count_bit * 4 + 1);
-
-                                data = decode_data;
-                                data_count_bit = decode_count_bit;
-                                subghz_protocol_princeton_check_remote_controller();
-                                if (callback) callback(this);
-                            }
-                            last_data = decode_data;
+                        if (decode_count_bit == min_count_bit_for_found) {
+                            data = decode_data;
+                            data_count_bit = decode_count_bit;
+                            // controller
+                            serial = data >> 4;
+                            btn = data & 0xF;
+                            if (callback) callback(this);
                         }
                         decode_data = 0;
                         decode_count_bit = 0;
-                        te = 0;
                         break;
                     }
 
-                    te += duration;
-
-                    if ((DURATION_DIFF(te_last, te_short) <
-                         te_delta) &&
-                        (DURATION_DIFF(duration, te_long) <
-                         te_delta * 3)) {
+                    if ((DURATION_DIFF(te_last, te_short) < te_delta) &&
+                        (DURATION_DIFF(duration, te_long) < te_delta * 3)) {
                         subghz_protocol_blocks_add_bit(0);
                         parser_step = PrincetonDecoderStepSaveDuration;
                     } else if (
-                        (DURATION_DIFF(te_last, te_long) <
-                         te_delta * 3) &&
-                        (DURATION_DIFF(duration, te_short) <
-                         te_delta)) {
+                        (DURATION_DIFF(te_last, te_long) < te_delta * 3) &&
+                        (DURATION_DIFF(duration, te_short) < te_delta)) {
                         subghz_protocol_blocks_add_bit(1);
                         parser_step = PrincetonDecoderStepSaveDuration;
                     } else {
@@ -82,21 +72,6 @@ class FProtoSubGhzDPrinceton : public FProtoSubGhzDBase {
                 break;
         }
     }
-    void subghz_protocol_princeton_check_remote_controller() {
-        serial = data >> 4;
-        btn = data & 0xF;
-        // te = te
-        // key = (uint32_t)(data & 0xFFFFFF) --the whole packet.
-    }
-
-   protected:
-    uint32_t te_short = 390;
-    uint32_t te_long = 1170;
-    uint32_t te_delta = 300;
-    uint32_t min_count_bit_for_found = 24;
-
-    uint32_t te = 0;
-    uint32_t last_data = 0;
 };
 
 #endif
