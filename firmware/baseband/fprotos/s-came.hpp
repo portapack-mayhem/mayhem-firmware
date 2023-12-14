@@ -51,15 +51,14 @@ class FProtoSubGhzDCame : public FProtoSubGhzDBase {
                 if (!level) {  // save interval
                     if (duration >= (te_short * 4)) {
                         parser_step = CameDecoderStepFoundStartBit;
-                        if ((decode_count_bit == min_count_bit_for_found) ||
-                            (decode_count_bit == AIRFORCE_COUNT_BIT) ||
-                            (decode_count_bit == PRASTEL_COUNT_BIT) ||
-                            (decode_count_bit == CAME_24_COUNT_BIT)) {
+                        if ((decode_count_bit == min_count_bit_for_found) || (decode_count_bit == AIRFORCE_COUNT_BIT) ||
+                            (decode_count_bit == PRASTEL_COUNT_BIT) || (decode_count_bit == CAME_24_COUNT_BIT)) {
                             serial = SD_NO_SERIAL;
                             btn = SD_NO_BTN;
                             data = decode_data;
                             data_count_bit = decode_count_bit;
                             // if flippa hacky, i hacky
+                            sensorType = FPS_CAME;
                             if (decode_count_bit == PRASTEL_COUNT_BIT) sensorType = FPS_PRASTEL;
                             if (decode_count_bit == AIRFORCE_COUNT_BIT) sensorType = FPS_AIRFORCE;
                             if (callback) callback(this);
