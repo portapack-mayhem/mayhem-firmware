@@ -136,7 +136,7 @@ class FProtoSubGhzDIntertechnoV3 : public FProtoSubGhzDBase {
             } else {
                 cnt = (~(data >> 4) & 0xF);
             }
-            btn = (data) & 0xF;
+            btn = data & 0xF;
         } else {
             serial = 0;
             cnt = 0;

@@ -16,7 +16,7 @@
 #define CHAMBERLAIN_8_CODE_MASK_CHECK 0x1000001001
 #define CHAMBERLAIN_9_CODE_MASK_CHECK 0x10000000001
 
-typedef enum : uint8_t{
+typedef enum : uint8_t {
     Chamb_CodeDecoderStepReset = 0,
     Chamb_CodeDecoderStepFoundStartBit,
     Chamb_CodeDecoderStepSaveDuration,
