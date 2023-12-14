@@ -67,9 +67,9 @@ class FProtoSubGhzDCameTwee : public FProtoSubGhzDBase {
                     }
                 }
                 if (event != ManchesterEventReset) {
-                    bool data;
-                    if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data)) {
-                        decode_data = (decode_data << 1) | !data;
+                    bool bit;
+                    if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit)) {
+                        decode_data = (decode_data << 1) | !bit;
                         decode_count_bit++;
                     }
                 }

@@ -32,11 +32,11 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
             }
         }
         if (event != ManchesterEventReset) {
-            bool data;
-            bool data_ok = FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data);
+            bool bit;
+            bool data_ok = FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit);
 
             if (data_ok) {
-                decode_data = (decode_data << 1) | !data;
+                decode_data = (decode_data << 1) | !bit;
             }
 
             if (((decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) == AMBIENT_WEATHER_PACKET_HEADER_1) ||

@@ -32,11 +32,11 @@ class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
             }
         }
         if (event != ManchesterEventReset) {
-            bool data;
+            bool bit;
             bool data_ok = FProtoGeneral::manchester_advance(
-                manchester_saved_state, event, &manchester_saved_state, &data);
+                manchester_saved_state, event, &manchester_saved_state, &bit);
             if (data_ok) {
-                subghz_protocol_decoder_honeywell_addbit(data);
+                subghz_protocol_decoder_honeywell_addbit(bit);
             }
         } else {
             decode_data = 0;
@@ -47,8 +47,8 @@ class FProtoSubGhzDHoneywell : public FProtoSubGhzDBase {
    protected:
     ManchesterState manchester_saved_state = ManchesterStateMid1;
 
-    void subghz_protocol_decoder_honeywell_addbit(bool data) {
-        decode_data = (decode_data << 1) | data;
+    void subghz_protocol_decoder_honeywell_addbit(bool bit) {
+        decode_data = (decode_data << 1) | bit;
         decode_count_bit++;
 
         uint16_t preamble = (decode_data >> 48) & 0xFFFF;
