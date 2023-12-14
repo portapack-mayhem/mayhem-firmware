@@ -43,6 +43,10 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include "s-phoenix_v2.hpp"
 #include "s-power_smart.hpp"
 #include "s-secplus_v1.hpp"
+#include "s-secplus_v2.hpp"
+#include "s-smc5326.hpp"
+#include "s-star_line.hpp"
+#include "s-x10.hpp"
 
 // GENIE FROM PR
 
@@ -88,6 +92,13 @@ class SubGhzDProtos : public FProtoListGeneral {
         protos[FPS_PHOENIXV2] = new FProtoSubGhzDPhoenixV2();
         protos[FPS_POWERSMART] = new FProtoSubGhzDPowerSmart();
         protos[FPS_SECPLUSV1] = new FProtoSubGhzDSecPlusV1();
+        protos[FPS_SECPLUSV2] = new FProtoSubGhzDSecPlusV2();
+        protos[FPS_SMC5326] = new FProtoSubGhzDSmc5326();
+        // somify keytis skipped
+        // somify telis skipped
+        protos[FPS_STARLINE] = new FProtoSubGhzDStarLine();
+        protos[FPS_X10] = new FProtoSubGhzDX10();
+        // genie skipped
 
         for (uint8_t i = 0; i < FPS_COUNT; ++i) {
             if (protos[i] != NULL) protos[i]->setCallback(callbackTarget);

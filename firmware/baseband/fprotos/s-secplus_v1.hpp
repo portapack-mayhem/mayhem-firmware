@@ -17,7 +17,7 @@
 #define SECPLUS_V1_PACKET_1_ACCEPTED (1 << 0)
 #define SECPLUS_V1_PACKET_2_ACCEPTED (1 << 1)
 
-typedef enum : uint8_t{
+typedef enum : uint8_t {
     SecPlus_v1DecoderStepReset = 0,
     SecPlus_v1DecoderStepSearchStartBit,
     SecPlus_v1DecoderStepSaveDuration,
@@ -76,11 +76,11 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
                                 packet_accepted |= SECPLUS_V1_PACKET_2_ACCEPTED;
 
                             if (packet_accepted == (SECPLUS_V1_PACKET_1_ACCEPTED | SECPLUS_V1_PACKET_2_ACCEPTED)) {
-                                subghz_protocol_secplus_v1_decode();  // disabled doe to lack of flash
-                                // controller
-                                uint32_t fixed = (data >> 32) & 0xFFFFFFFF;
-                                cnt = data & 0xFFFFFFFF;
-                                btn = fixed % 3;
+                                // subghz_protocol_secplus_v1_decode();  // disabled doe to lack of flash
+                                //  controller
+                                // uint32_t fixed = (data >> 32) & 0xFFFFFFFF;
+                                // cnt = data & 0xFFFFFFFF;
+                                // btn = fixed % 3;
                                 if (callback) callback(this);
                                 parser_step = SecPlus_v1DecoderStepReset;
                             }
@@ -98,8 +98,7 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
                 break;
             case SecPlus_v1DecoderStepDecoderData:
                 if (level && (decode_count_bit <= min_count_bit_for_found)) {
-                    if ((DURATION_DIFF(te_last, te_short * 3) <
-                         te_delta * 3) &&
+                    if ((DURATION_DIFF(te_last, te_short * 3) < te_delta * 3) &&
                         (DURATION_DIFF(duration, te_short) < te_delta)) {
                         data_array[decode_count_bit + base_packet_index] = SECPLUS_V1_BIT_0;
                         decode_count_bit++;
@@ -130,40 +129,6 @@ class FProtoSubGhzDSecPlusV1 : public FProtoSubGhzDBase {
     uint8_t packet_accepted = 0;
     uint8_t base_packet_index = 0;
     uint8_t data_array[44];
-
-    void subghz_protocol_secplus_v1_decode() {
-        uint32_t rolling = 0;
-        uint32_t fixed = 0;
-        uint32_t acc = 0;
-        uint8_t digit = 0;
-
-        // decode packet 1
-        for (uint8_t i = 1; i < 21; i += 2) {
-            digit = data_array[i];
-            rolling = (rolling * 3) + digit;
-            acc += digit;
-
-            digit = (60 + data_array[i + 1] - acc) % 3;
-            fixed = (fixed * 3) + digit;
-            acc += digit;
-        }
-
-        acc = 0;
-        // decode packet 2
-        for (uint8_t i = 22; i < 42; i += 2) {
-            digit = data_array[i];
-            rolling = (rolling * 3) + digit;
-            acc += digit;
-
-            digit = (60 + data_array[i + 1] - acc) % 3;
-            fixed = (fixed * 3) + digit;
-            acc += digit;
-        }
-
-        rolling = FProtoGeneral::subghz_protocol_blocks_reverse_key(rolling, 32);
-        data = (uint64_t)fixed << 32 | rolling;
-        data_count_bit = min_count_bit_for_found * 2;
-    }
 };
 
 #endif

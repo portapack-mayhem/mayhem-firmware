@@ -196,6 +196,14 @@ const char* SubGhzDView::getSensorTypeName(FPROTO_SUBGHZD_SENSOR type) {
             return "PowerSmart";
         case FPS_SECPLUSV1:
             return "SecPlus V1";
+        case FPS_SECPLUSV2:
+            return "SecPlus V2";
+        case FPS_SMC5326:
+            return "SMC5326";
+        case FPS_STARLINE:
+            return "Star Line";
+        case FPS_X10:
+            return "X10";
         case FPS_Invalid:
         default:
             return "Unknown";
