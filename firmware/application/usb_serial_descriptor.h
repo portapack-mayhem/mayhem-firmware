@@ -24,23 +24,21 @@
 #include "ch.h"
 #include "hal.h"
 
-void setup_usb_serial_controller(void);
+extern uint8_t usb_descriptor_device[];
+extern uint8_t usb_descriptor_device_qualifier[];
+extern uint8_t usb_descriptor_configuration_full_speed[];
+extern uint8_t usb_descriptor_configuration_high_speed[];
+extern uint8_t usb_descriptor_string_languages[];
+extern uint8_t usb_descriptor_string_manufacturer[];
+extern uint8_t usb_descriptor_string_product[];
 
-struct SerialUSBDriverVMT {
-    _base_asynchronous_channel_methods
-};
+#define USB_DESCRIPTOR_STRING_SERIAL_LEN 32
+#define USB_DESCRIPTOR_STRING_SERIAL_BUF_LEN \
+    (USB_DESCRIPTOR_STRING_SERIAL_LEN * 2 + 2) /* UTF-16LE */
+extern uint8_t usb_descriptor_string_serial_number[];
 
-struct SerialUSBDriver {
-    /** @brief Virtual Methods Table.*/
-    const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;               /* Output queue.*/
-    OutputQueue oqueue;              /* Input circular buffer.*/
-    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[SERIAL_BUFFERS_SIZE];
-};
+extern uint8_t* usb_descriptor_strings[];
 
-typedef struct SerialUSBDriver SerialUSBDriver;
-
-extern SerialUSBDriver SUSBD1;
-
-void init_SerialUSBDriver(SerialUSBDriver* sdp);
+#define USB_WCID_VENDOR_REQ 0x19
+extern uint8_t wcid_string_descriptor[];
+extern uint8_t wcid_feature_descriptor[];

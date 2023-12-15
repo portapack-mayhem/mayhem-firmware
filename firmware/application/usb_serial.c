@@ -1,5 +1,7 @@
 #include "usb_serial.h"
 
+#include "usb_serial_endpoints.h"
+
 #pragma GCC diagnostic push
 // external code, so ignore warnings
 #pragma GCC diagnostic ignored "-Wstrict-prototypes"
@@ -15,61 +17,6 @@
 #include <usb_request.h>
 #include <string.h>
 bool serial_running = false;
-
-#define USB_CONTROL_IN_EP_ADDR (0x80)
-#define USB_CONTROL_OUT_EP_ADDR (0x00)
-
-#define USB_INT_IN_EP_ADDR (0x82)
-
-#define USB_BULK_OUT_EP_ADDR (0x01)
-#define USB_BULK_IN_EP_ADDR (0x81)
-
-usb_endpoint_t usb_endpoint_control_out = {
-    .address = USB_CONTROL_OUT_EP_ADDR,
-    .device = &usb_device,
-    .in = &usb_endpoint_control_in,
-    .out = &usb_endpoint_control_out,
-    .setup_complete = usb_setup_complete,
-    .transfer_complete = usb_control_out_complete,
-};
-USB_DEFINE_QUEUE(usb_endpoint_control_out, 4);
-
-usb_endpoint_t usb_endpoint_control_in = {
-    .address = USB_CONTROL_IN_EP_ADDR,
-    .device = &usb_device,
-    .in = &usb_endpoint_control_in,
-    .out = &usb_endpoint_control_out,
-    .setup_complete = 0,
-    .transfer_complete = usb_control_in_complete,
-};
-static USB_DEFINE_QUEUE(usb_endpoint_control_in, 4);
-
-usb_endpoint_t usb_endpoint_int_in = {
-    .address = USB_INT_IN_EP_ADDR,
-    .device = &usb_device,
-    .in = &usb_endpoint_int_in,
-    .out = 0,
-    .setup_complete = 0,
-    .transfer_complete = usb_queue_transfer_complete};
-static USB_DEFINE_QUEUE(usb_endpoint_int_in, 1);
-
-usb_endpoint_t usb_endpoint_bulk_in = {
-    .address = USB_BULK_IN_EP_ADDR,
-    .device = &usb_device,
-    .in = &usb_endpoint_bulk_in,
-    .out = 0,
-    .setup_complete = 0,
-    .transfer_complete = usb_queue_transfer_complete};
-static USB_DEFINE_QUEUE(usb_endpoint_bulk_in, 1);
-
-usb_endpoint_t usb_endpoint_bulk_out = {
-    .address = USB_BULK_OUT_EP_ADDR,
-    .device = &usb_device,
-    .in = 0,
-    .out = &usb_endpoint_bulk_out,
-    .setup_complete = 0,
-    .transfer_complete = usb_queue_transfer_complete};
-static USB_DEFINE_QUEUE(usb_endpoint_bulk_out, 1);
 
 extern void usb0_isr(void);
 
@@ -228,388 +175,75 @@ uint32_t __strex(uint32_t val, volatile uint32_t* addr) {
     return 0;
 }
 
-#define USB_VENDOR_ID (0x1D50)
-#define USB_PRODUCT_ID (0x6018)
-#define USB_API_VERSION (0x0100)
-
-#define USB_WORD(x) (x & 0xFF), ((x >> 8) & 0xFF)
-#define USB_MAX_PACKET0 (64)
-#define USB_MAX_PACKET_BULK_FS (64)
-#define USB_MAX_PACKET_BULK_HS (16)
-#define USB_STRING_LANGID (0x0409)
-
-uint8_t usb_descriptor_device[] = {
-    18,                          // bLength
-    USB_DESCRIPTOR_TYPE_DEVICE,  // bDescriptorType
-    USB_WORD(0x0200),            // bcdUSB
-    0xef,                        // bDeviceClass
-    0x02,                        // bDeviceSubClass
-    0x01,                        // bDeviceProtocol
-    USB_MAX_PACKET0,             // bMaxPacketSize0
-    USB_WORD(USB_VENDOR_ID),     // idVendor
-    USB_WORD(USB_PRODUCT_ID),    // idProduct
-    USB_WORD(USB_API_VERSION),   // bcdDevice
-    0x01,                        // iManufacturer
-    0x02,                        // iProduct
-    0x03,                        // iSerialNumber
-    0x01                         // bNumConfigurations
-};
-
-uint8_t usb_descriptor_device_qualifier[] = {
-    10,                                    // bLength
-    USB_DESCRIPTOR_TYPE_DEVICE_QUALIFIER,  // bDescriptorType
-    USB_WORD(0x0200),                      // bcdUSB
-    0xef,                                  // bDeviceClass
-    0x02,                                  // bDeviceSubClass
-    0x01,                                  // bDeviceProtocol
-    USB_MAX_PACKET0,                       // bMaxPacketSize0
-    0x01,                                  // bNumOtherSpeedConfigurations
-    0x00                                   // bReserved
-};
-uint8_t usb_descriptor_configuration_full_speed[] = {
-    9,                                                   // bLength
-    USB_DESCRIPTOR_TYPE_CONFIGURATION,                   // bDescriptorType
-    USB_WORD((16 + 8 + 9 + 5 + 5 + 4 + 5 + 9 + 7 + 7)),  // wTotalLength
-    0x02,                                                // bNumInterfaces
-    0x01,                                                // bConfigurationValue
-    0x00,                                                // iConfiguration
-    0x80,                                                // bmAttributes: USB-powered
-    250,                                                 // bMaxPower: 500mA
-
-    8,    // bLength
-    0xb,  // bDescriptorType
-    0,
-    2,
-    0x02,
-    0x02,
-    0x00,
-    4,
-
-    9,                              // bLength
-    USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
-    0x00,                           // bInterfaceNumber
-    0x00,                           // bAlternateSetting
-    0x01,                           // bNumEndpoints
-    0x02,                           // bInterfaceClass: vendor-specific
-    0x02,                           // bInterfaceSubClass
-    0x00,                           // bInterfaceProtocol: vendor-specific
-    0x04,                           // iInterface
-
-    5,
-    0x24,  // ACM
-    0x00,
-    USB_WORD(0x0110),
-
-    5,
-    0x24,
-    0x01,
-    0x00,
-    0x01,
-
-    4,
-    0x24,
-    0x02,
-    0x02,
-
-    5,
-    0x24,
-    0x06,
-    0x00,
-    0x01,
-
-    7,                             // bLength
-    USB_DESCRIPTOR_TYPE_ENDPOINT,  // bDescriptorType
-    USB_INT_IN_EP_ADDR,            // bEndpointAddress
-    0x03,                          // bmAttributes: BULK
-    USB_WORD(16),                  // wMaxPacketSize
-    0xFF,                          // bInterval: no NAK
-
-    9,                              // bLength
-    USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
-    0x01,                           // bInterfaceNumber
-    0x00,                           // bAlternateSetting
-    0x02,                           // bNumEndpoints
-    0x0a,                           // bInterfaceClass: vendor-specific
-    0x00,                           // bInterfaceSubClass
-    0x00,                           // bInterfaceProtocol: vendor-specific
-    0x00,                           // iInterface
-
-    7,                                 // bLength
-    USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
-    USB_BULK_OUT_EP_ADDR,              // bEndpointAddress
-    0x02,                              // bmAttributes: BULK
-    USB_WORD(USB_MAX_PACKET_BULK_FS),  // wMaxPacketSize
-    0x01,                              // bInterval: no NAK
-
-    7,                                 // bLength
-    USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
-    USB_BULK_IN_EP_ADDR,               // bEndpointAddress
-    0x02,                              // bmAttributes: BULK
-    USB_WORD(USB_MAX_PACKET_BULK_FS),  // wMaxPacketSize
-    0x01,                              // bInterval: NAK
-
-    0,  // TERMINATOR
-};
-uint8_t usb_descriptor_configuration_high_speed[] = {
-    9,                                                   // bLength
-    USB_DESCRIPTOR_TYPE_CONFIGURATION,                   // bDescriptorType
-    USB_WORD((16 + 8 + 9 + 5 + 5 + 4 + 5 + 9 + 7 + 7)),  // wTotalLength
-    0x02,                                                // bNumInterfaces
-    0x01,                                                // bConfigurationValue
-    0x00,                                                // iConfiguration
-    0x80,                                                // bmAttributes: USB-powered
-    250,                                                 // bMaxPower: 500mA
-
-    8,    // bLength
-    0xb,  // bDescriptorType
-    0,
-    2,
-    0x02,
-    0x02,
-    0x00,
-    4,
-
-    9,                              // bLength
-    USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
-    0x00,                           // bInterfaceNumber
-    0x00,                           // bAlternateSetting
-    0x01,                           // bNumEndpoints
-    0x02,                           // bInterfaceClass: vendor-specific
-    0x02,                           // bInterfaceSubClass
-    0x00,                           // bInterfaceProtocol: vendor-specific
-    0x04,                           // iInterface
-
-    5,
-    0x24,
-    0x00,
-    USB_WORD(0x0110),
-
-    5,
-    0x24,
-    0x01,
-    0x00,
-    0x01,
-
-    4,
-    0x24,
-    0x02,
-    0x02,
-
-    5,
-    0x24,
-    0x06,
-    0x00,
-    0x01,
-
-    7,                             // bLength
-    USB_DESCRIPTOR_TYPE_ENDPOINT,  // bDescriptorType
-    USB_INT_IN_EP_ADDR,            // bEndpointAddress
-    0x03,                          // bmAttributes: BULK
-    USB_WORD(16),                  // wMaxPacketSize
-    0xFF,                          // bInterval: no NAK
-
-    9,                              // bLength
-    USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
-    0x01,                           // bInterfaceNumber
-    0x00,                           // bAlternateSetting
-    0x02,                           // bNumEndpoints
-    0x0a,                           // bInterfaceClass: vendor-specific
-    0x00,                           // bInterfaceSubClass
-    0x00,                           // bInterfaceProtocol: vendor-specific
-    0x00,                           // iInterface
-
-    7,                                 // bLength
-    USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
-    USB_BULK_OUT_EP_ADDR,              // bEndpointAddress
-    0x02,                              // bmAttributes: BULK
-    USB_WORD(USB_MAX_PACKET_BULK_HS),  // wMaxPacketSize
-    0x01,                              // bInterval: no NAK
-
-    7,                                 // bLength
-    USB_DESCRIPTOR_TYPE_ENDPOINT,      // bDescriptorType
-    USB_BULK_IN_EP_ADDR,               // bEndpointAddress
-    0x02,                              // bmAttributes: BULK
-    USB_WORD(USB_MAX_PACKET_BULK_HS),  // wMaxPacketSize
-    0x01,                              // bInterval: NAK
-
-    0,  // TERMINATOR
-};
-uint8_t usb_descriptor_string_languages[] = {
-    0x04,                         // bLength
-    USB_DESCRIPTOR_TYPE_STRING,   // bDescriptorType
-    USB_WORD(USB_STRING_LANGID),  // wLANGID
-};
-// clang-format off
- uint8_t usb_descriptor_string_manufacturer[] = {
- 	40,                         // bLength
- 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
- 	'G', 0x00,
- 	'r', 0x00,
- 	'e', 0x00,
- 	'a', 0x00,
- 	't', 0x00,
- 	' ', 0x00,
- 	'S', 0x00,
- 	'c', 0x00,
- 	'o', 0x00,
- 	't', 0x00,
- 	't', 0x00,
- 	' ', 0x00,
- 	'G', 0x00,
- 	'a', 0x00,
- 	'd', 0x00,
- 	'g', 0x00,
- 	'e', 0x00,
- 	't', 0x00,
- 	's', 0x00,
- };
- uint8_t usb_descriptor_string_product[] = {
- 	43,                         // bLength
- 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
- 	'P', 0x00,
- 	'o', 0x00,
- 	'r', 0x00,
- 	't', 0x00,
- 	'a', 0x00,
- 	'P', 0x00,
- 	'a', 0x00,
- 	'c', 0x00,
- 	'k', 0x00,
- 	' ', 0x00,
- 	'M', 0x00,
- 	'a', 0x00,
- 	'y', 0x00,
- 	'h', 0x00,
- 	'e', 0x00,
- 	'm', 0x00,
- };
- uint8_t usb_descriptor_string_config_description[] = {
- 	24,                         // bLength
- 	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
- 	'T', 0x00,
- 	'r', 0x00,
- 	'a', 0x00,
- 	'n', 0x00,
- 	's', 0x00,
- 	'c', 0x00,
- 	'e', 0x00,
- 	'i', 0x00,
- 	'v', 0x00,
- 	'e', 0x00,
- 	'r', 0x00,
- };
- uint8_t usb_descriptor_string_serial_number[USB_DESCRIPTOR_STRING_SERIAL_BUF_LEN];
- uint8_t* usb_descriptor_strings[] = {
- 	usb_descriptor_string_languages,
- 	usb_descriptor_string_manufacturer,
- 	usb_descriptor_string_product,
- 	usb_descriptor_string_config_description,
- 	usb_descriptor_string_serial_number,
- 	0, // TERMINATOR
- };
- uint8_t wcid_string_descriptor[] = {
- 	18,                          // bLength
- 	USB_DESCRIPTOR_TYPE_STRING,  // bDescriptorType
- 	'M', 0x00,
- 	'S', 0x00,
- 	'F', 0x00,
- 	'T', 0x00,
- 	'1', 0x00,
- 	'0', 0x00,
- 	'0', 0x00,
- 	USB_WCID_VENDOR_REQ, // vendor request code for further descriptor
- 	0x00
- };
- uint8_t wcid_feature_descriptor[] = {
- 	0x28, 0x00, 0x00, 0x00,                  // bLength
- 	USB_WORD(0x0100),                        // WCID version
- 	USB_WORD(0x0004),                        // WICD descriptor index
- 	0x01,                                    // bNumSections
- 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,      // Reserved
- 	0x00,                                    // bInterfaceNumber
- 	0x01,                                    // Reserved
- 	'W', 'I', 'N', 'U', 'S', 'B', 0x00,0x00, // Compatible ID, padded with zeros
- 	0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00, // Sub-compatible ID
- 	0x00,0x00,0x00,0x00,0x00,0x00            // Reserved
- };
-
-
 /*
  * Interface implementation.
  */
 
-static size_t write(void *ip, const uint8_t *bp, size_t n) {
-  return chOQWriteTimeout(&((SerialUSBDriver *)ip)->oqueue, bp,
-                          n, TIME_INFINITE);
+static size_t write(void* ip, const uint8_t* bp, size_t n) {
+    return chOQWriteTimeout(&((SerialUSBDriver*)ip)->oqueue, bp,
+                            n, TIME_INFINITE);
 }
 
-static size_t read(void *ip, uint8_t *bp, size_t n) {
-  return chIQReadTimeout(&((SerialUSBDriver *)ip)->iqueue, bp,
-                         n, TIME_INFINITE);
+static size_t read(void* ip, uint8_t* bp, size_t n) {
+    return chIQReadTimeout(&((SerialUSBDriver*)ip)->iqueue, bp,
+                           n, TIME_INFINITE);
 }
 
-static msg_t put(void *ip, uint8_t b) {
-  return chOQPutTimeout(&((SerialUSBDriver *)ip)->oqueue, b, TIME_INFINITE);
+static msg_t put(void* ip, uint8_t b) {
+    return chOQPutTimeout(&((SerialUSBDriver*)ip)->oqueue, b, TIME_INFINITE);
 }
 
-static msg_t get(void *ip) {
-  return chIQGetTimeout(&((SerialUSBDriver *)ip)->iqueue, TIME_INFINITE);
+static msg_t get(void* ip) {
+    return chIQGetTimeout(&((SerialUSBDriver*)ip)->iqueue, TIME_INFINITE);
 }
 
-static msg_t putt(void *ip, uint8_t b, systime_t timeout) {
-
-  return chOQPutTimeout(&((SerialUSBDriver *)ip)->oqueue, b, timeout);
+static msg_t putt(void* ip, uint8_t b, systime_t timeout) {
+    return chOQPutTimeout(&((SerialUSBDriver*)ip)->oqueue, b, timeout);
 }
 
-static msg_t gett(void *ip, systime_t timeout) {
-
-  return chIQGetTimeout(&((SerialUSBDriver *)ip)->iqueue, timeout);
+static msg_t gett(void* ip, systime_t timeout) {
+    return chIQGetTimeout(&((SerialUSBDriver*)ip)->iqueue, timeout);
 }
 
-static size_t writet(void *ip, const uint8_t *bp, size_t n, systime_t time) {
-
-  return chOQWriteTimeout(&((SerialUSBDriver *)ip)->oqueue, bp, n, time);
+static size_t writet(void* ip, const uint8_t* bp, size_t n, systime_t time) {
+    return chOQWriteTimeout(&((SerialUSBDriver*)ip)->oqueue, bp, n, time);
 }
 
-static size_t readt(void *ip, uint8_t *bp, size_t n, systime_t time) {
-
-  return chIQReadTimeout(&((SerialUSBDriver *)ip)->iqueue, bp, n, time);
+static size_t readt(void* ip, uint8_t* bp, size_t n, systime_t time) {
+    return chIQReadTimeout(&((SerialUSBDriver*)ip)->iqueue, bp, n, time);
 }
 
 static const struct SerialUSBDriverVMT vmt = {
-  write, read, put, get,
-  putt, gett, writet, readt
-};
+    write, read, put, get,
+    putt, gett, writet, readt};
 
-static void onotify(GenericQueue *qp) {
-  SerialUSBDriver *sdp = chQGetLink(qp);
-  int n = chOQGetFullI(&sdp->oqueue);
-  if (n > 0){
-    for (size_t i = 0; i < n; i++)
-    {
-        usb_endpoint_bulk_in.buffer[i] = chOQGetI(&sdp->oqueue);
+static void onotify(GenericQueue* qp) {
+    SerialUSBDriver* sdp = chQGetLink(qp);
+    int n = chOQGetFullI(&sdp->oqueue);
+    if (n > 0) {
+        for (size_t i = 0; i < n; i++) {
+            usb_endpoint_bulk_in.buffer[i] = chOQGetI(&sdp->oqueue);
+        }
+
+        int ret;
+        chSysUnlock();
+        do {
+            ret = usb_transfer_schedule(
+                &usb_endpoint_bulk_in,
+                &usb_endpoint_bulk_in.buffer[0],
+                n,
+                NULL,
+                NULL);
+
+            chThdSleepMilliseconds(1);
+
+        } while (ret == -1);
+        chSysLock();
     }
-
-    int ret;
-chSysUnlock();
-    do {
-        ret = usb_transfer_schedule(
-            &usb_endpoint_bulk_in,
-            &usb_endpoint_bulk_in.buffer[0],
-            n,
-            NULL,
-            NULL);
-
-        chThdSleepMilliseconds(1);
-
-    }while (ret == -1);
-chSysLock();
-  }
 }
 
-void init_SerialUSBDriver(SerialUSBDriver *sdp){
+void init_SerialUSBDriver(SerialUSBDriver* sdp) {
     sdp->vmt = &vmt;
     chIQInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, NULL, sdp);
     chOQInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFERS_SIZE, onotify, sdp);
 }
-

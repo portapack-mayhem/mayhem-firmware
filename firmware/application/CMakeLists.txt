@@ -114,6 +114,8 @@ set(CSRC
 	${FATFSSRC}
 	firmware_info.c
 	usb_serial.c
+	usb_serial_descriptor.c
+	usb_serial_endpoints.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c

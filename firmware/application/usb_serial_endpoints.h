@@ -24,23 +24,28 @@
 #include "ch.h"
 #include "hal.h"
 
-void setup_usb_serial_controller(void);
+#include <usb_type.h>
+#include <usb_queue.h>
 
-struct SerialUSBDriverVMT {
-    _base_asynchronous_channel_methods
-};
+#define USB_CONTROL_IN_EP_ADDR (0x80)
+#define USB_CONTROL_OUT_EP_ADDR (0x00)
 
-struct SerialUSBDriver {
-    /** @brief Virtual Methods Table.*/
-    const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;               /* Output queue.*/
-    OutputQueue oqueue;              /* Input circular buffer.*/
-    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[SERIAL_BUFFERS_SIZE];
-};
+#define USB_INT_IN_EP_ADDR (0x82)
 
-typedef struct SerialUSBDriver SerialUSBDriver;
+#define USB_BULK_OUT_EP_ADDR (0x01)
+#define USB_BULK_IN_EP_ADDR (0x81)
 
-extern SerialUSBDriver SUSBD1;
+extern usb_endpoint_t usb_endpoint_control_out;
+extern USB_DECLARE_QUEUE(usb_endpoint_control_out);
 
-void init_SerialUSBDriver(SerialUSBDriver* sdp);
+extern usb_endpoint_t usb_endpoint_control_in;
+extern USB_DECLARE_QUEUE(usb_endpoint_control_in);
+
+extern usb_endpoint_t usb_endpoint_int_in;
+extern USB_DECLARE_QUEUE(usb_endpoint_int_in);
+
+extern usb_endpoint_t usb_endpoint_bulk_in;
+extern USB_DECLARE_QUEUE(usb_endpoint_bulk_in);
+
+extern usb_endpoint_t usb_endpoint_bulk_out;
+extern USB_DECLARE_QUEUE(usb_endpoint_bulk_out);
