@@ -117,7 +117,6 @@ set(CSRC
 	usb_serial_descriptor.c
 	usb_serial_endpoints.c
 	usb_serial_io.c
-	usb_serial_shell.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
@@ -202,6 +201,7 @@ set(CPPSRC
 	log_file.cpp
 	metadata_file.cpp
 	portapack.cpp
+	usb_serial_shell.cpp
 	usb_serial_event.cpp
 	usb_serial.cpp
 	qrcodegen.cpp

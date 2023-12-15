@@ -1,17 +1,14 @@
 extern "C" {
 #include "usb_serial_io.h"
 #include "usb_serial_cdc.h"
-#include "usb_serial_shell.h"
 }
 
+#include "usb_serial_shell.hpp"
 #include "usb_serial.hpp"
 #include "portapack.hpp"
 
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/lpc43xx/usb.h>
-
-// #define NVIC_USB0_IRQ 8
-// #define SCS_SHPR(ipr_id) MMIO8(SCS_BASE + 0xD18 + ipr_id)
 
 namespace portapack {
 

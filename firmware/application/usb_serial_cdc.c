@@ -23,8 +23,6 @@
 #include "usb_serial_endpoints.h"
 #include "usb_serial_event.hpp"
 
-bool serial_running = false;
-
 extern void usb0_isr(void);
 CH_IRQ_HANDLER(USB0_IRQHandler) {
     CH_IRQ_PROLOGUE();

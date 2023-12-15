@@ -19,19 +19,32 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "usb_serial_shell.h"
+#include "usb_serial_shell.hpp"
+
 #include "usb_serial_io.h"
 
 #define SHELL_WA_SIZE THD_WA_SIZE(1024)
 
-static void cmd_test(BaseSequentialStream* chp, int argc, char* argv[]) {
-    Thread* tp;
-    chDbgPanic("cmd_test");
+static void cmd_reset(BaseSequentialStream* chp, int argc, char* argv[]) {
+    chDbgPanic("cmd_reset");
     (void)argv;
 }
 
 static const ShellCommand commands[] = {
-    {"test", cmd_test},
+    {"reset", cmd_reset},
+    {"hackrf", cmd_reset},
+    {"sd_over_usb", cmd_reset},
+    {"flash", cmd_reset},
+    {"write_memory_8", cmd_reset},
+    {"write_memory_16", cmd_reset},
+    {"write_memory_32", cmd_reset},
+    {"read_memory", cmd_reset},
+    {"sd_list_dir", cmd_reset},
+    {"sd_open_file", cmd_reset},
+    {"sd_delete", cmd_reset},
+    {"sd_read", cmd_reset},
+    {"sd_write", cmd_reset},
+    {"sd_seek", cmd_reset},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
