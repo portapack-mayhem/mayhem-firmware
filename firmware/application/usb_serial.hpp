@@ -24,18 +24,13 @@
 #include "ch.h"
 #include "hal.h"
 
-// #include "usb_type.h"
-
 namespace portapack {
 
 class USBSerial {
    public:
     void initialize();
-    // void irq_usb();
 
    private:
-    // usb_queue_head_t usb_qh[12] __attribute__((aligned(2048)));
-
     void enable_xtal();
     void disable_pll0();
     void setup_pll0();
@@ -45,36 +40,8 @@ class USBSerial {
     void reset_usb();
 
     void usb_phy_enable();
-    // void usb_controller_reset();
-    // void usb_controller_set_device_mode();
-
-    // void usb_reset_all_endpoints();
-    // void usb_controller_stop();
-    // bool usb_controller_is_resetting();
-
-    // void usb_disable_all_endpoints();
-    // void usb_clear_all_pending_interrupts();
-    // void usb_flush_all_primed_endpoints();
-
-    // void usb_clear_pending_interrupts(const uint32_t mask);
-    // void usb_flush_primed_endpoints(const uint32_t mask);
-
-    // void usb_wait_for_endpoint_priming_to_finish(const uint32_t mask);
-    // void usb_flush_endpoints(const uint32_t mask);
-    // void usb_wait_for_endpoint_flushing_to_finish(const uint32_t mask);
-
-    // void usb_endpoint_init(const usb_endpoint_t* const endpoint);
-    // void usb_endpoint_flush(const usb_endpoint_t* const endpoint);
-    // usb_queue_head_t* usb_queue_head(const uint_fast8_t endpoint_address);
-    // void usb_endpoint_set_type(const usb_endpoint_t* const endpoint, const usb_transfer_type_t transfer_type);
-    // void usb_endpoint_enable(const usb_endpoint_t* const endpoint);
-
-    // uint_fast8_t usb_endpoint_number(const uint_fast8_t endpoint_address);
-    // bool usb_endpoint_is_in(const uint_fast8_t endpoint_address);
 
     void usb_controller_run();
-
-    // uint32_t usb_get_status();
 };
 
 }  // namespace portapack

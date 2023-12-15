@@ -44,10 +44,6 @@ usb_endpoint_t usb_endpoint_control_in = {
 };
 static USB_DEFINE_QUEUE(usb_endpoint_control_in, 4);
 
-// NOTE: Endpoint number for IN and OUT are different. I wish I had some
-// evidence that having BULK IN and OUT on separate endpoint numbers was
-// actually a good idea. Seems like everybody does it that way, but why?
-
 usb_endpoint_t usb_endpoint_int_in = {
     .address = USB_INT_IN_EP_ADDR,
     .device = &usb_device,
@@ -93,27 +89,6 @@ void usb_configuration_changed(usb_device_t* const device) {
     serial_running = false;
 }
 
-// void usb_transfer(void) {
-//     if (scsi_running) {
-//         transfer_complete = false;
-//         usb_transfer_schedule_block(
-//             &usb_endpoint_bulk_out,
-//             &usb_bulk_buffer[0x4000],
-//             USB_TRANSFER_SIZE,
-//             scsi_bulk_transfer_complete,
-//             NULL);
-
-// while (!transfer_complete)
-//     ;
-
-// msd_cbw_t* msd_cbw_data = (msd_cbw_t*)&usb_bulk_buffer[0x4000];
-
-// if (msd_cbw_data->signature == MSD_CBW_SIGNATURE) {
-//     scsi_command(msd_cbw_data);
-// }
-// }
-// }
-
 void setup_usb_serial_controller(void) {
     usb_set_configuration_changed_cb(usb_configuration_changed);
     usb_peripheral_reset();
@@ -130,10 +105,6 @@ void setup_usb_serial_controller(void) {
     usb_endpoint_init(&usb_endpoint_control_in);
 
     usb_run(&usb_device);
-
-    // while (true) {
-    //     usb_transfer();
-    // }
 }
 
 usb_request_status_t usb_get_line_coding_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
@@ -163,15 +134,6 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
         chIQPutI(&SUSBD1.iqueue, usb_buffer[i]);
         chSysUnlockFromIsr();
     }
-
-    // usb_transfer_schedule_block(
-    //     &usb_endpoint_bulk_out,
-    //     &usb_buffer[0x0000],
-    //     64,
-    //     serial_bulk_transfer_complete,
-    //     NULL);
-
-    // strncpy((char*)usb_buffer, "Hello PortaPack\r\n", 17);
 }
 
 static msg_t bulk_out_thread(void* p) {
@@ -193,13 +155,6 @@ void usb_serial_create_bulk_out_thread() {
 }
 
 usb_request_status_t usb_set_control_line_state_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
-    // usb_transfer_schedule_block(
-    //     endpoint->in,
-    //     &endpoint->buffer,
-    //     0,
-    //     NULL,
-    //     NULL);
-
     if (stage == USB_TRANSFER_STAGE_SETUP) {
         if (endpoint->setup.value == 3) {
             if (serial_running == false) {
@@ -216,6 +171,7 @@ usb_request_status_t usb_set_control_line_state_request(usb_endpoint_t* const en
 
     return USB_REQUEST_STATUS_OK;
 }
+
 usb_request_status_t usb_set_line_coding_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
     uint8_t buf[7];
     if (stage == USB_TRANSFER_STAGE_SETUP) {
@@ -233,47 +189,8 @@ usb_request_status_t usb_set_line_coding_request(usb_endpoint_t* const endpoint,
     return USB_REQUEST_STATUS_OK;
 }
 
-// volatile bool transfer_complete = false;
-// void setup_transfer_complete(void* user_data, unsigned int bytes_transferred) {
-//     (void)user_data;
-//     (void)bytes_transferred;
-
-// transfer_complete = true;
-// }
-
-// usb_request_status_t set_line_coding(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage, uint16_t length) {
-//     uint8_t buf[7];
-
-// usb_transfer_schedule_block(
-//     &usb_endpoint_control_out,
-//     &buf[0],
-//     7,
-//     setup_transfer_complete,
-//     NULL);
-
-// while (!transfer_complete)
-//     ;
-
-// usb_transfer_schedule_block(
-//     endpoint->in,
-//     &endpoint->buffer,
-//     0,
-//     NULL,
-//     NULL);
-
-// usb_transfer_schedule_ack(endpoint->out);
-
-// return USB_REQUEST_STATUS_OK;
-// }
-
 usb_request_status_t __attribute__((optimize("O0"))) usb_class_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
     usb_request_status_t status = USB_REQUEST_STATUS_STALL;
-
-    // if ((endpoint->address & 0xf) != 0) {
-    //     while (1) {
-    //         ;
-    //     }
-    // }
 
     volatile uint8_t request = endpoint->setup.request;
 
@@ -286,65 +203,10 @@ usb_request_status_t __attribute__((optimize("O0"))) usb_class_request(usb_endpo
     if (request == 0x20)  // SET LINE CODING REQUEST
         return usb_set_line_coding_request(endpoint, stage);
 
-    // while (1) {
-    //     ;
-    // }
-
     return USB_REQUEST_STATUS_OK;
-
-    // if (stage == USB_TRANSFER_STAGE_SETUP) {
-    //     if (request == 0x20)  // SET LINE CODING REQUEST
-    //         return send_usb_ack(endpoint, stage);
-    //     if (request == 0x21)  // GET LINE CODING REQUEST
-    //         return send_usb_ack(endpoint, stage);
-    //     if (request == 0x22)  // GET CONTROL LINE STATE REQUEST
-    //         return send_usb_ack(endpoint, stage);
-
-    // while (1) {
-    //     ;
-    // }
-
-    // } else if (stage == USB_TRANSFER_STAGE_DATA) {
-    //     if (request == 0x20)  // SET LINE CODING REQUEST
-    //         return send_usb_ack(endpoint, stage);
-    //     if (request == 0x21)  // GET LINE CODING REQUEST
-    //         return send_usb_ack(endpoint, stage);
-    //     if (request == 0x22)  // GET CONTROL LINE STATE REQUEST
-    //         return send_usb_ack(endpoint, stage);
-
-    // while (1) {
-    //     chThdSleepMilliseconds(100);
-    // }
-    // } else if (stage == USB_TRANSFER_STAGE_STATUS) {
-    // if (request == 0x20)  // SET LINE CODING REQUEST
-    //     return send_usb_ack(endpoint, stage);
-    // if (request == 0x21)  // GET LINE CODING REQUEST
-    //     return send_usb_ack(endpoint, stage);
-    // if (request == 0x22)  // GET CONTROL LINE STATE REQUEST
-    //     return send_usb_ack(endpoint, stage);
-
-    // while (1) {
-    //     chThdSleepMilliseconds(100);
-    // }
-    // }
 
     return status;
 }
-
-// usb_request_status_t __attribute__((optimize("O0"))) usb_vendor_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
-//     usb_request_status_t status = USB_REQUEST_STATUS_STALL;
-
-// volatile uint8_t request = endpoint->setup.request;
-
-// // if (request == 0xFE)
-// //     return report_max_lun(endpoint, stage);
-
-// while (1) {
-//     ;
-// }
-
-// return status;
-// }
 
 const usb_request_handlers_t usb_request_handlers = {
     .standard = usb_standard_request,
@@ -353,9 +215,6 @@ const usb_request_handlers_t usb_request_handlers = {
     .reserved = 0};
 
 uint32_t __ldrex(volatile uint32_t* addr) {
-    // uint32_t res;
-    // __asm__ volatile("ldrex %0, [%1]" : "=r"(res) : "r"(addr));
-    // return res;
     // TODO: disable/enable interrupts
     // chSysLockFromIsr();
     return *addr;
@@ -366,10 +225,6 @@ uint32_t __strex(uint32_t val, volatile uint32_t* addr) {
     (void)addr;
 
     *addr = val;
-    // uint32_t res;
-    // __asm__ volatile("strex %0, %2, [%1]"
-    //                  : "=&r"(res) : "r"(addr), "r"(val));
-    // return res;
     // chSysUnlockFromIsr();
     return 0;
 }
@@ -696,9 +551,6 @@ static size_t read(void *ip, uint8_t *bp, size_t n) {
 
 static msg_t put(void *ip, uint8_t b) {
   return chOQPutTimeout(&((SerialUSBDriver *)ip)->oqueue, b, TIME_INFINITE);
-
-
-  //return 0;
 }
 
 static msg_t get(void *ip) {
