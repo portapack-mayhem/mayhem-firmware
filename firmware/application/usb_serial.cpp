@@ -1,8 +1,11 @@
 extern "C" {
 #include "usb_serial.h"
 }
+
 #include "usb_serial.hpp"
 #include "portapack.hpp"
+
+#include "shell.h"
 
 // #include <libopencm3/lpc43xx/m4/nvic.h>
 #include <libopencm3/cm3/common.h>
@@ -11,6 +14,8 @@ extern "C" {
 // #include <libopencm3/cm3/nvic.h>
 // #include "nvic.h"
 
+SerialUSBDriver SUSBD1;
+
 #define NVIC_USB0_IRQ 8
 #define SCS_SHPR(ipr_id) MMIO8(SCS_BASE + 0xD18 + ipr_id)
 
@@ -18,10 +23,27 @@ extern "C" {
 void nvic_enable_irq(uint8_t irqn) {
     NVIC_ISER(irqn / 32) = (1 << (irqn % 32));
 }
+void usb_serial_create_bulk_out_thread();
 }
+
 namespace portapack {
 
 // #define MMIO32(addr) (*(volatile uint32_t*)(addr))
+#define SHELL_WA_SIZE THD_WA_SIZE(1024)
+
+static void cmd_test(BaseSequentialStream* chp, int argc, char* argv[]) {
+    Thread* tp;
+    chDbgPanic("cmd_test");
+    (void)argv;
+}
+
+static const ShellCommand commands[] = {
+    {"test", cmd_test},
+    {NULL, NULL}};
+
+static const ShellConfig shell_cfg1 = {
+    (BaseSequentialStream*)&SUSBD1,
+    commands};
 
 void USBSerial::initialize() {
     enable_xtal();
@@ -54,6 +76,26 @@ void USBSerial::initialize() {
     // NVIC_ISER(NVIC_USB0_IRQ / 32) = (1 << (NVIC_USB0_IRQ % 32));
 
     // usb_controller_run();
+
+    init_SerialUSBDriver(&SUSBD1);
+    shellInit();
+    //
+}
+
+extern "C" {
+bool channelOpened = false;
+bool shellCreated = false;
+void onChannelOpened() {
+    channelOpened = true;
+}
+}
+
+void createShellOnDemand() {
+    if (channelOpened && !shellCreated) {
+        shellCreated = true;
+        shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+        usb_serial_create_bulk_out_thread();
+    }
 }
 
 // void USBSerial::irq_usb() {

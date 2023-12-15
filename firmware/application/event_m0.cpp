@@ -44,6 +44,10 @@ using namespace lpc43xx;
 
 #include "ui_navigation.hpp"
 
+namespace portapack {
+void createShellOnDemand();
+}
+
 extern "C" {
 
 CH_IRQ_HANDLER(M4Core_IRQHandler) {
@@ -113,6 +117,8 @@ void EventDispatcher::run() {
     while (is_running) {
         const auto events = wait();
         dispatch(events);
+
+        portapack::createShellOnDemand();
     }
 }
 

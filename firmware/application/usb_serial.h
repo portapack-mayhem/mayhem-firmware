@@ -44,3 +44,22 @@ extern uint8_t* usb_descriptor_strings[];
 #define USB_WCID_VENDOR_REQ 0x19
 extern uint8_t wcid_string_descriptor[];
 extern uint8_t wcid_feature_descriptor[];
+
+struct SerialUSBDriverVMT {
+    _base_asynchronous_channel_methods
+};
+
+struct SerialUSBDriver {
+    /** @brief Virtual Methods Table.*/
+    const struct SerialUSBDriverVMT* vmt;
+    InputQueue iqueue;               /* Output queue.*/
+    OutputQueue oqueue;              /* Input circular buffer.*/
+    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
+    uint8_t ob[SERIAL_BUFFERS_SIZE];
+};
+
+typedef struct SerialUSBDriver SerialUSBDriver;
+
+extern SerialUSBDriver SUSBD1;
+
+void init_SerialUSBDriver(SerialUSBDriver* sdp);
