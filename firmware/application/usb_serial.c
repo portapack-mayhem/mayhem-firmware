@@ -13,6 +13,8 @@
 #pragma GCC diagnostic pop
 
 #include <usb_request.h>
+#include <string.h>
+bool serial_running = false;
 
 #define USB_CONTROL_IN_EP_ADDR (0x80)
 #define USB_CONTROL_OUT_EP_ADDR (0x00)
@@ -87,6 +89,8 @@ void usb_configuration_changed(usb_device_t* const device) {
     usb_endpoint_init(&usb_endpoint_int_in);
     usb_endpoint_init(&usb_endpoint_bulk_in);
     usb_endpoint_init(&usb_endpoint_bulk_out);
+
+    serial_running = false;
 }
 
 // void usb_transfer(void) {
@@ -214,10 +218,43 @@ usb_request_status_t usb_set_line_coding_request(usb_endpoint_t* const endpoint,
 // return USB_REQUEST_STATUS_OK;
 // }
 
+uint8_t usb_buffer[64] = {0};
+
+void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred) {
+    (void)user_data;
+    // TODO: handle incoming data
+
+    strncpy((char*)usb_buffer, "Hello PortaPack\r\n", 17);
+
+    usb_transfer_schedule_block(
+        &usb_endpoint_bulk_in,
+        &usb_buffer[0],
+        17,
+        NULL,
+        NULL);
+}
+
 usb_request_status_t __attribute__((optimize("O0"))) usb_class_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage) {
     usb_request_status_t status = USB_REQUEST_STATUS_STALL;
 
+    // if ((endpoint->address & 0xf) != 0) {
+    //     while (1) {
+    //         ;
+    //     }
+    // }
+
     volatile uint8_t request = endpoint->setup.request;
+
+    if (serial_running == false) {
+        serial_running = true;
+
+        usb_transfer_schedule_block(
+            &usb_endpoint_bulk_out,
+            &usb_buffer[0x0000],
+            64,
+            serial_bulk_transfer_complete,
+            NULL);
+    }
 
     if (request == 0x21)  // GET LINE CODING REQUEST
         return usb_get_line_coding_request(endpoint, stage);
@@ -228,9 +265,9 @@ usb_request_status_t __attribute__((optimize("O0"))) usb_class_request(usb_endpo
     if (request == 0x20)  // SET LINE CODING REQUEST
         return usb_set_line_coding_request(endpoint, stage);
 
-    while (1) {
-        chThdSleepMilliseconds(100);
-    }
+    // while (1) {
+    //     ;
+    // }
 
     return USB_REQUEST_STATUS_OK;
 
@@ -282,7 +319,7 @@ usb_request_status_t __attribute__((optimize("O0"))) usb_vendor_request(usb_endp
     //     return report_max_lun(endpoint, stage);
 
     while (1) {
-        chThdSleepMilliseconds(100);
+        ;
     }
 
     return status;
