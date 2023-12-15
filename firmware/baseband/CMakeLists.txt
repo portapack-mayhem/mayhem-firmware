@@ -419,12 +419,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSR fskrx)
 
-### Jammer
-
-set(MODE_CPPSRC
-	proc_jammer.cpp
-)
-DeclareTargets(PJAM jammer)
 
 ### Microphone transmit
 
@@ -621,6 +615,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNRR nrfrx)
 
+
+### Jammer
+
+set(MODE_CPPSRC
+	proc_jammer.cpp
+)
+DeclareTargets(PJAM jammer)
 
 ### AM TV
 

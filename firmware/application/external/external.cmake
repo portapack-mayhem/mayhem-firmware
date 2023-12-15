@@ -40,6 +40,10 @@ set(EXTCPPSRC
 	external/lcr/main.cpp
 	external/lcr/ui_lcr.cpp
 	
+		
+	#lcr
+	external/jammer/main.cpp
+	external/jammer/ui_jammer.cpp
 )
 
 set(EXTAPPLIST
@@ -53,4 +57,5 @@ set(EXTAPPLIST
 	coasterp
 	lge
 	lcr
+	jammer
 )

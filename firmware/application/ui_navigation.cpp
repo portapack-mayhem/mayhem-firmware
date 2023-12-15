@@ -47,9 +47,9 @@
 #include "ui_freqman.hpp"
 #include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
-#include "ui_jammer.hpp"
-// #include "ui_keyfob.hpp"
-// #include "ui_lcr.hpp"
+// #include "ui_jammer.hpp" //moved to ext
+//  #include "ui_keyfob.hpp"
+//  #include "ui_lcr.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
@@ -593,7 +593,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"BLE Tx", ui::Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLETxView>(); }},
         // {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }}, //moved to ext
         {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
-        {"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }},
+        //{"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }}, //moved to ext
         // { "Key fob", ui::Color::orange(), &bitmap_icon_keyfob, [&nav](){ nav.push<KeyfobView>(); }},
         // {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }}, //moved to ext
         {"Morse", ui::Color::green(), &bitmap_icon_morse, [&nav]() { nav.push<MorseView>(); }},
