@@ -24,25 +24,23 @@
 #include "ch.h"
 #include "hal.h"
 
-namespace portapack {
+#ifndef __cplusplus
+#pragma GCC diagnostic push
+// external code, so ignore warnings
+#pragma GCC diagnostic ignored "-Wstrict-prototypes"
 
-class USBSerial {
-   public:
-    void initialize();
-    void dispatch();
-    void on_channel_opened();
-    void on_channel_closed();
+#include <common/usb.h>
+#include <common/usb_request.h>
+#include <common/usb_standard_request.h>
+#include <hackrf_usb/usb_device.h>
+#include <hackrf_usb/usb_endpoint.h>
 
-   private:
-    void enable_xtal();
-    void disable_pll0();
-    void setup_pll0();
-    void enable_pll0();
+#pragma GCC diagnostic pop
 
-    void setup_usb_clock();
+usb_request_status_t usb_class_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage);
+usb_request_status_t usb_get_line_coding_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage);
+usb_request_status_t usb_set_control_line_state_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage);
+usb_request_status_t usb_set_line_coding_request(usb_endpoint_t* const endpoint, const usb_transfer_stage_t stage);
+#endif
 
-    bool connected{false};
-    bool shell_created{false};
-};
-
-}  // namespace portapack
+void setup_usb_serial_controller(void);

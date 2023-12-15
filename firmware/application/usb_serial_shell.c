@@ -19,28 +19,25 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#include "usb_serial_shell.h"
+#include "usb_serial_io.h"
 
-#include "ch.h"
-#include "hal.h"
+#define SHELL_WA_SIZE THD_WA_SIZE(1024)
 
-void setup_usb_serial_controller(void);
+static void cmd_test(BaseSequentialStream* chp, int argc, char* argv[]) {
+    Thread* tp;
+    chDbgPanic("cmd_test");
+    (void)argv;
+}
 
-struct SerialUSBDriverVMT {
-    _base_asynchronous_channel_methods
-};
+static const ShellCommand commands[] = {
+    {"test", cmd_test},
+    {NULL, NULL}};
 
-struct SerialUSBDriver {
-    /** @brief Virtual Methods Table.*/
-    const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;               /* Output queue.*/
-    OutputQueue oqueue;              /* Input circular buffer.*/
-    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[SERIAL_BUFFERS_SIZE];
-};
+static const ShellConfig shell_cfg1 = {
+    (BaseSequentialStream*)&SUSBD1,
+    commands};
 
-typedef struct SerialUSBDriver SerialUSBDriver;
-
-extern SerialUSBDriver SUSBD1;
-
-void init_SerialUSBDriver(SerialUSBDriver* sdp);
+void create_shell() {
+    shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+}

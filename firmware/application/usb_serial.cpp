@@ -1,44 +1,19 @@
 extern "C" {
-#include "usb_serial.h"
+#include "usb_serial_io.h"
+#include "usb_serial_cdc.h"
+#include "usb_serial_shell.h"
 }
 
 #include "usb_serial.hpp"
 #include "portapack.hpp"
 
-#include "shell.h"
-
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/lpc43xx/usb.h>
 
-SerialUSBDriver SUSBD1;
-
-#define NVIC_USB0_IRQ 8
-#define SCS_SHPR(ipr_id) MMIO8(SCS_BASE + 0xD18 + ipr_id)
-
-extern "C" {
-void nvic_enable_irq(uint8_t irqn) {
-    NVIC_ISER(irqn / 32) = (1 << (irqn % 32));
-}
-void usb_serial_create_bulk_out_thread();
-}
+// #define NVIC_USB0_IRQ 8
+// #define SCS_SHPR(ipr_id) MMIO8(SCS_BASE + 0xD18 + ipr_id)
 
 namespace portapack {
-
-#define SHELL_WA_SIZE THD_WA_SIZE(1024)
-
-static void cmd_test(BaseSequentialStream* chp, int argc, char* argv[]) {
-    Thread* tp;
-    chDbgPanic("cmd_test");
-    (void)argv;
-}
-
-static const ShellCommand commands[] = {
-    {"test", cmd_test},
-    {NULL, NULL}};
-
-static const ShellConfig shell_cfg1 = {
-    (BaseSequentialStream*)&SUSBD1,
-    commands};
 
 void USBSerial::initialize() {
     enable_xtal();
@@ -50,24 +25,28 @@ void USBSerial::initialize() {
     setup_usb_clock();
     setup_usb_serial_controller();
 
-    init_SerialUSBDriver(&SUSBD1);
+    init_serial_usb_driver(&SUSBD1);
     shellInit();
 }
 
-extern "C" {
-bool channelOpened = false;
-bool shellCreated = false;
-void onChannelOpened() {
-    channelOpened = true;
-}
+void USBSerial::dispatch() {
+    if (!connected)
+        return;
+
+    if (shell_created == false) {
+        shell_created = true;
+        create_shell();
+    }
+
+    bulk_out_receive();
 }
 
-void createShellOnDemand() {
-    if (channelOpened && !shellCreated) {
-        shellCreated = true;
-        shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
-        usb_serial_create_bulk_out_thread();
-    }
+void USBSerial::on_channel_opened() {
+    connected = true;
+}
+
+void USBSerial::on_channel_closed() {
+    connected = false;
 }
 
 void USBSerial::enable_xtal() {
@@ -117,23 +96,6 @@ void USBSerial::setup_usb_clock() {
     LPC_CGU->BASE_USB0_CLK.AUTOBLOCK = 1;
     LPC_CGU->BASE_USB0_CLK.CLK_SEL = 0x07;
     LPC_CGU->BASE_USB0_CLK.PD = 0;
-}
-
-void USBSerial::reset_usb() {
-    // usb_peripheral_reset
-    LPC_RGU->RESET_CTRL[0] = 1 << 17;  // RESET_CTRL0_USB0_RST
-
-    while ((LPC_RGU->RESET_ACTIVE_STATUS[0] & (1 << 17)) == 0) {
-    }
-}
-
-void USBSerial::usb_phy_enable() {
-    // enable usb output
-    LPC_CREG->CREG0 &= ~(1 << 5);
-}
-
-void USBSerial::usb_controller_run() {
-    USB0_USBCMD_D |= USB0_USBCMD_D_RS;
 }
 
 }  // namespace portapack

@@ -24,25 +24,11 @@
 #include "ch.h"
 #include "hal.h"
 
-namespace portapack {
-
-class USBSerial {
-   public:
-    void initialize();
-    void dispatch();
-    void on_channel_opened();
-    void on_channel_closed();
-
-   private:
-    void enable_xtal();
-    void disable_pll0();
-    void setup_pll0();
-    void enable_pll0();
-
-    void setup_usb_clock();
-
-    bool connected{false};
-    bool shell_created{false};
-};
-
-}  // namespace portapack
+#ifdef __cplusplus
+extern "C" {
+#endif
+void on_channel_opened(void);
+void on_channel_closed(void);
+#ifdef __cplusplus
+}
+#endif

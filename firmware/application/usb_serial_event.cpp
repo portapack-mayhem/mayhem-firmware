@@ -19,30 +19,16 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#include "usb_serial_event.hpp"
 
-#include "ch.h"
-#include "hal.h"
+#include "portapack.hpp"
 
-namespace portapack {
+extern "C" {
+void on_channel_opened() {
+    portapack::usb_serial.on_channel_opened();
+}
 
-class USBSerial {
-   public:
-    void initialize();
-    void dispatch();
-    void on_channel_opened();
-    void on_channel_closed();
-
-   private:
-    void enable_xtal();
-    void disable_pll0();
-    void setup_pll0();
-    void enable_pll0();
-
-    void setup_usb_clock();
-
-    bool connected{false};
-    bool shell_created{false};
-};
-
-}  // namespace portapack
+void on_channel_closed() {
+    portapack::usb_serial.on_channel_closed();
+}
+}

@@ -24,25 +24,23 @@
 #include "ch.h"
 #include "hal.h"
 
-namespace portapack {
-
-class USBSerial {
-   public:
-    void initialize();
-    void dispatch();
-    void on_channel_opened();
-    void on_channel_closed();
-
-   private:
-    void enable_xtal();
-    void disable_pll0();
-    void setup_pll0();
-    void enable_pll0();
-
-    void setup_usb_clock();
-
-    bool connected{false};
-    bool shell_created{false};
+struct SerialUSBDriverVMT {
+    _base_asynchronous_channel_methods
 };
 
-}  // namespace portapack
+struct SerialUSBDriver {
+    /** @brief Virtual Methods Table.*/
+    const struct SerialUSBDriverVMT* vmt;
+    InputQueue iqueue;               /* Output queue.*/
+    OutputQueue oqueue;              /* Input circular buffer.*/
+    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
+    uint8_t ob[SERIAL_BUFFERS_SIZE];
+};
+
+typedef struct SerialUSBDriver SerialUSBDriver;
+
+extern SerialUSBDriver SUSBD1;
+
+void init_serial_usb_driver(SerialUSBDriver* sdp);
+void bulk_out_receive(void);
+void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
