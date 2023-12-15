@@ -29,7 +29,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::jammer {
 
 void RangeView::focus() {
     check_enabled.focus();
@@ -331,7 +331,8 @@ JammerView::JammerView(
     NavigationView& nav)
     : nav_{nav} {
     Rect view_rect = {0, 3 * 8, 240, 80};
-    baseband::run_image(portapack::spi_flash::image_tag_jammer);
+    // baseband::run_image(portapack::spi_flash::image_tag_jammer);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&tab_view,
                   &view_range_a,
@@ -372,4 +373,4 @@ JammerView::JammerView(
     };
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::jammer
