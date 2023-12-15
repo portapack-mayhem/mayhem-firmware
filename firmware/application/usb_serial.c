@@ -215,8 +215,7 @@ const usb_request_handlers_t usb_request_handlers = {
     .reserved = 0};
 
 uint32_t __ldrex(volatile uint32_t* addr) {
-    // TODO: disable/enable interrupts
-    // chSysLockFromIsr();
+    __disable_irq();
     return *addr;
 }
 
@@ -225,7 +224,7 @@ uint32_t __strex(uint32_t val, volatile uint32_t* addr) {
     (void)addr;
 
     *addr = val;
-    // chSysUnlockFromIsr();
+    __enable_irq();
     return 0;
 }
 
