@@ -65,7 +65,6 @@ add_custom_target(
 	program-external-apps
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMAND sleep 3s
-	COMMAND ${PROJECT_SOURCE_DIR}/tools/enter_mode.sh sd_over_usb
 	COMMAND ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
 	DEPENDS program
 )

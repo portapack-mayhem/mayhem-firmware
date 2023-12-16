@@ -25,6 +25,7 @@
 #include "core_control.hpp"
 #include "bitmap.hpp"
 #include "png_writer.hpp"
+#include "irq_controls.hpp"
 
 #include "usb_serial_io.h"
 #include "ff.h"
@@ -136,7 +137,6 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
 
 static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
-    (void)argc;
 
     if (argc != 2) {
         chprintf((BaseSequentialStream*)&SUSBD1, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
@@ -178,6 +178,21 @@ static void cmd_read_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf((BaseSequentialStream*)&SUSBD1, "%x\r\n", *data_pointer);
 }
 
+static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: button 1\r\n");
+        return;
+    }
+
+    int button = (int)strtol(argv[0], NULL, 10);
+    if (button < 1 || button > 8) {
+        chprintf(chp, "usage: button 1\r\n");
+        return;
+    }
+
+    control::debug::inject_switch(button);
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -187,7 +202,7 @@ static const ShellCommand commands[] = {
     {"screenshot", cmd_screenshot},
     {"write_memory", cmd_write_memory},
     {"read_memory", cmd_read_memory},
-    {"button", cmd_reboot},
+    {"button", cmd_button},
     {"sd_list_dir", cmd_reboot},
     {"sd_open_file", cmd_reboot},
     {"sd_close_file", cmd_reboot},
