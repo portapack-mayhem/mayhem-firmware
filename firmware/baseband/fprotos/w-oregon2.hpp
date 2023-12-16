@@ -77,7 +77,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
             decode_data = 0UL;
             decode_count_bit = 0;
         }
-        if (manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit_value)) {
+        if (FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit_value)) {
             if (have_bit) {
                 if (!prev_bit && bit_value) {
                     subghz_protocol_blocks_add_bit(1);
@@ -165,7 +165,7 @@ class FProtoWeatherOregon2 : public FProtoWeatherBase {
         parser_step = Oregon2DecoderStepReset;
         decode_data = 0UL;
         decode_count_bit = 0;
-        manchester_advance(manchester_saved_state, ManchesterEventReset, &manchester_saved_state, NULL);
+        FProtoGeneral::manchester_advance(manchester_saved_state, ManchesterEventReset, &manchester_saved_state, NULL);
         have_bit = false;
         var_data = 0;
         var_bits = 0;

@@ -155,7 +155,7 @@ class FProtoWeatherLaCrosseTx : public FProtoWeatherBase {
             static_cast<uint8_t>((decode_data >> 8) & 0x0F),
             static_cast<uint8_t>((decode_data >> 4) & 0x0F)};
 
-        uint8_t crc = subghz_protocol_blocks_add_bytes(msg, 9);
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_add_bytes(msg, 9);
         return ((crc & 0x0F) == (decode_data & 0x0F));
     }
 };

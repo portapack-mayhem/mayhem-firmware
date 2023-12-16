@@ -3,6 +3,9 @@ This is the protocol list handler. It holds an instance of all known protocols.
 So include here the .hpp, and add a new element to the protos vector in the constructor. That's all you need to do here if you wanna add a new proto.
     @htotoo
 */
+
+#include "fprotolistgeneral.hpp"
+
 #include "w-nexus-th.hpp"
 #include "w-acurite592txr.hpp"
 #include "w-acurite606tx.hpp"
@@ -26,10 +29,10 @@ So include here the .hpp, and add a new element to the protos vector in the cons
 #include <memory>
 #include "portapack_shared_memory.hpp"
 
-#ifndef __FPROTO_PROTOLIST_H__
-#define __FPROTO_PROTOLIST_H__
+#ifndef __FPROTO_PROTOLISTWTH_H__
+#define __FPROTO_PROTOLISTWTH_H__
 
-class WeatherProtos {
+class WeatherProtos : public FProtoListGeneral {
    public:
     WeatherProtos() {
         // add protos

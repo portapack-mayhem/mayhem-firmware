@@ -532,8 +532,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
-### Weather Stations
+### SubGhz Decoders 
 
+set(MODE_CPPSRC
+	proc_subghzd.cpp
+)
+DeclareTargets(PSGD subghzd)
+
+
+### Weather Stations
 set(MODE_CPPSRC
 	proc_weather.cpp
 )

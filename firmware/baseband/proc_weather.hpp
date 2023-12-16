@@ -58,12 +58,14 @@ class WeatherProcessor : public BasebandProcessor {
     bool currentHiLow = false;
     bool configured{false};
 
-    // for debug
+    uint8_t modulation = 255;  // 0 AM, 1 FM  255 = Not set
+    uint8_t protoMode = 255;   // 0 weather, 1 subghzd, 255 = Not set
+    // for threshold
     uint32_t cnt = 0;
     uint32_t tm = 0;
 
-    WeatherProtos protoList{};  // holds all the protocols we can parse
-    void configure(const WeatherRxConfigureMessage& message);
+    FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
+    void configure(const SubGhzFPRxConfigureMessage& message);
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

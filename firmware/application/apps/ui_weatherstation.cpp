@@ -35,11 +35,26 @@ namespace ui {
 void WeatherRecentEntryDetailView::update_data() {
     // set text elements
     text_type.set(WeatherView::getWeatherSensorTypeName((FPROTO_WEATHER_SENSOR)entry_.sensorType));
-    text_id.set("0x" + to_string_hex(entry_.id));
-    text_temp.set(weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) + STR_DEGREES_F : to_string_decimal(entry_.temp, 2) + STR_DEGREES_C);
-    text_hum.set(to_string_dec_uint(entry_.humidity) + "%");
-    text_ch.set(to_string_dec_uint(entry_.channel));
-    text_batt.set(to_string_dec_uint(entry_.battery_low) + " " + ((entry_.battery_low == 0) ? "OK" : "LOW"));
+    if (entry_.id != WS_NO_ID)
+        text_id.set("0x" + to_string_hex(entry_.id));
+    else
+        text_id.set("-");
+    if (entry_.temp != WS_NO_TEMPERATURE)
+        text_temp.set(weather_units_fahr ? to_string_decimal((entry_.temp * 9 / 5) + 32, 1) + STR_DEGREES_F : to_string_decimal(entry_.temp, 2) + STR_DEGREES_C);
+    else
+        text_temp.set("-");
+    if (entry_.humidity != WS_NO_HUMIDITY)
+        text_hum.set(to_string_dec_uint(entry_.humidity) + "%");
+    else
+        text_hum.set("-");
+    if (entry_.channel != WS_NO_CHANNEL)
+        text_ch.set(to_string_dec_uint(entry_.channel));
+    else
+        text_ch.set("-");
+    if (entry_.battery_low != WS_NO_BATT)
+        text_batt.set(to_string_dec_uint(entry_.battery_low) + " " + ((entry_.battery_low == 0) ? "OK" : "LOW"));
+    else
+        text_batt.set("-");
     text_age.set(to_string_dec_uint(entry_.age) + " sec");
 }
 
@@ -205,8 +220,8 @@ void RecentEntriesTable<ui::WeatherRecentEntries>::draw(
     }
 
     std::string temp = (weather_units_fahr ? to_string_decimal((entry.temp * 9 / 5) + 32, 1) : to_string_decimal(entry.temp, 1));
-    std::string humStr = to_string_dec_uint(entry.humidity) + "%";
-    std::string chStr = to_string_dec_uint(entry.channel);
+    std::string humStr = (entry.humidity != WS_NO_HUMIDITY) ? to_string_dec_uint(entry.humidity) + "%" : "-";
+    std::string chStr = (entry.channel != WS_NO_CHANNEL) ? to_string_dec_uint(entry.channel) : "-";
     std::string ageStr = to_string_dec_uint(entry.age);
 
     line += WeatherView::pad_string_with_spaces(6 - temp.length()) + temp;
