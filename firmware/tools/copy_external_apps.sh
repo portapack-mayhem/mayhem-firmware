@@ -30,7 +30,7 @@ do
     then
         echo "" > /dev/ttyACM0
         sleep 1
-        echo "$mode" > /dev/ttyACM0
+        echo "sd_over_usb" > /dev/ttyACM0
         sleep 5
     fi
 

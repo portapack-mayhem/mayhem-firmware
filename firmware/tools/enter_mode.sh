@@ -25,6 +25,8 @@
 
 mode=$1
 
+echo "entering mode $mode"
+
 if [ -c /dev/ttyACM0 ];
 then
     echo "" > /dev/ttyACM0
