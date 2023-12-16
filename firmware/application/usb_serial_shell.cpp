@@ -26,12 +26,15 @@
 #define SHELL_WA_SIZE THD_WA_SIZE(1024)
 
 static void cmd_reset(BaseSequentialStream* chp, int argc, char* argv[]) {
-    chDbgPanic("cmd_reset");
+    LPC_CREG->M4MEMMAP = 0;
+    LPC_RGU->RESET_CTRL[0] = (1 << 0);
+
     (void)argv;
 }
 
 static const ShellCommand commands[] = {
     {"reset", cmd_reset},
+    {"dfu", cmd_reset},
     {"hackrf", cmd_reset},
     {"sd_over_usb", cmd_reset},
     {"flash", cmd_reset},
@@ -41,6 +44,7 @@ static const ShellCommand commands[] = {
     {"read_memory", cmd_reset},
     {"sd_list_dir", cmd_reset},
     {"sd_open_file", cmd_reset},
+    {"sd_close_file", cmd_reset},
     {"sd_delete", cmd_reset},
     {"sd_read", cmd_reset},
     {"sd_write", cmd_reset},
