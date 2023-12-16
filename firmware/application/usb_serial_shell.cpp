@@ -24,6 +24,7 @@
 #include "baseband_api.hpp"
 #include "core_control.hpp"
 #include "bitmap.hpp"
+#include "png_writer.hpp"
 
 #include "usb_serial_io.h"
 #include "ff.h"
@@ -34,7 +35,7 @@
 #define SHELL_WA_SIZE THD_WA_SIZE(1024)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
-static void cmd_reset(BaseSequentialStream* chp, int argc, char* argv[]) {
+static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
     (void)argc;
     (void)argv;
@@ -110,24 +111,90 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     m0_halt();
 }
 
+static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+    (void)argv;
+
+    ensure_directory("SCREENSHOTS");
+    auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+
+    if (path.empty())
+        return;
+
+    PNGWriter png;
+    auto error = png.create(path);
+    if (error)
+        return;
+
+    for (int i = 0; i < ui::screen_height; i++) {
+        std::array<ui::ColorRGB888, ui::screen_width> row;
+        portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
+        png.write_scanline(row);
+    }
+}
+
+static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+
+    if (argc != 2) {
+        chprintf((BaseSequentialStream*)&SUSBD1, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
+        chprintf((BaseSequentialStream*)&SUSBD1, "example: write_memory 0x40004008 0x00000002\r\n");
+        return;
+    }
+
+    int value_length = strlen(argv[1]);
+    if (value_length != 10 && value_length != 4) {
+        chprintf((BaseSequentialStream*)&SUSBD1, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
+        chprintf((BaseSequentialStream*)&SUSBD1, "example: write_memory 0x40004008 0x00000002\r\n");
+        return;
+    }
+
+    uint32_t address = (uint32_t)strtol(argv[0], NULL, 16);
+    uint32_t value = (uint32_t)strtol(argv[1], NULL, 16);
+
+    if (value_length == 10) {
+        uint32_t* data_pointer = (uint32_t*)address;
+        *data_pointer = value;
+    } else {
+        uint8_t* data_pointer = (uint8_t*)address;
+        *data_pointer = (uint8_t)value;
+    }
+}
+
+static void cmd_read_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+
+    if (argc != 1) {
+        chprintf((BaseSequentialStream*)&SUSBD1, "usage: read_memory 0x40004008\r\n");
+        return;
+    }
+
+    int address = (int)strtol(argv[0], NULL, 16);
+    uint32_t* data_pointer = (uint32_t*)address;
+
+    chprintf((BaseSequentialStream*)&SUSBD1, "%x\r\n", *data_pointer);
+}
+
 static const ShellCommand commands[] = {
-    {"reset", cmd_reset},
+    {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
     {"hackrf", cmd_hackrf},
     {"sd_over_usb", cmd_sd_over_usb},
     {"flash", cmd_flash},
-    {"write_memory_8", cmd_reset},
-    {"write_memory_32", cmd_reset},
-    {"read_memory", cmd_reset},
-    {"sd_list_dir", cmd_reset},
-    {"sd_open_file", cmd_reset},
-    {"sd_close_file", cmd_reset},
-    {"sd_delete", cmd_reset},
-    {"sd_read", cmd_reset},
-    {"sd_write", cmd_reset},
-    {"sd_seek", cmd_reset},
-    {"screenshot", cmd_reset},
-    {"button", cmd_reset},
+    {"screenshot", cmd_screenshot},
+    {"write_memory", cmd_write_memory},
+    {"read_memory", cmd_read_memory},
+    {"button", cmd_reboot},
+    {"sd_list_dir", cmd_reboot},
+    {"sd_open_file", cmd_reboot},
+    {"sd_close_file", cmd_reboot},
+    {"sd_delete", cmd_reboot},
+    {"sd_read", cmd_reboot},
+    {"sd_write", cmd_reboot},
+    {"sd_seek", cmd_reboot},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
