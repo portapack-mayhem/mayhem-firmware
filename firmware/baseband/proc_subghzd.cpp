@@ -45,7 +45,7 @@ void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
 
         bool meashl = (mag > threshold);
         tm += mag;
-        if (meashl == currentHiLow && currentDuration < 10'000'000)  // allow pass 'end' signal
+        if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             if (currentDuration < UINT32_MAX) currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
@@ -56,7 +56,7 @@ void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
     }
 
     cnt += decim_1_out.count;  // TODO , check if it is necessary that xdecim factor.
-    if (cnt > 30'000) {
+    if (cnt > 90'000) {
         threshold = (tm / cnt) / 2;
         cnt = 0;
         tm = 0;
