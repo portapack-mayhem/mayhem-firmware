@@ -22,19 +22,36 @@
 #include "usb_serial_shell.hpp"
 
 #include "usb_serial_io.h"
+// #include "fph.h" // hackrf/firmware/libopencm3/include/libopencm3/cm3/fpb.h
+// #include <libopencm3/cm3/fpb.h>
 
 #define SHELL_WA_SIZE THD_WA_SIZE(1024)
+#define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
+// #define palSetPad(port, pad) (LPC_GPIO->SET[(port)] = 1 << (pad))
 
 static void cmd_reset(BaseSequentialStream* chp, int argc, char* argv[]) {
-    LPC_CREG->M4MEMMAP = 0;
-    LPC_RGU->RESET_CTRL[0] = (1 << 0);
-
+    (void)chp;
+    (void)argc;
     (void)argv;
+
+    LPC_RGU->RESET_CTRL[0] = (1 << 0);
+}
+
+static void cmd_dfu(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+    (void)argv;
+
+    LPC_SCU->SFSP2_8 = (LPC_SCU->SFSP2_8 & ~(7)) | 4;
+    palOutputPad(5, 7);
+    palSetPad(5, 7);
+
+    LPC_RGU->RESET_CTRL[0] = (1 << 0);
 }
 
 static const ShellCommand commands[] = {
     {"reset", cmd_reset},
-    {"dfu", cmd_reset},
+    {"dfu", cmd_dfu},
     {"hackrf", cmd_reset},
     {"sd_over_usb", cmd_reset},
     {"flash", cmd_reset},
