@@ -40,7 +40,7 @@ namespace ui {
 
 struct SubGhzDRecentEntry {
     using Key = uint64_t;
-    static constexpr Key invalid_key = 0x0fffffff;  // todo calc the invalid all
+    static constexpr Key invalid_key = 0x0fffffff;
     uint8_t sensorType = FPS_Invalid;
     uint8_t btn = SD_NO_BTN;
     uint32_t serial = SD_NO_SERIAL;
@@ -63,9 +63,8 @@ struct SubGhzDRecentEntry {
           cnt{cnt},
           data{data} {
     }
-    Key key() const {  // todo
-        return (static_cast<uint64_t>(serial) << 32) |
-               (static_cast<uint64_t>(sensorType) & 0xFF) << 0;
+    Key key() const {
+        return (data ^ ((static_cast<uint64_t>(serial) << 32) | (static_cast<uint64_t>(sensorType) & 0xFF) << 0));
     }
     void inc_age(int delta) {
         if (UINT16_MAX - delta > age) age += delta;
@@ -90,7 +89,7 @@ class SubGhzDView : public View {
 
    private:
     void on_tick_second();
-    void on_data(const SubGhzDDataMessage* data);  // TODO
+    void on_data(const SubGhzDDataMessage* data);
 
     NavigationView& nav_;
     RxRadioState radio_state_{
