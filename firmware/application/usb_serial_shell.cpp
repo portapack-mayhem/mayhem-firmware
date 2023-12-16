@@ -21,8 +21,15 @@
 
 #include "usb_serial_shell.hpp"
 #include "event_m0.hpp"
+#include "baseband_api.hpp"
+#include "core_control.hpp"
+#include "bitmap.hpp"
 
 #include "usb_serial_io.h"
+#include "ff.h"
+#include "chprintf.h"
+
+#include <string>
 
 #define SHELL_WA_SIZE THD_WA_SIZE(1024)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
@@ -55,14 +62,61 @@ static void cmd_hackrf(BaseSequentialStream* chp, int argc, char* argv[]) {
     EventDispatcher::request_stop();
 }
 
+static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+    (void)argv;
+
+    ui::Painter painter;
+    painter.fill_rectangle(
+        {0, 0, portapack::display.width(), portapack::display.height()},
+        ui::Color::black());
+
+    painter.draw_bitmap(
+        {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
+        ui::bitmap_icon_hackrf,
+        ui::Color::yellow(),
+        ui::Color::black());
+
+    sdcDisconnect(&SDCD1);
+    sdcStop(&SDCD1);
+
+    portapack::shutdown(true);
+    m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
+    m0_halt();
+}
+
+static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+    (void)argv;
+
+    if (argc != 1) {
+        chprintf((BaseSequentialStream*)&SUSBD1, "Usage: flash /FIRMWARE/portapack-mayhem.bin\r\n");
+        return;
+    }
+
+    char16_t* wide_string = new char16_t[strlen(argv[0]) + 1];
+    for (size_t i = 0; i < strlen(argv[0]); i++) {
+        wide_string[i] = argv[0][i];
+    }
+    wide_string[strlen(argv[0])] = 0;
+
+    std::u16string path = std::u16string(wide_string);
+    delete wide_string;
+
+    std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (path.length() + 1) * 2);
+    m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
+    m0_halt();
+}
+
 static const ShellCommand commands[] = {
     {"reset", cmd_reset},
     {"dfu", cmd_dfu},
     {"hackrf", cmd_hackrf},
-    {"sd_over_usb", cmd_reset},
-    {"flash", cmd_reset},
+    {"sd_over_usb", cmd_sd_over_usb},
+    {"flash", cmd_flash},
     {"write_memory_8", cmd_reset},
-    {"write_memory_16", cmd_reset},
     {"write_memory_32", cmd_reset},
     {"read_memory", cmd_reset},
     {"sd_list_dir", cmd_reset},
@@ -72,6 +126,8 @@ static const ShellCommand commands[] = {
     {"sd_read", cmd_reset},
     {"sd_write", cmd_reset},
     {"sd_seek", cmd_reset},
+    {"screenshot", cmd_reset},
+    {"button", cmd_reset},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
