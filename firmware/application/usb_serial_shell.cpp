@@ -36,7 +36,7 @@
 #include <cstring>
 #include <locale>
 
-#define SHELL_WA_SIZE THD_WA_SIZE(2048 * 2)
+#define SHELL_WA_SIZE THD_WA_SIZE(1024 * 3)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
 static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -228,6 +228,127 @@ static void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
     delete_file(path);
 }
 
+File* shell_file = nullptr;
+
+static void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: open <path>\r\n");
+        return;
+    }
+
+    if (shell_file != nullptr) {
+        chprintf(chp, "file already open\r\n");
+        return;
+    }
+
+    auto path = path_from_string8(argv[0]);
+    shell_file = new File();
+    shell_file->open(path, false, true);
+}
+
+static void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: seek <offset>\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    int address = (int)strtol(argv[0], NULL, 10);
+    shell_file->seek(address);
+}
+
+static void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argv;
+
+    if (argc != 0) {
+        chprintf(chp, "usage: close\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    delete shell_file;
+    shell_file = nullptr;
+}
+
+static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: read <number of bytes>\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    int size = (int)strtol(argv[0], NULL, 10);
+
+    uint8_t buffer[16];
+
+    do {
+        File::Size bytes_to_read = size > 16 ? 16 : size;
+        auto bytes_read = shell_file->read(buffer, bytes_to_read);
+        if (bytes_read.is_error()) {
+            chprintf(chp, "error %d\r\n", bytes_read.error());
+            return;
+        }
+
+        for (size_t i = 0; i < bytes_read.value(); i++)
+            chprintf(chp, "%02X", buffer[i]);
+
+        chprintf(chp, "\r\n");
+
+        if (bytes_to_read != bytes_read.value())
+            return;
+
+        size -= bytes_to_read;
+    } while (size > 0);
+}
+
+static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: write 0123456789ABCDEF\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    size_t data_string_len = strlen(argv[0]);
+    if (data_string_len % 2 != 0) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    for (size_t i = 0; i < data_string_len; i++) {
+        char c = argv[0][i];
+        if ((c < '0' || c > '9') && (c < 'A' || c > 'F')) {
+            chprintf(chp, usage);
+            return;
+        }
+    }
+
+    char buffer[3] = {0, 0, 0};
+
+    for (size_t i = 0; i < data_string_len / 2; i++) {
+        buffer[0] = argv[0][i * 2];
+        buffer[1] = argv[0][i * 2 + 1];
+        uint8_t value = (uint8_t)strtol(buffer, NULL, 16);
+        shell_file->write(&value, 1);
+    }
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -240,11 +361,11 @@ static const ShellCommand commands[] = {
     {"button", cmd_button},
     {"ls", cmd_sd_list_dir},
     {"rm", cmd_sd_delete},
-    {"open", cmd_reboot},
-    {"seek", cmd_reboot},
-    {"close", cmd_reboot},
-    {"read", cmd_reboot},
-    {"write", cmd_reboot},
+    {"open", cmd_sd_open},
+    {"seek", cmd_sd_seek},
+    {"close", cmd_sd_close},
+    {"read", cmd_sd_read},
+    {"write", cmd_sd_write},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
