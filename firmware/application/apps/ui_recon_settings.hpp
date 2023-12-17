@@ -132,10 +132,45 @@ class ReconSetupViewMore : public View {
         {1 * 8, 102},
         3,
         "auto update m-ranges"};
+
     Checkbox checkbox_auto_record_locked{
         {1 * 8, 132},
         3,
         "record locked periods"};
+
+    Checkbox checkbox_repeat_recorded{
+        {1 * 8, 162},
+        3,
+        "repeater,"};
+
+    Text text_repeat_nb{
+        {14 * 8, 165, 3 * 8, 22},
+        "nb:"};
+
+    NumberField field_repeat_nb{
+        {18 * 8, 165},
+        2,
+        {1, 99},
+        1,
+        ' ',
+    };
+
+    Checkbox checkbox_repeat_amp{
+        {1 * 8, 192},
+        3,
+        "AMP,"};
+
+    Text text_repeat_gain{
+        {10 * 8, 196, 5 * 8, 22},
+        "GAIN:"};
+
+    NumberField field_repeat_gain{
+        {16 * 8, 196},
+        2,
+        {0, 47},
+        1,
+        ' ',
+    };
 };
 
 class ReconSetupView : public View {
