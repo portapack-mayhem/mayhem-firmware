@@ -30,7 +30,7 @@
 #define USB_WORD(x) (x & 0xFF), ((x >> 8) & 0xFF)
 #define USB_MAX_PACKET0 (64)
 #define USB_MAX_PACKET_BULK_FS (64)
-#define USB_MAX_PACKET_BULK_HS (16)
+#define USB_MAX_PACKET_BULK_HS (64)
 #define USB_STRING_LANGID (0x0409)
 
 uint8_t usb_descriptor_device[] = {

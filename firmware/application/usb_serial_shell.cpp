@@ -33,7 +33,7 @@
 
 #include <string>
 
-#define SHELL_WA_SIZE THD_WA_SIZE(1024)
+#define SHELL_WA_SIZE THD_WA_SIZE(2048)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
 static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -94,20 +94,28 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
 
     if (argc != 1) {
-        chprintf((BaseSequentialStream*)&SUSBD1, "Usage: flash /FIRMWARE/portapack-mayhem.bin\r\n");
+        chprintf(chp, "Usage: flash /FIRMWARE/portapack-h1_h2-mayhem.bin\r\n");
         return;
     }
 
-    char16_t* wide_string = new char16_t[strlen(argv[0]) + 1];
-    for (size_t i = 0; i < strlen(argv[0]); i++) {
+    size_t filename_length = strlen(argv[0]);
+    char16_t* wide_string = new char16_t[filename_length + 1];
+    for (size_t i = 0; i < filename_length; i++) {
         wide_string[i] = argv[0][i];
     }
-    wide_string[strlen(argv[0])] = 0;
+    wide_string[filename_length] = 0;
 
-    std::u16string path = std::u16string(wide_string);
+    std::vector<char16_t> w_(wide_string, wide_string + filename_length);
+
+    std::filesystem::path dir_path(w_);
+    if (!std::filesystem::file_exists(dir_path)) {
+        chprintf(chp, "file not found.\r\n");
+        return;
+    }
+
+    std::memcpy(&shared_memory.bb_data.data[0], wide_string, (filename_length + 1) * 2);
     delete wide_string;
 
-    std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (path.length() + 1) * 2);
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
     m0_halt();
 }
@@ -133,21 +141,23 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
         png.write_scanline(row);
     }
+
+    chprintf(chp, "generated %s\r\n", path.c_str());
 }
 
 static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
 
     if (argc != 2) {
-        chprintf((BaseSequentialStream*)&SUSBD1, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
-        chprintf((BaseSequentialStream*)&SUSBD1, "example: write_memory 0x40004008 0x00000002\r\n");
+        chprintf(chp, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
+        chprintf(chp, "example: write_memory 0x40004008 0x00000002\r\n");
         return;
     }
 
     int value_length = strlen(argv[1]);
     if (value_length != 10 && value_length != 4) {
-        chprintf((BaseSequentialStream*)&SUSBD1, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
-        chprintf((BaseSequentialStream*)&SUSBD1, "example: write_memory 0x40004008 0x00000002\r\n");
+        chprintf(chp, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
+        chprintf(chp, "example: write_memory 0x40004008 0x00000002\r\n");
         return;
     }
 
@@ -168,14 +178,14 @@ static void cmd_read_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
 
     if (argc != 1) {
-        chprintf((BaseSequentialStream*)&SUSBD1, "usage: read_memory 0x40004008\r\n");
+        chprintf(chp, "usage: read_memory 0x40004008\r\n");
         return;
     }
 
     int address = (int)strtol(argv[0], NULL, 16);
     uint32_t* data_pointer = (uint32_t*)address;
 
-    chprintf((BaseSequentialStream*)&SUSBD1, "%x\r\n", *data_pointer);
+    chprintf(chp, "%x\r\n", *data_pointer);
 }
 
 static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -186,11 +196,17 @@ static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     int button = (int)strtol(argv[0], NULL, 10);
     if (button < 1 || button > 8) {
-        chprintf(chp, "usage: button 1\r\n");
+        chprintf(chp, "usage: button <number 1 to 8>\r\n");
         return;
     }
 
     control::debug::inject_switch(button);
+}
+
+static void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+    (void)argv;
 }
 
 static const ShellCommand commands[] = {
@@ -203,7 +219,7 @@ static const ShellCommand commands[] = {
     {"write_memory", cmd_write_memory},
     {"read_memory", cmd_read_memory},
     {"button", cmd_button},
-    {"sd_list_dir", cmd_reboot},
+    {"sd_list_dir", cmd_sd_list_dir},
     {"sd_open_file", cmd_reboot},
     {"sd_close_file", cmd_reboot},
     {"sd_delete", cmd_reboot},

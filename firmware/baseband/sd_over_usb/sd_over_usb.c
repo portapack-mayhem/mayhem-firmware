@@ -36,7 +36,7 @@ usb_request_status_t report_max_lun(
             1,
             NULL,
             NULL);
-
+    } else if (stage == USB_TRANSFER_STAGE_DATA) {
         usb_transfer_schedule_ack(endpoint->out);
 
         scsi_running = true;
