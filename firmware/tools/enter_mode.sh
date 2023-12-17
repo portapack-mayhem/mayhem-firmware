@@ -23,40 +23,13 @@
 
 # This script will copy compiled external apps to the Portapack.
 
-try=1
-while [ $try -le 180 ]
-do
-    if [ -c /dev/ttyACM0 ];
-    then
-        echo "" > /dev/ttyACM0
-        sleep 1
-        echo "sd_over_usb" > /dev/ttyACM0
-        sleep 5
-    fi
+mode=$1
 
+echo "entering mode $mode"
 
-    if ls /dev/disk/by-id/*Portapack*part1 1> /dev/null 2>&1; then
-        disk=$(ls /dev/disk/by-id/*Portapack*part1)
-        part=$(readlink -f $disk)
-        mountpoint=$(findmnt -f -o TARGET --noheadings $part)
-        if [[ ! -z "$mountpoint" ]]; then
-
-            echo "Copying external applications to" $mountpoint
-            mkdir -p $mountpoint/APPS
-            cp application/*.ppma $mountpoint/APPS
-
-            echo "Unmounting" $mountpoint
-            umount $mountpoint
-
-            exit
-        fi
-    fi
-
-    if [ "$(( $try %5 ))" -eq "1" ]; then
-        echo "Please start SD over USB app ..."
-    fi
-
+if [ -c /dev/ttyACM0 ];
+then
+    echo "" > /dev/ttyACM0
     sleep 1
-
-    try=$(( $try + 1 ))
-done
+    echo "$mode" > /dev/ttyACM0
+fi

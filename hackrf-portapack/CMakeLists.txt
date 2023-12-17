@@ -43,7 +43,6 @@ set(SRC_M4
 	${PATH_HACKRF_USB}/usb_descriptor.c
 	${PATH_HACKRF_USB}/usb_device.c
 	${PATH_HACKRF_USB}/usb_endpoint.c
-	${PATH_HACKRF_USB}/usb_api_board_info.c
 	${PATH_HACKRF_USB}/usb_api_cpld.c
 	${PATH_HACKRF_USB}/usb_api_m0_state.c
 	${PATH_HACKRF_USB}/usb_api_register.c
@@ -71,6 +70,7 @@ set(SRC_M0 ${PATH_HACKRF_USB}/sgpio_m0.s)
 if(BOARD STREQUAL "HACKRF_ONE")
 	SET(SRC_M4
 		${SRC_M4}
+		usb_api_board_info.c
 		portapack.c
 		"${PATH_HACKRF_FIRMWARE_COMMON}/ui_portapack.c"
 	)

@@ -54,6 +54,7 @@ add_custom_target(
 
 add_custom_target(
 	program
+	COMMAND ${PROJECT_SOURCE_DIR}/tools/enter_mode.sh hackrf
 	COMMAND dfu-util --device 1fc9:000c --download ${HACKRF_FIRMWARE_DFU_IMAGE} || (exit 0) # We need to add it for dfu-utils v.011 , (in v.09 it is not necessary)
 	COMMAND sleep 3s
 	COMMAND hackrf_spiflash -i -R -w ${FIRMWARE_FILENAME}

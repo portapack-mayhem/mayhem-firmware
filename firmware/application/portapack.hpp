@@ -31,6 +31,7 @@
 #include "si5351.hpp"
 #include "lcd_ili9341.hpp"
 #include "backlight.hpp"
+#include "usb_serial.hpp"
 
 #include "radio.hpp"
 #include "clock_manager.hpp"
@@ -46,6 +47,7 @@ extern lcd::ILI9341 display;
 
 extern I2C i2c0;
 extern SPI ssp1;
+extern portapack::USBSerial usb_serial;
 
 extern si5351::Si5351 clock_generator;
 extern ClockManager clock_manager;
