@@ -32,8 +32,11 @@
 #include "chprintf.h"
 
 #include <string>
+#include <codecvt>
+#include <cstring>
+#include <locale>
 
-#define SHELL_WA_SIZE THD_WA_SIZE(2048)
+#define SHELL_WA_SIZE THD_WA_SIZE(2048 * 2)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
 static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -88,40 +91,32 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     m0_halt();
 }
 
-static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)chp;
-    (void)argc;
-    (void)argv;
+std::filesystem::path path_from_string8(char* path) {
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+    return conv.from_bytes(path);
+}
 
+static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "Usage: flash /FIRMWARE/portapack-h1_h2-mayhem.bin\r\n");
         return;
     }
 
+    auto path = path_from_string8(argv[0]);
     size_t filename_length = strlen(argv[0]);
-    char16_t* wide_string = new char16_t[filename_length + 1];
-    for (size_t i = 0; i < filename_length; i++) {
-        wide_string[i] = argv[0][i];
-    }
-    wide_string[filename_length] = 0;
 
-    std::vector<char16_t> w_(wide_string, wide_string + filename_length);
-
-    std::filesystem::path dir_path(w_);
-    if (!std::filesystem::file_exists(dir_path)) {
+    if (!std::filesystem::file_exists(path)) {
         chprintf(chp, "file not found.\r\n");
         return;
     }
 
-    std::memcpy(&shared_memory.bb_data.data[0], wide_string, (filename_length + 1) * 2);
-    delete wide_string;
+    std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (filename_length + 1) * 2);
 
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
     m0_halt();
 }
 
 static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)chp;
     (void)argc;
     (void)argv;
 
@@ -142,12 +137,10 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
         png.write_scanline(row);
     }
 
-    chprintf(chp, "generated %s\r\n", path.c_str());
+    chprintf(chp, "generated %s\r\n", path.string().c_str());
 }
 
 static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)chp;
-
     if (argc != 2) {
         chprintf(chp, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
         chprintf(chp, "example: write_memory 0x40004008 0x00000002\r\n");
@@ -174,9 +167,6 @@ static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) 
 }
 
 static void cmd_read_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)chp;
-    (void)argc;
-
     if (argc != 1) {
         chprintf(chp, "usage: read_memory 0x40004008\r\n");
         return;
@@ -204,9 +194,38 @@ static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 static void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)chp;
-    (void)argc;
-    (void)argv;
+    if (argc != 1) {
+        chprintf(chp, "usage: ls /\r\n");
+        return;
+    }
+
+    auto path = path_from_string8(argv[0]);
+
+    for (const auto& entry : std::filesystem::directory_iterator(path, "*")) {
+        if (std::filesystem::is_directory(entry.status())) {
+            chprintf(chp, "%s/\r\n", entry.path().string().c_str());
+        } else if (std::filesystem::is_regular_file(entry.status())) {
+            chprintf(chp, "%s\r\n", entry.path().string().c_str());
+        } else {
+            chprintf(chp, "%s *\r\n", entry.path().string().c_str());
+        }
+    }
+}
+
+static void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: rm <path>\r\n");
+        return;
+    }
+
+    auto path = path_from_string8(argv[0]);
+
+    if (!std::filesystem::file_exists(path)) {
+        chprintf(chp, "file not found.\r\n");
+        return;
+    }
+
+    delete_file(path);
 }
 
 static const ShellCommand commands[] = {
@@ -219,13 +238,13 @@ static const ShellCommand commands[] = {
     {"write_memory", cmd_write_memory},
     {"read_memory", cmd_read_memory},
     {"button", cmd_button},
-    {"sd_list_dir", cmd_sd_list_dir},
-    {"sd_open_file", cmd_reboot},
-    {"sd_close_file", cmd_reboot},
-    {"sd_delete", cmd_reboot},
-    {"sd_read", cmd_reboot},
-    {"sd_write", cmd_reboot},
-    {"sd_seek", cmd_reboot},
+    {"ls", cmd_sd_list_dir},
+    {"rm", cmd_sd_delete},
+    {"open", cmd_reboot},
+    {"seek", cmd_reboot},
+    {"close", cmd_reboot},
+    {"read", cmd_reboot},
+    {"write", cmd_reboot},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
