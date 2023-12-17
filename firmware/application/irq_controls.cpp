@@ -122,6 +122,8 @@ static bool touch_update() {
 }
 
 static uint8_t switches_raw = 0;
+static uint8_t injected_switch = 0;
+static uint8_t injected_encoder = 0;
 
 /* The raw data is not packed in a way that makes looping over it easy.
  * One option would be an accessor helper (RawSwitch). Another option
@@ -170,8 +172,11 @@ static bool encoder_update(const uint8_t raw) {
 
 static bool encoder_read() {
     const auto delta = encoder.update(
-        encoder_debounce[0].state(),
-        encoder_debounce[1].state());
+        encoder_debounce[0].state() | (injected_encoder == 1),
+        encoder_debounce[1].state() | (injected_encoder == 2));
+
+    if (injected_encoder > 0)
+        injected_encoder = 0;
 
     if (delta != 0) {
         encoder_position += delta;
@@ -186,10 +191,10 @@ void timer0_callback(GPTDriver* const) {
     if (touch_update()) event_mask |= EVT_MASK_TOUCH;
 
     switches_raw = swizzled_switches();
-    if (switches_update(switches_raw))
+    if (switches_update(switches_raw) || (injected_switch > 0))
         event_mask |= EVT_MASK_SWITCHES;
 
-    if (encoder_update(switches_raw) && encoder_read())
+    if (encoder_update(switches_raw) || encoder_read())
         event_mask |= EVT_MASK_ENCODER;
 
     /* Signal event loop */
@@ -238,6 +243,13 @@ SwitchesState get_switches_state() {
     for (size_t i = 0; i < result.size(); i++)
         result[i] = switch_debounce[i].state();
 
+    if (injected_switch > 0 && injected_switch <= 6) {
+        result[injected_switch - 1] = 1;
+        injected_switch = 0xff;
+    } else if (injected_switch == 0xff) {
+        injected_switch = 0x00;
+    }
+
     return result;
 }
 
@@ -275,6 +287,13 @@ namespace debug {
 
 uint8_t switches() {
     return switches_raw;
+}
+
+void inject_switch(uint8_t button) {
+    if (button <= 6)
+        injected_switch = button;
+    else if (button > 6)
+        injected_encoder = button - 6;
 }
 
 }  // namespace debug

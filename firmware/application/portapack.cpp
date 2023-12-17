@@ -70,6 +70,7 @@ lcd::ILI9341 display;
 
 I2C i2c0(&I2CD0);
 SPI ssp1(&SPID2);
+portapack::USBSerial usb_serial;
 
 si5351::Si5351 clock_generator{
     i2c0, hackrf::one::si5351_i2c_address};
@@ -368,7 +369,7 @@ static void shutdown_base() {
  *
  * XTAL_OSC = powered down
  *
- * PLL0USB = powered down
+ * PLL0USB = XTAL, 480 MHz
  * PLL0AUDIO = GP_CLKIN, Fcco=491.52 MHz, Fout=12.288 MHz
  * PLL1 =
  * 	OG: GP_CLKIN * 10 = 200 MHz
@@ -463,6 +464,8 @@ bool init() {
 
     /* Remove /2P divider from PLL1 output to achieve full speed */
     cgu::pll1::direct();
+
+    usb_serial.initialize();
 
     i2c0.start(i2c_config_fast_clock);
     chThdSleepMilliseconds(10);

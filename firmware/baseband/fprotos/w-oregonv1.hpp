@@ -64,11 +64,7 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
                     // found all the necessary patterns
                     decode_data = 0;
                     decode_count_bit = 1;
-                    manchester_advance(
-                        manchester_saved_state,
-                        ManchesterEventReset,
-                        &manchester_saved_state,
-                        NULL);
+                    FProtoGeneral::manchester_advance(manchester_saved_state, ManchesterEventReset, &manchester_saved_state, NULL);
                     parser_step = Oregon_V1DecoderStepParse;
                     if (duration < te_short * 4) {
                         first_bit = 1;
@@ -114,22 +110,17 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
                         }
                         decode_data = 0;
                         decode_count_bit = 0;
-                        manchester_advance(
-                            manchester_saved_state,
-                            ManchesterEventReset,
-                            &manchester_saved_state,
-                            NULL);
+                        FProtoGeneral::manchester_advance(manchester_saved_state, ManchesterEventReset, &manchester_saved_state, NULL);
                     } else {
                         parser_step = Oregon_V1DecoderStepReset;
                     }
                 }
                 if (event != ManchesterEventReset) {
-                    bool data;
-                    bool data_ok = manchester_advance(
-                        manchester_saved_state, event, &manchester_saved_state, &data);
+                    bool bit;
+                    bool data_ok = FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit);
 
                     if (data_ok) {
-                        decode_data = (decode_data << 1) | !data;
+                        decode_data = (decode_data << 1) | !bit;
                         decode_count_bit++;
                     }
                 }
@@ -149,13 +140,13 @@ class FProtoWeatherOregonV1 : public FProtoWeatherBase {
 
     bool ws_protocol_oregon_v1_check() {
         if (!decode_data) return false;
-        uint64_t data = subghz_protocol_blocks_reverse_key(decode_data, 32);
+        uint64_t data = FProtoGeneral::subghz_protocol_blocks_reverse_key(decode_data, 32);
         uint16_t crc = (data & 0xff) + ((data >> 8) & 0xff) + ((data >> 16) & 0xff);
         crc = (crc & 0xff) + ((crc >> 8) & 0xff);
         return (crc == ((data >> 24) & 0xFF));
     }
     void ws_protocol_oregon_v1_remote_controller() {
-        uint64_t data2 = subghz_protocol_blocks_reverse_key(data, 32);
+        uint64_t data2 = FProtoGeneral::subghz_protocol_blocks_reverse_key(data, 32);
 
         id = data2 & 0xFF;
         channel = ((data2 >> 6) & 0x03) + 1;

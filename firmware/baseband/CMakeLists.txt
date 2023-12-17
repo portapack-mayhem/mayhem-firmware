@@ -419,12 +419,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSR fskrx)
 
-### Jammer
-
-set(MODE_CPPSRC
-	proc_jammer.cpp
-)
-DeclareTargets(PJAM jammer)
 
 ### Microphone transmit
 
@@ -538,8 +532,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
-### Weather Stations
+### SubGhz Decoders 
 
+set(MODE_CPPSRC
+	proc_subghzd.cpp
+)
+DeclareTargets(PSGD subghzd)
+
+
+### Weather Stations
 set(MODE_CPPSRC
 	proc_weather.cpp
 )
@@ -621,6 +622,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNRR nrfrx)
 
+
+### Jammer
+
+set(MODE_CPPSRC
+	proc_jammer.cpp
+)
+DeclareTargets(PJAM jammer)
 
 ### AM TV
 

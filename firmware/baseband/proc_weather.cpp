@@ -45,18 +45,18 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
 
         bool meashl = (mag > threshold);
         tm += mag;
-        if (meashl == currentHiLow && currentDuration < 10'000'000)  // allow pass 'end' signal
+        if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
             if (currentDuration < UINT32_MAX) currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
-            protoList.feed(currentHiLow, currentDuration / 1000);
+            if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = nsPerDecSamp;
             currentHiLow = meashl;
         }
     }
 
     cnt += decim_1_out.count;  // TODO , check if it is necessary that xdecim factor.
-    if (cnt > 30'000) {
+    if (cnt > 90'000) {
         threshold = (tm / cnt) / 2;
         cnt = 0;
         tm = 0;
@@ -66,19 +66,18 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void WeatherProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::WeatherRxConfigure)
-        configure(*reinterpret_cast<const WeatherRxConfigureMessage*>(message));
+    if (message->id == Message::ID::SubGhzFPRxConfigure)
+        configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
 }
 
-void WeatherProcessor::configure(const WeatherRxConfigureMessage& message) {
-    // unused:
-    // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor;
-    // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor;
+void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
+    // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
+    // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
+    (void)message;  // unused
 
     decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_wfm_decim_1.taps);
 
-    (void)message;
     configured = true;
 }
 

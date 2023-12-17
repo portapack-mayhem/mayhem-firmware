@@ -32,11 +32,11 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
             }
         }
         if (event != ManchesterEventReset) {
-            bool data;
-            bool data_ok = manchester_advance(manchester_saved_state, event, &manchester_saved_state, &data);
+            bool bit;
+            bool data_ok = FProtoGeneral::manchester_advance(manchester_saved_state, event, &manchester_saved_state, &bit);
 
             if (data_ok) {
-                decode_data = (decode_data << 1) | !data;
+                decode_data = (decode_data << 1) | !bit;
             }
 
             if (((decode_data & AMBIENT_WEATHER_PACKET_HEADER_MASK) == AMBIENT_WEATHER_PACKET_HEADER_1) ||
@@ -53,7 +53,7 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
         } else {
             decode_data = 0;
             decode_count_bit = 0;
-            manchester_advance(manchester_saved_state, ManchesterEventReset, &manchester_saved_state, NULL);
+            FProtoGeneral::manchester_advance(manchester_saved_state, ManchesterEventReset, &manchester_saved_state, NULL);
         }
     }
 
@@ -71,7 +71,7 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
             static_cast<uint8_t>(decode_data >> 16),
             static_cast<uint8_t>(decode_data >> 8)};
 
-        uint8_t crc = subghz_protocol_blocks_lfsr_digest8(msg, 5, 0x98, 0x3e) ^ 0x64;
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_lfsr_digest8(msg, 5, 0x98, 0x3e) ^ 0x64;
         return (crc == (uint8_t)(decode_data & 0xFF));
     }
 
@@ -79,7 +79,7 @@ class FProtoWeatherAmbient : public FProtoWeatherBase {
         id = (data >> 32) & 0xFF;
         battery_low = (data >> 31) & 1;
         channel = ((data >> 28) & 0x07) + 1;
-        temp = locale_fahrenheit_to_celsius(((float)((data >> 16) & 0x0FFF) - 400.0f) / 10.0f);
+        temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data >> 16) & 0x0FFF) - 400.0f) / 10.0f);
         humidity = (data >> 8) & 0xFF;
         btn = WS_NO_BTN;
     }

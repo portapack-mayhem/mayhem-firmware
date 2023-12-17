@@ -113,6 +113,17 @@ set(CSRC
 	${BOARDSRC}
 	${FATFSSRC}
 	firmware_info.c
+	usb_serial_cdc.c
+	usb_serial_descriptor.c
+	usb_serial_endpoints.c
+	usb_serial_io.c
+	${HACKRF_PATH}/firmware/common/usb.c
+	${HACKRF_PATH}/firmware/common/usb_queue.c
+	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
+	${HACKRF_PATH}/firmware/common/usb_request.c
+	${HACKRF_PATH}/firmware/common/usb_standard_request.c
+	${CHIBIOS}/os/various/shell.c
+	${CHIBIOS}/os/various/chprintf.c
 )
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
@@ -191,6 +202,9 @@ set(CPPSRC
 	log_file.cpp
 	metadata_file.cpp
 	portapack.cpp
+	usb_serial_shell.cpp
+	usb_serial_event.cpp
+	usb_serial.cpp
 	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
@@ -273,7 +287,7 @@ set(CPPSRC
 	apps/ui_freqman.cpp
 	apps/ui_fsk_rx.cpp
 	apps/ui_iq_trim.cpp
-	apps/ui_jammer.cpp
+	# apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
 	# apps/ui_lcr.cpp
 	apps/ui_level.cpp  
@@ -301,6 +315,7 @@ set(CPPSRC
 	apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_sstvtx.cpp
+	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp
 	apps/ui_tone_search.cpp
@@ -362,6 +377,9 @@ set(INCDIR ${CMAKE_CURRENT_BINARY_DIR} ${COMMON} ${PORTINC} ${KERNINC} ${TESTINC
 	${HALINC} ${PLATFORMINC} ${BOARDINC}
 	${FATFSINC}
 	${CHIBIOS}/os/various
+	${HACKRF_PATH}/firmware/libopencm3/include
+	${HACKRF_PATH}/firmware/common
+	${HACKRF_PATH}/firmware
 	ui
 	hw
 	apps

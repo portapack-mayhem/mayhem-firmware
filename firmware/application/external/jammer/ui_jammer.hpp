@@ -33,7 +33,7 @@
 
 using namespace jammer;
 
-namespace ui {
+namespace ui::external_app::jammer {
 
 class RangeView : public View {
    public:
@@ -242,4 +242,4 @@ class JammerView : public View {
         }};
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::jammer

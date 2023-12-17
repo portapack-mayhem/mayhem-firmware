@@ -130,9 +130,9 @@ class FProtoWeatherAcurite592TXR : public FProtoWeatherBase {
             static_cast<uint8_t>(decode_data >> 16),
             static_cast<uint8_t>(decode_data >> 8)};
 
-        if ((subghz_protocol_blocks_add_bytes(msg, 6) ==
+        if ((FProtoGeneral::subghz_protocol_blocks_add_bytes(msg, 6) ==
              (uint8_t)(decode_data & 0xFF)) &&
-            (!subghz_protocol_blocks_parity_bytes(&msg[2], 4))) {
+            (!FProtoGeneral::subghz_protocol_blocks_parity_bytes(&msg[2], 4))) {
             return true;
         } else {
             return false;

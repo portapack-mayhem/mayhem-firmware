@@ -118,19 +118,16 @@ class FProtoWeatherInfactory : public FProtoWeatherBase {
             static_cast<uint8_t>(decode_data >> 8),
             static_cast<uint8_t>(decode_data)};
 
-        uint8_t crc =
-            subghz_protocol_blocks_crc4(msg, 4, 0x13, 0);  // Koopmann 0x9, CCITT-4; FP-4; ITU-T G.704
-        crc ^= msg[4] >> 4;                                // last nibble is only XORed
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_crc4(msg, 4, 0x13, 0);  // Koopmann 0x9, CCITT-4; FP-4; ITU-T G.704
+        crc ^= msg[4] >> 4;                                                         // last nibble is only XORed
         return (crc == ((decode_data >> 28) & 0x0F));
     }
     void ws_protocol_infactory_remote_controller() {
         id = data >> 32;
         battery_low = (data >> 26) & 1;
         btn = WS_NO_BTN;
-        temp =
-            locale_fahrenheit_to_celsius(((float)((data >> 12) & 0x0FFF) - 900.0f) / 10.0f);
-        humidity =
-            (((data >> 8) & 0x0F) * 10) + ((data >> 4) & 0x0F);  // BCD, 'A0'=100%rH
+        temp = FProtoGeneral::locale_fahrenheit_to_celsius(((float)((data >> 12) & 0x0FFF) - 900.0f) / 10.0f);
+        humidity = (((data >> 8) & 0x0F) * 10) + ((data >> 4) & 0x0F);  // BCD, 'A0'=100%rH
         channel = data & 0x03;
     }
 };
