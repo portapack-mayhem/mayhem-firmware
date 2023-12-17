@@ -56,11 +56,19 @@ void bulk_out_receive(void) {
 void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred) {
     (void)user_data;
 
+    chSysLockFromIsr();
+
     for (unsigned int i = 0; i < bytes_transferred; i++) {
-        chSysLockFromIsr();
-        chIQPutI(&SUSBD1.iqueue, usb_endpoint_bulk_out.buffer[i]);
-        chSysUnlockFromIsr();
+        msg_t ret;
+        do {
+            ret = chIQPutI(&SUSBD1.iqueue, usb_endpoint_bulk_out.buffer[i]);
+            if (ret == Q_FULL)
+                chThdSleepMilliseconds(1);
+
+        } while (ret == Q_FULL);
     }
+
+    chSysUnlockFromIsr();
 }
 
 static void onotify(GenericQueue* qp) {
@@ -81,7 +89,8 @@ static void onotify(GenericQueue* qp) {
                 NULL,
                 NULL);
 
-            chThdSleepMilliseconds(1);
+            if (ret == -1)
+                chThdSleepMilliseconds(1);
 
         } while (ret == -1);
         chSysLock();

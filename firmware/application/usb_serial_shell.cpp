@@ -164,6 +164,8 @@ static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) 
         uint8_t* data_pointer = (uint8_t*)address;
         *data_pointer = (uint8_t)value;
     }
+
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_read_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -191,6 +193,8 @@ static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     control::debug::inject_switch(button);
+
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -226,6 +230,8 @@ static void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     delete_file(path);
+
+    chprintf(chp, "ok\r\n");
 }
 
 File* shell_file = nullptr;
@@ -244,6 +250,8 @@ static void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
     auto path = path_from_string8(argv[0]);
     shell_file = new File();
     shell_file->open(path, false, true);
+
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -259,6 +267,8 @@ static void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     int address = (int)strtol(argv[0], NULL, 10);
     shell_file->seek(address);
+
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -276,6 +286,8 @@ static void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     delete shell_file;
     shell_file = nullptr;
+
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -347,6 +359,8 @@ static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
         uint8_t value = (uint8_t)strtol(buffer, NULL, 16);
         shell_file->write(&value, 1);
     }
+
+    chprintf(chp, "ok\r\n");
 }
 
 static const ShellCommand commands[] = {
