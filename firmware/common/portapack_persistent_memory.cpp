@@ -195,6 +195,8 @@ struct data_t {
 
     // Recon App
     uint64_t recon_config;
+    int8_t recon_repeat_nb;
+    int8_t recon_repeat_gain;
 
     // enable or disable converter
     bool converter;
@@ -257,7 +259,10 @@ struct data_t {
           tone_mix(tone_mix_reset_value),
 
           hardware_config(0),
+
           recon_config(0),
+          recon_repeat_nb(0),
+          recon_repeat_gain(0),
 
           converter(false),
           updown_converter(false),
@@ -747,6 +752,18 @@ bool recon_match_mode() {
 bool recon_auto_record_locked() {
     return (data->recon_config & 0x00400000UL) ? true : false;
 }
+bool recon_repeat_recorded() {
+    return (data->recon_config & 0x00200000UL) ? true : false;
+}
+int8_t recon_repeat_nb() {
+    return data->recon_repeat_nb;
+}
+int8_t recon_repeat_gain() {
+    return data->recon_repeat_gain;
+}
+bool recon_repeat_amp() {
+    return (data->recon_config & 0x00100000UL) ? true : false;
+}
 
 void set_recon_autosave_freqs(const bool v) {
     data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
@@ -777,6 +794,18 @@ void set_recon_match_mode(const bool v) {
 }
 void set_recon_auto_record_locked(const bool v) {
     data->recon_config = (data->recon_config & ~0x00400000UL) | (v << 22);
+}
+void set_recon_repeat_recorded(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00200000UL) | (v << 21);
+}
+void set_recon_repeat_nb(const int8_t v) {
+    data->recon_repeat_nb = v;
+}
+void set_recon_repeat_gain(const int8_t v) {
+    data->recon_repeat_gain = v;
+}
+void set_recon_repeat_amp(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00100000UL) | (v << 20);
 }
 
 /* UI Config 2 */
