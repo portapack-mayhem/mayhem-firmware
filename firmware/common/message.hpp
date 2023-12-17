@@ -115,8 +115,9 @@ class Message {
         FSKRxConfigure = 58,
         BlePacket = 58,
         BTLETxConfigure = 59,
-        WeatherRxConfigure = 60,
+        SubGhzFPRxConfigure = 60,
         WeatherData = 61,
+        SubGhzDData = 62,
         MAX
     };
 
@@ -1238,12 +1239,12 @@ class SpectrumPainterBufferConfigureResponseMessage : public Message {
     SpectrumPainterFIFO* fifo{nullptr};
 };
 
-class WeatherRxConfigureMessage : public Message {
+class SubGhzFPRxConfigureMessage : public Message {
    public:
-    constexpr WeatherRxConfigureMessage()
-        : Message{ID::WeatherRxConfigure} {
-        // todoh give some more info
+    constexpr SubGhzFPRxConfigureMessage(uint8_t modulation = 0)
+        : Message{ID::SubGhzFPRxConfigure}, modulation{modulation} {
     }
+    uint8_t modulation = 0;  // 0 am, 1 fm
 };
 
 class WeatherDataMessage : public Message {
@@ -1272,6 +1273,31 @@ class WeatherDataMessage : public Message {
     uint8_t battery_low = 0xFF;
     uint8_t channel = 0xFF;
     uint8_t btn = 0xFF;
+};
+
+class SubGhzDDataMessage : public Message {
+   public:
+    constexpr SubGhzDDataMessage(
+        uint8_t sensorType = 0,
+        uint8_t btn = 0xFF,
+        uint16_t bits = 0,
+        uint32_t serial = 0xFFFFFFFF,
+        uint64_t data = 0,
+        uint32_t cnt = 0xFF)
+        : Message{ID::SubGhzDData},
+          sensorType{sensorType},
+          btn{btn},
+          bits{bits},
+          serial{serial},
+          cnt{cnt},
+          data{data} {
+    }
+    uint8_t sensorType = 0;
+    uint8_t btn = 0xFF;
+    uint16_t bits = 0;
+    uint32_t serial = 0xFFFFFFFF;
+    uint32_t cnt = 0xFF;
+    uint64_t data = 0;
 };
 
 #endif /*__MESSAGE_H__*/

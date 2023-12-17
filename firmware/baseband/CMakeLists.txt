@@ -347,12 +347,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAPR aprsrx)
 
-### NRF RX
-
-set(MODE_CPPSRC
-	proc_nrfrx.cpp
-)
-DeclareTargets(PNRR nrfrx)
 
 ### BTLE RX
 
@@ -382,12 +376,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAMA am_audio)
 
-### AM TV
-
-set(MODE_CPPSRC
-	proc_am_tv.cpp
-)
-DeclareTargets(PAMT am_tv)
 
 ### Audio transmit
 
@@ -431,12 +419,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSR fskrx)
 
-### Jammer
-
-set(MODE_CPPSRC
-	proc_jammer.cpp
-)
-DeclareTargets(PJAM jammer)
 
 ### Microphone transmit
 
@@ -550,8 +532,15 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
-### Weather Stations
+### SubGhz Decoders 
 
+set(MODE_CPPSRC
+	proc_subghzd.cpp
+)
+DeclareTargets(PSGD subghzd)
+
+
+### Weather Stations
 set(MODE_CPPSRC
 	proc_weather.cpp
 )
@@ -625,6 +614,28 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+
+### NRF RX
+
+set(MODE_CPPSRC
+	proc_nrfrx.cpp
+)
+DeclareTargets(PNRR nrfrx)
+
+
+### Jammer
+
+set(MODE_CPPSRC
+	proc_jammer.cpp
+)
+DeclareTargets(PJAM jammer)
+
+### AM TV
+
+set(MODE_CPPSRC
+	proc_am_tv.cpp
+)
+DeclareTargets(PAMT am_tv)
 
 ### Test
 

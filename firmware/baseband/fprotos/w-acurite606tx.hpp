@@ -102,7 +102,7 @@ class FProtoWeatherAcurite606TX : public FProtoWeatherBase {
             static_cast<uint8_t>(decode_data >> 16),
             static_cast<uint8_t>(decode_data >> 8)};
 
-        uint8_t crc = subghz_protocol_blocks_lfsr_digest8(msg, 3, 0x98, 0xF1);
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_lfsr_digest8(msg, 3, 0x98, 0xF1);
         return (crc == (decode_data & 0xFF));
     }
 };

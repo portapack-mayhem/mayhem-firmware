@@ -128,7 +128,7 @@ class FProtoWeatherWendoxW6726 : public FProtoWeatherBase {
             static_cast<uint8_t>(decode_data >> 12),
             static_cast<uint8_t>(decode_data >> 4)};
 
-        uint8_t crc = subghz_protocol_blocks_crc4(msg, 4, 0x9, 0xD);
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_crc4(msg, 4, 0x9, 0xD);
         return (crc == (decode_data & 0x0F));
     }
     void ws_protocol_wendox_w6726_remote_controller() {

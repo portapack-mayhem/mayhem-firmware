@@ -108,16 +108,16 @@ class FProtoWeatherAcurite986 : public FProtoWeatherBase {
     void ws_protocol_acurite_986_remote_controller() {
         int temp;
 
-        id = subghz_protocol_blocks_reverse_key(data >> 24, 8);
-        id = (id << 8) | subghz_protocol_blocks_reverse_key(data >> 16, 8);
+        id = FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 24, 8);
+        id = (id << 8) | FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 16, 8);
         battery_low = (data >> 14) & 1;
         channel = ((data >> 15) & 1) + 1;
 
-        temp = subghz_protocol_blocks_reverse_key(data >> 32, 8);
+        temp = FProtoGeneral::subghz_protocol_blocks_reverse_key(data >> 32, 8);
         if (temp & 0x80) {
             temp = -(temp & 0x7F);
         }
-        temp = locale_fahrenheit_to_celsius((float)temp);
+        temp = FProtoGeneral::locale_fahrenheit_to_celsius((float)temp);
         btn = WS_NO_BTN;
         humidity = WS_NO_HUMIDITY;
     }
@@ -130,7 +130,7 @@ class FProtoWeatherAcurite986 : public FProtoWeatherBase {
             (uint8_t)(decode_data >> 16),
             (uint8_t)(decode_data >> 8)};
 
-        uint8_t crc = subghz_protocol_blocks_crc8(msg, 4, 0x07, 0x00);
+        uint8_t crc = FProtoGeneral::subghz_protocol_blocks_crc8(msg, 4, 0x07, 0x00);
         return (crc == (decode_data & 0xFF));
     }
 };
