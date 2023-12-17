@@ -47,12 +47,12 @@ void USBSerial::on_channel_closed() {
 }
 
 void USBSerial::enable_xtal() {
-    LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;  // Yep, zero is enabled
+    LPC_CGU->XTAL_OSC_CTRL.ENABLE = 0;
     LPC_CGU->XTAL_OSC_CTRL.HF = 0;
 }
 
 void USBSerial::disable_pll0() {
-    LPC_CGU->PLL0USB_CTRL.PD = 1;  // PLL0 powered down
+    LPC_CGU->PLL0USB_CTRL.PD = 1;
     LPC_CGU->PLL0USB_CTRL.AUTOBLOCK = 1;
 
     LPC_CGU->PLL0USB_CTRL.BYPASS = 0;
@@ -73,7 +73,7 @@ void USBSerial::setup_pll0() {
     // /* Values from User Manual v1.4 Table 94, for 12MHz oscillator. */
     LPC_CGU->PLL0USB_MDIV = 0x06167FFA;
     LPC_CGU->PLL0USB_NP_DIV = 0x00302062;
-    LPC_CGU->PLL0USB_CTRL.PD = 1;  // PLL0 still powered down
+    LPC_CGU->PLL0USB_CTRL.PD = 1;
     LPC_CGU->PLL0USB_CTRL.DIRECTI = 1;
     LPC_CGU->PLL0USB_CTRL.DIRECTO = 1;
     LPC_CGU->PLL0USB_CTRL.CLKEN = 1;
@@ -89,7 +89,6 @@ void USBSerial::enable_pll0() {
 
 void USBSerial::setup_usb_clock() {
     /* use PLL0USB as clock source for USB0 */
-    // LPC_CGU->BASE_USB0_CLK.PD = 1;
     LPC_CGU->BASE_USB0_CLK.AUTOBLOCK = 1;
     LPC_CGU->BASE_USB0_CLK.CLK_SEL = 0x07;
     LPC_CGU->BASE_USB0_CLK.PD = 0;

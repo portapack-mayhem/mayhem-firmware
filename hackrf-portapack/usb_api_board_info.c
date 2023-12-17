@@ -148,8 +148,6 @@ usb_request_status_t usb_vendor_request_reset(
         gpio_clear(&dfu);
 
         wwdt_reset(100000);
-
-        // RESET_CTRL0 = 1;
     }
     return USB_REQUEST_STATUS_OK;
 }

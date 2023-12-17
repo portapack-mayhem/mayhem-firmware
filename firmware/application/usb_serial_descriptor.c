@@ -61,6 +61,7 @@ uint8_t usb_descriptor_device_qualifier[] = {
     0x01,                                  // bNumOtherSpeedConfigurations
     0x00                                   // bReserved
 };
+
 uint8_t usb_descriptor_configuration_full_speed[] = {
     9,                                                   // bLength
     USB_DESCRIPTOR_TYPE_CONFIGURATION,                   // bDescriptorType
@@ -145,6 +146,7 @@ uint8_t usb_descriptor_configuration_full_speed[] = {
 
     0,  // TERMINATOR
 };
+
 uint8_t usb_descriptor_configuration_high_speed[] = {
     9,                                                   // bLength
     USB_DESCRIPTOR_TYPE_CONFIGURATION,                   // bDescriptorType
@@ -229,13 +231,15 @@ uint8_t usb_descriptor_configuration_high_speed[] = {
 
     0,  // TERMINATOR
 };
+
 uint8_t usb_descriptor_string_languages[] = {
     0x04,                         // bLength
     USB_DESCRIPTOR_TYPE_STRING,   // bDescriptorType
     USB_WORD(USB_STRING_LANGID),  // wLANGID
 };
+
 // clang-format off
- uint8_t usb_descriptor_string_manufacturer[] = {
+uint8_t usb_descriptor_string_manufacturer[] = {
  	40,                         // bLength
  	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
  	'G', 0x00,
@@ -258,6 +262,7 @@ uint8_t usb_descriptor_string_languages[] = {
  	't', 0x00,
  	's', 0x00,
  };
+
  uint8_t usb_descriptor_string_product[] = {
  	43,                         // bLength
  	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
@@ -278,6 +283,7 @@ uint8_t usb_descriptor_string_languages[] = {
  	'e', 0x00,
  	'm', 0x00,
  };
+ 
  uint8_t usb_descriptor_string_config_description[] = {
  	24,                         // bLength
  	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
@@ -293,7 +299,9 @@ uint8_t usb_descriptor_string_languages[] = {
  	'e', 0x00,
  	'r', 0x00,
  };
+
  uint8_t usb_descriptor_string_serial_number[USB_DESCRIPTOR_STRING_SERIAL_BUF_LEN];
+
  uint8_t* usb_descriptor_strings[] = {
  	usb_descriptor_string_languages,
  	usb_descriptor_string_manufacturer,
@@ -302,6 +310,7 @@ uint8_t usb_descriptor_string_languages[] = {
  	usb_descriptor_string_serial_number,
  	0, // TERMINATOR
  };
+
  uint8_t wcid_string_descriptor[] = {
  	18,                          // bLength
  	USB_DESCRIPTOR_TYPE_STRING,  // bDescriptorType
@@ -315,6 +324,7 @@ uint8_t usb_descriptor_string_languages[] = {
  	USB_WCID_VENDOR_REQ, // vendor request code for further descriptor
  	0x00
  };
+ 
  uint8_t wcid_feature_descriptor[] = {
  	0x28, 0x00, 0x00, 0x00,                  // bLength
  	USB_WORD(0x0100),                        // WCID version

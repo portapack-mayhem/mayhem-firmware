@@ -44,6 +44,9 @@ static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
+    m4_request_shutdown();
+    chThdSleepMilliseconds(50);
+
     LPC_RGU->RESET_CTRL[0] = (1 << 0);
 }
 
@@ -51,6 +54,9 @@ static void cmd_dfu(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
     (void)argc;
     (void)argv;
+
+    m4_request_shutdown();
+    chThdSleepMilliseconds(50);
 
     LPC_SCU->SFSP2_8 = (LPC_SCU->SFSP2_8 & ~(7)) | 4;
     palOutputPad(5, 7);
@@ -64,6 +70,8 @@ static void cmd_hackrf(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
+    m4_request_shutdown();
+    chThdSleepMilliseconds(50);
     EventDispatcher::request_stop();
 }
 
@@ -86,6 +94,8 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     sdcDisconnect(&SDCD1);
     sdcStop(&SDCD1);
 
+    m4_request_shutdown();
+    chThdSleepMilliseconds(50);
     portapack::shutdown(true);
     m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
     m0_halt();
@@ -112,6 +122,8 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (filename_length + 1) * 2);
 
+    m4_request_shutdown();
+    chThdSleepMilliseconds(50);
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
     m0_halt();
 }
