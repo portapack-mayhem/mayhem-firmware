@@ -22,13 +22,23 @@
  */
 
 #include "ui_recon.hpp"
-#include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
 #include "capture_app.hpp"
 #include "convert.hpp"
 #include "file.hpp"
 #include "file_reader.hpp"
 #include "tone_key.hpp"
+#include "replay_app.hpp"
+#include "string_format.hpp"
+#include "ui_fileman.hpp"
+#include "io_file.hpp"
+#include "io_convert.hpp"
+#include "baseband_api.hpp"
+#include "metadata_file.hpp"
+#include "portapack.hpp"
+#include "portapack_persistent_memory.hpp"
+#include "utility.hpp"
+#include "replay_thread.hpp"
 
 using namespace portapack;
 using namespace tonekey;
@@ -77,6 +87,15 @@ void ReconView::recon_stop_recording() {
         record_view->stop();
         button_config.set_style(&Styles::white);  // disable config while recording as it's causing an IO error pop up at exit
         is_recording = false;
+        // repeater mode
+        if( persistent_memory::recon_repeat_recorded() )
+        {
+            for( int8_t it = 0 ; it < persistent_memory::recon_repeat_nb() ; it ++ )
+            {
+                //send file
+
+            }
+        }
     }
 }
 
@@ -314,7 +333,8 @@ ReconView::ReconView(NavigationView& nav)
                   &button_restart,
                   &button_mic_app,
                   &button_remove,
-                  record_view.get()});
+                  record_view.get(),
+                  &progressbar});
 
     record_view->hidden(true);
     record_view->set_filename_date_frequency(true);
@@ -1220,6 +1240,129 @@ void ReconView::handle_remove_current_item() {
         text_cycle.set_text(" ");
     }
     update_description();
+}
+
+// reapeater
+void ReconView::set_repeat_ready() {
+    repeat_ready_signal = true;
+}
+
+void ReconView::on_repeat_file_changed() {
+    repeat_file_path = fs::path(RECON_REPEAT_RAW);
+    File::Size file_size{};
+
+    {  // Get the size of the data file.
+        File data_file;
+        auto error = data_file.open(repeat_file_path);
+        if (error) {
+            repeat_file_error();
+            return;
+        }
+
+        file_size = data_file.size();
+    }
+
+    // Get original record frequency if available.
+    tx_freq = freq ;
+    auto metadata = read_metadata_file(RECON_REPEAT_META);
+    if (metadata) {
+        tx_freq = metadata->center_frequency;
+        repeat_sample_rate = metadata->sample_rate;
+    } else {
+        // TODO: This is interesting because it implies that the
+        // The capture will just be replayed at the freq set on the
+        // FrequencyField. Is that an intentional behavior?
+        repeat_sample_rate = 500000;
+    }
+    // UI Fixup.
+    progressbar.set_max(file_size);
+}
+
+void ReconView::on_repeat_tx_progress(const uint32_t progress) {
+    progressbar.set_value(progress);
+}
+
+void ReconView::repeat_file_error() {
+    nav_.display_modal("Error", "File read error.");
+}
+
+bool ReconView::is_repeat_active() const {
+    return (bool)repeat_thread;
+}
+
+void ReconView::toggle_repeat() {
+    if (is_repeat_active()) {
+        stop_repeat(false);
+    } else {
+        start_repeat();
+    }
+}
+
+void ReconView::start_repeat() {
+    stop_repeat(false);
+
+    std::unique_ptr<stream::Reader> reader;
+
+    auto p = std::make_unique<FileConvertReader>();
+    auto open_error = p->open(RECON_REPEAT_RAW);
+    if (open_error.is_valid()) {
+        repeat_file_error();
+        return;  // Fixes TX bug if there's a file error
+    } else {
+        reader = std::move(p);
+    }
+
+    if (reader) {
+        baseband::set_sample_rate(repeat_sample_rate, OversampleRate::x8);
+
+        repeat_thread = std::make_unique<ReplayThread>(
+            std::move(reader),
+            repeat_read_size, repeat_buffer_count,
+            &repeat_ready_signal,
+            [](uint32_t return_code) {
+                ReplayThreadDoneMessage message{return_code};
+                EventDispatcher::send_message(message);
+            });
+    }
+
+    transmitter_model.set_sampling_rate(repeat_sample_rate * toUType(OversampleRate::x8));
+    transmitter_model.set_baseband_bandwidth(repeat_bandwidth);
+    transmitter_model.enable();
+
+    if (portapack::persistent_memory::stealth_mode()) {
+        DisplaySleepMessage message;
+        EventDispatcher::send_message(message);
+    }
+}
+
+void ReconView::stop_repeat(const bool do_loop) {
+    if (is_repeat_active())
+        repeat_thread.reset();
+
+    if (do_loop )
+    {
+        if( repeat_cur_rep<persistent_memory::recon_repeat_nb()) {
+            start_repeat();
+            repeat_cur_rep ++;
+        } else {
+            repeat_cur_rep = 0 ;
+            transmitter_model.disable();
+        }
+    } else {
+        transmitter_model.disable();
+    }
+    repeat_ready_signal = false;
+}
+
+void ReconView::handle_repeat_thread_done(const uint32_t return_code) {
+    if (return_code == ReplayThread::END_OF_FILE) {
+        stop_repeat(true);
+    } else if (return_code == ReplayThread::READ_ERROR) {
+        stop_repeat(false);
+        repeat_file_error();
+    }
+
+    progressbar.set_value(0);
 }
 
 } /* namespace ui */

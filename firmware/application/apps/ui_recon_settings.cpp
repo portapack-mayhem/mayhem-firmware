@@ -101,6 +101,10 @@ void ReconSetupViewMore::save() {
     persistent_memory::set_recon_load_hamradios(checkbox_load_hamradios.value());
     persistent_memory::set_recon_update_ranges_when_recon(checkbox_update_ranges_when_recon.value());
     persistent_memory::set_recon_auto_record_locked(checkbox_auto_record_locked.value());
+    persistent_memory::set_recon_repeat_recorded(checkbox_repeat_recorded.value());
+    persistent_memory::set_recon_repeat_nb(field_repeat_nb.value());
+    persistent_memory::set_recon_repeat_amp(checkbox_repeat_amp.value());
+    persistent_memory::set_recon_repeat_gain(field_repeat_gain.value());
 };
 
 void ReconSetupViewMain::focus() {
@@ -129,6 +133,10 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
     checkbox_load_hamradios.set_value(persistent_memory::recon_load_hamradios());
     checkbox_update_ranges_when_recon.set_value(persistent_memory::recon_update_ranges_when_recon());
     checkbox_auto_record_locked.set_value(persistent_memory::recon_auto_record_locked());
+    checkbox_repeat_recorded.set_value(persistent_memory::recon_repeat_recorded());
+    checkbox_repeat_amp.set_value(persistent_memory::recon_repeat_amp());
+    field_repeat_nb.set_value(persistent_memory::recon_repeat_nb());
+    field_repeat_gain.set_value(persistent_memory::recon_repeat_gain());
 };
 
 void ReconSetupViewMore::focus() {

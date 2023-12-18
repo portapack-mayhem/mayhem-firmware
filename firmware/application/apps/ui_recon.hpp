@@ -41,10 +41,22 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui_recon_settings.hpp"
+#include "ui_transmitter.hpp"
+#include "replay_thread.hpp"
+#include "metadata_file.hpp"
+#include "ui_widget.hpp"
+#include "ui_navigation.hpp"
+#include "ui_freq_field.hpp"
+#include "ui_spectrum.hpp"
+
+#include <string>
+#include <memory>
 
 namespace ui {
 
-#define RECON_CFG_FILE "SETTINGS/recon.cfg"
+#define RECON_CFG_FILE u"SETTINGS/recon.cfg"
+#define RECON_REPEAT_RAW u"CAPTURES/RECON_REPEAT.C16"
+#define RECON_REPEAT_META u"CAPTURES/RECON_REPEAT.TXT"
 
 enum class recon_mode : uint8_t {
     Recon,
@@ -162,6 +174,26 @@ class ReconView : public View {
     std::string freq_file_path{};
     systime_t chrono_start{};
     systime_t chrono_end{};
+
+
+    const size_t repeat_read_size{16384};
+    const size_t repeat_buffer_count{3};
+    int8_t repeat_cur_rep={0};
+    int64_t tx_freq = 0 ;
+    int64_t repeat_sample_rate = 0 ;
+    int64_t repeat_bandwidth = 0 ;
+    void on_repeat_file_changed();
+    void on_repeat_tx_progress(const uint32_t progress);
+    void toggle_repeat();
+    void start_repeat();
+    void stop_repeat(const bool do_loop);
+    bool is_repeat_active() const;
+    void set_repeat_ready();
+    void handle_repeat_thread_done(const uint32_t return_code);
+    void repeat_file_error();
+    std::filesystem::path repeat_file_path{};
+    std::unique_ptr<ReplayThread> repeat_thread{};
+    bool repeat_ready_signal{false};
 
     // Persisted settings.
     SettingsStore ui_settings{
@@ -354,6 +386,10 @@ class ReconView : public View {
         {168, (35 * 8) - 4, 72, 28},
         "<REMOVE>"};
 
+    ProgressBar progressbar{
+        {18 * 8, 1 * 16, 12 * 8, 16}};
+
+
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* const p) {
@@ -366,6 +402,30 @@ class ReconView : public View {
         [this](const Message* const p) {
             this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
+
+    MessageHandlerRegistration message_handler_repeat_thread_error{
+        Message::ID::ReplayThreadDone,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            this->handle_repeat_thread_done(message.return_code);
+        }};
+
+    MessageHandlerRegistration message_handler_fifo_signal{
+        Message::ID::RequestSignal,
+        [this](const Message* const p) {
+            const auto message = static_cast<const RequestSignalMessage*>(p);
+            if (message->signal == RequestSignalMessage::Signal::FillRequest) {
+                this->set_repeat_ready();
+            }
+        }};
+
+    MessageHandlerRegistration message_handler_tx_progress{
+        Message::ID::TXProgress,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            this->on_repeat_tx_progress(message.progress);
+        }};
+
 };
 
 } /* namespace ui */
