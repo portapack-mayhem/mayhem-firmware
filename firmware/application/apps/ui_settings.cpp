@@ -459,7 +459,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
         pmem::set_freq_rx_correction_updown(v);
     };
 
-    opt_tx_correction_mode.set_by_value(pmem::config_freq_rx_correction_updown());
+    opt_tx_correction_mode.set_by_value(pmem::config_freq_tx_correction_updown());
     opt_tx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
         pmem::set_freq_tx_correction_updown(v);
     };
