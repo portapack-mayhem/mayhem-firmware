@@ -248,7 +248,7 @@ bool recon_auto_record_locked();
 bool recon_repeat_recorded();
 int8_t recon_repeat_nb();
 int8_t recon_repeat_gain();
-bool recon_repeat_gain();
+bool recon_repeat_amp();
 bool recon_load_hamradios();
 bool recon_match_mode();
 void set_recon_autosave_freqs(const bool v);
