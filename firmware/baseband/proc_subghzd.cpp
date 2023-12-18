@@ -73,6 +73,7 @@ void SubGhzDProcessor::on_message(const Message* const message) {
 void SubGhzDProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
     // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
+    (void)message;  // unused
 
     decim_0.configure(taps_200k_wfm_decim_0.taps);
     decim_1.configure(taps_200k_wfm_decim_1.taps);
