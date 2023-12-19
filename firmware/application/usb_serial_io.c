@@ -73,10 +73,12 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
 
 static void onotify(GenericQueue* qp) {
     SerialUSBDriver* sdp = chQGetLink(qp);
+    uint8_t buff[64];
     int n = chOQGetFullI(&sdp->oqueue);
+    if (n > 64) n = 64;  // don't overflow
     if (n > 0) {
         for (int i = 0; i < n; i++) {
-            usb_endpoint_bulk_in.buffer[i] = chOQGetI(&sdp->oqueue);
+            buff[i] = chOQGetI(&sdp->oqueue);
         }
 
         int ret;
@@ -84,7 +86,7 @@ static void onotify(GenericQueue* qp) {
         do {
             ret = usb_transfer_schedule(
                 &usb_endpoint_bulk_in,
-                &usb_endpoint_bulk_in.buffer[0],
+                &buff[0],
                 n,
                 NULL,
                 NULL);
