@@ -50,7 +50,6 @@ static msg_t qwait(GenericQueue* qp, systime_t time) {
 }
 
 // This function fills the output buffer, and sends all data in 1 packet
-// TODO. need to investigate why it hangs when the buffer has more item than 32 byte!
 static size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n) {
     qnotify_t nfy = oqp->q_notify;
     size_t w = 0;
@@ -204,7 +203,6 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
         for (int px = 0; px < ui::screen_width; px += 5) {
             char buffer[5 * 3 * 2];
             sprintf(buffer, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", row[px].r, row[px].g, row[px].b, row[px + 1].r, row[px + 1].g, row[px + 1].b, row[px + 2].r, row[px + 2].g, row[px + 2].b, row[px + 3].r, row[px + 3].g, row[px + 3].b, row[px + 4].r, row[px + 4].g, row[px + 4].b);
-            // auto space = chOQGetEmptyI(&((SerialUSBDriver*)chp)->oqueue);
             fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 5 * 3 * 2);
         }
         chprintf(chp, "\r\n");
