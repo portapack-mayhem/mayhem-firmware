@@ -335,6 +335,22 @@ static void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
 
 File* shell_file = nullptr;
 
+static void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: filesize <path>\r\n");
+        return;
+    }
+    auto path = path_from_string8(argv[0]);
+    FILINFO res;
+    auto stat = f_stat(path.tchar(), &res);
+    if (stat == FR_OK) {
+        chprintf(chp, "%lu\r\n", res.fsize);
+        chprintf(chp, "ok\r\n");
+    } else {
+        chprintf(chp, "error\r\n");
+    }
+}
+
 static void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "usage: open <path>\r\n");
@@ -422,6 +438,7 @@ static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
         size -= bytes_to_read;
     } while (size > 0);
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -481,6 +498,7 @@ static const ShellCommand commands[] = {
     {"close", cmd_sd_close},
     {"read", cmd_sd_read},
     {"write", cmd_sd_write},
+    {"filesize", cmd_sd_filesize},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
