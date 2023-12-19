@@ -28,8 +28,10 @@
 #include <cstddef>
 #include <algorithm>
 
+#include "chprintf.h"
 #include "irq_controls.hpp"
 #include "string_format.hpp"
+#include "usb_serial_io.h"
 
 using namespace portapack;
 

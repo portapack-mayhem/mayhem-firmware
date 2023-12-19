@@ -204,6 +204,7 @@ set(CPPSRC
 	portapack.cpp
 	usb_serial_shell.cpp
 	usb_serial_event.cpp
+	usb_serial_thread.cpp
 	usb_serial.cpp
 	qrcodegen.cpp
 	radio.cpp
