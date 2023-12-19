@@ -229,12 +229,12 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
     for (int y = 0; y < ui::screen_height; y++) {
         std::array<ui::ColorRGB888, ui::screen_width> row;
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
-        for (int px = 0; px < ui::screen_width; px += 30) {
-            char buffer[30];
-            for (int i = 0; i < 30; ++i) {
+        for (int px = 0; px < ui::screen_width; px += 60) {
+            char buffer[60];
+            for (int i = 0; i < 60; ++i) {
                 buffer[i] = getChrFromRgb(row[px + i].r, row[px + i].g, row[px + i].b);
             }
-            fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 30);
+            fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 60);
         }
         chprintf(chp, "\r\n");
     }
