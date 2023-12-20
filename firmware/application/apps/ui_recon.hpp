@@ -179,21 +179,19 @@ class ReconView : public View {
     const std::filesystem::path repeat_rec_path = u"CAPTURES";
     const size_t repeat_read_size{16384};
     const size_t repeat_buffer_count{3};
-    int8_t repeat_cur_rep = {0};
-    int64_t tx_freq = 0;
+    int8_t repeat_cur_rep = 0;
     int64_t repeat_sample_rate = 0;
-    int64_t repeat_bandwidth = 0;
+    static constexpr uint32_t repeat_bandwidth = 2500000;
     void on_repeat_tx_progress(const uint32_t progress);
-    void toggle_repeat();
     void start_repeat();
     void stop_repeat(const bool do_loop);
     bool is_repeat_active() const;
     void set_repeat_ready();
     void handle_repeat_thread_done(const uint32_t return_code);
-    void repeat_file_error();
+    void repeat_file_error(const std::filesystem::path& path, const std::string& message);
     std::filesystem::path repeat_file_path{};
     std::unique_ptr<ReplayThread> repeat_thread{};
-    bool repeat_ready_signal{false};
+    bool repeat_ready_signal{};
 
     // Persisted settings.
     SettingsStore ui_settings{
@@ -414,7 +412,7 @@ class ReconView : public View {
         [this](const Message* const p) {
             const auto message = static_cast<const RequestSignalMessage*>(p);
             if (message->signal == RequestSignalMessage::Signal::FillRequest) {
-                this->set_repeat_ready();
+                repeat_ready_signal = true ;
             }
         }};
 
