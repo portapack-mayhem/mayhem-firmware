@@ -126,7 +126,7 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
                   &field_repeat_nb,
                   &checkbox_repeat_amp,
                   &text_repeat_gain,
-                  &field_repeat_gain });
+                  &field_repeat_gain});
 
     checkbox_load_freqs.set_value(persistent_memory::recon_load_freqs());
     checkbox_load_ranges.set_value(persistent_memory::recon_load_ranges());

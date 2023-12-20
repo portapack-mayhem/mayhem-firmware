@@ -88,13 +88,8 @@ void ReconView::recon_stop_recording() {
         button_config.set_style(&Styles::white);  // disable config while recording as it's causing an IO error pop up at exit
         is_recording = false;
         // repeater mode
-        if( persistent_memory::recon_repeat_recorded() )
-        {
-            for( int8_t it = 0 ; it < persistent_memory::recon_repeat_nb() ; it ++ )
-            {
-                //send file
-
-            }
+        if (persistent_memory::recon_repeat_recorded()) {
+            // start_repeat();
         }
     }
 }
@@ -294,9 +289,17 @@ ReconView::~ReconView() {
 ReconView::ReconView(NavigationView& nav)
     : nav_{nav} {
     chrono_start = chTimeNow();
+
+    // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                               u"AUTO_AUDIO_", u"AUDIO",
+                                               u"AUTO_AUDIO", u"AUDIO",
                                                RecordView::FileType::WAV, 4096, 4);
+    record_view->set_filename_date_frequency(true);
+    record_view->hidden(true);
+    record_view->on_error = [&nav](std::string message) {
+        nav.display_modal("Error", message);
+    };
+
     add_children({&labels,
                   &field_lna,
                   &field_vga,
@@ -335,12 +338,6 @@ ReconView::ReconView(NavigationView& nav)
                   &button_remove,
                   record_view.get(),
                   &progressbar});
-
-    record_view->hidden(true);
-    record_view->set_filename_date_frequency(true);
-    record_view->on_error = [&nav](std::string message) {
-        nav.display_modal("Error", message);
-    };
 
     def_step = 0;
     load_persisted_settings();
@@ -724,6 +721,9 @@ ReconView::ReconView(NavigationView& nav)
     change_mode(AM_MODULATION);              // start on AM.
     field_mode.set_by_value(AM_MODULATION);  // reflect the mode into the manual selector
 
+    // tx progress bar
+    progressbar.hidden(true);
+
     if (filedelete) {
         delete_file(freq_file_path);
     }
@@ -796,6 +796,8 @@ void ReconView::frequency_file_load() {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
+    if (is_repeat_active())
+        return;
     chrono_end = chTimeNow();
     systime_t time_interval = chrono_end - chrono_start;
     chrono_start = chrono_end;
@@ -855,9 +857,9 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     // contents of a possible recon_start_recording(), but not yet since it's only called once
                     if (auto_record_locked && !is_recording) {
                         button_audio_app.set_style(&Styles::red);
-                        if (field_mode.selected_index_value() == SPEC_MODULATION)
+                        if (field_mode.selected_index_value() == SPEC_MODULATION) {
                             button_audio_app.set_text("RAW REC");
-                        else
+                        } else
                             button_audio_app.set_text("WAV REC");
                         record_view->start();
                         button_config.set_style(&Styles::light_grey);  // disable config while recording as it's causing an IO error pop up at exit
@@ -1105,23 +1107,29 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     recon_stop_recording();
     remove_child(record_view.get());
     record_view.reset();
-    if (new_mod == SPEC_MODULATION) {
+    if (persistent_memory::recon_repeat_recorded()) {
+        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                   u"RECON_REPEAT.C16", u"CAPTURES",
+                                                   RecordView::FileType::RawS16, 16384, 3);
+        record_view->set_filename_as_is(true);
+    } else if (new_mod == SPEC_MODULATION) {
         audio::output::stop();
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_RAW_", u"CAPTURES",
+                                                   u"AUTO_RAW", u"CAPTURES",
                                                    RecordView::FileType::RawS16, 16384, 3);
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_AUDIO_", u"AUDIO",
+                                                   u"AUTO_AUDIO", u"AUDIO",
                                                    RecordView::FileType::WAV, 4096, 4);
+        record_view->set_filename_date_frequency(true);
     }
     add_child(record_view.get());
     record_view->hidden(true);
-    record_view->set_filename_date_frequency(true);
     record_view->on_error = [this](std::string message) {
         nav_.display_modal("Error", message);
     };
     receiver_model.disable();
+    transmitter_model.disable();
     baseband::shutdown();
     size_t recording_sampling_rate = 0;
     switch (new_mod) {
@@ -1247,37 +1255,6 @@ void ReconView::set_repeat_ready() {
     repeat_ready_signal = true;
 }
 
-void ReconView::on_repeat_file_changed() {
-    repeat_file_path = fs::path(RECON_REPEAT_RAW);
-    File::Size file_size{};
-
-    {  // Get the size of the data file.
-        File data_file;
-        auto error = data_file.open(repeat_file_path);
-        if (error) {
-            repeat_file_error();
-            return;
-        }
-
-        file_size = data_file.size();
-    }
-
-    // Get original record frequency if available.
-    tx_freq = freq ;
-    auto metadata = read_metadata_file(RECON_REPEAT_META);
-    if (metadata) {
-        tx_freq = metadata->center_frequency;
-        repeat_sample_rate = metadata->sample_rate;
-    } else {
-        // TODO: This is interesting because it implies that the
-        // The capture will just be replayed at the freq set on the
-        // FrequencyField. Is that an intentional behavior?
-        repeat_sample_rate = 500000;
-    }
-    // UI Fixup.
-    progressbar.set_max(file_size);
-}
-
 void ReconView::on_repeat_tx_progress(const uint32_t progress) {
     progressbar.set_value(progress);
 }
@@ -1302,9 +1279,40 @@ void ReconView::start_repeat() {
     stop_repeat(false);
 
     std::unique_ptr<stream::Reader> reader;
+    std::filesystem::path raw_file;
+    std::filesystem::path meta_file;
+    raw_file = repeat_rec_file.string();
+    raw_file = repeat_rec_path / raw_file;
+    meta_file = repeat_rec_meta.string();
+    meta_file = repeat_rec_path / meta_file;
+
+    File::Size file_size{};
+
+    File data_file;
+    auto error = data_file.open(raw_file);
+    if (error) {
+        repeat_file_error();
+        return;
+    }
+    file_size = data_file.size();
+
+    // Get original record frequency if available.
+    tx_freq = freq;
+    auto metadata = read_metadata_file(meta_file);
+    if (metadata) {
+        tx_freq = metadata->center_frequency;
+        repeat_sample_rate = metadata->sample_rate;
+    } else {
+        // TODO: This is interesting because it implies that the
+        // The capture will just be replayed at the freq set on the
+        // FrequencyField. Is that an intentional behavior?
+        repeat_sample_rate = 500000;
+    }
+    // UI Fixup.
+    progressbar.set_max(file_size);
 
     auto p = std::make_unique<FileConvertReader>();
-    auto open_error = p->open(RECON_REPEAT_RAW);
+    auto open_error = p->open(raw_file);
     if (open_error.is_valid()) {
         repeat_file_error();
         return;  // Fixes TX bug if there's a file error
@@ -1339,14 +1347,14 @@ void ReconView::stop_repeat(const bool do_loop) {
     if (is_repeat_active())
         repeat_thread.reset();
 
-    if (do_loop )
-    {
-        if( repeat_cur_rep<persistent_memory::recon_repeat_nb()) {
+    if (do_loop) {
+        if (repeat_cur_rep < persistent_memory::recon_repeat_nb()) {
             start_repeat();
-            repeat_cur_rep ++;
+            repeat_cur_rep++;
         } else {
-            repeat_cur_rep = 0 ;
+            repeat_cur_rep = 0;
             transmitter_model.disable();
+            change_mode(current_entry().modulation);
         }
     } else {
         transmitter_model.disable();

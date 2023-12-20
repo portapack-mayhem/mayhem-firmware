@@ -55,8 +55,7 @@
 namespace ui {
 
 #define RECON_CFG_FILE u"SETTINGS/recon.cfg"
-#define RECON_REPEAT_RAW u"CAPTURES/RECON_REPEAT.C16"
-#define RECON_REPEAT_META u"CAPTURES/RECON_REPEAT.TXT"
+#define RECON_TX 128  // special change_mode case, set TX
 
 enum class recon_mode : uint8_t {
     Recon,
@@ -175,14 +174,15 @@ class ReconView : public View {
     systime_t chrono_start{};
     systime_t chrono_end{};
 
-
+    const std::filesystem::path repeat_rec_file = u"RECON_REPEAT.C16";
+    const std::filesystem::path repeat_rec_meta = u"RECON_REPEAT.TXT";
+    const std::filesystem::path repeat_rec_path = u"CAPTURES";
     const size_t repeat_read_size{16384};
     const size_t repeat_buffer_count{3};
-    int8_t repeat_cur_rep={0};
-    int64_t tx_freq = 0 ;
-    int64_t repeat_sample_rate = 0 ;
-    int64_t repeat_bandwidth = 0 ;
-    void on_repeat_file_changed();
+    int8_t repeat_cur_rep = {0};
+    int64_t tx_freq = 0;
+    int64_t repeat_sample_rate = 0;
+    int64_t repeat_bandwidth = 0;
     void on_repeat_tx_progress(const uint32_t progress);
     void toggle_repeat();
     void start_repeat();
@@ -389,7 +389,6 @@ class ReconView : public View {
     ProgressBar progressbar{
         {18 * 8, 1 * 16, 12 * 8, 16}};
 
-
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* const p) {
@@ -425,7 +424,6 @@ class ReconView : public View {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_repeat_tx_progress(message.progress);
         }};
-
 };
 
 } /* namespace ui */
