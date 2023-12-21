@@ -198,14 +198,22 @@ void update_audio_mute() {
 
 namespace input {
 
-void start(int8_t alc_mode) {
-    audio_codec->microphone_enable(alc_mode);  // added user-GUI selection for AK4951, ALC mode parameter.
+void start(int8_t alc_mode, bool mic_to_HP_enabled) {
+    audio_codec->microphone_enable(alc_mode, mic_to_HP_enabled);  // added user-GUI selection for AK4951, ALC mode parameter. and the check box "Hear Mic"
     i2s::i2s0::rx_start();
 }
 
 void stop() {
     i2s::i2s0::rx_stop();
     audio_codec->microphone_disable();
+}
+
+void loopback_mic_to_hp_enable() {
+    audio_codec->microphone_to_HP_enable();
+}
+
+void loopback_mic_to_hp_disable() {
+    audio_codec->microphone_to_HP_disable();
 }
 
 } /* namespace input */
@@ -230,6 +238,10 @@ size_t reg_count() {
 
 uint32_t reg_read(const size_t register_number) {
     return audio_codec->reg_read(register_number);
+}
+
+void reg_write(const size_t register_number, uint32_t value) {
+    audio_codec->reg_write(register_number, value);
 }
 
 std::string codec_name() {

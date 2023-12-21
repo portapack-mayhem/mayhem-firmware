@@ -131,9 +131,10 @@ class MAX283x {
     virtual void set_rx_lo_iq_calibration(const size_t v);
     virtual void set_rx_buff_vcm(const size_t v);
 
-    virtual reg_t temp_sense();
+    virtual int8_t temp_sense();
 
     virtual reg_t read(const address_t reg_num);
+    virtual void write(const address_t reg_num, const reg_t value);
 };
 
 }  // namespace max283x

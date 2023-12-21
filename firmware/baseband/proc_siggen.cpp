@@ -40,7 +40,7 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
 
         if (tone_shape == 0) {
             // CW
-            re = 127;
+            re = 127;  // max. signed 8 bits value .   (-128 ...+127), max. amplitude ,  static phasor at 0º
             im = 0;
         } else {
             if (tone_shape == 1) {
@@ -79,20 +79,58 @@ void SigGenProcessor::execute(const buffer_c8_t& buffer) {
                 if (counter == 15) {
                     counter = 0;
                 }
+            } else if (tone_shape == 7) {
+                // Digital BPSK consecutive 0,1,0,...continuous cycle, 1 bit/symbol, at rate of 2 symbols / Freq Tone Periode... without any Pulse shape at the moment .
+                re = (((tone_phase & 0xFF000000) >> 24) & 0x80) ? 127 : -128;  // Sending 2 bits by Periode T of the GUI tone, alternative static phasor to 0, -180º , 0º
+                im = 0;
+            } else if (tone_shape == 8) {
+                // Digital QPSK  consecutive 00, 01, 10, 11,00, ...continuous cycle ,2 bits/symbol, at rate of 4 symbols / Freq Tone Periode. not random., without any Pulse shape at the moment .
+
+                switch (((tone_phase & 0xFF000000) >> 24)) {
+                    case 0 ... 63:  // equivalent to 1/4 of total 360º degrees.
+                        /* "00" */
+                        re = (sine_table_i8[32]);       // we are sending symbol-phasor 45º during  1/4 of the total periode
+                        im = (sine_table_i8[32 + 64]);  // 32 index  = rounded (45º/360º * 255 total sin table steps) = 31,875
+                        break;
+
+                    case 64 ... 127:
+                        /* "01" */
+                        re = (sine_table_i8[96]);       // symbol-phasor 135º
+                        im = (sine_table_i8[96 + 64]);  // 96 index   = 32 + 256/4
+                        break;
+                        break;
+
+                    case 128 ... 191:
+                        /* "10" */
+                        re = (sine_table_i8[159]);       // symbol-phasor 225º
+                        im = (sine_table_i8[159 + 64]);  // 159 rounded index = 96 + 256/4 = 159.3
+                        break;
+
+                    case 192 ... 255:
+                        /* "11" */
+                        re = (sine_table_i8[223]);                  // symbol-phasor 315º ; 223 rounded index = (315/360) * 255 =223.125
+                        im = (sine_table_i8[((223 + 64) & 0xFF)]);  // Max index 255, circular periodic conversion.
+                        break;
+
+                    default:
+                        break;
+                }
             }
 
-            if (tone_shape < 6) {  // we are in periodic signals, we need tone phases update.
-                tone_phase += tone_delta;
+            if (tone_shape != 6) {         //(all except Pseudo Random White Noise). We are in (1):periodic signals or (2):BPSK/QPSK , in both cases ,we  need Tone updated acum sum phases to modulate in FM / or control phasor phase (BPSK & QPSK.)
+                tone_phase += tone_delta;  // In periodic signals(Sine/triangle/square) we are using to FM mod. in BPSK-QSPK we are using to calculate each 1/4 of the periode.
             }
 
-            // Do FM modulation
-            delta = sample * fm_delta;
+            if (tone_shape < 7) {  // All Option shape signals  except BPSK(7) & QPSK(8) we are modulating in FM. (Those two has phase shift modulation XPSK , not FM  )
+                // Do FM modulation
+                delta = sample * fm_delta;
 
-            phase += delta;
-            sphase = phase + (64 << 24);
+                phase += delta;
+                sphase = phase + (64 << 24);
 
-            re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);
-            im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
+                re = (sine_table_i8[(sphase & 0xFF000000) >> 24]);  // sin LUT is not dealing with decimals , output range [-128 ,...127]
+                im = (sine_table_i8[(phase & 0xFF000000) >> 24]);
+            }
         }
 
         buffer.p[i] = {re, im};

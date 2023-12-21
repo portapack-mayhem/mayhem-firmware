@@ -50,12 +50,16 @@ class Codec {
     virtual volume_range_t headphone_gain_range() const = 0;
     virtual void set_headphone_volume(const volume_t volume) = 0;
 
-    virtual void microphone_enable(int8_t alc_mode) = 0;  // added user-GUI  AK4951 ,selected ALC mode.
+    virtual void microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled) = 0;  // added user-GUI  AK4951 ,selected ALC mode.
     virtual void microphone_disable() = 0;
+
+    virtual void microphone_to_HP_enable() = 0;
+    virtual void microphone_to_HP_disable() = 0;
 
     virtual size_t reg_count() const = 0;
     virtual size_t reg_bits() const = 0;
     virtual uint32_t reg_read(const size_t register_number) = 0;
+    virtual void reg_write(const size_t register_number, const uint32_t value) = 0;
 };
 
 namespace output {
@@ -76,8 +80,11 @@ void update_audio_mute();
 
 namespace input {
 
-void start(int8_t alc_mode);  // added parameter user-GUI select AK4951-ALC mode for config mic path,(recording mode in datasheet),
+void start(int8_t alc_mode, bool mic_to_HP_enabled);  // added parameters -GUI select AK4951-ALC mode for config mic path,(recording mode),and the check box "Hear Mic"
 void stop();
+
+void loopback_mic_to_hp_enable();
+void loopback_mic_to_hp_disable();
 
 } /* namespace input */
 
@@ -101,6 +108,7 @@ namespace debug {
 
 size_t reg_count();
 uint32_t reg_read(const size_t register_number);
+void reg_write(const size_t register_number, uint32_t value);
 std::string codec_name();
 size_t reg_bits();
 

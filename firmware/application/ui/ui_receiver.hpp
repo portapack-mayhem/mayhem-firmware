@@ -48,6 +48,7 @@ class FrequencyField : public Widget {
     using range_t = rf::FrequencyRange;
 
     FrequencyField(Point parent_pos);
+    FrequencyField(Point parent_pos, rf::FrequencyRange range);
     ~FrequencyField();
 
     rf::Frequency value() const;
@@ -66,8 +67,7 @@ class FrequencyField : public Widget {
 
    private:
     const size_t length_;
-    const range_t range_;
-
+    range_t range_;
     rf::Frequency value_{0};
     rf::Frequency step_{25000};
     uint64_t last_ms_{0};

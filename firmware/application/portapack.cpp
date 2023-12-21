@@ -70,6 +70,7 @@ lcd::ILI9341 display;
 
 I2C i2c0(&I2CD0);
 SPI ssp1(&SPID2);
+portapack::USBSerial usb_serial;
 
 si5351::Si5351 clock_generator{
     i2c0, hackrf::one::si5351_i2c_address};
@@ -368,7 +369,7 @@ static void shutdown_base() {
  *
  * XTAL_OSC = powered down
  *
- * PLL0USB = powered down
+ * PLL0USB = XTAL, 480 MHz
  * PLL0AUDIO = GP_CLKIN, Fcco=491.52 MHz, Fout=12.288 MHz
  * PLL1 =
  * 	OG: GP_CLKIN * 10 = 200 MHz
@@ -464,8 +465,24 @@ bool init() {
     /* Remove /2P divider from PLL1 output to achieve full speed */
     cgu::pll1::direct();
 
+    usb_serial.initialize();
+
     i2c0.start(i2c_config_fast_clock);
     chThdSleepMilliseconds(10);
+
+    /* Check if portapack is attached by checking if any of the two audio chips is present. */
+    systime_t timeout = 50;
+    uint8_t wm8731_reset_command[] = {0x0f, 0x00};
+    if (i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
+        audio_codec_ak4951.reset();
+        uint8_t ak4951_init_command[] = {0x00, 0x00};
+        i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout);
+        chThdSleepMilliseconds(10);
+        if (i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout) == false) {
+            shutdown_base();
+            return false;
+        }
+    }
 
     touch::adc::init();
     controls_init();

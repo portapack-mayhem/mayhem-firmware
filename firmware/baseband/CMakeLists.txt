@@ -347,12 +347,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAPR aprsrx)
 
-### NRF RX
-
-set(MODE_CPPSRC
-	proc_nrfrx.cpp
-)
-DeclareTargets(PNRR nrfrx)
 
 ### BTLE RX
 
@@ -360,6 +354,14 @@ set(MODE_CPPSRC
 	proc_btlerx.cpp
 )
 DeclareTargets(PBTR btlerx)
+
+### BTLE TX
+
+set(MODE_CPPSRC
+	proc_ble_tx.cpp
+)
+DeclareTargets(PBTT btletx)
+
 ### AIS
 
 set(MODE_CPPSRC
@@ -374,12 +376,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PAMA am_audio)
 
-### AM TV
-
-set(MODE_CPPSRC
-	proc_am_tv.cpp
-)
-DeclareTargets(PAMT am_tv)
 
 ### Audio transmit
 
@@ -416,12 +412,13 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PFSK fsktx)
 
-### Jammer
+### FSK RX
 
 set(MODE_CPPSRC
-	proc_jammer.cpp
+	proc_fsk_rx.cpp
 )
-DeclareTargets(PJAM jammer)
+DeclareTargets(PFSR fskrx)
+
 
 ### Microphone transmit
 
@@ -535,6 +532,21 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
+### SubGhz Decoders 
+
+set(MODE_CPPSRC
+	proc_subghzd.cpp
+)
+DeclareTargets(PSGD subghzd)
+
+
+### Weather Stations
+set(MODE_CPPSRC
+	proc_weather.cpp
+)
+DeclareTargets(PWTH weather)
+
+
 ### Flash Utility
 
 include(${CHIBIOS_PORTAPACK}/os/various/fatfs_bindings/fatfs.cmake)
@@ -602,6 +614,28 @@ set(MODE_CPPSRC
 	proc_afskrx.cpp
 )
 DeclareTargets(PAFR afskrx)
+
+### NRF RX
+
+set(MODE_CPPSRC
+	proc_nrfrx.cpp
+)
+DeclareTargets(PNRR nrfrx)
+
+
+### Jammer
+
+set(MODE_CPPSRC
+	proc_jammer.cpp
+)
+DeclareTargets(PJAM jammer)
+
+### AM TV
+
+set(MODE_CPPSRC
+	proc_am_tv.cpp
+)
+DeclareTargets(PAMT am_tv)
 
 ### Test
 

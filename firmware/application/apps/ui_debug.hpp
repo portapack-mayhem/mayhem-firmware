@@ -48,8 +48,8 @@ class DebugMemoryView : public View {
 
    private:
     Text text_title{
-        {96, 96, 48, 16},
-        "Memory",
+        {72, 96, 96, 16},
+        "Memory Usage",
     };
 
     Text text_label_m0_core_free{
@@ -131,9 +131,18 @@ class TemperatureView : public View {
         "Done"};
 };
 
+typedef enum {
+    CT_PMEM,
+    CT_RFFC5072,
+    CT_MAX283X,
+    CT_SI5351,
+    CT_AUDIO,
+} chip_type_t;
+
 struct RegistersWidgetConfig {
-    size_t registers_count;
-    size_t register_bits;
+    chip_type_t chip_type;
+    uint32_t registers_count;
+    uint32_t register_bits;
 
     constexpr size_t legend_length() const {
         return (registers_count >= 0x10) ? 2 : 1;
@@ -174,17 +183,21 @@ struct RegistersWidgetConfig {
 
 class RegistersWidget : public Widget {
    public:
-    RegistersWidget(
-        RegistersWidgetConfig&& config,
-        std::function<uint32_t(const size_t register_number)>&& reader);
+    RegistersWidget(RegistersWidgetConfig&& config);
 
     void update();
 
     void paint(Painter& painter) override;
 
+    uint32_t reg_read(const uint32_t register_number);
+    void reg_write(const uint32_t register_number, const uint32_t value);
+
+    void set_page(int32_t value) { page_number = value; }
+    uint32_t page(void) { return page_number; }
+
    private:
     const RegistersWidgetConfig config;
-    const std::function<uint32_t(const size_t register_number)> reader;
+    uint32_t page_number;
 
     static constexpr size_t row_height = 16;
 
@@ -194,11 +207,7 @@ class RegistersWidget : public Widget {
 
 class RegistersView : public View {
    public:
-    RegistersView(
-        NavigationView& nav,
-        const std::string& title,
-        RegistersWidgetConfig&& config,
-        std::function<uint32_t(const size_t register_number)>&& reader);
+    RegistersView(NavigationView& nav, const std::string& title, RegistersWidgetConfig&& config);
 
     void focus();
 
@@ -208,12 +217,30 @@ class RegistersView : public View {
     RegistersWidget registers_widget;
 
     Button button_update{
-        {16, 256, 96, 24},
+        {16, 280, 96, 24},
         "Update"};
 
     Button button_done{
-        {128, 256, 96, 24},
+        {128, 280, 96, 24},
         "Done"};
+
+    Button button_write{
+        {144, 248, 80, 20},
+        "Write"};
+
+    Labels labels{
+        {{1 * 8, 248}, "Reg:", Color::light_grey()},
+        {{8 * 8, 248}, "Data:", Color::light_grey()}};
+
+    SymField field_write_reg_num{
+        {5 * 8, 248},
+        2,
+        SymField::Type::Hex};
+
+    SymField field_write_data_val{
+        {13 * 8, 248},
+        4,
+        SymField::Type::Hex};
 };
 
 class ControlsSwitchesWidget : public Widget {
@@ -274,6 +301,58 @@ class DebugControlsView : public View {
         "Done"};
 };
 
+class DebugMemoryDumpView : public View {
+   public:
+    DebugMemoryDumpView(NavigationView& nav);
+    void focus() override;
+    std::string title() const override { return "Memory Dump"; };
+
+   private:
+    Button button_dump{
+        {72, 4 * 16, 96, 24},
+        "Dump"};
+
+    Button button_read{
+        {16, 11 * 16, 96, 24},
+        "Read"};
+
+    Button button_write{
+        {128, 11 * 16, 96, 24},
+        "Write"};
+
+    Button button_done{
+        {128, 240, 96, 24},
+        "Done"};
+
+    Labels labels{
+        {{5 * 8, 1 * 16}, "Dump Range to File", Color::yellow()},
+        {{0 * 8, 2 * 16}, "Starting Address: 0x", Color::light_grey()},
+        {{0 * 8, 3 * 16}, "Byte Count:       0x", Color::light_grey()},
+        {{3 * 8, 8 * 16}, "Read/Write Single Word", Color::yellow()},
+        {{0 * 8, 9 * 16}, "Memory Address:   0x", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Data Value:       0x", Color::light_grey()}};
+
+    SymField field_starting_address{
+        {20 * 8, 2 * 16},
+        8,
+        SymField::Type::Hex};
+
+    SymField field_byte_count{
+        {20 * 8, 3 * 16},
+        8,
+        SymField::Type::Hex};
+
+    SymField field_rw_address{
+        {20 * 8, 9 * 16},
+        8,
+        SymField::Type::Hex};
+
+    SymField field_data_value{
+        {20 * 8, 10 * 16},
+        8,
+        SymField::Type::Hex};
+};
+
 class DebugPmemView : public View {
    public:
     DebugPmemView(NavigationView& nav);
@@ -282,17 +361,8 @@ class DebugPmemView : public View {
     std::string title() const override { return "P.Mem Debug"; }
 
    private:
-    struct pmem_data {
-        uint32_t regfile[63];
-        uint32_t check_value;
-    };
-
     static constexpr uint8_t page_size{96};  // Must be multiply of 4 otherwise bit shifting for register view wont work properly
-    static constexpr uint8_t page_max{(portapack::memory::map::backup_ram.size() + page_size - 1) / page_size - 1};
-
-    int32_t page{0};
-
-    volatile const pmem_data& data;
+    static constexpr uint8_t page_count{(portapack::memory::map::backup_ram.size() + page_size - 1) / page_size};
 
     Text text_page{{16, 16, 208, 16}};
 
@@ -307,7 +377,6 @@ class DebugPmemView : public View {
     };
 
     void update();
-    uint32_t registers_widget_feed(const size_t register_number);
 };
 
 class DebugScreenTest : public View {

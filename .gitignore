@@ -55,10 +55,11 @@ CMakeFiles/
 # Debugging
 .gdbinit*
 
-# Editor files
+# Editor/IDE files
 *.sublime-project
 *.sublime-workspace
 .vscode
+.idea
 
 # VSCodium extensions
 .history

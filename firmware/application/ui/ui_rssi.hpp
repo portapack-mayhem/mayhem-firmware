@@ -49,6 +49,7 @@ class RSSI : public Widget {
         : RSSI{{}, {}} {
     }
 
+    // get last used/received min/avg/max/delta
     int16_t get_min();
     int16_t get_avg();
     int16_t get_max();
@@ -113,8 +114,16 @@ class RSSIGraph : public Widget {
 
     void on_hide() override;
     void on_show() override;
+    // get whole graph_list min/avg/max/delta
+    int16_t get_graph_min();
+    int16_t get_graph_avg();
+    int16_t get_graph_max();
+    int16_t get_graph_delta();
 
    private:
+    int16_t graph_min_ = 0;
+    int16_t graph_avg_ = 0;
+    int16_t graph_max_ = 0;
     uint16_t nb_columns_before_hide = 16;
     uint16_t nb_columns = 16;
     RSSIGraphList graph_list{};

@@ -343,6 +343,38 @@ void SetUIView::focus() {
     button_save.focus();
 }
 
+/* SetSDCardView *********************************************/
+
+SetSDCardView::SetSDCardView(NavigationView& nav) {
+    add_children({&labels,
+                  &checkbox_sdcard_speed,
+                  &button_test_sdcard_high_speed,
+                  &text_sdcard_test_status,
+                  &button_save,
+                  &button_cancel});
+
+    checkbox_sdcard_speed.set_value(pmem::config_sdcard_high_speed_io());
+
+    button_test_sdcard_high_speed.on_select = [&nav, this](Button&) {
+        pmem::set_config_sdcard_high_speed_io(true, false);
+        text_sdcard_test_status.set("!! HIGH SPEED MODE ON !!");
+    };
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_config_sdcard_high_speed_io(checkbox_sdcard_speed.value(), true);
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetSDCardView::focus() {
+    button_save.focus();
+}
+
 /* SetConverterSettingsView ******************************/
 
 SetConverterSettingsView::SetConverterSettingsView(NavigationView& nav) {
@@ -427,7 +459,7 @@ SetFrequencyCorrectionView::SetFrequencyCorrectionView(NavigationView& nav) {
         pmem::set_freq_rx_correction_updown(v);
     };
 
-    opt_tx_correction_mode.set_by_value(pmem::config_freq_rx_correction_updown());
+    opt_tx_correction_mode.set_by_value(pmem::config_freq_tx_correction_updown());
     opt_tx_correction_mode.on_change = [this](size_t, OptionsField::value_t v) {
         pmem::set_freq_tx_correction_updown(v);
     };
@@ -636,6 +668,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetRadioView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
+        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

@@ -56,6 +56,7 @@ namespace control {
 namespace debug {
 
 uint8_t switches();
+void inject_switch(uint8_t);
 
 }  // namespace debug
 }  // namespace control

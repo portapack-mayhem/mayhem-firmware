@@ -156,7 +156,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
     for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
         // Hide files starting with '.' (hidden / tmp).
-        if (is_hidden_file(entry.path()))
+        if (!show_hidden_files && is_hidden_file(entry.path()))
             continue;
 
         if (fs::is_regular_file(entry.status())) {
@@ -568,6 +568,7 @@ FileManagerView::FileManagerView(
         &button_open_notepad,
         &button_rename_timestamp,
         &button_open_iq_trim,
+        &button_show_hidden_files,
     });
 
     menu_view.on_highlight = [this]() {
@@ -657,6 +658,12 @@ FileManagerView::FileManagerView(
             nav_.push<IQTrimView>(path);
         } else
             nav_.display_modal("IQ Trim", "Not a capture file.");
+    };
+
+    button_show_hidden_files.on_select = [this]() {
+        show_hidden_files = !show_hidden_files;
+        button_show_hidden_files.set_color(show_hidden_files ? Color::green() : Color::dark_grey());
+        reload_current();
     };
 }
 

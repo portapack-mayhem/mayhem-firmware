@@ -317,6 +317,20 @@ class ProgressBar : public Widget {
     uint32_t _max = 100;
 };
 
+/* A simple status indicator that can be used to indicate activity. */
+class ActivityDot : public Widget {
+   public:
+    ActivityDot(Rect parent_rect, Color color);
+
+    void paint(Painter& painter) override;
+    void toggle();
+    void reset();
+
+   private:
+    bool _on{false};
+    Color _color;
+};
+
 class Console : public Widget {
    public:
     Console(Rect parent_rect);

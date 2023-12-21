@@ -844,8 +844,11 @@ class AK4951 : public audio::Codec {
     void set_headphone_volume(const volume_t volume) override;
     void headphone_mute();
 
-    void microphone_enable(int8_t alc_mode);  // added user GUI parameter , to set up AK4951 ALC mode.
+    void microphone_enable(int8_t alc_mode, bool mic_to_HP_enabled);  // added user GUI parameter , to set up AK4951 ALC mode, and mic_to_HP_enabled to control "Hear to Mic"
     void microphone_disable();
+
+    void microphone_to_HP_enable();
+    void microphone_to_HP_disable();
 
     size_t reg_count() const override {
         return asahi_kasei::ak4951::reg_count;
@@ -857,6 +860,10 @@ class AK4951 : public audio::Codec {
 
     uint32_t reg_read(const size_t reg_address) override {
         return read(reg_address);
+    }
+
+    void reg_write(const size_t reg_address, const uint32_t value) override {
+        write(reg_address, value);
     }
 
    private:

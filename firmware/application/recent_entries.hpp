@@ -24,19 +24,26 @@
 
 #include "ui_widget.hpp"
 
+#include <algorithm>
 #include <cstddef>
 #include <cstdint>
-#include <list>
-#include <utility>
 #include <functional>
 #include <iterator>
-#include <algorithm>
+#include <list>
+#include <utility>
 
 template <class Entry>
 using RecentEntries = std::list<Entry>;
 
 template <typename ContainerType, typename Key>
 typename ContainerType::const_iterator find(const ContainerType& entries, const Key key) {
+    return std::find_if(
+        std::begin(entries), std::end(entries),
+        [key](typename ContainerType::const_reference e) { return e.key() == key; });
+}
+
+template <typename ContainerType, typename Key>
+typename ContainerType::iterator find(ContainerType& entries, const Key key) {
     return std::find_if(
         std::begin(entries), std::end(entries),
         [key](typename ContainerType::const_reference e) { return e.key() == key; });
@@ -86,6 +93,36 @@ static std::pair<typename ContainerType::const_iterator, typename ContainerType:
     }
 
     return {start, end};
+}
+
+template <typename ContainerType, typename KeySelector, typename SortOrder>
+void sortEntriesBy(ContainerType& entries, KeySelector keySelector, SortOrder ascending) {
+    entries.sort([keySelector, ascending](const auto& a, const auto& b) {
+        return ascending ? keySelector(a) < keySelector(b) : keySelector(a) > keySelector(b);
+    });
+}
+
+template <typename ContainerType, typename KeySelector>
+void resetFilteredEntries(ContainerType& entries, KeySelector keySelector) {
+    // Clear the filteredEntries container
+    auto it = entries.begin();
+    while (it != entries.end()) {
+        if (keySelector(*it)) {
+            entries.erase(it);  // Add a new entry to filteredEntries
+        }
+        ++it;  // Move to the next element, outside of the if block
+    }
+}
+
+template <typename ContainerType, typename MemberPtr, typename KeyValue>
+void setAllMembersToValue(ContainerType& entries, MemberPtr memberPtr, const KeyValue& keyValue) {
+    for (auto& entry : entries) {
+        // Check if the member specified by memberPtr is equal to keyValue
+        if (entry.*memberPtr != keyValue) {
+            // Update the member with keyValue
+            entry.*memberPtr = keyValue;
+        }
+    }
 }
 
 namespace ui {
@@ -270,6 +307,10 @@ class RecentEntriesView : public View {
 
     void focus() override {
         _table.focus();
+    }
+
+    void set_table(Entries& new_table) {
+        _table = new_table;
     }
 
    private:

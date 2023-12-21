@@ -36,8 +36,13 @@
 #include "max283x.hpp"
 #include "string_format.hpp"
 
+// Folder to store app settings, pmem_fileflag, and date_fileflag
+#define SETTINGS_DIR u"/SETTINGS"
+
 // Bring in the string_view literal.
 using std::literals::operator""sv;
+
+#define COMMON_APP_SETTINGS_COUNT 19
 
 /* Represents a named setting bound to a variable instance. */
 /* Using void* instead of std::variant, because variant is a pain to dispatch over. */
@@ -140,8 +145,8 @@ struct AppSettings {
     uint8_t nbfm_config_index = 0;
     uint8_t wfm_config_index = 0;
     uint8_t squelch = 80;
-
     uint8_t volume;
+    // NOTE: update COMMON_APP_SETTINGS_COUNT when adding to this
 };
 
 /* Copies common values to the receiver/transmitter models. */

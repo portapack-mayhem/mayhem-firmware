@@ -149,12 +149,18 @@ void set_aprs(const uint32_t baudrate) {
     send_message(&message);
 }
 
-void set_btle(const uint32_t baudrate, const uint32_t word_length, const uint32_t trigger_value, const bool trigger_word) {
+void set_btlerx(uint8_t channel_number) {
     const BTLERxConfigureMessage message{
-        baudrate,
-        word_length,
-        trigger_value,
-        trigger_word};
+        channel_number};
+    send_message(&message);
+}
+
+void set_btletx(uint8_t channel_number, char* macAddress, char* advertisementData, uint8_t pduType) {
+    const BTLETxConfigureMessage message{
+        channel_number,
+        macAddress,
+        advertisementData,
+        pduType};
     send_message(&message);
 }
 
@@ -164,6 +170,17 @@ void set_nrf(const uint32_t baudrate, const uint32_t word_length, const uint32_t
         word_length,
         trigger_value,
         trigger_word};
+    send_message(&message);
+}
+
+void set_fsk(const size_t deviation) {
+    const FSKRxConfigureMessage message{
+        taps_200k_decim_0,
+        taps_16k0_decim_1,
+        taps_11k0_channel,
+        2,
+        deviation};
+
     send_message(&message);
 }
 
@@ -261,8 +278,7 @@ void set_pocsag() {
 }
 
 void set_adsb() {
-    const ADSBConfigureMessage message{
-        1};
+    const ADSBConfigureMessage message{};
     send_message(&message);
 }
 
@@ -300,6 +316,11 @@ void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t d
 
 void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw) {
     SpectrumPainterBufferConfigureRequestMessage message{width, height, update, bw};
+    send_message(&message);
+}
+
+void set_subghzd_config(uint8_t modulation = 0, uint32_t sampling_rate = 0) {
+    const SubGhzFPRxConfigureMessage message{modulation, sampling_rate};
     send_message(&message);
 }
 

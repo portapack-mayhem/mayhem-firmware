@@ -78,6 +78,7 @@ constexpr image_tag_t image_tag_adsb_rx{'P', 'A', 'D', 'R'};
 constexpr image_tag_t image_tag_afsk_rx{'P', 'A', 'F', 'R'};
 constexpr image_tag_t image_tag_aprs_rx{'P', 'A', 'P', 'R'};
 constexpr image_tag_t image_tag_btle_rx{'P', 'B', 'T', 'R'};
+constexpr image_tag_t image_tag_btle_tx{'P', 'B', 'T', 'T'};
 constexpr image_tag_t image_tag_nrf_rx{'P', 'N', 'R', 'R'};
 constexpr image_tag_t image_tag_ais{'P', 'A', 'I', 'S'};
 constexpr image_tag_t image_tag_am_audio{'P', 'A', 'M', 'A'};
@@ -97,6 +98,7 @@ constexpr image_tag_t image_tag_adsb_tx{'P', 'A', 'D', 'T'};
 constexpr image_tag_t image_tag_afsk{'P', 'A', 'F', 'T'};
 constexpr image_tag_t image_tag_audio_tx{'P', 'A', 'T', 'X'};
 constexpr image_tag_t image_tag_fsktx{'P', 'F', 'S', 'K'};
+constexpr image_tag_t image_tag_fskrx{'P', 'F', 'S', 'R'};
 constexpr image_tag_t image_tag_jammer{'P', 'J', 'A', 'M'};
 constexpr image_tag_t image_tag_mic_tx{'P', 'M', 'T', 'X'};
 constexpr image_tag_t image_tag_ook{'P', 'O', 'O', 'K'};
@@ -109,6 +111,9 @@ constexpr image_tag_t image_tag_sstv_tx{'P', 'S', 'T', 'X'};
 constexpr image_tag_t image_tag_tones{'P', 'T', 'O', 'N'};
 constexpr image_tag_t image_tag_flash_utility{'P', 'F', 'U', 'T'};
 constexpr image_tag_t image_tag_usb_sd{'P', 'U', 'S', 'B'};
+
+constexpr image_tag_t image_tag_weather{'P', 'W', 'T', 'H'};
+constexpr image_tag_t image_tag_subghzd{'P', 'S', 'G', 'D'};
 
 constexpr image_tag_t image_tag_noop{'P', 'N', 'O', 'P'};
 

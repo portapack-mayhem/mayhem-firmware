@@ -59,7 +59,7 @@ class TextViewer : public Widget {
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
 
-    void redraw(bool redraw_text = false);
+    void redraw(bool redraw_text = false, bool redraw_marked = false);
 
     void set_file(FileWrapper& file) { reset_file(&file); }
     void clear_file() { reset_file(); }
@@ -71,6 +71,12 @@ class TextViewer : public Widget {
 
     void cursor_home();
     void cursor_end();
+    void cursor_set(uint16_t line, uint16_t col);
+    void cursor_mark_selected();
+    void cursor_clear_marked();
+
+    typedef std::pair<uint16_t, uint16_t> LineColPair;
+    std::vector<LineColPair> lineColPair{};
 
     // Gets the length of the current line.
     uint16_t line_length();
@@ -97,6 +103,7 @@ class TextViewer : public Widget {
 
     void paint_text(Painter& painter, uint32_t line, uint16_t col);
     void paint_cursor(Painter& painter);
+    void paint_marked(Painter& painter);
 
     void reset_file(FileWrapper* file = nullptr);
 
@@ -111,6 +118,8 @@ class TextViewer : public Widget {
         uint32_t first_line{};
         uint16_t first_col{};
         bool redraw_text{true};
+        bool redraw_marked{false};
+        bool mark_change{true};
     } paint_state_{};
 
     struct {
@@ -121,6 +130,8 @@ class TextViewer : public Widget {
         // Pixel buffer used for cursor XOR'ing - Max cursor width = Max char width + 1
         ColorRGB888 pixel_buffer8[ui::char_width + 1]{};
         Color pixel_buffer[ui::char_width + 1]{};
+
+        bool mark_change{true};
     } cursor_{};
 };
 

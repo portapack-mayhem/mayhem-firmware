@@ -38,22 +38,23 @@
 #include "ui_aprs_tx.hpp"
 #include "ui_bht_tx.hpp"
 #include "ui_btle_rx.hpp"
-#include "ui_coasterp.hpp"
+// #include "ui_coasterp.hpp" //moved to ext
 #include "ui_debug.hpp"
 #include "ui_encoders.hpp"
 #include "ui_fileman.hpp"
 #include "ui_flash_utility.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "ui_freqman.hpp"
+#include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
-#include "ui_jammer.hpp"
-// #include "ui_keyfob.hpp"
-#include "ui_lcr.hpp"
+// #include "ui_jammer.hpp" //moved to ext
+//  #include "ui_keyfob.hpp"
+//  #include "ui_lcr.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
 #include "ui_mictx.hpp"
 #include "ui_morse.hpp"
-#include "ui_nrf_rx.hpp"
+// #include "ui_nrf_rx.hpp" //moved to ext
 // #include "ui_numbers.hpp"
 // #include "ui_nuoptix.hpp"
 // #include "ui_playdead.hpp"
@@ -78,17 +79,22 @@
 #include "ui_tone_search.hpp"
 #include "ui_touchtunes.hpp"
 #include "ui_view_wav.hpp"
+#include "ui_weatherstation.hpp"
+#include "ui_subghzd.hpp"
 #include "ui_whipcalc.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
 // #include "acars_app.hpp"
 #include "ais_app.hpp"
 #include "analog_audio_app.hpp"
-#include "analog_tv_app.hpp"
+// #include "analog_tv_app.hpp" //moved to ext
+#include "ble_comm_app.hpp"
+#include "ble_rx_app.hpp"
+#include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
 #include "gps_sim_app.hpp"
-#include "lge_app.hpp"
+// #include "lge_app.hpp" //moved to ext
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
 #include "soundboard_app.hpp"
@@ -166,6 +172,9 @@ SystemStatusView::SystemStatusView(
     if (pmem::should_use_sdcard_for_pmem()) {
         pmem::load_persistent_settings_from_file();
     }
+
+    // force apply of selected sdcard speed override at UI startup
+    pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io(), false);
 
     button_back.id = -1;  // Special ID used by FocusManager
     title.set_style(&Styles::bg_dark_grey);
@@ -395,6 +404,7 @@ void SystemStatusView::rtc_battery_workaround() {
                 }
             }
         } else {
+            make_new_directory(SETTINGS_DIR);
             make_new_file(DATE_FILEFLAG);
 
             year = 1980;
@@ -543,18 +553,23 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
         // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
         {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
         {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
-        {"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }},
+        //{"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }}, //moved to ext
         {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
         {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
-        {"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
+        //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
+        //{"BLE Comm", ui::Color::orange(), &bitmap_icon_btle, [&nav]() { nav.push<BLECommView>(); }},
+        {"BLE Rx", Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
         {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
         {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        {"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }},
+        //{"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }}, //moved to ext
         {"POCSAG", Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGAppView>(); }},
         {"Radiosnde", Color::green(), &bitmap_icon_sonde, [&nav]() { nav.push<SondeView>(); }},
         {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},
         {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
         {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
+        {"Weather", Color::green(), &bitmap_icon_thermometer, [&nav]() { nav.push<WeatherView>(); }},
+        {"SubGhzD", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<SubGhzDView>(); }},
+        // {"FSK RX", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<FskxRxMainView>(); }},
         // {"DMR", Color::dark_grey(), &bitmap_icon_dmr, [&nav](){ nav.push<NotImplementedView>(); }},
         // {"SIGFOX", Color::dark_grey(), &bitmap_icon_fox, [&nav](){ nav.push<NotImplementedView>(); }},
         // {"LoRa", Color::dark_grey(), &bitmap_icon_lora, [&nav](){ nav.push<NotImplementedView>(); }},
@@ -577,11 +592,12 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"ADS-B TX", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
         {"APRS TX", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
         {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
-        {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }},
+        {"BLE Tx", ui::Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLETxView>(); }},
+        // {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }}, //moved to ext
         {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
-        {"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }},
+        //{"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }}, //moved to ext
         // { "Key fob", ui::Color::orange(), &bitmap_icon_keyfob, [&nav](){ nav.push<KeyfobView>(); }},
-        {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }},
+        // {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }}, //moved to ext
         {"Morse", ui::Color::green(), &bitmap_icon_morse, [&nav]() { nav.push<MorseView>(); }},
         // { "Nuoptix DTMF", ui::Color::green(), &bitmap_icon_nuoptix, [&nav](){ nav.push<NuoptixView>(); }},
         {"OOK", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<EncodersView>(); }},
@@ -590,7 +606,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
         {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
         {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
-        {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }},
+        // {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }}, //moved to ext
         {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
     });
 

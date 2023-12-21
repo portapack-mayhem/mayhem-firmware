@@ -65,9 +65,13 @@ std::string commodity_type(CommodityType value) {
 
 } /* namespace ert */
 
-void ERTLogger::on_packet(const ert::Packet& packet) {
+void ERTLogger::on_packet(const ert::Packet& packet, const uint32_t target_frequency) {
     const auto formatted = packet.symbols_formatted();
-    std::string entry = ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors;
+
+    // TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
+    const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
+
+    std::string entry = target_frequency_str + " " + ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors;
     log_file.write_entry(packet.received_at(), entry);
 }
 
@@ -99,16 +103,20 @@ void RecentEntriesTable<ERTRecentEntries>::draw(
     painter.draw_string(target_rect.location(), style, line);
 }
 
-ERTAppView::ERTAppView(NavigationView&) {
+ERTAppView::ERTAppView(NavigationView& nav)
+    : nav_{nav} {
     baseband::run_image(portapack::spi_flash::image_tag_ert);
 
     add_children({
+        &field_frequency,
         &field_rf_amp,
         &field_lna,
         &field_vga,
         &rssi,
         &recent_entries_view,
     });
+
+    field_frequency.set_step(1000000);
 
     receiver_model.enable();
 
@@ -134,7 +142,7 @@ void ERTAppView::set_parent_rect(const Rect new_parent_rect) {
 
 void ERTAppView::on_packet(const ert::Packet& packet) {
     if (logger) {
-        logger->on_packet(packet);
+        logger->on_packet(packet, receiver_model.target_frequency());
     }
 
     if (packet.crc_ok()) {

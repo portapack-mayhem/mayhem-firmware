@@ -28,8 +28,10 @@
 #include <cstddef>
 #include <algorithm>
 
+#include "chprintf.h"
 #include "irq_controls.hpp"
 #include "string_format.hpp"
+#include "usb_serial_io.h"
 
 using namespace portapack;
 
@@ -585,6 +587,28 @@ void ProgressBar::paint(Painter& painter) {
     painter.fill_rectangle({{sr.location().x() + v_scaled, sr.location().y()}, {sr.size().width() - v_scaled, sr.size().height()}}, s.background);
 
     painter.draw_rectangle(sr, s.foreground);
+}
+
+/* ActivityDot ***********************************************************/
+
+ActivityDot::ActivityDot(
+    Rect parent_rect,
+    Color color)
+    : Widget{parent_rect},
+      _color{color} {}
+
+void ActivityDot::paint(Painter& painter) {
+    painter.fill_rectangle(screen_rect(), _on ? _color : Color::grey());
+}
+
+void ActivityDot::toggle() {
+    _on = !_on;
+    set_dirty();
+}
+
+void ActivityDot::reset() {
+    _on = false;
+    set_dirty();
 }
 
 /* Console ***************************************************************/

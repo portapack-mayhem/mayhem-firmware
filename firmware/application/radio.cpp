@@ -61,7 +61,7 @@ static constexpr SPIConfig ssp_config_max283x = {
     .ssport = gpio_max283x_select.port(),
     .sspad = gpio_max283x_select.pad(),
     .cr0 =
-        CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f)) | CR0_FRFSPI | CR0_DSS16BIT,
+        CR0_CLOCKRATE(ssp_scr(ssp1_pclk_f, ssp1_cpsr, max283x_spi_f) + 3) | CR0_FRFSPI | CR0_DSS16BIT,
     .cpsr = ssp1_cpsr,
 };
 
@@ -287,6 +287,10 @@ uint32_t register_read(const size_t register_number) {
     return radio::first_if.read(register_number);
 }
 
+void register_write(const size_t register_number, uint32_t value) {
+    radio::first_if.write(register_number, value);
+}
+
 } /* namespace first_if */
 
 namespace second_if {
@@ -295,8 +299,12 @@ uint32_t register_read(const size_t register_number) {
     return radio::second_if->read(register_number);
 }
 
-uint8_t temp_sense() {
-    return radio::second_if->temp_sense() & 0x1f;
+void register_write(const size_t register_number, uint32_t value) {
+    radio::second_if->write(register_number, value);
+}
+
+int8_t temp_sense() {
+    return radio::second_if->temp_sense();
 }
 
 } /* namespace second_if */

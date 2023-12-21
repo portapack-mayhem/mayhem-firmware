@@ -56,13 +56,23 @@ static msg_t ookthread_fn(void* arg) {
         v = (symbol < 2) ? 1 : 0;  // TX on for dot or dash, off for pause
         delay = morse_symbols[symbol];
 
-        gpio_og_tx.write(v);
+        if (hackrf_r9) {           // r9 has a common PIN 54 for MODE CONTROL TX / RX,  <=r6 has two independent MODE CONTROL pins (TX and RX)
+            gpio_r9_rx.write(!v);  // in hackrf r9 opposite logic "0" means tx , "1" rx = no tx)
+        } else {
+            gpio_og_tx.write(v);  // in hackrf <=r6, "1" means tx , "0" no tx.
+        }
+
         arg_c->on_tx_progress(i, false);
 
         chThdSleepMilliseconds(delay * arg_c->time_unit_ms);
     }
 
-    gpio_og_tx.write(0);  // Ensure TX is off
+    if (hackrf_r9) {          // r9 has a common PIN 54 for MODE CONTROL TX / RX,  <=r6 has two independent MODE CONTROL pins (TX and RX)
+        gpio_r9_rx.write(1);  // Hackrf_r9 , common pin,  rx="1" (we ensure TX is off)  / tx="0"
+    } else {
+        gpio_og_tx.write(0);  // Hackrf <=r6 independent TX / RX  pins ,now touching the tx pin ==> Ensure TX is off
+    }
+
     arg_c->on_tx_progress(0, true);
     chThdExit(0);
 
@@ -121,10 +131,10 @@ bool MorseView::start_tx() {
     transmitter_model.set_baseband_bandwidth(1'750'000);  // Min TX LPF .already tested in FM morse max tone 9,999k , max dev 150khz
     transmitter_model.enable();
 
-    if (modulation == CW) {
+    baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
+
+    if (mode_cw) {
         ookthread = chThdCreateStatic(ookthread_wa, sizeof(ookthread_wa), NORMALPRIO + 10, ookthread_fn, this);
-    } else if (modulation == FM) {
-        baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, symbol_count, false, false);
     }
 
     return true;
@@ -133,8 +143,8 @@ bool MorseView::start_tx() {
 void MorseView::update_tx_duration() {
     uint32_t duration_ms;
 
-    time_unit_ms = 1200 / field_speed.value();
-    symbol_count = morse_encode(message, time_unit_ms, field_tone.value(), &time_units);
+    time_unit_ms = 1200 / speed;
+    symbol_count = morse_encode(message, time_unit_ms, tone, &time_units);
 
     if (symbol_count) {
         duration_ms = time_units * time_unit_ms;
@@ -175,7 +185,7 @@ void MorseView::on_loop_progress(const uint32_t progress, const bool done) {
 }
 
 void MorseView::set_foxhunt(size_t i) {
-    message = foxhunt_codes[i];
+    message = foxhunt_codes[i - 1];
     buffer = message.c_str();
     text_message.set(message);
     update_tx_duration();
@@ -188,7 +198,7 @@ MorseView::MorseView(
 
     add_children({&labels,
                   &checkbox_foxhunt,
-                  &options_foxhunt,
+                  &field_foxhunt,
                   &field_speed,
                   &field_tone,
                   &options_modulation,
@@ -200,34 +210,44 @@ MorseView::MorseView(
                   &tx_view});
 
     // Default settings
-    field_speed.set_value(15);                 // 15wps
-    field_tone.set_value(700);                 // 700Hz FM tone
-    options_modulation.set_selected_index(0);  // CW mode
-    options_loop.set_selected_index(0);        // Off
+    field_speed.set_value(speed);
+    field_tone.set_value(tone);
+    options_modulation.set_by_value(mode_cw);
+    options_loop.set_by_value(loop);
+    checkbox_foxhunt.set_value(foxhunt_mode);
+    field_foxhunt.set_value(foxhunt_code);
 
     checkbox_foxhunt.on_select = [this](Checkbox&, bool value) {
         foxhunt_mode = value;
 
         if (foxhunt_mode)
-            set_foxhunt(options_foxhunt.selected_index_value());
+            set_foxhunt(foxhunt_code);
     };
 
-    options_foxhunt.on_change = [this](size_t i, int32_t) {
+    field_foxhunt.on_change = [this](int32_t value) {
+        foxhunt_code = value;
+
         if (foxhunt_mode)
-            set_foxhunt(i);
+            set_foxhunt(foxhunt_code);
     };
 
-    options_modulation.on_change = [this](size_t i, int32_t) {
-        modulation = (modulation_t)i;
-    };
-
-    options_loop.on_change = [this](size_t i, uint32_t n) {
+    options_modulation.on_change = [this](size_t i, int32_t value) {
         (void)i;  // avoid unused warning
-        loop = n;
+        mode_cw = (bool)value;
     };
 
-    field_speed.on_change = [this](int32_t) {
+    options_loop.on_change = [this](size_t i, uint32_t value) {
+        (void)i;  // avoid unused warning
+        loop = value;
+    };
+
+    field_speed.on_change = [this](int32_t value) {
+        speed = value;
         update_tx_duration();
+    };
+
+    field_tone.on_change = [this](int32_t value) {
+        tone = value;
     };
 
     button_message.on_select = [this, &nav](Button&) {

@@ -253,7 +253,7 @@ std::string to_string_hex(uint64_t value, int32_t length) {
 
 std::string to_string_hex_array(uint8_t* array, int32_t length) {
     std::string str_return;
-    str_return.reserve(length);
+    str_return.reserve(length * 2);
 
     for (uint8_t i = 0; i < length; i++)
         str_return += to_string_hex(array[i], 2);
@@ -309,6 +309,72 @@ std::string to_string_file_size(uint32_t file_size) {
         suffix_index = 4;
 
     return to_string_dec_uint(file_size) + suffix[suffix_index];
+}
+
+std::string to_string_mac_address(const uint8_t* macAddress, uint8_t length, bool noColon) {
+    std::string string;
+
+    string += to_string_hex(macAddress[0], 2);
+
+    for (int i = 1; i < length; i++) {
+        string += noColon ? to_string_hex(macAddress[i], 2) : ":" + to_string_hex(macAddress[i], 2);
+    }
+
+    return string;
+}
+
+std::string to_string_formatted_mac_address(const char* macAddress) {
+    std::string formattedAddress;
+
+    for (int i = 0; i < 12; i += 2) {
+        if (i > 0) {
+            formattedAddress += ':';
+        }
+        formattedAddress += macAddress[i];
+        formattedAddress += macAddress[i + 1];
+    }
+
+    return formattedAddress;
+}
+
+void generateRandomMacAddress(char* macAddress) {
+    const char hexDigits[] = "0123456789ABCDEF";
+
+    // Generate 12 random hexadecimal characters
+    for (int i = 0; i < 12; i++) {
+        int randomIndex = rand() % 16;
+        macAddress[i] = hexDigits[randomIndex];
+    }
+    macAddress[12] = '\0';  // Null-terminate the string
+}
+
+uint64_t readUntil(File& file, char* result, std::size_t maxBufferSize, char delimiter) {
+    std::size_t bytesRead = 0;
+
+    while (true) {
+        char ch;
+        File::Result<File::Size> readResult = file.read(&ch, 1);
+
+        if (readResult.is_ok() && readResult.value() > 0) {
+            if (ch == delimiter) {
+                // Found a space character, stop reading
+                break;
+            } else if (bytesRead < maxBufferSize) {
+                // Append the character to the result if there's space
+                result[bytesRead++] = ch;
+            } else {
+                // Buffer is full, break to prevent overflow
+                break;
+            }
+        } else {
+            break;  // End of file or error
+        }
+    }
+
+    // Null-terminate the result string
+    result[bytesRead] = '\0';
+
+    return bytesRead;
 }
 
 std::string unit_auto_scale(double n, const uint32_t base_unit, uint32_t precision) {

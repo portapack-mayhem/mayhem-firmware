@@ -20,6 +20,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include <cstdint>
+
 #include "aprs.hpp"
 #include "ax25.hpp"
 

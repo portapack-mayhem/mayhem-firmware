@@ -65,7 +65,6 @@ class MorseView : public View {
 
    private:
     NavigationView& nav_;
-    std::string buffer{"PORTAPACK"};
     std::string message{};
     uint32_t time_units{0};
 
@@ -74,14 +73,25 @@ class MorseView : public View {
         1750000 /* bandwidth */,
         1536000 /* sampling rate */
     };
-    app_settings::SettingsManager settings_{
-        "tx_morse", app_settings::Mode::TX};
 
-    enum modulation_t {
-        CW = 0,
-        FM = 1
-    };
-    modulation_t modulation{CW};
+    std::string buffer{"PORTAPACK"};
+    bool mode_cw{true};
+    bool foxhunt_mode{false};
+    uint32_t foxhunt_code{1};
+    uint32_t speed{15};
+    uint32_t tone{700};
+    app_settings::SettingsManager settings_{
+        "tx_morse",
+        app_settings::Mode::TX,
+        {
+            {"message"sv, &buffer},
+            {"foxhunt"sv, &foxhunt_mode},
+            {"foxhunt_code"sv, &foxhunt_code},
+            {"speed"sv, &speed},
+            {"tone"sv, &tone},
+            {"mode_cw"sv, &mode_cw},
+            {"loop"sv, &loop},
+        }};
 
     bool start_tx();
     void update_tx_duration();
@@ -90,7 +100,6 @@ class MorseView : public View {
 
     Thread* ookthread{nullptr};
     Thread* loopthread{nullptr};
-    bool foxhunt_mode{false};
     bool run{false};
 
     Labels labels{
@@ -104,20 +113,12 @@ class MorseView : public View {
         {4 * 8, 16},
         8,
         "Foxhunt:"};
-    OptionsField options_foxhunt{
+    NumberField field_foxhunt{
         {17 * 8, 16 + 4},
-        7,
-        {{"1 (MOE)", 0},
-         {"2 (MOI)", 1},
-         {"3 (MOS)", 2},
-         {"4 (MOH)", 3},
-         {"5 (MO5)", 4},
-         {"6 (MON)", 5},
-         {"7 (MOD)", 6},
-         {"8 (MOB)", 7},
-         {"9 (MO6)", 8},
-         {"X (MO) ", 9},
-         {"T (S) ", 10}}};
+        2,
+        {1, 11},
+        1,
+        ' '};
 
     NumberField field_speed{
         {10 * 8, 6 * 8},
@@ -136,8 +137,8 @@ class MorseView : public View {
     OptionsField options_modulation{
         {15 * 8, 10 * 8},
         2,
-        {{"CW", 0},
-         {"FM", 1}}};
+        {{"CW", true},
+         {"FM", false}}};
 
     OptionsField options_loop{
         {9 * 8, 12 * 8},

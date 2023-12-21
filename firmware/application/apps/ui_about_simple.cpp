@@ -37,6 +37,7 @@ void AboutView::update() {
                 break;
             case 2:
                 console.writeln("NotherNgineer,zxkmm,u-foka");
+                console.writeln("Netro,HTotoo");
                 console.writeln("");
                 break;
 

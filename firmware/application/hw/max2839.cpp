@@ -351,7 +351,7 @@ void MAX2839::set_rx_buff_vcm(const size_t v) {
     flush();
 }
 
-reg_t MAX2839::temp_sense() {
+int8_t MAX2839::temp_sense() {
     if (!_map.r.rx_top_2.ts_en) {
         _map.r.rx_top_2.ts_en = 1;
         flush_one(Register::RX_TOP_2);
@@ -365,15 +365,14 @@ reg_t MAX2839::temp_sense() {
     halPolledDelay(ticks_for_temperature_sense_adc_conversion);
 
     /*
-     * Things look very similar to MAX2837, so this probably works, but the
-     * MAX2839 data sheet does not describe the TEMP_SENSE register contents.
+     * Conversion to degrees C determined by testing - does not match data sheet.
      */
-    const auto value = read(Register::TEMP_SENSE);
+    reg_t value = read(Register::TEMP_SENSE) & 0x1F;
 
     _map.r.rx_top_2.ts_adc_trigger = 0;
     flush_one(Register::RX_TOP_2);
 
-    return value;
+    return std::min(127, (int)(value * 4.31 - 40));  // reg value is 0 to 31; possible return range is -40 C to 127 C
 }
 
 }  // namespace max2839

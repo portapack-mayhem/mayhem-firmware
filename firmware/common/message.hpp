@@ -112,6 +112,12 @@ class Message {
         SpectrumPainterBufferRequestConfigure = 55,
         SpectrumPainterBufferResponseConfigure = 56,
         POCSAGStats = 57,
+        FSKRxConfigure = 58,
+        BlePacket = 58,
+        BTLETxConfigure = 59,
+        SubGhzFPRxConfigure = 60,
+        WeatherData = 61,
+        SubGhzDData = 62,
         MAX
     };
 
@@ -398,6 +404,48 @@ class AFSKDataMessage : public Message {
 
     bool is_data;
     uint32_t value;
+};
+
+struct ADV_PDU_PAYLOAD_TYPE_0_2_4_6 {
+    uint8_t Data[31];
+};
+
+struct ADV_PDU_PAYLOAD_TYPE_1_3 {
+    uint8_t A1[6];
+};
+
+struct ADV_PDU_PAYLOAD_TYPE_5 {
+    uint8_t AdvA[6];
+    uint8_t AA[4];
+    uint32_t CRCInit;
+    uint8_t WinSize;
+    uint16_t WinOffset;
+    uint16_t Interval;
+    uint16_t Latency;
+    uint16_t Timeout;
+    uint8_t ChM[5];
+    uint8_t Hop;
+    uint8_t SCA;
+};
+
+struct BlePacketData {
+    int max_dB;
+    uint8_t type;
+    uint8_t size;
+    uint8_t macAddress[6];
+    uint8_t data[40];
+    uint8_t dataLen;
+};
+
+class BLEPacketMessage : public Message {
+   public:
+    constexpr BLEPacketMessage(
+        BlePacketData* packet)
+        : Message{ID::BlePacket},
+          packet{packet} {
+    }
+
+    BlePacketData* packet{nullptr};
 };
 
 class CodedSquelchMessage : public Message {
@@ -726,20 +774,30 @@ class APRSRxConfigureMessage : public Message {
 class BTLERxConfigureMessage : public Message {
    public:
     constexpr BTLERxConfigureMessage(
-        const uint32_t baudrate,
-        const uint32_t word_length,
-        const uint32_t trigger_value,
-        const bool trigger_word)
+        const uint8_t channel_number)
         : Message{ID::BTLERxConfigure},
-          baudrate(baudrate),
-          word_length(word_length),
-          trigger_value(trigger_value),
-          trigger_word(trigger_word) {
+          channel_number(channel_number) {
     }
-    const uint32_t baudrate;
-    const uint32_t word_length;
-    const uint32_t trigger_value;
-    const bool trigger_word;
+    const uint8_t channel_number;
+};
+
+class BTLETxConfigureMessage : public Message {
+   public:
+    constexpr BTLETxConfigureMessage(
+        const uint8_t channel_number,
+        char* macAddress,
+        char* advertisementData,
+        const uint8_t pduType)
+        : Message{ID::BTLETxConfigure},
+          channel_number(channel_number),
+          macAddress(macAddress),
+          advertisementData(advertisementData),
+          pduType(pduType) {
+    }
+    const uint8_t channel_number;
+    char* macAddress;
+    char* advertisementData;
+    const uint8_t pduType;
 };
 
 class NRFRxConfigureMessage : public Message {
@@ -1013,6 +1071,29 @@ class FSKConfigureMessage : public Message {
     const uint32_t progress_notice;
 };
 
+class FSKRxConfigureMessage : public Message {
+   public:
+    constexpr FSKRxConfigureMessage(
+        const fir_taps_real<24> decim_0_filter,
+        const fir_taps_real<32> decim_1_filter,
+        const fir_taps_real<32> channel_filter,
+        const size_t channel_decimation,
+        const size_t deviation)
+        : Message{ID::FSKRxConfigure},
+          decim_0_filter(decim_0_filter),
+          decim_1_filter(decim_1_filter),
+          channel_filter(channel_filter),
+          channel_decimation{channel_decimation},
+          deviation{deviation} {
+    }
+
+    const fir_taps_real<24> decim_0_filter;
+    const fir_taps_real<32> decim_1_filter;
+    const fir_taps_real<32> channel_filter;
+    const size_t channel_decimation;
+    const size_t deviation;
+};
+
 class POCSAGConfigureMessage : public Message {
    public:
     constexpr POCSAGConfigureMessage()
@@ -1033,13 +1114,9 @@ class APRSPacketMessage : public Message {
 
 class ADSBConfigureMessage : public Message {
    public:
-    constexpr ADSBConfigureMessage(
-        const uint32_t test)
-        : Message{ID::ADSBConfigure},
-          test(test) {
+    constexpr ADSBConfigureMessage()
+        : Message{ID::ADSBConfigure} {
     }
-
-    const uint32_t test;
 };
 
 class JammerConfigureMessage : public Message {
@@ -1160,6 +1237,68 @@ class SpectrumPainterBufferConfigureResponseMessage : public Message {
     }
 
     SpectrumPainterFIFO* fifo{nullptr};
+};
+
+class SubGhzFPRxConfigureMessage : public Message {
+   public:
+    constexpr SubGhzFPRxConfigureMessage(uint8_t modulation = 0, uint32_t sampling_rate = 0)
+        : Message{ID::SubGhzFPRxConfigure}, modulation{modulation}, sampling_rate{sampling_rate} {
+    }
+    uint8_t modulation = 0;  // 0 am, 1 fm
+    uint32_t sampling_rate = 0;
+};
+
+class WeatherDataMessage : public Message {
+   public:
+    constexpr WeatherDataMessage(
+        uint8_t sensorType = 0,
+        uint32_t id = 0xFFFFFFFF,
+        float temp = -273.0f,
+        uint8_t humidity = 0xFF,
+        uint8_t battery_low = 0xFF,
+        uint8_t channel = 0xFF,
+        uint8_t btn = 0xFF)
+        : Message{ID::WeatherData},
+          sensorType{sensorType},
+          id{id},
+          temp{temp},
+          humidity{humidity},
+          battery_low{battery_low},
+          channel{channel},
+          btn{btn} {
+    }
+    uint8_t sensorType = 0;
+    uint32_t id = 0xFFFFFFFF;
+    float temp = -273.0f;
+    uint8_t humidity = 0xFF;
+    uint8_t battery_low = 0xFF;
+    uint8_t channel = 0xFF;
+    uint8_t btn = 0xFF;
+};
+
+class SubGhzDDataMessage : public Message {
+   public:
+    constexpr SubGhzDDataMessage(
+        uint8_t sensorType = 0,
+        uint8_t btn = 0xFF,
+        uint16_t bits = 0,
+        uint32_t serial = 0xFFFFFFFF,
+        uint64_t data = 0,
+        uint32_t cnt = 0xFF)
+        : Message{ID::SubGhzDData},
+          sensorType{sensorType},
+          btn{btn},
+          bits{bits},
+          serial{serial},
+          cnt{cnt},
+          data{data} {
+    }
+    uint8_t sensorType = 0;
+    uint8_t btn = 0xFF;
+    uint16_t bits = 0;
+    uint32_t serial = 0xFFFFFFFF;
+    uint32_t cnt = 0xFF;
+    uint64_t data = 0;
 };
 
 #endif /*__MESSAGE_H__*/

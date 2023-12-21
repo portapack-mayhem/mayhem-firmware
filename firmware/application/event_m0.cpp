@@ -113,6 +113,7 @@ void EventDispatcher::run() {
     while (is_running) {
         const auto events = wait();
         dispatch(events);
+        portapack::usb_serial.dispatch();
     }
 }
 

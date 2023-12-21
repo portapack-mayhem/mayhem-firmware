@@ -156,6 +156,7 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
     File f;
     auto path = get_settings_path(std::string{store_name});
 
+    make_new_directory(SETTINGS_DIR);
     auto error = f.create(path);
     if (error)
         return false;
@@ -249,7 +250,7 @@ SettingsManager::SettingsManager(
     settings_.options = options;
 
     // Pre-alloc enough for app settings and additional settings.
-    additional_settings.reserve(17 + additional_settings.size());
+    additional_settings.reserve(COMMON_APP_SETTINGS_COUNT + additional_settings.size());
     bindings_ = std::move(additional_settings);
 
     // Settings should always be loaded because apps now rely

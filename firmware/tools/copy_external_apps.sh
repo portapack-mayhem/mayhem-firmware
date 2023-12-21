@@ -26,6 +26,15 @@
 try=1
 while [ $try -le 180 ]
 do
+    if [ -c /dev/ttyACM0 ];
+    then
+        echo "" > /dev/ttyACM0
+        sleep 1
+        echo "sd_over_usb" > /dev/ttyACM0
+        sleep 5
+    fi
+
+
     if ls /dev/disk/by-id/*Portapack*part1 1> /dev/null 2>&1; then
         disk=$(ls /dev/disk/by-id/*Portapack*part1)
         part=$(readlink -f $disk)

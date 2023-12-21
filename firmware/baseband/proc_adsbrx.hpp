@@ -39,21 +39,19 @@ class ADSBRXProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
-    static constexpr size_t baseband_fs = 2000000;
+    static constexpr size_t baseband_fs = 2'000'000;
+    static constexpr size_t msg_len = 112;
 
     ADSBFrame frame{};
     bool configured{false};
+    bool decoding{false};
+
     uint32_t prev_mag{0};
-    size_t bit_count{0}, sample_count{0};
-    size_t msgLen{112};
-    uint32_t shifter[ADSB_PREAMBLE_LENGTH + 1];
-    bool decoding{};
-    bool preamble{}, active{};
-    uint16_t bit_pos{0};
-    uint8_t cur_bit{0};
-    uint32_t sample{0};
-    int32_t re{}, im{};
     int32_t amp{0};
+    size_t bit_count{0};
+    size_t sample_count{0};
+
+    uint32_t shifter[ADSB_PREAMBLE_LENGTH + 1];
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};

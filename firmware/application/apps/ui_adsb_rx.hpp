@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2023 Kyle Reed
  *
  * This file is part of PortaPack.
  *
@@ -21,29 +22,23 @@
  */
 
 #include "ui.hpp"
-
 #include "ui_receiver.hpp"
 #include "ui_geomap.hpp"
-#include "string_format.hpp"
 
-#include "file.hpp"
-#include "database.hpp"
-#include "recent_entries.hpp"
-#include "log_file.hpp"
 #include "adsb.hpp"
-#include "message.hpp"
 #include "app_settings.hpp"
-#include "radio_state.hpp"
 #include "crc.hpp"
+#include "database.hpp"
+#include "file.hpp"
+#include "log_file.hpp"
+#include "message.hpp"
+#include "radio_state.hpp"
+#include "recent_entries.hpp"
+#include "string_format.hpp"
 
 using namespace adsb;
 
 namespace ui {
-
-#define ADSB_CURRENT 10  // Seconds
-#define ADSB_RECENT 30   // Seconds
-#define ADSB_REMOVE 300  // Used for removing old entries
-
 #define AIRCRAFT_ID_L 1  // aircraft ID message type (lowest type id)
 #define AIRCRAFT_ID_H 4  // aircraft ID message type (highest type id)
 
@@ -66,8 +61,26 @@ namespace ui {
 #define VEL_AIR_SUBSONIC 3
 #define VEL_AIR_SUPERSONIC 4
 
-#define O_E_FRAME_TIMEOUT 20  // timeout between odd and even frames
+#define O_E_FRAME_TIMEOUT 20     // timeout between odd and even frames
+#define MARKER_UPDATE_SECONDS 5  // "other" map marker redraw interval
 
+/* Thresholds (in seconds) that define the transition between ages. */
+struct ADSBAgeLimit {
+    static constexpr int Current = 10;
+    static constexpr int Recent = 30;
+    static constexpr int Expired = 300;
+};
+
+/* Age states used for sorting and drawing recent entries. */
+enum class ADSBAgeState : uint8_t {
+    Invalid,
+    Current,
+    Recent,
+    Old,
+    Expired,
+};
+
+/* Data extracted from ADSB frames. */
 struct AircraftRecentEntry {
     using Key = uint32_t;
 
@@ -76,30 +89,30 @@ struct AircraftRecentEntry {
     uint32_t ICAO_address{};
     uint16_t hits{0};
 
-    uint16_t age_state{1};
-    uint32_t age{0};
+    ADSBAgeState state{ADSBAgeState::Invalid};
+    uint32_t age{0};  // In seconds
     uint32_t amp{0};
     adsb_pos pos{false, 0, 0, 0};
     adsb_vel velo{false, 0, 999, 0};
     ADSBFrame frame_pos_even{};
     ADSBFrame frame_pos_odd{};
 
-    std::string icaoStr{"      "};
-    std::string callsign{"        "};
-    std::string info_string{""};
+    std::string icao_str{};
+    std::string callsign{};
+    std::string info_string{};
 
-    AircraftRecentEntry(
-        const uint32_t ICAO_address)
+    AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {
-        this->icaoStr = to_string_hex(ICAO_address, 6);
+        this->icao_str = to_string_hex(ICAO_address, 6);
     }
 
+    /* RecentEntries helpers expect a "key" on every item. */
     Key key() const {
         return ICAO_address;
     }
 
-    void set_callsign(std::string& new_callsign) {
-        callsign = new_callsign;
+    void set_callsign(std::string new_callsign) {
+        callsign = std::move(new_callsign);
     }
 
     void inc_hit() {
@@ -122,8 +135,8 @@ struct AircraftRecentEntry {
         velo = decode_frame_velo(frame);
     }
 
-    void set_info_string(std::string& new_info_string) {
-        info_string = new_info_string;
+    void set_info_string(std::string new_info_string) {
+        info_string = std::move(new_info_string);
     }
 
     void reset_age() {
@@ -132,59 +145,59 @@ struct AircraftRecentEntry {
 
     void inc_age(int delta) {
         age += delta;
-        if (age < ADSB_CURRENT) {
-            age_state = pos.valid ? 0 : 1;
-        } else if (age < ADSB_RECENT) {
-            age_state = 2;
-        } else if (age < ADSB_REMOVE) {
-            age_state = 3;
-        } else {
-            age_state = 4;
-        }
+
+        if (age < ADSBAgeLimit::Current)
+            state = pos.valid ? ADSBAgeState::Invalid
+                              : ADSBAgeState::Current;
+
+        else if (age < ADSBAgeLimit::Recent)
+            state = ADSBAgeState::Recent;
+
+        else if (age < ADSBAgeLimit::Expired)
+            state = ADSBAgeState::Old;
+
+        else
+            state = ADSBAgeState::Expired;
     }
 };
 
+// NB: uses std::list underneath so assuming refs are NOT invalidated.
 using AircraftRecentEntries = RecentEntries<AircraftRecentEntry>;
 
+/* Holds data for logging. */
+struct ADSBLogEntry {
+    std::string raw_data{};
+    std::string icao{};
+    std::string callsign{};
+    adsb_pos pos{};
+    adsb_vel vel{};
+    uint8_t vel_type{};
+};
+
+// TODO: Make logging optional.
+/* Logs entries to a log file. */
 class ADSBLogger {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
-    void log_str(std::string& logline);
+    void log(const ADSBLogEntry& log_entry);
 
    private:
     LogFile log_file{};
 };
 
+/* Shows detailed information about an aircraft. */
 class ADSBRxAircraftDetailsView : public View {
    public:
-    ADSBRxAircraftDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
-    ~ADSBRxAircraftDetailsView();
-
-    ADSBRxAircraftDetailsView(const ADSBRxAircraftDetailsView&) = delete;
-    ADSBRxAircraftDetailsView(ADSBRxAircraftDetailsView&&) = delete;
-    ADSBRxAircraftDetailsView& operator=(const ADSBRxAircraftDetailsView&) = delete;
-    ADSBRxAircraftDetailsView& operator=(ADSBRxAircraftDetailsView&&) = delete;
+    ADSBRxAircraftDetailsView(
+        NavigationView&,
+        const AircraftRecentEntry& entry);
 
     void focus() override;
-
-    void update(const AircraftRecentEntry& entry);
-
-    std::string title() const override { return "AC Details"; };
-
-    AircraftRecentEntry get_current_entry() { return entry_copy; }
-
-    std::database::AircraftDBRecord aircraft_record = {};
+    std::string title() const override { return "AC Details"; }
 
    private:
-    AircraftRecentEntry entry_copy{0};
-    std::function<void(void)> on_close_{};
-    bool send_updates{false};
-    std::database db = {};
-    std::string icao_code = "";
-    int return_code = 0;
-
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
         {{0 * 8, 2 * 16}, "Registration:", Color::light_grey()},
@@ -237,36 +250,34 @@ class ADSBRxAircraftDetailsView : public View {
         "Back"};
 };
 
+/* Shows detailed information about an aircraft's flight. */
 class ADSBRxDetailsView : public View {
    public:
-    ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry, const std::function<void(void)> on_close);
-    ~ADSBRxDetailsView();
+    ADSBRxDetailsView(NavigationView&, const AircraftRecentEntry& entry);
 
     ADSBRxDetailsView(const ADSBRxDetailsView&) = delete;
-    ADSBRxDetailsView(ADSBRxDetailsView&&) = delete;
     ADSBRxDetailsView& operator=(const ADSBRxDetailsView&) = delete;
-    ADSBRxDetailsView& operator=(ADSBRxDetailsView&&) = delete;
 
     void focus() override;
-
     void update(const AircraftRecentEntry& entry);
 
-    std::string title() const override { return "Details"; };
+    /* Calls forwarded to map view if shown. */
+    bool map_active() const { return geomap_view_; }
+    void clear_map_markers();
+    /* Adds a marker for the entry to the map. Returns true on success. */
+    bool add_map_marker(const AircraftRecentEntry& entry);
 
-    AircraftRecentEntry get_current_entry() { return entry_copy; }
-
-    std::database::AirlinesDBRecord airline_record = {};
-
-    GeoMapView* geomap_view{nullptr};
+    std::string title() const override { return "Details"; }
 
    private:
-    AircraftRecentEntry entry_copy{0};
-    std::function<void(void)> on_close_{};
-    ADSBRxAircraftDetailsView* aircraft_details_view{nullptr};
-    bool send_updates{false};
-    std::database db = {};
-    std::string airline_code = "";
-    int return_code = 0;
+    void refresh_ui();
+
+    GeoMapView* geomap_view_{nullptr};
+    ADSBRxAircraftDetailsView* aircraft_details_view_{nullptr};
+
+    // NB: Keeping a copy so that it doesn't end up dangling
+    // if removed from the recent entries list.
+    AircraftRecentEntry entry_{AircraftRecentEntry::invalid_key};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
@@ -321,6 +332,7 @@ class ADSBRxDetailsView : public View {
         "See on map"};
 };
 
+/* Main ADSB application view and message dispatch. */
 class ADSBRxView : public View {
    public:
     ADSBRxView(NavigationView& nav);
@@ -332,46 +344,52 @@ class ADSBRxView : public View {
     ADSBRxView& operator=(ADSBRxView&&) = delete;
 
     void focus() override;
-
     std::string title() const override { return "ADS-B RX"; };
-
-    void replace_entry(AircraftRecentEntry& entry);
-    void remove_old_entries();
-    AircraftRecentEntry find_or_create_entry(uint32_t ICAO_address);
-    void sort_entries_by_state();
 
    private:
     RxRadioState radio_state_{
-        1090000000 /* frequency */,
-        2500000 /* bandwidth */,
-        2000000 /* sampling rate */,
+        1'090'000'000 /* frequency */,
+        2'500'000 /* bandwidth */,
+        2'000'000 /* sampling rate */,
         ReceiverModel::Mode::SpectrumAnalysis};
     app_settings::SettingsManager settings_{
         "rx_adsb", app_settings::Mode::RX};
 
     std::unique_ptr<ADSBLogger> logger{};
+
+    /* Event Handlers */
     void on_frame(const ADSBFrameMessage* message);
     void on_tick_second();
-    int updateState = {0};
-    void updateRecentEntries();
-    void updateDetailsAndMap(int ageStep);
-
-#define MARKER_UPDATE_SECONDS (5)
-    int ticksSinceMarkerRefresh{MARKER_UPDATE_SECONDS - 1};
-
-    const RecentEntriesColumns columns{{{"ICAO/Call", 9},
-                                        {"Lvl", 3},
-                                        {"Spd", 3},
-                                        {"Amp", 3},
-                                        {"Hit", 3},
-                                        {"Age", 4}}};
-    AircraftRecentEntries recent{};
-    RecentEntriesView<RecentEntries<AircraftRecentEntry>> recent_entries_view{columns, recent};
+    void refresh_ui();
 
     SignalToken signal_token_tick_second{};
+    uint8_t tick_count = 0;
+    uint16_t ticks_since_marker_refresh{MARKER_UPDATE_SECONDS};
+
+    /* Max number of entries that can be updated in a single pass.
+     * 16 is one screen of recent entries. */
+    static constexpr uint8_t max_update_entries = 16;
+
+    /* Recent Entries */
+    const RecentEntriesColumns columns{
+        {{"ICAO/Call", 9},
+         {"Lvl", 3},
+         {"Spd", 3},
+         {"Amp", 3},
+         {"Hit", 3},
+         {"Age", 4}}};
+    AircraftRecentEntries recent{};
+    RecentEntriesView<AircraftRecentEntries> recent_entries_view{columns, recent};
+
+    /* Entry Management */
+    void update_recent_entries(int age_delta);
+    AircraftRecentEntry& find_or_create_entry(uint32_t ICAO_address);
+    void sort_entries_by_state();
+    void remove_expired_entries();
+
+    /* The key of the entry in the details view if shown. */
+    AircraftRecentEntry::Key detail_key{AircraftRecentEntry::invalid_key};
     ADSBRxDetailsView* details_view{nullptr};
-    uint32_t detailed_entry_key{0};
-    bool send_updates{false};
 
     Labels labels{
         {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Color::light_grey()}};
@@ -386,7 +404,17 @@ class ADSBRxView : public View {
         {18 * 8, 0 * 16}};
 
     RSSI rssi{
-        {20 * 8, 4, 10 * 8, 8},
+        {20 * 8, 4, 10 * 7, 8},
+    };
+
+    ActivityDot status_frame{
+        {screen_width - 3, 5, 2, 2},
+        Color::white(),
+    };
+
+    ActivityDot status_good_frame{
+        {screen_width - 3, 9, 2, 2},
+        Color::green(),
     };
 
     MessageHandlerRegistration message_handler_frame{

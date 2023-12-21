@@ -692,9 +692,10 @@ class MAX2839 : public MAX283x {
     void set_rx_lo_iq_calibration(const size_t v) override;
     void set_rx_buff_vcm(const size_t v) override;
 
-    reg_t temp_sense() override;
+    int8_t temp_sense() override;
 
     reg_t read(const address_t reg_num) override;
+    void write(const address_t reg_num, const reg_t value) override;
 
    private:
     spi::arbiter::Target& _target;
@@ -703,8 +704,6 @@ class MAX2839 : public MAX283x {
     DirtyRegisters<Register, reg_count> _dirty{};
 
     void flush_one(const Register reg);
-
-    void write(const address_t reg_num, const reg_t value);
 
     void write(const Register reg, const reg_t value);
     reg_t read(const Register reg);

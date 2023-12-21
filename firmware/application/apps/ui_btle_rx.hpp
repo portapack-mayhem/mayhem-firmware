@@ -60,6 +60,8 @@ class BTLERxView : public View {
     uint8_t console_color{0};
     uint32_t prev_value{0};
 
+    static constexpr uint8_t channel_number = 37;
+
     RFAmpField field_rf_amp{
         {13 * 8, 0 * 16}};
     LNAGainField field_lna{

@@ -48,5 +48,6 @@ inline uint32_t get_free_stack_space() {
 }
 
 bool stack_dump();
+bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag);
 
 #endif /*__DEBUG_H__*/

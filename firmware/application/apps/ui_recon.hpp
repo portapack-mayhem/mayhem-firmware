@@ -81,7 +81,7 @@ class ReconView : public View {
     void show_max(bool refresh_display = false);
     void recon_pause();
     void recon_resume();
-    void frequency_file_load(bool stop_all_before = false);
+    void frequency_file_load();
     void on_statistics_update(const ChannelStatistics& statistics);
     void on_index_delta(int32_t v);
     void on_stepper_delta(int32_t v);
@@ -154,8 +154,8 @@ class ReconView : public View {
     uint16_t last_nb_match{999};
     uint16_t last_freq_lock{999};
     size_t last_list_size{0};
-    int8_t last_rssi_min{-127};
-    int8_t last_rssi_med{-127};
+    int8_t last_rssi_min{127};
+    int8_t last_rssi_med{0};
     int8_t last_rssi_max{-127};
     int32_t last_index{-1};
     int64_t last_freq{0};

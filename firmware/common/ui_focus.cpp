@@ -30,6 +30,8 @@
 #include <utility>
 #include <vector>
 
+#define pow2(x) ((x) * (x))
+
 namespace ui {
 
 Widget* FocusManager::focus_widget() const {
@@ -138,12 +140,12 @@ static int32_t rect_distances(
     switch (direction) {
         case KeyEvent::Right:
         case KeyEvent::Left:
-            return ((std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) ^ 3) * sqrt((on_axis_distance + 1));
+            return pow2(std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) * (on_axis_distance + 1);
             break;
 
         case KeyEvent::Up:
         case KeyEvent::Down:
-            return (sqrt(std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1)) * ((on_axis_distance + 1) ^ 3);
+            return (std::abs(perpendicular_axis_end - perpendicular_axis_start) + 1) * pow2(on_axis_distance + 1);
             break;
 
         default:

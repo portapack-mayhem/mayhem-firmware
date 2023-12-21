@@ -58,6 +58,8 @@ int main() {
 
     f_close(&firmware_file);
 
+    LPC_RGU->RESET_CTRL[0] = (1 << 0);
+
     while (1)
         __WFE();
 

@@ -321,7 +321,7 @@ void MAX2837::set_rx_buff_vcm(const size_t v) {
     flush();
 }
 
-reg_t MAX2837::temp_sense() {
+int8_t MAX2837::temp_sense() {
     if (!_map.r.rx_top.ts_en) {
         _map.r.rx_top.ts_en = 1;
         flush_one(Register::RX_TOP);
@@ -334,12 +334,15 @@ reg_t MAX2837::temp_sense() {
 
     halPolledDelay(ticks_for_temperature_sense_adc_conversion);
 
-    const auto value = read(Register::TEMP_SENSE);
+    /*
+     * Conversion to degrees C determined by testing - does not match data sheet.
+     */
+    reg_t value = read(Register::TEMP_SENSE) & 0x1F;
 
     _map.r.rx_top.ts_adc_trigger = 0;
     flush_one(Register::RX_TOP);
 
-    return value;
+    return std::min(127, (int)(value * 4.31 - 40));  // reg value is 0 to 31; possible return range is -40 C to 127 C
 }
 
 }  // namespace max2837
