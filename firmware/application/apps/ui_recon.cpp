@@ -90,7 +90,6 @@ void ReconView::recon_stop_recording() {
         is_recording = false;
         // repeater mode
         if (persistent_memory::recon_repeat_recorded()) {
-            progressbar.hidden(false);
             start_repeat();
         }
     }
@@ -292,6 +291,8 @@ ReconView::ReconView(NavigationView& nav)
     : nav_{nav} {
     chrono_start = chTimeNow();
 
+    tx_view.hidden(true);
+
     // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
                                                u"AUTO_AUDIO", u"AUDIO",
@@ -339,12 +340,11 @@ ReconView::ReconView(NavigationView& nav)
                   &button_mic_app,
                   &button_remove,
                   record_view.get(),
-                  &progressbar});
+                  &progressbar,
+                  &tx_view});
 
     def_step = 0;
     load_persisted_settings();
-    
-    progressbar.set_value(0);
 
     // When update_ranges is set or range invalid, use the rx model frequency instead of the saved values.
     if (update_ranges || frequency_range.max == 0) {
@@ -800,8 +800,12 @@ void ReconView::frequency_file_load() {
 }
 
 void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
+    if (recon_tx)
+        return;
+
     if (is_repeat_active())
         return;
+
     chrono_end = chTimeNow();
     systime_t time_interval = chrono_end - chrono_start;
     chrono_start = chrono_end;
@@ -1106,6 +1110,9 @@ void ReconView::on_stepper_delta(int32_t v) {
 }
 
 size_t ReconView::change_mode(freqman_index_t new_mod) {
+    if (recon_tx || is_repeat_active())
+        return 0;
+
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
     recon_stop_recording();
@@ -1262,92 +1269,97 @@ void ReconView::repeat_file_error(const std::filesystem::path& path, const std::
     nav_.display_modal("Error", "Error opening file \n" + path.string() + "\n" + message);
 }
 
-
 bool ReconView::is_repeat_active() const {
     return repeat_thread != nullptr;
 }
 
 void ReconView::start_repeat() {
-
     // Prepare to send a file.
+    recon_tx = true;
+    chThdSleepMilliseconds(100);
+
     repeat_thread.reset();
+    repeat_ready_signal = false;
+
     receiver_model.disable();
     transmitter_model.disable();
+
     baseband::shutdown();
 
     baseband::run_image(portapack::spi_flash::image_tag_replay);
 
-    repeat_ready_signal = false;
+    std::filesystem::path rawfile = u"/" + repeat_rec_path + u"/" + repeat_rec_file;
+    std::filesystem::path rawmeta = u"/" + repeat_rec_path + u"/" + repeat_rec_meta;
 
-    // Reset the transmit progress bar.
-    progressbar.set_value(0);
-    File capture_file;
-    auto error = capture_file.open(u"/"+repeat_rec_path+u"/"+repeat_rec_meta);
-    if (error) {
-        repeat_file_error(u"/"+repeat_rec_path+u"/"+repeat_rec_file, "Can't open file to send for size");
-        return;
+    size_t rawsize = 0;
+    {
+        File capture_file;
+        auto error = capture_file.open(rawfile);
+        if (error) {
+            repeat_file_error(rawfile, "Can't open file to send for size");
+            return;
+        }
+        rawsize = capture_file.size();
     }
 
-    uint8_t sample_size = capture_file_sample_size(u"/"+repeat_rec_path+u"/"+repeat_rec_meta);
-    progressbar.set_max(capture_file.size() * sizeof(complex16_t) / sample_size);
+    // Reset the transmit progress bar.
+    uint8_t sample_size = std::filesystem::capture_file_sample_size(rawfile);
+    progressbar.set_value(0);
+    progressbar.set_max(rawsize * sizeof(complex16_t) / sample_size);
+    progressbar.hidden(false);
 
-    auto metadata = read_metadata_file(u"/"+repeat_rec_path+u"/"+repeat_rec_meta);
-
+    auto metadata = read_metadata_file(rawmeta);
     // If no metadata found, fallback to the TX frequency.
     if (!metadata) {
         metadata = {freq, 500'000};
     }
 
-    //repeat_file_error(u"/"+repeat_rec_path+u"/"+repeat_rec_meta, "DEBUG: META FILE");
-
-    // Open the sample file to send.
     auto reader = std::make_unique<FileConvertReader>();
-    error = reader->open(u"/"+repeat_rec_path+u"/"+repeat_rec_file);
+    auto error = reader->open(rawfile);
     if (error) {
-        repeat_file_error(u"/"+repeat_rec_path+u"/"+repeat_rec_file, "Can't open file to send.");
+        repeat_file_error(rawfile, "Can't open file to send to thread");
         return;
     }
-
-    //repeat_file_error(u"/"+repeat_rec_path+u"/"+repeat_rec_file, "DEBUG: RAW FILE");
 
     // Update the sample rate in proc_replay baseband.
     baseband::set_sample_rate(metadata->sample_rate,
                               get_oversample_rate(metadata->sample_rate));
 
     // ReplayThread starts immediately on construction; must be set before creating.
-    transmitter_model.set_target_frequency(metadata->center_frequency);
     transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
     transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
-    transmitter_model.enable();
 
- 
     // Use the ReplayThread class to send the data.
     repeat_thread = std::make_unique<ReplayThread>(
         std::move(reader),
-        /* read_size */ 0x4000,
-        /* buffer_count */ 3,
+        /* read_size */ repeat_read_size,
+        /* buffer_count */ repeat_buffer_count,
         &repeat_ready_signal,
         [](uint32_t return_code) {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
+
+    transmitter_model.enable();
 }
 
 void ReconView::stop_repeat(const bool do_loop) {
+    progressbar.hidden(true);
 
-    progressbar.hidden( true );
-
-    if (is_repeat_active())
+    if (is_repeat_active()) {
         repeat_thread.reset();
+        transmitter_model.disable();
+    }
 
     if (do_loop) {
         if (repeat_cur_rep < persistent_memory::recon_repeat_nb()) {
             start_repeat();
             repeat_cur_rep++;
-        } 
+        }
     } else {
-            repeat_cur_rep=0;
-            change_mode(current_entry().modulation);
+        repeat_cur_rep = 0;
+        recon_tx = false;
+        change_mode(current_entry().modulation);
     }
 }
 
@@ -1356,9 +1368,8 @@ void ReconView::handle_repeat_thread_done(const uint32_t return_code) {
         stop_repeat(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop_repeat(false);
-        repeat_file_error(u"/"+repeat_rec_path+u"/"+repeat_rec_file, "Can't open file to send.");
+        repeat_file_error(u"/" + repeat_rec_path + u"/" + repeat_rec_file, "Can't open file to send.");
     }
-    progressbar.set_value(0);
 }
 
 } /* namespace ui */

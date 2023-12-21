@@ -55,7 +55,6 @@
 namespace ui {
 
 #define RECON_CFG_FILE u"SETTINGS/recon.cfg"
-#define RECON_TX 128  // special change_mode case, set TX
 
 enum class recon_mode : uint8_t {
     Recon,
@@ -77,9 +76,15 @@ class ReconView : public View {
    private:
     NavigationView& nav_;
 
-    RxRadioState radio_state_{};
+    RxRadioState rx_radio_state_{};
+    TxRadioState tx_radio_state_{
+        0 /* frequency */,
+        1750000 /* bandwidth */,
+        500000 /* sampling rate */
+    };
     app_settings::SettingsManager settings_{
-        "rx_recon"sv, app_settings::Mode::RX};
+        "rx_tx_recon"sv, app_settings::Mode::RX_TX};
+    ;
 
     void check_update_ranges_from_current();
     void set_loop_config(bool v);
@@ -186,12 +191,12 @@ class ReconView : public View {
     void start_repeat();
     void stop_repeat(const bool do_loop);
     bool is_repeat_active() const;
-    void set_repeat_ready();
     void handle_repeat_thread_done(const uint32_t return_code);
     void repeat_file_error(const std::filesystem::path& path, const std::string& message);
     std::filesystem::path repeat_file_path{};
     std::unique_ptr<ReplayThread> repeat_thread{};
-    bool repeat_ready_signal{};
+    bool repeat_ready_signal{false};
+    bool recon_tx{false};
 
     // Persisted settings.
     SettingsStore ui_settings{
@@ -387,40 +392,44 @@ class ReconView : public View {
     ProgressBar progressbar{
         {18 * 8, 1 * 16, 12 * 8, 16}};
 
+    TransmitterView2 tx_view{
+        {11 * 8, 2 * 16},
+        /*short_ui*/ true};
+
     MessageHandlerRegistration message_handler_coded_squelch{
         Message::ID::CodedSquelch,
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const CodedSquelchMessage*>(p);
-            this->handle_coded_squelch(message.value);
+            handle_coded_squelch(message.value);
         }};
 
     MessageHandlerRegistration message_handler_stats{
         Message::ID::ChannelStatistics,
         [this](const Message* const p) {
-            this->on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
+            on_statistics_update(static_cast<const ChannelStatisticsMessage*>(p)->statistics);
         }};
 
-    MessageHandlerRegistration message_handler_repeat_thread_error{
+    MessageHandlerRegistration message_handler_replay_thread_error{
         Message::ID::ReplayThreadDone,
-        [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
-            this->handle_repeat_thread_done(message.return_code);
+        [this](const Message* p) {
+            auto message = *reinterpret_cast<const ReplayThreadDoneMessage*>(p);
+            handle_repeat_thread_done(message.return_code);
         }};
 
     MessageHandlerRegistration message_handler_fifo_signal{
         Message::ID::RequestSignal,
-        [this](const Message* const p) {
-            const auto message = static_cast<const RequestSignalMessage*>(p);
+        [this](const Message* p) {
+            auto message = static_cast<const RequestSignalMessage*>(p);
             if (message->signal == RequestSignalMessage::Signal::FillRequest) {
-                repeat_ready_signal = true ;
+                repeat_ready_signal = true;
             }
         }};
 
     MessageHandlerRegistration message_handler_tx_progress{
         Message::ID::TXProgress,
-        [this](const Message* const p) {
-            const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
-            this->on_repeat_tx_progress(message.progress);
+        [this](const Message* p) {
+            auto message = *reinterpret_cast<const TXProgressMessage*>(p);
+            on_repeat_tx_progress(message.progress);
         }};
 };
 
