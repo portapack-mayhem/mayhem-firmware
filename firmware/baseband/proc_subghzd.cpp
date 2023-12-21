@@ -47,7 +47,7 @@ void SubGhzDProcessor::execute(const buffer_c8_t& buffer) {
         tm += mag;
         if (meashl == currentHiLow && currentDuration < 30'000'000)  // allow pass 'end' signal
         {
-            if (currentDuration < UINT32_MAX) currentDuration += nsPerDecSamp;
+            currentDuration += nsPerDecSamp;
         } else {  // called on change, so send the last duration and dir.
             if (protoList) protoList->feed(currentHiLow, currentDuration / 1000);
             currentDuration = nsPerDecSamp;
@@ -74,7 +74,7 @@ void SubGhzDProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     // constexpr size_t decim_0_output_fs = baseband_fs / decim_0.decimation_factor; //unused
     // constexpr size_t decim_1_output_fs = decim_0_output_fs / decim_1.decimation_factor; //unused
 
-    modulation = message.modulation;  // TODO: FM not yet implemented
+    modulation = message.modulation;  // TODO: add support for FM (currently AM only)
 
     baseband_fs = message.sampling_rate;
     baseband_thread.set_sampling_rate(baseband_fs);
