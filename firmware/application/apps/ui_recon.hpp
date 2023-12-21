@@ -194,7 +194,7 @@ class ReconView : public View {
     void handle_repeat_thread_done(const uint32_t return_code);
     void repeat_file_error(const std::filesystem::path& path, const std::string& message);
     std::filesystem::path repeat_file_path{};
-    std::unique_ptr<ReplayThread> repeat_thread{};
+    std::unique_ptr<ReplayThread> replay_thread{};
     bool repeat_ready_signal{false};
     bool recon_tx{false};
 

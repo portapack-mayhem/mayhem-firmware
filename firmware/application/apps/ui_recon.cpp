@@ -1112,12 +1112,13 @@ void ReconView::on_stepper_delta(int32_t v) {
 size_t ReconView::change_mode(freqman_index_t new_mod) {
     if (recon_tx || is_repeat_active())
         return 0;
-
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
     recon_stop_recording();
-    remove_child(record_view.get());
-    record_view.reset();
+    if (record_view != nullptr) {
+        remove_child(record_view.get());
+        record_view.reset();
+    }
     if (persistent_memory::recon_repeat_recorded()) {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
                                                    u"RECON_REPEAT.C16", u"CAPTURES",
@@ -1270,15 +1271,20 @@ void ReconView::repeat_file_error(const std::filesystem::path& path, const std::
 }
 
 bool ReconView::is_repeat_active() const {
-    return repeat_thread != nullptr;
+    return replay_thread != nullptr;
 }
 
 void ReconView::start_repeat() {
     // Prepare to send a file.
     recon_tx = true;
-    chThdSleepMilliseconds(100);
 
-    repeat_thread.reset();
+    if (record_view != nullptr) {
+        record_view->stop();
+        remove_child(record_view.get());
+        record_view.reset();
+    }
+
+    replay_thread.reset();
     repeat_ready_signal = false;
 
     receiver_model.disable();
@@ -1302,6 +1308,9 @@ void ReconView::start_repeat() {
         rawsize = capture_file.size();
     }
 
+    // checked: size was tested and reported OK
+    // repeat_file_error(rawfile, "Size: "+to_string_dec_int( rawsize ) );
+
     // Reset the transmit progress bar.
     uint8_t sample_size = std::filesystem::capture_file_sample_size(rawfile);
     progressbar.set_value(0);
@@ -1313,6 +1322,9 @@ void ReconView::start_repeat() {
     if (!metadata) {
         metadata = {freq, 500'000};
     }
+
+    // checked: metadata are correctly read from RECON_REPEAT.TXT
+    // repeat_file_error(rawfile, "freq:"+to_string_dec_int( metadata->center_frequency)+"\nsample_rate:"+to_string_dec_int(metadata->sample_rate) );
 
     auto reader = std::make_unique<FileConvertReader>();
     auto error = reader->open(rawfile);
@@ -1328,9 +1340,11 @@ void ReconView::start_repeat() {
     // ReplayThread starts immediately on construction; must be set before creating.
     transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
     transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
+    transmitter_model.set_target_frequency(metadata->center_frequency);
+    transmitter_model.enable();
 
     // Use the ReplayThread class to send the data.
-    repeat_thread = std::make_unique<ReplayThread>(
+    replay_thread = std::make_unique<ReplayThread>(
         std::move(reader),
         /* read_size */ repeat_read_size,
         /* buffer_count */ repeat_buffer_count,
@@ -1339,15 +1353,13 @@ void ReconView::start_repeat() {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
-
-    transmitter_model.enable();
 }
 
 void ReconView::stop_repeat(const bool do_loop) {
     progressbar.hidden(true);
 
     if (is_repeat_active()) {
-        repeat_thread.reset();
+        replay_thread.reset();
         transmitter_model.disable();
     }
 
@@ -1359,6 +1371,7 @@ void ReconView::stop_repeat(const bool do_loop) {
     } else {
         repeat_cur_rep = 0;
         recon_tx = false;
+
         change_mode(current_entry().modulation);
     }
 }
