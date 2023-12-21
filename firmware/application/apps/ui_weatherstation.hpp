@@ -100,8 +100,8 @@ class WeatherView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{
         433'920'000 /* frequency */,
-        2'500'000 /* bandwidth max283x*/,
-        4'000'000 /* sampling rate */,
+        1'750'000 /* bandwidth */,
+        2'000'000 /* sampling rate */,
         ReceiverModel::Mode::AMAudio};
     app_settings::SettingsManager settings_{
         "rx_weather",

@@ -88,8 +88,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
     recent_entries_view.on_select = [this](const SubGhzDRecentEntry& entry) {
         nav_.push<SubGhzDRecentEntryDetailView>(entry);
     };
-    baseband::set_subghzd(0);  // am
-    receiver_model.set_sampling_rate(4'000'000);
+    baseband::set_subghzd_config(0, receiver_model.sampling_rate());  // 0=am
     receiver_model.enable();
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();

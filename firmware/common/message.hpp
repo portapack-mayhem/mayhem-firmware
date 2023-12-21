@@ -1241,10 +1241,11 @@ class SpectrumPainterBufferConfigureResponseMessage : public Message {
 
 class SubGhzFPRxConfigureMessage : public Message {
    public:
-    constexpr SubGhzFPRxConfigureMessage(uint8_t modulation = 0)
-        : Message{ID::SubGhzFPRxConfigure}, modulation{modulation} {
+    constexpr SubGhzFPRxConfigureMessage(uint8_t modulation = 0, uint32_t sampling_rate = 0)
+        : Message{ID::SubGhzFPRxConfigure}, modulation{modulation}, sampling_rate{sampling_rate} {
     }
     uint8_t modulation = 0;  // 0 am, 1 fm
+    uint32_t sampling_rate = 0;
 };
 
 class WeatherDataMessage : public Message {
