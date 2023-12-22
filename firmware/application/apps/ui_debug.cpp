@@ -443,7 +443,7 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
     add_items({
         {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
         {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
-        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 256, 96, 8}); }},
+        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
         {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
     set_max_rows(2);  // allow wider buttons
