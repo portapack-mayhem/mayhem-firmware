@@ -436,6 +436,8 @@ BLERxView::BLERxView(NavigationView& nav)
         nav_.push<BleRecentEntryDetailView>(entry);
     };
 
+    usb_serial_thread = std::make_unique<UsbSerialThread>();
+
     ensure_directory(find_packet_path);
     ensure_directory(log_packets_path);
     ensure_directory(packet_save_path);
@@ -684,32 +686,22 @@ bool BLERxView::saveFile(const std::filesystem::path& path) {
 }
 
 void BLERxView::on_data(BlePacketData* packet) {
-    std::string str_console = "";
-
     if (!logging) {
         str_log = "";
     }
 
     str_console += pdu_type_to_string((ADV_PDU_TYPE)packet->type);
-
     str_console += " Len:";
     str_console += to_string_dec_uint(packet->size);
-
-    str_console += "\n";
-
-    str_console += "Mac:";
+    str_console += " Mac:";
     str_console += to_string_mac_address(packet->macAddress, 6, false);
-
-    str_console += "\n";
-    str_console += "Data:";
+    str_console += " Data:";
 
     int i;
 
     for (i = 0; i < packet->dataLen; i++) {
         str_console += to_string_hex(packet->data[i], 2);
     }
-
-    str_console += "\n";
 
     uint64_t macAddressEncoded = copy_mac_address_to_uint64(packet->macAddress);
 
@@ -728,8 +720,12 @@ void BLERxView::on_data(BlePacketData* packet) {
 
     // Log at End of Packet.
     if (logger && logging) {
-        logger->log_raw_data(str_console);
+        logger->log_raw_data(str_console + "\r\n");
     }
+
+    usb_serial_thread->serial_str = str_console + "\r\n";
+    usb_serial_thread->str_ready = true;
+    str_console = "";
 
     if (!searchList.empty()) {
         auto it = searchList.begin();

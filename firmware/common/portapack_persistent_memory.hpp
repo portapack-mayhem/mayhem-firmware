@@ -39,6 +39,9 @@
 // persistant memory from/to sdcard flag file
 #define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
 
+#define PMEM_SIZE_BYTES 256  // total amount of pmem space in bytes, including checksum
+#define PMEM_SIZE_WORDS (PMEM_SIZE_BYTES / 4)
+
 using namespace modems;
 using namespace serializer;
 

@@ -319,13 +319,8 @@ void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bo
     send_message(&message);
 }
 
-void set_weather() {
-    const SubGhzFPRxConfigureMessage message{0};
-    send_message(&message);
-}
-
-void set_subghzd(uint8_t modulation = 0) {
-    const SubGhzFPRxConfigureMessage message{modulation};
+void set_subghzd_config(uint8_t modulation = 0, uint32_t sampling_rate = 0) {
+    const SubGhzFPRxConfigureMessage message{modulation, sampling_rate};
     send_message(&message);
 }
 
