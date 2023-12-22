@@ -86,6 +86,7 @@ class ReconView : public View {
         "rx_tx_recon"sv, app_settings::Mode::RX_TX};
     ;
 
+    void reload_restart_recon();
     void check_update_ranges_from_current();
     void set_loop_config(bool v);
     void clear_freqlist_for_ui_action();
@@ -390,7 +391,7 @@ class ReconView : public View {
         "<REMOVE>"};
 
     ProgressBar progressbar{
-        {18 * 8, 1 * 16, 12 * 8, 16}};
+        {0 * 8, SCREEN_H / 2 - 16, SCREEN_W, 32}};
 
     TransmitterView2 tx_view{
         {11 * 8, 2 * 16},

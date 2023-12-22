@@ -48,6 +48,30 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
+void ReconView::reload_restart_recon() {
+    frequency_file_load();
+    if (frequency_list.size() > 0) {
+        if (fwd) {
+            button_dir.set_text("FW>");
+        } else {
+            button_dir.set_text("<RW");
+        }
+        recon_resume();
+    }
+    if (scanner_mode) {
+        file_name.set_style(&Styles::red);
+        button_scanner_mode.set_style(&Styles::red);
+        button_scanner_mode.set_text("SCAN");
+    } else {
+        file_name.set_style(&Styles::blue);
+        button_scanner_mode.set_style(&Styles::blue);
+        button_scanner_mode.set_text("RECON");
+    }
+    if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
+        file_name.set_style(&Styles::yellow);
+    }
+}
+
 void ReconView::check_update_ranges_from_current() {
     if (frequency_list.size() && current_is_valid() && current_entry().type == freqman_type::Range) {
         if (update_ranges && !manual_mode) {
@@ -587,27 +611,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_restart.on_select = [this](Button&) {
-        frequency_file_load();
-        if (frequency_list.size() > 0) {
-            if (fwd) {
-                button_dir.set_text("FW>");
-            } else {
-                button_dir.set_text("<RW");
-            }
-            recon_resume();
-        }
-        if (scanner_mode) {
-            file_name.set_style(&Styles::red);
-            button_scanner_mode.set_style(&Styles::red);
-            button_scanner_mode.set_text("SCAN");
-        } else {
-            file_name.set_style(&Styles::blue);
-            button_scanner_mode.set_style(&Styles::blue);
-            button_scanner_mode.set_text("RECON");
-        }
-        if (frequency_list.size() > FREQMAN_MAX_PER_FILE) {
-            file_name.set_style(&Styles::yellow);
-        }
+        reload_restart_recon();
     };
 
     button_add.on_select = [this](ButtonWithEncoder&) {
@@ -1047,7 +1051,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (stepper > 0) stepper--;
                 }  // if( recon || stepper != 0 || index_stepper != 0 )
             }      // if (frequency_list.size() > 0 )
-        }          /* on_statistic_updates */
+        }          /* on_statistics_updates */
     }
     handle_retune();
     recon_redraw();
@@ -1278,6 +1282,8 @@ void ReconView::start_repeat() {
     // Prepare to send a file.
     recon_tx = true;
 
+    repeat_cur_rep++;
+
     if (record_view != nullptr) {
         record_view->stop();
         remove_child(record_view.get());
@@ -1285,11 +1291,9 @@ void ReconView::start_repeat() {
     }
 
     replay_thread.reset();
-    repeat_ready_signal = false;
 
     receiver_model.disable();
     transmitter_model.disable();
-
     baseband::shutdown();
 
     baseband::run_image(portapack::spi_flash::image_tag_replay);
@@ -1308,9 +1312,6 @@ void ReconView::start_repeat() {
         rawsize = capture_file.size();
     }
 
-    // checked: size was tested and reported OK
-    // repeat_file_error(rawfile, "Size: "+to_string_dec_int( rawsize ) );
-
     // Reset the transmit progress bar.
     uint8_t sample_size = std::filesystem::capture_file_sample_size(rawfile);
     progressbar.set_value(0);
@@ -1323,16 +1324,6 @@ void ReconView::start_repeat() {
         metadata = {freq, 500'000};
     }
 
-    // checked: metadata are correctly read from RECON_REPEAT.TXT
-    // repeat_file_error(rawfile, "freq:"+to_string_dec_int( metadata->center_frequency)+"\nsample_rate:"+to_string_dec_int(metadata->sample_rate) );
-
-    auto reader = std::make_unique<FileConvertReader>();
-    auto error = reader->open(rawfile);
-    if (error) {
-        repeat_file_error(rawfile, "Can't open file to send to thread");
-        return;
-    }
-
     // Update the sample rate in proc_replay baseband.
     baseband::set_sample_rate(metadata->sample_rate,
                               get_oversample_rate(metadata->sample_rate));
@@ -1341,7 +1332,16 @@ void ReconView::start_repeat() {
     transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
     transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
     transmitter_model.set_target_frequency(metadata->center_frequency);
+    transmitter_model.set_tx_gain(persistent_memory::recon_repeat_gain());
+    transmitter_model.set_rf_amp(persistent_memory::recon_repeat_amp());
     transmitter_model.enable();
+
+    auto reader = std::make_unique<FileConvertReader>();
+    auto error = reader->open(rawfile);
+    if (error) {
+        repeat_file_error(rawfile, "Can't open file to send to thread");
+        return;
+    }
 
     // Use the ReplayThread class to send the data.
     replay_thread = std::make_unique<ReplayThread>(
@@ -1353,26 +1353,25 @@ void ReconView::start_repeat() {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
+    repeat_ready_signal = true;
 }
 
 void ReconView::stop_repeat(const bool do_loop) {
-    progressbar.hidden(true);
+    repeat_ready_signal = false;
 
     if (is_repeat_active()) {
         replay_thread.reset();
         transmitter_model.disable();
     }
 
-    if (do_loop) {
-        if (repeat_cur_rep < persistent_memory::recon_repeat_nb()) {
-            start_repeat();
-            repeat_cur_rep++;
-        }
+    if (do_loop && repeat_cur_rep < persistent_memory::recon_repeat_nb()) {
+        start_repeat();
     } else {
         repeat_cur_rep = 0;
         recon_tx = false;
-
-        change_mode(current_entry().modulation);
+        reload_restart_recon();
+        progressbar.hidden(true);
+        set_dirty();  // fix progressbar no hiding
     }
 }
 
