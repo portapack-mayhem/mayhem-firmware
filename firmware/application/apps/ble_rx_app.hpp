@@ -215,6 +215,7 @@ class BLERxView : public View {
     uint8_t sort_index{0};
     std::string filter{};
     bool logging{false};
+    bool serial_logging{false};
 
     bool name_enable{true};
     app_settings::SettingsManager settings_{
@@ -225,6 +226,8 @@ class BLERxView : public View {
             {"sort_index"sv, &sort_index},
             {"filter"sv, &filter},
             {"log"sv, &logging},
+            // disabled to always start without USB serial activated until we can make it non blocking if not connected
+            // {"serial_log"sv, &serial_logging},
             {"name"sv, &name_enable},
         }};
 
@@ -319,6 +322,12 @@ class BLERxView : public View {
     Text text_found_count{
         {11 * 8, 3 * 16, 20 * 8, 16},
         "0/0"};
+
+    Checkbox check_serial_log{
+        {17 * 8, 3 * 16 - 2},
+        7,
+        "USB Log",
+        true};
 
     Console console{
         {0, 4 * 16, 240, 240}};
