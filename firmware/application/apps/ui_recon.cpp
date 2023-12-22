@@ -110,7 +110,7 @@ void ReconView::recon_stop_recording() {
             button_audio_app.set_text("AUDIO");
         button_audio_app.set_style(&Styles::white);
         record_view->stop();
-        button_config.set_style(&Styles::white);  // disable config while recording as it's causing an IO error pop up at exit
+        button_config.set_style(&Styles::white);
         is_recording = false;
         // repeater mode
         if (persistent_memory::recon_repeat_recorded()) {
@@ -322,6 +322,7 @@ ReconView::ReconView(NavigationView& nav)
                                                u"AUTO_AUDIO", u"AUDIO",
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
+    record_view->set_auto_trim(false);
     record_view->hidden(true);
     record_view->on_error = [&nav](std::string message) {
         nav.display_modal("Error", message);
@@ -1139,6 +1140,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
     }
+    record_view->set_auto_trim(false);
     add_child(record_view.get());
     record_view->hidden(true);
     record_view->on_error = [this](std::string message) {
@@ -1188,7 +1190,6 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
                 // record_view determines the correct oversampling to apply and returns the actual sample rate.
                 auto actual_sampling_rate = record_view->set_sampling_rate(sampling_rate);
-
                 // The radio needs to know the effective sampling rate.
                 receiver_model.set_sampling_rate(actual_sampling_rate);
                 receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(actual_sampling_rate));
@@ -1322,6 +1323,7 @@ void ReconView::start_repeat() {
     // If no metadata found, fallback to the TX frequency.
     if (!metadata) {
         metadata = {freq, 500'000};
+        repeat_file_error(rawmeta, "Can't open file to read meta, using default rx_freq,500'000");
     }
 
     // Update the sample rate in proc_replay baseband.
