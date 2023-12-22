@@ -284,11 +284,11 @@ struct data_t {
 
 struct backup_ram_t {
    private:
-    volatile uint32_t regfile[63];
+    volatile uint32_t regfile[PMEM_SIZE_WORDS - 1];
     volatile uint32_t check_value;
 
     static void copy(const backup_ram_t& src, backup_ram_t& dst) {
-        for (size_t i = 0; i < 63; i++) {
+        for (size_t i = 0; i < PMEM_SIZE_WORDS - 1; i++) {
             dst.regfile[i] = src.regfile[i];
         }
         dst.check_value = src.check_value;
@@ -297,7 +297,7 @@ struct backup_ram_t {
     static void copy_from_data_t(const data_t& src, backup_ram_t& dst) {
         const uint32_t* const src_words = (uint32_t*)&src;
         const size_t word_count = (sizeof(data_t) + 3) / 4;
-        for (size_t i = 0; i < 63; i++) {
+        for (size_t i = 0; i < PMEM_SIZE_WORDS - 1; i++) {
             if (i < word_count) {
                 dst.regfile[i] = src_words[i];
             } else {
@@ -308,7 +308,7 @@ struct backup_ram_t {
 
     uint32_t compute_check_value() {
         CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
-        for (size_t i = 0; i < 63; i++) {
+        for (size_t i = 0; i < PMEM_SIZE_WORDS - 1; i++) {
             const auto word = regfile[i];
             crc.process_byte((word >> 0) & 0xff);
             crc.process_byte((word >> 8) & 0xff);
