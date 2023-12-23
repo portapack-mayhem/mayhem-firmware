@@ -30,6 +30,7 @@
 #include "usb_serial_io.h"
 #include "ff.h"
 #include "chprintf.h"
+#include "chqueues.h"
 
 #include <string>
 #include <codecvt>
@@ -38,6 +39,45 @@
 
 #define SHELL_WA_SIZE THD_WA_SIZE(1024 * 3)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
+
+// queue handler from ch
+static msg_t qwait(GenericQueue* qp, systime_t time) {
+    if (TIME_IMMEDIATE == time)
+        return Q_TIMEOUT;
+    currp->p_u.wtobjp = qp;
+    queue_insert(currp, &qp->q_waiting);
+    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
+}
+
+// This function fills the output buffer, and sends all data in 1 packet
+static size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n) {
+    qnotify_t nfy = oqp->q_notify;
+    size_t w = 0;
+
+    chDbgCheck(n > 0, "chOQWriteTimeout");
+    chSysLock();
+    while (TRUE) {
+        while (chOQIsFullI(oqp)) {
+            if (qwait((GenericQueue*)oqp, TIME_INFINITE) != Q_OK) {
+                chSysUnlock();
+                return w;
+            }
+        }
+        while (!chOQIsFullI(oqp) && n > 0) {
+            oqp->q_counter--;
+            *oqp->q_wrptr++ = *bp++;
+            if (oqp->q_wrptr >= oqp->q_top)
+                oqp->q_wrptr = oqp->q_buffer;
+            w++;
+            --n;
+        }
+        if (nfy) nfy(oqp);
+
+        chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+        if (n == 0) return w;
+        chSysLock();
+    }
+}
 
 static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)chp;
@@ -152,6 +192,53 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "generated %s\r\n", path.string().c_str());
 }
 
+// gives full color.
+static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
+    for (int i = 0; i < ui::screen_height; i++) {
+        std::array<ui::ColorRGB888, ui::screen_width> row;
+        portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
+        for (int px = 0; px < ui::screen_width; px += 5) {
+            char buffer[5 * 3 * 2];
+            sprintf(buffer, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", row[px].r, row[px].g, row[px].b, row[px + 1].r, row[px + 1].g, row[px + 1].b, row[px + 2].r, row[px + 2].g, row[px + 2].b, row[px + 3].r, row[px + 3].g, row[px + 3].b, row[px + 4].r, row[px + 4].g, row[px + 4].b);
+            fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 5 * 3 * 2);
+        }
+        chprintf(chp, "\r\n");
+    }
+    chprintf(chp, "ok\r\n");
+}
+
+static char getChrFromRgb(uint8_t r, uint8_t g, uint8_t b) {
+    uint8_t chR = r >> 6;  // 3bit
+    uint8_t chG = g >> 6;  // 3bit
+    uint8_t chB = b >> 6;  // 3bit
+    uint8_t res = chR << 4 | chG << 2 | chB;
+    res += 32;
+    return res;
+}
+
+// sends only 1 byte (printable only) per pixel, so around 96 colors
+static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
+    for (int y = 0; y < ui::screen_height; y++) {
+        std::array<ui::ColorRGB888, ui::screen_width> row;
+        portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
+        for (int px = 0; px < ui::screen_width; px += 60) {
+            char buffer[60];
+            for (int i = 0; i < 60; ++i) {
+                buffer[i] = getChrFromRgb(row[px + i].r, row[px + i].g, row[px + i].b);
+            }
+            fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 60);
+        }
+        chprintf(chp, "\r\n");
+    }
+
+    chprintf(chp, "ok\r\n");
+}
 static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 2) {
         chprintf(chp, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
@@ -248,6 +335,22 @@ static void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
 
 File* shell_file = nullptr;
 
+static void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: filesize <path>\r\n");
+        return;
+    }
+    auto path = path_from_string8(argv[0]);
+    FILINFO res;
+    auto stat = f_stat(path.tchar(), &res);
+    if (stat == FR_OK) {
+        chprintf(chp, "%lu\r\n", res.fsize);
+        chprintf(chp, "ok\r\n");
+    } else {
+        chprintf(chp, "error\r\n");
+    }
+}
+
 static void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "usage: open <path>\r\n");
@@ -335,6 +438,7 @@ static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
         size -= bytes_to_read;
     } while (size > 0);
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -382,6 +486,8 @@ static const ShellCommand commands[] = {
     {"sd_over_usb", cmd_sd_over_usb},
     {"flash", cmd_flash},
     {"screenshot", cmd_screenshot},
+    {"screenframe", cmd_screenframe},
+    {"screenframeshort", cmd_screenframeshort},
     {"write_memory", cmd_write_memory},
     {"read_memory", cmd_read_memory},
     {"button", cmd_button},
@@ -392,6 +498,7 @@ static const ShellCommand commands[] = {
     {"close", cmd_sd_close},
     {"read", cmd_sd_read},
     {"write", cmd_sd_write},
+    {"filesize", cmd_sd_filesize},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

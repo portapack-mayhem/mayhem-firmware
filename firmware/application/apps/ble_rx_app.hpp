@@ -35,6 +35,7 @@
 #include "radio_state.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "usb_serial_thread.hpp"
 
 #include "recent_entries.hpp"
 
@@ -194,6 +195,7 @@ class BLERxView : public View {
     std::string build_line_str(BleRecentEntry entry);
     void on_save_file(const std::string value);
     bool saveFile(const std::filesystem::path& path);
+    std::unique_ptr<UsbSerialThread> usb_serial_thread{};
     void on_data(BlePacketData* packetData);
     void on_filter_change(std::string value);
     void on_file_changed(const std::filesystem::path& new_file_path);
@@ -213,6 +215,8 @@ class BLERxView : public View {
     uint8_t sort_index{0};
     std::string filter{};
     bool logging{false};
+    bool serial_logging{false};
+
     bool name_enable{true};
     app_settings::SettingsManager settings_{
         "rx_ble",
@@ -222,9 +226,12 @@ class BLERxView : public View {
             {"sort_index"sv, &sort_index},
             {"filter"sv, &filter},
             {"log"sv, &logging},
+            // disabled to always start without USB serial activated until we can make it non blocking if not connected
+            // {"serial_log"sv, &serial_logging},
             {"name"sv, &name_enable},
         }};
 
+    std::string str_console = "";
     uint8_t console_color{0};
     uint32_t prev_value{0};
     uint8_t channel_number = 37;
@@ -315,6 +322,12 @@ class BLERxView : public View {
     Text text_found_count{
         {11 * 8, 3 * 16, 20 * 8, 16},
         "0/0"};
+
+    Checkbox check_serial_log{
+        {17 * 8, 3 * 16 - 2},
+        7,
+        "USB Log",
+        true};
 
     Console console{
         {0, 4 * 16, 240, 240}};
