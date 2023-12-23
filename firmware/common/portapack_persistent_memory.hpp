@@ -245,6 +245,7 @@ bool recon_autostart_recon();
 bool recon_continuous();
 bool recon_clear_output();
 bool recon_load_freqs();
+bool recon_load_repeaters();
 bool recon_load_ranges();
 bool recon_update_ranges_when_recon();
 bool recon_auto_record_locked();
@@ -267,6 +268,7 @@ void set_recon_repeat_nb(const int8_t v);
 void set_recon_repeat_gain(const int8_t v);
 void set_recon_repeat_amp(const bool v);
 void set_recon_load_hamradios(const bool v);
+void set_recon_load_repeaters(const bool v);
 void set_recon_match_mode(const bool v);
 
 /* UI Config 2 */

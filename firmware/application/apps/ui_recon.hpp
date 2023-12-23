@@ -142,6 +142,7 @@ class ReconView : public View {
     bool load_freqs{true};
     bool load_ranges{true};
     bool load_hamradios{true};
+    bool load_repeaters{true};
     bool update_ranges{true};
     bool fwd{true};
     bool recon{true};

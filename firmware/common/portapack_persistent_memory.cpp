@@ -396,6 +396,7 @@ void defaults() {
     set_recon_continuous(true);
     set_recon_clear_output(false);
     set_recon_load_freqs(true);
+    set_recon_load_repeaters(true);
     set_recon_load_ranges(true);
     set_recon_update_ranges_when_recon(true);
     set_recon_load_hamradios(true);
@@ -764,6 +765,9 @@ int8_t recon_repeat_gain() {
 bool recon_repeat_amp() {
     return (data->recon_config & 0x00100000UL) ? true : false;
 }
+bool recon_load_repeaters() {
+    return (data->recon_config & 0x00080000UL) ? true : false;
+}
 
 void set_recon_autosave_freqs(const bool v) {
     data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
@@ -806,6 +810,9 @@ void set_recon_repeat_gain(const int8_t v) {
 }
 void set_recon_repeat_amp(const bool v) {
     data->recon_config = (data->recon_config & ~0x00100000UL) | (v << 20);
+}
+void set_recon_load_repeaters(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00080000UL) | (v << 19);
 }
 
 /* UI Config 2 */

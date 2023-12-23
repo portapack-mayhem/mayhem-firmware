@@ -564,6 +564,7 @@ void ScannerView::frequency_file_load(const fs::path& path) {
             def_step_index = entry.step;
 
         switch (entry.type) {
+            case freqman_type::Repeater:
             case freqman_type::Single:
                 entries.push_back({entry.frequency_a, entry.description});
                 break;

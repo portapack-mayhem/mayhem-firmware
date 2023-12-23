@@ -220,7 +220,8 @@ class FrequencyEditView : public View {
             {"Single", 0},
             {"Range", 1},
             {"HamRadio", 2},
-            {"Raw", 3},
+            {"Repeater", 3},
+            {"Raw", 4},
         }};
 
     FrequencyField field_freq_a{{13 * 8, 4 * 16}};

@@ -150,6 +150,9 @@ void ReconView::update_description() {
             case freqman_type::HamRadio:
                 description = "H: ";
                 break;
+            case freqman_type::Repeater:
+                description = "L: ";
+                break;
             default:
                 description = "S: ";
         }
@@ -221,6 +224,7 @@ void ReconView::load_persisted_settings() {
     load_freqs = persistent_memory::recon_load_freqs();
     load_ranges = persistent_memory::recon_load_ranges();
     load_hamradios = persistent_memory::recon_load_hamradios();
+    load_repeaters = persistent_memory::recon_load_repeaters();
     update_ranges = persistent_memory::recon_update_ranges_when_recon();
     auto_record_locked = persistent_memory::recon_auto_record_locked();
 }
@@ -770,7 +774,8 @@ void ReconView::frequency_file_load() {
     freqman_load_options options{
         .load_freqs = load_freqs,
         .load_ranges = load_ranges,
-        .load_hamradios = load_hamradios};
+        .load_hamradios = load_hamradios,
+        .load_repeaters = load_repeaters};
     if (!load_freqman_file(file_input, frequency_list, options) || frequency_list.empty()) {
         file_name.set_style(&Styles::red);
         desc_cycle.set("...empty file...");
@@ -991,6 +996,26 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                                     }
                                 }
                             }
+                        } else if (current_entry().type == freqman_type::Repeater) {
+                            // repeater is like single, we only listen on frequency_a and then jump to next entry
+                            if ((fwd && stepper == 0) || stepper > 0) {  // forward
+                                current_index++;
+                                entry_has_changed = true;
+                                // looping
+                                if ((uint32_t)current_index >= frequency_list.size()) {
+                                    has_looped = true;
+                                    current_index = 0;
+                                }
+                            } else if ((!fwd && stepper == 0) || stepper < 0) {
+                                // reverse
+                                current_index--;
+                                entry_has_changed = true;
+                                // if previous if under the list => go back from end
+                                if (current_index < 0) {
+                                    has_looped = true;
+                                    current_index = frequency_list.size() - 1;
+                                }
+                            }
                         }
                         // set index to boundary if !continuous
                         if (has_looped && !continuous) {
@@ -1019,6 +1044,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (entry_has_changed) {
                         timer = 0;
                         switch (current_entry().type) {
+                            case freqman_type::Repeater:
                             case freqman_type::Single:
                                 freq = current_entry().frequency_a;
                                 break;
@@ -1329,13 +1355,21 @@ void ReconView::start_repeat() {
 
         transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
         transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
-        transmitter_model.set_target_frequency(metadata->center_frequency);
+
+        // set TX to repeater TX freq if entry is Repeater, else use recorded one
+        if (current_entry().type == freqman_type::Repeater) {
+            transmitter_model.set_target_frequency(current_entry().frequency_b);
+        } else {
+            transmitter_model.set_target_frequency(metadata->center_frequency);
+        }
+
+        // set TX powers and enable transmitter
         transmitter_model.set_tx_gain(persistent_memory::recon_repeat_gain());
         transmitter_model.set_rf_amp(persistent_memory::recon_repeat_amp());
         transmitter_model.enable();
     }
 
-    // ReplayThread starts immediately on construction; must be set before creating.
+    // clear replay thread and set reader
     replay_thread.reset();
     auto reader = std::make_unique<FileConvertReader>();
     auto error = reader->open(rawfile);
@@ -1343,11 +1377,10 @@ void ReconView::start_repeat() {
         repeat_file_error(rawfile, "Can't open file to send to thread");
         return;
     }
-
-    // Use the ReplayThread class to send the data.
     repeat_ready_signal = true;
     repeat_cur_rep++;
 
+    // ReplayThread starts immediately on construction; must be set before creating.
     replay_thread = std::make_unique<ReplayThread>(
         std::move(reader),
         /* read_size */ repeat_read_size,

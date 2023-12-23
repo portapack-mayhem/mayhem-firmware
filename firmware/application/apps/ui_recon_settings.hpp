@@ -116,17 +116,26 @@ class ReconSetupViewMore : public View {
     Checkbox checkbox_load_freqs{
         {1 * 8, 12},
         3,
-        "input: load freqs"};
+        "load freq",
+        true};
+
+    Checkbox checkbox_load_repeaters{
+        {14 * 8, 12},
+        3,
+        "load repeater",
+        true};
 
     Checkbox checkbox_load_ranges{
         {1 * 8, 42},
         3,
-        "input: load ranges"};
+        "load range",
+        true};
 
     Checkbox checkbox_load_hamradios{
         {1 * 8, 72},
         3,
-        "input: load hamradios"};
+        "load hamradio",
+        true};
 
     Checkbox checkbox_update_ranges_when_recon{
         {1 * 8, 102},
