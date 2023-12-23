@@ -1281,63 +1281,62 @@ bool ReconView::is_repeat_active() const {
 
 void ReconView::start_repeat() {
     // Prepare to send a file.
-    recon_tx = true;
-
-    repeat_cur_rep++;
-
-    if (record_view != nullptr) {
-        record_view->stop();
-        remove_child(record_view.get());
-        record_view.reset();
-    }
-
-    replay_thread.reset();
-
-    receiver_model.disable();
-    transmitter_model.disable();
-    baseband::shutdown();
-
-    baseband::run_image(portapack::spi_flash::image_tag_replay);
-
     std::filesystem::path rawfile = u"/" + repeat_rec_path + u"/" + repeat_rec_file;
     std::filesystem::path rawmeta = u"/" + repeat_rec_path + u"/" + repeat_rec_meta;
 
-    size_t rawsize = 0;
-    {
-        File capture_file;
-        auto error = capture_file.open(rawfile);
-        if (error) {
-            repeat_file_error(rawfile, "Can't open file to send for size");
-            return;
+    if (recon_tx == false) {
+        recon_tx = true;
+
+        if (record_view != nullptr) {
+            record_view->stop();
+            remove_child(record_view.get());
+            record_view.reset();
         }
-        rawsize = capture_file.size();
+
+        receiver_model.disable();
+        transmitter_model.disable();
+        baseband::shutdown();
+
+        baseband::run_image(portapack::spi_flash::image_tag_replay);
+
+        size_t rawsize = 0;
+        {
+            File capture_file;
+            auto error = capture_file.open(rawfile);
+            if (error) {
+                repeat_file_error(rawfile, "Can't open file to send for size");
+                return;
+            }
+            rawsize = capture_file.size();
+        }
+
+        // Reset the transmit progress bar.
+        uint8_t sample_size = std::filesystem::capture_file_sample_size(rawfile);
+        progressbar.set_value(0);
+        progressbar.set_max(rawsize * sizeof(complex16_t) / sample_size);
+        progressbar.hidden(false);
+
+        auto metadata = read_metadata_file(rawmeta);
+        // If no metadata found, fallback to the TX frequency.
+        if (!metadata) {
+            metadata = {freq, 500'000};
+            repeat_file_error(rawmeta, "Can't open file to read meta, using default rx_freq,500'000");
+        }
+
+        // Update the sample rate in proc_replay baseband.
+        baseband::set_sample_rate(metadata->sample_rate,
+                                  get_oversample_rate(metadata->sample_rate));
+
+        transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
+        transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
+        transmitter_model.set_target_frequency(metadata->center_frequency);
+        transmitter_model.set_tx_gain(persistent_memory::recon_repeat_gain());
+        transmitter_model.set_rf_amp(persistent_memory::recon_repeat_amp());
+        transmitter_model.enable();
     }
-
-    // Reset the transmit progress bar.
-    uint8_t sample_size = std::filesystem::capture_file_sample_size(rawfile);
-    progressbar.set_value(0);
-    progressbar.set_max(rawsize * sizeof(complex16_t) / sample_size);
-    progressbar.hidden(false);
-
-    auto metadata = read_metadata_file(rawmeta);
-    // If no metadata found, fallback to the TX frequency.
-    if (!metadata) {
-        metadata = {freq, 500'000};
-        repeat_file_error(rawmeta, "Can't open file to read meta, using default rx_freq,500'000");
-    }
-
-    // Update the sample rate in proc_replay baseband.
-    baseband::set_sample_rate(metadata->sample_rate,
-                              get_oversample_rate(metadata->sample_rate));
 
     // ReplayThread starts immediately on construction; must be set before creating.
-    transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
-    transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
-    transmitter_model.set_target_frequency(metadata->center_frequency);
-    transmitter_model.set_tx_gain(persistent_memory::recon_repeat_gain());
-    transmitter_model.set_rf_amp(persistent_memory::recon_repeat_amp());
-    transmitter_model.enable();
-
+    replay_thread.reset();
     auto reader = std::make_unique<FileConvertReader>();
     auto error = reader->open(rawfile);
     if (error) {
@@ -1346,6 +1345,9 @@ void ReconView::start_repeat() {
     }
 
     // Use the ReplayThread class to send the data.
+    repeat_ready_signal = true;
+    repeat_cur_rep++;
+
     replay_thread = std::make_unique<ReplayThread>(
         std::move(reader),
         /* read_size */ repeat_read_size,
@@ -1355,7 +1357,6 @@ void ReconView::start_repeat() {
             ReplayThreadDoneMessage message{return_code};
             EventDispatcher::send_message(message);
         });
-    repeat_ready_signal = true;
 }
 
 void ReconView::stop_repeat(const bool do_loop) {
