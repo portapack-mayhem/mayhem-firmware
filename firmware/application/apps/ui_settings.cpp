@@ -184,6 +184,14 @@ SetRadioView::SetRadioView(
         send_system_refresh();
     };
 
+    // Disallow CLKOUT freq change on hackrf_r9 due to dependencies on GP_CLKIN (same Si5351A clock);
+    // see comments in ClockManager::enable_clock_output()
+    if (hackrf_r9) {
+        if (pmem::clkout_freq() != 10000)
+            pmem::set_clkout_freq(10000);
+        field_clkout_freq.set_focusable(false);
+    }
+
     field_clkout_freq.set_value(pmem::clkout_freq());
     field_clkout_freq.on_change = [this](SymField&) {
         if (field_clkout_freq.to_integer() < 10)
