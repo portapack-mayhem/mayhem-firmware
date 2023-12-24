@@ -561,26 +561,38 @@ void ClockManager::stop_audio_pll() {
 }
 
 void ClockManager::enable_clock_output(bool enable) {
-    if (enable) {
-        clock_generator.enable_output(clock_generator_output_og_clkout);
-        if (portapack::persistent_memory::clkout_freq() < 1000) {
-            clock_generator.set_ms_frequency(clock_generator_output_og_clkout, portapack::persistent_memory::clkout_freq() * 128000, si5351_vco_f, 7);
+    // NOTE: TEMPORARY CHECK FOR HACKRF_R9 BELOW TO PREVENT CLK2 FROM BEING DISABLED OF FREQ MODIFIED SINCE CLK2 ON R9 IS
+    // USED FOR BOTH CLKOUT AND FOR THE MCU_CLOCK (== GP_CLKIN) WHICH OTHER LP43XX CLOCKS CURRENTLY RELY ON.
+    // FUTURE: REMOVE OTHER LP43XX CLOCK DEPENDENCIES ON GP_CLKIN, THEN DELETE THE CHECK ON THE LINE BELOW.
+    if (!hackrf_r9) {
+        auto clkout_select = hackrf_r9 ? clock_generator_output_r9_clkout : clock_generator_output_og_clkout;
+
+        if (enable) {
+            clock_generator.enable_output(clkout_select);
+            if (portapack::persistent_memory::clkout_freq() < 1000) {
+                clock_generator.set_ms_frequency(clkout_select, portapack::persistent_memory::clkout_freq() * 128000, si5351_vco_f, 7);
+            } else {
+                clock_generator.set_ms_frequency(clkout_select, portapack::persistent_memory::clkout_freq() * 1000, si5351_vco_f, 0);
+            }
         } else {
-            clock_generator.set_ms_frequency(clock_generator_output_og_clkout, portapack::persistent_memory::clkout_freq() * 1000, si5351_vco_f, 0);
+            clock_generator.disable_output(clkout_select);
         }
-    } else {
-        clock_generator.disable_output(clock_generator_output_og_clkout);
+
+        auto si5351_clock_control_common = hackrf_r9
+                                            ? si5351a_clock_control_common
+                                            : si5351c_clock_control_common;
+        const auto ref_pll = hackrf_r9
+                                ? ClockControl::MultiSynthSource::PLLA
+                                : get_si5351c_reference_clock_generator_pll(reference.source);
+
+        if (enable)
+            clock_generator.set_clock_control(clkout_select, si5351_clock_control_common[clkout_select].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On));
+        else
+            clock_generator.set_clock_control(clkout_select, ClockControl::power_off());
     }
 
-    auto si5351_clock_control_common = hackrf_r9
-                                           ? si5351a_clock_control_common
-                                           : si5351c_clock_control_common;
-    const auto ref_pll = hackrf_r9
-                             ? ClockControl::MultiSynthSource::PLLA
-                             : get_si5351c_reference_clock_generator_pll(reference.source);
-
-    if (enable)
-        clock_generator.set_clock_control(clock_generator_output_og_clkout, si5351_clock_control_common[clock_generator_output_og_clkout].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On));
-    else
-        clock_generator.set_clock_control(clock_generator_output_og_clkout, ClockControl::power_off());
+    if (hackrf_r9) {
+        gpio_r9_clkout_en.output();
+        gpio_r9_clkout_en.write(enable);
+    }
 }
