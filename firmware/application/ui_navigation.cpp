@@ -173,6 +173,9 @@ SystemStatusView::SystemStatusView(
         pmem::load_persistent_settings_from_file();
     }
 
+    // configure CLKOUT per pmem setting
+    portapack::clock_manager.enable_clock_output(pmem::clkout_enabled());
+
     // force apply of selected sdcard speed override at UI startup
     pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io(), false);
 
