@@ -581,19 +581,12 @@ void ClockManager::enable_clock_output(bool enable) {
         } else {
             clock_generator.set_ms_frequency(clkout_select, portapack::persistent_memory::clkout_freq() * 1000, si5351_vco_f, 0);
         }
+
+        auto si5351_clock_control_common = hackrf_r9 ? si5351a_clock_control_common : si5351c_clock_control_common;
+        const auto ref_pll = hackrf_r9 ? ClockControl::MultiSynthSource::PLLA : get_si5351c_reference_clock_generator_pll(reference.source);
+        clock_generator.set_clock_control(clkout_select, si5351_clock_control_common[clkout_select].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On));
     } else {
         clock_generator.disable_output(clkout_select);
-    }
-
-    auto si5351_clock_control_common = hackrf_r9
-                                        ? si5351a_clock_control_common
-                                        : si5351c_clock_control_common;
-    const auto ref_pll = hackrf_r9
-                            ? ClockControl::MultiSynthSource::PLLA
-                            : get_si5351c_reference_clock_generator_pll(reference.source);
-
-    if (enable)
-        clock_generator.set_clock_control(clkout_select, si5351_clock_control_common[clkout_select].ms_src(ref_pll).clk_pdn(ClockControl::ClockPowerDown::Power_On));
-    else
         clock_generator.set_clock_control(clkout_select, ClockControl::power_off());
+    }
 }
