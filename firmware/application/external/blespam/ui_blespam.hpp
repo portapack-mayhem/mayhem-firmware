@@ -27,7 +27,7 @@
 #ifndef __UI_BLESPAM_H__
 #define __UI_BLESPAM_H__
 
-// #define BLESPMUSECONSOLE 1
+#define BLESPMUSECONSOLE 1
 
 #include "ui.hpp"
 #include "ui_language.hpp"
@@ -163,6 +163,8 @@ class BLESpamView : public View {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.done);
         }};
+
+    uint8_t packet[80];
 
     // continuity
 

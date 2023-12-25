@@ -173,7 +173,6 @@ void BLESpamView::createSamsungPacket() {
     type = types[rand() % COUNT_OF(types)];
 
     uint8_t size = packet_SamsungSizes[type];
-    uint8_t* packet = (uint8_t*)malloc(size);
     uint8_t i = 0;
 
     switch (type) {
@@ -260,7 +259,6 @@ void BLESpamView::createSamsungPacket() {
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
     std::copy(res.begin(), res.end(), advertisementData);
-    free(packet);
 }
 
 void BLESpamView::createWindowsPacket() {
@@ -278,7 +276,6 @@ void BLESpamView::createWindowsPacket() {
     uint8_t name_len = strlen(name);
 
     uint8_t size = 7 + name_len;
-    uint8_t* packet = (uint8_t*)malloc(size);
     uint8_t i = 0;
 
     packet[i++] = size - 1;              // Size
@@ -294,7 +291,6 @@ void BLESpamView::createWindowsPacket() {
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
     std::copy(res.begin(), res.end(), advertisementData);
-    free(packet);
 }
 
 void BLESpamView::createIosPacket(bool crash = false) {
@@ -308,7 +304,6 @@ void BLESpamView::createIosPacket(bool crash = false) {
     if (crash) type = ContinuityTypeCustomCrash;
 
     uint8_t size = ios_packet_sizes[type];
-    uint8_t* packet = (uint8_t*)malloc(size);
     uint8_t i = 0;
 
     packet[i++] = size - 1;    // Size
@@ -484,13 +479,11 @@ void BLESpamView::createIosPacket(bool crash = false) {
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
     std::copy(res.begin(), res.end(), advertisementData);
-    free(packet);
 }
 
 void BLESpamView::createFastPairPacket() {
     uint32_t model = fastpairModels[rand() % fastpairModels_count].value;
     uint8_t size = 14;
-    uint8_t* packet = (uint8_t*)malloc(size);
     uint8_t i = 0;
 
     packet[i++] = 3;     // Size
@@ -514,7 +507,6 @@ void BLESpamView::createFastPairPacket() {
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
     std::copy(res.begin(), res.end(), advertisementData);
-    free(packet);
 }
 
 void BLESpamView::changePacket(bool forced = false) {
