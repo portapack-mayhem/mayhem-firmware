@@ -430,9 +430,6 @@ static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
         std::string res = to_string_hex_array(buffer, bytes_read.value());
         res += "\r\n";
         fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)res.c_str(), res.size());
-        // for (size_t i = 0; i < bytes_read.value(); i++)
-        //     chprintf(chp, "%02X", buffer[i]);
-
         if (bytes_to_read != bytes_read.value())
             return;
 
