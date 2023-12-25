@@ -418,20 +418,20 @@ static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     int size = (int)strtol(argv[0], NULL, 10);
 
-    uint8_t buffer[16];
+    uint8_t buffer[62];
 
     do {
-        File::Size bytes_to_read = size > 16 ? 16 : size;
+        File::Size bytes_to_read = size > 62 ? 62 : size;
         auto bytes_read = shell_file->read(buffer, bytes_to_read);
         if (bytes_read.is_error()) {
             chprintf(chp, "error %d\r\n", bytes_read.error());
             return;
         }
-
-        for (size_t i = 0; i < bytes_read.value(); i++)
-            chprintf(chp, "%02X", buffer[i]);
-
-        chprintf(chp, "\r\n");
+        std::string res = to_string_hex_array(buffer, bytes_read.value());
+        res += "\r\n";
+        fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)res.c_str(), res.size());
+        // for (size_t i = 0; i < bytes_read.value(); i++)
+        //     chprintf(chp, "%02X", buffer[i]);
 
         if (bytes_to_read != bytes_read.value())
             return;
