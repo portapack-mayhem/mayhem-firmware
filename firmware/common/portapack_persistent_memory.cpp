@@ -77,7 +77,7 @@ constexpr modem_repeat_range_t modem_repeat_range{1, 99};
 constexpr int32_t modem_repeat_reset_value{5};
 
 using clkout_freq_range_t = range_t<uint32_t>;
-constexpr clkout_freq_range_t clkout_freq_range{10, 60000};
+constexpr clkout_freq_range_t clkout_freq_range{4, 60000};  // Min. CLK out of Si5351A/B/C-B is 2.5khz , but in our application -intermediate freq 800Mhz-,Min working CLK=4khz. 
 constexpr uint16_t clkout_freq_reset_value{10000};
 
 enum data_structure_version_enum : uint32_t {
