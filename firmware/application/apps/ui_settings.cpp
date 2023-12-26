@@ -194,7 +194,7 @@ SetRadioView::SetRadioView(
 
     field_clkout_freq.set_value(pmem::clkout_freq());
     field_clkout_freq.on_change = [this](SymField&) {
-        if (field_clkout_freq.to_integer() < 4)     // Min. CLK out of Si5351A/B/C-B is 2.5khz , but in our application -intermediate freq 800Mhz-,Min working CLK=4khz.  
+        if (field_clkout_freq.to_integer() < 4)  // Min. CLK out of Si5351A/B/C-B is 2.5khz , but in our application -intermediate freq 800Mhz-,Min working CLK=4khz.
             field_clkout_freq.set_value(4);
         if (field_clkout_freq.to_integer() > 60000)
             field_clkout_freq.set_value(60000);
