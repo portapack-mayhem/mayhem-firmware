@@ -21,6 +21,7 @@
  */
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 #include "ui_styles.hpp"
 #include "ui_navigation.hpp"
@@ -56,8 +57,8 @@ class RangeView : public View {
     const Style& style_info = Styles::grey;
 
     Labels labels{
-        {{2 * 8, 8 * 8 + 4}, "Start", Color::light_grey()},
-        {{23 * 8, 8 * 8 + 4}, "Stop", Color::light_grey()},
+        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Color::light_grey()},
+        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Color::light_grey()},
         {{12 * 8, 5 * 8 - 4}, "Center", Color::light_grey()},
         {{12 * 8 + 4, 13 * 8}, "Width", Color::light_grey()}};
 
@@ -226,7 +227,7 @@ class JammerView : public View {
 
     Button button_transmit{
         {148, 216, 80, 80},
-        "START"};
+        LanguageHelper::currentMessages[LANG_START]};
 
     MessageHandlerRegistration message_handler_retune{
         Message::ID::Retune,
