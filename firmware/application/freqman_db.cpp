@@ -382,19 +382,18 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
             parse_int(value, entry.frequency_a);
         } else if (key == "m") {
             entry.modulation = find_by_name(freqman_modulations, value);
-        } else if (key == "r") {
+        } else if (key == "r") {  // HamRadio relay receive freq
             entry.type = freqman_type::HamRadio;
             parse_int(value, entry.frequency_a);
-        } else if (key == "l") {
+        } else if (key == "l") {  // Portapack Repeater mode listen freq. Used as a single freq if Repeater mode isn't active
             entry.type = freqman_type::Repeater;
             parse_int(value, entry.frequency_a);
         } else if (key == "s") {
             entry.step = find_by_name(freqman_steps_short, value);
-        } else if (key == "t") {
+        } else if (key == "t") {  // Tx freq: scanned as a single freq in HamRadio mode, used as TX freq in Repeater mode and ignored by the scanner
             parse_int(value, entry.frequency_b);
         }
     }
-
     return is_valid(entry);
 }
 
@@ -447,7 +446,7 @@ bool is_valid(const freqman_entry& entry) {
     if (entry.frequency_a == 0)
         return false;
 
-    // Frequency B must be set for type Range or Ham Radio or Repeater
+    // Frequency B must be set for type Range or HamRadio or Repeater
     if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio || entry.type == freqman_type::Repeater) {
         if (entry.frequency_b == 0)
             return false;
@@ -460,7 +459,6 @@ bool is_valid(const freqman_entry& entry) {
     }
 
     // TODO: Consider additional validation:
-    // - Only frequencies on Repeater
     // - Tone only on HamRadio.
     // - Step only on Range
     // - Fail on failed parse_int.

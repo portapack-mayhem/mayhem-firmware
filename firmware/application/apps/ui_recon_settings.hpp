@@ -30,6 +30,7 @@
 #include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include "ui_styles.hpp"
 
 // 1Mhz helper
 #ifdef OneMHz

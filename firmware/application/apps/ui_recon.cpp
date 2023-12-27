@@ -1400,6 +1400,7 @@ void ReconView::stop_repeat(const bool do_loop) {
         transmitter_model.disable();
     }
 
+    // repeat transmit if current number of repetitions (repeat_cur_rep) is < recon configured number of repetitions (recon_repeat_nb)
     if (do_loop && repeat_cur_rep < persistent_memory::recon_repeat_nb()) {
         start_repeat();
     } else {
