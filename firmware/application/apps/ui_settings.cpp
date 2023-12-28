@@ -133,7 +133,6 @@ SetRadioView::SetRadioView(
         &check_clkout,
         &field_clkout_freq,
         &labels_clkout_khz,
-        &value_freq_step,
         &labels_bias,
         &check_bias,
         &disable_external_tcxo,  // TODO: always show?
@@ -185,29 +184,20 @@ SetRadioView::SetRadioView(
         send_system_refresh();
     };
 
-    field_clkout_freq.set_value(pmem::clkout_freq());
-    value_freq_step.set_style(&Styles::light_grey);
+    // Disallow CLKOUT freq change on hackrf_r9 due to dependencies on GP_CLKIN (same Si5351A clock);
+    // see comments in ClockManager::enable_clock_output()
+    if (hackrf_r9) {
+        if (pmem::clkout_freq() != 10000)
+            pmem::set_clkout_freq(10000);
+        field_clkout_freq.set_focusable(false);
+    }
 
-    field_clkout_freq.on_select = [this](NumberField&) {
-        freq_step_khz++;
-        if (freq_step_khz > 3) {
-            freq_step_khz = 0;
-        }
-        switch (freq_step_khz) {
-            case 0:
-                value_freq_step.set("   |");
-                break;
-            case 1:
-                value_freq_step.set("  | ");
-                break;
-            case 2:
-                value_freq_step.set(" |  ");
-                break;
-            case 3:
-                value_freq_step.set("|   ");
-                break;
-        }
-        field_clkout_freq.set_step(pow(10, freq_step_khz));
+    field_clkout_freq.set_value(pmem::clkout_freq());
+    field_clkout_freq.on_change = [this](SymField&) {
+        if (field_clkout_freq.to_integer() < 4)  // Min. CLK out of Si5351A/B/C-B is 2.5khz , but in our application -intermediate freq 800Mhz-,Min working CLK=4khz.
+            field_clkout_freq.set_value(4);
+        if (field_clkout_freq.to_integer() > 60000)
+            field_clkout_freq.set_value(60000);
     };
 
     check_bias.set_value(get_antenna_bias());
@@ -248,7 +238,7 @@ void SetRadioView::form_init(const SetFrequencyCorrectionModel& model) {
 SetFrequencyCorrectionModel SetRadioView::form_collect() {
     return {
         .ppm = static_cast<int8_t>(field_ppm.value()),
-        .freq = static_cast<uint32_t>(field_clkout_freq.value()),
+        .freq = static_cast<uint32_t>(field_clkout_freq.to_integer()),
     };
 }
 

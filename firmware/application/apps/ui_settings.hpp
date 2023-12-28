@@ -163,19 +163,13 @@ class SetRadioView : public View {
         13,
         "Enable CLKOUT"};
 
-    NumberField field_clkout_freq{
+    SymField field_clkout_freq{
         {20 * 8, 6 * 16},
         5,
-        {10, 60000},
-        1000,
-        ' '};
+        SymField::Type::Dec};
 
     Labels labels_clkout_khz{
         {{26 * 8, 6 * 16}, "kHz", Color::light_grey()}};
-
-    Text value_freq_step{
-        {21 * 8, (7 * 16), 4 * 8, 16},
-        "|   "};
 
     Labels labels_bias{
         {{4 * 8 + 4, 8 * 16}, "CAUTION: Ensure that all", Color::red()},
