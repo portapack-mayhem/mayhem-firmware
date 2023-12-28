@@ -1356,8 +1356,8 @@ void ReconView::start_repeat() {
         transmitter_model.set_sampling_rate(get_actual_sample_rate(metadata->sample_rate));
         transmitter_model.set_baseband_bandwidth(metadata->sample_rate <= 500'000 ? 1'750'000 : 2'500'000);  // TX LPF min 1M75 for SR <=500K, and  2M5 (by experimental test) for SR >500K
 
-        // set TX to repeater TX freq if entry is Repeater, else use recorded one
-        if (current_entry().type == freqman_type::Repeater) {
+        // set TX to repeater TX freq if entry is Repeater and have a valid freq, else use recorded one
+        if (current_entry().type == freqman_type::Repeater && current_entry().frequency_b != 0) {
             transmitter_model.set_target_frequency(current_entry().frequency_b);
         } else {
             transmitter_model.set_target_frequency(metadata->center_frequency);
