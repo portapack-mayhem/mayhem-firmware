@@ -401,6 +401,10 @@ void defaults() {
     set_recon_update_ranges_when_recon(true);
     set_recon_load_hamradios(true);
     set_recon_match_mode(0);
+    set_recon_repeat_recorded(false);
+    set_recon_repeat_amp(false);
+    set_recon_repeat_gain(35);
+    set_recon_repeat_nb(3);
 
     set_config_sdcard_high_speed_io(false, true);
 }
