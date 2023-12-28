@@ -145,6 +145,15 @@ OversampleRate RecordView::get_oversample_rate(uint32_t sample_rate) {
 // Setter for datetime and frequency filename
 void RecordView::set_filename_date_frequency(bool set) {
     filename_date_frequency = set;
+    if (set)
+        filename_as_is = false;
+}
+
+// Setter for leaving the filename untouched
+void RecordView::set_filename_as_is(bool set) {
+    filename_as_is = set;
+    if (set)
+        filename_date_frequency = false;
 }
 
 bool RecordView::is_active() const {
@@ -186,9 +195,11 @@ void RecordView::start() {
         base_path = filename_stem_pattern.string() + "_" + date_time + "_" +
                     trim(to_string_freq(receiver_model.target_frequency())) + "Hz";
         base_path = folder / base_path;
-    } else {
+    } else if (filename_as_is) {
+        base_path = filename_stem_pattern.string();
+        base_path = folder / base_path;
+    } else
         base_path = next_filename_matching_pattern(folder / filename_stem_pattern);
-    }
 
     if (base_path.empty()) {
         return;

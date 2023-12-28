@@ -30,6 +30,7 @@
 #include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
+#include "ui_styles.hpp"
 
 // 1Mhz helper
 #ifdef OneMHz
@@ -116,26 +117,70 @@ class ReconSetupViewMore : public View {
     Checkbox checkbox_load_freqs{
         {1 * 8, 12},
         3,
-        "input: load freqs"};
+        "load freq",
+        true};
+
+    Checkbox checkbox_load_repeaters{
+        {14 * 8, 12},
+        3,
+        "load repeater",
+        true};
 
     Checkbox checkbox_load_ranges{
         {1 * 8, 42},
         3,
-        "input: load ranges"};
+        "load range",
+        true};
 
     Checkbox checkbox_load_hamradios{
         {1 * 8, 72},
         3,
-        "input: load hamradios"};
+        "load hamradio",
+        true};
 
     Checkbox checkbox_update_ranges_when_recon{
         {1 * 8, 102},
         3,
         "auto update m-ranges"};
+
     Checkbox checkbox_auto_record_locked{
         {1 * 8, 132},
         3,
         "record locked periods"};
+
+    Checkbox checkbox_repeat_recorded{
+        {1 * 8, 162},
+        3,
+        "repeater,"};
+
+    Text text_repeat_nb{
+        {14 * 8, 165, 3 * 8, 22},
+        "nb:"};
+
+    NumberField field_repeat_nb{
+        {18 * 8, 165},
+        2,
+        {1, 99},
+        1,
+        ' ',
+    };
+
+    Checkbox checkbox_repeat_amp{
+        {1 * 8, 192},
+        3,
+        "AMP,"};
+
+    Text text_repeat_gain{
+        {10 * 8, 196, 5 * 8, 22},
+        "GAIN:"};
+
+    NumberField field_repeat_gain{
+        {16 * 8, 196},
+        2,
+        {0, 47},
+        1,
+        ' ',
+    };
 };
 
 class ReconSetupView : public View {
