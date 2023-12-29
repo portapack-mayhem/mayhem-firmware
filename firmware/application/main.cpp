@@ -111,6 +111,14 @@ Continuous (Fox-oring)
 // TODO: Two players tic-tac-toe
 // TODO: Analog TV pong game
 
+// Expected GCC version used on build system
+#define EXPECTED_GNUC 9
+#define EXPECTED_GNUC_MINOR 2
+#define EXPECTED_GNUC_PATCHLEVEL 1
+#if (__GNUC__ != EXPECTED_GNUC) || (__GNUC_MINOR__ != EXPECTED_GNUC_MINOR) || (__GNUC_PATCHLEVEL__ != EXPECTED_GNUC_PATCHLEVEL)
+    #warning Your GCC version does not match Mayhem build system
+#endif
+
 #include "ch.h"
 
 #include "portapack.hpp"
