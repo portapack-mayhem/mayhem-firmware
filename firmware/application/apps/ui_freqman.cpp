@@ -412,7 +412,8 @@ void FrequencyEditView::refresh_ui() {
 
     auto is_range = entry_.type == freqman_type::Range;
     auto is_ham = entry_.type == freqman_type::HamRadio;
-    auto has_freq_b = is_range || is_ham;
+    auto is_repeater = entry_.type == freqman_type::Repeater;
+    auto has_freq_b = is_range || is_ham || is_repeater;
 
     field_freq_b.set_style(has_freq_b ? &Styles::white : &Styles::grey);
     field_step.set_style(is_range ? &Styles::white : &Styles::grey);

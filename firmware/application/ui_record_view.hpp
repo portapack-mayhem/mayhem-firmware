@@ -73,6 +73,7 @@ class RecordView : public View {
     bool is_active() const;
 
     void set_filename_date_frequency(bool set);
+    void set_filename_as_is(bool set);
 
    private:
     void toggle();
@@ -91,6 +92,7 @@ class RecordView : public View {
 
     // Time Stamp
     bool filename_date_frequency = false;
+    bool filename_as_is = false;
     rtc::RTC datetime{};
 
     const std::filesystem::path filename_stem_pattern;

@@ -56,6 +56,7 @@ enum class freqman_type : uint8_t {
     Single,    // f=
     Range,     // a=,b=
     HamRadio,  // r=,t=
+    Repeater,  // l=,t=
     Raw,       // line content in description
     Unknown,
 };
@@ -167,6 +168,7 @@ struct freqman_load_options {
     bool load_freqs{true};
     bool load_ranges{true};
     bool load_hamradios{true};
+    bool load_repeaters{true};
 };
 
 using freqman_entry_ptr = std::unique_ptr<freqman_entry>;

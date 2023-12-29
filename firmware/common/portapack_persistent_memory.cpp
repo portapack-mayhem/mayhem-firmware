@@ -77,7 +77,7 @@ constexpr modem_repeat_range_t modem_repeat_range{1, 99};
 constexpr int32_t modem_repeat_reset_value{5};
 
 using clkout_freq_range_t = range_t<uint32_t>;
-constexpr clkout_freq_range_t clkout_freq_range{10, 60000};
+constexpr clkout_freq_range_t clkout_freq_range{4, 60000};  // Min. CLK out of Si5351A/B/C-B is 2.5khz , but in our application -intermediate freq 800Mhz-,Min working CLK=4khz.
 constexpr uint16_t clkout_freq_reset_value{10000};
 
 enum data_structure_version_enum : uint32_t {
@@ -195,6 +195,8 @@ struct data_t {
 
     // Recon App
     uint64_t recon_config;
+    int8_t recon_repeat_nb;
+    int8_t recon_repeat_gain;
 
     // enable or disable converter
     bool converter;
@@ -257,7 +259,10 @@ struct data_t {
           tone_mix(tone_mix_reset_value),
 
           hardware_config(0),
+
           recon_config(0),
+          recon_repeat_nb(0),
+          recon_repeat_gain(0),
 
           converter(false),
           updown_converter(false),
@@ -284,11 +289,11 @@ struct data_t {
 
 struct backup_ram_t {
    private:
-    volatile uint32_t regfile[63];
+    volatile uint32_t regfile[PMEM_SIZE_WORDS - 1];
     volatile uint32_t check_value;
 
     static void copy(const backup_ram_t& src, backup_ram_t& dst) {
-        for (size_t i = 0; i < 63; i++) {
+        for (size_t i = 0; i < PMEM_SIZE_WORDS - 1; i++) {
             dst.regfile[i] = src.regfile[i];
         }
         dst.check_value = src.check_value;
@@ -297,7 +302,7 @@ struct backup_ram_t {
     static void copy_from_data_t(const data_t& src, backup_ram_t& dst) {
         const uint32_t* const src_words = (uint32_t*)&src;
         const size_t word_count = (sizeof(data_t) + 3) / 4;
-        for (size_t i = 0; i < 63; i++) {
+        for (size_t i = 0; i < PMEM_SIZE_WORDS - 1; i++) {
             if (i < word_count) {
                 dst.regfile[i] = src_words[i];
             } else {
@@ -308,7 +313,7 @@ struct backup_ram_t {
 
     uint32_t compute_check_value() {
         CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
-        for (size_t i = 0; i < 63; i++) {
+        for (size_t i = 0; i < PMEM_SIZE_WORDS - 1; i++) {
             const auto word = regfile[i];
             crc.process_byte((word >> 0) & 0xff);
             crc.process_byte((word >> 8) & 0xff);
@@ -391,10 +396,15 @@ void defaults() {
     set_recon_continuous(true);
     set_recon_clear_output(false);
     set_recon_load_freqs(true);
+    set_recon_load_repeaters(true);
     set_recon_load_ranges(true);
     set_recon_update_ranges_when_recon(true);
     set_recon_load_hamradios(true);
     set_recon_match_mode(0);
+    set_recon_repeat_recorded(false);
+    set_recon_repeat_amp(false);
+    set_recon_repeat_gain(35);
+    set_recon_repeat_nb(3);
 
     set_config_sdcard_high_speed_io(false, true);
 }
@@ -747,6 +757,21 @@ bool recon_match_mode() {
 bool recon_auto_record_locked() {
     return (data->recon_config & 0x00400000UL) ? true : false;
 }
+bool recon_repeat_recorded() {
+    return (data->recon_config & 0x00200000UL) ? true : false;
+}
+int8_t recon_repeat_nb() {
+    return data->recon_repeat_nb;
+}
+int8_t recon_repeat_gain() {
+    return data->recon_repeat_gain;
+}
+bool recon_repeat_amp() {
+    return (data->recon_config & 0x00100000UL) ? true : false;
+}
+bool recon_load_repeaters() {
+    return (data->recon_config & 0x00080000UL) ? true : false;
+}
 
 void set_recon_autosave_freqs(const bool v) {
     data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
@@ -777,6 +802,21 @@ void set_recon_match_mode(const bool v) {
 }
 void set_recon_auto_record_locked(const bool v) {
     data->recon_config = (data->recon_config & ~0x00400000UL) | (v << 22);
+}
+void set_recon_repeat_recorded(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00200000UL) | (v << 21);
+}
+void set_recon_repeat_nb(const int8_t v) {
+    data->recon_repeat_nb = v;
+}
+void set_recon_repeat_gain(const int8_t v) {
+    data->recon_repeat_gain = v;
+}
+void set_recon_repeat_amp(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00100000UL) | (v << 20);
+}
+void set_recon_load_repeaters(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00080000UL) | (v << 19);
 }
 
 /* UI Config 2 */

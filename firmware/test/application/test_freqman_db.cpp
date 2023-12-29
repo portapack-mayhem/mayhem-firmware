@@ -59,6 +59,17 @@ TEST_CASE("It can parse basic ham radio freq entry.") {
     CHECK_EQ(e.type, freqman_type::HamRadio);
 }
 
+TEST_CASE("It can parse repeater entry.") {
+    freqman_entry e;
+    REQUIRE(
+        parse_freqman_entry(
+            "l=123000000,t=123000500,d=This is the description.", e));
+    CHECK_EQ(e.frequency_a, 123'000'000);
+    CHECK_EQ(e.frequency_b, 123'000'500);
+    CHECK_EQ(e.description, "This is the description.");
+    CHECK_EQ(e.type, freqman_type::Repeater);
+}
+
 TEST_CASE("It can parse modulation") {
     freqman_entry e;
     REQUIRE(
@@ -193,6 +204,16 @@ TEST_CASE("It can serialize basic HamRadio entry") {
         .type = freqman_type::HamRadio,
     });
     CHECK(str == "r=123456000,t=423456000,d=Foobar");
+}
+
+TEST_CASE("It can serialize basic Repeater entry") {
+    auto str = to_freqman_string(freqman_entry{
+        .frequency_a = 123'456'000,
+        .frequency_b = 423'456'000,
+        .description = "Foobar",
+        .type = freqman_type::Repeater,
+    });
+    CHECK(str == "l=123456000,t=423456000,d=Foobar");
 }
 
 // New tables for a future PR.

@@ -68,6 +68,7 @@ constexpr size_t clock_generator_output_og_mcu_clkin = 7;
 
 constexpr size_t clock_generator_output_r9_if = 0;
 constexpr size_t clock_generator_output_r9_sgpio = 1;
+constexpr size_t clock_generator_output_r9_clkout = 2;
 constexpr size_t clock_generator_output_r9_mcu_clkin = 2;
 
 /* ADC0 */

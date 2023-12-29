@@ -176,12 +176,15 @@ void RegistersWidget::paint(Painter& painter) {
 
 void RegistersWidget::draw_legend(const Coord left, Painter& painter) {
     const auto pos = screen_pos();
+    const std::string spaces(config.legend_length(), ' ');
 
-    for (uint32_t i = 0; i < config.registers_count; i += config.registers_per_row()) {
+    for (uint32_t i = 0; i < config.registers_per_page; i += config.registers_per_row()) {
+        uint32_t r = page_number * config.registers_per_page + i;
+
         const Point offset{
             left, static_cast<int>((i / config.registers_per_row()) * row_height)};
 
-        const auto text = to_string_hex(i, config.legend_length());
+        const auto text = (r >= config.registers_count) ? spaces : to_string_hex(r, config.legend_length());
         painter.draw_string(
             pos + offset,
             style().invert(),
@@ -193,15 +196,16 @@ void RegistersWidget::draw_values(
     const Coord left,
     Painter& painter) {
     const auto pos = screen_pos();
+    const std::string spaces(config.value_length(), ' ');
 
-    for (uint32_t i = 0; i < config.registers_count; i++) {
+    for (uint32_t i = 0; i < config.registers_per_page; i++) {
+        uint32_t r = page_number * config.registers_per_page + i;
+
         const Point offset = {
             static_cast<int>(left + config.legend_width() + 8 + (i % config.registers_per_row()) * (config.value_width() + 8)),
             static_cast<int>((i / config.registers_per_row()) * row_height)};
 
-        const auto value = reg_read(i);
-
-        const auto text = to_string_hex(value, config.value_length());
+        const auto text = (r >= config.registers_count) ? spaces : to_string_hex(reg_read(r), config.value_length());
         painter.draw_string(
             pos + offset,
             style(),
@@ -213,7 +217,7 @@ uint32_t RegistersWidget::reg_read(const uint32_t register_number) {
     if (register_number < config.registers_count) {
         switch (config.chip_type) {
             case CT_PMEM:
-                return portapack::persistent_memory::pmem_data_word((page_number * config.registers_count + register_number) / 4) >> (register_number % 4 * 8);
+                return portapack::persistent_memory::pmem_data_word(register_number / 4) >> (register_number % 4 * 8);
             case CT_RFFC5072:
                 return radio::debug::first_if::register_read(register_number);
             case CT_MAX283X:
@@ -272,6 +276,7 @@ RegistersView::RegistersView(
     button_done.on_select = [&nav](Button&) { nav.pop(); };
 
     registers_widget.set_parent_rect({0, 48, 240, 192});
+    registers_widget.set_page(0);
 
     text_title.set_parent_rect({(240 - static_cast<int>(title.size()) * 8) / 2, 16,
                                 static_cast<int>(title.size()) * 8, 16});
@@ -294,6 +299,13 @@ RegistersView::RegistersView(
 
 void RegistersView::focus() {
     button_done.focus();
+}
+
+bool RegistersView::on_encoder(const EncoderEvent delta) {
+    registers_widget.set_page(std::max(0ul, std::min(registers_widget.page_count() - 1, registers_widget.page() + delta)));
+    registers_widget.update();
+
+    return true;
 }
 
 /* ControlsSwitchesWidget ************************************************/
@@ -429,10 +441,10 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
     const char* max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
     const char* si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
     add_items({
-        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 16}); }},
-        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 10}); }},
-        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 96, 8}); }},
-        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_bits()}); }},
+        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
+        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
+        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
+        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -504,8 +516,8 @@ void DebugMemoryDumpView::focus() {
 /* DebugPmemView *********************************************************/
 
 DebugPmemView::DebugPmemView(NavigationView& nav)
-    : registers_widget(RegistersWidgetConfig{CT_PMEM, page_size, 8}) {
-    add_children({&text_page, &registers_widget, &text_checksum, &text_checksum2, &button_ok});
+    : registers_widget(RegistersWidgetConfig{CT_PMEM, PMEM_SIZE_BYTES, page_size, 8}) {
+    add_children({&registers_widget, &text_checksum, &text_checksum2, &button_ok});
 
     registers_widget.set_parent_rect({0, 32, 240, 192});
 
@@ -532,7 +544,6 @@ void DebugPmemView::focus() {
 }
 
 void DebugPmemView::update() {
-    text_page.set(to_string_hex(registers_widget.page() * page_size, 2) + "+");
     registers_widget.update();
 }
 

@@ -185,6 +185,8 @@ bool operator==(const freqman_entry& lhs, const freqman_entry& rhs) {
     } else if (lhs.type == freqman_type::HamRadio) {
         equal = lhs.frequency_b == rhs.frequency_b &&
                 lhs.tone == rhs.tone;
+    } else if (lhs.type == freqman_type::Repeater) {
+        equal = lhs.frequency_b == rhs.frequency_b;
     }
 
     return equal;
@@ -248,6 +250,10 @@ std::string pretty_string(const freqman_entry& entry, size_t max_length) {
             str = "R:" + to_string_rounded_freq(entry.frequency_a, 1) + "M,T:" +
                   to_string_rounded_freq(entry.frequency_b, 1) + "M: " + entry.description;
             break;
+        case freqman_type::Repeater:
+            str = "L:" + to_string_rounded_freq(entry.frequency_a, 1) + "M,T:" +
+                  to_string_rounded_freq(entry.frequency_b, 1) + "M: " + entry.description;
+            break;
         case freqman_type::Raw:
             str = entry.description;
             break;
@@ -291,6 +297,10 @@ std::string to_freqman_string(const freqman_entry& entry) {
 
             if (is_valid(entry.tone))
                 append_field("c", tonekey::tone_key_value_string(entry.tone));
+            break;
+        case freqman_type::Repeater:
+            append_field("l", to_string_dec_uint(entry.frequency_a));
+            append_field("t", to_string_dec_uint(entry.frequency_b));
             break;
         case freqman_type::Raw:
             return entry.description;
@@ -372,16 +382,18 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
             parse_int(value, entry.frequency_a);
         } else if (key == "m") {
             entry.modulation = find_by_name(freqman_modulations, value);
-        } else if (key == "r") {
+        } else if (key == "r") {  // HamRadio relay receive freq
             entry.type = freqman_type::HamRadio;
+            parse_int(value, entry.frequency_a);
+        } else if (key == "l") {  // Portapack Repeater mode listen freq. Used as a single freq if Repeater mode isn't active
+            entry.type = freqman_type::Repeater;
             parse_int(value, entry.frequency_a);
         } else if (key == "s") {
             entry.step = find_by_name(freqman_steps_short, value);
-        } else if (key == "t") {
+        } else if (key == "t") {  // Tx freq: scanned as a single freq in HamRadio mode, used as TX freq in Repeater mode and ignored by the scanner
             parse_int(value, entry.frequency_b);
         }
     }
-
     return is_valid(entry);
 }
 
@@ -400,7 +412,8 @@ bool parse_freqman_file(const fs::path& path, freqman_db& db, freqman_load_optio
         if (entry.type == freqman_type::Unknown ||
             (entry.type == freqman_type::Single && !options.load_freqs) ||
             (entry.type == freqman_type::Range && !options.load_ranges) ||
-            (entry.type == freqman_type::HamRadio && !options.load_hamradios)) {
+            (entry.type == freqman_type::HamRadio && !options.load_hamradios) ||
+            (entry.type == freqman_type::Repeater && !options.load_repeaters)) {
             continue;
         }
 
@@ -433,8 +446,8 @@ bool is_valid(const freqman_entry& entry) {
     if (entry.frequency_a == 0)
         return false;
 
-    // Frequency B must be set for type Range or Ham Radio
-    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio) {
+    // Frequency B must be set for type Range or HamRadio or Repeater
+    if (entry.type == freqman_type::Range || entry.type == freqman_type::HamRadio || entry.type == freqman_type::Repeater) {
         if (entry.frequency_b == 0)
             return false;
     }

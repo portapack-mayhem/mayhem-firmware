@@ -142,6 +142,7 @@ typedef enum {
 struct RegistersWidgetConfig {
     chip_type_t chip_type;
     uint32_t registers_count;
+    uint32_t registers_per_page;
     uint32_t register_bits;
 
     constexpr size_t legend_length() const {
@@ -194,6 +195,7 @@ class RegistersWidget : public Widget {
 
     void set_page(int32_t value) { page_number = value; }
     uint32_t page(void) { return page_number; }
+    uint32_t page_count(void) { return (config.registers_count + config.registers_per_page - 1) / config.registers_per_page; }
 
    private:
     const RegistersWidgetConfig config;
@@ -208,8 +210,8 @@ class RegistersWidget : public Widget {
 class RegistersView : public View {
    public:
     RegistersView(NavigationView& nav, const std::string& title, RegistersWidgetConfig&& config);
-
-    void focus();
+    void focus() override;
+    bool on_encoder(const EncoderEvent delta) override;
 
    private:
     Text text_title{};
@@ -363,8 +365,6 @@ class DebugPmemView : public View {
    private:
     static constexpr uint8_t page_size{96};  // Must be multiply of 4 otherwise bit shifting for register view wont work properly
     static constexpr uint8_t page_count{(portapack::memory::map::backup_ram.size() + page_size - 1) / page_size};
-
-    Text text_page{{16, 16, 208, 16}};
 
     RegistersWidget registers_widget;
 
