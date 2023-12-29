@@ -74,11 +74,12 @@ jobs:
             **Full Changelog**: https://github.com/eried/portapack-mayhem/compare/${{ steps.past_version.outputs.past_version }}...${{ steps.version.outputs.version }}
 
             ## Installation
-            Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade. 
+            Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade.
+            __Warning:__ Since release 1.8.0, some applications has been moved to the SD card as we ran out of flash space.
 
             ### MicroSD card files
 
-            For certain functionality, like the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
+            For certain functionality, like external apps, the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
           draft: true
           prerelease: false
       - name: Upload Firmware Asset
