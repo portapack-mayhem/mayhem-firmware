@@ -29,37 +29,37 @@
  * @brief   Shell maximum input line length.
  */
 #if !defined(SHELL_MAX_LINE_LENGTH) || defined(__DOXYGEN__)
-#define SHELL_MAX_LINE_LENGTH       64
+#define SHELL_MAX_LINE_LENGTH 64
 #endif
 
 /**
  * @brief   Shell maximum arguments per command.
  */
 #if !defined(SHELL_MAX_ARGUMENTS) || defined(__DOXYGEN__)
-#define SHELL_MAX_ARGUMENTS         4
+#define SHELL_MAX_ARGUMENTS 4
 #endif
 
 /**
  * @brief   Command handler function type.
  */
-typedef void (*shellcmd_t)(BaseSequentialStream *chp, int argc, char *argv[]);
+typedef void (*shellcmd_t)(BaseSequentialStream* chp, int argc, char* argv[]);
 
 /**
  * @brief   Custom command entry type.
  */
 typedef struct {
-  const char            *sc_name;           /**< @brief Command name.       */
-  shellcmd_t            sc_function;        /**< @brief Command function.   */
+    const char* sc_name;    /**< @brief Command name.       */
+    shellcmd_t sc_function; /**< @brief Command function.   */
 } ShellCommand;
 
 /**
  * @brief   Shell descriptor type.
  */
 typedef struct {
-  BaseSequentialStream  *sc_channel;        /**< @brief I/O channel associated
-                                                 to the shell.              */
-  const ShellCommand    *sc_commands;       /**< @brief Shell extra commands
-                                                 table.                     */
+    BaseSequentialStream* sc_channel; /**< @brief I/O channel associated
+                                           to the shell.              */
+    const ShellCommand* sc_commands;  /**< @brief Shell extra commands
+                                           table.                     */
 } ShellConfig;
 
 #if !defined(__DOXYGEN__)
@@ -69,12 +69,11 @@ extern EventSource shell_terminated;
 #ifdef __cplusplus
 extern "C" {
 #endif
-  void shellInit(void);
-  void shellExit(msg_t msg);
-  Thread *shellCreate(const ShellConfig *scp, size_t size, tprio_t prio);
-  Thread *shellCreateStatic(const ShellConfig *scp, void *wsp,
-                            size_t size, tprio_t prio);
-  bool_t shellGetLine(BaseSequentialStream *chp, char *line, unsigned size);
+void shellInit(void);
+void shellExit(msg_t msg);
+Thread* shellCreate(const ShellConfig* scp, size_t size, tprio_t prio);
+Thread* shellCreateStatic(const ShellConfig* scp, void* wsp, size_t size, tprio_t prio);
+bool_t shellGetLine(BaseSequentialStream* chp, char* line, unsigned size);
 #ifdef __cplusplus
 }
 #endif
