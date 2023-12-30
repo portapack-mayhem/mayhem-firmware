@@ -53,7 +53,7 @@ add_custom_target(
 )
 
 if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
-	set(COMPILER_MISMATCH_MESSAGE "WARNING: Compiler version mismatch, please use the official compiler version $(GCC_VERSION) when sharing builds")
+	set(COMPILER_MISMATCH_MESSAGE "WARNING: Compiler version mismatch, please use the official compiler version ${EXPECTED_GCC_VERSION} when sharing builds! Current compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 	message(${COMPILER_MISMATCH_MESSAGE})
 	add_custom_command(
 		TARGET firmware POST_BUILD
