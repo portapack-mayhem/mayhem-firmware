@@ -118,6 +118,7 @@ SetDateTimeModel SetDateTimeView::form_collect() {
         .second = static_cast<uint8_t>(field_second.value())};
 }
 
+
 /* SetRadioView ******************************************/
 
 SetRadioView::SetRadioView(
@@ -149,18 +150,7 @@ SetRadioView::SetRadioView(
         });
     }
 
-    std::string source_name("---");
-    switch (reference.source) {
-        case ClockManager::ReferenceSource::Xtal:
-            source_name = "HackRF";
-            break;
-        case ClockManager::ReferenceSource::PortaPack:
-            source_name = "PortaPack";
-            break;
-        case ClockManager::ReferenceSource::External:
-            source_name = "External";
-            break;
-    }
+    std::string source_name = clock_manager.get_source();
 
     value_source.set(source_name);
     value_source_frequency.set(

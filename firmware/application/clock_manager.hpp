@@ -74,6 +74,7 @@ class ClockManager {
     uint32_t get_frequency_monitor_measurement_in_hertz();
 
     Reference get_reference() const;
+    std::string get_source();
 
     void enable_clock_output(bool enable);
 
