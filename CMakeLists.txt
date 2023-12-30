@@ -25,6 +25,8 @@ set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex
 
 project(portapack-h1)
 
+set(EXPECTED_GCC_VERSION "9.2.1")
+
 set(VERSION "$ENV{VERSION_STRING}")
 if ("$ENV{VERSION_STRING}" STREQUAL "")
 	execute_process(
