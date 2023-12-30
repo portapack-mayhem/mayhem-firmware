@@ -102,7 +102,7 @@ void ReconView::set_loop_config(bool v) {
     persistent_memory::set_recon_continuous(continuous);
 }
 
-void ReconView::recon_stop_recording() {
+void ReconView::recon_stop_recording(bool exiting) {
     if (is_recording) {
         if (field_mode.selected_index_value() == SPEC_MODULATION)
             button_audio_app.set_text("RAW");
@@ -113,14 +113,14 @@ void ReconView::recon_stop_recording() {
         button_config.set_style(&Styles::white);
         is_recording = false;
         // repeater mode
-        if (persistent_memory::recon_repeat_recorded()) {
+        if (!exiting && persistent_memory::recon_repeat_recorded()) {
             start_repeat();
         }
     }
 }
 
 void ReconView::clear_freqlist_for_ui_action() {
-    recon_stop_recording();
+    recon_stop_recording(false);
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
     // flag to detect and reload frequency_list
@@ -308,9 +308,16 @@ void ReconView::focus() {
 }
 
 ReconView::~ReconView() {
-    recon_stop_recording();
+    if (recon_tx) {
+        replay_thread.reset();
+    }
+
+    recon_stop_recording(true);
+
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
+
+    transmitter_model.disable();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -542,7 +549,7 @@ ReconView::ReconView(NavigationView& nav)
     };
 
     button_manual_recon.on_select = [this](Button&) {
-        button_remove.set_text("DELETE");
+        button_remove.set_text("<DELETE>");
         button_add.hidden(false);
         scanner_mode = false;
         manual_mode = true;
@@ -636,12 +643,12 @@ ReconView::ReconView(NavigationView& nav)
             scanner_mode = false;
             button_scanner_mode.set_style(&Styles::blue);
             button_scanner_mode.set_text("RECON");
-            button_remove.set_text("REMOVE");
+            button_remove.set_text("<REMOVE>");
         } else {
             scanner_mode = true;
             button_scanner_mode.set_style(&Styles::red);
             button_scanner_mode.set_text("SCAN");
-            button_remove.set_text("DELETE");
+            button_remove.set_text("<DELETE>");
         }
         frequency_file_load();
         if (autostart) {
@@ -844,7 +851,7 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
             if (status != 1) {
                 status = 1;
                 if (wait != 0) {
-                    recon_stop_recording();
+                    recon_stop_recording(false);
                     if (field_mode.selected_index_value() != SPEC_MODULATION)
                         audio::output::stop();
                 }
@@ -1145,7 +1152,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
         return 0;
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
-    recon_stop_recording();
+    recon_stop_recording(false);
     if (record_view != nullptr) {
         remove_child(record_view.get());
         record_view.reset();
@@ -1377,10 +1384,31 @@ void ReconView::start_repeat() {
         repeat_file_error(rawfile, "Can't open file to send to thread");
         return;
     }
-    repeat_ready_signal = true;
-    repeat_cur_rep++;
+    // wait for TX if needed (hackish, direct screen update since the UI will be blocked)
+    if (persistent_memory::recon_repeat_delay() > 0) {
+        uint8_t delay = persistent_memory::recon_repeat_delay();
+        Painter p;
+        while (delay > 0) {
+            std::string delay_message = "TX DELAY: " + to_string_dec_uint(delay) + "s";
+
+            // update display information
+            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Color::light_grey());
+            p.draw_string({(SCREEN_W / 2) - 7 * 8, SCREEN_H / 2}, Styles::red, delay_message);
+
+            // sleep 1 second
+            chThdSleepMilliseconds(1000);
+
+            // decre delay
+            if (delay > 0)
+                delay = delay - 1;
+            else
+                break;
+        }
+    }
 
     // ReplayThread starts immediately on construction; must be set before creating.
+    repeat_ready_signal = true;
+    repeat_cur_rep++;
     replay_thread = std::make_unique<ReplayThread>(
         std::move(reader),
         /* read_size */ repeat_read_size,

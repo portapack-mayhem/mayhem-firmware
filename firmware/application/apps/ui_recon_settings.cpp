@@ -106,6 +106,7 @@ void ReconSetupViewMore::save() {
     persistent_memory::set_recon_repeat_nb(field_repeat_nb.value());
     persistent_memory::set_recon_repeat_amp(checkbox_repeat_amp.value());
     persistent_memory::set_recon_repeat_gain(field_repeat_gain.value());
+    persistent_memory::set_recon_repeat_delay(field_repeat_delay.value());
 };
 
 void ReconSetupViewMain::focus() {
@@ -128,7 +129,9 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
                   &field_repeat_nb,
                   &checkbox_repeat_amp,
                   &text_repeat_gain,
-                  &field_repeat_gain});
+                  &field_repeat_gain,
+                  &text_repeat_delay,
+                  &field_repeat_delay});
 
     // tx options have to be in yellow to inform the users that activating them will make the device transmit
     checkbox_repeat_recorded.set_style(&Styles::yellow);
@@ -137,6 +140,8 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
     checkbox_repeat_amp.set_style(&Styles::yellow);
     text_repeat_gain.set_style(&Styles::yellow);
     field_repeat_gain.set_style(&Styles::yellow);
+    text_repeat_delay.set_style(&Styles::yellow);
+    field_repeat_delay.set_style(&Styles::yellow);
 
     checkbox_load_freqs.set_value(persistent_memory::recon_load_freqs());
     checkbox_load_repeaters.set_value(persistent_memory::recon_load_repeaters());
@@ -148,6 +153,7 @@ ReconSetupViewMore::ReconSetupViewMore(NavigationView& nav, Rect parent_rect)
     checkbox_repeat_amp.set_value(persistent_memory::recon_repeat_amp());
     field_repeat_nb.set_value(persistent_memory::recon_repeat_nb());
     field_repeat_gain.set_value(persistent_memory::recon_repeat_gain());
+    field_repeat_delay.set_value(persistent_memory::recon_repeat_delay());
 
     // tx warning modal
     checkbox_repeat_recorded.on_select = [this, &nav](Checkbox&, bool v) {

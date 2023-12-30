@@ -158,7 +158,7 @@ class ReconSetupViewMore : public View {
         "nb:"};
 
     NumberField field_repeat_nb{
-        {18 * 8, 165},
+        {17 * 8, 165},
         2,
         {1, 99},
         1,
@@ -171,13 +171,25 @@ class ReconSetupViewMore : public View {
         "AMP,"};
 
     Text text_repeat_gain{
-        {10 * 8, 196, 5 * 8, 22},
+        {9 * 8, 196, 5 * 8, 22},
         "GAIN:"};
 
     NumberField field_repeat_gain{
-        {16 * 8, 196},
+        {14 * 8, 196},
         2,
         {0, 47},
+        1,
+        ' ',
+    };
+
+    Text text_repeat_delay{
+        {16 * 8, 196, 8 * 8, 22},
+        ", delay:"};
+
+    NumberField field_repeat_delay{
+        {24 * 8, 196},
+        3,
+        {0, 254},
         1,
         ' ',
     };

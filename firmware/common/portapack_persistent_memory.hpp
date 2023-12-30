@@ -255,6 +255,7 @@ int8_t recon_repeat_gain();
 bool recon_repeat_amp();
 bool recon_load_hamradios();
 bool recon_match_mode();
+uint8_t recon_repeat_delay();
 void set_recon_autosave_freqs(const bool v);
 void set_recon_autostart_recon(const bool v);
 void set_recon_continuous(const bool v);
@@ -270,6 +271,7 @@ void set_recon_repeat_amp(const bool v);
 void set_recon_load_hamradios(const bool v);
 void set_recon_load_repeaters(const bool v);
 void set_recon_match_mode(const bool v);
+void set_recon_repeat_delay(const uint8_t v);
 
 /* UI Config 2 */
 bool ui_hide_speaker();

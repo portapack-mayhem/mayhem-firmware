@@ -197,6 +197,7 @@ struct data_t {
     uint64_t recon_config;
     int8_t recon_repeat_nb;
     int8_t recon_repeat_gain;
+    uint8_t recon_repeat_delay;
 
     // enable or disable converter
     bool converter;
@@ -263,6 +264,7 @@ struct data_t {
           recon_config(0),
           recon_repeat_nb(0),
           recon_repeat_gain(0),
+          recon_repeat_delay(0),
 
           converter(false),
           updown_converter(false),
@@ -405,6 +407,7 @@ void defaults() {
     set_recon_repeat_amp(false);
     set_recon_repeat_gain(35);
     set_recon_repeat_nb(3);
+    set_recon_repeat_delay(1);
 
     set_config_sdcard_high_speed_io(false, true);
 }
@@ -766,6 +769,9 @@ int8_t recon_repeat_nb() {
 int8_t recon_repeat_gain() {
     return data->recon_repeat_gain;
 }
+uint8_t recon_repeat_delay() {
+    return data->recon_repeat_delay;
+}
 bool recon_repeat_amp() {
     return (data->recon_config & 0x00100000UL) ? true : false;
 }
@@ -811,6 +817,9 @@ void set_recon_repeat_nb(const int8_t v) {
 }
 void set_recon_repeat_gain(const int8_t v) {
     data->recon_repeat_gain = v;
+}
+void set_recon_repeat_delay(const uint8_t v) {
+    data->recon_repeat_delay = v;
 }
 void set_recon_repeat_amp(const bool v) {
     data->recon_config = (data->recon_config & ~0x00100000UL) | (v << 20);
@@ -1028,6 +1037,9 @@ bool debug_dump() {
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
     pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config, 16));
+    pmem_dump_file.write_line("recon_repeat_nb: " + to_string_dec_int(data->recon_repeat_nb, 16));
+    pmem_dump_file.write_line("recon_repeat_gain:" + to_string_hex(data->recon_config, 16));
+    pmem_dump_file.write_line("recon_repeat_delay:" + to_string_hex(data->recon_config, 16));
     pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
