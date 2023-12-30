@@ -233,6 +233,10 @@ std::string ClockManager::get_source() {
     return source_name;
 }
 
+std::string ClockManager::get_freq() {
+    return to_string_dec_uint(reference.frequency / 1000000, 2) + "." +
+           to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz";
+}
 
 static void portapack_tcxo_enable() {
     portapack::io.reference_oscillator(true);

@@ -118,7 +118,6 @@ SetDateTimeModel SetDateTimeView::form_collect() {
         .second = static_cast<uint8_t>(field_second.value())};
 }
 
-
 /* SetRadioView ******************************************/
 
 SetRadioView::SetRadioView(
@@ -153,9 +152,7 @@ SetRadioView::SetRadioView(
     std::string source_name = clock_manager.get_source();
 
     value_source.set(source_name);
-    value_source_frequency.set(
-        to_string_dec_uint(reference.frequency / 1000000, 2) + "." +
-        to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+    value_source_frequency.set(clock_manager.get_freq());
 
     // Make these Text controls look like Labels.
     label_source.set_style(&Styles::light_grey);

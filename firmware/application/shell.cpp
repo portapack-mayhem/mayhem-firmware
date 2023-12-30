@@ -72,8 +72,6 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
 
-    portapack::clock_manager.get_source();
-
     chprintf(chp, "Kernel:           %s\r\n", CH_KERNEL_VERSION);
 #ifdef CH_COMPILER_NAME
     chprintf(chp, "Compiler:         %s\r\n", CH_COMPILER_NAME);
@@ -96,7 +94,7 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
 #endif
     chprintf(chp, "HackRF Board:     %s\r\n", hackrf_r9 ? "R9" : "R1-R8");
     chprintf(chp, "Reference Source: %s\r\n", portapack::clock_manager.get_source());
-    chprintf(chp, "Reference Freq:   %s\r\n", portapack::clock_manager.get_source());
+    chprintf(chp, "Reference Freq:   %s\r\n", portapack::clock_manager.get_freq());
 #ifdef __DATE__
 #ifdef __TIME__
     chprintf(chp, "Build time:       %s%s%s\r\n", __DATE__, " - ", __TIME__);
