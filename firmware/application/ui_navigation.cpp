@@ -441,7 +441,17 @@ InformationView::InformationView(
                   &version,
                   &ltime});
 
+#if GCC_VERSION_MISMATCH
+    static constexpr Style style_gcc_warning{
+        .font = font::fixed_8x16,
+        .background = {33, 33, 33},
+        .foreground = Color::yellow(),
+    };
+    version.set_style(&style_gcc_warning);
+#else
     version.set_style(&style_infobar);
+#endif
+
     ltime.set_style(&style_infobar);
     refresh();
     set_dirty();
