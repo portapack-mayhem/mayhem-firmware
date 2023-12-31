@@ -93,8 +93,8 @@ static void cmd_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "Mayhem Version:   %s\r\n", VERSION_STRING);
 #endif
     chprintf(chp, "HackRF Board Rev: %s\r\n", hackrf_r9 ? "R9" : "R1-R8");
-    chprintf(chp, "Reference Source: %s\r\n", portapack::clock_manager.get_source());  // Currently outputs as �z
-    chprintf(chp, "Reference Freq:   %s\r\n", portapack::clock_manager.get_freq());    // Currently outputs as �z
+    chprintf(chp, "Reference Source: %s\r\n", portapack::clock_manager.get_source().c_str());
+    chprintf(chp, "Reference Freq:   %s\r\n", portapack::clock_manager.get_freq().c_str());
 #ifdef __DATE__
 #ifdef __TIME__
     chprintf(chp, "Build time:       %s%s%s\r\n", __DATE__, " - ", __TIME__);
