@@ -52,6 +52,15 @@ add_custom_target(
 	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
 
+if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
+	set(COMPILER_MISMATCH_MESSAGE "WARNING: Compiler version mismatch, please use the official compiler version ${EXPECTED_GCC_VERSION} when sharing builds! Current compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+	message(${COMPILER_MISMATCH_MESSAGE})
+	add_custom_command(
+		TARGET firmware POST_BUILD
+		COMMAND echo ${COMPILER_MISMATCH_MESSAGE}
+		VERBATIM)
+endif()
+
 add_custom_target(
 	program
 	COMMAND ${PROJECT_SOURCE_DIR}/tools/enter_mode.sh hackrf
