@@ -34,6 +34,17 @@ set(LZ4 lz4)
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 
+# In our current build container cmake need a little help to get the version :)
+if(NOT DEFINED ${CMAKE_CXX_COMPILER_VERSION})
+	execute_process(COMMAND bash "-c" "arm-none-eabi-g++ -v 2>&1 | grep 'gcc version' | awk '{print $3}'" OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)
+	string(STRIP ${CMAKE_CXX_COMPILER_VERSION} CMAKE_CXX_COMPILER_VERSION)
+endif()
+
+set(GCC_VERSION_MISMATCH 0)
+if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
+	set(GCC_VERSION_MISMATCH 1)
+endif()
+
 add_subdirectory(application)
 add_subdirectory(baseband)
 add_subdirectory(test)
@@ -52,7 +63,7 @@ add_custom_target(
 	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
 
-if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
+if(${GCC_VERSION_MISMATCH})
 	set(COMPILER_MISMATCH_MESSAGE "WARNING: Compiler version mismatch, please use the official compiler version ${EXPECTED_GCC_VERSION} when sharing builds! Current compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
 	message(${COMPILER_MISMATCH_MESSAGE})
 	add_custom_command(
