@@ -27,6 +27,15 @@
 #include "png_writer.hpp"
 #include "irq_controls.hpp"
 
+#include "portapack.hpp"
+#include "portapack_hal.hpp"
+#include "hackrf_gpio.hpp"
+#include "jtag_target_gpio.hpp"
+#include "cpld_max5.hpp"
+#include "portapack_cpld_data.hpp"
+#include "crc.hpp"
+#include "hackrf_cpld_data.hpp"
+
 #include "usb_serial_io.h"
 #include "ff.h"
 #include "chprintf.h"
@@ -476,6 +485,304 @@ static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage =
+        "usage: cpld_info <device>\r\n"
+        "  supported modes:\r\n"
+        "    cpld_info hackrf\r\n"
+        "    cpld_info portapack\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    if (strncmp(argv[0], "hackrf", 5) == 0) {
+        jtag::GPIOTarget jtag_target_hackrf_cpld{
+            hackrf::one::gpio_cpld_tck,
+            hackrf::one::gpio_cpld_tms,
+            hackrf::one::gpio_cpld_tdi,
+            hackrf::one::gpio_cpld_tdo,
+        };
+
+        hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+        {
+            CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+
+            hackrf_cpld.prepare_read_eeprom();
+
+            for (const auto& block : hackrf::one::cpld::verify_blocks) {
+                auto from_device = hackrf_cpld.read_block_eeprom(block.id);
+
+                for (std::array<bool, 274UL>::reverse_iterator i = from_device.rbegin(); i != from_device.rend(); ++i) {
+                    auto bit = *i;
+                    crc.process_bit(bit);
+                }
+            }
+
+            hackrf_cpld.finalize_read_eeprom();
+            chprintf(chp, "CPLD eeprom firmware checksum: 0x%08X\r\n", crc.checksum());
+        }
+
+        {
+            CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+
+            hackrf_cpld.prepare_read_sram();
+
+            for (const auto& block : hackrf::one::cpld::verify_blocks) {
+                auto from_device = hackrf_cpld.read_block_sram(block);
+
+                for (std::array<bool, 274UL>::reverse_iterator i = from_device.rbegin(); i != from_device.rend(); ++i) {
+                    auto bit = *i;
+                    crc.process_bit(bit);
+                }
+            }
+
+            hackrf_cpld.finalize_read_sram(hackrf::one::cpld::verify_blocks[0].id);
+            chprintf(chp, "CPLD sram firmware checksum: 0x%08X\r\n", crc.checksum());
+        }
+
+    } else if (strncmp(argv[0], "portapack", 5) == 0) {
+        jtag::GPIOTarget target{
+            portapack::gpio_cpld_tck,
+            portapack::gpio_cpld_tms,
+            portapack::gpio_cpld_tdi,
+            portapack::gpio_cpld_tdo};
+        jtag::JTAG jtag{target};
+        portapack::cpld::CPLD cpld{jtag};
+
+        cpld.reset();
+        cpld.run_test_idle();
+        uint32_t idcode = cpld.get_idcode();
+
+        chprintf(chp, "CPLD IDCODE: 0x%08X\r\n", idcode);
+
+        if (idcode == 0x20A50DD) {
+            chprintf(chp, "CPLD Model: Altera MAX V 5M40Z\r\n");
+            cpld.reset();
+            cpld.run_test_idle();
+            cpld.sample();
+            cpld.bypass();
+            cpld.enable();
+
+            CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+            cpld.prepare_read(0x0000);
+
+            for (size_t i = 0; i < 3328; i++) {
+                uint16_t data = cpld.read();
+                crc.process_byte((data >> 0) & 0xff);
+                crc.process_byte((data >> 8) & 0xff);
+                crc.process_byte((data >> 16) & 0xff);
+                crc.process_byte((data >> 24) & 0xff);
+            }
+
+            cpld.prepare_read(0x0001);
+
+            for (size_t i = 0; i < 512; i++) {
+                uint16_t data = cpld.read();
+                crc.process_byte((data >> 0) & 0xff);
+                crc.process_byte((data >> 8) & 0xff);
+                crc.process_byte((data >> 16) & 0xff);
+                crc.process_byte((data >> 24) & 0xff);
+            }
+
+            chprintf(chp, "CPLD firmware checksum: 0x%08X\r\n", crc.checksum());
+
+            m4_request_shutdown();
+            chThdSleepMilliseconds(50);
+
+            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+
+        } else if (idcode == 0x00025610) {
+            chprintf(chp, "CPLD Model: AGM AG256SL100\r\n");
+
+            if (cpld.AGM_enter_maintenance_mode() == false) {
+                return;
+            }
+
+            cpld.AGM_enter_read_mode();
+
+            CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+            for (size_t i = 0; i < 2048; i++) {
+                uint32_t data = cpld.AGM_read(i);
+                crc.process_byte((data >> 0) & 0xff);
+                crc.process_byte((data >> 8) & 0xff);
+                crc.process_byte((data >> 16) & 0xff);
+                crc.process_byte((data >> 24) & 0xff);
+            }
+
+            cpld.AGM_exit_maintenance_mode();
+
+            chprintf(chp, "CPLD firmware checksum: 0x%08X\r\n", crc.checksum());
+
+            m4_request_shutdown();
+            chThdSleepMilliseconds(50);
+
+            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+        } else {
+            chprintf(chp, "CPLD Model: unknown\r\n");
+        }
+
+    } else {
+        chprintf(chp, usage);
+    }
+}
+
+static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage =
+        "usage: cpld_read <device> <target>\r\n"
+        "  device can be: hackrf, portapack\r\n"
+        "  target can be: sram (hackrf only), eeprom\r\n";
+
+    if (argc != 2) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    if (strncmp(argv[0], "hackrf", 5) == 0) {
+        if (strncmp(argv[1], "eeprom", 5) == 0) {
+            jtag::GPIOTarget jtag_target_hackrf_cpld{
+                hackrf::one::gpio_cpld_tck,
+                hackrf::one::gpio_cpld_tms,
+                hackrf::one::gpio_cpld_tdi,
+                hackrf::one::gpio_cpld_tdo,
+            };
+
+            hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+
+            hackrf_cpld.prepare_read_eeprom();
+
+            for (const auto& block : hackrf::one::cpld::verify_blocks) {
+                auto from_device = hackrf_cpld.read_block_eeprom(block.id);
+
+                chprintf(chp, "bank %04X: ", block.id);
+                uint32_t n = 6;
+                uint8_t byte = 0;
+                for (std::array<bool, 274UL>::reverse_iterator i = from_device.rbegin(); i != from_device.rend(); ++i) {
+                    auto bit = *i;
+                    byte |= bit << (7 - (n % 8));
+                    if (n % 8 == 7) {
+                        chprintf(chp, "%02X ", byte);
+                        byte = 0;
+                    }
+                    n++;
+                }
+                chprintf(chp, "\r\n");
+            }
+
+            hackrf_cpld.finalize_read_eeprom();
+        }
+
+        else if (strncmp(argv[1], "sram", 5) == 0) {
+            jtag::GPIOTarget jtag_target_hackrf_cpld{
+                hackrf::one::gpio_cpld_tck,
+                hackrf::one::gpio_cpld_tms,
+                hackrf::one::gpio_cpld_tdi,
+                hackrf::one::gpio_cpld_tdo,
+            };
+
+            hackrf::one::cpld::CPLD hackrf_cpld{jtag_target_hackrf_cpld};
+
+            hackrf_cpld.prepare_read_sram();
+
+            for (const auto& block : hackrf::one::cpld::verify_blocks) {
+                auto from_device = hackrf_cpld.read_block_sram(block);
+
+                chprintf(chp, "bank %04X: ", block.id);
+                uint32_t n = 6;
+                uint8_t byte = 0;
+                for (std::array<bool, 274UL>::reverse_iterator i = from_device.rbegin(); i != from_device.rend(); ++i) {
+                    auto bit = *i;
+                    byte |= bit << (7 - (n % 8));
+                    if (n % 8 == 7) {
+                        chprintf(chp, "%02X ", byte);
+                        byte = 0;
+                    }
+                    n++;
+                }
+                chprintf(chp, "\r\n");
+            }
+
+            hackrf_cpld.finalize_read_sram(hackrf::one::cpld::verify_blocks[0].id);
+        }
+    } else if (strncmp(argv[0], "portapack", 5) == 0) {
+        jtag::GPIOTarget target{
+            portapack::gpio_cpld_tck,
+            portapack::gpio_cpld_tms,
+            portapack::gpio_cpld_tdi,
+            portapack::gpio_cpld_tdo};
+        jtag::JTAG jtag{target};
+        portapack::cpld::CPLD cpld{jtag};
+
+        cpld.reset();
+        cpld.run_test_idle();
+        uint32_t idcode = cpld.get_idcode();
+
+        chprintf(chp, "CPLD IDCODE: 0x%08X\r\n", idcode);
+
+        if (idcode == 0x20A50DD) {
+            chprintf(chp, "CPLD Model: Altera MAX V 5M40Z\r\n");
+            cpld.reset();
+            cpld.run_test_idle();
+            cpld.sample();
+            cpld.bypass();
+            cpld.enable();
+
+            cpld.prepare_read(0x0000);
+
+            for (size_t i = 0; i < 3328; i++) {
+                uint16_t data = cpld.read();
+                chprintf(chp, "%d: 0x%04X\r\n", i, data);
+            }
+
+            cpld.prepare_read(0x0001);
+
+            for (size_t i = 0; i < 512; i++) {
+                uint16_t data = cpld.read();
+                chprintf(chp, "%d: 0x%04X\r\n", i, data);
+            }
+
+            m4_request_shutdown();
+            chThdSleepMilliseconds(50);
+
+            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+
+        } else if (idcode == 0x00025610) {
+            chprintf(chp, "CPLD Model: AGM AG256SL100\r\n");
+
+            if (cpld.AGM_enter_maintenance_mode() == false) {
+                return;
+            }
+
+            cpld.AGM_enter_read_mode();
+
+            for (size_t i = 0; i < 2048; i++) {
+                uint32_t data = cpld.AGM_read(i);
+                if (i % 4 == 0)
+                    chprintf(chp, "%5d: ", i * 4);
+
+                chprintf(chp, "0x%08X", data);
+
+                if (i % 4 == 3)
+                    chprintf(chp, "\r\n");
+                else
+                    chprintf(chp, " ");
+            }
+
+            cpld.AGM_exit_maintenance_mode();
+
+            m4_request_shutdown();
+            chThdSleepMilliseconds(50);
+
+            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+        } else {
+            chprintf(chp, "CPLD Model: unknown\r\n");
+        }
+
+    } else {
+        chprintf(chp, usage);
+    }
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -496,6 +803,8 @@ static const ShellCommand commands[] = {
     {"read", cmd_sd_read},
     {"write", cmd_sd_write},
     {"filesize", cmd_sd_filesize},
+    {"cpld_info", cpld_info},
+    {"cpld_read", cmd_cpld_read},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

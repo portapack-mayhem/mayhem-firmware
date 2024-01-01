@@ -19,6 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#include "ch.h"
 #include "cpld_xilinx.hpp"
 
 namespace cpld {
@@ -47,6 +48,25 @@ void XC2C64A::write_sram(const verify_blocks_t& blocks) {
 }
 
 bool XC2C64A::verify_sram(const verify_blocks_t& blocks) {
+    prepare_read_sram();
+
+    const jtag::tap::bits_t empty_row{block_length};
+
+    auto error = false;
+    for (const auto& block : blocks) {
+        tap.shift({&block.id, block_id_length}, true);
+        tap.state(state_t::run_test_idle);
+
+        tap.state(state_t::shift_dr);
+        error |= tap.shift(empty_row, {block.data.data(), block_length}, {block.mask.data(), block_length}, false, nullptr);
+    }
+
+    finalize_read_sram(blocks[0].id);
+
+    return !error;
+}
+
+void XC2C64A::prepare_read_sram() {
     tap.set_repeat(0);
     tap.set_end_ir(state_t::run_test_idle);
     tap.set_end_dr(state_t::run_test_idle);
@@ -61,17 +81,25 @@ bool XC2C64A::verify_sram(const verify_blocks_t& blocks) {
 
     tap.state(state_t::shift_dr);
     tap.shift(empty_row, false);
+}
 
-    auto error = false;
-    for (const auto& block : blocks) {
-        tap.shift({&block.id, block_id_length}, true);
-        tap.state(state_t::run_test_idle);
+std::array<bool, 274> XC2C64A::read_block_sram(verify_block_t block) {
+    tap.shift({&block.id, block_id_length}, true);
+    tap.state(state_t::run_test_idle);
 
-        tap.state(state_t::shift_dr);
-        error |= tap.shift(empty_row, {block.data.data(), block_length}, {block.mask.data(), block_length}, false);
-    }
-    // Redundant operation to finish the row.
-    tap.shift({&blocks[0].id, block_id_length}, true);
+    tap.state(state_t::shift_dr);
+    const jtag::tap::bits_t empty_row{block_length};
+    std::vector<bool> from_device;
+
+    tap.shift(empty_row, {block.data.data(), block_length}, {block.mask.data(), block_length}, false, &from_device);
+
+    std::array<bool, block_length> ret;
+    std::copy_n(std::make_move_iterator(from_device.begin()), block_length, ret.begin());
+    return ret;
+}
+
+void XC2C64A::finalize_read_sram(block_id_t id) {
+    tap.shift({&id, block_id_length}, true);
     tap.state(state_t::run_test_idle);
     tap.set_end_dr(state_t::run_test_idle);
 
@@ -79,8 +107,6 @@ bool XC2C64A::verify_sram(const verify_blocks_t& blocks) {
     bypass();
 
     tap.state(state_t::test_logic_reset);
-
-    return !error;
 }
 
 bool XC2C64A::verify_eeprom(const verify_blocks_t& blocks) {
@@ -127,6 +153,44 @@ void XC2C64A::init_from_eeprom() {
     discharge();
     init();
 
+    disable();
+    bypass();
+
+    tap.state(state_t::test_logic_reset);
+}
+
+void XC2C64A::prepare_read_eeprom() {
+    tap.set_repeat(0);
+    tap.set_end_ir(state_t::run_test_idle);
+    tap.set_end_dr(state_t::run_test_idle);
+
+    reset();
+    bypass();
+    enable();
+
+    shift_ir(instruction_t::ISC_READ);
+}
+
+std::array<bool, 274> XC2C64A::read_block_eeprom(block_id_t id) {
+    const jtag::tap::bits_t empty_row{block_length};
+
+    tap.set_end_dr(state_t::pause_dr);
+    tap.shift_dr({&id, block_id_length});
+    tap.set_end_ir(state_t::run_test_idle);
+    tap.wait(state_t::pause_dr, state_t::pause_dr, 20);
+    tap.set_end_ir(state_t::run_test_idle);
+    tap.wait(state_t::run_test_idle, state_t::run_test_idle, 100);
+
+    std::vector<bool> from_device = tap.shift_dr_read(empty_row);
+
+    tap.wait(state_t::run_test_idle, state_t::run_test_idle, 100);
+
+    std::array<bool, block_length> ret;
+    std::copy_n(std::make_move_iterator(from_device.begin()), block_length, ret.begin());
+    return ret;
+}
+
+void XC2C64A::finalize_read_eeprom() {
     disable();
     bypass();
 

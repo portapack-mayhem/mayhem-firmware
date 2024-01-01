@@ -147,9 +147,12 @@ void CPLD::sector_select(const uint16_t id) {
 }
 
 bool CPLD::idcode_ok() {
+    return (get_idcode() == idcode);
+}
+
+uint32_t CPLD::get_idcode() {
     shift_ir(instruction_t::IDCODE);
-    const auto idcode_read = jtag.shift_dr(idcode_length, 0);
-    return (idcode_read == idcode);
+    return jtag.shift_dr(idcode_length, 0);
 }
 
 std::array<uint16_t, 5> CPLD::read_silicon_id() {
@@ -208,6 +211,16 @@ void CPLD::program_block(
     }
 }
 
+void CPLD::prepare_read(uint16_t block) {
+    sector_select(block);
+    shift_ir(instruction_t::ISC_READ);
+    jtag.runtest_tck(93);  // 5us
+}
+
+uint32_t CPLD::read() {
+    return jtag.shift_dr(16, 0xffff) & 0xfbff;
+}
+
 bool CPLD::verify_block(
     const uint16_t id,
     const uint16_t* const data,
@@ -263,6 +276,60 @@ bool CPLD::is_blank() {
     const auto block_0_blank = is_blank_block(0x0000, 3328);
     const auto block_1_blank = is_blank_block(0x0001, 512);
     return block_0_blank && block_1_blank;
+}
+
+bool CPLD::AGM_enter_maintenance_mode() {
+    shift_ir(instruction_t::AGM_STAGE_1);
+    jtag.runtest_tck(100);
+    shift_ir(instruction_t::AGM_STAGE_2);
+    jtag.runtest_tck(100);
+    shift_ir(instruction_t::AGM_STAGE_1);
+    jtag.runtest_tck(100);
+
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0x0);
+    jtag.runtest_tck(100);
+
+    shift_ir(instruction_t::AGM_PROGRAM);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(32, 0x203f0044uL, 0x80000000);
+
+    shift_ir(instruction_t::IDCODE);
+    jtag.runtest_tck(100);
+    auto idcode = jtag.shift_dr(idcode_length, 0);
+
+    return idcode == 0x00025610;
+}
+
+void CPLD::AGM_exit_maintenance_mode() {
+    shift_ir(instruction_t::AGM_RESET);
+    jtag.runtest_tck(100);
+}
+
+void CPLD::AGM_enter_read_mode() {
+    shift_ir(instruction_t::AGM_SET_REGISTER);
+    jtag.runtest_tck(100);
+    jtag.shift_dr(8, 0xf0);
+    jtag.runtest_tck(100);
+
+    shift_ir(instruction_t::AGM_READ);
+    jtag.runtest_tck(100);
+}
+
+uint32_t CPLD::AGM_encode_address(uint32_t address, uint32_t trailer) {
+    uint32_t p = trailer;
+    for (size_t i = 0; i < 18; i++) {
+        auto address_bit = (address >> i) & 0x01;
+        p |= address_bit << (31 - i);
+    }
+
+    return p;
+}
+
+uint32_t CPLD::AGM_read(uint32_t address) {
+    auto encoded_address = AGM_encode_address(address * 4, 0xC0);
+    return jtag.shift_dr(32, encoded_address, 0x0);
 }
 
 } /* namespace max5 */

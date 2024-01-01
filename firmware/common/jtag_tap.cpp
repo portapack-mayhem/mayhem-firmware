@@ -191,6 +191,10 @@ bool TAPMachine::shift_dr(const bits_t& tdi_value, const bits_t& tdo_expected, c
     return shift_data(tdi_value, tdo_expected, tdo_mask, state_t::shift_dr, _end_dr, _run_test);
 }
 
+std::vector<bool> TAPMachine::shift_dr_read(const bits_t& tdi_value) {
+    return shift_data_read(tdi_value, state_t::shift_dr, _end_dr, _run_test);
+}
+
 void TAPMachine::state(const state_t state) {
     if (state == state_t::test_logic_reset) {
         for (int i = 0; i < 5; i++) {
@@ -227,7 +231,7 @@ void TAPMachine::shift_start(const state_t state) {
     advance_to_state(state);
 }
 
-bool TAPMachine::shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms) {
+bool TAPMachine::shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms, std::vector<bool>* from_device) {
     if (tdo_expected.length() != tdo_mask.length()) {
         return false;
     }
@@ -239,6 +243,10 @@ bool TAPMachine::shift(const bits_t& tdi, const bits_t& tdo_expected, const bits
     for (uint32_t i = 0; i < tdi.length(); i++) {
         const auto tms = end_tms & (i == (tdi.length() - 1));
         const auto tdo = clock(tms, tdi[i]);
+
+        if (from_device != nullptr)
+            from_device->push_back(tdo);
+
         if (tdo_expected && tdo_mask) {
             tdo_error |= (tdo & tdo_mask[i]) != (tdo_expected[i] & tdo_mask[i]);
         }
@@ -258,7 +266,15 @@ void TAPMachine::shift_end(const state_t end_state, const uint32_t end_delay) {
 
 bool TAPMachine::shift_data(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const state_t state, const state_t end_state, const uint32_t end_delay) {
     shift_start(state);
-    const auto result = shift(tdi, tdo_expected, tdo_mask, true);
+    const auto result = shift(tdi, tdo_expected, tdo_mask, true, nullptr);
+    shift_end(end_state, end_delay);
+    return result;
+}
+
+std::vector<bool> TAPMachine::shift_data_read(const bits_t& tdi, const state_t state, const state_t end_state, const uint32_t end_delay) {
+    shift_start(state);
+    std::vector<bool> result;
+    shift(tdi, {}, {}, true, &result);
     shift_end(end_state, end_delay);
     return result;
 }
