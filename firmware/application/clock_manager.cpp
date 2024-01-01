@@ -217,6 +217,27 @@ ClockManager::Reference ClockManager::get_reference() const {
     return reference;
 }
 
+std::string ClockManager::get_source() {
+    std::string source_name("---");
+    switch (reference.source) {
+        case ClockManager::ReferenceSource::Xtal:
+            source_name = "HackRF";
+            break;
+        case ClockManager::ReferenceSource::PortaPack:
+            source_name = "PortaPack";
+            break;
+        case ClockManager::ReferenceSource::External:
+            source_name = "External";
+            break;
+    }
+    return source_name;
+}
+
+std::string ClockManager::get_freq() {
+    return to_string_dec_uint(reference.frequency / 1000000, 2) + "." +
+           to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz";
+}
+
 static void portapack_tcxo_enable() {
     portapack::io.reference_oscillator(true);
 

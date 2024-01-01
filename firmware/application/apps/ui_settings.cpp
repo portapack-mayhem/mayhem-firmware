@@ -149,23 +149,10 @@ SetRadioView::SetRadioView(
         });
     }
 
-    std::string source_name("---");
-    switch (reference.source) {
-        case ClockManager::ReferenceSource::Xtal:
-            source_name = "HackRF";
-            break;
-        case ClockManager::ReferenceSource::PortaPack:
-            source_name = "PortaPack";
-            break;
-        case ClockManager::ReferenceSource::External:
-            source_name = "External";
-            break;
-    }
+    std::string source_name = clock_manager.get_source();
 
     value_source.set(source_name);
-    value_source_frequency.set(
-        to_string_dec_uint(reference.frequency / 1000000, 2) + "." +
-        to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+    value_source_frequency.set(clock_manager.get_freq());
 
     // Make these Text controls look like Labels.
     label_source.set_style(&Styles::light_grey);

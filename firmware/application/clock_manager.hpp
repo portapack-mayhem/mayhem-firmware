@@ -22,6 +22,7 @@
 #ifndef __CLOCK_MANAGER_H__
 #define __CLOCK_MANAGER_H__
 
+#include "string_format.hpp"
 #include "ch.h"
 #include "hal.h"
 
@@ -74,6 +75,8 @@ class ClockManager {
     uint32_t get_frequency_monitor_measurement_in_hertz();
 
     Reference get_reference() const;
+    std::string get_source();
+    std::string get_freq();
 
     void enable_clock_output(bool enable);
 
