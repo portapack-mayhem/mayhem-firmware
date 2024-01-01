@@ -45,6 +45,7 @@
 #include <codecvt>
 #include <cstring>
 #include <locale>
+#include <libopencm3/lpc43xx/wwdt.h>
 
 #define SHELL_WA_SIZE THD_WA_SIZE(1024 * 3)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
@@ -588,9 +589,11 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
             chprintf(chp, "CPLD firmware checksum: 0x%08X\r\n", crc.checksum());
 
             m4_request_shutdown();
-            chThdSleepMilliseconds(50);
+            chThdSleepMilliseconds(1000);
 
-            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+            WWDT_MOD = WWDT_MOD_WDEN | WWDT_MOD_WDRESET;
+            WWDT_TC = 100000 & 0xFFFFFF;
+            WWDT_FEED_SEQUENCE;
 
         } else if (idcode == 0x00025610) {
             chprintf(chp, "CPLD Model: AGM AG256SL100\r\n");
@@ -615,9 +618,12 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
             chprintf(chp, "CPLD firmware checksum: 0x%08X\r\n", crc.checksum());
 
             m4_request_shutdown();
-            chThdSleepMilliseconds(50);
+            chThdSleepMilliseconds(1000);
 
-            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+            WWDT_MOD = WWDT_MOD_WDEN | WWDT_MOD_WDRESET;
+            WWDT_TC = 100000 & 0xFFFFFF;
+            WWDT_FEED_SEQUENCE;
+
         } else {
             chprintf(chp, "CPLD Model: unknown\r\n");
         }
@@ -742,9 +748,11 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
             }
 
             m4_request_shutdown();
-            chThdSleepMilliseconds(50);
+            chThdSleepMilliseconds(1000);
 
-            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+            WWDT_MOD = WWDT_MOD_WDEN | WWDT_MOD_WDRESET;
+            WWDT_TC = 100000 & 0xFFFFFF;
+            WWDT_FEED_SEQUENCE;
 
         } else if (idcode == 0x00025610) {
             chprintf(chp, "CPLD Model: AGM AG256SL100\r\n");
@@ -771,9 +779,12 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
             cpld.AGM_exit_maintenance_mode();
 
             m4_request_shutdown();
-            chThdSleepMilliseconds(50);
+            chThdSleepMilliseconds(1000);
 
-            LPC_RGU->RESET_CTRL[0] = (1 << 0);
+            WWDT_MOD = WWDT_MOD_WDEN | WWDT_MOD_WDRESET;
+            WWDT_TC = 100000 & 0xFFFFFF;
+            WWDT_FEED_SEQUENCE;
+
         } else {
             chprintf(chp, "CPLD Model: unknown\r\n");
         }
