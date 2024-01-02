@@ -98,12 +98,11 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
         painter.draw_string({0, 60}, this->nav_.style(), fileName);
     });
-    if (res.empty()) {
-        nav_.push<ModalMessageView>(
-            "Warning!",
-            "Error in TAR file.",
-            INFO,
-            [this](bool choice) { (void)choice; });
+    if (res.string().empty()) {
+        ui::Painter painter;
+        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
+        painter.draw_string({0, 60}, this->nav_.style(), "BAD TAR FILE");
+        chThdSleepMilliseconds(5000);
     }
     return res;
 }
