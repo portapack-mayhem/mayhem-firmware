@@ -29,7 +29,7 @@
 #include "ff.h"
 #include "baseband_api.hpp"
 #include "core_control.hpp"
-
+#include "untar.hpp"
 #include <cstdint>
 
 namespace ui {
@@ -55,8 +55,10 @@ class FlashUtilityView : public View {
         {0, 2 * 8, 240, 26 * 8},
         true};
 
+    std::filesystem::path extract_tar(std::filesystem::path::string_type path);  // extracts the tar file, and returns the firmware.bin path from it. empty string if no fw
     void firmware_selected(std::filesystem::path::string_type path);
     void flash_firmware(std::filesystem::path::string_type path);
+    bool endsWith(const std::u16string& str, const std::u16string& suffix);
 };
 
 } /* namespace ui */
