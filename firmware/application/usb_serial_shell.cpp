@@ -173,7 +173,6 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     auto path = path_from_string8(argv[0]);
-    size_t filename_length = strlen(argv[0]);
 
     if (!std::filesystem::file_exists(path)) {
         chprintf(chp, "file not found.\r\n");
@@ -183,7 +182,12 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     // check file extensions
     if (strEndsWith(path.native(), u".ppfw.tar")) {
         // extract tar
-        auto res = UnTar::untar(path.native());
+        chprintf(chp, "Extracting TAR file.\r\n");
+        auto res = UnTar::untar(
+            path.native(), [chp](const std::string fileName) {
+                chprintf(chp, fileName.c_str());
+                chprintf(chp, "\r\n");
+            });
         if (res.empty()) {
             chprintf(chp, "error bad TAR file.\r\n");
             return;
@@ -195,9 +199,11 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, "error only .bin or .ppfw.tar files canbe flashed.\r\n");
         return;
     }
-
-    std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (filename_length + 1) * 2);
-
+    chprintf(chp, "Flashing: ");
+    chprintf(chp, path.string().c_str());
+    chprintf(chp, "\r\n");
+    chThdSleepMilliseconds(50);
+    std::memcpy(&shared_memory.bb_data.data[0], path.native().c_str(), (path.native().length() + 1) * 2);
     m4_request_shutdown();
     chThdSleepMilliseconds(50);
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);

@@ -9,11 +9,11 @@
 
 class UnTar {
    public:
-    static std::filesystem::path untar(std::u16string tar) {
+    static std::filesystem::path untar(std::u16string tar, std::function<void(const std::string)> cb = NULL) {
         File tf;
         auto result = tf.open(tar, true, false);
         if (!result.value().ok()) return "";
-        return untar_int(&tf);
+        return untar_int(&tf, cb);
     }
 
    private:
@@ -77,7 +77,7 @@ class UnTar {
         return (u == parseoct(p + 148, 8));
     }
 
-    static std::filesystem::path untar_int(File* a) {
+    static std::filesystem::path untar_int(File* a, std::function<void(const std::string)> cb = NULL) {
         char buff[512];
         UINT bytes_read;
         std::string binfile = "";
@@ -117,6 +117,7 @@ class UnTar {
                     if (fn.length() > 5 && fn.substr(fn.length() - 4) == ".bin") {
                         binfile = fn;
                     }
+                    if (cb != NULL) cb(fn);
                     break;
             }
             File f;
@@ -137,6 +138,7 @@ class UnTar {
                 auto fwres = f.write(buff, bytes_read);
                 if (!fwres.is_ok()) return "";
                 filesize -= bytes_read;
+                f.sync();
             }
         }
         return binfile;

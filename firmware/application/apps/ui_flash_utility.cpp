@@ -93,7 +93,11 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
         ui::Color::black());
     painter.draw_string({12, 24}, this->nav_.style(), "Unpacking TAR file...");
 
-    auto res = UnTar::untar(path);
+    auto res = UnTar::untar(path, [this](const std::string fileName) {
+        ui::Painter painter;
+        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
+        painter.draw_string({0, 60}, this->nav_.style(), fileName);
+    });
     if (res.empty()) {
         nav_.push<ModalMessageView>(
             "Warning!",
