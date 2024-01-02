@@ -9,7 +9,7 @@
 
 class UnTar {
    public:
-    static std::filesystem::path untar(std::u16string& tar) {
+    static std::filesystem::path untar(std::u16string tar) {
         File tf;
         auto result = tf.open(tar, true, false);
         if (!result.value().ok()) return "";

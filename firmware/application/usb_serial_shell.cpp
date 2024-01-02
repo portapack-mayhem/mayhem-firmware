@@ -40,6 +40,7 @@
 #include "ff.h"
 #include "chprintf.h"
 #include "chqueues.h"
+#include "untar.hpp"
 
 #include <string>
 #include <codecvt>
@@ -156,6 +157,15 @@ std::filesystem::path path_from_string8(char* path) {
     return conv.from_bytes(path);
 }
 
+bool strEndsWith(const std::u16string& str, const std::u16string& suffix) {
+    if (str.length() >= suffix.length()) {
+        std::u16string endOfString = str.substr(str.length() - suffix.length());
+        return endOfString == suffix;
+    } else {
+        return false;
+    }
+}
+
 static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "Usage: flash /FIRMWARE/portapack-h1_h2-mayhem.bin\r\n");
@@ -167,6 +177,22 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     if (!std::filesystem::file_exists(path)) {
         chprintf(chp, "file not found.\r\n");
+        return;
+    }
+
+    // check file extensions
+    if (strEndsWith(path.native(), u".ppfw.tar")) {
+        // extract tar
+        auto res = UnTar::untar(path.native());
+        if (res.empty()) {
+            chprintf(chp, "error bad TAR file.\r\n");
+            return;
+        }
+        path = res;  // it will contain the last bin file in tar
+    } else if (strEndsWith(path.native(), u".bin")) {
+        // nothing to do for this case yet.
+    } else {
+        chprintf(chp, "error only .bin or .ppfw.tar files canbe flashed.\r\n");
         return;
     }
 
