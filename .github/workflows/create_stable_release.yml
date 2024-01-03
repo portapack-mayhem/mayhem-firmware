@@ -42,7 +42,7 @@ jobs:
           unzip world_map.zip -d sdcard/ADSB
       - name: Create Firmware TAR
         run: |
-          mkdir -p firmware_tar/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin firmware_tar/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p firmware_tar/APPS && cp build/firmware/application/*.ppma firmware_tar/APPS && cd firmware_tar && tar -caf ../portapack-mayhem.ppfw.tar *
+          mkdir -p firmware_tar/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin firmware_tar/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p firmware_tar/APPS && cp build/firmware/application/*.ppma firmware_tar/APPS && cd firmware_tar && tar -cvaf ../portapack-mayhem.ppfw.tar *
       - name: Create Firmware ZIP
         run: |
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
