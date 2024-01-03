@@ -549,6 +549,7 @@ class ImageButton : public Image {
 
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 };
 
 /* A button that toggles between two images when set. */
@@ -626,6 +627,7 @@ class ImageOptionsField : public Widget {
     void on_focus() override;
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
    private:
     options_t options;
@@ -663,6 +665,7 @@ class OptionsField : public Widget {
     void on_focus() override;
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
    private:
     const size_t length_;
