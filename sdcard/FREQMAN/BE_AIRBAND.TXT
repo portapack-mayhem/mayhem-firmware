@@ -1,0 +1,28 @@
+f=132475000,m=AM,bw=DSB 6k,d=ATIS - Civil
+f=130550000,m=AM,bw=DSB 6k,d=AbelagUnicom - Civil
+f=118250000,m=AM,bw=DSB 6k,d=Approach- Civil
+f=120100000,m=AM,bw=DSB 6k,d=Approach - Civil
+f=122500000,m=AM,bw=DSB 6k,d=Approach Military Crossing
+f=121950000,m=AM,bw=DSB 6k,d=Clearance Delivery - Civil
+f=126625000,m=AM,bw=DSB 6k,d=Departure - Civil
+f=127575000,m=AM,bw=DSB 6k,d=Final 25L - Civil
+f=129725000,m=AM,bw=DSB 6k,d=Final 25R - Civil
+f=118050000,m=AM,bw=DSB 6k,d=Ground - Civik
+f=121700000,m=AM,bw=DSB 6k,d=Ground - Civil
+f=121875000,m=AM,bw=DSB 6k,d=Ground - Civil
+f=118600000,m=AM,bw=DSB 6k,d=Tower VHF - Civil
+f=120775000,m=AM,bw=DSB 6k,d=Tower - Civil
+f=127150000,m=AM,bw=DSB 6k,d=Tower Spare - Civil
+f=240400000,m=AM,bw=DSB 6k,d=Air to Air - Military
+f=241000000,m=AM,bw=DSB 6k,d=Air to Air - Military
+f=289400000,m=AM,bw=DSB 6k,d=Military Approach
+f=362300000,m=AM,bw=DSB 6k,d=Approach Military Crossing - Military
+f=389300000,m=AM,bw=DSB 6k,d=Approach Military Crossing - Military
+f=138250000,m=AM,bw=DSB 6k,d=Inflight Safety - Military
+f=140575000,m=AM,bw=DSB 6k,d=Melsbroek Ops - Military
+f=367950000,m=AM,bw=DSB 6k,d=Melsbroek Ops - Military
+f=257800000,m=AM,bw=DSB 6k,d=Tower - Military
+f=388500000,m=AM,bw=DSB 6k,d=Tower - Military
+f=388525000,m=AM,bw=DSB 6k,d=Tower - Military
+f=121725000,m=AM,bw=DSB 6k,d=Wing Ops - Military
+f=336500000,m=AM,bw=DSB 6k,d=Wing Ops UHF - Military
