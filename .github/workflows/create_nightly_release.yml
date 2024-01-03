@@ -56,6 +56,9 @@ jobs:
       - name: Unzip world map
         run: |
           unzip world_map.zip -d sdcard/ADSB
+      - name: Create wpgrade TAR
+        run: |
+          mkdir -p upgrade_tar/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin upgrade_tar/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p upgrade_tar/APPS && cp build/firmware/application/*.ppma upgrade_tar/APPS && zip -r portapack-h1_h2-mayhem.zip upgrade_tar
       - name: Create Firmware ZIP
         run: |
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
