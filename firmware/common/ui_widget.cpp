@@ -857,6 +857,11 @@ bool Checkbox::on_key(const KeyEvent key) {
     return false;
 }
 
+bool Checkbox::on_keyboard(const KeyboardEvent event) {
+    if (event == 10 || event == 32) return set_value(not value_);
+    return false;
+}
+
 bool Checkbox::on_touch(const TouchEvent event) {
     switch (event.type) {
         case TouchEvent::Type::Start:
@@ -945,6 +950,16 @@ bool Button::on_key(const KeyEvent key) {
         }
     }
 
+    return false;
+}
+
+bool Button::on_keyboard(const KeyboardEvent event) {
+    if (event == 10 || event == 32) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1082,6 +1097,16 @@ bool ButtonWithEncoder::on_key(const KeyEvent key) {
     }
 
     return false;
+}
+
+bool ButtonWithEncoder::on_keyboard(const KeyboardEvent key) {
+    if (key == 32 || key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+        return false;
+    }
 }
 
 bool ButtonWithEncoder::on_touch(const TouchEvent event) {
@@ -1276,6 +1301,16 @@ bool NewButton::on_key(const KeyEvent key) {
     }
 
     return false;
+}
+
+bool NewButton::on_keyboard(const KeyboardEvent key) {
+    if (key == 32 || key == 10) {
+        if (on_select) {
+            on_select();
+            return true;
+        }
+        return false;
+    }
 }
 
 bool NewButton::on_touch(const TouchEvent event) {

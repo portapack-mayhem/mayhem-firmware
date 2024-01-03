@@ -383,6 +383,7 @@ class Checkbox : public Widget {
     void paint(Painter& painter) override;
 
     bool on_key(const KeyEvent key) override;
+    bool on_keyboard(const KeyboardEvent key) override;
     bool on_touch(const TouchEvent event) override;
 
    private:
@@ -419,6 +420,7 @@ class Button : public Widget {
     void on_focus() override;
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
    private:
     std::string text_;
@@ -457,6 +459,7 @@ class ButtonWithEncoder : public Widget {
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
     bool on_encoder(const EncoderEvent delta) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
    private:
     std::string text_;
@@ -491,6 +494,7 @@ class NewButton : public Widget {
     void on_focus() override;
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
     void paint(Painter& painter) override;
 
