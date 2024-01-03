@@ -13,3 +13,16 @@ f=121875000,d=Ground - Civil
 f=118600000,d=Tower VHF - Civil
 f=120775000,d=Tower - Civil
 f=127150000,d=Tower Spare - Civil
+f=240400000,Air to Air - Military
+f=241000000,Air to Air - Military
+f=289400000,Military Approach
+f=362300000,Approach Military Crossing - Military
+f=389300000,Approach Military Crossing - Military
+f=138250000,Inflight Safety - Military
+f=140575000,Melsbroek Ops - Military
+f=367950000,Melsbroek Ops - Military
+f=257800000,Tower - Military
+f=388500000,Tower - Military
+f=388525000,Tower - Military
+f=121725000,Wing Ops - Military
+f=336500000,Wing Ops UHF - Military
