@@ -38,10 +38,25 @@ class UnTar {
         return true;
     }
 
+    static size_t strnlen(const char* s, size_t maxlen) {
+        for (size_t i = 0; i < maxlen; i++) {
+            if (s[i] == '\0')
+                return i;
+        }
+        return maxlen;
+    }
+
+    static bool isValidName(char* name) {
+        size_t pathStrLen = strnlen(name, 100);
+        if (pathStrLen == 0 || pathStrLen >= 100) return false;
+        return true;
+    }
+
     static bool create_dir(char* pathname) {
         char* p;
         std::filesystem::filesystem_error r;
 
+        if (!isValidName(pathname)) return false;
         /* Strip trailing '/' */
         if (pathname[strlen(pathname) - 1] == '/')
             pathname[strlen(pathname) - 1] = '\0';
@@ -113,11 +128,15 @@ class UnTar {
                 case '6':
                     break;
                 default:
-                    fn = buff;
-                    if (fn.length() > 5 && fn.substr(fn.length() - 4) == ".bin") {
-                        binfile = fn;
+                    if (isValidName(buff)) {
+                        fn = buff;
+                        if (fn.length() > 5 && fn.substr(fn.length() - 4) == ".bin") {
+                            binfile = fn;
+                        }
+                        if (cb != NULL) cb(fn);
+                    } else {
+                        return "";  // bad tar
                     }
-                    if (cb != NULL) cb(fn);
                     break;
             }
             File f;
