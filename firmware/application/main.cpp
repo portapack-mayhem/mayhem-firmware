@@ -157,7 +157,7 @@ static void event_loop() {
         [&event_dispatcher](const Message* const) {
             event_dispatcher.set_display_sleep(true);
         }};
-
+    portapack::setEventDispatcherToUSBSerial(&event_dispatcher);
     event_dispatcher.run();
 }
 

@@ -26,4 +26,6 @@
 
 #include "shell.h"
 
-void create_shell(void);
+class EventDispatcher;
+
+void create_shell(EventDispatcher* evtd);

@@ -32,7 +32,7 @@ void USBSerial::dispatch() {
 
     if (shell_created == false) {
         shell_created = true;
-        create_shell();
+        create_shell(_eventDispatcher);
     }
 
     bulk_out_receive();

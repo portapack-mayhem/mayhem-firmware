@@ -238,6 +238,10 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
     return nullptr;
 }
 
+void EventDispatcher::emulateTouch(ui::TouchEvent event) {
+    on_touch_event(event);
+}
+
 void EventDispatcher::on_touch_event(ui::TouchEvent event) {
     /* TODO: Capture widget receiving the Start event, send Move and
      * End events to the same widget.

@@ -86,6 +86,8 @@ class EventDispatcher {
         events_flag(EVT_MASK_LOCAL);
     }
 
+    void emulateTouch(ui::TouchEvent event);
+
    private:
     static Thread* thread_event_loop;
 

@@ -24,6 +24,8 @@
 #include "ch.h"
 #include "hal.h"
 
+class EventDispatcher;
+
 namespace portapack {
 
 class USBSerial {
@@ -32,6 +34,7 @@ class USBSerial {
     void dispatch();
     void on_channel_opened();
     void on_channel_closed();
+    void setEventDispatcher(EventDispatcher* ed) { _eventDispatcher = ed; }
 
    private:
     void enable_xtal();
@@ -43,6 +46,8 @@ class USBSerial {
 
     bool connected{false};
     bool shell_created{false};
+
+    EventDispatcher* _eventDispatcher = NULL;
 };
 
 }  // namespace portapack

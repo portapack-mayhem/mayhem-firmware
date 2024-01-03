@@ -50,6 +50,11 @@
 #define SHELL_WA_SIZE THD_WA_SIZE(1024 * 3)
 #define palOutputPad(port, pad) (LPC_GPIO->DIR[(port)] |= 1 << (pad))
 
+static EventDispatcher* _eventDispatcherInstance = NULL;
+static EventDispatcher* getEventDispatcherInstance() {
+    return _eventDispatcherInstance;
+}
+
 // queue handler from ch
 static msg_t qwait(GenericQueue* qp, systime_t time) {
     if (TIME_IMMEDIATE == time)
@@ -303,6 +308,28 @@ static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     control::debug::inject_switch(button);
 
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_touch(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 2) {
+        chprintf(chp, "usage: touch x y\r\n");
+        return;
+    }
+
+    int x = (int)strtol(argv[0], NULL, 10);
+    int y = (int)strtol(argv[1], NULL, 10);
+    if (x < 0 || x > ui::screen_width || y < 0 || y > ui::screen_height) {
+        chprintf(chp, "usage: touch x y\r\n");
+        return;
+    }
+
+    auto evtd = getEventDispatcherInstance();
+    if (evtd == NULL) {
+        chprintf(chp, "error\r\n");
+    }
+    evtd->emulateTouch({{x, y}, ui::TouchEvent::Type::Start});
+    evtd->emulateTouch({{x, y}, ui::TouchEvent::Type::End});
     chprintf(chp, "ok\r\n");
 }
 
@@ -806,6 +833,7 @@ static const ShellCommand commands[] = {
     {"write_memory", cmd_write_memory},
     {"read_memory", cmd_read_memory},
     {"button", cmd_button},
+    {"touch", cmd_touch},
     {"ls", cmd_sd_list_dir},
     {"rm", cmd_sd_delete},
     {"open", cmd_sd_open},
@@ -822,6 +850,7 @@ static const ShellConfig shell_cfg1 = {
     (BaseSequentialStream*)&SUSBD1,
     commands};
 
-void create_shell() {
+void create_shell(EventDispatcher* evtd) {
+    _eventDispatcherInstance = evtd;
     shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
 }
