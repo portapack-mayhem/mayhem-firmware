@@ -583,6 +583,39 @@ static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_rtcget(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)chp;
+    (void)argc;
+    (void)argv;
+
+    rtc::RTC datetime;
+    rtcGetTime(&RTCD1, &datetime);
+
+    chprintf(chp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\r\n",
+        datetime.year(), datetime.month(), datetime.day(),
+        datetime.hour(), datetime.minute(), datetime.second());
+}
+
+static void cmd_rtcset(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage =
+        "usage: rtcset [year] [month] [day] [hour] [minute] [second]\r\n"
+        "  all fields are required; milliseconds zero when set\r\n"
+        "  (fractional seconds are not supported)\r\n";
+
+    if (argc != 6) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    rtc::RTC new_datetime{
+        (uint16_t)strtol(argv[0], NULL, 10), (uint8_t)strtol(argv[1], NULL, 10),
+        (uint8_t)strtol(argv[2], NULL, 10), (uint32_t)strtol(argv[3], NULL, 10),
+        (uint32_t)strtol(argv[4], NULL, 10), (uint32_t)strtol(argv[5], NULL, 10)};
+    rtcSetTime(&RTCD1, &new_datetime);
+
+    chprintf(chp, "ok\r\n");
+}
+
 static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_info <device>\r\n"
@@ -913,6 +946,8 @@ static const ShellCommand commands[] = {
     {"read", cmd_sd_read},
     {"write", cmd_sd_write},
     {"filesize", cmd_sd_filesize},
+    {"rtcget", cmd_rtcget},
+    {"rtcset", cmd_rtcset},
     {"cpld_info", cpld_info},
     {"cpld_read", cmd_cpld_read},
     {NULL, NULL}};
