@@ -172,6 +172,10 @@ bool Widget::on_touch(const TouchEvent event) {
     (void)event;
     return false;
 }
+bool Widget::on_keyboard(const KeyboardEvent event) {
+    (void)event;
+    return false;
+}
 
 const std::vector<Widget*>& Widget::children() const {
     return no_children;

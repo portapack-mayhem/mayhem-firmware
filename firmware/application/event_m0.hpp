@@ -87,6 +87,7 @@ class EventDispatcher {
     }
 
     void emulateTouch(ui::TouchEvent event);
+    void emulateKeyboard(ui::KeyboardEvent event);
 
    private:
     static Thread* thread_event_loop;
@@ -113,6 +114,7 @@ class EventDispatcher {
     ui::Widget* captured_widget{nullptr};
 
     void on_touch_event(ui::TouchEvent event);
+    void on_keyboard_event(ui::KeyboardEvent event);
 
     // void blink_timer();
     void handle_lcd_frame_sync();

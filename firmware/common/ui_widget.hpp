@@ -101,6 +101,7 @@ class Widget {
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
     virtual bool on_touch(const TouchEvent event);
+    virtual bool on_keyboard(const KeyboardEvent event);
     virtual const std::vector<Widget*>& children() const;
 
     virtual Context& context() const;

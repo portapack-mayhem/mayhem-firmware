@@ -365,6 +365,26 @@ static void cmd_touch(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_keyboard(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: keyboard XX\r\n");
+        return;
+    }
+
+    if (strlen(argv[0]) != 2) {  // todo allow multiple
+        chprintf(chp, "usage: keyboard XX\r\n");
+        return;
+    }
+    uint8_t chr = (uint8_t)strtol(argv[0], NULL, 16);
+
+    auto evtd = getEventDispatcherInstance();
+    if (evtd == NULL) {
+        chprintf(chp, "error\r\n");
+    }
+    evtd->emulateKeyboard(chr);
+    chprintf(chp, "ok\r\n");
+}
+
 static void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "usage: ls /\r\n");
@@ -866,6 +886,7 @@ static const ShellCommand commands[] = {
     {"read_memory", cmd_read_memory},
     {"button", cmd_button},
     {"touch", cmd_touch},
+    {"keyboard", cmd_keyboard},
     {"ls", cmd_sd_list_dir},
     {"rm", cmd_sd_delete},
     {"open", cmd_sd_open},
