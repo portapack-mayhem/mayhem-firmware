@@ -54,11 +54,19 @@ std::string id(ID value) {
 }
 
 std::string consumption(Consumption value) {
-    return to_string_dec_uint(value, 10);
+    return to_string_dec_uint(value, 8);
 }
 
 std::string commodity_type(CommodityType value) {
     return to_string_dec_uint(value, 2);
+}
+
+std::string tamper_flags(TamperFlags value) {
+    return to_string_hex(value & 0xFFFF, 4);  // Note: ignoring bits 32-47 of tamper flags in IDM type due to screen width
+}
+
+std::string tamper_flags_scm(TamperFlags value) {
+    return " " + to_string_hex(value & 0x0F, 1) + "/" + to_string_hex(value >> 4, 1);  // Physical/Encoder flags
 }
 
 } /* namespace format */
@@ -67,11 +75,10 @@ std::string commodity_type(CommodityType value) {
 
 void ERTLogger::on_packet(const ert::Packet& packet, const uint32_t target_frequency) {
     const auto formatted = packet.symbols_formatted();
-
-    // TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
     const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
 
-    std::string entry = target_frequency_str + " " + ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors;
+    std::string entry = target_frequency_str + " " + ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors + " ID:" + to_string_dec_uint(packet.id(), 1);
+
     log_file.write_entry(packet.received_at(), entry);
 }
 
@@ -81,6 +88,8 @@ void ERTRecentEntry::update(const ert::Packet& packet) {
     received_count++;
 
     last_consumption = packet.consumption();
+    last_tamper_flags = packet.tamper_flags();
+    packet_type = packet.type();
 }
 
 namespace ui {
@@ -91,13 +100,10 @@ void RecentEntriesTable<ERTRecentEntries>::draw(
     const Rect& target_rect,
     Painter& painter,
     const Style& style) {
-    std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption);
+    std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
 
-    if (entry.received_count > 999) {
-        line += " +++";
-    } else {
-        line += " " + to_string_dec_uint(entry.received_count, 3);
-    }
+    line += (entry.packet_type == ert::Packet::Type::SCM) ? ert::format::tamper_flags_scm(entry.last_tamper_flags) : ert::format::tamper_flags(entry.last_tamper_flags);
+    line += (entry.received_count > 99) ? " ++" : to_string_dec_uint(entry.received_count, 3);
 
     line.resize(target_rect.width() / 8, ' ');
     painter.draw_string(target_rect.location(), style, line);

@@ -82,6 +82,19 @@ CommodityType Packet::commodity_type() const {
     return invalid_commodity_type;
 }
 
+TamperFlags Packet::tamper_flags() const {
+    if (type() == Type::SCM) {
+        return (reader_.read(9, 2) << 4) | reader_.read(3, 2);  // Physical/Encoder tamper flags in lower/upper nibbles
+    }
+    if (type() == Type::SCMPLUS) {
+        return reader_.read(10 * 8, 16);
+    }
+    if (type() == Type::IDM) {
+        return reader_.read(11 * 8, 48);
+    }
+    return invalid_tamper_flags;
+}
+
 FormattedSymbols Packet::symbols_formatted() const {
     return format_symbols(decoder_);
 }
