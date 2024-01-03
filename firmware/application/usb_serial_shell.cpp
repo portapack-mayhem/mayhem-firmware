@@ -40,6 +40,7 @@
 #include "ff.h"
 #include "chprintf.h"
 #include "chqueues.h"
+#include "untar.hpp"
 
 #include <string>
 #include <codecvt>
@@ -156,6 +157,15 @@ std::filesystem::path path_from_string8(char* path) {
     return conv.from_bytes(path);
 }
 
+bool strEndsWith(const std::u16string& str, const std::u16string& suffix) {
+    if (str.length() >= suffix.length()) {
+        std::u16string endOfString = str.substr(str.length() - suffix.length());
+        return endOfString == suffix;
+    } else {
+        return false;
+    }
+}
+
 static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "Usage: flash /FIRMWARE/portapack-h1_h2-mayhem.bin\r\n");
@@ -163,15 +173,37 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     auto path = path_from_string8(argv[0]);
-    size_t filename_length = strlen(argv[0]);
 
     if (!std::filesystem::file_exists(path)) {
         chprintf(chp, "file not found.\r\n");
         return;
     }
 
-    std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (filename_length + 1) * 2);
-
+    // check file extensions
+    if (strEndsWith(path.native(), u".ppfw.tar")) {
+        // extract tar
+        chprintf(chp, "Extracting TAR file.\r\n");
+        auto res = UnTar::untar(
+            path.native(), [chp](const std::string fileName) {
+                chprintf(chp, fileName.c_str());
+                chprintf(chp, "\r\n");
+            });
+        if (res.empty()) {
+            chprintf(chp, "error bad TAR file.\r\n");
+            return;
+        }
+        path = res;  // it will contain the last bin file in tar
+    } else if (strEndsWith(path.native(), u".bin")) {
+        // nothing to do for this case yet.
+    } else {
+        chprintf(chp, "error only .bin or .ppfw.tar files canbe flashed.\r\n");
+        return;
+    }
+    chprintf(chp, "Flashing: ");
+    chprintf(chp, path.string().c_str());
+    chprintf(chp, "\r\n");
+    chThdSleepMilliseconds(50);
+    std::memcpy(&shared_memory.bb_data.data[0], path.native().c_str(), (path.native().length() + 1) * 2);
     m4_request_shutdown();
     chThdSleepMilliseconds(50);
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
