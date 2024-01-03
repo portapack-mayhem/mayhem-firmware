@@ -2018,6 +2018,24 @@ bool NumberField::on_encoder(const EncoderEvent delta) {
     return true;
 }
 
+bool NumberField::on_keyboard(const KeyboardEvent key) {
+    if (key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    if (key == '+' || key == ' ') {
+        set_value(value() + (1 * step));
+        return true;
+    }
+    if (key == '-' || key == 8) {
+        set_value(value() + (-1 * step));
+        return true;
+    }
+    return false;
+}
+
 bool NumberField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
