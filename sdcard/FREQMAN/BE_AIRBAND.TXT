@@ -1,0 +1,15 @@
+f=132475000,d=ATIS - Civil
+f=130550000,d=AbelagUnicom - Civil
+f=118250000,d=Approach- Civil
+f=120100000,d=Approach - Civil
+f=122500000,d=Approach Military Crossing
+f=121950000,d=Clearance Delivery - Civil
+f=126625000,d=Departure - Civil
+f=127575000,d=Final 25L - Civil
+f=129725000,d=Final 25R - Civil
+f=118050000,d=Ground - Civik
+f=121700000,d=Ground - Civil
+f=121875000,d=Ground - Civil
+f=118600000,d=Tower VHF - Civil
+f=120775000,d=Tower - Civil
+f=127150000,d=Tower Spare - Civil
