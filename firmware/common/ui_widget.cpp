@@ -1857,9 +1857,8 @@ bool TextEdit::on_keyboard(const KeyboardEvent key) {
     }
     if (key == 8) {
         char_delete();
-        return;
+        return true;
     }
-
     return false;
 }
 
