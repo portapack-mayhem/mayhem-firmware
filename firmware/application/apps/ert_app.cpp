@@ -77,7 +77,7 @@ void ERTLogger::on_packet(const ert::Packet& packet, const uint32_t target_frequ
     const auto formatted = packet.symbols_formatted();
     const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
 
-    std::string entry = target_frequency_str + " " + ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors + " ID:" + to_string_dec_uint(packet.id(),1);
+    std::string entry = target_frequency_str + " " + ert::format::type(packet.type()) + " " + formatted.data + "/" + formatted.errors + " ID:" + to_string_dec_uint(packet.id(), 1);
 
     log_file.write_entry(packet.received_at(), entry);
 }
@@ -101,7 +101,7 @@ void RecentEntriesTable<ERTRecentEntries>::draw(
     Painter& painter,
     const Style& style) {
     std::string line = ert::format::id(entry.id) + " " + ert::format::commodity_type(entry.commodity_type) + " " + ert::format::consumption(entry.last_consumption) + " ";
-    
+
     line += (entry.packet_type == ert::Packet::Type::SCM) ? ert::format::tamper_flags_scm(entry.last_tamper_flags) : ert::format::tamper_flags(entry.last_tamper_flags);
     line += (entry.received_count > 99) ? " ++" : to_string_dec_uint(entry.received_count, 3);
 
