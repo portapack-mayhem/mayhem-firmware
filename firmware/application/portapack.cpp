@@ -542,4 +542,8 @@ void shutdown(const bool leave_screen_on) {
     shutdown_base();
 }
 
+void setEventDispatcherToUSBSerial(EventDispatcher* evt) {
+    usb_serial.setEventDispatcher(evt);
+}
+
 } /* namespace portapack */

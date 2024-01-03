@@ -68,6 +68,8 @@ bool get_antenna_bias();
 bool init();
 void shutdown(const bool leave_screen_on = false);
 
+void setEventDispatcherToUSBSerial(EventDispatcher* evt);
+
 Backlight* backlight();
 
 } /* namespace portapack */
