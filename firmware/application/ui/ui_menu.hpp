@@ -97,6 +97,7 @@ class MenuView : public View {
     void on_blur() override;
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
    private:
     void update_items();

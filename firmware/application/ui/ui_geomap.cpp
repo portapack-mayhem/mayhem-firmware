@@ -164,6 +164,32 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
     return true;
 }
 
+bool GeoMap::on_keyboard(const KeyboardEvent key) {
+    auto delta = 0;
+    if (key == '+') delta = 1;
+    if (key == '-') delta = -1;
+    if (delta != 0) {
+        if ((delta > 0) && (map_zoom < 5)) {
+            map_zoom++;
+
+            // Ensure that MOD(240,map_zoom)==0 for the map_zoom_line() function
+            if (geomap_rect_width % map_zoom != 0) {
+                map_zoom--;
+            }
+        } else if ((delta < 0) && (map_zoom > 1)) {
+            map_zoom--;
+        } else {
+            return false;
+        }
+
+        // Trigger map redraw
+        markerListUpdated = true;
+        set_dirty();
+        return true;
+    }
+    return false;
+}
+
 void GeoMap::map_zoom_line(ui::Color* buffer) {
     if (map_zoom <= 1) {
         return;
