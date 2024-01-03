@@ -1309,8 +1309,8 @@ bool NewButton::on_keyboard(const KeyboardEvent key) {
             on_select();
             return true;
         }
-        return false;
     }
+    return false;
 }
 
 bool NewButton::on_touch(const TouchEvent event) {
@@ -1416,8 +1416,8 @@ bool ImageButton::on_keyboard(const KeyboardEvent key) {
             on_select(*this);
             return true;
         }
-        return false;
     }
+    return false;
 }
 
 bool ImageButton::on_touch(const TouchEvent event) {
@@ -1847,6 +1847,20 @@ bool TextEdit::on_key(const KeyEvent key) {
 
     set_dirty();
     return true;
+}
+
+bool TextEdit::on_keyboard(const KeyboardEvent key) {
+    // if ascii printable
+    if (key >= 0x20 && key <= 0x7e) {
+        char_add(key);
+        return true;
+    }
+    if (key == 8) {
+        char_delete();
+        return;
+    }
+
+    return false;
 }
 
 bool TextEdit::on_encoder(const EncoderEvent delta) {

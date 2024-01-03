@@ -710,6 +710,7 @@ class TextEdit : public Widget {
     bool on_key(const KeyEvent key) override;
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
     void on_focus() override;
     void on_blur() override;
