@@ -93,7 +93,7 @@ jobs:
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
           asset_path: ./portapack-mayhem.ppfw.tar
-          asset_name: mayhem_${{ steps.version.outputs.version }}.ppfw.tar
+          asset_name: mayhem_${{ steps.version.outputs.version }}_OCI.ppfw.tar
           asset_content_type: application/x-tar
       - name: Upload Firmware Asset
         id: upload-firmware-asset 
