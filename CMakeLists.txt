@@ -18,7 +18,7 @@
 # Boston, MA 02110-1301, USA.
 #
 
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.5)
 cmake_policy(SET CMP0005 NEW)
 
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_LIST_DIR}/firmware/toolchain-arm-cortex-m.cmake)
@@ -28,7 +28,7 @@ project(portapack-h1)
 set(EXPECTED_GCC_VERSION "9.2.1")
 
 set(VERSION "$ENV{VERSION_STRING}")
-if ("$ENV{VERSION_STRING}" STREQUAL "")
+if ("${VERSION}" STREQUAL "")
 	execute_process(
 		COMMAND git log -n 1 --format=%h
 		WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR}
@@ -42,6 +42,11 @@ if ("$ENV{VERSION_STRING}" STREQUAL "")
 	else (GIT_VERSION_FOUND)
 		set(VERSION "${GIT_VERSION}")
 	endif (GIT_VERSION_FOUND)
+
+	set(VERSION_NOHASH "dev")
+else()
+	set(VERSION_NOHASH "${VERSION}")
+	set(PPFW_FILENAME "portapack-mayhem.ppfw.tar")
 endif()
 
 execute_process(
@@ -49,6 +54,18 @@ execute_process(
 	OUTPUT_VARIABLE VERSION_MD5
 )
 set(VERSION_MD5 "0x${VERSION_MD5}")
+
+if (NOT DEFINED PPFW_FILENAME)
+	# Funny business here: trying to generate unique names to prevent renaming of shared test-drive builds by the browser on download to .ppfw-42.tar as it wont be recognized by the flasher
+	execute_process(
+		COMMAND date "+%y%m%d-%H%M"
+		OUTPUT_VARIABLE PPFW_FILENAME
+	)
+	string(STRIP ${PPFW_FILENAME} PPFW_FILENAME)
+	set(PPFW_FILENAME "portapack-mayhem_${PPFW_FILENAME}_OCI.ppfw.tar")
+endif()
+
+message("Building version: ${VERSION} MD5: ${VERSION_MD5}")
 
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
 set(HARDWARE_PATH ${CMAKE_CURRENT_LIST_DIR}/hardware)
