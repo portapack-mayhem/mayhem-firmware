@@ -49,7 +49,7 @@
 *.map
 *.lst
 .dep/
-build/
+/build*
 CMakeFiles/
 
 # Debugging
