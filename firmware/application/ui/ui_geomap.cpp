@@ -361,7 +361,7 @@ bool GeoMap::manual_panning() {
 }
 
 void GeoMap::draw_scale(Painter& painter) {
-    uint16_t km = 100;
+    uint16_t km = 800;
     uint16_t scale_width = (map_zoom > 0) ? km * pixels_per_km * map_zoom : km * pixels_per_km / (-map_zoom);
 
     while (scale_width > screen_width / 2) {
