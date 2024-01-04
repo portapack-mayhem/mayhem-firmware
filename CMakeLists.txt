@@ -62,7 +62,7 @@ if (NOT DEFINED PPFW_FILENAME)
 		OUTPUT_VARIABLE PPFW_FILENAME
 	)
 	string(STRIP ${PPFW_FILENAME} PPFW_FILENAME)
-	set(PPFW_FILENAME "portapack-mayhem_${PPFW_FILENAME}.ppfw.tar")
+	set(PPFW_FILENAME "portapack-mayhem_${PPFW_FILENAME}_OCI.ppfw.tar")
 endif()
 
 message("Building version: ${VERSION} MD5: ${VERSION_MD5}")
