@@ -106,6 +106,8 @@ class Widget {
 
     virtual Context& context() const;
 
+    virtual void getAccessibilityText(std::string& result);
+
     void set_style(const Style* new_style);
 
     const Style& style() const;
@@ -207,6 +209,7 @@ class Text : public Widget {
     void set(std::string_view value);
 
     void paint(Painter& painter) override;
+    void getAccessibilityText(std::string& result) override;
 
    protected:
     // NB: Don't truncate this string. The UI will only render
@@ -234,6 +237,7 @@ class Labels : public Widget {
     void set_labels(std::initializer_list<Label> labels);
 
     void paint(Painter& painter) override;
+    void getAccessibilityText(std::string& result) override;
 
    private:
     std::vector<Label> labels_;
@@ -312,6 +316,7 @@ class ProgressBar : public Widget {
     void set_value(const uint32_t value);
 
     void paint(Painter& painter) override;
+    void getAccessibilityText(std::string& result) override;
 
    private:
     uint32_t _value = 0;

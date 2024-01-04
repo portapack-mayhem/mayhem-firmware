@@ -237,6 +237,10 @@ void Widget::dirty_overlapping_children_in_rect(const Rect& child_rect) {
     }
 }
 
+void Widget::getAccessibilityText(std::string& result) {
+    result = "";
+}
+
 /* View ******************************************************************/
 
 void View::paint(Painter& painter) {
@@ -367,6 +371,10 @@ void Text::set(std::string_view value) {
     set_dirty();
 }
 
+void Text::getAccessibilityText(std::string& result) {
+    result = text;
+}
+
 void Text::paint(Painter& painter) {
     const auto rect = screen_rect();
     auto s = has_focus() ? style().invert() : style();
@@ -404,6 +412,14 @@ void Labels::paint(Painter& painter) {
             label.color,
             style().background,
             label.text);
+    }
+}
+
+void Labels::getAccessibilityText(std::string& result) {
+    result = "";
+    for (auto& label : labels_) {
+        result += label.text;
+        result += "\r\n";
     }
 }
 
@@ -577,6 +593,10 @@ void ProgressBar::set_value(const uint32_t value) {
     else
         _value = value;
     set_dirty();
+}
+
+void ProgressBar::getAccessibilityText(std::string& result) {
+    result = to_string_dec_uint(_value) + " / " + to_string_dec_uint(_max);
 }
 
 void ProgressBar::paint(Painter& painter) {
