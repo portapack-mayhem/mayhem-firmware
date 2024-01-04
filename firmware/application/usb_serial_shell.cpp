@@ -732,21 +732,30 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 // walks throught the given widget's childs in recurse to get all support text and pass it to a callback function
-static void widget_collect_accessibility(BaseSequentialStream* chp, ui::Widget* w, void (*callback)(BaseSequentialStream*, const std::string&)) {
+static void widget_collect_accessibility(BaseSequentialStream* chp, ui::Widget* w, void (*callback)(BaseSequentialStream*, const std::string&, const std::string&)) {
     for (auto child : w->children()) {
         if (!child->hidden()) {
             std::string res = "";
-            // wg->getAccessibilityText(res);
-            if (callback != NULL && !res.empty()) callback(chp, res);
+            child->getAccessibilityText(res);
+            std::string strtype = "";
+            child->getWidgetName(strtype);
+            if (callback != NULL && !res.empty()) callback(chp, res, strtype);
             widget_collect_accessibility(chp, child, callback);
         }
     }
 }
 
-static void accessibility_callback(BaseSequentialStream* chp, const std::string& str) {
-    chprintf(chp, "%s\r\n", str.c_str());
+// callback when it found any response from a widget
+static void accessibility_callback(BaseSequentialStream* chp, const std::string& strResult, const std::string& wgType) {
+    if (!wgType.empty()) {
+        chprintf(chp, "[");
+        chprintf(chp, wgType.c_str());
+        chprintf(chp, "] ");
+    }
+    chprintf(chp, "%s\r\n", strResult.c_str());
 }
 
+// gets all widget's accessibility helper text
 static void cmd_accessibility_readall(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
@@ -762,8 +771,10 @@ static void cmd_accessibility_readall(BaseSequentialStream* chp, int argc, char*
         return;
     }
     widget_collect_accessibility(chp, wg, accessibility_callback);
+    chprintf(chp, "ok\r\n");
 }
 
+// gets focused widget's accessibility helper text
 static void cmd_accessibility_readcurr(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
@@ -779,12 +790,23 @@ static void cmd_accessibility_readcurr(BaseSequentialStream* chp, int argc, char
         return;
     }
     std::string res = "";
-    // wg->getAccessibilityText(res);
+    wg->getAccessibilityText(res);
     if (res.empty()) {
-        chprintf(chp, "error Widget not providing accessibility info\r\n");
-        return;
+        // try with parent
+        wg = wg->parent();
+        if (wg == NULL) {
+            chprintf(chp, "error Widget not providing accessibility info\r\n");
+            return;
+        }
+        wg->getAccessibilityText(res);
+        if (res.empty()) {
+            chprintf(chp, "error Widget not providing accessibility info\r\n");
+            return;
+        }
     }
-    chprintf(chp, res.c_str());
+    std::string strtype = "";
+    wg->getWidgetName(strtype);
+    accessibility_callback(chp, res, strtype);
     chprintf(chp, "\r\nok\r\n");
 }
 
