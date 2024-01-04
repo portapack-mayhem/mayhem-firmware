@@ -61,7 +61,7 @@ add_custom_command(
 )
 
 add_custom_target(
-	firmware ALL
+	firmware
 	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
 
@@ -100,7 +100,7 @@ add_custom_command(
 	COMMAND mkdir -p firmware_tar/APPS
 	COMMAND cp application/*.ppma firmware_tar/APPS
 	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
-	DEPENDS firmware ${FIRMWARE_FILENAME}
+	DEPENDS firmware
 	# Dont use VERBATIM here as it prevents usage of globbing (*)
 	# There shouldnt be any funny business in the filenames above :)
 )
@@ -125,7 +125,12 @@ add_custom_command(
 )
 
 add_custom_target(
-	ppfw
+	ppfw ALL
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
+	oci
 	DEPENDS ${PPFW_FILENAME}
 )
 
