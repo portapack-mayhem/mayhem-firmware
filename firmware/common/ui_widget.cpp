@@ -1562,7 +1562,7 @@ bool ImageToggle::value() const {
 }
 
 void ImageToggle::getAccessibilityText(std::string& result) {
-    result = "image " + value_ ? " checked" : " unchecked";
+    result = value_ ? " checked" : " unchecked";
 }
 void ImageToggle::getWidgetName(std::string& result) {
     result = "ImageToggle";

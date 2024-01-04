@@ -732,15 +732,16 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 // walks throught the given widget's childs in recurse to get all support text and pass it to a callback function
-static void widget_collect_accessibility(BaseSequentialStream* chp, ui::Widget* w, void (*callback)(BaseSequentialStream*, const std::string&, const std::string&)) {
+static void widget_collect_accessibility(BaseSequentialStream* chp, ui::Widget* w, void (*callback)(BaseSequentialStream*, const std::string&, const std::string&), ui::Widget* focusedWidget) {
     for (auto child : w->children()) {
         if (!child->hidden()) {
             std::string res = "";
             child->getAccessibilityText(res);
             std::string strtype = "";
             child->getWidgetName(strtype);
+            if (child == focusedWidget) strtype += "*";
             if (callback != NULL && !res.empty()) callback(chp, res, strtype);
-            widget_collect_accessibility(chp, child, callback);
+            widget_collect_accessibility(chp, child, callback, focusedWidget);
         }
     }
 }
@@ -770,7 +771,8 @@ static void cmd_accessibility_readall(BaseSequentialStream* chp, int argc, char*
         chprintf(chp, "error Can't get top Widget\r\n");
         return;
     }
-    widget_collect_accessibility(chp, wg, accessibility_callback);
+    auto focused = evtd->getFocusedWidget();
+    widget_collect_accessibility(chp, wg, accessibility_callback, focused);
     chprintf(chp, "ok\r\n");
 }
 
