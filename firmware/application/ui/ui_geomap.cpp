@@ -184,7 +184,7 @@ void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
         map_file.read(buffer, (pixels / map_zoom) << 1);
 
         // Zoom in: Expand each pixel to "map_zoom" number of pixels.
-        // Future TODO:  Add dithering.
+        // Future TODO:  Add dithering to smooth out the pixelation.
         // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
         // For 240 width, than means no check is needed for map_zoom values up to 6
         for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
@@ -196,8 +196,8 @@ void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
         ui::Color* zoom_out_buffer = new ui::Color[(pixels * (-map_zoom))];
         map_file.read(zoom_out_buffer, (pixels * (-map_zoom)) << 1);
 
-        // Zoom out:  Each "ABS(map_zoom)" pixels becomes one pixel,
-        // Future TODO: Average each block of ABS(map_zoom) pixels.
+        // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
+        // Future TODO: Average each group of pixels (in both X & Y directions if possible).
         for (int i = 0; i < geomap_rect_width; i++) {
             buffer[i] = zoom_out_buffer[i * (-map_zoom)];
         }
@@ -238,7 +238,6 @@ void GeoMap::draw_markers(Painter& painter) {
 }
 
 void GeoMap::paint(Painter& painter) {
-
     const auto r = screen_rect();
     std::array<ui::Color, 240> map_line_buffer;
 
@@ -246,11 +245,12 @@ void GeoMap::paint(Painter& painter) {
     // or the markers list was updated
     int x_diff = abs(x_pos - prev_x_pos);
     int y_diff = abs(y_pos - prev_y_pos);
+
     if (markerListUpdated || (x_diff >= 3) || (y_diff >= 3)) {
         int32_t zoom_seek_x = x_pos;
         int32_t zoom_seek_y = y_pos;
-        
-        // Adjust upper left corner position of map per zoom setting
+
+        // Adjust starting corner position of map per zoom setting
         if (map_zoom > 1) {
             zoom_seek_x += (r.width() - (r.width() / map_zoom)) / 2;
             zoom_seek_y += (r.height() - (r.height() / map_zoom)) / 2;
@@ -270,6 +270,7 @@ void GeoMap::paint(Painter& painter) {
                 display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
             }
         }
+
         prev_x_pos = x_pos;
         prev_y_pos = y_pos;
 
@@ -361,9 +362,7 @@ bool GeoMap::manual_panning() {
 
 void GeoMap::draw_scale(Painter& painter) {
     uint16_t km = 100;
-    uint16_t scale_width;
-    
-    scale_width = (map_zoom > 0) ? km * pixels_per_km * map_zoom : km * pixels_per_km / (-map_zoom);
+    uint16_t scale_width = (map_zoom > 0) ? km * pixels_per_km * map_zoom : km * pixels_per_km / (-map_zoom);
 
     while (scale_width > screen_width / 2) {
         scale_width /= 2;
