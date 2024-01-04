@@ -18,6 +18,8 @@
 # Boston, MA 02110-1301, USA.
 #
 
+cmake_minimum_required(VERSION 3.5)
+
 project(firmware)
 
 set(BASEBAND ${PROJECT_SOURCE_DIR}/baseband)
@@ -59,7 +61,7 @@ add_custom_command(
 )
 
 add_custom_target(
-	firmware ALL
+	firmware
 	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
 
@@ -88,6 +90,21 @@ add_custom_target(
 	DEPENDS program
 )
 
+add_custom_command(
+	OUTPUT ${PPFW_FILENAME}
+	
+	COMMAND rm -rf firmware_tar
+	COMMAND mkdir -p firmware_tar/FIRMWARE
+	# Using VERSION_NOHASH to avoid dev builds piling up in the FIRMWARE folder of the sd card of testers in #test-drive
+	COMMAND cp ${FIRMWARE_FILENAME} firmware_tar/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
+	COMMAND mkdir -p firmware_tar/APPS
+	COMMAND cp application/*.ppma firmware_tar/APPS
+	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
+	DEPENDS firmware
+	# Dont use VERBATIM here as it prevents usage of globbing (*)
+	# There shouldnt be any funny business in the filenames above :)
+)
+
 # TODO: Bad hack to fix location of LICENSE file for tar.
 add_custom_command(
 	OUTPUT ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
@@ -108,6 +125,17 @@ add_custom_command(
 )
 
 add_custom_target(
+	ppfw ALL
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
+	oci
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
 	release
 	DEPENDS MD5SUMS SHA256SUMS
 )
+
