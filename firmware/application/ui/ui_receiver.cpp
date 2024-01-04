@@ -93,6 +93,13 @@ void FrequencyField::set_allow_digit_mode(bool allowed) {
     }
 }
 
+void FrequencyField::getAccessibilityText(std::string& result) {
+    result = to_string_dec_int(value_);
+}
+void FrequencyField::getWidgetName(std::string& result) {
+    result = "FrequencyField";
+}
+
 void FrequencyField::paint(Painter& painter) {
     const auto str_value = to_string_short_freq(value_);
     const auto paint_style = has_focus() ? style().invert() : style();

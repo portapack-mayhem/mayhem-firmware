@@ -66,6 +66,9 @@ class FrequencyField : public Widget {
     void on_focus() override;
     void on_blur() override;
 
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
    private:
     const size_t length_;
     range_t range_;
