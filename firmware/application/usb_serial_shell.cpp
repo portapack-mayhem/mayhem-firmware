@@ -41,6 +41,7 @@
 #include "chprintf.h"
 #include "chqueues.h"
 #include "untar.hpp"
+#include "ui_widget.hpp"
 
 #include <string>
 #include <codecvt>
@@ -692,6 +693,63 @@ static void cpld_info(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 }
 
+// walks throught the given widget's childs in recurse to get all support text and pass it to a callback function
+static void widget_collect_accessibility(BaseSequentialStream* chp, ui::Widget* w, void (*callback)(BaseSequentialStream*, const std::string&)) {
+    for (auto child : w->children()) {
+        if (!child->hidden()) {
+            std::string res = "";
+            // wg->getAccessibilityText(res);
+            if (callback != NULL && !res.empty()) callback(chp, res);
+            widget_collect_accessibility(chp, child, callback);
+        }
+    }
+}
+
+static void accessibility_callback(BaseSequentialStream* chp, const std::string& str) {
+    chprintf(chp, "%s\r\n", str.c_str());
+}
+
+static void cmd_accessibility_readall(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
+    auto evtd = getEventDispatcherInstance();
+    if (evtd == NULL) {
+        chprintf(chp, "error Can't get Event Dispatcherr\n");
+        return;
+    }
+    auto wg = evtd->getTopWidget();
+    if (wg == NULL) {
+        chprintf(chp, "error Can't get top Widget\r\n");
+        return;
+    }
+    widget_collect_accessibility(chp, wg, accessibility_callback);
+}
+
+static void cmd_accessibility_readcurr(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+
+    auto evtd = getEventDispatcherInstance();
+    if (evtd == NULL) {
+        chprintf(chp, "error Can't get Event Dispatcher\r\n");
+        return;
+    }
+    auto wg = evtd->getFocusedWidget();
+    if (wg == NULL) {
+        chprintf(chp, "error Can't get focused Widget\r\n");
+        return;
+    }
+    std::string res = "";
+    // wg->getAccessibilityText(res);
+    if (res.empty()) {
+        chprintf(chp, "error Widget not providing accessibility info\r\n");
+        return;
+    }
+    chprintf(chp, res.c_str());
+    chprintf(chp, "\r\nok\r\n");
+}
+
 static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_read <device> <target>\r\n"
@@ -876,6 +934,8 @@ static const ShellCommand commands[] = {
     {"filesize", cmd_sd_filesize},
     {"cpld_info", cpld_info},
     {"cpld_read", cmd_cpld_read},
+    {"accessibility_readall", cmd_accessibility_readall},
+    {"accessibility_readcurr", cmd_accessibility_readcurr},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

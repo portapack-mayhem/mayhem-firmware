@@ -88,6 +88,9 @@ class EventDispatcher {
 
     void emulateTouch(ui::TouchEvent event);
 
+    ui::Widget* getTopWidget();
+    ui::Widget* getFocusedWidget();
+
    private:
     static Thread* thread_event_loop;
 
