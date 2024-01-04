@@ -29,6 +29,9 @@
 
 #include "portapack.hpp"
 
+#define MAX_MAP_ZOOM_IN 5
+#define MAX_MAP_ZOOM_OUT 10
+
 namespace ui {
 
 enum GeoMapMode {
@@ -187,7 +190,7 @@ class GeoMap : public Widget {
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
-    void map_zoom_line(ui::Color* buffer);
+    void map_read_line(ui::Color* buffer, uint16_t pixels);
 
     bool manual_panning_{false};
     GeoMapMode mode_{};
