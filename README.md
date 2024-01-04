@@ -12,7 +12,9 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 If you are new to *HackRF+PortaPack+Mayhem*, check this video:
 
-[![What is?](https://img.youtube.com/vi/alrFbY5vxt4/0.jpg)](https://www.youtube.com/watch?v=alrFbY5vxt4)
+[![Beginner's Guide To The HackRF & Portapak With Mayhem](https://img.youtube.com/vi/H-bqdWfbhpg/0.jpg)](https://www.youtube.com/watch?v=H-bqdWfbhpg)
+
+For people familiar with the [Flipper Zero](https://github.com/flipperdevices/flipperzero-firmware), this one might be interesting:<br>[What is the HackRF One Portapack H2+?](https://www.youtube.com/watch?v=alrFbY5vxt4)
 
 # Frequently Asked Questions
 
