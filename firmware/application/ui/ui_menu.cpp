@@ -269,6 +269,19 @@ bool MenuView::on_key(const KeyEvent key) {
     }
 }
 
+bool MenuView::on_keyboard(const KeyboardEvent key) {
+    if (key == '-') return set_highlighted(highlighted_item - 1);
+    if (key == '+') return set_highlighted(highlighted_item + 1);
+    if (key == 10) {
+        if (menu_items[highlighted_item].on_select) {
+            menu_items[highlighted_item].on_select(KeyEvent::Right);
+        }
+        return true;
+    }
+
+    return false;
+}
+
 bool MenuView::on_encoder(const EncoderEvent event) {
     set_highlighted(highlighted_item + event);
     return true;

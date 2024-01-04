@@ -162,6 +162,7 @@ class GeoMap : public Widget {
 
     bool on_touch(const TouchEvent event) override;
     bool on_encoder(const EncoderEvent delta) override;
+    bool on_keyboard(const KeyboardEvent event) override;
 
     bool init();
     void set_mode(GeoMapMode mode);

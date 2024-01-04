@@ -293,6 +293,13 @@ void GeoMap::paint(Painter& painter) {
     }
 }
 
+bool GeoMap::on_keyboard(KeyboardEvent key) {
+    if (key == '+' || key == ' ') return on_encoder(1);
+    if (key == '-') return on_encoder(-1);
+
+    return false;
+}
+
 bool GeoMap::on_touch(const TouchEvent event) {
     if ((event.type == TouchEvent::Type::Start) && (mode_ == PROMPT)) {
         set_highlighted(true);

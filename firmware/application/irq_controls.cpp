@@ -171,12 +171,13 @@ static bool encoder_update(const uint8_t raw) {
 }
 
 static bool encoder_read() {
-    const auto delta = encoder.update(
-        encoder_debounce[0].state() | (injected_encoder == 1),
-        encoder_debounce[1].state() | (injected_encoder == 2));
+    auto delta = encoder.update(encoder_debounce[0].state(), encoder_debounce[1].state());
 
-    if (injected_encoder > 0)
+    if (injected_encoder > 0) {
+        if (injected_encoder == 1) delta = -1;
+        if (injected_encoder == 2) delta = 1;
         injected_encoder = 0;
+    }
 
     if (delta != 0) {
         encoder_position += delta;

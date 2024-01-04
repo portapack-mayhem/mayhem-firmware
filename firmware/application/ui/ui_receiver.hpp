@@ -61,6 +61,7 @@ class FrequencyField : public Widget {
 
     bool on_key(KeyEvent event) override;
     bool on_encoder(EncoderEvent delta) override;
+    bool on_keyboard(KeyboardEvent key) override;
     bool on_touch(TouchEvent event) override;
     void on_focus() override;
     void on_blur() override;
@@ -202,6 +203,7 @@ class FrequencyKeypadView : public View {
     rf::Frequency value() const;
     void set_value(const rf::Frequency new_value);
     bool on_encoder(const EncoderEvent delta) override;
+    bool on_keyboard(const KeyboardEvent key) override;
 
    private:
     int16_t focused_button = 0;

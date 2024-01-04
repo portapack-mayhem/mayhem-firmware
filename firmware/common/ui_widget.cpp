@@ -172,6 +172,10 @@ bool Widget::on_touch(const TouchEvent event) {
     (void)event;
     return false;
 }
+bool Widget::on_keyboard(const KeyboardEvent event) {
+    (void)event;
+    return false;
+}
 
 const std::vector<Widget*>& Widget::children() const {
     return no_children;
@@ -853,6 +857,11 @@ bool Checkbox::on_key(const KeyEvent key) {
     return false;
 }
 
+bool Checkbox::on_keyboard(const KeyboardEvent event) {
+    if (event == 10 || event == 32) return set_value(not value_);
+    return false;
+}
+
 bool Checkbox::on_touch(const TouchEvent event) {
     switch (event.type) {
         case TouchEvent::Type::Start:
@@ -941,6 +950,16 @@ bool Button::on_key(const KeyEvent key) {
         }
     }
 
+    return false;
+}
+
+bool Button::on_keyboard(const KeyboardEvent event) {
+    if (event == 10 || event == 32) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1077,6 +1096,16 @@ bool ButtonWithEncoder::on_key(const KeyEvent key) {
         }
     }
 
+    return false;
+}
+
+bool ButtonWithEncoder::on_keyboard(const KeyboardEvent key) {
+    if (key == 32 || key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1274,6 +1303,16 @@ bool NewButton::on_key(const KeyEvent key) {
     return false;
 }
 
+bool NewButton::on_keyboard(const KeyboardEvent key) {
+    if (key == 32 || key == 10) {
+        if (on_select) {
+            on_select();
+            return true;
+        }
+    }
+    return false;
+}
+
 bool NewButton::on_touch(const TouchEvent event) {
     switch (event.type) {
         case TouchEvent::Type::Start:
@@ -1368,6 +1407,16 @@ bool ImageButton::on_key(const KeyEvent key) {
         }
     }
 
+    return false;
+}
+
+bool ImageButton::on_keyboard(const KeyboardEvent key) {
+    if (key == 32 || key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
     return false;
 }
 
@@ -1537,6 +1586,12 @@ bool ImageOptionsField::on_encoder(const EncoderEvent delta) {
     return true;
 }
 
+bool ImageOptionsField::on_keyboard(const KeyboardEvent key) {
+    if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
+    if (key == '-' || key == 8) return on_encoder(-1);
+    return false;
+}
+
 bool ImageOptionsField::on_touch(const TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
@@ -1652,6 +1707,11 @@ bool OptionsField::on_encoder(const EncoderEvent delta) {
 
     set_selected_index(new_value);
     return true;
+}
+bool OptionsField::on_keyboard(const KeyboardEvent key) {
+    if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
+    if (key == '-' || key == 8) return on_encoder(-1);
+    return false;
 }
 
 bool OptionsField::on_touch(const TouchEvent event) {
@@ -1770,6 +1830,19 @@ bool TextEdit::on_key(const KeyEvent key) {
 
     set_dirty();
     return true;
+}
+
+bool TextEdit::on_keyboard(const KeyboardEvent key) {
+    // if ascii printable
+    if (key >= 0x20 && key <= 0x7e) {
+        char_add(key);
+        return true;
+    }
+    if (key == 8) {
+        char_delete();
+        return true;
+    }
+    return false;
 }
 
 bool TextEdit::on_encoder(const EncoderEvent delta) {
@@ -1926,6 +1999,22 @@ bool NumberField::on_key(const KeyEvent key) {
 bool NumberField::on_encoder(const EncoderEvent delta) {
     set_value(value() + (delta * step));
     return true;
+}
+
+bool NumberField::on_keyboard(const KeyboardEvent key) {
+    if (key == 10) {
+        if (on_select) {
+            on_select(*this);
+            return true;
+        }
+    }
+    if (key == '+' || key == ' ') {
+        return on_encoder(1);
+    }
+    if (key == '-' || key == 8) {
+        return on_encoder(-1);
+    }
+    return false;
 }
 
 bool NumberField::on_touch(const TouchEvent event) {

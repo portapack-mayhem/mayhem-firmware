@@ -365,6 +365,44 @@ static void cmd_touch(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+// send ascii keys in 2 char hex representation. Can send multiple keys at once like: keyboard 414243 (this will be ABC)
+static void cmd_keyboard(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: keyboard XX\r\n");
+        return;
+    }
+
+    auto evtd = getEventDispatcherInstance();
+    if (evtd == NULL) {
+        chprintf(chp, "error\r\n");
+    }
+
+    size_t data_string_len = strlen(argv[0]);
+    if (data_string_len % 2 != 0) {
+        chprintf(chp, "usage: keyboard XXXX\r\n");
+        return;
+    }
+
+    for (size_t i = 0; i < data_string_len; i++) {
+        char c = argv[0][i];
+        if ((c < '0' || c > '9') && (c < 'A' || c > 'F')) {
+            chprintf(chp, "usage: keyboard XX\r\n");
+            return;
+        }
+    }
+
+    char buffer[3] = {0, 0, 0};
+
+    for (size_t i = 0; i < data_string_len / 2; i++) {
+        buffer[0] = argv[0][i * 2];
+        buffer[1] = argv[0][i * 2 + 1];
+        uint8_t chr = (uint8_t)strtol(buffer, NULL, 16);
+        evtd->emulateKeyboard(chr);
+    }
+
+    chprintf(chp, "ok\r\n");
+}
+
 static void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "usage: ls /\r\n");
@@ -866,6 +904,7 @@ static const ShellCommand commands[] = {
     {"read_memory", cmd_read_memory},
     {"button", cmd_button},
     {"touch", cmd_touch},
+    {"keyboard", cmd_keyboard},
     {"ls", cmd_sd_list_dir},
     {"rm", cmd_sd_delete},
     {"open", cmd_sd_open},
