@@ -1587,14 +1587,8 @@ bool ImageOptionsField::on_encoder(const EncoderEvent delta) {
 }
 
 bool ImageOptionsField::on_keyboard(const KeyboardEvent key) {
-    int32_t delta = 0;
-    if (key == '+' || key == ' ' || key == 10) delta = 1;
-    if (key == '-' || key == 8) delta = -1;
-
-    if (delta != 0) {
-        set_selected_index(selected_index() + delta);
-        return true;
-    }
+    if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
+    if (key == '-' || key == 8) return on_encoder(-1);
     return false;
 }
 
@@ -1715,19 +1709,8 @@ bool OptionsField::on_encoder(const EncoderEvent delta) {
     return true;
 }
 bool OptionsField::on_keyboard(const KeyboardEvent key) {
-    int32_t delta = 0;
-    if (key == '+' || key == ' ' || key == 10) delta = 1;
-    if (key == '-' || key == 8) delta = -1;
-
-    if (delta != 0) {
-        int32_t new_value = selected_index() + delta;
-        if (new_value < 0)
-            new_value = options_.size() - 1;
-        else if ((size_t)new_value >= options_.size())
-            new_value = 0;
-        set_selected_index(new_value);
-        return true;
-    }
+    if (key == '+' || key == ' ' || key == 10) return on_encoder(1);
+    if (key == '-' || key == 8) return on_encoder(-1);
     return false;
 }
 
@@ -2026,12 +2009,10 @@ bool NumberField::on_keyboard(const KeyboardEvent key) {
         }
     }
     if (key == '+' || key == ' ') {
-        set_value(value() + (1 * step));
-        return true;
+        return on_encoder(1);
     }
     if (key == '-' || key == 8) {
-        set_value(value() + (-1 * step));
-        return true;
+        return on_encoder(-1);
     }
     return false;
 }
