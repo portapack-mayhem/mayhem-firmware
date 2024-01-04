@@ -92,6 +92,28 @@ void FreqManUIList::on_blur() {
     set_dirty();
 }
 
+bool FreqManUIList::on_keyboard(const KeyboardEvent key) {
+    if (!db_ || db_->empty())
+        return false;
+
+    auto delta = 0;
+    if (key == '-' && get_index() > 0) delta = -1;
+    if (key == '+' && get_index() < db_->entry_count() - 1) delta = 1;
+    if (delta != 0) {
+        adjust_selected_index(delta);
+        set_dirty();
+        return true;
+    }
+    if (key == 10) {
+        if (on_select) {
+            on_select(get_index());
+            return true;
+        }
+    }
+
+    return false;
+}
+
 bool FreqManUIList::on_key(const KeyEvent key) {
     if (!db_ || db_->empty())
         return false;

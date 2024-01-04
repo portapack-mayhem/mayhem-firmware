@@ -371,6 +371,7 @@ enum class KeyEvent : uint8_t {
 };
 
 using EncoderEvent = int32_t;
+using KeyboardEvent = uint8_t;
 
 struct TouchEvent {
     enum class Type : uint32_t {
