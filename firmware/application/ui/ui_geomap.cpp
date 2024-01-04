@@ -293,7 +293,7 @@ void GeoMap::paint(Painter& painter) {
     }
 }
 
-bool FrequencyField::on_keyboard(KeyboardEvent key) {
+bool GeoMap::on_keyboard(KeyboardEvent key) {
     if (key == '+' || key == ' ') return on_encoder(1);
     if (key == '-') return on_encoder(-1);
 
