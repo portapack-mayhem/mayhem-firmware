@@ -106,6 +106,9 @@ class Widget {
 
     virtual Context& context() const;
 
+    virtual void getAccessibilityText(std::string& result);
+    virtual void getWidgetName(std::string& result);
+
     void set_style(const Style* new_style);
 
     const Style& style() const;
@@ -207,6 +210,8 @@ class Text : public Widget {
     void set(std::string_view value);
 
     void paint(Painter& painter) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    protected:
     // NB: Don't truncate this string. The UI will only render
@@ -234,6 +239,8 @@ class Labels : public Widget {
     void set_labels(std::initializer_list<Label> labels);
 
     void paint(Painter& painter) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     std::vector<Label> labels_;
@@ -312,6 +319,8 @@ class ProgressBar : public Widget {
     void set_value(const uint32_t value);
 
     void paint(Painter& painter) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     uint32_t _value = 0;
@@ -345,6 +354,8 @@ class Console : public Widget {
     void enable_scrolling(bool enable);
     void on_show() override;
     void on_hide() override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     Point pos{0, 0};
@@ -385,6 +396,8 @@ class Checkbox : public Widget {
     bool on_key(const KeyEvent key) override;
     bool on_keyboard(const KeyboardEvent key) override;
     bool on_touch(const TouchEvent event) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     std::string text_;
@@ -421,6 +434,8 @@ class Button : public Widget {
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     std::string text_;
@@ -461,6 +476,9 @@ class ButtonWithEncoder : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_keyboard(const KeyboardEvent event) override;
 
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
    private:
     std::string text_;
     int32_t encoder_delta = 0;
@@ -495,6 +513,9 @@ class NewButton : public Widget {
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
     void paint(Painter& painter) override;
 
@@ -550,6 +571,8 @@ class ImageButton : public Image {
     bool on_key(const KeyEvent key) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 };
 
 /* A button that toggles between two images when set. */
@@ -582,6 +605,9 @@ class ImageToggle : public ImageButton {
 
     bool value() const;
     void set_value(bool b);
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     // Hide this field.
@@ -628,6 +654,8 @@ class ImageOptionsField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     options_t options;
@@ -666,6 +694,9 @@ class OptionsField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     const size_t length_;
@@ -712,6 +743,9 @@ class TextEdit : public Widget {
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
 
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
     void on_focus() override;
     void on_blur() override;
 
@@ -737,6 +771,9 @@ class TextField : public Text {
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
     bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     using Text::set;
@@ -773,6 +810,9 @@ class NumberField : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_touch(const TouchEvent event) override;
     bool on_keyboard(const KeyboardEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     range_t range;
@@ -848,6 +888,9 @@ class SymField : public Widget {
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
     bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
 
    private:
     /* Ensure the specified symbol is in the symbol list. */

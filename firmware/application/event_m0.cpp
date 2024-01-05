@@ -274,6 +274,14 @@ void EventDispatcher::on_touch_event(ui::TouchEvent event) {
     }
 }
 
+ui::Widget* EventDispatcher::getTopWidget() {
+    return top_widget;
+}
+
+ui::Widget* EventDispatcher::getFocusedWidget() {
+    return context.focus_manager().focus_widget();
+}
+
 void EventDispatcher::handle_lcd_frame_sync() {
     DisplayFrameSyncMessage message;
     message_map.send(&message);
