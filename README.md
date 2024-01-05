@@ -1,3 +1,6 @@
+> [!IMPORTANT]  
+> *Shortly*, this repository **will be moved** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem/portapack-mayhem](https://github.com/portapack-mayhem/portapack-mayhem). Please keep this in mind to **update your links** accordingly.
+
 # PortaPack Mayhem
 
 [![Build Status](https://travis-ci.com/eried/portapack-mayhem.svg?branch=master)](https://travis-ci.com/eried/portapack-mayhem) [![Nightly Release](https://github.com/eried/portapack-mayhem/actions/workflows/create_nightly_release.yml/badge.svg?branch=next)](https://github.com/eried/portapack-mayhem/actions/workflows/create_nightly_release.yml) [![CodeScene Code Health](https://codescene.io/projects/8381/status-badges/code-health)](https://codescene.io/projects/8381) [![GitHub All Releases](https://img.shields.io/github/downloads/eried/portapack-mayhem/total)](https://github.com/eried/portapack-mayhem/releases) [![GitHub Releases](https://img.shields.io/github/downloads/eried/portapack-mayhem/latest/total)](https://github.com/eried/portapack-mayhem/releases/latest) [![Docker Hub Pulls](https://img.shields.io/docker/pulls/eried/portapack.svg)](https://hub.docker.com/r/eried/portapack) [![Discord Chat](https://dcbadge.vercel.app/api/server/tuwVMv3?style=flat)](https://discord.gg/tuwVMv3)
