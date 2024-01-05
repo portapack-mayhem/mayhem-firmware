@@ -483,12 +483,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSIG siggen)
 
-### Spectrum painter
-
-set(MODE_CPPSRC
-	proc_spectrum_painter.cpp
-)
-DeclareTargets(PSPT spectrum_painter)
 
 ### SSTV TX
 
@@ -637,6 +631,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PGPS gps_sim)
 
+### Spectrum painter
+
+set(MODE_CPPSRC
+	proc_spectrum_painter.cpp
+)
+DeclareTargets(PSPT spectrum_painter)
 
 ### Test
 

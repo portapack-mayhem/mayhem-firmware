@@ -32,7 +32,7 @@
 #include "portapack.hpp"
 #include "message.hpp"
 
-namespace ui {
+namespace ui::external_app::spainter {
 
 class SpectrumInputImageView : public View {
    public:
@@ -63,4 +63,4 @@ class SpectrumInputImageView : public View {
     bool drawBMP_scaled(const ui::Rect r, const std::string file);
 };
 
-}  // namespace ui
+}  // namespace ui::external_app::spainter

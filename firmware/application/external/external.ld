@@ -29,6 +29,7 @@ MEMORY
     ram_external_app_lcr(rwx) : org = 0xEEF20000, len = 32k
     ram_external_app_jammer(rwx) : org = 0xEEF30000, len = 32k
     ram_external_app_gpssim(rwx) : org = 0xEEF40000, len = 32k
+    ram_external_app_spainter(rwx) : org = 0xEEF50000, len = 32k
 }
 
 SECTIONS
@@ -107,5 +108,12 @@ SECTIONS
         KEEP(*(.external_app.app_gpssim.application_information));
         *(*ui*external_app*gpssim*);
     } > ram_external_app_gpssim
+
+
+    .external_app_spainter : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_spainter.application_information));
+        *(*ui*external_app*spainter*);
+    } > ram_external_app_spainter
 
 }

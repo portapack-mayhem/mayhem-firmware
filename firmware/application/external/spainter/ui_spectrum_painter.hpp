@@ -22,6 +22,7 @@
 #pragma once
 
 #include "ui.hpp"
+#include "ui_language.hpp"
 #include "ui_widget.hpp"
 
 #include "ui_navigation.hpp"
@@ -37,7 +38,7 @@
 #include "ui_spectrum_painter_image.hpp"
 #include "ui_spectrum_painter_text.hpp"
 
-namespace ui {
+namespace ui::external_app::spainter {
 
 class SpectrumPainterView : public View {
    public:
@@ -115,7 +116,7 @@ class SpectrumPainterView : public View {
     Checkbox check_loop{
         {21 * 8, footer_location + 1 * 16},
         4,
-        "Loop",
+        LanguageHelper::currentMessages[LANG_LOOP],
         true};
 
     ImageButton button_play{
@@ -163,4 +164,4 @@ class SpectrumPainterView : public View {
         }};
 };
 
-}  // namespace ui
+}  // namespace ui::external_app::spainter

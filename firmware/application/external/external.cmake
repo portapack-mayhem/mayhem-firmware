@@ -48,6 +48,12 @@ set(EXTCPPSRC
 	#gpssim
 	external/gpssim/main.cpp
 	external/gpssim/gps_sim_app.cpp
+
+	#spainter
+	external/spainter/main.cpp
+	external/spainter/ui_spectrum_painter.cpp
+	external/spainter/ui_spectrum_painter_text.cpp
+	external/spainter/ui_spectrum_painter_image.cpp
 )
 
 set(EXTAPPLIST
@@ -63,4 +69,5 @@ set(EXTAPPLIST
 	lcr
 	jammer
 	gpssim
+	spainter
 )

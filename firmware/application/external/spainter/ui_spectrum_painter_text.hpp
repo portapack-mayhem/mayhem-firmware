@@ -32,7 +32,7 @@
 #include "portapack.hpp"
 #include "message.hpp"
 
-namespace ui {
+namespace ui::external_app::spainter {
 
 class SpectrumInputTextView : public View {
    public:
@@ -109,4 +109,4 @@ class SpectrumInputTextView : public View {
         "Set message"};
 };
 
-}  // namespace ui
+}  // namespace ui::external_app::spainter
