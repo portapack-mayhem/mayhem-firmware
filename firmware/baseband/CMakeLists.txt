@@ -476,13 +476,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PREP replay)
 
-### GPS Simulator
-
-set(MODE_CPPSRC
-	proc_gps_sim.cpp
-)
-DeclareTargets(PGPS gps_sim)
-
 ### Signal generator
 
 set(MODE_CPPSRC
@@ -490,12 +483,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PSIG siggen)
 
-### Spectrum painter
-
-set(MODE_CPPSRC
-	proc_spectrum_painter.cpp
-)
-DeclareTargets(PSPT spectrum_painter)
 
 ### SSTV TX
 
@@ -636,6 +623,20 @@ set(MODE_CPPSRC
 	proc_am_tv.cpp
 )
 DeclareTargets(PAMT am_tv)
+
+### GPS Simulator
+
+set(MODE_CPPSRC
+	proc_gps_sim.cpp
+)
+DeclareTargets(PGPS gps_sim)
+
+### Spectrum painter
+
+set(MODE_CPPSRC
+	proc_spectrum_painter.cpp
+)
+DeclareTargets(PSPT spectrum_painter)
 
 ### Test
 

@@ -265,7 +265,7 @@ set(CPPSRC
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
-	apps/gps_sim_app.cpp
+	# apps/gps_sim_app.cpp
 	# apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
@@ -311,9 +311,9 @@ set(CPPSRC
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
-	apps/ui_spectrum_painter_image.cpp
-	apps/ui_spectrum_painter_text.cpp
-	apps/ui_spectrum_painter.cpp
+	# apps/ui_spectrum_painter_image.cpp
+	# apps/ui_spectrum_painter_text.cpp
+	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_sstvtx.cpp
 	apps/ui_subghzd.cpp

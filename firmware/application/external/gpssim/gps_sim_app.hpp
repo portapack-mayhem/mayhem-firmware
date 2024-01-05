@@ -25,6 +25,7 @@
 #define __GPS_SIM_APP_HPP__
 
 #include "app_settings.hpp"
+#include "ui_language.hpp"
 #include "radio_state.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
@@ -37,7 +38,7 @@
 #include <string>
 #include <memory>
 
-namespace ui {
+namespace ui::external_app::gpssim {
 
 class GpsSimAppView : public View {
    public:
@@ -108,7 +109,7 @@ class GpsSimAppView : public View {
     Checkbox check_loop{
         {21 * 8, 2 * 16},
         4,
-        "Loop",
+        LanguageHelper::currentMessages[LANG_LOOP],
         true};
     ImageButton button_play{
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
@@ -142,6 +143,6 @@ class GpsSimAppView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::gpssim */
 
 #endif /*__GPS_SIM_APP_HPP__*/
