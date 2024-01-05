@@ -36,7 +36,12 @@ jobs:
         uses: actions/checkout@master
         with:
           fetch-depth: 0
-          ref: next
+          #ref: next
+          # The branch, tag or SHA to checkout. When checking out the repository that
+          # triggered a workflow, this defaults to the reference or SHA for that event.
+          # Otherwise, uses the default branch.
+          # https://github.com/actions/checkout
+          # So scheduled runs will use the default branch (next) but its now possible to trigger a workflow from another branch
           submodules: true
       - name: Git Sumbodule Update
         run: |
