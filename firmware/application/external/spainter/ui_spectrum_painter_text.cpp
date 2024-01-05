@@ -30,7 +30,7 @@
 #include "file.hpp"
 #include "portapack_persistent_memory.hpp"
 
-namespace ui {
+namespace ui::external_app::spainter {
 
 SpectrumInputTextView::SpectrumInputTextView(NavigationView& nav) {
     hidden(true);
@@ -105,4 +105,4 @@ std::vector<uint8_t> SpectrumInputTextView::get_line(uint16_t y) {
 
     return data;
 }
-}  // namespace ui
+}  // namespace ui::external_app::spainter

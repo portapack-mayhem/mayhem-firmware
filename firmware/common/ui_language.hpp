@@ -18,7 +18,8 @@ enum LangConsts {
     LANG_SCAN,
     LANG_CLEAR,
     LANG_READY,
-    LANG_DATADP
+    LANG_DATADP,
+    LANG_LOOP
 };
 
 class LanguageHelper {

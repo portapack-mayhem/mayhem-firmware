@@ -36,7 +36,7 @@
 using namespace portapack;
 namespace fs = std::filesystem;
 
-namespace ui {
+namespace ui::external_app::gpssim {
 
 void GpsSimAppView::set_ready() {
     ready_signal = true;
@@ -161,7 +161,8 @@ void GpsSimAppView::handle_replay_thread_done(const uint32_t return_code) {
 GpsSimAppView::GpsSimAppView(
     NavigationView& nav)
     : nav_(nav) {
-    baseband::run_image(portapack::spi_flash::image_tag_gps);
+    // baseband::run_image(portapack::spi_flash::image_tag_gps);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({
         &button_open,
@@ -211,4 +212,4 @@ void GpsSimAppView::set_parent_rect(const Rect new_parent_rect) {
     waterfall.set_parent_rect(waterfall_rect);
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::gpssim */
