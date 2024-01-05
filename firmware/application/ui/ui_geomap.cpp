@@ -88,8 +88,8 @@ GeoPos::GeoPos(
     if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
     if (speed_unit_ == MPH) text_speed_unit.set("mph");
     if (speed_unit_ == HIDDEN) {
-        text_speed_unit.hidden();
-        label_spd_position.hidden();
+        text_speed_unit.hidden(true);
+        label_spd_position.hidden(true);
     }
 }
 
