@@ -751,6 +751,9 @@ SystemView::SystemView(
 Context& SystemView::context() const {
     return context_;
 }
+NavigationView* SystemView::get_navigation_view() {
+    return &navigation_view;
+}
 
 void SystemView::toggle_overlay() {
     switch (++overlay_active) {

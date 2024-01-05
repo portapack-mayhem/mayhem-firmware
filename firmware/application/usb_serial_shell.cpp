@@ -42,6 +42,7 @@
 #include "chqueues.h"
 #include "untar.hpp"
 #include "ui_widget.hpp"
+#include "ui_navigation.hpp"
 
 #include <string>
 #include <codecvt>
@@ -812,6 +813,19 @@ static void cmd_accessibility_readcurr(BaseSequentialStream* chp, int argc, char
     chprintf(chp, "\r\nok\r\n");
 }
 
+// returns the installed apps, those can be called by appstart APPNAME
+static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    auto evtd = getEventDispatcherInstance();
+    if (+evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    chprintf(chp, "\r\nok\r\n");
+}
+
 static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_read <device> <target>\r\n"
@@ -999,6 +1013,7 @@ static const ShellCommand commands[] = {
     {"cpld_read", cmd_cpld_read},
     {"accessibility_readall", cmd_accessibility_readall},
     {"accessibility_readcurr", cmd_accessibility_readcurr},
+    {"applist", cmd_applist},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

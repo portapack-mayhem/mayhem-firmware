@@ -321,6 +321,8 @@ class SystemView : public View {
     void toggle_overlay();
     void paint_overlay();
 
+    NavigationView* get_navigation_view();
+
    private:
     uint8_t overlay_active{0};
 
