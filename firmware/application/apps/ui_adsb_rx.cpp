@@ -266,6 +266,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
+            GeoPos::spd_unit::MPH,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
@@ -290,7 +291,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
     } else if (geomap_view_) {
         // Map is showing, update the current item.
         geomap_view_->update_tag(get_map_tag(entry_));
-        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude);
+        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude, entry.velo.speed);
     } else {
         // Details is showing, update details.
         refresh_ui();

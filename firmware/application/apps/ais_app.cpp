@@ -293,6 +293,7 @@ AISRecentEntryDetailView::AISRecentEntryDetailView(NavigationView& nav) {
             ais::format::text(entry_.name),
             0,
             GeoPos::alt_unit::METERS,
+            GeoPos::spd_unit::NONE,
             ais::format::latlon_float(entry_.last_position.latitude.normalized()),
             ais::format::latlon_float(entry_.last_position.longitude.normalized()),
             entry_.last_position.true_heading,
@@ -315,7 +316,7 @@ AISRecentEntryDetailView& AISRecentEntryDetailView::operator=(const AISRecentEnt
 
 void AISRecentEntryDetailView::update_position() {
     if (send_updates)
-        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0);
+        geomap_view->update_position(ais::format::latlon_float(entry_.last_position.latitude.normalized()), ais::format::latlon_float(entry_.last_position.longitude.normalized()), (float)entry_.last_position.true_heading, 0, entry_.last_position.speed_over_ground);
 }
 
 void AISRecentEntryDetailView::focus() {

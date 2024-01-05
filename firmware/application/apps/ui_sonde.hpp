@@ -162,7 +162,8 @@ class SondeView : public View {
 
     GeoPos geopos{
         {0, 12 * 16},
-        GeoPos::alt_unit::METERS};
+        GeoPos::alt_unit::METERS,
+        GeoPos::spd_unit::HIDDEN};
 
     Button button_see_qr{
         {2 * 8, 15 * 16, 12 * 8, 3 * 16},
