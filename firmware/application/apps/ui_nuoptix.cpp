@@ -78,8 +78,6 @@ void NuoptixView::transmit(bool setup) {
         }
 
         transmitter_model.set_rf_amp(true);
-        transmitter_model.set_lna(40);
-        transmitter_model.set_vga(40);
         transmitter_model.enable();
 
         dtmf_message[0] = '*';  // "Pre-tone for restart" method #1
@@ -136,6 +134,7 @@ void NuoptixView::transmit(bool setup) {
     shared_memory.bb_data.tones_data.silence = NUOPTIX_TONE_LENGTH;  // 49ms tone, 49ms space
 
     audio::set_rate(audio::Rate::Hz_24000);
+
     baseband::set_tones_config(transmitter_model.channel_bandwidth(), 0, 6 * 2, true, true);
 
     timecode++;
@@ -156,7 +155,7 @@ NuoptixView::NuoptixView(
     tx_view.on_edit_frequency = [this, &nav]() {
         auto new_view = nav.push<FrequencyKeypadView>(transmitter_model.target_frequency());
         new_view->on_changed = [this](rf::Frequency f) {
-            transmitter_model.target_frequency(f);
+            transmitter_model.set_target_frequency(f);
         };
     };
 
