@@ -846,7 +846,7 @@ static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
     auto evtd = getEventDispatcherInstance();
-    if (evtd) return;
+    if (!evtd) return;
     auto top_widget = evtd->getTopWidget();
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
