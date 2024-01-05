@@ -43,6 +43,7 @@
 #include "untar.hpp"
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
+#include "external_app.hpp"
 
 #include <string>
 #include <codecvt>
@@ -57,6 +58,30 @@ static EventDispatcher* _eventDispatcherInstance = NULL;
 static EventDispatcher* getEventDispatcherInstance() {
     return _eventDispatcherInstance;
 }
+
+struct AppInfoFS {
+    const char* appCallName;
+    const char* appFriendlyName;
+    const app_location_t appLocation;
+};
+
+AppInfoFS fixedAppList[] = {
+    {"adsbrx", "ADS-B", RX},
+    {"ais", "AIS Boats", RX},
+    {"aprs", "APRS", RX},
+    {"audio", "Audio", RX},
+    {"blerx", "BLE Rx", RX},
+    {"ert", "ERT Meter", RX},
+    {"level", "Level", RX},
+    {"pocsagrx", "POCSAG", RX},
+    {"radiosnde", "Radiosnde", RX},
+    {"recon", "Recon", RX},
+    {"search", "Search", RX},
+    {"tpms", "TPMS Cars", RX},
+    {"weather", "Weather", RX},
+    {"subghzd", "SubGhzD", RX},
+    {"adsbtx", "ADS-B", TX},  // TODO add more
+};
 
 // queue handler from ch
 static msg_t qwait(GenericQueue* qp, systime_t time) {
@@ -813,16 +838,64 @@ static void cmd_accessibility_readcurr(BaseSequentialStream* chp, int argc, char
     chprintf(chp, "\r\nok\r\n");
 }
 
+static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    if (argc != 1) {
+        chprintf(chp, "Usage: appstart APPCALLNAME");
+        return;
+    }
+    auto evtd = getEventDispatcherInstance();
+    if (evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    for (auto element : fixedAppList) {
+        if (std::strcmp(element.appCallName, argv[0]) == 0) {
+            // todo start app
+            chprintf(chp, "ok\r\n");
+            return;
+        }
+    }
+    // todo look for ext apps
+    chprintf(chp, "error\r\n");
+}
+
 // returns the installed apps, those can be called by appstart APPNAME
 static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
     auto evtd = getEventDispatcherInstance();
-    if (+evtd) return;
+    if (!evtd) return;
     auto top_widget = evtd->getTopWidget();
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
+    for (auto element : fixedAppList) {
+        if (strlen(element.appCallName) == 0) continue;
+        chprintf(chp, element.appCallName);
+        chprintf(chp, " ");
+        chprintf(chp, element.appFriendlyName);
+        chprintf(chp, " ");
+        switch (element.appLocation) {
+            case RX:
+                chprintf(chp, "[RX]\r\n");
+                break;
+            case TX:
+                chprintf(chp, "[TX]\r\n");
+                break;
+            case UTILITIES:
+                chprintf(chp, "[UTIL]\r\n");
+                break;
+            case DEBUG:
+                chprintf(chp, "[DEBUG]\r\n");
+                break;
+            default:
+                break;
+        }
+    }
+    // add ext apps //TODO
     chprintf(chp, "\r\nok\r\n");
 }
 
@@ -1014,6 +1087,7 @@ static const ShellCommand commands[] = {
     {"accessibility_readall", cmd_accessibility_readall},
     {"accessibility_readcurr", cmd_accessibility_readcurr},
     {"applist", cmd_applist},
+    {"appstart", cmd_appstart},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
