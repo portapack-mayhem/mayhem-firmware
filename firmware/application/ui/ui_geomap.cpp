@@ -90,6 +90,7 @@ GeoPos::GeoPos(
     if (speed_unit_ == HIDDEN) {
         text_speed_unit.hidden(true);
         label_spd_position.hidden(true);
+        field_speed.hidden(true);
     }
 }
 
