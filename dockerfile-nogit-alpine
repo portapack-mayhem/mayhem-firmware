@@ -24,4 +24,4 @@ RUN mkdir ~/bin && cd ~/bin && \
     for tool in gcc g++ cpp c++;do ln -s $(which ccache) arm-none-eabi-$tool;done
 
 CMD cd .. && cd build && \
-    cmake .. && make firmware
+    cmake .. && make ppfw
