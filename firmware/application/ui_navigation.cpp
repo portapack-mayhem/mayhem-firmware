@@ -93,7 +93,7 @@
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
-#include "gps_sim_app.hpp"
+// #include "gps_sim_app.hpp" //moved to ext
 // #include "lge_app.hpp" //moved to ext
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
@@ -607,7 +607,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
         {"BLE Tx", ui::Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLETxView>(); }},
         // {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }}, //moved to ext
-        {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
+        //{"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }}, //moved to ext
         //{"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }}, //moved to ext
         // { "Key fob", ui::Color::orange(), &bitmap_icon_keyfob, [&nav](){ nav.push<KeyfobView>(); }},
         // {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }}, //moved to ext

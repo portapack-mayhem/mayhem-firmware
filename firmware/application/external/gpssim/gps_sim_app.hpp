@@ -37,7 +37,7 @@
 #include <string>
 #include <memory>
 
-namespace ui {
+namespace ui::external_app::gpssim {
 
 class GpsSimAppView : public View {
    public:
@@ -142,6 +142,6 @@ class GpsSimAppView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::gpssim */
 
 #endif /*__GPS_SIM_APP_HPP__*/

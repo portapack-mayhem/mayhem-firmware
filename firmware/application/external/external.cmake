@@ -44,6 +44,10 @@ set(EXTCPPSRC
 	#lcr
 	external/jammer/main.cpp
 	external/jammer/ui_jammer.cpp
+
+	#gpssim
+	external/gpssim/main.cpp
+	external/gpssim/gps_sim_app.cpp
 )
 
 set(EXTAPPLIST
@@ -58,4 +62,5 @@ set(EXTAPPLIST
 	lge
 	lcr
 	jammer
+	gpssim
 )
