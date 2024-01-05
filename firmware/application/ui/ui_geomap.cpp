@@ -38,12 +38,14 @@ namespace ui {
 
 GeoPos::GeoPos(
     const Point pos,
-    const alt_unit altitude_unit)
-    : altitude_unit_(altitude_unit) {
+    const alt_unit altitude_unit,
+    const spd_unit speed_unit)
+    : altitude_unit_(altitude_unit), speed_unit_(speed_unit) {
     set_parent_rect({pos, {30 * 8, 3 * 16}});
 
     add_children({&labels_position,
                   &field_altitude,
+                  &field_speed,
                   &text_alt_unit,
                   &field_lat_degrees,
                   &field_lat_minutes,
@@ -71,6 +73,7 @@ GeoPos::GeoPos(
     };
 
     field_altitude.on_change = changed_fn;
+    field_speed.on_change = changed_fn;
     field_lat_degrees.on_change = changed_fn;
     field_lat_minutes.on_change = changed_fn;
     field_lat_seconds.on_change = changed_fn;
@@ -79,11 +82,13 @@ GeoPos::GeoPos(
     field_lon_seconds.on_change = changed_fn;
 
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
+    text_speed_unit.set(speed_unit_ ? "mph" : "kmph");
 }
 
 void GeoPos::set_read_only(bool v) {
     // only setting altitude to read-only (allow manual panning via lat/lon fields)
     field_altitude.set_focusable(!v);
+    field_speed.set_focusable(!v);
 }
 
 // Stupid hack to avoid an event loop
@@ -98,13 +103,17 @@ void GeoPos::focus() {
         field_lat_degrees.focus();
 }
 
-void GeoPos::hide_altitude() {
+void GeoPos::hide_altandspeed() {
     // Color altitude grey to indicate it's not updated in manual panning mode
     field_altitude.set_style(&Styles::grey);
+    field_speed.set_style(&Styles::grey);
 }
 
 void GeoPos::set_altitude(int32_t altitude) {
     field_altitude.set_value(altitude);
+}
+void GeoPos::set_speed(int32_t speed) {
+    field_speed.set_value(speed);
 }
 
 void GeoPos::set_lat(float lat) {
@@ -137,6 +146,10 @@ float GeoPos::lon() {
 
 int32_t GeoPos::altitude() {
     return field_altitude.value();
+};
+
+int32_t GeoPos::speed() {
+    return field_speed.value();
 };
 
 GeoMap::GeoMap(
@@ -458,7 +471,7 @@ void GeoMapView::focus() {
         nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT);
 }
 
-void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude) {
+void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
     if (geomap.manual_panning()) {
         geomap.set_dirty();
         return;
@@ -467,12 +480,14 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
     lat_ = lat;
     lon_ = lon;
     altitude_ = altitude;
+    speed_ = speed;
 
     // Stupid hack to avoid an event loop
     geopos.set_report_change(false);
     geopos.set_lat(lat_);
     geopos.set_lon(lon_);
     geopos.set_altitude(altitude_);
+    geopos.set_speed(speed_);
     geopos.set_report_change(true);
 
     geomap.set_angle(angle);
@@ -495,7 +510,7 @@ void GeoMapView::setup() {
         altitude_ = altitude;
         lat_ = lat;
         lon_ = lon;
-        geopos.hide_altitude();
+        geopos.hide_altandspeed();
         geomap.set_manual_panning(true);
         geomap.move(lon_, lat_);
         geomap.set_dirty();
@@ -527,6 +542,7 @@ GeoMapView::GeoMapView(
     const std::string& tag,
     int32_t altitude,
     GeoPos::alt_unit altitude_unit,
+    GeoPos::spd_unit speed_unit,
     float lat,
     float lon,
     uint16_t angle,
@@ -534,6 +550,7 @@ GeoMapView::GeoMapView(
     : nav_(nav),
       altitude_(altitude),
       altitude_unit_(altitude_unit),
+      speed_unit_(speed_unit),
       lat_(lat),
       lon_(lon),
       angle_(angle),
@@ -561,12 +578,14 @@ GeoMapView::GeoMapView(
     NavigationView& nav,
     int32_t altitude,
     GeoPos::alt_unit altitude_unit,
+    GeoPos::spd_unit speed_unit,
     float lat,
     float lon,
     const std::function<void(int32_t, float, float)> on_done)
     : nav_(nav),
       altitude_(altitude),
       altitude_unit_(altitude_unit),
+      speed_unit_(speed_unit),
       lat_(lat),
       lon_(lon) {
     mode_ = PROMPT;

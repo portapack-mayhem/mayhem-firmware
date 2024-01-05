@@ -62,19 +62,25 @@ class GeoPos : public View {
         FEET = 0,
         METERS
     };
+    enum spd_unit {
+        MPH = 0,
+        KMPH
+    };
 
     std::function<void(int32_t, float, float)> on_change{};
 
-    GeoPos(const Point pos, const alt_unit altitude_unit);
+    GeoPos(const Point pos, const alt_unit altitude_unit, const spd_unit speed_unit);
 
     void focus() override;
 
     void set_read_only(bool v);
     void set_altitude(int32_t altitude);
+    void set_speed(int32_t speed);
     void set_lat(float lat);
     void set_lon(float lon);
     int32_t altitude();
-    void hide_altitude();
+    int32_t speed();
+    void hide_altandspeed();
     float lat();
     float lon();
 
@@ -84,9 +90,11 @@ class GeoPos : public View {
     bool read_only{false};
     bool report_change{true};
     alt_unit altitude_unit_{};
+    spd_unit speed_unit_{};
 
     Labels labels_position{
         {{1 * 8, 0 * 16}, "Alt:", Color::light_grey()},
+        {{16 * 8, 0 * 16}, "Spd:", Color::light_grey()},
         {{1 * 8, 1 * 16}, "Lat:    \xB0  '  \"", Color::light_grey()},  // 0xB0 is degree ° symbol in our 8x16 font
         {{1 * 8, 2 * 16}, "Lon:    \xB0  '  \"", Color::light_grey()},
     };
@@ -97,8 +105,18 @@ class GeoPos : public View {
         {-1000, 50000},
         250,
         ' '};
+
+    NumberField field_speed{
+        {22 * 8, 0 * 16},
+        5,
+        {0, 5000},
+        1,
+        ' '};
     Text text_alt_unit{
         {12 * 8, 0 * 16, 2 * 8, 16},
+        ""};
+    Text text_speed_unit{
+        {26 * 8, 0 * 16, 2 * 8, 16},
         ""};
 
     NumberField field_lat_degrees{
@@ -224,6 +242,7 @@ class GeoMapView : public View {
         const std::string& tag,
         int32_t altitude,
         GeoPos::alt_unit altitude_unit,
+        GeoPos::spd_unit speed_unit,
         float lat,
         float lon,
         uint16_t angle,
@@ -231,6 +250,7 @@ class GeoMapView : public View {
     GeoMapView(NavigationView& nav,
                int32_t altitude,
                GeoPos::alt_unit altitude_unit,
+               GeoPos::spd_unit speed_unit,
                float lat,
                float lon,
                const std::function<void(int32_t, float, float)> on_done);
@@ -243,7 +263,7 @@ class GeoMapView : public View {
 
     void focus() override;
 
-    void update_position(float lat, float lon, uint16_t angle, int32_t altitude);
+    void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed);
 
     std::string title() const override { return "Map view"; };
 
@@ -260,7 +280,9 @@ class GeoMapView : public View {
     const std::function<void(int32_t, float, float)> on_done{};
     GeoMapMode mode_{};
     int32_t altitude_{};
+    int32_t speed_{};
     GeoPos::alt_unit altitude_unit_{};
+    GeoPos::spd_unit speed_unit_{};
     float lat_{};
     float lon_{};
     uint16_t angle_{};
@@ -270,7 +292,8 @@ class GeoMapView : public View {
 
     GeoPos geopos{
         {0, 0},
-        altitude_unit_};
+        altitude_unit_,
+        speed_unit_};
 
     GeoMap geomap{
         {0, GeoMap::banner_height, GeoMap::geomap_rect_width, GeoMap::geomap_rect_height}};
