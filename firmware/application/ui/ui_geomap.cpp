@@ -44,9 +44,11 @@ GeoPos::GeoPos(
     set_parent_rect({pos, {30 * 8, 3 * 16}});
 
     add_children({&labels_position,
+                  &label_spd_position,
                   &field_altitude,
                   &field_speed,
                   &text_alt_unit,
+                  &text_speed_unit,
                   &field_lat_degrees,
                   &field_lat_minutes,
                   &field_lat_seconds,
@@ -58,6 +60,7 @@ GeoPos::GeoPos(
 
     // Defaults
     set_altitude(0);
+    set_speed(0);
     set_lat(0);
     set_lon(0);
 
@@ -69,7 +72,7 @@ GeoPos::GeoPos(
         text_lon_decimal.set(to_string_decimal(lon_value, 5));
 
         if (on_change && report_change)
-            on_change(altitude(), lat_value, lon_value);
+            on_change(altitude(), lat_value, lon_value, speed());
     };
 
     field_altitude.on_change = changed_fn;
@@ -82,7 +85,12 @@ GeoPos::GeoPos(
     field_lon_seconds.on_change = changed_fn;
 
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
-    text_speed_unit.set(speed_unit_ ? "mph" : "kmph");
+    if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
+    if (speed_unit_ == MPH) text_speed_unit.set("mph");
+    if (speed_unit_ == HIDDEN) {
+        text_speed_unit.hidden();
+        label_spd_position.hidden();
+    }
 }
 
 void GeoPos::set_read_only(bool v) {
@@ -506,10 +514,11 @@ void GeoMapView::setup() {
     geopos.set_lat(lat_);
     geopos.set_lon(lon_);
 
-    geopos.on_change = [this](int32_t altitude, float lat, float lon) {
+    geopos.on_change = [this](int32_t altitude, float lat, float lon, int32_t speed) {
         altitude_ = altitude;
         lat_ = lat;
         lon_ = lon;
+        speed_ = speed;
         geopos.hide_altandspeed();
         geomap.set_manual_panning(true);
         geomap.move(lon_, lat_);
@@ -581,7 +590,7 @@ GeoMapView::GeoMapView(
     GeoPos::spd_unit speed_unit,
     float lat,
     float lon,
-    const std::function<void(int32_t, float, float)> on_done)
+    const std::function<void(int32_t, float, float, int32_t)> on_done)
     : nav_(nav),
       altitude_(altitude),
       altitude_unit_(altitude_unit),
@@ -604,7 +613,7 @@ GeoMapView::GeoMapView(
 
     button_ok.on_select = [this, on_done, &nav](Button&) {
         if (on_done)
-            on_done(altitude_, lat_, lon_);
+            on_done(altitude_, lat_, lon_, speed_);
         nav.pop();
     };
 }

@@ -266,6 +266,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
+            GeoPos::spd_unit::MPH,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
