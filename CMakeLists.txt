@@ -69,6 +69,8 @@ message("Building version: ${VERSION} MD5: ${VERSION_MD5}")
 
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
 set(HARDWARE_PATH ${CMAKE_CURRENT_LIST_DIR}/hardware)
+set(SD_TEMPLATE_PATH ${CMAKE_CURRENT_LIST_DIR}/sdcard)
+set(FLASHING_PATH ${CMAKE_CURRENT_LIST_DIR}/flashing)
 
 add_subdirectory(hackrf-portapack)
 

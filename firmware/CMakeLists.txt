@@ -105,6 +105,51 @@ add_custom_command(
 	# There shouldnt be any funny business in the filenames above :)
 )
 
+add_custom_target(
+	ppfw ALL
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
+	oci
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
+	sd_template
+	COMMAND rm -rf sdcard
+	COMMAND cp -av ${SD_TEMPLATE_PATH} ./
+)
+
+add_custom_command(
+	OUTPUT world_map.zip
+	COMMAND wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
+	VERBATIM
+)
+
+add_custom_target(
+	world_map
+	COMMAND unzip world_map.zip -d sdcard/ADSB
+	DEPENDS sd_template world_map.zip
+	VERBATIM
+)
+
+add_custom_command(
+	OUTPUT sdcard.zip
+	COMMAND mkdir -p sdcard/FIRMWARE
+	COMMAND cp ${FIRMWARE_FILENAME} sdcard/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
+	COMMAND mkdir -p sdcard/APPS
+	COMMAND cp application/*.ppma sdcard/APPS
+	COMMAND rm -f sdcard.zip
+	COMMAND cd sdcard && zip -r ../sdcard.zip *
+	DEPENDS firmware sd_template world_map
+)
+
+add_custom_target(
+	sdcard
+	DEPENDS sdcard.zip
+)
+
 # TODO: Bad hack to fix location of LICENSE file for tar.
 add_custom_command(
 	OUTPUT ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
@@ -122,16 +167,6 @@ add_custom_command(
 	COMMAND md5sum --binary ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip >MD5SUMS
 	COMMAND sha256sum --binary ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip >SHA256SUMS
 	DEPENDS ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
-)
-
-add_custom_target(
-	ppfw ALL
-	DEPENDS ${PPFW_FILENAME}
-)
-
-add_custom_target(
-	oci
-	DEPENDS ${PPFW_FILENAME}
 )
 
 add_custom_target(
