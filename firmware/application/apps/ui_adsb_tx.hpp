@@ -58,7 +58,8 @@ class ADSBPositionView : public OptionTabView {
    private:
     GeoPos geopos{
         {0, 2 * 16},
-        GeoPos::FEET};
+        GeoPos::FEET,
+        GeoPos::HIDDEN};
 
     Button button_set_map{
         {8 * 8, 6 * 16, 14 * 8, 2 * 16},

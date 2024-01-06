@@ -317,7 +317,7 @@ void APRSDetailsView::update() {
     }
 
     if (send_updates)
-        geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, 0, 0);
+        geomap_view->update_position(entry_copy.pos.latitude, entry_copy.pos.longitude, 0, 0, 0);
 }
 
 APRSDetailsView::~APRSDetailsView() {
@@ -339,6 +339,7 @@ APRSDetailsView::APRSDetailsView(
             entry_copy.source_formatted,
             0,  // entry_copy.pos.altitude,
             GeoPos::alt_unit::FEET,
+            GeoPos::spd_unit::HIDDEN,
             entry_copy.pos.latitude,
             entry_copy.pos.longitude,
             0, /*entry_copy.velo.heading,*/
