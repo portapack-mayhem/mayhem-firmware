@@ -59,30 +59,6 @@ static EventDispatcher* getEventDispatcherInstance() {
     return _eventDispatcherInstance;
 }
 
-struct AppInfoFS {
-    const char* appCallName;
-    const char* appFriendlyName;
-    const app_location_t appLocation;
-};
-
-AppInfoFS fixedAppList[] = {
-    {"adsbrx", "ADS-B", RX},
-    {"ais", "AIS Boats", RX},
-    {"aprs", "APRS", RX},
-    {"audio", "Audio", RX},
-    {"blerx", "BLE Rx", RX},
-    {"ert", "ERT Meter", RX},
-    {"level", "Level", RX},
-    {"pocsagrx", "POCSAG", RX},
-    {"radiosnde", "Radiosnde", RX},
-    {"recon", "Recon", RX},
-    {"search", "Search", RX},
-    {"tpms", "TPMS Cars", RX},
-    {"weather", "Weather", RX},
-    {"subghzd", "SubGhzD", RX},
-    {"adsbtx", "ADS-B", TX},  // TODO add more
-};
-
 // queue handler from ch
 static msg_t qwait(GenericQueue* qp, systime_t time) {
     if (TIME_IMMEDIATE == time)
@@ -882,12 +858,9 @@ static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    for (auto element : fixedAppList) {
-        if (std::strcmp(element.appCallName, argv[0]) == 0) {
-            // todo start app
-            chprintf(chp, "ok\r\n");
-            return;
-        }
+    if (nav->StartAppByName(argv[0])) {
+        chprintf(chp, "ok\r\n");
+        return;
     }
     // todo look for ext apps
     chprintf(chp, "error\r\n");
@@ -903,7 +876,7 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    for (auto element : fixedAppList) {
+    for (auto element : ui::NavigationView::fixedAppListFC) {
         if (strlen(element.appCallName) == 0) continue;
         chprintf(chp, element.appCallName);
         chprintf(chp, " ");

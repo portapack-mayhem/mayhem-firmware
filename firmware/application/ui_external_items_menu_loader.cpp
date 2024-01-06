@@ -47,7 +47,9 @@ namespace ui {
             bitmaps.push_back(std::move(dyn_bmp));
 
             gridItem.on_select = [&nav, app_location, filePath]() {
-                run_external_app(nav, filePath);
+                if (!run_external_app(nav, filePath)) {
+                    nav.display_modal("Error", "The .ppma file in your APPS\nfolder can't be read. Please\nupdate your SD Card content.");
+                }
             };
         } else {
             gridItem.color = Color::light_grey();
@@ -65,19 +67,19 @@ namespace ui {
     return external_apps;
 }
 
-/* static */ void ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
+/* static */ bool ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
     File app;
 
     auto openError = app.open(filePath);
     if (openError)
-        chDbgPanic("file gone");
+        return false;
 
     application_information_t application_information = {};
 
     auto readResult = app.read(&application_information, sizeof(application_information_t));
 
     if (!readResult)
-        chDbgPanic("no data");
+        return false;
 
     app.seek(0);
 
@@ -93,7 +95,7 @@ namespace ui {
 
             readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
             if (!readResult)
-                chDbgPanic("read error");
+                return false;
 
             if (readResult.value() < std::filesystem::max_file_block_size)
                 break;
@@ -114,7 +116,7 @@ namespace ui {
 
             readResult = app.read(target_memory, bytes_to_read);
             if (!readResult)
-                chDbgPanic("read error #2");
+                return false;
 
             if (readResult.value() != bytes_to_read)
                 break;
@@ -126,7 +128,7 @@ namespace ui {
 
             readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
             if (!readResult)
-                chDbgPanic("read error #3");
+                return false;
 
             if (readResult.value() < std::filesystem::max_file_block_size)
                 break;
@@ -134,6 +136,7 @@ namespace ui {
     }
 
     application_information.externalAppEntry(nav);
+    return true;
 }
 
 }  // namespace ui

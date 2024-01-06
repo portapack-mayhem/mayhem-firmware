@@ -54,11 +54,10 @@ class ExternalItemsMenuLoader {
    public:
     static std::vector<GridItem> load_external_items(app_location_t, NavigationView&);
     ExternalItemsMenuLoader() = delete;
+    static bool run_external_app(ui::NavigationView&, std::filesystem::path);
 
    private:
     static std::vector<DynamicBitmap<16, 16>> bitmaps;
-
-    static void run_external_app(ui::NavigationView&, std::filesystem::path);
 };
 
 }  // namespace ui
