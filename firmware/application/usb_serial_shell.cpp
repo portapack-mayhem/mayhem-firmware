@@ -591,9 +591,7 @@ static void cmd_rtcget(BaseSequentialStream* chp, int argc, char* argv[]) {
     rtc::RTC datetime;
     rtcGetTime(&RTCD1, &datetime);
 
-    chprintf(chp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\r\n",
-        datetime.year(), datetime.month(), datetime.day(),
-        datetime.hour(), datetime.minute(), datetime.second());
+    chprintf(chp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\r\n", datetime.year(), datetime.month(), datetime.day(), datetime.hour(), datetime.minute(), datetime.second());
 }
 
 static void cmd_rtcset(BaseSequentialStream* chp, int argc, char* argv[]) {
