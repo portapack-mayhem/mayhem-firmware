@@ -116,16 +116,8 @@ void set_direction(const rf::Direction new_direction) {
     /* TODO: Refactor all the various "Direction" enumerations into one. */
     /* TODO: Only make changes if direction changes, but beware of clock enabling. */
 
-    // Hack to fix the CPLD (clocking ?) bug: toggle CPLD SRAM overlay depending on new direction.
-    // Use CPLD's EEPROM config when transmitting
-    // Use the SRAM overlay when receiving
-    if (direction != new_direction) {
-        if (new_direction == rf::Direction::Transmit)
-            hackrf::cpld::init_from_eeprom();
-        else
-            // Prevents ghosting when switching back to RX from TX mode.
-            hackrf::cpld::load_sram_no_verify();
-    }
+    // Prevents ghosting when switching back to RX from TX mode.
+    hackrf::cpld::load_sram_no_verify();
 
     direction = new_direction;
 
