@@ -6,6 +6,44 @@ namespace ui {
 
 /* static */ std::vector<DynamicBitmap<16, 16>> ExternalItemsMenuLoader::bitmaps;
 
+// iterates over all ppma-s, and if it is runnable on the current system, it'll call the callback, and pass info.
+/* static */ void ExternalItemsMenuLoader::load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback) {
+    if (!callback) return;
+    if (sd_card::status() != sd_card::Status::Mounted)
+        return;
+    for (const auto& entry : std::filesystem::directory_iterator(u"APPS", u"*.ppma")) {
+        auto filePath = u"/APPS/" + entry.path();
+        File app;
+
+        auto openError = app.open(filePath);
+        if (openError)
+            continue;
+
+        application_information_t application_information = {};
+
+        auto readResult = app.read(&application_information, sizeof(application_information_t));
+        if (!readResult)
+            continue;
+
+        if (application_information.header_version != CURRENT_HEADER_VERSION)
+            continue;
+
+        bool versionMatches = VERSION_MD5 == application_information.app_version;
+        if (!versionMatches) continue;
+        // here the app is startable and good.
+        std::string appshortname = filePath.filename().string();
+        if (appshortname.size() >= 5 && appshortname.substr(appshortname.size() - 5) == ".ppma") {
+            // Remove the ".ppma" suffix
+            appshortname = appshortname.substr(0, appshortname.size() - 5);
+        }
+        AppInfoConsole info{
+            .appCallName = appshortname.c_str(),
+            .appFriendlyName = reinterpret_cast<char*>(&application_information.app_name[0]),
+            .appLocation = application_information.menu_location};
+        callback(info);
+    }
+}
+
 /* static */ std::vector<GridItem> ExternalItemsMenuLoader::load_external_items(app_location_t app_location, NavigationView& nav) {
     bitmaps.clear();
 
@@ -47,7 +85,9 @@ namespace ui {
             bitmaps.push_back(std::move(dyn_bmp));
 
             gridItem.on_select = [&nav, app_location, filePath]() {
-                run_external_app(nav, filePath);
+                if (!run_external_app(nav, filePath)) {
+                    nav.display_modal("Error", "The .ppma file in your APPS\nfolder can't be read. Please\nupdate your SD Card content.");
+                }
             };
         } else {
             gridItem.color = Color::light_grey();
@@ -65,19 +105,19 @@ namespace ui {
     return external_apps;
 }
 
-/* static */ void ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
+/* static */ bool ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
     File app;
 
     auto openError = app.open(filePath);
     if (openError)
-        chDbgPanic("file gone");
+        return false;
 
     application_information_t application_information = {};
 
     auto readResult = app.read(&application_information, sizeof(application_information_t));
 
     if (!readResult)
-        chDbgPanic("no data");
+        return false;
 
     app.seek(0);
 
@@ -93,7 +133,7 @@ namespace ui {
 
             readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
             if (!readResult)
-                chDbgPanic("read error");
+                return false;
 
             if (readResult.value() < std::filesystem::max_file_block_size)
                 break;
@@ -114,7 +154,7 @@ namespace ui {
 
             readResult = app.read(target_memory, bytes_to_read);
             if (!readResult)
-                chDbgPanic("read error #2");
+                return false;
 
             if (readResult.value() != bytes_to_read)
                 break;
@@ -126,7 +166,7 @@ namespace ui {
 
             readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
             if (!readResult)
-                chDbgPanic("read error #3");
+                return false;
 
             if (readResult.value() < std::filesystem::max_file_block_size)
                 break;
@@ -134,6 +174,7 @@ namespace ui {
     }
 
     application_information.externalAppEntry(nav);
+    return true;
 }
 
 }  // namespace ui

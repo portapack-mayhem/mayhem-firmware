@@ -40,8 +40,11 @@
 #include "ff.h"
 #include "chprintf.h"
 #include "chqueues.h"
+#include "ui_external_items_menu_loader.hpp"
 #include "untar.hpp"
 #include "ui_widget.hpp"
+
+#include "ui_navigation.hpp"
 
 #include <string>
 #include <codecvt>
@@ -843,6 +846,78 @@ static void cmd_accessibility_readcurr(BaseSequentialStream* chp, int argc, char
     chprintf(chp, "\r\nok\r\n");
 }
 
+static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    if (argc != 1) {
+        chprintf(chp, "Usage: appstart APPCALLNAME");
+        return;
+    }
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    if (nav->StartAppByName(argv[0])) {
+        chprintf(chp, "ok\r\n");
+        return;
+    }
+    // since ext app loader changed, we can just pass the string to it, and it"ll return if started or not.
+    std::string appwithpath = "/APPS/";
+    appwithpath += argv[0];
+    appwithpath += ".ppma";
+    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));
+    if (!ret) {
+        chprintf(chp, "error\r\n");
+        return;
+    }
+    chprintf(chp, "ok\r\n");
+}
+
+static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element) {
+    if (strlen(element.appCallName) == 0) return;
+    chprintf(chp, element.appCallName);
+    chprintf(chp, " ");
+    chprintf(chp, element.appFriendlyName);
+    chprintf(chp, " ");
+    switch (element.appLocation) {
+        case RX:
+            chprintf(chp, "[RX]\r\n");
+            break;
+        case TX:
+            chprintf(chp, "[TX]\r\n");
+            break;
+        case UTILITIES:
+            chprintf(chp, "[UTIL]\r\n");
+            break;
+        case DEBUG:
+            chprintf(chp, "[DEBUG]\r\n");
+            break;
+        default:
+            break;
+    }
+}
+
+// returns the installed apps, those can be called by appstart APPNAME
+static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argc;
+    (void)argv;
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    for (auto element : ui::NavigationView::fixedAppListFC) {
+        printAppInfo(chp, element);
+    }
+    ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
+        printAppInfo(chp, info);
+    });
+    chprintf(chp, "ok\r\n");
+}
+
 static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage =
         "usage: cpld_read <device> <target>\r\n"
@@ -1032,6 +1107,8 @@ static const ShellCommand commands[] = {
     {"cpld_read", cmd_cpld_read},
     {"accessibility_readall", cmd_accessibility_readall},
     {"accessibility_readcurr", cmd_accessibility_readcurr},
+    {"applist", cmd_applist},
+    {"appstart", cmd_appstart},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

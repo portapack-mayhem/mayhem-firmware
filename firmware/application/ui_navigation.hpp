@@ -40,7 +40,7 @@
 #include "diskio.h"
 #include "lfsr_random.hpp"
 #include "sd_card.hpp"
-
+#include "external_app.hpp"
 #include <vector>
 #include <utility>
 
@@ -55,6 +55,12 @@ enum modal_t {
     INFO = 0,
     YESNO,
     ABORT
+};
+
+struct AppInfoConsole {
+    const char* appCallName;
+    const char* appFriendlyName;
+    const app_location_t appLocation;
 };
 
 class NavigationView : public View {
@@ -99,6 +105,8 @@ class NavigationView : public View {
      * Returns true if the handler was bound successfully. */
     bool set_on_pop(std::function<void()> on_pop);
 
+    static std::vector<AppInfoConsole> fixedAppListFC;  // fixed app list for console. vector, so can be incomplete and still iterateable
+    bool StartAppByName(const char* name);              // Starts a View  (app) by name stored in fixedAppListFC. This is to start apps from console
    private:
     struct ViewState {
         std::unique_ptr<View> view;
@@ -320,6 +328,8 @@ class SystemView : public View {
     Context& context() const override;
     void toggle_overlay();
     void paint_overlay();
+
+    NavigationView* get_navigation_view();
 
    private:
     uint8_t overlay_active{0};
