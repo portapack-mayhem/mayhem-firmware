@@ -191,6 +191,7 @@ class IO {
     }
 
     uint32_t io_read() {
+        chSysLock();  // Dont interrupt time critical tasks
         io_stb_assert();
         dir_read();
         addr_0();
@@ -199,6 +200,7 @@ class IO {
         __asm__("nop");
         const auto switches_raw = data_read();
         io_stb_deassert();
+        chSysUnlock();
 
         return switches_raw;
     }
@@ -297,6 +299,7 @@ class IO {
     }
 
     void lcd_command(const uint32_t value) {
+        chSysLock();        // Dont interrupt time critical tasks
         data_write_high(0); /* Drive high byte (with zero -- don't care) */
         dir_write();        /* Turn around data bus, MCU->CPLD */
         addr(0);            /* Indicate command */
@@ -312,9 +315,11 @@ class IO {
         lcd_wr_deassert(); /* Complete write operation */
 
         addr(1); /* Set up for data phase (most likely after a command) */
+        chSysUnlock();
     }
 
     void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
+        chSysLock();  // Dont interrupt time critical tasks
         // NOTE: Assumes and DIR=0 and ADDR=1 from command phase.
         data_write_high(value); /* Drive high byte */
         __asm__("nop");
@@ -325,9 +330,11 @@ class IO {
         __asm__("nop");
         __asm__("nop");
         lcd_wr_deassert(); /* Complete write operation */
+        chSysUnlock();
     }
 
     uint32_t lcd_read_data() {
+        chSysLock();  // Dont interrupt time critical tasks
         // NOTE: Assumes ADDR=1 from command phase.
         dir_read();
 
@@ -345,10 +352,12 @@ class IO {
         halPolledDelay(18);  // 90ns
 
         const auto value_low = data_read();
+        chSysUnlock();
         return (value_high << 8) | value_low;
     }
 
     void io_write(const bool address, const uint_fast16_t value) {
+        chSysLock();  // Dont interrupt time critical tasks
         data_write_low(value);
         dir_write();
         addr(address);
@@ -360,6 +369,7 @@ class IO {
         __asm__("nop");
         __asm__("nop");
         io_stb_deassert();
+        chSysUnlock();
     }
     /*
         void lcd_data_write_command_and_data(
