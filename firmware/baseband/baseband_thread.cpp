@@ -95,6 +95,20 @@ void BasebandThread::run() {
             buffer_c8_t buffer{
                 buffer_tmp.p, buffer_tmp.count, sampling_rate_};
 
+            if (shared_memory.request_m4_performance_counter == 0x02) {
+                uint8_t max = shared_memory.m4_performance_counter;
+                for (size_t i = 0; i < buffer_tmp.count; i++) {
+                    int8_t a = buffer_tmp.p[i].real();
+                    if (a < 0)
+                        a = -a;
+
+                    if (a > max)
+                        max = a;
+                }
+
+                shared_memory.m4_performance_counter = max;
+            }
+
             if (baseband_processor_) {
                 baseband_processor_->execute(buffer);
             }
