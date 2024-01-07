@@ -11,7 +11,7 @@ WORKDIR /havoc/firmware
 
 # Fetch dependencies from APT
 RUN apt-get update \
- && apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 liblz4-tool curl ninja-build \
+ && apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 liblz4-tool curl ninja-build zip \
  && apt-get -qy autoremove \
  && rm -rf /var/lib/apt/lists/*
 
