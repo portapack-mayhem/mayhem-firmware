@@ -55,6 +55,7 @@ class ExternalItemsMenuLoader {
     static std::vector<GridItem> load_external_items(app_location_t, NavigationView&);
     ExternalItemsMenuLoader() = delete;
     static bool run_external_app(ui::NavigationView&, std::filesystem::path);
+    static void load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback);
 
    private:
     static std::vector<DynamicBitmap<16, 16>> bitmaps;

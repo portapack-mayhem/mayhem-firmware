@@ -40,10 +40,11 @@
 #include "ff.h"
 #include "chprintf.h"
 #include "chqueues.h"
+#include "ui_external_items_menu_loader.hpp"
 #include "untar.hpp"
 #include "ui_widget.hpp"
+
 #include "ui_navigation.hpp"
-#include "external_app.hpp"
 
 #include <string>
 #include <codecvt>
@@ -862,8 +863,40 @@ static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, "ok\r\n");
         return;
     }
-    // todo look for ext apps
-    chprintf(chp, "error\r\n");
+    // since ext app loader changed, we can just pass the string to it, and it"ll return if started or not.
+    std::string appwithpath = "/APPS/";
+    appwithpath += argv[0];
+    appwithpath += ".ppma";
+    bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));
+    if (!ret) {
+        chprintf(chp, "error\r\n");
+        return;
+    }
+    chprintf(chp, "ok\r\n");
+}
+
+static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element) {
+    if (strlen(element.appCallName) == 0) return;
+    chprintf(chp, element.appCallName);
+    chprintf(chp, " ");
+    chprintf(chp, element.appFriendlyName);
+    chprintf(chp, " ");
+    switch (element.appLocation) {
+        case RX:
+            chprintf(chp, "[RX]\r\n");
+            break;
+        case TX:
+            chprintf(chp, "[TX]\r\n");
+            break;
+        case UTILITIES:
+            chprintf(chp, "[UTIL]\r\n");
+            break;
+        case DEBUG:
+            chprintf(chp, "[DEBUG]\r\n");
+            break;
+        default:
+            break;
+    }
 }
 
 // returns the installed apps, those can be called by appstart APPNAME
@@ -877,30 +910,12 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
     for (auto element : ui::NavigationView::fixedAppListFC) {
-        if (strlen(element.appCallName) == 0) continue;
-        chprintf(chp, element.appCallName);
-        chprintf(chp, " ");
-        chprintf(chp, element.appFriendlyName);
-        chprintf(chp, " ");
-        switch (element.appLocation) {
-            case RX:
-                chprintf(chp, "[RX]\r\n");
-                break;
-            case TX:
-                chprintf(chp, "[TX]\r\n");
-                break;
-            case UTILITIES:
-                chprintf(chp, "[UTIL]\r\n");
-                break;
-            case DEBUG:
-                chprintf(chp, "[DEBUG]\r\n");
-                break;
-            default:
-                break;
-        }
+        printAppInfo(chp, element);
     }
-    // add ext apps //TODO
-    chprintf(chp, "\r\nok\r\n");
+    ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
+        printAppInfo(chp, info);
+    });
+    chprintf(chp, "ok\r\n");
 }
 
 static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
