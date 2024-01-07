@@ -850,21 +850,17 @@ class Playfield {
 
         else if (DEMO == 0 && choice[0] < 0x7FFF && s->who == PACMAN && dir == MUp) {
             dir = MUp;
-            s -> lastDir = MUp;
-        }
-        else if (DEMO == 0 && choice[1] < 0x7FFF && s->who == PACMAN && dir == MLeft) {
+            s->lastDir = MUp;
+        } else if (DEMO == 0 && choice[1] < 0x7FFF && s->who == PACMAN && dir == MLeft) {
             dir = MLeft;
-            s -> lastDir = MLeft;
-        }
-        else if (DEMO == 0 && choice[2] < 0x7FFF && s->who == PACMAN && dir == MDown) {
+            s->lastDir = MLeft;
+        } else if (DEMO == 0 && choice[2] < 0x7FFF && s->who == PACMAN && dir == MDown) {
             dir = MDown;
-            s -> lastDir = MDown;
-        }
-        else if (DEMO == 0 && choice[3] < 0x7FFF && s->who == PACMAN && dir == MRight) {
+            s->lastDir = MDown;
+        } else if (DEMO == 0 && choice[3] < 0x7FFF && s->who == PACMAN && dir == MRight) {
             dir = MRight;
-            s -> lastDir = MRight;
-        }
-        else if ((DEMO == 0 && s->who != PACMAN) || DEMO == 1) {
+            s->lastDir = MRight;
+        } else if ((DEMO == 0 && s->who != PACMAN) || DEMO == 1) {
             // Don't choose opposite of current direction?
 
             int16_t dist = choice[4 - dir];  // favor current direction
