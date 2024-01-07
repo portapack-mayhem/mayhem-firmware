@@ -122,27 +122,28 @@ add_custom_target(
 )
 
 add_custom_command(
-	OUTPUT world_map.zip
-	COMMAND wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
-	VERBATIM
-)
-
-add_custom_target(
-	world_map
-	COMMAND unzip world_map.zip -d sdcard/ADSB
-	DEPENDS sd_template world_map.zip
-	VERBATIM
-)
-
-add_custom_command(
-	OUTPUT sdcard.zip
+	OUTPUT sdcard-no-map.zip
 	COMMAND mkdir -p sdcard/FIRMWARE
 	COMMAND cp ${FIRMWARE_FILENAME} sdcard/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
 	COMMAND mkdir -p sdcard/APPS
 	COMMAND cp application/*.ppma sdcard/APPS
+	COMMAND rm -f sdcard-no-map.zip
+	COMMAND cd sdcard && zip -r ../sdcard-no-map.zip *
+	DEPENDS firmware sd_template
+)
+
+add_custom_target(
+	sdcard-no-map
+	DEPENDS sdcard-no-map.zip
+)
+
+add_custom_command(
+	OUTPUT sdcard.zip
+	COMMAND wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
+	COMMAND unzip world_map.zip -d sdcard/ADSB
 	COMMAND rm -f sdcard.zip
 	COMMAND cd sdcard && zip -r ../sdcard.zip *
-	DEPENDS firmware sd_template world_map
+	DEPENDS sdcard-no-map
 )
 
 add_custom_target(
