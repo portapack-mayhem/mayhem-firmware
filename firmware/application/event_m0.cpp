@@ -113,7 +113,6 @@ void EventDispatcher::run() {
     while (is_running) {
         const auto events = wait();
         dispatch(events);
-        portapack::usb_serial.dispatch();
     }
 }
 
@@ -161,6 +160,10 @@ void EventDispatcher::dispatch(const eventmask_t events) {
 
     if (events & EVT_MASK_RTC_TICK) {
         handle_rtc_tick();
+    }
+
+    if (events & EVT_MASK_USB) {
+        handle_usb();
     }
 
     if (events & EVT_MASK_SWITCHES) {
@@ -214,6 +217,10 @@ void EventDispatcher::handle_rtc_tick() {
     rtc_time::on_tick_second();
 
     portapack::persistent_memory::cache::persist();
+}
+
+void EventDispatcher::handle_usb() {
+    portapack::usb_serial.dispatch();
 }
 
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {
