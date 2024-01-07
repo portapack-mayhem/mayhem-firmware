@@ -264,7 +264,7 @@ uint8_t usb_descriptor_string_manufacturer[] = {
  };
 
  uint8_t usb_descriptor_string_product[] = {
- 	43,                         // bLength
+ 	34,                         // bLength
  	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
  	'P', 0x00,
  	'o', 0x00,
