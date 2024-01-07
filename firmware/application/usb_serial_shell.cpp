@@ -1040,5 +1040,5 @@ static const ShellConfig shell_cfg1 = {
 
 void create_shell(EventDispatcher* evtd) {
     _eventDispatcherInstance = evtd;
-    shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO);
+    shellCreate(&shell_cfg1, SHELL_WA_SIZE, NORMALPRIO + 10);
 }

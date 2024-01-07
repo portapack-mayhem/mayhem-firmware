@@ -45,6 +45,7 @@ constexpr auto EVT_MASK_ENCODER = EVENT_MASK(4);
 constexpr auto EVT_MASK_TOUCH = EVENT_MASK(5);
 constexpr auto EVT_MASK_APPLICATION = EVENT_MASK(6);
 constexpr auto EVT_MASK_LOCAL = EVENT_MASK(7);
+constexpr auto EVT_MASK_USB = EVENT_MASK(8);
 
 class EventDispatcher {
    public:
@@ -111,6 +112,7 @@ class EventDispatcher {
     void handle_application_queue();
     void handle_local_queue();
     void handle_rtc_tick();
+    void handle_usb();
 
     static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event);
 
