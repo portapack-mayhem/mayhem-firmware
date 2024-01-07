@@ -35,22 +35,7 @@ jobs:
       - name: Make build folder
         run: mkdir ${{ github.workspace }}/build
       - name: Run the Docker image
-        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev
-      - name: Create Small SD Card ZIP - No World Map
-        run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
-      - name: Download world map
-        run: |
-          wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
-      - name: Unzip world map
-        run: |
-          unzip world_map.zip -d sdcard/ADSB
-      - name: Create Firmware ZIP
-        run: |
-          zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
-      - name: Create SD Card ZIP
-        run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cd sdcard && zip -r ../sdcard.zip . && cd ..
+        run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev make release
       - name: Create changelog
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -104,7 +89,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./firmware.zip
+          asset_path: build/firmware/firmware.zip
           asset_name: mayhem_${{ steps.version.outputs.version }}_FIRMWARE.zip
           asset_content_type: application/zip
       - name: Upload SD Card Assets
@@ -114,7 +99,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sdcard.zip
+          asset_path: build/firmware/sdcard.zip
           asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD.zip
           asset_content_type: application/zip
       - name: Upload SD Card Assets - No Map
@@ -124,7 +109,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./sdcard-no-map.zip
+          asset_path: build/firmware/sdcard-no-map.zip
           asset_name: mayhem_${{ steps.version.outputs.version }}_COPY_TO_SDCARD-no-world-map.zip
           asset_content_type: application/zip
      

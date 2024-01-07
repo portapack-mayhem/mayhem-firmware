@@ -91,6 +91,18 @@ add_custom_target(
 )
 
 add_custom_command(
+	OUTPUT firmware.zip
+	COMMAND zip -j firmware.zip ${FIRMWARE_FILENAME}
+	COMMAND cd ${FLASHING_PATH} && zip -r ${CMAKE_CURRENT_BINARY_DIR}/firmware.zip *
+	DEPENDS firmware
+)
+
+add_custom_target(
+	firmware_zip
+	DEPENDS firmware.zip
+)
+
+add_custom_command(
 	OUTPUT ${PPFW_FILENAME}
 	
 	COMMAND rm -rf firmware_tar
@@ -151,27 +163,8 @@ add_custom_target(
 	DEPENDS sdcard.zip
 )
 
-# TODO: Bad hack to fix location of LICENSE file for tar.
-add_custom_command(
-	OUTPUT ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
-	COMMAND cp ${LICENSE_PATH} LICENSE
-	COMMAND cp ${HACKRF_FIRMWARE_DFU_IMAGE} ${HACKRF_FIRMWARE_DFU_FILENAME}
-	COMMAND tar -c -j -f ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} LICENSE
-	COMMAND zip -9 -q ${FIRMWARE_NAME}-${VERSION}.zip ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME} LICENSE
-	COMMAND rm -f LICENSE ${HACKRF_FIRMWARE_DFU_FILENAME}
-	DEPENDS ${FIRMWARE_FILENAME} ${LICENSE_PATH} ${HACKRF_FIRMWARE_DFU_FILENAME}
-	VERBATIM
-)
-
-add_custom_command(
-	OUTPUT MD5SUMS SHA256SUMS
-	COMMAND md5sum --binary ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip >MD5SUMS
-	COMMAND sha256sum --binary ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip >SHA256SUMS
-	DEPENDS ${FIRMWARE_NAME}-${VERSION}.tar.bz2 ${FIRMWARE_NAME}-${VERSION}.zip
-)
-
 add_custom_target(
 	release
-	DEPENDS MD5SUMS SHA256SUMS
+	DEPENDS firmware_zip ppfw sdcard
 )
 
