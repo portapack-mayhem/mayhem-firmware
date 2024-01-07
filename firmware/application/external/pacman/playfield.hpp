@@ -205,11 +205,13 @@ class Sprite {
     byte who;
     byte _speed;
     byte dir;
+    byte lastDir;
     byte phase;
 
     // Sprite bits
     byte palette2;  // 4->16 color map index
     byte bits;      // index of sprite bits
+
     signed char sy;
 
     void Init(const byte* s) {
@@ -274,9 +276,17 @@ class Sprite {
             f = pgm_read_byte(_pacLeftAnim + f);
         else if (dir == MRight)
             f = pgm_read_byte(_pacRightAnim + f);
-        else
+        else if (dir == MDown || dir == MUp)
             f = pgm_read_byte(_pacVAnim + f);
-        if (dir == MUp)
+        else if (dir == MStopped) {
+            if (lastDir == MLeft)
+                f = pgm_read_byte(_pacLeftAnim + f);
+            else if (lastDir == MRight)
+                f = pgm_read_byte(_pacRightAnim + f);
+            else if (lastDir == MDown || lastDir == MUp)
+                f = pgm_read_byte(_pacVAnim + f);
+        }
+        if ((dir == MUp) || (dir == MStopped && lastDir == MUp))
             sy = -1;
         bits = f + PACMANSPRITE;
     }
@@ -838,15 +848,19 @@ class Playfield {
         else if (DEMO == 0 && s->who == PACMAN && choice[3] < 0x7FFF && but_RIGHT)
             dir = MRight;
 
-        else if (DEMO == 0 && choice[0] < 0x7FFF && s->who == PACMAN && dir == MUp)
+        else if (DEMO == 0 && choice[0] < 0x7FFF && s->who == PACMAN && dir == MUp) {
             dir = MUp;
-        else if (DEMO == 0 && choice[1] < 0x7FFF && s->who == PACMAN && dir == MLeft)
+            s->lastDir = MUp;
+        } else if (DEMO == 0 && choice[1] < 0x7FFF && s->who == PACMAN && dir == MLeft) {
             dir = MLeft;
-        else if (DEMO == 0 && choice[2] < 0x7FFF && s->who == PACMAN && dir == MDown)
+            s->lastDir = MLeft;
+        } else if (DEMO == 0 && choice[2] < 0x7FFF && s->who == PACMAN && dir == MDown) {
             dir = MDown;
-        else if (DEMO == 0 && choice[3] < 0x7FFF && s->who == PACMAN && dir == MRight)
+            s->lastDir = MDown;
+        } else if (DEMO == 0 && choice[3] < 0x7FFF && s->who == PACMAN && dir == MRight) {
             dir = MRight;
-        else if ((DEMO == 0 && s->who != PACMAN) || DEMO == 1) {
+            s->lastDir = MRight;
+        } else if ((DEMO == 0 && s->who != PACMAN) || DEMO == 1) {
             // Don't choose opposite of current direction?
 
             int16_t dist = choice[4 - dir];  // favor current direction
