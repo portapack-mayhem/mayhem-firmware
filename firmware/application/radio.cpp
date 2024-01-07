@@ -116,6 +116,7 @@ void set_direction(const rf::Direction new_direction) {
     /* TODO: Refactor all the various "Direction" enumerations into one. */
     /* TODO: Only make changes if direction changes, but beware of clock enabling. */
 
+    // Prevents ghosting when switching back to RX from TX mode.
     hackrf::cpld::load_sram_no_verify();
 
     direction = new_direction;
