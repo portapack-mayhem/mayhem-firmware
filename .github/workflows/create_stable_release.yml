@@ -32,8 +32,6 @@ jobs:
         run: echo "::set-output name=past_version::$(cat .github/workflows/past_version.txt)"
       - name: Build the Docker image
         run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
-      - name: Make build folder
-        run: mkdir ${{ github.workspace }}/build
       - name: Run the Docker image
         run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev make release
       - name: Create changelog
