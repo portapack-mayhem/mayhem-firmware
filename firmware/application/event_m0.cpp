@@ -150,6 +150,8 @@ void EventDispatcher::dispatch(const eventmask_t events) {
                 *(uint32_t*)&shared_memory.bb_data.data[4]);
     }
 
+    handle_shell();
+
     if (events & EVT_MASK_APPLICATION) {
         handle_application_queue();
     }
@@ -223,6 +225,26 @@ void EventDispatcher::handle_usb() {
     portapack::usb_serial.dispatch();
 }
 
+void EventDispatcher::handle_shell() {
+    if (waiting_for_shellmode) {
+        waiting_for_shellmode = false;
+        shellmode_active = true;
+        while (shellmode_active) {
+            chThdSleepMilliseconds(5);
+        }
+    }
+
+    if (injected_touch_event != nullptr) {
+        on_touch_event(*injected_touch_event);
+        injected_touch_event = nullptr;
+    }
+
+    if (injected_keyboard_event != nullptr) {
+        on_keyboard_event(*injected_keyboard_event);
+        injected_keyboard_event = nullptr;
+    }
+}
+
 ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent event) {
     if (!w->hidden()) {
         // To achieve reverse depth ordering (last object drawn is
@@ -246,11 +268,17 @@ ui::Widget* EventDispatcher::touch_widget(ui::Widget* const w, ui::TouchEvent ev
 }
 
 void EventDispatcher::emulateTouch(ui::TouchEvent event) {
-    on_touch_event(event);
+    injected_touch_event = &event;
+    while (injected_touch_event != nullptr) {
+        chThdSleepMilliseconds(5);
+    }
 }
 
 void EventDispatcher::emulateKeyboard(ui::KeyboardEvent event) {
-    on_keyboard_event(event);
+    injected_keyboard_event = &event;
+    while (injected_keyboard_event != nullptr) {
+        chThdSleepMilliseconds(5);
+    }
 }
 
 void EventDispatcher::on_keyboard_event(ui::KeyboardEvent event) {
@@ -290,6 +318,8 @@ ui::Widget* EventDispatcher::getFocusedWidget() {
 }
 
 void EventDispatcher::handle_lcd_frame_sync() {
+    bool waiting_for_frame = this->waiting_for_frame;
+
     DisplayFrameSyncMessage message;
     message_map.send(&message);
 
@@ -297,6 +327,28 @@ void EventDispatcher::handle_lcd_frame_sync() {
     painter.paint_widget_tree(top_widget);
 
     portapack::backlight()->on();
+
+    if (waiting_for_frame)
+        this->waiting_for_frame = false;
+}
+
+void EventDispatcher::wait_finish_frame() {
+    waiting_for_frame = true;
+    while (waiting_for_frame) {
+        chThdSleepMilliseconds(5);
+    }
+}
+
+void EventDispatcher::enter_shell_working_mode() {
+    waiting_for_shellmode = true;
+
+    while (waiting_for_shellmode) {
+        chThdSleepMilliseconds(5);
+    }
+}
+
+void EventDispatcher::exit_shell_working_mode() {
+    shellmode_active = false;
 }
 
 void EventDispatcher::handle_switches() {

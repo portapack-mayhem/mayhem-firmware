@@ -245,6 +245,9 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
+    auto evtd = getEventDispatcherInstance();
+    evtd->enter_shell_working_mode();
+
     for (int i = 0; i < ui::screen_height; i++) {
         std::array<ui::ColorRGB888, ui::screen_width> row;
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
@@ -255,6 +258,9 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
         }
         chprintf(chp, "\r\n");
     }
+
+    evtd->exit_shell_working_mode();
+
     chprintf(chp, "ok\r\n");
 }
 
@@ -272,6 +278,9 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
     (void)argc;
     (void)argv;
 
+    auto evtd = getEventDispatcherInstance();
+    evtd->enter_shell_working_mode();
+
     for (int y = 0; y < ui::screen_height; y++) {
         std::array<ui::ColorRGB888, ui::screen_width> row;
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
@@ -285,8 +294,10 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
         chprintf(chp, "\r\n");
     }
 
+    evtd->exit_shell_working_mode();
     chprintf(chp, "ok\r\n");
 }
+
 static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 2) {
         chprintf(chp, "usage: write_memory <address> <value (1 or 4 bytes)>\r\n");
@@ -341,6 +352,11 @@ static void cmd_button(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     control::debug::inject_switch(button);
 
+    // Wait two frame syncs to ensure action has painted
+    auto evtd = getEventDispatcherInstance();
+    evtd->wait_finish_frame();
+    evtd->wait_finish_frame();
+
     chprintf(chp, "ok\r\n");
 }
 
@@ -363,6 +379,11 @@ static void cmd_touch(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
     evtd->emulateTouch({{x, y}, ui::TouchEvent::Type::Start});
     evtd->emulateTouch({{x, y}, ui::TouchEvent::Type::End});
+
+    // Wait two frame syncs to ensure action has painted
+    evtd->wait_finish_frame();
+    evtd->wait_finish_frame();
+
     chprintf(chp, "ok\r\n");
 }
 
@@ -400,6 +421,10 @@ static void cmd_keyboard(BaseSequentialStream* chp, int argc, char* argv[]) {
         uint8_t chr = (uint8_t)strtol(buffer, NULL, 16);
         evtd->emulateKeyboard(chr);
     }
+
+    // Wait two frame syncs to ensure action has painted
+    evtd->wait_finish_frame();
+    evtd->wait_finish_frame();
 
     chprintf(chp, "ok\r\n");
 }
