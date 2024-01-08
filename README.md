@@ -1,5 +1,5 @@
 > [!IMPORTANT]  
-> *Shortly*, this repository **will be moved** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem/portapack-mayhem](https://github.com/portapack-mayhem/portapack-mayhem). Please keep this in mind to **update your links** accordingly.
+> *Shortly*, this repository **will be moved** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem](https://github.com/portapack-mayhem/). Please keep this in mind to **update your links** accordingly.
 
 # PortaPack Mayhem
 
