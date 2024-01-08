@@ -29,11 +29,15 @@
 #include "file.hpp"
 
 void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]);
-void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_unlink(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_mkdir(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_truncate(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_sync(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_tell(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]);
 
@@ -41,3 +45,19 @@ static std::filesystem::path path_from_string8(char* path) {
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
     return conv.from_bytes(path);
 }
+
+// clang-format off
+#define USB_SERIAL_SHELL_SD_COMMANDS   \
+    {"ls", cmd_sd_list_dir},           \
+    {"unlink", cmd_sd_unlink},         \
+    {"mkdir", cmd_sd_mkdir},           \
+    {"filesize", cmd_sd_filesize},     \
+    {"fopen", cmd_sd_open},            \
+    {"fseek", cmd_sd_seek},            \
+    {"fclose", cmd_sd_close},          \
+    {"ftruncate", cmd_sd_truncate},    \
+    {"fsync", cmd_sd_sync},            \
+    {"ftell", cmd_sd_tell},            \
+    {"fread", cmd_sd_read},            \
+    {"fwrite", cmd_sd_write}
+// clang-format on

@@ -26,6 +26,37 @@
 #include "string_format.hpp"
 #include <cstring>
 
+static File* shell_file = nullptr;
+
+static bool report_on_error(BaseSequentialStream* chp, File::Error& error) {
+    if (error.ok() == false) {
+        chprintf(chp, "Error calling delete_file: %d %s\r\n", error.code(), error.what().c_str());
+        return true;
+    }
+
+    return false;
+}
+
+static bool report_on_error(BaseSequentialStream* chp, FRESULT error_code) {
+    std::filesystem::filesystem_error error = error_code;
+    return report_on_error(chp, error);
+}
+
+static bool report_on_error(BaseSequentialStream* chp, Optional<File::Error>& error) {
+    if (error.is_valid())
+        return report_on_error(chp, error.value());
+
+    return false;
+}
+
+static bool report_on_error(BaseSequentialStream* chp, File::Result<uint64_t> error) {
+    if (error.is_error()) {
+        return report_on_error(chp, error.error());
+    }
+
+    return false;
+}
+
 void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
         chprintf(chp, "usage: ls /\r\n");
@@ -45,25 +76,37 @@ void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 }
 
-void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
+void cmd_sd_unlink(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
-        chprintf(chp, "usage: rm <path>\r\n");
+        chprintf(chp, "usage: unlink <path>\r\n");
+        return;
+    }
+
+    auto path = path_from_string8(argv[0]);
+    auto error = delete_file(path);
+    if (report_on_error(chp, error)) return;
+
+    chprintf(chp, "ok\r\n");
+}
+
+void cmd_sd_mkdir(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: mkdir <path>\r\n");
         return;
     }
 
     auto path = path_from_string8(argv[0]);
 
-    if (!std::filesystem::file_exists(path)) {
-        chprintf(chp, "file not found.\r\n");
+    if (!std::filesystem::is_directory(path)) {
+        chprintf(chp, "directory already exists.\r\n");
         return;
     }
 
-    delete_file(path);
+    auto error = make_new_directory(path);
+    if (report_on_error(chp, error)) return;
 
     chprintf(chp, "ok\r\n");
 }
-
-static File* shell_file = nullptr;
 
 void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
@@ -73,17 +116,15 @@ void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
     auto path = path_from_string8(argv[0]);
     FILINFO res;
     auto stat = f_stat(path.tchar(), &res);
-    if (stat == FR_OK) {
-        chprintf(chp, "%lu\r\n", res.fsize);
-        chprintf(chp, "ok\r\n");
-    } else {
-        chprintf(chp, "error\r\n");
-    }
+    if (report_on_error(chp, stat)) return;
+
+    chprintf(chp, "%lu\r\n", res.fsize);
+    chprintf(chp, "ok\r\n");
 }
 
 void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
-        chprintf(chp, "usage: open <path>\r\n");
+        chprintf(chp, "usage: fopen <path>\r\n");
         return;
     }
 
@@ -94,14 +135,15 @@ void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     auto path = path_from_string8(argv[0]);
     shell_file = new File();
-    shell_file->open(path, false, true);
+    auto error = shell_file->open(path, false, true);
+    if (report_on_error(chp, error)) return;
 
     chprintf(chp, "ok\r\n");
 }
 
 void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
-        chprintf(chp, "usage: seek <offset>\r\n");
+        chprintf(chp, "usage: fseek <offset>\r\n");
         return;
     }
 
@@ -111,7 +153,8 @@ void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 
     int address = (int)strtol(argv[0], NULL, 10);
-    shell_file->seek(address);
+    auto error = shell_file->seek(address);
+    if (report_on_error(chp, error)) return;
 
     chprintf(chp, "ok\r\n");
 }
@@ -120,7 +163,7 @@ void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
 
     if (argc != 0) {
-        chprintf(chp, "usage: close\r\n");
+        chprintf(chp, "usage: fclose\r\n");
         return;
     }
 
@@ -135,9 +178,66 @@ void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+void cmd_sd_truncate(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argv;
+
+    if (argc != 0) {
+        chprintf(chp, "usage: ftruncate\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    auto error = shell_file->truncate();
+    if (report_on_error(chp, error)) return;
+
+    chprintf(chp, "ok\r\n");
+}
+
+void cmd_sd_sync(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argv;
+
+    if (argc != 0) {
+        chprintf(chp, "usage: fsync\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    auto error = shell_file->sync();
+    if (report_on_error(chp, error)) return;
+
+    chprintf(chp, "ok\r\n");
+}
+
+void cmd_sd_tell(BaseSequentialStream* chp, int argc, char* argv[]) {
+    (void)argv;
+
+    if (argc != 0) {
+        chprintf(chp, "usage: ftell\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    auto current_position = shell_file->tell();
+
+    chprintf(chp, "%d\r\n", current_position);
+    chprintf(chp, "ok\r\n");
+}
+
 void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc != 1) {
-        chprintf(chp, "usage: read <number of bytes>\r\n");
+        chprintf(chp, "usage: fread <number of bytes>\r\n");
         return;
     }
 
@@ -153,10 +253,8 @@ void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     do {
         File::Size bytes_to_read = size > 62 ? 62 : size;
         auto bytes_read = shell_file->read(buffer, bytes_to_read);
-        if (bytes_read.is_error()) {
-            chprintf(chp, "error %d\r\n", bytes_read.error());
-            return;
-        }
+        if (report_on_error(chp, bytes_read)) return;
+
         std::string res = to_string_hex_array(buffer, bytes_read.value());
         res += "\r\n";
         fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)res.c_str(), res.size());
@@ -169,7 +267,7 @@ void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: write 0123456789ABCDEF\r\n";
+    const char* usage = "usage: fwrite 0123456789ABCDEF\r\n";
     if (argc != 1) {
         chprintf(chp, usage);
         return;
@@ -200,7 +298,8 @@ void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
         buffer[0] = argv[0][i * 2];
         buffer[1] = argv[0][i * 2 + 1];
         uint8_t value = (uint8_t)strtol(buffer, NULL, 16);
-        shell_file->write(&value, 1);
+        auto error = shell_file->write(&value, 1);
+        if (report_on_error(chp, error)) return;
     }
 
     chprintf(chp, "ok\r\n");
