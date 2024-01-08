@@ -39,7 +39,9 @@ void cmd_sd_truncate(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_sync(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_tell(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_read_binary(BaseSequentialStream* chp, int argc, char* argv[]);
 void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]);
 
 static std::filesystem::path path_from_string8(char* path) {
     std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
@@ -59,5 +61,7 @@ static std::filesystem::path path_from_string8(char* path) {
     {"fsync", cmd_sd_sync},            \
     {"ftell", cmd_sd_tell},            \
     {"fread", cmd_sd_read},            \
-    {"fwrite", cmd_sd_write}
+    {"frb", cmd_sd_read_binary},       \
+    {"fread", cmd_sd_write},           \
+    {"fwb", cmd_sd_write_binary}
 // clang-format on

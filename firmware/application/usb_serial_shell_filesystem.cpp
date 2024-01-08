@@ -266,6 +266,37 @@ void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+void cmd_sd_read_binary(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: frb <number of bytes>\r\n");
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    int size = (int)strtol(argv[0], NULL, 10);
+
+    uint8_t buffer[64];
+
+    do {
+        File::Size bytes_to_read = size > 64 ? 64 : size;
+        auto bytes_read = shell_file->read(buffer, bytes_to_read);
+        if (report_on_error(chp, bytes_read)) return;
+
+        if (bytes_read.value() > 0)
+            fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, buffer, bytes_read.value());
+
+        if (bytes_to_read != bytes_read.value())
+            return;
+
+        size -= bytes_to_read;
+    } while (size > 0);
+    chprintf(chp, "\r\nok\r\n");
+}
+
 void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
     const char* usage = "usage: fwrite 0123456789ABCDEF\r\n";
     if (argc != 1) {
@@ -299,6 +330,35 @@ void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
         buffer[1] = argv[0][i * 2 + 1];
         uint8_t value = (uint8_t)strtol(buffer, NULL, 16);
         auto error = shell_file->write(&value, 1);
+        if (report_on_error(chp, error)) return;
+    }
+
+    chprintf(chp, "ok\r\n");
+}
+
+void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: fwb <number of bytes>\r\nfollowed by <number of bytes> of data";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+
+    if (shell_file == nullptr) {
+        chprintf(chp, "no open file\r\n");
+        return;
+    }
+
+    long size = (int)strtol(argv[0], NULL, 10);
+
+    chprintf(chp, "send %d bytes\r\n", size);
+
+    uint8_t buffer;
+
+    for (long i = 0; i < size; i++) {
+        if (chSequentialStreamRead(chp, &buffer, 1) == 0)
+            return;
+
+        auto error = shell_file->write(&buffer, 1);
         if (report_on_error(chp, error)) return;
     }
 
