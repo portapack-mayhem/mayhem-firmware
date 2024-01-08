@@ -203,6 +203,7 @@ set(CPPSRC
 	metadata_file.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
+	usb_serial_shell_filesystem.cpp
 	usb_serial_event.cpp
 	usb_serial_thread.cpp
 	usb_serial.cpp

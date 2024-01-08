@@ -37,7 +37,6 @@
 #include "hackrf_cpld_data.hpp"
 
 #include "usb_serial_io.h"
-#include "ff.h"
 #include "chprintf.h"
 #include "chqueues.h"
 #include "ui_external_items_menu_loader.hpp"
@@ -45,11 +44,10 @@
 #include "ui_widget.hpp"
 
 #include "ui_navigation.hpp"
+#include "usb_serial_shell_filesystem.hpp"
 
 #include <string>
-#include <codecvt>
 #include <cstring>
-#include <locale>
 #include <libopencm3/lpc43xx/wwdt.h>
 
 #define SHELL_WA_SIZE THD_WA_SIZE(1024 * 3)
@@ -58,45 +56,6 @@
 static EventDispatcher* _eventDispatcherInstance = NULL;
 static EventDispatcher* getEventDispatcherInstance() {
     return _eventDispatcherInstance;
-}
-
-// queue handler from ch
-static msg_t qwait(GenericQueue* qp, systime_t time) {
-    if (TIME_IMMEDIATE == time)
-        return Q_TIMEOUT;
-    currp->p_u.wtobjp = qp;
-    queue_insert(currp, &qp->q_waiting);
-    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
-}
-
-// This function fills the output buffer, and sends all data in 1 packet
-static size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n) {
-    qnotify_t nfy = oqp->q_notify;
-    size_t w = 0;
-
-    chDbgCheck(n > 0, "chOQWriteTimeout");
-    chSysLock();
-    while (TRUE) {
-        while (chOQIsFullI(oqp)) {
-            if (qwait((GenericQueue*)oqp, TIME_INFINITE) != Q_OK) {
-                chSysUnlock();
-                return w;
-            }
-        }
-        while (!chOQIsFullI(oqp) && n > 0) {
-            oqp->q_counter--;
-            *oqp->q_wrptr++ = *bp++;
-            if (oqp->q_wrptr >= oqp->q_top)
-                oqp->q_wrptr = oqp->q_buffer;
-            w++;
-            --n;
-        }
-        if (nfy) nfy(oqp);
-
-        chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
-        if (n == 0) return w;
-        chSysLock();
-    }
 }
 
 static void cmd_reboot(BaseSequentialStream* chp, int argc, char* argv[]) {
@@ -159,11 +118,6 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     portapack::shutdown(true);
     m4_init(portapack::spi_flash::image_tag_usb_sd, portapack::memory::map::m4_code, false);
     m0_halt();
-}
-
-std::filesystem::path path_from_string8(char* path) {
-    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
-    return conv.from_bytes(path);
 }
 
 bool strEndsWith(const std::u16string& str, const std::u16string& suffix) {
@@ -428,186 +382,6 @@ static void cmd_keyboard(BaseSequentialStream* chp, int argc, char* argv[]) {
     // Wait two frame syncs to ensure action has painted
     evtd->wait_finish_frame();
     evtd->wait_finish_frame();
-
-    chprintf(chp, "ok\r\n");
-}
-
-static void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
-        chprintf(chp, "usage: ls /\r\n");
-        return;
-    }
-
-    auto path = path_from_string8(argv[0]);
-
-    for (const auto& entry : std::filesystem::directory_iterator(path, "*")) {
-        if (std::filesystem::is_directory(entry.status())) {
-            chprintf(chp, "%s/\r\n", entry.path().string().c_str());
-        } else if (std::filesystem::is_regular_file(entry.status())) {
-            chprintf(chp, "%s\r\n", entry.path().string().c_str());
-        } else {
-            chprintf(chp, "%s *\r\n", entry.path().string().c_str());
-        }
-    }
-}
-
-static void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
-        chprintf(chp, "usage: rm <path>\r\n");
-        return;
-    }
-
-    auto path = path_from_string8(argv[0]);
-
-    if (!std::filesystem::file_exists(path)) {
-        chprintf(chp, "file not found.\r\n");
-        return;
-    }
-
-    delete_file(path);
-
-    chprintf(chp, "ok\r\n");
-}
-
-File* shell_file = nullptr;
-
-static void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
-        chprintf(chp, "usage: filesize <path>\r\n");
-        return;
-    }
-    auto path = path_from_string8(argv[0]);
-    FILINFO res;
-    auto stat = f_stat(path.tchar(), &res);
-    if (stat == FR_OK) {
-        chprintf(chp, "%lu\r\n", res.fsize);
-        chprintf(chp, "ok\r\n");
-    } else {
-        chprintf(chp, "error\r\n");
-    }
-}
-
-static void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
-        chprintf(chp, "usage: open <path>\r\n");
-        return;
-    }
-
-    if (shell_file != nullptr) {
-        chprintf(chp, "file already open\r\n");
-        return;
-    }
-
-    auto path = path_from_string8(argv[0]);
-    shell_file = new File();
-    shell_file->open(path, false, true);
-
-    chprintf(chp, "ok\r\n");
-}
-
-static void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
-        chprintf(chp, "usage: seek <offset>\r\n");
-        return;
-    }
-
-    if (shell_file == nullptr) {
-        chprintf(chp, "no open file\r\n");
-        return;
-    }
-
-    int address = (int)strtol(argv[0], NULL, 10);
-    shell_file->seek(address);
-
-    chprintf(chp, "ok\r\n");
-}
-
-static void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
-    (void)argv;
-
-    if (argc != 0) {
-        chprintf(chp, "usage: close\r\n");
-        return;
-    }
-
-    if (shell_file == nullptr) {
-        chprintf(chp, "no open file\r\n");
-        return;
-    }
-
-    delete shell_file;
-    shell_file = nullptr;
-
-    chprintf(chp, "ok\r\n");
-}
-
-static void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]) {
-    if (argc != 1) {
-        chprintf(chp, "usage: read <number of bytes>\r\n");
-        return;
-    }
-
-    if (shell_file == nullptr) {
-        chprintf(chp, "no open file\r\n");
-        return;
-    }
-
-    int size = (int)strtol(argv[0], NULL, 10);
-
-    uint8_t buffer[62];
-
-    do {
-        File::Size bytes_to_read = size > 62 ? 62 : size;
-        auto bytes_read = shell_file->read(buffer, bytes_to_read);
-        if (bytes_read.is_error()) {
-            chprintf(chp, "error %d\r\n", bytes_read.error());
-            return;
-        }
-        std::string res = to_string_hex_array(buffer, bytes_read.value());
-        res += "\r\n";
-        fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)res.c_str(), res.size());
-        if (bytes_to_read != bytes_read.value())
-            return;
-
-        size -= bytes_to_read;
-    } while (size > 0);
-    chprintf(chp, "ok\r\n");
-}
-
-static void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: write 0123456789ABCDEF\r\n";
-    if (argc != 1) {
-        chprintf(chp, usage);
-        return;
-    }
-
-    if (shell_file == nullptr) {
-        chprintf(chp, "no open file\r\n");
-        return;
-    }
-
-    size_t data_string_len = strlen(argv[0]);
-    if (data_string_len % 2 != 0) {
-        chprintf(chp, usage);
-        return;
-    }
-
-    for (size_t i = 0; i < data_string_len; i++) {
-        char c = argv[0][i];
-        if ((c < '0' || c > '9') && (c < 'A' || c > 'F')) {
-            chprintf(chp, usage);
-            return;
-        }
-    }
-
-    char buffer[3] = {0, 0, 0};
-
-    for (size_t i = 0; i < data_string_len / 2; i++) {
-        buffer[0] = argv[0][i * 2];
-        buffer[1] = argv[0][i * 2 + 1];
-        uint8_t value = (uint8_t)strtol(buffer, NULL, 16);
-        shell_file->write(&value, 1);
-    }
 
     chprintf(chp, "ok\r\n");
 }
@@ -1118,14 +892,7 @@ static const ShellCommand commands[] = {
     {"button", cmd_button},
     {"touch", cmd_touch},
     {"keyboard", cmd_keyboard},
-    {"ls", cmd_sd_list_dir},
-    {"rm", cmd_sd_delete},
-    {"open", cmd_sd_open},
-    {"seek", cmd_sd_seek},
-    {"close", cmd_sd_close},
-    {"read", cmd_sd_read},
-    {"write", cmd_sd_write},
-    {"filesize", cmd_sd_filesize},
+    USB_SERIAL_SHELL_SD_COMMANDS,
     {"rtcget", cmd_rtcget},
     {"rtcset", cmd_rtcset},
     {"cpld_info", cpld_info},

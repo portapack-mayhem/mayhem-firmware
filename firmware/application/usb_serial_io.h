@@ -44,3 +44,11 @@ extern SerialUSBDriver SUSBD1;
 void init_serial_usb_driver(SerialUSBDriver* sdp);
 void bulk_out_receive(void);
 void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
+#ifdef __cplusplus
+}
+#endif
