@@ -62,6 +62,6 @@ static std::filesystem::path path_from_string8(char* path) {
     {"ftell", cmd_sd_tell},            \
     {"fread", cmd_sd_read},            \
     {"frb", cmd_sd_read_binary},       \
-    {"fread", cmd_sd_write},           \
+    {"fwrite", cmd_sd_write},           \
     {"fwb", cmd_sd_write_binary}
 // clang-format on
