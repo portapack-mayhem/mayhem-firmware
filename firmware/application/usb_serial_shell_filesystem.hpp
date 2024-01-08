@@ -19,36 +19,25 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
-
 #include "ch.h"
 #include "hal.h"
 
-struct SerialUSBDriverVMT {
-    _base_asynchronous_channel_methods
-};
+#include <locale>
+#include <codecvt>
 
-struct SerialUSBDriver {
-    /** @brief Virtual Methods Table.*/
-    const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;               /* Output queue.*/
-    OutputQueue oqueue;              /* Input circular buffer.*/
-    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[SERIAL_BUFFERS_SIZE];
-};
+#include "ff.h"
+#include "file.hpp"
 
-typedef struct SerialUSBDriver SerialUSBDriver;
+void cmd_sd_list_dir(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_delete(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_filesize(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_open(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_seek(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_read(BaseSequentialStream* chp, int argc, char* argv[]);
+void cmd_sd_write(BaseSequentialStream* chp, int argc, char* argv[]);
 
-extern SerialUSBDriver SUSBD1;
-
-void init_serial_usb_driver(SerialUSBDriver* sdp);
-void bulk_out_receive(void);
-void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
-#ifdef __cplusplus
+static std::filesystem::path path_from_string8(char* path) {
+    std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+    return conv.from_bytes(path);
 }
-#endif

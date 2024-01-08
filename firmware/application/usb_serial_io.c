@@ -142,3 +142,42 @@ void init_serial_usb_driver(SerialUSBDriver* sdp) {
     chIQInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, NULL, sdp);
     chOQInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFERS_SIZE, onotify, sdp);
 }
+
+// queue handler from ch
+static msg_t qwait(GenericQueue* qp, systime_t time) {
+    if (TIME_IMMEDIATE == time)
+        return Q_TIMEOUT;
+    currp->p_u.wtobjp = qp;
+    queue_insert(currp, &qp->q_waiting);
+    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
+}
+
+// This function fills the output buffer, and sends all data in 1 packet
+size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n) {
+    qnotify_t nfy = oqp->q_notify;
+    size_t w = 0;
+
+    chDbgCheck(n > 0, "chOQWriteTimeout");
+    chSysLock();
+    while (TRUE) {
+        while (chOQIsFullI(oqp)) {
+            if (qwait((GenericQueue*)oqp, TIME_INFINITE) != Q_OK) {
+                chSysUnlock();
+                return w;
+            }
+        }
+        while (!chOQIsFullI(oqp) && n > 0) {
+            oqp->q_counter--;
+            *oqp->q_wrptr++ = *bp++;
+            if (oqp->q_wrptr >= oqp->q_top)
+                oqp->q_wrptr = oqp->q_buffer;
+            w++;
+            --n;
+        }
+        if (nfy) nfy(oqp);
+
+        chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+        if (n == 0) return w;
+        chSysLock();
+    }
+}
