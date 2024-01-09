@@ -41,6 +41,12 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
             }
         }
 
+        // Output to speaker too
+        uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
+        audio_data[imod32] = ((int16_t)audio_sample - 0x80) * (1.0f / 128.0f);
+        if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
+            audio_output.write(audio_buffer);
+
         sample = tone_gen.process(audio_sample - 0x80);
 
         // FM
@@ -95,6 +101,8 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
     tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
     progress_interval_samples = message.divider;
     resample_acc = 0;
+    audio_output.configure(false);
+    audio::dma::shrink_tx_buffer();
 }
 
 void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
