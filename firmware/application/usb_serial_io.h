@@ -24,6 +24,10 @@
 #include "ch.h"
 #include "hal.h"
 
+#ifndef USBSERIAL_BUFFERS_SIZE
+#define USBSERIAL_BUFFERS_SIZE 300
+#endif
+
 struct SerialUSBDriverVMT {
     _base_asynchronous_channel_methods
 };
@@ -31,10 +35,10 @@ struct SerialUSBDriverVMT {
 struct SerialUSBDriver {
     /** @brief Virtual Methods Table.*/
     const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;               /* Output queue.*/
-    OutputQueue oqueue;              /* Input circular buffer.*/
-    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[SERIAL_BUFFERS_SIZE];
+    InputQueue iqueue;                  /* Output queue.*/
+    OutputQueue oqueue;                 /* Input circular buffer.*/
+    uint8_t ib[USBSERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
+    uint8_t ob[USBSERIAL_BUFFERS_SIZE];
 };
 
 typedef struct SerialUSBDriver SerialUSBDriver;
