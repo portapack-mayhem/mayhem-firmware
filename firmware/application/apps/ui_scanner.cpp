@@ -242,6 +242,9 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
 }
 
 void ScannerView::handle_encoder(EncoderEvent delta) {
+    if (delta==0)
+        return;
+
     auto index_step = delta > 0 ? 1 : -1;
 
     if (scan_thread)
@@ -275,7 +278,7 @@ ScannerView::~ScannerView() {
 }
 
 void ScannerView::show_max_index() {  // show total number of freqs to scan
-    field_current_index.set_text("---");
+    field_current_index.set_text("<->");
 
     if (entries.size() == FREQMAN_MAX_PER_FILE) {
         text_max_index.set_style(&Styles::red);
@@ -394,8 +397,10 @@ ScannerView::ScannerView(
         handle_encoder(button_pause.get_encoder_delta());
         button_pause.set_encoder_delta(0);
     };
-    field_current_index.on_encoder_change = [this](TextField&, EncoderEvent delta) {
-        handle_encoder(delta);
+
+    field_current_index.on_change = [this]() {
+        handle_encoder(field_current_index.get_encoder_delta());
+        field_current_index.set_encoder_delta(0);
     };
 
     // Button to switch to Audio app

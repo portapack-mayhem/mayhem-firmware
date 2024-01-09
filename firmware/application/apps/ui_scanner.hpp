@@ -226,7 +226,7 @@ class ScannerView : public View {
         {0 * 16, 2 * 16, 15 * 16, 8},
     };
 
-    TextField field_current_index{
+    ButtonWithEncoder field_current_index{
         {0, 3 * 16, 3 * 8, 16},
         {},
     };
