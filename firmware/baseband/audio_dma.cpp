@@ -217,7 +217,7 @@ void disable() {
 
 void shrink_tx_buffer() {
     single_tx_buffer = true;
-    lli_rx_loop[0].lli = lli_pointer(&lli_rx_loop[0]);
+    lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
 }
 
 buffer_t tx_empty_buffer() {
