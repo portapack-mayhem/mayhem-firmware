@@ -397,10 +397,8 @@ ScannerView::ScannerView(
         handle_encoder(button_pause.get_encoder_delta());
         button_pause.set_encoder_delta(0);
     };
-
-    field_current_index.on_change = [this]() {
-        handle_encoder(field_current_index.get_encoder_delta());
-        field_current_index.set_encoder_delta(0);
+    field_current_index.on_encoder_change = [this](TextField&, EncoderEvent delta) {
+        handle_encoder(delta);
     };
 
     // Button to switch to Audio app
