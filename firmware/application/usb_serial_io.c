@@ -40,13 +40,15 @@
 
 SerialUSBDriver SUSBD1;
 
+uint8_t usbBulkBuffer[64];
+
 void bulk_out_receive(void) {
     int ret;
     do {
         ret = usb_transfer_schedule(
             &usb_endpoint_bulk_out,
-            &usb_endpoint_bulk_out.buffer[0],
-            32,
+            &usbBulkBuffer[0],
+            64,
             serial_bulk_transfer_complete,
             NULL);
 
@@ -61,7 +63,7 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
     for (unsigned int i = 0; i < bytes_transferred; i++) {
         msg_t ret;
         do {
-            ret = chIQPutI(&SUSBD1.iqueue, usb_endpoint_bulk_out.buffer[i]);
+            ret = chIQPutI(&SUSBD1.iqueue, usbBulkBuffer[i]);
             if (ret == Q_FULL)
                 chThdSleepMilliseconds(1);
 
