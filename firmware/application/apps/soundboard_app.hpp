@@ -91,7 +91,7 @@ class SoundBoardView : public View {
     void on_select_entry();
 
     Labels labels{
-        //{ { 0, 20 * 8 + 4 }, "Title:", Color::light_grey() },
+        {{24 * 8, 180}, "Vol:", Color::light_grey()},
         {{0, 180}, "Key:", Color::light_grey()}};
 
     Button button_next_page{
@@ -122,9 +122,12 @@ class SoundBoardView : public View {
         };*/
 
     OptionsField options_tone_key{
-        {32, 180},
+        {4 * 8, 180},
         18,
         {}};
+
+    AudioVolumeField field_volume{
+        {28 * 8, 180}};
 
     Checkbox check_loop{
         {0, 25 * 8 + 4},
