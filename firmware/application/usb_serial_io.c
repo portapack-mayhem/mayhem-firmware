@@ -40,13 +40,15 @@
 
 SerialUSBDriver SUSBD1;
 
+uint8_t usbBulkBuffer[USBSERIAL_BUFFERS_SIZE];
+
 void bulk_out_receive(void) {
     int ret;
     do {
         ret = usb_transfer_schedule(
             &usb_endpoint_bulk_out,
-            &usb_endpoint_bulk_out.buffer[0],
-            32,
+            &usbBulkBuffer[0],
+            USBSERIAL_BUFFERS_SIZE,
             serial_bulk_transfer_complete,
             NULL);
 
@@ -61,7 +63,7 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
     for (unsigned int i = 0; i < bytes_transferred; i++) {
         msg_t ret;
         do {
-            ret = chIQPutI(&SUSBD1.iqueue, usb_endpoint_bulk_out.buffer[i]);
+            ret = chIQPutI(&SUSBD1.iqueue, usbBulkBuffer[i]);
             if (ret == Q_FULL)
                 chThdSleepMilliseconds(1);
 
@@ -73,9 +75,9 @@ void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferr
 
 static void onotify(GenericQueue* qp) {
     SerialUSBDriver* sdp = chQGetLink(qp);
-    uint8_t buff[64];
+    uint8_t buff[USBSERIAL_BUFFERS_SIZE];
     int n = chOQGetFullI(&sdp->oqueue);
-    if (n > 64) n = 64;  // don't overflow
+    if (n > USBSERIAL_BUFFERS_SIZE) n = USBSERIAL_BUFFERS_SIZE;  // don't overflow
     if (n > 0) {
         for (int i = 0; i < n; i++) {
             buff[i] = chOQGetI(&sdp->oqueue);
@@ -139,8 +141,8 @@ static const struct SerialUSBDriverVMT vmt = {
 
 void init_serial_usb_driver(SerialUSBDriver* sdp) {
     sdp->vmt = &vmt;
-    chIQInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, NULL, sdp);
-    chOQInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFERS_SIZE, onotify, sdp);
+    chIQInit(&sdp->iqueue, sdp->ib, USBSERIAL_BUFFERS_SIZE, NULL, sdp);
+    chOQInit(&sdp->oqueue, sdp->ob, USBSERIAL_BUFFERS_SIZE, onotify, sdp);
 }
 
 // queue handler from ch

@@ -241,18 +241,17 @@ static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv
     for (int y = 0; y < ui::screen_height; y++) {
         std::array<ui::ColorRGB888, ui::screen_width> row;
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
-        for (int px = 0; px < ui::screen_width; px += 60) {
-            char buffer[60];
-            for (int i = 0; i < 60; ++i) {
-                buffer[i] = getChrFromRgb(row[px + i].r, row[px + i].g, row[px + i].b);
-            }
-            fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 60);
+        char buffer[242];
+        for (int i = 0; i < 240; ++i) {
+            buffer[i] = getChrFromRgb(row[i].r, row[i].g, row[i].b);
         }
-        chprintf(chp, "\r\n");
+        buffer[240] = '\r';
+        buffer[241] = '\n';
+        fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 242);
     }
 
     evtd->exit_shell_working_mode();
-    chprintf(chp, "ok\r\n");
+    chprintf(chp, "\r\nok\r\n");
 }
 
 static void cmd_write_memory(BaseSequentialStream* chp, int argc, char* argv[]) {
