@@ -26,6 +26,7 @@
 #include "string_format.hpp"
 #include "tonesets.hpp"
 #include "ui_tone_key.hpp"
+#include "audio.hpp"
 
 using namespace tonekey;
 using namespace portapack;
@@ -40,6 +41,7 @@ void SoundBoardView::stop() {
     if (is_active())
         replay_thread.reset();
 
+    audio::output::stop();
     transmitter_model.disable();
     tx_view.set_transmitting(false);
 
@@ -123,6 +125,8 @@ void SoundBoardView::start_tx(const uint32_t id) {
     transmitter_model.enable();
 
     tx_view.set_transmitting(true);
+
+    audio::output::start();
 }
 
 /*void SoundBoardView::show_infos() {
@@ -227,6 +231,7 @@ SoundBoardView::SoundBoardView(
                   //&text_title,
                   //&text_duration,
                   //&progressbar,
+                  &field_volume,
                   &page_info,
                   &check_loop,
                   &check_random,
@@ -274,7 +279,6 @@ SoundBoardView::SoundBoardView(
 
 SoundBoardView::~SoundBoardView() {
     stop();
-    transmitter_model.disable();
     baseband::shutdown();
 }
 

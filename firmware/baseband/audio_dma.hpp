@@ -47,6 +47,7 @@ void init();
 void configure();
 void enable();
 void disable();
+void shrink_tx_buffer();
 
 audio::buffer_t tx_empty_buffer();
 audio::buffer_t rx_empty_buffer();
