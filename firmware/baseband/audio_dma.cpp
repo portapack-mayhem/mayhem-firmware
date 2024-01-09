@@ -122,9 +122,9 @@ constexpr gpdma::channel::Config config_rx() {
 
 /* TODO: Clean up terminology around "buffer", "transfer", "samples" */
 
-constexpr size_t buffer_samples_log2n = 5;
+constexpr size_t buffer_samples_log2n = 7;
 constexpr size_t buffer_samples = (1 << buffer_samples_log2n);  // 2^7 = 128 byte circular DMA buffer
-constexpr size_t transfers_per_buffer_log2n = 0;
+constexpr size_t transfers_per_buffer_log2n = 2;
 constexpr size_t transfers_per_buffer = (1 << transfers_per_buffer_log2n);  // 2^2 = 4 transfer buffers in the circular buffer
 constexpr size_t transfer_samples = buffer_samples / transfers_per_buffer;  // 128/4 = 32 samples in each transfer buffer
 constexpr size_t transfers_mask = transfers_per_buffer - 1;
