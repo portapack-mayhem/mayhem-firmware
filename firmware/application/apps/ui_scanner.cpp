@@ -242,9 +242,6 @@ void ScannerView::handle_retune(int64_t freq, uint32_t freq_idx) {
 }
 
 void ScannerView::handle_encoder(EncoderEvent delta) {
-    if (delta == 0)
-        return;
-
     auto index_step = delta > 0 ? 1 : -1;
 
     if (scan_thread)
