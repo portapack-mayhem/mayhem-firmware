@@ -432,6 +432,9 @@ bool EventDispatcher::event_bubble_key(const ui::KeyEvent event) {
 }
 
 void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
+    if (event == 0)
+        return;
+
     auto target = context.focus_manager().focus_widget();
     while ((target != nullptr) && !target->on_encoder(event)) {
         target = target->parent();
