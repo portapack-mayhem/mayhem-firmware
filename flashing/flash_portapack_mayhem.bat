@@ -15,7 +15,7 @@ REM Check if the firmware file exists
 if not exist portapack-h1_h2-mayhem.bin (
     echo The firmware file "portapack-h1_h2-mayhem.bin" does not exist.
     echo Please ensure that you have downloaded the latest release from:
-    echo https://github.com/eried/portapack-mayhem/releases/
+    echo https://github.com/portapack-mayhem/mayhem-firmware/releases/
     echo.
     pause
     exit /b
@@ -23,6 +23,6 @@ if not exist portapack-h1_h2-mayhem.bin (
 
 "utils/hackrf_update.exe" portapack-h1_h2-mayhem.bin
 echo.
-echo If your device never boot after flashing, please refer to https://github.com/eried/portapack-mayhem/wiki/Won't-boot
+echo If your device never boot after flashing, please refer to https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won't-boot
 echo.
 pause
