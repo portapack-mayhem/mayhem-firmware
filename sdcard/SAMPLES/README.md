@@ -2,7 +2,7 @@
 
 Sample files below can be used with Replay app.
 
-See [Wiki](https://github.com/eried/portapack-mayhem/wiki/C16-format) for more info over C16 file format.
+See [Wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/C16-format) for more info over C16 file format.
 
 | file | description | frequency |
 | ------ | ------ | ------: |

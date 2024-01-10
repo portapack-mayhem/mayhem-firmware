@@ -19,7 +19,7 @@ void AboutView::update() {
         switch (++frame) {
             case 1:
                 // TODO: Generate this automatically from github
-                // https://github.com/eried/portapack-mayhem/graphs/contributors?to=2022-01-01&from=2020-04-12&type=c
+                // https://github.com/portapack-mayhem/mayhem-firmware/graphs/contributors?to=2022-01-01&from=2020-04-12&type=c
                 console.writeln(STR_COLOR_DARK_YELLOW "Mayhem:");
                 console.writeln("eried,euquiq,gregoryfenton");
                 console.writeln("johnelder,jwetzell,nnemanjan00");
@@ -42,7 +42,7 @@ void AboutView::update() {
                 break;
 
             case 3:
-                // https://github.com/eried/portapack-mayhem/graphs/contributors?to=2020-04-12&from=2015-07-31&type=c
+                // https://github.com/portapack-mayhem/mayhem-firmware/graphs/contributors?to=2020-04-12&from=2015-07-31&type=c
                 console.writeln(STR_COLOR_DARK_YELLOW "Havoc:");
                 console.writeln("furrtek,mrmookie,NotPike");
                 console.writeln("mjwaxios,ImDroided,Giorgiofox");
@@ -55,7 +55,7 @@ void AboutView::update() {
                 break;
 
             case 4:
-                // https://github.com/eried/portapack-mayhem/graphs/contributors?from=2014-07-05&to=2015-07-31&type=c
+                // https://github.com/portapack-mayhem/mayhem-firmware/graphs/contributors?from=2014-07-05&to=2015-07-31&type=c
                 console.writeln(STR_COLOR_DARK_YELLOW "PortaPack:");
                 console.writeln("jboone,argilo");
                 console.writeln("");
