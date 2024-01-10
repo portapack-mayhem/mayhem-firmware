@@ -9,8 +9,8 @@ assignees: ''
 
 ----
 Before creating this issue, **do the following**: 
-* Read the Wiki on booting: https://github.com/eried/portapack-mayhem/wiki/Won't-boot
-* Read: https://github.com/eried/portapack-havoc/wiki/Update-firmware
+* Read the Wiki on booting: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Won't-boot
+* Read: https://github.com/portapack-mayhem/mayhem-firmware/wiki/Update-firmware
 * Watch carefully: https://www.youtube.com/watch?v=_zx4ZvurgOs
 * (if you are not in Windows) also check: https://www.youtube.com/watch?v=kjFB58Y1TAo
 
@@ -27,12 +27,12 @@ Steps to reproduce the behavior:
 
 **My Hardware**
 Please specify what PortaPack hardware version you are using. 
-You can find the list of versions here: https://github.com/eried/portapack-mayhem/wiki/PortaPack-Versions
+You can find the list of versions here: https://github.com/portapack-mayhem/mayhem-firmware/wiki/PortaPack-Versions
 
 **Affected versions**
 Please tell us what version you are running. 
 If your device is still functional, try the latest nightly release before submitting this. 
-You can find the latest nightly version here https://github.com/eried/portapack-mayhem/releases
+You can find the latest nightly version here https://github.com/portapack-mayhem/mayhem-firmware/releases
 
 **Were you able to update the firmware before?**
 Things might be confusing the first time, please check the video available on the link above.

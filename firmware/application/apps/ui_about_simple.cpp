@@ -55,7 +55,7 @@ void AboutView::update() {
                 break;
 
             case 4:
-                // https://github.com/eried/portapack-mayhem/graphs/contributors?from=2014-07-05&to=2015-07-31&type=c
+                // https://github.com/portapack-mayhem/mayhem-firmware/graphs/contributors?from=2014-07-05&to=2015-07-31&type=c
                 console.writeln(STR_COLOR_DARK_YELLOW "PortaPack:");
                 console.writeln("jboone,argilo");
                 console.writeln("");
