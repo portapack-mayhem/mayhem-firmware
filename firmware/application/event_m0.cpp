@@ -410,6 +410,9 @@ void EventDispatcher::handle_encoder() {
 
     const uint32_t encoder_now = get_encoder_position();
     const int32_t delta = static_cast<int32_t>(encoder_now - encoder_last);
+    if (delta == 0)
+        return;
+
     encoder_last = encoder_now;
     const auto event = static_cast<ui::EncoderEvent>(delta);
     event_bubble_encoder(event);
@@ -432,9 +435,6 @@ bool EventDispatcher::event_bubble_key(const ui::KeyEvent event) {
 }
 
 void EventDispatcher::event_bubble_encoder(const ui::EncoderEvent event) {
-    if (event == 0)
-        return;
-
     auto target = context.focus_manager().focus_widget();
     while ((target != nullptr) && !target->on_encoder(event)) {
         target = target->parent();
