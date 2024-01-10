@@ -410,6 +410,9 @@ void EventDispatcher::handle_encoder() {
 
     const uint32_t encoder_now = get_encoder_position();
     const int32_t delta = static_cast<int32_t>(encoder_now - encoder_last);
+    if (delta == 0)
+        return;
+
     encoder_last = encoder_now;
     const auto event = static_cast<ui::EncoderEvent>(delta);
     event_bubble_encoder(event);

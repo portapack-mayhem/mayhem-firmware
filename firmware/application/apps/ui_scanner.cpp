@@ -275,7 +275,7 @@ ScannerView::~ScannerView() {
 }
 
 void ScannerView::show_max_index() {  // show total number of freqs to scan
-    field_current_index.set_text("---");
+    field_current_index.set_text("<->");
 
     if (entries.size() == FREQMAN_MAX_PER_FILE) {
         text_max_index.set_style(&Styles::red);
