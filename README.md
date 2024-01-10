@@ -1,5 +1,5 @@
 > [!IMPORTANT]  
-> this repository **has just been** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware). Please keep this in mind to **update your links** accordingly.
+> this repository **has just been moved** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware). Please keep this in mind to **update your links** accordingly.
 
 # PortaPack Mayhem
 
