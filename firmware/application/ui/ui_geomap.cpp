@@ -456,18 +456,30 @@ void GeoMap::draw_mypos() {
     int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
     auto color = Color::yellow();
 
-    ui::Point itemPoint(x, y + r.top());
-    if (mode_ == PROMPT) {
-        // Cross
-        display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
-        display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
-    } else if (my_angle < 360) {
-        // if we have a valid angle draw bearing
-        draw_bearing(itemPoint, my_angle, 10, color);
-    } else {
-        // draw a small cross
-        display.fill_rectangle({itemPoint - Point(8, 1), {16, 2}}, color);
-        display.fill_rectangle({itemPoint - Point(1, 8), {2, 16}}, color);
+    if (map_zoom > 1) {
+        x = ((x - (r.width() / 2)) * map_zoom) + (r.width() / 2);
+        y = ((y - (r.height() / 2)) * map_zoom) + (r.height() / 2);
+    } else if (map_zoom < 0) {
+        x = ((x - (r.width() / 2)) / (-map_zoom)) + (r.width() / 2);
+        y = ((y - (r.height() / 2)) / (-map_zoom)) + (r.height() / 2);
+    }
+
+    if ((x >= 0) && (x < r.width()) &&
+        (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
+    {
+        ui::Point itemPoint(x, y + r.top());
+        if (mode_ == PROMPT) {
+            // Cross
+            display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
+            display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
+        } else if (my_angle < 360) {
+            // if we have a valid angle draw bearing
+            draw_bearing(itemPoint, my_angle, 10, color);
+        } else {
+            // draw a small cross
+            display.fill_rectangle({itemPoint - Point(8, 1), {16, 2}}, color);
+            display.fill_rectangle({itemPoint - Point(1, 8), {2, 16}}, color);
+        }
     }
 }
 
@@ -501,6 +513,8 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     my_lat = lat;
     my_lon = lon;
     my_altitude = altitude;
+    markerListUpdated = true;
+    set_dirty();
 }
 void GeoMap::update_my_orientation(uint16_t angle) {
     my_angle = angle;
