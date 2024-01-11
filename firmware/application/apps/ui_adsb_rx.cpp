@@ -323,6 +323,11 @@ void ADSBRxDetailsView::on_gps(const GPSPosDataMessage* msg) {
         return;
     geomap_view_->update_my_position(msg->lat, msg->lon, msg->altitude);
 }
+void ADSBRxDetailsView::on_orientation(const OrientationDataMessage* msg) {
+    if (!geomap_view_)
+        return;
+    geomap_view_->update_my_orientation(msg->angle);
+}
 
 void ADSBRxDetailsView::refresh_ui() {
     auto age = entry_.age;

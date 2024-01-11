@@ -272,6 +272,7 @@ class ADSBRxDetailsView : public View {
    private:
     void refresh_ui();
     void on_gps(const GPSPosDataMessage* msg);
+    void on_orientation(const OrientationDataMessage* msg);
 
     GeoMapView* geomap_view_{nullptr};
     ADSBRxAircraftDetailsView* aircraft_details_view_{nullptr};
@@ -337,6 +338,12 @@ class ADSBRxDetailsView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const GPSPosDataMessage*>(p);
             this->on_gps(message);
+        }};
+    MessageHandlerRegistration message_handler_orientation{
+        Message::ID::OrientationData,
+        [this](Message* const p) {
+            const auto message = static_cast<const OrientationDataMessage*>(p);
+            this->on_orientation(message);
         }};
 };
 
