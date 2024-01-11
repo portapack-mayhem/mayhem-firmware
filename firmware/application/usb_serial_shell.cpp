@@ -878,18 +878,18 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: gotgps <lat> <lon> [height] [speed]\r\n";
+    const char* usage = "usage: gotgps <lat> <lon> [altitude] [speed]\r\n";
     if (argc < 2 || argc > 4) {
         chprintf(chp, usage);
         return;
     }
     float lat = atof(argv[0]);
     float lon = atof(argv[1]);
-    int height = 0;
-    int speed = 0;
-    if (argc >= 3) height = strtol(argv[2], NULL, 10);
+    int32_t altitude = 0;
+    int32_t speed = 0;
+    if (argc >= 3) altitude = strtol(argv[2], NULL, 10);
     if (argc >= 4) speed = strtol(argv[3], NULL, 10);
-    GPSPosDataMessage msg{lat, lon, height, speed};
+    GPSPosDataMessage msg{lat, lon, altitude, speed};
     EventDispatcher::send_message(msg);
     chprintf(chp, "ok\r\n");
 }
@@ -900,7 +900,7 @@ static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]
         chprintf(chp, usage);
         return;
     }
-    int angle = strtol(argv[0], NULL, 10);
+    uint16_t angle = strtol(argv[0], NULL, 10);
     OrientationDataMessage msg{angle};
     EventDispatcher::send_message(msg);
     chprintf(chp, "ok\r\n");

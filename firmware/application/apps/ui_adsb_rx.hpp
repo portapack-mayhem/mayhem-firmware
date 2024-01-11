@@ -271,6 +271,7 @@ class ADSBRxDetailsView : public View {
 
    private:
     void refresh_ui();
+    void on_gps(const GPSPosDataMessage* msg);
 
     GeoMapView* geomap_view_{nullptr};
     ADSBRxAircraftDetailsView* aircraft_details_view_{nullptr};
@@ -330,6 +331,13 @@ class ADSBRxDetailsView : public View {
     Button button_see_map{
         {16 * 8, 9 * 16, 12 * 8, 3 * 16},
         "See on map"};
+
+    MessageHandlerRegistration message_handler_gps{
+        Message::ID::GPSPosData,
+        [this](Message* const p) {
+            const auto message = static_cast<const GPSPosDataMessage*>(p);
+            this->on_gps(message);
+        }};
 };
 
 /* Main ADSB application view and message dispatch. */

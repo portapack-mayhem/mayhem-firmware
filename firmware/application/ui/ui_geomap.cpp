@@ -480,6 +480,13 @@ void GeoMapView::focus() {
         nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT);
 }
 
+void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {
+    // TODO H
+}
+void GeoMapView::update_my_orientation(uint16_t angle) {
+    // TODO H
+}
+
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
     if (geomap.manual_panning()) {
         geomap.set_dirty();

@@ -267,6 +267,8 @@ class GeoMapView : public View {
     void focus() override;
 
     void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed = 0);
+    void update_my_position(float lat, float lon, int32_t altitude);
+    void update_my_orientation(uint16_t angle);
 
     std::string title() const override { return "Map view"; };
 

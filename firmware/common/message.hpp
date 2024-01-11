@@ -1308,28 +1308,28 @@ class GPSPosDataMessage : public Message {
     constexpr GPSPosDataMessage(
         float lat = 200.0,
         float lon = 200.0,
-        int height = 0,
-        int speed = 0)
+        int32_t altitude = 0,
+        int32_t speed = 0)
         : Message{ID::GPSPosData},
           lat{lat},
           lon{lon},
-          height{height},
+          altitude{altitude},
           speed{speed} {
     }
     float lat = 200.0;
     float lon = 200.0;
-    int height = 0;
-    int speed = 0;
+    int32_t altitude = 0;
+    int32_t speed = 0;
 };
 
 class OrientationDataMessage : public Message {
    public:
     constexpr OrientationDataMessage(
-        int angle = 400)
+        uint16_t angle = 400)
         : Message{ID::OrientationData},
           angle{angle} {
     }
-    int angle = 400;  //>360 -> no orientation set
+    uint16_t angle = 400;  //>360 -> no orientation set
 };
 
 #endif /*__MESSAGE_H__*/

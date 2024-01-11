@@ -318,6 +318,12 @@ bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
     return markerStored == MARKER_STORED;
 }
 
+void ADSBRxDetailsView::on_gps(const GPSPosDataMessage* msg) {
+    if (!geomap_view_)
+        return;
+    geomap_view_->update_my_position(msg->lat, msg->lon, msg->altitude);
+}
+
 void ADSBRxDetailsView::refresh_ui() {
     auto age = entry_.age;
     if (age < 60)
