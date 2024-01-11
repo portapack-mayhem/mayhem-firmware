@@ -519,6 +519,7 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
 void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     my_angle = angle;
     if (refresh) {
+        markerListUpdated = true;
         set_dirty();
     }
 }
