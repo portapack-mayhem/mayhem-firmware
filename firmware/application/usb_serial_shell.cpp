@@ -877,6 +877,27 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 }
 
+static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: gotgps <lat> <lon> [height] [speed]\r\n";
+    if (argc < 2 || argc > 4) {
+        chprintf(chp, usage);
+        return;
+    }
+    auto evtd = getEventDispatcherInstance();
+    if (evtd == NULL) {
+        chprintf(chp, "error\r\n");
+    }
+    float lat = atof(argv[0]);
+    float lon = atof(argv[1]);
+    int height = 0;
+    int speed = 0;
+    if (argc >= 3) height = strtol(argv[2], NULL, 10);
+    if (argc >= 4) speed = strtol(argv[3], NULL, 10);
+    GPSPosDataMessage msg{lat, lon, height, speed};
+    EventDispatcher::send_message(msg);
+    chprintf(chp, "ok\r\n");
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -900,6 +921,7 @@ static const ShellCommand commands[] = {
     {"accessibility_readcurr", cmd_accessibility_readcurr},
     {"applist", cmd_applist},
     {"appstart", cmd_appstart},
+    {"gotgps", cmd_gotgps},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

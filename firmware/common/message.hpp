@@ -118,6 +118,7 @@ class Message {
         SubGhzFPRxConfigure = 60,
         WeatherData = 61,
         SubGhzDData = 62,
+        GPSPosData = 63,
         MAX
     };
 
@@ -1299,6 +1300,25 @@ class SubGhzDDataMessage : public Message {
     uint32_t serial = 0xFFFFFFFF;
     uint32_t cnt = 0xFF;
     uint64_t data = 0;
+};
+
+class GPSPosDataMessage : public Message {
+   public:
+    constexpr GPSPosDataMessage(
+        float lat = 200.0,
+        float lon = 200.0,
+        int height = 0,
+        int speed = 0)
+        : Message{ID::GPSPosData},
+          lat{lat},
+          lon{lon},
+          height{height},
+          speed{speed} {
+    }
+    float lat = 200.0;
+    float lon = 200.0;
+    int height = 0;
+    int speed = 0;
 };
 
 #endif /*__MESSAGE_H__*/
