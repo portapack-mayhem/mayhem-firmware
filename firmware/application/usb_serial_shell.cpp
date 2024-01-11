@@ -877,6 +877,35 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
     }
 }
 
+static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: gotgps <lat> <lon> [altitude] [speed]\r\n";
+    if (argc < 2 || argc > 4) {
+        chprintf(chp, usage);
+        return;
+    }
+    float lat = atof(argv[0]);
+    float lon = atof(argv[1]);
+    int32_t altitude = 0;
+    int32_t speed = 0;
+    if (argc >= 3) altitude = strtol(argv[2], NULL, 10);
+    if (argc >= 4) speed = strtol(argv[3], NULL, 10);
+    GPSPosDataMessage msg{lat, lon, altitude, speed};
+    EventDispatcher::send_message(msg);
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: gotorientation <angle>\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    uint16_t angle = strtol(argv[0], NULL, 10);
+    OrientationDataMessage msg{angle};
+    EventDispatcher::send_message(msg);
+    chprintf(chp, "ok\r\n");
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -900,6 +929,8 @@ static const ShellCommand commands[] = {
     {"accessibility_readcurr", cmd_accessibility_readcurr},
     {"applist", cmd_applist},
     {"appstart", cmd_appstart},
+    {"gotgps", cmd_gotgps},
+    {"gotorientation", cmd_gotorientation},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

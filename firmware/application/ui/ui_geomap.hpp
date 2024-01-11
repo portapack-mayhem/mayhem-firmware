@@ -185,6 +185,9 @@ class GeoMap : public Widget {
     bool on_encoder(const EncoderEvent delta) override;
     bool on_keyboard(const KeyboardEvent event) override;
 
+    void update_my_position(float lat, float lon, int32_t altitude);
+    void update_my_orientation(uint16_t angle);
+
     bool init();
     void set_mode(GeoMapMode mode);
     void set_manual_panning(bool v);
@@ -212,6 +215,7 @@ class GeoMap : public Widget {
     void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
+    void draw_mypos();
     void map_read_line(ui::Color* buffer, uint16_t pixels);
 
     bool manual_panning_{false};
@@ -232,6 +236,12 @@ class GeoMap : public Widget {
     float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};
+
+    // the portapack's position data ( for example injected from serial )
+    float my_lat{200};
+    float my_lon{200};
+    int32_t my_altitude{0};
+    uint16_t my_angle{400};
 
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
@@ -267,6 +277,8 @@ class GeoMapView : public View {
     void focus() override;
 
     void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed = 0);
+    void update_my_position(float lat, float lon, int32_t altitude);
+    void update_my_orientation(uint16_t angle);
 
     std::string title() const override { return "Map view"; };
 
