@@ -883,10 +883,6 @@ static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, usage);
         return;
     }
-    auto evtd = getEventDispatcherInstance();
-    if (evtd == NULL) {
-        chprintf(chp, "error\r\n");
-    }
     float lat = atof(argv[0]);
     float lon = atof(argv[1]);
     int height = 0;
@@ -894,6 +890,18 @@ static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc >= 3) height = strtol(argv[2], NULL, 10);
     if (argc >= 4) speed = strtol(argv[3], NULL, 10);
     GPSPosDataMessage msg{lat, lon, height, speed};
+    EventDispatcher::send_message(msg);
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: gotorientation <angle>\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    int angle = strtol(argv[0], NULL, 10);
+    OrientationDataMessage msg{angle};
     EventDispatcher::send_message(msg);
     chprintf(chp, "ok\r\n");
 }
@@ -922,6 +930,7 @@ static const ShellCommand commands[] = {
     {"applist", cmd_applist},
     {"appstart", cmd_appstart},
     {"gotgps", cmd_gotgps},
+    {"gotorientation", cmd_gotorientation},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

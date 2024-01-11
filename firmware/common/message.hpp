@@ -119,6 +119,7 @@ class Message {
         WeatherData = 61,
         SubGhzDData = 62,
         GPSPosData = 63,
+        OrientationData = 63,
         MAX
     };
 
@@ -1319,6 +1320,16 @@ class GPSPosDataMessage : public Message {
     float lon = 200.0;
     int height = 0;
     int speed = 0;
+};
+
+class OrientationDataMessage : public Message {
+   public:
+    constexpr OrientationDataMessage(
+        int angle = 400)
+        : Message{ID::OrientationData},
+          angle{angle} {
+    }
+    int angle = 400;  //>360 -> no orientation set
 };
 
 #endif /*__MESSAGE_H__*/
