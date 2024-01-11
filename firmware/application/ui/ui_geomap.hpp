@@ -186,7 +186,7 @@ class GeoMap : public Widget {
     bool on_keyboard(const KeyboardEvent event) override;
 
     void update_my_position(float lat, float lon, int32_t altitude);
-    void update_my_orientation(uint16_t angle);
+    void update_my_orientation(uint16_t angle, bool refresh = false);
 
     bool init();
     void set_mode(GeoMapMode mode);
@@ -278,7 +278,7 @@ class GeoMapView : public View {
 
     void update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed = 0);
     void update_my_position(float lat, float lon, int32_t altitude);
-    void update_my_orientation(uint16_t angle);
+    void update_my_orientation(uint16_t angle, bool refresh = false);
 
     std::string title() const override { return "Map view"; };
 

@@ -135,7 +135,7 @@ void SondeView::on_gps(const GPSPosDataMessage* msg) {
 void SondeView::on_orientation(const OrientationDataMessage* msg) {
     if (!geomap_view_)
         return;
-    geomap_view_->update_my_orientation(msg->angle);
+    geomap_view_->update_my_orientation(msg->angle, true);
 }
 
 void SondeView::focus() {
