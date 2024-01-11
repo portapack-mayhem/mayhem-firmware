@@ -305,6 +305,7 @@ void GeoMap::paint(Painter& painter) {
         // Draw the other markers
         draw_markers(painter);
         draw_scale(painter);
+        draw_mypos();
         markerListUpdated = false;
         set_clean();
     }
@@ -447,6 +448,29 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
     }
 }
 
+void GeoMap::draw_mypos() {
+    const auto r = screen_rect();
+    if (my_lat >= 200 || my_lon >= 200) return;  // invalid
+    int x = (map_width * (my_lon + 180) / 360) - x_pos;
+    double lat_rad = sin(my_lat * pi / 180);
+    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+    auto color = Color::yellow();
+
+    ui::Point itemPoint(x, y + r.top());
+    if (mode_ == PROMPT) {
+        // Cross
+        display.fill_rectangle({itemPoint - Point(16, 1), {32, 2}}, color);
+        display.fill_rectangle({itemPoint - Point(1, 16), {2, 32}}, color);
+    } else if (my_angle < 360) {
+        // if we have a valid angle draw bearing
+        draw_bearing(itemPoint, my_angle, 10, color);
+    } else {
+        // draw a small cross
+        display.fill_rectangle({itemPoint - Point(8, 1), {16, 2}}, color);
+        display.fill_rectangle({itemPoint - Point(1, 8), {2, 16}}, color);
+    }
+}
+
 void GeoMap::clear_markers() {
     markerListLen = 0;
 }
@@ -473,6 +497,15 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     return ret;
 }
 
+void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
+    my_lat = lat;
+    my_lon = lon;
+    my_altitude = altitude;
+}
+void GeoMap::update_my_orientation(uint16_t angle) {
+    my_angle = angle;
+}
+
 void GeoMapView::focus() {
     geopos.focus();
 
@@ -481,10 +514,10 @@ void GeoMapView::focus() {
 }
 
 void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {
-    // TODO H
+    geomap.update_my_position(lat, lon, altitude);
 }
 void GeoMapView::update_my_orientation(uint16_t angle) {
-    // TODO H
+    geomap.update_my_orientation(angle);
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {

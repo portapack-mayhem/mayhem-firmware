@@ -119,7 +119,7 @@ class Message {
         WeatherData = 61,
         SubGhzDData = 62,
         GPSPosData = 63,
-        OrientationData = 63,
+        OrientationData = 64,
         MAX
     };
 
