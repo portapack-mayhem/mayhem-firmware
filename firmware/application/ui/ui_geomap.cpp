@@ -516,8 +516,12 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     markerListUpdated = true;
     set_dirty();
 }
-void GeoMap::update_my_orientation(uint16_t angle) {
+void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     my_angle = angle;
+    if (refresh) {
+        markerListUpdated = true;
+        set_dirty();
+    }
 }
 
 void GeoMapView::focus() {
@@ -530,8 +534,8 @@ void GeoMapView::focus() {
 void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {
     geomap.update_my_position(lat, lon, altitude);
 }
-void GeoMapView::update_my_orientation(uint16_t angle) {
-    geomap.update_my_orientation(angle);
+void GeoMapView::update_my_orientation(uint16_t angle, bool refresh) {
+    geomap.update_my_orientation(angle, refresh);
 }
 
 void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
