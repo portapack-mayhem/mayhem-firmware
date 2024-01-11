@@ -142,6 +142,13 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
 
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    nav->display_modal("Flashing", "Flashing from serial.\rPlease wait!\nDevice will restart.");
     // check file extensions
     if (strEndsWith(path.native(), u".ppfw.tar")) {
         // extract tar
@@ -153,6 +160,7 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
             });
         if (res.empty()) {
             chprintf(chp, "error bad TAR file.\r\n");
+            nav->pop();
             return;
         }
         path = res;  // it will contain the last bin file in tar
@@ -160,8 +168,10 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
         // nothing to do for this case yet.
     } else {
         chprintf(chp, "error only .bin or .ppfw.tar files canbe flashed.\r\n");
+        nav->pop();
         return;
     }
+
     chprintf(chp, "Flashing: ");
     chprintf(chp, path.string().c_str());
     chprintf(chp, "\r\n");
