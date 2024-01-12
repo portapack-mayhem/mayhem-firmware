@@ -348,19 +348,23 @@ void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
 
-    long size = (int)strtol(argv[0], NULL, 10);
+    size_t size = (size_t)strtol(argv[0], NULL, 10);
 
     chprintf(chp, "send %d bytes\r\n", size);
 
-    uint8_t buffer;
+    uint8_t buffer[USB_BULK_BUFFER_SIZE];
 
-    for (long i = 0; i < size; i++) {
-        if (chSequentialStreamRead(chp, &buffer, 1) == 0)
+    do {
+        size_t bytes_to_read = size > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : size;
+        size_t bytes_read = chSequentialStreamRead(chp, &buffer[0], bytes_to_read);
+        if (bytes_read != bytes_to_read)
             return;
 
-        auto error = shell_file->write(&buffer, 1);
+        auto error = shell_file->write(&buffer[0], bytes_read);
         if (report_on_error(chp, error)) return;
-    }
+
+        size -= bytes_read;
+    } while (size > 0);
 
     chprintf(chp, "ok\r\n");
 }

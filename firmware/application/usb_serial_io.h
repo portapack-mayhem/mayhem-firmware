@@ -24,8 +24,10 @@
 #include "ch.h"
 #include "hal.h"
 
+#define USB_BULK_BUFFER_SIZE 64
+
 #ifndef USBSERIAL_BUFFERS_SIZE
-#define USBSERIAL_BUFFERS_SIZE 400
+#define USBSERIAL_BUFFERS_SIZE 128
 #endif
 
 struct SerialUSBDriverVMT {
