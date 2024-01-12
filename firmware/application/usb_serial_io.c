@@ -98,7 +98,7 @@ static void onotify(GenericQueue* qp) {
                 NULL);
 
             if (ret == -1)
-                chThdYield();
+                chThdSleepMilliseconds(1);
 
         } while (ret == -1);
         chSysLock();
