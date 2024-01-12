@@ -27,7 +27,6 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_touch_calibration.hpp"
-#include "ui_fileman.hpp"
 #include "ui_text_editor.hpp"
 
 #include "portapack_persistent_memory.hpp"
