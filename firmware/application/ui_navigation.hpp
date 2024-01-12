@@ -91,6 +91,7 @@ class NavigationView : public View {
     View* push_view(std::unique_ptr<View> new_view);
     void replace(View* v);
     void pop(bool trigger_update = true);
+    void home(bool trigger_update);
 
     void display_modal(const std::string& title, const std::string& message);
     void display_modal(
