@@ -963,7 +963,7 @@ bool should_use_sdcard_for_pmem() {
 int save_persistent_settings_to_file() {
     File outfile;
 
-    make_new_directory(SETTINGS_DIR);
+    ensure_directory(SETTINGS_DIR);
     auto error = outfile.create(PMEM_SETTING_FILE);
     if (error)
         return false;
@@ -996,7 +996,7 @@ bool debug_dump() {
     std::filesystem::path filename{};
     File pmem_dump_file{};
     // create new dump file name and DEBUG directory
-    make_new_directory(debug_dir);
+    ensure_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
     if (filename.empty()) {
         painter.draw_string({0, 320 - 16}, ui::Styles::red, "COULD NOT GET DUMP NAME !");

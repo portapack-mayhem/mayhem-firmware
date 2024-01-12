@@ -275,7 +275,7 @@ bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
     int n{0};
     bool data_found{false};
 
-    make_new_directory(debug_dir);
+    ensure_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/" + (stack_flag ? "STACK" : "MEMORY") + "_DUMP_????.TXT");
     error = filename.empty();
     if (!error)

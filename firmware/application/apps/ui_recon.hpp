@@ -54,8 +54,6 @@
 
 namespace ui {
 
-#define RECON_CFG_FILE u"SETTINGS/recon.cfg"
-
 enum class recon_mode : uint8_t {
     Recon,
     Scanner,
