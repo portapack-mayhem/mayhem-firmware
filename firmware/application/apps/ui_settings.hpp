@@ -564,6 +564,23 @@ class SetPersistentMemoryView : public View {
     };
 };
 
+class AppSettingsView : public View {
+   public:
+    AppSettingsView(NavigationView& nav);
+    std::string title() const override { return "App Settings"; };
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+
+    Labels labels{
+        {{0, 4}, "Select file to edit:", Color::white()}};
+
+    MenuView menu_view{
+        {0, 2 * 8, 240, 26 * 8},
+        true};
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);
