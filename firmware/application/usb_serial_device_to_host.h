@@ -24,31 +24,35 @@
 #include "ch.h"
 #include "hal.h"
 
-class EventDispatcher;
+#define USB_BULK_BUFFER_SIZE 64
 
-namespace portapack {
+#ifndef USBSERIAL_BUFFERS_SIZE
+#define USBSERIAL_BUFFERS_SIZE 128
+#endif
 
-class USBSerial {
-   public:
-    void initialize();
-    void dispatch();
-    void dispatch_transfer();
-    void on_channel_opened();
-    void on_channel_closed();
-    void setEventDispatcher(EventDispatcher* ed) { _eventDispatcher = ed; }
-
-   private:
-    void enable_xtal();
-    void disable_pll0();
-    void setup_pll0();
-    void enable_pll0();
-
-    void setup_usb_clock();
-
-    bool connected{false};
-    bool shell_created{false};
-
-    EventDispatcher* _eventDispatcher = NULL;
+struct SerialUSBDriverVMT {
+    _base_asynchronous_channel_methods
 };
 
-}  // namespace portapack
+struct SerialUSBDriver {
+    /** @brief Virtual Methods Table.*/
+    const struct SerialUSBDriverVMT* vmt;
+    InputQueue iqueue;                  /* Output queue.*/
+    OutputQueue oqueue;                 /* Input circular buffer.*/
+    uint8_t ib[USBSERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
+    uint8_t ob[USBSERIAL_BUFFERS_SIZE];
+};
+
+typedef struct SerialUSBDriver SerialUSBDriver;
+
+extern SerialUSBDriver SUSBD1;
+
+void init_serial_usb_driver(SerialUSBDriver* sdp);
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
+#ifdef __cplusplus
+}
+#endif

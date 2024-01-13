@@ -122,6 +122,7 @@ class EventDispatcher {
     void handle_local_queue();
     void handle_rtc_tick();
     void handle_usb();
+    void handle_usb_transfer();
     void handle_shell();
 
     static ui::Widget* touch_widget(ui::Widget* const w, ui::TouchEvent event);

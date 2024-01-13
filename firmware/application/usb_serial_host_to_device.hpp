@@ -26,35 +26,7 @@
 
 #define USB_BULK_BUFFER_SIZE 64
 
-#ifndef USBSERIAL_BUFFERS_SIZE
-#define USBSERIAL_BUFFERS_SIZE 128
-#endif
-
-struct SerialUSBDriverVMT {
-    _base_asynchronous_channel_methods
-};
-
-struct SerialUSBDriver {
-    /** @brief Virtual Methods Table.*/
-    const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;                  /* Output queue.*/
-    OutputQueue oqueue;                 /* Input circular buffer.*/
-    uint8_t ib[USBSERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[USBSERIAL_BUFFERS_SIZE];
-};
-
-typedef struct SerialUSBDriver SerialUSBDriver;
-
-extern SerialUSBDriver SUSBD1;
-
-void init_serial_usb_driver(SerialUSBDriver* sdp);
-void bulk_out_receive(void);
+void init_host_to_device();
 void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n);
-#ifdef __cplusplus
-}
-#endif
+void schedule_host_to_device_transfer();
+void complete_host_to_device_transfer();

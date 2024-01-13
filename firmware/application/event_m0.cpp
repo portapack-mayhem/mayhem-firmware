@@ -164,9 +164,8 @@ void EventDispatcher::dispatch(const eventmask_t events) {
         handle_rtc_tick();
     }
 
-    if (events & EVT_MASK_USB) {
-        handle_usb();
-    }
+    handle_usb_transfer();
+    handle_usb();
 
     if (events & EVT_MASK_SWITCHES) {
         handle_switches();
@@ -223,6 +222,10 @@ void EventDispatcher::handle_rtc_tick() {
 
 void EventDispatcher::handle_usb() {
     portapack::usb_serial.dispatch();
+}
+
+void EventDispatcher::handle_usb_transfer() {
+    portapack::usb_serial.dispatch_transfer();
 }
 
 void EventDispatcher::handle_shell() {

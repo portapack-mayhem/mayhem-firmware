@@ -31,7 +31,7 @@
 #include "chprintf.h"
 #include "irq_controls.hpp"
 #include "string_format.hpp"
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 
 using namespace portapack;
 
