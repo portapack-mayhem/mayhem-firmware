@@ -177,7 +177,7 @@ enum class PortaPackModel {
 static bool save_config(int8_t value) {
     persistent_memory::set_config_cpld(value);
     if (sd_card::status() == sd_card::Status::Mounted) {
-        make_new_directory("/hardware");
+        ensure_directory("/hardware");
         File file;
         auto sucess = file.create("/hardware/settings.txt");
         if (!sucess.is_valid()) {

@@ -40,7 +40,7 @@ using namespace portapack;
 
 namespace {
 fs::path get_settings_path(const std::string& app_name) {
-    return fs::path{u"/SETTINGS"} / app_name + u".ini";
+    return fs::path{SETTINGS_DIR} / app_name + u".ini";
 }
 }  // namespace
 
@@ -156,7 +156,7 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
     File f;
     auto path = get_settings_path(std::string{store_name});
 
-    make_new_directory(SETTINGS_DIR);
+    ensure_directory(SETTINGS_DIR);
     auto error = f.create(path);
     if (error)
         return false;

@@ -570,7 +570,7 @@ void SystemStatusView::rtc_battery_workaround() {
                 }
             }
         } else {
-            make_new_directory(SETTINGS_DIR);
+            ensure_directory(SETTINGS_DIR);
             make_new_file(DATE_FILEFLAG);
 
             year = 1980;

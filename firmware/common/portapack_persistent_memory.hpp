@@ -33,10 +33,10 @@
 #include "serializer.hpp"
 #include "volume.hpp"
 
-// persistant memory from/to sdcard flag file
+// persistent memory from/to sdcard flag file
 #define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
 
-// persistant memory from/to sdcard flag file
+// persistent memory from/to sdcard flag file
 #define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
 
 #define PMEM_SIZE_BYTES 256  // total amount of pmem space in bytes, including checksum

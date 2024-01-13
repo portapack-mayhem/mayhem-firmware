@@ -53,7 +53,6 @@ class UnTar {
     }
 
     static bool create_dir(char* pathname) {
-        char* p;
         std::filesystem::filesystem_error r;
 
         if (!isValidName(pathname)) return false;
@@ -65,18 +64,7 @@ class UnTar {
         std::string dirnameStr = u'/' + pathname;
         std::filesystem::path dirname = dirnameStr;
 
-        r = make_new_directory(dirname);
-
-        if (!r.ok()) {
-            /* On failure, try creating parent directory. */
-            p = strrchr(pathname, '/');
-            if (p != NULL) {
-                *p = '\0';
-                create_dir(pathname);
-                *p = '/';
-                r = make_new_directory(dirname);
-            }
-        }
+        r = ensure_directory(dirname);
         return (r.ok());
     }
 
