@@ -20,7 +20,7 @@
  */
 
 #include "usb_serial_shell_filesystem.hpp"
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 
 #include "chprintf.h"
 #include "string_format.hpp"
@@ -171,6 +171,9 @@ void cmd_sd_close(BaseSequentialStream* chp, int argc, char* argv[]) {
         chprintf(chp, "no open file\r\n");
         return;
     }
+
+    auto error = shell_file->sync();
+    if (report_on_error(chp, error)) return;
 
     delete shell_file;
     shell_file = nullptr;

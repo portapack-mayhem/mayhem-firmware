@@ -30,7 +30,7 @@
 #include "optional.hpp"
 
 #include "chprintf.h"
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 
 #include <cstdint>
 #include <cstddef>

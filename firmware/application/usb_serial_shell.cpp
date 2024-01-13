@@ -36,7 +36,7 @@
 #include "crc.hpp"
 #include "hackrf_cpld_data.hpp"
 
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 #include "chprintf.h"
 #include "chqueues.h"
 #include "ui_external_items_menu_loader.hpp"

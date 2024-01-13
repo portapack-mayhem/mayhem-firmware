@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 
 #include "usb_serial_endpoints.h"
 
@@ -39,43 +39,6 @@
 #include <string.h>
 
 SerialUSBDriver SUSBD1;
-
-uint8_t usb_bulk_buffer[USB_BULK_BUFFER_SIZE];
-
-void bulk_out_receive(void) {
-    int ret;
-
-    while (chIQGetEmptyI(&SUSBD1.iqueue) < USB_BULK_BUFFER_SIZE)
-        chThdSleepMilliseconds(1);  // wait for shell thread when buffer is full
-
-    do {
-        ret = usb_transfer_schedule(
-            &usb_endpoint_bulk_out,
-            &usb_bulk_buffer[0],
-            USB_BULK_BUFFER_SIZE,
-            serial_bulk_transfer_complete,
-            NULL);
-
-    } while (ret != -1);
-}
-
-void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred) {
-    (void)user_data;
-
-    chSysLockFromIsr();
-    for (unsigned int i = 0; i < bytes_transferred; i++) {
-        msg_t ret;
-        do {
-            ret = chIQPutI(&SUSBD1.iqueue, usb_bulk_buffer[i]);
-
-            if (ret == Q_FULL) {
-                chDbgPanic("USB iqueue buffer full");
-            }
-
-        } while (ret == Q_FULL);
-    }
-    chSysUnlockFromIsr();
-}
 
 static void onotify(GenericQueue* qp) {
     SerialUSBDriver* sdp = chQGetLink(qp);

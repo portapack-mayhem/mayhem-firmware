@@ -31,11 +31,16 @@ static Thread* thread_usb_event = NULL;
 
 CH_IRQ_HANDLER(USB0_IRQHandler) {
     CH_IRQ_PROLOGUE();
+
+    const uint32_t status = USB0_USBSTS_D & USB0_USBINTR_D;
+
     usb0_isr();
 
-    chSysLockFromIsr();
-    chEvtSignalI(thread_usb_event, EVT_MASK_USB);
-    chSysUnlockFromIsr();
+    if (status & USB0_USBSTS_D_UI) {
+        chSysLockFromIsr();
+        chEvtSignalI(thread_usb_event, EVT_MASK_USB);
+        chSysUnlockFromIsr();
+    }
 
     CH_IRQ_EPILOGUE();
 }
