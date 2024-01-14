@@ -275,10 +275,10 @@ void GeoMap::draw_map_grid() {
     display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
 
     for (uint16_t line = y; line < r.height(); line += grid_spacing) {
-        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Color::dark_blue());
+        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Color::darker_grey());
     }
     for (uint16_t column = x; column < r.width(); column += grid_spacing) {
-        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Color::dark_blue());
+        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Color::darker_grey());
     }
 }
 
