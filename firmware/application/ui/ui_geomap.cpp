@@ -520,8 +520,8 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     double lat_rad = sin(marker.lat * pi / 180);
     int x = (map_width * (marker.lon + 180) / 360) - x_pos + zoom_pixel_offset;
     int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos + zoom_pixel_offset;  // Offset added for the GUI
-    if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height)))
-    {
+
+    if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height))) {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
         markerList[markerListLen] = marker;
