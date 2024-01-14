@@ -35,6 +35,7 @@
 #include "portapack_cpld_data.hpp"
 #include "crc.hpp"
 #include "hackrf_cpld_data.hpp"
+#include "performance_counter.hpp"
 
 #include "usb_serial_device_to_host.h"
 #include "chprintf.h"
@@ -916,6 +917,51 @@ static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_sysinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: sysinfo\r\n";
+    (void)argv;
+    if (argc > 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    auto utilisation = get_cpu_utilisation_in_percent();
+    std::string info =
+        "M0 heap: " + to_string_dec_uint(chCoreStatus()) + "\r\n" +
+        "M0 stack: " + to_string_dec_uint((uint32_t)get_free_stack_space()) + "\r\n" +
+        "M0 cpu%: " + to_string_dec_uint(utilisation) + "\r\n" +
+        "M4 heap: " + to_string_dec_uint(shared_memory.m4_heap_usage) + "\r\n" +
+        "M4 stack: " + to_string_dec_uint(shared_memory.m4_stack_usage) + "\r\n" +
+        "M0 cpu%: " + to_string_dec_uint(shared_memory.m4_performance_counter) + "\r\n" +
+        "M4 miss: " + to_string_dec_uint(shared_memory.m4_buffer_missed) + "\r\n" +
+        "uptime: " + to_string_dec_uint(chTimeNow() / 1000) + "\r\n";
+
+    chprintf(chp, info.c_str());
+    return;
+}
+
+static void cmd_radioinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: radioinfo\r\n";
+    (void)argv;
+    if (argc > 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    std::string info =
+        "receiver_model.target_frequency: " + to_string_dec_uint(portapack::receiver_model.target_frequency()) + "\r\n" +
+        "receiver_model.baseband_bandwidth: " + to_string_dec_uint(portapack::receiver_model.baseband_bandwidth()) + "\r\n" +
+        "receiver_model.sampling_rate: " + to_string_dec_uint(portapack::receiver_model.sampling_rate()) + "\r\n" +
+        "receiver_model.modulation: " + to_string_dec_uint((uint32_t)portapack::receiver_model.modulation()) + "\r\n" +
+        "receiver_model.am_configuration: " + to_string_dec_uint(portapack::receiver_model.am_configuration()) + "\r\n" +
+        "receiver_model.nbfm_configuration: " + to_string_dec_uint(portapack::receiver_model.nbfm_configuration()) + "\r\n" +
+        "receiver_model.wfm_configuration: " + to_string_dec_uint(portapack::receiver_model.wfm_configuration()) + "\r\n" +
+        "transmitter_model.target_frequency: " + to_string_dec_uint(portapack::transmitter_model.target_frequency()) + "\r\n" +
+        "transmitter_model.baseband_bandwidth: " + to_string_dec_uint(portapack::transmitter_model.baseband_bandwidth()) + "\r\n" +
+        "transmitter_model.sampling_rate: " + to_string_dec_uint(portapack::transmitter_model.sampling_rate()) + "\r\n";
+
+    chprintf(chp, info.c_str());
+    return;
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -941,6 +987,8 @@ static const ShellCommand commands[] = {
     {"appstart", cmd_appstart},
     {"gotgps", cmd_gotgps},
     {"gotorientation", cmd_gotorientation},
+    {"sysinfo", cmd_sysinfo},
+    {"radioinfo", cmd_radioinfo},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
