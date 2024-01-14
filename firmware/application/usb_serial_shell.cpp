@@ -935,7 +935,7 @@ static void cmd_sysinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
         "M4 miss: " + to_string_dec_uint(shared_memory.m4_buffer_missed) + "\r\n" +
         "uptime: " + to_string_dec_uint(chTimeNow() / 1000) + "\r\n";
 
-    chprintf(chp, info.c_str());
+    fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)info.c_str(), info.length());
     return;
 }
 
@@ -958,7 +958,7 @@ static void cmd_radioinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
         "transmitter_model.baseband_bandwidth: " + to_string_dec_uint(portapack::transmitter_model.baseband_bandwidth()) + "\r\n" +
         "transmitter_model.sampling_rate: " + to_string_dec_uint(portapack::transmitter_model.sampling_rate()) + "\r\n";
 
-    chprintf(chp, info.c_str());
+    fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)info.c_str(), info.length());
     return;
 }
 
