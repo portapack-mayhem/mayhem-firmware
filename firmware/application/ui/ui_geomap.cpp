@@ -174,11 +174,6 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
                 map_zoom = 1;
             } else {
                 map_zoom++;
-
-                // When zooming in, ensure that MOD(240,map_zoom)==0 for the map_zoom_line() function
-                if ((map_zoom > 1) && (geomap_rect_width % map_zoom != 0)) {
-                    map_zoom--;
-                }
             }
         }
     } else if (delta < 0) {
@@ -192,6 +187,8 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
     } else {
         return false;
     }
+
+    map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
 
     // Trigger map redraw
     markerListUpdated = true;
@@ -267,8 +264,12 @@ void GeoMap::paint(Painter& painter) {
     // or the markers list was updated
     int x_diff = abs(x_pos - prev_x_pos);
     int y_diff = abs(y_pos - prev_y_pos);
+    int min_diff = (!map_visible || (map_zoom > 1)) ? 1 : 3;
 
-    if (markerListUpdated || (x_diff >= 3) || (y_diff >= 3)) {
+    if (markerListUpdated || (x_diff >= min_diff) || (y_diff >= min_diff)) {
+        prev_x_pos = x_pos;
+        prev_y_pos = y_pos;
+
         int32_t zoom_seek_x = x_pos;
         int32_t zoom_seek_y = y_pos;
 
@@ -281,20 +282,21 @@ void GeoMap::paint(Painter& painter) {
             zoom_seek_y += (r.height() - (r.height() * (-map_zoom))) / 2;
         }
 
-        // Read from map file and display to zoomed scale
-        int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
-        for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
-            uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
-            map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
-            map_read_line(map_line_buffer.data(), r.width());
+        if (map_visible) {
+            // Read from map file and display to zoomed scale
+            int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
+            for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
+                uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
+                map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
+                map_read_line(map_line_buffer.data(), r.width());
 
-            for (uint16_t j = 0; j < duplicate_lines; j++) {
-                display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
+                for (uint16_t j = 0; j < duplicate_lines; j++) {
+                    display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
+                }
             }
+        } else {
+            display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
         }
-
-        prev_x_pos = x_pos;
-        prev_y_pos = y_pos;
 
         // Draw crosshairs in center in manual panning mode
         if (manual_panning_) {
@@ -311,7 +313,7 @@ void GeoMap::paint(Painter& painter) {
     }
 
     // Draw the marker in the center
-    if (!manual_panning_) {
+    if (!manual_panning_ && !hide_center_marker_) {
         draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
     }
 }
@@ -359,12 +361,17 @@ void GeoMap::move(const float lon, const float lat) {
 
 bool GeoMap::init() {
     auto result = map_file.open("ADSB/world_map.bin");
-    if (result.is_valid())
-        return false;
+    map_opened = !result.is_valid();  
 
-    map_file.read(&map_width, 2);
-    map_file.read(&map_height, 2);
+    if (map_opened) {
+        map_file.read(&map_width, 2);
+        map_file.read(&map_height, 2);
+    } else {
+        map_width = 32768;
+        map_height = 32768;
+    }
 
+    map_visible = map_opened;
     map_center_x = map_width >> 1;
     map_center_y = map_height >> 1;
 
@@ -375,7 +382,7 @@ bool GeoMap::init() {
     map_world_lon = map_width / (2 * pi);
     map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
 
-    return true;
+    return map_opened;
 }
 
 void GeoMap::set_mode(GeoMapMode mode) {
@@ -391,19 +398,31 @@ bool GeoMap::manual_panning() {
 }
 
 void GeoMap::draw_scale(Painter& painter) {
-    uint16_t km = 800;
-    uint16_t scale_width = (map_zoom > 0) ? km * pixels_per_km * map_zoom : km * pixels_per_km / (-map_zoom);
+    uint32_t m = 800000;
+    uint32_t scale_width = (map_zoom > 0) ? m * pixels_per_km * map_zoom : m * pixels_per_km / (-map_zoom);
+    ui::Color scale_color = (map_visible) ? Color::black() : Color::white();
+    std::string km_string;
 
-    while (scale_width > screen_width / 2) {
+    while (scale_width > screen_width * 1000 / 2) {
         scale_width /= 2;
-        km /= 2;
+        m /= 2;
+    }
+    scale_width /= 1000;
+    if (m < 1000) {
+        km_string = to_string_dec_uint(m) + "m";
+    } else {
+        uint32_t km = m / 1000;
+        m -= km * 1000;
+        if (m == 0) {
+            km_string = to_string_dec_uint(km) + " km";
+        } else {
+            km_string = to_string_dec_uint(km) + "." + to_string_dec_uint((m + 50) / 100, 1) + "km";
+        }
     }
 
-    std::string km_string = to_string_dec_uint(km) + " km";
-
-    display.fill_rectangle({{screen_width - 5 - scale_width, screen_height - 4}, {scale_width, 2}}, Color::black());
-    display.fill_rectangle({{screen_width - 5, screen_height - 8}, {2, 6}}, Color::black());
-    display.fill_rectangle({{screen_width - 5 - scale_width, screen_height - 8}, {2, 6}}, Color::black());
+    display.fill_rectangle({{screen_width - 5 - (uint16_t)scale_width, screen_height - 4}, {(uint16_t)scale_width, 2}}, scale_color);
+    display.fill_rectangle({{screen_width - 5, screen_height - 8}, {2, 6}}, scale_color);
+    display.fill_rectangle({{screen_width - 5 - (uint16_t)scale_width, screen_height - 8}, {2, 6}}, scale_color);
 
     painter.draw_string({(uint16_t)(screen_width - 25 - scale_width - km_string.length() * 5 / 2), screen_height - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
 }
@@ -434,6 +453,7 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
     } else if (angle_ < 360) {
         // if we have a valid angle draw bearing
         draw_bearing(itemPoint, itemAngle, 10, color);
+        display.draw_pixel({itemPoint}, color);  // indicate center of bearing symbol
         tagOffset = 10;
     } else {
         // draw a small cross
@@ -527,7 +547,7 @@ void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
 void GeoMapView::focus() {
     geopos.focus();
 
-    if (!map_opened)
+    if (!geomap.map_file_opened())
         nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT);
 }
 
@@ -627,8 +647,7 @@ GeoMapView::GeoMapView(
 
     add_child(&geopos);
 
-    map_opened = geomap.init();
-    if (!map_opened) return;
+    geomap.init();
 
     setup();
 
@@ -660,8 +679,7 @@ GeoMapView::GeoMapView(
 
     add_child(&geopos);
 
-    map_opened = geomap.init();
-    if (!map_opened) return;
+    geomap.init();
 
     setup();
     add_child(&button_ok);

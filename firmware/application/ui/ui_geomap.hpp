@@ -29,8 +29,9 @@
 
 #include "portapack.hpp"
 
-#define MAX_MAP_ZOOM_IN 5
+#define MAX_MAP_ZOOM_IN 1000
 #define MAX_MAP_ZOOM_OUT 10
+#define MAP_ZOOM_RESOLUTION_LIMIT 6  // Max zoom-in to show map; screen width (240) must divide into this evenly
 
 namespace ui {
 
@@ -201,6 +202,13 @@ class GeoMap : public Widget {
         angle_ = new_angle;
     }
 
+    bool map_file_opened() { return map_opened; }
+
+    void set_hide_center_marker(bool hide) {
+        hide_center_marker_ = hide;
+    }
+    bool hide_center_marker() { return hide_center_marker_; }
+
     static const int NumMarkerListElements = 30;
 
     void clear_markers();
@@ -219,8 +227,11 @@ class GeoMap : public Widget {
     void map_read_line(ui::Color* buffer, uint16_t pixels);
 
     bool manual_panning_{false};
+    bool hide_center_marker_{false};
     GeoMapMode mode_{};
     File map_file{};
+    bool map_opened{};
+    bool map_visible{};
     uint16_t map_width{}, map_height{};
     int32_t map_center_x{}, map_center_y{};
     int16_t map_zoom{1};
@@ -302,8 +313,6 @@ class GeoMapView : public View {
     float lon_{};
     uint16_t angle_{};
     std::function<void(void)> on_close_{nullptr};
-
-    bool map_opened{};
 
     GeoPos geopos{
         {0, 0},
