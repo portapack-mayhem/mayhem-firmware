@@ -31,7 +31,7 @@
 
 #define MAX_MAP_ZOOM_IN 1000
 #define MAX_MAP_ZOOM_OUT 10
-#define MAP_ZOOM_RESOLUTION_LIMIT 6  // Max zoom-in to show map; screen width (240) must divide into this evenly
+#define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
 
 namespace ui {
 
@@ -240,10 +240,11 @@ class GeoMap : public Widget {
     double map_world_lon{};
     double map_offset{};
 
-    int32_t x_pos{}, y_pos{};
-    int32_t prev_x_pos{0xFFFF}, prev_y_pos{0xFFFF};
+    float x_pos{}, y_pos{};
+    float prev_x_pos{32767.0f}, prev_y_pos{32767.0f};
     float lat_{};
     float lon_{};
+    float zoom_pixel_offset{0};
     float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};

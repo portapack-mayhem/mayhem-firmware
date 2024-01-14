@@ -189,6 +189,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
     }
 
     map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
+    zoom_pixel_offset = (map_visible && (map_zoom > 0)) ? (float)map_zoom / 2 : 0;
 
     // Trigger map redraw
     markerListUpdated = true;
@@ -205,7 +206,9 @@ void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
         // Zoom in: Expand each pixel to "map_zoom" number of pixels.
         // Future TODO:  Add dithering to smooth out the pixelation.
         // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
-        // For 240 width, than means no check is needed for map_zoom values up to 6
+        // For 240 width, than means no check is needed for map_zoom values up to 6.
+        // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
+        // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
         for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
             for (int j = 0; j < map_zoom; j++) {
                 buffer[(i * map_zoom) + j] = buffer[i];
@@ -230,8 +233,8 @@ void GeoMap::draw_markers(Painter& painter) {
     for (int i = 0; i < markerListLen; ++i) {
         GeoMarker& item = markerList[i];
         double lat_rad = sin(item.lat * pi / 180);
-        int x = (map_width * (item.lon + 180) / 360) - x_pos;
-        int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+        int x = (map_width * (item.lon + 180) / 360) - x_pos + zoom_pixel_offset;
+        int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos + zoom_pixel_offset;  // Offset added for the GUI
 
         if (map_zoom > 1) {
             x = ((x - (r.width() / 2)) * map_zoom) + (r.width() / 2);
@@ -262,9 +265,9 @@ void GeoMap::paint(Painter& painter) {
 
     // Ony redraw map if it moved by at least 1 pixel
     // or the markers list was updated
-    int x_diff = abs(x_pos - prev_x_pos);
-    int y_diff = abs(y_pos - prev_y_pos);
-    int min_diff = (!map_visible || (map_zoom > 1)) ? 1 : 3;
+    int x_diff = abs(x_pos - prev_x_pos) * ((map_zoom > 1) ? map_zoom : 1);
+    int y_diff = abs(y_pos - prev_y_pos) * ((map_zoom > 1) ? map_zoom : 1);
+    int min_diff = 1;
 
     if (markerListUpdated || (x_diff >= min_diff) || (y_diff >= min_diff)) {
         prev_x_pos = x_pos;
@@ -273,7 +276,9 @@ void GeoMap::paint(Painter& painter) {
         int32_t zoom_seek_x = x_pos;
         int32_t zoom_seek_y = y_pos;
 
-        // Adjust starting corner position of map per zoom setting
+        // Adjust starting corner position of map per zoom setting;
+        // When zooming in the map should technically by shifted left & up by another map_zoom/2 pixels but
+        // the map_read_line() function doesn't handle that so we're adjusting markers instead (see zoom_pixel_offset).
         if (map_zoom > 1) {
             zoom_seek_x += (r.width() - (r.width() / map_zoom)) / 2;
             zoom_seek_y += (r.height() - (r.height() / map_zoom)) / 2;
@@ -300,8 +305,8 @@ void GeoMap::paint(Painter& painter) {
 
         // Draw crosshairs in center in manual panning mode
         if (manual_panning_) {
-            display.fill_rectangle({r.center() - Point(16, 1), {32, 2}}, Color::red());
-            display.fill_rectangle({r.center() - Point(1, 16), {2, 32}}, Color::red());
+            display.fill_rectangle({r.center() - Point(16, 1) + Point(zoom_pixel_offset, zoom_pixel_offset), {32, 2}}, Color::red());
+            display.fill_rectangle({r.center() - Point(1, 16) + Point(zoom_pixel_offset, zoom_pixel_offset), {2, 32}}, Color::red());
         }
 
         // Draw the other markers
@@ -314,7 +319,7 @@ void GeoMap::paint(Painter& painter) {
 
     // Draw the marker in the center
     if (!manual_panning_ && !hide_center_marker_) {
-        draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
+        draw_marker(painter, r.center() + Point(zoom_pixel_offset, zoom_pixel_offset), angle_, tag_, Color::red(), Color::white(), Color::black());
     }
 }
 
@@ -471,9 +476,9 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
 void GeoMap::draw_mypos() {
     const auto r = screen_rect();
     if (my_lat >= 200 || my_lon >= 200) return;  // invalid
-    int x = (map_width * (my_lon + 180) / 360) - x_pos;
+    int x = (map_width * (my_lon + 180) / 360) - x_pos + zoom_pixel_offset;
     double lat_rad = sin(my_lat * pi / 180);
-    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos + zoom_pixel_offset;  // Offset added for the GUI
     auto color = Color::yellow();
 
     if (map_zoom > 1) {
@@ -513,8 +518,8 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     // Check if it could be on screen
     // Only checking one direction to reduce CPU
     double lat_rad = sin(marker.lat * pi / 180);
-    int x = (map_width * (marker.lon + 180) / 360) - x_pos;
-    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+    int x = (map_width * (marker.lon + 180) / 360) - x_pos + zoom_pixel_offset;
+    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos + zoom_pixel_offset;  // Offset added for the GUI
     if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height)))              // Dont draw within symbol size of top
     {
         ret = MARKER_NOT_STORED;
