@@ -259,6 +259,28 @@ void GeoMap::draw_markers(Painter& painter) {
     }
 }
 
+void GeoMap::draw_map_grid() {
+    const auto r = screen_rect();
+
+    // Grid spacing is just based on zoom at the moment, and centered on screen.
+    // TODO: Maybe align with latitude/longitude seconds instead?
+    int grid_spacing = map_zoom * 2;
+    int x = (r.width() / 2) % grid_spacing;
+    int y = (r.height() / 2) % grid_spacing;
+
+    if (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT)
+        return;
+
+    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
+
+    for (uint16_t line = y; line < r.height(); line += grid_spacing) {
+        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Color::dark_blue());
+    }
+    for (uint16_t column = x; column < r.width(); column += grid_spacing) {
+        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Color::dark_blue());
+    }
+}
+
 void GeoMap::paint(Painter& painter) {
     const auto r = screen_rect();
     std::array<ui::Color, 240> map_line_buffer;
@@ -300,7 +322,8 @@ void GeoMap::paint(Painter& painter) {
                 }
             }
         } else {
-            display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
+            // No map data or excessive zoom; just draw a grid
+            draw_map_grid();
         }
 
         // Draw crosshairs in center in manual panning mode
@@ -404,7 +427,7 @@ bool GeoMap::manual_panning() {
 
 void GeoMap::draw_scale(Painter& painter) {
     uint32_t m = 800000;
-    uint32_t scale_width = (map_zoom > 0) ? m * pixels_per_km * map_zoom : m * pixels_per_km / (-map_zoom);
+    uint32_t scale_width = (map_zoom > 0) ? m * map_zoom * pixels_per_km : m * pixels_per_km / (-map_zoom);
     ui::Color scale_color = (map_visible) ? Color::black() : Color::white();
     std::string km_string;
 
@@ -446,6 +469,8 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
 
         size--;
     }
+
+    display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
 void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
@@ -458,7 +483,6 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
     } else if (angle_ < 360) {
         // if we have a valid angle draw bearing
         draw_bearing(itemPoint, itemAngle, 10, color);
-        display.draw_pixel({itemPoint}, color);  // indicate center of bearing symbol
         tagOffset = 10;
     } else {
         // draw a small cross
