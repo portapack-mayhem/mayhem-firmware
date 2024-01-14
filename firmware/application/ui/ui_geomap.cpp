@@ -231,6 +231,35 @@ void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
     }
 }
 
+void GeoMap::draw_markers(Painter& painter) {
+    for (int i = 0; i < markerListLen; ++i) {
+        draw_marker_item(painter, markerList[i], Color::blue(), Color::blue(), Color::magenta());
+    }
+}
+
+void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor, const Color backColor) {
+    const auto r = screen_rect();
+
+    double lat_rad = sin(item.lat * pi / 180);
+    int x = (map_width * (item.lon + 180) / 360) - x_pos + zoom_pixel_offset;
+    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos + zoom_pixel_offset;  // Offset added for the GUI
+
+    if (map_zoom > 1) {
+        x = ((x - (r.width() / 2)) * map_zoom) + (r.width() / 2);
+        y = ((y - (r.height() / 2)) * map_zoom) + (r.height() / 2);
+    } else if (map_zoom < 0) {
+        x = ((x - (r.width() / 2)) / (-map_zoom)) + (r.width() / 2);
+        y = ((y - (r.height() / 2)) / (-map_zoom)) + (r.height() / 2);
+    }
+
+    if ((x >= 0) && (x < r.width()) &&
+        (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
+    {
+        ui::Point itemPoint(x, y + r.top());
+        draw_marker(painter, itemPoint, item.angle, item.tag, color, fontColor, backColor);
+    }
+}
+
 void GeoMap::draw_map_grid() {
     const auto r = screen_rect();
 
@@ -428,38 +457,22 @@ void GeoMap::draw_scale(Painter& painter) {
     painter.draw_string({(uint16_t)(screen_width - 25 - scale_width - km_string.length() * 5 / 2), screen_height - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
 }
 
-void GeoMap::draw_markers(Painter& painter) {
-    for (int i = 0; i < markerListLen; ++i) {
-        draw_marker_item(painter, markerList[i], Color::blue(), Color::blue(), Color::magenta());
-    }
-}
+void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
+    Point arrow_a, arrow_b, arrow_c;
 
-void GeoMap::draw_mypos(Painter& painter) {
-    if ((my_pos.lat < INVALID_LAT_LON) && (my_pos.lon < INVALID_LAT_LON))
-        draw_marker_item(painter, my_pos, Color::yellow());
-}
+    for (size_t thickness = 0; thickness < 3; thickness++) {
+        arrow_a = fast_polar_to_point((int)angle, size) + origin;
+        arrow_b = fast_polar_to_point((int)(angle + 180 - 35), size) + origin;
+        arrow_c = fast_polar_to_point((int)(angle + 180 + 35), size) + origin;
 
-void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor, const Color backColor) {
-    const auto r = screen_rect();
+        display.draw_line(arrow_a, arrow_b, color);
+        display.draw_line(arrow_b, arrow_c, color);
+        display.draw_line(arrow_c, arrow_a, color);
 
-    double lat_rad = sin(item.lat * pi / 180);
-    int x = (map_width * (item.lon + 180) / 360) - x_pos + zoom_pixel_offset;
-    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos + zoom_pixel_offset;  // Offset added for the GUI
-
-    if (map_zoom > 1) {
-        x = ((x - (r.width() / 2)) * map_zoom) + (r.width() / 2);
-        y = ((y - (r.height() / 2)) * map_zoom) + (r.height() / 2);
-    } else if (map_zoom < 0) {
-        x = ((x - (r.width() / 2)) / (-map_zoom)) + (r.width() / 2);
-        y = ((y - (r.height() / 2)) / (-map_zoom)) + (r.height() / 2);
+        size--;
     }
 
-    if ((x >= 0) && (x < r.width()) &&
-        (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
-    {
-        ui::Point itemPoint(x, y + r.top());
-        draw_marker(painter, itemPoint, item.angle, item.tag, color, fontColor, backColor);
-    }
+    display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
 void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
@@ -488,22 +501,9 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
     }
 }
 
-void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
-    Point arrow_a, arrow_b, arrow_c;
-
-    for (size_t thickness = 0; thickness < 3; thickness++) {
-        arrow_a = fast_polar_to_point((int)angle, size) + origin;
-        arrow_b = fast_polar_to_point((int)(angle + 180 - 35), size) + origin;
-        arrow_c = fast_polar_to_point((int)(angle + 180 + 35), size) + origin;
-
-        display.draw_line(arrow_a, arrow_b, color);
-        display.draw_line(arrow_b, arrow_c, color);
-        display.draw_line(arrow_c, arrow_a, color);
-
-        size--;
-    }
-
-    display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
+void GeoMap::draw_mypos(Painter& painter) {
+    if ((my_pos.lat < INVALID_LAT_LON) && (my_pos.lon < INVALID_LAT_LON))
+        draw_marker_item(painter, my_pos, Color::yellow());
 }
 
 void GeoMap::clear_markers() {
