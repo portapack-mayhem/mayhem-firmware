@@ -33,6 +33,9 @@
 #define MAX_MAP_ZOOM_OUT 10
 #define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
 
+#define INVALID_LAT_LON 200
+#define INVALID_ANGLE 400
+
 namespace ui {
 
 enum GeoMapMode {
@@ -220,10 +223,12 @@ class GeoMap : public Widget {
 
    private:
     void draw_scale(Painter& painter);
-    void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
+    void draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
-    void draw_mypos();
+    void draw_mypos(Painter& painter);
+    void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
+    void draw_map_grid();
     void map_read_line(ui::Color* buffer, uint16_t pixels);
 
     bool manual_panning_{false};
@@ -250,10 +255,8 @@ class GeoMap : public Widget {
     std::string tag_{};
 
     // the portapack's position data ( for example injected from serial )
-    float my_lat{200};
-    float my_lon{200};
+    GeoMarker my_pos{INVALID_LAT_LON, INVALID_LAT_LON, INVALID_ANGLE, ""};  // lat, lon, angle, tag
     int32_t my_altitude{0};
-    uint16_t my_angle{400};
 
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
