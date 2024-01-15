@@ -31,7 +31,7 @@
 
 namespace ui {
 
-#define MAX_MAP_ZOOM_IN 2000
+#define MAX_MAP_ZOOM_IN 4000
 #define MAX_MAP_ZOOM_OUT 10
 #define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
 
@@ -40,12 +40,7 @@ namespace ui {
 
 #define GEOMAP_BANNER_HEIGHT (3 * 16)
 #define GEOMAP_RECT_WIDTH 240
-#define GEOMAP_RECT_HALF_WIDTH (GEOMAP_RECT_WIDTH / 2)
-#define GEOMAP_RECT_TOP (GEOMAP_BANNER_HEIGHT + 16)
-#define GEOMAP_RECT_HEIGHT (320 - GEOMAP_RECT_TOP)
-#define GEOMAP_RECT_HALF_HEIGHT (GEOMAP_RECT_HEIGHT / 2)
-#define GEOMAP_RECT_CENTER_X (GEOMAP_RECT_HALF_WIDTH)
-#define GEOMAP_RECT_CENTER_Y (GEOMAP_RECT_TOP + GEOMAP_RECT_HALF_HEIGHT)
+#define GEOMAP_RECT_HEIGHT (320 - 16 - GEOMAP_BANNER_HEIGHT)
 
 enum GeoMapMode {
     DISPLAY,
@@ -232,6 +227,10 @@ class GeoMap : public Widget {
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
+    static const Dim banner_height = GEOMAP_BANNER_HEIGHT;
+    static const Dim geomap_rect_width = GEOMAP_RECT_WIDTH;
+    static const Dim geomap_rect_height = GEOMAP_RECT_HEIGHT;
+
    private:
     void draw_scale(Painter& painter);
     ui::Point item_rect_pixel(GeoMarker& item);
@@ -337,7 +336,7 @@ class GeoMapView : public View {
         speed_unit_};
 
     GeoMap geomap{
-        {0, GEOMAP_BANNER_HEIGHT, GEOMAP_RECT_WIDTH, GEOMAP_RECT_HEIGHT}};
+        {0, GeoMap::banner_height, GeoMap::geomap_rect_width, GeoMap::geomap_rect_height}};
 
     Button button_ok{
         {20 * 8, 8, 8 * 8, 2 * 16},

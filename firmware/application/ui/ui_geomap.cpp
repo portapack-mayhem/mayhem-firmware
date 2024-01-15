@@ -192,8 +192,8 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
         return false;
     }
 
+    // zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
     map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
-//    zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
 
     // Trigger map redraw
     markerListUpdated = true;
@@ -213,7 +213,7 @@ void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
         // For 240 width, than means no check is needed for map_zoom values up to 6.
         // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
         // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
-        for (int i = (GEOMAP_RECT_WIDTH / map_zoom) - 1; i >= 0; i--) {
+        for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
             for (int j = 0; j < map_zoom; j++) {
                 buffer[(i * map_zoom) + j] = buffer[i];
             }
@@ -224,7 +224,7 @@ void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
 
         // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
         // Future TODO: Average each group of pixels (in both X & Y directions if possible).
-        for (int i = 0; i < GEOMAP_RECT_WIDTH; i++) {
+        for (int i = 0; i < geomap_rect_width; i++) {
             buffer[i] = zoom_out_buffer[i * (-map_zoom)];
         }
         delete zoom_out_buffer;
@@ -238,27 +238,32 @@ void GeoMap::draw_markers(Painter& painter) {
 }
 
 void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor, const Color backColor) {
+    const auto r = screen_rect();
     const ui::Point itemPoint = item_rect_pixel(item);
 
-    if ((itemPoint.x() >= 0) && (itemPoint.x() < GEOMAP_RECT_WIDTH) &&
-        (itemPoint.y() > 10) && (itemPoint.y() < GEOMAP_RECT_HEIGHT))  // Dont draw within symbol size of top
+    if ((itemPoint.x() >= 0) && (itemPoint.x() < r.width()) &&
+        (itemPoint.y() > 10) && (itemPoint.y() < r.height()))  // Dont draw within symbol size of top
     {
-        draw_marker(painter, {itemPoint.x(), itemPoint.y() + GEOMAP_RECT_TOP}, item.angle, item.tag, color, fontColor, backColor);
+        draw_marker(painter, {itemPoint.x(), itemPoint.y() + r.top()}, item.angle, item.tag, color, fontColor, backColor);
     }
 }
 
 // Calculate screen position of item, adjusted for zoom factor.
 ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
+    const auto r = screen_rect();
+    const auto geomap_rect_half_width = r.width() / 2;
+    const auto geomap_rect_half_height = r.height() / 2;
+
     GeoPoint mapPoint = lat_lon_to_map_pixel(item.lat, item.lon);
     float x = mapPoint.x + zoom_pixel_offset - x_pos;
     float y = mapPoint.y + zoom_pixel_offset - y_pos;
 
     if (map_zoom > 1) {
-        x = (x - GEOMAP_RECT_HALF_WIDTH) * map_zoom + GEOMAP_RECT_HALF_WIDTH;
-        y = (y - GEOMAP_RECT_HALF_HEIGHT) * map_zoom + GEOMAP_RECT_HALF_HEIGHT;
+        x = ((x - geomap_rect_half_width) * map_zoom) + geomap_rect_half_width;
+        y = ((y - geomap_rect_half_height) * map_zoom) + geomap_rect_half_height;
     } else if (map_zoom < 0) {
-        x = ((x - GEOMAP_RECT_HALF_WIDTH) / (-map_zoom)) + GEOMAP_RECT_HALF_WIDTH;
-        y = ((y - GEOMAP_RECT_HALF_HEIGHT) / (-map_zoom)) + GEOMAP_RECT_HALF_HEIGHT;
+        x = ((x - geomap_rect_half_width) / (-map_zoom)) + geomap_rect_half_width;
+        y = ((y - geomap_rect_half_height) / (-map_zoom)) + geomap_rect_half_height;
     }
 
     return {(int16_t)x, (int16_t)y};
@@ -279,23 +284,29 @@ GeoPoint GeoMap::lat_lon_to_map_pixel(float lat, float lon) {
 
 // Draw grid in place of map (when zoom-in level is too high).
 void GeoMap::draw_map_grid() {
+    const auto r = screen_rect();
+
     // Grid spacing is just based on zoom at the moment, and centered on screen.
     // TODO: Maybe align with latitude/longitude seconds instead?
     int grid_spacing = map_zoom * 2;
-    int x = GEOMAP_RECT_HALF_WIDTH % grid_spacing;
-    int y = GEOMAP_RECT_HALF_HEIGHT % grid_spacing;
+    int x = (r.width() / 2) % grid_spacing;
+    int y = (r.height() / 2) % grid_spacing;
 
-    display.fill_rectangle({{0, GEOMAP_RECT_TOP}, {GEOMAP_RECT_WIDTH, GEOMAP_RECT_HEIGHT}}, Color::black());
+    if (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT)
+        return;
 
-    for (uint16_t line = y; line < GEOMAP_RECT_HEIGHT; line += grid_spacing) {
-        display.fill_rectangle({{0, GEOMAP_RECT_TOP + line}, {GEOMAP_RECT_WIDTH, 1}}, Color::darker_grey());
+    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
+
+    for (uint16_t line = y; line < r.height(); line += grid_spacing) {
+        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Color::darker_grey());
     }
-    for (uint16_t column = x; column < GEOMAP_RECT_WIDTH; column += grid_spacing) {
-        display.fill_rectangle({{column, GEOMAP_RECT_TOP}, {1, GEOMAP_RECT_HEIGHT}}, Color::darker_grey());
+    for (uint16_t column = x; column < r.width(); column += grid_spacing) {
+        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Color::darker_grey());
     }
 }
 
 void GeoMap::paint(Painter& painter) {
+    const auto r = screen_rect();
     std::array<ui::Color, GEOMAP_RECT_WIDTH> map_line_buffer;
     int16_t zoom_seek_x, zoom_seek_y;
 
@@ -313,11 +324,11 @@ void GeoMap::paint(Painter& painter) {
         // When zooming in the map should technically by shifted left & up by another map_zoom/2 pixels but
         // the map_read_line() function doesn't handle that yet so we're adjusting markers instead (see zoom_pixel_offset).
         if (map_zoom > 1) {
-            zoom_seek_x = x_pos + (GEOMAP_RECT_WIDTH - (GEOMAP_RECT_WIDTH / (float)map_zoom)) / 2;
-            zoom_seek_y = y_pos + (GEOMAP_RECT_HEIGHT - (GEOMAP_RECT_HEIGHT / (float)map_zoom)) / 2;
+            zoom_seek_x = x_pos + (r.width() - (r.width() / (float)map_zoom)) / 2;
+            zoom_seek_y = y_pos + (r.height() - (r.height() / (float)map_zoom)) / 2;
         } else if (map_zoom < 0) {
-            zoom_seek_x = x_pos + (GEOMAP_RECT_WIDTH - (GEOMAP_RECT_WIDTH * (-(float)map_zoom))) / 2;
-            zoom_seek_y = y_pos + (GEOMAP_RECT_HEIGHT - (GEOMAP_RECT_HEIGHT * (-(float)map_zoom))) / 2;
+            zoom_seek_x = x_pos + (r.width() - (r.width() * (-(float)map_zoom))) / 2;
+            zoom_seek_y = y_pos + (r.height() - (r.height() * (-(float)map_zoom))) / 2;
         } else {
             zoom_seek_x = x_pos;
             zoom_seek_y = y_pos;
@@ -326,13 +337,13 @@ void GeoMap::paint(Painter& painter) {
         if (map_visible) {
             // Read from map file and display to zoomed scale
             int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
-            for (uint16_t line = 0; line < (GEOMAP_RECT_HEIGHT / duplicate_lines); line++) {
+            for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
                 uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
                 map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
-                map_read_line(map_line_buffer.data(), GEOMAP_RECT_WIDTH);
+                map_read_line(map_line_buffer.data(), r.width());
 
                 for (uint16_t j = 0; j < duplicate_lines; j++) {
-                    display.draw_pixels({0, GEOMAP_RECT_TOP + (line * duplicate_lines) + j, GEOMAP_RECT_WIDTH, 1}, map_line_buffer);
+                    display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
                 }
             }
         } else {
@@ -342,10 +353,8 @@ void GeoMap::paint(Painter& painter) {
 
         // Draw crosshairs in center in manual panning mode
         if (manual_panning_) {
-            const int16_t x = GEOMAP_RECT_CENTER_X + zoom_pixel_offset;
-            const int16_t y = GEOMAP_RECT_CENTER_Y + zoom_pixel_offset;
-            display.fill_rectangle({{x - 16, y - 1}, {32, 2}}, Color::red());
-            display.fill_rectangle({{x - 1, y - 16}, {2, 32}}, Color::red());
+            display.fill_rectangle({r.center() - Point(16, 1) + Point(zoom_pixel_offset, zoom_pixel_offset), {32, 2}}, Color::red());
+            display.fill_rectangle({r.center() - Point(1, 16) + Point(zoom_pixel_offset, zoom_pixel_offset), {2, 32}}, Color::red());
         }
 
         // Draw the other markers
@@ -358,9 +367,7 @@ void GeoMap::paint(Painter& painter) {
 
     // Draw the marker in the center
     if (!manual_panning_ && !hide_center_marker_) {
-        const int16_t x = GEOMAP_RECT_CENTER_X + zoom_pixel_offset;
-        const int16_t y = GEOMAP_RECT_CENTER_Y + zoom_pixel_offset;
-        draw_marker(painter, {x, y}, angle_, tag_, Color::red(), Color::white(), Color::black());
+        draw_marker(painter, r.center() + Point(zoom_pixel_offset, zoom_pixel_offset), angle_, tag_, Color::red(), Color::white(), Color::black());
     }
 }
 
@@ -375,7 +382,7 @@ bool GeoMap::on_touch(const TouchEvent event) {
     if ((event.type == TouchEvent::Type::Start) && (mode_ == PROMPT)) {
         set_highlighted(true);
         if (on_move) {
-            Point p = event.point - Point(GEOMAP_RECT_CENTER_X, GEOMAP_RECT_CENTER_Y);
+            Point p = event.point - screen_rect().center();
             on_move(p.x() / 2.0 * lon_ratio, p.y() / 2.0 * lat_ratio);
             return true;
         }
@@ -384,23 +391,25 @@ bool GeoMap::on_touch(const TouchEvent event) {
 }
 
 void GeoMap::move(const float lon, const float lat) {
+    const auto r = screen_rect();
+
     lon_ = lon;
     lat_ = lat;
 
     // Calculate x_pos/y_pos corresponding to pixel position in map file for upper left pixel of screen rect
     GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
-    x_pos = mapPoint.x - GEOMAP_RECT_HALF_WIDTH;
-    y_pos = mapPoint.y - GEOMAP_RECT_HALF_HEIGHT;
+    x_pos = mapPoint.x - (r.width() / 2);
+    y_pos = mapPoint.y - (r.height() / 2);
 
     // Cap position
-    if (x_pos > (map_width - GEOMAP_RECT_WIDTH))
-        x_pos = map_width - GEOMAP_RECT_WIDTH;
-    if (y_pos > (map_height + GEOMAP_RECT_HEIGHT))
-        y_pos = map_height - GEOMAP_RECT_HEIGHT;
+    if (x_pos > (map_width - r.width()))
+        x_pos = map_width - r.width();
+    if (y_pos > (map_height + r.height()))
+        y_pos = map_height - r.height();
 
     // Scale calculation
-    float km_per_deg_lon = cos(lat_ * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
-    pixels_per_km = GEOMAP_RECT_HALF_WIDTH / km_per_deg_lon;
+    float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
+    pixels_per_km = (r.width() / 2) / km_per_deg_lon;
 }
 
 bool GeoMap::init() {
@@ -486,10 +495,12 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
         size--;
     }
 
-    display.draw_pixel(origin, color);
+    display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
 void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
+    const auto r = screen_rect();
+
     int tagOffset = 10;
     if (mode_ == PROMPT) {
         // Cross
@@ -507,7 +518,7 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
         tagOffset = 8;
     }
     // center tag above point
-    if ((itemPoint.y() - GEOMAP_RECT_TOP >= 32) && (itemTag.find_first_not_of(' ') != itemTag.npos)) {  // only draw tag if doesn't overlap top & not just spaces
+    if ((itemPoint.y() - r.top() >= 32) && (itemTag.find_first_not_of(' ') != itemTag.npos)) {  // only draw tag if doesn't overlap top & not just spaces
         painter.draw_string(itemPoint - Point(((int)itemTag.length() * 8 / 2), 14 + tagOffset),
                             style().font, fontColor, backColor, itemTag);
     }
@@ -523,6 +534,7 @@ void GeoMap::clear_markers() {
 }
 
 MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
+    const auto r = screen_rect();
     MapMarkerStored ret;
 
     // Check if it could be on screen
@@ -531,13 +543,11 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     float x = mapPoint.x + zoom_pixel_offset - x_pos;
     float y = mapPoint.y + zoom_pixel_offset - y_pos;
 
+    // TODO: adjust when zoomed out to show more planes
     if (map_zoom < 0) {
-        // TODO: adjust for zoom out to show more planes
-
-
     }
 
-    if (false == ((x >= 0) && (x < GEOMAP_RECT_WIDTH) && (y > 10) && (y < GEOMAP_RECT_HEIGHT))) {
+    if (false == ((x >= 0) && (x < r.width()) && (y > 10) && (y < r.height()))) {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
         markerList[markerListLen] = marker;
