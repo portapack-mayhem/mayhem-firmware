@@ -192,8 +192,8 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
         return false;
     }
 
-    zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
     map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
+    zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
 
     // Trigger map redraw
     markerListUpdated = true;
@@ -542,16 +542,13 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     MapMarkerStored ret;
 
     // Check if it could be on screen
-    // Only checking one direction to reduce CPU
+    // (Shows more distant planes when zoomed out)
     GeoPoint mapPoint = lat_lon_to_map_pixel(marker.lat, marker.lon);
-    float x = mapPoint.x + zoom_pixel_offset - (x_pos - (r.width() / 2));
-    float y = mapPoint.y + zoom_pixel_offset - (y_pos - (r.height() / 2));
+    int x_dist = abs((int)mapPoint.x - (int)x_pos);
+    int y_dist = abs((int)mapPoint.y - (int)y_pos);
+    int zoom_out = (map_zoom < 0) ? -map_zoom : 1;
 
-    // TODO: adjust when zoomed out to show more planes
-    if (map_zoom < 0) {
-    }
-
-    if (false == ((x >= 0) && (x < r.width()) && (y > 10) && (y < r.height()))) {
+    if ((x_dist >= (zoom_out * r.width() / 2)) || (y_dist >= (zoom_out * r.height() / 2))) {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
         markerList[markerListLen] = marker;
