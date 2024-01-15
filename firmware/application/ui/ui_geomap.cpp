@@ -65,6 +65,7 @@ GeoPos::GeoPos(
     set_lon(0);
 
     const auto changed_fn = [this](int32_t) {
+        // Convert degrees/minutes/seconds fields to decimal (floating point) lat/lon degree
         float lat_value = lat();
         float lon_value = lon();
 
@@ -255,8 +256,8 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
     const auto geomap_rect_half_height = r.height() / 2;
 
     GeoPoint mapPoint = lat_lon_to_map_pixel(item.lat, item.lon);
-    float x = mapPoint.x + zoom_pixel_offset - x_pos;
-    float y = mapPoint.y + zoom_pixel_offset - y_pos;
+    float x = mapPoint.x - x_pos;
+    float y = mapPoint.y - y_pos;
 
     if (map_zoom > 1) {
         x = x * map_zoom + geomap_rect_half_width;
@@ -267,6 +268,11 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
     } else {
         x -= geomap_rect_half_width;
         y -= geomap_rect_half_height;
+    }
+
+    if (map_zoom > 1) {
+        x += zoom_pixel_offset;
+        y += zoom_pixel_offset;
     }
 
     return {(int16_t)x, (int16_t)y};
