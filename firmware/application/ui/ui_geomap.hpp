@@ -29,18 +29,33 @@
 
 #include "portapack.hpp"
 
-#define MAX_MAP_ZOOM_IN 1000
+namespace ui {
+
+#define MAX_MAP_ZOOM_IN 2000
 #define MAX_MAP_ZOOM_OUT 10
 #define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
 
 #define INVALID_LAT_LON 200
 #define INVALID_ANGLE 400
 
-namespace ui {
+#define GEOMAP_BANNER_HEIGHT (3 * 16)
+#define GEOMAP_RECT_WIDTH 240
+#define GEOMAP_RECT_HALF_WIDTH (GEOMAP_RECT_WIDTH / 2)
+#define GEOMAP_RECT_TOP (GEOMAP_BANNER_HEIGHT + 16)
+#define GEOMAP_RECT_HEIGHT (320 - GEOMAP_RECT_TOP)
+#define GEOMAP_RECT_HALF_HEIGHT (GEOMAP_RECT_HEIGHT / 2)
+#define GEOMAP_RECT_CENTER_X (GEOMAP_RECT_HALF_WIDTH)
+#define GEOMAP_RECT_CENTER_Y (GEOMAP_RECT_TOP + GEOMAP_RECT_HALF_HEIGHT)
 
 enum GeoMapMode {
     DISPLAY,
     PROMPT
+};
+
+struct GeoPoint {
+   public:
+    float x{0};
+    float y{0};
 };
 
 struct GeoMarker {
@@ -217,12 +232,10 @@ class GeoMap : public Widget {
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
-    static const Dim banner_height = 3 * 16;
-    static const Dim geomap_rect_width = 240;
-    static const Dim geomap_rect_height = 320 - 16 - banner_height;
-
    private:
     void draw_scale(Painter& painter);
+    ui::Point item_rect_pixel(GeoMarker& item);
+    GeoPoint lat_lon_to_map_pixel(float lat, float lon);
     void draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
@@ -249,7 +262,7 @@ class GeoMap : public Widget {
     float prev_x_pos{32767.0f}, prev_y_pos{32767.0f};
     float lat_{};
     float lon_{};
-    float zoom_pixel_offset{0};
+    float zoom_pixel_offset{0.0f};
     float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};
@@ -324,7 +337,7 @@ class GeoMapView : public View {
         speed_unit_};
 
     GeoMap geomap{
-        {0, GeoMap::banner_height, GeoMap::geomap_rect_width, GeoMap::geomap_rect_height}};
+        {0, GEOMAP_BANNER_HEIGHT, GEOMAP_RECT_WIDTH, GEOMAP_RECT_HEIGHT}};
 
     Button button_ok{
         {20 * 8, 8, 8 * 8, 2 * 16},
