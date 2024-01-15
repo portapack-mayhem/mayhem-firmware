@@ -260,20 +260,15 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
     float y = mapPoint.y - y_pos;
 
     if (map_zoom > 1) {
-        x = x * map_zoom + geomap_rect_half_width;
-        y = y * map_zoom + geomap_rect_half_height;
+        x = x * map_zoom + zoom_pixel_offset;
+        y = y * map_zoom + zoom_pixel_offset;
     } else if (map_zoom < 0) {
-        x = x / (-map_zoom) + geomap_rect_half_width;
-        y = y / (-map_zoom) + geomap_rect_half_height;
-    } else {
-        x -= geomap_rect_half_width;
-        y -= geomap_rect_half_height;
+        x = x / (-map_zoom);
+        y = y / (-map_zoom);
     }
 
-    if (map_zoom > 1) {
-        x += zoom_pixel_offset;
-        y += zoom_pixel_offset;
-    }
+    x += geomap_rect_half_width;
+    y += geomap_rect_half_height;
 
     return {(int16_t)x, (int16_t)y};
 }
