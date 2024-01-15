@@ -192,7 +192,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
         return false;
     }
 
-    // zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
+    zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
     map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
 
     // Trigger map redraw
@@ -259,11 +259,14 @@ ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
     float y = mapPoint.y + zoom_pixel_offset - y_pos;
 
     if (map_zoom > 1) {
-        x = ((x - geomap_rect_half_width) * map_zoom) + geomap_rect_half_width;
-        y = ((y - geomap_rect_half_height) * map_zoom) + geomap_rect_half_height;
+        x = x * map_zoom + geomap_rect_half_width;
+        y = y * map_zoom + geomap_rect_half_height;
     } else if (map_zoom < 0) {
-        x = ((x - geomap_rect_half_width) / (-map_zoom)) + geomap_rect_half_width;
-        y = ((y - geomap_rect_half_height) / (-map_zoom)) + geomap_rect_half_height;
+        x = x / (-map_zoom) + geomap_rect_half_width;
+        y = y / (-map_zoom) + geomap_rect_half_height;
+    } else {
+        x -= geomap_rect_half_width;
+        y -= geomap_rect_half_height;
     }
 
     return {(int16_t)x, (int16_t)y};
@@ -307,7 +310,7 @@ void GeoMap::draw_map_grid() {
 
 void GeoMap::paint(Painter& painter) {
     const auto r = screen_rect();
-    std::array<ui::Color, GEOMAP_RECT_WIDTH> map_line_buffer;
+    std::array<ui::Color, geomap_rect_width> map_line_buffer;
     int16_t zoom_seek_x, zoom_seek_y;
 
     // Ony redraw map if it moved by at least 1 pixel
@@ -317,21 +320,21 @@ void GeoMap::paint(Painter& painter) {
     int min_diff = 1;
 
     if (markerListUpdated || (x_diff >= min_diff) || (y_diff >= min_diff)) {
-        prev_x_pos = x_pos;  // x_pos/y_pos pixel position in map file correspond to screen pixel position(0,0)
+        prev_x_pos = x_pos;  // Note x_pos/y_pos pixel position in map file now correspond to screen rect CENTER pixel
         prev_y_pos = y_pos;
 
         // Adjust starting corner position of map per zoom setting;
         // When zooming in the map should technically by shifted left & up by another map_zoom/2 pixels but
         // the map_read_line() function doesn't handle that yet so we're adjusting markers instead (see zoom_pixel_offset).
         if (map_zoom > 1) {
-            zoom_seek_x = x_pos + (r.width() - (r.width() / (float)map_zoom)) / 2;
-            zoom_seek_y = y_pos + (r.height() - (r.height() / (float)map_zoom)) / 2;
+            zoom_seek_x = x_pos - (float)r.width() / (2 * map_zoom);
+            zoom_seek_y = y_pos - (float)r.height() / (2 * map_zoom);
         } else if (map_zoom < 0) {
-            zoom_seek_x = x_pos + (r.width() - (r.width() * (-(float)map_zoom))) / 2;
-            zoom_seek_y = y_pos + (r.height() - (r.height() * (-(float)map_zoom))) / 2;
+            zoom_seek_x = x_pos - (r.width() * (-map_zoom)) / 2;
+            zoom_seek_y = y_pos - (r.height() * (-map_zoom)) / 2;
         } else {
-            zoom_seek_x = x_pos;
-            zoom_seek_y = y_pos;
+            zoom_seek_x = x_pos - (r.width() / 2);
+            zoom_seek_y = y_pos - (r.height() / 2);
         }
 
         if (map_visible) {
@@ -396,16 +399,17 @@ void GeoMap::move(const float lon, const float lat) {
     lon_ = lon;
     lat_ = lat;
 
-    // Calculate x_pos/y_pos corresponding to pixel position in map file for upper left pixel of screen rect
+    // Calculate x_pos/y_pos in map file corresponding to CENTER pixel of screen rect
+    // (Note there is a 1:1 correspondence between map file pixels and screen pixels when map_zoom=1)
     GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
-    x_pos = mapPoint.x - (r.width() / 2);
-    y_pos = mapPoint.y - (r.height() / 2);
+    x_pos = mapPoint.x;
+    y_pos = mapPoint.y;
 
     // Cap position
-    if (x_pos > (map_width - r.width()))
-        x_pos = map_width - r.width();
-    if (y_pos > (map_height + r.height()))
-        y_pos = map_height - r.height();
+    if (x_pos > (map_width - r.width() / 2))
+        x_pos = map_width - r.width() / 2;
+    if (y_pos > (map_height + r.height() / 2))
+        y_pos = map_height - r.height() / 2;
 
     // Scale calculation
     float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
@@ -540,8 +544,8 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     // Check if it could be on screen
     // Only checking one direction to reduce CPU
     GeoPoint mapPoint = lat_lon_to_map_pixel(marker.lat, marker.lon);
-    float x = mapPoint.x + zoom_pixel_offset - x_pos;
-    float y = mapPoint.y + zoom_pixel_offset - y_pos;
+    float x = mapPoint.x + zoom_pixel_offset - (x_pos - (r.width() / 2));
+    float y = mapPoint.y + zoom_pixel_offset - (y_pos - (r.height() / 2));
 
     // TODO: adjust when zoomed out to show more planes
     if (map_zoom < 0) {
