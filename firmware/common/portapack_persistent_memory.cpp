@@ -418,6 +418,7 @@ void init() {
     // ignore for valid check
     auto config_mode_backup = config_mode_storage();
     set_config_mode_storage(CONFIG_MODE_NORMAL_VALUE);
+
     if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
@@ -1037,9 +1038,9 @@ bool debug_dump() {
     pmem_dump_file.write_line("tone_mix: " + to_string_dec_uint(data->tone_mix));
     pmem_dump_file.write_line("hardware_config: " + to_string_dec_uint(data->hardware_config));
     pmem_dump_file.write_line("recon_config: 0x" + to_string_hex(data->recon_config, 16));
-    pmem_dump_file.write_line("recon_repeat_nb: " + to_string_dec_int(data->recon_repeat_nb, 16));
-    pmem_dump_file.write_line("recon_repeat_gain:" + to_string_hex(data->recon_config, 16));
-    pmem_dump_file.write_line("recon_repeat_delay:" + to_string_hex(data->recon_config, 16));
+    pmem_dump_file.write_line("recon_repeat_nb: " + to_string_dec_int(data->recon_repeat_nb));
+    pmem_dump_file.write_line("recon_repeat_gain: " + to_string_dec_int(data->recon_repeat_gain));
+    pmem_dump_file.write_line("recon_repeat_delay: " + to_string_dec_int(data->recon_repeat_delay));
     pmem_dump_file.write_line("converter: " + to_string_dec_int(data->converter));
     pmem_dump_file.write_line("updown_converter: " + to_string_dec_int(data->updown_converter));
     pmem_dump_file.write_line("updown_frequency_rx_correction: " + to_string_dec_int(data->updown_frequency_rx_correction));
@@ -1054,6 +1055,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
     // pmem_dump_file.write_line("UNUSED_8: " + to_string_dec_uint(data->UNUSED_8));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
+    pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
