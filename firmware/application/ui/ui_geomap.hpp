@@ -32,7 +32,7 @@
 namespace ui {
 
 #define MAX_MAP_ZOOM_IN 4000
-#define MAX_MAP_ZOOM_OUT 12
+#define MAX_MAP_ZOOM_OUT 10
 #define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
 
 #define INVALID_LAT_LON 200
@@ -276,7 +276,7 @@ class GeoMap : public Widget {
 
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
-    bool markerListUpdated{false};
+    bool redraw_map{false};
 };
 
 class GeoMapView : public View {

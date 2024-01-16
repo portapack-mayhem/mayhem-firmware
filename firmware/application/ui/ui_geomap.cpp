@@ -218,7 +218,7 @@ bool GeoMap::on_encoder(const EncoderEvent delta) {
     zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
 
     // Trigger map redraw
-    markerListUpdated = true;
+    redraw_map = true;
     set_dirty();
     return true;
 }
@@ -335,15 +335,26 @@ void GeoMap::paint(Painter& painter) {
     std::array<ui::Color, geomap_rect_width> map_line_buffer;
     int16_t zoom_seek_x, zoom_seek_y;
 
-    // Ony redraw map if it moved by at least 1 pixel
-    // or the markers list was updated
-    int x_diff = abs(x_pos - prev_x_pos) * ((map_zoom > 1) ? map_zoom : 1);
-    int y_diff = abs(y_pos - prev_y_pos) * ((map_zoom > 1) ? map_zoom : 1);
-    int min_diff = 1;
+    // Ony redraw map if it moved by at least 1 pixel or the markers list was updated
+    if (map_zoom <= 1) {
+        // Zooming out, or no zoom
+        const int min_diff = abs(map_zoom);
+        if ((int)abs(x_pos - prev_x_pos) >= min_diff)
+            redraw_map = true;
+        else if ((int)abs(y_pos - prev_y_pos) >= min_diff)
+            redraw_map = true;
+    } else {
+        // Zooming in; magnify position differences (utilizing zoom_pixel_offset)
+        if ((int)(abs(x_pos - prev_x_pos) * map_zoom) >= 1)
+            redraw_map = true;
+        else if ((int)(abs(y_pos - prev_y_pos) * map_zoom) >= 1)
+            redraw_map = true;
+    }
 
-    if (markerListUpdated || (x_diff >= min_diff) || (y_diff >= min_diff)) {
+    if (redraw_map) {
         prev_x_pos = x_pos;  // Note x_pos/y_pos pixel position in map file now correspond to screen rect CENTER pixel
         prev_y_pos = y_pos;
+        redraw_map = false;
 
         // Adjust starting corner position of map per zoom setting;
         // When zooming in the map should technically by shifted left & up by another map_zoom/2 pixels but
@@ -351,12 +362,9 @@ void GeoMap::paint(Painter& painter) {
         if (map_zoom > 1) {
             zoom_seek_x = x_pos - (float)r.width() / (2 * map_zoom);
             zoom_seek_y = y_pos - (float)r.height() / (2 * map_zoom);
-        } else if (map_zoom < 0) {
-            zoom_seek_x = x_pos - (r.width() * (-map_zoom)) / 2;
-            zoom_seek_y = y_pos - (r.height() * (-map_zoom)) / 2;
         } else {
-            zoom_seek_x = x_pos - (r.width() / 2);
-            zoom_seek_y = y_pos - (r.height() / 2);
+            zoom_seek_x = x_pos - (r.width() * abs(map_zoom)) / 2;
+            zoom_seek_y = y_pos - (r.height() * abs(map_zoom)) / 2;
         }
 
         if (map_visible) {
@@ -386,7 +394,6 @@ void GeoMap::paint(Painter& painter) {
         draw_markers(painter);
         draw_scale(painter);
         draw_mypos(painter);
-        markerListUpdated = false;
         set_clean();
     }
 
@@ -477,12 +484,13 @@ bool GeoMap::manual_panning() {
 }
 
 void GeoMap::draw_scale(Painter& painter) {
+    const auto r = screen_rect();
     uint32_t m = 800000;
     uint32_t scale_width = (map_zoom > 0) ? m * map_zoom * pixels_per_km : m * pixels_per_km / (-map_zoom);
     ui::Color scale_color = (map_visible) ? Color::black() : Color::white();
     std::string km_string;
 
-    while (scale_width > screen_width * 1000 / 2) {
+    while (scale_width > (uint32_t)r.width() * (1000 / 2)) {
         scale_width /= 2;
         m /= 2;
     }
@@ -499,11 +507,11 @@ void GeoMap::draw_scale(Painter& painter) {
         }
     }
 
-    display.fill_rectangle({{screen_width - 5 - (uint16_t)scale_width, screen_height - 4}, {(uint16_t)scale_width, 2}}, scale_color);
-    display.fill_rectangle({{screen_width - 5, screen_height - 8}, {2, 6}}, scale_color);
-    display.fill_rectangle({{screen_width - 5 - (uint16_t)scale_width, screen_height - 8}, {2, 6}}, scale_color);
+    display.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 4}, {(uint16_t)scale_width, 2}}, scale_color);
+    display.fill_rectangle({{r.right() - 5, r.bottom() - 8}, {2, 6}}, scale_color);
+    display.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 8}, {2, 6}}, scale_color);
 
-    painter.draw_string({(uint16_t)(screen_width - 25 - scale_width - km_string.length() * 5 / 2), screen_height - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
+    painter.draw_string({(uint16_t)(r.right() - 25 - scale_width - km_string.length() * 5 / 2), r.bottom() - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
 }
 
 void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
@@ -575,7 +583,7 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     } else if (markerListLen < NumMarkerListElements) {
         markerList[markerListLen] = marker;
         markerListLen++;
-        markerListUpdated = true;
+        redraw_map = true;
         ret = MARKER_STORED;
     } else {
         ret = MARKER_LIST_FULL;
@@ -587,13 +595,14 @@ void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
     my_pos.lat = lat;
     my_pos.lon = lon;
     my_altitude = altitude;
-    markerListUpdated = true;
+    redraw_map = true;
     set_dirty();
 }
+
 void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
     my_pos.angle = angle;
     if (refresh) {
-        markerListUpdated = true;
+        redraw_map = true;
         set_dirty();
     }
 }
