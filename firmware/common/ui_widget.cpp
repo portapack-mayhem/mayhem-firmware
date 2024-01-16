@@ -31,7 +31,7 @@
 #include "chprintf.h"
 #include "irq_controls.hpp"
 #include "string_format.hpp"
-#include "usb_serial_device_to_host.h"
+#include "usb_serial_io.h"
 
 using namespace portapack;
 
@@ -2118,7 +2118,15 @@ bool NumberField::on_key(const KeyEvent key) {
 }
 
 bool NumberField::on_encoder(const EncoderEvent delta) {
+    int32_t old_value = value();
     set_value(value() + (delta * step));
+
+    if (on_wrap) {
+        if ((delta > 0) && (value() < old_value))
+            on_wrap(1);
+        else if ((delta < 0) && (value() > old_value))
+            on_wrap(-1);
+    }
     return true;
 }
 

@@ -29,14 +29,28 @@
 
 #include "portapack.hpp"
 
-#define MAX_MAP_ZOOM_IN 5
-#define MAX_MAP_ZOOM_OUT 10
-
 namespace ui {
+
+#define MAX_MAP_ZOOM_IN 4000
+#define MAX_MAP_ZOOM_OUT 12
+#define MAP_ZOOM_RESOLUTION_LIMIT 5  // Max zoom-in to show map; rect height & width must divide into this evenly
+
+#define INVALID_LAT_LON 200
+#define INVALID_ANGLE 400
+
+#define GEOMAP_BANNER_HEIGHT (3 * 16)
+#define GEOMAP_RECT_WIDTH 240
+#define GEOMAP_RECT_HEIGHT (320 - 16 - GEOMAP_BANNER_HEIGHT)
 
 enum GeoMapMode {
     DISPLAY,
     PROMPT
+};
+
+struct GeoPoint {
+   public:
+    float x{0};
+    float y{0};
 };
 
 struct GeoMarker {
@@ -133,13 +147,15 @@ class GeoPos : public View {
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     NumberField field_lat_seconds{
         {13 * 8, 1 * 16},
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     Text text_lat_decimal{
         {17 * 8, 1 * 16, 13 * 8, 1 * 16},
         ""};
@@ -155,13 +171,15 @@ class GeoPos : public View {
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     NumberField field_lon_seconds{
         {13 * 8, 2 * 16},
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     Text text_lon_decimal{
         {17 * 8, 2 * 16, 13 * 8, 1 * 16},
         ""};
@@ -201,26 +219,40 @@ class GeoMap : public Widget {
         angle_ = new_angle;
     }
 
+    bool map_file_opened() { return map_opened; }
+
+    void set_hide_center_marker(bool hide) {
+        hide_center_marker_ = hide;
+    }
+    bool hide_center_marker() { return hide_center_marker_; }
+
     static const int NumMarkerListElements = 30;
 
     void clear_markers();
     MapMarkerStored store_marker(GeoMarker& marker);
 
-    static const Dim banner_height = 3 * 16;
-    static const Dim geomap_rect_width = 240;
-    static const Dim geomap_rect_height = 320 - 16 - banner_height;
+    static const Dim banner_height = GEOMAP_BANNER_HEIGHT;
+    static const Dim geomap_rect_width = GEOMAP_RECT_WIDTH;
+    static const Dim geomap_rect_height = GEOMAP_RECT_HEIGHT;
 
    private:
     void draw_scale(Painter& painter);
-    void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
+    ui::Point item_rect_pixel(GeoMarker& item);
+    GeoPoint lat_lon_to_map_pixel(float lat, float lon);
+    void draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color = Color::red(), const Color fontColor = Color::white(), const Color backColor = Color::black());
     void draw_markers(Painter& painter);
-    void draw_mypos();
+    void draw_mypos(Painter& painter);
+    void draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color);
+    void draw_map_grid();
     void map_read_line(ui::Color* buffer, uint16_t pixels);
 
     bool manual_panning_{false};
+    bool hide_center_marker_{false};
     GeoMapMode mode_{};
     File map_file{};
+    bool map_opened{};
+    bool map_visible{};
     uint16_t map_width{}, map_height{};
     int32_t map_center_x{}, map_center_y{};
     int16_t map_zoom{1};
@@ -229,19 +261,18 @@ class GeoMap : public Widget {
     double map_world_lon{};
     double map_offset{};
 
-    int32_t x_pos{}, y_pos{};
-    int32_t prev_x_pos{0xFFFF}, prev_y_pos{0xFFFF};
+    float x_pos{}, y_pos{};
+    float prev_x_pos{32767.0f}, prev_y_pos{32767.0f};
     float lat_{};
     float lon_{};
+    float zoom_pixel_offset{0.0f};
     float pixels_per_km{};
     uint16_t angle_{};
     std::string tag_{};
 
     // the portapack's position data ( for example injected from serial )
-    float my_lat{200};
-    float my_lon{200};
+    GeoMarker my_pos{INVALID_LAT_LON, INVALID_LAT_LON, INVALID_ANGLE, ""};  // lat, lon, angle, tag
     int32_t my_altitude{0};
-    uint16_t my_angle{400};
 
     int markerListLen{0};
     GeoMarker markerList[NumMarkerListElements];
@@ -302,8 +333,6 @@ class GeoMapView : public View {
     float lon_{};
     uint16_t angle_{};
     std::function<void(void)> on_close_{nullptr};
-
-    bool map_opened{};
 
     GeoPos geopos{
         {0, 0},

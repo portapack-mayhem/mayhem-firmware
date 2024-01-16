@@ -783,6 +783,7 @@ class NumberField : public Widget {
    public:
     std::function<void(NumberField&)> on_select{};
     std::function<void(int32_t)> on_change{};
+    std::function<void(int32_t)> on_wrap{};
 
     using range_t = std::pair<int32_t, int32_t>;
 
