@@ -147,13 +147,15 @@ class GeoPos : public View {
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     NumberField field_lat_seconds{
         {13 * 8, 1 * 16},
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     Text text_lat_decimal{
         {17 * 8, 1 * 16, 13 * 8, 1 * 16},
         ""};
@@ -169,13 +171,15 @@ class GeoPos : public View {
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     NumberField field_lon_seconds{
         {13 * 8, 2 * 16},
         2,
         {0, 59},
         1,
-        ' '};
+        ' ',
+        true};
     Text text_lon_decimal{
         {17 * 8, 2 * 16, 13 * 8, 1 * 16},
         ""};

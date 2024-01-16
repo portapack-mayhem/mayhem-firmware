@@ -85,6 +85,27 @@ GeoPos::GeoPos(
     field_lon_minutes.on_change = changed_fn;
     field_lon_seconds.on_change = changed_fn;
 
+    const auto wrapped_lat_seconds = [this](int32_t v) {
+        field_lat_minutes.on_encoder(v);
+    };
+
+    const auto wrapped_lat_minutes = [this](int32_t v) {
+        field_lat_degrees.on_encoder(v);
+    };
+
+    const auto wrapped_lon_seconds = [this](int32_t v) {
+        field_lon_minutes.on_encoder(v);
+    };
+
+    const auto wrapped_lon_minutes = [this](int32_t v) {
+        field_lon_degrees.on_encoder(v);
+    };
+
+    field_lat_seconds.on_wrap = wrapped_lat_seconds;
+    field_lat_minutes.on_wrap = wrapped_lat_minutes;
+    field_lon_seconds.on_wrap = wrapped_lon_seconds;
+    field_lon_minutes.on_wrap = wrapped_lon_minutes;
+
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
     if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
     if (speed_unit_ == MPH) text_speed_unit.set("mph");
