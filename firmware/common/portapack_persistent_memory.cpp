@@ -416,8 +416,8 @@ void init() {
     const auto switches_state = get_switches_state();
 
     // ignore for valid check
-    auto config_mode_backup = config_mode_storage();
-    set_config_mode_storage(CONFIG_MODE_NORMAL_VALUE);
+    auto config_mode_backup = config_mode_storage_direct();
+    set_config_mode_storage_direct(CONFIG_MODE_NORMAL_VALUE);
 
     if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
@@ -434,7 +434,7 @@ void init() {
         // Copy defaults into cache.
         defaults();
     }
-    set_config_mode_storage(config_mode_backup);
+    set_config_mode_storage_direct(config_mode_backup);
 }
 
 void persist() {
@@ -948,11 +948,17 @@ void set_encoder_dial_sensitivity(uint8_t v) {
 // Recovery mode magic value storage
 static data_t* data_direct_access = reinterpret_cast<data_t*>(memory::map::backup_ram.base());
 
-uint32_t config_mode_storage() {
+uint32_t config_mode_storage_direct() {
     return data_direct_access->config_mode_storage;
 }
-void set_config_mode_storage(uint32_t v) {
+void set_config_mode_storage_direct(uint32_t v) {
     data_direct_access->config_mode_storage = v;
+}
+uint32_t config_mode_storage() {
+    return data->config_mode_storage;
+}
+void set_config_mode_storage(uint32_t v) {
+    data->config_mode_storage = v;
 }
 
 // PMem to sdcard settings

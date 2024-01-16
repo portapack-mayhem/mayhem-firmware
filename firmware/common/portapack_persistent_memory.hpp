@@ -223,8 +223,11 @@ void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
 
-#define CONFIG_MODE_GUARD_VALUE 2001
-#define CONFIG_MODE_NORMAL_VALUE 1999
+#define CONFIG_MODE_GUARD_VALUE 0xbadb007  // "bad boot"
+#define CONFIG_MODE_NORMAL_VALUE 0x7cf
+#define CONFIG_MODE_DISABLE_VALUE 0xd15ab1ed  // "disabled"
+uint32_t config_mode_storage_direct();
+void set_config_mode_storage_direct(uint32_t v);
 uint32_t config_mode_storage();
 void set_config_mode_storage(uint32_t v);
 
