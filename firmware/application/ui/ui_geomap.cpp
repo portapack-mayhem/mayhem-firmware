@@ -86,19 +86,19 @@ GeoPos::GeoPos(
     field_lon_seconds.on_change = changed_fn;
 
     const auto wrapped_lat_seconds = [this](int32_t v) {
-        field_lat_minutes.on_encoder(v);
+        field_lat_minutes.on_encoder((field_lat_degrees.value() >= 0) ? v : -v);
     };
 
     const auto wrapped_lat_minutes = [this](int32_t v) {
-        field_lat_degrees.on_encoder(v);
+        field_lat_degrees.on_encoder((field_lat_degrees.value() >= 0) ? v : -v);
     };
 
     const auto wrapped_lon_seconds = [this](int32_t v) {
-        field_lon_minutes.on_encoder(v);
+        field_lon_minutes.on_encoder((field_lon_degrees.value() >= 0) ? v : -v);
     };
 
     const auto wrapped_lon_minutes = [this](int32_t v) {
-        field_lon_degrees.on_encoder(v);
+        field_lon_degrees.on_encoder((field_lon_degrees.value() >= 0) ? v : -v);
     };
 
     field_lat_seconds.on_wrap = wrapped_lat_seconds;
