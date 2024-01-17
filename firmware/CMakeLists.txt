@@ -36,6 +36,16 @@ set(LZ4 lz4)
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 
+if (NOT DEFINED PPFW_FILENAME)
+	# Funny business here: trying to generate unique names to prevent renaming of shared test-drive builds by the browser on download to .ppfw-42.tar as it wont be recognized by the flasher
+	execute_process(
+		COMMAND date "+%y%m%d-%H%M"
+		OUTPUT_VARIABLE PPFW_FILENAME
+	)
+	string(STRIP ${PPFW_FILENAME} PPFW_FILENAME)
+	set(PPFW_FILENAME "portapack-mayhem_${PPFW_FILENAME}_OCI.ppfw.tar")
+endif()
+
 # In our current build container cmake need a little help to get the version :)
 if(NOT DEFINED ${CMAKE_CXX_COMPILER_VERSION})
 	execute_process(COMMAND bash "-c" "arm-none-eabi-g++ -v 2>&1 | grep 'gcc version' | awk '{print $3}'" OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)

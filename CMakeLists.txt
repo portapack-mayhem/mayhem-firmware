@@ -55,16 +55,6 @@ execute_process(
 )
 set(VERSION_MD5 "0x${VERSION_MD5}")
 
-if (NOT DEFINED PPFW_FILENAME)
-	# Funny business here: trying to generate unique names to prevent renaming of shared test-drive builds by the browser on download to .ppfw-42.tar as it wont be recognized by the flasher
-	execute_process(
-		COMMAND date "+%y%m%d-%H%M"
-		OUTPUT_VARIABLE PPFW_FILENAME
-	)
-	string(STRIP ${PPFW_FILENAME} PPFW_FILENAME)
-	set(PPFW_FILENAME "portapack-mayhem_${PPFW_FILENAME}_OCI.ppfw.tar")
-endif()
-
 message("Building version: ${VERSION} MD5: ${VERSION_MD5}")
 
 set(LICENSE_PATH ${CMAKE_CURRENT_LIST_DIR}/LICENSE)
