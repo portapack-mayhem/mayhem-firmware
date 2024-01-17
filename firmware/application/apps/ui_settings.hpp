@@ -599,7 +599,7 @@ class SetConfigModeView : public View {
     Checkbox checkbox_config_mode_enabled{
         {2 * 8, 6 * 16},
         16,
-        "Config Mode enabled"};
+        "Config Mode enable"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
