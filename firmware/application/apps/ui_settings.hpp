@@ -581,6 +581,36 @@ class AppSettingsView : public View {
         true};
 };
 
+class SetConfigModeView : public View {
+   public:
+    SetConfigModeView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Config Mode"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Controls whether firmware", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "will enter Config Mode", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "after a boot failure.", Color::light_grey()},
+    };
+
+    Checkbox checkbox_config_mode_enabled{
+        {2 * 8, 6 * 16},
+        16,
+        "Config Mode enable"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);

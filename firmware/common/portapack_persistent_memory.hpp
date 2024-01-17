@@ -178,6 +178,8 @@ void set_config_cpld(uint8_t i);
 
 bool config_disable_external_tcxo();
 bool config_sdcard_high_speed_io();
+bool config_disable_config_mode();
+
 bool config_splash();
 bool config_converter();
 bool config_updown_converter();
@@ -198,6 +200,8 @@ void set_save_app_settings(bool v);
 void set_show_bigger_qr_code(bool v);
 void set_config_disable_external_tcxo(bool v);
 void set_config_sdcard_high_speed_io(bool v, bool save);
+void set_config_disable_config_mode(bool v);
+
 void set_config_splash(bool v);
 bool config_converter();
 bool config_updown_converter();
@@ -223,10 +227,11 @@ void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
 
-#define CONFIG_MODE_GUARD_VALUE 2001
-#define CONFIG_MODE_NORMAL_VALUE 1999
-uint32_t config_mode_storage();
-void set_config_mode_storage(uint32_t v);
+#define CONFIG_MODE_GUARD_VALUE 0x000007d1
+#define CONFIG_MODE_NORMAL_VALUE 0x000007cf
+uint32_t config_mode_storage_direct();
+void set_config_mode_storage_direct(uint32_t v);
+bool config_disable_config_mode_direct();
 
 uint32_t pocsag_last_address();
 void set_pocsag_last_address(uint32_t address);

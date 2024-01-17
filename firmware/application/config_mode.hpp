@@ -31,6 +31,8 @@
 void config_mode_set();
 bool config_mode_should_enter();
 void config_mode_clear();
+void config_mode_enable(bool v);
+bool config_mode_disabled();
 
 void config_mode_run();
 

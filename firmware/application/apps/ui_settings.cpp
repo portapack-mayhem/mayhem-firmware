@@ -43,6 +43,7 @@ namespace fs = std::filesystem;
 #include "string_format.hpp"
 #include "ui_styles.hpp"
 #include "cpld_update.hpp"
+#include "config_mode.hpp"
 
 namespace pmem = portapack::persistent_memory;
 
@@ -657,6 +658,30 @@ void AppSettingsView::focus() {
     menu_view.focus();
 }
 
+/* SetConfigModeView ************************************/
+
+SetConfigModeView::SetConfigModeView(NavigationView& nav) {
+    add_children({&labels,
+                  &checkbox_config_mode_enabled,
+                  &button_save,
+                  &button_cancel});
+
+    checkbox_config_mode_enabled.set_value(!pmem::config_disable_config_mode());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_config_disable_config_mode(!checkbox_config_mode_enabled.value());
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetConfigModeView::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
@@ -667,15 +692,16 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [&nav]() { nav.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
+        {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [&nav]() { nav.push<SetConfigModeView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetDateTimeView>(); }},
         {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
-        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetRadioView>(); }},
-        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
+        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
+        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
