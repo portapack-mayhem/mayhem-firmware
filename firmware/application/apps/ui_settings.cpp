@@ -666,10 +666,10 @@ SetConfigModeView::SetConfigModeView(NavigationView& nav) {
                   &button_save,
                   &button_cancel});
 
-    checkbox_config_mode_enabled.set_value(!config_mode_disabled());
+    checkbox_config_mode_enabled.set_value(!pmem::config_disable_config_mode());
 
     button_save.on_select = [&nav, this](Button&) {
-        config_mode_enable(checkbox_config_mode_enabled.value());
+        pmem::set_config_disable_config_mode(!checkbox_config_mode_enabled.value());
         nav.pop();
     };
 
