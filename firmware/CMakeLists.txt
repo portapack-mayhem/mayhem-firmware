@@ -100,7 +100,7 @@ add_custom_command(
 	COMMAND mkdir -p firmware_tar/APPS
 	COMMAND cp application/*.ppma firmware_tar/APPS
 	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
-	DEPENDS firmware
+	DEPENDS firmware ${FIRMWARE_FILENAME}
 	# Dont use VERBATIM here as it prevents usage of globbing (*)
 	# There shouldnt be any funny business in the filenames above :)
 )
