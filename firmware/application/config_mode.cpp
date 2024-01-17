@@ -27,8 +27,7 @@
 void config_mode_blink_until_dfu();
 
 void config_mode_set() {
-    if (!portapack::persistent_memory::config_disable_config_mode_direct())
-        portapack::persistent_memory::set_config_mode_storage_direct(CONFIG_MODE_GUARD_VALUE);
+    portapack::persistent_memory::set_config_mode_storage_direct(CONFIG_MODE_GUARD_VALUE);
 }
 
 bool config_mode_should_enter() {
@@ -39,8 +38,7 @@ bool config_mode_should_enter() {
 }
 
 void config_mode_clear() {
-    if (!portapack::persistent_memory::config_disable_config_mode_direct())
-        portapack::persistent_memory::set_config_mode_storage_direct(CONFIG_MODE_NORMAL_VALUE);
+    portapack::persistent_memory::set_config_mode_storage_direct(CONFIG_MODE_NORMAL_VALUE);
 }
 
 uint32_t blink_patterns[] = {
