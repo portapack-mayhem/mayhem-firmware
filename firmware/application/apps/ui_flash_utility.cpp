@@ -50,7 +50,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
                                 this->firmware_selected(path);
                             }});
     }
-    for (const auto& entry : std::filesystem::directory_iterator(firmware_folder, u"*.ppfw.tar")) {
+    for (const auto& entry : std::filesystem::directory_iterator(firmware_folder, u"*.tar")) {
         auto filename = entry.path().filename();
         auto path = entry.path().native();
 
@@ -108,7 +108,7 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
 }
 
 void FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
-    if (endsWith(path, u".ppfw.tar")) {
+    if (endsWith(path, u".tar")) {
         // extract, then update
         path = extract_tar(u'/' + path).native();
         if (path.empty()) return;
