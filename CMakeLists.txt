@@ -46,7 +46,6 @@ if ("${VERSION}" STREQUAL "")
 	set(VERSION_NOHASH "dev")
 else()
 	set(VERSION_NOHASH "${VERSION}")
-	set(PPFW_FILENAME "portapack-mayhem.ppfw.tar")
 endif()
 
 execute_process(
