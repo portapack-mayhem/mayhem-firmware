@@ -35,6 +35,7 @@ set(LZ4 lz4)
 
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
+set(PPFW_FILENAME "portapack-mayhem_OCI.ppfw.tar")
 
 # In our current build container cmake need a little help to get the version :)
 if(NOT DEFINED ${CMAKE_CXX_COMPILER_VERSION})
