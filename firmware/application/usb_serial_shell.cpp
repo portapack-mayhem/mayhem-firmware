@@ -47,6 +47,8 @@
 #include "ui_navigation.hpp"
 #include "usb_serial_shell_filesystem.hpp"
 
+#include "portapack_persistent_memory.hpp"
+
 #include <string>
 #include <cstring>
 #include <libopencm3/lpc43xx/wwdt.h>
@@ -149,7 +151,7 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    nav->display_modal("Flashing", "Flashing from serial.\rPlease wait!\nDevice will restart.");
+    nav->display_modal("Flashing", "Flashing from serial.\r\nPlease wait!\r\nDevice will restart.");
     // check file extensions
     if (strEndsWith(path.native(), u".ppfw.tar")) {
         // extract tar
@@ -962,6 +964,58 @@ static void cmd_radioinfo(BaseSequentialStream* chp, int argc, char* argv[]) {
     return;
 }
 
+static void cmd_pmemreset(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: pmemreset yes\r\nThis will reset pmem to defaults!\r\n";
+    (void)argv;
+    if (argc != 1 || strcmp(argv[0], "yes") != 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    nav->home(true);
+
+    portapack::persistent_memory::cache::defaults();
+    // system refresh
+    StatusRefreshMessage message{};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
+static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: settingsreset yes\r\nThis will reset all app settings to defaults!\r\n";
+    (void)argv;
+    if (argc != 1 || strcmp(argv[0], "yes") != 0) {
+        chprintf(chp, usage);
+        return;
+    }
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    nav->home(true);  // to exit all running apps
+
+    for (const auto& entry : std::filesystem::directory_iterator(SETTINGS_DIR, u"*.ini")) {
+        if (std::filesystem::is_regular_file(entry.status())) {
+            std::filesystem::path pth = SETTINGS_DIR;
+            pth += u"/" + entry.path();
+            chprintf(chp, pth.string().c_str());
+            chprintf(chp, "\r\n");
+            f_unlink(pth.tchar());
+        }
+    }
+    // system refresh
+    StatusRefreshMessage message{};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -989,6 +1043,8 @@ static const ShellCommand commands[] = {
     {"gotorientation", cmd_gotorientation},
     {"sysinfo", cmd_sysinfo},
     {"radioinfo", cmd_radioinfo},
+    {"pmemreset", cmd_pmemreset},
+    {"settingsreset", cmd_settingsreset},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
