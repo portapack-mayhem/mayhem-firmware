@@ -39,7 +39,7 @@ set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
 if (NOT DEFINED PPFW_FILENAME)
 	# Funny business here: trying to generate unique names to prevent renaming of shared test-drive builds by the browser on download to .ppfw-42.tar as it wont be recognized by the flasher
 	execute_process(
-		COMMAND date "+%y%m%d-%H%M"
+		COMMAND date "+%y%m%d"
 		OUTPUT_VARIABLE PPFW_FILENAME
 	)
 	string(STRIP ${PPFW_FILENAME} PPFW_FILENAME)
