@@ -94,7 +94,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: build/firmware/portapack-mayhem.ppfw.tar
+          asset_path: build/firmware/portapack-mayhem_OCI.ppfw.tar
           asset_name: mayhem_${{ steps.version.outputs.version }}_OCI.ppfw.tar
           asset_content_type: application/x-tar
       - name: Upload Firmware Asset
