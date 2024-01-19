@@ -111,166 +111,109 @@ namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
-// When adding or removing apps from the Menu, please update it here:
-std::vector<AppInfoConsole> NavigationView::fixedAppListFC = {
-    {"adsbrx", "ADS-B", RX},
-    {"ais", "AIS Boats", RX},
-    {"aprsrx", "APRS", RX},
-    {"audio", "Audio", RX},
-    {"blerx", "BLE Rx", RX},
-    {"ert", "ERT Meter", RX},
-    {"level", "Level", RX},
-    {"pocsagrx", "POCSAG", RX},
-    {"radiosnde", "Radiosnde", RX},
-    {"recon", "Recon", RX},
-    {"search", "Search", RX},
-    {"tpms", "TPMS Cars", RX},
-    {"weather", "Weather", RX},
-    {"subghzd", "SubGhzD", RX},
-    {"adsbtx", "ADS-B", TX},
-    {"aprstx", "APRS TX", TX},
-    {"bht", "BHT Xy/EP", TX},
-    {"bletx", "BLE Tx", TX},
-    {"morsetx", "Morse", TX},
-    {"ooktx", "OOK", TX},
-    {"pocsatx", "POCSAG TX", TX},
-    {"rdstx", "RDS TX", TX},
-    {"soundbrd", "Soundbrd", TX},
-    {"sstvtx", "SSTV", TX},
-    {"touchtune", "TouchTune", TX},
-    {"capture", "Capture", RX},
-    {"replay", "Replay", TX},
-    {"remote", "Remote", TX},
-    {"scanner", "Scanner", RX},
-    {"microphone", "Microphone", TX},
-    {"lookingglass", "Looking Glass", RX}};
+bool CstrCmp::operator()(const char* a, const char* b) const {
+    return strcmp(a, b) < 0;
+}
+
+static NavigationView::AppMap generate_app_map(const NavigationView::AppList& appList) {
+    NavigationView::AppMap out;
+
+    for (auto& app : appList) {
+        if (app.id == nullptr) {
+            // Skip items with no id
+            continue;
+        }
+
+        auto res = out.emplace(app.id, app);
+        if (!res.second) {
+            chDbgPanic("Application cannot be added, ID not unique!");
+        }
+    }
+
+    return out;
+}
+
+// TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
+const NavigationView::AppList NavigationView::appList = {
+    /* HOME ******************************************************************/
+    //{"playdead", "Play dead", HOME, Color::red(), &bitmap_icon_playdead, new ViewFactory<PlayDeadView>()},
+    {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
+    {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
+    {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
+    {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
+    {"remote", "Remote", HOME, ui::Color::green(), &bitmap_icon_remote, new ViewFactory<RemoteView>()},
+    {"scanner", "Scanner", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
+    {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
+    {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
+    {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
+    {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
+    {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
+    //{"about", "About", HOME, Color::cyan(), nullptr, new ViewFactory<AboutView>()},
+    /* RX ********************************************************************/
+    //{"acars", "ACARS", RX, Color::yellow(), &bitmap_icon_adsb, new ViewFactory<ACARSAppView>()},
+    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
+    {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
+    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
+    {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
+    //{"btle", "BTLE", RX, Color::yellow(), &bitmap_icon_btle, new ViewFactory<BTLERxView>()},
+    //{"blecomm", "BLE Comm", RX, ui::Color::orange(), &bitmap_icon_btle, new ViewFactory<BLECommView>()},
+    {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
+    {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
+    {"level", "Level", RX, Color::green(), &bitmap_icon_options_radio, new ViewFactory<LevelView>()},
+    {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
+    {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
+    {"recon", "Recon", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
+    {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
+    {"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
+    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
+    {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()},
+    //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
+    //{"sigfox", "SIGFOX", RX, Color::dark_grey(), &bitmap_icon_fox, new ViewFactory<NotImplementedView>()},
+    //{"lora", "LoRa", RX, Color::dark_grey(), &bitmap_icon_lora, new ViewFactory<NotImplementedView>()},
+    //{"sstv", "SSTV", RX, Color::dark_grey(), &bitmap_icon_sstv, new ViewFactory<NotImplementedView>()},
+    //{"tetra", "TETRA", RX, Color::dark_grey(), &bitmap_icon_tetra, new ViewFactory<NotImplementedView>()},
+    /* TX ********************************************************************/
+    {"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
+    {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
+    {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
+    {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
+    //{"keyfob", "Key fob", TX, ui::Color::orange(), &bitmap_icon_keyfob, new ViewFactory<KeyfobView>()},
+    {"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()},
+    //{"nuoptixdtmf", "Nuoptix DTMF", TX, ui::Color::green(), &bitmap_icon_nuoptix, new ViewFactory<NuoptixView>()},
+    {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
+    {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
+    {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
+    {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
+    {"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()},
+    {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
+    /* UTILITIES *************************************************************/
+    {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
+    {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
+    {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
+    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
+    {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
+    {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
+    {"signalgen", "Signal Gen", UTILITIES, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
+    //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
+    //{"tonesearch", "Tone Search", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<ToneSearchView>()},
+    {"wavview", "Wav View", UTILITIES, Color::yellow(), &bitmap_icon_soundboard, new ViewFactory<ViewWavView>()},
+    // Dangerous apps.
+    {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_temperature, new ViewFactory<FlashUtilityView>()},
+    {nullptr, "Wipe SD card", UTILITIES, Color::red(), &bitmap_icon_tools_wipesd, new ViewFactory<WipeSDView>()},
+};
+
+const NavigationView::AppMap NavigationView::appMap = generate_app_map(NavigationView::appList);
 
 bool NavigationView::StartAppByName(const char* name) {
     home(false);
-    if (strcmp(name, "adsbrx") == 0) {
-        push<ADSBRxView>();
+
+    auto it = appMap.find(name);
+    if (it != appMap.end()) {
+        push_view(std::unique_ptr<View>(it->second.viewFactory->produce(*this)));
         return true;
     }
-    if (strcmp(name, "ais") == 0) {
-        push<AISAppView>();
-        return true;
-    }
-    if (strcmp(name, "aprsrx") == 0) {
-        push<APRSRXView>();
-        return true;
-    }
-    if (strcmp(name, "audio") == 0) {
-        push<AnalogAudioView>();
-        return true;
-    }
-    if (strcmp(name, "blerx") == 0) {
-        push<BLERxView>();
-        return true;
-    }
-    if (strcmp(name, "ert") == 0) {
-        push<ERTAppView>();
-        return true;
-    }
-    if (strcmp(name, "level") == 0) {
-        push<LevelView>();
-        return true;
-    }
-    if (strcmp(name, "pocsagrx") == 0) {
-        push<POCSAGAppView>();
-        return true;
-    }
-    if (strcmp(name, "radiosnode") == 0) {
-        push<SondeView>();
-        return true;
-    }
-    if (strcmp(name, "recon") == 0) {
-        push<ReconView>();
-        return true;
-    }
-    if (strcmp(name, "search") == 0) {
-        push<SearchView>();
-        return true;
-    }
-    if (strcmp(name, "tpms") == 0) {
-        push<TPMSAppView>();
-        return true;
-    }
-    if (strcmp(name, "weather") == 0) {
-        push<WeatherView>();
-        return true;
-    }
-    if (strcmp(name, "subghzd") == 0) {
-        push<SubGhzDView>();
-        return true;
-    }
-    if (strcmp(name, "adsbtx") == 0) {
-        push<ADSBTxView>();
-        return true;
-    }
-    if (strcmp(name, "aprstx") == 0) {
-        push<APRSTXView>();
-        return true;
-    }
-    if (strcmp(name, "bht") == 0) {
-        push<BHTView>();
-        return true;
-    }
-    if (strcmp(name, "bletx") == 0) {
-        push<BLETxView>();
-        return true;
-    }
-    if (strcmp(name, "morsetx") == 0) {
-        push<MorseView>();
-        return true;
-    }
-    if (strcmp(name, "ooktx") == 0) {
-        push<EncodersView>();
-        return true;
-    }
-    if (strcmp(name, "pocsatx") == 0) {
-        push<POCSAGTXView>();
-        return true;
-    }
-    if (strcmp(name, "rdstx") == 0) {
-        push<RDSView>();
-        return true;
-    }
-    if (strcmp(name, "soundbrd") == 0) {
-        push<SoundBoardView>();
-        return true;
-    }
-    if (strcmp(name, "sstvtx") == 0) {
-        push<SSTVTXView>();
-        return true;
-    }
-    if (strcmp(name, "touchtune") == 0) {
-        push<TouchTunesView>();
-        return true;
-    }
-    if (strcmp(name, "capture") == 0) {
-        push<CaptureAppView>();
-        return true;
-    }
-    if (strcmp(name, "replay") == 0) {
-        push<PlaylistView>();
-        return true;
-    }
-    if (strcmp(name, "remote") == 0) {
-        push<RemoteView>();
-        return true;
-    }
-    if (strcmp(name, "scanner") == 0) {
-        push<ScannerView>();
-        return true;
-    }
-    if (strcmp(name, "microphone") == 0) {
-        push<MicTXView>();
-        return true;
-    }
-    if (strcmp(name, "lookingglass") == 0) {
-        push<GlassView>();
-        return true;
-    }
+
     return false;
 }
 
@@ -727,39 +670,25 @@ bool NavigationView::set_on_pop(std::function<void()> on_pop) {
     return true;
 }
 
+/* Helpers  **************************************************************/
+
+static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
+    for (auto& app : NavigationView::appList) {
+        if (app.menuLocation == loc) {
+            grid.add_item({app.displayName, app.iconColor, app.icon,
+                           [&nav, &app]() { nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
+        }
+    };
+}
+
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }});
     }
-    add_items({
-        // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
-        {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
-        {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
-        //{"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }}, //moved to ext
-        {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
-        {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
-        //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
-        //{"BLE Comm", ui::Color::orange(), &bitmap_icon_btle, [&nav]() { nav.push<BLECommView>(); }},
-        {"BLE Rx", Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
-        {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
-        {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        //{"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }}, //moved to ext
-        {"POCSAG", Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGAppView>(); }},
-        {"Radiosnde", Color::green(), &bitmap_icon_sonde, [&nav]() { nav.push<SondeView>(); }},
-        {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},
-        {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
-        {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
-        {"Weather", Color::green(), &bitmap_icon_thermometer, [&nav]() { nav.push<WeatherView>(); }},
-        {"SubGhzD", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<SubGhzDView>(); }},
-        // {"FSK RX", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<FskxRxMainView>(); }},
-        // {"DMR", Color::dark_grey(), &bitmap_icon_dmr, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"SIGFOX", Color::dark_grey(), &bitmap_icon_fox, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"LoRa", Color::dark_grey(), &bitmap_icon_lora, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"SSTV", Color::dark_grey(), &bitmap_icon_sstv, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"TETRA", Color::dark_grey(), &bitmap_icon_tetra, [&nav](){ nav.push<NotImplementedView>(); }},
-    });
+
+    add_apps(nav, *this, RX);
 
     for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav)) {
         add_item(gridItem);
@@ -772,27 +701,8 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
-    add_items({
-        {"ADS-B TX", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
-        {"APRS TX", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
-        {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
-        {"BLE Tx", ui::Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLETxView>(); }},
-        // {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }}, //moved to ext
-        //{"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }}, //moved to ext
-        //{"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }}, //moved to ext
-        // { "Key fob", ui::Color::orange(), &bitmap_icon_keyfob, [&nav](){ nav.push<KeyfobView>(); }},
-        // {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }}, //moved to ext
-        {"Morse", ui::Color::green(), &bitmap_icon_morse, [&nav]() { nav.push<MorseView>(); }},
-        // { "Nuoptix DTMF", ui::Color::green(), &bitmap_icon_nuoptix, [&nav](){ nav.push<NuoptixView>(); }},
-        {"OOK", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<EncodersView>(); }},
-        {"POCSAG TX", ui::Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGTXView>(); }},
-        {"RDS", ui::Color::green(), &bitmap_icon_rds, [&nav]() { nav.push<RDSView>(); }},
-        {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
-        //{"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
-        {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
-        // {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }}, //moved to ext
-        {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
-    });
+
+    add_apps(nav, *this, TX);
 
     for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav)) {
         add_item(gridItem);
@@ -805,22 +715,8 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
-    add_items({
-        {"Antenna Length", Color::green(), &bitmap_icon_tools_antenna, [&nav]() { nav.push<WhipCalcView>(); }},
-        {"File Manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
-        {"Freq. Manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
-        {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
-        {"IQ Trim", Color::orange(), &bitmap_icon_trim, [&nav]() { nav.push<IQTrimView>(); }},
-        {"SD Over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
-        {"Signal Gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
-        // {"Test App", Color::dark_grey(), nullptr, [&nav](){ nav.push<TestView>(); }},
-        // {"Tone Search", Color::dark_grey(), nullptr, [&nav](){ nav.push<ToneSearchView>(); }},
-        {"Wav View", Color::yellow(), &bitmap_icon_soundboard, [&nav]() { nav.push<ViewWavView>(); }},
 
-        // Dangerous apps.
-        {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
-        {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
-    });
+    add_apps(nav, *this, UTILITIES);
 
     for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav)) {
         add_item(gridItem);
@@ -844,22 +740,9 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-    add_items({
-        // {"Play dead", Color::red(), &bitmap_icon_playdead, [&nav]() { nav.push<PlayDeadView>(); }},
-        {"Receive", Color::cyan(), &bitmap_icon_receivers, [&nav]() { nav.push<ReceiversMenuView>(); }},
-        {"Transmit", Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); }},
-        {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
-        {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<PlaylistView>(); }},
-        {"Remote", ui::Color::green(), &bitmap_icon_remote, [&nav]() { nav.push<RemoteView>(); }},
-        {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
-        {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
-        {"Looking Glass", Color::green(), &bitmap_icon_looking, [&nav]() { nav.push<GlassView>(); }},
-        {"Utilities", Color::cyan(), &bitmap_icon_utilities, [&nav]() { nav.push<UtilitiesMenuView>(); }},
-        {"Settings", Color::cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SettingsMenuView>(); }},
-        {"Debug", Color::light_grey(), &bitmap_icon_debug, [&nav]() { nav.push<DebugMenuView>(); }},
-        {"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }},
-        // {"About", Color::cyan(), nullptr, [&nav]() { nav.push<AboutView>(); }},
-    });
+    add_apps(nav, *this, HOME);
+
+    add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }});
 
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);

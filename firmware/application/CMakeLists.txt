@@ -346,6 +346,7 @@ set(CPPSRC
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
 	ui_external_items_menu_loader.cpp
+	view_factory_base.cpp
 
 	${EXTCPPSRC}
 )
