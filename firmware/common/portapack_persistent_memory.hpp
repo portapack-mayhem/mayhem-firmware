@@ -259,7 +259,8 @@ void set_clkout_enabled(bool v);
 void set_clkout_freq(uint16_t freq);
 
 bool dst_enabled();
-void set_dst_enabled(bool v);uint16_t clkout_freq();
+void set_dst_enabled(bool v);
+uint16_t clkout_freq();
 dst_config_t config_dst();
 void set_config_dst(dst_config_t v);
 
