@@ -33,6 +33,7 @@
 #include "ui_styles.hpp"
 #include "ui_painter.hpp"
 #include "utility.hpp"
+#include "rtc_time.hpp"
 
 #include <algorithm>
 #include <string>
@@ -235,6 +236,9 @@ struct data_t {
     // recovery mode magic value storage
     uint32_t config_mode_storage;
 
+    // Daylight savings time
+    dst_config_t dst_config;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           target_frequency(target_frequency_reset_value),
@@ -287,7 +291,8 @@ struct data_t {
           headphone_volume_cb(-600),
           misc_config(),
           ui_config2(),
-          config_mode_storage(CONFIG_MODE_NORMAL_VALUE) {
+          config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
+          dst_config() {
     }
 };
 
@@ -972,6 +977,22 @@ bool config_disable_config_mode_direct() {
     return ((misc_config_u32 & MC_CONFIG_DISABLE_CONFIG_MODE) != 0);
 }
 
+// Daylight savings time
+bool dst_enabled() {
+    return data->dst_config.b.dst_enabled;
+}
+void set_dst_enabled(bool v) {
+    data->dst_config.b.dst_enabled = v;
+    rtc_time::dst_init();
+}
+dst_config_t config_dst() {
+    return data->dst_config;
+}
+void set_config_dst(dst_config_t v) {
+    data->dst_config = v;
+    rtc_time::dst_init();
+}
+
 // PMem to sdcard settings
 
 bool should_use_sdcard_for_pmem() {
@@ -1073,6 +1094,7 @@ bool debug_dump() {
     // pmem_dump_file.write_line("UNUSED_8: " + to_string_dec_uint(data->UNUSED_8));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
+    pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();

@@ -33,11 +33,26 @@ extern Signal<> signal_tick_second;
 
 void on_tick_second();
 
+/* Sets the current RTCTime in the RTC. */
+void set(rtc::RTC& new_datetime);
+
 /* Returns the current RTCTime from the RTC. */
 rtc::RTC now();
 
 /* Returns the current RTCTime from the RTC. */
 rtc::RTC now(rtc::RTC& out_datetime);
+
+/* Daylight Savings Time functions */
+void dst_init();
+rtc::RTC dst_adjust_returned_time(rtc::RTC& datetime);
+void dst_check_date_range(uint16_t doy);
+void dst_update_date_range(uint16_t year, uint16_t doy);
+uint8_t days_per_month(uint16_t year, uint8_t month);
+uint8_t current_day_of_week();
+uint8_t day_of_week(uint16_t year, uint8_t month, uint8_t day);
+bool leap_year(uint16_t year);
+uint16_t day_of_year(uint16_t year, uint8_t month, uint8_t day);
+uint16_t day_of_year_of_nth_weekday(uint16_t year, uint8_t month, uint8_t n, uint8_t weekday);
 
 } /* namespace rtc_time */
 
