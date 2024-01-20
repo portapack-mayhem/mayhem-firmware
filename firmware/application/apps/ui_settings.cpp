@@ -113,7 +113,7 @@ SetDateTimeView::SetDateTimeView(
     field_day.on_change = date_changed_fn;
 
     rtc::RTC datetime;
-    rtc_time::now(datetime);  // NB: Time here may already include DST adjustment
+    rtc_time::now(datetime);
     SetDateTimeModel model{
         datetime.year(),
         datetime.month(),
