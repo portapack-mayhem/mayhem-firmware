@@ -23,6 +23,10 @@
 #ifndef __UI_NAVIGATION_H__
 #define __UI_NAVIGATION_H__
 
+#include <vector>
+#include <map>
+#include <utility>
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_focus.hpp"
@@ -41,8 +45,7 @@
 #include "lfsr_random.hpp"
 #include "sd_card.hpp"
 #include "external_app.hpp"
-#include <vector>
-#include <utility>
+#include "view_factory.hpp"
 
 // for incrementing fake date when RTC battery is dead
 #define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
@@ -55,6 +58,22 @@ enum modal_t {
     INFO = 0,
     YESNO,
     ABORT
+};
+
+class CstrCmp {
+   public:
+    bool operator()(const char* a, const char* b) const;
+};
+
+// Should only be used as part of the appList in NavigationView, the viewFactory will never be destroyed.
+class AppInfo {
+   public:
+    const char* id;  // MUST be unique! Used by serial command to start the app so it also has to make sense
+    const char* displayName;
+    app_location_t menuLocation;
+    Color iconColor;
+    const Bitmap* icon;
+    ViewFactoryBase* viewFactory;  // Never destroyed, and I believe it's ok ;) Having a unique_ptr here breaks the initializer list of appList
 };
 
 struct AppInfoConsole {
@@ -106,8 +125,14 @@ class NavigationView : public View {
      * Returns true if the handler was bound successfully. */
     bool set_on_pop(std::function<void()> on_pop);
 
-    static std::vector<AppInfoConsole> fixedAppListFC;  // fixed app list for console. vector, so can be incomplete and still iterateable
-    bool StartAppByName(const char* name);              // Starts a View  (app) by name stored in fixedAppListFC. This is to start apps from console
+    // App list is used to preserve order, so the menu items in the menu grid can stay in place
+    // App map is used to look up apps by id used by serial app start
+    using AppMap = std::map<const char*, const AppInfo&, CstrCmp>;
+    using AppList = std::vector<AppInfo>;
+    static const AppMap appMap;
+    static const AppList appList;
+
+    bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
    private:
     struct ViewState {
         std::unique_ptr<View> view;

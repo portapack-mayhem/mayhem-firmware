@@ -710,6 +710,30 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
     }
 }
 
+static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) {
+    if (strlen(element.id) == 0) return;
+    chprintf(chp, element.id);
+    chprintf(chp, " ");
+    chprintf(chp, element.displayName);
+    chprintf(chp, " ");
+    switch (element.menuLocation) {
+        case RX:
+            chprintf(chp, "[RX]\r\n");
+            break;
+        case TX:
+            chprintf(chp, "[TX]\r\n");
+            break;
+        case UTILITIES:
+            chprintf(chp, "[UTIL]\r\n");
+            break;
+        case DEBUG:
+            chprintf(chp, "[DEBUG]\r\n");
+            break;
+        default:
+            break;
+    }
+}
+
 // returns the installed apps, those can be called by appstart APPNAME
 static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
@@ -720,8 +744,9 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    for (auto element : ui::NavigationView::fixedAppListFC) {
-        printAppInfo(chp, element);
+    // TODO(u-foka): Somehow order static and dynamic app lists together
+    for (auto& element : ui::NavigationView::appMap) {  // Use the map as its ordered by id
+        printAppInfo(chp, element.second);
     }
     ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
         printAppInfo(chp, info);

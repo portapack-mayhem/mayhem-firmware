@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Bernd Herzog
+ * Copyright 2024 Tamas Eisenberger <e.tamas@iwstudio.hu>
  *
  * This file is part of PortaPack.
  *
@@ -19,38 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __EXTERNAL_APPS_H__
-#define __EXTERNAL_APPS_H__
+#include "view_factory_base.hpp"
 
-#include "ch.h"
-#include "ui_navigation.hpp"
-#include "spi_image.hpp"
+namespace ui {
 
-#define CURRENT_HEADER_VERSION 0x00000001
+ViewFactoryBase::~ViewFactoryBase() {}
 
-typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
-
-enum app_location_t : uint32_t {
-    UTILITIES = 0,
-    RX,
-    TX,
-    DEBUG,
-    HOME
-};
-
-struct application_information_t {
-    uint8_t* memory_location;
-    externalAppEntry_t externalAppEntry;
-    uint32_t header_version;
-    uint32_t app_version;
-
-    uint8_t app_name[16];
-    uint8_t bitmap_data[32];
-    uint32_t icon_color;
-    app_location_t menu_location;
-
-    portapack::spi_flash::image_tag_t m4_app_tag;
-    uint32_t m4_app_offset;
-};
-
-#endif /*__EXTERNAL_APPS_H__*/
+}  // namespace ui
