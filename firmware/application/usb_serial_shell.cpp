@@ -404,7 +404,7 @@ static void cmd_rtcget(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
 
     rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
+    rtc_time::now(datetime);
 
     chprintf(chp, "Current time: %04d-%02d-%02d %02d:%02d:%02d\r\n", datetime.year(), datetime.month(), datetime.day(), datetime.hour(), datetime.minute(), datetime.second());
 }
@@ -420,11 +420,12 @@ static void cmd_rtcset(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
 
+    // TODO: additional commands/parameters for DST?
     rtc::RTC new_datetime{
         (uint16_t)strtol(argv[0], NULL, 10), (uint8_t)strtol(argv[1], NULL, 10),
         (uint8_t)strtol(argv[2], NULL, 10), (uint32_t)strtol(argv[3], NULL, 10),
         (uint32_t)strtol(argv[4], NULL, 10), (uint32_t)strtol(argv[5], NULL, 10)};
-    rtcSetTime(&RTCD1, &new_datetime);
+    rtc_time::set(new_datetime);
 
     chprintf(chp, "ok\r\n");
 }
@@ -710,30 +711,6 @@ static void printAppInfo(BaseSequentialStream* chp, ui::AppInfoConsole& element)
     }
 }
 
-static void printAppInfo(BaseSequentialStream* chp, const ui::AppInfo& element) {
-    if (strlen(element.id) == 0) return;
-    chprintf(chp, element.id);
-    chprintf(chp, " ");
-    chprintf(chp, element.displayName);
-    chprintf(chp, " ");
-    switch (element.menuLocation) {
-        case RX:
-            chprintf(chp, "[RX]\r\n");
-            break;
-        case TX:
-            chprintf(chp, "[TX]\r\n");
-            break;
-        case UTILITIES:
-            chprintf(chp, "[UTIL]\r\n");
-            break;
-        case DEBUG:
-            chprintf(chp, "[DEBUG]\r\n");
-            break;
-        default:
-            break;
-    }
-}
-
 // returns the installed apps, those can be called by appstart APPNAME
 static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
@@ -744,9 +721,8 @@ static void cmd_applist(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    // TODO(u-foka): Somehow order static and dynamic app lists together
-    for (auto& element : ui::NavigationView::appMap) {  // Use the map as its ordered by id
-        printAppInfo(chp, element.second);
+    for (auto element : ui::NavigationView::fixedAppListFC) {
+        printAppInfo(chp, element);
     }
     ui::ExternalItemsMenuLoader::load_all_external_items_callback([chp](ui::AppInfoConsole& info) {
         printAppInfo(chp, info);

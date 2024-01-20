@@ -32,8 +32,10 @@
 #include "irq_controls.hpp"
 #include "string_format.hpp"
 #include "usb_serial_device_to_host.h"
+#include "rtc_time.hpp"
 
 using namespace portapack;
+using namespace rtc_time;
 
 namespace ui {
 
@@ -433,7 +435,7 @@ void Labels::getWidgetName(std::string& result) {
 /* LiveDateTime **********************************************************/
 
 void LiveDateTime::on_tick_second() {
-    rtcGetTime(&RTCD1, &datetime);
+    rtc_time::now(datetime);
     text = "";
     if (!hide_clock) {
         if (date_enabled) {

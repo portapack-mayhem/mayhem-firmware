@@ -258,7 +258,7 @@ void APRSTableView::on_pkt(const APRSPacketMessage* message) {
     std::string source_formatted = packet.get_source_formatted();
     std::string info_string = packet.get_stream_text();
 
-    rtcGetTime(&RTCD1, &datetime);
+    rtc_time::now(datetime);
     auto& entry = ::on_packet(recent, packet.get_source());
     entry.reset_age();
     entry.inc_hit();
