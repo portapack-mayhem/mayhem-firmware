@@ -689,7 +689,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, RX);
 
-    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav);
     if (externalItems.empty()) {
         add_item({"More",
                   Color::red(),
@@ -715,7 +715,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, TX);
 
-    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav);
     if (externalItems.empty()) {
         add_item({"More",
                   Color::red(),
