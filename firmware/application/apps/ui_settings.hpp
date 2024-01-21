@@ -44,6 +44,7 @@ struct SetDateTimeModel {
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
+    portapack::persistent_memory::dst_config_t dst;
 };
 
 class SetDateTimeView : public View {
@@ -55,56 +56,111 @@ class SetDateTimeView : public View {
     std::string title() const override { return "Date/Time"; };
 
    private:
+    using option_t = std::pair<std::string, int32_t>;
+    std::vector<option_t> which_options = {{"1st", 0}, {"2nd", 1}, {"3rd", 2}, {"4th", 3}, {"Last", 4}};
+    std::vector<option_t> weekday_options = {{"Sun", 0}, {"Mon", 1}, {"Tue", 2}, {"Wed", 3}, {"Thu", 4}, {"Fri", 5}, {"Sat", 6}};
+    std::vector<option_t> month_options = {{"Jan", 1}, {"Feb", 2}, {"Mar", 3}, {"Apr", 4}, {"May", 5}, {"Jun", 6}, {"Jul", 7}, {"Aug", 8}, {"Sep", 9}, {"Oct", 10}, {"Nov", 11}, {"Dec", 12}};
+
     Labels labels{
         {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Color::light_grey()},
         {{1 * 8, 2 * 16}, "time. If clock resets after", Color::light_grey()},
         {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Color::light_grey()},
-        {{5 * 8, 8 * 16 - 2}, "YYYY-MM-DD HH:MM:SS", Color::grey()},
-        {{9 * 8, 9 * 16}, "-  -     :  :", Color::light_grey()}};
+        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Color::grey()},
+        {{5 * 8, 6 * 16}, "-  -     :  :", Color::light_grey()},
+        {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Color::light_grey()},
+        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Color::light_grey()},
+        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Color::light_grey()}};
 
     NumberField field_year{
-        {5 * 8, 9 * 16},
+        {1 * 8, 6 * 16},
         4,
         {2015, 2099},
         1,
         '0',
+        true,
     };
     NumberField field_month{
-        {10 * 8, 9 * 16},
+        {6 * 8, 6 * 16},
         2,
         {1, 12},
         1,
         '0',
+        true,
     };
     NumberField field_day{
-        {13 * 8, 9 * 16},
+        {9 * 8, 6 * 16},
         2,
         {1, 31},
         1,
         '0',
+        true,
     };
 
     NumberField field_hour{
-        {16 * 8, 9 * 16},
+        {12 * 8, 6 * 16},
         2,
         {0, 23},
         1,
         '0',
+        true,
     };
     NumberField field_minute{
-        {19 * 8, 9 * 16},
+        {15 * 8, 6 * 16},
         2,
         {0, 59},
         1,
         '0',
+        true,
     };
     NumberField field_second{
-        {22 * 8, 9 * 16},
+        {18 * 8, 6 * 16},
         2,
         {0, 59},
         1,
         '0',
+        true,
     };
+    Text text_weekday{
+        {22 * 8, 6 * 16, 3 * 8, 16},
+        ""};
+    Text text_day_of_year{
+        {26 * 8, 6 * 16, 3 * 8, 16},
+        ""};
+
+    Checkbox checkbox_dst_enable{
+        {2 * 8, 9 * 16},
+        23,
+        "Enable Daylight Savings"};
+
+    OptionsField options_dst_start_which{
+        {15 * 8, 12 * 16},
+        4,
+        {}};
+
+    OptionsField options_dst_start_weekday{
+        {20 * 8, 12 * 16},
+        3,
+        {}};
+
+    OptionsField options_dst_start_month{
+        {27 * 8, 12 * 16},
+        3,
+        {}};
+
+    OptionsField options_dst_end_which{
+        {15 * 8, 13 * 16},
+        4,
+        {}};
+
+    OptionsField options_dst_end_weekday{
+        {20 * 8, 13 * 16},
+        3,
+        {}};
+
+    OptionsField options_dst_end_month{
+        {27 * 8, 13 * 16},
+        3,
+        {}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},

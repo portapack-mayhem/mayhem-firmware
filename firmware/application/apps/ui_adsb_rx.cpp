@@ -407,7 +407,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     status_good_frame.toggle();
 
     rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
+    rtcGetTime(&RTCD1, &datetime);  // Reading RTC directly to avoid DST transitions when calculating delta
     frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
 
     // NB: Reference to update entry in-place.

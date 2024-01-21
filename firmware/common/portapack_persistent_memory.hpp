@@ -116,6 +116,21 @@ enum encoder_dial_sensitivity {
     NUM_DIAL_SENSITIVITY
 };
 
+typedef union {
+    uint32_t v;
+    struct {
+        uint8_t start_which : 4;
+        uint8_t start_weekday : 4;
+        uint8_t start_month : 4;
+        uint8_t end_which : 4;
+        uint8_t end_weekday : 4;
+        uint8_t end_month : 4;
+        uint8_t UNUSED : 7;
+        uint8_t dst_enabled : 1;
+    } b;
+} dst_config_t;
+static_assert(sizeof(dst_config_t) == sizeof(uint32_t));
+
 namespace cache {
 
 /* Set values in cache to sensible defaults. */
@@ -241,8 +256,13 @@ void set_pocsag_ignore_address(uint32_t address);
 
 bool clkout_enabled();
 void set_clkout_enabled(bool v);
-uint16_t clkout_freq();
 void set_clkout_freq(uint16_t freq);
+
+bool dst_enabled();
+void set_dst_enabled(bool v);
+uint16_t clkout_freq();
+dst_config_t config_dst();
+void set_config_dst(dst_config_t v);
 
 /* Recon app */
 bool recon_autosave_freqs();

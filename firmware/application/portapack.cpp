@@ -411,6 +411,7 @@ bool init() {
 
     /* Cache some configuration data from persistent memory. */
     persistent_memory::cache::init();
+    rtc_time::dst_init();
     chThdSleepMilliseconds(10);
 
     clock_manager.init_clock_generator();
