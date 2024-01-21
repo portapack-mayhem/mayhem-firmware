@@ -1,6 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2023 Mark Thompson
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -211,7 +211,7 @@ uint16_t day_of_year_of_nth_weekday(uint16_t year, uint8_t month, uint8_t n, uin
 // Calculates 1-based day of year (input month & day are 1-based)
 uint16_t day_of_year(uint16_t year, uint8_t month, uint8_t day) {
     // 1-based day of year for 1st day or month (index is 1-based month)
-    static uint16_t month_to_day_in_year[13] = {
+    static uint16_t month_to_day_in_year[1 + 12] = {
         0,  // placeholder for 1-based indexing
         1,
         1 + 31,
