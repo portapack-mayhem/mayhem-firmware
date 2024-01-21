@@ -680,6 +680,25 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     };
 }
 
+template <typename ext_app_add_handler_seperation_view>
+void addExternalItems(NavigationView& _nav_, app_location_t _location_, ext_app_add_handler_seperation_view& _view_) {
+    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(_location_, _nav_);
+    if (_externalItems_.empty()) {
+        _view_.add_item({"More",
+                       Color::red(),
+                       &bitmap_icon_debug,
+                       [&_nav_]() {
+                           _nav_.display_modal(
+                               "Warning",
+                               "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
+                       }});
+    } else {
+        for (auto const& gridItem : _externalItems_) {
+            _view_.add_item(gridItem);
+        }
+    }
+}
+
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
@@ -689,21 +708,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, RX);
 
-    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav);
-    if (_externalItems_.empty()) {
-        add_item({"More",
-                  Color::red(),
-                  &bitmap_icon_debug,
-                  [&nav]() {
-                      nav.display_modal(
-                          "Warning",
-                          "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
-                  }});
-    } else {
-        for (auto const& gridItem : _externalItems_) {
-            add_item(gridItem);
-        }
-    }
+    addExternalItems(nav, app_location_t::RX, *this);
 }
 
 /* TransmittersMenuView **************************************************/
@@ -715,21 +720,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, TX);
 
-    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav);
-    if (_externalItems_.empty()) {
-        add_item({"More",
-                  Color::red(),
-                  &bitmap_icon_debug,
-                  [&nav]() {
-                      nav.display_modal(
-                          "Warning",
-                          "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
-                  }});
-    } else {
-        for (auto const& gridItem : _externalItems_) {
-            add_item(gridItem);
-        }
-    }
+    addExternalItems(nav, app_location_t::TX, *this);
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -741,21 +732,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, UTILITIES);
 
-    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
-    if (_externalItems_.empty()) {
-        add_item({"More",
-                  Color::red(),
-                  &bitmap_icon_debug,
-                  [&nav]() {
-                      nav.display_modal(
-                          "Warning",
-                          "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
-                  }});
-    } else {
-        for (auto const& gridItem : _externalItems_) {
-            add_item(gridItem);
-        }
-    }
+    addExternalItems(nav, app_location_t::UTILITIES, *this);
 
     set_max_rows(2);  // allow wider buttons
 }
