@@ -691,7 +691,14 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
     auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
     if (externalItems.empty()) {
-        add_item({"More", Color::red(), &bitmap_icon_debug, [&nav]() { nav.display_modal("Warning", "External app dir empty,\n please read the wiki\n to correctly put apps."); }});
+        add_item({"More",
+                  Color::red(),
+                  &bitmap_icon_debug,
+                  [&nav]() {
+                      nav.display_modal(
+                          "Warning",
+                          "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
+                  }});
     } else {
         for (auto const& gridItem : externalItems) {
             add_item(gridItem);
@@ -710,7 +717,14 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
     auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
     if (externalItems.empty()) {
-        add_item({"More", Color::red(), &bitmap_icon_debug, [&nav]() { nav.display_modal("Warning", "External app dir empty,\n please read the wiki\n to correctly put apps."); }});
+        add_item({"More",
+                  Color::red(),
+                  &bitmap_icon_debug,
+                  [&nav]() {
+                      nav.display_modal(
+                          "Warning",
+                          "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
+                  }});
     } else {
         for (auto const& gridItem : externalItems) {
             add_item(gridItem);
@@ -729,7 +743,14 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
     auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
     if (externalItems.empty()) {
-        add_item({"More", Color::red(), &bitmap_icon_debug, [&nav]() { nav.display_modal("Warning", "External app dir empty,\n please read the wiki\n to correctly put apps."); }});
+        add_item({"More",
+                  Color::red(),
+                  &bitmap_icon_debug,
+                  [&nav]() {
+                      nav.display_modal(
+                          "Warning",
+                          "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
+                  }});
     } else {
         for (auto const& gridItem : externalItems) {
             add_item(gridItem);
