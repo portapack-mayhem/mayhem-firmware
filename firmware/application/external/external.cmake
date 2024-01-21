@@ -55,6 +55,7 @@ set(EXTCPPSRC
 	external/spainter/ui_spectrum_painter_text.cpp
 	external/spainter/ui_spectrum_painter_image.cpp
 
+	#keyfob
 	external/keyfob/main.cpp
 	external/keyfob/ui_keyfob.cpp
 	external/keyfob/ui_keyfob.hpp
