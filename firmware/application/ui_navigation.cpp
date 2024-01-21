@@ -680,23 +680,22 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     };
 }
 
-template <typename ext_app_add_handler_seperation_view>
-void addExternalItems(NavigationView& _nav_, app_location_t _location_, ext_app_add_handler_seperation_view& _view_) {
-    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(_location_, _nav_);
-    if (_externalItems_.empty()) {
-        _view_.add_item({"Notice",
-                         Color::red(),
-                         &bitmap_icon_debug,
-                         [&_nav_]() {
-                             _nav_.display_modal(
-                                 "Notice",
-                                 "External app directory empty;\n"
-                                 "see Mayhem wiki and copy apps\n"
-                                 "to APPS folder of SD card.");
-                         }});
+void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
+    if (externalItems.empty()) {
+        grid.add_item({"Notice",
+                       Color::red(),
+                       &bitmap_icon_debug,
+                       [&nav]() {
+                           nav.display_modal(
+                               "Notice",
+                               "External app directory empty;\n"
+                               "see Mayhem wiki and copy apps\n"
+                               "to APPS folder of SD card.");
+                       }});
     } else {
-        for (auto const& gridItem : _externalItems_) {
-            _view_.add_item(gridItem);
+        for (auto const& gridItem : externalItems) {
+            grid.add_item(gridItem);
         }
     }
 }
