@@ -31,7 +31,6 @@ namespace rtc_time {
 Signal<> signal_tick_second;
 
 bool dst_enabled{false};
-bool dst_dates_reversed;
 bool dst_in_range{false};
 uint16_t dst_start_doy;
 uint16_t dst_end_doy;
@@ -110,11 +109,11 @@ void dst_check_date_range(uint16_t doy) {
     dst_current_doy = doy;
 
     // Check if date is within DST range
-    if (!dst_dates_reversed) {
+    // (note that dates are reversed in Southern hemisphere because Summer starts in December)
+    if (dst_start_doy <= dst_end_doy)
         dst_in_range = ((doy >= dst_start_doy) && (doy < dst_end_doy));
-    } else {
+    else
         dst_in_range = ((doy >= dst_start_doy) || (doy < dst_end_doy));
-    }
 }
 
 // Update DST parameters (called at power-up, when year changes, or DST settings are changed)
@@ -125,7 +124,6 @@ void dst_update_date_range(uint16_t year, uint16_t doy) {
         dst_current_year = year;
         dst_start_doy = day_of_year_of_nth_weekday(dst_current_year, dst.b.start_month, dst.b.start_which, dst.b.start_weekday);
         dst_end_doy = day_of_year_of_nth_weekday(dst_current_year, dst.b.end_month, dst.b.end_which, dst.b.end_weekday);
-        dst_dates_reversed = (dst_start_doy > dst_end_doy);  // Summer starts in December in Southern hemisphere
 
         dst_check_date_range(doy);
     } else {
