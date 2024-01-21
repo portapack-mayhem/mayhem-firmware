@@ -689,8 +689,8 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, RX);
 
-    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav);
-    if (externalItems.empty()) {
+    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav);
+    if (_externalItems_.empty()) {
         add_item({"More",
                   Color::red(),
                   &bitmap_icon_debug,
@@ -700,7 +700,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
                           "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
                   }});
     } else {
-        for (auto const& gridItem : externalItems) {
+        for (auto const& gridItem : _externalItems_) {
             add_item(gridItem);
         }
     }
@@ -715,8 +715,8 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, TX);
 
-    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav);
-    if (externalItems.empty()) {
+    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav);
+    if (_externalItems_.empty()) {
         add_item({"More",
                   Color::red(),
                   &bitmap_icon_debug,
@@ -726,7 +726,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
                           "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
                   }});
     } else {
-        for (auto const& gridItem : externalItems) {
+        for (auto const& gridItem : _externalItems_) {
             add_item(gridItem);
         }
     }
@@ -741,8 +741,8 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, UTILITIES);
 
-    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
-    if (externalItems.empty()) {
+    auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
+    if (_externalItems_.empty()) {
         add_item({"More",
                   Color::red(),
                   &bitmap_icon_debug,
@@ -752,7 +752,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
                           "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
                   }});
     } else {
-        for (auto const& gridItem : externalItems) {
+        for (auto const& gridItem : _externalItems_) {
             add_item(gridItem);
         }
     }
