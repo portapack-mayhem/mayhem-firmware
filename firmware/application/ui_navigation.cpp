@@ -685,13 +685,13 @@ void addExternalItems(NavigationView& _nav_, app_location_t _location_, ext_app_
     auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(_location_, _nav_);
     if (_externalItems_.empty()) {
         _view_.add_item({"More",
-                       Color::red(),
-                       &bitmap_icon_debug,
-                       [&_nav_]() {
-                           _nav_.display_modal(
-                               "Warning",
-                               "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
-                       }});
+                         Color::red(),
+                         &bitmap_icon_debug,
+                         [&_nav_]() {
+                             _nav_.display_modal(
+                                 "Warning",
+                                 "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
+                         }});
     } else {
         for (auto const& gridItem : _externalItems_) {
             _view_.add_item(gridItem);
