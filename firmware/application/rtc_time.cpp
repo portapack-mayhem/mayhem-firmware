@@ -107,18 +107,14 @@ rtc::RTC dst_adjust_returned_time(rtc::RTC& datetime) {
 
 // Check if current date is within the DST range (called when date changes)
 void dst_check_date_range(uint16_t doy) {
-    bool in_range = true;
     dst_current_doy = doy;
 
     // Check if date is within DST range
     if (!dst_dates_reversed) {
-        if ((doy < dst_start_doy) || (doy >= dst_end_doy))
-            in_range = false;
+        dst_in_range = ((doy >= dst_start_doy) && (doy < dst_end_doy));
     } else {
-        if ((doy < dst_start_doy) && (doy >= dst_end_doy))
-            in_range = false;
+        dst_in_range = ((doy >= dst_start_doy) || (doy < dst_end_doy));
     }
-    dst_in_range = in_range;
 }
 
 // Update DST parameters (called at power-up, when year changes, or DST settings are changed)
