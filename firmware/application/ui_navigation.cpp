@@ -684,13 +684,15 @@ template <typename ext_app_add_handler_seperation_view>
 void addExternalItems(NavigationView& _nav_, app_location_t _location_, ext_app_add_handler_seperation_view& _view_) {
     auto _externalItems_ = ExternalItemsMenuLoader::load_external_items(_location_, _nav_);
     if (_externalItems_.empty()) {
-        _view_.add_item({"More",
+        _view_.add_item({"Notice",
                          Color::red(),
                          &bitmap_icon_debug,
                          [&_nav_]() {
                              _nav_.display_modal(
-                                 "Warning",
-                                 "External app dir empty,\n please read the Mayhem wiki\n to correctly put apps.");
+                                 "Notice",
+                                 "External app directory empty;\n"
+                                 "see Mayhem wiki and copy apps\n"
+                                 "to APPS folder of SD card.");
                          }});
     } else {
         for (auto const& gridItem : _externalItems_) {
