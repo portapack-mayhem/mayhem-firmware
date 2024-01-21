@@ -9,7 +9,7 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Checkout 
         uses: actions/checkout@master
         with:
@@ -26,10 +26,10 @@ jobs:
           git submodule update --init --recursive
       - name: Get version
         id: version
-        run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
+        run: echo "version=$(cat .github/workflows/version.txt)" >> $GITHUB_OUTPUT
       - name: Get past version
         id: past_version
-        run: echo "::set-output name=past_version::$(cat .github/workflows/past_version.txt)"
+        run: echo "past_version=$(cat .github/workflows/past_version.txt)" >> $GITHUB_OUTPUT
       - name: Build the Docker image
         run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
       - name: Make build folder
@@ -59,7 +59,7 @@ jobs:
           CHANGELOG="${CHANGELOG//'%'/'%25'}"
           CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
           CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          echo "::set-output name=content::$CHANGELOG"
+          echo "content=$CHANGELOG" >> $GITHUB_OUTPUT
         id: changelog
       - name: Create Release
         id: create_release
