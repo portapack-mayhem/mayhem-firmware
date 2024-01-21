@@ -680,6 +680,26 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     };
 }
 
+void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
+    if (externalItems.empty()) {
+        grid.add_item({"Notice",
+                       Color::red(),
+                       &bitmap_icon_debug,
+                       [&nav]() {
+                           nav.display_modal(
+                               "Notice",
+                               "External app directory empty;\n"
+                               "see Mayhem wiki and copy apps\n"
+                               "to APPS folder of SD card.");
+                       }});
+    } else {
+        for (auto const& gridItem : externalItems) {
+            grid.add_item(gridItem);
+        }
+    }
+}
+
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
@@ -689,9 +709,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, RX);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav)) {
-        add_item(gridItem);
-    };
+    addExternalItems(nav, app_location_t::RX, *this);
 }
 
 /* TransmittersMenuView **************************************************/
@@ -703,9 +721,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, TX);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav)) {
-        add_item(gridItem);
-    };
+    addExternalItems(nav, app_location_t::TX, *this);
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -717,9 +733,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, UTILITIES);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav)) {
-        add_item(gridItem);
-    };
+    addExternalItems(nav, app_location_t::UTILITIES, *this);
 
     set_max_rows(2);  // allow wider buttons
 }
