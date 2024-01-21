@@ -156,32 +156,24 @@ void set(rtc::RTC& new_datetime) {
     //   If entered hour==0 on dst_end_doy:
     //      This hour occurs twice due to fall-back; code below treats as if DST has ended (the second occurrence) and doesn't roll back RTC
     //
-    if (!dst_in_range) {
-        LPC_RTC->DOY = doy;
-        // NB: Writing RTC twice takes a second, but ensures that new value can be read back immediately
-        // (if not written twice, the old value will be returned if read back in the following 1-2 seconds)
-        // (you will notice with older Mayhem versions that running the Date/Time Settings app again quickly will show the old time)
-        rtcSetTime(&RTCD1, &new_datetime);
-        rtcSetTime(&RTCD1, &new_datetime);
-        return;
-    }
-
-    // If within the DST date range, subtract 1 hour from requested time before storing in RTC.
-    if (hour-- == 0) {
-        hour = 23;
-        if (day-- == 0) {
-            if (month-- == 0) {
-                month = 12;
-                year--;
+    if (dst_in_range) {
+        // Subtract 1 hour from requested time before storing in RTC
+        if (hour-- == 0) {
+            hour = 23;
+            if (day-- == 0) {
+                if (month-- == 0) {
+                    month = 12;
+                    year--;
+                }
+                day = days_per_month(year, month);
             }
-            day = days_per_month(year, month);
         }
-    }
 
-    // Update day-of-year if date was changed above
-    if (day != new_datetime.day()) {
-        doy = day_of_year(year, month, day);
-        dst_update_date_range(year, doy);
+        // Update day-of-year if date was changed above
+        if (day != new_datetime.day()) {
+            doy = day_of_year(year, month, day);
+            dst_update_date_range(year, doy);
+        }
     }
 
     // NB: Writing RTC twice takes a second, but ensures that new value can be read back immediately
