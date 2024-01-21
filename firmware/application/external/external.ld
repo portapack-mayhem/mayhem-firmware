@@ -30,6 +30,7 @@ MEMORY
     ram_external_app_jammer(rwx) : org = 0xEEF30000, len = 32k
     ram_external_app_gpssim(rwx) : org = 0xEEF40000, len = 32k
     ram_external_app_spainter(rwx) : org = 0xEEF50000, len = 32k
+    ram_external_app_keyfob(rwx) : org = 0xEEF60000, len = 32k
 }
 
 SECTIONS
@@ -115,5 +116,11 @@ SECTIONS
         KEEP(*(.external_app.app_spainter.application_information));
         *(*ui*external_app*spainter*);
     } > ram_external_app_spainter
+
+    .external_app_keyfob : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_keyfob.application_information));
+        *(*ui*external_app*keyfob*);
+    } > ram_external_app_keyfob
 
 }
