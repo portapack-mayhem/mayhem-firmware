@@ -689,9 +689,13 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, RX);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav)) {
-        add_item(gridItem);
-    };
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
+    if (externalItems.empty()) {
+        add_item({"More", Color::red(), &bitmap_icon_debug, [&nav]() { nav.display_modal("Warning", "External app dir empty,\n please read the wiki\n to correctly put apps."); }});    } else {
+        for (auto const& gridItem : externalItems) {
+            add_item(gridItem);
+        }
+    }
 }
 
 /* TransmittersMenuView **************************************************/
@@ -703,9 +707,13 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, TX);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav)) {
-        add_item(gridItem);
-    };
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
+    if (externalItems.empty()) {
+        add_item({"More", Color::red(), &bitmap_icon_debug, [&nav]() { nav.display_modal("Warning", "External app dir empty,\n please read the wiki\n to correctly put apps."); }});    } else {
+        for (auto const& gridItem : externalItems) {
+            add_item(gridItem);
+        }
+    }
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -717,9 +725,14 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
 
     add_apps(nav, *this, UTILITIES);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav)) {
-        add_item(gridItem);
-    };
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav);
+    if (externalItems.empty()) {
+        add_item({"More", Color::red(), &bitmap_icon_debug, [&nav]() { nav.display_modal("Warning", "External app dir empty,\n please read the wiki\n to correctly put apps."); }});
+    } else {
+        for (auto const& gridItem : externalItems) {
+            add_item(gridItem);
+        }
+    }
 
     set_max_rows(2);  // allow wider buttons
 }
