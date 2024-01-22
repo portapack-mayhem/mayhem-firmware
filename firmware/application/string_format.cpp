@@ -210,7 +210,7 @@ std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
 
         uint32_t divisor = pow10[6 - precision];
 
-        final_str = to_string_dec_uint(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
+        final_str = to_string_dec_uint((f + (divisor / 2)) / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
     }
     return final_str;
 }
