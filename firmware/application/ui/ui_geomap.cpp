@@ -495,6 +495,7 @@ void GeoMap::draw_scale(Painter& painter) {
         m /= 2;
     }
     scale_width /= 1000;
+    m += 50;  // (add rounding factor for div by 100 below)
     if (m < 1000) {
         km_string = to_string_dec_uint(m) + "m";
     } else {
@@ -503,7 +504,7 @@ void GeoMap::draw_scale(Painter& painter) {
         if (m == 0) {
             km_string = to_string_dec_uint(km) + " km";
         } else {
-            km_string = to_string_dec_uint(km) + "." + to_string_dec_uint((m + 50) / 100, 1) + "km";
+            km_string = to_string_dec_uint(km) + "." + to_string_dec_uint(m / 100, 1) + "km";
         }
     }
 
