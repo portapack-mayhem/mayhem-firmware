@@ -495,10 +495,10 @@ void GeoMap::draw_scale(Painter& painter) {
         m /= 2;
     }
     scale_width /= 1000;
-    m += 50;  // (add rounding factor for div by 100 below)
     if (m < 1000) {
         km_string = to_string_dec_uint(m) + "m";
     } else {
+        m += 50;  // (add rounding factor for div by 100 below)
         uint32_t km = m / 1000;
         m -= km * 1000;
         if (m == 0) {
