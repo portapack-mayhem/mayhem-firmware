@@ -71,8 +71,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CHANGELOG=$(python3 .github/workflows/changelog.py)
-          echo "content=$CHANGELOG" >> $GITHUB_OUTPUT
+          {
+            echo 'content<<EOF'
+            python3 .github/workflows/changelog.py
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
         id: changelog
       - name: Create Release
         id: create_release
