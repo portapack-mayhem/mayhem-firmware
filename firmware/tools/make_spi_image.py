@@ -22,7 +22,7 @@
 #
 
 import sys
-import zlib
+# import zlib
 
 usage_message = """
 PortaPack SPI flash image generator
