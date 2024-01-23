@@ -41,13 +41,17 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
             }
         }
 
-        // Output to speaker too
-        uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
-        audio_data[imod32] = ((int16_t)audio_sample - 0x80) * (1.0f / 128.0f);
-        if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
-            audio_output.write(audio_buffer);
+        sample = audio_sample - 0x80;
 
-        sample = tone_gen.process(audio_sample - 0x80);
+        // Output to speaker too
+        if (!tone_key_enabled) {
+            uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
+            audio_data[imod32] = sample * 256;
+            if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
+                audio_output.write_unprocessed(audio_buffer);
+        }
+
+        sample = tone_gen.process(sample);
 
         // FM
         delta = sample * fm_delta;
@@ -102,7 +106,9 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
     progress_interval_samples = message.divider;
     resample_acc = 0;
     audio_output.configure(false);
-    audio::dma::shrink_tx_buffer();
+
+    tone_key_enabled = (message.tone_key_delta != 0);
+    audio::dma::shrink_tx_buffer(!tone_key_enabled);
 }
 
 void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {

@@ -116,11 +116,11 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     // TODO: Delete all this and use tx model.
     baseband::set_audiotx_config(
-        1536000 / 20,  // Update vu-meter at 20Hz
+        TONES_SAMPLERATE / 20,  // Update vu-meter at 20Hz
         transmitter_model.channel_bandwidth(),
         0,  // Gain is unused
         8,  // shift_bits_s16, default 8 bits, but  also unused
-        TONES_F2D(tone_key_frequency(tone_key_index), 1536000),
+        TONES_F2D(tone_key_frequency(tone_key_index), TONES_SAMPLERATE),
         0,  // AM
         0,  // DSB
         0,  // USB
@@ -132,7 +132,8 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     tx_view.set_transmitting(true);
 
-    audio::output::start();
+    if (tone_key_index == 0)
+        audio::output::start();
 }
 
 /*void SoundBoardView::show_infos() {
@@ -238,6 +239,7 @@ SoundBoardView::SoundBoardView(
                   //&text_duration,
                   //&progressbar,
                   &field_volume,
+                  &text_volume_disabled,
                   &page_info,
                   &check_loop,
                   &check_random,
@@ -262,6 +264,13 @@ SoundBoardView::SoundBoardView(
 
     tone_keys_populate(options_tone_key);
     options_tone_key.set_selected_index(0);
+
+    text_volume_disabled.hidden(true);
+    options_tone_key.on_change = [this](size_t index, OptionsField::value_t) {
+        bool tone_key_enabled = (index != 0);
+        text_volume_disabled.hidden(!tone_key_enabled);
+        field_volume.hidden(tone_key_enabled);
+    };
 
     check_loop.set_value(false);
     check_random.set_value(false);

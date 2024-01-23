@@ -52,14 +52,15 @@ class AudioTXProcessor : public BasebandProcessor {
     int32_t sample{0}, delta{};
     int8_t re{0}, im{0};
 
-    float audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
-    buffer_f32_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, 48000};
+    int16_t audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
+    buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, 48000};
     AudioOutput audio_output{};
 
     size_t progress_interval_samples = 0, progress_samples = 0;
 
     bool configured{false};
     uint32_t bytes_read{0};
+    bool tone_key_enabled{false};
 
     void sample_rate_config(const SampleRateConfigMessage& message);
     void audio_config(const AudioTXConfigMessage& message);

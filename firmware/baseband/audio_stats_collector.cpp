@@ -23,6 +23,19 @@
 
 #include "utility.hpp"
 
+void AudioStatsCollector::consume_audio_buffer(const buffer_s16_t& src) {
+    auto src_p = src.p;
+    const auto src_end = &src.p[src.count];
+    while (src_p < src_end) {
+        const auto sample = *(src_p++);
+        const auto sample_squared = sample * sample;
+        squared_sum += sample_squared;
+        if (sample_squared > max_squared) {
+            max_squared = sample_squared;
+        }
+    }
+}
+
 void AudioStatsCollector::consume_audio_buffer(const buffer_f32_t& src) {
     auto src_p = src.p;
     const auto src_end = &src.p[src.count];
@@ -54,6 +67,12 @@ bool AudioStatsCollector::update_stats(const size_t sample_count, const size_t s
     } else {
         return false;
     }
+}
+
+bool AudioStatsCollector::feed(const buffer_s16_t& src) {
+    consume_audio_buffer(src);
+
+    return update_stats(src.count, src.sampling_rate);
 }
 
 bool AudioStatsCollector::feed(const buffer_f32_t& src) {
