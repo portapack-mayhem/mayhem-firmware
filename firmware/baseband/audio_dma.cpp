@@ -215,9 +215,12 @@ void disable() {
     gpdma_channel_i2s0_rx.disable();
 }
 
-void shrink_tx_buffer() {
-    single_tx_buffer = true;
-    lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
+void shrink_tx_buffer(bool shrink) {
+    single_tx_buffer = shrink;
+    if (single_tx_buffer)
+        lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
+    else
+        lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[1]);
 }
 
 buffer_t tx_empty_buffer() {
