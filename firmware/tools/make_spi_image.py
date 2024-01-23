@@ -76,7 +76,7 @@ for image in images:
 	spi_image += padded_data
 
 if len(spi_image) > spi_size - 4:
-	raise RuntimeError('SPI flash image size of %d exceeds device size of %d bytes' % (len(spi_image), spi_size))
+	raise RuntimeError('SPI flash image size of %d exceeds device size of %d bytes' % (len(spi_image) + 4, spi_size))
 
 pad_size = spi_size - 4 - len(spi_image)
 for i in range(pad_size):
@@ -87,7 +87,7 @@ for i in range(pad_size):
 
 # quicker "add up the words" checksum:
 checksum = 0
-for i in range(0, len(spi_image) - 1, 4):
+for i in range(0, len(spi_image) - 4, 4):
 	checksum += spi_image[i] + (spi_image[i+1] << 8) + (spi_image[i+2] << 16) + (spi_image[i+3] << 24)
 
 checksum &= 0xFFFFFFFF
