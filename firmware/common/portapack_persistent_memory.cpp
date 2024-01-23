@@ -1051,6 +1051,14 @@ bool debug_dump() {
     pmem_dump_file.write_line("Ext APPS version req'd: 0x" + to_string_hex(VERSION_MD5));
     pmem_dump_file.write_line("GCC version: " + to_string_dec_int(__GNUC__) + "." + to_string_dec_int(__GNUC_MINOR__) + "." + to_string_dec_int(__GNUC_PATCHLEVEL__));
 
+    // simple firmware checksum test
+    uint32_t checksum = 0;
+    for (uint32_t rom_addr = 0; rom_addr < 1048576 - 4; rom_addr += 4)
+        checksum += *(uint32_t*)rom_addr;
+
+    pmem_dump_file.write_line("Firmware stored checksum: 0x" + to_string_hex(*(uint32_t*)(1048576 - 4), 8));
+    pmem_dump_file.write_line("Firmware calculated checksum: 0x" + to_string_hex(checksum, 8));
+
     // write persistent memory
     pmem_dump_file.write_line("\n[Persistent Memory]");
 
