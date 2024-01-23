@@ -22,6 +22,7 @@
 #
 
 import sys
+import zlib
 
 usage_message = """
 PortaPack SPI flash image generator
@@ -74,7 +75,23 @@ for image in images:
 	padded_data = image['data'] + (spi_image_default_byte * pad_size)
 	spi_image += padded_data
 
-if len(spi_image) > spi_size:
+if len(spi_image) > spi_size - 4:
 	raise RuntimeError('SPI flash image size of %d exceeds device size of %d bytes' % (len(spi_image), spi_size))
+
+pad_size = spi_size - 4 - len(spi_image)
+for i in range(pad_size):
+	spi_image += spi_image_default_byte
+
+# crc32 works but it's slow to check in firmware
+# checksum = zlib.crc32(spi_image)
+
+# quicker "add up the words" checksum:
+checksum = 0
+for i in range(0, len(spi_image) - 1, 4):
+	checksum += spi_image[i] + (spi_image[i+1] << 8) + (spi_image[i+2] << 16) + (spi_image[i+3] << 24)
+
+checksum &= 0xFFFFFFFF
+
+spi_image += checksum.to_bytes(4, 'little')
 
 write_image(spi_image, output_path)
