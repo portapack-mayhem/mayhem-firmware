@@ -84,7 +84,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
         file_error();
         return;
     }
-    
+
     auto reader = std::make_unique<WAVFileReader>();
 
     uint32_t tone_key_index = options_tone_key.selected_index();
