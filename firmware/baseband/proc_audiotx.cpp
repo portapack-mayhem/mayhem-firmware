@@ -43,8 +43,8 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
 
         sample = audio_sample - 0x80;
 
+        // Output to speaker too
         if (!tone_key_enabled) {
-           // Output to speaker too
             uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
             audio_data[imod32] = sample * 256;
             if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
