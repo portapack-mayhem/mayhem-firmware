@@ -43,7 +43,7 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
 
             // if file is smaller than 1MB, assume it's a downgrade to an old FW version and ignore the checksum
-            if ((!readResult) || (readResult.value() == 0)) {
+            if ((!readResult) || (readResult.value() != sizeof(read_buffer))) {
                 checksum = FLASH_EXPECTED_CHECKSUM;
                 break;
             }
