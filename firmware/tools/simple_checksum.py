@@ -53,6 +53,5 @@ checksum = 0
 for i in range(0, len(image), 4):
 	checksum += (image[i] + (image[i + 1] << 8) + (image[i + 2] << 16) + (image[i + 3] << 24))
 
-checksum = (0 - checksum) & 0xFFFFFFFF
-
+checksum &= 0xFFFFFFFF
 print ("Simple checksum =", checksum)
