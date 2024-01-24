@@ -105,10 +105,10 @@ for external_image_prefix in sys.argv[4:]:
 		external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 
 		checksum = 0
-		for i in range(0, len(external_application_image) - 4, 4):
+		for i in range(0, len(external_application_image), 4):
 			checksum += external_application_image[i] + (external_application_image[i + 1] << 8) + (external_application_image[i + 2] << 16) + (external_application_image[i + 3] << 24)
 
-		checksum &= 0xFFFFFFFF
+		checksum = (0 - checksum) & 0xFFFFFFFF
 		external_application_image += checksum.to_bytes(4, 'little')
 
 		write_image(external_application_image, "{}/{}.ppma".format(binary_dir, external_image_prefix))
@@ -135,10 +135,10 @@ for external_image_prefix in sys.argv[4:]:
 		sys.exit(-1)
 
 	checksum = 0
-	for i in range(0, len(external_application_image) - 4, 4):
+	for i in range(0, len(external_application_image), 4):
 		checksum += external_application_image[i] + (external_application_image[i + 1] << 8) + (external_application_image[i + 2] << 16) + (external_application_image[i + 3] << 24)
 
-	checksum &= 0xFFFFFFFF
+	checksum = (0 - checksum) & 0xFFFFFFFF
 	external_application_image += checksum.to_bytes(4, 'little')
 
 	# write .ppma (portapack mayhem application)

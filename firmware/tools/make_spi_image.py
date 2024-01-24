@@ -87,10 +87,10 @@ for i in range(pad_size):
 
 # quicker "add up the words" checksum:
 checksum = 0
-for i in range(0, len(spi_image) - 4, 4):
-	checksum += spi_image[i] + (spi_image[i + 1] << 8) + (spi_image[i + 2] << 16) + (spi_image[i + 3] << 24)
+for i in range(0, len(spi_image), 4):
+	checksum += (spi_image[i] + (spi_image[i + 1] << 8) + (spi_image[i + 2] << 16) + (spi_image[i + 3] << 24))
 
-checksum &= 0xFFFFFFFF
+checksum = (0 - checksum) & 0xFFFFFFFF
 
 spi_image += checksum.to_bytes(4, 'little')
 
