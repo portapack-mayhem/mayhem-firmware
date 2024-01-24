@@ -286,6 +286,7 @@ class InformationView : public View {
    public:
     InformationView(NavigationView& nav);
     void refresh();
+    bool firmware_checksum_error();
 
    private:
     // static constexpr auto version_string = "v1.4.4"; // This is commented out as we are now setting the version via ENV (VERSION_STRING=v1.0.0)
