@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 #
-# Copyright (C) 2023 Mark Thompson
+# Copyright (C) 2024 Mark Thompson
 #
 # This file is part of PortaPack.
 #
