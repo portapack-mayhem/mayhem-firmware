@@ -579,7 +579,6 @@ bool InformationView::firmware_checksum_error() {
     return fw_checksum_error;
 }
 
-
 /* Navigation ************************************************************/
 
 bool NavigationView::is_top() const {
