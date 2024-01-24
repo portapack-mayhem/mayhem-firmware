@@ -32,6 +32,8 @@
 #include "untar.hpp"
 #include <cstdint>
 
+#define FLASH_ROM_SIZE (1048576)
+
 namespace ui {
 
 class FlashUtilityView : public View {
@@ -59,6 +61,7 @@ class FlashUtilityView : public View {
     void firmware_selected(std::filesystem::path::string_type path);
     void flash_firmware(std::filesystem::path::string_type path);
     bool endsWith(const std::u16string& str, const std::u16string& suffix);
+    bool valid_firmware_file(std::filesystem::path::string_type path);
 };
 
 } /* namespace ui */

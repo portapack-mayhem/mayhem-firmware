@@ -107,12 +107,39 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
     return res;
 }
 
+bool FlashUtilityView::valid_firmware_file(std::filesystem::path::string_type path) {
+    File firmware_file;
+    uint32_t read_buffer[128];
+    uint32_t checksum{1};
+
+    auto result = firmware_file.open(path.c_str());
+    if (!result.is_valid()) {
+        checksum = 0;
+
+        for (uint32_t i = 0; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
+            auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
+
+            // if file is smaller than 1MB, assume it's a downgrade to an old FW version and ignore the checksum
+            if ((!readResult) || (readResult.value() == 0)) {
+                checksum = 0;
+                break;
+            }
+
+            checksum += simple_checksum((uint32_t)read_buffer, sizeof(read_buffer));
+        }
+    }
+    return checksum == 0;
+}
+
 void FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
     if (endsWith(path, u".tar")) {
         // extract, then update
         path = extract_tar(u'/' + path).native();
-        if (path.empty()) return;
     }
+
+    if (path.empty() || !valid_firmware_file(path.c_str()))
+        return;  // bad firmware image - just returning back to the file list
+
     ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
