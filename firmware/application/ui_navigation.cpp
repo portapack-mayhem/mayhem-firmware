@@ -574,7 +574,7 @@ bool InformationView::firmware_checksum_error() {
 
     // only checking firmware checksum once per boot
     if (!fw_checksum_checked) {
-        fw_checksum_error = (simple_checksum(0, FLASH_ROM_SIZE) != 0);
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_ROM_SIZE) != FLASH_EXPECTED_CHECKSUM);
     }
     return fw_checksum_error;
 }

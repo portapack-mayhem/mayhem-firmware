@@ -32,7 +32,9 @@
 #include "untar.hpp"
 #include <cstdint>
 
-#define FLASH_ROM_SIZE (1048576)
+#define FLASH_ROM_SIZE 1048576
+#define FLASH_STARTING_ADDRESS 0x00000000
+#define FLASH_EXPECTED_CHECKSUM 0x00000000
 
 namespace ui {
 

@@ -179,7 +179,7 @@ namespace ui {
         }
     }
 
-    if (checksum != 0)
+    if (checksum != EXT_APP_EXPECTED_CHECKSUM)
         return false;
 
     application_information.externalAppEntry(nav);

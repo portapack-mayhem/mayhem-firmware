@@ -29,6 +29,8 @@
 
 #include "file.hpp"
 
+#define EXT_APP_EXPECTED_CHECKSUM 0x00000000
+
 namespace ui {
 
 template <size_t Width, size_t Height>

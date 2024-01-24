@@ -112,23 +112,23 @@ bool FlashUtilityView::valid_firmware_file(std::filesystem::path::string_type pa
     uint32_t read_buffer[128];
     uint32_t checksum{1};
 
+    // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
     auto result = firmware_file.open(path.c_str());
     if (!result.is_valid()) {
         checksum = 0;
-
-        for (uint32_t i = 0; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
+        for (uint32_t i = FLASH_STARTING_ADDRESS; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
 
             // if file is smaller than 1MB, assume it's a downgrade to an old FW version and ignore the checksum
             if ((!readResult) || (readResult.value() == 0)) {
-                checksum = 0;
+                checksum = FLASH_EXPECTED_CHECKSUM;
                 break;
             }
 
             checksum += simple_checksum((uint32_t)read_buffer, sizeof(read_buffer));
         }
     }
-    return checksum == 0;
+    return (checksum == FLASH_EXPECTED_CHECKSUM);
 }
 
 void FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
