@@ -30,6 +30,30 @@ static const char16_t* firmware_folder = u"/FIRMWARE";
 Thread* FlashUtilityView::thread{nullptr};
 static constexpr size_t max_filename_length = 26;
 
+bool valid_firmware_file(std::filesystem::path::string_type path) {
+    File firmware_file;
+    uint32_t read_buffer[128];
+    uint32_t checksum{1};
+
+    // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
+    auto result = firmware_file.open(path.c_str());
+    if (!result.is_valid()) {
+        checksum = 0;
+        for (uint32_t i = FLASH_STARTING_ADDRESS; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
+            auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
+
+            // if file is smaller than 1MB, assume it's a downgrade to an old FW version and ignore the checksum
+            if ((!readResult) || (readResult.value() != sizeof(read_buffer))) {
+                checksum = FLASH_EXPECTED_CHECKSUM;
+                break;
+            }
+
+            checksum += simple_checksum((uint32_t)read_buffer, sizeof(read_buffer));
+        }
+    }
+    return (checksum == FLASH_EXPECTED_CHECKSUM);
+}
+
 FlashUtilityView::FlashUtilityView(NavigationView& nav)
     : nav_(nav) {
     add_children({&labels,
@@ -111,8 +135,11 @@ void FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
     if (endsWith(path, u".tar")) {
         // extract, then update
         path = extract_tar(u'/' + path).native();
-        if (path.empty()) return;
     }
+
+    if (path.empty() || !valid_firmware_file(path.c_str()))
+        return;  // bad firmware image - just returning back to the file list
+
     ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},

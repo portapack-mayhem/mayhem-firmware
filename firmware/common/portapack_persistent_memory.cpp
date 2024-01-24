@@ -32,6 +32,7 @@
 #include "string_format.hpp"
 #include "ui_styles.hpp"
 #include "ui_painter.hpp"
+#include "ui_flash_utility.hpp"
 #include "utility.hpp"
 #include "rtc_time.hpp"
 
@@ -1050,6 +1051,9 @@ bool debug_dump() {
     pmem_dump_file.write_line("FW version: " VERSION_STRING);
     pmem_dump_file.write_line("Ext APPS version req'd: 0x" + to_string_hex(VERSION_MD5));
     pmem_dump_file.write_line("GCC version: " + to_string_dec_int(__GNUC__) + "." + to_string_dec_int(__GNUC_MINOR__) + "." + to_string_dec_int(__GNUC_PATCHLEVEL__));
+
+    // firmware checksum
+    pmem_dump_file.write_line("Firmware calculated checksum: 0x" + to_string_hex(simple_checksum(FLASH_STARTING_ADDRESS, FLASH_ROM_SIZE), 8));
 
     // write persistent memory
     pmem_dump_file.write_line("\n[Persistent Memory]");

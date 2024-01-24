@@ -217,4 +217,6 @@ struct range_t {
 
 std::string join(char c, std::initializer_list<std::string_view> strings);
 
+uint32_t simple_checksum(uint32_t buffer_address, uint32_t length);
+
 #endif /*__UTILITY_H__*/

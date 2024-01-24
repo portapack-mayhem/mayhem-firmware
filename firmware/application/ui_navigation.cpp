@@ -503,8 +503,8 @@ void SystemStatusView::rtc_battery_workaround() {
             month = (timestamp.FAT_date >> 5) & 0xF;
             day = timestamp.FAT_date & 0x1F;
 
-            // bump to next month at 28 days for simplicity
-            if (++day > 28) {
+            // bump to next month
+            if (++day > rtc_time::days_per_month(year, month)) {
                 day = 1;
                 if (++month > 12) {
                     month = 1;
@@ -547,15 +547,15 @@ InformationView::InformationView(
                   &ltime});
 
 #if GCC_VERSION_MISMATCH
-    static constexpr Style style_gcc_warning{
-        .font = font::fixed_8x16,
-        .background = {33, 33, 33},
-        .foreground = Color::yellow(),
-    };
-    version.set_style(&style_gcc_warning);
+    version.set_style(&Styles::yellow);
 #else
     version.set_style(&style_infobar);
 #endif
+
+    if (firmware_checksum_error()) {
+        version.set("FLASH ERROR");
+        version.set_style(&Styles::red);
+    }
 
     ltime.set_style(&style_infobar);
     refresh();
@@ -566,6 +566,17 @@ void InformationView::refresh() {
     ltime.set_hide_clock(pmem::hide_clock());
     ltime.set_seconds_enabled(true);
     ltime.set_date_enabled(pmem::clock_with_date());
+}
+
+bool InformationView::firmware_checksum_error() {
+    static bool fw_checksum_checked{false};
+    static bool fw_checksum_error{false};
+
+    // only checking firmware checksum once per boot
+    if (!fw_checksum_checked) {
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_ROM_SIZE) != FLASH_EXPECTED_CHECKSUM);
+    }
+    return fw_checksum_error;
 }
 
 /* Navigation ************************************************************/

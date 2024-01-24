@@ -41,6 +41,7 @@
 #include "chprintf.h"
 #include "chqueues.h"
 #include "ui_external_items_menu_loader.hpp"
+#include "ui_flash_utility.hpp"
 #include "untar.hpp"
 #include "ui_widget.hpp"
 
@@ -170,7 +171,13 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     } else if (strEndsWith(path.native(), u".bin")) {
         // nothing to do for this case yet.
     } else {
-        chprintf(chp, "error only .bin or .ppfw.tar files canbe flashed.\r\n");
+        chprintf(chp, "error only .bin or .ppfw.tar files can be flashed.\r\n");
+        nav->pop();
+        return;
+    }
+
+    if (!ui::valid_firmware_file(path.native().c_str())) {
+        chprintf(chp, "error corrupt firmware file.\r\n");
         nav->pop();
         return;
     }

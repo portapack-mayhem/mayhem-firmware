@@ -107,6 +107,7 @@ namespace ui {
 
 /* static */ bool ExternalItemsMenuLoader::run_external_app(ui::NavigationView& nav, std::filesystem::path filePath) {
     File app;
+    uint32_t checksum{0};
 
     auto openError = app.open(filePath);
     if (openError)
@@ -115,7 +116,6 @@ namespace ui {
     application_information_t application_information = {};
 
     auto readResult = app.read(&application_information, sizeof(application_information_t));
-
     if (!readResult)
         return false;
 
@@ -134,6 +134,8 @@ namespace ui {
             readResult = app.read(&application_information.memory_location[file_read_index], bytes_to_read);
             if (!readResult)
                 return false;
+
+            checksum += simple_checksum((uint32_t)&application_information.memory_location[file_read_index], readResult.value());
 
             if (readResult.value() < std::filesystem::max_file_block_size)
                 break;
@@ -156,6 +158,8 @@ namespace ui {
             if (!readResult)
                 return false;
 
+            checksum += simple_checksum((uint32_t)target_memory, readResult.value());
+
             if (readResult.value() != bytes_to_read)
                 break;
         }
@@ -168,10 +172,15 @@ namespace ui {
             if (!readResult)
                 return false;
 
+            checksum += simple_checksum((uint32_t)&application_information.memory_location[file_read_index], readResult.value());
+
             if (readResult.value() < std::filesystem::max_file_block_size)
                 break;
         }
     }
+
+    if (checksum != EXT_APP_EXPECTED_CHECKSUM)
+        return false;
 
     application_information.externalAppEntry(nav);
     return true;
