@@ -38,6 +38,8 @@
 
 namespace ui {
 
+bool valid_firmware_file(std::filesystem::path::string_type path);
+
 class FlashUtilityView : public View {
    public:
     FlashUtilityView(NavigationView& nav);
@@ -63,7 +65,6 @@ class FlashUtilityView : public View {
     void firmware_selected(std::filesystem::path::string_type path);
     void flash_firmware(std::filesystem::path::string_type path);
     bool endsWith(const std::u16string& str, const std::u16string& suffix);
-    bool valid_firmware_file(std::filesystem::path::string_type path);
 };
 
 } /* namespace ui */
