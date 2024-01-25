@@ -91,6 +91,7 @@ class UnTar {
         uint32_t app_checksum;
         bool app_file;
         bool first_read;
+        bool corrupt_file{false};
         for (;;) {
             auto readres = a->read(buff, 512);
             if (!readres.is_ok()) return "";
@@ -140,13 +141,18 @@ class UnTar {
                 app_file = (fn.substr(fn.size() - 5) == ".ppma");
                 first_read = true;
                 app_checksum = 0;
+                corrupt_file = false;
             }
             while (filesize > 0) {
                 readres = a->read(buff, 512);
-                if (!readres.is_ok()) return "";
+                if (!readres.is_ok()) {
+                    corrupt_file = true;
+                    break;
+                }
                 bytes_read = readres.value();
                 if (bytes_read < 512) {
-                    return "";
+                    corrupt_file = true;
+                    break;
                 }
                 if (filesize < 512)
                     bytes_read = filesize;
@@ -161,10 +167,20 @@ class UnTar {
                     app_checksum += simple_checksum((uint32_t)buff, bytes_read);
                 }
                 auto fwres = f.write(buff, bytes_read);
-                if (!fwres.is_ok()) return "";
+                if (!fwres.is_ok()) {
+                    corrupt_file = true;
+                    break;
+                }
                 filesize -= bytes_read;
                 f.sync();
-                if ((filesize == 0) && app_file && (app_checksum != EXT_APP_EXPECTED_CHECKSUM)) return "";
+                if ((filesize == 0) && app_file && (app_checksum != EXT_APP_EXPECTED_CHECKSUM)) {
+                    corrupt_file = true;
+                    break;
+                }
+            }
+            if (corrupt_file) {
+                delete_file(fn);
+                return "";
             }
         }
         return binfile;
