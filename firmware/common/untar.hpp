@@ -90,6 +90,7 @@ class UnTar {
         int filesize;
         uint32_t app_checksum;
         bool app_file;
+        bool first_read;
         for (;;) {
             auto readres = a->read(buff, 512);
             if (!readres.is_ok()) return "";
@@ -137,9 +138,9 @@ class UnTar {
                 auto fres = f.open(fn, false, true);
                 if (!fres.value().ok()) return "";
                 app_file = (fn.substr(fn.size() - 5) == ".ppma");
+                first_read = true;
                 app_checksum = 0;
             }
-            bool first_read{true};
             while (filesize > 0) {
                 readres = a->read(buff, 512);
                 if (!readres.is_ok()) return "";
