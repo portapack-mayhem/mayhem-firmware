@@ -222,7 +222,7 @@ class APRSRxView : public View {
          {"EUR", 1},
          {"AUS", 2},
          {"NZ ", 3},
-         {"IIS", 4}}};
+         {"ISS", 4}}};
 
     RxFrequencyField field_frequency{
         {3 * 8, 0 * 16},
