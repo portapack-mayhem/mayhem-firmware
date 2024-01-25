@@ -101,6 +101,8 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
             field_frequency.set_value(145175000);
         } else if (i == 3) {
             field_frequency.set_value(144575000);
+        } else if (i == 4) {
+            field_frequency.set_value(145825000);
         }
     };
 
