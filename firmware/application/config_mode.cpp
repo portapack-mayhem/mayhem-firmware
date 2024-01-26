@@ -28,7 +28,7 @@ void config_mode_blink_until_dfu();
 
 void config_mode_set() {
     uint32_t cms = portapack::persistent_memory::config_mode_storage_direct();
-    if ((cms >= CONFIG_MODE_GUARD_VALUE) && (cms <= CONFIG_MODE_LIMIT_VALUE))
+    if ((cms >= CONFIG_MODE_GUARD_VALUE) && (cms < CONFIG_MODE_LIMIT_VALUE))
         cms += 1;
     else
         cms = CONFIG_MODE_GUARD_VALUE;
