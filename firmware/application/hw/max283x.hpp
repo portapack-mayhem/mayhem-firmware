@@ -33,10 +33,10 @@ namespace max283x {
 namespace lo {
 
 constexpr std::array<rf::FrequencyRange, 4> band{{
-    {2300000000, 2400000000},
+    {2170000000, 2400000000},
     {2400000000, 2500000000},
     {2500000000, 2600000000},
-    {2600000000, 2700000000},
+    {2600000000, 2740000000},
 }};
 
 } /* namespace lo */
@@ -47,11 +47,6 @@ namespace lna {
 
 constexpr range_t<int8_t> gain_db_range{0, 40};
 constexpr int8_t gain_db_step = 8;
-
-constexpr std::array<rf::FrequencyRange, 2> band{{
-    {2300000000, 2500000000},
-    {2500000000, 2700000000},
-}};
 
 } /* namespace lna */
 
