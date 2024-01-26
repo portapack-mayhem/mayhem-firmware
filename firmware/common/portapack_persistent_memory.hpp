@@ -32,6 +32,7 @@
 #include "modems.hpp"
 #include "serializer.hpp"
 #include "volume.hpp"
+#include "config_mode.hpp"
 
 // persistent memory from/to sdcard flag file
 #define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
@@ -242,8 +243,6 @@ void set_disable_touchscreen(bool v);
 uint8_t config_encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
 
-#define CONFIG_MODE_GUARD_VALUE 0x000007d1
-#define CONFIG_MODE_NORMAL_VALUE 0x000007cf
 uint32_t config_mode_storage_direct();
 void set_config_mode_storage_direct(uint32_t v);
 bool config_disable_config_mode_direct();
