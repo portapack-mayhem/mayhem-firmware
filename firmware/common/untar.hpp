@@ -6,6 +6,8 @@
 #include <string.h>
 #include "string_format.hpp"
 #include "file.hpp"
+#include "utility.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 class UnTar {
    public:
@@ -86,6 +88,10 @@ class UnTar {
         std::string binfile = "";
         std::string fn = "";
         int filesize;
+        uint32_t app_checksum;
+        bool app_file;
+        bool first_read;
+        bool corrupt_file{false};
         for (;;) {
             auto readres = a->read(buff, 512);
             if (!readres.is_ok()) return "";
@@ -132,20 +138,49 @@ class UnTar {
                 delete_file(fn);
                 auto fres = f.open(fn, false, true);
                 if (!fres.value().ok()) return "";
+                app_file = (fn.substr(fn.size() - 5) == ".ppma");
+                first_read = true;
+                app_checksum = 0;
+                corrupt_file = false;
             }
             while (filesize > 0) {
                 readres = a->read(buff, 512);
-                if (!readres.is_ok()) return "";
+                if (!readres.is_ok()) {
+                    corrupt_file = true;
+                    break;
+                }
                 bytes_read = readres.value();
                 if (bytes_read < 512) {
-                    return "";
+                    corrupt_file = true;
+                    break;
                 }
                 if (filesize < 512)
                     bytes_read = filesize;
+                if (app_file && first_read) {
+                    // Check app file header for min version for checksum support
+                    struct application_information_t* app_info = (struct application_information_t*)buff;
+                    if (app_info->header_version < MIN_HEADER_VERSION_FOR_CHECKSUM)
+                        app_file = false;
+                    first_read = false;
+                }
+                if (app_file) {
+                    app_checksum += simple_checksum((uint32_t)buff, bytes_read);
+                }
                 auto fwres = f.write(buff, bytes_read);
-                if (!fwres.is_ok()) return "";
+                if (!fwres.is_ok()) {
+                    corrupt_file = true;
+                    break;
+                }
                 filesize -= bytes_read;
                 f.sync();
+                if ((filesize == 0) && app_file && (app_checksum != EXT_APP_EXPECTED_CHECKSUM)) {
+                    corrupt_file = true;
+                    break;
+                }
+            }
+            if (corrupt_file) {
+                delete_file(fn);
+                return "";
             }
         }
         return binfile;

@@ -21,6 +21,7 @@
  */
 
 #include "ui_flash_utility.hpp"
+#include "ui_styles.hpp"
 #include "portapack_shared_memory.hpp"
 
 namespace ui {
@@ -33,13 +34,13 @@ static constexpr size_t max_filename_length = 26;
 bool valid_firmware_file(std::filesystem::path::string_type path) {
     File firmware_file;
     uint32_t read_buffer[128];
-    uint32_t checksum{1};
+    uint32_t checksum{(uint32_t)~FLASH_EXPECTED_CHECKSUM};  // initializing to invalid checksum in case file can't be read
 
     // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
     auto result = firmware_file.open(path.c_str());
     if (!result.is_valid()) {
         checksum = 0;
-        for (uint32_t i = FLASH_STARTING_ADDRESS; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
+        for (uint32_t i = 0; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
 
             // if file is smaller than 1MB, assume it's a downgrade to an old FW version and ignore the checksum
@@ -122,12 +123,6 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
         painter.draw_string({0, 60}, this->nav_.style(), fileName);
     });
-    if (res.string().empty()) {
-        ui::Painter painter;
-        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
-        painter.draw_string({0, 60}, this->nav_.style(), "BAD TAR FILE");
-        chThdSleepMilliseconds(5000);
-    }
     return res;
 }
 
@@ -137,8 +132,13 @@ void FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
         path = extract_tar(u'/' + path).native();
     }
 
-    if (path.empty() || !valid_firmware_file(path.c_str()))
-        return;  // bad firmware image - just returning back to the file list
+    if (path.empty() || !valid_firmware_file(path.c_str())) {
+        ui::Painter painter;
+        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
+        painter.draw_string({0, 60}, Styles::red, "BAD FIRMWARE FILE");
+        chThdSleepMilliseconds(5000);
+        return;
+    }
 
     ui::Painter painter;
     painter.fill_rectangle(
