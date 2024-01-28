@@ -184,11 +184,13 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
     if (tuning_config.is_valid()) {
         first_if.disable();
 
+        // Program first local oscillator frequency (if there is one) into RFFC507x
         if (tuning_config.first_lo_frequency) {
             first_if.set_frequency(tuning_config.first_lo_frequency);
             first_if.enable();
         }
 
+        // Program second local oscillator frequency into MAX283x
         const auto result_second_if = second_if->set_frequency(tuning_config.second_lo_frequency);
 
         rf_path.set_band(tuning_config.rf_path_band);

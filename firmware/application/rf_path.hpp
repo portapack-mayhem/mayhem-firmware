@@ -39,8 +39,8 @@ enum class Direction {
 
 namespace path {
 
-constexpr FrequencyRange band_low{0, 2170000000};
-constexpr FrequencyRange band_high{2740000000, 7250000000};
+constexpr FrequencyRange band_low{0, 2170'000'000};
+constexpr FrequencyRange band_high{2740'000'000, 7250'000'000};
 constexpr FrequencyRange band_mid{band_low.maximum, band_high.minimum};
 
 enum class Band {
