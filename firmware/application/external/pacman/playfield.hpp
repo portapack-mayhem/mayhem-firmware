@@ -13,8 +13,8 @@ typedef uint8_t byte;
 typedef uint32_t word;
 
 byte SPEED = 2;
-byte MAXLIFES = 5;
-byte LIFES = START_LIFES;
+byte MAXLIFES = 20;
+size_t LIFES = START_LIFES;
 byte GAMEWIN = 0;
 byte GAMEOVER = 0;
 byte DEMO = 1;
@@ -24,6 +24,9 @@ byte ACTIVEBONUS = 0;  // status of bonus
 byte GAMEPAUSED = 0;
 
 byte PACMANFALLBACK = 0;
+
+bool cheat_level = false;
+bool cheat_lifes = false;
 
 #include "DrawIndexedMap.h"
 
@@ -901,14 +904,15 @@ class Playfield {
 
     void PackmanDied() {  // Noooo... PACMAN DIED :(
 
-        if (LIFES <= 0) {
+        if (LIFES <= 0 && !cheat_lifes) {
             GAMEOVER = 1;
             LEVEL = START_LEVEL;
             LIFES = START_LIFES;
             DEMO = 1;
             Init();
         } else {
-            LIFES--;
+            if (!cheat_lifes)
+                LIFES--;
 
             _inited = true;
             _state = ReadyState;
@@ -934,8 +938,14 @@ class Playfield {
                 _icons[13 - i] = BONUSICON + i;
             }
 
-            for (byte i = 0; i < LIFES; i++) {
-                _icons[0 + i] = PACMANICON;
+            if (!cheat_lifes) {
+                for (byte i = 0; i < LIFES; i++) {
+                    _icons[0 + i] = PACMANICON;
+                }
+            } else {
+                for (byte i = 0; i < 14; i++) {
+                    _icons[0 + i] = PACMANICON;
+                }
             }
 
             // Draw LIFE and BONUS Icons
@@ -1177,8 +1187,13 @@ class Playfield {
         if (GAMEWIN == 1) {
             GAMEWIN = 0;
         } else {
-            LEVEL = START_LEVEL;
-            LIFES = START_LIFES;
+            if (!cheat_level) {
+                LEVEL = START_LEVEL;
+            }
+            if (!cheat_lifes) {
+                LIFES = START_LIFES;
+            }
+
             ACTUALBONUS = 0;  // actual bonus icon
             ACTIVEBONUS = 0;  // status of bonus
 
@@ -1215,8 +1230,14 @@ class Playfield {
         }
 
         // SET Lifes icons
-        for (byte i = 0; i < LIFES; i++) {
-            _icons[0 + i] = PACMANICON;
+        if (cheat_lifes) {
+            for (byte i = 0; i < 14; i++) {  // cuz 14 lives full fills PP's screen
+                _icons[0 + i] = PACMANICON;
+            }
+        } else {
+            for (byte i = 0; i < LIFES; i++) {
+                _icons[0 + i] = PACMANICON;
+            }
         }
 
         // Draw LIFE and BONUS Icons
@@ -1243,21 +1264,45 @@ class Playfield {
     }
 
     void Step() {
-        int16_t keys = 0;
-
         if (GAMEWIN == 1) {
+            cheat_level = false;
+            cheat_lifes = false;
             LEVEL++;
             Init();
         }
 
         // Start GAME
-        if (but_A && DEMO == 1 && GAMEPAUSED == 0) {
+        if (but_A && DEMO == 1 && GAMEPAUSED == 0) {  // start
             but_A = false;
-            DEMO = 0;
             Init();
-        } else if (but_A && DEMO == 0 && GAMEPAUSED == 0) {  // Or PAUSE GAME
+            DEMO = 0;
+        } else if (but_A && DEMO == 0 && GAMEPAUSED == 0) {  // pause
             but_A = false;
             GAMEPAUSED = 1;
+        } else if (but_LEFT && DEMO == 1 && GAMEPAUSED == 0) {  // -level
+            cheat_level = true;
+            but_LEFT = false;
+            if (LEVEL > 1) {
+                LEVEL--;
+            }
+            Init();
+        } else if (but_RIGHT && DEMO == 1 && GAMEPAUSED == 0) {  // +level
+            cheat_level = true;
+            but_RIGHT = false;
+            if (LEVEL < 255) {
+                LEVEL++;
+            }
+            Init();
+        } else if (but_UP && DEMO == 1 && GAMEPAUSED == 0) {  // full of lifes
+            cheat_lifes = true;
+            but_UP = false;
+            Init();
+        } else if (but_DOWN && DEMO == 1 && GAMEPAUSED == 0) {  // reset
+            cheat_level = false;
+            cheat_lifes = false;
+            but_DOWN = false;
+            LIFES = START_LIFES;
+            Init();
         }
 
         if (GAMEPAUSED && but_A && DEMO == 0) {
