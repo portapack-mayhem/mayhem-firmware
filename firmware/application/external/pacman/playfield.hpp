@@ -1282,12 +1282,16 @@ class Playfield {
         } else if (but_LEFT && DEMO == 1 && GAMEPAUSED == 0) {  // -level
             cheat_level = true;
             but_LEFT = false;
-            LEVEL--;
+            if (LEVEL > 1) {
+                LEVEL--;
+            }
             Init();
         } else if (but_RIGHT && DEMO == 1 && GAMEPAUSED == 0) {  // +level
             cheat_level = true;
             but_RIGHT = false;
-            LEVEL++;
+            if (LEVEL < 255) {
+                LEVEL++;
+            }
             Init();
         } else if (but_UP && DEMO == 1 && GAMEPAUSED == 0) {  // full of lifes
             cheat_lifes = true;
@@ -1297,7 +1301,7 @@ class Playfield {
             cheat_level = false;
             cheat_lifes = false;
             but_DOWN = false;
-            LIFES = 2;
+            LIFES = START_LIFES;
             Init();
         }
 
