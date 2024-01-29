@@ -47,6 +47,7 @@ class FlashUtilityView : public View {
     void focus() override;
 
     std::string title() const override { return "Flash Utility"; };
+    bool flash_firmware(std::filesystem::path::string_type path);
 
    private:
     NavigationView& nav_;
@@ -61,9 +62,9 @@ class FlashUtilityView : public View {
         {0, 2 * 8, 240, 26 * 8},
         true};
 
-    std::filesystem::path extract_tar(std::filesystem::path::string_type path);  // extracts the tar file, and returns the firmware.bin path from it. empty string if no fw
+    std::filesystem::path extract_tar(std::filesystem::path::string_type path, ui::Painter& painter);  // extracts the tar file, and returns the firmware.bin path from it. empty string if no fw
     void firmware_selected(std::filesystem::path::string_type path);
-    void flash_firmware(std::filesystem::path::string_type path);
+
     bool endsWith(const std::u16string& str, const std::u16string& suffix);
 };
 

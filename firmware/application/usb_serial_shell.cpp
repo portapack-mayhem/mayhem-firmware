@@ -152,45 +152,15 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (!top_widget) return;
     auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
     if (!nav) return;
-    nav->display_modal("Flashing", "Flashing from serial.\r\nPlease wait!\r\nDevice will restart.");
-    // check file extensions
-    if (strEndsWith(path.native(), u".ppfw.tar")) {
-        // extract tar
-        chprintf(chp, "Extracting TAR file.\r\n");
-        auto res = UnTar::untar(
-            path.native(), [chp](const std::string fileName) {
-                chprintf(chp, fileName.c_str());
-                chprintf(chp, "\r\n");
-            });
-        if (res.empty()) {
-            chprintf(chp, "error bad TAR file.\r\n");
-            nav->pop();
-            return;
-        }
-        path = res;  // it will contain the last bin file in tar
-    } else if (strEndsWith(path.native(), u".bin")) {
-        // nothing to do for this case yet.
-    } else {
-        chprintf(chp, "error only .bin or .ppfw.tar files can be flashed.\r\n");
-        nav->pop();
-        return;
-    }
+    nav->home(false);
 
-    if (!ui::valid_firmware_file(path.native().c_str())) {
-        chprintf(chp, "error corrupt firmware file.\r\n");
-        nav->pop();
-        return;
+    // call nav with flash
+    auto open_view = nav->push<ui::FlashUtilityView>();
+    chprintf(chp, "Flashing started\r\n");
+    chThdSleepMilliseconds(150);  // to give display some time to paint the screen
+    if (!open_view->flash_firmware(path.native())) {
+        chprintf(chp, "error\r\n");
     }
-
-    chprintf(chp, "Flashing: ");
-    chprintf(chp, path.string().c_str());
-    chprintf(chp, "\r\n");
-    chThdSleepMilliseconds(50);
-    std::memcpy(&shared_memory.bb_data.data[0], path.native().c_str(), (path.native().length() + 1) * 2);
-    m4_request_shutdown();
-    chThdSleepMilliseconds(50);
-    m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
-    m0_halt();
 }
 
 static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
