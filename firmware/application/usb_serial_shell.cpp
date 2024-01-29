@@ -157,7 +157,7 @@ static void cmd_flash(BaseSequentialStream* chp, int argc, char* argv[]) {
     // call nav with flash
     auto open_view = nav->push<ui::FlashUtilityView>();
     chprintf(chp, "Flashing started\r\n");
-    chThdSleepMilliseconds(150);  // to givew display some time to paint the screen
+    chThdSleepMilliseconds(150);  // to give display some time to paint the screen
     if (!open_view->flash_firmware(path.native())) {
         chprintf(chp, "error\r\n");
     }
