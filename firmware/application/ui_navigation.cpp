@@ -560,7 +560,7 @@ InformationView::InformationView(
 #endif
 
     if (firmware_checksum_error()) {
-        version.set("FLASH ERROR");
+        version.set("FLASH ERR");
         version.set_style(&Styles::red);
     }
 
