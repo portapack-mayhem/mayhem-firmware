@@ -315,8 +315,15 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
-    toggle_stealth.on_change = [this](bool v) {
+    toggle_stealth.on_change = [this, &nav](bool v) {
         pmem::set_stealth_mode(v);
+        if (pmem::stealth_mode()) {
+            nav.display_modal(
+                "Stealth",
+                "Stealth mode is enabled now.\n"
+                "When you transmit,\n"
+                "screen would turn off;\n");
+        }
         refresh();
     };
 
