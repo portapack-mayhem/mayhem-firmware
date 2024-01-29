@@ -110,9 +110,8 @@ bool FlashUtilityView::endsWith(const std::u16string& str, const std::u16string&
     }
 }
 
-std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::string_type path) {
+std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::string_type path, ui::Painter& painter) {
     //
-    ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
         ui::Color::black());
@@ -127,20 +126,18 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
 }
 
 void FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
+    ui::Painter painter;
     if (endsWith(path, u".tar")) {
         // extract, then update
-        path = extract_tar(u'/' + path).native();
+        path = extract_tar(u'/' + path, painter).native();
     }
 
     if (path.empty() || !valid_firmware_file(path.c_str())) {
-        ui::Painter painter;
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
         painter.draw_string({0, 60}, Styles::red, "BAD FIRMWARE FILE");
         chThdSleepMilliseconds(5000);
         return;
     }
-
-    ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
         ui::Color::black());
