@@ -322,7 +322,7 @@ SystemStatusView::SystemStatusView(
                 "Stealth",
                 "Stealth mode is enabled now.\n"
                 "When you transmit,\n"
-                "screen would turn off;\n");
+                "screen will turn off;\n");
         }
         refresh();
     };
@@ -727,7 +727,7 @@ void stealthOhWarning(NavigationView& nav, BtnGridView& grid) {
                            "Stealth",
                            "Stealth mode is enabled.\n"
                            "When you transmit,\n"
-                           "screen would turn off;\n"
+                           "screen will turn off;\n"
                            "You can disable stealth mode\n"
                            "in status bar.");
                    }});
