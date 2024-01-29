@@ -47,7 +47,7 @@ class FlashUtilityView : public View {
     void focus() override;
 
     std::string title() const override { return "Flash Utility"; };
-    void flash_firmware(std::filesystem::path::string_type path);
+    bool flash_firmware(std::filesystem::path::string_type path);
 
    private:
     NavigationView& nav_;
