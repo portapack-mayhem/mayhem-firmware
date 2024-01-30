@@ -24,10 +24,9 @@
 #include "ui_fileman.hpp"
 #include "audio.hpp"
 #include "baseband_api.hpp"
+#include "string_format.hpp"
 
 using namespace portapack;
-
-#include "string_format.hpp"
 
 namespace ui {
 
@@ -182,15 +181,15 @@ void ViewWavView::start_playback() {
 
     baseband::set_audiotx_config(
         1536000 / 20,  // Rate of sending progress updates
-        0,  // Transmitter BW = 0 = not transmitting
-        0,  // Gain is unused
-        8,  // shift_bits_s16, default 8 bits, but  also unused
-        16, // bits per sample
-        0,  // no tonekey,
-        0,  // AM
-        0,  // DSB
-        0,  // USB
-        0   // LSB
+        0,             // Transmit BW = 0 = not transmitting
+        0,             // Gain - unused
+        8,             // shift_bits_s16, default 8 bits - unused
+        16,            // bits per sample
+        0,             // tone key disabled
+        false,         // AM
+        false,         // DSB
+        false,         // USB
+        false          // LSB
     );
     baseband::set_sample_rate(sample_rate);
 

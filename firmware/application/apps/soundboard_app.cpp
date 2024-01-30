@@ -116,16 +116,16 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     // TODO: Delete all this and use tx model.
     baseband::set_audiotx_config(
-        TONES_SAMPLERATE / 20,  // Update vu-meter at 20Hz
+        1536000 / 20,  // Update vu-meter at 20Hz
         transmitter_model.channel_bandwidth(),
         0,  // Gain is unused
-        8,  // shift_bits_s16, default 8 bits, but  also unused
+        8,  // shift_bits_s16, default 8 bits, but also unused
         8,  // bits per sample
         TONES_F2D(tone_key_frequency(tone_key_index), TONES_SAMPLERATE),
-        0,  // AM
-        0,  // DSB
-        0,  // USB
-        0   // LSB
+        false,  // AM
+        false,  // DSB
+        false,  // USB
+        false   // LSB
     );
     baseband::set_sample_rate(sample_rate);
 
