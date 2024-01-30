@@ -35,13 +35,6 @@ RUN mkdir /opt/build \
  && mkdir armbin \
  && tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
 
-# Configure CCACHE
-RUN mkdir ~/bin \
- && cd ~/bin \
- && for tool in gcc g++ cpp c++; do \
- 		ln -s $(which ccache) arm-none-eabi-$tool \
-	 ; done
-
 ADD firmware/tools/docker-entrypoint.sh /usr/local/bin/entrypoint.sh
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
