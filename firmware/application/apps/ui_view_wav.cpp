@@ -22,10 +22,11 @@
 
 #include "ui_view_wav.hpp"
 #include "ui_fileman.hpp"
+#include "audio.hpp"
+#include "baseband_api.hpp"
+#include "string_format.hpp"
 
 using namespace portapack;
-
-#include "string_format.hpp"
 
 namespace ui {
 
@@ -81,6 +82,8 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
     int16_t sample;
     uint32_t average;
 
+    wav_file_path = file_path;
+
     text_filename.set(file_path.filename().string());
     auto ms_duration = wav_reader->ms_duration();
     text_duration.set(unit_auto_scale(ms_duration, 2, 3) + "s");
@@ -117,9 +120,90 @@ void ViewWavView::reset_controls() {
     field_cursor_b.set_value(0);
 }
 
+bool ViewWavView::is_active() {
+    return (bool)replay_thread;
+}
+
+void ViewWavView::stop() {
+    if (is_active())
+        replay_thread.reset();
+
+    audio::output::stop();
+
+    button_play.set_bitmap(&bitmap_play);
+    ready_signal = false;
+}
+
+void ViewWavView::handle_replay_thread_done(const uint32_t return_code) {
+    (void)return_code;
+
+    stop();
+    progressbar.set_value(0);
+
+    if (return_code == ReplayThread::READ_ERROR)
+        file_error();
+}
+
+void ViewWavView::set_ready() {
+    ready_signal = true;
+}
+
+void ViewWavView::file_error() {
+    nav_.display_modal("Error", "File read error.");
+}
+
+void ViewWavView::start_playback() {
+    uint32_t sample_rate;
+
+    auto reader = std::make_unique<WAVFileReader>();
+
+    stop();
+
+    if (!reader->open(wav_file_path)) {
+        file_error();
+        return;
+    }
+
+    button_play.set_bitmap(&bitmap_stop);
+
+    sample_rate = reader->sample_rate();
+
+    progressbar.set_max(reader->sample_count());
+
+    replay_thread = std::make_unique<ReplayThread>(
+        std::move(reader),
+        read_size, buffer_count,
+        &ready_signal,
+        [](uint32_t return_code) {
+            ReplayThreadDoneMessage message{return_code};
+            EventDispatcher::send_message(message);
+        });
+
+    baseband::set_audiotx_config(
+        1536000 / 20,  // Rate of sending progress updates
+        0,             // Transmit BW = 0 = not transmitting
+        0,             // Gain - unused
+        8,             // shift_bits_s16, default 8 bits - unused
+        16,            // bits per sample
+        0,             // tone key disabled
+        false,         // AM
+        false,         // DSB
+        false,         // USB
+        false          // LSB
+    );
+    baseband::set_sample_rate(sample_rate);
+
+    audio::output::start();
+}
+
+void ViewWavView::on_playback_progress(const uint32_t progress) {
+    progressbar.set_value(progress);
+}
+
 ViewWavView::ViewWavView(
     NavigationView& nav)
     : nav_(nav) {
+    baseband::run_image(portapack::spi_flash::image_tag_audio_tx);
     wav_reader = std::make_unique<WAVFileReader>();
 
     add_children({&labels,
@@ -128,21 +212,26 @@ ViewWavView::ViewWavView(
                   &text_title,
                   &text_duration,
                   &button_open,
+                  &button_play,
                   &waveform,
+                  &progressbar,
                   &field_pos_seconds,
                   &field_pos_samples,
                   &field_scale,
                   &field_cursor_a,
                   &field_cursor_b,
-                  &text_delta});
+                  &text_delta,
+                  &field_volume});
+
     reset_controls();
+
     button_open.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".WAV");
         open_view->on_changed = [this, &nav](std::filesystem::path file_path) {
             // Can't show new dialogs in an on_changed handler, so use continuation.
             nav.set_on_pop([this, &nav, file_path]() {
                 if (!wav_reader->open(file_path)) {
-                    nav_.display_modal("Error", "Couldn't open file.");
+                    file_error();
                     return;
                 }
                 if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
@@ -153,6 +242,15 @@ ViewWavView::ViewWavView(
                 field_pos_seconds.focus();
             });
         };
+    };
+
+    field_volume.set_value(field_volume.value());
+
+    button_play.on_select = [this, &nav](ImageButton&) {
+        if (this->is_active())
+            stop();
+        else
+            start_playback();
     };
 
     field_scale.on_change = [this](int32_t value) {
@@ -177,6 +275,11 @@ ViewWavView::ViewWavView(
 
 void ViewWavView::focus() {
     button_open.focus();
+}
+
+ViewWavView::~ViewWavView() {
+    stop();
+    baseband::shutdown();
 }
 
 } /* namespace ui */

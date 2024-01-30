@@ -105,6 +105,7 @@ void MicTXView::configure_baseband() {
         transmitting ? transmitter_model.channel_bandwidth() : 0,
         mic_gain_x10 / 10.0,
         shift_bits(),  // to be used in dsp_modulate
+        8,             // bits per sample
         TONES_F2D(tone_key_frequency(tone_key_index), sampling_rate),
         (mic_mod_index == MIC_MOD_AM),
         (mic_mod_index == MIC_MOD_DSB),

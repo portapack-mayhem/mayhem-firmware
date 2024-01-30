@@ -113,6 +113,7 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
 namespace app_settings {
 
 enum class Mode : uint8_t {
+    NO_RF = 0x00,
     RX = 0x01,
     TX = 0x02,
     RX_TX = 0x03,  // Both TX/RX

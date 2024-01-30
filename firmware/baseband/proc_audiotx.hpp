@@ -48,9 +48,11 @@ class AudioTXProcessor : public BasebandProcessor {
     uint32_t resample_inc{}, resample_acc{};
     uint32_t fm_delta{0};
     uint32_t phase{0}, sphase{0};
-    uint8_t audio_sample{};
+    uint32_t audio_sample{};
     int32_t sample{0}, delta{};
     int8_t re{0}, im{0};
+    int8_t bytes_per_sample{1};
+    int16_t audio_sample_s16{};
 
     int16_t audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
     buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, 48000};
@@ -59,7 +61,7 @@ class AudioTXProcessor : public BasebandProcessor {
     size_t progress_interval_samples = 0, progress_samples = 0;
 
     bool configured{false};
-    uint32_t bytes_read{0};
+    uint32_t samples_read{0};
     bool tone_key_enabled{false};
 
     void sample_rate_config(const SampleRateConfigMessage& message);
