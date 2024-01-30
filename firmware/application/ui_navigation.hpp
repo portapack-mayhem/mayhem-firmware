@@ -94,6 +94,7 @@ class NavigationView : public View {
     NavigationView& operator=(NavigationView&&) = delete;
 
     bool is_top() const;
+    bool is_valid() const;
 
     template <class T, class... Args>
     T* push(Args&&... args) {
