@@ -34,74 +34,90 @@
 // For each encoder "pulse" there are 4 state transitions, and we can choose
 // between looking at all of them (high sensitivity), half of them (medium/default),
 // or one quarter of them (low sensitivity).
-static const int8_t transition_map[][16] = {
-    // Normal (Medium) Sensitivity -- default
-    {
-        0,   // 0000: noop
-        0,   // 0001: ccw start
-        0,   // 0010: cw start
-        0,   // 0011: rate
-        1,   // 0100: cw end
-        0,   // 0101: noop
-        0,   // 0110: rate
-        -1,  // 0111: ccw end
-        -1,  // 1000: ccw end
-        0,   // 1001: rate
-        0,   // 1010: noop
-        1,   // 1011: cw end
-        0,   // 1100: rate
-        0,   // 1101: cw start
-        0,   // 1110: ccw start
-        0,   // 1111: noop
-    },
-    // Low Sensitivity
-    {
-        0,   // 0000: noop
-        0,   // 0001: ccw start
-        0,   // 0010: cw start
-        0,   // 0011: rate
-        1,   // 0100: cw end
-        0,   // 0101: noop
-        0,   // 0110: rate
-        0,   // 0111: ccw end
-        -1,  // 1000: ccw end
-        0,   // 1001: rate
-        0,   // 1010: noop
-        0,   // 1011: cw end
-        0,   // 1100: rate
-        0,   // 1101: cw start
-        0,   // 1110: ccw start
-        0,   // 1111: noop
-    },
-    // High Sensitivity
-    {
-        0,   // 0000: noop
-        -1,  // 0001: ccw start
-        1,   // 0010: cw start
-        0,   // 0011: rate
-        1,   // 0100: cw end
-        0,   // 0101: noop
-        0,   // 0110: rate
-        -1,  // 0111: ccw end
-        -1,  // 1000: ccw end
-        0,   // 1001: rate
-        0,   // 1010: noop
-        1,   // 1011: cw end
-        0,   // 1100: rate
-        1,   // 1101: cw start
-        -1,  // 1110: ccw start
-        0,   // 1111: noop
-    },
+static const int8_t transition_map[] = {
+    0,   // 0000: noop
+    -1,  // 0001: ccw start
+    1,   // 0010: cw start
+    0,   // 0011: rate
+    1,   // 0100: cw end
+    0,   // 0101: noop
+    0,   // 0110: rate
+    -1,  // 0111: ccw end
+    -1,  // 1000: ccw end
+    0,   // 1001: rate
+    0,   // 1010: noop
+    1,   // 1011: cw end
+    0,   // 1100: rate
+    1,   // 1101: cw start
+    -1,  // 1110: ccw start
+    0,   // 1111: noop
 };
 
 int_fast8_t Encoder::update(
     const uint_fast8_t phase_0,
     const uint_fast8_t phase_1) {
     state <<= 1;
-    state |= phase_0;
+    state |= phase_0 & 0x01;
     state <<= 1;
-    state |= phase_1;
+    state |= phase_1 & 0x01;
 
-    // dial sensitivity setting is stored in pmem
-    return transition_map[portapack::persistent_memory::config_encoder_dial_sensitivity()][state & 0xf];
+    int8_t direction = transition_map[state & 0xf];
+
+    // store only valid transitions
+    if  (direction) {
+        store <<= 4;
+        store |= state & 0x0f;
+
+        // dial sensitivity setting is stored in pmem
+        switch (portapack::persistent_memory::config_encoder_dial_sensitivity()) {
+            case 0: // Normal (Medium) Sensitivity -- default
+                switch (store & 0xff) {
+                    case 0x2b:
+                    case 0xd4:
+                        direction = 1;
+                        break;
+                    case 0x17:
+                    case 0xe8:
+                        direction = -1;
+                        break;
+                    default:
+                        direction = 0;
+                        break;
+                }
+                break;
+            case 1: // Low Sensitivity
+                switch (store & 0xff) {
+                    case 0x2b:
+                        direction = 1;
+                        break;
+                    case 0x17:
+                        direction = -1;
+                        break;
+                    default:
+                        direction = 0;
+                        break;
+                }
+                break;
+            case 2: // High Sensitivity
+                switch (store & 0xff) {
+                    case 0x2b:
+                    case 0xd4:
+                    case 0xbd:
+                    case 0x42:
+                        direction = 1;
+                        break;
+                    case 0x17:
+                    case 0xe8:
+                    case 0x7e:
+                    case 0x81:
+                        direction = -1;
+                        break;
+                    default:
+                        direction = 0;
+                        break;
+                }
+                break;
+        }
+    }
+    return direction;
 }
