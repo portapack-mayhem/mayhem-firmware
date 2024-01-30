@@ -317,7 +317,7 @@ SystemStatusView::SystemStatusView(
 
     toggle_stealth.on_change = [this, &nav](bool v) {
         pmem::set_stealth_mode(v);
-        if (pmem::stealth_mode()) {
+        if (v) {
             nav.display_modal(
                 "Stealth",
                 "You just enabled stealth mode.\n"
