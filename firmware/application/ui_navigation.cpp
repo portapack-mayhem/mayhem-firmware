@@ -317,7 +317,7 @@ SystemStatusView::SystemStatusView(
 
     toggle_stealth.on_change = [this, &nav](bool v) {
         pmem::set_stealth_mode(v);
-        if (v) {
+        if (nav.is_valid() && v) {
             nav.display_modal(
                 "Stealth",
                 "You just enabled stealth mode.\n"
@@ -590,6 +590,10 @@ bool InformationView::firmware_checksum_error() {
 
 bool NavigationView::is_top() const {
     return view_stack.size() == 1;
+}
+
+bool NavigationView::is_valid() const {
+    return view_stack.size() != 0;  // work around to check if nav is valid, not elegant i know. so TODO
 }
 
 View* NavigationView::push_view(std::unique_ptr<View> new_view) {
