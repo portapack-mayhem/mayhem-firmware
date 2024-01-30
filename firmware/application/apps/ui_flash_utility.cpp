@@ -150,6 +150,7 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
     std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (path.length() + 1) * 2);
     m4_init(portapack::spi_flash::image_tag_flash_utility, portapack::memory::map::m4_code, false);
     m0_halt();
+    return true;  // fixes compiler warning (line should not be reached due to halt)
 }
 
 void FlashUtilityView::focus() {
