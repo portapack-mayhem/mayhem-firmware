@@ -30,23 +30,31 @@
 void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
+    int32_t audio_sample_m;
+
     // Zero-order hold (poop)
     for (size_t i = 0; i < buffer.count; i++) {
         resample_acc += resample_inc;
         if (resample_acc >= 0x10000) {
             resample_acc -= 0x10000;
             if (stream) {
-                stream->read(&audio_sample, 1);
-                bytes_read++;
+                audio_sample = 0;
+                stream->read(&audio_sample, bytes_per_sample);  // assumes little endian when reading 1 byte
+                samples_read++;
             }
         }
 
-        sample = audio_sample - 0x80;
+        if (bytes_per_sample == 1) {
+            sample = audio_sample - 0x80;
+            audio_sample_m = sample * 256;
+        } else {
+            audio_sample_m = audio_sample;
+        }
 
         // Output to speaker too
         if (!tone_key_enabled) {
             uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
-            audio_data[imod32] = sample * 256;
+            audio_data[imod32] = audio_sample_m;
             if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
                 audio_output.write_unprocessed(audio_buffer);
         }
@@ -69,7 +77,7 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
     if (progress_samples >= progress_interval_samples) {
         progress_samples -= progress_interval_samples;
 
-        txprogress_message.progress = bytes_read;  // Inform UI about progress
+        txprogress_message.progress = samples_read;  // Inform UI about progress
         txprogress_message.done = false;
         shared_memory.application_queue.push(txprogress_message);
     }
@@ -83,7 +91,7 @@ void AudioTXProcessor::on_message(const Message* const message) {
 
         case Message::ID::ReplayConfig:
             configured = false;
-            bytes_read = 0;
+            samples_read = 0;
             replay_config(*reinterpret_cast<const ReplayConfigMessage*>(message));
             break;
 
@@ -105,6 +113,7 @@ void AudioTXProcessor::audio_config(const AudioTXConfigMessage& message) {
     tone_gen.configure(message.tone_key_delta, message.tone_key_mix_weight);
     progress_interval_samples = message.divider;
     resample_acc = 0;
+    bytes_per_sample = message.bits_per_sample / 8;
     audio_output.configure(false);
 
     tone_key_enabled = (message.tone_key_delta != 0);
