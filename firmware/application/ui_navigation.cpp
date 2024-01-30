@@ -320,7 +320,7 @@ SystemStatusView::SystemStatusView(
         if (pmem::stealth_mode()) {
             nav.display_modal(
                 "Stealth",
-                "Stealth mode is enabled now.\n"
+                "You just enabled stealth mode.\n"
                 "When you transmit,\n"
                 "screen will turn off;\n");
         }
@@ -718,21 +718,6 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
     }
 }
 
-void stealthOhWarning(NavigationView& nav, BtnGridView& grid) {
-    grid.add_item({"Stealth",
-                   Color::yellow(),
-                   &bitmap_icon_stealth,
-                   [&nav]() {
-                       nav.display_modal(
-                           "Stealth",
-                           "Stealth mode is enabled.\n"
-                           "When you transmit,\n"
-                           "screen will turn off;\n"
-                           "You can disable stealth mode\n"
-                           "in status bar.");
-                   }});
-}
-
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
@@ -752,10 +737,6 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
 
-    if (pmem::stealth_mode()) {
-        stealthOhWarning(nav, *this);
-    }
-
     add_apps(nav, *this, TX);
 
     addExternalItems(nav, app_location_t::TX, *this);
@@ -766,10 +747,6 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
-    }
-
-    if (pmem::stealth_mode()) {
-        stealthOhWarning(nav, *this);
     }
 
     add_apps(nav, *this, UTILITIES);
