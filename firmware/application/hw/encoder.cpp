@@ -64,13 +64,13 @@ int_fast8_t Encoder::update(
     int8_t direction = transition_map[state & 0xf];
 
     // store only valid transitions
-    if  (direction) {
+    if (direction) {
         store <<= 4;
         store |= state & 0x0f;
 
         // dial sensitivity setting is stored in pmem
         switch (portapack::persistent_memory::config_encoder_dial_sensitivity()) {
-            case 0: // Normal (Medium) Sensitivity -- default
+            case 0:  // Normal (Medium) Sensitivity -- default
                 switch (store & 0xff) {
                     case 0x2b:
                     case 0xd4:
@@ -85,7 +85,7 @@ int_fast8_t Encoder::update(
                         break;
                 }
                 break;
-            case 1: // Low Sensitivity
+            case 1:  // Low Sensitivity
                 switch (store & 0xff) {
                     case 0x2b:
                         direction = 1;
@@ -98,7 +98,7 @@ int_fast8_t Encoder::update(
                         break;
                 }
                 break;
-            case 2: // High Sensitivity
+            case 2:  // High Sensitivity
                 switch (store & 0xff) {
                     case 0x2b:
                     case 0xd4:
