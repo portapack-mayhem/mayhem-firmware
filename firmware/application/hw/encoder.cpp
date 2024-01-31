@@ -71,11 +71,8 @@ int_fast8_t Encoder::update(
                 switch (store & 0xff) {
                     case 0x2b:
                     case 0xd4:
-                        direction = 1;
-                        break;
                     case 0x17:
                     case 0xe8:
-                        direction = -1;
                         break;
                     default:
                         direction = 0;
@@ -85,10 +82,7 @@ int_fast8_t Encoder::update(
             case 1:  // Low Sensitivity
                 switch (store & 0xff) {
                     case 0x2b:
-                        direction = 1;
-                        break;
                     case 0x17:
-                        direction = -1;
                         break;
                     default:
                         direction = 0;
@@ -101,13 +95,10 @@ int_fast8_t Encoder::update(
                     case 0xd4:
                     case 0xbd:
                     case 0x42:
-                        direction = 1;
-                        break;
                     case 0x17:
                     case 0xe8:
                     case 0x7e:
                     case 0x81:
-                        direction = -1;
                         break;
                     default:
                         direction = 0;
