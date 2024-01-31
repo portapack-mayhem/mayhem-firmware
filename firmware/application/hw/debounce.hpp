@@ -71,7 +71,7 @@ class EncoderDebounce {
     uint8_t state();  // returns debounced phase bits from encoder
 
    private:
-    uint32_t history_{0};  // shift register of previous reads from encoder
+    uint8_t history_{0};  // shift register of previous reads from encoder
 
     uint8_t state_{0};  // actual encoder output state (after debounce logic)
 };
