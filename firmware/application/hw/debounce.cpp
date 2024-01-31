@@ -154,7 +154,7 @@ uint8_t EncoderDebounce::state() {
     return state_;
 }
 
-// Returns TRUE if button state changed (after debouncing)
+// Returns TRUE if encoder position phase bits changed (after debouncing)
 bool EncoderDebounce::feed(const uint8_t phase_bits) {
     history_ = (history_ << 2) | phase_bits;
 
