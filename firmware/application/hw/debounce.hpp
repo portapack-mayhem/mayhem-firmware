@@ -64,4 +64,16 @@ class Debounce {
     bool long_press_occurred_{false};  // TRUE when button is being held down and LONG_PRESS_DELAY has been reached (only when long_press_enabled)
 };
 
+class EncoderDebounce {
+   public:
+    bool feed(const uint8_t phase_bits);  // returns TRUE if state changed after debouncing
+
+    uint8_t state();  // returns debounced phase bits from encoder
+
+   private:
+    uint32_t history_{0};  // shift register of previous reads from encoder
+
+    uint8_t state_{0};  // actual encoder output state (after debounce logic)
+};
+
 #endif /*__DEBOUNCE_H__*/

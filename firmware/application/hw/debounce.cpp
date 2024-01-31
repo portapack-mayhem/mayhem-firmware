@@ -149,3 +149,24 @@ bool Debounce::feed(const uint8_t bit) {
 
     return false;
 }
+
+uint8_t EncoderDebounce::state() {
+    return state_;
+}
+
+// Returns TRUE if button state changed (after debouncing)
+bool EncoderDebounce::feed(const uint8_t phase_bits) {
+    history_ = (history_ << 8) | phase_bits;
+
+    // Has input been constant for 4 ticks?
+    if (history_ == (phase_bits * 0x01010101)) {
+        // Has the debounced input value changed?
+        if (state_ != phase_bits) {
+            state_ = phase_bits;
+            return true;
+        }
+    }
+
+    // Unstable input, or no change
+    return false;
+}

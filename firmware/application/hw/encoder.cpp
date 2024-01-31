@@ -94,13 +94,8 @@ static const int8_t transition_map[][16] = {
     },
 };
 
-int_fast8_t Encoder::update(
-    const uint_fast8_t phase_0,
-    const uint_fast8_t phase_1) {
-    state <<= 1;
-    state |= phase_0;
-    state <<= 1;
-    state |= phase_1;
+int_fast8_t Encoder::update(const uint_fast8_t phase_bits) {
+    state = (state << 2) | phase_bits;
 
     // dial sensitivity setting is stored in pmem
     return transition_map[portapack::persistent_memory::config_encoder_dial_sensitivity()][state & 0xf];

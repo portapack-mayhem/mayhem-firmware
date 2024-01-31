@@ -43,7 +43,7 @@ static Thread* thread_controls_event = NULL;
 
 // Index with the Switch enum.
 static std::array<Debounce, 6> switch_debounce;
-static std::array<Debounce, 2> encoder_debounce;
+static EncoderDebounce encoder_debounce;
 
 static_assert(std::size(switch_debounce) == toUType(Switch::Dfu) + 1);
 
@@ -162,16 +162,12 @@ static bool switches_update(const uint8_t raw) {
 }
 
 static bool encoder_update(const uint8_t raw) {
-    bool encoder_changed = false;
-
-    encoder_changed |= encoder_debounce[0].feed((raw >> 6) & 0x01);
-    encoder_changed |= encoder_debounce[1].feed((raw >> 7) & 0x01);
-
-    return encoder_changed;
+    // TODO: swap +1/-1 directions in encoder.update() to avoid needless swizzing of phase bits here
+    return encoder_debounce.feed(((raw >> 7) & 0x01) | ((raw >> 5) & 0x02));
 }
 
 static bool encoder_read() {
-    auto delta = encoder.update(encoder_debounce[0].state(), encoder_debounce[1].state());
+    auto delta = encoder.update(encoder_debounce.state());
 
     if (injected_encoder > 0) {
         if (injected_encoder == 1) delta = -1;
