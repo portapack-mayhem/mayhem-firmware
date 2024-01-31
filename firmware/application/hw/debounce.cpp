@@ -25,7 +25,7 @@
 #include "utility.hpp"
 
 uint8_t Debounce::state() {
-    uin8_t v = state_to_report_;
+    uint8_t v = state_to_report_;
     simulated_pulse_ = false;
     return v;
 }
