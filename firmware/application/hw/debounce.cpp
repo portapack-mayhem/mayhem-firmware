@@ -25,7 +25,7 @@
 #include "utility.hpp"
 
 uint8_t Debounce::state() {
-    bool v = state_to_report_;
+    uint8_t v = state_to_report_;
     simulated_pulse_ = false;
     return v;
 }
@@ -147,5 +147,26 @@ bool Debounce::feed(const uint8_t bit) {
         repeat_ctr_ = 0;
     }
 
+    return false;
+}
+
+uint8_t EncoderDebounce::state() {
+    return state_;
+}
+
+// Returns TRUE if encoder position phase bits changed (after debouncing)
+bool EncoderDebounce::feed(const uint8_t phase_bits) {
+    history_ = (history_ << 2) | phase_bits;
+
+    // Has input been constant for 4 ticks? (phase_bits * 01010101b should be 0x00, 0x55, 0xAA, or 0xFF)
+    if (history_ == (phase_bits * 0x55)) {
+        // Has the debounced input value changed?
+        if (state_ != phase_bits) {
+            state_ = phase_bits;
+            return true;
+        }
+    }
+
+    // Unstable input, or no change
     return false;
 }
