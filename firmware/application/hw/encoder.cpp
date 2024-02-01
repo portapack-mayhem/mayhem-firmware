@@ -61,7 +61,7 @@ int_fast8_t Encoder::update(const uint_fast8_t phase_bits) {
 
     int_fast8_t direction = transition_map[state];
 
-    // Require 2 clicks in same direction to register movement -- for additional level of contact switch debouncing
+    // Require 2 state changes in same direction to register movement -- for additional level of contact switch debouncing
     if (direction == prev_direction) {
         if ((sensitivity_map[portapack::persistent_memory::config_encoder_dial_sensitivity()] & (1 << state)) == 0)
             return 0;
