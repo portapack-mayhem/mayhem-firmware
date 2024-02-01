@@ -54,7 +54,7 @@ static const uint16_t sensitivity_map[] = {
     0x0990,  // DIAL_SENSITIVITY_NORMAL
     0x0110,  // DIAL_SENSITIVITY_LOW
     0x6996,  // DIAL_SENSITIVITY_HIGH
- };
+};
 
 int_fast8_t Encoder::update(const uint_fast8_t phase_bits) {
     state = ((state << 2) | phase_bits) & 0x0F;
