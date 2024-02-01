@@ -162,8 +162,7 @@ static bool switches_update(const uint8_t raw) {
 }
 
 static bool encoder_update(const uint8_t raw) {
-    // TODO: swap +1/-1 directions in encoder.update() to avoid needless swizzing of phase bits here
-    return encoder_debounce.feed(((raw >> 7) & 0x01) | ((raw >> 5) & 0x02));
+    return encoder_debounce.feed(raw >> 6);
 }
 
 static bool encoder_read() {
