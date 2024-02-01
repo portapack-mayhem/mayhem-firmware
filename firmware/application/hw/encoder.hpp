@@ -30,6 +30,7 @@ class Encoder {
 
    private:
     uint_fast8_t state{0};
+    int_fast8_t prev_direction{0};
 };
 
 #endif /*__ENCODER_H__*/
