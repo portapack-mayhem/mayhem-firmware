@@ -2,6 +2,8 @@
 # (Freq range in MHz, min separation 3MHz)
 # (Description up to 20 char)
 # (fields comma delimiter)
+# DECT
+1879,1931,DECT
 # PAGERS https://www.fcc.gov/wireless/bureau-divisions/mobility-division/paging
 34,36,USA PAGERS 35
 43,45,USA PAGERS 44
