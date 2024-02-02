@@ -2,6 +2,8 @@
 # (Freq range in MHz, min separation 3MHz)
 # (Description up to 20 char)
 # (fields comma delimiter)
+# 433 MHz BAND
+423,443,433 BAND
 # DECT
 1879,1931,DECT
 # PAGERS https://www.fcc.gov/wireless/bureau-divisions/mobility-division/paging
