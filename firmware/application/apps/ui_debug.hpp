@@ -385,7 +385,6 @@ class DebugScreenTest : public View {
     bool on_key(KeyEvent key) override;
     bool on_encoder(EncoderEvent delta) override;
     bool on_touch(TouchEvent event) override;
-    uint16_t semirand();
     void paint(Painter& painter) override;
 
    private:
