@@ -6,6 +6,8 @@
 423,443,433 BAND
 # DECT
 1879,1931,DECT
+# FRS/GMRS
+462,468,FRS/GMRS
 # PAGERS https://www.fcc.gov/wireless/bureau-divisions/mobility-division/paging
 34,36,USA PAGERS 35
 43,45,USA PAGERS 44
