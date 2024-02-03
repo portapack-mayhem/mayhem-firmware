@@ -30,8 +30,8 @@ Timer debounceTaster;
 
 
 unsigned char level = 0; //mora biti tipa usigned char jer inače se može desiti da level bude manji od 0, a i da ne trošimo memoriju
-const float delays[3] = {1.2, 0.7, 0.4}; //svakih koliko se spusti jedan red, ovo provjeriti da li je presporo ili prebrzo, ovisi o levelu
-char leftBoundary = 1, rightBoundary = 5, downBoundary = 1, upBoundary = 5;// sada je ovo tipa char
+const float delays[4] = {1.2, 0.7, 0.4, 0.25}; //svakih koliko se spusti jedan red, ovo provjeriti da li je presporo ili prebrzo, ovisi o levelu
+// char leftBoundary = 1, rightBoundary = 5, downBoundary = 1, upBoundary = 5;// sada je ovo tipa char
 unsigned int score = 0; //stavio sam ovo unsigned int za veći opseg, mada je jako teško da se i int premaši, ali nmvz
 bool firstTime = true; //ako je prvi put, figura se crta u Tickeru
 bool gameStarted = false;
@@ -93,7 +93,7 @@ void ShowNextFigure() {
 
 //funkcija za crtanje cursora za odabir levela
 void DrawCursor(int color, unsigned char lev) {
-    display.fillrect(60, (lev + 1) * 100 - 50, 72, (lev + 1) * 100 - 50 + 12,  color);
+    display.fillrect(60, lev * 70 + 50, 72, lev * 70 + 50 + 12,  color);
 }
 
 void ShowLevelMenu() {
@@ -103,28 +103,30 @@ void ShowLevelMenu() {
     display.foreground(White);
     display.locate(80, 50);
     printf("LEVEL 1");
-    display.locate(80, 150);
+    display.locate(80, 120);
     printf("LEVEL 2");
-    display.locate(80, 250);
+    display.locate(80, 190);
     printf("LEVEL 3");
+    display.locate(80, 260);
+    printf("LEVEL 4");
     DrawCursor(White, level);
 }
 
 void ReadJoystickForLevel(){
     unsigned char old = level;
     if(but_UP){
-        upBoundary = 4;
-        (level == 0) ? level = 2 : level--;
+//        upBoundary = 4;
+        (level == 0) ? level = 3 : level--;
     }
     else if(but_DOWN){
         //ne radi ona prethodna varijanta jer % vraća i negastivni rezultat
         //to što ne koristimo unsigned tip ne pomaže jer će doći do overflow-a
-        downBoundary = 2;
-        level = (level + 1) % 3;
+//        downBoundary = 2;
+        level = (level + 1) % 4;
     }
     else {
-        downBoundary = 1;
-        upBoundary = 5;
+//        downBoundary = 1;
+//        upBoundary = 5;
     }
     DrawCursor(Black, old); //na prethodni level popunimo bojom pozadine
     DrawCursor(White, level); //na novi level popunimo bijelom bojom - pozadina je crna
@@ -362,25 +364,25 @@ Tetromino currentTetromino;
 
 void ReadJoystickForFigure() {
     if(but_LEFT) {
-        leftBoundary = 2;
+//        leftBoundary = 2;
         currentTetromino.MoveLeft();
     }
     else if(but_RIGHT) {
-        rightBoundary = 4;
+//        rightBoundary = 4;
         currentTetromino.MoveRight();
     }
     else if(but_UP) {
-        downBoundary = 2;
+//        downBoundary = 2;
     }
     else if(but_DOWN) {
-        upBoundary = 4;
+//        upBoundary = 4;
         currentTetromino.SoftDrop();
     }
     else {
-        leftBoundary = 1;
-        rightBoundary = 5;
-        downBoundary = 1;
-        upBoundary = 5;
+//        leftBoundary = 1;
+//        rightBoundary = 5;
+//        downBoundary = 1;
+//        upBoundary = 5;
     }
 }
 
@@ -451,16 +453,17 @@ void ShowGameOverScreen() {
     display.cls();
     display.background(Black);
     display.foreground(White);
-    display.locate(50, 120);
+    display.locate(60, 120);
     printf("GAME OVER");
-    display.locate(30, 150);
+    display.locate(40, 150);
     printf("YOUR SCORE IS %d", score);
     wait(3); //ovaj prikaz traje 3s (možemo mijenjati) a nakon toga se ponovo prikazuje meni sa levelima
 }
 
 void InitGame() {
     if(firstTime) {
-        currentTetromino = Tetromino(rand() % 7 + 1);
+
+//        currentTetromino = Tetromino(rand() % 7 + 1);
 
         currentTetromino.DrawFigure();
         nextFigure = rand() % 7 + 1;
@@ -515,7 +518,7 @@ void SetTaster() {
 }
 
 int main() {
-    srand(GenerateRandomSeed());
+//    srand(GenerateRandomSeed());
     Init();
     ShowLevelMenu();
     joystick.attach(&ReadJoystickForLevel, 0.3);
