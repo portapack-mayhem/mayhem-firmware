@@ -31,12 +31,35 @@ static int y_pos{0};
 static int fg_color;
 static int bg_color;
 
-enum { White, Blue, Yellow, Purple, Green, Red, Maroon, Orange, Black, };
-static const Color pp_colors[] = { Color::white(), Color::blue(), Color::yellow(), Color::purple(), Color::green(), Color::red(), Color::magenta(), Color::orange(), Color::black(), };
+enum {
+    White,
+    Blue,
+    Yellow,
+    Purple,
+    Green,
+    Red,
+    Maroon,
+    Orange,
+    Black,
+};
+
+// pp_colors must be in same order as enums above
+static const Color pp_colors[] = {
+    Color::white(),
+    Color::blue(),
+    Color::yellow(),
+    Color::purple(),
+    Color::green(),
+    Color::red(),
+    Color::magenta(),
+    Color::orange(),
+    Color::black(),
+ };
 
 class SPI_TFT_ILI9341 {
    public:
-    SPI_TFT_ILI9341(int, int, int, int, int, int, std::string) {};
+    SPI_TFT_ILI9341(int, int, int, int, int, int, std::string) {
+    };
 
     void claim(__FILE* x) { (void)x; };
 
@@ -47,7 +70,10 @@ class SPI_TFT_ILI9341 {
     void background(int color) { bg_color = color; };
     void foreground(int color) { fg_color = color; };
 
-    void locate(int x, int y) { x_pos = x; y_pos = y; };
+    void locate(int x, int y) {
+        x_pos = x;
+        y_pos = y;
+    };
     void set_orientation(int x) { (void)x; };
     void set_font(unsigned char* x) { (void)x; };
 

@@ -36,4 +36,4 @@ bool TetrisView::on_key(const KeyEvent key) {
     return check_key(key);
 }
 
-}  // namespace ui::external_app::pacman
+}  // namespace ui::external_app::tetris

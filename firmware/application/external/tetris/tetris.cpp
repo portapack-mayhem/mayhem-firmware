@@ -4,7 +4,10 @@
 
 // clang-format off
 
+//////// PORTAPACK CHANGES HIGHLIGHTED
 int main();
+void pause_game();
+//////// PORTAPACK
 
 #include "mbed.h"
 #include "SPI_TFT_ILI9341.h"
@@ -15,13 +18,18 @@ int main();
 //deklaracija display-a
 SPI_TFT_ILI9341 display(dp2, dp1, dp6, dp24, dp23, dp25, "TFT");
 
+//////// PORTAPACK - DISABLED ANALOGIN CLASS DUE TO OBJECT INITIALIZER CODE NOT RUNNING:
 //analogni ulazi za joystick
 // AnalogIn VRx(dp11);
 // AnalogIn VRy(dp10);
+//////// PORTAPACK
+
 //taster na joysticku za rotaciju
 InterruptIn taster(dp9);
 
+//////// PORTAPACK - DISABLED ANALOGIN CLASS DUE TO OBJECT INITIALIZER CODE NOT RUNNING:
 // AnalogIn random(dp13); //analogni ulaz za generisanje random vrijednosti
+//////// PORTAPACK
 
 //ticker za spustanje figure
 //timer za debouncing tastera na joysticku
@@ -31,7 +39,11 @@ Timer debounceTaster;
 
 unsigned char level = 0; //mora biti tipa usigned char jer inače se može desiti da level bude manji od 0, a i da ne trošimo memoriju
 const float delays[4] = {1.2, 0.7, 0.4, 0.25}; //svakih koliko se spusti jedan red, ovo provjeriti da li je presporo ili prebrzo, ovisi o levelu
-// char leftBoundary = 1, rightBoundary = 5, downBoundary = 1, upBoundary = 5;// sada je ovo tipa char
+
+//////// PORTAPACK - UNNEEDED JOYSTICK HYSTERESIS VARIABLES
+//char leftBoundary = 1, rightBoundary = 5, downBoundary = 1, upBoundary = 5;// sada je ovo tipa char
+//////// PORTAPACK
+
 unsigned int score = 0; //stavio sam ovo unsigned int za veći opseg, mada je jako teško da se i int premaši, ali nmvz
 bool firstTime = true; //ako je prvi put, figura se crta u Tickeru
 bool gameStarted = false;
@@ -55,13 +67,15 @@ short figuresX[7][4] = {{0,0,0,0}, {0,0,1,1}, {0,1,1,1}, {1,1,0,0}, {0,1,0,1}, {
 short figuresY[7][4] = {{0,1,2,3}, {1,0,0,1}, {1,1,2,0}, {0,1,1,2}, {0,1,1,2}, {2,1,0,0}, {0,1,2,2}};
 
 unsigned int GenerateRandomSeed() {
+//////// PORTAPACK - USE RTC FOR SEED
+return LPC_RTC->CTIME0;
     // unsigned int randomNumber = 0;
     // for(int i = 0; i <= 32; i += 2) {
     //     randomNumber += ((random.read_u16() % 3) << i);
     //     wait_us(10);
     // }
     // return randomNumber;
-    return LPC_RTC->CTIME0;
+//////// PORTAPACK
 }
 
 void Init() {
@@ -96,6 +110,7 @@ void DrawCursor(int color, unsigned char lev) {
     display.fillrect(60, lev * 70 + 50, 72, lev * 70 + 50 + 12,  color);
 }
 
+// PORTAPACK - ADDED EXTRA LEVEL:
 void ShowLevelMenu() {
     //ovdje inicijalizujemo display
     display.cls(); // brišemo prethodno
@@ -112,6 +127,7 @@ void ShowLevelMenu() {
     DrawCursor(White, level);
 }
 
+//////// PORTAPACK - KLUDGED FOR BUTTONS VS JOYSTICK:
 void ReadJoystickForLevel(){
     unsigned char old = level;
     if(but_UP){
@@ -132,6 +148,7 @@ void ReadJoystickForLevel(){
     DrawCursor(White, level); //na novi level popunimo bijelom bojom - pozadina je crna
    //koristio sam fillrect, jer njega svakako moramo koristiti, jer možda budemo morali da brišemo fillcircle iz biblioteke
 }
+//////// PORTAPACK
 
 void EndPlay() {
     joystick.detach();
@@ -143,9 +160,11 @@ void EndPlay() {
             board[i][j] = 0;
         }
     }
-    main();
+//////// PORTAPACK - FIX TO REINITIALIZE SCREEN
 //    ShowLevelMenu();
 //    joystick.attach(&ReadJoystickForLevel, 0.3);
+main();
+//////// PORTAPACK
 }
 
 void StartGame()
@@ -201,6 +220,7 @@ private:
     //ovo je najbezbolnija varijanta što se memorije tiče
 public:
     Tetromino(){
+//////// PORTAPACK - NOTE - DEFAULT INITIALIZER CODE DOESN'T GET EXECUTED FOR SOME REASON:
         unsigned char r = rand() % 7 + 1;
         Initialize(r);
     }
@@ -248,6 +268,10 @@ public:
             int upperLeftX = (boardX + X[i]) * DIMENSION, upperLeftY = (boardY + Y[i]) * DIMENSION;
             display.fillrect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, colors[colorIndex]);
             //ovo boji granice blokova u crno, možemo skloniti ako ti se ne sviđa
+
+//////// PORTAPACK - HIDE DEFAULT WHITE BLOCK (ALTERNATE KLUDGE FOR TETRONIMO INITIALIZATION CODE NOT RUNNING AT CONSTRUCTION)
+if (colorIndex != White)
+//////// PORTAPACK
             display.rect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, Black);
         }
     }
@@ -271,6 +295,9 @@ public:
     }
 
    bool MoveDown(char delta = 1){
+//////// PORTAPACK - MOVE DEFAULT WHITE BLOCK TO BOTTOM IMMEDIATELY (ALTERNATE KLUDGE FOR TETRONIMO INITIALIZATION CODE NOT RUNNING AT CONSTRUCTION)
+if (colorIndex == White) delta = 19;
+//////// PORTAPACK
        if(!InCollisionDown(delta)){
             DeleteFigure();
             boardX+=delta;
@@ -362,6 +389,7 @@ public:
 
 Tetromino currentTetromino;
 
+//////// PORTAPACK - KLUDGED FOR BUTTONS VS JOYSTICK:
 void ReadJoystickForFigure() {
     if(but_LEFT) {
 //        leftBoundary = 2;
@@ -373,6 +401,7 @@ void ReadJoystickForFigure() {
     }
     else if(but_UP) {
 //        downBoundary = 2;
+pause_game();
     }
     else if(but_DOWN) {
 //        upBoundary = 4;
@@ -385,7 +414,7 @@ void ReadJoystickForFigure() {
 //        upBoundary = 5;
     }
 }
-
+//////// PORTAPACK
 
 void CheckLines(short &firstLine, short &numberOfLines)
 {
@@ -462,9 +491,10 @@ void ShowGameOverScreen() {
 
 void InitGame() {
     if(firstTime) {
-
-//        currentTetromino = Tetromino(rand() % 7 + 1);
-
+//////// PORTAPACK - NOTE - ATTEMPTED WORKAROUND FOR SKIPPED INITIALIZER CODE - BUT ANY OF THESE CRASHES FIRMWARE AT POWER-UP EVEN IF THERE'S NO TETRIS APP INSTALLED:
+// currentTetromino = Tetromino(rand() % 7 + 1);  // TEST #1
+// currentTetromino.Initialize(rand() % 7 + 1);   // TEST #2
+//////// PORTAPACK
         currentTetromino.DrawFigure();
         nextFigure = rand() % 7 + 1;
         ShowNextFigure();
@@ -518,11 +548,27 @@ void SetTaster() {
 }
 
 int main() {
-//    srand(GenerateRandomSeed());
+    srand(GenerateRandomSeed());
     Init();
     ShowLevelMenu();
     joystick.attach(&ReadJoystickForLevel, 0.3);
     SetTaster();
+
+//////// PORTAPACK: CAN'T HANG HERE IN MAYHEM OR WE WON'T GET ANY CALLBACKS
 //    while(1);
-    return 0;
+return 0;
+//////// PORTAPACK
 }
+
+//////// PORTAPACK - ADDED PAUSE FEATURE:
+void pause_game() {
+    game.detach();
+    joystick.detach();
+    display.locate(175, 200);
+    printf("PAUSED");
+    while ((get_switches_state().to_ulong() & 0x10) == 0);  // wait for SELECT button to resume
+    printf("      ");
+    joystick.attach(&ReadJoystickForFigure, 0.3);
+    game.attach(&PlayGame, delays[level]); //svakih nekoliko spusta figuru jedan red nize
+};
+//////// PORTAPACK

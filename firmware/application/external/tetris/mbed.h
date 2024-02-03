@@ -20,21 +20,53 @@
  */
 
 // "HAL" layer for Tetris code to run on PortaPack without its original mbed OS
+// (the dream here was to avoid modifying the original code)
 
 #ifndef __UI_mbed_H__
 #define __UI_mbed_H__
 
 using Callback = void (*)(void);
 
-#define wait_us(x) {}
-#define wait(x) { chThdSleepMilliseconds(x * 1000); }
+#define wait_us(x) (void)0
+#define wait(x) chThdSleepMilliseconds(x * 1000)
 #define PullUp 1
-enum { dp0, dp1, dp2, dp3, dp4, dp5, dp6, dp7, dp8, dp9, dp10, dp11, dp12, dp13, dp14, dp15, dp16, dp17, dp18, dp19, dp20, dp21, dp22, dp23, dp24, dp25 };
 
-static bool but_RIGHT, but_LEFT, but_UP, but_DOWN, but_SELECT;
+enum {
+    dp0,
+    dp1,
+    dp2,
+    dp3,
+    dp4,
+    dp5,
+    dp6,
+    dp7,
+    dp8,
+    dp9,
+    dp10,
+    dp11,
+    dp12,
+    dp13,
+    dp14,
+    dp15,
+    dp16,
+    dp17,
+    dp18,
+    dp19,
+    dp20,
+    dp21,
+    dp22,
+    dp23,
+    dp24,
+    dp25 };
+
+static bool but_RIGHT;
+static bool but_LEFT;
+static bool but_UP;
+static bool but_DOWN;
+static bool but_SELECT;
 
 //
-// AnalogIn Class -- DID NOT WORK -- hacked original code module instead
+// AnalogIn Class -- DID NOT WORK BECAUSE INITIALIZER CODE WON'T EXECUTE -- hacked original code module instead
 //
 // dp9 = joystick rotate button --> select button
 // dp10 = joystick y --> up & down buttons
@@ -45,6 +77,7 @@ static bool but_RIGHT, but_LEFT, but_UP, but_DOWN, but_SELECT;
 // class AnalogIn {
 //    public:
 //     AnalogIn(uint32_t analog_input) {
+//         // FIXME - THIS CODE NEVER GETS EXECUTED!
 //         analog_input_ = analog_input;
 //     };
 //
@@ -88,9 +121,13 @@ static bool but_RIGHT, but_LEFT, but_UP, but_DOWN, but_SELECT;
 //
 class Timer {
    public:
-    Timer() {};
-    void reset() {};
-    void start() {};
+    Timer() {
+        // NOTE: INITIALIZER CODE WON'T RUN
+    };
+    void reset() {
+    };
+    void start() {
+    };
     uint32_t read_ms() { return 1000; };
 
    private:
@@ -118,7 +155,9 @@ static void check_fall_timer() {
 
 class Ticker {
    public:
-    Ticker() {};
+    Ticker() {
+        // NOTE: INITIALIZER CODE WON'T RUN
+    };
 
     void attach(Callback func, double delay_sec) {
         // 0.3 sec is requested only for button check -- kludge to use on_key callback for this one instead of timer
@@ -171,7 +210,10 @@ static bool check_key(const KeyEvent key) {
 
 class InterruptIn {
    public:
-    InterruptIn(int reg) { (void)reg; };
+    InterruptIn(int reg) {
+        // NOTE: INITIALIZER CODE WON'T RUN
+        (void)reg;
+    };
     void fall(Callback func) { sel_button_callback = func; };
     void mode(int v) { (void)v; };
 
