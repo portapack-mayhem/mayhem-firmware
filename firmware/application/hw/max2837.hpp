@@ -829,6 +829,7 @@ class MAX2837 : public MAX283x {
     bool set_frequency(const rf::Frequency lo_frequency) override;
 
     void set_rx_lo_iq_calibration(const size_t v) override;
+    void set_tx_LO_iq_phase_calibration(const size_t v) override;
     void set_rx_bias_trim(const size_t v);
     void set_vco_bias(const size_t v);
     void set_rx_buff_vcm(const size_t v) override;
