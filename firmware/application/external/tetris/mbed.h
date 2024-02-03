@@ -154,7 +154,7 @@ static void check_fall_timer() {
 class Ticker {
    public:
     // NOTE: INITIALIZER CODE WON'T RUN
-    Ticker() {(void)0; };
+    Ticker() { (void)0; };
 
     void attach(Callback func, double delay_sec) {
         // 0.3 sec is requested only for button check -- kludge to use on_key callback for this one instead of timer

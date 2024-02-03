@@ -53,8 +53,8 @@ static const Color pp_colors[] = {
     Color::red(),
     Color::magenta(),
     Color::orange(),
-    Color::black()
- };
+    Color::black(),
+};
 
 class SPI_TFT_ILI9341 {
    public:
