@@ -98,11 +98,13 @@ constexpr auto bandwidth_maximum = bandwidths[bandwidths.size() - 1];
 
 /*************************************************************************/
 
-enum Mode {
+enum Mode {  // MAX283x Operating modes.
     Shutdown,
     Standby,
     Receive,
     Transmit,
+    Rx_Calibration,  // just add the sequential enum of those two CAL operating modes .
+    Tx_Calibration,
 };
 
 using reg_t = uint16_t;
@@ -124,6 +126,8 @@ class MAX283x {
     virtual bool set_frequency(const rf::Frequency lo_frequency);
 
     virtual void set_rx_lo_iq_calibration(const size_t v);
+    virtual void set_tx_LO_iq_phase_calibration(const size_t v);
+
     virtual void set_rx_buff_vcm(const size_t v);
 
     virtual int8_t temp_sense();

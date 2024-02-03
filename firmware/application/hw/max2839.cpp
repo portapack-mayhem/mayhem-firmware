@@ -142,6 +142,31 @@ void MAX2839::init() {
     set_mode(Mode::Standby);
 }
 
+void MAX2839::set_tx_LO_iq_phase_calibration(const size_t v) {
+    /* IQ phase deg CAL adj (+4 ...-4)  This IC  in 64 steps (6 bits), 000000 = +4deg (Q lags I by 94degs, default), 011111 = +0deg, 111111 = -4deg (Q lags I by 86degs) */
+
+    // TX calibration , 2 x Logic pins , ENABLE, RXENABLE = 1,0, (2dec), and  Reg address 16, D1 (CAL mode 1):DO (CHIP ENABLE 1)
+    set_mode(Mode::Tx_Calibration);  // write to ram 3 LOGIC Pins .
+
+    gpio_max283x_enable.output();  // max2839 has only 2 x pins + regs to decide mode.
+    gpio_max2839_rxtx.output();    // Here is combined rx & tx pin in one port.
+
+    _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)
+    _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (CHIP ENABLE 1)
+    flush_one(Register::SPI_EN);
+
+    _map.r.pa_drv.TXLO_IQ_SPI_EN = 1;  // reg 27 D6, TX LO I/Q Phase SPI Adjust. Active when Address 27 D6 (TXLO_IQ_SPI_EN) = 1.
+    _map.r.pa_drv.TXLO_IQ_SPI = v;     // reg 27 D5:D0 6 bits, TX LO I/Q Phase SPI Adjust.
+    flush_one(Register::PA_DRV);
+
+    // Exit Calibration mode,  Go back to reg 16, D1:D0 , Out of CALIBRATION , back to default conditions, but keep CS activated.
+    _map.r.spi_en.CAL_SPI = 0;  // Register Settings reg address 16,  D1 (0 = Normal operation (default)
+    _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (1 = Chip select enable )
+    flush_one(Register::SPI_EN);
+
+    set_mode(Mode::Standby);  // Back 3  logic pins CALIBRATION mode -> Standby.
+}
+
 enum class Mask {
     Enable = 0b01,
     RxTx = 0b10,
@@ -149,6 +174,8 @@ enum class Mask {
     Standby = RxTx,
     Receive = Enable | RxTx,
     Transmit = Enable,
+    Rx_calibration = Enable | RxTx,  // sets the same 2 x logic pins to the Receive operating mode.
+    Tx_calibration = Enable,         // sets the same 2 x logic pins to the Transmit operating mode.
 };
 
 Mask mode_mask(const Mode mode) {
@@ -159,6 +186,10 @@ Mask mode_mask(const Mode mode) {
             return Mask::Receive;
         case Mode::Transmit:
             return Mask::Transmit;
+        case Mode::Rx_Calibration:        // Let's add this not used previously Rx calibration mode.
+            return Mask::Rx_calibration;  // same logic pins as  Receive mode = Enable | RxTx, ,(the difference is in Regs )
+        case Mode::Tx_Calibration:        // Let's add this not used previously Tx calibration mode.
+            return Mask::Tx_calibration;  // same logic pins as  Transmit = Enable , (the difference is in Reg add 16 D1:DO)
         default:
             return Mask::Shutdown;
     }
