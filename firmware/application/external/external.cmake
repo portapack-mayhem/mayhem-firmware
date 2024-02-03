@@ -3,7 +3,11 @@ set(EXTCPPSRC
 	#pacman
 	external/pacman/main.cpp
 	external/pacman/ui_pacman.cpp
-	
+
+	#tetris
+	external/tetris/main.cpp
+	external/tetris/ui_tetris.cpp
+
 	#afsk_rx
 	external/afsk_rx/main.cpp
 	external/afsk_rx/ui_afsk_rx.cpp
@@ -19,7 +23,7 @@ set(EXTCPPSRC
 	#blespam
 	external/blespam/main.cpp
 	external/blespam/ui_blespam.cpp
-	
+
 	#analogtv
 	external/analogtv/main.cpp
 	external/analogtv/analog_tv_app.cpp
@@ -35,13 +39,12 @@ set(EXTCPPSRC
 	#lge
 	external/lge/main.cpp
 	external/lge/lge_app.cpp
-	
+
 	#lcr
 	external/lcr/main.cpp
 	external/lcr/ui_lcr.cpp
-	
-		
-	#lcr
+
+	#jammer
 	external/jammer/main.cpp
 	external/jammer/ui_jammer.cpp
 
@@ -76,4 +79,5 @@ set(EXTAPPLIST
 	gpssim
 	spainter
 	keyfob
+	tetris
 )
