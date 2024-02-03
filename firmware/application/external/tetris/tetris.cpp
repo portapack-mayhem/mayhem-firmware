@@ -479,14 +479,18 @@ bool IsOver() {
 }
 
 void ShowGameOverScreen() {
-    display.cls();
-    display.background(Black);
-    display.foreground(White);
+//////// PORTAPACK - SKIP CLS
+//    display.cls();
+//    display.background(Black);
+//    display.foreground(White);
+display.background(White);
+display.foreground(Black);
+//////// PORTAPACK
     display.locate(60, 120);
     printf("GAME OVER");
     display.locate(40, 150);
     printf("YOUR SCORE IS %d", score);
-    wait(3); //ovaj prikaz traje 3s (možemo mijenjati) a nakon toga se ponovo prikazuje meni sa levelima
+    wait(5); //ovaj prikaz traje 3s (možemo mijenjati) a nakon toga se ponovo prikazuje meni sa levelima
 }
 
 void InitGame() {
@@ -564,7 +568,7 @@ return 0;
 void pause_game() {
     game.detach();
     joystick.detach();
-    display.locate(175, 200);
+    display.locate(180, 200);
     printf("PAUSED");
     while ((get_switches_state().to_ulong() & 0x10) == 0);  // wait for SELECT button to resume
     printf("      ");

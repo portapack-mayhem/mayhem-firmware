@@ -57,7 +57,8 @@ enum {
     dp22,
     dp23,
     dp24,
-    dp25 };
+    dp25,
+};
 
 static bool but_RIGHT;
 static bool but_LEFT;
@@ -121,13 +122,10 @@ static bool but_SELECT;
 //
 class Timer {
    public:
-    Timer() {
-        // NOTE: INITIALIZER CODE WON'T RUN
-    };
-    void reset() {
-    };
-    void start() {
-    };
+    // NOTE: INITIALIZER CODE WON'T RUN
+    Timer() { (void)0; };
+    void reset() { (void)0; };
+    void start() { (void)0; }
     uint32_t read_ms() { return 1000; };
 
    private:
@@ -155,9 +153,8 @@ static void check_fall_timer() {
 
 class Ticker {
    public:
-    Ticker() {
-        // NOTE: INITIALIZER CODE WON'T RUN
-    };
+    // NOTE: INITIALIZER CODE WON'T RUN
+    Ticker() {(void)0; };
 
     void attach(Callback func, double delay_sec) {
         // 0.3 sec is requested only for button check -- kludge to use on_key callback for this one instead of timer

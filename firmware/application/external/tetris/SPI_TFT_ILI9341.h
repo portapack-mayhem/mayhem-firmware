@@ -53,13 +53,12 @@ static const Color pp_colors[] = {
     Color::red(),
     Color::magenta(),
     Color::orange(),
-    Color::black(),
+    Color::black()
  };
 
 class SPI_TFT_ILI9341 {
    public:
-    SPI_TFT_ILI9341(int, int, int, int, int, int, std::string) {
-    };
+    SPI_TFT_ILI9341(int, int, int, int, int, int, std::string) { (void)0; };
 
     void claim(__FILE* x) { (void)x; };
 
@@ -89,7 +88,7 @@ class SPI_TFT_ILI9341 {
 };
 
 static void printf(std::string str) {
-    auto style = (fg_color == White)? ui::Styles::white : ui::Styles::bg_white;
+    auto style = (fg_color == White) ? ui::Styles::white : ui::Styles::bg_white;
     painter.draw_string({x_pos, y_pos - 1}, style, str);
 };
 
