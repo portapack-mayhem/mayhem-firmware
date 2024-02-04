@@ -31,7 +31,7 @@
 #include "gpio.hpp"
 #include "ui.hpp"
 
-//#include "portapack_persistent_memory.hpp"
+//#include "portapack_persistent_memory.hpp" <-- causes circular dependency, TODO!
 
 namespace portapack {
 
