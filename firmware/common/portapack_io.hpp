@@ -31,7 +31,9 @@
 #include "gpio.hpp"
 #include "ui.hpp"
 
-//#include "portapack_persistent_memory.hpp" <-- causes circular dependency, TODO!
+#include "portapack_persistent_memory.hpp"
+
+
 
 namespace portapack {
 
@@ -96,7 +98,8 @@ class IO {
           gpio_io_stbx{gpio_io_stbx},
           gpio_addr{gpio_addr},
           gpio_rot_a{gpio_rot_a},
-          gpio_rot_b{gpio_rot_b} {};
+          gpio_rot_b{gpio_rot_b},
+          apply_dark_cover{false} {};
 
     void init();
 
@@ -150,9 +153,9 @@ class IO {
 
     /////////mark/////////
     void lcd_write_pixel(ui::Color pixel) {
-//        if (apply_dark) {
+        if (apply_dark_cover) {
             darken_color(pixel, darken_level);  // Darken the pixel color
-//        }
+        }
         lcd_write_data(pixel.v);
     }
 
@@ -169,9 +172,9 @@ class IO {
 
     /////////mark/////////
     void lcd_write_pixels(ui::Color pixel, size_t n) {
-//        if(apply_dark) {
+        if(apply_dark_cover) {
             darken_color(pixel, darken_level);  // Darken the pixel color
-//        }
+        }
         while (n--) {
             lcd_write_data(pixel.v);
         }
@@ -194,9 +197,9 @@ class IO {
 
     /////////mark/////////
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
-//        if(apply_dark) {
+        if(apply_dark_cover) {
             darken_color(pixel, darken_level);  // Darken the pixel color
-//        }
+        }
         auto v = pixel.v;
         n >>= 3;
         while (n--) {
@@ -222,9 +225,9 @@ class IO {
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
         for (size_t i = 0; i < n; i++) {
             ui::Color pixel = pixels[i];
-//            if(apply_dark) {
+            if(apply_dark_cover) {
                 darken_color(pixel, darken_level);  // Darken the pixel color
-//            }
+            }
             lcd_write_pixel(pixel);
         }
     }
@@ -283,7 +286,8 @@ class IO {
 
     size_t darken_level = 1;
 
-//    bool apply_dark = portapack::persistent_memory::apply_fake_brightness();
+    bool apply_dark_cover;
+
 
     void lcd_rd_assert() {
         gpio_lcd_rdx.clear();

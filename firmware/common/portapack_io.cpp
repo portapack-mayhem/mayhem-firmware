@@ -42,6 +42,9 @@ void IO::init() {
     io_stb_deassert();
     addr(0);
 
+    apply_dark_cover = portapack::persistent_memory::apply_fake_brightness();
+
+
     gpio_dir.output();
     gpio_lcd_rdx.output();
     gpio_lcd_wrx.output();
