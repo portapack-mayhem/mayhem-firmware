@@ -148,13 +148,15 @@ class IO {
 //        lcd_write_data(pixel.v);
 //    }
 
+    /////////mark/////////
     void lcd_write_pixel(ui::Color pixel) {
 //        if (apply_dark) {
-//            darken_color(pixel, darken_level);  // Darken the pixel color
+            darken_color(pixel, darken_level);  // Darken the pixel color
 //        }
         lcd_write_data(pixel.v);
     }
 
+    /////////mark/////////
     uint32_t lcd_read_word() {
         return lcd_read_data();
     }
@@ -165,9 +167,10 @@ class IO {
 //        }
 //    }
 
+    /////////mark/////////
     void lcd_write_pixels(ui::Color pixel, size_t n) {
 //        if(apply_dark) {
-//            darken_color(pixel, darken_level);  // Darken the pixel color
+            darken_color(pixel, darken_level);  // Darken the pixel color
 //        }
         while (n--) {
             lcd_write_data(pixel.v);
@@ -189,9 +192,10 @@ class IO {
 //        }
 //    }
 
+    /////////mark/////////
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
 //        if(apply_dark) {
-//            darken_color(pixel, darken_level);  // Darken the pixel color
+            darken_color(pixel, darken_level);  // Darken the pixel color
 //        }
         auto v = pixel.v;
         n >>= 3;
@@ -214,11 +218,12 @@ class IO {
 //    }
 
 
+    /////////mark/////////
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
         for (size_t i = 0; i < n; i++) {
             ui::Color pixel = pixels[i];
 //            if(apply_dark) {
-//                darken_color(pixel, darken_level);  // Darken the pixel color
+                darken_color(pixel, darken_level);  // Darken the pixel color
 //            }
             lcd_write_pixel(pixel);
         }
@@ -276,7 +281,7 @@ class IO {
 
     uint8_t io_reg{0x03};
 
-//    size_t darken_level = 0;
+    size_t darken_level = 1;
 
 //    bool apply_dark = portapack::persistent_memory::apply_fake_brightness();
 
@@ -366,24 +371,26 @@ class IO {
         addr(1); /* Set up for data phase (most likely after a command) */
     }
 
-//    void darken_color(ui::Color& pixel, size_t darken_level_shift) {
-//
-//        //TODO: 1. do we need edge control?
-//        //currently didn't see and issue without edge control
-//        //but maybe hurts screen hardware without one?
-//
-//        //TODO: 2. de-color mode for accessibility
-//
-//        uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
-//        uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
-//        uint16_t b = pixel.v & 0x1F;          // Extract blue
-//
-//        r = r >> darken_level_shift;  // Darken red
-//        g = g >> darken_level_shift;  // Darken green
-//        b = b >> darken_level_shift;  // Darken blue
-//
-//        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color
-//    }
+
+    /////////mark/////////
+    void darken_color(ui::Color& pixel, size_t darken_level_shift) {
+
+        //TODO: 1. do we need edge control?
+        //currently didn't see and issue without edge control
+        //but maybe hurts screen hardware without one?
+
+        //TODO: 2. de-color mode for accessibility
+
+        uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
+        uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
+        uint16_t b = pixel.v & 0x1F;          // Extract blue
+
+        r = r >> darken_level_shift;  // Darken red
+        g = g >> darken_level_shift;  // Darken green
+        b = b >> darken_level_shift;  // Darken blue
+
+        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color
+    }
 
 
     void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {

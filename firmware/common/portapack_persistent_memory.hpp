@@ -136,7 +136,7 @@ enum fake_brightness_options {
     BRIGHTNESS_100 = 0,
     BRIGHTNESS_50 = 1,
     BRIGHTNESS_25 = 2,
-    BRIGHTNESS_12p5 = 3, // 12p5 is 12.5
+    BRIGHTNESS_12p5 = 3,  // 12p5 is 12.5
 };
 
 namespace cache {
@@ -271,9 +271,8 @@ dst_config_t config_dst();
 void set_config_dst(dst_config_t v);
 
 /* Fake brightness */
-bool apply_fake_brightness(); //if do color change
-void set_apply_fake_brightness(const bool v); //if do color change
-
+bool apply_fake_brightness();                  // if do color change
+void set_apply_fake_brightness(const bool v);  // if do color change
 
 /* Recon app */
 bool recon_autosave_freqs();

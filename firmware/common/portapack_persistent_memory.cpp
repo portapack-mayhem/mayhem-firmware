@@ -119,7 +119,7 @@ struct ui_config2_t {
     /* Top icon bar */
     bool hide_speaker : 1;
     bool hide_converter : 1;
-    bool hide_stealth : 1;     //already settled
+    bool hide_stealth : 1;  // already settled
     bool hide_camera : 1;
     bool hide_sleep : 1;
     bool hide_bias_tee : 1;
@@ -293,7 +293,7 @@ struct data_t {
           misc_config(),
           ui_config2(),
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
-          dst_config(){
+          dst_config() {
     }
 };
 
@@ -722,7 +722,7 @@ void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.enable_backlight_timeout = static_cast<uint8_t>(new_value.timeout_enabled());
 }
 
-void set_apply_fake_brightness(const bool v){
+void set_apply_fake_brightness(const bool v) {
     data->ui_config.apply_fake_brightness = v;
 }
 
