@@ -49,6 +49,10 @@ void IO::init() {
     // try1 : maybe move entire implememtation to lcd_xxxxxx.hpp
     // try2 ; check constructor
     // try3 ; maybe because of the workaround (forward declaration) in portapack.hpp
+    // ask: if the pmmem init done here? maybe not?
+    // chekc the implementaation of p.mem
+    // try !portapack::persistent_memory::apply_fake_brightness() to debug
+
 //    apply_dark_cover = true;
 
 
