@@ -327,6 +327,11 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
+    toggle_fake_brightness.on_change = [this](bool v) {
+        pmem::set_apply_fake_brightness(v);
+        refresh();
+    };
+
     button_bias_tee.on_select = [this](ImageButton&) {
         this->on_bias_tee();
     };
@@ -348,6 +353,7 @@ SystemStatusView::SystemStatusView(
     toggle_speaker.set_value(pmem::config_speaker_disable());
     toggle_mute.set_value(pmem::config_audio_mute());
     toggle_stealth.set_value(pmem::stealth_mode());
+    toggle_fake_brightness.set_value(pmem::apply_fake_brightness());
 
     audio::output::stop();
     audio::output::update_audio_mute();
@@ -368,6 +374,8 @@ void SystemStatusView::refresh() {
 
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
+
+    if (!pmem::ui_hide_fake_brightness()) status_icons.add(&toggle_fake_brightness);
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
     status_icons.update_layout();

@@ -106,7 +106,7 @@ struct ui_config_t {
     bool hide_clock : 1;
     bool clock_show_date : 1;
     bool clkout_enabled : 1;
-    bool UNUSED_1 : 1;
+    bool apply_fake_brightness : 1;
     bool stealth_mode : 1;
     bool config_login : 1;
     bool config_splash : 1;
@@ -119,7 +119,7 @@ struct ui_config2_t {
     /* Top icon bar */
     bool hide_speaker : 1;
     bool hide_converter : 1;
-    bool hide_stealth : 1;
+    bool hide_stealth : 1;     //already settled
     bool hide_camera : 1;
     bool hide_sleep : 1;
     bool hide_bias_tee : 1;
@@ -127,13 +127,13 @@ struct ui_config2_t {
     bool hide_sd_card : 1;
 
     bool hide_mute : 1;
+    bool hide_fake_brightness : 1;
     bool UNUSED_1 : 1;
     bool UNUSED_2 : 1;
     bool UNUSED_3 : 1;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
-    bool UNUSED_7 : 1;
 
     uint8_t PLACEHOLDER_2;
     uint8_t PLACEHOLDER_3;
@@ -293,7 +293,7 @@ struct data_t {
           misc_config(),
           ui_config2(),
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
-          dst_config() {
+          dst_config(){
     }
 };
 
@@ -619,6 +619,10 @@ bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
 
+bool apply_fake_brightness() {
+    return data->ui_config.apply_fake_brightness;
+}
+
 bool config_login() {
     return data->ui_config.config_login;
 }
@@ -716,6 +720,10 @@ void set_config_cpld(uint8_t i) {
 void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.backlight_timeout = static_cast<uint8_t>(new_value.timeout_enum());
     data->ui_config.enable_backlight_timeout = static_cast<uint8_t>(new_value.timeout_enabled());
+}
+
+void set_apply_fake_brightness(const bool v){
+    data->ui_config.apply_fake_brightness = v;
 }
 
 uint32_t pocsag_last_address() {
@@ -874,6 +882,9 @@ bool ui_hide_clock() {
 bool ui_hide_sd_card() {
     return data->ui_config2.hide_sd_card;
 }
+bool ui_hide_fake_brightness() {
+    return data->ui_config2.hide_fake_brightness;
+}
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
@@ -903,6 +914,9 @@ void set_ui_hide_clock(bool v) {
 }
 void set_ui_hide_sd_card(bool v) {
     data->ui_config2.hide_sd_card = v;
+}
+void set_ui_hide_fake_brightness(bool v) {
+    data->ui_config2.hide_fake_brightness = v;
 }
 
 /* Converter */
@@ -1127,6 +1141,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(data->ui_config2.hide_clock));
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
     pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(data->ui_config2.hide_mute));
+    pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(data->ui_config2.hide_fake_brightness));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));

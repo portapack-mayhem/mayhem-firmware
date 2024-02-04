@@ -37,6 +37,24 @@ using namespace portapack;
 #include <cstring>
 #include <string>
 
+//#include "portapack_persistent_memory.hpp"
+//
+//void darken_color(ui::Color& pixel, size_t darken_level_shift) {
+//
+//    uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
+//    uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
+//    uint16_t b = pixel.v & 0x1F;          // Extract blue
+//
+//    r = r >> darken_level_shift;  // Darken red
+//    g = g >> darken_level_shift;  // Darken green
+//    b = b >> darken_level_shift;  // Darken blue
+//
+//    pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color
+//}
+//
+//
+//bool apply_dark = portapack::persistent_memory::apply_fake_brightness();
+
 namespace lcd {
 
 namespace {

@@ -132,6 +132,13 @@ typedef union {
 } dst_config_t;
 static_assert(sizeof(dst_config_t) == sizeof(uint32_t));
 
+enum fake_brightness_options {
+    BRIGHTNESS_100 = 0,
+    BRIGHTNESS_50 = 1,
+    BRIGHTNESS_25 = 2,
+    BRIGHTNESS_12p5 = 3, // 12p5 is 12.5
+};
+
 namespace cache {
 
 /* Set values in cache to sensible defaults. */
@@ -263,6 +270,11 @@ uint16_t clkout_freq();
 dst_config_t config_dst();
 void set_config_dst(dst_config_t v);
 
+/* Fake brightness */
+bool apply_fake_brightness(); //if do color change
+void set_apply_fake_brightness(const bool v); //if do color change
+
+
 /* Recon app */
 bool recon_autosave_freqs();
 bool recon_autostart_recon();
@@ -306,6 +318,7 @@ bool ui_hide_camera();
 bool ui_hide_sleep();
 bool ui_hide_bias_tee();
 bool ui_hide_clock();
+bool ui_hide_fake_brightness();
 bool ui_hide_sd_card();
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
@@ -315,6 +328,7 @@ void set_ui_hide_camera(bool v);
 void set_ui_hide_sleep(bool v);
 void set_ui_hide_bias_tee(bool v);
 void set_ui_hide_clock(bool v);
+void set_ui_hide_fake_brightness(bool v);
 void set_ui_hide_sd_card(bool v);
 
 // sd persisting settings

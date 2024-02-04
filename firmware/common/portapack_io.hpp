@@ -22,6 +22,7 @@
 #ifndef __PORTAPACK_IO_H__
 #define __PORTAPACK_IO_H__
 
+
 #include <cstdint>
 #include <cstddef>
 #include <array>
@@ -29,6 +30,8 @@
 #include "platform.hpp"
 #include "gpio.hpp"
 #include "ui.hpp"
+
+//#include "portapack_persistent_memory.hpp"
 
 namespace portapack {
 
@@ -141,7 +144,14 @@ class IO {
         }
     }
 
-    void lcd_write_pixel(const ui::Color pixel) {
+//    void lcd_write_pixel(const ui::Color pixel) {
+//        lcd_write_data(pixel.v);
+//    }
+
+    void lcd_write_pixel(ui::Color pixel) {
+//        if (apply_dark) {
+//            darken_color(pixel, darken_level);  // Darken the pixel color
+//        }
         lcd_write_data(pixel.v);
     }
 
@@ -149,13 +159,40 @@ class IO {
         return lcd_read_data();
     }
 
-    void lcd_write_pixels(const ui::Color pixel, size_t n) {
+//    void lcd_write_pixels(const ui::Color pixel, size_t n) {
+//        while (n--) {
+//            lcd_write_data(pixel.v);
+//        }
+//    }
+
+    void lcd_write_pixels(ui::Color pixel, size_t n) {
+//        if(apply_dark) {
+//            darken_color(pixel, darken_level);  // Darken the pixel color
+//        }
         while (n--) {
             lcd_write_data(pixel.v);
         }
     }
 
-    void lcd_write_pixels_unrolled8(const ui::Color pixel, size_t n) {
+//    void lcd_write_pixels_unrolled8(const ui::Color pixel, size_t n) {
+//        auto v = pixel.v;
+//        n >>= 3;
+//        while (n--) {
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//            lcd_write_data(v);
+//        }
+//    }
+
+    void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
+//        if(apply_dark) {
+//            darken_color(pixel, darken_level);  // Darken the pixel color
+//        }
         auto v = pixel.v;
         n >>= 3;
         while (n--) {
@@ -170,9 +207,20 @@ class IO {
         }
     }
 
+//    void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
+//        for (size_t i = 0; i < n; i++) {
+//            lcd_write_pixel(pixels[i]);
+//        }
+//    }
+
+
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
         for (size_t i = 0; i < n; i++) {
-            lcd_write_pixel(pixels[i]);
+            ui::Color pixel = pixels[i];
+//            if(apply_dark) {
+//                darken_color(pixel, darken_level);  // Darken the pixel color
+//            }
+            lcd_write_pixel(pixel);
         }
     }
 
@@ -227,6 +275,10 @@ class IO {
     static constexpr ioportmask_t gpio_data_mask = 0xffU << gpio_data_shift;
 
     uint8_t io_reg{0x03};
+
+//    size_t darken_level = 0;
+
+//    bool apply_dark = portapack::persistent_memory::apply_fake_brightness();
 
     void lcd_rd_assert() {
         gpio_lcd_rdx.clear();
@@ -313,6 +365,26 @@ class IO {
 
         addr(1); /* Set up for data phase (most likely after a command) */
     }
+
+//    void darken_color(ui::Color& pixel, size_t darken_level_shift) {
+//
+//        //TODO: 1. do we need edge control?
+//        //currently didn't see and issue without edge control
+//        //but maybe hurts screen hardware without one?
+//
+//        //TODO: 2. de-color mode for accessibility
+//
+//        uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
+//        uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
+//        uint16_t b = pixel.v & 0x1F;          // Extract blue
+//
+//        r = r >> darken_level_shift;  // Darken red
+//        g = g >> darken_level_shift;  // Darken green
+//        b = b >> darken_level_shift;  // Darken blue
+//
+//        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color
+//    }
+
 
     void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
         // NOTE: Assumes and DIR=0 and ADDR=1 from command phase.
