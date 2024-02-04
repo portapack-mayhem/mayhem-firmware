@@ -119,7 +119,7 @@ struct ui_config2_t {
     /* Top icon bar */
     bool hide_speaker : 1;
     bool hide_converter : 1;
-    bool hide_stealth : 1;  // already settled
+    bool hide_stealth : 1;
     bool hide_camera : 1;
     bool hide_sleep : 1;
     bool hide_bias_tee : 1;
@@ -1127,7 +1127,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
     pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(data->ui_config.clkout_enabled));
-        pmem_dump_file.write_line("ui_config apply_fake_brightness: " + to_string_dec_uint(data->ui_config.apply_fake_brightness));
+    pmem_dump_file.write_line("ui_config apply_fake_brightness: " + to_string_dec_uint(data->ui_config.apply_fake_brightness));
     pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode));
     pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login));
     pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash));

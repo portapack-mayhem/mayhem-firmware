@@ -99,7 +99,7 @@ class IO {
           gpio_addr{gpio_addr},
           gpio_rot_a{gpio_rot_a},
           gpio_rot_b{gpio_rot_b},
-          apply_dark_cover{false} {};
+          apply_dark_cover{} {};
 
     void init();
 

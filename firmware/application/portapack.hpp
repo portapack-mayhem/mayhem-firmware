@@ -41,7 +41,7 @@
  * guardrails on setting properties. */
 
 namespace portapack {
-class IO;  // Forward declaration
+class IO;
 }
 
 namespace portapack {
