@@ -113,7 +113,7 @@ class MicTXView : public View {
     uint32_t va_level{40};
     uint32_t attack_ms{500};
     uint32_t decay_ms{1000};
-    size_t iq_phase_calibration_value{15};
+    uint8_t iq_phase_calibration_value{15};
     app_settings::SettingsManager settings_{
         "tx_mic",
         app_settings::Mode::RX_TX,
@@ -133,6 +133,7 @@ class MicTXView : public View {
             {"vox"sv, &va_enabled},
             {"rogerbeep"sv, &rogerbeep_enabled},
             {"tone_key_index"sv, &tone_key_index},
+            {"iq_phase_calibration"sv, &iq_phase_calibration_value},
         }};
 
     rf::Frequency tx_frequency{0};

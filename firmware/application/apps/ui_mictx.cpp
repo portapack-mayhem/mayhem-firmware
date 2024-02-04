@@ -370,6 +370,7 @@ MicTXView::MicTXView(
         receiver_model.set_rf_amp(v);
     };
 
+    radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
     if (hackrf_r9) {  // MAX2839 has 6 bits IQ CAL phasse adjustment.
         field_tx_iq_phase_cal_2839.set_value(iq_phase_calibration_value);
         field_tx_iq_phase_cal_2839.on_change = [this](int32_t v) {
