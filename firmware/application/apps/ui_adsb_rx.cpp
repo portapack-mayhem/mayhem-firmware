@@ -246,6 +246,10 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             text_airline.set(airline_record.airline);
             text_country.set(airline_record.country);
             break;
+        case DATABASE_RECORD_NOT_FOUND:
+            //text_airline.set("-"); // It's what it is constructed with
+            //text_country.set("-"); // It's what it is constructed with
+            break;
         case DATABASE_NOT_FOUND:
             text_airline.set("No airlines.db file");
             break;
