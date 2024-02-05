@@ -233,30 +233,6 @@ ADSBRxDetailsView::ADSBRxDetailsView(
          &button_aircraft_details,
          &button_see_map});
 
-    // The following won't change for a given airborne aircraft.
-    // Try getting the airline's name from airlines.db.
-    // NB: Only works once callsign has been read and won't be updated.
-    if (!entry_.callsign.empty()) {
-        database db;
-        database::AirlinesDBRecord airline_record;
-        std::string airline_code = entry_.callsign.substr(0, 3);
-        auto return_code = db.retrieve_airline_record(&airline_record, airline_code);
-
-        switch (return_code) {
-            case DATABASE_RECORD_FOUND:
-                text_airline.set(airline_record.airline);
-                text_country.set(airline_record.country);
-                break;
-            case DATABASE_RECORD_NOT_FOUND:
-                // text_airline.set("-"); // It's what it is constructed with
-                // text_country.set("-"); // It's what it is constructed with
-                break;
-            case DATABASE_NOT_FOUND:
-                text_airline.set("No airlines.db file");
-                break;
-        }
-    }
-
     text_icao_address.set(entry_.icao_str);
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
@@ -336,6 +312,31 @@ void ADSBRxDetailsView::on_orientation(const OrientationDataMessage* msg) {
 }
 
 void ADSBRxDetailsView::refresh_ui() {
+    // The following won't change for a given airborne aircraft.
+    // Try getting the airline's name from airlines.db.
+    if (!airline_checked && !entry_.callsign.empty()) {
+        airline_checked = true;
+
+        database db;
+        database::AirlinesDBRecord airline_record;
+        std::string airline_code = entry_.callsign.substr(0, 3);
+        auto return_code = db.retrieve_airline_record(&airline_record, airline_code);
+
+        switch (return_code) {
+            case DATABASE_RECORD_FOUND:
+                text_airline.set(airline_record.airline);
+                text_country.set(airline_record.country);
+                break;
+            case DATABASE_RECORD_NOT_FOUND:
+                // text_airline.set("-"); // It's what it is constructed with
+                // text_country.set("-"); // It's what it is constructed with
+                break;
+            case DATABASE_NOT_FOUND:
+                text_airline.set("No airlines.db file");
+                break;
+        }
+    }
+
     auto age = entry_.age;
     if (age < 60)
         text_last_seen.set(to_string_dec_uint(age) + " seconds ago");
