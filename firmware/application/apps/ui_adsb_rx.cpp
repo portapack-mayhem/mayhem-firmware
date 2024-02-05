@@ -127,8 +127,8 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
     text_icao_address.set(entry.icao_str);
 
     // Try getting the aircraft information from icao24.db
-    std::database db{};
-    std::database::AircraftDBRecord aircraft_record;
+    database db{};
+    database::AircraftDBRecord aircraft_record;
     auto return_code = db.retrieve_aircraft_record(&aircraft_record, entry.icao_str);
     switch (return_code) {
         case DATABASE_RECORD_FOUND:
@@ -236,8 +236,8 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     // The following won't change for a given airborne aircraft.
     // Try getting the airline's name from airlines.db.
     // NB: Only works once callsign has been read and won't be updated.
-    std::database db;
-    std::database::AirlinesDBRecord airline_record;
+    database db;
+    database::AirlinesDBRecord airline_record;
     std::string airline_code = entry_.callsign.substr(0, 3);
     auto return_code = db.retrieve_airline_record(&airline_record, airline_code);
 
