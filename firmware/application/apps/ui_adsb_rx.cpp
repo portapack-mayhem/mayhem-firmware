@@ -236,8 +236,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
     // The following won't change for a given airborne aircraft.
     // Try getting the airline's name from airlines.db.
     // NB: Only works once callsign has been read and won't be updated.
-    if (! entry_.callsign.empty())
-    {
+    if (!entry_.callsign.empty()) {
         database db;
         database::AirlinesDBRecord airline_record;
         std::string airline_code = entry_.callsign.substr(0, 3);
@@ -249,8 +248,8 @@ ADSBRxDetailsView::ADSBRxDetailsView(
                 text_country.set(airline_record.country);
                 break;
             case DATABASE_RECORD_NOT_FOUND:
-                //text_airline.set("-"); // It's what it is constructed with
-                //text_country.set("-"); // It's what it is constructed with
+                // text_airline.set("-"); // It's what it is constructed with
+                // text_country.set("-"); // It's what it is constructed with
                 break;
             case DATABASE_NOT_FOUND:
                 text_airline.set("No airlines.db file");
