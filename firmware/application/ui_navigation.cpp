@@ -567,20 +567,18 @@ InformationView::InformationView(
     version.set_style(&style_infobar);
 #endif
 
-//    if (portapack::persistent_memory::apply_fake_brightness();) {
-//        version.set("FLASH ERR");
-//        version.set_style(&Styles::red);
-//    }
+    // if (portapack::persistent_memory::apply_fake_brightness();) {
+    //     version.set("FLASH ERR");
+    //     version.set_style(&Styles::red);
+    // }
 
-    if (portapack::persistent_memory::apply_fake_brightness()) { //DBG
+    if (portapack::persistent_memory::apply_fake_brightness()) {  // DBG
         version.set("appl");
         version.set_style(&Styles::red);
-    }else{
+    } else {
         version.set("nota");
         version.set_style(&Styles::yellow);
     }
-
-
 
     ltime.set_style(&style_infobar);
     refresh();

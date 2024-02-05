@@ -737,10 +737,10 @@ SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
                   &button_save,
                   &button_cancel});
 
-//    field_fake_brightness.set_by_value(pmem::config_fake_brightness());
+    // field_fake_brightness.set_by_value(pmem::config_fake_brightness());
 
     button_save.on_select = [&nav, this](Button&) {
-//        pmem::set_config_fake_brightness(field_fake_brightness.selected_index_value());
+        // pmem::set_config_fake_brightness(field_fake_brightness.selected_index_value());
         nav.pop();
     };
 

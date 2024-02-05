@@ -22,7 +22,6 @@
 #include "portapack_io.hpp"
 #include "portapack_persistent_memory.hpp"
 
-
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
 
@@ -45,12 +44,12 @@ void IO::init() {
     addr(0);
 
     apply_dark_cover = portapack::persistent_memory::apply_fake_brightness();
-//    if (apply_dark_cover) { //DBG
-//        chThdSleep(1);
-//
-//    }else {
-//        chThdSleep(2000);
-//    }
+    // if (apply_dark_cover) { //DBG
+    //     chThdSleep(1);
+    //
+    // }else {
+    //     chThdSleep(2000);
+    // }
     // TODO: Can't fetch this from persistent memory
     // try1 : maybe move entire implememtation to lcd_xxxxxx.hpp
     // try2 ; check constructor
@@ -61,8 +60,7 @@ void IO::init() {
 
     // debugged in navigation, all good
 
-//    apply_dark_cover = true;
-
+    // apply_dark_cover = true;
 
     gpio_dir.output();
     gpio_lcd_rdx.output();
