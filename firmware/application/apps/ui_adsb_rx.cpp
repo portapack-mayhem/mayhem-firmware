@@ -199,6 +199,10 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
             }
             break;
 
+        case DATABASE_RECORD_NOT_FOUND:
+            // Defaults should be filled by the constructor
+            break;
+
         case DATABASE_NOT_FOUND:
             text_manufacturer.set("No icao24.db file");
             break;
