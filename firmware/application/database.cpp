@@ -56,6 +56,9 @@ int database::retrieve_aircraft_record(AircraftDBRecord* record, std::string sea
 }
 
 int database::retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term) {
+    if (search_term.empty())
+        return DATABASE_RECORD_NOT_FOUND;
+
     auto result = db_file.open(file_path);
     if (!result.is_valid()) {
         number_of_records = (db_file.size() / (index_item_length + record_length));  // determine number of records in file
