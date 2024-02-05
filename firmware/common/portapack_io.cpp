@@ -45,6 +45,12 @@ void IO::init() {
     addr(0);
 
     apply_dark_cover = portapack::persistent_memory::apply_fake_brightness();
+//    if (apply_dark_cover) { //DBG
+//        chThdSleep(1);
+//
+//    }else {
+//        chThdSleep(2000);
+//    }
     // TODO: Can't fetch this from persistent memory
     // try1 : maybe move entire implememtation to lcd_xxxxxx.hpp
     // try2 ; check constructor
@@ -52,6 +58,8 @@ void IO::init() {
     // ask: if the pmmem init done here? maybe not?
     // chekc the implementaation of p.mem
     // try !portapack::persistent_memory::apply_fake_brightness() to debug
+
+    // debugged in navigation, all good
 
 //    apply_dark_cover = true;
 

@@ -266,7 +266,7 @@ class SystemStatusView : public View {
 
     ImageToggle toggle_fake_brightness{
         {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_sleep};
+        &bitmap_icon_brightness};
 
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};

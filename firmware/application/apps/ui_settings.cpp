@@ -731,27 +731,27 @@ void SetConfigModeView::focus() {
 
 /* FakeBrightnessView ************************************/
 
-//SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
-//    add_children({&labels,
-//                  &field_fake_brightness,
-//                  &button_save,
-//                  &button_cancel});
-//
+SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_fake_brightness,
+                  &button_save,
+                  &button_cancel});
+
 //    field_fake_brightness.set_by_value(pmem::config_fake_brightness());
-//
-//    button_save.on_select = [&nav, this](Button&) {
+
+    button_save.on_select = [&nav, this](Button&) {
 //        pmem::set_config_fake_brightness(field_fake_brightness.selected_index_value());
-//        nav.pop();
-//    };
-//
-//    button_cancel.on_select = [&nav, this](Button&) {
-//        nav.pop();
-//    };
-//}
-//
-//void SetFakeBrightnessView::focus() {
-//    button_save.focus();
-//}
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetFakeBrightnessView::focus() {
+    button_save.focus();
+}
 
 /* SettingsMenuView **************************************/
 
@@ -773,7 +773,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
-//        {"Fake Brightness", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
+        {"Fake Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

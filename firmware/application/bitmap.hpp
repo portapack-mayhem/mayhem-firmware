@@ -5759,6 +5759,44 @@ static constexpr Bitmap bitmap_icon_thermometer{
     {16, 16},
     bitmap_icon_thermometer_data};
 
+static constexpr uint8_t bitmap_icon_brightness_data[] = {
+    0x00,
+    0x00,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x08,
+    0x10,
+    0xC0,
+    0x03,
+    0xE0,
+    0x07,
+    0xF0,
+    0x0F,
+    0xF6,
+    0x6F,
+    0xF6,
+    0x6F,
+    0xF0,
+    0x0F,
+    0xE0,
+    0x07,
+    0xC0,
+    0x03,
+    0x08,
+    0x10,
+    0x80,
+    0x01,
+    0x80,
+    0x01,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_brightness{
+    {16, 16},
+    bitmap_icon_brightness_data};
+
 } /* namespace ui */
 
 #endif /*__BITMAP_HPP__*/
