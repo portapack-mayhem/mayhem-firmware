@@ -126,6 +126,9 @@ class SetDateTimeView : public View {
     Text text_day_of_year{
         {26 * 8, 6 * 16, 3 * 8, 16},
         ""};
+    Text text_in_dst_range{
+        {17 * 8, 7 * 16, 3 * 8, 16},
+        ""};
 
     Checkbox checkbox_dst_enable{
         {2 * 8, 9 * 16},
@@ -171,6 +174,8 @@ class SetDateTimeView : public View {
 
     void form_init(const SetDateTimeModel& model);
     SetDateTimeModel form_collect();
+    portapack::persistent_memory::dst_config_t dst_collect();
+    void handle_date_field_update();
 };
 
 struct SetFrequencyCorrectionModel {
