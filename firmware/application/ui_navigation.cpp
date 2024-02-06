@@ -327,8 +327,19 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
-    toggle_fake_brightness.on_change = [this](bool v) {
+    toggle_fake_brightness.on_change = [this, &nav](bool v) {
         pmem::set_apply_fake_brightness(v);
+        pmem::set_stealth_mode(v);
+        if (nav.is_valid() && v) {
+            nav.display_modal(
+                "Brightness",
+                "You just enabled fake brightness cover.\n"
+                "performance will be influented a little,\n"
+                "reboot to apply;\n");
+
+            // TODO: refresh interface to prevent reboot requirement
+            // TODO: increase performance
+        }
         refresh();
     };
 

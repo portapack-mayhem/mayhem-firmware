@@ -146,7 +146,7 @@ class IO {
     /////////mark/////////
     void lcd_write_pixel(ui::Color pixel) {
         if (get_dark_cover()) {
-            darken_color(pixel, darken_level);  // Darken the pixel color
+            darken_color(pixel, get_brightness());  // Darken the pixel color
         }
         lcd_write_data(pixel.v);
     }
@@ -159,7 +159,7 @@ class IO {
     /////////mark/////////
     void lcd_write_pixels(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            darken_color(pixel, darken_level);  // Darken the pixel color
+            darken_color(pixel, get_brightness());  // Darken the pixel color
         }
         while (n--) {
             lcd_write_data(pixel.v);
@@ -169,7 +169,7 @@ class IO {
     /////////mark/////////
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            darken_color(pixel, darken_level);  // Darken the pixel color
+            darken_color(pixel, get_brightness());  // Darken the pixel color
         }
         auto v = pixel.v;
         n >>= 3;
@@ -190,7 +190,7 @@ class IO {
         for (size_t i = 0; i < n; i++) {
             ui::Color pixel = pixels[i];
             if (apply_dark_cover) {
-                darken_color(pixel, darken_level);  // Darken the pixel color
+                darken_color(pixel, get_brightness());  // Darken the pixel color
             }
             lcd_write_pixel(pixel);
         }
@@ -224,6 +224,7 @@ class IO {
     }
 
     bool get_dark_cover();
+    uint8_t get_brightness();
 
     uint32_t io_update(const TouchPinsConfig write_value);
 

@@ -132,7 +132,7 @@ typedef union {
 } dst_config_t;
 static_assert(sizeof(dst_config_t) == sizeof(uint32_t));
 
-enum fake_brightness_options {
+enum fake_brightness_level_options {
     BRIGHTNESS_100 = 0,
     BRIGHTNESS_50 = 1,
     BRIGHTNESS_25 = 2,
@@ -271,8 +271,12 @@ dst_config_t config_dst();
 void set_config_dst(dst_config_t v);
 
 /* Fake brightness */
+// switch:
 bool apply_fake_brightness();                  // if do color change
 void set_apply_fake_brightness(const bool v);  // if do color change
+//level:
+uint8_t fake_brightness_level();
+void set_fake_brightness_level(uint8_t v);
 
 /* Recon app */
 bool recon_autosave_freqs();

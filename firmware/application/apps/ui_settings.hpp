@@ -671,7 +671,7 @@ class SetConfigModeView : public View {
     };
 };
 
-using portapack::persistent_memory::fake_brightness_options;
+using portapack::persistent_memory::fake_brightness_level_options;
 
 class SetFakeBrightnessView : public View {
    public:
@@ -692,10 +692,10 @@ class SetFakeBrightnessView : public View {
     OptionsField field_fake_brightness{
         {20 * 8, 5 * 16},
         6,
-        {{"12.5%", fake_brightness_options::BRIGHTNESS_12p5},
-         {"25%", fake_brightness_options::BRIGHTNESS_25},
-         {"50%", fake_brightness_options::BRIGHTNESS_50},
-         {"100%", fake_brightness_options::BRIGHTNESS_100}}};
+        {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
+         {"25%", fake_brightness_level_options::BRIGHTNESS_25},
+         {"50%", fake_brightness_level_options::BRIGHTNESS_50},
+         {"100%", fake_brightness_level_options::BRIGHTNESS_100}}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},

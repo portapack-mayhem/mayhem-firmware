@@ -240,6 +240,9 @@ struct data_t {
     // Daylight savings time
     dst_config_t dst_config;
 
+    // fake brightness level (not switch, switch is in another place)
+    uint16_t fake_brightness_level : 4;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           target_frequency(target_frequency_reset_value),
@@ -293,7 +296,8 @@ struct data_t {
           misc_config(),
           ui_config2(),
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
-          dst_config() {
+          dst_config(),
+          fake_brightness_level(0){ // 0 is 100%, not same with switch to keep *before* states
     }
 };
 
@@ -400,6 +404,7 @@ void defaults() {
     set_config_disable_external_tcxo(false);
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
+    set_fake_brightness_level(BRIGHTNESS_100);
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
@@ -1007,6 +1012,15 @@ void set_config_dst(dst_config_t v) {
     data->dst_config = v;
     rtc_time::dst_init();
 }
+// fake brightness level (switch is in another place)
+
+uint8_t fake_brightness_level() {
+    return data->fake_brightness_level;
+}
+void set_fake_brightness_level(uint8_t v) {
+    data->fake_brightness_level = v;
+}
+
 
 // PMem to sdcard settings
 
