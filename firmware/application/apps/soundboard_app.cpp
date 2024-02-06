@@ -89,6 +89,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     uint32_t tone_key_index = options_tone_key.selected_index();
     uint32_t sample_rate;
+    uint8_t bits_per_sample;
 
     stop();
 
@@ -104,6 +105,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
     // button_play.set_bitmap(&bitmap_stop);
 
     sample_rate = reader->sample_rate();
+    bits_per_sample = reader->bits_per_sample();
 
     replay_thread = std::make_unique<ReplayThread>(
         std::move(reader),
@@ -120,7 +122,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
         transmitter_model.channel_bandwidth(),
         0,  // Gain is unused
         8,  // shift_bits_s16, default 8 bits, but also unused
-        8,  // bits per sample
+        bits_per_sample,
         TONES_F2D(tone_key_frequency(tone_key_index), TONES_SAMPLERATE),
         false,  // AM
         false,  // DSB
@@ -172,7 +174,7 @@ void SoundBoardView::refresh_list() {
 
                 if (entry_extension == ".WAV") {
                     if (reader->open(u"/WAV/" + entry.path().native())) {
-                        if ((reader->channels() == 1) && (reader->bits_per_sample() == 8)) {
+                        if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                             // sounds[c].ms_duration = reader->ms_duration();
                             // sounds[c].path = u"WAV/" + entry.path().native();
                             if (count >= (page - 1) * 100 && count < page * 100) {

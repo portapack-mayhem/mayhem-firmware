@@ -27,7 +27,7 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
     size_t i = 0;
     char ch;
     const uint8_t tag_INAM[4] = {'I', 'N', 'A', 'M'};
-    char title_buffer[32];
+    char title_buffer[32]{0};
     uint32_t riff_size, data_end, title_size;
     size_t search_limit = 0;
 
@@ -37,11 +37,17 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
         return true;
     }
 
+    // Reinitialize to avoid old data when switching files
+    title_string = "";
+    sample_rate_ = 0;
+    bytes_per_sample = 0;
+
     auto error = file_.open(path);
 
     if (!error.is_valid()) {
         file_.read((void*)&header, sizeof(header));  // Read header (RIFF and WAVE)
 
+        // TODO: Work needed here to process RIFF file format correctly, i.e. properly skip over LIST & INFO chunks
         riff_size = header.cksize + 8;
         data_start = header.fmt.cksize + 28;
         data_size_ = header.data.cksize;
