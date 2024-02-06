@@ -93,7 +93,7 @@ class ViewWavView : public View {
         {5 * 8, 0 * 16, 18 * 8, 16},
         ""};
     Text text_samplerate{
-        {12 * 8, 1 * 16, 12 * 8, 16},
+        {12 * 8, 1 * 16, 10 * 8, 16},
         ""};
     Text text_title{
         {6 * 8, 2 * 16, 17 * 8, 16},
