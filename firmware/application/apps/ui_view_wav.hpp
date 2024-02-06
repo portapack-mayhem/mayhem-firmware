@@ -49,7 +49,8 @@ class ViewWavView : public View {
     void update_scale(int32_t new_scale);
     void refresh_waveform();
     void refresh_measurements();
-    void on_pos_changed();
+    void on_pos_time_changed();
+    void on_pos_sample_changed();
     void load_wav(std::filesystem::path file_path);
     void reset_controls();
     bool is_active();
@@ -74,30 +75,35 @@ class ViewWavView : public View {
     int32_t scale{1};
     uint64_t ns_per_pixel{};
     uint64_t position{};
+    bool updating_position{false};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "File:", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "Samplerate:", Color::light_grey()},
+        {{2 * 8, 1 * 16}, "-bit mono", Color::light_grey()},
         {{0 * 8, 2 * 16}, "Title:", Color::light_grey()},
         {{0 * 8, 3 * 16}, "Duration:", Color::light_grey()},
-        {{0 * 8, 12 * 16}, "Position:   s         Scale:", Color::light_grey()},
-        {{0 * 8, 13 * 16}, "Cursor A:", Color::dark_cyan()},
-        {{0 * 8, 14 * 16}, "Cursor B:", Color::dark_magenta()},
-        {{0 * 8, 15 * 16}, "Delta:", Color::light_grey()},
+        {{0 * 8, 12 * 16}, "Position:    .   s  Scale:", Color::light_grey()},
+        {{0 * 8, 13 * 16}, "  Sample:", Color::light_grey()},
+        {{0 * 8, 14 * 16}, "Cursor A:", Color::dark_cyan()},
+        {{0 * 8, 15 * 16}, "Cursor B:", Color::dark_magenta()},
+        {{0 * 8, 16 * 16}, "Delta:", Color::light_grey()},
         {{24 * 8, 18 * 16}, "Vol:", Color::light_grey()}};
 
     Text text_filename{
-        {5 * 8, 0 * 16, 12 * 8, 16},
+        {5 * 8, 0 * 16, 18 * 8, 16},
         ""};
     Text text_samplerate{
-        {11 * 8, 1 * 16, 8 * 8, 16},
+        {12 * 8, 1 * 16, 12 * 8, 16},
         ""};
     Text text_title{
-        {6 * 8, 2 * 16, 18 * 8, 16},
+        {6 * 8, 2 * 16, 17 * 8, 16},
         ""};
     Text text_duration{
-        {9 * 8, 3 * 16, 18 * 8, 16},
+        {9 * 8, 3 * 16, 20 * 8, 16},
         ""};
+    Text text_bits_per_sample{
+        {0 * 8, 1 * 16, 2 * 8, 16},
+        "16"};
     Button button_open{
         {24 * 8, 8, 6 * 8, 2 * 16},
         "Open"};
@@ -122,32 +128,34 @@ class ViewWavView : public View {
 
     NumberField field_pos_seconds{
         {9 * 8, 12 * 16},
+        4,
+        {0, 0},
+        1,
+        ' ',
+        true};
+    NumberField field_pos_milliseconds{
+        {14 * 8, 12 * 16},
         3,
         {0, 999},
         1,
-        ' '};
+        '0',
+        true};
     NumberField field_pos_samples{
-        {14 * 8, 12 * 16},
-        6,
-        {0, 999999},
-        1,
-        '0'};
-    NumberField field_scale{
-        {28 * 8, 12 * 16},
-        2,
-        {1, 40},
-        1,
-        ' '};
-
-    NumberField field_cursor_a{
         {9 * 8, 13 * 16},
-        3,
-        {0, 239},
+        9,
+        {0, 0},
+        1,
+        '0',
+        true};
+    NumberField field_scale{
+        {26 * 8, 12 * 16},
+        4,
+        {1, 9999},
         1,
         ' ',
         true};
 
-    NumberField field_cursor_b{
+    NumberField field_cursor_a{
         {9 * 8, 14 * 16},
         3,
         {0, 239},
@@ -155,8 +163,16 @@ class ViewWavView : public View {
         ' ',
         true};
 
+    NumberField field_cursor_b{
+        {9 * 8, 15 * 16},
+        3,
+        {0, 239},
+        1,
+        ' ',
+        true};
+
     Text text_delta{
-        {7 * 8, 15 * 16, 30 * 8, 16},
+        {7 * 8, 16 * 16, 30 * 8, 16},
         "-"};
 
     MessageHandlerRegistration message_handler_replay_thread_error{
