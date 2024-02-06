@@ -30,7 +30,7 @@
 #include "gpio.hpp"
 #include "ui.hpp"
 
-#include "portapack_persistent_memory.hpp"
+//#include "portapack_persistent_memory.hpp"
 
 namespace portapack {
 
