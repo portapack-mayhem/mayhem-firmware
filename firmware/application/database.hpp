@@ -30,7 +30,6 @@
 
 #include "file.hpp"
 
-namespace std {
 class database {
    public:
 #define DATABASE_RECORD_FOUND 0       // record found in database
@@ -62,9 +61,9 @@ class database {
     int retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term);
 
    private:
-    string file_path = "";      // path inclusing filename
-    int index_item_length = 0;  // length of index item
-    int record_length = 0;      // length of record
+    std::string file_path = "";  // path inclusing filename
+    int index_item_length = 0;   // length of index item
+    int record_length = 0;       // length of record
 
     File db_file{};
     int number_of_records = 0;
@@ -77,6 +76,5 @@ class database {
 
     int retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term);
 };
-}  // namespace std
 
 #endif /*__DATABASE_H__*/

@@ -64,9 +64,9 @@ static std::string mmsi(
 
 static std::string mid(
     const ais::MMSI& mmsi) {
-    std::database db;
+    database db;
     std::string mid_code = "";
-    std::database::MidDBRecord mid_record = {};
+    database::MidDBRecord mid_record = {};
     int return_code = 0;
 
     // Try getting the country name from mids.db using MID code for given MMSI
