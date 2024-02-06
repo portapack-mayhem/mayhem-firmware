@@ -30,7 +30,8 @@
 void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
 
-    int32_t audio_sample_m;
+    buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, sampling_rate};
+    int16_t audio_sample_s16;
 
     // Zero-order hold (poop)
     for (size_t i = 0; i < buffer.count; i++) {
@@ -46,15 +47,16 @@ void AudioTXProcessor::execute(const buffer_c8_t& buffer) {
 
         if (bytes_per_sample == 1) {
             sample = audio_sample - 0x80;
-            audio_sample_m = sample * 256;
+            audio_sample_s16 = sample * 256;
         } else {
-            audio_sample_m = audio_sample;
+            audio_sample_s16 = (int16_t)audio_sample;
+            sample = audio_sample_s16 / 256;
         }
 
         // Output to speaker too
         if (!tone_key_enabled) {
             uint32_t imod32 = i & (AUDIO_OUTPUT_BUFFER_SIZE - 1);
-            audio_data[imod32] = audio_sample_m;
+            audio_data[imod32] = audio_sample_s16;
             if (imod32 == (AUDIO_OUTPUT_BUFFER_SIZE - 1))
                 audio_output.write_unprocessed(audio_buffer);
         }
@@ -133,6 +135,7 @@ void AudioTXProcessor::replay_config(const ReplayConfigMessage& message) {
 
 void AudioTXProcessor::sample_rate_config(const SampleRateConfigMessage& message) {
     resample_inc = (((uint64_t)message.sample_rate) << 16) / baseband_fs;  // 16.16 fixed point message.sample_rate
+    sampling_rate = message.sample_rate;
 }
 
 int main() {

@@ -51,11 +51,10 @@ class AudioTXProcessor : public BasebandProcessor {
     uint32_t audio_sample{};
     int32_t sample{0}, delta{};
     int8_t re{0}, im{0};
-    int8_t bytes_per_sample{1};
-    int16_t audio_sample_s16{};
+    uint8_t bytes_per_sample{1};
+    uint32_t sampling_rate{48000};
 
     int16_t audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
-    buffer_s16_t audio_buffer{audio_data, AUDIO_OUTPUT_BUFFER_SIZE, 48000};
     AudioOutput audio_output{};
 
     size_t progress_interval_samples = 0, progress_samples = 0;
