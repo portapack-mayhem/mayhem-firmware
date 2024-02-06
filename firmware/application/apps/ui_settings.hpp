@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -315,43 +316,43 @@ class SetUIView : public View {
     };
 
     ImageToggle toggle_camera{
-        {7 * 8, 14 * 16 + 2, 16, 16},
+        {6 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_camera};
 
     ImageToggle toggle_sleep{
-        {9 * 8, 14 * 16 + 2, 16, 16},
+        {8 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {11 * 8, 14 * 16 + 2, 16, 16},
+        {12 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {13 * 8, 14 * 16 + 2, 16, 16},
+        {14 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {15 * 8, 14 * 16 + 2, 16, 16},
+        {16 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {17 * 8, 14 * 16 + 2, 8, 16},
+        {18 * 8, 14 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {18 * 8, 14 * 16 + 2, 16, 16},
+        {20 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {20 * 8, 14 * 16 + 2, 16, 16},
+        {21 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
     ImageToggle toggle_fake_brightness{
-        {22 * 8, 14 * 16 + 2, 16, 16},
+        {23 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_brightness};
 
     ImageToggle toggle_sd_card{
-        {24 * 8, 14 * 16 + 2, 16, 16},
+        {25 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{

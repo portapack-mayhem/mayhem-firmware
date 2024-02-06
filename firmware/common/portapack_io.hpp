@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -184,7 +185,7 @@ class IO {
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
         for (size_t i = 0; i < n; i++) {
             ui::Color pixel = pixels[i];
-            if (apply_dark_cover) {
+            if (get_dark_cover()) {
                 darken_color(pixel, get_brightness());  // Darken the pixel color
             }
             lcd_write_pixel(pixel);
@@ -220,6 +221,7 @@ class IO {
 
     bool get_dark_cover();
     uint8_t get_brightness();
+    // TODO: cache the value ^^ & ^ to increaase performance, need a trigger cuz init doesn't work
 
     uint32_t io_update(const TouchPinsConfig write_value);
 
@@ -245,10 +247,6 @@ class IO {
     static constexpr ioportmask_t gpio_data_mask = 0xffU << gpio_data_shift;
 
     uint8_t io_reg{0x03};
-
-    size_t darken_level = 0;
-
-    bool apply_dark_cover = false;
 
     void lcd_rd_assert() {
         gpio_lcd_rdx.clear();
