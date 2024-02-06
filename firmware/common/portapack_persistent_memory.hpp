@@ -271,10 +271,10 @@ dst_config_t config_dst();
 void set_config_dst(dst_config_t v);
 
 /* Fake brightness */
-// switch:
-bool apply_fake_brightness();                  // if do color change
-void set_apply_fake_brightness(const bool v);  // if do color change
-//level:
+// switch (if do color change):
+bool apply_fake_brightness();
+void set_apply_fake_brightness(const bool v);
+// level (color change level):
 uint8_t fake_brightness_level();
 void set_fake_brightness_level(uint8_t v);
 

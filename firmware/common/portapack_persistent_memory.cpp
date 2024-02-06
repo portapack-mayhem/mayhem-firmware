@@ -297,7 +297,7 @@ struct data_t {
           ui_config2(),
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
           dst_config(),
-          fake_brightness_level(0){ // 0 is 100%, not same with switch to keep *before* states
+          fake_brightness_level(0) {  // 0 is 100%, not same with switch, we need it to keep *before* states
     }
 };
 
@@ -1021,7 +1021,6 @@ void set_fake_brightness_level(uint8_t v) {
     data->fake_brightness_level = v;
 }
 
-
 // PMem to sdcard settings
 
 bool should_use_sdcard_for_pmem() {
@@ -1127,6 +1126,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
+    pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(data->fake_brightness_level));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();

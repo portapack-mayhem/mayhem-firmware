@@ -143,7 +143,6 @@ class IO {
         }
     }
 
-    /////////mark/////////
     void lcd_write_pixel(ui::Color pixel) {
         if (get_dark_cover()) {
             darken_color(pixel, get_brightness());  // Darken the pixel color
@@ -151,12 +150,10 @@ class IO {
         lcd_write_data(pixel.v);
     }
 
-    /////////mark/////////
     uint32_t lcd_read_word() {
         return lcd_read_data();
     }
 
-    /////////mark/////////
     void lcd_write_pixels(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
             darken_color(pixel, get_brightness());  // Darken the pixel color
@@ -166,7 +163,6 @@ class IO {
         }
     }
 
-    /////////mark/////////
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
             darken_color(pixel, get_brightness());  // Darken the pixel color
@@ -185,7 +181,6 @@ class IO {
         }
     }
 
-    /////////mark/////////
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
         for (size_t i = 0; i < n; i++) {
             ui::Color pixel = pixels[i];
@@ -341,7 +336,6 @@ class IO {
         addr(1); /* Set up for data phase (most likely after a command) */
     }
 
-    /////////mark/////////
     void darken_color(ui::Color& pixel, size_t darken_level_shift) {
         // TODO: 1. do we need edge control?
         // currently didn't see and issue without edge control
