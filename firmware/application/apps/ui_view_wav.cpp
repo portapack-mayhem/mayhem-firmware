@@ -38,6 +38,13 @@ void ViewWavView::update_scale(int32_t new_scale) {
 }
 
 void ViewWavView::refresh_waveform() {
+    // NB: We can't read from the file to update the waveform when playback is in progress, so defer til playback done.
+    // (This only happens if the user messes with position or scale fields while playback is occurring)
+    if (playback_in_progress) {
+        waveform_update_needed = true;
+        return;
+    }
+
     uint8_t bits_per_sample = wav_reader->bits_per_sample();
 
     for (size_t i = 0; i < 240; i++) {
@@ -151,6 +158,10 @@ void ViewWavView::reset_controls() {
     field_pos_samples.set_value(0);
     field_cursor_a.set_value(0);
     field_cursor_b.set_value(0);
+    field_pos_seconds.set_range(0, wav_reader->ms_duration() / 1000);
+    field_pos_milliseconds.set_range(0, (wav_reader->ms_duration() < 1000) ? wav_reader->ms_duration() % 1000 : 999);
+    field_pos_samples.set_range(0, wav_reader->sample_count() - 1);
+    field_scale.set_range(1, std::min(99999ul, wav_reader->sample_count() / 240));
 }
 
 bool ViewWavView::is_active() {
@@ -175,6 +186,13 @@ void ViewWavView::handle_replay_thread_done(const uint32_t return_code) {
 
     if (return_code == ReplayThread::READ_ERROR)
         file_error();
+
+    // Playback complete - now it's safe to update waveform view
+    playback_in_progress = false;
+    if (waveform_update_needed) {
+        waveform_update_needed = false;
+        refresh_waveform();
+    }
 }
 
 void ViewWavView::set_ready() {
@@ -197,6 +215,8 @@ void ViewWavView::start_playback() {
         file_error();
         return;
     }
+
+    playback_in_progress = true;
 
     button_play.set_bitmap(&bitmap_stop);
 
@@ -234,6 +254,7 @@ void ViewWavView::start_playback() {
 
 void ViewWavView::on_playback_progress(const uint32_t progress) {
     progressbar.set_value(progress);
+    field_pos_samples.set_value(progress);
 }
 
 ViewWavView::ViewWavView(
@@ -278,10 +299,6 @@ ViewWavView::ViewWavView(
                 }
                 load_wav(file_path);
                 field_pos_seconds.focus();
-                field_pos_seconds.set_range(0, wav_reader->ms_duration() / 1000);
-                field_pos_milliseconds.set_range(0, (wav_reader->ms_duration() < 1000) ? wav_reader->ms_duration() % 1000 : 999);
-                field_pos_samples.set_range(0, wav_reader->sample_count() - 1);
-                field_scale.set_range(1, wav_reader->sample_count() / 240);
             });
         };
     };

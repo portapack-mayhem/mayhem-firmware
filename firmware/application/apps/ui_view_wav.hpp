@@ -76,13 +76,15 @@ class ViewWavView : public View {
     uint64_t ns_per_pixel{};
     uint64_t position{};
     bool updating_position{false};
+    bool playback_in_progress{false};
+    bool waveform_update_needed{false};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "File:", Color::light_grey()},
         {{2 * 8, 1 * 16}, "-bit mono", Color::light_grey()},
         {{0 * 8, 2 * 16}, "Title:", Color::light_grey()},
         {{0 * 8, 3 * 16}, "Duration:", Color::light_grey()},
-        {{0 * 8, 12 * 16}, "Position:    .   s  Scale:", Color::light_grey()},
+        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Color::light_grey()},
         {{0 * 8, 13 * 16}, "  Sample:", Color::light_grey()},
         {{0 * 8, 14 * 16}, "Cursor A:", Color::dark_cyan()},
         {{0 * 8, 15 * 16}, "Cursor B:", Color::dark_magenta()},
@@ -148,9 +150,9 @@ class ViewWavView : public View {
         '0',
         true};
     NumberField field_scale{
-        {26 * 8, 12 * 16},
-        4,
-        {1, 9999},
+        {25 * 8, 12 * 16},
+        5,
+        {1, 1},
         1,
         ' ',
         true};
