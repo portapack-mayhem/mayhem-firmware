@@ -39,7 +39,6 @@
 
 /* TODO: This would be better as a class to add
  * guardrails on setting properties. */
-
 namespace portapack {
 
 extern portapack::IO io;
