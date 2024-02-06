@@ -145,7 +145,7 @@ class IO {
 
     /////////mark/////////
     void lcd_write_pixel(ui::Color pixel) {
-        if (apply_dark_cover) {
+        if (get_dark_cover()) {
             darken_color(pixel, darken_level);  // Darken the pixel color
         }
         lcd_write_data(pixel.v);
@@ -158,7 +158,7 @@ class IO {
 
     /////////mark/////////
     void lcd_write_pixels(ui::Color pixel, size_t n) {
-        if (apply_dark_cover) {
+        if (get_dark_cover()) {
             darken_color(pixel, darken_level);  // Darken the pixel color
         }
         while (n--) {
@@ -168,7 +168,7 @@ class IO {
 
     /////////mark/////////
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
-        if (apply_dark_cover) {
+        if (get_dark_cover()) {
             darken_color(pixel, darken_level);  // Darken the pixel color
         }
         auto v = pixel.v;
@@ -223,6 +223,8 @@ class IO {
         return switches_raw;
     }
 
+    bool get_dark_cover();
+
     uint32_t io_update(const TouchPinsConfig write_value);
 
     uint32_t lcd_te() {
@@ -252,9 +254,6 @@ class IO {
 
     bool apply_dark_cover = true;
 
-    // bool getApplyDarkCover() const {
-    //     return this->apply_dark_cover;
-    // }
 
     void lcd_rd_assert() {
         gpio_lcd_rdx.clear();

@@ -43,7 +43,6 @@ void IO::init() {
     io_stb_deassert();
     addr(0);
 
-    apply_dark_cover = !portapack::persistent_memory::apply_fake_brightness();
     // if (apply_dark_cover) { //DBG
     //     chThdSleep(1);
     //
@@ -69,6 +68,8 @@ void IO::init() {
     gpio_rot_b.input();
 }
 
+
+
 void IO::lcd_backlight(const bool value) {
     io_reg = (io_reg & 0x7f) | ((value ? 1 : 0) << 7);
     io_write(1, io_reg);
@@ -91,6 +92,10 @@ void IO::reference_oscillator(const bool enable) {
     const uint8_t mask = 1 << 6;
     io_reg = (io_reg & ~mask) | (enable ? mask : 0);
     io_write(1, io_reg);
+}
+
+bool IO::get_dark_cover() {
+    return portapack::persistent_memory::apply_fake_brightness();
 }
 
 uint32_t IO::io_update(const TouchPinsConfig write_value) {
