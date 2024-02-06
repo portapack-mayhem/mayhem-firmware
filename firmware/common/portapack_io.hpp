@@ -30,7 +30,7 @@
 #include "gpio.hpp"
 #include "ui.hpp"
 
-//#include "portapack_persistent_memory.hpp"
+// #include "portapack_persistent_memory.hpp"
 
 namespace portapack {
 
@@ -95,8 +95,7 @@ class IO {
           gpio_io_stbx{gpio_io_stbx},
           gpio_addr{gpio_addr},
           gpio_rot_a{gpio_rot_a},
-          gpio_rot_b{gpio_rot_b},
-          apply_dark_cover{} {};
+          gpio_rot_b{gpio_rot_b} {};
 
     void init();
 
@@ -144,10 +143,6 @@ class IO {
         }
     }
 
-    // void lcd_write_pixel(const ui::Color pixel) {
-    //     lcd_write_data(pixel.v);
-    // }
-
     /////////mark/////////
     void lcd_write_pixel(ui::Color pixel) {
         if (apply_dark_cover) {
@@ -161,12 +156,6 @@ class IO {
         return lcd_read_data();
     }
 
-    // void lcd_write_pixels(const ui::Color pixel, size_t n) {
-    //     while (n--) {
-    //         lcd_write_data(pixel.v);
-    //     }
-    // }
-
     /////////mark/////////
     void lcd_write_pixels(ui::Color pixel, size_t n) {
         if (apply_dark_cover) {
@@ -176,21 +165,6 @@ class IO {
             lcd_write_data(pixel.v);
         }
     }
-
-    // void lcd_write_pixels_unrolled8(const ui::Color pixel, size_t n) {
-    //     auto v = pixel.v;
-    //     n >>= 3;
-    //     while (n--) {
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //         lcd_write_data(v);
-    //     }
-    // }
 
     /////////mark/////////
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
@@ -210,12 +184,6 @@ class IO {
             lcd_write_data(v);
         }
     }
-
-    // void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
-    //     for (size_t i = 0; i < n; i++) {
-    //         lcd_write_pixel(pixels[i]);
-    //     }
-    // }
 
     /////////mark/////////
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
@@ -282,7 +250,11 @@ class IO {
 
     size_t darken_level = 1;
 
-    bool apply_dark_cover;
+    bool apply_dark_cover = true;
+
+    // bool getApplyDarkCover() const {
+    //     return this->apply_dark_cover;
+    // }
 
     void lcd_rd_assert() {
         gpio_lcd_rdx.clear();
@@ -377,6 +349,7 @@ class IO {
         // but maybe hurts screen hardware without one?
 
         // TODO: 2. de-color mode for accessibility
+        // TODO: 3. high contrast mode for accessibility
 
         uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
         uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green

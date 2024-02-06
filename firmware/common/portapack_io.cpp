@@ -43,7 +43,7 @@ void IO::init() {
     io_stb_deassert();
     addr(0);
 
-    apply_dark_cover = portapack::persistent_memory::apply_fake_brightness();
+    apply_dark_cover = !portapack::persistent_memory::apply_fake_brightness();
     // if (apply_dark_cover) { //DBG
     //     chThdSleep(1);
     //
@@ -59,8 +59,6 @@ void IO::init() {
     // try !portapack::persistent_memory::apply_fake_brightness() to debug
 
     // debugged in navigation, all good
-
-    // apply_dark_cover = true;
 
     gpio_dir.output();
     gpio_lcd_rdx.output();
