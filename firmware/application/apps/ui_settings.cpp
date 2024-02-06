@@ -81,6 +81,7 @@ SetDateTimeView::SetDateTimeView(
         &field_second,
         &text_weekday,
         &text_day_of_year,
+        &text_in_dst_range,
         &checkbox_dst_enable,
         &options_dst_start_which,
         &options_dst_start_weekday,
@@ -100,17 +101,24 @@ SetDateTimeView::SetDateTimeView(
     options_dst_start_month.set_options(month_options);
     options_dst_end_month.set_options(month_options);
 
+    const auto dst_changed_fn = [this](size_t, uint32_t) {
+        handle_date_field_update();
+    };
+
     const auto date_changed_fn = [this](int32_t) {
-        auto weekday = rtc_time::day_of_week(field_year.value(), field_month.value(), field_day.value());
-        auto doy = rtc_time::day_of_year(field_year.value(), field_month.value(), field_day.value());
-        bool valid_date = (field_day.value() <= rtc_time::days_per_month(field_year.value(), field_month.value()));
-        text_weekday.set(valid_date ? weekday_options[weekday].first : "-");
-        text_day_of_year.set(valid_date ? to_string_dec_uint(doy, 3) : "-");
+        handle_date_field_update();
     };
 
     field_year.on_change = date_changed_fn;
     field_month.on_change = date_changed_fn;
     field_day.on_change = date_changed_fn;
+
+    options_dst_start_which.on_change = dst_changed_fn;
+    options_dst_start_weekday.on_change = dst_changed_fn;
+    options_dst_start_month.on_change = dst_changed_fn;
+    options_dst_end_which.on_change = dst_changed_fn;
+    options_dst_end_weekday.on_change = dst_changed_fn;
+    options_dst_end_month.on_change = dst_changed_fn;
 
     rtc::RTC datetime;
     rtc_time::now(datetime);
@@ -146,6 +154,17 @@ void SetDateTimeView::form_init(const SetDateTimeModel& model) {
 }
 
 SetDateTimeModel SetDateTimeView::form_collect() {
+    return {
+        .year = static_cast<uint16_t>(field_year.value()),
+        .month = static_cast<uint8_t>(field_month.value()),
+        .day = static_cast<uint8_t>(field_day.value()),
+        .hour = static_cast<uint8_t>(field_hour.value()),
+        .minute = static_cast<uint8_t>(field_minute.value()),
+        .second = static_cast<uint8_t>(field_second.value()),
+        .dst = dst_collect()};
+}
+
+pmem::dst_config_t SetDateTimeView::dst_collect() {
     pmem::dst_config_t dst;
     dst.b.dst_enabled = static_cast<uint8_t>(checkbox_dst_enable.value());
     dst.b.start_which = static_cast<uint8_t>(options_dst_start_which.selected_index_value());
@@ -154,14 +173,16 @@ SetDateTimeModel SetDateTimeView::form_collect() {
     dst.b.end_which = static_cast<uint8_t>(options_dst_end_which.selected_index_value());
     dst.b.end_weekday = static_cast<uint8_t>(options_dst_end_weekday.selected_index_value());
     dst.b.end_month = static_cast<uint8_t>(options_dst_end_month.selected_index_value());
-    return {
-        .year = static_cast<uint16_t>(field_year.value()),
-        .month = static_cast<uint8_t>(field_month.value()),
-        .day = static_cast<uint8_t>(field_day.value()),
-        .hour = static_cast<uint8_t>(field_hour.value()),
-        .minute = static_cast<uint8_t>(field_minute.value()),
-        .second = static_cast<uint8_t>(field_second.value()),
-        .dst = dst};
+    return dst;
+}
+
+void SetDateTimeView::handle_date_field_update() {
+    auto weekday = rtc_time::day_of_week(field_year.value(), field_month.value(), field_day.value());
+    auto doy = rtc_time::day_of_year(field_year.value(), field_month.value(), field_day.value());
+    bool valid_date = (field_day.value() <= rtc_time::days_per_month(field_year.value(), field_month.value()));
+    text_weekday.set(valid_date ? weekday_options[weekday].first : "-");
+    text_day_of_year.set(valid_date ? to_string_dec_uint(doy, 3) : "-");
+    text_in_dst_range.set(checkbox_dst_enable.value() && rtc_time::dst_test_date_range(field_year.value(), doy, dst_collect()) ? "DST" : "");
 }
 
 /* SetRadioView ******************************************/

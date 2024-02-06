@@ -25,7 +25,7 @@
 #include "signal.hpp"
 
 #include "lpc43xx_cpp.hpp"
-using namespace lpc43xx;
+#include "portapack_persistent_memory.hpp"
 
 namespace rtc_time {
 
@@ -45,8 +45,9 @@ rtc::RTC now(rtc::RTC& out_datetime);
 /* Daylight Savings Time functions */
 void dst_init();
 rtc::RTC dst_adjust_returned_time(rtc::RTC& datetime);
-void dst_check_date_range(uint16_t doy);
+bool dst_check_date_range(uint16_t doy, uint16_t start_doy, uint16_t end_doy);
 void dst_update_date_range(uint16_t year, uint16_t doy);
+bool dst_test_date_range(uint16_t year, uint16_t doy, portapack::persistent_memory::dst_config_t dst);
 uint8_t days_per_month(uint16_t year, uint8_t month);
 uint8_t current_day_of_week();
 uint8_t day_of_week(uint16_t year, uint8_t month, uint8_t day);
