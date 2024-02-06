@@ -352,7 +352,7 @@ class IO {
         g = g >> darken_level_shift;  // Darken green
         b = b >> darken_level_shift;  // Darken blue
 
-        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color
+        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color, check UI::color for the color layout
     }
 
     void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {

@@ -52,8 +52,6 @@ void IO::init() {
     gpio_rot_b.input();
 }
 
-
-
 void IO::lcd_backlight(const bool value) {
     io_reg = (io_reg & 0x7f) | ((value ? 1 : 0) << 7);
     io_write(1, io_reg);
@@ -82,7 +80,7 @@ bool IO::get_dark_cover() {
     return portapack::persistent_memory::apply_fake_brightness();
 }
 
-uint8_t IO::get_brightness(){
+uint8_t IO::get_brightness() {
     return portapack::persistent_memory::fake_brightness_level();
 }
 
