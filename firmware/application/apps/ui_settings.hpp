@@ -679,23 +679,30 @@ class SetFakeBrightnessView : public View {
 
     void focus() override;
 
-    std::string title() const override { return "F. Brightness"; };
+    std::string title() const override { return "Brightness"; };
 
    private:
     Labels labels{
         {{1 * 8, 1 * 16}, "Cover a dark layer on screen;", Color::light_grey()},
         {{1 * 8, 2 * 16}, "Influence a little performace", Color::light_grey()},
         {{1 * 8, 3 * 16}, "if you enabled it.", Color::light_grey()},
-        {{2 * 8, 5 * 16}, "Fake brightness:", Color::light_grey()},
+        {{2 * 8, 8 * 16}, "Brightness:", Color::light_grey()},
     };
 
+
+
     OptionsField field_fake_brightness{
-        {20 * 8, 5 * 16},
+        {20 * 8, 8 * 16},
         6,
         {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
          {"25%", fake_brightness_level_options::BRIGHTNESS_25},
          {"50%", fake_brightness_level_options::BRIGHTNESS_50},
          {"100%", fake_brightness_level_options::BRIGHTNESS_100}}};
+
+    Checkbox checkbox_brightness_switch{
+        {1 * 8, 5 * 16},
+        16,
+        "Enable brightness adjust"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
