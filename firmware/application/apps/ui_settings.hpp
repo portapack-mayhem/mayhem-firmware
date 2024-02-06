@@ -324,35 +324,35 @@ class SetUIView : public View {
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {12 * 8, 14 * 16 + 2, 16, 16},
+        {10 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {14 * 8, 14 * 16 + 2, 16, 16},
+        {12 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {16 * 8, 14 * 16 + 2, 16, 16},
+        {14 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {18 * 8, 14 * 16 + 2, 8, 16},
+        {16 * 8, 14 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {20 * 8, 14 * 16 + 2, 16, 16},
+        {17 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {21 * 8, 14 * 16 + 2, 16, 16},
+        {19 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
     ImageToggle toggle_fake_brightness{
-        {23 * 8, 14 * 16 + 2, 16, 16},
+        {21 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_brightness};
 
     ImageToggle toggle_sd_card{
-        {25 * 8, 14 * 16 + 2, 16, 16},
+        {23 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
