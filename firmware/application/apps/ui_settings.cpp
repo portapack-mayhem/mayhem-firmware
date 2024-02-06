@@ -742,7 +742,7 @@ SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
 
     checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        pmem::set_ui_hide_fake_brightness(true); // if user disabled fake brightness, we don't need icon to confusing user.
+        pmem::set_ui_hide_fake_brightness(true);  // if user disabled fake brightness, we don't need icon to confusing user.
         pmem::set_apply_fake_brightness(v);
     };
 

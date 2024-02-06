@@ -689,8 +689,6 @@ class SetFakeBrightnessView : public View {
         {{2 * 8, 8 * 16}, "Brightness:", Color::light_grey()},
     };
 
-
-
     OptionsField field_fake_brightness{
         {20 * 8, 8 * 16},
         6,
