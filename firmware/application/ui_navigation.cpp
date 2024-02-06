@@ -333,14 +333,18 @@ SystemStatusView::SystemStatusView(
         if (nav.is_valid() && v) {
             nav.display_modal(
                 "Brightness",
-                "You just enabled fake\n"
-                " brightness cover.\n"
-                "performance will be\n"
-                " influented a little,\n"
+                "You just enabled brightness adjust.\n"
+                "performance will be influented\n"
+                " a little,\n"
                 "reboot to apply.\n");
 
             // TODO: refresh interface to prevent reboot requirement
             // TODO: increase performance
+        } else if (!v) {
+            nav.display_modal(
+                "Brightness",
+                "brightness adjust\n"
+                "disabled.");
         }
         refresh();
     };
