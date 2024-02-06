@@ -773,7 +773,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
-        {"Fake Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
+        {"F. Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

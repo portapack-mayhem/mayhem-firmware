@@ -251,10 +251,9 @@ class IO {
 
     uint8_t io_reg{0x03};
 
-    size_t darken_level = 1;
+    size_t darken_level = 0;
 
-    bool apply_dark_cover = true;
-
+    bool apply_dark_cover = false;
 
     void lcd_rd_assert() {
         gpio_lcd_rdx.clear();
