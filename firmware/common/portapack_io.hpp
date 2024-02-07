@@ -334,7 +334,7 @@ class IO {
         addr(1); /* Set up for data phase (most likely after a command) */
     }
 
-    void darken_color(ui::Color& pixel, size_t darken_level_shift) {
+    void darken_color(ui::Color& pixel, uint8_t darken_level_shift) {
         // TODO: 1. do we need edge control?
         // currently didn't see and issue without edge control
         // but maybe hurts screen hardware without one?
