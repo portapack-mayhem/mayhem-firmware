@@ -330,21 +330,8 @@ SystemStatusView::SystemStatusView(
     toggle_fake_brightness.on_change = [this, &nav](bool v) {
         set_dirty();
         pmem::set_apply_fake_brightness(v);
-        if (nav.is_valid() && v) {
-            nav.display_modal(
-                "Brightness",
-                "You have enabled brightness\n"
-                "adjustment. Performance\n"
-                "will be impacted slightly.");
-
-            // TODO: refresh interface to prevent reboot requirement
-            // TODO: increase performance
-        } else if (!v) {
-            nav.display_modal(
-                "Brightness",
-                "Brightness adjust disabled.");
-        }
         refresh();
+        parent()->set_dirty(); // The parent of NavigationView shal be the SystemView
     };
 
     button_bias_tee.on_select = [this](ImageButton&) {
@@ -412,6 +399,9 @@ void SystemStatusView::refresh() {
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
     button_converter.set_foreground(pmem::config_converter() ? Color::red() : Color::light_grey());
+
+    // Brightness
+    toggle_fake_brightness.set_value(pmem::apply_fake_brightness());
 
     set_dirty();
 }
