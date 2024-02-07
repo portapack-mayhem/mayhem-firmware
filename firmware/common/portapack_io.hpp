@@ -221,7 +221,7 @@ class IO {
 
     bool get_dark_cover();
     uint8_t get_brightness();
-    // TODO: cache the value ^^ & ^ to increaase performance, need a trigger cuz init doesn't work
+    // TODO: cache the value ^^ & ^ to increaase performance, need a trigger cuz init doesn't work. And since the constructor is constexpr, we can't use with in class var to cache it. maybe cache from outside somewhere and pass it here as argument.
 
     uint32_t io_update(const TouchPinsConfig write_value);
 
