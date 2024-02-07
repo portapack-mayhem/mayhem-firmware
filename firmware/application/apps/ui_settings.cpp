@@ -763,12 +763,10 @@ SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
     field_fake_brightness.set_by_value(pmem::fake_brightness_level());
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
 
-    checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        pmem::set_apply_fake_brightness(v);
-    };
-
     button_save.on_select = [&nav, this](Button&) {
+        pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
         pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
+        send_system_refresh();
         nav.pop();
     };
 
