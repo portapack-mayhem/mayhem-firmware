@@ -743,9 +743,6 @@ SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
     checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
 
     checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
-        if (!v) {  // this is to hide status bar sun icon when check off, but don't de-hide it when check on (some user may don't wan't the icon, so this makes mor sense then !v)
-            pmem::set_ui_hide_fake_brightness(true);
-        }
         pmem::set_apply_fake_brightness(v);
     };
 
