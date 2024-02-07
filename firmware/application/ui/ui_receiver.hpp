@@ -264,6 +264,7 @@ class FrequencyStepView : public OptionsField {
               parent_pos,
               5,
               {
+                  {" Auto", 0},  /* Faster == larger step. */
                   {"   10", 10}, /* Fine tuning SSB voice pitch,in HF and QO-100 sat #669 */
                   {"   50", 50}, /* added 50Hz/10Hz,but we do not increase GUI digit decimal */
                   {"  100", 100},
