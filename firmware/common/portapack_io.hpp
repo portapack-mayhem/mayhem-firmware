@@ -353,41 +353,41 @@ class IO {
         pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color, check UI::color for the color layout
     }
 
-//    void high_contrast(ui::Color& pixel, size_t contrast_level_shift) {  // TODO
-//        uint16_t r = (pixel.v >> 11) & 0x1F;
-//        uint16_t g = (pixel.v >> 5) & 0x3F;
-//        uint16_t b = pixel.v & 0x1F;
-//
-//        if ((r << contrast_level_shift) > 0x1F) {  // should be slightly smaller, need more obverse...
-//            r = 0x1F;
-//        } else {
-//            r = r << contrast_level_shift;
-//        }
-//
-//        if ((g << contrast_level_shift) > 0x3F) {  // same as above
-//            g = 0x3F;
-//        } else {
-//            g = g << contrast_level_shift;
-//        }
-//
-//        if ((b << contrast_level_shift) > 0x1F) {  // same as above
-//            b = 0x1F;
-//        } else {
-//            b = b << contrast_level_shift;
-//        }
-//
-//        pixel.v = (r << 11) | (g << 5) | b;
-//    }
-//
-//    void gray_scale(ui::Color& pixel) {  // TODO: the blackwhite not looks right....
-//        uint16_t r = (pixel.v >> 11) & 0x1F;
-//        uint16_t g = (pixel.v >> 5) & 0x3F;
-//        uint16_t b = pixel.v & 0x1F;
-//
-//        uint16_t average = (r + g + b) / 3;
-//
-//        pixel.v = (average << 11) | (average << 5) | average;
-//    }
+    // void high_contrast(ui::Color& pixel, size_t contrast_level_shift) {  // TODO
+    //     uint16_t r = (pixel.v >> 11) & 0x1F;
+    //     uint16_t g = (pixel.v >> 5) & 0x3F;
+    //     uint16_t b = pixel.v & 0x1F;
+    //
+    //     if ((r << contrast_level_shift) > 0x1F) {  // should be slightly smaller, need more obverse...
+    //         r = 0x1F;
+    //     } else {
+    //         r = r << contrast_level_shift;
+    //     }
+    //
+    //     if ((g << contrast_level_shift) > 0x3F) {  // same as above
+    //         g = 0x3F;
+    //     } else {
+    //         g = g << contrast_level_shift;
+    //     }
+    //
+    //     if ((b << contrast_level_shift) > 0x1F) {  // same as above
+    //         b = 0x1F;
+    //     } else {
+    //         b = b << contrast_level_shift;
+    //     }
+    //
+    //     pixel.v = (r << 11) | (g << 5) | b;
+    // }
+    //
+    // void gray_scale(ui::Color& pixel) {  // TODO: the blackwhite not looks right....
+    //     uint16_t r = (pixel.v >> 11) & 0x1F;
+    //     uint16_t g = (pixel.v >> 5) & 0x3F;
+    //     uint16_t b = pixel.v & 0x1F;
+    //
+    //     uint16_t average = (r + g + b) / 3;
+    //
+    //     pixel.v = (average << 11) | (average << 5) | average;
+    // }
 
     void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
         // NOTE: Assumes and DIR=0 and ADDR=1 from command phase.
