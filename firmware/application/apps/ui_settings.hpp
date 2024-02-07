@@ -684,9 +684,9 @@ class SetFakeBrightnessView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Cover a dark layer on screen;", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "Influence a little performace", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "if you enabled it.", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Limits screen brightness", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "(has a small performance", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "impact when enabled).", Color::light_grey()},
         {{2 * 8, 8 * 16}, "Brightness:", Color::light_grey()},
     };
 

@@ -333,17 +333,16 @@ SystemStatusView::SystemStatusView(
         if (nav.is_valid() && v) {
             nav.display_modal(
                 "Brightness",
-                "You just enabled brightness\n"
-                "adjust.\n"
-                "performance will be\n"
-                "influented a little");
+                "You have enabled brightness\n"
+                "adjustment. Performance\n"
+                "will be impacted slightly.");
 
             // TODO: refresh interface to prevent reboot requirement
             // TODO: increase performance
         } else if (!v) {
             nav.display_modal(
                 "Brightness",
-                "brightness adjust disabled.");
+                "Brightness adjust disabled.");
         }
         refresh();
     };

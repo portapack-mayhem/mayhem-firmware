@@ -223,7 +223,10 @@ struct data_t {
 
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
     uint16_t encoder_dial_sensitivity : 4;
-    uint16_t UNUSED_8 : 12;
+
+    // fake brightness level (not switch, switch is in another place)
+    uint16_t fake_brightness_level : 4;
+    uint16_t UNUSED_8 : 8;
 
     // Headphone volume in centibels.
     int16_t headphone_volume_cb;
@@ -239,9 +242,6 @@ struct data_t {
 
     // Daylight savings time
     dst_config_t dst_config;
-
-    // fake brightness level (not switch, switch is in another place)
-    uint16_t fake_brightness_level : 4;
 
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
@@ -291,13 +291,13 @@ struct data_t {
           frequency_tx_correction(0),
 
           encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
+          fake_brightness_level(0),
           UNUSED_8(0),
           headphone_volume_cb(-600),
           misc_config(),
           ui_config2(),
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
-          dst_config(),
-          fake_brightness_level(0) {  // 0 is 100%, not same with switch, we need it to keep *before* states
+          dst_config() {
     }
 };
 
@@ -404,7 +404,6 @@ void defaults() {
     set_config_disable_external_tcxo(false);
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
-    set_fake_brightness_level(BRIGHTNESS_100);
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
