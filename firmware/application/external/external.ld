@@ -31,6 +31,7 @@ MEMORY
     ram_external_app_gpssim(rwx) : org = 0xEEF40000, len = 32k
     ram_external_app_spainter(rwx) : org = 0xEEF50000, len = 32k
     ram_external_app_keyfob(rwx) : org = 0xEEF60000, len = 32k
+    ram_external_app_tetris(rwx) : org = 0xEEF70000, len = 32k
 }
 
 SECTIONS
@@ -59,7 +60,7 @@ SECTIONS
         *(*ui*external_app*font_viewer*);
     } > ram_external_app_font_viewer
 
-    
+
     .external_app_blespam : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_blespam.application_information));
@@ -77,33 +78,33 @@ SECTIONS
         KEEP(*(.external_app.app_nrf_rx.application_information));
         *(*ui*external_app*nrf_rx*);
     } > ram_external_app_nrf_rx
- 
+
      .external_app_coasterp : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_coasterp.application_information));
         *(*ui*external_app*coasterp*);
     } > ram_external_app_coasterp
-    
+
     .external_app_lge : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_lge.application_information));
         *(*ui*external_app*lge*);
     } > ram_external_app_lge
- 
+
 
     .external_app_lcr : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_lcr.application_information));
         *(*ui*external_app*lcr*);
     } > ram_external_app_lcr
- 
+
 
     .external_app_jammer : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_jammer.application_information));
         *(*ui*external_app*jammer*);
     } > ram_external_app_jammer
- 
+
     .external_app_gpssim : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_gpssim.application_information));
@@ -122,5 +123,11 @@ SECTIONS
         KEEP(*(.external_app.app_keyfob.application_information));
         *(*ui*external_app*keyfob*);
     } > ram_external_app_keyfob
+
+    .external_app_tetris : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_tetris.application_information));
+        *(*ui*external_app*tetris*);
+    } > ram_external_app_tetris
 
 }

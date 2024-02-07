@@ -25,14 +25,12 @@
 #include "file.hpp"
 #include <cstring>
 
-namespace std {
-
 int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) {
     file_path = "AIS/mids.db";
     index_item_length = 4;
     record_length = 32;
 
-    result = std::database::retrieve_record(file_path, index_item_length, record_length, record, search_term);
+    result = retrieve_record(file_path, index_item_length, record_length, record, search_term);
 
     return (result);
 }
@@ -42,7 +40,7 @@ int database::retrieve_airline_record(AirlinesDBRecord* record, std::string sear
     index_item_length = 4;
     record_length = 64;
 
-    result = std::database::retrieve_record(file_path, index_item_length, record_length, record, search_term);
+    result = retrieve_record(file_path, index_item_length, record_length, record, search_term);
 
     return (result);
 }
@@ -52,12 +50,15 @@ int database::retrieve_aircraft_record(AircraftDBRecord* record, std::string sea
     index_item_length = 7;
     record_length = 146;
 
-    result = std::database::retrieve_record(file_path, index_item_length, record_length, record, search_term);
+    result = retrieve_record(file_path, index_item_length, record_length, record, search_term);
 
     return (result);
 }
 
 int database::retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term) {
+    if (search_term.empty())
+        return DATABASE_RECORD_NOT_FOUND;
+
     auto result = db_file.open(file_path);
     if (!result.is_valid()) {
         number_of_records = (db_file.size() / (index_item_length + record_length));  // determine number of records in file
@@ -91,5 +92,3 @@ int database::retrieve_record(std::string file_path, int index_item_length, int 
     } else
         return (DATABASE_NOT_FOUND);
 }
-
-} /* namespace std */

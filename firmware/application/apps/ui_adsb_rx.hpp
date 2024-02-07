@@ -280,6 +280,7 @@ class ADSBRxDetailsView : public View {
     // NB: Keeping a copy so that it doesn't end up dangling
     // if removed from the recent entries list.
     AircraftRecentEntry entry_{AircraftRecentEntry::invalid_key};
+    bool airline_checked{false};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},

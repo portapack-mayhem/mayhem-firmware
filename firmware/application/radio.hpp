@@ -54,6 +54,7 @@ void set_baseband_filter_bandwidth_rx(const uint32_t bandwidth_minimum);
 void set_baseband_filter_bandwidth_tx(const uint32_t bandwidth_minimum);
 void set_baseband_rate(const uint32_t rate);
 void set_antenna_bias(const bool on);
+void set_tx_max283x_iq_phase_calibration(const size_t v);
 
 /* Use ReceiverModel or TransmitterModel instead. */
 // void enable(Configuration configuration);

@@ -21,9 +21,10 @@
  */
 
 #include "rtc_time.hpp"
-#include "portapack_persistent_memory.hpp"
 
+using namespace lpc43xx;
 using namespace portapack;
+
 namespace pmem = portapack::persistent_memory;
 
 namespace rtc_time {
@@ -77,8 +78,10 @@ rtc::RTC dst_adjust_returned_time(rtc::RTC& datetime) {
     if (doy != dst_current_doy) {
         if (datetime.year() != dst_current_year)
             dst_update_date_range(datetime.year(), doy);
-        else
-            dst_check_date_range(doy);
+        else {
+            dst_current_doy = doy;
+            dst_in_range = dst_check_date_range(doy, dst_start_doy, dst_end_doy);
+        }
     }
 
     // Not in DST date range
@@ -105,15 +108,13 @@ rtc::RTC dst_adjust_returned_time(rtc::RTC& datetime) {
 }
 
 // Check if current date is within the DST range (called when date changes)
-void dst_check_date_range(uint16_t doy) {
-    dst_current_doy = doy;
-
+bool dst_check_date_range(uint16_t doy, uint16_t start_doy, uint16_t end_doy) {
     // Check if date is within DST range
     // (note that dates are reversed in Southern hemisphere because Summer starts in December)
-    if (dst_start_doy <= dst_end_doy)
-        dst_in_range = ((doy >= dst_start_doy) && (doy < dst_end_doy));
+    if (start_doy <= end_doy)
+        return ((doy >= start_doy) && (doy < end_doy));
     else
-        dst_in_range = ((doy >= dst_start_doy) || (doy < dst_end_doy));
+        return ((doy >= start_doy) || (doy < end_doy));
 }
 
 // Update DST parameters (called at power-up, when year changes, or DST settings are changed)
@@ -125,10 +126,18 @@ void dst_update_date_range(uint16_t year, uint16_t doy) {
         dst_start_doy = day_of_year_of_nth_weekday(dst_current_year, dst.b.start_month, dst.b.start_which, dst.b.start_weekday);
         dst_end_doy = day_of_year_of_nth_weekday(dst_current_year, dst.b.end_month, dst.b.end_which, dst.b.end_weekday);
 
-        dst_check_date_range(doy);
+        dst_current_doy = doy;
+        dst_in_range = dst_check_date_range(doy, dst_start_doy, dst_end_doy);
     } else {
         dst_in_range = false;
     }
+}
+
+// Test date range for display purposes only when setting Time
+bool dst_test_date_range(uint16_t year, uint16_t doy, pmem::dst_config_t dst) {
+    uint16_t start_doy = day_of_year_of_nth_weekday(year, dst.b.start_month, dst.b.start_which, dst.b.start_weekday);
+    uint16_t end_doy = day_of_year_of_nth_weekday(year, dst.b.end_month, dst.b.end_which, dst.b.end_weekday);
+    return dst_check_date_range(doy, start_doy, end_doy);
 }
 
 // Set RTC clock.

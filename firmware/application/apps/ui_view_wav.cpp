@@ -38,9 +38,17 @@ void ViewWavView::update_scale(int32_t new_scale) {
 }
 
 void ViewWavView::refresh_waveform() {
+    uint8_t bits_per_sample = wav_reader->bits_per_sample();
+
     for (size_t i = 0; i < 240; i++) {
         wav_reader->data_seek(position + (i * scale));
-        wav_reader->read(&waveform_buffer[i], sizeof(int16_t));
+        if (bits_per_sample == 8) {
+            uint8_t sample;
+            wav_reader->read(&sample, 1);
+            waveform_buffer[i] = (sample - 0x80) * 256;
+        } else {
+            wav_reader->read(&waveform_buffer[i], 2);
+        }
     }
 
     waveform.set_dirty();
@@ -73,13 +81,29 @@ void ViewWavView::paint(Painter& painter) {
         painter.draw_vline({(Coord)i, 11 * 16}, 8, spectrum_rgb2_lut[amplitude_buffer[i] << 1]);
 }
 
-void ViewWavView::on_pos_changed() {
-    position = (field_pos_seconds.value() * wav_reader->sample_rate()) + field_pos_samples.value();
+void ViewWavView::on_pos_time_changed() {
+    position = (uint64_t)((field_pos_seconds.value() * 1000) + field_pos_milliseconds.value()) * wav_reader->sample_rate() / 1000;
+    field_pos_milliseconds.set_range(0, ((uint32_t)field_pos_seconds.value() == wav_reader->ms_duration() / 1000) ? wav_reader->ms_duration() % 1000 : 999);
+    if (!updating_position) {
+        updating_position = true;  // prevent recursion
+        field_pos_samples.set_value(position);
+        updating_position = false;
+    }
+    refresh_waveform();
+}
+
+void ViewWavView::on_pos_sample_changed() {
+    position = field_pos_samples.value();
+    if (!updating_position) {
+        updating_position = true;  // prevent recursion
+        field_pos_seconds.set_value(field_pos_samples.value() / wav_reader->sample_rate());
+        field_pos_milliseconds.set_value((field_pos_samples.value() * 1000ull / wav_reader->sample_rate()) % 1000);
+        updating_position = false;
+    }
     refresh_waveform();
 }
 
 void ViewWavView::load_wav(std::filesystem::path file_path) {
-    int16_t sample;
     uint32_t average;
 
     wav_file_path = file_path;
@@ -91,18 +115,27 @@ void ViewWavView::load_wav(std::filesystem::path file_path) {
     wav_reader->rewind();
 
     text_samplerate.set(to_string_dec_uint(wav_reader->sample_rate()) + "Hz");
+    text_bits_per_sample.set(to_string_dec_uint(wav_reader->bits_per_sample(), 2));
     text_title.set(wav_reader->title());
 
     // Fill amplitude buffer, world's worst downsampling
     uint64_t skip = wav_reader->sample_count() / (240 * subsampling_factor);
+    uint8_t bits_per_sample = wav_reader->bits_per_sample();
 
     for (size_t i = 0; i < 240; i++) {
         average = 0;
 
         for (size_t s = 0; s < subsampling_factor; s++) {
             wav_reader->data_seek(((i * subsampling_factor) + s) * skip);
-            wav_reader->read(&sample, 2);
-            average += (abs(sample) >> 8);
+            if (bits_per_sample == 8) {
+                uint8_t sample;
+                wav_reader->read(&sample, 1);
+                average += sample / 2;
+            } else {
+                int16_t sample;
+                wav_reader->read(&sample, 2);
+                average += (abs(sample) >> 8);
+            }
         }
 
         amplitude_buffer[i] = average / subsampling_factor;
@@ -154,6 +187,7 @@ void ViewWavView::file_error() {
 
 void ViewWavView::start_playback() {
     uint32_t sample_rate;
+    uint8_t bits_per_sample;
 
     auto reader = std::make_unique<WAVFileReader>();
 
@@ -167,6 +201,7 @@ void ViewWavView::start_playback() {
     button_play.set_bitmap(&bitmap_stop);
 
     sample_rate = reader->sample_rate();
+    bits_per_sample = reader->bits_per_sample();
 
     progressbar.set_max(reader->sample_count());
 
@@ -180,18 +215,19 @@ void ViewWavView::start_playback() {
         });
 
     baseband::set_audiotx_config(
-        1536000 / 20,  // Rate of sending progress updates
-        0,             // Transmit BW = 0 = not transmitting
-        0,             // Gain - unused
-        8,             // shift_bits_s16, default 8 bits - unused
-        16,            // bits per sample
-        0,             // tone key disabled
-        false,         // AM
-        false,         // DSB
-        false,         // USB
-        false          // LSB
+        1536000 / 20,     // Rate of sending progress updates
+        0,                // Transmit BW = 0 = not transmitting
+        0,                // Gain - unused
+        8,                // shift_bits_s16, default 8 bits - unused
+        bits_per_sample,  // bits_per_sample
+        0,                // tone key disabled
+        false,            // AM
+        false,            // DSB
+        false,            // USB
+        false             // LSB
     );
     baseband::set_sample_rate(sample_rate);
+    transmitter_model.set_sampling_rate(1536000);
 
     audio::output::start();
 }
@@ -211,11 +247,13 @@ ViewWavView::ViewWavView(
                   &text_samplerate,
                   &text_title,
                   &text_duration,
+                  &text_bits_per_sample,
                   &button_open,
                   &button_play,
                   &waveform,
                   &progressbar,
                   &field_pos_seconds,
+                  &field_pos_milliseconds,
                   &field_pos_samples,
                   &field_scale,
                   &field_cursor_a,
@@ -234,12 +272,16 @@ ViewWavView::ViewWavView(
                     file_error();
                     return;
                 }
-                if ((wav_reader->channels() != 1) || (wav_reader->bits_per_sample() != 16)) {
-                    nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n16-bit mono files.");
+                if ((wav_reader->channels() != 1) || ((wav_reader->bits_per_sample() != 8) && (wav_reader->bits_per_sample() != 16))) {
+                    nav_.display_modal("Error", "Wrong format.\nWav viewer only accepts\n8 or 16-bit mono files.");
                     return;
                 }
                 load_wav(file_path);
                 field_pos_seconds.focus();
+                field_pos_seconds.set_range(0, wav_reader->ms_duration() / 1000);
+                field_pos_milliseconds.set_range(0, (wav_reader->ms_duration() < 1000) ? wav_reader->ms_duration() % 1000 : 999);
+                field_pos_samples.set_range(0, wav_reader->sample_count() - 1);
+                field_scale.set_range(1, wav_reader->sample_count() / 240);
             });
         };
     };
@@ -257,10 +299,13 @@ ViewWavView::ViewWavView(
         update_scale(value);
     };
     field_pos_seconds.on_change = [this](int32_t) {
-        on_pos_changed();
+        on_pos_time_changed();
+    };
+    field_pos_milliseconds.on_change = [this](int32_t) {
+        on_pos_time_changed();
     };
     field_pos_samples.on_change = [this](int32_t) {
-        on_pos_changed();
+        on_pos_sample_changed();
     };
 
     field_cursor_a.on_change = [this](int32_t v) {
