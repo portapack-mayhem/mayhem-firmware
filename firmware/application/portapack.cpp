@@ -280,10 +280,14 @@ static const portapack::cpld::Config& portapack_cpld_config() {
                : portapack::cpld::rev_20150901::config;
 }
 
+// Backlight* backlight() {
+//     return (portapack_model() == PortaPackModel::R2_20170522)
+//                ? static_cast<portapack::Backlight*>(&backlight_cat4004)  // R2_20170522
+//                : static_cast<portapack::Backlight*>(&backlight_on_off);  // R1_20150901
+// }
+
 Backlight* backlight() {
-    return (portapack_model() == PortaPackModel::R2_20170522)
-               ? static_cast<portapack::Backlight*>(&backlight_cat4004)  // R2_20170522
-               : static_cast<portapack::Backlight*>(&backlight_on_off);  // R1_20150901
+    return static_cast<portapack::Backlight*>(&backlight_cat4004);  // R1_20150901
 }
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))

@@ -329,7 +329,8 @@ void EventDispatcher::handle_lcd_frame_sync() {
     static_cast<ui::SystemView*>(top_widget)->paint_overlay();
     painter.paint_widget_tree(top_widget);
 
-    portapack::backlight()->on();
+    // portapack::backlight()->on();
+    portapack::backlight()->set_level(28);
 
     if (waiting_for_frame)
         this->waiting_for_frame = false;
