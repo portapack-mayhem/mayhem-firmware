@@ -331,7 +331,7 @@ SystemStatusView::SystemStatusView(
         set_dirty();
         pmem::set_apply_fake_brightness(v);
         refresh();
-        parent()->set_dirty(); // The parent of NavigationView shal be the SystemView
+        parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
     };
 
     button_bias_tee.on_select = [this](ImageButton&) {
