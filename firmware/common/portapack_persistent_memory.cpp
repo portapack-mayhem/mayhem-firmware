@@ -106,7 +106,7 @@ struct ui_config_t {
     bool hide_clock : 1;
     bool clock_show_date : 1;
     bool clkout_enabled : 1;
-    bool UNUSED_1 : 1;
+    bool apply_fake_brightness : 1;
     bool stealth_mode : 1;
     bool config_login : 1;
     bool config_splash : 1;
@@ -127,13 +127,13 @@ struct ui_config2_t {
     bool hide_sd_card : 1;
 
     bool hide_mute : 1;
+    bool hide_fake_brightness : 1;
     bool UNUSED_1 : 1;
     bool UNUSED_2 : 1;
     bool UNUSED_3 : 1;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
-    bool UNUSED_7 : 1;
 
     uint8_t PLACEHOLDER_2;
     uint8_t PLACEHOLDER_3;
@@ -223,7 +223,10 @@ struct data_t {
 
     // Rotary encoder dial sensitivity (encoder.cpp/hpp)
     uint16_t encoder_dial_sensitivity : 4;
-    uint16_t UNUSED_8 : 12;
+
+    // fake brightness level (not switch, switch is in another place)
+    uint16_t fake_brightness_level : 4;
+    uint16_t UNUSED_8 : 8;
 
     // Headphone volume in centibels.
     int16_t headphone_volume_cb;
@@ -288,6 +291,7 @@ struct data_t {
           frequency_tx_correction(0),
 
           encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
+          fake_brightness_level(0),
           UNUSED_8(0),
           headphone_volume_cb(-600),
           misc_config(),
@@ -619,6 +623,10 @@ bool stealth_mode() {
     return data->ui_config.stealth_mode;
 }
 
+bool apply_fake_brightness() {
+    return data->ui_config.apply_fake_brightness;
+}
+
 bool config_login() {
     return data->ui_config.config_login;
 }
@@ -716,6 +724,10 @@ void set_config_cpld(uint8_t i) {
 void set_config_backlight_timer(const backlight_config_t& new_value) {
     data->ui_config.backlight_timeout = static_cast<uint8_t>(new_value.timeout_enum());
     data->ui_config.enable_backlight_timeout = static_cast<uint8_t>(new_value.timeout_enabled());
+}
+
+void set_apply_fake_brightness(const bool v) {
+    data->ui_config.apply_fake_brightness = v;
 }
 
 uint32_t pocsag_last_address() {
@@ -874,6 +886,9 @@ bool ui_hide_clock() {
 bool ui_hide_sd_card() {
     return data->ui_config2.hide_sd_card;
 }
+bool ui_hide_fake_brightness() {
+    return data->ui_config2.hide_fake_brightness;
+}
 
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
@@ -903,6 +918,9 @@ void set_ui_hide_clock(bool v) {
 }
 void set_ui_hide_sd_card(bool v) {
     data->ui_config2.hide_sd_card = v;
+}
+void set_ui_hide_fake_brightness(bool v) {
+    data->ui_config2.hide_fake_brightness = v;
 }
 
 /* Converter */
@@ -992,6 +1010,14 @@ dst_config_t config_dst() {
 void set_config_dst(dst_config_t v) {
     data->dst_config = v;
     rtc_time::dst_init();
+}
+// fake brightness level (switch is in another place)
+
+uint8_t fake_brightness_level() {
+    return data->fake_brightness_level;
+}
+void set_fake_brightness_level(uint8_t v) {
+    data->fake_brightness_level = v;
 }
 
 // PMem to sdcard settings
@@ -1099,6 +1125,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
+    pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(data->fake_brightness_level));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();
@@ -1113,6 +1140,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config hide_clock: " + to_string_dec_uint(data->ui_config.hide_clock));
     pmem_dump_file.write_line("ui_config clock_with_date: " + to_string_dec_uint(data->ui_config.clock_show_date));
     pmem_dump_file.write_line("ui_config clkout_enabled: " + to_string_dec_uint(data->ui_config.clkout_enabled));
+    pmem_dump_file.write_line("ui_config apply_fake_brightness: " + to_string_dec_uint(data->ui_config.apply_fake_brightness));
     pmem_dump_file.write_line("ui_config stealth_mode: " + to_string_dec_uint(data->ui_config.stealth_mode));
     pmem_dump_file.write_line("ui_config config_login: " + to_string_dec_uint(data->ui_config.config_login));
     pmem_dump_file.write_line("ui_config config_splash: " + to_string_dec_uint(data->ui_config.config_splash));
@@ -1127,6 +1155,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_clock: " + to_string_dec_uint(data->ui_config2.hide_clock));
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
     pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(data->ui_config2.hide_mute));
+    pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(data->ui_config2.hide_fake_brightness));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));

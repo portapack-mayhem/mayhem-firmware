@@ -55,7 +55,7 @@ CMakeFiles/
 # Debugging
 .gdbinit*
 
-# Editor/IDE files
+# Editor/ IDE files
 *.sublime-project
 *.sublime-workspace
 .vscode
@@ -68,8 +68,9 @@ CMakeFiles/
 .DS_Store
 /firmware/CMakeCache.txt
 
-# Python env
+# Python env/ venv
 env/
+venv/
 
 # Other
 *.bak

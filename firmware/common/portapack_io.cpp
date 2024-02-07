@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -20,6 +21,7 @@
  */
 
 #include "portapack_io.hpp"
+#include "portapack_persistent_memory.hpp"
 
 #include "lpc43xx_cpp.hpp"
 using namespace lpc43xx;
@@ -73,6 +75,14 @@ void IO::reference_oscillator(const bool enable) {
     const uint8_t mask = 1 << 6;
     io_reg = (io_reg & ~mask) | (enable ? mask : 0);
     io_write(1, io_reg);
+}
+
+bool IO::get_dark_cover() {
+    return portapack::persistent_memory::apply_fake_brightness();
+}
+
+uint8_t IO::get_brightness() {
+    return portapack::persistent_memory::fake_brightness_level();
 }
 
 uint32_t IO::io_update(const TouchPinsConfig write_value) {

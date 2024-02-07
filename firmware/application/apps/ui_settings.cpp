@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -314,6 +315,7 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &toggle_bias_tee,
                   &toggle_clock,
                   &toggle_mute,
+                  &toggle_fake_brightness,
                   &toggle_sd_card,
                   &button_save,
                   &button_cancel});
@@ -347,6 +349,7 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_clock.set_value(!pmem::ui_hide_clock());
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
+    toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
 
     button_save.on_select = [&nav, this](Button&) {
@@ -373,6 +376,7 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_clock(!toggle_clock.value());
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
         pmem::set_ui_hide_mute(!toggle_mute.value());
+        pmem::set_ui_hide_fake_brightness(!toggle_fake_brightness.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
         send_system_refresh();
 
@@ -747,6 +751,36 @@ void SetConfigModeView::focus() {
     button_save.focus();
 }
 
+/* FakeBrightnessView ************************************/
+
+SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_fake_brightness,
+                  &button_save,
+                  &button_cancel,
+                  &checkbox_brightness_switch});
+
+    field_fake_brightness.set_by_value(pmem::fake_brightness_level());
+    checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
+
+    checkbox_brightness_switch.on_select = [this](Checkbox&, bool v) {
+        pmem::set_apply_fake_brightness(v);
+    };
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetFakeBrightnessView::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
@@ -767,6 +801,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
+        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
