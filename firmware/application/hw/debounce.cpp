@@ -158,8 +158,13 @@ uint8_t EncoderDebounce::state() {
 bool EncoderDebounce::feed(const uint8_t phase_bits) {
     history_ = (history_ << 2) | phase_bits;
 
-    // Has input been constant for 4 ticks? (phase_bits * 01010101b should be 0x00, 0x55, 0xAA, or 0xFF)
-    if (history_ == (phase_bits * 0x55)) {
+    // If both inputs have been stable for the last 4 ticks, history_ should equal 0x00, 0x55, 0xAA, or 0xFF.
+    uint8_t expected_stable_history = phase_bits * 0b01010101;
+
+    // But, checking for equal seems to cause issues with at least 1 user's encoder, so we're treating the input
+    // as "stable" if at least ONE input bit is consistent for 4 ticks...
+    uint8_t diff = (history_ ^ expected_stable_history);
+    if ((diff == 0) || ((diff & 0b01010101) == 0) || ((diff & 0b10101010) == 0)) {
         // Has the debounced input value changed?
         if (state_ != phase_bits) {
             state_ = phase_bits;
