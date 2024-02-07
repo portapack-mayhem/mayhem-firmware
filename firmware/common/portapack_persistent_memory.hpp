@@ -133,7 +133,6 @@ typedef union {
 static_assert(sizeof(dst_config_t) == sizeof(uint32_t));
 
 enum fake_brightness_level_options {
-    BRIGHTNESS_100 = 0,
     BRIGHTNESS_50 = 1,
     BRIGHTNESS_25 = 2,
     BRIGHTNESS_12p5 = 3,  // 12p5 is 12.5

@@ -695,8 +695,7 @@ class SetFakeBrightnessView : public View {
         6,
         {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
          {"25%", fake_brightness_level_options::BRIGHTNESS_25},
-         {"50%", fake_brightness_level_options::BRIGHTNESS_50},
-         {"100%", fake_brightness_level_options::BRIGHTNESS_100}}};
+         {"50%", fake_brightness_level_options::BRIGHTNESS_50}}};
 
     Checkbox checkbox_brightness_switch{
         {1 * 8, 5 * 16},
