@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 u-foka
  *
  * This file is part of PortaPack.
  *
@@ -331,7 +332,9 @@ SystemStatusView::SystemStatusView(
         set_dirty();
         pmem::set_apply_fake_brightness(v);
         refresh();
-        parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
+        if (nullptr != parent()) {
+            parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
+        }
     };
 
     button_bias_tee.on_select = [this](ImageButton&) {
