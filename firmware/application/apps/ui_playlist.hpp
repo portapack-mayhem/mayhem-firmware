@@ -56,7 +56,7 @@ class PlaylistView : public View {
     NavigationView& nav_;
     TxRadioState radio_state_{};
     app_settings::SettingsManager settings_{
-        "tx_playlist", app_settings::Mode::TX};
+        "tx_replay", app_settings::Mode::TX};
 
     // More header == less spectrum view.
     static constexpr ui::Dim header_height = 6 * 16;
