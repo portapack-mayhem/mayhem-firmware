@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyright (C) 2024 u-foka
  *
  * This file is part of PortaPack.
  *
@@ -184,11 +185,7 @@ class IO {
 
     void lcd_write_pixels(const ui::Color* const pixels, size_t n) {
         for (size_t i = 0; i < n; i++) {
-            ui::Color pixel = pixels[i];
-            if (get_dark_cover()) {
-                darken_color(pixel, get_brightness());  // Darken the pixel color
-            }
-            lcd_write_pixel(pixel);
+            lcd_write_pixel(pixels[i]);
         }
     }
 
