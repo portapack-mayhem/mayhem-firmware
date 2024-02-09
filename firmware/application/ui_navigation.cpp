@@ -329,9 +329,9 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
-    toggle_fake_brightness.on_change = [this, &nav](bool v) {
+    button_fake_brightness.on_select = [this](ImageButton&) {
         set_dirty();
-        pmem::set_apply_fake_brightness(v);
+        pmem::toggle_fake_brightness_level();
         refresh();
         if (nullptr != parent()) {
             parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
@@ -359,7 +359,6 @@ SystemStatusView::SystemStatusView(
     toggle_speaker.set_value(pmem::config_speaker_disable());
     toggle_mute.set_value(pmem::config_audio_mute());
     toggle_stealth.set_value(pmem::stealth_mode());
-    toggle_fake_brightness.set_value(pmem::apply_fake_brightness());
 
     audio::output::stop();
     audio::output::update_audio_mute();
@@ -381,7 +380,7 @@ void SystemStatusView::refresh() {
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
-    if (!pmem::ui_hide_fake_brightness()) status_icons.add(&toggle_fake_brightness);
+    if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
     status_icons.update_layout();
@@ -404,8 +403,8 @@ void SystemStatusView::refresh() {
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
     button_converter.set_foreground(pmem::config_converter() ? Color::red() : Color::light_grey());
 
-    // Brightness
-    toggle_fake_brightness.set_value(pmem::apply_fake_brightness());
+    // Fake Brightness
+    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Color::green() : Color::light_grey());
 
     set_dirty();
 }

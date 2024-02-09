@@ -291,7 +291,7 @@ struct data_t {
           frequency_tx_correction(0),
 
           encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
-          fake_brightness_level(0),
+          fake_brightness_level(BRIGHTNESS_50),
           UNUSED_8(0),
           headphone_volume_cb(-600),
           misc_config(),
@@ -448,6 +448,10 @@ void init() {
         defaults();
     }
     set_config_mode_storage_direct(config_mode_backup);
+
+    // Firmware upgrade handling - adjust newly defined fields where 0 is an unwanted default
+    if (fake_brightness_level() == 0)
+        set_fake_brightness_level(BRIGHTNESS_50);
 }
 
 void persist() {
@@ -728,10 +732,6 @@ void set_config_backlight_timer(const backlight_config_t& new_value) {
 
 void set_apply_fake_brightness(const bool v) {
     data->ui_config.apply_fake_brightness = v;
-
-    // The fake_brightness_level field in PMEM will be 0 if it was never enabled before; pick a valid value
-    if (data->fake_brightness_level == 0)
-        data->fake_brightness_level = BRIGHTNESS_50;
 }
 
 uint32_t pocsag_last_address() {
@@ -1015,13 +1015,25 @@ void set_config_dst(dst_config_t v) {
     data->dst_config = v;
     rtc_time::dst_init();
 }
-// fake brightness level (switch is in another place)
 
+// Fake brightness level (switch is in another place)
 uint8_t fake_brightness_level() {
     return data->fake_brightness_level;
 }
 void set_fake_brightness_level(uint8_t v) {
     data->fake_brightness_level = v;
+}
+
+// Cycle through 4 brightness options: disabled -> enabled/50% -> enabled/25% -> enabled/12.5% -> disabled
+void toggle_fake_brightness_level() {
+    bool fbe = apply_fake_brightness();
+
+    if ((!fbe) || (data->fake_brightness_level >= BRIGHTNESS_12p5)) {
+        set_apply_fake_brightness(!fbe);
+        data->fake_brightness_level = BRIGHTNESS_50;
+    } else {
+        data->fake_brightness_level++;
+    }
 }
 
 // PMem to sdcard settings

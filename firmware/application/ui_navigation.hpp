@@ -266,9 +266,11 @@ class SystemStatusView : public View {
         Color::light_grey(),
         Color::dark_grey()};
 
-    ImageToggle toggle_fake_brightness{
+    ImageButton button_fake_brightness{
         {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_brightness};
+        &bitmap_icon_brightness,
+        Color::green(),
+        Color::dark_grey()};
 
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
