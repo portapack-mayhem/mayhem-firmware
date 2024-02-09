@@ -143,9 +143,8 @@ class SoundBoardView : public View {
         6,
         "Random"};
 
-    ProgressBar progressbar {
-        { 0 * 8, 31 * 8 + 2, 30 * 8, 4 }
-    };
+    ProgressBar progressbar{
+        {0 * 8, 31 * 8 + 2, 30 * 8, 4}};
 
     TransmitterView tx_view{
         16 * 16,
