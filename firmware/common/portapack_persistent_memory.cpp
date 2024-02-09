@@ -728,6 +728,10 @@ void set_config_backlight_timer(const backlight_config_t& new_value) {
 
 void set_apply_fake_brightness(const bool v) {
     data->ui_config.apply_fake_brightness = v;
+
+    // The fake_brightness_level field in PMEM will be 0 if it was never enabled before; pick a valid value
+    if (data->fake_brightness_level == 0)
+        data->fake_brightness_level = BRIGHTNESS_50;
 }
 
 uint32_t pocsag_last_address() {
