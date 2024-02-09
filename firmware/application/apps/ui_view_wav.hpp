@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -126,7 +127,7 @@ class ViewWavView : public View {
         Color::white()};
 
     ProgressBar progressbar{
-        {0 * 8, 11 * 16, 30 * 8, 8}};
+        {0 * 8, 11 * 16, 30 * 8, 4}};
 
     NumberField field_pos_seconds{
         {9 * 8, 12 * 16},
