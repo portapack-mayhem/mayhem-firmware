@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
+ * Copyright (C) 2023 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -170,7 +171,7 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
         highlighted_item = new_value;
-        offset = new_value - displayed_max + rows_;
+        offset += rows_;
         update_items();
         set_dirty();
     } else if ((uint32_t)new_value < offset) {
