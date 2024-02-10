@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -70,10 +71,15 @@ class EncoderDebounce {
 
     uint8_t state();  // returns debounced phase bits from encoder
 
+    uint8_t rotation_rate();  // returns last rotation rate
+
    private:
     uint8_t history_{0};  // shift register of previous reads from encoder
 
     uint8_t state_{0};  // actual encoder output state (after debounce logic)
+
+    uint8_t last_rotation_rate_{1};
+    uint8_t rotation_rate_downcounter_{1};  // down-counter to estimate rotation speed
 };
 
 #endif /*__DEBOUNCE_H__*/

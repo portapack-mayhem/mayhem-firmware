@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -246,8 +247,11 @@ void set_config_audio_mute(bool v);
 void set_config_speaker_disable(bool v);
 void set_config_backlight_timer(const backlight_config_t& new_value);
 void set_disable_touchscreen(bool v);
-uint8_t config_encoder_dial_sensitivity();
+
+uint8_t encoder_dial_sensitivity();
 void set_encoder_dial_sensitivity(uint8_t v);
+uint8_t encoder_rate_multiplier();
+void set_encoder_rate_multiplier(uint8_t v);
 
 uint32_t config_mode_storage_direct();
 void set_config_mode_storage_direct(uint32_t v);

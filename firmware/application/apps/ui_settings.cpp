@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2024 Mark Thompson
  * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
@@ -680,13 +681,16 @@ void SetQRCodeView::focus() {
 SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
     add_children({&labels,
                   &field_encoder_dial_sensitivity,
+                  &field_encoder_rate_multiplier,
                   &button_save,
                   &button_cancel});
 
-    field_encoder_dial_sensitivity.set_by_value(pmem::config_encoder_dial_sensitivity());
+    field_encoder_dial_sensitivity.set_by_value(pmem::encoder_dial_sensitivity());
+    field_encoder_rate_multiplier.set_value(pmem::encoder_rate_multiplier());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
+        pmem::set_encoder_rate_multiplier(field_encoder_rate_multiplier.value());
         nav.pop();
     };
 

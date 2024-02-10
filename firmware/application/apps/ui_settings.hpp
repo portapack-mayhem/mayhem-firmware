@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2024 Mark Thompson
  * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
@@ -555,6 +556,7 @@ class SetQRCodeView : public View {
 };
 
 using portapack::persistent_memory::encoder_dial_sensitivity;
+using portapack::persistent_memory::encoder_rate_multiplier;
 
 class SetEncoderDialView : public View {
    public:
@@ -566,17 +568,29 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts how many steps to", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "change the encoder value.", Color::light_grey()},
-        {{2 * 8, 4 * 16}, "Dial sensitivity:", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "rotation position (number of", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "steps per full rotation):", Color::light_grey()},
+        {{2 * 8, 5 * 16}, "Dial sensitivity:", Color::light_grey()},
+        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Color::light_grey()},
+        {{1 * 8, 9 * 16}, "rotation rate (default 1", Color::light_grey()},
+        {{1 * 8, 10 * 16}, "means no rate dependency):", Color::light_grey()},
+        {{3 * 8, 12 * 16}, "Rate multiplier:", Color::light_grey()},
     };
 
     OptionsField field_encoder_dial_sensitivity{
-        {20 * 8, 4 * 16},
+        {20 * 8, 5 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
+
+    NumberField field_encoder_rate_multiplier{
+        {20 * 8, 12 * 16},
+        2,
+        {1, 10},
+        1,
+        ' '};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
