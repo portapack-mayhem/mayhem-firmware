@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyleft  (ↄ) 2022 NotPike
  * Copyright (C) 2023 Kyle Reed, zxkmm
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
