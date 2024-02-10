@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -166,7 +167,7 @@ static bool encoder_update(const uint8_t raw) {
 }
 
 static bool encoder_read() {
-    auto delta = encoder.update(encoder_debounce.state());
+    auto delta = encoder.update(encoder_debounce.state()) * encoder_debounce.rotation_rate();
 
     if (injected_encoder > 0) {
         if (injected_encoder == 1) delta = -1;

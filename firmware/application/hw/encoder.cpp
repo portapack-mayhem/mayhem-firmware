@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -63,7 +64,7 @@ int_fast8_t Encoder::update(const uint_fast8_t phase_bits) {
 
     // Require 2 state changes in same direction to register movement -- for additional level of contact switch debouncing
     if (direction == prev_direction) {
-        if ((sensitivity_map[portapack::persistent_memory::config_encoder_dial_sensitivity()] & (1 << state)) == 0)
+        if ((sensitivity_map[portapack::persistent_memory::encoder_dial_sensitivity()] & (1 << state)) == 0)
             return 0;
         return direction;
     }

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -226,7 +227,9 @@ struct data_t {
 
     // fake brightness level (not switch, switch is in another place)
     uint16_t fake_brightness_level : 4;
-    uint16_t UNUSED_8 : 8;
+
+    // Encoder rotation rate multiplier for larger increments when rotated rapidly
+    uint16_t encoder_rate_multiplier : 8;
 
     // Headphone volume in centibels.
     int16_t headphone_volume_cb;
@@ -292,7 +295,7 @@ struct data_t {
 
           encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL),
           fake_brightness_level(BRIGHTNESS_50),
-          UNUSED_8(0),
+          encoder_rate_multiplier(1),
           headphone_volume_cb(-600),
           misc_config(),
           ui_config2(),
@@ -399,6 +402,7 @@ void defaults() {
     cached_backup_ram = backup_ram_t();
 
     // If the desired default is 0/false, then no need to set it here (buffer is initialized to 0)
+    // NB: This function is only called when pmem is reset; also see firmware upgrade handling below.
     set_config_backlight_timer(backlight_config_t{});
     set_config_splash(true);
     set_config_disable_external_tcxo(false);
@@ -449,9 +453,9 @@ void init() {
     }
     set_config_mode_storage_direct(config_mode_backup);
 
-    // Firmware upgrade handling - adjust newly defined fields where 0 is an unwanted default
-    if (fake_brightness_level() == 0)
-        set_fake_brightness_level(BRIGHTNESS_50);
+    // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
+    if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
+    if (encoder_rate_multiplier() == 0) set_encoder_rate_multiplier(1);
 }
 
 void persist() {
@@ -976,12 +980,17 @@ void set_config_freq_rx_correction(uint32_t v) {
 }
 
 // Rotary encoder dial settings
-
-uint8_t config_encoder_dial_sensitivity() {
+uint8_t encoder_dial_sensitivity() {
     return data->encoder_dial_sensitivity;
 }
 void set_encoder_dial_sensitivity(uint8_t v) {
     data->encoder_dial_sensitivity = v;
+}
+uint8_t encoder_rate_multiplier() {
+    return data->encoder_rate_multiplier;
+}
+void set_encoder_rate_multiplier(uint8_t v) {
+    data->encoder_rate_multiplier = v;
 }
 
 // Recovery mode magic value storage
@@ -1137,7 +1146,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("frequency_rx_correction: " + to_string_dec_uint(data->frequency_rx_correction));
     pmem_dump_file.write_line("frequency_tx_correction: " + to_string_dec_uint(data->frequency_tx_correction));
     pmem_dump_file.write_line("encoder_dial_sensitivity: " + to_string_dec_uint(data->encoder_dial_sensitivity));
-    // pmem_dump_file.write_line("UNUSED_8: " + to_string_dec_uint(data->UNUSED_8));
+    pmem_dump_file.write_line("encoder_rate_multiplier: " + to_string_dec_uint(data->encoder_rate_multiplier));
     pmem_dump_file.write_line("headphone_volume_cb: " + to_string_dec_int(data->headphone_volume_cb));
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
