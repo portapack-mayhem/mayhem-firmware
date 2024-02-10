@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -103,7 +104,7 @@ class SoundBoardView : public View {
         "<="};
 
     Text page_info{
-        {0, 30 * 8 - 4, 30 * 8, 16}};
+        {0, 29 * 8, 30 * 8, 16}};
 
     MenuView menu_view{
         {0, 0, 240, 175},
@@ -142,9 +143,8 @@ class SoundBoardView : public View {
         6,
         "Random"};
 
-    // ProgressBar progressbar {
-    //	{ 0 * 8, 30 * 8 - 4, 30 * 8, 16 }
-    // };
+    ProgressBar progressbar{
+        {0 * 8, 31 * 8 + 2, 30 * 8, 4}};
 
     TransmitterView tx_view{
         16 * 16,

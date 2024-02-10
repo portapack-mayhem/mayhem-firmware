@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -51,7 +52,7 @@ void SoundBoardView::stop() {
 
 void SoundBoardView::handle_replay_thread_done(const uint32_t return_code) {
     stop();
-    // progressbar.set_value(0);
+    progressbar.set_value(0);
 
     if (return_code == ReplayThread::END_OF_FILE) {
         if (check_random.value()) {
@@ -100,7 +101,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     playing_id = id;
 
-    // progressbar.set_max(reader->sample_count());
+    progressbar.set_max(reader->sample_count());
 
     // button_play.set_bitmap(&bitmap_stop);
 
@@ -148,8 +149,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 }*/
 
 void SoundBoardView::on_tx_progress(const uint32_t progress) {
-    (void)progress;  // avoid warning
-                     // progressbar.set_value(progress);
+    progressbar.set_value(progress);
 }
 
 void SoundBoardView::on_select_entry() {
@@ -213,7 +213,7 @@ void SoundBoardView::refresh_list() {
 
         for (size_t n = 0; n < file_list.size(); n++) {
             menu_view.add_item({file_list[n].string().substr(0, 30),
-                                ui::Color::white(),
+                                ui::Color::dark_magenta(),
                                 nullptr,
                                 [this](KeyEvent) {
                                     on_select_entry();
@@ -240,7 +240,7 @@ SoundBoardView::SoundBoardView(
                   &options_tone_key,
                   //&text_title,
                   //&text_duration,
-                  //&progressbar,
+                  &progressbar,
                   &field_volume,
                   &text_volume_disabled,
                   &page_info,
