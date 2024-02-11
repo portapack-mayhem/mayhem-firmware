@@ -2,6 +2,7 @@
 
 #
 # Copyright (C) 2023 Bernd Herzog
+# Copyright (C) 2024 Mark Thompson
 #
 # This file is part of PortaPack.
 #
@@ -25,6 +26,9 @@ import os
 import sys
 import struct
 import subprocess
+from external_app_info import maximum_application_size
+from external_app_info import external_apps_address_start
+from external_app_info import external_apps_address_end
 
 usage_message = """
 PortaPack external app image creator
@@ -33,8 +37,6 @@ See firmware/application/CMakeLists.txt > COMMAND ${EXPORT_EXTERNAL_APP_IMAGES}
 
 Usage: <command> <project source dir> <binary dir> <cmake objcopy path> <list of external image prefixes>
 """
-
-maximum_application_size = 32*1024
 
 if len(sys.argv) < 4:
 	print(usage_message)
@@ -51,7 +53,7 @@ def write_image(data, path):
 	f.write(data)
 	f.close()
 
-def patch_image(image_data, search_address, replace_address):
+def patch_image(path, image_data, search_address, replace_address):
 	if (len(image_data) % 4) != 0:
 		print("file size not divideable by 4")
 		sys.exit(-1)
@@ -62,8 +64,8 @@ def patch_image(image_data, search_address, replace_address):
 		snippet = image_data[x*4:4*(x+1)]
 		val = int.from_bytes(snippet, byteorder='little')
 
-		# in firmware/application/external/external.ld the origin is set to something like search_address=0xEEE90000
-		# if the value is above the search_address and inside a 40kb window (maximum size of an app) we replace it
+		# in firmware/application/external/external.ld the origin is set to something like search_address=0xADB00000
+		# if the value is above the search_address and inside a 32kb window (maximum size of an app) we replace it
 		# with replace_address=(0x1008000 + m4 size) where the app will actually be located. The reason we do this instead just
 		# using the right address in external.ld is gcc does not permit to use the same memory range multiple times.
 		if val > search_address and (val - search_address) < maximum_application_size:
@@ -74,7 +76,9 @@ def patch_image(image_data, search_address, replace_address):
 			external_application_image += new_snippet
 		else:
 			external_application_image += snippet
-			
+			if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size) and ((val & 0x3)==0):
+				print ("WARNING: External code address", hex(val), "at offset", hex(x*4), "in", path)
+
 	return external_application_image
 
 project_source_dir = sys.argv[1]   #/portapack-mayhem/firmware/application
@@ -90,7 +94,7 @@ for external_image_prefix in sys.argv[4:]:
 
 	# COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}_ext_pacman.bin --only-section=.external_app_pacman
 	himg = "{}/external_app_{}.himg".format(binary_dir, external_image_prefix)
-	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)]) 
+	subprocess.run([cmake_objcopy, "-v", "-O", "binary", "{}/application.elf".format(binary_dir), himg, "--only-section=.external_app_{}".format(external_image_prefix)])
 
 	external_application_image = read_image(himg)
 
@@ -101,7 +105,7 @@ for external_image_prefix in sys.argv[4:]:
 	if (chunk_data[0] == 0 and chunk_data[1] == 0 and chunk_data[2] == 0 and chunk_data[3] == 0):
 		replace_address = 0x10080000
 		search_address = int.from_bytes(external_application_image[externalAppEntry_header_position:externalAppEntry_header_position+4], byteorder='little') & 0xFFFF0000
-		external_application_image = patch_image(external_application_image, search_address, replace_address)
+		external_application_image = patch_image(himg, external_application_image, search_address, replace_address)
 		external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 
 		checksum = 0
@@ -126,7 +130,7 @@ for external_image_prefix in sys.argv[4:]:
 
 	replace_address = 0x10080000 + len(m4_image)
 	search_address = int.from_bytes(external_application_image[externalAppEntry_header_position:externalAppEntry_header_position+4], byteorder='little') & 0xFFFF0000
-	external_application_image = patch_image(external_application_image, search_address, replace_address)
+	external_application_image = patch_image(himg, external_application_image, search_address, replace_address)
 
 	external_application_image[memory_location_header_position:memory_location_header_position+4] = replace_address.to_bytes(4, byteorder='little')
 	external_application_image[m4_app_offset_header_position:m4_app_offset_header_position+4] = app_image_len.to_bytes(4, byteorder='little')
