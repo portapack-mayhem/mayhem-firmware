@@ -116,8 +116,9 @@ void set_direction(const rf::Direction new_direction) {
     /* TODO: Refactor all the various "Direction" enumerations into one. */
     /* TODO: Only make changes if direction changes, but beware of clock enabling. */
 
-    // Prevents ghosting when switching back to RX from TX mode.
-    hackrf::cpld::load_sram_no_verify();
+    // That below code line , was used to Prevent RX interf ghosting when switching back to RX from any TX mode, but in recent code. But confirmed , it seems not necessary anymore.
+    // Deleting that load_sram_no_verify() (or the original , load_sram() ), it solves another H1R1 problem, random TX swap I/Q  problem, (and no side effects to H2R2 or r9).   
+    // hackrf::cpld::load_sram_no_verify();  // After commit "removed the use of the hackrf cpld eeprom #1732", in a H1R1,  Mic App wrong SSB TX with random USB/LSB change.   
 
     direction = new_direction;
 
