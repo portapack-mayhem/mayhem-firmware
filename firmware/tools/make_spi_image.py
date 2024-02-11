@@ -2,6 +2,7 @@
 
 #
 # Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+# Copyright (C) 2024 Mark Thompson
 #
 # This file is part of PortaPack.
 #
@@ -22,6 +23,9 @@
 #
 
 import sys
+from external_app_info import maximum_application_size
+from external_app_info import external_apps_address_start
+from external_app_info import external_apps_address_end
 
 usage_message = """
 PortaPack SPI flash image generator
@@ -81,10 +85,14 @@ pad_size = spi_size - 4 - len(spi_image)
 for i in range(pad_size):
 	spi_image += spi_image_default_byte
 
-# quick "add up the words" checksum:
+# quick "add up the words" checksum, and check for possible references to code in external apps
 checksum = 0
 for i in range(0, len(spi_image), 4):
-	checksum += (spi_image[i] + (spi_image[i + 1] << 8) + (spi_image[i + 2] << 16) + (spi_image[i + 3] << 24))
+	snippet = spi_image[i:i+4]
+	val = int.from_bytes(snippet, byteorder='little')
+	checksum += val
+	if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size) and ((val & 0x3)==0):
+		print ("WARNING: External code address", hex(val), "at offset", hex(i), "in", sys.argv[3])
 
 final_checksum = 0
 checksum = (final_checksum - checksum) & 0xFFFFFFFF
