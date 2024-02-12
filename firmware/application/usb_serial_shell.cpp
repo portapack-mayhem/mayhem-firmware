@@ -199,7 +199,7 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
         std::array<ui::ColorRGB888, ui::screen_width> row;
         portapack::display.read_pixels({0, i, ui::screen_width, 1}, row);
         for (int px = 0; px < ui::screen_width; px += 5) {
-            char buffer[5 * 3 * 2];
+            char buffer[5 * 3 * 2 + 1];
             sprintf(buffer, "%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X", row[px].r, row[px].g, row[px].b, row[px + 1].r, row[px + 1].g, row[px + 1].b, row[px + 2].r, row[px + 2].g, row[px + 2].b, row[px + 3].r, row[px + 3].g, row[px + 3].b, row[px + 4].r, row[px + 4].g, row[px + 4].b);
             fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 5 * 3 * 2);
         }
