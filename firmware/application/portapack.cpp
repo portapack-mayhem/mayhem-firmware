@@ -512,17 +512,10 @@ init_status_t init() {
         }
     }
 
+    init_status_t return_code = init_status_t::INIT_SUCCESS;
+
     if (!hackrf::cpld::load_sram()) {
-        chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
-
-        LPC_CREG->DMAMUX = portapack::gpdma_mux;
-        gpdma::controller.enable();
-
-        chThdSleepMilliseconds(10);
-
-        audio::init(portapack_audio_codec());
-
-        return init_status_t::INIT_HACKRF_CPLD_FAILED;
+        return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
 
     chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
@@ -534,7 +527,7 @@ init_status_t init() {
 
     audio::init(portapack_audio_codec());
 
-    return init_status_t::INIT_SUCCESS;
+    return return_code;
 }
 
 void shutdown(const bool leave_screen_on) {
