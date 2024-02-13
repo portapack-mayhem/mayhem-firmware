@@ -93,11 +93,6 @@ CpldUpdateStatus update_if_necessary(const Config config) {
 }
 
 static CpldUpdateStatus enter_maintenance_mode(CPLD& cpld) {
-    // // if (display_id != 0x610000ULL && display_id != 0xFFFFFEFFULL)
-    // chDbgPanic(to_string_hex((uint32_t)display_id, 8).c_str());
-
-    // if (display_id != 0x610000ULL && display_id != 0xFFFFFEFFULL)
-
     /* Unknown state */
     cpld.reset();
     cpld.run_test_idle();
@@ -157,7 +152,19 @@ static uint32_t get_firmware_crc(CPLD& cpld) {
 }
 
 static bool is_valid_display_status(uint32_t display_status) {
-    return display_status == 0x610000ULL;
+    /* This tries to validate the display_status.
+     * The value could vary from device to device, so we are less specific here.
+     * 0xFFFFFEFF was seen when the display was not reachable
+     * 0x00610000 was seen when the display was reachable
+     */
+
+    if (display_status > 0x0E000000ULL)
+        return false;
+
+    if (display_status < 0x00000100ULL)
+        return false;
+
+    return true;
 }
 
 CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Config config_rev_20170522) {
