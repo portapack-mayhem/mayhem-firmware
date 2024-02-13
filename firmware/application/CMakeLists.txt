@@ -52,7 +52,7 @@ set(USE_LINK_GC yes)
 # Linker extra options here.
 set(USE_LDOPT)
 
-# Enable this if you want link time optimizations (LTO)
+# Enable this if you want link time optimizations (LTO) - this flag affects chibios only
 set(USE_LTO no)
 
 # If enabled, this option allows to compile the application in THUMB mode.
@@ -293,7 +293,7 @@ set(CPPSRC
 	# apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
 	# apps/ui_lcr.cpp
-	apps/ui_level.cpp  
+	apps/ui_level.cpp
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
@@ -304,7 +304,7 @@ set(CPPSRC
 	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
-	apps/ui_recon.cpp  
+	apps/ui_recon.cpp
 	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
@@ -492,6 +492,7 @@ add_custom_command(
 )
 
 add_executable(${PROJECT_NAME}.elf ${CSRC} ${CPPSRC} ${ASMSRC})
+set_source_files_properties(${EXTCPPSRC} PROPERTIES COMPILE_FLAGS -fno-lto)
 set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
