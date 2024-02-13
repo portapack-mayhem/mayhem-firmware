@@ -34,8 +34,8 @@ enum class CpldUpdateStatus {
     Program_failed = 3
 };
 
-CpldUpdateStatus update_if_necessary(
-    const Config config);
+CpldUpdateStatus update_if_necessary(const Config config);
+CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Config config_rev_20170522);
 
 } /* namespace cpld */
 } /* namespace portapack */

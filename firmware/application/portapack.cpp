@@ -28,6 +28,7 @@
 #include "hackrf_hal.hpp"
 #include "hackrf_gpio.hpp"
 using namespace hackrf::one;
+#include "jtag_target_gpio.hpp"
 
 #include "clock_manager.hpp"
 #include "event_m0.hpp"
@@ -174,6 +175,8 @@ constexpr I2CConfig i2c_config_fast_clock{
 enum class PortaPackModel {
     R1_20150901,
     R2_20170522,
+    AGM,
+    AUTODETECT,
 };
 
 static bool save_config(int8_t value) {
@@ -226,39 +229,50 @@ static PortaPackModel portapack_model() {
     static Optional<PortaPackModel> model;
 
     if (!model.is_valid()) {
-        const auto switches_state = get_switches_state();
-        // Only save config if no other multi key boot action is triggered (like pmem reset)
-        if (switches_state.count() == 1) {
-            if (switches_state[(size_t)ui::KeyEvent::Up]) {
-                save_config(1);
-                // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
-            } else if (switches_state[(size_t)ui::KeyEvent::Down]) {
-                save_config(2);
-                // model = PortaPackModel::R1_20150901;
-            } else if (switches_state[(size_t)ui::KeyEvent::Left]) {
-                save_config(3);
-                // model = PortaPackModel::R1_20150901;
-            } else if (switches_state[(size_t)ui::KeyEvent::Right]) {
-                save_config(4);
-                // model = PortaPackModel::R2_20170522;
-            } else if (switches_state[(size_t)ui::KeyEvent::Select]) {
-                save_config(0);
-            }
-        }
+        jtag::GPIOTarget target{
+            portapack::gpio_cpld_tck,
+            portapack::gpio_cpld_tms,
+            portapack::gpio_cpld_tdi,
+            portapack::gpio_cpld_tdo};
+        jtag::JTAG jtag{target};
+        portapack::cpld::CPLD cpld{jtag};
 
-        if (load_config() == 1) {
-            model = PortaPackModel::R2_20170522;
-        } else if (load_config() == 2) {
-            model = PortaPackModel::R1_20150901;
-        } else if (load_config() == 3) {
-            model = PortaPackModel::R1_20150901;
-        } else if (load_config() == 4) {
-            model = PortaPackModel::R2_20170522;
+        cpld.reset();
+        cpld.run_test_idle();
+        uint32_t idcode = cpld.get_idcode();
+        if (idcode == 0x25610) {
+            model = PortaPackModel::AGM;
         } else {
-            if (audio_codec_wm8731.detected()) {
-                model = PortaPackModel::R1_20150901;  // H1R1
+            const auto switches_state = get_switches_state();
+            // Only save config if no other multi key boot action is triggered (like pmem reset)
+            if (switches_state.count() == 1) {
+                if (switches_state[(size_t)ui::KeyEvent::Up]) {
+                    save_config(1);
+                    // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
+                } else if (switches_state[(size_t)ui::KeyEvent::Down]) {
+                    save_config(2);
+                    // model = PortaPackModel::R1_20150901;
+                } else if (switches_state[(size_t)ui::KeyEvent::Left]) {
+                    save_config(3);
+                    // model = PortaPackModel::R1_20150901;
+                } else if (switches_state[(size_t)ui::KeyEvent::Right]) {
+                    save_config(4);
+                    // model = PortaPackModel::R2_20170522;
+                } else if (switches_state[(size_t)ui::KeyEvent::Select]) {
+                    save_config(0);
+                }
+            }
+
+            if (load_config() == 1) {
+                model = PortaPackModel::R2_20170522;
+            } else if (load_config() == 2) {
+                model = PortaPackModel::R1_20150901;
+            } else if (load_config() == 3) {
+                model = PortaPackModel::R1_20150901;
+            } else if (load_config() == 4) {
+                model = PortaPackModel::R2_20170522;
             } else {
-                model = PortaPackModel::R2_20170522;  // H1R2, H2, H2+
+                model = PortaPackModel::AUTODETECT;
             }
         }
     }
@@ -501,19 +515,36 @@ init_status_t init() {
 
     chThdSleepMilliseconds(10);
 
-    portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
-    if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
-        chThdSleepMilliseconds(10);
-        // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-        // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
-        if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
-            shutdown_base();
-            return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
-        }
+    switch (portapack_model()) {
+        case PortaPackModel::AUTODETECT: {
+            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_autodetect(
+                portapack::cpld::rev_20150901::config, portapack::cpld::rev_20170522::config);
+            if (result != portapack::cpld::CpldUpdateStatus::Success) {
+                shutdown_base();
+                return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
+            }
+        } break;
+
+        case PortaPackModel::R1_20150901:
+        case PortaPackModel::R2_20170522: {
+            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+            if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+                chThdSleepMilliseconds(10);
+                // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+                // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+                if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
+                    shutdown_base();
+                    return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
+                }
+            }
+        } break;
+
+        case PortaPackModel::AGM:
+            // the AGM devices are always factory flashed. so do nothing
+            break;
     }
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
-
     if (!hackrf::cpld::load_sram()) {
         return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
