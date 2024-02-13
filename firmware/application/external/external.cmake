@@ -5,8 +5,8 @@ set(EXTCPPSRC
 #	external/pacman/ui_pacman.cpp
 
 	#tetris
-#	external/tetris/main.cpp
-#	external/tetris/ui_tetris.cpp
+	external/tetris/main.cpp
+	external/tetris/ui_tetris.cpp
 
 	#afsk_rx
 	external/afsk_rx/main.cpp
@@ -79,5 +79,5 @@ set(EXTAPPLIST
 	gpssim
 	spainter
 	keyfob
-#	tetris
+	tetris
 )
