@@ -170,24 +170,31 @@ int main(void) {
     config_mode_set();
 
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
-    if (portapack::init()) {
-        portapack::display.init();
-        config_mode_clear();
 
-        // sdcStart(&SDCD1, nullptr); // Commented out as now happens in portapack.cpp
+    switch (portapack::init()) {
+        case portapack::init_status_t::INIT_HACKRF_CPLD_FAILED:
+            portapack::init_error = "HACKRF CPLD FAILED";
+            [[fallthrough]];
 
-        // controls_init(); // Commented out as now happens in portapack.cpp
-        lcd_frame_sync_configure();
-        rtc_interrupt_enable();
+        case portapack::init_status_t::INIT_SUCCESS:
+            portapack::display.init();
+            config_mode_clear();
 
-        event_loop();
+            lcd_frame_sync_configure();
+            rtc_interrupt_enable();
 
-        sdcDisconnect(&SDCD1);
-        sdcStop(&SDCD1);
+            event_loop();
 
-        portapack::shutdown();
-    } else {
-        config_mode_clear();
+            sdcDisconnect(&SDCD1);
+            sdcStop(&SDCD1);
+
+            portapack::shutdown();
+            break;
+
+        case portapack::init_status_t::INIT_NO_PORTAPACK:
+        case portapack::init_status_t::INIT_PORTAPACK_CPLD_FAILED:
+            config_mode_clear();
+            break;
     }
 
     m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf, true);

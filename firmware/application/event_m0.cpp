@@ -44,6 +44,8 @@ using namespace lpc43xx;
 
 #include "ui_navigation.hpp"
 
+static int delayed_error = 0;
+
 extern "C" {
 
 CH_IRQ_HANDLER(M4Core_IRQHandler) {
@@ -161,6 +163,10 @@ void EventDispatcher::dispatch(const eventmask_t events) {
     }
 
     if (events & EVT_MASK_RTC_TICK) {
+        // delay error message by 2 seconds to wait for LCD being ready
+        if (portapack::init_error != nullptr && ++delayed_error > 1)
+            draw_guru_meditation(CORTEX_M4, portapack::init_error);
+
         handle_rtc_tick();
     }
 
