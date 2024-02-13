@@ -76,7 +76,7 @@ def patch_image(path, image_data, search_address, replace_address):
 			external_application_image += new_snippet
 		else:
 			external_application_image += snippet
-			if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size) and ((val & 0x3)==0):
+			if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size):
 				print ("WARNING: External code address", hex(val), "at offset", hex(x*4), "in", path)
 
 	return external_application_image
