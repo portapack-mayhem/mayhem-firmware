@@ -4,9 +4,15 @@
 
 // clang-format off
 
-//////// PORTAPACK CHANGES HIGHLIGHTED
+//////// HACKED FOR PORTAPACK -- CHANGES HIGHLIGHTED
 int main();
 void pause_game();
+void Initialize(unsigned char c);
+void DeleteFigure();
+void DrawFigure();
+bool InCollisionDown(char delta);
+bool InCollisionLeft();
+bool InCollisionRight();
 //////// PORTAPACK
 
 #include "mbed.h"
@@ -15,32 +21,29 @@ void pause_game();
 
 #define dp23 P0_0
 
+//////// PORTAPACK - DISABLED MOST CLASSES DUE TO GLOBAL OBJECT INITIALIZER ISSUE WITH EXTERNAL APPS:
 //deklaracija display-a
-SPI_TFT_ILI9341 display(dp2, dp1, dp6, dp24, dp23, dp25, "TFT");
-
-//////// PORTAPACK - DISABLED ANALOGIN CLASS DUE TO OBJECT INITIALIZER CODE NOT RUNNING:
+//SPI_TFT_ILI9341 display(dp2, dp1, dp6, dp24, dp23, dp25, "TFT");
+//
 //analogni ulazi za joystick
 // AnalogIn VRx(dp11);
 // AnalogIn VRy(dp10);
+//
+// AnalogIn random(dp13); //analogni ulaz za generisanje random vrijednosti
 //////// PORTAPACK
 
 //taster na joysticku za rotaciju
 InterruptIn taster(dp9);
-
-//////// PORTAPACK - DISABLED ANALOGIN CLASS DUE TO OBJECT INITIALIZER CODE NOT RUNNING:
-// AnalogIn random(dp13); //analogni ulaz za generisanje random vrijednosti
-//////// PORTAPACK
 
 //ticker za spustanje figure
 //timer za debouncing tastera na joysticku
 Ticker game, joystick;
 Timer debounceTaster;
 
-
 unsigned char level = 0; //mora biti tipa usigned char jer inače se može desiti da level bude manji od 0, a i da ne trošimo memoriju
 const float delays[4] = {1.2, 0.7, 0.4, 0.25}; //svakih koliko se spusti jedan red, ovo provjeriti da li je presporo ili prebrzo, ovisi o levelu
 
-//////// PORTAPACK - UNNEEDED JOYSTICK HYSTERESIS VARIABLES
+//////// PORTAPACK - DELETED UNNEEDED JOYSTICK HYSTERESIS VARIABLES
 //char leftBoundary = 1, rightBoundary = 5, downBoundary = 1, upBoundary = 5;// sada je ovo tipa char
 //////// PORTAPACK
 
@@ -48,7 +51,6 @@ unsigned int score = 0; //stavio sam ovo unsigned int za veći opseg, mada je ja
 bool firstTime = true; //ako je prvi put, figura se crta u Tickeru
 bool gameStarted = false;
 unsigned char nextFigure = 1; //ovo je sad globalna varijabla, da bi mogli unaprijed generisati sljedeću figuru radi prikaza
-
 
 //white - no figure
 //I - BLUE
@@ -69,80 +71,69 @@ short figuresY[7][4] = {{0,1,2,3}, {1,0,0,1}, {1,1,2,0}, {0,1,1,2}, {0,1,1,2}, {
 unsigned int GenerateRandomSeed() {
 //////// PORTAPACK - USE RTC FOR SEED
 return LPC_RTC->CTIME0;
-    // unsigned int randomNumber = 0;
-    // for(int i = 0; i <= 32; i += 2) {
-    //     randomNumber += ((random.read_u16() % 3) << i);
-    //     wait_us(10);
-    // }
-    // return randomNumber;
 //////// PORTAPACK
 }
 
 void Init() {
    //ovo su zajedničke osobine za sve prikaze na display-u
    //nikad se ne mijenjaju i pozvat ćemo je jednom prije petlje
-    display.claim(stdout);
-    display.set_orientation(2); // 2 ili 0, zavisi kako okrenemo display, provjerit ćemo na labu kako nam je najlakše povezat
-    display.set_font((unsigned char*) Arial12x12);
+    claim(stdout);
+    set_orientation(2); // 2 ili 0, zavisi kako okrenemo display, provjerit ćemo na labu kako nam je najlakše povezat
+    set_font((unsigned char*) Arial12x12);
 }
 
 
 void ShowScore() {
     //pomocna funkcija za prikazivanje score-a
-    display.fillrect(165, 20, 235, 50, White); //popunimo pravugaonik da obrišemo stari score
-    display.locate(200, 35); //valjda je na sredini pravougaonika
+    fillrect(165, 20, 235, 50, White); //popunimo pravugaonik da obrišemo stari score
+    locate(200, 35); //valjda je na sredini pravougaonika
     printf("%d", score);
 }
 
 void ShowNextFigure() {
     //prikaz sljedeće figure koristeći pomoćnu varijablu nextFigure
-    display.fillrect(165, 70, 235, 120, White);
+    fillrect(165, 70, 235, 120, White);
     int upperLeftX = 176, upperLeftY = 83;
     for(int i = 0; i < 4; i++) {
         int x = upperLeftX + DIMENSION_NEXT * figuresY[nextFigure - 1][i], y = upperLeftY + DIMENSION_NEXT * figuresX[nextFigure - 1][i];
-        display.fillrect(x, y, x + DIMENSION_NEXT, y + DIMENSION_NEXT, colors[nextFigure]);
-        display.rect(x, y, x + DIMENSION_NEXT, y + DIMENSION_NEXT, Black);
+        fillrect(x, y, x + DIMENSION_NEXT, y + DIMENSION_NEXT, colors[nextFigure]);
+        rect(x, y, x + DIMENSION_NEXT, y + DIMENSION_NEXT, Black);
     }
 }
 
 //funkcija za crtanje cursora za odabir levela
 void DrawCursor(int color, unsigned char lev) {
-    display.fillrect(60, lev * 70 + 50, 72, lev * 70 + 50 + 12,  color);
+    fillrect(60, lev * 70 + 50, 72, lev * 70 + 50 + 12,  color);
 }
 
 // PORTAPACK - ADDED EXTRA LEVEL:
 void ShowLevelMenu() {
     //ovdje inicijalizujemo display
-    display.cls(); // brišemo prethodno
-    display.background(Black);
-    display.foreground(White);
-    display.locate(80, 50);
+    cls(); // brišemo prethodno
+    background(Black);
+    foreground(White);
+    locate(80, 50);
     printf("LEVEL 1");
-    display.locate(80, 120);
+    locate(80, 120);
     printf("LEVEL 2");
-    display.locate(80, 190);
+    locate(80, 190);
     printf("LEVEL 3");
-    display.locate(80, 260);
+    locate(80, 260);
     printf("LEVEL 4");
     DrawCursor(White, level);
 }
+//////// PORTAPACK
 
-//////// PORTAPACK - KLUDGED FOR BUTTONS VS JOYSTICK:
+//////// PORTAPACK - USE BUTTONS VS JOYSTICK:
 void ReadJoystickForLevel(){
     unsigned char old = level;
     if(but_UP){
-//        upBoundary = 4;
         (level == 0) ? level = 3 : level--;
     }
     else if(but_DOWN){
         //ne radi ona prethodna varijanta jer % vraća i negastivni rezultat
         //to što ne koristimo unsigned tip ne pomaže jer će doći do overflow-a
-//        downBoundary = 2;
         level = (level + 1) % 4;
-    }
-    else {
-//        downBoundary = 1;
-//        upBoundary = 5;
     }
     DrawCursor(Black, old); //na prethodni level popunimo bojom pozadine
     DrawCursor(White, level); //na novi level popunimo bijelom bojom - pozadina je crna
@@ -169,11 +160,11 @@ main();
 
 void StartGame()
 {
-    display.cls(); // brišemo ShowLevelMenu
-    display.background(White);
-    display.foreground(Black);
-    display.fillrect(0, 0, 160, 320, White);
-    display.fillrect(160, 0, 240, 320, Black); //dio za prikazivanje rezultata će biti crni pravougaonik, a tabla je bijeli
+    cls(); // brišemo ShowLevelMenu
+    background(White);
+    foreground(Black);
+    fillrect(0, 0, 160, 320, White);
+    fillrect(160, 0, 240, 320, Black); //dio za prikazivanje rezultata će biti crni pravougaonik, a tabla je bijeli
     ShowScore();
 }
 
@@ -206,34 +197,34 @@ void PutBorders(short x, short y) {
     for(int i = x - 1; i <= x + 1; i++) {
         for(int j = y - 1; j <= y + 1; j++) {
             if(i < 0 || i > 9 || j < 0 || j > 19 || board[j][i] == 0) continue;
-            display.rect(i * DIMENSION, j * DIMENSION, (i + 1) * DIMENSION, (j + 1) * DIMENSION, Black);
+            rect(i * DIMENSION, j * DIMENSION, (i + 1) * DIMENSION, (j + 1) * DIMENSION, Black);
         }
     }
 }
 
-class Tetromino{
-private:
+//////// PORTAPACK - ELIMINATED CLASSES DUE TO GLOBAL OBJECT INITIALIZATION ISSUE WITH EXTERNAL APPS:
+//class Tetromino{
+//private:
     short X[4];
     short Y[4];
     short boardX, boardY;
     unsigned char colorIndex;//dodao sam colorIndex zasad, jer nema drugog načina da popunimo matricu sa indeksima boja
     //ovo je najbezbolnija varijanta što se memorije tiče
-public:
-    Tetromino(){
-//////// PORTAPACK - NOTE - DEFAULT INITIALIZER CODE DOESN'T GET EXECUTED FOR SOME REASON:
-        unsigned char r = rand() % 7 + 1;
-        Initialize(r);
+//public:
+//    Tetromino(){
+//        unsigned char r = rand() % 7 + 1;
+//        Initialize(r);
+//    }
+
+    void Tetromino(unsigned char c) {
+        Initialize(c);
     }
 
-    Tetromino(unsigned char colorIndex) {
-        Initialize(colorIndex);
-    }
-
-    void Initialize(unsigned char colorIndex) {
-        Tetromino::colorIndex = colorIndex;
+    void Initialize(unsigned char c) {
+        colorIndex = c;
         boardX = 0;
         boardY = 4; //3,4 ili 5 najbolje da vidimo kad imamo display
-        copyCoordinates(X, Y, colorIndex - 1);
+        copyCoordinates(X, Y, c - 1);
     }
 
     void Rotate(){
@@ -266,13 +257,9 @@ public:
             //stavio sam 16 za početak, možemo se opet skontati na labu
             //ovo pretpostavlja da nema margina, mogu se lagano dodati uz neku konstantu kao offset
             int upperLeftX = (boardX + X[i]) * DIMENSION, upperLeftY = (boardY + Y[i]) * DIMENSION;
-            display.fillrect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, colors[colorIndex]);
+            fillrect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, colors[colorIndex]);
             //ovo boji granice blokova u crno, možemo skloniti ako ti se ne sviđa
-
-//////// PORTAPACK - HIDE DEFAULT WHITE BLOCK (ALTERNATE KLUDGE FOR TETRONIMO INITIALIZATION CODE NOT RUNNING AT CONSTRUCTION)
-if (colorIndex != White)
-//////// PORTAPACK
-            display.rect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, Black);
+            rect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, Black);
         }
     }
 
@@ -280,7 +267,7 @@ if (colorIndex != White)
         for(int i = 0; i < 4; i++) {
             //ista logika kao u DrawFigure, samo popunjavamo sve blokove sa bijelim pravougaonicima
             short upperLeftX = (boardX + X[i]) * DIMENSION, upperLeftY = (boardY + Y[i]) * DIMENSION;
-            display.fillrect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, White);
+            fillrect( upperLeftY, upperLeftX, upperLeftY + DIMENSION, upperLeftX + DIMENSION, White);
             PutBorders(upperLeftY, upperLeftX);
         }
     }
@@ -295,9 +282,6 @@ if (colorIndex != White)
     }
 
    bool MoveDown(char delta = 1){
-//////// PORTAPACK - MOVE DEFAULT WHITE BLOCK TO BOTTOM IMMEDIATELY (ALTERNATE KLUDGE FOR TETRONIMO INITIALIZATION CODE NOT RUNNING AT CONSTRUCTION)
-if (colorIndex == White) delta = 19;
-//////// PORTAPACK
        if(!InCollisionDown(delta)){
             DeleteFigure();
             boardX+=delta;
@@ -384,34 +368,23 @@ if (colorIndex == White) delta = 19;
 
        return false;
    }
-};
+// };
 
+// Tetromino currentTetromino;
 
-Tetromino currentTetromino;
-
-//////// PORTAPACK - KLUDGED FOR BUTTONS VS JOYSTICK:
+//////// PORTAPACK - USE BUTTONS VS JOYSTICK, AND ADDED PAUSE FEATURE:
 void ReadJoystickForFigure() {
     if(but_LEFT) {
-//        leftBoundary = 2;
-        currentTetromino.MoveLeft();
+        MoveLeft();
     }
     else if(but_RIGHT) {
-//        rightBoundary = 4;
-        currentTetromino.MoveRight();
+        MoveRight();
     }
     else if(but_UP) {
-//        downBoundary = 2;
-pause_game();
+        pause_game();
     }
     else if(but_DOWN) {
-//        upBoundary = 4;
-        currentTetromino.SoftDrop();
-    }
-    else {
-//        leftBoundary = 1;
-//        rightBoundary = 5;
-//        downBoundary = 1;
-//        upBoundary = 5;
+        SoftDrop();
     }
 }
 //////// PORTAPACK
@@ -460,10 +433,10 @@ void UpdateBoard()
                 board[i][j] = board[i - numberOfLines][j];
                 board[i - numberOfLines][j] = 0;
                 short tmp = i - numberOfLines;
-                display.fillrect( j * DIMENSION,i * DIMENSION, (j + 1) * DIMENSION , (i + 1) * DIMENSION , colors[board[i][j]]); // bojimo novi blok
-                display.fillrect( j * DIMENSION, tmp * DIMENSION,(j + 1) * DIMENSION, (tmp + 1) * DIMENSION , White);
+                fillrect( j * DIMENSION,i * DIMENSION, (j + 1) * DIMENSION , (i + 1) * DIMENSION , colors[board[i][j]]); // bojimo novi blok
+                fillrect( j * DIMENSION, tmp * DIMENSION,(j + 1) * DIMENSION, (tmp + 1) * DIMENSION , White);
                 if(board[i][j] != 0)
-                    display.rect( j * DIMENSION,i * DIMENSION, (j + 1) * DIMENSION , (i + 1) * DIMENSION , Black);
+                    rect( j * DIMENSION,i * DIMENSION, (j + 1) * DIMENSION , (i + 1) * DIMENSION , Black);
             }
         }
         score += UpdateScore(numberOfLines);
@@ -480,26 +453,23 @@ bool IsOver() {
 
 void ShowGameOverScreen() {
 //////// PORTAPACK - SKIP CLS
-//    display.cls();
-//    display.background(Black);
-//    display.foreground(White);
-display.background(White);
-display.foreground(Black);
+//    cls();
+//    background(Black);
+//    foreground(White);
+background(White);
+foreground(Black);
 //////// PORTAPACK
-    display.locate(60, 120);
+    locate(60, 120);
     printf("GAME OVER");
-    display.locate(40, 150);
+    locate(40, 150);
     printf("YOUR SCORE IS %d", score);
     wait(5); //ovaj prikaz traje 3s (možemo mijenjati) a nakon toga se ponovo prikazuje meni sa levelima
 }
 
 void InitGame() {
     if(firstTime) {
-//////// PORTAPACK - NOTE - ATTEMPTED WORKAROUND FOR SKIPPED INITIALIZER CODE - BUT ANY OF THESE CRASHES FIRMWARE AT POWER-UP EVEN IF THERE'S NO TETRIS APP INSTALLED:
-// currentTetromino = Tetromino(rand() % 7 + 1);  // TEST #1
-// currentTetromino.Initialize(rand() % 7 + 1);   // TEST #2
-//////// PORTAPACK
-        currentTetromino.DrawFigure();
+        Tetromino(rand() % 7 + 1);
+        DrawFigure();
         nextFigure = rand() % 7 + 1;
         ShowNextFigure();
         firstTime = false;
@@ -508,13 +478,13 @@ void InitGame() {
 
 void PlayGame(){
     InitGame();
-    if(!currentTetromino.MoveDown()){
-        currentTetromino.OnAttached();
+    if(!MoveDown()){
+        OnAttached();
         UpdateBoard();
         ShowScore();
 
-        currentTetromino = Tetromino(nextFigure);
-        currentTetromino.DrawFigure();
+        Tetromino(nextFigure);
+        DrawFigure();
         nextFigure = rand() % 7 + 1;
         ShowNextFigure();
         if(IsOver()) {
@@ -531,7 +501,7 @@ void PlayGame(){
 void OnTasterPressed(){
     if(debounceTaster.read_ms() > 200) {
         if(gameStarted){
-            currentTetromino.Rotate();
+            Rotate();
         }
         else{
             joystick.detach();
@@ -568,7 +538,7 @@ return 0;
 void pause_game() {
     game.detach();
     joystick.detach();
-    display.locate(180, 200);
+    locate(180, 200);
     printf("PAUSED");
     while ((get_switches_state().to_ulong() & 0x10) == 0);  // wait for SELECT button to resume
     printf("      ");

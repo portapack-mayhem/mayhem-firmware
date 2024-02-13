@@ -56,35 +56,30 @@ static const Color pp_colors[] = {
     Color::black(),
 };
 
-class SPI_TFT_ILI9341 {
-   public:
-    SPI_TFT_ILI9341(int, int, int, int, int, int, std::string) { (void)0; };
+// NB: ELIMINATED SPI_TFT_ILI9341 DISPLAY CLASS DUE TO GLOBAL OBJECT INITIALIZATION ISSUE WITH EXTERNAL APPS
+static void claim(__FILE* x) { (void)x; };
 
-    void claim(__FILE* x) { (void)x; };
+static void cls() {
+    painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
+};
 
-    void cls() {
-        painter.fill_rectangle({0, 0, portapack::display.width(), portapack::display.height()}, Color::black());
-    };
+static void background(int color) { bg_color = color; };
+static void foreground(int color) { fg_color = color; };
 
-    void background(int color) { bg_color = color; };
-    void foreground(int color) { fg_color = color; };
+static void locate(int x, int y) {
+    x_pos = x;
+    y_pos = y;
+};
 
-    void locate(int x, int y) {
-        x_pos = x;
-        y_pos = y;
-    };
-    void set_orientation(int x) { (void)x; };
-    void set_font(unsigned char* x) { (void)x; };
+static void set_orientation(int x) { (void)x; };
+static void set_font(unsigned char* x) { (void)x; };
 
-    void fillrect(int x1, int y1, int x2, int y2, int color) {
-        painter.fill_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
-    };
+static void fillrect(int x1, int y1, int x2, int y2, int color) {
+    painter.fill_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
+};
 
-    void rect(int x1, int y1, int x2, int y2, int color) {
-        painter.draw_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
-    };
-
-   private:
+static void rect(int x1, int y1, int x2, int y2, int color) {
+    painter.draw_rectangle({x1, y1, x2 - x1, y2 - y1}, pp_colors[color]);
 };
 
 static void printf(std::string str) {

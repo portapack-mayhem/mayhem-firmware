@@ -67,7 +67,7 @@ static bool but_DOWN;
 static bool but_SELECT;
 
 //
-// AnalogIn Class -- DID NOT WORK BECAUSE INITIALIZER CODE WON'T EXECUTE -- hacked original code module instead
+// AnalogIn Class -- DID NOT WORK DUE TO GLOBAL OBJECT INITIALIZER ISSUE WITH EXTERNAL APPS -- hacked original code module instead
 //
 // dp9 = joystick rotate button --> select button
 // dp10 = joystick y --> up & down buttons
