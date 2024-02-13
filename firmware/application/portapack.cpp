@@ -51,6 +51,7 @@ using asahi_kasei::ak4951::AK4951;
 #include "file.hpp"
 #include "sd_card.hpp"
 #include "string_format.hpp"
+#include "bitmap.hpp"
 
 namespace portapack {
 
@@ -181,46 +182,14 @@ enum class PortaPackModel {
 
 static bool save_config(int8_t value) {
     persistent_memory::set_config_cpld(value);
-    if (sd_card::status() == sd_card::Status::Mounted) {
-        ensure_directory("/hardware");
-        File file;
-        auto sucess = file.create("/hardware/settings.txt");
-        if (!sucess.is_valid()) {
-            file.write_line(to_string_dec_uint(value));
-        }
-    }
     return true;
-}
-
-int read_file(std::string name) {
-    std::string return_string = "";
-    File file;
-    auto success = file.open(name);
-
-    if (!success.is_valid()) {
-        char one_char[1];
-        for (size_t pointer = 0; pointer < file.size(); pointer++) {
-            file.seek(pointer);
-            file.read(one_char, 1);
-            return_string += one_char[0];
-        }
-        return std::stoi(return_string);
-    }
-    return -1;
 }
 
 static int load_config() {
     static Optional<int> config_value;
     if (!config_value.is_valid()) {
         int8_t value = portapack::persistent_memory::config_cpld();
-        if ((value < 0 || value >= 5) && sd_card::status() == sd_card::Status::Mounted) {
-            int data = read_file("/hardware/settings.txt");
-            if (data != -1) {
-                config_value = data;
-            }
-        } else {
-            config_value = value;
-        }
+        config_value = value;
     }
     return config_value.value();
 }
@@ -243,24 +212,23 @@ static PortaPackModel portapack_model() {
         if (idcode == 0x25610) {
             model = PortaPackModel::AGM;
         } else {
-            const auto switches_state = get_switches_state();
-            // Only save config if no other multi key boot action is triggered (like pmem reset)
-            if (switches_state.count() == 1) {
-                if (switches_state[(size_t)ui::KeyEvent::Up]) {
-                    save_config(1);
-                    // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
-                } else if (switches_state[(size_t)ui::KeyEvent::Down]) {
-                    save_config(2);
-                    // model = PortaPackModel::R1_20150901;
-                } else if (switches_state[(size_t)ui::KeyEvent::Left]) {
-                    save_config(3);
-                    // model = PortaPackModel::R1_20150901;
-                } else if (switches_state[(size_t)ui::KeyEvent::Right]) {
-                    save_config(4);
-                    // model = PortaPackModel::R2_20170522;
-                } else if (switches_state[(size_t)ui::KeyEvent::Select]) {
-                    save_config(0);
-                }
+            const auto switches_state = swizzled_switches();
+            // chDbgPanic(to_string_hex((uint32_t)switches_state.count(), 8).c_str());
+            //  Only save config if no other multi key boot action is triggered (like pmem reset)
+            if (((switches_state >> (size_t)ui::KeyEvent::Up) & 1) == 1) {
+                save_config(1);
+                // model = PortaPackModel::R2_20170522; // Commented these out as they should be set down below anyway
+            } else if (((switches_state >> (size_t)ui::KeyEvent::Down) & 1) == 1) {
+                save_config(2);
+                // model = PortaPackModel::R1_20150901;
+            } else if (((switches_state >> (size_t)ui::KeyEvent::Left) & 1) == 1) {
+                save_config(3);
+                // model = PortaPackModel::R1_20150901;
+            } else if (((switches_state >> (size_t)ui::KeyEvent::Right) & 1) == 1) {
+                save_config(4);
+                // model = PortaPackModel::R2_20170522;
+            } else if (((switches_state >> (size_t)ui::KeyEvent::Select) & 1) == 1) {
+                save_config(0);
             }
 
             if (load_config() == 1) {
@@ -410,23 +378,63 @@ init_status_t init() {
 
     i2c0.start(i2c_config_boot_clock);
 
-    // Keeping this here for now incase we need to revert
-    // if( !portapack::cpld::update_if_necessary(portapack_cpld_config()) ) {
-    // 	shutdown_base();
-    // 	return false;
-    // }
-
-    // if( !hackrf::cpld::load_sram() ) {
-    // 	chSysHalt();
-    // }
     chThdSleepMilliseconds(100);
 
     configure_pins_portapack();
 
     portapack::io.init();
+    persistent_memory::cache::init();
+
+    const auto switches_state = swizzled_switches() & (~(0xC0 | 0x80));
+    bool lcd_fast_setup = switches_state == 0 && portapack::display.read_display_status();
+
+    if (lcd_fast_setup) {
+        portapack::display.init();
+        portapack::backlight()->on();
+
+        ui::Painter painter;
+        painter.fill_rectangle(
+            {0, 0, portapack::display.width(), portapack::display.height()},
+            ui::Color::black());
+
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
+            ui::bitmap_titlebar_image,
+            ui::Color::white(),
+            ui::Color::black());
+
+    } else {
+        switch (portapack_model()) {
+            case PortaPackModel::AUTODETECT: {
+                portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_autodetect(
+                    portapack::cpld::rev_20150901::config, portapack::cpld::rev_20170522::config);
+                if (result != portapack::cpld::CpldUpdateStatus::Success) {
+                    shutdown_base();
+                    return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
+                }
+            } break;
+
+            case PortaPackModel::R1_20150901:
+            case PortaPackModel::R2_20170522: {
+                portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+                if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+                    chThdSleepMilliseconds(10);
+                    // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+                    // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+                    if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
+                        shutdown_base();
+                        return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
+                    }
+                }
+            } break;
+
+            case PortaPackModel::AGM:
+                // the AGM devices are always factory flashed. so do nothing
+                break;
+        }
+    }
 
     /* Cache some configuration data from persistent memory. */
-    persistent_memory::cache::init();
     rtc_time::dst_init();
     chThdSleepMilliseconds(10);
 
@@ -515,38 +523,12 @@ init_status_t init() {
 
     chThdSleepMilliseconds(10);
 
-    switch (portapack_model()) {
-        case PortaPackModel::AUTODETECT: {
-            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_autodetect(
-                portapack::cpld::rev_20150901::config, portapack::cpld::rev_20170522::config);
-            if (result != portapack::cpld::CpldUpdateStatus::Success) {
-                shutdown_base();
-                return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
-            }
-        } break;
-
-        case PortaPackModel::R1_20150901:
-        case PortaPackModel::R2_20170522: {
-            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
-            if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
-                chThdSleepMilliseconds(10);
-                // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-                // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
-                if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
-                    shutdown_base();
-                    return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
-                }
-            }
-        } break;
-
-        case PortaPackModel::AGM:
-            // the AGM devices are always factory flashed. so do nothing
-            break;
+    if (!lcd_fast_setup) {
     }
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
     if (!hackrf::cpld::load_sram()) {
-        return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
+        return_code = init_status_t::INIT_SUCCESS;
     }
 
     chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
@@ -557,6 +539,11 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
+
+    if (!lcd_fast_setup) {
+        portapack::display.init();
+        portapack::backlight()->on();
+    }
 
     return return_code;
 }

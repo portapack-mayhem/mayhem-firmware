@@ -162,6 +162,8 @@ static void event_loop() {
 }
 
 int main(void) {
+    first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
+
     if (config_mode_should_enter()) {
         config_mode_clear();
         config_mode_run();
@@ -169,15 +171,13 @@ int main(void) {
 
     config_mode_set();
 
-    first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
-
     switch (portapack::init()) {
         case portapack::init_status_t::INIT_HACKRF_CPLD_FAILED:
             portapack::init_error = "HACKRF CPLD FAILED";
             [[fallthrough]];
 
         case portapack::init_status_t::INIT_SUCCESS:
-            portapack::display.init();
+
             config_mode_clear();
 
             lcd_frame_sync_configure();

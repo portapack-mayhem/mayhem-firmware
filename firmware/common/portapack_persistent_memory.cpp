@@ -430,13 +430,15 @@ void defaults() {
 }
 
 void init() {
-    const auto switches_state = get_switches_state();
+    const auto switches_state = swizzled_switches();
 
     // ignore for valid check
     auto config_mode_backup = config_mode_storage_direct();
     set_config_mode_storage_direct(CONFIG_MODE_NORMAL_VALUE);
 
-    if (!(switches_state[(size_t)ui::KeyEvent::Left] && switches_state[(size_t)ui::KeyEvent::Right]) && backup_ram->is_valid()) {
+    if (!(((switches_state >> (size_t)ui::KeyEvent::Left & 1) == 1) &&
+          ((switches_state >> (size_t)ui::KeyEvent::Right & 1) == 1)) &&
+        backup_ram->is_valid()) {
         // Copy valid persistent data into cache.
         cached_backup_ram = *backup_ram;
 

@@ -151,22 +151,6 @@ static uint32_t get_firmware_crc(CPLD& cpld) {
     return crc.checksum();
 }
 
-static bool is_valid_display_status(uint32_t display_status) {
-    /* This tries to validate the display_status.
-     * The value could vary from device to device, so we are less specific here.
-     * 0xFFFFFEFF was seen when the display was not reachable
-     * 0x00610000 was seen when the display was reachable
-     */
-
-    if (display_status > 0x0E000000ULL)
-        return false;
-
-    if (display_status < 0x00000100ULL)
-        return false;
-
-    return true;
-}
-
 CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Config config_rev_20170522) {
     jtag::GPIOTarget target{
         portapack::gpio_cpld_tck,
@@ -176,9 +160,7 @@ CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Confi
     jtag::JTAG jtag{target};
     CPLD cpld{jtag};
 
-    uint32_t display_status = portapack::display.read_display_status();
-
-    if (is_valid_display_status(display_status))
+    if (portapack::display.read_display_status())
         return CpldUpdateStatus::Success;  // LCD is ready
 
     CpldUpdateStatus result = enter_maintenance_mode(cpld);
@@ -202,9 +184,8 @@ CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Confi
     }
 
     exit_maintenance_mode(cpld);
-    display_status = portapack::display.read_display_status();
 
-    if (is_valid_display_status(display_status))
+    if (portapack::display.read_display_status())
         return CpldUpdateStatus::Success;  // LCD is ready
 
     if (checksum != REV_20150901_CHECKSUM && checksum != REV_20170522_CHECKSUM) {
@@ -218,9 +199,8 @@ CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Confi
             return CpldUpdateStatus::Program_failed;
 
         exit_maintenance_mode(cpld);
-        display_status = portapack::display.read_display_status();
 
-        if (is_valid_display_status(display_status))
+        if (portapack::display.read_display_status())
             return CpldUpdateStatus::Success;  // LCD is ready
     }
 

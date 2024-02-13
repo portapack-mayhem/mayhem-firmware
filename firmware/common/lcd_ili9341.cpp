@@ -85,8 +85,6 @@ void lcd_wake() {
 }
 
 uint32_t lcd_read_display_status() {
-    lcd_reset();
-
     io.lcd_data_write_command_and_data(0x09, {});
     io.lcd_read_word();
 
@@ -273,9 +271,23 @@ void lcd_vertical_scrolling_start_address(
 
 }  // namespace
 
-uint32_t ILI9341::read_display_status() {
-    // lcd_reset();
-    return lcd_read_display_status();
+bool ILI9341::read_display_status() {
+    lcd_reset();
+    uint32_t display_status = lcd_read_display_status();
+
+    /* This tries to validate the display_status.
+     * The value could vary from device to device, so we are less specific here.
+     * 0xFFFFFEFF was seen when the display was not reachable
+     * 0x00610000 was seen when the display was reachable
+     */
+
+    if (display_status > 0x0E000000ULL)
+        return false;
+
+    if (display_status < 0x00000100ULL)
+        return false;
+
+    return true;
 }
 
 void ILI9341::init() {
