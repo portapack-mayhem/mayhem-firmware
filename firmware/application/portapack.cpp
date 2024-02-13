@@ -53,6 +53,8 @@ using asahi_kasei::ak4951::AK4951;
 
 namespace portapack {
 
+const char* init_error = nullptr;
+
 portapack::IO io{
     portapack::gpio_dir,
     portapack::gpio_lcd_rdx,
@@ -389,7 +391,7 @@ static void shutdown_base() {
  * everything else = IRC
  */
 
-bool init() {
+init_status_t init() {
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
@@ -481,7 +483,7 @@ bool init() {
         chThdSleepMilliseconds(10);
         if (i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout) == false) {
             shutdown_base();
-            return false;
+            return init_status_t::INIT_NO_PORTAPACK;
         }
     }
 
@@ -506,12 +508,14 @@ bool init() {
         // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
         if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
             shutdown_base();
-            return false;
+            return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
         }
     }
 
+    init_status_t return_code = init_status_t::INIT_SUCCESS;
+
     if (!hackrf::cpld::load_sram()) {
-        chSysHalt();
+        return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
 
     chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
@@ -523,7 +527,7 @@ bool init() {
 
     audio::init(portapack_audio_codec());
 
-    return true;
+    return return_code;
 }
 
 void shutdown(const bool leave_screen_on) {
