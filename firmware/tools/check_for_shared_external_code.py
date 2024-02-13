@@ -49,5 +49,5 @@ for i in range(0, len(image), 4):
 	snippet = image[i:i+4]
 	val = int.from_bytes(snippet, byteorder='little')
 	offset = val & 0xFFFF
-	if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size) and ((val & 0x3)==0):
+	if (val >= external_apps_address_start) and (val < external_apps_address_end) and ((val & 0xFFFF) < maximum_application_size):
 		print ("External code address", hex(val),"at offset", hex(i),"in", sys.argv[1])
