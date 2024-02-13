@@ -213,7 +213,7 @@ static int load_config() {
     static Optional<int> config_value;
     if (!config_value.is_valid()) {
         int8_t value = portapack::persistent_memory::config_cpld();
-        if ((value <= 0 || value >= 5) && sd_card::status() == sd_card::Status::Mounted) {
+        if ((value < 0 || value >= 5) && sd_card::status() == sd_card::Status::Mounted) {
             int data = read_file("/hardware/settings.txt");
             if (data != -1) {
                 config_value = data;
