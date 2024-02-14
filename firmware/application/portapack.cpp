@@ -396,6 +396,7 @@ init_status_t init() {
             {0, 0, portapack::display.width(), portapack::display.height()},
             ui::Color::black());
 
+        chThdSleepMilliseconds(17);
         portapack::backlight()->on();
 
         painter.draw_bitmap(
