@@ -84,6 +84,17 @@ void lcd_wake() {
     lcd_display_on();
 }
 
+uint32_t lcd_read_display_status() {
+    io.lcd_data_write_command_and_data(0x09, {});
+    io.lcd_read_word();
+
+    uint32_t value2 = io.lcd_read_word();
+    uint32_t value3 = io.lcd_read_word();
+    uint32_t value4 = io.lcd_read_word();
+    uint32_t value5 = io.lcd_read_word();
+    return value5 + (value4 << 8) + (value3 << 16) + (value2 << 24);
+}
+
 void lcd_init() {
     // LCDs are configured for IM[2:0] = 001
     // 8080-I system, 16-bit parallel bus
@@ -259,6 +270,25 @@ void lcd_vertical_scrolling_start_address(
 }
 
 }  // namespace
+
+bool ILI9341::read_display_status() {
+    lcd_reset();
+    uint32_t display_status = lcd_read_display_status();
+
+    /* This tries to validate the display_status.
+     * The value could vary from device to device, so we are less specific here.
+     * 0xFFFFFEFF was seen when the display was not reachable
+     * 0x00610000 was seen when the display was reachable
+     */
+
+    if (display_status > 0x0E000000ULL)
+        return false;
+
+    if (display_status < 0x00000100ULL)
+        return false;
+
+    return true;
+}
 
 void ILI9341::init() {
     lcd_reset();
