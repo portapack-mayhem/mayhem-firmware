@@ -13,7 +13,6 @@ namespace ui::external_app::pacman {
 #include "playfield.hpp"
 #pragma GCC diagnostic pop
 
-Playfield _game;
 
 PacmanView::PacmanView(NavigationView& nav)
     : nav_(nav) {
@@ -26,6 +25,7 @@ void PacmanView::focus() {
 
 void PacmanView::paint(Painter& painter) {
     (void)painter;
+    static Playfield _game;
 
     if (!initialized) {
         initialized = true;
