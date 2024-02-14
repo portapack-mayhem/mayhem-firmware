@@ -182,6 +182,7 @@ enum class PortaPackModel {
 
 static bool save_config(int8_t value) {
     persistent_memory::set_config_cpld(value);
+    portapack::persistent_memory::cache::persist();
     return true;
 }
 
@@ -327,6 +328,129 @@ static void shutdown_base() {
     clock_manager.shutdown();
 }
 
+static void set_cpu_clock_speed() {
+    /* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
+     * core clock speed to the 110 - 204MHz range.
+     */
+
+    /* Step into the 90-110MHz M4 clock range */
+    /* OG:
+     * 	Fclkin = 40M
+     * 		/N=2 = 20M = PFDin
+     * 	Fcco = PFDin * (M=10) = 200M
+     * r9:
+     * 	Fclkin = 10M
+     * 		/N=1 = 10M = PFDin
+     * 	Fcco = PFDin * (M=20) = 200M
+     * Fclk = Fcco / (2*(P=1)) = 100M
+     */
+    cgu::pll1::ctrl({
+        .pd = 1,
+        .bypass = 0,
+        .fbsel = 0,
+        .direct = 0,
+        .psel = 0,
+        .autoblock = 1,
+        .nsel = hackrf_r9 ? 0UL : 1UL,
+        .msel = hackrf_r9 ? 19UL : 9UL,
+        .clk_sel = cgu::CLK_SEL::GP_CLKIN,
+    });
+
+    cgu::pll1::enable();
+    while (!cgu::pll1::is_locked())
+        ;
+
+    set_clock_config(clock_config_pll1_step);
+
+    /* Delay >50us at 90-110MHz clock speed */
+    volatile uint32_t delay = 1400;
+    while (delay--)
+        ;
+
+    set_clock_config(clock_config_pll1);
+
+    /* Remove /2P divider from PLL1 output to achieve full speed */
+    cgu::pll1::direct();
+}
+
+static void draw_splash_screen_icon(int16_t n, const ui::Bitmap& bitmap) {
+    ui::Painter painter;
+
+    painter.draw_bitmap(
+        {portapack::display.width() / 2 - 8 - 40 + (n * 20), portapack::display.height() / 2 - 8 + 40},
+        bitmap,
+        ui::Color::white(),
+        ui::Color::black());
+}
+
+static bool is_portapack_present() {
+    systime_t timeout = 50;
+    uint8_t wm8731_reset_command[] = {0x0f, 0x00};
+    if (i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
+        audio_codec_ak4951.reset();
+        uint8_t ak4951_init_command[] = {0x00, 0x00};
+        i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout);
+        chThdSleepMilliseconds(10);
+        if (i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout) == false) {
+            shutdown_base();
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool check_portapack_cpld() {
+    switch (portapack_model()) {
+        case PortaPackModel::AUTODETECT: {
+            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_autodetect(
+                portapack::cpld::rev_20150901::config, portapack::cpld::rev_20170522::config);
+            if (result != portapack::cpld::CpldUpdateStatus::Success) {
+                shutdown_base();
+                return false;
+            }
+        } break;
+
+        case PortaPackModel::R1_20150901:
+        case PortaPackModel::R2_20170522: {
+            portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
+            if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
+                chThdSleepMilliseconds(10);
+                // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
+                // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
+                if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
+                    shutdown_base();
+                    return false;
+                }
+            }
+        } break;
+
+        case PortaPackModel::AGM:
+            // the AGM devices are always factory flashed. so do nothing
+            break;
+    }
+
+    return true;
+}
+
+static void initialize_boot_splash_screen() {
+    ui::Painter painter;
+    portapack::display.init();
+
+    painter.fill_rectangle(
+        {0, 0, portapack::display.width(), portapack::display.height()},
+        ui::Color::black());
+
+    chThdSleepMilliseconds(17);
+    portapack::backlight()->on();
+
+    painter.draw_bitmap(
+        {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
+        ui::bitmap_titlebar_image,
+        ui::Color::white(),
+        ui::Color::black());
+}
+
 /* Clock scheme after exiting bootloader in SPIFI mode:
  *
  * XTAL_OSC = powered down
@@ -374,7 +498,6 @@ static void shutdown_base() {
  */
 
 init_status_t init() {
-    ui::Painter painter;
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
@@ -390,50 +513,10 @@ init_status_t init() {
     bool lcd_fast_setup = switches_state == 0 && portapack::display.read_display_status();
 
     if (lcd_fast_setup) {
-        portapack::display.init();
-
-        painter.fill_rectangle(
-            {0, 0, portapack::display.width(), portapack::display.height()},
-            ui::Color::black());
-
-        chThdSleepMilliseconds(17);
-        portapack::backlight()->on();
-
-        painter.draw_bitmap(
-            {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
-            ui::bitmap_titlebar_image,
-            ui::Color::white(),
-            ui::Color::black());
-
+        initialize_boot_splash_screen();
     } else {
-        switch (portapack_model()) {
-            case PortaPackModel::AUTODETECT: {
-                portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_autodetect(
-                    portapack::cpld::rev_20150901::config, portapack::cpld::rev_20170522::config);
-                if (result != portapack::cpld::CpldUpdateStatus::Success) {
-                    shutdown_base();
-                    return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
-                }
-            } break;
-
-            case PortaPackModel::R1_20150901:
-            case PortaPackModel::R2_20170522: {
-                portapack::cpld::CpldUpdateStatus result = portapack::cpld::update_if_necessary(portapack_cpld_config());
-                if (result == portapack::cpld::CpldUpdateStatus::Program_failed) {
-                    chThdSleepMilliseconds(10);
-                    // Mode left (R1) and right (R2,H2,H2+) bypass going into hackrf mode after failing CPLD update
-                    // Mode center (autodetect), up (R1) and down (R2,H2,H2+) will go into hackrf mode after failing CPLD update
-                    if (load_config() != 3 /* left */ && load_config() != 4 /* right */) {
-                        shutdown_base();
-                        return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
-                    }
-                }
-            } break;
-
-            case PortaPackModel::AGM:
-                // the AGM devices are always factory flashed. so do nothing
-                break;
-        }
+        if (check_portapack_cpld() == false)
+            return init_status_t::INIT_PORTAPACK_CPLD_FAILED;
     }
 
     /* Cache some configuration data from persistent memory. */
@@ -449,82 +532,22 @@ init_status_t init() {
     set_clock_config(clock_config_irc);
     cgu::pll1::disable();
 
-    /* Incantation from LPC43xx UM10503 section 12.2.1.1, to bring the M4
-     * core clock speed to the 110 - 204MHz range.
-     */
+    set_cpu_clock_speed();
 
-    /* Step into the 90-110MHz M4 clock range */
-    /* OG:
-     * 	Fclkin = 40M
-     * 		/N=2 = 20M = PFDin
-     * 	Fcco = PFDin * (M=10) = 200M
-     * r9:
-     * 	Fclkin = 10M
-     * 		/N=1 = 10M = PFDin
-     * 	Fcco = PFDin * (M=20) = 200M
-     * Fclk = Fcco / (2*(P=1)) = 100M
-     */
-    cgu::pll1::ctrl({
-        .pd = 1,
-        .bypass = 0,
-        .fbsel = 0,
-        .direct = 0,
-        .psel = 0,
-        .autoblock = 1,
-        .nsel = hackrf_r9 ? 0UL : 1UL,
-        .msel = hackrf_r9 ? 19UL : 9UL,
-        .clk_sel = cgu::CLK_SEL::GP_CLKIN,
-    });
+    if (lcd_fast_setup)
+        draw_splash_screen_icon(0, ui::bitmap_icon_memory);
 
-    cgu::pll1::enable();
-    while (!cgu::pll1::is_locked())
-        ;
-
-    set_clock_config(clock_config_pll1_step);
-
-    /* Delay >50us at 90-110MHz clock speed */
-    volatile uint32_t delay = 1400;
-    while (delay--)
-        ;
-
-    set_clock_config(clock_config_pll1);
-
-    /* Remove /2P divider from PLL1 output to achieve full speed */
-    cgu::pll1::direct();
-
-    if (lcd_fast_setup) {
-        painter.draw_bitmap(
-            {portapack::display.width() / 2 - 8 - 40, portapack::display.height() / 2 - 8 + 40},
-            ui::bitmap_icon_memory,
-            ui::Color::white(),
-            ui::Color::black());
-    }
     usb_serial.initialize();
 
     i2c0.start(i2c_config_fast_clock);
     chThdSleepMilliseconds(10);
 
     /* Check if portapack is attached by checking if any of the two audio chips is present. */
-    systime_t timeout = 50;
-    uint8_t wm8731_reset_command[] = {0x0f, 0x00};
-    if (lcd_fast_setup == false && i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
-        audio_codec_ak4951.reset();
-        uint8_t ak4951_init_command[] = {0x00, 0x00};
-        i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout);
-        chThdSleepMilliseconds(10);
-        if (i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout) == false) {
-            shutdown_base();
-            return init_status_t::INIT_NO_PORTAPACK;
-        }
-    }
+    if (lcd_fast_setup == false && is_portapack_present() == false)
+        return init_status_t::INIT_NO_PORTAPACK;
 
-    if (lcd_fast_setup) {
-        painter.draw_bitmap(
-            {portapack::display.width() / 2 - 8 - 20, portapack::display.height() / 2 - 8 + 40},
-            ui::bitmap_icon_remote,
-            ui::Color::white(),
-            ui::Color::black());
-    }
+    if (lcd_fast_setup)
+        draw_splash_screen_icon(1, ui::bitmap_icon_remote);
 
     touch::adc::init();
     controls_init();
@@ -540,26 +563,19 @@ init_status_t init() {
 
     chThdSleepMilliseconds(10);
 
-    if (lcd_fast_setup) {
-        painter.draw_bitmap(
-            {portapack::display.width() / 2 - 8 + 0, portapack::display.height() / 2 - 8 + 40},
-            ui::bitmap_icon_sd,
-            ui::Color::white(),
-            ui::Color::black());
-    }
+    if (lcd_fast_setup)
+        draw_splash_screen_icon(2, ui::bitmap_icon_sd);
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
     if (!hackrf::cpld::load_sram()) {
+        if (lcd_fast_setup)
+            chDbgPanic("HACKRF CPLD FAILED");
+
         return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
     }
 
-    if (lcd_fast_setup) {
-        painter.draw_bitmap(
-            {portapack::display.width() / 2 - 8 + 20, portapack::display.height() / 2 - 8 + 40},
-            ui::bitmap_icon_hackrf,
-            ui::Color::white(),
-            ui::Color::black());
-    }
+    if (lcd_fast_setup)
+        draw_splash_screen_icon(3, ui::bitmap_icon_hackrf);
 
     chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
 
@@ -570,15 +586,9 @@ init_status_t init() {
 
     audio::init(portapack_audio_codec());
 
-    if (lcd_fast_setup) {
-        painter.draw_bitmap(
-            {portapack::display.width() / 2 - 8 + 40, portapack::display.height() / 2 - 8 + 40},
-            ui::bitmap_icon_speaker,
-            ui::Color::white(),
-            ui::Color::black());
-    }
-
-    if (!lcd_fast_setup) {
+    if (lcd_fast_setup)
+        draw_splash_screen_icon(4, ui::bitmap_icon_speaker);
+    else {
         portapack::display.init();
         portapack::backlight()->on();
     }
