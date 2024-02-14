@@ -13,7 +13,6 @@ namespace ui::external_app::pacman {
 #include "playfield.hpp"
 #pragma GCC diagnostic pop
 
-
 PacmanView::PacmanView(NavigationView& nav)
     : nav_(nav) {
     add_children({&dummy});
