@@ -374,6 +374,7 @@ static void shutdown_base() {
  */
 
 init_status_t init() {
+    ui::Painter painter;
     set_idivc_base_clocks(cgu::CLK_SEL::IDIVC);
 
     i2c0.start(i2c_config_boot_clock);
@@ -390,12 +391,12 @@ init_status_t init() {
 
     if (lcd_fast_setup) {
         portapack::display.init();
-        portapack::backlight()->on();
 
-        ui::Painter painter;
         painter.fill_rectangle(
             {0, 0, portapack::display.width(), portapack::display.height()},
             ui::Color::black());
+
+        portapack::backlight()->on();
 
         painter.draw_bitmap(
             {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
@@ -490,6 +491,13 @@ init_status_t init() {
     /* Remove /2P divider from PLL1 output to achieve full speed */
     cgu::pll1::direct();
 
+    if (lcd_fast_setup) {
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 8 - 40, portapack::display.height() / 2 - 8 + 40},
+            ui::bitmap_icon_memory,
+            ui::Color::white(),
+            ui::Color::black());
+    }
     usb_serial.initialize();
 
     i2c0.start(i2c_config_fast_clock);
@@ -498,7 +506,7 @@ init_status_t init() {
     /* Check if portapack is attached by checking if any of the two audio chips is present. */
     systime_t timeout = 50;
     uint8_t wm8731_reset_command[] = {0x0f, 0x00};
-    if (i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
+    if (lcd_fast_setup == false && i2c0.transmit(0x1a /* wm8731 */, wm8731_reset_command, 2, timeout) == false) {
         audio_codec_ak4951.reset();
         uint8_t ak4951_init_command[] = {0x00, 0x00};
         i2c0.transmit(0x12 /* ak4951 */, ak4951_init_command, 2, timeout);
@@ -507,6 +515,14 @@ init_status_t init() {
             shutdown_base();
             return init_status_t::INIT_NO_PORTAPACK;
         }
+    }
+
+    if (lcd_fast_setup) {
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 8 - 20, portapack::display.height() / 2 - 8 + 40},
+            ui::bitmap_icon_remote,
+            ui::Color::white(),
+            ui::Color::black());
     }
 
     touch::adc::init();
@@ -523,12 +539,25 @@ init_status_t init() {
 
     chThdSleepMilliseconds(10);
 
-    if (!lcd_fast_setup) {
+    if (lcd_fast_setup) {
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 8 + 0, portapack::display.height() / 2 - 8 + 40},
+            ui::bitmap_icon_sd,
+            ui::Color::white(),
+            ui::Color::black());
     }
 
     init_status_t return_code = init_status_t::INIT_SUCCESS;
     if (!hackrf::cpld::load_sram()) {
-        return_code = init_status_t::INIT_SUCCESS;
+        return_code = init_status_t::INIT_HACKRF_CPLD_FAILED;
+    }
+
+    if (lcd_fast_setup) {
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 8 + 20, portapack::display.height() / 2 - 8 + 40},
+            ui::bitmap_icon_hackrf,
+            ui::Color::white(),
+            ui::Color::black());
     }
 
     chThdSleepMilliseconds(10);  // This delay seems to solve white noise audio issues
@@ -539,6 +568,14 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
+
+    if (lcd_fast_setup) {
+        painter.draw_bitmap(
+            {portapack::display.width() / 2 - 8 + 40, portapack::display.height() / 2 - 8 + 40},
+            ui::bitmap_icon_speaker,
+            ui::Color::white(),
+            ui::Color::black());
+    }
 
     if (!lcd_fast_setup) {
         portapack::display.init();
