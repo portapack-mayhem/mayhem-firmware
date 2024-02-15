@@ -461,7 +461,6 @@ void init() {
 
     // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
     if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
-    if (encoder_rate_multiplier() == 0) set_encoder_rate_multiplier(1);
 }
 
 void persist() {
@@ -994,7 +993,7 @@ void set_encoder_dial_sensitivity(uint8_t v) {
 }
 uint8_t encoder_rate_multiplier() {
     uint8_t v = data->encoder_rate_multiplier;
-    if (v == 0) v = 1;  // this same check is in pmem init() so should not be needed here
+    if (v == 0) v = 1;  // minimum value is 1; treat 0 the same as 1
     return v;
 }
 void set_encoder_rate_multiplier(uint8_t v) {
