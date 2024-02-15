@@ -612,6 +612,8 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
             [this](bool choice) {
                 if (choice) {
                     pmem::cache::defaults();
+                    // Refresh status bar
+                    send_system_refresh();
                 }
             });
     };
