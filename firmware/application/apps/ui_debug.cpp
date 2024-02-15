@@ -457,6 +457,17 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
     set_max_rows(2);  // allow wider buttons
 }
 
+/* DebugReboot **********************************************/
+
+DebugReboot::DebugReboot(NavigationView& nav) {
+    (void)nav;
+
+    LPC_RGU->RESET_CTRL[0] = (1 << 0);
+
+    while (1)
+        __WFE();
+}
+
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
@@ -472,6 +483,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
+        {"Reboot", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<DebugReboot>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},

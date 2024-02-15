@@ -424,6 +424,11 @@ class DebugPeripheralsMenuView : public BtnGridView {
     std::string title() const override { return "Peripherals"; };
 };
 
+class DebugReboot : public BtnGridView {
+   public:
+    DebugReboot(NavigationView& nav);
+};
+
 class DebugMenuView : public BtnGridView {
    public:
     DebugMenuView(NavigationView& nav);
