@@ -252,18 +252,21 @@ class ControlsSwitchesWidget : public Widget {
         Rect parent_rect)
         : Widget{parent_rect},
           key_event_mask(0),
-          long_press_key_event_mask{0} {
+          long_press_key_event_mask{0},
+          last_delta{0} {
         set_focusable(true);
     }
 
     void on_show() override;
     bool on_key(const KeyEvent key) override;
+    bool on_encoder(const EncoderEvent delta) override;
 
     void paint(Painter& painter) override;
 
    private:
     uint8_t key_event_mask;
     uint8_t long_press_key_event_mask;
+    EncoderEvent last_delta;
 
     MessageHandlerRegistration message_handler_frame_sync{
         Message::ID::DisplayFrameSync,
@@ -285,6 +288,7 @@ class DebugControlsView : public View {
    private:
     Labels labels{
         {{8 * 8, 1 * 16}, "Controls State", Color::white()},
+        {{0 * 8, 11 * 16}, "Dial:", Color::grey()},
         {{0 * 8, 14 * 16}, "Long-Press Mode:", Color::grey()}};
 
     ControlsSwitchesWidget switches_widget{
