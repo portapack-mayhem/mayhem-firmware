@@ -427,6 +427,9 @@ TextEditorView::TextEditorView(NavigationView& nav)
             &text_size,
         });
 
+    text_position.set_style(&Styles::bg_dark_blue);
+    text_size.set_style(&Styles::bg_dark_blue);
+
     viewer.set_font_zoom(enable_zoom);
 
     viewer.on_select = [this]() {

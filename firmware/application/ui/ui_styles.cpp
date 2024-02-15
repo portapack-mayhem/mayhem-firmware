@@ -86,6 +86,12 @@ const Style Styles::bg_blue{
     .foreground = Color::white(),
 };
 
+const Style Styles::bg_dark_blue{
+    .font = font::fixed_8x16,
+    .background = Color::dark_blue(),
+    .foreground = Color::white(),
+};
+
 const Style Styles::light_grey{
     .font = font::fixed_8x16,
     .background = Color::black(),

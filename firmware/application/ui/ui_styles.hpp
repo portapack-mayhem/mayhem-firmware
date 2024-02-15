@@ -58,6 +58,9 @@ class Styles {
     /* Blue background. */
     static const Style bg_blue;
 
+    /* Dark blue background. */
+    static const Style bg_dark_blue;
+
     /* Light grey foreground. */
     static const Style light_grey;
 
