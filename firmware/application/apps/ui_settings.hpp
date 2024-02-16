@@ -752,7 +752,7 @@ class SetMenuColorView : public View {
     NewButton button_sample{
         {8 * 8, 4 * 16, 14 * 8, 3 * 16},
         "New Color",
-        &bitmap_icon_brightness
+        &bitmap_icon_brightness,
     };
 
     NumberField field_red_level{
@@ -760,7 +760,7 @@ class SetMenuColorView : public View {
         3,
         {0, 248},
         8,
-        ' '
+        ' ',
     };
 
     NumberField field_green_level{
@@ -768,7 +768,7 @@ class SetMenuColorView : public View {
         3,
         {0, 248},
         8,
-        ' '
+        ' ',
     };
 
     NumberField field_blue_level{
@@ -776,7 +776,7 @@ class SetMenuColorView : public View {
         3,
         {0, 248},
         8,
-        ' '
+        ' ',
     };
 
     Button button_save{
