@@ -588,7 +588,7 @@ class SetEncoderDialView : public View {
     NumberField field_encoder_rate_multiplier{
         {20 * 8, 12 * 16},
         2,
-        {1, 10},
+        {1, 15},
         1,
         ' '};
 
