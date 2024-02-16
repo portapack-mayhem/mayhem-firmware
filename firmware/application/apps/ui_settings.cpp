@@ -786,7 +786,7 @@ void SetFakeBrightnessView::focus() {
     button_save.focus();
 }
 
-/* MenuColorView ************************************/
+/* SetMenuColorView ************************************/
 
 void SetMenuColorView::paint_sample() {
     Color c = Color(field_red_level.value(), field_green_level.value(), field_blue_level.value());
