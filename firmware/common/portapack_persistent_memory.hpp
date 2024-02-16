@@ -34,6 +34,7 @@
 #include "serializer.hpp"
 #include "volume.hpp"
 #include "config_mode.hpp"
+#include "ui.hpp"
 
 // persistent memory from/to sdcard flag file
 #define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
@@ -46,6 +47,7 @@
 
 using namespace modems;
 using namespace serializer;
+using namespace ui;
 
 namespace portapack {
 
@@ -281,6 +283,9 @@ void set_apply_fake_brightness(const bool v);
 uint8_t fake_brightness_level();
 void set_fake_brightness_level(uint8_t v);
 void toggle_fake_brightness_level();
+
+Color menu_color();
+void set_menu_color(Color v);
 
 /* Recon app */
 bool recon_autosave_freqs();

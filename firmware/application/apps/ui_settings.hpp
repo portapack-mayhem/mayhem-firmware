@@ -731,6 +731,64 @@ class SetFakeBrightnessView : public View {
     };
 };
 
+class SetMenuColorView : public View {
+   public:
+    SetMenuColorView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Menu Color"; };
+
+   private:
+    void paint_sample();
+
+    Labels labels{
+        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Color::light_grey()},
+        {{2 * 8, 8 * 16}, "Red Level:", Color::light_grey()},
+        {{2 * 8, 9 * 16}, "Green Level:", Color::light_grey()},
+        {{2 * 8, 10 * 16}, "Blue Level:", Color::light_grey()},
+    };
+
+    NewButton button_sample{
+        {8 * 8, 4 * 16, 14 * 8, 3 * 16},
+        "New Color",
+        &bitmap_icon_brightness
+    };
+
+    NumberField field_red_level{
+        {14 * 8, 8 * 16},
+        3,
+        {0, 248},
+        8,
+        ' '
+    };
+
+    NumberField field_green_level{
+        {14 * 8, 9 * 16},
+        3,
+        {0, 248},
+        8,
+        ' '
+    };
+
+    NumberField field_blue_level{
+        {14 * 8, 10 * 16},
+        3,
+        {0, 248},
+        8,
+        ' '
+    };
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);

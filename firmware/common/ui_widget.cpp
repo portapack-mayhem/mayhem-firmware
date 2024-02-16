@@ -1290,6 +1290,11 @@ void NewButton::set_color(Color color) {
     set_dirty();
 }
 
+void NewButton::set_bg_color(Color color) {
+    bg_color_ = color;
+    set_dirty();
+}
+
 void NewButton::set_vertical_center(bool value) {
     vertical_center_ = value;
     set_dirty();
@@ -1343,7 +1348,7 @@ Style NewButton::paint_style() {
         s.background = style().foreground;
         s.foreground = Color::black();
     } else {
-        s.background = Color::grey();
+        s.background = bg_color_;
         s.foreground = style().foreground;
     }
 

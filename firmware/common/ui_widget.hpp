@@ -504,6 +504,7 @@ class NewButton : public Widget {
     void set_bitmap(const Bitmap* bitmap);
     void set_text(const std::string value);
     void set_color(Color value);
+    void set_bg_color(Color value);
     void set_vertical_center(bool value);
     std::string text() const;
     const Bitmap* bitmap();
@@ -522,6 +523,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
+    Color bg_color_{Color::light_grey()};
 
    private:
     std::string text_;
