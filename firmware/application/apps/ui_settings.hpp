@@ -756,25 +756,25 @@ class SetMenuColorView : public View {
     };
 
     NumberField field_red_level{
-        {14 * 8, 8 * 16},
+        {15 * 8, 8 * 16},
         3,
-        {0, 248},
+        {8, 248},
         8,
         ' ',
     };
 
     NumberField field_green_level{
-        {14 * 8, 9 * 16},
+        {15 * 8, 9 * 16},
         3,
-        {0, 248},
+        {8, 248},
         8,
         ' ',
     };
 
     NumberField field_blue_level{
-        {14 * 8, 10 * 16},
+        {15 * 8, 10 * 16},
         3,
-        {0, 248},
+        {8, 248},
         8,
         ' ',
     };
