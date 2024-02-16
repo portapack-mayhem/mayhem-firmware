@@ -44,6 +44,7 @@ namespace fs = std::filesystem;
 
 #include "string_format.hpp"
 #include "ui_styles.hpp"
+#include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 #include "config_mode.hpp"
 
@@ -757,7 +758,7 @@ void SetConfigModeView::focus() {
     button_save.focus();
 }
 
-/* FakeBrightnessView ************************************/
+/* SetFakeBrightnessView ************************************/
 
 SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
     add_children({&labels,
@@ -785,6 +786,53 @@ void SetFakeBrightnessView::focus() {
     button_save.focus();
 }
 
+/* SetMenuColorView ************************************/
+
+void SetMenuColorView::paint_sample() {
+    Color c = Color(field_red_level.value(), field_green_level.value(), field_blue_level.value());
+    button_sample.set_bg_color(c);
+}
+
+SetMenuColorView::SetMenuColorView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_sample,
+                  &field_red_level,
+                  &field_green_level,
+                  &field_blue_level,
+                  &button_save,
+                  &button_cancel});
+
+    button_sample.set_focusable(false);
+
+    Color c = pmem::menu_color();
+    field_red_level.set_value(c.r());
+    field_green_level.set_value(c.g());
+    field_blue_level.set_value(c.b());
+    paint_sample();
+
+    const auto color_changed_fn = [this](int32_t) {
+        paint_sample();
+    };
+    field_red_level.on_change = color_changed_fn;
+    field_green_level.on_change = color_changed_fn;
+    field_blue_level.on_change = color_changed_fn;
+
+    button_save.on_select = [&nav, this](Button&) {
+        Color c = Color(field_red_level.value(), field_green_level.value(), field_blue_level.value());
+        pmem::set_menu_color(c);
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetMenuColorView::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
@@ -806,6 +854,7 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
         {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
+        {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetMenuColorView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

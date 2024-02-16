@@ -31,6 +31,7 @@
 #include "memory_map.hpp"
 #include "portapack.hpp"
 #include "string_format.hpp"
+#include "ui.hpp"
 #include "ui_styles.hpp"
 #include "ui_painter.hpp"
 #include "ui_flash_utility.hpp"
@@ -46,6 +47,7 @@
 #include <hal.h>
 
 using namespace std;
+using namespace ui;
 
 namespace portapack {
 namespace persistent_memory {
@@ -248,6 +250,11 @@ struct data_t {
     // Daylight savings time
     dst_config_t dst_config;
 
+    // Menu Color Scheme
+    Color menu_color;
+
+    uint16_t UNUSED_16;
+
     constexpr data_t()
         : structure_version(data_structure_version_enum::VERSION_CURRENT),
           target_frequency(target_frequency_reset_value),
@@ -304,7 +311,9 @@ struct data_t {
           misc_config(),
           ui_config2(),
           config_mode_storage(CONFIG_MODE_NORMAL_VALUE),
-          dst_config() {
+          dst_config(),
+          menu_color(Color::grey()),
+          UNUSED_16() {
     }
 };
 
@@ -412,6 +421,7 @@ void defaults() {
     set_config_disable_external_tcxo(false);
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
+    set_menu_color(Color::grey());
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
@@ -461,6 +471,7 @@ void init() {
 
     // Firmware upgrade handling - adjust newly defined fields where 0 is an invalid default
     if (fake_brightness_level() == 0) set_fake_brightness_level(BRIGHTNESS_50);
+    if (menu_color().v == 0) set_menu_color(Color::grey());
 }
 
 void persist() {
@@ -1052,6 +1063,14 @@ void toggle_fake_brightness_level() {
     }
 }
 
+// Menu Color Scheme
+Color menu_color() {
+    return data->menu_color;
+}
+void set_menu_color(Color v) {
+    data->menu_color = v;
+}
+
 // PMem to sdcard settings
 
 bool should_use_sdcard_for_pmem() {
@@ -1158,6 +1177,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("config_mode_storage: 0x" + to_string_hex(data->config_mode_storage, 8));
     pmem_dump_file.write_line("dst_config: 0x" + to_string_hex((uint32_t)data->dst_config.v, 8));
     pmem_dump_file.write_line("fake_brightness_level: " + to_string_dec_uint(data->fake_brightness_level));
+    pmem_dump_file.write_line("menu_color: 0x" + to_string_hex(data->menu_color.v, 4));
 
     // ui_config bits
     const auto backlight_timer = portapack::persistent_memory::config_backlight_timer();

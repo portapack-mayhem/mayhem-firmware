@@ -127,6 +127,7 @@ void BtnGridView::add_item(GridItem new_item) {
 
 void BtnGridView::update_items() {
     size_t i = 0;
+    Color bg_color = portapack::persistent_memory::menu_color();
 
     if ((menu_items.size()) > (displayed_max + offset)) {
         more = true;
@@ -147,6 +148,7 @@ void BtnGridView::update_items() {
             item->set_text(menu_items[i + offset].text);
             item->set_bitmap(menu_items[i + offset].bitmap);
             item->set_color(menu_items[i + offset].color);
+            item->set_bg_color(bg_color);
             item->on_select = menu_items[i + offset].on_select;
             item->set_dirty();
         }
@@ -171,10 +173,12 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
         highlighted_item = new_value;
-        offset += rows_;
+        // rounding up new offset to next multiple of rows
+        offset = new_value - displayed_max + rows_;
+        offset -= (offset % rows_);
         update_items();
         // refresh whole screen (display flickers) only if scrolling last row up and a blank button is needed at the bottom
-        if ((new_value + rows_ > item_count) && (item_count % rows_) != 0)
+        if ((new_value + rows_ >= item_count) && (item_count % rows_) != 0)
             set_dirty();
     } else if ((uint32_t)new_value < offset) {
         // Shift BtnGridView down
