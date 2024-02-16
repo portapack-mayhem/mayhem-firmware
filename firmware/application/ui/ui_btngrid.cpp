@@ -173,10 +173,12 @@ bool BtnGridView::set_highlighted(int32_t new_value) {
     if (((uint32_t)new_value > offset) && ((new_value - offset) >= displayed_max)) {
         // Shift BtnGridView up
         highlighted_item = new_value;
-        offset += rows_;
+        // rounding up new offset to next multiple of rows
+        offset = new_value - displayed_max + rows_;
+        offset -= (offset % rows_);
         update_items();
         // refresh whole screen (display flickers) only if scrolling last row up and a blank button is needed at the bottom
-        if ((new_value + rows_ > item_count) && (item_count % rows_) != 0)
+        if ((new_value + rows_ >= item_count) && (item_count % rows_) != 0)
             set_dirty();
     } else if ((uint32_t)new_value < offset) {
         // Shift BtnGridView down
