@@ -8,8 +8,8 @@ for the current splash screen to appear at power up, the "Show splash screen" op
 must also be enabled under Settings->UserInterface.
 
 For more information on Splash Screens, see the following Wiki pages:
-	https://github.com/eried/portapack-mayhem/wiki/Create-a-custom-splash-screen
-	https://github.com/eried/portapack-mayhem/wiki/File-manager
+	https://github.com/portapack-mayhem/mayhem-firmware/wiki/Create-a-custom-splash-screen
+	https://github.com/portapack-mayhem/mayhem-firmware/wiki/File-manager
 
 Many additional Mayhem splash screens that users have shared online may be found in
 the Mayhem #splash-screens channel on Discord.

@@ -19,9 +19,5 @@ RUN apk add --no-cache g++ gcc clang clang-static clang-dev llvm-dev llvm-static
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
-# Configure CCACHE
-RUN mkdir ~/bin && cd ~/bin && \
-    for tool in gcc g++ cpp c++;do ln -s $(which ccache) arm-none-eabi-$tool;done
-
 CMD cd .. && cd build && \
-    cmake .. && make firmware
+    cmake .. && make ppfw

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -43,7 +44,7 @@ static Thread* thread_controls_event = NULL;
 
 // Index with the Switch enum.
 static std::array<Debounce, 6> switch_debounce;
-static std::array<Debounce, 2> encoder_debounce;
+static EncoderDebounce encoder_debounce;
 
 static_assert(std::size(switch_debounce) == toUType(Switch::Dfu) + 1);
 
@@ -162,21 +163,17 @@ static bool switches_update(const uint8_t raw) {
 }
 
 static bool encoder_update(const uint8_t raw) {
-    bool encoder_changed = false;
-
-    encoder_changed |= encoder_debounce[0].feed((raw >> 6) & 0x01);
-    encoder_changed |= encoder_debounce[1].feed((raw >> 7) & 0x01);
-
-    return encoder_changed;
+    return encoder_debounce.feed(raw >> 6);
 }
 
 static bool encoder_read() {
-    const auto delta = encoder.update(
-        encoder_debounce[0].state() | (injected_encoder == 1),
-        encoder_debounce[1].state() | (injected_encoder == 2));
+    auto delta = encoder.update(encoder_debounce.state()) * encoder_debounce.rotation_rate();
 
-    if (injected_encoder > 0)
+    if (injected_encoder > 0) {
+        if (injected_encoder == 1) delta = -1;
+        if (injected_encoder == 2) delta = 1;
         injected_encoder = 0;
+    }
 
     if (delta != 0) {
         encoder_position += delta;

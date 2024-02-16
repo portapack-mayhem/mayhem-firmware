@@ -44,7 +44,7 @@ if(cpp20_supported)
 else()
 	set(USE_CPPOPT "-std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -flto -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -52,7 +52,7 @@ set(USE_LINK_GC yes)
 # Linker extra options here.
 set(USE_LDOPT)
 
-# Enable this if you want link time optimizations (LTO)
+# Enable this if you want link time optimizations (LTO) - this flag affects chibios only
 set(USE_LTO no)
 
 # If enabled, this option allows to compile the application in THUMB mode.
@@ -116,13 +116,12 @@ set(CSRC
 	usb_serial_cdc.c
 	usb_serial_descriptor.c
 	usb_serial_endpoints.c
-	usb_serial_io.c
+	usb_serial_device_to_host.c
 	${HACKRF_PATH}/firmware/common/usb.c
 	${HACKRF_PATH}/firmware/common/usb_queue.c
 	${HACKRF_PATH}/firmware/hackrf_usb/usb_device.c
 	${HACKRF_PATH}/firmware/common/usb_request.c
 	${HACKRF_PATH}/firmware/common/usb_standard_request.c
-	${CHIBIOS}/os/various/shell.c
 	${CHIBIOS}/os/various/chprintf.c
 )
 
@@ -130,6 +129,7 @@ set(CSRC
 # setting.
 set(CPPSRC
 	main.cpp
+	shell.cpp
 	${COMMON}/acars_packet.cpp
 	${COMMON}/adsb.cpp
 	${COMMON}/adsb_frame.cpp
@@ -203,9 +203,11 @@ set(CPPSRC
 	metadata_file.cpp
 	portapack.cpp
 	usb_serial_shell.cpp
+	usb_serial_shell_filesystem.cpp
 	usb_serial_event.cpp
 	usb_serial_thread.cpp
 	usb_serial.cpp
+	usb_serial_host_to_device.cpp
 	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
@@ -265,7 +267,7 @@ set(CPPSRC
 	apps/ble_tx_app.cpp
 	apps/capture_app.cpp
 	apps/ert_app.cpp
-	apps/gps_sim_app.cpp
+	# apps/gps_sim_app.cpp
 	# apps/lge_app.cpp
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
@@ -291,7 +293,7 @@ set(CPPSRC
 	# apps/ui_jammer.cpp
     # apps/ui_keyfob.cpp
 	# apps/ui_lcr.cpp
-	apps/ui_level.cpp  
+	apps/ui_level.cpp
 	apps/ui_looking_glass_app.cpp
 	apps/ui_mictx.cpp
 	apps/ui_modemsetup.cpp
@@ -302,7 +304,7 @@ set(CPPSRC
 	apps/ui_pocsag_tx.cpp
 	apps/ui_rds.cpp
 	apps/ui_recon_settings.cpp
-	apps/ui_recon.cpp  
+	apps/ui_recon.cpp
 	apps/ui_remote.cpp
 	apps/ui_scanner.cpp
 	apps/ui_sd_over_usb.cpp
@@ -311,9 +313,9 @@ set(CPPSRC
 	apps/ui_settings.cpp
 	apps/ui_siggen.cpp
 	apps/ui_sonde.cpp
-	apps/ui_spectrum_painter_image.cpp
-	apps/ui_spectrum_painter_text.cpp
-	apps/ui_spectrum_painter.cpp
+	# apps/ui_spectrum_painter_image.cpp
+	# apps/ui_spectrum_painter_text.cpp
+	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_sstvtx.cpp
 	apps/ui_subghzd.cpp
@@ -344,9 +346,12 @@ set(CPPSRC
 	${CPLD_20170522_DATA_CPP}
 	${HACKRF_CPLD_DATA_CPP}
 	ui_external_items_menu_loader.cpp
-
-	${EXTCPPSRC}
+	view_factory_base.cpp
 )
+
+set_source_files_properties(${CPPSRC} PROPERTIES COMPILE_FLAGS -flto) # Add lto flag to the non-external sources only
+
+list (APPEND CPPSRC ${EXTCPPSRC}) # Append external sources after setting lto flag to internal ones
 
 # C sources to be compiled in ARM mode regardless of the global setting.
 # NOTE: Mixing ARM and THUMB mode enables the -mthumb-interwork compiler
@@ -424,7 +429,7 @@ set(CPPWARN "-Wall -Wextra -Wno-psabi")
 # List all default C defines here, like -D_DEBUG=1
 # TODO: Switch -DCRT0_INIT_DATA depending on load from RAM or SPIFI?
 # NOTE: _RANDOM_TCC to kill a GCC 4.9.3 error with std::max argument types
-set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"' -DVERSION_MD5=${VERSION_MD5}")
+set(DDEFS "-DLPC43XX -DLPC43XX_M0 -D__NEWLIB__ -DHACKRF_ONE -DTOOLCHAIN_GCC -DTOOLCHAIN_GCC_ARM -D_RANDOM_TCC=0 -D'VERSION_STRING=\"${VERSION}\"' -DVERSION_MD5=${VERSION_MD5} -D'GCC_VERSION_MISMATCH=${GCC_VERSION_MISMATCH}'")
 
 # List all default ASM defines here, like -D_DEBUG=1
 set(DADEFS)

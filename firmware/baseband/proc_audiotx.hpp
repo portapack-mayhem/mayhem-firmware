@@ -27,6 +27,10 @@
 #include "baseband_thread.hpp"
 #include "tone_gen.hpp"
 #include "stream_output.hpp"
+#include "audio_output.hpp"
+#include "audio_dma.hpp"
+
+#define AUDIO_OUTPUT_BUFFER_SIZE 32
 
 class AudioTXProcessor : public BasebandProcessor {
    public:
@@ -44,14 +48,20 @@ class AudioTXProcessor : public BasebandProcessor {
     uint32_t resample_inc{}, resample_acc{};
     uint32_t fm_delta{0};
     uint32_t phase{0}, sphase{0};
-    uint8_t audio_sample{};
+    uint32_t audio_sample{};
     int32_t sample{0}, delta{};
     int8_t re{0}, im{0};
+    uint8_t bytes_per_sample{1};
+    uint32_t sampling_rate{48000};
+
+    int16_t audio_data[AUDIO_OUTPUT_BUFFER_SIZE];
+    AudioOutput audio_output{};
 
     size_t progress_interval_samples = 0, progress_samples = 0;
 
     bool configured{false};
-    uint32_t bytes_read{0};
+    uint32_t samples_read{0};
+    bool tone_key_enabled{false};
 
     void sample_rate_config(const SampleRateConfigMessage& message);
     void audio_config(const AudioTXConfigMessage& message);

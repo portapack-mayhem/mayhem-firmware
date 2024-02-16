@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -113,6 +114,7 @@ class MicTXView : public View {
     uint32_t va_level{40};
     uint32_t attack_ms{500};
     uint32_t decay_ms{1000};
+    uint8_t iq_phase_calibration_value{15};
     app_settings::SettingsManager settings_{
         "tx_mic",
         app_settings::Mode::RX_TX,
@@ -132,6 +134,7 @@ class MicTXView : public View {
             {"vox"sv, &va_enabled},
             {"rogerbeep"sv, &rogerbeep_enabled},
             {"tone_key_index"sv, &tone_key_index},
+            {"iq_phase_calibration"sv, &iq_phase_calibration_value},
         }};
 
     rf::Frequency tx_frequency{0};
@@ -160,7 +163,8 @@ class MicTXView : public View {
         {{5 * 8, (25 * 8) + 2}, "F_RX:", Color::light_grey()},
         {{5 * 8, (27 * 8) + 2}, "LNA:", Color::light_grey()},
         {{12 * 8, (27 * 8) + 2}, "VGA:", Color::light_grey()},
-        {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()}};
+        {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()},
+        {{21 * 8, (31 * 8)}, "TX-IQ-CAL:", Color::light_grey()}};
     Labels labels_WM8731{
         {{17 * 8, 1 * 8}, "Boost", Color::light_grey()}};
     Labels labels_AK4951{
@@ -334,6 +338,22 @@ class MicTXView : public View {
         {24 * 8, (27 * 8) + 2},
         1,
         {0, 1},
+        1,
+        ' ',
+    };
+
+    NumberField field_tx_iq_phase_cal_2837{
+        {24 * 8, (33 * 8)},
+        2,
+        {0, 31},  // 5 bits IQ CAL phase adjustment.
+        1,
+        ' ',
+    };
+
+    NumberField field_tx_iq_phase_cal_2839{
+        {24 * 8, (33 * 8)},
+        2,
+        {0, 63},  // 6 bits IQ CAL phasse adjustment.
         1,
         ' ',
     };

@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -26,12 +27,11 @@
 
 class Encoder {
    public:
-    int_fast8_t update(
-        const uint_fast8_t phase_0,
-        const uint_fast8_t phase_1);
+    int_fast8_t update(const uint_fast8_t phase_bits);
 
    private:
     uint_fast8_t state{0};
+    int_fast8_t prev_direction{0};
 };
 
 #endif /*__ENCODER_H__*/

@@ -118,6 +118,8 @@ class Message {
         SubGhzFPRxConfigure = 60,
         WeatherData = 61,
         SubGhzDData = 62,
+        GPSPosData = 63,
+        OrientationData = 64,
         MAX
     };
 
@@ -929,6 +931,7 @@ class AudioTXConfigMessage : public Message {
         const float deviation_hz,
         const float audio_gain,
         const uint8_t audio_shift_bits_s16,
+        const uint8_t bits_per_sample,
         const uint32_t tone_key_delta,
         const float tone_key_mix_weight,
         const bool am_enabled,
@@ -940,6 +943,7 @@ class AudioTXConfigMessage : public Message {
           deviation_hz(deviation_hz),
           audio_gain(audio_gain),
           audio_shift_bits_s16(audio_shift_bits_s16),
+          bits_per_sample(bits_per_sample),
           tone_key_delta(tone_key_delta),
           tone_key_mix_weight(tone_key_mix_weight),
           am_enabled(am_enabled),
@@ -952,6 +956,7 @@ class AudioTXConfigMessage : public Message {
     const float deviation_hz;
     const float audio_gain;
     const uint8_t audio_shift_bits_s16;
+    const uint8_t bits_per_sample;
     const uint32_t tone_key_delta;
     const float tone_key_mix_weight;
     const bool am_enabled;
@@ -1299,6 +1304,35 @@ class SubGhzDDataMessage : public Message {
     uint32_t serial = 0xFFFFFFFF;
     uint32_t cnt = 0xFF;
     uint64_t data = 0;
+};
+
+class GPSPosDataMessage : public Message {
+   public:
+    constexpr GPSPosDataMessage(
+        float lat = 200.0,
+        float lon = 200.0,
+        int32_t altitude = 0,
+        int32_t speed = 0)
+        : Message{ID::GPSPosData},
+          lat{lat},
+          lon{lon},
+          altitude{altitude},
+          speed{speed} {
+    }
+    float lat = 200.0;
+    float lon = 200.0;
+    int32_t altitude = 0;
+    int32_t speed = 0;
+};
+
+class OrientationDataMessage : public Message {
+   public:
+    constexpr OrientationDataMessage(
+        uint16_t angle = 400)
+        : Message{ID::OrientationData},
+          angle{angle} {
+    }
+    uint16_t angle = 400;  //>360 -> no orientation set
 };
 
 #endif /*__MESSAGE_H__*/

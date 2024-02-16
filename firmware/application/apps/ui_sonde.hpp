@@ -60,6 +60,8 @@ class SondeView : public View {
 
     SondeView(NavigationView& nav);
     ~SondeView();
+    SondeView(const SondeView& other) = delete;
+    SondeView& operator=(const SondeView& other) = delete;
 
     void focus() override;
 
@@ -162,7 +164,8 @@ class SondeView : public View {
 
     GeoPos geopos{
         {0, 12 * 16},
-        GeoPos::alt_unit::METERS};
+        GeoPos::alt_unit::METERS,
+        GeoPos::spd_unit::HIDDEN};
 
     Button button_see_qr{
         {2 * 8, 15 * 16, 12 * 8, 3 * 16},
@@ -172,6 +175,8 @@ class SondeView : public View {
         {16 * 8, 15 * 16, 12 * 8, 3 * 16},
         "See on map"};
 
+    GeoMapView* geomap_view_{nullptr};
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::SondePacket,
         [this](Message* const p) {
@@ -180,6 +185,21 @@ class SondeView : public View {
             this->on_packet(packet);
         }};
 
+    MessageHandlerRegistration message_handler_gps{
+        Message::ID::GPSPosData,
+        [this](Message* const p) {
+            const auto message = static_cast<const GPSPosDataMessage*>(p);
+            this->on_gps(message);
+        }};
+    MessageHandlerRegistration message_handler_orientation{
+        Message::ID::OrientationData,
+        [this](Message* const p) {
+            const auto message = static_cast<const OrientationDataMessage*>(p);
+            this->on_orientation(message);
+        }};
+
+    void on_gps(const GPSPosDataMessage* msg);
+    void on_orientation(const OrientationDataMessage* msg);
     void on_packet(const sonde::Packet& packet);
     char* float_to_char(float x, char* p);
 };

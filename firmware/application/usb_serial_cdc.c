@@ -23,10 +23,25 @@
 #include "usb_serial_endpoints.h"
 #include "usb_serial_event.hpp"
 
+uint32_t EVT_MASK_USB = EVENT_MASK(8);
+
 extern void usb0_isr(void);
+
+static Thread* thread_usb_event = NULL;
+
 CH_IRQ_HANDLER(USB0_IRQHandler) {
     CH_IRQ_PROLOGUE();
+
+    const uint32_t status = USB0_USBSTS_D & USB0_USBINTR_D;
+
     usb0_isr();
+
+    if (status & USB0_USBSTS_D_UI) {
+        chSysLockFromIsr();
+        chEvtSignalI(thread_usb_event, EVT_MASK_USB);
+        chSysUnlockFromIsr();
+    }
+
     CH_IRQ_EPILOGUE();
 }
 
@@ -46,6 +61,7 @@ uint32_t __strex(uint32_t val, volatile uint32_t* addr) {
 
 void nvic_enable_irq(uint8_t irqn) {
     NVIC_ISER(irqn / 32) = (1 << (irqn % 32));
+    thread_usb_event = chThdSelf();
 }
 
 void usb_configuration_changed(usb_device_t* const device) {

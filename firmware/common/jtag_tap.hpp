@@ -26,6 +26,7 @@
 
 #include <cstdint>
 #include <cstddef>
+#include <vector>
 
 namespace jtag {
 namespace tap {
@@ -113,13 +114,14 @@ class TAPMachine {
     void set_end_dr(const state_t state);
 
     bool shift(const bits_t& tdi, const bool end_tms) {
-        return shift(tdi, {}, {}, end_tms);
+        return shift(tdi, {}, {}, end_tms, nullptr);
     }
 
-    bool shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms);
+    bool shift(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const bool end_tms, std::vector<bool>* from_device);
 
     bool shift_ir(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
     bool shift_dr(const bits_t& tdi_value, const bits_t& tdo_expected = {}, const bits_t& tdo_mask = {});
+    std::vector<bool> shift_dr_read(const bits_t& tdi_value);
 
     void state(const state_t state);
 
@@ -142,6 +144,7 @@ class TAPMachine {
     void shift_end(const state_t end_state, const uint32_t end_delay);
 
     bool shift_data(const bits_t& tdi, const bits_t& tdo_expected, const bits_t& tdo_mask, const state_t state, const state_t end_state, const uint32_t end_delay);
+    std::vector<bool> shift_data_read(const bits_t& tdi, const state_t state, const state_t end_state, const uint32_t end_delay);
 };
 
 } /* namespace tap */

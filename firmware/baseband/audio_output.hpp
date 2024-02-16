@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -44,6 +45,7 @@ class AudioOutput {
         const iir_biquad_config_t& deemph_config = iir_config_passthrough,
         const float squelch_threshold = 0.0f);
 
+    void write_unprocessed(const buffer_s16_t& audio);
     void write(const buffer_s16_t& audio);
     void write(const buffer_f32_t& audio);
 
@@ -57,6 +59,7 @@ class AudioOutput {
     static constexpr float k = 32768.0f;
     static constexpr float ki = 1.0f / k;
 
+    BlockDecimator<int16_t, 32> block_buffer_s16{1};
     BlockDecimator<float, 32> block_buffer{1};
 
     IIRBiquadFilter hpf{};
@@ -73,7 +76,11 @@ class AudioOutput {
     bool do_processing = true;
 
     void on_block(const buffer_f32_t& audio);
+
+    void fill_audio_buffer(const buffer_s16_t& audio, const bool send_to_fifo);
     void fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo);
+
+    void feed_audio_stats(const buffer_s16_t& audio);
     void feed_audio_stats(const buffer_f32_t& audio);
 };
 

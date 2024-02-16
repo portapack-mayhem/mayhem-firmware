@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -271,6 +272,8 @@ class ADSBRxDetailsView : public View {
 
    private:
     void refresh_ui();
+    void on_gps(const GPSPosDataMessage* msg);
+    void on_orientation(const OrientationDataMessage* msg);
 
     GeoMapView* geomap_view_{nullptr};
     ADSBRxAircraftDetailsView* aircraft_details_view_{nullptr};
@@ -278,6 +281,7 @@ class ADSBRxDetailsView : public View {
     // NB: Keeping a copy so that it doesn't end up dangling
     // if removed from the recent entries list.
     AircraftRecentEntry entry_{AircraftRecentEntry::invalid_key};
+    bool airline_checked{false};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "ICAO:", Color::light_grey()},
@@ -330,6 +334,19 @@ class ADSBRxDetailsView : public View {
     Button button_see_map{
         {16 * 8, 9 * 16, 12 * 8, 3 * 16},
         "See on map"};
+
+    MessageHandlerRegistration message_handler_gps{
+        Message::ID::GPSPosData,
+        [this](Message* const p) {
+            const auto message = static_cast<const GPSPosDataMessage*>(p);
+            this->on_gps(message);
+        }};
+    MessageHandlerRegistration message_handler_orientation{
+        Message::ID::OrientationData,
+        [this](Message* const p) {
+            const auto message = static_cast<const OrientationDataMessage*>(p);
+            this->on_orientation(message);
+        }};
 };
 
 /* Main ADSB application view and message dispatch. */

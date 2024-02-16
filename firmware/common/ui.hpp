@@ -78,6 +78,18 @@ struct Color {
                   ((r & 0xf8) << 8) | ((g & 0xfc) << 3) | ((b & 0xf8) >> 3))} {
     }
 
+    uint8_t r() {
+        return (uint8_t)((v >> 8) & 0xf8);
+    }
+
+    uint8_t g() {
+        return (uint8_t)((v >> 3) & 0xfc);
+    }
+
+    uint8_t b() {
+        return (uint8_t)((v << 3) & 0xf8);
+    }
+
     uint8_t to_greyscale() {
         uint32_t r = (v >> 8) & 0xf8;
         uint32_t g = (v >> 3) & 0xfc;
@@ -371,6 +383,7 @@ enum class KeyEvent : uint8_t {
 };
 
 using EncoderEvent = int32_t;
+using KeyboardEvent = uint8_t;
 
 struct TouchEvent {
     enum class Type : uint32_t {

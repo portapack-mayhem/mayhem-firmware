@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2016 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -27,8 +28,10 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
     size_t i = 0;
     char ch;
     const uint8_t tag_INAM[4] = {'I', 'N', 'A', 'M'};
-    char title_buffer[32];
-    uint32_t riff_size, data_end, title_size;
+    const uint8_t tag_data[4] = {'d', 'a', 't', 'a'};
+    struct data_t data_header;
+    char title_buffer[32]{0};
+    uint32_t riff_size, inam_search_start, title_size;
     size_t search_limit = 0;
 
     // Already open ?
@@ -37,19 +40,42 @@ bool WAVFileReader::open(const std::filesystem::path& path) {
         return true;
     }
 
+    // Reinitialize to avoid old data when switching files
+    title_string = "";
+    sample_rate_ = 0;
+    bytes_per_sample = 0;
+
     auto error = file_.open(path);
 
     if (!error.is_valid()) {
-        file_.read((void*)&header, sizeof(header));  // Read header (RIFF and WAVE)
+        if (!file_.read((void*)&header, sizeof(header)).is_ok())  // Read header (RIFF and WAVE)
+            return false;
 
-        riff_size = header.cksize + 8;
-        data_start = header.fmt.cksize + 28;
-        data_size_ = header.data.cksize;
-        data_end = data_start + data_size_ + 1;
+        // Assuming here that RIFF & WAV & fmt chunk ID's are all correct...
+        riff_size = 8 + header.cksize;
+
+        // check for the "data" chunk ID
+        if (memcmp(header.data.ckID, tag_data, 4) == 0) {
+            data_start = 20 + header.fmt.cksize + 8;
+            data_size_ = header.data.cksize;
+            inam_search_start = data_start + data_size_;
+        } else {
+            // data header wasn't where we guessed; skip over one unexpected chunk (perhaps LIST/INFO/INAM)
+            inam_search_start = 20 + header.fmt.cksize;
+            file_.seek(20 + header.fmt.cksize + 8 + header.data.cksize);
+            if (!file_.read((void*)&data_header, sizeof(data_header)).is_ok())
+                return false;
+
+            if (memcmp(data_header.ckID, tag_data, 4) == 0) {
+                data_start = 20 + header.fmt.cksize + 8 + header.data.cksize + 8;
+                data_size_ = data_header.cksize;
+            } else
+                return false;
+        }
 
         // Look for INAM (title) tag
-        if (data_end < riff_size) {
-            file_.seek(data_end);
+        if (inam_search_start < riff_size) {
+            file_.seek(inam_search_start);
             while (file_.read((void*)&ch, 1).is_ok()) {
                 if (ch == tag_INAM[i++]) {
                     if (i == 4) {

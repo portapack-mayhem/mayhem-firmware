@@ -157,11 +157,13 @@ static void event_loop() {
         [&event_dispatcher](const Message* const) {
             event_dispatcher.set_display_sleep(true);
         }};
-
+    portapack::setEventDispatcherToUSBSerial(&event_dispatcher);
     event_dispatcher.run();
 }
 
 int main(void) {
+    first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
+
     if (config_mode_should_enter()) {
         config_mode_clear();
         config_mode_run();
@@ -169,25 +171,30 @@ int main(void) {
 
     config_mode_set();
 
-    first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
-    if (portapack::init()) {
-        portapack::display.init();
-        config_mode_clear();
+    switch (portapack::init()) {
+        case portapack::init_status_t::INIT_HACKRF_CPLD_FAILED:
+            portapack::init_error = "HACKRF CPLD FAILED";
+            [[fallthrough]];
 
-        // sdcStart(&SDCD1, nullptr); // Commented out as now happens in portapack.cpp
+        case portapack::init_status_t::INIT_SUCCESS:
 
-        // controls_init(); // Commented out as now happens in portapack.cpp
-        lcd_frame_sync_configure();
-        rtc_interrupt_enable();
+            config_mode_clear();
 
-        event_loop();
+            lcd_frame_sync_configure();
+            rtc_interrupt_enable();
 
-        sdcDisconnect(&SDCD1);
-        sdcStop(&SDCD1);
+            event_loop();
 
-        portapack::shutdown();
-    } else {
-        config_mode_clear();
+            sdcDisconnect(&SDCD1);
+            sdcStop(&SDCD1);
+
+            portapack::shutdown();
+            break;
+
+        case portapack::init_status_t::INIT_NO_PORTAPACK:
+        case portapack::init_status_t::INIT_PORTAPACK_CPLD_FAILED:
+            config_mode_clear();
+            break;
     }
 
     m4_init(portapack::spi_flash::image_tag_hackrf, portapack::memory::map::m4_code_hackrf, true);

@@ -93,6 +93,13 @@ void FrequencyField::set_allow_digit_mode(bool allowed) {
     }
 }
 
+void FrequencyField::getAccessibilityText(std::string& result) {
+    result = to_string_dec_int(value_);
+}
+void FrequencyField::getWidgetName(std::string& result) {
+    result = "FrequencyField";
+}
+
 void FrequencyField::paint(Painter& painter) {
     const auto str_value = to_string_short_freq(value_);
     const auto paint_style = has_focus() ? style().invert() : style();
@@ -165,12 +172,18 @@ bool FrequencyField::on_key(KeyEvent event) {
     return false;
 }
 
+bool FrequencyField::on_keyboard(KeyboardEvent key) {
+    if (key == '+' || key == ' ') return on_encoder(1);
+    if (key == '-') return on_encoder(-1);
+
+    return false;
+}
+
 bool FrequencyField::on_encoder(const EncoderEvent delta) {
     if (digit_mode_)
         set_value(value_ + (delta * digit_step()));
     else
         set_value(value_ + (delta * step_));
-
     return true;
 }
 
@@ -319,6 +332,25 @@ void FrequencyKeypadView::on_button(Button& button) {
         digit_add(s[0]);
     }
     update_text();
+}
+
+bool FrequencyKeypadView::on_keyboard(const KeyboardEvent key) {
+    if (key == 8) {
+        digit_delete();
+        update_text();
+        return true;
+    }
+    if (key >= '0' && key <= '9') {
+        digit_add(key);
+        update_text();
+        return true;
+    }
+    if (key == '.') {
+        field_toggle();
+        update_text();
+        return true;
+    }
+    return false;
 }
 
 void FrequencyKeypadView::digit_add(const char c) {

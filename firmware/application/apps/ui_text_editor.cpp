@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2023 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -25,6 +26,8 @@
 
 #include "log_file.hpp"
 #include "string_format.hpp"
+
+#include "portapack_persistent_memory.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -424,6 +427,9 @@ TextEditorView::TextEditorView(NavigationView& nav)
             &text_size,
         });
 
+    text_position.set_style(&Styles::bg_dark_blue);
+    text_size.set_style(&Styles::bg_dark_blue);
+
     viewer.set_font_zoom(enable_zoom);
 
     viewer.on_select = [this]() {
@@ -549,6 +555,8 @@ void TextEditorView::open_file(const fs::path& path) {
         path_ = path;
         viewer.set_file(*file_);
     }
+
+    portapack::persistent_memory::set_apply_fake_brightness(false);  // work around to resolve the display issue in notepad app. not elegant i know, so TODO.
 
     refresh_ui();
 }

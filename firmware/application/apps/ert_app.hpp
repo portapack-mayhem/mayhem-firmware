@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -72,10 +73,11 @@ struct ERTRecentEntry {
 
     ert::ID id{ert::invalid_id};
     ert::CommodityType commodity_type{ert::invalid_commodity_type};
+    ert::Consumption last_consumption{};
+    ert::TamperFlags last_tamper_flags{};
+    ert::Packet::Type packet_type{};
 
     size_t received_count{0};
-
-    ert::Consumption last_consumption{};
 
     ERTRecentEntry(
         const Key& key)
@@ -137,9 +139,10 @@ class ERTAppView : public View {
 
     const RecentEntriesColumns columns{{
         {"ID", 10},
-        {"Tp", 2},
-        {"Consumpt", 10},
-        {"Cnt", 3},
+        {"Ty", 2},
+        {"Consumpt", 8},
+        {"Tamp", 4},
+        {"Ct", 2},
     }};
     ERTRecentEntriesView recent_entries_view{columns, recent};
 

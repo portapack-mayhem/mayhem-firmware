@@ -19,7 +19,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 
 #include "usb_serial_endpoints.h"
 
@@ -40,42 +40,11 @@
 
 SerialUSBDriver SUSBD1;
 
-void bulk_out_receive(void) {
-    int ret;
-    do {
-        ret = usb_transfer_schedule(
-            &usb_endpoint_bulk_out,
-            &usb_endpoint_bulk_out.buffer[0],
-            32,
-            serial_bulk_transfer_complete,
-            NULL);
-
-    } while (ret != -1);
-}
-
-void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred) {
-    (void)user_data;
-
-    chSysLockFromIsr();
-
-    for (unsigned int i = 0; i < bytes_transferred; i++) {
-        msg_t ret;
-        do {
-            ret = chIQPutI(&SUSBD1.iqueue, usb_endpoint_bulk_out.buffer[i]);
-            if (ret == Q_FULL)
-                chThdSleepMilliseconds(1);
-
-        } while (ret == Q_FULL);
-    }
-
-    chSysUnlockFromIsr();
-}
-
 static void onotify(GenericQueue* qp) {
     SerialUSBDriver* sdp = chQGetLink(qp);
-    uint8_t buff[64];
+    uint8_t buff[USBSERIAL_BUFFERS_SIZE];
     int n = chOQGetFullI(&sdp->oqueue);
-    if (n > 64) n = 64;  // don't overflow
+    if (n > USBSERIAL_BUFFERS_SIZE) n = USBSERIAL_BUFFERS_SIZE;  // don't overflow
     if (n > 0) {
         for (int i = 0; i < n; i++) {
             buff[i] = chOQGetI(&sdp->oqueue);
@@ -139,6 +108,45 @@ static const struct SerialUSBDriverVMT vmt = {
 
 void init_serial_usb_driver(SerialUSBDriver* sdp) {
     sdp->vmt = &vmt;
-    chIQInit(&sdp->iqueue, sdp->ib, SERIAL_BUFFERS_SIZE, NULL, sdp);
-    chOQInit(&sdp->oqueue, sdp->ob, SERIAL_BUFFERS_SIZE, onotify, sdp);
+    chIQInit(&sdp->iqueue, sdp->ib, USBSERIAL_BUFFERS_SIZE, NULL, sdp);
+    chOQInit(&sdp->oqueue, sdp->ob, USBSERIAL_BUFFERS_SIZE, onotify, sdp);
+}
+
+// queue handler from ch
+static msg_t qwait(GenericQueue* qp, systime_t time) {
+    if (TIME_IMMEDIATE == time)
+        return Q_TIMEOUT;
+    currp->p_u.wtobjp = qp;
+    queue_insert(currp, &qp->q_waiting);
+    return chSchGoSleepTimeoutS(THD_STATE_WTQUEUE, time);
+}
+
+// This function fills the output buffer, and sends all data in 1 packet
+size_t fillOBuffer(OutputQueue* oqp, const uint8_t* bp, size_t n) {
+    qnotify_t nfy = oqp->q_notify;
+    size_t w = 0;
+
+    chDbgCheck(n > 0, "chOQWriteTimeout");
+    chSysLock();
+    while (TRUE) {
+        while (chOQIsFullI(oqp)) {
+            if (qwait((GenericQueue*)oqp, TIME_INFINITE) != Q_OK) {
+                chSysUnlock();
+                return w;
+            }
+        }
+        while (!chOQIsFullI(oqp) && n > 0) {
+            oqp->q_counter--;
+            *oqp->q_wrptr++ = *bp++;
+            if (oqp->q_wrptr >= oqp->q_top)
+                oqp->q_wrptr = oqp->q_buffer;
+            w++;
+            --n;
+        }
+        if (nfy) nfy(oqp);
+
+        chSysUnlock(); /* Gives a preemption chance in a controlled point.*/
+        if (n == 0) return w;
+        chSysLock();
+    }
 }

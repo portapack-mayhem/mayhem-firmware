@@ -18,6 +18,8 @@
 # Boston, MA 02110-1301, USA.
 #
 
+cmake_minimum_required(VERSION 3.5)
+
 project(firmware)
 
 set(BASEBAND ${PROJECT_SOURCE_DIR}/baseband)
@@ -33,6 +35,18 @@ set(LZ4 lz4)
 
 set(FIRMWARE_NAME portapack-h1_h2-mayhem)
 set(FIRMWARE_FILENAME ${FIRMWARE_NAME}.bin)
+set(PPFW_FILENAME "portapack-mayhem_OCI.ppfw.tar")
+
+# In our current build container cmake need a little help to get the version :)
+if(NOT DEFINED ${CMAKE_CXX_COMPILER_VERSION})
+	execute_process(COMMAND bash "-c" "arm-none-eabi-g++ -v 2>&1 | grep 'gcc version' | awk '{print $3}'" OUTPUT_VARIABLE CMAKE_CXX_COMPILER_VERSION)
+	string(STRIP ${CMAKE_CXX_COMPILER_VERSION} CMAKE_CXX_COMPILER_VERSION)
+endif()
+
+set(GCC_VERSION_MISMATCH 0)
+if(NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL ${EXPECTED_GCC_VERSION})
+	set(GCC_VERSION_MISMATCH 1)
+endif()
 
 add_subdirectory(application)
 add_subdirectory(baseband)
@@ -48,9 +62,18 @@ add_custom_command(
 )
 
 add_custom_target(
-	firmware ALL
+	firmware
 	DEPENDS ${FIRMWARE_FILENAME} ${HACKRF_FIRMWARE_DFU_FILENAME}
 )
+
+if(${GCC_VERSION_MISMATCH})
+	set(COMPILER_MISMATCH_MESSAGE "WARNING: Compiler version mismatch, please use the official compiler version ${EXPECTED_GCC_VERSION} when sharing builds! Current compiler version: ${CMAKE_CXX_COMPILER_VERSION}")
+	message(${COMPILER_MISMATCH_MESSAGE})
+	add_custom_command(
+		TARGET firmware POST_BUILD
+		COMMAND echo ${COMPILER_MISMATCH_MESSAGE}
+		VERBATIM)
+endif()
 
 add_custom_target(
 	program
@@ -66,6 +89,21 @@ add_custom_target(
 	WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
 	COMMAND ${PROJECT_SOURCE_DIR}/tools/copy_external_apps.sh
 	DEPENDS program
+)
+
+add_custom_command(
+	OUTPUT ${PPFW_FILENAME}
+	
+	COMMAND rm -rf firmware_tar
+	COMMAND mkdir -p firmware_tar/FIRMWARE
+	# Using VERSION_NOHASH to avoid dev builds piling up in the FIRMWARE folder of the sd card of testers in #test-drive
+	COMMAND cp ${FIRMWARE_FILENAME} firmware_tar/FIRMWARE/portapack-mayhem_${VERSION_NOHASH}.bin
+	COMMAND mkdir -p firmware_tar/APPS
+	COMMAND cp application/*.ppma firmware_tar/APPS
+	COMMAND cd firmware_tar && tar -cvaf ../${PPFW_FILENAME} *
+	DEPENDS firmware ${FIRMWARE_FILENAME}
+	# Dont use VERBATIM here as it prevents usage of globbing (*)
+	# There shouldnt be any funny business in the filenames above :)
 )
 
 # TODO: Bad hack to fix location of LICENSE file for tar.
@@ -88,6 +126,17 @@ add_custom_command(
 )
 
 add_custom_target(
+	ppfw ALL
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
+	oci
+	DEPENDS ${PPFW_FILENAME}
+)
+
+add_custom_target(
 	release
 	DEPENDS MD5SUMS SHA256SUMS
 )
+

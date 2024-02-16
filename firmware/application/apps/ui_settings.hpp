@@ -3,6 +3,8 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2024 Mark Thompson
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -44,6 +46,7 @@ struct SetDateTimeModel {
     uint8_t hour;
     uint8_t minute;
     uint8_t second;
+    portapack::persistent_memory::dst_config_t dst;
 };
 
 class SetDateTimeView : public View {
@@ -55,56 +58,114 @@ class SetDateTimeView : public View {
     std::string title() const override { return "Date/Time"; };
 
    private:
+    using option_t = std::pair<std::string, int32_t>;
+    std::vector<option_t> which_options = {{"1st", 0}, {"2nd", 1}, {"3rd", 2}, {"4th", 3}, {"Last", 4}};
+    std::vector<option_t> weekday_options = {{"Sun", 0}, {"Mon", 1}, {"Tue", 2}, {"Wed", 3}, {"Thu", 4}, {"Fri", 5}, {"Sat", 6}};
+    std::vector<option_t> month_options = {{"Jan", 1}, {"Feb", 2}, {"Mar", 3}, {"Apr", 4}, {"May", 5}, {"Jun", 6}, {"Jul", 7}, {"Aug", 8}, {"Sep", 9}, {"Oct", 10}, {"Nov", 11}, {"Dec", 12}};
+
     Labels labels{
         {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Color::light_grey()},
         {{1 * 8, 2 * 16}, "time. If clock resets after", Color::light_grey()},
         {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Color::light_grey()},
-        {{5 * 8, 8 * 16 - 2}, "YYYY-MM-DD HH:MM:SS", Color::grey()},
-        {{9 * 8, 9 * 16}, "-  -     :  :", Color::light_grey()}};
+        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Color::grey()},
+        {{5 * 8, 6 * 16}, "-  -     :  :", Color::light_grey()},
+        {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Color::light_grey()},
+        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Color::light_grey()},
+        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Color::light_grey()}};
 
     NumberField field_year{
-        {5 * 8, 9 * 16},
+        {1 * 8, 6 * 16},
         4,
         {2015, 2099},
         1,
         '0',
+        true,
     };
     NumberField field_month{
-        {10 * 8, 9 * 16},
+        {6 * 8, 6 * 16},
         2,
         {1, 12},
         1,
         '0',
+        true,
     };
     NumberField field_day{
-        {13 * 8, 9 * 16},
+        {9 * 8, 6 * 16},
         2,
         {1, 31},
         1,
         '0',
+        true,
     };
 
     NumberField field_hour{
-        {16 * 8, 9 * 16},
+        {12 * 8, 6 * 16},
         2,
         {0, 23},
         1,
         '0',
+        true,
     };
     NumberField field_minute{
-        {19 * 8, 9 * 16},
+        {15 * 8, 6 * 16},
         2,
         {0, 59},
         1,
         '0',
+        true,
     };
     NumberField field_second{
-        {22 * 8, 9 * 16},
+        {18 * 8, 6 * 16},
         2,
         {0, 59},
         1,
         '0',
+        true,
     };
+    Text text_weekday{
+        {22 * 8, 6 * 16, 3 * 8, 16},
+        ""};
+    Text text_day_of_year{
+        {26 * 8, 6 * 16, 3 * 8, 16},
+        ""};
+    Text text_in_dst_range{
+        {17 * 8, 7 * 16, 3 * 8, 16},
+        ""};
+
+    Checkbox checkbox_dst_enable{
+        {2 * 8, 9 * 16},
+        23,
+        "Enable Daylight Savings"};
+
+    OptionsField options_dst_start_which{
+        {15 * 8, 12 * 16},
+        4,
+        {}};
+
+    OptionsField options_dst_start_weekday{
+        {20 * 8, 12 * 16},
+        3,
+        {}};
+
+    OptionsField options_dst_start_month{
+        {27 * 8, 12 * 16},
+        3,
+        {}};
+
+    OptionsField options_dst_end_which{
+        {15 * 8, 13 * 16},
+        4,
+        {}};
+
+    OptionsField options_dst_end_weekday{
+        {20 * 8, 13 * 16},
+        3,
+        {}};
+
+    OptionsField options_dst_end_month{
+        {27 * 8, 13 * 16},
+        3,
+        {}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -115,6 +176,8 @@ class SetDateTimeView : public View {
 
     void form_init(const SetDateTimeModel& model);
     SetDateTimeModel form_collect();
+    portapack::persistent_memory::dst_config_t dst_collect();
+    void handle_date_field_update();
 };
 
 struct SetFrequencyCorrectionModel {
@@ -259,39 +322,43 @@ class SetUIView : public View {
     };
 
     ImageToggle toggle_camera{
-        {7 * 8, 14 * 16 + 2, 16, 16},
+        {6 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_camera};
 
     ImageToggle toggle_sleep{
-        {9 * 8, 14 * 16 + 2, 16, 16},
+        {8 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {11 * 8, 14 * 16 + 2, 16, 16},
+        {10 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {13 * 8, 14 * 16 + 2, 16, 16},
+        {12 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {15 * 8, 14 * 16 + 2, 16, 16},
+        {14 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {17 * 8, 14 * 16 + 2, 8, 16},
+        {16 * 8, 14 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {18 * 8, 14 * 16 + 2, 16, 16},
+        {17 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {20 * 8, 14 * 16 + 2, 16, 16},
+        {19 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
+    ImageToggle toggle_fake_brightness{
+        {21 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_brightness};
+
     ImageToggle toggle_sd_card{
-        {22 * 8, 14 * 16 + 2, 16, 16},
+        {23 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_sd_card_ok};
 
     Button button_save{
@@ -489,6 +556,7 @@ class SetQRCodeView : public View {
 };
 
 using portapack::persistent_memory::encoder_dial_sensitivity;
+using portapack::persistent_memory::encoder_rate_multiplier;
 
 class SetEncoderDialView : public View {
    public:
@@ -500,17 +568,29 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts how many steps to", Color::light_grey()},
-        {{1 * 8, 2 * 16}, "change the encoder value.", Color::light_grey()},
-        {{2 * 8, 4 * 16}, "Dial sensitivity:", Color::light_grey()},
+        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "rotation position (number of", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "steps per full rotation):", Color::light_grey()},
+        {{2 * 8, 5 * 16}, "Dial sensitivity:", Color::light_grey()},
+        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Color::light_grey()},
+        {{1 * 8, 9 * 16}, "rotation rate (default 1", Color::light_grey()},
+        {{1 * 8, 10 * 16}, "means no rate dependency):", Color::light_grey()},
+        {{3 * 8, 12 * 16}, "Rate multiplier:", Color::light_grey()},
     };
 
     OptionsField field_encoder_dial_sensitivity{
-        {20 * 8, 4 * 16},
+        {20 * 8, 5 * 16},
         6,
         {{"LOW", encoder_dial_sensitivity::DIAL_SENSITIVITY_LOW},
          {"NORMAL", encoder_dial_sensitivity::DIAL_SENSITIVITY_NORMAL},
          {"HIGH", encoder_dial_sensitivity::DIAL_SENSITIVITY_HIGH}}};
+
+    NumberField field_encoder_rate_multiplier{
+        {20 * 8, 12 * 16},
+        2,
+        {1, 15},
+        1,
+        ' '};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -561,6 +641,151 @@ class SetPersistentMemoryView : public View {
     Button button_return{
         {16 * 8, 16 * 16, 12 * 8, 32},
         "Return",
+    };
+};
+
+class AppSettingsView : public View {
+   public:
+    AppSettingsView(NavigationView& nav);
+    std::string title() const override { return "App Settings"; };
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+
+    Labels labels{
+        {{0, 4}, "Select file to edit:", Color::white()}};
+
+    MenuView menu_view{
+        {0, 2 * 8, 240, 26 * 8},
+        true};
+};
+
+class SetConfigModeView : public View {
+   public:
+    SetConfigModeView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Config Mode"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Controls whether firmware", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "will enter Config Mode", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "after a boot failure.", Color::light_grey()},
+    };
+
+    Checkbox checkbox_config_mode_enabled{
+        {2 * 8, 6 * 16},
+        16,
+        "Config Mode enable"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+using portapack::persistent_memory::fake_brightness_level_options;
+
+class SetFakeBrightnessView : public View {
+   public:
+    SetFakeBrightnessView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Brightness"; };
+
+   private:
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Limits screen brightness", Color::light_grey()},
+        {{1 * 8, 2 * 16}, "(has a small performance", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "impact when enabled).", Color::light_grey()},
+        {{2 * 8, 8 * 16}, "Brightness:", Color::light_grey()},
+    };
+
+    OptionsField field_fake_brightness{
+        {20 * 8, 8 * 16},
+        6,
+        {{"12.5%", fake_brightness_level_options::BRIGHTNESS_12p5},
+         {"25%", fake_brightness_level_options::BRIGHTNESS_25},
+         {"50%", fake_brightness_level_options::BRIGHTNESS_50}}};
+
+    Checkbox checkbox_brightness_switch{
+        {1 * 8, 5 * 16},
+        16,
+        "Enable brightness adjust"};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+class SetMenuColorView : public View {
+   public:
+    SetMenuColorView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Menu Color"; };
+
+   private:
+    void paint_sample();
+
+    Labels labels{
+        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Color::light_grey()},
+        {{2 * 8, 8 * 16}, "Red Level:", Color::light_grey()},
+        {{2 * 8, 9 * 16}, "Green Level:", Color::light_grey()},
+        {{2 * 8, 10 * 16}, "Blue Level:", Color::light_grey()},
+    };
+
+    NewButton button_sample{
+        {8 * 8, 4 * 16, 14 * 8, 3 * 16},
+        "New Color",
+        &bitmap_icon_brightness,
+    };
+
+    NumberField field_red_level{
+        {15 * 8, 8 * 16},
+        3,
+        {8, 248},
+        8,
+        ' ',
+    };
+
+    NumberField field_green_level{
+        {15 * 8, 9 * 16},
+        3,
+        {8, 248},
+        8,
+        ' ',
+    };
+
+    NumberField field_blue_level{
+        {15 * 8, 10 * 16},
+        3,
+        {8, 248},
+        8,
+        ' ',
+    };
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
     };
 };
 

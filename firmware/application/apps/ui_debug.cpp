@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -322,6 +323,11 @@ bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
     return true;
 }
 
+bool ControlsSwitchesWidget::on_encoder(const EncoderEvent delta) {
+    last_delta = delta;
+    return true;
+}
+
 void ControlsSwitchesWidget::paint(Painter& painter) {
     const auto pos = screen_pos();
 
@@ -404,6 +410,8 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
 
         switches_event >>= 1;
     }
+
+    painter.draw_string({5 * 8, 12 * 16}, Styles::light_grey, to_string_dec_int(last_delta, 3));
 }
 
 void ControlsSwitchesWidget::on_frame_sync() {
@@ -449,6 +457,17 @@ DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
     set_max_rows(2);  // allow wider buttons
 }
 
+/* DebugReboot **********************************************/
+
+DebugReboot::DebugReboot(NavigationView& nav) {
+    (void)nav;
+
+    LPC_RGU->RESET_CTRL[0] = (1 << 0);
+
+    while (1)
+        __WFE();
+}
+
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav) {
@@ -464,6 +483,7 @@ DebugMenuView::DebugMenuView(NavigationView& nav) {
         {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
         {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
         //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
+        {"Reboot", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<DebugReboot>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
         {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
         {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
@@ -552,6 +572,7 @@ void DebugPmemView::update() {
 DebugScreenTest::DebugScreenTest(NavigationView& nav)
     : nav_{nav} {
     set_focusable(true);
+    std::srand(LPC_RTC->CTIME0);
 }
 
 bool DebugScreenTest::on_key(const KeyEvent key) {
@@ -561,10 +582,10 @@ bool DebugScreenTest::on_key(const KeyEvent key) {
             nav_.pop();
             break;
         case KeyEvent::Down:
-            painter.fill_rectangle({0, 0, screen_width, screen_height}, semirand());
+            painter.fill_rectangle({0, 0, screen_width, screen_height}, std::rand());
             break;
         case KeyEvent::Left:
-            pen_color = semirand();
+            pen_color = std::rand();
             break;
         default:
             break;
@@ -584,17 +605,10 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
     return true;
 }
 
-uint16_t DebugScreenTest::semirand() {
-    static uint64_t seed{0x0102030405060708};
-    seed = seed * 137;
-    seed = (seed >> 1) | ((seed & 0x01) << 63);
-    return (uint16_t)seed;
-}
-
 void DebugScreenTest::paint(Painter& painter) {
     painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Color::white());
     painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
-    pen_color = semirand();
+    pen_color = std::rand();
 }
 
 /* DebugLCRView *******************************************************/

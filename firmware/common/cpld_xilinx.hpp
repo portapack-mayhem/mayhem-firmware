@@ -68,6 +68,13 @@ class XC2C64A {
     bool verify_eeprom(const verify_blocks_t& blocks);
     void init_from_eeprom();
 
+    void prepare_read_eeprom();
+    void prepare_read_sram();
+    std::array<bool, block_length> read_block_eeprom(block_id_t id);
+    std::array<bool, block_length> read_block_sram(verify_block_t block);
+    void finalize_read_eeprom();
+    void finalize_read_sram(block_id_t id);
+
    private:
     static constexpr size_t idcode_length = 32;
     using idcode_t = uint32_t;

@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyleft  (ↄ) 2022 NotPike
  * Copyright (C) 2023 Kyle Reed, zxkmm
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -389,7 +390,7 @@ PlaylistView::PlaylistView(
     ensure_directory(u"PLAYLIST");
     waterfall.show_audio_spectrum_view(false);
 
-    field_frequency.set_value(100'000'000);
+    field_frequency.set_value(transmitter_model.target_frequency());
     field_frequency.on_change = [this](rf::Frequency f) {
         if (current())
             current()->metadata.center_frequency = f;

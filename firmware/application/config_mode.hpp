@@ -28,9 +28,18 @@
 #include "portapack_shared_memory.hpp"
 #include "portapack_persistent_memory.hpp"
 
+// number of boot failures before entering config menu mode
+#define BOOT_FAILURES_BEFORE_CONFIG_MODE 3
+
+#define CONFIG_MODE_GUARD_VALUE 0xbadb0000
+#define CONFIG_MODE_LIMIT_VALUE (CONFIG_MODE_GUARD_VALUE + BOOT_FAILURES_BEFORE_CONFIG_MODE - 1)
+#define CONFIG_MODE_NORMAL_VALUE 0x000007cf
+
 void config_mode_set();
 bool config_mode_should_enter();
 void config_mode_clear();
+void config_mode_enable(bool v);
+bool config_mode_disabled();
 
 void config_mode_run();
 

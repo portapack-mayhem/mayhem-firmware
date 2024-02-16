@@ -85,10 +85,12 @@ ADSBPositionView::ADSBPositionView(
         nav.push<GeoMapView>(
             geopos.altitude(),
             GeoPos::alt_unit::FEET,
+            GeoPos::spd_unit::HIDDEN,
             geopos.lat(),
             geopos.lon(),
-            [this](int32_t altitude, float lat, float lon) {
+            [this](int32_t altitude, float lat, float lon, int32_t speed) {
                 geopos.set_altitude(altitude);
+                geopos.set_speed(speed);
                 geopos.set_lat(lat);
                 geopos.set_lon(lon);
             });

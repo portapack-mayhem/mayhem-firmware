@@ -71,7 +71,7 @@ struct SharedMemory {
     void set_baseband_ready() { baseband_ready = true; }
 
     uint8_t volatile request_m4_performance_counter{0};
-    uint8_t volatile m4_cpu_usage{0};
+    uint8_t volatile m4_performance_counter{0};
     uint16_t volatile m4_stack_usage{0};
     uint32_t volatile m4_heap_usage{0};
     uint16_t volatile m4_buffer_missed{0};

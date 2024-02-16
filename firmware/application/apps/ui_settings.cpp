@@ -3,6 +3,8 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2024 Mark Thompson
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -27,6 +29,7 @@
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
 #include "ui_touch_calibration.hpp"
+#include "ui_text_editor.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -41,7 +44,9 @@ namespace fs = std::filesystem;
 
 #include "string_format.hpp"
 #include "ui_styles.hpp"
+#include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
+#include "config_mode.hpp"
 
 namespace pmem = portapack::persistent_memory;
 
@@ -59,10 +64,9 @@ SetDateTimeView::SetDateTimeView(
     NavigationView& nav) {
     button_save.on_select = [&nav, this](Button&) {
         const auto model = this->form_collect();
-        const rtc::RTC new_datetime{
-            model.year, model.month, model.day,
-            model.hour, model.minute, model.second};
-        rtcSetTime(&RTCD1, &new_datetime);
+        rtc::RTC new_datetime{model.year, model.month, model.day, model.hour, model.minute, model.second};
+        pmem::set_config_dst(model.dst);
+        rtc_time::set(new_datetime);  // NB: 1 hour will be subtracted if value is stored in RTC during DST
         nav.pop();
     },
 
@@ -78,20 +82,57 @@ SetDateTimeView::SetDateTimeView(
         &field_hour,
         &field_minute,
         &field_second,
+        &text_weekday,
+        &text_day_of_year,
+        &text_in_dst_range,
+        &checkbox_dst_enable,
+        &options_dst_start_which,
+        &options_dst_start_weekday,
+        &options_dst_start_month,
+        &options_dst_end_which,
+        &options_dst_end_weekday,
+        &options_dst_end_month,
         &button_save,
         &button_cancel,
     });
 
+    // Populate DST options (same string text for start & end)
+    options_dst_start_which.set_options(which_options);
+    options_dst_end_which.set_options(which_options);
+    options_dst_start_weekday.set_options(weekday_options);
+    options_dst_end_weekday.set_options(weekday_options);
+    options_dst_start_month.set_options(month_options);
+    options_dst_end_month.set_options(month_options);
+
+    const auto dst_changed_fn = [this](size_t, uint32_t) {
+        handle_date_field_update();
+    };
+
+    const auto date_changed_fn = [this](int32_t) {
+        handle_date_field_update();
+    };
+
+    field_year.on_change = date_changed_fn;
+    field_month.on_change = date_changed_fn;
+    field_day.on_change = date_changed_fn;
+
+    options_dst_start_which.on_change = dst_changed_fn;
+    options_dst_start_weekday.on_change = dst_changed_fn;
+    options_dst_start_month.on_change = dst_changed_fn;
+    options_dst_end_which.on_change = dst_changed_fn;
+    options_dst_end_weekday.on_change = dst_changed_fn;
+    options_dst_end_month.on_change = dst_changed_fn;
+
     rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
+    rtc_time::now(datetime);
     SetDateTimeModel model{
         datetime.year(),
         datetime.month(),
         datetime.day(),
         datetime.hour(),
         datetime.minute(),
-        datetime.second()};
-
+        datetime.second(),
+        pmem::config_dst()};
     form_init(model);
 }
 
@@ -106,6 +147,13 @@ void SetDateTimeView::form_init(const SetDateTimeModel& model) {
     field_hour.set_value(model.hour);
     field_minute.set_value(model.minute);
     field_second.set_value(model.second);
+    checkbox_dst_enable.set_value(model.dst.b.dst_enabled);
+    options_dst_start_which.set_by_value(model.dst.b.start_which);
+    options_dst_start_weekday.set_by_value(model.dst.b.start_weekday);
+    options_dst_start_month.set_by_value(model.dst.b.start_month);
+    options_dst_end_which.set_by_value(model.dst.b.end_which);
+    options_dst_end_weekday.set_by_value(model.dst.b.end_weekday);
+    options_dst_end_month.set_by_value(model.dst.b.end_month);
 }
 
 SetDateTimeModel SetDateTimeView::form_collect() {
@@ -115,7 +163,29 @@ SetDateTimeModel SetDateTimeView::form_collect() {
         .day = static_cast<uint8_t>(field_day.value()),
         .hour = static_cast<uint8_t>(field_hour.value()),
         .minute = static_cast<uint8_t>(field_minute.value()),
-        .second = static_cast<uint8_t>(field_second.value())};
+        .second = static_cast<uint8_t>(field_second.value()),
+        .dst = dst_collect()};
+}
+
+pmem::dst_config_t SetDateTimeView::dst_collect() {
+    pmem::dst_config_t dst;
+    dst.b.dst_enabled = static_cast<uint8_t>(checkbox_dst_enable.value());
+    dst.b.start_which = static_cast<uint8_t>(options_dst_start_which.selected_index_value());
+    dst.b.start_weekday = static_cast<uint8_t>(options_dst_start_weekday.selected_index_value());
+    dst.b.start_month = static_cast<uint8_t>(options_dst_start_month.selected_index_value());
+    dst.b.end_which = static_cast<uint8_t>(options_dst_end_which.selected_index_value());
+    dst.b.end_weekday = static_cast<uint8_t>(options_dst_end_weekday.selected_index_value());
+    dst.b.end_month = static_cast<uint8_t>(options_dst_end_month.selected_index_value());
+    return dst;
+}
+
+void SetDateTimeView::handle_date_field_update() {
+    auto weekday = rtc_time::day_of_week(field_year.value(), field_month.value(), field_day.value());
+    auto doy = rtc_time::day_of_year(field_year.value(), field_month.value(), field_day.value());
+    bool valid_date = (field_day.value() <= rtc_time::days_per_month(field_year.value(), field_month.value()));
+    text_weekday.set(valid_date ? weekday_options[weekday].first : "-");
+    text_day_of_year.set(valid_date ? to_string_dec_uint(doy, 3) : "-");
+    text_in_dst_range.set(checkbox_dst_enable.value() && rtc_time::dst_test_date_range(field_year.value(), doy, dst_collect()) ? "DST" : "");
 }
 
 /* SetRadioView ******************************************/
@@ -149,23 +219,10 @@ SetRadioView::SetRadioView(
         });
     }
 
-    std::string source_name("---");
-    switch (reference.source) {
-        case ClockManager::ReferenceSource::Xtal:
-            source_name = "HackRF";
-            break;
-        case ClockManager::ReferenceSource::PortaPack:
-            source_name = "PortaPack";
-            break;
-        case ClockManager::ReferenceSource::External:
-            source_name = "External";
-            break;
-    }
+    std::string source_name = clock_manager.get_source();
 
     value_source.set(source_name);
-    value_source_frequency.set(
-        to_string_dec_uint(reference.frequency / 1000000, 2) + "." +
-        to_string_dec_uint((reference.frequency % 1000000) / 100, 4, '0') + " MHz");
+    value_source_frequency.set(clock_manager.get_freq());
 
     // Make these Text controls look like Labels.
     label_source.set_style(&Styles::light_grey);
@@ -260,6 +317,7 @@ SetUIView::SetUIView(NavigationView& nav) {
                   &toggle_bias_tee,
                   &toggle_clock,
                   &toggle_mute,
+                  &toggle_fake_brightness,
                   &toggle_sd_card,
                   &button_save,
                   &button_cancel});
@@ -293,6 +351,7 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_clock.set_value(!pmem::ui_hide_clock());
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
+    toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
 
     button_save.on_select = [&nav, this](Button&) {
@@ -319,6 +378,7 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_clock(!toggle_clock.value());
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
         pmem::set_ui_hide_mute(!toggle_mute.value());
+        pmem::set_ui_hide_fake_brightness(!toggle_fake_brightness.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
         send_system_refresh();
 
@@ -553,6 +613,8 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
             [this](bool choice) {
                 if (choice) {
                     pmem::cache::defaults();
+                    // Refresh status bar
+                    send_system_refresh();
                 }
             });
     };
@@ -622,13 +684,16 @@ void SetQRCodeView::focus() {
 SetEncoderDialView::SetEncoderDialView(NavigationView& nav) {
     add_children({&labels,
                   &field_encoder_dial_sensitivity,
+                  &field_encoder_rate_multiplier,
                   &button_save,
                   &button_cancel});
 
-    field_encoder_dial_sensitivity.set_by_value(pmem::config_encoder_dial_sensitivity());
+    field_encoder_dial_sensitivity.set_by_value(pmem::encoder_dial_sensitivity());
+    field_encoder_rate_multiplier.set_value(pmem::encoder_rate_multiplier());
 
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_encoder_dial_sensitivity(field_encoder_dial_sensitivity.selected_index_value());
+        pmem::set_encoder_rate_multiplier(field_encoder_rate_multiplier.value());
         nav.pop();
     };
 
@@ -641,6 +706,133 @@ void SetEncoderDialView::focus() {
     button_save.focus();
 }
 
+/* AppSettingsView ************************************/
+
+AppSettingsView::AppSettingsView(
+    NavigationView& nav)
+    : nav_{nav} {
+    add_children({&labels,
+                  &menu_view});
+
+    menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
+
+    ensure_directory(SETTINGS_DIR);
+
+    for (const auto& entry : std::filesystem::directory_iterator(SETTINGS_DIR, u"*.ini")) {
+        auto path = (std::filesystem::path)SETTINGS_DIR / entry.path();
+
+        menu_view.add_item({path.filename().string().substr(0, 26),
+                            ui::Color::dark_cyan(),
+                            &bitmap_icon_file_text,
+                            [this, path](KeyEvent) {
+                                nav_.push<TextEditorView>(path);
+                            }});
+    }
+}
+
+void AppSettingsView::focus() {
+    menu_view.focus();
+}
+
+/* SetConfigModeView ************************************/
+
+SetConfigModeView::SetConfigModeView(NavigationView& nav) {
+    add_children({&labels,
+                  &checkbox_config_mode_enabled,
+                  &button_save,
+                  &button_cancel});
+
+    checkbox_config_mode_enabled.set_value(!pmem::config_disable_config_mode());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_config_disable_config_mode(!checkbox_config_mode_enabled.value());
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetConfigModeView::focus() {
+    button_save.focus();
+}
+
+/* SetFakeBrightnessView ************************************/
+
+SetFakeBrightnessView::SetFakeBrightnessView(NavigationView& nav) {
+    add_children({&labels,
+                  &field_fake_brightness,
+                  &button_save,
+                  &button_cancel,
+                  &checkbox_brightness_switch});
+
+    field_fake_brightness.set_by_value(pmem::fake_brightness_level());
+    checkbox_brightness_switch.set_value(pmem::apply_fake_brightness());
+
+    button_save.on_select = [&nav, this](Button&) {
+        pmem::set_apply_fake_brightness(checkbox_brightness_switch.value());
+        pmem::set_fake_brightness_level(field_fake_brightness.selected_index_value());
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetFakeBrightnessView::focus() {
+    button_save.focus();
+}
+
+/* SetMenuColorView ************************************/
+
+void SetMenuColorView::paint_sample() {
+    Color c = Color(field_red_level.value(), field_green_level.value(), field_blue_level.value());
+    button_sample.set_bg_color(c);
+}
+
+SetMenuColorView::SetMenuColorView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_sample,
+                  &field_red_level,
+                  &field_green_level,
+                  &field_blue_level,
+                  &button_save,
+                  &button_cancel});
+
+    button_sample.set_focusable(false);
+
+    Color c = pmem::menu_color();
+    field_red_level.set_value(c.r());
+    field_green_level.set_value(c.g());
+    field_blue_level.set_value(c.b());
+    paint_sample();
+
+    const auto color_changed_fn = [this](int32_t) {
+        paint_sample();
+    };
+    field_red_level.on_change = color_changed_fn;
+    field_green_level.on_change = color_changed_fn;
+    field_blue_level.on_change = color_changed_fn;
+
+    button_save.on_select = [&nav, this](Button&) {
+        Color c = Color(field_red_level.value(), field_green_level.value(), field_blue_level.value());
+        pmem::set_menu_color(c);
+        send_system_refresh();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetMenuColorView::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav) {
@@ -648,17 +840,21 @@ SettingsMenuView::SettingsMenuView(NavigationView& nav) {
         add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
     add_items({
+        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<AppSettingsView>(); }},
         {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [&nav]() { nav.push<SetAudioView>(); }},
         {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
+        {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [&nav]() { nav.push<SetConfigModeView>(); }},
         {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
         {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetDateTimeView>(); }},
         {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
         {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
         {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
-        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
         {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetRadioView>(); }},
-        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
         {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
+        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
+        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
+        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
+        {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetMenuColorView>(); }},
     });
     set_max_rows(2);  // allow wider buttons
 }

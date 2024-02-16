@@ -135,13 +135,17 @@ void update_performance_counters() {
 
     last_paint_state = !last_paint_state;
 
-    auto utilisation = get_cpu_utilisation_in_percent();
-    auto free_stack = (uint32_t)get_free_stack_space();
-    auto free_heap = chCoreStatus();
+    if (performance_counter_active == 0x01) {
+        auto utilisation = get_cpu_utilisation_in_percent();
+        auto free_stack = (uint32_t)get_free_stack_space();
+        auto free_heap = chCoreStatus();
 
-    shared_memory.m4_cpu_usage = utilisation;
-    shared_memory.m4_stack_usage = free_stack;
-    shared_memory.m4_heap_usage = free_heap;
+        shared_memory.m4_performance_counter = utilisation;
+        shared_memory.m4_stack_usage = free_stack;
+        shared_memory.m4_heap_usage = free_heap;
+    } else if (performance_counter_active == 0x02) {
+        shared_memory.m4_performance_counter = 0;
+    }
 }
 
 } /* extern "C" */

@@ -20,7 +20,7 @@ jobs:
       - name: check latest commit is less than a day
         id: should_run
         continue-on-error: true
-        run: test -z $(git rev-list  --after="24 hours" ${{ github.sha }}) && echo "::set-output name=should_run::false"
+        run: test -z $(git rev-list  --after="24 hours" ${{ github.sha }}) && echo "should_run=false" >> $GITHUB_OUTPUT
   build:
     needs: check_date
     if: ${{ needs.check_date.outputs.should_run != 'false' }}
@@ -28,15 +28,20 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Get version date
         id: version_date
-        run: echo "::set-output name=date::n_$(date +'%y%m%d')"
+        run: echo "date=n_$(date +'%y%m%d')" >> $GITHUB_OUTPUT
       - name: Checkout 
         uses: actions/checkout@master
         with:
           fetch-depth: 0
-          ref: next
+          #ref: next
+          # The branch, tag or SHA to checkout. When checking out the repository that
+          # triggered a workflow, this defaults to the reference or SHA for that event.
+          # Otherwise, uses the default branch.
+          # https://github.com/actions/checkout
+          # So scheduled runs will use the default branch (next) but its now possible to trigger a workflow from another branch
           submodules: true
       - name: Git Sumbodule Update
         run: |
@@ -49,10 +54,10 @@ jobs:
         run: docker run -e VERSION_STRING=${{ steps.version_date.outputs.date }} -i -v ${{ github.workspace }}:/havoc portapack-dev
       - name: Create Small SD Card ZIP - No World Map
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && zip -r sdcard-no-map.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
       - name: Download world map
         run: |
-          wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
+          wget https://github.com/portapack-mayhem/mayhem-firmware/releases/download/world_map/world_map.zip
       - name: Unzip world map
         run: |
           unzip world_map.zip -d sdcard/ADSB
@@ -61,16 +66,16 @@ jobs:
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && zip -r sdcard.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version_date.outputs.date }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cd sdcard && zip -r ../sdcard.zip . && cd ..
       - name: Create changelog
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CHANGELOG=$(python3 .github/workflows/changelog.py)
-          CHANGELOG="${CHANGELOG//'%'/'%25'}"
-          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          echo "::set-output name=content::$CHANGELOG"
+          {
+            echo 'content<<EOF'
+            python3 .github/workflows/changelog.py
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
         id: changelog
       - name: Create Release
         id: create_release
@@ -88,6 +93,16 @@ jobs:
             ${{ steps.changelog.outputs.content }}
           draft: false
           prerelease: true
+      - name: Upload Firmware TAR Asset
+        id: upload-firmware-tar-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/firmware/portapack-mayhem_OCI.ppfw.tar
+          asset_name: mayhem_nightly_${{ steps.version_date.outputs.date }}_OCI.ppfw.tar
+          asset_content_type: application/x-tar
       - name: Upload Firmware Asset
         id: upload-firmware-asset 
         uses: actions/upload-release-asset@v1

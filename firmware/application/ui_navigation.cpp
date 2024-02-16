@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 u-foka
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -48,7 +50,7 @@
 #include "ui_fsk_rx.hpp"
 #include "ui_iq_trim.hpp"
 // #include "ui_jammer.hpp" //moved to ext
-//  #include "ui_keyfob.hpp"
+//  #include "ui_keyfob.hpp" //moved to ext
 //  #include "ui_lcr.hpp"
 #include "ui_level.hpp"
 #include "ui_looking_glass_app.hpp"
@@ -70,7 +72,7 @@
 #include "ui_settings.hpp"
 #include "ui_siggen.hpp"
 #include "ui_sonde.hpp"
-#include "ui_spectrum_painter.hpp"
+// #include "ui_spectrum_painter.hpp" //moved to ext app
 #include "ui_ss_viewer.hpp"
 #include "ui_sstvtx.hpp"
 #include "ui_styles.hpp"
@@ -93,7 +95,7 @@
 #include "ble_tx_app.hpp"
 #include "capture_app.hpp"
 #include "ert_app.hpp"
-#include "gps_sim_app.hpp"
+// #include "gps_sim_app.hpp" //moved to ext
 // #include "lge_app.hpp" //moved to ext
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
@@ -110,6 +112,111 @@ using portapack::transmitter_model;
 namespace pmem = portapack::persistent_memory;
 
 namespace ui {
+
+bool CstrCmp::operator()(const char* a, const char* b) const {
+    return strcmp(a, b) < 0;
+}
+
+static NavigationView::AppMap generate_app_map(const NavigationView::AppList& appList) {
+    NavigationView::AppMap out;
+
+    for (auto& app : appList) {
+        if (app.id == nullptr) {
+            // Skip items with no id
+            continue;
+        }
+
+        auto res = out.emplace(app.id, app);
+        if (!res.second) {
+            chDbgPanic("Application cannot be added, ID not unique!");
+        }
+    }
+
+    return out;
+}
+
+// TODO(u-foka): Check consistency of command names (where we add rx/tx postfix)
+const NavigationView::AppList NavigationView::appList = {
+    /* HOME ******************************************************************/
+    //{"playdead", "Play dead", HOME, Color::red(), &bitmap_icon_playdead, new ViewFactory<PlayDeadView>()},
+    {nullptr, "Receive", HOME, Color::cyan(), &bitmap_icon_receivers, new ViewFactory<ReceiversMenuView>()},
+    {nullptr, "Transmit", HOME, Color::cyan(), &bitmap_icon_transmit, new ViewFactory<TransmittersMenuView>()},
+    {"capture", "Capture", HOME, Color::red(), &bitmap_icon_capture, new ViewFactory<CaptureAppView>()},
+    {"replay", "Replay", HOME, Color::green(), &bitmap_icon_replay, new ViewFactory<PlaylistView>()},
+    {"remote", "Remote", HOME, ui::Color::green(), &bitmap_icon_remote, new ViewFactory<RemoteView>()},
+    {"scanner", "Scanner", HOME, Color::green(), &bitmap_icon_scanner, new ViewFactory<ScannerView>()},
+    {"microphone", "Microphone", HOME, Color::green(), &bitmap_icon_microphone, new ViewFactory<MicTXView>()},
+    {"lookingglass", "Looking Glass", HOME, Color::green(), &bitmap_icon_looking, new ViewFactory<GlassView>()},
+    {nullptr, "Utilities", HOME, Color::cyan(), &bitmap_icon_utilities, new ViewFactory<UtilitiesMenuView>()},
+    {nullptr, "Settings", HOME, Color::cyan(), &bitmap_icon_setup, new ViewFactory<SettingsMenuView>()},
+    {nullptr, "Debug", HOME, Color::light_grey(), &bitmap_icon_debug, new ViewFactory<DebugMenuView>()},
+    //{"about", "About", HOME, Color::cyan(), nullptr, new ViewFactory<AboutView>()},
+    /* RX ********************************************************************/
+    //{"acars", "ACARS", RX, Color::yellow(), &bitmap_icon_adsb, new ViewFactory<ACARSAppView>()},
+    {"adsbrx", "ADS-B", RX, Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBRxView>()},
+    {"ais", "AIS Boats", RX, Color::green(), &bitmap_icon_ais, new ViewFactory<AISAppView>()},
+    {"aprsrx", "APRS", RX, Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSRXView>()},
+    {"audio", "Audio", RX, Color::green(), &bitmap_icon_speaker, new ViewFactory<AnalogAudioView>()},
+    //{"btle", "BTLE", RX, Color::yellow(), &bitmap_icon_btle, new ViewFactory<BTLERxView>()},
+    //{"blecomm", "BLE Comm", RX, ui::Color::orange(), &bitmap_icon_btle, new ViewFactory<BLECommView>()},
+    {"blerx", "BLE Rx", RX, Color::green(), &bitmap_icon_btle, new ViewFactory<BLERxView>()},
+    {"ert", "ERT Meter", RX, Color::green(), &bitmap_icon_ert, new ViewFactory<ERTAppView>()},
+    {"level", "Level", RX, Color::green(), &bitmap_icon_options_radio, new ViewFactory<LevelView>()},
+    {"pocsag", "POCSAG", RX, Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGAppView>()},
+    {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
+    {"recon", "Recon", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
+    {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
+    {"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
+    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
+    {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()},
+    //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
+    //{"sigfox", "SIGFOX", RX, Color::dark_grey(), &bitmap_icon_fox, new ViewFactory<NotImplementedView>()},
+    //{"lora", "LoRa", RX, Color::dark_grey(), &bitmap_icon_lora, new ViewFactory<NotImplementedView>()},
+    //{"sstv", "SSTV", RX, Color::dark_grey(), &bitmap_icon_sstv, new ViewFactory<NotImplementedView>()},
+    //{"tetra", "TETRA", RX, Color::dark_grey(), &bitmap_icon_tetra, new ViewFactory<NotImplementedView>()},
+    /* TX ********************************************************************/
+    {"adsbtx", "ADS-B TX", TX, ui::Color::green(), &bitmap_icon_adsb, new ViewFactory<ADSBTxView>()},
+    {"aprstx", "APRS TX", TX, ui::Color::green(), &bitmap_icon_aprs, new ViewFactory<APRSTXView>()},
+    {"bht", "BHT Xy/EP", TX, ui::Color::green(), &bitmap_icon_bht, new ViewFactory<BHTView>()},
+    {"bletx", "BLE Tx", TX, ui::Color::green(), &bitmap_icon_btle, new ViewFactory<BLETxView>()},
+    {"morse", "Morse", TX, ui::Color::green(), &bitmap_icon_morse, new ViewFactory<MorseView>()},
+    //{"nuoptixdtmf", "Nuoptix DTMF", TX, ui::Color::green(), &bitmap_icon_nuoptix, new ViewFactory<NuoptixView>()},
+    {"ooktx", "OOK", TX, ui::Color::yellow(), &bitmap_icon_remote, new ViewFactory<EncodersView>()},
+    {"pocsagtx", "POCSAG TX", TX, ui::Color::green(), &bitmap_icon_pocsag, new ViewFactory<POCSAGTXView>()},
+    {"rdstx", "RDS", TX, ui::Color::green(), &bitmap_icon_rds, new ViewFactory<RDSView>()},
+    {"soundbrd", "Soundbrd", TX, ui::Color::green(), &bitmap_icon_soundboard, new ViewFactory<SoundBoardView>()},
+    {"sstvtx", "SSTV", TX, ui::Color::green(), &bitmap_icon_sstv, new ViewFactory<SSTVTXView>()},
+    {"touchtune", "TouchTune", TX, ui::Color::green(), &bitmap_icon_touchtunes, new ViewFactory<TouchTunesView>()},
+    /* UTILITIES *************************************************************/
+    {"antennalength", "Antenna Length", UTILITIES, Color::green(), &bitmap_icon_tools_antenna, new ViewFactory<WhipCalcView>()},
+    {"filemanager", "File Manager", UTILITIES, Color::green(), &bitmap_icon_dir, new ViewFactory<FileManagerView>()},
+    {"freqman", "Freq. Manager", UTILITIES, Color::green(), &bitmap_icon_freqman, new ViewFactory<FrequencyManagerView>()},
+    {"notepad", "Notepad", UTILITIES, Color::dark_cyan(), &bitmap_icon_notepad, new ViewFactory<TextEditorView>()},
+    {"iqtrim", "IQ Trim", UTILITIES, Color::orange(), &bitmap_icon_trim, new ViewFactory<IQTrimView>()},
+    {nullptr, "SD Over USB", UTILITIES, Color::yellow(), &bitmap_icon_hackrf, new ViewFactory<SdOverUsbView>()},
+    {"signalgen", "Signal Gen", UTILITIES, Color::green(), &bitmap_icon_cwgen, new ViewFactory<SigGenView>()},
+    //{"testapp", "Test App", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<TestView>()},
+    //{"tonesearch", "Tone Search", UTILITIES, Color::dark_grey(), nullptr, new ViewFactory<ToneSearchView>()},
+    {"wavview", "Wav View", UTILITIES, Color::yellow(), &bitmap_icon_soundboard, new ViewFactory<ViewWavView>()},
+    // Dangerous apps.
+    {nullptr, "Flash Utility", UTILITIES, Color::red(), &bitmap_icon_temperature, new ViewFactory<FlashUtilityView>()},
+    {nullptr, "Wipe SD card", UTILITIES, Color::red(), &bitmap_icon_tools_wipesd, new ViewFactory<WipeSDView>()},
+};
+
+const NavigationView::AppMap NavigationView::appMap = generate_app_map(NavigationView::appList);
+
+bool NavigationView::StartAppByName(const char* name) {
+    home(false);
+
+    auto it = appMap.find(name);
+    if (it != appMap.end()) {
+        push_view(std::unique_ptr<View>(it->second.viewFactory->produce(*this)));
+        return true;
+    }
+
+    return false;
+}
 
 /* StatusTray ************************************************************/
 
@@ -210,9 +317,25 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
-    toggle_stealth.on_change = [this](bool v) {
+    toggle_stealth.on_change = [this, &nav](bool v) {
         pmem::set_stealth_mode(v);
+        if (nav.is_valid() && v) {
+            nav.display_modal(
+                "Stealth",
+                "You just enabled stealth mode.\n"
+                "When you transmit,\n"
+                "screen will turn off;\n");
+        }
         refresh();
+    };
+
+    button_fake_brightness.on_select = [this](ImageButton&) {
+        set_dirty();
+        pmem::toggle_fake_brightness_level();
+        refresh();
+        if (nullptr != parent()) {
+            parent()->set_dirty();  // The parent of NavigationView shal be the SystemView
+        }
     };
 
     button_bias_tee.on_select = [this](ImageButton&) {
@@ -257,6 +380,8 @@ void SystemStatusView::refresh() {
     // Display "Disable speaker" icon only if AK4951 Codec which has separate speaker/headphone control
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
+    if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
+
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
     status_icons.update_layout();
 
@@ -277,6 +402,9 @@ void SystemStatusView::refresh() {
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
     button_converter.set_foreground(pmem::config_converter() ? Color::red() : Color::light_grey());
+
+    // Fake Brightness
+    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Color::green() : Color::light_grey());
 
     set_dirty();
 }
@@ -398,8 +526,8 @@ void SystemStatusView::rtc_battery_workaround() {
             month = (timestamp.FAT_date >> 5) & 0xF;
             day = timestamp.FAT_date & 0x1F;
 
-            // bump to next month at 28 days for simplicity
-            if (++day > 28) {
+            // bump to next month
+            if (++day > rtc_time::days_per_month(year, month)) {
                 day = 1;
                 if (++month > 12) {
                     month = 1;
@@ -407,7 +535,7 @@ void SystemStatusView::rtc_battery_workaround() {
                 }
             }
         } else {
-            make_new_directory(SETTINGS_DIR);
+            ensure_directory(SETTINGS_DIR);
             make_new_file(DATE_FILEFLAG);
 
             year = 1980;
@@ -441,7 +569,17 @@ InformationView::InformationView(
                   &version,
                   &ltime});
 
+#if GCC_VERSION_MISMATCH
+    version.set_style(&Styles::yellow);
+#else
     version.set_style(&style_infobar);
+#endif
+
+    if (firmware_checksum_error()) {
+        version.set("FLASH ERR");
+        version.set_style(&Styles::red);
+    }
+
     ltime.set_style(&style_infobar);
     refresh();
     set_dirty();
@@ -453,10 +591,25 @@ void InformationView::refresh() {
     ltime.set_date_enabled(pmem::clock_with_date());
 }
 
+bool InformationView::firmware_checksum_error() {
+    static bool fw_checksum_checked{false};
+    static bool fw_checksum_error{false};
+
+    // only checking firmware checksum once per boot
+    if (!fw_checksum_checked) {
+        fw_checksum_error = (simple_checksum(FLASH_STARTING_ADDRESS, FLASH_ROM_SIZE) != FLASH_EXPECTED_CHECKSUM);
+    }
+    return fw_checksum_error;
+}
+
 /* Navigation ************************************************************/
 
 bool NavigationView::is_top() const {
     return view_stack.size() == 1;
+}
+
+bool NavigationView::is_valid() const {
+    return view_stack.size() != 0;  // work around to check if nav is valid, not elegant i know. so TODO
 }
 
 View* NavigationView::push_view(std::unique_ptr<View> new_view) {
@@ -485,6 +638,14 @@ void NavigationView::pop(bool trigger_update) {
     // these callbacks or it will cause crashes.
     if (trigger_update) update_view();
     if (on_pop) on_pop();
+}
+
+void NavigationView::home(bool trigger_update) {
+    while (view_stack.size() > 1) {
+        pop(false);
+    }
+
+    if (trigger_update) update_view();
 }
 
 void NavigationView::display_modal(
@@ -546,43 +707,47 @@ bool NavigationView::set_on_pop(std::function<void()> on_pop) {
     return true;
 }
 
+/* Helpers  **************************************************************/
+
+static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
+    for (auto& app : NavigationView::appList) {
+        if (app.menuLocation == loc) {
+            grid.add_item({app.displayName, app.iconColor, app.icon,
+                           [&nav, &app]() { nav.push_view(std::unique_ptr<View>(app.viewFactory->produce(nav))); }});
+        }
+    };
+}
+
+void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
+    auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
+    if (externalItems.empty()) {
+        grid.add_item({"Notice",
+                       Color::red(),
+                       &bitmap_icon_debug,
+                       [&nav]() {
+                           nav.display_modal(
+                               "Notice",
+                               "External app directory empty;\n"
+                               "see Mayhem wiki and copy apps\n"
+                               "to APPS folder of SD card.");
+                       }});
+    } else {
+        for (auto const& gridItem : externalItems) {
+            grid.add_item(gridItem);
+        }
+    }
+}
+
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }});
     }
-    add_items({
-        // {"ACARS", Color::yellow(), &bitmap_icon_adsb, [&nav](){ nav.push<ACARSAppView>(); }},
-        {"ADS-B", Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBRxView>(); }},
-        {"AIS Boats", Color::green(), &bitmap_icon_ais, [&nav]() { nav.push<AISAppView>(); }},
-        //{"Analog TV", Color::yellow(), &bitmap_icon_sstv, [&nav]() { nav.push<AnalogTvView>(); }}, //moved to ext
-        {"APRS", Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSRXView>(); }},
-        {"Audio", Color::green(), &bitmap_icon_speaker, [&nav]() { nav.push<AnalogAudioView>(); }},
-        //{"BTLE", Color::yellow(), &bitmap_icon_btle, [&nav]() { nav.push<BTLERxView>(); }},
-        //{"BLE Comm", ui::Color::orange(), &bitmap_icon_btle, [&nav]() { nav.push<BLECommView>(); }},
-        {"BLE Rx", Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLERxView>(); }},
-        {"ERT Meter", Color::green(), &bitmap_icon_ert, [&nav]() { nav.push<ERTAppView>(); }},
-        {"Level", Color::green(), &bitmap_icon_options_radio, [&nav]() { nav.push<LevelView>(); }},
-        //{"NRF", Color::yellow(), &bitmap_icon_nrf, [&nav]() { nav.push<NRFRxView>(); }}, //moved to ext
-        {"POCSAG", Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGAppView>(); }},
-        {"Radiosnde", Color::green(), &bitmap_icon_sonde, [&nav]() { nav.push<SondeView>(); }},
-        {"Recon", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ReconView>(); }},
-        {"Search", Color::yellow(), &bitmap_icon_search, [&nav]() { nav.push<SearchView>(); }},
-        {"TPMS Cars", Color::green(), &bitmap_icon_tpms, [&nav]() { nav.push<TPMSAppView>(); }},
-        {"Weather", Color::green(), &bitmap_icon_thermometer, [&nav]() { nav.push<WeatherView>(); }},
-        {"SubGhzD", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<SubGhzDView>(); }},
-        // {"FSK RX", Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<FskxRxMainView>(); }},
-        // {"DMR", Color::dark_grey(), &bitmap_icon_dmr, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"SIGFOX", Color::dark_grey(), &bitmap_icon_fox, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"LoRa", Color::dark_grey(), &bitmap_icon_lora, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"SSTV", Color::dark_grey(), &bitmap_icon_sstv, [&nav](){ nav.push<NotImplementedView>(); }},
-        // {"TETRA", Color::dark_grey(), &bitmap_icon_tetra, [&nav](){ nav.push<NotImplementedView>(); }},
-    });
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::RX, nav)) {
-        add_item(gridItem);
-    };
+    add_apps(nav, *this, RX);
+
+    addExternalItems(nav, app_location_t::RX, *this);
 }
 
 /* TransmittersMenuView **************************************************/
@@ -591,31 +756,10 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
-    add_items({
-        {"ADS-B TX", ui::Color::green(), &bitmap_icon_adsb, [&nav]() { nav.push<ADSBTxView>(); }},
-        {"APRS TX", ui::Color::green(), &bitmap_icon_aprs, [&nav]() { nav.push<APRSTXView>(); }},
-        {"BHT Xy/EP", ui::Color::green(), &bitmap_icon_bht, [&nav]() { nav.push<BHTView>(); }},
-        {"BLE Tx", ui::Color::green(), &bitmap_icon_btle, [&nav]() { nav.push<BLETxView>(); }},
-        // {"BurgerPgr", ui::Color::yellow(), &bitmap_icon_burger, [&nav]() { nav.push<CoasterPagerView>(); }}, //moved to ext
-        {"GPS Sim", ui::Color::green(), &bitmap_icon_gps_sim, [&nav]() { nav.push<GpsSimAppView>(); }},
-        //{"Jammer", ui::Color::green(), &bitmap_icon_jammer, [&nav]() { nav.push<JammerView>(); }}, //moved to ext
-        // { "Key fob", ui::Color::orange(), &bitmap_icon_keyfob, [&nav](){ nav.push<KeyfobView>(); }},
-        // {"LGE", ui::Color::yellow(), &bitmap_icon_lge, [&nav]() { nav.push<LGEView>(); }}, //moved to ext
-        {"Morse", ui::Color::green(), &bitmap_icon_morse, [&nav]() { nav.push<MorseView>(); }},
-        // { "Nuoptix DTMF", ui::Color::green(), &bitmap_icon_nuoptix, [&nav](){ nav.push<NuoptixView>(); }},
-        {"OOK", ui::Color::yellow(), &bitmap_icon_remote, [&nav]() { nav.push<EncodersView>(); }},
-        {"POCSAG TX", ui::Color::green(), &bitmap_icon_pocsag, [&nav]() { nav.push<POCSAGTXView>(); }},
-        {"RDS", ui::Color::green(), &bitmap_icon_rds, [&nav]() { nav.push<RDSView>(); }},
-        {"Soundbrd", ui::Color::green(), &bitmap_icon_soundboard, [&nav]() { nav.push<SoundBoardView>(); }},
-        {"S.Painter", ui::Color::orange(), &bitmap_icon_paint, [&nav]() { nav.push<SpectrumPainterView>(); }},
-        {"SSTV", ui::Color::green(), &bitmap_icon_sstv, [&nav]() { nav.push<SSTVTXView>(); }},
-        // {"TEDI/LCR", ui::Color::yellow(), &bitmap_icon_lcr, [&nav]() { nav.push<LCRView>(); }}, //moved to ext
-        {"TouchTune", ui::Color::green(), &bitmap_icon_touchtunes, [&nav]() { nav.push<TouchTunesView>(); }},
-    });
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::TX, nav)) {
-        add_item(gridItem);
-    };
+    add_apps(nav, *this, TX);
+
+    addExternalItems(nav, app_location_t::TX, *this);
 }
 
 /* UtilitiesMenuView *****************************************************/
@@ -624,26 +768,10 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
     }
-    add_items({
-        {"Antenna Length", Color::green(), &bitmap_icon_tools_antenna, [&nav]() { nav.push<WhipCalcView>(); }},
-        {"File Manager", Color::green(), &bitmap_icon_dir, [&nav]() { nav.push<FileManagerView>(); }},
-        {"Freq. Manager", Color::green(), &bitmap_icon_freqman, [&nav]() { nav.push<FrequencyManagerView>(); }},
-        {"Notepad", Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<TextEditorView>(); }},
-        {"IQ Trim", Color::orange(), &bitmap_icon_trim, [&nav]() { nav.push<IQTrimView>(); }},
-        {"SD Over USB", Color::yellow(), &bitmap_icon_hackrf, [&nav]() { nav.push<SdOverUsbView>(); }},
-        {"Signal Gen", Color::green(), &bitmap_icon_cwgen, [&nav]() { nav.push<SigGenView>(); }},
-        // {"Test App", Color::dark_grey(), nullptr, [&nav](){ nav.push<TestView>(); }},
-        // {"Tone Search", Color::dark_grey(), nullptr, [&nav](){ nav.push<ToneSearchView>(); }},
-        {"Wav View", Color::yellow(), &bitmap_icon_soundboard, [&nav]() { nav.push<ViewWavView>(); }},
 
-        // Dangerous apps.
-        {"Flash Utility", Color::red(), &bitmap_icon_temperature, [&nav]() { nav.push<FlashUtilityView>(); }},
-        {"Wipe SD card", Color::red(), &bitmap_icon_tools_wipesd, [&nav]() { nav.push<WipeSDView>(); }},
-    });
+    add_apps(nav, *this, UTILITIES);
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::UTILITIES, nav)) {
-        add_item(gridItem);
-    };
+    addExternalItems(nav, app_location_t::UTILITIES, *this);
 
     set_max_rows(2);  // allow wider buttons
 }
@@ -663,22 +791,9 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav) {
-    add_items({
-        // {"Play dead", Color::red(), &bitmap_icon_playdead, [&nav]() { nav.push<PlayDeadView>(); }},
-        {"Receive", Color::cyan(), &bitmap_icon_receivers, [&nav]() { nav.push<ReceiversMenuView>(); }},
-        {"Transmit", Color::cyan(), &bitmap_icon_transmit, [&nav]() { nav.push<TransmittersMenuView>(); }},
-        {"Capture", Color::red(), &bitmap_icon_capture, [&nav]() { nav.push<CaptureAppView>(); }},
-        {"Replay", Color::green(), &bitmap_icon_replay, [&nav]() { nav.push<PlaylistView>(); }},
-        {"Remote", ui::Color::green(), &bitmap_icon_remote, [&nav]() { nav.push<RemoteView>(); }},
-        {"Scanner", Color::green(), &bitmap_icon_scanner, [&nav]() { nav.push<ScannerView>(); }},
-        {"Microphone", Color::green(), &bitmap_icon_microphone, [&nav]() { nav.push<MicTXView>(); }},
-        {"Looking Glass", Color::green(), &bitmap_icon_looking, [&nav]() { nav.push<GlassView>(); }},
-        {"Utilities", Color::cyan(), &bitmap_icon_utilities, [&nav]() { nav.push<UtilitiesMenuView>(); }},
-        {"Settings", Color::cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SettingsMenuView>(); }},
-        {"Debug", Color::light_grey(), &bitmap_icon_debug, [&nav]() { nav.push<DebugMenuView>(); }},
-        {"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }},
-        // {"About", Color::cyan(), nullptr, [&nav]() { nav.push<AboutView>(); }},
-    });
+    add_apps(nav, *this, HOME);
+
+    add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }});
 
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);
@@ -741,6 +856,9 @@ SystemView::SystemView(
 Context& SystemView::context() const {
     return context_;
 }
+NavigationView* SystemView::get_navigation_view() {
+    return &navigation_view;
+}
 
 void SystemView::toggle_overlay() {
     switch (++overlay_active) {
@@ -748,7 +866,7 @@ void SystemView::toggle_overlay() {
             this->add_child(&this->overlay);
             this->set_dirty();
             shared_memory.request_m4_performance_counter = 1;
-            shared_memory.m4_cpu_usage = 0;
+            shared_memory.m4_performance_counter = 0;
             shared_memory.m4_heap_usage = 0;
             shared_memory.m4_stack_usage = 0;
             break;
@@ -756,11 +874,12 @@ void SystemView::toggle_overlay() {
             this->remove_child(&this->overlay);
             this->add_child(&this->overlay2);
             this->set_dirty();
-            shared_memory.request_m4_performance_counter = 0;
+            shared_memory.request_m4_performance_counter = 2;
             break;
         case 3:
             this->remove_child(&this->overlay2);
             this->set_dirty();
+            shared_memory.request_m4_performance_counter = 0;
             overlay_active = 0;
             break;
     }

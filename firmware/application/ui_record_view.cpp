@@ -181,7 +181,7 @@ void RecordView::start() {
 
     std::filesystem::path base_path;
     if (filename_date_frequency) {
-        rtcGetTime(&RTCD1, &datetime);
+        rtc_time::now(datetime);
 
         // ISO 8601
         std::string date_time =

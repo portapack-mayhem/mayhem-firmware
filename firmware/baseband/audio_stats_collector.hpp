@@ -31,6 +31,13 @@
 class AudioStatsCollector {
    public:
     template <typename Callback>
+    void feed(const buffer_s16_t& src, Callback callback) {
+        if (feed(src)) {
+            callback(statistics);
+        }
+    }
+
+    template <typename Callback>
     void feed(const buffer_f32_t& src, Callback callback) {
         if (feed(src)) {
             callback(statistics);
@@ -52,10 +59,12 @@ class AudioStatsCollector {
 
     AudioStatistics statistics{};
 
+    void consume_audio_buffer(const buffer_s16_t& src);
     void consume_audio_buffer(const buffer_f32_t& src);
 
     bool update_stats(const size_t sample_count, const size_t sampling_rate);
 
+    bool feed(const buffer_s16_t& src);
     bool feed(const buffer_f32_t& src);
     bool mute(const size_t sample_count, const size_t sampling_rate);
 };

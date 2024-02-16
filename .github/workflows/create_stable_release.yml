@@ -9,22 +9,27 @@ jobs:
     steps:
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+        run: echo "date=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Checkout 
         uses: actions/checkout@master
         with:
           fetch-depth: 0
-          ref: next
+          #ref: next
+          # The branch, tag or SHA to checkout. When checking out the repository that
+          # triggered a workflow, this defaults to the reference or SHA for that event.
+          # Otherwise, uses the default branch.
+          # https://github.com/actions/checkout
+          # So scheduled runs will use the default branch (next) but its now possible to trigger a workflow from another branch
           submodules: true
       - name: Git Sumbodule Update
         run: |
           git submodule update --init --recursive
       - name: Get version
         id: version
-        run: echo "::set-output name=version::$(cat .github/workflows/version.txt)"
+        run: echo "version=$(cat .github/workflows/version.txt)" >> $GITHUB_OUTPUT
       - name: Get past version
         id: past_version
-        run: echo "::set-output name=past_version::$(cat .github/workflows/past_version.txt)"
+        run: echo "past_version=$(cat .github/workflows/past_version.txt)" >> $GITHUB_OUTPUT
       - name: Build the Docker image
         run: docker build -t portapack-dev -f dockerfile-nogit . --tag my-image-name:$(date +%s)
       - name: Make build folder
@@ -33,10 +38,10 @@ jobs:
         run: docker run -e VERSION_STRING=${{ steps.version.outputs.version }} -i -v ${{ github.workspace }}:/havoc portapack-dev
       - name: Create Small SD Card ZIP - No World Map
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && zip -r sdcard-no-map.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cd sdcard && zip -r ../sdcard-no-map.zip . && cd ..
       - name: Download world map
         run: |
-          wget https://github.com/eried/portapack-mayhem/releases/download/world_map/world_map.zip
+          wget https://github.com/portapack-mayhem/mayhem-firmware/releases/download/world_map/world_map.zip
       - name: Unzip world map
         run: |
           unzip world_map.zip -d sdcard/ADSB
@@ -45,16 +50,16 @@ jobs:
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
       - name: Create SD Card ZIP
         run: |
-          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && zip -r sdcard.zip sdcard
+          mkdir -p sdcard/FIRMWARE && cp build/firmware/portapack-h1_h2-mayhem.bin sdcard/FIRMWARE/portapack-mayhem_${{ steps.version.outputs.version }}.bin && mkdir -p sdcard/APPS && cp build/firmware/application/*.ppma sdcard/APPS && cd sdcard && zip -r ../sdcard.zip . && cd ..
       - name: Create changelog
         env:
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          CHANGELOG=$(python3 .github/workflows/changelog.py ${{ steps.past_version.outputs.past_version }})
-          CHANGELOG="${CHANGELOG//'%'/'%25'}"
-          CHANGELOG="${CHANGELOG//$'\n'/'%0A'}"
-          CHANGELOG="${CHANGELOG//$'\r'/'%0D'}"
-          echo "::set-output name=content::$CHANGELOG"
+          {
+            echo 'content<<EOF'
+            python3 .github/workflows/changelog.py ${{ steps.past_version.outputs.past_version }}
+            echo EOF
+          } >> "$GITHUB_OUTPUT"
         id: changelog
       - name: Create Release
         id: create_release
@@ -66,21 +71,32 @@ jobs:
           release_name: Mayhem firmware ${{ steps.version.outputs.version }}
           body: |
             **Stable release - ${{ steps.version.outputs.version }}**
-            This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/eried/portapack-mayhem/blob/master/README.md) for details.
+            This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmware, which itself was a fork of the [PortaPack](https://github.com/sharebrained/portapack-hackrf) firmware, an add-on for the [HackRF](http://greatscottgadgets.com/hackrf/). Please check the [readme](https://github.com/portapack-mayhem/mayhem-firmware/blob/master/README.md) for details.
             ## Release notes
             ###  Revision (${{ steps.version.outputs.version }}):
             ${{ steps.changelog.outputs.content }}
             
-            **Full Changelog**: https://github.com/eried/portapack-mayhem/compare/${{ steps.past_version.outputs.past_version }}...${{ steps.version.outputs.version }}
+            **Full Changelog**: https://github.com/portapack-mayhem/mayhem-firmware/compare/${{ steps.past_version.outputs.past_version }}...${{ steps.version.outputs.version }}
 
             ## Installation
-            Check the [wiki](https://github.com/eried/portapack-havoc/wiki/Update-firmware) for details how to upgrade. 
+            Check the [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Update-firmware) for details how to upgrade.
+            __Warning:__ Since release 1.8.0, some applications has been moved to the SD card as we ran out of flash space.
 
             ### MicroSD card files
 
-            For certain functionality, like the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
+            For certain functionality, like external apps, the world map, GPS simulator, and others you need to uncompress (using [7-zip](https://www.7-zip.org/download.html)) the files from `mayhem_vX.Y.Z_COPY_TO_SDCARD.zip` to a FAT32 formatted MicroSD card.
           draft: true
           prerelease: false
+      - name: Upload Firmware TAR Asset
+        id: upload-firmware-tar-asset 
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: build/firmware/portapack-mayhem_OCI.ppfw.tar
+          asset_name: mayhem_${{ steps.version.outputs.version }}_OCI.ppfw.tar
+          asset_content_type: application/x-tar
       - name: Upload Firmware Asset
         id: upload-firmware-asset 
         uses: actions/upload-release-asset@v1

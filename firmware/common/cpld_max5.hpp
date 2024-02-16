@@ -60,6 +60,7 @@ class CPLD {
     }
 
     bool idcode_ok();
+    uint32_t get_idcode();
 
     void enable();
 
@@ -90,6 +91,15 @@ class CPLD {
 
     std::pair<bool, uint8_t> boundary_scan();
 
+    void prepare_read(uint16_t block);
+    uint32_t read();
+
+    bool AGM_enter_maintenance_mode();
+    void AGM_exit_maintenance_mode();
+    void AGM_enter_read_mode();
+    uint32_t AGM_encode_address(uint32_t address, uint32_t trailer);
+    uint32_t AGM_read(uint32_t address);
+
    private:
     using idcode_t = uint32_t;
     static constexpr size_t idcode_length = 32;
@@ -115,6 +125,13 @@ class CPLD {
         ISC_ADDRESS_SHIFT = 0b1000000011,  // 0x203
         ISC_READ = 0b1000000101,           // 0x205
         ISC_NOOP = 0b1000010000,           // 0x210
+        AGM_RESET = 0x3f7,
+        AGM_STAGE_1 = 0x3f8,
+        AGM_STAGE_2 = 0x3f9,
+        AGM_PROGRAM = 0x3fa,
+        AGM_SET_REGISTER = 0x3fc,
+        AGM_READ = 0x3fd,
+        AGM_ERASE = 0x3fe,
     };
 
     void shift_ir(const instruction_t instruction) {

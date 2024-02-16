@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyright (C) 2023 Kyle Reed
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -127,8 +128,8 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
     text_icao_address.set(entry.icao_str);
 
     // Try getting the aircraft information from icao24.db
-    std::database db{};
-    std::database::AircraftDBRecord aircraft_record;
+    database db{};
+    database::AircraftDBRecord aircraft_record;
     auto return_code = db.retrieve_aircraft_record(&aircraft_record, entry.icao_str);
     switch (return_code) {
         case DATABASE_RECORD_FOUND:
@@ -199,6 +200,10 @@ ADSBRxAircraftDetailsView::ADSBRxAircraftDetailsView(
             }
             break;
 
+        case DATABASE_RECORD_NOT_FOUND:
+            // Defaults should be filled by the constructor
+            break;
+
         case DATABASE_NOT_FOUND:
             text_manufacturer.set("No icao24.db file");
             break;
@@ -233,24 +238,6 @@ ADSBRxDetailsView::ADSBRxDetailsView(
          &button_aircraft_details,
          &button_see_map});
 
-    // The following won't change for a given airborne aircraft.
-    // Try getting the airline's name from airlines.db.
-    // NB: Only works once callsign has been read and won't be updated.
-    std::database db;
-    std::database::AirlinesDBRecord airline_record;
-    std::string airline_code = entry_.callsign.substr(0, 3);
-    auto return_code = db.retrieve_airline_record(&airline_record, airline_code);
-
-    switch (return_code) {
-        case DATABASE_RECORD_FOUND:
-            text_airline.set(airline_record.airline);
-            text_country.set(airline_record.country);
-            break;
-        case DATABASE_NOT_FOUND:
-            text_airline.set("No airlines.db file");
-            break;
-    }
-
     text_icao_address.set(entry_.icao_str);
 
     button_aircraft_details.on_select = [this, &nav](Button&) {
@@ -266,6 +253,7 @@ ADSBRxDetailsView::ADSBRxDetailsView(
             get_map_tag(entry_),
             entry_.pos.altitude,
             GeoPos::alt_unit::FEET,
+            GeoPos::spd_unit::MPH,
             entry_.pos.latitude,
             entry_.pos.longitude,
             entry_.velo.heading);
@@ -290,7 +278,7 @@ void ADSBRxDetailsView::update(const AircraftRecentEntry& entry) {
     } else if (geomap_view_) {
         // Map is showing, update the current item.
         geomap_view_->update_tag(get_map_tag(entry_));
-        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude);
+        geomap_view_->update_position(entry.pos.latitude, entry.pos.longitude, entry.velo.heading, entry.pos.altitude, entry.velo.speed);
     } else {
         // Details is showing, update details.
         refresh_ui();
@@ -317,7 +305,43 @@ bool ADSBRxDetailsView::add_map_marker(const AircraftRecentEntry& entry) {
     return markerStored == MARKER_STORED;
 }
 
+void ADSBRxDetailsView::on_gps(const GPSPosDataMessage* msg) {
+    if (!geomap_view_)
+        return;
+    geomap_view_->update_my_position(msg->lat, msg->lon, msg->altitude);
+}
+void ADSBRxDetailsView::on_orientation(const OrientationDataMessage* msg) {
+    if (!geomap_view_)
+        return;
+    geomap_view_->update_my_orientation(msg->angle);
+}
+
 void ADSBRxDetailsView::refresh_ui() {
+    // The following won't change for a given airborne aircraft.
+    // Try getting the airline's name from airlines.db.
+    if (!airline_checked && !entry_.callsign.empty()) {
+        airline_checked = true;
+
+        database db;
+        database::AirlinesDBRecord airline_record;
+        std::string airline_code = entry_.callsign.substr(0, 3);
+        auto return_code = db.retrieve_airline_record(&airline_record, airline_code);
+
+        switch (return_code) {
+            case DATABASE_RECORD_FOUND:
+                text_airline.set(airline_record.airline);
+                text_country.set(airline_record.country);
+                break;
+            case DATABASE_RECORD_NOT_FOUND:
+                // text_airline.set("-"); // It's what it is constructed with
+                // text_country.set("-"); // It's what it is constructed with
+                break;
+            case DATABASE_NOT_FOUND:
+                text_airline.set("No airlines.db file");
+                break;
+        }
+    }
+
     auto age = entry_.age;
     if (age < 60)
         text_last_seen.set(to_string_dec_uint(age) + " seconds ago");
@@ -395,7 +419,7 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     status_good_frame.toggle();
 
     rtc::RTC datetime;
-    rtcGetTime(&RTCD1, &datetime);
+    rtcGetTime(&RTCD1, &datetime);  // Reading RTC directly to avoid DST transitions when calculating delta
     frame.set_rx_timestamp(datetime.minute() * 60 + datetime.second());
 
     // NB: Reference to update entry in-place.

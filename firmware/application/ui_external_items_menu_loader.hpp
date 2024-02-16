@@ -29,6 +29,8 @@
 
 #include "file.hpp"
 
+#define EXT_APP_EXPECTED_CHECKSUM 0x00000000
+
 namespace ui {
 
 template <size_t Width, size_t Height>
@@ -54,11 +56,11 @@ class ExternalItemsMenuLoader {
    public:
     static std::vector<GridItem> load_external_items(app_location_t, NavigationView&);
     ExternalItemsMenuLoader() = delete;
+    static bool run_external_app(ui::NavigationView&, std::filesystem::path);
+    static void load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback);
 
    private:
     static std::vector<DynamicBitmap<16, 16>> bitmaps;
-
-    static void run_external_app(ui::NavigationView&, std::filesystem::path);
 };
 
 }  // namespace ui

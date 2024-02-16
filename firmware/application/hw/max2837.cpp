@@ -149,7 +149,33 @@ void MAX2837::init() {
     set_mode(Mode::Standby);
 }
 
-enum class Mask {
+void MAX2837::set_tx_LO_iq_phase_calibration(const size_t v) {
+    /*  IQ phase deg CAL adj  (+4 ...-4)  in 32 steps (5 bits), 00000 = +4deg (Q lags I by 94degs, default), 01111 = +0deg, 11111 = -4deg (Q lags I by 86degs) */
+
+    // TX calibration , Logic pins , ENABLE, RXENABLE, TXENABLE = 1,0,1 (5dec), and  Reg address 16, D1 (CAL mode 1):DO (CHIP ENABLE 1)
+    set_mode(Mode::Tx_Calibration);  // write to ram 3 LOGIC Pins .
+
+    gpio_max283x_enable.output();
+    gpio_max2837_rxenable.output();
+    gpio_max2837_txenable.output();
+
+    _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)
+    _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (CHIP ENABLE 1)
+    flush_one(Register::SPI_EN);
+
+    _map.r.tx_lo_iq.TXLO_IQ_SPI_EN = 1;  // reg 30 D5, TX LO I/Q Phase SPI Adjust. Active when Address 30 D5 (TXLO_IQ_SPI_EN) = 1.
+    _map.r.tx_lo_iq.TXLO_IQ_SPI = v;     // reg 30  D4:D0, TX LO I/Q Phase SPI Adjust.
+    flush_one(Register::TX_LO_IQ);
+
+    // Exit Calibration mode,  Go back to reg 16, D1:D0 , Out of CALIBRATION , back to default conditions, but keep CS activated.
+    _map.r.spi_en.CAL_SPI = 0;  // Register Settings reg address 16,  D1 (0 = Normal operation (default)
+    _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (1 = Chip select enable )
+    flush_one(Register::SPI_EN);
+
+    set_mode(Mode::Standby);  // Back 3  logic pins CALIBRATION mode -> Standby.
+}
+
+enum class Mask {  // There are class Mask ,and class mode with same names, but they are not same.
     Enable = 0b001,
     RxEnable = 0b010,
     TxEnable = 0b100,
@@ -157,9 +183,11 @@ enum class Mask {
     Standby = Enable,
     Receive = Enable | RxEnable,
     Transmit = Enable | TxEnable,
+    Rx_calibration = Enable | RxEnable,  // sets the same 3 x logic pins to the Receive operating mode.
+    Tx_calibration = Enable | TxEnable,  // sets the same 3 x logic pins to the Transmit operating mode.
 };
 
-Mask mode_mask(const Mode mode) {
+Mask mode_mask(const Mode mode) {  // based on enum Mode cases, we set up the correct  3 logic PINS .
     switch (mode) {
         case Mode::Standby:
             return Mask::Standby;
@@ -167,12 +195,16 @@ Mask mode_mask(const Mode mode) {
             return Mask::Receive;
         case Mode::Transmit:
             return Mask::Transmit;
+        case Mode::Rx_Calibration:        // Let's add those two CAL logic pin settings- Rx and Tx calibration modes.
+            return Mask::Rx_calibration;  // same logic pins as Receive mode = Enable | RxEnable, (the difference is in Reg add 16 D1:DO)
+        case Mode::Tx_Calibration:        // Let's add this CAL Tx calibration mode = Transmit.
+            return Mask::Tx_calibration;  // same logic pins as Transmit = Enable | TxEnable,(the difference is in Reg add 16 D1:DO)
         default:
             return Mask::Shutdown;
     }
 }
 
-void MAX2837::set_mode(const Mode mode) {
+void MAX2837::set_mode(const Mode mode) {  // We set up the 3 Logic Pins ENABLE, RXENABLE, TXENABLE accordingly to the max2837 mode case,  that we want to set up .
     Mask mask = mode_mask(mode);
     gpio_max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
     gpio_max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));

@@ -1,11 +1,12 @@
 extern "C" {
-#include "usb_serial_io.h"
+#include "usb_serial_device_to_host.h"
 #include "usb_serial_cdc.h"
 }
 
 #include "usb_serial_shell.hpp"
 #include "usb_serial.hpp"
 #include "portapack.hpp"
+#include "usb_serial_host_to_device.hpp"
 
 #include <libopencm3/cm3/common.h>
 #include <libopencm3/lpc43xx/usb.h>
@@ -24,6 +25,7 @@ void USBSerial::initialize() {
 
     init_serial_usb_driver(&SUSBD1);
     shellInit();
+    init_host_to_device();
 }
 
 void USBSerial::dispatch() {
@@ -32,10 +34,14 @@ void USBSerial::dispatch() {
 
     if (shell_created == false) {
         shell_created = true;
-        create_shell();
+        create_shell(_eventDispatcher);
     }
 
-    bulk_out_receive();
+    schedule_host_to_device_transfer();
+}
+
+void USBSerial::dispatch_transfer() {
+    complete_host_to_device_transfer();
 }
 
 void USBSerial::on_channel_opened() {

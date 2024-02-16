@@ -27,7 +27,7 @@
 
 using namespace portapack;
 
-namespace ui {
+namespace ui::external_app::keyfob {
 
 uint8_t KeyfobView::subaru_get_checksum() {
     uint8_t checksum = 0;
@@ -239,4 +239,4 @@ KeyfobView::KeyfobView(
     };
 }
 
-} /* namespace ui */
+} /* namespace ui::external_app::keyfob */

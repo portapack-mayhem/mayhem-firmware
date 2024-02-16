@@ -37,4 +37,15 @@ uint32_t JTAG::shift(const size_t count, uint32_t value) {
     return value;
 }
 
+uint32_t JTAG::shift_header(const size_t count, uint32_t value) {
+    for (size_t i = 0; i < count; i++) {
+        const auto tdo = target.clock(
+            0,
+            value & 1);
+        value >>= 1;
+        value |= tdo << (count - 1);
+    }
+    return value;
+}
+
 } /* namespace jtag */

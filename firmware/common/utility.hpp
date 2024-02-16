@@ -111,7 +111,7 @@ inline uint32_t ms_duration(
     if (sample_rate == 0 || bytes_per_sample == 0)
         return 0;
 
-    return buffer_size / bytes_per_sample / sample_rate * 1000;
+    return buffer_size * 1000 / (bytes_per_sample * sample_rate);
 }
 
 int fast_int_magnitude(int y, int x);
@@ -216,5 +216,7 @@ struct range_t {
 };
 
 std::string join(char c, std::initializer_list<std::string_view> strings);
+
+uint32_t simple_checksum(uint32_t buffer_address, uint32_t length);
 
 #endif /*__UTILITY_H__*/

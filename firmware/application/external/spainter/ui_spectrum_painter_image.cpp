@@ -29,7 +29,7 @@
 #include "file.hpp"
 #include "portapack_persistent_memory.hpp"
 
-namespace ui {
+namespace ui::external_app::spainter {
 
 SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
     hidden(true);
@@ -254,4 +254,4 @@ void SpectrumInputImageView::paint(Painter& painter) {
     }
 }
 
-}  // namespace ui
+}  // namespace ui::external_app::spainter

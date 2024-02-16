@@ -41,6 +41,15 @@
  * guardrails on setting properties. */
 namespace portapack {
 
+enum class init_status_t {
+    INIT_SUCCESS,
+    INIT_NO_PORTAPACK,
+    INIT_PORTAPACK_CPLD_FAILED,
+    INIT_HACKRF_CPLD_FAILED,
+};
+
+extern const char* init_error;
+
 extern portapack::IO io;
 
 extern lcd::ILI9341 display;
@@ -65,8 +74,10 @@ extern TemperatureLogger temperature_logger;
 void set_antenna_bias(const bool v);
 bool get_antenna_bias();
 
-bool init();
+init_status_t init();
 void shutdown(const bool leave_screen_on = false);
+
+void setEventDispatcherToUSBSerial(EventDispatcher* evt);
 
 Backlight* backlight();
 

@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -38,13 +39,17 @@ namespace ui {
 
 GeoPos::GeoPos(
     const Point pos,
-    const alt_unit altitude_unit)
-    : altitude_unit_(altitude_unit) {
+    const alt_unit altitude_unit,
+    const spd_unit speed_unit)
+    : altitude_unit_(altitude_unit), speed_unit_(speed_unit) {
     set_parent_rect({pos, {30 * 8, 3 * 16}});
 
     add_children({&labels_position,
+                  &label_spd_position,
                   &field_altitude,
+                  &field_speed,
                   &text_alt_unit,
+                  &text_speed_unit,
                   &field_lat_degrees,
                   &field_lat_minutes,
                   &field_lat_seconds,
@@ -56,10 +61,12 @@ GeoPos::GeoPos(
 
     // Defaults
     set_altitude(0);
+    set_speed(0);
     set_lat(0);
     set_lon(0);
 
     const auto changed_fn = [this](int32_t) {
+        // Convert degrees/minutes/seconds fields to decimal (floating point) lat/lon degree
         float lat_value = lat();
         float lon_value = lon();
 
@@ -67,10 +74,11 @@ GeoPos::GeoPos(
         text_lon_decimal.set(to_string_decimal(lon_value, 5));
 
         if (on_change && report_change)
-            on_change(altitude(), lat_value, lon_value);
+            on_change(altitude(), lat_value, lon_value, speed());
     };
 
     field_altitude.on_change = changed_fn;
+    field_speed.on_change = changed_fn;
     field_lat_degrees.on_change = changed_fn;
     field_lat_minutes.on_change = changed_fn;
     field_lat_seconds.on_change = changed_fn;
@@ -78,12 +86,41 @@ GeoPos::GeoPos(
     field_lon_minutes.on_change = changed_fn;
     field_lon_seconds.on_change = changed_fn;
 
+    const auto wrapped_lat_seconds = [this](int32_t v) {
+        field_lat_minutes.on_encoder(v);
+    };
+
+    const auto wrapped_lat_minutes = [this](int32_t v) {
+        field_lat_degrees.on_encoder((field_lat_degrees.value() >= 0) ? v : -v);
+    };
+
+    const auto wrapped_lon_seconds = [this](int32_t v) {
+        field_lon_minutes.on_encoder(v);
+    };
+
+    const auto wrapped_lon_minutes = [this](int32_t v) {
+        field_lon_degrees.on_encoder((field_lon_degrees.value() >= 0) ? v : -v);
+    };
+
+    field_lat_seconds.on_wrap = wrapped_lat_seconds;
+    field_lat_minutes.on_wrap = wrapped_lat_minutes;
+    field_lon_seconds.on_wrap = wrapped_lon_seconds;
+    field_lon_minutes.on_wrap = wrapped_lon_minutes;
+
     text_alt_unit.set(altitude_unit_ ? "m" : "ft");
+    if (speed_unit_ == KMPH) text_speed_unit.set("kmph");
+    if (speed_unit_ == MPH) text_speed_unit.set("mph");
+    if (speed_unit_ == HIDDEN) {
+        text_speed_unit.hidden(true);
+        label_spd_position.hidden(true);
+        field_speed.hidden(true);
+    }
 }
 
 void GeoPos::set_read_only(bool v) {
     // only setting altitude to read-only (allow manual panning via lat/lon fields)
     field_altitude.set_focusable(!v);
+    field_speed.set_focusable(!v);
 }
 
 // Stupid hack to avoid an event loop
@@ -98,13 +135,17 @@ void GeoPos::focus() {
         field_lat_degrees.focus();
 }
 
-void GeoPos::hide_altitude() {
+void GeoPos::hide_altandspeed() {
     // Color altitude grey to indicate it's not updated in manual panning mode
     field_altitude.set_style(&Styles::grey);
+    field_speed.set_style(&Styles::grey);
 }
 
 void GeoPos::set_altitude(int32_t altitude) {
     field_altitude.set_value(altitude);
+}
+void GeoPos::set_speed(int32_t speed) {
+    field_speed.set_value(speed);
 }
 
 void GeoPos::set_lat(float lat) {
@@ -139,120 +180,235 @@ int32_t GeoPos::altitude() {
     return field_altitude.value();
 };
 
+int32_t GeoPos::speed() {
+    return field_speed.value();
+};
+
 GeoMap::GeoMap(
     Rect parent_rect)
     : Widget{parent_rect}, markerListLen(0) {
 }
 
 bool GeoMap::on_encoder(const EncoderEvent delta) {
-    if ((delta > 0) && (map_zoom < 5)) {
-        map_zoom++;
-
-        // Ensure that MOD(240,map_zoom)==0 for the map_zoom_line() function
-        if (geomap_rect_width % map_zoom != 0) {
-            map_zoom--;
+    // Valid map_zoom values are -2 to -MAX_MAP_ZOOM_OUT, and +1 to +MAX_MAP_ZOOM_IN (values of 0 and -1 are not permitted)
+    if (delta > 0) {
+        if (map_zoom < MAX_MAP_ZOOM_IN) {
+            if (map_zoom == -2) {
+                map_zoom = 1;
+            } else {
+                // zoom in faster after exceeding the map resolution limit
+                map_zoom += (map_zoom >= MAP_ZOOM_RESOLUTION_LIMIT) ? map_zoom : 1;
+            }
         }
-    } else if ((delta < 0) && (map_zoom > 1)) {
-        map_zoom--;
+    } else if (delta < 0) {
+        if (map_zoom > -MAX_MAP_ZOOM_OUT) {
+            if (map_zoom == 1) {
+                map_zoom = -2;
+            } else {
+                if (map_zoom > MAP_ZOOM_RESOLUTION_LIMIT)
+                    map_zoom /= 2;
+                else
+                    map_zoom--;
+            }
+        }
     } else {
         return false;
     }
 
+    map_visible = map_opened && (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT);
+    zoom_pixel_offset = (map_visible && (map_zoom > 1)) ? (float)map_zoom / 2 : 0.0f;
+
     // Trigger map redraw
-    markerListUpdated = true;
+    redraw_map = true;
     set_dirty();
     return true;
 }
 
-void GeoMap::map_zoom_line(ui::Color* buffer) {
-    if (map_zoom <= 1) {
-        return;
-    }
+void GeoMap::map_read_line(ui::Color* buffer, uint16_t pixels) {
+    if (map_zoom == 1) {
+        map_file.read(buffer, pixels << 1);
+    } else if (map_zoom > 1) {
+        map_file.read(buffer, (pixels / map_zoom) << 1);
 
-    // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
-    // For 240 width, than means no check is needed for map_zoom values up to 6
-    for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
-        for (int j = 0; j < map_zoom; j++) {
-            buffer[(i * map_zoom) + j] = buffer[i];
+        // Zoom in: Expand each pixel to "map_zoom" number of pixels.
+        // Future TODO:  Add dithering to smooth out the pixelation.
+        // As long as MOD(width,map_zoom)==0 then we don't need to check buffer overflow case when stretching last pixel;
+        // For 240 width, than means no check is needed for map_zoom values up to 6.
+        // (Rectangle height must also divide evenly into map_zoom or we get black lines at end of screen)
+        // Note that zooming in results in a map offset of (1/map_zoom) pixels to the right & downward directions (see zoom_pixel_offset).
+        for (int i = (geomap_rect_width / map_zoom) - 1; i >= 0; i--) {
+            for (int j = 0; j < map_zoom; j++) {
+                buffer[(i * map_zoom) + j] = buffer[i];
+            }
         }
+    } else {
+        ui::Color* zoom_out_buffer = new ui::Color[(pixels * (-map_zoom))];
+        map_file.read(zoom_out_buffer, (pixels * (-map_zoom)) << 1);
+
+        // Zoom out:  Collapse each group of "-map_zoom" pixels into one pixel.
+        // Future TODO: Average each group of pixels (in both X & Y directions if possible).
+        for (int i = 0; i < geomap_rect_width; i++) {
+            buffer[i] = zoom_out_buffer[i * (-map_zoom)];
+        }
+        delete zoom_out_buffer;
     }
 }
 
 void GeoMap::draw_markers(Painter& painter) {
+    for (int i = 0; i < markerListLen; ++i) {
+        draw_marker_item(painter, markerList[i], Color::blue(), Color::blue(), Color::magenta());
+    }
+}
+
+void GeoMap::draw_marker_item(Painter& painter, GeoMarker& item, const Color color, const Color fontColor, const Color backColor) {
+    const auto r = screen_rect();
+    const ui::Point itemPoint = item_rect_pixel(item);
+
+    if ((itemPoint.x() >= 0) && (itemPoint.x() < r.width()) &&
+        (itemPoint.y() > 10) && (itemPoint.y() < r.height()))  // Dont draw within symbol size of top
+    {
+        draw_marker(painter, {itemPoint.x(), itemPoint.y() + r.top()}, item.angle, item.tag, color, fontColor, backColor);
+    }
+}
+
+// Calculate screen position of item, adjusted for zoom factor.
+ui::Point GeoMap::item_rect_pixel(GeoMarker& item) {
+    const auto r = screen_rect();
+    const auto geomap_rect_half_width = r.width() / 2;
+    const auto geomap_rect_half_height = r.height() / 2;
+
+    GeoPoint mapPoint = lat_lon_to_map_pixel(item.lat, item.lon);
+    float x = mapPoint.x - x_pos;
+    float y = mapPoint.y - y_pos;
+
+    if (map_zoom > 1) {
+        x = x * map_zoom + zoom_pixel_offset;
+        y = y * map_zoom + zoom_pixel_offset;
+    } else if (map_zoom < 0) {
+        x = x / (-map_zoom);
+        y = y / (-map_zoom);
+    }
+
+    x += geomap_rect_half_width;
+    y += geomap_rect_half_height;
+
+    return {(int16_t)x, (int16_t)y};
+}
+
+// Converts latitude/longitude to pixel coordinates in map file.
+// (Note that when map_zoom==1, one pixel in map file corresponds to 1 pixel on screen)
+GeoPoint GeoMap::lat_lon_to_map_pixel(float lat, float lon) {
+    // Using WGS 84/Pseudo-Mercator projection
+    float x = (map_width * (lon + 180) / 360);
+
+    // Latitude calculation based on https://stackoverflow.com/a/10401734/2278659
+    double lat_rad = sin(lat * pi / 180);
+    float y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset));
+
+    return {x, y};
+}
+
+// Draw grid in place of map (when zoom-in level is too high).
+void GeoMap::draw_map_grid() {
     const auto r = screen_rect();
 
-    for (int i = 0; i < markerListLen; ++i) {
-        GeoMarker& item = markerList[i];
-        double lat_rad = sin(item.lat * pi / 180);
-        int x = (map_width * (item.lon + 180) / 360) - x_pos;
-        int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
+    // Grid spacing is just based on zoom at the moment, and centered on screen.
+    // TODO: Maybe align with latitude/longitude seconds instead?
+    int grid_spacing = map_zoom * 2;
+    int x = (r.width() / 2) % grid_spacing;
+    int y = (r.height() / 2) % grid_spacing;
 
-        if (map_zoom != 1) {
-            x = ((x - (r.width() / 2)) * map_zoom) + (r.width() / 2);
-            y = ((y - (r.height() / 2)) * map_zoom) + (r.height() / 2);
-        }
+    if (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT)
+        return;
 
-        if ((x >= 0) && (x < r.width()) &&
-            (y > 10) && (y < r.height()))  // Dont draw within symbol size of top
-        {
-            ui::Point itemPoint(x, y + r.top());
-            if (y >= 32) {  // Dont draw text if it would overlap top
-                // Text and symbol
-                draw_marker(painter, itemPoint, item.angle, item.tag, Color::blue(), Color::blue(), Color::magenta());
-            } else {
-                // Only symbol
-                draw_bearing(itemPoint, item.angle, 10, Color::blue());
-            }
-        }
+    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
+
+    for (uint16_t line = y; line < r.height(); line += grid_spacing) {
+        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Color::darker_grey());
+    }
+    for (uint16_t column = x; column < r.width(); column += grid_spacing) {
+        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Color::darker_grey());
     }
 }
 
 void GeoMap::paint(Painter& painter) {
-    uint16_t line, j;
-    uint32_t zoom_seek_x, zoom_seek_y;
-    std::array<ui::Color, 240> map_line_buffer;
     const auto r = screen_rect();
+    std::array<ui::Color, geomap_rect_width> map_line_buffer;
+    int16_t zoom_seek_x, zoom_seek_y;
 
-    // Ony redraw map if it moved by at least 1 pixel
-    // or the markers list was updated
-    int x_diff = abs(x_pos - prev_x_pos);
-    int y_diff = abs(y_pos - prev_y_pos);
-    if (markerListUpdated || (x_diff >= map_zoom * 3) || (y_diff >= map_zoom * 3)) {
-        if (map_zoom == 1) {
-            zoom_seek_x = zoom_seek_y = 0;
-        } else {
-            zoom_seek_x = (r.width() - (r.width() / map_zoom)) / 2;
-            zoom_seek_y = (r.height() - (r.height() / map_zoom)) / 2;
-        }
+    // Ony redraw map if it moved by at least 1 pixel or the markers list was updated
+    if (map_zoom <= 1) {
+        // Zooming out, or no zoom
+        const int min_diff = abs(map_zoom);
+        if ((int)abs(x_pos - prev_x_pos) >= min_diff)
+            redraw_map = true;
+        else if ((int)abs(y_pos - prev_y_pos) >= min_diff)
+            redraw_map = true;
+    } else {
+        // Zooming in; magnify position differences (utilizing zoom_pixel_offset)
+        if ((int)(abs(x_pos - prev_x_pos) * map_zoom) >= 1)
+            redraw_map = true;
+        else if ((int)(abs(y_pos - prev_y_pos) * map_zoom) >= 1)
+            redraw_map = true;
+    }
 
-        for (line = 0; line < (r.height() / map_zoom); line++) {
-            map_file.seek(4 + ((x_pos + zoom_seek_x + (map_width * (y_pos + line + zoom_seek_y))) << 1));
-            map_file.read(map_line_buffer.data(), (r.width() / map_zoom) << 1);
-            map_zoom_line(map_line_buffer.data());
-            for (j = 0; j < map_zoom; j++) {
-                display.draw_pixels({0, r.top() + (line * map_zoom) + j, r.width(), 1}, map_line_buffer);
-            }
-        }
-        prev_x_pos = x_pos;
+    if (redraw_map) {
+        prev_x_pos = x_pos;  // Note x_pos/y_pos pixel position in map file now correspond to screen rect CENTER pixel
         prev_y_pos = y_pos;
+        redraw_map = false;
+
+        // Adjust starting corner position of map per zoom setting;
+        // When zooming in the map should technically by shifted left & up by another map_zoom/2 pixels but
+        // the map_read_line() function doesn't handle that yet so we're adjusting markers instead (see zoom_pixel_offset).
+        if (map_zoom > 1) {
+            zoom_seek_x = x_pos - (float)r.width() / (2 * map_zoom);
+            zoom_seek_y = y_pos - (float)r.height() / (2 * map_zoom);
+        } else {
+            zoom_seek_x = x_pos - (r.width() * abs(map_zoom)) / 2;
+            zoom_seek_y = y_pos - (r.height() * abs(map_zoom)) / 2;
+        }
+
+        if (map_visible) {
+            // Read from map file and display to zoomed scale
+            int duplicate_lines = (map_zoom < 0) ? 1 : map_zoom;
+            for (uint16_t line = 0; line < (r.height() / duplicate_lines); line++) {
+                uint16_t seek_line = zoom_seek_y + ((map_zoom >= 0) ? line : line * (-map_zoom));
+                map_file.seek(4 + ((zoom_seek_x + (map_width * seek_line)) << 1));
+                map_read_line(map_line_buffer.data(), r.width());
+
+                for (uint16_t j = 0; j < duplicate_lines; j++) {
+                    display.draw_pixels({0, r.top() + (line * duplicate_lines) + j, r.width(), 1}, map_line_buffer);
+                }
+            }
+        } else {
+            // No map data or excessive zoom; just draw a grid
+            draw_map_grid();
+        }
 
         // Draw crosshairs in center in manual panning mode
         if (manual_panning_) {
-            display.fill_rectangle({r.center() - Point(16, 1), {32, 2}}, Color::red());
-            display.fill_rectangle({r.center() - Point(1, 16), {2, 32}}, Color::red());
+            display.fill_rectangle({r.center() - Point(16, 1) + Point(zoom_pixel_offset, zoom_pixel_offset), {32, 2}}, Color::red());
+            display.fill_rectangle({r.center() - Point(1, 16) + Point(zoom_pixel_offset, zoom_pixel_offset), {2, 32}}, Color::red());
         }
 
         // Draw the other markers
         draw_markers(painter);
         draw_scale(painter);
-        markerListUpdated = false;
+        draw_mypos(painter);
         set_clean();
     }
 
     // Draw the marker in the center
-    if (!manual_panning_) {
-        draw_marker(painter, r.center(), angle_, tag_, Color::red(), Color::white(), Color::black());
+    if (!manual_panning_ && !hide_center_marker_) {
+        draw_marker(painter, r.center() + Point(zoom_pixel_offset, zoom_pixel_offset), angle_, tag_, Color::red(), Color::white(), Color::black());
     }
+}
+
+bool GeoMap::on_keyboard(KeyboardEvent key) {
+    if (key == '+' || key == ' ') return on_encoder(1);
+    if (key == '-') return on_encoder(-1);
+
+    return false;
 }
 
 bool GeoMap::on_touch(const TouchEvent event) {
@@ -268,35 +424,41 @@ bool GeoMap::on_touch(const TouchEvent event) {
 }
 
 void GeoMap::move(const float lon, const float lat) {
+    const auto r = screen_rect();
+
     lon_ = lon;
     lat_ = lat;
 
-    // Using WGS 84/Pseudo-Mercator projection
-    x_pos = map_width * (lon_ + 180) / 360 - (geomap_rect_width / 2);
-
-    // Latitude calculation based on https://stackoverflow.com/a/10401734/2278659
-    double lat_rad = sin(lat * pi / 180);
-    y_pos = map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset) - 128;  // Offset added for the GUI
+    // Calculate x_pos/y_pos in map file corresponding to CENTER pixel of screen rect
+    // (Note there is a 1:1 correspondence between map file pixels and screen pixels when map_zoom=1)
+    GeoPoint mapPoint = lat_lon_to_map_pixel(lat_, lon_);
+    x_pos = mapPoint.x;
+    y_pos = mapPoint.y;
 
     // Cap position
-    if (x_pos > (map_width - geomap_rect_width))
-        x_pos = map_width - geomap_rect_width;
-    if (y_pos > (map_height + geomap_rect_height))
-        y_pos = map_height - geomap_rect_height;
+    if (x_pos > (map_width - r.width() / 2))
+        x_pos = map_width - r.width() / 2;
+    if (y_pos > (map_height + r.height() / 2))
+        y_pos = map_height - r.height() / 2;
 
     // Scale calculation
     float km_per_deg_lon = cos(lat * pi / 180) * 111.321;  // 111.321 km/deg longitude at equator, and 0 km at poles
-    pixels_per_km = (geomap_rect_width / 2) / km_per_deg_lon;
+    pixels_per_km = (r.width() / 2) / km_per_deg_lon;
 }
 
 bool GeoMap::init() {
     auto result = map_file.open("ADSB/world_map.bin");
-    if (result.is_valid())
-        return false;
+    map_opened = !result.is_valid();
 
-    map_file.read(&map_width, 2);
-    map_file.read(&map_height, 2);
+    if (map_opened) {
+        map_file.read(&map_width, 2);
+        map_file.read(&map_height, 2);
+    } else {
+        map_width = 32768;
+        map_height = 32768;
+    }
 
+    map_visible = map_opened;
     map_center_x = map_width >> 1;
     map_center_y = map_height >> 1;
 
@@ -307,7 +469,7 @@ bool GeoMap::init() {
     map_world_lon = map_width / (2 * pi);
     map_offset = (map_world_lon / 2 * log((1 + map_bottom) / (1 - map_bottom)));
 
-    return true;
+    return map_opened;
 }
 
 void GeoMap::set_mode(GeoMapMode mode) {
@@ -323,21 +485,35 @@ bool GeoMap::manual_panning() {
 }
 
 void GeoMap::draw_scale(Painter& painter) {
-    uint16_t km = 100;
-    uint16_t scale_width = km * pixels_per_km * map_zoom;
+    const auto r = screen_rect();
+    uint32_t m = 800000;
+    uint32_t scale_width = (map_zoom > 0) ? m * map_zoom * pixels_per_km : m * pixels_per_km / (-map_zoom);
+    ui::Color scale_color = (map_visible) ? Color::black() : Color::white();
+    std::string km_string;
 
-    while (scale_width > screen_width / 2) {
+    while (scale_width > (uint32_t)r.width() * (1000 / 2)) {
         scale_width /= 2;
-        km /= 2;
+        m /= 2;
+    }
+    scale_width /= 1000;
+    if (m < 1000) {
+        km_string = to_string_dec_uint(m) + "m";
+    } else {
+        m += 50;  // (add rounding factor for div by 100 below)
+        uint32_t km = m / 1000;
+        m -= km * 1000;
+        if (m == 0) {
+            km_string = to_string_dec_uint(km) + " km";
+        } else {
+            km_string = to_string_dec_uint(km) + "." + to_string_dec_uint(m / 100, 1) + "km";
+        }
     }
 
-    std::string km_string = to_string_dec_uint(km) + " km";
+    display.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 4}, {(uint16_t)scale_width, 2}}, scale_color);
+    display.fill_rectangle({{r.right() - 5, r.bottom() - 8}, {2, 6}}, scale_color);
+    display.fill_rectangle({{r.right() - 5 - (uint16_t)scale_width, r.bottom() - 8}, {2, 6}}, scale_color);
 
-    display.fill_rectangle({{screen_width - 5 - scale_width, screen_height - 4}, {scale_width, 2}}, Color::black());
-    display.fill_rectangle({{screen_width - 5, screen_height - 8}, {2, 6}}, Color::black());
-    display.fill_rectangle({{screen_width - 5 - scale_width, screen_height - 8}, {2, 6}}, Color::black());
-
-    painter.draw_string({(uint16_t)(screen_width - 25 - scale_width - km_string.length() * 5 / 2), screen_height - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
+    painter.draw_string({(uint16_t)(r.right() - 25 - scale_width - km_string.length() * 5 / 2), r.bottom() - 10}, ui::font::fixed_5x8, Color::black(), Color::white(), km_string);
 }
 
 void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t size, const Color color) {
@@ -354,9 +530,13 @@ void GeoMap::draw_bearing(const Point origin, const uint16_t angle, uint32_t siz
 
         size--;
     }
+
+    display.draw_pixel(origin, color);  // 1 pixel indicating center pivot point of bearing symbol
 }
 
 void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint16_t itemAngle, const std::string itemTag, const Color color, const Color fontColor, const Color backColor) {
+    const auto r = screen_rect();
+
     int tagOffset = 10;
     if (mode_ == PROMPT) {
         // Cross
@@ -374,10 +554,15 @@ void GeoMap::draw_marker(Painter& painter, const ui::Point itemPoint, const uint
         tagOffset = 8;
     }
     // center tag above point
-    if (itemTag.find_first_not_of(' ') != itemTag.npos) {  // only draw tag if we have something other than spaces
+    if ((itemPoint.y() - r.top() >= 32) && (itemTag.find_first_not_of(' ') != itemTag.npos)) {  // only draw tag if doesn't overlap top & not just spaces
         painter.draw_string(itemPoint - Point(((int)itemTag.length() * 8 / 2), 14 + tagOffset),
                             style().font, fontColor, backColor, itemTag);
     }
+}
+
+void GeoMap::draw_mypos(Painter& painter) {
+    if ((my_pos.lat < INVALID_LAT_LON) && (my_pos.lon < INVALID_LAT_LON))
+        draw_marker_item(painter, my_pos, Color::yellow());
 }
 
 void GeoMap::clear_markers() {
@@ -385,20 +570,22 @@ void GeoMap::clear_markers() {
 }
 
 MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
+    const auto r = screen_rect();
     MapMarkerStored ret;
 
     // Check if it could be on screen
-    // Only checking one direction to reduce CPU
-    double lat_rad = sin(marker.lat * pi / 180);
-    int x = (map_width * (marker.lon + 180) / 360) - x_pos;
-    int y = (map_height - ((map_world_lon / 2 * log((1 + lat_rad) / (1 - lat_rad))) - map_offset)) - y_pos;  // Offset added for the GUI
-    if (false == ((x >= 0) && (x < geomap_rect_width) && (y > 10) && (y < geomap_rect_height)))              // Dont draw within symbol size of top
-    {
+    // (Shows more distant planes when zoomed out)
+    GeoPoint mapPoint = lat_lon_to_map_pixel(marker.lat, marker.lon);
+    int x_dist = abs((int)mapPoint.x - (int)x_pos);
+    int y_dist = abs((int)mapPoint.y - (int)y_pos);
+    int zoom_out = (map_zoom < 0) ? -map_zoom : 1;
+
+    if ((x_dist >= (zoom_out * r.width() / 2)) || (y_dist >= (zoom_out * r.height() / 2))) {
         ret = MARKER_NOT_STORED;
     } else if (markerListLen < NumMarkerListElements) {
         markerList[markerListLen] = marker;
         markerListLen++;
-        markerListUpdated = true;
+        redraw_map = true;
         ret = MARKER_STORED;
     } else {
         ret = MARKER_LIST_FULL;
@@ -406,14 +593,37 @@ MapMarkerStored GeoMap::store_marker(GeoMarker& marker) {
     return ret;
 }
 
+void GeoMap::update_my_position(float lat, float lon, int32_t altitude) {
+    my_pos.lat = lat;
+    my_pos.lon = lon;
+    my_altitude = altitude;
+    redraw_map = true;
+    set_dirty();
+}
+
+void GeoMap::update_my_orientation(uint16_t angle, bool refresh) {
+    my_pos.angle = angle;
+    if (refresh) {
+        redraw_map = true;
+        set_dirty();
+    }
+}
+
 void GeoMapView::focus() {
     geopos.focus();
 
-    if (!map_opened)
+    if (!geomap.map_file_opened())
         nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT);
 }
 
-void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude) {
+void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {
+    geomap.update_my_position(lat, lon, altitude);
+}
+void GeoMapView::update_my_orientation(uint16_t angle, bool refresh) {
+    geomap.update_my_orientation(angle, refresh);
+}
+
+void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t altitude, int32_t speed) {
     if (geomap.manual_panning()) {
         geomap.set_dirty();
         return;
@@ -422,12 +632,14 @@ void GeoMapView::update_position(float lat, float lon, uint16_t angle, int32_t a
     lat_ = lat;
     lon_ = lon;
     altitude_ = altitude;
+    speed_ = speed;
 
     // Stupid hack to avoid an event loop
     geopos.set_report_change(false);
     geopos.set_lat(lat_);
     geopos.set_lon(lon_);
     geopos.set_altitude(altitude_);
+    geopos.set_speed(speed_);
     geopos.set_report_change(true);
 
     geomap.set_angle(angle);
@@ -446,11 +658,12 @@ void GeoMapView::setup() {
     geopos.set_lat(lat_);
     geopos.set_lon(lon_);
 
-    geopos.on_change = [this](int32_t altitude, float lat, float lon) {
+    geopos.on_change = [this](int32_t altitude, float lat, float lon, int32_t speed) {
         altitude_ = altitude;
         lat_ = lat;
         lon_ = lon;
-        geopos.hide_altitude();
+        speed_ = speed;
+        geopos.hide_altandspeed();
         geomap.set_manual_panning(true);
         geomap.move(lon_, lat_);
         geomap.set_dirty();
@@ -482,6 +695,7 @@ GeoMapView::GeoMapView(
     const std::string& tag,
     int32_t altitude,
     GeoPos::alt_unit altitude_unit,
+    GeoPos::spd_unit speed_unit,
     float lat,
     float lon,
     uint16_t angle,
@@ -489,6 +703,7 @@ GeoMapView::GeoMapView(
     : nav_(nav),
       altitude_(altitude),
       altitude_unit_(altitude_unit),
+      speed_unit_(speed_unit),
       lat_(lat),
       lon_(lon),
       angle_(angle),
@@ -497,8 +712,7 @@ GeoMapView::GeoMapView(
 
     add_child(&geopos);
 
-    map_opened = geomap.init();
-    if (!map_opened) return;
+    geomap.init();
 
     setup();
 
@@ -516,20 +730,21 @@ GeoMapView::GeoMapView(
     NavigationView& nav,
     int32_t altitude,
     GeoPos::alt_unit altitude_unit,
+    GeoPos::spd_unit speed_unit,
     float lat,
     float lon,
-    const std::function<void(int32_t, float, float)> on_done)
+    const std::function<void(int32_t, float, float, int32_t)> on_done)
     : nav_(nav),
       altitude_(altitude),
       altitude_unit_(altitude_unit),
+      speed_unit_(speed_unit),
       lat_(lat),
       lon_(lon) {
     mode_ = PROMPT;
 
     add_child(&geopos);
 
-    map_opened = geomap.init();
-    if (!map_opened) return;
+    geomap.init();
 
     setup();
     add_child(&button_ok);
@@ -540,7 +755,7 @@ GeoMapView::GeoMapView(
 
     button_ok.on_select = [this, on_done, &nav](Button&) {
         if (on_done)
-            on_done(altitude_, lat_, lon_);
+            on_done(altitude_, lat_, lon_, speed_);
         nav.pop();
     };
 }

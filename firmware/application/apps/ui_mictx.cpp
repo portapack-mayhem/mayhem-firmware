@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -31,6 +32,7 @@
 #include "tonesets.hpp"
 #include "ui_tone_key.hpp"
 #include "wm8731.hpp"
+#include "radio.hpp"
 
 #include <cstring>
 
@@ -105,6 +107,7 @@ void MicTXView::configure_baseband() {
         transmitting ? transmitter_model.channel_bandwidth() : 0,
         mic_gain_x10 / 10.0,
         shift_bits(),  // to be used in dsp_modulate
+        8,             // bits per sample
         TONES_F2D(tone_key_frequency(tone_key_index), sampling_rate),
         (mic_mod_index == MIC_MOD_AM),
         (mic_mod_index == MIC_MOD_DSB),
@@ -335,6 +338,7 @@ MicTXView::MicTXView(
                   &field_rxlna,
                   &field_rxvga,
                   &field_rxamp,
+                  hackrf_r9 ? &field_tx_iq_phase_cal_2839 : &field_tx_iq_phase_cal_2837,
                   &tx_button,
                   &tx_icon});
 
@@ -366,6 +370,21 @@ MicTXView::MicTXView(
     field_rxamp.on_change = [this](int32_t v) {
         receiver_model.set_rf_amp(v);
     };
+
+    radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
+    if (hackrf_r9) {  // MAX2839 has 6 bits IQ CAL phasse adjustment.
+        field_tx_iq_phase_cal_2839.set_value(iq_phase_calibration_value);
+        field_tx_iq_phase_cal_2839.on_change = [this](int32_t v) {
+            iq_phase_calibration_value = v;
+            radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
+        };
+    } else {  // MAX2837 has 5 bits IQ CAL phase adjustment.
+        field_tx_iq_phase_cal_2837.set_value(iq_phase_calibration_value);
+        field_tx_iq_phase_cal_2837.on_change = [this](int32_t v) {
+            iq_phase_calibration_value = v;
+            radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
+        };
+    }
 
     options_gain.on_change = [this](size_t, int32_t v) {
         mic_gain_x10 = v;

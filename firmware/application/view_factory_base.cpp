@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Bernd Herzog
+ * Copyright 2024 Tamas Eisenberger <e.tamas@iwstudio.hu>
  *
  * This file is part of PortaPack.
  *
@@ -19,28 +19,10 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma once
+#include "view_factory_base.hpp"
 
-#include "ch.h"
-#include "hal.h"
+namespace ui {
 
-struct SerialUSBDriverVMT {
-    _base_asynchronous_channel_methods
-};
+ViewFactoryBase::~ViewFactoryBase() {}
 
-struct SerialUSBDriver {
-    /** @brief Virtual Methods Table.*/
-    const struct SerialUSBDriverVMT* vmt;
-    InputQueue iqueue;               /* Output queue.*/
-    OutputQueue oqueue;              /* Input circular buffer.*/
-    uint8_t ib[SERIAL_BUFFERS_SIZE]; /* Output circular buffer.*/
-    uint8_t ob[SERIAL_BUFFERS_SIZE];
-};
-
-typedef struct SerialUSBDriver SerialUSBDriver;
-
-extern SerialUSBDriver SUSBD1;
-
-void init_serial_usb_driver(SerialUSBDriver* sdp);
-void bulk_out_receive(void);
-void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
+}  // namespace ui

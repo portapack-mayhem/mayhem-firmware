@@ -235,3 +235,10 @@ std::string join(char c, std::initializer_list<std::string_view> strings) {
 
     return result;
 }
+
+uint32_t simple_checksum(uint32_t buffer_address, uint32_t length) {
+    uint32_t checksum = 0;
+    for (uint32_t i = 0; i < length; i += 4)
+        checksum += *(uint32_t*)(buffer_address + i);
+    return checksum;
+}

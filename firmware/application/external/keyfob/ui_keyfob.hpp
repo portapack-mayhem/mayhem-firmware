@@ -29,7 +29,7 @@
 
 using namespace encoders;
 
-namespace ui {
+namespace ui::external_app::keyfob {
 
 class KeyfobView : public View {
    public:
@@ -126,4 +126,4 @@ class KeyfobView : public View {
         }};
 };
 
-} /* namespace ui */
+} /* namespace ui::external_app::keyfob */

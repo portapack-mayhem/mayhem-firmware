@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -91,7 +92,7 @@ class SoundBoardView : public View {
     void on_select_entry();
 
     Labels labels{
-        //{ { 0, 20 * 8 + 4 }, "Title:", Color::light_grey() },
+        {{24 * 8, 180}, "Vol:", Color::light_grey()},
         {{0, 180}, "Key:", Color::light_grey()}};
 
     Button button_next_page{
@@ -103,7 +104,7 @@ class SoundBoardView : public View {
         "<="};
 
     Text page_info{
-        {0, 30 * 8 - 4, 30 * 8, 16}};
+        {0, 29 * 8, 30 * 8, 16}};
 
     MenuView menu_view{
         {0, 0, 240, 175},
@@ -122,9 +123,15 @@ class SoundBoardView : public View {
         };*/
 
     OptionsField options_tone_key{
-        {32, 180},
+        {4 * 8, 180},
         18,
         {}};
+
+    AudioVolumeField field_volume{
+        {28 * 8, 180}};
+    Text text_volume_disabled{
+        {28 * 8, 180, 3 * 8, 16},
+        "--"};
 
     Checkbox check_loop{
         {0, 25 * 8 + 4},
@@ -136,9 +143,8 @@ class SoundBoardView : public View {
         6,
         "Random"};
 
-    // ProgressBar progressbar {
-    //	{ 0 * 8, 30 * 8 - 4, 30 * 8, 16 }
-    // };
+    ProgressBar progressbar{
+        {0 * 8, 31 * 8 + 2, 30 * 8, 4}};
 
     TransmitterView tx_view{
         16 * 16,

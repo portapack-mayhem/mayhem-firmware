@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -32,34 +33,34 @@
 #include <cstddef>
 #include <array>
 
-void AudioOutput::configure(
-    const bool do_proc) {
+void AudioOutput::configure(const bool do_proc) {
     do_processing = do_proc;
 }
 
-void AudioOutput::configure(
-    const iir_biquad_config_t& hpf_config,
-    const iir_biquad_config_t& deemph_config,
-    const float squelch_threshold) {
+void AudioOutput::configure(const iir_biquad_config_t& hpf_config, const iir_biquad_config_t& deemph_config, const float squelch_threshold) {
     hpf.configure(hpf_config);
     deemph.configure(deemph_config);
     squelch.set_threshold(squelch_threshold);
 }
 
-void AudioOutput::write(
-    const buffer_s16_t& audio) {
+void AudioOutput::write_unprocessed(const buffer_s16_t& audio) {
+    block_buffer_s16.feed(
+        audio,
+        [this](const buffer_s16_t& buffer) {
+            audio_present = true;
+            fill_audio_buffer(buffer, audio_present);
+        });
+}
+
+void AudioOutput::write(const buffer_s16_t& audio) {
     std::array<float, 32> audio_f;
     for (size_t i = 0; i < audio.count; i++) {
         audio_f[i] = audio.p[i] * ki;
     }
-    write(buffer_f32_t{
-        audio_f.data(),
-        audio.count,
-        audio.sampling_rate});
+    write(buffer_f32_t{audio_f.data(), audio.count, audio.sampling_rate});
 }
 
-void AudioOutput::write(
-    const buffer_f32_t& audio) {
+void AudioOutput::write(const buffer_f32_t& audio) {
     block_buffer.feed(
         audio,
         [this](const buffer_f32_t& buffer) {
@@ -67,8 +68,7 @@ void AudioOutput::write(
         });
 }
 
-void AudioOutput::on_block(
-    const buffer_f32_t& audio) {
+void AudioOutput::on_block(const buffer_f32_t& audio) {
     if (do_processing) {
         const auto audio_present_now = squelch.execute(audio);
 
@@ -93,6 +93,18 @@ bool AudioOutput::is_squelched() {
     return !audio_present;
 }
 
+void AudioOutput::fill_audio_buffer(const buffer_s16_t& audio, const bool send_to_fifo) {
+    auto audio_buffer = audio::dma::tx_empty_buffer();
+    for (size_t i = 0; i < audio_buffer.count; i++) {
+        audio_buffer.p[i].left = audio_buffer.p[i].right = audio.p[i];
+    }
+    if (stream && send_to_fifo) {
+        stream->write(audio.p, audio_buffer.count * sizeof(int16_t));
+    }
+
+    feed_audio_stats(audio);
+}
+
 void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_to_fifo) {
     std::array<int16_t, 32> audio_int;
 
@@ -108,6 +120,15 @@ void AudioOutput::fill_audio_buffer(const buffer_f32_t& audio, const bool send_t
     }
 
     feed_audio_stats(audio);
+}
+
+void AudioOutput::feed_audio_stats(const buffer_s16_t& audio) {
+    audio_stats.feed(
+        audio,
+        [](const AudioStatistics& statistics) {
+            const AudioStatisticsMessage audio_stats_message{statistics};
+            shared_memory.application_queue.push(audio_stats_message);
+        });
 }
 
 void AudioOutput::feed_audio_stats(const buffer_f32_t& audio) {

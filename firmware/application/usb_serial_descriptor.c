@@ -118,7 +118,7 @@ uint8_t usb_descriptor_configuration_full_speed[] = {
     USB_INT_IN_EP_ADDR,            // bEndpointAddress
     0x03,                          // bmAttributes: BULK
     USB_WORD(16),                  // wMaxPacketSize
-    0xFF,                          // bInterval: no NAK
+    0x20,                          // bInterval: no NAK
 
     9,                              // bLength
     USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
@@ -203,7 +203,7 @@ uint8_t usb_descriptor_configuration_high_speed[] = {
     USB_INT_IN_EP_ADDR,            // bEndpointAddress
     0x03,                          // bmAttributes: BULK
     USB_WORD(16),                  // wMaxPacketSize
-    0xFF,                          // bInterval: no NAK
+    0x20,                          // bInterval: no NAK
 
     9,                              // bLength
     USB_DESCRIPTOR_TYPE_INTERFACE,  // bDescriptorType
@@ -264,7 +264,7 @@ uint8_t usb_descriptor_string_manufacturer[] = {
  };
 
  uint8_t usb_descriptor_string_product[] = {
- 	43,                         // bLength
+ 	34,                         // bLength
  	USB_DESCRIPTOR_TYPE_STRING, // bDescriptorType
  	'P', 0x00,
  	'o', 0x00,

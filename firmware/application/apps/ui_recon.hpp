@@ -54,8 +54,6 @@
 
 namespace ui {
 
-#define RECON_CFG_FILE u"SETTINGS/recon.cfg"
-
 enum class recon_mode : uint8_t {
     Recon,
     Scanner,
@@ -110,7 +108,7 @@ class ReconView : public View {
     void load_persisted_settings();
     bool recon_save_freq(const std::filesystem::path& path, size_t index, bool warn_if_exists);
     // placeholder for possible void recon_start_recording();
-    void recon_stop_recording();
+    void recon_stop_recording(bool exiting);
 
     // Returns true if 'current_index' is in bounds of frequency_list.
     bool current_is_valid();

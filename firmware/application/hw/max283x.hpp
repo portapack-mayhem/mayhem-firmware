@@ -33,10 +33,10 @@ namespace max283x {
 namespace lo {
 
 constexpr std::array<rf::FrequencyRange, 4> band{{
-    {2300000000, 2400000000},
+    {2170000000, 2400000000},
     {2400000000, 2500000000},
     {2500000000, 2600000000},
-    {2600000000, 2700000000},
+    {2600000000, 2740000000},
 }};
 
 } /* namespace lo */
@@ -47,11 +47,6 @@ namespace lna {
 
 constexpr range_t<int8_t> gain_db_range{0, 40};
 constexpr int8_t gain_db_step = 8;
-
-constexpr std::array<rf::FrequencyRange, 2> band{{
-    {2300000000, 2500000000},
-    {2500000000, 2700000000},
-}};
 
 } /* namespace lna */
 
@@ -103,11 +98,13 @@ constexpr auto bandwidth_maximum = bandwidths[bandwidths.size() - 1];
 
 /*************************************************************************/
 
-enum Mode {
+enum Mode {  // MAX283x Operating modes.
     Shutdown,
     Standby,
     Receive,
     Transmit,
+    Rx_Calibration,  // just add the sequential enum of those two CAL operating modes .
+    Tx_Calibration,
 };
 
 using reg_t = uint16_t;
@@ -129,6 +126,8 @@ class MAX283x {
     virtual bool set_frequency(const rf::Frequency lo_frequency);
 
     virtual void set_rx_lo_iq_calibration(const size_t v);
+    virtual void set_tx_LO_iq_phase_calibration(const size_t v);
+
     virtual void set_rx_buff_vcm(const size_t v);
 
     virtual int8_t temp_sense();

@@ -185,7 +185,7 @@ std::string to_string_freq(const uint64_t f) {
 
 // right-justified frequency in MHz, rounded to 4 decimal places, always 9 characters
 std::string to_string_short_freq(const uint64_t f) {
-    auto final_str = to_string_dec_int(f / 1000000, 4) + "." + to_string_dec_int(((f + 50) / 100) % 10000, 4, '0');
+    auto final_str = to_string_dec_int((f + 50) / 1000000, 4) + "." + to_string_dec_int(((f + 50) / 100) % 10000, 4, '0');
     return final_str;
 }
 
@@ -210,7 +210,7 @@ std::string to_string_rounded_freq(const uint64_t f, int8_t precision) {
 
         uint32_t divisor = pow10[6 - precision];
 
-        final_str = to_string_dec_uint(f / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
+        final_str = to_string_dec_uint((f + (divisor / 2)) / 1000000) + "." + to_string_dec_int(((f + (divisor / 2)) / divisor) % pow10[precision], precision, '0');
     }
     return final_str;
 }

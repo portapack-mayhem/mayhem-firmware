@@ -116,16 +116,9 @@ void set_direction(const rf::Direction new_direction) {
     /* TODO: Refactor all the various "Direction" enumerations into one. */
     /* TODO: Only make changes if direction changes, but beware of clock enabling. */
 
-    // Hack to fix the CPLD (clocking ?) bug: toggle CPLD SRAM overlay depending on new direction.
-    // Use CPLD's EEPROM config when transmitting
-    // Use the SRAM overlay when receiving
-    if (direction != new_direction) {
-        if (new_direction == rf::Direction::Transmit)
-            hackrf::cpld::init_from_eeprom();
-        else
-            // Prevents ghosting when switching back to RX from TX mode.
-            hackrf::cpld::load_sram_no_verify();
-    }
+    // That below code line , was used to prevent RX interf ghosting when switching back to RX from any TX mode, but in recent code. it seems not necessary.
+    // Deleting that load_sram_no_verify() (or the original , load_sram() ), solves random TX swap I/Q  problem in H1R1 , others OK- (and no side effects to all).
+    // hackrf::cpld::load_sram_no_verify();  // After commit "removed the use of the hackrf cpld eeprom #1732", in a H1R1,  Mic App wrong SSB TX with random USB/LSB change.
 
     direction = new_direction;
 
@@ -192,11 +185,13 @@ bool set_tuning_frequency(const rf::Frequency frequency) {
     if (tuning_config.is_valid()) {
         first_if.disable();
 
+        // Program first local oscillator frequency (if there is one) into RFFC507x
         if (tuning_config.first_lo_frequency) {
             first_if.set_frequency(tuning_config.first_lo_frequency);
             first_if.enable();
         }
 
+        // Program second local oscillator frequency into MAX283x
         const auto result_second_if = second_if->set_frequency(tuning_config.second_lo_frequency);
 
         rf_path.set_band(tuning_config.rf_path_band);
@@ -252,6 +247,10 @@ void set_antenna_bias(const bool on) {
     } else {
         first_if.set_gpo1(on ? 0 : 1);
     }
+}
+
+void set_tx_max283x_iq_phase_calibration(const size_t v) {
+    second_if->set_tx_LO_iq_phase_calibration(v);
 }
 
 /*void enable(Configuration configuration) {

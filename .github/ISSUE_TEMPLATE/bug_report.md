@@ -9,7 +9,7 @@ assignees: ''
 
 ----
 
-(Please try the latest nightly release before submitting this. You can find the latest nightly version here: https://github.com/eried/portapack-mayhem/releases)
+(Please try the latest nightly release before submitting this. You can find the latest nightly version here: https://github.com/portapack-mayhem/mayhem-firmware/releases)
 
 ----
 

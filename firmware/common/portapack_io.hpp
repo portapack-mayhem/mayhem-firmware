@@ -1,5 +1,7 @@
 /*
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyright (C) 2024 u-foka
  *
  * This file is part of PortaPack.
  *
@@ -29,6 +31,8 @@
 #include "platform.hpp"
 #include "gpio.hpp"
 #include "ui.hpp"
+
+// #include "portapack_persistent_memory.hpp"
 
 namespace portapack {
 
@@ -141,7 +145,10 @@ class IO {
         }
     }
 
-    void lcd_write_pixel(const ui::Color pixel) {
+    void lcd_write_pixel(ui::Color pixel) {
+        if (get_dark_cover()) {
+            darken_color(pixel, get_brightness());  // Darken the pixel color
+        }
         lcd_write_data(pixel.v);
     }
 
@@ -149,13 +156,19 @@ class IO {
         return lcd_read_data();
     }
 
-    void lcd_write_pixels(const ui::Color pixel, size_t n) {
+    void lcd_write_pixels(ui::Color pixel, size_t n) {
+        if (get_dark_cover()) {
+            darken_color(pixel, get_brightness());  // Darken the pixel color
+        }
         while (n--) {
             lcd_write_data(pixel.v);
         }
     }
 
-    void lcd_write_pixels_unrolled8(const ui::Color pixel, size_t n) {
+    void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
+        if (get_dark_cover()) {
+            darken_color(pixel, get_brightness());  // Darken the pixel color
+        }
         auto v = pixel.v;
         n >>= 3;
         while (n--) {
@@ -202,6 +215,10 @@ class IO {
 
         return switches_raw;
     }
+
+    bool get_dark_cover();
+    uint8_t get_brightness();
+    // TODO: cache the value ^^ & ^ to increaase performance, need a trigger cuz init doesn't work. And since the constructor is constexpr, we can't use with in class var to cache it. maybe cache from outside somewhere and pass it here as argument.
 
     uint32_t io_update(const TouchPinsConfig write_value);
 
@@ -313,6 +330,61 @@ class IO {
 
         addr(1); /* Set up for data phase (most likely after a command) */
     }
+
+    void darken_color(ui::Color& pixel, uint8_t darken_level_shift) {
+        // TODO: 1. do we need edge control?
+        // currently didn't see and issue without edge control
+        // but maybe hurts screen hardware without one?
+
+        // TODO: 2. de-color mode for accessibility
+        // TODO: 3. high contrast mode for accessibility
+
+        uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
+        uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
+        uint16_t b = pixel.v & 0x1F;          // Extract blue
+
+        r = r >> darken_level_shift;  // Darken red
+        g = g >> darken_level_shift;  // Darken green
+        b = b >> darken_level_shift;  // Darken blue
+
+        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color, check UI::color for the color layout
+    }
+
+    // void high_contrast(ui::Color& pixel, size_t contrast_level_shift) {  // TODO
+    //     uint16_t r = (pixel.v >> 11) & 0x1F;
+    //     uint16_t g = (pixel.v >> 5) & 0x3F;
+    //     uint16_t b = pixel.v & 0x1F;
+    //
+    //     if ((r << contrast_level_shift) > 0x1F) {  // should be slightly smaller, need more obverse...
+    //         r = 0x1F;
+    //     } else {
+    //         r = r << contrast_level_shift;
+    //     }
+    //
+    //     if ((g << contrast_level_shift) > 0x3F) {  // same as above
+    //         g = 0x3F;
+    //     } else {
+    //         g = g << contrast_level_shift;
+    //     }
+    //
+    //     if ((b << contrast_level_shift) > 0x1F) {  // same as above
+    //         b = 0x1F;
+    //     } else {
+    //         b = b << contrast_level_shift;
+    //     }
+    //
+    //     pixel.v = (r << 11) | (g << 5) | b;
+    // }
+    //
+    // void gray_scale(ui::Color& pixel) {  // TODO: the blackwhite not looks right....
+    //     uint16_t r = (pixel.v >> 11) & 0x1F;
+    //     uint16_t g = (pixel.v >> 5) & 0x3F;
+    //     uint16_t b = pixel.v & 0x1F;
+    //
+    //     uint16_t average = (r + g + b) / 3;
+    //
+    //     pixel.v = (average << 11) | (average << 5) | average;
+    // }
 
     void lcd_write_data(const uint32_t value) __attribute__((always_inline)) {
         // NOTE: Assumes and DIR=0 and ADDR=1 from command phase.

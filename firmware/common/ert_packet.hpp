@@ -1,5 +1,6 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
+ * Copyright (C) 2023 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -34,10 +35,12 @@ namespace ert {
 using ID = uint32_t;
 using Consumption = uint32_t;
 using CommodityType = uint32_t;
+using TamperFlags = uint32_t;
 
 constexpr ID invalid_id = 0;
 constexpr CommodityType invalid_commodity_type = -1;
 constexpr Consumption invalid_consumption = 0;
+constexpr TamperFlags invalid_tamper_flags = 0;
 
 class Packet {
    public:
@@ -67,6 +70,7 @@ class Packet {
     ID id() const;
     CommodityType commodity_type() const;
     Consumption consumption() const;
+    TamperFlags tamper_flags() const;
 
     FormattedSymbols symbols_formatted() const;
 

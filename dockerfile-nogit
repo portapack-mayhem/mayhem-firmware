@@ -10,32 +10,33 @@ VOLUME /havoc
 WORKDIR /havoc/firmware
 
 # Fetch dependencies from APT
-RUN apt-get update && \
-	apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 liblz4-tool curl && \
-	apt-get -qy autoremove
+RUN apt-get update \
+ && apt-get install -y git tar wget dfu-util cmake python3 ccache bzip2 liblz4-tool curl ninja-build \
+ && apt-get -qy autoremove \
+ && rm -rf /var/lib/apt/lists/*
 
 #Install current pip from PyPa
 RUN curl https://bootstrap.pypa.io/pip/3.4/get-pip.py -o get-pip.py && \
 	python3 get-pip.py
 
 #Fetch additional dependencies from Python 3.x pip
-RUN pip install pyyaml
-RUN ln -s /usr/bin/python3 /usr/bin/python && \
-	ln -s /usr/bin/pip3 /usr/bin/pip
+RUN pip install pyyaml \
+ && ln -s /usr/bin/python3 /usr/bin/python \
+ && ln -s /usr/bin/pip3 /usr/bin/pip
 
 ENV LANG C.UTF-8
 ENV LC_ALL C.UTF-8
 
 # Grab the GNU ARM toolchain from arm.com
 # Then extract contents to /opt/build/armbin/
-RUN mkdir /opt/build && cd /opt/build && \
-	wget -O gcc-arm-none-eabi $ARMBINURL && \
-	mkdir armbin && \
-	tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
+RUN mkdir /opt/build \
+ && cd /opt/build \
+ && wget -O gcc-arm-none-eabi $ARMBINURL \
+ && mkdir armbin \
+ && tar --strip=1 -xjvf gcc-arm-none-eabi -C armbin
 
-# Configure CCACHE
-RUN mkdir ~/bin && cd ~/bin && \
-	for tool in gcc g++ cpp c++;do ln -s $(which ccache) arm-none-eabi-$tool;done
+ADD firmware/tools/docker-entrypoint.sh /usr/local/bin/entrypoint.sh
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 
-CMD cd .. && cd build && \
-	cmake .. && make firmware
+# replace make with ninja temporarily while building your image if you prefer to use that by default
+CMD ["make"]

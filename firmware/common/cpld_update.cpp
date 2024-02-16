@@ -23,6 +23,7 @@
 
 #include "hackrf_gpio.hpp"
 #include "portapack_hal.hpp"
+#include "portapack.hpp"
 
 #include "jtag_target_gpio.hpp"
 #include "cpld_max5.hpp"
@@ -30,11 +31,15 @@
 #include "portapack_cpld_data.hpp"
 #include "hackrf_cpld_data.hpp"
 
+#include "crc.hpp"
+
+#define REV_20150901_CHECKSUM 0xE0EF80FB
+#define REV_20170522_CHECKSUM 0xD1BEB722
+
 namespace portapack {
 namespace cpld {
 
-CpldUpdateStatus update_if_necessary(
-    const Config config) {
+CpldUpdateStatus update_if_necessary(const Config config) {
     jtag::GPIOTarget target{
         portapack::gpio_cpld_tck,
         portapack::gpio_cpld_tms,
@@ -85,6 +90,121 @@ CpldUpdateStatus update_if_necessary(
     }
 
     return ok ? CpldUpdateStatus::Success : CpldUpdateStatus::Program_failed;
+}
+
+static CpldUpdateStatus enter_maintenance_mode(CPLD& cpld) {
+    /* Unknown state */
+    cpld.reset();
+    cpld.run_test_idle();
+
+    /* Run-Test/Idle */
+    if (!cpld.idcode_ok()) {
+        return CpldUpdateStatus::Idcode_check_failed;
+    }
+
+    cpld.sample();
+    cpld.bypass();
+    cpld.enable();
+
+    /* If silicon ID doesn't match, there's a serious problem. Leave CPLD
+     * in passive state.
+     */
+    if (!cpld.silicon_id_ok()) {
+        return CpldUpdateStatus::Silicon_id_check_failed;
+    }
+
+    return CpldUpdateStatus::Success;
+}
+
+static void exit_maintenance_mode(CPLD& cpld) {
+    cpld.disable();
+    cpld.bypass();
+
+    /* Initiate SRAM reload from flash we just programmed. */
+    cpld.sample();
+    cpld.clamp();
+    cpld.disable();
+}
+
+static uint32_t get_firmware_crc(CPLD& cpld) {
+    CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+    cpld.prepare_read(0x0000);
+
+    for (size_t i = 0; i < 3328; i++) {
+        uint16_t data = cpld.read();
+        crc.process_byte((data >> 0) & 0xff);
+        crc.process_byte((data >> 8) & 0xff);
+        crc.process_byte((data >> 16) & 0xff);
+        crc.process_byte((data >> 24) & 0xff);
+    }
+
+    cpld.prepare_read(0x0001);
+
+    for (size_t i = 0; i < 512; i++) {
+        uint16_t data = cpld.read();
+        crc.process_byte((data >> 0) & 0xff);
+        crc.process_byte((data >> 8) & 0xff);
+        crc.process_byte((data >> 16) & 0xff);
+        crc.process_byte((data >> 24) & 0xff);
+    }
+
+    return crc.checksum();
+}
+
+CpldUpdateStatus update_autodetect(const Config config_rev_20150901, const Config config_rev_20170522) {
+    jtag::GPIOTarget target{
+        portapack::gpio_cpld_tck,
+        portapack::gpio_cpld_tms,
+        portapack::gpio_cpld_tdi,
+        portapack::gpio_cpld_tdo};
+    jtag::JTAG jtag{target};
+    CPLD cpld{jtag};
+
+    if (portapack::display.read_display_status())
+        return CpldUpdateStatus::Success;  // LCD is ready
+
+    CpldUpdateStatus result = enter_maintenance_mode(cpld);
+    if (result != CpldUpdateStatus::Success)
+        return result;
+
+    uint32_t checksum = get_firmware_crc(cpld);
+
+    if (checksum == REV_20170522_CHECKSUM) {
+        // H2 firmware present
+        if (!cpld.program(config_rev_20150901.block_0, config_rev_20150901.block_1))
+            return CpldUpdateStatus::Program_failed;
+    } else if (checksum == REV_20150901_CHECKSUM) {
+        // H1 firmware present
+        if (!cpld.program(config_rev_20170522.block_0, config_rev_20170522.block_1))
+            return CpldUpdateStatus::Program_failed;
+    } else {
+        // no firmware present
+        if (!cpld.program(config_rev_20150901.block_0, config_rev_20150901.block_1))
+            return CpldUpdateStatus::Program_failed;
+    }
+
+    exit_maintenance_mode(cpld);
+
+    if (portapack::display.read_display_status())
+        return CpldUpdateStatus::Success;  // LCD is ready
+
+    if (checksum != REV_20150901_CHECKSUM && checksum != REV_20170522_CHECKSUM) {
+        // try the other one
+        CpldUpdateStatus result = enter_maintenance_mode(cpld);
+
+        if (result != CpldUpdateStatus::Success)
+            return result;
+
+        if (!cpld.program(config_rev_20170522.block_0, config_rev_20170522.block_1))
+            return CpldUpdateStatus::Program_failed;
+
+        exit_maintenance_mode(cpld);
+
+        if (portapack::display.read_display_status())
+            return CpldUpdateStatus::Success;  // LCD is ready
+    }
+
+    return CpldUpdateStatus::Program_failed;
 }
 
 } /* namespace cpld */

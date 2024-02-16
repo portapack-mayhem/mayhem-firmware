@@ -90,13 +90,17 @@ SondeView::SondeView(NavigationView& nav)
     };
 
     button_see_map.on_select = [this, &nav](Button&) {
-        nav.push<GeoMapView>(
+        geomap_view_ = nav.push<GeoMapView>(
             sonde_id,
             gps_info.alt,
             GeoPos::alt_unit::METERS,
+            GeoPos::spd_unit::HIDDEN,
             gps_info.lat,
             gps_info.lon,
             999);  // set a dummy heading out of range to draw a cross...probably not ideal?
+        nav.set_on_pop([this]() {
+            geomap_view_ = nullptr;
+        });
     };
 
     logger = std::make_unique<SondeLogger>();
@@ -121,6 +125,17 @@ SondeView::~SondeView() {
     receiver_model.disable();
     baseband::shutdown();
     audio::output::stop();
+}
+
+void SondeView::on_gps(const GPSPosDataMessage* msg) {
+    if (!geomap_view_)
+        return;
+    geomap_view_->update_my_position(msg->lat, msg->lon, msg->altitude);
+}
+void SondeView::on_orientation(const OrientationDataMessage* msg) {
+    if (!geomap_view_)
+        return;
+    geomap_view_->update_my_orientation(msg->angle, true);
 }
 
 void SondeView::focus() {

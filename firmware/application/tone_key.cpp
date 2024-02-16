@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2023 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -85,7 +86,7 @@ const tone_key_t tone_keys = {
     {"Senn. 32.768k", F2Ix100(32768.0)}};
 
 std::string fx100_string(uint32_t f) {
-    return to_string_dec_uint(f / 100) + "." + to_string_dec_uint(((f + 5) / 10) % 10);
+    return to_string_dec_uint((f + 5) / 100) + "." + to_string_dec_uint(((f + 5) / 10) % 10);
 }
 
 float tone_key_frequency(tone_index index) {

@@ -1,6 +1,8 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 u-foka
+ * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -23,6 +25,10 @@
 #ifndef __UI_NAVIGATION_H__
 #define __UI_NAVIGATION_H__
 
+#include <vector>
+#include <map>
+#include <utility>
+
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "ui_focus.hpp"
@@ -40,9 +46,8 @@
 #include "diskio.h"
 #include "lfsr_random.hpp"
 #include "sd_card.hpp"
-
-#include <vector>
-#include <utility>
+#include "external_app.hpp"
+#include "view_factory.hpp"
 
 // for incrementing fake date when RTC battery is dead
 #define DATE_FILEFLAG u"/SETTINGS/DATE_FILEFLAG"
@@ -57,6 +62,28 @@ enum modal_t {
     ABORT
 };
 
+class CstrCmp {
+   public:
+    bool operator()(const char* a, const char* b) const;
+};
+
+// Should only be used as part of the appList in NavigationView, the viewFactory will never be destroyed.
+class AppInfo {
+   public:
+    const char* id;  // MUST be unique! Used by serial command to start the app so it also has to make sense
+    const char* displayName;
+    app_location_t menuLocation;
+    Color iconColor;
+    const Bitmap* icon;
+    ViewFactoryBase* viewFactory;  // Never destroyed, and I believe it's ok ;) Having a unique_ptr here breaks the initializer list of appList
+};
+
+struct AppInfoConsole {
+    const char* appCallName;
+    const char* appFriendlyName;
+    const app_location_t appLocation;
+};
+
 class NavigationView : public View {
    public:
     std::function<void(const View&)> on_view_changed{};
@@ -69,6 +96,7 @@ class NavigationView : public View {
     NavigationView& operator=(NavigationView&&) = delete;
 
     bool is_top() const;
+    bool is_valid() const;
 
     template <class T, class... Args>
     T* push(Args&&... args) {
@@ -85,6 +113,7 @@ class NavigationView : public View {
     View* push_view(std::unique_ptr<View> new_view);
     void replace(View* v);
     void pop(bool trigger_update = true);
+    void home(bool trigger_update);
 
     void display_modal(const std::string& title, const std::string& message);
     void display_modal(
@@ -99,6 +128,14 @@ class NavigationView : public View {
      * Returns true if the handler was bound successfully. */
     bool set_on_pop(std::function<void()> on_pop);
 
+    // App list is used to preserve order, so the menu items in the menu grid can stay in place
+    // App map is used to look up apps by id used by serial app start
+    using AppMap = std::map<const char*, const AppInfo&, CstrCmp>;
+    using AppList = std::vector<AppInfo>;
+    static const AppMap appMap;
+    static const AppList appList;
+
+    bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
    private:
     struct ViewState {
         std::unique_ptr<View> view;
@@ -229,6 +266,12 @@ class SystemStatusView : public View {
         Color::light_grey(),
         Color::dark_grey()};
 
+    ImageButton button_fake_brightness{
+        {0, 0, 2 * 8, 1 * 16},
+        &bitmap_icon_brightness,
+        Color::green(),
+        Color::dark_grey()};
+
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
@@ -252,6 +295,7 @@ class InformationView : public View {
    public:
     InformationView(NavigationView& nav);
     void refresh();
+    bool firmware_checksum_error();
 
    private:
     // static constexpr auto version_string = "v1.4.4"; // This is commented out as we are now setting the version via ENV (VERSION_STRING=v1.0.0)
@@ -320,6 +364,8 @@ class SystemView : public View {
     Context& context() const override;
     void toggle_overlay();
     void paint_overlay();
+
+    NavigationView* get_navigation_view();
 
    private:
     uint8_t overlay_active{0};

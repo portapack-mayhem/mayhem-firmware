@@ -26,7 +26,8 @@
 #include "ui_navigation.hpp"
 #include "spi_image.hpp"
 
-#define CURRENT_HEADER_VERSION 0x00000001
+#define CURRENT_HEADER_VERSION 0x00000002
+#define MIN_HEADER_VERSION_FOR_CHECKSUM 0x00000002
 
 typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
 
@@ -34,7 +35,8 @@ enum app_location_t : uint32_t {
     UTILITIES = 0,
     RX,
     TX,
-    DEBUG
+    DEBUG,
+    HOME
 };
 
 struct application_information_t {
