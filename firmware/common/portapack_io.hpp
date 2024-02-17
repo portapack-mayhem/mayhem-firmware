@@ -35,6 +35,21 @@
 
 // #include "portapack_persistent_memory.hpp"
 
+// Darkened pixel bit mask for each possible shift value.
+static const uint16_t darken_mask[4] = {
+    0b1111111111111111,  // RrrrrGgggggBbbbb
+    0b0111101111101111,  // 0Rrrr0Ggggg0Bbbb
+    0b0011100111100111,  // 00Rrr00Gggg00Bbb
+    0b0001100011100011   // 000Rr000Ggg000Bb
+};
+
+// To darken, dividing each color level R/G/B by 2^shift.
+#define DARKENED_PIXEL(pixel, shift) ((pixel >> shift) & darken_mask[shift])
+
+// To un-darken, multiply each color level by 2^shift (might still be darker that before since some bits may have been lost above).
+// This function will only be called when the pixel has previously been darkened, so no masking is needed.
+#define UNDARKENED_PIXEL(pixel, shift) (pixel << shift)
+
 namespace portapack {
 
 class IO {
@@ -148,7 +163,7 @@ class IO {
 
     void lcd_write_pixel(ui::Color pixel) {
         if (get_dark_cover()) {
-            shift_color(pixel, get_brightness(), false);  // Darken the pixel color
+            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
         }
         lcd_write_data(pixel.v);
     }
@@ -159,7 +174,7 @@ class IO {
 
     void lcd_write_pixels(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            shift_color(pixel, get_brightness(), false);  // Darken the pixel color
+            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
         }
         while (n--) {
             lcd_write_data(pixel.v);
@@ -168,7 +183,7 @@ class IO {
 
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            shift_color(pixel, get_brightness(), false);  // Darken the pixel color
+            pixel.v = DARKENED_PIXEL(pixel.v, get_brightness());
         }
         auto v = pixel.v;
         n >>= 3;
@@ -332,31 +347,6 @@ class IO {
         addr(1); /* Set up for data phase (most likely after a command) */
     }
 
-    void shift_color(ui::Color& pixel, uint8_t shift_level, bool shift_left) {
-        // TODO: 1. do we need edge control?
-        // currently didn't see and issue without edge control
-        // but maybe hurts screen hardware without one?
-
-        // TODO: 2. de-color mode for accessibility
-        // TODO: 3. high contrast mode for accessibility
-
-        uint16_t r = (pixel.v >> 11) & 0x1F;  // Extract red
-        uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
-        uint16_t b = pixel.v & 0x1F;          // Extract blue
-
-        if (shift_left) {  // Shfting
-            r = r << shift_level;
-            g = g << shift_level;
-            b = b << shift_level;
-        } else if (!shift_left) {
-            r = r >> shift_level;
-            g = g >> shift_level;
-            b = b >> shift_level;
-        }
-
-        pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color, check UI::color for the color layout
-    }
-
     // void high_contrast(ui::Color& pixel, size_t contrast_level_shift) {  // TODO
     //     uint16_t r = (pixel.v >> 11) & 0x1F;
     //     uint16_t g = (pixel.v >> 5) & 0x3F;
@@ -427,12 +417,8 @@ class IO {
         uint32_t original_value = (value_high << 8) | value_low;
 
         if (get_dark_cover()) {
-            ui::Color pixel;
-            pixel.v = original_value;
-            shift_color(pixel, get_brightness(), true);
-            original_value = pixel.v;
+            original_value = UNDARKENED_PIXEL(original_value, get_brightness());
         }
-
         return original_value;
     }
 
