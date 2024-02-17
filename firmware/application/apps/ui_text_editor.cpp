@@ -27,8 +27,6 @@
 #include "log_file.hpp"
 #include "string_format.hpp"
 
-#include "portapack_persistent_memory.hpp"
-
 using namespace portapack;
 namespace fs = std::filesystem;
 
@@ -555,8 +553,6 @@ void TextEditorView::open_file(const fs::path& path) {
         path_ = path;
         viewer.set_file(*file_);
     }
-
-    portapack::persistent_memory::set_apply_fake_brightness(false);  // work around to resolve the display issue in notepad app. not elegant i know, so TODO.
 
     refresh_ui();
 }
