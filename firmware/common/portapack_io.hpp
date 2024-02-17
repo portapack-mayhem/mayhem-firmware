@@ -147,7 +147,7 @@ class IO {
 
     void lcd_write_pixel(ui::Color pixel) {
         if (get_dark_cover()) {
-            darken_color(pixel, get_brightness());  // Darken the pixel color
+            shift_color(pixel, get_brightness(), false);  // Darken the pixel color
         }
         lcd_write_data(pixel.v);
     }
@@ -158,7 +158,7 @@ class IO {
 
     void lcd_write_pixels(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            darken_color(pixel, get_brightness());  // Darken the pixel color
+            shift_color(pixel, get_brightness(), false);  // Darken the pixel color
         }
         while (n--) {
             lcd_write_data(pixel.v);
@@ -167,7 +167,7 @@ class IO {
 
     void lcd_write_pixels_unrolled8(ui::Color pixel, size_t n) {
         if (get_dark_cover()) {
-            darken_color(pixel, get_brightness());  // Darken the pixel color
+            shift_color(pixel, get_brightness(), false);  // Darken the pixel color
         }
         auto v = pixel.v;
         n >>= 3;
@@ -331,7 +331,7 @@ class IO {
         addr(1); /* Set up for data phase (most likely after a command) */
     }
 
-    void darken_color(ui::Color& pixel, uint8_t darken_level_shift) {
+    void shift_color(ui::Color& pixel, uint8_t shift_level, bool shift_left) {
         // TODO: 1. do we need edge control?
         // currently didn't see and issue without edge control
         // but maybe hurts screen hardware without one?
@@ -343,9 +343,15 @@ class IO {
         uint16_t g = (pixel.v >> 5) & 0x3F;   // Extract green
         uint16_t b = pixel.v & 0x1F;          // Extract blue
 
-        r = r >> darken_level_shift;  // Darken red
-        g = g >> darken_level_shift;  // Darken green
-        b = b >> darken_level_shift;  // Darken blue
+        if (shift_left) {  // Shfting
+            r = r << shift_level;
+            g = g << shift_level;
+            b = b << shift_level;
+        } else if (!shift_left) {
+            r = r >> shift_level;
+            g = g >> shift_level;
+            b = b >> shift_level;
+        }
 
         pixel.v = (r << 11) | (g << 5) | b;  // Combine back to color, check UI::color for the color layout
     }
@@ -417,7 +423,16 @@ class IO {
         halPolledDelay(18);  // 90ns
 
         const auto value_low = data_read();
-        return (value_high << 8) | value_low;
+        uint32_t original_value = (value_high << 8) | value_low;
+
+        if (get_dark_cover()) {
+            ui::Color pixel;
+            pixel.v = original_value;
+            shift_color(pixel, get_brightness(), true);
+            original_value = pixel.v;
+        }
+
+        return original_value;
     }
 
     void io_write(const bool address, const uint_fast16_t value) {
