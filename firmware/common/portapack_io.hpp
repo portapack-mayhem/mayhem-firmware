@@ -2,7 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyleft (ɔ) 2024 zxkmm under GPL license
  * Copyright (C) 2024 u-foka
- * Copyright (C) 2023 Mark Thompson
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
