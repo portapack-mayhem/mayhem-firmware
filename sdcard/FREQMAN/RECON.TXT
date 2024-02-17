@@ -1,22 +1,22 @@
-a=150000,b=285000,m=AM,bw=DSB,s=5kHz,d=Longwave broadcast band|BCB (EU)
-a=525000,b=1605000,m=AM,bw=DSB,s=5kHz,d=AM broadcast band|BCB (EU & J)
-a=530000,b=1710000,m=AM,bw=DSB,s=5kHz,d=AM broadcast band|BCB (US)
-a=1800000,b=29700000,m=WFM,bw=16k,d=Amateur_radio|Amateur
-a=26900000,b=27400000,m=WFM,bw=16k,d=Citizens_band_radio|Citizens band
-a=28000000,b=30000000,m=WFM,bw=16k,d=Amateur_radio|Amateur
-a=29000000,b=54000000,m=WFM,bw=16k,d=Land mobile
-a=50000000,b=54000000,m=WFM,bw=16k,d=Amateur_radio|Amateur
-a=65000000,b=85000000,m=WFM,bw=16k,d=Land mobile (EU)
-a=108000000,b=136000000,m=WFM,bw=16k,d=Aircraft
-a=120000000,b=160000000,m=WFM,bw=16k,s=50kHz,d=Land mobile (EU)
-a=132000000,b=174000000,m=WFM,bw=16k,s=50kHz,d=Land mobile
-a=142000000,b=170000000,m=WFM,bw=16k,s=50kHz,d=Land mobile (J)
-a=144000000,b=148000000,m=WFM,bw=16k,s=50kHz,d=Amateur_radio|Amateur
-a=216000000,b=222000000,m=WFM,bw=16k,s=50kHz,d=Land mobile
-a=222000000,b=225000000,m=WFM,bw=16k,s=50kHz,d=Amateur_radio|Amateur
-a=335000000,b=384000000,m=WFM,bw=16k,s=50kHz,d=Land mobile (J)
-a=406000000,b=512000000,m=WFM,bw=16k,s=50kHz,d=Land mobile
-a=450000000,b=470000000,m=WFM,bw=16k,s=50kHz,d=Land mobile (J)
-a=430000000,b=450000000,m=WFM,bw=16k,s=50kHz,d=Amateur_radio|Amateur
-a=806000000,b=947000000,m=WFM,bw=16k,s=50kHz,d=Land mobile
-a=1200000000,b=1600000000,m=WFM,bw=16k,s=50kHz,d=Amateur|Land mobile|GPS
+a=150000,b=285000,m=AM,bw=DSB 9k,s=5kHz,d=Longwave broadcast band|BCB (EU)
+a=525000,b=1605000,m=AM,bw=DSB 9k,s=5kHz,d=AM broadcast band|BCB (EU & J)
+a=530000,b=1710000,m=AM,bw=DSB 9k,s=5kHz,d=AM broadcast band|BCB (US)
+a=1800000,b=29700000,m=AM,bw=LSB-3k,d=Amateur_radio|Amateur
+a=26900000,b=27400000,m=AM,bw=DSB 9k,d=Citizens_band_radio|Citizens band
+a=28000000,b=30000000,m=AM,bw=USB+3k,d=Amateur_radio|Amateur
+a=29000000,b=54000000,m=AM,bw=DSB 9k,d=Land mobile
+a=50000000,b=54000000,m=NFM,bw=16k,d=Amateur_radio|Amateur
+a=65000000,b=85000000,m=NFM,bw=16k,d=Land mobile (EU)
+a=108000000,b=136000000,m=NFM,bw=16k,d=Aircraft
+a=120000000,b=160000000,m=NFM,bw=16k,s=50kHz,d=Land mobile (EU)
+a=132000000,b=174000000,m=NFM,bw=16k,s=50kHz,d=Land mobile
+a=142000000,b=170000000,m=NFM,bw=16k,s=50kHz,d=Land mobile (J)
+a=144000000,b=148000000,m=NFM,bw=16k,s=50kHz,d=Amateur_radio|Amateur
+a=216000000,b=222000000,m=NFM,bw=16k,s=50kHz,d=Land mobile
+a=222000000,b=225000000,m=NFM,bw=16k,s=50kHz,d=Amateur_radio|Amateur
+a=335000000,b=384000000,m=NFM,bw=16k,s=50kHz,d=Land mobile (J)
+a=406000000,b=512000000,m=NFM,bw=16k,s=50kHz,d=Land mobile
+a=450000000,b=470000000,m=NFM,bw=16k,s=50kHz,d=Land mobile (J)
+a=430000000,b=450000000,m=NFM,bw=16k,s=50kHz,d=Amateur_radio|Amateur
+a=806000000,b=947000000,m=NFM,bw=16k,s=50kHz,d=Land mobile
+a=1200000000,b=1600000000,m=NFM,bw=16k,s=50kHz,d=Amateur|Land mobile|GPS
