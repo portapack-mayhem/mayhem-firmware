@@ -68,9 +68,11 @@ CMakeFiles/
 .DS_Store
 /firmware/CMakeCache.txt
 
-# Python env/ venv
+# Python env/ venv and cache
 env/
 venv/
+**/__pycache__/
+*.pyc
 
 # Other
 *.bak
