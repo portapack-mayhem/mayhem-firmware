@@ -30,7 +30,7 @@ static const char16_t* firmware_folder = u"/FIRMWARE";
 
 // Firmware image validation
 static const char* hackrf_magic = "HACKRFFW";
-#define HACKRF_MAGIC_OFFSET 0x400
+#define INFO_AREA_OFFSET 0x400
 #define FIRST_CHECKSUM_NIGHTLY 240125
 
 Thread* FlashUtilityView::thread{nullptr};
@@ -42,7 +42,7 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
     uint32_t read_buffer[128];
     uint32_t checksum{FLASH_CHECKSUM_ERROR};  // initializing to invalid checksum in case file can't be read
 
-    static_assert((HACKRF_MAGIC_OFFSET % sizeof(read_buffer)) == 0, "fix read buffer size");
+    static_assert((INFO_AREA_OFFSET % sizeof(read_buffer)) == 0, "fix read buffer size");
 
     // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
     auto result = firmware_file.open(path.c_str());
@@ -59,7 +59,7 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
             }
 
             // Is this the firmware image info area?
-            if (offset == HACKRF_MAGIC_OFFSET) {
+            if (offset == INFO_AREA_OFFSET) {
                 // If there's no info area (missing HACKRFFW signature), it could be an ancient FW version (so skipping check)
                 if (memcmp(read_buffer, hackrf_magic, 8) == 0) {
                     char* version_string = (char*)&read_buffer[4];
