@@ -64,8 +64,8 @@ bool valid_firmware_file(std::filesystem::path::string_type path) {
                 if (memcmp(read_buffer, hackrf_magic, 8) == 0) {
                     char* version_string = (char*)&read_buffer[4];
 
-                    // Require a 1MB firmware image with a valid checksum if release version >=2.x or nightly >n_240125
-                    if (((version_string[0] >= '2') && (version_string[1] == '.')) ||
+                    // Require a 1MB firmware image with a valid checksum if release version >=v2.x or nightly >n_240125
+                    if (((version_string[0] == 'v') && (std::atoi(&version_string[1]) >= 2)) ||
                         ((version_string[0] == 'n') && (version_string[1] == '_') && (std::atoi(&version_string[2]) >= FIRST_CHECKSUM_NIGHTLY)))
                         require_checksum = true;
                 }
