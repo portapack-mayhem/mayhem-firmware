@@ -1,35 +1,48 @@
----
 name: Bug report
-about: Create a report to help us improve the software
-title: ''
-labels: bug
-assignees: ''
-
----
-
-----
-
-(Please try the latest nightly release before submitting this. You can find the latest nightly version here: https://github.com/portapack-mayhem/mayhem-firmware/releases)
-
-----
-
-**Describe the bug**
-A clear and concise description of what the bug is. 
-
-**To Reproduce**
-Steps to reproduce the behavior:
-1. Go to '...'
-2. Tap on '....'
-3. 
-
-**Expected behavior**
-A clear and concise description of what you expected to happen.
-
-**Affected versions**
-Please write any difference related with the Expected behavior, on the following versions:
-* Latest Stable release:
-* Latest Nightly release:
-* Previous working release:
-
-**Additional**
-If the bug is difficult to explain, additionally to the text please include images and videos.
+description: File a bug reports regarding the firmware.
+labels: ['bug']
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for taking the time to fill out an issue, this template is meant for any issues related to the Mayhem firmware.
+      Please try the latest nightly release before submitting this. You can find the latest nightly version here: https://github.com/portapack-mayhem/mayhem-firmware/releases
+- type: textarea
+  id: description
+  attributes:
+    label: Describe the bug.
+    description: "A clear and concise description of what the bug is."
+  validations:
+    required: true
+- type: textarea
+  id: repro
+  attributes: 
+    label: Reproduction
+    description: "How can this bug be reproduced?"
+    placeholder: |
+      1. Switch on...
+      2. Press button '....'
+      3. Wait for the end of the universe
+      4. It burns
+  validations:
+    required: true
+- type: textarea
+  id: expected
+  attributes: 
+    label: Expected behavior
+    description: "A clear and concise description of what you expected to happen"
+    placeholder: |
+      1. Generates file on...
+      2. I get a cheeseburger...
+  validations:
+    required: true
+- type: input
+  id: target
+  attributes:
+    label: Environment/versions
+    description: Specify extra details about versions and environments affected
+- type: textarea
+  id: anything-else
+  attributes:
+    label: Anything else?
+    description: Let us know if you have anything else to share.
