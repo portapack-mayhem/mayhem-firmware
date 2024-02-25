@@ -1328,11 +1328,14 @@ class GPSPosDataMessage : public Message {
 class OrientationDataMessage : public Message {
    public:
     constexpr OrientationDataMessage(
-        uint16_t angle = 400)
+        uint16_t angle = 400,
+        uint16_t tilt = 400)
         : Message{ID::OrientationData},
-          angle{angle} {
+          angle{angle},
+          tilt{tilt} {
     }
     uint16_t angle = 400;  //>360 -> no orientation set
+    uint16_t tilt = 400;
 };
 
 #endif /*__MESSAGE_H__*/

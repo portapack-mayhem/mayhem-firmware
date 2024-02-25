@@ -911,13 +911,15 @@ static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: gotorientation <angle>\r\n";
-    if (argc != 1) {
+    const char* usage = "usage: gotorientation <angle> [tilt]\r\n";
+    if (argc != 1 && argc != 2) {
         chprintf(chp, usage);
         return;
     }
     uint16_t angle = strtol(argv[0], NULL, 10);
-    OrientationDataMessage msg{angle};
+    uint16_t tilt = 400;
+    if (argc >= 2) tilt = strtol(argv[1], NULL, 10);
+    OrientationDataMessage msg{angle, tilt};
     EventDispatcher::send_message(msg);
     chprintf(chp, "ok\r\n");
 }
