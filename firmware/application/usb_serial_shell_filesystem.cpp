@@ -99,7 +99,7 @@ void cmd_sd_mkdir(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     auto path = path_from_string8(argv[0]);
 
-    if (!std::filesystem::is_directory(path)) {
+    if (std::filesystem::is_directory(path)) {
         chprintf(chp, "directory already exists.\r\n");
         return;
     }
