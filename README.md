@@ -1,5 +1,10 @@
-> [!IMPORTANT]  
-> this repository **has just been moved** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware). Please keep this in mind to **update your links** accordingly.
+> [!WARNING]
+> Recently, we have become aware of certain individuals distributing prepackaged packages of Mayhem for a fee, and we want to bring this to your attention to ensure the integrity and security of our project.
+> 
+> We would like to clarify that none of the contributors to Mayhem receive any monetary compensation for their efforts. All the work put into this project is driven by passion and hobby, and we are committed to providing the community with an open-source solution that remains free of charge.
+> 
+> __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED PACKAGES, YOU'RE BEING SCAMMED.__ Seek a refund from your card company and report the issue immediately.
+> The only legitimate link leading to our repositories is the organization [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware). Please ensure that any download or access to our software is done exclusively through these trusted sources.
 
 # PortaPack Mayhem
 
