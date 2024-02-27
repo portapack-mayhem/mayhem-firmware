@@ -38,6 +38,7 @@ MEMORY
     ram_external_app_spainter(rwx) : org = 0xADBC0000, len = 32k
     ram_external_app_keyfob(rwx) : org = 0xADBD0000, len = 32k
     ram_external_app_tetris(rwx) : org = 0xADBE0000, len = 32k
+    ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
 }
 
 SECTIONS
@@ -131,5 +132,13 @@ SECTIONS
         KEEP(*(.external_app.app_tetris.application_information));
         *(*ui*external_app*tetris*);
     } > ram_external_app_tetris
+
+   .external_app_extsensors : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_extsensors.application_information));
+        *(*ui*external_app*extsensors*);
+    } > ram_external_app_extsensors
+
+
 
 }
