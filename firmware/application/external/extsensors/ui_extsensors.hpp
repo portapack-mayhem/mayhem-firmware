@@ -46,7 +46,7 @@ class ExtSensorsView : public View {
     void focus() override;
 
     std::string title() const override {
-        return "ExtSensors";
+        return "ExtSensor";
     };
 
    private:
@@ -55,12 +55,12 @@ class ExtSensorsView : public View {
     bool has_data = false;
 
     Labels labels{
-        {{0 * 8, 2 * 8}, "GPS:", Color::light_grey()},
-        {{0 * 8, 5 * 8}, "ORI:", Color::light_grey()}};
+        {{0 * 8, 3 * 16}, "GPS:", Color::light_grey()},
+        {{0 * 8, 5 * 16}, "ORI:", Color::light_grey()}};
 
-    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16}, "Connect a compatible module and wait."};
-    Text text_gps{{5 * 8, 2 * 8, 24 * 8, 16}, "-"};
-    Text text_orientation{{5 * 8, 4 * 8, 24 * 8, 16}, "-"};
+    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 2}, "Connect a compatible module\r\n and wait..."};
+    Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
+    Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
 
     void on_any();
 
