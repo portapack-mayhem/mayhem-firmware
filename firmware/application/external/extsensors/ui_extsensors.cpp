@@ -48,18 +48,20 @@ ExtSensorsView::~ExtSensorsView() {
 void ExtSensorsView::on_any() {
     if (has_data == false) {
         // update text
-        text_info.set("Found ext module, receiving data.");  // todo do an ext module check
+        text_info.set("Found ext module.");  // todo do an ext module check for type
     }
     has_data = true;
 }
 
 void ExtSensorsView::on_gps(const GPSPosDataMessage* msg) {
+    on_any();
     std::string tmp = to_string_decimal(msg->lat, 5);
     tmp += "; ";
     tmp += to_string_decimal(msg->lon, 5);
     text_gps.set(tmp);
 }
 void ExtSensorsView::on_orientation(const OrientationDataMessage* msg) {
+    on_any();
     std::string tmp = to_string_dec_uint(msg->angle);
     tmp += "°";
     if (msg->tilt < 400) {

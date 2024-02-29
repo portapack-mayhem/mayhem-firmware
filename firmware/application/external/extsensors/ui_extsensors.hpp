@@ -58,7 +58,7 @@ class ExtSensorsView : public View {
         {{0 * 8, 3 * 16}, "GPS:", Color::light_grey()},
         {{0 * 8, 5 * 16}, "ORI:", Color::light_grey()}};
 
-    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 2}, "Connect a compatible module\r\n and wait..."};
+    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "Connect a compatible module..."};
     Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
 
