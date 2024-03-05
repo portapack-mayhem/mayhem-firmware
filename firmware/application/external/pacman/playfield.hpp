@@ -43,6 +43,16 @@ boolean but_DOWN = false;   // 50
 boolean but_LEFT = false;   // 48
 boolean but_RIGHT = false;  // 46
 
+enum cheat_code_keymap {
+    UP,
+    DOWN,
+    LEFT,
+    RIGHT
+};
+
+enum cheat_code_keymap cheat_code[] = {UP, DOWN, UP, DOWN, RIGHT, LEFT, RIGHT, LEFT};
+byte cheat_code_index = 0;
+
 /******************************************************************************/
 /*   GAME VARIABLES AND DEFINITIONS                                           */
 /******************************************************************************/
@@ -1280,29 +1290,64 @@ class Playfield {
             but_A = false;
             GAMEPAUSED = 1;
         } else if (but_LEFT && DEMO == 1 && GAMEPAUSED == 0) {  // -level
-            cheat_level = true;
+
+            if ((cheat_code[cheat_code_index] == 2) && (cheat_code_index <= 8)) {
+                cheat_code_index++;
+            }
+
+            if (cheat_code_index == 8) {
+                cheat_level = true;
+                if (LEVEL > 1) {
+                    LEVEL--;
+                }
+                Init();
+            }
+
             but_LEFT = false;
-            if (LEVEL > 1) {
-                LEVEL--;
-            }
-            Init();
+
         } else if (but_RIGHT && DEMO == 1 && GAMEPAUSED == 0) {  // +level
-            cheat_level = true;
-            but_RIGHT = false;
-            if (LEVEL < 255) {
-                LEVEL++;
+
+            if ((cheat_code[cheat_code_index] == 3) && (cheat_code_index <= 8)) {
+                cheat_code_index++;
             }
-            Init();
+
+            if (cheat_code_index == 8) {
+                cheat_level = true;
+                if (LEVEL < 255) {
+                    LEVEL++;
+                }
+                Init();
+            }
+
+            but_RIGHT = false;
+
         } else if (but_UP && DEMO == 1 && GAMEPAUSED == 0) {  // full of lifes
-            cheat_lifes = true;
+
+            if ((cheat_code[cheat_code_index] == 0) && (cheat_code_index <= 8)) {
+                cheat_code_index++;
+            }
+
+            if (cheat_code_index == 8) {
+                cheat_lifes = true;
+                Init();
+            }
+
             but_UP = false;
-            Init();
+
         } else if (but_DOWN && DEMO == 1 && GAMEPAUSED == 0) {  // reset
-            cheat_level = false;
-            cheat_lifes = false;
-            but_DOWN = false;
-            LIFES = START_LIFES;
-            Init();
+
+            if ((cheat_code[cheat_code_index] == 1) && (cheat_code_index <= 8)) {
+                cheat_code_index++;
+            }
+
+            if (cheat_code_index == 8) {
+                cheat_level = false;
+                cheat_lifes = false;
+                but_DOWN = false;
+                LIFES = START_LIFES;
+                cheat_code_index = 0;
+                Init();
+            }
         }
 
         if (GAMEPAUSED && but_A && DEMO == 0) {
