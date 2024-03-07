@@ -120,6 +120,7 @@ class Message {
         SubGhzDData = 62,
         GPSPosData = 63,
         OrientationData = 64,
+        EnvironmentData = 65,
         MAX
     };
 
@@ -1328,11 +1329,33 @@ class GPSPosDataMessage : public Message {
 class OrientationDataMessage : public Message {
    public:
     constexpr OrientationDataMessage(
-        uint16_t angle = 400)
+        uint16_t angle = 400,
+        int16_t tilt = 400)
         : Message{ID::OrientationData},
-          angle{angle} {
+          angle{angle},
+          tilt{tilt} {
     }
     uint16_t angle = 400;  //>360 -> no orientation set
+    int16_t tilt = 400;
+};
+
+class EnvironmentDataMessage : public Message {
+   public:
+    constexpr EnvironmentDataMessage(
+        float temperature = 0,
+        float humidity = 0,
+        float pressure = 0,
+        uint16_t light = 0)
+        : Message{ID::EnvironmentData},
+          temperature{temperature},
+          humidity{humidity},
+          pressure{pressure},
+          light{light} {
+    }
+    float temperature = 0;  // celsius
+    float humidity = 0;     // percent (rh)
+    float pressure = 0;     // hpa
+    uint16_t light = 0;     // lux
 };
 
 #endif /*__MESSAGE_H__*/

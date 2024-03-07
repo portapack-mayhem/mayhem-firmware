@@ -62,6 +62,11 @@ set(EXTCPPSRC
 	external/keyfob/main.cpp
 	external/keyfob/ui_keyfob.cpp
 	external/keyfob/ui_keyfob.hpp
+
+	#extsensors
+	external/extsensors/main.cpp
+	external/extsensors/ui_extsensors.cpp
+	external/extsensors/ui_extsensors.hpp
 )
 
 set(EXTAPPLIST
@@ -80,4 +85,5 @@ set(EXTAPPLIST
 	spainter
 	keyfob
 	tetris
+	extsensors
 )
