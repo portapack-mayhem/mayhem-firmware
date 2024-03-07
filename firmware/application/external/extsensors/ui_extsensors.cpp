@@ -73,9 +73,10 @@ void ExtSensorsView::on_orientation(const OrientationDataMessage* msg) {
 
 void ExtSensorsView::on_environment(const EnvironmentDataMessage* msg) {
     on_any();
-    std::string tmp = "T : " + to_string_decimal(msg->temperature, 2);  // temperature
-    tmp += (char)176 + 'C';                                             // °
-    tmp += "; H: " + to_string_decimal(msg->humidity, 1) + "%";         // humidity
+    std::string tmp = "T: " + to_string_decimal(msg->temperature, 2);  // temperature
+    tmp += (char)176;                                                  // °
+    tmp += "C";
+    tmp += "; H: " + to_string_decimal(msg->humidity, 1) + "%";  // humidity
     text_envl1.set(tmp);
     tmp = "P: " + to_string_decimal(msg->pressure, 1) + " hPa; L:";  // pressure
     tmp += to_string_dec_int(msg->light) + " LUX";                   // light
