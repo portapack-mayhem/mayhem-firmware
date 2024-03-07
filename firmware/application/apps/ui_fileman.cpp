@@ -191,6 +191,7 @@ FileManBaseView::FileManBaseView(
       extension_filter{filter} {
     add_children({&labels,
                   &text_current,
+                  &option_profile_switch,
                   &button_exit});
 
     button_exit.on_select = [this](Button&) {
@@ -213,6 +214,20 @@ FileManBaseView::FileManBaseView(
             pop_dir();
         };
     }
+
+    option_profile_switch.on_change = [this](size_t, uint32_t options) {
+        switch (options) {
+            case 1:
+                jumping_between_profiles(current_path, 1);
+                break;
+
+            case 2:
+                jumping_between_profiles(current_path, 2);
+                break;
+        }
+
+        reload_current();
+    };
 }
 
 void FileManBaseView::focus() {
@@ -229,6 +244,20 @@ void FileManBaseView::push_dir(const fs::path& path) {
     } else {
         current_path /= path;
         saved_index_stack.push_back(menu_view.highlighted_index());
+        menu_view.set_highlighted(0);
+        reload_current();
+    }
+}
+
+void FileManBaseView::push_fake_dir(const fs::path& path) {
+    fs::path first_level = path.extract_first_level();
+    fs::path null_path = u"";
+    fs::path user_dir = u"/USER";
+    fs::path system_dir = u"/BLOB";
+    fs::path default_mother_dir = user_dir;
+
+    if (first_level != user_dir && first_level != system_dir) {
+        current_path = default_mother_dir / path;
         menu_view.set_highlighted(0);
         reload_current();
     }
@@ -294,6 +323,66 @@ void FileManBaseView::refresh_list() {
 void FileManBaseView::reload_current() {
     load_directory_contents(current_path);
     refresh_list();
+}
+
+fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profile) {
+    fs::path first_level = path.extract_first_level();
+    fs::path null_path = u"";
+    fs::path user_dir = u"/USER";
+    fs::path system_dir = u"/BLOB";
+
+    if (first_level == null_path) {  // path is first level aka /abcdef
+
+        return path;
+
+    } else if ((first_level == system_dir) && profile == 1) {  // jump to sys mother dir if profile asks
+
+        path = user_dir / path.remove_first_level();
+
+    } else if ((first_level == user_dir) && profile == 2) {
+
+        path = system_dir / path.remove_first_level();
+    }
+
+    return path;
+}
+
+fs::path FileManBaseView::profile_changer(fs::path& path, uint8_t profile) {
+    fs::path path_backup = path;
+    fs::path user_dir = u"/USER";
+    fs::path system_dir = u"/BLOB";
+    fs::path null_dir = u"";
+
+    // first level
+    fs::path first_level = path.parent_path();
+
+    if ((first_level != system_dir && first_level != user_dir) && profile == 0) {
+        current_path = user_dir;
+        current_path /= path;
+        return current_path;
+    } else if (profile == 1 && first_level == system_dir) {
+        current_path = user_dir;
+        current_path /= path.filename();
+        return current_path;
+    } else if (profile == 1 && (first_level != system_dir && first_level != user_dir)) {
+        current_path = user_dir;
+        current_path /= path.string();
+        return current_path;
+    } else if (profile == 2 && first_level == user_dir) {
+        current_path = system_dir;
+        current_path /= path.filename();
+        return current_path;
+    } else if (profile == 2 && (first_level != system_dir && first_level != user_dir)) {
+        current_path = system_dir;
+        current_path /= path;
+        return current_path;
+    } else if (profile == 2 && first_level == null_dir) {  // passing here is 1st level (/xxx) here, but first_level were cut, so null
+        current_path = system_dir;  // become /USER
+        current_path /= path;       // become /USER/xxx
+        return current_path;
+    }
+
+    return current_path;
 }
 
 const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(

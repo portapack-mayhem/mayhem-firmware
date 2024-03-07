@@ -130,7 +130,7 @@ void PlaylistView::open_file(bool prompt_save) {
     }
 
     auto open_view = nav_.push<FileLoadView>(".PPL");
-    open_view->push_dir(u"PLAYLIST");
+    open_view->push_fake_dir(u"/PLAYLIST");
     open_view->on_changed = [this](fs::path new_file_path) {
         on_file_changed(new_file_path);
     };
@@ -387,7 +387,7 @@ PlaylistView::PlaylistView(
         &waterfall,
     });
 
-    ensure_directory(u"PLAYLIST");
+    ensure_fake_directories(u"PLAYLIST");
     waterfall.show_audio_spectrum_view(false);
 
     field_frequency.set_value(transmitter_model.target_frequency());
@@ -410,7 +410,7 @@ PlaylistView::PlaylistView(
         if (is_active())
             return;
         auto open_view = nav_.push<FileLoadView>(".C*");
-        open_view->push_dir(u"CAPTURES");
+        open_view->push_fake_dir(u"/CAPTURES");
         open_view->on_changed = [this](fs::path path) {
             add_entry(std::move(path));
         };

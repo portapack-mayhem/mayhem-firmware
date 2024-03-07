@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyleft
  *
  * This file is part of PortaPack.
  *
@@ -360,6 +361,20 @@ std::filesystem::filesystem_error ensure_directory(
     return make_new_directory(dir_path);
 }
 
+void ensure_fake_directories(
+    const std::filesystem::path& dir_path){
+
+    std::filesystem::path user_dir = u"/USER";
+    std::filesystem::path system_dir = u"/BLOB";
+
+    std::filesystem::path combined_user_dir = user_dir / dir_path;
+    std::filesystem::path combimed_system_dir = system_dir / dir_path;
+
+    ensure_directory(combimed_system_dir);
+    ensure_directory(combined_user_dir);
+
+}
+
 namespace std {
 namespace filesystem {
 
@@ -443,6 +458,36 @@ path path::filename() const {
         return _s;
     } else {
         return _s.substr(index + 1);
+    }
+}
+
+path path::remove_first_level() const {  // /abc/def/ghi/hjk.q to /def/ghi/hjk.q
+
+    std::size_t start_index = _s.find(preferred_separator);
+    if (start_index == _s.npos) {
+        return _s;
+    } else {
+        start_index += 1;  // To move past the first slash
+        std::size_t end_index = _s.find(preferred_separator, start_index);
+        if (end_index == _s.npos) {
+            end_index = _s.length();  // If there's no more slashes, end at the end of the string
+        }
+        return _s.substr(end_index);
+    }
+}
+
+path path::extract_first_level() const {  // /abc/def/ghi/hjk.q to /abc
+
+    const auto first_separator = _s.find_first_of(preferred_separator);
+    if (first_separator == _s.npos) {
+        return _s;
+    } else {
+        const auto second_separator = _s.find_first_of(preferred_separator, first_separator + 1);
+        if (second_separator == _s.npos) {
+            return _s.substr(0, first_separator);
+        } else {
+            return _s.substr(0, second_separator);
+        }
     }
 }
 

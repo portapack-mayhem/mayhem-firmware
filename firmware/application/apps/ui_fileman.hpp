@@ -59,6 +59,7 @@ class FileManBaseView : public View {
     void focus() override;
     std::string title() const override { return "Fileman"; };
     void push_dir(const std::filesystem::path& path);
+    void push_fake_dir(const std::filesystem::path& path);
 
    protected:
     static constexpr size_t max_filename_length = 64;
@@ -89,6 +90,8 @@ class FileManBaseView : public View {
     void refresh_list();
     void reload_current();
     void load_directory_contents(const std::filesystem::path& dir_path);
+    std::filesystem::path jumping_between_profiles(std::filesystem::path& path, uint8_t profile);
+    std::filesystem::path profile_changer(std::filesystem::path& path, uint8_t profile);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
     NavigationView& nav_;
@@ -107,16 +110,22 @@ class FileManBaseView : public View {
     bool show_hidden_files{false};
 
     Labels labels{
-        {{0, 0}, "Path:", Color::light_grey()}};
+        {{0, 0}, "@", Color::light_grey()}};
 
     Text text_current{
-        {6 * 8, 0 * 8, 24 * 8, 16},
+        {1 * 8, 0 * 8, 20 * 8, 16},
         "",
     };
 
     MenuView menu_view{
         {0, 2 * 8, 240, 26 * 8},
         true};
+
+    OptionsField option_profile_switch{
+        {25 * 8, 0 * 8},
+        3,
+        {{"Usr", 1},
+         {"Sys", 2}}};
 
     Button button_exit{
         {22 * 8, 34 * 8, 8 * 8, 32},
