@@ -1,7 +1,4 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2017 Furrtek
- *
  * This file is part of PortaPack.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -20,9 +17,6 @@
  * Boston, MA 02110-1301, USA.
  */
 
-// Code from https://github.com/Flipper-XFW/Xtreme-Apps/tree/04c3a60093e2c2378e79498b4505aa8072980a42/ble_spam/protocols
-// Thanks for the work of the original creators!
-
 #include "ui_extsensors.hpp"
 
 #include "rtc_time.hpp"
@@ -35,6 +29,7 @@ using namespace ui;
 namespace ui::external_app::extsensors {
 
 void ExtSensorsView::focus() {
+    text_info.focus();
 }
 
 ExtSensorsView::ExtSensorsView(NavigationView& nav)
