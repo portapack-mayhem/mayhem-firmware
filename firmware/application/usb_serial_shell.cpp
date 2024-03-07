@@ -211,7 +211,7 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
-//calculates the 1 byte rgb value, and add 32 to it, so it can be a printable character.
+// calculates the 1 byte rgb value, and add 32 to it, so it can be a printable character.
 static char getChrFromRgb(uint8_t r, uint8_t g, uint8_t b) {
     uint8_t chR = r >> 6;  // 3bit
     uint8_t chG = g >> 6;  // 3bit
