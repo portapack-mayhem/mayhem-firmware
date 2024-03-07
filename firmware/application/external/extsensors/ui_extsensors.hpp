@@ -63,7 +63,7 @@ class ExtSensorsView : public View {
     Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
-    Text text_envl2{{5 * 8, 9 * 16, 24 * 8, 16}, "-"};
+    Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
 
     void on_any();
 

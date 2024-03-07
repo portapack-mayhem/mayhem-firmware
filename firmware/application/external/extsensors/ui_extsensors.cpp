@@ -77,8 +77,8 @@ void ExtSensorsView::on_environment(const EnvironmentDataMessage* msg) {
     tmp += (char)176 + 'C';                                             // °
     tmp += "; H: " + to_string_decimal(msg->humidity, 1) + "%";         // humidity
     text_envl1.set(tmp);
-    tmp = "P: " + to_string_decimal(msg->pressure, 2) + " hPa;  L:";  // pressure
-    tmp += to_string_dec_int(msg->light) + " LUX";                    // light
+    tmp = "P: " + to_string_decimal(msg->pressure, 1) + " hPa; L:";  // pressure
+    tmp += to_string_dec_int(msg->light) + " LUX";                   // light
     text_envl2.set(tmp);
 }
 
