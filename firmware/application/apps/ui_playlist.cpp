@@ -136,7 +136,6 @@ void PlaylistView::open_file(bool prompt_save) {
     };
 }
 
-/////temp commit to wake up pipline
 
 void PlaylistView::save_file(bool show_dialogs) {
     if (!playlist_dirty_ || playlist_path_.empty())
