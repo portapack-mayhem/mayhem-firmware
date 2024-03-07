@@ -34,7 +34,12 @@ void ExtSensorsView::focus() {
 
 ExtSensorsView::ExtSensorsView(NavigationView& nav)
     : nav_{nav} {
-    add_children({&labels, &text_info, &text_gps, &text_orientation});
+    add_children({&labels,
+                  &text_info,
+                  &text_gps,
+                  &text_orientation,
+                  &text_envl1,
+                  &text_envl2});
 }
 
 ExtSensorsView::~ExtSensorsView() {
@@ -64,6 +69,17 @@ void ExtSensorsView::on_orientation(const OrientationDataMessage* msg) {
         tmp += "; T: " + to_string_dec_int(msg->tilt);
     }
     text_orientation.set(tmp);
+}
+
+void ExtSensorsView::on_environment(const EnvironmentDataMessage* msg) {
+    on_any();
+    std::string tmp = "T : " + to_string_decimal(msg->temperature, 2);  // temperature
+    tmp += (char)176 + 'C';                                             // °
+    tmp += "; H: " + to_string_decimal(msg->humidity, 1) + "%";         // humidity
+    text_envl1.set(tmp);
+    tmp = "P: " + to_string_decimal(msg->pressure, 2) + " hPa;  L:";  // pressure
+    tmp += to_string_dec_int(msg->light) + " LUX";                    // light
+    text_envl2.set(tmp);
 }
 
 }  // namespace ui::external_app::extsensors

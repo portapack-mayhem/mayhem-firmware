@@ -928,7 +928,7 @@ static void cmd_gotorientation(BaseSequentialStream* chp, int argc, char* argv[]
         return;
     }
     uint16_t angle = strtol(argv[0], NULL, 10);
-    uint16_t tilt = 400;
+    int16_t tilt = 400;
     if (argc >= 2) tilt = strtol(argv[1], NULL, 10);
     OrientationDataMessage msg{angle, tilt};
     EventDispatcher::send_message(msg);

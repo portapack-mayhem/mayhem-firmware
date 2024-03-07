@@ -56,16 +56,20 @@ class ExtSensorsView : public View {
 
     Labels labels{
         {{0 * 8, 3 * 16}, "GPS:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "ORI:", Color::light_grey()}};
+        {{0 * 8, 5 * 16}, "ORI:", Color::light_grey()},
+        {{0 * 8, 7 * 16}, "ENV:", Color::light_grey()}};
 
     Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "Connect a compatible module..."};
     Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
+    Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
+    Text text_envl2{{5 * 8, 9 * 16, 24 * 8, 16}, "-"};
 
     void on_any();
 
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
+    void on_environment(const EnvironmentDataMessage* msg);
 
     MessageHandlerRegistration message_handler_gps{
         Message::ID::GPSPosData,
@@ -78,6 +82,13 @@ class ExtSensorsView : public View {
         [this](Message* const p) {
             const auto message = static_cast<const OrientationDataMessage*>(p);
             this->on_orientation(message);
+        }};
+
+    MessageHandlerRegistration message_handler_environment{
+        Message::ID::EnvironmentData,
+        [this](Message* const p) {
+            const auto message = static_cast<const EnvironmentDataMessage*>(p);
+            this->on_environment(message);
         }};
 };
 };  // namespace ui::external_app::extsensors
