@@ -362,8 +362,7 @@ std::filesystem::filesystem_error ensure_directory(
 }
 
 void ensure_fake_directories(
-    const std::filesystem::path& dir_path){
-
+    const std::filesystem::path& dir_path) {
     std::filesystem::path user_dir = u"/USER";
     std::filesystem::path system_dir = u"/BLOB";
 
@@ -372,7 +371,6 @@ void ensure_fake_directories(
 
     ensure_directory(combimed_system_dir);
     ensure_directory(combined_user_dir);
-
 }
 
 namespace std {

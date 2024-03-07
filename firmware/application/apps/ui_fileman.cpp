@@ -340,7 +340,6 @@ fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profi
         path = user_dir / path.remove_first_level();
 
     } else if ((first_level == user_dir) && profile == 2) {
-
         path = system_dir / path.remove_first_level();
     }
 
@@ -377,8 +376,8 @@ fs::path FileManBaseView::profile_changer(fs::path& path, uint8_t profile) {
         current_path /= path;
         return current_path;
     } else if (profile == 2 && first_level == null_dir) {  // passing here is 1st level (/xxx) here, but first_level were cut, so null
-        current_path = system_dir;  // become /USER
-        current_path /= path;       // become /USER/xxx
+        current_path = system_dir;                         // become /USER
+        current_path /= path;                              // become /USER/xxx
         return current_path;
     }
 
