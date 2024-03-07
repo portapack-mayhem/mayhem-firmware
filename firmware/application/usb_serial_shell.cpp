@@ -211,6 +211,7 @@ static void cmd_screenframe(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+// calculates the 1 byte rgb value, and add 32 to it, so it can be a printable character.
 static char getChrFromRgb(uint8_t r, uint8_t g, uint8_t b) {
     uint8_t chR = r >> 6;  // 3bit
     uint8_t chG = g >> 6;  // 3bit
@@ -220,26 +221,36 @@ static char getChrFromRgb(uint8_t r, uint8_t g, uint8_t b) {
     return res;
 }
 
+// keep track of a buffer, and sends only if full. not only line by line
+static void screenbuffer_helper_add(BaseSequentialStream* chp, char* buffer, size_t& wp, char ch) {
+    buffer[wp++] = ch;
+    if (wp > USBSERIAL_BUFFERS_SIZE - 1) {
+        fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, USBSERIAL_BUFFERS_SIZE);
+        wp = 0;
+    }
+}
+
 // sends only 1 byte (printable only) per pixel, so around 96 colors
 static void cmd_screenframeshort(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
-
     auto evtd = getEventDispatcherInstance();
     evtd->enter_shell_working_mode();
-
+    char buffer[USBSERIAL_BUFFERS_SIZE];
+    size_t wp = 0;
     for (int y = 0; y < ui::screen_height; y++) {
         std::array<ui::ColorRGB888, ui::screen_width> row;
         portapack::display.read_pixels({0, y, ui::screen_width, 1}, row);
-        char buffer[242];
         for (int i = 0; i < 240; ++i) {
-            buffer[i] = getChrFromRgb(row[i].r, row[i].g, row[i].b);
+            screenbuffer_helper_add(chp, buffer, wp, getChrFromRgb(row[i].r, row[i].g, row[i].b));
         }
-        buffer[240] = '\r';
-        buffer[241] = '\n';
-        fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, 242);
+        screenbuffer_helper_add(chp, buffer, wp, '\r');
+        screenbuffer_helper_add(chp, buffer, wp, '\n');
     }
-
+    if (wp > 0) {
+        // send remaining
+        fillOBuffer(&((SerialUSBDriver*)chp)->oqueue, (const uint8_t*)buffer, wp);
+    }
     evtd->exit_shell_working_mode();
     chprintf(chp, "\r\nok\r\n");
 }
