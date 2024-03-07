@@ -60,6 +60,7 @@ void ExtSensorsView::on_gps(const GPSPosDataMessage* msg) {
     tmp += to_string_decimal(msg->lon, 5);
     text_gps.set(tmp);
 }
+
 void ExtSensorsView::on_orientation(const OrientationDataMessage* msg) {
     on_any();
     std::string tmp = to_string_dec_uint(msg->angle);
