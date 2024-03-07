@@ -252,8 +252,8 @@ void FileManBaseView::push_dir(const fs::path& path) {
 void FileManBaseView::push_fake_dir(const fs::path& path) {
     fs::path first_level = path.extract_first_level();
     fs::path null_path = u"";
-    fs::path user_dir = u"/USER";
-    fs::path system_dir = u"/BLOB";
+    fs::path user_dir = u"/USR";
+    fs::path system_dir = u"/SYS";
     fs::path default_mother_dir = user_dir;
 
     if (first_level != user_dir && first_level != system_dir) {
@@ -328,8 +328,8 @@ void FileManBaseView::reload_current() {
 fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profile) {
     fs::path first_level = path.extract_first_level();
     fs::path null_path = u"";
-    fs::path user_dir = u"/USER";
-    fs::path system_dir = u"/BLOB";
+    fs::path user_dir = u"/USR";
+    fs::path system_dir = u"/SYS";
 
     if (first_level == null_path) {  // path is first level aka /abcdef
 
@@ -348,8 +348,8 @@ fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profi
 
 fs::path FileManBaseView::profile_changer(fs::path& path, uint8_t profile) {
     fs::path path_backup = path;
-    fs::path user_dir = u"/USER";
-    fs::path system_dir = u"/BLOB";
+    fs::path user_dir = u"/USR";
+    fs::path system_dir = u"/SYS";
     fs::path null_dir = u"";
 
     // first level
