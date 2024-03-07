@@ -135,7 +135,7 @@ void PlaylistView::open_file(bool prompt_save) {
         on_file_changed(new_file_path);
     };
 }
-//////temp commit to wake up pipline
+
 void PlaylistView::save_file(bool show_dialogs) {
     if (!playlist_dirty_ || playlist_path_.empty())
         return;
