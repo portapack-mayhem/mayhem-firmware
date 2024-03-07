@@ -320,10 +320,6 @@ class BMPView : public View {
     void focus() override;
 
    private:
-    Text text_info{
-        {4 * 8, 284, 20 * 8, 16},
-        "Version " VERSION_STRING};
-
     Button button_done{
         {240, 0, 1, 1},
         ""};
