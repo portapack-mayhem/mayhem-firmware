@@ -1,3 +1,5 @@
+# Drone Analog FPV Channels
+# https://oscarliang.com/fpv-channels/
 f=5865000000,d=FPV Ch A-1
 f=5845000000,d=FPV Ch A-2
 f=5825000000,d=FPV Ch A-3
