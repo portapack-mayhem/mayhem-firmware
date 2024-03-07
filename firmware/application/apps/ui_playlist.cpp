@@ -169,7 +169,7 @@ void PlaylistView::save_file(bool show_dialogs) {
 
 void PlaylistView::add_entry(fs::path&& path) {
     if (playlist_path_.empty()) {
-        playlist_path_ = next_filename_matching_pattern(u"/PLAYLIST/PLAY_????.PPL");
+        playlist_path_ = next_filename_matching_pattern(u"/USR/PLAYLIST/PLAY_????.PPL");
 
         // Hack around focus getting called by ctor before parent is set.
         if (parent())
