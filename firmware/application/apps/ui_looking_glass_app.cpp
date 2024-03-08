@@ -493,7 +493,9 @@ GlassView::GlassView(
 
 void GlassView::load_presets() {
     File presets_file;
-    auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+    auto error = presets_file.open("/SYS/LOOKINGGLASS/PRESETS.TXT");
+    // TODO: this app originally ain't support user load list.
+    //  should support, but ain't have funtionality loss in sdcard refactor PR.
     presets_db.clear();
 
     // Add the "Manual" entry.

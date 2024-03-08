@@ -138,7 +138,7 @@ class BLETxView : public View {
     uint32_t prev_value{0};
 
     std::filesystem::path file_path{};
-    std::filesystem::path packet_save_path{u"BLETX/BLETX_????.TXT"};
+    std::filesystem::path packet_save_path{u"/USR/BLETX/BLETX_????.TXT"};
     uint8_t channel_number = 37;
     bool auto_channel = false;
 
@@ -165,7 +165,7 @@ class BLETxView : public View {
 
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
-    std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
+    std::filesystem::path dataTempFilePath{u"/SYS/BLETX/dataFileTemp.TXT"};
     std::vector<uint16_t> markedBytes{};
     CursorPos cursor_pos{};
     uint8_t marked_counter = 0;

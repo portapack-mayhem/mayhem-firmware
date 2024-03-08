@@ -142,7 +142,7 @@ WhipCalcView::WhipCalcView(NavigationView& nav)
 
 void WhipCalcView::load_antenna_db() {
     File antennas_file;
-    auto error = antennas_file.open("/WHIPCALC/ANTENNAS.TXT");
+    auto error = antennas_file.open("/SYS/WHIPCALC/ANTENNAS.TXT");
 
     if (error)
         return;

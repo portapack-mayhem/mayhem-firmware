@@ -107,12 +107,14 @@ void FreqManBaseView::change_category(size_t new_index) {
         return;
 
     current_category_index = new_index;
-    // sys
-    if (!db_.open(get_freqman_path(current_category(), 2))) {
-        // usr
-        if (!db_.open(get_freqman_path(current_category(), 1))) {
-            error_ = ERROR_ACCESS;
-        }
+
+    current_is_system_item = false;
+    if (!db_.open(get_freqman_path(current_category(), dir_profile::ProfileSystem))) {
+        current_is_system_item = true;
+    }
+
+    if (!db_.open(get_freqman_path(current_category(), dir_profile::ProfileUser))) {
+        error_ = ERROR_ACCESS;
     }
 
     freqlist_view.set_db(db_);
@@ -135,9 +137,8 @@ void FreqManBaseView::refresh_categories() {
 
     };
 
-    //these order also controlled the order that loading to cathegory optionfield?
-    load_files(freqman_user_dir);
     load_files(freqman_dir);
+    load_files(freqman_user_dir);
 
 
     // Alphabetically sort the categories.
@@ -266,7 +267,7 @@ void FrequencyManagerView::on_del_category() {
         [this](bool choice) {
             if (choice) {
                 db_.close();  // Ensure file is closed.
-                auto path = get_freqman_path(current_category(), 1);
+                auto path = get_freqman_path(current_category(), dir_profile::ProfileUser); //only allow del user's
                 delete_file(path);
                 refresh_categories();
             }
@@ -326,6 +327,9 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_del_category.on_select = [this]() {
+        if(current_is_system_item){
+            nav_.display_modal("Forbid", "Can't delete system item.\nIf you have to,\ndelete with file manager.");
+        }
         on_del_category();
     };
 

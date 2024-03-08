@@ -208,13 +208,13 @@ SSTVTXView::SSTVTXView(
     uint32_t c;
 
     // Search for valid bitmaps
-    file_list = scan_root_files(u"/sstv", u"*.bmp");
+    file_list = scan_root_files(u"/SYS/sstv", u"*.bmp"); //TODO: should support user dir.
     if (!file_list.size()) {
         file_error = true;
         return;
     }
     for (const auto& file_name : file_list) {
-        if (!bmp_file.open("/sstv/" + file_name.string()).is_valid()) {
+        if (!bmp_file.open("/SYS//sstv/" + file_name.string()).is_valid()) {
             bmp_file.read(&bmp_header, sizeof(bmp_header));
             if ((bmp_header.signature == 0x4D42) &&  // "BM"
                 (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now

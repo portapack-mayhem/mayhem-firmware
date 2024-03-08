@@ -45,11 +45,6 @@ enum freqman_entry_modulation : uint8_t {
     SPEC_MODULATION
 };
 
-enum dir_profile : uint8_t { //todo: profile not using enum yet
-    DIR_PROFILE_USER = 1,
-    DIR_PROFILE_SYSTEM = 2
-};
-
 // TODO: Can these be removed after Recon is migrated to FreqmanDB?
 int32_t freqman_entry_get_step_value(freqman_index_t step);
 

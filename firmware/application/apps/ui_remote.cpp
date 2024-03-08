@@ -246,7 +246,7 @@ RemoteEntryEditView::RemoteEntryEditView(
 
     field_path.on_select = [this, &nav](TextField&) {
         auto open_view = nav.push<FileLoadView>(".C*");
-        open_view->push_dir(u"CAPTURES");
+        open_view->push_fake_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
             load_path(std::move(path));
             refresh_ui();
@@ -527,7 +527,7 @@ void RemoteView::new_remote() {
 
 void RemoteView::open_remote() {
     auto open_view = nav_.push<FileLoadView>(".REM");
-    open_view->push_dir(u"REMOTES");
+    open_view->push_fake_dir(u"REMOTES");
     open_view->on_changed = [this](fs::path path) {
         save_remote();
         load_remote(std::move(path));
