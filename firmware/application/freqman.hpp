@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2023 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -42,6 +43,11 @@ enum freqman_entry_modulation : uint8_t {
     NFM_MODULATION,
     WFM_MODULATION,
     SPEC_MODULATION
+};
+
+enum dir_profile : uint8_t { //todo: profile not using enum yet
+    DIR_PROFILE_USER = 1,
+    DIR_PROFILE_SYSTEM = 2
 };
 
 // TODO: Can these be removed after Recon is migrated to FreqmanDB?

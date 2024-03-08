@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -37,6 +38,7 @@
 
 /* Defined in freqman_db.cpp */
 extern const std::filesystem::path freqman_dir;
+extern const std::filesystem::path freqman_user_dir;
 extern const std::filesystem::path freqman_extension;
 
 using freqman_index_t = uint8_t;
@@ -175,9 +177,9 @@ using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
 /* Gets the full path for a given file stem (no extension). */
-const std::filesystem::path get_freqman_path(const std::string& stem);
+const std::filesystem::path get_freqman_path(const std::string& stem, uint8_t profile);
 bool create_freqman_file(const std::string& file_stem);
-bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options, uint8_t profile);
 void delete_freqman_file(const std::string& file_stem);
 
 /* Gets a pretty string representation for an entry. */

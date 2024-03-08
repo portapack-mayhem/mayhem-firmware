@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
  *
@@ -106,8 +107,12 @@ void FreqManBaseView::change_category(size_t new_index) {
         return;
 
     current_category_index = new_index;
-    if (!db_.open(get_freqman_path(current_category()))) {
-        error_ = ERROR_ACCESS;
+    // sys
+    if (!db_.open(get_freqman_path(current_category(), 2))) {
+        // usr
+        if (!db_.open(get_freqman_path(current_category(), 1))) {
+            error_ = ERROR_ACCESS;
+        }
     }
 
     freqlist_view.set_db(db_);
@@ -116,15 +121,24 @@ void FreqManBaseView::change_category(size_t new_index) {
 void FreqManBaseView::refresh_categories() {
     OptionsField::options_t new_categories;
 
-    scan_root_files(
-        freqman_dir, u"*.TXT", [&new_categories](const fs::path& path) {
-            // Skip temp/hidden files.
-            if (path.empty() || path.native()[0] == u'.')
-                return;
+    auto load_files = [&new_categories](const fs::path& dir) {
 
-            // The UI layer will truncate long file names when displaying.
-            new_categories.emplace_back(path.stem().string(), new_categories.size());
-        });
+        scan_root_files(
+            dir, u"*.TXT", [&new_categories](const fs::path& path) {
+                // Skip temp/hidden files.
+                if (path.empty() || path.native()[0] == u'.')
+                    return;
+
+                // The UI layer will truncate long file names when displaying.
+                new_categories.emplace_back(path.stem().string(), new_categories.size());
+            });
+
+    };
+
+    //these order also controlled the order that loading to cathegory optionfield?
+    load_files(freqman_user_dir);
+    load_files(freqman_dir);
+
 
     // Alphabetically sort the categories.
     std::sort(new_categories.begin(), new_categories.end(), [](auto& left, auto& right) {
@@ -252,7 +266,7 @@ void FrequencyManagerView::on_del_category() {
         [this](bool choice) {
             if (choice) {
                 db_.close();  // Ensure file is closed.
-                auto path = get_freqman_path(current_category());
+                auto path = get_freqman_path(current_category(), 1);
                 delete_file(path);
                 refresh_categories();
             }

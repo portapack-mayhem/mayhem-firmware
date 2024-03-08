@@ -490,7 +490,7 @@ ScannerView::ScannerView(
     // Button to add current frequency (found during Search) to the Scan Frequency List
     button_add.on_select = [this](Button&) {
         FreqmanDB db;
-        if (db.open(get_freqman_path(freqman_file), /*create*/ true)) {
+        if (db.open(get_freqman_path(freqman_file, 1), /*create*/ true)) {
             freqman_entry entry{
                 .frequency_a = current_frequency,
                 .type = freqman_type::Single,
@@ -536,7 +536,7 @@ ScannerView::ScannerView(
     receiver_model.set_squelch_level(0);
 
     // LOAD FREQUENCIES
-    frequency_file_load(get_freqman_path(freqman_file));
+    frequency_file_load(get_freqman_path(freqman_file, 1));
 }
 
 void ScannerView::frequency_file_load(const fs::path& path) {
