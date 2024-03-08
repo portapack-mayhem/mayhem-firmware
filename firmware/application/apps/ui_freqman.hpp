@@ -126,6 +126,7 @@ class FrequencyManagerView : public FreqManBaseView {
     std::string title() const override { return "Freqman"; }
 
    private:
+    bool forbid_delete_system_item_helper(NavigationView& nav);
     std::string temp_buffer_{};
 
     void on_edit_entry();
