@@ -173,7 +173,7 @@ void SSTVTXView::start_tx() {
 }
 
 void SSTVTXView::on_bitmap_changed(const size_t index) {
-    bmp_file.open("/sstv/" + bitmaps[index].string());
+    bmp_file.open("/SYS/sstv/" + bitmaps[index].string());
     bmp_file.read(&bmp_header, sizeof(bmp_header));
     set_dirty();
 }
@@ -214,7 +214,7 @@ SSTVTXView::SSTVTXView(
         return;
     }
     for (const auto& file_name : file_list) {
-        if (!bmp_file.open("/SYS//sstv/" + file_name.string()).is_valid()) {
+        if (!bmp_file.open("/SYS/sstv/" + file_name.string()).is_valid()) {
             bmp_file.read(&bmp_header, sizeof(bmp_header));
             if ((bmp_header.signature == 0x4D42) &&  // "BM"
                 (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now

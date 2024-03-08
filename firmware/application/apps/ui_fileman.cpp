@@ -215,14 +215,14 @@ FileManBaseView::FileManBaseView(
         };
     }
 
-    option_profile_switch.on_change = [this](size_t, uint32_t options) {
-        switch (options) {
-            case 1:
-                jumping_between_profiles(current_path, 1);
+    option_profile_switch.on_change = [this](size_t, uint8_t profiles) {
+        switch (static_cast<DirProfiles>(profiles)) {
+            case DirProfiles::User:
+                jumping_between_profiles(current_path, DirProfiles::User);
                 break;
 
-            case 2:
-                jumping_between_profiles(current_path, 2);
+            case DirProfiles::System:
+                jumping_between_profiles(current_path, DirProfiles::System);
                 break;
         }
 
@@ -325,7 +325,7 @@ void FileManBaseView::reload_current() {
     refresh_list();
 }
 
-fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profile) {
+fs::path FileManBaseView::jumping_between_profiles(fs::path& path, DirProfiles profile) {
     fs::path first_level = path.extract_first_level();
     fs::path null_path = u"";
     fs::path user_dir = u"/USR";
@@ -335,11 +335,11 @@ fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profi
 
         return path;
 
-    } else if ((first_level == system_dir) && profile == 1) {  // jump to sys mother dir if profile asks
+    } else if ((first_level == system_dir) && profile == DirProfiles::User) {  // jump to sys mother dir if profile asks
 
         path = user_dir / path.remove_first_level();
 
-    } else if ((first_level == user_dir) && profile == 2) {
+    } else if ((first_level == user_dir) && profile == DirProfiles::System) {
         path = system_dir / path.remove_first_level();
     }
 
@@ -457,7 +457,7 @@ void FileManagerView::refresh_widgets(const bool v) {
     button_paste.hidden(v);
     button_new_dir.hidden(v);
     button_new_file.hidden(v);
-
+    option_profile_switch.hidden(!v);
     set_dirty();
 }
 
@@ -716,5 +716,4 @@ FileManagerView::FileManagerView(
         reload_current();
     };
 }
-
 }  // namespace ui

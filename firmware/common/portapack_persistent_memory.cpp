@@ -1109,7 +1109,7 @@ size_t data_size() {
 
 bool debug_dump() {
     ui::Painter painter{};
-    std::string debug_dir = "DEBUG";
+    std::string debug_dir = "/USR/DEBUG";
     std::filesystem::path filename{};
     File pmem_dump_file{};
     // create new dump file name and DEBUG directory

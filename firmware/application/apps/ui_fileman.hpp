@@ -48,6 +48,11 @@ enum class ClipboardMode : uint8_t {
     Copy
 };
 
+enum class DirProfiles : uint8_t {
+    User = 1,
+    System
+};
+
 class FileManBaseView : public View {
    public:
     FileManBaseView(
@@ -90,7 +95,7 @@ class FileManBaseView : public View {
     void refresh_list();
     void reload_current();
     void load_directory_contents(const std::filesystem::path& dir_path);
-    std::filesystem::path jumping_between_profiles(std::filesystem::path& path, uint8_t profile);
+    std::filesystem::path jumping_between_profiles(std::filesystem::path& path, DirProfiles profile);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
     NavigationView& nav_;
@@ -108,7 +113,7 @@ class FileManBaseView : public View {
     bool show_hidden_files{false};
 
     Labels labels{
-        {{0, 0}, "@", Color::light_grey()}};
+        {{0, 0}, "\u007F", Color::white()}};
 
     Text text_current{
         {1 * 8, 0 * 8, 20 * 8, 16},
@@ -120,10 +125,10 @@ class FileManBaseView : public View {
         true};
 
     OptionsField option_profile_switch{
-        {25 * 8, 0 * 8},
-        3,
-        {{"Usr", 1},
-         {"Sys", 2}}};
+        {0 * 8, 32 * 8},
+        29,
+        {{"  <User Directory: \u007F/USR/>  ", 1},
+         {"  <System Directory: \u007F/SYS/> ", 2}}};
 
     Button button_exit{
         {22 * 8, 34 * 8, 8 * 8, 32},

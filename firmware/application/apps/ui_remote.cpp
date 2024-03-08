@@ -355,7 +355,7 @@ RemoteView::RemoteView(
     Dim waterfall_height = waterfall_bottom - waterfall_top;
     waterfall.set_parent_rect({0, waterfall_top, screen_width, waterfall_height});
 
-    ensure_directory(u"REMOTES");
+    ensure_fake_directories(u"REMOTES");
 
     // Load the previously loaded remote if exists.
     if (!load_remote(settings_.remote_path))
@@ -538,7 +538,7 @@ void RemoteView::open_remote() {
 void RemoteView::init_remote() {
     model_ = {"<Unnamed Remote>", {}};
     reset_buttons();
-    set_remote_path(next_filename_matching_pattern(u"/REMOTES/REMOTE_????.REM"));
+    set_remote_path(next_filename_matching_pattern(u"/USR/REMOTES/REMOTE_????.REM"));
     set_needs_save(false);
 
     if (remote_path_.empty())

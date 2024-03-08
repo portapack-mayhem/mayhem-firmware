@@ -330,7 +330,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                               u"AUTO_AUDIO", u"AUDIO",
+                                               u"AUTO_AUDIO", u"/USR/AUDIO",
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
     record_view->set_auto_trim(false);
@@ -1169,7 +1169,7 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
                                                    RecordView::FileType::RawS16, 16384, 3);
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_AUDIO", u"AUDIO",
+                                                   u"AUTO_AUDIO", u"/USR/AUDIO",
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
     }
