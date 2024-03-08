@@ -91,7 +91,6 @@ class FileManBaseView : public View {
     void reload_current();
     void load_directory_contents(const std::filesystem::path& dir_path);
     std::filesystem::path jumping_between_profiles(std::filesystem::path& path, uint8_t profile);
-    std::filesystem::path profile_changer(std::filesystem::path& path, uint8_t profile);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
     NavigationView& nav_;
@@ -99,7 +98,6 @@ class FileManBaseView : public View {
     EmptyReason empty_{EmptyReason::NotEmpty};
     std::function<void(KeyEvent)> on_select_entry{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
-
     const std::filesystem::path parent_dir_path{u".."};
     std::filesystem::path current_path{u""};
     std::filesystem::path extension_filter{u""};

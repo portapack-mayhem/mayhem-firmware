@@ -346,44 +346,6 @@ fs::path FileManBaseView::jumping_between_profiles(fs::path& path, uint8_t profi
     return path;
 }
 
-fs::path FileManBaseView::profile_changer(fs::path& path, uint8_t profile) {
-    fs::path path_backup = path;
-    fs::path user_dir = u"/USR";
-    fs::path system_dir = u"/SYS";
-    fs::path null_dir = u"";
-
-    // first level
-    fs::path first_level = path.parent_path();
-
-    if ((first_level != system_dir && first_level != user_dir) && profile == 0) {
-        current_path = user_dir;
-        current_path /= path;
-        return current_path;
-    } else if (profile == 1 && first_level == system_dir) {
-        current_path = user_dir;
-        current_path /= path.filename();
-        return current_path;
-    } else if (profile == 1 && (first_level != system_dir && first_level != user_dir)) {
-        current_path = user_dir;
-        current_path /= path.string();
-        return current_path;
-    } else if (profile == 2 && first_level == user_dir) {
-        current_path = system_dir;
-        current_path /= path.filename();
-        return current_path;
-    } else if (profile == 2 && (first_level != system_dir && first_level != user_dir)) {
-        current_path = system_dir;
-        current_path /= path;
-        return current_path;
-    } else if (profile == 2 && first_level == null_dir) {  // passing here is 1st level (/xxx) here, but first_level were cut, so null
-        current_path = system_dir;                         // become /USER
-        current_path /= path;                              // become /USER/xxx
-        return current_path;
-    }
-
-    return current_path;
-}
-
 const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
     const fs::path& ext) const {
     size_t index = 0;
