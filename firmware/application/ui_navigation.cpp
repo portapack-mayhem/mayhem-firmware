@@ -740,38 +740,53 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
 
 /* ReceiversMenuView *****************************************************/
 
-ReceiversMenuView::ReceiversMenuView(NavigationView& nav) {
+ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
+    : nav_(nav)
+{}
+
+void ReceiversMenuView::on_populate()
+{
     if (pmem::show_gui_return_icon()) {
-        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }});
+        add_item({"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
 
-    add_apps(nav, *this, RX);
+    add_apps(nav_, *this, RX);
 
-    addExternalItems(nav, app_location_t::RX, *this);
+    addExternalItems(nav_, app_location_t::RX, *this);
 }
 
 /* TransmittersMenuView **************************************************/
 
-TransmittersMenuView::TransmittersMenuView(NavigationView& nav) {
+TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
+    : nav_(nav)
+{}
+
+void TransmittersMenuView::on_populate()
+{
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
-    add_apps(nav, *this, TX);
+    add_apps(nav_, *this, TX);
 
-    addExternalItems(nav, app_location_t::TX, *this);
+    addExternalItems(nav_, app_location_t::TX, *this);
 }
 
 /* UtilitiesMenuView *****************************************************/
 
-UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav) {
+UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
+    : nav_(nav)
+{}
+
+void UtilitiesMenuView::on_populate()
+{
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
-    add_apps(nav, *this, UTILITIES);
+    add_apps(nav_, *this, UTILITIES);
 
-    addExternalItems(nav, app_location_t::UTILITIES, *this);
+    addExternalItems(nav_, app_location_t::UTILITIES, *this);
 
     set_max_rows(2);  // allow wider buttons
 }
@@ -790,10 +805,15 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
         });
 }
 
-SystemMenuView::SystemMenuView(NavigationView& nav) {
-    add_apps(nav, *this, HOME);
+SystemMenuView::SystemMenuView(NavigationView& nav)
+    : nav_(nav)
+{}
 
-    add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this, &nav]() { hackrf_mode(nav); }});
+void SystemMenuView::on_populate()
+{
+    add_apps(nav_, *this, HOME);
+
+    add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 
     set_max_rows(2);  // allow wider buttons
     set_arrow_enabled(false);

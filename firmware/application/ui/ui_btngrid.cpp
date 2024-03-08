@@ -212,6 +212,18 @@ void BtnGridView::on_blur() {
 #endif
 }
 
+void BtnGridView::on_show() {
+    on_populate();
+    
+    View::on_show();
+}
+
+void BtnGridView::on_hide() {
+    View::on_hide();
+
+    menu_items.clear();
+}
+
 bool BtnGridView::on_key(const KeyEvent key) {
     switch (key) {
         case KeyEvent::Up:
