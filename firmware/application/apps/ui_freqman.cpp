@@ -96,7 +96,7 @@ void FreqManBaseView::focus() {
     if (error_ == ERROR_ACCESS) {
         nav_.display_modal("Error", "File access error", ABORT);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT);
+        nav_.display_modal("Error", "No database files\nin either /USR/FREQMAN\nor /SYS/FREQMAN", ABORT);
     } else {
         options_category.focus();
     }
@@ -302,7 +302,7 @@ bool FrequencyManagerView::forbid_delete_system_item_helper(NavigationView& nav)
     // this is just a modal, however, it's been forbidden in those handler.
 
     if (current_is_system_item) {
-        nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndelete with file manager.");
+        nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndo it with file manager.");
     }
 
     return current_is_system_item;

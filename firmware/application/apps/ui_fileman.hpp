@@ -127,8 +127,8 @@ class FileManBaseView : public View {
     OptionsField option_profile_switch{
         {0 * 8, 32 * 8},
         29,
-        {{"  <User Directory: \u007F/USR/>  ", 1},
-         {"  <System Directory: \u007F/SYS/> ", 2}}};
+        {{"   \u007F/USR/ (User Directory)   ", 1},
+         {"   \u007F/SYS/ (System Directory) ", 2}}};
 
     Button button_exit{
         {22 * 8, 34 * 8, 8 * 8, 32},

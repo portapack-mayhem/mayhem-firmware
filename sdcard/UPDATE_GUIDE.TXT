@@ -1,0 +1,13 @@
+- Your personal files (Capture, log, personal lists, etc) are storage in /USR/
+
+- The /SYS/ only contains official release blob files,
+which is not suggested to edit or save things into it;
+So you can easily replace it during updating.
+
+- The /FIRMWARE folder and /APPS folder would be automatically controlled by serial updating or .tar file flashing;
+
+- If you want to update firmware and apps:
+you only need to use hackrf.app web serial PWA app, or put .tar package into /FIRMWARE folder and user flash utilty app.
+
+- If you want to update official release sdcard blob files:
+simply replace (or delete and paste) entire /SYS folder, since your personal files are not in it.
