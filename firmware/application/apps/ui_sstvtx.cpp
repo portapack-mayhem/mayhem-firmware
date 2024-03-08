@@ -208,7 +208,7 @@ SSTVTXView::SSTVTXView(
     uint32_t c;
 
     // Search for valid bitmaps
-    file_list = scan_root_files(u"/SYS/sstv", u"*.bmp"); //TODO: should support user dir.
+    file_list = scan_root_files(u"/SYS/sstv", u"*.bmp");  // TODO: should support user dir.
     if (!file_list.size()) {
         file_error = true;
         return;

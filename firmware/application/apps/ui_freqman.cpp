@@ -113,7 +113,7 @@ void FreqManBaseView::change_category(size_t new_index) {
         current_is_system_item = false;
     }
 
-    if (!current_is_system_item && // <<< this means that entered previus condition, it's a work around to save 1 byte of ram
+    if (!current_is_system_item &&  // <<< this means that entered previus condition, it's a work around to save 1 byte of ram
         (!db_.open(
             get_freqman_path(current_category(), dir_profile::ProfileUser)))) {
         error_ = ERROR_ACCESS;
@@ -298,8 +298,8 @@ void FrequencyManagerView::on_del_entry() {
             }
         });
 }
-bool FrequencyManagerView::forbid_delete_system_item_helper(NavigationView& nav){
-    //this is just a modal, however, it's been forbidden in those handler.
+bool FrequencyManagerView::forbid_delete_system_item_helper(NavigationView& nav) {
+    // this is just a modal, however, it's been forbidden in those handler.
 
     if (current_is_system_item) {
         nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndelete with file manager.");
@@ -331,42 +331,42 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_add_category.on_select = [this]() {
-        //this one will only directly add to /USR/FREQMAN
-            on_add_category();
+        // this one will only directly add to /USR/FREQMAN
+        on_add_category();
     };
 
     button_del_category.on_select = [this, &nav]() {
-        if(!forbid_delete_system_item_helper(nav)) {
+        if (!forbid_delete_system_item_helper(nav)) {
             on_del_category();
         }
     };
 
     button_edit_entry.on_select = [this, &nav](Button&) {
-        if(!forbid_delete_system_item_helper(nav)) {
+        if (!forbid_delete_system_item_helper(nav)) {
             on_edit_entry();
         }
     };
 
     button_edit_freq.on_select = [this, &nav](Button&) {
-        if(!forbid_delete_system_item_helper(nav)) {
+        if (!forbid_delete_system_item_helper(nav)) {
             on_edit_freq();
         }
     };
 
     button_edit_desc.on_select = [this, &nav](Button&) {
-        if(!forbid_delete_system_item_helper(nav)) {
+        if (!forbid_delete_system_item_helper(nav)) {
             on_edit_desc();
         }
     };
 
     button_add_entry.on_select = [this, &nav]() {
-        if(!forbid_delete_system_item_helper(nav)) {
+        if (!forbid_delete_system_item_helper(nav)) {
             on_add_entry();
         }
     };
 
     button_del_entry.on_select = [this, &nav]() {
-        if(!forbid_delete_system_item_helper(nav)) {
+        if (!forbid_delete_system_item_helper(nav)) {
             on_del_entry();
         }
     };

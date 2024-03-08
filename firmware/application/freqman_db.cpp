@@ -222,13 +222,12 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
     return {};
 }
 
-
 const std::filesystem::path get_freqman_path(const std::string& stem, dir_profile profile) {
     switch (profile) {
-        case dir_profile::ProfileUser :
+        case dir_profile::ProfileUser:
             return freqman_user_dir / stem + freqman_extension;
             break;
-        case dir_profile::ProfileSystem :
+        case dir_profile::ProfileSystem:
             return freqman_dir / stem + freqman_extension;
             break;
         default:
@@ -238,8 +237,8 @@ const std::filesystem::path get_freqman_path(const std::string& stem, dir_profil
 }
 
 bool create_freqman_file(const std::string& file_stem) {
-    //always create in user dir, so no judgement here
-    auto fs_error = make_new_file(get_freqman_path(file_stem, dir_profile::ProfileUser)); //create on usr dir
+    // always create in user dir, so no judgement here
+    auto fs_error = make_new_file(get_freqman_path(file_stem, dir_profile::ProfileUser));  // create on usr dir
     return fs_error.ok();
 }
 
@@ -248,7 +247,7 @@ bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_loa
 }
 
 void delete_freqman_file(const std::string& file_stem) {
-    delete_file(get_freqman_path(file_stem, dir_profile::ProfileUser)); //don't allow to delete sys files
+    delete_file(get_freqman_path(file_stem, dir_profile::ProfileUser));  // don't allow to delete sys files
 }
 
 std::string pretty_string(const freqman_entry& entry, size_t max_length) {
