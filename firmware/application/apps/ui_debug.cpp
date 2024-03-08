@@ -446,8 +446,7 @@ void DebugControlsView::focus() {
 /* DebugPeripheralsMenuView **********************************************/
 
 DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav)
-    : nav_(nav)
-{
+    : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
 }
 
@@ -480,8 +479,7 @@ void DebugReboot::on_populate() {
 /* DebugMenuView *********************************************************/
 
 DebugMenuView::DebugMenuView(NavigationView& nav)
-    : nav_(nav)
-{
+    : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
 }
 

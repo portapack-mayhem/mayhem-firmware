@@ -741,11 +741,9 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
 /* ReceiversMenuView *****************************************************/
 
 ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
-    : nav_(nav)
-{}
+    : nav_(nav) {}
 
-void ReceiversMenuView::on_populate()
-{
+void ReceiversMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
         add_item({"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
@@ -758,11 +756,9 @@ void ReceiversMenuView::on_populate()
 /* TransmittersMenuView **************************************************/
 
 TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
-    : nav_(nav)
-{}
+    : nav_(nav) {}
 
-void TransmittersMenuView::on_populate()
-{
+void TransmittersMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
@@ -775,11 +771,9 @@ void TransmittersMenuView::on_populate()
 /* UtilitiesMenuView *****************************************************/
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
-    : nav_(nav)
-{}
+    : nav_(nav) {}
 
-void UtilitiesMenuView::on_populate()
-{
+void UtilitiesMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
         add_items({{"..", Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
@@ -806,11 +800,9 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav)
-    : nav_(nav)
-{}
+    : nav_(nav) {}
 
-void SystemMenuView::on_populate()
-{
+void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
 
     add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});

@@ -339,7 +339,7 @@ class TransmittersMenuView : public BtnGridView {
    public:
     TransmittersMenuView(NavigationView& nav);
     std::string title() const override { return "Transmit"; };
-    
+
    private:
     NavigationView& nav_;
     void on_populate() override;
@@ -349,7 +349,7 @@ class UtilitiesMenuView : public BtnGridView {
    public:
     UtilitiesMenuView(NavigationView& nav);
     std::string title() const override { return "Utilities"; };
-    
+
    private:
     NavigationView& nav_;
     void on_populate() override;

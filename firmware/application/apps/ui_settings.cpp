@@ -836,8 +836,7 @@ void SetMenuColorView::focus() {
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
-    : nav_(nav)
-{
+    : nav_(nav) {
     set_max_rows(2);  // allow wider buttons
 }
 

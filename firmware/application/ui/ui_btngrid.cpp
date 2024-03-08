@@ -214,7 +214,7 @@ void BtnGridView::on_blur() {
 
 void BtnGridView::on_show() {
     on_populate();
-    
+
     View::on_show();
 }
 

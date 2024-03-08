@@ -422,16 +422,16 @@ class DebugPeripheralsMenuView : public BtnGridView {
    public:
     DebugPeripheralsMenuView(NavigationView& nav);
     std::string title() const override { return "Peripherals"; };
-    
+
    private:
-    NavigationView &nav_;
+    NavigationView& nav_;
     void on_populate() override;
 };
 
 class DebugReboot : public BtnGridView {
    public:
     DebugReboot(NavigationView& nav);
-    
+
    private:
     void on_populate() override;
 };
@@ -440,9 +440,9 @@ class DebugMenuView : public BtnGridView {
    public:
     DebugMenuView(NavigationView& nav);
     std::string title() const override { return "Debug"; };
-    
+
    private:
-    NavigationView &nav_;
+    NavigationView& nav_;
     void on_populate() override;
 };
 

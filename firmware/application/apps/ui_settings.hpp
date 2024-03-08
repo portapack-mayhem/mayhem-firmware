@@ -793,9 +793,9 @@ class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);
     std::string title() const override { return "Settings"; };
-    
+
    private:
-    NavigationView &nav_;
+    NavigationView& nav_;
     void on_populate() override;
 };
 
