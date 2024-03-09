@@ -367,13 +367,38 @@ bool MAX2839::set_frequency(const rf::Frequency lo_frequency) {
 
     return true;
 }
-
-void MAX2839::set_rx_lo_iq_calibration(const size_t v) {
+/*
+void MAX2839::set_rx_LO_iq_phase_calibration(const size_t v) {   // Original code , rewritten below
     _map.r.rxrf_2.RX_IQERR_SPI_EN = 1;
     _dirty[Register::RXRF_2] = 1;
     _map.r.rxrf_1.iqerr_trim = v;
     _dirty[Register::RXRF_1] = 1;
     flush();
+}*/
+
+void MAX2839::set_rx_LO_iq_phase_calibration(const size_t v) {
+    /*  RX IQ phase deg CAL adj  (+4 ...-4)  in 64 steps (6 bits), 000000 = +4deg (Q lags I by 94degs, default), 011111 = +0deg, 111111 = -4deg (Q lags I by 86degs) */
+
+    // RX calibration , Logic pins , ENABLE, RXENABLE, TXENABLE = 1,1,0 (3dec), and  Reg address 16, D1 (CAL mode 1):DO (CHIP ENABLE 1)
+    set_mode(Mode::Rx_Calibration);  // write to ram 3 LOGIC Pins .
+
+    gpio_max283x_enable.output();  // max2839 has only 2 x pins + regs to decide mode.
+    gpio_max2839_rxtx.output();    // Here is combined rx & tx pin in one port.
+
+    _map.r.spi_en.CAL_SPI = 1;  // Register Settings reg address 16,  D1 (CAL mode 1)
+    _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (CHIP ENABLE 1)
+    flush_one(Register::SPI_EN);
+
+    _map.r.rxrf_2.RX_IQERR_SPI_EN = 1;  // reg 2 D<2> = 1, RX LO IQ calibration SPI control. Active when Address 2 D<2> = 1.
+    _dirty[Register::RXRF_2] = 1;
+
+    _map.r.rxrf_1.iqerr_trim = v;
+    _dirty[Register::RXRF_1] = 1;
+    flush();
+
+    _map.r.spi_en.CAL_SPI = 0;  // Register Settings reg address 16,  D1 (CAL mode 1)
+    _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (CHIP ENABLE 1)
+    flush_one(Register::SPI_EN);
 }
 
 void MAX2839::set_rx_buff_vcm(const size_t v) {
