@@ -54,6 +54,7 @@ class RSSI : public Widget {
     int16_t get_avg();
     int16_t get_max();
     int16_t get_delta();
+    int16_t get_rx_saturation();
     void set_vertical_rssi(bool enabled);
     void set_peak(bool enabled, size_t duration);
 
@@ -67,6 +68,7 @@ class RSSI : public Widget {
     int16_t avg_ = 0;
     int16_t max_ = 0;
     int16_t peak_ = 0;
+    int16_t rx_saturation_ = 0;
     size_t peak_duration_ = 0;
     bool instant_exec_{false};
 

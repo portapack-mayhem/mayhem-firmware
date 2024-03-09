@@ -134,8 +134,9 @@ class Message {
 
 struct RSSIStatistics {
     uint32_t accumulator{0};
-    uint32_t min{0};
-    uint32_t max{0};
+    uint16_t min{0};
+    uint16_t max{0};
+    uint16_t rx_saturation{0};
     uint32_t count{0};
 };
 
