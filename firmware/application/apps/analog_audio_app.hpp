@@ -136,17 +136,10 @@ class SPECOptionsView : public View {
     Text text_rx_cal{
         {19 * 8, 0 * 16, 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
         "Rx_IQ_CAL  "};
-    NumberField field_rx_iq_phase_cal_2837{
+    NumberField field_rx_iq_phase_cal{
         {28 * 8, 0 * 16},
         2,
-        {0, 31},  // 5 bits IQ CAL phase adjustment.
-        1,
-        ' ',
-    };
-    NumberField field_rx_iq_phase_cal_2839{
-        {28 * 8, 0 * 16},
-        2,
-        {0, 63},  // 6 bits IQ CAL phase adjustment.
+        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
         ' ',
     };
