@@ -163,23 +163,23 @@ void RSSI::paint(Painter& painter) {
     }
 }
 
-int16_t RSSI::get_min() {
+uint8_t RSSI::get_min() {
     return min_;
 }
 
-int16_t RSSI::get_avg() {
+uint8_t RSSI::get_avg() {
     return avg_;
 }
 
-int16_t RSSI::get_max() {
+uint8_t RSSI::get_max() {
     return max_;
 }
 
-int16_t RSSI::get_delta() {
+uint8_t RSSI::get_delta() {
     return max_ - min_;
 }
 
-int16_t RSSI::get_rx_saturation() {
+uint8_t RSSI::get_rx_saturation() {
     return rx_saturation_;
 }
 

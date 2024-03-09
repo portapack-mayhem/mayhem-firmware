@@ -50,11 +50,11 @@ class RSSI : public Widget {
     }
 
     // get last used/received min/avg/max/delta
-    int16_t get_min();
-    int16_t get_avg();
-    int16_t get_max();
-    int16_t get_delta();
-    int16_t get_rx_saturation();
+    uint8_t get_min();
+    uint8_t get_avg();
+    uint8_t get_max();
+    uint8_t get_delta();
+    uint8_t get_rx_saturation();
     void set_vertical_rssi(bool enabled);
     void set_peak(bool enabled, size_t duration);
 
