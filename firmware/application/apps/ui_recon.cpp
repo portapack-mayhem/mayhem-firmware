@@ -104,18 +104,19 @@ void ReconView::set_loop_config(bool v) {
 
 void ReconView::recon_stop_recording(bool exiting) {
     if (is_recording) {
-        if (field_mode.selected_index_value() == SPEC_MODULATION)
-            button_audio_app.set_text("RAW");
-        else
-            button_audio_app.set_text("AUDIO");
-        button_audio_app.set_style(&Styles::white);
         record_view->stop();
-        button_config.set_style(&Styles::white);
         is_recording = false;
-        // repeater mode
-        if (!exiting && persistent_memory::recon_repeat_recorded()) {
-            start_repeat();
+        if (field_mode.selected_index_value() == SPEC_MODULATION) {
+            button_audio_app.set_text("RAW");
+            // repeater mode
+            if (!exiting && persistent_memory::recon_repeat_recorded()) {
+                start_repeat();
+            }
+        } else {
+            button_audio_app.set_text("AUDIO");
         }
+        button_audio_app.set_style(&Styles::white);
+        button_config.set_style(&Styles::white);
     }
 }
 
@@ -1314,9 +1315,6 @@ bool ReconView::is_repeat_active() const {
 
 void ReconView::start_repeat() {
     // Prepare to send a file.
-    std::filesystem::path rawfile = u"/" + repeat_rec_path + u"/" + repeat_rec_file;
-    std::filesystem::path rawmeta = u"/" + repeat_rec_path + u"/" + repeat_rec_meta;
-
     if (recon_tx == false) {
         recon_tx = true;
 
@@ -1434,8 +1432,11 @@ void ReconView::stop_repeat(const bool do_loop) {
     } else {
         repeat_cur_rep = 0;
         recon_tx = false;
-        if (persistent_memory::recon_repeat_file_mode() == RECON_REPEAT_AND_KEEP) {
+        if (persistent_memory::recon_repeat_recorded_file_mode() == RECON_REPEAT_AND_KEEP) {
             // rename file here to keep
+            std::filesystem::path base_path = next_filename_matching_pattern( repeat_rec_path /  u"REC_????.*");
+            rename_file( rawfile , base_path.replace_extension(u".C16") );
+            rename_file( rawmeta , base_path.replace_extension(u".META") );
         }
         reload_restart_recon();
         progressbar.hidden(true);
