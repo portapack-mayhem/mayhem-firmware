@@ -39,6 +39,8 @@ void LevelView::focus() {
 }
 
 LevelView::~LevelView() {
+    // reset performance counters request to default
+    shared_memory.request_m4_performance_counter = 0;
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -58,12 +60,16 @@ LevelView::LevelView(NavigationView& nav)
                   &text_ctcss,
                   &freq_stats_rssi,
                   &freq_stats_db,
+                  &freq_stats_rx,
                   &audio_mode,
                   &peak_mode,
                   &rssi,
                   &rssi_graph});
 
+    // activate vertical bar mode
     rssi.set_vertical_rssi(true);
+    // activate counters for RxSat
+    shared_memory.request_m4_performance_counter = 2;
 
     change_mode(NFM_MODULATION);              // Start on AM
     field_mode.set_by_value(NFM_MODULATION);  // Reflect the mode into the manual selector
@@ -139,13 +145,15 @@ LevelView::LevelView(NavigationView& nav)
     freqman_set_step_option_short(step_mode);
     freq_stats_rssi.set_style(&Styles::white);
     freq_stats_db.set_style(&Styles::white);
+    freq_stats_rx.set_style(&Styles::white);
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
-    static int16_t last_max_db = -1000;
-    static int16_t last_min_rssi = -1000;
-    static int16_t last_avg_rssi = -1000;
-    static int16_t last_max_rssi = -1000;
+    static int16_t last_max_db = 0;
+    static uint8_t last_min_rssi = 0;
+    static uint8_t last_avg_rssi = 0;
+    static uint8_t last_max_rssi = 0;
+    static uint8_t last_rx_sat = 0;
 
     rssi_graph.add_values(rssi.get_min(), rssi.get_avg(), rssi.get_max(), statistics.max_db);
 
@@ -154,12 +162,18 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         last_max_db = statistics.max_db;
         freq_stats_db.set("Power: " + to_string_dec_int(statistics.max_db) + " db");
     }
+    // refresh sat
+    uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
+    if (last_rx_sat != rx_sat) {
+        last_rx_sat = rx_sat;
+        freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
+    }
     // refresh rssi
     if (last_min_rssi != rssi_graph.get_graph_min() || last_avg_rssi != rssi_graph.get_graph_avg() || last_max_rssi != rssi_graph.get_graph_max()) {
         last_min_rssi = rssi_graph.get_graph_min();
         last_avg_rssi = rssi_graph.get_graph_avg();
         last_max_rssi = rssi_graph.get_graph_max();
-        freq_stats_rssi.set("RSSI: " + to_string_dec_int(last_min_rssi) + "/" + to_string_dec_int(last_avg_rssi) + "/" + to_string_dec_int(last_max_rssi) + ",dt: " + to_string_dec_int(rssi_graph.get_graph_delta()));
+        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi) + ", dt: " + to_string_dec_uint(rssi_graph.get_graph_delta()));
     }
 } /* on_statistic_updates */
 

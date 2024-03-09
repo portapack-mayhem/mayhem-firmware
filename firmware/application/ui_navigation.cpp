@@ -861,6 +861,7 @@ NavigationView* SystemView::get_navigation_view() {
 }
 
 void SystemView::toggle_overlay() {
+    static uint8_t last_perf_counter_status = shared_memory.request_m4_performance_counter;
     switch (++overlay_active) {
         case 1:
             this->add_child(&this->overlay);
@@ -879,7 +880,7 @@ void SystemView::toggle_overlay() {
         case 3:
             this->remove_child(&this->overlay2);
             this->set_dirty();
-            shared_memory.request_m4_performance_counter = 0;
+            shared_memory.request_m4_performance_counter = last_perf_counter_status;
             overlay_active = 0;
             break;
     }

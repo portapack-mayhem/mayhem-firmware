@@ -22,11 +22,11 @@
 #ifndef __RSSI_STATS_COLLECTOR_H__
 #define __RSSI_STATS_COLLECTOR_H__
 
-#include "rssi.hpp"
-#include "message.hpp"
-
 #include <cstdint>
 #include <cstddef>
+
+#include "rssi.hpp"
+#include "message.hpp"
 
 class RSSIStatisticsCollector {
    public:
