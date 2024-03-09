@@ -49,14 +49,16 @@ class DfuMenu : public View {
     Text text_head{{6 * CHARACTER_WIDTH, 3 * LINE_HEIGHT, 11 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, "Performance"};
 
     Labels labels{
-        {{6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT}, "M0 heap:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT}, "M0 stack:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT}, "M0 cpu %:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT}, "M4 heap:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "M4 stack:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 10 * LINE_HEIGHT}, "M4 cpu %:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "M4 miss:", Color::dark_cyan()},
-        {{6 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "uptime:", Color::dark_cyan()}};
+        {{6 * CHARACTER_WIDTH, 5 * LINE_HEIGHT}, "M0 core:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 6 * LINE_HEIGHT}, "M0 heap:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 7 * LINE_HEIGHT}, "M0 frags:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 8 * LINE_HEIGHT}, "M0 stack:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 9 * LINE_HEIGHT}, "M0 cpu %:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 10 * LINE_HEIGHT}, "M4 heap:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 11 * LINE_HEIGHT}, "M4 stack:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 12 * LINE_HEIGHT}, "M4 cpu %:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 13 * LINE_HEIGHT}, "M4 miss:", Color::dark_cyan()},
+        {{6 * CHARACTER_WIDTH, 14 * LINE_HEIGHT}, "uptime:", Color::dark_cyan()}};
 
     Text text_info_line_1{{15 * CHARACTER_WIDTH, 5 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_2{{15 * CHARACTER_WIDTH, 6 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
@@ -66,6 +68,8 @@ class DfuMenu : public View {
     Text text_info_line_6{{15 * CHARACTER_WIDTH, 10 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_7{{15 * CHARACTER_WIDTH, 11 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
     Text text_info_line_8{{15 * CHARACTER_WIDTH, 12 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_9{{15 * CHARACTER_WIDTH, 13 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
+    Text text_info_line_10{{15 * CHARACTER_WIDTH, 14 * LINE_HEIGHT, 6 * CHARACTER_WIDTH, 1 * LINE_HEIGHT}, ""};
 };
 
 class DfuMenu2 : public View {
