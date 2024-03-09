@@ -771,7 +771,9 @@ void TransmittersMenuView::on_populate() {
 /* UtilitiesMenuView *****************************************************/
 
 UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
-    : nav_(nav) {}
+    : nav_(nav) {
+    set_max_rows(2);  // allow wider buttons
+}
 
 void UtilitiesMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
@@ -781,8 +783,6 @@ void UtilitiesMenuView::on_populate() {
     add_apps(nav_, *this, UTILITIES);
 
     addExternalItems(nav_, app_location_t::UTILITIES, *this);
-
-    set_max_rows(2);  // allow wider buttons
 }
 
 /* SystemMenuView ********************************************************/
@@ -800,15 +800,15 @@ void SystemMenuView::hackrf_mode(NavigationView& nav) {
 }
 
 SystemMenuView::SystemMenuView(NavigationView& nav)
-    : nav_(nav) {}
+    : nav_(nav) {
+    set_max_rows(2);  // allow wider buttons
+    set_arrow_enabled(false);
+}
 
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
 
     add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
-
-    set_max_rows(2);  // allow wider buttons
-    set_arrow_enabled(false);
 }
 
 /* SystemView ************************************************************/
