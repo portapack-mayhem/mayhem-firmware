@@ -31,18 +31,15 @@
 #include <cstdint>
 #include <cstddef>
 
-
 class RSSIStatisticsCollector {
    public:
     template <typename Callback>
     void process(const rf::rssi::buffer_t& buffer, Callback callback) {
-
         static uint16_t rx_saturation_retrieving_countdown = RX_SATURATION_RETRIEVING_COUNTDOWN;
-        rx_saturation_retrieving_countdown=rx_saturation_retrieving_countdown-1;
-        if( rx_saturation_retrieving_countdown < 0 )
-        {
-            rx_saturation_retrieving_countdown = RX_SATURATION_RETRIEVING_COUNTDOWN ;
-            statistics.rx_saturation = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127 ; 
+        rx_saturation_retrieving_countdown = rx_saturation_retrieving_countdown - 1;
+        if (rx_saturation_retrieving_countdown < 0) {
+            rx_saturation_retrieving_countdown = RX_SATURATION_RETRIEVING_COUNTDOWN;
+            statistics.rx_saturation = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
         }
 
         auto p = buffer.p;
