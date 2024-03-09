@@ -66,10 +66,7 @@ LevelView::LevelView(NavigationView& nav)
 
     // activate vertical bar mode
     rssi.set_vertical_rssi(true);
-    // activate counters for RxSat%
-    shared_memory.m4_performance_counter = 0;
-    shared_memory.m4_heap_usage = 0;
-    shared_memory.m4_stack_usage = 0;
+    // activate counters for RxSat
     shared_memory.request_m4_performance_counter = 2;
 
     change_mode(NFM_MODULATION);              // Start on AM
@@ -167,7 +164,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
     if (last_rx_sat != rx_sat) {
         last_rx_sat = rx_sat;
-        freq_stats_rx.set("RxSat%: " + to_string_dec_uint(rx_sat) + " db");
+        freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
     }
     // refresh rssi
     if (last_min_rssi != rssi_graph.get_graph_min() || last_avg_rssi != rssi_graph.get_graph_avg() || last_max_rssi != rssi_graph.get_graph_max()) {
