@@ -171,7 +171,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         last_min_rssi = rssi_graph.get_graph_min();
         last_avg_rssi = rssi_graph.get_graph_avg();
         last_max_rssi = rssi_graph.get_graph_max();
-        freq_stats_rssi.set("RSSI: " + to_string_dec_int(last_min_rssi) + "/" + to_string_dec_int(last_avg_rssi) + "/" + to_string_dec_int(last_max_rssi) + ", dt: " + to_string_dec_uint(rssi_graph.get_graph_delta()));
+        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi) + ", dt: " + to_string_dec_uint(rssi_graph.get_graph_delta()));
     }
 } /* on_statistic_updates */
 
