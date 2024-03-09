@@ -107,6 +107,11 @@ void BtnGridView::on_tick_second() {
 
 void BtnGridView::clear() {
     menu_items.clear();
+
+    for (auto& item : menu_item_views)
+        remove_child(item.get());
+
+    menu_item_views.clear();
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
@@ -221,7 +226,7 @@ void BtnGridView::on_show() {
 void BtnGridView::on_hide() {
     View::on_hide();
 
-    menu_items.clear();
+    clear();
 }
 
 bool BtnGridView::on_key(const KeyEvent key) {
