@@ -176,9 +176,13 @@ FrequencySaveView::FrequencySaveView(
 
     bind(field_description, entry_.description, nav);
 
-    button_save.on_select = [this, &nav](Button&) {
-        db_.insert_entry(db_.entry_count(), entry_);
-        nav_.pop();
+    button_save.on_select = [this, &nav](Button&) {  // TODO: don't list system category here
+        if (current_is_system_item) {
+            nav.display_modal("Forbid", "Can't save to system Category\nPlease save to \na user category.");
+        } else {
+            db_.insert_entry(db_.entry_count(), entry_);
+            nav_.pop();
+        }
     };
 }
 
@@ -251,6 +255,7 @@ void FrequencyManagerView::on_edit_desc() {
 }
 
 void FrequencyManagerView::on_add_category() {
+    ensure_directory(u"/USR/FREQMAN");
     temp_buffer_.clear();
     text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
         if (!new_name.empty()) {
