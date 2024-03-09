@@ -125,7 +125,7 @@ class MAX283x {
 
     virtual bool set_frequency(const rf::Frequency lo_frequency);
 
-    virtual void set_rx_lo_iq_calibration(const size_t v);
+    virtual void set_rx_LO_iq_phase_calibration(const size_t v);
     virtual void set_tx_LO_iq_phase_calibration(const size_t v);
 
     virtual void set_rx_buff_vcm(const size_t v);

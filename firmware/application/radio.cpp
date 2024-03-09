@@ -253,6 +253,10 @@ void set_tx_max283x_iq_phase_calibration(const size_t v) {
     second_if->set_tx_LO_iq_phase_calibration(v);
 }
 
+void set_rx_max283x_iq_phase_calibration(const size_t v) {
+    second_if->set_rx_LO_iq_phase_calibration(v);
+}
+
 /*void enable(Configuration configuration) {
     configure(configuration);
 }
