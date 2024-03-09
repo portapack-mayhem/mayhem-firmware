@@ -138,6 +138,7 @@ class LevelView : public View {
             {"peak:5s", 5000},
             {"peak:10s", 10000},
         }};
+
     OptionsField rssi_resolution{
         {44 + 20 * 8, 4 * 16 + 4},
         4,
@@ -149,9 +150,14 @@ class LevelView : public View {
             {"240x", 240},
         }};
 
+    // RxSat%: XX
+    Text freq_stats_rx{
+        {0 * 8, 5 * 16 + 4, 10 * 8, 14},
+    };
+
     RSSIGraph rssi_graph{
         // 240x320  =>
-        {0, 5 * 16 + 4, 240 - 5 * 8, 320 - (5 * 16 + 4)},
+        {0, 6 * 16 + 4, 240 - 5 * 8, 320 - (6 * 16 + 4)},
     };
 
     RSSI rssi{

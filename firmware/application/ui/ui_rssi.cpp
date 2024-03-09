@@ -179,10 +179,6 @@ uint8_t RSSI::get_delta() {
     return max_ - min_;
 }
 
-uint8_t RSSI::get_rx_saturation() {
-    return rx_saturation_;
-}
-
 void RSSI::set_pitch_rssi(bool enabled) {
     pitch_rssi_enabled = enabled;
     if (!enabled) baseband::set_pitch_rssi(0, false);
@@ -204,7 +200,6 @@ void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
     min_ = statistics.min;
     avg_ = statistics.accumulator / statistics.count;
     max_ = statistics.max;
-    rx_saturation_ = statistics.rx_saturation;
     if (peak_enabled) {
         peak_duration_ = peak_duration_ + 100;
         if (max_ > peak_) {
@@ -218,19 +213,19 @@ void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
     set_dirty();
 }
 
-int16_t RSSIGraph::get_graph_min() {
+uint8_t RSSIGraph::get_graph_min() {
     return graph_min_;
 }
 
-int16_t RSSIGraph::get_graph_avg() {
+uint8_t RSSIGraph::get_graph_avg() {
     return graph_avg_;
 }
 
-int16_t RSSIGraph::get_graph_max() {
+uint8_t RSSIGraph::get_graph_max() {
     return graph_max_;
 }
 
-int16_t RSSIGraph::get_graph_delta() {
+uint8_t RSSIGraph::get_graph_delta() {
     return graph_max_ - graph_min_;
 }
 
