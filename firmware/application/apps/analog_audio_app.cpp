@@ -119,7 +119,7 @@ SPECOptionsView::SPECOptionsView(
         &text_speed,
         &field_speed,
         &text_rx_cal,
-        hackrf_r9 ? &field_rx_iq_phase_cal_2839 : &field_rx_iq_phase_cal_2837  // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
+        &field_rx_iq_phase_cal
     });
 
     options_config.set_selected_index(view->get_spec_bw_index());
@@ -132,17 +132,11 @@ SPECOptionsView::SPECOptionsView(
         view->set_spec_trigger(v);
     };
 
-    if (hackrf_r9) {                                                                        // MAX2839 has 6 bits RX IQ CAL phasse adjustment.
-        field_rx_iq_phase_cal_2839.set_value(view->get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
-        field_rx_iq_phase_cal_2839.on_change = [this, view](int32_t v) {
-            view->set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
-        };
-    } else {                                                                                // MAX2837 has 5 bits RX IQ CAL phase adjustment.
-        field_rx_iq_phase_cal_2837.set_value(view->get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
-        field_rx_iq_phase_cal_2837.on_change = [this, view](int32_t v) {
-            view->set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
-        };
-    }
+    field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                       // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
+    field_rx_iq_phase_cal.set_value(view->get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
+    field_rx_iq_phase_cal.on_change = [this, view](int32_t v) {
+        view->set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
+    };
 }
 
 /* AnalogAudioView *******************************************************/

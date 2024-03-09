@@ -338,7 +338,7 @@ MicTXView::MicTXView(
                   &field_rxlna,
                   &field_rxvga,
                   &field_rxamp,
-                  hackrf_r9 ? &field_tx_iq_phase_cal_2839 : &field_tx_iq_phase_cal_2837,
+                  &field_tx_iq_phase_cal,
                   &tx_button,
                   &tx_icon});
 
@@ -372,19 +372,12 @@ MicTXView::MicTXView(
     };
 
     radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
-    if (hackrf_r9) {  // MAX2839 has 6 bits IQ CAL phasse adjustment.
-        field_tx_iq_phase_cal_2839.set_value(iq_phase_calibration_value);
-        field_tx_iq_phase_cal_2839.on_change = [this](int32_t v) {
-            iq_phase_calibration_value = v;
-            radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
-        };
-    } else {  // MAX2837 has 5 bits IQ CAL phase adjustment.
-        field_tx_iq_phase_cal_2837.set_value(iq_phase_calibration_value);
-        field_tx_iq_phase_cal_2837.on_change = [this](int32_t v) {
-            iq_phase_calibration_value = v;
-            radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
-        };
-    }
+    field_tx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);  // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
+    field_tx_iq_phase_cal.set_value(iq_phase_calibration_value);
+    field_tx_iq_phase_cal.on_change = [this](int32_t v) {
+        iq_phase_calibration_value = v;
+        radio::set_tx_max283x_iq_phase_calibration(iq_phase_calibration_value);
+    };
 
     options_gain.on_change = [this](size_t, int32_t v) {
         mic_gain_x10 = v;
