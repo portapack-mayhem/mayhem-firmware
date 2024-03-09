@@ -49,6 +49,9 @@ namespace fs = std::filesystem;
 namespace ui {
 
 void ReconView::reload_restart_recon() {
+    // force reload of current
+    last_freq = 0;
+    change_mode(field_mode.selected_index_value());
     frequency_file_load();
     if (frequency_list.size() > 0) {
         if (fwd) {
@@ -1149,7 +1152,7 @@ void ReconView::on_stepper_delta(int32_t v) {
 }
 
 size_t ReconView::change_mode(freqman_index_t new_mod) {
-    if (recon_tx || is_repeat_active())
+    if (recon_tx || is_repeat_active() || is_recording)
         return 0;
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
@@ -1158,16 +1161,20 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
         remove_child(record_view.get());
         record_view.reset();
     }
-    if (persistent_memory::recon_repeat_recorded()) {
-        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"RECON_REPEAT.C16", u"CAPTURES",
-                                                   RecordView::FileType::RawS16, 16384, 3);
-        record_view->set_filename_as_is(true);
-    } else if (new_mod == SPEC_MODULATION) {
+    if (field_mode.selected_index_value() != SPEC_MODULATION) {
         audio::output::stop();
-        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_RAW", u"CAPTURES",
-                                                   RecordView::FileType::RawS16, 16384, 3);
+    }
+    if (new_mod == SPEC_MODULATION) {
+        if (persistent_memory::recon_repeat_recorded()) {
+            record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                       u"RECON_REPEAT.C16", u"CAPTURES",
+                                                       RecordView::FileType::RawS16, 16384, 3);
+        } else {
+            record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                       u"AUTO_RAW", u"CAPTURES",
+                                                       RecordView::FileType::RawS16, 16384, 3);
+        }
+        record_view->set_filename_as_is(true);
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
                                                    u"AUTO_AUDIO", u"AUDIO",
@@ -1434,9 +1441,9 @@ void ReconView::stop_repeat(const bool do_loop) {
         recon_tx = false;
         if (persistent_memory::recon_repeat_recorded_file_mode() == RECON_REPEAT_AND_KEEP) {
             // rename file here to keep
-            std::filesystem::path base_path = next_filename_matching_pattern( repeat_rec_path /  u"REC_????.*");
-            rename_file( rawfile , base_path.replace_extension(u".C16") );
-            rename_file( rawmeta , base_path.replace_extension(u".META") );
+            std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path / u"REC_????.*");
+            rename_file(rawfile, base_path.replace_extension(u".C16"));
+            rename_file(rawmeta, base_path.replace_extension(u".META"));
         }
         reload_restart_recon();
         progressbar.hidden(true);
