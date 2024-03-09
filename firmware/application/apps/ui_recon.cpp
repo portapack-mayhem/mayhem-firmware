@@ -1434,6 +1434,9 @@ void ReconView::stop_repeat(const bool do_loop) {
     } else {
         repeat_cur_rep = 0;
         recon_tx = false;
+        if (persistent_memory::recon_repeat_file_mode() == RECON_REPEAT_AND_KEEP) {
+            // rename file here to keep
+        }
         reload_restart_recon();
         progressbar.hidden(true);
         set_dirty();  // fix progressbar no hiding

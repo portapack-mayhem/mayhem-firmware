@@ -435,6 +435,7 @@ void defaults() {
     set_recon_load_hamradios(true);
     set_recon_match_mode(0);
     set_recon_repeat_recorded(false);
+    set_recon_repeat_recorded_file_mode(false);  // false delete repeater , true keep repeated
     set_recon_repeat_amp(false);
     set_recon_repeat_gain(35);
     set_recon_repeat_nb(3);
@@ -832,7 +833,9 @@ bool recon_repeat_amp() {
 bool recon_load_repeaters() {
     return (data->recon_config & 0x00080000UL) ? true : false;
 }
-
+bool recon_repeat_recorded_file_mode() {
+    return (data->recon_config & 0x00040000UL) ? true : false;
+}
 void set_recon_autosave_freqs(const bool v) {
     data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
 }
@@ -880,6 +883,9 @@ void set_recon_repeat_amp(const bool v) {
 }
 void set_recon_load_repeaters(const bool v) {
     data->recon_config = (data->recon_config & ~0x00080000UL) | (v << 19);
+}
+void set_recon_repeat_recorded_file_mode(const bool v) {
+    data->recon_config = (data->recon_config & ~0x00040000UL) | (v << 18);
 }
 
 /* UI Config 2 */
