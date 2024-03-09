@@ -50,9 +50,12 @@ namespace ui {
 
 void ReconView::reload_restart_recon() {
     // force reload of current
-    last_freq = 0;
     change_mode(field_mode.selected_index_value());
+    uint8_t previous_index = current_index;
+    reset_indexes();
     frequency_file_load();
+    current_index = previous_index;
+    handle_retune();
     if (frequency_list.size() > 0) {
         if (fwd) {
             button_dir.set_text("FW>");
@@ -1169,12 +1172,13 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
                                                        u"RECON_REPEAT.C16", u"CAPTURES",
                                                        RecordView::FileType::RawS16, 16384, 3);
+            record_view->set_filename_as_is(true);
         } else {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
                                                        u"AUTO_RAW", u"CAPTURES",
                                                        RecordView::FileType::RawS16, 16384, 3);
+            record_view->set_filename_date_frequency(true);
         }
-        record_view->set_filename_as_is(true);
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
                                                    u"AUTO_AUDIO", u"AUDIO",
@@ -1443,7 +1447,7 @@ void ReconView::stop_repeat(const bool do_loop) {
             // rename file here to keep
             std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path / u"REC_????.*");
             rename_file(rawfile, base_path.replace_extension(u".C16"));
-            rename_file(rawmeta, base_path.replace_extension(u".META"));
+            rename_file(rawmeta, base_path.replace_extension(u".TXT"));
         }
         reload_restart_recon();
         progressbar.hidden(true);
