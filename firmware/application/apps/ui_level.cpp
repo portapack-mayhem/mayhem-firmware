@@ -39,6 +39,8 @@ void LevelView::focus() {
 }
 
 LevelView::~LevelView() {
+    // reset performance counters request to default
+    shared_memory.request_m4_performance_counter = 0;
     receiver_model.disable();
     baseband::shutdown();
 }
