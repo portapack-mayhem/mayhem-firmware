@@ -37,7 +37,7 @@
 #include <vector>
 
 /* Defined in freqman_db.cpp */
-extern const std::filesystem::path freqman_dir;
+extern const std::filesystem::path freqman_system_dir;
 extern const std::filesystem::path freqman_user_dir;
 extern const std::filesystem::path freqman_extension;
 extern bool current_is_system_item;

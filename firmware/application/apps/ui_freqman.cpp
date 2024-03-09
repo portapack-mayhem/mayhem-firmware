@@ -137,7 +137,7 @@ void FreqManBaseView::refresh_categories() {
             });
     };
 
-    load_files(freqman_dir);
+    load_files(freqman_system_dir);
     load_files(freqman_user_dir);
 
     // Alphabetically sort the categories.

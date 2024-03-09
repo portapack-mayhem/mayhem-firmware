@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -56,9 +57,9 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
 
     button_input_file.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->push_fake_dir(freqman_dir);
+        open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if ((new_file_path.native().find(freqman_system_dir.native()) == 0) || new_file_path.native().find(freqman_user_dir.native()) == 0) {
                 _input_file = new_file_path.stem().string();
                 text_input_file.set(_input_file);
             } else {
@@ -69,9 +70,9 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
 
     button_choose_output_file.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->push_fake_dir(freqman_dir);
+        open_view->push_fake_dir(freqman_system_dir);
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if (new_file_path.native().find(freqman_system_dir.native()) == 0) {
                 _output_file = new_file_path.stem().string();
                 button_choose_output_name.set_text(_output_file);
             } else {

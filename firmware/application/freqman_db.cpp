@@ -39,7 +39,7 @@
 
 namespace fs = std::filesystem;
 
-const std::filesystem::path freqman_dir{u"/SYS/FREQMAN"};
+const std::filesystem::path freqman_system_dir{u"/SYS/FREQMAN"};
 const std::filesystem::path freqman_user_dir{u"/USR/FREQMAN"};
 const std::filesystem::path freqman_extension{u".TXT"};
 bool current_is_system_item{true};
@@ -228,11 +228,11 @@ const std::filesystem::path get_freqman_path(const std::string& stem, dir_profil
             return freqman_user_dir / stem + freqman_extension;
             break;
         case dir_profile::ProfileSystem:
-            return freqman_dir / stem + freqman_extension;
+            return freqman_system_dir / stem + freqman_extension;
             break;
         default:
             // throw ?
-            return freqman_dir / stem + freqman_extension;
+            return freqman_system_dir / stem + freqman_extension;
     }
 }
 
