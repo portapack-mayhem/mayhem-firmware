@@ -119,7 +119,7 @@ SPECOptionsView::SPECOptionsView(
         &text_speed,
         &field_speed,
         &text_rx_cal,
-        &field_rx_iq_phase_cal
+        &field_rx_iq_phase_cal,
     });
 
     options_config.set_selected_index(view->get_spec_bw_index());
