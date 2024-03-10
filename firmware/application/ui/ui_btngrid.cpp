@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
  * Copyright (C) 2023 Mark Thompson
+ * Copyright (C) 2024 u-foka
  *
  * This file is part of PortaPack.
  *
