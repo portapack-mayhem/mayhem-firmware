@@ -250,9 +250,9 @@ class BLERxView : public View {
     uint64_t total_count = 0;
     std::vector<std::string> searchList{};
 
-    std::filesystem::path find_packet_path{u"BLERX/Find/????.TXT"};
-    std::filesystem::path log_packets_path{u"BLERX/Logs/????.TXT"};
-    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
+    std::filesystem::path find_packet_path{u"USR/BLERX/Find/????.TXT"};
+    std::filesystem::path log_packets_path{u"USR/BLERX/Logs/????.TXT"};
+    std::filesystem::path packet_save_path{u"USR/BLERX/Lists/????.csv"};
 
     static constexpr auto header_height = 4 * 16;
     static constexpr auto switch_button_height = 3 * 16;

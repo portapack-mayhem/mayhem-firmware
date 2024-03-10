@@ -26,7 +26,7 @@
 #include <cstring>
 
 int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) {
-    file_path = "AIS/mids.db";
+    file_path = "/sys/AIS/mids.db";
     index_item_length = 4;
     record_length = 32;
 
@@ -36,7 +36,7 @@ int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) 
 }
 
 int database::retrieve_airline_record(AirlinesDBRecord* record, std::string search_term) {
-    file_path = "ADSB/airlines.db";
+    file_path = "/SYS/ADSB/airlines.db";
     index_item_length = 4;
     record_length = 64;
 
@@ -46,7 +46,7 @@ int database::retrieve_airline_record(AirlinesDBRecord* record, std::string sear
 }
 
 int database::retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term) {
-    file_path = "ADSB/icao24.db";
+    file_path = "/SYS/ADSB/icao24.db";
     index_item_length = 7;
     record_length = 146;
 

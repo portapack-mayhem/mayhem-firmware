@@ -337,7 +337,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                               u"AUTO_AUDIO", u"AUDIO",
+                                               u"AUTO_AUDIO", u"/USR/AUDIO",
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
     record_view->set_auto_trim(false);
@@ -680,7 +680,7 @@ ReconView::ReconView(NavigationView& nav)
         open_view->on_changed = [this](std::vector<std::string> result) {
             input_file = result[0];
             output_file = result[1];
-            freq_file_path = get_freqman_path(output_file).string();
+            freq_file_path = get_freqman_path(output_file, dir_profile::ProfileUser).string();
 
             load_persisted_settings();
             ui_settings.save();
@@ -731,7 +731,7 @@ ReconView::ReconView(NavigationView& nav)
     file_name.set("=>");
 
     // Loading input and output file from settings
-    freq_file_path = get_freqman_path(output_file).string();
+    freq_file_path = get_freqman_path(output_file, dir_profile::ProfileUser).string();
 
     field_recon_match_mode.set_selected_index(recon_match_mode);
     field_squelch.set_value(squelch);
@@ -790,7 +790,7 @@ void ReconView::frequency_file_load() {
         .load_ranges = load_ranges,
         .load_hamradios = load_hamradios,
         .load_repeaters = load_repeaters};
-    if (!load_freqman_file(file_input, frequency_list, options) || frequency_list.empty()) {
+    if (!load_freqman_file(file_input, frequency_list, options, dir_profile::ProfileUser) || frequency_list.empty()) {
         file_name.set_style(&Styles::red);
         desc_cycle.set("...empty file...");
         frequency_list.clear();
@@ -1170,18 +1170,18 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     if (new_mod == SPEC_MODULATION) {
         if (persistent_memory::recon_repeat_recorded()) {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"RECON_REPEAT.C16", u"CAPTURES",
+                                                       u"RECON_REPEAT.C16", u"/USR/CAPTURES",
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_as_is(true);
         } else {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"AUTO_RAW", u"CAPTURES",
+                                                       u"AUTO_RAW", u"/USR/CAPTURES",
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_date_frequency(true);
         }
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_AUDIO", u"AUDIO",
+                                                   u"AUTO_AUDIO", u"/USR/AUDIO",
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
     }

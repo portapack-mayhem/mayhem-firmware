@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -152,7 +153,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     auto filtering = !extension_filter.empty();
     bool cxx_file = path_iequal(cxx_ext, extension_filter);
 
-    text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path, 24));
+    text_current.set(current_path.empty() ? "/" : truncate(dir_path, 24));
 
     for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
         // Hide files starting with '.' (hidden / tmp).
@@ -160,16 +161,17 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
             continue;
 
         if (fs::is_regular_file(entry.status())) {
-            if (!filtering || path_iequal(entry.path().extension(), extension_filter) || (cxx_file && is_cxx_capture_file(entry.path())))
+            if (!filtering || path_iequal(entry.path().extension(), extension_filter) ||
+                (cxx_file && is_cxx_capture_file(entry.path())))
                 insert_sorted(entry_list, {entry.path(), (uint32_t)entry.size(), false});
         } else if (fs::is_directory(entry.status())) {
             insert_sorted(entry_list, {entry.path(), 0, true});
         }
     }
 
-    // Add "parent" directory if not at the root.
-    if (!dir_path.empty())
+    if (!current_path.empty()) {
         entry_list.insert(entry_list.begin(), {parent_dir_path, 0, true});
+    }
 }
 
 fs::path FileManBaseView::get_selected_full_path() const {
@@ -191,6 +193,8 @@ FileManBaseView::FileManBaseView(
       extension_filter{filter} {
     add_children({&labels,
                   &text_current,
+                  &option_profile_switch,
+                  &label_profile,
                   &button_exit});
 
     button_exit.on_select = [this](Button&) {
@@ -213,6 +217,24 @@ FileManBaseView::FileManBaseView(
             pop_dir();
         };
     }
+
+    option_profile_switch.on_change = [this](size_t, uint8_t profiles) {
+        switch (static_cast<DirProfiles>(profiles)) {
+            case DirProfiles::User:
+                jumping_between_profiles(current_path, DirProfiles::User);
+                option_profile_switch.set_style(nullptr);
+
+                break;
+
+            case DirProfiles::System:
+                jumping_between_profiles(current_path, DirProfiles::System);
+                option_profile_switch.set_style(&Styles::red);
+
+                break;
+        }
+
+        reload_current();
+    };
 }
 
 void FileManBaseView::focus() {
@@ -224,7 +246,11 @@ void FileManBaseView::focus() {
 }
 
 void FileManBaseView::push_dir(const fs::path& path) {
+    // if you want it freely jump between profiles when picking files in your app, don't use this
+    // , you should use push_fake_dir, which handle and call back the dir automatically
+    //
     if (path == parent_dir_path) {
+        saved_index_stack.push_back(menu_view.highlighted_index());
         pop_dir();
     } else {
         current_path /= path;
@@ -234,11 +260,36 @@ void FileManBaseView::push_dir(const fs::path& path) {
     }
 }
 
+void FileManBaseView::push_fake_dir(const fs::path& path) {
+    // the one this accepted is just a flag (e.g. CAPTURE, instead of /SYS/CAPTURE nor /USR/CAPTURE), not real dir
+    // after passing the flag here, this func will handle it automatically and make callback automatically
+    fs::path first_level = path.extract_first_level();
+    const fs::path user_dir = u"/USR";
+    const fs::path system_dir = u"/SYS";
+    const fs::path default_mother_dir = user_dir;
+
+    if (first_level != user_dir && first_level != system_dir) {
+        current_path = default_mother_dir / path;
+        saved_index_stack.push_back(
+            menu_view.highlighted_index());  // TODO: do we really want to allow user to redirect to other dir tho?
+        menu_view.set_highlighted(0);
+        reload_current();
+    }
+}
+
 void FileManBaseView::pop_dir() {
+    fs::path first_level = current_path.extract_first_level();
+    fs::path null_path = u"";
+
     if (saved_index_stack.empty())
         return;
 
-    current_path = current_path.parent_path();
+    if (first_level == null_path) {
+        current_path = null_path;
+    } else {
+        current_path = current_path.parent_path();
+    }
+
     reload_current();
     menu_view.set_highlighted(saved_index_stack.back());
     saved_index_stack.pop_back();
@@ -294,6 +345,28 @@ void FileManBaseView::refresh_list() {
 void FileManBaseView::reload_current() {
     load_directory_contents(current_path);
     refresh_list();
+}
+
+fs::path FileManBaseView::jumping_between_profiles(fs::path& path, DirProfiles profile) {
+    fs::path first_level = path.extract_first_level();
+    const fs::path null_path = u"";
+    const fs::path user_dir = u"/USR";
+    const fs::path system_dir = u"/SYS";
+
+    if (first_level == null_path && profile == DirProfiles::User) {  // path is first level aka /abcdef
+        path = user_dir;
+    } else if (first_level == null_path && profile == DirProfiles::System) {
+        path = system_dir;
+    } else if ((first_level == system_dir) &&
+               profile == DirProfiles::User) {  // jump to sys mother dir if profile asks
+
+        path = user_dir / path.remove_first_level();
+
+    } else if ((first_level == user_dir) && profile == DirProfiles::System) {
+        path = system_dir / path.remove_first_level();
+    }
+
+    return path;
 }
 
 const FileManBaseView::file_assoc_t& FileManBaseView::get_assoc(
@@ -407,7 +480,8 @@ void FileManagerView::refresh_widgets(const bool v) {
     button_paste.hidden(v);
     button_new_dir.hidden(v);
     button_new_file.hidden(v);
-
+    option_profile_switch.hidden(!v);
+    label_profile.hidden(!v);
     set_dirty();
 }
 
@@ -578,7 +652,8 @@ FileManagerView::FileManagerView(
         } else {
             text_date.set_style(&Styles::grey);
             if (selected_is_valid())
-                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
+                text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") +
+                              to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
             else
                 text_date.set("");
         }
@@ -666,5 +741,4 @@ FileManagerView::FileManagerView(
         reload_current();
     };
 }
-
 }  // namespace ui

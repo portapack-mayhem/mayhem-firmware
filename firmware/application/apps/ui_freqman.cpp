@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -95,7 +96,7 @@ void FreqManBaseView::focus() {
     if (error_ == ERROR_ACCESS) {
         nav_.display_modal("Error", "File access error", ABORT);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin /FREQMAN", ABORT);
+        nav_.display_modal("Error", "No database files\nin either /USR/FREQMAN\nor /SYS/FREQMAN", ABORT);
     } else {
         options_category.focus();
     }
@@ -106,7 +107,15 @@ void FreqManBaseView::change_category(size_t new_index) {
         return;
 
     current_category_index = new_index;
-    if (!db_.open(get_freqman_path(current_category()))) {
+
+    current_is_system_item = true;
+    if (!db_.open(get_freqman_path(current_category(), dir_profile::ProfileSystem))) {
+        current_is_system_item = false;
+    }
+
+    if (!current_is_system_item &&  // <<< this means that entered previus condition, it's a work around to save 1 byte of ram
+        (!db_.open(
+            get_freqman_path(current_category(), dir_profile::ProfileUser)))) {
         error_ = ERROR_ACCESS;
     }
 
@@ -116,15 +125,20 @@ void FreqManBaseView::change_category(size_t new_index) {
 void FreqManBaseView::refresh_categories() {
     OptionsField::options_t new_categories;
 
-    scan_root_files(
-        freqman_dir, u"*.TXT", [&new_categories](const fs::path& path) {
-            // Skip temp/hidden files.
-            if (path.empty() || path.native()[0] == u'.')
-                return;
+    auto load_files = [&new_categories](const fs::path& dir) {
+        scan_root_files(
+            dir, u"*.TXT", [&new_categories](const fs::path& path) {
+                // Skip temp/hidden files.
+                if (path.empty() || path.native()[0] == u'.')
+                    return;
 
-            // The UI layer will truncate long file names when displaying.
-            new_categories.emplace_back(path.stem().string(), new_categories.size());
-        });
+                // The UI layer will truncate long file names when displaying.
+                new_categories.emplace_back(path.stem().string(), new_categories.size());
+            });
+    };
+
+    load_files(freqman_system_dir);
+    load_files(freqman_user_dir);
 
     // Alphabetically sort the categories.
     std::sort(new_categories.begin(), new_categories.end(), [](auto& left, auto& right) {
@@ -162,9 +176,13 @@ FrequencySaveView::FrequencySaveView(
 
     bind(field_description, entry_.description, nav);
 
-    button_save.on_select = [this, &nav](Button&) {
-        db_.insert_entry(db_.entry_count(), entry_);
-        nav_.pop();
+    button_save.on_select = [this, &nav](Button&) {  // TODO: don't list system category here
+        if (current_is_system_item) {
+            nav.display_modal("Forbid", "Can't save to system Category\nPlease save to \na user category.");
+        } else {
+            db_.insert_entry(db_.entry_count(), entry_);
+            nav_.pop();
+        }
     };
 }
 
@@ -237,6 +255,7 @@ void FrequencyManagerView::on_edit_desc() {
 }
 
 void FrequencyManagerView::on_add_category() {
+    ensure_directory(u"/USR/FREQMAN");
     temp_buffer_.clear();
     text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
         if (!new_name.empty()) {
@@ -251,8 +270,8 @@ void FrequencyManagerView::on_del_category() {
         "Delete", "Delete " + current_category() + "\nAre you sure?", YESNO,
         [this](bool choice) {
             if (choice) {
-                db_.close();  // Ensure file is closed.
-                auto path = get_freqman_path(current_category());
+                db_.close();                                                                 // Ensure file is closed.
+                auto path = get_freqman_path(current_category(), dir_profile::ProfileUser);  // only allow del user's
                 delete_file(path);
                 refresh_categories();
             }
@@ -284,6 +303,15 @@ void FrequencyManagerView::on_del_entry() {
             }
         });
 }
+bool FrequencyManagerView::forbid_delete_system_item_helper(NavigationView& nav) {
+    // this is just a modal, however, it's been forbidden in those handler.
+
+    if (current_is_system_item) {
+        nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndo it with file manager.");
+    }
+
+    return current_is_system_item;
+}
 
 FrequencyManagerView::FrequencyManagerView(
     NavigationView& nav)
@@ -308,31 +336,44 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_add_category.on_select = [this]() {
+        // this one will only directly add to /USR/FREQMAN
         on_add_category();
     };
 
-    button_del_category.on_select = [this]() {
-        on_del_category();
+    button_del_category.on_select = [this, &nav]() {
+        if (!forbid_delete_system_item_helper(nav)) {
+            on_del_category();
+        }
     };
 
-    button_edit_entry.on_select = [this](Button&) {
-        on_edit_entry();
+    button_edit_entry.on_select = [this, &nav](Button&) {
+        if (!forbid_delete_system_item_helper(nav)) {
+            on_edit_entry();
+        }
     };
 
-    button_edit_freq.on_select = [this](Button&) {
-        on_edit_freq();
+    button_edit_freq.on_select = [this, &nav](Button&) {
+        if (!forbid_delete_system_item_helper(nav)) {
+            on_edit_freq();
+        }
     };
 
-    button_edit_desc.on_select = [this](Button&) {
-        on_edit_desc();
+    button_edit_desc.on_select = [this, &nav](Button&) {
+        if (!forbid_delete_system_item_helper(nav)) {
+            on_edit_desc();
+        }
     };
 
-    button_add_entry.on_select = [this]() {
-        on_add_entry();
+    button_add_entry.on_select = [this, &nav]() {
+        if (!forbid_delete_system_item_helper(nav)) {
+            on_add_entry();
+        }
     };
 
-    button_del_entry.on_select = [this]() {
-        on_del_entry();
+    button_del_entry.on_select = [this, &nav]() {
+        if (!forbid_delete_system_item_helper(nav)) {
+            on_del_entry();
+        }
     };
 }
 

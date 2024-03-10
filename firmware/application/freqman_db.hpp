@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -36,8 +37,10 @@
 #include <vector>
 
 /* Defined in freqman_db.cpp */
-extern const std::filesystem::path freqman_dir;
+extern const std::filesystem::path freqman_system_dir;
+extern const std::filesystem::path freqman_user_dir;
 extern const std::filesystem::path freqman_extension;
+extern bool current_is_system_item;
 
 using freqman_index_t = uint8_t;
 constexpr freqman_index_t freqman_invalid_index = static_cast<freqman_index_t>(-1);
@@ -59,6 +62,11 @@ enum class freqman_type : uint8_t {
     Repeater,  // l=,t=
     Raw,       // line content in description
     Unknown,
+};
+
+enum class dir_profile : uint8_t {
+    ProfileUser = 1,
+    ProfileSystem
 };
 
 /* Tables for next round of changes.
@@ -175,9 +183,9 @@ using freqman_entry_ptr = std::unique_ptr<freqman_entry>;
 using freqman_db = std::vector<freqman_entry_ptr>;
 
 /* Gets the full path for a given file stem (no extension). */
-const std::filesystem::path get_freqman_path(const std::string& stem);
+const std::filesystem::path get_freqman_path(const std::string& stem, dir_profile profile);
 bool create_freqman_file(const std::string& file_stem);
-bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options, dir_profile profile);
 void delete_freqman_file(const std::string& file_stem);
 
 /* Gets a pretty string representation for an entry. */

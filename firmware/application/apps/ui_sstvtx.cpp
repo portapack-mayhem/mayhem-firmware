@@ -172,8 +172,17 @@ void SSTVTXView::start_tx() {
     tx_view.focus();
 }
 
+// void SSTVTXView::on_bitmap_changed(const size_t index) {
+//     bmp_file.open("/SYS/sstv/" + bitmaps[index].string());
+//     bmp_file.read(&bmp_header, sizeof(bmp_header));
+//     set_dirty();
+// }
+
 void SSTVTXView::on_bitmap_changed(const size_t index) {
-    bmp_file.open("/sstv/" + bitmaps[index].string());
+    auto open_system_dir = bmp_file.open("/SYS/SSTV/" + bitmaps[index].string());
+    if (!open_system_dir->ok()) {
+        bmp_file.open("/USR/SSTV/" + bitmaps[index].string());
+    }
     bmp_file.read(&bmp_header, sizeof(bmp_header));
     set_dirty();
 }
@@ -200,7 +209,8 @@ void SSTVTXView::on_mode_changed(const size_t index) {
 SSTVTXView::SSTVTXView(
     NavigationView& nav)
     : nav_(nav) {
-    std::vector<std::filesystem::path> file_list;
+    std::vector<std::filesystem::path> system_file_list;
+    std::vector<std::filesystem::path> user_file_list;
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t bitmap_options;
@@ -208,13 +218,14 @@ SSTVTXView::SSTVTXView(
     uint32_t c;
 
     // Search for valid bitmaps
-    file_list = scan_root_files(u"/sstv", u"*.bmp");
-    if (!file_list.size()) {
+    system_file_list = scan_root_files(u"/SYS/SSTV", u"*.bmp");
+    user_file_list = scan_root_files(u"/USR/SSTV", u"*.bmp");
+    if (!system_file_list.size() || !user_file_list.size()) {
         file_error = true;
         return;
     }
-    for (const auto& file_name : file_list) {
-        if (!bmp_file.open("/sstv/" + file_name.string()).is_valid()) {
+    for (const auto& file_name : system_file_list) {
+        if (!bmp_file.open("/SYS/SSTV/" + file_name.string()).is_valid()) {
             bmp_file.read(&bmp_header, sizeof(bmp_header));
             if ((bmp_header.signature == 0x4D42) &&  // "BM"
                 (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now
@@ -226,6 +237,21 @@ SSTVTXView::SSTVTXView(
             }
         }
     }
+
+    for (const auto& file_name : user_file_list) {
+        if (!bmp_file.open("/USR/SSTV/" + file_name.string()).is_valid()) {
+            bmp_file.read(&bmp_header, sizeof(bmp_header));
+            if ((bmp_header.signature == 0x4D42) &&  // "BM"
+                (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now
+                (bmp_header.height == 256) &&
+                (bmp_header.planes == 1) &&
+                (bmp_header.bpp == 24) &&         // 24 bpp only
+                (bmp_header.compression == 0)) {  // No compression
+                bitmaps.push_back(file_name);
+            }
+        }
+    }
+
     if (!bitmaps.size()) {
         file_error = true;
         return;

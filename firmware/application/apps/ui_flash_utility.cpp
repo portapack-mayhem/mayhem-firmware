@@ -117,7 +117,7 @@ void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path
         YESNO,
         [this, path](bool choice) {
             if (choice) {
-                std::u16string full_path = std::u16string(u"FIRMWARE/") + path;
+                std::u16string full_path = std::u16string(u"/FIRMWARE/") + path;
                 this->flash_firmware(full_path);
             }
         });

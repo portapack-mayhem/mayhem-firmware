@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -116,6 +117,8 @@ struct path {
     path parent_path() const;
     path extension() const;
     path filename() const;
+    path remove_first_level() const;
+    path extract_first_level() const;
     path stem() const;
 
     bool empty() const {
@@ -274,6 +277,7 @@ std::filesystem::filesystem_error file_update_date(const std::filesystem::path& 
 std::filesystem::filesystem_error make_new_file(const std::filesystem::path& file_path);
 std::filesystem::filesystem_error make_new_directory(const std::filesystem::path& dir_path);
 std::filesystem::filesystem_error ensure_directory(const std::filesystem::path& dir_path);
+void ensure_fake_directories(const std::filesystem::path& dir_path);
 
 template <typename TCallback>
 void scan_root_files(const std::filesystem::path& directory, const std::filesystem::path& extension, const TCallback& fn) {

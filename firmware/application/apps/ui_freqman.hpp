@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -125,6 +126,7 @@ class FrequencyManagerView : public FreqManBaseView {
     std::string title() const override { return "Freqman"; }
 
    private:
+    bool forbid_delete_system_item_helper(NavigationView& nav);
     std::string temp_buffer_{};
 
     void on_edit_entry();

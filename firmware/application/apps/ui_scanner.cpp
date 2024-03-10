@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2018 Furrtek
  * Copyright (C) 2023 Mark Thompson
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -335,9 +336,9 @@ ScannerView::ScannerView(
     // Button to load a Freqman file.
     button_load.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->push_dir(freqman_dir);
+        open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if ((new_file_path.native().find(freqman_system_dir.native()) == 0) || new_file_path.native().find(freqman_user_dir.native()) == 0) {
                 scan_pause();
                 frequency_file_load(new_file_path);
             } else {
@@ -490,7 +491,7 @@ ScannerView::ScannerView(
     // Button to add current frequency (found during Search) to the Scan Frequency List
     button_add.on_select = [this](Button&) {
         FreqmanDB db;
-        if (db.open(get_freqman_path(freqman_file), /*create*/ true)) {
+        if (db.open(get_freqman_path(freqman_file, dir_profile::ProfileUser), /*create*/ true)) {
             freqman_entry entry{
                 .frequency_a = current_frequency,
                 .type = freqman_type::Single,
@@ -536,7 +537,7 @@ ScannerView::ScannerView(
     receiver_model.set_squelch_level(0);
 
     // LOAD FREQUENCIES
-    frequency_file_load(get_freqman_path(freqman_file));
+    frequency_file_load(get_freqman_path(freqman_file, dir_profile::ProfileUser));
 }
 
 void ScannerView::frequency_file_load(const fs::path& path) {

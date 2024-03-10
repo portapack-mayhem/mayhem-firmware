@@ -4,7 +4,7 @@
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *

@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2024 u-foka
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -473,8 +473,8 @@ void SystemStatusView::on_bias_tee() {
 }
 
 void SystemStatusView::on_camera() {
-    ensure_directory("SCREENSHOTS");
-    auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+    ensure_directory("/USR/SCREENSHOTS");  // no need ensure fake dir here since screenshots are only taken for users
+    auto path = next_filename_matching_pattern(u"/USR/SCREENSHOTS/SCR_????.PNG");
 
     if (path.empty())
         return;

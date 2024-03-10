@@ -3,6 +3,8 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
+ * copyleft (ɔ) 2024 zxkmm with the GPL license
+ *
  *
  * This file is part of PortaPack.
  *
@@ -37,8 +39,10 @@
 
 namespace fs = std::filesystem;
 
-const std::filesystem::path freqman_dir{u"/FREQMAN"};
+const std::filesystem::path freqman_system_dir{u"/SYS/FREQMAN"};
+const std::filesystem::path freqman_user_dir{u"/USR/FREQMAN"};
 const std::filesystem::path freqman_extension{u".TXT"};
+bool current_is_system_item{true};
 
 // NB: Don't include UI headers to keep this code unit testable.
 using option_t = std::pair<std::string, int32_t>;
@@ -218,21 +222,32 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
     return {};
 }
 
-const std::filesystem::path get_freqman_path(const std::string& stem) {
-    return freqman_dir / stem + freqman_extension;
+const std::filesystem::path get_freqman_path(const std::string& stem, dir_profile profile) {
+    switch (profile) {
+        case dir_profile::ProfileUser:
+            return freqman_user_dir / stem + freqman_extension;
+            break;
+        case dir_profile::ProfileSystem:
+            return freqman_system_dir / stem + freqman_extension;
+            break;
+        default:
+            // throw ?
+            return freqman_system_dir / stem + freqman_extension;
+    }
 }
 
 bool create_freqman_file(const std::string& file_stem) {
-    auto fs_error = make_new_file(get_freqman_path(file_stem));
+    // always create in user dir, so no judgement here
+    auto fs_error = make_new_file(get_freqman_path(file_stem, dir_profile::ProfileUser));  // create on usr dir
     return fs_error.ok();
 }
 
-bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options) {
-    return parse_freqman_file(get_freqman_path(file_stem), db, options);
+bool load_freqman_file(const std::string& file_stem, freqman_db& db, freqman_load_options options, dir_profile profile) {
+    return parse_freqman_file(get_freqman_path(file_stem, profile), db, options);
 }
 
 void delete_freqman_file(const std::string& file_stem) {
-    delete_file(get_freqman_path(file_stem));
+    delete_file(get_freqman_path(file_stem, dir_profile::ProfileUser));  // don't allow to delete sys files
 }
 
 std::string pretty_string(const freqman_entry& entry, size_t max_length) {
