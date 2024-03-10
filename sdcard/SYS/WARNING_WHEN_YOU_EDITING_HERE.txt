@@ -1,0 +1,14 @@
+This folder contains the system files that
+could be overwritten during updating.
+
+You can of course edit files/dirs here,
+however it's not necessary at all.
+
+You can add your own
+lists/ replay files/ playlist files
+in the /USR/ dir of your sdcard.
+
+Firmware will settle your files
+and system files automatically;
+so you won't need to combime and merge
+them together every update.
