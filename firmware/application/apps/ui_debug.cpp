@@ -445,14 +445,19 @@ void DebugControlsView::focus() {
 
 /* DebugPeripheralsMenuView **********************************************/
 
-DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav) {
+DebugPeripheralsMenuView::DebugPeripheralsMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);  // allow wider buttons
+}
+
+void DebugPeripheralsMenuView::on_populate() {
     const char* max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
     const char* si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
     add_items({
-        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
-        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, max283x]() { nav.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
-        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav, si5351x]() { nav.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
-        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [&nav]() { nav.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
+        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
+        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this, max283x]() { nav_.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
+        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
+        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -468,32 +473,38 @@ DebugReboot::DebugReboot(NavigationView& nav) {
         __WFE();
 }
 
+void DebugReboot::on_populate() {
+}
+
 /* DebugMenuView *********************************************************/
 
-DebugMenuView::DebugMenuView(NavigationView& nav) {
+DebugMenuView::DebugMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);  // allow wider buttons
+}
+
+void DebugMenuView::on_populate() {
     if (portapack::persistent_memory::show_gui_return_icon()) {
-        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
-        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [&nav]() { nav.push<DebugControlsView>(); }},
-        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { portapack::persistent_memory::debug_dump(); }},
-        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { stack_dump(); }},
-        {"Memory Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryDumpView>(); }},
-        //{"Memory Usage", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugMemoryView>(); }},
-        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [&nav]() { nav.push<DebugPeripheralsMenuView>(); }},
-        {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<DebugPmemView>(); }},
-        //{ "Radio State",	ui::Color::white(),	nullptr,	[&nav](){ nav.push<NotImplementedView>(); } },
-        {"Reboot", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<DebugReboot>(); }},
-        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SDCardDebugView>(); }},
-        {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [&nav]() { nav.push<TemperatureView>(); }},
-        {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<DebugScreenTest>(); }},
+        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
+        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { portapack::persistent_memory::debug_dump(); }},
+        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { stack_dump(); }},
+        {"Memory Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryDumpView>(); }},
+        //{"Memory Usage", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryView>(); }},
+        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
+        {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
+        //{ "Radio State",	ui::Color::white(),	nullptr,	[this](){ nav_.push<NotImplementedView>(); } },
+        {"Reboot", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
+        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
+        {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
+        {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
     });
 
-    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav)) {
+    for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav_)) {
         add_item(gridItem);
     };
-
-    set_max_rows(2);  // allow wider buttons
 }
 
 /* DebugMemoryDumpView *********************************************************/

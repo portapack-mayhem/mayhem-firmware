@@ -73,9 +73,14 @@ class BtnGridView : public View {
     void set_arrow_enabled(bool enabled);
     void on_focus() override;
     void on_blur() override;
+    void on_show() override;
+    void on_hide() override;
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
     bool blacklisted_app(GridItem new_item);
+
+   protected:
+    virtual void on_populate() = 0;
 
    private:
     int rows_{3};
