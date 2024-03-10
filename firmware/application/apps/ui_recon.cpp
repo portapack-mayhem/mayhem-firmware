@@ -1170,12 +1170,12 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     if (new_mod == SPEC_MODULATION) {
         if (persistent_memory::recon_repeat_recorded()) {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"RECON_REPEAT.C16", u"CAPTURES",
+                                                       u"RECON_REPEAT.C16", u"/USR/CAPTURES",
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_as_is(true);
         } else {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"AUTO_RAW", u"CAPTURES",
+                                                       u"AUTO_RAW", u"/USR/CAPTURES",
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_date_frequency(true);
         }

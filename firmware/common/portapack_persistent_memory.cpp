@@ -435,7 +435,7 @@ void defaults() {
     set_recon_load_hamradios(true);
     set_recon_match_mode(0);
     set_recon_repeat_recorded(false);
-    set_recon_repeat_recorded_file_mode(false);  // false delete repeater , true keep repeated
+    set_recon_repeat_recorded_file_mode(false);  // false: delete repeater; true: keep repeated
     set_recon_repeat_amp(false);
     set_recon_repeat_gain(35);
     set_recon_repeat_nb(3);
