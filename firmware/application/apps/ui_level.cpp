@@ -174,20 +174,20 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
     last_rx_sat = rx_sat;
     freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
-    uint8_t r = 0;
-    uint8_t g = 0;
-    uint8_t b = 0;
+    uint8_t br = 0;
+    uint8_t bg = 0;
+    uint8_t bb = 0;
     if (rx_sat <= 80) {
-        g = (255 * rx_sat) / 80;
-        b = 255 - g;
+        bg = (255 * rx_sat) / 80;
+        bb = 255 - bg;
     } else if (rx_sat > 80) {
-        r = (255 * (rx_sat - 80)) / 20;
-        g = 255 - r;
+        br = (255 * (rx_sat - 80)) / 20;
+        bg = 255 - br;
     }
     Style style_freq_stats_rx{
         .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = {r, g, b},
+        .background = {br, bg, bb},
+        .foreground = {255, 255, 255},
     };
     freq_stats_rx.set_style(&style_freq_stats_rx);
 
