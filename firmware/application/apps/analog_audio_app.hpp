@@ -133,6 +133,16 @@ class SPECOptionsView : public View {
         1,
         ' ',
     };
+    Text text_rx_cal{
+        {19 * 8, 0 * 16, 11 * 8, 1 * 16},  // 18 (x col.) x char_size,  12 (length) x 8 blanking space to delete previous chars.
+        "Rx_IQ_CAL  "};
+    NumberField field_rx_iq_phase_cal{
+        {28 * 8, 0 * 16},
+        2,
+        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
+        1,
+        ' ',
+    };
 };
 
 class AnalogAudioView : public View {
@@ -152,14 +162,22 @@ class AnalogAudioView : public View {
     uint16_t get_spec_trigger();
     void set_spec_trigger(uint16_t trigger);
 
+    uint8_t get_spec_iq_phase_calibration_value();
+    void set_spec_iq_phase_calibration_value(uint8_t cal_value);
+
    private:
     static constexpr ui::Dim header_height = 3 * 16;
 
     NavigationView& nav_;
     RxRadioState radio_state_{};
+    uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
     app_settings::SettingsManager settings_{
-        "rx_audio", app_settings::Mode::RX,
-        app_settings::Options::UseGlobalTargetFrequency};
+        "rx_audio",
+        app_settings::Mode::RX,
+        app_settings::Options::UseGlobalTargetFrequency,
+        {
+            {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
+        }};
 
     const Rect options_view_rect{0 * 8, 1 * 16, 30 * 8, 1 * 16};
     const Rect nbfm_view_rect{0 * 8, 1 * 16, 18 * 8, 1 * 16};

@@ -38,23 +38,29 @@ DfuMenu::DfuMenu(NavigationView& nav)
                   &text_info_line_5,
                   &text_info_line_6,
                   &text_info_line_7,
-                  &text_info_line_8});
+                  &text_info_line_8,
+                  &text_info_line_9,
+                  &text_info_line_10});
 }
 
 void DfuMenu::paint(Painter& painter) {
     auto utilisation = get_cpu_utilisation_in_percent();
+    size_t m0_fragmented_free_space = 0;
+    const auto m0_fragments = chHeapStatus(NULL, &m0_fragmented_free_space);
 
     text_info_line_1.set(to_string_dec_uint(chCoreStatus(), 6));
-    text_info_line_2.set(to_string_dec_uint((uint32_t)get_free_stack_space(), 6));
-    text_info_line_3.set(to_string_dec_uint(utilisation, 6));
-    text_info_line_4.set(to_string_dec_uint(shared_memory.m4_heap_usage, 6));
-    text_info_line_5.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
-    text_info_line_6.set(to_string_dec_uint(shared_memory.m4_performance_counter, 6));
-    text_info_line_7.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
-    text_info_line_8.set(to_string_dec_uint(chTimeNow() / 1000, 6));
+    text_info_line_2.set(to_string_dec_uint(m0_fragmented_free_space, 6));
+    text_info_line_3.set(to_string_dec_uint(m0_fragments, 6));
+    text_info_line_4.set(to_string_dec_uint((uint32_t)get_free_stack_space(), 6));
+    text_info_line_5.set(to_string_dec_uint(utilisation, 6));
+    text_info_line_6.set(to_string_dec_uint(shared_memory.m4_heap_usage, 6));
+    text_info_line_7.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
+    text_info_line_8.set(to_string_dec_uint(shared_memory.m4_performance_counter, 6));
+    text_info_line_9.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
+    text_info_line_10.set(to_string_dec_uint(chTimeNow() / 1000, 6));
 
     constexpr auto margin = 5;
-    constexpr auto lines = 8 + 2;
+    constexpr auto lines = 10 + 2;
 
     painter.fill_rectangle(
         {{6 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},

@@ -163,19 +163,19 @@ void RSSI::paint(Painter& painter) {
     }
 }
 
-int16_t RSSI::get_min() {
+uint8_t RSSI::get_min() {
     return min_;
 }
 
-int16_t RSSI::get_avg() {
+uint8_t RSSI::get_avg() {
     return avg_;
 }
 
-int16_t RSSI::get_max() {
+uint8_t RSSI::get_max() {
     return max_;
 }
 
-int16_t RSSI::get_delta() {
+uint8_t RSSI::get_delta() {
     return max_ - min_;
 }
 
@@ -213,19 +213,19 @@ void RSSI::on_statistics_update(const RSSIStatistics& statistics) {
     set_dirty();
 }
 
-int16_t RSSIGraph::get_graph_min() {
+uint8_t RSSIGraph::get_graph_min() {
     return graph_min_;
 }
 
-int16_t RSSIGraph::get_graph_avg() {
+uint8_t RSSIGraph::get_graph_avg() {
     return graph_avg_;
 }
 
-int16_t RSSIGraph::get_graph_max() {
+uint8_t RSSIGraph::get_graph_max() {
     return graph_max_;
 }
 
-int16_t RSSIGraph::get_graph_delta() {
+uint8_t RSSIGraph::get_graph_delta() {
     return graph_max_ - graph_min_;
 }
 
