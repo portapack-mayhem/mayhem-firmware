@@ -220,7 +220,7 @@ SSTVTXView::SSTVTXView(
     // Search for valid bitmaps
     system_file_list = scan_root_files(u"/SYS/SSTV", u"*.bmp");
     user_file_list = scan_root_files(u"/USR/SSTV", u"*.bmp");
-    if (!system_file_list.size() || !user_file_list.size()) {
+    if (!system_file_list.size() && !user_file_list.size()) {
         file_error = true;
         return;
     }
