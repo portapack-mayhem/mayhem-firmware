@@ -785,38 +785,63 @@ void set_clkout_freq(uint16_t freq) {
 }
 
 /* Recon app */
+enum recon_config_bits {
+    RC_UNUSED_BIT = 63,  // just a reminder that this is a 64-bit field
+    RC_AUTOSAVE_FREQS = 31,
+    RC_AUTOSTART_RECON = 30,
+    RC_CONTINUOUS = 29,
+    RC_CLEAR_OUTPUT = 28,
+    RC_LOAD_FREQS = 27,
+    RC_LOAD_RANGES = 26,
+    RC_UPDATE_RANGES = 25,
+    RC_LOAD_HAMRADIOS = 24,
+    RC_MATCH_MODE = 23,
+    RC_AUTO_RECORD_LOCKED = 22,
+    RC_REPEAT_RECORDED = 21,
+    RC_REPEAT_AMP = 20,
+    RC_LOAD_REPEATERS = 19,
+    RC_REPEAT_FILE_MODE = 18,
+};
+
+bool check_recon_config_bit(uint8_t rc_bit) {
+    return ((data->recon_config >> rc_bit) & 1) != 0;
+}
+void set_recon_config_bit(uint8_t rc_bit, bool v) {
+    auto bit_mask = 1LL << rc_bit;
+    data->recon_config = v ? (data->recon_config | bit_mask) : (data->recon_config & ~bit_mask);
+}
 bool recon_autosave_freqs() {
-    return (data->recon_config & 0x80000000UL) ? true : false;
+    return check_recon_config_bit(RC_AUTOSAVE_FREQS);
 }
 bool recon_autostart_recon() {
-    return (data->recon_config & 0x40000000UL) ? true : false;
+    return check_recon_config_bit(RC_AUTOSTART_RECON);
 }
 bool recon_continuous() {
-    return (data->recon_config & 0x20000000UL) ? true : false;
+    return check_recon_config_bit(RC_CONTINUOUS);
 }
 bool recon_clear_output() {
-    return (data->recon_config & 0x10000000UL) ? true : false;
+    return check_recon_config_bit(RC_CLEAR_OUTPUT);
 }
 bool recon_load_freqs() {
-    return (data->recon_config & 0x08000000UL) ? true : false;
+    return check_recon_config_bit(RC_LOAD_FREQS);
 }
 bool recon_load_ranges() {
-    return (data->recon_config & 0x04000000UL) ? true : false;
+    return check_recon_config_bit(RC_LOAD_RANGES);
 }
 bool recon_update_ranges_when_recon() {
-    return (data->recon_config & 0x02000000UL) ? true : false;
+    return check_recon_config_bit(RC_UPDATE_RANGES);
 }
 bool recon_load_hamradios() {
-    return (data->recon_config & 0x01000000UL) ? true : false;
+    return check_recon_config_bit(RC_LOAD_HAMRADIOS);
 }
 bool recon_match_mode() {
-    return (data->recon_config & 0x00800000UL) ? true : false;
+    return check_recon_config_bit(RC_MATCH_MODE);
 }
 bool recon_auto_record_locked() {
-    return (data->recon_config & 0x00400000UL) ? true : false;
+    return check_recon_config_bit(RC_AUTO_RECORD_LOCKED);
 }
 bool recon_repeat_recorded() {
-    return (data->recon_config & 0x00200000UL) ? true : false;
+    return check_recon_config_bit(RC_REPEAT_RECORDED);
 }
 int8_t recon_repeat_nb() {
     return data->recon_repeat_nb;
@@ -828,46 +853,46 @@ uint8_t recon_repeat_delay() {
     return data->recon_repeat_delay;
 }
 bool recon_repeat_amp() {
-    return (data->recon_config & 0x00100000UL) ? true : false;
+    return check_recon_config_bit(RC_REPEAT_AMP);
 }
 bool recon_load_repeaters() {
-    return (data->recon_config & 0x00080000UL) ? true : false;
+    return check_recon_config_bit(RC_LOAD_REPEATERS);
 }
 bool recon_repeat_recorded_file_mode() {
-    return (data->recon_config & 0x00040000UL) ? true : false;
+    return check_recon_config_bit(RC_REPEAT_FILE_MODE);
 }
 void set_recon_autosave_freqs(const bool v) {
-    data->recon_config = (data->recon_config & ~0x80000000UL) | (v << 31);
+    set_recon_config_bit(RC_AUTOSAVE_FREQS, v);
 }
 void set_recon_autostart_recon(const bool v) {
-    data->recon_config = (data->recon_config & ~0x40000000UL) | (v << 30);
+    set_recon_config_bit(RC_AUTOSTART_RECON, v);
 }
 void set_recon_continuous(const bool v) {
-    data->recon_config = (data->recon_config & ~0x20000000UL) | (v << 29);
+    set_recon_config_bit(RC_CONTINUOUS, v);
 }
 void set_recon_clear_output(const bool v) {
-    data->recon_config = (data->recon_config & ~0x10000000UL) | (v << 28);
+    set_recon_config_bit(RC_CLEAR_OUTPUT, v);
 }
 void set_recon_load_freqs(const bool v) {
-    data->recon_config = (data->recon_config & ~0x08000000UL) | (v << 27);
+    set_recon_config_bit(RC_LOAD_FREQS, v);
 }
 void set_recon_load_ranges(const bool v) {
-    data->recon_config = (data->recon_config & ~0x04000000UL) | (v << 26);
+    set_recon_config_bit(RC_LOAD_RANGES, v);
 }
 void set_recon_update_ranges_when_recon(const bool v) {
-    data->recon_config = (data->recon_config & ~0x02000000UL) | (v << 25);
+    set_recon_config_bit(RC_UPDATE_RANGES, v);
 }
 void set_recon_load_hamradios(const bool v) {
-    data->recon_config = (data->recon_config & ~0x01000000UL) | (v << 24);
+    set_recon_config_bit(RC_LOAD_HAMRADIOS, v);
 }
 void set_recon_match_mode(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00800000UL) | (v << 23);
+    set_recon_config_bit(RC_MATCH_MODE, v);
 }
 void set_recon_auto_record_locked(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00400000UL) | (v << 22);
+    set_recon_config_bit(RC_AUTO_RECORD_LOCKED, v);
 }
 void set_recon_repeat_recorded(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00200000UL) | (v << 21);
+    set_recon_config_bit(RC_REPEAT_RECORDED, v);
 }
 void set_recon_repeat_nb(const int8_t v) {
     data->recon_repeat_nb = v;
@@ -879,13 +904,13 @@ void set_recon_repeat_delay(const uint8_t v) {
     data->recon_repeat_delay = v;
 }
 void set_recon_repeat_amp(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00100000UL) | (v << 20);
+    set_recon_config_bit(RC_REPEAT_AMP, v);
 }
 void set_recon_load_repeaters(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00080000UL) | (v << 19);
+    set_recon_config_bit(RC_LOAD_REPEATERS, v);
 }
 void set_recon_repeat_recorded_file_mode(const bool v) {
-    data->recon_config = (data->recon_config & ~0x00040000UL) | (v << 18);
+    set_recon_config_bit(RC_REPEAT_FILE_MODE, v);
 }
 
 /* UI Config 2 */
