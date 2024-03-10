@@ -3,6 +3,7 @@
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
  * Copyright (C) 2023 Mark Thompson
+ * Copyright (C) 2024 u-foka
  *
  * This file is part of PortaPack.
  *
@@ -106,7 +107,12 @@ void BtnGridView::on_tick_second() {
 }
 
 void BtnGridView::clear() {
-    menu_items.clear();
+    std::vector<GridItem>().swap(menu_items);  // clear vector and release memory
+
+    for (auto& item : menu_item_views)
+        remove_child(item.get());
+
+    std::vector<std::unique_ptr<NewButton>>().swap(menu_item_views);  // clear vector and release memory
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
@@ -207,9 +213,21 @@ void BtnGridView::on_focus() {
 
 void BtnGridView::on_blur() {
 #if 0
-	if (!keep_highlight)
-		item_view(highlighted_item - offset)->unhighlight();
+    if (!keep_highlight)
+        item_view(highlighted_item - offset)->unhighlight();
 #endif
+}
+
+void BtnGridView::on_show() {
+    on_populate();
+
+    View::on_show();
+}
+
+void BtnGridView::on_hide() {
+    View::on_hide();
+
+    clear();
 }
 
 bool BtnGridView::on_key(const KeyEvent key) {
