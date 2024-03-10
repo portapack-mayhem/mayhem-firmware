@@ -338,6 +338,7 @@ GlassView::GlassView(
                   &field_trigger,
                   &button_jump,
                   &button_rst,
+                  &field_rx_iq_phase_cal,
                   &freq_stats});
 
     load_presets();  // Load available presets from TXT files (or default).
@@ -474,6 +475,13 @@ GlassView::GlassView(
         reset_live_view();
     };
 
+    field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                 // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
+    field_rx_iq_phase_cal.set_value(get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
+    field_rx_iq_phase_cal.on_change = [this](int32_t v) {
+        set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
+    };
+    set_spec_iq_phase_calibration_value(get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
+
     display.scroll_set_area(109, 319);
 
     // trigger:
@@ -489,6 +497,15 @@ GlassView::GlassView(
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);
     receiver_model.enable();
+}
+
+uint8_t GlassView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
+    return iq_phase_calibration_value;
+}
+
+void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions
+    iq_phase_calibration_value = cal_value;
+    radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
 }
 
 void GlassView::load_presets() {
