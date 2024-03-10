@@ -198,6 +198,9 @@ class ReconView : public View {
     bool repeat_ready_signal{false};
     bool recon_tx{false};
 
+    std::filesystem::path rawfile = u"/" + repeat_rec_path + u"/" + repeat_rec_file;
+    std::filesystem::path rawmeta = u"/" + repeat_rec_path + u"/" + repeat_rec_meta;
+
     // Persisted settings.
     SettingsStore ui_settings{
         "recon"sv,
