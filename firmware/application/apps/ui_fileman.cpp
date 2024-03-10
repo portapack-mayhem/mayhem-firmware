@@ -246,7 +246,7 @@ void FileManBaseView::focus() {
 }
 
 void FileManBaseView::push_dir(const fs::path& path) {
-    // if you wantcurrent_path.empty it freely jump between profiles when picking files in your app, don't use this
+    // if you want it freely jump between profiles when picking files in your app, don't use this
     // , you should use push_fake_dir, which handle and call back the dir automatically
     //
     if (path == parent_dir_path) {
@@ -262,7 +262,7 @@ void FileManBaseView::push_dir(const fs::path& path) {
 
 void FileManBaseView::push_fake_dir(const fs::path& path) {
     // the one this accepted is just a flag (e.g. CAPTURE, instead of /SYS/CAPTURE nor /USR/CAPTURE), not real dir
-    // after passing the flag here, this func will handle it correctly and make callback correct
+    // after passing the flag here, this func will handle it automatically and make callback automatically
     fs::path first_level = path.extract_first_level();
     const fs::path user_dir = u"/USR";
     const fs::path system_dir = u"/SYS";
