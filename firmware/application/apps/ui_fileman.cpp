@@ -194,6 +194,7 @@ FileManBaseView::FileManBaseView(
     add_children({&labels,
                   &text_current,
                   &option_profile_switch,
+                  &label_profile,
                   &button_exit});
 
     button_exit.on_select = [this](Button&) {
@@ -221,10 +222,14 @@ FileManBaseView::FileManBaseView(
         switch (static_cast<DirProfiles>(profiles)) {
             case DirProfiles::User:
                 jumping_between_profiles(current_path, DirProfiles::User);
+                option_profile_switch.set_style(nullptr);
+
                 break;
 
             case DirProfiles::System:
                 jumping_between_profiles(current_path, DirProfiles::System);
+                option_profile_switch.set_style(&Styles::red);
+
                 break;
         }
 
@@ -476,6 +481,7 @@ void FileManagerView::refresh_widgets(const bool v) {
     button_new_dir.hidden(v);
     button_new_file.hidden(v);
     option_profile_switch.hidden(!v);
+    label_profile.hidden(!v);
     set_dirty();
 }
 

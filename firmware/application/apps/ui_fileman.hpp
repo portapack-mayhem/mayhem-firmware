@@ -125,10 +125,14 @@ class FileManBaseView : public View {
         true};
 
     OptionsField option_profile_switch{
-        {0 * 8, 32 * 8},
-        29,
-        {{"   \u007F/USR/ (User Directory)   ", 1},
-         {"   \u007F/SYS/ (System Directory) ", 2}}};
+        {11 * 8, 32 * 8},
+        16,
+        {{"User Directory  ", 1},
+         {"System Directory", 2}}};
+
+    Labels label_profile{
+        {{0 * 8, 32 * 8}, "Profile: ", Color::light_grey()},
+        {{9 * 8, 32 * 8}, "\u007F/", Color::white()}};
 
     Button button_exit{
         {22 * 8, 34 * 8, 8 * 8, 32},
