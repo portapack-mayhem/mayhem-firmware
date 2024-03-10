@@ -106,12 +106,12 @@ void BtnGridView::on_tick_second() {
 }
 
 void BtnGridView::clear() {
-    menu_items.clear();
+    std::vector<GridItem>().swap(menu_items);
 
     for (auto& item : menu_item_views)
         remove_child(item.get());
 
-    menu_item_views.clear();
+    std::vector<std::unique_ptr<NewButton>>().swap(menu_item_views);
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {
