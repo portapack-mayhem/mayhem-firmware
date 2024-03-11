@@ -165,7 +165,7 @@ class BLETxView : public View {
 
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
-    std::filesystem::path dataTempFilePath{u"/SYS/BLETX/dataFileTemp.TXT"};
+    std::filesystem::path dataTempFilePath{u"/RES/BLETX/dataFileTemp.TXT"};
     std::vector<uint16_t> markedBytes{};
     CursorPos cursor_pos{};
     uint8_t marked_counter = 0;

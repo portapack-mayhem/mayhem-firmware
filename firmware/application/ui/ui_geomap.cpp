@@ -447,7 +447,7 @@ void GeoMap::move(const float lon, const float lat) {
 }
 
 bool GeoMap::init() {
-    auto result = map_file.open("/SYS/ADSB/world_map.bin");
+    auto result = map_file.open("/RES/ADSB/world_map.bin");
     map_opened = !result.is_valid();
 
     if (map_opened) {

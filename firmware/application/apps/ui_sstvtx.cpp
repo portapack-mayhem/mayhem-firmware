@@ -173,13 +173,13 @@ void SSTVTXView::start_tx() {
 }
 
 // void SSTVTXView::on_bitmap_changed(const size_t index) {
-//     bmp_file.open("/SYS/sstv/" + bitmaps[index].string());
+//     bmp_file.open("/RES/sstv/" + bitmaps[index].string());
 //     bmp_file.read(&bmp_header, sizeof(bmp_header));
 //     set_dirty();
 // }
 
 void SSTVTXView::on_bitmap_changed(const size_t index) {
-    auto open_system_dir = bmp_file.open("/SYS/SSTV/" + bitmaps[index].string());
+    auto open_system_dir = bmp_file.open("/RES/SSTV/" + bitmaps[index].string());
     if (!open_system_dir->ok()) {
         bmp_file.open("/USR/SSTV/" + bitmaps[index].string());
     }
@@ -218,14 +218,14 @@ SSTVTXView::SSTVTXView(
     uint32_t c;
 
     // Search for valid bitmaps
-    system_file_list = scan_root_files(u"/SYS/SSTV", u"*.bmp");
+    system_file_list = scan_root_files(u"/RES/SSTV", u"*.bmp");
     user_file_list = scan_root_files(u"/USR/SSTV", u"*.bmp");
     if (!system_file_list.size() && !user_file_list.size()) {
         file_error = true;
         return;
     }
     for (const auto& file_name : system_file_list) {
-        if (!bmp_file.open("/SYS/SSTV/" + file_name.string()).is_valid()) {
+        if (!bmp_file.open("/RES/SSTV/" + file_name.string()).is_valid()) {
             bmp_file.read(&bmp_header, sizeof(bmp_header));
             if ((bmp_header.signature == 0x4D42) &&  // "BM"
                 (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now

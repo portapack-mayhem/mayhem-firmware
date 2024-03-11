@@ -94,7 +94,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     stop();
 
-    if (!reader->open(u"/SYS/WAV/" + file_list[id].native())) {
+    if (!reader->open(u"/RES/WAV/" + file_list[id].native())) {
         if (!reader->open(u"/USR/WAV/" + file_list[id].native())) {
             file_error();
             return;
@@ -166,7 +166,7 @@ void SoundBoardView::refresh_list() {
 
     // List directories and files, put directories up top
     uint32_t count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(u"/SYS/WAV", u"*")) {
+    for (const auto& entry : std::filesystem::directory_iterator(u"/RES/WAV", u"*")) {
         if (std::filesystem::is_regular_file(entry.status())) {
             if (entry.path().string().length()) {
                 auto entry_extension = entry.path().extension().string();
@@ -175,10 +175,10 @@ void SoundBoardView::refresh_list() {
                     c = toupper(c);
 
                 if (entry_extension == ".WAV") {
-                    if (reader->open(u"/SYS/WAV/" + entry.path().native())) {
+                    if (reader->open(u"/RES/WAV/" + entry.path().native())) {
                         if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                             // sounds[c].ms_duration = reader->ms_duration();
-                            // sounds[c].path = u"/SYS/WAV/" + entry.path().native();
+                            // sounds[c].path = u"/RES/WAV/" + entry.path().native();
                             if (count >= (page - 1) * 100 && count < page * 100) {
                                 file_list.push_back(entry.path());
                                 if (file_list.size() == 100) {

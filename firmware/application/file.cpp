@@ -364,7 +364,7 @@ std::filesystem::filesystem_error ensure_directory(
 void ensure_fake_directories(
     const std::filesystem::path& dir_path) {
     std::filesystem::path user_dir = u"/USR";
-    std::filesystem::path system_dir = u"/SYS";
+    std::filesystem::path system_dir = u"/RES";
 
     std::filesystem::path combined_user_dir = user_dir / dir_path;
     std::filesystem::path combimed_system_dir = system_dir / dir_path;

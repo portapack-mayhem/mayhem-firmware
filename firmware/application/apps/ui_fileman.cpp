@@ -261,11 +261,11 @@ void FileManBaseView::push_dir(const fs::path& path) {
 }
 
 void FileManBaseView::push_fake_dir(const fs::path& path) {
-    // the one this accepted is just a flag (e.g. CAPTURE, instead of /SYS/CAPTURE nor /USR/CAPTURE), not real dir
+    // the one this accepted is just a flag (e.g. CAPTURE, instead of /RES/CAPTURE nor /USR/CAPTURE), not real dir
     // after passing the flag here, this func will handle it automatically and make callback automatically
     fs::path first_level = path.extract_first_level();
     const fs::path user_dir = u"/USR";
-    const fs::path system_dir = u"/SYS";
+    const fs::path system_dir = u"/RES";
     const fs::path default_mother_dir = user_dir;
 
     if (first_level != user_dir && first_level != system_dir) {
@@ -351,7 +351,7 @@ fs::path FileManBaseView::jumping_between_profiles(fs::path& path, DirProfiles p
     fs::path first_level = path.extract_first_level();
     const fs::path null_path = u"";
     const fs::path user_dir = u"/USR";
-    const fs::path system_dir = u"/SYS";
+    const fs::path system_dir = u"/RES";
 
     if (first_level == null_path && profile == DirProfiles::User) {  // path is first level aka /abcdef
         path = user_dir;
