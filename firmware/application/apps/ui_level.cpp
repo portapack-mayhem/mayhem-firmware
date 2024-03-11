@@ -27,6 +27,7 @@
 #include "baseband_api.hpp"
 #include "file.hpp"
 #include "oversample.hpp"
+#include "ui_font_fixed_8x16.hpp"
 
 using namespace portapack;
 using namespace tonekey;
@@ -162,12 +163,6 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         last_max_db = statistics.max_db;
         freq_stats_db.set("Power: " + to_string_dec_int(statistics.max_db) + " db");
     }
-    // refresh sat
-    uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
-    if (last_rx_sat != rx_sat) {
-        last_rx_sat = rx_sat;
-        freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
-    }
     // refresh rssi
     if (last_min_rssi != rssi_graph.get_graph_min() || last_avg_rssi != rssi_graph.get_graph_avg() || last_max_rssi != rssi_graph.get_graph_max()) {
         last_min_rssi = rssi_graph.get_graph_min();
@@ -175,6 +170,29 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         last_max_rssi = rssi_graph.get_graph_max();
         freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi) + ", dt: " + to_string_dec_uint(rssi_graph.get_graph_delta()));
     }
+    // refresh sat
+    uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
+    if (last_rx_sat != rx_sat) {
+        last_rx_sat = rx_sat;
+        freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
+        uint8_t br = 0;
+        uint8_t bg = 0;
+        uint8_t bb = 0;
+        if (rx_sat <= 80) {
+            bg = (255 * rx_sat) / 80;
+            bb = 255 - bg;
+        } else if (rx_sat > 80) {
+            br = (255 * (rx_sat - 80)) / 20;
+            bg = 255 - br;
+        }
+        Style style_freq_stats_rx{
+            .font = font::fixed_8x16,
+            .background = {br, bg, bb},
+            .foreground = {255, 255, 255},
+        };
+        freq_stats_rx.set_style(&style_freq_stats_rx);
+    }
+
 } /* on_statistic_updates */
 
 size_t LevelView::change_mode(freqman_index_t new_mod) {

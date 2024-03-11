@@ -4,6 +4,7 @@
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2024 u-foka
  * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
@@ -792,8 +793,11 @@ class SetMenuColorView : public View {
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);
-
     std::string title() const override { return "Settings"; };
+
+   private:
+    NavigationView& nav_;
+    void on_populate() override;
 };
 
 } /* namespace ui */

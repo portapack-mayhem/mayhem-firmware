@@ -4,6 +4,7 @@
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2024 u-foka
  * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
@@ -835,28 +836,32 @@ void SetMenuColorView::focus() {
 
 /* SettingsMenuView **************************************/
 
-SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+SettingsMenuView::SettingsMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);  // allow wider buttons
+}
+
+void SettingsMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
-        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<AppSettingsView>(); }},
-        {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [&nav]() { nav.push<SetAudioView>(); }},
-        {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
-        {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [&nav]() { nav.push<SetConfigModeView>(); }},
-        {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
-        {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetDateTimeView>(); }},
-        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
-        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
-        {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
-        {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetRadioView>(); }},
-        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
-        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
-        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
-        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
-        {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetMenuColorView>(); }},
+        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
+        {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
+        {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<TouchCalibrationView>(); }},
+        {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [this]() { nav_.push<SetConfigModeView>(); }},
+        {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
+        {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
+        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetEncoderDialView>(); }},
+        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
+        {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
+        {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
+        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
+        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
+        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
+        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
+        {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
     });
-    set_max_rows(2);  // allow wider buttons
 }
 
 } /* namespace ui */

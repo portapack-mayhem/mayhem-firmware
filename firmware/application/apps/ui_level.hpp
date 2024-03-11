@@ -116,12 +116,12 @@ class LevelView : public View {
 
     // RSSI: XX/XX/XXX,dt: XX
     Text freq_stats_rssi{
-        {0 * 8, 3 * 16 + 4, 22 * 8, 14},
+        {0 * 8, 3 * 16 + 4, 22 * 8, 1 * 16},
     };
 
     // Power: -XXX db
     Text freq_stats_db{
-        {0 * 8, 4 * 16 + 4, 14 * 8, 14},
+        {0 * 8, 4 * 16 + 4, 15 * 8, 1 * 16},
     };
 
     OptionsField peak_mode{
@@ -150,7 +150,7 @@ class LevelView : public View {
 
     // RxSat: XX%
     Text freq_stats_rx{
-        {0 * 8, 5 * 16 + 4, 10 * 8, 14},
+        {0 * 8, 5 * 16 + 4, 10 * 8, 1 * 16},
     };
 
     RSSIGraph rssi_graph{
@@ -160,7 +160,7 @@ class LevelView : public View {
 
     RSSI rssi{
         // 240x320  =>
-        {240 - 5 * 8, 5 * 16 + 4, 5 * 8, 320 - (5 * 16 + 4)},
+        {240 - 5 * 8, 6 * 16 + 4, 5 * 8, 320 - (6 * 16 + 4)},
     };
 
     void handle_coded_squelch(const uint32_t value);

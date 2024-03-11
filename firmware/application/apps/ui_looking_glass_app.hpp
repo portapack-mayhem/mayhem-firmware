@@ -69,6 +69,9 @@ class GlassView : public View {
     void on_hide() override;
     void focus() override;
 
+    uint8_t get_spec_iq_phase_calibration_value();
+    void set_spec_iq_phase_calibration_value(uint8_t cal_value);
+
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
@@ -79,8 +82,9 @@ class GlassView : public View {
     uint8_t filter_index = 0;  // OFF
     uint8_t trigger = 32;
     uint8_t mode = LOOKING_GLASS_FASTSCAN;
-    uint8_t live_frequency_view = 0;       // Spectrum
-    uint8_t live_frequency_integrate = 3;  // Default (3 * old value + new_value) / 4
+    uint8_t live_frequency_view = 0;         // Spectrum
+    uint8_t live_frequency_integrate = 3;    // Default (3 * old value + new_value) / 4
+    uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
         app_settings::Mode::RX,
@@ -93,6 +97,7 @@ class GlassView : public View {
             {"scan_mode"sv, &mode},
             {"freq_view"sv, &live_frequency_view},
             {"freq_integrate"sv, &live_frequency_integrate},
+            {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
         }};
 
     struct preset_entry {
@@ -160,7 +165,7 @@ class GlassView : public View {
         {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
         {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-        {{0, 3 * 16}, "MARKER:          MHz", Color::light_grey()},
+        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Color::light_grey()},
         {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}};
 
     NumberField field_frequency_min{
@@ -207,6 +212,14 @@ class GlassView : public View {
     TextField field_marker{
         {7 * 8, 3 * 16, 9 * 8, 16},
         ""};
+
+    NumberField field_rx_iq_phase_cal{
+        {28 * 8, 3 * 16},
+        2,
+        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
+        1,
+        ' ',
+    };
 
     NumberField field_trigger{
         {4 * 8, 4 * 16},
