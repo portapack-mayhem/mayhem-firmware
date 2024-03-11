@@ -40,8 +40,6 @@ class FreqManBaseView : public View {
 
     void focus() override;
 
-    static constexpr size_t desc_edit_max = 0x80;
-
    protected:
     using options_t = OptionsField::options_t;
 
