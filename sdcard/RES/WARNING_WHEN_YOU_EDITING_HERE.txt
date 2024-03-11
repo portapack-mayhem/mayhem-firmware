@@ -1,5 +1,5 @@
-This folder contains the system files that
-could be overwritten during updating.
+This folder contains the resources files that
+you should overwrite during sdcard resources updating.
 
 You can of course edit files/dirs here,
 however it's not necessary at all.
