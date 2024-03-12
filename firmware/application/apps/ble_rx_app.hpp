@@ -133,7 +133,7 @@ class BleRecentEntryDetailView : public View {
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
-    std::filesystem::path packet_save_path{u"BLERX/Lists/????.csv"};
+    std::filesystem::path packet_save_path{u"/USR/BLERX/Lists/????.csv"};
 
     static constexpr uint8_t total_data_lines{5};
 
