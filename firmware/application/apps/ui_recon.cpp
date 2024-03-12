@@ -790,7 +790,10 @@ void ReconView::frequency_file_load() {
         .load_ranges = load_ranges,
         .load_hamradios = load_hamradios,
         .load_repeaters = load_repeaters};
-    if (!load_freqman_file(file_input, frequency_list, options, dir_profile::ProfileUser) || frequency_list.empty()) {
+    if (
+        (!load_freqman_file(file_input, frequency_list, options, dir_profile::ProfileSystem) &&
+         !load_freqman_file(file_input, frequency_list, options, dir_profile::ProfileUser)) ||
+        frequency_list.empty()) {
         file_name.set_style(&Styles::red);
         desc_cycle.set("...empty file...");
         frequency_list.clear();
