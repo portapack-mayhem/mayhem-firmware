@@ -224,21 +224,21 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
 
 const std::filesystem::path get_freqman_path(const std::string& stem, dir_profile profile) {
     switch (profile) {
-        case dir_profile::ProfileUser:
-            return freqman_user_dir / stem + freqman_extension;
-            break;
         case dir_profile::ProfileSystem:
             return freqman_system_dir / stem + freqman_extension;
             break;
+        case dir_profile::ProfileUser:
+            return freqman_user_dir / stem + freqman_extension;
+            break;
         default:
             // throw ?
-            return freqman_system_dir / stem + freqman_extension;
+            return freqman_user_dir / stem + freqman_extension;
     }
 }
 
 bool create_freqman_file(const std::string& file_stem) {
     // always create in user dir, so no judgement here
-    auto fs_error = make_new_file(get_freqman_path(file_stem, dir_profile::ProfileUser));  // create on usr dir
+    auto fs_error = make_new_file(get_freqman_path(file_stem, dir_profile::ProfileUser));  // only allow create on usr dir
     return fs_error.ok();
 }
 

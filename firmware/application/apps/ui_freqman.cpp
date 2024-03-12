@@ -108,14 +108,14 @@ void FreqManBaseView::change_category(size_t new_index) {
 
     current_category_index = new_index;
 
-    current_is_system_item = true;
-    if (!db_.open(get_freqman_path(current_category(), dir_profile::ProfileSystem))) {
-        current_is_system_item = false;
+    current_is_system_item = false;
+    if (!db_.open(get_freqman_path(current_category(), dir_profile::ProfileUser))) {
+        current_is_system_item = true;
     }
 
-    if (!current_is_system_item &&  // <<< this means that entered previus condition, it's a work around to save 1 byte of ram
+    if (current_is_system_item &&  // <<< this means that entered previus condition, it's a work around to save 1 byte of ram
         (!db_.open(
-            get_freqman_path(current_category(), dir_profile::ProfileUser)))) {
+            get_freqman_path(current_category(), dir_profile::ProfileSystem)))) {
         error_ = ERROR_ACCESS;
     }
 
