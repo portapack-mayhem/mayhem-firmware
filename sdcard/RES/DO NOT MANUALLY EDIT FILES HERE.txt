@@ -5,7 +5,7 @@ You can of course edit files/dirs here,
 however it's not necessary at all.
 
 You can add your own
-lists/ replay files/ playlist files
+lists / replay files / playlist files
 in the /USR/ dir of your sdcard.
 
 Firmware will settle your files
