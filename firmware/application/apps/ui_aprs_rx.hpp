@@ -232,7 +232,7 @@ class APRSRxView : public View {
     RecordView record_view{
         {0 * 8, 1 * 16, 30 * 8, 1 * 16},
         u"AFS_????.WAV",
-        u"APRS",
+        u"/USR/APRS",
         RecordView::FileType::WAV,
         4096,
         4};

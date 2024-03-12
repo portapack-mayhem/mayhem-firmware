@@ -160,7 +160,7 @@ class FskxRxMainView : public View {
     RecordView record_view{
         {0 * 8, 4 * 16, 30 * 8, 1 * 16},
         u"FSKRX_????.C16",
-        u"FSKRX",
+        u"/USR/FSKRX",
         RecordView::FileType::RawS16,
         16384,
         3};

@@ -111,7 +111,7 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
 
     logger = std::make_unique<APRSLogger>();
     if (logger)
-        logger->append(LOG_ROOT_DIR "/USR/APRS.TXT");
+        logger->append(LOG_ROOT_DIR "/APRS.TXT");
 
     baseband::set_aprs(1200);
 
