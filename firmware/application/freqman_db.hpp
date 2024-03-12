@@ -162,6 +162,9 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step);
  * ensure app memory stability. */
 constexpr size_t freqman_default_max_entries = 150;
 
+/* Limiting description to 30 as specified by the format */
+constexpr size_t freqman_max_desc_size = 30;
+
 struct freqman_load_options {
     /* Loads all entries when set to 0. */
     size_t max_entries{freqman_default_max_entries};
