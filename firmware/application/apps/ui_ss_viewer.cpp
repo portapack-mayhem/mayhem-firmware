@@ -27,7 +27,7 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
-const std::filesystem::path splash_dot_bmp{u"/splash.bmp"};
+const std::filesystem::path current_using_splash_image{u"/USR/splash.bmp"};
 
 ScreenshotViewer::ScreenshotViewer(
     NavigationView& nav,
@@ -108,8 +108,8 @@ SplashViewer::SplashViewer(
 
 bool SplashViewer::on_key(const KeyEvent key) {
     if (valid_image && key == KeyEvent::Right) {
-        delete_file(splash_dot_bmp);
-        copy_file(path_, splash_dot_bmp);
+        delete_file(current_using_splash_image);
+        copy_file(path_, current_using_splash_image);
     }
 
     nav_.pop();
@@ -125,7 +125,7 @@ void SplashViewer::paint(Painter& painter) {
     }
 
     // Show option to set splash screen if it's not already the splash screen
-    if (!path_iequal(path_, splash_dot_bmp)) {
+    if (!path_iequal(path_, current_using_splash_image)) {
         painter.draw_string({0, 0}, Styles::white, "*RIGHT BUTTON UPDATES SPLASH*");
         valid_image = true;
     }
