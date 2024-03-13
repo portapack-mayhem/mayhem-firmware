@@ -203,46 +203,36 @@ void SSTVTXView::on_mode_changed(const size_t index) {
 SSTVTXView::SSTVTXView(
     NavigationView& nav)
     : nav_(nav) {
-    std::vector<std::filesystem::path> system_file_list;
-    std::vector<std::filesystem::path> user_file_list;
+    std::vector<std::filesystem::path> file_list;
+    std::filesystem::path file_list_index[2];
     using option_t = std::pair<std::string, int32_t>;
     using options_t = std::vector<option_t>;
     options_t bitmap_options;
     options_t mode_options;
     uint32_t c;
+    
+    file_list_index[0] = std::filesystem::path(u"/RES/SSTV");
+    file_list_index[1] = std::filesystem::path(u"/USR/SSTV");
 
-    // Search for valid bitmaps
-    system_file_list = scan_root_files(u"/RES/SSTV", u"*.bmp");
-    user_file_list = scan_root_files(u"/USR/SSTV", u"*.bmp");
-    if (!system_file_list.size() && !user_file_list.size()) {
-        file_error = true;
-        return;
-    }
+    for (const auto& now_path : file_list_index) {
+        file_list = scan_root_files(now_path, u"*.bmp");
 
-    for (const auto& file_name : user_file_list) {
-        if (!bmp_file.open("/USR/SSTV/" + file_name.string()).is_valid()) {
-            bmp_file.read(&bmp_header, sizeof(bmp_header));
-            if ((bmp_header.signature == 0x4D42) &&  // "BM"
-                (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now
-                (bmp_header.height == 256) &&
-                (bmp_header.planes == 1) &&
-                (bmp_header.bpp == 24) &&         // 24 bpp only
-                (bmp_header.compression == 0)) {  // No compression
-                bitmaps.push_back(file_name);
-            }
+        if (!file_list.size()) {
+            file_error = true;
+            return;
         }
-    }
 
-    for (const auto& file_name : system_file_list) {
-        if (!bmp_file.open("/RES/SSTV/" + file_name.string()).is_valid()) {
-            bmp_file.read(&bmp_header, sizeof(bmp_header));
-            if ((bmp_header.signature == 0x4D42) &&  // "BM"
-                (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now
-                (bmp_header.height == 256) &&
-                (bmp_header.planes == 1) &&
-                (bmp_header.bpp == 24) &&         // 24 bpp only
-                (bmp_header.compression == 0)) {  // No compression
-                bitmaps.push_back(file_name);
+        for (const auto& file_name : file_list) {
+            if (!bmp_file.open(now_path / file_name).is_valid()) {
+                bmp_file.read(&bmp_header, sizeof(bmp_header));
+                if ((bmp_header.signature == 0x4D42) &&  // "BM"
+                    (bmp_header.width == 320) &&         // Must be exactly 320x256 pixels for now
+                    (bmp_header.height == 256) &&
+                    (bmp_header.planes == 1) &&
+                    (bmp_header.bpp == 24) &&         // 24 bpp only
+                    (bmp_header.compression == 0)) {  // No compression
+                    bitmaps.push_back(file_name);
+                }
             }
         }
     }
@@ -303,6 +293,6 @@ SSTVTXView::SSTVTXView(
         transmitter_model.disable();
         options_bitmaps.set_focusable(true);
     };
-}
+}  // namespace ui
 
 } /* namespace ui */
