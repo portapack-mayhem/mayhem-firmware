@@ -210,7 +210,7 @@ SSTVTXView::SSTVTXView(
     options_t bitmap_options;
     options_t mode_options;
     uint32_t c;
-    
+
     file_list_index[0] = std::filesystem::path(u"/RES/SSTV");
     file_list_index[1] = std::filesystem::path(u"/USR/SSTV");
 

@@ -579,8 +579,7 @@ void SystemStatusView::new_sdcard_structure_checker() {
             "during this updating;\n"
             "Please go read\n"
             "Mayhem wiki - Update\n"
-            "or visit\n"
-            "grabify.link/EGBG9D");
+            "on GitHub");
     }
 }
 
