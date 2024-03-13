@@ -165,56 +165,34 @@ void SoundBoardView::refresh_list() {
     c_page = page;
 
     // List directories and files, put directories up top
+    std::filesystem::path file_list_index[2];
+    file_list_index[0] = std::filesystem::path(u"/RES/WAV");
+    file_list_index[1] = std::filesystem::path(u"/USR/WAV");
     uint32_t count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(u"/RES/WAV", u"*")) {
-        if (std::filesystem::is_regular_file(entry.status())) {
-            if (entry.path().string().length()) {
-                auto entry_extension = entry.path().extension().string();
 
-                for (auto& c : entry_extension)
-                    c = toupper(c);
+    for (const auto& now_path : file_list_index) {
+        for (const auto& entry : std::filesystem::directory_iterator(now_path, u"*")) {
+            if (std::filesystem::is_regular_file(entry.status())) {
+                if (entry.path().string().length()) {
+                    auto entry_extension = entry.path().extension().string();
 
-                if (entry_extension == ".WAV") {
-                    if (reader->open(u"/RES/WAV/" + entry.path().native())) {
-                        if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
-                            // sounds[c].ms_duration = reader->ms_duration();
-                            // sounds[c].path = u"/RES/WAV/" + entry.path().native();
-                            if (count >= (page - 1) * 100 && count < page * 100) {
-                                file_list.push_back(entry.path());
-                                if (file_list.size() == 100) {
-                                    page++;
-                                    break;
+                    for (auto& c : entry_extension)
+                        c = toupper(c);
+
+                    if (entry_extension == ".WAV") {
+                        if (reader->open(now_path / entry.path().native())) {
+                            if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
+                                // sounds[c].ms_duration = reader->ms_duration();
+                                // sounds[c].path = u"/RES/WAV/" + entry.path().native();
+                                if (count >= (page - 1) * 100 && count < page * 100) {
+                                    file_list.push_back(entry.path());
+                                    if (file_list.size() == 100) {
+                                        page++;
+                                        break;
+                                    }
                                 }
+                                count++;
                             }
-                            count++;
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    for (const auto& entry : std::filesystem::directory_iterator(u"/USR/WAV", u"*")) {
-        if (std::filesystem::is_regular_file(entry.status())) {
-            if (entry.path().string().length()) {
-                auto entry_extension = entry.path().extension().string();
-
-                for (auto& c : entry_extension)
-                    c = toupper(c);
-
-                if (entry_extension == ".WAV") {
-                    if (reader->open(u"/USR/WAV/" + entry.path().native())) {
-                        if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
-                            // sounds[c].ms_duration = reader->ms_duration();
-                            // sounds[c].path = u"/USR/WAV/" + entry.path().native();
-                            if (count >= (page - 1) * 100 && count < page * 100) {
-                                file_list.push_back(entry.path());
-                                if (file_list.size() == 100) {
-                                    page++;
-                                    break;
-                                }
-                            }
-                            count++;
                         }
                     }
                 }
