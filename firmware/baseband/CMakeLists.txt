@@ -290,7 +290,7 @@ macro(DeclareTargets chunk_tag name)
 			DEPENDS ${PROJECT_NAME}.elf ${MAKE_IMAGE_CHUNK}
 			VERBATIM
 		)
-		
+
 		set(BASEBAND_IMAGES ${BASEBAND_IMAGES} ${PROJECT_NAME}.img)
 
 	else()
@@ -434,12 +434,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNFM nfm_audio)
 
-### No op
-
-set(MODE_CPPSRC
-	proc_noop.cpp
-)
-DeclareTargets(PNOP no_operation)
+#### No op
+#
+#set(MODE_CPPSRC
+#	proc_noop.cpp
+#)
+#DeclareTargets(PNOP no_operation)
 
 ### OOK
 
@@ -519,7 +519,7 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PWFM wfm_audio)
 
-### SubGhz Decoders 
+### SubGhz Decoders
 
 set(MODE_CPPSRC
 	proc_subghzd.cpp
@@ -554,7 +554,7 @@ set(MODE_INCDIR
 )
 set(MODE_CPPSRC
 	sd_over_usb/proc_sd_over_usb.cpp
-	
+
 	sd_over_usb/scsi.c
 	sd_over_usb/diskio.c
 	sd_over_usb/sd_over_usb.c
@@ -672,7 +672,7 @@ set(BASEBAND_IMAGES ${BASEBAND_IMAGES} terminator.img)
 #######################################################################
 
 project(baseband)
-	
+
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.img
 	COMMAND cat ${BASEBAND_IMAGES} > ${PROJECT_NAME}.img

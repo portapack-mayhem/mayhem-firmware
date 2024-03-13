@@ -24,6 +24,7 @@
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <cstdint>
 
@@ -139,6 +140,8 @@ void AudioTXProcessor::sample_rate_config(const SampleRateConfigMessage& message
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<AudioTXProcessor>()};
     event_dispatcher.run();
     return 0;

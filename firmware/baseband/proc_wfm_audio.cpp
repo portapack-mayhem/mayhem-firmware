@@ -26,6 +26,7 @@
 #include "audio_output.hpp"
 #include "dsp_fft.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <cstdint>
 
@@ -188,6 +189,8 @@ void WidebandFMAudio::capture_config(const CaptureConfigMessage& message) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<WidebandFMAudio>()};
     event_dispatcher.run();
     return 0;
