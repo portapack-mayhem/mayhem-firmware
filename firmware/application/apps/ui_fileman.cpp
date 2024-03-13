@@ -450,7 +450,7 @@ void FileManagerView::on_rename(std::string_view hint) {
 
 void FileManagerView::on_delete() {
     if (is_directory(get_selected_full_path()) && !is_empty_directory(get_selected_full_path())) {
-        nav_.display_modal("Delete", "Directory not empty;\nUse \"clean\" button\nto empty it first.");
+        nav_.display_modal("Delete", " Folder is not empty;\n Use \"Clean\" button to\n empty it first.");
         return;
     }
 
@@ -477,7 +477,7 @@ void FileManagerView::on_delete() {
 
 void FileManagerView::on_clean() {
     if (is_empty_directory(get_selected_full_path())) {
-        nav_.display_modal("Clean", " Folder is Empty;\n Use Delete button instead\n of Clean button to delete\n it.");
+        nav_.display_modal("Clean", "Folder is Empty;\nUse \"Delete\" button instead\nof \"Clean\" button to delete\nit.");
         return;
     }
 
