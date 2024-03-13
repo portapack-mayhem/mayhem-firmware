@@ -342,7 +342,7 @@ ScannerView::ScannerView(
                 scan_pause();
                 frequency_file_load(new_file_path);
             } else {
-                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directories is\nrequired.");
             }
         };
     };

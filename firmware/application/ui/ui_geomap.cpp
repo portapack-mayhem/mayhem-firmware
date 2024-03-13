@@ -613,7 +613,7 @@ void GeoMapView::focus() {
     geopos.focus();
 
     if (!geomap.map_file_opened())
-        nav_.display_modal("No map", "No world_map.bin file in\n/ADSB/ directory", ABORT);
+        nav_.display_modal("No map", "No world_map.bin file in\neither /SYS/ADSB/ or\n /USR/ADSB directory", ABORT);
 }
 
 void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {

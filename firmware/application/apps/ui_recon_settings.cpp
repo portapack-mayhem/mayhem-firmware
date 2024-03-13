@@ -63,7 +63,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
                 _input_file = new_file_path.stem().string();
                 text_input_file.set(_input_file);
             } else {
-                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directories is\nrequired.");
             }
         };
     };
@@ -76,7 +76,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
                 _output_file = new_file_path.stem().string();
                 button_choose_output_name.set_text(_output_file);
             } else {
-                nav.display_modal("SAVE ERROR", "A valid file from\nFREQMAN directory is\nrequired.");
+                nav.display_modal("SAVE ERROR", "A valid file from\nFREQMAN directories is\nrequired.");
             }
         };
     };
