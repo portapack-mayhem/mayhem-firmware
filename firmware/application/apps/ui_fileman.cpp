@@ -402,6 +402,7 @@ void FileSaveView::refresh_widgets() {
 void FileManagerView::refresh_widgets(const bool v) {
     button_rename.hidden(v);
     button_delete.hidden(v);
+    button_clean.hidden(v);
     button_cut.hidden(v);
     button_copy.hidden(v);
     button_paste.hidden(v);
@@ -449,7 +450,7 @@ void FileManagerView::on_rename(std::string_view hint) {
 
 void FileManagerView::on_delete() {
     if (is_directory(get_selected_full_path()) && !is_empty_directory(get_selected_full_path())) {
-        nav_.display_modal("Delete", "Directory not empty!");
+        nav_.display_modal("Delete", "Directory not empty;\nUse \"clean\" button\nto clean it first");
         return;
     }
 
@@ -472,6 +473,51 @@ void FileManagerView::on_delete() {
                     reload_current();
             }
         });
+}
+
+void FileManagerView::on_clean() {
+    if (is_directory(get_selected_full_path()) && !is_empty_directory(get_selected_full_path())) {
+        ////selected a dir, who is not empty, del sub files
+        nav_.push<ModalMessageView>(
+            "Delete", "Will delete all sub files\nexclude sub-folders,\nin this folder\nAre you sure?", YESNO,
+            [this](bool choice) {
+                if (choice) {
+                    std::vector<std::filesystem::path> file_list;
+                    file_list = scan_root_files(get_selected_full_path(), u"*");
+
+                    for (const auto& file_name : file_list) {
+                        std::filesystem::path current_full_path = get_selected_full_path() / file_name;
+                        delete_file(current_full_path);
+                    }
+                    reload_current();
+                }
+            });
+    } else if (!is_directory(get_selected_full_path()) && !is_empty_directory(get_selected_full_path())) {
+        ////selected a file, will del it and all others in this dir
+        nav_.push<ModalMessageView>(
+            "Delete", "Will delete all files\nexclude sub-folders\nin this folder,\nAre you sure?", YESNO,
+            [this](bool choice) {
+                if (choice) {
+                    std::vector<std::filesystem::path> file_list;
+                    file_list = scan_root_files(get_selected_full_path().parent_path(), u"*");
+
+                    for (const auto& file_name : file_list) {
+                        std::filesystem::path current_full_path = get_selected_full_path().parent_path() / file_name;
+                        delete_file(current_full_path);
+                    }
+                    reload_current();
+                }
+            });
+
+    } else if (is_directory(get_selected_full_path()) && is_empty_directory(get_selected_full_path())) {
+        ////sel an empty dir, threw
+        nav_.display_modal("Forbid", "You selected an empty dir;\nUse delete button \ninstead of clean button\nto delete it");
+        return;
+    } else {
+        ////edge case e.g. probably . or .. (maybe not needed?)
+        nav_.display_modal("Forbid", "Not able to do that");
+        return;
+    }
 }
 
 void FileManagerView::on_new_dir() {
@@ -560,6 +606,7 @@ FileManagerView::FileManagerView(
         &text_date,
         &button_rename,
         &button_delete,
+        &button_clean,
         &button_cut,
         &button_copy,
         &button_paste,
@@ -604,6 +651,11 @@ FileManagerView::FileManagerView(
     button_delete.on_select = [this]() {
         if (selected_is_valid())
             on_delete();
+    };
+
+    button_clean.on_select = [this]() {
+        if (selected_is_valid())
+            on_clean();
     };
 
     button_cut.on_select = [this]() {
