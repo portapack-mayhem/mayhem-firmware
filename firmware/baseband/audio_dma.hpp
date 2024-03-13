@@ -43,9 +43,8 @@ using buffer_t = buffer_t<sample_t>;
 
 namespace dma {
 
-void init();
-void configure();
-void enable();
+void init_audio_in();
+void init_audio_out();
 void disable();
 void shrink_tx_buffer(bool shrink);
 

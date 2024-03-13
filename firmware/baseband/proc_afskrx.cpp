@@ -23,6 +23,8 @@
 #include "proc_afskrx.hpp"
 #include "portapack_shared_memory.hpp"
 
+#include "audio_dma.hpp"
+
 #include "event_m4.hpp"
 
 void AFSKRxProcessor::execute(const buffer_c8_t& buffer) {
@@ -181,6 +183,8 @@ void AFSKRxProcessor::configure(const AFSKRxConfigureMessage& message) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<AFSKRxProcessor>()};
     event_dispatcher.run();
     return 0;
