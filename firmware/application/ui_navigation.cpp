@@ -566,7 +566,12 @@ void SystemStatusView::new_sdcard_structure_checker() {
 
     auto scan_result = std::find(directories.begin(), directories.end(), resources_dir);
 
-    if (nav_.is_valid() && (scan_result == directories.end())) {
+    auto sd_status = sd_card::status();
+
+    if (
+        nav_.is_valid() &&
+        (scan_result == directories.end()) &&
+        !(sd_status == Status::NotPresent || sd_status == Status::Present)) {
         nav_.display_modal(
             "Warning",
             "You didn't correctly\n"
