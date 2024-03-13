@@ -221,6 +221,10 @@ void disable() {
 
 void shrink_tx_buffer(bool shrink) {
     single_tx_buffer = shrink;
+
+    if (transfers_per_buffer == 1)
+        return;
+
     if (single_tx_buffer)
         lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
     else
