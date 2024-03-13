@@ -28,14 +28,8 @@
 
 #include "gpdma.hpp"
 
-#include "audio_dma.hpp"
-
 static void init() {
-    audio::dma::init();
-    audio::dma::configure();
-    audio::dma::enable();
-
-    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
+    // Audio DMA initialization was moved to baseband proc's that actually use DMA audio, to save memory.
 }
 
 static void halt() {

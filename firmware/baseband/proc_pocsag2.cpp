@@ -26,6 +26,7 @@
 #include "proc_pocsag2.hpp"
 
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -416,6 +417,8 @@ void POCSAGProcessor::send_packet() {
 /* main **************************************************/
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
     event_dispatcher.run();
     return 0;

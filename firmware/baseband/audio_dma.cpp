@@ -162,14 +162,6 @@ static void rx_error() {
     disable();
 }
 
-void init() {
-    gpdma_channel_i2s0_tx.set_handlers(tx_transfer_complete, tx_error);
-    gpdma_channel_i2s0_rx.set_handlers(rx_transfer_complete, rx_error);
-
-    // LPC_GPDMA->SYNC |= (1 << gpdma_rx_peripheral);
-    // LPC_GPDMA->SYNC |= (1 << gpdma_tx_peripheral);
-}
-
 static void configure_tx() {
     const auto peripheral = reinterpret_cast<uint32_t>(&LPC_I2S0->TXFIFO);
     const auto control_value = control_tx(transfer_bytes);
@@ -194,20 +186,32 @@ static void configure_rx() {
     }
 }
 
-void configure() {
-    configure_tx();
-    configure_rx();
+static void enable_tx() {
+    const auto gpdma_config_tx = config_tx();
+    gpdma_channel_i2s0_tx.configure(lli_tx_loop[0], gpdma_config_tx);
+    gpdma_channel_i2s0_tx.enable();
 }
 
-void enable() {
-    const auto gpdma_config_tx = config_tx();
+static void enable_rx() {
     const auto gpdma_config_rx = config_rx();
-
-    gpdma_channel_i2s0_tx.configure(lli_tx_loop[0], gpdma_config_tx);
     gpdma_channel_i2s0_rx.configure(lli_rx_loop[0], gpdma_config_rx);
-
-    gpdma_channel_i2s0_tx.enable();
     gpdma_channel_i2s0_rx.enable();
+}
+
+void init_audio_out() {
+    gpdma_channel_i2s0_tx.set_handlers(tx_transfer_complete, tx_error);
+    // LPC_GPDMA->SYNC |= (1 << gpdma_tx_peripheral);
+    configure_tx();
+    enable_tx();
+    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
+}
+
+void init_audio_in() {
+    gpdma_channel_i2s0_rx.set_handlers(rx_transfer_complete, rx_error);
+    // LPC_GPDMA->SYNC |= (1 << gpdma_rx_peripheral);
+    configure_rx();
+    enable_rx();
+    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 }
 
 void disable() {
