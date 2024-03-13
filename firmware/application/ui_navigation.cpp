@@ -571,7 +571,7 @@ void SystemStatusView::new_sdcard_structure_checker() {
     if (
         nav_.is_valid() &&
         (scan_result == directories.end()) &&
-        !(sd_status == Status::NotPresent || sd_status == Status::Present)) {
+        (sd_status == sd_card::Status::Mounted)) {
         nav_.display_modal(
             "Warning",
             "You didn't correctly\n"
