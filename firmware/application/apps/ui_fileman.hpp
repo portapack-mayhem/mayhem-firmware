@@ -234,9 +234,9 @@ class FileManagerView : public FileManBaseView {
         Color::red()};
 
     NewButton button_clean{
-        {17 * 8, 34 * 8, 4 * 8, 32},
+        {13 * 8, 34 * 8, 4 * 8, 32},
         {},
-        &bitmap_icon_tools_wipesd,
+        &bitmap_icon_scanner,
         Color::red()};
 
     NewButton button_cut{
@@ -291,7 +291,7 @@ class FileManagerView : public FileManBaseView {
         Color::orange()};
 
     NewButton button_show_hidden_files{
-        {13 * 8, 34 * 8, 4 * 8, 32},
+        {17 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_hide,
         Color::dark_grey()};
