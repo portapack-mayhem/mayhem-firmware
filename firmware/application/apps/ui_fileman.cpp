@@ -248,9 +248,7 @@ void FileManBaseView::focus() {
 void FileManBaseView::push_dir(const fs::path& path) {
     // if you want it freely jump between profiles when picking files in your app, don't use this
     // , you should use push_fake_dir, which handle and call back the dir automatically
-    //
     if (path == parent_dir_path) {
-        saved_index_stack.push_back(menu_view.highlighted_index());
         pop_dir();
     } else {
         current_path /= path;
@@ -278,17 +276,10 @@ void FileManBaseView::push_fake_dir(const fs::path& path) {
 }
 
 void FileManBaseView::pop_dir() {
-    fs::path first_level = current_path.extract_first_level();
-    fs::path null_path = u"";
-
     if (saved_index_stack.empty())
         return;
 
-    if (first_level == null_path) {
-        current_path = null_path;
-    } else {
-        current_path = current_path.parent_path();
-    }
+    current_path = current_path.parent_path();
 
     reload_current();
     menu_view.set_highlighted(saved_index_stack.back());
