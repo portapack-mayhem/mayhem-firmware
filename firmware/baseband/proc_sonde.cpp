@@ -27,6 +27,7 @@
 #include "event_m4.hpp"
 
 #include "audio_output.hpp"
+#include "audio_dma.hpp"
 
 SondeProcessor::SondeProcessor() {
     decim_0.configure(taps_11k0_decim_0.taps);
@@ -141,6 +142,8 @@ void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message)
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<SondeProcessor>()};
     event_dispatcher.run();
 

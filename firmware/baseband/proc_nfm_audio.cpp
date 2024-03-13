@@ -24,6 +24,8 @@
 #include "sine_table_int8.hpp"
 #include "portapack_shared_memory.hpp"
 
+#include "audio_dma.hpp"
+
 #include "event_m4.hpp"
 
 #include <cstdint>
@@ -174,6 +176,8 @@ void NarrowbandFMAudio::capture_config(const CaptureConfigMessage& message) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<NarrowbandFMAudio>()};
     event_dispatcher.run();
     return 0;

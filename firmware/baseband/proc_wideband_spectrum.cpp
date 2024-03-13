@@ -20,6 +20,7 @@
  */
 
 #include "proc_wideband_spectrum.hpp"
+#include "audio_dma.hpp"
 
 #include "event_m4.hpp"
 
@@ -82,6 +83,8 @@ void WidebandSpectrum::on_message(const Message* const msg) {
 }
 
 int main() {
+    audio::dma::init_audio_out();  // for AudioRX app (enables audio output while this baseband image is running)
+
     EventDispatcher event_dispatcher{std::make_unique<WidebandSpectrum>()};
     event_dispatcher.run();
     return 0;

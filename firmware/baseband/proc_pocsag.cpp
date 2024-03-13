@@ -27,6 +27,7 @@
 
 #include "dsp_iir_config.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -530,6 +531,8 @@ uint32_t POCSAGProcessor::getRate() const {
 //
 // ====================================================================
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
     event_dispatcher.run();
     return 0;
