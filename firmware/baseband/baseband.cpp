@@ -30,6 +30,7 @@
 
 static void init() {
     // Audio DMA initialization was moved to baseband proc's that actually use DMA audio, to save memory.
+    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 }
 
 static void halt() {

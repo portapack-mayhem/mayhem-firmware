@@ -203,7 +203,6 @@ void init_audio_out() {
     // LPC_GPDMA->SYNC |= (1 << gpdma_tx_peripheral);
     configure_tx();
     enable_tx();
-    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 }
 
 void init_audio_in() {
@@ -211,7 +210,6 @@ void init_audio_in() {
     // LPC_GPDMA->SYNC |= (1 << gpdma_rx_peripheral);
     configure_rx();
     enable_rx();
-    nvicEnableVector(DMA_IRQn, CORTEX_PRIORITY_MASK(LPC_DMA_IRQ_PRIORITY));
 }
 
 void disable() {
