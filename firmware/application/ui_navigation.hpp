@@ -187,6 +187,8 @@ class SystemStatusView : public View {
     void set_title(const std::string new_value);
 
    private:
+
+    bool already_shown_sdcard_warning_in_this_boot {false};
     static constexpr auto default_title = "";
 
     NavigationView& nav_;
@@ -282,6 +284,8 @@ class SystemStatusView : public View {
     void refresh();
     void on_clk();
     void rtc_battery_workaround();
+    void new_sdcard_structure_checker();
+
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,
