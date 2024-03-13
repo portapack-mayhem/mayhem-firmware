@@ -207,6 +207,7 @@ class FileManagerView : public FileManBaseView {
     void refresh_widgets(const bool v);
     void on_rename(std::string_view hint);
     void on_delete();
+    void on_clean();
     void on_paste();
     void on_new_dir();
     void on_new_file();
@@ -227,9 +228,15 @@ class FileManagerView : public FileManBaseView {
         Color::dark_blue()};
 
     NewButton button_delete{
-        {4 * 8, 29 * 8, 4 * 8, 32},
+        {9 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trash,
+        Color::red()};
+
+    NewButton button_clean{
+        {17 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_tools_wipesd,
         Color::red()};
 
     NewButton button_cut{
@@ -269,14 +276,16 @@ class FileManagerView : public FileManBaseView {
         Color::orange()};
 
     NewButton button_rename_timestamp{
-        {4 * 8, 34 * 8, 4 * 8, 32},
+
+        {4 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_options_datetime,
         Color::orange(),
         /*vcenter*/ true};
 
     NewButton button_open_iq_trim{
-        {9 * 8, 34 * 8, 4 * 8, 32},
+
+        {4 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trim,
         Color::orange()};
