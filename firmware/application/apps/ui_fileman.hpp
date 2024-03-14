@@ -252,7 +252,7 @@ class FileManagerView : public FileManBaseView {
     NewButton button_clean{
         {13 * 8, 34 * 8, 4 * 8, 32},
         {},
-        &bitmap_icon_scanner,
+        &bitmap_icon_clean,
         Color::red()};
 
     NewButton button_cut{
