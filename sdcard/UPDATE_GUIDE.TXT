@@ -1,13 +1,21 @@
-- Your personal files (Capture, log, personal lists, etc) are storage in /USR/
+Your personal files (Capture, log, frequency lists, etc)
+should be saved in the /USR folder and sub-folders.
 
-- The /RES/ only contains official release blob files,
-which is not suggested to edit or save things into it;
-So you can easily replace it during updating.
+The /RES folder contains official release SD Card
+resources files. It is recommended that users should
+not store files in the /RES folder, so that the /RES
+folder can be replaced easily when updating the
+SD Card contents.
 
-- The /FIRMWARE folder and /APPS folder would be automatically controlled by serial updating or .tar file flashing;
+The /FIRMWARE folder and /APPS folder are
+automatically controlled by serial flash updating
+or .tar file flashing;
+If you want to update firmware and apps:
+you only need to use hackrf.app web serial PWA app,
+or copy the .tar package into the /FIRMWARE folder
+and then run the Flash Utility app.
 
-- If you want to update firmware and apps:
-you only need to use hackrf.app web serial PWA app, or put .tar package into /FIRMWARE folder and user flash utilty app.
-
-- If you want to update official release sdcard resources files:
-simply replace (or delete and paste) entire /RES/ folder, since your personal files are not in it.
+If you want to update official release SD Card
+resources files:
+simply replace (or delete and paste) the entire /RES
+folder, since your personal files are not in it.
