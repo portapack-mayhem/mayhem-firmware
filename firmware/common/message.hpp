@@ -1313,17 +1313,20 @@ class GPSPosDataMessage : public Message {
         float lat = 200.0,
         float lon = 200.0,
         int32_t altitude = 0,
-        int32_t speed = 0)
+        int32_t speed = 0,
+        uint8_t satinuse = 0)
         : Message{ID::GPSPosData},
           lat{lat},
           lon{lon},
           altitude{altitude},
-          speed{speed} {
+          speed{speed},
+          satinuse{satinuse} {
     }
     float lat = 200.0;
     float lon = 200.0;
     int32_t altitude = 0;
     int32_t speed = 0;
+    uint8_t satinuse = 0;
 };
 
 class OrientationDataMessage : public Message {
