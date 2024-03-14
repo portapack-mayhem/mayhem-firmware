@@ -205,6 +205,11 @@ void RecordView::start() {
         return;
     }
 
+    // check for geo data, if present append filename with _GEO
+    if (latitude != 0 && longitude != 0 && latitude < 200 && longitude < 200) {
+        base_path.append_filename(u"_GEO");
+    }
+
     std::unique_ptr<stream::Writer> writer;
     switch (file_type) {
         case FileType::WAV: {
