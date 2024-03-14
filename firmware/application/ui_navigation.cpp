@@ -574,12 +574,10 @@ void SystemStatusView::new_sdcard_structure_checker() {
         (sd_status == sd_card::Status::Mounted)) {
         nav_.display_modal(
             "Warning",
-            "You didn't correctly\n"
-            "put sdcard content\n"
-            "during this updating;\n"
-            "Please go read\n"
-            "Mayhem wiki - Update\n"
-            "on GitHub");
+            "SD Card content should be\n"
+            "updated for use with this\n"
+            "firmware version.\n"
+            "See Mayhem Wiki - Update.");
     }
 }
 
