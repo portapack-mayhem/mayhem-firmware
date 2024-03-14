@@ -276,15 +276,17 @@ void FileManBaseView::push_fake_dir(const fs::path& path) {
 }
 
 void FileManBaseView::pop_dir() {
-    if (saved_index_stack.empty()) {
+    if (saved_index_stack.empty() && current_path == u"/") {
         return;
+    } else if (saved_index_stack.empty()) {
+        current_path = u"";
+        reload_current();
+    } else {
+        current_path = current_path.parent_path();
+        reload_current();
+        menu_view.set_highlighted(saved_index_stack.back());
+        saved_index_stack.pop_back();
     }
-
-    current_path = current_path.parent_path();
-
-    reload_current();
-    menu_view.set_highlighted(saved_index_stack.back());
-    saved_index_stack.pop_back();
 }
 
 void FileManBaseView::refresh_list() {
