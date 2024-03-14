@@ -26,7 +26,7 @@
 #include <cstring>
 
 int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) {
-    file_path = "/sys/AIS/mids.db";
+    file_path = "/RES/AIS/mids.db";
     index_item_length = 4;
     record_length = 32;
 
