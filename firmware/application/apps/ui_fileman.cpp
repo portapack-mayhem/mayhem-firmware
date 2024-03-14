@@ -276,15 +276,7 @@ void FileManBaseView::push_fake_dir(const fs::path& path) {
 }
 
 void FileManBaseView::pop_dir() {
-    fs::path first_level = current_path.extract_first_level();
-    fs::path root_dir = u"/";
-    fs::path null_dir = u"";
-
-    if (saved_index_stack.empty() && first_level == null_dir) {
-        current_path = root_dir;
-        saved_index_stack.clear();
-
-    } else if (saved_index_stack.empty() && first_level == root_dir) {
+    if (saved_index_stack.empty()) {
         return;
     }
 
