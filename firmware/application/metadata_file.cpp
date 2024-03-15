@@ -31,6 +31,9 @@ using namespace std::literals;
 
 const std::string_view center_freq_name = "center_frequency"sv;
 const std::string_view sample_rate_name = "sample_rate"sv;
+const std::string_view latitude_name = "latitude"sv;
+const std::string_view longitude_name = "longitude"sv;
+const std::string_view satinuse_name = "satinuse"sv;
 
 fs::path get_metadata_path(const fs::path& capture_path) {
     auto temp = capture_path;
@@ -54,6 +57,23 @@ Optional<File::Error> write_metadata_file(const fs::path& path, capture_metadata
     if (error)
         return error;
 
+    // add gps data if available
+    if (metadata.latitude != 0 && metadata.longitude != 0 && metadata.latitude < 200 && metadata.longitude < 200) {
+        error = f.write_line(std::string{latitude_name} + "=" +
+                             to_string_decimal(metadata.latitude, 7));
+        if (error)
+            return error;
+
+        error = f.write_line(std::string{longitude_name} + "=" +
+                             to_string_decimal(metadata.longitude, 7));
+        if (error)
+            return error;
+
+        error = f.write_line(std::string{satinuse_name} + "=" +
+                             to_string_dec_uint(metadata.satinuse));
+        if (error)
+            return error;
+    }
     return {};
 }
 
@@ -77,6 +97,12 @@ Optional<capture_metadata> read_metadata_file(const fs::path& path) {
             parse_int(cols[1], metadata.center_frequency);
         else if (cols[0] == sample_rate_name)
             parse_int(cols[1], metadata.sample_rate);
+        else if (cols[0] == latitude_name)
+            parse_float_meta(cols[1], metadata.latitude);
+        else if (cols[0] == longitude_name)
+            parse_float_meta(cols[1], metadata.longitude);
+        else if (cols[0] == satinuse_name)
+            parse_int(cols[1], metadata.satinuse);
         else
             continue;
     }
@@ -85,4 +111,19 @@ Optional<capture_metadata> read_metadata_file(const fs::path& path) {
         return {};  // Parse failed.
 
     return metadata;
+}
+
+bool parse_float_meta(std::string_view str, float& out_val) {
+    out_val = {};
+
+    if (str.size() > max_parse_int_length)
+        return false;
+
+    // Copy onto the stack and null terminate.
+    char zstr[max_parse_int_length + 1];
+    std::memcpy(zstr, str.data(), str.size());
+    zstr[str.size()] = '\0';
+    errno = 0;
+    out_val = strtod(zstr, nullptr);
+    return (errno == 0);
 }
