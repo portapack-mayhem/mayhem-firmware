@@ -158,6 +158,8 @@ struct path {
 
     path& replace_extension(const path& replacement = path());
 
+    path& append_filename(const string_type& str);
+
    private:
     string_type _s;
 };

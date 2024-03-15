@@ -29,6 +29,9 @@
 struct capture_metadata {
     rf::Frequency center_frequency;
     uint32_t sample_rate;
+    float latitude = 0;
+    float longitude = 0;
+    uint8_t satinuse = 0;
 };
 
 std::filesystem::path get_metadata_path(const std::filesystem::path& capture_path);
@@ -36,4 +39,5 @@ std::filesystem::path get_metadata_path(const std::filesystem::path& capture_pat
 Optional<File::Error> write_metadata_file(const std::filesystem::path& path, capture_metadata metadata);
 Optional<capture_metadata> read_metadata_file(const std::filesystem::path& path);
 
+bool parse_float_meta(std::string_view str, float& out_val);
 #endif  // __METADATA_FILE_HPP__

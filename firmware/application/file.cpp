@@ -504,6 +504,15 @@ std::string path::string() const {
     return conv.to_bytes(native());
 }
 
+// appends a string to the end of filename, but leaves the extension asd.txt + "fg" -> asdfg.txt
+path& path::append_filename(const string_type& str) {
+    const auto t = extension().native();
+    _s.erase(_s.size() - t.size());  // remove extension
+    _s += str;                       // append string
+    _s += t;                         // add back extension
+    return *this;
+}
+
 path& path::replace_extension(const path& replacement) {
     const auto t = extension().native();
     _s.erase(_s.size() - t.size());

@@ -205,6 +205,11 @@ void RecordView::start() {
         return;
     }
 
+    // check for geo data, if present append filename with _GEO
+    if (latitude != 0 && longitude != 0 && latitude < 200 && longitude < 200) {
+        base_path.append_filename(u"_GEO");
+    }
+
     std::unique_ptr<stream::Writer> writer;
     switch (file_type) {
         case FileType::WAV: {
@@ -223,7 +228,7 @@ void RecordView::start() {
         case FileType::RawS8:
         case FileType::RawS16: {
             const auto metadata_file_error = write_metadata_file(
-                get_metadata_path(base_path), {receiver_model.target_frequency(), sampling_rate});
+                get_metadata_path(base_path), {receiver_model.target_frequency(), sampling_rate, latitude, longitude, satinuse});
             if (metadata_file_error.is_valid()) {
                 handle_error(metadata_file_error.value());
                 return;
@@ -340,6 +345,12 @@ void RecordView::trim_capture() {
     }
 
     trim_path = {};
+}
+
+void RecordView::on_gps(const GPSPosDataMessage* msg) {
+    latitude = msg->lat;
+    longitude = msg->lon;
+    satinuse = msg->satinuse;
 }
 
 void RecordView::handle_capture_thread_done(const File::Error error) {
