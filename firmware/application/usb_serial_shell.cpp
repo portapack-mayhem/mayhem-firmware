@@ -905,8 +905,8 @@ static void cmd_cpld_read(BaseSequentialStream* chp, int argc, char* argv[]) {
 }
 
 static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: gotgps <lat> <lon> [altitude] [speed]\r\n";
-    if (argc < 2 || argc > 4) {
+    const char* usage = "usage: gotgps <lat> <lon> [altitude] [speed] [satinuse]\r\n";
+    if (argc < 2 || argc > 5) {
         chprintf(chp, usage);
         return;
     }
@@ -914,9 +914,11 @@ static void cmd_gotgps(BaseSequentialStream* chp, int argc, char* argv[]) {
     float lon = atof(argv[1]);
     int32_t altitude = 0;
     int32_t speed = 0;
+    uint8_t satinuse = 0;
     if (argc >= 3) altitude = strtol(argv[2], NULL, 10);
     if (argc >= 4) speed = strtol(argv[3], NULL, 10);
-    GPSPosDataMessage msg{lat, lon, altitude, speed};
+    if (argc >= 5) satinuse = strtol(argv[4], NULL, 10);
+    GPSPosDataMessage msg{lat, lon, altitude, speed, satinuse};
     EventDispatcher::send_message(msg);
     chprintf(chp, "ok\r\n");
 }
