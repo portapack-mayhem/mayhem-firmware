@@ -109,7 +109,8 @@ BLESpamView::BLESpamView(NavigationView& nav)
     console.writeln("Based on work of:");
     console.writeln("@Willy-JL, @ECTO-1A,");
     console.writeln("@Spooks4576, @iNetro");
-    console.writeln("");
+    console.writeln("---");
+    console.writeln("iOS crash + Android\nattacks are patched\non new devices.");
 #endif
     changePacket(true);  // init
 }
@@ -294,9 +295,9 @@ void BLESpamView::createWindowsPacket() {
 }
 
 void BLESpamView::createNameSpamPacket() {
-    const char* names[] = {"PortaHack", "PwnBt", "iSpam", "GenericFoodVagon"};
+    const char* names[] = {"PortaHack", "PwnBt", "iSpam", "GenericFoodVagon", "SignalSnoop", "ByteBandit", "RadioRogue", "RadioRebel", "ByteBlast"};
 
-    const char* name = names[rand() % 4];  //"PortaHack";
+    const char* name = names[rand() % 9];  //"PortaHack";
     uint8_t name_len = strlen(name);
 
     uint8_t size = 12 + name_len;
