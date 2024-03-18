@@ -49,7 +49,9 @@ enum ATK_TYPE {
     ATK_IOS,
     ATK_IOS_CRASH,
     ATK_WINDOWS,
-    ATK_SAMSUNG
+    ATK_SAMSUNG,
+    ATK_ALL_SAFE,
+    ATK_ALL
 };
 enum PKT_TYPE {
     PKT_TYPE_INVALID_TYPE,
@@ -124,7 +126,9 @@ class BLESpamView : public View {
          {"iOs", 1},
          {"iOs crash", 2},
          {"Windows", 3},
-         {"Samsung", 4}}};
+         {"Samsung", 4},
+         {"All-Safe", 5},
+         {"All", 6}}};
 
     bool is_running{false};
 
@@ -148,6 +152,8 @@ class BLESpamView : public View {
     void createIosPacket(bool crash);
     void createSamsungPacket();
     void createWindowsPacket();
+    void createAnyPacket(bool safe);
+    void createPacket(ATK_TYPE attackType);
     void changePacket(bool forced);
     void on_tx_progress(const bool done);
 
