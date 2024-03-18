@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-// Code from https://github.com/Flipper-XFW/Xtreme-Apps/tree/04c3a60093e2c2378e79498b4505aa8072980a42/ble_spam/protocols
+// Code from https://github.com/Next-Flip/Momentum-Apps/blob/dev/ble_spam/
 // Thanks for the work of the original creators!
 
 #include "ui_blespam.hpp"
@@ -293,6 +293,38 @@ void BLESpamView::createWindowsPacket() {
     std::copy(res.begin(), res.end(), advertisementData);
 }
 
+void BLESpamView::createNameSpamPacket() {
+    const char* name = "PortaHack";
+    // name = names[rand() % 6];
+    uint8_t name_len = strlen(name);
+
+    uint8_t size = 12 + name_len;
+    uint8_t i = 0;
+
+    packet[i++] = 2;     // Size
+    packet[i++] = 0x01;  // AD Type (Flags)
+    packet[i++] = 0x06;  // Flags
+
+    packet[i++] = name_len + 1;          // Size
+    packet[i++] = 0x09;                  // AD Type (Complete Local Name)
+    memcpy(&packet[i], name, name_len);  // Device Name
+    i += name_len;
+
+    packet[i++] = 3;     // Size
+    packet[i++] = 0x02;  // AD Type (Incomplete Service UUID List)
+    packet[i++] = 0x12;  // Service UUID (Human Interface Device)
+    packet[i++] = 0x18;  // ...
+
+    packet[i++] = 2;     // Size
+    packet[i++] = 0x0A;  // AD Type (Tx Power Level)
+    packet[i++] = 0x00;  // 0dBm
+
+    // size, packet
+    std::string res = to_string_hex_array(packet, size);
+    memset(advertisementData, 0, sizeof(advertisementData));
+    std::copy(res.begin(), res.end(), advertisementData);
+}
+
 void BLESpamView::createIosPacket(bool crash = false) {
     uint8_t ios_packet_sizes[18] = {0, 0, 0, 0, 0, 24, 0, 31, 0, 12, 0, 0, 20, 0, 12, 11, 11, 17};
     ContinuityType type;
@@ -515,6 +547,7 @@ void BLESpamView::createAnyPacket(bool safe) {
         ATK_IOS,
         ATK_WINDOWS,
         ATK_SAMSUNG,
+        ATK_NAMESPAM,
         ATK_IOS_CRASH};
     ATK_TYPE attackType = type[rand() % (COUNT_OF(type) - (1 ? safe : 0))];
     createPacket(attackType);
@@ -533,6 +566,9 @@ void BLESpamView::createPacket(ATK_TYPE attackType) {
             break;
         case ATK_WINDOWS:
             createWindowsPacket();
+            break;
+        case ATK_NAMESPAM:
+            createNameSpamPacket();
             break;
         case ATK_ALL_SAFE:
             createAnyPacket(true);
