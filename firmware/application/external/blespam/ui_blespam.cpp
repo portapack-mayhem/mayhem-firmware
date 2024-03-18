@@ -294,8 +294,9 @@ void BLESpamView::createWindowsPacket() {
 }
 
 void BLESpamView::createNameSpamPacket() {
-    const char* name = "PortaHack";
-    // name = names[rand() % 6];
+    const char* names[] = {"PortaHack", "PwnBt", "iSpam", "GenericFoodVagon"};
+
+    const char* name = names[rand() % 4];  //"PortaHack";
     uint8_t name_len = strlen(name);
 
     uint8_t size = 12 + name_len;
