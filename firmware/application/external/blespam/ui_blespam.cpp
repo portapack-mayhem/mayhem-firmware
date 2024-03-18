@@ -509,6 +509,44 @@ void BLESpamView::createFastPairPacket() {
     std::copy(res.begin(), res.end(), advertisementData);
 }
 
+void BLESpamView::createAnyPacket(bool safe) {
+    ATK_TYPE type[] = {
+        ATK_ANDROID,
+        ATK_IOS,
+        ATK_WINDOWS,
+        ATK_SAMSUNG,
+        ATK_IOS_CRASH};
+    ATK_TYPE attackType = type[rand() % (COUNT_OF(type) - (1 ? safe : 0))];
+    createPacket(attackType);
+}
+
+void BLESpamView::createPacket(ATK_TYPE attackType) {
+    switch (attackType) {
+        case ATK_IOS_CRASH:
+            createIosPacket(true);
+            break;
+        case ATK_IOS:
+            createIosPacket(false);
+            break;
+        case ATK_SAMSUNG:
+            createSamsungPacket();
+            break;
+        case ATK_WINDOWS:
+            createWindowsPacket();
+            break;
+        case ATK_ALL_SAFE:
+            createAnyPacket(true);
+            break;
+        case ATK_ALL:
+            createAnyPacket(false);
+            break;
+        default:
+        case ATK_ANDROID:
+            createFastPairPacket();
+            break;
+    }
+}
+
 void BLESpamView::changePacket(bool forced = false) {
     counter++;  // need to send it multiple times to be accepted
     if (counter >= 4 || forced) {
@@ -517,24 +555,7 @@ void BLESpamView::changePacket(bool forced = false) {
         randomizeMac();
         randomChn();
         if (randomDev || forced) {
-            switch (attackType) {
-                case ATK_IOS_CRASH:
-                    createIosPacket(true);
-                    break;
-                case ATK_IOS:
-                    createIosPacket(false);
-                    break;
-                case ATK_SAMSUNG:
-                    createSamsungPacket();
-                    break;
-                case ATK_WINDOWS:
-                    createWindowsPacket();
-                    break;
-                default:
-                case ATK_ANDROID:
-                    createFastPairPacket();
-                    break;
-            }
+            createPacket(attackType);
         }
 // rate limit console display
 #ifdef BLESPMUSECONSOLE
