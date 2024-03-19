@@ -25,9 +25,11 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <cstring>
 
 #include "hal.h"
 #include "gpdma.hpp"
+#include "tone_gen.hpp"
 
 using namespace lpc43xx;
 
@@ -35,6 +37,8 @@ using namespace lpc43xx;
 
 namespace audio {
 namespace dma {
+
+ToneGen tone_gen{};
 
 constexpr uint32_t gpdma_ahb_master_peripheral = 1;
 constexpr uint32_t gpdma_ahb_master_memory = 0;
@@ -227,6 +231,17 @@ void shrink_tx_buffer(bool shrink) {
         lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
     else
         lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[1]);
+}
+
+void beep_start(uint32_t freq, uint32_t sample_rate) {
+    tone_gen.configure_beep(freq, sample_rate);
+
+    for (size_t i = 0; i < buffer_samples; i++)
+        buffer_tx[i].left = buffer_tx[i].right = tone_gen.process_beep();
+}
+
+void beep_stop() {
+    memset(&buffer_tx, 0, buffer_bytes);
 }
 
 buffer_t tx_empty_buffer() {

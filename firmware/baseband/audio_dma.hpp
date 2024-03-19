@@ -47,6 +47,8 @@ void init_audio_in();
 void init_audio_out();
 void disable();
 void shrink_tx_buffer(bool shrink);
+void beep_start(uint32_t freq, uint32_t sample_rate);
+void beep_stop();
 
 audio::buffer_t tx_empty_buffer();
 audio::buffer_t rx_empty_buffer();

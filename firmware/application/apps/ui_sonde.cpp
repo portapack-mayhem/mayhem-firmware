@@ -72,6 +72,7 @@ SondeView::SondeView(NavigationView& nav)
 
     check_beep.on_select = [this](Checkbox&, bool v) {
         beep = v;
+        baseband::request_beep();
     };
 
     check_log.on_select = [this](Checkbox&, bool v) {
@@ -83,6 +84,7 @@ SondeView::SondeView(NavigationView& nav)
     };
 
     receiver_model.enable();
+    receiver_model.set_squelch_level(0);  // disable squelch
 
     // QR code with geo URI
     button_see_qr.on_select = [this, &nav](Button&) {
