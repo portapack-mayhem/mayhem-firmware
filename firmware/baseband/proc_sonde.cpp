@@ -59,7 +59,7 @@ void SondeProcessor::on_message(const Message* const msg) {
         case Message::ID::RequestSignal:
             if ((*reinterpret_cast<const RequestSignalMessage*>(msg)).signal == RequestSignalMessage::Signal::BeepRequest) {
                 float rssi_ratio = (float)last_rssi / (float)RSSI_CEILING;
-                int beep_duration = 0;
+                uint32_t beep_duration = 0;
 
                 if (rssi_ratio <= PROPORTIONAL_BEEP_THRES) {
                     beep_duration = BEEP_MIN_DURATION;
@@ -69,9 +69,7 @@ void SondeProcessor::on_message(const Message* const msg) {
                     beep_duration = BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
                 }
 
-                audio::dma::beep_start(beep_freq, AUDIO_SAMPLE_RATE);
-                chThdSleepMilliseconds(beep_duration);
-                audio::dma::beep_stop();
+                audio::dma::beep_start(beep_freq, AUDIO_SAMPLE_RATE, beep_duration);
             }
             break;
 
