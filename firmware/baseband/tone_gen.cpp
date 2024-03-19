@@ -57,4 +57,3 @@ int32_t ToneGen::process(const int32_t sample_in) {
 
     return (sample_in * input_mix_weight_) + (tone_sample * tone_mix_weight_);
 }
-
