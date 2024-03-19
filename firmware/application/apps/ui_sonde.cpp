@@ -72,6 +72,8 @@ SondeView::SondeView(NavigationView& nav)
 
     check_beep.on_select = [this](Checkbox&, bool v) {
         beep = v;
+        if (v)
+            baseband::request_beep();
     };
 
     check_log.on_select = [this](Checkbox&, bool v) {
