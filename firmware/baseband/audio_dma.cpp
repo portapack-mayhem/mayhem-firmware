@@ -149,9 +149,14 @@ static volatile const gpdma::channel::LLI* tx_next_lli = nullptr;
 static volatile const gpdma::channel::LLI* rx_next_lli = nullptr;
 
 static bool single_tx_buffer = false;
+static uint32_t beep_duration_downcounter = 0;
 
 static void tx_transfer_complete() {
     tx_next_lli = gpdma_channel_i2s0_tx.next_lli();
+
+    if (beep_duration_downcounter != 0)
+        if (--beep_duration_downcounter == 0)
+            beep_stop();
 }
 
 static void tx_error() {
@@ -233,11 +238,16 @@ void shrink_tx_buffer(bool shrink) {
         lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[1]);
 }
 
-void beep_start(uint32_t freq, uint32_t sample_rate) {
+void beep_start(uint32_t freq, uint32_t sample_rate, uint32_t beep_duration_ms) {
     tone_gen.configure_beep(freq, sample_rate);
 
     for (size_t i = 0; i < buffer_samples; i++)
         buffer_tx[i].left = buffer_tx[i].right = tone_gen.process_beep();
+
+    uint32_t beep_interrupt_count = beep_duration_ms * sample_rate / (1000 * transfer_samples);
+    if ((beep_duration_ms != 0) && (beep_interrupt_count == 0))
+        beep_interrupt_count = 1;
+    beep_duration_downcounter = beep_interrupt_count;
 }
 
 void beep_stop() {
