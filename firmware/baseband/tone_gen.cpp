@@ -27,6 +27,7 @@
 // Functions for audio beep (used by Sonde RSSI)
 void ToneGen::configure_beep(const uint32_t freq, const uint32_t sample_rate) {
     f_delta_ = (float)(freq * sizeof(sine_table_i8)) / sample_rate;
+    f_tone_phase_ = 0.0;
 }
 
 int16_t ToneGen::process_beep() {
@@ -44,6 +45,7 @@ int16_t ToneGen::process_beep() {
 
 void ToneGen::configure(const uint32_t delta, const float tone_mix_weight) {
     delta_ = delta;
+    tone_phase_ = 0;
     tone_mix_weight_ = tone_mix_weight;
     input_mix_weight_ = 1.0 - tone_mix_weight;
 }
