@@ -239,6 +239,10 @@ void shrink_tx_buffer(bool shrink) {
 }
 
 void beep_start(uint32_t freq, uint32_t sample_rate, uint32_t beep_duration_ms) {
+    // Prevent divide-by-0
+    if (freq == 0 || sample_rate == 0)
+        return;
+
     // Fill entire buffer with sine waves
     tone_gen.configure_beep(freq, sample_rate);
     for (size_t i = 0; i < buffer_samples; i++)
