@@ -694,7 +694,7 @@ FileManagerView::FileManagerView(
 
     button_show_hidden_files.on_select = [this]() {
         show_hidden_files = !show_hidden_files;
-        button_show_hidden_files.set_color(show_hidden_files ? Color::green() : Color::dark_grey());
+        button_show_hidden_files.set_color(show_hidden_files ? Color::dark_green() : Color::dark_grey());
         reload_current();
     };
 }
