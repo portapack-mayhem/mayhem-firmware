@@ -74,8 +74,8 @@ SondeView::SondeView(NavigationView& nav)
     check_beep.set_value(beep);
     check_beep.on_select = [this](Checkbox&, bool v) {
         beep = v;
-        if (v)
-            baseband::request_beep(RequestSignalMessage::Signal::SimpleAudioBeepRequest);
+        if (beep)
+            baseband::request_audio_beep(1000, 60);  // 1khz tone for 60ms to acknowledge enablement
     };
 
     check_log.set_value(logging);
@@ -226,7 +226,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         }
 
         if (beep) {
-            baseband::request_beep(RequestSignalMessage::Signal::RSSIBeepRequest);
+            baseband::request_rssi_beep();
         }
     }
 }

@@ -433,4 +433,21 @@ void request_beep(RequestSignalMessage::Signal beep_type) {
     send_message(&message);
 }
 
+void request_roger_beep() {
+    request_beep(RequestSignalMessage::Signal::RogerBeepRequest);
+}
+
+void request_rssi_beep() {
+    request_beep(RequestSignalMessage::Signal::RSSIBeepRequest);
+}
+
+void request_beep_stop() {
+    request_beep(RequestSignalMessage::Signal::BeepStopRequest);
+}
+
+void request_audio_beep(uint32_t freq, uint32_t duration_ms) {
+    AudioBeepMessage message{freq, duration_ms};
+    send_message(&message);
+}
+
 } /* namespace baseband */

@@ -170,7 +170,9 @@ class SondeProcessor : public BasebandProcessor {
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
 
-    void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
+    void on_signal_message(const RequestSignalMessage& message);
+    void on_beep_message(const AudioBeepMessage& message);
+    void on_pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };
 
 #endif /*__PROC_ERT_H__*/

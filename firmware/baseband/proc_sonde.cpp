@@ -57,26 +57,15 @@ void SondeProcessor::execute(const buffer_c8_t& buffer) {
 void SondeProcessor::on_message(const Message* const msg) {
     switch (msg->id) {
         case Message::ID::RequestSignal:
-            if ((*reinterpret_cast<const RequestSignalMessage*>(msg)).signal == RequestSignalMessage::Signal::RSSIBeepRequest) {
-                float rssi_ratio = (float)last_rssi / RSSI_CEILING;
-                uint32_t beep_duration = 0;
+            on_signal_message(*reinterpret_cast<const RequestSignalMessage*>(msg));
+            break;
 
-                if (rssi_ratio <= PROPORTIONAL_BEEP_THRES) {
-                    beep_duration = BEEP_MIN_DURATION;
-                } else if (rssi_ratio < 1) {
-                    beep_duration = rssi_ratio * BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
-                } else {
-                    beep_duration = BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
-                }
-
-                audio::dma::beep_start(beep_freq, AUDIO_SAMPLE_RATE, beep_duration);
-            } else if ((*reinterpret_cast<const RequestSignalMessage*>(msg)).signal == RequestSignalMessage::Signal::SimpleAudioBeepRequest) {
-                audio::dma::beep_start(BEEP_SIMPLE_FREQ, AUDIO_SAMPLE_RATE, BEEP_MIN_DURATION);
-            }
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(msg));
             break;
 
         case Message::ID::PitchRSSIConfigure:
-            pitch_rssi_config(*reinterpret_cast<const PitchRSSIConfigureMessage*>(msg));
+            on_pitch_rssi_config(*reinterpret_cast<const PitchRSSIConfigureMessage*>(msg));
             break;
 
         default:
@@ -84,7 +73,28 @@ void SondeProcessor::on_message(const Message* const msg) {
     }
 }
 
-void SondeProcessor::pitch_rssi_config(const PitchRSSIConfigureMessage& message) {
+void SondeProcessor::on_signal_message(const RequestSignalMessage& message) {
+    if (message.signal == RequestSignalMessage::Signal::RSSIBeepRequest) {
+        float rssi_ratio = (float)last_rssi / RSSI_CEILING;
+        uint32_t beep_duration = 0;
+
+        if (rssi_ratio <= PROPORTIONAL_BEEP_THRES) {
+            beep_duration = BEEP_MIN_DURATION;
+        } else if (rssi_ratio < 1) {
+            beep_duration = rssi_ratio * BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
+        } else {
+            beep_duration = BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
+        }
+
+        audio::dma::beep_start(beep_freq, AUDIO_SAMPLE_RATE, beep_duration);
+    }
+}
+
+void SondeProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, AUDIO_SAMPLE_RATE, message.duration_ms);
+}
+
+void SondeProcessor::on_pitch_rssi_config(const PitchRSSIConfigureMessage& message) {
     pitch_rssi_enabled = message.enabled;
 
     beep_freq = message.rssi * RSSI_PITCH_WEIGHT + BEEP_BASE_FREQ;

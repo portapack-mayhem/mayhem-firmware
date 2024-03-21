@@ -89,7 +89,11 @@ void set_siggen_tone(const uint32_t tone);
 void set_siggen_config(const uint32_t bw, const uint32_t shape, const uint32_t duration);
 void set_spectrum_painter_config(const uint16_t width, const uint16_t height, bool update, int32_t bw);
 void set_subghzd_config(uint8_t modulation, uint32_t sampling_rate);
-void request_beep(RequestSignalMessage::Signal beep_type);
+
+void request_roger_beep();
+void request_rssi_beep();
+void request_beep_stop();
+void request_audio_beep(uint32_t freq, uint32_t duration_ms);
 
 void run_image(const portapack::spi_flash::image_tag_t image_tag);
 void run_prepared_image(const uint32_t m4_code);
