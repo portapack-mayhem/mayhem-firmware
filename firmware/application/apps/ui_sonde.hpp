@@ -74,13 +74,19 @@ class SondeView : public View {
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };
-    app_settings::SettingsManager settings_{
-        "rx_sonde", app_settings::Mode::RX};
-
-    std::unique_ptr<SondeLogger> logger{};
+    bool beep{false};
     bool logging{false};
     bool use_crc{false};
-    bool beep{false};
+    app_settings::SettingsManager settings_{
+        "rx_sonde",
+        app_settings::Mode::RX,
+        {
+            {"beep"sv, &beep},
+            {"logging"sv, &logging},
+            {"use_crc"sv, &use_crc},
+        }};
+
+    std::unique_ptr<SondeLogger> logger{};
 
     char geo_uri[32] = {};
 

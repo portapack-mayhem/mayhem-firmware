@@ -70,16 +70,19 @@ SondeView::SondeView(NavigationView& nav)
 
     geopos.set_read_only(true);
 
+    check_beep.set_value(beep);
     check_beep.on_select = [this](Checkbox&, bool v) {
         beep = v;
         if (v)
             baseband::request_beep(RequestSignalMessage::Signal::SimpleAudioBeepRequest);
     };
 
+    check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;
     };
 
+    check_crc.set_value(use_crc);
     check_crc.on_select = [this](Checkbox&, bool v) {
         use_crc = v;
     };
