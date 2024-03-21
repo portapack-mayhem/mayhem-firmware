@@ -89,7 +89,7 @@ class SondeView : public View {
 
     std::unique_ptr<SondeLogger> logger{};
 
-    char geo_uri[32] = {};
+    std::string geo_uri{};
 
     sonde::GPS_data gps_info{};
     sonde::temp_humid temp_humid_info{};
@@ -208,7 +208,6 @@ class SondeView : public View {
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
     void on_packet(const sonde::Packet& packet);
-    char* float_to_char(float x, char* p);
 };
 
 } /* namespace ui */
