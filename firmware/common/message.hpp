@@ -1165,8 +1165,10 @@ class RequestSignalMessage : public Message {
    public:
     enum class Signal : char {
         FillRequest = 1,
-        BeepRequest = 2,
-        Squelched = 3
+        RogerBeepRequest = 2,
+        RSSIBeepRequest = 3,
+        SimpleAudioBeepRequest = 4,
+        Squelched = 5,
     };
 
     constexpr RequestSignalMessage(
