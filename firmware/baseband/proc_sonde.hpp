@@ -97,7 +97,7 @@
 
 #define BEEP_MIN_DURATION 60
 #define BEEP_DURATION_RANGE 100
-#define BEEP_BASE_FREQ 320  // Lowest audible freq for some PortaPack speakers
+#define BEEP_BASE_FREQ 400  // Lowest audible freq for some PortaPack speakers
 #define BEEP_MAX_FREQ 8000  // Highest audible freq for some PortaPack speakers
 #define BEEP_SIMPLE_FREQ 1000
 #define RSSI_CEILING 1000

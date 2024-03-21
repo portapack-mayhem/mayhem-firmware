@@ -131,8 +131,8 @@ void MicTXView::set_tx(bool enable) {
     } else {
         if (transmitting && rogerbeep_enabled) {
             baseband::request_beep(RequestSignalMessage::Signal::RogerBeepRequest);  // Transmit the roger beep
-            transmitting = false;      // And flag the end of the transmission so ...
-        } else {                       // (if roger beep was enabled, this will be executed after the beep ends transmitting.
+            transmitting = false;                                                    // Flag the end of the transmission (transmitter will be disabled after the beep)
+        } else {
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();
