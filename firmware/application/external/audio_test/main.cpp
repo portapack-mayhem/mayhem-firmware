@@ -28,7 +28,7 @@ namespace ui::external_app::audio_test {
 void initialize_app(ui::NavigationView& nav) {
     nav.push<AudioTestView>();
 }
-}  // namespace ui::external_app::font_viewer
+}  // namespace ui::external_app::audio_test
 
 extern "C" {
 
