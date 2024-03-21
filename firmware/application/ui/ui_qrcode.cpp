@@ -89,12 +89,12 @@ void QRCodeImage::paint(Painter& painter) {
 
         qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
-        display.fill_rectangle(Rect(92, 97, 63, 63), Color::white());
+        display.fill_rectangle(Rect(57, 65, 126, 127), Color::white());
 
         for (uint8_t y = 0; y < qrcode.size; y++) {
             for (uint8_t x = 0; x < qrcode.size; x++) {
                 if (qrcode_getModule(&qrcode, x, y)) {
-                    display.draw_pixel(Point(95 + x, 100 + y), Color::black());
+                    display.fill_rectangle(Rect(63 + (x * 2), 71 + (y * 2), 2, 2), Color::black());
                 }
             }
         }
