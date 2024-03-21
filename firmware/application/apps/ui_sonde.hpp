@@ -89,8 +89,6 @@ class SondeView : public View {
 
     std::unique_ptr<SondeLogger> logger{};
 
-    std::string geo_uri{};
-
     sonde::GPS_data gps_info{};
     sonde::temp_humid temp_humid_info{};
     std::string sonde_id{};

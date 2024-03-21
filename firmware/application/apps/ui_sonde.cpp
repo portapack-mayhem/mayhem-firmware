@@ -92,17 +92,18 @@ SondeView::SondeView(NavigationView& nav)
 
     // QR code with geo URI
     button_see_qr.on_select = [this, &nav](Button&) {
+        std::string geo_uri = "geo:" + to_string_decimal(geopos.lat(), 5) + "," + to_string_decimal(geopos.lon(), 5);  // 5 decimal digits for ~1 meter accuracy
         nav.push<QRCodeView>(geo_uri.data());
     };
 
     button_see_map.on_select = [this, &nav](Button&) {
         geomap_view_ = nav.push<GeoMapView>(
             sonde_id,
-            gps_info.alt,
+            geopos.altitude(),
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::HIDDEN,
-            gps_info.lat,
-            gps_info.lon,
+            geopos.lat(),
+            geopos.lon(),
             999);  // set a dummy heading out of range to draw a cross...probably not ideal?
         nav.set_on_pop([this]() {
             geomap_view_ = nullptr;
@@ -151,8 +152,6 @@ void SondeView::focus() {
 void SondeView::on_packet(const sonde::Packet& packet) {
     if (!use_crc || packet.crc_ok())  // euquiq: Reject bad packet if crc is on
     {
-        geo_uri = "geo:" + to_string_decimal(gps_info.lat, 5) + "," + to_string_decimal(gps_info.lon, 5);  // 5 decimal digits for ~1 meter accuracy
-
         text_signature.set(packet.type_string());
 
         sonde_id = packet.serial_number();  // used also as tag on the geomap
