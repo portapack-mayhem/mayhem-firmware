@@ -155,7 +155,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
             break;
 
         case Message::ID::RequestSignal:
-            if (request_message.signal == RequestSignalMessage::Signal::BeepRequest) {
+            if (request_message.signal == RequestSignalMessage::Signal::RogerBeepRequest) {
                 beep_index = 0;
                 beep_timer = 0;
                 play_beep = true;

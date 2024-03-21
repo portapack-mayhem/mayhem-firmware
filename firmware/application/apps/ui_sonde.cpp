@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -70,16 +71,19 @@ SondeView::SondeView(NavigationView& nav)
 
     geopos.set_read_only(true);
 
+    check_beep.set_value(beep);
     check_beep.on_select = [this](Checkbox&, bool v) {
         beep = v;
-        if (v)
-            baseband::request_beep();
+        if (beep)
+            baseband::request_audio_beep(1000, 60);  // 1khz tone for 60ms to acknowledge enablement
     };
 
+    check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;
     };
 
+    check_crc.set_value(use_crc);
     check_crc.on_select = [this](Checkbox&, bool v) {
         use_crc = v;
     };
@@ -222,7 +226,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         }
 
         if (beep) {
-            baseband::request_beep();
+            baseband::request_rssi_beep();
         }
     }
 }

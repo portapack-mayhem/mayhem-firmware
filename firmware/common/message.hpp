@@ -121,6 +121,7 @@ class Message {
         GPSPosData = 63,
         OrientationData = 64,
         EnvironmentData = 65,
+        AudioBeep = 66,
         MAX
     };
 
@@ -1165,8 +1166,10 @@ class RequestSignalMessage : public Message {
    public:
     enum class Signal : char {
         FillRequest = 1,
-        BeepRequest = 2,
-        Squelched = 3
+        RogerBeepRequest = 2,
+        RSSIBeepRequest = 3,
+        BeepStopRequest = 4,
+        Squelched = 5,
     };
 
     constexpr RequestSignalMessage(
@@ -1361,4 +1364,16 @@ class EnvironmentDataMessage : public Message {
     uint16_t light = 0;     // lux
 };
 
+class AudioBeepMessage : public Message {
+   public:
+    constexpr AudioBeepMessage(
+        uint32_t freq = 1000,
+        uint32_t duration_ms = 100)
+        : Message{ID::AudioBeep},
+          freq{freq},
+          duration_ms{duration_ms} {
+    }
+    uint32_t freq = 1000;
+    uint32_t duration_ms = 100;
+};
 #endif /*__MESSAGE_H__*/

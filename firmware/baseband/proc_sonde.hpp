@@ -97,10 +97,12 @@
 
 #define BEEP_MIN_DURATION 60
 #define BEEP_DURATION_RANGE 100
-#define BEEP_BASE_FREQ 200
+#define BEEP_BASE_FREQ 400  // Lowest audible freq for some PortaPack speakers
+#define BEEP_MAX_FREQ 8000  // Highest audible freq for some PortaPack speakers
+#define BEEP_SIMPLE_FREQ 1000
 #define RSSI_CEILING 1000
 #define PROPORTIONAL_BEEP_THRES 0.8
-#define RSSI_PITCH_WEIGHT 0.5
+#define RSSI_PITCH_WEIGHT (float(BEEP_MAX_FREQ - BEEP_BASE_FREQ) / RSSI_CEILING)
 #define AUDIO_SAMPLE_RATE 24000
 
 class SondeProcessor : public BasebandProcessor {
@@ -168,7 +170,9 @@ class SondeProcessor : public BasebandProcessor {
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
 
-    void pitch_rssi_config(const PitchRSSIConfigureMessage& message);
+    void on_signal_message(const RequestSignalMessage& message);
+    void on_beep_message(const AudioBeepMessage& message);
+    void on_pitch_rssi_config(const PitchRSSIConfigureMessage& message);
 };
 
 #endif /*__PROC_ERT_H__*/
