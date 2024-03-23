@@ -21,7 +21,7 @@
  */
 
 #include "proc_capture.hpp"
-
+#include "audio_dma.hpp"
 #include "dsp_fir_taps.hpp"
 #include "event_m4.hpp"
 #include "utility.hpp"
@@ -55,6 +55,16 @@ void CaptureProcessor::execute(const buffer_c8_t& buffer) {
     }
 }
 
+void CaptureProcessor::on_signal_message(const RequestSignalMessage& message) {
+    if (message.signal == RequestSignalMessage::Signal::BeepStopRequest) {
+        audio::dma::beep_stop();
+    }
+}
+
+void CaptureProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 void CaptureProcessor::on_message(const Message* const message) {
     switch (message->id) {
         case Message::ID::UpdateSpectrum:
@@ -68,6 +78,14 @@ void CaptureProcessor::on_message(const Message* const message) {
 
         case Message::ID::CaptureConfig:
             capture_config(*reinterpret_cast<const CaptureConfigMessage*>(message));
+            break;
+
+        case Message::ID::RequestSignal:
+            on_signal_message(*reinterpret_cast<const RequestSignalMessage*>(message));
+            break;
+
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
             break;
 
         default:
@@ -152,6 +170,7 @@ void CaptureProcessor::capture_config(const CaptureConfigMessage& message) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<CaptureProcessor>()};
     event_dispatcher.run();
     return 0;
