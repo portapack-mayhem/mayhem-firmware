@@ -127,7 +127,7 @@ class LevelView : public View {
 
     NumberField field_beep_squelch{
         {25 * 8, 3 * 16 + 4},
-        3,
+        4,
         {-120, 12},
         1,
         ' ',
