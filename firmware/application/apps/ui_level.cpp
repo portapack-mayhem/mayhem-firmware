@@ -209,6 +209,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
     if (last_rx_sat != rx_sat) {
         last_rx_sat = rx_sat;
+
         uint8_t br = 0;
         uint8_t bg = 0;
         uint8_t bb = 0;
@@ -249,7 +250,6 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             field_bw.set_by_value(0);
             receiver_model.set_am_configuration(0);
             field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_am_configuration(n); };
-            text_ctcss.set("             ");
             break;
         case NFM_MODULATION:
             audio_sampling_rate = audio::Rate::Hz_24000;
@@ -270,7 +270,6 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             // bw 200k (0) default
             field_bw.set_by_value(0);
             field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_wfm_configuration(n); };
-            text_ctcss.set("             ");
             break;
         case SPEC_MODULATION:
             audio_sampling_rate = audio::Rate::Hz_24000;
@@ -295,6 +294,9 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
         // Reset receiver model to fix bug when going from SPEC to audio, the sound is distorted.
         receiver_model.set_sampling_rate(3072000);
         receiver_model.set_baseband_bandwidth(1750000);
+    }
+    if (new_mod != NFM_MODULATION) {
+        text_ctcss.set("             ");
     }
 
     m4_manage_stat_update();  // rx_sat hack

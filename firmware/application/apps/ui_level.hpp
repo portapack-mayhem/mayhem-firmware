@@ -63,7 +63,6 @@ class LevelView : public View {
 
     rf::Frequency freq_ = {0};
     bool beep = false;
-    bool rx_sat_status = false;
     uint8_t radio_mode = 0;
     uint8_t radio_bw = 0;
     uint8_t audio_mode = 0;
@@ -134,10 +133,6 @@ class LevelView : public View {
         ' ',
     };
 
-    Text text_ctcss{
-        {22 * 8, 3 * 16 + 4, 8 * 8, 1 * 8},
-        ""};
-
     // RSSI: XX/XX/XXX
     Text freq_stats_rssi{
         {0 * 8, 3 * 16 + 4, 15 * 8, 1 * 16},
@@ -176,6 +171,10 @@ class LevelView : public View {
     Text freq_stats_rx{
         {0 * 8, 5 * 16 + 4, 10 * 8, 1 * 16},
     };
+
+    Text text_ctcss{
+        {12 * 8, 5 * 16 + 4, 8 * 8, 1 * 8},
+        ""};
 
     RSSIGraph rssi_graph{
         // 240x320  =>
