@@ -33,14 +33,26 @@ AudioTestView::AudioTestView(NavigationView& nav)
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // proc_audio_beep baseband is external too
 
     add_children({&labels,
+                  &options_sample_rate,
                   &field_frequency,
                   &field_duration,
                   &field_volume,
                   &toggle_speaker});
 
+    audio::set_rate(audio::Rate::Hz_24000);
+    options_sample_rate.on_change = [this](size_t, int32_t v) {
+        if (options_sample_rate.selected_index_value() == 24000) {
+            audio::set_rate(audio::Rate::Hz_24000);
+            field_frequency.set_range(100, v / 2);  // 24000/128 = ~100 (audio_dma uses 128 samples)
+        } else {
+            audio::set_rate(audio::Rate::Hz_48000);
+            field_frequency.set_range(200, v / 2);  // 48000/128 = ~200
+        }
+        update_audio_beep();
+    };
+
     field_frequency.set_value(1000);
-    field_frequency.on_change = [this](int32_t v) {
-        (void)v;
+    field_frequency.on_change = [this](int32_t) {
         update_audio_beep();
     };
 
@@ -69,12 +81,12 @@ AudioTestView::~AudioTestView() {
 }
 
 void AudioTestView::focus() {
-    field_frequency.focus();
+    toggle_speaker.focus();
 }
 
 void AudioTestView::update_audio_beep() {
     if (beep)
-        baseband::request_audio_beep(field_frequency.value(), field_duration.value());
+        baseband::request_audio_beep(field_frequency.value(), options_sample_rate.selected_index_value(), field_duration.value());
     else
         baseband::request_beep_stop();
 }

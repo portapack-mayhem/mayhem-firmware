@@ -445,8 +445,8 @@ void request_beep_stop() {
     request_beep(RequestSignalMessage::Signal::BeepStopRequest);
 }
 
-void request_audio_beep(uint32_t freq, uint32_t duration_ms) {
-    AudioBeepMessage message{freq, duration_ms};
+void request_audio_beep(uint32_t freq, uint32_t sample_rate, uint32_t duration_ms) {
+    AudioBeepMessage message{freq, sample_rate, duration_ms};
     send_message(&message);
 }
 

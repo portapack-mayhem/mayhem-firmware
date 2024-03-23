@@ -45,20 +45,27 @@ class AudioTestView : public View {
 
     Labels labels{
         {{7 * 8, 3 * 16}, "Audio Beep Test", Color::light_grey()},
-        {{0 * 8, 6 * 16}, "Frequency (Hz):", Color::light_grey()},
-        {{0 * 8, 8 * 16}, "Duration (ms):", Color::light_grey()},
-        {{0 * 8, 10 * 16}, "Volume:", Color::light_grey()}};
+        {{0 * 8, 6 * 16}, "Sample Rate (Hz):", Color::light_grey()},
+        {{0 * 8, 8 * 16}, "Frequency (Hz):", Color::light_grey()},
+        {{0 * 8, 10 * 16}, "Duration (ms):", Color::light_grey()},
+        {{0 * 8, 12 * 16}, "Volume:", Color::light_grey()}};
+
+    OptionsField options_sample_rate{
+        {18 * 8, 6 * 16},
+        5,
+        {{"24000", 24000},
+         {"48000", 48000}}};
 
     NumberField field_frequency{
-        {16 * 8, 6 * 16},
+        {18 * 8, 8 * 16},
         5,
-        {100, 24000},
+        {100, 24000 / 2},
         100,
         ' ',
         true};
 
     NumberField field_duration{
-        {16 * 8, 8 * 16},
+        {18 * 8, 10 * 16},
         5,
         {0, 60000},
         50,
@@ -66,10 +73,10 @@ class AudioTestView : public View {
         true};
 
     AudioVolumeField field_volume{
-        {19 * 8, 10 * 16}};
+        {21 * 8, 12 * 16}};
 
     ImageToggle toggle_speaker{
-        {19 * 8, 12 * 16, 2 * 8, 1 * 16},
+        {21 * 8, 14 * 16, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
         &bitmap_icon_speaker,
         Color::light_grey(),

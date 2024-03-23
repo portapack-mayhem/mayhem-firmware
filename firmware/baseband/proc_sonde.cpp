@@ -86,12 +86,12 @@ void SondeProcessor::on_signal_message(const RequestSignalMessage& message) {
             beep_duration = BEEP_DURATION_RANGE + BEEP_MIN_DURATION;
         }
 
-        audio::dma::beep_start(beep_freq, AUDIO_SAMPLE_RATE, beep_duration);
+        audio::dma::beep_start(beep_freq, DEFAULT_AUDIO_SAMPLE_RATE, beep_duration);
     }
 }
 
 void SondeProcessor::on_beep_message(const AudioBeepMessage& message) {
-    audio::dma::beep_start(message.freq, AUDIO_SAMPLE_RATE, message.duration_ms);
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
 }
 
 void SondeProcessor::on_pitch_rssi_config(const PitchRSSIConfigureMessage& message) {
