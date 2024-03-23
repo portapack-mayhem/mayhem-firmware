@@ -261,19 +261,19 @@ class FileManagerView : public FileManBaseView {
         {22 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_new_dir,
-        Color::dark_green()};
+        Color::green()};
 
     NewButton button_new_file{
         {26 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_new_file,
-        Color::dark_green()};
+        Color::green()};
 
     NewButton button_open_notepad{
         {0 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_notepad,
-        Color::dark_orange()};
+        Color::orange()};
 
     NewButton button_rename_timestamp{
 
@@ -288,7 +288,7 @@ class FileManagerView : public FileManBaseView {
         {4 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trim,
-        Color::dark_orange()};
+        Color::orange()};
 
     NewButton button_show_hidden_files{
         {17 * 8, 34 * 8, 4 * 8, 32},
