@@ -505,7 +505,7 @@ add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
 	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin --remove-section=.external_app_*
 	COMMAND ${EXPORT_EXTERNAL_APP_IMAGES} ${PROJECT_SOURCE_DIR} ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_OBJCOPY} ${EXTAPPLIST}
-	DEPENDS ${PROJECT_NAME}.elf
+	DEPENDS ${PROJECT_NAME}.elf ${baseband_BINARY_DIR}/baseband.img
 )
 
 add_custom_target(
