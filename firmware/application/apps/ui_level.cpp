@@ -135,6 +135,7 @@ LevelView::LevelView(NavigationView& nav)
     };
 
     field_audio_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        audio_mode = v;
         if (v == 0) {
             audio::output::stop();
         } else if (v == 1) {
@@ -142,7 +143,6 @@ LevelView::LevelView(NavigationView& nav)
             audio::output::start();
             receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
         }
-        audio_mode = v;
         m4_manage_stat_update();  // rx_sat hack
     };
     field_audio_mode.set_selected_index(audio_mode);
@@ -189,8 +189,8 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 
     if (beep) {
-        uint32_t beep_freq = 400 + ((85 + statistics.max_db) * 23600) / 90;
-        baseband::request_audio_beep(beep_freq, 24000, 50);
+        uint32_t beep_freq = 400 + ((80 + statistics.max_db) * 7600) / 85;
+        baseband::request_audio_beep(beep_freq, 24000, 100);
     }
 
     // refresh sat
@@ -233,6 +233,7 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
 
     radio_mode = new_mod;
 
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 
