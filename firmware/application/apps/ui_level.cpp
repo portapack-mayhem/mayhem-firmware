@@ -189,8 +189,8 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 
     if (beep) {
-        uint32_t beep_freq = 400 + ((80 + statistics.max_db) * 7600) / 85;
-        baseband::request_audio_beep(beep_freq, 24000, 100);
+        uint32_t beep_freq = ((132 + statistics.max_db) * 3000) / 120;
+        baseband::request_audio_beep(beep_freq, 24000, 1000);
     }
 
     // refresh sat
