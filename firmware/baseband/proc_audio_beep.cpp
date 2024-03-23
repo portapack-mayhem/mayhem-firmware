@@ -52,7 +52,7 @@ void AudioBeepProcessor::on_signal_message(const RequestSignalMessage& message) 
 }
 
 void AudioBeepProcessor::on_beep_message(const AudioBeepMessage& message) {
-    audio::dma::beep_start(message.freq, AUDIO_SAMPLE_RATE, message.duration_ms);
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
 }
 
 int main() {
