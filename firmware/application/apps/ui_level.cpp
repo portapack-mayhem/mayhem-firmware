@@ -81,13 +81,12 @@ LevelView::LevelView(NavigationView& nav)
                   &freq_stats_rssi,
                   &freq_stats_db,
                   &freq_stats_rx,
+                  &text_beep_squelch,
+                  &field_beep_squelch,
                   &field_audio_mode,
                   &peak_mode,
                   &rssi,
                   &rssi_graph});
-
-    radio_mode = NFM_MODULATION;
-    audio_mode = 0;
 
     // activate vertical bar mode
     rssi.set_vertical_rssi(true);
@@ -105,6 +104,11 @@ LevelView::LevelView(NavigationView& nav)
             receiver_model.set_target_frequency(f);  // Retune to actual freq
             button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
         };
+    };
+
+    field_beep_squelch.set_value(beep_squelch);
+    field_beep_squelch.on_change = [this](int32_t v) {
+        beep_squelch = v;
     };
 
     button_frequency.on_change = [this]() {
@@ -185,12 +189,11 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         last_min_rssi = rssi_graph.get_graph_min();
         last_avg_rssi = rssi_graph.get_graph_avg();
         last_max_rssi = rssi_graph.get_graph_max();
-        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi) + ", dt: " + to_string_dec_uint(rssi_graph.get_graph_delta()));
+        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi));
     }
 
-    if (beep) {
-        uint32_t beep_freq = ((132 + statistics.max_db) * 3000) / 120;
-        baseband::request_audio_beep(beep_freq, 24000, 1000);
+    if (beep && statistics.max_db > beep_squelch) {
+        baseband::request_audio_beep(((132 + statistics.max_db) * 2000) / 120, 24000, 250);
     }
 
     // refresh sat

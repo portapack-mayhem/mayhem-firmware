@@ -55,8 +55,6 @@ class LevelView : public View {
     NavigationView& nav_;
 
     RxRadioState radio_state_{};
-    app_settings::SettingsManager settings_{
-        "rx_level", app_settings::Mode::RX};
 
     size_t change_mode(freqman_index_t mod_type);
     void on_statistics_update(const ChannelStatistics& statistics);
@@ -68,7 +66,16 @@ class LevelView : public View {
     bool rx_sat_status = false;
     uint8_t radio_mode = 0;
     uint8_t audio_mode = 0;
+    int32_t beep_squelch = 0;
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
+
+    app_settings::SettingsManager settings_{
+        "rx_level",
+        app_settings::Mode::RX,
+        {
+            {"beep_squelch"sv, &beep_squelch},
+            {"audio_mode"sv, &audio_mode},
+        }};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
@@ -112,13 +119,25 @@ class LevelView : public View {
         {{"audio off", 0},
          {"audio on", 1}}};
 
+    Text text_beep_squelch{
+        {21 * 8, 3 * 16 + 4, 4 * 8, 1 * 8},
+        "Bip>"};
+
+    NumberField field_beep_squelch{
+        {25 * 8, 3 * 16 + 4},
+        3,
+        {-120, 12},
+        1,
+        ' ',
+    };
+
     Text text_ctcss{
         {22 * 8, 3 * 16 + 4, 8 * 8, 1 * 8},
         ""};
 
-    // RSSI: XX/XX/XXX,dt: XX
+    // RSSI: XX/XX/XXX
     Text freq_stats_rssi{
-        {0 * 8, 3 * 16 + 4, 22 * 8, 1 * 16},
+        {0 * 8, 3 * 16 + 4, 15 * 8, 1 * 16},
     };
 
     // Power: -XXX db
@@ -157,12 +176,12 @@ class LevelView : public View {
 
     RSSIGraph rssi_graph{
         // 240x320  =>
-        {0, 6 * 16 + 4, 240 - 5 * 8, 320 - (6 * 16 + 4)},
+        {0, 6 * 16 + 8, 240 - 5 * 8, 320 - (6 * 16)},
     };
 
     RSSI rssi{
         // 240x320  =>
-        {240 - 5 * 8, 6 * 16 + 4, 5 * 8, 320 - (6 * 16 + 4)},
+        {240 - 5 * 8, 6 * 16 + 8, 5 * 8, 320 - (6 * 16)},
     };
 
     void handle_coded_squelch(const uint32_t value);
