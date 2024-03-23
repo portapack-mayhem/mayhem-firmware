@@ -65,6 +65,7 @@ class LevelView : public View {
     bool beep = false;
     bool rx_sat_status = false;
     uint8_t radio_mode = 0;
+    uint8_t radio_bw = 0;
     uint8_t audio_mode = 0;
     int32_t beep_squelch = 0;
     audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
@@ -76,6 +77,7 @@ class LevelView : public View {
             {"beep_squelch"sv, &beep_squelch},
             {"audio_mode"sv, &audio_mode},
             {"radio_mode"sv, &radio_mode},
+            {"radio_bw"sv, &radio_bw},
         }};
 
     Labels labels{

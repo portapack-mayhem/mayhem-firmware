@@ -130,6 +130,7 @@ LevelView::LevelView(NavigationView& nav)
         }
     };
     field_mode.set_by_value(radio_mode);  // Reflect the mode into the manual selector
+    field_bw.set_selected_index(radio_bw);
 
     rssi_resolution.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
@@ -244,10 +245,10 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-            receiver_model.set_am_configuration(field_bw.selected_index_value());
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
             // bw DSB (0) default
             field_bw.set_by_value(0);
+            receiver_model.set_am_configuration(0);
+            field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_am_configuration(n); };
             text_ctcss.set("             ");
             break;
         case NFM_MODULATION:
@@ -256,9 +257,9 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
             // bw 16k (2) default
             field_bw.set_by_value(2);
+            field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_nbfm_configuration(n); };
             break;
         case WFM_MODULATION:
             audio_sampling_rate = audio::Rate::Hz_48000;
@@ -266,9 +267,9 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             receiver_model.set_wfm_configuration(field_bw.selected_index_value());
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
-            // bw 200k (0) only/default
+            // bw 200k (0) default
             field_bw.set_by_value(0);
+            field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_wfm_configuration(n); };
             text_ctcss.set("             ");
             break;
         case SPEC_MODULATION:
@@ -276,16 +277,17 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_capture);
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
-            field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
+            // 12k5 (0) default
+            field_bw.set_by_value(0);
+            field_bw.on_change = [this](size_t index, OptionsField::value_t sampling_rate) {
+                radio_bw = index;
                 // Baseband needs to know the desired sampling and oversampling rates.
                 baseband::set_sample_rate(sampling_rate, get_oversample_rate(sampling_rate));
-
                 // The radio needs to know the effective sampling rate.
                 auto actual_sampling_rate = get_actual_sample_rate(sampling_rate);
                 receiver_model.set_sampling_rate(actual_sampling_rate);
                 receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(actual_sampling_rate));
             };
-            field_bw.set_by_value(0);
         default:
             break;
     }
