@@ -75,6 +75,7 @@ class LevelView : public View {
         {
             {"beep_squelch"sv, &beep_squelch},
             {"audio_mode"sv, &audio_mode},
+            {"radio_mode"sv, &radio_mode},
         }};
 
     Labels labels{

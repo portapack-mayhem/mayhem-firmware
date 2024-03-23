@@ -91,9 +91,6 @@ LevelView::LevelView(NavigationView& nav)
     // activate vertical bar mode
     rssi.set_vertical_rssi(true);
 
-    change_mode(radio_mode);              // Start on AM
-    field_mode.set_by_value(radio_mode);  // Reflect the mode into the manual selector
-
     freq_ = receiver_model.target_frequency();
     button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
 
@@ -126,11 +123,13 @@ LevelView::LevelView(NavigationView& nav)
         button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
     };
 
+    freqman_set_modulation_option(field_mode);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
             change_mode(v);
         }
     };
+    field_mode.set_by_value(radio_mode);  // Reflect the mode into the manual selector
 
     rssi_resolution.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
@@ -163,7 +162,6 @@ LevelView::LevelView(NavigationView& nav)
     peak_mode.set_selected_index(2);
     rssi_resolution.set_selected_index(1);
     // FILL STEP OPTIONS
-    freqman_set_modulation_option(field_mode);
     freqman_set_step_option_short(step_mode);
     freq_stats_rssi.set_style(&Styles::white);
     freq_stats_db.set_style(&Styles::white);
