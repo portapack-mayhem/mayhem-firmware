@@ -61,8 +61,14 @@ class LevelView : public View {
     size_t change_mode(freqman_index_t mod_type);
     void on_statistics_update(const ChannelStatistics& statistics);
     void set_display_freq(int64_t freq);
+    void m4_manage_stat_update();  // to finely adjust the RxSaturation usage
 
     rf::Frequency freq_ = {0};
+    bool beep = false;
+    bool rx_sat_status = false;
+    uint8_t radio_mode = 0;
+    uint8_t audio_mode = 0;
+    audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
@@ -100,15 +106,11 @@ class LevelView : public View {
         {0 * 8, 2 * 16 + 8, 15 * 8, 1 * 8},
         ""};
 
-    OptionsField audio_mode{
+    OptionsField field_audio_mode{
         {21 * 8, 1 * 16},
         9,
-        {
-            {"audio off", 0},
-            {"audio on", 1}
-            //{"tone on", 2},
-            //{"tone off", 3},
-        }};
+        {{"audio off", 0},
+         {"audio on", 1}}};
 
     Text text_ctcss{
         {22 * 8, 3 * 16 + 4, 8 * 8, 1 * 8},
