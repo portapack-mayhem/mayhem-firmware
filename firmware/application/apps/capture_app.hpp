@@ -101,7 +101,7 @@ class CaptureAppView : public View {
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
         u"BBD_????.*",
-        u"CAPTURES",
+        u"/USR/CAPTURES",
         RecordView::FileType::RawS16,
         16384,
         3};

@@ -2,7 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2024 u-foka
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -420,6 +420,11 @@ void SystemStatusView::set_back_enabled(bool new_value) {
 void SystemStatusView::set_title_image_enabled(bool new_value) {
     if (new_value) {
         add_child(&button_title);
+        if (!already_shown_sdcard_warning_in_this_boot) {
+            // the modal warning can't be called from constructor since the nav isn't valid at that time, so putting here as a work around
+            new_sdcard_structure_checker();
+            already_shown_sdcard_warning_in_this_boot = true;
+        }
     } else {
         remove_child(&button_title);
     }
@@ -473,8 +478,8 @@ void SystemStatusView::on_bias_tee() {
 }
 
 void SystemStatusView::on_camera() {
-    ensure_directory("SCREENSHOTS");
-    auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+    ensure_directory("/USR/SCREENSHOTS");  // no need ensure fake dir here since screenshots are only taken for users
+    auto path = next_filename_matching_pattern(u"/USR/SCREENSHOTS/SCR_????.PNG");
 
     if (path.empty())
         return;
@@ -551,6 +556,28 @@ void SystemStatusView::rtc_battery_workaround() {
         timestamp.FAT_date = ((year - 1980) << 9) | ((uint16_t)month << 5) | day;
         timestamp.FAT_time = 0;
         file_update_date(DATE_FILEFLAG, timestamp);
+    }
+}
+
+void SystemStatusView::new_sdcard_structure_checker() {
+    const std::filesystem::path root_dir = u"/";
+    const std::filesystem::path resources_dir = u"RES";
+    std::vector<std::filesystem::path> directories = scan_root_directories(root_dir);
+
+    auto scan_result = std::find(directories.begin(), directories.end(), resources_dir);
+
+    auto sd_status = sd_card::status();
+
+    if (
+        nav_.is_valid() &&
+        (scan_result == directories.end()) &&
+        (sd_status == sd_card::Status::Mounted)) {
+        nav_.display_modal(
+            "Warning",
+            "SD Card content should be\n"
+            "updated for use with this\n"
+            "firmware version.\n"
+            "See Mayhem Wiki - Update.");
     }
 }
 
@@ -928,7 +955,7 @@ BMPView::BMPView(NavigationView& nav) {
 }
 
 void BMPView::paint(Painter&) {
-    if (!portapack::display.drawBMP2({0, 0}, splash_dot_bmp))
+    if (!portapack::display.drawBMP2({0, 0}, current_using_splash_image))
         portapack::display.drawBMP({(240 - 230) / 2, (320 - 50) / 2 - 10}, splash_bmp, false);
 }
 

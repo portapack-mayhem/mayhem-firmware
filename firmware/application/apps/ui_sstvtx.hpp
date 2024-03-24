@@ -80,8 +80,14 @@ class SSTVTXView : public View {
     void prepare_scanline();
 
     Labels labels{
-        {{1 * 8, 1 * 8}, "File:", Color::light_grey()},
-        {{1 * 8, 3 * 8}, "Mode:", Color::light_grey()}};
+        {{1 * 8, 1 * 8}, "Profile:", Color::light_grey()},
+        {{1 * 8, 3 * 8}, "File:", Color::light_grey()},
+        {{1 * 8, 5 * 8}, "Mode:", Color::light_grey()}};
+
+    OptionsField options_profile{
+        {6 * 8, 1 * 8},
+        16,
+        {}};
 
     OptionsField options_bitmaps{
         {6 * 8, 1 * 8},

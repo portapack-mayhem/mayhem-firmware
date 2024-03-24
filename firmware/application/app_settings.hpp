@@ -37,7 +37,7 @@
 #include "string_format.hpp"
 
 // Folder to store app settings, pmem_fileflag, and date_fileflag
-#define SETTINGS_DIR u"/SETTINGS"
+#define SETTINGS_DIR u"/USR/SETTINGS"
 
 // Bring in the string_view literal.
 using std::literals::operator""sv;

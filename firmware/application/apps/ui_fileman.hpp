@@ -48,6 +48,11 @@ enum class ClipboardMode : uint8_t {
     Copy
 };
 
+enum class DirProfiles : uint8_t {
+    User = 1,
+    System
+};
+
 class FileManBaseView : public View {
    public:
     FileManBaseView(
@@ -59,6 +64,7 @@ class FileManBaseView : public View {
     void focus() override;
     std::string title() const override { return "Fileman"; };
     void push_dir(const std::filesystem::path& path);
+    void push_fake_dir(const std::filesystem::path& path);
 
    protected:
     static constexpr size_t max_filename_length = 64;
@@ -89,6 +95,7 @@ class FileManBaseView : public View {
     void refresh_list();
     void reload_current();
     void load_directory_contents(const std::filesystem::path& dir_path);
+    std::filesystem::path jumping_between_profiles(std::filesystem::path& path, DirProfiles profile);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
     NavigationView& nav_;
@@ -96,7 +103,6 @@ class FileManBaseView : public View {
     EmptyReason empty_{EmptyReason::NotEmpty};
     std::function<void(KeyEvent)> on_select_entry{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
-
     const std::filesystem::path parent_dir_path{u".."};
     std::filesystem::path current_path{u""};
     std::filesystem::path extension_filter{u""};
@@ -107,16 +113,26 @@ class FileManBaseView : public View {
     bool show_hidden_files{false};
 
     Labels labels{
-        {{0, 0}, "Path:", Color::light_grey()}};
+        {{0, 0}, "\u007F", Color::white()}};
 
     Text text_current{
-        {6 * 8, 0 * 8, 24 * 8, 16},
+        {1 * 8, 0 * 8, 20 * 8, 16},
         "",
     };
 
     MenuView menu_view{
         {0, 2 * 8, 240, 26 * 8},
         true};
+
+    OptionsField option_profile_switch{
+        {11 * 8, 32 * 8},
+        16,
+        {{"User Directory  ", 1},
+         {"System Directory", 2}}};
+
+    Labels label_profile{
+        {{0 * 8, 32 * 8}, "Profile: ", Color::light_grey()},
+        {{9 * 8, 32 * 8}, "\u007F/", Color::white()}};
 
     Button button_exit{
         {22 * 8, 34 * 8, 8 * 8, 32},

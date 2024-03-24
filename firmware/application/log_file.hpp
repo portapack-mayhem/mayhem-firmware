@@ -27,7 +27,7 @@
 #include "file.hpp"
 #include "rtc_time.hpp"
 
-#define LOG_ROOT_DIR "LOGS"
+#define LOG_ROOT_DIR "/USR/LOGS"
 
 class LogFile {
    public:

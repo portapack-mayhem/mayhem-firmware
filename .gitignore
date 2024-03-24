@@ -9,10 +9,12 @@
 /firmware/application/portapack_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.cpp
 /firmware/application/hackrf_cpld_data.hpp
-/sdcard/ADSB/world_map.bin
-/sdcard/FREQMAN/BHT*
-/sdcard/FREQMAN/R.TXT
-/sdcard/FREQMAN/XXX.TXT
+/sdcard/RES/ADSB/world_map.bin
+/sdcard/RES/FREQMAN/BHT*
+/sdcard/RES/FREQMAN/R.TXT
+/sdcard/RES/FREQMAN/XXX.TXT
+
+# Toolchain binaries
 /armbin
 
 # Compiled Object files

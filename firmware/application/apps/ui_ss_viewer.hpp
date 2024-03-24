@@ -32,7 +32,7 @@
 
 namespace ui {
 
-extern const std::filesystem::path splash_dot_bmp;
+extern const std::filesystem::path current_using_splash_image;
 
 class ScreenshotViewer : public View {
    public:

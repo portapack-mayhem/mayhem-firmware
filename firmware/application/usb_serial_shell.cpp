@@ -167,8 +167,8 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
-    ensure_directory("SCREENSHOTS");
-    auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+    ensure_directory("/USR/SCREENSHOTS");  // no need ensure fake dir here since screenshots are only taken for serial
+    auto path = next_filename_matching_pattern(u"/USR/SCREENSHOTS/SCR_????.PNG");
 
     if (path.empty())
         return;

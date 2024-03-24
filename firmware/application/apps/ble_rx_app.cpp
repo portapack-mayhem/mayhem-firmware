@@ -471,7 +471,7 @@ BLERxView::BLERxView(NavigationView& nav)
 
         if (logger && logging)
             logger->append(
-                "BLERX/Logs"
+                "/USR/BLERX/Logs"
                 "/BLELOG_" +
                 to_string_timestamp(rtc_time::now()) + ".TXT");
     };

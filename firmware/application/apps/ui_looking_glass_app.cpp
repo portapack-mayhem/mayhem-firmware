@@ -510,7 +510,9 @@ void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // def
 
 void GlassView::load_presets() {
     File presets_file;
-    auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+    auto error = presets_file.open("/RES/LOOKINGGLASS/PRESETS.TXT");
+    // TODO: this app originally ain't support user load list.
+    //  should support, but ain't have funtionality loss in sdcard refactor PR.
     presets_db.clear();
 
     // Add the "Manual" entry.

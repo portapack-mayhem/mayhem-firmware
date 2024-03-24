@@ -40,8 +40,8 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
         auto open_view = nav.push<FileLoadView>(".bmp");
 
         constexpr auto data_directory = u"SPECTRUM";
-        ensure_directory(data_directory);
-        open_view->push_dir(data_directory);
+        ensure_fake_directories(data_directory);
+        open_view->push_fake_dir(data_directory);
 
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             this->file = new_file_path.string();

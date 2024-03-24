@@ -47,7 +47,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
 
     field_path.on_select = [this](TextField&) {
         auto open_view = nav_.push<FileLoadView>(".C*");
-        open_view->push_dir(u"CAPTURES");
+        open_view->push_fake_dir(u"CAPTURES");
         open_view->on_changed = [this](fs::path path) {
             open_file(path);
         };

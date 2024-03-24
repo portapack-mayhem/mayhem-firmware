@@ -181,7 +181,7 @@ class ReconView : public View {
 
     const std::filesystem::path repeat_rec_file = u"RECON_REPEAT.C16";
     const std::filesystem::path repeat_rec_meta = u"RECON_REPEAT.TXT";
-    const std::filesystem::path repeat_rec_path = u"CAPTURES";
+    const std::filesystem::path repeat_rec_path = u"/USR/CAPTURES";
     const size_t repeat_read_size{16384};
     const size_t repeat_buffer_count{3};
     int8_t repeat_cur_rep = 0;

@@ -5,7 +5,7 @@
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
  * Copyright (C) 2024 u-foka
- * Copyleft (ɔ) 2024 zxkmm under GPL license
+ * Copyleft (ɔ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
