@@ -45,7 +45,7 @@ void GlassView::update_display_beep() {
        if( beep_enabled ) {
             button_beep_squelch.set_style( &Styles::green );
             //                            <bip:-XXXdb>
-            button_beep_squelch.set_text("<bip:"+to_string_dec_int(beep_squelch,4) + "db>");
+            button_beep_squelch.set_text("<bip:>"+to_string_dec_int(beep_squelch,4) + "%>");
             receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
       } else {
             button_beep_squelch.set_style( &Styles::white );
@@ -213,7 +213,9 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         // process actual bin
         if( process_bins(&max_power) )
         {
-            if( range_max_power >= beep_squelch )
+            uint8_t real_beep_squelch = beep_squelch * 255 / 100 ;
+
+            if( range_max_power >= real_beep_squelch )
             {
                 baseband::request_audio_beep( 400 + (((256-range_max_power) * 2600)/255), 24000, 500);
             }
@@ -548,8 +550,8 @@ GlassView::GlassView(
             int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
             if( new_beep_squelch < 0 )
                 new_beep_squelch = 0 ;
-            if( new_beep_squelch > 255 )
-                new_beep_squelch = 255 ;
+            if( new_beep_squelch > 100 )
+                new_beep_squelch = 100 ;
             beep_squelch = new_beep_squelch ;
         button_beep_squelch.set_encoder_delta(0);
         update_display_beep();
