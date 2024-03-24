@@ -41,15 +41,20 @@ GlassView::~GlassView() {
     baseband::shutdown();
 }
 
+// Function to map the value from one range to another
+int32_t GlassView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
+    return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+}
+
 void GlassView::update_display_beep() {
     if (beep_enabled) {
         button_beep_squelch.set_style(&Styles::green);
         // <bip:-XXXdb>
-        button_beep_squelch.set_text("<bip: >" + to_string_dec_int(beep_squelch, 3) + "%>");
+        button_beep_squelch.set_text("[bip>" + to_string_dec_int(beep_squelch, 4) + "db]");
         receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
     } else {
         button_beep_squelch.set_style(&Styles::white);
-        button_beep_squelch.set_text("< beep OFF >");
+        button_beep_squelch.set_text("[ beep OFF [");
     }
 }
 
@@ -211,10 +216,9 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         }
         // process actual bin
         if (process_bins(&max_power)) {
-            uint8_t real_beep_squelch = beep_squelch * 255 / 100;
-
-            if (range_max_power >= real_beep_squelch) {
-                baseband::request_audio_beep(400 + (((256 - range_max_power) * 2600) / 255), 24000, 500);
+            int8_t power = map(range_max_power, 0, 255, -100, 20);
+            if (power >= beep_squelch) {
+                baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 500);
             }
             range_max_power = 0;
             return;  // new line signaled, return
@@ -543,10 +547,10 @@ GlassView::GlassView(
 
     button_beep_squelch.on_change = [this]() {
         int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
-        if (new_beep_squelch < 0)
-            new_beep_squelch = 0;
-        if (new_beep_squelch > 100)
-            new_beep_squelch = 100;
+        if (new_beep_squelch < -100)
+            new_beep_squelch = -100;
+        if (new_beep_squelch > 20)
+            new_beep_squelch = 20;
         beep_squelch = new_beep_squelch;
         button_beep_squelch.set_encoder_delta(0);
         update_display_beep();
