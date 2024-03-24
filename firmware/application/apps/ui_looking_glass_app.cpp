@@ -45,7 +45,7 @@ void GlassView::update_display_beep() {
     if (beep_enabled) {
         button_beep_squelch.set_style(&Styles::green);
         // <bip:-XXXdb>
-        button_beep_squelch.set_text("<bip:>" + to_string_dec_int(beep_squelch, 4) + "%>");
+        button_beep_squelch.set_text("<bip: >" + to_string_dec_int(beep_squelch, 3) + "%>");
         receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
     } else {
         button_beep_squelch.set_style(&Styles::white);
