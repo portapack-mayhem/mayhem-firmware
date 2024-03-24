@@ -85,6 +85,8 @@ class GlassView : public View {
     uint8_t live_frequency_view = 0;         // Spectrum
     uint8_t live_frequency_integrate = 3;    // Default (3 * old value + new_value) / 4
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
+    int32_t beep_squelch = 20 ;                // range from -100 to +20, >=20 disabled
+    bool beep_enabled = false ;              // activate on bip button click
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
         app_settings::Mode::RX,
@@ -98,6 +100,8 @@ class GlassView : public View {
             {"freq_view"sv, &live_frequency_view},
             {"freq_integrate"sv, &live_frequency_integrate},
             {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
+            {"beep_squelch"sv, &beep_squelch},
+            {"beep_enabled"sv, &beep_enabled},
         }};
 
     struct preset_entry {
@@ -107,6 +111,8 @@ class GlassView : public View {
     };
 
     std::vector<preset_entry> presets_db{};
+    void manage_beep_audio();
+    void update_display_beep();
     void update_min(int32_t v);
     void update_max(int32_t v);
     void update_range_field();
@@ -153,6 +159,8 @@ class GlassView : public View {
     int32_t steps = 1;
     bool locked_range = false;
 
+    uint8_t range_max_power = 0;
+    uint8_t range_max_power_counter = 0;
     uint8_t max_power = 0;
     rf::Frequency max_freq_hold = 0;
     rf::Frequency last_max_freq = 0;
@@ -160,6 +168,9 @@ class GlassView : public View {
     uint8_t bin_length = SCREEN_W;
     uint8_t offset = 0;
     uint8_t ignore_dc = 0;
+
+    AudioVolumeField field_volume{
+        {24 * 8, 0 * 16}};
 
     Labels labels{
         {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
@@ -206,8 +217,12 @@ class GlassView : public View {
 
     OptionsField range_presets{
         {7 * 8, 2 * 16},
-        20,
+        10,
         {}};
+
+    ButtonWithEncoder button_beep_squelch {
+      {18 * 8, 2 * 16 + 4, 12 * 8, 1 * 8},
+        ""};
 
     TextField field_marker{
         {7 * 8, 3 * 16, 9 * 8, 16},
