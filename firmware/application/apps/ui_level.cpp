@@ -197,7 +197,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 
     if (beep && statistics.max_db > beep_squelch) {
-        baseband::request_audio_beep(map(statistics.max_db, -100, 20, 400, 2600), 24000, 250);
+        baseband::request_audio_beep(map(statistics.max_db, -100, 20, 400, 2600), 24000, 150);
     }
 
     // refresh sat

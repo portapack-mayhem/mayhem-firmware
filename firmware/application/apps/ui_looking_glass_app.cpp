@@ -60,7 +60,7 @@ void GlassView::update_display_beep() {
 
 void GlassView::manage_beep_audio() {
     if (beep_enabled) {
-        audio::set_rate(audio::Rate::Hz_48000);
+        audio::set_rate(audio::Rate::Hz_24000);
         audio::output::start();
     } else {
         baseband::request_beep_stop();
@@ -218,7 +218,7 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
         if (process_bins(&max_power)) {
             int8_t power = map(range_max_power, 0, 255, -100, 20);
             if (power >= beep_squelch) {
-                baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 500);
+                baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 250);
             }
             range_max_power = 0;
             return;  // new line signaled, return
