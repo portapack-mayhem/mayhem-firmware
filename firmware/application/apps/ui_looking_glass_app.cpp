@@ -54,7 +54,7 @@ void GlassView::update_display_beep() {
         receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
     } else {
         button_beep_squelch.set_style(&Styles::white);
-        button_beep_squelch.set_text("[ beep OFF [");
+        button_beep_squelch.set_text("[ beep OFF ]");
     }
 }
 
