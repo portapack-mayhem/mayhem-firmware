@@ -85,8 +85,8 @@ class GlassView : public View {
     uint8_t live_frequency_view = 0;         // Spectrum
     uint8_t live_frequency_integrate = 3;    // Default (3 * old value + new_value) / 4
     uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
-    int32_t beep_squelch = 20 ;                // range from -100 to +20, >=20 disabled
-    bool beep_enabled = false ;              // activate on bip button click
+    int32_t beep_squelch = 20;               // range from -100 to +20, >=20 disabled
+    bool beep_enabled = false;               // activate on bip button click
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
         app_settings::Mode::RX,
@@ -169,15 +169,13 @@ class GlassView : public View {
     uint8_t offset = 0;
     uint8_t ignore_dc = 0;
 
-    AudioVolumeField field_volume{
-        {24 * 8, 0 * 16}};
-
     Labels labels{
         {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
         {{0, 2 * 16}, "PRESET:", Color::light_grey()},
         {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Color::light_grey()},
-        {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}};
+        //{{0, 4 * 16}, "RES:    STEPS:", Color::light_grey()}};
+        {{0, 4 * 16}, "RES:     VOL:", Color::light_grey()}};
 
     NumberField field_frequency_min{
         {4 * 8, 0 * 16},
@@ -220,8 +218,8 @@ class GlassView : public View {
         10,
         {}};
 
-    ButtonWithEncoder button_beep_squelch {
-      {18 * 8, 2 * 16 + 4, 12 * 8, 1 * 8},
+    ButtonWithEncoder button_beep_squelch{
+        {18 * 8, 2 * 16 + 4, 12 * 8, 1 * 8},
         ""};
 
     TextField field_marker{
@@ -243,7 +241,10 @@ class GlassView : public View {
         2,
         ' '};
 
-    OptionsField steps_config{
+    AudioVolumeField field_volume{
+        {13 * 8, 4 * 16}};
+
+    /*OptionsField steps_config{
         {13 * 8, 4 * 16},
         3,
         {
@@ -253,7 +254,7 @@ class GlassView : public View {
             {"100", 100},
             {"250", 250},
             {"500", 500},
-        }};
+        }};*/
 
     OptionsField scan_type{
         {17 * 8, 4 * 16},

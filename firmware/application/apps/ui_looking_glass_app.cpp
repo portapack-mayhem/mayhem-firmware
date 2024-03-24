@@ -42,27 +42,26 @@ GlassView::~GlassView() {
 }
 
 void GlassView::update_display_beep() {
-       if( beep_enabled ) {
-            button_beep_squelch.set_style( &Styles::green );
-            //                            <bip:-XXXdb>
-            button_beep_squelch.set_text("<bip:>"+to_string_dec_int(beep_squelch,4) + "%>");
-            receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
-      } else {
-            button_beep_squelch.set_style( &Styles::white );
-            button_beep_squelch.set_text( "< beep OFF >" ); 
-        }
+    if (beep_enabled) {
+        button_beep_squelch.set_style(&Styles::green);
+        // <bip:-XXXdb>
+        button_beep_squelch.set_text("<bip:>" + to_string_dec_int(beep_squelch, 4) + "%>");
+        receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
+    } else {
+        button_beep_squelch.set_style(&Styles::white);
+        button_beep_squelch.set_text("< beep OFF >");
+    }
 }
 
 void GlassView::manage_beep_audio() {
-     if( beep_enabled ) {
-            audio::set_rate(audio::Rate::Hz_48000);
-            audio::output::start();
-        } else {
-            baseband::request_beep_stop();
-            audio::output::stop();
-        }
+    if (beep_enabled) {
+        audio::set_rate(audio::Rate::Hz_48000);
+        audio::output::start();
+    } else {
+        baseband::request_beep_stop();
+        audio::output::stop();
+    }
 }
-
 
 void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power) {
     if (mode == LOOKING_GLASS_SINGLEPASS) {
@@ -198,8 +197,8 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     // we actually need SCREEN_W (240) of those bins
     for (uint8_t bin = 0; bin < bin_length; bin++) {
         get_max_power(spectrum, bin, max_power);
-        if( max_power > range_max_power )
-            range_max_power = max_power ;
+        if (max_power > range_max_power)
+            range_max_power = max_power;
         // process dc spike if enable
         if (bin == 119) {
             uint8_t next_max_power = 0;
@@ -211,15 +210,13 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
             }
         }
         // process actual bin
-        if( process_bins(&max_power) )
-        {
-            uint8_t real_beep_squelch = beep_squelch * 255 / 100 ;
+        if (process_bins(&max_power)) {
+            uint8_t real_beep_squelch = beep_squelch * 255 / 100;
 
-            if( range_max_power >= real_beep_squelch )
-            {
-                baseband::request_audio_beep( 400 + (((256-range_max_power) * 2600)/255), 24000, 500);
+            if (range_max_power >= real_beep_squelch) {
+                baseband::request_audio_beep(400 + (((256 - range_max_power) * 2600) / 255), 24000, 500);
             }
-            range_max_power = 0 ;
+            range_max_power = 0;
             return;  // new line signaled, return
         }
     }
@@ -356,7 +353,6 @@ void GlassView::update_range_field() {
 GlassView::GlassView(
     NavigationView& nav)
     : nav_(nav) {
-
     baseband::run_image(portapack::spi_flash::image_tag_wideband_spectrum);
 
     add_children({&labels,
@@ -365,7 +361,7 @@ GlassView::GlassView(
                   &field_lna,
                   &field_vga,
                   &field_range,
-                  &steps_config,
+                  //&steps_config,
                   &scan_type,
                   &view_config,
                   &level_integration,
@@ -410,12 +406,12 @@ GlassView::GlassView(
         };
     };
 
-    steps_config.on_change = [this](size_t, OptionsField::value_t v) {
+    /*steps_config.on_change = [this](size_t, OptionsField::value_t v) {
         field_frequency_min.set_step(v);
         field_frequency_max.set_step(v);
         steps = v;
     };
-    steps_config.set_selected_index(0);  // 1 Mhz step.
+    steps_config.set_selected_index(0);  // 1 Mhz step.*/
 
     scan_type.on_change = [this](size_t, OptionsField::value_t v) {
         mode = v;
@@ -538,21 +534,20 @@ GlassView::GlassView(
     receiver_model.set_squelch_level(0);
     receiver_model.enable();
 
-     
     button_beep_squelch.on_select = [this](ButtonWithEncoder& button) {
         (void)button;
-        beep_enabled = 1 - beep_enabled ;
+        beep_enabled = 1 - beep_enabled;
         manage_beep_audio();
         update_display_beep();
     };
 
     button_beep_squelch.on_change = [this]() {
-            int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
-            if( new_beep_squelch < 0 )
-                new_beep_squelch = 0 ;
-            if( new_beep_squelch > 100 )
-                new_beep_squelch = 100 ;
-            beep_squelch = new_beep_squelch ;
+        int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
+        if (new_beep_squelch < 0)
+            new_beep_squelch = 0;
+        if (new_beep_squelch > 100)
+            new_beep_squelch = 100;
+        beep_squelch = new_beep_squelch;
         button_beep_squelch.set_encoder_delta(0);
         update_display_beep();
     };

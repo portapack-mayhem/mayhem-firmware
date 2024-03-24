@@ -60,7 +60,6 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
     }
 }
 
-
 void WidebandSpectrum::on_signal_message(const RequestSignalMessage& message) {
     if (message.signal == RequestSignalMessage::Signal::BeepStopRequest) {
         audio::dma::beep_stop();
@@ -72,7 +71,6 @@ void WidebandSpectrum::on_beep_message(const AudioBeepMessage& message) {
 }
 
 void WidebandSpectrum::on_message(const Message* const msg) {
-    
     switch (msg->id) {
         case Message::ID::RequestSignal:
             on_signal_message(*reinterpret_cast<const RequestSignalMessage*>(msg));
@@ -102,7 +100,6 @@ void WidebandSpectrum::on_message(const Message* const msg) {
             configured = true;
             break;
 
-        
         default:
             break;
     }
