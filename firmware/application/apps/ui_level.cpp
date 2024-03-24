@@ -35,6 +35,11 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+// Function to map the value from one range to another
+int32_t LevelView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
+    return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+}
+
 void LevelView::m4_manage_stat_update() {
     if (audio_mode) {
         if (radio_mode == WFM_MODULATION || radio_mode == SPEC_MODULATION) {
@@ -192,7 +197,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
     }
 
     if (beep && statistics.max_db > beep_squelch) {
-        baseband::request_audio_beep(((132 + statistics.max_db) * 2000) / 120, 24000, 250);
+        baseband::request_audio_beep(map(statistics.max_db, -100, 20, 400, 2600), 24000, 150);
     }
 
     // refresh sat

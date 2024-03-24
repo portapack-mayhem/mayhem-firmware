@@ -56,6 +56,7 @@ class LevelView : public View {
 
     RxRadioState radio_state_{};
 
+    int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     size_t change_mode(freqman_index_t mod_type);
     void on_statistics_update(const ChannelStatistics& statistics);
     void set_display_freq(int64_t freq);
@@ -128,7 +129,7 @@ class LevelView : public View {
     NumberField field_beep_squelch{
         {25 * 8, 3 * 16 + 4},
         4,
-        {-120, 12},
+        {-100, 20},
         1,
         ' ',
     };
