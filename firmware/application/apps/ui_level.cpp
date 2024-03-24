@@ -38,7 +38,7 @@ namespace ui {
 void LevelView::m4_manage_stat_update() {
     if (audio_mode) {
         if (radio_mode == WFM_MODULATION || radio_mode == SPEC_MODULATION) {
-            shared_memory.request_m4_performance_counter = 0;
+            shared_memory.request_m4_performance_counter = 1;
         } else {
             shared_memory.request_m4_performance_counter = 2;
         }
@@ -277,7 +277,6 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
             baseband::run_image(portapack::spi_flash::image_tag_capture);
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
             // 12k5 (0) default
-            field_bw.set_by_value(0);
             field_bw.on_change = [this](size_t index, OptionsField::value_t sampling_rate) {
                 radio_bw = index;
                 // Baseband needs to know the desired sampling and oversampling rates.
@@ -287,6 +286,7 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
                 receiver_model.set_sampling_rate(actual_sampling_rate);
                 receiver_model.set_baseband_bandwidth(filter_bandwidth_for_sampling_rate(actual_sampling_rate));
             };
+            field_bw.set_by_value(0);
         default:
             break;
     }
