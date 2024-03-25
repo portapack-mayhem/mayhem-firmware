@@ -62,8 +62,8 @@ class database {
 
    private:
     std::filesystem::path file_path = "";  // path including filename
-    int index_item_length = 0;   // length of index item
-    int record_length = 0;       // length of record
+    int index_item_length = 0;             // length of index item
+    int record_length = 0;                 // length of record
 
     File db_file{};
     int number_of_records = 0;
