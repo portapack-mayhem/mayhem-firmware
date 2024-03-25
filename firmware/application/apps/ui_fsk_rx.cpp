@@ -135,7 +135,7 @@ FskxRxMainView::FskxRxMainView(NavigationView& nav)
     field_frequency.set_value(initial_target_frequency);
     deviation_frequency.set_value(initial_deviation);
 
-    logger.append(log_dir.string() + "/FSKRX.TXT");
+    logger.append(log_dir / u"FSKRX.TXT");
 
     baseband::set_fsk(initial_deviation);
 
