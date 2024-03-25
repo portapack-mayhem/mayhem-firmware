@@ -31,6 +31,7 @@
 #include "ui_receiver.hpp"
 #include "ui_styles.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <memory>
 

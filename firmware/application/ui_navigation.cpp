@@ -106,6 +106,7 @@
 #include "file.hpp"
 #include "file_reader.hpp"
 #include "png_writer.hpp"
+#include "file_path.hpp"
 
 using portapack::receiver_model;
 using portapack::transmitter_model;
@@ -473,8 +474,8 @@ void SystemStatusView::on_bias_tee() {
 }
 
 void SystemStatusView::on_camera() {
-    ensure_directory("SCREENSHOTS");
-    auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+    ensure_directory(screenshots_dir);
+    auto path = next_filename_matching_pattern(screenshots_dir / u"SCR_????.PNG");
 
     if (path.empty())
         return;
@@ -535,7 +536,7 @@ void SystemStatusView::rtc_battery_workaround() {
                 }
             }
         } else {
-            ensure_directory(SETTINGS_DIR);
+            ensure_directory(settings_dir);
             make_new_file(DATE_FILEFLAG);
 
             year = 1980;

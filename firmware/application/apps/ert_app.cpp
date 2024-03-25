@@ -31,6 +31,7 @@ using namespace portapack;
 
 #include "crc.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 
 namespace ert {
 
@@ -129,7 +130,7 @@ ERTAppView::ERTAppView(NavigationView& nav)
 
     logger = std::make_unique<ERTLogger>();
     if (logger) {
-        logger->append(LOG_ROOT_DIR "/ERT.TXT");
+        logger->append(logs_dir / u"ERT.TXT");
     }
 }
 

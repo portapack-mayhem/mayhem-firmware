@@ -36,10 +36,11 @@
 
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 class APRSLogger {
    public:
-    Optional<File::Error> append(const std::string& filename) {
+    Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
 
@@ -232,7 +233,7 @@ class APRSRxView : public View {
     RecordView record_view{
         {0 * 8, 1 * 16, 30 * 8, 1 * 16},
         u"AFS_????.WAV",
-        u"APRS",
+        aprs_dir,
         RecordView::FileType::WAV,
         4096,
         4};

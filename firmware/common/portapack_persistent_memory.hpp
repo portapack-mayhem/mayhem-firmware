@@ -37,10 +37,10 @@
 #include "ui.hpp"
 
 // persistent memory from/to sdcard flag file
-#define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
+#define PMEM_FILEFLAG u"PMEM_FILEFLAG"
 
 // persistent memory from/to sdcard flag file
-#define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
+#define PMEM_SETTING_FILE u"pmem_settings"
 
 #define PMEM_SIZE_BYTES 256  // total amount of pmem space in bytes, including checksum
 #define PMEM_SIZE_WORDS (PMEM_SIZE_BYTES / 4)

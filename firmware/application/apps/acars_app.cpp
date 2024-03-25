@@ -24,6 +24,7 @@
 
 #include "baseband_api.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace acars;
@@ -77,7 +78,7 @@ ACARSAppView::ACARSAppView(NavigationView& nav)
 
     logger = std::make_unique<ACARSLogger>();
     if (logger)
-        logger->append(LOG_ROOT_DIR "/ACARS.TXT");
+        logger->append(logs_dir / u"ACARS.TXT");
 }
 
 ACARSAppView::~ACARSAppView() {
