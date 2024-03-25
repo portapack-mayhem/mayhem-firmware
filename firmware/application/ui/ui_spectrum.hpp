@@ -44,15 +44,10 @@ class AudioSpectrumView : public View {
     void on_audio_spectrum(const AudioSpectrum* spectrum);
 
    private:
-    static constexpr int cursor_band_height = 4;
-
     int16_t audio_spectrum[128]{0};
 
-    Labels labels{
-        {{6 * 8, 0 * 16}, "Hz", Color::light_grey()}};
-
     Waveform waveform{
-        {0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16},
+        {0, 0 * 16, 31 * 8, 2 * 16},
         audio_spectrum,
         128,
         0,

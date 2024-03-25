@@ -43,8 +43,7 @@ AudioSpectrumView::AudioSpectrumView(
     : View{parent_rect} {
     set_focusable(true);
 
-    add_children({&labels,
-                  &waveform});
+    add_children({&waveform});
 }
 
 void AudioSpectrumView::paint(Painter& painter) {
