@@ -28,6 +28,12 @@
 void ToneGen::configure_beep(const uint32_t freq, const uint32_t sample_rate) {
     f_delta_ = (float)(freq * sizeof(sine_table_i8)) / sample_rate;
     f_tone_phase_ = 0.0;
+
+    // For higher frequencies, start at sine peak to handle case of freq=sample_rate/2;
+    // we don't want to sample the sine wave only when it's crossing 0!
+    // There is still an amplitude issue though depending on magnitude of selected sine sample deltas.
+    if (f_delta_ >= sizeof(sine_table_i8) / 4)
+        f_tone_phase_ = sizeof(sine_table_i8) / 4;
 }
 
 int16_t ToneGen::process_beep() {

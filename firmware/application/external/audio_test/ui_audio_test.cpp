@@ -33,29 +33,53 @@ AudioTestView::AudioTestView(NavigationView& nav)
     baseband::run_prepared_image(portapack::memory::map::m4_code.base());  // proc_audio_beep baseband is external too
 
     add_children({&labels,
+                  &options_sample_rate,
                   &field_frequency,
+                  &options_step,
                   &field_duration,
                   &field_volume,
                   &toggle_speaker});
 
-    field_frequency.set_value(1000);
-    field_frequency.on_change = [this](int32_t v) {
-        (void)v;
+    audio::set_rate(audio::Rate::Hz_24000);
+    options_sample_rate.on_change = [this](size_t, int32_t v) {
+        switch (v) {
+            case 12000:
+                audio::set_rate(audio::Rate::Hz_12000);
+                break;
+            case 24000:
+                audio::set_rate(audio::Rate::Hz_24000);
+                break;
+            case 48000:
+                audio::set_rate(audio::Rate::Hz_48000);
+                break;
+        }
+        field_frequency.set_range(v / 128, v / 2);
         update_audio_beep();
     };
+    options_sample_rate.set_selected_index(0, 1);
 
-    field_duration.set_value(100);
+    field_frequency.on_change = [this](int32_t) {
+        update_audio_beep();
+    };
+    field_frequency.set_value(1000);
+
+    options_step.on_change = [this](size_t, int32_t v) {
+        field_frequency.set_step(v);
+    };
+    options_step.set_by_value(100);
+
     field_duration.on_change = [this](int32_t v) {
         (void)v;
         update_audio_beep();
     };
+    field_duration.set_value(100);
 
     toggle_speaker.on_change = [this](bool v) {
         beep = v;
         update_audio_beep();
     };
 
-    field_volume.set_value(0);
+    field_volume.set_value(0);  // seems that a change is required to force update, so setting to 0 first
     field_volume.set_value(80);
 
     audio::set_rate(audio::Rate::Hz_24000);
@@ -69,12 +93,12 @@ AudioTestView::~AudioTestView() {
 }
 
 void AudioTestView::focus() {
-    field_frequency.focus();
+    toggle_speaker.focus();
 }
 
 void AudioTestView::update_audio_beep() {
     if (beep)
-        baseband::request_audio_beep(field_frequency.value(), field_duration.value());
+        baseband::request_audio_beep(field_frequency.value(), options_sample_rate.selected_index_value(), field_duration.value());
     else
         baseband::request_beep_stop();
 }

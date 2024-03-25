@@ -43,6 +43,9 @@ class WidebandSpectrum : public BasebandProcessor {
     bool configured = false;
     size_t baseband_fs = 20000000;
 
+    void on_beep_message(const AudioBeepMessage& message);
+    void on_signal_message(const RequestSignalMessage& message);
+
     SpectrumCollector channel_spectrum{};
 
     std::array<complex16_t, 256> spectrum{};

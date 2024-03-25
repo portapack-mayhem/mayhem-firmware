@@ -103,7 +103,7 @@
 #define RSSI_CEILING 1000
 #define PROPORTIONAL_BEEP_THRES 0.8
 #define RSSI_PITCH_WEIGHT (float(BEEP_MAX_FREQ - BEEP_BASE_FREQ) / RSSI_CEILING)
-#define AUDIO_SAMPLE_RATE 24000
+#define DEFAULT_AUDIO_SAMPLE_RATE 24000
 
 class SondeProcessor : public BasebandProcessor {
    public:

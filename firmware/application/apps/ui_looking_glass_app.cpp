@@ -25,6 +25,7 @@
 #include "convert.hpp"
 #include "file_reader.hpp"
 #include "string_format.hpp"
+#include "audio.hpp"
 
 using namespace portapack;
 
@@ -34,9 +35,37 @@ void GlassView::focus() {
 }
 
 GlassView::~GlassView() {
+    audio::output::stop();
     receiver_model.set_sampling_rate(3072000);  // Just a hack to avoid hanging other apps
     receiver_model.disable();
     baseband::shutdown();
+}
+
+// Function to map the value from one range to another
+int32_t GlassView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
+    return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+}
+
+void GlassView::update_display_beep() {
+    if (beep_enabled) {
+        button_beep_squelch.set_style(&Styles::green);
+        // <bip:-XXXdb>
+        button_beep_squelch.set_text("[bip>" + to_string_dec_int(beep_squelch, 4) + "db]");
+        receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
+    } else {
+        button_beep_squelch.set_style(&Styles::white);
+        button_beep_squelch.set_text("[ beep OFF ]");
+    }
+}
+
+void GlassView::manage_beep_audio() {
+    if (beep_enabled) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    } else {
+        baseband::request_beep_stop();
+        audio::output::stop();
+    }
 }
 
 void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power) {
@@ -173,6 +202,8 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     // we actually need SCREEN_W (240) of those bins
     for (uint8_t bin = 0; bin < bin_length; bin++) {
         get_max_power(spectrum, bin, max_power);
+        if (max_power > range_max_power)
+            range_max_power = max_power;
         // process dc spike if enable
         if (bin == 119) {
             uint8_t next_max_power = 0;
@@ -184,14 +215,21 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
             }
         }
         // process actual bin
-        if (process_bins(&max_power) == true)
+        if (process_bins(&max_power)) {
+            int8_t power = map(range_max_power, 0, 255, -100, 20);
+            if (power >= beep_squelch) {
+                baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 250);
+            }
+            range_max_power = 0;
             return;  // new line signaled, return
+        }
     }
     if (mode != LOOKING_GLASS_SINGLEPASS) {
         f_center += looking_glass_step;
         retune();
-    } else
+    } else {
         baseband::spectrum_streaming_start();
+    }
 }
 
 void GlassView::on_hide() {
@@ -327,13 +365,15 @@ GlassView::GlassView(
                   &field_lna,
                   &field_vga,
                   &field_range,
-                  &steps_config,
+                  //&steps_config,
                   &scan_type,
                   &view_config,
                   &level_integration,
+                  &field_volume,
                   &filter_config,
                   &field_rf_amp,
                   &range_presets,
+                  &button_beep_squelch,
                   &field_marker,
                   &field_trigger,
                   &button_jump,
@@ -370,12 +410,12 @@ GlassView::GlassView(
         };
     };
 
-    steps_config.on_change = [this](size_t, OptionsField::value_t v) {
+    /*steps_config.on_change = [this](size_t, OptionsField::value_t v) {
         field_frequency_min.set_step(v);
         field_frequency_max.set_step(v);
         steps = v;
     };
-    steps_config.set_selected_index(0);  // 1 Mhz step.
+    steps_config.set_selected_index(0);  // 1 Mhz step.*/
 
     scan_type.on_change = [this](size_t, OptionsField::value_t v) {
         mode = v;
@@ -497,6 +537,27 @@ GlassView::GlassView(
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);
     receiver_model.enable();
+
+    button_beep_squelch.on_select = [this](ButtonWithEncoder& button) {
+        (void)button;
+        beep_enabled = 1 - beep_enabled;
+        manage_beep_audio();
+        update_display_beep();
+    };
+
+    button_beep_squelch.on_change = [this]() {
+        int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
+        if (new_beep_squelch < -100)
+            new_beep_squelch = -100;
+        if (new_beep_squelch > 20)
+            new_beep_squelch = 20;
+        beep_squelch = new_beep_squelch;
+        button_beep_squelch.set_encoder_delta(0);
+        update_display_beep();
+    };
+
+    manage_beep_audio();
+    update_display_beep();
 }
 
 uint8_t GlassView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
