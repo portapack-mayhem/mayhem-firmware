@@ -113,7 +113,7 @@ SondeView::SondeView(NavigationView& nav)
 
     logger = std::make_unique<SondeLogger>();
     if (logger)
-        logger->append(log_dir / u"SONDE.TXT");
+        logger->append(logs_dir / u"SONDE.TXT");
 
     audio::output::start();
 

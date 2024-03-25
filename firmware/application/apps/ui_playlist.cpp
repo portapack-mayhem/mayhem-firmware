@@ -411,7 +411,7 @@ PlaylistView::PlaylistView(
         if (is_active())
             return;
         auto open_view = nav_.push<FileLoadView>(".C*");
-        open_view->push_dir(capture_dir);
+        open_view->push_dir(captures_dir);
         open_view->on_changed = [this](fs::path path) {
             add_entry(std::move(path));
         };

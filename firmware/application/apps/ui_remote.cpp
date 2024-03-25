@@ -247,7 +247,7 @@ RemoteEntryEditView::RemoteEntryEditView(
 
     field_path.on_select = [this, &nav](TextField&) {
         auto open_view = nav.push<FileLoadView>(".C*");
-        open_view->push_dir(capture_dir);
+        open_view->push_dir(captures_dir);
         open_view->on_changed = [this](fs::path path) {
             load_path(std::move(path));
             refresh_ui();

@@ -101,7 +101,7 @@ BLECommView::BLECommView(NavigationView& nav)
         logging = v;
 
         if (logger && logging)
-            logger->append(log_dir.string() + "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+            logger->append(logs_dir.string() + "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {

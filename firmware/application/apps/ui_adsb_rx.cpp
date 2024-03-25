@@ -391,7 +391,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
     };
 
     logger = std::make_unique<ADSBLogger>();
-    logger->append(log_dir / u"ADSB.TXT");
+    logger->append(logs_dir / u"ADSB.TXT");
 
     receiver_model.enable();
     baseband::set_adsb();

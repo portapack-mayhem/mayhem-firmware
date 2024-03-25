@@ -400,7 +400,7 @@ AISAppView::AISAppView(NavigationView& nav)
 
     logger = std::make_unique<AISLogger>();
     if (logger) {
-        logger->append(log_dir / u"AIS.TXT");
+        logger->append(logs_dir / u"AIS.TXT");
     }
 }
 

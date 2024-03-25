@@ -177,7 +177,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
     logger = std::make_unique<TPMSLogger>();
     if (logger) {
-        logger->append(log_dir / u"TPMS.TXT");
+        logger->append(logs_dir / u"TPMS.TXT");
     }
 }
 

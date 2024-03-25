@@ -116,7 +116,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
                                     : FILTER_DROP;
     }
 
-    logger.append(log_dir / u"POCSAG.TXT");
+    logger.append(logs_dir / u"POCSAG.TXT");
 
     field_squelch.set_value(receiver_model.squelch_level());
     field_squelch.on_change = [this](int32_t v) {
