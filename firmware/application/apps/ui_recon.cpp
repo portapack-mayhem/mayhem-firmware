@@ -1445,7 +1445,7 @@ void ReconView::stop_repeat(const bool do_loop) {
         recon_tx = false;
         if (persistent_memory::recon_repeat_recorded_file_mode() == RECON_REPEAT_AND_KEEP) {
             // rename file here to keep
-            std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path + u"/REC_????.*");
+            std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path / u"REC_????.*");
             rename_file(rawfile, base_path.replace_extension(u".C16"));
             rename_file(rawmeta, base_path.replace_extension(u".TXT"));
         }
