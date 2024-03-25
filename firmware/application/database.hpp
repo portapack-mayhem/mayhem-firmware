@@ -61,7 +61,7 @@ class database {
     int retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term);
 
    private:
-    std::string file_path = "";  // path inclusing filename
+    std::filesystem::path file_path = "";  // path including filename
     int index_item_length = 0;   // length of index item
     int record_length = 0;       // length of record
 
@@ -74,7 +74,7 @@ class database {
 
     int result = 0;
 
-    int retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term);
+    int retrieve_record(std::filesystem::path file_path, int index_item_length, int record_length, void* record, std::string search_term);
 };
 
 #endif /*__DATABASE_H__*/

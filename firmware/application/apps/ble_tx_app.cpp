@@ -34,6 +34,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "rtc_time.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace modems;

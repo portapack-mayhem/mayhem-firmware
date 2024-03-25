@@ -337,7 +337,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                               u"AUTO_AUDIO", u"AUDIO",
+                                               u"AUTO_AUDIO", audio_dir,
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
     record_view->set_auto_trim(false);
@@ -1170,18 +1170,18 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     if (new_mod == SPEC_MODULATION) {
         if (persistent_memory::recon_repeat_recorded()) {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"RECON_REPEAT.C16", u"CAPTURES",
+                                                       u"RECON_REPEAT.C16", capture_dir,
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_as_is(true);
         } else {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"AUTO_RAW", u"CAPTURES",
+                                                       u"AUTO_RAW", capture_dir,
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_date_frequency(true);
         }
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_AUDIO", u"AUDIO",
+                                                   u"AUTO_AUDIO", audio_dir,
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
     }
@@ -1445,7 +1445,7 @@ void ReconView::stop_repeat(const bool do_loop) {
         recon_tx = false;
         if (persistent_memory::recon_repeat_recorded_file_mode() == RECON_REPEAT_AND_KEEP) {
             // rename file here to keep
-            std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path / u"REC_????.*");
+            std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path + u"/REC_????.*");
             rename_file(rawfile, base_path.replace_extension(u".C16"));
             rename_file(rawmeta, base_path.replace_extension(u".TXT"));
         }

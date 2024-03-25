@@ -26,6 +26,7 @@
 #include "file_reader.hpp"
 #include "string_format.hpp"
 #include "audio.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 
@@ -571,7 +572,7 @@ void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // def
 
 void GlassView::load_presets() {
     File presets_file;
-    auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+    auto error = presets_file.open(looking_glass_dir / u"PRESETS.TXT");
     presets_db.clear();
 
     // Add the "Manual" entry.

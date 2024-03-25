@@ -27,6 +27,7 @@
 #include "event_m0.hpp"
 #include "file_reader.hpp"
 #include "portapack.hpp"
+#include "file_path.hpp"
 
 #include <cstring>
 
@@ -142,7 +143,7 @@ WhipCalcView::WhipCalcView(NavigationView& nav)
 
 void WhipCalcView::load_antenna_db() {
     File antennas_file;
-    auto error = antennas_file.open("/WHIPCALC/ANTENNAS.TXT");
+    auto error = antennas_file.open(whipcalc_dir / u"ANTENNAS.TXT");
 
     if (error)
         return;

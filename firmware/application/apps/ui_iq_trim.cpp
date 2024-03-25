@@ -25,6 +25,7 @@
 #include "complex.hpp"
 #include "portapack.hpp"
 #include "ui_fileman.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -47,7 +48,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
 
     field_path.on_select = [this](TextField&) {
         auto open_view = nav_.push<FileLoadView>(".C*");
-        open_view->push_dir(u"CAPTURES");
+        open_view->push_dir(capture_dir);
         open_view->on_changed = [this](fs::path path) {
             open_file(path);
         };

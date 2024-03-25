@@ -41,6 +41,7 @@ using namespace lpc43xx;
 using namespace portapack;
 
 #include "file.hpp"
+#include "file_path.hpp"
 namespace fs = std::filesystem;
 
 #include "string_format.hpp"
@@ -571,17 +572,17 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         if (v) {
-            if (fs::file_exists(PMEM_FILEFLAG)) {
+            if (fs::file_exists(settings_dir / PMEM_FILEFLAG)) {
                 text_pmem_status.set("P.Mem flag file present.");
             } else {
-                auto error = pmem_flag_file_handle.create(PMEM_FILEFLAG);
+                auto error = pmem_flag_file_handle.create(settings_dir / PMEM_FILEFLAG);
                 if (error)
                     text_pmem_status.set("Error creating P.Mem File!");
                 else
                     text_pmem_status.set("P.Mem flag file created.");
             }
         } else {
-            auto result = delete_file(PMEM_FILEFLAG);
+            auto result = delete_file(settings_dir / PMEM_FILEFLAG);
             if (result.code() != FR_OK)
                 text_pmem_status.set("Error deleting P.Mem flag!");
             else
@@ -717,10 +718,10 @@ AppSettingsView::AppSettingsView(
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
-    ensure_directory(SETTINGS_DIR);
+    ensure_directory(settings_dir);
 
-    for (const auto& entry : std::filesystem::directory_iterator(SETTINGS_DIR, u"*.ini")) {
-        auto path = (std::filesystem::path)SETTINGS_DIR / entry.path();
+    for (const auto& entry : std::filesystem::directory_iterator(settings_dir, u"*.ini")) {
+        auto path = settings_dir / entry.path();
 
         menu_view.add_item({path.filename().string().substr(0, 26),
                             ui::Color::dark_cyan(),

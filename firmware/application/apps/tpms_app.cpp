@@ -30,6 +30,7 @@ using namespace portapack;
 #include "string_format.hpp"
 
 #include "utility.hpp"
+#include "file_path.hpp"
 
 namespace tpms {
 
@@ -176,7 +177,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 
     logger = std::make_unique<TPMSLogger>();
     if (logger) {
-        logger->append(LOG_ROOT_DIR "/TPMS.TXT");
+        logger->append(log_dir / u"TPMS.TXT");
     }
 }
 

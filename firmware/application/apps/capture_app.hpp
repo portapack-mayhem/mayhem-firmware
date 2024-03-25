@@ -31,6 +31,7 @@
 #include "ui_spectrum.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
@@ -101,7 +102,7 @@ class CaptureAppView : public View {
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
         u"BBD_????.*",
-        u"CAPTURES",
+        capture_dir,
         RecordView::FileType::RawS16,
         16384,
         3};

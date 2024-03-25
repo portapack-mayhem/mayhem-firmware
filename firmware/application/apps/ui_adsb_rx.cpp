@@ -31,6 +31,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "rtc_time.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 
@@ -390,7 +391,7 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
     };
 
     logger = std::make_unique<ADSBLogger>();
-    logger->append(LOG_ROOT_DIR "/ADSB.TXT");
+    logger->append(log_dir / u"ADSB.TXT");
 
     receiver_model.enable();
     baseband::set_adsb();

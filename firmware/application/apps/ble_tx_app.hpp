@@ -36,6 +36,7 @@
 #include "replay_thread.hpp"
 #include "log_file.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include "recent_entries.hpp"
 
@@ -44,7 +45,7 @@
 
 class BLELoggerTx {
    public:
-    Optional<File::Error> append(const std::string& filename) {
+    Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
 
@@ -138,7 +139,7 @@ class BLETxView : public View {
     uint32_t prev_value{0};
 
     std::filesystem::path file_path{};
-    std::filesystem::path packet_save_path{u"BLETX/BLETX_????.TXT"};
+    std::filesystem::path packet_save_path{bletx_dir / u"BLETX_????.TXT"};
     uint8_t channel_number = 37;
     bool auto_channel = false;
 
@@ -165,7 +166,7 @@ class BLETxView : public View {
 
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
-    std::filesystem::path dataTempFilePath{u"BLETX/dataFileTemp.TXT"};
+    std::filesystem::path dataTempFilePath{bletx_dir / u"dataFileTemp.TXT"};
     std::vector<uint16_t> markedBytes{};
     CursorPos cursor_pos{};
     uint8_t marked_counter = 0;

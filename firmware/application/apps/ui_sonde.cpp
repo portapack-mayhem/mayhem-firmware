@@ -25,6 +25,7 @@
 #include "baseband_api.hpp"
 #include "audio.hpp"
 #include "app_settings.hpp"
+#include "file_path.hpp"
 
 #include "portapack.hpp"
 #include <cstring>
@@ -112,7 +113,7 @@ SondeView::SondeView(NavigationView& nav)
 
     logger = std::make_unique<SondeLogger>();
     if (logger)
-        logger->append(LOG_ROOT_DIR "/SONDE.TXT");
+        logger->append(log_dir / u"SONDE.TXT");
 
     audio::output::start();
 
