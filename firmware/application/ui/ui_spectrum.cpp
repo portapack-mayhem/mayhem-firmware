@@ -44,29 +44,13 @@ AudioSpectrumView::AudioSpectrumView(
     set_focusable(true);
 
     add_children({&labels,
-                  &field_frequency,
                   &waveform});
-
-    field_frequency.on_change = [this](int32_t) {
-        set_dirty();
-    };
-    field_frequency.set_value(0);
 }
 
 void AudioSpectrumView::paint(Painter& painter) {
     const auto r = screen_rect();
 
     painter.fill_rectangle(r, Color::black());
-
-    // if( !spectrum_sampling_rate ) return;
-
-    // Cursor
-    const Rect r_cursor{
-        field_frequency.value() / (48000 / 240), r.bottom() - 32 - cursor_band_height,
-        1, cursor_band_height};
-    painter.fill_rectangle(
-        r_cursor,
-        Color::red());
 }
 
 void AudioSpectrumView::on_audio_spectrum(const AudioSpectrum* spectrum) {

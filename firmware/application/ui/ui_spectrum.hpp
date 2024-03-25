@@ -51,13 +51,6 @@ class AudioSpectrumView : public View {
     Labels labels{
         {{6 * 8, 0 * 16}, "Hz", Color::light_grey()}};
 
-    NumberField field_frequency{
-        {0 * 8, 0 * 16},
-        5,
-        {0, 48000},
-        48000 / 240,
-        ' '};
-
     Waveform waveform{
         {0, 1 * 16 + cursor_band_height, 30 * 8, 2 * 16},
         audio_spectrum,
