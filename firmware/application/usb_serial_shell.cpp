@@ -44,6 +44,7 @@
 #include "ui_flash_utility.hpp"
 #include "untar.hpp"
 #include "ui_widget.hpp"
+#include "file_path.hpp"
 
 #include "ui_navigation.hpp"
 #include "usb_serial_shell_filesystem.hpp"
@@ -167,8 +168,8 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argc;
     (void)argv;
 
-    ensure_directory("SCREENSHOTS");
-    auto path = next_filename_matching_pattern(u"SCREENSHOTS/SCR_????.PNG");
+    ensure_directory(screenshots_dir);
+    auto path = next_filename_matching_pattern(screenshots_dir / u"SCR_????.PNG");
 
     if (path.empty())
         return;
@@ -1037,9 +1038,9 @@ static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[])
     if (!nav) return;
     nav->home(true);  // to exit all running apps
 
-    for (const auto& entry : std::filesystem::directory_iterator(SETTINGS_DIR, u"*.ini")) {
+    for (const auto& entry : std::filesystem::directory_iterator(settings_dir, u"*.ini")) {
         if (std::filesystem::is_regular_file(entry.status())) {
-            std::filesystem::path pth = SETTINGS_DIR;
+            std::filesystem::path pth = settings_dir;
             pth += u"/" + entry.path();
             chprintf(chp, pth.string().c_str());
             chprintf(chp, "\r\n");

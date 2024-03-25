@@ -29,6 +29,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -84,7 +85,7 @@ AFSKRxView::AFSKRxView(NavigationView& nav)
 
     logger = std::make_unique<AFSKLogger>();
     if (logger)
-        logger->append(LOG_ROOT_DIR "/AFSK.TXT");
+        logger->append(logs_dir / u"AFSK.TXT");
 
     // Auto-configure modem for LCR RX (will be removed later)
     baseband::set_afsk(persistent_memory::modem_baudrate(), 8, 0, false);

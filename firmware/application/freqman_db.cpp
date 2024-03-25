@@ -29,6 +29,7 @@
 #include "string_format.hpp"
 #include "tone_key.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <array>
 #include <cctype>
@@ -37,7 +38,6 @@
 
 namespace fs = std::filesystem;
 
-const std::filesystem::path freqman_dir{u"/FREQMAN"};
 const std::filesystem::path freqman_extension{u".TXT"};
 
 // NB: Don't include UI headers to keep this code unit testable.

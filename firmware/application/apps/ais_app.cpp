@@ -23,6 +23,7 @@
 
 #include "string_format.hpp"
 #include "database.hpp"
+#include "file_path.hpp"
 
 #include "baseband_api.hpp"
 
@@ -399,7 +400,7 @@ AISAppView::AISAppView(NavigationView& nav)
 
     logger = std::make_unique<AISLogger>();
     if (logger) {
-        logger->append(LOG_ROOT_DIR "/AIS.TXT");
+        logger->append(logs_dir / u"AIS.TXT");
     }
 }
 

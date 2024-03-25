@@ -27,6 +27,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include "ui_freqman.hpp"
 
@@ -134,7 +135,7 @@ FskxRxMainView::FskxRxMainView(NavigationView& nav)
     field_frequency.set_value(initial_target_frequency);
     deviation_frequency.set_value(initial_deviation);
 
-    logger.append(LOG_ROOT_DIR "/FSKRX.TXT");
+    logger.append(logs_dir / u"FSKRX.TXT");
 
     baseband::set_fsk(initial_deviation);
 

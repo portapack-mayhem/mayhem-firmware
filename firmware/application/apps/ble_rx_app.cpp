@@ -470,10 +470,7 @@ BLERxView::BLERxView(NavigationView& nav)
         logging = v;
 
         if (logger && logging)
-            logger->append(
-                "BLERX/Logs"
-                "/BLELOG_" +
-                to_string_timestamp(rtc_time::now()) + ".TXT");
+            logger->append(blerx_dir.string() + "/Logs/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
     check_log.set_value(logging);
 
