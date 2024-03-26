@@ -107,12 +107,14 @@ void BtnGridView::on_tick_second() {
 }
 
 void BtnGridView::clear() {
-    std::vector<GridItem>().swap(menu_items);  // clear vector and release memory
+    // clear vector and release memory, not using swap since it's causing capture to glitch/fault
+    menu_items.clear();
 
     for (auto& item : menu_item_views)
         remove_child(item.get());
 
-    std::vector<std::unique_ptr<NewButton>>().swap(menu_item_views);  // clear vector and release memory
+    // clear vector and release memory, not using swap since it's causing capture to glitch/fault
+    menu_item_views.clear();
 }
 
 void BtnGridView::add_items(std::initializer_list<GridItem> new_items) {

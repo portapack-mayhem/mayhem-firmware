@@ -46,7 +46,7 @@ class SpectrumInputImageView : public View {
     uint16_t get_height();
     std::vector<uint8_t> get_line(uint16_t);
 
-    std::function<void()> on_input_avaliable{};
+    std::function<void()> on_input_available{};
 
    private:
     bool painted{false};

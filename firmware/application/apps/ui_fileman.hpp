@@ -280,7 +280,7 @@ class FileManagerView : public FileManBaseView {
         {4 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_options_datetime,
-        Color::orange(),
+        Color::dark_blue(),
         /*vcenter*/ true};
 
     NewButton button_open_iq_trim{

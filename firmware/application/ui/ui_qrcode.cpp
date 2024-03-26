@@ -59,43 +59,19 @@ void QRCodeImage::paint(Painter& painter) {
     // The structure to manage the QR code
     QRCode qrcode;
 
-    // Either small or large QR code can be shown..
+    int qr_version = 10;
 
-    if (portapack::persistent_memory::show_bigger_qr_code()) {  // show large QR code
-        int qr_version = 2;
+    // Allocate a chunk of memory to store the QR code
+    uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
 
-        // Allocate a chunk of memory to store the QR code
-        uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
+    qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
 
-        qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
+    display.fill_rectangle(Rect(57, 65, 126, 127), Color::white());
 
-        display.fill_rectangle(Rect(10, 30, 220, 220), Color::white());
-
-        for (uint8_t y = 0; y < qrcode.size; y++) {
-            for (uint8_t x = 0; x < qrcode.size; x++) {
-                if (qrcode_getModule(&qrcode, x, y)) {
-                    display.fill_rectangle(Rect(20 + (x * 8), 40 + (y * 8), 8, 8), Color::black());
-                }
-            }
-        }
-
-    }
-
-    else {  // show small QR code
-        int qr_version = 10;
-
-        // Allocate a chunk of memory to store the QR code
-        uint8_t qrcodeBytes[qrcode_getBufferSize(qr_version)];
-
-        qrcode_initText(&qrcode, qrcodeBytes, qr_version, ECC_HIGH, qr_text_);
-
-        display.fill_rectangle(Rect(92, 97, 63, 63), Color::white());
-
-        for (uint8_t y = 0; y < qrcode.size; y++) {
-            for (uint8_t x = 0; x < qrcode.size; x++) {
-                if (qrcode_getModule(&qrcode, x, y)) {
-                    display.draw_pixel(Point(95 + x, 100 + y), Color::black());
-                }
+    for (uint8_t y = 0; y < qrcode.size; y++) {
+        for (uint8_t x = 0; x < qrcode.size; x++) {
+            if (qrcode_getModule(&qrcode, x, y)) {
+                display.fill_rectangle(Rect(63 + (x * 2), 71 + (y * 2), 2, 2), Color::black());
             }
         }
     }

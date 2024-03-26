@@ -27,6 +27,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace pocsag;
@@ -115,7 +116,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
                                     : FILTER_DROP;
     }
 
-    logger.append(LOG_ROOT_DIR "/POCSAG.TXT");
+    logger.append(logs_dir / u"POCSAG.TXT");
 
     field_squelch.set_value(receiver_model.squelch_level());
     field_squelch.on_change = [this](int32_t v) {

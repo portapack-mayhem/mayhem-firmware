@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -24,6 +25,7 @@
 #include "baseband_api.hpp"
 #include "audio.hpp"
 #include "app_settings.hpp"
+#include "file_path.hpp"
 
 #include "portapack.hpp"
 #include <cstring>
@@ -70,14 +72,19 @@ SondeView::SondeView(NavigationView& nav)
 
     geopos.set_read_only(true);
 
+    check_beep.set_value(beep);
     check_beep.on_select = [this](Checkbox&, bool v) {
         beep = v;
+        if (beep)
+            baseband::request_audio_beep(1000, 24000, 60);  // 1khz tone for 60ms to acknowledge enablement
     };
 
+    check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
         logging = v;
     };
 
+    check_crc.set_value(use_crc);
     check_crc.on_select = [this](Checkbox&, bool v) {
         use_crc = v;
     };
@@ -86,17 +93,18 @@ SondeView::SondeView(NavigationView& nav)
 
     // QR code with geo URI
     button_see_qr.on_select = [this, &nav](Button&) {
-        nav.push<QRCodeView>(geo_uri);
+        std::string geo_uri = "geo:" + to_string_decimal(geopos.lat(), 5) + "," + to_string_decimal(geopos.lon(), 5);  // 5 decimal digits for ~1 meter accuracy
+        nav.push<QRCodeView>(geo_uri.data());
     };
 
     button_see_map.on_select = [this, &nav](Button&) {
         geomap_view_ = nav.push<GeoMapView>(
             sonde_id,
-            gps_info.alt,
+            geopos.altitude(),
             GeoPos::alt_unit::METERS,
             GeoPos::spd_unit::HIDDEN,
-            gps_info.lat,
-            gps_info.lon,
+            geopos.lat(),
+            geopos.lon(),
             999);  // set a dummy heading out of range to draw a cross...probably not ideal?
         nav.set_on_pop([this]() {
             geomap_view_ = nullptr;
@@ -105,7 +113,7 @@ SondeView::SondeView(NavigationView& nav)
 
     logger = std::make_unique<SondeLogger>();
     if (logger)
-        logger->append(LOG_ROOT_DIR "/SONDE.TXT");
+        logger->append(logs_dir / u"SONDE.TXT");
 
     audio::output::start();
 
@@ -142,51 +150,9 @@ void SondeView::focus() {
     field_frequency.focus();
 }
 
-// used to convert float to character pointer, since unfortunately function like
-// sprintf and c_str aren't supported.
-char* SondeView::float_to_char(float x, char* p) {
-    char* s = p + 9;                             // go to end of buffer
-    uint16_t decimals;                           // variable to store the decimals
-    int units;                                   // variable to store the units (part to left of decimal place)
-    if (x < 0) {                                 // take care of negative numbers
-        decimals = (int)(x * -100000) % 100000;  // make 1000 for 3 decimals etc.
-        units = (int)(-1 * x);
-    } else {  // positive numbers
-        decimals = (int)(x * 100000) % 100000;
-        units = (int)x;
-    }
-
-    // TODO: more elegant solution (loop?)
-    *--s = (decimals % 10) + '0';
-    decimals /= 10;
-    *--s = (decimals % 10) + '0';
-    decimals /= 10;
-    *--s = (decimals % 10) + '0';
-    decimals /= 10;
-    *--s = (decimals % 10) + '0';
-    decimals /= 10;
-    *--s = (decimals % 10) + '0';
-    *--s = '.';
-
-    while (units > 0) {
-        *--s = (units % 10) + '0';
-        units /= 10;
-    }
-    if (x < 0) *--s = '-';  // unary minus sign for negative numbers
-    return s;
-}
-
 void SondeView::on_packet(const sonde::Packet& packet) {
     if (!use_crc || packet.crc_ok())  // euquiq: Reject bad packet if crc is on
     {
-        char buffer_lat[10] = {};
-        char buffer_lon[10] = {};
-
-        strcpy(geo_uri, "geo:");
-        strcat(geo_uri, float_to_char(gps_info.lat, buffer_lat));
-        strcat(geo_uri, ",");
-        strcat(geo_uri, float_to_char(gps_info.lon, buffer_lon));
-
         text_signature.set(packet.type_string());
 
         sonde_id = packet.serial_number();  // used also as tag on the geomap
@@ -220,7 +186,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
         }
 
         if (beep) {
-            baseband::request_beep();
+            baseband::request_rssi_beep();
         }
     }
 }

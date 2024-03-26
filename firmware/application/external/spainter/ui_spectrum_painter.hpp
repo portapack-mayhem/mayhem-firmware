@@ -61,7 +61,7 @@ class SpectrumPainterView : public View {
     app_settings::SettingsManager settings_{
         "tx_painter", app_settings::Mode::TX};
 
-    bool image_input_avaliable{false};
+    bool image_input_available{false};
     bool tx_active{false};
     uint32_t tx_mode{0};
     uint16_t tx_current_line{0};

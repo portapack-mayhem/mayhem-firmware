@@ -67,6 +67,15 @@ set(EXTCPPSRC
 	external/extsensors/main.cpp
 	external/extsensors/ui_extsensors.cpp
 	external/extsensors/ui_extsensors.hpp
+
+	#foxhunt
+	external/foxhunt/main.cpp
+	external/foxhunt/ui_foxhunt_rx.cpp
+	external/foxhunt/ui_foxhunt_rx.hpp
+
+	#audio_test
+	external/audio_test/main.cpp
+	external/audio_test/ui_audio_test.cpp
 )
 
 set(EXTAPPLIST
@@ -86,4 +95,6 @@ set(EXTAPPLIST
 	keyfob
 	tetris
 	extsensors
+	foxhunt_rx
+	audio_test
 )

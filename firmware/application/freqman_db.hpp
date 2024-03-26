@@ -36,7 +36,6 @@
 #include <vector>
 
 /* Defined in freqman_db.cpp */
-extern const std::filesystem::path freqman_dir;
 extern const std::filesystem::path freqman_extension;
 
 using freqman_index_t = uint8_t;

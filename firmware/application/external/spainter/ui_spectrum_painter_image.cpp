@@ -28,6 +28,7 @@
 #include "io_file.hpp"
 #include "file.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "file_path.hpp"
 
 namespace ui::external_app::spainter {
 
@@ -39,15 +40,14 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
     button_load_image.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".bmp");
 
-        constexpr auto data_directory = u"SPECTRUM";
-        ensure_directory(data_directory);
-        open_view->push_dir(data_directory);
+        ensure_directory(spectrum_dir);
+        open_view->push_dir(spectrum_dir);
 
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             this->file = new_file_path.string();
             painted = false;
             this->set_dirty();
-            this->on_input_avaliable();
+            this->on_input_available();
         };
     };
 }

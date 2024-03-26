@@ -30,6 +30,7 @@
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -40,7 +41,7 @@ using namespace portapack;
 
 namespace {
 fs::path get_settings_path(const std::string& app_name) {
-    return fs::path{SETTINGS_DIR} / app_name + u".ini";
+    return settings_dir / app_name + u".ini";
 }
 }  // namespace
 
@@ -156,7 +157,7 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
     File f;
     auto path = get_settings_path(std::string{store_name});
 
-    ensure_directory(SETTINGS_DIR);
+    ensure_directory(settings_dir);
     auto error = f.create(path);
     if (error)
         return false;

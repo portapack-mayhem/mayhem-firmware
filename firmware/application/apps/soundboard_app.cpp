@@ -28,6 +28,7 @@
 #include "tonesets.hpp"
 #include "ui_tone_key.hpp"
 #include "audio.hpp"
+#include "file_path.hpp"
 
 using namespace tonekey;
 using namespace portapack;
@@ -164,7 +165,7 @@ void SoundBoardView::refresh_list() {
 
     // List directories and files, put directories up top
     uint32_t count = 0;
-    for (const auto& entry : std::filesystem::directory_iterator(u"WAV", u"*")) {
+    for (const auto& entry : std::filesystem::directory_iterator(wav_dir, u"*")) {
         if (std::filesystem::is_regular_file(entry.status())) {
             if (entry.path().string().length()) {
                 auto entry_extension = entry.path().extension().string();
@@ -173,7 +174,7 @@ void SoundBoardView::refresh_list() {
                     c = toupper(c);
 
                 if (entry_extension == ".WAV") {
-                    if (reader->open(u"/WAV/" + entry.path().native())) {
+                    if (reader->open(wav_dir / entry.path())) {
                         if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                             // sounds[c].ms_duration = reader->ms_duration();
                             // sounds[c].path = u"WAV/" + entry.path().native();
