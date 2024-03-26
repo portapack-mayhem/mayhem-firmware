@@ -1,0 +1,3 @@
+Please put your personal playlists into /USR/PLAYLIST
+So you can easily updating official resources
+without manually handling your personal files
