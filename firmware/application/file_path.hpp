@@ -26,6 +26,7 @@
 
 extern const std::filesystem::path adsb_dir;
 extern const std::filesystem::path ais_dir;
+extern const std::filesystem::path apps_dir;
 extern const std::filesystem::path aprs_dir;
 extern const std::filesystem::path audio_dir;
 extern const std::filesystem::path blerx_dir;
@@ -34,11 +35,13 @@ extern const std::filesystem::path captures_dir;
 extern const std::filesystem::path debug_dir;
 extern const std::filesystem::path firmware_dir;
 extern const std::filesystem::path freqman_dir;
+extern const std::filesystem::path gps_dir;
 extern const std::filesystem::path logs_dir;
 extern const std::filesystem::path looking_glass_dir;
 extern const std::filesystem::path playlist_dir;
 extern const std::filesystem::path remotes_dir;
 extern const std::filesystem::path repeat_rec_path;
+extern const std::filesystem::path samples_dir;
 extern const std::filesystem::path screenshots_dir;
 extern const std::filesystem::path settings_dir;
 extern const std::filesystem::path spectrum_dir;
