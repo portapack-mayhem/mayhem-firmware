@@ -765,7 +765,7 @@ void BLERxView::on_filter_change(std::string value) {
 }
 
 void BLERxView::on_file_changed(const std::filesystem::path& new_file_path) {
-    file_path = fs::path(u"/") + new_file_path;
+    file_path = new_file_path;
     found_count = 0;
     total_count = 0;
     searchList.clear();

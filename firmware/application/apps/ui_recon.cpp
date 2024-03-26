@@ -1460,7 +1460,7 @@ void ReconView::handle_repeat_thread_done(const uint32_t return_code) {
         stop_repeat(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop_repeat(false);
-        repeat_file_error(u"/" + repeat_rec_path + u"/" + repeat_rec_file, "Can't open file to send.");
+        repeat_file_error(rawfile, "Can't open file to send.");
     }
 }
 
