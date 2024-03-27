@@ -738,7 +738,7 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
         painter.fill_rectangle(
         {2 * 8, 0, portapack::display.width() - 4 * 8, portapack::display.height()},
         ui::Color::black());
-        painter.draw_string({2 * 8,0}, Styles::red,"External apps mossing!  >>");
+        painter.draw_string({2 * 8,0}, Styles::red,"External apps missing!  <<");
     } else {
         for (auto const& gridItem : externalItems) {
             grid.add_item(gridItem);
