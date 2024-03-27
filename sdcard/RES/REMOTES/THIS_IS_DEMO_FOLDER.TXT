@@ -1,0 +1,3 @@
+Please put your personal remotes into /USR/REMOTES
+So you can easily updating official resources
+without manually handling your personal files

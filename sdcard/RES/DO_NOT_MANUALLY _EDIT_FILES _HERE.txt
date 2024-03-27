@@ -1,0 +1,11 @@
+This folder contains resource files that
+may be overwritten when updating the
+SD Card contents.
+
+You can of course edit files/folders
+here, but it's recommended that you
+place your own files in the /USR
+folder.
+
+Firmware apps will check in both
+/USR and /RES folders for files.

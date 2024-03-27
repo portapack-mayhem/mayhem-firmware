@@ -1,0 +1,3 @@
+Please put your personal splash into /USR/SPLASH
+So you can easily updating official resources
+without manually handling your personal files

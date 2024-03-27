@@ -60,7 +60,7 @@ jobs:
           wget https://github.com/portapack-mayhem/mayhem-firmware/releases/download/world_map/world_map.zip
       - name: Unzip world map
         run: |
-          unzip world_map.zip -d sdcard/ADSB
+          unzip world_map.zip -d sdcard/RES/ADSB
       - name: Create Firmware ZIP
         run: |
           zip -j firmware.zip build/firmware/portapack-h1_h2-mayhem.bin && cd flashing && zip -r ../firmware.zip *
