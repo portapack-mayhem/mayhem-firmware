@@ -731,10 +731,9 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
                                   "Notice",
                                   "External app directory empty;\n"
                                   "see Mayhem wiki and copy apps\n"
-                                  "to " +
-                                      apps_dir.string() + " folder of SD card.");
+                                  "to " + apps_dir.string() + " folder of SD card.");
                           }},
-                         0);
+                         pmem::show_gui_return_icon() ? 1 : 0);
     } else {
         for (auto const& gridItem : externalItems) {
             grid.add_item(gridItem);
