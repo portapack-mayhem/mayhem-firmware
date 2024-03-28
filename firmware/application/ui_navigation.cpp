@@ -725,7 +725,7 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
     if (externalItems.empty()) {
         grid.insert_item({"<Notice!>",
                           Color::red(),
-                          &bitmap_icon_debug,
+                          nullptr,
                           [&nav]() {
                               nav.display_modal(
                                   "Notice",
