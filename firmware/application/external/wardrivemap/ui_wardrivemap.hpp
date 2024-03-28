@@ -52,7 +52,7 @@ class WardriveMapView : public View {
    private:
     NavigationView& nav_;
 
-    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "All GEO from CAPTURES"};
+    Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "All GEOTAG from CAPTURES"};
     Text text_notfound{{0 * 8, 3 * 8, 30 * 8, 16 * 1}, "No GeoTagged captures found"};
     GeoPos geopos{
         {0, 20},
