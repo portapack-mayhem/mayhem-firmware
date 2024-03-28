@@ -147,7 +147,6 @@ void BtnGridView::insert_item(GridItem new_item, uint8_t position) {
     }
 }
 
-
 void BtnGridView::update_items() {
     size_t i = 0;
     Color bg_color = portapack::persistent_memory::menu_color();
