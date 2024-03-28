@@ -38,11 +38,12 @@ void WardriveMapView::focus() {
 // todo optimize this somehow
 bool WardriveMapView::load_markers() {
     uint16_t cnt = 0;
+    uint16_t displayed_cnt = 0;
     geomap.clear_markers();
     // serach for files with geotag, and add it to geomap as marker with tag. limit to N bc of mem limit.
     for (const auto& entry : std::filesystem::directory_iterator(captures_dir, u"*.txt")) {
         if (std::filesystem::is_regular_file(entry.status())) {
-            if (cnt > 30) break;
+            if (displayed_cnt > 30) break;
             std::filesystem::path pth = captures_dir;
             pth += u"/" + entry.path();
             auto metadata_path = get_metadata_path(pth);
@@ -60,7 +61,7 @@ bool WardriveMapView::load_markers() {
                         first_init = true;
                     }
                     GeoMarker tmp{metadata.value().latitude, metadata.value().longitude, 400, entry.path().filename().string()};
-                    geomap.store_marker(tmp);
+                    if (geomap.store_marker(tmp) == MapMarkerStored::MARKER_STORED) displayed_cnt++;
                     cnt++;
                 }
             }
