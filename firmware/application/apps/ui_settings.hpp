@@ -506,8 +506,12 @@ class SetAudioView : public View {
     Labels labels{
         {{1 * 8, 1 * 16}, "Controls the volume of the", Color::light_grey()},
         {{1 * 8, 2 * 16}, "tone when transmitting in", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "Soundboard or Mic apps.", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "Soundboard or Mic apps:", Color::light_grey()},
         {{2 * 8, 5 * 16}, "Tone key mix:   %", Color::light_grey()},
+        {{1 * 8, 8 * 16}, "Controls whether apps should", Color::light_grey()},
+        {{1 * 8, 9 * 16}, "beep on speaker & headphone", Color::light_grey()},
+        {{1 * 8, 10 * 16}, "when a packet is received", Color::light_grey()},
+        {{1 * 8, 11 * 16}, "(not all apps support this):", Color::light_grey()},
     };
 
     NumberField field_tone_mix{
@@ -516,6 +520,11 @@ class SetAudioView : public View {
         {10, 99},
         1,
         '0'};
+
+    Checkbox checkbox_beep_on_packets{
+        {4 * 8, 13 * 16},
+        16,
+        "Beep on RX packets"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
