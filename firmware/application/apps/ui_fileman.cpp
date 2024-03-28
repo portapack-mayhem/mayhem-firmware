@@ -661,7 +661,7 @@ FileManagerView::FileManagerView(
         if (clipboard_mode != ClipboardMode::None)
             on_paste();
         else
-            nav_.display_modal("Paste", "  Cut or copy a file,\nor cut a folder, first.");
+            nav_.display_modal("Paste", "    Cut or copy a file,\n  or cut a folder, first.");
     };
 
     button_new_dir.on_select = [this]() {
