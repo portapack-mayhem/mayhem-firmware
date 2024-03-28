@@ -723,22 +723,18 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
 void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.add_item({"Notice!",
-                       Color::red(),
-                       &bitmap_icon_debug,
-                       [&nav]() {
-                           nav.display_modal(
-                               "Notice",
-                               "External app directory empty;\n"
-                               "see Mayhem wiki and copy apps\n"
-                               "to " + apps_dir.string() + " folder of SD card.");
-                       }});
-
-        Painter painter;
-        painter.fill_rectangle(
-        {2 * 8, 0, portapack::display.width() - 4 * 8, portapack::display.height()},
-        ui::Color::black());
-        painter.draw_string({2 * 8,0}, Styles::red,"External apps missing!  <<");
+        grid.insert_item({"<Notice!>",
+                          Color::red(),
+                          &bitmap_icon_debug,
+                          [&nav]() {
+                              nav.display_modal(
+                                  "Notice",
+                                  "External app directory empty;\n"
+                                  "see Mayhem wiki and copy apps\n"
+                                  "to " +
+                                      apps_dir.string() + " folder of SD card.");
+                          }},
+                         0);
     } else {
         for (auto const& gridItem : externalItems) {
             grid.add_item(gridItem);
