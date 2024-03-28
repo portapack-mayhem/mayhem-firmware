@@ -62,8 +62,7 @@ FoxhuntRxView::FoxhuntRxView(NavigationView& nav)
     };
     geomap.set_mode(DISPLAY);
     geomap.set_manual_panning(false);
-    // geomap.set_enable_additional_zoom(true);
-    // geomap.set_hide_center_marker(true); //todo hide again after testing
+    // geomap.set_hide_center_marker(true); //todo test if needed
     geomap.set_focusable(true);
     geomap.clear_markers();
     receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);

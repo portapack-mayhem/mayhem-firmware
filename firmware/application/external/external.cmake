@@ -76,6 +76,10 @@ set(EXTCPPSRC
 	#audio_test
 	external/audio_test/main.cpp
 	external/audio_test/ui_audio_test.cpp
+
+	#wardrivemap
+	external/wardrivemap/main.cpp
+	external/wardrivemap/ui_wardrivemap.cpp
 )
 
 set(EXTAPPLIST
@@ -97,4 +101,5 @@ set(EXTAPPLIST
 	extsensors
 	foxhunt_rx
 	audio_test
+	wardrivemap
 )

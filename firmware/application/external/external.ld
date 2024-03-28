@@ -41,6 +41,7 @@ MEMORY
     ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
     ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
     ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
+    ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
 }
 
 SECTIONS
@@ -152,5 +153,11 @@ SECTIONS
         KEEP(*(.external_app.app_audio_test.application_information));
         *(*ui*external_app*audio_test*);
     } > ram_external_app_audio_test
+
+   .external_app_wardrivemap : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_wardrivemap.application_information));
+        *(*ui*external_app*wardrivemap*);
+    } > ram_external_app_wardrivemap
 
 }
