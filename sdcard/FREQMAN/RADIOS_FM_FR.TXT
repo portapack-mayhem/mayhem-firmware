@@ -1,0 +1,56 @@
+f=87800000,m=WFM,bw=200k,d=France Inter Paris
+f=87600000,m=WFM,bw=200k,d=France Inter Paris - Bagnolet
+f=88200000,m=WFM,bw=200k,d=Generations Paris - Bagnolet
+f=88600000,m=WFM,bw=200k,d=Radio Soleil Paris
+f=89000000,m=WFM,bw=200k,d=RFI Paris
+f=89400000,m=WFM,bw=200k,d=Radio Libertaire Paris - Bagnolet
+f=89900000,m=WFM,bw=200k,d=TSF Jazz Paris
+f=90400000,m=WFM,bw=200k,d=Nostalgie Paris
+f=90900000,m=WFM,bw=200k,d=Chante France Paris
+f=91300000,m=WFM,bw=200k,d=Cherie FM Paris
+f=91700000,m=WFM,bw=200k,d=France Musique Paris
+f=92100000,m=WFM,bw=200k,d=Mouv' Paris
+f=92600000,m=WFM,bw=200k,d=Tropiques FM Paris - Bagnolet
+f=93100000,m=WFM,bw=200k,d=Cause Commune Paris
+f=93100000,m=WFM,bw=200k,d=Aligre FM Paris
+f=93500000,m=WFM,bw=200k,d=France Culture Paris
+f=93900000,m=WFM,bw=200k,d=Vivre FM Paris - Les Lilas
+f=93900000,m=WFM,bw=200k,d=Radio Campus Paris - Les Lilas
+f=94300000,m=WFM,bw=200k,d=Radio Orient	Paris
+f=94800000,m=WFM,bw=200k,d=Radio Shalom	Paris
+f=94800000,m=WFM,bw=200k,d=Radio J Paris
+f=94800000,m=WFM,bw=200k,d=Rcj (Radio De La Communaute Juive) Paris
+f=95200000,m=WFM,bw=200k,d=Ici Et Maintenant Paris - Bagnolet
+f=95200000,m=WFM,bw=200k,d=Neo Paris - Bagnolet
+f=95600000,m=WFM,bw=200k,d=Radio Courtoisie	Paris - Les Lilas
+f=96000000,m=WFM,bw=200k,d=Skyrock Paris
+f=96400000,m=WFM,bw=200k,d=BFM Business Paris
+f=96900000,m=WFM,bw=200k,d=Voltage Paris
+f=97400000,m=WFM,bw=200k,d=Rire Et Chansons Paris
+f=97800000,m=WFM,bw=200k,d=Ado Paris - Bagnolet
+f=98200000,m=WFM,bw=200k,d=Radio FG Paris - Bagnolet
+f=98600000,m=WFM,bw=200k,d=Radio Alfa Paris - Les Lilas
+f=99000000,m=WFM,bw=200k,d=Latina Paris - Bagnolet
+f=99500000,m=WFM,bw=200k,d=Ayp FM Paris - Les Lilas
+f=99500000,m=WFM,bw=200k,d=France Maghreb 2 Paris - Les Lilas
+f=99900000,m=WFM,bw=200k,d=Sud Radio + Paris
+f=100300000,m=WFM,bw=200k,d=NRJ Paris
+f=100700000,m=WFM,bw=200k,d=Frequence Protestante Paris
+f=100700000,m=WFM,bw=200k,d=Radio Notre-Dame Paris
+f=101100000,m=WFM,bw=200k,d=Radio Classique	Paris
+f=101500000,m=WFM,bw=200k,d=Radio Nova Paris
+f=101900000,m=WFM,bw=200k,d=Fun Radio Paris
+f=102300000,m=WFM,bw=200k,d=Oui FM Paris
+f=102700000,m=WFM,bw=200k,d=M Radio	Paris
+f=103100000,m=WFM,bw=200k,d=RMC	Paris
+f=103500000,m=WFM,bw=200k,d=Europe 2 Paris
+f=103900000,m=WFM,bw=200k,d=RFM Paris
+f=104300000,m=WFM,bw=200k,d=RTL Paris
+f=104700000,m=WFM,bw=200k,d=Europe 1 Paris
+f=105100000,m=WFM,bw=200k,d=FIP	Paris
+f=105500000,m=WFM,bw=200k,d=France Info Paris
+f=105900000,m=WFM,bw=200k,d=RTL2 Paris
+f=106300000,m=WFM,bw=200k,d=Frequence Paris Plurielle Paris
+f=106700000,m=WFM,bw=200k,d=Beur FM Paris - Bagnolet
+f=107100000,m=WFM,bw=200k,d=France Bleu Paris Paris
+f=107500000,m=WFM,bw=200k,d=Africa Radio Paris - Les Lilas
