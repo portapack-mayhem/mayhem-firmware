@@ -723,7 +723,7 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
 void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.insert_item({"<Notice!>",
+        grid.insert_item({"Notice!",
                           Color::red(),
                           nullptr,
                           [&nav]() {
