@@ -74,13 +74,15 @@ class AISProcessor : public BasebandProcessor {
             this->payload_handler(packet);
         }};
 
+    void consume_symbol(const float symbol);
+    void payload_handler(const baseband::Packet& packet);
+    void on_message(const Message* const message);
+    void on_beep_message(const AudioBeepMessage& message);
+
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};
     RSSIThread rssi_thread{};
-
-    void consume_symbol(const float symbol);
-    void payload_handler(const baseband::Packet& packet);
 };
 
 #endif /*__PROC_AIS_H__*/
