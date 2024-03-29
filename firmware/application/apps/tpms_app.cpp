@@ -190,6 +190,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
 }
 
 TPMSAppView::~TPMSAppView() {
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
