@@ -361,6 +361,10 @@ void POCSAGProcessor::on_message(const Message* const message) {
             break;
         }
 
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
+            break;
+
         default:
             break;
     }
@@ -412,6 +416,10 @@ void POCSAGProcessor::send_packet() {
 
     POCSAGPacketMessage message(packet);
     shared_memory.application_queue.push(message);
+}
+
+void POCSAGProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
 }
 
 /* main **************************************************/
