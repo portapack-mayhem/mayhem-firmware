@@ -75,14 +75,12 @@ class SondeView : public View {
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };
-    bool beep{false};
     bool logging{false};
     bool use_crc{false};
     app_settings::SettingsManager settings_{
         "rx_sonde",
         app_settings::Mode::RX,
         {
-            {"beep"sv, &beep},
             {"logging"sv, &logging},
             {"use_crc"sv, &use_crc},
         }};
@@ -123,11 +121,6 @@ class SondeView : public View {
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
-
-    Checkbox check_beep{
-        {22 * 8, 6 * 16},
-        3,
-        "Beep"};
 
     Checkbox check_log{
         {22 * 8, 8 * 16},
