@@ -66,6 +66,7 @@ class WeatherProcessor : public BasebandProcessor {
 
     FProtoListGeneral* protoList = new WeatherProtos();  // holds all the protocols we can parse
     void configure(const SubGhzFPRxConfigureMessage& message);
+    void on_beep_message(const AudioBeepMessage& message);
 
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
