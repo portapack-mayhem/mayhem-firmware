@@ -193,6 +193,10 @@ void AISLogger::on_packet(const ais::Packet& packet) {
     }
 
     log_file.write_entry(packet.received_at(), entry);
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
 }
 
 void AISRecentEntry::update(const ais::Packet& packet) {
