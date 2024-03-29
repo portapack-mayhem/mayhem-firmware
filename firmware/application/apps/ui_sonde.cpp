@@ -32,6 +32,7 @@
 #include <stdio.h>
 
 using namespace portapack;
+namespace pmem = portapack::persistent_memory;
 
 #include "string_format.hpp"
 #include "complex.hpp"
@@ -54,7 +55,6 @@ SondeView::SondeView(NavigationView& nav)
                   &field_vga,
                   &rssi,
                   &field_volume,
-                  &check_beep,
                   &check_log,
                   &check_crc,
                   &text_signature,
@@ -71,13 +71,6 @@ SondeView::SondeView(NavigationView& nav)
     field_frequency.set_step(500);  // euquiq: was 10000, but we are using this for fine-tunning
 
     geopos.set_read_only(true);
-
-    check_beep.set_value(beep);
-    check_beep.on_select = [this](Checkbox&, bool v) {
-        beep = v;
-        if (beep)
-            baseband::request_audio_beep(1000, 24000, 60);  // 1khz tone for 60ms to acknowledge enablement
-    };
 
     check_log.set_value(logging);
     check_log.on_select = [this](Checkbox&, bool v) {
@@ -115,7 +108,10 @@ SondeView::SondeView(NavigationView& nav)
     if (logger)
         logger->append(logs_dir / u"SONDE.TXT");
 
-    audio::output::start();
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 
     // inject a PitchRSSIConfigureMessage in order to arm
     // the pitch rssi events that will be used by the
@@ -185,7 +181,7 @@ void SondeView::on_packet(const sonde::Packet& packet) {
             logger->on_packet(packet);
         }
 
-        if (beep) {
+        if (pmem::beep_on_packets()) {
             baseband::request_rssi_beep();
         }
     }

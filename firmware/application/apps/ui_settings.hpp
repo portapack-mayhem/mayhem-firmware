@@ -522,7 +522,7 @@ class SetAudioView : public View {
         '0'};
 
     Checkbox checkbox_beep_on_packets{
-        {4 * 8, 13 * 16},
+        {3 * 8, 13 * 16},
         16,
         "Beep on RX packets"};
 
