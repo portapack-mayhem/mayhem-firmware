@@ -1,0 +1,56 @@
+f=87800000,m=WFM,bw=200k,d=France Inter
+f=87600000,m=WFM,bw=200k,d=France Inter
+f=88200000,m=WFM,bw=200k,d=Generations
+f=88600000,m=WFM,bw=200k,d=Radio Soleil
+f=89000000,m=WFM,bw=200k,d=RFI
+f=89400000,m=WFM,bw=200k,d=Radio Libertaire
+f=89900000,m=WFM,bw=200k,d=TSF Jazz
+f=90400000,m=WFM,bw=200k,d=Nostalgie
+f=90900000,m=WFM,bw=200k,d=Chante France
+f=91300000,m=WFM,bw=200k,d=Cherie FM
+f=91700000,m=WFM,bw=200k,d=France Musique
+f=92100000,m=WFM,bw=200k,d=Mouv'
+f=92600000,m=WFM,bw=200k,d=Tropiques FM
+f=93100000,m=WFM,bw=200k,d=Cause Commune
+f=93100000,m=WFM,bw=200k,d=Aligre FM
+f=93500000,m=WFM,bw=200k,d=France Culture
+f=93900000,m=WFM,bw=200k,d=Vivre FM
+f=93900000,m=WFM,bw=200k,d=Radio Campus
+f=94300000,m=WFM,bw=200k,d=Radio Orient
+f=94800000,m=WFM,bw=200k,d=Radio Shalom
+f=94800000,m=WFM,bw=200k,d=Radio J
+f=94800000,m=WFM,bw=200k,d=RCJ
+f=95200000,m=WFM,bw=200k,d=Ici Et Maintenant
+f=95200000,m=WFM,bw=200k,d=Neo
+f=95600000,m=WFM,bw=200k,d=Radio Courtoisie
+f=96000000,m=WFM,bw=200k,d=Skyrock
+f=96400000,m=WFM,bw=200k,d=BFM Business
+f=96900000,m=WFM,bw=200k,d=Voltage
+f=97400000,m=WFM,bw=200k,d=Rire Et Chansons
+f=97800000,m=WFM,bw=200k,d=Ado
+f=98200000,m=WFM,bw=200k,d=Radio FG
+f=98600000,m=WFM,bw=200k,d=Radio Alfa
+f=99000000,m=WFM,bw=200k,d=Latina
+f=99500000,m=WFM,bw=200k,d=AYP FM
+f=99500000,m=WFM,bw=200k,d=France Maghreb 2
+f=99900000,m=WFM,bw=200k,d=Sud Radio +
+f=100300000,m=WFM,bw=200k,d=NRJ
+f=100700000,m=WFM,bw=200k,d=Frequence Protestante
+f=100700000,m=WFM,bw=200k,d=Radio Notre-Dame
+f=101100000,m=WFM,bw=200k,d=Radio Classique
+f=101500000,m=WFM,bw=200k,d=Radio Nova
+f=101900000,m=WFM,bw=200k,d=Fun Radio
+f=102300000,m=WFM,bw=200k,d=Oui FM
+f=102700000,m=WFM,bw=200k,d=M Radio
+f=103100000,m=WFM,bw=200k,d=RMC
+f=103500000,m=WFM,bw=200k,d=Europe 2
+f=103900000,m=WFM,bw=200k,d=RFM
+f=104300000,m=WFM,bw=200k,d=RTL
+f=104700000,m=WFM,bw=200k,d=Europe 1
+f=105100000,m=WFM,bw=200k,d=FIP
+f=105500000,m=WFM,bw=200k,d=France Info
+f=105900000,m=WFM,bw=200k,d=RTL2
+f=106300000,m=WFM,bw=200k,d=Frequence Paris Plurielle
+f=106700000,m=WFM,bw=200k,d=Beur FM
+f=107100000,m=WFM,bw=200k,d=France Bleu
+f=107500000,m=WFM,bw=200k,d=Africa Radio
