@@ -53,6 +53,8 @@ class ADSBRXProcessor : public BasebandProcessor {
 
     uint32_t shifter[ADSB_PREAMBLE_LENGTH + 1];
 
+    void on_beep_message(const AudioBeepMessage& message);
+
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{baseband_fs, this, baseband::Direction::Receive};
     RSSIThread rssi_thread{};
