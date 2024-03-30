@@ -208,7 +208,9 @@ AnalogAudioView::AnalogAudioView(
     NavigationView& nav,
     ReceiverModel::settings_t override)
     : AnalogAudioView(nav) {
+    // Settings to override when launched from another app (versus from AppSettings .ini file)
     // TODO: Which other settings make sense to override?
+    field_frequency.set_value(override.frequency_app_override);
     on_frequency_step_changed(override.frequency_step);
     options_modulation.set_by_value(toUType(override.mode));
 }

@@ -118,9 +118,6 @@ enum class Mode : uint8_t {
 
 enum class Options {
     None = 0x0000,
-
-    /* Don't use target frequency from app settings. */
-    UseGlobalTargetFrequency = 0x0001,
 };
 
 /* NB: See RX/TX model headers for default values. */

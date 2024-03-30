@@ -175,16 +175,12 @@ void copy_to_radio_model(const AppSettings& settings) {
     // Specifically 'modulation' which requires a running baseband.
 
     if (flags_enabled(settings.mode, Mode::TX)) {
-        if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            persistent_memory::set_target_frequency(settings.tx_frequency);
-
+        persistent_memory::set_target_frequency(settings.tx_frequency);
         transmitter_model.configure_from_app_settings(settings);
     }
 
     if (flags_enabled(settings.mode, Mode::RX)) {
-        if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            persistent_memory::set_target_frequency(settings.rx_frequency);
-
+        persistent_memory::set_target_frequency(settings.rx_frequency);
         receiver_model.configure_from_app_settings(settings);
         receiver_model.set_configuration_without_update(
             static_cast<ReceiverModel::Mode>(settings.modulation),

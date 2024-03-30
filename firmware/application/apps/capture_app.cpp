@@ -104,6 +104,14 @@ CaptureAppView::CaptureAppView(NavigationView& nav)
     };
 }
 
+CaptureAppView::CaptureAppView(
+    NavigationView& nav,
+    ReceiverModel::settings_t override)
+    : CaptureAppView(nav) {
+    // Settings to override when launched from another app (versus from AppSettings .ini file)
+    field_frequency.set_value(override.frequency_app_override);
+}
+
 CaptureAppView::~CaptureAppView() {
     receiver_model.disable();
     baseband::shutdown();
