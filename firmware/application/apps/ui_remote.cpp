@@ -248,7 +248,6 @@ RemoteEntryEditView::RemoteEntryEditView(
     field_path.on_select = [this, &nav](TextField&) {
         auto open_view = nav.push<FileLoadView>(".C*");
         open_view->push_fake_dir(captures_dir);
-      // tempnewnote: should be ??
         open_view->on_changed = [this](fs::path path) {
             load_path(std::move(path));
             refresh_ui();
@@ -358,7 +357,6 @@ RemoteView::RemoteView(
     waterfall.set_parent_rect({0, waterfall_top, screen_width, waterfall_height});
 
     ensure_fake_directories(remotes_dir);
-      // tempnewnote: should be ??
 
     // Load the previously loaded remote if exists.
     if (!load_remote(settings_.remote_path))
@@ -531,7 +529,6 @@ void RemoteView::new_remote() {
 void RemoteView::open_remote() {
     auto open_view = nav_.push<FileLoadView>(".REM");
     open_view->push_fake_dir(remotes_dir);
-  // tempnewnote: should be ??
     open_view->on_changed = [this](fs::path path) {
         save_remote();
         load_remote(std::move(path));

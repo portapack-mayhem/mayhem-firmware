@@ -470,8 +470,7 @@ BLERxView::BLERxView(NavigationView& nav)
         logging = v;
 
         if (logger && logging)
-            logger->append(blerx_dir.string() + "/Logs/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
-      // tempnot: used to be USR
+            logger->append(blerx_dir_user.string() + "/Logs/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
     check_log.set_value(logging);
 

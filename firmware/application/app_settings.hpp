@@ -36,7 +36,6 @@
 #include "max283x.hpp"
 #include "string_format.hpp"
 
-// tempnewnote: removed define, renamed to USR and need test
 // Bring in the string_view literal.
 using std::literals::operator""sv;
 

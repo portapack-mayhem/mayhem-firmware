@@ -27,7 +27,6 @@
 #include "file.hpp"
 #include "rtc_time.hpp"
 
-// tempnewnote: define USR removed
 class LogFile {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
