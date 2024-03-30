@@ -134,8 +134,7 @@ class BleRecentEntryDetailView : public View {
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
-    std::filesystem::path packet_save_path{blerx_dir / u"Lists/????.csv"};
-  // tempnote: used to be USR
+    std::filesystem::path packet_save_path{blerx_dir_user / u"Lists/????.csv"};
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -252,10 +251,9 @@ class BLERxView : public View {
     uint64_t total_count = 0;
     std::vector<std::string> searchList{};
 
-    std::filesystem::path find_packet_path{blerx_dir / u"Find/????.TXT"};
-    std::filesystem::path log_packets_path{blerx_dir / u"Logs/????.TXT"};
-    std::filesystem::path packet_save_path{blerx_dir / u"Lists/????.csv"};
-  // tempnote: used to be USR
+    std::filesystem::path find_packet_path{blerx_dir_user / u"Find/????.TXT"};
+    std::filesystem::path log_packets_path{blerx_dir_user / u"Logs/????.TXT"};
+    std::filesystem::path packet_save_path{blerx_dir_user / u"Lists/????.csv"};
 
     static constexpr auto header_height = 4 * 16;
     static constexpr auto switch_button_height = 3 * 16;

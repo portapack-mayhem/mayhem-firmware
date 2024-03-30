@@ -35,6 +35,7 @@
 #include "bmp.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "file_path.hpp"
 
 using namespace sstv;
 

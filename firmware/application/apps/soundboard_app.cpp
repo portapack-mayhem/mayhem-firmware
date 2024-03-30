@@ -167,10 +167,10 @@ void SoundBoardView::refresh_list() {
 
     // List directories and files, put directories up top
     std::filesystem::path file_list_index[2];
-    file_list_index[0] = std::filesystem::path(u"/RES/WAV");
-    file_list_index[1] = std::filesystem::path(u"/USR/WAV");
+    file_list_index[0] = wav_dir_user;
+    file_list_index[1] = wav_dir_resources;
     uint32_t count = 0;
-// tempnote: change later
+// tempnewnote: need test
     for (const auto& now_path : file_list_index) {
         for (const auto& entry : std::filesystem::directory_iterator(now_path, u"*")) {
             if (std::filesystem::is_regular_file(entry.status())) {

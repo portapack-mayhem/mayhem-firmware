@@ -138,8 +138,8 @@ void FreqManBaseView::refresh_categories() {
             });
     };
 
-    load_files(freqman_system_dir);
-    load_files(freqman_user_dir);
+    load_files(freqman_dir_resources);
+    load_files(freqman_dir_user);
 
     // Alphabetically sort the categories.
     std::sort(new_categories.begin(), new_categories.end(), [](auto& left, auto& right) {

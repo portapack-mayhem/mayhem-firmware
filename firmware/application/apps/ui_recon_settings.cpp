@@ -60,7 +60,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if ((new_file_path.native().find(freqman_system_dir.native()) == 0) || new_file_path.native().find(freqman_user_dir.native()) == 0) {
+            if ((new_file_path.native().find(freqman_dir_resources.native()) == 0) || new_file_path.native().find(freqman_dir_user.native()) == 0) {
                 _input_file = new_file_path.stem().string();
                 text_input_file.set(_input_file);
             } else {
@@ -73,7 +73,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_user_dir.native()) == 0) {
+            if (new_file_path.native().find(freqman_dir_user.native()) == 0) {
                 _output_file = new_file_path.stem().string();
                 button_choose_output_name.set_text(_output_file);
             } else {

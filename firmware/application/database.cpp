@@ -28,7 +28,6 @@
 
 int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) {
     file_path = ais_dir / u"mids.db";
-  // tempnote: used to be RES
     index_item_length = 4;
     record_length = 32;
 
@@ -39,7 +38,6 @@ int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) 
 
 int database::retrieve_airline_record(AirlinesDBRecord* record, std::string search_term) {
     file_path = adsb_dir / u"airlines.db";
-  // tempnote: used to be RES
     index_item_length = 4;
     record_length = 64;
 
@@ -50,7 +48,6 @@ int database::retrieve_airline_record(AirlinesDBRecord* record, std::string sear
 
 int database::retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term) {
     file_path = adsb_dir / u"icao24.db";
-  // tempnote: used to be RES
     index_item_length = 7;
     record_length = 146;
 

@@ -339,7 +339,7 @@ ScannerView::ScannerView(
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if ((new_file_path.native().find(freqman_system_dir.native()) == 0) || new_file_path.native().find(freqman_user_dir.native()) == 0) {
+            if ((new_file_path.native().find(freqman_dir_resources.native()) == 0) || new_file_path.native().find(freqman_dir_user.native()) == 0) {
                 scan_pause();
                 frequency_file_load(new_file_path);
             } else {

@@ -449,7 +449,6 @@ void GeoMap::move(const float lon, const float lat) {
 
 bool GeoMap::init() {
     auto result = map_file.open(adsb_dir / u"world_map.bin");
-  // tempnote: used to be RES
     map_opened = !result.is_valid();
 
     if (map_opened) {
@@ -616,7 +615,6 @@ void GeoMapView::focus() {
 
     if (!geomap.map_file_opened())
         nav_.display_modal("No map", "No world_map.bin file in\n/" + adsb_dir.string() + "/ directory", ABORT);
-  // tempnote: should say RES
 }
 
 void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {

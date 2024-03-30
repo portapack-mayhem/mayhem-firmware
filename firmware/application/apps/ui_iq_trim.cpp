@@ -49,7 +49,7 @@ IQTrimView::IQTrimView(NavigationView& nav)
     field_path.on_select = [this](TextField&) {
         auto open_view = nav_.push<FileLoadView>(".C*");
         open_view->push_dir(captures_dir);
-      // tempnote: should be USR and should be fake
+      // tempnewnote: should be fake
         open_view->on_changed = [this](fs::path path) {
             open_file(path);
         };

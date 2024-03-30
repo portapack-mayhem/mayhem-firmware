@@ -40,7 +40,7 @@
 
 namespace fs = std::filesystem;
 
-  // tempnote: USR and RES const path var removed
+  // tempnewnote: renamed into file_path file and need test
 const std::filesystem::path freqman_extension{u".TXT"};
 bool current_is_system_item{true};
 
@@ -225,14 +225,14 @@ std::string freqman_entry_get_step_string_short(freqman_index_t step) {
 const std::filesystem::path get_freqman_path(const std::string& stem, dir_profile profile) {
     switch (profile) {
         case dir_profile::ProfileSystem:
-            return freqman_system_dir / stem + freqman_extension;
+            return freqman_dir_resources / stem + freqman_extension;
             break;
         case dir_profile::ProfileUser:
-            return freqman_user_dir / stem + freqman_extension;
+            return freqman_dir_user / stem + freqman_extension;
             break;
         default:
             // throw ?
-            return freqman_user_dir / stem + freqman_extension;
+            return freqman_dir_user / stem + freqman_extension;
     }
 }
 

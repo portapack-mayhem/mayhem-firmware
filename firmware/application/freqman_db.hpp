@@ -37,7 +37,7 @@
 #include <vector>
 
 /* Defined in freqman_db.cpp */
-  // tempnote: const declearation var removed (USR and SYS)
+  // tempnote: renamed into file_path file and need test
 extern const std::filesystem::path freqman_extension;
 extern bool current_is_system_item;
 

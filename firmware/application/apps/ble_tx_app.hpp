@@ -139,8 +139,7 @@ class BLETxView : public View {
     uint32_t prev_value{0};
 
     std::filesystem::path file_path{};
-    std::filesystem::path packet_save_path{bletx_dir / u"BLETX_????.TXT"};
-  // tempnote: used to be USR
+    std::filesystem::path packet_save_path{bletx_dir_user / u"BLETX_????.TXT"};
     uint8_t channel_number = 37;
     bool auto_channel = false;
 
@@ -167,8 +166,7 @@ class BLETxView : public View {
 
     std::unique_ptr<FileWrapper> dataFileWrapper{};
     File dataFile{};
-    std::filesystem::path dataTempFilePath{bletx_dir / u"dataFileTemp.TXT"};
-  // tempnote: used to be RES
+    std::filesystem::path dataTempFilePath{bletx_dir_resources / u"dataFileTemp.TXT"};
     std::vector<uint16_t> markedBytes{};
     CursorPos cursor_pos{};
     uint8_t marked_counter = 0;

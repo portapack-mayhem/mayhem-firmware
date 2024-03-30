@@ -116,7 +116,6 @@ void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path
         [this, path](bool choice) {
             if (choice) {
                 std::filesystem::path::string_type full_path = firmware_dir.native() + u"/" + path;
-              // tempnote: used to be FIRMWARE
                 this->flash_firmware(full_path);
             }
         });

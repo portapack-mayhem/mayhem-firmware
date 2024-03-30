@@ -169,9 +169,7 @@ static void cmd_screenshot(BaseSequentialStream* chp, int argc, char* argv[]) {
     (void)argv;
 
     ensure_directory(screenshots_dir);
-  // tempnote: used to be USR but no need fake
     auto path = next_filename_matching_pattern(screenshots_dir / u"SCR_????.PNG");
-  // tempnote: used to be USR but no need fake
 
     if (path.empty())
         return;

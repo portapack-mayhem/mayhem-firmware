@@ -29,6 +29,8 @@
 #include <cstring>
 #include <stdio.h>
 
+//# include "file_path.hpp"
+
 using namespace portapack;
 
 namespace ui {
@@ -211,8 +213,8 @@ SSTVTXView::SSTVTXView(
     options_t mode_options;
     uint32_t c;
 
-    file_list_index[0] = std::filesystem::path(u"/RES/SSTV");
-    file_list_index[1] = std::filesystem::path(u"/USR/SSTV");
+    file_list_index[0] = sstv_dir_resources;
+    file_list_index[1] = sstv_dir_user;
 
     for (const auto& now_path : file_list_index) {
         file_list = scan_root_files(now_path, u"*.bmp");

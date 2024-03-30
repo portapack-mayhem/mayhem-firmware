@@ -144,8 +144,6 @@ WhipCalcView::WhipCalcView(NavigationView& nav)
 void WhipCalcView::load_antenna_db() {
     File antennas_file;
     auto error = antennas_file.open(whipcalc_dir / u"ANTENNAS.TXT");
-  // tempnote: used to be RES
-
     if (error)
         return;
 

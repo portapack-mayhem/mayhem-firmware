@@ -480,9 +480,7 @@ void SystemStatusView::on_bias_tee() {
 
 void SystemStatusView::on_camera() {
     ensure_directory(screenshots_dir);
-  // tempnote: used to be USR and should be fake
     auto path = next_filename_matching_pattern(screenshots_dir / u"SCR_????.PNG");
-  // tempnote: used to be USR
 
     if (path.empty())
         return;

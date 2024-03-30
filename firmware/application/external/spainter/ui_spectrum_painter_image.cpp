@@ -42,7 +42,7 @@ SpectrumInputImageView::SpectrumInputImageView(NavigationView& nav) {
 
         ensure_directory(spectrum_dir);
         open_view->push_dir(spectrum_dir);
-      // tempnote: const var removed and should be fake
+      // tempnewnote: const var removed
 
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             this->file = new_file_path.string();

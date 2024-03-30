@@ -233,8 +233,7 @@ class APRSRxView : public View {
     RecordView record_view{
         {0 * 8, 1 * 16, 30 * 8, 1 * 16},
         u"AFS_????.WAV",
-        aprs_dir,
-      // tempnote: used to be USR
+        aprs_dir_user,
         RecordView::FileType::WAV,
         4096,
         4};
