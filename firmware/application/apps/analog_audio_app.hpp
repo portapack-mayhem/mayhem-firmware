@@ -33,6 +33,7 @@
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "tone_key.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
@@ -227,7 +228,7 @@ class AnalogAudioView : public View {
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
         u"AUD",
-        u"/USR/AUDIO",
+        audio_dir_user,
         RecordView::FileType::WAV,
         4096,
         4};
