@@ -29,7 +29,6 @@
 #include <cstring>
 #include <stdio.h>
 
-
 using namespace portapack;
 
 namespace ui {

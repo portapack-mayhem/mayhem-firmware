@@ -31,11 +31,9 @@ extern const std::filesystem::path ais_dir;
 
 extern const std::filesystem::path apps_dir;
 
-
 extern const std::filesystem::path aprs_dir;
 extern const std::filesystem::path aprs_dir_user;
 extern const std::filesystem::path aprs_dir_resources;
-
 
 extern const std::filesystem::path audio_dir;
 extern const std::filesystem::path audio_dir_user;

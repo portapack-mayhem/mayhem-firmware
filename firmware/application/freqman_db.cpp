@@ -40,7 +40,7 @@
 
 namespace fs = std::filesystem;
 
-  // tempnewnote: renamed into file_path file and need test
+// tempnewnote: renamed into file_path file and need test
 const std::filesystem::path freqman_extension{u".TXT"};
 bool current_is_system_item{true};
 

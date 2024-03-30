@@ -54,9 +54,9 @@ const std::filesystem::path captures_dir = u"CAPTURES";
 const std::filesystem::path captures_dir_user = u"USR/CAPTURES";  // used by recon and capture apps to save capture C16 into USR
 const std::filesystem::path captures_dir_resources = u"RES/CAPTURES";
 
-const std::filesystem::path debug_dir = u"DEBUG"; // in root
+const std::filesystem::path debug_dir = u"DEBUG";  // in root
 
-const std::filesystem::path firmware_dir = u"FIRMWARE"; // in root
+const std::filesystem::path firmware_dir = u"FIRMWARE";  // in root
 
 // FREQMAN
 const std::filesystem::path freqman_dir = u"FREQMAN";

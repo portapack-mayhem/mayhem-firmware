@@ -308,7 +308,7 @@ bool FrequencyManagerView::forbid_delete_system_item_helper(NavigationView& nav)
     // this is just a modal, however, it's been forbidden in those handler.
 
     if (current_is_system_item) {
-        nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndo it with file manager.");
+        nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndo it with Notepad app.");
     }
 
     return current_is_system_item;
