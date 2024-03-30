@@ -4,6 +4,7 @@
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
  * Copyright (C) 2023 Mark Thompson
  * Copyright (C) 2024 u-foka
+ * Copyleft (ↄ) 2024 zxkmm with the GPL license
  *
  * This file is part of PortaPack.
  *
@@ -130,6 +131,19 @@ void BtnGridView::add_item(GridItem new_item) {
     if (!blacklisted_app(new_item)) {
         menu_items.push_back(new_item);
         update_items();
+    }
+}
+
+void BtnGridView::insert_item(GridItem new_item, uint8_t position) {
+    if (!blacklisted_app(new_item)) {
+        if (position < menu_items.size()) {
+            auto pos_iter = menu_items.begin() + position;
+            menu_items.insert(pos_iter, new_item);
+            update_items();
+        } else {
+            menu_items.push_back(new_item);
+            update_items();
+        }
     }
 }
 

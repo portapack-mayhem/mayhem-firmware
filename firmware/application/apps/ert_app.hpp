@@ -165,6 +165,9 @@ class ERTAppView : public View {
         {21 * 8, 0, 6 * 8, 4},
     };
 
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
+
     MessageHandlerRegistration message_handler_packet{
         Message::ID::ERTPacket,
         [this](Message* const p) {

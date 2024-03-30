@@ -635,13 +635,17 @@ void SetPersistentMemoryView::focus() {
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
+                  &checkbox_beep_on_packets,
                   &button_save,
                   &button_cancel});
 
     field_tone_mix.set_value(pmem::tone_mix());
 
+    checkbox_beep_on_packets.set_value(pmem::beep_on_packets());
+
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_tone_mix(field_tone_mix.value());
+        pmem::set_beep_on_packets(checkbox_beep_on_packets.value());
         audio::output::update_audio_mute();
         nav.pop();
     };

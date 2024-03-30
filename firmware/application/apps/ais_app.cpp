@@ -20,6 +20,7 @@
  */
 
 #include "ais_app.hpp"
+#include "audio.hpp"
 
 #include "string_format.hpp"
 #include "database.hpp"
@@ -31,6 +32,8 @@
 using namespace portapack;
 
 #include <algorithm>
+
+namespace pmem = portapack::persistent_memory;
 
 namespace ais {
 namespace format {
@@ -190,6 +193,10 @@ void AISLogger::on_packet(const ais::Packet& packet) {
     }
 
     log_file.write_entry(packet.received_at(), entry);
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
 }
 
 void AISRecentEntry::update(const ais::Packet& packet) {
@@ -377,6 +384,7 @@ AISAppView::AISAppView(NavigationView& nav)
         &field_lna,
         &field_vga,
         &rssi,
+        &field_volume,
         &channel,
         &recent_entries_view,
         &recent_entry_detail_view,
@@ -402,9 +410,15 @@ AISAppView::AISAppView(NavigationView& nav)
     if (logger) {
         logger->append(logs_dir / u"AIS.TXT");
     }
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 AISAppView::~AISAppView() {
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
