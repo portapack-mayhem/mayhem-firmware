@@ -413,7 +413,7 @@ ScannerView::ScannerView(
     button_mic_app.on_select = [this](Button&) {
         if (scan_thread)
             scan_thread->stop();
-        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        // MicTX wants Frequency, Modulation and Bandwidth overrides, but that's only stored on the RX model.
         nav_.replace<MicTXView>(receiver_model.settings());
     };
 

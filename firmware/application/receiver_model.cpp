@@ -68,6 +68,7 @@ rf::Frequency ReceiverModel::target_frequency() const {
 
 void ReceiverModel::set_target_frequency(rf::Frequency f) {
     persistent_memory::set_target_frequency(f);
+    settings_.frequency_app_override = f;
     update_tuning_frequency();
 }
 

@@ -508,7 +508,7 @@ ReconView::ReconView(NavigationView& nav)
         auto settings = receiver_model.settings();
         settings.frequency_step = step_mode.selected_index_value();
         if (field_mode.selected_index_value() == SPEC_MODULATION)
-            nav_.replace<CaptureAppView>();
+            nav_.replace<CaptureAppView>(settings);
         else
             nav_.replace<AnalogAudioView>(settings);
     };
@@ -539,7 +539,7 @@ ReconView::ReconView(NavigationView& nav)
             }
         }
 
-        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        // MicTX wants Frequency, Modulation and Bandwidth overrides, but that's only stored on the RX model.
         nav_.replace<MicTXView>(receiver_model.settings());
     };
 
