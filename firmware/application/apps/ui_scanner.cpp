@@ -27,6 +27,7 @@
 #include "optional.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;

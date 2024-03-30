@@ -609,7 +609,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PNRR nrfrx)
 
-
 ### Jammer
 
 set(MODE_CPPSRC
@@ -645,6 +644,12 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTST test)
 
+### Audio Beep
+
+set(MODE_CPPSRC
+	proc_audio_beep.cpp
+)
+DeclareTargets(PABP audio_beep)
 
 ### HackRF "factory" firmware
 

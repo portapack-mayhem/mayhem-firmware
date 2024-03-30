@@ -841,6 +841,7 @@ class MAX2837 : public MAX283x {
 
    private:
     spi::arbiter::Target& _target;
+    Mode _mode{Mode::Standby};
 
     RegisterMap _map{initial_register_values};
     DirtyRegisters<Register, reg_count> _dirty{};
@@ -851,6 +852,7 @@ class MAX2837 : public MAX283x {
     reg_t read(const Register reg);
 
     void flush();
+    Mode get_mode();
 };
 
 }  // namespace max2837

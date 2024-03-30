@@ -1,0 +1,80 @@
+f=476425000,m=NFM,bw=8k5,d=CH 1 Repeater
+f=476450000,m=NFM,bw=8k5,d=CH 2 Repeater
+f=476475000,m=NFM,bw=8k5,d=CH 3 Repeater
+f=476500000,m=NFM,bw=8k5,d=CH 4 Repeater
+f=476525000,m=NFM,bw=8k5,d=CH 5 Emergency Repeater
+f=476550000,m=NFM,bw=8k5,d=CH 6 Repeater
+f=476575000,m=NFM,bw=8k5,d=CH 7 Repeater
+f=476600000,m=NFM,bw=8k5,d=CH 8 Repeater
+f=476625000,m=NFM,bw=8k5,d=CH 9 Gen Chat
+f=476650000,m=NFM,bw=8k5,d=CH 10 Recreational
+f=476675000,m=NFM,bw=8k5,d=CH 11 Call Channel
+f=476700000,m=NFM,bw=8k5,d=CH 12 Gen Chat
+f=476725000,m=NFM,bw=8k5,d=CH 13 Gen Chat
+f=476750000,m=NFM,bw=8k5,d=CH 14 Gen Chat
+f=476775000,m=NFM,bw=8k5,d=CH 15 Gen Chat
+f=476800000,m=NFM,bw=8k5,d=CH 16 Gen Chat
+f=476825000,m=NFM,bw=8k5,d=CH 17 Gen Chat
+f=476850000,m=NFM,bw=8k5,d=CH 18 Convoys
+f=476875000,m=NFM,bw=8k5,d=CH 19 Gen Chat
+f=476900000,m=NFM,bw=8k5,d=CH 20 Gen Chat
+f=476925000,m=NFM,bw=8k5,d=CH 21 Gen Chat
+f=476950000,m=NFM,bw=8k5,d=CH 22 Telemetry
+f=476975000,m=NFM,bw=8k5,d=CH 23 Telemetry
+f=477000000,m=NFM,bw=8k5,d=CH 24 Gen Chat
+f=477025000,m=NFM,bw=8k5,d=CH 25 Gen Chat
+f=477050000,m=NFM,bw=8k5,d=CH 26 Gen Chat
+f=477075000,m=NFM,bw=8k5,d=CH 27 Gen Chat
+f=477100000,m=NFM,bw=8k5,d=CH 28 Gen Chat
+f=477125000,m=NFM,bw=8k5,d=CH 29 Road Safety
+f=477150000,m=NFM,bw=8k5,d=CH 30 Broadcasts
+f=477175000,m=NFM,bw=8k5,d=CH 31 Repeater
+f=477200000,m=NFM,bw=8k5,d=CH 32 Repeater
+f=477225000,m=NFM,bw=8k5,d=CH 33 Repeater
+f=477250000,m=NFM,bw=8k5,d=CH 34 Repeater
+f=477275000,m=NFM,bw=8k5,d=CH 35 Emergency Repeater
+f=477300000,m=NFM,bw=8k5,d=CH 36 Repeater
+f=477325000,m=NFM,bw=8k5,d=CH 37 Repeater
+f=477350000,m=NFM,bw=8k5,d=CH 38 Repeater
+f=477375000,m=NFM,bw=8k5,d=CH 39 Gen Chat
+f=477400000,m=NFM,bw=8k5,d=CH 40 Road Safety
+f=476437500,m=NFM,bw=8k5,d=CH 41 Repeater
+f=476462500,m=NFM,bw=8k5,d=CH 42 Repeater
+f=476487500,m=NFM,bw=8k5,d=CH 43 Repeater
+f=476512500,m=NFM,bw=8k5,d=CH 44 Repeater
+f=476537500,m=NFM,bw=8k5,d=CH 45 Repeater
+f=476562500,m=NFM,bw=8k5,d=CH 46 Repeater
+f=476587500,m=NFM,bw=8k5,d=CH 47 Repeater
+f=476612500,m=NFM,bw=8k5,d=CH 48 Repeater
+f=476637500,m=NFM,bw=8k5,d=CH 49 Gen Chat
+f=476662500,m=NFM,bw=8k5,d=CH 50 Gen Chat
+f=476687500,m=NFM,bw=8k5,d=CH 51 Gen Chat
+f=476712500,m=NFM,bw=8k5,d=CH 52 Gen Chat
+f=476737500,m=NFM,bw=8k5,d=CH 53 Gen Chat
+f=476762500,m=NFM,bw=8k5,d=CH 54 Gen Chat
+f=476787500,m=NFM,bw=8k5,d=CH 55 Gen Chat
+f=476812500,m=NFM,bw=8k5,d=CH 56 Gen Chat
+f=476837500,m=NFM,bw=8k5,d=CH 57 Gen Chat
+f=476862500,m=NFM,bw=8k5,d=CH 58 Gen Chat
+f=476887500,m=NFM,bw=8k5,d=CH 59 Gen Chat
+f=476912500,m=NFM,bw=8k5,d=CH 60 Gen Chat
+f=476937500,m=NFM,bw=8k5,d=CH 61 Reserved
+f=476962500,m=NFM,bw=8k5,d=CH 62 Reserved
+f=476987500,m=NFM,bw=8k5,d=CH 63 Reserved
+f=477012500,m=NFM,bw=8k5,d=CH 64 Gen Chat
+f=477037500,m=NFM,bw=8k5,d=CH 65 Gen Chat
+f=477062500,m=NFM,bw=8k5,d=CH 66 Gen Chat
+f=477087500,m=NFM,bw=8k5,d=CH 67 Gen Chat
+f=477112500,m=NFM,bw=8k5,d=CH 68 Gen Chat
+f=477137500,m=NFM,bw=8k5,d=CH 69 Gen Chat
+f=477162500,m=NFM,bw=8k5,d=CH 70 Gen Chat
+f=477187500,m=NFM,bw=8k5,d=CH 71 Repeater
+f=477212500,m=NFM,bw=8k5,d=CH 72 Repeater
+f=477237500,m=NFM,bw=8k5,d=CH 73 Repeater
+f=477262500,m=NFM,bw=8k5,d=CH 74 Repeater
+f=477287500,m=NFM,bw=8k5,d=CH 75 Repeater
+f=477312500,m=NFM,bw=8k5,d=CH 76 Repeater
+f=477337500,m=NFM,bw=8k5,d=CH 77 Repeater
+f=477362500,m=NFM,bw=8k5,d=CH 78 Repeater
+f=477387500,m=NFM,bw=8k5,d=CH 79 Gen Chat
+f=477412500,m=NFM,bw=8k5,d=CH 80 Gen Chat

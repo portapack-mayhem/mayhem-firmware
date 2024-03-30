@@ -106,6 +106,7 @@
 #include "file.hpp"
 #include "file_reader.hpp"
 #include "png_writer.hpp"
+#include "file_path.hpp"
 
 using portapack::receiver_model;
 using portapack::transmitter_model;
@@ -478,8 +479,10 @@ void SystemStatusView::on_bias_tee() {
 }
 
 void SystemStatusView::on_camera() {
-    ensure_directory("/USR/SCREENSHOTS");  // no need ensure fake dir here since screenshots are only taken for users
-    auto path = next_filename_matching_pattern(u"/USR/SCREENSHOTS/SCR_????.PNG");
+    ensure_directory(screenshots_dir);
+  // tempnote: used to be USR and should be fake
+    auto path = next_filename_matching_pattern(screenshots_dir / u"SCR_????.PNG");
+  // tempnote: used to be USR
 
     if (path.empty())
         return;
@@ -540,7 +543,7 @@ void SystemStatusView::rtc_battery_workaround() {
                 }
             }
         } else {
-            ensure_directory(SETTINGS_DIR);
+            ensure_directory(settings_dir);
             make_new_file(DATE_FILEFLAG);
 
             year = 1980;
@@ -745,25 +748,28 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     };
 }
 
+// clang-format off
 void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.add_item({"Notice",
-                       Color::red(),
-                       &bitmap_icon_debug,
-                       [&nav]() {
-                           nav.display_modal(
-                               "Notice",
-                               "External app directory empty;\n"
-                               "see Mayhem wiki and copy apps\n"
-                               "to APPS folder of SD card.");
-                       }});
+        grid.insert_item({"Notice!",
+                          Color::red(),
+                          nullptr,
+                          [&nav]() {
+                              nav.display_modal(
+                                  "Notice",
+                                  "External app directory empty;\n"
+                                  "see Mayhem wiki and copy apps\n"
+                                  "to " + apps_dir.string() + " folder of SD card.");
+                          }},
+                         pmem::show_gui_return_icon() ? 1 : 0);
     } else {
         for (auto const& gridItem : externalItems) {
             grid.add_item(gridItem);
         }
     }
 }
+// clang-format on
 
 /* ReceiversMenuView *****************************************************/
 

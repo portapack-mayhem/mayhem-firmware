@@ -150,6 +150,8 @@ void MAX2837::init() {
 }
 
 void MAX2837::set_tx_LO_iq_phase_calibration(const size_t v) {
+    Mode saved_mode = get_mode();
+
     /* TX IQ phase deg CAL adj  (+4 ...-4)  in 32 steps (5 bits), 00000 = +4deg (Q lags I by 94degs, default), 01111 = +0deg, 11111 = -4deg (Q lags I by 86degs) */
 
     // TX calibration , Logic pins , ENABLE, RXENABLE, TXENABLE = 1,0,1 (5dec), and  Reg address 16, D1 (CAL mode 1):DO (CHIP ENABLE 1)
@@ -172,7 +174,7 @@ void MAX2837::set_tx_LO_iq_phase_calibration(const size_t v) {
     _map.r.spi_en.EN_SPI = 1;   // Register Settings reg address 16,  DO (1 = Chip select enable )
     flush_one(Register::SPI_EN);
 
-    set_mode(Mode::Standby);  // Back 3  logic pins CALIBRATION mode -> Standby.
+    set_mode(saved_mode);  // restore original mode
 }
 
 enum class Mask {  // There are class Mask ,and class mode with same names, but they are not same.
@@ -205,10 +207,16 @@ Mask mode_mask(const Mode mode) {  // based on enum Mode cases, we set up the co
 }
 
 void MAX2837::set_mode(const Mode mode) {  // We set up the 3 Logic Pins ENABLE, RXENABLE, TXENABLE accordingly to the max2837 mode case,  that we want to set up .
+    _mode = mode;
+
     Mask mask = mode_mask(mode);
     gpio_max283x_enable.write(toUType(mask) & toUType(Mask::Enable));
     gpio_max2837_rxenable.write(toUType(mask) & toUType(Mask::RxEnable));
     gpio_max2837_txenable.write(toUType(mask) & toUType(Mask::TxEnable));
+}
+
+Mode MAX2837::get_mode() {
+    return _mode;
 }
 
 void MAX2837::flush() {

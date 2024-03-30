@@ -27,6 +27,7 @@
 #include "portapack_dma.hpp"
 
 #include "gpdma.hpp"
+#include "audio_dma.hpp"
 
 static void init() {
     // Audio DMA initialization was moved to baseband proc's that actually use DMA audio, to save memory.
@@ -64,6 +65,8 @@ void __late_init(void) {
 
 void _default_exit(void) {
     // TODO: Is this complete?
+
+    audio::dma::disable();
 
     nvicDisableVector(DMA_IRQn);
 

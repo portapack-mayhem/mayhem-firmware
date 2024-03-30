@@ -30,6 +30,8 @@
 using namespace portapack;
 using namespace ui;
 
+namespace pmem = portapack::persistent_memory;
+
 namespace ui {
 
 void WeatherRecentEntryDetailView::update_data() {
@@ -91,6 +93,7 @@ WeatherView::WeatherView(NavigationView& nav)
                   &field_rf_amp,
                   &field_lna,
                   &field_vga,
+                  &field_volume,
                   &field_frequency,
                   &options_temperature,
                   &button_clear_list,
@@ -120,6 +123,11 @@ WeatherView::WeatherView(NavigationView& nav)
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         on_tick_second();
     };
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 void WeatherView::on_tick_second() {
@@ -142,10 +150,15 @@ void WeatherView::on_data(const WeatherDataMessage* data) {
         truncate_entries(recent, 64);
     }
     recent_entries_view.set_dirty();
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
 }
 
 WeatherView::~WeatherView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }

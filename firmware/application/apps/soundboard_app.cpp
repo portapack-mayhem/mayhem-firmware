@@ -28,6 +28,7 @@
 #include "tonesets.hpp"
 #include "ui_tone_key.hpp"
 #include "audio.hpp"
+#include "file_path.hpp"
 
 using namespace tonekey;
 using namespace portapack;
@@ -169,7 +170,7 @@ void SoundBoardView::refresh_list() {
     file_list_index[0] = std::filesystem::path(u"/RES/WAV");
     file_list_index[1] = std::filesystem::path(u"/USR/WAV");
     uint32_t count = 0;
-
+// tempnote: change later
     for (const auto& now_path : file_list_index) {
         for (const auto& entry : std::filesystem::directory_iterator(now_path, u"*")) {
             if (std::filesystem::is_regular_file(entry.status())) {

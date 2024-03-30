@@ -582,7 +582,10 @@ void FileManagerView::on_paste() {
     fs::filesystem_error result;
 
     if (clipboard_mode == ClipboardMode::Cut)
-        result = rename_file(clipboard_path, current_path / new_name);
+        if ((current_path / clipboard_path.filename()) == clipboard_path)
+            result = FR_OK;  // Skip paste to avoid renaming if path is unchanged
+        else
+            result = rename_file(clipboard_path, current_path / new_name);
 
     else if (clipboard_mode == ClipboardMode::Copy)
         result = copy_file(clipboard_path, current_path / new_name);
@@ -708,7 +711,7 @@ FileManagerView::FileManagerView(
     };
 
     button_cut.on_select = [this]() {
-        if (selected_is_valid() && !get_selected_entry().is_directory) {
+        if (selected_is_valid()) {
             clipboard_path = get_selected_full_path();
             clipboard_mode = ClipboardMode::Cut;
         } else
@@ -727,7 +730,7 @@ FileManagerView::FileManagerView(
         if (clipboard_mode != ClipboardMode::None)
             on_paste();
         else
-            nav_.display_modal("Paste", "Cut or copy a file first.");
+            nav_.display_modal("Paste", "    Cut or copy a file,\n  or cut a folder, first.");
     };
 
     button_new_dir.on_select = [this]() {
@@ -747,7 +750,7 @@ FileManagerView::FileManagerView(
     };
 
     button_rename_timestamp.on_select = [this]() {
-        if (selected_is_valid() && !get_selected_entry().is_directory) {
+        if (selected_is_valid()) {
             on_rename(::truncate(to_string_timestamp(rtc_time::now()), 8));
         } else
             nav_.display_modal("Timestamp Rename", "Can't rename that.");

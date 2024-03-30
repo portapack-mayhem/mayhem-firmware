@@ -23,10 +23,9 @@
 #include "ui_flash_utility.hpp"
 #include "ui_styles.hpp"
 #include "portapack_shared_memory.hpp"
+#include "file_path.hpp"
 
 namespace ui {
-
-static const std::filesystem::path firmware_path = u"/FIRMWARE";
 
 // Firmware image validation
 static const char* hackrf_magic = "HACKRFFW";
@@ -84,7 +83,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
-    ensure_directory(firmware_path);
+    ensure_directory(firmware_dir);
 
     auto add_firmware_items = [&](
                                   const std::filesystem::path& folder_path,
@@ -103,8 +102,8 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
         }
     };
 
-    add_firmware_items(firmware_path, u"*.bin", ui::Color::red());
-    add_firmware_items(firmware_path, u"*.tar", ui::Color::purple());
+    add_firmware_items(firmware_dir, u"*.bin", ui::Color::red());
+    add_firmware_items(firmware_dir, u"*.tar", ui::Color::purple());
 
     // add_firmware_items(user_firmware_folder,u"*.bin", ui::Color::purple());
 }
@@ -116,7 +115,8 @@ void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path
         YESNO,
         [this, path](bool choice) {
             if (choice) {
-                std::u16string full_path = std::u16string(u"/FIRMWARE/") + path;
+                std::filesystem::path::string_type full_path = firmware_dir.native() + u"/" + path;
+              // tempnote: used to be FIRMWARE
                 this->flash_firmware(full_path);
             }
         });

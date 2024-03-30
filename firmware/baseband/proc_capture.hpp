@@ -30,6 +30,7 @@
 #include "dsp_decimate.hpp"
 #include "spectrum_collector.hpp"
 #include "stream_input.hpp"
+#include "message.hpp"
 
 #include <array>
 #include <memory>
@@ -92,6 +93,9 @@ class CaptureProcessor : public BasebandProcessor {
     void on_message(const Message* const message) override;
 
    private:
+    void on_signal_message(const RequestSignalMessage& message);
+    void on_beep_message(const AudioBeepMessage& message);
+
     size_t baseband_fs = 3072000;  // aka: sample_rate
     static constexpr auto spectrum_rate_hz = 50.0f;
 

@@ -31,6 +31,7 @@
 #include "freqman_db.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "file_path.hpp"
 
 using namespace std;
 using namespace portapack;

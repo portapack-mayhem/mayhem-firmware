@@ -523,7 +523,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
-    Color bg_color_{Color::light_grey()};
+    Color bg_color_{Color::grey()};
 
    private:
     std::string text_;

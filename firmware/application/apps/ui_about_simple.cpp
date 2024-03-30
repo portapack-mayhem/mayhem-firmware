@@ -13,7 +13,7 @@ AboutView::AboutView(NavigationView& nav) {
 }
 
 void AboutView::update() {
-    if (++timer > 200) {
+    if (++timer > 400) {
         timer = 0;
 
         switch (++frame) {
@@ -23,7 +23,7 @@ void AboutView::update() {
                 console.writeln(STR_COLOR_DARK_YELLOW "Mayhem:");
                 console.writeln("eried,euquiq,gregoryfenton");
                 console.writeln("johnelder,jwetzell,nnemanjan00");
-                console.writeln("N0vaPixel,klockee,GullCode");
+                console.writeln("N0vaPixel,klockee,gullradriel");
                 console.writeln("jamesshao8,ITAxReal,rascafr");
                 console.writeln("mcules,dqs105,strijar");
                 console.writeln("zhang00963,RedFox-Fr,aldude999");

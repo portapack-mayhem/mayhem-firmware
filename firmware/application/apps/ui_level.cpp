@@ -35,6 +35,30 @@ using portapack::memory::map::backup_ram;
 
 namespace ui {
 
+// Function to map the value from one range to another
+int32_t LevelView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
+    return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+}
+
+void LevelView::m4_manage_stat_update() {
+    if (audio_mode) {
+        if (radio_mode == WFM_MODULATION || radio_mode == SPEC_MODULATION) {
+            shared_memory.request_m4_performance_counter = 1;
+        } else {
+            shared_memory.request_m4_performance_counter = 2;
+        }
+        if (radio_mode == SPEC_MODULATION) {
+            beep = true;
+        }
+    } else {
+        shared_memory.request_m4_performance_counter = 2;
+        if (radio_mode == SPEC_MODULATION) {
+            beep = false;
+            baseband::request_beep_stop();
+        }
+    }
+}
+
 void LevelView::focus() {
     button_frequency.focus();
 }
@@ -62,18 +86,15 @@ LevelView::LevelView(NavigationView& nav)
                   &freq_stats_rssi,
                   &freq_stats_db,
                   &freq_stats_rx,
-                  &audio_mode,
+                  &text_beep_squelch,
+                  &field_beep_squelch,
+                  &field_audio_mode,
                   &peak_mode,
                   &rssi,
                   &rssi_graph});
 
     // activate vertical bar mode
     rssi.set_vertical_rssi(true);
-    // activate counters for RxSat
-    shared_memory.request_m4_performance_counter = 2;
-
-    change_mode(NFM_MODULATION);              // Start on AM
-    field_mode.set_by_value(NFM_MODULATION);  // Reflect the mode into the manual selector
 
     freq_ = receiver_model.target_frequency();
     button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
@@ -85,6 +106,11 @@ LevelView::LevelView(NavigationView& nav)
             receiver_model.set_target_frequency(f);  // Retune to actual freq
             button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
         };
+    };
+
+    field_beep_squelch.set_value(beep_squelch);
+    field_beep_squelch.on_change = [this](int32_t v) {
+        beep_squelch = v;
     };
 
     button_frequency.on_change = [this]() {
@@ -102,17 +128,14 @@ LevelView::LevelView(NavigationView& nav)
         button_frequency.set_text("<" + to_string_short_freq(freq_) + " MHz>");
     };
 
+    freqman_set_modulation_option(field_mode);
     field_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
-            receiver_model.disable();
-            baseband::shutdown();
             change_mode(v);
-            if (audio_mode.selected_index() != 0) {
-                audio::output::start();
-            }
-            receiver_model.enable();
         }
     };
+    field_mode.set_by_value(radio_mode);  // Reflect the mode into the manual selector
+    field_bw.set_selected_index(radio_bw);
 
     rssi_resolution.on_change = [this](size_t, OptionsField::value_t v) {
         if (v != -1) {
@@ -120,15 +143,18 @@ LevelView::LevelView(NavigationView& nav)
         }
     };
 
-    audio_mode.on_change = [this](size_t, OptionsField::value_t v) {
+    field_audio_mode.on_change = [this](size_t, OptionsField::value_t v) {
+        audio_mode = v;
         if (v == 0) {
             audio::output::stop();
         } else if (v == 1) {
+            audio::set_rate(audio_sampling_rate);
             audio::output::start();
             receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
-        } else {
         }
+        m4_manage_stat_update();  // rx_sat hack
     };
+    field_audio_mode.set_selected_index(audio_mode);
 
     peak_mode.on_change = [this](size_t, OptionsField::value_t v) {
         if (v == 0) {
@@ -142,7 +168,6 @@ LevelView::LevelView(NavigationView& nav)
     peak_mode.set_selected_index(2);
     rssi_resolution.set_selected_index(1);
     // FILL STEP OPTIONS
-    freqman_set_modulation_option(field_mode);
     freqman_set_step_option_short(step_mode);
     freq_stats_rssi.set_style(&Styles::white);
     freq_stats_db.set_style(&Styles::white);
@@ -168,13 +193,28 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
         last_min_rssi = rssi_graph.get_graph_min();
         last_avg_rssi = rssi_graph.get_graph_avg();
         last_max_rssi = rssi_graph.get_graph_max();
-        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi) + ", dt: " + to_string_dec_uint(rssi_graph.get_graph_delta()));
+        freq_stats_rssi.set("RSSI: " + to_string_dec_uint(last_min_rssi) + "/" + to_string_dec_uint(last_avg_rssi) + "/" + to_string_dec_uint(last_max_rssi));
     }
+
+    if (beep && statistics.max_db > beep_squelch) {
+        baseband::request_audio_beep(map(statistics.max_db, -100, 20, 400, 2600), 24000, 150);
+    }
+
     // refresh sat
+    if (radio_mode == SPEC_MODULATION || (radio_mode == WFM_MODULATION && audio_mode == 1)) {
+        Style style_freq_stats_rx{
+            .font = font::fixed_8x16,
+            .background = {55, 55, 55},
+            .foreground = {155, 155, 155},
+        };
+        freq_stats_rx.set_style(&style_freq_stats_rx);
+        freq_stats_rx.set("RxSat off");
+        return;
+    }
     uint8_t rx_sat = ((uint32_t)shared_memory.m4_performance_counter) * 100 / 127;
     if (last_rx_sat != rx_sat) {
         last_rx_sat = rx_sat;
-        freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
+
         uint8_t br = 0;
         uint8_t bg = 0;
         uint8_t bb = 0;
@@ -191,6 +231,7 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
             .foreground = {255, 255, 255},
         };
         freq_stats_rx.set_style(&style_freq_stats_rx);
+        freq_stats_rx.set("RxSat: " + to_string_dec_uint(rx_sat) + "%");
     }
 
 } /* on_statistic_updates */
@@ -198,44 +239,53 @@ void LevelView::on_statistics_update(const ChannelStatistics& statistics) {
 size_t LevelView::change_mode(freqman_index_t new_mod) {
     field_bw.on_change = [this](size_t n, OptionsField::value_t) { (void)n; };
 
+    radio_mode = new_mod;
+
+    audio::output::stop();
+    receiver_model.disable();
+    baseband::shutdown();
+
     switch (new_mod) {
         case AM_MODULATION:
+            audio_sampling_rate = audio::Rate::Hz_12000;
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_am_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::AMAudio);
-            receiver_model.set_am_configuration(field_bw.selected_index_value());
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_am_configuration(n); };
             // bw DSB (0) default
             field_bw.set_by_value(0);
-            text_ctcss.set("             ");
+            receiver_model.set_am_configuration(0);
+            field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_am_configuration(n); };
             break;
         case NFM_MODULATION:
+            audio_sampling_rate = audio::Rate::Hz_24000;
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_nfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::NarrowbandFMAudio);
             receiver_model.set_nbfm_configuration(field_bw.selected_index_value());
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_nbfm_configuration(n); };
             // bw 16k (2) default
             field_bw.set_by_value(2);
+            field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_nbfm_configuration(n); };
             break;
         case WFM_MODULATION:
+            audio_sampling_rate = audio::Rate::Hz_48000;
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_wfm_audio);
             receiver_model.set_modulation(ReceiverModel::Mode::WidebandFMAudio);
             receiver_model.set_wfm_configuration(field_bw.selected_index_value());
-            field_bw.on_change = [this](size_t, OptionsField::value_t n) { receiver_model.set_wfm_configuration(n); };
-            // bw 200k (0) only/default
+            // bw 200k (0) default
             field_bw.set_by_value(0);
-            text_ctcss.set("             ");
+            field_bw.on_change = [this](size_t index, OptionsField::value_t n) { radio_bw = index ; receiver_model.set_wfm_configuration(n); };
             break;
         case SPEC_MODULATION:
+            audio_sampling_rate = audio::Rate::Hz_24000;
             freqman_set_bandwidth_option(new_mod, field_bw);
             baseband::run_image(portapack::spi_flash::image_tag_capture);
             receiver_model.set_modulation(ReceiverModel::Mode::Capture);
-            field_bw.on_change = [this](size_t, OptionsField::value_t sampling_rate) {
+            // 12k5 (0) default
+            field_bw.on_change = [this](size_t index, OptionsField::value_t sampling_rate) {
+                radio_bw = index;
                 // Baseband needs to know the desired sampling and oversampling rates.
                 baseband::set_sample_rate(sampling_rate, get_oversample_rate(sampling_rate));
-
                 // The radio needs to know the effective sampling rate.
                 auto actual_sampling_rate = get_actual_sample_rate(sampling_rate);
                 receiver_model.set_sampling_rate(actual_sampling_rate);
@@ -250,6 +300,18 @@ size_t LevelView::change_mode(freqman_index_t new_mod) {
         receiver_model.set_sampling_rate(3072000);
         receiver_model.set_baseband_bandwidth(1750000);
     }
+    if (new_mod != NFM_MODULATION) {
+        text_ctcss.set("             ");
+    }
+
+    m4_manage_stat_update();  // rx_sat hack
+
+    if (audio_mode) {
+        audio::set_rate(audio_sampling_rate);
+        audio::output::start();
+        receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
+    }
+    receiver_model.enable();
 
     return step_mode.selected_index();
 }

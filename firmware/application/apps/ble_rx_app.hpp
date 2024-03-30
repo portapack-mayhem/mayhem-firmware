@@ -36,12 +36,13 @@
 #include "log_file.hpp"
 #include "utility.hpp"
 #include "usb_serial_thread.hpp"
+#include "file_path.hpp"
 
 #include "recent_entries.hpp"
 
 class BLELogger {
    public:
-    Optional<File::Error> append(const std::string& filename) {
+    Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
 
@@ -133,7 +134,8 @@ class BleRecentEntryDetailView : public View {
     void on_save_file(const std::string value, BLETxPacket packetToSave);
     bool saveFile(const std::filesystem::path& path, BLETxPacket packetToSave);
     std::string packetFileBuffer{};
-    std::filesystem::path packet_save_path{u"/USR/BLERX/Lists/????.csv"};
+    std::filesystem::path packet_save_path{blerx_dir / u"Lists/????.csv"};
+  // tempnote: used to be USR
 
     static constexpr uint8_t total_data_lines{5};
 
@@ -250,9 +252,10 @@ class BLERxView : public View {
     uint64_t total_count = 0;
     std::vector<std::string> searchList{};
 
-    std::filesystem::path find_packet_path{u"USR/BLERX/Find/????.TXT"};
-    std::filesystem::path log_packets_path{u"USR/BLERX/Logs/????.TXT"};
-    std::filesystem::path packet_save_path{u"USR/BLERX/Lists/????.csv"};
+    std::filesystem::path find_packet_path{blerx_dir / u"Find/????.TXT"};
+    std::filesystem::path log_packets_path{blerx_dir / u"Logs/????.TXT"};
+    std::filesystem::path packet_save_path{blerx_dir / u"Lists/????.csv"};
+  // tempnote: used to be USR
 
     static constexpr auto header_height = 4 * 16;
     static constexpr auto switch_button_height = 3 * 16;

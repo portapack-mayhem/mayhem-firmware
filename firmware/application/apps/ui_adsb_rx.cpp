@@ -31,8 +31,12 @@
 #include "portapack_persistent_memory.hpp"
 #include "rtc_time.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
+#include "audio.hpp"
 
 using namespace portapack;
+
+namespace pmem = portapack::persistent_memory;
 
 namespace ui {
 
@@ -372,7 +376,8 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
          &rssi,
          &recent_entries_view,
          &status_frame,
-         &status_good_frame});
+         &status_good_frame,
+         &field_volume});
 
     recent_entries_view.set_parent_rect({0, 16, 240, 272});
     recent_entries_view.on_select = [this, &nav](const AircraftRecentEntry& entry) {
@@ -390,14 +395,20 @@ ADSBRxView::ADSBRxView(NavigationView& nav) {
     };
 
     logger = std::make_unique<ADSBLogger>();
-    logger->append(LOG_ROOT_DIR "/ADSB.TXT");
+    logger->append(logs_dir / u"ADSB.TXT");
 
     receiver_model.enable();
     baseband::set_adsb();
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 ADSBRxView::~ADSBRxView() {
     rtc_time::signal_tick_second -= signal_token_tick_second;
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -472,6 +483,10 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
     }
 
     logger->log(log_entry);
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
 }
 
 void ADSBRxView::on_tick_second() {

@@ -34,6 +34,7 @@ using namespace portapack;
 #include "complex.hpp"
 #include "ui_styles.hpp"
 #include "ui_font_fixed_5x8.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
@@ -447,7 +448,8 @@ void GeoMap::move(const float lon, const float lat) {
 }
 
 bool GeoMap::init() {
-    auto result = map_file.open("/RES/ADSB/world_map.bin");
+    auto result = map_file.open(adsb_dir / u"world_map.bin");
+  // tempnote: used to be RES
     map_opened = !result.is_valid();
 
     if (map_opened) {
@@ -613,7 +615,8 @@ void GeoMapView::focus() {
     geopos.focus();
 
     if (!geomap.map_file_opened())
-        nav_.display_modal("No map", "No world_map.bin file in\neither /RES/ADSB/ or\n /USR/ADSB directory", ABORT);
+        nav_.display_modal("No map", "No world_map.bin file in\n/" + adsb_dir.string() + "/ directory", ABORT);
+  // tempnote: should say RES
 }
 
 void GeoMapView::update_my_position(float lat, float lon, int32_t altitude) {

@@ -130,9 +130,9 @@ void MicTXView::set_tx(bool enable) {
         portapack::pin_i2s0_rx_sda.mode(3);  // This is already done in audio::init but gets changed by the CPLD overlay reprogramming
     } else {
         if (transmitting && rogerbeep_enabled) {
-            baseband::request_beep();  // Transmit the roger beep
-            transmitting = false;      // And flag the end of the transmission so ...
-        } else {                       // (if roger beep was enabled, this will be executed after the beep ends transmitting.
+            baseband::request_roger_beep();  // Transmit the roger beep
+            transmitting = false;            // Flag the end of the transmission (transmitter will be disabled after the beep)
+        } else {
             transmitting = false;
             configure_baseband();
             transmitter_model.disable();

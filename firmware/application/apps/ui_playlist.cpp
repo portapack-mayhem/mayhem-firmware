@@ -36,6 +36,7 @@
 #include "string_format.hpp"
 #include "ui_fileman.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <unistd.h>
 #include <fstream>
@@ -130,7 +131,8 @@ void PlaylistView::open_file(bool prompt_save) {
     }
 
     auto open_view = nav_.push<FileLoadView>(".PPL");
-    open_view->push_fake_dir(u"/PLAYLIST");
+    open_view->push_dir(playlist_dir);
+  // tempnote: should be USR and should be fake
     open_view->on_changed = [this](fs::path new_file_path) {
         on_file_changed(new_file_path);
     };
@@ -169,7 +171,8 @@ void PlaylistView::save_file(bool show_dialogs) {
 
 void PlaylistView::add_entry(fs::path&& path) {
     if (playlist_path_.empty()) {
-        playlist_path_ = next_filename_matching_pattern(u"/USR/PLAYLIST/PLAY_????.PPL");
+        playlist_path_ = next_filename_matching_pattern(playlist_dir / u"PLAY_????.PPL");
+      // tempnote: used to be USR
 
         // Hack around focus getting called by ctor before parent is set.
         if (parent())
@@ -387,7 +390,8 @@ PlaylistView::PlaylistView(
         &waterfall,
     });
 
-    ensure_fake_directories(u"PLAYLIST");
+    ensure_directory(playlist_dir);
+      // tempnote: should be ??
     waterfall.show_audio_spectrum_view(false);
 
     field_frequency.set_value(transmitter_model.target_frequency());
@@ -410,7 +414,8 @@ PlaylistView::PlaylistView(
         if (is_active())
             return;
         auto open_view = nav_.push<FileLoadView>(".C*");
-        open_view->push_fake_dir(u"/CAPTURES");
+        open_view->push_dir(captures_dir);
+      // tempnote: should be ?? and should be fake
         open_view->on_changed = [this](fs::path path) {
             add_entry(std::move(path));
         };

@@ -25,9 +25,11 @@
 #include <cstdint>
 #include <cstddef>
 #include <array>
+#include <cstring>
 
 #include "hal.h"
 #include "gpdma.hpp"
+#include "tone_gen.hpp"
 
 using namespace lpc43xx;
 
@@ -35,6 +37,8 @@ using namespace lpc43xx;
 
 namespace audio {
 namespace dma {
+
+ToneGen tone_gen{};
 
 constexpr uint32_t gpdma_ahb_master_peripheral = 1;
 constexpr uint32_t gpdma_ahb_master_memory = 0;
@@ -145,9 +149,14 @@ static volatile const gpdma::channel::LLI* tx_next_lli = nullptr;
 static volatile const gpdma::channel::LLI* rx_next_lli = nullptr;
 
 static bool single_tx_buffer = false;
+static uint32_t beep_duration_downcounter = 0;
 
 static void tx_transfer_complete() {
     tx_next_lli = gpdma_channel_i2s0_tx.next_lli();
+
+    if (beep_duration_downcounter != 0)
+        if (--beep_duration_downcounter == 0)
+            beep_stop();
 }
 
 static void tx_error() {
@@ -227,6 +236,44 @@ void shrink_tx_buffer(bool shrink) {
         lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
     else
         lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[1]);
+}
+
+void beep_start(uint32_t freq, uint32_t sample_rate, uint32_t beep_duration_ms) {
+    // Prevent divide-by-0
+    if (freq == 0 || sample_rate == 0)
+        return;
+
+    // Fill entire buffer with sine waves
+    tone_gen.configure_beep(freq, sample_rate);
+    for (size_t i = 0; i < buffer_samples; i++)
+        buffer_tx[i].left = buffer_tx[i].right = tone_gen.process_beep();
+
+    // Try to adjust DMA transfer count to align with full sine waves for a better tone
+    float samples_per_sine_wave = float(sample_rate) / freq;
+    uint32_t sine_waves_per_buffer = buffer_samples / samples_per_sine_wave;
+    size_t sample_count = (sine_waves_per_buffer == 0) ? buffer_samples : sine_waves_per_buffer * samples_per_sine_wave + 0.5;
+
+    // Use single larger transfer buffer with sample count determined above
+    lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[0]);
+    lli_tx_loop[0].control = control_tx(sample_count * sizeof(sample_t));
+
+    // Convert duration ms to number of buffers to send before stopping
+    // NB: beep_duration_ms==0 means beep continuously until stopped
+    uint32_t beep_interrupt_count = beep_duration_ms * sample_rate / (1000 * sample_count);
+    if ((beep_duration_ms != 0) && (beep_interrupt_count == 0))
+        beep_interrupt_count = 1;
+    beep_duration_downcounter = beep_interrupt_count;
+}
+
+void beep_stop() {
+    // Clear audio DMA buffer
+    memset(&buffer_tx, 0, buffer_bytes);
+
+    // Restore DMA linked list to use multiple smaller buffers
+    lli_tx_loop[0].control = control_tx(transfer_bytes);
+    if (!single_tx_buffer && (transfers_per_buffer > 1)) {
+        lli_tx_loop[0].lli = lli_pointer(&lli_tx_loop[1]);
+    }
 }
 
 buffer_t tx_empty_buffer() {

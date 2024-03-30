@@ -421,18 +421,21 @@ class ADSBRxView : public View {
         {18 * 8, 0 * 16}};
 
     RSSI rssi{
-        {20 * 8, 4, 10 * 7, 8},
+        {20 * 8, 4, 7 * 8, 8},
     };
 
     ActivityDot status_frame{
-        {screen_width - 3, 5, 2, 2},
+        {27 * 8 + 2, 5, 2, 2},
         Color::white(),
     };
 
     ActivityDot status_good_frame{
-        {screen_width - 3, 9, 2, 2},
+        {27 * 8 + 2, 9, 2, 2},
         Color::green(),
     };
+
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
 
     MessageHandlerRegistration message_handler_frame{
         Message::ID::ADSBFrame,

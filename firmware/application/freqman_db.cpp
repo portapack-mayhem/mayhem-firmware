@@ -31,6 +31,7 @@
 #include "string_format.hpp"
 #include "tone_key.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <array>
 #include <cctype>
@@ -39,8 +40,7 @@
 
 namespace fs = std::filesystem;
 
-const std::filesystem::path freqman_system_dir{u"/RES/FREQMAN"};
-const std::filesystem::path freqman_user_dir{u"/USR/FREQMAN"};
+  // tempnote: USR and RES const path var removed
 const std::filesystem::path freqman_extension{u".TXT"};
 bool current_is_system_item{true};
 

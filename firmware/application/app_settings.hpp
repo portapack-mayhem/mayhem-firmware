@@ -36,9 +36,7 @@
 #include "max283x.hpp"
 #include "string_format.hpp"
 
-// Folder to store app settings, pmem_fileflag, and date_fileflag
-#define SETTINGS_DIR u"/USR/SETTINGS"
-
+// tempnote: removed define
 // Bring in the string_view literal.
 using std::literals::operator""sv;
 

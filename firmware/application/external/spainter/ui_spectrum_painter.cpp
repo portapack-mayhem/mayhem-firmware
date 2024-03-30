@@ -76,15 +76,15 @@ SpectrumPainterView::SpectrumPainterView(
         transmitter_model.set_rf_amp(rf_amp);
     };
 
-    input_image.on_input_avaliable = [this]() {
-        image_input_avaliable = true;
+    input_image.on_input_available = [this]() {
+        image_input_available = true;
     };
 
     button_play.on_select = [this](ImageButton&) {
         if (tx_active == false) {
             tx_mode = tab_view.selected();
 
-            if (tx_mode == 0 && image_input_avaliable == false)
+            if (tx_mode == 0 && image_input_available == false)
                 return;
             /* By experimental test measurement, we got a good painted spectrum quality when selecting
             a BW GUI App range from 100k ... 2M aprox. In that range , the best TX LPF filter = 1M75 (the min)

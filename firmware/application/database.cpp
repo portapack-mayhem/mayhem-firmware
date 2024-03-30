@@ -23,10 +23,12 @@
 
 #include "database.hpp"
 #include "file.hpp"
+#include "file_path.hpp"
 #include <cstring>
 
 int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) {
-    file_path = "/RES/AIS/mids.db";
+    file_path = ais_dir / u"mids.db";
+  // tempnote: used to be RES
     index_item_length = 4;
     record_length = 32;
 
@@ -36,7 +38,8 @@ int database::retrieve_mid_record(MidDBRecord* record, std::string search_term) 
 }
 
 int database::retrieve_airline_record(AirlinesDBRecord* record, std::string search_term) {
-    file_path = "/RES/ADSB/airlines.db";
+    file_path = adsb_dir / u"airlines.db";
+  // tempnote: used to be RES
     index_item_length = 4;
     record_length = 64;
 
@@ -46,7 +49,8 @@ int database::retrieve_airline_record(AirlinesDBRecord* record, std::string sear
 }
 
 int database::retrieve_aircraft_record(AircraftDBRecord* record, std::string search_term) {
-    file_path = "/RES/ADSB/icao24.db";
+    file_path = adsb_dir / u"icao24.db";
+  // tempnote: used to be RES
     index_item_length = 7;
     record_length = 146;
 
@@ -55,7 +59,7 @@ int database::retrieve_aircraft_record(AircraftDBRecord* record, std::string sea
     return (result);
 }
 
-int database::retrieve_record(std::string file_path, int index_item_length, int record_length, void* record, std::string search_term) {
+int database::retrieve_record(std::filesystem::path file_path, int index_item_length, int record_length, void* record, std::string search_term) {
     if (search_term.empty())
         return DATABASE_RECORD_NOT_FOUND;
 

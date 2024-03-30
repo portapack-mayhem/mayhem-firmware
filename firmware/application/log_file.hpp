@@ -27,8 +27,7 @@
 #include "file.hpp"
 #include "rtc_time.hpp"
 
-#define LOG_ROOT_DIR "/USR/LOGS"
-
+// tempnote: define USR removed
 class LogFile {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {
