@@ -173,7 +173,7 @@ class GlassView : public View {
     Labels labels{
         {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
-        {{0, 2 * 16}, "PRESET:", Color::light_grey()},
+        {{0, 2 * 16}, "P:", Color::light_grey()},
         {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Color::light_grey()},
         //{{0, 4 * 16}, "RES:    STEPS:", Color::light_grey()}};
         {{0, 4 * 16}, "RES:     VOL:", Color::light_grey()}};
@@ -215,12 +215,12 @@ class GlassView : public View {
         {28 * 8, 1 * 16}};
 
     OptionsField range_presets{
-        {7 * 8, 2 * 16},
-        10,
+        {2 * 8, 2 * 16},
+        20,
         {}};
 
     ButtonWithEncoder button_beep_squelch{
-        {18 * 8, 2 * 16 + 4, 12 * 8, 1 * 8},
+        {240 - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
         ""};
 
     TextField field_marker{
