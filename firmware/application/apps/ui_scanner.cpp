@@ -338,7 +338,7 @@ ScannerView::ScannerView(
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_dir(freqman_dir);
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if (new_file_path.native().find((u"/" / freqman_dir).native()) == 0) {
                 scan_pause();
                 frequency_file_load(new_file_path);
             } else {
