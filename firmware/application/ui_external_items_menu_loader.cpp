@@ -1,6 +1,7 @@
 #include "ui_external_items_menu_loader.hpp"
 
 #include "sd_card.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
@@ -11,8 +12,8 @@ namespace ui {
     if (!callback) return;
     if (sd_card::status() != sd_card::Status::Mounted)
         return;
-    for (const auto& entry : std::filesystem::directory_iterator(u"APPS", u"*.ppma")) {
-        auto filePath = u"/APPS/" + entry.path();
+    for (const auto& entry : std::filesystem::directory_iterator(apps_dir, u"*.ppma")) {
+        auto filePath = apps_dir / entry.path();
         File app;
 
         auto openError = app.open(filePath);
@@ -52,8 +53,8 @@ namespace ui {
     if (sd_card::status() != sd_card::Status::Mounted)
         return external_apps;
 
-    for (const auto& entry : std::filesystem::directory_iterator(u"APPS", u"*.ppma")) {
-        auto filePath = u"/APPS/" + entry.path();
+    for (const auto& entry : std::filesystem::directory_iterator(apps_dir, u"*.ppma")) {
+        auto filePath = apps_dir / entry.path();
         File app;
 
         auto openError = app.open(filePath);
@@ -86,7 +87,7 @@ namespace ui {
 
             gridItem.on_select = [&nav, app_location, filePath]() {
                 if (!run_external_app(nav, filePath)) {
-                    nav.display_modal("Error", "The .ppma file in your APPS\nfolder can't be read. Please\nupdate your SD Card content.");
+                    nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
                 }
             };
         } else {
@@ -95,7 +96,7 @@ namespace ui {
             gridItem.bitmap = &bitmap_sd_card_error;
 
             gridItem.on_select = [&nav]() {
-                nav.display_modal("Error", "The .ppma file in your APPS\nfolder is outdated. Please\nupdate your SD Card content.");
+                nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder is outdated. Please\nupdate your SD Card content.");
             };
         }
 

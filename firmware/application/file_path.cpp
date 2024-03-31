@@ -24,6 +24,7 @@
 
 const std::filesystem::path adsb_dir = u"ADSB";
 const std::filesystem::path ais_dir = u"AIS";
+const std::filesystem::path apps_dir = u"APPS";
 const std::filesystem::path aprs_dir = u"APRS";
 const std::filesystem::path audio_dir = u"AUDIO";
 const std::filesystem::path blerx_dir = u"BLERX";
@@ -32,11 +33,13 @@ const std::filesystem::path captures_dir = u"CAPTURES";
 const std::filesystem::path debug_dir = u"DEBUG";
 const std::filesystem::path firmware_dir = u"FIRMWARE";
 const std::filesystem::path freqman_dir = u"FREQMAN";
+const std::filesystem::path gps_dir = u"GPS";
 const std::filesystem::path logs_dir = u"LOGS";
 const std::filesystem::path looking_glass_dir = u"LOOKINGGLASS";
 const std::filesystem::path playlist_dir = u"PLAYLIST";
 const std::filesystem::path remotes_dir = u"REMOTES";
 const std::filesystem::path repeat_rec_path = u"CAPTURES";
+const std::filesystem::path samples_dir = u"SAMPLES";
 const std::filesystem::path screenshots_dir = u"SCREENSHOTS";
 const std::filesystem::path settings_dir = u"SETTINGS";
 const std::filesystem::path spectrum_dir = u"SPECTRUM";

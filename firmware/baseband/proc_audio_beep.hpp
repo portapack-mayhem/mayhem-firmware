@@ -25,8 +25,6 @@
 #include "baseband_processor.hpp"
 #include "message.hpp"
 
-#define AUDIO_SAMPLE_RATE 24000
-
 class AudioBeepProcessor : public BasebandProcessor {
    public:
     AudioBeepProcessor();

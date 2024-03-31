@@ -204,6 +204,7 @@ void set_config_cpld(uint8_t i);
 bool config_disable_external_tcxo();
 bool config_sdcard_high_speed_io();
 bool config_disable_config_mode();
+bool beep_on_packets();
 
 bool config_splash();
 bool config_converter();
@@ -226,6 +227,7 @@ void set_show_bigger_qr_code(bool v);
 void set_config_disable_external_tcxo(bool v);
 void set_config_sdcard_high_speed_io(bool v, bool save);
 void set_config_disable_config_mode(bool v);
+void set_beep_on_packets(bool v);
 
 void set_config_splash(bool v);
 bool config_converter();

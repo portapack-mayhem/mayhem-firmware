@@ -23,7 +23,7 @@
 #include "tpms_app.hpp"
 
 #include "baseband_api.hpp"
-
+#include "audio.hpp"
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -31,6 +31,8 @@ using namespace portapack;
 
 #include "utility.hpp"
 #include "file_path.hpp"
+
+namespace pmem = portapack::persistent_memory;
 
 namespace tpms {
 
@@ -147,6 +149,7 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     baseband::run_image(portapack::spi_flash::image_tag_tpms);
 
     add_children({&rssi,
+                  &field_volume,
                   &channel,
                   &options_band,
                   &options_pressure,
@@ -179,9 +182,15 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     if (logger) {
         logger->append(logs_dir / u"TPMS.TXT");
     }
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    }
 }
 
 TPMSAppView::~TPMSAppView() {
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -213,6 +222,10 @@ void TPMSAppView::on_packet(const tpms::Packet& packet) {
         auto& entry = ::on_packet(recent, TPMSRecentEntry::Key{reading.type(), reading.id()});
         entry.update(reading);
         recent_entries_view.set_dirty();
+    }
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
     }
 }
 

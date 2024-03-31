@@ -75,6 +75,7 @@ RecordView::RecordView(
         &rect_background,
         //&button_pitch_rssi,
         &button_record,
+        &gps_icon,
         &text_record_filename,
         &text_record_dropped,
         &text_time_available,
@@ -93,6 +94,7 @@ RecordView::RecordView(
     signal_token_tick_second = rtc_time::signal_tick_second += [this]() {
         this->on_tick_second();
     };
+    gps_icon.hidden(true);
 }
 
 RecordView::~RecordView() {
@@ -180,6 +182,13 @@ void RecordView::start() {
     }
 
     std::filesystem::path base_path;
+
+    auto tmp_path = filename_stem_pattern;  // store it, to be able to modify without causing permanent change
+    // check for geo data, if present append filename with _GEO
+    if (latitude != 0 && longitude != 0 && latitude < 200 && longitude < 200) {
+        tmp_path.append_filename(u"_GEO");
+    }
+
     if (filename_date_frequency) {
         rtc_time::now(datetime);
 
@@ -192,22 +201,17 @@ void RecordView::start() {
             to_string_dec_uint(datetime.minute()) +
             to_string_dec_uint(datetime.second());
 
-        base_path = filename_stem_pattern.string() + "_" + date_time + "_" +
+        base_path = tmp_path.string() + "_" + date_time + "_" +
                     trim(to_string_freq(receiver_model.target_frequency())) + "Hz";
         base_path = folder / base_path;
     } else if (filename_as_is) {
-        base_path = filename_stem_pattern.string();
+        base_path = tmp_path.string();
         base_path = folder / base_path;
     } else
-        base_path = next_filename_matching_pattern(folder / filename_stem_pattern);
+        base_path = next_filename_matching_pattern(folder / tmp_path);
 
     if (base_path.empty()) {
         return;
-    }
-
-    // check for geo data, if present append filename with _GEO
-    if (latitude != 0 && longitude != 0 && latitude < 200 && longitude < 200) {
-        base_path.append_filename(u"_GEO");
     }
 
     std::unique_ptr<stream::Writer> writer;
@@ -348,6 +352,8 @@ void RecordView::trim_capture() {
 }
 
 void RecordView::on_gps(const GPSPosDataMessage* msg) {
+    if (msg->lat == 0 || msg->lat > 399) return;  // not valid one
+    if (latitude == 0) gps_icon.hidden(false);    // prev was 0, so not shown already
     latitude = msg->lat;
     longitude = msg->lon;
     satinuse = msg->satinuse;

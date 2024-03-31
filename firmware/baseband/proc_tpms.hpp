@@ -140,6 +140,9 @@ class TPMSProcessor : public BasebandProcessor {
             shared_memory.application_queue.push(message);
         }};
 
+    void on_message(const Message* const message);
+    void on_beep_message(const AudioBeepMessage& message);
+
     /* NB: Threads should be the last members in the class definition. */
     BasebandThread baseband_thread{
         baseband_fs, this, baseband::Direction::Receive, /*auto_start*/ false};

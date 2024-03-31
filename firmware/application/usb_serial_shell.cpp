@@ -665,7 +665,7 @@ static void cmd_appstart(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
     // since ext app loader changed, we can just pass the string to it, and it"ll return if started or not.
-    std::string appwithpath = "/APPS/";
+    std::string appwithpath = "/" + apps_dir.string() + "/";
     appwithpath += argv[0];
     appwithpath += ".ppma";
     bool ret = ui::ExternalItemsMenuLoader::run_external_app(*nav, path_from_string8((char*)appwithpath.c_str()));

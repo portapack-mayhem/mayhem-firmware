@@ -508,7 +508,7 @@ ReconView::ReconView(NavigationView& nav)
         auto settings = receiver_model.settings();
         settings.frequency_step = step_mode.selected_index_value();
         if (field_mode.selected_index_value() == SPEC_MODULATION)
-            nav_.replace<CaptureAppView>();
+            nav_.replace<CaptureAppView>(settings);
         else
             nav_.replace<AnalogAudioView>(settings);
     };
@@ -539,7 +539,7 @@ ReconView::ReconView(NavigationView& nav)
             }
         }
 
-        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        // MicTX wants Frequency, Modulation and Bandwidth overrides, but that's only stored on the RX model.
         nav_.replace<MicTXView>(receiver_model.settings());
     };
 
@@ -1460,7 +1460,7 @@ void ReconView::handle_repeat_thread_done(const uint32_t return_code) {
         stop_repeat(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop_repeat(false);
-        repeat_file_error(u"/" + repeat_rec_path + u"/" + repeat_rec_file, "Can't open file to send.");
+        repeat_file_error(rawfile, "Can't open file to send.");
     }
 }
 

@@ -719,25 +719,28 @@ static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc)
     };
 }
 
+// clang-format off
 void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView& grid) {
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
-        grid.add_item({"Notice",
-                       Color::red(),
-                       &bitmap_icon_debug,
-                       [&nav]() {
-                           nav.display_modal(
-                               "Notice",
-                               "External app directory empty;\n"
-                               "see Mayhem wiki and copy apps\n"
-                               "to APPS folder of SD card.");
-                       }});
+        grid.insert_item({"Notice!",
+                          Color::red(),
+                          nullptr,
+                          [&nav]() {
+                              nav.display_modal(
+                                  "Notice",
+                                  "External app directory empty;\n"
+                                  "see Mayhem wiki and copy apps\n"
+                                  "to " + apps_dir.string() + " folder of SD card.");
+                          }},
+                         pmem::show_gui_return_icon() ? 1 : 0);
     } else {
         for (auto const& gridItem : externalItems) {
             grid.add_item(gridItem);
         }
     }
 }
+// clang-format on
 
 /* ReceiversMenuView *****************************************************/
 

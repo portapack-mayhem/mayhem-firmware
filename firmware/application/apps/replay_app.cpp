@@ -44,7 +44,7 @@ void ReplayAppView::set_ready() {
 }
 
 void ReplayAppView::on_file_changed(const fs::path& new_file_path) {
-    file_path = fs::path(u"/") + new_file_path;
+    file_path = new_file_path;
     File::Size file_size{};
 
     {  // Get the size of the data file.

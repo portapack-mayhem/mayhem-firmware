@@ -28,6 +28,7 @@
 #include "io_file.hpp"
 #include "metadata_file.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include "baseband_api.hpp"
 #include "portapack.hpp"
@@ -43,7 +44,7 @@ void GpsSimAppView::set_ready() {
 }
 
 void GpsSimAppView::on_file_changed(const fs::path& new_file_path) {
-    file_path = fs::path(u"/") + new_file_path;
+    file_path = new_file_path;
     File::Size file_size{};
 
     {  // Get the size of the data file.
@@ -185,6 +186,8 @@ GpsSimAppView::GpsSimAppView(
 
     button_open.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".C8");
+        ensure_directory(gps_dir);
+        open_view->push_dir(gps_dir);
         open_view->on_changed = [this](std::filesystem::path new_file_path) {
             on_file_changed(new_file_path);
         };
