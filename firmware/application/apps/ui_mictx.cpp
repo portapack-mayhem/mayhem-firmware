@@ -596,6 +596,7 @@ MicTXView::MicTXView(
     NavigationView& nav,
     ReceiverModel::settings_t override)
     : MicTXView(nav) {
+    // Settings to override when launched from another app (versus from AppSettings .ini file)
     // Try to use the modulation/bandwidth from RX settings.
     // TODO: These concepts should be merged so there's only one.
     switch (override.mode) {
@@ -616,6 +617,7 @@ MicTXView::MicTXView(
             break;
     }
 
+    field_frequency.set_value(override.frequency_app_override);
     check_common_freq_tx_rx.set_value(true);  // freq passed from other app is in tx_frequency, so set rx_frequency=tx_frequency
 
     // TODO: bandwidth selection is tied too tightly to the UI

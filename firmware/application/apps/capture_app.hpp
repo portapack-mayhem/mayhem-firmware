@@ -38,6 +38,7 @@ namespace ui {
 class CaptureAppView : public View {
    public:
     CaptureAppView(NavigationView& nav);
+    CaptureAppView(NavigationView& nav, ReceiverModel::settings_t override);
     ~CaptureAppView();
 
     void focus() override;
@@ -52,8 +53,7 @@ class CaptureAppView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
-        "rx_capture", app_settings::Mode::RX,
-        app_settings::Options::UseGlobalTargetFrequency};
+        "rx_capture", app_settings::Mode::RX};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},

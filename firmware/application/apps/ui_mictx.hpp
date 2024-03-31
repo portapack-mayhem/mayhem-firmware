@@ -118,7 +118,6 @@ class MicTXView : public View {
     app_settings::SettingsManager settings_{
         "tx_mic",
         app_settings::Mode::RX_TX,
-        app_settings::Options::UseGlobalTargetFrequency,
         {
             {"mic_mod_index"sv, &mic_mod_index},
             {"rxbw_index"sv, &rxbw_index},
