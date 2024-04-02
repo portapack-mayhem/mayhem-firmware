@@ -253,27 +253,30 @@ void FileManBaseView::push_dir(const fs::path& path) {
     // , you should use push_fake_dir, which handle and call back the dir automatically
     if (path == parent_dir_path) {
         pop_dir();
+    } else if (path == system_dir || path == apps_dir || path == firmware_dir) {
+        nav_.push<ModalMessageView>(
+            "Warning",
+            "It is not suggested to\n"
+            "modify system files,\n"
+            "so you can easily\n"
+            "update sdcard content.\n"
+            "You can add all the custom\n"
+            "files in user folders.\n"
+            "Continue anyway?",
+            YESNO,
+            [this, path](bool choice) {
+                if (choice) {
+                    current_path /= path;
+                    saved_index_stack.push_back(menu_view.highlighted_index());
+                    menu_view.set_highlighted(0);
+                    reload_current();
+                }
+            });
     } else {
-        if (path == system_dir || path == apps_dir || path == firmware_dir) {
-            nav_.push<ModalMessageView>(
-                "Warning",
-                "It is not suggested to\n"
-                "modify system files,\n"
-                "so you can easily\n"
-                "update sdcard content.\n"
-                "You can add all the custom\n"
-                "files in user folders.\n"
-                "Continue anyway?",
-                YESNO,
-                [this, path](bool choice) {
-                    if (choice) {
-                        current_path /= path;
-                        saved_index_stack.push_back(menu_view.highlighted_index());
-                        menu_view.set_highlighted(0);
-                        reload_current();
-                    }
-                });
-        }
+        current_path /= path;
+        saved_index_stack.push_back(menu_view.highlighted_index());
+        menu_view.set_highlighted(0);
+        reload_current();
     }
 }
 
