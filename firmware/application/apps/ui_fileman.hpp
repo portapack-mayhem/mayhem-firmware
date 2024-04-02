@@ -65,7 +65,7 @@ class FileManBaseView : public View {
     uint8_t pagination = 0;
     uint8_t nb_pages = 1;
     static constexpr size_t max_filename_length = 20;
-    static constexpr size_t max_items_loaded = 500;  // too big to text optimizations
+    static constexpr size_t max_items_loaded = 150;  // too memory hungry, so won't load more
     static constexpr size_t items_per_page = 20;
 
     struct file_assoc_t {
@@ -101,6 +101,9 @@ class FileManBaseView : public View {
     std::function<void(KeyEvent)> on_select_entry{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
 
+    const std::string str_back{"<--"};
+    const std::string str_next{"-->"};
+    const std::string str_full{"Can't load more.."};
     const std::filesystem::path parent_dir_path{u".."};
     std::filesystem::path current_path{u""};
     std::filesystem::path extension_filter{u""};

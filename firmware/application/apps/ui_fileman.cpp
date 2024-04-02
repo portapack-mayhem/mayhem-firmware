@@ -187,12 +187,16 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
     // add next page
     if (list_size > start + items_per_page) {
-        entry_list.push_back({"-->", (uint32_t)pagination + 1, true});
+        entry_list.push_back({str_next, (uint32_t)pagination + 1, true});
     }
 
     // add prev page
     if (pagination > 0) {
-        entry_list.insert(entry_list.begin(), {"<--", (uint32_t)pagination - 1, true});
+        entry_list.insert(entry_list.begin(), {str_back, (uint32_t)pagination - 1, true});
+    }
+    // add warning if reached limit
+    if (entry_list.size() >= max_items_loaded) {
+        entry_list.push_back({str_full, max_items_loaded, true});
     }
 }
 
@@ -308,7 +312,7 @@ void FileManBaseView::refresh_list() {
 
         if (entry.is_directory) {
             std::string size_str{};
-            if (entry.path == "-->" || entry.path == "<--") {
+            if (entry.path == str_next || entry.path == str_back) {
                 size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);  // show computed number of pages
             } else {
                 (entry.path == parent_dir_path)
@@ -380,13 +384,16 @@ FileLoadView::FileLoadView(
 
     on_select_entry = [this](KeyEvent) {
         if (get_selected_entry().is_directory) {
-            if (get_selected_entry().path == "<--") {
+            if (get_selected_entry().path == str_full) {
+                return;
+            }
+            if (get_selected_entry().path == str_back) {
                 pagination--;
                 menu_view.set_highlighted(0);
                 reload_current(false);
                 return;
             }
-            if (get_selected_entry().path == "-->") {
+            if (get_selected_entry().path == str_next) {
                 pagination++;
                 menu_view.set_highlighted(0);
                 reload_current(false);
@@ -684,13 +691,16 @@ FileManagerView::FileManagerView(
     on_select_entry = [this](KeyEvent key) {
         if (key == KeyEvent::Select) {
             if (get_selected_entry().is_directory) {
-                if (get_selected_entry().path == "<--") {
+                if (get_selected_entry().path == str_full) {
+                    return;
+                }
+                if (get_selected_entry().path == str_back) {
                     pagination--;
                     menu_view.set_highlighted(0);
                     reload_current(false);
                     return;
                 }
-                if (get_selected_entry().path == "-->") {
+                if (get_selected_entry().path == str_next) {
                     pagination++;
                     menu_view.set_highlighted(0);
                     reload_current(false);
