@@ -181,17 +181,19 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
         entry_list.erase(entry_list.begin(), std::next(entry_list.begin(), start));
     }
 
+    // Add "parent" directory if not at the root.
+    if (!dir_path.empty() && pagination == 0)
+        entry_list.insert(entry_list.begin(), {parent_dir_path.string(), 0, true});
+
+    // add next page
     if (list_size > start + items_per_page) {
-        // add next page
         entry_list.push_back({"-->", (uint32_t)pagination + 1, true});
     }
+
+    // add prev page
     if (pagination > 0) {
-        // add prev page
         entry_list.insert(entry_list.begin(), {"<--", (uint32_t)pagination - 1, true});
     }
-    // Add "parent" directory if not at the root.
-    if (!dir_path.empty())
-        entry_list.insert(entry_list.begin(), {parent_dir_path.string(), 0, true});
 }
 
 fs::path FileManBaseView::get_selected_full_path() const {
