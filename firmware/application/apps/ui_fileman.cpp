@@ -357,7 +357,7 @@ fs::path FileManBaseView::jumping_between_profiles(fs::path& path, DirProfiles p
 
     } else if (profile == DirProfiles::System) {
         if (first_level == null_path && path != system_dir) {  // /abcdef
-            //the second argument is for preventing circuling enter system dir
+            // the second argument is for preventing circuling enter system dir
             path = system_dir / path;
         } else if (first_level == system_dir) {  // /SYS/abcdef
             // this is for: after user redirected to other dir and then switch to system profile

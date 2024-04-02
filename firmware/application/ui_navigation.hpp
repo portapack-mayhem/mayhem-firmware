@@ -59,6 +59,7 @@ namespace ui {
 enum modal_t {
     INFO = 0,
     YESNO,
+    COMPACTYESNO,
     ABORT
 };
 
@@ -284,6 +285,7 @@ class SystemStatusView : public View {
     void on_clk();
     void rtc_battery_workaround();
     void new_sdcard_structure_checker();
+    void new_sdcard_structure_worker();
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,

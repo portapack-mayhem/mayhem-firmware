@@ -35,22 +35,22 @@ const std::filesystem::path aprs_dir_user = u"/APRS";
 const std::filesystem::path aprs_dir_resources = u"SYS/APRS";
 
 // AUDIO
-const std::filesystem::path audio_dir = u"AUDIO";
+const std::filesystem::path audio_dir = u"AUDIO";  // fake path
 const std::filesystem::path audio_dir_user = u"/AUDIO";
 const std::filesystem::path audio_dir_resources = u"SYS/AUDIO";
 
 // BLERX
-const std::filesystem::path blerx_dir = u"BLERX";
+const std::filesystem::path blerx_dir = u"BLERX";  // fake path
 const std::filesystem::path blerx_dir_user = u"/BLERX";
 const std::filesystem::path blerx_dir_resources = u"SYS/BLERX";
 
 // BLETX
-const std::filesystem::path bletx_dir = u"BLETX";
+const std::filesystem::path bletx_dir = u"BLETX";  // fake path
 const std::filesystem::path bletx_dir_user = u"/BLETX";
 const std::filesystem::path bletx_dir_resources = u"SYS/BLETX";
 
 // CAPTURES
-const std::filesystem::path captures_dir = u"CAPTURES";
+const std::filesystem::path captures_dir = u"CAPTURES";        // fake path
 const std::filesystem::path captures_dir_user = u"/CAPTURES";  // used by recon and capture apps to save capture C16 into USR
 const std::filesystem::path captures_dir_resources = u"SYS/CAPTURES";
 
@@ -59,7 +59,7 @@ const std::filesystem::path debug_dir = u"DEBUG";  // in root
 const std::filesystem::path firmware_dir = u"FIRMWARE";  // in root
 
 // FREQMAN
-const std::filesystem::path freqman_dir = u"FREQMAN";
+const std::filesystem::path freqman_dir = u"FREQMAN";  // fake path
 const std::filesystem::path freqman_dir_user = u"/FREQMAN";
 const std::filesystem::path freqman_dir_resources = u"SYS/FREQMAN";
 
@@ -71,7 +71,7 @@ const std::filesystem::path looking_glass_dir = u"SYS/LOOKINGGLASS";
 
 // PLAYLIST
 const std::filesystem::path playlist_dir = u"PLAYLIST";                // fake dir
-const std::filesystem::path playlist_dir_user = u"/PLAYLIST";       // used by playlist aka replay app, to save nre created PPL files into USR
+const std::filesystem::path playlist_dir_user = u"/PLAYLIST";          // used by playlist aka replay app, to save nre created PPL files into USR
 const std::filesystem::path playlist_dir_resources = u"SYS/PLAYLIST";  //
 
 // REMOTE
@@ -92,12 +92,12 @@ const std::filesystem::path spectrum_dir = u"SPECTRUM";  // fake dir
 
 const std::filesystem::path splash_dir = u"/SPLASH";
 
-const std::filesystem::path sstv_dir = u"SSTV";
+const std::filesystem::path sstv_dir = u"SSTV";  // fake path
 const std::filesystem::path sstv_dir_user = u"/SSTV";
 const std::filesystem::path sstv_dir_resources = u"/SSTV";
 
 // WAV
-const std::filesystem::path wav_dir = u"WAV";
+const std::filesystem::path wav_dir = u"WAV";  // fake path
 const std::filesystem::path wav_dir_user = u"/WAV";
 const std::filesystem::path wav_dir_resources = u"SYS/WAV";
 

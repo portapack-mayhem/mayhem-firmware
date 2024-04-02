@@ -562,7 +562,7 @@ void SystemStatusView::rtc_battery_workaround() {
 
 void SystemStatusView::new_sdcard_structure_checker() {
     const std::filesystem::path root_dir = u"/";
-    const std::filesystem::path resources_dir = u"SYS";
+    const std::filesystem::path resources_dir = u"ABCE";
     std::vector<std::filesystem::path> directories = scan_root_directories(root_dir);
 
     auto scan_result = std::find(directories.begin(), directories.end(), resources_dir);
@@ -575,10 +575,43 @@ void SystemStatusView::new_sdcard_structure_checker() {
         (sd_status == sd_card::Status::Mounted)) {
         nav_.display_modal(
             "Warning",
-            "SD Card content should be\n"
-            "updated for use with this\n"
-            "firmware version.\n"
-            "See Mayhem Wiki - Update.");
+            "WARNING!\n"
+            "Sdcard content changed\n"
+            "in this update\n"
+            "Press YES to auto move\n"
+            "After finished,\n"
+            "you should move your own files back\n"
+            "in to original folder\n"
+            "which is now only for users\n"
+            "You can also choose NO\n"
+            "And then manually merge\n"
+            "Following the Wiki\n"
+            "Details:\n"
+            "Mayhem wiki - Updating",
+            COMPACTYESNO,
+            [this](bool choice) {
+                if (choice) {
+                    new_sdcard_structure_worker();
+                }
+            });
+    }
+}
+
+void SystemStatusView::new_sdcard_structure_worker() {
+    const std::filesystem::path root_dir = u"/";
+    const std::filesystem::path sys_dir = u"SYS";
+    std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE", u"APPS", u"SYS"};
+
+    // Create the SYS directory if it doesn't exist
+    ensure_directory(sys_dir);
+
+    auto directories = scan_root_directories(root_dir);
+    for (const auto& dir_entry : directories) {
+        // If the path is not in the ignore list, move it to the SYS directory
+        if (std::find(ignore_dirs.begin(), ignore_dirs.end(), dir_entry) == ignore_dirs.end()) {
+            std::filesystem::path new_path = sys_dir / dir_entry.filename();
+            rename_file(dir_entry, new_path);
+        }
     }
 }
 
@@ -999,7 +1032,7 @@ ModalMessageView::ModalMessageView(
             nav.pop();
         };
 
-    } else if (type == YESNO) {
+    } else if (type == YESNO || type == COMPACTYESNO) {
         add_children({&button_yes,
                       &button_no});
 
@@ -1024,20 +1057,22 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
+    if (type_ != COMPACTYESNO) {
+        portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
+    }
 
     // Break lines.
     auto lines = split_string(message_, '\n');
     for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
-            {1 * 8, (Coord)(120 + (i * 16))},
+            {1 * 8, (Coord)(((type_ == COMPACTYESNO) ? 8 * 3 : 120) + (i * 16))},
             style(),
             lines[i]);
     }
 }
 
 void ModalMessageView::focus() {
-    if ((type_ == YESNO)) {
+    if ((type_ == YESNO) || (type_ == COMPACTYESNO)) {
         button_yes.focus();
     } else {
         button_ok.focus();
