@@ -65,7 +65,7 @@ class FileManBaseView : public View {
     uint8_t pagination = 0;
     uint8_t nb_pages = 1;
     static constexpr size_t max_filename_length = 20;
-    static constexpr size_t max_items_loaded = 100;  // too memory hungry, so won't load more
+    static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't load more
     static constexpr size_t items_per_page = 20;
 
     struct file_assoc_t {
