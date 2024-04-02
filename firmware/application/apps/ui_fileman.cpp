@@ -182,11 +182,11 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
     if (list_size > start + items_per_page) {
         // add next page
-        entry_list.insert(entry_list.begin(), {"-->", 0, true});
+        entry_list.insert(entry_list.begin(), {"-->", uint32_t(start + items_per_page), true});
     }
     if (pagination > 0) {
         // add prev page
-        entry_list.insert(entry_list.begin(), {"<--", 0, true});
+        entry_list.insert(entry_list.begin(), {"<--", uint32_t(start - items_per_page), true});
     }
     // Add "parent" directory if not at the root.
     if (!dir_path.empty())
