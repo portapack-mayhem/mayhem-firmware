@@ -269,7 +269,7 @@ void FileManBaseView::refresh_list() {
                     : to_string_dec_uint(file_count(current_path / entry.path));
 
             menu_view.add_item(
-                {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
+                {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
                  ui::Color::yellow(),
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -282,7 +282,7 @@ void FileManBaseView::refresh_list() {
             auto size_str = to_string_file_size(entry.size);
 
             menu_view.add_item(
-                {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
+                {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
                  assoc.color,
                  assoc.icon,
                  [this](KeyEvent key) {
