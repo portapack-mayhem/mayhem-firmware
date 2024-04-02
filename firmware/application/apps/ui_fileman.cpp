@@ -180,7 +180,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
         entry_list.erase(entry_list.begin(), std::next(entry_list.begin(), start));
     }
 
-        if (list_size > start + items_per_page) {
+    if (list_size > start + items_per_page) {
         // add next page
         entry_list.insert(entry_list.begin(), {"-->", 0, true});
     }
@@ -656,6 +656,7 @@ FileManagerView::FileManagerView(
                     return;
                 }
                 push_dir(get_selected_entry().path);
+                return;
             } else if (handle_file_open()) {
                 return;
             }
