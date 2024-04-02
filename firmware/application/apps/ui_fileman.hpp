@@ -31,7 +31,7 @@
 namespace ui {
 
 struct fileman_entry {
-    std::filesystem::path path{};
+    std::string path{};
     uint32_t size{};
     bool is_directory{};
 };
@@ -67,8 +67,12 @@ class FileManBaseView : public View {
     void push_fake_dir(const std::filesystem::path& path);
 
    protected:
-    static constexpr size_t max_filename_length = 64;
-    static constexpr size_t max_items_shown = 100;
+    uint32_t prev_highlight = 0;
+    uint8_t pagination = 0;
+    uint8_t nb_pages = 1;
+    static constexpr size_t max_filename_length = 20;
+    static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't load more
+    static constexpr size_t items_per_page = 20;
 
     struct file_assoc_t {
         std::filesystem::path extension;
@@ -93,7 +97,7 @@ class FileManBaseView : public View {
 
     void pop_dir();
     void refresh_list();
-    void reload_current();
+    void reload_current(bool reset_pagination = false);
     void load_directory_contents(const std::filesystem::path& dir_path);
     std::filesystem::path jumping_between_profiles(std::filesystem::path& path, DirProfiles profile);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
@@ -103,11 +107,16 @@ class FileManBaseView : public View {
     EmptyReason empty_{EmptyReason::NotEmpty};
     std::function<void(KeyEvent)> on_select_entry{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
+
+    const std::string str_back{"<--"};
+    const std::string str_next{"-->"};
+    const std::string str_full{"Can't load more.."};
+
     const std::filesystem::path parent_dir_path{u".."};
     std::filesystem::path current_path{u""};
     std::filesystem::path extension_filter{u""};
 
-    std::vector<fileman_entry> entry_list{};
+    std::list<fileman_entry> entry_list{};
     std::vector<uint32_t> saved_index_stack{};
 
     bool show_hidden_files{false};
