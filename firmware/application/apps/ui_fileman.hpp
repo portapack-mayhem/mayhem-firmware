@@ -63,6 +63,7 @@ class FileManBaseView : public View {
    protected:
     uint32_t prev_highlight = 0;
     uint8_t pagination = 0;
+    uint8_t nb_pages = 1;
     static constexpr size_t max_filename_length = 20;
     static constexpr size_t max_items_loaded = 500;  // too big to text optimizations
     static constexpr size_t items_per_page = 20;

@@ -171,6 +171,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
     // paginating
     auto list_size = entry_list.size();
+    nb_pages = 1 + (list_size / items_per_page);
     size_t start = pagination * items_per_page;
     size_t stop = start + items_per_page;
     if (list_size > start) {
@@ -304,10 +305,14 @@ void FileManBaseView::refresh_list() {
         auto entry_name = std::string{entry.path.length() <= 20 ? entry.path : entry.path.substr(0, 20)};
 
         if (entry.is_directory) {
-            auto size_str =
+            std::string size_str{};
+            if (entry.path == "-->" || entry.path == "<--") {
+                size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);  // show computed number of pages
+            } else {
                 (entry.path == parent_dir_path)
                     ? ""
                     : to_string_dec_uint(file_count(current_path / entry.path));
+            }
 
             menu_view.add_item(
                 {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
