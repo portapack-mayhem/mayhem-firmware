@@ -330,7 +330,7 @@ void FileManBaseView::refresh_list() {
                  }});
 
         } else {
-            const auto& assoc = get_assoc(get_extension(entry.path));  // todo
+            const auto& assoc = get_assoc(get_extension(entry.path));
             auto size_str = to_string_file_size(entry.size);
 
             menu_view.add_item(
