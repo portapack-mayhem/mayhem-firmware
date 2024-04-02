@@ -152,12 +152,16 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     menu_view.clear();
     auto filtering = !extension_filter.empty();
     bool cxx_file = path_iequal(cxx_ext, extension_filter);
+    bool wasfull = false;  // reached the limit or not
 
     text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path, 24));
 
     for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
         // Hide files starting with '.' (hidden / tmp).
-        if (entry_list.size() >= max_items_loaded) break;  // hard limit. size() complexyt constant in list from c++11, and for vector it constant.
+        if (entry_list.size() >= max_items_loaded) {
+            wasfull = true;
+            break;  // hard limit. size() complexyt constant in list from c++11, and for vector it constant.
+        }
         if (!show_hidden_files && is_hidden_file(entry.path()))
             continue;
 
@@ -188,20 +192,21 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     // add next page
     if (list_size > start + items_per_page) {
         entry_list.push_back({str_next, (uint32_t)pagination + 1, true});
+    } else {
+        // add warning if reached limit
+        if (wasfull) {
+            entry_list.push_back({str_full, max_items_loaded, true});
+        }
     }
 
     // add prev page
     if (pagination > 0) {
         entry_list.insert(entry_list.begin(), {str_back, (uint32_t)pagination - 1, true});
     }
-    // add warning if reached limit
-    if (entry_list.size() >= max_items_loaded) {
-        entry_list.push_back({str_full, max_items_loaded, true});
-    }
 }
 
 fs::path FileManBaseView::get_selected_full_path() const {
-    if (get_selected_entry().path == parent_dir_path)
+    if (get_selected_entry().path == parent_dir_path.string())
         return current_path.parent_path();
 
     return current_path / get_selected_entry().path;
@@ -315,9 +320,7 @@ void FileManBaseView::refresh_list() {
             if (entry.path == str_next || entry.path == str_back) {
                 size_str = to_string_dec_uint(1 + entry.size) + "/" + to_string_dec_uint(nb_pages);  // show computed number of pages
             } else {
-                (entry.path == parent_dir_path)
-                    ? ""
-                    : to_string_dec_uint(file_count(current_path / entry.path));
+                size_str = (entry.path == parent_dir_path.string()) ? "" : to_string_dec_uint(file_count(current_path / entry.path));
             }
 
             menu_view.add_item(
@@ -642,7 +645,7 @@ bool FileManagerView::handle_file_open() {
 
 bool FileManagerView::selected_is_valid() const {
     return !entry_list.empty() &&
-           get_selected_entry().path != parent_dir_path;
+           get_selected_entry().path != parent_dir_path.string();
 }
 
 FileManagerView::FileManagerView(
