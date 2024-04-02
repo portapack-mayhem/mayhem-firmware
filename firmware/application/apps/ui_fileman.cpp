@@ -306,10 +306,6 @@ void FileManBaseView::refresh_list() {
                          on_select_entry(key);
                  }});
         }
-
-        // HACK: Should page menu items instead of limiting the number.
-        if (menu_view.item_count() >= max_items_shown)
-            break;
     }
 
     menu_view.set_highlighted(prev_highlight);
@@ -627,7 +623,7 @@ FileManagerView::FileManagerView(
     });
 
     menu_view.on_highlight = [this]() {
-        if (menu_view.highlighted_index() >= max_items_shown - 1) {
+        if (menu_view.highlighted_index() >= max_items_loaded - 1) {  // todo check this if correct
             text_date.set_style(&Styles::red);
             text_date.set("Too many files!");
         } else {
