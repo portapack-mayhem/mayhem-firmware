@@ -157,6 +157,7 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
 
     for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
         // Hide files starting with '.' (hidden / tmp).
+        if (entry_list.size() >= max_items_loaded) break;  // hard limit. size() complexyt constant in list from c++11, and for vector it constant.
         if (!show_hidden_files && is_hidden_file(entry.path()))
             continue;
 
@@ -168,10 +169,25 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
         }
     }
 
-    // paginating //todo
+    // paginating
     auto list_size = entry_list.size();
-    if (list_size > 40) entry_list.erase(std::next(entry_list.begin(), 40), entry_list.end());
+    size_t start = pagination * items_per_page;
+    size_t stop = start + items_per_page;
+    if (list_size > start) {
+        if (list_size < stop)
+            stop = list_size;
+        entry_list.erase(std::next(entry_list.begin(), stop), entry_list.end());
+        entry_list.erase(entry_list.begin(), std::next(entry_list.begin(), start));
+    }
 
+        if (list_size > start + items_per_page) {
+        // add next page
+        entry_list.insert(entry_list.begin(), {"-->", 0, true});
+    }
+    if (pagination > 0) {
+        // add prev page
+        entry_list.insert(entry_list.begin(), {"<--", 0, true});
+    }
     // Add "parent" directory if not at the root.
     if (!dir_path.empty())
         entry_list.insert(entry_list.begin(), {parent_dir_path, 0, true});
@@ -625,13 +641,26 @@ FileManagerView::FileManagerView(
     refresh_list();
 
     on_select_entry = [this](KeyEvent key) {
-        if (key == KeyEvent::Select && get_selected_entry().is_directory) {
-            push_dir(get_selected_entry().path);
-        } else if (key == KeyEvent::Select && handle_file_open()) {
-            return;
-        } else {
-            button_rename.focus();
+        if (key == KeyEvent::Select) {
+            if (get_selected_entry().is_directory) {
+                if (get_selected_entry().path == "<--") {
+                    pagination--;
+                    menu_view.set_highlighted(0);
+                    reload_current();
+                    return;
+                }
+                if (get_selected_entry().path == "-->") {
+                    pagination++;
+                    menu_view.set_highlighted(0);
+                    reload_current();
+                    return;
+                }
+                push_dir(get_selected_entry().path);
+            } else if (handle_file_open()) {
+                return;
+            }
         }
+        button_rename.focus();
     };
 
     button_rename.on_select = [this]() {

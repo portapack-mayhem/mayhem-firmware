@@ -65,6 +65,8 @@ class FileManBaseView : public View {
     uint8_t pagination = 0;
     static constexpr size_t max_filename_length = 20;
     static constexpr size_t max_items_shown = 100;
+    static constexpr size_t max_items_loaded = 500;  // too big to text optimizations
+    static constexpr size_t items_per_page = 40;
 
     struct file_assoc_t {
         std::filesystem::path extension;
