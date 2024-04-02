@@ -150,22 +150,89 @@ namespace ui {
 
 /* FileManBaseView ***********************************************************/
 
-void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
+void FileManBaseView::load_directory_contents_unordered(const fs::path& dir_path, size_t file_cnt) {
     current_path = dir_path;
     entry_list.clear();
     menu_view.clear();
     auto filtering = !extension_filter.empty();
     bool cxx_file = path_iequal(cxx_ext, extension_filter);
-    bool wasfull = false;  // reached the limit or not
+
+    text_current.set(dir_path.empty() ? "(sd root)" : truncate(dir_path, 24));
+
+    nb_pages = 1 + (file_cnt / items_per_page);
+    size_t start = pagination * items_per_page;
+    size_t stop = start + items_per_page;
+    if (file_cnt < stop) stop = file_cnt;
+    if (start > file_cnt) start = 0;  // shouldn't hapen but check against it won't hurt
+
+    size_t curr = 0;
+
+    for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
+        if (entry_list.size() >= items_per_page) {
+            break;
+        }
+        // Hide files starting with '.' (hidden / tmp).
+        if (!show_hidden_files && is_hidden_file(entry.path()))
+            continue;
+
+        if (fs::is_regular_file(entry.status())) {
+            if (!filtering || path_iequal(entry.path().extension(), extension_filter) || (cxx_file && is_cxx_capture_file(entry.path()))) {
+                curr++;
+                if (curr >= start) insert_sorted(entry_list, {entry.path().string(), (uint32_t)entry.size(), false});
+            }
+
+        } else if (fs::is_directory(entry.status())) {
+            curr++;
+            if (curr >= start) insert_sorted(entry_list, {entry.path().string(), 0, true});
+        }
+    }
+
+    // Add "parent" directory if not at the root.
+    if (!dir_path.empty() && pagination == 0)
+        entry_list.insert(entry_list.begin(), {parent_dir_path.string(), 0, true});
+
+    // add next page
+    if (file_cnt > start + items_per_page) {
+        entry_list.push_back({str_next, (uint32_t)pagination + 1, true});
+    }
+
+    // add prev page
+    if (pagination > 0) {
+        entry_list.insert(entry_list.begin(), {str_back, (uint32_t)pagination - 1, true});
+    }
+}
+
+int FileManBaseView::file_count_filtered(const fs::path& directory) {
+    int count{0};
+    auto filtering = !extension_filter.empty();
+    bool cxx_file = path_iequal(cxx_ext, extension_filter);
+
+    for (auto& entry : std::filesystem::directory_iterator(directory, (const TCHAR*)u"*")) {
+        if (fs::is_regular_file(entry.status())) {
+            if (!filtering || path_iequal(entry.path().extension(), extension_filter) || (cxx_file && is_cxx_capture_file(entry.path())))
+                ++count;
+        } else
+            ++count;
+    }
+    return count;
+}
+
+void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
+    size_t file_cnt = file_count_filtered(dir_path);
+    if (file_cnt >= max_items_loaded) {
+        load_directory_contents_unordered(dir_path, file_cnt);
+        return;
+    }
+    current_path = dir_path;
+    entry_list.clear();
+    menu_view.clear();
+    auto filtering = !extension_filter.empty();
+    bool cxx_file = path_iequal(cxx_ext, extension_filter);
 
     text_current.set(current_path.empty() ? "/" : truncate(dir_path, 24));
 
     for (const auto& entry : fs::directory_iterator(dir_path, u"*")) {
         // Hide files starting with '.' (hidden / tmp).
-        if (entry_list.size() >= max_items_loaded) {
-            wasfull = true;
-            break;  // hard limit. size() complexyt constant in list from c++11, and for vector it constant.
-        }
         if (!show_hidden_files && is_hidden_file(entry.path()))
             continue;
 
@@ -197,11 +264,6 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     // add next page
     if (list_size > start + items_per_page) {
         entry_list.push_back({str_next, (uint32_t)pagination + 1, true});
-    } else {
-        // add warning if reached limit
-        if (wasfull) {
-            entry_list.push_back({str_full, max_items_loaded, true});
-        }
     }
 
     // add prev page

@@ -600,19 +600,30 @@ void SystemStatusView::new_sdcard_structure_checker() {
 void SystemStatusView::new_sdcard_structure_worker() {
     const std::filesystem::path root_dir = u"/";
     const std::filesystem::path sys_dir = u"SYS";
-    std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE", u"APPS", u"SYS"};
 
-    // Create the SYS directory if it doesn't exist
+    //TODO: Use blacklist or whitelist?
+    std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE",
+                                                      u"APPS",
+                                                      u"SYS",
+                                                      u"SETTINGS",
+                                                      u"DEBUG",
+                                                      u"LOGS",
+                                                      u"CAPTURES",
+                                                      u".Trash-1000"};
+
+    /// worker moving folders
     ensure_directory(sys_dir);
 
     auto directories = scan_root_directories(root_dir);
     for (const auto& dir_entry : directories) {
-        // If the path is not in the ignore list, move it to the SYS directory
         if (std::find(ignore_dirs.begin(), ignore_dirs.end(), dir_entry) == ignore_dirs.end()) {
             std::filesystem::path new_path = sys_dir / dir_entry.filename();
             rename_file(dir_entry, new_path);
         }
     }
+
+    /// worker renaming
+    rename_file(u"/SYS/SAMPLES", u"/SYS/CAPTURES");  // it's because, make it easier to use the sample folder.
 }
 
 /* Information View *****************************************************/
