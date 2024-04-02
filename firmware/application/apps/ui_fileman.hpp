@@ -31,7 +31,7 @@
 namespace ui {
 
 struct fileman_entry {
-    std::filesystem::path path{};
+    std::string path{};
     uint32_t size{};
     bool is_directory{};
 };
