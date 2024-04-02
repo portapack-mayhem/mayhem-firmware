@@ -64,9 +64,9 @@ class FileManBaseView : public View {
     uint32_t prev_highlight = 0;
     uint8_t pagination = 0;
     static constexpr size_t max_filename_length = 20;
-    static constexpr size_t max_items_shown = 100;
+    static constexpr size_t max_items_shown = 100;   // todo check if still needed with pagination
     static constexpr size_t max_items_loaded = 500;  // too big to text optimizations
-    static constexpr size_t items_per_page = 40;
+    static constexpr size_t items_per_page = 20;
 
     struct file_assoc_t {
         std::filesystem::path extension;
@@ -91,7 +91,7 @@ class FileManBaseView : public View {
 
     void pop_dir();
     void refresh_list();
-    void reload_current();
+    void reload_current(bool reset_pagination = false);
     void load_directory_contents(const std::filesystem::path& dir_path);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 

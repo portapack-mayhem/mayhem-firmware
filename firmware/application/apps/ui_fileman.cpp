@@ -254,7 +254,7 @@ void FileManBaseView::push_dir(const fs::path& path) {
         current_path /= path;
         saved_index_stack.push_back(menu_view.highlighted_index());
         menu_view.set_highlighted(0);
-        reload_current();
+        reload_current(true);
     }
 }
 
@@ -263,7 +263,7 @@ void FileManBaseView::pop_dir() {
         return;
 
     current_path = current_path.parent_path();
-    reload_current();
+    reload_current(true);
     menu_view.set_highlighted(saved_index_stack.back());
     saved_index_stack.pop_back();
 }
@@ -315,7 +315,8 @@ void FileManBaseView::refresh_list() {
     menu_view.set_highlighted(prev_highlight);
 }
 
-void FileManBaseView::reload_current() {
+void FileManBaseView::reload_current(bool reset_pagination) {
+    if (reset_pagination) pagination = 0;
     load_directory_contents(current_path);
     refresh_list();
 }
@@ -464,11 +465,11 @@ void FileManagerView::on_rename(std::string_view hint) {
                         auto new_name = renamed_path.replace_extension(partner.extension());
                         rename_file(partner, current_path / new_name);
                     }
-                    reload_current();
+                    reload_current(false);
                 });
 
             if (!has_partner)
-                reload_current();
+                reload_current(false);
         });
 }
 
@@ -490,11 +491,11 @@ void FileManagerView::on_delete() {
                     [this](const fs::path& partner, bool should_delete) {
                         if (should_delete)
                             delete_file(partner);
-                        reload_current();
+                        reload_current(true);
                     });
 
                 if (!has_partner)
-                    reload_current();
+                    reload_current(true);
             }
         });
 }
@@ -519,7 +520,7 @@ void FileManagerView::on_clean() {
                     std::filesystem::path current_full_path = path_name / file_name;
                     delete_file(current_full_path);
                 }
-                reload_current();
+                reload_current(true);
             }
         });
 }
@@ -528,7 +529,7 @@ void FileManagerView::on_new_dir() {
     name_buffer = "";
     text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& dir_name) {
         make_new_directory(current_path / dir_name);
-        reload_current();
+        reload_current(true);
     });
 }
 
@@ -552,14 +553,14 @@ void FileManagerView::on_paste() {
     clipboard_path = fs::path{};
     clipboard_mode = ClipboardMode::None;
     menu_view.focus();
-    reload_current();
+    reload_current(true);
 }
 
 void FileManagerView::on_new_file() {
     name_buffer = "";
     text_prompt(nav_, name_buffer, max_filename_length, [this](std::string& file_name) {
         make_new_file(current_path / file_name);
-        reload_current();
+        reload_current(true);
     });
 }
 
@@ -582,7 +583,7 @@ bool FileManagerView::handle_file_open() {
         return true;
     } else if (path_iequal(bmp_ext, ext)) {
         nav_.push<SplashViewer>(path);
-        reload_current();
+        reload_current(false);
         return true;
     } else if (path_iequal(rem_ext, ext)) {
         nav_.push<RemoteView>(path);
@@ -646,13 +647,13 @@ FileManagerView::FileManagerView(
                 if (get_selected_entry().path == "<--") {
                     pagination--;
                     menu_view.set_highlighted(0);
-                    reload_current();
+                    reload_current(true);
                     return;
                 }
                 if (get_selected_entry().path == "-->") {
                     pagination++;
                     menu_view.set_highlighted(0);
-                    reload_current();
+                    reload_current(true);
                     return;
                 }
                 push_dir(get_selected_entry().path);
