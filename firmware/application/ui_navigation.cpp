@@ -575,17 +575,17 @@ void SystemStatusView::new_sdcard_structure_checker() {
         (sd_status == sd_card::Status::Mounted)) {
         nav_.display_modal(
             "Warning",
-            "WARNING!\n"
+            "        WARNING!!!\n"
             "Sdcard content changed\n"
-            "in this update\n"
-            "Press YES to auto move\n"
+            "in this update,\n"
+            "Press YES to auto move.\n"
             "After finished,\n"
-            "you should move your own files back\n"
-            "in to original folder\n"
-            "which is now only for users\n"
-            "You can also choose NO\n"
-            "And then manually merge\n"
-            "Following the Wiki\n"
+            "you should move your own fil-\n"
+            "es back into original folder,\n"
+            "which is now only for users.\n"
+            "You can also choose NO,\n"
+            "and then manually merge\n"
+            "following the Wiki.\n"
             "Details:\n"
             "Mayhem wiki - Updating",
             COMPACTYESNO,
