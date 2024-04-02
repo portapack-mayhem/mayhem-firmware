@@ -48,6 +48,9 @@ static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
 static const fs::path rem_ext{u".REM"};
+static const fs::path system_dir{u"SYS"};
+static const fs::path apps_dir{u"APPS"};
+static const fs::path firmware_dir{u"FIRMWARE"};
 }  // namespace ui
 
 namespace {
@@ -251,10 +254,26 @@ void FileManBaseView::push_dir(const fs::path& path) {
     if (path == parent_dir_path) {
         pop_dir();
     } else {
-        current_path /= path;
-        saved_index_stack.push_back(menu_view.highlighted_index());
-        menu_view.set_highlighted(0);
-        reload_current();
+        if (path == system_dir || path == apps_dir || path == firmware_dir) {
+            nav_.push<ModalMessageView>(
+                "Warning",
+                "It is not suggested to\n"
+                "modify system files,\n"
+                "so you can easily\n"
+                "update sdcard content.\n"
+                "You can add all the custom\n"
+                "files in user folders.\n"
+                "Continue anyway?",
+                YESNO,
+                [this, path](bool choice) {
+                    if (choice) {
+                        current_path /= path;
+                        saved_index_stack.push_back(menu_view.highlighted_index());
+                        menu_view.set_highlighted(0);
+                        reload_current();
+                    }
+                });
+        }
     }
 }
 
@@ -307,7 +326,8 @@ void FileManBaseView::refresh_list() {
 
             menu_view.add_item(
                 {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
-                 ui::Color::yellow(),
+                 // if entry is system dir, color it red, otherwise, color it yellow
+                 (entry.path == system_dir || entry.path == apps_dir || entry.path == firmware_dir) ? Color::red() : Color::yellow(),
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
                      if (on_select_entry)
