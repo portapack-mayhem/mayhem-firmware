@@ -61,7 +61,9 @@ class FileManBaseView : public View {
     void push_dir(const std::filesystem::path& path);
 
    protected:
-    static constexpr size_t max_filename_length = 64;
+    uint32_t prev_highlight = 0;
+    uint8_t pagination = 0;
+    static constexpr size_t max_filename_length = 20;
     static constexpr size_t max_items_shown = 100;
 
     struct file_assoc_t {
@@ -101,7 +103,7 @@ class FileManBaseView : public View {
     std::filesystem::path current_path{u""};
     std::filesystem::path extension_filter{u""};
 
-    std::vector<fileman_entry> entry_list{};
+    std::list<fileman_entry> entry_list{};
     std::vector<uint32_t> saved_index_stack{};
 
     bool show_hidden_files{false};

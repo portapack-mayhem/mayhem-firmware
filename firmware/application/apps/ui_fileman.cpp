@@ -62,7 +62,7 @@ std::string truncate(const fs::path& path, size_t max_length) {
 }
 
 // Inserts the entry into the entry list sorted directories first then by file name.
-void insert_sorted(std::vector<fileman_entry>& entries, fileman_entry&& entry) {
+void insert_sorted(std::list<fileman_entry>& entries, fileman_entry&& entry) {
     auto it = std::lower_bound(
         std::begin(entries), std::end(entries), entry,
         [](const fileman_entry& lhs, const fileman_entry& rhs) {
@@ -149,6 +149,7 @@ namespace ui {
 void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
     current_path = dir_path;
     entry_list.clear();
+    menu_view.clear();
     auto filtering = !extension_filter.empty();
     bool cxx_file = path_iequal(cxx_ext, extension_filter);
 
@@ -167,6 +168,10 @@ void FileManBaseView::load_directory_contents(const fs::path& dir_path) {
         }
     }
 
+    // paginating //todo
+    auto list_size = entry_list.size();
+    if (list_size > 40) entry_list.erase(std::next(entry_list.begin(), 40), entry_list.end());
+
     // Add "parent" directory if not at the root.
     if (!dir_path.empty())
         entry_list.insert(entry_list.begin(), {parent_dir_path, 0, true});
@@ -181,7 +186,10 @@ fs::path FileManBaseView::get_selected_full_path() const {
 
 const fileman_entry& FileManBaseView::get_selected_entry() const {
     // TODO: return reference to an "empty" entry on OOB?
-    return entry_list[menu_view.highlighted_index()];
+    auto it = entry_list.begin();
+    if (menu_view.highlighted_index() >= 1) std::advance(it, menu_view.highlighted_index());
+    return *it;
+    // return entry_list[menu_view.highlighted_index()];
 }
 
 FileManBaseView::FileManBaseView(
@@ -248,7 +256,7 @@ void FileManBaseView::refresh_list() {
     if (on_refresh_widgets)
         on_refresh_widgets(false);
 
-    auto prev_highlight = menu_view.highlighted_index();
+    prev_highlight = menu_view.highlighted_index();
     menu_view.clear();
 
     for (const auto& entry : entry_list) {
