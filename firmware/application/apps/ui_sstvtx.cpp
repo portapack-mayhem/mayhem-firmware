@@ -214,13 +214,16 @@ SSTVTXView::SSTVTXView(
     file_list_index[0] = std::filesystem::path(u"/SSTV");
     file_list_index[1] = std::filesystem::path(u"/SYS/SSTV");
 
+    bool found_files = false;
+
     for (const auto& now_path : file_list_index) {
         file_list = scan_root_files(now_path, u"*.bmp");
 
         if (!file_list.size()) {
-            file_error = true;
-            return;
+            continue;  // Skip to the next path if no files found
         }
+
+        found_files = true;  // Mark that we found some files
 
         for (const auto& file_name : file_list) {
             if (!bmp_file.open(now_path / file_name).is_valid()) {
@@ -235,6 +238,11 @@ SSTVTXView::SSTVTXView(
                 }
             }
         }
+    }
+
+    if (!found_files) {
+        file_error = true;
+        return;
     }
 
     if (!bitmaps.size()) {
