@@ -373,6 +373,18 @@ FileLoadView::FileLoadView(
 
     on_select_entry = [this](KeyEvent) {
         if (get_selected_entry().is_directory) {
+            if (get_selected_entry().path == "<--") {
+                pagination--;
+                menu_view.set_highlighted(0);
+                reload_current(false);
+                return;
+            }
+            if (get_selected_entry().path == "-->") {
+                pagination++;
+                menu_view.set_highlighted(0);
+                reload_current(false);
+                return;
+            }
             push_dir(get_selected_entry().path);
         } else {
             if (on_changed)
