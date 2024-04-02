@@ -65,7 +65,7 @@ class FileManBaseView : public View {
     uint8_t pagination = 0;
     uint8_t nb_pages = 1;
     static constexpr size_t max_filename_length = 20;
-    static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't load more
+    static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't sort it
     static constexpr size_t items_per_page = 20;
 
     struct file_assoc_t {
@@ -89,10 +89,12 @@ class FileManBaseView : public View {
     std::filesystem::path get_selected_full_path() const;
     const fileman_entry& get_selected_entry() const;
 
+    int file_count_filtered(const std::filesystem::path& directory);
     void pop_dir();
     void refresh_list();
     void reload_current(bool reset_pagination = false);
     void load_directory_contents(const std::filesystem::path& dir_path);
+    void load_directory_contents_unordered(const std::filesystem::path& dir_path, size_t file_cnt);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
     NavigationView& nav_;
