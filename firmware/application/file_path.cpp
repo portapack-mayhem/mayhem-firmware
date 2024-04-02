@@ -23,36 +23,36 @@
 #include "file_path.hpp"
 #include "file.hpp"
 
-const std::filesystem::path adsb_dir = u"RES/ADSB";  // this dir no need to seperate profiles since all are resources
+const std::filesystem::path adsb_dir = u"SYS/ADSB";  // this dir no need to seperate profiles since all are resources
 
-const std::filesystem::path ais_dir = u"RES/AIS";  // this dir no need to seperate profiles since all are resources
+const std::filesystem::path ais_dir = u"SYS/AIS";  // this dir no need to seperate profiles since all are resources
 
 const std::filesystem::path apps_dir = u"APPS";  // currently in root
 
 // APRS
 const std::filesystem::path aprs_dir = u"APRS";  // fake path
 const std::filesystem::path aprs_dir_user = u"USR/APRS";
-const std::filesystem::path aprs_dir_resources = u"RES/APRS";
+const std::filesystem::path aprs_dir_resources = u"SYS/APRS";
 
 // AUDIO
 const std::filesystem::path audio_dir = u"AUDIO";
 const std::filesystem::path audio_dir_user = u"USR/AUDIO";
-const std::filesystem::path audio_dir_resources = u"RES/AUDIO";
+const std::filesystem::path audio_dir_resources = u"SYS/AUDIO";
 
 // BLERX
 const std::filesystem::path blerx_dir = u"BLERX";
 const std::filesystem::path blerx_dir_user = u"USR/BLERX";
-const std::filesystem::path blerx_dir_resources = u"RES/BLERX";
+const std::filesystem::path blerx_dir_resources = u"SYS/BLERX";
 
 // BLETX
 const std::filesystem::path bletx_dir = u"BLETX";
 const std::filesystem::path bletx_dir_user = u"USR/BLETX";
-const std::filesystem::path bletx_dir_resources = u"RES/BLETX";
+const std::filesystem::path bletx_dir_resources = u"SYS/BLETX";
 
 // CAPTURES
 const std::filesystem::path captures_dir = u"CAPTURES";
 const std::filesystem::path captures_dir_user = u"USR/CAPTURES";  // used by recon and capture apps to save capture C16 into USR
-const std::filesystem::path captures_dir_resources = u"RES/CAPTURES";
+const std::filesystem::path captures_dir_resources = u"SYS/CAPTURES";
 
 const std::filesystem::path debug_dir = u"DEBUG";  // in root
 
@@ -61,28 +61,28 @@ const std::filesystem::path firmware_dir = u"FIRMWARE";  // in root
 // FREQMAN
 const std::filesystem::path freqman_dir = u"FREQMAN";
 const std::filesystem::path freqman_dir_user = u"USR/FREQMAN";
-const std::filesystem::path freqman_dir_resources = u"RES/FREQMAN";
+const std::filesystem::path freqman_dir_resources = u"SYS/FREQMAN";
 
 const std::filesystem::path gps_dir = u"USR/GPS";
 
 const std::filesystem::path logs_dir = u"USR/LOGS";
 
-const std::filesystem::path looking_glass_dir = u"RES/LOOKINGGLASS";
+const std::filesystem::path looking_glass_dir = u"SYS/LOOKINGGLASS";
 
 // PLAYLIST
 const std::filesystem::path playlist_dir = u"PLAYLIST";                // fake dir
 const std::filesystem::path playlist_dir_user = u"USR/PLAYLIST";       // used by playlist aka replay app, to save nre created PPL files into USR
-const std::filesystem::path playlist_dir_resources = u"RES/PLAYLIST";  //
+const std::filesystem::path playlist_dir_resources = u"SYS/PLAYLIST";  //
 
 // REMOTE
 const std::filesystem::path remotes_dir = u"REMOTES";  // fake dir
 const std::filesystem::path remotes_dir_user = u"USR/REMOTES";
-const std::filesystem::path remotes_dir_resources = u"RES/REMOTES";
+const std::filesystem::path remotes_dir_resources = u"SYS/REMOTES";
 
 // recon app
 const std::filesystem::path repeat_rec_path = u"USR/CAPTURES";  // this is for recon captures files
 
-const std::filesystem::path samples_dir = u"RES/CAPTURES";  // TODO: rename var name
+const std::filesystem::path samples_dir = u"SYS/CAPTURES";  // TODO: rename var name
 
 const std::filesystem::path screenshots_dir = u"USR/SCREENSHOTS";  // TODO: rename var name to screenshots_dir
 
@@ -99,6 +99,6 @@ const std::filesystem::path sstv_dir_resources = u"USR/SSTV";
 // WAV
 const std::filesystem::path wav_dir = u"WAV";
 const std::filesystem::path wav_dir_user = u"USR/WAV";
-const std::filesystem::path wav_dir_resources = u"RES/WAV";
+const std::filesystem::path wav_dir_resources = u"SYS/WAV";
 
-const std::filesystem::path whipcalc_dir = u"RES/WHIPCALC";
+const std::filesystem::path whipcalc_dir = u"SYS/WHIPCALC";

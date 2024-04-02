@@ -95,7 +95,7 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     stop();
 
-    if (!reader->open(u"/RES/WAV/" + file_list[id].native())) {
+    if (!reader->open(u"/SYS/WAV/" + file_list[id].native())) {
         if (!reader->open(u"/USR/WAV/" + file_list[id].native())) {
             file_error();
             return;
@@ -184,7 +184,7 @@ void SoundBoardView::refresh_list() {
                         if (reader->open(now_path / entry.path().native())) {
                             if ((reader->channels() == 1) && ((reader->bits_per_sample() == 8) || (reader->bits_per_sample() == 16))) {
                                 // sounds[c].ms_duration = reader->ms_duration();
-                                // sounds[c].path = u"/RES/WAV/" + entry.path().native();
+                                // sounds[c].path = u"/SYS/WAV/" + entry.path().native();
                                 if (count >= (page - 1) * 100 && count < page * 100) {
                                     file_list.push_back(entry.path());
                                     if (file_list.size() == 100) {

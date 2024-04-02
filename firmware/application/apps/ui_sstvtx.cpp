@@ -175,7 +175,7 @@ void SSTVTXView::start_tx() {
 void SSTVTXView::on_bitmap_changed(const size_t index) {
     auto open_system_dir = bmp_file.open("/USR/SSTV/" + bitmaps[index].string());
     if (!open_system_dir->ok()) {
-        bmp_file.open("/RES/SSTV/" + bitmaps[index].string());
+        bmp_file.open("/SYS/SSTV/" + bitmaps[index].string());
     }
     bmp_file.read(&bmp_header, sizeof(bmp_header));
     set_dirty();
@@ -212,7 +212,7 @@ SSTVTXView::SSTVTXView(
     uint32_t c;
 
     file_list_index[0] = std::filesystem::path(u"/USR/SSTV");
-    file_list_index[1] = std::filesystem::path(u"/RES/SSTV");
+    file_list_index[1] = std::filesystem::path(u"/SYS/SSTV");
 
     for (const auto& now_path : file_list_index) {
         file_list = scan_root_files(now_path, u"*.bmp");

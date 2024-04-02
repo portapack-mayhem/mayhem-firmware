@@ -97,7 +97,7 @@ void FreqManBaseView::focus() {
     if (error_ == ERROR_ACCESS) {
         nav_.display_modal("Error", "File access error", ABORT);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin either /USR/FREQMAN\nor /RES/FREQMAN", ABORT);
+        nav_.display_modal("Error", "No database files\nin either /USR/FREQMAN\nor /SYS/FREQMAN", ABORT);
     } else {
         options_category.focus();
     }

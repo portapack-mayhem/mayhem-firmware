@@ -23,11 +23,11 @@ import sys
 import struct
 from PIL import Image
 
-outfile = open('../../sdcard/RES/ADSB/world_map.bin', 'wb')
+outfile = open('../../sdcard/SYS/ADSB/world_map.bin', 'wb')
 
 # Allow for bigger images
 Image.MAX_IMAGE_PIXELS = None
-im = Image.open("../../sdcard/RES/ADSB/world_map.jpg")
+im = Image.open("../../sdcard/SYS/ADSB/world_map.jpg")
 pix = im.load()
 # Write as unsigned short (2 bytes) as little endian
 outfile.write(struct.pack('<H', im.size[0]))
