@@ -647,13 +647,13 @@ FileManagerView::FileManagerView(
                 if (get_selected_entry().path == "<--") {
                     pagination--;
                     menu_view.set_highlighted(0);
-                    reload_current(true);
+                    reload_current(false);
                     return;
                 }
                 if (get_selected_entry().path == "-->") {
                     pagination++;
                     menu_view.set_highlighted(0);
-                    reload_current(true);
+                    reload_current(false);
                     return;
                 }
                 push_dir(get_selected_entry().path);
