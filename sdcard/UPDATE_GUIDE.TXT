@@ -1,9 +1,9 @@
 Your personal files (Capture, log, frequency lists, etc)
-should be saved in the /USR folder and sub-folders.
+should be saved in the folders except /SYS folder.
 
-The /RES folder contains official release SD Card
+The /SYS folder contains official release SD Card
 resources files. It is recommended that users should
-not store files in the /RES folder, so that the /RES
+not store files in the /SYS folder, so that the /SYS
 folder can be replaced easily when updating the
 SD Card contents.
 
@@ -17,5 +17,5 @@ and then run the Flash Utility app.
 
 If you want to update official release SD Card
 resources files:
-simply replace (or delete and paste) the entire /RES
+simply replace (or delete and paste) the entire /SYS
 folder, since your personal files are not in it.

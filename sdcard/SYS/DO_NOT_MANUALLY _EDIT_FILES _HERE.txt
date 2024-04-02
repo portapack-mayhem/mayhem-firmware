@@ -8,4 +8,4 @@ place your own files in the /USR
 folder.
 
 Firmware apps will check in both
-/USR and /RES folders for files.
+/USR and /SYS folders for files.
