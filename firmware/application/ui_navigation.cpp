@@ -562,7 +562,7 @@ void SystemStatusView::rtc_battery_workaround() {
 
 void SystemStatusView::new_sdcard_structure_checker() {
     const std::filesystem::path root_dir = u"/";
-    const std::filesystem::path resources_dir = u"RES";
+    const std::filesystem::path resources_dir = u"SYS";
     std::vector<std::filesystem::path> directories = scan_root_directories(root_dir);
 
     auto scan_result = std::find(directories.begin(), directories.end(), resources_dir);
