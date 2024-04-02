@@ -259,10 +259,10 @@ void FileManBaseView::push_dir(const fs::path& path) {
 }
 
 void FileManBaseView::push_fake_dir(const fs::path& path) {
-    // the one this accepted is just a flag (e.g. CAPTURE, instead of /SYS/CAPTURE nor /USR/CAPTURE), not real dir
+    // the one this accepted is just a flag (e.g. CAPTURE, instead of /SYS/CAPTURE nor /CAPTURE), not real dir
     // after passing the flag here, this func will handle it automatically and make callback automatically
     fs::path first_level = path.extract_first_level();
-    const fs::path user_dir = u"/USR";
+    const fs::path user_dir = u"/";
     const fs::path system_dir = u"/SYS";
     const fs::path default_mother_dir = user_dir;
 
@@ -344,20 +344,25 @@ void FileManBaseView::reload_current() {
 fs::path FileManBaseView::jumping_between_profiles(fs::path& path, DirProfiles profile) {
     fs::path first_level = path.extract_first_level();
     const fs::path null_path = u"";
-    const fs::path user_dir = u"/USR";
+    const fs::path user_dir = u"/";
     const fs::path system_dir = u"/SYS";
 
-    if (first_level == null_path && profile == DirProfiles::User) {  // path is first level aka /abcdef
-        path = user_dir;
-    } else if (first_level == null_path && profile == DirProfiles::System) {
-        path = system_dir;
-    } else if ((first_level == system_dir) &&
-               profile == DirProfiles::User) {  // jump to sys mother dir if profile asks
+    if (profile == DirProfiles::User) {
+        if (first_level == system_dir) {  // /SYS/abcdef
+            path = path.remove_first_level();
+        } else if (first_level == null_path) {  // /abcdef
+            // this is for: after user redirected to other dir and then switch to user profile
+            path = user_dir;
+        }
 
-        path = user_dir / path.remove_first_level();
-
-    } else if ((first_level == user_dir) && profile == DirProfiles::System) {
-        path = system_dir / path.remove_first_level();
+    } else if (profile == DirProfiles::System) {
+        if (first_level == null_path && path != system_dir) {  // /abcdef
+            //the second argument is for preventing circuling enter system dir
+            path = system_dir / path;
+        } else if (first_level == system_dir) {  // /SYS/abcdef
+            // this is for: after user redirected to other dir and then switch to system profile
+            path = system_dir;
+        }
     }
 
     return path;

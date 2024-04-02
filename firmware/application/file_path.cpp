@@ -31,27 +31,27 @@ const std::filesystem::path apps_dir = u"APPS";  // currently in root
 
 // APRS
 const std::filesystem::path aprs_dir = u"APRS";  // fake path
-const std::filesystem::path aprs_dir_user = u"USR/APRS";
+const std::filesystem::path aprs_dir_user = u"/APRS";
 const std::filesystem::path aprs_dir_resources = u"SYS/APRS";
 
 // AUDIO
 const std::filesystem::path audio_dir = u"AUDIO";
-const std::filesystem::path audio_dir_user = u"USR/AUDIO";
+const std::filesystem::path audio_dir_user = u"/AUDIO";
 const std::filesystem::path audio_dir_resources = u"SYS/AUDIO";
 
 // BLERX
 const std::filesystem::path blerx_dir = u"BLERX";
-const std::filesystem::path blerx_dir_user = u"USR/BLERX";
+const std::filesystem::path blerx_dir_user = u"/BLERX";
 const std::filesystem::path blerx_dir_resources = u"SYS/BLERX";
 
 // BLETX
 const std::filesystem::path bletx_dir = u"BLETX";
-const std::filesystem::path bletx_dir_user = u"USR/BLETX";
+const std::filesystem::path bletx_dir_user = u"/BLETX";
 const std::filesystem::path bletx_dir_resources = u"SYS/BLETX";
 
 // CAPTURES
 const std::filesystem::path captures_dir = u"CAPTURES";
-const std::filesystem::path captures_dir_user = u"USR/CAPTURES";  // used by recon and capture apps to save capture C16 into USR
+const std::filesystem::path captures_dir_user = u"/CAPTURES";  // used by recon and capture apps to save capture C16 into USR
 const std::filesystem::path captures_dir_resources = u"SYS/CAPTURES";
 
 const std::filesystem::path debug_dir = u"DEBUG";  // in root
@@ -60,45 +60,45 @@ const std::filesystem::path firmware_dir = u"FIRMWARE";  // in root
 
 // FREQMAN
 const std::filesystem::path freqman_dir = u"FREQMAN";
-const std::filesystem::path freqman_dir_user = u"USR/FREQMAN";
+const std::filesystem::path freqman_dir_user = u"/FREQMAN";
 const std::filesystem::path freqman_dir_resources = u"SYS/FREQMAN";
 
-const std::filesystem::path gps_dir = u"USR/GPS";
+const std::filesystem::path gps_dir = u"/GPS";
 
-const std::filesystem::path logs_dir = u"USR/LOGS";
+const std::filesystem::path logs_dir = u"/LOGS";
 
 const std::filesystem::path looking_glass_dir = u"SYS/LOOKINGGLASS";
 
 // PLAYLIST
 const std::filesystem::path playlist_dir = u"PLAYLIST";                // fake dir
-const std::filesystem::path playlist_dir_user = u"USR/PLAYLIST";       // used by playlist aka replay app, to save nre created PPL files into USR
+const std::filesystem::path playlist_dir_user = u"/PLAYLIST";       // used by playlist aka replay app, to save nre created PPL files into USR
 const std::filesystem::path playlist_dir_resources = u"SYS/PLAYLIST";  //
 
 // REMOTE
 const std::filesystem::path remotes_dir = u"REMOTES";  // fake dir
-const std::filesystem::path remotes_dir_user = u"USR/REMOTES";
+const std::filesystem::path remotes_dir_user = u"/REMOTES";
 const std::filesystem::path remotes_dir_resources = u"SYS/REMOTES";
 
 // recon app
-const std::filesystem::path repeat_rec_path = u"USR/CAPTURES";  // this is for recon captures files
+const std::filesystem::path repeat_rec_path = u"/CAPTURES";  // this is for recon captures files
 
 const std::filesystem::path samples_dir = u"SYS/CAPTURES";  // TODO: rename var name
 
-const std::filesystem::path screenshots_dir = u"USR/SCREENSHOTS";  // TODO: rename var name to screenshots_dir
+const std::filesystem::path screenshots_dir = u"/SCREENSHOTS";  // TODO: rename var name to screenshots_dir
 
-const std::filesystem::path settings_dir = u"USR/SETTINGS";
+const std::filesystem::path settings_dir = u"/SETTINGS";
 
 const std::filesystem::path spectrum_dir = u"SPECTRUM";  // fake dir
 
-const std::filesystem::path splash_dir = u"USR/SPLASH";
+const std::filesystem::path splash_dir = u"/SPLASH";
 
 const std::filesystem::path sstv_dir = u"SSTV";
-const std::filesystem::path sstv_dir_user = u"USR/SSTV";
-const std::filesystem::path sstv_dir_resources = u"USR/SSTV";
+const std::filesystem::path sstv_dir_user = u"/SSTV";
+const std::filesystem::path sstv_dir_resources = u"/SSTV";
 
 // WAV
 const std::filesystem::path wav_dir = u"WAV";
-const std::filesystem::path wav_dir_user = u"USR/WAV";
+const std::filesystem::path wav_dir_user = u"/WAV";
 const std::filesystem::path wav_dir_resources = u"SYS/WAV";
 
 const std::filesystem::path whipcalc_dir = u"SYS/WHIPCALC";

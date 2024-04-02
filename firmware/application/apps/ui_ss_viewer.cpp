@@ -27,7 +27,7 @@ namespace fs = std::filesystem;
 
 namespace ui {
 
-const std::filesystem::path current_using_splash_image{u"/USR/splash.bmp"};
+const std::filesystem::path current_using_splash_image{u"/splash.bmp"};
 
 ScreenshotViewer::ScreenshotViewer(
     NavigationView& nav,

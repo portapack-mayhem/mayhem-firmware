@@ -97,7 +97,7 @@ void FreqManBaseView::focus() {
     if (error_ == ERROR_ACCESS) {
         nav_.display_modal("Error", "File access error", ABORT);
     } else if (error_ == ERROR_NOFILES) {
-        nav_.display_modal("Error", "No database files\nin either /USR/FREQMAN\nor /SYS/FREQMAN", ABORT);
+        nav_.display_modal("Error", "No database files\nin either /FREQMAN\nor /SYS/FREQMAN", ABORT);
     } else {
         options_category.focus();
     }
@@ -256,7 +256,7 @@ void FrequencyManagerView::on_edit_desc() {
 }
 
 void FrequencyManagerView::on_add_category() {
-    ensure_directory(u"/USR/FREQMAN");
+    ensure_directory(u"/FREQMAN");
     temp_buffer_.clear();
     text_prompt(nav_, temp_buffer_, 20, [this](std::string& new_name) {
         if (!new_name.empty()) {
@@ -337,7 +337,7 @@ FrequencyManagerView::FrequencyManagerView(
     };
 
     button_add_category.on_select = [this]() {
-        // this one will only directly add to /USR/FREQMAN
+        // this one will only directly add to /FREQMAN
         on_add_category();
     };
 

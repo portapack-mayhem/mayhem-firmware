@@ -35,7 +35,7 @@ namespace ui {
 
 void SSTVTXView::focus() {
     if (file_error)
-        nav_.display_modal("No files", "No valid bitmaps\nin either /SYS/SSTV or\n /USR/SSTV/ directory.", ABORT);
+        nav_.display_modal("No files", "No valid bitmaps\nin either /SYS/SSTV or\n /SSTV/ directory.", ABORT);
     else
         options_bitmaps.focus();
 }
@@ -173,7 +173,7 @@ void SSTVTXView::start_tx() {
 }
 
 void SSTVTXView::on_bitmap_changed(const size_t index) {
-    auto open_system_dir = bmp_file.open("/USR/SSTV/" + bitmaps[index].string());
+    auto open_system_dir = bmp_file.open("/SSTV/" + bitmaps[index].string());
     if (!open_system_dir->ok()) {
         bmp_file.open("/SYS/SSTV/" + bitmaps[index].string());
     }
@@ -211,7 +211,7 @@ SSTVTXView::SSTVTXView(
     options_t mode_options;
     uint32_t c;
 
-    file_list_index[0] = std::filesystem::path(u"/USR/SSTV");
+    file_list_index[0] = std::filesystem::path(u"/SSTV");
     file_list_index[1] = std::filesystem::path(u"/SYS/SSTV");
 
     for (const auto& now_path : file_list_index) {
