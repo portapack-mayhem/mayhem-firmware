@@ -708,6 +708,14 @@ bool NavigationView::set_on_pop(std::function<void()> on_pop) {
     return true;
 }
 
+void NavigationView::handle_autostart() {
+    std::string autostart_app{""};
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
+    if (!autostart_app.empty()) StartAppByName(autostart_app.c_str());
+}
+
 /* Helpers  **************************************************************/
 
 static void add_apps(NavigationView& nav, BtnGridView& grid, app_location_t loc) {
@@ -861,20 +869,11 @@ SystemView::SystemView(
 
     navigation_view.push<SystemMenuView>();
 
-    std::string autostart_app{""};
-    bool skip_splash = false;  // skip when autostart an app
-    SettingsStore nav_setting{
-        "nav"sv,
-        {{"autostart_app"sv, &autostart_app}}};
-    if (!autostart_app.empty()) skip_splash = navigation_view.StartAppByName(autostart_app.c_str());
-
-    if (pmem::config_splash() && !skip_splash) {
+    if (pmem::config_splash()) {
         navigation_view.push<BMPView>();
     }
-    if (!skip_splash) {  // is autostarted an app, back should be available
-        status_view.set_back_enabled(false);
-        status_view.set_title_image_enabled(true);
-    }
+    status_view.set_back_enabled(false);
+    status_view.set_title_image_enabled(true);
     status_view.set_dirty();
 }
 
