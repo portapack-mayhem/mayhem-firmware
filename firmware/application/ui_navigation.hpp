@@ -431,17 +431,17 @@ class ModalMessageView : public View {
     const std::function<void(bool)> on_choice_;
 
     Button button_ok{
-        {10 * 8, 14 * 16, 10 * 8, 48},
+        {0, screen_height - 8 * 8, screen_width, 48},
         "OK",
     };
 
     Button button_yes{
-        {5 * 8, 14 * 16, 8 * 8, 48},
+        {0, screen_height - 8 * 8, screen_width / 2, 48},
         "YES",
     };
 
     Button button_no{
-        {17 * 8, 14 * 16, 8 * 8, 48},
+        {screen_width / 2, screen_height - 8 * 8, screen_width / 2, 48},
         "NO",
     };
 };

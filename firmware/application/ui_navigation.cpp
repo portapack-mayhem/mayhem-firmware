@@ -1088,7 +1088,7 @@ void ModalMessageView::paint(Painter& painter) {
 
 void ModalMessageView::focus() {
     if ((type_ == YESNO) || (type_ == COMPACTYESNO)) {
-        button_yes.focus();
+        button_no.focus();  // it should default to NO like all the operating system
     } else {
         button_ok.focus();
     }
