@@ -137,6 +137,8 @@ class NavigationView : public View {
     static const AppList appList;
 
     bool StartAppByName(const char* name);  // Starts a View  (app) by name stored in appListFC. This is to start apps from console
+    void handle_autostart();
+
    private:
     struct ViewState {
         std::unique_ptr<View> view;
