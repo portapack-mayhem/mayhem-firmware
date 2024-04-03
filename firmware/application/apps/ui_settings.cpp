@@ -839,6 +839,26 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
+/* SetAutostartView*/
+SetAutostartView::SetAutostartView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel});
+
+    button_save.on_select = [&nav, this](Button&) {
+        // todo save setting so ini
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+}
+
+void SetMenuColorView::focus() {
+    button_save.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -866,6 +886,7 @@ void SettingsMenuView::on_populate() {
         //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
+        {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
 }
 

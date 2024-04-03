@@ -799,6 +799,32 @@ class SetMenuColorView : public View {
     };
 };
 
+class SetAutostartView : public View {
+   public:
+    SetAutostartView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Autostart"; };
+
+   private:
+    Labels labels{
+        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Color::light_grey()},
+        {{2 * 8, 8 * 16}, "Red Level:", Color::light_grey()},
+        {{2 * 8, 9 * 16}, "Green Level:", Color::light_grey()},
+        {{2 * 8, 10 * 16}, "Blue Level:", Color::light_grey()},
+    };
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);
