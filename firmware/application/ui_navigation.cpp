@@ -627,7 +627,7 @@ void SystemStatusView::new_sdcard_structure_worker() {
     rename_file(u"/SYS/SAMPLES", u"/SYS/CAPTURES");  // it's because, make it easier to use the sample folder.
 
     /// worker check adding flag
-    make_new_file(U"/AUTO_REMOVED");  // add a flag to check in case if need something as flag to check in the future
+    make_new_file(U"/AUTO_MOVED");  // add a flag to check in case if need something as flag to check in the future
 }
 
 /* Information View *****************************************************/
