@@ -599,27 +599,42 @@ void SystemStatusView::new_sdcard_structure_checker() {
 }
 
 void SystemStatusView::new_sdcard_structure_worker() {
+    ////
+    ui::Painter painter{};
+    std::string debug_dir = "DEBUG";
+    std::filesystem::path filename{};
+    File zxkmm_dump_file{};
+    // create new dump file name and DEBUG directory
+    ensure_directory(debug_dir);
+    filename = next_filename_matching_pattern(debug_dir + "/ZXKMM_DUMP_????.TXT");
+    if (filename.empty()) {
+        painter.draw_string({0, 320 - 16}, ui::Styles::red, "COULD NOT GET DUMP NAME !");
+    }
+    // dump data fo filename
+    auto error = zxkmm_dump_file.create(filename);
+    if (error) {
+        painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
+    }
+    ////
+
     const std::filesystem::path root_dir = u"/";
     const std::filesystem::path system_dir = u"SYS";
 
-    std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE",
-                                                      u"APPS",
-                                                      u"SYS",
-                                                      u"SETTINGS",
-                                                      u"DEBUG",
-                                                      u"LOGS",
-                                                      u"CAPTURES",
-                                                      u".Trash-1000",
-                                                      u"SCREENSHOTS"};
+    std::vector<std::filesystem::path> root_dirs = scan_root_directories(root_dir);
 
     /// worker moving folders
     ensure_directory(system_dir);
 
     auto directories = scan_root_directories(root_dir);
-    for (const auto& dir_entry : directories) {
-        if (std::find(ignore_dirs.begin(), ignore_dirs.end(), dir_entry) == ignore_dirs.end()) {
-            std::filesystem::path new_path = system_dir / dir_entry.filename();
-            rename_file(dir_entry, new_path);
+
+    for (const auto& e : root_dirs) {
+        for (const auto& d : allow_dirs) {
+            if (e.absolute_trimmed_path().string() == d) {
+                std::filesystem::path new_path = system_dir / d;
+                rename_file(e, new_path);
+                break;
+            } else {
+            }
         }
     }
 

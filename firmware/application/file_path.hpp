@@ -103,4 +103,6 @@ extern const std::filesystem::path wav_dir_resources;
 
 extern const std::filesystem::path whipcalc_dir;
 
+extern const std::vector<std::string> allow_dirs;
+
 #endif /* __FILE_PATH_H__ */

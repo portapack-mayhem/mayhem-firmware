@@ -119,6 +119,7 @@ struct path {
     path filename() const;
     path remove_first_level() const;
     path extract_first_level() const;
+    path absolute_trimmed_path() const;
     path stem() const;
 
     bool empty() const {

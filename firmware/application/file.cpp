@@ -487,6 +487,19 @@ path path::extract_first_level() const {  // /abc/def/ghi/hjk.q to /abc
     }
 }
 
+path path::absolute_trimmed_path() const {
+    basic_string<char16_t> path_str = _s.substr();
+
+    if (path_str.front() == '/') {
+        path_str.erase(0, 1);
+    }
+    if (path_str.back() == '/') {
+        path_str.pop_back();
+    }
+
+    return path{path_str};
+}
+
 path path::stem() const {
     const auto t = filename().native();
     const auto index = t.find_last_of(u'.');

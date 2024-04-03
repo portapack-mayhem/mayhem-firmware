@@ -107,3 +107,20 @@ const std::filesystem::path wav_dir_user = u"/WAV";
 const std::filesystem::path wav_dir_resources = u"SYS/WAV";
 
 const std::filesystem::path whipcalc_dir = u"SYS/WHIPCALC";
+
+// vector
+
+const std::vector<std::string> allow_dirs = {
+    "ADSB",
+    "AIS",
+    "BLETX",
+    "GPS",
+    "LOOKINGGLASS",
+    "PLAYLIST",
+    "REMOTES",
+    "SPLASH",
+    "SSTV",
+    "WAV",
+    "WHIPCALC",
+    "SAMPLES",
+};
