@@ -107,7 +107,8 @@ void ADSBLogger::log(const ADSBLogEntry& log_entry) {
         log_line += " Type:" + to_string_dec_uint(log_entry.vel_type) +
                     " Hdg:" + to_string_dec_uint(log_entry.vel.heading) +
                     " Spd: " + to_string_dec_int(log_entry.vel.speed);
-    if (log_entry.sil != 0) log_line += " Sil:" + to_string_dec_uint(log_entry.sil);
+    if (log_entry.sil != 0)
+        log_line += " Sil:" + to_string_dec_uint(log_entry.sil);
     log_file.write_entry(log_line);
 }
 
