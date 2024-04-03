@@ -602,7 +602,6 @@ void SystemStatusView::new_sdcard_structure_worker() {
     const std::filesystem::path root_dir = u"/";
     const std::filesystem::path system_dir = u"SYS";
 
-    // TODO: Use blacklist or whitelist?
     std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE",
                                                       u"APPS",
                                                       u"SYS",

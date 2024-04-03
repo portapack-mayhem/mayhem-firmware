@@ -50,7 +50,7 @@ enum class ClipboardMode : uint8_t {
 
 enum class DirProfiles : uint8_t {
     User = 1,
-    System =2
+    System = 2
 };
 
 class FileManBaseView : public View {

@@ -65,7 +65,6 @@ const std::filesystem::path freqman_dir_resources = u"SYS/FREQMAN";
 
 const std::filesystem::path fskrx_dir_user = u"/FSKRX";
 
-
 const std::filesystem::path gps_dir = u"/GPS";
 
 const std::filesystem::path logs_dir = u"/LOGS";

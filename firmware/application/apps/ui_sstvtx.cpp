@@ -180,7 +180,7 @@ void SSTVTXView::start_tx() {
 }
 
 void SSTVTXView::on_bitmap_changed(const size_t index) {
-    auto open_system_dir = bmp_file.open(sstv_dir_user+ u"/" + bitmaps[index].string());
+    auto open_system_dir = bmp_file.open(sstv_dir_user + u"/" + bitmaps[index].string());
     if (!open_system_dir->ok()) {
         bmp_file.open(sstv_dir_resources + u"/" + bitmaps[index].string());
     }
@@ -219,7 +219,7 @@ SSTVTXView::SSTVTXView(
     uint32_t c;
 
     file_list_index[0] = sstv_dir_user;
-    file_list_index[1] = u"/"+ sstv_dir_resources;
+    file_list_index[1] = u"/" + sstv_dir_resources;
 
     bool found_files = false;
 
