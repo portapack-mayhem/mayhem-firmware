@@ -808,7 +808,11 @@ class SetAutostartView : public View {
     std::string title() const override { return "Autostart"; };
 
    private:
+    int32_t i = 0;
     std::string autostart_app{""};
+    OptionsField::options_t opts;
+    std::map<int32_t, std::string> full_app_list;  // looking table
+    int32_t selected = 0;
     SettingsStore nav_setting{
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};

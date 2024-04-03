@@ -107,6 +107,10 @@
 #include "file_reader.hpp"
 #include "png_writer.hpp"
 #include "file_path.hpp"
+#include "ff.h"
+
+#include <locale>
+#include <codecvt>
 
 using portapack::receiver_model;
 using portapack::transmitter_model;
@@ -713,7 +717,16 @@ void NavigationView::handle_autostart() {
     SettingsStore nav_setting{
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};
-    if (!autostart_app.empty()) StartAppByName(autostart_app.c_str());
+    if (!autostart_app.empty()) {
+        if (StartAppByName(autostart_app.c_str())) return;
+        // if returned false, check for external apps by that name, and try to start it
+        std::string appwithpath = "/" + apps_dir.string() + "/";
+        appwithpath += autostart_app;
+        appwithpath += ".ppma";
+        std::wstring_convert<std::codecvt_utf8_utf16<char16_t>, char16_t> conv;
+        std::filesystem::path pth = conv.from_bytes(appwithpath.c_str());
+        ui::ExternalItemsMenuLoader::run_external_app(*this, pth);
+    }
 }
 
 /* Helpers  **************************************************************/

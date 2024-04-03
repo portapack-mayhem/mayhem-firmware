@@ -31,6 +31,7 @@
 #include "ui_receiver.hpp"
 #include "ui_touch_calibration.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -856,9 +857,7 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
     };
 
     // options
-    OptionsField::options_t opts;
-    int32_t i = 0;
-    int32_t selected = 0;
+    i = 0;
     OptionsField::option_t o{"-none-", i};
     opts.emplace_back(o);
     for (auto& app : NavigationView::appList) {
@@ -866,22 +865,27 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
         i++;
         o = {app.displayName, i};
         opts.emplace_back(o);
+        full_app_list.emplace(i, app.id);
         if (autostart_app == app.id) selected = i;
     }
+    ExternalItemsMenuLoader::load_all_external_items_callback([this](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+        i++;
+        OptionsField::option_t o = {app.appFriendlyName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.appCallName);
+        if (autostart_app == app.appCallName) selected = i;
+    });
+
     options.set_options(opts);
     options.on_change = [this](size_t, OptionsField::value_t v) {
-        int32_t i = 0;
         if (v == 0) {
             autostart_app = "";
             return;
         }
-        for (auto& app : NavigationView::appList) {
-            if (app.id == nullptr) continue;
-            i++;
-            if (i == v) {
-                autostart_app = app.id;
-                break;
-            }
+        auto it = full_app_list.find(v);
+        if (it != full_app_list.end()) {
+            autostart_app = it->second;
         }
     };
     options.set_selected_index(selected);
