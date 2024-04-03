@@ -350,7 +350,7 @@ void FileManBaseView::push_dir(const fs::path& path) {
     // , you should use push_fake_dir, which handle and call back the dir automatically
     if (path == parent_dir_path) {
         pop_dir();
-    } else if (path == sys_dir || path == apps_dir || path == firmware_dir) {
+    } else if (path == system_dir || path == apps_dir || path == firmware_dir) {
         nav_.push<ModalMessageView>(
             "Warning",
             "It is not suggested to\n"
@@ -381,8 +381,6 @@ void FileManBaseView::push_fake_dir(const fs::path& path) {
     // the one this accepted is just a flag (e.g. CAPTURE, instead of /SYS/CAPTURE nor /CAPTURE), not real dir
     // after passing the flag here, this func will handle it automatically and make callback automatically
     fs::path first_level = path.extract_first_level();
-    const fs::path user_dir = u"/";
-    const fs::path system_dir = u"/SYS";
     const fs::path default_mother_dir = user_dir;
 
     if (first_level != user_dir && first_level != system_dir) {
@@ -454,7 +452,7 @@ void FileManBaseView::refresh_list() {
             menu_view.add_item(
 
                 {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
-                 (entry.path == sys_dir || entry.path == apps_dir || entry.path == firmware_dir) ? Color::red() : Color::yellow(),
+                 (entry.path == system_dir || entry.path == apps_dir || entry.path == firmware_dir) ? Color::red() : Color::yellow(),
 
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
@@ -489,8 +487,6 @@ void FileManBaseView::reload_current(bool reset_pagination) {
 fs::path FileManBaseView::jumping_between_profiles(fs::path& path, DirProfiles profile) {
     fs::path first_level = path.extract_first_level();
     const fs::path null_path = u"";
-    const fs::path user_dir = u"/";
-    const fs::path system_dir = u"/SYS";
 
     if (profile == DirProfiles::User) {
         if (first_level == system_dir) {  // /SYS/abcdef

@@ -599,7 +599,7 @@ void SystemStatusView::new_sdcard_structure_checker() {
 
 void SystemStatusView::new_sdcard_structure_worker() {
     const std::filesystem::path root_dir = u"/";
-    const std::filesystem::path sys_dir = u"SYS";
+    const std::filesystem::path system_dir = u"SYS";
 
     // TODO: Use blacklist or whitelist?
     std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE",
@@ -613,12 +613,12 @@ void SystemStatusView::new_sdcard_structure_worker() {
                                                       u"SCREENSHOTS"};
 
     /// worker moving folders
-    ensure_directory(sys_dir);
+    ensure_directory(system_dir);
 
     auto directories = scan_root_directories(root_dir);
     for (const auto& dir_entry : directories) {
         if (std::find(ignore_dirs.begin(), ignore_dirs.end(), dir_entry) == ignore_dirs.end()) {
-            std::filesystem::path new_path = sys_dir / dir_entry.filename();
+            std::filesystem::path new_path = system_dir / dir_entry.filename();
             rename_file(dir_entry, new_path);
         }
     }
