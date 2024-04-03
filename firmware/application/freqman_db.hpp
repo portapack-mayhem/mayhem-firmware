@@ -64,7 +64,7 @@ enum class freqman_type : uint8_t {
 
 enum class dir_profile : uint8_t {
     ProfileUser = 1,
-    ProfileSystem
+    ProfileSystem = 2
 };
 
 /* Tables for next round of changes.

@@ -353,12 +353,12 @@ void FileManBaseView::push_dir(const fs::path& path) {
     } else if (path == system_dir || path == apps_dir || path == firmware_dir) {
         nav_.push<ModalMessageView>(
             "Warning",
-            "It is not suggested to\n"
+            "It is not recommended to\n"
             "modify system files,\n"
             "so you can easily\n"
             "update sdcard content.\n"
             "You can add all the custom\n"
-            "files in user folders.\n"
+            "files in root folders.\n"
             "Continue anyway?",
             YESNO,
             [this, path](bool choice) {

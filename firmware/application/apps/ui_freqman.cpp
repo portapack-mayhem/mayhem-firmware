@@ -179,7 +179,11 @@ FrequencySaveView::FrequencySaveView(
 
     button_save.on_select = [this, &nav](Button&) {  // TODO: don't list system category here
         if (current_is_system_item) {
-            nav.display_modal("Forbid", "Can't save to system Category\nPlease save to \na user category.");
+            nav.display_modal("Forbid",
+                              "Can't save to\n"
+                              "system category.\n"
+                              "Please save to \n"
+                              "a user category.");
         } else {
             db_.insert_entry(db_.entry_count(), entry_);
             nav_.pop();
@@ -308,7 +312,11 @@ bool FrequencyManagerView::forbid_delete_system_item_helper(NavigationView& nav)
     // this is just a modal, however, it's been forbidden in those handler.
 
     if (current_is_system_item) {
-        nav.display_modal("Forbid", "Can't do that to \nsystem item.\nIf you have to,\ndo it with Notepad app.");
+        nav.display_modal("Forbid",
+                          "Can't do that to \n"
+                          "system item.\n"
+                          "If you have to,\n"
+                          "do it with File Manager");
     }
 
     return current_is_system_item;
