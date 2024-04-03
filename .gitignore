@@ -13,6 +13,10 @@
 /sdcard/SYS/FREQMAN/BHT*
 /sdcard/SYS/FREQMAN/R.TXT
 /sdcard/SYS/FREQMAN/XXX.TXT
+/sdcard/ADSB/world_map.bin
+/sdcard/FREQMAN/BHT*
+/sdcard/FREQMAN/R.TXT
+/sdcard/FREQMAN/XXX.TXT
 
 # Toolchain binaries
 /armbin
