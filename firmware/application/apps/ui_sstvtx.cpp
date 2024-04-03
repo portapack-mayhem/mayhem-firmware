@@ -308,6 +308,6 @@ SSTVTXView::SSTVTXView(
         transmitter_model.disable();
         options_bitmaps.set_focusable(true);
     };
-}  // namespace ui
+}
 
 } /* namespace ui */
