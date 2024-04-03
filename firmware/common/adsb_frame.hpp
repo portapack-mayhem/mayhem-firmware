@@ -46,6 +46,10 @@ class ADSBFrame {
         return (raw_data[4] & 7);
     }
 
+    uint8_t get_sil_value() {
+        return ((raw_data[10] >> 6) & 0b11);  // 83-84 bits
+    }
+
     uint32_t get_ICAO_address() {
         return (raw_data[1] << 16) + (raw_data[2] << 8) + raw_data[3];
     }
