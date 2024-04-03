@@ -107,7 +107,7 @@ void ADSBLogger::log(const ADSBLogEntry& log_entry) {
         log_line += " Type:" + to_string_dec_uint(log_entry.vel_type) +
                     " Hdg:" + to_string_dec_uint(log_entry.vel.heading) +
                     " Spd: " + to_string_dec_int(log_entry.vel.speed);
-
+    if (log_entry.sil != 0) log_line += " Sil:" + to_string_dec_uint(log_entry.sil);
     log_file.write_entry(log_line);
 }
 
@@ -354,11 +354,12 @@ void ADSBRxDetailsView::refresh_ui() {
 
     text_callsign.set(entry_.callsign);
     text_infos.set(entry_.info_string);
+    std::string str_sil = (entry_.sil > 0) ? " Sil:" + to_string_dec_uint(entry_.sil) : "";
     if (entry_.velo.heading < 360 && entry_.velo.speed >= 0)
         text_info2.set("Hdg:" + to_string_dec_uint(entry_.velo.heading) +
-                       " Spd:" + to_string_dec_int(entry_.velo.speed));
+                       " Spd:" + to_string_dec_int(entry_.velo.speed) + str_sil);
     else
-        text_info2.set("");
+        text_info2.set(str_sil);
 
     text_frame_pos_even.set(to_string_hex_array(entry_.frame_pos_even.get_raw_data(), 14));
     text_frame_pos_odd.set(to_string_hex_array(entry_.frame_pos_odd.get_raw_data(), 14));
@@ -471,7 +472,6 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
                     "Alt:" + to_string_dec_int(entry.pos.altitude) +
                     " Lat:" + to_string_decimal(entry.pos.latitude, 2) +
                     " Lon:" + to_string_decimal(entry.pos.longitude, 2);
-
                 entry.set_info_string(std::move(str_info));
             }
 
@@ -479,6 +479,8 @@ void ADSBRxView::on_frame(const ADSBFrameMessage* message) {
             entry.set_frame_velo(frame);
             log_entry.vel = entry.velo;
             log_entry.vel_type = msg_sub;
+        } else if (msg_type == AIRBORNE_OP_STATUS) {  // for ver 1
+            entry.sil = frame.get_sil_value();
         }
     }
 
