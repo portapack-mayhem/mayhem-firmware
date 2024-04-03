@@ -843,20 +843,52 @@ void SetMenuColorView::focus() {
 SetAutostartView::SetAutostartView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
-                  &button_cancel});
+                  &button_cancel,
+                  &options});
 
     button_save.on_select = [&nav, this](Button&) {
-        // todo save setting so ini
+        nav_setting.save();
         nav.pop();
     };
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
     };
+
+    // options
+    OptionsField::options_t opts;
+    int32_t i = 0;
+    int32_t selected = 0;
+    OptionsField::option_t o{"-none-", i};
+    opts.emplace_back(o);
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+        i++;
+        o = {app.displayName, i};
+        opts.emplace_back(o);
+        if (autostart_app == app.id) selected = i;
+    }
+    options.set_options(opts);
+    options.on_change = [this](size_t, OptionsField::value_t v) {
+        int32_t i = 0;
+        if (v == 0) {
+            autostart_app = "";
+            return;
+        }
+        for (auto& app : NavigationView::appList) {
+            if (app.id == nullptr) continue;
+            i++;
+            if (i == v) {
+                autostart_app = app.id;
+                break;
+            }
+        }
+    };
+    options.set_selected_index(selected);
 }
 
-void SetMenuColorView::focus() {
-    button_save.focus();
+void SetAutostartView::focus() {
+    options.focus();
 }
 
 /* SettingsMenuView **************************************/

@@ -808,16 +808,21 @@ class SetAutostartView : public View {
     std::string title() const override { return "Autostart"; };
 
    private:
+    std::string autostart_app{""};
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
     Labels labels{
-        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Color::light_grey()},
-        {{2 * 8, 8 * 16}, "Red Level:", Color::light_grey()},
-        {{2 * 8, 9 * 16}, "Green Level:", Color::light_grey()},
-        {{2 * 8, 10 * 16}, "Blue Level:", Color::light_grey()},
-    };
+        {{1 * 8, 1 * 16}, "Select app to start on boot", Color::light_grey()}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
+
+    OptionsField options{
+        {0 * 8, 3 * 16},
+        30,
+        {}};
 
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},
