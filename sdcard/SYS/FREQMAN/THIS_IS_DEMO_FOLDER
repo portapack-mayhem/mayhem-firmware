@@ -1,5 +1,0 @@
-Please put your personal frequency lists
-in the root /FREQMAN folder to avoid them
-being overwritten when updating SD Card
-contents. Firmware apps will check in both
-locations for frequency list files.

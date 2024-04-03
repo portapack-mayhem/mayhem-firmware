@@ -1,5 +1,6 @@
 Your personal files (Capture, log, frequency lists, etc)
-should be saved in the folders except /SYS folder.
+should be saved in the root folders.
+Do not store any personal files in the /SYS folder.
 
 The /SYS folder contains official release SD Card
 resources files. It is recommended that users should

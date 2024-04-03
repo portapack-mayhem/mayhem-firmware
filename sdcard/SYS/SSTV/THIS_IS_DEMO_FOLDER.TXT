@@ -1,4 +1,0 @@
-Please put your personal sstv into root /SSTV
-The system will automatically handle and list both dir together
-So you can easily updating official resources
-without manually handling your personal files

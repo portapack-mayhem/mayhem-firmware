@@ -1,2 +1,0 @@
-This is a demo folder. The Capture app now
-saves capture files in the root /CAPTURES folder.
