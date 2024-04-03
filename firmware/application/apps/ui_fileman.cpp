@@ -35,6 +35,7 @@
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -48,9 +49,7 @@ static const fs::path cxx_ext{u".C*"};
 static const fs::path png_ext{u".PNG"};
 static const fs::path bmp_ext{u".BMP"};
 static const fs::path rem_ext{u".REM"};
-static const fs::path system_dir{u"SYS"};
-static const fs::path apps_dir{u"APPS"};
-static const fs::path firmware_dir{u"FIRMWARE"};
+
 }  // namespace ui
 
 namespace {
@@ -351,7 +350,7 @@ void FileManBaseView::push_dir(const fs::path& path) {
     // , you should use push_fake_dir, which handle and call back the dir automatically
     if (path == parent_dir_path) {
         pop_dir();
-    } else if (path == system_dir || path == apps_dir || path == firmware_dir) {
+    } else if (path == sys_dir || path == apps_dir || path == firmware_dir) {
         nav_.push<ModalMessageView>(
             "Warning",
             "It is not suggested to\n"
@@ -455,7 +454,7 @@ void FileManBaseView::refresh_list() {
             menu_view.add_item(
 
                 {entry_name + std::string(21 - entry_name.length(), ' ') + size_str,
-                 (entry.path == system_dir || entry.path == apps_dir || entry.path == firmware_dir) ? Color::red() : Color::yellow(),
+                 (entry.path == sys_dir || entry.path == apps_dir || entry.path == firmware_dir) ? Color::red() : Color::yellow(),
 
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {

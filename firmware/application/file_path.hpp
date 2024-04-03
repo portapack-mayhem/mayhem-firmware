@@ -89,6 +89,8 @@ extern const std::filesystem::path sstv_dir;
 extern const std::filesystem::path sstv_dir_user;
 extern const std::filesystem::path sstv_dir_resources;
 
+extern const std::filesystem::path sys_dir;
+
 extern const std::filesystem::path wav_dir;
 
 extern const std::filesystem::path wav_dir_user;

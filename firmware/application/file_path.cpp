@@ -96,6 +96,8 @@ const std::filesystem::path sstv_dir = u"SSTV";  // fake path
 const std::filesystem::path sstv_dir_user = u"/SSTV";
 const std::filesystem::path sstv_dir_resources = u"/SSTV";
 
+const std::filesystem::path sys_dir = u"SYS";  // in root
+
 // WAV
 const std::filesystem::path wav_dir = u"WAV";  // fake path
 const std::filesystem::path wav_dir_user = u"/WAV";
