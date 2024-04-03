@@ -601,7 +601,7 @@ void SystemStatusView::new_sdcard_structure_worker() {
     const std::filesystem::path root_dir = u"/";
     const std::filesystem::path sys_dir = u"SYS";
 
-    //TODO: Use blacklist or whitelist?
+    // TODO: Use blacklist or whitelist?
     std::vector<std::filesystem::path> ignore_dirs = {u"FIRMWARE",
                                                       u"APPS",
                                                       u"SYS",
@@ -609,7 +609,8 @@ void SystemStatusView::new_sdcard_structure_worker() {
                                                       u"DEBUG",
                                                       u"LOGS",
                                                       u"CAPTURES",
-                                                      u".Trash-1000"};
+                                                      u".Trash-1000",
+                                                      u"SCREENSHOTS"};
 
     /// worker moving folders
     ensure_directory(sys_dir);
@@ -624,6 +625,9 @@ void SystemStatusView::new_sdcard_structure_worker() {
 
     /// worker renaming
     rename_file(u"/SYS/SAMPLES", u"/SYS/CAPTURES");  // it's because, make it easier to use the sample folder.
+
+    /// worker check adding flag
+    make_new_file(U"/AUTO_REMOVED");  // add a flag to check in case if need something as flag to check in the future
 }
 
 /* Information View *****************************************************/
