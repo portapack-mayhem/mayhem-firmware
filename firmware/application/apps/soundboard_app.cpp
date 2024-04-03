@@ -95,8 +95,8 @@ void SoundBoardView::start_tx(const uint32_t id) {
 
     stop();
 
-    if (!reader->open(u"/SYS/WAV/" + file_list[id].native())) {
-        if (!reader->open(u"/WAV/" + file_list[id].native())) {
+    if (!reader->open(wav_dir_resources + u"/" + file_list[id].native())) {
+        if (!reader->open(wav_dir_user + u"/" + file_list[id].native())) {
             file_error();
             return;
         }

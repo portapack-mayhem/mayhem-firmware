@@ -576,13 +576,14 @@ void SystemStatusView::new_sdcard_structure_checker() {
         nav_.display_modal(
             "Warning",
             "        WARNING!!!\n"
-            "Sdcard content changed\n"
+            "SD Card content changed\n"
             "in this update,\n"
             "Press YES to auto move.\n"
             "After finished,\n"
-            "you should move your own fil-\n"
-            "es back into original folder,\n"
-            "which is now only for users.\n"
+            "you should move your own\n"
+            "files back into\n"
+            "original folders,\n"
+            "which are now only for users.\n"
             "You can also choose NO,\n"
             "and then manually merge\n"
             "following the Wiki.\n"

@@ -63,6 +63,9 @@ const std::filesystem::path freqman_dir = u"FREQMAN";  // fake path
 const std::filesystem::path freqman_dir_user = u"/FREQMAN";
 const std::filesystem::path freqman_dir_resources = u"SYS/FREQMAN";
 
+const std::filesystem::path fskrx_dir_user = u"/FSKRX";
+
+
 const std::filesystem::path gps_dir = u"/GPS";
 
 const std::filesystem::path logs_dir = u"/LOGS";
@@ -94,7 +97,7 @@ const std::filesystem::path splash_dir = u"/SPLASH";
 
 const std::filesystem::path sstv_dir = u"SSTV";  // fake path
 const std::filesystem::path sstv_dir_user = u"/SSTV";
-const std::filesystem::path sstv_dir_resources = u"/SSTV";
+const std::filesystem::path sstv_dir_resources = u"SYS/SSTV";
 
 const std::filesystem::path system_dir = u"/SYS";  // in root
 const std::filesystem::path user_dir = u"/";       // root

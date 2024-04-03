@@ -59,6 +59,8 @@ extern const std::filesystem::path freqman_dir;
 extern const std::filesystem::path freqman_dir_user;
 extern const std::filesystem::path freqman_dir_resources;
 
+extern const std::filesystem::path fskrx_dir_user;
+
 extern const std::filesystem::path gps_dir;
 
 extern const std::filesystem::path logs_dir;

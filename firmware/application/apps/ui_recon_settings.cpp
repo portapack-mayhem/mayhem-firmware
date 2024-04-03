@@ -58,26 +58,30 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
 
     button_input_file.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
+        open_view->push_fake_dir(freqman_dir);  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
             if ((new_file_path.native().find((u"/" / freqman_dir_resources).native()) == 0) || new_file_path.native().find((freqman_dir_user).native()) == 0) {
                 _input_file = new_file_path.stem().string();
                 text_input_file.set(_input_file);
             } else {
-                nav.display_modal("LOAD ERROR", "A valid file from\nFREQMAN directories is\nrequired.");
+                nav.display_modal("LOAD ERROR", "A valid file from\n" +
+                                                    freqman_dir_user.string() +
+                                                    "\nor\n" +
+                                                    freqman_dir_resources.string() +
+                                                    "\ndirectories is\nrequired.");
             }
         };
     };
 
     button_choose_output_file.on_select = [this, &nav](Button&) {
         auto open_view = nav.push<FileLoadView>(".TXT");
-        open_view->push_fake_dir(u"FREQMAN");  // the argu that push fake dir accepted is just a flag, so can safely hard coded
+        open_view->push_fake_dir(freqman_dir);  // the argu that push fake dir accepted is just a flag, so can safely hard coded
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
             if (new_file_path.native().find((freqman_dir_user).native()) == 0) {
                 _output_file = new_file_path.stem().string();
                 button_choose_output_name.set_text(_output_file);
             } else {
-                nav.display_modal("SAVE ERROR", "A valid file from\nFREQMAN directories is\nrequired.");
+                nav.display_modal("SAVE ERROR", "A valid file from\n" + freqman_dir_user.string() + "\ndirectories is\nrequired.");
             }
         };
     };
