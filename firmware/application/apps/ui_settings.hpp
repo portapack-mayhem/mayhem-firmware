@@ -810,8 +810,8 @@ class SetAutostartView : public View {
    private:
     int32_t i = 0;
     std::string autostart_app{""};
-    OptionsField::options_t opts;
-    std::map<int32_t, std::string> full_app_list;  // looking table
+    OptionsField::options_t opts {};
+    std::map<int32_t, std::string> full_app_list {};  // looking table
     int32_t selected = 0;
     SettingsStore nav_setting{
         "nav"sv,
