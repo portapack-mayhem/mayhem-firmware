@@ -861,11 +861,20 @@ SystemView::SystemView(
 
     navigation_view.push<SystemMenuView>();
 
-    if (pmem::config_splash()) {
+    std::string autostart_app{""};
+    bool skip_splash = false;  // skip when autostart an app
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
+    if (!autostart_app.empty()) skip_splash = navigation_view.StartAppByName(autostart_app.c_str());
+
+    if (pmem::config_splash() && !skip_splash) {
         navigation_view.push<BMPView>();
     }
-    status_view.set_back_enabled(false);
-    status_view.set_title_image_enabled(true);
+    if (!skip_splash) {  // is autostarted an app, back should be available
+        status_view.set_back_enabled(false);
+        status_view.set_title_image_enabled(true);
+    }
     status_view.set_dirty();
 }
 
