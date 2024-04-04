@@ -799,6 +799,41 @@ class SetMenuColorView : public View {
     };
 };
 
+class SetAutostartView : public View {
+   public:
+    SetAutostartView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Autostart"; };
+
+   private:
+    int32_t i = 0;
+    std::string autostart_app{""};
+    OptionsField::options_t opts{};
+    std::map<int32_t, std::string> full_app_list{};  // looking table
+    int32_t selected = 0;
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Select app to start on boot", Color::light_grey()}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    OptionsField options{
+        {0 * 8, 3 * 16},
+        30,
+        {}};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
 class SettingsMenuView : public BtnGridView {
    public:
     SettingsMenuView(NavigationView& nav);

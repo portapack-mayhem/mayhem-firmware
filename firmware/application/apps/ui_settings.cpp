@@ -31,6 +31,7 @@
 #include "ui_receiver.hpp"
 #include "ui_touch_calibration.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -839,6 +840,61 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
+/* SetAutostartView*/
+SetAutostartView::SetAutostartView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel,
+                  &options});
+
+    button_save.on_select = [&nav, this](Button&) {
+        nav_setting.save();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+
+    // options
+    i = 0;
+    OptionsField::option_t o{"-none-", i};
+    opts.emplace_back(o);
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+        i++;
+        o = {app.displayName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.id);
+        if (autostart_app == app.id) selected = i;
+    }
+    ExternalItemsMenuLoader::load_all_external_items_callback([this](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+        i++;
+        OptionsField::option_t o = {app.appFriendlyName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.appCallName);
+        if (autostart_app == app.appCallName) selected = i;
+    });
+
+    options.set_options(opts);
+    options.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v == 0) {
+            autostart_app = "";
+            return;
+        }
+        auto it = full_app_list.find(v);
+        if (it != full_app_list.end()) {
+            autostart_app = it->second;
+        }
+    };
+    options.set_selected_index(selected);
+}
+
+void SetAutostartView::focus() {
+    options.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -866,6 +922,7 @@ void SettingsMenuView::on_populate() {
         //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
+        {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
 }
 
