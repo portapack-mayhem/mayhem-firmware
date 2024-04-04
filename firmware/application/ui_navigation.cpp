@@ -603,24 +603,6 @@ void SystemStatusView::new_sdcard_structure_checker() {
 }
 
 void SystemStatusView::new_sdcard_structure_worker() {
-    ////
-    ui::Painter painter{};
-    std::string debug_dir = "DEBUG";
-    std::filesystem::path filename{};
-    File zxkmm_dump_file{};
-    // create new dump file name and DEBUG directory
-    ensure_directory(debug_dir);
-    filename = next_filename_matching_pattern(debug_dir + "/ZXKMM_DUMP_????.TXT");
-    if (filename.empty()) {
-        painter.draw_string({0, 320 - 16}, ui::Styles::red, "COULD NOT GET DUMP NAME !");
-    }
-    // dump data fo filename
-    auto error = zxkmm_dump_file.create(filename);
-    if (error) {
-        painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
-    }
-    ////
-
     const std::filesystem::path root_dir = u"/";
     const std::filesystem::path system_dir = u"SYS";
 
