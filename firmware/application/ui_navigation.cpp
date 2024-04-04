@@ -606,7 +606,26 @@ void SystemStatusView::new_sdcard_structure_worker() {
     const std::filesystem::path root_dir = u"/";
     const std::filesystem::path system_dir = u"SYS";
 
+    /// worker log
+    std::filesystem::path filename{};
+    File automove_dump_file{};
+    ensure_directory(logs_dir);
+    filename = next_filename_matching_pattern(logs_dir + "/AUTOMOVE_LOG_????.TXT");
+    automove_dump_file.create(filename);
+
     std::vector<std::filesystem::path> root_dirs = scan_root_directories(root_dir);
+
+    std::vector<std::string> scan_result_string_vec;
+    for (const auto& e : root_dirs) {
+        scan_result_string_vec.push_back(e.string());
+    }
+
+    std::string scan_result_string = "";
+    for (const auto& e : scan_result_string_vec) {
+        scan_result_string += e + "\n";
+    }
+
+    automove_dump_file.write_line(scan_result_string + "\n\n");
 
     /// worker moving folders
     ensure_directory(system_dir);
@@ -618,8 +637,8 @@ void SystemStatusView::new_sdcard_structure_worker() {
             if (e.absolute_trimmed_path().string() == d) {
                 std::filesystem::path new_path = system_dir / d;
                 rename_file(e, new_path);
+                automove_dump_file.write_line("Moved: " + e.string() + " to " + new_path.string() + "\n");
                 break;
-            } else {
             }
         }
     }
