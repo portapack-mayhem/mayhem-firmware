@@ -840,7 +840,8 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
-/* SetAutostartView*/
+/* SetAutoStartView ************************************/
+
 SetAutostartView::SetAutostartView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
@@ -848,7 +849,12 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
                   &options});
 
     button_save.on_select = [&nav, this](Button&) {
-        nav_setting.save();
+        autostart_app = "";
+        if (selected != 0) {
+            auto it = full_app_list.find(selected);
+            if (it != full_app_list.end())
+                autostart_app = it->second;
+        }
         nav.pop();
     };
 
@@ -879,14 +885,7 @@ SetAutostartView::SetAutostartView(NavigationView& nav) {
 
     options.set_options(opts);
     options.on_change = [this](size_t, OptionsField::value_t v) {
-        if (v == 0) {
-            autostart_app = "";
-            return;
-        }
-        auto it = full_app_list.find(v);
-        if (it != full_app_list.end()) {
-            autostart_app = it->second;
-        }
+        selected = v;
     };
     options.set_selected_index(selected);
 }
