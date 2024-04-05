@@ -48,6 +48,7 @@ class ReceiverModel {
         uint32_t baseband_bandwidth = max283x::filter::bandwidth_minimum;
         uint32_t sampling_rate = 3'072'000;
         rf::Frequency frequency_step = 25'000;
+        rf::Frequency frequency_app_override = 0;
         uint8_t lna_gain_db = 32;
         uint8_t vga_gain_db = 32;
         bool rf_amp = false;

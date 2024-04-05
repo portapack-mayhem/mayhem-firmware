@@ -337,7 +337,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                               u"AUTO_AUDIO", u"AUDIO",
+                                               u"AUTO_AUDIO", audio_dir,
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
     record_view->set_auto_trim(false);
@@ -508,7 +508,7 @@ ReconView::ReconView(NavigationView& nav)
         auto settings = receiver_model.settings();
         settings.frequency_step = step_mode.selected_index_value();
         if (field_mode.selected_index_value() == SPEC_MODULATION)
-            nav_.replace<CaptureAppView>();
+            nav_.replace<CaptureAppView>(settings);
         else
             nav_.replace<AnalogAudioView>(settings);
     };
@@ -539,7 +539,7 @@ ReconView::ReconView(NavigationView& nav)
             }
         }
 
-        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        // MicTX wants Frequency, Modulation and Bandwidth overrides, but that's only stored on the RX model.
         nav_.replace<MicTXView>(receiver_model.settings());
     };
 
@@ -1170,18 +1170,18 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
     if (new_mod == SPEC_MODULATION) {
         if (persistent_memory::recon_repeat_recorded()) {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"RECON_REPEAT.C16", u"CAPTURES",
+                                                       u"RECON_REPEAT.C16", captures_dir,
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_as_is(true);
         } else {
             record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                       u"AUTO_RAW", u"CAPTURES",
+                                                       u"AUTO_RAW", captures_dir,
                                                        RecordView::FileType::RawS16, 16384, 3);
             record_view->set_filename_date_frequency(true);
         }
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_AUDIO", u"AUDIO",
+                                                   u"AUTO_AUDIO", audio_dir,
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
     }
@@ -1460,7 +1460,7 @@ void ReconView::handle_repeat_thread_done(const uint32_t return_code) {
         stop_repeat(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop_repeat(false);
-        repeat_file_error(u"/" + repeat_rec_path + u"/" + repeat_rec_file, "Can't open file to send.");
+        repeat_file_error(rawfile, "Can't open file to send.");
     }
 }
 

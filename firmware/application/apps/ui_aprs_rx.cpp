@@ -27,6 +27,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 
@@ -111,7 +112,7 @@ APRSRxView::APRSRxView(NavigationView& nav, Rect parent_rect)
 
     logger = std::make_unique<APRSLogger>();
     if (logger)
-        logger->append(LOG_ROOT_DIR "/APRS.TXT");
+        logger->append(logs_dir / u"APRS.TXT");
 
     baseband::set_aprs(1200);
 

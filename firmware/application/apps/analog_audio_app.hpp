@@ -174,7 +174,6 @@ class AnalogAudioView : public View {
     app_settings::SettingsManager settings_{
         "rx_audio",
         app_settings::Mode::RX,
-        app_settings::Options::UseGlobalTargetFrequency,
         {
             {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
         }};

@@ -31,6 +31,7 @@
 #include "ui_receiver.hpp"
 #include "ui_touch_calibration.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -41,6 +42,7 @@ using namespace lpc43xx;
 using namespace portapack;
 
 #include "file.hpp"
+#include "file_path.hpp"
 namespace fs = std::filesystem;
 
 #include "string_format.hpp"
@@ -571,17 +573,17 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         if (v) {
-            if (fs::file_exists(PMEM_FILEFLAG)) {
+            if (fs::file_exists(settings_dir / PMEM_FILEFLAG)) {
                 text_pmem_status.set("P.Mem flag file present.");
             } else {
-                auto error = pmem_flag_file_handle.create(PMEM_FILEFLAG);
+                auto error = pmem_flag_file_handle.create(settings_dir / PMEM_FILEFLAG);
                 if (error)
                     text_pmem_status.set("Error creating P.Mem File!");
                 else
                     text_pmem_status.set("P.Mem flag file created.");
             }
         } else {
-            auto result = delete_file(PMEM_FILEFLAG);
+            auto result = delete_file(settings_dir / PMEM_FILEFLAG);
             if (result.code() != FR_OK)
                 text_pmem_status.set("Error deleting P.Mem flag!");
             else
@@ -634,13 +636,17 @@ void SetPersistentMemoryView::focus() {
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
+                  &checkbox_beep_on_packets,
                   &button_save,
                   &button_cancel});
 
     field_tone_mix.set_value(pmem::tone_mix());
 
+    checkbox_beep_on_packets.set_value(pmem::beep_on_packets());
+
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_tone_mix(field_tone_mix.value());
+        pmem::set_beep_on_packets(checkbox_beep_on_packets.value());
         audio::output::update_audio_mute();
         nav.pop();
     };
@@ -717,10 +723,10 @@ AppSettingsView::AppSettingsView(
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
-    ensure_directory(SETTINGS_DIR);
+    ensure_directory(settings_dir);
 
-    for (const auto& entry : std::filesystem::directory_iterator(SETTINGS_DIR, u"*.ini")) {
-        auto path = (std::filesystem::path)SETTINGS_DIR / entry.path();
+    for (const auto& entry : std::filesystem::directory_iterator(settings_dir, u"*.ini")) {
+        auto path = settings_dir / entry.path();
 
         menu_view.add_item({path.filename().string().substr(0, 26),
                             ui::Color::dark_cyan(),
@@ -834,6 +840,61 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
+/* SetAutostartView*/
+SetAutostartView::SetAutostartView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel,
+                  &options});
+
+    button_save.on_select = [&nav, this](Button&) {
+        nav_setting.save();
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+
+    // options
+    i = 0;
+    OptionsField::option_t o{"-none-", i};
+    opts.emplace_back(o);
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+        i++;
+        o = {app.displayName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.id);
+        if (autostart_app == app.id) selected = i;
+    }
+    ExternalItemsMenuLoader::load_all_external_items_callback([this](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+        i++;
+        OptionsField::option_t o = {app.appFriendlyName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.appCallName);
+        if (autostart_app == app.appCallName) selected = i;
+    });
+
+    options.set_options(opts);
+    options.on_change = [this](size_t, OptionsField::value_t v) {
+        if (v == 0) {
+            autostart_app = "";
+            return;
+        }
+        auto it = full_app_list.find(v);
+        if (it != full_app_list.end()) {
+            autostart_app = it->second;
+        }
+    };
+    options.set_selected_index(selected);
+}
+
+void SetAutostartView::focus() {
+    options.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -861,6 +922,7 @@ void SettingsMenuView::on_populate() {
         //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
+        {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
 }
 

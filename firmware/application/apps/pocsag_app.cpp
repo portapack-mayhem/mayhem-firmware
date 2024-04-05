@@ -27,6 +27,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "string_format.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace pocsag;
@@ -115,7 +116,7 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
                                     : FILTER_DROP;
     }
 
-    logger.append(LOG_ROOT_DIR "/POCSAG.TXT");
+    logger.append(logs_dir / u"POCSAG.TXT");
 
     field_squelch.set_value(receiver_model.squelch_level());
     field_squelch.on_change = [this](int32_t v) {
@@ -135,6 +136,10 @@ POCSAGAppView::POCSAGAppView(NavigationView& nav)
     };
 
     refresh_ui();
+
+    if (pmem::beep_on_packets())
+        audio::set_rate(audio::Rate::Hz_24000);
+
     audio::output::start();
     receiver_model.enable();
     baseband::set_pocsag();
@@ -303,6 +308,10 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
 
     // Set status icon color to indicate state machine state.
     image_status.set_foreground(get_status_color(pocsag_state));
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
+    }
 }
 
 void POCSAGAppView::on_stats(const POCSAGStatsMessage* stats) {

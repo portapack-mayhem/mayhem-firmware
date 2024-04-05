@@ -144,6 +144,12 @@ class RecordView : public View {
         "",
     };
 
+    Image gps_icon{
+        {2 * 8 + 1, 0 * 16, 2 * 8, 1 * 16},
+        &bitmap_target,
+        Color::white(),
+        Color::black()};
+
     std::unique_ptr<CaptureThread> capture_thread{};
 
     MessageHandlerRegistration message_handler_capture_thread_error{

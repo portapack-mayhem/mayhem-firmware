@@ -34,6 +34,7 @@
 #include "portapack_persistent_memory.hpp"
 #include "rtc_time.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -448,7 +449,7 @@ BLETxView::BLETxView(
 }
 
 void BLETxView::on_file_changed(const fs::path& new_file_path) {
-    file_path = fs::path(u"/") + new_file_path;
+    file_path = new_file_path;
     num_packets = 0;
 
     {  // Get the size of the data file.

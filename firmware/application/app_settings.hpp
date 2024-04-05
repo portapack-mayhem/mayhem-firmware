@@ -36,9 +36,6 @@
 #include "max283x.hpp"
 #include "string_format.hpp"
 
-// Folder to store app settings, pmem_fileflag, and date_fileflag
-#define SETTINGS_DIR u"/SETTINGS"
-
 // Bring in the string_view literal.
 using std::literals::operator""sv;
 
@@ -121,9 +118,6 @@ enum class Mode : uint8_t {
 
 enum class Options {
     None = 0x0000,
-
-    /* Don't use target frequency from app settings. */
-    UseGlobalTargetFrequency = 0x0001,
 };
 
 /* NB: See RX/TX model headers for default values. */

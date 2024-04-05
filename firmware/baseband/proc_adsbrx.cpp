@@ -26,6 +26,7 @@
 #include "portapack_shared_memory.hpp"
 #include "sine_table_int8.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <cstdint>
 #include <cstddef>
@@ -144,16 +145,30 @@ void ADSBRXProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void ADSBRXProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::ADSBConfigure) {
-        bit_count = 0;
-        sample_count = 0;
-        decoding = false;
-        configured = true;
+    switch (message->id) {
+        case Message::ID::ADSBConfigure:
+            bit_count = 0;
+            sample_count = 0;
+            decoding = false;
+            configured = true;
+            break;
+
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
+            break;
+
+        default:
+            break;
     }
+}
+
+void ADSBRXProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
 }
 
 #ifndef _WIN32
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<ADSBRXProcessor>()};
     event_dispatcher.run();
     return 0;

@@ -26,6 +26,7 @@
 #include "file_reader.hpp"
 #include "string_format.hpp"
 #include "audio.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 
@@ -49,12 +50,12 @@ int32_t GlassView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t
 void GlassView::update_display_beep() {
     if (beep_enabled) {
         button_beep_squelch.set_style(&Styles::green);
-        // <bip:-XXXdb>
-        button_beep_squelch.set_text("[bip>" + to_string_dec_int(beep_squelch, 4) + "db]");
+        // bip-XXdb
+        button_beep_squelch.set_text("bip" + to_string_dec_int(beep_squelch, 3) + "db");
         receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
     } else {
         button_beep_squelch.set_style(&Styles::white);
-        button_beep_squelch.set_text("[ beep OFF ]");
+        button_beep_squelch.set_text("bip OFF ");
     }
 }
 
@@ -547,8 +548,8 @@ GlassView::GlassView(
 
     button_beep_squelch.on_change = [this]() {
         int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
-        if (new_beep_squelch < -100)
-            new_beep_squelch = -100;
+        if (new_beep_squelch < -99)
+            new_beep_squelch = -99;
         if (new_beep_squelch > 20)
             new_beep_squelch = 20;
         beep_squelch = new_beep_squelch;
@@ -571,7 +572,7 @@ void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // def
 
 void GlassView::load_presets() {
     File presets_file;
-    auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+    auto error = presets_file.open(looking_glass_dir / u"PRESETS.TXT");
     presets_db.clear();
 
     // Add the "Manual" entry.

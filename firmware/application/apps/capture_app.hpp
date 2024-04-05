@@ -31,12 +31,14 @@
 #include "ui_spectrum.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
 class CaptureAppView : public View {
    public:
     CaptureAppView(NavigationView& nav);
+    CaptureAppView(NavigationView& nav, ReceiverModel::settings_t override);
     ~CaptureAppView();
 
     void focus() override;
@@ -51,8 +53,7 @@ class CaptureAppView : public View {
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::Capture};
     app_settings::SettingsManager settings_{
-        "rx_capture", app_settings::Mode::RX,
-        app_settings::Options::UseGlobalTargetFrequency};
+        "rx_capture", app_settings::Mode::RX};
 
     Labels labels{
         {{0 * 8, 1 * 16}, "Rate:", Color::light_grey()},
@@ -101,7 +102,7 @@ class CaptureAppView : public View {
     RecordView record_view{
         {0 * 8, 2 * 16, 30 * 8, 1 * 16},
         u"BBD_????.*",
-        u"CAPTURES",
+        captures_dir,
         RecordView::FileType::RawS16,
         16384,
         3};

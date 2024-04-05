@@ -30,6 +30,7 @@
 #include "freqman_db.hpp"
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
+#include "file_path.hpp"
 
 using namespace std;
 using namespace portapack;
@@ -58,7 +59,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_dir(freqman_dir);
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if (new_file_path.native().find((u"/" / freqman_dir).native()) == 0) {
                 _input_file = new_file_path.stem().string();
                 text_input_file.set(_input_file);
             } else {
@@ -71,7 +72,7 @@ ReconSetupViewMain::ReconSetupViewMain(NavigationView& nav, Rect parent_rect, st
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_dir(freqman_dir);
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if (new_file_path.native().find((u"/" / freqman_dir).native()) == 0) {
                 _output_file = new_file_path.stem().string();
                 button_choose_output_name.set_text(_output_file);
             } else {

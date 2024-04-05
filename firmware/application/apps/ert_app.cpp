@@ -23,7 +23,7 @@
 #include "ert_app.hpp"
 
 #include "baseband_api.hpp"
-
+#include "audio.hpp"
 #include "portapack.hpp"
 using namespace portapack;
 
@@ -31,6 +31,9 @@ using namespace portapack;
 
 #include "crc.hpp"
 #include "string_format.hpp"
+#include "file_path.hpp"
+
+namespace pmem = portapack::persistent_memory;
 
 namespace ert {
 
@@ -120,6 +123,7 @@ ERTAppView::ERTAppView(NavigationView& nav)
         &field_lna,
         &field_vga,
         &rssi,
+        &field_volume,
         &recent_entries_view,
     });
 
@@ -129,11 +133,17 @@ ERTAppView::ERTAppView(NavigationView& nav)
 
     logger = std::make_unique<ERTLogger>();
     if (logger) {
-        logger->append(LOG_ROOT_DIR "/ERT.TXT");
+        logger->append(logs_dir / u"ERT.TXT");
+    }
+
+    if (pmem::beep_on_packets()) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
     }
 }
 
 ERTAppView::~ERTAppView() {
+    audio::output::stop();
     receiver_model.disable();
     baseband::shutdown();
 }
@@ -156,6 +166,10 @@ void ERTAppView::on_packet(const ert::Packet& packet) {
         auto& entry = ::on_packet(recent, ERTRecentEntry::Key{packet.id(), packet.commodity_type()});
         entry.update(packet);
         recent_entries_view.set_dirty();
+    }
+
+    if (pmem::beep_on_packets()) {
+        baseband::request_audio_beep(1000, 24000, 60);
     }
 }
 

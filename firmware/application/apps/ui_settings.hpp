@@ -506,8 +506,12 @@ class SetAudioView : public View {
     Labels labels{
         {{1 * 8, 1 * 16}, "Controls the volume of the", Color::light_grey()},
         {{1 * 8, 2 * 16}, "tone when transmitting in", Color::light_grey()},
-        {{1 * 8, 3 * 16}, "Soundboard or Mic apps.", Color::light_grey()},
+        {{1 * 8, 3 * 16}, "Soundboard or Mic apps:", Color::light_grey()},
         {{2 * 8, 5 * 16}, "Tone key mix:   %", Color::light_grey()},
+        {{1 * 8, 8 * 16}, "Controls whether apps should", Color::light_grey()},
+        {{1 * 8, 9 * 16}, "beep on speaker & headphone", Color::light_grey()},
+        {{1 * 8, 10 * 16}, "when a packet is received", Color::light_grey()},
+        {{1 * 8, 11 * 16}, "(not all apps support this):", Color::light_grey()},
     };
 
     NumberField field_tone_mix{
@@ -516,6 +520,11 @@ class SetAudioView : public View {
         {10, 99},
         1,
         '0'};
+
+    Checkbox checkbox_beep_on_packets{
+        {3 * 8, 13 * 16},
+        16,
+        "Beep on RX packets"};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -783,6 +792,41 @@ class SetMenuColorView : public View {
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
+
+    Button button_cancel{
+        {16 * 8, 16 * 16, 12 * 8, 32},
+        "Cancel",
+    };
+};
+
+class SetAutostartView : public View {
+   public:
+    SetAutostartView(NavigationView& nav);
+
+    void focus() override;
+
+    std::string title() const override { return "Autostart"; };
+
+   private:
+    int32_t i = 0;
+    std::string autostart_app{""};
+    OptionsField::options_t opts{};
+    std::map<int32_t, std::string> full_app_list{};  // looking table
+    int32_t selected = 0;
+    SettingsStore nav_setting{
+        "nav"sv,
+        {{"autostart_app"sv, &autostart_app}}};
+    Labels labels{
+        {{1 * 8, 1 * 16}, "Select app to start on boot", Color::light_grey()}};
+
+    Button button_save{
+        {2 * 8, 16 * 16, 12 * 8, 32},
+        "Save"};
+
+    OptionsField options{
+        {0 * 8, 3 * 16},
+        30,
+        {}};
 
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},

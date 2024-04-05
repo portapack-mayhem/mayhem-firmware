@@ -37,6 +37,7 @@
 #include "ui_flash_utility.hpp"
 #include "utility.hpp"
 #include "rtc_time.hpp"
+#include "file_path.hpp"
 
 #include <algorithm>
 #include <string>
@@ -151,7 +152,7 @@ struct misc_config_t {
     bool config_disable_external_tcxo : 1;
     bool config_sdcard_high_speed_io : 1;
     bool config_disable_config_mode : 1;
-    bool UNUSED_5 : 1;
+    bool beep_on_packets : 1;
     bool UNUSED_6 : 1;
     bool UNUSED_7 : 1;
 
@@ -640,6 +641,10 @@ bool config_disable_config_mode() {
     return data->misc_config.config_disable_config_mode;
 }
 
+bool beep_on_packets() {
+    return data->misc_config.beep_on_packets;
+}
+
 bool config_sdcard_high_speed_io() {
     return data->misc_config.config_sdcard_high_speed_io;
 }
@@ -715,6 +720,10 @@ void set_config_disable_external_tcxo(bool v) {
 
 void set_config_disable_config_mode(bool v) {
     data->misc_config.config_disable_config_mode = v;
+}
+
+void set_beep_on_packets(bool v) {
+    data->misc_config.beep_on_packets = v;
 }
 
 void set_config_sdcard_high_speed_io(bool v, bool save) {
@@ -1105,14 +1114,14 @@ void set_menu_color(Color v) {
 // PMem to sdcard settings
 
 bool should_use_sdcard_for_pmem() {
-    return std::filesystem::file_exists(PMEM_FILEFLAG);
+    return std::filesystem::file_exists(settings_dir / PMEM_FILEFLAG);
 }
 
 int save_persistent_settings_to_file() {
     File outfile;
 
-    ensure_directory(SETTINGS_DIR);
-    auto error = outfile.create(PMEM_SETTING_FILE);
+    ensure_directory(settings_dir);
+    auto error = outfile.create(settings_dir / PMEM_SETTING_FILE);
     if (error)
         return false;
 
@@ -1122,7 +1131,7 @@ int save_persistent_settings_to_file() {
 
 int load_persistent_settings_from_file() {
     File infile;
-    auto error = infile.open(PMEM_SETTING_FILE);
+    auto error = infile.open(settings_dir / PMEM_SETTING_FILE);
     if (error)
         return false;
 
@@ -1246,6 +1255,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("misc_config config_disable_external_tcxo: " + to_string_dec_uint(config_disable_external_tcxo()));
     pmem_dump_file.write_line("misc_config config_sdcard_high_speed_io: " + to_string_dec_uint(config_sdcard_high_speed_io()));
     pmem_dump_file.write_line("misc_config config_disable_config_mode: " + to_string_dec_uint(config_disable_config_mode()));
+    pmem_dump_file.write_line("misc_config beep_on_packets: " + to_string_dec_int(beep_on_packets()));
 
     // receiver_model
     pmem_dump_file.write_line("\n[Receiver Model]");
