@@ -817,14 +817,15 @@ class SetAutostartView : public View {
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};
     Labels labels{
-        {{1 * 8, 1 * 16}, "Select app to start on boot", Color::light_grey()}};
+        {{1 * 8, 1 * 16}, "Select app to start on boot", Color::light_grey()},
+        {{2 * 8, 2 * 16}, "(an SD Card is required)", Color::light_grey()}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
         "Save"};
 
     OptionsField options{
-        {0 * 8, 3 * 16},
+        {8 * 8, 4 * 16},
         30,
         {}};
 
