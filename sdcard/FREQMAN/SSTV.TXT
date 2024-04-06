@@ -1,5 +1,5 @@
 # Common SSTV frequencies
-# frequencies marked Active have more frequent transmissions 
+# 'Active' => most used
 f=3640000,d=SSTV 80M
 f=7043000,d=SSTV 40M - Active
 f=7170000,d=SSTV 40M - Active
