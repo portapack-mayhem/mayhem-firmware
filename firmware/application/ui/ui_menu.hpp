@@ -75,6 +75,7 @@ class MenuItemView : public Widget {
 class MenuView : public View {
    public:
     std::function<void(void)> on_left{};
+    std::function<void(void)> on_right{};
     std::function<void(void)> on_highlight{nullptr};
 
     MenuView(Rect new_parent_rect = {0, 0, screen_width, screen_height - 16},
