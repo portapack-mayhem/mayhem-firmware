@@ -1,0 +1,15 @@
+# Common SSTV frequencies
+# 'Active' => most used
+f=3640000,d=SSTV 80M
+f=7043000,d=SSTV 40M - Active
+f=7170000,d=SSTV 40M - Active
+f=10132000,d=SSTV 30M
+f=14230000,d=SSTV 20M - Active
+f=14233000,d=SSTV 20M - Active
+f=14236000,d=SSTV 20M
+f=14240000,d=SSTV 20M
+f=21340000,d=SSTV 15M - Active
+f=28680000,d=SSTV 10M - Active
+f=50950000,d=SSTV 6M
+f=145625000,d=SSTV 2M
+f=433775000,d=SSTV 70CM

@@ -55,16 +55,30 @@ class LevelView : public View {
     NavigationView& nav_;
 
     RxRadioState radio_state_{};
-    app_settings::SettingsManager settings_{
-        "rx_level", app_settings::Mode::RX};
 
+    int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     size_t change_mode(freqman_index_t mod_type);
     void on_statistics_update(const ChannelStatistics& statistics);
     void set_display_freq(int64_t freq);
+    void m4_manage_stat_update();  // to finely adjust the RxSaturation usage
 
-    // TODO: needed?
-    int32_t db{0};
     rf::Frequency freq_ = {0};
+    bool beep = false;
+    uint8_t radio_mode = 0;
+    uint8_t radio_bw = 0;
+    uint8_t audio_mode = 0;
+    int32_t beep_squelch = 0;
+    audio::Rate audio_sampling_rate = audio::Rate::Hz_48000;
+
+    app_settings::SettingsManager settings_{
+        "rx_level",
+        app_settings::Mode::RX,
+        {
+            {"beep_squelch"sv, &beep_squelch},
+            {"audio_mode"sv, &audio_mode},
+            {"radio_mode"sv, &radio_mode},
+            {"radio_bw"sv, &radio_bw},
+        }};
 
     Labels labels{
         {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
@@ -102,28 +116,32 @@ class LevelView : public View {
         {0 * 8, 2 * 16 + 8, 15 * 8, 1 * 8},
         ""};
 
-    OptionsField audio_mode{
+    OptionsField field_audio_mode{
         {21 * 8, 1 * 16},
         9,
-        {
-            {"audio off", 0},
-            {"audio on", 1}
-            //{"tone on", 2},
-            //{"tone off", 3},
-        }};
+        {{"audio off", 0},
+         {"audio on", 1}}};
 
-    Text text_ctcss{
-        {22 * 8, 3 * 16 + 4, 8 * 8, 1 * 8},
-        ""};
+    Text text_beep_squelch{
+        {21 * 8, 3 * 16 + 4, 4 * 8, 1 * 8},
+        "Bip>"};
 
-    // RSSI: XX/XX/XXX,dt: XX
+    NumberField field_beep_squelch{
+        {25 * 8, 3 * 16 + 4},
+        4,
+        {-100, 20},
+        1,
+        ' ',
+    };
+
+    // RSSI: XX/XX/XXX
     Text freq_stats_rssi{
-        {0 * 8, 3 * 16 + 4, 22 * 8, 14},
+        {0 * 8, 3 * 16 + 4, 15 * 8, 1 * 16},
     };
 
     // Power: -XXX db
     Text freq_stats_db{
-        {0 * 8, 4 * 16 + 4, 14 * 8, 14},
+        {0 * 8, 4 * 16 + 4, 15 * 8, 1 * 16},
     };
 
     OptionsField peak_mode{
@@ -138,6 +156,7 @@ class LevelView : public View {
             {"peak:5s", 5000},
             {"peak:10s", 10000},
         }};
+
     OptionsField rssi_resolution{
         {44 + 20 * 8, 4 * 16 + 4},
         4,
@@ -149,14 +168,23 @@ class LevelView : public View {
             {"240x", 240},
         }};
 
+    // RxSat: XX%
+    Text freq_stats_rx{
+        {0 * 8, 5 * 16 + 4, 10 * 8, 1 * 16},
+    };
+
+    Text text_ctcss{
+        {12 * 8, 5 * 16 + 4, 8 * 8, 1 * 8},
+        ""};
+
     RSSIGraph rssi_graph{
         // 240x320  =>
-        {0, 5 * 16 + 4, 240 - 5 * 8, 320 - (5 * 16 + 4)},
+        {0, 6 * 16 + 8, 240 - 5 * 8, 320 - (6 * 16)},
     };
 
     RSSI rssi{
         // 240x320  =>
-        {240 - 5 * 8, 5 * 16 + 4, 5 * 8, 320 - (5 * 16 + 4)},
+        {240 - 5 * 8, 6 * 16 + 8, 5 * 8, 320 - (6 * 16)},
     };
 
     void handle_coded_squelch(const uint32_t value);

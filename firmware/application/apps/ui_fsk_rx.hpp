@@ -42,7 +42,7 @@
 
 class FskRxLogger {
    public:
-    Optional<File::Error> append(const std::string& filename) {
+    Optional<File::Error> append(const std::filesystem::path& filename) {
         return log_file.append(filename);
     }
 

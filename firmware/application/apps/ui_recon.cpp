@@ -49,7 +49,13 @@ namespace fs = std::filesystem;
 namespace ui {
 
 void ReconView::reload_restart_recon() {
+    // force reload of current
+    change_mode(field_mode.selected_index_value());
+    uint8_t previous_index = current_index;
+    reset_indexes();
     frequency_file_load();
+    current_index = previous_index;
+    handle_retune();
     if (frequency_list.size() > 0) {
         if (fwd) {
             button_dir.set_text("FW>");
@@ -104,18 +110,19 @@ void ReconView::set_loop_config(bool v) {
 
 void ReconView::recon_stop_recording(bool exiting) {
     if (is_recording) {
-        if (field_mode.selected_index_value() == SPEC_MODULATION)
-            button_audio_app.set_text("RAW");
-        else
-            button_audio_app.set_text("AUDIO");
-        button_audio_app.set_style(&Styles::white);
         record_view->stop();
-        button_config.set_style(&Styles::white);
         is_recording = false;
-        // repeater mode
-        if (!exiting && persistent_memory::recon_repeat_recorded()) {
-            start_repeat();
+        if (field_mode.selected_index_value() == SPEC_MODULATION) {
+            button_audio_app.set_text("RAW");
+            // repeater mode
+            if (!exiting && persistent_memory::recon_repeat_recorded()) {
+                start_repeat();
+            }
+        } else {
+            button_audio_app.set_text("AUDIO");
         }
+        button_audio_app.set_style(&Styles::white);
+        button_config.set_style(&Styles::white);
     }
 }
 
@@ -330,7 +337,7 @@ ReconView::ReconView(NavigationView& nav)
 
     // set record View
     record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                               u"AUTO_AUDIO", u"AUDIO",
+                                               u"AUTO_AUDIO", audio_dir,
                                                RecordView::FileType::WAV, 4096, 4);
     record_view->set_filename_date_frequency(true);
     record_view->set_auto_trim(false);
@@ -501,7 +508,7 @@ ReconView::ReconView(NavigationView& nav)
         auto settings = receiver_model.settings();
         settings.frequency_step = step_mode.selected_index_value();
         if (field_mode.selected_index_value() == SPEC_MODULATION)
-            nav_.replace<CaptureAppView>();
+            nav_.replace<CaptureAppView>(settings);
         else
             nav_.replace<AnalogAudioView>(settings);
     };
@@ -532,7 +539,7 @@ ReconView::ReconView(NavigationView& nav)
             }
         }
 
-        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        // MicTX wants Frequency, Modulation and Bandwidth overrides, but that's only stored on the RX model.
         nav_.replace<MicTXView>(receiver_model.settings());
     };
 
@@ -1148,7 +1155,7 @@ void ReconView::on_stepper_delta(int32_t v) {
 }
 
 size_t ReconView::change_mode(freqman_index_t new_mod) {
-    if (recon_tx || is_repeat_active())
+    if (recon_tx || is_repeat_active() || is_recording)
         return 0;
     field_mode.on_change = [this](size_t, OptionsField::value_t) {};
     field_bw.on_change = [this](size_t, OptionsField::value_t) {};
@@ -1157,19 +1164,24 @@ size_t ReconView::change_mode(freqman_index_t new_mod) {
         remove_child(record_view.get());
         record_view.reset();
     }
-    if (persistent_memory::recon_repeat_recorded()) {
-        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"RECON_REPEAT.C16", u"CAPTURES",
-                                                   RecordView::FileType::RawS16, 16384, 3);
-        record_view->set_filename_as_is(true);
-    } else if (new_mod == SPEC_MODULATION) {
+    if (field_mode.selected_index_value() != SPEC_MODULATION) {
         audio::output::stop();
-        record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_RAW", u"CAPTURES",
-                                                   RecordView::FileType::RawS16, 16384, 3);
+    }
+    if (new_mod == SPEC_MODULATION) {
+        if (persistent_memory::recon_repeat_recorded()) {
+            record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                       u"RECON_REPEAT.C16", captures_dir,
+                                                       RecordView::FileType::RawS16, 16384, 3);
+            record_view->set_filename_as_is(true);
+        } else {
+            record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
+                                                       u"AUTO_RAW", captures_dir,
+                                                       RecordView::FileType::RawS16, 16384, 3);
+            record_view->set_filename_date_frequency(true);
+        }
     } else {
         record_view = std::make_unique<RecordView>(Rect{0, 0, 30 * 8, 1 * 16},
-                                                   u"AUTO_AUDIO", u"AUDIO",
+                                                   u"AUTO_AUDIO", audio_dir,
                                                    RecordView::FileType::WAV, 4096, 4);
         record_view->set_filename_date_frequency(true);
     }
@@ -1314,9 +1326,6 @@ bool ReconView::is_repeat_active() const {
 
 void ReconView::start_repeat() {
     // Prepare to send a file.
-    std::filesystem::path rawfile = u"/" + repeat_rec_path + u"/" + repeat_rec_file;
-    std::filesystem::path rawmeta = u"/" + repeat_rec_path + u"/" + repeat_rec_meta;
-
     if (recon_tx == false) {
         recon_tx = true;
 
@@ -1434,6 +1443,12 @@ void ReconView::stop_repeat(const bool do_loop) {
     } else {
         repeat_cur_rep = 0;
         recon_tx = false;
+        if (persistent_memory::recon_repeat_recorded_file_mode() == RECON_REPEAT_AND_KEEP) {
+            // rename file here to keep
+            std::filesystem::path base_path = next_filename_matching_pattern(repeat_rec_path / u"REC_????.*");
+            rename_file(rawfile, base_path.replace_extension(u".C16"));
+            rename_file(rawmeta, base_path.replace_extension(u".TXT"));
+        }
         reload_restart_recon();
         progressbar.hidden(true);
         set_dirty();  // fix progressbar no hiding
@@ -1445,7 +1460,7 @@ void ReconView::handle_repeat_thread_done(const uint32_t return_code) {
         stop_repeat(true);
     } else if (return_code == ReplayThread::READ_ERROR) {
         stop_repeat(false);
-        repeat_file_error(u"/" + repeat_rec_path + u"/" + repeat_rec_file, "Can't open file to send.");
+        repeat_file_error(rawfile, "Can't open file to send.");
     }
 }
 

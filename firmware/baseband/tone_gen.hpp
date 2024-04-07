@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -28,40 +29,21 @@
 
 class ToneGen {
    public:
-    enum tone_type { sine,
-                     square };  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
-
-    /*ToneGen(const size_t sample_rate
-        ) : sample_rate_ { sample_rate }
-        {};*/
-
     void configure(const uint32_t delta, const float tone_mix_weight);
-    void configure(const uint32_t freq, const float tone_mix_weight, const tone_type tone_type, const uint32_t sample_rate);
-
     int32_t process(const int32_t sample_in);
-    int32_t process_square(const int32_t sample_in);
+
+    void configure_beep(const uint32_t freq, const uint32_t sample_rate);
+    int16_t process_beep();
 
    private:
-    tone_type current_tone_type_{sine};
-
     float input_mix_weight_{1};
     float tone_mix_weight_{0};
 
+    float f_delta_{0.0};
+    float f_tone_phase_{0.0};
+
     uint32_t delta_{0};
     uint32_t tone_phase_{0};
-
-    //	uint8_t delta_ { 0 };		// TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
-    //	uint8_t tone_phase_ { 0 };  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
-
-    /**
-     * Generator function which selects every other sample from the reference sine waveform to the output sample:
-     */
-    int32_t tone_sine();  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
-
-    /**
-     * Generator function for square waves:
-     */
-    int32_t tone_square();  // TODO:  Added for Radio Sonde.cpp PR 376, 381 , we need to check if keep or not.
 };
 
 #endif /* __TONE_GEN_H__ */

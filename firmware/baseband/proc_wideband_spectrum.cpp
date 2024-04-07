@@ -20,6 +20,7 @@
  */
 
 #include "proc_wideband_spectrum.hpp"
+#include "audio_dma.hpp"
 
 #include "event_m4.hpp"
 
@@ -59,7 +60,30 @@ void WidebandSpectrum::execute(const buffer_c8_t& buffer) {
     }
 }
 
+void WidebandSpectrum::on_signal_message(const RequestSignalMessage& message) {
+    if (message.signal == RequestSignalMessage::Signal::BeepStopRequest) {
+        audio::dma::beep_stop();
+    }
+}
+
+void WidebandSpectrum::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 void WidebandSpectrum::on_message(const Message* const msg) {
+    switch (msg->id) {
+        case Message::ID::RequestSignal:
+            on_signal_message(*reinterpret_cast<const RequestSignalMessage*>(msg));
+            return;
+
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(msg));
+            return;
+
+        default:
+            break;
+    }
+
     const WidebandSpectrumConfigMessage message = *reinterpret_cast<const WidebandSpectrumConfigMessage*>(msg);
 
     switch (msg->id) {
@@ -82,6 +106,7 @@ void WidebandSpectrum::on_message(const Message* const msg) {
 }
 
 int main() {
+    audio::dma::init_audio_out();  // for AudioRX app (enables audio output while this baseband image is running)
     EventDispatcher event_dispatcher{std::make_unique<WidebandSpectrum>()};
     event_dispatcher.run();
     return 0;

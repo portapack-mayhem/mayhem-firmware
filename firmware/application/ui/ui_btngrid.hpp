@@ -2,6 +2,7 @@
  * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2016 Furrtek
  * Copyright (C) 2019 Elia Yehuda (z4ziggy)
+ * Copyright (C) 2024 u-foka
  *
  * This file is part of PortaPack.
  *
@@ -60,6 +61,7 @@ class BtnGridView : public View {
 
     void add_items(std::initializer_list<GridItem> new_items);
     void add_item(GridItem new_item);
+    void insert_item(GridItem new_item, uint8_t position);
     void set_max_rows(int rows);
     int rows();
     void clear();
@@ -73,9 +75,14 @@ class BtnGridView : public View {
     void set_arrow_enabled(bool enabled);
     void on_focus() override;
     void on_blur() override;
+    void on_show() override;
+    void on_hide() override;
     bool on_key(const KeyEvent event) override;
     bool on_encoder(const EncoderEvent event) override;
     bool blacklisted_app(GridItem new_item);
+
+   protected:
+    virtual void on_populate() = 0;
 
    private:
     int rows_{3};

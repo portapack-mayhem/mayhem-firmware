@@ -30,6 +30,7 @@
 #include "portapack.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <algorithm>
 #include <cstring>
@@ -40,7 +41,7 @@ using namespace portapack;
 
 namespace {
 fs::path get_settings_path(const std::string& app_name) {
-    return fs::path{SETTINGS_DIR} / app_name + u".ini";
+    return settings_dir / app_name + u".ini";
 }
 }  // namespace
 
@@ -156,7 +157,7 @@ bool save_settings(std::string_view store_name, const SettingBindings& bindings)
     File f;
     auto path = get_settings_path(std::string{store_name});
 
-    ensure_directory(SETTINGS_DIR);
+    ensure_directory(settings_dir);
     auto error = f.create(path);
     if (error)
         return false;
@@ -174,16 +175,12 @@ void copy_to_radio_model(const AppSettings& settings) {
     // Specifically 'modulation' which requires a running baseband.
 
     if (flags_enabled(settings.mode, Mode::TX)) {
-        if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            persistent_memory::set_target_frequency(settings.tx_frequency);
-
+        persistent_memory::set_target_frequency(settings.tx_frequency);
         transmitter_model.configure_from_app_settings(settings);
     }
 
     if (flags_enabled(settings.mode, Mode::RX)) {
-        if (!flags_enabled(settings.options, Options::UseGlobalTargetFrequency))
-            persistent_memory::set_target_frequency(settings.rx_frequency);
-
+        persistent_memory::set_target_frequency(settings.rx_frequency);
         receiver_model.configure_from_app_settings(settings);
         receiver_model.set_configuration_without_update(
             static_cast<ReceiverModel::Mode>(settings.modulation),

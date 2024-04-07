@@ -4,6 +4,7 @@
  * Copyright (C) 2023 gullradriel, Nilorea Studio Inc.
  * Copyright (C) 2023 Kyle Reed
  * Copyright (C) 2024 Mark Thompson
+ * Copyright (C) 2024 u-foka
  * Copyleft (ɔ) 2024 zxkmm under GPL license
  *
  * This file is part of PortaPack.
@@ -30,6 +31,7 @@
 #include "ui_receiver.hpp"
 #include "ui_touch_calibration.hpp"
 #include "ui_text_editor.hpp"
+#include "ui_external_items_menu_loader.hpp"
 
 #include "portapack_persistent_memory.hpp"
 #include "lpc43xx_cpp.hpp"
@@ -40,6 +42,7 @@ using namespace lpc43xx;
 using namespace portapack;
 
 #include "file.hpp"
+#include "file_path.hpp"
 namespace fs = std::filesystem;
 
 #include "string_format.hpp"
@@ -570,17 +573,17 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
         File pmem_flag_file_handle;
         if (v) {
-            if (fs::file_exists(PMEM_FILEFLAG)) {
+            if (fs::file_exists(settings_dir / PMEM_FILEFLAG)) {
                 text_pmem_status.set("P.Mem flag file present.");
             } else {
-                auto error = pmem_flag_file_handle.create(PMEM_FILEFLAG);
+                auto error = pmem_flag_file_handle.create(settings_dir / PMEM_FILEFLAG);
                 if (error)
                     text_pmem_status.set("Error creating P.Mem File!");
                 else
                     text_pmem_status.set("P.Mem flag file created.");
             }
         } else {
-            auto result = delete_file(PMEM_FILEFLAG);
+            auto result = delete_file(settings_dir / PMEM_FILEFLAG);
             if (result.code() != FR_OK)
                 text_pmem_status.set("Error deleting P.Mem flag!");
             else
@@ -633,13 +636,17 @@ void SetPersistentMemoryView::focus() {
 SetAudioView::SetAudioView(NavigationView& nav) {
     add_children({&labels,
                   &field_tone_mix,
+                  &checkbox_beep_on_packets,
                   &button_save,
                   &button_cancel});
 
     field_tone_mix.set_value(pmem::tone_mix());
 
+    checkbox_beep_on_packets.set_value(pmem::beep_on_packets());
+
     button_save.on_select = [&nav, this](Button&) {
         pmem::set_tone_mix(field_tone_mix.value());
+        pmem::set_beep_on_packets(checkbox_beep_on_packets.value());
         audio::output::update_audio_mute();
         nav.pop();
     };
@@ -716,10 +723,10 @@ AppSettingsView::AppSettingsView(
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
-    ensure_directory(SETTINGS_DIR);
+    ensure_directory(settings_dir);
 
-    for (const auto& entry : std::filesystem::directory_iterator(SETTINGS_DIR, u"*.ini")) {
-        auto path = (std::filesystem::path)SETTINGS_DIR / entry.path();
+    for (const auto& entry : std::filesystem::directory_iterator(settings_dir, u"*.ini")) {
+        auto path = settings_dir / entry.path();
 
         menu_view.add_item({path.filename().string().substr(0, 26),
                             ui::Color::dark_cyan(),
@@ -833,30 +840,89 @@ void SetMenuColorView::focus() {
     button_save.focus();
 }
 
+/* SetAutoStartView ************************************/
+
+SetAutostartView::SetAutostartView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel,
+                  &options});
+
+    button_save.on_select = [&nav, this](Button&) {
+        autostart_app = "";
+        if (selected != 0) {
+            auto it = full_app_list.find(selected);
+            if (it != full_app_list.end())
+                autostart_app = it->second;
+        }
+        nav.pop();
+    };
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+
+    // options
+    i = 0;
+    OptionsField::option_t o{"-none-", i};
+    opts.emplace_back(o);
+    for (auto& app : NavigationView::appList) {
+        if (app.id == nullptr) continue;
+        i++;
+        o = {app.displayName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.id);
+        if (autostart_app == app.id) selected = i;
+    }
+    ExternalItemsMenuLoader::load_all_external_items_callback([this](ui::AppInfoConsole& app) {
+        if (app.appCallName == nullptr) return;
+        i++;
+        OptionsField::option_t o = {app.appFriendlyName, i};
+        opts.emplace_back(o);
+        full_app_list.emplace(i, app.appCallName);
+        if (autostart_app == app.appCallName) selected = i;
+    });
+
+    options.set_options(opts);
+    options.on_change = [this](size_t, OptionsField::value_t v) {
+        selected = v;
+    };
+    options.set_selected_index(selected);
+}
+
+void SetAutostartView::focus() {
+    options.focus();
+}
+
 /* SettingsMenuView **************************************/
 
-SettingsMenuView::SettingsMenuView(NavigationView& nav) {
+SettingsMenuView::SettingsMenuView(NavigationView& nav)
+    : nav_(nav) {
+    set_max_rows(2);  // allow wider buttons
+}
+
+void SettingsMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [&nav]() { nav.pop(); }}});
+        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
-        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [&nav]() { nav.push<AppSettingsView>(); }},
-        {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [&nav]() { nav.push<SetAudioView>(); }},
-        {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [&nav]() { nav.push<TouchCalibrationView>(); }},
-        {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [&nav]() { nav.push<SetConfigModeView>(); }},
-        {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetConverterSettingsView>(); }},
-        {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [&nav]() { nav.push<SetDateTimeView>(); }},
-        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [&nav]() { nav.push<SetEncoderDialView>(); }},
-        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetFrequencyCorrectionView>(); }},
-        {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [&nav]() { nav.push<SetPersistentMemoryView>(); }},
-        {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [&nav]() { nav.push<SetRadioView>(); }},
-        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [&nav]() { nav.push<SetSDCardView>(); }},
-        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [&nav]() { nav.push<SetUIView>(); }},
-        {"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [&nav]() { nav.push<SetQRCodeView>(); }},
-        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetFakeBrightnessView>(); }},
-        {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [&nav]() { nav.push<SetMenuColorView>(); }},
+        {"App Settings", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<AppSettingsView>(); }},
+        {"Audio", ui::Color::dark_cyan(), &bitmap_icon_speaker, [this]() { nav_.push<SetAudioView>(); }},
+        {"Calibration", ui::Color::dark_cyan(), &bitmap_icon_options_touch, [this]() { nav_.push<TouchCalibrationView>(); }},
+        {"Config Mode", ui::Color::dark_cyan(), &bitmap_icon_clk_ext, [this]() { nav_.push<SetConfigModeView>(); }},
+        {"Converter", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetConverterSettingsView>(); }},
+        {"Date/Time", ui::Color::dark_cyan(), &bitmap_icon_options_datetime, [this]() { nav_.push<SetDateTimeView>(); }},
+        {"Encoder Dial", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetEncoderDialView>(); }},
+        {"Freq. Correct", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetFrequencyCorrectionView>(); }},
+        {"P.Memory Mgmt", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<SetPersistentMemoryView>(); }},
+        {"Radio", ui::Color::dark_cyan(), &bitmap_icon_options_radio, [this]() { nav_.push<SetRadioView>(); }},
+        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SetSDCardView>(); }},
+        {"User Interface", ui::Color::dark_cyan(), &bitmap_icon_options_ui, [this]() { nav_.push<SetUIView>(); }},
+        //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
+        {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
+        {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
+        {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
-    set_max_rows(2);  // allow wider buttons
 }
 
 } /* namespace ui */

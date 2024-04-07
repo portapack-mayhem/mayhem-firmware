@@ -26,6 +26,8 @@
 #include "string_format.hpp"
 #include <cstring>
 
+#include "crc.hpp"
+
 static File* shell_file = nullptr;
 
 static bool report_on_error(BaseSequentialStream* chp, File::Error& error) {
@@ -97,7 +99,7 @@ void cmd_sd_mkdir(BaseSequentialStream* chp, int argc, char* argv[]) {
 
     auto path = path_from_string8(argv[0]);
 
-    if (!std::filesystem::is_directory(path)) {
+    if (std::filesystem::is_directory(path)) {
         chprintf(chp, "directory already exists.\r\n");
         return;
     }
@@ -370,4 +372,35 @@ void cmd_sd_write_binary(BaseSequentialStream* chp, int argc, char* argv[]) {
     } while (size > 0);
 
     chprintf(chp, "ok\r\n");
+}
+
+void cmd_sd_crc32(BaseSequentialStream* chp, int argc, char* argv[]) {
+    if (argc != 1) {
+        chprintf(chp, "usage: crc32 <path>\r\n");
+        return;
+    }
+
+    auto path = path_from_string8(argv[0]);
+    File* crc_file = new File();
+    auto error = crc_file->open(path, true, false);
+    if (report_on_error(chp, error)) return;
+
+    uint8_t buffer[64];
+    CRC<32> crc{0x04c11db7, 0xffffffff, 0xffffffff};
+
+    while (true) {
+        auto bytes_read = crc_file->read(buffer, 64);
+        if (report_on_error(chp, bytes_read)) return;
+
+        if (bytes_read.value() > 0) {
+            crc.process_bytes((void*)buffer, bytes_read.value());
+        }
+
+        if (64 != bytes_read.value()) {
+            chprintf(chp, "CRC32: 0x%08X\r\n", crc.checksum());
+            return;
+        }
+    }
+
+    delete crc_file;
 }

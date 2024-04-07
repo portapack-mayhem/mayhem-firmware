@@ -118,7 +118,6 @@ class MicTXView : public View {
     app_settings::SettingsManager settings_{
         "tx_mic",
         app_settings::Mode::RX_TX,
-        app_settings::Options::UseGlobalTargetFrequency,
         {
             {"mic_mod_index"sv, &mic_mod_index},
             {"rxbw_index"sv, &rxbw_index},
@@ -342,18 +341,10 @@ class MicTXView : public View {
         ' ',
     };
 
-    NumberField field_tx_iq_phase_cal_2837{
+    NumberField field_tx_iq_phase_cal{
         {24 * 8, (33 * 8)},
         2,
-        {0, 31},  // 5 bits IQ CAL phase adjustment.
-        1,
-        ' ',
-    };
-
-    NumberField field_tx_iq_phase_cal_2839{
-        {24 * 8, (33 * 8)},
-        2,
-        {0, 63},  // 6 bits IQ CAL phasse adjustment.
+        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
         1,
         ' ',
     };

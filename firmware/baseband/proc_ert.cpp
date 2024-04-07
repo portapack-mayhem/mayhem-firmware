@@ -21,6 +21,7 @@
  */
 
 #include "proc_ert.hpp"
+#include "audio_dma.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -109,7 +110,17 @@ void ERTProcessor::idm_handler(
     shared_memory.application_queue.push(message);
 }
 
+void ERTProcessor::on_message(const Message* const msg) {
+    if (msg->id == Message::ID::AudioBeep)
+        on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(msg));
+}
+
+void ERTProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<ERTProcessor>()};
     event_dispatcher.run();
     return 0;

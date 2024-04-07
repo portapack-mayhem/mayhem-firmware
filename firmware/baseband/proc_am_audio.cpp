@@ -22,6 +22,7 @@
 #include "proc_am_audio.hpp"
 
 #include "audio_output.hpp"
+#include "audio_dma.hpp"
 
 #include "event_m4.hpp"
 
@@ -112,6 +113,8 @@ void NarrowbandAMAudio::capture_config(const CaptureConfigMessage& message) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<NarrowbandAMAudio>()};
     event_dispatcher.run();
     return 0;

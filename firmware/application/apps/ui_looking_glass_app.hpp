@@ -69,6 +69,9 @@ class GlassView : public View {
     void on_hide() override;
     void focus() override;
 
+    uint8_t get_spec_iq_phase_calibration_value();
+    void set_spec_iq_phase_calibration_value(uint8_t cal_value);
+
    private:
     NavigationView& nav_;
     RxRadioState radio_state_{ReceiverModel::Mode::SpectrumAnalysis};
@@ -79,8 +82,11 @@ class GlassView : public View {
     uint8_t filter_index = 0;  // OFF
     uint8_t trigger = 32;
     uint8_t mode = LOOKING_GLASS_FASTSCAN;
-    uint8_t live_frequency_view = 0;       // Spectrum
-    uint8_t live_frequency_integrate = 3;  // Default (3 * old value + new_value) / 4
+    uint8_t live_frequency_view = 0;         // Spectrum
+    uint8_t live_frequency_integrate = 3;    // Default (3 * old value + new_value) / 4
+    uint8_t iq_phase_calibration_value{15};  // initial default RX IQ phase calibration value , used for both max2837 & max2839
+    int32_t beep_squelch = 20;               // range from -100 to +20, >=20 disabled
+    bool beep_enabled = false;               // activate on bip button click
     app_settings::SettingsManager settings_{
         "rx_glass"sv,
         app_settings::Mode::RX,
@@ -93,6 +99,9 @@ class GlassView : public View {
             {"scan_mode"sv, &mode},
             {"freq_view"sv, &live_frequency_view},
             {"freq_integrate"sv, &live_frequency_integrate},
+            {"iq_phase_calibration"sv, &iq_phase_calibration_value},  // we are saving and restoring that CAL from Settings.
+            {"beep_squelch"sv, &beep_squelch},
+            {"beep_enabled"sv, &beep_enabled},
         }};
 
     struct preset_entry {
@@ -101,7 +110,10 @@ class GlassView : public View {
         std::string label{};
     };
 
+    int32_t map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh);
     std::vector<preset_entry> presets_db{};
+    void manage_beep_audio();
+    void update_display_beep();
     void update_min(int32_t v);
     void update_max(int32_t v);
     void update_range_field();
@@ -148,6 +160,8 @@ class GlassView : public View {
     int32_t steps = 1;
     bool locked_range = false;
 
+    uint8_t range_max_power = 0;
+    uint8_t range_max_power_counter = 0;
     uint8_t max_power = 0;
     rf::Frequency max_freq_hold = 0;
     rf::Frequency last_max_freq = 0;
@@ -159,9 +173,10 @@ class GlassView : public View {
     Labels labels{
         {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
         {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
-        {{0, 2 * 16}, "PRESET:", Color::light_grey()},
-        {{0, 3 * 16}, "MARKER:          MHz", Color::light_grey()},
-        {{0, 4 * 16}, "RES:    STEP:", Color::light_grey()}};
+        {{0, 2 * 16}, "P:", Color::light_grey()},
+        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Color::light_grey()},
+        //{{0, 4 * 16}, "RES:    STEPS:", Color::light_grey()}};
+        {{0, 4 * 16}, "RES:     VOL:", Color::light_grey()}};
 
     NumberField field_frequency_min{
         {4 * 8, 0 * 16},
@@ -200,13 +215,25 @@ class GlassView : public View {
         {28 * 8, 1 * 16}};
 
     OptionsField range_presets{
-        {7 * 8, 2 * 16},
+        {2 * 8, 2 * 16},
         20,
         {}};
+
+    ButtonWithEncoder button_beep_squelch{
+        {240 - 8 * 8, 2 * 16 + 4, 8 * 8, 1 * 8},
+        ""};
 
     TextField field_marker{
         {7 * 8, 3 * 16, 9 * 8, 16},
         ""};
+
+    NumberField field_rx_iq_phase_cal{
+        {28 * 8, 3 * 16},
+        2,
+        {0, 63},  // 5 or 6 bits IQ CAL phase adjustment (range updated later)
+        1,
+        ' ',
+    };
 
     NumberField field_trigger{
         {4 * 8, 4 * 16},
@@ -215,7 +242,10 @@ class GlassView : public View {
         2,
         ' '};
 
-    OptionsField steps_config{
+    AudioVolumeField field_volume{
+        {13 * 8, 4 * 16}};
+
+    /*OptionsField steps_config{
         {13 * 8, 4 * 16},
         3,
         {
@@ -225,7 +255,7 @@ class GlassView : public View {
             {"100", 100},
             {"250", 250},
             {"500", 500},
-        }};
+        }};*/
 
     OptionsField scan_type{
         {17 * 8, 4 * 16},

@@ -27,8 +27,6 @@
 #include "file.hpp"
 #include "rtc_time.hpp"
 
-#define LOG_ROOT_DIR "LOGS"
-
 class LogFile {
    public:
     Optional<File::Error> append(const std::filesystem::path& filename) {

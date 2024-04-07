@@ -23,6 +23,7 @@
 #include "proc_weather.hpp"
 #include "portapack_shared_memory.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 void WeatherProcessor::execute(const buffer_c8_t& buffer) {
     if (!configured) return;
@@ -66,8 +67,18 @@ void WeatherProcessor::execute(const buffer_c8_t& buffer) {
 }
 
 void WeatherProcessor::on_message(const Message* const message) {
-    if (message->id == Message::ID::SubGhzFPRxConfigure)
-        configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
+    switch (message->id) {
+        case Message::ID::SubGhzFPRxConfigure:
+            configure(*reinterpret_cast<const SubGhzFPRxConfigureMessage*>(message));
+            break;
+
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
+            break;
+
+        default:
+            break;
+    }
 }
 
 void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
@@ -84,7 +95,12 @@ void WeatherProcessor::configure(const SubGhzFPRxConfigureMessage& message) {
     configured = true;
 }
 
+void WeatherProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<WeatherProcessor>()};
     event_dispatcher.run();
     return 0;

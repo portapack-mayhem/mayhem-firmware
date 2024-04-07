@@ -828,7 +828,7 @@ class MAX2837 : public MAX283x {
 
     bool set_frequency(const rf::Frequency lo_frequency) override;
 
-    void set_rx_lo_iq_calibration(const size_t v) override;
+    void set_rx_LO_iq_phase_calibration(const size_t v) override;
     void set_tx_LO_iq_phase_calibration(const size_t v) override;
     void set_rx_bias_trim(const size_t v);
     void set_vco_bias(const size_t v);
@@ -841,6 +841,7 @@ class MAX2837 : public MAX283x {
 
    private:
     spi::arbiter::Target& _target;
+    Mode _mode{Mode::Standby};
 
     RegisterMap _map{initial_register_values};
     DirtyRegisters<Register, reg_count> _dirty{};
@@ -851,6 +852,7 @@ class MAX2837 : public MAX283x {
     reg_t read(const Register reg);
 
     void flush();
+    Mode get_mode();
 };
 
 }  // namespace max2837

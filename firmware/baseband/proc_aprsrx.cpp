@@ -23,6 +23,8 @@
 #include "proc_aprsrx.hpp"
 #include "portapack_shared_memory.hpp"
 
+#include "audio_dma.hpp"
+
 #include "event_m4.hpp"
 
 #include "stdio.h"
@@ -244,6 +246,8 @@ void APRSRxProcessor::configure(const APRSRxConfigureMessage& message) {
 }
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<APRSRxProcessor>()};
     event_dispatcher.run();
     return 0;

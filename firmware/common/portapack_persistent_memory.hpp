@@ -37,10 +37,10 @@
 #include "ui.hpp"
 
 // persistent memory from/to sdcard flag file
-#define PMEM_FILEFLAG u"/SETTINGS/PMEM_FILEFLAG"
+#define PMEM_FILEFLAG u"PMEM_FILEFLAG"
 
 // persistent memory from/to sdcard flag file
-#define PMEM_SETTING_FILE u"/SETTINGS/pmem_settings"
+#define PMEM_SETTING_FILE u"pmem_settings"
 
 #define PMEM_SIZE_BYTES 256  // total amount of pmem space in bytes, including checksum
 #define PMEM_SIZE_WORDS (PMEM_SIZE_BYTES / 4)
@@ -204,6 +204,7 @@ void set_config_cpld(uint8_t i);
 bool config_disable_external_tcxo();
 bool config_sdcard_high_speed_io();
 bool config_disable_config_mode();
+bool beep_on_packets();
 
 bool config_splash();
 bool config_converter();
@@ -226,6 +227,7 @@ void set_show_bigger_qr_code(bool v);
 void set_config_disable_external_tcxo(bool v);
 void set_config_sdcard_high_speed_io(bool v, bool save);
 void set_config_disable_config_mode(bool v);
+void set_beep_on_packets(bool v);
 
 void set_config_splash(bool v);
 bool config_converter();
@@ -298,6 +300,7 @@ bool recon_load_ranges();
 bool recon_update_ranges_when_recon();
 bool recon_auto_record_locked();
 bool recon_repeat_recorded();
+bool recon_repeat_recorded_file_mode();
 int8_t recon_repeat_nb();
 int8_t recon_repeat_gain();
 bool recon_repeat_amp();
@@ -313,6 +316,7 @@ void set_recon_load_ranges(const bool v);
 void set_recon_update_ranges_when_recon(const bool v);
 void set_recon_auto_record_locked(const bool v);
 void set_recon_repeat_recorded(const bool v);
+void set_recon_repeat_recorded_file_mode(const bool v);
 void set_recon_repeat_nb(const int8_t v);
 void set_recon_repeat_gain(const int8_t v);
 void set_recon_repeat_amp(const bool v);

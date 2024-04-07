@@ -32,6 +32,7 @@
 #include "string_format.hpp"
 #include "ui_styles.hpp"
 #include "irq_controls.hpp"
+#include "file_path.hpp"
 
 using namespace ui;
 
@@ -266,7 +267,6 @@ bool stack_dump() {
 
 bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
     Painter painter;
-    std::string debug_dir = "DEBUG";
     std::filesystem::path filename{};
     File dump_file{};
     bool error;
@@ -277,7 +277,7 @@ bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
     bool data_found{false};
 
     ensure_directory(debug_dir);
-    filename = next_filename_matching_pattern(debug_dir + "/" + (stack_flag ? "STACK" : "MEMORY") + "_DUMP_????.TXT");
+    filename = next_filename_matching_pattern(debug_dir + (stack_flag ? u"/STACK" : u"/MEMORY") + u"_DUMP_????.TXT");
     error = filename.empty();
     if (!error)
         error = dump_file.create(filename) != 0;

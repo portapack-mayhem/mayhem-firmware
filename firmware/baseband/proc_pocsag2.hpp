@@ -212,6 +212,7 @@ class POCSAGProcessor : public BasebandProcessor {
     void reset();
     void send_stats() const;
     void send_packet();
+    void on_beep_message(const AudioBeepMessage& message);
 
     /* Set once app is ready to receive messages. */
     bool configured = false;

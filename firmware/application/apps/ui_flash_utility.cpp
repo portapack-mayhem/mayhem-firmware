@@ -23,30 +23,51 @@
 #include "ui_flash_utility.hpp"
 #include "ui_styles.hpp"
 #include "portapack_shared_memory.hpp"
+#include "file_path.hpp"
 
 namespace ui {
 
-static const char16_t* firmware_folder = u"/FIRMWARE";
+// Firmware image validation
+static const char* hackrf_magic = "HACKRFFW";
+#define FIRMWARE_INFO_AREA_OFFSET 0x400
+#define FIRST_CHECKSUM_NIGHTLY 240125
 
 Thread* FlashUtilityView::thread{nullptr};
 static constexpr size_t max_filename_length = 26;
 
 bool valid_firmware_file(std::filesystem::path::string_type path) {
     File firmware_file;
+    bool require_checksum{false};
     uint32_t read_buffer[128];
-    uint32_t checksum{(uint32_t)~FLASH_EXPECTED_CHECKSUM};  // initializing to invalid checksum in case file can't be read
+    uint32_t checksum{FLASH_CHECKSUM_ERROR};  // initializing to invalid checksum in case file can't be read
+
+    static_assert((FIRMWARE_INFO_AREA_OFFSET % sizeof(read_buffer)) == 0, "Read buffer size must divide evenly into FIRMWARE_INFO_AREA_OFFSET");
 
     // test read of the whole file just to validate checksum (baseband flash code will re-read when flashing)
     auto result = firmware_file.open(path.c_str());
     if (!result.is_valid()) {
         checksum = 0;
-        for (uint32_t i = 0; i < FLASH_ROM_SIZE / sizeof(read_buffer); i++) {
+        for (uint32_t offset = 0; offset < FLASH_ROM_SIZE; offset += sizeof(read_buffer)) {
             auto readResult = firmware_file.read(&read_buffer, sizeof(read_buffer));
 
-            // if file is smaller than 1MB, assume it's a downgrade to an old FW version and ignore the checksum
             if ((!readResult) || (readResult.value() != sizeof(read_buffer))) {
-                checksum = FLASH_EXPECTED_CHECKSUM;
+                // File was smaller than 1MB:
+                // If version is such that the file SHOULD have been 1MB, call it a checksum error (otherwise say it's OK).
+                checksum = (require_checksum) ? FLASH_CHECKSUM_ERROR : FLASH_EXPECTED_CHECKSUM;
                 break;
+            }
+
+            // Did we just read the firmware info area?
+            if (offset == FIRMWARE_INFO_AREA_OFFSET) {
+                // If there's no info area (missing HACKRFFW signature), it could be an ancient FW version (so skipping check)
+                if (memcmp(read_buffer, hackrf_magic, 8) == 0) {
+                    char* version_string = (char*)&read_buffer[4];
+
+                    // Require a 1MB firmware image with a valid checksum if release version >=v2.x or nightly >n_240125
+                    if (((version_string[0] == 'v') && (std::atoi(&version_string[1]) >= 2)) ||
+                        ((version_string[0] == 'n') && (version_string[1] == '_') && (std::atoi(&version_string[2]) >= FIRST_CHECKSUM_NIGHTLY)))
+                        require_checksum = true;
+                }
             }
 
             checksum += simple_checksum((uint32_t)read_buffer, sizeof(read_buffer));
@@ -62,30 +83,29 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
-    ensure_directory(firmware_folder);
+    ensure_directory(firmware_dir);
 
-    for (const auto& entry : std::filesystem::directory_iterator(firmware_folder, u"*.bin")) {
-        auto filename = entry.path().filename();
-        auto path = entry.path().native();
+    auto add_firmware_items = [&](
+                                  const std::filesystem::path& folder_path,
+                                  const std::filesystem::path& wild,
+                                  ui::Color color) {
+        for (const auto& entry : std::filesystem::directory_iterator(folder_path, wild)) {
+            auto filename = entry.path().filename();
+            auto path = entry.path().native();
 
-        menu_view.add_item({filename.string().substr(0, max_filename_length),
-                            ui::Color::red(),
-                            &bitmap_icon_temperature,
-                            [this, path](KeyEvent) {
-                                this->firmware_selected(path);
-                            }});
-    }
-    for (const auto& entry : std::filesystem::directory_iterator(firmware_folder, u"*.tar")) {
-        auto filename = entry.path().filename();
-        auto path = entry.path().native();
+            menu_view.add_item({filename.string().substr(0, max_filename_length),
+                                color,
+                                &bitmap_icon_temperature,
+                                [this, path](KeyEvent) {
+                                    this->firmware_selected(path);
+                                }});
+        }
+    };
 
-        menu_view.add_item({filename.string().substr(0, max_filename_length),
-                            ui::Color::purple(),
-                            &bitmap_icon_temperature,
-                            [this, path](KeyEvent) {
-                                this->firmware_selected(path);
-                            }});
-    }
+    add_firmware_items(firmware_dir, u"*.bin", ui::Color::red());
+    add_firmware_items(firmware_dir, u"*.tar", ui::Color::purple());
+
+    // add_firmware_items(user_firmware_folder,u"*.bin", ui::Color::purple());
 }
 
 void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path) {
@@ -95,7 +115,7 @@ void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path
         YESNO,
         [this, path](bool choice) {
             if (choice) {
-                std::u16string full_path = std::u16string(u"FIRMWARE/") + path;
+                std::filesystem::path::string_type full_path = firmware_dir.native() + u"/" + path;
                 this->flash_firmware(full_path);
             }
         });

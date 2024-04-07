@@ -40,8 +40,6 @@ class FreqManBaseView : public View {
 
     void focus() override;
 
-    static constexpr size_t desc_edit_max = 0x80;
-
    protected:
     using options_t = OptionsField::options_t;
 
@@ -63,11 +61,11 @@ class FreqManBaseView : public View {
 
     /* The top section (category) is 20px tall. */
     Labels label_category{
-        {{0, 2}, "Category:", Color::light_grey()}};
+        {{0, 2}, "F:", Color::light_grey()}};
 
     OptionsField options_category{
-        {9 * 8, 2},
-        14 /* length */,
+        {3 * 8, 2},
+        20 /* length */,
         {}};
 
     FreqManUIList freqlist_view{

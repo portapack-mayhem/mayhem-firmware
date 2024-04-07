@@ -82,11 +82,11 @@ struct RXENABLE_Type {
 static_assert(sizeof(RXENABLE_Type) == sizeof(reg_t), "RXENABLE_Type wrong size");
 
 struct RXRF_1_Type {
-    reg_t LNAband : 1;
+    reg_t LNAband : 2;  // Datasheet says D1:D0 , 2 bits, maybe  D1 Rx_B,  D0 Rx_A  , (original code said wrongly ,reg_t LNAband : 1; that was of for max2837, not max2839 )
     reg_t RESERVED0 : 1;
     reg_t MIMOmode : 1;
-    reg_t iqerr_trim : 5;
-    reg_t RESERVED1 : 6;
+    reg_t iqerr_trim : 6;  // Datasheet says D9_D4 , that means 6 bits,  (original code said wrongly ,reg_t iqerr_trim : 5;  )
+    reg_t RESERVED1 : 6;   // we are using 16 bits , even top part mapping  is not used
 };
 
 static_assert(sizeof(RXRF_1_Type) == sizeof(reg_t), "RXRF_1_Type wrong size");
@@ -689,7 +689,7 @@ class MAX2839 : public MAX283x {
     void set_lpf_rf_bandwidth_rx(const uint32_t bandwidth_minimum) override;
     void set_lpf_rf_bandwidth_tx(const uint32_t bandwidth_minimum) override;
     bool set_frequency(const rf::Frequency lo_frequency) override;
-    void set_rx_lo_iq_calibration(const size_t v) override;
+    void set_rx_LO_iq_phase_calibration(const size_t v) override;
     void set_tx_LO_iq_phase_calibration(const size_t v) override;
     void set_rx_buff_vcm(const size_t v) override;
 
@@ -700,6 +700,7 @@ class MAX2839 : public MAX283x {
 
    private:
     spi::arbiter::Target& _target;
+    Mode _mode{Mode::Standby};
 
     RegisterMap _map{initial_register_values};
     DirtyRegisters<Register, reg_count> _dirty{};
@@ -712,6 +713,7 @@ class MAX2839 : public MAX283x {
     void flush();
 
     void configure_rx_gain();
+    Mode get_mode();
 };
 
 }  // namespace max2839

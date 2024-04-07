@@ -25,6 +25,8 @@
 #include "convert.hpp"
 #include "file_reader.hpp"
 #include "string_format.hpp"
+#include "audio.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 
@@ -34,9 +36,37 @@ void GlassView::focus() {
 }
 
 GlassView::~GlassView() {
+    audio::output::stop();
     receiver_model.set_sampling_rate(3072000);  // Just a hack to avoid hanging other apps
     receiver_model.disable();
     baseband::shutdown();
+}
+
+// Function to map the value from one range to another
+int32_t GlassView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t toLow, int32_t toHigh) {
+    return toLow + (value - fromLow) * (toHigh - toLow) / (fromHigh - fromLow);
+}
+
+void GlassView::update_display_beep() {
+    if (beep_enabled) {
+        button_beep_squelch.set_style(&Styles::green);
+        // bip-XXdb
+        button_beep_squelch.set_text("bip" + to_string_dec_int(beep_squelch, 3) + "db");
+        receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
+    } else {
+        button_beep_squelch.set_style(&Styles::white);
+        button_beep_squelch.set_text("bip OFF ");
+    }
+}
+
+void GlassView::manage_beep_audio() {
+    if (beep_enabled) {
+        audio::set_rate(audio::Rate::Hz_24000);
+        audio::output::start();
+    } else {
+        baseband::request_beep_stop();
+        audio::output::stop();
+    }
 }
 
 void GlassView::get_max_power(const ChannelSpectrum& spectrum, uint8_t bin, uint8_t& max_power) {
@@ -173,6 +203,8 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
     // we actually need SCREEN_W (240) of those bins
     for (uint8_t bin = 0; bin < bin_length; bin++) {
         get_max_power(spectrum, bin, max_power);
+        if (max_power > range_max_power)
+            range_max_power = max_power;
         // process dc spike if enable
         if (bin == 119) {
             uint8_t next_max_power = 0;
@@ -184,14 +216,21 @@ void GlassView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
             }
         }
         // process actual bin
-        if (process_bins(&max_power) == true)
+        if (process_bins(&max_power)) {
+            int8_t power = map(range_max_power, 0, 255, -100, 20);
+            if (power >= beep_squelch) {
+                baseband::request_audio_beep(map(range_max_power, 0, 256, 400, 2600), 24000, 250);
+            }
+            range_max_power = 0;
             return;  // new line signaled, return
+        }
     }
     if (mode != LOOKING_GLASS_SINGLEPASS) {
         f_center += looking_glass_step;
         retune();
-    } else
+    } else {
         baseband::spectrum_streaming_start();
+    }
 }
 
 void GlassView::on_hide() {
@@ -327,17 +366,20 @@ GlassView::GlassView(
                   &field_lna,
                   &field_vga,
                   &field_range,
-                  &steps_config,
+                  //&steps_config,
                   &scan_type,
                   &view_config,
                   &level_integration,
+                  &field_volume,
                   &filter_config,
                   &field_rf_amp,
                   &range_presets,
+                  &button_beep_squelch,
                   &field_marker,
                   &field_trigger,
                   &button_jump,
                   &button_rst,
+                  &field_rx_iq_phase_cal,
                   &freq_stats});
 
     load_presets();  // Load available presets from TXT files (or default).
@@ -369,12 +411,12 @@ GlassView::GlassView(
         };
     };
 
-    steps_config.on_change = [this](size_t, OptionsField::value_t v) {
+    /*steps_config.on_change = [this](size_t, OptionsField::value_t v) {
         field_frequency_min.set_step(v);
         field_frequency_max.set_step(v);
         steps = v;
     };
-    steps_config.set_selected_index(0);  // 1 Mhz step.
+    steps_config.set_selected_index(0);  // 1 Mhz step.*/
 
     scan_type.on_change = [this](size_t, OptionsField::value_t v) {
         mode = v;
@@ -474,6 +516,13 @@ GlassView::GlassView(
         reset_live_view();
     };
 
+    field_rx_iq_phase_cal.set_range(0, hackrf_r9 ? 63 : 31);                 // max2839 has 6 bits [0..63],  max2837 has 5 bits [0..31]
+    field_rx_iq_phase_cal.set_value(get_spec_iq_phase_calibration_value());  // using  accessor function of AnalogAudioView to read iq_phase_calibration_value from rx_audio.ini
+    field_rx_iq_phase_cal.on_change = [this](int32_t v) {
+        set_spec_iq_phase_calibration_value(v);  // using  accessor function of AnalogAudioView to write inside SPEC submenu, register value to max283x and save it to rx_audio.ini
+    };
+    set_spec_iq_phase_calibration_value(get_spec_iq_phase_calibration_value());  // initialize iq_phase_calibration in radio
+
     display.scroll_set_area(109, 319);
 
     // trigger:
@@ -489,11 +538,41 @@ GlassView::GlassView(
     receiver_model.set_baseband_bandwidth(looking_glass_bandwidth);  // possible values: 1.75/2.5/3.5/5/5.5/6/7/8/9/10/12/14/15/20/24/28MHz
     receiver_model.set_squelch_level(0);
     receiver_model.enable();
+
+    button_beep_squelch.on_select = [this](ButtonWithEncoder& button) {
+        (void)button;
+        beep_enabled = 1 - beep_enabled;
+        manage_beep_audio();
+        update_display_beep();
+    };
+
+    button_beep_squelch.on_change = [this]() {
+        int new_beep_squelch = beep_squelch + button_beep_squelch.get_encoder_delta();
+        if (new_beep_squelch < -99)
+            new_beep_squelch = -99;
+        if (new_beep_squelch > 20)
+            new_beep_squelch = 20;
+        beep_squelch = new_beep_squelch;
+        button_beep_squelch.set_encoder_delta(0);
+        update_display_beep();
+    };
+
+    manage_beep_audio();
+    update_display_beep();
+}
+
+uint8_t GlassView::get_spec_iq_phase_calibration_value() {  // define accessor functions inside AnalogAudioView to read & write real iq_phase_calibration_value
+    return iq_phase_calibration_value;
+}
+
+void GlassView::set_spec_iq_phase_calibration_value(uint8_t cal_value) {  // define accessor functions
+    iq_phase_calibration_value = cal_value;
+    radio::set_rx_max283x_iq_phase_calibration(iq_phase_calibration_value);
 }
 
 void GlassView::load_presets() {
     File presets_file;
-    auto error = presets_file.open("LOOKINGGLASS/PRESETS.TXT");
+    auto error = presets_file.open(looking_glass_dir / u"PRESETS.TXT");
     presets_db.clear();
 
     // Add the "Manual" entry.

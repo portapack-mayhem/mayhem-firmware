@@ -31,6 +31,7 @@
 #include "ui_receiver.hpp"
 #include "ui_styles.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <memory>
 
@@ -228,7 +229,7 @@ void FrequencyManagerView::on_edit_freq() {
 
 void FrequencyManagerView::on_edit_desc() {
     temp_buffer_ = current_entry().description;
-    text_prompt(nav_, temp_buffer_, desc_edit_max, [this](std::string& new_desc) {
+    text_prompt(nav_, temp_buffer_, freqman_max_desc_size, [this](std::string& new_desc) {
         auto entry = current_entry();
         entry.description = std::move(new_desc);
         db_.replace_entry(current_index(), entry);

@@ -38,6 +38,7 @@
 #include "baseband_api.hpp"
 #include "string_format.hpp"
 #include "file.hpp"
+#include "file_path.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "ui_recon_settings.hpp"
@@ -181,7 +182,6 @@ class ReconView : public View {
 
     const std::filesystem::path repeat_rec_file = u"RECON_REPEAT.C16";
     const std::filesystem::path repeat_rec_meta = u"RECON_REPEAT.TXT";
-    const std::filesystem::path repeat_rec_path = u"CAPTURES";
     const size_t repeat_read_size{16384};
     const size_t repeat_buffer_count{3};
     int8_t repeat_cur_rep = 0;
@@ -197,6 +197,9 @@ class ReconView : public View {
     std::unique_ptr<ReplayThread> replay_thread{};
     bool repeat_ready_signal{false};
     bool recon_tx{false};
+
+    std::filesystem::path rawfile = u"/" + repeat_rec_path + u"/" + repeat_rec_file;
+    std::filesystem::path rawmeta = u"/" + repeat_rec_path + u"/" + repeat_rec_meta;
 
     // Persisted settings.
     SettingsStore ui_settings{

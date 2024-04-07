@@ -68,9 +68,15 @@ CMakeFiles/
 .DS_Store
 /firmware/CMakeCache.txt
 
-# Python env/ venv
+# Python env/ venv and cache
 env/
 venv/
+**/__pycache__/
+*.pyc
 
 # Other
 *.bak
+
+# generated bitmap arr file
+# TODO: generate bitmap during build, since we use python during build anyway, lemme know if this is a bad idea @zxkmm
+/firmware/tools/bitmap.hpp

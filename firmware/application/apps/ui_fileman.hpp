@@ -31,7 +31,7 @@
 namespace ui {
 
 struct fileman_entry {
-    std::filesystem::path path{};
+    std::string path{};
     uint32_t size{};
     bool is_directory{};
 };
@@ -61,8 +61,12 @@ class FileManBaseView : public View {
     void push_dir(const std::filesystem::path& path);
 
    protected:
-    static constexpr size_t max_filename_length = 64;
-    static constexpr size_t max_items_shown = 100;
+    uint32_t prev_highlight = 0;
+    uint8_t pagination = 0;
+    uint8_t nb_pages = 1;
+    static constexpr size_t max_filename_length = 20;
+    static constexpr size_t max_items_loaded = 75;  // too memory hungry, so won't sort it
+    static constexpr size_t items_per_page = 20;
 
     struct file_assoc_t {
         std::filesystem::path extension;
@@ -85,10 +89,12 @@ class FileManBaseView : public View {
     std::filesystem::path get_selected_full_path() const;
     const fileman_entry& get_selected_entry() const;
 
+    int file_count_filtered(const std::filesystem::path& directory);
     void pop_dir();
     void refresh_list();
-    void reload_current();
+    void reload_current(bool reset_pagination = false);
     void load_directory_contents(const std::filesystem::path& dir_path);
+    void load_directory_contents_unordered(const std::filesystem::path& dir_path, size_t file_cnt);
     const file_assoc_t& get_assoc(const std::filesystem::path& ext) const;
 
     NavigationView& nav_;
@@ -97,11 +103,14 @@ class FileManBaseView : public View {
     std::function<void(KeyEvent)> on_select_entry{nullptr};
     std::function<void(bool)> on_refresh_widgets{nullptr};
 
+    const std::string str_back{"<--"};
+    const std::string str_next{"-->"};
+    const std::string str_full{"Can't load more.."};
     const std::filesystem::path parent_dir_path{u".."};
     std::filesystem::path current_path{u""};
     std::filesystem::path extension_filter{u""};
 
-    std::vector<fileman_entry> entry_list{};
+    std::list<fileman_entry> entry_list{};
     std::vector<uint32_t> saved_index_stack{};
 
     bool show_hidden_files{false};
@@ -207,6 +216,7 @@ class FileManagerView : public FileManBaseView {
     void refresh_widgets(const bool v);
     void on_rename(std::string_view hint);
     void on_delete();
+    void on_clean();
     void on_paste();
     void on_new_dir();
     void on_new_file();
@@ -227,9 +237,15 @@ class FileManagerView : public FileManBaseView {
         Color::dark_blue()};
 
     NewButton button_delete{
-        {4 * 8, 29 * 8, 4 * 8, 32},
+        {9 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trash,
+        Color::red()};
+
+    NewButton button_clean{
+        {13 * 8, 34 * 8, 4 * 8, 32},
+        {},
+        &bitmap_icon_clean,
         Color::red()};
 
     NewButton button_cut{
@@ -269,20 +285,22 @@ class FileManagerView : public FileManBaseView {
         Color::orange()};
 
     NewButton button_rename_timestamp{
-        {4 * 8, 34 * 8, 4 * 8, 32},
+
+        {4 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_options_datetime,
-        Color::orange(),
+        Color::dark_blue(),
         /*vcenter*/ true};
 
     NewButton button_open_iq_trim{
-        {9 * 8, 34 * 8, 4 * 8, 32},
+
+        {4 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trim,
         Color::orange()};
 
     NewButton button_show_hidden_files{
-        {13 * 8, 34 * 8, 4 * 8, 32},
+        {17 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_hide,
         Color::dark_grey()};

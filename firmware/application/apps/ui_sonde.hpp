@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -74,15 +75,17 @@ class SondeView : public View {
         1750000 /* bandwidth */,
         2457600 /* sampling rate */
     };
-    app_settings::SettingsManager settings_{
-        "rx_sonde", app_settings::Mode::RX};
-
-    std::unique_ptr<SondeLogger> logger{};
     bool logging{false};
     bool use_crc{false};
-    bool beep{false};
+    app_settings::SettingsManager settings_{
+        "rx_sonde",
+        app_settings::Mode::RX,
+        {
+            {"logging"sv, &logging},
+            {"use_crc"sv, &use_crc},
+        }};
 
-    char geo_uri[32] = {};
+    std::unique_ptr<SondeLogger> logger{};
 
     sonde::GPS_data gps_info{};
     sonde::temp_humid temp_humid_info{};
@@ -118,11 +121,6 @@ class SondeView : public View {
 
     AudioVolumeField field_volume{
         {28 * 8, 0 * 16}};
-
-    Checkbox check_beep{
-        {22 * 8, 6 * 16},
-        3,
-        "Beep"};
 
     Checkbox check_log{
         {22 * 8, 8 * 16},
@@ -201,7 +199,6 @@ class SondeView : public View {
     void on_gps(const GPSPosDataMessage* msg);
     void on_orientation(const OrientationDataMessage* msg);
     void on_packet(const sonde::Packet& packet);
-    char* float_to_char(float x, char* p);
 };
 
 } /* namespace ui */

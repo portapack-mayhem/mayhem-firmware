@@ -38,6 +38,10 @@ MEMORY
     ram_external_app_spainter(rwx) : org = 0xADBC0000, len = 32k
     ram_external_app_keyfob(rwx) : org = 0xADBD0000, len = 32k
     ram_external_app_tetris(rwx) : org = 0xADBE0000, len = 32k
+    ram_external_app_extsensors(rwx) : org = 0xADBF0000, len = 32k
+    ram_external_app_foxhunt_rx(rwx) : org = 0xADC00000, len = 32k
+    ram_external_app_audio_test(rwx) : org = 0xADC10000, len = 32k
+    ram_external_app_wardrivemap(rwx) : org = 0xADC20000, len = 32k
 }
 
 SECTIONS
@@ -131,5 +135,29 @@ SECTIONS
         KEEP(*(.external_app.app_tetris.application_information));
         *(*ui*external_app*tetris*);
     } > ram_external_app_tetris
+
+   .external_app_extsensors : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_extsensors.application_information));
+        *(*ui*external_app*extsensors*);
+    } > ram_external_app_extsensors
+
+   .external_app_foxhunt_rx : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_foxhunt_rx.application_information));
+        *(*ui*external_app*foxhunt_rx*);
+    } > ram_external_app_foxhunt_rx
+
+   .external_app_audio_test : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_audio_test.application_information));
+        *(*ui*external_app*audio_test*);
+    } > ram_external_app_audio_test
+
+   .external_app_wardrivemap : ALIGN(4) SUBALIGN(4)
+    {
+        KEEP(*(.external_app.app_wardrivemap.application_information));
+        *(*ui*external_app*wardrivemap*);
+    } > ram_external_app_wardrivemap
 
 }

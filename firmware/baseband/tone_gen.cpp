@@ -1,6 +1,7 @@
 /*
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
+ * Copyright (C) 2024 Mark Thompson
  *
  * This file is part of PortaPack.
  *
@@ -23,51 +24,23 @@
 #include "tone_gen.hpp"
 #include "sine_table_int8.hpp"
 
-/*
-int32_t ToneGen::tone_sine() {
-        //  TODO :  Added for Sonde App. We keep it by now , but it needs to be reviewed in Sonde
-        //  Hoepfully we can manage without it , same as previous fw  1.3.1
-        int32_t tone_sample = sine_table_i8[tone_phase_] * 0x1000000;
-        tone_phase_ += delta_;
+// Functions for audio beep (used by Sonde RSSI)
+void ToneGen::configure_beep(const uint32_t freq, const uint32_t sample_rate) {
+    f_delta_ = (float)(freq * sizeof(sine_table_i8)) / sample_rate;
+    f_tone_phase_ = 0.0;
 
-        return tone_sample;
+    // For higher frequencies, start at sine peak to handle case of freq=sample_rate/2;
+    // we don't want to sample the sine wave only when it's crossing 0!
+    // There is still an amplitude issue though depending on magnitude of selected sine sample deltas.
+    if (f_delta_ >= sizeof(sine_table_i8) / 4)
+        f_tone_phase_ = sizeof(sine_table_i8) / 4;
 }
-*/
 
-int32_t ToneGen::tone_square() {
-    // TODO :  Added for Sonde App. We keep it by now , but it needs to be reviewed in Sonde
-    int32_t tone_sample = 0;
-
-    if (tone_phase_ < (UINT32_MAX / 2)) {
-        tone_sample = INT32_MAX;
-    } else {
-        tone_sample = INT32_MIN;
-    }
-
-    tone_phase_ += delta_;
+int16_t ToneGen::process_beep() {
+    int16_t tone_sample = sine_table_i8[(uint32_t)f_tone_phase_ & 0xFF] * 256;
+    f_tone_phase_ += f_delta_;
 
     return tone_sample;
-}
-
-/*
-void ToneGen::configure(const uint32_t delta, const float tone_mix_weight) {
-        //  Confirmed !  It is not working well in the fw 1.4.4  Mic App , CTCSS generation, (but added for Sonde App)
-        //  I Think it should be deleted or modified but not use it as it is in Mic App .
-
-        delta_ = (uint8_t) ((delta & 0xFF000000U) >> 24);
-        delta_ = delta;
-        tone_mix_weight_ = tone_mix_weight;
-        input_mix_weight_ = 1.0 - tone_mix_weight;
-        current_tone_type_ = sine;
-}
-*/
-
-void ToneGen::configure(const uint32_t freq, const float tone_mix_weight, const tone_type tone_type, const uint32_t sample_rate) {
-    // TODO :  Added for Sonde App. We keep it by now to avoid compile errors, but it needs to be reviewed in Sonde
-    delta_ = (uint8_t)((freq * sizeof(sine_table_i8)) / sample_rate);
-    tone_mix_weight_ = tone_mix_weight;
-    input_mix_weight_ = 1.0 - tone_mix_weight;
-    current_tone_type_ = tone_type;
 }
 
 // ----Original available core SW code from fw 1.3.1 ,  Working also well in Mic App CTCSS Gen from fw 1.4.0 onwards
@@ -78,6 +51,7 @@ void ToneGen::configure(const uint32_t freq, const float tone_mix_weight, const 
 
 void ToneGen::configure(const uint32_t delta, const float tone_mix_weight) {
     delta_ = delta;
+    tone_phase_ = 0;
     tone_mix_weight_ = tone_mix_weight;
     input_mix_weight_ = 1.0 - tone_mix_weight;
 }
@@ -88,19 +62,6 @@ int32_t ToneGen::process(const int32_t sample_in) {
 
     int32_t tone_sample = sine_table_i8[(tone_phase_ & 0xFF000000U) >> 24];
     tone_phase_ += delta_;
-
-    return (sample_in * input_mix_weight_) + (tone_sample * tone_mix_weight_);
-}
-// -------------------------------------------------------------
-
-int32_t ToneGen::process_square(const int32_t sample_in) {
-    // TODO :  Added for Sonde App. We keep it by now , but it needs to be reviewed in Sonde
-    if (!delta_)
-        return sample_in;
-
-    int32_t tone_sample = 0;
-
-    tone_sample = tone_square();
 
     return (sample_in * input_mix_weight_) + (tone_sample * tone_mix_weight_);
 }

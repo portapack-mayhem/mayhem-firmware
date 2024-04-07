@@ -50,10 +50,10 @@ class RSSI : public Widget {
     }
 
     // get last used/received min/avg/max/delta
-    int16_t get_min();
-    int16_t get_avg();
-    int16_t get_max();
-    int16_t get_delta();
+    uint8_t get_min();
+    uint8_t get_avg();
+    uint8_t get_max();
+    uint8_t get_delta();
     void set_vertical_rssi(bool enabled);
     void set_peak(bool enabled, size_t duration);
 
@@ -63,10 +63,10 @@ class RSSI : public Widget {
     bool on_touch(const TouchEvent event) override;
 
    private:
-    int16_t min_ = 0;
-    int16_t avg_ = 0;
-    int16_t max_ = 0;
-    int16_t peak_ = 0;
+    int8_t min_ = 0;
+    int8_t avg_ = 0;
+    int8_t max_ = 0;
+    int8_t peak_ = 0;
     size_t peak_duration_ = 0;
     bool instant_exec_{false};
 
@@ -115,10 +115,10 @@ class RSSIGraph : public Widget {
     void on_hide() override;
     void on_show() override;
     // get whole graph_list min/avg/max/delta
-    int16_t get_graph_min();
-    int16_t get_graph_avg();
-    int16_t get_graph_max();
-    int16_t get_graph_delta();
+    uint8_t get_graph_min();
+    uint8_t get_graph_avg();
+    uint8_t get_graph_max();
+    uint8_t get_graph_delta();
 
    private:
     int16_t graph_min_ = 0;

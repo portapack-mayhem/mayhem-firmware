@@ -43,11 +43,12 @@ using buffer_t = buffer_t<sample_t>;
 
 namespace dma {
 
-void init();
-void configure();
-void enable();
+void init_audio_in();
+void init_audio_out();
 void disable();
 void shrink_tx_buffer(bool shrink);
+void beep_start(uint32_t freq, uint32_t sample_rate, uint32_t beep_duration_ms);
+void beep_stop();
 
 audio::buffer_t tx_empty_buffer();
 audio::buffer_t rx_empty_buffer();

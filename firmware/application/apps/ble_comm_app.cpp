@@ -32,6 +32,7 @@
 #include "string_format.hpp"
 #include "portapack_persistent_memory.hpp"
 #include "ui_text.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 using namespace modems;
@@ -100,7 +101,7 @@ BLECommView::BLECommView(NavigationView& nav)
         logging = v;
 
         if (logger && logging)
-            logger->append(LOG_ROOT_DIR "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
+            logger->append(logs_dir.string() + "/BLELOG_" + to_string_timestamp(rtc_time::now()) + ".TXT");
     };
 
     options_channel.on_change = [this](size_t, int32_t i) {

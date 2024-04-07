@@ -1867,7 +1867,7 @@ static byte menuselect(byte lines) {  // Selection (1 line = 16 items)
 // *** S T A C K
 
 static void floatstack() {
-    memcpy(ds, &ds[1], (DATASTACKSIZE - 1) * sizeof(double));
+    memmove(ds, &ds[1], (DATASTACKSIZE - 1) * sizeof(double));
     dp--;
 }
 

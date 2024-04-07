@@ -29,6 +29,7 @@
 #include "string_format.hpp"
 #include "tone_key.hpp"
 #include "utility.hpp"
+#include "file_path.hpp"
 
 #include <array>
 #include <cctype>
@@ -37,7 +38,6 @@
 
 namespace fs = std::filesystem;
 
-const std::filesystem::path freqman_dir{u"/FREQMAN"};
 const std::filesystem::path freqman_extension{u".TXT"};
 
 // NB: Don't include UI headers to keep this code unit testable.
@@ -376,7 +376,7 @@ bool parse_freqman_entry(std::string_view str, freqman_entry& entry) {
         } else if (key == "c") {
             entry.tone = parse_tone_key(value);
         } else if (key == "d") {
-            entry.description = trim(value);
+            entry.description = trim(value).substr(0, freqman_max_desc_size);
         } else if (key == "f") {
             entry.type = freqman_type::Single;
             parse_int(value, entry.frequency_a);
@@ -492,7 +492,7 @@ freqman_entry FreqmanDB::operator[](Index index) const {
             return entry;
         else if (read_raw_) {
             entry.type = freqman_type::Raw;
-            entry.description = trim(*line_text);
+            entry.description = trim(*line_text).substr(0, freqman_max_desc_size);
             return entry;
         }
     }

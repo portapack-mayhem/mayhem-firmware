@@ -190,6 +190,7 @@ set(CPPSRC
 	event_m0.cpp
 	file_reader.cpp
 	file.cpp
+	file_path.cpp
 	freqman_db.cpp
 	freqman.cpp
 	io_convert.cpp

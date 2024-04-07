@@ -26,6 +26,7 @@
 #include "proc_pocsag2.hpp"
 
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -360,6 +361,10 @@ void POCSAGProcessor::on_message(const Message* const message) {
             break;
         }
 
+        case Message::ID::AudioBeep:
+            on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
+            break;
+
         default:
             break;
     }
@@ -413,9 +418,15 @@ void POCSAGProcessor::send_packet() {
     shared_memory.application_queue.push(message);
 }
 
+void POCSAGProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 /* main **************************************************/
 
 int main() {
+    audio::dma::init_audio_out();
+
     EventDispatcher event_dispatcher{std::make_unique<POCSAGProcessor>()};
     event_dispatcher.run();
     return 0;

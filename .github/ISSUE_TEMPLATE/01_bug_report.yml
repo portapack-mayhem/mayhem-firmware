@@ -1,0 +1,48 @@
+name: Bug report
+description: File a bug reports regarding the firmware.
+labels: ['bug']
+body:
+- type: markdown
+  attributes:
+    value: |
+      Thank you for taking the time to fill out an issue, this template is meant for any issues related to the Mayhem firmware.
+      Please try the latest nightly release before submitting this. You can find the latest nightly version here: https://github.com/portapack-mayhem/mayhem-firmware/releases
+- type: textarea
+  id: description
+  attributes:
+    label: Describe the bug.
+    description: "A clear and concise description of what the bug is."
+  validations:
+    required: true
+- type: textarea
+  id: repro
+  attributes: 
+    label: Reproduction
+    description: "How can this bug be reproduced?"
+    placeholder: |
+      1. Switch on...
+      2. Press button '....'
+      3. Wait for the end of the universe
+      4. It burns
+  validations:
+    required: true
+- type: textarea
+  id: expected
+  attributes: 
+    label: Expected behavior
+    description: "A clear and concise description of what you expected to happen"
+    placeholder: |
+      1. Generates file on...
+      2. I get a cheeseburger...
+  validations:
+    required: true
+- type: input
+  id: target
+  attributes:
+    label: Environment/versions
+    description: Specify extra details about versions and environments affected
+- type: textarea
+  id: anything-else
+  attributes:
+    label: Anything else?
+    description: Let us know if you have anything else to share.

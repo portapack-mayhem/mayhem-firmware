@@ -1,5 +1,6 @@
-> [!IMPORTANT]  
-> this repository **has just been moved** from my personal GitHub [eried/portapack-mayhem](https://github.com/eried/portapack-mayhem) to an organization: [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware). Please keep this in mind to **update your links** accordingly.
+> [!WARNING]
+> __IF YOU'VE PAID FOR MAYHEM OR ANY PREPACKAGED PACKAGES, YOU'RE BEING SCAMMED.__ 
+> The only legitimate link leading to our repositories is the organization [portapack-mayhem](https://github.com/portapack-mayhem/mayhem-firmware).
 
 # PortaPack Mayhem
 
@@ -13,11 +14,11 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 # What is this?
 
-If you are new to *HackRF+PortaPack+Mayhem*, check this video:
+If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-[![Beginner's Guide To The HackRF & Portapak With Mayhem](https://img.youtube.com/vi/H-bqdWfbhpg/0.jpg)](https://www.youtube.com/watch?v=H-bqdWfbhpg)
+[<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="512">](https://grabify.link/C0J6ZR)
 
-For people familiar with the [Flipper Zero](https://github.com/flipperdevices/flipperzero-firmware), this one might be interesting:<br>[What is the HackRF One Portapack H2+?](https://www.youtube.com/watch?v=alrFbY5vxt4)
+[<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="254">](https://grabify.link/5MU2VH) [<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="254">](https://grabify.link/9UZGEW)
 
 # Frequently Asked Questions
 
@@ -28,8 +29,6 @@ This repository expands upon the previous work by many people and aims to consta
 :heavy_check_mark: A recommended one is this [PortaPack H2](https://s.click.aliexpress.com/e/_DmU7GQX), that includes everything you need with the plastic case "inspired" on [this](https://github.com/portapack-mayhem/mayhem-firmware/wiki/H2-Enclosure).
 
 :heavy_check_mark: Our friends at OpenSourceSDRLab give away five units every three months in our discord (check the badge on top) of their [PortaPack H2](https://www.aliexpress.com/item/4000247041639.html?gatewayAdapt=4itemAdapt), you can support them too by ordering.
-
-:heavy_check_mark: Another popular option is the clone of the [PortaPack H1](https://s.click.aliexpress.com/e/_Dkbqs2X).
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 

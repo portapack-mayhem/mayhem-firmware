@@ -38,16 +38,19 @@
 #endif
 #define OneMHz 1000000
 
-// modes
+// main app mode
 #define RECON_MATCH_CONTINUOUS 0
 #define RECON_MATCH_SPARSE 1
+
+// repeater mode
+#define RECON_REPEAT_AND_DELETE 0
+#define RECON_REPEAT_AND_KEEP 1
 
 // statistics update interval in ms (change here if the statistics API is changing it's pace)
 #define STATS_UPDATE_INTERVAL 100
 
 // maximum lock duration
 #define RECON_MAX_LOCK_DURATION 9900
-
 #define RECON_DEF_SQUELCH -14
 
 // default number of match to have a lock
@@ -150,15 +153,21 @@ class ReconSetupViewMore : public View {
 
     Checkbox checkbox_repeat_recorded{
         {1 * 8, 162},
-        3,
-        "repeater,"};
+        0,
+        ""};
+
+    OptionsField field_repeat_file_mode{
+        {4 * 8 + 3, 165},
+        13,
+        {{"repeat,delete", RECON_REPEAT_AND_DELETE},
+         {"repeat,keep  ", RECON_REPEAT_AND_KEEP}}};
 
     Text text_repeat_nb{
-        {14 * 8, 165, 3 * 8, 22},
+        {20 * 8, 165, 3 * 8, 22},
         "nb:"};
 
     NumberField field_repeat_nb{
-        {17 * 8, 165},
+        {23 * 8, 165},
         2,
         {1, 99},
         1,

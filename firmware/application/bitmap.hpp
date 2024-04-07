@@ -5764,8 +5764,8 @@ static constexpr uint8_t bitmap_icon_brightness_data[] = {
     0x00,
     0x80,
     0x01,
-    0x80,
-    0x01,
+    0x84,
+    0x21,
     0x08,
     0x10,
     0xC0,
@@ -5786,8 +5786,8 @@ static constexpr uint8_t bitmap_icon_brightness_data[] = {
     0x03,
     0x08,
     0x10,
-    0x80,
-    0x01,
+    0x84,
+    0x21,
     0x80,
     0x01,
     0x00,
@@ -5796,6 +5796,44 @@ static constexpr uint8_t bitmap_icon_brightness_data[] = {
 static constexpr Bitmap bitmap_icon_brightness{
     {16, 16},
     bitmap_icon_brightness_data};
+
+static constexpr uint8_t bitmap_icon_clean_data[] = {
+    0x00,
+    0x00,
+    0xC0,
+    0x01,
+    0x20,
+    0x02,
+    0xFC,
+    0x1F,
+    0x00,
+    0x00,
+    0x08,
+    0x08,
+    0xE8,
+    0x08,
+    0xA8,
+    0x09,
+    0xA8,
+    0x0B,
+    0x28,
+    0x0A,
+    0x28,
+    0x0A,
+    0x28,
+    0x0A,
+    0xE8,
+    0x0B,
+    0x08,
+    0x08,
+    0xF0,
+    0x07,
+    0x00,
+    0x00,
+};
+static constexpr Bitmap bitmap_icon_clean{
+    {16, 16},
+    bitmap_icon_clean_data};
 
 } /* namespace ui */
 

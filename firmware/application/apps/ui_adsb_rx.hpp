@@ -54,6 +54,8 @@ namespace ui {
 #define AIRBORNE_POS_GPS_L 20  // airborne position (lowest type id)
 #define AIRBORNE_POS_GPS_H 22  // airborne position (highest type id)
 
+#define AIRBORNE_OP_STATUS 31  // Aircraft operation status
+
 #define RESERVED_L 23  // reserved for other uses
 #define RESERVED_H 31  // reserved for other uses
 
@@ -101,6 +103,8 @@ struct AircraftRecentEntry {
     std::string icao_str{};
     std::string callsign{};
     std::string info_string{};
+
+    uint8_t sil{0};  // Surveillance integrity level
 
     AircraftRecentEntry(const uint32_t ICAO_address)
         : ICAO_address{ICAO_address} {
@@ -173,6 +177,7 @@ struct ADSBLogEntry {
     adsb_pos pos{};
     adsb_vel vel{};
     uint8_t vel_type{};
+    uint8_t sil{};
 };
 
 // TODO: Make logging optional.
@@ -421,18 +426,21 @@ class ADSBRxView : public View {
         {18 * 8, 0 * 16}};
 
     RSSI rssi{
-        {20 * 8, 4, 10 * 7, 8},
+        {20 * 8, 4, 7 * 8, 8},
     };
 
     ActivityDot status_frame{
-        {screen_width - 3, 5, 2, 2},
+        {27 * 8 + 2, 5, 2, 2},
         Color::white(),
     };
 
     ActivityDot status_good_frame{
-        {screen_width - 3, 9, 2, 2},
+        {27 * 8 + 2, 9, 2, 2},
         Color::green(),
     };
+
+    AudioVolumeField field_volume{
+        {28 * 8, 0 * 16}};
 
     MessageHandlerRegistration message_handler_frame{
         Message::ID::ADSBFrame,

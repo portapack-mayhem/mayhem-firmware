@@ -20,6 +20,7 @@
  */
 
 #include "proc_ais.hpp"
+#include "audio_dma.hpp"
 
 #include "portapack_shared_memory.hpp"
 
@@ -64,7 +65,17 @@ void AISProcessor::payload_handler(
     shared_memory.application_queue.push(message);
 }
 
+void AISProcessor::on_message(const Message* const message) {
+    if (message->id == Message::ID::AudioBeep)
+        on_beep_message(*reinterpret_cast<const AudioBeepMessage*>(message));
+}
+
+void AISProcessor::on_beep_message(const AudioBeepMessage& message) {
+    audio::dma::beep_start(message.freq, message.sample_rate, message.duration_ms);
+}
+
 int main() {
+    audio::dma::init_audio_out();
     EventDispatcher event_dispatcher{std::make_unique<AISProcessor>()};
     event_dispatcher.run();
     return 0;

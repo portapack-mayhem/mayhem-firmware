@@ -26,6 +26,7 @@
 #include "optional.hpp"
 #include "ui_fileman.hpp"
 #include "ui_freqman.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -337,7 +338,7 @@ ScannerView::ScannerView(
         auto open_view = nav.push<FileLoadView>(".TXT");
         open_view->push_dir(freqman_dir);
         open_view->on_changed = [this, &nav](std::filesystem::path new_file_path) {
-            if (new_file_path.native().find(freqman_dir.native()) == 0) {
+            if (new_file_path.native().find((u"/" / freqman_dir).native()) == 0) {
                 scan_pause();
                 frequency_file_load(new_file_path);
             } else {
@@ -412,7 +413,7 @@ ScannerView::ScannerView(
     button_mic_app.on_select = [this](Button&) {
         if (scan_thread)
             scan_thread->stop();
-        // MicTX wants Modulation and Bandwidth overrides, but that's only stored on the RX model.
+        // MicTX wants Frequency, Modulation and Bandwidth overrides, but that's only stored on the RX model.
         nav_.replace<MicTXView>(receiver_model.settings());
     };
 

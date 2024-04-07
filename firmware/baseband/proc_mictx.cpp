@@ -25,6 +25,7 @@
 #include "sine_table_int8.hpp"
 #include "tonesets.hpp"
 #include "event_m4.hpp"
+#include "audio_dma.hpp"
 
 #include <cstdint>
 
@@ -154,7 +155,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
             break;
 
         case Message::ID::RequestSignal:
-            if (request_message.signal == RequestSignalMessage::Signal::BeepRequest) {
+            if (request_message.signal == RequestSignalMessage::Signal::RogerBeepRequest) {
                 beep_index = 0;
                 beep_timer = 0;
                 play_beep = true;
@@ -167,6 +168,8 @@ void MicTXProcessor::on_message(const Message* const msg) {
 }
 
 int main() {
+    audio::dma::init_audio_in();
+
     EventDispatcher event_dispatcher{std::make_unique<MicTXProcessor>()};
     event_dispatcher.run();
     return 0;
