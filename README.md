@@ -30,8 +30,6 @@ This repository expands upon the previous work by many people and aims to consta
 
 :heavy_check_mark: Our friends at OpenSourceSDRLab give away five units every three months in our discord (check the badge on top) of their [PortaPack H2](https://www.aliexpress.com/item/4000247041639.html?gatewayAdapt=4itemAdapt), you can support them too by ordering.
 
-:heavy_check_mark: Another popular option is the clone of the [PortaPack H1](https://s.click.aliexpress.com/e/_Dkbqs2X).
-
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
 ![image](https://user-images.githubusercontent.com/1091420/214579017-9ad970b9-0917-48f6-a550-588226d3f89b.png)
