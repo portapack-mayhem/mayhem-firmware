@@ -252,8 +252,8 @@ bool MenuView::on_key(const KeyEvent key) {
             return set_highlighted(highlighted_item + 1);
 
         case KeyEvent::Right:
-            if (on_left) {
-                on_left();
+            if (on_right) {
+                on_right();
             }
             [[fallthrough]];
         case KeyEvent::Select:
