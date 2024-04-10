@@ -1054,39 +1054,55 @@ static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[])
 }
 
 static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
-    const char* usage = "usage: sendpocsag <baud> <addr> <type> <function> <phase> <msglen>\r\n";
+    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [phase] \r\n";
     (void)argv;
-    if (argc != 6) {
+    if (argc < 2) {
         chprintf(chp, usage);
         return;
     }
-    uint16_t baud = atoi(argv[0]);
-    if (baud != 512 && baud != 1200 && baud != 2400) {
-        chprintf(chp, "error, baud can only be 512, 1200 or 2400\r\n");
-        return;
-    }
-
-    uint64_t addr = atol(argv[1]);
-    uint8_t type = atoi(argv[2]);
-    if (type > 2) {
-        chprintf(chp, "error, type can be 0 (ADDRESS_ONLY) 1 (NUMERIC_ONLY) 2 (ALPHANUMERIC)\r\n");
-        return;
-    }
-    char function = *argv[3];
-    if (function < 'A' && function > 'D') {
-        chprintf(chp, "error, function  can be A, B, C or D\r\n");
-        return;
-    }
-    char phase = *argv[4];
-    if (phase != 'P' && phase != 'N') {
-        chprintf(chp, "error, phase  can be P or N\r\n");
-        return;
-    }
-    uint8_t msglen = atoi(argv[5]);  // without minimum limit, since addr only don't send anything
+    uint64_t addr = atol(argv[0]);
+    uint8_t msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
     if (msglen > 30) {
         chprintf(chp, "error, msglen max is 30\r\n");
         return;
     }
+
+    uint16_t baud = 1200;
+    if (argc >= 3) {
+        baud = atoi(argv[2]);
+        if (baud != 512 && baud != 1200 && baud != 2400) {
+            chprintf(chp, "error, baud can only be 512, 1200 or 2400\r\n");
+            return;
+        }
+    }
+
+    uint8_t type = 2;
+    if (argc >= 4) {
+        type = atoi(argv[3]);
+        if (type > 2) {
+            chprintf(chp, "error, type can be 0 (ADDRESS_ONLY) 1 (NUMERIC_ONLY) 2 (ALPHANUMERIC)\r\n");
+            return;
+        }
+    }
+
+    char function = 'D';
+    if (argc >= 5) {
+        function = *argv[4];
+        if (function < 'A' && function > 'D') {
+            chprintf(chp, "error, function  can be A, B, C or D\r\n");
+            return;
+        }
+    }
+
+    char phase = 'P';
+    if (argc >= 6) {
+        phase = *argv[5];
+        if (phase != 'P' && phase != 'N') {
+            chprintf(chp, "error, phase  can be P or N\r\n");
+            return;
+        }
+    }
+
     uint8_t msg[31] = {0};
     if (msglen > 0) {
         chprintf(chp, "send %d bytes\r\n", msglen);
