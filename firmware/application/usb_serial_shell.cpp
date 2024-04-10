@@ -1089,7 +1089,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc >= 5) {
         function = *argv[4];
         if (function < 'A' && function > 'D') {
-            chprintf(chp, "error, function  can be A, B, C or D\r\n");
+            chprintf(chp, "error, function can be A, B, C or D\r\n");
             return;
         }
     }
@@ -1098,7 +1098,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     if (argc >= 6) {
         phase = *argv[5];
         if (phase != 'P' && phase != 'N') {
-            chprintf(chp, "error, phase  can be P or N\r\n");
+            chprintf(chp, "error, phase can be P or N\r\n");
             return;
         }
     }
@@ -1128,6 +1128,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     chThdSleepMilliseconds(1000);  // wait for app to start
     PocsagTosendMessage message{baud, type, function, phase, msglen, msg, addr};
     EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
 }
 
 static const ShellCommand commands[] = {
