@@ -1053,6 +1053,84 @@ static void cmd_settingsreset(BaseSequentialStream* chp, int argc, char* argv[])
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: sendpocsag <addr> <msglen> [baud] [type] [function] [phase] \r\n";
+    (void)argv;
+    if (argc < 2) {
+        chprintf(chp, usage);
+        return;
+    }
+    uint64_t addr = atol(argv[0]);
+    int msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
+    if (msglen > 30 || msglen < 0) {
+        chprintf(chp, "error, msglen max is 30\r\n");
+        return;
+    }
+
+    int baud = 1200;
+    if (argc >= 3) {
+        baud = atoi(argv[2]);
+        if (baud != 512 && baud != 1200 && baud != 2400) {
+            chprintf(chp, "error, baud can only be 512, 1200 or 2400\r\n");
+            return;
+        }
+    }
+
+    int type = 2;
+    if (argc >= 4) {
+        type = atoi(argv[3]);
+        if (type > 2 || type < 0) {
+            chprintf(chp, "error, type can be 0 (ADDRESS_ONLY) 1 (NUMERIC_ONLY) 2 (ALPHANUMERIC)\r\n");
+            return;
+        }
+    }
+
+    char function = 'D';
+    if (argc >= 5) {
+        function = *argv[4];
+        if (function < 'A' && function > 'D') {
+            chprintf(chp, "error, function can be A, B, C or D\r\n");
+            return;
+        }
+    }
+
+    char phase = 'P';
+    if (argc >= 6) {
+        phase = *argv[5];
+        if (phase != 'P' && phase != 'N') {
+            chprintf(chp, "error, phase can be P or N\r\n");
+            return;
+        }
+    }
+
+    uint8_t msg[31] = {0};
+    if (msglen > 0) {
+        chprintf(chp, "send %d bytes\r\n", msglen);
+        do {
+            size_t bytes_to_read = msglen > USB_BULK_BUFFER_SIZE ? USB_BULK_BUFFER_SIZE : msglen;
+            size_t bytes_read = chSequentialStreamRead(chp, &msg[0], bytes_to_read);
+            if (bytes_read != bytes_to_read)
+                return;
+            msglen -= bytes_read;
+        } while (msglen > 0);
+    }
+
+    auto evtd = getEventDispatcherInstance();
+    if (!evtd) return;
+    auto top_widget = evtd->getTopWidget();
+    if (!top_widget) return;
+    auto nav = static_cast<ui::SystemView*>(top_widget)->get_navigation_view();
+    if (!nav) return;
+    if (!nav->StartAppByName("pocsagtx")) {
+        chprintf(chp, "error starting pocsagtx\r\n");
+        return;
+    }
+    chThdSleepMilliseconds(1000);  // wait for app to start
+    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, phase, (uint8_t)msglen, msg, addr};
+    EventDispatcher::send_message(message);
+    chprintf(chp, "ok\r\n");
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1083,6 +1161,7 @@ static const ShellCommand commands[] = {
     {"radioinfo", cmd_radioinfo},
     {"pmemreset", cmd_pmemreset},
     {"settingsreset", cmd_settingsreset},
+    {"sendpocsag", cmd_sendpocsag},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {
