@@ -122,6 +122,7 @@ class Message {
         OrientationData = 64,
         EnvironmentData = 65,
         AudioBeep = 66,
+        PocsagTosend = 67,
         MAX
     };
 
@@ -1379,4 +1380,33 @@ class AudioBeepMessage : public Message {
     uint32_t sample_rate = 24000;
     uint32_t duration_ms = 100;
 };
+
+class PocsagTosendMessage : public Message {
+   public:
+    constexpr PocsagTosendMessage(
+        uint16_t baud = 1200,
+        uint8_t type = 2,
+        char function = 'D',
+        char phase = 'N',
+        uint8_t msglen = 0,
+        uint8_t msg[31] = {0},
+        uint64_t addr = 0)
+        : Message{ID::PocsagTosend},
+          baud{baud},
+          type{type},
+          function{function},
+          phase{phase},
+          msglen{msglen},
+          addr{addr} {
+        memcpy(this->msg, msg, 31);
+    }
+    uint16_t baud = 1200;
+    uint8_t type = 2;
+    char function = 'D';
+    char phase = 'N';
+    uint8_t msglen = 0;
+    uint8_t msg[31] = {0};
+    uint64_t addr = 0;
+};
+
 #endif /*__MESSAGE_H__*/

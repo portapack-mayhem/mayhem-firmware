@@ -42,6 +42,32 @@ POCSAGTXView::~POCSAGTXView() {
     baseband::shutdown();
 }
 
+void POCSAGTXView::on_remote(const PocsagTosendMessage data) {
+    // check if still sending or not
+    size_t tmp = 0;
+    if (data.baud == 1200) tmp = 1;
+    if (data.baud == 2400) tmp = 2;
+    options_bitrate.set_selected_index(tmp);
+    tmp = 0;
+    options_type.set_selected_index(data.type);
+    if (data.function == 'B') tmp = 1;
+    if (data.function == 'C') tmp = 2;
+    if (data.function == 'D') tmp = 3;
+    options_function.set_selected_index(tmp);
+    options_phase.set_selected_index(data.phase == 'P' ? 0 : 1);
+    field_address.set_value(data.addr);
+    message = (char*)data.msg;
+    text_message.set(message);
+    options_bitrate.dirty();
+    options_type.dirty();
+    options_function.dirty();
+    options_phase.dirty();
+    field_address.dirty();
+    text_message.dirty();
+    tx_view.focus();
+    start_tx();
+}
+
 void POCSAGTXView::on_tx_progress(const uint32_t progress, const bool done) {
     if (done) {
         transmitter_model.disable();
