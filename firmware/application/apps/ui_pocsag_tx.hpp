@@ -76,6 +76,7 @@ class POCSAGTXView : public View {
 
     void on_set_text(NavigationView& nav);
     void on_tx_progress(const uint32_t progress, const bool done);
+    void on_remote(const PocsagTosendMessage data);
     bool start_tx();
 
     Labels labels{
@@ -141,6 +142,13 @@ class POCSAGTXView : public View {
         [this](const Message* const p) {
             const auto message = *reinterpret_cast<const TXProgressMessage*>(p);
             this->on_tx_progress(message.progress, message.done);
+        }};
+
+    MessageHandlerRegistration message_handler_tx_remote{
+        Message::ID::PocsagTosend,
+        [this](const Message* const p) {
+            const auto message = *reinterpret_cast<const PocsagTosendMessage*>(p);
+            this->on_remote(message);
         }};
 };
 
