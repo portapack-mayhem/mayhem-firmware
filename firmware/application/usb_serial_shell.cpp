@@ -1061,13 +1061,13 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
     uint64_t addr = atol(argv[0]);
-    uint8_t msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
-    if (msglen > 30) {
+    int msglen = atoi(argv[1]);  // without minimum limit, since addr only don't send anything
+    if (msglen > 30 || msglen < 0) {
         chprintf(chp, "error, msglen max is 30\r\n");
         return;
     }
 
-    uint16_t baud = 1200;
+    int baud = 1200;
     if (argc >= 3) {
         baud = atoi(argv[2]);
         if (baud != 512 && baud != 1200 && baud != 2400) {
@@ -1076,10 +1076,10 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         }
     }
 
-    uint8_t type = 2;
+    int type = 2;
     if (argc >= 4) {
         type = atoi(argv[3]);
-        if (type > 2) {
+        if (type > 2 || type < 0) {
             chprintf(chp, "error, type can be 0 (ADDRESS_ONLY) 1 (NUMERIC_ONLY) 2 (ALPHANUMERIC)\r\n");
             return;
         }
@@ -1126,7 +1126,7 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
         return;
     }
     chThdSleepMilliseconds(1000);  // wait for app to start
-    PocsagTosendMessage message{baud, type, function, phase, msglen, msg, addr};
+    PocsagTosendMessage message{(uint16_t)baud, (uint8_t)type, function, phase, (uint8_t)msglen, msg, addr};
     EventDispatcher::send_message(message);
     chprintf(chp, "ok\r\n");
 }
