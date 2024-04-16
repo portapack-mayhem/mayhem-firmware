@@ -81,7 +81,7 @@ SubGhzDView::SubGhzDView(NavigationView& nav)
         recent.clear();
         recent_entries_view.set_dirty();
     };
-    field_frequency.set_step(100000);
+    field_frequency.set_step(10000);
 
     const Rect content_rect{0, header_height, screen_width, screen_height - header_height};
     recent_entries_view.set_parent_rect(content_rect);

@@ -105,7 +105,7 @@ WeatherView::WeatherView(NavigationView& nav)
         recent.clear();
         recent_entries_view.set_dirty();
     };
-    field_frequency.set_step(100000);
+    field_frequency.set_step(10000);
 
     options_temperature.on_change = [this](size_t, int32_t i) {
         weather_units_fahr = (bool)i;
