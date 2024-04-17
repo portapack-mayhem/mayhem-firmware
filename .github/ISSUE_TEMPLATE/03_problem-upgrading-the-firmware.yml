@@ -1,6 +1,5 @@
 name: Firmware/boot issue
 description: If you are having firmware upgrade or booting problems.
-title: 'Problem upgrading the firmware or booting '
 labels:
   - firmware
 body:

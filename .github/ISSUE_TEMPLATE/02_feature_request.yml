@@ -1,6 +1,7 @@
 name: Feature Request
 description: For feature requests regarding the firmware.
-labels: ['feature request']
+labels:
+  - enhancement
 body:
 - type: markdown
   attributes:
