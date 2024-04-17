@@ -1131,6 +1131,23 @@ static void cmd_sendpocsag(BaseSequentialStream* chp, int argc, char* argv[]) {
     chprintf(chp, "ok\r\n");
 }
 
+static void cmd_forbid_tx(BaseSequentialStream* chp, int argc, char* argv[]) {
+    const char* usage = "usage: forbid_tx x, x can be yes or no\r\n";
+    if (argc != 1) {
+        chprintf(chp, usage);
+        return;
+    }
+    if (strcmp(argv[0], "yes") == 0) {
+        portapack::async_tx_enabled = false;
+        chprintf(chp, "ok\r\n");
+    } else if (strcmp(argv[0], "no") == 0) {
+        portapack::async_tx_enabled = true;
+        chprintf(chp, "ok\r\n");
+    } else {
+        chprintf(chp, usage);
+    }
+}
+
 static const ShellCommand commands[] = {
     {"reboot", cmd_reboot},
     {"dfu", cmd_dfu},
@@ -1162,6 +1179,7 @@ static const ShellCommand commands[] = {
     {"pmemreset", cmd_pmemreset},
     {"settingsreset", cmd_settingsreset},
     {"sendpocsag", cmd_sendpocsag},
+    {"forbidtx", cmd_forbid_tx},
     {NULL, NULL}};
 
 static const ShellConfig shell_cfg1 = {

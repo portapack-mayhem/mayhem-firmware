@@ -617,4 +617,6 @@ void setEventDispatcherToUSBSerial(EventDispatcher* evt) {
     usb_serial.setEventDispatcher(evt);
 }
 
+bool async_tx_enabled = false;
+
 } /* namespace portapack */
