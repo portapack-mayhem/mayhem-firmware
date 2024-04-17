@@ -43,6 +43,7 @@ class UsbSerialDebugBridge {
  * - Don't use MayhemHub since it currently not support real time serial output
  * - If you don't use this class linker will drop it so it won't use any space
  * - so delete all debug things before you push your code to production
+ * - use this client to filter only PP devices: https://github.com/zxkmm/Pyserial-Demo-portapack
  * - usage:
  *        #include "usb_serial_debug_bridge.hpp"
  *        UsbSerialDebugBridge::ppdbg("Hello PP");
