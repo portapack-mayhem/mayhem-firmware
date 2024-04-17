@@ -55,41 +55,65 @@ class UsbSerialDebugBridge {
 template <>
 // usage:     UsbSerialDebugBridge::ppdbg(num);
 void UsbSerialDebugBridge::ppdbg<int64_t>(const int64_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<int32_t>(const int32_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<int16_t>(const int16_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<int8_t>(const int8_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<uint8_t>(const uint8_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<uint16_t>(const uint16_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<uint32_t>(const uint32_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
 void UsbSerialDebugBridge::ppdbg<uint64_t>(const uint64_t& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
@@ -98,6 +122,9 @@ void UsbSerialDebugBridge::ppdbg<uint64_t>(const uint64_t& data) {
 template <>
 // usage:     UsbSerialDebugBridge::ppdbg(path);
 void UsbSerialDebugBridge::ppdbg<std::filesystem::path>(const std::filesystem::path& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     std::string path_str = data.string();
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", path_str.c_str());
 }
@@ -106,6 +133,9 @@ void UsbSerialDebugBridge::ppdbg<std::filesystem::path>(const std::filesystem::p
 template <>
 // usage:     UsbSerialDebugBridge::ppdbg(str);
 void UsbSerialDebugBridge::ppdbg<std::string>(const std::string& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data.c_str());
 }
 
@@ -113,6 +143,9 @@ void UsbSerialDebugBridge::ppdbg<std::string>(const std::string& data) {
 // ussgae:    UsbSerialDebugBridge::ppdbg(vec);
 template <typename VECTORCOVER>
 void UsbSerialDebugBridge::ppdbg(const std::vector<VECTORCOVER>& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
     for (const auto& item : data) {
         ppdbg(item);
     }
