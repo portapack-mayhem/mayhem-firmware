@@ -26,7 +26,6 @@
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
 
-
 #include <cstring>
 #include <stdio.h>
 

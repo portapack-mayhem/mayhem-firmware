@@ -35,8 +35,6 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 
-#include "usb_serial_debug_bridge.hpp"
-
 using namespace portapack;
 namespace fs = std::filesystem;
 
@@ -324,14 +322,6 @@ void FileManBaseView::focus() {
 }
 
 void FileManBaseView::push_dir(const fs::path& path) {
-    std::vector<uint32_t> test_vector;
-        test_vector.push_back(1);
-        test_vector.push_back(2);
-        test_vector.push_back(3);
-        UsbSerialDebugBridge::ppdbg(test_vector);
- uint8_t test = 254;
- UsbSerialDebugBridge::ppdbg(test);
-
     if (path == parent_dir_path) {
         pop_dir();
     } else {

@@ -39,7 +39,17 @@ class UsbSerialDebugBridge {
     static void ppdbg(const std::vector<VECTORCOVER>& data);
 };
 
+/*Notes:
+ * - Don't use MayhemHub since it currently not support real time serial output
+ * - If you don't use this class linker will drop it so it won't use any space
+ * - so delete all debug things before you push your code to production
+ * - usage:
+ *        #include "usb_serial_debug_bridge.hpp"
+ *        UsbSerialDebugBridge::ppdbg("Hello PP");
+ * */
+
 /// value
+// to_string_bin/ to_string_decimal/ to_string_hex/ to_string_hex_array/ to_string_dec_uint/ to_string_dec_int etc seems usellss so i didn't add them here
 
 template <>
 // usage:     UsbSerialDebugBridge::ppdbg(num);
@@ -82,7 +92,7 @@ void UsbSerialDebugBridge::ppdbg<uint64_t>(const uint64_t& data) {
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
-/// path
+/// fs things
 
 template <>
 // usage:     UsbSerialDebugBridge::ppdbg(path);
@@ -98,7 +108,7 @@ void UsbSerialDebugBridge::ppdbg<std::string>(const std::string& data) {
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data.c_str());
 }
 
-///vec worker
+/// vec worker
 // ussgae:    UsbSerialDebugBridge::ppdbg(vec);
 template <typename VECTORCOVER>
 void UsbSerialDebugBridge::ppdbg(const std::vector<VECTORCOVER>& data) {
