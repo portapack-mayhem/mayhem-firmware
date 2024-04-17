@@ -26,7 +26,6 @@
 #include "portapack.hpp"
 #include "hackrf_hal.hpp"
 
-#include "usb_serial_debug_bridge.hpp"
 
 #include <cstring>
 #include <stdio.h>
@@ -158,9 +157,6 @@ void SSTVTXView::start_tx() {
     // The baseband SSTV TX code (proc_sstv) has a 2-scanline buffer. It is preloaded before
     // TX start, and asks for fill-up when a new scanline starts being read. This should
     // leave enough time for the code in prepare_scanline() before it ends.
-
-    UsbSerialDebugBridge::ppdbg("JammerView::start_tx()");
-
     scanline_counter = 0;
     prepare_scanline();  // Preload one scanline
 
