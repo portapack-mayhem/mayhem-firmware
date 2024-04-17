@@ -40,19 +40,24 @@ class UsbSerialDebugBridge {
 };
 
 template <>
+//usage:     UsbSerialDebugBridge::ppdbg(num);
 void UsbSerialDebugBridge::ppdbg<int64_t>(const int64_t& data) {
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
 template <>
+//usage:     UsbSerialDebugBridge::ppdbg(num);
 void UsbSerialDebugBridge::ppdbg<uint64_t>(const uint64_t& data) {
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_uint(data).c_str());
 }
 
 template <>
+//usage:     UsbSerialDebugBridge::ppdbg(path);
 void UsbSerialDebugBridge::ppdbg<std::filesystem::path>(const std::filesystem::path& data) {
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data.c_str());
+    std::string path_str = data.string();
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", path_str.c_str());
 }
+
 
 
 template <typename T>

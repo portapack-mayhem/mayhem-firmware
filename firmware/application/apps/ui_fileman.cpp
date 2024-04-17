@@ -324,7 +324,8 @@ void FileManBaseView::focus() {
 }
 
 void FileManBaseView::push_dir(const fs::path& path) {
-    UsbSerialDebugBridge::ppdbg(path);
+ uint64_t test = 99999999;
+ UsbSerialDebugBridge::ppdbg(test);
 
     if (path == parent_dir_path) {
         pop_dir();
