@@ -21,8 +21,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef USB_SERIAL_DEBUG_BRIDGE_H
-#define USB_SERIAL_DEBUG_BRIDGE_H
+#ifndef USB_SERIAL_AYNCMSG_HPP
+#define USB_SERIAL_AYNCMSG_HPP
 
 #include <vector>
 #include <string>
@@ -30,13 +30,13 @@
 #include <chprintf.h>
 #include "usb_serial_device_to_host.h"
 
-class UsbSerialDebugBridge {
+class UsbSerialAsyncmsg {
    public:
     template <typename STRINGCOVER>
-    static void ppdbg(const STRINGCOVER& data);
+    static void asyncmsg(const STRINGCOVER& data);
 
     template <typename VECTORCOVER>
-    static void ppdbg(const std::vector<VECTORCOVER>& data);
+    static void asyncmsg(const std::vector<VECTORCOVER>& data);
 };
 
 /*Notes:
@@ -46,15 +46,15 @@ class UsbSerialDebugBridge {
  * - use this client to filter only PP devices: https://github.com/zxkmm/Pyserial-Demo-portapack
  * - usage:
  *        #include "usb_serial_debug_bridge.hpp"
- *        UsbSerialDebugBridge::ppdbg("Hello PP");
+ *        UsbSerialAsyncmsg::asyncmsg("Hello PP");
  * */
 
 /// value
 // to_string_bin/ to_string_decimal/ to_string_hex/ to_string_hex_array/ to_string_dec_uint/ to_string_dec_int etc seems usellss so i didn't add them here
 
 template <>
-// usage:     UsbSerialDebugBridge::ppdbg(num);
-void UsbSerialDebugBridge::ppdbg<int64_t>(const int64_t& data) {
+// usage:     UsbSerialAsyncmsg::asyncmsg(num);
+void UsbSerialAsyncmsg::asyncmsg<int64_t>(const int64_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -62,7 +62,7 @@ void UsbSerialDebugBridge::ppdbg<int64_t>(const int64_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<int32_t>(const int32_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<int32_t>(const int32_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -70,7 +70,7 @@ void UsbSerialDebugBridge::ppdbg<int32_t>(const int32_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<int16_t>(const int16_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<int16_t>(const int16_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -78,7 +78,7 @@ void UsbSerialDebugBridge::ppdbg<int16_t>(const int16_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<int8_t>(const int8_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<int8_t>(const int8_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -86,7 +86,7 @@ void UsbSerialDebugBridge::ppdbg<int8_t>(const int8_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<uint8_t>(const uint8_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<uint8_t>(const uint8_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -94,7 +94,7 @@ void UsbSerialDebugBridge::ppdbg<uint8_t>(const uint8_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<uint16_t>(const uint16_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<uint16_t>(const uint16_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -102,7 +102,7 @@ void UsbSerialDebugBridge::ppdbg<uint16_t>(const uint16_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<uint32_t>(const uint32_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<uint32_t>(const uint32_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -110,7 +110,7 @@ void UsbSerialDebugBridge::ppdbg<uint32_t>(const uint32_t& data) {
 }
 
 template <>
-void UsbSerialDebugBridge::ppdbg<uint64_t>(const uint64_t& data) {
+void UsbSerialAsyncmsg::asyncmsg<uint64_t>(const uint64_t& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -120,8 +120,8 @@ void UsbSerialDebugBridge::ppdbg<uint64_t>(const uint64_t& data) {
 /// fs things
 
 template <>
-// usage:     UsbSerialDebugBridge::ppdbg(path);
-void UsbSerialDebugBridge::ppdbg<std::filesystem::path>(const std::filesystem::path& data) {
+// usage:     UsbSerialAsyncmsg::asyncmsg(path);
+void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path>(const std::filesystem::path& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -131,8 +131,8 @@ void UsbSerialDebugBridge::ppdbg<std::filesystem::path>(const std::filesystem::p
 
 /// string
 template <>
-// usage:     UsbSerialDebugBridge::ppdbg(str);
-void UsbSerialDebugBridge::ppdbg<std::string>(const std::string& data) {
+// usage:     UsbSerialAsyncmsg::asyncmsg(str);
+void UsbSerialAsyncmsg::asyncmsg<std::string>(const std::string& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
@@ -140,15 +140,15 @@ void UsbSerialDebugBridge::ppdbg<std::string>(const std::string& data) {
 }
 
 /// vec worker
-// ussgae:    UsbSerialDebugBridge::ppdbg(vec);
+// ussgae:    UsbSerialAsyncmsg::asyncmsg(vec);
 template <typename VECTORCOVER>
-void UsbSerialDebugBridge::ppdbg(const std::vector<VECTORCOVER>& data) {
+void UsbSerialAsyncmsg::asyncmsg(const std::vector<VECTORCOVER>& data) {
     if (!portapack::async_tx_enabled) {
         return;
     }
     for (const auto& item : data) {
-        ppdbg(item);
+        asyncmsg(item);
     }
 }
 
-#endif  // USB_SERIAL_DEBUG_BRIDGE_H
+#endif  // USB_SERIAL_AYNCMSG_HPP
