@@ -33,7 +33,9 @@ bool BMPFile::create(const std::filesystem::path& file, uint32_t x, uint32_t y) 
     is_opened = false;
     is_read_ony = true;
     bmpimage.close();  // if already open, close before open a new
-    if (file_exists(file)) return false;
+    if (file_exists(file)) {
+        delete_file(file);  // overwrite
+    }
     auto result = bmpimage.open(file, false, true);
     if (!result.value().ok()) return false;
     file_pos = 0;
