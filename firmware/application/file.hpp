@@ -343,6 +343,7 @@ class File {
     Result<Offset> seek(uint64_t Offset);
     Result<Offset> truncate();
     Size size() const;
+    Result<bool> eof();
 
     template <size_t N>
     Result<Size> write(const std::array<uint8_t, N>& data) {

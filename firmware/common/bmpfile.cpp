@@ -1,6 +1,11 @@
 
 #include "bmpfile.hpp"
 
+// fix height info
+uint32_t BMPFile::get_real_height() {
+    return bmp_header.height >= 0 ? (uint32_t)bmp_header.height : (uint32_t)(-1 * bmp_header.height);
+}
+
 BMPFile::~BMPFile() {
     close();
 }
@@ -34,7 +39,7 @@ bool BMPFile::create(const std::filesystem::path& file, uint32_t x, uint32_t y) 
     bmp_header.v_res = 100;
     byte_per_px = 3;
     type = 1;
-    bmp_header.size = sizeof(bmp_header) + bmp_header.height * byte_per_row;  // with padding! --will update later with expand
+    bmp_header.size = sizeof(bmp_header) + get_real_height() * byte_per_row;  // with padding! --will update later with expand
     bmp_header.data_size = bmp_header.size - sizeof(bmp_header_t);
     bmp_header.colors_count = 0;
     bmp_header.icolors_count = 0;
@@ -97,11 +102,11 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
 
 // jumps to next pixel. false on the end
 bool BMPFile::advance_curr_px(uint32_t num = 1) {
-    if (curry >= bmp_header.height) return false;
+    if (curry >= get_real_height()) return false;
     uint32_t rowsToAdvance = (currx + num) / bmp_header.width;
     uint32_t nx = (currx + num) % bmp_header.width;
     uint32_t ny = curry + rowsToAdvance;
-    if (ny >= bmp_header.height) {
+    if (ny >= get_real_height()) {
         return false;
     }
     seek(nx, ny);
@@ -138,6 +143,9 @@ bool BMPFile::read_next_px(ui::Color& px) {
 bool BMPFile::write_next_px(ui::Color& px) {
     if (!is_opened) return false;
     if (is_read_ony) return false;
+    if (bmpimage.eof()) {
+        expand_y_delta(1);
+    }
     uint8_t buffer[4];
     switch (type) {
         case 0:  // R5G6B5
@@ -173,7 +181,7 @@ bool BMPFile::write_next_px(ui::Color& px) {
 bool BMPFile::seek(uint32_t x, uint32_t y) {
     if (!is_opened) return false;
     if (x >= bmp_header.width) return false;
-    if (y >= bmp_header.height) return false;
+    if (y >= get_real_height()) return false;
     file_pos = bmp_header.image_data;  // nav to start pos.
     file_pos += y * byte_per_row;
     file_pos += x * byte_per_px;
@@ -185,19 +193,19 @@ bool BMPFile::seek(uint32_t x, uint32_t y) {
 
 // expands the image with a delta (y)
 bool BMPFile::expand_y_delta(uint32_t delta_y) {
-    return expand_y(bmp_header.height + delta_y);
+    return expand_y(get_real_height() + delta_y);
 }
 
 // expands the image to a new y size.
 bool BMPFile::expand_y(uint32_t new_y) {
     if (!is_opened) return false;                // not yet opened
-    if (new_y < bmp_header.height) return true;  // already bigger
+    if (new_y < get_real_height()) return true;  // already bigger
     if (is_read_ony) return false;               // can't expand
     size_t old_fp = file_pos;
-    uint32_t delta = (new_y - bmp_header.height) * byte_per_row;
+    uint32_t delta = (new_y - get_real_height()) * byte_per_row;
     bmp_header.size += delta;
     bmp_header.data_size += delta;
-    bmp_header.height = new_y;
+    bmp_header.height = -1 * new_y;  //-1*, so no bottom-up structure needed. easier to expand.
     bmpimage.seek(0);
     bmpimage.write(&bmp_header, sizeof(bmp_header));  // overwrite header
     bmpimage.seek(bmp_header.size);                   // seek to new end

@@ -102,6 +102,10 @@ File::Offset File::tell() const {
     return f_tell(&f);
 }
 
+File::Result<bool> File::eof() {
+    return f_eof(&f);
+}
+
 File::Result<File::Offset> File::seek(Offset new_position) {
     /* NOTE: Returns *old* position, not new position */
     const auto old_position = tell();

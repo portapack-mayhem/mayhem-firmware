@@ -41,12 +41,16 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_envl1,
                   &text_envl2});
     BMPFile bmp;
-    auto ret = bmp.create("/SCREENSHOTS/tmp.bmp", 500, 100);
+    auto ret = bmp.create("/SCREENSHOTS/tmp.bmp", 50, 10);
     text_envl1.set(to_string_dec_int(ret));
     text_envl2.set(to_string_dec_int(bmp.getbpr()));
-
-    // Color c = Color::red();
-    // bmp.write_next_px(c);
+    Color c = Color::red();
+    for (int i = 0; i < 1000; i++) {
+        if (i % 3 == 0) c = Color::red();
+        if (i % 3 == 1) c = Color::green();
+        if (i % 3 == 2) c = Color::blue();
+        bmp.write_next_px(c);
+    }
     bmp.close();
 }
 
