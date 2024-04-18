@@ -125,7 +125,7 @@ bool BMPFile::advance_curr_px(uint32_t num = 1) {
     return true;
 }
 
-// reads next px, then advance the pos (and seek). return false on last px
+// reads next px, then advance the pos (and seek). return false on error
 bool BMPFile::read_next_px(ui::Color& px) {
     if (!is_opened) return false;
     uint8_t buffer[4];
@@ -148,7 +148,8 @@ bool BMPFile::read_next_px(ui::Color& px) {
             px = ui::Color(buffer[2], buffer[1], buffer[0]);
             break;
     }
-    return advance_curr_px();
+    advance_curr_px();
+    return true;
 }
 
 // writes a color data to the current position, and advances 1 px. true on success, false on error
@@ -191,21 +192,30 @@ bool BMPFile::seek(uint32_t x, uint32_t y) {
     if (!is_opened) return false;
     if (x >= bmp_header.width) return false;
     if (y >= get_real_height()) return false;
-    file_pos = bmp_header.image_data;  // nav to start pos.
-    file_pos += y * byte_per_row;
-    file_pos += x * byte_per_px;
-    bmpimage.seek(file_pos);
-    currx = x;
-    curry = y;
+    if (!BMPFile::is_bottomup()) {
+        file_pos = bmp_header.image_data;  // nav to start pos.
+        file_pos += y * byte_per_row;
+        file_pos += x * byte_per_px;
+        bmpimage.seek(file_pos);
+        currx = x;
+        curry = y;
+    } else {
+        file_pos = bmp_header.image_data;  // nav to start pos.
+        file_pos += (bmp_header.height - y) * byte_per_row;
+        file_pos += x * byte_per_px;
+        bmpimage.seek(file_pos);
+        currx = x;
+        curry = y;
+    }
     return true;
 }
 
-// expands the image with a delta (y)
+// expands the image with a delta (y). also seek's t it's begining. in bottumup format, it should be used carefully!
 bool BMPFile::expand_y_delta(uint32_t delta_y) {
     return expand_y(get_real_height() + delta_y);
 }
 
-// expands the image to a new y size. also seek's t it's begining
+// expands the image to a new y size. also seek's t it's begining. in bottumup format, it should be used carefully!
 bool BMPFile::expand_y(uint32_t new_y) {
     if (!is_opened) return false;  // not yet opened
     uint32_t old_height = get_real_height();
@@ -218,6 +228,10 @@ bool BMPFile::expand_y(uint32_t new_y) {
     bmpimage.seek(0);
     bmpimage.write(&bmp_header, sizeof(bmp_header));  // overwrite header
     bmpimage.seek(bmp_header.size);                   // seek to new end to expand
-    seek(0, curry + 1);                               // seek back to the original position
+    if (is_bottomup()) {
+        seek(0, new_y - old_height);  // seek to the new chunk begin
+    } else {
+        seek(0, curry + 1);  // seek to the begin of the new chunk
+    }
     return true;
 }
