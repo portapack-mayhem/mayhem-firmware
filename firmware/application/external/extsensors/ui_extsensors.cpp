@@ -45,11 +45,14 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
     text_envl1.set(to_string_dec_int(ret));
     text_envl2.set(to_string_dec_int(bmp.getbpr()));
     Color c = Color::red();
-    for (int i = 0; i < 1000; i++) {
-        if (i % 3 == 0) c = Color::red();
-        if (i % 3 == 1) c = Color::green();
-        if (i % 3 == 2) c = Color::blue();
-        bmp.write_next_px(c);
+    for (uint32_t cy = 0; cy < 100; cy++) {
+        if (cy >= bmp.get_real_height()) bmp.expand_y_delta(1);
+        for (int x = 0; x < 50; x++) {
+            if (x % 3 == 0) c = Color::red();
+            if (x % 3 == 1) c = Color::green();
+            if (x % 3 == 2) c = Color::blue();
+            bmp.write_next_px(c);
+        }
     }
     bmp.close();
 }

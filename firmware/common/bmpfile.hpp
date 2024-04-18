@@ -21,9 +21,9 @@ class BMPFile {
 
     bool read_next_px(ui::Color& px);
     bool write_next_px(ui::Color& px);
+    uint32_t get_real_height();
 
    private:
-    uint32_t get_real_height();
     bool advance_curr_px(uint32_t num);
     bool is_opened = false;
     bool is_read_ony = true;

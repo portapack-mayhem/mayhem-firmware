@@ -143,9 +143,6 @@ bool BMPFile::read_next_px(ui::Color& px) {
 bool BMPFile::write_next_px(ui::Color& px) {
     if (!is_opened) return false;
     if (is_read_ony) return false;
-    if (bmpimage.eof()) {
-        expand_y_delta(1);
-    }
     uint8_t buffer[4];
     switch (type) {
         case 0:  // R5G6B5
@@ -196,20 +193,19 @@ bool BMPFile::expand_y_delta(uint32_t delta_y) {
     return expand_y(get_real_height() + delta_y);
 }
 
-// expands the image to a new y size.
+// expands the image to a new y size. also seek's t it's begining
 bool BMPFile::expand_y(uint32_t new_y) {
-    if (!is_opened) return false;                // not yet opened
-    if (new_y < get_real_height()) return true;  // already bigger
-    if (is_read_ony) return false;               // can't expand
-    size_t old_fp = file_pos;
-    uint32_t delta = (new_y - get_real_height()) * byte_per_row;
+    if (!is_opened) return false;  // not yet opened
+    uint32_t old_height = get_real_height();
+    if (new_y < old_height) return true;  // already bigger
+    if (is_read_ony) return false;        // can't expand
+    uint32_t delta = (new_y - old_height) * byte_per_row;
     bmp_header.size += delta;
     bmp_header.data_size += delta;
     bmp_header.height = -1 * new_y;  //-1*, so no bottom-up structure needed. easier to expand.
     bmpimage.seek(0);
     bmpimage.write(&bmp_header, sizeof(bmp_header));  // overwrite header
-    bmpimage.seek(bmp_header.size);                   // seek to new end
-    file_pos = old_fp;                                // restore pointer
-    bmpimage.seek(file_pos);
+    bmpimage.seek(bmp_header.size);                   // seek to new end to expand
+    seek(0, curry + 1);                               // seek back to the original position
     return true;
 }
