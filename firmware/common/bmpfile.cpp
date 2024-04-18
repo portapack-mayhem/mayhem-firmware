@@ -3,7 +3,19 @@
 
 // fix height info
 uint32_t BMPFile::get_real_height() {
+    if (!is_opened) return 0;
     return bmp_header.height >= 0 ? (uint32_t)bmp_header.height : (uint32_t)(-1 * bmp_header.height);
+}
+
+// get bmp width
+uint32_t BMPFile::get_width() {
+    if (!is_opened) return 0;
+    return bmp_header.width;
+}
+
+// get if the rows are bottom up (for most bmp), or up to bottom (negative height, we use it for write)
+bool BMPFile::is_bottomup() {
+    return (bmp_header.height >= 0);
 }
 
 BMPFile::~BMPFile() {
