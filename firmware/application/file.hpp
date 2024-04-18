@@ -332,6 +332,7 @@ class File {
 
     // TODO: Return Result<>.
     Optional<Error> open(const std::filesystem::path& filename, bool read_only = true, bool create = false);
+    void close();
     Optional<Error> append(const std::filesystem::path& filename);
     Optional<Error> create(const std::filesystem::path& filename);
 

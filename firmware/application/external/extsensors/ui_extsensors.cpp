@@ -40,6 +40,14 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_orientation,
                   &text_envl1,
                   &text_envl2});
+    BMPFile bmp;
+    auto ret = bmp.create("/SCREENSHOTS/tmp.bmp", 500, 100);
+    text_envl1.set(to_string_dec_int(ret));
+    text_envl2.set(to_string_dec_int(bmp.getbpr()));
+
+    // Color c = Color::red();
+    // bmp.write_next_px(c);
+    bmp.close();
 }
 
 ExtSensorsView::~ExtSensorsView() {

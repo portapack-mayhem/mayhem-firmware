@@ -33,6 +33,7 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "utility.hpp"
+#include "bmpfile.hpp"
 
 using namespace ui;
 
