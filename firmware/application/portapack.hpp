@@ -81,4 +81,6 @@ void setEventDispatcherToUSBSerial(EventDispatcher* evt);
 
 Backlight* backlight();
 
+extern bool async_tx_enabled;  // this is for serial tx things, globally
+
 } /* namespace portapack */

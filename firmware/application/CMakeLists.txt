@@ -226,6 +226,7 @@ set(CPPSRC
 	tone_key.cpp
 	transmitter_model.cpp
 	tuning.cpp
+	usb_serial_asyncmsg.hpp
 	hw/debounce.cpp
 	hw/encoder.cpp
 	hw/max2837.cpp
