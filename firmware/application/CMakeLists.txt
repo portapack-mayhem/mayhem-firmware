@@ -261,6 +261,7 @@ set(CPPSRC
 	ui/ui_textentry.cpp
 	ui/ui_tone_key.cpp
 	ui/ui_transmitter.cpp
+	ui/ui_bmpview.cpp
 	apps/acars_app.cpp
 	apps/ais_app.cpp
 	apps/analog_audio_app.cpp
