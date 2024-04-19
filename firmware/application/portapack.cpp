@@ -40,8 +40,8 @@ using namespace hackrf::one;
 #include "wm8731.hpp"
 using wolfson::wm8731::WM8731;
 
-#include "ads1100.hpp"
-using ads1100::ADS1100;
+// #include "ads1110.hpp"
+// using ads1110::ADS1110;
 
 #include "ak4951.hpp"
 using asahi_kasei::ak4951::AK4951;
@@ -87,7 +87,7 @@ ClockManager clock_manager{
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 AK4951 audio_codec_ak4951{i2c0, 0x12};
-ADS1100 battery_ads1100{i2c0, 0x48};
+ads1110::ADS1110 battery_ads1110{i2c0, 0x48};
 
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;

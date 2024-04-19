@@ -19,8 +19,8 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __ADS1100_H__
-#define __ADS1100_H__
+#ifndef __ADS1110_H__
+#define __ADS1110_H__
 
 #include <cstdint>
 #include <array>
@@ -28,7 +28,7 @@
 
 #include "i2c_pp.hpp"
 
-namespace ads1100 {
+namespace ads1110 {
 
 using address_t = uint8_t;
 using reg_t = uint16_t;
@@ -39,9 +39,9 @@ struct RegisterMap {
     std::array<reg_t, reg_count> w;
 };
 
-class ADS1100 {
+class ADS1110 {
 public:
-    constexpr ADS1100(I2C& bus, const I2C::address_t bus_address)
+    constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
     : bus(bus), bus_address(bus_address), map{} {}
 
     void init();
@@ -60,6 +60,6 @@ private:
     void reg_write(const size_t reg_address, uint32_t value);
 };
 
-} /* namespace ads1100 */
+} /* namespace ads1110 */
 
-#endif /* __ADS1100_H__ */
+#endif /* __ADS1110_H__ */

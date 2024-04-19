@@ -19,32 +19,32 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ads1100.hpp"
+#include "ads1110.hpp"
 #include "utility.hpp"
 #include <cstdint>
 #include <algorithm>
 
-namespace ads1100 {
+namespace ads1110 {
 
 constexpr float BATTERY_MIN_VOLTAGE = 3.0;
 constexpr float BATTERY_MAX_VOLTAGE = 4.2;
 constexpr float BATTERY_CAPACITY = 2500.0;
 constexpr float BATTERY_ENERGY = 9.25;
 
-void ADS1100::init() {
+void ADS1110::init() {
     detected();
 }
 
-bool ADS1100::detected() {
+bool ADS1110::detected() {
     uint8_t status = bus.write(bus_address, nullptr, 0);
     return status == 0;
 }
 
-bool ADS1100::write(const Register reg) {
+bool ADS1110::write(const Register reg) {
     return write(toUType(reg), map.w[toUType(reg)]);
 }
 
-bool ADS1100::write(const address_t reg_address, const reg_t value) {
+bool ADS1110::write(const address_t reg_address, const reg_t value) {
     map.w[reg_address] = value;
 
     const uint16_t word = (reg_address << 9) | value;
@@ -55,15 +55,15 @@ bool ADS1100::write(const address_t reg_address, const reg_t value) {
     return bus.transmit(bus_address, values.data(), values.size());
 }
 
-uint32_t ADS1100::reg_read(const size_t reg_address) {
+uint32_t ADS1110::reg_read(const size_t reg_address) {
     return map.w[reg_address];
 }
 
-void ADS1100::reg_write(const size_t reg_address, uint32_t value) {
+void ADS1110::reg_write(const size_t reg_address, uint32_t value) {
     write(reg_address, value);
 }
 
-float ADS1100::readVoltage() {
+float ADS1110::readVoltage() {
     // Start a conversion
     write(0x00, 0x00);
 
@@ -79,7 +79,7 @@ float ADS1100::readVoltage() {
     return voltage;
 }
 
-void ADS1100::getBatteryInfo(float& remainingCapacity, float& remainingEnergy, float& batteryPercentage) {
+void ADS1110::getBatteryInfo(float& remainingCapacity, float& remainingEnergy, float& batteryPercentage) {
     float voltage = readVoltage();
 
     // Calculate the remaining capacity, energy, and percentage
@@ -93,4 +93,4 @@ void ADS1100::getBatteryInfo(float& remainingCapacity, float& remainingEnergy, f
     batteryPercentage = std::clamp(batteryPercentage, 0.0f, 100.0f);
 }
 
-} /* namespace ads1100 */
+} /* namespace ads1110 */
