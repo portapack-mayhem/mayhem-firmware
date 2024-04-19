@@ -106,9 +106,10 @@ DfuMenu2::DfuMenu2(NavigationView& nav)
 }
 
 void DfuMenu2::paint(Painter& painter) {
-    float remainingCapacity, remainingEnergy, batteryPercentage;
-    portapack::battery_ads1110.getBatteryInfo(remainingCapacity, remainingEnergy, batteryPercentage);
-    text_info_line_1.set(to_string_dec_uint(batteryPercentage, 10));
+    // float remainingCapacity, remainingEnergy, batteryPercentage;
+    // portapack::battery_ads1110.getBatteryInfo(remainingCapacity, remainingEnergy, batteryPercentage);
+    // text_info_line_1.set(to_string_dec_uint(batteryPercentage, 10));
+    text_info_line_1.set(to_string_decimal(portapack::battery_ads1110.readVoltage(), 10));
 
     // text_info_line_1.set(to_string_dec_uint(portapack::receiver_model.target_frequency(), 10));
     text_info_line_2.set(to_string_dec_uint(portapack::receiver_model.baseband_bandwidth(), 10));
