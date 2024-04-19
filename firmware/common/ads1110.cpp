@@ -67,7 +67,10 @@ float ADS1110::readVoltage() {
     uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
 
     // Convert the raw value to voltage
-    float voltage = (raw * BATTERY_MAX_VOLTAGE) / 32768.0;
+    // float voltage = (raw * BATTERY_MAX_VOLTAGE) / 32768.0;
+    //(float)raw/ 65535.0f * 3.3f *2
+    float voltage = ((float)raw / 65535.0) * 3.3 * 2; // Assuming Vdd is 3.3V
+    
 
     return voltage;
 }
