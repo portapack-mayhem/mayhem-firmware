@@ -61,6 +61,7 @@ extern portapack::USBSerial usb_serial;
 extern si5351::Si5351 clock_generator;
 extern ClockManager clock_manager;
 
+extern ADS1100 battery_ads1100;
 extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;
 
