@@ -40,9 +40,6 @@ using namespace hackrf::one;
 #include "wm8731.hpp"
 using wolfson::wm8731::WM8731;
 
-// #include "ads1110.hpp"
-using ads1110::ADS1110;
-
 #include "ak4951.hpp"
 using asahi_kasei::ak4951::AK4951;
 
@@ -589,6 +586,7 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
+    // battery_ads1110.init();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);
