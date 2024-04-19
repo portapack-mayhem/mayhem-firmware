@@ -35,9 +35,6 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 
-#include "usb_serial_asyncmsg.hpp"
-#include "usb_serial_asyncmsg.cpp"
-
 using namespace portapack;
 namespace fs = std::filesystem;
 
