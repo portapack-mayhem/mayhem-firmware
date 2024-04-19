@@ -42,7 +42,7 @@ struct RegisterMap {
 class ADS1100 {
 public:
     constexpr ADS1100(I2C& bus, const I2C::address_t bus_address)
-        : bus(bus), bus_address(bus_address) {}
+    : bus(bus), bus_address(bus_address), map{} {}
 
     void init();
     bool detected();

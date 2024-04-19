@@ -87,7 +87,7 @@ ClockManager clock_manager{
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 AK4951 audio_codec_ak4951{i2c0, 0x12};
-ADS1100 audio_codec_ak4951{i2c0, 0x48};
+ADS1100 battery_ads1100{i2c0, 0x48};
 
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;
