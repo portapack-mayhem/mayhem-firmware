@@ -34,8 +34,14 @@ constexpr float BATTERY_ENERGY = 9.25;
 void ADS1110::init() {
     // detected();
     // Start a conversion
+    // write(0x00, 0x06);
+    // chThdSleepMilliseconds(100);
+    // write(0x00, 0x8C);
+    write2(0x8C);
+
     // write(0x00, 0x0C);
-    write(0x00, 0x8C);
+    // write(0x00, 0x8C);
+    // write2(0x8C);
     // write(0x00, 0x81);
     // write(0x00, 0x31);
     // write(0x01, 0x00);
@@ -55,6 +61,10 @@ bool ADS1110::write(const address_t reg_address, const reg_t value) {
     return bus.transmit(bus_address, values.data(), values.size());
 }
 
+bool ADS1110::write2(const uint8_t value) {
+    return bus.transmit(bus_address, &value, 1);
+}
+
 
 float ADS1110::readVoltage() {
     // Read the conversion result
@@ -63,7 +73,7 @@ float ADS1110::readVoltage() {
         return 0.0f; // Return 0 if the read fails
     }
 
-    int16_t raw = (static_cast<int16_t>(data[0]) << 8) | data[1];
+    uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
 
     // Convert the raw value to voltage
     // float voltage = ((float)raw / 65535.0) * 3.3 * 2; // Assuming Vdd is 3.3V
@@ -74,20 +84,41 @@ float ADS1110::readVoltage() {
      // Calculate the voltage based on the output code
     float voltage = 0.0f;
     int16_t minCode = 0;
-    float pga = 1.0f; // Assuming PGA = 1, adjust according to your configuration
-    int16_t data_rate = 240; // Assuming data rate is 240 SPS, adjust according to your configuration
+    float pga = 0.0f; // Assuming PGA = 1, adjust according to your configuration
+
+    uint8_t pga_rate = data[2] & 0x03; // Assuming data rate is 240 SPS, adjust according to your configuration
+
+    switch (pga_rate) {
+        case 0:
+            pga = 1.0f;
+            break;
+        case 1: 
+            pga = 2.0f;
+            break;
+        case 2: 
+            pga = 4.0f;
+            break;
+        case 3:
+            pga = 8.0f;
+            break;
+        default:
+            // Handle invalid data rate
+            break;
+    }
+
+    uint8_t data_rate = (data[2] >> 2) & 0x03; // Assuming data rate is 240 SPS, adjust according to your configuration
 
     switch (data_rate) {
-        case 15:
+        case 0: // 15
             minCode = -32768;
             break;
-        case 30:
+        case 1: // 30
             minCode = -16384;
             break;
-        case 60:
+        case 2: // 60
             minCode = -8192;
             break;
-        case 240:
+        case 3: // 240
             minCode = -2048;
             break;
         default:
@@ -95,7 +126,13 @@ float ADS1110::readVoltage() {
             break;
     }
 
-    voltage = (raw - (-1 * minCode)) * 2.048f / (pga * static_cast<float>(minCode * -2));
+    // voltage = raw;
+    // voltage = data[2];
+    // voltage = (raw - (-1 * minCode)) * 2.048f / (pga * static_cast<float>(minCode * -2));
+    voltage = (raw / 2.048f) * pga * (-1 * minCode);
+    // voltage =  (float)raw / (float)minCode * 2.048f * 2.0f;
+
+    // voltage = data[2];
     
 
     return voltage;
