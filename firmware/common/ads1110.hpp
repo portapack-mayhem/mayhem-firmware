@@ -48,8 +48,7 @@ private:
     I2C& bus;
     const I2C::address_t bus_address;
 
-    bool write(const address_t reg_address, const reg_t value);
-    bool write2(const uint8_t value);
+    bool write(const uint8_t value);
 };
 
 } /* namespace ads1110 */

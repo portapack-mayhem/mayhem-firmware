@@ -34,17 +34,7 @@ constexpr float BATTERY_ENERGY = 9.25;
 void ADS1110::init() {
     // detected();
     // Start a conversion
-    // write(0x00, 0x06);
-    // chThdSleepMilliseconds(100);
-    // write(0x00, 0x8C);
-    write2(0x8C);
-
-    // write(0x00, 0x0C);
-    // write(0x00, 0x8C);
-    // write2(0x8C);
-    // write(0x00, 0x81);
-    // write(0x00, 0x31);
-    // write(0x01, 0x00);
+    write(0x8C);
 }
 
 bool ADS1110::detected() {
@@ -52,16 +42,7 @@ bool ADS1110::detected() {
     return status == 0;
 }
 
-bool ADS1110::write(const address_t reg_address, const reg_t value) {
-    const uint16_t word = (reg_address << 9) | value;
-    const std::array<uint8_t, 2> values{
-        static_cast<uint8_t>(word >> 8),
-        static_cast<uint8_t>(word & 0xff),
-    };
-    return bus.transmit(bus_address, values.data(), values.size());
-}
-
-bool ADS1110::write2(const uint8_t value) {
+bool ADS1110::write(const uint8_t value) {
     return bus.transmit(bus_address, &value, 1);
 }
 
