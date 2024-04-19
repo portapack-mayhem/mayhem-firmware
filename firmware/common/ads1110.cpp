@@ -59,13 +59,39 @@ float ADS1110::readVoltage() {
         return 0.0f; // Return 0 if the read fails
     }
 
-    uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
+    int16_t raw = (static_cast<int16_t>(data[0]) << 8) | data[1];
 
     // Convert the raw value to voltage
-    // float voltage = (raw * BATTERY_MAX_VOLTAGE) / 32768.0;
-    //(float)raw/ 65535.0f * 3.3f *2
-    float voltage = ((float)raw / 65535.0) * 3.3 * 2; // Assuming Vdd is 3.3V
-    // float voltage = ((float)raw); // Assuming Vdd is 3.3V
+    // float voltage = ((float)raw / 65535.0) * 3.3 * 2; // Assuming Vdd is 3.3V
+    // float voltage = ((float)raw / 2048.0) * 3.3 * 2; // Assuming Vdd is 3.3V
+    // float voltage = 32768 * 1 * ((float)raw / 2.048); // Assuming Vdd is 3.3V
+    // float voltage = (float) raw / 2048.0f * 2.048f *2.0f;
+
+     // Calculate the voltage based on the output code
+    float voltage = 0.0f;
+    int16_t minCode = 0;
+    float pga = 1.0f; // Assuming PGA = 1, adjust according to your configuration
+    int16_t data_rate = 240; // Assuming data rate is 240 SPS, adjust according to your configuration
+
+    switch (data_rate) {
+        case 15:
+            minCode = -32768;
+            break;
+        case 30:
+            minCode = -16384;
+            break;
+        case 60:
+            minCode = -8192;
+            break;
+        case 240:
+            minCode = -2048;
+            break;
+        default:
+            // Handle invalid data rate
+            break;
+    }
+
+    voltage = (raw - (-1 * minCode)) * 2.048f / (pga * static_cast<float>(minCode * -2));
     
 
     return voltage;
