@@ -40,13 +40,7 @@ bool ADS1110::detected() {
     return status == 0;
 }
 
-// bool ADS1110::write(const Register reg) {
-//     return write(toUType(reg), map.w[toUType(reg)]);
-// }
-
 bool ADS1110::write(const address_t reg_address, const reg_t value) {
-    map.w[reg_address] = value;
-
     const uint16_t word = (reg_address << 9) | value;
     const std::array<uint8_t, 2> values{
         static_cast<uint8_t>(word >> 8),
@@ -55,26 +49,25 @@ bool ADS1110::write(const address_t reg_address, const reg_t value) {
     return bus.transmit(bus_address, values.data(), values.size());
 }
 
-uint32_t ADS1110::reg_read(const size_t reg_address) {
-    return map.w[reg_address];
-}
-
-void ADS1110::reg_write(const size_t reg_address, uint32_t value) {
-    write(reg_address, value);
-}
 
 float ADS1110::readVoltage() {
     // Start a conversion
-    write(0x00, 0x00);
+    write(0x00, 0x8C); // Configure the ADS1110 for single-shot conversion
+    // write(0x00, 0x00); // Configure the ADS1110 for a conversion
 
     // Wait for the conversion to complete
-    chThdSleepMilliseconds(10);
+    chThdSleepMilliseconds(100);
 
     // Read the conversion result
-    uint16_t raw = (reg_read(0x00) << 8) | reg_read(0x01);
+    uint8_t data[2];
+    if (!bus.receive(bus_address, data, 2)) {
+        return 0.0f; // Return 0 if the read fails
+    }
+
+    uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
 
     // Convert the raw value to voltage
-    float voltage = (raw * 4.096) / 32768.0;
+    float voltage = (raw * BATTERY_MAX_VOLTAGE) / 32768.0;
 
     return voltage;
 }

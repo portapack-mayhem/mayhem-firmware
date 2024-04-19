@@ -33,16 +33,10 @@ namespace ads1110 {
 using address_t = uint8_t;
 using reg_t = uint16_t;
 
-constexpr size_t reg_count = 2;
-
-struct RegisterMap {
-    std::array<reg_t, reg_count> w;
-};
-
 class ADS1110 {
 public:
     constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
-    : bus(bus), bus_address(bus_address), map{} {}
+    : bus(bus), bus_address(bus_address) {}
 
     void init();
     bool detected();
@@ -53,11 +47,8 @@ public:
 private:
     I2C& bus;
     const I2C::address_t bus_address;
-    RegisterMap map;
 
-    bool write(const address_t reg_address, const reg_t value);
-    uint32_t reg_read(const size_t reg_address);
-    void reg_write(const size_t reg_address, uint32_t value);
+    bool write(const address_t reg_address, const reg_t value);;
 };
 
 } /* namespace ads1110 */
