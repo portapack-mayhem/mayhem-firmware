@@ -36,13 +36,13 @@ void ADS1110::init() {
 }
 
 bool ADS1110::detected() {
-    uint8_t status = bus.write(bus_address, nullptr, 0);
+    uint8_t status = bus.transmit(bus_address, nullptr, 0);
     return status == 0;
 }
 
-bool ADS1110::write(const Register reg) {
-    return write(toUType(reg), map.w[toUType(reg)]);
-}
+// bool ADS1110::write(const Register reg) {
+//     return write(toUType(reg), map.w[toUType(reg)]);
+// }
 
 bool ADS1110::write(const address_t reg_address, const reg_t value) {
     map.w[reg_address] = value;
@@ -68,7 +68,7 @@ float ADS1110::readVoltage() {
     write(0x00, 0x00);
 
     // Wait for the conversion to complete
-    std::this_thread::sleep_for(std::chrono::milliseconds(10));
+    chThdSleepMilliseconds(10);
 
     // Read the conversion result
     uint16_t raw = (reg_read(0x00) << 8) | reg_read(0x01);

@@ -41,7 +41,7 @@ using namespace hackrf::one;
 using wolfson::wm8731::WM8731;
 
 // #include "ads1110.hpp"
-// using ads1110::ADS1110;
+using ads1110::ADS1110;
 
 #include "ak4951.hpp"
 using asahi_kasei::ak4951::AK4951;
