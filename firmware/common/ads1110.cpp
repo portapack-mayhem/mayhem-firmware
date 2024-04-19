@@ -32,7 +32,9 @@ constexpr float BATTERY_CAPACITY = 2500.0;
 constexpr float BATTERY_ENERGY = 9.25;
 
 void ADS1110::init() {
-    detected();
+    // detected();
+    // Start a conversion
+    write(0x00, 0x0C);
 }
 
 bool ADS1110::detected() {
@@ -51,16 +53,9 @@ bool ADS1110::write(const address_t reg_address, const reg_t value) {
 
 
 float ADS1110::readVoltage() {
-    // Start a conversion
-    write(0x00, 0x8C); // Configure the ADS1110 for single-shot conversion
-    // write(0x00, 0x00); // Configure the ADS1110 for a conversion
-
-    // Wait for the conversion to complete
-    chThdSleepMilliseconds(100);
-
     // Read the conversion result
-    uint8_t data[2];
-    if (!bus.receive(bus_address, data, 2)) {
+    uint8_t data[3];
+    if (!bus.receive(bus_address, data, 3)) {
         return 0.0f; // Return 0 if the read fails
     }
 
@@ -70,6 +65,7 @@ float ADS1110::readVoltage() {
     // float voltage = (raw * BATTERY_MAX_VOLTAGE) / 32768.0;
     //(float)raw/ 65535.0f * 3.3f *2
     float voltage = ((float)raw / 65535.0) * 3.3 * 2; // Assuming Vdd is 3.3V
+    // float voltage = ((float)raw); // Assuming Vdd is 3.3V
     
 
     return voltage;
