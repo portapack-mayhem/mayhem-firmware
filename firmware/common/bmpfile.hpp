@@ -35,12 +35,13 @@ class BMPFile {
     bool open(const std::filesystem::path& file, bool readonly);
     bool create(const std::filesystem::path& file, uint32_t x, uint32_t y);
     void close();
+    bool is_loaded();
     bool seek(uint32_t x, uint32_t y);
     bool expand_y(uint32_t new_y);
     bool expand_y_delta(uint32_t delta_y);
     uint32_t getbpr() { return byte_per_row; };
 
-    bool read_next_px(ui::Color& px);
+    bool read_next_px(ui::Color& px, bool seek);
     bool write_next_px(ui::Color& px);
     uint32_t get_real_height();
     uint32_t get_width();

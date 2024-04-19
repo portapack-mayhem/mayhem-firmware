@@ -33,7 +33,7 @@
 #include "ui_record_view.hpp"
 #include "app_settings.hpp"
 #include "utility.hpp"
-#include "bmpfile.hpp"
+#include "ui_bmpview.hpp"
 
 using namespace ui;
 
@@ -65,6 +65,8 @@ class ExtSensorsView : public View {
     Text text_orientation{{5 * 8, 5 * 16, 24 * 8, 16}, "-"};
     Text text_envl1{{5 * 8, 7 * 16, 24 * 8, 16}, "-"};
     Text text_envl2{{1 * 8, 9 * 16, 24 * 8, 16}, "-"};
+
+    BMPViewer bmpv{{0, 100, 200, 100}};
 
     void on_any();
 

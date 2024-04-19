@@ -21,6 +21,10 @@
 
 #include "bmpfile.hpp"
 
+bool BMPFile::is_loaded() {
+    return is_opened;
+}
+
 // fix height info
 uint32_t BMPFile::get_real_height() {
     if (!is_opened) return 0;
@@ -94,7 +98,7 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
     bmpimage.close();  // if already open, close before open a new
 
     auto result = bmpimage.open(file, readonly, false);
-    if (!result.is_valid()) return false;
+    if (!result.value().ok()) return false;
     file_pos = 0;
     bmpimage.seek(file_pos);
     auto read_size = bmpimage.read(&bmp_header, sizeof(bmp_header_t));
@@ -148,7 +152,7 @@ bool BMPFile::advance_curr_px(uint32_t num = 1) {
 }
 
 // reads next px, then advance the pos (and seek). return false on error
-bool BMPFile::read_next_px(ui::Color& px) {
+bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
     if (!is_opened) return false;
     uint8_t buffer[4];
     auto res = bmpimage.read(buffer, byte_per_px);
@@ -170,7 +174,7 @@ bool BMPFile::read_next_px(ui::Color& px) {
             px = ui::Color(buffer[2], buffer[1], buffer[0]);
             break;
     }
-    advance_curr_px();
+    if (seek) advance_curr_px();
     return true;
 }
 
@@ -223,7 +227,7 @@ bool BMPFile::seek(uint32_t x, uint32_t y) {
         curry = y;
     } else {
         file_pos = bmp_header.image_data;  // nav to start pos.
-        file_pos += (bmp_header.height - y) * byte_per_row;
+        file_pos += (get_real_height() - y) * byte_per_row;
         file_pos += x * byte_per_px;
         bmpimage.seek(file_pos);
         currx = x;

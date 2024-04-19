@@ -24,12 +24,17 @@
 
 #include "ui.hpp"
 #include "ui_widget.hpp"
+#include "bmpfile.hpp"
+#include "ui_styles.hpp"
 
-class BMPView : public Widget {
+class BMPViewer : public Widget {
    public:
-    BMPView(Rect parent_rect);
-    BMPView(const BMPView& other) = delete;
-    BMPView& operator=(const BMPView& other) = delete;
+    BMPViewer(Rect parent_rect);
+    BMPViewer(Rect parent_rect, const std::filesystem::path& file);
+    BMPViewer(const BMPViewer& other) = delete;
+    BMPViewer& operator=(const BMPViewer& other) = delete;
+
+    bool load_bmp(const std::filesystem::path& file);
 
     void paint(Painter& painter) override;
     void on_focus() override;
@@ -38,11 +43,19 @@ class BMPView : public Widget {
     bool on_encoder(EncoderEvent delta) override;
     bool on_keyboard(const KeyboardEvent event) override;
 
+    void reset_pos();
     void set_zoom(int8_t new_zoom);
     int8_t get_zoom();
 
    private:
-    int8_t zoom = 1;  // positive = zoom in, negative = zoom out 0-invalid 1- no zoom
+    void get_line(ui::Color* line, uint32_t bx, uint32_t by, uint32_t cnt);
+    BMPFile bmp{};
+    int8_t zoom = 1;       // positive = zoom in, negative = zoom out 0-invalid 1- no zoom
+    int8_t zoom_fit = 1;   // if this value is set, the image will fit the screen the most
+    int8_t max_zoom = 20;  // will be calculated on load
+    int8_t min_zoom = -20;
+    uint32_t cx = 0;  // current top-left coordinate
+    uint32_t cy = 0;
 };
 
 #endif
