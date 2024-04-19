@@ -34,7 +34,11 @@ constexpr float BATTERY_ENERGY = 9.25;
 void ADS1110::init() {
     // detected();
     // Start a conversion
-    write(0x00, 0x0C);
+    // write(0x00, 0x0C);
+    write(0x00, 0x8C);
+    // write(0x00, 0x81);
+    // write(0x00, 0x31);
+    // write(0x01, 0x00);
 }
 
 bool ADS1110::detected() {
