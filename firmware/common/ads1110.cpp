@@ -27,9 +27,7 @@
 namespace ads1110 {
 
 constexpr float BATTERY_MIN_VOLTAGE = 3.0;
-constexpr float BATTERY_MAX_VOLTAGE = 4.2;
-constexpr float BATTERY_CAPACITY = 2500.0;
-constexpr float BATTERY_ENERGY = 9.25;
+constexpr float BATTERY_MAX_VOLTAGE = 4.0;
 
 void ADS1110::init() {
     // detected();
@@ -59,10 +57,9 @@ float ADS1110::readVoltage() {
     // Calculate the voltage based on the output code
     float voltage = 0.0f;
     float minCode = 0;
-    float pga = 0.0f; // Assuming PGA = 1, adjust according to your configuration
+    float pga = 0.0f;
 
-    uint8_t pga_rate = data[2] & 0x03; // Assuming data rate is 240 SPS, adjust according to your configuration
-
+    uint8_t pga_rate = data[2] & 0x03;
     switch (pga_rate) {
         case 0:
             pga = 1.0f;
@@ -82,7 +79,6 @@ float ADS1110::readVoltage() {
     }
 
     uint8_t data_rate = (data[2] >> 2) & 0x03;
-
     switch (data_rate) {
         case 0: // 240
             minCode = -2048.0;
@@ -106,17 +102,13 @@ float ADS1110::readVoltage() {
     return voltage;
 }
 
-void ADS1110::getBatteryInfo(float& remainingCapacity, float& remainingEnergy, float& batteryPercentage) {
-    float voltage = readVoltage();
+void ADS1110::getBatteryInfo(float& batteryPercentage, float& voltage) {
+    voltage = readVoltage();
 
-    // Calculate the remaining capacity, energy, and percentage
-    remainingCapacity = (voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * BATTERY_CAPACITY;
-    remainingEnergy = (voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * BATTERY_ENERGY;
+    // Calculate the remaining battery percentage
     batteryPercentage = (voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
 
     // Limit the values to the valid range
-    remainingCapacity = std::clamp(remainingCapacity, 0.0f, BATTERY_CAPACITY);
-    remainingEnergy = std::clamp(remainingEnergy, 0.0f, BATTERY_ENERGY);
     batteryPercentage = std::clamp(batteryPercentage, 0.0f, 100.0f);
 }
 

@@ -42,7 +42,7 @@ public:
     bool detected();
 
     float readVoltage();
-    void getBatteryInfo(float& remainingCapacity, float& remainingEnergy, float& batteryPercentage);
+    void getBatteryInfo(float& batteryPercentage, float& voltage);
 
 private:
     I2C& bus;
