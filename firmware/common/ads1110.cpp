@@ -103,9 +103,6 @@ float ADS1110::readVoltage() {
 
     voltage = (float)raw/(float)(-1.0f * (float)minCode) * (float)pga * (float)2.048f * (float)2.0f;
 
-    // This shit is needed to get a proper number
-    voltage = voltage * 1000.0f;    
-
     return voltage;
 }
 
