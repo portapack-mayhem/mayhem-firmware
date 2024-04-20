@@ -64,7 +64,7 @@ float ADS1110::readVoltage() {
 
      // Calculate the voltage based on the output code
     float voltage = 0.0f;
-    int16_t minCode = 0;
+    float minCode = 0;
     float pga = 0.0f; // Assuming PGA = 1, adjust according to your configuration
 
     uint8_t pga_rate = data[2] & 0x03; // Assuming data rate is 240 SPS, adjust according to your configuration
@@ -87,21 +87,21 @@ float ADS1110::readVoltage() {
             break;
     }
 
-    uint8_t data_rate = (data[2] >> 2) & 0x03; // Assuming data rate is 240 SPS, adjust according to your configuration
+    uint8_t data_rate = (data[2] >> 2) & 0x03;
 
     switch (data_rate) {
-        case 0: // 15
-            minCode = -32768;
+        case 0: // 240
+            minCode = -2048.0;
             break;
-        case 1: // 30
-            minCode = -16384;
+        case 1: // 60
+            minCode = -8192.0;
             break;
-        case 2: // 60
-            minCode = -8192;
+        case 2: // 30
+            minCode = -16384.0;
             break;
-        case 3: // 240
-            minCode = -2048;
-            break;
+        case 3: // 15
+            minCode = -32768.0;
+            break;        
         default:
             // Handle invalid data rate
             break;
@@ -110,8 +110,24 @@ float ADS1110::readVoltage() {
     // voltage = raw;
     // voltage = data[2];
     // voltage = (raw - (-1 * minCode)) * 2.048f / (pga * static_cast<float>(minCode * -2));
-    voltage = (raw / 2.048f) * pga * (-1 * minCode);
+    // voltage = (raw / 2.048f) / pga * (-1 * minCode);
+    // voltage = ((float)-1 * (float)minCode) * pga * raw / 2.048f;
     // voltage =  (float)raw / (float)minCode * 2.048f * 2.0f;
+
+    // float temp = raw * 2.048;
+    // voltage = (temp / 32768.0);
+
+    //  (round((float)getData() / (float)(minCode * gain)) + _vref);
+    // voltage = (((float)raw / 32768.0) + 2.048);
+
+    // voltage = (float)(-1 * minCode) * (float)pga * (float)(raw / 2.048f);
+    voltage = (float)raw/(float)(-1.0f * (float)minCode) * (float)2.048f * (float)2.0f;
+
+    // voltage = minCode;
+
+    // voltage = raw;
+
+    // ToDo: Print the raw value and check
 
     // voltage = data[2];
     
