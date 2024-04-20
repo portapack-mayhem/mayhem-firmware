@@ -48,8 +48,7 @@ class UsbSerialAsyncmsg {
  * - use this client to filter only PP devices: https://github.com/zxkmm/Pyserial-Demo-portapack
  * - usage:
  *        portapack::async_tx_enabled = true; // note that use this when debugging, unless the msg would be forbidden. but don't use this in production, since it's not real async and multiple serial transmittions will broken each other. if this class is used in other scene in the future, just use command to cover (protect your serial tramsnitton) in your extern thing: asyncmsg enable --- your cmd --- asyncmsg disable
- *        #include "usb_serial_debug_bridge.cpp"
- *        #include "usb_serial_debug_bridge.hpp"
+ *        #include "usb_serial_asyncmsg.cpp"
  *        UsbSerialAsyncmsg::asyncmsg("Hello PP");
  * */
 
