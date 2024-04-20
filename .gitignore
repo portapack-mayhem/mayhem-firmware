@@ -51,6 +51,7 @@
 .dep/
 /build*
 CMakeFiles/
+cmake-build-debug/
 
 # Debugging
 .gdbinit*
