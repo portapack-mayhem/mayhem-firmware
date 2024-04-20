@@ -422,6 +422,10 @@ void SystemStatusView::set_back_enabled(bool new_value) {
     }
 }
 
+void SystemStatusView::set_back_hidden(bool new_value) {
+    button_back.hidden(new_value);
+}
+
 void SystemStatusView::set_title_image_enabled(bool new_value) {
     if (new_value) {
         add_child(&button_title);
@@ -895,6 +899,9 @@ Context& SystemView::context() const {
 }
 NavigationView* SystemView::get_navigation_view() {
     return &navigation_view;
+}
+SystemStatusView* SystemView::get_status_view() {
+    return &status_view;
 }
 
 void SystemView::toggle_overlay() {

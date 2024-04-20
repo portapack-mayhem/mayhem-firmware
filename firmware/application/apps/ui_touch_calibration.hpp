@@ -31,6 +31,7 @@ namespace ui {
 class TouchCalibrationView : public View {
    public:
     TouchCalibrationView(NavigationView& nav);
+    ~TouchCalibrationView();
 
     void focus() override;
 
@@ -110,8 +111,12 @@ class TouchCalibrationView : public View {
         Color::black()};
 
     Text label_calibrate{
-        {16, 5 * 16, 26 * 8, 1 * 16},
+        {2 * 8, 5 * 16, 26 * 8, 1 * 16},
         "Touch targets to calibrate"};
+
+    Text label_calibrate_2{
+        {1 * 8, 6 * 16, 28 * 8, 1 * 16},
+        "(hold position using stylus)"};
 
     Text label_verify{
         {28, 5 * 16, 23 * 8, 1 * 16},
