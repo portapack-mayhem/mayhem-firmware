@@ -97,7 +97,8 @@ float ADS1110::readVoltage() {
             break;
     }
 
-    voltage = (float)raw/(float)(-1.0f * (float)minCode) * (float)pga * (float)2.048f * (float)2.0f;
+    // 2.048 is the reference voltage & 2.0 is to make up for the voltage divider
+    voltage = raw / (-1.0 * minCode) * pga * 2.048 * 2.0;
 
     return voltage;
 }
