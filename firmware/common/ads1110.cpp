@@ -23,6 +23,8 @@
 #include "utility.hpp"
 #include <cstdint>
 #include <algorithm>
+#include "portapack.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 namespace ads1110 {
 
@@ -32,6 +34,8 @@ constexpr float BATTERY_CAPACITY = 2500.0;
 constexpr float BATTERY_ENERGY = 9.25;
 
 void ADS1110::init() {
+    portapack::async_tx_enabled = true;
+
     // detected();
     // Start a conversion
     write(0x8C);
@@ -122,6 +126,14 @@ float ADS1110::readVoltage() {
 
     // voltage = (float)(-1 * minCode) * (float)pga * (float)(raw / 2.048f);
     voltage = (float)raw/(float)(-1.0f * (float)minCode) * (float)2.048f * (float)2.0f;
+
+//to_string_decimal(portapack::battery_ads1110.readVoltage(), 10)
+    UsbSerialAsyncmsg::asyncmsg(to_string_decimal(voltage, 10));
+    UsbSerialAsyncmsg::asyncmsg(to_string_decimal(minCode, 10));
+    UsbSerialAsyncmsg::asyncmsg(to_string_decimal(pga, 10));
+    UsbSerialAsyncmsg::asyncmsg(to_string_hex(data[0], 10));
+    UsbSerialAsyncmsg::asyncmsg(to_string_hex(data[1], 10));
+    UsbSerialAsyncmsg::asyncmsg(to_string_hex(data[2], 10));
 
     // voltage = minCode;
 
