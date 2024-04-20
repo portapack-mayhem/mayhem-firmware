@@ -58,7 +58,7 @@ void DfuMenu::paint(Painter& painter) {
     text_info_line_7.set(to_string_dec_uint(shared_memory.m4_stack_usage, 6));
     text_info_line_8.set(to_string_dec_uint(shared_memory.m4_performance_counter, 6));
     text_info_line_9.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
-    text_info_line_10.set(to_string_decimal(portapack::battery_ads1110.readVoltage(), 3));
+    text_info_line_10.set(to_string_decimal_padding(portapack::battery_ads1110.readVoltage(), 3, 6));
     text_info_line_11.set(to_string_dec_uint(chTimeNow() / 1000, 6));
 
     constexpr auto margin = 5;
