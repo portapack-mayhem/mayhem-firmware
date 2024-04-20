@@ -129,6 +129,7 @@ float ADS1110::readVoltage() {
 
 //to_string_decimal(portapack::battery_ads1110.readVoltage(), 10)
     UsbSerialAsyncmsg::asyncmsg(to_string_decimal(voltage, 10));
+    UsbSerialAsyncmsg::asyncmsg(to_string_decimal(raw, 10));
     UsbSerialAsyncmsg::asyncmsg(to_string_decimal(minCode, 10));
     UsbSerialAsyncmsg::asyncmsg(to_string_decimal(pga, 10));
     UsbSerialAsyncmsg::asyncmsg(to_string_hex(data[0], 10));
