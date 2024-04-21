@@ -174,6 +174,7 @@ std::string to_string_decimal(float decimal, int8_t precision) {
 std::string to_string_decimal_padding(float decimal, int8_t precision, const int32_t l) {
     double integer_part;
     double fractional_part;
+    if (precision > 9) precision = 9; // we will convert to uin32_t, and that is the max it can hold.
 
     std::string result;
 
