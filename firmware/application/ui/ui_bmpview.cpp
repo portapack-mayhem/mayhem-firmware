@@ -22,19 +22,12 @@ bool BMPViewer::load_bmp(const std::filesystem::path& file) {
         x_h = (127 < x_h) ? 127 : x_h;
         zoom_fit = (x_h > x_w) ? -1 * x_h : -1 * x_w;
     } else {
-        UsbSerialAsyncmsg::asyncmsg("zoomin selected");
         x_w = (127 < x_w) ? 127 : x_w;
         x_h = (127 < x_h) ? 127 : x_h;
         zoom_fit = (x_h > x_w) ? x_h : x_w;
     }
     if (zoom_fit > max_zoom) zoom_fit = max_zoom;
     min_zoom = zoom_fit - 3;
-
-    UsbSerialAsyncmsg::asyncmsg("xw, xh:");
-    UsbSerialAsyncmsg::asyncmsg(x_w);
-    UsbSerialAsyncmsg::asyncmsg(x_h);
-    UsbSerialAsyncmsg::asyncmsg("zf");
-    UsbSerialAsyncmsg::asyncmsg(zoom_fit);
 
     reset_pos();
     return true;
@@ -46,8 +39,6 @@ void BMPViewer::set_zoom(int8_t new_zoom) {
     if (new_zoom == 0) new_zoom = 1;
     if (new_zoom == -1) new_zoom = 1;
     zoom = new_zoom;
-    UsbSerialAsyncmsg::asyncmsg("New zoom: ");
-    UsbSerialAsyncmsg::asyncmsg(zoom);
     set_dirty();
 }
 
@@ -71,7 +62,6 @@ void BMPViewer::get_line(ui::Color* line, uint32_t bx, uint32_t by, uint32_t cnt
 }
 
 void BMPViewer::paint(Painter& painter) {
-    UsbSerialAsyncmsg::asyncmsg("paint enter");
     if (!bmp.is_loaded()) {
         painter.draw_string({48, 24}, ui::Styles::white, "Can't load BMP");
         return;
@@ -91,7 +81,6 @@ void BMPViewer::paint(Painter& painter) {
         portapack::display.draw_pixels({rect.left(), rect.top() + y, d_width, 1}, line, d_width);
     }
     delete line;
-    UsbSerialAsyncmsg::asyncmsg("paint end");
 }
 
 int8_t BMPViewer::get_zoom() {
@@ -110,7 +99,6 @@ BMPViewer::BMPViewer(Rect parent_rect, const std::filesystem::path& file)
 }
 
 void BMPViewer::on_focus() {
-    UsbSerialAsyncmsg::asyncmsg("on focus");
     set_highlighted(true);
 }
 
@@ -151,7 +139,6 @@ bool BMPViewer::on_key(const KeyEvent key) {
 }
 
 bool BMPViewer::on_encoder(EncoderEvent delta) {
-    UsbSerialAsyncmsg::asyncmsg("encoder");
     if (delta > 0) {
         set_zoom(zoom + 1);  // 0 handled in set_zoom
         return true;
