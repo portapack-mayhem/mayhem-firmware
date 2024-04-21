@@ -29,21 +29,17 @@ using namespace ui;
 namespace ui::external_app::extsensors {
 
 void ExtSensorsView::focus() {
-    bmpv.focus();
+    text_info.focus();
 }
 
 ExtSensorsView::ExtSensorsView(NavigationView& nav)
     : nav_{nav} {
-    /*add_children({&labels,
+    add_children({&labels,
                   &text_info,
                   &text_gps,
                   &text_orientation,
                   &text_envl1,
-                  &text_envl2, &bmpv});*/
-    add_children({//&text_envl1,
-                  //&text_envl2,
-                  &bmpv});
-    bmpv.load_bmp("/SCREENSHOTS/splash.bmp");
+                  &text_envl2, &bmpv});
 }
 
 ExtSensorsView::~ExtSensorsView() {
