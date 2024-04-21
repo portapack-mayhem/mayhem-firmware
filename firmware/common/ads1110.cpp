@@ -124,6 +124,7 @@ void ADS1110::getBatteryInfo(float& batteryPercentage, float& voltage) {
 
     // Limit the values to the valid range
     batteryPercentage = std::clamp(batteryPercentage, 0.0f, 100.0f);
+    // ToDo: if its > 4, then 100%, if < 3 then 0%
 }
 
 } /* namespace ads1110 */

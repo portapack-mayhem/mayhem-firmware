@@ -313,6 +313,8 @@ class InformationView : public View {
 
     LiveDateTime ltime{
         {86, 0, 19 * 8, 16}};
+
+    Text battery_percentage{{120, 0, 11 * 8, 16}, ""};
 };
 
 class BMPView : public View {

@@ -574,6 +574,14 @@ InformationView::InformationView(
                   &version,
                   &ltime});
 
+    if (portapack::battery_ads1110.isDetected()) {
+        float batteryPercentage, voltage;
+        portapack::battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
+        battery_percentage.set(to_string_decimal(batteryPercentage, 0));
+
+        add_child(&battery_percentage);
+    }
+
 #if GCC_VERSION_MISMATCH
     version.set_style(&Styles::yellow);
 #else
@@ -594,6 +602,10 @@ void InformationView::refresh() {
     ltime.set_hide_clock(pmem::hide_clock());
     ltime.set_seconds_enabled(true);
     ltime.set_date_enabled(pmem::clock_with_date());
+
+    float batteryPercentage, voltage;
+    portapack::battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
+    battery_percentage.set(to_string_decimal(batteryPercentage, 0));
 }
 
 bool InformationView::firmware_checksum_error() {
