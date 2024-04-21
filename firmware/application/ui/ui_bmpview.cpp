@@ -76,8 +76,8 @@ void BMPViewer::set_zoom(int8_t new_zoom) {
     auto d_height = rect.height();
     auto d_width = rect.width();
     if (zoom < 0) {
-        mvx = d_width / 3 / (-1.0 * zoom);
-        mvy = d_height / 3 / (-1.0 * zoom);
+        mvx = d_width / 3 * (-1.0 * zoom);
+        mvy = d_height / 3 * (-1.0 * zoom);
     } else {
         mvx = d_width / zoom / 3;
         mvy = d_height / zoom / 3;
@@ -182,14 +182,14 @@ bool BMPViewer::on_key(const KeyEvent key) {
 bool BMPViewer::on_encoder(EncoderEvent delta) {
     if (!bmp.is_loaded()) return false;
     if (delta > 0) {
-        set_zoom(zoom + 1);  // 0 handled in set_zoom
+        set_zoom(zoom + delta);  // 0 handled in set_zoom
         return true;
     }
     if (delta < 0) {
         if (zoom == 1)  // not 0, but -1
             set_zoom(-2);
         else
-            set_zoom(zoom - 1);  // decrease
+            set_zoom(zoom + delta);  // decrease
         return true;
     }
     return false;
