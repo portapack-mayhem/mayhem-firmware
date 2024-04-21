@@ -33,12 +33,56 @@ bool BMPViewer::load_bmp(const std::filesystem::path& file) {
     return true;
 }
 
+bool BMPViewer::move_pos(int32_t delta_x, int32_t delta_y) {
+    if (!bmp.is_loaded()) return false;
+
+    auto rect = screen_rect();
+    auto d_height = rect.height();
+    auto d_width = rect.width();
+    auto ocx = cx;  // save old pos
+    auto ocy = cy;
+    // top left protection
+    if (delta_x < 0 && cx <= (uint32_t)(-1 * delta_x))
+        cx = 0;
+    else
+        cx += delta_x;
+
+    if (delta_y < 0 && cy <= (uint32_t)(-1 * delta_y))
+        cy = 0;
+    else
+        cy += delta_y;
+    // right  bottom protection
+    float zt = zoom < 0 ? -1.0f / (float)zoom : (float)zoom;
+    if (zt == 0) zt = 1;
+    if (cy + (uint32_t)(d_height / zt) > bmp.get_real_height()) {
+        cy = (bmp.get_real_height() < (uint32_t)(d_height / zt)) ? 0 : bmp.get_real_height() - (uint32_t)(d_height / zt);
+    }
+    if (cx + (uint32_t)(d_width / zt) > bmp.get_width()) {
+        cx = (bmp.get_width() < (uint32_t)(d_width / zt)) ? 0 : bmp.get_width() - (uint32_t)(d_width / zt);
+    }
+    bool ret = !(cx == ocx && ocy == cy);  // was any change?
+    if (ret) set_dirty();
+    return ret;
+}
+
 void BMPViewer::set_zoom(int8_t new_zoom) {
+    if (!bmp.is_loaded()) return;
     if (new_zoom > max_zoom) new_zoom = max_zoom;
     if (new_zoom < min_zoom) new_zoom = min_zoom;
     if (new_zoom == 0) new_zoom = 1;
     if (new_zoom == -1) new_zoom = 1;
     zoom = new_zoom;
+    auto rect = screen_rect();
+    auto d_height = rect.height();
+    auto d_width = rect.width();
+    if (zoom < 0) {
+        mvx = d_width / 3 / (-1.0 * zoom);
+        mvy = d_height / 3 / (-1.0 * zoom);
+    } else {
+        mvx = d_width / zoom / 3;
+        mvy = d_height / zoom / 3;
+    }
+    move_pos(0, 0);  // fix based on zoom, without real move (if not edge case)
     set_dirty();
 }
 
@@ -115,21 +159,18 @@ void BMPViewer::reset_pos() {
 }
 
 bool BMPViewer::on_key(const KeyEvent key) {
+    if (!bmp.is_loaded()) return false;
     if (key == KeyEvent::Up) {
-        if (cy <= 0) return false;
-        // todo move up
+        return move_pos(0, -1 * mvy);
     }
     if (key == KeyEvent::Down) {
-        if (cy >= 100) return false;  // todo limit
-        // todo move down
+        return move_pos(0, mvy);
     }
     if (key == KeyEvent::Left) {
-        if (cx <= 0) return false;
-        // todo move left
+        return move_pos(-1 * mvx, 0);
     }
     if (key == KeyEvent::Right) {
-        if (cx >= 100) return false;  // todo limit
-        // todo move right
+        return move_pos(mvx, 0);
     }
     if (key == KeyEvent::Select) {
         reset_pos();  // todo maybe exit app?!
@@ -139,6 +180,7 @@ bool BMPViewer::on_key(const KeyEvent key) {
 }
 
 bool BMPViewer::on_encoder(EncoderEvent delta) {
+    if (!bmp.is_loaded()) return false;
     if (delta > 0) {
         set_zoom(zoom + 1);  // 0 handled in set_zoom
         return true;
@@ -154,6 +196,7 @@ bool BMPViewer::on_encoder(EncoderEvent delta) {
 }
 
 bool BMPViewer::on_keyboard(const KeyboardEvent event) {
+    if (!bmp.is_loaded()) return false;
     if (event == '+') {
         set_zoom(zoom + 1);
         return true;
