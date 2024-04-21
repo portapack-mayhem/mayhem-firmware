@@ -52,6 +52,7 @@ using asahi_kasei::ak4951::AK4951;
 #include "sd_card.hpp"
 #include "string_format.hpp"
 #include "bitmap.hpp"
+#include "ui_widget.hpp"
 
 namespace portapack {
 
@@ -587,6 +588,15 @@ init_status_t init() {
 
     audio::init(portapack_audio_codec());
     battery_ads1110.init();
+    // ToDo: write battery % to navbar
+    // if (lcd_fast_setup) {
+    //     // constexpr auto margin = 5;
+    //     // constexpr auto lines = 11 + 2;
+
+    // // to_string_decimal_padding(portapack::battery_ads1110.readVoltage(), 3, 6)
+    // //  {{6 * CHARACTER_WIDTH, 15 * LINE_HEIGHT}, "Uptime:", Color::dark_cyan()}};
+    // // draw_splash_screen_icon(4, ui::bitmap_icon_speaker);
+    // }
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);

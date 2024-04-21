@@ -21,8 +21,8 @@
 
 #include "ads1110.hpp"
 #include "utility.hpp"
-#include <cstdint>
 #include <algorithm>
+#include <cstdint>
 
 namespace ads1110 {
 
@@ -30,26 +30,35 @@ constexpr float BATTERY_MIN_VOLTAGE = 3.0;
 constexpr float BATTERY_MAX_VOLTAGE = 4.0;
 
 void ADS1110::init() {
-    // detected();
-    // Start a conversion
-    write(0x8C);
+    if (detected()) {
+        // Set the configuration register
+        write(0x8C);
+    }
 }
 
 bool ADS1110::detected() {
-    uint8_t status = bus.transmit(bus_address, nullptr, 0);
-    return status == 0;
+    // ToDo: Once set, make it static so we dont need to do this check every time
+    uint8_t data[3];
+    if (bus.receive(bus_address, data, 3)) {
+        // Check if the received data is valid
+        uint8_t configRegister = data[2];
+        if ((configRegister & 0x0F) == 0x0C) {
+            // The configuration register value matches the expected value (0x8C)
+            return true;
+        }
+    }
+    return false;
 }
 
 bool ADS1110::write(const uint8_t value) {
     return bus.transmit(bus_address, &value, 1);
 }
 
-
 float ADS1110::readVoltage() {
     // Read the conversion result
     uint8_t data[3];
     if (!bus.receive(bus_address, data, 3)) {
-        return 0.0f; // Return 0 if the read fails
+        return 0.0f;  // Return 0 if the read fails
     }
 
     uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
@@ -64,10 +73,10 @@ float ADS1110::readVoltage() {
         case 0:
             pga = 1.0f;
             break;
-        case 1: 
+        case 1:
             pga = 2.0f;
             break;
-        case 2: 
+        case 2:
             pga = 4.0f;
             break;
         case 3:
@@ -80,18 +89,18 @@ float ADS1110::readVoltage() {
 
     uint8_t data_rate = (data[2] >> 2) & 0x03;
     switch (data_rate) {
-        case 0: // 240
+        case 0:  // 240
             minCode = -2048.0;
             break;
-        case 1: // 60
+        case 1:  // 60
             minCode = -8192.0;
             break;
-        case 2: // 30
+        case 2:  // 30
             minCode = -16384.0;
             break;
-        case 3: // 15
+        case 3:  // 15
             minCode = -32768.0;
-            break;        
+            break;
         default:
             // Handle invalid data rate
             break;
@@ -107,7 +116,8 @@ void ADS1110::getBatteryInfo(float& batteryPercentage, float& voltage) {
     voltage = readVoltage();
 
     // Calculate the remaining battery percentage
-    batteryPercentage = (voltage - BATTERY_MIN_VOLTAGE) / (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
+    batteryPercentage = (voltage - BATTERY_MIN_VOLTAGE) /
+                        (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
 
     // Limit the values to the valid range
     batteryPercentage = std::clamp(batteryPercentage, 0.0f, 100.0f);
