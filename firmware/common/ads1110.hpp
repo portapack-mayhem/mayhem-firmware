@@ -36,10 +36,10 @@ using reg_t = uint16_t;
 class ADS1110 {
    public:
     constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
-        : bus(bus), bus_address(bus_address) {}
+        : bus(bus), bus_address(bus_address), detected_(false) {}
 
     void init();
-    bool detected();
+    bool isDetected() const { return detected_; }
 
     float readVoltage();
     void getBatteryInfo(float& batteryPercentage, float& voltage);
@@ -47,8 +47,10 @@ class ADS1110 {
    private:
     I2C& bus;
     const I2C::address_t bus_address;
+    bool detected_;
 
     bool write(const uint8_t value);
+    bool detect();
 };
 
 } /* namespace ads1110 */

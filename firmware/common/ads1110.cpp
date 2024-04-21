@@ -30,20 +30,23 @@ constexpr float BATTERY_MIN_VOLTAGE = 3.0;
 constexpr float BATTERY_MAX_VOLTAGE = 4.0;
 
 void ADS1110::init() {
-    if (detected()) {
+    if (!detected_) {
+        detected_ = detect();
+    }
+    if (detected_) {
         // Set the configuration register
         write(0x8C);
     }
 }
 
-bool ADS1110::detected() {
-    // ToDo: Once set, make it static so we dont need to do this check every time
+bool ADS1110::detect() {
     uint8_t data[3];
     if (bus.receive(bus_address, data, 3)) {
         // Check if the received data is valid
         uint8_t configRegister = data[2];
         if ((configRegister & 0x0F) == 0x0C) {
             // The configuration register value matches the expected value (0x8C)
+            detected_ = true;
             return true;
         }
     }
