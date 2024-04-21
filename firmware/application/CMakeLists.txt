@@ -176,6 +176,7 @@ set(CPPSRC
 	${COMMON}/ui_language.cpp
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
+	${COMMON}/ads1110.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
 	app_settings.cpp
