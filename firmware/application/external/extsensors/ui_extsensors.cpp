@@ -39,7 +39,7 @@ ExtSensorsView::ExtSensorsView(NavigationView& nav)
                   &text_gps,
                   &text_orientation,
                   &text_envl1,
-                  &text_envl2, &bmpv});
+                  &text_envl2});
 }
 
 ExtSensorsView::~ExtSensorsView() {
