@@ -54,6 +54,7 @@ std::string to_string_bin(const uint32_t n, const uint8_t l = 0);
 std::string to_string_dec_uint(const uint32_t n, const int32_t l, const char fill = ' ');
 std::string to_string_dec_int(const int32_t n, const int32_t l, const char fill = 0);
 std::string to_string_decimal(float decimal, int8_t precision);
+std::string to_string_decimal_padding(float decimal, int8_t precision, const int32_t l);
 
 std::string to_string_hex(uint64_t n, int32_t length);
 std::string to_string_hex_array(uint8_t* array, int32_t length);
