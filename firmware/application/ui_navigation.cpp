@@ -577,7 +577,7 @@ InformationView::InformationView(
     if (portapack::battery_ads1110.isDetected()) {
         float batteryPercentage, voltage;
         portapack::battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
-        battery_percentage.set(to_string_decimal(batteryPercentage, 0));
+        battery_percentage.set(to_string_dec_uint((uint64_t)batteryPercentage));
 
         add_child(&battery_percentage);
     }
@@ -605,7 +605,7 @@ void InformationView::refresh() {
 
     float batteryPercentage, voltage;
     portapack::battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
-    battery_percentage.set(to_string_decimal(batteryPercentage, 0));
+    battery_percentage.set(to_string_dec_uint((uint64_t)batteryPercentage));
 }
 
 bool InformationView::firmware_checksum_error() {
