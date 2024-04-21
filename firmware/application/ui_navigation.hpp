@@ -277,6 +277,8 @@ class SystemStatusView : public View {
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
+    Text battery_percentage{{80, 0, 11 * 3, 16}, ""};
+
     void on_converter();
     void on_bias_tee();
     void on_camera();
@@ -313,8 +315,6 @@ class InformationView : public View {
 
     LiveDateTime ltime{
         {86, 0, 19 * 8, 16}};
-
-    Text battery_percentage{{120, 0, 11 * 8, 16}, ""};
 };
 
 class BMPView : public View {
