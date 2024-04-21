@@ -277,8 +277,6 @@ class SystemStatusView : public View {
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
-    Text battery_percentage{{80, 0, 11 * 3, 16}, ""};
-
     void on_converter();
     void on_bias_tee();
     void on_camera();

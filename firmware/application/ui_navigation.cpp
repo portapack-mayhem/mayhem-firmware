@@ -365,14 +365,6 @@ SystemStatusView::SystemStatusView(
     toggle_mute.set_value(pmem::config_audio_mute());
     toggle_stealth.set_value(pmem::stealth_mode());
 
-    if (portapack::battery_ads1110.isDetected()) {
-        float batteryPercentage, voltage;
-        portapack::battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
-        battery_percentage.set(to_string_dec_uint((uint64_t)batteryPercentage));
-
-        add_child(&battery_percentage);
-    }
-
     audio::output::stop();
     audio::output::update_audio_mute();
     refresh();
@@ -418,12 +410,6 @@ void SystemStatusView::refresh() {
 
     // Fake Brightness
     button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Color::green() : Color::light_grey());
-
-    if (portapack::battery_ads1110.isDetected()) {
-        float batteryPercentage, voltage;
-        portapack::battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
-        battery_percentage.set(to_string_dec_uint((uint64_t)batteryPercentage));
-    }
 
     set_dirty();
 }
