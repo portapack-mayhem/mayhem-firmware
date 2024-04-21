@@ -1,4 +1,5 @@
 #include "ui_bmpview.hpp"
+#include "usb_serial_asyncmsg.hpp"
 #include "portapack.hpp"
 
 bool BMPViewer::load_bmp(const std::filesystem::path& file) {
@@ -15,6 +16,8 @@ void BMPViewer::set_zoom(int8_t new_zoom) {
     if (new_zoom > max_zoom) new_zoom = max_zoom;
     if (new_zoom < min_zoom) new_zoom = min_zoom;
     zoom = new_zoom;
+    UsbSerialAsyncmsg::asyncmsg("New zoom: ");
+    UsbSerialAsyncmsg::asyncmsg(zoom);
     set_dirty();
 }
 
