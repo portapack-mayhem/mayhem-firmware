@@ -50,11 +50,11 @@ class BMPViewer : public Widget {
    private:
     void get_line(ui::Color* line, uint32_t bx, uint32_t by, uint32_t cnt);
     BMPFile bmp{};
-    int8_t zoom = 1;       // positive = zoom in, negative = zoom out 0-invalid 1- no zoom
-    int8_t zoom_fit = 1;   // if this value is set, the image will fit the screen the most
-    int8_t max_zoom = 20;  // will be calculated on load
-    int8_t min_zoom = -20;
-    uint32_t cx = 0;  // current top-left coordinate
+    int8_t zoom = 1;      // positive = zoom in, negative = zoom out 0-invalid 1- no zoom
+    int8_t zoom_fit = 1;  // if this value is set, the image will fit the screen the most
+    int8_t max_zoom = 10;
+    int8_t min_zoom = -20;  // will be calculated on load
+    uint32_t cx = 0;        // current top-left coordinate
     uint32_t cy = 0;
 };
 

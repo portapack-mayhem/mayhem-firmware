@@ -4,18 +4,47 @@
 
 bool BMPViewer::load_bmp(const std::filesystem::path& file) {
     if (!bmp.open(file, true)) return false;
-    // todo calc default zoom level to fit screen, and min / max zoom too
-    zoom_fit = 1;
+    // calc default zoom level to fit screen, and min / max zoom too
+    auto rect = screen_rect();
+    auto d_height = rect.height();
+    auto d_width = rect.width();
+    auto b_width = bmp.get_width();
+    auto b_height = bmp.get_real_height();
+    // aspects
+    // if image is smaller then our vp
+    auto x_w = d_width / b_width;
+    auto x_h = d_height / b_height;
+    if (x_w < 1 && x_h < 1) {
+        // not zoom in, but zoom out
+        x_w = b_width / d_width;
+        x_h = b_height / d_height;
+        x_w = (127 < x_w) ? 127 : x_w;
+        x_h = (127 < x_h) ? 127 : x_h;
+        zoom_fit = (x_h > x_w) ? -1 * x_h : -1 * x_w;
+    } else {
+        UsbSerialAsyncmsg::asyncmsg("zoomin selected");
+        x_w = (127 < x_w) ? 127 : x_w;
+        x_h = (127 < x_h) ? 127 : x_h;
+        zoom_fit = (x_h > x_w) ? x_h : x_w;
+    }
+    if (zoom_fit > max_zoom) zoom_fit = max_zoom;
+    min_zoom = zoom_fit - 3;
+
+    UsbSerialAsyncmsg::asyncmsg("xw, xh:");
+    UsbSerialAsyncmsg::asyncmsg(x_w);
+    UsbSerialAsyncmsg::asyncmsg(x_h);
+    UsbSerialAsyncmsg::asyncmsg("zf");
+    UsbSerialAsyncmsg::asyncmsg(zoom_fit);
+
     reset_pos();
-    set_dirty();
     return true;
 }
 
 void BMPViewer::set_zoom(int8_t new_zoom) {
-    if (new_zoom == 0) new_zoom = 1;
-    if (new_zoom == -1) new_zoom = 1;
     if (new_zoom > max_zoom) new_zoom = max_zoom;
     if (new_zoom < min_zoom) new_zoom = min_zoom;
+    if (new_zoom == 0) new_zoom = 1;
+    if (new_zoom == -1) new_zoom = 1;
     zoom = new_zoom;
     UsbSerialAsyncmsg::asyncmsg("New zoom: ");
     UsbSerialAsyncmsg::asyncmsg(zoom);
@@ -51,10 +80,6 @@ void BMPViewer::paint(Painter& painter) {
     auto rect = screen_rect();
     auto d_height = rect.height();
     auto d_width = rect.width();
-
-    // get the bmp's size
-    // auto b_width = bmp.get_width();
-    // auto b_height = bmp.get_real_height();
 
     uint32_t by = cy;  // we start to read from there
     uint32_t last_by = 65534;
@@ -97,7 +122,7 @@ void BMPViewer::reset_pos() {
     if (!bmp.is_loaded()) return;
     cx = 0;
     cy = 0;
-    zoom = zoom_fit;
+    set_zoom(zoom_fit);
     set_dirty();
 }
 
