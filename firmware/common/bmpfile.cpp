@@ -227,7 +227,7 @@ bool BMPFile::seek(uint32_t x, uint32_t y) {
         curry = y;
     } else {
         file_pos = bmp_header.image_data;  // nav to start pos.
-        file_pos += (get_real_height() - y) * byte_per_row;
+        file_pos += (get_real_height() - y - 1) * byte_per_row;
         file_pos += x * byte_per_px;
         bmpimage.seek(file_pos);
         currx = x;
