@@ -178,10 +178,13 @@ bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
     return true;
 }
 
+// if you set this, then the expanded part (or the newly created) will be filled with this color. but the expansion or the creation will be slower.
 void BMPFile::set_bg_color(ui::Color background) {
     bg = background;
     use_bg = true;
 }
+
+// delete bg color. default. creation or expansion will be fast, but the file will contain random garbage. no problem if you write all pixels later.
 void BMPFile::delete_db_color() {
     use_bg = false;
 }
