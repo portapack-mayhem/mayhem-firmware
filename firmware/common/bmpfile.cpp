@@ -178,6 +178,14 @@ bool BMPFile::read_next_px(ui::Color& px, bool seek = true) {
     return true;
 }
 
+void BMPFile::set_bg_color(ui::Color background) {
+    bg = background;
+    use_bg = true;
+}
+void BMPFile::delete_db_color() {
+    use_bg = false;
+}
+
 // writes a color data to the current position, and advances 1 px. true on success, false on error
 bool BMPFile::write_next_px(ui::Color& px) {
     if (!is_opened) return false;
@@ -254,6 +262,14 @@ bool BMPFile::expand_y(uint32_t new_y) {
     bmpimage.seek(0);
     bmpimage.write(&bmp_header, sizeof(bmp_header));  // overwrite header
     bmpimage.seek(bmp_header.size);                   // seek to new end to expand
+    // fill with bg color if needed
+    if (use_bg) {
+        seek(0, old_height);  // to the new begin
+        size_t newpxcount = ((new_y - old_height) * bmp_header.width);
+        for (size_t i = 0; i < newpxcount; ++i)
+            write_next_px(bg);
+    }
+
     if (is_bottomup()) {
         seek(0, new_y - old_height);  // seek to the new chunk begin
     } else {

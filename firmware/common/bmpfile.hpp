@@ -46,6 +46,8 @@ class BMPFile {
     uint32_t get_real_height();
     uint32_t get_width();
     bool is_bottomup();
+    void set_bg_color(ui::Color background);
+    void delete_db_color();
 
    private:
     bool advance_curr_px(uint32_t num);
@@ -61,6 +63,8 @@ class BMPFile {
 
     uint32_t currx = 0;
     uint32_t curry = 0;
+    ui::Color bg{};
+    bool use_bg = false;
 };
 
 #endif
