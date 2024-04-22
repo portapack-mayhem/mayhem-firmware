@@ -173,8 +173,10 @@ bool BMPViewer::on_key(const KeyEvent key) {
         return move_pos(mvx, 0);
     }
     if (key == KeyEvent::Select) {
-        reset_pos();  // todo maybe exit app?!
-        return true;
+        if (!enter_pass) {
+            reset_pos();
+            return true;
+        }
     }
     return false;
 }
@@ -193,6 +195,15 @@ bool BMPViewer::on_encoder(EncoderEvent delta) {
         return true;
     }
     return false;
+}
+
+// sets if the enter key should be passed to parent or handled. true = pass it, false = handle as reset pos+zoom
+void BMPViewer::set_enter_pass(bool pass) {
+    enter_pass = pass;
+}
+
+bool BMPViewer::get_enter_pass() {
+    return enter_pass;
 }
 
 bool BMPViewer::on_keyboard(const KeyboardEvent event) {

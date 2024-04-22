@@ -47,6 +47,9 @@ class BMPViewer : public Widget {
     void set_zoom(int8_t new_zoom);
     int8_t get_zoom();
 
+    void set_enter_pass(bool pass);
+    bool get_enter_pass();
+
    private:
     void get_line(ui::Color* line, uint32_t bx, uint32_t by, uint32_t cnt);
     bool move_pos(int32_t delta_x, int32_t delta_y);
@@ -59,6 +62,7 @@ class BMPViewer : public Widget {
     uint32_t cy = 0;
     uint32_t mvx = 1;  // how much to move on key
     uint32_t mvy = 1;
+    bool enter_pass = false;
 };
 
 #endif
