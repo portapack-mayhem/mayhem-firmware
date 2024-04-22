@@ -278,7 +278,7 @@ class SystemStatusView : public View {
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
-    BatteryTextField battery_text{{0, 0, 2 * 8, 1 * 16}, ""};
+    BatteryTextField battery_text{{0, 3, 2 * 8, 1 * 16}, ""};
     // todo add battery icon
 
     void on_converter();

@@ -2067,6 +2067,14 @@ void BatteryTextField::set_text(std::string_view value) {
     set(value);
 }
 
+void BatteryTextField::set_battery(uint8_t percentage) {
+    if (percentage > 101) {
+        set("UNK");
+        return;
+    }
+    set(to_string_dec_uint(percentage));
+}
+
 bool BatteryTextField::on_key(KeyEvent key) {
     if (key == KeyEvent::Select && on_select) {
         on_select(*this);

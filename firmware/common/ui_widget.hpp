@@ -790,6 +790,7 @@ class BatteryTextField : public Text {
     BatteryTextField(Rect parent_rect, std::string text);
 
     const std::string& get_text() const;
+    void set_battery(uint8_t percentage);
     void set_text(std::string_view value);
 
     bool on_key(KeyEvent key) override;
@@ -802,7 +803,7 @@ class BatteryTextField : public Text {
     using Text::set;
     static constexpr Style style{
         .font = font::fixed_5x8,
-        .background = {33, 33, 33},
+        .background = Color::light_grey(),
         .foreground = Color::white(),
     };
 };
