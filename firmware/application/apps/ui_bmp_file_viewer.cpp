@@ -21,6 +21,8 @@
 
 #include "ui_bmp_file_viewer.hpp"
 
+extern ui::SystemView* system_view_ptr;
+
 using namespace portapack;
 namespace fs = std::filesystem;
 
@@ -35,7 +37,11 @@ BMPFileViewer::BMPFileViewer(
         {&bmp});
     bmp.set_enter_pass(true);  // pass the enter key to me, so i can exit. this will disable zoom + pos reset
     set_focusable(true);
-    // todo hide statusbar
+    system_view_ptr->set_app_fullscreen(true);
+}
+
+BMPFileViewer::~BMPFileViewer() {
+    system_view_ptr->set_app_fullscreen(false);
 }
 
 void BMPFileViewer::focus() {

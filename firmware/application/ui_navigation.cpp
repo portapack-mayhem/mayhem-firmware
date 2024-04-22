@@ -945,6 +945,15 @@ void SystemView::paint_overlay() {
     }
 }
 
+void SystemView::set_app_fullscreen(bool fullscreen) {
+    auto parent_rect = screen_rect();
+    Dim status_view_height = (fullscreen) ? 0 : 16;
+    status_view.hidden(fullscreen);
+    navigation_view.set_parent_rect(
+        {{0, status_view_height},
+         {parent_rect.width(), static_cast<Dim>(parent_rect.height() - status_view_height)}});
+}
+
 /* ***********************************************************************/
 
 void BMPView::focus() {

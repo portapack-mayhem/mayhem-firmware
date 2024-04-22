@@ -35,6 +35,7 @@ namespace ui {
 class BMPFileViewer : public View {
    public:
     BMPFileViewer(NavigationView& nav, const std::filesystem::path& path);
+    ~BMPFileViewer();
     bool on_key(KeyEvent key) override;
     void paint(Painter& painter) override;
     void focus() override;
