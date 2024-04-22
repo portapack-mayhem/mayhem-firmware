@@ -278,6 +278,9 @@ class SystemStatusView : public View {
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
+    BatteryTextField battery_text{{0, 0, 2 * 8, 1 * 16}, ""};
+    // todo add battery icon
+
     void on_converter();
     void on_bias_tee();
     void on_camera();
@@ -285,12 +288,20 @@ class SystemStatusView : public View {
     void refresh();
     void on_clk();
     void rtc_battery_workaround();
+    void on_battery_data(const BatteryStateMessage* msg);
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,
         [this](const Message* const p) {
             (void)p;
             this->refresh();
+        }};
+
+    MessageHandlerRegistration message_handler_battery{
+        Message::ID::BatteryStateData,
+        [this](const Message* const p) {
+            const auto message = static_cast<const BatteryStateMessage*>(p);
+            this->on_battery_data(message);
         }};
 };
 

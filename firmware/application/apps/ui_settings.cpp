@@ -355,6 +355,7 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
     toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
+    // todo HTOTOO add setting for battery icon + text
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
 
     button_save.on_select = [&nav, this](Button&) {

@@ -123,6 +123,7 @@ class Message {
         EnvironmentData = 65,
         AudioBeep = 66,
         PocsagTosend = 67,
+        BatteryStateData = 68,
         MAX
     };
 
@@ -1407,6 +1408,22 @@ class PocsagTosendMessage : public Message {
     uint8_t msglen = 0;
     uint8_t msg[31] = {0};
     uint64_t addr = 0;
+};
+
+class BatteryStateMessage : public Message {
+   public:
+    constexpr BatteryStateMessage(
+        uint8_t percent,
+        bool on_charger,
+        float voltage)
+        : Message{ID::BatteryStateData},
+          percent{percent},
+          on_charger{on_charger},
+          voltage{voltage} {
+    }
+    uint8_t percent = 0;
+    bool on_charger = false;
+    float voltage = 0.0;
 };
 
 #endif /*__MESSAGE_H__*/

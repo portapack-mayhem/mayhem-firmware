@@ -33,6 +33,8 @@
 #include "portapack.hpp"
 #include "utility.hpp"
 
+#include "ui/ui_font_fixed_5x8.hpp"
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -779,6 +781,30 @@ class TextField : public Text {
 
    private:
     using Text::set;
+};
+
+class BatteryTextField : public Text {
+   public:
+    std::function<void(BatteryTextField&)> on_select{};
+
+    BatteryTextField(Rect parent_rect, std::string text);
+
+    const std::string& get_text() const;
+    void set_text(std::string_view value);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    using Text::set;
+    static constexpr Style style{
+        .font = font::fixed_5x8,
+        .background = {33, 33, 33},
+        .foreground = Color::white(),
+    };
 };
 
 class NumberField : public Widget {

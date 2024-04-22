@@ -335,6 +335,8 @@ bool ui_hide_sleep();
 bool ui_hide_bias_tee();
 bool ui_hide_clock();
 bool ui_hide_fake_brightness();
+bool ui_hide_numeric_battery();
+bool ui_hide_battery_icon();
 bool ui_hide_sd_card();
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
@@ -345,6 +347,8 @@ void set_ui_hide_sleep(bool v);
 void set_ui_hide_bias_tee(bool v);
 void set_ui_hide_clock(bool v);
 void set_ui_hide_fake_brightness(bool v);
+void set_ui_hide_numeric_battery(bool v);
+void set_ui_hide_battery_icon(bool v);
 void set_ui_hide_sd_card(bool v);
 
 // sd persisting settings

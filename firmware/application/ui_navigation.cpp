@@ -370,6 +370,12 @@ SystemStatusView::SystemStatusView(
     refresh();
 }
 
+void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
+    if (!pmem::ui_hide_numeric_battery()) battery_text.set_text(to_string_dec_uint(msg->percent));
+    if (!pmem::ui_hide_battery_icon())
+        ;  // todo HTOTOO
+}
+
 void SystemStatusView::refresh() {
     // NB: Order of insertion is the display order Left->Right.
     // TODO: Might be better to support hide and only add once.
@@ -386,8 +392,15 @@ void SystemStatusView::refresh() {
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
     if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
+    if (!pmem::ui_hide_battery_icon())
+        ;  // status_icons.add(&button_fake_brightness); //todo
+    if (!pmem::ui_hide_numeric_battery()) {
+        status_icons.add(&battery_text);
+        // todo HTOTOO set initial value by query it?!
+    }
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
+
     status_icons.update_layout();
 
     // Clock status

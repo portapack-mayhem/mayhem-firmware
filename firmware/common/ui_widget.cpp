@@ -2044,6 +2044,45 @@ bool TextField::on_touch(TouchEvent event) {
     return false;
 }
 
+/* BatteryTextField *************************************************************/
+
+BatteryTextField::BatteryTextField(Rect parent_rect, std::string text)
+    : Text(parent_rect, std::move(text)) {
+    this->set_style(&style);
+    set_focusable(true);
+}
+
+const std::string& BatteryTextField::get_text() const {
+    return text;
+}
+
+void BatteryTextField::getAccessibilityText(std::string& result) {
+    result = text;
+}
+void BatteryTextField::getWidgetName(std::string& result) {
+    result = "Battery text field";
+}
+
+void BatteryTextField::set_text(std::string_view value) {
+    set(value);
+}
+
+bool BatteryTextField::on_key(KeyEvent key) {
+    if (key == KeyEvent::Select && on_select) {
+        on_select(*this);
+        return true;
+    }
+    return false;
+}
+
+bool BatteryTextField::on_touch(TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
+        return true;
+    }
+    return false;
+}
+
 /* NumberField ***********************************************************/
 
 NumberField::NumberField(
