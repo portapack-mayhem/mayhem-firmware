@@ -124,9 +124,12 @@ bool BMPFile::open(const std::filesystem::path& file, bool readonly) {
             byte_per_px = 3;
             break;
         case 32:
-        default:
             type = 2;
             byte_per_px = 4;
+            break;
+        default:
+            // not supported
+            return false;
             break;
     }
     byte_per_row = (bmp_header.width * byte_per_px % 4 == 0) ? bmp_header.width * byte_per_px : (bmp_header.width * byte_per_px + (4 - ((bmp_header.width * byte_per_px) % 4)));
