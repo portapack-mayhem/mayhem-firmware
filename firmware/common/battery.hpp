@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 jLynx.
+ * Copyright (C) 2024 HTotoo.
  *
  * This file is part of PortaPack.
  *
@@ -19,39 +19,30 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __ADS1110_H__
-#define __ADS1110_H__
+#ifndef __BATTERY_H__
+#define __BATTERY_H__
 
 #include <cstdint>
-#include <array>
-#include <string>
+#include "ch.h"
 
-#include "i2c_pp.hpp"
 namespace battery {
-namespace ads1110 {
 
-using address_t = uint8_t;
-
-class ADS1110 {
+class BatteryManagement {
    public:
-    constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
-        : bus(bus), bus_address(bus_address), detected_(false) {}
-
-    void init();
-    bool detect();
-    bool isDetected() const { return detected_; }
-
-    uint16_t readVoltage();
-    void getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage);
+    enum BatteryModules {
+        BATT_NONE = 0,
+        BATT_ADS1110 = 1
+    };
+    static void init();
+    static bool isDetected() { return detected_ != BATT_NONE; }
+    static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& isCharging);
+    static uint16_t getVoltage();
 
    private:
-    I2C& bus;
-    const I2C::address_t bus_address;
-    bool detected_;
-
-    bool write(const uint8_t value);
+    static void create_thread();
+    static msg_t timer_fn(void* arg);
+    static Thread* thread;
+    static BatteryModules detected_;  // if there is any batt management system
 };
-
-} /* namespace ads1110 */
-}  // namespace battery
-#endif /* __ADS1110_H__ */
+};  // namespace battery
+#endif

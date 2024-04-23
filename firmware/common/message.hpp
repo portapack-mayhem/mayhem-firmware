@@ -1415,7 +1415,7 @@ class BatteryStateMessage : public Message {
     constexpr BatteryStateMessage(
         uint8_t percent,
         bool on_charger,
-        float voltage)
+        uint16_t voltage)
         : Message{ID::BatteryStateData},
           percent{percent},
           on_charger{on_charger},
@@ -1423,7 +1423,7 @@ class BatteryStateMessage : public Message {
     }
     uint8_t percent = 0;
     bool on_charger = false;
-    float voltage = 0.0;
+    uint16_t voltage = 0;  // mV
 };
 
 #endif /*__MESSAGE_H__*/

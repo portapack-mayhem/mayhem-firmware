@@ -42,7 +42,7 @@ DfuMenu::DfuMenu(NavigationView& nav)
                   &text_info_line_9,
                   &text_info_line_10});
 
-    if (portapack::battery_ads1110.isDetected()) {
+    if (battery::BatteryManagement::isDetected()) {
         add_child(&voltage_label);
         add_child(&text_info_line_11);
     }
@@ -53,7 +53,7 @@ void DfuMenu::paint(Painter& painter) {
     size_t m0_fragmented_free_space = 0;
     const auto m0_fragments = chHeapStatus(NULL, &m0_fragmented_free_space);
 
-    auto lines = (portapack::battery_ads1110.isDetected() ? 11 : 10) + 2;
+    auto lines = (battery::BatteryManagement::isDetected() ? 11 : 10) + 2;
 
     text_info_line_1.set(to_string_dec_uint(chCoreStatus(), 6));
     text_info_line_2.set(to_string_dec_uint(m0_fragmented_free_space, 6));
@@ -65,8 +65,8 @@ void DfuMenu::paint(Painter& painter) {
     text_info_line_8.set(to_string_dec_uint(shared_memory.m4_performance_counter, 6));
     text_info_line_9.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
     text_info_line_10.set(to_string_dec_uint(chTimeNow() / 1000, 6));
-    if (portapack::battery_ads1110.isDetected()) {
-        text_info_line_11.set(to_string_decimal_padding(portapack::battery_ads1110.readVoltage(), 3, 6));
+    if (battery::BatteryManagement::isDetected()) {
+        text_info_line_11.set(to_string_dec_uint(battery::BatteryManagement::getVoltage()));
     }
 
     constexpr auto margin = 5;

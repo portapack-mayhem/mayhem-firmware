@@ -38,6 +38,7 @@
 #include "radio.hpp"
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
+#include "battery.hpp"
 
 /* TODO: This would be better as a class to add
  * guardrails on setting properties. */
@@ -63,7 +64,6 @@ extern portapack::USBSerial usb_serial;
 extern si5351::Si5351 clock_generator;
 extern ClockManager clock_manager;
 
-extern ads1110::ADS1110 battery_ads1110;
 extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;
 
