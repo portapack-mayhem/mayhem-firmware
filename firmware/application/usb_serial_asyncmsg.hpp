@@ -120,6 +120,14 @@ void UsbSerialAsyncmsg::asyncmsg<uint64_t>(const uint64_t& data) {
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
 }
 
+template <>
+void UsbSerialAsyncmsg::asyncmsg<float>(const float& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_decimal(data, 7).c_str());
+}
+
 /// fs things
 
 template <>

@@ -29,11 +29,13 @@
 #include "ui_playlist.hpp"
 #include "ui_remote.hpp"
 #include "ui_ss_viewer.hpp"
+#include "ui_bmp_file_viewer.hpp"
 #include "ui_text_editor.hpp"
 #include "ui_iq_trim.hpp"
 #include "string_format.hpp"
 #include "portapack.hpp"
 #include "event_m0.hpp"
+#include "file_path.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -694,7 +696,12 @@ bool FileManagerView::handle_file_open() {
         nav_.push<ScreenshotViewer>(path);
         return true;
     } else if (path_iequal(bmp_ext, ext)) {
-        nav_.push<SplashViewer>(path);
+        if (path_iequal(current_path, u"/" + splash_dir)) {
+            nav_.push<SplashViewer>(path);  // splash, so load that viewer
+        } else {
+            nav_.push<BMPFileViewer>(path);  // any other bmp
+        }
+
         reload_current(false);
         return true;
     } else if (path_iequal(rem_ext, ext)) {
