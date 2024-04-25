@@ -4,7 +4,7 @@
 #include "ads1110.hpp"
 
 // uncomment if you want to emulate batt management system
-#define USE_BATT_EMULATOR
+// #define USE_BATT_EMULATOR
 
 extern I2C portapack::i2c0;
 

@@ -354,17 +354,17 @@ class SetUIView : public View {
         {15 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
-    ImageToggle toggle_fake_brightness{
-        {17 * 8, 14 * 16 + 2, 16, 16},
-        &bitmap_icon_brightness};
-
     ImageToggle toggle_battery_icon{
-        {19 * 8, 14 * 16 + 2, 16, 16},
+        {17 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_batt_icon};
 
     ImageToggle toggle_battery_text{
-        {21 * 8, 14 * 16 + 2, 16, 16},
+        {19 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_batt_text};
+
+    ImageToggle toggle_fake_brightness{
+        {21 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_brightness};
 
     ImageToggle toggle_sd_card{
         {23 * 8, 14 * 16 + 2, 16, 16},
@@ -795,6 +795,11 @@ class SetMenuColorView : public View {
         {8, 248},
         8,
         ' ',
+    };
+
+    Button button_reset{
+        {2 * 8, 13 * 16, 12 * 8, 32},
+        "Reset",
     };
 
     Button button_save{

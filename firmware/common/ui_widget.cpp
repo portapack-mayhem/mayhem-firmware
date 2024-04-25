@@ -2094,7 +2094,7 @@ void BatteryIcon::paint(Painter& painter) {
     painter.draw_hline({rect.left() + 3, rect.top() + 1}, rect.width() - 6, battColor);
     painter.draw_hline({rect.left() + 3, 0}, rect.width() - 6, battColor);
     if (percent_ > 100) {  // error / unk
-        painter.draw_string({rect.left() + 2, rect.top() + 3}, font::fixed_5x8, battColor, Color::light_grey(), "?");
+        painter.draw_string({rect.left() + 2, rect.top() + 3}, font::fixed_5x8, Color::white(), Color::dark_grey(), "?");
         return;
     }
     int8_t ppx = (rect.bottom() - 3) - (rect.top() + 3);  // 10px max height to draw bars
@@ -2124,7 +2124,7 @@ void BatteryTextField::paint(Painter& painter) {
     Color bg = has_focus() || highlighted() ? Color::light_grey() : Color::dark_grey();
     ui::Rect rect = screen_rect();     // 2 * 8, 1 * 16
     painter.fill_rectangle(rect, bg);  // clear
-    std::string txt_batt = to_string_dec_uint(percent_);
+    std::string txt_batt = percent_ <= 100 ? to_string_dec_uint(percent_) : "UNK";
     if (txt_batt.length() <= 2)
         txt_batt = " " + txt_batt;
     painter.draw_string({rect.left(), rect.top()}, font::fixed_5x8, Color::white(), bg, txt_batt);

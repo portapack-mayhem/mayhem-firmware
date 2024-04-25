@@ -815,6 +815,7 @@ SetMenuColorView::SetMenuColorView(NavigationView& nav) {
                   &field_green_level,
                   &field_blue_level,
                   &button_save,
+                  &button_reset,
                   &button_cancel});
 
     button_sample.set_focusable(false);
@@ -831,6 +832,13 @@ SetMenuColorView::SetMenuColorView(NavigationView& nav) {
     field_red_level.on_change = color_changed_fn;
     field_green_level.on_change = color_changed_fn;
     field_blue_level.on_change = color_changed_fn;
+
+    button_reset.on_select = [&nav, this](Button&) {
+        field_red_level.set_value(127);
+        field_green_level.set_value(127);
+        field_blue_level.set_value(127);
+        set_dirty();
+    };
 
     button_save.on_select = [&nav, this](Button&) {
         Color c = Color(field_red_level.value(), field_green_level.value(), field_blue_level.value());
