@@ -188,7 +188,7 @@ std::string to_string_decimal_padding(float decimal, int8_t precision, const int
     result = to_string_dec_int(integer_part) + "." + to_string_dec_uint(fractional_part, precision, '0');
 
     // Add padding with spaces to meet the length requirement
-    if (result.length() < l) {
+    if (result.length() < (uint32_t)l) {
         int padding_length = l - result.length();
         std::string padding(padding_length, ' ');
         result = padding + result;

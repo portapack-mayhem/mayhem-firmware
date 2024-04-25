@@ -388,6 +388,7 @@ class SystemView : public View {
     Context& context() const override;
     void toggle_overlay();
     void paint_overlay();
+    void set_app_fullscreen(bool fullscreen);
 
     NavigationView* get_navigation_view();
     SystemStatusView* get_status_view();
