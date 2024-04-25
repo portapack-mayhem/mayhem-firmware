@@ -323,40 +323,48 @@ class SetUIView : public View {
     };
 
     ImageToggle toggle_camera{
-        {6 * 8, 14 * 16 + 2, 16, 16},
+        {2 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_camera};
 
     ImageToggle toggle_sleep{
-        {8 * 8, 14 * 16 + 2, 16, 16},
+        {4 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_sleep};
 
     ImageToggle toggle_stealth{
-        {10 * 8, 14 * 16 + 2, 16, 16},
+        {6 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_stealth};
 
     ImageToggle toggle_converter{
-        {12 * 8, 14 * 16 + 2, 16, 16},
+        {8 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_upconvert};
 
     ImageToggle toggle_bias_tee{
-        {14 * 8, 14 * 16 + 2, 16, 16},
+        {10 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_biast_off};
 
     ImageToggle toggle_clock{
-        {16 * 8, 14 * 16 + 2, 8, 16},
+        {12 * 8, 14 * 16 + 2, 8, 16},
         &bitmap_icon_clk_ext};
 
     ImageToggle toggle_mute{
-        {17 * 8, 14 * 16 + 2, 16, 16},
+        {13 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_and_headphones_mute};
 
     ImageToggle toggle_speaker{
-        {19 * 8, 14 * 16 + 2, 16, 16},
+        {15 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_speaker_mute};
 
     ImageToggle toggle_fake_brightness{
-        {21 * 8, 14 * 16 + 2, 16, 16},
+        {17 * 8, 14 * 16 + 2, 16, 16},
         &bitmap_icon_brightness};
+
+    ImageToggle toggle_battery_icon{
+        {19 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_batt_icon};
+
+    ImageToggle toggle_battery_text{
+        {21 * 8, 14 * 16 + 2, 16, 16},
+        &bitmap_icon_batt_text};
 
     ImageToggle toggle_sd_card{
         {23 * 8, 14 * 16 + 2, 16, 16},

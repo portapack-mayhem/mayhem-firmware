@@ -2107,7 +2107,7 @@ void BatteryIcon::paint(Painter& painter) {
     else
         battColor = Color::red();
     // fill the bars
-    for (int y = pp; y < ppx; y++) {
+    for (int y = pp + 1; y <= ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
     }
 }

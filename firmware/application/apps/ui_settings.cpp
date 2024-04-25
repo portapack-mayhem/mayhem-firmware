@@ -329,6 +329,10 @@ SetUIView::SetUIView(NavigationView& nav) {
     if (audio::speaker_disable_supported()) {
         add_child(&toggle_speaker);
     }
+    if (battery::BatteryManagement::isDetected()) {
+        add_child(&toggle_battery_icon);
+        add_child(&toggle_battery_text);
+    }
 
     checkbox_disable_touchscreen.set_value(pmem::disable_touchscreen());
     checkbox_showsplash.set_value(pmem::config_splash());
@@ -355,7 +359,8 @@ SetUIView::SetUIView(NavigationView& nav) {
     toggle_speaker.set_value(!pmem::ui_hide_speaker());
     toggle_mute.set_value(!pmem::ui_hide_mute());
     toggle_fake_brightness.set_value(!pmem::ui_hide_fake_brightness());
-    // todo HTOTOO add setting for battery icon + text
+    toggle_battery_icon.set_value(!pmem::ui_hide_battery_icon());
+    toggle_battery_text.set_value(!pmem::ui_hide_numeric_battery());
     toggle_sd_card.set_value(!pmem::ui_hide_sd_card());
 
     button_save.on_select = [&nav, this](Button&) {
@@ -383,6 +388,8 @@ SetUIView::SetUIView(NavigationView& nav) {
         pmem::set_ui_hide_speaker(!toggle_speaker.value());
         pmem::set_ui_hide_mute(!toggle_mute.value());
         pmem::set_ui_hide_fake_brightness(!toggle_fake_brightness.value());
+        pmem::set_ui_hide_battery_icon(!toggle_battery_icon.value());
+        pmem::set_ui_hide_numeric_battery(!toggle_battery_text.value());
         pmem::set_ui_hide_sd_card(!toggle_sd_card.value());
         send_system_refresh();
 

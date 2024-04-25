@@ -423,6 +423,7 @@ void defaults() {
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
     set_menu_color(Color::grey());
+    set_ui_hide_numeric_battery(true);  // hide the numeric battery by default - no space to display it
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);

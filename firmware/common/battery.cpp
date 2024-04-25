@@ -5,10 +5,6 @@
 
 // uncomment if you want to emulate batt management system
 #define USE_BATT_EMULATOR
-#define EMULATOR_VOLTAGE 3987
-#define EMULATOR_CURRENT 40
-#define EMULATOR_CHARGING 0
-#define EMULATOR_PERCENT 99
 
 extern I2C portapack::i2c0;
 
@@ -54,10 +50,10 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
 
 #ifdef USE_BATT_EMULATOR
     if (detected_ == BATT_EMULATOR) {
-        batteryPercentage = EMULATOR_PERCENT;  // %
-        voltage = EMULATOR_VOLTAGE;            // mV
-        current = EMULATOR_CURRENT;            // mA
-        isCharging = EMULATOR_CHARGING;
+        batteryPercentage = rand() % 101;  // %
+        voltage = rand() % 1000 + 3000;    // mV
+        current = rand() % 150;            // mA
+        isCharging = rand() % 2;
         return true;
     }
 #endif
