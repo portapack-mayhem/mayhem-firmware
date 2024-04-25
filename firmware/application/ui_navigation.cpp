@@ -371,9 +371,12 @@ SystemStatusView::SystemStatusView(
 }
 
 void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
-    if (!pmem::ui_hide_numeric_battery()) battery_text.set_battery(msg->percent);
+    if (!pmem::ui_hide_numeric_battery()) {
+        battery_text.set_battery(msg->percent, msg->on_charger);
+    }
     if (!pmem::ui_hide_battery_icon()) {
-    };  // todo HTOTOO
+        battery_icon.set_battery(msg->percent, msg->on_charger);
+    };
 }
 
 void SystemStatusView::refresh() {
@@ -392,12 +395,16 @@ void SystemStatusView::refresh() {
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
     if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
-    if (!pmem::ui_hide_battery_icon()) {
-    };  // status_icons.add(&button_fake_brightness); //todo HTOTOO
-    if (!pmem::ui_hide_numeric_battery()) {
-        status_icons.add(&battery_text);
-        battery_text.set_battery(102);  // unk
-        // todo HTOTOO set initial value by query it?!
+    if (battery::BatteryManagement::isDetected()) {
+        uint8_t percent = battery::BatteryManagement::getPercent();
+        if (!pmem::ui_hide_battery_icon()) {
+            status_icons.add(&battery_icon);
+            battery_text.set_battery(percent, false);
+        };
+        if (!pmem::ui_hide_numeric_battery()) {
+            status_icons.add(&battery_text);
+            battery_text.set_battery(percent, false);
+        }
     }
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);

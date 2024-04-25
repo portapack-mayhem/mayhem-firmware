@@ -31,12 +31,14 @@ class BatteryManagement {
    public:
     enum BatteryModules {
         BATT_NONE = 0,
-        BATT_ADS1110 = 1
+        BATT_ADS1110 = 1,
+        BATT_EMULATOR = 254
     };
     static void init();
     static bool isDetected() { return detected_ != BATT_NONE; }
     static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& isCharging);
     static uint16_t getVoltage();
+    static uint8_t getPercent();
 
    private:
     static void create_thread();

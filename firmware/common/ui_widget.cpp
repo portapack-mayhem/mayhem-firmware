@@ -2044,11 +2044,79 @@ bool TextField::on_touch(TouchEvent event) {
     return false;
 }
 
+/* BatteryIcon *************************************************************/
+
+BatteryIcon::BatteryIcon(Rect parent_rect, uint8_t percent)
+    : Widget(parent_rect) {
+    this->set_battery(percent, false);
+    set_focusable(true);
+}
+
+void BatteryIcon::getAccessibilityText(std::string& result) {
+    result = to_string_dec_uint(percent_);
+}
+void BatteryIcon::getWidgetName(std::string& result) {
+    result = "Battery percent";
+}
+
+void BatteryIcon::set_battery(uint8_t percentage, bool charge) {
+    percent_ = percentage;
+    charge_ = charge;
+    set_dirty();
+}
+
+bool BatteryIcon::on_key(KeyEvent key) {
+    if (key == KeyEvent::Select && on_select) {
+        on_select(*this);
+        return true;
+    }
+    return false;
+}
+
+bool BatteryIcon::on_touch(TouchEvent event) {
+    if (event.type == TouchEvent::Type::Start) {
+        focus();
+        return true;
+    }
+    return false;
+}
+void BatteryIcon::paint(Painter& painter) {
+    ui::Rect rect = screen_rect();                                                      // 2 * 8, 1 * 16
+    painter.fill_rectangle(rect, highlighted() ? Color::light_grey() : Color::grey());  // clear
+    ui::Color battColor = (charge_) ? Color::cyan() : Color::green();
+    // batt body:
+    painter.draw_vline({rect.left() + 2, rect.top() + 2}, rect.height() - 4, battColor);
+    painter.draw_vline({rect.right() - 2, rect.top() + 2}, rect.height() - 4, battColor);
+    painter.draw_hline({rect.left() + 2, rect.top() + 2}, rect.width() - 4, battColor);
+    painter.draw_hline({rect.left() + 2, rect.bottom() - 2}, rect.width() - 4, battColor);
+    // batt cap:
+    painter.draw_hline({rect.left() + 4, rect.top() + 1}, rect.width() - 8, battColor);
+    painter.draw_hline({rect.left() + 4, 0}, rect.width() - 8, battColor);
+    if (percent_ > 100) {  // error / unk
+        painter.draw_string({rect.left() + 2, rect.top() + 2}, font::fixed_5x8, battColor, Color::light_grey(), "?");
+        return;
+    }
+    int8_t ppx = (rect.bottom() - 3) - (rect.top() + 3);  // 10px max height to draw bars
+    int8_t pp = ppx - (percent_ + 5) / ppx;               // >=95% -> 0px >=15% 2px  >=5% 9px <5% 10px
+
+    if (percent_ >= 70)
+        battColor = Color::green();
+    else if (percent_ >= 40)
+        battColor = Color::orange();
+    else
+        battColor = Color::red();
+    // fill the bars
+    for (int y = pp; y < ppx; y++) {
+        painter.draw_hline({rect.left() + 3, rect.top() + 3 + y}, rect.width() - 6, battColor);
+    }
+}
+
 /* BatteryTextField *************************************************************/
 
-BatteryTextField::BatteryTextField(Rect parent_rect, std::string text)
-    : Text(parent_rect, std::move(text)) {
+BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
+    : Text(parent_rect, "") {
     this->set_style(&style);
+    this->set_battery(percent, false);
     set_focusable(true);
 }
 
@@ -2060,19 +2128,22 @@ void BatteryTextField::getAccessibilityText(std::string& result) {
     result = text;
 }
 void BatteryTextField::getWidgetName(std::string& result) {
-    result = "Battery text field";
+    result = "Battery percent";
 }
 
 void BatteryTextField::set_text(std::string_view value) {
     set(value);
 }
 
-void BatteryTextField::set_battery(uint8_t percentage) {
+void BatteryTextField::set_battery(uint8_t percentage, bool charge) {
+    (void)charge;
     if (percentage > 101) {
         set("UNK");
+        set_dirty();
         return;
     }
     set(to_string_dec_uint(percentage));
+    set_dirty();
 }
 
 bool BatteryTextField::on_key(KeyEvent key) {

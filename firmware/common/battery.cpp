@@ -3,6 +3,13 @@
 #include "portapack.hpp"
 #include "ads1110.hpp"
 
+// uncomment if you want to emulate batt management system
+#define USE_BATT_EMULATOR
+#define EMULATOR_VOLTAGE 3987
+#define EMULATOR_CURRENT 40
+#define EMULATOR_CHARGING 0
+#define EMULATOR_PERCENT 99
+
 extern I2C portapack::i2c0;
 
 namespace battery {
@@ -22,6 +29,14 @@ void BatteryManagement::init() {
         detected_ = BATT_ADS1110;
     }
 
+    // add new supported module detect + init here
+
+#ifdef USE_BATT_EMULATOR
+    if (detected_ == BATT_NONE) {
+        detected_ = BATT_EMULATOR;
+    }
+#endif
+
     if (detected_ != BATT_NONE) {
         // sets timer to query and broadcats this info
         create_thread();
@@ -35,18 +50,42 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
         battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
         return true;
     }
+    // add new module query here
 
-    (void)isCharging;
+#ifdef USE_BATT_EMULATOR
+    if (detected_ == BATT_EMULATOR) {
+        batteryPercentage = EMULATOR_PERCENT;  // %
+        voltage = EMULATOR_VOLTAGE;            // mV
+        current = EMULATOR_CURRENT;            // mA
+        isCharging = EMULATOR_CHARGING;
+        return true;
+    }
+#endif
+
+    (void)isCharging;  // keep the compiler calm
     (void)current;
     return false;
 }
 
+uint8_t BatteryManagement::getPercent() {
+    if (detected_ == BATT_NONE) return 102;
+    uint8_t batteryPercentage = 0;
+    bool isCharging = false;
+    uint16_t voltage = 0;
+    int32_t current = 0;
+    getBatteryInfo(batteryPercentage, voltage, current, isCharging);
+    return batteryPercentage;
+}
+
 uint16_t BatteryManagement::getVoltage() {
     if (detected_ == BATT_NONE) return 0;
-    if (detected_ == BATT_ADS1110) {
-        return battery_ads1110.readVoltage();
-    }
-    return 0;
+    if (detected_ == BATT_NONE) return 102;
+    uint8_t batteryPercentage = 0;
+    bool isCharging = false;
+    uint16_t voltage = 0;
+    int32_t current = 0;
+    getBatteryInfo(batteryPercentage, voltage, current, isCharging);
+    return voltage;
 }
 
 msg_t BatteryManagement::timer_fn(void* arg) {
@@ -56,7 +95,7 @@ msg_t BatteryManagement::timer_fn(void* arg) {
     bool isCharging = false;
     uint16_t voltage = 0;
     int32_t current = 0;
-
+    chThdSleepMilliseconds(1000);  // wait ui for fully load
     while (1) {
         if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current, isCharging)) {
             // send local message

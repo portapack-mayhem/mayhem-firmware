@@ -278,8 +278,8 @@ class SystemStatusView : public View {
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
-    BatteryTextField battery_text{{0, 3, 2 * 8, 1 * 16}, ""};
-    // todo add battery icon
+    BatteryTextField battery_text{{0, 5, 2 * 8, 1 * 16 - 5}, 102};
+    BatteryIcon battery_icon{{0, 0, 10, 1 * 16}, 102};
 
     void on_converter();
     void on_bias_tee();
