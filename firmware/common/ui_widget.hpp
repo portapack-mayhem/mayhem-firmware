@@ -783,13 +783,13 @@ class TextField : public Text {
     using Text::set;
 };
 
-class BatteryTextField : public Text {
+class BatteryTextField : public Widget {
    public:
     std::function<void(BatteryTextField&)> on_select{};
 
     BatteryTextField(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
 
-    const std::string& get_text() const;
     void set_battery(uint8_t percentage, bool charge);
     void set_text(std::string_view value);
 
@@ -800,10 +800,12 @@ class BatteryTextField : public Text {
     void getWidgetName(std::string& result) override;
 
    private:
-    using Text::set;
+    uint8_t percent_{102};
+    bool charge_{false};
+
     static constexpr Style style{
         .font = font::fixed_5x8,
-        .background = Color::grey(),
+        .background = Color::dark_grey(),
         .foreground = Color::white(),
     };
 };

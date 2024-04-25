@@ -399,7 +399,7 @@ void SystemStatusView::refresh() {
         uint8_t percent = battery::BatteryManagement::getPercent();
         if (!pmem::ui_hide_battery_icon()) {
             status_icons.add(&battery_icon);
-            battery_text.set_battery(percent, false);
+            battery_text.set_battery(percent, false);  // got an on select, that may pop up the details of the battery.
         };
         if (!pmem::ui_hide_numeric_battery()) {
             status_icons.add(&battery_text);

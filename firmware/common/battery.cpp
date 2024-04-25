@@ -8,7 +8,7 @@
 #define EMULATOR_VOLTAGE 3987
 #define EMULATOR_CURRENT 40
 #define EMULATOR_CHARGING 0
-#define EMULATOR_PERCENT 99
+#define EMULATOR_PERCENT 61
 
 extern I2C portapack::i2c0;
 
