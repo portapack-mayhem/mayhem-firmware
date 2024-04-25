@@ -2082,8 +2082,8 @@ bool BatteryIcon::on_touch(TouchEvent event) {
     return false;
 }
 void BatteryIcon::paint(Painter& painter) {
-    ui::Rect rect = screen_rect();                                                           // 10, 1 * 16
-    painter.fill_rectangle(rect, highlighted() ? Color::light_grey() : Color::dark_grey());  // clear
+    ui::Rect rect = screen_rect();                                                                          // 10, 1 * 16
+    painter.fill_rectangle(rect, has_focus() || highlighted() ? Color::light_grey() : Color::dark_grey());  // clear
     ui::Color battColor = (charge_) ? Color::cyan() : Color::green();
     // batt body:
     painter.draw_vline({rect.left() + 1, rect.top() + 2}, rect.height() - 4, battColor);
@@ -2107,7 +2107,7 @@ void BatteryIcon::paint(Painter& painter) {
     else
         battColor = Color::red();
     // fill the bars
-    for (int y = pp; y <= ppx; y++) {
+    for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
     }
 }
@@ -2121,11 +2121,11 @@ BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
 }
 
 void BatteryTextField::paint(Painter& painter) {
-    Color bg = highlighted() ? Color::light_grey() : Color::dark_grey();
+    Color bg = has_focus() || highlighted() ? Color::light_grey() : Color::dark_grey();
     ui::Rect rect = screen_rect();     // 2 * 8, 1 * 16
     painter.fill_rectangle(rect, bg);  // clear
     std::string txt_batt = to_string_dec_uint(percent_);
-    if (txt_batt.length() == 1)
+    if (txt_batt.length() <= 2)
         txt_batt = " " + txt_batt;
     painter.draw_string({rect.left(), rect.top()}, font::fixed_5x8, Color::white(), bg, txt_batt);
     painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Color::white(), bg, (charge_) ? "+%" : " %");
