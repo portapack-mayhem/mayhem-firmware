@@ -66,7 +66,7 @@ void DfuMenu::paint(Painter& painter) {
     text_info_line_9.set(to_string_dec_uint(shared_memory.m4_buffer_missed, 6));
     text_info_line_10.set(to_string_dec_uint(chTimeNow() / 1000, 6));
     if (battery::BatteryManagement::isDetected()) {
-        text_info_line_11.set(to_string_dec_uint(battery::BatteryManagement::getVoltage()));
+        text_info_line_11.set(to_string_decimal_padding((float)battery::BatteryManagement::getVoltage() / 1000.0, 3, 6));
     }
 
     constexpr auto margin = 5;
