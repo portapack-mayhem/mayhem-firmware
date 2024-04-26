@@ -289,6 +289,7 @@ class SystemStatusView : public View {
     void on_clk();
     void rtc_battery_workaround();
     void on_battery_data(const BatteryStateMessage* msg);
+    void on_battery_details();
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,

@@ -2068,7 +2068,7 @@ void BatteryIcon::set_battery(uint8_t percentage, bool charge) {
 
 bool BatteryIcon::on_key(KeyEvent key) {
     if (key == KeyEvent::Select && on_select) {
-        on_select(*this);
+        on_select();
         return true;
     }
     return false;
@@ -2077,6 +2077,10 @@ bool BatteryIcon::on_key(KeyEvent key) {
 bool BatteryIcon::on_touch(TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
+        return true;
+    }
+    if (event.type == TouchEvent::Type::End && on_select) {
+        on_select();
         return true;
     }
     return false;
@@ -2151,7 +2155,7 @@ void BatteryTextField::set_battery(uint8_t percentage, bool charge) {
 
 bool BatteryTextField::on_key(KeyEvent key) {
     if (key == KeyEvent::Select && on_select) {
-        on_select(*this);
+        on_select();
         return true;
     }
     return false;
@@ -2160,6 +2164,10 @@ bool BatteryTextField::on_key(KeyEvent key) {
 bool BatteryTextField::on_touch(TouchEvent event) {
     if (event.type == TouchEvent::Type::Start) {
         focus();
+        return true;
+    }
+    if (event.type == TouchEvent::Type::End && on_select) {
+        on_select();
         return true;
     }
     return false;

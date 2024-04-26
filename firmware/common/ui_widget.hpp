@@ -785,7 +785,7 @@ class TextField : public Text {
 
 class BatteryTextField : public Widget {
    public:
-    std::function<void(BatteryTextField&)> on_select{};
+    std::function<void()> on_select{};
 
     BatteryTextField(Rect parent_rect, uint8_t percent);
     void paint(Painter& painter) override;
@@ -812,7 +812,7 @@ class BatteryTextField : public Widget {
 
 class BatteryIcon : public Widget {
    public:
-    std::function<void(BatteryIcon&)> on_select{};
+    std::function<void()> on_select{};
 
     BatteryIcon(Rect parent_rect, uint8_t percent);
     void paint(Painter& painter) override;

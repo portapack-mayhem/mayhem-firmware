@@ -334,6 +334,9 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
+    battery_icon.on_select = [this]() { on_battery_details(); };
+    battery_text.on_select = [this]() { on_battery_details(); };
+
     button_fake_brightness.on_select = [this](ImageButton&) {
         set_dirty();
         pmem::toggle_fake_brightness_level();
@@ -368,6 +371,28 @@ SystemStatusView::SystemStatusView(
     audio::output::stop();
     audio::output::update_audio_mute();
     refresh();
+}
+
+// when battery icon / text is clicked
+void SystemStatusView::on_battery_details() {
+    if (!nav_.is_valid()) return;
+    uint8_t percent = 0;
+    uint16_t volt = 0;
+    int32_t current = 0;
+    bool ischarge = false;
+    battery::BatteryManagement::getBatteryInfo(percent, volt, current, ischarge);
+
+    std::string battinfo = "Percent: " + to_string_dec_uint(percent) + "%\r\n";
+    battinfo += "Voltage: " + to_string_decimal(volt / 1000.0f, 3) + "V";
+    if (current != 0) {
+        battinfo += "\r\nCurr: " + to_string_dec_int(current) + " mA";
+        battinfo += "\r\nState: ";
+        if (ischarge)
+            battinfo += "charging";
+        else
+            battinfo += "discharging";
+    }
+    nav_.display_modal("Battery", battinfo, ui::modal_t::INFO);
 }
 
 void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
