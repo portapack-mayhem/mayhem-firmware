@@ -2126,9 +2126,12 @@ void BatteryTextField::paint(Painter& painter) {
     ui::Rect rect = screen_rect();     // 2 * 8, 1 * 16
     painter.fill_rectangle(rect, bg);  // clear
     std::string txt_batt = percent_ <= 100 ? to_string_dec_uint(percent_) : "UNK";
-    if (txt_batt.length() <= 2)
-        txt_batt = " " + txt_batt;
-    painter.draw_string({rect.left(), rect.top()}, font::fixed_5x8, Color::white(), bg, txt_batt);
+    int xdelta = 0;
+    if (txt_batt.length() == 1)
+        xdelta = 5;
+    else if (txt_batt.length() == 2)
+        xdelta = 2;
+    painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Color::white(), bg, txt_batt);
     painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Color::white(), bg, (charge_) ? "+%" : " %");
 }
 
