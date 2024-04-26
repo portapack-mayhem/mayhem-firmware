@@ -332,6 +332,7 @@ class File {
 
     // TODO: Return Result<>.
     Optional<Error> open(const std::filesystem::path& filename, bool read_only = true, bool create = false);
+    void close();
     Optional<Error> append(const std::filesystem::path& filename);
     Optional<Error> create(const std::filesystem::path& filename);
 
@@ -342,6 +343,7 @@ class File {
     Result<Offset> seek(uint64_t Offset);
     Result<Offset> truncate();
     Size size() const;
+    Result<bool> eof();
 
     template <size_t N>
     Result<Size> write(const std::array<uint8_t, N>& data) {
