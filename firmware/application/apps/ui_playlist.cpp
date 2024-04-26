@@ -38,6 +38,8 @@
 #include "utility.hpp"
 #include "file_path.hpp"
 
+#include "usb_serial_asyncmsg.hpp"
+
 #include <unistd.h>
 #include <fstream>
 
@@ -55,6 +57,30 @@ namespace ui {
 static const fs::path ppl_ext = u".PPL";
 
 void PlaylistView::load_file(const fs::path& playlist_path) {
+    std::string test_string = "test string:";
+    UsbSerialAsyncmsg::asyncmsg(test_string);
+    std::string test_string111 = "abcdefghi";
+    UsbSerialAsyncmsg::asyncmsg(test_string111);
+
+    std::string test_path_label = "test_path:";
+    UsbSerialAsyncmsg::asyncmsg(test_path_label);
+    UsbSerialAsyncmsg::asyncmsg(playlist_path);
+
+    std::string test_vec_label = "test_vector:";
+    UsbSerialAsyncmsg::asyncmsg(test_vec_label);
+
+    std::vector<uint32_t> test_vector;
+    test_vector.push_back(1);
+    test_vector.push_back(2);
+    test_vector.push_back(3);
+    UsbSerialAsyncmsg::asyncmsg(test_vector);
+
+    std::string test_num_label = "test_num:";
+    UsbSerialAsyncmsg::asyncmsg(test_num_label);
+
+    uint8_t test = 254;
+    UsbSerialAsyncmsg::asyncmsg(test);
+
     File playlist_file;
     auto error = playlist_file.open(playlist_path.string());
 
