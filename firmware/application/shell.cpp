@@ -70,7 +70,7 @@ static void list_commands(BaseSequentialStream* chp, const ShellCommand* scp) {
 static const char* get_board_revision_string(board_rev_t rev) {
     switch (rev) {
         case BOARD_REV_HACKRF1_OLD:
-            return "HackRF Old";
+            return "HackRF R1-R5";
         case BOARD_REV_HACKRF1_R6:
             return "HackRF R6";
         case BOARD_REV_HACKRF1_R7:
@@ -82,15 +82,15 @@ static const char* get_board_revision_string(board_rev_t rev) {
         case BOARD_REV_HACKRF1_R10:
             return "HackRF R10";
         case BOARD_REV_GSG_HACKRF1_R6:
-            return "HackRF R6";
+            return "GSG HackRF R6";
         case BOARD_REV_GSG_HACKRF1_R7:
-            return "HackRF R7";
+            return "GSG HackRF R7";
         case BOARD_REV_GSG_HACKRF1_R8:
-            return "HackRF R8";
+            return "GSG HackRF R8";
         case BOARD_REV_GSG_HACKRF1_R9:
-            return "HackRF R9";
+            return "GSG HackRF R9";
         case BOARD_REV_GSG_HACKRF1_R10:
-            return "HackRF R10";
+            return "GSG HackRF R10";
         case BOARD_REV_UNRECOGNIZED:
             return "Unrecognized";
         case BOARD_REV_UNDETECTED:
