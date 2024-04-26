@@ -1,5 +1,4 @@
 #include "ui_bmpview.hpp"
-#include "usb_serial_asyncmsg.hpp"
 #include "portapack.hpp"
 
 bool BMPViewer::load_bmp(const std::filesystem::path& file) {

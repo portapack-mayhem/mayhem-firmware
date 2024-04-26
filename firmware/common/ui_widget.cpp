@@ -2097,8 +2097,9 @@ void BatteryIcon::paint(Painter& painter) {
         painter.draw_string({rect.left() + 2, rect.top() + 3}, font::fixed_5x8, Color::white(), Color::dark_grey(), "?");
         return;
     }
-    int8_t ppx = (rect.bottom() - 3) - (rect.top() + 3);  // 10px max height to draw bars
-    int8_t pp = ppx - (percent_ + 5) / ppx;               // >=95% -> 0px >=15% 2px  >=5% 9px <5% 10px
+    int8_t ppx = (rect.bottom() - 3) - (rect.top() + 2);                                // 11px max height to draw bars
+    int8_t ptd = (int8_t)((static_cast<float>(percent_) / 100.0f) * (float)ppx + 0.5);  // pixels to draw
+    int8_t pp = ppx - ptd;                                                              // pixels to start from
 
     if (percent_ >= 70)
         battColor = Color::green();
@@ -2107,7 +2108,7 @@ void BatteryIcon::paint(Painter& painter) {
     else
         battColor = Color::red();
     // fill the bars
-    for (int y = pp + 1; y <= ppx; y++) {
+    for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
     }
 }
