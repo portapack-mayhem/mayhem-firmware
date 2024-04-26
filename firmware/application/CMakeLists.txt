@@ -205,6 +205,7 @@ set(CPPSRC
 	log_file.cpp
 	metadata_file.cpp
 	portapack.cpp
+	usb_serial_asyncmsg.cpp
 	usb_serial_shell.cpp
 	usb_serial_shell_filesystem.cpp
 	usb_serial_event.cpp
