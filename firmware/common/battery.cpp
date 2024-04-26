@@ -50,9 +50,10 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
 
 #ifdef USE_BATT_EMULATOR
     if (detected_ == BATT_EMULATOR) {
-        batteryPercentage = rand() % 101;  // %
-        voltage = rand() % 1000 + 3000;    // mV
-        current = rand() % 150;            // mA
+        batteryPercentage += 5;  // %
+        if (batteryPercentage > 100) batteryPercentage = 0;
+        voltage = rand() % 1000 + 3000;  // mV
+        current = rand() % 150;          // mA
         isCharging = rand() % 2;
         return true;
     }
