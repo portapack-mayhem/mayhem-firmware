@@ -28,8 +28,6 @@
 // to_string_bin/ to_string_decimal/ to_string_hex/ to_string_hex_array/ to_string_dec_uint/ to_string_dec_int etc seems usellss so i didn't add them here
 // usage:     UsbSerialAsyncmsg::asyncmsg(num);
 
-#include "usb_serial_asyncmsg.hpp"
-
 template <>
 void UsbSerialAsyncmsg::asyncmsg<int64_t>(const int64_t& data) {
     if (!portapack::async_tx_enabled) {
