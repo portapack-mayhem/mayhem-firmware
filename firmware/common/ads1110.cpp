@@ -125,8 +125,7 @@ void ADS1110::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
 
     // Limit the values to the valid range
-    batteryPercentage = (batteryPercentage < 0) ? 0 : (batteryPercentage > 100) ? 100
-                                                                                : batteryPercentage;
+    batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
     // ToDo: if its > 4, then 100%, if < 3 then 0%
 }
 
