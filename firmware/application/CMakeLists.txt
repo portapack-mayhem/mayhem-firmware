@@ -211,6 +211,7 @@ set(CPPSRC
 	usb_serial_thread.cpp
 	usb_serial.cpp
 	usb_serial_host_to_device.cpp
+	usb_serial_asyncmsg.cpp
 	qrcodegen.cpp
 	radio.cpp
 	receiver_model.cpp
@@ -227,7 +228,6 @@ set(CPPSRC
 	tone_key.cpp
 	transmitter_model.cpp
 	tuning.cpp
-	usb_serial_asyncmsg.hpp
 	hw/debounce.cpp
 	hw/encoder.cpp
 	hw/max2837.cpp
