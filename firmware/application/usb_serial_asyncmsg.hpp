@@ -2,6 +2,7 @@
  * Copyright (C) 2015 Jared Boone, ShareBrained Technology, Inc.
  * Copyright (C) 2017 Furrtek
  * Copyleft (ɔ) 2024 zxkmm with the GPL license
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -27,7 +28,11 @@
 #include <vector>
 #include <string>
 #include <sstream>
-#include <chprintf.h>
+
+#include "portapack.hpp"
+#include "ch.h"
+#include "chprintf.h"
+#include "hal.h"
 #include "usb_serial_device_to_host.h"
 
 class UsbSerialAsyncmsg {
@@ -37,6 +42,8 @@ class UsbSerialAsyncmsg {
 
     template <typename VECTORCOVER>
     static void asyncmsg(const std::vector<VECTORCOVER>& data);
+
+    static void asyncmsg(const char* data);  // string literal
 };
 
 /*Notes:
@@ -45,99 +52,10 @@ class UsbSerialAsyncmsg {
  * - so delete all debug things before you push your code to production
  * - use this client to filter only PP devices: https://github.com/zxkmm/Pyserial-Demo-portapack
  * - usage:
- *        #include "usb_serial_debug_bridge.hpp"
+ *        portapack::async_tx_enabled = true; // note that use this when debugging, unless the msg would be forbidden. but don't use this in production, since it's not real async and multiple serial transmittions will broken each other. if this class is used in other scene in the future, just use command to cover (protect your serial tramsnitton) in your extern thing: asyncmsg enable --- your cmd --- asyncmsg disable
+ *        #include "usb_serial_asyncmsg.hpp"
  *        UsbSerialAsyncmsg::asyncmsg("Hello PP");
  * */
-
-/// value
-// to_string_bin/ to_string_decimal/ to_string_hex/ to_string_hex_array/ to_string_dec_uint/ to_string_dec_int etc seems usellss so i didn't add them here
-
-template <>
-// usage:     UsbSerialAsyncmsg::asyncmsg(num);
-void UsbSerialAsyncmsg::asyncmsg<int64_t>(const int64_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<int32_t>(const int32_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<int16_t>(const int16_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<int8_t>(const int8_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<uint8_t>(const uint8_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<uint16_t>(const uint16_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<uint32_t>(const uint32_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-template <>
-void UsbSerialAsyncmsg::asyncmsg<uint64_t>(const uint64_t& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", to_string_dec_int(data).c_str());
-}
-
-/// fs things
-
-template <>
-// usage:     UsbSerialAsyncmsg::asyncmsg(path);
-void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path>(const std::filesystem::path& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    std::string path_str = data.string();
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", path_str.c_str());
-}
-
-/// string
-template <>
-// usage:     UsbSerialAsyncmsg::asyncmsg(str);
-void UsbSerialAsyncmsg::asyncmsg<std::string>(const std::string& data) {
-    if (!portapack::async_tx_enabled) {
-        return;
-    }
-    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data.c_str());
-}
 
 /// vec worker
 // ussgae:    UsbSerialAsyncmsg::asyncmsg(vec);

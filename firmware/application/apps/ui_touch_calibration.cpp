@@ -26,6 +26,8 @@
 #include "portapack_persistent_memory.hpp"
 using namespace portapack;
 
+extern ui::SystemView* system_view_ptr;
+
 namespace ui {
 
 TouchCalibrationView::TouchCalibrationView(
@@ -40,6 +42,7 @@ TouchCalibrationView::TouchCalibrationView(
         &image_verify_1,
         &image_verify_2,
         &label_calibrate,
+        &label_calibrate_2,
         &label_verify,
         &label_success,
         &label_failure,
@@ -51,6 +54,12 @@ TouchCalibrationView::TouchCalibrationView(
     button_ok.on_select = [this](Button&) { this->on_ok(); };
 
     set_phase(Phase::Calibrate0);
+
+    system_view_ptr->get_status_view()->set_back_hidden(true);
+}
+
+TouchCalibrationView::~TouchCalibrationView() {
+    system_view_ptr->get_status_view()->set_back_hidden(false);
 }
 
 void TouchCalibrationView::focus() {
@@ -70,6 +79,7 @@ void TouchCalibrationView::update_target() {
     image_verify_2.hidden(phase != Phase::Verify2);
 
     label_calibrate.hidden(!phase_calibrate);
+    label_calibrate_2.hidden(!phase_calibrate && !phase_verify);
     label_verify.hidden(!phase_verify);
     label_success.hidden(phase != Phase::Success);
     label_failure.hidden(phase != Phase::Failure);

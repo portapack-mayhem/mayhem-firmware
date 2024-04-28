@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 HTotoo
  *
  * This file is part of PortaPack.
  *
@@ -20,34 +19,33 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma pack(push, 1)
-struct bmp_header_t {
-    uint16_t signature;
-    uint32_t size;
-    uint16_t reserved_1;
-    uint16_t reserved_2;
-    uint32_t image_data;
-    uint32_t BIH_size;
-    uint32_t width;
-    int32_t height;  // can be negative, to signal the bottom-up or reserve status
-    uint16_t planes;
-    uint16_t bpp;
-    uint32_t compression;
-    uint32_t data_size;
-    uint32_t h_res;
-    uint32_t v_res;
-    uint32_t colors_count;
-    uint32_t icolors_count;
-};
-#pragma pack(pop)
+#ifndef __UI_BMP_FILE_VIEWER_H__
+#define __UI_BMP_FILE_VIEWER_H__
 
-#pragma pack(push, 1)
-struct bmp_palette_t {
-    struct color_t {
-        uint8_t B;
-        uint8_t G;
-        uint8_t R;
-        uint8_t A;
-    } color[16];
+#include "ui.hpp"
+#include "ui_navigation.hpp"
+#include "ui_painter.hpp"
+#include "ui_styles.hpp"
+#include "ui_widget.hpp"
+#include "file.hpp"
+#include "ui_bmpview.hpp"
+
+namespace ui {
+
+class BMPFileViewer : public View {
+   public:
+    BMPFileViewer(NavigationView& nav, const std::filesystem::path& path);
+    ~BMPFileViewer();
+    bool on_key(KeyEvent key) override;
+    void paint(Painter& painter) override;
+    void focus() override;
+
+   private:
+    NavigationView& nav_;
+    std::filesystem::path path_{};
+    BMPViewer bmp{{0, 0, 240, 320}};
 };
-#pragma pack(pop)
+
+}  // namespace ui
+
+#endif  // __UI_BMP_FILE_VIEWER_H__

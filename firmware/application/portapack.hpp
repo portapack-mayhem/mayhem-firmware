@@ -33,6 +33,8 @@
 #include "backlight.hpp"
 #include "usb_serial.hpp"
 
+#include "ads1110.hpp"
+
 #include "radio.hpp"
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
@@ -61,6 +63,7 @@ extern portapack::USBSerial usb_serial;
 extern si5351::Si5351 clock_generator;
 extern ClockManager clock_manager;
 
+extern ads1110::ADS1110 battery_ads1110;
 extern ReceiverModel receiver_model;
 extern TransmitterModel transmitter_model;
 

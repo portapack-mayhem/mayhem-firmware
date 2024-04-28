@@ -72,6 +72,10 @@ File::~File() {
     f_close(&f);
 }
 
+void File::close() {
+    f_close(&f);
+}
+
 File::Result<File::Size> File::read(void* data, Size bytes_to_read) {
     UINT bytes_read = 0;
     const auto result = f_read(&f, data, bytes_to_read, &bytes_read);
@@ -98,6 +102,10 @@ File::Result<File::Size> File::write(const void* data, Size bytes_to_write) {
 
 File::Offset File::tell() const {
     return f_tell(&f);
+}
+
+File::Result<bool> File::eof() {
+    return f_eof(&f);
 }
 
 File::Result<File::Offset> File::seek(Offset new_position) {

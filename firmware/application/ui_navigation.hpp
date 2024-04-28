@@ -186,6 +186,7 @@ class SystemStatusView : public View {
     SystemStatusView(NavigationView& nav);
 
     void set_back_enabled(bool new_value);
+    void set_back_hidden(bool new_value);
     void set_title_image_enabled(bool new_value);
     void set_title(const std::string new_value);
 
@@ -380,8 +381,10 @@ class SystemView : public View {
     Context& context() const override;
     void toggle_overlay();
     void paint_overlay();
+    void set_app_fullscreen(bool fullscreen);
 
     NavigationView* get_navigation_view();
+    SystemStatusView* get_status_view();
 
    private:
     uint8_t overlay_active{0};

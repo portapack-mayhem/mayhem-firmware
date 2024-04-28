@@ -422,6 +422,10 @@ void SystemStatusView::set_back_enabled(bool new_value) {
     }
 }
 
+void SystemStatusView::set_back_hidden(bool new_value) {
+    button_back.hidden(new_value);
+}
+
 void SystemStatusView::set_title_image_enabled(bool new_value) {
     if (new_value) {
         add_child(&button_title);
@@ -987,6 +991,9 @@ Context& SystemView::context() const {
 NavigationView* SystemView::get_navigation_view() {
     return &navigation_view;
 }
+SystemStatusView* SystemView::get_status_view() {
+    return &status_view;
+}
 
 void SystemView::toggle_overlay() {
     static uint8_t last_perf_counter_status = shared_memory.request_m4_performance_counter;
@@ -1027,6 +1034,15 @@ void SystemView::paint_overlay() {
         else
             this->overlay2.set_dirty();
     }
+}
+
+void SystemView::set_app_fullscreen(bool fullscreen) {
+    auto parent_rect = screen_rect();
+    Dim status_view_height = (fullscreen) ? 0 : 16;
+    status_view.hidden(fullscreen);
+    navigation_view.set_parent_rect(
+        {{0, status_view_height},
+         {parent_rect.width(), static_cast<Dim>(parent_rect.height() - status_view_height)}});
 }
 
 /* ***********************************************************************/
