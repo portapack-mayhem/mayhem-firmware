@@ -120,7 +120,8 @@ class NavigationView : public View {
         const std::string& title,
         const std::string& message,
         modal_t type,
-        std::function<void(bool)> on_choice = nullptr);
+        std::function<void(bool)> on_choice = nullptr,
+        bool compact = false);
 
     void focus() override;
 
@@ -430,7 +431,8 @@ class ModalMessageView : public View {
         const std::string& title,
         const std::string& message,
         modal_t type,
-        std::function<void(bool)> on_choice);
+        std::function<void(bool)> on_choice,
+        bool compact = false);
 
     void paint(Painter& painter) override;
     void focus() override;
@@ -442,6 +444,7 @@ class ModalMessageView : public View {
     const std::string message_;
     const modal_t type_;
     const std::function<void(bool)> on_choice_;
+    const bool compact;
 
     Button button_ok{
         {10 * 8, 14 * 16, 10 * 8, 48},

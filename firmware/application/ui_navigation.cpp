@@ -385,14 +385,14 @@ void SystemStatusView::on_battery_details() {
     std::string battinfo = "Percent: " + to_string_dec_uint(percent) + "%\r\n";
     battinfo += "Voltage: " + to_string_decimal(volt / 1000.0f, 3) + "V";
     if (current != 0) {
-        battinfo += "\r\nCurr: " + to_string_dec_int(current) + " mA";
+        battinfo += "\r\nCurrent: " + to_string_dec_int(current) + " mA";
         battinfo += "\r\nState: ";
         if (ischarge)
             battinfo += "charging";
         else
             battinfo += "discharging";
     }
-    nav_.display_modal("Battery", battinfo, ui::modal_t::INFO);
+    nav_.display_modal("Battery", battinfo, ui::modal_t::INFO, nullptr, true);
 }
 
 void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
@@ -713,8 +713,9 @@ void NavigationView::display_modal(
     const std::string& title,
     const std::string& message,
     modal_t type,
-    std::function<void(bool)> on_choice) {
-    push<ModalMessageView>(title, message, type, on_choice);
+    std::function<void(bool)> on_choice,
+    bool compact) {
+    push<ModalMessageView>(title, message, type, on_choice, compact);
 }
 
 void NavigationView::free_view() {
@@ -1043,11 +1044,13 @@ ModalMessageView::ModalMessageView(
     const std::string& title,
     const std::string& message,
     modal_t type,
-    std::function<void(bool)> on_choice)
+    std::function<void(bool)> on_choice,
+    bool compact)
     : title_{title},
       message_{message},
       type_{type},
-      on_choice_{on_choice} {
+      on_choice_{on_choice},
+      compact{compact} {
     if (type == INFO) {
         add_child(&button_ok);
         button_ok.on_select = [this, &nav](Button&) {
@@ -1080,13 +1083,13 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
+    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
 
     // Break lines.
     auto lines = split_string(message_, '\n');
     for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
-            {1 * 8, (Coord)(120 + (i * 16))},
+            {1 * 8, (Coord)(((compact) ? 8 * 3 : 120) + (i * 16))},
             style(),
             lines[i]);
     }
