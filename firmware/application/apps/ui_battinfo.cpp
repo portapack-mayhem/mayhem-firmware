@@ -52,6 +52,7 @@ void BattinfoView::update_result() {
         text_charge.set("-");
         return;
     }
+    bool uichg = false;
     battery::BatteryManagement::getBatteryInfo(percent, voltage, current, isCharging);
     // update text fields
     if (percent <= 100)
@@ -64,6 +65,7 @@ void BattinfoView::update_result() {
         text_voltage.set("UNKNOWN");
     }
     if (current != 0) {
+        if (labels_opt.hidden()) uichg = true;
         labels_opt.hidden(false);
         text_current.hidden(false);
         text_charge.hidden(false);
@@ -71,11 +73,12 @@ void BattinfoView::update_result() {
         text_charge.set(isCharging ? "charge" : "discharge");
         labels_opt.hidden(false);
     } else {
+        if (!labels_opt.hidden()) uichg = true;
         labels_opt.hidden(true);
         text_current.hidden(true);
         text_charge.hidden(true);
     }
-    set_dirty();
+    if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
     BatteryStateMessage msg{percent, isCharging, voltage};
     EventDispatcher::send_message(msg);
