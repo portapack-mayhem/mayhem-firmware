@@ -163,8 +163,8 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
         ui::Color::black());
 
     painter.draw_string({12, 24}, this->nav_.style(), "This will take 15 seconds.");
-    painter.draw_string({12, 64}, this->nav_.style(), "Please wait while LEDs RX");
-    painter.draw_string({12, 84}, this->nav_.style(), "and TX are flashing.");
+    painter.draw_string({12, 64}, this->nav_.style(), "Please wait while LED RX");
+    painter.draw_string({12, 84}, this->nav_.style(), "is on and TX is flashing.");
     painter.draw_string({12, 124}, this->nav_.style(), "Device will then restart.");
 
     std::memcpy(&shared_memory.bb_data.data[0], path.c_str(), (path.length() + 1) * 2);
