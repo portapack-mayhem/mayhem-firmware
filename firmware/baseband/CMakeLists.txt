@@ -498,12 +498,6 @@ set(MODE_CPPSRC
 )
 DeclareTargets(PTON tones)
 
-### TPMS
-
-set(MODE_CPPSRC
-	proc_tpms.cpp
-)
-DeclareTargets(PTPM tpms)
 
 ### Wideband Spectrum
 
@@ -650,6 +644,15 @@ set(MODE_CPPSRC
 	proc_audio_beep.cpp
 )
 DeclareTargets(PABP audio_beep)
+
+
+### TPMS
+
+set(MODE_CPPSRC
+	proc_tpms.cpp
+)
+DeclareTargets(PTPM tpms)
+
 
 ### HackRF "factory" firmware
 
