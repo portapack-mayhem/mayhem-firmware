@@ -120,7 +120,8 @@ class NavigationView : public View {
         const std::string& title,
         const std::string& message,
         modal_t type,
-        std::function<void(bool)> on_choice = nullptr);
+        std::function<void(bool)> on_choice = nullptr,
+        bool compact = false);
 
     void focus() override;
 
@@ -191,7 +192,7 @@ class SystemStatusView : public View {
 
    private:
     static constexpr auto default_title = "";
-
+    bool batt_info_up = false;  // to prevent show multiple batt info dialog
     NavigationView& nav_;
 
     Rectangle backdrop{
@@ -278,6 +279,9 @@ class SystemStatusView : public View {
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};
 
+    BatteryTextField battery_text{{0, 0, 2 * 8, 1 * 16}, 102};
+    BatteryIcon battery_icon{{0, 0, 10, 1 * 16}, 102};
+
     void on_converter();
     void on_bias_tee();
     void on_camera();
@@ -285,12 +289,21 @@ class SystemStatusView : public View {
     void refresh();
     void on_clk();
     void rtc_battery_workaround();
+    void on_battery_data(const BatteryStateMessage* msg);
+    void on_battery_details();
 
     MessageHandlerRegistration message_handler_refresh{
         Message::ID::StatusRefresh,
         [this](const Message* const p) {
             (void)p;
             this->refresh();
+        }};
+
+    MessageHandlerRegistration message_handler_battery{
+        Message::ID::BatteryStateData,
+        [this](const Message* const p) {
+            const auto message = static_cast<const BatteryStateMessage*>(p);
+            this->on_battery_data(message);
         }};
 };
 
@@ -418,7 +431,8 @@ class ModalMessageView : public View {
         const std::string& title,
         const std::string& message,
         modal_t type,
-        std::function<void(bool)> on_choice);
+        std::function<void(bool)> on_choice,
+        bool compact = false);
 
     void paint(Painter& painter) override;
     void focus() override;
@@ -430,6 +444,7 @@ class ModalMessageView : public View {
     const std::string message_;
     const modal_t type_;
     const std::function<void(bool)> on_choice_;
+    const bool compact;
 
     Button button_ok{
         {10 * 8, 14 * 16, 10 * 8, 48},

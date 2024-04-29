@@ -85,7 +85,6 @@ ClockManager clock_manager{
 
 WM8731 audio_codec_wm8731{i2c0, 0x1a};
 AK4951 audio_codec_ak4951{i2c0, 0x12};
-ads1110::ADS1110 battery_ads1110{i2c0, 0x48};
 
 ReceiverModel receiver_model;
 TransmitterModel transmitter_model;
@@ -587,7 +586,7 @@ init_status_t init() {
     chThdSleepMilliseconds(10);
 
     audio::init(portapack_audio_codec());
-    battery_ads1110.init();
+    battery::BatteryManagement::init();
 
     if (lcd_fast_setup)
         draw_splash_screen_icon(4, ui::bitmap_icon_speaker);

@@ -132,8 +132,8 @@ struct ui_config2_t {
 
     bool hide_mute : 1;
     bool hide_fake_brightness : 1;
-    bool UNUSED_1 : 1;
-    bool UNUSED_2 : 1;
+    bool hide_numeric_battery : 1;
+    bool hide_battery_icon : 1;
     bool UNUSED_3 : 1;
     bool UNUSED_4 : 1;
     bool UNUSED_5 : 1;
@@ -423,6 +423,7 @@ void defaults() {
     set_encoder_dial_sensitivity(DIAL_SENSITIVITY_NORMAL);
     set_config_speaker_disable(true);  // Disable AK4951 speaker by default (in case of OpenSourceSDRLab H2)
     set_menu_color(Color::grey());
+    set_ui_hide_numeric_battery(true);  // hide the numeric battery by default - no space to display it
 
     // Default values for recon app.
     set_recon_autosave_freqs(false);
@@ -954,6 +955,13 @@ bool ui_hide_fake_brightness() {
     return data->ui_config2.hide_fake_brightness;
 }
 
+bool ui_hide_numeric_battery() {
+    return data->ui_config2.hide_numeric_battery;
+}
+bool ui_hide_battery_icon() {
+    return data->ui_config2.hide_battery_icon;
+}
+
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
 }
@@ -985,6 +993,12 @@ void set_ui_hide_sd_card(bool v) {
 }
 void set_ui_hide_fake_brightness(bool v) {
     data->ui_config2.hide_fake_brightness = v;
+}
+void set_ui_hide_numeric_battery(bool v) {
+    data->ui_config2.hide_numeric_battery = v;
+}
+void set_ui_hide_battery_icon(bool v) {
+    data->ui_config2.hide_battery_icon = v;
 }
 
 /* Converter */
@@ -1248,6 +1262,8 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_sd_card: " + to_string_dec_uint(data->ui_config2.hide_sd_card));
     pmem_dump_file.write_line("ui_config2 hide_mute: " + to_string_dec_uint(data->ui_config2.hide_mute));
     pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(data->ui_config2.hide_fake_brightness));
+    pmem_dump_file.write_line("ui_config2 hide_battery_icon: " + to_string_dec_uint(data->ui_config2.hide_battery_icon));
+    pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(data->ui_config2.hide_numeric_battery));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));

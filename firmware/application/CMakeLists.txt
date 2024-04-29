@@ -177,6 +177,7 @@ set(CPPSRC
 	${COMMON}/utility.cpp
 	${COMMON}/wm8731.cpp
 	${COMMON}/ads1110.cpp
+	${COMMON}/battery.cpp
 	${COMMON}/performance_counter.cpp
 	${COMMON}/bmpfile.cpp
 	app_settings.cpp
@@ -283,6 +284,7 @@ set(CPPSRC
 	apps/ui_adsb_tx.cpp
 	apps/ui_aprs_rx.cpp
 	apps/ui_aprs_tx.cpp
+	apps/ui_battinfo.cpp
 	apps/ui_bht_tx.cpp
 	apps/ui_bmp_file_viewer.cpp
 	apps/ui_btle_rx.cpp
