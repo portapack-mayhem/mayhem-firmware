@@ -48,7 +48,9 @@ class BattinfoView : public View {
 
     Labels labels{
         {{2 * 8, 1 * 16}, "Percent:", Color::light_grey()},
-        {{2 * 8, 2 * 16}, "Voltage:", Color::light_grey()},
+        {{2 * 8, 2 * 16}, "Voltage:", Color::light_grey()}};
+
+    Labels labels_opt{
         {{2 * 8, 3 * 16}, "Current:", Color::light_grey()},
         {{2 * 8, 4 * 16}, "Charge:", Color::light_grey()}};
 
