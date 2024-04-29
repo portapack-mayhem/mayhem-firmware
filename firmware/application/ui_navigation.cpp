@@ -84,6 +84,7 @@
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
 #include "ui_whipcalc.hpp"
+#include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
 // #include "acars_app.hpp"
@@ -171,7 +172,7 @@ const NavigationView::AppList NavigationView::appList = {
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"recon", "Recon", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
-    {"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
+    //{"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
     {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
     //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()},
@@ -376,23 +377,12 @@ SystemStatusView::SystemStatusView(
 // when battery icon / text is clicked
 void SystemStatusView::on_battery_details() {
     if (!nav_.is_valid()) return;
-    uint8_t percent = 0;
-    uint16_t volt = 0;
-    int32_t current = 0;
-    bool ischarge = false;
-    battery::BatteryManagement::getBatteryInfo(percent, volt, current, ischarge);
-
-    std::string battinfo = "Percent: " + to_string_dec_uint(percent) + "%\r\n";
-    battinfo += "Voltage: " + to_string_decimal(volt / 1000.0f, 3) + "V";
-    if (current != 0) {
-        battinfo += "\r\nCurrent: " + to_string_dec_int(current) + " mA";
-        battinfo += "\r\nState: ";
-        if (ischarge)
-            battinfo += "charging";
-        else
-            battinfo += "discharging";
-    }
-    nav_.display_modal("Battery", battinfo, ui::modal_t::INFO, nullptr, true);
+    if (batt_info_up) return;
+    batt_info_up = true;
+    nav_.push<BattinfoView>();
+    nav_.set_on_pop([this]() {
+        batt_info_up = false;
+    });
 }
 
 void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {

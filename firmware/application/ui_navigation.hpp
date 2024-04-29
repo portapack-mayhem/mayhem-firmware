@@ -192,7 +192,7 @@ class SystemStatusView : public View {
 
    private:
     static constexpr auto default_title = "";
-
+    bool batt_info_up = false;  // to prevent show multiple batt info dialog
     NavigationView& nav_;
 
     Rectangle backdrop{
