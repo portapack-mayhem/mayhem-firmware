@@ -32,7 +32,7 @@ void initialize_app(ui::NavigationView& nav) {
 
 extern "C" {
 
-__attribute__((section(".external_app.app_tpms.application_information"), used)) application_information_t _application_information_tpmsrx = {
+__attribute__((section(".external_app.app_tpmsrx.application_information"), used)) application_information_t _application_information_tpmsrx = {
     /*.memory_location = */ (uint8_t*)0x00000000,  // will be filled at compile time
     /*.externalAppEntry = */ ui::external_app::tpmsrx::initialize_app,
     /*.header_version = */ CURRENT_HEADER_VERSION,
