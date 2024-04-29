@@ -278,8 +278,7 @@ set(CPPSRC
 	apps/pocsag_app.cpp
 	# apps/replay_app.cpp
 	apps/soundboard_app.cpp
-	apps/tpms_app.cpp
-	apps/tpms_app.cpp
+	# apps/tpms_app.cpp
 	apps/ui_about_simple.cpp
 	apps/ui_adsb_rx.cpp
 	apps/ui_adsb_tx.cpp

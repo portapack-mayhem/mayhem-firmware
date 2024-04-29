@@ -34,15 +34,15 @@ using namespace portapack;
 
 namespace pmem = portapack::persistent_memory;
 
-namespace tpms {
+namespace ui::external_app::tpmsrx {
 
 namespace format {
 
-std::string type(Reading::Type type) {
+std::string type(tpms::Reading::Type type) {
     return to_string_dec_uint(toUType(type), 2);
 }
 
-std::string id(TransponderID id) {
+std::string id(tpms::TransponderID id) {
     return to_string_hex(id.value(), 8);
 }
 
@@ -54,17 +54,17 @@ std::string temperature(Temperature temperature) {
     return to_string_dec_int(units_fahr ? temperature.fahrenheit() : temperature.celsius(), 3);
 }
 
-std::string flags(Flags flags) {
+std::string flags(tpms::Flags flags) {
     return to_string_hex(flags, 2);
 }
 
-static std::string signal_type(SignalType signal_type) {
+static std::string signal_type(tpms::SignalType signal_type) {
     switch (signal_type) {
-        case SignalType::FSK_19k2_Schrader:
+        case tpms::SignalType::FSK_19k2_Schrader:
             return "FSK 38400 19200 Schrader";
-        case SignalType::OOK_8k192_Schrader:
+        case tpms::SignalType::OOK_8k192_Schrader:
             return "OOK - 8192 Schrader";
-        case SignalType::OOK_8k4_Schrader:
+        case tpms::SignalType::OOK_8k4_Schrader:
             return "OOK - 8400 Schrader";
         default:
             return "- - - -";
@@ -73,15 +73,13 @@ static std::string signal_type(SignalType signal_type) {
 
 } /* namespace format */
 
-} /* namespace tpms */
-
 void TPMSLogger::on_packet(const tpms::Packet& packet, const uint32_t target_frequency) {
     const auto hex_formatted = packet.symbols_formatted();
 
     // TODO: function doesn't take uint64_t, so when >= 1<<32, weirdness will ensue!
     const auto target_frequency_str = to_string_dec_uint(target_frequency, 10);
 
-    std::string entry = target_frequency_str + " " + tpms::format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
+    std::string entry = target_frequency_str + " " + ui::external_app::tpmsrx::format::signal_type(packet.signal_type()) + " " + hex_formatted.data + "/" + hex_formatted.errors;
     log_file.write_entry(packet.received_at(), entry);
 }
 
@@ -101,52 +99,9 @@ void TPMSRecentEntry::update(const tpms::Reading& reading) {
     }
 }
 
-namespace ui {
-
-template <>
-void RecentEntriesTable<TPMSRecentEntries>::draw(
-    const Entry& entry,
-    const Rect& target_rect,
-    Painter& painter,
-    const Style& style) {
-    std::string line = tpms::format::type(entry.type) + " " + tpms::format::id(entry.id);
-
-    if (entry.last_pressure.is_valid()) {
-        line += "  " + tpms::format::pressure(entry.last_pressure.value());
-    } else {
-        line +=
-            "  "
-            "   ";
-    }
-
-    if (entry.last_temperature.is_valid()) {
-        line += "  " + tpms::format::temperature(entry.last_temperature.value());
-    } else {
-        line +=
-            "  "
-            "   ";
-    }
-
-    if (entry.received_count > 999) {
-        line += " +++";
-    } else {
-        line += " " + to_string_dec_uint(entry.received_count, 3);
-    }
-
-    if (entry.last_flags.is_valid()) {
-        line += " " + tpms::format::flags(entry.last_flags.value());
-    } else {
-        line +=
-            " "
-            "  ";
-    }
-
-    line.resize(target_rect.width() / 8, ' ');
-    painter.draw_string(target_rect.location(), style, line);
-}
-
 TPMSAppView::TPMSAppView(NavigationView&) {
-    baseband::run_image(portapack::spi_flash::image_tag_tpms);
+    // baseband::run_image(portapack::spi_flash::image_tag_tpms);
+    baseband::run_prepared_image(portapack::memory::map::m4_code.base());
 
     add_children({&rssi,
                   &field_volume,
@@ -167,16 +122,16 @@ TPMSAppView::TPMSAppView(NavigationView&) {
     options_band.set_by_value(receiver_model.target_frequency());
 
     options_pressure.on_change = [this](size_t, int32_t i) {
-        tpms::format::units_psi = (bool)i;
+        format::units_psi = (bool)i;
         update_view();
     };
-    options_pressure.set_selected_index(tpms::format::units_psi, true);
+    options_pressure.set_selected_index(format::units_psi, true);
 
     options_temperature.on_change = [this](size_t, int32_t i) {
-        tpms::format::units_fahr = (bool)i;
+        format::units_fahr = (bool)i;
         update_view();
     };
-    options_temperature.set_selected_index(tpms::format::units_fahr, true);
+    options_temperature.set_selected_index(format::units_fahr, true);
 
     logger = std::make_unique<TPMSLogger>();
     if (logger) {
@@ -234,4 +189,50 @@ void TPMSAppView::on_show_list() {
     recent_entries_view.focus();
 }
 
-} /* namespace ui */
+}  // namespace ui::external_app::tpmsrx
+
+namespace ui {
+
+template <>
+void RecentEntriesTable<ui::external_app::tpmsrx::TPMSRecentEntries>::draw(
+    const Entry& entry,
+    const Rect& target_rect,
+    Painter& painter,
+    const Style& style) {
+    std::string line = ui::external_app::tpmsrx::format::type(entry.type) + " " + ui::external_app::tpmsrx::format::id(entry.id);
+
+    if (entry.last_pressure.is_valid()) {
+        line += "  " + ui::external_app::tpmsrx::format::pressure(entry.last_pressure.value());
+    } else {
+        line +=
+            "  "
+            "   ";
+    }
+
+    if (entry.last_temperature.is_valid()) {
+        line += "  " + ui::external_app::tpmsrx::format::temperature(entry.last_temperature.value());
+    } else {
+        line +=
+            "  "
+            "   ";
+    }
+
+    if (entry.received_count > 999) {
+        line += " +++";
+    } else {
+        line += " " + to_string_dec_uint(entry.received_count, 3);
+    }
+
+    if (entry.last_flags.is_valid()) {
+        line += " " + ui::external_app::tpmsrx::format::flags(entry.last_flags.value());
+    } else {
+        line +=
+            " "
+            "  ";
+    }
+
+    line.resize(target_rect.width() / 8, ' ');
+    painter.draw_string(target_rect.location(), style, line);
+}
+
+}  // namespace ui
