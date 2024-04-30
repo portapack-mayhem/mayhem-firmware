@@ -76,7 +76,8 @@ def get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(path):
         elf_files = [os.path.join(os.path.dirname(path), f) for f in os.listdir(os.path.dirname(path)) if
                      f.endswith(".elf")]
     else:
-        print("gave path or filename is not valid")  # didn't use except nor exit here cuz don't need to break compile if this is bad result anyway
+        print(
+            "gave path or filename is not valid")  # didn't use except nor exit here cuz don't need to break compile if this is bad result anyway
 
     gcc_versions = []
     for elf_file in elf_files:
@@ -95,6 +96,17 @@ application_image = read_image(sys.argv[1])
 baseband_image = read_image(sys.argv[2])
 output_path = sys.argv[3]
 
+print("\ncheck gcc versions from all elf target\n")
+application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
+baseband_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[2])
+
+for itap in application_gcc_versions:
+    print(itap)
+
+for itbb in baseband_gcc_versions:
+    print(itbb)
+
+print("\n")
 spi_size = 1048576
 
 images = (
@@ -149,13 +161,3 @@ write_image(spi_image, output_path)
 
 percent_remaining = round(1000 * pad_size / spi_size) / 10;
 print("Space remaining in flash ROM:", pad_size, "bytes (", percent_remaining, "%)")
-
-print("check gcc versions from all elf target")
-application_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[1])
-baseband_gcc_versions = get_gcc_version_from_elf_files_in_giving_path_or_filename_s_path(sys.argv[2])
-
-for itap in application_gcc_versions:
-    print(itap)
-
-for itbb in baseband_gcc_versions:
-    print(itbb)
