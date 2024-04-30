@@ -1,6 +1,5 @@
 /*
- * Copyright (C) 2014 Jared Boone, ShareBrained Technology, Inc.
- * Copyright (C) 2016 Furrtek
+ * Copyright (C) 2024 jLynx.
  *
  * This file is part of PortaPack.
  *
@@ -20,34 +19,39 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#pragma pack(push, 1)
-struct bmp_header_t {
-    uint16_t signature;
-    uint32_t size;
-    uint16_t reserved_1;
-    uint16_t reserved_2;
-    uint32_t image_data;
-    uint32_t BIH_size;
-    uint32_t width;
-    int32_t height;  // can be negative, to signal the bottom-up or reserve status
-    uint16_t planes;
-    uint16_t bpp;
-    uint32_t compression;
-    uint32_t data_size;
-    uint32_t h_res;
-    uint32_t v_res;
-    uint32_t colors_count;
-    uint32_t icolors_count;
-};
-#pragma pack(pop)
+#ifndef __ADS1110_H__
+#define __ADS1110_H__
 
-#pragma pack(push, 1)
-struct bmp_palette_t {
-    struct color_t {
-        uint8_t B;
-        uint8_t G;
-        uint8_t R;
-        uint8_t A;
-    } color[16];
+#include <cstdint>
+#include <array>
+#include <string>
+
+#include "i2c_pp.hpp"
+namespace battery {
+namespace ads1110 {
+
+using address_t = uint8_t;
+
+class ADS1110 {
+   public:
+    constexpr ADS1110(I2C& bus, const I2C::address_t bus_address)
+        : bus(bus), bus_address(bus_address), detected_(false) {}
+
+    void init();
+    bool detect();
+    bool isDetected() const { return detected_; }
+
+    uint16_t readVoltage();
+    void getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage);
+
+   private:
+    I2C& bus;
+    const I2C::address_t bus_address;
+    bool detected_;
+
+    bool write(const uint8_t value);
 };
-#pragma pack(pop)
+
+} /* namespace ads1110 */
+}  // namespace battery
+#endif /* __ADS1110_H__ */

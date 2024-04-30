@@ -80,6 +80,10 @@ set(EXTCPPSRC
 	#wardrivemap
 	external/wardrivemap/main.cpp
 	external/wardrivemap/ui_wardrivemap.cpp
+
+	#tpmsrx
+	external/tpmsrx/main.cpp
+	external/tpmsrx/tpms_app.cpp
 )
 
 set(EXTAPPLIST
@@ -102,4 +106,5 @@ set(EXTAPPLIST
 	foxhunt_rx
 	audio_test
 	wardrivemap
+	tpmsrx
 )
