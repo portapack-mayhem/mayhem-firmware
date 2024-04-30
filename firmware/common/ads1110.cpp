@@ -24,10 +24,11 @@
 #include <algorithm>
 #include <cstdint>
 
+namespace battery {
 namespace ads1110 {
 
-constexpr float BATTERY_MIN_VOLTAGE = 3.0;
-constexpr float BATTERY_MAX_VOLTAGE = 4.0;
+constexpr uint16_t BATTERY_MIN_VOLTAGE = 3000;
+constexpr uint16_t BATTERY_MAX_VOLTAGE = 4000;
 
 void ADS1110::init() {
     if (!detected_) {
@@ -50,6 +51,7 @@ bool ADS1110::detect() {
             return true;
         }
     }
+    detected_ = false;
     return false;
 }
 
@@ -57,7 +59,8 @@ bool ADS1110::write(const uint8_t value) {
     return bus.transmit(bus_address, &value, 1);
 }
 
-float ADS1110::readVoltage() {
+// returns the batt voltage in mV
+uint16_t ADS1110::readVoltage() {
     // Read the conversion result
     uint8_t data[3];
     if (!bus.receive(bus_address, data, 3)) {
@@ -67,7 +70,7 @@ float ADS1110::readVoltage() {
     uint16_t raw = (static_cast<uint16_t>(data[0]) << 8) | data[1];
 
     // Calculate the voltage based on the output code
-    float voltage = 0.0f;
+    int16_t voltage = 0;
     float minCode = 0;
     float pga = 0.0f;
 
@@ -110,21 +113,21 @@ float ADS1110::readVoltage() {
     }
 
     // 2.048 is the reference voltage & 2.0 is to make up for the voltage divider
-    voltage = raw / (-1.0 * minCode) * pga * 2.048 * 2.0;
-
-    return voltage;
+    voltage = (int16_t)(raw / (-1.0 * minCode) * pga * 2.048 * 2.0 * 1000.0);  // v to mV
+    if (voltage < 0) voltage *= -1;                                            // should not happen in this build, but prevent it
+    return (uint16_t)voltage;
 }
 
-void ADS1110::getBatteryInfo(float& batteryPercentage, float& voltage) {
+void ADS1110::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     voltage = readVoltage();
 
     // Calculate the remaining battery percentage
-    batteryPercentage = (voltage - BATTERY_MIN_VOLTAGE) /
-                        (BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
+    batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
 
     // Limit the values to the valid range
-    batteryPercentage = std::clamp(batteryPercentage, 0.0f, 100.0f);
+    batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
     // ToDo: if its > 4, then 100%, if < 3 then 0%
 }
 
 } /* namespace ads1110 */
+}  // namespace battery

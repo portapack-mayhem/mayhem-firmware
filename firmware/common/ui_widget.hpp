@@ -33,6 +33,8 @@
 #include "portapack.hpp"
 #include "utility.hpp"
 
+#include "ui/ui_font_fixed_5x8.hpp"
+
 #include <functional>
 #include <memory>
 #include <string>
@@ -779,6 +781,52 @@ class TextField : public Text {
 
    private:
     using Text::set;
+};
+
+class BatteryTextField : public Widget {
+   public:
+    std::function<void()> on_select{};
+
+    BatteryTextField(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
+
+    void set_battery(uint8_t percentage, bool charge);
+    void set_text(std::string_view value);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    uint8_t percent_{102};
+    bool charge_{false};
+
+    static constexpr Style style{
+        .font = font::fixed_5x8,
+        .background = Color::dark_grey(),
+        .foreground = Color::white(),
+    };
+};
+
+class BatteryIcon : public Widget {
+   public:
+    std::function<void()> on_select{};
+
+    BatteryIcon(Rect parent_rect, uint8_t percent);
+    void paint(Painter& painter) override;
+    void set_battery(uint8_t percentage, bool charge);
+
+    bool on_key(KeyEvent key) override;
+    bool on_touch(TouchEvent event) override;
+
+    void getAccessibilityText(std::string& result) override;
+    void getWidgetName(std::string& result) override;
+
+   private:
+    uint8_t percent_{102};
+    bool charge_{false};
 };
 
 class NumberField : public Widget {

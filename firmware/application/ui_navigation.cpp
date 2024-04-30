@@ -84,6 +84,7 @@
 #include "ui_weatherstation.hpp"
 #include "ui_subghzd.hpp"
 #include "ui_whipcalc.hpp"
+#include "ui_battinfo.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
 // #include "acars_app.hpp"
@@ -100,7 +101,7 @@
 #include "pocsag_app.hpp"
 #include "replay_app.hpp"
 #include "soundboard_app.hpp"
-#include "tpms_app.hpp"
+// #include "tpms_app.hpp" //moved to ext
 
 #include "core_control.hpp"
 #include "file.hpp"
@@ -171,9 +172,9 @@ const NavigationView::AppList NavigationView::appList = {
     {"radiosonde", "Radiosnde", RX, Color::green(), &bitmap_icon_sonde, new ViewFactory<SondeView>()},
     {"recon", "Recon", RX, Color::green(), &bitmap_icon_scanner, new ViewFactory<ReconView>()},
     {"search", "Search", RX, Color::yellow(), &bitmap_icon_search, new ViewFactory<SearchView>()},
-    {"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
-    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
+    //{"tmps", "TPMS Cars", RX, Color::green(), &bitmap_icon_tpms, new ViewFactory<TPMSAppView>()},
     {"subghzd", "SubGhzD", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<SubGhzDView>()},
+    {"weather", "Weather", RX, Color::green(), &bitmap_icon_thermometer, new ViewFactory<WeatherView>()},
     //{"fskrx", "FSK RX", RX, Color::yellow(), &bitmap_icon_remote, new ViewFactory<FskxRxMainView>()},
     //{"dmr", "DMR", RX, Color::dark_grey(), &bitmap_icon_dmr, new ViewFactory<NotImplementedView>()},
     //{"sigfox", "SIGFOX", RX, Color::dark_grey(), &bitmap_icon_fox, new ViewFactory<NotImplementedView>()},
@@ -334,6 +335,9 @@ SystemStatusView::SystemStatusView(
         refresh();
     };
 
+    battery_icon.on_select = [this]() { on_battery_details(); };
+    battery_text.on_select = [this]() { on_battery_details(); };
+
     button_fake_brightness.on_select = [this](ImageButton&) {
         set_dirty();
         pmem::toggle_fake_brightness_level();
@@ -370,6 +374,26 @@ SystemStatusView::SystemStatusView(
     refresh();
 }
 
+// when battery icon / text is clicked
+void SystemStatusView::on_battery_details() {
+    if (!nav_.is_valid()) return;
+    if (batt_info_up) return;
+    batt_info_up = true;
+    nav_.push<BattinfoView>();
+    nav_.set_on_pop([this]() {
+        batt_info_up = false;
+    });
+}
+
+void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
+    if (!pmem::ui_hide_numeric_battery()) {
+        battery_text.set_battery(msg->percent, msg->on_charger);
+    }
+    if (!pmem::ui_hide_battery_icon()) {
+        battery_icon.set_battery(msg->percent, msg->on_charger);
+    };
+}
+
 void SystemStatusView::refresh() {
     // NB: Order of insertion is the display order Left->Right.
     // TODO: Might be better to support hide and only add once.
@@ -386,8 +410,20 @@ void SystemStatusView::refresh() {
     if (audio::speaker_disable_supported() && !pmem::ui_hide_speaker()) status_icons.add(&toggle_speaker);
 
     if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
+    if (battery::BatteryManagement::isDetected()) {
+        uint8_t percent = battery::BatteryManagement::getPercent();
+        if (!pmem::ui_hide_battery_icon()) {
+            status_icons.add(&battery_icon);
+            battery_text.set_battery(percent, false);  // got an on select, that may pop up the details of the battery.
+        };
+        if (!pmem::ui_hide_numeric_battery()) {
+            status_icons.add(&battery_text);
+            battery_text.set_battery(percent, false);
+        }
+    }
 
     if (!pmem::ui_hide_sd_card()) status_icons.add(&sd_card_status_view);
+
     status_icons.update_layout();
 
     // Clock status
@@ -597,12 +633,13 @@ void SystemStatusView::new_sdcard_structure_checker() {
             "following the Wiki.\n"
             "Details:\n"
             "Mayhem wiki - Updating",
-            COMPACTYESNO,
+            YESNO,
             [this](bool choice) {
                 if (choice) {
                     new_sdcard_structure_worker();
                 }
-            });
+            },
+            true);
     }
 }
 
@@ -758,8 +795,9 @@ void NavigationView::display_modal(
     const std::string& title,
     const std::string& message,
     modal_t type,
-    std::function<void(bool)> on_choice) {
-    push<ModalMessageView>(title, message, type, on_choice);
+    std::function<void(bool)> on_choice,
+    bool compact) {
+    push<ModalMessageView>(title, message, type, on_choice, compact);
 }
 
 void NavigationView::free_view() {
@@ -1088,11 +1126,13 @@ ModalMessageView::ModalMessageView(
     const std::string& title,
     const std::string& message,
     modal_t type,
-    std::function<void(bool)> on_choice)
+    std::function<void(bool)> on_choice,
+    bool compact)
     : title_{title},
       message_{message},
       type_{type},
-      on_choice_{on_choice} {
+      on_choice_{on_choice},
+      compact{compact} {
     if (type == INFO) {
         add_child(&button_ok);
         button_ok.on_select = [this, &nav](Button&) {
@@ -1100,7 +1140,7 @@ ModalMessageView::ModalMessageView(
             nav.pop();
         };
 
-    } else if (type == YESNO || type == COMPACTYESNO) {
+    } else if (type == YESNO) {
         add_children({&button_yes,
                       &button_no});
 
@@ -1125,22 +1165,22 @@ ModalMessageView::ModalMessageView(
 }
 
 void ModalMessageView::paint(Painter& painter) {
-    if (type_ != COMPACTYESNO) {
-        portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
-    }
+    if (!compact) portapack::display.drawBMP({100, 48}, modal_warning_bmp, false);
 
     // Break lines.
     auto lines = split_string(message_, '\n');
     for (size_t i = 0; i < lines.size(); ++i) {
         painter.draw_string(
-            {1 * 8, (Coord)(((type_ == COMPACTYESNO) ? 8 * 3 : 120) + (i * 16))},
+
+            {1 * 8, (Coord)(((compact) ? 8 * 3 : 120) + (i * 16))},
+
             style(),
             lines[i]);
     }
 }
 
 void ModalMessageView::focus() {
-    if ((type_ == YESNO) || (type_ == COMPACTYESNO)) {
+    if (type_ == YESNO) {
         button_no.focus();  // it should default to NO like all the operating system
     } else {
         button_ok.focus();

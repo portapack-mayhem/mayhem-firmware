@@ -38,7 +38,7 @@
 
 #include "tpms_packet.hpp"
 
-namespace tpms {
+namespace ui::external_app::tpmsrx {
 
 namespace format {
 
@@ -46,12 +46,6 @@ static bool units_psi{false};
 static bool units_fahr{false};
 
 } /* namespace format */
-
-} /* namespace tpms */
-
-namespace std {
-
-} /* namespace std */
 
 struct TPMSRecentEntry {
     using Key = std::pair<tpms::Reading::Type, tpms::TransponderID>;
@@ -94,8 +88,6 @@ class TPMSLogger {
     LogFile log_file{};
 };
 
-namespace ui {
-
 using TPMSRecentEntriesView = RecentEntriesView<TPMSRecentEntries>;
 
 class TPMSAppView : public View {
@@ -115,16 +107,18 @@ class TPMSAppView : public View {
 
    private:
     RxRadioState radio_state_{
-        314950000 /* frequency*/,
+        314950000 /* frequency*/
+        ,
         1750000 /* bandwidth */,
-        2457600 /* sampling rate */};
+        2457600 /* sampling rate */
+    };
 
     app_settings::SettingsManager settings_{
         "rx_tpms",
         app_settings::Mode::RX,
         {
-            {"units_psi"sv, &tpms::format::units_psi},
-            {"units_fahr"sv, &tpms::format::units_fahr},
+            {"units_psi"sv, &format::units_psi},
+            {"units_fahr"sv, &format::units_fahr},
         }};
 
     MessageHandlerRegistration message_handler_packet{
@@ -198,6 +192,6 @@ class TPMSAppView : public View {
     void update_view();
 };
 
-} /* namespace ui */
+}  // namespace ui::external_app::tpmsrx
 
 #endif /*__TPMS_APP_H__*/
