@@ -16,9 +16,9 @@ This is a fork of the [Havoc](https://github.com/furrtek/portapack-havoc/) firmw
 
 If you are new to *HackRF+PortaPack+Mayhem*, check these:
 
-[<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="512">](https://grabify.link/C0J6ZR)
+[<img alt="HackRF 101 : Everything You Need to Know to Get Started!" src="https://img.youtube.com/vi/xGR_PMD9LeU/maxresdefault.jpg" width="512">](https://www.youtube.com/watch?v=xGR_PMD9LeU)
 
-[<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="254">](https://grabify.link/5MU2VH) [<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="254">](https://grabify.link/9UZGEW)
+[<img alt="Beginner's Guide To The HackRF & Portapak With Mayhem" src="https://img.youtube.com/vi/H-bqdWfbhpg/maxresdefault.jpg" width="254">](https://www.youtube.com/watch?v=H-bqdWfbhpg) [<img alt="What is the HackRF One Portapack H2+?" src="https://img.youtube.com/vi/alrFbY5vxt4/maxresdefault.jpg" width="254">](https://www.youtube.com/watch?v=alrFbY5vxt4)
 
 # Frequently Asked Questions
 
