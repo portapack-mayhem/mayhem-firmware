@@ -15,7 +15,7 @@ class AboutView : public View {
 
    private:
     MenuView menu_view{
-        {0, 0, 240, 240},
+        {0, 0, 240, 264},
         true};
 
     Button button_ok{
