@@ -132,3 +132,13 @@ void UsbSerialAsyncmsg::asyncmsg(const char* data) {
     }
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data);
 }
+
+/// bool
+template <>
+// usage:     UsbSerialAsyncmsg::asyncmsg(true);
+void UsbSerialAsyncmsg::asyncmsg<bool>(const bool& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", data ? "true" : "false");
+}
