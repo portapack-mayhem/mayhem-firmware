@@ -5,11 +5,9 @@ namespace ui {
 // TODO: Generate this automatically from github
 // Information: a line starting with a '#' will be yellow coloured
 const std::string authors_list[] = {
-    " ",
     "#   * List of contributors *  ",
     " ",
     "#Mayhem:",
-    " ",
     "eried,euquiq,gregoryfenton",
     "johnelder,jwetzell,nnemanjan00",
     "N0vaPixel,klockee,gullradriel",
@@ -27,7 +25,6 @@ const std::string authors_list[] = {
     "Netro,HTotoo",
     " ",
     "#Havoc:",
-    " ",
     "furrtek,mrmookie,NotPike",
     "mjwaxios,ImDroided,Giorgiofox",
     "F4GEV,z4ziggy,xmycroftx",
@@ -37,11 +34,9 @@ const std::string authors_list[] = {
     "brianlechthaler,ZeroChaos-...",
     " ",
     "#PortaPack:",
-    " ",
     "jboone,argilo",
     " ",
     "#HackRF:",
-    " ",
     "mossmann,dominicgs,bvernoux",
     "bgamari,schneider42,miek",
     "willcode,hessu,Sec42",
@@ -86,8 +81,8 @@ AboutView::AboutView(NavigationView& nav) {
 
 void AboutView::focus() {
     menu_view.focus();
-    // put focus on first text line
-    menu_view.set_highlighted(1);
+    // put focus on last text line to make it more obvious that list is scrollable
+    menu_view.set_highlighted(10);
 }
 
 } /* namespace ui */
