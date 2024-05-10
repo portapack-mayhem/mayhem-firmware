@@ -120,7 +120,10 @@ set(TCPPSRC)
 # List ASM source files here
 set(ASMSRC)
 
-set(INCDIR ${CMAKE_CURRENT_BINARY_DIR})
+set(INCDIR 
+	${CMAKE_CURRENT_SOURCE_DIR}
+	${COMMON}
+)
 
 #
 # Project, sources and paths

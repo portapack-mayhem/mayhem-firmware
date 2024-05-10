@@ -71,5 +71,3 @@ struct standalone_application_information_t {
     /// @brief gets called once at application shutdown
     void (*shutdown)();
 };
-
-extern const standalone_application_api_t* _api;

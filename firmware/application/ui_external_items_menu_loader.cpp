@@ -10,8 +10,10 @@ namespace ui {
 // iterates over all ppma-s, and if it is runnable on the current system, it'll call the callback, and pass info.
 /* static */ void ExternalItemsMenuLoader::load_all_external_items_callback(std::function<void(AppInfoConsole&)> callback) {
     if (!callback) return;
+
     if (sd_card::status() != sd_card::Status::Mounted)
         return;
+
     for (const auto& entry : std::filesystem::directory_iterator(apps_dir, u"*.ppma")) {
         auto filePath = apps_dir / entry.path();
         File app;
@@ -41,6 +43,37 @@ namespace ui {
             .appCallName = appshortname.c_str(),
             .appFriendlyName = reinterpret_cast<char*>(&application_information.app_name[0]),
             .appLocation = application_information.menu_location};
+        callback(info);
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(apps_dir, u"*.ppmp")) {
+        auto filePath = apps_dir / entry.path();
+        File app;
+
+        auto openError = app.open(filePath);
+        if (openError)
+            continue;
+
+        standalone_application_information_t application_information = {};
+
+        auto readResult = app.read(&application_information, sizeof(standalone_application_information_t));
+        if (!readResult)
+            continue;
+
+        if (application_information.header_version < CURRENT_STANDALONE_APPLICATION_API_VERSION)
+            continue;
+
+        // here the app is startable and good.
+        std::string appshortname = filePath.filename().string();
+        if (appshortname.size() >= 5 && appshortname.substr(appshortname.size() - 5) == ".ppmp") {
+            // Remove the ".ppmp" suffix
+            appshortname = appshortname.substr(0, appshortname.size() - 5);
+        }
+        AppInfoConsole info{
+            .appCallName = appshortname.c_str(),
+            .appFriendlyName = reinterpret_cast<char*>(&application_information.app_name[0]),
+            .appLocation = application_information.menu_location};
+
         callback(info);
     }
 }
@@ -99,6 +132,45 @@ namespace ui {
                 nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder is outdated. Please\nupdate your SD Card content.");
             };
         }
+
+        external_apps.push_back(gridItem);
+    }
+
+    for (const auto& entry : std::filesystem::directory_iterator(apps_dir, u"*.ppmp")) {
+        auto filePath = apps_dir / entry.path();
+        File app;
+
+        auto openError = app.open(filePath);
+        if (openError)
+            continue;
+
+        standalone_application_information_t application_information = {};
+
+        auto readResult = app.read(&application_information, sizeof(standalone_application_information_t));
+        if (!readResult)
+            continue;
+
+        if (application_information.menu_location != app_location)
+            continue;
+
+        if (application_information.header_version > CURRENT_STANDALONE_APPLICATION_API_VERSION)
+            continue;
+
+        GridItem gridItem = {};
+        gridItem.text = reinterpret_cast<char*>(&application_information.app_name[0]);
+
+        gridItem.color = Color((uint16_t)application_information.icon_color);
+
+        auto dyn_bmp = DynamicBitmap<16, 16>{application_information.bitmap_data};
+        gridItem.bitmap = dyn_bmp.bitmap();
+        bitmaps.push_back(std::move(dyn_bmp));
+
+        gridItem.on_select = [&nav, app_location, filePath]() {
+            // TODO:
+            //  if (!run_external_app(nav, filePath)) {
+            //      nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
+            //  }
+        };
 
         external_apps.push_back(gridItem);
     }

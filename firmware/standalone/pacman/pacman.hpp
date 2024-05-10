@@ -26,3 +26,5 @@
 void initialize(const standalone_application_api_t& api);
 void on_event(const uint32_t& events);
 void shutdown();
+
+extern const standalone_application_api_t* _api;

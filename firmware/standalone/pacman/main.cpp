@@ -99,10 +99,3 @@ extern "C" void* __wrap__malloc_r(size_t size) {
 extern "C" void __wrap__free_r(void* p) {
     _api->free(p);
 }
-// extern "C" void* _sbrk_r(struct _reent* r, intptr_t size) {
-//     (void)r;
-//     (void)size;
-//     // TODO: tie to chibios if needed
-//     while (true);
-//     return nullptr;
-// }

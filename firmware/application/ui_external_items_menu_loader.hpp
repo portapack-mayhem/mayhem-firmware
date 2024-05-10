@@ -26,6 +26,7 @@
 #include "ui.hpp"
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
+#include "standalone_app.hpp"
 
 #include "file.hpp"
 
