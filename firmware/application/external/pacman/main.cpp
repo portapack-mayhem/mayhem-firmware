@@ -24,6 +24,7 @@
 #include "ui_navigation.hpp"
 #include "external_app.hpp"
 
+// TODO: remove this folder
 namespace ui::external_app::pacman {
 void initialize_app(ui::NavigationView& nav) {
     nav.push<PacmanView>();

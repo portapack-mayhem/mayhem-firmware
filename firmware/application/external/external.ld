@@ -23,7 +23,6 @@ MEMORY
      * Also need to consider processor memory map - reading 0xADxxxxxx generates a fault which may be better than unexpected behavior.
      * External app address ranges below must match those in python file "external_app_info.py".
      */
-    ram_external_app_pacman     (rwx) : org = 0xADB00000, len = 32k
     ram_external_app_afsk_rx    (rwx) : org = 0xADB10000, len = 32k
     ram_external_app_calculator (rwx) : org = 0xADB20000, len = 32k
     ram_external_app_font_viewer(rwx) : org = 0xADB30000, len = 32k
@@ -47,12 +46,6 @@ MEMORY
 
 SECTIONS
 {
-    .external_app_pacman : ALIGN(4) SUBALIGN(4)
-    {
-        KEEP(*(.external_app.app_pacman.application_information));
-        *(*ui*external_app*pacman*);
-    } > ram_external_app_pacman
-
     .external_app_afsk_rx : ALIGN(4) SUBALIGN(4)
     {
         KEEP(*(.external_app.app_afsk_rx.application_information));

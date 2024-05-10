@@ -20,10 +20,89 @@
  */
 
 #include "standalone_app.hpp"
+#include "pacman.hpp"
+#include <memory>
+
+const standalone_application_api_t* _api;
 
 extern "C" {
-__attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {};
+__attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {
+    /*.header_version = */ CURRENT_STANDALONE_APPLICATION_API_VERSION,
 
-void initialize_app() {
+    /*.app_name = */ "Pac-Man",
+    /*.bitmap_data = */ {
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0xC0,
+        0x07,
+        0xE0,
+        0x0F,
+        0xF0,
+        0x1F,
+        0xF8,
+        0x07,
+        0xF8,
+        0x01,
+        0x78,
+        0x00,
+        0xF8,
+        0x01,
+        0xF8,
+        0x07,
+        0xF0,
+        0x1F,
+        0xE0,
+        0x0F,
+        0xC0,
+        0x07,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+    },
+    /*.icon_color = RGBA*/ 0xFFFF0000,
+    /*.menu_location = */ app_location_t::UTILITIES,
+
+    /*.initialize_app = */ initialize,
+    /*.on_event = */ on_event,
+    /*.shutdown = */ shutdown,
+};
 }
+
+/* Implementing abort() eliminates requirement for _getpid(), _kill(), _exit(). */
+extern "C" void abort() {
+    while (true);
 }
+
+// replace memory allocations to use heap from chibios
+extern "C" void* malloc(size_t size) {
+    return _api->malloc(size);
+}
+extern "C" void* calloc(size_t num, size_t size) {
+    return _api->calloc(num, size);
+}
+extern "C" void* realloc(void* p, size_t size) {
+    return _api->realloc(p, size);
+}
+extern "C" void free(void* p) {
+    _api->free(p);
+}
+
+// redirect std lib memory allocations (sprintf, etc.)
+extern "C" void* __wrap__malloc_r(size_t size) {
+    return _api->malloc(size);
+}
+extern "C" void __wrap__free_r(void* p) {
+    _api->free(p);
+}
+// extern "C" void* _sbrk_r(struct _reent* r, intptr_t size) {
+//     (void)r;
+//     (void)size;
+//     // TODO: tie to chibios if needed
+//     while (true);
+//     return nullptr;
+// }

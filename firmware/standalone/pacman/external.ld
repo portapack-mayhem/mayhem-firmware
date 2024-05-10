@@ -14,25 +14,14 @@
     limitations under the License.
 */
 
-__main_stack_size__     = 0x0400;   /* Exceptions/interrupts stack */
-__process_stack_size__  = 0x1000;   /* main() stack */
-
 MEMORY
 {
-    /*
-     * External apps: regions can't overlap so addresses are corrected after build.
-     * Picking uncommon address values for search & replace in binaries (no false positives) - 0xADB00000-0xADEF0000 seems to be good.
-     * Also need to consider processor memory map - reading 0xADxxxxxx generates a fault which may be better than unexpected behavior.
-     * External app address ranges below must match those in python file "external_app_info.py".
-     */
-    ram     : org = 0x10080000, len = 32k   /* Local SRAM @ 0x10080000 */
+    ram     : org = 0xADB10000, len = 32k   /* DO NOT CHANGE. We make the image relocateable on load. It needs to be 0xADB10000 */
 }
 
 __ram_start__           = ORIGIN(ram);
 __ram_size__            = LENGTH(ram);
 __ram_end__             = __ram_start__ + __ram_size__;
-
-ENTRY(initialize_app)
 
 SECTIONS
 {
@@ -40,7 +29,7 @@ SECTIONS
     _text = .;
     startup : ALIGN(16) SUBALIGN(16)
     {
-        KEEP(*(vectors))
+        KEEP(*(.standalone_application_information));
     } > ram
 
     constructors : ALIGN(4) SUBALIGN(4)
@@ -101,21 +90,6 @@ SECTIONS
     _etext = .;
     _textdata = _etext;
 
-    .stacks :
-    {
-        . = ALIGN(8);
-        __main_stack_base__ = .;
-        . += __main_stack_size__;
-        . = ALIGN(8);
-        __main_stack_end__ = .;
-        __process_stack_base__ = .;
-        __main_thread_stack_base__ = .;
-        . += __process_stack_size__;
-        . = ALIGN(8);
-        __process_stack_end__ = .;
-        __main_thread_stack_end__ = .;
-    } > ram
-
     .data ALIGN(4) : AT (_textdata)
     {
         . = ALIGN(4);
@@ -143,5 +117,3 @@ SECTIONS
 PROVIDE(end = .);
 _end            = .;
 
-__heap_base__   = _end;
-__heap_end__    = __ram_end__;

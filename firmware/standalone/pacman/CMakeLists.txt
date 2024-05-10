@@ -31,7 +31,7 @@ include(CheckCXXCompilerFlag)
 project(pacman_app)
 
 # Compiler options here.
-set(USE_OPT "-Os -g --specs=nano.specs -specs=nosys.specs")
+set(USE_OPT "-Os -g --specs=nano.specs -fpic") #   --specs=nosys.specs
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -43,7 +43,7 @@ if(cpp20_supported)
 else()
 	set(USE_CPPOPT "-std=c++17")
 endif()
-set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -Wno-volatile")
+set(USE_CPPOPT "${USE_CPPOPT} -fno-rtti -fno-exceptions -Weffc++ -Wuninitialized -fno-use-cxa-atexit")
 
 # Enable this if you want the linker to remove unused code and data
 set(USE_LINK_GC yes)
@@ -82,16 +82,19 @@ set(USE_FPU no)
 # Define linker script file here
 set(LDSCRIPT ${CMAKE_CURRENT_SOURCE_DIR}/external.ld)
 
+
 # C sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
+FILE(GLOB_RECURSE Sources_C ${CMAKE_CURRENT_LIST_DIR}/*.c)
 set(CSRC
-	
+	${Sources_C}
 )
 
 # C++ sources that can be compiled in ARM or THUMB mode depending on the global
 # setting.
+FILE(GLOB_RECURSE Sources_CPP ${CMAKE_CURRENT_LIST_DIR}/*.cpp)
 set(CPPSRC
-	main.cpp
+	${Sources_CPP}
 )
 
 # C sources to be compiled in ARM mode regardless of the global setting.
@@ -208,11 +211,14 @@ add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
 #target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_LIST_DIR}/external")
-#target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+# redirect std lib memory allocations
+target_link_libraries(${PROJECT_NAME}.elf "-Wl,-wrap,_malloc_r")
+target_link_libraries(${PROJECT_NAME}.elf "-Wl,-wrap,_free_r")
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.ppmp
-	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.bin
+	COMMAND ${CMAKE_OBJCOPY} -v -O binary ${PROJECT_NAME}.elf ${PROJECT_NAME}.ppmp
 	DEPENDS ${PROJECT_NAME}.elf
 )
 
