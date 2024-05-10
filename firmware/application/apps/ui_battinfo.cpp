@@ -31,6 +31,7 @@ using namespace portapack;
 
 namespace ui {
 
+bool BattinfoView::needRun = true;
 void BattinfoView::focus() {
     button_exit.focus();
 }
@@ -99,6 +100,25 @@ BattinfoView::BattinfoView(NavigationView& nav)
     };
 
     update_result();
+    needRun = true;
+    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, BattinfoView::static_fn, this);
 }
 
+msg_t BattinfoView::static_fn(void* arg) {
+    auto obj = static_cast<BattinfoView*>(arg);
+    while (needRun) {
+        chThdSleepMilliseconds(16);
+        obj->on_timer();
+    }
+    return 0;
+}
+
+BattinfoView::~BattinfoView() {
+    needRun = false;
+    if (thread) {
+        chThdTerminate(thread);
+        chThdWait(thread);
+        thread = nullptr;
+    }
+}
 }  // namespace ui
