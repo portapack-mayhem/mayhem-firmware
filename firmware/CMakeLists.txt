@@ -50,6 +50,7 @@ endif()
 
 add_subdirectory(application)
 add_subdirectory(baseband)
+add_subdirectory(standalone)
 add_subdirectory(test)
 
 # NOTE: Dependencies break if the .bin files aren't included in DEPENDS. WTF, CMake?
