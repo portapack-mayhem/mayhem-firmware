@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  * Copyright (C) 2023 Bernd Herzog
  *
@@ -21,6 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __UI_STANDALONE_APP_H__
+#define __UI_STANDALONE_APP_H__
+
 #include <cerrno>
 #include <cstdint>
 #include <stddef.h>
@@ -34,12 +35,10 @@ struct standalone_application_api_t {
     void (*free)(void* p);
     void (*create_thread)(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority);
     void (*fill_rectangle)(int x, int y, int width, int height, uint16_t color);
+    uint8_t (*swizzled_switches)();
+    uint64_t (*get_switches_state)();
 
-    // TODO: add i2c access
-    // TODO: add sd card access
-    // TODO: add radio access
-    // TODO: add audio access
-
+    // HOW TO extend this interface:
     // to keep everything backward compatible: add new fields at the end
     // and increment CURRENT_STANDALONE_APPLICATION_API_VERSION
 };
@@ -71,3 +70,5 @@ struct standalone_application_information_t {
     /// @brief gets called once at application shutdown
     void (*shutdown)();
 };
+
+#endif /*__UI_STANDALONE_APP_H__*/

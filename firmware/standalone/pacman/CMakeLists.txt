@@ -123,6 +123,8 @@ set(ASMSRC)
 set(INCDIR 
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${COMMON}
+	${COMMON}/../application
+	${COMMON}/../application/hw
 )
 
 #

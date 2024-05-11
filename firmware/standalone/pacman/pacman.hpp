@@ -1,5 +1,3 @@
-#pragma once
-
 /*
  * Copyright (C) 2023 Bernd Herzog
  *
@@ -21,6 +19,9 @@
  * Boston, MA 02110-1301, USA.
  */
 
+#ifndef __PACMAN_H__
+#define __PACMAN_H__
+
 #include "standalone_app.hpp"
 
 void initialize(const standalone_application_api_t& api);
@@ -28,3 +29,5 @@ void on_event(const uint32_t& events);
 void shutdown();
 
 extern const standalone_application_api_t* _api;
+
+#endif /*__PACMAN_H__*/

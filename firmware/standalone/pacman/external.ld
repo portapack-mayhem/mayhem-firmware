@@ -16,7 +16,7 @@
 
 MEMORY
 {
-    ram     : org = 0xADB10000, len = 32k   /* DO NOT CHANGE. We make the image relocateable on load. It needs to be 0xADB10000 */
+    ram : org = 0xADB10000, len = 64k   /* DO NOT CHANGE the address. We make the image relocateable on load. It needs to be 0xADB10000 */
 }
 
 __ram_start__           = ORIGIN(ram);
