@@ -31,7 +31,7 @@ include(CheckCXXCompilerFlag)
 project(pacman_app)
 
 # Compiler options here.
-set(USE_OPT "-Os -g --specs=nano.specs") #   --specs=nosys.specs
+set(USE_OPT "-Os -g --specs=nano.specs")
 
 # C specific options here (added to USE_OPT).
 set(USE_COPT "-std=gnu99")
@@ -215,8 +215,8 @@ set_target_properties(${PROJECT_NAME}.elf PROPERTIES LINK_DEPENDS ${LDSCRIPT})
 add_definitions(${DEFS})
 include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
-#target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_LIST_DIR}/external")
 target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+
 # redirect std lib memory allocations
 target_link_libraries(${PROJECT_NAME}.elf "-Wl,-wrap,_malloc_r")
 target_link_libraries(${PROJECT_NAME}.elf "-Wl,-wrap,_free_r")

@@ -25,7 +25,7 @@
 namespace ui {
 
 void create_thread(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority) {
-    // TODO: collect memory on terminate
+    // TODO: collect memory on terminate, once this is used
     chThdCreateFromHeap(NULL, stack_size, priority, fn, arg);
 }
 
@@ -71,10 +71,11 @@ void StandaloneView::paint(Painter& painter) {
 }
 
 void StandaloneView::frame_sync() {
-    if (initialized) {
-        get_application_information()->on_event(1);
-    } else {
+    // skip first refresh
+    if (!initialized) {
         initialized = true;
+    } else {
+        get_application_information()->on_event(1);
     }
 }
 
