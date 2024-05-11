@@ -16,14 +16,15 @@ std::unique_ptr<Playfield> _playfield;
 
 void initialize(const standalone_application_api_t& api) {
     _api = &api;
-
-    _playfield = std::make_unique<Playfield>();
-    _playfield->Init();
 }
 
 void on_event(const uint32_t& events) {
-    (void)events;
-    if (events & 1) {
+    if (!_playfield) {
+        _playfield = std::make_unique<Playfield>();
+        _playfield->Init();
+    }
+
+    if (events & 1 && _playfield) {
         _playfield->Step();
     }
 }

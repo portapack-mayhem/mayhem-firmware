@@ -31,8 +31,8 @@ struct standalone_application_api_t {
     void* (*malloc)(size_t size);
     void* (*calloc)(size_t num, size_t size);
     void* (*realloc)(void* p, size_t size);
-    void* (*free)(void* p);
-    void (*create_thread)(void (*fn)(void*), void* arg, size_t stack_size, int priority);
+    void (*free)(void* p);
+    void (*create_thread)(int32_t (*fn)(void*), void* arg, size_t stack_size, int priority);
     void (*fill_rectangle)(int x, int y, int width, int height, uint16_t color);
 
     // TODO: add i2c access

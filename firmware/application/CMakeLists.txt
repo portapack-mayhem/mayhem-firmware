@@ -325,6 +325,7 @@ set(CPPSRC
 	# apps/ui_spectrum_painter.cpp
 	apps/ui_ss_viewer.cpp
 	apps/ui_sstvtx.cpp
+	apps/ui_standalone_view.cpp
 	apps/ui_subghzd.cpp
 	# apps/ui_test.cpp
 	apps/ui_text_editor.cpp

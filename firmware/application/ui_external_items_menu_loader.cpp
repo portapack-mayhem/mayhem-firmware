@@ -2,6 +2,7 @@
 
 #include "sd_card.hpp"
 #include "file_path.hpp"
+#include "ui_standalone_view.hpp"
 
 namespace ui {
 
@@ -166,10 +167,9 @@ namespace ui {
         bitmaps.push_back(std::move(dyn_bmp));
 
         gridItem.on_select = [&nav, app_location, filePath]() {
-            // TODO:
-            //  if (!run_external_app(nav, filePath)) {
-            //      nav.display_modal("Error", "The .ppma file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
-            //  }
+            if (!run_standalone_app(nav, filePath)) {
+                nav.display_modal("Error", "The .ppmp file in your " + apps_dir.string() + "\nfolder can't be read. Please\nupdate your SD Card content.");
+            }
         };
 
         external_apps.push_back(gridItem);
@@ -256,6 +256,41 @@ namespace ui {
         return false;
 
     application_information.externalAppEntry(nav);
+    return true;
+}
+
+/* static */ bool ExternalItemsMenuLoader::run_standalone_app(ui::NavigationView& nav, std::filesystem::path filePath) {
+    File app;
+
+    auto openError = app.open(filePath);
+    if (openError)
+        return false;
+
+    auto app_image = std::make_unique<uint8_t[]>(app.size());
+
+    // read file in 512 byte chunks
+    for (size_t file_read_index = 0; file_read_index < app.size(); file_read_index += std::filesystem::max_file_block_size) {
+        auto bytes_to_read = std::filesystem::max_file_block_size;
+        if (file_read_index + std::filesystem::max_file_block_size > app.size())
+            bytes_to_read = app.size() - file_read_index;
+
+        auto readResult = app.read(&app_image[file_read_index], bytes_to_read);
+        if (!readResult)
+            return false;
+
+        if (readResult.value() < std::filesystem::max_file_block_size)
+            break;
+    }
+
+    for (size_t file_read_index = 0; file_read_index < app.size() / 4; file_read_index++) {
+        uint32_t* ptr = reinterpret_cast<uint32_t*>(&app_image[file_read_index * 4]);
+
+        if (*ptr >= 0xADB10000 && *ptr < (0xADB10000 + 64 * 1024)) {
+            *ptr = *ptr - 0xADB10000 + (uint32_t)app_image.get();
+        }
+    }
+
+    nav.push<StandaloneView>(std::move(app_image));
     return true;
 }
 

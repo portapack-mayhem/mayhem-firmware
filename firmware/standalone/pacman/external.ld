@@ -86,6 +86,17 @@ SECTIONS
         . = ALIGN(8);
     } > ram
 
+    .bss ALIGN(4) : ALIGN(4)
+    {
+        . = ALIGN(4);
+        PROVIDE(_bss_start = .);
+        *(.bss)
+        *(.bss.*)
+        *(COMMON)
+        . = ALIGN(4);
+        PROVIDE(_bss_end = .);
+    } > ram
+
     . = ALIGN(4);
     _etext = .;
     _textdata = _etext;
@@ -100,20 +111,8 @@ SECTIONS
         . = ALIGN(4);
         PROVIDE(_edata = .);
     } > ram
-
-    .bss ALIGN(4) : ALIGN(4)
-    {
-        . = ALIGN(4);
-        PROVIDE(_bss_start = .);
-        *(.bss)
-        *(.bss.*)
-        *(COMMON)
-        . = ALIGN(4);
-        PROVIDE(_bss_end = .);
-    } > ram    
-
 }
 
 PROVIDE(end = .);
-_end            = .;
+_end = .;
 
