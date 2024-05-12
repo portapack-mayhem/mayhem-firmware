@@ -44,6 +44,7 @@ do
             echo "Copying external applications to" $mountpoint
             mkdir -p $mountpoint/APPS
             cp application/*.ppma $mountpoint/APPS
+            cp standalone/*/*.ppmp $mountpoint/APPS
 
             echo "Unmounting" $mountpoint
             umount $mountpoint

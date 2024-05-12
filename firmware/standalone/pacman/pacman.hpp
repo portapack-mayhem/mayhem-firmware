@@ -19,32 +19,15 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#ifndef __EXTERNAL_APPS_H__
-#define __EXTERNAL_APPS_H__
+#ifndef __PACMAN_H__
+#define __PACMAN_H__
 
-#include "ch.h"
-#include "ui_navigation.hpp"
-#include "spi_image.hpp"
 #include "standalone_app.hpp"
 
-#define CURRENT_HEADER_VERSION 0x00000002
-#define MIN_HEADER_VERSION_FOR_CHECKSUM 0x00000002
+void initialize(const standalone_application_api_t& api);
+void on_event(const uint32_t& events);
+void shutdown();
 
-typedef void (*externalAppEntry_t)(ui::NavigationView& nav);
+extern const standalone_application_api_t* _api;
 
-struct application_information_t {
-    uint8_t* memory_location;
-    externalAppEntry_t externalAppEntry;
-    uint32_t header_version;
-    uint32_t app_version;
-
-    uint8_t app_name[16];
-    uint8_t bitmap_data[32];
-    uint32_t icon_color;
-    app_location_t menu_location;
-
-    portapack::spi_flash::image_tag_t m4_app_tag;
-    uint32_t m4_app_offset;
-};
-
-#endif /*__EXTERNAL_APPS_H__*/
+#endif /*__PACMAN_H__*/
