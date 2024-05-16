@@ -31,7 +31,13 @@
 namespace ui {
 class BattinfoView : public View {
    public:
+    ~BattinfoView();
     BattinfoView(NavigationView& nav);
+    BattinfoView(const BattinfoView&) = delete;
+    BattinfoView(BattinfoView&&) = delete;
+    BattinfoView& operator=(const BattinfoView&) = delete;
+    BattinfoView& operator=(BattinfoView&&) = delete;
+
     void focus() override;
     std::string title() const override { return "Battery"; };
 
@@ -70,12 +76,9 @@ class BattinfoView : public View {
     Button button_exit{
         {72, 17 * 16, 96, 32},
         "Back"};
-
-    MessageHandlerRegistration message_handler_frame_sync{
-        Message::ID::DisplayFrameSync,
-        [this](const Message* const) {
-            this->on_timer();
-        }};
+    static msg_t static_fn(void* arg);
+    static bool needRun;
+    Thread* thread{nullptr};
 };
 
 } /* namespace ui */
