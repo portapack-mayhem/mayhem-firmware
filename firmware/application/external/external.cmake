@@ -1,9 +1,5 @@
 set(EXTCPPSRC
 
-	#pacman
-	external/pacman/main.cpp
-	external/pacman/ui_pacman.cpp
-
 	#tetris
 	external/tetris/main.cpp
 	external/tetris/ui_tetris.cpp
@@ -87,7 +83,6 @@ set(EXTCPPSRC
 )
 
 set(EXTAPPLIST
-	pacman
 	afsk_rx
 	calculator
 	font_viewer

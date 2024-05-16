@@ -17,6 +17,7 @@
 /*  MIT license, all text above must be included in any redistribution.       */
 
 // #include "ili9328.h"
+#include "standalone_app.hpp"
 
 typedef uint16_t ushort;
 
@@ -46,16 +47,15 @@ uint16_t _paletteW[] =
 };
 
 void drawIndexedmap(uint8_t* indexmap, int16_t x, uint16_t y) {
-    ui::Painter painter;
-
     byte i = 0;
-    word color = (word)_paletteW[indexmap[0]];
+    uint16_t color = (uint16_t)_paletteW[indexmap[0]];
     for (byte tmpY = 0; tmpY < 8; tmpY++) {
         byte width = 1;
         for (byte tmpX = 0; tmpX < 8; tmpX++) {
-            word next_color = (word)_paletteW[indexmap[++i]];
+            uint16_t next_color = (uint16_t)_paletteW[indexmap[++i]];
             if ((color != next_color && width >= 1) || tmpX == 7) {
-                painter.draw_hline({x + tmpX - width + 1, y + tmpY}, width, ui::Color(color));
+                _api->fill_rectangle(x + tmpX - width + 1, y + tmpY, width, 1, color);
+                // painter.draw_hline({x + tmpX - width + 1, y + tmpY}, width, ui::Color(color));
 
                 color = next_color;
                 width = 0;

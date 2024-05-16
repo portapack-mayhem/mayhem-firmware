@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Bernd Herzog
+ * Copyright (C) 2024 Bernd Herzog
  *
  * This file is part of PortaPack.
  *
@@ -19,24 +19,15 @@
  * Boston, MA 02110-1301, USA.
  */
 
-#include "ui.hpp"
-#include "ui_pacman.hpp"
-#include "ui_navigation.hpp"
-#include "external_app.hpp"
+#include "standalone_app.hpp"
+#include "pacman.hpp"
+#include <memory>
 
-namespace ui::external_app::pacman {
-void initialize_app(ui::NavigationView& nav) {
-    nav.push<PacmanView>();
-}
-}  // namespace ui::external_app::pacman
+const standalone_application_api_t* _api;
 
 extern "C" {
-
-__attribute__((section(".external_app.app_pacman.application_information"), used)) application_information_t _application_information_pacman = {
-    /*.memory_location = */ (uint8_t*)0x00000000,  // will be filled at compile time
-    /*.externalAppEntry = */ ui::external_app::pacman::initialize_app,
-    /*.header_version = */ CURRENT_HEADER_VERSION,
-    /*.app_version = */ VERSION_MD5,
+__attribute__((section(".standalone_application_information"), used)) standalone_application_information_t _standalone_application_information = {
+    /*.header_version = */ CURRENT_STANDALONE_APPLICATION_API_VERSION,
 
     /*.app_name = */ "Pac-Man",
     /*.bitmap_data = */ {
@@ -73,10 +64,38 @@ __attribute__((section(".external_app.app_pacman.application_information"), used
         0x00,
         0x00,
     },
-    /*.icon_color = */ ui::Color::yellow().v,
+    /*.icon_color = 16 bit: 5R 6G 5B*/ 0x0000FFE0,
     /*.menu_location = */ app_location_t::UTILITIES,
 
-    /*.m4_app_tag = portapack::spi_flash::image_tag_none */ {0, 0, 0, 0},
-    /*.m4_app_offset = */ 0x00000000,  // will be filled at compile time
+    /*.initialize_app = */ initialize,
+    /*.on_event = */ on_event,
+    /*.shutdown = */ shutdown,
 };
+}
+
+/* Implementing abort() eliminates requirement for _getpid(), _kill(), _exit(). */
+extern "C" void abort() {
+    while (true);
+}
+
+// replace memory allocations to use heap from chibios
+extern "C" void* malloc(size_t size) {
+    return _api->malloc(size);
+}
+extern "C" void* calloc(size_t num, size_t size) {
+    return _api->calloc(num, size);
+}
+extern "C" void* realloc(void* p, size_t size) {
+    return _api->realloc(p, size);
+}
+extern "C" void free(void* p) {
+    _api->free(p);
+}
+
+// redirect std lib memory allocations (sprintf, etc.)
+extern "C" void* __wrap__malloc_r(size_t size) {
+    return _api->malloc(size);
+}
+extern "C" void __wrap__free_r(void* p) {
+    _api->free(p);
 }
