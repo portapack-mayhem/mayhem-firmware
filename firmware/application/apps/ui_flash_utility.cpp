@@ -83,6 +83,7 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
 
     menu_view.set_parent_rect({0, 3 * 8, 240, 33 * 8});
 
+    ensure_directory(apps_dir);
     ensure_directory(firmware_dir);
 
     auto add_firmware_items = [&](
@@ -154,7 +155,7 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
 
     if (path.empty() || !valid_firmware_file(path.c_str())) {
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
-        painter.draw_string({0, 60}, Styles::red, "BAD FIRMWARE FILE");
+        painter.draw_string({0, 60}, Styles::red, "BAD FIRMWARE FILE OR W/R ERR");
         chThdSleepMilliseconds(5000);
         return false;
     }
