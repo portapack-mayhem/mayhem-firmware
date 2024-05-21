@@ -1311,12 +1311,12 @@ void NewButton::paint(Painter& painter) {
     const auto r = screen_rect();
     const Style style = paint_style();
 
-    painter.draw_rectangle({r.location(), {r.width(), 1}}, Color::light_grey());
-    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Color::dark_grey());
-    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Color::dark_grey());
+    painter.draw_rectangle({r.location(), {r.width(), 1}}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, portapack::persistent_memory::menu_color().dark());
 
     painter.fill_rectangle(
-        {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
+        {r.left(), r.top() + 1, r.width() - 1, r.height() - 1},
         style.background);
 
     int y = r.top();

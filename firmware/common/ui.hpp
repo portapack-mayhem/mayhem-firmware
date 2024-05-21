@@ -100,9 +100,15 @@ struct Color {
         return (uint8_t)grey;
     }
 
+    // method is copied from Nother
     uint16_t dark() {
-        // stripping bits 4 & 5 from each of the colors R/G/B
-        return (v & ((0xc8 << 8) | (0xcc << 3) | (0xc8 >> 3)));
+        static const uint16_t dark_mask = 0b0111101111101111;
+        return ((v >> 1) & dark_mask);
+    }
+
+    uint16_t bright() {
+        static const uint16_t bright_mask = 0b1000010000010000;
+        return ((v << 1) | bright_mask);
     }
 
     Color operator-() const {
