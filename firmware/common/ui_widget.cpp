@@ -971,9 +971,9 @@ void Button::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.width(), 1}}, portapack::persistent_memory::menu_color().dark());
-    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, portapack::persistent_memory::menu_color().dark());
-    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, portapack::persistent_memory::menu_color().dark());
 
     painter.fill_rectangle(
         {r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2},
@@ -1124,9 +1124,9 @@ void ButtonWithEncoder::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.width(), 1}}, portapack::persistent_memory::menu_color().dark());
-    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, portapack::persistent_memory::menu_color().dark());
-    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, portapack::persistent_memory::menu_color().dark());
 
     painter.fill_rectangle(
         {r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2},
