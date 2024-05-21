@@ -112,6 +112,15 @@ void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path>(const std::filesystem::p
     chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", path_str.c_str());
 }
 
+template <>
+void UsbSerialAsyncmsg::asyncmsg<std::filesystem::path::string_type>(const std::filesystem::path::string_type& data) {
+    if (!portapack::async_tx_enabled) {
+        return;
+    }
+    std::string str_data(data.begin(), data.end());
+    chprintf((BaseSequentialStream*)&SUSBD1, "%s\r\n", str_data.c_str());
+}
+
 /// string
 
 // string obj
