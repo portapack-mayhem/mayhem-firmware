@@ -33,6 +33,7 @@
 #include "string_format.hpp"
 #include "usb_serial_device_to_host.h"
 #include "rtc_time.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 using namespace rtc_time;
@@ -971,7 +972,7 @@ void Button::paint(Painter& painter) {
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, portapack::persistent_memory::menu_color().bright());
     painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, portapack::persistent_memory::menu_color().dark());
     painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, portapack::persistent_memory::menu_color().dark());
 
@@ -1123,8 +1124,7 @@ void ButtonWithEncoder::paint(Painter& painter) {
     }
 
     const Style paint_style = {style().font, bg, fg};
-
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, portapack::persistent_memory::menu_color().bright());
     painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, portapack::persistent_memory::menu_color().dark());
     painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, portapack::persistent_memory::menu_color().dark());
 
@@ -1311,12 +1311,12 @@ void NewButton::paint(Painter& painter) {
     const auto r = screen_rect();
     const Style style = paint_style();
 
-    painter.draw_rectangle({r.location(), {r.width(), 1}}, portapack::persistent_memory::menu_color().dark());
+    painter.draw_rectangle({r.location(), {r.width(), 1}}, portapack::persistent_memory::menu_color().bright());
     painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, portapack::persistent_memory::menu_color().dark());
     painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, portapack::persistent_memory::menu_color().dark());
 
     painter.fill_rectangle(
-        {r.left(), r.top() + 1, r.width() - 1, r.height() - 1},
+        {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
         style.background);
 
     int y = r.top();
