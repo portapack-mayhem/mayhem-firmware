@@ -23,7 +23,6 @@
 #include "ui.hpp"
 #include "ui_language.hpp"
 #include "ui_widget.hpp"
-#include "ui_styles.hpp"
 #include "ui_navigation.hpp"
 #include "ui_tabview.hpp"
 #include "transmitter_model.hpp"
@@ -54,7 +53,7 @@ class RangeView : public View {
     uint32_t width{};
     rf::Frequency center{};
 
-    const Style& style_info = Styles::grey;
+    const Style& style_info = Theme::fg_dark;
 
     Labels labels{
         {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Color::light_grey()},
@@ -120,8 +119,8 @@ class JammerView : public View {
     int16_t mscounter = 0;   // euquiq: Internal ms counter for do_timer()
     lfsr_word_t lfsr_v = 1;  // euquiq: Used to generate "random" Jitter
 
-    const Style& style_val = Styles::green;
-    const Style& style_cancel = Styles::red;
+    const Style& style_val = Theme::fg_green;
+    const Style& style_cancel = Theme::fg_red;
 
     RangeView view_range_a{nav_};
     RangeView view_range_b{nav_};

@@ -39,7 +39,7 @@ namespace ui {
 
 /* AMOptionsView *********************************************************/
 
-static const Style& style_options_group = Styles::bg_blue;
+static const Style& style_options_group = Theme::option_active;
 
 AMOptionsView::AMOptionsView(
     Rect parent_rect,

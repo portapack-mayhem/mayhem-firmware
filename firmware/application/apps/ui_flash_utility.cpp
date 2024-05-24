@@ -21,7 +21,6 @@
  */
 
 #include "ui_flash_utility.hpp"
-#include "ui_styles.hpp"
 #include "portapack_shared_memory.hpp"
 #include "file_path.hpp"
 
@@ -155,7 +154,7 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
 
     if (path.empty() || !valid_firmware_file(path.c_str())) {
         painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
-        painter.draw_string({0, 60}, Styles::red, "BAD FIRMWARE FILE OR W/R ERR");
+        painter.draw_string({0, 60}, Theme::fg_red, "BAD FIRMWARE FILE OR W/R ERR");
         chThdSleepMilliseconds(5000);
         return false;
     }

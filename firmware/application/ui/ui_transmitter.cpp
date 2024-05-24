@@ -40,13 +40,13 @@ namespace ui {
 
 /* Gets a style indicating total TX gain level. */
 static const Style* get_style_for_gain(uint8_t tot_gain) {
-    if (tot_gain > POWER_THRESHOLD_HIGH) return &Styles::red;
+    if (tot_gain > POWER_THRESHOLD_HIGH) return &Theme::fg_red;
 
     if (tot_gain > POWER_THRESHOLD_MED)
-        return &Styles::orange;
+        return &Theme::fg_orange;
 
     if (tot_gain > POWER_THRESHOLD_LOW)
-        return &Styles::yellow;
+        return &Theme::fg_yellow;
 
     return nullptr;  // Uses default.
 }

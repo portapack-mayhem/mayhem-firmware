@@ -46,7 +46,6 @@ using namespace portapack;
 namespace fs = std::filesystem;
 
 #include "string_format.hpp"
-#include "ui_styles.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 #include "config_mode.hpp"
@@ -228,9 +227,9 @@ SetRadioView::SetRadioView(
     value_source_frequency.set(clock_manager.get_freq());
 
     // Make these Text controls look like Labels.
-    label_source.set_style(&Styles::light_grey);
-    value_source.set_style(&Styles::light_grey);
-    value_source_frequency.set_style(&Styles::light_grey);
+    label_source.set_style(&Theme::fg_light);
+    value_source.set_style(&Theme::fg_light);
+    value_source_frequency.set_style(&Theme::fg_light);
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -575,7 +574,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
         &button_return,
     });
 
-    text_pmem_status.set_style(&Styles::yellow);
+    text_pmem_status.set_style(&Theme::fg_yellow);
 
     check_use_sdcard_for_pmem.set_value(pmem::should_use_sdcard_for_pmem());
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {

@@ -34,11 +34,10 @@
 #include "ui.hpp"
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
-#define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
+#define MAX_FREQ_LOCK 10  // # of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
 
 namespace ui {
 

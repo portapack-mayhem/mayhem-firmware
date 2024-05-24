@@ -28,7 +28,6 @@
 #include "optional.hpp"
 #include "ui.hpp"
 #include "ui_navigation.hpp"
-#include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
 #include <array>
@@ -41,12 +40,12 @@ class TrimProgressUI {
    public:
     void show_reading() {
         clear();
-        p.draw_string({6 * 8, 5 * 16}, Styles::yellow, "Reading Capture...");
+        p.draw_string({6 * 8, 5 * 16}, Theme::fg_yellow, "Reading Capture...");
     }
 
     void show_trimming() {
         clear();
-        p.draw_string({5 * 8, 5 * 16}, Styles::yellow, "Trimming Capture...");
+        p.draw_string({5 * 8, 5 * 16}, Theme::fg_yellow, "Trimming Capture...");
     }
 
     void show_progress(uint8_t percent) {

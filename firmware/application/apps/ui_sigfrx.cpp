@@ -129,9 +129,9 @@ SIGFRXView::SIGFRXView(
                   &text_data,
                   &button_exit});
 
-    text_type.set_style(&Styles::bg_white);
-    text_channel.set_style(&Styles::bg_white);
-    text_data.set_style(&Styles::bg_white);
+    text_type.set_style(&Theme::bg_lightest);
+    text_channel.set_style(&Theme::bg_lightest);
+    text_data.set_style(&Theme::bg_lightest);
 
     button_exit.on_select = [&nav](Button&) {
         nav.pop();

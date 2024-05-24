@@ -30,7 +30,6 @@
 #include "ui_record_view.hpp"
 #include "ui_rssi.hpp"
 #include "ui_spectrum.hpp"
-#include "ui_styles.hpp"
 #include "ui_tabview.hpp"
 
 #include "app_settings.hpp"

@@ -30,7 +30,6 @@
 #include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
-#include "ui_styles.hpp"
 
 // 1Mhz helper
 #ifdef OneMHz
@@ -60,7 +59,7 @@
 
 // screen size helper
 #define SCREEN_W 240
-//#define SCREEN_H 320
+// #define SCREEN_H 320
 
 // recon settings nb params
 #define RECON_SETTINGS_NB_PARAMS 7

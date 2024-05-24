@@ -33,7 +33,6 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "string_format.hpp"
 #include "analog_audio_app.hpp"
 #include "spectrum_color_lut.hpp"

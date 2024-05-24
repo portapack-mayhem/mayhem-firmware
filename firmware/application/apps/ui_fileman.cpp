@@ -747,10 +747,10 @@ FileManagerView::FileManagerView(
 
     menu_view.on_highlight = [this]() {
         if (menu_view.highlighted_index() >= max_items_loaded - 1) {  // todo check this if correct
-            text_date.set_style(&Styles::red);
+            text_date.set_style(&Theme::fg_red);
             text_date.set("Too many files!");
         } else {
-            text_date.set_style(&Styles::grey);
+            text_date.set_style(&Theme::fg_dark);
             if (selected_is_valid())
                 text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
             else

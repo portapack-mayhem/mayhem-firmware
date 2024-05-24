@@ -34,7 +34,6 @@
 
 #include "ui_sd_card_debug.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "ui_styles.hpp"
 #include "ui_painter.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
@@ -292,7 +291,7 @@ RegistersView::RegistersView(
     const auto value = registers_widget.reg_read(0);
     field_write_data_val.set_value(value);
 
-    button_write.set_style(&Styles::red);
+    button_write.set_style(&Theme::error_dark);
     button_write.on_select = [this](Button&) {
         this->registers_widget.reg_write(field_write_reg_num.to_integer(), field_write_data_val.to_integer());
         this->registers_widget.update();
@@ -412,7 +411,7 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
         switches_event >>= 1;
     }
 
-    painter.draw_string({5 * 8, 12 * 16}, Styles::light_grey, to_string_dec_int(last_delta, 3));
+    painter.draw_string({5 * 8, 12 * 16}, Theme::fg_light, to_string_dec_int(last_delta, 3));
 }
 
 void ControlsSwitchesWidget::on_frame_sync() {
@@ -535,7 +534,7 @@ DebugMemoryDumpView::DebugMemoryDumpView(NavigationView& nav) {
         field_data_value.set_dirty();
     };
 
-    button_write.set_style(&Styles::red);
+    button_write.set_style(&Theme::error_dark);
     button_write.on_select = [this](Button&) {
         *(uint32_t*)field_rw_address.to_integer() = (uint32_t)field_data_value.to_integer();
     };
@@ -619,7 +618,7 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
 
 void DebugScreenTest::paint(Painter& painter) {
     painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Color::white());
-    painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
+    painter.draw_string({10 * 8, screen_height / 2}, Theme::fg_white, "Use Stylus");
     pen_color = std::rand();
 }
 

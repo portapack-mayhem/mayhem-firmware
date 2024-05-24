@@ -27,7 +27,6 @@
 #include "ui_freq_field.hpp"
 #include "ui_receiver.hpp"
 #include "ui_rssi.hpp"
-#include "ui_styles.hpp"
 
 #include "app_settings.hpp"
 #include "log_file.hpp"

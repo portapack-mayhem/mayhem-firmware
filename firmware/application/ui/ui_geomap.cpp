@@ -32,7 +32,6 @@ using namespace portapack;
 
 #include "string_format.hpp"
 #include "complex.hpp"
-#include "ui_styles.hpp"
 #include "ui_font_fixed_5x8.hpp"
 #include "file_path.hpp"
 
@@ -138,8 +137,8 @@ void GeoPos::focus() {
 
 void GeoPos::hide_altandspeed() {
     // Color altitude grey to indicate it's not updated in manual panning mode
-    field_altitude.set_style(&Styles::grey);
-    field_speed.set_style(&Styles::grey);
+    field_altitude.set_style(&Theme::fg_dark);
+    field_speed.set_style(&Theme::fg_dark);
 }
 
 void GeoPos::set_altitude(int32_t altitude) {

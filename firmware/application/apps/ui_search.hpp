@@ -26,7 +26,6 @@
 #include "radio_state.hpp"
 #include "spectrum_color_lut.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 
 namespace ui {
 

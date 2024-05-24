@@ -49,12 +49,12 @@ int32_t GlassView::map(int32_t value, int32_t fromLow, int32_t fromHigh, int32_t
 
 void GlassView::update_display_beep() {
     if (beep_enabled) {
-        button_beep_squelch.set_style(&Styles::green);
+        button_beep_squelch.set_style(&Theme::fg_green);
         // bip-XXdb
         button_beep_squelch.set_text("bip" + to_string_dec_int(beep_squelch, 3) + "db");
         receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
     } else {
-        button_beep_squelch.set_style(&Styles::white);
+        button_beep_squelch.set_style(&Theme::fg_white);
         button_beep_squelch.set_text("bip OFF ");
     }
 }
@@ -347,10 +347,10 @@ void GlassView::update_max(int32_t v) {
 
 void GlassView::update_range_field() {
     if (!locked_range) {
-        field_range.set_style(&Styles::white);
+        field_range.set_style(&Theme::fg_white);
         field_range.set_text(" " + to_string_dec_uint(search_span) + " ");
     } else {
-        field_range.set_style(&Styles::red);
+        field_range.set_style(&Theme::fg_red);
         field_range.set_text(">" + to_string_dec_uint(search_span) + "<");
     }
 }

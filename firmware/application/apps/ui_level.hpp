@@ -38,7 +38,6 @@
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
-#include "ui_styles.hpp"
 
 namespace ui {
 

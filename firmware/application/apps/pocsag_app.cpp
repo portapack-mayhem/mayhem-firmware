@@ -163,8 +163,8 @@ void POCSAGAppView::refresh_ui() {
     // Set console font style.
     console.set_style(
         settings_.enable_small_font
-            ? &Styles::white_small
-            : &Styles::white);
+            ? &Theme::fg_white_small
+            : &Theme::fg_white);
 
     // Update filter button text.
     std::string btn_text = "Filter Last";
@@ -332,8 +332,8 @@ void BaudIndicator::paint(Painter& painter) {
         bot = (r % 10) + '0';
     }
 
-    painter.draw_char(p, Styles::white_small, top);
-    painter.draw_char({p.x(), p.y() + 8}, Styles::white_small, bot);
+    painter.draw_char(p, Theme::fg_white_small, top);
+    painter.draw_char({p.x(), p.y() + 8}, Theme::fg_white_small, bot);
 }
 
 void BitsIndicator::paint(Painter&) {
