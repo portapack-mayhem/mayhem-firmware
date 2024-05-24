@@ -248,9 +248,9 @@ class SystemStatusView : public View {
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_stealth,
         &bitmap_icon_stealth,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background,
         Theme::status_active,
+        Theme::bg_dark.background,
+        Theme::fg_light.foreground,
         Theme::bg_dark.background};
 
     ImageButton button_camera{
