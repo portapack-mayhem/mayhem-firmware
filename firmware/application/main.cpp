@@ -168,6 +168,8 @@ static void event_loop() {
 int main(void) {
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
 
+    Theme::SetTheme(Theme::ThemeId::DefaultGrey);
+
     if (config_mode_should_enter()) {
         config_mode_clear();
         config_mode_run();

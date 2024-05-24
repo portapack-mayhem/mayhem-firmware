@@ -3,7 +3,7 @@
 
 namespace ui {
 
-ThemeDefault* Theme::current = new ThemeDefault();
+ThemeDefault* Theme::current = nullptr;  // new ThemeDefault();
 
 void Theme::SetTheme(ThemeId theme) {
     if (current != nullptr) delete current;
