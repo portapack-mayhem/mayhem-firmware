@@ -170,134 +170,134 @@ class ThemeYellow : public ThemeDefault {
     // definition of ui styles and colors thet will be refereced.
     Style bg_lightest{
         .font = font::fixed_8x16,
-        .background = Color::white(),
+        .background = {255, 255, 204},
         .foreground = Color::black(),
     };
     Style bg_lightest_small{
         .font = font::fixed_8x16,
-        .background = Color::white(),
+        .background = {255, 255, 204},
         .foreground = Color::black(),
     };
     Style bg_light{
         .font = font::fixed_8x16,
-        .background = Color::light_grey(),
+        .background = {255, 255, 102},
         .foreground = Color::white(),
     };
     Style bg_medium{
         .font = font::fixed_8x16,
-        .background = Color::grey(),
+        .background = {204, 204, 0},
         .foreground = Color::white(),
     };
     Style bg_dark{
         .font = font::fixed_8x16,
-        .background = Color::dark_grey(),
+        .background = {153, 153, 0},
         .foreground = Color::white(),
     };
     Style bg_darker{
         .font = font::fixed_8x16,
-        .background = Color::darker_grey(),
+        .background = {102, 102, 0},
         .foreground = Color::white(),
     };
 
     Style bg_darkest{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::white(),
     };
     Style bg_darkest_small{
         .font = font::fixed_5x8,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::white(),
     };
 
     Style bg_important_small{
         .font = ui::font::fixed_5x8,
         .background = ui::Color::yellow(),
-        .foreground = ui::Color::black(),
+        .foreground = {31, 31, 0},
     };
 
     Style error_dark{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::red(),
     };
     Style warning_dark{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::yellow(),
     };
     Style ok_dark{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::green(),
     };
 
     Style fg_dark{
         .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::dark_grey(),
+        .background = {31, 31, 0},
+        .foreground = {153, 153, 0},
     };
     Style fg_medium{
         .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
+        .background = {31, 31, 0},
+        .foreground = {204, 204, 0},
     };
     Style fg_light{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::light_grey(),
     };
 
     Style fg_red{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::red(),
     };
     Style fg_green{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::green(),
     };
     Style fg_yellow{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::yellow(),
     };
     Style fg_orange{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::orange(),
     };
     Style fg_blue{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::blue(),
     };
     Style fg_cyan{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::cyan(),
     };
     Style fg_darkcyan{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::dark_cyan(),
     };
     Style fg_magenta{
         .font = font::fixed_8x16,
-        .background = Color::black(),
+        .background = {31, 31, 0},
         .foreground = Color::magenta(),
     };
 
     Style option_active{
         .font = font::fixed_8x16,
-        .background = Color::blue(),
+        .background = Color::orange(),
         .foreground = Color::white(),
     };
 
     Color status_active{0, 255, 0};  // green, the status bar icons when active
 
-    Color bg_table_header{0, 0, 255};
+    Color bg_table_header{255, 255, 0};
 };
 
 class Theme {

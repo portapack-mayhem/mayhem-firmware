@@ -4,7 +4,6 @@
 namespace ui {
 
 ThemeDefault* Theme::current = new ThemeDefault();
-;
 
 void Theme::SetTheme(ThemeId theme) {
     if (current != nullptr) delete current;
