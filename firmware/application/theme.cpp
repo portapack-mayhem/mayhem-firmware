@@ -57,6 +57,12 @@ Style Theme::bg_darkest{
     .foreground = Color::white(),
 };
 
+Style Theme::bg_darkest_small{
+    .font = font::fixed_5x8,
+    .background = Color::black(),
+    .foreground = Color::white(),
+};
+
 Style Theme::error_dark{
     .font = font::fixed_8x16,
     .background = Color::black(),
@@ -67,6 +73,12 @@ Style Theme::warning_dark{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::yellow(),
+};
+
+Style Theme::ok_dark{
+    .font = font::fixed_8x16,
+    .background = Color::black(),
+    .foreground = Color::green(),
 };
 
 Style Theme::fg_darker{
@@ -85,18 +97,6 @@ Style Theme::fg_light{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::light_grey(),
-};
-
-Style Theme::fg_white{
-    .font = font::fixed_8x16,
-    .background = Color::black(),
-    .foreground = Color::white(),
-};
-
-Style Theme::fg_white_small{
-    .font = font::fixed_5x8,
-    .background = Color::black(),
-    .foreground = Color::white(),
 };
 
 Style Theme::fg_red{
@@ -129,6 +129,24 @@ Style Theme::fg_blue{
     .foreground = Color::blue(),
 };
 
+Style Theme::fg_cyan{
+    .font = font::fixed_8x16,
+    .background = Color::black(),
+    .foreground = Color::cyan(),
+};
+
+Style Theme::fg_darkcyan{
+    .font = font::fixed_8x16,
+    .background = Color::black(),
+    .foreground = Color::dark_cyan(),
+};
+
+Style Theme::fg_magenta{
+    .font = font::fixed_8x16,
+    .background = Color::black(),
+    .foreground = Color::magenta(),
+};
+
 Style Theme::option_active{
     .font = font::fixed_8x16,
     .background = Color::blue(),
@@ -141,6 +159,7 @@ Style Theme::bg_important_small{
     .foreground = ui::Color::black(),
 };
 
-Color Theme::status_active{0, 255, 0};  // green
+Color Theme::status_active{0, 255, 0};    // green
+Color Theme::bg_table_header{0, 0, 255};  // blue
 
 }  // namespace ui

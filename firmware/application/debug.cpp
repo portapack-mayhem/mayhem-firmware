@@ -63,27 +63,27 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
 
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        Color::red());
+        Theme::fg_red.foreground);
 
     constexpr int border = 8;
     painter.fill_rectangle(
         {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
-        Color::black());
+        Theme::fg_red.background);
 
     // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-    painter.draw_string({48, 24}, Theme::fg_white, "M? Guru");
-    painter.draw_string({48 + 8 * 8, 24}, Theme::fg_white, "Meditation");
+    painter.draw_string({48, 24}, Theme::bg_darkest, "M? Guru");
+    painter.draw_string({48 + 8 * 8, 24}, Theme::bg_darkest, "Meditation");
 
     if (source == CORTEX_M0) {
-        painter.draw_string({48 + 8, 24}, Theme::fg_white, "0");
-        painter.draw_string({24, 320 - 32}, Theme::fg_white, "Press DFU for Stack Dump");
+        painter.draw_string({48 + 8, 24}, Theme::bg_darkest, "0");
+        painter.draw_string({24, 320 - 32}, Theme::bg_darkest, "Press DFU for Stack Dump");
     }
 
     if (source == CORTEX_M4)
-        painter.draw_string({48 + 8, 24}, Theme::fg_white, "4");
+        painter.draw_string({48 + 8, 24}, Theme::bg_darkest, "4");
 
-    painter.draw_string({15, 55}, Theme::fg_white, "Hint: ");
-    painter.draw_string({15 + 8 * 8, 55}, Theme::fg_white, hint);
+    painter.draw_string({15, 55}, Theme::bg_darkest, "Hint: ");
+    painter.draw_string({15 + 8 * 8, 55}, Theme::bg_darkest, hint);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint) {
@@ -129,8 +129,8 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
 void draw_line(int32_t y_offset, const char* label, regarm_t value) {
     Painter painter;
 
-    painter.draw_string({15, y_offset}, Theme::fg_white, label);
-    painter.draw_string({15 + 8 * 8, y_offset}, Theme::fg_white, to_string_hex((uint32_t)value, 8));
+    painter.draw_string({15, y_offset}, Theme::bg_darkest, label);
+    painter.draw_string({15 + 8 * 8, y_offset}, Theme::bg_darkest, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(uint8_t source) {
@@ -169,7 +169,7 @@ void draw_stack_dump() {
         if (clear_rect) {
             painter.fill_rectangle(
                 {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
-                Color::black());
+                Theme::fg_red.background);
             x = y = border;
             clear_rect = false;
         }
@@ -183,11 +183,11 @@ void draw_stack_dump() {
             auto stack_space_left = p - &__process_stack_base__;
 
             // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-            painter.draw_string({x, y}, Theme::fg_white_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
+            painter.draw_string({x, y}, Theme::bg_darkest_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
             x += 8 * 5;
-            painter.draw_string({x, y}, Theme::fg_white_small, " M0 STACK free=");
+            painter.draw_string({x, y}, Theme::bg_darkest_small, " M0 STACK free=");
             x += 15 * 5;
-            painter.draw_string({x, y}, Theme::fg_white_small, to_string_dec_uint(stack_space_left));
+            painter.draw_string({x, y}, Theme::bg_darkest_small, to_string_dec_uint(stack_space_left));
             x = border;
             y += 8;
 
@@ -199,13 +199,13 @@ void draw_stack_dump() {
         while ((p < &__process_stack_end__) && (y < portapack::display.height() - border - 8)) {
             // show address if start of line
             if (n++ == 0) {
-                painter.draw_string({x, y}, Theme::fg_white_small, to_string_hex((uint32_t)p, 8) + ":");
+                painter.draw_string({x, y}, Theme::bg_darkest_small, to_string_hex((uint32_t)p, 8) + ":");
                 x += 9 * 5 - 2;  // note: saving 2 pixels here to prevent reaching right border
             }
 
             // show stack word -- highlight if a possible code address (low bit will be set too for !thumb) or actual fault address
             bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM
-            Style style = (fault_address && *p == fault_address) ? Theme::bg_important_small : (code_addr ? Theme::bg_lightest_small : Theme::fg_white_small);
+            Style style = (fault_address && *p == fault_address) ? Theme::bg_important_small : (code_addr ? Theme::bg_lightest_small : Theme::bg_darkest_small);
             painter.draw_string({x, y}, style, " " + to_string_hex(*p, 8));
             x += 9 * 5;
 
@@ -225,7 +225,7 @@ void draw_stack_dump() {
         // NOTE: can't call swizzle_switches() with interrupted enabled!
         while (swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu)));
 
-        painter.draw_string({border, portapack::display.height() - border - 8}, Theme::fg_white_small, "Use UP/DOWN key");
+        painter.draw_string({border, portapack::display.height() - border - 8}, Theme::bg_darkest_small, "Use UP/DOWN key");
 
         // Wait for button press.
         while (1) {

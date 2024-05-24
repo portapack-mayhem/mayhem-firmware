@@ -54,7 +54,7 @@ void GlassView::update_display_beep() {
         button_beep_squelch.set_text("bip" + to_string_dec_int(beep_squelch, 3) + "db");
         receiver_model.set_headphone_volume(receiver_model.headphone_volume());  // WM8731 hack.
     } else {
-        button_beep_squelch.set_style(&Theme::fg_white);
+        button_beep_squelch.set_style(&Theme::bg_darkest);
         button_beep_squelch.set_text("bip OFF ");
     }
 }
@@ -305,10 +305,10 @@ void GlassView::plot_marker(uint8_t pos) {
     {
         shift_y = 16;
     }
-    portapack::display.fill_rectangle({0, 100 + shift_y, SCREEN_W, 8}, Color::black());  // Clear old marker and whole marker rectangle btw
-    portapack::display.fill_rectangle({pos - 2, 100 + shift_y, 5, 3}, Color::red());     // Red marker top
-    portapack::display.fill_rectangle({pos - 1, 103 + shift_y, 3, 3}, Color::red());     // Red marker middle
-    portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Color::red());         // Red marker bottom
+    portapack::display.fill_rectangle({0, 100 + shift_y, SCREEN_W, 8}, Theme::bg_darkest.background);  // Clear old marker and whole marker rectangle btw
+    portapack::display.fill_rectangle({pos - 2, 100 + shift_y, 5, 3}, Theme::fg_red.foreground);       // Red marker top
+    portapack::display.fill_rectangle({pos - 1, 103 + shift_y, 3, 3}, Theme::fg_red.foreground);       // Red marker middle
+    portapack::display.fill_rectangle({pos, 106 + shift_y, 1, 2}, Theme::fg_red.foreground);           // Red marker bottom
 }
 
 void GlassView::update_min(int32_t v) {
@@ -347,7 +347,7 @@ void GlassView::update_max(int32_t v) {
 
 void GlassView::update_range_field() {
     if (!locked_range) {
-        field_range.set_style(&Theme::fg_white);
+        field_range.set_style(&Theme::bg_darkest);
         field_range.set_text(" " + to_string_dec_uint(search_span) + " ");
     } else {
         field_range.set_style(&Theme::fg_red);

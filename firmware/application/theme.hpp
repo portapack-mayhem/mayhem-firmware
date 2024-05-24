@@ -42,26 +42,32 @@ class Theme {
     static Style bg_dark;     // navbar, buttons
     static Style bg_darker;   // infobar
     static Style bg_darkest;  // usually black
+    static Style bg_darkest_small;
 
     static Style bg_important_small;
 
     static Style error_dark;    // red
     static Style warning_dark;  // yellow
+    static Style ok_dark;       // green
 
     static Style fg_darker;
     static Style fg_dark;
-    static Style fg_light;
-    static Style fg_white;
-    static Style fg_white_small;
+    static Style fg_light;  // for example labels
+
     static Style fg_red;
     static Style fg_green;
     static Style fg_yellow;
     static Style fg_orange;
     static Style fg_blue;
+    static Style fg_cyan;
+    static Style fg_darkcyan;
+    static Style fg_magenta;
 
     static Style option_active;
 
     static Color status_active;  // green, the status bar icons when active
+
+    static Color bg_table_header;
 };
 
 }  // namespace ui

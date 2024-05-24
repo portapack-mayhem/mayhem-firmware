@@ -84,12 +84,12 @@ class AlphanumView : public TextEntryView {
         {192, 214, screen_width / 5, 38},
         {},
         &bitmap_icon_shift,
-        Color::dark_grey(),
+        Theme::bg_darker.background,
         /*vcenter*/ true};
 
     Labels labels{
-        {{1 * 8, 33 * 8}, "Raw:", Color::light_grey()},
-        {{1 * 8, 35 * 8}, "AKA:", Color::light_grey()}};
+        {{1 * 8, 33 * 8}, "Raw:", Theme::fg_light.foreground},
+        {{1 * 8, 35 * 8}, "AKA:", Theme::fg_light.foreground}};
 
     NumberField field_raw{
         {5 * 8, 33 * 8},

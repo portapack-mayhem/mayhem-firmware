@@ -23,6 +23,7 @@
 #ifndef __UI_SD_CARD_STATUS_VIEW_H__
 #define __UI_SD_CARD_STATUS_VIEW_H__
 
+#include "theme.hpp"
 #include "ui_widget.hpp"
 #include "sd_card.hpp"
 

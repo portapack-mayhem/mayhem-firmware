@@ -113,21 +113,21 @@ class RecordView : public View {
     TrimProgressUI trim_ui{};
 
     Rectangle rect_background{
-        Color::black()};
+        Theme::bg_darkest.background};
 
     /*ImageButton button_pitch_rssi {
                 { 2, 0 * 16, 3 * 8, 1 * 16 },
                 &bitmap_rssipwm,
-                Color::orange(),
-                Color::black()
+                Theme::fg_orange.foreground,
+                Theme::fg_orange.background
         };*/
 
     ImageButton button_record{
         //{ 4 * 8, 0 * 16, 2 * 8, 1 * 16 },
         {0 * 8, 0 * 16, 2 * 8, 1 * 16},
         &bitmap_record,
-        Color::red(),
-        Color::black()};
+        Theme::fg_red.foreground,
+        Theme::fg_red.background};
 
     Text text_record_filename{
         {7 * 8, 0 * 16, 8 * 8, 16},
@@ -147,8 +147,8 @@ class RecordView : public View {
     Image gps_icon{
         {2 * 8 + 1, 0 * 16, 2 * 8, 1 * 16},
         &bitmap_target,
-        Color::white(),
-        Color::black()};
+        Theme::bg_darkest.foreground,
+        Theme::bg_darkest.background};
 
     std::unique_ptr<CaptureThread> capture_thread{};
 

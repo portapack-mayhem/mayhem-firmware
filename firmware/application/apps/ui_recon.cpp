@@ -104,7 +104,7 @@ freqman_entry& ReconView::current_entry() {
 
 void ReconView::set_loop_config(bool v) {
     continuous = v;
-    button_loop_config.set_style(v ? &Theme::fg_green : &Theme::fg_white);
+    button_loop_config.set_style(v ? &Theme::fg_green : &Theme::bg_darkest);
     persistent_memory::set_recon_continuous(continuous);
 }
 
@@ -121,8 +121,8 @@ void ReconView::recon_stop_recording(bool exiting) {
         } else {
             button_audio_app.set_text("AUDIO");
         }
-        button_audio_app.set_style(&Theme::fg_white);
-        button_config.set_style(&Theme::fg_white);
+        button_audio_app.set_style(&Theme::bg_darkest);
+        button_config.set_style(&Theme::bg_darkest);
     }
 }
 
@@ -173,7 +173,7 @@ void ReconView::colorize_waits() {
     if (wait == 0) {
         field_wait.set_style(&Theme::fg_blue);
     } else if (wait >= 500) {
-        field_wait.set_style(&Theme::fg_white);
+        field_wait.set_style(&Theme::bg_darkest);
     } else if (wait > -500 && wait < 500) {
         field_wait.set_style(&Theme::fg_red);
     } else if (wait <= -500) {
@@ -184,10 +184,10 @@ void ReconView::colorize_waits() {
         if ((recon_lock_duration / STATS_UPDATE_INTERVAL) <= recon_lock_nb_match) {
             field_lock_wait.set_style(&Theme::fg_yellow);
         } else {
-            field_lock_wait.set_style(&Theme::fg_white);
+            field_lock_wait.set_style(&Theme::bg_darkest);
         }
     } else {
-        field_lock_wait.set_style(&Theme::fg_white);
+        field_lock_wait.set_style(&Theme::bg_darkest);
     }
 }
 
@@ -259,7 +259,7 @@ void ReconView::recon_redraw() {
         text_nb_locks.set(to_string_dec_uint(freq_lock) + "/" + to_string_dec_uint(recon_lock_nb_match));
         if (freq_lock == 0) {
             // NO FREQ LOCK, ONGOING STANDARD SCANNING
-            big_display.set_style(&Theme::fg_white);
+            big_display.set_style(&Theme::bg_darkest);
             if (recon)
                 button_pause.set_text("<PAUSE>");
             else
@@ -591,18 +591,18 @@ ReconView::ReconView(NavigationView& nav)
             current_entry().bandwidth = freqman_invalid_index;
             current_entry().step = def_step;
 
-            big_display.set_style(&Theme::fg_white);  // Back to white color
+            big_display.set_style(&Theme::bg_darkest);  // Back to white color
 
-            freq_stats.set_style(&Theme::fg_white);
+            freq_stats.set_style(&Theme::bg_darkest);
             freq_stats.set("0/0/0");
 
             text_cycle.set_text("1");
             text_max.set("/1");
-            button_scanner_mode.set_style(&Theme::fg_white);
+            button_scanner_mode.set_style(&Theme::bg_darkest);
             button_scanner_mode.set_text("MANUAL");
-            file_name.set_style(&Theme::fg_white);
+            file_name.set_style(&Theme::bg_darkest);
             file_name.set("MANUAL => " + output_file);
-            desc_cycle.set_style(&Theme::fg_white);
+            desc_cycle.set_style(&Theme::bg_darkest);
 
             last_entry.modulation = freqman_invalid_index;
             last_entry.bandwidth = freqman_invalid_index;
@@ -1106,7 +1106,7 @@ void ReconView::recon_pause() {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio_output_start();
 
-    big_display.set_style(&Theme::fg_white);
+    big_display.set_style(&Theme::bg_darkest);
     button_pause.set_text("<RESUME>");  // PAUSED, show resume
 }
 
@@ -1118,7 +1118,7 @@ void ReconView::recon_resume() {
     if (field_mode.selected_index_value() != SPEC_MODULATION)
         audio::output::stop();
 
-    big_display.set_style(&Theme::fg_white);
+    big_display.set_style(&Theme::bg_darkest);
     button_pause.set_text("<PAUSE>");
 }
 

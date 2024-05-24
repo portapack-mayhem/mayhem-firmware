@@ -339,7 +339,7 @@ void TextViewer::reset_file(FileWrapper* file) {
 
 void TextViewer::set_font_zoom(bool zoom) {
     font_zoom = zoom;
-    font_style = font_zoom ? &Theme::fg_white : &Theme::fg_white_small;
+    font_style = font_zoom ? &Theme::bg_darkest : &Theme::bg_darkest_small;
     char_height = style().font.line_height();
     char_width = style().font.char_width();
     max_line = (uint8_t)(parent_rect().height() / char_height);
@@ -542,7 +542,7 @@ void TextEditorView::open_file(const fs::path& path) {
             Painter p;
             auto percent = (value * 100) / total;
             auto width = (percent * screen_width) / 100;
-            p.draw_hline({0, 16}, width, Color::yellow());
+            p.draw_hline({0, 16}, width, Theme::fg_yellow.foreground);
         });
 
     if (!result) {

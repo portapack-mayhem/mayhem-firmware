@@ -219,10 +219,10 @@ void SearchView::do_detection() {
     search_counter++;
 
     // Refresh red tick
-    portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::black());
+    portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::fg_red.background);
     if (bin_max > -1) {
         last_tick_pos = (Coord)(bin_max / slices_nb);
-        portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Color::red());
+        portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::fg_red.foreground);
     }
 }
 

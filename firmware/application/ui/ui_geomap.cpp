@@ -321,13 +321,13 @@ void GeoMap::draw_map_grid() {
     if (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT)
         return;
 
-    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Color::black());
+    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Theme::bg_darkest.background);
 
     for (uint16_t line = y; line < r.height(); line += grid_spacing) {
-        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Color::darker_grey());
+        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Theme::bg_darker.background);
     }
     for (uint16_t column = x; column < r.width(); column += grid_spacing) {
-        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Color::darker_grey());
+        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Theme::bg_darker.background);
     }
 }
 

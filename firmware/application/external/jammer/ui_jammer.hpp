@@ -56,10 +56,10 @@ class RangeView : public View {
     const Style& style_info = Theme::fg_dark;
 
     Labels labels{
-        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Color::light_grey()},
-        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Color::light_grey()},
-        {{12 * 8, 5 * 8 - 4}, "Center", Color::light_grey()},
-        {{12 * 8 + 4, 13 * 8}, "Width", Color::light_grey()}};
+        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Theme::fg_light.foreground},
+        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Theme::fg_light.foreground},
+        {{12 * 8, 5 * 8 - 4}, "Center", Theme::fg_light.foreground},
+        {{12 * 8 + 4, 13 * 8}, "Width", Theme::fg_light.foreground}};
 
     Checkbox check_enabled{
         {1 * 8, 4},
@@ -129,23 +129,23 @@ class JammerView : public View {
     std::array<RangeView*, 3> range_views{{&view_range_a, &view_range_b, &view_range_c}};
 
     TabView tab_view{
-        {"Range 1", Color::white(), range_views[0]},
-        {"Range 2", Color::white(), range_views[1]},
-        {"Range 3", Color::white(), range_views[2]},
+        {"Range 1", Theme::bg_darkest.foreground, range_views[0]},
+        {"Range 2", Theme::bg_darkest.foreground, range_views[1]},
+        {"Range 3", Theme::bg_darkest.foreground, range_views[2]},
     };
 
     Labels labels{
-        {{2 * 8, 23 * 8}, "Type:", Color::light_grey()},
-        {{1 * 8, 25 * 8}, "Speed:", Color::light_grey()},
-        {{3 * 8, 27 * 8}, "Hop:", Color::light_grey()},
-        {{4 * 8, 29 * 8}, "TX:", Color::light_grey()},
-        {{1 * 8, 31 * 8}, "Sle3p:", Color::light_grey()},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
-        {{0 * 8, 33 * 8}, "Jitter:", Color::light_grey()},  // Maybe the repository curator can keep the "mystype" for some versions.
-        {{11 * 8, 29 * 8}, "Secs.", Color::light_grey()},
-        {{11 * 8, 31 * 8}, "Secs.", Color::light_grey()},
-        {{11 * 8, 33 * 8}, "/60", Color::light_grey()},
-        {{2 * 8, 35 * 8}, "Gain:", Color::light_grey()},
-        {{11 * 8, 35 * 8}, "A:", Color::light_grey()}};
+        {{2 * 8, 23 * 8}, "Type:", Theme::fg_light.foreground},
+        {{1 * 8, 25 * 8}, "Speed:", Theme::fg_light.foreground},
+        {{3 * 8, 27 * 8}, "Hop:", Theme::fg_light.foreground},
+        {{4 * 8, 29 * 8}, "TX:", Theme::fg_light.foreground},
+        {{1 * 8, 31 * 8}, "Sle3p:", Theme::fg_light.foreground},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
+        {{0 * 8, 33 * 8}, "Jitter:", Theme::fg_light.foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
+        {{11 * 8, 29 * 8}, "Secs.", Theme::fg_light.foreground},
+        {{11 * 8, 31 * 8}, "Secs.", Theme::fg_light.foreground},
+        {{11 * 8, 33 * 8}, "/60", Theme::fg_light.foreground},
+        {{2 * 8, 35 * 8}, "Gain:", Theme::fg_light.foreground},
+        {{11 * 8, 35 * 8}, "A:", Theme::fg_light.foreground}};
 
     OptionsField options_type{
         {7 * 8, 23 * 8},

@@ -140,8 +140,8 @@ class POCSAGSettingsView : public View {
     POCSAGSettings& settings_;
 
     Labels labels{
-        {{2 * 8, 12 * 16}, "Filter Mode:", Color::light_grey()},
-        {{2 * 8, 13 * 16}, "Filter Addr:", Color::light_grey()},
+        {{2 * 8, 12 * 16}, "Filter Mode:", Theme::fg_light.foreground},
+        {{2 * 8, 13 * 16}, "Filter Addr:", Theme::fg_light.foreground},
     };
 
     Checkbox check_log{
@@ -264,8 +264,8 @@ class POCSAGAppView : public View {
     Image image_status{
         {0 * 8 + 4, 1 * 16 + 2, 16, 16},
         &bitmap_icon_pocsag,
-        Color::white(),
-        Color::black()};
+        Theme::bg_darkest.foreground,
+        Theme::bg_darkest.background};
 
     Text text_packet_count{
         {3 * 8, 1 * 16 + 2, 5 * 8, 16},

@@ -171,12 +171,12 @@ class ScannerView : public View {
     };
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Color::light_grey()},
-        {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Theme::fg_light.foreground},
+        {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Theme::fg_light.foreground},
+        {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Theme::fg_light.foreground},
 
-        {{0 * 8, (26 * 8) + 4}, "MODE:", Color::light_grey()},
-        {{11 * 8, (26 * 8) + 4}, "STEP:", Color::light_grey()},
+        {{0 * 8, (26 * 8) + 4}, "MODE:", Theme::fg_light.foreground},
+        {{11 * 8, (26 * 8) + 4}, "STEP:", Theme::fg_light.foreground},
     };
 
     LNAGainField field_lna{

@@ -56,8 +56,8 @@ uint16_t DebugFontsView::display_font(Painter& painter, uint16_t y_offset, const
 void DebugFontsView::paint(Painter& painter) {
     int16_t line_pos;
 
-    line_pos = display_font(painter, 32, &Theme::fg_white, "Fixed 8x16");
-    display_font(painter, line_pos + 16, &Theme::fg_white_small, "Fixed 5x8");
+    line_pos = display_font(painter, 32, &Theme::bg_darkest, "Fixed 8x16");
+    display_font(painter, line_pos + 16, &Theme::bg_darkest_small, "Fixed 5x8");
 }
 
 DebugFontsView::DebugFontsView(NavigationView& nav)

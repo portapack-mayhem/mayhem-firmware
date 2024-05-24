@@ -261,8 +261,8 @@ class APRSRXView : public View {
     APRSTableView view_table{nav_, view_rect};
 
     TabView tab_view{
-        {"Stream", Color::cyan(), &view_stream},
-        {"List", Color::yellow(), &view_table}};
+        {"Stream", Theme::fg_cyan.foreground, &view_stream},
+        {"List", Theme::fg_yellow.foreground, &view_table}};
 
     MessageHandlerRegistration message_handler_packet{
         Message::ID::APRSPacket,

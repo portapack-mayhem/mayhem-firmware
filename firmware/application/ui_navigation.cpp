@@ -441,7 +441,7 @@ void SystemStatusView::refresh() {
 
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
-    button_converter.set_foreground(pmem::config_converter() ? Theme::error_dark.foreground : Theme::bg_light.background);
+    button_converter.set_foreground(pmem::config_converter() ? Theme::fg_red.foreground : Theme::bg_light.background);
 
     // Fake Brightness
     button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Theme::status_active : Theme::bg_light.background);

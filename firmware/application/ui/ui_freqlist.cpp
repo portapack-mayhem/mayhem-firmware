@@ -39,14 +39,14 @@ void FreqManUIList::paint(Painter& painter) {
 
     if (!db_ || db_->empty()) {
         auto line_position = rect.location() + Point{7 * 8, 6 * 16};
-        painter.fill_rectangle(rect, Color::black());
-        painter.draw_string(line_position, Theme::fg_white, "Empty Category");
+        painter.fill_rectangle(rect, Theme::bg_darkest.background);
+        painter.draw_string(line_position, Theme::bg_darkest, "Empty Category");
         return;
     }
 
     // Indicate when a file is too large by drawing in yellow.
     auto over_max = db_->entry_count() > freqman_default_max_entries;
-    auto base_style = over_max ? &Theme::fg_yellow : &Theme::fg_white;  // todo HTOTOO
+    auto base_style = over_max ? &Theme::fg_yellow : &Theme::bg_darkest;
 
     // TODO: could minimize redraw/re-read if necessary
     //       with better change tracking.
@@ -81,7 +81,7 @@ void FreqManUIList::paint(Painter& painter) {
     }
 
     // Draw a bounding rectangle when focused.
-    painter.draw_rectangle(rect, (has_focus() ? Color::white() : Color::black()));
+    painter.draw_rectangle(rect, (has_focus() ? Theme::bg_darkest.foreground : Theme::bg_darkest.background));
 }
 
 void FreqManUIList::on_focus() {

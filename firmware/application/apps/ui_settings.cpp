@@ -736,7 +736,7 @@ AppSettingsView::AppSettingsView(
         auto path = settings_dir / entry.path();
 
         menu_view.add_item({path.filename().string().substr(0, 26),
-                            ui::Color::dark_cyan(),
+                            ui::Theme::fg_darkcyan.foreground,
                             &bitmap_icon_file_text,
                             [this, path](KeyEvent) {
                                 nav_.push<TextEditorView>(path);

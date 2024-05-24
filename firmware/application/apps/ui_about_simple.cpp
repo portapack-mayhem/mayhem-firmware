@@ -65,13 +65,13 @@ AboutView::AboutView(NavigationView& nav) {
             if (authors_line[0] == '#') {
                 menu_view.add_item(
                     {authors_line.substr(1, authors_line.size() - 1),
-                     ui::Color::yellow(),
+                     ui::Theme::fg_yellow.foreground,
                      nullptr,
                      nullptr});
             } else {
                 menu_view.add_item(
                     {authors_line,
-                     ui::Color::white(),
+                     Theme::bg_darkest.foreground,
                      nullptr,
                      nullptr});
             }

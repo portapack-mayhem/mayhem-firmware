@@ -389,7 +389,7 @@ void FileManBaseView::refresh_list() {
 
             menu_view.add_item(
                 {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
-                 ui::Color::yellow(),
+                 Theme::fg_yellow.foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
                      if (on_select_entry)
@@ -858,7 +858,7 @@ FileManagerView::FileManagerView(
 
     button_show_hidden_files.on_select = [this]() {
         show_hidden_files = !show_hidden_files;
-        button_show_hidden_files.set_color(show_hidden_files ? Color::green() : Color::dark_grey());
+        button_show_hidden_files.set_color(show_hidden_files ? Theme::status_active : Theme::bg_darker.background);
         reload_current();
     };
 }

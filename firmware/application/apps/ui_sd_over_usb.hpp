@@ -46,11 +46,11 @@ class SdOverUsbView : public View {
     NavigationView& nav_;
 
     Labels labels{
-        {{3 * 8, 2 * 16}, "Click Run to start the", Color::white()},
-        {{3 * 8, 3 * 16}, "USB Mass Storage Mode.", Color::white()},
-        {{3 * 8, 5 * 16}, "It can take up to 20s", Color::white()},
-        {{3 * 8, 6 * 16}, "for the drive to be", Color::white()},
-        {{3 * 8, 7 * 16}, "available.", Color::white()},
+        {{3 * 8, 2 * 16}, "Click Run to start the", Theme::bg_darkest.foreground},
+        {{3 * 8, 3 * 16}, "USB Mass Storage Mode.", Theme::bg_darkest.foreground},
+        {{3 * 8, 5 * 16}, "It can take up to 20s", Theme::bg_darkest.foreground},
+        {{3 * 8, 6 * 16}, "for the drive to be", Theme::bg_darkest.foreground},
+        {{3 * 8, 7 * 16}, "available.", Theme::bg_darkest.foreground},
     };
 
     Button button_run{

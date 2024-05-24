@@ -112,8 +112,8 @@ class ReplayAppView : public View {
     ImageButton button_play{
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
-        Color::green(),
-        Color::black()};
+        Theme::fg_green.foreground,
+        Theme::fg_green.background};
 
     spectrum::WaterfallView waterfall{};
 
