@@ -113,9 +113,9 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
     // Change the "REC" icon background to yellow when the selected rate exceeds hardware limits.
     // Above this threshold, samples will be dropped resulting incomplete capture files.
     if (new_sampling_rate > 1'250'000) {
-        button_record.set_background(Theme::bg_important_small.background);
+        button_record.set_background(Theme::fg_yellow.foreground);
     } else {
-        button_record.set_background(Theme::bg_darkest.background);
+        button_record.set_background(Theme::fg_yellow.background);
     }
 
     if (sampling_rate != new_sampling_rate) {

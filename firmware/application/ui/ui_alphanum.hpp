@@ -84,7 +84,7 @@ class AlphanumView : public TextEntryView {
         {192, 214, screen_width / 5, 38},
         {},
         &bitmap_icon_shift,
-        Theme::bg_darker.background,
+        Theme::bg_dark.background,
         /*vcenter*/ true};
 
     Labels labels{

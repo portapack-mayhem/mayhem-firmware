@@ -99,20 +99,20 @@ void RangeView::paint(Painter&) {
     r = button_center.screen_rect();
     p = r.center() + Point(0, r.height() / 2);
 
-    display.draw_line(p, p + Point(0, 10), Theme::bg_darker.background);
+    display.draw_line(p, p + Point(0, 10), Theme::fg_medium.foreground);
 
     r = button_width.screen_rect();
     c = r.top() + (r.height() / 2);
 
     p = {r.left() - 64, c};
-    display.draw_line({r.left(), c}, p, Theme::bg_darker.background);
-    display.draw_line(p, p + Point(10, -10), Theme::bg_darker.background);
-    display.draw_line(p, p + Point(10, 10), Theme::bg_darker.background);
+    display.draw_line({r.left(), c}, p, Theme::fg_medium.foreground);
+    display.draw_line(p, p + Point(10, -10), Theme::fg_medium.foreground);
+    display.draw_line(p, p + Point(10, 10), Theme::fg_medium.foreground);
 
     p = {r.right() + 64, c};
-    display.draw_line({r.right(), c}, p, Theme::bg_darker.background);
-    display.draw_line(p, p + Point(-10, -10), Theme::bg_darker.background);
-    display.draw_line(p, p + Point(-10, 10), Theme::bg_darker.background);
+    display.draw_line({r.right(), c}, p, Theme::fg_medium.foreground);
+    display.draw_line(p, p + Point(-10, -10), Theme::fg_medium.foreground);
+    display.draw_line(p, p + Point(-10, 10), Theme::fg_medium.foreground);
 }
 
 RangeView::RangeView(NavigationView& nav) {

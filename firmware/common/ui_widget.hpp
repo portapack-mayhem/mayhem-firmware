@@ -525,7 +525,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
-    Color bg_color_{Theme::bg_dark.background};
+    Color bg_color_{Theme::bg_medium.background};
 
    private:
     std::string text_;
@@ -805,8 +805,8 @@ class BatteryTextField : public Widget {
 
     Style style{
         .font = font::fixed_5x8,
-        .background = Theme::bg_darker.background,
-        .foreground = Theme::bg_darker.foreground,
+        .background = Theme::bg_dark.background,
+        .foreground = Theme::bg_dark.foreground,
     };
 };
 

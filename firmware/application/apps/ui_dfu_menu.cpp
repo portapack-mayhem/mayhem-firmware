@@ -133,7 +133,7 @@ void DfuMenu2::paint(Painter& painter) {
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {19 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
-        Theme::bg_darkest.foreground);
+        Theme::bg_darkest.background);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},

@@ -71,7 +71,7 @@ void CreditsWidget::new_row(
 void CreditsWidget::clear() {
     display.fill_rectangle(
         screen_rect(),
-        Theme::bg_darkest.foreground);
+        Theme::bg_darkest.background);
 }
 
 void AboutView::update() {

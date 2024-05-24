@@ -268,7 +268,7 @@ class TextEditorView : public View {
         {26 * 8, 34 * 8, 4 * 8, 4 * 8},
         {},
         &bitmap_icon_controls,
-        Theme::bg_darker.background,
+        Theme::bg_dark.background,
         /*vcenter*/ true};
 
     Text text_position{

@@ -58,7 +58,7 @@ void Tab::paint(Painter& painter) {
         {rect.right() - 8, rect.top()},
         bitmap_tab_edge,
         color,
-        Theme::bg_darker.background);
+        Theme::bg_dark.background);
 
     auto text_point = rect.center() - Point(4, 0) - Point(text_.size() * 8 / 2, 16 / 2);
 

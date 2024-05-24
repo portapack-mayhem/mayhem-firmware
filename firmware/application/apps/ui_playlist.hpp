@@ -142,7 +142,7 @@ class PlaylistView : public View {
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
         Theme::fg_green.foreground,
-        Theme::bg_darkest.background};
+        Theme::fg_green.background};
 
     Text text_track{
         {0 * 8, 3 * 16, 30 * 8, 16}};

@@ -349,7 +349,7 @@ void BitsIndicator::paint(Painter&) {
 
 void FrameIndicator::paint(Painter& painter) {
     auto p = screen_pos();
-    painter.draw_rectangle({p, {2, height}}, has_sync_ ? Theme::ok_dark.foreground : Theme::bg_darkest.background);
+    painter.draw_rectangle({p, {2, height}}, has_sync_ ? Theme::fg_green.foreground : Theme::bg_medium.background);
 
     for (size_t i = 0; i < height; ++i) {
         auto p2 = p + Point{2, 15 - (int)i};

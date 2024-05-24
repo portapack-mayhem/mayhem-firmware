@@ -81,8 +81,8 @@ void ViewWavView::refresh_measurements() {
 
 void ViewWavView::paint(Painter& painter) {
     // Waveform limits
-    painter.draw_hline({0, 6 * 16 - 1}, 240, Theme::bg_darker.background);
-    painter.draw_hline({0, 10 * 16}, 240, Theme::bg_darker.background);
+    painter.draw_hline({0, 6 * 16 - 1}, 240, Theme::bg_medium.background);
+    painter.draw_hline({0, 10 * 16}, 240, Theme::bg_medium.background);
 
     // Overall amplitude view, 0~127 to 0~255 color index
     for (size_t i = 0; i < 240; i++)

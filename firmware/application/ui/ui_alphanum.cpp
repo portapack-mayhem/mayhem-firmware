@@ -129,7 +129,7 @@ void AlphanumView::refresh_keys() {
 
     switch (shift_mode) {
         case ShiftMode::None:
-            button_shift.set_color(Theme::bg_darker.background);
+            button_shift.set_color(Theme::bg_dark.background);
             break;
         case ShiftMode::Shift:
             button_shift.set_color(Theme::bg_darkest.background);

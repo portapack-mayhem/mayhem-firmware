@@ -454,10 +454,10 @@ void DebugPeripheralsMenuView::on_populate() {
     const char* max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
     const char* si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
     add_items({
-        {"RFFC5072", Theme::fg_cyan.foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
-        {max283x, Theme::fg_cyan.foreground, &bitmap_icon_peripherals_details, [this, max283x]() { nav_.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
-        {si5351x, Theme::fg_cyan.foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
-        {audio::debug::codec_name(), Theme::fg_cyan.foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
+        {"RFFC5072", Theme::fg_darkcyan.foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
+        {max283x, Theme::fg_darkcyan.foreground, &bitmap_icon_peripherals_details, [this, max283x]() { nav_.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
+        {si5351x, Theme::fg_darkcyan.foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
+        {audio::debug::codec_name(), Theme::fg_darkcyan.foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -488,18 +488,18 @@ void DebugMenuView::on_populate() {
         add_items({{"..", ui::Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
-        {"Buttons Test", ui::Theme::fg_cyan.foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
-        {"Debug Dump", ui::Theme::fg_cyan.foreground, &bitmap_icon_memory, [this]() { portapack::persistent_memory::debug_dump(); }},
-        {"M0 Stack Dump", ui::Theme::fg_cyan.foreground, &bitmap_icon_memory, [this]() { stack_dump(); }},
-        {"Memory Dump", ui::Theme::fg_cyan.foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryDumpView>(); }},
-        //{"Memory Usage", ui::Theme::fg_cyan.foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryView>(); }},
-        {"Peripherals", ui::Theme::fg_cyan.foreground, &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
-        {"Pers. Memory", ui::Theme::fg_cyan.foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
+        {"Buttons Test", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
+        {"Debug Dump", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_memory, [this]() { portapack::persistent_memory::debug_dump(); }},
+        {"M0 Stack Dump", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_memory, [this]() { stack_dump(); }},
+        {"Memory Dump", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryDumpView>(); }},
+        //{"Memory Usage", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryView>(); }},
+        {"Peripherals", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
+        {"Pers. Memory", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
         //{ "Radio State",	ui::Theme::bg_darkest.foreground,	nullptr,	[this](){ nav_.push<NotImplementedView>(); } },
-        {"Reboot", ui::Theme::fg_cyan.foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
-        {"SD Card", ui::Theme::fg_cyan.foreground, &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
-        {"Temperature", ui::Theme::fg_cyan.foreground, &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
-        {"Touch Test", ui::Theme::fg_cyan.foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
+        {"Reboot", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
+        {"SD Card", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
+        {"Temperature", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
+        {"Touch Test", ui::Theme::fg_darkcyan.foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
     });
 
     for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav_)) {
