@@ -148,13 +148,13 @@ class BLECommView : public View {
         {24 * 8, 5, 6 * 8, 4}};
 
     Labels label_send_adv{
-        {{0 * 8, 2 * 8}, "Send Advertisement:", Theme::fg_light.foreground}};
+        {{0 * 8, 2 * 8}, "Send Advertisement:", Theme::current->fg_light.foreground}};
 
     ImageButton button_send_adv{
         {21 * 8, 1 * 16, 10 * 8, 2 * 16},
         &bitmap_play,
-        Theme::fg_green.foreground,
-        Theme::fg_green.background};
+        Theme::current->fg_green.foreground,
+        Theme::current->fg_green.background};
 
     Checkbox check_log{
         {24 * 8, 2 * 8},
@@ -163,7 +163,7 @@ class BLECommView : public View {
         true};
 
     Labels label_packets_sent{
-        {{0 * 8, 4 * 8}, "Packets Left:", Theme::fg_light.foreground}};
+        {{0 * 8, 4 * 8}, "Packets Left:", Theme::current->fg_light.foreground}};
 
     Text text_packets_sent{
         {13 * 8, 2 * 16, 12 * 8, 16},

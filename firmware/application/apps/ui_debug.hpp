@@ -233,8 +233,8 @@ class RegistersView : public View {
         "Write"};
 
     Labels labels{
-        {{1 * 8, 248}, "Reg:", Theme::fg_light.foreground},
-        {{8 * 8, 248}, "Data:", Theme::fg_light.foreground}};
+        {{1 * 8, 248}, "Reg:", Theme::current->fg_light.foreground},
+        {{8 * 8, 248}, "Data:", Theme::current->fg_light.foreground}};
 
     SymField field_write_reg_num{
         {5 * 8, 248},
@@ -288,9 +288,9 @@ class DebugControlsView : public View {
 
    private:
     Labels labels{
-        {{8 * 8, 1 * 16}, "Controls State", Theme::bg_darkest.foreground},
-        {{0 * 8, 11 * 16}, "Dial:", Theme::fg_medium.foreground},
-        {{0 * 8, 14 * 16}, "Long-Press Mode:", Theme::fg_medium.foreground}};
+        {{8 * 8, 1 * 16}, "Controls State", Theme::current->bg_darkest.foreground},
+        {{0 * 8, 11 * 16}, "Dial:", Theme::current->fg_medium.foreground},
+        {{0 * 8, 14 * 16}, "Long-Press Mode:", Theme::current->fg_medium.foreground}};
 
     ControlsSwitchesWidget switches_widget{
         {80, 80, 80, 112},
@@ -333,12 +333,12 @@ class DebugMemoryDumpView : public View {
         "Done"};
 
     Labels labels{
-        {{5 * 8, 1 * 16}, "Dump Range to File", Theme::fg_yellow.foreground},
-        {{0 * 8, 2 * 16}, "Starting Address: 0x", Theme::fg_light.foreground},
-        {{0 * 8, 3 * 16}, "Byte Count:       0x", Theme::fg_light.foreground},
-        {{3 * 8, 8 * 16}, "Read/Write Single Word", Theme::fg_yellow.foreground},
-        {{0 * 8, 9 * 16}, "Memory Address:   0x", Theme::fg_light.foreground},
-        {{0 * 8, 10 * 16}, "Data Value:       0x", Theme::fg_light.foreground}};
+        {{5 * 8, 1 * 16}, "Dump Range to File", Theme::current->fg_yellow.foreground},
+        {{0 * 8, 2 * 16}, "Starting Address: 0x", Theme::current->fg_light.foreground},
+        {{0 * 8, 3 * 16}, "Byte Count:       0x", Theme::current->fg_light.foreground},
+        {{3 * 8, 8 * 16}, "Read/Write Single Word", Theme::current->fg_yellow.foreground},
+        {{0 * 8, 9 * 16}, "Memory Address:   0x", Theme::current->fg_light.foreground},
+        {{0 * 8, 10 * 16}, "Data Value:       0x", Theme::current->fg_light.foreground}};
 
     SymField field_starting_address{
         {20 * 8, 2 * 16},

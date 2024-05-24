@@ -50,7 +50,7 @@ class TimeScopeView : public View {
     int16_t audio_spectrum[128]{0};
 
     /*Labels labels {
-                { { 6 * 8, 0 * 16 }, "Hz", Theme::fg_light.foreground }
+                { { 6 * 8, 0 * 16 }, "Hz", Theme::current->fg_light.foreground }
         };*/
     /*
         NumberField field_frequency {
@@ -67,7 +67,7 @@ class TimeScopeView : public View {
         128,
         0,
         false,
-        Theme::bg_darkest.foreground};
+        Theme::current->bg_darkest.foreground};
 };
 
 class TVView : public Widget {

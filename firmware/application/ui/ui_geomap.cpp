@@ -137,8 +137,8 @@ void GeoPos::focus() {
 
 void GeoPos::hide_altandspeed() {
     // Color altitude grey to indicate it's not updated in manual panning mode
-    field_altitude.set_style(&Theme::fg_medium);
-    field_speed.set_style(&Theme::fg_medium);
+    field_altitude.set_style(&Theme::current->fg_medium);
+    field_speed.set_style(&Theme::current->fg_medium);
 }
 
 void GeoPos::set_altitude(int32_t altitude) {
@@ -321,13 +321,13 @@ void GeoMap::draw_map_grid() {
     if (map_zoom <= MAP_ZOOM_RESOLUTION_LIMIT)
         return;
 
-    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Theme::bg_darkest.background);
+    display.fill_rectangle({{0, r.top()}, {r.width(), r.height()}}, Theme::current->bg_darkest.background);
 
     for (uint16_t line = y; line < r.height(); line += grid_spacing) {
-        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Theme::bg_darker.background);
+        display.fill_rectangle({{0, r.top() + line}, {r.width(), 1}}, Theme::current->bg_darker.background);
     }
     for (uint16_t column = x; column < r.width(); column += grid_spacing) {
-        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Theme::bg_darker.background);
+        display.fill_rectangle({{column, r.top()}, {1, r.height()}}, Theme::current->bg_darker.background);
     }
 }
 

@@ -170,12 +170,12 @@ class GlassView : public View {
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Theme::fg_light.foreground},
-        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::fg_light.foreground},
-        {{0, 2 * 16}, "P:", Theme::fg_light.foreground},
-        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::fg_light.foreground},
-        //{{0, 4 * 16}, "RES:    STEPS:", Theme::fg_light.foreground}};
-        {{0, 4 * 16}, "RES:     VOL:", Theme::fg_light.foreground}};
+        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Theme::current->fg_light.foreground},
+        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::current->fg_light.foreground},
+        {{0, 2 * 16}, "P:", Theme::current->fg_light.foreground},
+        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::current->fg_light.foreground},
+        //{{0, 4 * 16}, "RES:    STEPS:", Theme::current->fg_light.foreground}};
+        {{0, 4 * 16}, "RES:     VOL:", Theme::current->fg_light.foreground}};
 
     NumberField field_frequency_min{
         {4 * 8, 0 * 16},

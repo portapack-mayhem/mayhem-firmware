@@ -41,7 +41,7 @@ namespace ui::external_app::analogtv {
 
 /* AnalogTvView *******************************************************/
 
-static const Style& style_options_group_new = Theme::option_active;
+static const Style& style_options_group_new = Theme::current->option_active;
 
 AnalogTvView::AnalogTvView(
     NavigationView& nav)

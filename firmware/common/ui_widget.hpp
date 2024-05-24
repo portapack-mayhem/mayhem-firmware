@@ -525,7 +525,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
-    Color bg_color_{Theme::bg_medium.background};
+    Color bg_color_{Theme::current->bg_medium.background};
 
    private:
     std::string text_;
@@ -641,7 +641,7 @@ class ImageOptionsField : public Widget {
         options_t options);
 
     ImageOptionsField()
-        : ImageOptionsField{{}, Theme::bg_darkest.foreground, Theme::bg_darkest.background, {}} {
+        : ImageOptionsField{{}, Theme::current->bg_darkest.foreground, Theme::current->bg_darkest.background, {}} {
     }
 
     void set_options(options_t new_options);
@@ -805,8 +805,8 @@ class BatteryTextField : public Widget {
 
     Style style{
         .font = font::fixed_5x8,
-        .background = Theme::bg_dark.background,
-        .foreground = Theme::bg_dark.foreground,
+        .background = Theme::current->bg_dark.background,
+        .foreground = Theme::current->bg_dark.foreground,
     };
 };
 
@@ -980,7 +980,7 @@ class Waveform : public Widget {
     void paint(Painter& painter) override;
 
    private:
-    const Color cursor_colors[2] = {Theme::fg_cyan.foreground, Theme::fg_magenta.foreground};
+    const Color cursor_colors[2] = {Theme::current->fg_cyan.foreground, Theme::current->fg_magenta.foreground};
 
     int16_t* data_;
     uint32_t length_;

@@ -96,7 +96,7 @@ static void rect(int x1, int y1, int x2, int y2, int color) {
 };
 
 static void printf(std::string str) {
-    auto style = (fg_color == White) ? ui::Theme::bg_darkest : ui::Theme::bg_lightest;
+    auto style = (fg_color == White) ? ui::Theme::current->bg_darkest : ui::Theme::current->bg_lightest;
     painter.draw_string({x_pos, y_pos - 1}, style, str);
 };
 

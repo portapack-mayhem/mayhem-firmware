@@ -199,13 +199,13 @@ class SystemStatusView : public View {
 
     Rectangle backdrop{
         {0 * 8, 0 * 16, ui::screen_width, 16},
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.background};
 
     ImageButton button_back{
         {0, 0 * 16, 12 * 8, 16},  // Back button also covers the title for easier touch.
         &bitmap_icon_previous,
-        Theme::bg_dark.foreground,
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.foreground,
+        Theme::current->bg_dark.background};
 
     Text title{
         {20, 0, 14 * 8, 1 * 16},
@@ -215,8 +215,8 @@ class SystemStatusView : public View {
     ImageButton button_title{
         {2, 0, 80, 16},
         &bitmap_titlebar_image,
-        Theme::bg_dark.foreground,
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.foreground,
+        Theme::current->bg_dark.background};
 
     StatusTray status_icons{{screen_width, 0}};
 
@@ -224,64 +224,64 @@ class SystemStatusView : public View {
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
         &bitmap_icon_speaker,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background,
-        Theme::status_active,
-        Theme::bg_dark.background};
+        Theme::current->fg_light.foreground,
+        Theme::current->bg_dark.background,
+        Theme::current->status_active,
+        Theme::current->bg_dark.background};
 
     ImageToggle toggle_mute{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_and_headphones_mute,
         &bitmap_icon_speaker_and_headphones,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background,
-        Theme::status_active,
-        Theme::bg_dark.background};
+        Theme::current->fg_light.foreground,
+        Theme::current->bg_dark.background,
+        Theme::current->status_active,
+        Theme::current->bg_dark.background};
 
     ImageButton button_converter{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_upconvert,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background};
+        Theme::current->fg_light.foreground,
+        Theme::current->bg_dark.background};
 
     ImageToggle toggle_stealth{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_stealth,
         &bitmap_icon_stealth,
-        Theme::status_active,
-        Theme::bg_dark.background,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background};
+        Theme::current->status_active,
+        Theme::current->bg_dark.background,
+        Theme::current->fg_light.foreground,
+        Theme::current->bg_dark.background};
 
     ImageButton button_camera{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_camera,
-        Theme::bg_dark.foreground,
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.foreground,
+        Theme::current->bg_dark.background};
 
     ImageButton button_sleep{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_sleep,
-        Theme::bg_dark.foreground,
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.foreground,
+        Theme::current->bg_dark.background};
 
     ImageButton button_bias_tee{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_biast_off,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background};
+        Theme::current->fg_light.foreground,
+        Theme::current->bg_dark.background};
 
     ImageButton button_clock_status{
         {0, 0 * 16, 8, 1 * 16},
         &bitmap_icon_clk_int,
-        Theme::fg_light.foreground,
-        Theme::bg_dark.background};
+        Theme::current->fg_light.foreground,
+        Theme::current->bg_dark.background};
 
     ImageButton button_fake_brightness{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_brightness,
-        Theme::status_active,
-        Theme::bg_dark.background};
+        Theme::current->status_active,
+        Theme::current->bg_dark.background};
 
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};

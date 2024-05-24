@@ -218,11 +218,11 @@ class ReconView : public View {
     std::unique_ptr<RecordView> record_view{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::fg_light.foreground},
-        {{3 * 8, 8 * 16}, "START       END", Theme::fg_light.foreground},
-        {{0 * 8, (22 * 8)}, "                S:          ", Theme::fg_light.foreground},
-        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::fg_light.foreground},
-        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::fg_light.foreground}};
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::current->fg_light.foreground},
+        {{3 * 8, 8 * 16}, "START       END", Theme::current->fg_light.foreground},
+        {{0 * 8, (22 * 8)}, "                S:          ", Theme::current->fg_light.foreground},
+        {{0 * 8, (24 * 8) + 4}, "NBLCKS:x      W,L:      ,     ", Theme::current->fg_light.foreground},
+        {{0 * 8, (26 * 8) + 4}, "MODE:     ,      SQUELCH:    ", Theme::current->fg_light.foreground}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};

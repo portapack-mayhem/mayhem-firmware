@@ -53,13 +53,13 @@ class RangeView : public View {
     uint32_t width{};
     rf::Frequency center{};
 
-    const Style& style_info = Theme::fg_medium;
+    const Style& style_info = Theme::current->fg_medium;
 
     Labels labels{
-        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Theme::fg_light.foreground},
-        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Theme::fg_light.foreground},
-        {{12 * 8, 5 * 8 - 4}, "Center", Theme::fg_light.foreground},
-        {{12 * 8 + 4, 13 * 8}, "Width", Theme::fg_light.foreground}};
+        {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Theme::current->fg_light.foreground},
+        {{23 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_STOP], Theme::current->fg_light.foreground},
+        {{12 * 8, 5 * 8 - 4}, "Center", Theme::current->fg_light.foreground},
+        {{12 * 8 + 4, 13 * 8}, "Width", Theme::current->fg_light.foreground}};
 
     Checkbox check_enabled{
         {1 * 8, 4},
@@ -119,8 +119,8 @@ class JammerView : public View {
     int16_t mscounter = 0;   // euquiq: Internal ms counter for do_timer()
     lfsr_word_t lfsr_v = 1;  // euquiq: Used to generate "random" Jitter
 
-    const Style& style_val = Theme::fg_green;
-    const Style& style_cancel = Theme::fg_red;
+    const Style& style_val = Theme::current->fg_green;
+    const Style& style_cancel = Theme::current->fg_red;
 
     RangeView view_range_a{nav_};
     RangeView view_range_b{nav_};
@@ -129,23 +129,23 @@ class JammerView : public View {
     std::array<RangeView*, 3> range_views{{&view_range_a, &view_range_b, &view_range_c}};
 
     TabView tab_view{
-        {"Range 1", Theme::bg_darkest.foreground, range_views[0]},
-        {"Range 2", Theme::bg_darkest.foreground, range_views[1]},
-        {"Range 3", Theme::bg_darkest.foreground, range_views[2]},
+        {"Range 1", Theme::current->bg_darkest.foreground, range_views[0]},
+        {"Range 2", Theme::current->bg_darkest.foreground, range_views[1]},
+        {"Range 3", Theme::current->bg_darkest.foreground, range_views[2]},
     };
 
     Labels labels{
-        {{2 * 8, 23 * 8}, "Type:", Theme::fg_light.foreground},
-        {{1 * 8, 25 * 8}, "Speed:", Theme::fg_light.foreground},
-        {{3 * 8, 27 * 8}, "Hop:", Theme::fg_light.foreground},
-        {{4 * 8, 29 * 8}, "TX:", Theme::fg_light.foreground},
-        {{1 * 8, 31 * 8}, "Sle3p:", Theme::fg_light.foreground},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
-        {{0 * 8, 33 * 8}, "Jitter:", Theme::fg_light.foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
-        {{11 * 8, 29 * 8}, "Secs.", Theme::fg_light.foreground},
-        {{11 * 8, 31 * 8}, "Secs.", Theme::fg_light.foreground},
-        {{11 * 8, 33 * 8}, "/60", Theme::fg_light.foreground},
-        {{2 * 8, 35 * 8}, "Gain:", Theme::fg_light.foreground},
-        {{11 * 8, 35 * 8}, "A:", Theme::fg_light.foreground}};
+        {{2 * 8, 23 * 8}, "Type:", Theme::current->fg_light.foreground},
+        {{1 * 8, 25 * 8}, "Speed:", Theme::current->fg_light.foreground},
+        {{3 * 8, 27 * 8}, "Hop:", Theme::current->fg_light.foreground},
+        {{4 * 8, 29 * 8}, "TX:", Theme::current->fg_light.foreground},
+        {{1 * 8, 31 * 8}, "Sle3p:", Theme::current->fg_light.foreground},   // euquiq: Token of appreciation to TheSle3p, which made this ehnancement a reality with his bounty.
+        {{0 * 8, 33 * 8}, "Jitter:", Theme::current->fg_light.foreground},  // Maybe the repository curator can keep the "mystype" for some versions.
+        {{11 * 8, 29 * 8}, "Secs.", Theme::current->fg_light.foreground},
+        {{11 * 8, 31 * 8}, "Secs.", Theme::current->fg_light.foreground},
+        {{11 * 8, 33 * 8}, "/60", Theme::current->fg_light.foreground},
+        {{2 * 8, 35 * 8}, "Gain:", Theme::current->fg_light.foreground},
+        {{11 * 8, 35 * 8}, "A:", Theme::current->fg_light.foreground}};
 
     OptionsField options_type{
         {7 * 8, 23 * 8},

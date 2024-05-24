@@ -292,7 +292,7 @@ SystemStatusView::SystemStatusView(
     pmem::set_config_sdcard_high_speed_io(pmem::config_sdcard_high_speed_io(), false);
 
     button_back.id = -1;  // Special ID used by FocusManager
-    title.set_style(&Theme::bg_dark);
+    title.set_style(&Theme::current->bg_dark);
 
     button_back.on_select = [this](ImageButton&) {
         if (pmem::should_use_sdcard_for_pmem()) {
@@ -428,23 +428,23 @@ void SystemStatusView::refresh() {
     // Clock status
     bool external_clk = portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External;
     button_clock_status.set_bitmap(external_clk ? &bitmap_icon_clk_ext : &bitmap_icon_clk_int);
-    button_clock_status.set_foreground(pmem::clkout_enabled() ? Theme::status_active : Theme::fg_light.foreground);
+    button_clock_status.set_foreground(pmem::clkout_enabled() ? Theme::current->status_active : Theme::current->fg_light.foreground);
 
     // Antenna DC Bias
     if (portapack::get_antenna_bias()) {
         button_bias_tee.set_bitmap(&bitmap_icon_biast_on);
-        button_bias_tee.set_foreground(Theme::warning_dark.foreground);
+        button_bias_tee.set_foreground(Theme::current->warning_dark.foreground);
     } else {
         button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
-        button_bias_tee.set_foreground(Theme::fg_light.foreground);
+        button_bias_tee.set_foreground(Theme::current->fg_light.foreground);
     }
 
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
-    button_converter.set_foreground(pmem::config_converter() ? Theme::fg_red.foreground : Theme::fg_light.foreground);
+    button_converter.set_foreground(pmem::config_converter() ? Theme::current->fg_red.foreground : Theme::current->fg_light.foreground);
 
     // Fake Brightness
-    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Theme::status_active : Theme::fg_light.foreground);
+    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Theme::current->status_active : Theme::current->fg_light.foreground);
 
     set_dirty();
 }
@@ -608,17 +608,17 @@ InformationView::InformationView(
                   &ltime});
 
 #if GCC_VERSION_MISMATCH
-    version.set_style(&Theme::warning_dark);
+    version.set_style(&Theme::current->warning_dark);
 #else
-    version.set_style(&Theme::bg_darker);
+    version.set_style(&Theme::current->bg_darker);
 #endif
 
     if (firmware_checksum_error()) {
         version.set("FLASH ERR");
-        version.set_style(&Theme::error_dark);
+        version.set_style(&Theme::current->error_dark);
     }
 
-    ltime.set_style(&Theme::bg_darker);
+    ltime.set_style(&Theme::current->bg_darker);
     refresh();
     set_dirty();
 }
@@ -779,7 +779,7 @@ void addExternalItems(NavigationView& nav, app_location_t location, BtnGridView&
     auto externalItems = ExternalItemsMenuLoader::load_external_items(location, nav);
     if (externalItems.empty()) {
         grid.insert_item({"Notice!",
-                          Theme::error_dark.foreground,
+                          Theme::current->error_dark.foreground,
                           nullptr,
                           [&nav]() {
                               nav.display_modal(
@@ -804,7 +804,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
 
 void ReceiversMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_item({"..", Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
+        add_item({"..", Theme::current->fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
 
     add_apps(nav_, *this, RX);
@@ -819,7 +819,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
 
 void TransmittersMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", Theme::current->fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, TX);
@@ -836,7 +836,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
 
 void UtilitiesMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", Theme::current->fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, UTILITIES);
@@ -867,7 +867,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
 
-    add_item({"HackRF", Theme::fg_cyan.foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
+    add_item({"HackRF", Theme::current->fg_cyan.foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
 /* SystemView ************************************************************/
@@ -877,7 +877,7 @@ SystemView::SystemView(
     const Rect parent_rect)
     : View{parent_rect},
       context_(context) {
-    set_style(&Theme::bg_darkest);
+    set_style(&Theme::current->bg_darkest);
 
     constexpr Dim status_view_height = 16;
     constexpr Dim info_view_height = 16;

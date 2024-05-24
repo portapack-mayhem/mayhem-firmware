@@ -64,16 +64,16 @@ class EncodersConfigView : public View {
     void on_type_change(size_t index);
 
     Labels labels{
-        {{1 * 8, 0}, "Type:", Theme::fg_light.foreground},
-        {{17 * 8, 0}, "Repeat:", Theme::fg_light.foreground},
-        {{1 * 8, 2 * 8}, "Clk:", Theme::fg_light.foreground},
-        {{10 * 8, 2 * 8}, "kHz", Theme::fg_light.foreground},
-        {{17 * 8, 2 * 8}, "Step:", Theme::fg_light.foreground},
-        {{1 * 8, 4 * 8}, "Frame:", Theme::fg_light.foreground},
-        {{13 * 8, 4 * 8}, "us", Theme::fg_light.foreground},
-        {{17 * 8, 4 * 8}, "Step:", Theme::fg_light.foreground},
-        {{2 * 8, 7 * 8}, "Symbols:", Theme::fg_light.foreground},
-        {{1 * 8, 14 * 8}, "Waveform:", Theme::fg_light.foreground}};
+        {{1 * 8, 0}, "Type:", Theme::current->fg_light.foreground},
+        {{17 * 8, 0}, "Repeat:", Theme::current->fg_light.foreground},
+        {{1 * 8, 2 * 8}, "Clk:", Theme::current->fg_light.foreground},
+        {{10 * 8, 2 * 8}, "kHz", Theme::current->fg_light.foreground},
+        {{17 * 8, 2 * 8}, "Step:", Theme::current->fg_light.foreground},
+        {{1 * 8, 4 * 8}, "Frame:", Theme::current->fg_light.foreground},
+        {{13 * 8, 4 * 8}, "us", Theme::current->fg_light.foreground},
+        {{17 * 8, 4 * 8}, "Step:", Theme::current->fg_light.foreground},
+        {{2 * 8, 7 * 8}, "Symbols:", Theme::current->fg_light.foreground},
+        {{1 * 8, 14 * 8}, "Waveform:", Theme::current->fg_light.foreground}};
 
     OptionsField options_enctype{// Options are loaded at runtime
                                  {6 * 8, 0},
@@ -128,7 +128,7 @@ class EncodersConfigView : public View {
         0,
         0,
         true,
-        Theme::fg_yellow.foreground};
+        Theme::current->fg_yellow.foreground};
 };
 
 class EncodersScanView : public View {
@@ -160,9 +160,9 @@ class EncodersScanView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 0 * 8}, "Length:", Theme::fg_light.foreground},
-        {{1 * 8, 2 * 8}, "Bit length:", Theme::fg_light.foreground},
-        {{16 * 8, 2 * 8}, "us", Theme::fg_light.foreground},
+        {{1 * 8, 0 * 8}, "Length:", Theme::current->fg_light.foreground},
+        {{1 * 8, 2 * 8}, "Bit length:", Theme::current->fg_light.foreground},
+        {{16 * 8, 2 * 8}, "us", Theme::current->fg_light.foreground},
     };
 };
 
@@ -206,8 +206,8 @@ class EncodersView : public View {
     EncodersScanView view_scan{nav_, view_rect};
 
     TabView tab_view{
-        {"Config", Theme::fg_cyan.foreground, &view_config},
-        {"de Bruijn", Theme::fg_green.foreground, &view_scan},
+        {"Config", Theme::current->fg_cyan.foreground, &view_config},
+        {"de Bruijn", Theme::current->fg_green.foreground, &view_scan},
     };
 
     Text text_status{

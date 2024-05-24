@@ -56,8 +56,8 @@ class CaptureAppView : public View {
         "rx_capture", app_settings::Mode::RX};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Rate:", Theme::fg_light.foreground},
-        {{11 * 8, 1 * 16}, "Format:", Theme::fg_light.foreground},
+        {{0 * 8, 1 * 16}, "Rate:", Theme::current->fg_light.foreground},
+        {{11 * 8, 1 * 16}, "Format:", Theme::current->fg_light.foreground},
     };
 
     RSSI rssi{

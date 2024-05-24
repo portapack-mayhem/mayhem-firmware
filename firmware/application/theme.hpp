@@ -21,54 +21,293 @@
 
 #ifndef __THEME_H__
 #define __THEME_H__
-
+#include <cstdint>
+#include <cstddef>
+#include <memory>
 #include "ui_painter.hpp"
 #include "ui_font_fixed_5x8.hpp"
 #include "ui_font_fixed_8x16.hpp"
 
 namespace ui {
 
+class ThemeDefault {
+   public:
+    // definition of ui styles and colors thet will be refereced.
+    Style bg_lightest{
+        .font = font::fixed_8x16,
+        .background = Color::white(),
+        .foreground = Color::black(),
+    };
+    Style bg_lightest_small{
+        .font = font::fixed_8x16,
+        .background = Color::white(),
+        .foreground = Color::black(),
+    };
+    Style bg_light{
+        .font = font::fixed_8x16,
+        .background = Color::light_grey(),
+        .foreground = Color::white(),
+    };
+    Style bg_medium{
+        .font = font::fixed_8x16,
+        .background = Color::grey(),
+        .foreground = Color::white(),
+    };
+    Style bg_dark{
+        .font = font::fixed_8x16,
+        .background = Color::dark_grey(),
+        .foreground = Color::white(),
+    };
+    Style bg_darker{
+        .font = font::fixed_8x16,
+        .background = Color::darker_grey(),
+        .foreground = Color::white(),
+    };
+
+    Style bg_darkest{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+    Style bg_darkest_small{
+        .font = font::fixed_5x8,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+
+    Style bg_important_small{
+        .font = ui::font::fixed_5x8,
+        .background = ui::Color::yellow(),
+        .foreground = ui::Color::black(),
+    };
+
+    Style error_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    Style warning_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    Style ok_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+
+    Style fg_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::dark_grey(),
+    };
+    Style fg_medium{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::grey(),
+    };
+    Style fg_light{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::light_grey(),
+    };
+
+    Style fg_red{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    Style fg_green{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+    Style fg_yellow{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    Style fg_orange{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::orange(),
+    };
+    Style fg_blue{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::blue(),
+    };
+    Style fg_cyan{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::cyan(),
+    };
+    Style fg_darkcyan{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::dark_cyan(),
+    };
+    Style fg_magenta{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::magenta(),
+    };
+
+    Style option_active{
+        .font = font::fixed_8x16,
+        .background = Color::blue(),
+        .foreground = Color::white(),
+    };
+
+    Color status_active{0, 255, 0};  // green, the status bar icons when active
+
+    Color bg_table_header{0, 0, 255};
+};
+
+class ThemeYellow : public ThemeDefault {
+   public:
+    // definition of ui styles and colors thet will be refereced.
+    Style bg_lightest{
+        .font = font::fixed_8x16,
+        .background = Color::white(),
+        .foreground = Color::black(),
+    };
+    Style bg_lightest_small{
+        .font = font::fixed_8x16,
+        .background = Color::white(),
+        .foreground = Color::black(),
+    };
+    Style bg_light{
+        .font = font::fixed_8x16,
+        .background = Color::light_grey(),
+        .foreground = Color::white(),
+    };
+    Style bg_medium{
+        .font = font::fixed_8x16,
+        .background = Color::grey(),
+        .foreground = Color::white(),
+    };
+    Style bg_dark{
+        .font = font::fixed_8x16,
+        .background = Color::dark_grey(),
+        .foreground = Color::white(),
+    };
+    Style bg_darker{
+        .font = font::fixed_8x16,
+        .background = Color::darker_grey(),
+        .foreground = Color::white(),
+    };
+
+    Style bg_darkest{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+    Style bg_darkest_small{
+        .font = font::fixed_5x8,
+        .background = Color::black(),
+        .foreground = Color::white(),
+    };
+
+    Style bg_important_small{
+        .font = ui::font::fixed_5x8,
+        .background = ui::Color::yellow(),
+        .foreground = ui::Color::black(),
+    };
+
+    Style error_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    Style warning_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    Style ok_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+
+    Style fg_dark{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::dark_grey(),
+    };
+    Style fg_medium{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::grey(),
+    };
+    Style fg_light{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::light_grey(),
+    };
+
+    Style fg_red{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::red(),
+    };
+    Style fg_green{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::green(),
+    };
+    Style fg_yellow{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::yellow(),
+    };
+    Style fg_orange{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::orange(),
+    };
+    Style fg_blue{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::blue(),
+    };
+    Style fg_cyan{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::cyan(),
+    };
+    Style fg_darkcyan{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::dark_cyan(),
+    };
+    Style fg_magenta{
+        .font = font::fixed_8x16,
+        .background = Color::black(),
+        .foreground = Color::magenta(),
+    };
+
+    Style option_active{
+        .font = font::fixed_8x16,
+        .background = Color::blue(),
+        .foreground = Color::white(),
+    };
+
+    Color status_active{0, 255, 0};  // green, the status bar icons when active
+
+    Color bg_table_header{0, 0, 255};
+};
+
 class Theme {
    public:
     enum ThemeId {
-        DefaultGrey = 0
+        DefaultGrey = 0,
+        Yellow = 1
     };
     static void SetTheme(ThemeId theme);
-
-    // definition of ui styles and colors thet will be refereced.
-    static Style bg_lightest;
-    static Style bg_lightest_small;
-    static Style bg_light;    //
-    static Style bg_medium;   // navbar, buttons
-    static Style bg_dark;     // navbar, buttons
-    static Style bg_darker;   // infobar
-    static Style bg_darkest;  // usually black
-    static Style bg_darkest_small;
-
-    static Style bg_important_small;
-
-    static Style error_dark;    // red
-    static Style warning_dark;  // yellow
-    static Style ok_dark;       // green
-
-    static Style fg_dark;
-    static Style fg_medium;
-    static Style fg_light;  // for example labels
-
-    static Style fg_red;
-    static Style fg_green;
-    static Style fg_yellow;
-    static Style fg_orange;
-    static Style fg_blue;
-    static Style fg_cyan;
-    static Style fg_darkcyan;
-    static Style fg_magenta;
-
-    static Style option_active;
-
-    static Color status_active;  // green, the status bar icons when active
-
-    static Color bg_table_header;
+    static ThemeDefault* current;
 };
 
 }  // namespace ui

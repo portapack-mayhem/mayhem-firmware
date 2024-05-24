@@ -144,7 +144,7 @@ void NumbersStationView::on_tick_second() {
     armed_blink = not armed_blink;
 
     if (armed_blink)
-        check_armed.set_style(&Theme::fg_red);
+        check_armed.set_style(&Theme::current->fg_red);
     else
         check_armed.set_style(&style());
 

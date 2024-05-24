@@ -141,8 +141,8 @@ class PlaylistView : public View {
     ImageButton button_play{
         {28 * 8, 2 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
-        Theme::fg_green.foreground,
-        Theme::fg_green.background};
+        Theme::current->fg_green.foreground,
+        Theme::current->fg_green.background};
 
     Text text_track{
         {0 * 8, 3 * 16, 30 * 8, 16}};
@@ -151,37 +151,37 @@ class PlaylistView : public View {
         {2 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_arrow_left,
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.background};
 
     NewButton button_next{
         {6 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_arrow_right,
-        Theme::bg_dark.background};
+        Theme::current->bg_dark.background};
 
     NewButton button_add{
         {11 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_new_file,
-        Theme::fg_orange.foreground};
+        Theme::current->fg_orange.foreground};
 
     NewButton button_delete{
         {15 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_delete,
-        Theme::fg_orange.foreground};
+        Theme::current->fg_orange.foreground};
 
     NewButton button_open{
         {20 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_load,
-        Theme::fg_blue.foreground};
+        Theme::current->fg_blue.foreground};
 
     NewButton button_save{
         {24 * 8, 4 * 16, 4 * 8, 2 * 16},
         "",
         &bitmap_icon_save,
-        Theme::fg_blue.foreground};
+        Theme::current->fg_blue.foreground};
 
     spectrum::WaterfallView waterfall{};
 

@@ -161,12 +161,12 @@ class SearchView : public View {
     RecentEntriesView<RecentEntries<SearchRecentEntry>> recent_entries_view{columns, recent};
 
     Labels labels{
-        {{1 * 8, 0}, "Min:      Max:       LNA VGA", Theme::fg_light.foreground},
-        {{1 * 8, 4 * 8}, "Trig:   /255    Mean:   /255", Theme::fg_light.foreground},
-        {{1 * 8, 6 * 8}, "Slices:  /32      Rate:   Hz", Theme::fg_light.foreground},
-        {{6 * 8, 10 * 8}, "Timer  Status", Theme::fg_light.foreground},
-        {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Theme::fg_light.foreground},
-        {{26 * 8, 25 * 8}, "MHz", Theme::fg_light.foreground}};
+        {{1 * 8, 0}, "Min:      Max:       LNA VGA", Theme::current->fg_light.foreground},
+        {{1 * 8, 4 * 8}, "Trig:   /255    Mean:   /255", Theme::current->fg_light.foreground},
+        {{1 * 8, 6 * 8}, "Slices:  /32      Rate:   Hz", Theme::current->fg_light.foreground},
+        {{6 * 8, 10 * 8}, "Timer  Status", Theme::current->fg_light.foreground},
+        {{1 * 8, 25 * 8}, "Accuracy +/-4.9kHz", Theme::current->fg_light.foreground},
+        {{26 * 8, 25 * 8}, "MHz", Theme::current->fg_light.foreground}};
 
     FrequencyField field_frequency_min{
         {1 * 8, 1 * 16}};
