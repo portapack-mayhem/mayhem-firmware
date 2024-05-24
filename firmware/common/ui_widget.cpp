@@ -1312,8 +1312,8 @@ void NewButton::paint(Painter& painter) {
     const Style style = paint_style();
 
     painter.draw_rectangle({r.location(), {r.width(), 1}}, Theme::fg_light.foreground);
-    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Theme::bg_darker.background);
-    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Theme::bg_darker.background);
+    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Theme::bg_dark.background);
+    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Theme::bg_dark.background);
 
     painter.fill_rectangle(
         {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
