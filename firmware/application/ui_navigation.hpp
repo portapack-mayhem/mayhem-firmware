@@ -246,7 +246,12 @@ class SystemStatusView : public View {
 
     ImageToggle toggle_stealth{
         {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_stealth};
+        &bitmap_icon_stealth,
+        &bitmap_icon_stealth,
+        Theme::bg_light.background,
+        Theme::bg_dark.background,
+        Theme::status_active,
+        Theme::bg_dark.background};
 
     ImageButton button_camera{
         {0, 0, 2 * 8, 1 * 16},

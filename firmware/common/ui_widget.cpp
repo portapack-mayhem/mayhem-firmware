@@ -965,7 +965,7 @@ void Button::paint(Painter& painter) {
         bg = style().foreground;
         fg = Theme::bg_darkest.background;
     } else {
-        bg = Theme::bg_darker.background;
+        bg = Theme::bg_dark.background;
         fg = style().foreground;
     }
 
@@ -2126,7 +2126,7 @@ BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
 }
 
 void BatteryTextField::paint(Painter& painter) {
-    Color bg = has_focus() || highlighted() ? Theme::fg_light.foreground : Theme::bg_darker.background;
+    Color bg = has_focus() || highlighted() ? Theme::fg_light.foreground : Theme::bg_dark.background;
     ui::Rect rect = screen_rect();     // 2 * 8, 1 * 16
     painter.fill_rectangle(rect, bg);  // clear
     std::string txt_batt = percent_ <= 100 ? to_string_dec_uint(percent_) : "UNK";
@@ -2135,8 +2135,8 @@ void BatteryTextField::paint(Painter& painter) {
         xdelta = 5;
     else if (txt_batt.length() == 2)
         xdelta = 2;
-    painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Theme::bg_darker.foreground, bg, txt_batt);
-    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::bg_darker.foreground, bg, (charge_) ? "+%" : " %");
+    painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Theme::bg_dark.foreground, bg, txt_batt);
+    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::bg_dark.foreground, bg, (charge_) ? "+%" : " %");
 }
 
 void BatteryTextField::getAccessibilityText(std::string& result) {

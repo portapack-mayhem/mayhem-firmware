@@ -525,7 +525,7 @@ class NewButton : public Widget {
    protected:
     virtual Style paint_style();
     Color color_;
-    Color bg_color_{Theme::bg_darker.background};
+    Color bg_color_{Theme::bg_dark.background};
 
    private:
     std::string text_;
