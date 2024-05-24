@@ -634,7 +634,7 @@ ActivityDot::ActivityDot(
       _color{color} {}
 
 void ActivityDot::paint(Painter& painter) {
-    painter.fill_rectangle(screen_rect(), _on ? _color : Theme::bg_darker.background);
+    painter.fill_rectangle(screen_rect(), _on ? _color : Theme::bg_dark.background);
 }
 
 void ActivityDot::toggle() {
@@ -1118,7 +1118,7 @@ void ButtonWithEncoder::paint(Painter& painter) {
         bg = style().foreground;
         fg = Theme::bg_darkest.background;
     } else {
-        bg = Theme::bg_darker.background;
+        bg = Theme::bg_dark.background;
         fg = style().foreground;
     }
 
@@ -1312,8 +1312,8 @@ void NewButton::paint(Painter& painter) {
     const Style style = paint_style();
 
     painter.draw_rectangle({r.location(), {r.width(), 1}}, Theme::fg_light.foreground);
-    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Theme::bg_dark.background);
-    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Theme::bg_dark.background);
+    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Theme::bg_darker.background);
+    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Theme::bg_darker.background);
 
     painter.fill_rectangle(
         {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
@@ -2763,7 +2763,7 @@ void VuMeter::paint(Painter& painter) {
     // Draw mark (forced refresh)
     if (mark) {
         painter.draw_hline({marks_x, bottom - (height * prev_mark) / 256}, 8, Theme::bg_darkest.background);
-        painter.draw_hline({marks_x, bottom - (height * mark) / 256}, 8, Theme::fg_dark.foreground);
+        painter.draw_hline({marks_x, bottom - (height * mark) / 256}, 8, Theme::fg_medium.foreground);
         prev_mark = mark;
     }
 }

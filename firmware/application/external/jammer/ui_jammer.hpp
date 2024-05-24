@@ -53,7 +53,7 @@ class RangeView : public View {
     uint32_t width{};
     rf::Frequency center{};
 
-    const Style& style_info = Theme::fg_dark;
+    const Style& style_info = Theme::fg_medium;
 
     Labels labels{
         {{2 * 8, 8 * 8 + 4}, LanguageHelper::currentMessages[LANG_START], Theme::fg_light.foreground},

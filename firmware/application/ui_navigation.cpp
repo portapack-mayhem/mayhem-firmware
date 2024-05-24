@@ -428,7 +428,7 @@ void SystemStatusView::refresh() {
     // Clock status
     bool external_clk = portapack::clock_manager.get_reference().source == ClockManager::ReferenceSource::External;
     button_clock_status.set_bitmap(external_clk ? &bitmap_icon_clk_ext : &bitmap_icon_clk_int);
-    button_clock_status.set_foreground(pmem::clkout_enabled() ? Theme::status_active : Theme::bg_light.background);
+    button_clock_status.set_foreground(pmem::clkout_enabled() ? Theme::status_active : Theme::fg_light.foreground);
 
     // Antenna DC Bias
     if (portapack::get_antenna_bias()) {
@@ -436,15 +436,15 @@ void SystemStatusView::refresh() {
         button_bias_tee.set_foreground(Theme::warning_dark.foreground);
     } else {
         button_bias_tee.set_bitmap(&bitmap_icon_biast_off);
-        button_bias_tee.set_foreground(Theme::bg_light.background);
+        button_bias_tee.set_foreground(Theme::fg_light.foreground);
     }
 
     // Converter
     button_converter.set_bitmap(pmem::config_updown_converter() ? &bitmap_icon_downconvert : &bitmap_icon_upconvert);
-    button_converter.set_foreground(pmem::config_converter() ? Theme::fg_red.foreground : Theme::bg_light.background);
+    button_converter.set_foreground(pmem::config_converter() ? Theme::fg_red.foreground : Theme::fg_light.foreground);
 
     // Fake Brightness
-    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Theme::status_active : Theme::bg_light.background);
+    button_fake_brightness.set_foreground(pmem::apply_fake_brightness() ? Theme::status_active : Theme::fg_light.foreground);
 
     set_dirty();
 }
@@ -804,7 +804,7 @@ ReceiversMenuView::ReceiversMenuView(NavigationView& nav)
 
 void ReceiversMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_item({"..", Theme::bg_light.background, &bitmap_icon_previous, [this]() { nav_.pop(); }});
+        add_item({"..", Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }});
     }
 
     add_apps(nav_, *this, RX);
@@ -819,7 +819,7 @@ TransmittersMenuView::TransmittersMenuView(NavigationView& nav)
 
 void TransmittersMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Theme::bg_light.background, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, TX);
@@ -836,7 +836,7 @@ UtilitiesMenuView::UtilitiesMenuView(NavigationView& nav)
 
 void UtilitiesMenuView::on_populate() {
     if (pmem::show_gui_return_icon()) {
-        add_items({{"..", Theme::bg_light.background, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", Theme::fg_light.foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
 
     add_apps(nav_, *this, UTILITIES);
@@ -867,7 +867,7 @@ SystemMenuView::SystemMenuView(NavigationView& nav)
 void SystemMenuView::on_populate() {
     add_apps(nav_, *this, HOME);
 
-    add_item({"HackRF", Color::cyan(), &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});  // todo HTOTOO
+    add_item({"HackRF", Theme::fg_cyan.foreground, &bitmap_icon_hackrf, [this]() { hackrf_mode(nav_); }});
 }
 
 /* SystemView ************************************************************/

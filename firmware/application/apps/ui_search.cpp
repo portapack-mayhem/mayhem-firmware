@@ -80,11 +80,11 @@ SearchView::SearchView(
         nav.push<FrequencySaveView>(entry.frequency);
     };
 
-    text_mean.set_style(&Theme::fg_dark);
-    text_slices.set_style(&Theme::fg_dark);
-    text_rate.set_style(&Theme::fg_dark);
-    progress_timers.set_style(&Theme::fg_dark);
-    big_display.set_style(&Theme::fg_dark);
+    text_mean.set_style(&Theme::fg_medium);
+    text_slices.set_style(&Theme::fg_medium);
+    text_rate.set_style(&Theme::fg_medium);
+    progress_timers.set_style(&Theme::fg_medium);
+    big_display.set_style(&Theme::fg_medium);
 
     field_frequency_min.set_step(100'000);
     bind(field_frequency_min, settings_.freq_min, nav, [this](auto) {
@@ -209,7 +209,7 @@ void SearchView::do_detection() {
                 recent_entries_view.set_dirty();
 
                 text_infos.set("Listening");
-                big_display.set_style(&Theme::fg_dark);
+                big_display.set_style(&Theme::fg_medium);
             }
         }
     }

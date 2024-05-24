@@ -39,6 +39,7 @@ class Theme {
     static Style bg_lightest;
     static Style bg_lightest_small;
     static Style bg_light;    //
+    static Style bg_medium;   // navbar, buttons
     static Style bg_dark;     // navbar, buttons
     static Style bg_darker;   // infobar
     static Style bg_darkest;  // usually black
@@ -50,8 +51,8 @@ class Theme {
     static Style warning_dark;  // yellow
     static Style ok_dark;       // green
 
-    static Style fg_darker;
     static Style fg_dark;
+    static Style fg_medium;
     static Style fg_light;  // for example labels
 
     static Style fg_red;

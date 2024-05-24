@@ -507,7 +507,7 @@ init_status_t init() {
     portapack::io.init();
     persistent_memory::cache::init();
 
-    Theme::SetTheme(Theme::ThemeId::DefaultGrey);  // todo HTOTOO from pmem
+    Theme::SetTheme(Theme::ThemeId::DefaultGrey);
 
     const auto switches_state = swizzled_switches() & (~(0xC0 | 0x80));
     bool lcd_fast_setup = switches_state == 0 && portapack::display.read_display_status();

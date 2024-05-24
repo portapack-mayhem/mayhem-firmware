@@ -158,19 +158,19 @@ class TextEditorMenu : public View {
 
     Rectangle rect_frame{
         {0 * 8, 0 * 8, 23 * 8, 23 * 8},
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 
     NewButton button_home{
         {1 * 8, 1 * 8, 7 * 8, 7 * 8},
         "Home",
         &bitmap_arrow_left,
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 
     NewButton button_end{
         {8 * 8, 1 * 8, 7 * 8, 7 * 8},
         "End",
         &bitmap_arrow_right,
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 
     NewButton button_zoom{
         {15 * 8, 1 * 8, 7 * 8, 7 * 8},

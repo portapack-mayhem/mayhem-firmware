@@ -87,7 +87,7 @@ void RSSI::paint(Painter& painter) {
         const Rect r3{r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height()};
         painter.fill_rectangle(
             r3,
-            Theme::bg_darkest.foreground);
+            Theme::fg_red.foreground);
 
         // filling last part in black
         const Rect r4{r.left() + x_max, r.top(), r.width() - x_max, r.height()};

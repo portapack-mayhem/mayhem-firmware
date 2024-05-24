@@ -415,9 +415,9 @@ void FrequencyEditView::refresh_ui() {
     auto is_repeater = entry_.type == freqman_type::Repeater;
     auto has_freq_b = is_range || is_ham || is_repeater;
 
-    field_freq_b.set_style(has_freq_b ? &Theme::bg_darkest : &Theme::fg_dark);
-    field_step.set_style(is_range ? &Theme::bg_darkest : &Theme::fg_dark);
-    field_tone.set_style(is_ham ? &Theme::bg_darkest : &Theme::fg_dark);
+    field_freq_b.set_style(has_freq_b ? &Theme::bg_darkest : &Theme::fg_medium);
+    field_step.set_style(is_range ? &Theme::bg_darkest : &Theme::fg_medium);
+    field_tone.set_style(is_ham ? &Theme::bg_darkest : &Theme::fg_medium);
 
     if (is_valid(entry_)) {
         text_validation.set("Valid");

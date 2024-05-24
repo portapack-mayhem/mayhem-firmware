@@ -1401,7 +1401,7 @@ void ReconView::start_repeat() {
             std::string delay_message = "TX DELAY: " + to_string_dec_uint(delay) + "s";
 
             // update display information
-            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Theme::bg_light.background);
+            p.fill_rectangle({0, (SCREEN_H / 2) - 16, SCREEN_W, 64}, Theme::fg_light.foreground);
             p.draw_string({(SCREEN_W / 2) - 7 * 8, SCREEN_H / 2}, Theme::fg_red, delay_message);
 
             // sleep 1 second

@@ -68,7 +68,7 @@ class SetDateTimeView : public View {
         {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Theme::fg_light.foreground},
         {{1 * 8, 2 * 16}, "time. If clock resets after", Theme::fg_light.foreground},
         {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Theme::fg_light.foreground},
-        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Theme::fg_dark.foreground},
+        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Theme::fg_medium.foreground},
         {{5 * 8, 6 * 16}, "-  -     :  :", Theme::fg_light.foreground},
         {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Theme::fg_light.foreground},
         {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Theme::fg_light.foreground},

@@ -70,7 +70,7 @@ class TransmitterView : public View {
    private:
     const Style& style_start = Theme::fg_green;
     const Style& style_stop = Theme::fg_red;
-    const Style& style_locked = Theme::fg_darker;
+    const Style& style_locked = Theme::fg_dark;
 
     bool lock_{false};
     bool transmitting_{false};

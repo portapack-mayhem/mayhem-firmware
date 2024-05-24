@@ -47,7 +47,7 @@ void Tab::set(
 
 void Tab::paint(Painter& painter) {
     const auto rect = screen_rect();
-    const Color color = highlighted() ? Theme::bg_darkest.background : Theme::bg_darker.background;
+    const Color color = highlighted() ? Theme::bg_darkest.background : Theme::bg_medium.background;
 
     painter.fill_rectangle({rect.left(), rect.top(), rect.width() - 8, rect.height()}, color);
 

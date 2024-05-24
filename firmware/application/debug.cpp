@@ -314,7 +314,7 @@ bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
         }
     }
 
-    painter.draw_string({0, 320 - 16}, ui::Theme::fg_green, filename.filename().string() + " dumped!");  // todo HTOTOO
+    painter.draw_string({0, 320 - 16}, ui::Theme::fg_green, filename.filename().string() + " dumped!");
     return true;
 }
 

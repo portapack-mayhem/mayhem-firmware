@@ -289,8 +289,8 @@ class DebugControlsView : public View {
    private:
     Labels labels{
         {{8 * 8, 1 * 16}, "Controls State", Theme::bg_darkest.foreground},
-        {{0 * 8, 11 * 16}, "Dial:", Theme::fg_dark.foreground},
-        {{0 * 8, 14 * 16}, "Long-Press Mode:", Theme::fg_dark.foreground}};
+        {{0 * 8, 11 * 16}, "Dial:", Theme::fg_medium.foreground},
+        {{0 * 8, 14 * 16}, "Long-Press Mode:", Theme::fg_medium.foreground}};
 
     ControlsSwitchesWidget switches_widget{
         {80, 80, 80, 112},

@@ -65,7 +65,7 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
             break;
         default:
             entry_string = STR_COLOR_DARK_GREY;
-            target_color = Theme::fg_dark.foreground;
+            target_color = Theme::fg_medium.foreground;
     };
 
     entry_string +=

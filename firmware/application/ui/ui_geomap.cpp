@@ -137,8 +137,8 @@ void GeoPos::focus() {
 
 void GeoPos::hide_altandspeed() {
     // Color altitude grey to indicate it's not updated in manual panning mode
-    field_altitude.set_style(&Theme::fg_dark);
-    field_speed.set_style(&Theme::fg_dark);
+    field_altitude.set_style(&Theme::fg_medium);
+    field_speed.set_style(&Theme::fg_medium);
 }
 
 void GeoPos::set_altitude(int32_t altitude) {

@@ -252,19 +252,19 @@ class FileManagerView : public FileManBaseView {
         {9 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_cut,
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 
     NewButton button_copy{
         {13 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_copy,
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 
     NewButton button_paste{
         {17 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_paste,
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 
     NewButton button_new_dir{
         {22 * 8, 29 * 8, 4 * 8, 32},
@@ -303,7 +303,7 @@ class FileManagerView : public FileManBaseView {
         {17 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_hide,
-        Theme::fg_darker.foreground};
+        Theme::fg_dark.foreground};
 };
 
 } /* namespace ui */

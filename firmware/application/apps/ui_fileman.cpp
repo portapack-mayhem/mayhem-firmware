@@ -750,7 +750,7 @@ FileManagerView::FileManagerView(
             text_date.set_style(&Theme::fg_red);
             text_date.set("Too many files!");
         } else {
-            text_date.set_style(&Theme::fg_dark);
+            text_date.set_style(&Theme::fg_medium);
             if (selected_is_valid())
                 text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
             else

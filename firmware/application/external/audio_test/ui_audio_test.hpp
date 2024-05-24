@@ -90,8 +90,8 @@ class AudioTestView : public View {
         {21 * 8, 14 * 16, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
         &bitmap_icon_speaker,
-        Theme::fg_dark.foreground,
-        Theme::fg_dark.background,
+        Theme::fg_medium.foreground,
+        Theme::fg_medium.background,
         Theme::fg_green.foreground,
         Theme::fg_green.background};
 };

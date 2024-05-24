@@ -153,7 +153,7 @@ class FrequencyManagerView : public FreqManBaseView {
 
     Rectangle rect_padding{
         {15 * 8, 14 * 16 - 4, 15 * 8, 1 * 16 + 4},
-        Theme::fg_dark.background};
+        Theme::fg_medium.background};
 
     Button button_edit_freq{
         {0 * 8, 15 * 16, 15 * 8, 2 * 16},

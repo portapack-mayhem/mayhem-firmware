@@ -39,6 +39,12 @@ Style Theme::bg_light{
     .foreground = Color::white(),
 };
 
+Style Theme::bg_medium{
+    .font = font::fixed_8x16,
+    .background = Color::grey(),
+    .foreground = Color::white(),
+};
+
 Style Theme::bg_dark{
     .font = font::fixed_8x16,
     .background = Color::dark_grey(),
@@ -81,13 +87,13 @@ Style Theme::ok_dark{
     .foreground = Color::green(),
 };
 
-Style Theme::fg_darker{
+Style Theme::fg_dark{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::dark_grey(),
 };
 
-Style Theme::fg_dark{
+Style Theme::fg_medium{
     .font = font::fixed_8x16,
     .background = Color::black(),
     .foreground = Color::grey(),
