@@ -227,9 +227,9 @@ SetRadioView::SetRadioView(
     value_source_frequency.set(clock_manager.get_freq());
 
     // Make these Text controls look like Labels.
-    label_source.set_style(&Theme::getInstance().current.fg_light);
-    value_source.set_style(&Theme::getInstance().current.fg_light);
-    value_source_frequency.set_style(&Theme::getInstance().current.fg_light);
+    label_source.set_style(Theme::getInstance()->fg_light);
+    value_source.set_style(Theme::getInstance()->fg_light);
+    value_source_frequency.set_style(Theme::getInstance()->fg_light);
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -574,7 +574,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
         &button_return,
     });
 
-    text_pmem_status.set_style(&Theme::getInstance().current.fg_yellow);
+    text_pmem_status.set_style(Theme::getInstance()->fg_yellow);
 
     check_use_sdcard_for_pmem.set_value(pmem::should_use_sdcard_for_pmem());
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
@@ -736,7 +736,7 @@ AppSettingsView::AppSettingsView(
         auto path = settings_dir / entry.path();
 
         menu_view.add_item({path.filename().string().substr(0, 26),
-                            ui::Theme::getInstance().current.fg_darkcyan.foreground,
+                            ui::Theme::getInstance()->fg_darkcyan->foreground,
                             &bitmap_icon_file_text,
                             [this, path](KeyEvent) {
                                 nav_.push<TextEditorView>(path);

@@ -129,8 +129,8 @@ class NumbersStationView : public View {
     void start_tx();
 
     Labels labels{
-        {{2 * 8, 5 * 8}, "Voice:     Flags:", Theme::getInstance().current.fg_light.foreground},
-        {{1 * 8, 8 * 8}, "Code:", Theme::getInstance().current.fg_light.foreground}};
+        {{2 * 8, 5 * 8}, "Voice:     Flags:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 8 * 8}, "Code:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_voices{
         {8 * 8, 1 * 8},

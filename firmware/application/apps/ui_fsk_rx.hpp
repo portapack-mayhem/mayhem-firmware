@@ -116,8 +116,8 @@ class FskxRxMainView : public View {
     FskRxAppConsoleView view_data{nav_, view_rect};
 
     TabView tab_view{
-        {"Data", Theme::getInstance().current.fg_yellow.foreground, &view_data},
-        {"Stream", Theme::getInstance().current.fg_cyan.foreground, &view_stream}};
+        {"Data", Theme::getInstance()->fg_yellow->foreground, &view_data},
+        {"Stream", Theme::getInstance()->fg_cyan->foreground, &view_stream}};
 
     void refresh_ui(rf::Frequency f);
     void on_packet(uint32_t value, bool is_data);
@@ -147,7 +147,7 @@ class FskxRxMainView : public View {
         {19 * 8 - 4, 40, 6 * 8, 4}};
 
     Labels labels{
-        {{0 * 8, 3 * 16}, "Deviation:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 3 * 16}, "Deviation:", Theme::getInstance()->fg_light->foreground},
     };
 
     FrequencyField deviation_frequency{

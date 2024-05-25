@@ -184,8 +184,8 @@ class TouchTunesView : public View {
                                                          {{23 * 8, 29 * 8}, "-"}}};
 
     Labels labels{
-        {{2 * 8, 1 * 8}, "PIN:", Theme::getInstance().current.fg_light.foreground},
-        {{13 * 8 + 4, 27 * 8}, "VOL1 VOL2 VOL3", Theme::getInstance().current.fg_light.foreground}};
+        {{2 * 8, 1 * 8}, "PIN:", Theme::getInstance()->fg_light->foreground},
+        {{13 * 8 + 4, 27 * 8}, "VOL1 VOL2 VOL3", Theme::getInstance()->fg_light->foreground}};
 
     std::array<Button, 32> buttons{};
 

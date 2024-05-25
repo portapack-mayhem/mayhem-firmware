@@ -225,8 +225,8 @@ class ReconSetupView : public View {
     ReconSetupViewMore viewMore{nav_, view_rect};
 
     TabView tab_view{
-        {"Main", Theme::getInstance().current.fg_cyan.foreground, &viewMain},
-        {"More", Theme::getInstance().current.fg_green.foreground, &viewMore}};
+        {"Main", Theme::getInstance()->fg_cyan->foreground, &viewMain},
+        {"More", Theme::getInstance()->fg_green->foreground, &viewMore}};
 
     Button button_save{
         {9 * 8, 255, 14 * 8, 40},

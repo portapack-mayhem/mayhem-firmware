@@ -30,278 +30,53 @@
 
 namespace ui {
 
-class ThemeDefault {
+class ThemeTemplate {
    public:
-    // definition of ui styles and colors thet will be refereced.
-    Style bg_lightest{
-        .font = font::fixed_8x16,
-        .background = Color::white(),
-        .foreground = Color::black(),
-    };
-    Style bg_lightest_small{
-        .font = font::fixed_8x16,
-        .background = Color::white(),
-        .foreground = Color::black(),
-    };
-    Style bg_light{
-        .font = font::fixed_8x16,
-        .background = Color::light_grey(),
-        .foreground = Color::white(),
-    };
-    Style bg_medium{
-        .font = font::fixed_8x16,
-        .background = Color::grey(),
-        .foreground = Color::white(),
-    };
-    Style bg_dark{
-        .font = font::fixed_8x16,
-        .background = Color::dark_grey(),
-        .foreground = Color::white(),
-    };
-    Style bg_darker{
-        .font = font::fixed_8x16,
-        .background = Color::darker_grey(),
-        .foreground = Color::white(),
-    };
+    ~ThemeTemplate();
+    Style* bg_lightest;
+    Style* bg_lightest_small;
+    Style* bg_light;
+    Style* bg_medium;
+    Style* bg_dark;
+    Style* bg_darker;
 
-    Style bg_darkest{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
-    Style bg_darkest_small{
-        .font = font::fixed_5x8,
-        .background = Color::black(),
-        .foreground = Color::white(),
-    };
+    Style* bg_darkest;
+    Style* bg_darkest_small;
 
-    Style bg_important_small{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
-        .foreground = ui::Color::black(),
-    };
+    Style* bg_important_small;
 
-    Style error_dark{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-    Style warning_dark{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-    Style ok_dark{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
+    Style* error_dark;
+    Style* warning_dark;
+    Style* ok_dark;
 
-    Style fg_dark{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::dark_grey(),
-    };
-    Style fg_medium{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::grey(),
-    };
-    Style fg_light{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::light_grey(),
-    };
+    Style* fg_dark;
+    Style* fg_medium;
+    Style* fg_light;
 
-    Style fg_red{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::red(),
-    };
-    Style fg_green{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::green(),
-    };
-    Style fg_yellow{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::yellow(),
-    };
-    Style fg_orange{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::orange(),
-    };
-    Style fg_blue{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::blue(),
-    };
-    Style fg_cyan{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::cyan(),
-    };
-    Style fg_darkcyan{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::dark_cyan(),
-    };
-    Style fg_magenta{
-        .font = font::fixed_8x16,
-        .background = Color::black(),
-        .foreground = Color::magenta(),
-    };
+    Style* fg_red;
+    Style* fg_green;
+    Style* fg_yellow;
+    Style* fg_orange;
+    Style* fg_blue;
+    Style* fg_cyan;
+    Style* fg_darkcyan;
+    Style* fg_magenta;
 
-    Style option_active{
-        .font = font::fixed_8x16,
-        .background = Color::blue(),
-        .foreground = Color::white(),
-    };
+    Style* option_active;
 
-    Color status_active{0, 255, 0};  // green, the status bar icons when active
-
-    Color bg_table_header{0, 0, 255};
+    Color* status_active;  // green, the status bar icons when active
+    Color* bg_table_header;
 };
 
-class ThemeYellow : public ThemeDefault {
+class ThemeDefault : public ThemeTemplate {
    public:
-    // definition of ui styles and colors thet will be refereced.
-    Style bg_lightest{
-        .font = font::fixed_8x16,
-        .background = {255, 255, 204},
-        .foreground = Color::black(),
-    };
-    Style bg_lightest_small{
-        .font = font::fixed_8x16,
-        .background = {255, 255, 204},
-        .foreground = Color::black(),
-    };
-    Style bg_light{
-        .font = font::fixed_8x16,
-        .background = {255, 255, 102},
-        .foreground = Color::white(),
-    };
-    Style bg_medium{
-        .font = font::fixed_8x16,
-        .background = {204, 204, 0},
-        .foreground = Color::white(),
-    };
-    Style bg_dark{
-        .font = font::fixed_8x16,
-        .background = {153, 153, 0},
-        .foreground = Color::white(),
-    };
-    Style bg_darker{
-        .font = font::fixed_8x16,
-        .background = {102, 102, 0},
-        .foreground = Color::white(),
-    };
-
-    Style bg_darkest{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::white(),
-    };
-    Style bg_darkest_small{
-        .font = font::fixed_5x8,
-        .background = {31, 31, 0},
-        .foreground = Color::white(),
-    };
-
-    Style bg_important_small{
-        .font = ui::font::fixed_5x8,
-        .background = ui::Color::yellow(),
-        .foreground = {31, 31, 0},
-    };
-
-    Style error_dark{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::red(),
-    };
-    Style warning_dark{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::yellow(),
-    };
-    Style ok_dark{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::green(),
-    };
-
-    Style fg_dark{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = {153, 153, 0},
-    };
-    Style fg_medium{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = {204, 204, 0},
-    };
-    Style fg_light{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::light_grey(),
-    };
-
-    Style fg_red{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::red(),
-    };
-    Style fg_green{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::green(),
-    };
-    Style fg_yellow{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::yellow(),
-    };
-    Style fg_orange{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::orange(),
-    };
-    Style fg_blue{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::blue(),
-    };
-    Style fg_cyan{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::cyan(),
-    };
-    Style fg_darkcyan{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::dark_cyan(),
-    };
-    Style fg_magenta{
-        .font = font::fixed_8x16,
-        .background = {31, 31, 0},
-        .foreground = Color::magenta(),
-    };
-
-    Style option_active{
-        .font = font::fixed_8x16,
-        .background = Color::orange(),
-        .foreground = Color::white(),
-    };
-
-    Color status_active{0, 255, 0};  // green, the status bar icons when active
-
-    Color bg_table_header{255, 255, 0};
+    ThemeDefault();
 };
 
-const ThemeDefault themeDefault;
-const ThemeYellow themeYellow;
+class ThemeYellow : public ThemeTemplate {
+   public:
+    ThemeYellow();
+};
 
 class Theme {
    public:
@@ -309,13 +84,12 @@ class Theme {
         DefaultGrey = 0,
         Yellow = 1
     };
-    static Theme& getInstance() {
-        static Theme instance;  // Singleton instance
-        return instance;
-    }
+    static ThemeTemplate* getInstance();
 
-    void SetTheme(ThemeId theme);
-    ThemeDefault current = themeDefault;
+    static void SetTheme(ThemeId theme);
+    static ThemeTemplate* current;
+
+   private:
 };
 
 }  // namespace ui

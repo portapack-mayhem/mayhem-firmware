@@ -61,9 +61,9 @@ class APRSTXView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Source:       SSID:", Theme::getInstance().current.fg_light.foreground},  // 6 alphanum + SSID
-        {{0 * 8, 2 * 16}, " Dest.:       SSID:", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 4 * 16}, "Info field:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 1 * 16}, "Source:       SSID:", Theme::getInstance()->fg_light->foreground},  // 6 alphanum + SSID
+        {{0 * 8, 2 * 16}, " Dest.:       SSID:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 4 * 16}, "Info field:", Theme::getInstance()->fg_light->foreground},
     };
 
     SymField sym_source{

@@ -76,11 +76,11 @@ class KeyfobView : public View {
     void subaru_set_command(const uint32_t command);
 
     Labels labels{
-        {{5 * 8, 1 * 16}, "Make:", Theme::getInstance().current.fg_light.foreground},
-        {{2 * 8, 2 * 16}, "Command:", Theme::getInstance().current.fg_light.foreground},
-        {{2 * 8, 4 * 16}, "Payload:       #####", Theme::getInstance().current.fg_light.foreground},
-        {{2 * 8, 7 * 16}, "Checksum is fixed just", Theme::getInstance().current.fg_light.foreground},
-        {{2 * 8, 8 * 16}, "before transmission.", Theme::getInstance().current.fg_light.foreground},
+        {{5 * 8, 1 * 16}, "Make:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 2 * 16}, "Command:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 4 * 16}, "Payload:       #####", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 16}, "Checksum is fixed just", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 8 * 16}, "before transmission.", Theme::getInstance()->fg_light->foreground},
     };
 
     OptionsField options_make{

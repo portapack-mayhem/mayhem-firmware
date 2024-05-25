@@ -125,7 +125,7 @@ namespace ui {
                 }
             };
         } else {
-            gridItem.color = Theme::getInstance().current.fg_light.foreground;
+            gridItem.color = Theme::getInstance()->fg_light->foreground;
 
             gridItem.bitmap = &bitmap_sd_card_error;
 

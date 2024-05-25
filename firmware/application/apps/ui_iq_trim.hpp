@@ -40,21 +40,21 @@ class TrimProgressUI {
    public:
     void show_reading() {
         clear();
-        p.draw_string({6 * 8, 5 * 16}, Theme::getInstance().current.fg_yellow, "Reading Capture...");
+        p.draw_string({6 * 8, 5 * 16}, *Theme::getInstance()->fg_yellow, "Reading Capture...");
     }
 
     void show_trimming() {
         clear();
-        p.draw_string({5 * 8, 5 * 16}, Theme::getInstance().current.fg_yellow, "Trimming Capture...");
+        p.draw_string({5 * 8, 5 * 16}, *Theme::getInstance()->fg_yellow, "Trimming Capture...");
     }
 
     void show_progress(uint8_t percent) {
         auto width = percent * screen_width / 100;
-        p.draw_hline({0, 6 * 16 + 2}, width, Theme::getInstance().current.fg_yellow.foreground);
+        p.draw_hline({0, 6 * 16 + 2}, width, Theme::getInstance()->fg_yellow->foreground);
     }
 
     void clear() {
-        p.fill_rectangle({0 * 8, 4 * 16, screen_width, 3 * 16}, Theme::getInstance().current.bg_darkest.background);
+        p.fill_rectangle({0 * 8, 4 * 16, screen_width, 3 * 16}, Theme::getInstance()->bg_darkest->background);
     }
 
     auto get_callback() {
@@ -100,15 +100,15 @@ class IQTrimView : public View {
     TrimProgressUI progress_ui{};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Capture File:", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 6 * 16}, "Start  :", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 7 * 16}, "End    :", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 8 * 16}, "Samples:", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 9 * 16}, "Max Pwr:", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 10 * 16}, "Cutoff :", Theme::getInstance().current.fg_light.foreground},
-        {{12 * 8, 10 * 16}, "%", Theme::getInstance().current.fg_light.foreground},
-        {{0 * 8, 12 * 16}, "Amplify:", Theme::getInstance().current.fg_light.foreground},
-        {{10 * 8, 12 * 16}, "x", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 0 * 16}, "Capture File:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 6 * 16}, "Start  :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "End    :", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 8 * 16}, "Samples:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 9 * 16}, "Max Pwr:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 16}, "Cutoff :", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, 10 * 16}, "%", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 12 * 16}, "Amplify:", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, 12 * 16}, "x", Theme::getInstance()->fg_light->foreground},
     };
 
     TextField field_path{

@@ -168,14 +168,14 @@ static void event_loop() {
 int main(void) {
     first_if.init(); /* To avoid initial short Ant_DC_Bias pulse ,we need quick set up GP01_RFF507X =1 */
 
-    Theme::getInstance().SetTheme(Theme::ThemeId::DefaultGrey);
-
     if (config_mode_should_enter()) {
         config_mode_clear();
         config_mode_run();
     }
 
     config_mode_set();
+
+    Theme::SetTheme(Theme::ThemeId::Yellow);
 
     switch (portapack::init()) {
         case portapack::init_status_t::INIT_HACKRF_CPLD_FAILED:

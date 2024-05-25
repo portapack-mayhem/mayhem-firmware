@@ -53,12 +53,12 @@ class BattinfoView : public View {
     bool isCharging = false;
 
     Labels labels{
-        {{2 * 8, 1 * 16}, "Percent:", Theme::getInstance().current.fg_light.foreground},
-        {{2 * 8, 2 * 16}, "Voltage:", Theme::getInstance().current.fg_light.foreground}};
+        {{2 * 8, 1 * 16}, "Percent:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 2 * 16}, "Voltage:", Theme::getInstance()->fg_light->foreground}};
 
     Labels labels_opt{
-        {{2 * 8, 3 * 16}, "Current:", Theme::getInstance().current.fg_light.foreground},
-        {{2 * 8, 4 * 16}, "Charge:", Theme::getInstance().current.fg_light.foreground}};
+        {{2 * 8, 3 * 16}, "Current:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 4 * 16}, "Charge:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_percent{
         {13 * 8, 1 * 16, 10 * 16, 16},

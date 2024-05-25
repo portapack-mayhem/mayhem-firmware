@@ -83,16 +83,16 @@ class SpectrumPainterView : public View {
     std::array<View*, 2> input_views{{&input_image, &input_text}};
 
     TabView tab_view{
-        {"Image", Theme::getInstance().current.bg_darkest.foreground, input_views[0]},
-        {"Text", Theme::getInstance().current.bg_darkest.foreground, input_views[1]}};
+        {"Image", Theme::getInstance()->bg_darkest->foreground, input_views[0]},
+        {"Text", Theme::getInstance()->bg_darkest->foreground, input_views[1]}};
 
     static constexpr int32_t footer_location = 15 * 16 + 8;
     ProgressBar progressbar{
         {4, footer_location - 16, 240 - 8, 16}};
 
     Labels labels{
-        {{10 * 8, footer_location + 1 * 16}, "GAIN   A:", Theme::getInstance().current.fg_light.foreground},
-        {{1 * 8, footer_location + 2 * 16}, "BW:      Du:    P:", Theme::getInstance().current.fg_light.foreground},
+        {{10 * 8, footer_location + 1 * 16}, "GAIN   A:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, footer_location + 2 * 16}, "BW:      Du:    P:", Theme::getInstance()->fg_light->foreground},
     };
 
     TxFrequencyField field_frequency{
@@ -122,8 +122,8 @@ class SpectrumPainterView : public View {
     ImageButton button_play{
         {28 * 8, footer_location + 1 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
-        Theme::getInstance().current.fg_green.foreground,
-        Theme::getInstance().current.fg_green.background};
+        Theme::getInstance()->fg_green->foreground,
+        Theme::getInstance()->fg_green->background};
 
     OptionsField option_bandwidth{
         {4 * 8, footer_location + 2 * 16},

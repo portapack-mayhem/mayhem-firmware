@@ -49,7 +49,7 @@ class AudioSpectrumView : public View {
     int16_t audio_spectrum[128]{0};
 
     Labels labels{
-        {{6 * 8, 0 * 16}, "Hz", Theme::getInstance().current.fg_light.foreground}};
+        {{6 * 8, 0 * 16}, "Hz", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency{
         {0 * 8, 0 * 16},
@@ -64,7 +64,7 @@ class AudioSpectrumView : public View {
         128,
         0,
         false,
-        Theme::getInstance().current.bg_darkest.foreground};
+        Theme::getInstance()->bg_darkest->foreground};
 };
 
 class FrequencyScale : public Widget {

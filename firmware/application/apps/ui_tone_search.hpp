@@ -39,7 +39,7 @@ class ToneSearchView : public View {
     NavigationView& nav_;
 
     Labels labels{
-        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Theme::getInstance().current.fg_light.foreground}};
+        {{0 * 8, 0 * 8}, "LNA:   VGA:   AMP:", Theme::getInstance()->fg_light->foreground}};
 
     LNAGainField field_lna{
         {4 * 8, 0 * 16}};

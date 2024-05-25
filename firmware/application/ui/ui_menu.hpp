@@ -113,8 +113,8 @@ class MenuView : public View {
     Image arrow_more{
         {228, screen_height - 8, 8, 8},
         &bitmap_more,
-        Theme::getInstance().current.bg_darkest.foreground,
-        Theme::getInstance().current.bg_darkest.background};
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background};
 
     const size_t item_height = 24;
     bool blink = false;

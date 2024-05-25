@@ -51,9 +51,9 @@ namespace ui {
         shared_memory.application_queue.push(message);
 
         if( !pitch_rssi_enabled ) {
-                button_pitch_rssi.set_foreground(Theme::getInstance().current.fg_orange.foreground);
+                button_pitch_rssi.set_foreground(Theme::getInstance()->fg_orange->foreground);
         } else {
-                button_pitch_rssi.set_foreground(Theme::getInstance().current.fg_green.foreground);
+                button_pitch_rssi.set_foreground(Theme::getInstance()->fg_green->foreground);
         }
 }*/
 
@@ -113,9 +113,9 @@ uint32_t RecordView::set_sampling_rate(uint32_t new_sampling_rate) {
     // Change the "REC" icon background to yellow when the selected rate exceeds hardware limits.
     // Above this threshold, samples will be dropped resulting incomplete capture files.
     if (new_sampling_rate > 1'250'000) {
-        button_record.set_background(Theme::getInstance().current.fg_yellow.foreground);
+        button_record.set_background(Theme::getInstance()->fg_yellow->foreground);
     } else {
-        button_record.set_background(Theme::getInstance().current.fg_yellow.background);
+        button_record.set_background(Theme::getInstance()->fg_yellow->background);
     }
 
     if (sampling_rate != new_sampling_rate) {
