@@ -175,8 +175,6 @@ int main(void) {
 
     config_mode_set();
 
-    Theme::SetTheme(Theme::ThemeId::Yellow);
-
     switch (portapack::init()) {
         case portapack::init_status_t::INIT_HACKRF_CPLD_FAILED:
             portapack::init_error = "HACKRF CPLD FAILED";
@@ -188,6 +186,8 @@ int main(void) {
 
             lcd_frame_sync_configure();
             rtc_interrupt_enable();
+
+            Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());  // load theme
 
             event_loop();
 

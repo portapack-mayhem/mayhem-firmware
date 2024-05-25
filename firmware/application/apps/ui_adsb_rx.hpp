@@ -289,10 +289,7 @@ class ADSBRxDetailsView : public View {
     bool airline_checked{false};
 
     Labels labels{
-        {
-            {0 * 8, 1 * 16},
-            "ICAO:",
-        },
+        {{0 * 8, 1 * 16}, "ICAO:", Theme::getInstance()->fg_light->foreground},
         {{13 * 8, 1 * 16}, "Callsign:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 2 * 16}, "Last seen:", Theme::getInstance()->fg_light->foreground},
         {{0 * 8, 3 * 16}, "Airline:", Theme::getInstance()->fg_light->foreground},

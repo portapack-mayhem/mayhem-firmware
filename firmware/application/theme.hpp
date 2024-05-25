@@ -82,7 +82,8 @@ class Theme {
    public:
     enum ThemeId {
         DefaultGrey = 0,
-        Yellow = 1
+        Yellow = 1,
+        MAX
     };
     static ThemeTemplate* getInstance();
 
