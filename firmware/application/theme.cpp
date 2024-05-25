@@ -16,6 +16,9 @@ void Theme::SetTheme(ThemeId theme) {
         case Yellow:
             current = new ThemeYellow();
             break;
+        case Aqua:
+            current = new ThemeAqua();
+            break;
         case DefaultGrey:
         default:
             current = new ThemeDefault();
@@ -183,6 +186,139 @@ ThemeYellow::ThemeYellow() {
     status_active = new Color{0, 255, 0};  // green, the status bar icons when active
 
     bg_table_header = new Color{205, 205, 0};
+}
+
+ThemeAqua::ThemeAqua() {
+    bg_lightest = new Style{
+        .font = font::fixed_8x16,
+        .background = {204, 255, 255},
+        .foreground = Color::black(),
+    };
+    bg_lightest_small = new Style{
+        .font = font::fixed_8x16,
+        .background = {204, 255, 255},
+        .foreground = Color::black(),
+    };
+    bg_light = new Style{
+        .font = font::fixed_8x16,
+        .background = {102, 255, 255},
+        .foreground = Color::white(),
+    };
+    bg_medium = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 144, 200},
+        .foreground = Color::white(),
+    };
+    bg_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 153, 153},
+        .foreground = Color::white(),
+    };
+    bg_darker = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 102, 102},
+        .foreground = Color::white(),
+    };
+
+    bg_darkest = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::white(),
+    };
+    bg_darkest_small = new Style{
+        .font = font::fixed_5x8,
+        .background = {0, 31, 31},
+        .foreground = Color::white(),
+    };
+
+    bg_important_small = new Style{
+        .font = ui::font::fixed_5x8,
+        .background = ui::Color::yellow(),
+        .foreground = {0, 31, 31},
+    };
+
+    error_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::red(),
+    };
+    warning_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::yellow(),
+    };
+    ok_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::green(),
+    };
+
+    fg_dark = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = {0, 153, 153},
+    };
+    fg_medium = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = {0, 204, 204},
+    };
+    fg_light = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::light_grey(),
+    };
+
+    fg_red = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::red(),
+    };
+    fg_green = new Style{
+        .font = font::fixed_8x16,
+        .background = {31, 31, 0},
+        .foreground = Color::green(),
+    };
+    fg_yellow = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::yellow(),
+    };
+    fg_orange = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::orange(),
+    };
+    fg_blue = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::blue(),
+    };
+    fg_cyan = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::cyan(),
+    };
+    fg_darkcyan = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::dark_cyan(),
+    };
+    fg_magenta = new Style{
+        .font = font::fixed_8x16,
+        .background = {0, 31, 31},
+        .foreground = Color::magenta(),
+    };
+
+    option_active = new Style{
+        .font = font::fixed_8x16,
+        .background = Color::blue(),
+        .foreground = Color::white(),
+    };
+
+    status_active = new Color{0, 255, 0};  // green, the status bar icons when active
+
+    bg_table_header = new Color{0, 205, 205};
 }
 
 ThemeDefault::ThemeDefault() {

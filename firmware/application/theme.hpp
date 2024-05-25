@@ -78,11 +78,17 @@ class ThemeYellow : public ThemeTemplate {
     ThemeYellow();
 };
 
+class ThemeAqua : public ThemeTemplate {
+   public:
+    ThemeAqua();
+};
+
 class Theme {
    public:
     enum ThemeId {
         DefaultGrey = 0,
         Yellow = 1,
+        Aqua = 2,
         MAX
     };
     static ThemeTemplate* getInstance();
