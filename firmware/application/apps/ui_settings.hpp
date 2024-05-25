@@ -859,7 +859,8 @@ class SetThemeView : public View {
    private:
     int32_t selected = 0;
     Labels labels{
-        {{1 * 8, 1 * 16}, "Select a theme", Theme::getInstance()->fg_light->foreground}};
+        {{1 * 8, 1 * 16}, "Select a theme.", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 16}, "Restart PP to fully apply!", Theme::getInstance()->fg_light->foreground}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},
@@ -872,6 +873,11 @@ class SetThemeView : public View {
             {"Default - Grey", 0},
             {"Yellow", 1},
         }};
+
+    Checkbox checkbox_menuset{
+        {2 * 8, 6 * 16},
+        23,
+        "Set Menu color too"};
 
     Button button_cancel{
         {16 * 8, 16 * 16, 12 * 8, 32},

@@ -917,15 +917,22 @@ SetThemeView::SetThemeView(NavigationView& nav) {
     add_children({&labels,
                   &button_save,
                   &button_cancel,
-                  &options});
+                  &options,
+                  &checkbox_menuset});
 
     button_save.on_select = [&nav, this](Button&) {
         if (selected < Theme::ThemeId::MAX && (uint8_t)selected != portapack::persistent_memory::ui_theme_id()) {
             portapack::persistent_memory::set_ui_theme_id((uint8_t)selected);
-            nav.display_modal("Theme", "Please restart to apply");
+            Theme::SetTheme((Theme::ThemeId)selected);
+            if (checkbox_menuset.value()) {
+                pmem::set_menu_color(Theme::getInstance()->bg_medium->background);
+            }
+            send_system_refresh();
         }
         nav.pop();
     };
+
+    checkbox_menuset.set_value(true);
 
     button_cancel.on_select = [&nav, this](Button&) {
         nav.pop();
