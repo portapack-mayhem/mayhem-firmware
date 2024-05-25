@@ -139,23 +139,23 @@ class BleRecentEntryDetailView : public View {
     static constexpr uint8_t total_data_lines{5};
 
     Labels label_mac_address{
-        {{0 * 8, 0 * 16}, "Mac Address:", Theme::current->fg_light.foreground}};
+        {{0 * 8, 0 * 16}, "Mac Address:", Theme::getInstance().current.fg_light.foreground}};
 
     Text text_mac_address{
         {12 * 8, 0 * 16, 17 * 8, 16},
         "-"};
 
     Labels label_pdu_type{
-        {{0 * 8, 1 * 16}, "PDU Type:", Theme::current->fg_light.foreground}};
+        {{0 * 8, 1 * 16}, "PDU Type:", Theme::getInstance().current.fg_light.foreground}};
 
     Text text_pdu_type{
         {9 * 8, 1 * 16, 17 * 8, 16},
         "-"};
 
     Labels labels{
-        {{0 * 8, 3 * 16}, "Len", Theme::current->fg_light.foreground},
-        {{5 * 8, 3 * 16}, "Type", Theme::current->fg_light.foreground},
-        {{10 * 8, 3 * 16}, "Value", Theme::current->fg_light.foreground},
+        {{0 * 8, 3 * 16}, "Len", Theme::getInstance().current.fg_light.foreground},
+        {{5 * 8, 3 * 16}, "Type", Theme::getInstance().current.fg_light.foreground},
+        {{10 * 8, 3 * 16}, "Value", Theme::getInstance().current.fg_light.foreground},
     };
 
     Button button_send{
@@ -286,7 +286,7 @@ class BLERxView : public View {
         {24 * 8, 5, 6 * 8, 4}};
 
     Labels label_sort{
-        {{0 * 8, 3 * 8}, "Sort:", Theme::current->fg_light.foreground}};
+        {{0 * 8, 3 * 8}, "Sort:", Theme::getInstance().current.fg_light.foreground}};
 
     OptionsField options_sort{
         {5 * 8, 3 * 8},
@@ -318,7 +318,7 @@ class BLERxView : public View {
         "Find"};
 
     Labels label_found{
-        {{5 * 8, 6 * 8}, "Found:", Theme::current->fg_light.foreground}};
+        {{5 * 8, 6 * 8}, "Found:", Theme::getInstance().current.fg_light.foreground}};
 
     Text text_found_count{
         {11 * 8, 3 * 16, 20 * 8, 16},

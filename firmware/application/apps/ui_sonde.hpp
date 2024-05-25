@@ -94,14 +94,14 @@ class SondeView : public View {
     // AudioOutput audio_output { };
 
     Labels labels{
-        {{4 * 8, 2 * 16}, "Type:", Theme::current->fg_light.foreground},
-        {{6 * 8, 3 * 16}, "ID:", Theme::current->fg_light.foreground},
-        {{0 * 8, 4 * 16}, "DateTime:", Theme::current->fg_light.foreground},
+        {{4 * 8, 2 * 16}, "Type:", Theme::getInstance().current.fg_light.foreground},
+        {{6 * 8, 3 * 16}, "ID:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 4 * 16}, "DateTime:", Theme::getInstance().current.fg_light.foreground},
 
-        {{3 * 8, 5 * 16}, "Vbatt:", Theme::current->fg_light.foreground},
-        {{3 * 8, 6 * 16}, "Frame:", Theme::current->fg_light.foreground},
-        {{4 * 8, 7 * 16}, "Temp:", Theme::current->fg_light.foreground},
-        {{0 * 8, 8 * 16}, "Humidity:", Theme::current->fg_light.foreground}};
+        {{3 * 8, 5 * 16}, "Vbatt:", Theme::getInstance().current.fg_light.foreground},
+        {{3 * 8, 6 * 16}, "Frame:", Theme::getInstance().current.fg_light.foreground},
+        {{4 * 8, 7 * 16}, "Temp:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 8 * 16}, "Humidity:", Theme::getInstance().current.fg_light.foreground}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},

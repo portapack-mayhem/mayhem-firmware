@@ -415,16 +415,16 @@ void FrequencyEditView::refresh_ui() {
     auto is_repeater = entry_.type == freqman_type::Repeater;
     auto has_freq_b = is_range || is_ham || is_repeater;
 
-    field_freq_b.set_style(has_freq_b ? &Theme::current->bg_darkest : &Theme::current->fg_medium);
-    field_step.set_style(is_range ? &Theme::current->bg_darkest : &Theme::current->fg_medium);
-    field_tone.set_style(is_ham ? &Theme::current->bg_darkest : &Theme::current->fg_medium);
+    field_freq_b.set_style(has_freq_b ? &Theme::getInstance().current.bg_darkest : &Theme::getInstance().current.fg_medium);
+    field_step.set_style(is_range ? &Theme::getInstance().current.bg_darkest : &Theme::getInstance().current.fg_medium);
+    field_tone.set_style(is_ham ? &Theme::getInstance().current.bg_darkest : &Theme::getInstance().current.fg_medium);
 
     if (is_valid(entry_)) {
         text_validation.set("Valid");
-        text_validation.set_style(&Theme::current->fg_green);
+        text_validation.set_style(&Theme::getInstance().current.fg_green);
     } else {
         text_validation.set("Error");
-        text_validation.set_style(&Theme::current->fg_red);
+        text_validation.set_style(&Theme::getInstance().current.fg_red);
     }
 }
 

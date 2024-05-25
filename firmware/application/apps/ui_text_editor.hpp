@@ -158,61 +158,61 @@ class TextEditorMenu : public View {
 
     Rectangle rect_frame{
         {0 * 8, 0 * 8, 23 * 8, 23 * 8},
-        Theme::current->fg_dark.foreground};
+        Theme::getInstance().current.fg_dark.foreground};
 
     NewButton button_home{
         {1 * 8, 1 * 8, 7 * 8, 7 * 8},
         "Home",
         &bitmap_arrow_left,
-        Theme::current->fg_dark.foreground};
+        Theme::getInstance().current.fg_dark.foreground};
 
     NewButton button_end{
         {8 * 8, 1 * 8, 7 * 8, 7 * 8},
         "End",
         &bitmap_arrow_right,
-        Theme::current->fg_dark.foreground};
+        Theme::getInstance().current.fg_dark.foreground};
 
     NewButton button_zoom{
         {15 * 8, 1 * 8, 7 * 8, 7 * 8},
         "Zoom",
         &bitmap_icon_search,
-        Theme::current->fg_orange.foreground};
+        Theme::getInstance().current.fg_orange.foreground};
 
     NewButton button_delline{
         {1 * 8, 8 * 8, 7 * 8, 7 * 8},
         "-Line",
         &bitmap_icon_delete,
-        Theme::current->fg_red.foreground};
+        Theme::getInstance().current.fg_red.foreground};
 
     NewButton button_edit{
         {8 * 8, 8 * 8, 7 * 8, 7 * 8},
         "Edit",
         &bitmap_icon_rename,
-        Theme::current->fg_blue.foreground};
+        Theme::getInstance().current.fg_blue.foreground};
 
     NewButton button_addline{
         {15 * 8, 8 * 8, 7 * 8, 7 * 8},
         "+Line",
         &bitmap_icon_scanner,
-        Theme::current->fg_blue.foreground};
+        Theme::getInstance().current.fg_blue.foreground};
 
     NewButton button_open{
         {1 * 8, 15 * 8, 7 * 8, 7 * 8},
         "Open",
         &bitmap_icon_load,
-        Theme::current->fg_green.foreground};
+        Theme::getInstance().current.fg_green.foreground};
 
     NewButton button_save{
         {8 * 8, 15 * 8, 7 * 8, 7 * 8},
         "Save",
         &bitmap_icon_save,
-        Theme::current->fg_green.foreground};
+        Theme::getInstance().current.fg_green.foreground};
 
     NewButton button_exit{
         {15 * 8, 15 * 8, 7 * 8, 7 * 8},
         "Exit",
         &bitmap_icon_previous,
-        Theme::current->fg_red.foreground};
+        Theme::getInstance().current.fg_red.foreground};
 };
 
 /* View viewing and minor edits on a text file. */
@@ -268,7 +268,7 @@ class TextEditorView : public View {
         {26 * 8, 34 * 8, 4 * 8, 4 * 8},
         {},
         &bitmap_icon_controls,
-        Theme::current->bg_dark.background,
+        Theme::getInstance().current.bg_dark.background,
         /*vcenter*/ true};
 
     Text text_position{

@@ -50,12 +50,12 @@ class XylosView : public View {
 
    private:
     Labels labels{
-        {{8 * 8, 1 * 8}, "Header:", Theme::current->fg_light.foreground},
-        {{4 * 8, 3 * 8}, "City code:", Theme::current->fg_light.foreground},
-        {{7 * 8, 5 * 8}, "Family:", Theme::current->fg_light.foreground},
-        {{2 * 8, 7 * 8 + 2}, "Subfamily:", Theme::current->fg_light.foreground},
-        {{2 * 8, 11 * 8}, "Receiver ID:", Theme::current->fg_light.foreground},
-        {{2 * 8, 14 * 8}, "Relay:", Theme::current->fg_light.foreground}};
+        {{8 * 8, 1 * 8}, "Header:", Theme::getInstance().current.fg_light.foreground},
+        {{4 * 8, 3 * 8}, "City code:", Theme::getInstance().current.fg_light.foreground},
+        {{7 * 8, 5 * 8}, "Family:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 7 * 8 + 2}, "Subfamily:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 11 * 8}, "Receiver ID:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 14 * 8}, "Relay:", Theme::getInstance().current.fg_light.foreground}};
 
     NumberField field_header_a{
         {16 * 8, 1 * 8},
@@ -130,9 +130,9 @@ class EPARView : public View {
 
    private:
     Labels labels{
-        {{4 * 8, 1 * 8}, "City code:", Theme::current->fg_light.foreground},
-        {{8 * 8, 3 * 8}, "Group:", Theme::current->fg_light.foreground},
-        {{8 * 8, 7 * 8}, "Relay:", Theme::current->fg_light.foreground}};
+        {{4 * 8, 1 * 8}, "City code:", Theme::getInstance().current.fg_light.foreground},
+        {{8 * 8, 3 * 8}, "Group:", Theme::getInstance().current.fg_light.foreground},
+        {{8 * 8, 7 * 8}, "Relay:", Theme::getInstance().current.fg_light.foreground}};
 
     NumberField field_city{
         {16 * 8, 1 * 8},
@@ -195,11 +195,11 @@ class BHTView : public View {
     EPARView view_EPAR{view_rect};
 
     TabView tab_view{
-        {"Xylos", Theme::current->fg_cyan.foreground, &view_xylos},
-        {"EPAR", Theme::current->fg_green.foreground, &view_EPAR}};
+        {"Xylos", Theme::getInstance().current.fg_cyan.foreground, &view_xylos},
+        {"EPAR", Theme::getInstance().current.fg_green.foreground, &view_EPAR}};
 
     Labels labels{
-        {{29 * 8, 14 * 16 + 4}, "s", Theme::current->fg_light.foreground}};
+        {{29 * 8, 14 * 16 + 4}, "s", Theme::getInstance().current.fg_light.foreground}};
 
     Checkbox checkbox_scan{
         {1 * 8, 25 * 8},

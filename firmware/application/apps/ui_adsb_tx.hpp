@@ -76,7 +76,7 @@ class ADSBCallsignView : public OptionTabView {
     std::string callsign = "TEST1234";
 
     Labels labels_callsign{
-        {{2 * 8, 5 * 8}, "Callsign:", Theme::current->fg_light.foreground}};
+        {{2 * 8, 5 * 8}, "Callsign:", Theme::getInstance().current.fg_light.foreground}};
 
     Button button_callsign{
         {12 * 8, 2 * 16, 10 * 8, 2 * 16},
@@ -91,10 +91,10 @@ class ADSBSpeedView : public OptionTabView {
 
    private:
     Labels labels_speed{
-        {{1 * 8, 6 * 16}, "Speed:    kn  Bearing:    *", Theme::current->fg_light.foreground}};
+        {{1 * 8, 6 * 16}, "Speed:    kn  Bearing:    *", Theme::getInstance().current.fg_light.foreground}};
 
     Labels labels_vert_rate{
-        {{1 * 8, 8 * 16}, "Vert. rate:    ft/min, (+/-)", Theme::current->fg_light.foreground}};
+        {{1 * 8, 8 * 16}, "Vert. rate:    ft/min, (+/-)", Theme::getInstance().current.fg_light.foreground}};
 
     Compass compass{
         {21 * 8, 2 * 16}};
@@ -131,7 +131,7 @@ class ADSBSquawkView : public OptionTabView {
 
    private:
     Labels labels_squawk{
-        {{2 * 8, 2 * 16}, "Squawk:", Theme::current->fg_light.foreground}};
+        {{2 * 8, 2 * 16}, "Squawk:", Theme::getInstance().current.fg_light.foreground}};
 
     SymField field_squawk{
         {10 * 8, 2 * 16},
@@ -226,13 +226,13 @@ class ADSBTxView : public View {
     ADSBSquawkView view_squawk{view_rect};
 
     TabView tab_view{
-        {"Position", Theme::current->fg_cyan.foreground, &view_position},
-        {"Callsign", Theme::current->fg_green.foreground, &view_callsign},
-        {"Speed", Theme::current->fg_yellow.foreground, &view_speed},
-        {"Squawk", Theme::current->fg_orange.foreground, &view_squawk}};
+        {"Position", Theme::getInstance().current.fg_cyan.foreground, &view_position},
+        {"Callsign", Theme::getInstance().current.fg_green.foreground, &view_callsign},
+        {"Speed", Theme::getInstance().current.fg_yellow.foreground, &view_speed},
+        {"Squawk", Theme::getInstance().current.fg_orange.foreground, &view_squawk}};
 
     Labels labels{
-        {{2 * 8, 4 * 8}, "ICAO24:", Theme::current->fg_light.foreground}};
+        {{2 * 8, 4 * 8}, "ICAO24:", Theme::getInstance().current.fg_light.foreground}};
 
     SymField sym_icao{
         {10 * 8, 4 * 8},

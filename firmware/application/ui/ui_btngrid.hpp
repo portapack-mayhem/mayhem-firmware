@@ -98,8 +98,8 @@ class BtnGridView : public View {
     Image arrow_more{
         {228, 320 - 8, 8, 8},
         &bitmap_more,
-        Theme::current->bg_darkest.foreground,
-        Theme::current->bg_darkest.background};
+        Theme::getInstance().current.bg_darkest.foreground,
+        Theme::getInstance().current.bg_darkest.background};
 
     int button_w = 240 / rows_;
     static constexpr int button_h = 48;

@@ -65,14 +65,14 @@ class SetDateTimeView : public View {
     std::vector<option_t> month_options = {{"Jan", 1}, {"Feb", 2}, {"Mar", 3}, {"Apr", 4}, {"May", 5}, {"Jun", 6}, {"Jul", 7}, {"Aug", 8}, {"Sep", 9}, {"Oct", 10}, {"Nov", 11}, {"Dec", 12}};
 
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "time. If clock resets after", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Theme::current->fg_light.foreground},
-        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Theme::current->fg_medium.foreground},
-        {{5 * 8, 6 * 16}, "-  -     :  :", Theme::current->fg_light.foreground},
-        {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Theme::current->fg_light.foreground},
-        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Theme::current->fg_light.foreground},
-        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Theme::current->fg_light.foreground}};
+        {{1 * 8, 1 * 16}, "Adjust the RTC clock date &", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "time. If clock resets after", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "reboot, coin batt. is dead. ", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 5 * 16 - 2}, "YYYY-MM-DD HH:MM:SS  DoW DoY", Theme::getInstance().current.fg_medium.foreground},
+        {{5 * 8, 6 * 16}, "-  -     :  :", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 11 * 16}, "DST adds 1 hour to RTC time.", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 12 * 16}, "Start: 0:00 on Nth  DDD in", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 13 * 16}, "End:   1:00 on Nth  DDD in", Theme::getInstance().current.fg_light.foreground}};
 
     NumberField field_year{
         {1 * 8, 6 * 16},
@@ -210,8 +210,8 @@ class SetRadioView : public View {
         ""};
 
     Labels labels_correction{
-        {{2 * 8, 3 * 16}, "Frequency correction:", Theme::current->fg_light.foreground},
-        {{6 * 8, 4 * 16}, "PPM", Theme::current->fg_light.foreground},
+        {{2 * 8, 3 * 16}, "Frequency correction:", Theme::getInstance().current.fg_light.foreground},
+        {{6 * 8, 4 * 16}, "PPM", Theme::getInstance().current.fg_light.foreground},
     };
 
     NumberField field_ppm{
@@ -233,13 +233,13 @@ class SetRadioView : public View {
         SymField::Type::Dec};
 
     Labels labels_clkout_khz{
-        {{26 * 8, 6 * 16}, "kHz", Theme::current->fg_light.foreground}};
+        {{26 * 8, 6 * 16}, "kHz", Theme::getInstance().current.fg_light.foreground}};
 
     Labels labels_bias{
-        {{4 * 8 + 4, 8 * 16}, "CAUTION: Ensure that all", Theme::current->error_dark.foreground},
-        {{5 * 8 + 0, 9 * 16}, "devices attached to the", Theme::current->error_dark.foreground},
-        {{6 * 8 + 0, 10 * 16}, "antenna connector can", Theme::current->error_dark.foreground},
-        {{6 * 8 + 4, 11 * 16}, "accept a DC voltage!", Theme::current->error_dark.foreground}};
+        {{4 * 8 + 4, 8 * 16}, "CAUTION: Ensure that all", Theme::getInstance().current.error_dark.foreground},
+        {{5 * 8 + 0, 9 * 16}, "devices attached to the", Theme::getInstance().current.error_dark.foreground},
+        {{6 * 8 + 0, 10 * 16}, "antenna connector can", Theme::getInstance().current.error_dark.foreground},
+        {{6 * 8 + 4, 11 * 16}, "accept a DC voltage!", Theme::getInstance().current.error_dark.foreground}};
 
     Checkbox check_bias{
         {18, 12 * 16},
@@ -319,7 +319,7 @@ class SetUIView : public View {
         "Back button in menu"};
 
     Labels labels{
-        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Theme::current->fg_light.foreground},
+        {{3 * 8, 13 * 16}, "Show/Hide Status Icons", Theme::getInstance().current.fg_light.foreground},
     };
 
     ImageToggle toggle_camera{
@@ -390,8 +390,8 @@ class SetSDCardView : public View {
    private:
     Labels labels{
         // 01234567890123456789012345678
-        {{1 * 8, 120 - 48}, "    HIGH SPEED SDCARD IO     ", Theme::current->fg_light.foreground},
-        {{1 * 8, 120 - 32}, "   May or may not work !!    ", Theme::current->fg_light.foreground}};
+        {{1 * 8, 120 - 48}, "    HIGH SPEED SDCARD IO     ", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 120 - 32}, "   May or may not work !!    ", Theme::getInstance().current.fg_light.foreground}};
 
     Checkbox checkbox_sdcard_speed{
         {2 * 8, 120},
@@ -425,11 +425,11 @@ class SetConverterSettingsView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Options for working with", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "up/down converter hardware", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "like a Ham It Up.", Theme::current->fg_light.foreground},
-        {{2 * 8, 9 * 16 - 2}, "Conversion frequency:", Theme::current->fg_light.foreground},
-        {{18 * 8, 10 * 16}, "MHz", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Options for working with", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "up/down converter hardware", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "like a Ham It Up.", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 9 * 16 - 2}, "Conversion frequency:", Theme::getInstance().current.fg_light.foreground},
+        {{18 * 8, 10 * 16}, "MHz", Theme::getInstance().current.fg_light.foreground},
     };
 
     Checkbox check_show_converter{
@@ -469,13 +469,13 @@ class SetFrequencyCorrectionView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Frequency correction allows", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "RX and TX frequencies to be", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "adjusted for all apps.", Theme::current->fg_light.foreground},
-        {{2 * 8, 6 * 16}, "RX Adjustment Frequency", Theme::current->fg_light.foreground},
-        {{18 * 8, 7 * 16}, "MHz", Theme::current->fg_light.foreground},
-        {{2 * 8, 9 * 16}, "TX Adjustment Frequency", Theme::current->fg_light.foreground},
-        {{18 * 8, 10 * 16}, "MHz", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Frequency correction allows", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "RX and TX frequencies to be", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "adjusted for all apps.", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 6 * 16}, "RX Adjustment Frequency", Theme::getInstance().current.fg_light.foreground},
+        {{18 * 8, 7 * 16}, "MHz", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 9 * 16}, "TX Adjustment Frequency", Theme::getInstance().current.fg_light.foreground},
+        {{18 * 8, 10 * 16}, "MHz", Theme::getInstance().current.fg_light.foreground},
     };
 
     OptionsField opt_rx_correction_mode{
@@ -512,14 +512,14 @@ class SetAudioView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Controls the volume of the", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "tone when transmitting in", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "Soundboard or Mic apps:", Theme::current->fg_light.foreground},
-        {{2 * 8, 5 * 16}, "Tone key mix:   %", Theme::current->fg_light.foreground},
-        {{1 * 8, 8 * 16}, "Controls whether apps should", Theme::current->fg_light.foreground},
-        {{1 * 8, 9 * 16}, "beep on speaker & headphone", Theme::current->fg_light.foreground},
-        {{1 * 8, 10 * 16}, "when a packet is received", Theme::current->fg_light.foreground},
-        {{1 * 8, 11 * 16}, "(not all apps support this):", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Controls the volume of the", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "tone when transmitting in", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "Soundboard or Mic apps:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 5 * 16}, "Tone key mix:   %", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 8 * 16}, "Controls whether apps should", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 9 * 16}, "beep on speaker & headphone", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 10 * 16}, "when a packet is received", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 11 * 16}, "(not all apps support this):", Theme::getInstance().current.fg_light.foreground},
     };
 
     NumberField field_tone_mix{
@@ -554,8 +554,8 @@ class SetQRCodeView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Change the size of the QR", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "code shown in Radiosonde.", Theme::getInstance().current.fg_light.foreground},
     };
 
     Checkbox checkbox_bigger_qr{
@@ -586,14 +586,14 @@ class SetEncoderDialView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "rotation position (number of", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "steps per full rotation):", Theme::current->fg_light.foreground},
-        {{2 * 8, 5 * 16}, "Dial sensitivity:", Theme::current->fg_light.foreground},
-        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Theme::current->fg_light.foreground},
-        {{1 * 8, 9 * 16}, "rotation rate (default 1", Theme::current->fg_light.foreground},
-        {{1 * 8, 10 * 16}, "means no rate dependency):", Theme::current->fg_light.foreground},
-        {{3 * 8, 12 * 16}, "Rate multiplier:", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Adjusts sensitivity to dial", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "rotation position (number of", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "steps per full rotation):", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 5 * 16}, "Dial sensitivity:", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 8 * 16}, "Adjusts sensitivity to dial", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 9 * 16}, "rotation rate (default 1", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 10 * 16}, "means no rate dependency):", Theme::getInstance().current.fg_light.foreground},
+        {{3 * 8, 12 * 16}, "Rate multiplier:", Theme::getInstance().current.fg_light.foreground},
     };
 
     OptionsField field_encoder_dial_sensitivity{
@@ -630,9 +630,9 @@ class SetPersistentMemoryView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Save persistent memory on SD", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "card. Needed when device has", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "dead/missing coin battery.", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Save persistent memory on SD", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "card. Needed when device has", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "dead/missing coin battery.", Theme::getInstance().current.fg_light.foreground},
     };
 
     Text text_pmem_status{
@@ -672,7 +672,7 @@ class AppSettingsView : public View {
     NavigationView& nav_;
 
     Labels labels{
-        {{0, 4}, "Select file to edit:", Theme::current->bg_darkest.foreground}};
+        {{0, 4}, "Select file to edit:", Theme::getInstance().current.bg_darkest.foreground}};
 
     MenuView menu_view{
         {0, 2 * 8, 240, 26 * 8},
@@ -689,9 +689,9 @@ class SetConfigModeView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Controls whether firmware", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "will enter Config Mode", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "after a boot failure.", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Controls whether firmware", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "will enter Config Mode", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "after a boot failure.", Theme::getInstance().current.fg_light.foreground},
     };
 
     Checkbox checkbox_config_mode_enabled{
@@ -721,10 +721,10 @@ class SetFakeBrightnessView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 1 * 16}, "Limits screen brightness", Theme::current->fg_light.foreground},
-        {{1 * 8, 2 * 16}, "(has a small performance", Theme::current->fg_light.foreground},
-        {{1 * 8, 3 * 16}, "impact when enabled).", Theme::current->fg_light.foreground},
-        {{2 * 8, 8 * 16}, "Brightness:", Theme::current->fg_light.foreground},
+        {{1 * 8, 1 * 16}, "Limits screen brightness", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 2 * 16}, "(has a small performance", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 3 * 16}, "impact when enabled).", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 8 * 16}, "Brightness:", Theme::getInstance().current.fg_light.foreground},
     };
 
     OptionsField field_fake_brightness{
@@ -761,10 +761,10 @@ class SetMenuColorView : public View {
     void paint_sample();
 
     Labels labels{
-        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Theme::current->fg_light.foreground},
-        {{2 * 8, 8 * 16}, "Red Level:", Theme::current->fg_light.foreground},
-        {{2 * 8, 9 * 16}, "Green Level:", Theme::current->fg_light.foreground},
-        {{2 * 8, 10 * 16}, "Blue Level:", Theme::current->fg_light.foreground},
+        {{3 * 8, 1 * 16}, "Menu Button Color Scheme", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 8 * 16}, "Red Level:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 9 * 16}, "Green Level:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 10 * 16}, "Blue Level:", Theme::getInstance().current.fg_light.foreground},
     };
 
     NewButton button_sample{
@@ -830,8 +830,8 @@ class SetAutostartView : public View {
         "nav"sv,
         {{"autostart_app"sv, &autostart_app}}};
     Labels labels{
-        {{1 * 8, 1 * 16}, "Select app to start on boot", Theme::current->fg_light.foreground},
-        {{2 * 8, 2 * 16}, "(an SD Card is required)", Theme::current->fg_light.foreground}};
+        {{1 * 8, 1 * 16}, "Select app to start on boot", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 2 * 16}, "(an SD Card is required)", Theme::getInstance().current.fg_light.foreground}};
 
     Button button_save{
         {2 * 8, 16 * 16, 12 * 8, 32},

@@ -190,8 +190,8 @@ void SpectrumPainterView::paint(Painter& painter) {
         painter.draw_bitmap(
             pos,
             bitmap_stripes,
-            Theme::current->fg_yellow.foreground,
-            Theme::current->fg_yellow.background);
+            Theme::getInstance().current.fg_yellow.foreground,
+            Theme::getInstance().current.fg_yellow.background);
         if (c != 9)
             pos += {24, 0};
         else

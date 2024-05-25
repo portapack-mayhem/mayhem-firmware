@@ -3,18 +3,15 @@
 
 namespace ui {
 
-ThemeDefault* Theme::current = nullptr;  // new ThemeDefault();
-
 void Theme::SetTheme(ThemeId theme) {
-    if (current != nullptr) delete current;
     switch (theme) {
         case Yellow:
-            current = new ThemeYellow();
+            current = themeYellow;
             break;
 
         default:
         case DefaultGrey:
-            current = new ThemeDefault();
+            current = themeDefault;
             break;
     }
 }

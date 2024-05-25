@@ -1169,13 +1169,13 @@ bool debug_dump() {
     ensure_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
     if (filename.empty()) {
-        painter.draw_string({0, 320 - 16}, ui::Theme::current->fg_red, "COULD NOT GET DUMP NAME !");
+        painter.draw_string({0, 320 - 16}, ui::Theme::getInstance().current.fg_red, "COULD NOT GET DUMP NAME !");
         return false;
     }
     // dump data fo filename
     auto error = pmem_dump_file.create(filename);
     if (error) {
-        painter.draw_string({0, 320 - 16}, ui::Theme::current->fg_red, "ERROR DUMPING " + filename.filename().string() + " !");
+        painter.draw_string({0, 320 - 16}, ui::Theme::getInstance().current.fg_red, "ERROR DUMPING " + filename.filename().string() + " !");
         return false;
     }
     pmem_dump_file.write_line("FW version: " VERSION_STRING);
@@ -1316,7 +1316,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("tx_gain: " + to_string_dec_int(transmitter_model.tx_gain()));
     pmem_dump_file.write_line("channel_bandwidth: " + to_string_dec_uint(transmitter_model.channel_bandwidth()));
     // on screen information
-    painter.draw_string({0, 320 - 16}, ui::Theme::current->fg_green, filename.filename().string() + " DUMPED !");
+    painter.draw_string({0, 320 - 16}, ui::Theme::getInstance().current.fg_green, filename.filename().string() + " DUMPED !");
     return true;
 }
 

@@ -300,14 +300,22 @@ class ThemeYellow : public ThemeDefault {
     Color bg_table_header{255, 255, 0};
 };
 
+const ThemeDefault themeDefault;
+const ThemeYellow themeYellow;
+
 class Theme {
    public:
     enum ThemeId {
         DefaultGrey = 0,
         Yellow = 1
     };
-    static void SetTheme(ThemeId theme);
-    static ThemeDefault* current;
+    static Theme& getInstance() {
+        static Theme instance;  // Singleton instance
+        return instance;
+    }
+
+    void SetTheme(ThemeId theme);
+    ThemeDefault current = themeDefault;
 };
 
 }  // namespace ui

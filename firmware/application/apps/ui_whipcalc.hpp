@@ -55,10 +55,10 @@ class WhipCalcView : public View {
     void add_default_antenna();
 
     Labels labels{
-        {{2 * 8, 1 * 16}, "Frequency:", Theme::current->fg_light.foreground},
-        {{7 * 8, 2 * 16}, "Wave:", Theme::current->fg_light.foreground},
-        {{5 * 8, 3 * 16}, "Metric:", Theme::current->fg_light.foreground},
-        {{3 * 8, 4 * 16}, "Imperial:", Theme::current->fg_light.foreground}};
+        {{2 * 8, 1 * 16}, "Frequency:", Theme::getInstance().current.fg_light.foreground},
+        {{7 * 8, 2 * 16}, "Wave:", Theme::getInstance().current.fg_light.foreground},
+        {{5 * 8, 3 * 16}, "Metric:", Theme::getInstance().current.fg_light.foreground},
+        {{3 * 8, 4 * 16}, "Imperial:", Theme::getInstance().current.fg_light.foreground}};
 
     TxFrequencyField field_frequency{
         {13 * 8, 1 * 16},

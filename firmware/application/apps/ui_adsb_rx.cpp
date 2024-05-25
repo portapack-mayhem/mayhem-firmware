@@ -57,15 +57,15 @@ void RecentEntriesTable<AircraftRecentEntries>::draw(
         case ADSBAgeState::Invalid:
         case ADSBAgeState::Current:
             entry_string = "";
-            target_color = Theme::current->fg_green.foreground;
+            target_color = Theme::getInstance().current.fg_green.foreground;
             break;
         case ADSBAgeState::Recent:
             entry_string = STR_COLOR_LIGHT_GREY;
-            target_color = Theme::current->fg_light.foreground;
+            target_color = Theme::getInstance().current.fg_light.foreground;
             break;
         default:
             entry_string = STR_COLOR_DARK_GREY;
-            target_color = Theme::current->fg_medium.foreground;
+            target_color = Theme::getInstance().current.fg_medium.foreground;
     };
 
     entry_string +=

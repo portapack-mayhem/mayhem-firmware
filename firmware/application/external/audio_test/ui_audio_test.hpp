@@ -44,13 +44,13 @@ class AudioTestView : public View {
     bool beep{false};
 
     Labels labels{
-        {{7 * 8, 3 * 16}, "Audio Beep Test", Theme::current->fg_light.foreground},
-        {{0 * 8, 6 * 16}, "Sample Rate (Hz):", Theme::current->fg_light.foreground},
-        {{25 * 8, 7 * 16}, "Step:", Theme::current->fg_light.foreground},
-        {{0 * 8, 8 * 16}, "Frequency (Hz):", Theme::current->fg_light.foreground},
-        {{0 * 8, 10 * 16}, "Duration (ms):", Theme::current->fg_light.foreground},
-        {{25 * 8, 10 * 16}, "0=con", Theme::current->fg_light.foreground},
-        {{0 * 8, 12 * 16}, "Volume:", Theme::current->fg_light.foreground}};
+        {{7 * 8, 3 * 16}, "Audio Beep Test", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 6 * 16}, "Sample Rate (Hz):", Theme::getInstance().current.fg_light.foreground},
+        {{25 * 8, 7 * 16}, "Step:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 8 * 16}, "Frequency (Hz):", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 10 * 16}, "Duration (ms):", Theme::getInstance().current.fg_light.foreground},
+        {{25 * 8, 10 * 16}, "0=con", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 12 * 16}, "Volume:", Theme::getInstance().current.fg_light.foreground}};
 
     OptionsField options_sample_rate{
         {18 * 8, 6 * 16},
@@ -90,10 +90,10 @@ class AudioTestView : public View {
         {21 * 8, 14 * 16, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
         &bitmap_icon_speaker,
-        Theme::current->fg_light.foreground,
-        Theme::current->bg_dark.background,
-        Theme::current->fg_green.foreground,
-        Theme::current->bg_dark.background};
+        Theme::getInstance().current.fg_light.foreground,
+        Theme::getInstance().current.bg_dark.background,
+        Theme::getInstance().current.fg_green.foreground,
+        Theme::getInstance().current.bg_dark.background};
 };
 
 } /* namespace ui */

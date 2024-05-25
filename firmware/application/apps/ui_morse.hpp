@@ -103,11 +103,11 @@ class MorseView : public View {
     bool run{false};
 
     Labels labels{
-        {{4 * 8, 6 * 8}, "Speed:   wps", Theme::current->fg_light.background},
-        {{4 * 8, 8 * 8}, "Tone:    Hz", Theme::current->fg_light.background},
-        {{4 * 8, 10 * 8}, "Modulation:", Theme::current->fg_light.background},
-        {{4 * 8, 12 * 8}, "Loop:", Theme::current->fg_light.background},
-        {{1 * 8, 25 * 8}, "TX will last", Theme::current->fg_light.background}};
+        {{4 * 8, 6 * 8}, "Speed:   wps", Theme::getInstance().current.fg_light.background},
+        {{4 * 8, 8 * 8}, "Tone:    Hz", Theme::getInstance().current.fg_light.background},
+        {{4 * 8, 10 * 8}, "Modulation:", Theme::getInstance().current.fg_light.background},
+        {{4 * 8, 12 * 8}, "Loop:", Theme::getInstance().current.fg_light.background},
+        {{1 * 8, 25 * 8}, "TX will last", Theme::getInstance().current.fg_light.background}};
 
     Checkbox checkbox_foxhunt{
         {4 * 8, 16},

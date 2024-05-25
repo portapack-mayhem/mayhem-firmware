@@ -178,14 +178,14 @@ class WeatherRecentEntryDetailView : public View {
     Text text_age{{10 * 8, 7 * 16, 10 * 8, 16}, "?"};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Weather Station", Theme::current->fg_light.foreground},
-        {{0 * 8, 1 * 16}, "Type:", Theme::current->fg_light.foreground},
-        {{0 * 8, 2 * 16}, "Id: ", Theme::current->fg_light.foreground},
-        {{0 * 8, 3 * 16}, "Temp:", Theme::current->fg_light.foreground},
-        {{0 * 8, 4 * 16}, "Humidity:", Theme::current->fg_light.foreground},
-        {{0 * 8, 5 * 16}, "Channel:", Theme::current->fg_light.foreground},
-        {{0 * 8, 6 * 16}, "Battery:", Theme::current->fg_light.foreground},
-        {{0 * 8, 7 * 16}, "Age:", Theme::current->fg_light.foreground},
+        {{0 * 8, 0 * 16}, "Weather Station", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 1 * 16}, "Type:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 2 * 16}, "Id: ", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 3 * 16}, "Temp:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 4 * 16}, "Humidity:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 5 * 16}, "Channel:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 6 * 16}, "Battery:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 7 * 16}, "Age:", Theme::getInstance().current.fg_light.foreground},
     };
 
     Button button_done{

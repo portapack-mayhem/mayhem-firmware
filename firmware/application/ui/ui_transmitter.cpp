@@ -40,13 +40,13 @@ namespace ui {
 
 /* Gets a style indicating total TX gain level. */
 static const Style* get_style_for_gain(uint8_t tot_gain) {
-    if (tot_gain > POWER_THRESHOLD_HIGH) return &Theme::current->fg_red;
+    if (tot_gain > POWER_THRESHOLD_HIGH) return &Theme::getInstance().current.fg_red;
 
     if (tot_gain > POWER_THRESHOLD_MED)
-        return &Theme::current->fg_orange;
+        return &Theme::getInstance().current.fg_orange;
 
     if (tot_gain > POWER_THRESHOLD_LOW)
-        return &Theme::current->fg_yellow;
+        return &Theme::getInstance().current.fg_yellow;
 
     return nullptr;  // Uses default.
 }
@@ -61,8 +61,8 @@ void TransmitterView::paint(Painter& painter) {
         painter.draw_bitmap(
             pos,
             bitmap_stripes,
-            Theme::current->fg_yellow.foreground,
-            Theme::current->fg_yellow.background);
+            Theme::getInstance().current.fg_yellow.foreground,
+            Theme::getInstance().current.fg_yellow.background);
         if (c != 9)
             pos += {24, 0};
         else

@@ -80,8 +80,8 @@ class LevelView : public View {
         }};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::current->fg_light.foreground},
-        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Theme::current->fg_light.foreground},
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Theme::getInstance().current.fg_light.foreground},
     };
 
     LNAGainField field_lna{

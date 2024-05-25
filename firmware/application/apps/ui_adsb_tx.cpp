@@ -49,23 +49,23 @@ void Compass::set_value(uint32_t new_value) {
     display.draw_line(
         center,
         center + polar_to_point(value_, 28),
-        Theme::current->bg_dark.background);
+        Theme::getInstance().current.bg_dark.background);
 
     display.draw_line(
         center,
         center + polar_to_point(new_value, 28),
-        Theme::current->fg_green.foreground);
+        Theme::getInstance().current.fg_green.foreground);
 
     value_ = new_value;
 }
 
 void Compass::paint(Painter&) {
-    display.fill_circle(screen_pos() + Point(32, 32), 32, Theme::current->fg_dark.foreground, Theme::current->fg_dark.background);
+    display.fill_circle(screen_pos() + Point(32, 32), 32, Theme::getInstance().current.fg_dark.foreground, Theme::getInstance().current.fg_dark.background);
 
-    display.fill_rectangle({screen_pos() + Point(32 - 2, 0), {4, 4}}, Theme::current->fg_dark.background);       // N
-    display.fill_rectangle({screen_pos() + Point(32 - 2, 64 - 4), {4, 4}}, Theme::current->fg_dark.background);  // S
-    display.fill_rectangle({screen_pos() + Point(0, 32 - 2), {4, 4}}, Theme::current->fg_dark.background);       // W
-    display.fill_rectangle({screen_pos() + Point(64 - 4, 32 - 2), {4, 4}}, Theme::current->fg_dark.background);  // E
+    display.fill_rectangle({screen_pos() + Point(32 - 2, 0), {4, 4}}, Theme::getInstance().current.fg_dark.background);       // N
+    display.fill_rectangle({screen_pos() + Point(32 - 2, 64 - 4), {4, 4}}, Theme::getInstance().current.fg_dark.background);  // S
+    display.fill_rectangle({screen_pos() + Point(0, 32 - 2), {4, 4}}, Theme::getInstance().current.fg_dark.background);       // W
+    display.fill_rectangle({screen_pos() + Point(64 - 4, 32 - 2), {4, 4}}, Theme::getInstance().current.fg_dark.background);  // E
 
     set_value(value_);
 }

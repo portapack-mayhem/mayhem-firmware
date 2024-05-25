@@ -54,8 +54,8 @@ IQTrimView::IQTrimView(NavigationView& nav)
         };
     };
 
-    text_samples.set_style(&Theme::current->fg_light);
-    text_max.set_style(&Theme::current->fg_light);
+    text_samples.set_style(&Theme::getInstance().current.fg_light);
+    text_max.set_style(&Theme::getInstance().current.fg_light);
 
     field_start.on_change = [this](int32_t v) {
         if (field_end.value() < v)
@@ -149,9 +149,9 @@ void IQTrimView::refresh_ui() {
     // show max power in red if amplification is too high, causing clipping
     uint32_t clipping_limit = (fs::capture_file_sample_size(path_) == sizeof(complex8_t)) ? 0x80 : 0x8000;
     if ((field_amplify.value() * info_->max_iq) > clipping_limit)
-        text_max.set_style(&Theme::current->fg_red);
+        text_max.set_style(&Theme::getInstance().current.fg_red);
     else
-        text_max.set_style(&Theme::current->fg_light);
+        text_max.set_style(&Theme::getInstance().current.fg_light);
 
     set_dirty();
 }

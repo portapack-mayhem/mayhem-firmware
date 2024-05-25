@@ -56,7 +56,7 @@ AudioSpectrumView::AudioSpectrumView(
 void AudioSpectrumView::paint(Painter& painter) {
     const auto r = screen_rect();
 
-    painter.fill_rectangle(r, Theme::current->bg_darkest.background);
+    painter.fill_rectangle(r, Theme::getInstance().current.bg_darkest.background);
 
     // if( !spectrum_sampling_rate ) return;
 
@@ -131,14 +131,14 @@ void FrequencyScale::clear() {
 }
 
 void FrequencyScale::clear_background(Painter& painter, const Rect r) {
-    painter.fill_rectangle(r, Theme::current->bg_darkest.background);
+    painter.fill_rectangle(r, Theme::getInstance().current.bg_darkest.background);
 }
 
 void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
     const auto x_center = r.width() / 2;
 
     const Rect tick{r.left() + x_center, r.top(), 1, r.height()};
-    painter.fill_rectangle(tick, Theme::current->bg_darkest.foreground);
+    painter.fill_rectangle(tick, Theme::getInstance().current.bg_darkest.foreground);
 
     constexpr int tick_count_max = 4;
     float rough_tick_interval = float(spectrum_sampling_rate) / tick_count_max;
@@ -166,12 +166,12 @@ void FrequencyScale::draw_frequency_ticks(Painter& painter, const Rect r) {
 
         const Coord offset_low = r.left() + x_center - pixel_offset;
         const Rect tick_low{offset_low, r.top(), 1, r.height()};
-        painter.fill_rectangle(tick_low, Theme::current->bg_darkest.foreground);
+        painter.fill_rectangle(tick_low, Theme::getInstance().current.bg_darkest.foreground);
         painter.draw_string({offset_low + 2, r.top()}, style(), label);
 
         const Coord offset_high = r.left() + x_center + pixel_offset;
         const Rect tick_high{offset_high, r.top(), 1, r.height()};
-        painter.fill_rectangle(tick_high, Theme::current->bg_darkest.foreground);
+        painter.fill_rectangle(tick_high, Theme::getInstance().current.bg_darkest.foreground);
         painter.draw_string({offset_high - 2 - label_width, r.top()}, style(), label);
 
         tick_offset += tick_interval;

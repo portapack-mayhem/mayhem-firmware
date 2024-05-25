@@ -80,11 +80,11 @@ SearchView::SearchView(
         nav.push<FrequencySaveView>(entry.frequency);
     };
 
-    text_mean.set_style(&Theme::current->fg_medium);
-    text_slices.set_style(&Theme::current->fg_medium);
-    text_rate.set_style(&Theme::current->fg_medium);
-    progress_timers.set_style(&Theme::current->fg_medium);
-    big_display.set_style(&Theme::current->fg_medium);
+    text_mean.set_style(&Theme::getInstance().current.fg_medium);
+    text_slices.set_style(&Theme::getInstance().current.fg_medium);
+    text_rate.set_style(&Theme::getInstance().current.fg_medium);
+    progress_timers.set_style(&Theme::getInstance().current.fg_medium);
+    big_display.set_style(&Theme::getInstance().current.fg_medium);
 
     field_frequency_min.set_step(100'000);
     bind(field_frequency_min, settings_.freq_min, nav, [this](auto) {
@@ -184,7 +184,7 @@ void SearchView::do_detection() {
                         recent_entries_view.set_dirty();
 
                         text_infos.set("Locked ! ");
-                        big_display.set_style(&Theme::current->fg_green);
+                        big_display.set_style(&Theme::getInstance().current.fg_green);
 
                         locked = true;
                         locked_bin = bin_max;
@@ -209,7 +209,7 @@ void SearchView::do_detection() {
                 recent_entries_view.set_dirty();
 
                 text_infos.set("Listening");
-                big_display.set_style(&Theme::current->fg_medium);
+                big_display.set_style(&Theme::getInstance().current.fg_medium);
             }
         }
     }
@@ -219,10 +219,10 @@ void SearchView::do_detection() {
     search_counter++;
 
     // Refresh red tick
-    portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::current->fg_red.background);
+    portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance().current.fg_red.background);
     if (bin_max > -1) {
         last_tick_pos = (Coord)(bin_max / slices_nb);
-        portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::current->fg_red.foreground);
+        portapack::display.fill_rectangle({last_tick_pos, 90, 1, 6}, Theme::getInstance().current.fg_red.foreground);
     }
 }
 

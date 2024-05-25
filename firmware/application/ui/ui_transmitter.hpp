@@ -68,9 +68,9 @@ class TransmitterView : public View {
     void set_transmitting(const bool transmitting);
 
    private:
-    const Style& style_start = Theme::current->fg_green;
-    const Style& style_stop = Theme::current->fg_red;
-    const Style& style_locked = Theme::current->fg_dark;
+    const Style& style_start = Theme::getInstance().current.fg_green;
+    const Style& style_stop = Theme::getInstance().current.fg_red;
+    const Style& style_locked = Theme::getInstance().current.fg_dark;
 
     bool lock_{false};
     bool transmitting_{false};

@@ -81,16 +81,16 @@ class ViewWavView : public View {
     bool waveform_update_needed{false};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "File:", Theme::current->fg_light.foreground},
-        {{2 * 8, 1 * 16}, "-bit mono", Theme::current->fg_light.foreground},
-        {{0 * 8, 2 * 16}, "Title:", Theme::current->fg_light.foreground},
-        {{0 * 8, 3 * 16}, "Duration:", Theme::current->fg_light.foreground},
-        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Theme::current->fg_light.foreground},
-        {{0 * 8, 13 * 16}, "  Sample:", Theme::current->fg_light.foreground},
-        {{0 * 8, 14 * 16}, "Cursor A:", Theme::current->fg_darkcyan.foreground},
-        {{0 * 8, 15 * 16}, "Cursor B:", Theme::current->fg_magenta.foreground},
-        {{0 * 8, 16 * 16}, "Delta:", Theme::current->fg_light.foreground},
-        {{24 * 8, 18 * 16}, "Vol:", Theme::current->fg_light.foreground}};
+        {{0 * 8, 0 * 16}, "File:", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 1 * 16}, "-bit mono", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 2 * 16}, "Title:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 3 * 16}, "Duration:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 13 * 16}, "  Sample:", Theme::getInstance().current.fg_light.foreground},
+        {{0 * 8, 14 * 16}, "Cursor A:", Theme::getInstance().current.fg_darkcyan.foreground},
+        {{0 * 8, 15 * 16}, "Cursor B:", Theme::getInstance().current.fg_magenta.foreground},
+        {{0 * 8, 16 * 16}, "Delta:", Theme::getInstance().current.fg_light.foreground},
+        {{24 * 8, 18 * 16}, "Vol:", Theme::getInstance().current.fg_light.foreground}};
 
     Text text_filename{
         {5 * 8, 0 * 16, 18 * 8, 16},
@@ -113,8 +113,8 @@ class ViewWavView : public View {
     ImageButton button_play{
         {24 * 8, 17 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
-        Theme::current->fg_green.foreground,
-        Theme::current->fg_green.background};
+        Theme::getInstance().current.fg_green.foreground,
+        Theme::getInstance().current.fg_green.background};
     AudioVolumeField field_volume{
         {28 * 8, 18 * 16}};
 
@@ -124,7 +124,7 @@ class ViewWavView : public View {
         240,
         0,
         false,
-        Theme::current->bg_darkest.foreground};
+        Theme::getInstance().current.bg_darkest.foreground};
 
     ProgressBar progressbar{
         {0 * 8, 11 * 16, 30 * 8, 4}};

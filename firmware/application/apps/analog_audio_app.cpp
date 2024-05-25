@@ -39,7 +39,7 @@ namespace ui {
 
 /* AMOptionsView *********************************************************/
 
-static const Style& style_options_group = Theme::current->option_active;
+static const Style& style_options_group = Theme::getInstance().current.option_active;
 
 AMOptionsView::AMOptionsView(
     Rect parent_rect,

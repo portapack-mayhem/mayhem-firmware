@@ -43,8 +43,8 @@ class RDSPSNView : public OptionTabView {
 
    private:
     Labels labels{
-        {{1 * 8, 3 * 8}, "Program Service Name", Theme::current->fg_light.foreground},
-        {{2 * 8, 7 * 8}, "PSN:", Theme::current->fg_light.foreground}};
+        {{1 * 8, 3 * 8}, "Program Service Name", Theme::getInstance().current.fg_light.foreground},
+        {{2 * 8, 7 * 8}, "PSN:", Theme::getInstance().current.fg_light.foreground}};
 
     Button button_set{
         {18 * 8, 3 * 16, 80, 32},
@@ -75,8 +75,8 @@ class RDSRadioTextView : public OptionTabView {
 
    private:
     Labels labels{
-        {{2 * 8, 3 * 8}, "Radiotext", Theme::current->fg_light.foreground},
-        {{1 * 8, 6 * 8}, "Text:", Theme::current->fg_light.foreground}};
+        {{2 * 8, 3 * 8}, "Radiotext", Theme::getInstance().current.fg_light.foreground},
+        {{1 * 8, 6 * 8}, "Text:", Theme::getInstance().current.fg_light.foreground}};
 
     Text text_radiotext{
         {1 * 8, 4 * 16, 28 * 8, 16},
@@ -92,7 +92,7 @@ class RDSDateTimeView : public OptionTabView {
 
    private:
     Labels labels{
-        {{44, 5 * 16}, "Not yet implemented", Theme::current->error_dark.foreground}};
+        {{44, 5 * 16}, "Not yet implemented", Theme::getInstance().current.error_dark.foreground}};
 };
 
 class RDSAudioView : public OptionTabView {
@@ -101,7 +101,7 @@ class RDSAudioView : public OptionTabView {
 
    private:
     Labels labels{
-        {{44, 5 * 16}, "Not yet implemented", Theme::current->error_dark.foreground}};
+        {{44, 5 * 16}, "Not yet implemented", Theme::getInstance().current.error_dark.foreground}};
 };
 
 class RDSThread {
@@ -168,16 +168,16 @@ class RDSView : public View {
     RDSAudioView view_audio{view_rect};
 
     TabView tab_view{
-        {"Name", Theme::current->fg_cyan.foreground, &view_PSN},
-        {"Text", Theme::current->fg_green.foreground, &view_radiotext},
-        {"Time", Theme::current->fg_yellow.foreground, &view_datetime},
-        {"Audio", Theme::current->fg_orange.foreground, &view_audio}};
+        {"Name", Theme::getInstance().current.fg_cyan.foreground, &view_PSN},
+        {"Text", Theme::getInstance().current.fg_green.foreground, &view_radiotext},
+        {"Time", Theme::getInstance().current.fg_yellow.foreground, &view_datetime},
+        {"Audio", Theme::getInstance().current.fg_orange.foreground, &view_audio}};
 
     Labels labels{
-        {{0 * 8, 28}, "Program type:", Theme::current->fg_light.foreground},
-        //{ { 14 * 8, 16 + 8 }, "CC:", Theme::current->fg_light.foreground },
-        {{2 * 8, 28 + 16}, "Program ID:", Theme::current->fg_light.foreground},
-        //{ { 13 * 8, 32 + 8 }, "Cov:",Theme::current->fg_light.foreground },
+        {{0 * 8, 28}, "Program type:", Theme::getInstance().current.fg_light.foreground},
+        //{ { 14 * 8, 16 + 8 }, "CC:", Theme::getInstance().current.fg_light.foreground },
+        {{2 * 8, 28 + 16}, "Program ID:", Theme::getInstance().current.fg_light.foreground},
+        //{ { 13 * 8, 32 + 8 }, "Cov:",Theme::getInstance().current.fg_light.foreground },
     };
 
     OptionsField options_pty{

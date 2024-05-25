@@ -92,8 +92,8 @@ class SoundBoardView : public View {
     void on_select_entry();
 
     Labels labels{
-        {{24 * 8, 180}, "Vol:", Theme::current->fg_light.foreground},
-        {{0, 180}, "Key:", Theme::current->fg_light.foreground}};
+        {{24 * 8, 180}, "Vol:", Theme::getInstance().current.fg_light.foreground},
+        {{0, 180}, "Key:", Theme::getInstance().current.fg_light.foreground}};
 
     Button button_next_page{
         {30 * 7, 25 * 8, 10 * 3, 2 * 14},
