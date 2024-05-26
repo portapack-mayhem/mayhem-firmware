@@ -319,7 +319,8 @@ static void shutdown_base() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked());
+    while (!cgu::pll1::is_locked())
+        ;
 
     set_clock_config(clock_config_pll1_boot);
 
@@ -357,13 +358,15 @@ static void set_cpu_clock_speed() {
     });
 
     cgu::pll1::enable();
-    while (!cgu::pll1::is_locked());
+    while (!cgu::pll1::is_locked())
+        ;
 
     set_clock_config(clock_config_pll1_step);
 
     /* Delay >50us at 90-110MHz clock speed */
     volatile uint32_t delay = 1400;
-    while (delay--);
+    while (delay--)
+        ;
 
     set_clock_config(clock_config_pll1);
 

@@ -1091,8 +1091,8 @@ void ReconView::on_statistics_update(const ChannelStatistics& statistics) {
                     if (stepper < 0) stepper++;
                     if (stepper > 0) stepper--;
                 }  // if( recon || stepper != 0 || index_stepper != 0 )
-            }  // if (frequency_list.size() > 0 )
-        } /* on_statistics_updates */
+            }      // if (frequency_list.size() > 0 )
+        }          /* on_statistics_updates */
     }
     handle_retune();
     recon_redraw();
