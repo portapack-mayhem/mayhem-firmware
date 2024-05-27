@@ -76,7 +76,7 @@ class ADSBCallsignView : public OptionTabView {
     std::string callsign = "TEST1234";
 
     Labels labels_callsign{
-        {{2 * 8, 5 * 8}, "Callsign:", Color::light_grey()}};
+        {{2 * 8, 5 * 8}, "Callsign:", Theme::getInstance()->fg_light->foreground}};
 
     Button button_callsign{
         {12 * 8, 2 * 16, 10 * 8, 2 * 16},
@@ -91,10 +91,10 @@ class ADSBSpeedView : public OptionTabView {
 
    private:
     Labels labels_speed{
-        {{1 * 8, 6 * 16}, "Speed:    kn  Bearing:    *", Color::light_grey()}};
+        {{1 * 8, 6 * 16}, "Speed:    kn  Bearing:    *", Theme::getInstance()->fg_light->foreground}};
 
     Labels labels_vert_rate{
-        {{1 * 8, 8 * 16}, "Vert. rate:    ft/min, (+/-)", Color::light_grey()}};
+        {{1 * 8, 8 * 16}, "Vert. rate:    ft/min, (+/-)", Theme::getInstance()->fg_light->foreground}};
 
     Compass compass{
         {21 * 8, 2 * 16}};
@@ -131,7 +131,7 @@ class ADSBSquawkView : public OptionTabView {
 
    private:
     Labels labels_squawk{
-        {{2 * 8, 2 * 16}, "Squawk:", Color::light_grey()}};
+        {{2 * 8, 2 * 16}, "Squawk:", Theme::getInstance()->fg_light->foreground}};
 
     SymField field_squawk{
         {10 * 8, 2 * 16},
@@ -226,13 +226,13 @@ class ADSBTxView : public View {
     ADSBSquawkView view_squawk{view_rect};
 
     TabView tab_view{
-        {"Position", Color::cyan(), &view_position},
-        {"Callsign", Color::green(), &view_callsign},
-        {"Speed", Color::yellow(), &view_speed},
-        {"Squawk", Color::orange(), &view_squawk}};
+        {"Position", Theme::getInstance()->fg_cyan->foreground, &view_position},
+        {"Callsign", Theme::getInstance()->fg_green->foreground, &view_callsign},
+        {"Speed", Theme::getInstance()->fg_yellow->foreground, &view_speed},
+        {"Squawk", Theme::getInstance()->fg_orange->foreground, &view_squawk}};
 
     Labels labels{
-        {{2 * 8, 4 * 8}, "ICAO24:", Color::light_grey()}};
+        {{2 * 8, 4 * 8}, "ICAO24:", Theme::getInstance()->fg_light->foreground}};
 
     SymField sym_icao{
         {10 * 8, 4 * 8},

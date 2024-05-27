@@ -30,7 +30,6 @@
 #include "ui_tabview.hpp"
 #include "ui_navigation.hpp"
 #include "string_format.hpp"
-#include "ui_styles.hpp"
 
 // 1Mhz helper
 #ifdef OneMHz
@@ -60,7 +59,7 @@
 
 // screen size helper
 #define SCREEN_W 240
-//#define SCREEN_H 320
+// #define SCREEN_H 320
 
 // recon settings nb params
 #define RECON_SETTINGS_NB_PARAMS 7
@@ -226,8 +225,8 @@ class ReconSetupView : public View {
     ReconSetupViewMore viewMore{nav_, view_rect};
 
     TabView tab_view{
-        {"Main", Color::cyan(), &viewMain},
-        {"More", Color::green(), &viewMore}};
+        {"Main", Theme::getInstance()->fg_cyan->foreground, &viewMain},
+        {"More", Theme::getInstance()->fg_green->foreground, &viewMore}};
 
     Button button_save{
         {9 * 8, 255, 14 * 8, 40},

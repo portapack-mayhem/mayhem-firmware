@@ -46,7 +46,7 @@ void RecentEntriesTable<APRSRecentEntries>::draw(
     Color target_color;
     // auto entry_age = entry.age;
 
-    target_color = Color::green();
+    target_color = Theme::getInstance()->fg_green->foreground;
 
     std::string entry_string = "";
 

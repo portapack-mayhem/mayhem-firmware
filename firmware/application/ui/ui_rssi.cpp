@@ -69,13 +69,13 @@ void RSSI::paint(Painter& painter) {
         const Rect r0{r.left(), r.top(), x_min, r.height()};
         painter.fill_rectangle(
             r0,
-            Color::blue());
+            Theme::getInstance()->fg_blue->foreground);
 
         // x_avg
         const Rect r1{r.left() + x_min, r.top(), x_avg - x_min, r.height()};
         painter.fill_rectangle(
             r1,
-            Color::red());
+            Theme::getInstance()->fg_red->foreground);
 
         // x_avg middle marker
         const Rect r2{r.left() + x_avg, r.top(), 1, r.height()};
@@ -87,20 +87,20 @@ void RSSI::paint(Painter& painter) {
         const Rect r3{r.left() + x_avg + 1, r.top(), x_max - (x_avg + 1), r.height()};
         painter.fill_rectangle(
             r3,
-            Color::red());
+            Theme::getInstance()->fg_red->foreground);
 
         // filling last part in black
         const Rect r4{r.left() + x_max, r.top(), r.width() - x_max, r.height()};
         painter.fill_rectangle(
             r4,
-            Color::black());
+            Theme::getInstance()->bg_darkest->background);
 
         // show green peak value
         if (peak_enabled) {
             const Rect r5{r.left() + peak - 3, r.top(), 3, r.height()};
             painter.fill_rectangle(
                 r5,
-                Color::green());
+                Theme::getInstance()->fg_green->foreground);
         }
     } else {
         // vertical bottom to top level meters

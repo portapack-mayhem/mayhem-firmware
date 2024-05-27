@@ -163,8 +163,8 @@ void POCSAGAppView::refresh_ui() {
     // Set console font style.
     console.set_style(
         settings_.enable_small_font
-            ? &Styles::white_small
-            : &Styles::white);
+            ? Theme::getInstance()->bg_darkest_small
+            : Theme::getInstance()->bg_darkest);
 
     // Update filter button text.
     std::string btn_text = "Filter Last";
@@ -260,19 +260,19 @@ void POCSAGAppView::handle_decoded(Timestamp timestamp, const std::string& prefi
 
 static Color get_status_color(const POCSAGState& state) {
     if (state.out_type == IDLE)
-        return Color::white();
+        return Theme::getInstance()->bg_darkest->foreground;
 
     switch (state.mode) {
         case STATE_CLEAR:
-            return Color::cyan();
+            return Theme::getInstance()->fg_cyan->foreground;
         case STATE_HAVE_ADDRESS:
-            return Color::yellow();
+            return Theme::getInstance()->fg_yellow->foreground;
         case STATE_GETTING_MSG:
-            return Color::green();
+            return Theme::getInstance()->fg_green->foreground;
     }
 
     // Shouldn't get here...
-    return Color::red();
+    return Theme::getInstance()->fg_red->foreground;
 }
 
 void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
@@ -294,7 +294,7 @@ void POCSAGAppView::on_packet(const POCSAGPacketMessage* message) {
         last_address = 0;
     } else {
         // Set color before to be able to see if decode gets stuck.
-        image_status.set_foreground(Color::magenta());
+        image_status.set_foreground(Theme::getInstance()->fg_magenta->foreground);
         pocsag_state.codeword_index = 0;
         pocsag_state.errors = 0;
 
@@ -332,8 +332,8 @@ void BaudIndicator::paint(Painter& painter) {
         bot = (r % 10) + '0';
     }
 
-    painter.draw_char(p, Styles::white_small, top);
-    painter.draw_char({p.x(), p.y() + 8}, Styles::white_small, bot);
+    painter.draw_char(p, *Theme::getInstance()->bg_darkest_small, top);
+    painter.draw_char({p.x(), p.y() + 8}, *Theme::getInstance()->bg_darkest_small, bot);
 }
 
 void BitsIndicator::paint(Painter&) {
@@ -343,17 +343,17 @@ void BitsIndicator::paint(Painter&) {
 
         int x = p.x() + (i / height);
         int y = p.y() + (i % height);
-        display.draw_pixel({x, y}, is_set ? Color::white() : Color::black());
+        display.draw_pixel({x, y}, is_set ? Theme::getInstance()->bg_darkest->foreground : Theme::getInstance()->bg_darkest->background);
     }
 }
 
 void FrameIndicator::paint(Painter& painter) {
     auto p = screen_pos();
-    painter.draw_rectangle({p, {2, height}}, has_sync_ ? Color::green() : Color::grey());
+    painter.draw_rectangle({p, {2, height}}, has_sync_ ? Theme::getInstance()->fg_green->foreground : Theme::getInstance()->bg_medium->background);
 
     for (size_t i = 0; i < height; ++i) {
         auto p2 = p + Point{2, 15 - (int)i};
-        painter.draw_hline(p2, 2, i < frame_count_ ? Color::white() : Color::black());
+        painter.draw_hline(p2, 2, i < frame_count_ ? Theme::getInstance()->bg_darkest->foreground : Theme::getInstance()->bg_darkest->background);
     }
 }
 

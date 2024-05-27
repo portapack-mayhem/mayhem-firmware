@@ -76,7 +76,7 @@ class TestView : public View {
     bool logging{false};
 
     Labels labels{
-        {{0 * 8, 1 * 16}, "Data:", Color::light_grey()}};
+        {{0 * 8, 1 * 16}, "Data:", Theme::getInstance()->fg_light->foreground}};
 
     RxFrequencyField field_frequency{
         {0 * 8, 0 * 8},

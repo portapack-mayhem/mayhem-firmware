@@ -30,7 +30,6 @@
 #include "log_file.hpp"
 #include "portapack.hpp"
 #include "string_format.hpp"
-#include "ui_styles.hpp"
 #include "irq_controls.hpp"
 #include "file_path.hpp"
 
@@ -64,27 +63,27 @@ void draw_guru_meditation_header(uint8_t source, const char* hint) {
 
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        Color::red());
+        Theme::getInstance()->fg_red->foreground);
 
     constexpr int border = 8;
     painter.fill_rectangle(
         {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
-        Color::black());
+        Theme::getInstance()->fg_red->background);
 
     // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-    painter.draw_string({48, 24}, Styles::white, "M? Guru");
-    painter.draw_string({48 + 8 * 8, 24}, Styles::white, "Meditation");
+    painter.draw_string({48, 24}, *Theme::getInstance()->bg_darkest, "M? Guru");
+    painter.draw_string({48 + 8 * 8, 24}, *Theme::getInstance()->bg_darkest, "Meditation");
 
     if (source == CORTEX_M0) {
-        painter.draw_string({48 + 8, 24}, Styles::white, "0");
-        painter.draw_string({24, 320 - 32}, Styles::white, "Press DFU for Stack Dump");
+        painter.draw_string({48 + 8, 24}, *Theme::getInstance()->bg_darkest, "0");
+        painter.draw_string({24, 320 - 32}, *Theme::getInstance()->bg_darkest, "Press DFU for Stack Dump");
     }
 
     if (source == CORTEX_M4)
-        painter.draw_string({48 + 8, 24}, Styles::white, "4");
+        painter.draw_string({48 + 8, 24}, *Theme::getInstance()->bg_darkest, "4");
 
-    painter.draw_string({15, 55}, Styles::white, "Hint: ");
-    painter.draw_string({15 + 8 * 8, 55}, Styles::white, hint);
+    painter.draw_string({15, 55}, *Theme::getInstance()->bg_darkest, "Hint: ");
+    painter.draw_string({15 + 8 * 8, 55}, *Theme::getInstance()->bg_darkest, hint);
 }
 
 void draw_guru_meditation(uint8_t source, const char* hint) {
@@ -130,8 +129,8 @@ void draw_guru_meditation(uint8_t source, const char* hint, struct extctx* ctxp,
 void draw_line(int32_t y_offset, const char* label, regarm_t value) {
     Painter painter;
 
-    painter.draw_string({15, y_offset}, Styles::white, label);
-    painter.draw_string({15 + 8 * 8, y_offset}, Styles::white, to_string_hex((uint32_t)value, 8));
+    painter.draw_string({15, y_offset}, *Theme::getInstance()->bg_darkest, label);
+    painter.draw_string({15 + 8 * 8, y_offset}, *Theme::getInstance()->bg_darkest, to_string_hex((uint32_t)value, 8));
 }
 
 void runtime_error(uint8_t source) {
@@ -172,7 +171,7 @@ void draw_stack_dump() {
         if (clear_rect) {
             painter.fill_rectangle(
                 {border, border, portapack::display.width() - (border * 2), portapack::display.height() - (border * 2)},
-                Color::black());
+                Theme::getInstance()->fg_red->background);
             x = y = border;
             clear_rect = false;
         }
@@ -186,11 +185,11 @@ void draw_stack_dump() {
             auto stack_space_left = p - &__process_stack_base__;
 
             // NOTE: in situations like a hard fault it seems not possible to write strings longer than 16 characters.
-            painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
+            painter.draw_string({x, y}, *Theme::getInstance()->bg_darkest_small, to_string_hex((uint32_t)&__process_stack_base__, 8));
             x += 8 * 5;
-            painter.draw_string({x, y}, Styles::white_small, " M0 STACK free=");
+            painter.draw_string({x, y}, *Theme::getInstance()->bg_darkest_small, " M0 STACK free=");
             x += 15 * 5;
-            painter.draw_string({x, y}, Styles::white_small, to_string_dec_uint(stack_space_left));
+            painter.draw_string({x, y}, *Theme::getInstance()->bg_darkest_small, to_string_dec_uint(stack_space_left));
             x = border;
             y += 8;
 
@@ -202,13 +201,13 @@ void draw_stack_dump() {
         while ((p < &__process_stack_end__) && (y < portapack::display.height() - border - 8)) {
             // show address if start of line
             if (n++ == 0) {
-                painter.draw_string({x, y}, Styles::white_small, to_string_hex((uint32_t)p, 8) + ":");
+                painter.draw_string({x, y}, *Theme::getInstance()->bg_darkest_small, to_string_hex((uint32_t)p, 8) + ":");
                 x += 9 * 5 - 2;  // note: saving 2 pixels here to prevent reaching right border
             }
 
             // show stack word -- highlight if a possible code address (low bit will be set too for !thumb) or actual fault address
             bool code_addr = (*p > 0x1400) && (*p < 0x80000) && (((*p) & 0x1) == 0x1);  // approximate address range of code .text region in ROM
-            Style style = (fault_address && *p == fault_address) ? Styles::bg_yellow_small : (code_addr ? Styles::bg_white_small : Styles::white_small);
+            Style style = (fault_address && *p == fault_address) ? *Theme::getInstance()->bg_important_small : (code_addr ? *Theme::getInstance()->bg_lightest_small : *Theme::getInstance()->bg_darkest_small);
             painter.draw_string({x, y}, style, " " + to_string_hex(*p, 8));
             x += 9 * 5;
 
@@ -229,7 +228,7 @@ void draw_stack_dump() {
         while (swizzled_switches() & ((1 << (int)Switch::Right) | (1 << (int)Switch::Left) | (1 << (int)Switch::Down) | (1 << (int)Switch::Up) | (1 << (int)Switch::Sel) | (1 << (int)Switch::Dfu)))
             ;
 
-        painter.draw_string({border, portapack::display.height() - border - 8}, Styles::white_small, "Use UP/DOWN key");
+        painter.draw_string({border, portapack::display.height() - border - 8}, *Theme::getInstance()->bg_darkest_small, "Use UP/DOWN key");
 
         // Wait for button press.
         while (1) {
@@ -282,7 +281,7 @@ bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
     if (!error)
         error = dump_file.create(filename) != 0;
     if (error) {
-        painter.draw_string({16, 320 - 32}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + "!");
+        painter.draw_string({16, 320 - 32}, *ui::Theme::getInstance()->error_dark, "ERROR DUMPING " + filename.filename().string() + "!");
         return false;
     }
 
@@ -318,7 +317,7 @@ bool memory_dump(uint32_t* addr_start, uint32_t num_words, bool stack_flag) {
         }
     }
 
-    painter.draw_string({0, 320 - 16}, ui::Styles::green, filename.filename().string() + " dumped!");
+    painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_green, filename.filename().string() + " dumped!");
     return true;
 }
 

@@ -81,16 +81,16 @@ class ViewWavView : public View {
     bool waveform_update_needed{false};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "File:", Color::light_grey()},
-        {{2 * 8, 1 * 16}, "-bit mono", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Title:", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Duration:", Color::light_grey()},
-        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Color::light_grey()},
-        {{0 * 8, 13 * 16}, "  Sample:", Color::light_grey()},
-        {{0 * 8, 14 * 16}, "Cursor A:", Color::dark_cyan()},
-        {{0 * 8, 15 * 16}, "Cursor B:", Color::dark_magenta()},
-        {{0 * 8, 16 * 16}, "Delta:", Color::light_grey()},
-        {{24 * 8, 18 * 16}, "Vol:", Color::light_grey()}};
+        {{0 * 8, 0 * 16}, "File:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 1 * 16}, "-bit mono", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Title:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Duration:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 12 * 16}, "Position:    .   s Scale:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 13 * 16}, "  Sample:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 14 * 16}, "Cursor A:", Theme::getInstance()->fg_darkcyan->foreground},
+        {{0 * 8, 15 * 16}, "Cursor B:", Theme::getInstance()->fg_magenta->foreground},
+        {{0 * 8, 16 * 16}, "Delta:", Theme::getInstance()->fg_light->foreground},
+        {{24 * 8, 18 * 16}, "Vol:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_filename{
         {5 * 8, 0 * 16, 18 * 8, 16},
@@ -113,8 +113,8 @@ class ViewWavView : public View {
     ImageButton button_play{
         {24 * 8, 17 * 16, 2 * 8, 1 * 16},
         &bitmap_play,
-        Color::green(),
-        Color::black()};
+        Theme::getInstance()->fg_green->foreground,
+        Theme::getInstance()->fg_green->background};
     AudioVolumeField field_volume{
         {28 * 8, 18 * 16}};
 
@@ -124,7 +124,7 @@ class ViewWavView : public View {
         240,
         0,
         false,
-        Color::white()};
+        Theme::getInstance()->bg_darkest->foreground};
 
     ProgressBar progressbar{
         {0 * 8, 11 * 16, 30 * 8, 4}};

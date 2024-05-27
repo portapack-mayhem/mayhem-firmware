@@ -233,8 +233,8 @@ class RegistersView : public View {
         "Write"};
 
     Labels labels{
-        {{1 * 8, 248}, "Reg:", Color::light_grey()},
-        {{8 * 8, 248}, "Data:", Color::light_grey()}};
+        {{1 * 8, 248}, "Reg:", Theme::getInstance()->fg_light->foreground},
+        {{8 * 8, 248}, "Data:", Theme::getInstance()->fg_light->foreground}};
 
     SymField field_write_reg_num{
         {5 * 8, 248},
@@ -288,9 +288,9 @@ class DebugControlsView : public View {
 
    private:
     Labels labels{
-        {{8 * 8, 1 * 16}, "Controls State", Color::white()},
-        {{0 * 8, 11 * 16}, "Dial:", Color::grey()},
-        {{0 * 8, 14 * 16}, "Long-Press Mode:", Color::grey()}};
+        {{8 * 8, 1 * 16}, "Controls State", Theme::getInstance()->bg_darkest->foreground},
+        {{0 * 8, 11 * 16}, "Dial:", Theme::getInstance()->fg_medium->foreground},
+        {{0 * 8, 14 * 16}, "Long-Press Mode:", Theme::getInstance()->fg_medium->foreground}};
 
     ControlsSwitchesWidget switches_widget{
         {80, 80, 80, 112},
@@ -333,12 +333,12 @@ class DebugMemoryDumpView : public View {
         "Done"};
 
     Labels labels{
-        {{5 * 8, 1 * 16}, "Dump Range to File", Color::yellow()},
-        {{0 * 8, 2 * 16}, "Starting Address: 0x", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Byte Count:       0x", Color::light_grey()},
-        {{3 * 8, 8 * 16}, "Read/Write Single Word", Color::yellow()},
-        {{0 * 8, 9 * 16}, "Memory Address:   0x", Color::light_grey()},
-        {{0 * 8, 10 * 16}, "Data Value:       0x", Color::light_grey()}};
+        {{5 * 8, 1 * 16}, "Dump Range to File", Theme::getInstance()->fg_yellow->foreground},
+        {{0 * 8, 2 * 16}, "Starting Address: 0x", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Byte Count:       0x", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 8 * 16}, "Read/Write Single Word", Theme::getInstance()->fg_yellow->foreground},
+        {{0 * 8, 9 * 16}, "Memory Address:   0x", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 16}, "Data Value:       0x", Theme::getInstance()->fg_light->foreground}};
 
     SymField field_starting_address{
         {20 * 8, 2 * 16},

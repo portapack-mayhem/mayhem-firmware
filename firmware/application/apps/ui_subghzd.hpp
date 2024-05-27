@@ -156,9 +156,9 @@ class SubGhzDRecentEntryDetailView : public View {
         {0, 4 * 16, 240, screen_height - (4 * 16) - 36}};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "Type:", Color::light_grey()},
-        {{0 * 8, 2 * 16}, "Serial: ", Color::light_grey()},
-        {{0 * 8, 3 * 16}, "Data:", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 2 * 16}, "Serial: ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 3 * 16}, "Data:", Theme::getInstance()->fg_light->foreground},
     };
 
     Button button_done{

@@ -389,7 +389,7 @@ void FileManBaseView::refresh_list() {
 
             menu_view.add_item(
                 {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
-                 ui::Color::yellow(),
+                 Theme::getInstance()->fg_yellow->foreground,
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
                      if (on_select_entry)
@@ -747,10 +747,10 @@ FileManagerView::FileManagerView(
 
     menu_view.on_highlight = [this]() {
         if (menu_view.highlighted_index() >= max_items_loaded - 1) {  // todo check this if correct
-            text_date.set_style(&Styles::red);
+            text_date.set_style(Theme::getInstance()->fg_red);
             text_date.set("Too many files!");
         } else {
-            text_date.set_style(&Styles::grey);
+            text_date.set_style(Theme::getInstance()->fg_medium);
             if (selected_is_valid())
                 text_date.set((is_directory(get_selected_full_path()) ? "Created " : "Modified ") + to_string_FAT_timestamp(file_created_date(get_selected_full_path())));
             else
@@ -858,7 +858,7 @@ FileManagerView::FileManagerView(
 
     button_show_hidden_files.on_select = [this]() {
         show_hidden_files = !show_hidden_files;
-        button_show_hidden_files.set_color(show_hidden_files ? Color::green() : Color::dark_grey());
+        button_show_hidden_files.set_color(show_hidden_files ? *Theme::getInstance()->status_active : Theme::getInstance()->bg_dark->background);
         reload_current();
     };
 }

@@ -57,7 +57,7 @@ class FlashUtilityView : public View {
     static Thread* thread;
 
     Labels labels{
-        {{4, 4}, "Select firmware to flash:", Color::white()}};
+        {{4, 4}, "Select firmware to flash:", Theme::getInstance()->bg_darkest->foreground}};
 
     MenuView menu_view{
         {0, 2 * 8, 240, 26 * 8},

@@ -380,8 +380,8 @@ static void draw_splash_screen_icon(int16_t n, const ui::Bitmap& bitmap) {
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 8 - 40 + (n * 20), portapack::display.height() / 2 - 8 + 40},
         bitmap,
-        ui::Color::white(),
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background);
 }
 
 static bool is_portapack_present() {
@@ -440,7 +440,7 @@ static void initialize_boot_splash_screen() {
 
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     chThdSleepMilliseconds(17);
     portapack::backlight()->on();
@@ -448,8 +448,8 @@ static void initialize_boot_splash_screen() {
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 40, portapack::display.height() / 2 - 8},
         ui::bitmap_titlebar_image,
-        ui::Color::white(),
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background);
 }
 
 /* Clock scheme after exiting bootloader in SPIFI mode:

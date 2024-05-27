@@ -147,27 +147,27 @@ class MicTXView : public View {
     bool button_touch{false};
 
     Labels labels_both{
-        {{3 * 8, 1 * 8}, "MIC-GAIN:", Color::light_grey()},
-        {{3 * 8, 3 * 8}, "F:", Color::light_grey()},
-        {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Color::light_grey()},  // to be more symetric and consistent to the below FM RXBW
-        {{18 * 8, (5 * 8)}, "Mode:", Color::light_grey()},          // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
-        {{4 * 8, 10 * 8}, "LVL:", Color::light_grey()},             // we delete  { {11 * 8, 5 * 8 }, "Amp:", Color::light_grey() },
-        {{12 * 8, 10 * 8}, "ATT:", Color::light_grey()},
-        {{20 * 8, 10 * 8}, "DEC:", Color::light_grey()},
-        {{3 * 8, (13 * 8) - 5}, "TONE KEY:", Color::light_grey()},
-        {{3 * 8, (18 * 8) - 1}, "======== Receiver ========", Color::green()},
-        {{5 * 8, (23 * 8) + 2}, "VOL:", Color::light_grey()},
-        {{14 * 8, (23 * 8) + 2}, "RXBW:", Color::light_grey()},  // we remove the label "FM" because we will display all MOD types RX_BW.
-        {{20 * 8, (25 * 8) + 2}, "SQ:", Color::light_grey()},
-        {{5 * 8, (25 * 8) + 2}, "F_RX:", Color::light_grey()},
-        {{5 * 8, (27 * 8) + 2}, "LNA:", Color::light_grey()},
-        {{12 * 8, (27 * 8) + 2}, "VGA:", Color::light_grey()},
-        {{19 * 8, (27 * 8) + 2}, "AMP:", Color::light_grey()},
-        {{21 * 8, (31 * 8)}, "TX-IQ-CAL:", Color::light_grey()}};
+        {{3 * 8, 1 * 8}, "MIC-GAIN:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 3 * 8}, "F:", Theme::getInstance()->fg_light->foreground},
+        {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Theme::getInstance()->fg_light->foreground},  // to be more symetric and consistent to the below FM RXBW
+        {{18 * 8, (5 * 8)}, "Mode:", Theme::getInstance()->fg_light->foreground},          // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
+        {{4 * 8, 10 * 8}, "LVL:", Theme::getInstance()->fg_light->foreground},             // we delete  { {11 * 8, 5 * 8 }, "Amp:", Theme::getInstance()->fg_light->foreground },
+        {{12 * 8, 10 * 8}, "ATT:", Theme::getInstance()->fg_light->foreground},
+        {{20 * 8, 10 * 8}, "DEC:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, (13 * 8) - 5}, "TONE KEY:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, (18 * 8) - 1}, "======== Receiver ========", Theme::getInstance()->fg_green->foreground},
+        {{5 * 8, (23 * 8) + 2}, "VOL:", Theme::getInstance()->fg_light->foreground},
+        {{14 * 8, (23 * 8) + 2}, "RXBW:", Theme::getInstance()->fg_light->foreground},  // we remove the label "FM" because we will display all MOD types RX_BW.
+        {{20 * 8, (25 * 8) + 2}, "SQ:", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, (25 * 8) + 2}, "F_RX:", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, (27 * 8) + 2}, "LNA:", Theme::getInstance()->fg_light->foreground},
+        {{12 * 8, (27 * 8) + 2}, "VGA:", Theme::getInstance()->fg_light->foreground},
+        {{19 * 8, (27 * 8) + 2}, "AMP:", Theme::getInstance()->fg_light->foreground},
+        {{21 * 8, (31 * 8)}, "TX-IQ-CAL:", Theme::getInstance()->fg_light->foreground}};
     Labels labels_WM8731{
-        {{17 * 8, 1 * 8}, "Boost", Color::light_grey()}};
+        {{17 * 8, 1 * 8}, "Boost", Theme::getInstance()->fg_light->foreground}};
     Labels labels_AK4951{
-        {{17 * 8, 1 * 8}, "ALC", Color::light_grey()}};
+        {{17 * 8, 1 * 8}, "ALC", Theme::getInstance()->fg_light->foreground}};
 
     VuMeter vumeter{
         {0 * 8, 1 * 8, 2 * 8, 33 * 8},
@@ -357,8 +357,8 @@ class MicTXView : public View {
     Image tx_icon{
         {6 * 8, 31 * 8 + 4, 16, 16},
         &bitmap_icon_microphone,
-        Color::black(),
-        Color::black()};
+        Theme::getInstance()->bg_darkest->background,
+        Theme::getInstance()->bg_darkest->background};
 
     MessageHandlerRegistration message_handler_lcd_sync{
         Message::ID::DisplayFrameSync,

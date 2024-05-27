@@ -63,8 +63,8 @@ void MicTXView::update_vumeter() {
 }
 
 void MicTXView::update_tx_icon() {
-    tx_icon.set_foreground(transmitting ? Color::red() : Color::black());
-    tx_icon.set_background(transmitting ? Color::yellow() : Color::black());
+    tx_icon.set_foreground(transmitting ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->bg_darkest->background);
+    tx_icon.set_background(transmitting ? Theme::getInstance()->fg_yellow->foreground : Theme::getInstance()->bg_darkest->background);
 }
 
 void MicTXView::on_tx_progress(const bool done) {

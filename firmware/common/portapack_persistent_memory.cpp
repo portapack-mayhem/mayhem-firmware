@@ -32,7 +32,6 @@
 #include "portapack.hpp"
 #include "string_format.hpp"
 #include "ui.hpp"
-#include "ui_styles.hpp"
 #include "ui_painter.hpp"
 #include "ui_flash_utility.hpp"
 #include "utility.hpp"
@@ -139,7 +138,7 @@ struct ui_config2_t {
     bool UNUSED_5 : 1;
     bool UNUSED_6 : 1;
 
-    uint8_t PLACEHOLDER_2;
+    uint8_t theme_id;
     uint8_t PLACEHOLDER_3;
 };
 static_assert(sizeof(ui_config2_t) == sizeof(uint32_t));
@@ -962,6 +961,10 @@ bool ui_hide_battery_icon() {
     return data->ui_config2.hide_battery_icon;
 }
 
+uint8_t ui_theme_id() {
+    return data->ui_config2.theme_id;
+}
+
 void set_ui_hide_speaker(bool v) {
     data->ui_config2.hide_speaker = v;
 }
@@ -999,6 +1002,9 @@ void set_ui_hide_numeric_battery(bool v) {
 }
 void set_ui_hide_battery_icon(bool v) {
     data->ui_config2.hide_battery_icon = v;
+}
+void set_ui_theme_id(uint8_t theme_id) {
+    data->ui_config2.theme_id = theme_id;
 }
 
 /* Converter */
@@ -1170,13 +1176,13 @@ bool debug_dump() {
     ensure_directory(debug_dir);
     filename = next_filename_matching_pattern(debug_dir + "/DEBUG_DUMP_????.TXT");
     if (filename.empty()) {
-        painter.draw_string({0, 320 - 16}, ui::Styles::red, "COULD NOT GET DUMP NAME !");
+        painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_red, "COULD NOT GET DUMP NAME !");
         return false;
     }
     // dump data fo filename
     auto error = pmem_dump_file.create(filename);
     if (error) {
-        painter.draw_string({0, 320 - 16}, ui::Styles::red, "ERROR DUMPING " + filename.filename().string() + " !");
+        painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_red, "ERROR DUMPING " + filename.filename().string() + " !");
         return false;
     }
     pmem_dump_file.write_line("FW version: " VERSION_STRING);
@@ -1264,6 +1270,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("ui_config2 hide_fake_brightness: " + to_string_dec_uint(data->ui_config2.hide_fake_brightness));
     pmem_dump_file.write_line("ui_config2 hide_battery_icon: " + to_string_dec_uint(data->ui_config2.hide_battery_icon));
     pmem_dump_file.write_line("ui_config2 hide_numeric_battery: " + to_string_dec_uint(data->ui_config2.hide_numeric_battery));
+    pmem_dump_file.write_line("ui_config2 theme_id: " + to_string_dec_uint(data->ui_config2.theme_id));
 
     // misc_config bits
     pmem_dump_file.write_line("misc_config config_audio_mute: " + to_string_dec_int(config_audio_mute()));
@@ -1317,7 +1324,7 @@ bool debug_dump() {
     pmem_dump_file.write_line("tx_gain: " + to_string_dec_int(transmitter_model.tx_gain()));
     pmem_dump_file.write_line("channel_bandwidth: " + to_string_dec_uint(transmitter_model.channel_bandwidth()));
     // on screen information
-    painter.draw_string({0, 320 - 16}, ui::Styles::green, filename.filename().string() + " DUMPED !");
+    painter.draw_string({0, 320 - 16}, *ui::Theme::getInstance()->fg_green, filename.filename().string() + " DUMPED !");
     return true;
 }
 

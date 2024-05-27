@@ -48,12 +48,12 @@ void ScreenshotViewer::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
 
     auto show_invalid = [&]() {
-        painter.draw_string({10, 160}, Styles::white, "Not a valid screenshot.");
+        painter.draw_string({10, 160}, *Theme::getInstance()->bg_darkest, "Not a valid screenshot.");
     };
 
     auto error = file.open(path_);
     if (error) {
-        painter.draw_string({10, 160}, Styles::white, error->what());
+        painter.draw_string({10, 160}, *Theme::getInstance()->bg_darkest, error->what());
         return;
     }
 
@@ -120,13 +120,13 @@ void SplashViewer::paint(Painter& painter) {
     painter.fill_rectangle({0, 0, screen_width, screen_height}, Color::black());
 
     if (!portapack::display.drawBMP2({0, 0}, path_)) {
-        painter.draw_string({10, 160}, Styles::white, "Not a valid splash image.");
+        painter.draw_string({10, 160}, *Theme::getInstance()->bg_darkest, "Not a valid splash image.");
         return;
     }
 
     // Show option to set splash screen if it's not already the splash screen
     if (!path_iequal(path_, splash_dot_bmp)) {
-        painter.draw_string({0, 0}, Styles::white, "*RIGHT BUTTON UPDATES SPLASH*");
+        painter.draw_string({0, 0}, *Theme::getInstance()->bg_darkest, "*RIGHT BUTTON UPDATES SPLASH*");
         valid_image = true;
     }
 }

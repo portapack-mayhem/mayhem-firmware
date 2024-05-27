@@ -34,7 +34,6 @@
 
 #include "ui_sd_card_debug.hpp"
 #include "ui_font_fixed_8x16.hpp"
-#include "ui_styles.hpp"
 #include "ui_painter.hpp"
 #include "ui_external_items_menu_loader.hpp"
 
@@ -80,7 +79,7 @@ void TemperatureWidget::paint(Painter& painter) {
 
     const auto rect = screen_rect();
     const Color color_background{0, 0, 64};
-    const Color color_foreground = Color::green();
+    const Color color_foreground = Theme::getInstance()->fg_green->foreground;
     const Color color_reticle{128, 128, 128};
 
     const auto graph_width = static_cast<int>(logger.capacity()) * bar_width;
@@ -292,7 +291,7 @@ RegistersView::RegistersView(
     const auto value = registers_widget.reg_read(0);
     field_write_data_val.set_value(value);
 
-    button_write.set_style(&Styles::red);
+    button_write.set_style(Theme::getInstance()->fg_red);
     button_write.on_select = [this](Button&) {
         this->registers_widget.reg_write(field_write_reg_num.to_integer(), field_write_data_val.to_integer());
         this->registers_widget.update();
@@ -315,7 +314,7 @@ bool RegistersView::on_encoder(const EncoderEvent delta) {
 void ControlsSwitchesWidget::on_show() {
     display.fill_rectangle(
         screen_rect(),
-        Color::black());
+        Theme::getInstance()->bg_darkest->background);
 }
 
 bool ControlsSwitchesWidget::on_key(const KeyEvent key) {
@@ -345,11 +344,11 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
     }};
 
     for (const auto r : button_rects) {
-        painter.fill_rectangle(r + pos, Color::blue());
+        painter.fill_rectangle(r + pos, Theme::getInstance()->fg_blue->foreground);
     }
 
     if (get_touch_frame().touch)
-        painter.fill_rectangle(button_rects[8] + pos, Color::yellow());
+        painter.fill_rectangle(button_rects[8] + pos, Theme::getInstance()->fg_yellow->foreground);
 
     const std::array<Rect, 8> raw_rects{{
         {64 + 1, 32 + 1, 16 - 2, 16 - 2},  // Right
@@ -365,7 +364,7 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
     auto switches_raw = control::debug::switches();
     for (const auto r : raw_rects) {
         if (switches_raw & 1)
-            painter.fill_rectangle(r + pos, Color::yellow());
+            painter.fill_rectangle(r + pos, Theme::getInstance()->fg_yellow->foreground);
 
         switches_raw >>= 1;
     }
@@ -382,7 +381,7 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
     auto switches_debounced = get_switches_state().to_ulong();
     for (const auto r : debounced_rects) {
         if (switches_debounced & 1)
-            painter.fill_rectangle(r + pos, Color::green());
+            painter.fill_rectangle(r + pos, Theme::getInstance()->fg_green->foreground);
 
         switches_debounced >>= 1;
     }
@@ -399,7 +398,7 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
     auto switches_event = key_event_mask;
     for (const auto r : events_rects) {
         if (switches_event & 1)
-            painter.fill_rectangle(r + pos, Color::red());
+            painter.fill_rectangle(r + pos, Theme::getInstance()->fg_red->foreground);
 
         switches_event >>= 1;
     }
@@ -407,12 +406,12 @@ void ControlsSwitchesWidget::paint(Painter& painter) {
     switches_event = long_press_key_event_mask;
     for (const auto r : events_rects) {
         if (switches_event & 1)
-            painter.fill_rectangle(r + pos, Color::cyan());
+            painter.fill_rectangle(r + pos, Theme::getInstance()->fg_cyan->foreground);
 
         switches_event >>= 1;
     }
 
-    painter.draw_string({5 * 8, 12 * 16}, Styles::light_grey, to_string_dec_int(last_delta, 3));
+    painter.draw_string({5 * 8, 12 * 16}, *Theme::getInstance()->fg_light, to_string_dec_int(last_delta, 3));
 }
 
 void ControlsSwitchesWidget::on_frame_sync() {
@@ -455,10 +454,10 @@ void DebugPeripheralsMenuView::on_populate() {
     const char* max283x = hackrf_r9 ? "MAX2839" : "MAX2837";
     const char* si5351x = hackrf_r9 ? "Si5351A" : "Si5351C";
     add_items({
-        {"RFFC5072", ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
-        {max283x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this, max283x]() { nav_.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
-        {si5351x, ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
-        {audio::debug::codec_name(), ui::Color::dark_cyan(), &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
+        {"RFFC5072", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("RFFC5072", RegistersWidgetConfig{CT_RFFC5072, 31, 31, 16}); }},
+        {max283x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, max283x]() { nav_.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
+        {si5351x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
+        {audio::debug::codec_name(), Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
     set_max_rows(2);  // allow wider buttons
 }
@@ -486,21 +485,21 @@ DebugMenuView::DebugMenuView(NavigationView& nav)
 
 void DebugMenuView::on_populate() {
     if (portapack::persistent_memory::show_gui_return_icon()) {
-        add_items({{"..", ui::Color::light_grey(), &bitmap_icon_previous, [this]() { nav_.pop(); }}});
+        add_items({{"..", ui::Theme::getInstance()->fg_light->foreground, &bitmap_icon_previous, [this]() { nav_.pop(); }}});
     }
     add_items({
-        {"Buttons Test", ui::Color::dark_cyan(), &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
-        {"Debug Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { portapack::persistent_memory::debug_dump(); }},
-        {"M0 Stack Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { stack_dump(); }},
-        {"Memory Dump", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryDumpView>(); }},
-        //{"Memory Usage", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryView>(); }},
-        {"Peripherals", ui::Color::dark_cyan(), &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
-        {"Pers. Memory", ui::Color::dark_cyan(), &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
-        //{ "Radio State",	ui::Color::white(),	nullptr,	[this](){ nav_.push<NotImplementedView>(); } },
-        {"Reboot", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
-        {"SD Card", ui::Color::dark_cyan(), &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
-        {"Temperature", ui::Color::dark_cyan(), &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
-        {"Touch Test", ui::Color::dark_cyan(), &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
+        {"Buttons Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_controls, [this]() { nav_.push<DebugControlsView>(); }},
+        {"Debug Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { portapack::persistent_memory::debug_dump(); }},
+        {"M0 Stack Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { stack_dump(); }},
+        {"Memory Dump", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryDumpView>(); }},
+        //{"Memory Usage", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugMemoryView>(); }},
+        {"Peripherals", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
+        {"Pers. Memory", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
+        //{ "Radio State",	ui::Theme::getInstance()->bg_darkest->foreground,	nullptr,	[this](){ nav_.push<NotImplementedView>(); } },
+        {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
+        {"SD Card", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
+        {"Temperature", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
+        {"Touch Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
     });
 
     for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav_)) {
@@ -535,7 +534,7 @@ DebugMemoryDumpView::DebugMemoryDumpView(NavigationView& nav) {
         field_data_value.set_dirty();
     };
 
-    button_write.set_style(&Styles::red);
+    button_write.set_style(Theme::getInstance()->fg_red);
     button_write.on_select = [this](Button&) {
         *(uint32_t*)field_rw_address.to_integer() = (uint32_t)field_data_value.to_integer();
     };
@@ -618,8 +617,8 @@ bool DebugScreenTest::on_touch(const TouchEvent event) {
 }
 
 void DebugScreenTest::paint(Painter& painter) {
-    painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Color::white());
-    painter.draw_string({10 * 8, screen_height / 2}, Styles::white, "Use Stylus");
+    painter.fill_rectangle({0, 16, screen_width, screen_height - 16}, Theme::getInstance()->bg_darkest->foreground);
+    painter.draw_string({10 * 8, screen_height / 2}, *Theme::getInstance()->bg_darkest, "Use Stylus");
     pen_color = std::rand();
 }
 

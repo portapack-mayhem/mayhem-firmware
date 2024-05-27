@@ -39,17 +39,17 @@ void Channel::paint(Painter& painter) {
     const Rect r0{r.left(), r.top(), x_max, r.height()};
     painter.fill_rectangle(
         r0,
-        Color::blue());
+        Theme::getInstance()->fg_blue->foreground);
 
     const Rect r1{r.left() + x_max, r.top(), 1, r.height()};
     painter.fill_rectangle(
         r1,
-        Color::white());
+        Theme::getInstance()->bg_darkest->foreground);
 
     const Rect r2{r.left() + x_max + 1, r.top(), r.width() - (x_max + 1), r.height()};
     painter.fill_rectangle(
         r2,
-        Color::black());
+        Theme::getInstance()->fg_blue->background);
 }
 
 void Channel::on_statistics_update(const ChannelStatistics& statistics) {

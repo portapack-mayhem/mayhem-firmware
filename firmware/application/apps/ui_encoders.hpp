@@ -64,16 +64,16 @@ class EncodersConfigView : public View {
     void on_type_change(size_t index);
 
     Labels labels{
-        {{1 * 8, 0}, "Type:", Color::light_grey()},
-        {{17 * 8, 0}, "Repeat:", Color::light_grey()},
-        {{1 * 8, 2 * 8}, "Clk:", Color::light_grey()},
-        {{10 * 8, 2 * 8}, "kHz", Color::light_grey()},
-        {{17 * 8, 2 * 8}, "Step:", Color::light_grey()},
-        {{1 * 8, 4 * 8}, "Frame:", Color::light_grey()},
-        {{13 * 8, 4 * 8}, "us", Color::light_grey()},
-        {{17 * 8, 4 * 8}, "Step:", Color::light_grey()},
-        {{2 * 8, 7 * 8}, "Symbols:", Color::light_grey()},
-        {{1 * 8, 14 * 8}, "Waveform:", Color::light_grey()}};
+        {{1 * 8, 0}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{17 * 8, 0}, "Repeat:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 8}, "Clk:", Theme::getInstance()->fg_light->foreground},
+        {{10 * 8, 2 * 8}, "kHz", Theme::getInstance()->fg_light->foreground},
+        {{17 * 8, 2 * 8}, "Step:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 4 * 8}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{13 * 8, 4 * 8}, "us", Theme::getInstance()->fg_light->foreground},
+        {{17 * 8, 4 * 8}, "Step:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 7 * 8}, "Symbols:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 14 * 8}, "Waveform:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_enctype{// Options are loaded at runtime
                                  {6 * 8, 0},
@@ -128,7 +128,7 @@ class EncodersConfigView : public View {
         0,
         0,
         true,
-        Color::yellow()};
+        Theme::getInstance()->fg_yellow->foreground};
 };
 
 class EncodersScanView : public View {
@@ -160,9 +160,9 @@ class EncodersScanView : public View {
 
    private:
     Labels labels{
-        {{1 * 8, 0 * 8}, "Length:", Color::light_grey()},
-        {{1 * 8, 2 * 8}, "Bit length:", Color::light_grey()},
-        {{16 * 8, 2 * 8}, "us", Color::light_grey()},
+        {{1 * 8, 0 * 8}, "Length:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 2 * 8}, "Bit length:", Theme::getInstance()->fg_light->foreground},
+        {{16 * 8, 2 * 8}, "us", Theme::getInstance()->fg_light->foreground},
     };
 };
 
@@ -206,8 +206,8 @@ class EncodersView : public View {
     EncodersScanView view_scan{nav_, view_rect};
 
     TabView tab_view{
-        {"Config", Color::cyan(), &view_config},
-        {"de Bruijn", Color::green(), &view_scan},
+        {"Config", Theme::getInstance()->fg_cyan->foreground, &view_config},
+        {"de Bruijn", Theme::getInstance()->fg_green->foreground, &view_scan},
     };
 
     Text text_status{

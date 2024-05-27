@@ -46,10 +46,11 @@ using namespace portapack;
 namespace fs = std::filesystem;
 
 #include "string_format.hpp"
-#include "ui_styles.hpp"
 #include "ui_font_fixed_8x16.hpp"
 #include "cpld_update.hpp"
 #include "config_mode.hpp"
+
+extern ui::SystemView* system_view_ptr;
 
 namespace pmem = portapack::persistent_memory;
 
@@ -228,9 +229,9 @@ SetRadioView::SetRadioView(
     value_source_frequency.set(clock_manager.get_freq());
 
     // Make these Text controls look like Labels.
-    label_source.set_style(&Styles::light_grey);
-    value_source.set_style(&Styles::light_grey);
-    value_source_frequency.set_style(&Styles::light_grey);
+    label_source.set_style(Theme::getInstance()->fg_light);
+    value_source.set_style(Theme::getInstance()->fg_light);
+    value_source_frequency.set_style(Theme::getInstance()->fg_light);
 
     SetFrequencyCorrectionModel model{
         static_cast<int8_t>(pmem::correction_ppb() / 1000), 0};
@@ -575,7 +576,7 @@ SetPersistentMemoryView::SetPersistentMemoryView(NavigationView& nav) {
         &button_return,
     });
 
-    text_pmem_status.set_style(&Styles::yellow);
+    text_pmem_status.set_style(Theme::getInstance()->fg_yellow);
 
     check_use_sdcard_for_pmem.set_value(pmem::should_use_sdcard_for_pmem());
     check_use_sdcard_for_pmem.on_select = [this](Checkbox&, bool v) {
@@ -737,7 +738,7 @@ AppSettingsView::AppSettingsView(
         auto path = settings_dir / entry.path();
 
         menu_view.add_item({path.filename().string().substr(0, 26),
-                            ui::Color::dark_cyan(),
+                            ui::Theme::getInstance()->fg_darkcyan->foreground,
                             &bitmap_icon_file_text,
                             [this, path](KeyEvent) {
                                 nav_.push<TextEditorView>(path);
@@ -910,6 +911,43 @@ void SetAutostartView::focus() {
     options.focus();
 }
 
+/* SetThemeView ************************************/
+
+SetThemeView::SetThemeView(NavigationView& nav) {
+    add_children({&labels,
+                  &button_save,
+                  &button_cancel,
+                  &options,
+                  &checkbox_menuset});
+
+    button_save.on_select = [&nav, this](Button&) {
+        if (selected < Theme::ThemeId::MAX && (uint8_t)selected != portapack::persistent_memory::ui_theme_id()) {
+            portapack::persistent_memory::set_ui_theme_id((uint8_t)selected);
+            Theme::SetTheme((Theme::ThemeId)selected);
+            if (checkbox_menuset.value()) {
+                pmem::set_menu_color(Theme::getInstance()->bg_medium->background);
+            }
+            send_system_refresh();
+        }
+        nav.pop();
+    };
+
+    checkbox_menuset.set_value(true);
+
+    button_cancel.on_select = [&nav, this](Button&) {
+        nav.pop();
+    };
+
+    options.on_change = [this](size_t, OptionsField::value_t v) {
+        selected = v;
+    };
+    options.set_selected_index(portapack::persistent_memory::ui_theme_id());
+}
+
+void SetThemeView::focus() {
+    options.focus();
+}
+
 /* SettingsMenuView **************************************/
 
 SettingsMenuView::SettingsMenuView(NavigationView& nav)
@@ -937,6 +975,7 @@ void SettingsMenuView::on_populate() {
         //{"QR Code", ui::Color::dark_cyan(), &bitmap_icon_qr_code, [this]() { nav_.push<SetQRCodeView>(); }},
         {"Brightness", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetFakeBrightnessView>(); }},
         {"Menu Color", ui::Color::dark_cyan(), &bitmap_icon_brightness, [this]() { nav_.push<SetMenuColorView>(); }},
+        {"Theme", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetThemeView>(); }},
         {"Autostart", ui::Color::dark_cyan(), &bitmap_icon_setup, [this]() { nav_.push<SetAutostartView>(); }},
     });
 }

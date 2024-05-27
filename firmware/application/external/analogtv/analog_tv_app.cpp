@@ -41,8 +41,6 @@ namespace ui::external_app::analogtv {
 
 /* AnalogTvView *******************************************************/
 
-static const Style& style_options_group_new = Styles::bg_blue;
-
 AnalogTvView::AnalogTvView(
     NavigationView& nav)
     : nav_(nav) {
@@ -140,13 +138,13 @@ void AnalogTvView::set_options_widget(std::unique_ptr<Widget> new_widget) {
         options_widget = std::move(new_widget);
     } else {
         // TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
-        options_widget = std::make_unique<Rectangle>(options_view_rect, style_options_group_new.background);
+        options_widget = std::make_unique<Rectangle>(options_view_rect, Theme::getInstance()->option_active->background);
     }
     add_child(options_widget.get());
 }
 
 void AnalogTvView::on_show_options_frequency() {
-    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, &style_options_group_new);
+    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, Theme::getInstance()->option_active);
 
     widget->set_step(receiver_model.frequency_step());
     widget->on_change_step = [this](rf::Frequency f) {
@@ -158,14 +156,14 @@ void AnalogTvView::on_show_options_frequency() {
     };
 
     set_options_widget(std::move(widget));
-    field_frequency.set_style(&style_options_group_new);
+    field_frequency.set_style(Theme::getInstance()->option_active);
 }
 
 void AnalogTvView::on_show_options_rf_gain() {
-    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group_new);
+    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, Theme::getInstance()->option_active);
 
     set_options_widget(std::move(widget));
-    field_lna.set_style(&style_options_group_new);
+    field_lna.set_style(Theme::getInstance()->option_active);
 }
 
 void AnalogTvView::on_show_options_modulation() {
@@ -175,7 +173,7 @@ void AnalogTvView::on_show_options_modulation() {
     tv.show_audio_spectrum_view(true);
 
     set_options_widget(std::move(widget));
-    options_modulation.set_style(&style_options_group_new);
+    options_modulation.set_style(Theme::getInstance()->option_active);
 }
 
 void AnalogTvView::on_frequency_step_changed(rf::Frequency f) {
