@@ -98,7 +98,7 @@ MenuView::MenuView(
 
     add_child(&arrow_more);
     arrow_more.set_focusable(false);
-    arrow_more.set_foreground(Color::black());
+    arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 }
 
 MenuView::~MenuView() {
@@ -135,9 +135,9 @@ void MenuView::set_parent_rect(const Rect new_parent_rect) {
 
 void MenuView::on_tick_second() {
     if (more && blink)
-        arrow_more.set_foreground(Color::white());
+        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->foreground);
     else
-        arrow_more.set_foreground(Color::black());
+        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 
     blink = !blink;
 

@@ -46,7 +46,6 @@ void BattinfoView::on_timer() {
 
 void BattinfoView::update_result() {
     if (!battery::BatteryManagement::isDetected()) {
-        // todo show no batt management
         text_percent.set("UNKNOWN");
         text_voltage.set("UNKNOWN");
         text_current.set("-");

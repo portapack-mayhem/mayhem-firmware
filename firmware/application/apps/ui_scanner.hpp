@@ -34,11 +34,10 @@
 #include "ui.hpp"
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 
 #define SCANNER_SLEEP_MS 50  // ms that Scanner Thread sleeps per loop
 #define STATISTICS_UPDATES_PER_SEC 10
-#define MAX_FREQ_LOCK 10  //# of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
+#define MAX_FREQ_LOCK 10  // # of 50ms cycles scanner locks into freq when signal detected, to verify signal is not spurious
 
 namespace ui {
 
@@ -172,12 +171,12 @@ class ScannerView : public View {
     };
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Color::light_grey()},
-        {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "BW:       SQ:    Wsa:   Wsl:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 16}, "SRCH START  SEARCH END  SWITCH", Theme::getInstance()->fg_light->foreground},
 
-        {{0 * 8, (26 * 8) + 4}, "MODE:", Color::light_grey()},
-        {{11 * 8, (26 * 8) + 4}, "STEP:", Color::light_grey()},
+        {{0 * 8, (26 * 8) + 4}, "MODE:", Theme::getInstance()->fg_light->foreground},
+        {{11 * 8, (26 * 8) + 4}, "STEP:", Theme::getInstance()->fg_light->foreground},
     };
 
     LNAGainField field_lna{

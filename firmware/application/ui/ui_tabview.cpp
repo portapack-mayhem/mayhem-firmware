@@ -47,18 +47,18 @@ void Tab::set(
 
 void Tab::paint(Painter& painter) {
     const auto rect = screen_rect();
-    const Color color = highlighted() ? Color::black() : Color::grey();
+    const Color color = highlighted() ? Theme::getInstance()->bg_darkest->background : Theme::getInstance()->bg_medium->background;
 
     painter.fill_rectangle({rect.left(), rect.top(), rect.width() - 8, rect.height()}, color);
 
     if (!highlighted())
-        painter.draw_hline({rect.left(), rect.top()}, rect.width() - 9, Color::light_grey());
+        painter.draw_hline({rect.left(), rect.top()}, rect.width() - 9, Theme::getInstance()->fg_light->foreground);
 
     painter.draw_bitmap(
         {rect.right() - 8, rect.top()},
         bitmap_tab_edge,
         color,
-        Color::dark_grey());
+        Theme::getInstance()->bg_dark->background);
 
     auto text_point = rect.center() - Point(4, 0) - Point(text_.size() * 8 / 2, 16 / 2);
 
@@ -68,7 +68,7 @@ void Tab::paint(Painter& painter) {
         text_);
 
     if (has_focus())
-        painter.draw_hline(text_point + Point(0, 16), text_.size() * 8, Color::white());
+        painter.draw_hline(text_point + Point(0, 16), text_.size() * 8, Theme::getInstance()->bg_darkest->foreground);
 }
 
 bool Tab::on_key(const KeyEvent key) {

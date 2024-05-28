@@ -30,6 +30,8 @@
 #include <utility>
 
 #include "ui.hpp"
+#include "theme.hpp"
+
 #include "ui_widget.hpp"
 #include "ui_focus.hpp"
 #include "ui_menu.hpp"
@@ -197,13 +199,13 @@ class SystemStatusView : public View {
 
     Rectangle backdrop{
         {0 * 8, 0 * 16, ui::screen_width, 16},
-        Color::dark_grey()};
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_back{
         {0, 0 * 16, 12 * 8, 16},  // Back button also covers the title for easier touch.
         &bitmap_icon_previous,
-        Color::white(),
-        Color::dark_grey()};
+        Theme::getInstance()->bg_dark->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     Text title{
         {20, 0, 14 * 8, 1 * 16},
@@ -213,8 +215,8 @@ class SystemStatusView : public View {
     ImageButton button_title{
         {2, 0, 80, 16},
         &bitmap_titlebar_image,
-        Color::white(),
-        Color::dark_grey()};
+        Theme::getInstance()->bg_dark->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     StatusTray status_icons{{screen_width, 0}};
 
@@ -222,59 +224,64 @@ class SystemStatusView : public View {
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_mute,
         &bitmap_icon_speaker,
-        Color::light_grey(),
-        Color::dark_grey(),
-        Color::green(),
-        Color::dark_grey()};
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background};
 
     ImageToggle toggle_mute{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_speaker_and_headphones_mute,
         &bitmap_icon_speaker_and_headphones,
-        Color::light_grey(),
-        Color::dark_grey(),
-        Color::green(),
-        Color::dark_grey()};
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_converter{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_upconvert,
-        Color::light_grey(),
-        Color::dark_grey()};
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     ImageToggle toggle_stealth{
         {0, 0, 2 * 8, 1 * 16},
-        &bitmap_icon_stealth};
+        &bitmap_icon_stealth,
+        &bitmap_icon_stealth,
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background,
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_camera{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_camera,
-        Color::white(),
-        Color::dark_grey()};
+        Theme::getInstance()->bg_dark->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_sleep{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_sleep,
-        Color::white(),
-        Color::dark_grey()};
+        Theme::getInstance()->bg_dark->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_bias_tee{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_biast_off,
-        Color::light_grey(),
-        Color::dark_grey()};
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_clock_status{
         {0, 0 * 16, 8, 1 * 16},
         &bitmap_icon_clk_int,
-        Color::light_grey(),
-        Color::dark_grey()};
+        Theme::getInstance()->fg_light->foreground,
+        Theme::getInstance()->bg_dark->background};
 
     ImageButton button_fake_brightness{
         {0, 0, 2 * 8, 1 * 16},
         &bitmap_icon_brightness,
-        Color::green(),
-        Color::dark_grey()};
+        *Theme::getInstance()->status_active,
+        Theme::getInstance()->bg_dark->background};
 
     SDCardStatusView sd_card_status_view{
         {0, 0 * 16, 2 * 8, 1 * 16}};

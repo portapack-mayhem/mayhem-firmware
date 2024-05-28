@@ -33,7 +33,6 @@
 #include "ui_widget.hpp"
 #include "ui_navigation.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "string_format.hpp"
 #include "analog_audio_app.hpp"
 #include "spectrum_color_lut.hpp"
@@ -171,12 +170,12 @@ class GlassView : public View {
     uint8_t ignore_dc = 0;
 
     Labels labels{
-        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Color::light_grey()},
-        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Color::light_grey()},
-        {{0, 2 * 16}, "P:", Color::light_grey()},
-        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Color::light_grey()},
-        //{{0, 4 * 16}, "RES:    STEPS:", Color::light_grey()}};
-        {{0, 4 * 16}, "RES:     VOL:", Color::light_grey()}};
+        {{0, 0 * 16}, "MIN:     MAX:     LNA   VGA  ", Theme::getInstance()->fg_light->foreground},
+        {{0, 1 * 16}, "RANGE:       FILTER:     AMP:", Theme::getInstance()->fg_light->foreground},
+        {{0, 2 * 16}, "P:", Theme::getInstance()->fg_light->foreground},
+        {{0, 3 * 16}, "MARKER:          MHz RXIQCAL", Theme::getInstance()->fg_light->foreground},
+        //{{0, 4 * 16}, "RES:    STEPS:", Theme::getInstance()->fg_light->foreground}};
+        {{0, 4 * 16}, "RES:     VOL:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_frequency_min{
         {4 * 8, 0 * 16},

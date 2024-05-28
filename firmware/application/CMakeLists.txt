@@ -225,6 +225,7 @@ set(CPPSRC
 	spectrum_color_lut.cpp
 	string_format.cpp
 	temperature_logger.cpp
+	theme.cpp
 	touch.cpp
 	tone_key.cpp
 	transmitter_model.cpp
@@ -258,7 +259,6 @@ set(CPPSRC
 	ui/ui_freqlist.cpp
 	ui/ui_tv.cpp
 	ui/ui_spectrum.cpp
-	ui/ui_styles.cpp
 	ui/ui_tabview.cpp
 	ui/ui_textentry.cpp
 	ui/ui_tone_key.cpp

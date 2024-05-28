@@ -57,16 +57,16 @@ void SIGFRXView::paint(Painter& painter) {
     uint8_t i, xp;
 
     // portapack::display.drawBMP({0, 302-160}, fox_bmp);
-    portapack::display.fill_rectangle({0, 16, 240, 160 - 16}, ui::Color::white());
+    portapack::display.fill_rectangle({0, 16, 240, 160 - 16}, Theme::getInstance()->bg_darkest->foreground);
     for (i = 0; i < 6; i++) {
         xp = sigfrx_marks[i * 3];
         painter.draw_string({(ui::Coord)sigfrx_marks[(i * 3) + 1], 144 - 20}, style_white, to_string_dec_uint(sigfrx_marks[(i * 3) + 2]));
-        portapack::display.draw_line({xp, 144 - 4}, {xp, 144}, ui::Color::black());
+        portapack::display.draw_line({xp, 144 - 4}, {xp, 144}, Theme::getInstance()->bg_darkest->background);
     }
 }
 
 void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
-    portapack::display.fill_rectangle({0, 144, 240, 4}, ui::Color::white());
+    portapack::display.fill_rectangle({0, 144, 240, 4}, Theme::getInstance()->bg_darkest->foreground);
 
     uint8_t xmax = 0, imax = 0;
     size_t i;
@@ -97,7 +97,7 @@ void SIGFRXView::on_channel_spectrum(const ChannelSpectrum& spectrum) {
 
     last_channel = imax;
 
-    portapack::display.fill_rectangle({(ui::Coord)(imax - 2), 144, 4, 4}, ui::Color::red());
+    portapack::display.fill_rectangle({(ui::Coord)(imax - 2), 144, 4, 4}, Theme::getInstance()->fg_red->foreground);
 }
 
 void SIGFRXView::on_show() {
@@ -129,9 +129,9 @@ SIGFRXView::SIGFRXView(
                   &text_data,
                   &button_exit});
 
-    text_type.set_style(&Styles::bg_white);
-    text_channel.set_style(&Styles::bg_white);
-    text_data.set_style(&Styles::bg_white);
+    text_type.set_style(Theme::getInstance()->bg_lightest);
+    text_channel.set_style(Theme::getInstance()->bg_lightest);
+    text_data.set_style(Theme::getInstance()->bg_lightest);
 
     button_exit.on_select = [&nav](Button&) {
         nav.pop();

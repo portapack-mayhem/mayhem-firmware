@@ -27,7 +27,6 @@
 #include "ui_navigation.hpp"
 #include "ui_painter.hpp"
 #include "ui_receiver.hpp"
-#include "ui_styles.hpp"
 #include "ui_widget.hpp"
 
 #include "rf_path.hpp"
@@ -69,9 +68,9 @@ class TransmitterView : public View {
     void set_transmitting(const bool transmitting);
 
    private:
-    const Style& style_start = Styles::green;
-    const Style& style_stop = Styles::red;
-    const Style& style_locked = Styles::dark_grey;
+    const Style& style_start = *Theme::getInstance()->fg_green;
+    const Style& style_stop = *Theme::getInstance()->fg_red;
+    const Style& style_locked = *Theme::getInstance()->fg_dark;
 
     bool lock_{false};
     bool transmitting_{false};

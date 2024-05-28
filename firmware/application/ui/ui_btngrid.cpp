@@ -44,7 +44,7 @@ BtnGridView::BtnGridView(
 
     add_child(&arrow_more);
     arrow_more.set_focusable(false);
-    arrow_more.set_foreground(Color::black());
+    arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 }
 
 BtnGridView::~BtnGridView() {
@@ -98,9 +98,9 @@ void BtnGridView::set_arrow_enabled(bool enabled) {
 
 void BtnGridView::on_tick_second() {
     if (more && blink)
-        arrow_more.set_foreground(Color::white());
+        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->foreground);
     else
-        arrow_more.set_foreground(Color::black());
+        arrow_more.set_foreground(Theme::getInstance()->bg_darkest->background);
 
     blink = !blink;
 

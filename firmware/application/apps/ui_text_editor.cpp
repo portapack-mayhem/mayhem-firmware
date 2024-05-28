@@ -339,7 +339,7 @@ void TextViewer::reset_file(FileWrapper* file) {
 
 void TextViewer::set_font_zoom(bool zoom) {
     font_zoom = zoom;
-    font_style = font_zoom ? &Styles::white : &Styles::white_small;
+    font_style = font_zoom ? Theme::getInstance()->bg_darkest : Theme::getInstance()->bg_darkest_small;
     char_height = style().font.line_height();
     char_width = style().font.char_width();
     max_line = (uint8_t)(parent_rect().height() / char_height);
@@ -425,8 +425,8 @@ TextEditorView::TextEditorView(NavigationView& nav)
             &text_size,
         });
 
-    text_position.set_style(&Styles::bg_dark_blue);
-    text_size.set_style(&Styles::bg_dark_blue);
+    text_position.set_style(Theme::getInstance()->option_active);
+    text_size.set_style(Theme::getInstance()->option_active);
 
     viewer.set_font_zoom(enable_zoom);
 
@@ -542,7 +542,7 @@ void TextEditorView::open_file(const fs::path& path) {
             Painter p;
             auto percent = (value * 100) / total;
             auto width = (percent * screen_width) / 100;
-            p.draw_hline({0, 16}, width, Color::yellow());
+            p.draw_hline({0, 16}, width, Theme::getInstance()->fg_yellow->foreground);
         });
 
     if (!result) {
@@ -653,7 +653,7 @@ void TextEditorView::prepare_for_write() {
 
     // TODO: This would be nice to have but it causes a stack overflow in an ISR?
     // Painter p;
-    // p.draw_string({2, 48}, Styles::yellow, "Creating temporary file...");
+    // p.draw_string({2, 48}, *Theme::getInstance()->fg_yellow, "Creating temporary file...");
 
     // Copy to temp file on write.
     has_temp_file_ = true;

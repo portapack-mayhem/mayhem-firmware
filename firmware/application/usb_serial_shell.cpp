@@ -107,13 +107,13 @@ static void cmd_sd_over_usb(BaseSequentialStream* chp, int argc, char* argv[]) {
     ui::Painter painter;
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->fg_yellow->background);
 
     painter.draw_bitmap(
         {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
         ui::bitmap_icon_hackrf,
-        ui::Color::yellow(),
-        ui::Color::black());
+        Theme::getInstance()->fg_yellow->foreground,
+        Theme::getInstance()->fg_yellow->background);
 
     sdcDisconnect(&SDCD1);
     sdcStop(&SDCD1);

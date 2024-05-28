@@ -81,9 +81,9 @@ class FileManBaseView : public View {
         {u".C8", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".C16", &bitmap_icon_file_iq, ui::Color::dark_cyan()},
         {u".WAV", &bitmap_icon_file_wav, ui::Color::dark_magenta()},
-        {u".PPL", &bitmap_icon_file_iq, ui::Color::white()},  // Playlist/Replay
-        {u".REM", &bitmap_icon_remote, ui::Color::orange()},  // Remote
-        {u"", &bitmap_icon_file, ui::Color::light_grey()}     // NB: Must be last.
+        {u".PPL", &bitmap_icon_file_iq, ui::Color::white()},                  // Playlist/Replay
+        {u".REM", &bitmap_icon_remote, ui::Color::orange()},                  // Remote
+        {u"", &bitmap_icon_file, Theme::getInstance()->fg_light->foreground}  // NB: Must be last.
     };
 
     std::filesystem::path get_selected_full_path() const;
@@ -116,7 +116,7 @@ class FileManBaseView : public View {
     bool show_hidden_files{false};
 
     Labels labels{
-        {{0, 0}, "Path:", Color::light_grey()}};
+        {{0, 0}, "Path:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_current{
         {6 * 8, 0 * 8, 24 * 8, 16},
@@ -166,8 +166,8 @@ private:
         std::string buffer_ { };
 
         Labels labels {
-                { { 0 * 8, 1 * 16 }, "Path:", Color::light_grey() },
-                { { 0 * 8, 6 * 16 }, "Filename:", Color::light_grey() },
+                { { 0 * 8, 1 * 16 }, "Path:", Theme::getInstance()->fg_light->foreground },
+                { { 0 * 8, 6 * 16 }, "Filename:",Theme::getInstance()->fg_light->foreground },
         };
 
         Text text_path {
@@ -234,62 +234,62 @@ class FileManagerView : public FileManBaseView {
         {0 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_rename,
-        Color::dark_blue()};
+        Theme::getInstance()->fg_blue->foreground};
 
     NewButton button_delete{
         {9 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trash,
-        Color::red()};
+        Theme::getInstance()->fg_red->foreground};
 
     NewButton button_clean{
         {13 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_clean,
-        Color::red()};
+        Theme::getInstance()->fg_red->foreground};
 
     NewButton button_cut{
         {9 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_cut,
-        Color::dark_grey()};
+        Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_copy{
         {13 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_copy,
-        Color::dark_grey()};
+        Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_paste{
         {17 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_paste,
-        Color::dark_grey()};
+        Theme::getInstance()->fg_dark->foreground};
 
     NewButton button_new_dir{
         {22 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_new_dir,
-        Color::green()};
+        Theme::getInstance()->fg_green->foreground};
 
     NewButton button_new_file{
         {26 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_new_file,
-        Color::green()};
+        Theme::getInstance()->fg_green->foreground};
 
     NewButton button_open_notepad{
         {0 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_notepad,
-        Color::orange()};
+        Theme::getInstance()->fg_orange->foreground};
 
     NewButton button_rename_timestamp{
 
         {4 * 8, 29 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_options_datetime,
-        Color::dark_blue(),
+        Theme::getInstance()->fg_blue->foreground,
         /*vcenter*/ true};
 
     NewButton button_open_iq_trim{
@@ -297,13 +297,13 @@ class FileManagerView : public FileManBaseView {
         {4 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_trim,
-        Color::orange()};
+        Theme::getInstance()->fg_orange->foreground};
 
     NewButton button_show_hidden_files{
         {17 * 8, 34 * 8, 4 * 8, 32},
         {},
         &bitmap_icon_hide,
-        Color::dark_grey()};
+        Theme::getInstance()->fg_dark->foreground};
 };
 
 } /* namespace ui */

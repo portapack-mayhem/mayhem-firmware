@@ -21,7 +21,6 @@
  */
 
 #include "ui_flash_utility.hpp"
-#include "ui_styles.hpp"
 #include "portapack_shared_memory.hpp"
 #include "file_path.hpp"
 
@@ -103,10 +102,10 @@ FlashUtilityView::FlashUtilityView(NavigationView& nav)
         }
     };
 
-    add_firmware_items(firmware_dir, u"*.bin", ui::Color::red());
-    add_firmware_items(firmware_dir, u"*.tar", ui::Color::purple());
+    add_firmware_items(firmware_dir, u"*.bin", ui::Theme::getInstance()->fg_red->foreground);
+    add_firmware_items(firmware_dir, u"*.tar", ui::Theme::getInstance()->fg_cyan->foreground);
 
-    // add_firmware_items(user_firmware_folder,u"*.bin", ui::Color::purple());
+    // add_firmware_items(user_firmware_folder,u"*.bin", ui::Theme::getInstance()->fg_cyan->foreground);
 }
 
 void FlashUtilityView::firmware_selected(std::filesystem::path::string_type path) {
@@ -135,12 +134,12 @@ std::filesystem::path FlashUtilityView::extract_tar(std::filesystem::path::strin
     //
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
     painter.draw_string({12, 24}, this->nav_.style(), "Unpacking TAR file...");
 
     auto res = UnTar::untar(path, [this](const std::string fileName) {
         ui::Painter painter;
-        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
+        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, Theme::getInstance()->bg_darkest->background);
         painter.draw_string({0, 60}, this->nav_.style(), fileName);
     });
     return res;
@@ -154,14 +153,14 @@ bool FlashUtilityView::flash_firmware(std::filesystem::path::string_type path) {
     }
 
     if (path.empty() || !valid_firmware_file(path.c_str())) {
-        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, ui::Color::black());
-        painter.draw_string({0, 60}, Styles::red, "BAD FIRMWARE FILE OR W/R ERR");
+        painter.fill_rectangle({0, 50, portapack::display.width(), 90}, Theme::getInstance()->bg_darkest->background);
+        painter.draw_string({0, 60}, *Theme::getInstance()->fg_red, "BAD FIRMWARE FILE OR W/R ERR");
         chThdSleepMilliseconds(5000);
         return false;
     }
     painter.fill_rectangle(
         {0, 0, portapack::display.width(), portapack::display.height()},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     painter.draw_string({12, 24}, this->nav_.style(), "This will take 15 seconds.");
     painter.draw_string({12, 64}, this->nav_.style(), "Please wait while LED RX");

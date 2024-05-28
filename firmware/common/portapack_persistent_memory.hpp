@@ -338,6 +338,7 @@ bool ui_hide_fake_brightness();
 bool ui_hide_numeric_battery();
 bool ui_hide_battery_icon();
 bool ui_hide_sd_card();
+uint8_t ui_theme_id();
 void set_ui_hide_speaker(bool v);
 void set_ui_hide_mute(bool v);
 void set_ui_hide_converter(bool v);
@@ -350,6 +351,7 @@ void set_ui_hide_fake_brightness(bool v);
 void set_ui_hide_numeric_battery(bool v);
 void set_ui_hide_battery_icon(bool v);
 void set_ui_hide_sd_card(bool v);
+void set_ui_theme_id(uint8_t v);
 
 // sd persisting settings
 bool should_use_sdcard_for_pmem();

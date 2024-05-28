@@ -64,10 +64,10 @@ void ViewWavView::refresh_waveform() {
     // Window
     uint64_t w_start = (position * 240) / wav_reader->sample_count();
     uint64_t w_width = (scale * 240) / (wav_reader->sample_count() / 240);
-    display.fill_rectangle({0, 10 * 16 + 1, 240, 16}, Color::black());
-    display.fill_rectangle({(Coord)w_start, 21 * 8, (Dim)w_width + 1, 8}, Color::white());
-    display.draw_line({0, 10 * 16 + 1}, {(Coord)w_start, 21 * 8}, Color::white());
-    display.draw_line({239, 10 * 16 + 1}, {(Coord)(w_start + w_width), 21 * 8}, Color::white());
+    display.fill_rectangle({0, 10 * 16 + 1, 240, 16}, Theme::getInstance()->bg_darkest->background);
+    display.fill_rectangle({(Coord)w_start, 21 * 8, (Dim)w_width + 1, 8}, Theme::getInstance()->bg_darkest->foreground);
+    display.draw_line({0, 10 * 16 + 1}, {(Coord)w_start, 21 * 8}, Theme::getInstance()->bg_darkest->foreground);
+    display.draw_line({239, 10 * 16 + 1}, {(Coord)(w_start + w_width), 21 * 8}, Theme::getInstance()->bg_darkest->foreground);
 }
 
 void ViewWavView::refresh_measurements() {
@@ -81,8 +81,8 @@ void ViewWavView::refresh_measurements() {
 
 void ViewWavView::paint(Painter& painter) {
     // Waveform limits
-    painter.draw_hline({0, 6 * 16 - 1}, 240, Color::grey());
-    painter.draw_hline({0, 10 * 16}, 240, Color::grey());
+    painter.draw_hline({0, 6 * 16 - 1}, 240, Theme::getInstance()->bg_medium->background);
+    painter.draw_hline({0, 10 * 16}, 240, Theme::getInstance()->bg_medium->background);
 
     // Overall amplitude view, 0~127 to 0~255 color index
     for (size_t i = 0; i < 240; i++)

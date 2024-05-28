@@ -39,6 +39,7 @@
 #include "clock_manager.hpp"
 #include "temperature_logger.hpp"
 #include "battery.hpp"
+#include "theme.hpp"
 
 /* TODO: This would be better as a class to add
  * guardrails on setting properties. */

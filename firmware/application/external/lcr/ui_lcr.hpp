@@ -105,8 +105,8 @@ class LCRView : public View {
     std::string generate_message(std::string rgsb, std::vector<std::string> litterals, size_t option_ec);
 
     Labels labels{
-        {{0, 8}, "EC:     RGSB:", Color::light_grey()},
-        {{17 * 8, 4 * 8}, "List:", Color::light_grey()}};
+        {{0, 8}, "EC:     RGSB:", Theme::getInstance()->fg_light->foreground},
+        {{17 * 8, 4 * 8}, "List:", Theme::getInstance()->fg_light->foreground}};
 
     std::array<Button, LCR_MAX_AM> buttons{};
     std::array<Checkbox, LCR_MAX_AM> checkboxes{};

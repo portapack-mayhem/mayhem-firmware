@@ -187,6 +187,8 @@ int main(void) {
             lcd_frame_sync_configure();
             rtc_interrupt_enable();
 
+            Theme::SetTheme((Theme::ThemeId)portapack::persistent_memory::ui_theme_id());  // load theme
+
             event_loop();
 
             sdcDisconnect(&SDCD1);

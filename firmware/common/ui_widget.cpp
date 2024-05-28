@@ -526,7 +526,7 @@ void BigFrequency::paint(Painter& painter) {
     // Erase
     painter.fill_rectangle(
         {{0, rect.location().y()}, {screen_width, 52}},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     // Prepare digits
     if (!_frequency) {
@@ -634,7 +634,7 @@ ActivityDot::ActivityDot(
       _color{color} {}
 
 void ActivityDot::paint(Painter& painter) {
-    painter.fill_rectangle(screen_rect(), _on ? _color : Color::grey());
+    painter.fill_rectangle(screen_rect(), _on ? _color : Theme::getInstance()->bg_medium->background);
 }
 
 void ActivityDot::toggle() {
@@ -661,7 +661,7 @@ void Console::clear(bool clear_buffer = false) {
     if (!hidden() && visible()) {
         display.fill_rectangle(
             screen_rect(),
-            Color::black());
+            Theme::getInstance()->bg_darkest->background);
     }
 
     pos = {0, 0};
@@ -857,12 +857,12 @@ void Checkbox::paint(Painter& painter) {
 
         if (value_ == true) {
             // Check
-            portapack::display.draw_line({x + 2, y + 14}, {x + 6, y + 18}, ui::Color::green());
-            portapack::display.draw_line({x + 6, y + 18}, {x + 20, y + 4}, ui::Color::green());
+            portapack::display.draw_line({x + 2, y + 14}, {x + 6, y + 18}, Theme::getInstance()->fg_green->foreground);
+            portapack::display.draw_line({x + 6, y + 18}, {x + 20, y + 4}, Theme::getInstance()->fg_green->foreground);
         } else {
             // Cross
-            portapack::display.draw_line({x + 1, y + 1}, {x + 24 - 2, y + 24 - 2}, ui::Color::red());
-            portapack::display.draw_line({x + 24 - 2, y + 1}, {x + 1, y + 24 - 2}, ui::Color::red());
+            portapack::display.draw_line({x + 1, y + 1}, {x + 24 - 2, y + 24 - 2}, Theme::getInstance()->fg_red->foreground);
+            portapack::display.draw_line({x + 24 - 2, y + 1}, {x + 1, y + 24 - 2}, Theme::getInstance()->fg_red->foreground);
         }
 
         painter.draw_string(
@@ -880,12 +880,12 @@ void Checkbox::paint(Painter& painter) {
 
         if (value_ == true) {
             // Check
-            portapack::display.draw_line({x + 2, y + 8}, {x + 6, y + 12}, ui::Color::green());
-            portapack::display.draw_line({x + 6, y + 12}, {x + 13, y + 5}, ui::Color::green());
+            portapack::display.draw_line({x + 2, y + 8}, {x + 6, y + 12}, Theme::getInstance()->fg_green->foreground);
+            portapack::display.draw_line({x + 6, y + 12}, {x + 13, y + 5}, Theme::getInstance()->fg_green->foreground);
         } else {
             // Cross
-            portapack::display.draw_line({x + 1, y + 1}, {x + 16 - 2, y + 16 - 2}, ui::Color::red());
-            portapack::display.draw_line({x + 16 - 2, y + 1}, {x + 1, y + 16 - 2}, ui::Color::red());
+            portapack::display.draw_line({x + 1, y + 1}, {x + 16 - 2, y + 16 - 2}, Theme::getInstance()->fg_red->foreground);
+            portapack::display.draw_line({x + 16 - 2, y + 1}, {x + 1, y + 16 - 2}, Theme::getInstance()->fg_red->foreground);
         }
 
         painter.draw_string(
@@ -963,17 +963,17 @@ void Button::paint(Painter& painter) {
 
     if (has_focus() || highlighted()) {
         bg = style().foreground;
-        fg = Color::black();
+        fg = Theme::getInstance()->bg_darkest->background;
     } else {
-        bg = Color::grey();
+        bg = Theme::getInstance()->bg_medium->background;
         fg = style().foreground;
     }
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
-    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
-    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Theme::getInstance()->bg_dark->background);
+    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Theme::getInstance()->bg_dark->background);
 
     painter.fill_rectangle(
         {r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2},
@@ -1116,17 +1116,17 @@ void ButtonWithEncoder::paint(Painter& painter) {
 
     if (has_focus() || highlighted()) {
         bg = style().foreground;
-        fg = Color::black();
+        fg = Theme::getInstance()->bg_darkest->background;
     } else {
-        bg = Color::grey();
+        bg = Theme::getInstance()->bg_medium->background;
         fg = style().foreground;
     }
 
     const Style paint_style = {style().font, bg, fg};
 
-    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Color::light_grey());
-    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Color::dark_grey());
-    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Color::dark_grey());
+    painter.draw_rectangle({r.location(), {r.size().width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.location().x(), r.location().y() + r.size().height() - 1, r.size().width(), 1}, Theme::getInstance()->bg_dark->background);
+    painter.draw_rectangle({r.location().x() + r.size().width() - 1, r.location().y(), 1, r.size().height()}, Theme::getInstance()->bg_dark->background);
 
     painter.fill_rectangle(
         {r.location().x(), r.location().y() + 1, r.size().width() - 1, r.size().height() - 2},
@@ -1244,7 +1244,7 @@ NewButton::NewButton(
     Rect parent_rect,
     std::string text,
     const Bitmap* bitmap)
-    : NewButton{parent_rect, text, bitmap, Color::dark_cyan()} {}
+    : NewButton{parent_rect, text, bitmap, Theme::getInstance()->fg_darkcyan->foreground} {}
 
 NewButton::NewButton(
     Rect parent_rect,
@@ -1311,9 +1311,9 @@ void NewButton::paint(Painter& painter) {
     const auto r = screen_rect();
     const Style style = paint_style();
 
-    painter.draw_rectangle({r.location(), {r.width(), 1}}, Color::light_grey());
-    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Color::dark_grey());
-    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Color::dark_grey());
+    painter.draw_rectangle({r.location(), {r.width(), 1}}, Theme::getInstance()->fg_light->foreground);
+    painter.draw_rectangle({r.left(), r.top() + r.height() - 1, r.width(), 1}, Theme::getInstance()->bg_dark->background);
+    painter.draw_rectangle({r.left() + r.width() - 1, r.top(), 1, r.height()}, Theme::getInstance()->bg_dark->background);
 
     painter.fill_rectangle(
         {r.left(), r.top() + 1, r.width() - 1, r.height() - 2},
@@ -1346,7 +1346,7 @@ Style NewButton::paint_style() {
 
     if (has_focus() || highlighted()) {
         s.background = style().foreground;
-        s.foreground = Color::black();
+        s.foreground = Theme::getInstance()->bg_darkest->background;
     } else {
         s.background = bg_color_;
         s.foreground = style().foreground;
@@ -1408,7 +1408,7 @@ bool NewButton::on_touch(const TouchEvent event) {
 /* Image *****************************************************************/
 
 Image::Image()
-    : Image{{}, nullptr, Color::white(), Color::black()} {
+    : Image{{}, nullptr, Theme::getInstance()->bg_darkest->foreground, Theme::getInstance()->bg_darkest->background} {
 }
 
 Image::Image(
@@ -1525,9 +1525,9 @@ ImageToggle::ImageToggle(
     const Bitmap* bitmap_)
     : ImageToggle{parent_rect,
                   bitmap_,
-                  Color::green(),
-                  Color::light_grey(),
-                  Color::dark_grey()} {}
+                  Theme::getInstance()->fg_green->foreground,
+                  Theme::getInstance()->fg_light->foreground,
+                  Theme::getInstance()->bg_dark->background} {}
 
 ImageToggle::ImageToggle(
     Rect parent_rect,
@@ -1786,7 +1786,7 @@ void OptionsField::set_options(options_t new_options) {
 void OptionsField::paint(Painter& painter) {
     const auto paint_style = has_focus() ? style().invert() : style();
 
-    painter.fill_rectangle({screen_rect().location(), {(int)length_ * 8, 16}}, ui::Color::black());
+    painter.fill_rectangle({screen_rect().location(), {(int)length_ * 8, 16}}, Theme::getInstance()->bg_darkest->background);
 
     if (selected_index() < options_.size()) {
         std::string_view temp = selected_index_name();
@@ -2086,9 +2086,9 @@ bool BatteryIcon::on_touch(TouchEvent event) {
     return false;
 }
 void BatteryIcon::paint(Painter& painter) {
-    ui::Rect rect = screen_rect();                                                                          // 10, 1 * 16
-    painter.fill_rectangle(rect, has_focus() || highlighted() ? Color::light_grey() : Color::dark_grey());  // clear
-    ui::Color battColor = (charge_) ? Color::cyan() : Color::green();
+    ui::Rect rect = screen_rect();                                                                                                                        // 10, 1 * 16
+    painter.fill_rectangle(rect, has_focus() || highlighted() ? Theme::getInstance()->fg_light->foreground : Theme::getInstance()->bg_dark->background);  // clear
+    ui::Color battColor = (charge_) ? Theme::getInstance()->fg_blue->foreground : Theme::getInstance()->fg_green->foreground;
     // batt body:
     painter.draw_vline({rect.left() + 1, rect.top() + 2}, rect.height() - 4, battColor);
     painter.draw_vline({rect.right() - 2, rect.top() + 2}, rect.height() - 4, battColor);
@@ -2098,7 +2098,7 @@ void BatteryIcon::paint(Painter& painter) {
     painter.draw_hline({rect.left() + 3, rect.top() + 1}, rect.width() - 6, battColor);
     painter.draw_hline({rect.left() + 3, 0}, rect.width() - 6, battColor);
     if (percent_ > 100) {  // error / unk
-        painter.draw_string({rect.left() + 2, rect.top() + 3}, font::fixed_5x8, Color::white(), Color::dark_grey(), "?");
+        painter.draw_string({rect.left() + 2, rect.top() + 3}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, Theme::getInstance()->bg_dark->background, "?");
         return;
     }
     int8_t ppx = (rect.bottom() - 3) - (rect.top() + 2);                                // 11px max height to draw bars
@@ -2106,11 +2106,11 @@ void BatteryIcon::paint(Painter& painter) {
     int8_t pp = ppx - ptd;                                                              // pixels to start from
 
     if (percent_ >= 70)
-        battColor = Color::green();
+        battColor = Theme::getInstance()->fg_green->foreground;
     else if (percent_ >= 40)
-        battColor = Color::orange();
+        battColor = Theme::getInstance()->fg_orange->foreground;
     else
-        battColor = Color::red();
+        battColor = Theme::getInstance()->fg_red->foreground;
     // fill the bars
     for (int y = pp; y < ppx; y++) {
         painter.draw_hline({rect.left() + 2, rect.top() + 3 + y}, rect.width() - 4, battColor);
@@ -2126,7 +2126,7 @@ BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
 }
 
 void BatteryTextField::paint(Painter& painter) {
-    Color bg = has_focus() || highlighted() ? Color::light_grey() : Color::dark_grey();
+    Color bg = has_focus() || highlighted() ? Theme::getInstance()->fg_light->foreground : Theme::getInstance()->bg_dark->background;
     ui::Rect rect = screen_rect();     // 2 * 8, 1 * 16
     painter.fill_rectangle(rect, bg);  // clear
     std::string txt_batt = percent_ <= 100 ? to_string_dec_uint(percent_) : "UNK";
@@ -2135,8 +2135,8 @@ void BatteryTextField::paint(Painter& painter) {
         xdelta = 5;
     else if (txt_batt.length() == 2)
         xdelta = 2;
-    painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Color::white(), bg, txt_batt);
-    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Color::white(), bg, (charge_) ? "+%" : " %");
+    painter.draw_string({rect.left() + xdelta, rect.top()}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, txt_batt);
+    painter.draw_string({rect.left(), rect.top() + 8}, font::fixed_5x8, Theme::getInstance()->bg_dark->foreground, bg, (charge_) ? "+%" : " %");
 }
 
 void BatteryTextField::getAccessibilityText(std::string& result) {
@@ -2445,8 +2445,8 @@ void SymField::paint(Painter& painter) {
 
             if (editing_ && n == selected_) {
                 // Use 'bg_blue' style to indicate in editing mode.
-                paint_style.foreground = Color::white();
-                paint_style.background = Color::blue();
+                paint_style.foreground = Theme::getInstance()->bg_darkest->foreground;
+                paint_style.background = Theme::getInstance()->fg_blue->foreground;
             }
         }
 
@@ -2631,7 +2631,7 @@ void Waveform::paint(Painter& painter) {
     x_inc = (float)screen_rect().size().width() / length_;
 
     // Clear
-    painter.fill_rectangle_unrolled8(screen_rect(), Color::black());
+    painter.fill_rectangle_unrolled8(screen_rect(), Theme::getInstance()->bg_darkest->background);
 
     if (digital_) {
         // Digital waveform: each value is an horizontal line
@@ -2724,13 +2724,13 @@ void VuMeter::paint(Painter& painter) {
                 lit = true;
 
             if (bar == 0)
-                color = lit ? Color::red() : Color::dark_grey();
+                color = lit ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->bg_dark->background;
             else if (bar == 1)
-                color = lit ? Color::orange() : Color::dark_grey();
+                color = lit ? Theme::getInstance()->fg_orange->foreground : Theme::getInstance()->bg_dark->background;
             else if ((bar == 2) || (bar == 3))
-                color = lit ? Color::yellow() : Color::dark_grey();
+                color = lit ? Theme::getInstance()->fg_yellow->foreground : Theme::getInstance()->bg_dark->background;
             else
-                color = lit ? Color::green() : Color::dark_grey();
+                color = lit ? Theme::getInstance()->fg_green->foreground : Theme::getInstance()->bg_dark->background;
 
             painter.fill_rectangle({pos.x(), pos.y() + (Coord)(bar * (LED_height + 1)), width, (Coord)LED_height}, color);
         }
@@ -2752,8 +2752,8 @@ void VuMeter::paint(Painter& painter) {
 
         // Draw max level
         if (max != prev_max) {
-            painter.draw_hline({marks_x, bottom - (height * prev_max) / 256}, 8, Color::black());
-            painter.draw_hline({marks_x, bottom - (height * max) / 256}, 8, Color::white());
+            painter.draw_hline({marks_x, bottom - (height * prev_max) / 256}, 8, Theme::getInstance()->bg_darkest->background);
+            painter.draw_hline({marks_x, bottom - (height * max) / 256}, 8, Theme::getInstance()->bg_darkest->foreground);
             if (prev_max == mark)
                 prev_mark = 0;  // Force mark refresh
             prev_max = max;
@@ -2762,8 +2762,8 @@ void VuMeter::paint(Painter& painter) {
 
     // Draw mark (forced refresh)
     if (mark) {
-        painter.draw_hline({marks_x, bottom - (height * prev_mark) / 256}, 8, Color::black());
-        painter.draw_hline({marks_x, bottom - (height * mark) / 256}, 8, Color::grey());
+        painter.draw_hline({marks_x, bottom - (height * prev_mark) / 256}, 8, Theme::getInstance()->bg_darkest->background);
+        painter.draw_hline({marks_x, bottom - (height * mark) / 256}, 8, Theme::getInstance()->fg_medium->foreground);
         prev_mark = mark;
     }
 }

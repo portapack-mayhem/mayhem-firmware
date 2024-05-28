@@ -55,9 +55,9 @@ class ExtSensorsView : public View {
     bool has_data = false;
 
     Labels labels{
-        {{0 * 8, 3 * 16}, "GPS:", Color::light_grey()},
-        {{0 * 8, 5 * 16}, "ORI:", Color::light_grey()},
-        {{0 * 8, 7 * 16}, "ENV:", Color::light_grey()}};
+        {{0 * 8, 3 * 16}, "GPS:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 5 * 16}, "ORI:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 16}, "ENV:", Theme::getInstance()->fg_light->foreground}};
 
     Text text_info{{0 * 8, 0 * 8, 30 * 8, 16 * 1}, "Connect a compatible module..."};
     Text text_gps{{5 * 8, 3 * 16, 24 * 8, 16}, "-"};
