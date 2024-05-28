@@ -88,6 +88,11 @@ class ThemeGreen : public ThemeTemplate {
     ThemeGreen();
 };
 
+class ThemeRed : public ThemeTemplate {
+   public:
+    ThemeRed();
+};
+
 class Theme {
    public:
     enum ThemeId {
@@ -95,6 +100,7 @@ class Theme {
         Yellow = 1,
         Aqua = 2,
         Green = 3,
+        Red = 4,
         MAX
     };
     static ThemeTemplate* getInstance();
