@@ -80,21 +80,15 @@ class SSTVTXView : public View {
     void prepare_scanline();
 
     Labels labels{
-        {{1 * 8, 1 * 8}, "Profile:", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 3 * 8}, "File:", Theme::getInstance()->fg_light->foreground},
         {{1 * 8, 5 * 8}, "Mode:", Theme::getInstance()->fg_light->foreground}};
 
-    OptionsField options_profile{
-        {6 * 8, 1 * 8},
-        16,
-        {}};
-
     OptionsField options_bitmaps{
-        {6 * 8, 1 * 8},
+        {6 * 8, 3 * 8},
         16,
         {}};
     OptionsField options_modes{
-        {6 * 8, 3 * 8},
+        {6 * 8, 5 * 8},
         16,
         {}};
 

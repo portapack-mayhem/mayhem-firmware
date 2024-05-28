@@ -129,7 +129,6 @@ class FileManBaseView : public View {
 
         {{0, 0}, "\u007F", Theme::getInstance()->fg_light->foreground}};
 
-
     Text text_current{
         {1 * 8, 0 * 8, 20 * 8, 16},
         "",
