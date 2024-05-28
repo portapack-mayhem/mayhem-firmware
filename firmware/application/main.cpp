@@ -143,8 +143,11 @@ Continuous (Fox-oring)
 #include <string.h>
 
 #include "rffc507x.hpp" /* c/m, avoiding initial short ON Ant_DC_Bias pulse, from cold reset  */
+#include "morse_decoder.h"  // Include Morse Decoder header
+
 rffc507x::RFFC507x first_if;
 ui::SystemView* system_view_ptr;
+MorseDecoder morse_decoder;  // Create a MorseDecoder instance
 
 static void event_loop() {
     static ui::Context context;
@@ -162,7 +165,13 @@ static void event_loop() {
         }};
     portapack::setEventDispatcherToUSBSerial(&event_dispatcher);
     system_view.get_navigation_view()->handle_autostart();
-    event_dispatcher.run();
+
+    morse_decoder.init();  // Initialize Morse Decoder
+
+    while (true) {
+        event_dispatcher.run();
+        morse_decoder.run();  // Run Morse Decoder within the event loop
+    }
 }
 
 int main(void) {
