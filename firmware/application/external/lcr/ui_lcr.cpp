@@ -237,7 +237,7 @@ LCRView::LCRView(NavigationView& nav) {
         rectangle->set_parent_rect({static_cast<Coord>(98),
                                     static_cast<Coord>(n * 32 + 66),
                                     68, 20});
-        rectangle->set_color(ui::Color::grey());
+        rectangle->set_color(Theme::getInstance()->fg_medium->foreground);
         rectangle->set_outline(true);
         add_child(rectangle);
 

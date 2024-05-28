@@ -39,8 +39,6 @@ namespace ui {
 
 /* AMOptionsView *********************************************************/
 
-static const Style& style_options_group = Styles::bg_blue;
-
 AMOptionsView::AMOptionsView(
     Rect parent_rect,
     const Style* style)
@@ -297,13 +295,13 @@ void AnalogAudioView::set_options_widget(std::unique_ptr<Widget> new_widget) {
         options_widget = std::move(new_widget);
     } else {
         // TODO: Lame hack to hide options view due to my bad paint/damage algorithm.
-        options_widget = std::make_unique<Rectangle>(options_view_rect, style_options_group.background);
+        options_widget = std::make_unique<Rectangle>(options_view_rect, Theme::getInstance()->option_active->background);
     }
     add_child(options_widget.get());
 }
 
 void AnalogAudioView::on_show_options_frequency() {
-    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, &style_options_group);
+    auto widget = std::make_unique<FrequencyOptionsView>(options_view_rect, Theme::getInstance()->option_active);
 
     widget->set_step(receiver_model.frequency_step());
     widget->on_change_step = [this](rf::Frequency f) {
@@ -315,14 +313,14 @@ void AnalogAudioView::on_show_options_frequency() {
     };
 
     set_options_widget(std::move(widget));
-    field_frequency.set_style(&style_options_group);
+    field_frequency.set_style(Theme::getInstance()->option_active);
 }
 
 void AnalogAudioView::on_show_options_rf_gain() {
-    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, &style_options_group);
+    auto widget = std::make_unique<RadioGainOptionsView>(options_view_rect, Theme::getInstance()->option_active);
 
     set_options_widget(std::move(widget));
-    field_lna.set_style(&style_options_group);
+    field_lna.set_style(Theme::getInstance()->option_active);
 }
 
 void AnalogAudioView::on_show_options_modulation() {
@@ -331,25 +329,25 @@ void AnalogAudioView::on_show_options_modulation() {
     const auto modulation = receiver_model.modulation();
     switch (modulation) {
         case ReceiverModel::Mode::AMAudio:
-            widget = std::make_unique<AMOptionsView>(options_view_rect, &style_options_group);
+            widget = std::make_unique<AMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
 
         case ReceiverModel::Mode::NarrowbandFMAudio:
-            widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, &style_options_group);
+            widget = std::make_unique<NBFMOptionsView>(nbfm_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(false);
             break;
 
         case ReceiverModel::Mode::WidebandFMAudio:
-            widget = std::make_unique<WFMOptionsView>(options_view_rect, &style_options_group);
+            widget = std::make_unique<WFMOptionsView>(options_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(true);
             text_ctcss.hidden(true);
             break;
 
         case ReceiverModel::Mode::SpectrumAnalysis:
-            widget = std::make_unique<SPECOptionsView>(this, nbfm_view_rect, &style_options_group);
+            widget = std::make_unique<SPECOptionsView>(this, nbfm_view_rect, Theme::getInstance()->option_active);
             waterfall.show_audio_spectrum_view(false);
             text_ctcss.hidden(true);
             break;
@@ -360,7 +358,7 @@ void AnalogAudioView::on_show_options_modulation() {
     }
 
     set_options_widget(std::move(widget));
-    options_modulation.set_style(&style_options_group);
+    options_modulation.set_style(Theme::getInstance()->option_active);
 }
 
 void AnalogAudioView::on_frequency_step_changed(rf::Frequency f) {

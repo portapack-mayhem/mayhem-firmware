@@ -38,7 +38,6 @@
 #include "ui_mictx.hpp"
 #include "ui_receiver.hpp"
 #include "ui_spectrum.hpp"
-#include "ui_styles.hpp"
 
 namespace ui {
 
@@ -81,8 +80,8 @@ class LevelView : public View {
         }};
 
     Labels labels{
-        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Color::light_grey()},
-        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Color::light_grey()},
+        {{0 * 8, 0 * 16}, "LNA:   VGA:   AMP:  VOL:     ", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 1 * 16}, "BW:       MODE:    S:   ", Theme::getInstance()->fg_light->foreground},
     };
 
     LNAGainField field_lna{

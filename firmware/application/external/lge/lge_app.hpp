@@ -88,16 +88,16 @@ class LGEView : public View {
     void on_tx_progress(const uint32_t progress, const bool done);
 
     Labels labels{
-        //{ { 7 * 8, 1 * 8 }, "NO FUN ALLOWED !", Color::red() },
-        {{1 * 8, 1 * 8}, "Frame:", Color::light_grey()},
-        {{2 * 8, 3 * 8}, "Room:", Color::light_grey()},
-        {{14 * 8, 3 * 8}, "Text:", Color::light_grey()},
-        {{2 * 8, 5 * 8}, "Team:", Color::light_grey()},
-        {{0 * 8, 7 * 8}, "Player:", Color::light_grey()},
-        {{0 * 8, 10 * 8}, "Vest:", Color::light_grey()},
-        {{4 * 8, 12 * 8}, "ID:", Color::light_grey()},
-        {{3 * 8, 14 * 8}, "Pow:  /10", Color::light_grey()},
-        {{2 * 8, 16 * 8}, "Time:  x100ms", Color::light_grey()}};
+        //{ { 7 * 8, 1 * 8 }, "NO FUN ALLOWED !", Theme::getInstance()->error_dark->foreground },
+        {{1 * 8, 1 * 8}, "Frame:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 3 * 8}, "Room:", Theme::getInstance()->fg_light->foreground},
+        {{14 * 8, 3 * 8}, "Text:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 5 * 8}, "Team:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 7 * 8}, "Player:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 10 * 8}, "Vest:", Theme::getInstance()->fg_light->foreground},
+        {{4 * 8, 12 * 8}, "ID:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 14 * 8}, "Pow:  /10", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 16 * 8}, "Time:  x100ms", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_frame{
         {7 * 8, 1 * 8},

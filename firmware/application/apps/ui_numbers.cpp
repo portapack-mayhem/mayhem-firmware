@@ -21,7 +21,6 @@
  */
 
 #include "ui_numbers.hpp"
-#include "ui_styles.hpp"
 #include "string_format.hpp"
 
 #include "portapack.hpp"
@@ -145,7 +144,7 @@ void NumbersStationView::on_tick_second() {
     armed_blink = not armed_blink;
 
     if (armed_blink)
-        check_armed.set_style(&Styles::red);
+        check_armed.set_style(Theme::getInstance()->fg_red);
     else
         check_armed.set_style(&style());
 

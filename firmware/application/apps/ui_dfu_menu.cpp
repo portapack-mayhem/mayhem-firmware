@@ -74,27 +74,27 @@ void DfuMenu::paint(Painter& painter) {
     painter.fill_rectangle(
         {{6 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {15 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{21 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
          {17 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
          {17 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 }
 
 DfuMenu2::DfuMenu2(NavigationView& nav)
@@ -133,27 +133,27 @@ void DfuMenu2::paint(Painter& painter) {
     painter.fill_rectangle(
         {{5 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {19 * CHARACTER_WIDTH + margin * 2, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::black());
+        Theme::getInstance()->bg_darkest->background);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{24 * CHARACTER_WIDTH + margin, 3 * LINE_HEIGHT - margin},
          {CHARACTER_WIDTH, lines * LINE_HEIGHT + margin * 2}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, 3 * LINE_HEIGHT - margin - 8},
          {21 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 
     painter.fill_rectangle(
         {{4 * CHARACTER_WIDTH - margin, (lines + 3) * LINE_HEIGHT + margin},
          {21 * CHARACTER_WIDTH + margin * 2, 8}},
-        ui::Color::dark_cyan());
+        ui::Theme::getInstance()->fg_darkcyan->foreground);
 }
 
 } /* namespace ui */

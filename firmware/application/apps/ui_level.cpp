@@ -169,9 +169,9 @@ LevelView::LevelView(NavigationView& nav)
     rssi_resolution.set_selected_index(1);
     // FILL STEP OPTIONS
     freqman_set_step_option_short(step_mode);
-    freq_stats_rssi.set_style(&Styles::white);
-    freq_stats_db.set_style(&Styles::white);
-    freq_stats_rx.set_style(&Styles::white);
+    freq_stats_rssi.set_style(Theme::getInstance()->bg_darkest);
+    freq_stats_db.set_style(Theme::getInstance()->bg_darkest);
+    freq_stats_rx.set_style(Theme::getInstance()->bg_darkest);
 }
 
 void LevelView::on_statistics_update(const ChannelStatistics& statistics) {

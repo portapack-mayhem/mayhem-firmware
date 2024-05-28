@@ -39,12 +39,12 @@ class ModemSetupView : public View {
 
    private:
     Labels labels{
-        {{2 * 8, 11 * 8}, "Baudrate:", Color::light_grey()},
-        {{2 * 8, 13 * 8}, "Mark:      Hz", Color::light_grey()},
-        {{2 * 8, 15 * 8}, "Space:     Hz", Color::light_grey()},
-        {{140, 15 * 8}, "Repeat:", Color::light_grey()},
-        {{1 * 8, 6 * 8}, "Modem preset:", Color::light_grey()},
-        {{2 * 8, 22 * 8}, "Serial format:", Color::light_grey()}};
+        {{2 * 8, 11 * 8}, "Baudrate:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 13 * 8}, "Mark:      Hz", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 15 * 8}, "Space:     Hz", Theme::getInstance()->fg_light->foreground},
+        {{140, 15 * 8}, "Repeat:", Theme::getInstance()->fg_light->foreground},
+        {{1 * 8, 6 * 8}, "Modem preset:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 22 * 8}, "Serial format:", Theme::getInstance()->fg_light->foreground}};
 
     NumberField field_baudrate{
         {11 * 8, 11 * 8},

@@ -25,7 +25,6 @@
 #include "ui.hpp"
 #include "ui_widget.hpp"
 #include "bmpfile.hpp"
-#include "ui_styles.hpp"
 
 class BMPViewer : public Widget {
    public:

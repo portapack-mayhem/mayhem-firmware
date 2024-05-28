@@ -80,12 +80,12 @@ class POCSAGTXView : public View {
     bool start_tx();
 
     Labels labels{
-        {{3 * 8, 4 * 8}, "Bitrate:", Color::light_grey()},
-        {{3 * 8, 6 * 8}, "Address:", Color::light_grey()},
-        {{6 * 8, 8 * 8}, "Type:", Color::light_grey()},
-        {{2 * 8, 10 * 8}, "Function:", Color::light_grey()},
-        {{5 * 8, 12 * 8}, "Phase:", Color::light_grey()},
-        {{0 * 8, 14 * 8}, "Message:", Color::light_grey()}};
+        {{3 * 8, 4 * 8}, "Bitrate:", Theme::getInstance()->fg_light->foreground},
+        {{3 * 8, 6 * 8}, "Address:", Theme::getInstance()->fg_light->foreground},
+        {{6 * 8, 8 * 8}, "Type:", Theme::getInstance()->fg_light->foreground},
+        {{2 * 8, 10 * 8}, "Function:", Theme::getInstance()->fg_light->foreground},
+        {{5 * 8, 12 * 8}, "Phase:", Theme::getInstance()->fg_light->foreground},
+        {{0 * 8, 14 * 8}, "Message:", Theme::getInstance()->fg_light->foreground}};
 
     OptionsField options_bitrate{
         {11 * 8, 4 * 8},

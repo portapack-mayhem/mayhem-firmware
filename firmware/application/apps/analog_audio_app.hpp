@@ -29,7 +29,6 @@
 #include "ui_freq_field.hpp"
 #include "ui_spectrum.hpp"
 #include "ui_record_view.hpp"
-#include "ui_styles.hpp"
 #include "app_settings.hpp"
 #include "radio_state.hpp"
 #include "tone_key.hpp"

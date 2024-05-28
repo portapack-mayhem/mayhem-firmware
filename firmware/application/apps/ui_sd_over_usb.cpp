@@ -34,13 +34,13 @@ SdOverUsbView::SdOverUsbView(NavigationView& nav)
         ui::Painter painter;
         painter.fill_rectangle(
             {0, 0, portapack::display.width(), portapack::display.height()},
-            ui::Color::black());
+            Theme::getInstance()->bg_darkest->background);
 
         painter.draw_bitmap(
             {portapack::display.width() / 2 - 8, portapack::display.height() / 2 - 8},
             bitmap_icon_hackrf,
-            ui::Color::yellow(),
-            ui::Color::black());
+            Theme::getInstance()->bg_darkest->foreground,
+            Theme::getInstance()->bg_darkest->background);
 
         sdcDisconnect(&SDCD1);
         sdcStop(&SDCD1);

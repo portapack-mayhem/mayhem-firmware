@@ -71,7 +71,7 @@ void CreditsWidget::new_row(
 void CreditsWidget::clear() {
     display.fill_rectangle(
         screen_rect(),
-        Color::black());
+        Theme::getInstance()->bg_darkest->background);
 }
 
 void AboutView::update() {
@@ -109,7 +109,7 @@ void AboutView::update() {
             const size_t start = (glyph.size().width() / 8) * render_line;
             for (Dim c = 0; c < glyph.size().width(); c++) {
                 const auto pixel = glyph.pixels()[start + (c >> 3)] & (1U << (c & 0x7));
-                pixel_row[start_pos + i + c] = pixel ? Color::white() : Color::black();
+                pixel_row[start_pos + i + c] = pixel ? Theme::getInstance()->bg_darkest->foreground : Theme::getInstance()->bg_darkest->background;
             }
 
             const auto advance = glyph.advance();

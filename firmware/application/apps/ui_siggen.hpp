@@ -72,15 +72,15 @@ class SigGenView : public View {
     bool auto_update{false};
 
     Labels labels{
-        {{3 * 8, 4 + 10}, "Shape:", Color::light_grey()},
-        {{6 * 8, 7 * 8}, "Tone:      Hz", Color::light_grey()},
-        {{22 * 8, 15 * 8 + 4}, "s.", Color::light_grey()},
-        {{8 * 8, 20 * 8}, "Modulation: FM", Color::light_grey()}};
+        {{3 * 8, 4 + 10}, "Shape:", Theme::getInstance()->fg_light->foreground},
+        {{6 * 8, 7 * 8}, "Tone:      Hz", Theme::getInstance()->fg_light->foreground},
+        {{22 * 8, 15 * 8 + 4}, "s.", Theme::getInstance()->fg_light->foreground},
+        {{8 * 8, 20 * 8}, "Modulation: FM", Theme::getInstance()->fg_light->foreground}};
 
     ImageOptionsField options_shape{
         {10 * 8, 4, 32, 32},
-        Color::white(),
-        Color::black(),
+        Theme::getInstance()->bg_darkest->foreground,
+        Theme::getInstance()->bg_darkest->background,
         {{&bitmap_sig_cw, 0},
          {&bitmap_sig_sine, 1},
          {&bitmap_sig_tri, 2},
