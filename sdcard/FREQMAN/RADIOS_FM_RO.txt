@@ -1,3 +1,5 @@
+## This list if for Bucharet, Romania ONLY!!! ##
+
     f=88000000, m=WFM, bw=200k, d=Radio Impuls
     f=88500000, m=WFM, bw=200k, d=Radio Trinitas
     f=89000000, m=WFM, bw=200k, d=Radio ZU
