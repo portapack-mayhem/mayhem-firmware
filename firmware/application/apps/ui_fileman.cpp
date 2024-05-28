@@ -37,6 +37,7 @@
 #include "portapack.hpp"
 #include "event_m0.hpp"
 #include "file_path.hpp"
+#include "usb_serial_asyncmsg.hpp"
 
 using namespace portapack;
 namespace fs = std::filesystem;
@@ -349,9 +350,10 @@ void FileManBaseView::focus() {
 void FileManBaseView::push_dir(const fs::path& path) {
     // if you want it freely jump between profiles when picking files in your app, don't use this
     // , you should use push_fake_dir, which handle and call back the dir automatically
+    UsbSerialAsyncmsg::asyncmsg(path);
     if (path == parent_dir_path) {
         pop_dir();
-    } else if (path == system_dir || path == apps_dir || path == firmware_dir) {
+    } else if (path == system_dir_fake || path == apps_dir || path == firmware_dir) {
         nav_.push<ModalMessageView>(
             "Warning",
             "It is not recommended to\n"
@@ -453,7 +455,7 @@ void FileManBaseView::refresh_list() {
             menu_view.add_item(
 
                 {entry_name.substr(0, max_filename_length) + std::string(21 - entry_name.length(), ' ') + size_str,
-                 (entry.path == system_dir || entry.path == apps_dir || entry.path == firmware_dir) ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_yellow->foreground,
+                 (entry.path == system_dir_fake || entry.path == apps_dir || entry.path == firmware_dir) ? Theme::getInstance()->fg_red->foreground : Theme::getInstance()->fg_yellow->foreground,
 
                  &bitmap_icon_dir,
                  [this](KeyEvent key) {
