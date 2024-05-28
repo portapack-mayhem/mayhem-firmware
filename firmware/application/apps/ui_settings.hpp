@@ -873,6 +873,7 @@ class SetThemeView : public View {
             {"Default - Grey", 0},
             {"Yellow", 1},
             {"Aqua", 2},
+            {"Green", 3},
         }};
 
     Checkbox checkbox_menuset{
