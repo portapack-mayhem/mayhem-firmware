@@ -2,6 +2,7 @@
 #include "event_m0.hpp"
 #include "portapack.hpp"
 #include "ads1110.hpp"
+#include "max17055.hpp"
 
 // uncomment if you want to emulate batt management system
 // #define USE_BATT_EMULATOR
@@ -14,15 +15,20 @@ constexpr uint32_t BATTERY_UPDATE_INTERVAL = 30000;
 BatteryManagement::BatteryModules BatteryManagement::detected_ = BatteryManagement::BATT_NONE;
 
 ads1110::ADS1110 battery_ads1110{portapack::i2c0, 0x48};
+max17055::MAX17055 battery_max17055{portapack::i2c0, 0x36};
 
 Thread* BatteryManagement::thread = nullptr;
 
 void BatteryManagement::init() {
     // try to detect supported modules
     detected_ = BATT_NONE;
-    if (battery_ads1110.detect()) {
-        battery_ads1110.init();
-        detected_ = BATT_ADS1110;
+    // if (battery_ads1110.detect()) {
+    //     battery_ads1110.init();
+    //     detected_ = BATT_ADS1110;
+    // }
+    if (battery_max17055.detect()) {
+        battery_max17055.init();
+        detected_ = BATT_MAX17055;
     }
 
     // add new supported module detect + init here
@@ -44,6 +50,10 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
     if (detected_ == BATT_NONE) return false;
     if (detected_ == BATT_ADS1110) {
         battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
+        return true;
+    }
+    if (detected_ == BATT_MAX17055) {
+        battery_max17055.getBatteryInfo(batteryPercentage, voltage);
         return true;
     }
     // add new module query here

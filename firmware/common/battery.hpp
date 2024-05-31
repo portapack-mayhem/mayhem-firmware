@@ -32,6 +32,7 @@ class BatteryManagement {
     enum BatteryModules {
         BATT_NONE = 0,
         BATT_ADS1110 = 1,
+        BATT_MAX17055 = 2,
         BATT_EMULATOR = 254
     };
     static void init();

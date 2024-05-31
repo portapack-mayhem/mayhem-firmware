@@ -34,6 +34,7 @@
 #include "usb_serial.hpp"
 
 #include "ads1110.hpp"
+#include "max17055.hpp"
 
 #include "radio.hpp"
 #include "clock_manager.hpp"
