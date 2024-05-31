@@ -1,3 +1,24 @@
+/*
+ * Copyright (C) 2024 jLynx.
+ *
+ * This file is part of PortaPack.
+ *
+ * This program is free software; you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation; either version 2, or (at your option)
+ * any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; see the file COPYING.  If not, write to
+ * the Free Software Foundation, Inc., 51 Franklin Street,
+ * Boston, MA 02110-1301, USA.
+ */
+
 #include "max17055.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -7,7 +28,7 @@ namespace battery {
 namespace max17055 {
 
 constexpr uint16_t BATTERY_MIN_VOLTAGE = 3000;
-constexpr uint16_t BATTERY_MAX_VOLTAGE = 4200;
+constexpr uint16_t BATTERY_MAX_VOLTAGE = 4200; // Adjusted for typical Li-ion battery
 
 void MAX17055::init() {
     if (!detected_) {
@@ -16,8 +37,8 @@ void MAX17055::init() {
 }
 
 bool MAX17055::detect() {
-    uint16_t deviceID = read(0x08);
-    if (deviceID == 0x0055) {
+    uint16_t value;
+    if (readRegister(0x00, value)) { // Read the Status register
         detected_ = true;
         return true;
     }
@@ -25,23 +46,24 @@ bool MAX17055::detect() {
     return false;
 }
 
-bool MAX17055::write(const uint8_t reg, const uint8_t value) {
-    uint8_t data[2] = {reg, value};
-    return bus.transmit(bus_address, data, 2);
+bool MAX17055::readRegister(uint8_t reg, uint16_t& value) {
+    uint8_t data[2];
+    if (bus.transmit(bus_address, &reg, 1) && bus.receive(bus_address, data, 2)) {
+        value = (static_cast<uint16_t>(data[0]) << 8) | data[1];
+        return true;
+    }
+    return false;
 }
 
-uint16_t MAX17055::read(const uint8_t reg) {
-    uint8_t data[2];
-    if (!bus.transmit(bus_address, &reg, 1) || !bus.receive(bus_address, data, 2)) {
+// returns the battery voltage in mV
+uint16_t MAX17055::readVoltage() {
+    uint16_t rawVoltage;
+    if (!readRegister(0x09, rawVoltage)) { // Read the Voltage register
         return 0;  // Return 0 if the read fails
     }
-    return (static_cast<uint16_t>(data[0]) << 8) | data[1];
-}
 
-uint16_t MAX17055::readVoltage() {
-    uint16_t voltageRaw = read(0x09);
-    float voltage = voltageRaw * 0.00125;          // Convert to voltage (assuming 5.12V full-scale range)
-    return static_cast<uint16_t>(voltage * 1000);  // Convert to mV
+    // Voltage register value is in units of 1.25mV
+    return (rawVoltage * 125) / 100;
 }
 
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
@@ -52,6 +74,7 @@ void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
 
     // Limit the values to the valid range
     batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
+    batteryPercentage = (batteryPercentage < 0) ? 0 : batteryPercentage;
 }
 
 } /* namespace max17055 */
