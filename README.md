@@ -30,7 +30,7 @@ This repository expands upon the previous work by many people and aims to consta
 
 :heavy_check_mark: Some individuals lean towards the [H2 with a metal enclosure](https://grabify.link/HTDXG5), but its advantages remain debated. Share your insights on our [wiki](https://github.com/portapack-mayhem/mayhem-firmware/wiki/Hardware-overview). 
 
-:heavy_check_mark: Our friends at OpenSourceSDRLab give away five units every three months in our discord (check the badge on top) of their [PortaPack H2](https://grabify.link/LG0OUY), you can support them too by ordering.
+:heavy_check_mark: Our friends at OpenSourceSDRLab give away five units every three months in our discord (check the badge on top) of one of their [PortaPack H2 bundle](https://grabify.link/T328XL) or [only metal case kits](https://grabify.link/LG0OUY), you can support them too by ordering.
 
 :warning: Be cautious , *ask* the seller about compatibility with the latest releases. Look out for the description of the item, if they provide the firmware files for an older version or they have custom setup instructions, this means it might be **NOT compatible**, for example:
 
