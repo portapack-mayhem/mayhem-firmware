@@ -125,7 +125,8 @@ uint8_t MAX17055::readPercentage() {
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     // voltage = readVoltage();
     voltage = instantVoltage();
-    batteryPercentage = readPercentage();
+    // batteryPercentage = readPercentage();
+    batteryPercentage = stateOfCharge();
 }
 
 bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
