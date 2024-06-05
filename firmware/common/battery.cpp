@@ -22,10 +22,10 @@ Thread* BatteryManagement::thread = nullptr;
 void BatteryManagement::init() {
     // try to detect supported modules
     detected_ = BATT_NONE;
-    // if (battery_ads1110.detect()) {
-    //     battery_ads1110.init();
-    //     detected_ = BATT_ADS1110;
-    // }
+    if (battery_ads1110.detect()) {
+        battery_ads1110.init();
+        detected_ = BATT_ADS1110;
+    }
     if (battery_max17055.detect()) {
         battery_max17055.init();
         detected_ = BATT_MAX17055;
