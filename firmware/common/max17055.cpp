@@ -58,23 +58,43 @@ bool MAX17055::readRegister(uint8_t reg, uint16_t& value) {
 // returns the battery voltage in mV
 uint16_t MAX17055::readVoltage() {
     uint16_t rawVoltage;
-    if (!readRegister(0x09, rawVoltage)) { // Read the Voltage register
+    if (!readRegister(0x19, rawVoltage)) { // Read the Voltage register
         return 0;  // Return 0 if the read fails
     }
 
-    // Voltage register value is in units of 1.25mV
-    return (rawVoltage * 125) / 100;
+    // Voltage register value is in units of 78.125µV
+    return (rawVoltage * 78125) / 1000000;
+}
+// uint16_t MAX17055::readVoltage() {
+//     uint16_t rawVoltage;
+//     if (!readRegister(0x09, rawVoltage)) { // Read the Voltage register
+//         return 0;  // Return 0 if the read fails
+//     }
+
+//     // Voltage register value is in units of 1.25mV
+//     return (rawVoltage * 125) / 100;
+// }
+
+uint8_t MAX17055::readPercentage() {
+    uint16_t rawPercentage;
+    if (!readRegister(0x06, rawPercentage)) { // Read the SOC register
+        return 0;  // Return 0 if the read fails
+    }
+
+    // SOC register value is in units of 1/256 percentage
+    return (rawPercentage + 128) / 256;
 }
 
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     voltage = readVoltage();
+    batteryPercentage = readPercentage();
 
-    // Calculate the remaining battery percentage
-    batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
+    // // Calculate the remaining battery percentage
+    // batteryPercentage = (float)(voltage - BATTERY_MIN_VOLTAGE) / (float)(BATTERY_MAX_VOLTAGE - BATTERY_MIN_VOLTAGE) * 100.0;
 
-    // Limit the values to the valid range
-    batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
-    batteryPercentage = (batteryPercentage < 0) ? 0 : batteryPercentage;
+    // // Limit the values to the valid range
+    // batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
+    // batteryPercentage = (batteryPercentage < 0) ? 0 : batteryPercentage;
 }
 
 } /* namespace max17055 */
