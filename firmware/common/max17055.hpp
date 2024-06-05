@@ -291,6 +291,8 @@ class MAX17055 {
     bool detected_;
 
     bool readRegister(uint8_t reg, uint16_t& value);
+    bool Read_Multiple_Register(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission);
+    bool Write_Multiple_Register(uint8_t reg, const uint8_t* data, uint8_t length);
 
     bool setEmptyVoltage(uint16_t _Empty_Voltage);
     bool setRecoveryVoltage(uint16_t _Recovery_Voltage);
