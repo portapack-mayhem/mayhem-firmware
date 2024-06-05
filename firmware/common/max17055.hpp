@@ -47,7 +47,7 @@
 
 // Define Battery Capacity
 #ifndef __MAX17055_Design_Capacity__
-#define __MAX17055_Design_Capacity__ 2000  // Battery Capacity
+#define __MAX17055_Design_Capacity__ 1500  // Battery Capacity
 #endif
 
 // Define Gauge Resistor
@@ -57,12 +57,12 @@
 
 // Define Minimum Voltage
 #ifndef __MAX17055_Min_Voltage__
-#define __MAX17055_Min_Voltage__ 3.8  // Minimum Voltage
+#define __MAX17055_Min_Voltage__ 3.0  // Minimum Voltage
 #endif
 
 // Define Maximum Voltage
 #ifndef __MAX17055_Max_Voltage__
-#define __MAX17055_Max_Voltage__ 4.3  // Maximum Voltage
+#define __MAX17055_Max_Voltage__ 4.2  // Maximum Voltage
 #endif
 
 // Define Empty Voltage
@@ -72,12 +72,12 @@
 
 // Define Recovery Voltage
 #ifndef __MAX17055_Recovery_Voltage__
-#define __MAX17055_Recovery_Voltage__ 3.5  // Recovery Voltage
+#define __MAX17055_Recovery_Voltage__ 3.7  // Recovery Voltage
 #endif
 
 // Define Maximum Current
 #ifndef __MAX17055_Max_Current__
-#define __MAX17055_Max_Current__ 1.5  // Maximum Current
+#define __MAX17055_Max_Current__ 3.0  // Maximum Current
 #endif
 
 // Define Termination Current
@@ -97,7 +97,7 @@
 
 // Define Battery Model
 #ifndef __MAX17055_Battery_Model__
-#define __MAX17055_Battery_Model__ 2  // Battery Model
+#define __MAX17055_Battery_Model__ 0  // Battery Model
 #endif
 
 // Define Limits

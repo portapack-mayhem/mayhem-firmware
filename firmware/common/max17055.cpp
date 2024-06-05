@@ -28,9 +28,6 @@ Boston, MA 02110-1301, USA.
 namespace battery {
 namespace max17055 {
 
-constexpr uint16_t BATTERY_MIN_VOLTAGE = 3000;
-constexpr uint16_t BATTERY_MAX_VOLTAGE = 4200;  // Adjusted for typical Li-ion battery
-
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
@@ -80,43 +77,22 @@ void MAX17055::init() {
 }
 
 bool MAX17055::detect() {
-    uint16_t value;
-    if (readRegister(0x00, value)) {  // Read the Status register
-        detected_ = true;
-        return true;
-    }
-    detected_ = false;
-    return false;
+    // uint16_t value;
+    // if (readRegister(0x00, value)) {  // Read the Status register
+    //     detected_ = true;
+    //     return true;
+    // }
+    // detected_ = false;
+    // return false;
+
+    detected_ = true;
+    return true;
 }
 
-bool MAX17055::readRegister(uint8_t reg, uint16_t& value) {
-    uint8_t data[2];
-    if (bus.transmit(bus_address, &reg, 1) && bus.receive(bus_address, data, 2)) {
-        value = (static_cast<uint16_t>(data[0]) << 8) | data[1];
-        return true;
-    }
-    return false;
-}
-
-bool MAX17055::Read_Multiple_Register(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
-    if (bus.transmit(bus_address, &reg, 1)) {
-        if (bus.receive(bus_address, data, length)) {
-            if (endTransmission) {
-                // Perform any necessary end transmission actions
-                // For example, you can use bus.endTransmission() if your I2C library supports it
-            }
-            return true;
-        }
-    }
-    return false;
-}
-
-// bitRead function
 bool bitRead(uint8_t value, uint8_t bit) {
     return (value >> bit) & 0x01;
 }
 
-// bitSet function
 void bitSet(uint16_t& value, uint8_t bit) {
     value |= (1 << bit);
 }
@@ -125,9 +101,22 @@ void bitSet(uint8_t& value, uint8_t bit) {
     value |= (1 << bit);
 }
 
-// bitClear function (optional)
 void bitClear(uint16_t& value, uint8_t bit) {
     value &= ~(1 << bit);
+}
+
+bool MAX17055::Read_Multiple_Register(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
+    if (bus.transmit(bus_address, &reg, 1)) {
+        if (bus.receive(bus_address, data, length)) {
+            if (endTransmission) {
+                // bus.stop();  // Testing if we need this line
+                // Perform any necessary end transmission actions
+                // For example, you can use bus.endTransmission() if your I2C library supports it
+            }
+            return true;
+        }
+    }
+    return false;
 }
 
 bool MAX17055::Write_Multiple_Register(uint8_t reg, const uint8_t* data, uint8_t length) {
@@ -143,32 +132,9 @@ bool MAX17055::Write_Multiple_Register(uint8_t reg, const uint8_t* data, uint8_t
     return false;
 }
 
-// returns the battery voltage in mV
-uint16_t MAX17055::readVoltage() {
-    uint16_t rawVoltage;
-    if (!readRegister(0x09, rawVoltage)) {  // Read the Voltage register
-        return 0;                           // Return 0 if the read fails
-    }
-
-    // Voltage register value is in units of 78.125µV
-    return (rawVoltage * 78125) / 1000000;
-}
-
-uint8_t MAX17055::readPercentage() {
-    uint16_t rawPercentage;
-    if (!readRegister(0x06, rawPercentage)) {  // Read the SOC register
-        return 0;                              // Return 0 if the read fails
-    }
-
-    // SOC register value is in units of 1/256 percentage
-    return (rawPercentage + 128) / 256;
-}
-
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
-    // voltage = readVoltage();
-    // voltage = instantVoltage();
-    voltage = emptyVoltage();
-    // batteryPercentage = readPercentage();
+    // voltage = averageVoltage();
+    voltage = instantVoltage();
     batteryPercentage = stateOfCharge();
 }
 
