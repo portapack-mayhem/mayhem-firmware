@@ -34,6 +34,48 @@ constexpr uint16_t BATTERY_MAX_VOLTAGE = 4200;  // Adjusted for typical Li-ion b
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
+    } else {
+        config();
+        setHibCFG(0x0000);
+
+        // Design Capacity Register
+        setDesignCapacity(__MAX17055_Design_Capacity__);
+
+        // ModelCfg Register
+        setModelCfg(__MAX17055_Battery_Model__);
+
+        // IChgTerm Register
+        setChargeTerminationCurrent(__MAX17055_Termination_Current__);
+
+        // VEmpty Register
+        setEmptyVoltage(__MAX17055_Empty_Voltage__);
+
+        // VRecovery Register
+        setRecoveryVoltage(__MAX17055_Recovery_Voltage__);
+
+        // Set Minimum Voltage
+        setMinVoltage(__MAX17055_Min_Voltage__);
+
+        // Set Maximum Voltage
+        setMaxVoltage(__MAX17055_Max_Voltage__);
+
+        // Set Maximum Current
+        setMaxCurrent(__MAX17055_Max_Current__);
+
+        // Set Minimum SOC
+        setMinSOC(__MAX17055_Min_SOC__);
+
+        // Set Maximum SOC
+        setMaxSOC(__MAX17055_Max_SOC__);
+
+        // Set Minimum Temperature
+        setMinTemperature(__MAX17055_Min_Temperature__);
+
+        // Set Maximum Temperature
+        setMaxTemperature(__MAX17055_Max_Temperature__);
+
+        // Clear Bits
+        statusClear();
     }
 }
 
@@ -124,7 +166,8 @@ uint8_t MAX17055::readPercentage() {
 
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     // voltage = readVoltage();
-    voltage = instantVoltage();
+    // voltage = instantVoltage();
+    voltage = emptyVoltage();
     // batteryPercentage = readPercentage();
     batteryPercentage = stateOfCharge();
 }
