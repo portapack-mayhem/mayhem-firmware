@@ -134,7 +134,6 @@ bool MAX17055::Write_Multiple_Register(uint8_t reg, const uint8_t* data, uint8_t
 
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     voltage = averageVoltage();
-    // voltage = instantVoltage();
     batteryPercentage = stateOfCharge();
 }
 
@@ -617,13 +616,14 @@ uint16_t MAX17055::stateOfCharge(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x06, _MAX17055_Data, 2, false);
+    Read_Multiple_Register(0x0E, _MAX17055_Data, 2, false); // AvSOC
+    // Read_Multiple_Register(0x06, _MAX17055_Data, 2, false); // RepSOC
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
 
     // Calculate Measurement
-    uint16_t _Value = ((uint32_t)_Measurement_Raw * 100 / 256);
+    uint8_t _Value = (_Measurement_Raw >> 8) & 0xFF;
 
     // End Function
     return _Value;
