@@ -81,6 +81,35 @@ SSB::SSB()
     mode = Mode::LSB;
 }
 
+void SSB::set_fs_div_factor(float new_bw_ssb) {
+    switch ((int)new_bw_ssb) {
+        case 2:
+            fs_div_factor = 384;  // BW_ssb = 2khz => 4khz Sample Rate (fs) Hilbert ; The transceiver SR = 1.536.000; 1.536.000 /4000= 384
+            break;                // We need exact division, integer, with zero decimals
+        case 3:
+            fs_div_factor = 256;  // BW_ssb = 3khz => 6khz fs Hilbert = 1536.000/6000= 256
+            break;
+        case 4:
+            fs_div_factor = 192;  // BW_ssb = 4khz => 8khz fs Hilbert = 1536.000/8000= 192
+            break;
+        case 5:
+            fs_div_factor = 160;  // Exact factor = 153,6 , but we can not use it . We will use closer aprox factor without decimals,
+            break;                // GUI will say BW 5khz, but real  BW_ssb = 4.8khz => 9.6khz fs Hilbert = 1536.000/9600= 160
+        case 6:
+            fs_div_factor = 128;  // BW_ssb = 6khz => 12khz fs Hilbert = 1536.000/12000= 128
+            break;
+        case 7:
+            fs_div_factor = 100;  // Exact factor = 109,71 , but we can not use it . We will use closer aprox factor without decimals,
+            break;                // GUI will say BW 7khz, but real  BW_ssb = 7.6khz => 15.3khz fs Hilbert = 1536.000/15360= 100
+        case 8:
+            fs_div_factor = 96;  // BW_ssb = 8khz => 16khz fs Hilbert = 1536.000/16000= 96
+            break;
+        default:
+            fs_div_factor = 128;  // BW_ssb = 6khz => 12khz fs Hilbert = 1536.000/12000= 128
+            break;
+    }
+}
+
 void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider) {
     // unused
     (void)configured_in;
@@ -93,9 +122,10 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
     int8_t re = 0, im = 0;
 
     for (size_t counter = 0; counter < buffer.count; counter++) {
-        if (counter % 128 == 0) {
+        if (counter % fs_div_factor == 0) {  // Ex. bw_ssb 6khz ,  128 =  1.536.000 hz  / 12.000 hz
             float i = 0.0, q = 0.0;
 
+            // over = 1.536.000/24khz = 64 . (Mic audio has fixed SR in audio_p buffer[]  = 24khz), but in tx mode , we are running Transceiver fs @tx = 1.536.000 Hz.
             sample = audio.p[counter / over] >> audio_shift_bits_s16_AM_DSB_SSB;  // originally fixed   >> 2, now >>2 for AK,   0,1,2,3 for WM (boost off)
             sample *= audio_gain;                                                 // Apply GAIN  Scale factor to the audio TX modulation.
 
