@@ -84,7 +84,7 @@ class SSB : public Modulator {
    private:
     dsp::HilbertTransform hilbert;
     float new_bw_ssb{3.0};
-    int fs_div_factor{256};
+    int fs_div_factor{128};
 };
 
 ///
