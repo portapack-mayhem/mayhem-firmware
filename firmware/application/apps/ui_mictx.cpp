@@ -277,15 +277,15 @@ void MicTXView::set_rxbw_defaults(bool use_app_settings) {
         field_bw.set_value(10);     // NFM TX bw 10k, RX bw 16k (index 2) default
         field_bw.set_range(1, 60);  // In NFM , FM , we are limitting index modulation range (0.08 ..5) ; (Ex max dev 60khz/12k = 5)
         field_bw.set_step(1);
-        field_rxbw.set_by_value(2);
+        field_rxbw.set_by_value(2);  // 16k from the three options (8k5,11k,16k)
     } else if (mic_mod_index == MIC_MOD_WFM) {
-        field_bw.set_value(75);       // WFM TX bw 75K, RX bw 200k (index 0) default
-        field_bw.set_range(20, 150);  // In our case Mod. Index range (1,67 ...12,5) ; 150k/12k=12,5
+        field_bw.set_value(75);      // WFM TX bw 75K, RX bw 200k (index 0) default
+        field_bw.set_range(1, 150);  // In our case Mod. Index range (1,67 ...12,5) ; 150k/12k=12,5
         field_bw.set_step(1);
         field_rxbw.set_by_value(0);
     } else if ((mic_mod_index == MIC_MOD_USB) | (mic_mod_index == MIC_MOD_LSB)) {
-        field_bw.set_value(3);     // In SSB by default let's limit TX_BW to 3khz.
-        field_bw.set_range(2, 8);  // User range to modify that TX_BW.
+        field_bw.set_value(3);     // In SSB by default let's limit TX_BW to 3kHz.
+        field_bw.set_range(2, 4);  // User range to modify that TX_BW.
         field_bw.set_step(1);
     }
     // field_bw is hidden in other modulation cases

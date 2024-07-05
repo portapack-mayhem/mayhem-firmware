@@ -82,30 +82,18 @@ SSB::SSB()
 }
 
 void SSB::set_fs_div_factor(float new_bw_ssb) {
-    switch ((int)new_bw_ssb) {
+    switch ((int)new_bw_ssb / 1000) {
         case 2:
-            fs_div_factor = 384;  // BW_ssb = 2khz => 4khz Sample Rate (fs) Hilbert ; The transceiver SR = 1.536.000; 1.536.000 /4000= 384
-            break;                // We need exact division, integer, with zero decimals
+            fs_div_factor = 192;  // TXBW_ssb = 2khz = fs/4 ; fs of Hilbert Transform => 8khz fs Hilbert = 1536.000/8000= 192
+            break;
         case 3:
-            fs_div_factor = 256;  // BW_ssb = 3khz => 6khz fs Hilbert = 1536.000/6000= 256
+            fs_div_factor = 128;  // TXBW_ssb = 3khz = fs/4 ; fs of Hilbert Transform => 12khz fs Hilbert = 1536.000/12000= 128
             break;
         case 4:
-            fs_div_factor = 192;  // BW_ssb = 4khz => 8khz fs Hilbert = 1536.000/8000= 192
-            break;
-        case 5:
-            fs_div_factor = 160;  // Exact factor = 153,6 , but we can not use it . We will use closer aprox factor without decimals,
-            break;                // GUI will say BW 5khz, but real  BW_ssb = 4.8khz => 9.6khz fs Hilbert = 1536.000/9600= 160
-        case 6:
-            fs_div_factor = 128;  // BW_ssb = 6khz => 12khz fs Hilbert = 1536.000/12000= 128
-            break;
-        case 7:
-            fs_div_factor = 100;  // Exact factor = 109,71 , but we can not use it . We will use closer aprox factor without decimals,
-            break;                // GUI will say BW 7khz, but real  BW_ssb = 7.6khz => 15.3khz fs Hilbert = 1536.000/15360= 100
-        case 8:
-            fs_div_factor = 96;  // BW_ssb = 8khz => 16khz fs Hilbert = 1536.000/16000= 96
+            fs_div_factor = 96;  // TXBW_ssb = 4khz = fs/4 ; fs of Hilbert Transform => 16khz fs Hilbert = 1536.000/16000= 96
             break;
         default:
-            fs_div_factor = 128;  // BW_ssb = 6khz => 12khz fs Hilbert = 1536.000/12000= 128
+            fs_div_factor = 128;  // TXBW_ssb = 3khz = fs/4 ; fs of Hilbert Transform => 12khz fs Hilbert = 1536.000/12000= 128
             break;
     }
 }
