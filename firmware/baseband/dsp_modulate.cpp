@@ -110,7 +110,7 @@ void SSB::execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& co
     int8_t re = 0, im = 0;
 
     for (size_t counter = 0; counter < buffer.count; counter++) {
-        if (counter % fs_div_factor == 0) {  // Ex. bw_ssb 6khz ,  128 =  1.536.000 hz  / 12.000 hz
+        if (counter % fs_div_factor == 0) {  // Ex. TX bw_ssb 3khz =fs/4 Hilbert Transform sample rate,  128 =  1.536.000 hz  / 12.000 hz (fs H.T.)
             float i = 0.0, q = 0.0;
 
             // over = 1.536.000/24khz = 64 . (Mic audio has fixed SR in audio_p buffer[]  = 24khz), but in tx mode , we are running Transceiver fs @tx = 1.536.000 Hz.
