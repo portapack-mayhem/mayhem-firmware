@@ -269,7 +269,7 @@ void MicTXView::set_rxbw_options(void) {
     }
 }
 
-void MicTXView::set_rxbw_defaults(bool use_app_settings) {      // Initially in that function we set up rxbw, but now also txbw.
+void MicTXView::set_rxbw_defaults(bool use_app_settings) {  // Initially in that function we set up rxbw, but now also txbw.
     if (use_app_settings) {
         field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
         field_rxbw.set_by_value(rxbw_index);
