@@ -79,9 +79,12 @@ class SSB : public Modulator {
     SSB();
 
     virtual void execute(const buffer_s16_t& audio, const buffer_c8_t& buffer, bool& configured_in, uint32_t& new_beep_index, uint32_t& new_beep_timer, TXProgressMessage& new_txprogress_message, AudioLevelReportMessage& new_level_message, uint32_t& new_power_acc_count, uint32_t& new_divider);
+    void set_fs_div_factor(float new_bw_ssb);
 
    private:
     dsp::HilbertTransform hilbert;
+    float new_bw_ssb{3.0};
+    int fs_div_factor{128};
 };
 
 ///

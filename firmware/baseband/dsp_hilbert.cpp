@@ -27,6 +27,7 @@ namespace dsp {
 HilbertTransform::HilbertTransform() {
     n = 0;
 
+    sos_input.configure(half_band_lpf_config);
     sos_i.configure(half_band_lpf_config);
     sos_q.configure(half_band_lpf_config);
 }
@@ -34,22 +35,26 @@ HilbertTransform::HilbertTransform() {
 void HilbertTransform::execute(float in, float& out_i, float& out_q) {
     float a = 0, b = 0;
 
+    float in_filtered = sos_input.execute(in) * 1.0f;  // Anti-aliasing LPF at fs/4 mic audio filter front-end.
+    // it is exactly matching with the usefull mic BW_cut_off =fs/4 of the following Hilbert Transf. implementation
+    // Ex. to TX SSB  3khz BW (3KHZ =fs/4) ,we need to run Hiblert_Trf fs = 12khz . And our anti-aliasing filter is also fcut =fs/4 when we use a half_band_LPF .
+
     switch (n) {
         case 0:
-            a = in;
+            a = in_filtered;
             b = 0;
             break;
         case 1:
             a = 0;
-            b = -in;
+            b = -in_filtered;
             break;
         case 2:
-            a = -in;
+            a = -in_filtered;
             b = 0;
             break;
         case 3:
             a = 0;
-            b = in;
+            b = in_filtered;
             break;
     }
 
