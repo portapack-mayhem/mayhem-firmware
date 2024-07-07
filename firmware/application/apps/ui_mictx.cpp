@@ -285,7 +285,7 @@ void MicTXView::set_rxbw_defaults(bool use_app_settings) {  // Initially in that
         field_rxbw.set_by_value(0);
     } else if ((mic_mod_index == MIC_MOD_USB) | (mic_mod_index == MIC_MOD_LSB)) {
         field_bw.set_value(3);     // In SSB by default let's limit TX_BW to 3kHz.
-        field_bw.set_range(2, 3);  // User range to modify that TX_BW.  (TODO pending to investigate 4khz).
+        field_bw.set_range(2, 3);  // User TXBW GUI range to modify that SSB TX_BW to limit SSB radiated spectrum.
         field_bw.set_step(1);
     }
     // field_bw is hidden in other modulation cases
