@@ -144,7 +144,7 @@ void MicTXProcessor::on_message(const Message* const msg) {
                 modulator->set_mode(dsp::modulate::Mode::DSB);
             }
 
-            modulator->set_over(baseband_fs / 24000);  // Keep no change.
+            modulator->set_over(baseband_fs / 24000);  // "over" is calculated based on relationship fs_transceiver / fs_audio_mic_capture, to be used in dsp_modulate.cpp
 
             am_enabled = config_message.am_enabled;
             usb_enabled = config_message.usb_enabled;

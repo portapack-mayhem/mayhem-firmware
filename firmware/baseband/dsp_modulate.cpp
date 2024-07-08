@@ -84,18 +84,13 @@ SSB::SSB()
 void SSB::set_fs_div_factor(float new_bw_ssb) {
     switch ((int)new_bw_ssb / 1000) {
         case 2:
-            fs_div_factor = 192;  // TXBW_ssb = 2khz = fs/4 ; fs of Hilbert Transform => 8khz fs Hilbert = 1536.000/8000= 192
+            fs_div_factor = 192;  // TXBW_ssb = 2khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (4khz=fs/2) ==> (8k=fs) Hilbert_fs = 1.536.000/8000= 192
             break;
         case 3:
-            fs_div_factor = 128;  // TXBW_ssb = 3khz = fs/4 ; fs of Hilbert Transform => 12khz fs Hilbert = 1536.000/12000= 128
+            fs_div_factor = 128;  // TXBW_ssb = 3khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (6khz=fs/2) ==> (12k=fs) Hilbert_fs = 1.536.000/12000= 128
             break;
-        /* TODO pending to investigate 4khz,     now is making aliasing folding with audio sweep .
-        case 4:
-            fs_div_factor = 96;  // TXBW_ssb = 4khz = fs/4 ; fs of Hilbert Transform => 16khz fs Hilbert = 1536.000/16000= 96
-            break;
-        */
         default:
-            fs_div_factor = 128;  // TXBW_ssb = 3khz = fs/4 ; fs of Hilbert Transform => 12khz fs Hilbert = 1536.000/12000= 128
+            fs_div_factor = 128;  // TXBW_ssb = 3khz = BW_cut_off LPF = fs/4 ; BW_HT fs Hilbert Transform (6khz=fs/2) ==> (12k=fs) Hilbert_fs = 1.536.000/12000= 128
             break;
     }
 }
