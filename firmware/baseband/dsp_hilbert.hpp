@@ -34,6 +34,7 @@ class HilbertTransform {
 
    private:
     uint8_t n = 0;
+    SOSFilter<5> sos_input = {};
     SOSFilter<5> sos_i = {};
     SOSFilter<5> sos_q = {};
 };

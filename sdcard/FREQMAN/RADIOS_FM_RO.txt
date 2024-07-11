@@ -1,0 +1,28 @@
+f=88000000,m=WFM,bw=200k,d=Radio Impuls
+f=88500000,m=WFM,bw=200k,d=Radio Trinitas
+f=89000000,m=WFM,bw=200k,d=Radio ZU
+f=89500000,m=WFM,bw=200k,d=Dance FM
+f=90800000,m=WFM,bw=200k,d=Magic FM
+f=91700000,m=WFM,bw=200k,d=Național FM
+f=92100000,m=WFM,bw=200k,d=One World Radio
+f=93500000,m=WFM,bw=200k,d=RFI România
+f=94200000,m=WFM,bw=200k,d=Radio Vocea Evangheliei
+f=94800000,m=WFM,bw=200k,d=Radio Guerrilla
+f=96100000,m=WFM,bw=200k,d=Kiss FM
+f=96900000,m=WFM,bw=200k,d=Gold FM
+f=97900000,m=WFM,bw=200k,d=Digi FM
+f=98300000,m=WFM,bw=200k,d=București FM
+f=99300000,m=WFM,bw=200k,d=Radio Itsy Bitsy
+f=100200000,m=WFM,bw=200k,d=Virgin Radio
+f=100600000,m=WFM,bw=200k,d=Rock FM
+f=101300000,m=WFM,bw=200k,d=Radio România Cultural
+f=101900000,m=WFM,bw=200k,d=Romantic FM
+f=102800000,m=WFM,bw=200k,d=PRO FM
+f=103400000,m=WFM,bw=200k,d=Radio Seven
+f=103800000,m=WFM,bw=200k,d=Digi 24 FM
+f=104800000,m=WFM,bw=200k,d=Radio România Muzical
+f=105300000,m=WFM,bw=200k,d=Radio România Actualități
+f=105800000,m=WFM,bw=200k,d=Sport Total FM
+f=106200000,m=WFM,bw=200k,d=3 FM
+f=106700000,m=WFM,bw=200k,d=Europa FM
+f=107300000,m=WFM,bw=200k,d=Smart FM
