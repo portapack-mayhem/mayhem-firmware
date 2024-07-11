@@ -25,8 +25,7 @@ void BatteryManagement::init() {
     if (battery_ads1110.detect()) {
         battery_ads1110.init();
         detected_ = BATT_ADS1110;
-    }
-    if (battery_max17055.detect()) {
+    } else if (battery_max17055.detect()) {
         battery_max17055.init();
         detected_ = BATT_MAX17055;
     }
@@ -47,12 +46,12 @@ void BatteryManagement::init() {
 
 // sets the values, it the currend module supports it.
 bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& isCharging) {
-    if (detected_ == BATT_NONE) return false;
-    if (detected_ == BATT_ADS1110) {
+    if (detected_ == BATT_NONE) {
+        return false;
+    } else if (detected_ == BATT_ADS1110) {
         battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
         return true;
-    }
-    if (detected_ == BATT_MAX17055) {
+    } else if (detected_ == BATT_MAX17055) {
         battery_max17055.getBatteryInfo(batteryPercentage, voltage);
         return true;
     }
