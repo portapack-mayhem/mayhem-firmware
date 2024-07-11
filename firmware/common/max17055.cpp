@@ -616,8 +616,7 @@ uint16_t MAX17055::stateOfCharge(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    readMultipleRegister(0x0E, _MAX17055_Data, 2, false); // AvSOC
-    // Read_Multiple_Register(0x06, _MAX17055_Data, 2, false); // RepSOC
+    readMultipleRegister(0x06, _MAX17055_Data, 2, false);  // RepSOC
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
