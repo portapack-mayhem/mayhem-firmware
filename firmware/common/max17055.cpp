@@ -77,16 +77,15 @@ void MAX17055::init() {
 }
 
 bool MAX17055::detect() {
-    // uint16_t value;
-    // if (readRegister(0x00, value)) {  // Read the Status register
-    //     detected_ = true;
-    //     return true;
-    // }
-    // detected_ = false;
-    // return false;
+    uint8_t _MAX17055_Data[2];
 
-    detected_ = true;
-    return true;
+    // Get Data from IC
+    if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
+        detected_ = true;
+        return true;
+    }
+    detected_ = false;
+    return false;
 }
 
 bool bitRead(uint8_t value, uint8_t bit) {
