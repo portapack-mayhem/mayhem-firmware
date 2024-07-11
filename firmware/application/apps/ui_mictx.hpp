@@ -148,10 +148,10 @@ class MicTXView : public View {
 
     Labels labels_both{
         {{3 * 8, 1 * 8}, "MIC-GAIN:", Theme::getInstance()->fg_light->foreground},
-        {{3 * 8, 3 * 8}, "F:", Theme::getInstance()->fg_light->foreground},
-        {{15 * 8, 3 * 8}, "FM TXBW:    kHz", Theme::getInstance()->fg_light->foreground},  // to be more symetric and consistent to the below FM RXBW
-        {{18 * 8, (5 * 8)}, "Mode:", Theme::getInstance()->fg_light->foreground},          // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
-        {{4 * 8, 10 * 8}, "LVL:", Theme::getInstance()->fg_light->foreground},             // we delete  { {11 * 8, 5 * 8 }, "Amp:", Theme::getInstance()->fg_light->foreground },
+        {{3 * 8, 3 * 8}, "F:         MHz", Theme::getInstance()->fg_light->foreground},
+        {{18 * 8, 3 * 8}, "TXBW:    kHz", Theme::getInstance()->fg_light->foreground},  // to be more symetric and consistent to the below FM RXBW
+        {{18 * 8, (5 * 8)}, "Mode:", Theme::getInstance()->fg_light->foreground},       // now, no need to handle GAIN, Amp here It is handled by ui_transmitter.cpp
+        {{4 * 8, 10 * 8}, "LVL:", Theme::getInstance()->fg_light->foreground},          // we delete  { {11 * 8, 5 * 8 }, "Amp:", Theme::getInstance()->fg_light->foreground },
         {{12 * 8, 10 * 8}, "ATT:", Theme::getInstance()->fg_light->foreground},
         {{20 * 8, 10 * 8}, "DEC:", Theme::getInstance()->fg_light->foreground},
         {{3 * 8, (13 * 8) - 5}, "TONE KEY:", Theme::getInstance()->fg_light->foreground},

@@ -269,16 +269,24 @@ void MicTXView::set_rxbw_options(void) {
     }
 }
 
-void MicTXView::set_rxbw_defaults(bool use_app_settings) {
+void MicTXView::set_rxbw_defaults(bool use_app_settings) {  // Initially in that function we set up rxbw, but now also txbw.
     if (use_app_settings) {
         field_bw.set_value(transmitter_model.channel_bandwidth() / 1000);
         field_rxbw.set_by_value(rxbw_index);
     } else if (mic_mod_index == MIC_MOD_NFM) {
-        field_bw.set_value(10);  // NFM TX bw 10k, RX bw 16k (2) default
-        field_rxbw.set_by_value(2);
+        field_bw.set_value(10);     // NFM TX bw 10k, RX bw 16k (index 2) default
+        field_bw.set_range(1, 60);  // In NFM , FM , we are limitting index modulation range (0.08 ..5) ; (Ex max dev 60khz/12k = 5)
+        field_bw.set_step(1);
+        field_rxbw.set_by_value(2);  // 16k from the three options (8k5,11k,16k)
     } else if (mic_mod_index == MIC_MOD_WFM) {
-        field_bw.set_value(75);  // WFM TX bw 75K, RX bw 200k (0) default
+        field_bw.set_value(75);      // WFM TX bw 75K, RX bw 200k (index 0) default
+        field_bw.set_range(1, 150);  // In our case Mod. Index range (1,67 ...12,5) ; 150k/12k=12,5
+        field_bw.set_step(1);
         field_rxbw.set_by_value(0);
+    } else if ((mic_mod_index == MIC_MOD_USB) | (mic_mod_index == MIC_MOD_LSB)) {
+        field_bw.set_value(3);     // In SSB by default let's limit TX_BW to 3kHz.
+        field_bw.set_range(2, 3);  // User TXBW GUI range to modify that SSB TX_BW to limit SSB radiated spectrum.
+        field_bw.set_step(1);
     }
     // field_bw is hidden in other modulation cases
 }
@@ -482,7 +490,11 @@ MicTXView::MicTXView(
             field_bw.hidden(false);
             options_tone_key.hidden(false);
         } else {
-            field_bw.hidden(true);
+            if ((mic_mod_index == MIC_MOD_USB) || (mic_mod_index == MIC_MOD_LSB)) {
+                field_bw.hidden(false);
+            } else {
+                field_bw.hidden(true);
+            }
             options_tone_key.set_selected_index(0);
             options_tone_key.hidden(true);
         }
