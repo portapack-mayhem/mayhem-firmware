@@ -105,13 +105,13 @@ void bitClear(uint16_t& value, uint8_t bit) {
     value &= ~(1 << bit);
 }
 
-bool MAX17055::Read_Multiple_Register(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
+bool MAX17055::readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
     if (bus.transmit(bus_address, &reg, 1)) {
         if (bus.receive(bus_address, data, length)) {
             if (endTransmission) {
                 // bus.stop();  // Testing if we need this line
                 // Perform any necessary end transmission actions
-                // For example, you can use bus.endTransmission() if your I2C library supports it
+                // For example, you can use bus.endTransmission()
             }
             return true;
         }
@@ -119,14 +119,14 @@ bool MAX17055::Read_Multiple_Register(uint8_t reg, uint8_t* data, uint8_t length
     return false;
 }
 
-bool MAX17055::Write_Multiple_Register(uint8_t reg, const uint8_t* data, uint8_t length) {
+bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t length) {
     uint8_t buffer[length + 1];
     buffer[0] = reg;
     memcpy(buffer + 1, data, length);
 
     if (bus.transmit(bus_address, buffer, length + 1)) {
         // Perform any necessary end transmission actions
-        // For example, you can use bus.endTransmission() if your I2C library supports it
+        // For example, you can use bus.endTransmission()
         return true;
     }
     return false;
@@ -152,7 +152,7 @@ bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x3A, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x3A, MAX17055_Current_Data, 2, true);
 
     // Clear Current Value
     MAX17055_Current_Data[0] &= 0b01111111;
@@ -166,7 +166,7 @@ bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
     MAX17055_Handle_Data[1] = MAX17055_Current_Data[1] | MAX17055_RAW_Data[1];
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x3A, MAX17055_Handle_Data, 2);
+    bool _Result = writeMultipleRegister(0x3A, MAX17055_Handle_Data, 2);
 
     // End Function
     return _Result;
@@ -190,7 +190,7 @@ bool MAX17055::setRecoveryVoltage(uint16_t _Recovery_Voltage) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x3A, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x3A, MAX17055_Current_Data, 2, true);
 
     // Clear Current Value
     MAX17055_Current_Data[0] &= 0b10000000;
@@ -204,7 +204,7 @@ bool MAX17055::setRecoveryVoltage(uint16_t _Recovery_Voltage) {
     MAX17055_Handle_Data[1] = MAX17055_Current_Data[1] | MAX17055_RAW_Data[1];
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x3A, MAX17055_Handle_Data, 2);
+    bool _Result = writeMultipleRegister(0x3A, MAX17055_Handle_Data, 2);
 
     // End Function
     return _Result;
@@ -218,13 +218,13 @@ bool MAX17055::setMinVoltage(uint16_t _Minimum_Voltage) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x01, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x01, MAX17055_Current_Data, 2, true);
 
     // Set Voltage Value
     MAX17055_Current_Data[0] = _Raw_Voltage;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x01, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0x01, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -238,13 +238,13 @@ bool MAX17055::setMaxVoltage(uint16_t _Maximum_Voltage) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x01, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x01, MAX17055_Current_Data, 2, true);
 
     // Set Voltage Value
     MAX17055_Current_Data[1] = _Raw_Voltage;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x01, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0x01, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -258,13 +258,13 @@ bool MAX17055::setMaxCurrent(uint16_t _Maximum_Current) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0xB4, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0xB4, MAX17055_Current_Data, 2, true);
 
     // Set Current Value
     MAX17055_Current_Data[1] = _Raw_Current;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0xB4, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0xB4, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -282,7 +282,7 @@ bool MAX17055::setChargeTerminationCurrent(uint16_t _Charge_Termination_Current)
     _Data[1] = ((_RAW_Data & (uint16_t)0xFF00) >> 8);
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x1E, _Data, 2);
+    bool _Result = writeMultipleRegister(0x1E, _Data, 2);
 
     // End Function
     return _Result;
@@ -300,7 +300,7 @@ bool MAX17055::setDesignCapacity(const uint16_t _Capacity) {
     _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x18, _Data, 2);
+    bool _Result = writeMultipleRegister(0x18, _Data, 2);
 
     // End Function
     return _Result;
@@ -311,7 +311,7 @@ bool MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x03, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x03, MAX17055_Current_Data, 2, true);
 
     // Scale Value
     uint8_t _MinSOC = (_Minimum_SOC / 100) * 255;
@@ -320,7 +320,7 @@ bool MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
     MAX17055_Current_Data[0] = _MinSOC;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x03, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0x03, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -331,7 +331,7 @@ bool MAX17055::setMaxSOC(uint8_t _Maximum_SOC) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x03, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x03, MAX17055_Current_Data, 2, true);
 
     // Scale Value
     uint8_t _MaxSOC = (_Maximum_SOC / 100) * 255;
@@ -340,7 +340,7 @@ bool MAX17055::setMaxSOC(uint8_t _Maximum_SOC) {
     MAX17055_Current_Data[1] = _MaxSOC;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x03, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0x03, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -351,13 +351,13 @@ bool MAX17055::setMinTemperature(uint8_t _Minimum_Temperature) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x02, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x02, MAX17055_Current_Data, 2, true);
 
     // Set Voltage Value
     MAX17055_Current_Data[0] = _Minimum_Temperature;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x02, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0x02, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -368,13 +368,13 @@ bool MAX17055::setMaxTemperature(uint8_t _Maximum_Temperature) {
     uint8_t MAX17055_Current_Data[2];
 
     // Read Current Register
-    Read_Multiple_Register(0x02, MAX17055_Current_Data, 2, true);
+    readMultipleRegister(0x02, MAX17055_Current_Data, 2, true);
 
     // Set Voltage Value
     MAX17055_Current_Data[1] = _Maximum_Temperature;
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0x02, MAX17055_Current_Data, 2);
+    bool _Result = writeMultipleRegister(0x02, MAX17055_Current_Data, 2);
 
     // End Function
     return _Result;
@@ -415,7 +415,7 @@ bool MAX17055::setModelCfg(const uint8_t _Model_ID) {
     _Data[1] = ((_Data_Set & (uint16_t)0xFF00) >> 8);
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0xDB, _Data, 2);
+    bool _Result = writeMultipleRegister(0xDB, _Data, 2);
 
     // End Function
     return _Result;
@@ -430,7 +430,7 @@ bool MAX17055::setHibCFG(const uint16_t _Config) {
     _Data[1] = ((_Config & (uint16_t)0xFF00) >> 8);
 
     // Set Register
-    bool _Result = Write_Multiple_Register(0xBA, _Data, 2);
+    bool _Result = writeMultipleRegister(0xBA, _Data, 2);
 
     // End Function
     return _Result;
@@ -473,8 +473,8 @@ void MAX17055::config(void) {
     if (MAX17055_AtRateEn) bitSet(_Config2[1], 5);
 
     // Config1 Setting
-    Write_Multiple_Register(0x1D, _Config1, 2);
-    Write_Multiple_Register(0xBB, _Config2, 2);
+    writeMultipleRegister(0x1D, _Config1, 2);
+    writeMultipleRegister(0xBB, _Config2, 2);
 }
 
 uint16_t MAX17055::instantVoltage(void) {
@@ -482,7 +482,7 @@ uint16_t MAX17055::instantVoltage(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x09, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x09, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -499,7 +499,7 @@ uint16_t MAX17055::averageVoltage(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x19, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x19, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -516,7 +516,7 @@ uint16_t MAX17055::emptyVoltage(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x3A, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x3A, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -534,7 +534,7 @@ uint16_t MAX17055::recoveryVoltage(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x3A, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x3A, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -552,7 +552,7 @@ uint16_t MAX17055::instantCurrent(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x0A, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x0A, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -584,7 +584,7 @@ uint16_t MAX17055::averageCurrent(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x0B, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x0B, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -616,7 +616,7 @@ uint16_t MAX17055::stateOfCharge(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x0E, _MAX17055_Data, 2, false); // AvSOC
+    readMultipleRegister(0x0E, _MAX17055_Data, 2, false); // AvSOC
     // Read_Multiple_Register(0x06, _MAX17055_Data, 2, false); // RepSOC
 
     // Combine Read Bytes
@@ -634,7 +634,7 @@ uint16_t MAX17055::averageStateOfCharge(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x0E, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x0E, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -651,7 +651,7 @@ uint16_t MAX17055::instantCapacity(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x05, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x05, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -668,7 +668,7 @@ uint16_t MAX17055::designCapacity(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x18, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x18, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -685,7 +685,7 @@ uint16_t MAX17055::fullCapacity(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x35, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x35, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -702,7 +702,7 @@ uint16_t MAX17055::icTemperature(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x08, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x08, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -734,7 +734,7 @@ uint16_t MAX17055::timeToEmpty(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x11, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x11, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -751,7 +751,7 @@ uint16_t MAX17055::timeToFull(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x20, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x20, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -768,7 +768,7 @@ uint16_t MAX17055::batteryAge(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x07, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x07, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -782,7 +782,7 @@ uint16_t MAX17055::chargeCycle(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x17, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x17, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
@@ -796,7 +796,7 @@ bool MAX17055::statusControl(const uint8_t _Status) {
     uint8_t _Status_Register[2] = {0x00, 0x00};
 
     // Read Status Register
-    Read_Multiple_Register(0x00, _Status_Register, 2, false);
+    readMultipleRegister(0x00, _Status_Register, 2, false);
 
     // Control for Status
     if (_Status == MAX17055_POR)
@@ -835,7 +835,7 @@ void MAX17055::statusClear(void) {
     const uint8_t _Status_Register[2] = {0x00, 0x00};
 
     // Write Status Register
-    Write_Multiple_Register(0x00, _Status_Register, 2);
+    writeMultipleRegister(0x00, _Status_Register, 2);
 }
 
 uint16_t MAX17055::chargeTerminationCurrent(void) {
@@ -843,7 +843,7 @@ uint16_t MAX17055::chargeTerminationCurrent(void) {
     uint8_t _MAX17055_Data[2];
 
     // Get Data from IC
-    Read_Multiple_Register(0x1E, _MAX17055_Data, 2, false);
+    readMultipleRegister(0x1E, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
