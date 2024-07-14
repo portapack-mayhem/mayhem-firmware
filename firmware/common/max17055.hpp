@@ -284,6 +284,8 @@ class MAX17055 {
     bool statusControl(const uint8_t _Status);
     void statusClear(void);
     uint16_t chargeTerminationCurrent(void);
+    uint16_t read_register(const uint8_t reg);
+    void write_register(const uint8_t reg, const uint16_t value);
 
    private:
     I2C& bus;

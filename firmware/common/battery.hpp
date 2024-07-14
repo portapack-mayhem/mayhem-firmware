@@ -40,6 +40,8 @@ class BatteryManagement {
     static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int16_t& current, bool& isCharging);
     static uint16_t getVoltage();
     static uint8_t getPercent();
+    static uint16_t read_register(const uint8_t reg);
+    static void write_register(const uint8_t reg, const uint16_t value);
 
    private:
     static void create_thread();

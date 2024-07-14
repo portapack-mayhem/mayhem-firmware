@@ -104,6 +104,27 @@ void bitClear(uint16_t& value, uint8_t bit) {
     value &= ~(1 << bit);
 }
 
+uint16_t MAX17055::read_register(const uint8_t reg) {
+    const std::array<uint8_t, 1> tx{reg};
+    std::array<uint8_t, 2> rx{0x00, 0x00};
+    
+    bus.transmit(bus_address, tx.data(), tx.size());
+    bus.receive(bus_address, rx.data(), rx.size());
+    
+    // Combine the two bytes into a 16-bit value
+    // little-endian format (LSB first)
+    return static_cast<uint16_t>((rx[1] << 8) | rx[0]);
+}
+
+void MAX17055::write_register(const uint8_t reg, const uint16_t value) {
+    std::array<uint8_t, 3> tx;
+    tx[0] = reg;
+    tx[1] = value & 0xFF;         // Low byte
+    tx[2] = (value >> 8) & 0xFF;  // High byte
+    
+    bus.transmit(bus_address, tx.data(), tx.size());
+}
+
 bool MAX17055::readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
     if (bus.transmit(bus_address, &reg, 1)) {
         if (bus.receive(bus_address, data, length)) {
