@@ -131,7 +131,7 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
     return false;
 }
 
-void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, uint16_t& current) {
+void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int16_t& current) {
     voltage = averageVoltage();
     batteryPercentage = stateOfCharge();
     current = instantCurrent();
@@ -547,36 +547,54 @@ uint16_t MAX17055::recoveryVoltage(void) {
     return _Value;
 }
 
-uint16_t MAX17055::instantCurrent(void) {
+// uint16_t MAX17055::instantCurrent(void) {
+//     // Define Data Variable
+//     uint8_t _MAX17055_Data[2];
+
+//     // Get Data from IC
+//     readMultipleRegister(0x0A, _MAX17055_Data, 2, false);
+
+//     // Combine Read Bytes
+//     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+
+//     // Declare Variables
+//     bool _Signiture = false;
+
+//     // Control for Negative Value
+//     if ((_Measurement_Raw >> 12) == 0xF) {
+//         // Calculate Data
+//         _Measurement_Raw = 0xFFFF - _Measurement_Raw;
+
+//         // Assign Signiture
+//         _Signiture = true;
+//     }
+
+//     // Calculate Data
+//     uint16_t _Value = (((uint32_t)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__);
+
+//     // Assign Signiture
+//     if (_Signiture) _Value = -_Value;
+
+//     // End Function
+//     return _Value;
+// }
+
+int16_t MAX17055::instantCurrent(void) {
     // Define Data Variable
     uint8_t _MAX17055_Data[2];
+    // uint8_t _MAX17055_Data[2] = {0xEB, 0xFF};
 
     // Get Data from IC
     readMultipleRegister(0x0A, _MAX17055_Data, 2, false);
 
     // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
-
-    // Declare Variables
-    bool _Signiture = false;
-
-    // Control for Negative Value
-    if ((_Measurement_Raw >> 12) == 0xF) {
-        // Calculate Data
-        _Measurement_Raw = 0xFFFF - _Measurement_Raw;
-
-        // Assign Signiture
-        _Signiture = true;
-    }
+    int16_t _Measurement_Raw = ((int16_t)_MAX17055_Data[1] << 8) | (int16_t)_MAX17055_Data[0];
 
     // Calculate Data
-    uint16_t _Value = (((uint32_t)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__);
+    float _Value = ((float)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__;
 
-    // Assign Signiture
-    if (_Signiture) _Value = -_Value;
-
-    // End Function
-    return _Value;
+    // Convert to int16_t (milliamps)
+    return (int16_t)_Value;
 }
 
 uint16_t MAX17055::averageCurrent(void) {

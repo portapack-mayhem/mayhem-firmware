@@ -45,7 +45,7 @@ void BatteryManagement::init() {
 }
 
 // sets the values, it the currend module supports it.
-bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, uint16_t& current, bool& isCharging) {
+bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int16_t& current, bool& isCharging) {
     if (detected_ == BATT_NONE) {
         return false;
     } else if (detected_ == BATT_ADS1110) {
@@ -78,7 +78,7 @@ uint8_t BatteryManagement::getPercent() {
     uint8_t batteryPercentage = 0;
     bool isCharging = false;
     uint16_t voltage = 0;
-    uint16_t current = 0;
+    int16_t current = 0;
     getBatteryInfo(batteryPercentage, voltage, current, isCharging);
     return batteryPercentage;
 }
@@ -89,7 +89,7 @@ uint16_t BatteryManagement::getVoltage() {
     uint8_t batteryPercentage = 0;
     bool isCharging = false;
     uint16_t voltage = 0;
-    uint16_t current = 0;
+    int16_t current = 0;
     getBatteryInfo(batteryPercentage, voltage, current, isCharging);
     return voltage;
 }
@@ -100,7 +100,7 @@ msg_t BatteryManagement::timer_fn(void* arg) {
     uint8_t batteryPercentage = 102;
     bool isCharging = false;
     uint16_t voltage = 0;
-    uint16_t current = 0;
+    int16_t current = 0;
     chThdSleepMilliseconds(1000);  // wait ui for fully load
     while (1) {
         if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current, isCharging)) {
