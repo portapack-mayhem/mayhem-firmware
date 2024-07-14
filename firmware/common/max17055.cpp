@@ -131,9 +131,10 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
     return false;
 }
 
-void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
+void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, uint16_t& current) {
     voltage = averageVoltage();
     batteryPercentage = stateOfCharge();
+    current = instantCurrent();
 }
 
 bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {

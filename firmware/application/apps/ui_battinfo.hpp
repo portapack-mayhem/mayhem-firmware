@@ -49,7 +49,7 @@ class BattinfoView : public View {
     uint16_t timer_counter = 0;
     uint8_t percent = 0;
     uint16_t voltage = 0;
-    int32_t current = 0;
+    uint16_t current = 0;
     bool isCharging = false;
 
     Labels labels{

@@ -37,7 +37,7 @@ class BatteryManagement {
     };
     static void init();
     static bool isDetected() { return detected_ != BATT_NONE; }
-    static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& isCharging);
+    static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, uint16_t& current, bool& isCharging);
     static uint16_t getVoltage();
     static uint8_t getPercent();
 
