@@ -107,22 +107,23 @@ void bitClear(uint16_t& value, uint8_t bit) {
 uint16_t MAX17055::read_register(const uint8_t reg) {
     const std::array<uint8_t, 1> tx{reg};
     std::array<uint8_t, 2> rx{0x00, 0x00};
-    
+
     bus.transmit(bus_address, tx.data(), tx.size());
     bus.receive(bus_address, rx.data(), rx.size());
-    
+
     // Combine the two bytes into a 16-bit value
     // little-endian format (LSB first)
     return static_cast<uint16_t>((rx[1] << 8) | rx[0]);
 }
 
-void MAX17055::write_register(const uint8_t reg, const uint16_t value) {
+bool MAX17055::write_register(const uint8_t reg, const uint16_t value) {
     std::array<uint8_t, 3> tx;
     tx[0] = reg;
     tx[1] = value & 0xFF;         // Low byte
     tx[2] = (value >> 8) & 0xFF;  // High byte
-    
-    bus.transmit(bus_address, tx.data(), tx.size());
+
+    bool success = bus.transmit(bus_address, tx.data(), tx.size());
+    return success;
 }
 
 bool MAX17055::readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission) {
@@ -499,14 +500,8 @@ void MAX17055::config(void) {
 }
 
 uint16_t MAX17055::instantVoltage(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x09, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x09);
 
     // Calculate Measurement
     uint16_t _Value = ((uint32_t)_Measurement_Raw * 1.25 / 16);
@@ -516,14 +511,8 @@ uint16_t MAX17055::instantVoltage(void) {
 }
 
 uint16_t MAX17055::averageVoltage(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x19, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x19);
 
     // Calculate Measurement
     uint16_t _Value = ((uint32_t)_Measurement_Raw * 1.25 / 16);
@@ -533,14 +522,8 @@ uint16_t MAX17055::averageVoltage(void) {
 }
 
 uint16_t MAX17055::emptyVoltage(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x3A, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x3A);
     _Measurement_Raw = ((_Measurement_Raw & 0xFF80) >> 7);
 
     // Calculate Measurement
@@ -551,14 +534,9 @@ uint16_t MAX17055::emptyVoltage(void) {
 }
 
 uint16_t MAX17055::recoveryVoltage(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x3A, _MAX17055_Data, 2, false);
+    uint16_t _Measurement_Raw = read_register(0x3A);
 
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
     _Measurement_Raw = (_Measurement_Raw & 0x7F);
 
     // Calculate Measurement
@@ -568,48 +546,9 @@ uint16_t MAX17055::recoveryVoltage(void) {
     return _Value;
 }
 
-// uint16_t MAX17055::instantCurrent(void) {
-//     // Define Data Variable
-//     uint8_t _MAX17055_Data[2];
-
-//     // Get Data from IC
-//     readMultipleRegister(0x0A, _MAX17055_Data, 2, false);
-
-//     // Combine Read Bytes
-//     uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
-
-//     // Declare Variables
-//     bool _Signiture = false;
-
-//     // Control for Negative Value
-//     if ((_Measurement_Raw >> 12) == 0xF) {
-//         // Calculate Data
-//         _Measurement_Raw = 0xFFFF - _Measurement_Raw;
-
-//         // Assign Signiture
-//         _Signiture = true;
-//     }
-
-//     // Calculate Data
-//     uint16_t _Value = (((uint32_t)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__);
-
-//     // Assign Signiture
-//     if (_Signiture) _Value = -_Value;
-
-//     // End Function
-//     return _Value;
-// }
-
 int16_t MAX17055::instantCurrent(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-    // uint8_t _MAX17055_Data[2] = {0xEB, 0xFF};
-
     // Get Data from IC
-    readMultipleRegister(0x0A, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    int16_t _Measurement_Raw = ((int16_t)_MAX17055_Data[1] << 8) | (int16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x0A);
 
     // Calculate Data
     float _Value = ((float)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__;
@@ -619,14 +558,8 @@ int16_t MAX17055::instantCurrent(void) {
 }
 
 uint16_t MAX17055::averageCurrent(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x0B, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x0B);
 
     // Declare Variables
     bool _Signiture = false;
@@ -651,14 +584,8 @@ uint16_t MAX17055::averageCurrent(void) {
 }
 
 uint16_t MAX17055::stateOfCharge(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x06, _MAX17055_Data, 2, false);  // RepSOC
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x06);  // RepSOC
 
     // Calculate Measurement
     uint8_t _Value = (_Measurement_Raw >> 8) & 0xFF;
@@ -668,14 +595,8 @@ uint16_t MAX17055::stateOfCharge(void) {
 }
 
 uint16_t MAX17055::averageStateOfCharge(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x0E, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x0E);
 
     // Calculate Measurement
     uint16_t _Value = ((uint32_t)_Measurement_Raw * 100 / 256);
@@ -685,14 +606,8 @@ uint16_t MAX17055::averageStateOfCharge(void) {
 }
 
 uint16_t MAX17055::instantCapacity(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x05, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x05);
 
     // Calculate Data
     uint16_t _Value = _Measurement_Raw * 5 / 1000 / __MAX17055_Resistor__;
@@ -702,14 +617,8 @@ uint16_t MAX17055::instantCapacity(void) {
 }
 
 uint16_t MAX17055::designCapacity(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x18, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x18);
 
     // Calculate Data
     uint16_t _Value = _Measurement_Raw * 5 / 1000 / __MAX17055_Resistor__;
@@ -719,14 +628,8 @@ uint16_t MAX17055::designCapacity(void) {
 }
 
 uint16_t MAX17055::fullCapacity(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x35, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x35);
 
     // Calculate Data
     uint16_t _Value = _Measurement_Raw * 5 / 1000 / __MAX17055_Resistor__;
@@ -736,14 +639,8 @@ uint16_t MAX17055::fullCapacity(void) {
 }
 
 uint16_t MAX17055::icTemperature(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x08, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x08);
 
     // Declare Variables
     bool _Signiture = false;
@@ -768,14 +665,8 @@ uint16_t MAX17055::icTemperature(void) {
 }
 
 uint16_t MAX17055::timeToEmpty(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x11, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x11);
 
     // Calculate Data
     uint16_t _Value = ((uint32_t)_Measurement_Raw * 5625 / 60 / 60 / 100);
@@ -785,14 +676,8 @@ uint16_t MAX17055::timeToEmpty(void) {
 }
 
 uint16_t MAX17055::timeToFull(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x20, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x20);
 
     // Calculate Data
     uint16_t _Value = ((uint32_t)_Measurement_Raw * 5625 / 60 / 60 / 100);
@@ -802,28 +687,16 @@ uint16_t MAX17055::timeToFull(void) {
 }
 
 uint16_t MAX17055::batteryAge(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x07, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x07);
 
     // End Function
     return _Measurement_Raw;
 }
 
 uint16_t MAX17055::chargeCycle(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x17, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x17);
 
     // End Function
     return _Measurement_Raw;
@@ -877,14 +750,8 @@ void MAX17055::statusClear(void) {
 }
 
 uint16_t MAX17055::chargeTerminationCurrent(void) {
-    // Define Data Variable
-    uint8_t _MAX17055_Data[2];
-
     // Get Data from IC
-    readMultipleRegister(0x1E, _MAX17055_Data, 2, false);
-
-    // Combine Read Bytes
-    uint16_t _Measurement_Raw = ((uint16_t)_MAX17055_Data[1] << 8) | (uint16_t)_MAX17055_Data[0];
+    uint16_t _Measurement_Raw = read_register(0x1E);
 
     // Calculate Data
     uint16_t Value = (((uint32_t)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__);

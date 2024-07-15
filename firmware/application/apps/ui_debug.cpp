@@ -249,7 +249,7 @@ void RegistersWidget::reg_write(const uint32_t register_number, const uint32_t v
                 portapack::clock_generator.write_register(register_number, value);
                 break;
             case CT_BATTERY:
-                return battery::BatteryManagement::write_register(register_number, value);
+                battery::BatteryManagement::write_register(register_number, value);
                 break;
             case CT_AUDIO:
                 audio::debug::reg_write(register_number, value);
@@ -463,6 +463,7 @@ void DebugPeripheralsMenuView::on_populate() {
         {max283x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, max283x]() { nav_.push<RegistersView>(max283x, RegistersWidgetConfig{CT_MAX283X, 32, 32, 10}); }},
         {si5351x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
         {audio::debug::codec_name(), Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
+        // ToDo: Only show this if it exists
         {"MAX17055", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("MAX17055", RegistersWidgetConfig{CT_BATTERY, 256, 16, 16}); }},
     });
     set_max_rows(2);  // allow wider buttons

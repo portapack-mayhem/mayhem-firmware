@@ -74,11 +74,17 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
 }
 
 uint16_t BatteryManagement::read_register(const uint8_t reg) {
-    return battery_max17055.read_register(reg);
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.read_register(reg);
+    }
+    return 0xFFFF;
 }
 
-void BatteryManagement::write_register(const uint8_t reg, const uint16_t value) {
-    return battery_max17055.write_register(reg, value);
+bool BatteryManagement::write_register(const uint8_t reg, const uint16_t value) {
+    if (detected_ == BATT_MAX17055) {
+        return battery_max17055.write_register(reg, value);
+    }
+    return false;
 }
 
 uint8_t BatteryManagement::getPercent() {
