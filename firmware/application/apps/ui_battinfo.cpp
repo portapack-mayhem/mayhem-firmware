@@ -70,7 +70,7 @@ void BattinfoView::update_result() {
         text_current.hidden(false);
         text_charge.hidden(false);
         text_current.set(to_string_decimal(current / 100000.0, 3) + " mA");
-        text_charge.set(current >= 0 ? "Charging" : "Discharge");
+        text_charge.set(current >= 0 ? "Charging" : "Discharging");
         labels_opt.hidden(false);
     } else {
         if (!labels_opt.hidden()) uichg = true;
