@@ -53,7 +53,7 @@ void BattinfoView::update_result() {
         return;
     }
     bool uichg = false;
-    battery::BatteryManagement::getBatteryInfo(percent, voltage, current, isCharging);
+    battery::BatteryManagement::getBatteryInfo(percent, voltage, current);
     // update text fields
     if (percent <= 100)
         text_percent.set(to_string_dec_uint(percent) + " %");
@@ -80,7 +80,7 @@ void BattinfoView::update_result() {
     }
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
-    BatteryStateMessage msg{percent, isCharging, voltage};
+    BatteryStateMessage msg{percent, current >= 0, voltage};
     EventDispatcher::send_message(msg);
 }
 

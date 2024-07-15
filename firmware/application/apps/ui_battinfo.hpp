@@ -50,7 +50,6 @@ class BattinfoView : public View {
     uint8_t percent = 0;
     uint16_t voltage = 0;
     int32_t current = 0;
-    bool isCharging = false;
 
     Labels labels{
         {{2 * 8, 1 * 16}, "Percent:", Theme::getInstance()->fg_light->foreground},

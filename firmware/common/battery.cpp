@@ -45,7 +45,7 @@ void BatteryManagement::init() {
 }
 
 // sets the values, it the currend module supports it.
-bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current, bool& isCharging) {
+bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
     if (detected_ == BATT_NONE) {
         return false;
     } else if (detected_ == BATT_ADS1110) {
@@ -68,7 +68,6 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
     }
 #endif
 
-    (void)isCharging;  // keep the compiler calm
     (void)current;
     return false;
 }
@@ -90,10 +89,9 @@ bool BatteryManagement::write_register(const uint8_t reg, const uint16_t value) 
 uint8_t BatteryManagement::getPercent() {
     if (detected_ == BATT_NONE) return 102;
     uint8_t batteryPercentage = 0;
-    bool isCharging = false;
     uint16_t voltage = 0;
     int32_t current = 0;
-    getBatteryInfo(batteryPercentage, voltage, current, isCharging);
+    getBatteryInfo(batteryPercentage, voltage, current);
     return batteryPercentage;
 }
 
@@ -101,10 +99,9 @@ uint16_t BatteryManagement::getVoltage() {
     if (detected_ == BATT_NONE) return 0;
     if (detected_ == BATT_NONE) return 102;
     uint8_t batteryPercentage = 0;
-    bool isCharging = false;
     uint16_t voltage = 0;
     int32_t current = 0;
-    getBatteryInfo(batteryPercentage, voltage, current, isCharging);
+    getBatteryInfo(batteryPercentage, voltage, current);
     return voltage;
 }
 
@@ -112,14 +109,13 @@ msg_t BatteryManagement::timer_fn(void* arg) {
     (void)arg;
     if (!detected_) return 0;
     uint8_t batteryPercentage = 102;
-    bool isCharging = false;
     uint16_t voltage = 0;
     int32_t current = 0;
     chThdSleepMilliseconds(1000);  // wait ui for fully load
     while (1) {
-        if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current, isCharging)) {
+        if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current)) {
             // send local message
-            BatteryStateMessage msg{batteryPercentage, isCharging, voltage};
+            BatteryStateMessage msg{batteryPercentage, current >= 0, voltage};
             EventDispatcher::send_message(msg);
         }
         chThdSleepMilliseconds(BATTERY_UPDATE_INTERVAL);
