@@ -270,7 +270,7 @@ class MAX17055 {
     uint16_t emptyVoltage(void);
     uint16_t recoveryVoltage(void);
     int32_t instantCurrent(void);
-    uint16_t averageCurrent(void);
+    int32_t averageCurrent(void);
     uint16_t stateOfCharge(void);
     uint16_t averageStateOfCharge(void);
     uint16_t instantCapacity(void);

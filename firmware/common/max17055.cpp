@@ -546,64 +546,27 @@ uint16_t MAX17055::recoveryVoltage(void) {
     return _Value;
 }
 
-// int16_t MAX17055::instantCurrent(void) {
-//     // Get Data from IC
-//     uint16_t _Measurement_Raw = read_register(0x0A);
-
-// // Calculate Data
-// float _Value = ((float)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__;
-
-// // Convert to int16_t (milliamps)
-// return (int16_t)_Value;
-// }
-
 int32_t MAX17055::instantCurrent(void) {
     // Get Data from IC
     uint16_t _Measurement_Raw = read_register(0x0A);
 
-    // Calculate Data
-    float _Value = ((float)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__;
+    // Convert to signed int16_t (two's complement)
+    int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
 
-    // Convert to int16_t (milliamps)
-    return (int32_t)_Value;
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100);
+
+    // End Function
+    return _Value;
 }
 
-// int32_t MAX17055::instantCurrent(void) {
-//     // Get Data from IC
-//     uint16_t _Measurement_Raw = read_register(0x0A);
-
-//     // Convert to signed int16_t (two's complement)
-//     int16_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
-
-//     // Calculate Data
-//     float _Value = (static_cast<float>(_Signed_Raw) * 0.15625) / __MAX17055_Resistor__;
-
-//     // Convert to int16_t (milliamps)
-//     return static_cast<int32_t>(_Value);
-//     // return -39921875;
-// }
-
-uint16_t MAX17055::averageCurrent(void) {
+int32_t MAX17055::averageCurrent(void) {
     // Get Data from IC
     uint16_t _Measurement_Raw = read_register(0x0B);
 
-    // Declare Variables
-    bool _Signiture = false;
+    // Convert to signed int16_t (two's complement)
+    int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
 
-    // Control for Negative Value
-    if ((_Measurement_Raw >> 12) == 0xF) {
-        // Calculate Data
-        _Measurement_Raw = 0xFFFF - _Measurement_Raw;
-
-        // Assign Signiture
-        _Signiture = true;
-    }
-
-    // Calculate Data
-    uint16_t _Value = (((uint32_t)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__);
-
-    // Assign Signiture
-    if (_Signiture) _Value = -_Value;
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100);
 
     // End Function
     return _Value;
