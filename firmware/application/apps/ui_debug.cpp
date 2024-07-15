@@ -225,6 +225,8 @@ uint32_t RegistersWidget::reg_read(const uint32_t register_number) {
                 return radio::debug::second_if::register_read(register_number);
             case CT_SI5351:
                 return portapack::clock_generator.read_register(register_number);
+            case CT_BATTERY:
+                return battery::BatteryManagement::read_register(register_number);
             case CT_AUDIO:
                 return audio::debug::reg_read(register_number);
         }
@@ -245,6 +247,9 @@ void RegistersWidget::reg_write(const uint32_t register_number, const uint32_t v
                 break;
             case CT_SI5351:
                 portapack::clock_generator.write_register(register_number, value);
+                break;
+            case CT_BATTERY:
+                battery::BatteryManagement::write_register(register_number, value);
                 break;
             case CT_AUDIO:
                 audio::debug::reg_write(register_number, value);
@@ -459,6 +464,10 @@ void DebugPeripheralsMenuView::on_populate() {
         {si5351x, Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this, si5351x]() { nav_.push<RegistersView>(si5351x, RegistersWidgetConfig{CT_SI5351, 188, 96, 8}); }},
         {audio::debug::codec_name(), Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>(audio::debug::codec_name(), RegistersWidgetConfig{CT_AUDIO, audio::debug::reg_count(), audio::debug::reg_count(), audio::debug::reg_bits()}); }},
     });
+    if (battery::BatteryManagement::detectedModule() == battery::BatteryManagement::BatteryModules::BATT_MAX17055) {
+        add_item(
+            {"MAX17055", Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals_details, [this]() { nav_.push<RegistersView>("MAX17055", RegistersWidgetConfig{CT_BATTERY, 256, 16, 16}); }});
+    }
     set_max_rows(2);  // allow wider buttons
 }
 
@@ -496,10 +505,10 @@ void DebugMenuView::on_populate() {
         {"Peripherals", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_peripherals, [this]() { nav_.push<DebugPeripheralsMenuView>(); }},
         {"Pers. Memory", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_memory, [this]() { nav_.push<DebugPmemView>(); }},
         //{ "Radio State",	ui::Theme::getInstance()->bg_darkest->foreground,	nullptr,	[this](){ nav_.push<NotImplementedView>(); } },
-        {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
         {"SD Card", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_sdcard, [this]() { nav_.push<SDCardDebugView>(); }},
         {"Temperature", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_temperature, [this]() { nav_.push<TemperatureView>(); }},
         {"Touch Test", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_notepad, [this]() { nav_.push<DebugScreenTest>(); }},
+        {"Reboot", ui::Theme::getInstance()->fg_darkcyan->foreground, &bitmap_icon_setup, [this]() { nav_.push<DebugReboot>(); }},
     });
 
     for (auto const& gridItem : ExternalItemsMenuLoader::load_external_items(app_location_t::DEBUG, nav_)) {

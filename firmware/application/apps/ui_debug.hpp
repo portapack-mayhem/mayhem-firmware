@@ -139,6 +139,7 @@ typedef enum {
     CT_MAX283X,
     CT_SI5351,
     CT_AUDIO,
+    CT_BATTERY,
 } chip_type_t;
 
 struct RegistersWidgetConfig {
