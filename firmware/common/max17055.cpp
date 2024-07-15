@@ -153,7 +153,7 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
     return false;
 }
 
-void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int16_t& current) {
+void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
     voltage = averageVoltage();
     batteryPercentage = stateOfCharge();
     current = instantCurrent();
@@ -546,7 +546,18 @@ uint16_t MAX17055::recoveryVoltage(void) {
     return _Value;
 }
 
-int16_t MAX17055::instantCurrent(void) {
+// int16_t MAX17055::instantCurrent(void) {
+//     // Get Data from IC
+//     uint16_t _Measurement_Raw = read_register(0x0A);
+
+// // Calculate Data
+// float _Value = ((float)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__;
+
+// // Convert to int16_t (milliamps)
+// return (int16_t)_Value;
+// }
+
+int32_t MAX17055::instantCurrent(void) {
     // Get Data from IC
     uint16_t _Measurement_Raw = read_register(0x0A);
 
@@ -554,8 +565,23 @@ int16_t MAX17055::instantCurrent(void) {
     float _Value = ((float)_Measurement_Raw * 1.5625) / __MAX17055_Resistor__;
 
     // Convert to int16_t (milliamps)
-    return (int16_t)_Value;
+    return (int32_t)_Value;
 }
+
+// int32_t MAX17055::instantCurrent(void) {
+//     // Get Data from IC
+//     uint16_t _Measurement_Raw = read_register(0x0A);
+
+//     // Convert to signed int16_t (two's complement)
+//     int16_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
+
+//     // Calculate Data
+//     float _Value = (static_cast<float>(_Signed_Raw) * 0.15625) / __MAX17055_Resistor__;
+
+//     // Convert to int16_t (milliamps)
+//     return static_cast<int32_t>(_Value);
+//     // return -39921875;
+// }
 
 uint16_t MAX17055::averageCurrent(void) {
     // Get Data from IC
