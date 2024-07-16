@@ -257,7 +257,7 @@ class MAX17055 {
     constexpr MAX17055(I2C& bus, const I2C::address_t bus_address)
         : bus(bus), bus_address(bus_address), detected_(false) {}
 
-    void init(bool redetect = true);
+    void init();
     bool detect();
     bool isDetected() const { return detected_; }
 
@@ -290,7 +290,7 @@ class MAX17055 {
    private:
     I2C& bus;
     const I2C::address_t bus_address;
-    bool detected_;
+    bool detected_ = false;
 
     bool readRegister(uint8_t reg, uint16_t& value);
     bool readMultipleRegister(uint8_t reg, uint8_t* data, uint8_t length, bool endTransmission);
