@@ -509,6 +509,7 @@ include_directories(. ${INCDIR})
 link_directories(${LLIBDIR})
 target_link_libraries(${PROJECT_NAME}.elf ${LIBS} "-L${CMAKE_CURRENT_LIST_DIR}/external")
 target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
+target_link_libraries(${PROJECT_NAME}.elf -Wl,--print-memory-usage)
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.bin
