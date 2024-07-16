@@ -76,7 +76,6 @@ class BattinfoView : public View {
         {72, 17 * 16, 96, 32},
         "Back"};
     static msg_t static_fn(void* arg);
-    static bool needRun;
     Thread* thread{nullptr};
 };
 

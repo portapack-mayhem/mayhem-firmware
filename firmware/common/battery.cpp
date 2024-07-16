@@ -54,11 +54,10 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
     if (detected_ == BATT_NONE) {
         return false;
     } else if (detected_ == BATT_ADS1110) {
-        battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
-        return true;
+        return battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
+
     } else if (detected_ == BATT_MAX17055) {
-        battery_max17055.getBatteryInfo(batteryPercentage, voltage, current);
-        return true;
+        return battery_max17055.getBatteryInfo(batteryPercentage, voltage, current);
     }
     // add new module query here
 
@@ -118,7 +117,7 @@ msg_t BatteryManagement::timer_fn(void* arg) {
     chThdSleepMilliseconds(1000);  // wait ui for fully load
     while (1) {
         if (!detected_) {
-            detect();
+            detect();  // try to detect it again, it maybe disconnected while pp was powered up
         }
         if (detected_) {
             if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current)) {

@@ -263,7 +263,7 @@ class MAX17055 {
 
     uint16_t readVoltage();
     uint8_t readPercentage();
-    void getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+    bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
 
     uint16_t instantVoltage(void);
     uint16_t averageVoltage(void);

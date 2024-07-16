@@ -31,7 +31,6 @@ using namespace portapack;
 
 namespace ui {
 
-bool BattinfoView::needRun = true;
 void BattinfoView::focus() {
     button_exit.focus();
 }
@@ -53,23 +52,23 @@ void BattinfoView::update_result() {
         return;
     }
     bool uichg = false;
-    battery::BatteryManagement::getBatteryInfo(percent, voltage, current);
+    bool valid = battery::BatteryManagement::getBatteryInfo(percent, voltage, current);
     // update text fields
-    if (percent <= 100)
+    if (percent <= 100 && valid)
         text_percent.set(to_string_dec_uint(percent) + " %");
     else
         text_percent.set("UNKNOWN");
-    if (voltage > 1) {
+    if (voltage > 1 && valid) {
         text_voltage.set(to_string_decimal(voltage / 1000.0, 3) + " V");
     } else {
         text_voltage.set("UNKNOWN");
     }
-    if (current != 0) {
+    if (current != 0 && valid) {
         if (labels_opt.hidden()) uichg = true;
         labels_opt.hidden(false);
         text_current.hidden(false);
         text_charge.hidden(false);
-        text_current.set(to_string_decimal(current / 100000.0, 3) + " mA");
+        text_current.set(to_string_decimal(current / 100000.0, 3) + " mA");  // todo don't convert it here
         text_charge.set(current >= 0 ? "Charging" : "Discharging");
         labels_opt.hidden(false);
     } else {
@@ -99,13 +98,12 @@ BattinfoView::BattinfoView(NavigationView& nav)
     };
 
     update_result();
-    needRun = true;
-    thread = chThdCreateFromHeap(NULL, 512, NORMALPRIO + 10, BattinfoView::static_fn, this);
+    if (thread == nullptr) thread = chThdCreateFromHeap(NULL, 1024, NORMALPRIO + 10, BattinfoView::static_fn, this);
 }
 
 msg_t BattinfoView::static_fn(void* arg) {
     auto obj = static_cast<BattinfoView*>(arg);
-    while (needRun) {
+    while (!chThdShouldTerminate()) {
         chThdSleepMilliseconds(16);
         obj->on_timer();
     }
@@ -113,7 +111,6 @@ msg_t BattinfoView::static_fn(void* arg) {
 }
 
 BattinfoView::~BattinfoView() {
-    needRun = false;
     if (thread) {
         chThdTerminate(thread);
         chThdWait(thread);

@@ -31,7 +31,8 @@ namespace max17055 {
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
-    } else {
+    }
+    if (detected_) {  // check again if it is detected
         config();
         setHibCFG(0x0000);
 
@@ -157,16 +158,19 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
     return false;
 }
 
-void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
-    detect();
+bool MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+    detect();  // need to detect again, since user can disconnect the ic anytime, and that could send garbage causing flickering data.
     if (detected_) {
         voltage = averageVoltage();
         batteryPercentage = stateOfCharge();
         current = instantCurrent();
+        return true;
     } else {
+        // let's indicate the data is wrong. ui will handle this by display UNK values.
         voltage = 0;
         batteryPercentage = 102;
         current = 0;
+        return false;
     }
 }
 

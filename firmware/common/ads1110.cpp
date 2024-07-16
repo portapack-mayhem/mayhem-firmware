@@ -118,7 +118,7 @@ uint16_t ADS1110::readVoltage() {
     return (uint16_t)voltage;
 }
 
-void ADS1110::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
+bool ADS1110::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     voltage = readVoltage();
 
     // Calculate the remaining battery percentage
@@ -127,6 +127,7 @@ void ADS1110::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage) {
     // Limit the values to the valid range
     batteryPercentage = (batteryPercentage > 100) ? 100 : batteryPercentage;
     // ToDo: if its > 4, then 100%, if < 3 then 0%
+    return true;
 }
 
 } /* namespace ads1110 */
