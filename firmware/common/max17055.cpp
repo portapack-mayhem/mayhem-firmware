@@ -81,8 +81,10 @@ bool MAX17055::detect() {
 
     // Get Data from IC
     if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
-        detected_ = true;
-        return true;
+        if (((_MAX17055_Data[0] & 0x80) == 0x80) || ((_MAX17055_Data[1] & 0x40) == 0x40)) {
+            detected_ = true;
+            return true;
+        }
     }
     detected_ = false;
     return false;

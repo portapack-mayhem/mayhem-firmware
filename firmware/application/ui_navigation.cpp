@@ -385,6 +385,11 @@ void SystemStatusView::on_battery_details() {
 }
 
 void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
+    if (!batt_was_inited) {
+        batt_was_inited = true;
+        StatusRefreshMessage message{};
+        EventDispatcher::send_message(message);
+    }
     if (!pmem::ui_hide_numeric_battery()) {
         battery_text.set_battery(msg->percent, msg->on_charger);
     }
@@ -410,6 +415,7 @@ void SystemStatusView::refresh() {
 
     if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
+        batt_was_inited = true;
         uint8_t percent = battery::BatteryManagement::getPercent();
         if (!pmem::ui_hide_battery_icon()) {
             status_icons.add(&battery_icon);

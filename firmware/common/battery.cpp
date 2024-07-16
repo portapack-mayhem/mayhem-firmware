@@ -11,7 +11,7 @@ extern I2C portapack::i2c0;
 
 namespace battery {
 
-constexpr uint32_t BATTERY_UPDATE_INTERVAL = 30000;
+constexpr uint32_t BATTERY_UPDATE_INTERVAL = 20000;
 BatteryManagement::BatteryModules BatteryManagement::detected_ = BatteryManagement::BATT_NONE;
 
 ads1110::ADS1110 battery_ads1110{portapack::i2c0, 0x48};
@@ -19,15 +19,18 @@ max17055::MAX17055 battery_max17055{portapack::i2c0, 0x36};
 
 Thread* BatteryManagement::thread = nullptr;
 
-void BatteryManagement::init() {
+void BatteryManagement::detect() {
     // try to detect supported modules
     detected_ = BATT_NONE;
     if (battery_ads1110.detect()) {
         battery_ads1110.init();
         detected_ = BATT_ADS1110;
-    } else if (battery_max17055.detect()) {
+        return;
+    }
+    if (battery_max17055.detect()) {
         battery_max17055.init();
         detected_ = BATT_MAX17055;
+        return;
     }
 
     // add new supported module detect + init here
@@ -35,13 +38,15 @@ void BatteryManagement::init() {
 #ifdef USE_BATT_EMULATOR
     if (detected_ == BATT_NONE) {
         detected_ = BATT_EMULATOR;
+        return;
     }
 #endif
+}
 
-    if (detected_ != BATT_NONE) {
-        // sets timer to query and broadcats this info
-        create_thread();
-    }
+void BatteryManagement::init() {
+    detect();
+    // sets timer to query and broadcats this info
+    create_thread();
 }
 
 // sets the values, it the currend module supports it.
@@ -107,16 +112,20 @@ uint16_t BatteryManagement::getVoltage() {
 
 msg_t BatteryManagement::timer_fn(void* arg) {
     (void)arg;
-    if (!detected_) return 0;
     uint8_t batteryPercentage = 102;
     uint16_t voltage = 0;
     int32_t current = 0;
     chThdSleepMilliseconds(1000);  // wait ui for fully load
     while (1) {
-        if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current)) {
-            // send local message
-            BatteryStateMessage msg{batteryPercentage, current >= 0, voltage};
-            EventDispatcher::send_message(msg);
+        if (!detected_) {
+            detect();
+        }
+        if (detected_) {
+            if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current)) {
+                // send local message
+                BatteryStateMessage msg{batteryPercentage, current >= 0, voltage};
+                EventDispatcher::send_message(msg);
+            }
         }
         chThdSleepMilliseconds(BATTERY_UPDATE_INTERVAL);
     }

@@ -36,6 +36,7 @@ class BatteryManagement {
         BATT_EMULATOR = 254
     };
     static void init();
+    static void detect();
     static bool isDetected() { return detected_ != BATT_NONE; }
     static BatteryModules detectedModule() { return detected_; }
     static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);

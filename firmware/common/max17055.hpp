@@ -47,7 +47,7 @@
 
 // Define Battery Capacity
 #ifndef __MAX17055_Design_Capacity__
-#define __MAX17055_Design_Capacity__ 1500  // Battery Capacity
+#define __MAX17055_Design_Capacity__ 2500  // Battery Capacity
 #endif
 
 // Define Gauge Resistor
