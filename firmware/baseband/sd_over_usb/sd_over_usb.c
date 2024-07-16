@@ -23,7 +23,7 @@
 #include "sd_over_usb.h"
 #include "scsi.h"
 
-bool scsi_running = false;
+volatile bool scsi_running = false;
 
 usb_request_status_t report_max_lun(
     usb_endpoint_t* const endpoint,
@@ -118,8 +118,7 @@ void usb_transfer(void) {
             scsi_bulk_transfer_complete,
             NULL);
 
-        while (!transfer_complete)
-            ;
+        while (!transfer_complete);
 
         msd_cbw_t* msd_cbw_data = (msd_cbw_t*)&usb_bulk_buffer[0x4000];
 
