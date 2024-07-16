@@ -388,6 +388,7 @@ void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
     if (!batt_was_inited) {
         batt_was_inited = true;
         refresh();
+        return;
     }
     if (!pmem::ui_hide_numeric_battery()) {
         battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);

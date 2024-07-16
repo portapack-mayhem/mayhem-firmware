@@ -801,6 +801,7 @@ class BatteryTextField : public Widget {
 
    private:
     uint8_t percent_{102};
+    uint8_t valid_{0};
     bool charge_{false};
 
     Style style{
@@ -826,6 +827,7 @@ class BatteryIcon : public Widget {
 
    private:
     uint8_t percent_{102};
+    uint8_t valid_{0};
     bool charge_{false};
 };
 

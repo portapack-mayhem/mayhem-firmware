@@ -2060,9 +2060,10 @@ void BatteryIcon::getWidgetName(std::string& result) {
 }
 
 void BatteryIcon::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
-    if (charge == charge_ && percent_ == percentage) return;
+    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask) return;
     percent_ = percentage;
     charge_ = charge;
+    valid_ = valid_mask;
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }
@@ -2148,9 +2149,10 @@ void BatteryTextField::getWidgetName(std::string& result) {
 }
 
 void BatteryTextField::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
-    if (charge == charge_ && percent_ == percentage) return;
+    if (charge == charge_ && percent_ == percentage && valid_ == valid_mask) return;
     charge_ = charge;
     percent_ = percentage;
+    valid_ = valid_mask;
     if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }
