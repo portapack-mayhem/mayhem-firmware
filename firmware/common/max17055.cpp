@@ -81,7 +81,9 @@ bool MAX17055::detect() {
 
     // Get Data from IC
     if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
-        if (((_MAX17055_Data[0] & 0x80) == 0x80) || ((_MAX17055_Data[1] & 0x40) == 0x40)) {
+        if (((_MAX17055_Data[0] != 0x00) && (_MAX17055_Data[0] != 0x02)) || (_MAX17055_Data[1] != 0x00)) {
+            // validate result, since i2c gives a bit of power to the ic, and sometimes it sets the init value.
+            // this will return false when the ic is in init state (0x0002), but on the next iteration it'll give the good value
             detected_ = true;
             return true;
         }
@@ -156,9 +158,16 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
 }
 
 void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
-    voltage = averageVoltage();
-    batteryPercentage = stateOfCharge();
-    current = instantCurrent();
+    detect();
+    if (detected_) {
+        voltage = averageVoltage();
+        batteryPercentage = stateOfCharge();
+        current = instantCurrent();
+    } else {
+        voltage = 0;
+        batteryPercentage = 102;
+        current = 0;
+    }
 }
 
 bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
