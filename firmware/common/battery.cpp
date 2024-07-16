@@ -124,6 +124,7 @@ msg_t BatteryManagement::timer_fn(void* arg) {
     while (1) {
         if (!detected_) {
             detect();  // try to detect it again, it maybe disconnected while pp was powered up
+            chThdSleepMilliseconds(500);
         }
         if (detected_) {
             BatteryManagement::getBatteryInfo(validity, batteryPercentage, voltage, current);

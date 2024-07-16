@@ -28,11 +28,11 @@ Boston, MA 02110-1301, USA.
 namespace battery {
 namespace max17055 {
 
-void MAX17055::init() {
-    if (!detected_) {
+void MAX17055::init(bool redetect) {
+    if (!detected_ && redetect) {
         detected_ = detect();
     }
-    if (detected_) {  // check again if it is detected
+    if (detected_ || !redetect) {  // check again if it is detected
         config();
         setHibCFG(0x0000);
 
@@ -85,6 +85,7 @@ bool MAX17055::detect() {
         if (((_MAX17055_Data[0] != 0x00) && (_MAX17055_Data[0] != 0x02)) || (_MAX17055_Data[1] != 0x00)) {
             // validate result, since i2c gives a bit of power to the ic, and sometimes it sets the init value.
             // this will return false when the ic is in init state (0x0002), but on the next iteration it'll give the good value
+            if (detected_ == false) init(false);
             detected_ = true;
             return true;
         }
