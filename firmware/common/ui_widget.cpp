@@ -2048,7 +2048,7 @@ bool TextField::on_touch(TouchEvent event) {
 
 BatteryIcon::BatteryIcon(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(0, percent, false);
+    this->set_battery(percent <= 100 ? 1 : 0, percent, false);
     set_focusable(true);
 }
 
@@ -2123,7 +2123,7 @@ void BatteryIcon::paint(Painter& painter) {
 
 BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(0, percent, false);
+    this->set_battery(percent <= 100 ? 1 : 0, percent, false);
     set_focusable(true);
 }
 
