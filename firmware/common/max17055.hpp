@@ -62,7 +62,7 @@
 
 // Define Maximum Voltage
 #ifndef __MAX17055_Max_Voltage__
-#define __MAX17055_Max_Voltage__ 4.2  // Maximum Voltage
+#define __MAX17055_Max_Voltage__ 4.175  // Maximum Voltage
 #endif
 
 // Define Empty Voltage
@@ -263,7 +263,7 @@ class MAX17055 {
 
     uint16_t readVoltage();
     uint8_t readPercentage();
-    bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+    void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
 
     uint16_t instantVoltage(void);
     uint16_t averageVoltage(void);

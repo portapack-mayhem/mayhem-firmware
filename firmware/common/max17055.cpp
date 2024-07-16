@@ -158,19 +158,16 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
     return false;
 }
 
-bool MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
     detect();  // need to detect again, since user can disconnect the ic anytime, and that could send garbage causing flickering data.
     if (detected_) {
         voltage = averageVoltage();
         batteryPercentage = stateOfCharge();
         current = instantCurrent();
-        return true;
+        valid_mask = 3;  // BATT_VALID_VOLTAGE + CURRENT
     } else {
         // let's indicate the data is wrong. ui will handle this by display UNK values.
-        voltage = 0;
-        batteryPercentage = 102;
-        current = 0;
-        return false;
+        valid_mask = 0;
     }
 }
 
@@ -568,7 +565,7 @@ int32_t MAX17055::instantCurrent(void) {
     // Convert to signed int16_t (two's complement)
     int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
 
-    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100);
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
 
     // End Function
     return _Value;
@@ -581,7 +578,7 @@ int32_t MAX17055::averageCurrent(void) {
     // Convert to signed int16_t (two's complement)
     int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
 
-    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100);
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
 
     // End Function
     return _Value;

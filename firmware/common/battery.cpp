@@ -50,14 +50,16 @@ void BatteryManagement::init() {
 }
 
 // sets the values, it the currend module supports it.
-bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+void BatteryManagement::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
     if (detected_ == BATT_NONE) {
-        return false;
+        valid_mask = BATT_VALID_NONE;
+        return;
     } else if (detected_ == BATT_ADS1110) {
-        return battery_ads1110.getBatteryInfo(batteryPercentage, voltage);
-
+        battery_ads1110.getBatteryInfo(valid_mask, batteryPercentage, voltage);
+        return;
     } else if (detected_ == BATT_MAX17055) {
-        return battery_max17055.getBatteryInfo(batteryPercentage, voltage, current);
+        battery_max17055.getBatteryInfo(valid_mask, batteryPercentage, voltage, current);
+        return;
     }
     // add new module query here
 
@@ -68,12 +70,12 @@ bool BatteryManagement::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& vol
         voltage = rand() % 1000 + 3000;  // mV
         current = rand() % 150;          // mA
         isCharging = rand() % 2;
+        valid_mask = 3;
         return true;
     }
 #endif
 
     (void)current;
-    return false;
 }
 
 uint16_t BatteryManagement::read_register(const uint8_t reg) {
@@ -92,25 +94,29 @@ bool BatteryManagement::write_register(const uint8_t reg, const uint16_t value) 
 
 uint8_t BatteryManagement::getPercent() {
     if (detected_ == BATT_NONE) return 102;
+    uint8_t validity = 0;
     uint8_t batteryPercentage = 0;
     uint16_t voltage = 0;
     int32_t current = 0;
-    getBatteryInfo(batteryPercentage, voltage, current);
+    getBatteryInfo(validity, batteryPercentage, voltage, current);
+    if ((validity & BATT_VALID_VOLTAGE != BATT_VALID_VOLTAGE)) return 102;
     return batteryPercentage;
 }
 
 uint16_t BatteryManagement::getVoltage() {
     if (detected_ == BATT_NONE) return 0;
-    if (detected_ == BATT_NONE) return 102;
+    uint8_t validity = 0;
     uint8_t batteryPercentage = 0;
     uint16_t voltage = 0;
     int32_t current = 0;
-    getBatteryInfo(batteryPercentage, voltage, current);
+    getBatteryInfo(validity, batteryPercentage, voltage, current);
+    if ((validity & BATT_VALID_VOLTAGE != BATT_VALID_VOLTAGE)) return 0;
     return voltage;
 }
 
 msg_t BatteryManagement::timer_fn(void* arg) {
     (void)arg;
+    uint8_t validity = 0;
     uint8_t batteryPercentage = 102;
     uint16_t voltage = 0;
     int32_t current = 0;
@@ -120,11 +126,10 @@ msg_t BatteryManagement::timer_fn(void* arg) {
             detect();  // try to detect it again, it maybe disconnected while pp was powered up
         }
         if (detected_) {
-            if (BatteryManagement::getBatteryInfo(batteryPercentage, voltage, current)) {
-                // send local message
-                BatteryStateMessage msg{batteryPercentage, current >= 0, voltage};
-                EventDispatcher::send_message(msg);
-            }
+            BatteryManagement::getBatteryInfo(validity, batteryPercentage, voltage, current);
+            // send local message
+            BatteryStateMessage msg{validity, batteryPercentage, current >= 0, voltage};
+            EventDispatcher::send_message(msg);
         }
         chThdSleepMilliseconds(BATTERY_UPDATE_INTERVAL);
     }

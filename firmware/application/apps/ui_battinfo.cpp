@@ -24,7 +24,7 @@
 
 #include "event_m0.hpp"
 #include "portapack.hpp"
-
+#include "battery.hpp"
 #include <cstring>
 
 using namespace portapack;
@@ -52,23 +52,24 @@ void BattinfoView::update_result() {
         return;
     }
     bool uichg = false;
-    bool valid = battery::BatteryManagement::getBatteryInfo(percent, voltage, current);
+    uint8_t valid_mask = 0;
+    battery::BatteryManagement::getBatteryInfo(valid_mask, percent, voltage, current);
     // update text fields
-    if (percent <= 100 && valid)
+    if (percent <= 100 && (valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) == battery::BatteryManagement::BATT_VALID_VOLTAGE)
         text_percent.set(to_string_dec_uint(percent) + " %");
     else
         text_percent.set("UNKNOWN");
-    if (voltage > 1 && valid) {
+    if (voltage > 1 && (valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) == battery::BatteryManagement::BATT_VALID_VOLTAGE) {
         text_voltage.set(to_string_decimal(voltage / 1000.0, 3) + " V");
     } else {
         text_voltage.set("UNKNOWN");
     }
-    if (current != 0 && valid) {
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_CURRENT) == battery::BatteryManagement::BATT_VALID_CURRENT) {
         if (labels_opt.hidden()) uichg = true;
         labels_opt.hidden(false);
         text_current.hidden(false);
         text_charge.hidden(false);
-        text_current.set(to_string_decimal(current / 100000.0, 3) + " mA");  // todo don't convert it here
+        text_current.set(to_string_dec_int(current) + " mA");
         text_charge.set(current >= 0 ? "Charging" : "Discharging");
         labels_opt.hidden(false);
     } else {
@@ -79,7 +80,7 @@ void BattinfoView::update_result() {
     }
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
-    BatteryStateMessage msg{percent, current >= 0, voltage};
+    BatteryStateMessage msg{valid_mask, voltage, current >= 0, voltage};
     EventDispatcher::send_message(msg);
 }
 

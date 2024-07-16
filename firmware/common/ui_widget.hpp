@@ -97,8 +97,8 @@ class Widget {
 
     virtual void paint(Painter& painter) = 0;
 
-    virtual void on_show(){};
-    virtual void on_hide(){};
+    virtual void on_show() {};
+    virtual void on_hide() {};
 
     virtual bool on_key(const KeyEvent event);
     virtual bool on_encoder(const EncoderEvent event);
@@ -790,7 +790,7 @@ class BatteryTextField : public Widget {
     BatteryTextField(Rect parent_rect, uint8_t percent);
     void paint(Painter& painter) override;
 
-    void set_battery(uint8_t percentage, bool charge);
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
     void set_text(std::string_view value);
 
     bool on_key(KeyEvent key) override;
@@ -816,7 +816,7 @@ class BatteryIcon : public Widget {
 
     BatteryIcon(Rect parent_rect, uint8_t percent);
     void paint(Painter& painter) override;
-    void set_battery(uint8_t percentage, bool charge);
+    void set_battery(uint8_t valid_mask, uint8_t percentage, bool charge);
 
     bool on_key(KeyEvent key) override;
     bool on_touch(TouchEvent event) override;

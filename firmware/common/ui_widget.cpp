@@ -2048,7 +2048,7 @@ bool TextField::on_touch(TouchEvent event) {
 
 BatteryIcon::BatteryIcon(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(percent, false);
+    this->set_battery(0, percent, false);
     set_focusable(true);
 }
 
@@ -2059,10 +2059,11 @@ void BatteryIcon::getWidgetName(std::string& result) {
     result = "Battery percent";
 }
 
-void BatteryIcon::set_battery(uint8_t percentage, bool charge) {
+void BatteryIcon::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
     if (charge == charge_ && percent_ == percentage) return;
     percent_ = percentage;
     charge_ = charge;
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }
 
@@ -2121,7 +2122,7 @@ void BatteryIcon::paint(Painter& painter) {
 
 BatteryTextField::BatteryTextField(Rect parent_rect, uint8_t percent)
     : Widget(parent_rect) {
-    this->set_battery(percent, false);
+    this->set_battery(0, percent, false);
     set_focusable(true);
 }
 
@@ -2146,10 +2147,11 @@ void BatteryTextField::getWidgetName(std::string& result) {
     result = "Battery percent";
 }
 
-void BatteryTextField::set_battery(uint8_t percentage, bool charge) {
+void BatteryTextField::set_battery(uint8_t valid_mask, uint8_t percentage, bool charge) {
     if (charge == charge_ && percent_ == percentage) return;
     charge_ = charge;
     percent_ = percentage;
+    if ((valid_mask & battery::BatteryManagement::BATT_VALID_VOLTAGE) != battery::BatteryManagement::BATT_VALID_VOLTAGE) percent_ = 102;  // to indicate error
     set_dirty();
 }
 

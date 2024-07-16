@@ -1413,14 +1413,17 @@ class PocsagTosendMessage : public Message {
 class BatteryStateMessage : public Message {
    public:
     constexpr BatteryStateMessage(
+        uint8_t valid_mask,
         uint8_t percent,
         bool on_charger,
         uint16_t voltage)
         : Message{ID::BatteryStateData},
+          valid_mask{valid_mask},
           percent{percent},
           on_charger{on_charger},
           voltage{voltage} {
     }
+    uint8_t valid_mask = 0;
     uint8_t percent = 0;
     bool on_charger = false;
     uint16_t voltage = 0;  // mV
