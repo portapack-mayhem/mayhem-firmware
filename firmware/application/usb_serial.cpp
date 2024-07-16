@@ -45,11 +45,11 @@ void USBSerial::dispatch_transfer() {
 }
 
 void USBSerial::on_channel_opened() {
-    reset_transfer_queues();
     connected = true;
 }
 
 void USBSerial::on_channel_closed() {
+    reset_transfer_queues();
     connected = false;
 }
 
