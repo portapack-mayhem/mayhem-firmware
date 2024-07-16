@@ -99,7 +99,7 @@ uint8_t BatteryManagement::getPercent() {
     uint16_t voltage = 0;
     int32_t current = 0;
     getBatteryInfo(validity, batteryPercentage, voltage, current);
-    if ((validity & BATT_VALID_VOLTAGE != BATT_VALID_VOLTAGE)) return 102;
+    if ((validity & BATT_VALID_VOLTAGE) != BATT_VALID_VOLTAGE) return 102;
     return batteryPercentage;
 }
 
@@ -110,7 +110,7 @@ uint16_t BatteryManagement::getVoltage() {
     uint16_t voltage = 0;
     int32_t current = 0;
     getBatteryInfo(validity, batteryPercentage, voltage, current);
-    if ((validity & BATT_VALID_VOLTAGE != BATT_VALID_VOLTAGE)) return 0;
+    if ((validity & BATT_VALID_VOLTAGE) != BATT_VALID_VOLTAGE) return 0;
     return voltage;
 }
 

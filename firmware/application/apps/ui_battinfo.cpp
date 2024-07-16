@@ -70,7 +70,7 @@ void BattinfoView::update_result() {
         text_current.hidden(false);
         text_charge.hidden(false);
         text_current.set(to_string_dec_int(current) + " mA");
-        text_charge.set(current >= 0 ? "Charging" : "Discharging");
+        text_charge.set(current > 0 ? "Charging" : "Discharging");
         labels_opt.hidden(false);
     } else {
         if (!labels_opt.hidden()) uichg = true;
@@ -80,7 +80,7 @@ void BattinfoView::update_result() {
     }
     if (uichg) set_dirty();
     // to update status bar too, send message in behalf of batt manager
-    BatteryStateMessage msg{valid_mask, voltage, current >= 0, voltage};
+    BatteryStateMessage msg{valid_mask, percent, current >= 0, voltage};
     EventDispatcher::send_message(msg);
 }
 
