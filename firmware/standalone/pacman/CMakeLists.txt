@@ -220,6 +220,7 @@ target_link_libraries(${PROJECT_NAME}.elf -Wl,-Map=${PROJECT_NAME}.map)
 # redirect std lib memory allocations
 target_link_libraries(${PROJECT_NAME}.elf "-Wl,-wrap,_malloc_r")
 target_link_libraries(${PROJECT_NAME}.elf "-Wl,-wrap,_free_r")
+target_link_libraries(${PROJECT_NAME}.elf "-Wl,--print-memory-usage")
 
 add_custom_command(
 	OUTPUT ${PROJECT_NAME}.ppmp
