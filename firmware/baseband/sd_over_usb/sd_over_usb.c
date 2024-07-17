@@ -23,7 +23,7 @@
 #include "sd_over_usb.h"
 #include "scsi.h"
 
-bool scsi_running = false;
+volatile bool scsi_running = false;
 
 usb_request_status_t report_max_lun(
     usb_endpoint_t* const endpoint,

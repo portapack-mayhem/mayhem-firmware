@@ -27,6 +27,7 @@
 #define USB_BULK_BUFFER_SIZE 64
 
 void init_host_to_device();
+void reset_transfer_queues();
 void serial_bulk_transfer_complete(void* user_data, unsigned int bytes_transferred);
 void schedule_host_to_device_transfer();
 void complete_host_to_device_transfer();
