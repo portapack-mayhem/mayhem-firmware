@@ -1,0 +1,8 @@
+f=400600000,d=poprad CH1
+f=403630000,d=zahorie CH2
+f=403810000,d=zahorie1 CH3
+f=403670000,d=zahorie2CH4
+f=403500000,d=vienna CH5
+f=402300000,d=szeged CH6
+f=403200000,d=budapest CH7
+f=404199000,d=praha CH8
