@@ -35,10 +35,16 @@ class BatteryManagement {
         BATT_MAX17055 = 2,
         BATT_EMULATOR = 254
     };
+    enum BatteryValidMask {
+        BATT_VALID_NONE = 0,
+        BATT_VALID_VOLTAGE = 1,
+        BATT_VALID_CURRENT = 2,
+    };
     static void init();
+    static void detect();
     static bool isDetected() { return detected_ != BATT_NONE; }
     static BatteryModules detectedModule() { return detected_; }
-    static bool getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
+    static void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current);
     static uint16_t getVoltage();
     static uint8_t getPercent();
     static uint16_t read_register(const uint8_t reg);

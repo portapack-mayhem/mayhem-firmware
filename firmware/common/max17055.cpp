@@ -31,7 +31,8 @@ namespace max17055 {
 void MAX17055::init() {
     if (!detected_) {
         detected_ = detect();
-    } else {
+    }
+    if (detected_) {  // check again if it is detected
         config();
         setHibCFG(0x0000);
 
@@ -81,8 +82,15 @@ bool MAX17055::detect() {
 
     // Get Data from IC
     if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
-        detected_ = true;
-        return true;
+        if (((_MAX17055_Data[0] != 0x00) && (_MAX17055_Data[0] != 0x02)) || (_MAX17055_Data[1] != 0x00)) {
+            // validate result, since i2c gives a bit of power to the ic, and sometimes it sets the init value.
+            // this will return false when the ic is in init state (0x0002), but on the next iteration it'll give the good value
+            if (detected_ == false) {
+                detected_ = true;
+                init();
+            }
+            return true;
+        }
     }
     detected_ = false;
     return false;
@@ -153,10 +161,17 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
     return false;
 }
 
-void MAX17055::getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
-    voltage = averageVoltage();
-    batteryPercentage = stateOfCharge();
-    current = instantCurrent();
+void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
+    detect();  // need to detect again, since user can disconnect the ic anytime, and that could send garbage causing flickering data.
+    if (detected_) {
+        voltage = averageVoltage();
+        batteryPercentage = stateOfCharge();
+        current = instantCurrent();
+        valid_mask = 3;  // BATT_VALID_VOLTAGE + CURRENT
+    } else {
+        // let's indicate the data is wrong. ui will handle this by display UNK values.
+        valid_mask = 0;
+    }
 }
 
 bool MAX17055::setEmptyVoltage(uint16_t _Empty_Voltage) {
@@ -553,7 +568,7 @@ int32_t MAX17055::instantCurrent(void) {
     // Convert to signed int16_t (two's complement)
     int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
 
-    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100);
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
 
     // End Function
     return _Value;
@@ -566,7 +581,7 @@ int32_t MAX17055::averageCurrent(void) {
     // Convert to signed int16_t (two's complement)
     int32_t _Signed_Raw = static_cast<int16_t>(_Measurement_Raw);
 
-    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100);
+    int32_t _Value = (_Signed_Raw * 15625) / (__MAX17055_Resistor__ * 100) / 100000;
 
     // End Function
     return _Value;

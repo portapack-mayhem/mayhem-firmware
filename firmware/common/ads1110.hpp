@@ -42,7 +42,7 @@ class ADS1110 {
     bool isDetected() const { return detected_; }
 
     uint16_t readVoltage();
-    void getBatteryInfo(uint8_t& batteryPercentage, uint16_t& voltage);
+    void getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage);
 
    private:
     I2C& bus;

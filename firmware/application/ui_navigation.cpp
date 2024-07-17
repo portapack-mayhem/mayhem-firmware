@@ -385,11 +385,16 @@ void SystemStatusView::on_battery_details() {
 }
 
 void SystemStatusView::on_battery_data(const BatteryStateMessage* msg) {
+    if (!batt_was_inited) {
+        batt_was_inited = true;
+        refresh();
+        return;
+    }
     if (!pmem::ui_hide_numeric_battery()) {
-        battery_text.set_battery(msg->percent, msg->on_charger);
+        battery_text.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
     }
     if (!pmem::ui_hide_battery_icon()) {
-        battery_icon.set_battery(msg->percent, msg->on_charger);
+        battery_icon.set_battery(msg->valid_mask, msg->percent, msg->on_charger);
     };
 }
 
@@ -410,14 +415,15 @@ void SystemStatusView::refresh() {
 
     if (!pmem::ui_hide_fake_brightness()) status_icons.add(&button_fake_brightness);
     if (battery::BatteryManagement::isDetected()) {
+        batt_was_inited = true;
         uint8_t percent = battery::BatteryManagement::getPercent();
         if (!pmem::ui_hide_battery_icon()) {
             status_icons.add(&battery_icon);
-            battery_text.set_battery(percent, false);  // got an on select, that may pop up the details of the battery.
+            battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);  // got an on select, that may pop up the details of the battery.
         };
         if (!pmem::ui_hide_numeric_battery()) {
             status_icons.add(&battery_text);
-            battery_text.set_battery(percent, false);
+            battery_text.set_battery(percent <= 100 ? 1 : 0, percent, false);
         }
     }
 
