@@ -342,6 +342,60 @@ bool MAX17055::setDesignCapacity(const uint16_t _Capacity) {
     return _Result;
 }
 
+bool MAX17055::setFullCapRep(const uint16_t _Capacity) {
+    // Set Raw
+    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
+
+    // Declare Default Data Array
+    uint8_t _Data[2];
+
+    // Set Data Low/High Byte
+    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
+    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
+
+    // Set Register
+    bool _Result = writeMultipleRegister(0x10, _Data, 2);
+
+    // End Function
+    return _Result;
+}
+
+bool MAX17055::setFullCapNom(const uint16_t _Capacity) {
+    // Set Raw
+    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
+
+    // Declare Default Data Array
+    uint8_t _Data[2];
+
+    // Set Data Low/High Byte
+    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
+    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
+
+    // Set Register
+    bool _Result = writeMultipleRegister(0x23, _Data, 2);
+
+    // End Function
+    return _Result;
+}
+
+bool MAX17055::setRepCap(const uint16_t _Capacity) {
+    // Set Raw
+    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
+
+    // Declare Default Data Array
+    uint8_t _Data[2];
+
+    // Set Data Low/High Byte
+    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
+    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
+
+    // Set Register
+    bool _Result = writeMultipleRegister(0x05, _Data, 2);
+
+    // End Function
+    return _Result;
+}
+
 bool MAX17055::setMinSOC(uint8_t _Minimum_SOC) {
     // Define Data Variable
     uint8_t MAX17055_Current_Data[2];
