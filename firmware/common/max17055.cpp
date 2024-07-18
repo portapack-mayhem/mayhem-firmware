@@ -160,7 +160,7 @@ void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, u
         // Read Status Register
         readMultipleRegister(0x00, (uint8_t*)&status, 2, false);
         voltage = averageVoltage();
-        if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600)) {
+        if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
             valid_mask = 0;
             return;
         }
