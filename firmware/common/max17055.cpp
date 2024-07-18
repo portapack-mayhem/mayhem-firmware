@@ -82,15 +82,8 @@ bool MAX17055::detect() {
 
     // Get Data from IC
     if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
-        if (_MAX17055_Data[0] != 0x02) {
-            // validate result, since i2c gives a bit of power to the ic, and sometimes it sets the init value.
-            // this will return false when the ic is in init state (0x0002), but on the next iteration it'll give the good value
-            if (detected_ == false) {
-                detected_ = true;
-                init();
-            }
-            return true;
-        }
+        detected_ = true;
+        return true;
     }
     detected_ = false;
     return false;
@@ -162,9 +155,15 @@ bool MAX17055::writeMultipleRegister(uint8_t reg, const uint8_t* data, uint8_t l
 }
 
 void MAX17055::getBatteryInfo(uint8_t& valid_mask, uint8_t& batteryPercentage, uint16_t& voltage, int32_t& current) {
-    detect();  // need to detect again, since user can disconnect the ic anytime, and that could send garbage causing flickering data.
     if (detected_) {
+        uint16_t status = 0;
+        // Read Status Register
+        readMultipleRegister(0x00, (uint8_t*)&status, 2, false);
         voltage = averageVoltage();
+        if ((status == 0 && voltage == 0) || (status == 0x0002 && voltage == 3600) || (status == 0x0002 && voltage == 0)) {
+            valid_mask = 0;
+            return;
+        }
         batteryPercentage = stateOfCharge();
         current = instantCurrent();
         valid_mask = 3;  // BATT_VALID_VOLTAGE + CURRENT
