@@ -62,7 +62,7 @@
 
 // Define Maximum Voltage
 #ifndef __MAX17055_Max_Voltage__
-#define __MAX17055_Max_Voltage__ 4.175  // Maximum Voltage
+#define __MAX17055_Max_Voltage__ 4.17  // Maximum Voltage
 #endif
 
 // Define Empty Voltage
@@ -72,7 +72,7 @@
 
 // Define Recovery Voltage
 #ifndef __MAX17055_Recovery_Voltage__
-#define __MAX17055_Recovery_Voltage__ 3.7  // Recovery Voltage
+#define __MAX17055_Recovery_Voltage__ 3.1  // Recovery Voltage
 #endif
 
 // Define Maximum Current
@@ -105,12 +105,12 @@
 
 // Define Minimum SOC
 #ifndef __MAX17055_Min_SOC__
-#define __MAX17055_Min_SOC__ 20  // Minimum SOC
+#define __MAX17055_Min_SOC__ 0  // Minimum SOC
 #endif
 
 // Define Maximum SOC
 #ifndef __MAX17055_Max_SOC__
-#define __MAX17055_Max_SOC__ 90  // Maximum SOC
+#define __MAX17055_Max_SOC__ 100  // Maximum SOC
 #endif
 
 // Config1 (0x1D) Configuration
@@ -303,6 +303,9 @@ class MAX17055 {
     bool setMaxCurrent(uint16_t _Maximum_Current);
     bool setChargeTerminationCurrent(uint16_t _Charge_Termination_Current);
     bool setDesignCapacity(const uint16_t _Capacity);
+    bool setFullCapRep(const uint16_t _Capacity);
+    bool setFullCapNom(const uint16_t _Capacity);
+    bool setRepCap(const uint16_t _Capacity);
     bool setMinSOC(uint8_t _Minimum_SOC);
     bool setMaxSOC(uint8_t _Maximum_SOC);
     bool setMinTemperature(uint8_t _Minimum_Temperature);

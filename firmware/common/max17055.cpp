@@ -82,7 +82,7 @@ bool MAX17055::detect() {
 
     // Get Data from IC
     if (readMultipleRegister(0x00, _MAX17055_Data, 2, false)) {
-        if (((_MAX17055_Data[0] != 0x00) && (_MAX17055_Data[0] != 0x02)) || (_MAX17055_Data[1] != 0x00)) {
+        if (_MAX17055_Data[0] != 0x02) {
             // validate result, since i2c gives a bit of power to the ic, and sometimes it sets the init value.
             // this will return false when the ic is in init state (0x0002), but on the next iteration it'll give the good value
             if (detected_ == false) {
@@ -338,6 +338,60 @@ bool MAX17055::setDesignCapacity(const uint16_t _Capacity) {
 
     // Set Register
     bool _Result = writeMultipleRegister(0x18, _Data, 2);
+
+    // End Function
+    return _Result;
+}
+
+bool MAX17055::setFullCapRep(const uint16_t _Capacity) {
+    // Set Raw
+    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
+
+    // Declare Default Data Array
+    uint8_t _Data[2];
+
+    // Set Data Low/High Byte
+    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
+    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
+
+    // Set Register
+    bool _Result = writeMultipleRegister(0x10, _Data, 2);
+
+    // End Function
+    return _Result;
+}
+
+bool MAX17055::setFullCapNom(const uint16_t _Capacity) {
+    // Set Raw
+    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
+
+    // Declare Default Data Array
+    uint8_t _Data[2];
+
+    // Set Data Low/High Byte
+    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
+    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
+
+    // Set Register
+    bool _Result = writeMultipleRegister(0x23, _Data, 2);
+
+    // End Function
+    return _Result;
+}
+
+bool MAX17055::setRepCap(const uint16_t _Capacity) {
+    // Set Raw
+    uint16_t _Raw_Cap = (uint16_t)_Capacity * 2;
+
+    // Declare Default Data Array
+    uint8_t _Data[2];
+
+    // Set Data Low/High Byte
+    _Data[0] = ((_Raw_Cap & (uint16_t)0x00FF));
+    _Data[1] = ((_Raw_Cap & (uint16_t)0xFF00) >> 8);
+
+    // Set Register
+    bool _Result = writeMultipleRegister(0x05, _Data, 2);
 
     // End Function
     return _Result;
